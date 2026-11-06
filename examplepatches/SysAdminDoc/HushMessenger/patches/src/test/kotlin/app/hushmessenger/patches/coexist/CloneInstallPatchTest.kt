@@ -3,6 +3,7 @@ package app.hushmessenger.patches.coexist
 import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.controls.DEFAULT_STRINGS
 import app.hushmessenger.patches.controls.MANIFEST_STRINGS
+import app.hushmessenger.patches.controls.PROFILE_347215273
 import app.hushmessenger.patches.controls.RESTART_LABEL
 import app.hushmessenger.patches.controls.SETTINGS_AUTHORITY_SUFFIX
 import app.hushmessenger.patches.controls.SETTINGS_LABEL
@@ -10,6 +11,7 @@ import app.hushmessenger.patches.controls.SHORTCUT_HOST
 import app.hushmessenger.patches.controls.addSettingsEntry
 import app.hushmessenger.patches.controls.addStrings
 import app.hushmessenger.patches.controls.collectLifecycle
+import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.fixtureClass
 import app.hushmessenger.patches.controls.fixtureMethod
 import app.hushmessenger.patches.controls.hookId
@@ -294,6 +296,23 @@ private fun otherIntents() = fixtureMethod("LX/A5j;->BkS(Landroid/content/Contex
     return-void
 """.trimIndent(), 5)
 
+/**
+ * 347215273's Hatch share sheet, with the helper the other builds call inlined: one constant for Messenger's name goes
+ * to the installed check, the intent and the start.
+ */
+private fun hatchShare() = fixtureMethod("LX/Hhn;->A00(Landroid/content/Context;)V", """
+    const-string v2, "com.facebook.orca"
+    invoke-static {p1, v2}, LX/JEA;->A06(Landroid/content/Context;Ljava/lang/String;)Z
+    move-result v0
+    if-eqz v0, :missing
+    new-instance v1, Landroid/content/Intent;
+    invoke-direct {v1}, Landroid/content/Intent;-><init>()V
+    invoke-virtual {v1, v2}, $SET_PACKAGE
+    invoke-static {p1, v1, v2}, LX/JEA;->A04(Landroid/content/Context;Landroid/content/Intent;Ljava/lang/String;)Z
+    :missing
+    return-void
+""".trimIndent(), 5)
+
 private fun MutableMethod.code() = implementation!!.instructions.toList()
 
 private fun MutableMethod.calls() = code().indices.filter { (code()[it] as? ReferenceInstruction)?.reference?.toString() == SET_PACKAGE }
@@ -528,6 +547,20 @@ class CloneInstallPatchTest {
         assertEquals(storyBefore.filterIndexed { i, _ -> i != load }, story.code().filterIndexed { i, _ -> i != load })
     }
 
+    @Test fun aNameTheHatchShareSheetAlsoChecksAndStartsWithStaysMessengers() {
+        val hatch = hatchShare()
+        val before = hatch.code()
+        assertEquals(setOf("$SENDER@1"), findCloneSites(listOf(fixtureClass("LX/38C;", listOf(broadcastSender())),
+            fixtureClass("LX/Hhn;", listOf(hatch)))))
+        assertFailsWith<PatchException> { hatch.selfIntentSite(hatch.calls().single(), emptySet()) }
+        // The same intent with nothing else reading the name is a clone site.
+        val alone = fixtureMethod("LX/Hhn;->A00(Landroid/content/Context;)V", "const-string v2, \"com.facebook.orca\"\n" +
+            "new-instance v1, Landroid/content/Intent;\ninvoke-direct {v1}, Landroid/content/Intent;-><init>()V\n" +
+            "invoke-virtual {v1, v2}, $SET_PACKAGE\nreturn-void", 5)
+        assertEquals(setOf("LX/Hhn;->A00(Landroid/content/Context;)V@3"), findCloneSites(listOf(fixtureClass("LX/Hhn;", listOf(alone)))))
+        assertEquals(before, hatch.code())
+    }
+
     @Test fun aChangedIntentSiteStopsThePatchBeforeAnythingChanges() {
         val pools = setOf("$POOL#81")
         val logs = "invoke-static {v0}, LX/0q1;->A0F(Ljava/lang/String;)V\n"
@@ -621,8 +654,13 @@ class CloneInstallPatchTest {
 
     @Test fun eachBuildFamilyHasItsOwnPinnedSites() {
         val families = MessengerTarget.VERSION_CODES.map { expectedCloneSitesFor(it.toString()) }.toSet()
-        assertEquals(2, families.size)
+        assertEquals(3, families.size)
         assertTrue(families.all { it.size == 7 && it.count { id -> '@' in id } == 5 })
+        assertEquals(setOf("LX/Lut;-><init>()V", "LX/4MC;->A00(Ljava/lang/String;)Z",
+            "LX/38z;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/90T;->A04(Landroid/os/Bundle;)LX/9UX;@228", "LX/90T;->A04(Landroid/os/Bundle;)LX/9UX;@323",
+            "LX/CbF;->onClick(Landroid/view/View;)V@81", "LX/S5L;->onClick(Landroid/view/View;)V@62"), expectedCloneSitesFor("347215273"))
+        assertEquals(expectedCloneSitesFor("347215273"), expectedCloneSitesFor("347215277"))
         assertEquals(setOf("LX/Y7a;-><init>()V", "LX/4NY;->A00(Ljava/lang/String;)Z",
             "LX/391;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
             "LX/93D;->A04(Landroid/os/Bundle;)LX/9Xq;@228", "LX/93D;->A04(Landroid/os/Bundle;)LX/9Xq;@323",
@@ -654,7 +692,7 @@ class CloneInstallPatchTest {
                 <category android:name="com.facebook.orca"/></intent-filter>
             </receiver>
         """.trimIndent()
-        for ((name, selection) in listOf<Pair<String, Set<Patch<*>>>>("off" to setOf(menuSettingsPatch), "on" to setOf(menuSettingsPatch, request))) {
+        for ((name, selection) in listOf<Pair<String, Set<Patch>>>("off" to setOf(menuSettingsPatch), "on" to setOf(menuSettingsPatch, request))) {
             val owner = if (name == "on") COPY else "com.facebook.orca"
             val apk = lifecycleApk(temporary.resolve("input-$name"), lifecycleClasses(), permissions, components)
             withLifecycleExtension(extension) { _ ->
@@ -703,7 +741,8 @@ class CloneInstallPatchTest {
             val classes: List<ClassDef> = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
             val expected = expectedCloneSitesFor(code)
             val pools = ownNamePoolKeys(classes)
-            assertEquals(1, pools.size, code)
+            // 347215273, 347215275 and 347215277 load Messenger's name as a constant everywhere.
+            assertEquals(if (controlProfileFor(code) === PROFILE_347215273) 0 else 1, pools.size, code)
             assertEquals(expected, findCloneSites(classes, pools), code)
             families += expected
             val methods = expected.map { it.substringBefore('@') }.distinct().associateWith { id ->

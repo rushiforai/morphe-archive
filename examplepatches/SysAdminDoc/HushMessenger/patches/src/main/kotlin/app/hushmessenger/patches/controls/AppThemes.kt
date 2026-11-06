@@ -108,19 +108,28 @@ internal fun Method.appThemePickSite(): AppThemePickSite? {
     return AppThemePickSite(show, scratch, fragment, pickField)
 }
 
-/** Reads the tap case and the picker's list builder from the one case the build has, or null. */
+/**
+ * Reads the tap case and the picker's list builder from the one case the build has, or null. Family B moved the list
+ * builder up into the picker's abstract base, so a picker with no builder of its own takes its nearest superclass's,
+ * as long as no class on the way overrides it and the tap's package can call it.
+ */
 internal fun resolveAppThemePick(classes: Iterable<ClassDef>): AppThemePick? {
     val byType = classes.associateBy { it.type }
     val tap = classes.flatMap { it.methods }.filter { it.isAppThemeTap() }.singleOrNull() ?: return null
     val site = tap.appThemePickSite() ?: return null
-    val picker = byType[site.pickField.substringBefore("->")] ?: return null
     fun asksGate(call: MethodReference) = call.returnType == "Z" && call.parameterTypes.map { it.toString() } == listOf(FB_USER_SESSION) &&
         byType[call.definingClass]?.methods?.singleOrNull { it.hookId() == call.toString() }?.isAppThemeGate() == true
-    val redraw = picker.methods.singleOrNull { m ->
+    fun redraws(cls: ClassDef) = cls.methods.filter { m ->
         m.parameterTypes.isEmpty() && m.returnType == "V" && m.name != "<init>" &&
             !AccessFlags.STATIC.isSet(m.accessFlags) && !AccessFlags.PRIVATE.isSet(m.accessFlags) &&
             m.themeCode().any { it.opcode == Opcode.INVOKE_STATIC && (it.themeRef() as? MethodReference)?.let(::asksGate) == true }
-    } ?: return null
+    }
+    val chain = generateSequence(byType[site.pickField.substringBefore("->")]) { it.superclass?.let(byType::get) }.take(8).toList()
+    val owner = chain.indexOfFirst { redraws(it).isNotEmpty() }.takeIf { it >= 0 } ?: return null
+    val redraw = redraws(chain[owner]).singleOrNull() ?: return null
+    if (chain.take(owner).any { cls -> cls.methods.any { it.name == redraw.name && it.parameterTypes.isEmpty() } }) return null
+    if (owner > 0 && !AccessFlags.PUBLIC.isSet(redraw.accessFlags) &&
+        redraw.definingClass.substringBeforeLast('/', "") != tap.definingClass.substringBeforeLast('/', "")) return null
     return AppThemePick(tap, site, redraw.hookId())
 }
 

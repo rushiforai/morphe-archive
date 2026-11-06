@@ -18,9 +18,11 @@ BUILD = ROOT / 'build' / 'catppuccin'
 SOURCES = [
     ROOT / "patches/src/main/kotlin/app/morphe/patches/todoist/TodoistPatches.kt",
     ROOT / "patches/src/main/kotlin/app/morphe/patches/anki/CatppuccinAnkiPatch.kt",
+    ROOT / "patches/src/main/kotlin/app/morphe/patches/anki/AnkiWidgetPatch.kt",
     ROOT / "patches/src/main/kotlin/app/morphe/patches/shared/fonts/TrueType.kt",
     ROOT / "patches/src/main/kotlin/app/morphe/patches/reddit/customclients/boostforreddit/theme/CustomFontBoostPatch.kt",
     ROOT / 'patches/src/main/kotlin/app/morphe/patches/reddit/customclients/boostforreddit/theme/CatppuccinThemePatch.kt',
+    ROOT / 'patches/src/main/kotlin/app/morphe/patches/reddit/customclients/boostforreddit/theme/ModernBoostThemePatch.kt',
     ROOT / 'patches/src/main/kotlin/app/morphe/patches/gboard/theme/CatppuccinGboardPatch.kt',
     ROOT / 'patches/src/main/kotlin/app/morphe/patches/gboard/theme/CustomFontGboardPatch.kt',
 ]
@@ -29,6 +31,8 @@ SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/fastmail/Catpp
 SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/immich/ImmichPatches.kt')
 if os.environ.get('CATPPUCCIN_IMMICH_TEST') == '1':
     SOURCES.append(ROOT / 'test/immich/TestIdentityPatch.kt')
+if os.environ.get('CATPPUCCIN_BOOST_TEST') == '1':
+    SOURCES.append(ROOT / 'test/boost-1.14.2/TestIdentityPatch.kt')
 
 SOURCES.append(ROOT / 'patches/src/main/kotlin/app/morphe/patches/pocketcasts/PocketCastsPatches.kt')
 if os.environ.get('CATPPUCCIN_POCKETCASTS_TEST') == '1':
@@ -57,7 +61,7 @@ if os.environ.get('CATPPUCCIN_ANKI_TEST') == '1':
 
 MORPHE_VERSION = '1.18.0'
 KOTLIN_VERSION = '2.3.21'
-BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.8.0')
+BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.10.1')
 
 
 def fetch(name, url):
@@ -172,6 +176,19 @@ def main():
     pocket_dex = BUILD / 'pocketcasts-extension.zip'
     run(java, '-cp', d8, 'com.android.tools.r8.D8', '--release', '--min-api', '32',
         '--lib', android_jar, '--output', pocket_dex, pocket_jar)
+    boost_classes = BUILD / 'boost-modern-extension'
+    if boost_classes.exists():
+        shutil.rmtree(boost_classes)
+    boost_classes.mkdir()
+    run(java_home / 'bin/javac', '--release', '8', '-classpath', android_jar,
+        '-d', boost_classes, *sorted((ROOT / 'tools/boost/src').rglob('*.java')))
+    boost_jar = BUILD / 'boost-modern-extension.jar'
+    with zipfile.ZipFile(boost_jar, 'w') as archive:
+        for path in boost_classes.rglob('*.class'):
+            archive.write(path, path.relative_to(boost_classes))
+    boost_dex = BUILD / 'boost-modern-extension.zip'
+    run(java, '-cp', d8, 'com.android.tools.r8.D8', '--release', '--min-api', '26',
+        '--lib', android_jar, '--output', boost_dex, boost_jar)
     instagram_dex = None
     if os.environ.get('CATPPUCCIN_INCLUDE_INSTAGRAM') == '1':
         instagram_classes = BUILD / 'instagram-extension'
@@ -208,6 +225,8 @@ def main():
         'License: GPL-3.0 with upstream NOTICE conditions\n\n')
     with zipfile.ZipFile(bundle, 'w', zipfile.ZIP_DEFLATED) as archive:
         archive.writestr('META-INF/MANIFEST.MF', manifest)
+        with zipfile.ZipFile(boost_dex) as extension:
+            archive.writestr('catppuccin/boost-modern.dex', extension.read('classes.dex'))
         for path in (ROOT / 'patches/src/main/resources/catppuccin/immich').glob('*.tsv'):
             archive.write(path, 'catppuccin/immich/' + path.name)
         if pocket_dex:

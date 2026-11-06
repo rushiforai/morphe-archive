@@ -438,6 +438,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_long_press_zoom_stays_open", FALSE, parent(LONG_PRESS_TO_ZOOM));
 
     /**
+     * A long press on a post in a feed opens the photo or video showing full screen, a video with a
+     * slider ({@link app.hushgram.extension.instagram.download.PostFullScreen}, #505). Off to start. It
+     * works without {@link #LONG_PRESS_TO_ZOOM} and goes first when both are on.
+     */
+    public static final BooleanSetting LONG_PRESS_FULL_SCREEN =
+            new BooleanSetting("hushgram_long_press_full_screen", FALSE);
+
+    /**
      * The picture, video and carousel pages of a post in Home and Following are cut at rounded corners
      * ({@link app.hushgram.extension.instagram.feed.RoundedCorners}). Stories, the profile grid, Explore
      * and the Reels tab stay as Instagram draws them. Off to start, so no frame is touched.
@@ -1627,15 +1635,17 @@ public class Settings extends BaseSettings {
                     app.hushgram.extension.instagram.misc.GlassLift.STANDARD, true, parent(GLASS_TAB_BAR_FLOAT));
 
     /**
-     * Under {@link #GLASS_TAB_BAR}: on the Reels screen the pill slides away once the screen has gone this
-     * long without a touch ({@link app.hushgram.extension.instagram.misc.GlassReelsHide}, #170). A tap where
-     * the pill sits, a tab change or Back brings it back. A drag there is the reel's seek bar's (#221). It has nothing to do with
+     * On the Reels screen the tab bar slides away once the screen has gone this long without a touch
+     * ({@link app.hushgram.extension.instagram.misc.GlassReelsHide}, #170). The glass pill or, with
+     * {@link #GLASS_TAB_BAR} off, Instagram's own bar, whose room the reel takes while it's away (#343), so
+     * it isn't under the glass switch. A tap where the bar sits, a tab change or Back brings it back. A drag
+     * there is the reel's seek bar's (#221). It has nothing to do with
      * {@link #GLASS_TAB_BAR_HIDE_ON_SCROLL}, which leaves the bar alone on every reel. Starts on never. Read
      * as the bar is built, so a change asks for a restart.
      */
     public static final EnumSetting<app.hushgram.extension.instagram.misc.GlassReelsHide> GLASS_TAB_BAR_REELS_HIDE =
             new EnumSetting<>("hushgram_glass_tab_bar_reels_hide",
-                    app.hushgram.extension.instagram.misc.GlassReelsHide.NEVER, true, parent(GLASS_TAB_BAR));
+                    app.hushgram.extension.instagram.misc.GlassReelsHide.NEVER, true);
 
     /**
      * Your own profile's tabs get one more, a bookmark, that opens Saved
@@ -2023,6 +2033,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_profile_posts_list", FALSE);
 
     /**
+     * A calendar on a profile's top bar that takes the posts grid back to a day
+     * ({@link app.hushgram.extension.instagram.profile.GridJump}). Read each time the bar is bound and
+     * at each tap, so a change shows on the next profile opened. Off to start.
+     */
+    public static final BooleanSetting PROFILE_GRID_JUMP =
+            new BooleanSetting("hushgram_profile_grid_jump", FALSE);
+
+    /**
      * A sideways swipe on Home that would open the camera
      * ({@link app.hushgram.extension.instagram.feed.SwipeToCreate}). Read at each step of a swipe,
      * so a change shows on the next one. Off to start.
@@ -2162,6 +2180,10 @@ public class Settings extends BaseSettings {
     /** A GIF reply for a comment carrying a GIF, sending that same GIF back (#402). Off until enabled. */
     public static final BooleanSetting REPLY_WITH_COMMENT_GIFS =
             new BooleanSetting("hushgram_reply_with_comment_gifs", FALSE);
+
+    /** A comment's GIF or sticker shows its name in the comment's menu (#502). Off until enabled. */
+    public static final BooleanSetting SHOW_COMMENT_GIF_NAMES =
+            new BooleanSetting("hushgram_show_comment_gif_names", FALSE);
 
     /**
      * The menu on someone's profile gets Save profile picture
@@ -2365,6 +2387,28 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_reels_friends_tab", FALSE);
 
     /**
+     * Gives the Reels tab its Reels and Friends tabs on an account Instagram didn't give them to
+     * (#499), decided as the viewer is built, so it takes a restart. Off to start.
+     */
+    public static final BooleanSetting SHOW_REELS_FRIENDS_TAB =
+            new BooleanSetting("hushgram_show_reels_friends_tab", FALSE, true);
+
+    /**
+     * Holding the Friends tab on Reels lists the friends it has named, and the tab then keeps the
+     * reels the ones picked are on ({@link app.hushgram.extension.instagram.reels.FriendLanePicks},
+     * #503). Read as the tab is held and as each page arrives. Off to start.
+     */
+    public static final BooleanSetting PICK_FRIENDS_TAB =
+            new BooleanSetting("hushgram_pick_friends_tab", FALSE);
+
+    /**
+     * The usernames picked under {@link #PICK_FRIENDS_TAB}, one per line. A value control, not a
+     * switch, set from the list the hold opens. Empty to start.
+     */
+    public static final StringSetting FRIENDS_TAB_PICKS =
+            new StringSetting("hushgram_friends_tab_picks", "", parent(PICK_FRIENDS_TAB));
+
+    /**
      * The Save (bookmark) button in the right-hand column of a reel, and the save count under it
      * when Instagram draws one. Feed posts keep theirs. Off to start.
      */
@@ -2396,6 +2440,16 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting QUIET_REEL_CLEAR_MODE =
             new BooleanSetting("hushgram_quiet_reel_clear_mode", FALSE);
+
+    /**
+     * The seek bar stays on a reel in clear mode, where {@link #KEEP_REEL_CLEAR_MODE} otherwise takes
+     * it away (#277), and short reels get one too, in or out of clear mode (#480,
+     * {@link app.hushgram.extension.instagram.reels.ReelClearMode#scrubber},
+     * {@link app.hushgram.extension.instagram.reels.ReelSeekBar#everyReel}). Decided as each reel is
+     * shown, so a change shows from the next reels with no restart. Off to start.
+     */
+    public static final BooleanSetting CLEAR_MODE_SEEK_BAR =
+            new BooleanSetting("hushgram_clear_mode_seek_bar", FALSE);
 
     /**
      * The top bar of a reels viewer staying in place while you swipe through reels (#411,
@@ -2811,6 +2865,21 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting STOP_REELS_SCROLLING =
             new BooleanSetting("hushgram_stop_reels_scrolling", FALSE, true);
+
+    /**
+     * Under {@link #STOP_REELS_SCROLLING}: reels opened from a profile still scroll (#508). Read as
+     * each viewer opens, so a change reaches the next one with no restart. Off to start.
+     */
+    public static final BooleanSetting REEL_SCROLL_FROM_PROFILE =
+            new BooleanSetting("hushgram_reel_scroll_from_profile", FALSE, parent(STOP_REELS_SCROLLING));
+
+    /** Under {@link #STOP_REELS_SCROLLING}: reels opened from Search and Explore still scroll (#508). Off to start. */
+    public static final BooleanSetting REEL_SCROLL_FROM_SEARCH =
+            new BooleanSetting("hushgram_reel_scroll_from_search", FALSE, parent(STOP_REELS_SCROLLING));
+
+    /** Under {@link #STOP_REELS_SCROLLING}: reels opened from a song or audio page still scroll (#508). Off to start. */
+    public static final BooleanSetting REEL_SCROLL_FROM_AUDIO =
+            new BooleanSetting("hushgram_reel_scroll_from_audio", FALSE, parent(STOP_REELS_SCROLLING));
 
     /**
      * A left swipe on a reel opens its creator's profile ({@link app.hushgram.extension.instagram.reels.SwipeToProfile}),

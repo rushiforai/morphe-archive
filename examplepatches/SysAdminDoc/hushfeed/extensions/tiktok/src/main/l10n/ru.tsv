@@ -2703,3 +2703,23 @@ Offer Audio only in LIVE quality	Вариант «Только звук» в к�
 Audio only	Только звук
 Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.	Добавляет «Только звук» в список качества видео LIVE. Эфир играет звук без картинки, что тратит намного меньше трафика, пока вы не выберете другое качество или не выйдете. Запись из потока по-прежнему сохраняет видео.
 Pick a video quality to record the screen	Выберите качество видео для записи экрана
+Discover in the bottom bar	«Интересное» в нижней панели
+Discover takes the place of Friends in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	«Интересное» занимает место «Друзей» в нижней панели, как TikTok делает в некоторых странах. Ваш регион и лента не меняются.
+# context: what screen readers say for a setting an update added, next to its blue dot; %1$s is the setting's title (#349)
+%1$s, new	%1$s, новое
+Startup message	Сообщение при запуске
+Show a message of your own each time TikTok opens.	Показывать ваше сообщение при каждом открытии TikTok.
+Message title	Заголовок сообщения
+The heading at the top. Leave it empty for none.	Заголовок сверху. Оставьте пустым, чтобы его не было.
+Message text	Текст сообщения
+What the message says.	Что говорится в сообщении.
+Close with Back or a tap outside	Закрывать кнопкой «Назад» или касанием снаружи
+Off, only its button closes it.	Если выключено, закрыть можно только кнопкой.
+# context: extra search words for the Startup message setting, not shown anywhere (#347)
+dialog popup greeting	диалог всплывающее окно приветствие
+# context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
+Stop the blink under the bar	Убрать мерцание под панелью
+If the video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Если видео мигает при пролистывании с включённой «Прозрачная нижняя панель», это рисует его внутри TikTok, а не на отдельном слое. Может чуть больше расходовать батарею. Нужна «Прозрачная нижняя панель».
+# context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
+Bend the video at the edges	Преломлять видео по краям
+The glass pill's edges bend the blurred video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	Края стеклянной панели преломляют размытое видео за ними, как край настоящего стекла, а цвета становятся чуть насыщеннее. Нужен «Размывать видео за панелью» и Android 13 или новее.

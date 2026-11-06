@@ -1,0 +1,14 @@
+Proteus Patches source: https://github.com/ineednotitle/Proteus-Patches
+
+Brave patch source files are GPL-3.0-only and use targets and locale fallback
+ideas adapted from https://github.com/kveld9/kveld-morphe-patches, revision
+8afd78f0b57964b9ae9a0a387bdd4ae157345707. See proteus/gpl-3.0.txt.
+
+Pinterest video detection and download-hook design are adapted from
+https://github.com/archivesteak/Quest, revision
+64a9275fb2f27062d7fc2a170200cd73f6afc888 (GPL-3.0). See
+https://github.com/ineednotitle/Proteus-Patches/blob/main/docs/PINTEREST-VIDEO.md.
+
+The project and combined bundle are licensed under GPL-3.0-only. The full
+license is reproduced at proteus/gpl-3.0.txt. Third-party attribution notices
+are retained even though the project license has changed.

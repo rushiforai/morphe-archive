@@ -283,6 +283,13 @@ Once you turn on Instagram's auto scroll in Reels, it stays on after a restart o
 Move on when a reel ends	Weiter, wenn ein Reel endet
 When a reel ends, Reels moves on to the next one instead of playing it again. It uses Instagram's own auto scroll, even on accounts where Instagram doesn't offer it. While it's on, Instagram's own Auto scroll switch can't turn it off. Restart Instagram to see the change.	Wenn ein Reel endet, wechselt Reels zum nächsten, statt es noch einmal abzuspielen. Dafür wird Instagrams eigenes automatisches Scrollen genutzt, auch bei Konten, denen Instagram es nicht anbietet. Solange es an ist, kann Instagrams eigener Schalter für automatisches Scrollen es nicht ausschalten. Starte Instagram neu, um die Änderung zu sehen.
 Stop Reels scrolling	Scrollen in Reels stoppen
+# context: Reels page, the three switches under Stop Reels scrolling. They name that switch by its label, and each lets one kind of viewer keep scrolling.
+Still scroll reels from a profile	Reels von einem Profil weiter scrollen
+With Stop Reels scrolling on, reels you open from a profile still move on when you swipe.	Wenn Scrollen in Reels stoppen an ist, wechseln Reels, die du von einem Profil aus öffnest, beim Wischen trotzdem weiter.
+Still scroll reels from Search and Explore	Reels aus Suche und Entdecken weiter scrollen
+With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	Wenn Scrollen in Reels stoppen an ist, wechseln Reels, die du über Suche, Entdecken, einen Hashtag oder einen Ort öffnest, beim Wischen trotzdem weiter.
+Still scroll reels from a song page	Reels von einer Songseite weiter scrollen
+With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	Wenn Scrollen in Reels stoppen an ist, wechseln Reels, die du von einer Song- oder Audioseite öffnest, beim Wischen trotzdem weiter.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	Ein Wischen in Reels wechselt nicht mehr zum nächsten Reel, und Herunterziehen lädt keine neuen. Das geöffnete Reel spielt weiter. Starte Instagram neu, um die Änderung zu sehen.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Sperre ein Reel auf 2x (Rand gedrückt halten, dann nach unten wischen), dann laufen auch die nächsten Reels mit 2x. Wische die Sperre weg oder halte den Rand und lass los, um zur normalen Geschwindigkeit zurückzukehren.
 Open links in external browser	Links im externen Browser öffnen
@@ -418,6 +425,11 @@ Hide the Threads button	Threads-Schaltfläche ausblenden
 Takes the Threads button off the top of profiles, yours included. The menu and the other buttons stay where they were.	Entfernt die Threads-Schaltfläche oben auf Profilen, auch auf deinem. Das Menü und die anderen Schaltflächen bleiben, wo sie waren.
 Show profile posts as a list	Profilbeiträge als Liste zeigen
 Opening someone's profile takes you on to their posts as a scrolling list of full posts. Go Back for the grid. Your own profile keeps its grid.	Wenn du das Profil einer anderen Person öffnest, kommst du direkt zu ihren Beiträgen als scrollbare Liste ganzer Beiträge. Mit Zurück kommst du zum Raster. Dein eigenes Profil behält sein Raster.
+Jump a profile's posts to a date	Beiträge eines Profils zu einem Datum springen lassen
+Puts a calendar on a profile's top bar. Pick a day and the posts grid goes back to that day. Pull down for the newest again.	Zeigt einen Kalender in der oberen Leiste eines Profils. Wähle einen Tag und das Beitragsraster geht zu diesem Tag zurück. Zieh nach unten für die neuesten.
+Open the profile's posts first	Öffne zuerst die Beiträge
+Still loading, try again	Lädt noch, versuch es erneut
+Going to that date	Gehe zu diesem Datum
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Die Karten mit Personen und Creators zum Folgen, die Instagram zwischen Reels einfügt. Jedes Reel wird weiter abgespielt.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Lässt Reels mit dem Hinweis „Bezahlte Partnerschaft“ weg, und Reels, die Instagram als beworben markiert. Werbung hat einen eigenen Schalter.
 Turn on Start Home on Following to use this choice.	Aktiviere „Startseite mit ‚Gefolgt‘ öffnen“, um diese Auswahl zu nutzen.
@@ -486,6 +498,11 @@ Save comment photo	Kommentarfoto speichern
 Adds Save to a selected comment's menu when the comment has its own photo or GIF. Saves the largest size Instagram sent.	Fügt dem Menü eines ausgewählten Kommentars Speichern hinzu, wenn der Kommentar ein eigenes Foto oder GIF hat. Speichert die größte Version, die Instagram gesendet hat.
 Reply with a comment's GIF	Mit dem GIF eines Kommentars antworten
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	Hat ein Kommentar ein GIF, bekommt sein Menü eine GIF-Antwort, die genau dieses GIF animiert als deine Antwort zurückschickt.
+Show a comment GIF's name	Namen des GIFs eines Kommentars anzeigen
+When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	Hat ein Kommentar ein GIF oder einen Sticker, zeigt sein Menü dessen Namen. Tippe auf den Namen, um ihn zu kopieren.
+GIF name	GIF-Name
+GIF name copied	GIF-Name kopiert
+Couldn't copy the GIF name	GIF-Name konnte nicht kopiert werden
 Couldn't reply with this GIF	Mit diesem GIF konnte nicht geantwortet werden
 # context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
 Mark as seen button	Schaltfläche Als gesehen markieren
@@ -841,7 +858,7 @@ Download video covers	Video-Cover herunterladen
 Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	Fügt dem Menü eines Feed-Beitrags mit Video und eines Karussells, das gerade ein Video zeigt, den Eintrag Cover herunterladen hinzu. Er speichert das Standbild, das vor dem Abspielen des Videos zu sehen ist, in der größten Auflösung.
 # context: Downloads switch under the feed video and photo downloads; it puts a Download icon in a feed post's action row beside Save
 Download button on feed posts	Download-Button bei Feed-Beiträgen
-Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them.	Setzt ein Download-Symbol in die Zeile unter einem Beitrag, links von Speichern, damit ein Tippen ihn speichert, ohne das Menü zu öffnen. Bei einem Karussell fragt es, ob nur diese Seite oder alle gespeichert werden.
+Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	Setzt ein Download-Symbol in die Zeile unter einem Beitrag, links von Speichern, damit ein Tippen ihn speichert, ohne das Menü zu öffnen. Bei einem Karussell fragt es, ob nur diese Seite oder alle gespeichert werden. Braucht Feed-Videos herunterladen oder Feed-Fotos herunterladen.
 Download button on reels	Download-Button bei Reels
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	Setzt ein Download-Symbol unter Speichern neben ein Reel, damit ein Tippen es so speichert wie Herunterladen in seinem Menü. Braucht Herunterladen bei Reels.
 Nothing to download on this post	In diesem Beitrag gibt es nichts herunterzuladen
@@ -1008,14 +1025,14 @@ More	Mehr
 Hide the tab bar as you scroll	Tab-Leiste beim Scrollen ausblenden
 Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	Wenn du eine Liste nach unten scrollst, gleitet die Tab-Leiste aus dem Weg. Nach oben scrollen, das Erreichen des Anfangs oder ein Tab-Wechsel holt sie zurück. Das geht mit und ohne Glas-Tab-Leiste. Starte Instagram nach einer Änderung neu.
 Hide the tab bar on Reels	Tab-Leiste bei Reels ausblenden
-# context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
+# context: a choice in the Hide the tab bar on Reels list; the bar is never hidden there
 Never	Nie
 # context: a choice in the Hide the tab bar on Reels list; %1$d is 2, 3, 5 or 8
 After %1$d seconds	Nach %1$d Sekunden
 # context: summary of the Hide the tab bar on Reels row while its choice is Never
-Never. Pick a time and the pill slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Nie. Wähle eine Zeit, dann gleitet die Pille weg, sobald ein Reel so lange ohne Berührung gelaufen ist. Starte Instagram nach einer Änderung neu.
+Never. Pick a time and the tab bar slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Nie. Wähle eine Zeit, dann gleitet die Tab-Leiste weg, sobald ein Reel so lange ohne Berührung gelaufen ist. Starte Instagram nach einer Änderung neu.
 # context: summary of the Hide the tab bar on Reels row; %1$d is the seconds picked, 2, 3, 5 or 8
-On Reels, the pill slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Bei Reels gleitet die Pille nach %1$d Sekunden ohne Berührung weg. Tippe auf den unteren Bildschirmrand, wechsle den Tab oder drücke Zurück, um sie zurückzuholen. Starte Instagram nach einer Änderung neu.
+On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Bei Reels gleitet die Tab-Leiste nach %1$d Sekunden ohne Berührung weg. Tippe auf den unteren Bildschirmrand, wechsle den Tab oder drücke Zurück, um sie zurückzuholen. Starte Instagram nach einer Änderung neu.
 Start feed videos with sound	Feed-Videos mit Ton starten
 The first video on Home plays with its sound on, the same as tapping its speaker. Your phone's ringer and volume still count, so on silent or with the volume down, it stays quiet.	Das erste Video auf der Startseite spielt mit eingeschaltetem Ton, so als hättest du auf seinen Lautsprecher getippt. Klingelton und Lautstärke deines Telefons zählen weiterhin, also bleibt es bei lautlos oder leiser Lautstärke stumm.
 Tap a feed video to pause it	Feed-Video antippen zum Pausieren
@@ -1024,6 +1041,10 @@ Long press a photo to zoom	Foto lange drücken zum Zoomen
 Press and hold a photo in a feed to see it twice as big around your finger, and slide to look around. Let go to close it. While this is on, it takes the place of Instagram's own long press on a photo.	Halte ein Foto in einem Feed gedrückt, um es rund um deinen Finger doppelt so groß zu sehen, und wische, um dich umzusehen. Lass los, um es zu schließen. Solange das an ist, ersetzt es Instagrams eigenes langes Drücken auf ein Foto.
 Keep the zoom open	Zoom geöffnet lassen
 The zoom stays up after you let go. Drag to look around, pinch to zoom from 1x to 4x, and tap or press Back to close it.	Der Zoom bleibt offen, wenn du loslässt. Zieh, um dich umzusehen, zieh mit zwei Fingern auf oder zu, um von 1x bis 4x zu zoomen, und tippe oder drücke Zurück, um ihn zu schließen.
+# context: Feed settings, right under Keep the zoom open, and the toast when a post's video can't be opened in the full screen viewer. Close matches the viewer's Close button.
+Long press a post for full screen	Beitrag gedrückt halten für Vollbild
+Press and hold a post in a feed to open it full screen. Pinch a photo to zoom and tap it to close. A video plays with a slider and a Close button. While this is on, it goes before the zoom and Instagram's own long press.	Halte einen Beitrag im Feed gedrückt, um ihn im Vollbild zu öffnen. Zoome ein Foto mit zwei Fingern und tippe es zum Schließen an. Ein Video läuft mit einem Schieberegler und der Schaltfläche Schließen. Solange dies an ist, kommt es vor dem Zoom und Instagrams eigenem langem Drücken.
+Couldn't play this video	Video nicht abspielbar
 # context: what TalkBack reads for the zoomed photo left open over the feed
 Zoomed photo	Vergrößertes Foto
 Full screen Reels	Vollbild-Reels
@@ -1071,6 +1092,15 @@ Hide Your algorithm on reels	Dein Algorithmus bei Reels ausblenden
 Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The rest of the bar stays.	Entfernt den Button Dein Algorithmus oben im Reels-Tab und schließt die Lücke. Der Rest der Leiste bleibt.
 Hide the Friends tab on Reels	Freunde-Tab bei Reels ausblenden
 Takes the Friends tab, with reels the people you follow shared, off the top of the Reels tab. Reels stays where it is.	Entfernt den Tab Freunde mit Reels, die Personen geteilt haben, denen du folgst, oben im Reels-Tab. Reels bleibt, wo es ist.
+# context: Reels settings. Shows Instagram's Friends tab at the top of the Reels tab on accounts that never got it. Friends tab wording matches the Hide the Friends tab row above it.
+Show the Friends tab on Reels	Freunde-Tab bei Reels anzeigen
+Adds the Friends tab to the top of the Reels tab if your account never got it. What's in it still comes from Instagram, so it can be empty. Hide the Friends tab wins.	Fügt den Freunde-Tab oben im Reels-Tab hinzu, falls dein Konto ihn nie bekommen hat. Der Inhalt kommt weiter von Instagram und kann leer sein. „Freunde-Tab ausblenden“ hat Vorrang.
+# context: Reels settings and the list held open from the Friends tab at the top of the Reels tab. Friends tab wording matches the Hide the Friends tab row above it. The last two are short toasts.
+Hold the Friends tab to pick friends	Freunde-Tab gedrückt halten, um Freunde auszuwählen
+Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	Halte den Freunde-Tab bei Reels gedrückt und wähle aus den Freunden, die er dir gezeigt hat. Danach behält er nur Reels, die ihnen gefallen oder die sie geteilt haben. Eine Seite ohne sie behält ein Reel, damit die nächste Seite laden kann.
+Pick friends	Freunde auswählen
+Open the Friends tab first.	Öffne zuerst den Freunde-Tab.
+Applies to the next reels loaded.	Gilt für die nächsten geladenen Reels.
 Hide the Save button on reels	Speichern-Button bei Reels ausblenden
 Burn-in guard	Einbrennschutz
 Dim when idle	Abdunkeln bei Inaktivität
@@ -1090,6 +1120,9 @@ Reels open in clear mode from the first one, with no tap. Leave it yourself and 
 # context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
 Don't vibrate in clear mode	Im klaren Modus nicht vibrieren
 Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Stoppt das kurze Vibrieren, das Instagram abspielt, wenn ein Reel im klaren Modus öffnet. Mit Klaren Modus anlassen ist das bei jedem Wischen.
+# context: Reels settings: a switch under Don't vibrate in clear mode (#480). It keeps the seek bar on screen in clear mode; seek bar and clear mode use the same words as Keep a seek bar and Keep clear mode on
+Always show seek bar in clear mode	Zeitleiste im klaren Modus immer zeigen
+Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other buttons stay hidden. Short reels get a bar too, in clear mode or not.	Lässt die Zeitleiste auf einem Reel im klaren Modus, und du kannst sie weiter ziehen, während die anderen Schaltflächen ausgeblendet bleiben. Kurze Reels bekommen auch eine, ob im klaren Modus oder nicht.
 Unlock with	Entsperren mit
 Phone lock	Handy-Sperre
 HushGram PIN	HushGram-PIN
@@ -1397,7 +1430,7 @@ Couldn't use that folder. Saves go where they did.	Ordner nicht nutzbar. Gespeic
 Saves go to Movies and Pictures again.	Speicherungen landen wieder in Movies und Pictures.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s hat diese Speicherung nicht angenommen, deshalb ist sie in Movies und Pictures gelandet.
 Start reels with sound	Reels mit Ton starten
-A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Ein Reel, das du über einen Beitrag auf der Startseite öffnest, spielt mit Ton, und die Startseite ist wieder stumm, wenn du zurückgehst. Klingelmodus und Lautstärke deines Telefons zählen weiterhin.
+A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Ein Reel, das du im Reels-Tab oder über einen Beitrag auf der Startseite öffnest, spielt mit Ton, und die Startseite ist wieder stumm, wenn du zurückgehst. Klingelmodus und Lautstärke deines Telefons zählen weiterhin.
 Keep your place in Home	Deine Stelle auf der Startseite behalten
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Wenn du zu Instagram zurückkehrst, bleibt die Startseite bei dem Beitrag, bei dem du warst, egal wie lange du weg warst. Zum Aktualisieren nach unten ziehen lädt sie weiterhin neu.
 Filter the Stories tray by verified accounts	Stories-Leiste nach verifizierten Konten filtern

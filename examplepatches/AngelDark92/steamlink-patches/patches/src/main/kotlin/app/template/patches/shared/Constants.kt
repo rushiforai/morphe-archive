@@ -144,16 +144,6 @@ object Constants {
         (LEGACY_STEAM_LINK_BUILDS + NATIVE_XR_STEAM_LINK_BUILDS_THROUGH_5002395)
             .map(::steamLinkBuildCompatibility)
 
-    // Historical legacy-only scope: adding a newer native base must not re-enable these patches.
-    val COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST =
-        COMPATIBILITIES_STEAM_LINK.filterNot { compatibility ->
-            compatibility.targets.any { target ->
-                NATIVE_XR_STEAM_LINK_BUILDS.any { build ->
-                    target.version == build.version && target.versionCodes?.values?.contains(build.versionCode) == true
-                }
-            }
-        }
-
     // Derived from the same build list the guards use (isFullFacebridgeSteamLinkBuild), so
     // compatibility and mutation guards cannot diverge when bases are added.
     val COMPATIBILITIES_STEAM_LINK_FULL_FACEBRIDGE =

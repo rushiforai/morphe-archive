@@ -19,11 +19,21 @@ import app.template.patches.reddit.shared.injectListingChildrenFilter
  *      optional `getChildren()` getter).  Feeds and comment threads both build
  *      this container, so the filter covers every surface that renders a
  *      comment row.
- *   2. The extension resolves the underlying Reddit model reflectively, reads
+ * 2. The extension resolves the underlying Reddit model reflectively, reads
  *      its author and decides comment-vs-post shape from `getKindWithId()`,
- *      `getParentId()`/`getLinkId()`/`getDepth()` and title/body accessors.
- *      Nothing is imported from the app, so R8-renamed model classes do not
- *      break compilation; unrecognised shapes are kept (fail-safe).
+ *      `getKind()`/`getType()`, `getParentId()`/`getLinkId()`/`getDepth()` and
+ *      title/body accessors.  Nothing is imported from the app, so R8-renamed
+ *      model classes do not break compilation; unrecognised shapes are kept
+ *      (fail-safe).  If the author getter cannot be resolved at all, a comment
+ *      whose body contains the canonical AutoModerator footer ("I am a bot,
+ *      and this action was performed automatically") is still dropped; a
+ *      resolved non-AutoModerator author always wins.
+ * 3. At runtime the helper prints a one-time `[Proteus][Block AutoMod]
+ *      filter is live` line plus throttled drop counts to `System.out`
+ *      (visible with `adb logcat | grep -i proteus`).  If that line never
+ *      appears, the comment-thread renderer in this build does not flow
+ *      through `Listing` and this patch cannot hide those comments — the
+ *      choke point, not the detector, needs rework for that build.
  *
  * Local client-side filtering only: the comments are still delivered by the
  * API, and the comment count in the header may still include them.  Off by

@@ -45,6 +45,7 @@ public class FixRedgifsApiPatch implements Interceptor {
         }
 
         String userAgent = DEFAULT_USER_AGENT;
+        boolean forceTokenRefresh = false;
 
         if (request.header("Authorization") != null) {
             Response response = chain.proceed(request.newBuilder().header("User-Agent", userAgent).build());
@@ -55,10 +56,12 @@ public class FixRedgifsApiPatch implements Interceptor {
             // chain, so make sure we grab the new user agent from the request headers.
             userAgent = response.request().header("User-Agent");
             response.close();
+            // A token can stop working before it expires, after an IP change or a Redgifs error.
+            forceTokenRefresh = true;
         }
 
         try {
-            RedgifsTokenManager.RedgifsToken token = RedgifsTokenManager.refreshToken(userAgent);
+            RedgifsTokenManager.RedgifsToken token = RedgifsTokenManager.refreshToken(userAgent, forceTokenRefresh);
 
             // Emulate response for old OAuth endpoint.
             if (request.url().encodedPath().equals("/v2/oauth/client")) {
@@ -74,14 +77,25 @@ public class FixRedgifsApiPatch implements Interceptor {
                         .build();
             }
 
-            Request modifiedRequest = request.newBuilder()
-                    .header("Authorization", "Bearer " + token.getAccessToken())
-                    .header("User-Agent", userAgent)
-                    .build();
-            return chain.proceed(modifiedRequest);
+            Response response = chain.proceed(withToken(request, token, userAgent));
+            if (response.code() != HttpURLConnection.HTTP_UNAUTHORIZED) {
+                return response;
+            }
+            // Redgifs ties a token to the address it was given to: after the phone's address
+            // changes, it refuses the cached one (401 WrongSender) until a new one is asked for.
+            // BaconReader's own requests carry no token, so the refresh above never runs for them.
+            response.close();
+            return chain.proceed(withToken(request, RedgifsTokenManager.refreshToken(userAgent, true), userAgent));
         } catch (JSONException ex) {
             Logger.printException(() -> "Could not parse Redgifs response", ex);
             throw new IOException(ex);
         }
+    }
+
+    private static Request withToken(Request request, RedgifsTokenManager.RedgifsToken token, String userAgent) {
+        return request.newBuilder()
+                .header("Authorization", "Bearer " + token.getAccessToken())
+                .header("User-Agent", userAgent)
+                .build();
     }
 }

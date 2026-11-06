@@ -41,6 +41,10 @@ public final class SettingsStatus {
     public static boolean shareVideoLinks() { return false; }
     public static boolean sharperImages() { return false; }
     public static boolean imageSizes() { return false; }
+    public static boolean collapseLongPosts() { return false; }
+    public static boolean longPostRows() { return false; }
+    public static boolean longTrailRows() { return false; }
+    public static boolean longPostExpand() { return false; }
     public static boolean videoLinkPress() { return false; }
     public static boolean showPostTimestamps() { return false; }
     public static boolean nativePostTimestamps() { return false; }
@@ -53,13 +57,17 @@ public final class SettingsStatus {
     public static boolean timelineAds() { return false; }
     public static boolean paidPostHeader() { return false; }
     public static boolean adSdkStartup() { return false; }
+    public static boolean exploreHeaderAd() { return false; }
     public static boolean disableAnalytics() { return false; }
     public static boolean hideAdvertisingId() { return false; }
     public static boolean advertisingId() { return false; }
+    public static boolean sanitizeSharingLinks() { return false; }
+    public static boolean shareLinkTag() { return false; }
     public static boolean removeAdTrackingPermissions() { return false; }
     public static boolean spoofSignature() { return false; }
     public static boolean analyticsFlags() { return false; }
     public static boolean liveRampStartup() { return false; }
+    public static boolean crashReports() { return false; }
     public static boolean hideAdFreeBanner() { return false; }
     public static boolean adFreeBannerFlags() { return false; }
     public static boolean hideTumblrTv() { return false; }

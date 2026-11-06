@@ -42,7 +42,7 @@ class ConstantsTest {
         ).forEach { (version, code) ->
             assertTrue(Constants.isHighResolutionSteamLinkBuild(version, code), "$version/$code")
         }
-        // 5002527 stays out of the high-resolution (Alpha-0 / stock quad) scope: not adapted there.
+        // 5002527 stays out of the high-resolution (stock quad) scope: not adapted there.
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.24", "5002527"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.22", "5002363"))
         assertFalse(Constants.isHighResolutionSteamLinkBuild("2.0.23", "5002364"))
@@ -94,10 +94,6 @@ class ConstantsTest {
         assertEquals(
             listOf(5001712, 5001812, 5001968, 5002244, 5002363, 5002395),
             Constants.COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL_THROUGH_5002395.versionCodes(),
-        )
-        assertEquals(
-            listOf(5001712, 5001812, 5001968, 5002244),
-            Constants.COMPATIBILITIES_STEAM_LINK_BEFORE_LATEST.versionCodes(),
         )
         assertEquals(
             listOf(5001712, 5001812, 5001968, 5002244),

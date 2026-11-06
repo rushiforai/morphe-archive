@@ -81,6 +81,11 @@ val shortsActionButtonsPatch = resourcePatch(
                         }
                 }
 
+            // The stock resources are decoded on request, so the ones not decoded yet are listed here.
+            listDecodableFiles("res/drawable*/*").forEach { path ->
+                names.add(path.substringAfterLast('/').substringBeforeLast(".").removeSuffix(".9"))
+            }
+
             return names
         }
 

@@ -8,7 +8,8 @@
     changes nothing, so any of them can be run again after a fix.
 
       prepare    Holds the Unreleased section to what a release can carry (one-line Tumblr and
-                 Tooling bullets only, naming any other bullet it finds), cuts it as the release,
+                 Tooling bullets only, naming any other bullet it finds) and the source census to
+                 its 14 days (Test-SourceReleaseGate), cuts the section as the release,
                  bumps gradle.properties and the README badge, regenerates patches-list.json and
                  runs the release facts check. Then commits "release: prepare X.Y.Z". A failure
                  puts the four files back. Before the first release (no patches-bundle.json and
@@ -29,9 +30,11 @@
                  (build-release-receipt.ps1, run in this process), and the signed
                  SHA256SUMS.txt, all in build/release-assets/X.Y.Z.
       publish    publish-release.ps1: first -Walk, the receipt of a whole-app walk of the
-                 signed bundle on a release phone or an emulator, then the notes, gh release
-                 create with the five assets, each downloaded back and compared, the index
-                 commit, pushed at once, and verify-published-index.ps1 last.
+                 signed bundle on a release phone or an emulator, and the source census, then
+                 the notes, gh release create with the five assets, each downloaded back and
+                 compared, the index commit, pushed at once, and verify-published-index.ps1
+                 last. A census refreshed after the cut is committed on top of the prepare
+                 commit, and so is a fix to these scripts.
 
     Heavy steps go through HUSHTUMBLR_BUILD_WRAPPER, or the build queue BUILD_QUEUE_SCRIPT
     names, at release priority. The signing inputs are parameters (or the HUSHTUMBLR_RELEASE_*
@@ -113,6 +116,12 @@ switch ($Stage) {
 
         # Before anything is written: a bullet a release can't carry is named here, and nothing changes.
         Invoke-ReleaseText -Root $Root -What 'The Unreleased check' -Arguments @('check', '--unreleased')
+        # The source census publish holds the release to. Asked here, a stale one is refreshed and
+        # committed before the cut, not found after the gate, the build and the walk.
+        . (Join-Path $Root 'scripts/tumblr-sources.ps1')
+        $census = Test-SourceReleaseGate -Root $Root
+        if (-not $census.Valid) { throw "Nothing was prepared, since the release can't go out on this source census: $($census.Reason)" }
+        Write-ReleaseStep $census.Summary
         $utf8 = New-Object Text.UTF8Encoding $false
         try {
             $releaseDate = if ($Date) { $Date } else { (Get-Date).ToUniversalTime().ToString('yyyy-MM-dd') }

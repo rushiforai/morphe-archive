@@ -8,6 +8,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -172,12 +173,11 @@ class InboxRefreshTest {
             val tries = items.implementation!!.tryBlocks.map { it.startCodeAddress to it.codeUnitCount }
             items.injectInboxItems()
             val after = items.implementation!!.instructions.toList()
-            // A switch payload has to start on an even code unit, so dexlib2 pads 586's with a nop once the call moves it.
-            // Only a nop at an odd code unit right before a payload is that padding.
-            val moved = after.drop(1)
-            val addresses = moved.runningFold(after.first().codeUnits) { at, it -> at + it.codeUnits }
-            assertEquals(before, moved.filterIndexed { i, it ->
-                !(it.opcode == Opcode.NOP && addresses[i] % 2 == 1 && moved.getOrNull(i + 1)?.opcode?.format?.isPayloadFormat == true) }, code)
+            // A switch payload has to start on an even code unit, so once the call moves it dexlib2 adds a nop before it, or
+            // drops the stock one the 273 family already has. Only a nop right before a payload is that padding, on either side.
+            fun List<Instruction>.unpadded() = filterIndexed { i, it ->
+                !(it.opcode == Opcode.NOP && getOrNull(i + 1)?.opcode?.format?.isPayloadFormat == true) }
+            assertEquals(before.unpadded(), after.drop(1).unpadded(), code)
             assertEquals(tries.map { (start, count) -> start + after.first().codeUnits to count },
                 items.implementation!!.tryBlocks.map { it.startCodeAddress to it.codeUnitCount }, code)
         }

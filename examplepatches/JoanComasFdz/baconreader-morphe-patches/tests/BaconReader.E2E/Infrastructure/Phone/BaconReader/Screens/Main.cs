@@ -23,6 +23,9 @@ public sealed class Main(AndroidDriver driver, Action noteShown)
     /// <summary>The feed's posts.</summary>
     public PostList Posts { get; } = new(driver);
 
+    /// <summary>"Reddit chat"'s Chat, which shows in place of the posts.</summary>
+    public ChatPage Chat { get; } = new(driver);
+
     /// <summary>
     /// Taps Android's Back, which closes this main screen when a link opened it over another screen, and goes back to
     /// that screen.

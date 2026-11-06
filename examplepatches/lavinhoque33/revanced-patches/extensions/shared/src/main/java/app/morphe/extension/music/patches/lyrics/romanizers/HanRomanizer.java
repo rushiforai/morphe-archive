@@ -16,14 +16,6 @@ import androidx.annotation.Nullable;
  */
 final class HanRomanizer {
 
-    interface Readings {
-        @Nullable
-        String word(String word);
-
-        @Nullable
-        String character(char c);
-    }
-
     private HanRomanizer() {
     }
 
@@ -41,7 +33,7 @@ final class HanRomanizer {
             char c = line.charAt(i);
             String syllable = character(c, readings);
             if (syllable != null) {
-                append(out, syllable);
+                Romanizations.appendWord(out, syllable);
                 i++;
                 continue;
             }
@@ -53,7 +45,7 @@ final class HanRomanizer {
                 while (kanaEnd < line.length() && ScriptDetector.isKana(line.charAt(kanaEnd))) {
                     kanaEnd++;
                 }
-                append(out, KanaRomanizer.romanize(line.substring(i, kanaEnd)));
+                Romanizations.appendWord(out, KanaRomanizer.romanize(line.substring(i, kanaEnd)));
                 i = kanaEnd;
                 continue;
             }
@@ -63,7 +55,7 @@ final class HanRomanizer {
                     && !ScriptDetector.isKana(line.charAt(end))) {
                 end++;
             }
-            append(out, line.substring(i, end).trim());
+            Romanizations.appendWord(out, line.substring(i, end).trim());
             i = end;
         }
         return out.toString().trim();
@@ -75,12 +67,12 @@ final class HanRomanizer {
      * @return how many characters the word took, 0 when none is known.
      */
     private static int appendLongestWord(String line, int index, Readings readings,
-            StringBuilder out) {
+                                         StringBuilder out) {
         int longest = Math.min(WordReadingTable.MAX_WORD_LENGTH, line.length() - index);
         for (int length = longest; length >= 1; length--) {
             String reading = readings.word(line.substring(index, index + length));
             if (reading != null) {
-                append(out, reading);
+                Romanizations.appendWord(out, reading);
                 return length;
             }
         }
@@ -92,9 +84,11 @@ final class HanRomanizer {
         return ScriptDetector.isHan(c) ? readings.character(c) : null;
     }
 
-    private static void append(StringBuilder out, @Nullable String reading) {
-        if (reading == null || reading.isEmpty()) return;
-        if (out.length() > 0) out.append(' ');
-        out.append(reading);
+    interface Readings {
+        @Nullable
+        String word(String word);
+
+        @Nullable
+        String character(char c);
     }
 }

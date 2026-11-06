@@ -1,3 +1,24 @@
+## [1.13.2](https://github.com/amfakh/fakh-patches/compare/v1.13.1...v1.13.2) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **Smart Life, Tuya Smart & BARDI:** keep the signature fix working on devices that block the hidden-API exemption, where the app could still close after opening with "Invalid client" ([b559baf](https://github.com/amfakh/fakh-patches/commit/b559bafeec270c5534f36fd131e94da37391dd97))
+
+## [1.13.1](https://github.com/amfakh/fakh-patches/compare/v1.13.0...v1.13.1) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **LinkedIn:** rename Glass bottom bar to Glass navigation bar, and use "navigation bar" in the wording of the Navigation bar options ([ede16cb](https://github.com/amfakh/fakh-patches/commit/ede16cbc03948e55ec1f218c8061aafb3e29c031))
+
+## [1.13.0](https://github.com/amfakh/fakh-patches/compare/v1.12.0...v1.13.0) (2026-11-06)
+
+### ✨ New Features
+
+* **LinkedIn:** add Glass bottom bar, which draws the bottom bar as a floating translucent capsule ([680e757](https://github.com/amfakh/fakh-patches/commit/680e75742042dd80548db0718404b28cd88838aa))
+* **LinkedIn:** add Navigation bar, with switches to show or hide the Jobs, Network, Notifications and More tabs, the notification badges and the tab labels ([680e757](https://github.com/amfakh/fakh-patches/commit/680e75742042dd80548db0718404b28cd88838aa))
+* **LinkedIn:** add Pitch black, which turns the gray backgrounds of dark mode into black, with or without Material You ([680e757](https://github.com/amfakh/fakh-patches/commit/680e75742042dd80548db0718404b28cd88838aa))
+* **LinkedIn:** the More tab items can also be listed in the profile menu while the tab stays, and the Puzzle games shortcut has its own Shortcuts section ([680e757](https://github.com/amfakh/fakh-patches/commit/680e75742042dd80548db0718404b28cd88838aa))
+
 ## [1.12.0](https://github.com/amfakh/fakh-patches/compare/v1.11.6...v1.12.0) (2026-11-06)
 
 ### ✨ New Features

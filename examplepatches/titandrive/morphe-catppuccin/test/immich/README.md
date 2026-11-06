@@ -53,3 +53,21 @@ Confirmed on-device: Photos label and icon both mauve; other labels keep text co
 
 Dark dock uses Mantle (`#1e2030`) through `surfaceContainerLow`; raised
 surfaces retain their palette roles. Light-mode dock is unchanged.
+
+## 3.3.6 compatibility (0.8.1)
+
+The official `v3.3.6/app-arm64-v8a-release.apk` is supported alongside 3.3.5.
+It has the same native `.text` bytes and font asset layout. Its snapshot data
+and full-library SHA256 differ, so it gets its own hash-checked recipe.
+
+3.3.6 native SHA256:
+`bc0662baaadc6fc282ede73c60d379f91406e9aa2f67d99dd5c1cbe4326bd896`.
+
+Regenerated all 58 edits from a fresh Dart 3.13.2 analysis and checked the object
+pool entries for dark brightness, selected widget state, and original label style.
+Both versions pass the native lookup, label resolver and Mantle dock emulation.
+The release bundle applies both theme and JetBrains Mono patches to each
+original APK; font/icon/manifest and exact native edit checks pass. A modified
+native binary is rejected by the patch rather than accepting version alone.
+No new phone installation or account access was needed for this compatibility
+update; 3.3.6 post-install visual verification remains a user test.

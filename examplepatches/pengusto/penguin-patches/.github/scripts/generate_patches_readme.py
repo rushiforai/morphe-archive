@@ -101,6 +101,23 @@ for patch in data["patches"]:
             by_pkg[pkg]["patches"][patch["name"]] = patch
 
 
+def app_order(pkg):
+    """Feature Infinity, keep the Fossify family together, then other apps and Finamp."""
+    if pkg == "ml.docilealligator.infinityforreddit.plus":
+        group = 0
+    elif pkg.startswith("org.fossify."):
+        group = 1
+    elif pkg == "com.unicornsonlsd.finamp":
+        group = 3
+    else:
+        group = 2
+    return group, by_pkg[pkg]["name"].casefold(), pkg
+
+
+def ordered_apps():
+    return [(pkg, by_pkg[pkg]) for pkg in sorted(by_pkg, key=app_order)]
+
+
 def anchor(name):
     """Convert a patch name to a GitHub-compatible anchor slug."""
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
@@ -223,8 +240,8 @@ def build_content(expanded=False):
         f"{total} {patch_noun} total"
     ]
 
-    # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
+    # Keep the same grouping as the app strip and previews.
+    for pkg, entry in ordered_apps():
         patches = list(entry["patches"].values())
         label   = f"{entry['icon']} {html.escape(entry['name'])}"
         lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches, GUIDES.get(pkg)), expanded))
@@ -280,18 +297,26 @@ def preview_section(patch):
 
 def build_previews():
     """Keep every released patch's image pair inside the README, grouped by app."""
-    featured = ("com.unicornsonlsd.finamp", "com.nononsenseapps.feeder",
-                "ml.docilealligator.infinityforreddit.plus")
-    order = sorted(by_pkg, key=lambda pkg: (
-        featured.index(pkg) if pkg in featured else len(featured), by_pkg[pkg]["name"].lower()))
     sections = []
-    for pkg in order:
-        entry = by_pkg[pkg]
+    for pkg, entry in ordered_apps():
         count = len(entry["patches"])
+        previews = [preview_section(p) for p in entry["patches"].values()]
+        if pkg == "com.unicornsonlsd.finamp":
+            complete = "Finamp complete: all eight fixes"
+            individuals = ("Fix section title validation", "Song artist order", "Load artist pages faster",
+                           "Fix offline artist tracks", "Fix track alphabet navigation",
+                           "Keep player output controls accessible", "Fix quick settings banner contrast",
+                           "Show album and track information")
+            names = set(entry["patches"])
+            if complete not in names:
+                previews.insert(0, preview_section({"name": complete}))
+            else:
+                previews.extend(preview_section({"name": name}) for name in individuals if name not in names)
+            previews.insert(0, "Finamp Complete combines the eight fixes shown below; individual selection is available separately.")
         sections.append(
             f'<a id="previews-{anchor(pkg)}"></a>\n\n'
             f'### {entry["icon"]} {html.escape(entry["name"])} · {count} {"patch" if count == 1 else "patches"}\n\n'
-            + "\n\n".join(preview_section(p) for p in entry["patches"].values())
+            + "\n\n".join(previews)
         )
     if universal:
         sections.append('### Universal patches\n\n'
@@ -350,13 +375,28 @@ new_readme = re.sub(
 if "<!-- PATCHES_APPS_START -->" in new_readme:
     if "<!-- PATCHES_APPS_END -->" not in new_readme:
         raise ValueError("Missing PATCHES_APPS_END marker")
-    app_links = []
-    for pkg, entry in by_pkg.items():
+    app_links = {"Featured": [], "Fossify": [], "More apps": [], "Optional Finamp": []}
+    labels = ("Featured", "Fossify", "More apps", "Optional Finamp")
+    for pkg, entry in ordered_apps():
         destination = html.escape(GUIDES.get(pkg, "#generated-patch-catalogue"), quote=True)
         icon = pkg_icon(pkg, entry["name"], size=32)
-        name = html.escape(entry["name"])
-        app_links.append(f'<a href="{destination}">{icon} {name}</a>')
-    app_strip = "<p>\n" + " &nbsp;\n".join(app_links) + "\n</p>"
+        name = entry["name"]
+        if pkg.startswith("org.fossify."):
+            name = name.removeprefix("Fossify ")
+        app_links[labels[app_order(pkg)[0]]].append(f'<a href="{destination}">{icon}<br>{html.escape(name)}</a>')
+
+    def app_grid(label, links):
+        if len(links) == 1:
+            return f"**{label}**\n\n<p>{links[0]}</p>"
+        rows = []
+        for index in range(0, len(links), 2):
+            cells = links[index:index + 2]
+            if len(cells) == 1:
+                cells.append("")
+            rows.append("<tr>" + "".join(f'<td align="center">{cell}</td>' for cell in cells) + "</tr>")
+        return f"**{label}**\n\n<table>\n" + "\n".join(rows) + "\n</table>"
+
+    app_strip = "\n\n".join(app_grid(label, links) for label, links in app_links.items() if links)
     new_readme = re.sub(
         r"<!-- PATCHES_APPS_START -->.*?<!-- PATCHES_APPS_END -->",
         lambda _: f"<!-- PATCHES_APPS_START -->\n{app_strip}\n<!-- PATCHES_APPS_END -->",

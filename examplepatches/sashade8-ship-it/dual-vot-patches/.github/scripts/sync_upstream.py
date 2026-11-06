@@ -170,6 +170,17 @@ DEV210_ARRAYS_CONFLICT_BLOBS = (
     "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
     "acb4af73c980e13b6a17ab41d16adbc7118a35ee",
 )
+# Stable 2.1.0 combines the already reviewed dev.4/dev.7/dev.10 changes.
+STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS = (
+    "6891092a6c638c97e6958f5fdfde6ae15c6e1948",
+    "dd5831f51cf3698a73918c530fdbb40d240de4e3",
+    "2cf69f37a4e5114ef2954228df0284db1b2103e6",
+)
+STABLE210_ARRAYS_CONFLICT_BLOBS = (
+    "9c228c35994fedf5a3d8b5b04f80e0a6b37b4355",
+    "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
+    "154c3b6d4d6faae76b7d32ea05b960ee0e5619f0",
+)
 
 # One-time, fail-closed merge of Morphe 1.48.0-dev.8 Series Tracker with
 # Dual VoT's Yandex settings. Any different source versions require review.
@@ -405,10 +416,48 @@ def merge_dual_yandex_strings(base: str, ours: str, theirs: str) -> str:
     return prefix + block + merged_upstream[closing.start() :]
 
 
+STABLE210_DEV_STRING_CONFLICTS = {
+    "patches/src/main/resources/addresources/values/youtube/strings.xml": (
+        ("289dd38f1fbf966e962ea79ed0faba97dc5cddaa",
+         "e0653829831dff946ec51b8b9442dbe0e5cf5911",
+         "fe1946b4695a95c74c8ce362177dfc1ef58acb41"),
+        "fe4d8b183527d2ae6c585d3e1122168aeec63dd2bf53fadf6acde463d6bed312",
+    ),
+    "patches/src/main/resources/addresources/values-ru-rRU/youtube/strings.xml": (
+        ("83f96f1c272a9f98b22ab3fe207a8b547f701711",
+         "7f908f6dceee15dd809edea9efbfdffec66bf800",
+         "a3d4844cf6f2b9e73227b678b9b3d55c804d73bf"),
+        "4d1ccac3eb19fc3870af97321a797f6473ea04b1374d7d151027b8ff56cf6ac2",
+    ),
+}
+
+
+def merge_stable210_dev_strings(source: str, expected: str) -> str:
+    """Keep Git's merged translations and the four new stable timed-comment labels."""
+    pattern = r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
+    conflicts = list(re.finditer(pattern, source, re.DOTALL | re.MULTILINE))
+    if (len(conflicts) != 1
+            or hashlib.sha256((conflicts[0][1] + "\0" + conflicts[0][2]).encode()).hexdigest() != expected):
+        raise SyncError("Unexpected stable 2.1.0 to dev string conflict sides")
+    merged = re.sub(pattern, lambda m: m[2], source, flags=re.DOTALL | re.MULTILINE)
+    if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unresolved stable 2.1.0 to dev strings")
+    return merged
+
+
 def resolve_dual_yandex_string_conflicts() -> None:
     for path in unresolved_paths():
         if DUAL_YANDEX_STRINGS_PATH.fullmatch(path) is None:
             continue
+        known = STABLE210_DEV_STRING_CONFLICTS.get(path)
+        if known is not None:
+            blobs = tuple(output_of("git", "rev-parse", f":{stage}:{path}") for stage in (1, 2, 3))
+            if blobs == known[0]:
+                destination = ROOT / path
+                merged = merge_stable210_dev_strings(destination.read_text(encoding="utf-8"), known[1])
+                destination.write_text(merged, encoding="utf-8", newline="")
+                run("git", "add", "--", path)
+                continue
         base = run("git", "show", f":1:{path}", capture=True).stdout
         ours = run("git", "show", f":2:{path}", capture=True).stdout
         theirs = run("git", "show", f":3:{path}", capture=True).stdout
@@ -506,6 +555,7 @@ def resolve_dual_yandex_arrays_conflict() -> None:
         DEV20_ARRAYS_CONFLICT_BLOBS,
         STABLE145_ARRAYS_CONFLICT_BLOBS,
         DEV210_ARRAYS_CONFLICT_BLOBS,
+        STABLE210_ARRAYS_CONFLICT_BLOBS,
     ):
         return
     base, ours, theirs = (
@@ -1060,6 +1110,58 @@ def merge_streaming_data_request_dev2110(source: str) -> str:
     return merged
 
 
+def merge_streaming_data_request_stable210(source: str) -> str:
+    """Carry the verified dev lifecycle and independent Dual audio into stable."""
+    pattern = r"(?m)^<<<<<<< [^\n]+\n(.*?)^=======\n(.*?)^>>>>>>> [^\n]+\n"
+    conflicts = list(re.finditer(pattern, source, re.DOTALL | re.MULTILINE))
+    expected = (
+        "0ced3ec26f57ac11ed0d8f3e7627d8c6cf5f763eca73f10ca981c2ecd1f41693",
+        "208eb559b3c487b4ab5932d0924e8ea926eecaf686baccae4961b8f76396dd70",
+        "db569eca4252af68fe6f6f42f5b5fd545afbd7956374b6af6df155204a2ebde0",
+        "ed7ab958477393afd890f51a38851bf3c2c06676c1aa50311cc1d26cb426be25",
+        "5e626bdc988d56e4a9e89ee54729a7f3593f707b0d46fbaf8cbbe375886a156e",
+        "229726face3d5443cb6d7afb79804314bf88246d45ac249fa4326c813ab2c83b",
+        "cca8a185434c58266ac90fbc2c27913b72590a441399cb4ccfa1fc7f4152d2f4",
+        "c206eb1a0a2d8261e974b3b96dfa5dadc655e4a936990f68ee01ee8527efec66",
+        "00b3cee2e24bb965ef220910fd459952f472b01fcc56a42e0fb5cca8170bb67f",
+    )
+    actual = tuple(hashlib.sha256((m.group(1) + "\0" + m.group(2)).encode()).hexdigest()
+                   for m in conflicts)
+    if actual != expected:
+        raise SyncError("Unexpected stable 2.1.0 streaming conflict sides")
+    ours = [m.group(1) for m in conflicts]
+    theirs = [m.group(2) for m in conflicts]
+    record = theirs[0] + (
+        "        public boolean usesSabr() {\n            return client.requireSABR;\n        }\n\n"
+        "        public String clientUserAgent() {\n            return client.userAgent;\n        }\n"
+    )
+    direct = ours[3][ours[3].index("    /**\n"):]
+    direct = direct.replace("videoId, isInline, fetchHeaders", "videoId, fetchHeaders")
+    direct = direct.replace("     * or the client shown in Stats for nerds.\n",
+                            "     * or the client shown in Stats for nerds.\n"
+                            "     * @param isInline Kept for compatibility; inline config is applied by the player.\n")
+    lifecycle = theirs[3].replace("clientOrder, false));", "clientOrder, false, false));")
+    lifecycle = lifecycle.replace("clientOrderToUse, false);", "clientOrderToUse, false, false);")
+    anchor = "    /**\n     * Starts fetching the streams of a video"
+    lifecycle = replace_exact_once(lifecycle, anchor, direct + "    }\n\n" + anchor,
+                                   "stable direct audio API")
+    replacements = iter((
+        record,
+        ours[1].replace("            boolean isInline,\n", ""),
+        ours[2].replace("videoId), isInline, playerHeaders", "videoId), playerHeaders"),
+        lifecycle,
+        theirs[4],
+        theirs[5].replace("clientOrder, true);", "clientOrder, true, false);"),
+        theirs[6],
+        ours[7].replace("            boolean isInline,\n", ""),
+        theirs[8].replace("if (!isDownload)", "if (!isDownload && !directStreamsOnly)"),
+    ))
+    merged = re.sub(pattern, lambda _: next(replacements), source, flags=re.DOTALL | re.MULTILINE)
+    if re.search(r"(?m)^(<<<<<<<|=======|>>>>>>>)(?: |$)", merged):
+        raise SyncError("Unresolved stable 2.1.0 streaming conflict")
+    return merged
+
+
 def resolve_streaming_data_request_conflict() -> None:
     if STREAMING_DATA_REQUEST_PATH not in unresolved_paths():
         return
@@ -1070,12 +1172,14 @@ def resolve_streaming_data_request_conflict() -> None:
     )
     if stage_blobs in (STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS,
                        STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS,
-                       STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS):
+                       STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS,
+                       STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS):
         destination = ROOT / STREAMING_DATA_REQUEST_PATH
         merge_known = {
             STREAMING_DATA_REQUEST_DEV210_CONFLICT_BLOBS: merge_streaming_data_request_dev210,
             STREAMING_DATA_REQUEST_DEV217_CONFLICT_BLOBS: merge_streaming_data_request_dev217,
             STREAMING_DATA_REQUEST_DEV2110_CONFLICT_BLOBS: merge_streaming_data_request_dev2110,
+            STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS: merge_streaming_data_request_stable210,
         }[stage_blobs]
         merged = merge_known(destination.read_text(encoding="utf-8"))
         destination.write_text(merged, encoding="utf-8", newline="")

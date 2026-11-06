@@ -117,8 +117,12 @@ public final class Settings {
      */
     public static void installHomeTabWatcher(ViewGroup tabBar) {
         if (tabBar == null) return;
-        tabBar.getViewTreeObserver().addOnGlobalLayoutListener(new HomeTabWatcher(tabBar));
-        Hiders.installAll(tabBar);
+        // Hold the window's root, not the bar: Instagram can swap the bar out later without
+        // rebuilding its binder, and a detached bar's getRootView() is only its own stale subtree.
+        View rootView = tabBar.getRootView();
+        ViewGroup root = rootView instanceof ViewGroup ? (ViewGroup) rootView : tabBar;
+        root.getViewTreeObserver().addOnGlobalLayoutListener(new HomeTabWatcher(root));
+        Hiders.installAll(root);
         Context activity = getActivityContext(tabBar);
         // Oxbow: no upstream follow card; "What's new" shows right away.
         UpdateChecker.checkWhatsNew(activity);

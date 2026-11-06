@@ -1,5 +1,9 @@
 package app.wordfeudwordfinder.extension.game;
 
+/**
+ * Bonus squares of one Wordfeud board ({@code boards[]} in games/detail): {@code squares[y][x]} is 0 (none), 1 DL, 2 TL,
+ * 3 DW or 4 TW. A game refers to its layout by {@code board} id; random boards have their own id.
+ */
 public final class BoardLayout {
     private final int id;
     private final int[][] squares;

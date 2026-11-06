@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-10-21.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -46,6 +47,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.getReference
 import app.morphe.patches.music.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE_MUSIC
 import app.morphe.patches.music.utils.extension.Constants.VIDEO_PATH
 import app.morphe.patches.music.utils.patch.PatchList.VIDEO_PLAYBACK
@@ -77,10 +79,7 @@ import app.morphe.util.findMethodOrThrow
 import app.morphe.util.findMutableClassOrThrow
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.matchOrNull
-import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
-import app.morphe.util.fingerprint.originalMethodOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
@@ -266,11 +265,11 @@ val videoPlaybackPatch = bytecodePatch(
         }
 
         val initialResolutionField =
-            playbackStartParametersToStringFingerprint.originalMethodOrThrow()
+            playbackStartParametersToStringFingerprint.originalMethod
                 .findFieldFromToString(FIXED_RESOLUTION_STRING)
 
         playbackStartParametersConstructorFingerprint
-            .methodOrThrow(playbackStartParametersToStringFingerprint)
+            .match(playbackStartParametersToStringFingerprint.classDef).method
             .apply {
                 val index = indexOfFirstInstructionReversedOrThrow {
                     opcode == Opcode.IPUT_OBJECT &&

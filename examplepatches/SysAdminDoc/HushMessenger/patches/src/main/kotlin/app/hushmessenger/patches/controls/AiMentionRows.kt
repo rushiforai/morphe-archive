@@ -6,7 +6,9 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 /**
  * The checks behind the Meta AI, imagine and imagine yourself rows in Messenger's newer @ list (584 on). That list is a
@@ -38,6 +40,21 @@ private fun Method.serverFlags(): Set<Long> = implementation?.instructions
     ?.toSet().orEmpty()
 
 /**
+ * Family B reads the shared flag in a static ()Z getter of its own that the Meta AI checks call, so a call to one counts
+ * as reading it. Their ids, set by [findAiMentionRows] before anything asks [aiMentionRow].
+ */
+internal var metaAiFlagGetters: Set<String> = emptySet()
+
+private fun Method.readsOnlySharedFlag() = AccessFlags.STATIC.isSet(accessFlags) && parameterTypes.isEmpty() && returnType == "Z" &&
+    serverFlags() == setOf(META_AI_SHARED_FLAG)
+
+private fun Method.rowFlags(): Set<Long> {
+    val flags = serverFlags()
+    val asks = implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.toString() in metaAiFlagGetters } == true
+    return if (asks) flags + META_AI_SHARED_FLAG else flags
+}
+
+/**
  * Which row this instance check answers for, by its parameters and the server flag it reads:
  *
  *     ()Z                                                  both META_AI_ROW_FLAGS: Meta AI in community channels
@@ -51,7 +68,7 @@ private fun Method.serverFlags(): Set<Long> = implementation?.instructions
 internal fun Method.aiMentionRow(): String? {
     if (AccessFlags.STATIC.isSet(accessFlags) || returnType != "Z" || implementation == null) return null
     val params = parameterTypes.map { it.toString() }
-    val flags = serverFlags()
+    val flags = rowFlags()
     return when {
         params.isEmpty() && flags.containsAll(META_AI_ROW_FLAGS) -> "meta_ai"
         params == listOf(FB_USER_SESSION, CAPABILITIES) && flags.containsAll(META_AI_CHAT_FLAGS) -> "meta_ai_chats"
@@ -64,7 +81,8 @@ internal fun Method.aiMentionRow(): String? {
 
 /** The five checks, exactly one of each, all on one class, or none. */
 internal fun findAiMentionRows(classes: Iterable<ClassDef>): List<Method> {
-    val rows = classes.flatMap { cls -> cls.methods.mapNotNull { method -> method.aiMentionRow()?.let { it to method } } }
+    metaAiFlagGetters = classes.flatMap { it.methods }.filter { it.readsOnlySharedFlag() }.map { it.hookId() }.toSet()
+    val rows =classes.flatMap { cls -> cls.methods.mapNotNull { method -> method.aiMentionRow()?.let { it to method } } }
         .groupBy({ it.first }, { it.second })
     if (rows.size != 5 || rows.values.any { it.size != 1 }) return emptyList()
     return rows.values.map { it.single() }.takeIf { checks -> checks.map { it.definingClass }.toSet().size == 1 }.orEmpty()

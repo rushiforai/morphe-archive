@@ -67,6 +67,9 @@ internal const val CANONICAL_ROOT = "$ROOT_MUTES->canonicalRoot(Ljava/lang/Strin
 internal const val ROOT_TRAIL_PRESENT = "$POST->hushRootTrailPresent:Z"
 internal const val ROOT_JSON_SET = "$POST->hushSetJsonPresence(II)V"
 internal const val WRAPPED_CANONICAL_ROOT = "$ROOT_POST_WRAPPER->hushCanonicalRoot:Ljava/lang/String;"
+internal const val HUSH_BLOG_RULE_POST = "$EXTENSION_PACKAGE/rootmute/HushBlogRulePost;"
+internal const val BLOG_RULE = "$ROOT_MUTES->blogRule(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Z)Ljava/lang/String;"
+internal const val WRAPPED_BLOG_RULE = "$ROOT_POST_WRAPPER->hushBlogRule:Ljava/lang/String;"
 private const val STRING = "Ljava/lang/String;"
 private const val LIST = "Ljava/util/List;"
 private const val MODE = "Luxl;"
@@ -74,18 +77,17 @@ private const val CALLBACK = "Lii9;"
 private const val UNIT = "Lctm;"
 private const val MENU_BUILDER = "Lcom/tumblr/components/bottomsheet/b\$b;"
 private const val MENU_CONCRETE = "Lcom/tumblr/components/bottomsheet/b\$a;"
-private const val TIMELINEABLE = "Lcom/tumblr/rumblr/model/Timelineable;"
 
 /** A private account list, with a local action and an immediate local list replacement. */
 @Suppress("unused")
 val muteRootPostsPatch = bytecodePatch(
     name = PATCH,
     description = "Adds a local mute action to post menus. Originals and their reblogs stay hidden for this account. " +
-        "Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
+        "On the dashboard the menu can also hide one blog's reblogs or its originals. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
     default = true,
 ) {
     category("Feed")
-    dependsOn(settingsPatch, tumblrExtensionPatch, timelineListHookPatch, accountIdentityPatch, postJsonPresencePatch)
+    dependsOn(settingsPatch, tumblrExtensionPatch, timelineListHookPatch, accountIdentityPatch, postJsonPresencePatch, dashboardPagePatch)
     compatibleWith(*AppCompatibilities.tumblr())
     execute {
         requireStatusMethod("muteRootPosts")
@@ -99,18 +101,23 @@ val muteRootPostsPatch = bytecodePatch(
 internal data class RootBridgePlan(val owner: String, val getters: List<String>)
 internal data class RootMenuPlan(val method: MutableMethod, val at: Int, val scratch: Int)
 internal data class RootPostMutesPlan(val menu: MutableMethod, val at: Int, val scratch: List<Int>, val roots: List<RootBridgePlan>,
-    val wrapperConstructor: MutableMethod, val captureScratch: Int, val header: RootMenuPlan, val owned: RootMenuPlan)
+    val wrapperConstructor: MutableMethod, val captureScratch: Int, val header: RootMenuPlan, val owned: RootMenuPlan,
+    val blogName: String)
 
 internal fun BytecodePatchContext.resolveRootPostMutes(): RootPostMutesPlan {
     requireExtensionHook(PATCH, ROOT_MENU_HOOK)
     requireExtensionHook(PATCH, CANONICAL_ROOT)
-    for (stub in listOf("cardRoot", "addNative", "unit")) requireStub(ROOT_MENU, stub)
-    val rootInterface = classDefByOrNull(HUSH_ROOT_POST)
-    requireShape(PATCH, rootInterface != null && AccessFlags.INTERFACE.isSet(rootInterface.accessFlags)
-        && rootInterface.methods.count() == 1 && rootInterface.methods.single().let {
-            it.name == "hushRootId" && it.hasShape(emptyList(), STRING) && AccessFlags.ABSTRACT.isSet(it.accessFlags)
-        }, "the canonical root interface changed")
+    requireExtensionHook(PATCH, BLOG_RULE)
+    for (stub in listOf("addNative", "unit")) requireStub(ROOT_MENU, stub)
+    for ((face, method) in listOf(HUSH_ROOT_POST to "hushRootId", HUSH_BLOG_RULE_POST to "hushBlogRule")) {
+        val bridge = classDefByOrNull(face)
+        requireShape(PATCH, bridge != null && AccessFlags.INTERFACE.isSet(bridge.accessFlags)
+            && bridge.methods.count() == 1 && bridge.methods.single().let {
+                it.name == method && it.hasShape(emptyList(), STRING) && AccessFlags.ABSTRACT.isSet(it.accessFlags)
+            }, "the canonical root or blog rule interface changed")
+    }
     val native = listOf("reblogged_root_id", "reblogged_from_id", "id").map { rootGetter(it, STRING) } + rootGetter("trail", LIST)
+    val blogName = rootGetter("blog_name", STRING)
     val wrapperConstructor = rootMethod(ROOT_POST_WRAPPER, "<init>", listOf(POST), "V")
     val constructorBody = wrapperConstructor.instructionList()
     requireShape(PATCH, wrapperConstructor.implementation!!.registerCount == 9 && !wrapperConstructor.isStatic()
@@ -128,17 +135,12 @@ internal fun BytecodePatchContext.resolveRootPostMutes(): RootPostMutesPlan {
     }, "the shared explicit Post JSON presence bridge is missing")
     for (type in listOf(POST, ROOT_POST_WRAPPER)) {
         val owner = classDefByOrNull(type)
-        requireShape(PATCH, owner != null && HUSH_ROOT_POST !in owner.interfaces
-            && owner.methods.none { it.name == "hushRootId" }
-            && owner.fields.none { it.name == "hushCanonicalRoot" },
+        requireShape(PATCH, owner != null && HUSH_ROOT_POST !in owner.interfaces && HUSH_BLOG_RULE_POST !in owner.interfaces
+            && owner.methods.none { it.name in setOf("hushRootId", "hushBlogRule") }
+            && owner.fields.none { it.name in setOf("hushCanonicalRoot", "hushBlogRule") },
             "the canonical root bridge already exists or its owner is missing")
     }
     requireLocalTimeline()
-    val data = rootMethod(ROOT_TIMELINE_OBJECT, "getData", emptyList(), TIMELINEABLE)
-    requireShape(PATCH, !data.isStatic() && AccessFlags.PUBLIC.isSet(data.accessFlags), "the timeline payload getter changed")
-    rootMethod("La2k;", "l", emptyList(), TIMELINEABLE).also {
-        requireShape(PATCH, !it.isStatic() && AccessFlags.PUBLIC.isSet(it.accessFlags), "the post card payload getter changed")
-    }
     val callback = classDefByOrNull(CALLBACK)
     requireShape(PATCH, callback != null && AccessFlags.PUBLIC.isSet(callback.accessFlags) && AccessFlags.INTERFACE.isSet(callback.accessFlags)
         && callback.interfaces.toList() == listOf("Lki9;") && callback.methods.count() == 1
@@ -185,12 +187,12 @@ internal fun BytecodePatchContext.resolveRootPostMutes(): RootPostMutesPlan {
     val header = rootHeaderMenu()
     val owned = rootOwnedMenu()
     return RootPostMutesPlan(menu, at, scratch, listOf(RootBridgePlan(POST, native), RootBridgePlan(ROOT_POST_WRAPPER, emptyList())),
-        wrapperConstructor, captureScratch, header, owned)
+        wrapperConstructor, captureScratch, header, owned, blogName)
 }
 
 internal fun BytecodePatchContext.applyRootPostMutes(plan: RootPostMutesPlan) {
-    mutableClassDefBy(ROOT_POST_WRAPPER).instanceFields.add(ImmutableField(ROOT_POST_WRAPPER, "hushCanonicalRoot", STRING,
-        AccessFlags.PRIVATE.value or AccessFlags.FINAL.value, null, null, null).toMutable())
+    for (field in listOf("hushCanonicalRoot", "hushBlogRule")) mutableClassDefBy(ROOT_POST_WRAPPER).instanceFields.add(
+        ImmutableField(ROOT_POST_WRAPPER, field, STRING, AccessFlags.PRIVATE.value or AccessFlags.FINAL.value, null, null, null).toMutable())
     for (root in plan.roots) {
         val owner = mutableClassDefBy(root.owner)
         owner.interfaces.add(HUSH_ROOT_POST)
@@ -211,11 +213,33 @@ internal fun BytecodePatchContext.applyRootPostMutes(plan: RootPostMutesPlan) {
                 return-object v0
             """) else addInstructions(0, "iget-object v0, p0, $WRAPPED_CANONICAL_ROOT\nreturn-object v0")
         })
+        // The posting blog with what's proven about the post: a reblog, an original, or neither.
+        owner.interfaces.add(HUSH_BLOG_RULE_POST)
+        owner.methods.add(ImmutableMethod(root.owner, "hushBlogRule", emptyList(), STRING, AccessFlags.PUBLIC.value,
+            null, null, MutableMethodImplementation(if (root.owner == POST) 6 else 2)).toMutable().apply {
+            if (root.owner == POST) addInstructions(0, """
+                invoke-virtual { p0 }, ${plan.blogName}
+                move-result-object v0
+                invoke-virtual { p0 }, ${root.getters[0]}
+                move-result-object v1
+                invoke-virtual { p0 }, ${root.getters[1]}
+                move-result-object v2
+                invoke-virtual { p0 }, ${root.getters[3]}
+                move-result-object v3
+                iget-boolean v4, p0, $ROOT_TRAIL_PRESENT
+                invoke-static { v0, v1, v2, v3, v4 }, $BLOG_RULE
+                move-result-object v0
+                return-object v0
+            """) else addInstructions(0, "iget-object v0, p0, $WRAPPED_BLOG_RULE\nreturn-object v0")
+        })
     }
     plan.wrapperConstructor.addInstructions(1, """
         invoke-interface/range { p1 .. p1 }, $HUSH_ROOT_POST->hushRootId()$STRING
         move-result-object v${plan.captureScratch}
         iput-object v${plan.captureScratch}, p0, $WRAPPED_CANONICAL_ROOT
+        invoke-interface/range { p1 .. p1 }, $HUSH_BLOG_RULE_POST->hushBlogRule()$STRING
+        move-result-object v${plan.captureScratch}
+        iput-object v${plan.captureScratch}, p0, $WRAPPED_BLOG_RULE
     """)
     val timeline = mutableClassDefBy(LOCAL_TIMELINE)
     timeline.interfaces.add(HUSH_LOCAL_TIMELINE)
@@ -240,30 +264,6 @@ internal fun BytecodePatchContext.applyRootPostMutes(plan: RootPostMutesPlan) {
     writeStub(ROOT_MENU, "addNative", 3, "check-cast p0, $MENU_BUILDER\n" +
         "invoke-virtual { p0, p1, p2 }, $MENU_BUILDER->c($STRING$CALLBACK)$MENU_BUILDER\nreturn-void")
     writeStub(ROOT_MENU, "unit", 1, "sget-object v0, $UNIT->a:$UNIT\nreturn-object v0")
-    writeStub(ROOT_MENU, "cardRoot", 3, """
-        instance-of v0, p0, Lr4g;
-        if-eqz v0, :timeline
-        check-cast p0, Lr4g;
-        invoke-virtual { p0 }, La2k;->l()$TIMELINEABLE
-        move-result-object v0
-        goto :payload
-        :timeline
-        instance-of v0, p0, $ROOT_TIMELINE_OBJECT
-        if-eqz v0, :absent
-        check-cast p0, $ROOT_TIMELINE_OBJECT
-        invoke-virtual { p0 }, $ROOT_TIMELINE_OBJECT->getData()$TIMELINEABLE
-        move-result-object v0
-        :payload
-        instance-of v1, v0, $HUSH_ROOT_POST
-        if-eqz v1, :absent
-        check-cast v0, $HUSH_ROOT_POST
-        invoke-interface { v0 }, $HUSH_ROOT_POST->hushRootId()$STRING
-        move-result-object v0
-        return-object v0
-        :absent
-        const/4 v0, 0x0
-        return-object v0
-    """)
     plan.menu.addInstructionsAtControlFlowLabel(plan.at, """
         move-object/from16 v${plan.scratch[0]}, p7
         move-object/from16 v${plan.scratch[1]}, p0

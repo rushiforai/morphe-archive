@@ -39,10 +39,11 @@ private val MOVE_RESULT_OPCODES = setOf(
 val universalAllowScreenCapturePatch = bytecodePatch(
     name = "Allow screenshots & screen recording",
     description = """
-        Removes FLAG_SECURE from the app's windows so screenshots and screen
-        recordings work. Payment/banking screens may still capture black.
+        Attempts to remove recognizable FLAG_SECURE and secure SurfaceView settings
+        so screenshots and screen recordings can work. Some screens or protection
+        methods may still block capture, including payment or banking screens.
 
-        Applies to any app. Inverse of "Block screenshots & screen recording".
+        Applies to any app. Do not combine with "Block screenshots & screen recording".
     """.trimIndent(),
     default = false,
 ) {

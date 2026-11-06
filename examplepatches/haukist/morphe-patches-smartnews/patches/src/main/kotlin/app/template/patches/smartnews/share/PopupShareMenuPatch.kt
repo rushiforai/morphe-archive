@@ -9,7 +9,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 @Suppress("unused")
 val popupShareMenuPatch = bytecodePatch(
     name = "Popup share menu",
-    description = "Replaces the top-right custom share bottom sheet with the compact PopupMenu used in web mode.",
+    description = "Restores the legacy popup share menu when tapping the top-right share button, replacing the default system share sheet (identical to the menu used in web mode).",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_SMARTNEWS)

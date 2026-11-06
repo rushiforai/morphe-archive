@@ -6,6 +6,8 @@ This opt-in patch targets only the official **Infinity+ 8.3.4**, package `ml.doc
 
 Choose **Configure custom OAuth for Infinity+** on the original APK. It is standalone: do not also select Breal's Spoof client or feed it an already patched APK. No APK, shared public client ID, client secret, account password, cookie or login token is distributed in the patch bundle.
 
+**Morphe Manager 2.4.0:** Enable **Settings → Expert mode** before selecting and configuring this patch. In our Android 15 emulator test, the simple-mode patch selection screen accepted the values but the patcher received empty options ([Manager issue #1372](https://github.com/MorpheApp/morphe-manager/issues/1372)). With Expert mode enabled, the same bundle and synthetic values patched the original APK successfully. Do not use synthetic values to sign in; use your own authorized client.
+
 Provide three values at patch time:
 
 - `client-id`: the public Reddit installed-app OAuth client ID you are authorized to use. Do not paste a password, client secret or token.

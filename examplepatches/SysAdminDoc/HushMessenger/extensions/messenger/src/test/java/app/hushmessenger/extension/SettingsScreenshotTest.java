@@ -43,6 +43,7 @@ public class SettingsScreenshotTest {
     private Path output;
     private PackageInfo installedPackage;
     private Bundle originalMetadata;
+    private String originalVersionName, messengerVersion;
     private boolean originalStarted, originalFailed;
     private MessageLog.Vault originalVault;
 
@@ -63,6 +64,10 @@ public class SettingsScreenshotTest {
         metadata.putBoolean("hush.feature.menu_row", true);
         for (String[] spec : SettingsActivity.CONTROLS) metadata.putBoolean("hush.feature." + spec[0], true);
         installedPackage.applicationInfo.metaData = metadata;
+        // On a phone the host package is Messenger, so the header names Messenger's version, not the patches' again.
+        originalVersionName = installedPackage.versionName;
+        messengerVersion = supportedMessengerVersion();
+        installedPackage.versionName = messengerVersion;
         Shadows.shadowOf(app.getPackageManager()).installPackage(installedPackage);
         Shadows.shadowOf(app.getPackageManager()).addActivityIfNotPresent(
             new android.content.ComponentName(app.getPackageName(), SettingsActivity.DRAWER_ALIAS));
@@ -87,6 +92,7 @@ public class SettingsScreenshotTest {
         MessageLog.clear();
         MessageLog.vault = originalVault;
         installedPackage.applicationInfo.metaData = originalMetadata;
+        installedPackage.versionName = originalVersionName;
         var app = RuntimeEnvironment.getApplication();
         Shadows.shadowOf(app.getPackageManager()).installPackage(installedPackage);
         Settings.preferences.edit().clear().commit();
@@ -343,6 +349,9 @@ public class SettingsScreenshotTest {
                 visibleTarget(required(root, "open_messenger"));
                 visibleTarget(required(root, "find_control"));
                 visibleTarget(required(root, SettingsActivity.CONTROLS[0][0]));
+                String header = ((TextView) required(root, SettingsHeader.VERSION)).getText().toString()
+                    .replace(String.valueOf((char) 0x2068), "").replace(String.valueOf((char) 0x2069), "");
+                assertEquals("Version " + BuildConfig.VERSION_NAME + " for Messenger " + messengerVersion, header);
                 write(root, "settings-controls-" + theme);
 
                 required(root, "tab_app").performClick();
@@ -400,6 +409,15 @@ public class SettingsScreenshotTest {
             visibleTarget(required(root, "undo"));
             write(root, "settings-undo-clear-log");
         }
+    }
+
+    /** The Messenger version the patches target, the first name in MessengerTarget.VERSIONS. */
+    private static String supportedMessengerVersion() throws java.io.IOException {
+        Path target = Paths.get("..", "..", "patches", "src", "main", "kotlin", "app", "hushmessenger", "patches", "MessengerTarget.kt");
+        java.util.regex.Matcher found = java.util.regex.Pattern.compile("\"(\\d+(?:\\.\\d+){4})\" to listOf")
+            .matcher(new String(Files.readAllBytes(target), java.nio.charset.StandardCharsets.UTF_8));
+        assertTrue("A supported Messenger version in " + target.toAbsolutePath(), found.find());
+        return found.group(1);
     }
 
     private void captureDialog(View page, String action, String loadedText, String name) throws Exception {

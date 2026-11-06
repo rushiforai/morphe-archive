@@ -17,7 +17,7 @@ if ([IO.Path]::GetDirectoryName($testRoot) -ine $temp) { throw 'The advisory fix
 $exceptionsPath = Join-Path $testRoot 'exceptions.txt'
 $purl = 'pkg:maven/com.example/advisory-fixture@1.2.3'
 $library = [pscustomobject]@{ Group = 'com.example'; Name = 'advisory-fixture'; Version = '1.2.3'; Purl = $purl }
-$report = [pscustomobject]@{ Path = 'recorded.cdx.json'; GradleVersion = '9.8.1'; Libraries = @($library) }
+$report = [pscustomobject]@{ Path = 'recorded.cdx.json'; GradleVersion = '9.8.2'; Libraries = @($library) }
 $asked = New-Object Collections.Generic.List[string]
 $responses = @{}
 $cases = 0

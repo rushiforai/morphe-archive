@@ -36,6 +36,18 @@ import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as Prim
 import semicoloncolonel.mobilestream.patches.starz.shared.Constants as Starz
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
 import semicoloncolonel.mobilestream.patches.xumo.shared.Constants as Xumo
+import semicoloncolonel.mobilestream.patches.mlb.shared.Constants as Mlb
+import semicoloncolonel.mobilestream.patches.npr.shared.Constants as Npr
+import semicoloncolonel.mobilestream.patches.apnews.shared.Constants as ApNews
+import semicoloncolonel.mobilestream.patches.substack.shared.Constants as Substack
+import semicoloncolonel.mobilestream.patches.cspan.shared.Constants as Cspan
+import semicoloncolonel.mobilestream.patches.newsnation.shared.Constants as NewsNation
+import semicoloncolonel.mobilestream.patches.dailywire.shared.Constants as DailyWire
+import semicoloncolonel.mobilestream.patches.usatoday.shared.Constants as UsaToday
+import semicoloncolonel.mobilestream.patches.newsbreak.shared.Constants as NewsBreak
+import semicoloncolonel.mobilestream.patches.shudder.shared.Constants as Shudder
+import semicoloncolonel.mobilestream.patches.sundancenow.shared.Constants as SundanceNow
+import semicoloncolonel.mobilestream.patches.thescore.shared.Constants as TheScore
 import semicoloncolonel.mobilestream.patches.verizon.shared.Constants as Verizon
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants as JustWatch
@@ -108,7 +120,7 @@ val disableAutoUpdatesPatch = resourcePatch(
         Xfinity.COMPATIBILITY,
         Att.COMPATIBILITY,
         Verizon.COMPATIBILITY,
-        Xumo.COMPATIBILITY,
+        Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY, TheScore.COMPATIBILITY, Substack.COMPATIBILITY, Cspan.COMPATIBILITY, NewsNation.COMPATIBILITY, NewsNation.TV_COMPATIBILITY, DailyWire.COMPATIBILITY, UsaToday.COMPATIBILITY,
     )
 
     execute {

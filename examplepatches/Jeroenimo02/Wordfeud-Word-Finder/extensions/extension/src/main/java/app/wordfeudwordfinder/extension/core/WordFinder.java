@@ -6,6 +6,7 @@ import app.wordfeudwordfinder.extension.play.SessionReader;
 import app.wordfeudwordfinder.extension.play.UrlConnectionPoster;
 import app.wordfeudwordfinder.extension.words.MissingWords;
 import app.wordfeudwordfinder.extension.words.RejectedWords;
+import app.wordfeudwordfinder.extension.words.UsagePing;
 import app.wordfeudwordfinder.extension.words.UrlConnectionFetcher;
 import app.wordfeudwordfinder.extension.words.WordListManager;
 import app.wordfeudwordfinder.extension.words.WordReporter;
@@ -44,7 +45,9 @@ public final class WordFinder {
         this.missingWords = new MissingWords(storage, reporter);
         GameStore gs = gameStore;
         WordListManager wl = wordLists;
+        UsagePing ping = new UsagePing(storage, reporter, System::currentTimeMillis);
         gameStore.addListener(() -> wl.onRulesetsSeen(gs.seenRulesets(), gs::ruleset));
+        gameStore.addListener(() -> ping.onGames(gs.seenRulesets()));
     }
 
     /**

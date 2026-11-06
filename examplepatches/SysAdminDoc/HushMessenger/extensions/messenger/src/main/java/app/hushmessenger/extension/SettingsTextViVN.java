@@ -664,7 +664,7 @@ final class SettingsTextViVN {
         {"blocked_list_pictures.title", "Ẩn ảnh trong danh sách chặn"},
         {"blocked_list_pictures.description", "Ẩn ảnh đại diện của những người bạn đã chặn trong danh sách chặn, ở mục 'Quyền riêng tư và an toàn'. Tên của họ và nút 'Bỏ chặn' vẫn hiển thị."},
         {"restricted_notify.title", "Thông báo cho phòng chat bị hạn chế"},
-        {"restricted_notify.description", "Phòng chat với những người bạn đã hạn chế sẽ gửi thông báo cho bạn như các phòng chat khác. Phòng chat bạn đã tắt thông báo vẫn im lặng. Người bị hạn chế vẫn không thấy khi nào bạn đang hoạt động hoặc đã đọc tin nhắn của họ."},
+        {"restricted_notify.description", "Phòng chat với những người bạn đã hạn chế sẽ gửi thông báo cho bạn như các phòng chat khác, trừ khi phòng chat được mã hóa đầu cuối. Phòng chat bạn đã tắt thông báo vẫn im lặng. Người bị hạn chế vẫn không thấy khi nào bạn đang hoạt động hoặc đã đọc tin nhắn của họ."},
         {"material_you.title", "Chủ đề Material You"},
         {"material_you.description", "Trong Android 12 trở lên, tô màu chế độ tối của Messenger theo bảng màu hình nền; trong Android 11, sử dụng màu xanh lam cố định. Vui lòng bật chế độ tối trong Messenger trước. Chế độ sáng giữ nguyên màu trừ khi bạn bật Màu nhấn cho chế độ sáng."},
         {"app_icons.title", "Mở khóa biểu tượng ứng dụng"},

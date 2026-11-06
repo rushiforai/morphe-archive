@@ -28,6 +28,26 @@ internal object ResourcesCompatGetFontFingerprint : Fingerprint(
 )
 
 /**
+ * Track row binder.
+ *
+ * Resets the station name TextView to Typeface.DEFAULT, which discards the
+ * theme font. The custom font patch removes that reset so station names follow
+ * the same font as the rest of the UI.
+ */
+internal object TrackRowTypefaceFingerprint : Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.name == "a" &&
+            method.parameters.size == 2 &&
+            method.parameters[0].type == "Lnpu;" &&
+            method.parameters[1].type == "Ljava/util/List;"
+    },
+    filters = listOf(
+        methodCall(smali = "Landroid/widget/TextView;->setTypeface(Landroid/graphics/Typeface;)V"),
+    ),
+)
+
+/**
  * Compose's AndroidParagraphIntrinsics constructor.
  *
  * Its TextPaint is the single paint used to measure and lay out all Compose

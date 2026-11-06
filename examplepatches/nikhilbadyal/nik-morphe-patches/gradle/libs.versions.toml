@@ -1,0 +1,14 @@
+[versions]
+# The build plugin reads these aliases directly to supply compile-time patcher and DEX APIs.
+morphe-patcher = "1.5.2"
+smali = "d92701d947"
+# The patch library supplies the patcher APIs used by the Swift Backup patches.
+morphe-patches-library = "1.4.1"
+# Patch-list generation needs Gson; the extension uses annotations without packaging them.
+gson = "2.14.0"
+annotation = "1.9.1"
+
+[libraries]
+morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
+annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }

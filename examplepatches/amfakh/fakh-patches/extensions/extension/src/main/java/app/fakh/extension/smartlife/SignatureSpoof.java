@@ -91,6 +91,7 @@ public final class SignatureSpoof {
             // Any ApplicationPackageManager the app creates after this reads sPackageManager, so it picks up
             // the proxy; install() runs before the app first touches its PackageManager.
             Log.w(TAG, "signature spoof installed");
+            patchCachedPackageInfo(context);
             logExitCaller();
             logLastExits(context);
             logSeenSignature(context);
@@ -114,6 +115,28 @@ public final class SignatureSpoof {
             .getPackageInfo(packageName, PackageManager.GET_SIGNATURES).signatures;
         boolean original = seen != null && seen.length > 0 && seen[0].equals(originalFor(packageName));
         Log.w(TAG, "certificate seen by the app: " + (original ? "original " : "NOT original ") + describe(seen));
+    }
+
+    /**
+     * Rewrites the certificate in the PackageInfo the system holds in its process-local cache. The proxy only
+     * covers reads that reach the IPC layer; a PackageInfo cached before install() is handed back from the cache
+     * without reaching the proxy, so it keeps the resigned certificate. On devices where the hidden-API exemption
+     * is denied the caches cannot be emptied either, which leaves that stale entry in place. Reading each flag the
+     * app queries with returns the cached instance by reference, so rewriting its certificate in place fixes every
+     * later read of the same key. Best effort: if a release copies the entry per query, the rewrite is harmless.
+     */
+    private static void patchCachedPackageInfo(Context context) {
+        String packageName = context.getPackageName();
+        PackageManager pm = context.getPackageManager();
+        int[] flags = Build.VERSION.SDK_INT >= 28
+            ? new int[]{PackageManager.GET_SIGNATURES, PackageManager.GET_SIGNING_CERTIFICATES, 0}
+            : new int[]{PackageManager.GET_SIGNATURES, 0};
+        for (int flag : flags) {
+            try {
+                patch(pm.getPackageInfo(packageName, flag));
+            } catch (Throwable ignored) {
+            }
+        }
     }
 
     /**

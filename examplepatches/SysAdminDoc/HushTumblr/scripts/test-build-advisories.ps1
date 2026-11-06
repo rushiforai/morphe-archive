@@ -37,7 +37,7 @@ function Assert-Fails([scriptblock]$Action, [string]$Pattern) {
 }
 function New-Report {
     return [ordered]@{
-        schemaVersion = 1; gradleVersion = '9.8.1'
+        schemaVersion = 1; gradleVersion = '9.8.2'
         configurations = @('settings:classpath', ':patches:patcherProvidedClasspath', ':patches:testRuntimeClasspath')
         components = @([ordered]@{
             group = 'com.example'; name = 'build-only-tool'; version = '1.2.3'; purl = $purl
@@ -112,8 +112,8 @@ function Assert-ReviewedBuildGraph($Report) {
         }
     }
     $reviewed = @{
-        'com.google.guava:guava' = '33.7.2-jre'
-        'org.apache.commons:commons-lang3' = '3.18.0'
+        'com.google.guava:guava' = '33.8.0-jre'
+        'org.apache.commons:commons-lang3' = '3.21.0'
         'org.apache.httpcomponents:httpclient' = '4.5.14'
     }
     foreach ($package in $reviewed.Keys) {
@@ -148,7 +148,7 @@ function New-ReviewedBuildReport {
         'org.jdom:jdom2' = '2.0.6.1'; 'org.jetbrains.kotlin:kotlin-gradle-plugin' = '2.4.21'
         'org.bouncycastle:bcprov-jdk18on' = '1.86'; 'org.bouncycastle:bcpkix-jdk18on' = '1.86'
         'org.bouncycastle:bcutil-jdk18on' = '1.86'
-        'com.google.guava:guava' = '33.7.2-jre'; 'org.apache.commons:commons-lang3' = '3.18.0'
+        'com.google.guava:guava' = '33.8.0-jre'; 'org.apache.commons:commons-lang3' = '3.21.0'
         'org.apache.httpcomponents:httpclient' = '4.5.14'
     }
     $tooling = @('settings:classpath') + @(':extensions:tumblr', ':extensions:shared', ':extensions:shared:library' | ForEach-Object {
@@ -159,7 +159,7 @@ function New-ReviewedBuildReport {
             $_ + ':_internal-unified-test-platform-core'
         })
     return [ordered]@{
-        schemaVersion = 1; gradleVersion = '9.8.1'; configurations = @('settings:classpath', $core, $emulator) +
+        schemaVersion = 1; gradleVersion = '9.8.2'; configurations = @('settings:classpath', $core, $emulator) +
             @($guava | Where-Object { $_ -notin @('settings:classpath', $core, $emulator) })
         components = @(foreach ($package in $modules.Keys) {
             $parts = $package.Split(':')
@@ -180,13 +180,13 @@ try {
     $wrapperPath = Join-Path $testRoot 'gradle/wrapper/gradle-wrapper.properties'
     $wrapperText = Get-Content -LiteralPath $wrapperPath -Raw
     $wrapper = Assert-ReviewedGradleWrapper -Root $testRoot
-    Assert-True ($wrapper.GradleVersion -ceq '9.8.1') 'The reviewed official Gradle 9.8.1 wrapper was not accepted.'
+    Assert-True ($wrapper.GradleVersion -ceq '9.8.2') 'The reviewed official Gradle 9.8.2 wrapper was not accepted.'
     $cases++
     $badWrappers = @(
-        @{ Text = $wrapperText.Replace('gradle-9.8.1-bin.zip', 'gradle-9.7.1-bin.zip'); Pattern = '*Unreviewed Gradle wrapper 9.7.1*GHSA-mvvg-497x-hmj8*GHSA-xwqc-3h47-hg64*GHSA-j5m7-59rp-24f5*' },
-        @{ Text = $wrapperText.Replace('gradle-9.8.1-bin.zip', 'gradle-9.8.0-bin.zip'); Pattern = '*Unreviewed Gradle wrapper 9.8.0*' },
-        @{ Text = $wrapperText.Replace('gradle-9.8.1-bin.zip', 'gradle-9.8.2-bin.zip'); Pattern = '*Unreviewed Gradle wrapper 9.8.2*' },
-        @{ Text = $wrapperText.Replace('gradle-9.8.1-bin.zip', 'gradle-bin.zip'); Pattern = '*pin an official binary distribution and its resolved version*' },
+        @{ Text = $wrapperText.Replace('gradle-9.8.2-bin.zip', 'gradle-9.7.1-bin.zip'); Pattern = '*Unreviewed Gradle wrapper 9.7.1*GHSA-mvvg-497x-hmj8*GHSA-xwqc-3h47-hg64*GHSA-j5m7-59rp-24f5*' },
+        @{ Text = $wrapperText.Replace('gradle-9.8.2-bin.zip', 'gradle-9.8.0-bin.zip'); Pattern = '*Unreviewed Gradle wrapper 9.8.0*' },
+        @{ Text = $wrapperText.Replace('gradle-9.8.2-bin.zip', 'gradle-9.8.3-bin.zip'); Pattern = '*Unreviewed Gradle wrapper 9.8.3*' },
+        @{ Text = $wrapperText.Replace('gradle-9.8.2-bin.zip', 'gradle-bin.zip'); Pattern = '*pin an official binary distribution and its resolved version*' },
         @{ Text = $wrapperText.Replace('services.gradle.org', 'example.invalid'); Pattern = '*pin an official binary distribution*' },
         @{ Text = ($wrapperText -replace '(?m)^distributionUrl=.*\r?\n?', ''); Pattern = '*pin an official binary distribution*' },
         @{ Text = ($wrapperText -replace '(?m)^distributionSha256Sum=.*\r?\n?', ''); Pattern = '*distribution checksum is missing or differs*' },
@@ -206,7 +206,7 @@ try {
     Copy-ReviewedWrapper $testRoot
     $wrapperJar = Join-Path $testRoot 'gradle/wrapper/gradle-wrapper.jar'
     Set-Content -LiteralPath $wrapperJar -Value 'unreviewed binary' -Encoding ASCII
-    Assert-Fails { Assert-ReviewedGradleWrapper -Root $testRoot | Out-Null } '*wrapper JAR differs from the reviewed official 9.8.1 checksum*'
+    Assert-Fails { Assert-ReviewedGradleWrapper -Root $testRoot | Out-Null } '*wrapper JAR differs from the reviewed official 9.8.2 checksum*'
     Remove-Item -LiteralPath $wrapperJar
     Assert-Fails { Assert-ReviewedGradleWrapper -Root $testRoot | Out-Null } '*wrapper JAR is missing*'
     Copy-ReviewedWrapper $testRoot
@@ -214,12 +214,12 @@ try {
     Set-Content -LiteralPath $exceptionPath -Value '# no accepted advisories' -Encoding ASCII
     $answers = @{ $purl = '{}' }
     $report = Read-BuildDependencyReport $reportPath
-    Assert-True ($report.GradleVersion -ceq '9.8.1') 'The report reader discarded the resolved Gradle version.'
+    Assert-True ($report.GradleVersion -ceq '9.8.2') 'The report reader discarded the resolved Gradle version.'
     Assert-True ($report.Libraries.Count -eq 1 -and $report.Libraries[0].Configurations.Count -eq 3) 'One resolved module was not deduplicated across graph origins.'
     Invoke-Gate 6> $null
     Assert-True ($asked.Count -eq 1 -and $asked[0] -ceq $purl) 'OSV did not receive exactly the resolved module package URL.'
     $cases++
-    foreach ($version in @('9.7.1', '9.8.0', '9.8.2')) {
+    foreach ($version in @('9.7.1', '9.8.0', '9.8.3')) {
         $fixture = New-Report
         $fixture.gradleVersion = $version
         Write-Report $fixture
@@ -400,7 +400,7 @@ try {
     Set-Content -LiteralPath (Join-Path $repo 'gradlew.bat') -Encoding ASCII -Value @(
         '@echo off', "echo started > `"$buildMarker`"", 'exit /b 0')
     foreach ($entryPoint in @('pre-push', 'release', 'graph-review')) {
-        Set-Content -LiteralPath $repoWrapper -Value $wrapperText.Replace('gradle-9.8.1-bin.zip', 'gradle-9.7.1-bin.zip') -Encoding ASCII -NoNewline
+        Set-Content -LiteralPath $repoWrapper -Value $wrapperText.Replace('gradle-9.8.2-bin.zip', 'gradle-9.7.1-bin.zip') -Encoding ASCII -NoNewline
         Remove-Item -LiteralPath $buildMarker, $scanMarker -Force -ErrorAction SilentlyContinue
         if ($entryPoint -ceq 'pre-push') {
             Assert-Fails { Invoke-Hook } '*Unreviewed Gradle wrapper 9.7.1*'

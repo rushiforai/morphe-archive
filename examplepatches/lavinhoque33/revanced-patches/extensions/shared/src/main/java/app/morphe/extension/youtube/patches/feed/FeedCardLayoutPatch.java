@@ -5,7 +5,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3801
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-29
+ * Modified by lavinhoque33, 2026-11-06.
  */
 
 package app.morphe.extension.youtube.patches.feed;
@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.regex.Matcher;
@@ -539,9 +540,9 @@ public class FeedCardLayoutPatch {
      * that the server sends, so they follow the new versions of the template. Until such an element is seen,
      * the uri is taken from the template cache of the app, and the fields are the known ones.
      */
-    private static final class VideoTemplate {
+    public static final class VideoTemplate {
         final String name;
-        final int modelField;
+        public final int modelField;
         final ByteTrieSearch search;
         volatile int themeField;
         volatile int capabilitiesField;
@@ -551,10 +552,10 @@ public class FeedCardLayoutPatch {
          * Whether the uri and the fields were taken from an element.
          */
         private volatile boolean fromElement;
-        private long cacheLookupTime;
+        private volatile long cacheLookupTime;
         private long checkTime;
 
-        VideoTemplate(String name, int modelField, int themeField, int capabilitiesField) {
+        public VideoTemplate(String name, int modelField, int themeField, int capabilitiesField) {
             this.name = name;
             this.modelField = modelField;
             this.themeField = themeField;
@@ -563,14 +564,18 @@ public class FeedCardLayoutPatch {
         }
 
         @Nullable
-        String getUri() {
-            if (uri == null) {
-                final long now = System.currentTimeMillis();
-                if (now - cacheLookupTime > TEMPLATE_LOOKUP_INTERVAL_MILLIS) {
-                    cacheLookupTime = now;
-                    // The uri of a template includes the hash of its version, so it's taken from the template
-                    // cache of the app, which has the templates the app received. The last cached version
-                    // of the template is used, or none if the template is not cached.
+        public String getUri() {
+            // The app drops the older versions of the templates from its cache, also while it runs,
+            // and the elements of a template version that is no longer cached are not shown.
+            // So the version taken from the cache is looked up again once in a while.
+            // The version of an element is the one the server sends now, and is kept.
+            final long now = System.currentTimeMillis();
+            if (!fromElement && now - cacheLookupTime > TEMPLATE_LOOKUP_INTERVAL_MILLIS) {
+                cacheLookupTime = now;
+                // The uri of a template includes the hash of its version, so it's taken from the template
+                // cache of the app, which has the templates the app received. The last cached version
+                // of the template is used, or none if the template is not cached.
+                Runnable lookup = () -> {
                     String cached = null;
                     try {
                         File metadata = new File(Utils.getContext().getFilesDir(), "ElementsResourceCacheMetadata");
@@ -599,18 +604,29 @@ public class FeedCardLayoutPatch {
                                     }
                                 }
                             }
-
-                            String found = cached;
-                            Logger.printDebug(() -> "Cached template: " + found);
                         }
+                    } catch (InvalidProtocolBufferException ex) {
+                        // The app rewrites the cache while it runs, so the file can be read while it's
+                        // incomplete. The uri found before is kept, and the cache is read again soon.
+                        Logger.printDebug(() -> "Template cache is being written", ex);
+                        cacheLookupTime = System.currentTimeMillis() - TEMPLATE_LOOKUP_INTERVAL_MILLIS + 1000;
+                        return;
                     } catch (Exception ex) {
-                        cached = null;
                         Logger.printException(() -> "getUri failure", ex);
+                        return;
                     }
                     // An element of the template can be seen while the cache is read.
-                    if (uri == null) {
+                    if (!fromElement && !Objects.equals(uri, cached)) {
+                        String found = cached;
+                        Logger.printDebug(() -> "Cached template: " + found);
                         uri = cached;
                     }
+                };
+                // The first lookup gives the uri to the element that is converted now.
+                if (uri == null) {
+                    lookup.run();
+                } else {
+                    Utils.runOnBackgroundThread(lookup);
                 }
             }
             return uri;
@@ -2603,7 +2619,7 @@ public class FeedCardLayoutPatch {
                 .build();
     }
 
-    private static TemplateConfig templateConfig(String uri) {
+    public static TemplateConfig templateConfig(String uri) {
         return TemplateConfig.newBuilder()
                 .setUriTemplateConfig(UriTemplateConfig.newBuilder().setUri(uri))
                 .build();
@@ -2612,7 +2628,7 @@ public class FeedCardLayoutPatch {
     /**
      * Keeps only the theme and capabilities subscriptions, written to the fields of the new model.
      */
-    private static SubscriptionConfig subscriptionConfig(SubscriptionConfig config, VideoTemplate template) {
+    public static SubscriptionConfig subscriptionConfig(SubscriptionConfig config, VideoTemplate template) {
         SubscriptionConfig.Builder builder = SubscriptionConfig.newBuilder();
         if (config.hasThemeSubscriptionConfig()) {
             ThemeSubscriptionConfig theme = config.getThemeSubscriptionConfig();

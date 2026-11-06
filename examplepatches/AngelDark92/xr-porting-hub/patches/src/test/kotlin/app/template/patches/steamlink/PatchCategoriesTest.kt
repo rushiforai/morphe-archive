@@ -18,8 +18,7 @@ import util.buildPatchListJson
 class PatchCategoriesTest {
     private val groups = linkedMapOf(
         "Image quality" to listOf(
-            alpha0HighResolutionTriggerPatch, oledCalibrationPatch, blueNoisePatch,
-            stockQuadCompositionPatch,
+            oledCalibrationPatch, blueNoisePatch, stockQuadCompositionPatch,
         ),
         "Tracking & audio" to listOf(
             hmdOnlyPatch, gxrFacebridgePatch,
@@ -27,7 +26,7 @@ class PatchCategoriesTest {
         ),
         "Startup & permissions" to listOf(
             xrStartupPermissionsPatch, xrLauncherBootstrapPatch,
-            unrestrictedBatteryUsagePatch, appearOnTopPatch,
+            unrestrictedBatteryUsagePatch,
         ),
         "App & device identity" to listOf(
             changePackageNamePatch, deviceIdentityPatch,
@@ -48,16 +47,14 @@ class PatchCategoriesTest {
         "Streaming & network" to listOf(
             xrCodecsSupportPatch,
             networkOptimizationsPatch,
-            // Optional later-base object: recommended only on 2.0.20, this one never.
-            optionalNetworkOptimizationsPatch,
         ),
     )
     private val publicPatches: Set<Patch<*>> = groups.values.flatten().toSet()
 
     @Test
     fun `every public patch carries its agreed category and default`() {
-        assertEquals(31, publicPatches.size)
-        assertEquals(listOf(4, 4, 4, 4, 7, 3, 2, 3), groups.values.map { it.size })
+        assertEquals(28, publicPatches.size)
+        assertEquals(listOf(3, 4, 3, 4, 7, 3, 2, 2), groups.values.map { it.size })
         // All five controller patches are public: velocity frame recommended, the rest optional.
         assertEquals(
             setOf(controllerPoseExtrapolationPatch, controllerVelocityFramePatch, controllerPoseTimePatch,
@@ -70,7 +67,8 @@ class PatchCategoriesTest {
                 (it.category == "Controller" || it.category == "Controllers (Shizuku)") && it.default
             }.toSet(),
         )
-        assertEquals(false, optionalNetworkOptimizationsPatch.default)
+        assertEquals(true, networkOptimizationsPatch.default)
+        assertEquals(true, stockQuadCompositionPatch.default)
         groups.forEach { (category, patches) ->
             patches.forEach { patch ->
                 assertEquals(category, patch.category, patch.name)
@@ -81,7 +79,7 @@ class PatchCategoriesTest {
                 androidXrNativePermissionNamesPatch, forceHmdInitializationGatesPatch,
                 forceLobbyPermissionStateGatePatch, forceStreamXrGatesPatch,
                 gxrFacebridgePatch,
-                alpha0HighResolutionTriggerPatch, microphoneInputPresetPatch,
+                stockQuadCompositionPatch, microphoneInputPresetPatch,
                 oledCalibrationPatch, unrestrictedBatteryUsagePatch,
                 hmdOnlyPatch, xrCoreRuntimePatch, xrDeviceConfigBaselinePatch,
                 xrInputRoutingConfigPatch, xrLauncherBootstrapPatch,
@@ -118,7 +116,7 @@ class PatchCategoriesTest {
             val name = channel.name
             assertEquals(channel.name.lowercase(), generated.get("channel").asString)
             val entries = generated.getAsJsonArray("patches").map { it.asJsonObject }
-            assertEquals(if (channel == ReleaseChannel.STABLE) 24 else 31, entries.size, name)
+            assertEquals(if (channel == ReleaseChannel.STABLE) 22 else 28, entries.size, name)
             val names = entries.map { it.get("name").asString }
             assertEquals(names.sorted(), names, name)
             assertEquals(names.size, names.toSet().size, name)

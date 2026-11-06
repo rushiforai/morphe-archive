@@ -179,6 +179,12 @@ public sealed class FakeRedditServer : IAsyncDisposable
         Media.Map(app, world);
         ShareLinks.Map(app, world);
         Info.Map(app, world);
+        ImgurApi.Map(app, world);
+        RedGifsApi.Map(app, world);
+        YouTubeOEmbed.Map(app, world);
+        XSyndication.Map(app, world);
+        BlueskyApi.Map(app, world);
+        Chat.Map(app, world);
         Debug.Map(app, world);
         app.MapFallback((HttpContext context) =>
         {

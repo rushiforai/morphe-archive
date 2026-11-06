@@ -12,7 +12,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/haukist/morphe-patches-smartnews/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.1.0](https://github.com/haukist/morphe-patches-smartnews/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
 <details open>
 <summary>📦 SmartNews&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -28,7 +28,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 |----------|----------------|-----------|
 | [Direct article share URL](#direct-article-share-url) | Shares and copies the original article URL directly instead of SmartNews tracking redirect links (l.smartnews.com). |  |
 | [Disable ads and trackers](#disable-ads-and-trackers) | Disables first-party and third-party advertisements, analytics, and tracking SDKs in SmartNews. |  |
-| [Popup share menu](#popup-share-menu) | Replaces the top-right custom share bottom sheet with the compact PopupMenu used in web mode. |  |
+| [Popup share menu](#popup-share-menu) | Restores the legacy popup share menu when tapping the top-right share button, replacing the default system share sheet (identical to the menu used in web mode). |  |
 
 </details>
 
@@ -64,18 +64,22 @@ SmartNews 内部のファーストパーティ広告制御、および同梱さ�
   - **Confiant & AppHarbr**: 広告検証・トラッキング SDK を無力化
   - **Vungle / Liftoff Monetize & AdsByNimbus**: 初期化・広告ロード・リモート設定パーサーを完全無力化
 
+* **WebView 内の Sentry 通信遮断**:
+  - ホームの Morning Package と記事用 SmartView の両方で、`sentry.io` / `sentry-cdn.com` およびそのサブドメイン宛ての HTTP(S) 要求を端末内の空レスポンス（HTTP 204）で処理
+  - ホスト名を正規化して判定し、通常の記事 URL のパスや query に `sentry` が含まれるだけでは遮断しない
+  - Morning Package 本体のページ・機能は維持。SmartNews 26.10.30 / Pixel 8 でホーム・記事表示、POST/OPTIONS/GET の遮断と新規 Sentry 接続更新 0 件を確認
+  - [実装・検証結果と今後の調査手順](docs/sentry-blocking.md)
+
 ---
 
 ### 2. 記事共有時のオリジナル URL 直接共有・高速化 (`Direct article share URL`)
 * 公式仕様では共有時に短縮・トラッキング URL（`http://l.smartnews.com/*`）が生成されていましたが、アプリ内部のフォールバック処理を常時有効化。
-* 右上の共有ボタンからの「URL をコピー」「他のアプリで共有」「SNS 共有」のすべてで、**元の記事のオリジナル URL が直接コピー・共有**されます。
-* 短縮 URL 生成サーバーへの非同期通信待ちが不要になり、**タップした瞬間に即座に共有ダイアログが表示される爆速化**を実現。
+* **元の記事のオリジナル URL が直接コピー・共有**されます。
 
 ---
 
-### 3. コンパクトなポップアップ共有メニュー (`Popup share menu`)
-* 記事閲覧時に画面下部を覆い尽くす大型の独自ボトムシート（`jp-article-custom-share-sheet`）をバイパス。
-* Web モード閲覧時と同じ、ボタン直下に開くシンプルでコンパクトな `PopupMenu` を呼び出します。
+### 3. 以前のポップアップ共有メニューを復元 (`Popup share menu`)
+* 右上の共有ボタンをタップ時に、以前のバージョンにあったポップアップ共有メニューを呼び出すように変更します。現在の「オリジナルサイト閲覧時右下にある共有メニュー」と同じです。
 
 ---
 
@@ -131,6 +135,14 @@ SmartNews 内部のファーストパーティ広告制御、および同梱さ�
 - `SmartNews-26.10.30-standalone-patched.apk` (スタンドアロン APK / 推奨)
 - `SmartNews-26.10.30-patched.apks` (全スプリット再署名済み APKS)
 
+Sentry のホスト判定テストと、standalone / split base の両方の DEX フック検証を含めて実行する場合：
+
+```powershell
+.\gradlew.bat :extensions:extension:testDebugUnitTest :patches:test --tests "app.template.patches.smartnews.ads.DisableAdsAndTrackersPatchTest" --rerun-tasks
+```
+
+WebView 診断は通常ビルドでは無効です。調査用の `-PsentryDiagnostics=true`、実クライアントの確認方法、通常版へ戻す手順は [Sentry 調査手順](docs/sentry-blocking.md#調査を再開する手順) を参照してください。
+
 ### 3. Morphe パッチバンドル (`.mpp`) のビルド
 Morphe Manager や Morphe Desktop で利用可能なパッチバンドルをビルドする場合：
 
@@ -142,6 +154,8 @@ Morphe Manager や Morphe Desktop で利用可能なパッチバンドルをビ�
 ---
 
 ## 📲 端末へのインストール
+
+同じ署名鍵で作成したパッチ版からの更新は、`adb install -r` でデータを保持できます。更新のためにアンインストールする必要はありません。
 
 公式版 SmartNews がすでにインストールされている場合は署名競合が発生するため、事前にアンインストールしてください。
 

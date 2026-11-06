@@ -1,0 +1,66 @@
+package app.revanced.patches.kakaotalk.ad.fingerprints
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.opcode
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+
+internal object ChatListAdHelperFingerprint : Fingerprint(
+    name = "<clinit>",
+    custom = { _, classDef -> classDef.sourceFile == "ChatListAdHelper.kt" }
+)
+
+internal object ChatListBannerAdItemFingerprint : Fingerprint(
+    name = "getBindingType",
+    parameters = emptyList(),
+    returnType = "I",
+    custom = { _, classDef -> classDef.sourceFile == "AdChatItem.kt" },
+)
+
+internal object GlobalChatListAdItemFingerprint : Fingerprint(
+    name = "getBindingType",
+    parameters = emptyList(),
+    returnType = "I",
+    custom = { _, classDef -> classDef.sourceFile == "GlobalAdChatItem.kt" },
+)
+
+internal object ChatListGlobalAdEnabledFingerprint : Fingerprint(
+    classFingerprint = ChatListAdHelperFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Z",
+        "Lkotlin/coroutines/Continuation;",
+    ),
+    returnType = "Ljava/lang/Object;",
+    filters = listOf(
+        methodCall("Landroid/content/res/Resources;->getConfiguration()Landroid/content/res/Configuration;"),
+        opcode(Opcode.MOVE_RESULT_OBJECT, location = MatchAfterImmediately()),
+        fieldAccess("Landroid/content/res/Configuration;->orientation:I"),
+    ),
+    custom = { _, classDef -> classDef.sourceFile == "ChatListAdHelper.kt" }
+)
+
+internal object ChatListBizBoardEnabledFingerprint : Fingerprint(
+    classFingerprint = ChatListAdHelperFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("L", "Z"),
+    returnType = "Z",
+    filters = listOf(methodCall(parameters = listOf(), returnType = "Z")),
+)
+
+internal object CecallFolderBizBoardEnabledFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("Lkotlin/coroutines/Continuation;"),
+    returnType = "Ljava/lang/Object;",
+    filters = listOf(
+        methodCall(
+            definingClass = "Lcom/kakao/talk/activity/main/chatroom/ad/ChatListAdResponse;",
+            returnType = "Z",
+        ),
+    ),
+    custom = { _, classDef -> classDef.sourceFile == "CecallFolderHistoryFragment.kt" },
+)

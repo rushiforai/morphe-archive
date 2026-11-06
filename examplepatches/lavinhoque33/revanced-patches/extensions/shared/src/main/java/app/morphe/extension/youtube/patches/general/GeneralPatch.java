@@ -9,8 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-24: the search button opens the search box
- * while a Channel search is pending.
+ * Modified by lavinhoque33, 2026-11-06.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -370,7 +369,7 @@ public class GeneralPatch {
 
     private static final boolean DISABLE_LAYOUT_UPDATES =
             Settings.DISABLE_LAYOUT_UPDATES.get();
-    private static final boolean FIX_VIDEO_ACTION_BAR = Settings.RESTORE_OLD_VIDEO_ACTION_BAR.get()
+    private static final boolean FIX_VIDEO_ACTION_BAR = Settings.VIDEO_ACTION_BAR_LAYOUT.get().isClassic()
             // If "Disable layout updates" is enabled, this narrower override is not required.
             && !DISABLE_LAYOUT_UPDATES
             // Tablets already have a non-collapsed video action bar.

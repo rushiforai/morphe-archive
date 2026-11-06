@@ -464,11 +464,16 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
     /** A text setting's name, as its row on the settings screen gives it. */
     static String textName(StringSetting setting) {
         if (setting == TextSettings.ALLOWED_WORDS) return L10n.t("Allowed words");
+        if (setting == TextSettings.LONG_POST_SIZE) return L10n.t("Collapsed post length");
         return setting == TextSettings.TAB_ORDER ? L10n.t("Tab order") : L10n.t("Words to hide");
     }
 
-    /** What [value] of [setting] reads as in the preview: the words, or the tabs in the bar's order. */
+    /**
+     * What [value] of [setting] reads as in the preview: the words, the tabs in the bar's order, or
+     * about how much of a long post stays.
+     */
     static String textShown(StringSetting setting, String value) {
+        if (setting == TextSettings.LONG_POST_SIZE) return HushTumblrPreferenceFragment.longPostSizeShown(value);
         if (setting == TextSettings.TAB_ORDER) {
             if (BottomBarTabs.parse(value).isEmpty()) return L10n.t("Tumblr's order");
             return HushTumblrPreferenceFragment.tabsShown(value);
@@ -485,6 +490,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
         switch (setting.key) {
             case "hushtumblr_hide_ads": return L10n.t("Hide ads");
             case "hushtumblr_hide_ad_id": return L10n.t("Hide advertising ID");
+            case "hushtumblr_sanitize_sharing_links": return L10n.t("Sanitize sharing links");
             case "hushtumblr_disable_analytics": return L10n.t("Disable analytics");
             case "hushtumblr_hide_ad_free_banner": return L10n.t("Hide the ad-free banner");
             case "hushtumblr_hide_tumblr_tv": return L10n.t("Hide Tumblr TV");
@@ -535,6 +541,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushtumblr_show_image_descriptions": return L10n.t("Visible image descriptions");
             case "hushtumblr_share_video_links": return L10n.t("Share video links");
             case "hushtumblr_sharper_images": return L10n.t("Sharper images");
+            case "hushtumblr_collapse_long_posts": return L10n.t("Collapse long posts");
             case "hushtumblr_mute_root_posts": return L10n.t("Mute posts locally");
             case "hushtumblr_reveal_allowed_mature_content": return L10n.t("Reveal allowed mature content");
             case "hushtumblr_show_mutual_markers": return L10n.t("Show mutual markers");

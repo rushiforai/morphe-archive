@@ -29,7 +29,7 @@ import kotlin.test.assertNull
 class ControlLifecycleTest {
     private data class Selection(
         val name: String,
-        val patches: Set<Patch<*>>,
+        val patches: Set<Patch>,
         val keys: Set<String>,
         val failed: BytecodePatch? = null,
     )

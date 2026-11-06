@@ -7,6 +7,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-06.
  */
 
 package app.morphe.patches.youtube.general.formfactor
@@ -15,26 +16,23 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.registersUsed
 import app.morphe.patches.shared.CLIENT_INFO_CLASS_DESCRIPTOR
 import app.morphe.patches.shared.createPlayerRequestBodyWithModelFingerprint
 import app.morphe.patches.shared.spoof.guide.addClientInfoHook
 import app.morphe.patches.shared.spoof.guide.spoofClientGuideEndpointPatch
-import app.morphe.patches.youtube.player.action.restoreOldVideoActionBarPatch
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_PATH
 import app.morphe.patches.youtube.utils.navigation.navigationBarHookPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.CHANGE_FORM_FACTOR
 import app.morphe.patches.youtube.utils.playertype.playerTypeHookPatch
 import app.morphe.patches.youtube.utils.playservice.is_20_00_or_greater
-import app.morphe.patches.youtube.utils.playservice.is_20_31_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
-import app.morphe.util.findFreeRegister
-import app.morphe.util.fingerprint.methodOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
-import app.morphe.util.registersUsed
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -56,7 +54,6 @@ val changeFormFactorPatch = bytecodePatch(
         playerTypeHookPatch,
         navigationBarHookPatch,
         spoofClientGuideEndpointPatch,
-        restoreOldVideoActionBarPatch,
         versionCheckPatch,
     )
 
@@ -64,7 +61,7 @@ val changeFormFactorPatch = bytecodePatch(
 
         val formFactorEnumClass = formFactorEnumConstructorFingerprint.originalClassDef.type
 
-        createPlayerRequestBodyWithModelFingerprint.methodOrThrow().apply {
+        createPlayerRequestBodyWithModelFingerprint.method.apply {
             val ordinalIndex = indexOfFirstInstructionOrThrow {
                 val reference = getReference<FieldReference>()
                 opcode == Opcode.IGET &&
@@ -125,9 +122,6 @@ val changeFormFactorPatch = bytecodePatch(
             "PREFERENCE_CATEGORY: GENERAL_EXPERIMENTAL_FLAGS",
             "SETTINGS: CHANGE_FORM_FACTOR",
         )
-        if (is_20_31_or_greater) {
-            preferences += "SETTINGS: TABLET_LAYOUT_IN_PLAYER"
-        }
         addPreference(preferences.toTypedArray(), CHANGE_FORM_FACTOR)
 
         // endregion

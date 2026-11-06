@@ -1,11 +1,9 @@
 package app.template.patches.steamlink.androidxr
 
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.template.patches.shared.Constants.COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION
-import app.template.patches.shared.Constants.EXPERIMENTAL_COMPATIBILITY_NAME
 import app.template.patches.shared.Constants.isHighResolutionSteamLinkBuild
 import app.template.patches.shared.PatchCategories
 import app.template.patches.shared.buildLabel
@@ -24,15 +22,6 @@ internal const val STOCK_QUAD_HELPER_SHA256 =
     "ba4076073c947149497638d1d1429bf27636f12a9372e56f21991dc3e04962c0"
 internal const val STOCK_QUAD_MANIFEST_SHA256 =
     "08ac03af8e80f11ca78f92e99e7f5622139211b41e50794f61f61d1c61132fc6"
-
-private val STOCK_QUAD_COMPATIBILITIES =
-    COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.map { exact ->
-        Compatibility(
-            name = EXPERIMENTAL_COMPATIBILITY_NAME,
-            packageName = requireNotNull(exact.packageName),
-            targets = exact.targets,
-        )
-    }
 
 internal fun isStockQuadSteamLinkBuild(versionName: String, versionCode: String): Boolean =
     isHighResolutionSteamLinkBuild(versionName, versionCode)
@@ -62,8 +51,8 @@ internal fun validateStockQuadPayload(helper: ByteArray, manifest: ByteArray) {
 
 /**
  * Installs the stock-quad layer into an unpacked APK. Returns false, touching nothing, for any
- * package/build outside the exact registry. Fails closed on retired renderer hooks, an Alpha-0
- * payload, and stale or modified stock-quad files; writes are staged and rolled back together.
+ * package/build outside the exact registry. Fails closed on retired renderer hooks and stale or
+ * modified stock-quad files; removes retired Alpha-0 leftovers; writes are staged and rolled back together.
  */
 internal fun installStockQuadResources(
     apkRoot: File,
@@ -93,12 +82,6 @@ internal fun installStockQuadResources(
     val helper = helperBytes ?: projectionModeResource(STOCK_QUAD_LIBRARY)
     val manifest = manifestBytes ?: projectionModeResource(STOCK_QUAD_MANIFEST)
     validateStockQuadPayload(helper, manifest)
-
-    // Alpha-0 appends its own trigger quad; both layers on one frame are not a defined topology.
-    if (File(libDir, ANDROID_SURFACE_TRIGGER_LIBRARY).exists() ||
-        File(layerDir, ANDROID_SURFACE_TRIGGER_MANIFEST).exists()) {
-        throw PatchException("Stock quad composition needs Alpha-0 high-resolution trigger deselected")
-    }
 
     val files = listOf(
         File(libDir, STOCK_QUAD_LIBRARY) to helper,
@@ -164,14 +147,13 @@ private val stockQuadResourcesPatch = rawResourcePatch {
 
 @Suppress("unused")
 val stockQuadCompositionPatch = resourcePatch(
-    name = "Stock quad composition (experimental)",
+    name = "Stock quad composition",
     description = "Rebuilds Steam Link's projection layers as eye-aware stock-style quads in a separate OpenXR layer. " +
-        buildLabel(STOCK_QUAD_COMPATIBILITIES) +
-        " Needs: deselect Alpha-0 high-resolution trigger.",
-    default = false,
+        buildLabel(COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION),
+    default = true,
 ) {
     category(PatchCategories.IMAGE_QUALITY)
-    compatibleWith(*STOCK_QUAD_COMPATIBILITIES.toTypedArray())
+    compatibleWith(*COMPATIBILITIES_STEAM_LINK_HIGH_RESOLUTION.toTypedArray())
     dependsOn(stockQuadResourcesPatch)
 
     finalize {

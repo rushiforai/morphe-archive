@@ -48,6 +48,10 @@ private val themeLabelIds = listOf(0x7f131000, 0x7f131001)
 
 private val catppuccinResourcesPatch = resourcePatch {
     execute {
+        if (packageMetadata.versionName == "1.14.2") {
+            applyModernBoostResources()
+            return@execute
+        }
         val templates: Document = checkNotNull(
             CatppuccinResources::class.java.classLoader.getResourceAsStream("catppuccin/styles.xml"),
         ).use { DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(it) }
@@ -166,10 +170,15 @@ val catppuccinThemePatch = bytecodePatch(
     description = "Adds separate Catppuccin Latte and Macchiato choices while preserving Boost's original themes.",
     default = false,
 ) {
+    extendWith("catppuccin/boost-modern.dex")
     dependsOn(catppuccinResourcesPatch)
     compatibleWith(Compatibility(name = "Boost for Reddit", packageName = "com.rubenmayayo.reddit",
-        targets = listOf(AppTarget(version = "1.12.12"))))
+        targets = listOf(AppTarget(version = "1.12.12"), AppTarget(version = "1.14.2"))))
     execute {
+        if (packageMetadata.versionName == "1.14.2") {
+            applyModernBoostTheme()
+            return@execute
+        }
         val utils = mutableClassDefBy("Lhe/f0;")
         val init = utils.methods.single { it.name == "<clinit>" }
         val alreadyPatched = init.implementation!!.instructions.any {

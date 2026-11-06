@@ -14,8 +14,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 /**
- * Shared Reddit listing choke points for the "Block AutoMod comments" and
- * "Content filters" patches.
+ * Shared Reddit listing choke points for the "Block AutoMod comments",
+ * "Content filters" and "Show deleted comments" patches.
  *
  * `com.reddit.domain.model.listing.Listing` is the deserialization container for
  * home/popular/subreddit/search feeds AND for comment threads.  Its `children`
@@ -71,13 +71,19 @@ internal val ListingGetChildrenFingerprint = Fingerprint(
  * Inject [helperMethod] before the `children` field write in `Listing.<init>`
  * and (when present) before every `return-object` in `getChildren()`.
  *
- * The helper signature must be `(Ljava/util/List;)Ljava/util/List;` so the same
- * register can carry the filtered list — no scratch registers, no `.locals`
- * changes, and no conflict with "Remove ads" (which injects at the same field
- * write; both patches wrap the list in sequence).
+ * The helper must live in [helperClass] (defaults to
+ * [REDDIT_CONTENT_FILTER_HELPER]) and have the signature
+ * `(Ljava/util/List;)Ljava/util/List;` so the same register can carry the
+ * filtered list — no scratch registers, no `.locals` changes, and no conflict
+ * with other Reddit patches (which inject at the same field write; they wrap
+ * the list in sequence).
  */
 context(patchContext: BytecodePatchContext)
-internal fun injectListingChildrenFilter(helperMethod: String, logTag: String) {
+internal fun injectListingChildrenFilter(
+    helperMethod: String,
+    logTag: String,
+    helperClass: String = REDDIT_CONTENT_FILTER_HELPER,
+) {
     val constructor = ListingChildrenFingerprint.method
     val instructions = constructor.implementation?.instructions?.toList()
         ?: throw PatchException("$logTag: Listing.<init> has no implementation body")
@@ -109,7 +115,7 @@ internal fun injectListingChildrenFilter(helperMethod: String, logTag: String) {
     constructor.addInstructions(
         childrenIndex,
         """
-            invoke-static { v$childrenRegister }, $REDDIT_CONTENT_FILTER_HELPER->$helperMethod(Ljava/util/List;)Ljava/util/List;
+            invoke-static { v$childrenRegister }, $helperClass->$helperMethod(Ljava/util/List;)Ljava/util/List;
             move-result-object v$childrenRegister
         """.trimIndent(),
     )
@@ -141,7 +147,7 @@ internal fun injectListingChildrenFilter(helperMethod: String, logTag: String) {
         getChildren.addInstructions(
             index,
             """
-                invoke-static { v$register }, $REDDIT_CONTENT_FILTER_HELPER->$helperMethod(Ljava/util/List;)Ljava/util/List;
+                invoke-static { v$register }, $helperClass->$helperMethod(Ljava/util/List;)Ljava/util/List;
                 move-result-object v$register
             """.trimIndent(),
         )

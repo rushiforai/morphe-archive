@@ -8,9 +8,11 @@
 
     - the official Morphe patch bundle's patches-list.json, which has shipped no Tumblr patch so
       far;
-    - the Morphe community directory, Awesome Morphe, the Morphe Patch Tracker and Jman's bundle
-      index, for every bundle that targets a census package, and for whether HushTumblr is
-      listed on each, plus the Morphe Archive for HushTumblr's own listing;
+    - the Morphe community directory, Awesome Morphe, the Morphe Patch Tracker and Jman's Patch
+      Bundle Registry, for every bundle that targets a census package, and for whether HushTumblr
+      is listed on each, plus the Morphe Archive for HushTumblr's own listing. The registry counts
+      a repository as a bundle only through a current, verified release of an enabled source;
+      older or unverified releases are mentions;
     - GitHub indexed code search for each census package name in patch lists, patch code and Xposed hooks,
       with the two archive mirrors mapped back to the repositories they copied, and GitLab code
       search when GITLAB_TOKEN is set and -SkipGitLabCodeSearch isn't passed;
@@ -65,7 +67,14 @@ param(
     # GitHub allows ten code searches a minute.
     [double]$SearchDelaySeconds = 7,
     # How long to wait out a rate limit before trying again.
-    [int]$RateLimitWaitSeconds = 61
+    [int]$RateLimitWaitSeconds = 61,
+    # Jman's registry pages a package's bundles. A list that doesn't finish within these is
+    # incomplete, which fails the source. Tumblr's rows run about 7 KB each, and the registry
+    # answers 503 for some pages of 50 or more, so a page asks for 20 and halves after a 5xx.
+    [int]$RegistryMaxRequests = 60,
+    [int]$RegistryMaxRows = 1000,
+    [int]$RegistryPageSize = 20,
+    [double]$RegistryRetrySeconds = 3
 )
 
 $ErrorActionPreference = 'Stop'
@@ -181,20 +190,23 @@ $searchGitLab = [bool]$GitLabToken -and -not $SkipGitLabCodeSearch
 
 function Invoke-SourceRequest {
     <#
-        One GET, answering Status and Content. A 4xx or 5xx answer comes back as its status with no
-        content, since a repository that's gone is a finding and not a crash; only a request that
-        never got an answer throws. A rate limit is waited out, three times at most.
+        One GET, or with -Body one JSON POST, answering Status and Content. A 4xx or 5xx answer comes
+        back as its status with no content, since a repository that's gone is a finding and not a
+        crash; only a request that never got an answer throws. A rate limit is waited out, three
+        times at most.
     #>
-    param([Parameter(Mandatory = $true)][string]$Uri, [string]$Auth = 'plain')
+    param([Parameter(Mandatory = $true)][string]$Uri, [string]$Auth = 'plain', [string]$Body)
 
     $headers = @{}
     if ($Auth -eq 'github') { $headers['Authorization'] = "Bearer $GitHubToken" }
     if ($Auth -eq 'gitlab' -and $GitLabToken) { $headers['PRIVATE-TOKEN'] = $GitLabToken }
+    $post = @{}
+    if ($Body) { $post = @{ Method = 'Post'; Body = $Body; ContentType = 'application/json; charset=utf-8' } }
     for ($attempt = 1; ; $attempt++) {
         $script:requestCount++
         try {
             $response = Invoke-WebRequest -Uri $Uri -Headers $headers -UserAgent 'HushTumblr-source-audit' `
-                -UseBasicParsing -TimeoutSec 120
+                -UseBasicParsing -TimeoutSec 120 @post
             $content = $null
             $raw = $response.PSObject.Properties['RawContentStream']
             if ($null -ne $raw -and $null -ne $raw.Value) {
@@ -333,7 +345,8 @@ foreach ($item in @(Get-SourceProperty $ledgerDocument 'outOfScope' | Where-Obje
 # The indexes' own data repositories, read below as indexes. A code search hit in one is a copy of
 # a bundle's patch list, never a source of its own.
 $indexRepositories = @('github.com/nvbangg/awesome-morphe', 'github.com/drnx64/morphe-track-patches',
-    'github.com/jman-github/revanced-patch-bundles', 'github.com/rushiforai/morphe-archive', 'github.com/rushiforai/revanced-archive')
+    'github.com/jman-github/revanced-patch-bundles', 'github.com/jman-github/patch-bundle-registry',
+    'github.com/rushiforai/morphe-archive', 'github.com/rushiforai/revanced-archive')
 # The two archives keep examplepatches/<owner>/<name>/patches-list.json for every bundle they
 # found, which is a pointer back to that repository.
 $archiveRepositories = @('github.com/rushiforai/morphe-archive', 'github.com/rushiforai/revanced-archive')
@@ -344,7 +357,7 @@ function Add-Candidate {
         Packages are what an index says a bundle targets. Code search only proves a file names the
         package, which a fork's patch that opens Tumblr links does too, so its packages are Mentions.
     #>
-    param([string]$Key, [string]$Source, [string[]]$Packages, [string[]]$Mentions, [string]$Path, [string]$Blob, [string[]]$Features)
+    param([string]$Key, [string]$Source, [string[]]$Packages, [string[]]$Mentions, [string]$Path, [string]$Blob, [string[]]$Features, $Registry)
     if (-not $Key) { return }
     if (-not $candidates.ContainsKey($Key)) {
         $candidates[$Key] = [pscustomobject]@{
@@ -354,9 +367,11 @@ function Add-Candidate {
             Mentions = New-Object System.Collections.Generic.List[string]
             Hits = New-Object System.Collections.Generic.List[object]
             Features = New-Object System.Collections.Generic.List[string]
+            Registry = New-Object System.Collections.Generic.List[object]
         }
     }
     $candidate = $candidates[$Key]
+    if ($null -ne $Registry) { $candidate.Registry.Add($Registry) }
     if ($Source -and -not $candidate.Sources.Contains($Source)) { $candidate.Sources.Add($Source) }
     foreach ($package in @($Packages)) { if ($package -and -not $candidate.Packages.Contains($package)) { $candidate.Packages.Add($package) } }
     foreach ($package in @($Mentions)) { if ($package -and -not $candidate.Mentions.Contains($package)) { $candidate.Mentions.Add($package) } }
@@ -479,43 +494,148 @@ Invoke-Source 'Morphe Patch Tracker' {
 }
 
 Invoke-Source 'Jman''s bundle index' {
-    # A database since October 2026, when bundle-sources.json and the patch list catalog went away:
-    # the manifest names the current snapshot, whose sources.json gives each source's repository
-    # and app-bundles.json each bundle's packages, every published version of a bundle among them.
-    $database = 'https://raw.githubusercontent.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database'
-    $manifest = Get-SourceJson -Uri "$database/manifest.json" -What 'Jman''s database manifest'
-    $snapshot = [string](Get-SourceProperty $manifest 'snapshot')
-    if ($snapshot -notmatch '^snapshots/[A-Za-z0-9_-]+$') { throw "Jman's database manifest names no snapshot it can be read from: '$snapshot'." }
-    $sources = Get-SourceJson -Uri "$database/$snapshot/sources.json" -What 'Jman''s sources.json'
-    $bySource = @{}
-    $listed['jman-bundles'] = $false
-    foreach ($source in (Get-JsonItems $sources)) {
-        $url = [string](Get-SourceProperty $source 'url')
-        $key = ConvertTo-SourceKey $url
-        if ($key -and $key -eq $selfKey) { $listed['jman-bundles'] = $true }
-        $bySource[[string](Get-SourceProperty $source 'id')] = [pscustomobject]@{ Key = $key; Url = $url }
+    # Jman's Patch Bundle Registry replaced the ReVanced-Patch-Bundles database in November 2026 (its
+    # raw paths answer 404). Registration is config/sources.json; what the registry serves for the
+    # package is the paged /apps/<package>/bundles list ({data,total,limit,offset}). A short page is
+    # not the last page: the offset moves by the rows a page returned and stops when it reaches
+    # total. The registry has no main branch (its default is bundles), so registration is read at
+    # HEAD. Tumblr pages of 50 rows or more answer 503 "Catalog request failed; retry shortly", and
+    # smaller ones now and then, so a 5xx halves the page and asks again within the request budget.
+    $registryApi = 'https://patch-bundles.api.jmancentral.com'
+    $registration = Get-SourceJson -Uri 'https://raw.githubusercontent.com/Jman-Github/Patch-Bundle-Registry/HEAD/config/sources.json' `
+        -What 'the registry''s config/sources.json'
+    $registered = @{}
+    foreach ($property in $registration.PSObject.Properties) {
+        $registeredKey = ConvertTo-SourceKey ([string](Get-SourceProperty $property.Value 'patches'))
+        # A repository registered twice counts as registered when either registration is enabled.
+        if ($registeredKey) { $registered[$registeredKey] = ($registered.ContainsKey($registeredKey) -and $registered[$registeredKey]) -or -not [bool](Get-SourceProperty $property.Value 'disabled') }
     }
-    $bundles = Get-SourceJson -Uri "$database/$snapshot/app-bundles.json" -What 'Jman''s app-bundles.json'
-    $found = @{}
-    $unresolved = @{}
-    foreach ($bundle in (Get-JsonItems $bundles)) {
-        $apps = @(Get-JsonItems (Get-SourceProperty $bundle 'packages') | Where-Object { $packages -contains $_ })
-        if ($apps.Count -eq 0) { continue }
-        $sourceId = [string](Get-SourceProperty $bundle 'source_id')
-        $source = $bySource[$sourceId]
-        if ($null -eq $source -or -not $source.Key) {
-            if (-not $unresolved.ContainsKey($sourceId)) {
-                $unresolved[$sourceId] = $true
-                $why = if ($null -eq $source) { 'and sources.json has no such source' } else { "at $($source.Url), which is not a GitHub or GitLab repository" }
-                Add-Finding -Kind 'index-unresolved' -Repository $null `
-                    -Detail "Jman's index lists a Tumblr bundle from source '$sourceId' $why" -Evidence $null
+
+    $repositories = @{}
+    $renamed = @{}
+    $unreadable = New-Object System.Collections.Generic.List[string]
+    $seenBundles = @{}
+    $requests = 0
+    $rows = 0
+    $duplicates = 0
+    $retried = 0
+    $pageSize = [Math]::Max(1, $RegistryPageSize)
+    foreach ($package in $packages) {
+        $offset = 0
+        while ($true) {
+            if ($requests -ge $RegistryMaxRequests -or $rows -ge $RegistryMaxRows) {
+                throw ("the registry's $package list is incomplete: the budget of $RegistryMaxRequests requests and $RegistryMaxRows rows " +
+                    "ran out after $requests requests and $rows rows, at offset $offset")
             }
-            continue
+            $requests++
+            $answer = Invoke-SourceRequest -Uri ("$registryApi/apps/$([Uri]::EscapeDataString($package))/bundles?limit=$pageSize&offset=$offset")
+            if ($answer.Status -ge 500 -and $answer.Status -le 599) {
+                $retried++
+                $pageSize = [Math]::Max(1, [int][Math]::Floor($pageSize / 2))
+                Write-Step "the registry answered HTTP $($answer.Status) for $package at offset $offset; asking for $pageSize row(s)"
+                if ($RegistryRetrySeconds -gt 0) { Start-Sleep -Milliseconds ([int]($RegistryRetrySeconds * 1000)) }
+                continue
+            }
+            if ($answer.Status -ne 200) { throw "the registry's $package list answered HTTP $($answer.Status) at offset $offset" }
+            $page = ConvertFrom-SourceJson -Text $answer.Content -What "the registry's $package list"
+            # Read off the property, not through Get-SourceProperty: an empty data array would not
+            # survive being returned from a function.
+            $dataProperty = $page.PSObject.Properties['data']
+            $total = 0
+            if ($null -eq $dataProperty -or $dataProperty.Value -isnot [array] -or
+                -not [int]::TryParse("$(Get-SourceProperty $page 'total')", [ref]$total) -or $total -lt 0) {
+                throw "the registry's $package list at offset $offset has no data array and numeric total"
+            }
+            $items = @(Get-JsonItems $dataProperty.Value)
+            $rows += $items.Count
+            for ($index = 0; $index -lt $items.Count; $index++) {
+                $item = $items[$index]
+                $id = [string](Get-SourceProperty $item 'id')
+                $source = Get-SourceProperty $item 'source'
+                $url = [string](Get-SourceProperty $source 'url')
+                $key = ConvertTo-SourceKey $url
+                $itemPackages = @(Get-JsonItems (Get-SourceProperty $item 'packages'))
+                if (-not $id -or -not $key -or $itemPackages.Count -eq 0) {
+                    $unreadable.Add($(if ($id) { "$id ($url)" } else { "row $($offset + $index) at offset $offset" }))
+                    continue
+                }
+                if ($seenBundles.ContainsKey($id)) { $duplicates++; continue }
+                $seenBundles[$id] = $true
+                # A renamed repository keeps its old address in source.url and its current name in the
+                # metadata; read it as the current one.
+                $metadata = Get-SourceProperty $source 'source_metadatum'
+                $owner = [string](Get-SourceProperty $metadata 'owner_name')
+                $name = [string](Get-SourceProperty $metadata 'repo_name')
+                $siteHost = $(if (Get-SourceProperty $source 'host') { [string](Get-SourceProperty $source 'host') } else { (Split-SourceKey $key).Host })
+                $current = if ($owner -and $name) { ConvertTo-SourceKey "https://$siteHost/$owner/$name" } else { $null }
+                $renamedFrom = $null
+                if ($current -and $current -ne $key) { $renamed[$key] = $current; $renamedFrom = $key; $key = $current }
+                if (-not $repositories.ContainsKey($key)) {
+                    $repositories[$key] = [pscustomobject]@{
+                        Packages = New-Object System.Collections.Generic.List[string]
+                        Latest = New-Object System.Collections.Generic.List[string]
+                        CurrentVerified = $false; Historical = 0; Unverified = 0; Bundles = 0; RenamedFrom = $renamedFrom
+                        Unavailable = ''; Enabled = $true
+                    }
+                }
+                $repository = $repositories[$key]
+                $repository.Bundles++
+                # Every row carries its source's state, and one saying it's disabled or unavailable holds for the repository.
+                if ((Get-SourceProperty $source 'enabled') -eq $false) { $repository.Enabled = $false }
+                if (-not $repository.Unavailable) { $repository.Unavailable = [string](Get-SourceProperty $source 'unavailable_reason') }
+                foreach ($itemPackage in $itemPackages) { if ($packages -contains "$itemPackage" -and -not $repository.Packages.Contains("$itemPackage")) { $repository.Packages.Add("$itemPackage") } }
+                $verified = (Get-SourceProperty $item 'metadata_status') -eq 'verified'
+                $latest = (Get-SourceProperty $item 'is_latest') -eq $true
+                if (-not $verified) { $repository.Unverified++ }
+                if (-not $latest) { $repository.Historical++ }
+                if ($latest) {
+                    $channels = @(Get-JsonItems (Get-SourceProperty $item 'channels') | ForEach-Object { "$_" })
+                    $kind = if ((Get-SourceProperty $item 'is_prerelease') -eq $true) { 'prerelease' } else { 'stable' }
+                    $repository.Latest.Add(("$(Get-SourceProperty $item 'version') $kind" + $(if ($channels.Count) { ' [' + ($channels -join ',') + ']' } else { '' }) +
+                        $(if (-not $verified) { ' unverified' } else { '' })))
+                    if ($verified) { $repository.CurrentVerified = $true }
+                }
+            }
+            if ($items.Count -eq 0 -and $offset -lt $total) {
+                throw "the registry's $package list ended at offset $offset of $total rows, with an empty page"
+            }
+            $offset += $items.Count
+            if ($offset -ge $total) { break }
         }
-        Add-Candidate -Key $source.Key -Source 'Jman''s bundle index' -Packages $apps
-        $found[$source.Key] = $true
     }
-    "$($found.Count) Tumblr bundles; HushTumblr " + $(if ($listed['jman-bundles']) { 'listed' } else { 'not listed' })
+    if ($unreadable.Count -gt 0) {
+        Add-Finding -Kind 'index-unresolved' -Repository $null `
+            -Detail "Jman's registry returned $($unreadable.Count) Tumblr bundle row(s) with no id, GitHub or GitLab repository or package list, so they were not counted" `
+            -Evidence ([ordered]@{ rows = @($unreadable | Select-Object -First 10) })
+    }
+
+    # A repository counts as a Tumblr bundle only through a current, verified release of an enabled
+    # source. A repository the registry holds only as history, unverified metadata or an unavailable
+    # source is a mention, which an addition reports but a recorded source never acts on.
+    $promotedKeys = @{}
+    foreach ($key in @($repositories.Keys | Sort-Object)) {
+        $repository = $repositories[$key]
+        $promoted = $repository.CurrentVerified -and $repository.Enabled -and -not $repository.Unavailable
+        if ($promoted) { $promotedKeys[$key] = $true }
+        $evidence = [ordered]@{ bundles = $repository.Bundles; latest = @($repository.Latest); historical = $repository.Historical
+            unverified = $repository.Unverified; renamedFrom = $repository.RenamedFrom; unavailable = $repository.Unavailable }
+        Add-Candidate -Key $key -Source 'Jman''s bundle index' -Packages $(if ($promoted) { @($repository.Packages) } else { @() }) `
+            -Mentions $(if ($promoted) { @() } else { @($repository.Packages) }) -Registry $evidence
+    }
+    foreach ($old in $renamed.Keys) { $notes.Add("Jman's registry lists https://$old under its current name https://$($renamed[$old])") }
+    if ($duplicates -gt 0) { $notes.Add("Jman's registry returned $duplicates Tumblr bundle row(s) twice; each counted once") }
+    if ($retried -gt 0) { $notes.Add("Jman's registry answered $retried server error(s) for Tumblr pages, which were asked again with fewer rows (last page size $pageSize)") }
+
+    $selfRegistered = $registered.ContainsKey($selfKey) -and $registered[$selfKey]
+    foreach ($old in $renamed.Keys) { if ($renamed[$old] -eq $selfKey -and $registered.ContainsKey($old) -and $registered[$old]) { $selfRegistered = $true } }
+    $selfServed = $repositories.ContainsKey($selfKey)
+    $listed['jman-bundles'] = $selfRegistered -and $promotedKeys.ContainsKey($selfKey)
+    if ($selfServed -and -not $listed['jman-bundles']) {
+        $notes.Add("Jman's registry holds HushTumblr only as history, unverified metadata, a disabled or unavailable source or without an enabled registration, which is no current listing")
+    } elseif ($selfRegistered -and -not $selfServed) {
+        $notes.Add("Jman's registry registers HushTumblr but serves no Tumblr bundle for it yet")
+    }
+    "$($repositories.Count) Tumblr repositories in $rows rows over $requests request(s); HushTumblr " + $(if ($listed['jman-bundles']) { 'listed' } else { 'not listed' })
 }
 
 Invoke-Source 'Morphe Archive' {
@@ -576,12 +696,31 @@ Invoke-Source 'GitHub code search' {
         }
         return $added
     }
+    # Every page of one query, up to GitHub's 1,000-result cap. A page can hold fewer than 100 items
+    # with more pages to come (99 on page 1 of 164 on 2026-11-06), so paging stops only on an empty
+    # page or once the pages reach the total.
+    function Invoke-SearchPages {
+        param([string]$Query, [string]$Package, [hashtable]$Seen)
+        $result = [pscustomobject]@{ Total = 0L; Incomplete = $false; Returned = 0; Pages = 0; Hits = 0 }
+        for ($page = 1; $page -le 10; $page++) {
+            $answer = Invoke-SearchPage -Query $Query -Page $page
+            $result.Pages = $page
+            $result.Total = [Math]::Max($result.Total, $answer.Total)
+            if ($answer.Incomplete) { $result.Incomplete = $true }
+            $result.Returned += $answer.Items.Count
+            $result.Hits += Add-SearchItems -Items $answer.Items -Package $Package -Seen $Seen
+            if ($answer.Items.Count -eq 0 -or ($page * 100) -ge $answer.Total) { break }
+        }
+        return $result
+    }
     # GitHub counts every file but can fold a file whose blob repeats at another path in the same
     # repository out of a query's items, so a query can answer incomplete_results=false with fewer
     # items than total_count: 23 of 25 on 2026-10-11, the second copies of two snapshot files in
     # Jman's patch-bundle-registry. Asked one language at a time, with a last part for every other
-    # language, the parts listed all 25. Parts that come up short themselves, or don't add up to the
-    # total, leave the query incomplete.
+    # language, the parts listed all 25. A whole query's total can also run short of its parts: 164
+    # for '"com.tumblr" bytecodePatch' on 2026-11-06, while its Kotlin part alone counted and listed
+    # 201. Parts that come up short themselves, or don't add up to the total, leave the query
+    # incomplete.
     $partLanguages = @('Kotlin', 'Java', 'JSON', 'Markdown', 'Smali', 'XML', 'YAML', 'Text')
     $hits = 0
     foreach ($query in $queries) {
@@ -590,29 +729,25 @@ Invoke-Source 'GitHub code search' {
             totalCount = 0; returnedCount = 0; pages = 0; parts = 0; complete = $false }
         $searchCoverage.Add($coverage)
         $seen = @{}
-        for ($page = 1; $page -le 10; $page++) {
-            try { $answer = Invoke-SearchPage -Query $query.Query -Page $page } catch { $coverage.complete = $false; throw }
-            if ($page -eq 1) { $coverage.complete = $true }
-            $coverage.pages = $page
-            $coverage.totalCount = [Math]::Max($coverage.totalCount, $answer.Total)
-            if ($answer.Incomplete) { $coverage.complete = $false }
-            $coverage.returnedCount += $answer.Items.Count
-            $hits += Add-SearchItems -Items $answer.Items -Package $query.Package -Seen $seen
-            if ($answer.Items.Count -lt 100 -or ($page * 100) -ge $answer.Total) { break }
-        }
-        if ($coverage.complete -and $coverage.returnedCount -lt $coverage.totalCount -and $coverage.totalCount -le 100) {
+        $whole = Invoke-SearchPages -Query $query.Query -Package $query.Package -Seen $seen
+        $hits += $whole.Hits
+        $coverage.pages = $whole.Pages
+        $coverage.totalCount = $whole.Total
+        $coverage.returnedCount = $whole.Returned
+        $coverage.complete = -not $whole.Incomplete
+        if ($coverage.complete -and $coverage.returnedCount -lt $coverage.totalCount -and $coverage.totalCount -le 1000) {
             $parts = @($partLanguages | ForEach-Object { "$($query.Query) language:$_" }) +
                 @("$($query.Query) " + (@($partLanguages | ForEach-Object { "-language:$_" }) -join ' '))
             $partsReturned = 0
-            $whole = $true
+            $partsWhole = $true
             foreach ($part in $parts) {
-                $answer = Invoke-SearchPage -Query $part -Page 1
-                if ($answer.Incomplete -or $answer.Total -gt 100 -or $answer.Items.Count -lt $answer.Total) { $whole = $false; break }
-                $hits += Add-SearchItems -Items $answer.Items -Package $query.Package -Seen $seen
-                $partsReturned += $answer.Items.Count
+                $answer = Invoke-SearchPages -Query $part -Package $query.Package -Seen $seen
+                $hits += $answer.Hits
+                if ($answer.Incomplete -or $answer.Total -gt 1000 -or $answer.Returned -lt $answer.Total) { $partsWhole = $false; break }
+                $partsReturned += $answer.Returned
             }
             $coverage.parts = $parts.Count
-            if ($whole -and $partsReturned -ge $coverage.totalCount) { $coverage.returnedCount = $partsReturned }
+            if ($partsWhole -and $partsReturned -ge $coverage.totalCount) { $coverage.returnedCount = $partsReturned }
         }
         if ($coverage.totalCount -gt 1000) {
             $coverage.complete = $false
@@ -748,7 +883,7 @@ foreach ($candidate in @($candidates.Values | Sort-Object Key)) {
     Add-Finding -Kind 'addition' -Repository "https://$key" `
         -Detail ("found by " + ($candidate.Sources -join ', ') + " for " + (@(@($candidate.Packages) + @($candidate.Mentions) | Sort-Object -Unique) -join ', ') + ", and the ledger doesn't know it") `
         -Evidence ([ordered]@{ sources = @($candidate.Sources); packages = @($candidate.Packages); mentions = @($candidate.Mentions); features = @($candidate.Features)
-            hits = $candidate.Hits.ToArray(); unknownBlobs = $unknownBlobs; repository = $meta })
+            hits = $candidate.Hits.ToArray(); unknownBlobs = $unknownBlobs; registry = $candidate.Registry.ToArray(); repository = $meta })
 }
 foreach ($copy in $collapsed) {
     $notes.Add("$($copy.repository) is a byte-for-byte copy of files in the $($copy.lineage) lineage, so it counts as that lineage")
@@ -774,30 +909,67 @@ function Get-GitHubWatchedHead {
     return $newest.Sha
 }
 
-function Get-GitLabWatchedHead {
-    param([string]$Project, [string]$Branch, [string[]]$WatchPaths, [string]$Head)
-    if (@($WatchPaths).Count -eq 0) { return $Head }
-    $newest = $null
-    foreach ($watch in $WatchPaths) {
-        $answer = Invoke-SourceRequest -Uri ("https://gitlab.com/api/v4/projects/$Project/repository/commits?ref_name=" +
-            [Uri]::EscapeDataString($Branch) + '&path=' + [Uri]::EscapeDataString($watch) + '&per_page=1') -Auth gitlab
-        if ($answer.Status -ne 200) { throw "the commits of $Branch under $watch answered HTTP $($answer.Status)" }
-        foreach ($commit in (Get-JsonItems (ConvertFrom-SourceJson -Text $answer.Content -What "$Project commits"))) {
-            $date = [datetime]::Parse("$($commit.committed_date)", [Globalization.CultureInfo]::InvariantCulture,
-                [Globalization.DateTimeStyles]::AdjustToUniversal)
-            if ($null -eq $newest -or $date -gt $newest.Date) { $newest = [pscustomobject]@{ Sha = [string]$commit.id; Date = $date } }
+function Get-GitLabWatchedHeads {
+    <#
+        Each branch's newest commit under the watched paths, or null where none has any, by branch
+        name. REST takes a request per branch and path, and GitLab allows an address with no token
+        about 60 an hour, so a mirror with many branches can't be read that way (HushGram's census
+        met ReVanced's 35 branches and two paths on 2026-10-31). GraphQL takes them together and has
+        a count of its own. One question holds 30 paths, which GitLab scores at 125 of the 200 it
+        allows.
+    #>
+    param([string]$Project, [string[]]$Branches, [string[]]$WatchPaths)
+    $heads = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+    $dates = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+    foreach ($branch in $Branches) { $heads[$branch] = $null }
+    $wanted = @(foreach ($branch in $Branches) { foreach ($watch in $WatchPaths) { [pscustomobject]@{ Branch = $branch; Watch = $watch } } })
+    for ($skip = 0; $skip -lt $wanted.Count; $skip += 30) {
+        $question = @($wanted | Select-Object -Skip $skip -First 30)
+        $aliases = for ($index = 0; $index -lt $question.Count; $index++) {
+            "q${index}: lastCommit(ref: $(ConvertTo-Json -Compress -InputObject $question[$index].Branch), " +
+                "path: $(ConvertTo-Json -Compress -InputObject $question[$index].Watch), refType: HEADS) { sha committedDate }"
+        }
+        $query = "query { project(fullPath: $(ConvertTo-Json -Compress -InputObject $Project)) { repository { $($aliases -join ' ') } } }"
+        $answer = Invoke-SourceRequest -Uri 'https://gitlab.com/api/graphql' -Auth gitlab -Body (ConvertTo-Json -Compress -InputObject @{ query = $query })
+        if ($answer.Status -ne 200) { throw "the commits of $Project under its watched paths answered HTTP $($answer.Status)" }
+        $document = ConvertFrom-SourceJson -Text $answer.Content -What "$Project commits"
+        $refused = @(Get-SourceProperty $document 'errors' | Where-Object { $_ } | ForEach-Object { [string]$_.message })
+        if ($refused.Count -gt 0) { throw "GitLab refused the question about the watched paths of ${Project}: $($refused -join '; ')" }
+        $commits = Get-SourceProperty (Get-SourceProperty (Get-SourceProperty $document 'data') 'project') 'repository'
+        if ($null -eq $commits) { throw "GitLab answered the question about the watched paths of $Project with no repository" }
+        for ($index = 0; $index -lt $question.Count; $index++) {
+            $commit = Get-SourceProperty $commits "q$index"
+            if ($null -eq $commit) { continue }
+            # ConvertFrom-Json makes a DateTime of this in PowerShell 7 and leaves a string in 5.1.
+            $date = if ($commit.committedDate -is [DateTime]) { [DateTimeOffset]$commit.committedDate } else {
+                [DateTimeOffset]::Parse([string]$commit.committedDate, [Globalization.CultureInfo]::InvariantCulture) }
+            $branch = $question[$index].Branch
+            if (-not $dates.ContainsKey($branch) -or $date -gt $dates[$branch]) {
+                $dates[$branch] = $date
+                $heads[$branch] = [string]$commit.sha
+            }
         }
     }
-    if ($null -eq $newest) { return $null }
-    return $newest.Sha
+    return $heads
 }
 
+$containedAnswers = @{}
+
 function Test-CommitContained {
-    # Whether $Commit is $Within or one of its ancestors. A commit either forge can't compare (a
-    # pin rewritten away by a force push, say) counts as not contained, so it gets looked at.
+    # Whether $Commit is $Within or one of its ancestors, asked once a run: a busy repository's
+    # branches share heads, and on GitLab each question counts against the hourly limit. A commit
+    # either forge can't compare (a pin rewritten away by a force push, say) counts as not
+    # contained, so it gets looked at.
     param($Where, [string]$Commit, [string]$Within)
     if ($Commit -notmatch '^[0-9a-f]{40}$' -or $Within -notmatch '^[0-9a-f]{40}$') { return $false }
     if ($Commit -eq $Within) { return $true }
+    $asked = "$($Where.Host)/$($Where.Path) $Within $Commit"
+    if (-not $containedAnswers.ContainsKey($asked)) { $containedAnswers[$asked] = Read-CommitContained -Where $Where -Commit $Commit -Within $Within }
+    return $containedAnswers[$asked]
+}
+
+function Read-CommitContained {
+    param($Where, [string]$Commit, [string]$Within)
     if ($Where.Host -eq 'github.com') {
         $answer = Invoke-SourceRequest -Uri "https://api.github.com/repos/$($Where.Path)/compare/$Within...$Commit" -Auth github
         if ($answer.Status -ne 200) { return $false }
@@ -860,13 +1032,18 @@ function Read-GitLabSource {
     $forkList = Get-PagedItems -Uri "https://gitlab.com/api/v4/projects/$project/forks" -Auth gitlab
     if ($forkList.Status -ne 200) { throw "the forks of $Path answered HTTP $($forkList.Status)" }
     $watch = @(Get-SourceProperty $Entry 'watchPaths' | Where-Object { $_ })
+    $watched = Get-GitLabWatchedHeads -Project ([string]$repo.path_with_namespace) -WatchPaths $watch `
+        -Branches @($branchList.Items | ForEach-Object { [string]$_.name })
     $branches = [ordered]@{}
     foreach ($branch in $branchList.Items) {
         $branches[[string]$branch.name] = [pscustomobject]@{ Head = [string]$branch.commit.id
-            Watched = (Get-GitLabWatchedHead -Project $project -Branch ([string]$branch.name) -WatchPaths $watch -Head ([string]$branch.commit.id)) }
+            Watched = $(if ($watch.Count -eq 0) { [string]$branch.commit.id } else { $watched[[string]$branch.name] }) }
     }
+    # GitLab renames a project waiting to be deleted after its own id. A scanner forks ReVanced's
+    # mirror and deletes the fork again every six hours, faster than any census could record them.
+    $keptForks = @($forkList.Items | Where-Object { [string]$_.path_with_namespace -cnotlike "*-deletion_scheduled-$($_.id)" })
     return [pscustomobject]@{ Status = 200; FullName = "gitlab.com/$($repo.path_with_namespace)".ToLowerInvariant(); Archived = [bool]$repo.archived
-        License = $license; Branches = $branches; Forks = @($forkList.Items | ForEach-Object { [string]$_.path_with_namespace }) }
+        License = $license; Branches = $branches; Forks = @($keptForks | ForEach-Object { [string]$_.path_with_namespace }) }
 }
 
 $forkCount = 0

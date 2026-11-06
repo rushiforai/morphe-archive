@@ -2449,6 +2449,8 @@ Hide streak pop-ups,Sembunyikan pop-up streak
 Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,Menghentikan peringatan streak yang muncul di atas TikTok serta pesan dan tips streak yang ditambahkan ke obrolan Anda.
 Long press on For You opens my watch history,Tekan lama Untuk Kamu membuka riwayat tontonan saya
 Instead of these settings. The list has a button that brings you back here.,Sebagai ganti pengaturan ini. Daftarnya punya tombol untuk kembali ke sini.
+Long press on Profile opens my watch history,Tekan lama Profil membuka riwayat tontonan saya
+"Instead of TikTok's Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press.","Sebagai ganti riwayat tontonan TikTok. Mengetuk Profil tetap berfungsi seperti biasa. Jika menekan lama Profil mengganti akunmu, opsi ini mengambil alih tekanan itu."
 Auto tap in LIVE rooms,Ketuk otomatis di ruang LIVE
 "Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.","Menambahkan tombol Ketuk otomatis ke ruang LIVE. Ketuk untuk mengirim ketukan ke siaran dengan tempo tetap, lalu ketuk lagi untuk berhenti. Ini juga berhenti saat kamu keluar atau menggeser ke ruang lain, keluar dari TikTok, atau mengunci layar."
 Auto tap speed,Kecepatan ketuk otomatis
@@ -2495,3 +2497,19 @@ Offer Audio only in LIVE quality,Tawarkan Hanya audio di kualitas LIVE
 Audio only,Hanya audio
 "Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.","Menambahkan Hanya audio ke daftar kualitas video LIVE. Ruang memutar suaranya tanpa gambar, yang jauh lebih hemat data, sampai kamu memilih kualitas lain atau keluar. Merekam dari siaran tetap menyimpan videonya."
 Pick a video quality to record the screen,Pilih kualitas video untuk merekam layar
+Discover in the bottom bar,Temukan di bilah bawah
+"Discover takes the place of Friends in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.","Temukan menggantikan Teman di bilah bawah, seperti tata letak TikTok di beberapa negara. Wilayah dan feed kamu tetap seperti semula."
+"%1$s, new","%1$s, baru"
+Startup message,Pesan pembuka
+Show a message of your own each time TikTok opens.,Tampilkan pesanmu sendiri setiap kali TikTok dibuka.
+Message title,Judul pesan
+The heading at the top. Leave it empty for none.,Judul di bagian atas. Biarkan kosong jika tidak perlu.
+Message text,Isi pesan
+What the message says.,Apa yang tertulis di pesan.
+Close with Back or a tap outside,Tutup dengan Kembali atau ketuk di luar
+"Off, only its button closes it.","Jika mati, hanya tombolnya yang menutup."
+dialog popup greeting,dialog popup sapaan
+Stop the blink under the bar,Hentikan kedipan di bawah bilah
+"If the video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.","Jika video berkedip saat Anda menggeser dengan Bilah bawah transparan aktif, ini menggambar video di dalam TikTok, bukan di lapisan tersendiri. Bisa memakai sedikit lebih banyak baterai. Perlu Bilah bawah transparan."
+Bend the video at the edges,Lengkungkan video di tepinya
+"The glass pill's edges bend the blurred video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.","Tepi pil kaca melengkungkan video buram di belakangnya, seperti tepi kaca sungguhan, dan warnanya tampil sedikit lebih kaya. Perlu Buramkan video di belakang bilah dan Android 13 ke atas."

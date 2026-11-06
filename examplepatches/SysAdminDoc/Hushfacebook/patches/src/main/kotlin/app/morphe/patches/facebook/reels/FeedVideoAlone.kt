@@ -11,10 +11,16 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.methodsNaming
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
+import app.morphe.patches.facebook.misc.extension.freeLocalsAt
+import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.util.ControlFlow
 import app.morphe.util.writersReaching
@@ -22,6 +28,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -85,6 +92,11 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *   moment until the first page brought the video in (#237, a group's reel and a home feed reel).
  *   That method asks again a second later, and a no then brings in the next reel, which Facebook
  *   shows as an "Up next" pill under the video.
+ * - The 585 Android 9 build (#102) names "wearables_consumption_midcard" through a string table, makes
+ *   the builder static (LX/0BZp;->A0M) with the params as an argument it null checks and then copies
+ *   to a low register, and inlines the pagination page: a const-string of "pagination_component"
+ *   handed straight to a void call that takes the name last. It also inlines the tail load error's
+ *   when (585 `LX/08ZJ;->A00`), whose own way onto that page lands on its first instruction.
  *
  * The Warion step tells the extension a feed video is opening, the reels viewer's entry tells it
  * where the video opens from, and the fragment tells it when a Warion viewer opens and closes.
@@ -173,23 +185,60 @@ internal data class LoadingPageRead(val index: Int, val more: Int, val params: I
 private const val MAX_REACH = 48
 
 /**
+ * Where [method] puts the viewer's params in a register a four-bit call can name: the instruction
+ * at [at] writing [register]. [argument] is the params' own parameter register when the method
+ * takes them as one, which its null checks test, or null.
+ */
+private data class ParamsLoad(val at: Int, val register: Int, val argument: Int?)
+
+private val OBJECT_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+
+/**
+ * Where [method] gets the params: the first [paramsType] it loads from a field (583 to 585), or,
+ * in Android 9's builder, a static method taking them as a parameter, its first copy of that
+ * parameter, while the register still holds it, into a low register. Null when neither lands in a
+ * register a four-bit call can name.
+ */
+private fun paramsLoad(method: Method, paramsType: String): ParamsLoad? {
+    val code = method.implementation?.instructions?.toList() ?: return null
+    val field = code.indexOfFirst {
+        it.opcode == Opcode.IGET_OBJECT && ((it as ReferenceInstruction).reference as FieldReference).type == paramsType
+    }
+    if (field >= 0) {
+        val register = (code[field] as TwoRegisterInstruction).registerA
+        return if (register > 15) null else ParamsLoad(field, register, null)
+    }
+    val parameter = method.parameterTypes.map(CharSequence::toString).indexOf(paramsType)
+    if (parameter < 0) return null
+    val argument = method.parameterRegisterNumber(parameter)
+    val copy = code.indexOfFirst {
+        it.opcode in OBJECT_MOVES && (it as TwoRegisterInstruction).registerB == argument && it.registerA <= 15
+    }
+    if (copy < 0 || method.writersReaching(copy, argument) != listOf(-1)) return null
+    return ParamsLoad(copy, (code[copy] as TwoRegisterInstruction).registerA, argument)
+}
+
+/**
  * Where [method] reads whether more reels are coming: the boolean field read, followed by its own
- * check, that every way on from where a null check on the first [paramsType] it loads from a field
- * jumps to comes to first (583 reads it right there, 584 works out an ad flag first). Null unless
- * there's exactly one, every way into it still holds the params from that load, nothing jumps past
- * it to its check, and both registers are small enough for a four-bit call.
+ * check, that every way on from where a null check on the params ([paramsLoad]) jumps to comes to
+ * first (583 reads it right there, 584 works out an ad flag first). A check counts on the register
+ * the params were put in while it holds only them, or on their parameter register while it's still
+ * the parameter. Null unless there's exactly one, every way into it still holds the params from
+ * that load, nothing jumps past it to its check, and both registers are small enough for a
+ * four-bit call.
  */
 internal fun loadingPageRead(method: Method, paramsType: String): LoadingPageRead? {
     val code = method.implementation?.instructions?.toList() ?: return null
-    val load = code.indexOfFirst {
-        it.opcode == Opcode.IGET_OBJECT && ((it as ReferenceInstruction).reference as FieldReference).type == paramsType
-    }
-    if (load < 0) return null
-    val params = (code[load] as TwoRegisterInstruction).registerA
-    if (params > 15) return null
+    val load = paramsLoad(method, paramsType) ?: return null
+    val params = load.register
     val flow = ControlFlow.of(method)
     val reads = code.indices
-        .filter { code[it].opcode == Opcode.IF_EQZ && (code[it] as OneRegisterInstruction).registerA == params }
+        .filter { at ->
+            code[at].opcode == Opcode.IF_EQZ && (code[at] as OneRegisterInstruction).registerA.let { tested ->
+                tested == params && method.writersReaching(at, tested) == listOf(load.at) ||
+                    tested == load.argument && method.writersReaching(at, tested) == listOf(-1)
+            }
+        }
         .flatMap { check -> flow.normal[check].filter { it != check + 1 } }
         .distinct()
         .mapNotNull { firstBooleanTest(code, flow, it) }
@@ -197,7 +246,7 @@ internal fun loadingPageRead(method: Method, paramsType: String): LoadingPageRea
     val read = reads.singleOrNull() ?: return null
     val more = (code[read] as TwoRegisterInstruction).registerA
     if (more > 15 || more == params) return null
-    if (method.writersReaching(read, params) != listOf(load)) return null
+    if (method.writersReaching(read, params) != listOf(load.at)) return null
     val into = code.indices.filter { read + 1 in flow.normal[it] || read + 1 in flow.exceptional[it] }
     return if (into == listOf(read)) LoadingPageRead(read + 1, more, params) else null
 }
@@ -233,33 +282,52 @@ private fun firstBooleanTest(code: List<Instruction>, flow: ControlFlow, from: I
 }
 
 /**
+ * Whether the instruction at [at] of [code] builds the pagination page: a static call [buildsPage]
+ * says yes to, or, where Android 9 inlined that builder into the list's, the page's name loaded
+ * and handed straight to the call naming the page, which takes nothing else but the page's own
+ * builder and answers nothing. The list's other use of the name, an argument among many to a
+ * logging call, isn't that.
+ */
+internal fun buildsPaginationPageAt(code: List<Instruction>, at: Int, buildsPage: (MethodReference) -> Boolean): Boolean {
+    val instruction = code[at]
+    if (instruction.opcode == Opcode.INVOKE_STATIC || instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
+        return buildsPage((instruction as ReferenceInstruction).reference as MethodReference)
+    }
+    if (instruction.opcode != Opcode.CONST_STRING && instruction.opcode != Opcode.CONST_STRING_JUMBO) return false
+    if (((instruction as ReferenceInstruction).reference as StringReference).string != PAGINATION_PAGE) return false
+    val name = (instruction as OneRegisterInstruction).registerA
+    val naming = code.getOrNull(at + 1) as? FiveRegisterInstruction ?: return false
+    val call = (naming as ReferenceInstruction).reference as? MethodReference ?: return false
+    if (naming.registerCount !in 1..2 || call.returnType != "V") return false
+    if (call.parameterTypes.lastOrNull()?.toString() != "Ljava/lang/String;") return false
+    return name == if (naming.registerCount == 2) naming.registerD else naming.registerC
+}
+
+/**
  * Where [method] reads whether to add its pagination page, a full page that's only a loading
- * circle: the boolean a call answers right before the branch that, answered false, skips a static
- * call [buildsPage] says yes to. Null unless exactly one call reads that way, nothing but the
- * instruction before it leads into the answer, the branch or the straight run from the branch to
- * the call, the params from the first [paramsType] field load still reach the branch, and both
- * registers are small enough for a four-bit call. The index is the branch's.
+ * circle: the boolean a call answers right before the branch that, answered false, skips the
+ * page's builder ([buildsPaginationPageAt]). Null unless exactly one call reads that way, nothing
+ * but the instruction before it leads into the answer, the branch or the straight run from the
+ * branch to the builder past its first instruction, the params from their load ([paramsLoad]) still reach the branch, and
+ * the answer's register is small enough for a four-bit call. The index is the branch's. Where only
+ * the params' own parameter still holds them there (Android 9), that parameter is the params
+ * register, and the hook copies it into a free local first.
  */
 internal fun paginationRead(method: Method, paramsType: String, buildsPage: (MethodReference) -> Boolean): LoadingPageRead? {
     val code = method.implementation?.instructions?.toList() ?: return null
-    val load = code.indexOfFirst {
-        it.opcode == Opcode.IGET_OBJECT && ((it as ReferenceInstruction).reference as FieldReference).type == paramsType
-    }
-    if (load < 0) return null
-    val params = (code[load] as TwoRegisterInstruction).registerA
-    if (params > 15) return null
+    val load = paramsLoad(method, paramsType) ?: return null
+    val params = load.register
     val flow = ControlFlow.of(method)
     val into = Array(code.size) { mutableSetOf<Int>() }
     for (at in code.indices) for (next in flow.normal[at] + flow.exceptional[at]) into[next].add(at)
     fun onlyFromAbove(at: Int) = into[at] == setOf(at - 1)
-    val reads = code.indices.filter { at ->
-        (code[at].opcode == Opcode.INVOKE_STATIC || code[at].opcode == Opcode.INVOKE_STATIC_RANGE) &&
-            buildsPage((code[at] as ReferenceInstruction).reference as MethodReference)
-    }.mapNotNull { call ->
+    val reads = code.indices.filter { at -> buildsPaginationPageAt(code, at, buildsPage) }.mapNotNull { call ->
         var top = call
         while (top > 0 && onlyFromAbove(top) && flow.normal[top - 1] == listOf(top)) top--
         val branch = top - 1
-        if (branch < 2 || !onlyFromAbove(top) || !onlyFromAbove(branch) || !onlyFromAbove(branch - 1)) return@mapNotNull null
+        // Android 9 also jumps onto the page's first instruction from its tail load error's when, which
+        // 585 makes in LX/08ZJ;->A00 and builds its own page there. The branch's way in is still its own.
+        if (branch < 2 || branch !in into[top] || !onlyFromAbove(branch) || !onlyFromAbove(branch - 1)) return@mapNotNull null
         if (code[branch - 1].opcode != Opcode.MOVE_RESULT) return@mapNotNull null
         val answer = (code[branch - 2] as? ReferenceInstruction)?.reference as? MethodReference
         if (answer?.returnType != "Z") return@mapNotNull null
@@ -284,9 +352,14 @@ internal fun paginationRead(method: Method, paramsType: String, buildsPage: (Met
             }
             else -> false
         }
-        if (!skipsOnFalse || more > 15 || more == params) return@mapNotNull null
-        if (method.writersReaching(branch, params) != listOf(load)) return@mapNotNull null
-        LoadingPageRead(branch, more, params)
+        // Android 9's builder has put other values in the params' low copy by now, but not in their parameter.
+        val held = when {
+            method.writersReaching(branch, params) == listOf(load.at) -> params
+            load.argument != null && method.writersReaching(branch, load.argument) == listOf(-1) -> load.argument
+            else -> return@mapNotNull null
+        }
+        if (!skipsOnFalse || more > 15 || more == held) return@mapNotNull null
+        LoadingPageRead(branch, more, held)
     }
     return reads.singleOrNull()
 }
@@ -299,10 +372,33 @@ private fun BytecodePatchContext.buildsPaginationPage(call: MethodReference): Bo
             holdsString(it, PAGINATION_PAGE)
     } == true
 
-/** Whether [method] can be the reels list's builder: an instance method answering an object, holding [LOADING_PAGE], with its read. */
+/**
+ * Whether [method] is shaped like the reels list's builder: a method with a body answering an
+ * object, either an instance method or, like Android 9's static one, one taking [paramsType].
+ */
+internal fun listBuilderShape(method: Method, paramsType: String): Boolean =
+    method.returnType.startsWith("L") && method.implementation != null &&
+        (!AccessFlags.STATIC.isSet(method.accessFlags) || method.parameterTypes.any { it.toString() == paramsType })
+
+/**
+ * Whether [method] can be the reels list's builder: shaped like it, with its read. Whether it names
+ * [LOADING_PAGE] is the caller's to check, since Android 9's asks a string table for it.
+ */
 internal fun isListBuilder(method: Method, paramsType: String): Boolean =
-    method.returnType.startsWith("L") && !AccessFlags.STATIC.isSet(method.accessFlags) &&
-        holdsString(method, LOADING_PAGE) && loadingPageRead(method, paramsType) != null
+    listBuilderShape(method, paramsType) && loadingPageRead(method, paramsType) != null
+
+/** The one reels list builder naming [LOADING_PAGE], as a literal or through a string table, for its read. */
+private fun BytecodePatchContext.listBuilder(paramsType: String): MutableMethod {
+    val found = methodsNaming(LOADING_PAGE) { listBuilderShape(it, paramsType) }
+        .filter { loadingPageRead(it, paramsType) != null }
+        .distinctBy { "${it.definingClass}->${it.name}${it.parameterTypes.joinToString("")}${it.returnType}" }
+    val builder = found.singleOrNull()
+        ?: throw PatchException("$PATCH: expected one reels list builder naming \"$LOADING_PAGE\", found ${found.size}")
+    return mutableClassDefBy(builder.definingClass).methods.single {
+        it.name == builder.name && it.returnType == builder.returnType &&
+            it.parameterTypes.map(CharSequence::toString) == builder.parameterTypes.map(CharSequence::toString)
+    }
+}
 
 /** Whether [method] can be the fetch more: an instance method holding the trace and answering a boolean. */
 internal fun isFetchMore(method: Method): Boolean =
@@ -313,12 +409,17 @@ internal fun isLoaderFetchMore(method: Method): Boolean =
     method.returnType == "Z" && !AccessFlags.STATIC.isSet(method.accessFlags) && holdsString(method, SEED_TAIL)
 
 /** The one method in the app, outside the extension, that [matches] among the classes holding [anchor]. */
-private fun BytecodePatchContext.oneMethodHolding(anchor: String, what: String, matches: (Method) -> Boolean): MutableMethod {
+private fun BytecodePatchContext.oneMethodHolding(
+    anchor: String,
+    what: String,
+    matches: (Method) -> Boolean,
+    patch: String = PATCH,
+): MutableMethod {
     val found = classDefByStrings(anchor, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_PACKAGE) }.distinctBy { it.type }
         .flatMap { owner -> owner.methods.filter(matches).map { owner to it } }
     val (owner, method) = found.singleOrNull()
-        ?: throw PatchException("$PATCH: expected one $what holding \"$anchor\", found ${found.size}")
+        ?: throw PatchException("$patch: expected one $what holding \"$anchor\", found ${found.size}")
     return mutableClassDefBy(owner.type).methods.single {
         it.name == method.name && it.returnType == method.returnType &&
             it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
@@ -390,17 +491,67 @@ internal fun implementsSeedCheck(classDef: ClassDef, method: Method, check: Meth
     check.definingClass in classDef.interfaces && method.name == check.name && method.returnType == "Z" &&
         method.parameterTypes.isEmpty() && method.implementation != null
 
+/** What the feed video opening hooks are called in a refusal or warning of their own. */
+private const val OPENING = "Feed video opening"
+
+/** The Warion step, the reels viewer's entry, and where the entry has read the video's origin. */
+internal data class FeedVideoOpening(val warion: MutableMethod, val entry: MutableMethod, val origin: OriginRead)
+
+/** Finds where a feed video opens its player, refusing as [patch] unless each anchor finds one method. */
+private fun BytecodePatchContext.findFeedVideoOpening(patch: String): FeedVideoOpening {
+    val warion = oneMethodHolding(WARION_CLICK, "Warion step answering void", ::isWarionStep, patch)
+    val entry = oneMethodHolding(VIEWER_ENTRY, "reels viewer entry answering void", ::isViewerEntry, patch)
+    val origin = originRead(entry)
+        ?: throw PatchException("$patch: the reels viewer's entry reads no $PLAYER_ORIGIN field into a low register")
+    return FeedVideoOpening(warion, entry, origin)
+}
+
 /**
- * Hooks the Warion step, the reels viewer's entry, the reels list's loading page, the Warion
- * viewer's opening and closing, both reels fetch mores and the data source's seed check, and fills
- * the extension's origin stub. Refuses unless each anchor finds one method.
+ * Tells the extension a feed video is opening its player: first thing in the Warion step, and in the
+ * reels viewer's entry right after it reads the video's origin. Tap to play lets a tapped feed video
+ * that starts late play on these, and Clean up Reels keeps the video alone on them, so they're a
+ * patch of their own both bring (#393: with Tap to play alone a slow start was held). Changes
+ * nothing unless both anchors find one method.
+ */
+internal fun BytecodePatchContext.hookFeedVideoOpening() {
+    val (warion, entry, origin) = findFeedVideoOpening(OPENING)
+    warion.addInstruction(0, "invoke-static { }, $FEED_VIDEO_TAPPED")
+    entry.addInstruction(origin.index, "invoke-static { v${origin.origin} }, $VIEWER_OPENING")
+}
+
+/**
+ * The feed video opening hooks ([hookFeedVideoOpening]). Nameless, so Tap to play and Clean up Reels
+ * carry it. A build missing an anchor goes on without it, with a warning, so Tap to play's other
+ * parts still apply; Clean up Reels refuses then.
+ */
+internal val feedVideoOpeningPatch = bytecodePatch {
+    dependsOn(facebookExtensionPatch)
+
+    execute {
+        try {
+            hookFeedVideoOpening()
+        } catch (missing: Exception) {
+            // A missing anchor is a PatchException with its reason; anything else is a bug, named as one.
+            val why = if (missing is PatchException) missing.message else "$OPENING: ${missing::class.java.name}: ${missing.message}"
+            patchLog.warning("$why. Feed videos open without telling the extension.")
+        }
+    }
+}
+
+/** Whether [instruction] calls [hook]. */
+private fun calls(instruction: Instruction, hook: String) =
+    ((instruction as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == hook
+
+/**
+ * Hooks the reels list's loading page, the Warion viewer's opening and closing, both reels fetch
+ * mores and the data source's seed check, and fills the extension's origin stub. Refuses unless each
+ * anchor finds one method and [feedVideoOpeningPatch] has hooked the Warion step and the entry.
  */
 internal fun BytecodePatchContext.keepFeedVideosAlone() {
-    oneMethodHolding(WARION_CLICK, "Warion step answering void", ::isWarionStep)
-        .addInstruction(0, "invoke-static { }, $FEED_VIDEO_TAPPED")
-    val entry = oneMethodHolding(VIEWER_ENTRY, "reels viewer entry answering void", ::isViewerEntry)
-    val origin = originRead(entry)
-        ?: throw PatchException("$PATCH: the reels viewer's entry reads no $PLAYER_ORIGIN field into a low register")
+    val (warion, entry, origin) = findFeedVideoOpening(PATCH)
+    if (!calls(warion.getInstruction(0), FEED_VIDEO_TAPPED) || !calls(entry.getInstruction(origin.index), VIEWER_OPENING)) {
+        throw PatchException("$PATCH: a feed video opening doesn't tell the extension, see the warning before this")
+    }
     val originField = (entry.getInstruction(origin.index - 1) as ReferenceInstruction).reference as FieldReference
     val paramsType = originField.definingClass
     if (paramsType !in entry.parameterTypes.map(CharSequence::toString)) {
@@ -414,7 +565,7 @@ internal fun BytecodePatchContext.keepFeedVideosAlone() {
     ) {
         throw PatchException("$PATCH: $paramsType or its origin field isn't a public instance field the extension can read")
     }
-    val list = oneMethodHolding(LOADING_PAGE, "reels list builder answering an object") { isListBuilder(it, paramsType) }
+    val list = listBuilder(paramsType)
     val gate = loadingPageRead(list, paramsType)
         ?: throw PatchException("$PATCH: the reels list builder doesn't read whether more are coming past its params check")
     val paging = paginationRead(list, paramsType) { buildsPaginationPage(it) }
@@ -425,7 +576,6 @@ internal fun BytecodePatchContext.keepFeedVideosAlone() {
             it.parameterTypes.map(CharSequence::toString) == listOf(OBJECT)
     } ?: throw PatchException("$PATCH: $FEED_VIDEO_ALONE has no static Object $VIEWER_ORIGIN(Object)")
 
-    entry.addInstruction(origin.index, "invoke-static { v${origin.origin} }, $VIEWER_OPENING")
     stub.addInstructions(
         0,
         """
@@ -436,10 +586,13 @@ internal fun BytecodePatchContext.keepFeedVideosAlone() {
     )
     // The later read first, so the earlier one's index still holds.
     for (read in listOf(gate, paging).sortedByDescending { it.index }) {
+        // A params parameter past v15 goes through a local that nothing reads from the read on.
+        val params = if (read.params <= 15) read.params else list.freeLocalsAt(PATCH, read.index, 1).single()
+        val copy = if (params == read.params) "" else "move-object/from16 v$params, v${read.params}\n"
         list.addInstructions(
             read.index,
-            """
-                invoke-static { v${read.more}, v${read.params} }, $MORE_REELS_COMING
+            copy + """
+                invoke-static { v${read.more}, v$params }, $MORE_REELS_COMING
                 move-result v${read.more}
             """,
         )

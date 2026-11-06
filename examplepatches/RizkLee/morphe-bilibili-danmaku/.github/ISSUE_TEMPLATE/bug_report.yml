@@ -1,0 +1,33 @@
+name: 🐞 弹幕问题 / Bug report
+description: 报告弹幕补丁、补丁源或安装问题。
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈！请先搜索已有问题。请勿提交 SESSDATA、Cookie、账号密码或包含它们的截图与日志。
+  - type: textarea
+    attributes:
+      label: 问题和复现步骤
+      description: 说明实际结果、期望结果和重现步骤；有条件可附不含隐私的截图。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 版本与设备
+      description: 请填写 Android / 设备、Morphe Manager、YouTube APK、官方 Morphe Patches 和本弹幕补丁版本。
+      placeholder: "例如：Android 16；Manager 2.4.0-dev.8；YouTube 21.30.216；官方补丁 2.1.0-dev.7；弹幕补丁 2.0.7"
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 修补日志或其他信息
+      description: Manager 报错时请复制完整日志；提交前删除所有登录凭证和个人信息。
+      render: text
+  - type: checkboxes
+    attributes:
+      label: 提交前确认
+      options:
+        - label: 我已移除 SESSDATA、Cookie、密码等敏感信息。
+          required: true

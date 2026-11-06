@@ -10,6 +10,7 @@ import app.template.patches.shared.Constants.AMAZON_SHOPPING_COMPATIBILITY
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import org.w3c.dom.Element
+import java.io.File
 
 private const val HELPER = "Lapp/template/extension/extension/AmazonHelper;"
 
@@ -38,6 +39,36 @@ private val amazonDarkModeResourcePatch = resourcePatch {
             "android:forceDarkAllowed not found in any styles.xml — " +
                 "check resource layout for this version",
         )
+
+        // ── AMOLED black pass (fail-safe) ──────────────────────────────
+        // Pure-black (#ff000000) overrides for the app's dark surfaces:
+        // blacken neutral dark-surface <color> tokens and force pure-black
+        // background items on dark/daynight <style> themes.  Amazon builds
+        // ship very different resource layouts, so any failure here is a
+        // logged no-op — the WebView CSS half of this patch still applies.
+        var blackened = 0
+        var forced = 0
+        try {
+            val resDirectory = get("res")
+            if (resDirectory.isDirectory) {
+                for (file in resDirectory.walkTopDown().filter(File::isValuesXml)) {
+                    val source = runCatching { file.readText() }.getOrNull() ?: continue
+                    if (!source.contains("<color") && !source.contains("<style")) continue
+                    val path = "res/${file.relativeTo(resDirectory).invariantSeparatorsPath}"
+                    runCatching {
+                        document(path).use { doc ->
+                            blackened += doc.blackenAmazonAmoledColors(file.isNightValuesXml())
+                            forced += doc.forceAmazonAmoledThemeItems()
+                        }
+                    }.onFailure { e -> println("AMOLED: skipping $path (${e.message})") }
+                }
+            } else {
+                println("AMOLED: res directory not found; WebView CSS still applies.")
+            }
+        } catch (t: Throwable) {
+            println("AMOLED: resource pass failed (${t.message}); WebView CSS still applies.")
+        }
+        println("AMOLED dark theme: blackened $blackened color(s), forced $forced theme item(s).")
     }
 }
 

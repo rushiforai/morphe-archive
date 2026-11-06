@@ -34,11 +34,39 @@ public sealed class RedditWorld
     internal RedditWorld(string baseUrl)
     {
         BaseUrl = baseUrl.TrimEnd('/');
+        Imgur = new Imgur(this);
+        RedGifs = new RedGifs(this);
+        YouTube = new YouTube(this);
+        X = new X(this);
+        Bluesky = new Bluesky(this);
+        Imgflip = new Imgflip(this);
+        Chat = new ChatPage(this);
         Reset();
     }
 
     /// <summary>The fake's URL as the phone reaches it, which media URLs in the JSON start with.</summary>
     public string BaseUrl { get; }
+
+    /// <summary>Imgur, which "E2E fake Reddit" moves here too: its albums and the uploads the app sent.</summary>
+    public Imgur Imgur { get; }
+
+    /// <summary>RedGIFs, which "E2E fake Reddit" moves here too: its videos, the tokens it gave and what the app asked.</summary>
+    public RedGifs RedGifs { get; }
+
+    /// <summary>YouTube, which "E2E fake Reddit" moves here too: its videos' titles and thumbnails.</summary>
+    public YouTube YouTube { get; }
+
+    /// <summary>X, which "E2E fake Reddit" moves here too: its posts, as its embed service sends them.</summary>
+    public X X { get; }
+
+    /// <summary>Bluesky, which "E2E fake Reddit" moves here too: its posts, as its public API sends them.</summary>
+    public Bluesky Bluesky { get; }
+
+    /// <summary>Imgflip, which "E2E fake Reddit" moves here too: the meme templates "Fix meme templates" shows.</summary>
+    public Imgflip Imgflip { get; }
+
+    /// <summary>Reddit's chat, which the fake answers with a plain page of its own: its links.</summary>
+    public ChatPage Chat { get; }
 
     /// <summary>Guards the world: the server answers on its own threads while a test builds.</summary>
     internal object Sync { get; } = new();
@@ -102,6 +130,13 @@ public sealed class RedditWorld
             troubleHits.Clear();
             avatars.Clear();
             shareLinks.Clear();
+            Imgur.Reset();
+            RedGifs.Reset();
+            YouTube.Reset();
+            X.Reset();
+            Bluesky.Reset();
+            Imgflip.Reset();
+            Chat.Reset();
             LoginPage = new LoginPageOptions();
             BlocksLoggedOut = true;
             BlocksMoreChildren = false;

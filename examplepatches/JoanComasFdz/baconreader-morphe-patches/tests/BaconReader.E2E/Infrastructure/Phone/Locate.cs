@@ -45,6 +45,12 @@ public static class Locate
     /// <summary>A list that scrolls sideways: a bar of buttons wider than the screen.</summary>
     public static By SidewaysList() => UiSelector("className(\"android.widget.HorizontalScrollView\").scrollable(true)");
 
+    /// <summary>A view that shows a text, whatever it says: one of a web page's.</summary>
+    public static By AnyText() => UiSelector("textMatches(\".+\")");
+
+    /// <summary>An image with no id: one of a grid's, as the meme templates' thumbnails.</summary>
+    public static By Image() => UiSelector("className(\"android.widget.ImageView\")");
+
     /// <summary>A switch: one of a settings screen's, found next to its title.</summary>
     public static By Switch() => UiSelector("className(\"android.widget.Switch\")");
 

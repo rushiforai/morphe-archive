@@ -1,5 +1,5 @@
 extension {
-    name = "extensions/youtube.mpe"
+    name = "extensions/simeji.mpe"
 }
 
 android {

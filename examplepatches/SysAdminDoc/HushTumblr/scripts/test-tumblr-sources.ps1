@@ -473,7 +473,7 @@ $fixtureLedger = [ordered]@{
             hushtumblr = [ordered]@{ status = 'submitted'; url = 'https://github.com/nvbangg/awesome-morphe/issues/1'; submitted = '2026-09-01' } }
         [ordered]@{ id = 'morphe-patch-tracker'; name = 'Morphe Patch Tracker'; url = 'https://drnx64.github.io/morphe-track-patches/'
             hushtumblr = [ordered]@{ status = 'listed'; url = 'https://drnx64.github.io/morphe-track-patches/#/bundle/sysadmindoc'; checked = '2026-09-01' } }
-        [ordered]@{ id = 'jman-bundles'; name = 'Jman''s ReVanced Patch Bundles'; url = 'https://github.com/Jman-Github/ReVanced-Patch-Bundles'
+        [ordered]@{ id = 'jman-bundles'; name = 'Jman''s Patch Bundle Registry'; url = 'https://github.com/Jman-Github/Patch-Bundle-Registry'
             hushtumblr = [ordered]@{ status = 'not-listed'; checked = '2026-09-01' } }
         [ordered]@{ id = 'morphe-archive'; name = 'Morphe Archive'; url = 'https://rushiforai.github.io/morphe-archive/'
             hushtumblr = [ordered]@{ status = 'listed'; url = 'https://github.com/rushiforai/morphe-archive'; checked = '2026-09-01' } }
@@ -511,6 +511,37 @@ Reset-FixtureLedger
 Assert-True (Test-SourceLedger -Ledger ($fixtureLedgerText | ConvertFrom-Json) -Root $fixtureRoot -Today '2026-09-25').Valid `
     'The audit fixture ledger breaks the rules, so the audit would stop before any case below.'
 
+# One bundle row as Jman's registry serves it (the fields the census reads), and a page of them.
+function New-RegistryRow {
+    param([string]$Id, [string]$Url, [string]$Version = 'v1.0.0', [bool]$Latest = $true, [string]$Status = 'verified',
+        [string[]]$Channels = @('latest', 'stable'), [string[]]$Packages = @('com.tumblr'))
+    $parts = ([Uri]$Url).AbsolutePath.Trim('/') -split '/'
+    return [ordered]@{
+        id = $Id; version = $Version; is_latest = $Latest; is_prerelease = $false; channels = @($Channels)
+        metadata_status = $Status; packages = @($Packages)
+        source = [ordered]@{ url = $Url; host = ([Uri]$Url).Host; enabled = $true; unavailable_reason = $null
+            source_metadatum = [ordered]@{ owner_name = $parts[0]; repo_name = $parts[1] } }
+    }
+}
+function New-RegistryPage {
+    param($Rows, [int]$Total)
+    return @{ Status = 200; Content = (@{ data = @($Rows); total = $Total; limit = 20; offset = 0 } | ConvertTo-Json -Depth 10) }
+}
+# The rows the control serves: a short first page (three of four rows left unread is not the end), a
+# second page that repeats the first page's release, an older alpha release that is history, and
+# gamma's release, which also names a package the census doesn't cover.
+function New-RegistryPages {
+    $alpha = 'https://github.com/fixture-owner/alpha-patches'
+    $latest = New-RegistryRow -Id 'a-latest' -Url $alpha -Version 'v2.0.0'
+    return @{
+        '0' = New-RegistryPage -Rows @($latest) -Total 4
+        '1' = New-RegistryPage -Rows @(
+            (New-RegistryRow -Id 'a-old' -Url $alpha -Version 'v1.0.0' -Latest $false -Channels @())
+            (New-RegistryRow -Id 'g-latest' -Url 'https://gitlab.com/fixture-group/gamma-patches' -Version 'v3.0.0' -Packages @('com.example.other', 'com.tumblr'))
+            $latest) -Total 4
+    }
+}
+
 # What each forge and index answers. A case changes one answer and puts it back.
 function New-FakeAnswers {
     $answers = [ordered]@{
@@ -527,19 +558,10 @@ function New-FakeAnswers {
             '"apps":[{"package":"com.tumblr","patches":[{"name":"Hide ads"}]}]},' +
             '"alpha:stable":{"repo_url":"https://github.com/fixture-owner/alpha-patches","apps":[{"package":"com.tumblr","patches":[{"name":"Hide ads"}]}]},' +
             '"Alpha:stable":{"repo_url":"https://github.com/Fixture-Owner/alpha-patches","apps":[{"package":"com.tumblr","patches":[{"name":"Hide ads"}]}]}}') }
-        # Jman's index as the database it became in October 2026: a manifest naming the snapshot,
-        # the snapshot's sources (spelled as API addresses here, which still name their
-        # repositories) and its bundles, an older version of alpha's among them.
-        jmanManifest = @{ Status = 200; Content = '{"schema_version":1,"snapshot":"snapshots/fixture01"}' }
-        jmanSources = @{ Status = 200; Content = (ConvertTo-Json -Depth 4 -InputObject @(
-            @{ id = 'alpha01'; url = 'https://api.github.com/repos/fixture-owner/alpha-patches' }
-            @{ id = 'gamma01'; url = 'https://gitlab.com/api/v4/projects/fixture-group%2Fgamma-patches' }
-            @{ id = 'feed01'; url = 'https://github.com/SysAdminDoc/hushfeed' })) }
-        jmanBundles = @{ Status = 200; Content = (ConvertTo-Json -Depth 4 -InputObject @(
-            @{ id = 'b1'; source_id = 'alpha01'; packages = @('com.tumblr') }
-            @{ id = 'b2'; source_id = 'alpha01'; packages = @('com.tumblr') }
-            @{ id = 'b3'; source_id = 'gamma01'; packages = @('com.example.other', 'com.tumblr') }
-            @{ id = 'b4'; source_id = 'feed01'; packages = @('com.zhiliaoapp.musically') })) }
+        # Jman's Patch Bundle Registry since November 2026: registration in config/sources.json and
+        # the package's bundles served a page at a time.
+        jmanConfig = @{ Status = 200; Content = '{"alpha":{"patches":"https://github.com/fixture-owner/alpha-patches","disabled":false},"gamma":{"patches":"https://gitlab.com/fixture-group/gamma-patches","disabled":false},"feed":{"patches":"https://github.com/SysAdminDoc/hushfeed","disabled":false}}' }
+        jmanPages = (New-RegistryPages)
         archive = @{ Status = 200; Content = '{"name":"patches-list.json"}' }
         searchHits = @(
             @{ repository = @{ full_name = 'fixture-owner/alpha-patches' }; path = 'patches/Alpha.kt'; sha = $blobKnown }
@@ -593,9 +615,8 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
             '^https://morphe-patches\.software/data/bundles\.json$' { $answer = $a.directory; break }
             '^https://raw\.githubusercontent\.com/nvbangg/awesome-morphe/main/data/hashes\.json$' { $answer = $a.awesome; break }
             '^https://raw\.githubusercontent\.com/drnx64/morphe-track-patches/main/data/bundles\.json$' { $answer = $a.tracker; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/manifest\.json$' { $answer = $a.jmanManifest; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/snapshots/fixture01/sources\.json$' { $answer = $a.jmanSources; break }
-            '^https://raw\.githubusercontent\.com/Jman-Github/ReVanced-Patch-Bundles/bundles/database/snapshots/fixture01/app-bundles\.json$' { $answer = $a.jmanBundles; break }
+            '^https://raw\.githubusercontent\.com/Jman-Github/Patch-Bundle-Registry/HEAD/config/sources\.json$' { $answer = $a.jmanConfig; break }
+            '^https://patch-bundles\.api\.jmancentral\.com/apps/com\.tumblr/bundles\?limit=\d+&offset=(\d+)$' { $answer = $a.jmanPages[$Matches[1]]; break }
             '^https://api\.github\.com/repos/rushiforai/morphe-archive/contents/examplepatches/SysAdminDoc/HushTumblr/patches-list\.json$' { $answer = $a.archive; break }
             '^https://api\.github\.com/search/code\?q=([^&]+)&per_page=100&page=1$' {
                 $query = [Uri]::UnescapeDataString($Matches[1])
@@ -911,19 +932,20 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-Drift 'license-added' '*beta-module*now has a licence (MIT*' 'An unlicensed source that gained a licence'
     $fakeForge.Answers = New-FakeAnswers
 
-    # A Jman bundle no repository stands behind: a source sources.json doesn't have, and one on a
-    # forge the census can't read.
-    $fakeForge.Answers.jmanBundles.Content = ConvertTo-Json -Depth 4 -InputObject @(@($fakeForge.Answers.jmanBundles.Content | ConvertFrom-Json) +
-        [pscustomobject]@{ id = 'b9'; source_id = 'delta01'; packages = @('com.tumblr') })
-    Assert-Drift 'index-unresolved' "*Jman's index lists a Tumblr bundle from source 'delta01' and sources.json has no such source*" `
-        'A Jman bundle from a source the index does not have'
+    # A Jman bundle no repository stands behind: a row with no source, and one on a forge the census
+    # can't read.
+    $noSource = New-RegistryRow -Id 'b9' -Url 'https://github.com/x/y'
+    $noSource.Remove('source')
+    $fakeForge.Answers.jmanPages['0'] = New-RegistryPage -Rows @((New-RegistryRow -Id 'a-latest' -Url 'https://github.com/fixture-owner/alpha-patches'),
+        (New-RegistryRow -Id 'g-latest' -Url 'https://gitlab.com/fixture-group/gamma-patches'), $noSource) -Total 3
+    Assert-Drift 'index-unresolved' "*Jman's registry returned 1 Tumblr bundle row(s) with no id, GitHub or GitLab repository or package list*" `
+        'A Jman bundle with no source'
     $fakeForge.Answers = New-FakeAnswers
-    $fakeForge.Answers.jmanSources.Content = ConvertTo-Json -Depth 4 -InputObject @(@($fakeForge.Answers.jmanSources.Content | ConvertFrom-Json) +
-        [pscustomobject]@{ id = 'reseam01'; url = 'https://git.reseam.app/reseam/patches' })
-    $fakeForge.Answers.jmanBundles.Content = ConvertTo-Json -Depth 4 -InputObject @(@($fakeForge.Answers.jmanBundles.Content | ConvertFrom-Json) +
-        [pscustomobject]@{ id = 'b8'; source_id = 'reseam01'; packages = @('com.tumblr') })
-    Assert-Drift 'index-unresolved' "*source 'reseam01' at https://git.reseam.app/reseam/patches, which is not a GitHub or GitLab repository*" `
-        'A Jman bundle on a forge the census cannot read'
+    $fakeForge.Answers.jmanPages['0'] = New-RegistryPage -Rows @((New-RegistryRow -Id 'a-latest' -Url 'https://github.com/fixture-owner/alpha-patches'),
+        (New-RegistryRow -Id 'g-latest' -Url 'https://gitlab.com/fixture-group/gamma-patches'), (New-RegistryRow -Id 'b8' -Url 'https://git.reseam.app/reseam/patches')) -Total 3
+    Assert-Drift 'index-unresolved' "*Jman's registry returned 1 Tumblr bundle row(s)*" 'A Jman bundle on a forge the census cannot read'
+    $found = @((Invoke-Audit).Report.findings | Where-Object { $_.kind -eq 'index-unresolved' } | ForEach-Object { @($_.evidence.rows) })
+    Assert-True ($found -contains 'b8 (https://git.reseam.app/reseam/patches)') "The unreadable registry row was not named with its address: $($found -join ' | ')"
     $fakeForge.Answers = New-FakeAnswers
 
     # An index still spelling a source by its old name is that source, not an addition.

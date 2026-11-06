@@ -32,6 +32,11 @@ import org.junit.Test
  * is the one a reader can open. This fetches each distinct mirror once, so the next takedown is
  * found by the suite rather than by a reader, and it is the only test here that needs the
  * network: a machine with none fails it by name rather than passing over it.
+ *
+ * <p>GitLab answers a burst of these with 429 Too Many Requests, which says nothing about the
+ * file (HushGram's preflight 2026-10-18, with the other Hush repos checking the same mirrors). The
+ * requests are spaced, and a 429 is asked again after the wait GitLab names, a few times at most;
+ * a mirror still turning the check away after that fails like any other.
  */
 class OriginNoticeMirrorsTest {
     @Test
@@ -46,13 +51,31 @@ class OriginNoticeMirrorsTest {
         assertTrue("no source notice cites a mirror, so the block has nothing beside it", mirrors.isNotEmpty())
 
         val failures = mirrors.mapNotNull { mirror ->
-            val status = runCatching { status(mirror) }.getOrElse { error -> "no answer: ${error.message}" }
+            Thread.sleep(SPACING_MS)
+            val status = runCatching { statusAfterThrottling(mirror) }.getOrElse { error -> "no answer: ${error.message}" }
             if (status == "200") null else "$status  $mirror"
         }
         assertTrue("mirrors that do not answer 200:\n" + failures.joinToString("\n"), failures.isEmpty())
     }
 
-    private fun status(url: String): String {
+    private fun statusAfterThrottling(url: String): String {
+        var answer = status(url)
+        repeat(THROTTLED_TRIES - 1) {
+            if (answer.first != "429") return answer.first
+            Thread.sleep(waitMillis(answer.second))
+            answer = status(url)
+        }
+        return answer.first
+    }
+
+    /** The wait GitLab names, capped, or the default when it names none, no time at all, or a date. */
+    private fun waitMillis(retryAfter: String?): Long {
+        val seconds = retryAfter?.trim()?.toLongOrNull()?.takeIf { it > 0 } ?: return DEFAULT_WAIT_MS
+        return seconds.coerceAtMost(MAX_WAIT_MS / 1_000) * 1_000
+    }
+
+    /** The status and the Retry-After header that came with it. */
+    private fun status(url: String): Pair<String, String?> {
         val connection = URL(url).openConnection() as HttpURLConnection
         connection.requestMethod = "HEAD"
         connection.instanceFollowRedirects = true
@@ -60,7 +83,7 @@ class OriginNoticeMirrorsTest {
         connection.readTimeout = 20_000
         connection.setRequestProperty("User-Agent", "hushtumblr-origin-notice-check")
         return try {
-            connection.responseCode.toString()
+            connection.responseCode.toString() to connection.getHeaderField("Retry-After")
         } finally {
             connection.disconnect()
         }
@@ -68,5 +91,9 @@ class OriginNoticeMirrorsTest {
 
     private companion object {
         val MIRROR = Regex("""https://gitlab\.com/ReVanced/revanced-patches/[^\s"]+""")
+        const val SPACING_MS = 400L
+        const val THROTTLED_TRIES = 4
+        const val DEFAULT_WAIT_MS = 10_000L
+        const val MAX_WAIT_MS = 60_000L
     }
 }

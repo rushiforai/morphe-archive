@@ -100,7 +100,7 @@ public final class MaterialYou {
      * packed Compose Color: a light card becomes the light neutral, a dark one the dark neutral.
      */
     public static long surface(long packed) {
-        if (!Settings.materialYou()) return packed;
+        if (!Settings.materialYou() && !Settings.pitchBlack()) return packed;
         return tone(packed, LIGHT_SURFACE, DARK_SURFACE);
     }
 
@@ -111,7 +111,7 @@ public final class MaterialYou {
      */
     public static long canvas(long packed, long card) {
         if (packed == card) return surface(card);
-        if (!Settings.materialYou()) return packed;
+        if (!Settings.materialYou() && !Settings.pitchBlack()) return packed;
         return tone(packed, LIGHT_CANVAS, DARK_CANVAS);
     }
 
@@ -136,6 +136,7 @@ public final class MaterialYou {
      * container become the card colors.
      */
     public static int bar(int color) {
+        if (color == 0xFF1D2226 && Settings.pitchBlack()) return AMOLED_CARD;
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return color;
         if (color == 0xFFFFFFFF) return resources().getColor(LIGHT_SURFACE, null);
         if (color == 0xFF1D2226) return resources().getColor(DARK_SURFACE, null);
@@ -181,10 +182,15 @@ public final class MaterialYou {
     /** The system color [light] for a light packed Compose Color, [dark] for a dark one. */
     private static long tone(long packed, int light, int dark) {
         try {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || (packed & 0x3F) != 0) return packed;
+            if ((packed & 0x3F) != 0) return packed;
             int argb = (int) (packed >>> 32);
             if ((argb >>> 24) != 0xFF) return packed;
             int luminance = (299 * ((argb >> 16) & 0xFF) + 587 * ((argb >> 8) & 0xFF) + 114 * (argb & 0xFF)) / 1000;
+            if (luminance < 128 && Settings.pitchBlack()) {
+                int black = dark == DARK_CANVAS ? AMOLED_CANVAS : dark == DARK_SURFACE_HIGH ? AMOLED_TINT : AMOLED_CARD;
+                return (black & 0xFFFFFFFFL) << 32;
+            }
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return packed;
             return (resources().getColor(luminance >= 128 ? light : dark, null) & 0xFFFFFFFFL) << 32;
         } catch (Throwable t) {
             Diagnostics.error("Material You surface failed", t);
@@ -199,7 +205,29 @@ public final class MaterialYou {
 
     /** Injected after each background constant of the Compose themes: an ARGB value as used by Color(long). */
     public static long background(long argb) {
+        long amoled = amoled(argb);
+        if (amoled != argb) return amoled;
         return Settings.materialYou() ? map(BACKGROUNDS, argb) : argb;
+    }
+
+    private static final int AMOLED_CANVAS = 0xFF000000;
+    private static final int AMOLED_CARD = 0xFF0D0D0D;
+    private static final int AMOLED_TINT = 0xFF1A1A1A;
+
+    /** LinkedIn's dark background [argb] as a pitch black tone, or [argb] when it is none or the patch is off. */
+    private static long amoled(long argb) {
+        if (!Settings.pitchBlack() || (argb >>> 24) != 0xFF) return argb;
+        switch ((int) (argb & 0xFFFFFF)) {
+            case 0x1B1F23:
+                return AMOLED_CANVAS & 0xFFFFFFFFL;
+            case 0x1D2226:
+                return AMOLED_CARD & 0xFFFFFFFFL;
+            case 0x293037:
+            case 0x293138:
+                return AMOLED_TINT & 0xFFFFFFFFL;
+            default:
+                return argb;
+        }
     }
 
     private static long map(Map<Integer, Integer> colors, long argb) {
@@ -228,8 +256,9 @@ public final class MaterialYou {
      * other blues the accent tone of the nearest lightness.
      */
     public static Map<Object, Object> sduiColors(Map<Object, Object> overrides) {
-        if (overrides == null || overrides.isEmpty() || Build.VERSION.SDK_INT < Build.VERSION_CODES.S
-                || !Settings.materialYou()) return overrides;
+        if (overrides == null || overrides.isEmpty()
+                || !Settings.pitchBlack() && (Build.VERSION.SDK_INT < Build.VERSION_CODES.S
+                || !Settings.materialYou())) return overrides;
         try {
             Map<Object, Object> result = new LinkedHashMap<>(overrides);
             Method box = null;
@@ -257,7 +286,9 @@ public final class MaterialYou {
      * palette colors the server sends, which skip the theme.
      */
     public static Object sduiUIColor(Object color) {
-        if (color == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return color;
+        if (color == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.S && !Settings.pitchBlack()) {
+            return color;
+        }
         try {
             long packed = (long) Reflect.get(color, "value");
             long mapped = sduiColor(packed);
@@ -275,6 +306,8 @@ public final class MaterialYou {
         long argb = packed >>> 32;
         int rgb = (int) (argb & 0xFFFFFF);
         if (rgb == WARM_GRAY_30 && (argb >>> 24) == 0xFF) return mvpCanvas(packed);
+        long amoled = amoled(argb);
+        if (amoled != argb) return amoled << 32;
         if (!Settings.materialYou()) return packed;
         if ((argb >>> 24) != 0xFF) return translucentAccent(packed);
         long mapped = argb;
@@ -298,7 +331,7 @@ public final class MaterialYou {
             long card = isLight(packed) ? 0xFFFFFFFFL << 32 : 0xFF1D2226L << 32;
             return surface(card);
         }
-        if (!Settings.materialYou()) return packed;
+        if (!Settings.materialYou() && !Settings.pitchBlack()) return packed;
         return tone(packed, LIGHT_CANVAS, DARK_CANVAS);
     }
 

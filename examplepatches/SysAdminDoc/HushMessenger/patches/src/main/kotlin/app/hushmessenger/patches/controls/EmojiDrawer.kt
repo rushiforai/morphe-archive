@@ -35,30 +35,50 @@ internal fun Instruction.isEmojiDrawerFlag() =
 /**
  * Every method that reads the redesign flag, but only when the one renderer that throws [EMOJI_DRAWER_ANCHOR] reads it
  * too, itself or through a call to a [isEmojiDrawerGetter] reader. Without that link nothing is found, so the switch
- * can't patch an unrelated flag.
+ * can't patch an unrelated flag. A static getter is called by its own id. Family B's getter is an instance method the
+ * renderer reaches through an interface of its class, which [interfaces] lists by the reader's class.
  */
-internal fun connectEmojiDrawer(readers: List<Method>, anchors: List<Method>): List<Method> {
+internal fun connectEmojiDrawer(readers: List<Method>, anchors: List<Method>, interfaces: Map<String, List<String>> = emptyMap()): List<Method> {
     val anchor = anchors.singleOrNull() ?: return emptyList()
-    val getters = readers.filter { it.isEmojiDrawerGetter() }.map { it.hookId() }.toSet()
+    val (static, instance) = readers.filter { it.isEmojiDrawerGetter() }.partition { AccessFlags.STATIC.isSet(it.accessFlags) }
+    val getters = static.map { it.hookId() }.toSet()
+    val shared = instance.flatMap { getter -> interfaces[getter.definingClass].orEmpty().map { "$it->${getter.name}()Z" } }.toSet()
     val linked = readers.any { it.hookId() == anchor.hookId() } || anchor.implementation?.instructions?.any {
-        it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.toString() in getters
+        (it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.toString() in getters) ||
+            (it.opcode == Opcode.INVOKE_INTERFACE && (it as ReferenceInstruction).reference.toString() in shared)
     } == true
     return if (linked) readers.distinctBy { it.hookId() } else emptyList()
 }
 
 /**
- * 586's renderer asks a static ()Z getter instead of reading the flag. The getter has to be the read alone: the config
- * object from a no-argument static call, the one flag read, and its answer returned as is.
+ * 586's renderer asks a ()Z getter instead of reading the flag. The getter has to be the read alone: the config object,
+ * the one flag read, and its answer returned as is. The config comes from a no-argument static call, or in family B
+ * from a static (I)Object call on a constant, cast.
  */
 internal fun Method.isEmojiDrawerGetter(): Boolean {
-    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "Z" || parameterTypes.isNotEmpty()) return false
+    if (returnType != "Z" || parameterTypes.isNotEmpty()) return false
     val code = implementation?.instructions?.toList() ?: return false
     val site = try { emojiDrawerSites().singleOrNull() } catch (_: PatchException) { null } ?: return false
-    val config = code.getOrNull(0) as? FiveRegisterInstruction ?: return false
     val back = code.getOrNull(site.result + 1)
-    return site.flag == 2 && config.opcode == Opcode.INVOKE_STATIC && config.registerCount == 0 &&
-        code[1].opcode == Opcode.MOVE_RESULT_OBJECT && code.size == site.result + 2 &&
+    return site.flag == (code.configFetch() ?: return false) && code.size == site.result + 2 &&
         back?.opcode == Opcode.RETURN && (back as OneRegisterInstruction).registerA == site.register
+}
+
+/** How many instructions fetch the config object at the start, or null when it isn't fetched one of the two ways. */
+private fun List<Instruction>.configFetch(): Int? {
+    val first = getOrNull(0)
+    if (first is FiveRegisterInstruction && first.opcode == Opcode.INVOKE_STATIC && first.registerCount == 0 &&
+        getOrNull(1)?.opcode == Opcode.MOVE_RESULT_OBJECT) return 2
+    val call = getOrNull(1) as? FiveRegisterInstruction ?: return null
+    val target = (call as ReferenceInstruction).reference as? MethodReference ?: return null
+    val taken = getOrNull(2) as? OneRegisterInstruction ?: return null
+    val cast = getOrNull(3) as? OneRegisterInstruction ?: return null
+    return 4.takeIf {
+        first?.opcode == Opcode.CONST && call.opcode == Opcode.INVOKE_STATIC && call.registerCount == 1 &&
+            call.registerC == (first as OneRegisterInstruction).registerA && target.parameterTypes.map { it.toString() } == listOf("I") &&
+            target.returnType == "Ljava/lang/Object;" && taken.opcode == Opcode.MOVE_RESULT_OBJECT &&
+            cast.opcode == Opcode.CHECK_CAST && cast.registerA == taken.registerA
+    }
 }
 
 /** One flag read: the constant's index, the move-result that takes the answer and the register it fills. */

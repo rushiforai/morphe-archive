@@ -138,6 +138,8 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
     static final String HIDDEN_WORDS_ROW = "action_hidden_words";
     static final String ALLOWED_WORDS_ROW = "action_allowed_words";
     static final String TAB_ORDER_ROW = "action_tab_order";
+    /** The Collapsed post length row's key. What it picked is {@link TextSettings#LONG_POST_SIZE}. */
+    static final String LONG_POST_SIZE_ROW = "action_long_post_size";
     /** The Choose a font file row's key. What it chose is {@link TextSettings#APP_FONT_FILE}. */
     static final String FONT_FILE_ROW = "action_font_file";
     static final String PHONE_FONT_ROW = "action_phone_font";
@@ -566,6 +568,8 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         if (allowed != null) allowed.setSummary(wordsSummary(TextSettings.ALLOWED_WORDS.savedValue()));
         Preference tabs = findPreference(TAB_ORDER_ROW);
         if (tabs != null) tabs.setSummary(tabOrderSummary(TextSettings.TAB_ORDER.savedValue()));
+        Preference size = findPreference(LONG_POST_SIZE_ROW);
+        if (size != null) size.setSummary(longPostSizeSummary(TextSettings.LONG_POST_SIZE.savedValue()));
         String font = TextSettings.APP_FONT_FILE.savedValue();
         Preference fontFile = findPreference(FONT_FILE_ROW);
         if (fontFile != null) fontFile.setSummary(fontFileSummary(font));
@@ -646,14 +650,15 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
                         + "Other post filters still apply."),
                     SettingsIcons.BLOCK);
             patchToggle(feed, context, build, PatchFamily.HIDE_OWN_REBLOGS, Settings.HIDE_OWN_REBLOGS,
-                    L10n.t("Hide your own reblogs"), L10n.t("Takes the reblogs you made out of your dashboard and the "
-                        + "feeds like it. Your blog still shows them."), SettingsIcons.BLOCK);
+                    L10n.t("Hide your own reblogs"), L10n.t("Takes the reblogs you made out of your dashboard. "
+                        + "Your blog and the rest of Tumblr still show them."), SettingsIcons.BLOCK);
             patchToggle(feed, context, build, PatchFamily.HIDE_LIKED_POSTS, Settings.HIDE_LIKED_POSTS,
-                    L10n.t("Hide liked posts"), L10n.t("Takes the posts you've already liked out of your dashboard "
-                        + "and the feeds like it. Your likes and blogs still show them."), SettingsIcons.BLOCK);
+                    L10n.t("Hide liked posts"), L10n.t("Takes the posts you've already liked out of your dashboard. "
+                        + "Your likes and the rest of Tumblr still show them."), SettingsIcons.BLOCK);
             patchToggle(feed, context, build, PatchFamily.MUTE_ROOT_POSTS, Settings.MUTE_ROOT_POSTS,
                     L10n.t("Mute posts locally"),
-                    L10n.t("Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account."),
+                    L10n.t("Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account. "
+                        + "On the dashboard, the menu can also hide one blog's reblogs or originals."),
                     SettingsIcons.BLOCK);
             if (build.contains(PatchFamily.MUTE_ROOT_POSTS)) {
                 manageMutedPosts = new ManageMuteRow(context);
@@ -709,6 +714,11 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             patchToggle(posts, context, build, PatchFamily.SHARPER_IMAGES, Settings.SHARPER_IMAGES,
                     L10n.t("Sharper images"),
                     L10n.t("Loads images in posts at a higher resolution. Uses more data."), SettingsIcons.SEARCH);
+            patchToggle(posts, context, build, PatchFamily.COLLAPSE_LONG_POSTS, Settings.COLLAPSE_LONG_POSTS,
+                    L10n.t("Collapse long posts"),
+                    L10n.t("Cuts long posts with a Read more row, at the length below. Tap it to open the whole post."),
+                    SettingsIcons.POSTS);
+            if (build.contains(PatchFamily.COLLAPSE_LONG_POSTS)) posts.addPreference(mark(longPostSizeRow(context), SettingsIcons.POSTS));
             patchToggle(posts, context, build, PatchFamily.REVEAL_ALLOWED_MATURE_CONTENT,
                     Settings.REVEAL_ALLOWED_MATURE_CONTENT, L10n.t("Reveal allowed mature content"),
                     L10n.t("Removes the tap-to-reveal blur only when Tumblr confirms this account may view the content."),
@@ -823,13 +833,16 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
             // The manifest half was set when patching, and the summary says so.
             patchToggle(privacy, context, build, PatchFamily.DISABLE_ANALYTICS, Settings.DISABLE_ANALYTICS,
                     L10n.t("Disable analytics"), L10n.t("Stops Tumblr's own tracking and ad measurement, and keeps "
-                        + "LiveRamp's tracker from starting. Firebase and Google's analytics collection stay off "
-                        + "until you patch again without it."),
+                        + "LiveRamp's tracker from starting. Crashlytics crash reports stay off while this is on. "
+                        + "Firebase and Google's analytics collection stay off until you patch again without it."),
                     SettingsIcons.BLOCK);
             patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
                     L10n.t("Hide advertising ID"), L10n.t("Tumblr and the ad companies inside it see an empty "
                         + "advertising ID with ad tracking limited, as if you deleted your ad ID in Android "
                         + "settings."), SettingsIcons.BLOCK);
+            patchToggle(privacy, context, build, PatchFamily.SANITIZE_SHARING_LINKS, Settings.SANITIZE_SHARING_LINKS,
+                    L10n.t("Sanitize sharing links"), L10n.t("Links you share or copy leave out the share tag "
+                        + "Tumblr adds to them. They still open the same post."), SettingsIcons.LINKS);
             if (build.contains(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS)) {
                 privacy.addPreference(info(context, L10n.t("Remove ad tracking permissions"),
                         L10n.t("Tumblr can no longer use Google's ad ID permission or Android's ad services. "
@@ -1688,6 +1701,66 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         onRestartPendingChanged();
     }
 
+    /**
+     * The row that picks how much of a long post Collapse long posts keeps. A tap saves the next
+     * length at once, back to the shortest after the longest, and its summary names the one saved.
+     */
+    private Preference longPostSizeRow(Context context) {
+        Row row = new Row(context);
+        row.actsAtOnce = true;
+        row.setKey(LONG_POST_SIZE_ROW);
+        row.setTitle(L10n.t("Collapsed post length"));
+        row.setPersistent(false);
+        row.setSummary(longPostSizeSummary(TextSettings.LONG_POST_SIZE.savedValue()));
+        row.setOnPreferenceClickListener(p -> {
+            saveNextLongPostSize();
+            return true;
+        });
+        return row;
+    }
+
+    private static String longPostSizeSummary(String saved) {
+        return L10n.f("%1$s. Tap to change.", longPostSizeShown(saved));
+    }
+
+    /** About how much of a long post [size] keeps, read as {@link app.hushtumblr.extension.tumblr.timeline.LongPosts} reads it. */
+    static String longPostSizeShown(String size) {
+        if (size.equals("20")) return L10n.t("About half a screen");
+        if (size.equals("80")) return L10n.t("About two screens");
+        return L10n.t("About a screen");
+    }
+
+    /** The length after [saved], back to the shortest after the longest. One its row never offers reads as the default. */
+    static String nextLongPostSize(String saved) {
+        List<String> sizes = TextSettings.LONG_POST_SIZES;
+        int at = sizes.indexOf(saved);
+        if (at < 0) at = sizes.indexOf(TextSettings.LONG_POST_SIZE.defaultValue);
+        return sizes.get((at + 1) % sizes.size());
+    }
+
+    /**
+     * Saves the length after the saved one. The next length is read as the save runs, so taps in a
+     * row each move it on. The new summary shows once the save is done.
+     */
+    private void saveNextLongPostSize() {
+        rowResult(LONG_POST_SIZE_ROW, null);
+        boolean[] saved = new boolean[1];
+        if (!submitEdit(() -> {
+            try {
+                synchronized (app.hushtumblr.extension.shared.settings.Setting.class) {
+                    saved[0] = SettingsBackup.saveText(TextSettings.LONG_POST_SIZE,
+                            nextLongPostSize(TextSettings.LONG_POST_SIZE.savedValue()));
+                }
+            } catch (SettingsBackup.Rejected | RuntimeException failure) {
+                Logger.printInfo(() -> "Could not save the collapsed post length: " + failure.getClass().getSimpleName());
+            }
+        }, () -> {
+            if (!saved[0]) rowResult(LONG_POST_SIZE_ROW, L10n.t("Couldn't save the length. Try again."));
+        })) {
+            rowResult(LONG_POST_SIZE_ROW, L10n.t("Couldn't start that. Try again in a moment."));
+        }
+    }
+
     /** The row that opens the tab order list. Its summary names the order chosen. */
     private Preference tabOrderRow(Context context) {
         Row row = new Row(context);
@@ -2083,7 +2156,7 @@ public final class HushTumblrPreferenceFragment extends AbstractPreferenceFragme
         CharSequence[] names = {L10n.t("Quiet"), L10n.t("Privacy"), L10n.t("Back to defaults")};
         CharSequence[] details = {
                 L10n.t("Hides ads, suggestions, prompts and unread counts."),
-                L10n.t("Stops Tumblr's tracking and screenshot watching, and hides your advertising ID."),
+                L10n.t("Stops Tumblr's tracking and screenshot watching. Hides your advertising ID and the share tag on links."),
                 L10n.t("Puts every feature switch back the way it started.")};
         AlertDialog dialog = show(new AlertDialog.Builder(themed(context))
                 .setTitle(L10n.t("Quick setups"))

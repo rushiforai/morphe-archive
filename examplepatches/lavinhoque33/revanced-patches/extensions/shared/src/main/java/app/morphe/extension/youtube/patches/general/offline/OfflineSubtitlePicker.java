@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-31.
  */
 
@@ -35,17 +36,11 @@ final class OfflineSubtitlePicker {
     }
 
     static void add(Activity activity, LinearLayout parent, OfflineCaptions.Catalog catalog, int foreground) {
-        int padding = Utils.dipToPixels(16);
-        Switch include = new Switch(activity);
-        include.setText(str("revanced_offline_subtitles_include"));
-        include.setTextColor(foreground);
-        include.setPadding(padding, padding, padding, padding);
-        include.setEnabled(!catalog.tracks.isEmpty());
-        include.setAlpha(include.isEnabled() ? 1f : 0.4f);
-        include.setChecked(catalog.include && include.isEnabled());
-        parent.addView(include);
-        if (catalog.tracks.isEmpty()) {
-            parent.addView(label(activity, str("revanced_offline_subtitles_none"), foreground));
+        boolean available = !catalog.tracks.isEmpty();
+        Switch include = OfflineUi.toggleRow(activity, parent, "closed_captions",
+                str("revanced_offline_subtitles_include"),
+                available ? "" : str("revanced_offline_subtitles_none"), foreground, available, catalog.include);
+        if (!available) {
             return;
         }
 

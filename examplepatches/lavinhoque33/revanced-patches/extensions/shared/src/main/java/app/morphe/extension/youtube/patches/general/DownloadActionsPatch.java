@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-10-21.
  *
  * Modified by lavinhoque33, 2026-10-24
  *
@@ -56,8 +57,6 @@ import static app.morphe.extension.youtube.utils.VideoUtils.launchVideoExternalD
 
 import android.app.Dialog;
 import android.graphics.drawable.Drawable;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Pair;
 import android.view.View;
 import android.view.ViewGroup;
@@ -117,7 +116,6 @@ public final class DownloadActionsPatch {
     public static boolean isMyTabHistoryFlyout() {
         return isMyTabHistoryFlyout;
     }
-
     /** Native flyout entry names and indices, used to invoke the selected feed action. */
     public static List<Pair<String, Integer>> getVisibleFlyoutButtons() {
         return visibleFlyoutButtons;
@@ -179,20 +177,14 @@ public final class DownloadActionsPatch {
 
         queueBottomSheetFlyout = dialog;
         FlyoutUtils.setBottomSheetFlyout(dialog);
-        Handler visibilityHandler = new Handler(Looper.getMainLooper());
-        visibilityHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (dialog.isShowing()) {
-                    visibilityHandler.postDelayed(this, 100);
-                } else {
-                    clearFlyoutVideoId();
-                }
-            }
-        });
+
     }
 
-    public static void clearFlyoutVideoId() {
+    /** Clears endpoint and native-item state when the last menu window detaches. */
+    public static void resetFlyoutIds() {
+        visibleFlyoutButtons.clear();
+        currentFlyoutButtonName = "";
+        currentFlyoutButtonIndex = 0;
         flyoutVideoId = "";
         flyoutPlaylistId = "";
         isMyTabHistoryFlyout = false;
@@ -213,7 +205,6 @@ public final class DownloadActionsPatch {
      * Injection point. Extracts the sender view and protocol-buffer holder for feed flyout.
      */
     public static void extractFlyoutVideoId(@Nullable Map<?, ?> map) {
-        FlyoutUtils.setVideoMarkedAsShorts(null);
         if (map == null) {
             return;
         }
@@ -225,12 +216,20 @@ public final class DownloadActionsPatch {
         FeedVideoActionsPatch.onFlyoutSender(senderViewRef.get());
     }
 
+    @Nullable
+    public static View getSenderView() {
+        return senderViewRef.get();
+    }
+
     /**
      * Injection point. Resolves the video ID from a typed message or its serialized buffer.
      */
     public static void extractFlyoutVideoId(@Nullable Object bufferObject) {
         try {
             FlyoutUtils.setVideoMarkedAsShorts(null);
+            FlyoutUtils.resetSaveButton();
+            flyoutVideoId = "";
+            flyoutPlaylistId = "";
 
             if (bufferObject instanceof FlyoutMenuVideoIdInterface videoIdInterface) {
                 isMyTabHistoryFlyout = false;
@@ -422,6 +421,7 @@ public final class DownloadActionsPatch {
      */
     public static void setCurrentFlyoutButton(@Nullable Enum<?> buttonEnum,
                                               @Nullable CharSequence buttonText) {
+        FlyoutUtils.setCurrentButtonInfo(buttonEnum);
         if (buttonEnum == null || buttonText == null || buttonText.toString().isEmpty()) {
             return;
         }

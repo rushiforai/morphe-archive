@@ -1,0 +1,11 @@
+name: Manual release (GitHub Releases is published from a verified local build)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  instructions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Manual release guidance
+        run: echo "Build and sign patches-*.mpp locally, then upload it to GitHub Releases. Do not run the upstream automated release workflow on this fork."

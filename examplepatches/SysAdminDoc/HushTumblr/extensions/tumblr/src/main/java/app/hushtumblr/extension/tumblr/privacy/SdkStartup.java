@@ -18,7 +18,8 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
 
 /**
  * Asked first thing by the launch hooks of Tumblr's ad SDKs (Google Mobile Ads, Meta Audience
- * Network, Vungle, Nimbus) and of LiveRamp. Most start from a content provider or an androidx
+ * Network, Vungle, Nimbus) and of LiveRamp, and by Tumblr's own launch setup right before it turns
+ * Crashlytics collection on. Most start from a content provider or an androidx
  * startup initializer, so they run on the main thread after the application's attachBaseContext
  * and before its onCreate, which is where HushTumblr's settings normally get ready. Waiting there
  * could only time out (setContext runs on this same thread), so a hook that finds the settings
@@ -37,50 +38,66 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
 public final class SdkStartup {
     private SdkStartup() {}
 
+    /** An ad network, which follows Hide ads. */
+    private static final int AD = 0;
+    /** LiveRamp, which follows Disable analytics. */
+    private static final int LIVERAMP = 1;
+    /** Crashlytics collection, which follows Disable analytics. */
+    private static final int CRASHLYTICS = 2;
+
     /** Audience Network's DynamicLoaderFactory initialize and doMakeLoader. Null skips the SDK's start or code load; otherwise the same context. */
     public static Context audienceNetwork(Context context) {
-        return skip(context, true, "Audience Network") ? null : context;
+        return skip(context, AD, "Audience Network") ? null : context;
     }
 
     /** Vungle's provider onCreate. True skips the SDK's start. */
     public static boolean vungle(ContentProvider provider) {
-        return skip(provider, true, "Vungle");
+        return skip(provider, AD, "Vungle");
     }
 
     /** LiveRamp's provider onCreate. True skips the SDK's start. */
     public static boolean liveRamp(ContentProvider provider) {
-        return skip(provider, false, "LiveRamp");
+        return skip(provider, LIVERAMP, "LiveRamp");
     }
 
     /** Google Mobile Ads' provider attachInfo and MobileAds initialize. Null skips the SDK's start; otherwise the same context. */
     public static Context mobileAds(Context context) {
-        return skip(context, true, "Google Mobile Ads") ? null : context;
+        return skip(context, AD, "Google Mobile Ads") ? null : context;
     }
 
     /** Nimbus's startup initializer. Null skips the SDK's start; otherwise the same context. */
     public static Context nimbus(Context context) {
-        return skip(context, true, "Nimbus") ? null : context;
+        return skip(context, AD, "Nimbus") ? null : context;
     }
 
-    private static String family(boolean ad) {
-        return ad ? FamilyNames.HIDE_ADS : FamilyNames.DISABLE_ANALYTICS;
+    /**
+     * Tumblr's launch setup, handed the value it's about to turn Crashlytics collection on with,
+     * every launch. Tumblr's call outranks the manifest flag, so this is where collection stays
+     * off: false while Disable analytics is on, otherwise Tumblr's own value. Crashlytics keeps
+     * the value for the next launch too, until Tumblr's next call sets it again.
+     */
+    public static boolean crashReports(Context context, boolean enabled) {
+        return !skip(context, CRASHLYTICS, "Crashlytics") && enabled;
     }
 
-    private static boolean skip(ContentProvider provider, boolean ad, String what) {
+    private static String family(int kind) {
+        return kind == AD ? FamilyNames.HIDE_ADS : FamilyNames.DISABLE_ANALYTICS;
+    }
+
+    private static boolean skip(ContentProvider provider, int kind, String what) {
         Context context;
         try {
             context = provider == null ? null : provider.getContext();
         } catch (Throwable failure) {
-            HookStatus.invoked(family(ad));
-            HookStatus.threw(family(ad), what + " start", failure);
+            HookStatus.invoked(family(kind));
+            HookStatus.threw(family(kind), what + " start", failure);
             return false;
         }
-        return skip(context, ad, what);
+        return skip(context, kind, what);
     }
 
-    /** True for an ad network, which follows Hide ads; false for LiveRamp, which follows Disable analytics. */
-    private static boolean skip(Context context, boolean ad, String what) {
-        String name = family(ad);
+    private static boolean skip(Context context, int kind, String what) {
+        String name = family(kind);
         HookStatus.invoked(name);
         try {
             if (!Utils.settingsReady()) {
@@ -88,14 +105,15 @@ public final class SdkStartup {
                 Context app = context.getApplicationContext();
                 Utils.setContext(app == null ? context : app);
             }
-            Capability capability = ad ? Capability.AD_SDK_STARTUP : Capability.LIVERAMP_STARTUP;
-            BooleanSetting setting = ad ? Settings.HIDE_ADS : Settings.DISABLE_ANALYTICS;
+            Capability capability = kind == AD ? Capability.AD_SDK_STARTUP
+                    : kind == LIVERAMP ? Capability.LIVERAMP_STARTUP : Capability.CRASH_REPORTS;
+            BooleanSetting setting = kind == AD ? Settings.HIDE_ADS : Settings.DISABLE_ANALYTICS;
             if (!capability.installed() || !setting.get()) return false;
         } catch (Throwable failure) {
-            HookStatus.threw(name, what + " start", failure);
+            HookStatus.threw(name, what + (kind == CRASHLYTICS ? " collection" : " start"), failure);
             return false;
         }
-        HookStatus.counted(name, what + " start skipped");
+        HookStatus.counted(name, kind == CRASHLYTICS ? "Crashlytics collection kept off" : what + " start skipped");
         return true;
     }
 }

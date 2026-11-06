@@ -21,6 +21,8 @@ import app.morphe.patches.youtube.utils.playservice.is_21_30_or_greater
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
@@ -57,7 +59,6 @@ import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversedOrThrow
-import app.morphe.util.findFreeRegister
 import app.morphe.util.fingerprint.injectLiteralInstructionBooleanCall
 import app.morphe.util.fingerprint.matchOrNull
 import app.morphe.util.fingerprint.matchOrThrow
@@ -65,7 +66,6 @@ import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
 import app.morphe.util.fingerprint.resolvable
 import app.morphe.util.Utils.printWarn
-import app.morphe.util.getReference
 import app.morphe.util.getWalkerMethod
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -456,7 +456,7 @@ val miniplayerPatch = bytecodePatch(
 
             MiniplayerHorizontalRepositionFingerprint.method.apply {
                 val previousRectParamFieldAccess = MiniplayerRectDragFieldsNameFingerprint
-                    .instructionMatches[1].instruction.getReference<FieldReference>()!!
+                    .instructionMatches[1].fieldReference
 
                 addInstructions(
                     0,
@@ -683,7 +683,8 @@ val miniplayerPatch = bytecodePatch(
                             null,
                             MutableMethodImplementation(4),
                         ).toMutable().apply {
-                            addInstructions(
+                            this.addInstructions(
+                                0,
                                 $$"""
                                     invoke-super { p0, p1, p2, p3 }, Landroid/view/ViewGroup;->addView(Landroid/view/View;ILandroid/view/ViewGroup$LayoutParams;)V
                                     invoke-static { p1 }, $$EXTENSION_CLASS_DESCRIPTOR->playerOverlayGroupCreated(Landroid/view/View;)V

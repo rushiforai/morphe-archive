@@ -312,7 +312,9 @@ class SearchBarTest {
             // shared getter, so it carries no flag read of its own and the two edits never meet.
             val contract = assertNotNull(findCommunityInbox(classes), code)
             assertTrue(contract.render.hookId() !in sites, code)
-            assertEquals(60, MutableMethod(contract.render).communityReadSite(contract.capturedScope), code)
+            // 348 and 341 read the list at 60. Family B inlines the section builder's helpers, which puts the read at 76.
+            assertEquals(if (contract.render.implementation!!.registerCount == 22) 76 else 60,
+                MutableMethod(contract.render).communityReadSite(contract.capturedScope), code)
         }
     }
 }

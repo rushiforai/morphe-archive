@@ -1,3 +1,15 @@
+## [1.3.2](https://github.com/TahmidSummy/proxy-patches/compare/v1.3.1...v1.3.2) (2026-11-06)
+
+### 🚀 Updated App Support
+
+* Reddit 2026.24.0 ([f3023cf](https://github.com/TahmidSummy/proxy-patches/commit/f3023cf5247cf27276a6ffe52a7661ac88920862))
+
+## [1.3.2-dev.1](https://github.com/TahmidSummy/proxy-patches/compare/v1.3.1...v1.3.2-dev.1) (2026-11-06)
+
+### 🚀 Updated App Support
+
+* Reddit 2026.24.0 ([f3023cf](https://github.com/TahmidSummy/proxy-patches/commit/f3023cf5247cf27276a6ffe52a7661ac88920862))
+
 ## [1.3.1](https://github.com/TahmidSummy/proxy-patches/compare/v1.3.0...v1.3.1) (2026-11-06)
 
 ### 🐛 Bug Fixes

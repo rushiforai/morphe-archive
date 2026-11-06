@@ -39,6 +39,8 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
 import app.hushtumblr.extension.tumblr.timeline.HushRootPost;
 import app.hushtumblr.extension.tumblr.timeline.TimelineFilter;
 import app.hushtumblr.extension.tumblr.timeline.TimelineItems;
+import app.hushtumblr.extension.tumblr.timeline.TimelinePaging;
+import app.hushtumblr.extension.tumblr.timeline.TimelinePagingForTests;
 import com.tumblr.rumblr.model.TimelineObject;
 import com.tumblr.rumblr.model.TimelineObjectType;
 import com.tumblr.rumblr.model.Timelineable;
@@ -205,6 +207,93 @@ public class RootPostMutesTest {
             this.root = root; this.parent = parent; this.id = id; this.trail = trail; this.trailPresent = trailPresent;
         }
         @Override public String hushRootId() { return RootPostMutes.canonicalRoot(root, parent, id, trail, trailPresent); }
+        @Override public String getId() { return id; }
+        @Override public TimelineObjectType getTimelineObjectType() { return TimelineObjectType.POST; }
+    }
+
+    @Test public void aBlogRuleNamesReblogsOnlyWhenProvedAndOriginalsOnlyFromAnEmptyTrail() {
+        List<?> empty = java.util.Collections.emptyList();
+        assertEquals("reblogs:art-blog", RootPostMutes.blogRule("Art-Blog", "11", "22", empty, true));
+        assertEquals("reblogs:art-blog", RootPostMutes.blogRule("art-blog", null, null, java.util.List.of(new Object()), false));
+        assertEquals("originals:art-blog", RootPostMutes.blogRule("art-blog", null, null, empty, true));
+        assertEquals("originals:art-blog", RootPostMutes.blogRule("art-blog", "", "", empty, true));
+        // A root with no parent or trail, a trail that never arrived and a missing blog are all unknown.
+        assertNull(RootPostMutes.blogRule("art-blog", "11", null, empty, true));
+        assertNull(RootPostMutes.blogRule("art-blog", null, null, empty, false));
+        assertNull(RootPostMutes.blogRule("art-blog", null, null, null, true));
+        assertNull(RootPostMutes.blogRule(null, "11", "22", empty, true));
+        assertNull(RootPostMutes.blogRule("art blog", "11", "22", empty, true));
+        assertNull(RootPostMutes.blogRule("", "11", "22", empty, true));
+    }
+
+    @Test public void aBlogRuleHidesOnlyThatHalfOfTheBlogAndOnlyOnTheDashboardOfItsAccount() {
+        account("account-a"); mute("reblogs:art-blog");
+        Object reblog = new BlogPayload("art-blog", "11", "22", "33"), original = new BlogPayload("art-blog", null, null, "44");
+        Object otherBlog = new BlogPayload("other", "11", "22", "55");
+        List<Object> page = java.util.Arrays.asList(reblog, original, otherBlog);
+        Object dashboard = new Dashboard(true);
+        assertEquals(java.util.Arrays.asList(original, otherBlog), RootPostMutes.dashboardPage(dashboard, page));
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("post removed 1"));
+        // Their blog page, a permalink and every other screen keep the reblog, and parsing never hides it.
+        assertSame(page, RootPostMutes.dashboardPage(new Object(), page));
+        // An Explore or Communities tab is the dashboard's tab class, held by another host.
+        assertSame(page, RootPostMutes.dashboardPage(new Dashboard(false), page));
+        assertSame(page, RootPostMutes.dashboardPage(null, page));
+        assertFalse(RootPostMutes.shouldHide(reblog));
+        List<?> parsed = java.util.Arrays.asList(new TimelineObject((Timelineable) reblog, false), new TimelineObject((Timelineable) original, false));
+        assertSame(parsed, TimelineFilter.filter(parsed));
+        // A post whose rule can't be read stays, and the rest of its page is still read.
+        Object unreadable = new BlogPayload("art-blog", "11", "22", "66") {
+            @Override public String hushBlogRule() { throw new IllegalStateException("unreadable"); }
+        };
+        assertEquals(java.util.Arrays.asList(unreadable), RootPostMutes.dashboardPage(dashboard, java.util.Arrays.asList(unreadable, reblog)));
+        Settings.MUTE_ROOT_POSTS.save(false);
+        assertSame(page, RootPostMutes.dashboardPage(dashboard, page));
+        Settings.MUTE_ROOT_POSTS.save(true);
+
+        mute("originals:art-blog");
+        assertEquals(java.util.Arrays.asList(otherBlog), RootPostMutes.dashboardPage(dashboard, page));
+        account("account-b");
+        assertSame(page, RootPostMutes.dashboardPage(dashboard, page));
+        account("account-a");
+        assertEquals(java.util.Arrays.asList(otherBlog), RootPostMutes.dashboardPage(dashboard, page));
+    }
+
+    @Test public void aDashboardPageItsBlogRulesEmptyGoesOnToTheNextPage() {
+        TimelinePagingForTests.reset();
+        try {
+            account("account-a"); mute("reblogs:art-blog");
+            Object dashboard = new Dashboard(true);
+            List<Object> page = java.util.Arrays.asList(new BlogPayload("art-blog", "11", "22", "33"), new BlogPayload("art-blog", "12", "23", "34"));
+            assertTrue(RootPostMutes.dashboardPage(dashboard, page).isEmpty());
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains(TimelinePagingForTests.EMPTIED + " 1"));
+            assertEquals(TimelinePagingForTests.NEXT, TimelinePaging.onPage(dashboard, Load.PAGINATION, new Object(), true));
+        } finally {
+            TimelinePagingForTests.reset();
+        }
+    }
+
+    @Test public void aMutedRootHidesItsPostOnEveryPageWithoutReadingItsBlogRule() {
+        account("account-a"); mute("44");
+        assertTrue(RootPostMutes.shouldHide(new BlogPayload("art-blog", null, null, "44") {
+            @Override public String hushBlogRule() { throw new IllegalStateException("unreadable"); }
+        }));
+    }
+
+    private enum Load { PAGINATION }
+    private static final class Dashboard implements HushDashboardTimeline {
+        private final boolean held;
+        Dashboard(boolean held) { this.held = held; }
+        @Override public boolean hushDashboard() { return held; }
+    }
+
+    private static class BlogPayload implements Timelineable, HushRootPost, HushBlogRulePost {
+        private final String blog, root, parent, id;
+        BlogPayload(String blog, String root, String parent, String id) { this.blog = blog; this.root = root; this.parent = parent; this.id = id; }
+        @Override public String hushRootId() { return RootPostMutes.canonicalRoot(root, parent, id, java.util.Collections.emptyList(), true); }
+        @Override public String hushBlogRule() { return RootPostMutes.blogRule(blog, root, parent, java.util.Collections.emptyList(), true); }
         @Override public String getId() { return id; }
         @Override public TimelineObjectType getTimelineObjectType() { return TimelineObjectType.POST; }
     }

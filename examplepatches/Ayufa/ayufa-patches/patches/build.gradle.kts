@@ -2,12 +2,12 @@ group = "app.ayufa"
 
 patches {
     about {
-        name = "Ayufa YouTube Patches"
-        description = "Custom YouTube patches: live stream latency keeper (Android 8.0 target) and live chat clutter hider (current Android target)"
-        source = "git@github.com:Ayufa/youtube-custom-patches.git"
+        name = "Ayufa Patches"
+        description = "Custom Morphe patches by Ayufa for various apps (currently Simeji: in-app settings with runtime toggles, ad and promotion removal, VIP utilities and more)"
+        source = "git@github.com:Ayufa/ayufa-patches.git"
         author = "Ayufa"
-        contact = "https://github.com/Ayufa/youtube-custom-patches/issues"
-        website = "https://github.com/Ayufa/youtube-custom-patches"
+        contact = "https://github.com/Ayufa/ayufa-patches/issues"
+        website = "https://github.com/Ayufa/ayufa-patches"
         license = "GPLv3"
     }
 }

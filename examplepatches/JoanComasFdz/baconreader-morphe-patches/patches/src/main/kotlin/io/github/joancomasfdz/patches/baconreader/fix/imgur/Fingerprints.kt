@@ -29,3 +29,19 @@ internal object ImgurUploadFingerprint : Fingerprint(
         ),
     ),
 )
+
+/** Whether an album's image is a video: ImgurImage.isVideo(), true when its "mp4" isn't null. */
+internal object ImgurImageIsVideoFingerprint : Fingerprint(
+    definingClass = "Lcom/onelouder/baconreader/imgur_gallery/ImgurImage;",
+    name = "isVideo",
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+/** What the album viewer plays or saves: ImgurImage.getLink(), its "mp4" unless null, else its "link". */
+internal object ImgurImageGetLinkFingerprint : Fingerprint(
+    definingClass = "Lcom/onelouder/baconreader/imgur_gallery/ImgurImage;",
+    name = "getLink",
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+)

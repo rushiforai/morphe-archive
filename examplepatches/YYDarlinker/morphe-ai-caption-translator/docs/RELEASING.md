@@ -20,4 +20,6 @@ Review generated release-note drafts as concise user-facing English bullets comp
 
 PR/main/dev/codex/fix validation uses the current source and canonical verifier. Candidate files and evidence are under build/maintenance/M1a and validation/runs; failure artifacts include both suites and package checks. `npm ci` reconstructs release dependencies. A locally inspected workflow is not evidence of an executed remote run.
 
+A post-publication anonymous-source check can still read an older raw branch manifest after the new tag and asset exist. Preserve the failed run, compare the downloaded asset with the final same-run CI file and tested MPE, then recheck both branch source chains. Do not replace a correct published asset or rerun the publisher just to conceal that failure. If the failure skipped Attest, record that no original build attestation was generated; a later manual source check is not a substitute for one.
+
 The released 1.5.8 asset remains immutable. Historical publication/CI observations and branch-policy snapshots are available through [history](history/README.md); they do not authorize future actions or certify unchanged remote settings. Public release, source synchronization, phone installation and paid service calls are distinct operations.

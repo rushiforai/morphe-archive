@@ -399,9 +399,17 @@ private fun builtWithCase(code: List<Instruction>, made: Int, opener: String, ca
         else -> return false
     }
     if (receiver != self) return false
-    val write = (init - 1 downTo 0).firstOrNull { code[it].writesRegister(selector) } ?: return false
+    var write = (init - 1 downTo 0).firstOrNull { code[it].writesRegister(selector) } ?: return false
+    // 585's Android 9 build (LX/0a8Y;->render) copies the case in with a move/from16 from a register
+    // set to the literal at the top of the method: follow that one copy back to its literal.
+    if (code[write].opcode in INT_MOVES) {
+        val source = (code[write] as TwoRegisterInstruction).registerB
+        write = (write - 1 downTo 0).firstOrNull { code[it].writesRegister(source) } ?: return false
+    }
     return code[write].opcode in LITERAL_CONSTS && (code[write] as NarrowLiteralInstruction).narrowLiteral == case
 }
+
+private val INT_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
 
 private val CONSTRUCTOR_CALLS = setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
 
@@ -444,6 +452,15 @@ internal fun notesRowExit(method: Method): NotesRowExit? {
 }
 
 private val PAYLOAD_JUMPS = setOf(Opcode.PACKED_SWITCH, Opcode.SPARSE_SWITCH, Opcode.FILL_ARRAY_DATA)
+
+/**
+ * The notes section's field holding the ThreadListParams of the inbox it draws for, the one
+ * instance field of [owner] of that type, or null. Dating's Matches screen draws its new matches
+ * with the same section under Dating's own inbox style (585: `A09`, whose style the render compares
+ * to "mib_style_gemstone"), so the hook reads it to leave that row alone (#337).
+ */
+internal fun notesSectionInbox(owner: ClassDef): FieldReference? =
+    owner.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == THREAD_LIST_PARAMS }.singleOrNull()
 
 /**
  * Whether [at] starts a new object of no arguments whose field of type [returns] is read and

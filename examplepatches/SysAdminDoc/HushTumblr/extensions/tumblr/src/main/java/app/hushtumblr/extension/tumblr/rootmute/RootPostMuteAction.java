@@ -43,11 +43,14 @@ public final class RootPostMuteAction implements Runnable {
                     RootPostMutes.Session saved = RootPostMutes.capture();
                     if (!restored && saved == null) RootPostMuteUi.changed(target, L10n.t("Couldn't update muted posts. Try again."), undo);
                     else if (!restored && saved.roots.contains(root)) RootPostMuteUi.recoverMute(target, undo, root);
-                    else RootPostMuteUi.changed(target, L10n.t("Post muted locally"), null);
+                    else RootPostMuteUi.changed(target, RootPostMuteUi.mutedMessage(root), null);
                 });
-            } else RootPostMuteUi.changed(target, L10n.t("Post muted locally"), undo, restore);
+            } else RootPostMuteUi.changed(target, RootPostMuteUi.mutedMessage(root), undo, restore);
         });
     }
+
+    /** The post root or blog rule this action saves. */
+    String entry() { return root; }
 
     public Object invoke() { run(); return RootPostMenu.unit(); }
 }

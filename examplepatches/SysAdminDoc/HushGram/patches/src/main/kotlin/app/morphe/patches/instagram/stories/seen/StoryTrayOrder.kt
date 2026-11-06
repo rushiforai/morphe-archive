@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.instagram.stories.seen
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutable
@@ -12,18 +13,29 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.classesCallingInto
+import app.morphe.patches.instagram.misc.extension.classesLoadingString
+import app.morphe.patches.instagram.misc.extension.loadsString
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 internal const val STORY_TRAY_ORDER = "$EXTENSION_PACKAGE/stories/StoryTrayOrder;"
 internal const val TRAY_ORDER = "$STORY_TRAY_ORDER->order(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;"
+internal const val TRAY_RESPONDED = "$STORY_TRAY_ORDER->responded(Ljava/lang/Object;)V"
+
+/** What the method taking in a tray response logs (see [TrayResponse]). */
+internal const val TRAY_RESPONSE_LOG = "ReelTrayManager.onReelTrayResponseReady - useCache: "
+
+/** What a tray request's text starts with, the reason for the fetch right behind it. */
+internal const val TRAY_REQUEST_TEXT = "Request{mReason="
 
 private const val JAVA_LIST = "Ljava/util/List;"
 private const val ARRAY_LIST = "Ljava/util/ArrayList;"
@@ -69,9 +81,25 @@ internal class StoryTrayTargets(
     val sessionField: String,
     internal val isSeen: MutableMethod,
     val identity: TrayIdentity,
+    /** Only for the tray's own hook. */
+    val response: TrayResponse?,
     /** The extension class holding the hook and the [isSeen] stub, and the hook this patch calls. */
     val extension: String = STORY_TRAY_ORDER,
     val hook: String = TRAY_ORDER,
+)
+
+/**
+ * Where a tray response has just gone into the store: in [method] of the tray manager [manager],
+ * taking [parameters], right before instruction [after], with register [request] holding the request
+ * it was fetched for. The request's text says why it was fetched, which is what decides whether the
+ * row starts over, since Instagram also fetches a tray when you come back from a longer watch (#377).
+ */
+internal class TrayResponse(
+    val manager: String,
+    val method: String,
+    val parameters: List<String>,
+    val after: Int,
+    val request: Int,
 )
 
 /** The actual store Reel's kind and public owner/ID readers, independent of the response parser model. */
@@ -179,8 +207,53 @@ internal fun BytecodePatchContext.findStoryTray(
     val main = storeDef.methods.mapNotNull(::mainTraySite)
     val top = main.singleOrNull()
         ?: refuseTray("expected one method of ${tray.store} handing Home's top story row its reels, found ${main.size}")
+    // Only the tray's own hook keeps places in the row, so only it needs to hear of a response.
+    val response = if (hook == TRAY_ORDER) trayResponse(tray.store) else null
     return StoryTrayTargets(tray.store, listOf(top, tray.site), tray.reelClass, tray.seenCheck, tray.sessionField,
-        trayStub(extension, hook), trayIdentity(tray.reelClass), extension, hook)
+        trayStub(extension, hook), trayIdentity(tray.reelClass), response, extension, hook)
+}
+
+/**
+ * The [TrayResponse] of the reel store [store]: the method logging [TRAY_RESPONSE_LOG], whose first
+ * parameter is the request, and its one call of the store that takes that request. The request's
+ * own text has to name the reason, or there'd be nothing to read from it.
+ */
+private fun BytecodePatchContext.trayResponse(store: String): TrayResponse {
+    val methods = classesLoadingString(TRAY_RESPONSE_LOG).flatMap { classDef ->
+        classDef.methods.filter { loadsString(it, TRAY_RESPONSE_LOG) }.map { classDef to it }
+    }
+    val (manager, method) = methods.singleOrNull()
+        ?: refuseTray("expected one method taking in a tray response, found ${methods.size}")
+    val where = "${manager.type}->${method.name}"
+    val requestType = method.parameterTypes.firstOrNull()?.toString() ?: refuseTray("$where takes no tray request")
+    if (classDefByOrNull(requestType)?.methods?.any { it.name == "toString" && loadsString(it, TRAY_REQUEST_TEXT) } != true) {
+        refuseTray("the tray request $requestType doesn't name its reason in its text")
+    }
+    val code = method.implementation!!.instructions.toList()
+    val calls = code.indices.filter { at ->
+        val call = code[at].trayCall()
+        call != null && call.definingClass == store && call.parameterTypes.any { it.toString() == requestType }
+    }
+    val at = calls.singleOrNull()
+        ?: refuseTray("expected one call of $store taking the tray request in $where, found ${calls.size}")
+    val request = code[at].argumentOfType(requestType) ?: refuseTray("can't read the tray request's register in $where")
+    val result = code.getOrNull(at + 1)?.takeIf {
+        it.opcode == Opcode.MOVE_RESULT || it.opcode == Opcode.MOVE_RESULT_WIDE || it.opcode == Opcode.MOVE_RESULT_OBJECT
+    }
+    if ((result as? OneRegisterInstruction)?.registerA == request) refuseTray("the store's answer replaces the tray request in $where")
+    return TrayResponse(manager.type, method.name, method.parameterTypes.map(Any::toString), if (result == null) at + 1 else at + 2, request)
+}
+
+/** The register this call hands its argument of [type] in, or null when it's no call of a kind that says. */
+private fun Instruction.argumentOfType(type: String): Int? {
+    val parameters = trayCall()?.parameterTypes?.map(Any::toString) ?: return null
+    val receiver = if (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) 0 else 1
+    val slot = receiver + parameters.take(parameters.indexOf(type)).sumOf { if (it == "J" || it == "D") 2 else 1 as Int }
+    return when (this) {
+        is RegisterRangeInstruction -> startRegister + slot
+        is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG)[slot]
+        else -> null
+    }
 }
 
 /** What [trayLister] finds in a method, before the extension's stub is looked up. */
@@ -299,6 +372,15 @@ internal fun BytecodePatchContext.orderStoryTray(found: StoryTrayTargets) {
                 invoke-static { v${site.result}, v${site.self} }, ${found.hook}
                 move-result-object v${site.result}
             """,
+        )
+    }
+    // A tray response is in the store: what it was fetched for may start the row over (#377).
+    found.response?.let { response ->
+        mutableClassDefBy(response.manager).methods.single {
+            it.name == response.method && it.parameterTypes.map(Any::toString) == response.parameters
+        }.addInstructions(
+            response.after,
+            "invoke-static/range { v${response.request} .. v${response.request} }, $TRAY_RESPONDED",
         )
     }
     // Three locals keep the owner/viewer IDs apart. Every path returns before the original stub.

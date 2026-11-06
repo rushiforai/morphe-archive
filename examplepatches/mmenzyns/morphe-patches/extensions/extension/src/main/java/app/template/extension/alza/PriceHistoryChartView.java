@@ -39,6 +39,7 @@ public class PriceHistoryChartView extends View {
     private PriceHistoryData data;
     private String commodityId;
     private boolean isCollapsed = false;
+    private int expandedRightEdgeWidthPx = 0;
 
     // Paints
     private Paint cardBgPaint;
@@ -75,8 +76,6 @@ public class PriceHistoryChartView extends View {
 
     private float paddingPx;
     private float cornerRadiusPx;
-
-    private int exactRemainingWidthPx = 0;
 
     private static final Paint sMeasurePricePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     static {
@@ -174,7 +173,9 @@ public class PriceHistoryChartView extends View {
         if (this.commodityId != null && !this.commodityId.equals(commodityId)) {
             this.data = null;
             this.state = State.LOADING;
-            this.exactRemainingWidthPx = 0;
+        }
+        if (this.commodityId == null || !this.commodityId.equals(commodityId)) {
+            this.expandedRightEdgeWidthPx = 0;
         }
         this.commodityId = commodityId;
     }
@@ -291,37 +292,6 @@ public class PriceHistoryChartView extends View {
     }
 
     @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-        if (!AlzaPriceChartInjector.isCompactMode()) return;
-        try {
-            int screenWidth = getResources().getDisplayMetrics().widthPixels;
-            int[] loc = new int[2];
-            getLocationOnScreen(loc);
-            int screenX = loc[0];
-
-            // Pokud je screenX > 80dp, jsme zaručeně na stejném řádku vpravo vedle cenovky!
-            if (screenX > (int) dpToPx(80f) && screenX < screenWidth) {
-                // Pravý okraj tlačítek v Alze je 16dp od pravého okraje displeje.
-                // Odečteme ještě 2dp bezpečnostní rezervu, aby FlowRow při zvětšení nikdy nezalomil řádek!
-                int targetRightEdgePx = screenWidth - (int) dpToPx(18f);
-                int idealWidthPx = targetRightEdgePx - screenX;
-                int currentWidthPx = right - left;
-
-                if (idealWidthPx > (int) dpToPx(140f) && Math.abs(idealWidthPx - currentWidthPx) > (int) dpToPx(4f)) {
-                    this.exactRemainingWidthPx = idealWidthPx;
-                    post(new Runnable() {
-                        @Override
-                        public void run() {
-                            requestLayout();
-                        }
-                    });
-                }
-            }
-        } catch (Throwable ignored) {}
-    }
-
-    @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         boolean compact = AlzaPriceChartInjector.isCompactMode();
         int width;
@@ -342,34 +312,52 @@ public class PriceHistoryChartView extends View {
         if (density <= 0f) density = 1f;
 
         if (compact) {
-            boolean hasBox = AlzaPriceChartInjector.hasDiscountBox()
+            // Celková dostupná šířka řádku ve FlowRow (šířka displeje mínus 32dp padding obrazovky)
+            int containerW = (widthSize > 0 && widthSize <= screenWidth) ? widthSize : (screenWidth - (int) dpToPx(32f));
+
+            String primaryText = AlzaPriceChartInjector.getActivePrimaryPriceText();
+            String safePrimary = (primaryText != null && !primaryText.isEmpty()) ? primaryText : "99 999,-";
+            sMeasurePricePaint.setTextSize(dpToPx(26f));
+            float primaryTextWidth = sMeasurePricePaint.measureText(safePrimary);
+
+            sMeasurePricePaint.setTextSize(dpToPx(13.5f));
+            float vatLineWidth = sMeasurePricePaint.measureText("bez DPH  " + safePrimary);
+
+            String headerText = AlzaPriceChartInjector.getActiveHeaderText();
+            boolean hasHeader = (headerText != null && !headerText.isEmpty());
+            float headerTextWidth = hasHeader ? sMeasurePricePaint.measureText(headerText) : 0f;
+
+            boolean hasBox = hasHeader
+                    || AlzaPriceChartInjector.hasDiscountBox()
                     || (data != null && data.getClaimedDiscount() != null && data.getClaimedDiscount() > 0);
 
-            if (exactRemainingWidthPx > 0) {
-                width = exactRemainingWidthPx;
+            int priceBlockWidthPx;
+            if (hasBox) {
+                // Modrý box NOVINKA a akční boxy mají v Alze minimální šířku ~162dp!
+                priceBlockWidthPx = (int) Math.max(
+                        dpToPx(162f),
+                        Math.max(
+                                vatLineWidth + dpToPx(16f),
+                                Math.max(primaryTextWidth + dpToPx(36f), headerTextWidth + dpToPx(34f))
+                        )
+                );
             } else {
-                int containerW = (widthSize > 0 && widthSize <= screenWidth) ? widthSize : (screenWidth - (int) dpToPx(32f));
-                String primaryText = AlzaPriceChartInjector.getActivePrimaryPriceText();
-                String headerText = AlzaPriceChartInjector.getActiveHeaderText();
-
-                sMeasurePricePaint.setTextSize(dpToPx(26f));
-                float primaryTextWidth = sMeasurePricePaint.measureText(primaryText != null && !primaryText.isEmpty() ? primaryText : "9 999,-");
-
-                sMeasurePricePaint.setTextSize(dpToPx(13.5f));
-                float headerTextWidth = (headerText != null && !headerText.isEmpty()) ? sMeasurePricePaint.measureText(headerText) : 0f;
-
-                int priceBlockWidthPx;
-                if (hasBox) {
-                    priceBlockWidthPx = (int) Math.max(dpToPx(144f), Math.max(primaryTextWidth + dpToPx(28f), headerTextWidth + dpToPx(28f)));
-                } else {
-                    priceBlockWidthPx = (int) Math.max(dpToPx(115f), primaryTextWidth + dpToPx(16f));
-                }
-
-                int remainingWidthPx = containerW - priceBlockWidthPx - (int) dpToPx(24f);
-                width = Math.max((int) dpToPx(140f), remainingWidthPx);
+                priceBlockWidthPx = (int) Math.max(
+                        dpToPx(120f),
+                        Math.max(primaryTextWidth + dpToPx(20f), vatLineWidth + dpToPx(14f))
+                );
             }
 
-            targetHeight = hasBox ? (int) dpToPx(114f) : (int) dpToPx(84f);
+            // Odečteme šířku levého bloku + 24dp mezeru FlowRow:
+            int remainingWidthPx = containerW - priceBlockWidthPx - (int) dpToPx(24f);
+            // Přísný primární strop: u boxu MAX 47 % řádku (aby NOVINKA na 360-390dp displeji nikdy nepřetekla!), u prosté ceny MAX 54 % řádku
+            float safeMaxRatio = hasBox ? 0.47f : 0.54f;
+            int hardCapPx = (int) (containerW * safeMaxRatio);
+
+            int safeBaseWidthPx = Math.max((int) dpToPx(138f), Math.min(remainingWidthPx, hardCapPx));
+
+            width = Math.max(safeBaseWidthPx, this.expandedRightEdgeWidthPx);
+            targetHeight = hasBox ? (int) dpToPx(108f) : (int) dpToPx(88f);
 
             if (heightMode == MeasureSpec.EXACTLY && heightSize > 0) {
                 targetHeight = heightSize;
@@ -392,6 +380,35 @@ public class PriceHistoryChartView extends View {
             }
         }
         setMeasuredDimension(width, targetHeight);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (AlzaPriceChartInjector.isCompactMode()) {
+            int screenWidth;
+            try {
+                screenWidth = getResources().getDisplayMetrics().widthPixels;
+            } catch (Throwable ignored) {
+                screenWidth = 1080;
+            }
+            int[] loc = new int[2];
+            getLocationOnScreen(loc);
+            int screenX = loc[0];
+            int currentWidthPx = getWidth();
+
+            if (screenX >= dpToPx(95f) && screenX <= screenWidth * 0.60f) {
+                int targetRightEdgePx = screenWidth - (int) dpToPx(20f);
+                int availableToRightEdgePx = targetRightEdgePx - screenX;
+
+                if (availableToRightEdgePx > currentWidthPx + (int) dpToPx(4f)
+                        && availableToRightEdgePx < screenWidth * 0.72f
+                        && this.expandedRightEdgeWidthPx != availableToRightEdgePx) {
+                    this.expandedRightEdgeWidthPx = availableToRightEdgePx;
+                    post(this::requestLayout);
+                }
+            }
+        }
     }
 
     private boolean isDarkMode() {
@@ -439,7 +456,7 @@ public class PriceHistoryChartView extends View {
         // Draw card background & border
         boolean compact = AlzaPriceChartInjector.isCompactMode();
         float inset = compact ? dpToPx(1f) : (paddingPx / 2f);
-        float marginLeft = compact ? dpToPx(10f) : 0f;
+        float marginLeft = compact ? dpToPx(14f) : 0f;
         cardRect.set(inset + marginLeft, inset, width - inset, height - inset);
         float radius = compact ? dpToPx(8f) : Math.max(dpToPx(8f), Math.min(dpToPx(14f), height * 0.10f));
         canvas.drawRoundRect(cardRect, radius, radius, cardBgPaint);
@@ -461,8 +478,8 @@ public class PriceHistoryChartView extends View {
         float cardH = cardRect.height();
 
         // Paddings for compact card
-        float padH = dpToPx(8f);
-        float padV = dpToPx(6f);
+        float padH = dpToPx(10f);
+        float padV = dpToPx(7f);
 
         // 1. Header (Logo on left, Smart discount / min price on right)
         float logoHeight = dpToPx(11.5f);
@@ -549,8 +566,11 @@ public class PriceHistoryChartView extends View {
         }
 
         // 2. Chart Plot Area - extends from below header to bottom padding (no X-axis dates)
+        float sepLineY = headerTop + dpToPx(15f);
+        canvas.drawLine(cardRect.left + padH, sepLineY, cardRect.right - padH, sepLineY, gridLinePaint);
+
         float plotLeft = cardRect.left + padH;
-        float plotTop = headerTop + dpToPx(17f);
+        float plotTop = headerTop + dpToPx(20f);
         float plotRight = cardRect.right - padH;
         float plotBottom = cardRect.bottom - padV;
 
@@ -792,7 +812,7 @@ public class PriceHistoryChartView extends View {
         }
 
         // Vertical padding (breathing room) for curve so extreme points don't touch edges
-        float yPad = (bottom - top) * 0.08f;
+        float yPad = (bottom - top) * (compact ? 0.12f : 0.08f);
         float yTop = top + yPad;
         float yBottom = bottom - yPad;
         float yRange = yBottom - yTop;

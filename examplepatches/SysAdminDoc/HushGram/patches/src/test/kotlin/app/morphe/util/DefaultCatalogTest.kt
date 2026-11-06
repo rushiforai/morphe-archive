@@ -94,6 +94,7 @@ import app.morphe.patches.instagram.profile.friendship.friendshipStatusPatch
 import app.morphe.patches.instagram.profile.highlights.hideHighlightsPatch
 import app.morphe.patches.instagram.profile.notes.hideProfileNotesPatch
 import app.morphe.patches.instagram.profile.tabs.hideProfileTabsPatch
+import app.morphe.patches.instagram.profile.gridjump.profileGridJumpPatch
 import app.morphe.patches.instagram.profile.postslist.profilePostsListPatch
 import app.morphe.patches.instagram.profile.suggested.hideProfileSuggestionsPatch
 import app.morphe.patches.instagram.profile.threads.hideThreadsButtonPatch
@@ -172,7 +173,7 @@ import org.junit.Test
  * build itself or isn't ready yet, each with its reason in DefaultSelectionPolicyTest.
  */
 class DefaultCatalogTest {
-    private val neutral = listOf<Patch<*>>(
+    private val neutral = listOf<Patch>(
         accentColorPatch,
         allowScreenshotsPatch,
         askBeforeCallPatch,
@@ -246,6 +247,7 @@ class DefaultCatalogTest {
         lockMessagesPatch,
         loopStoryPatch,
         pickAppIconPatch,
+        profileGridJumpPatch,
         profilePostsListPatch,
         readWithoutSeenReceiptPatch,
         reelSeekBarPatch,
@@ -308,7 +310,7 @@ class DefaultCatalogTest {
         phoneLayoutPatch,
     )
 
-    private val prior = listOf<Patch<*>>(
+    private val prior = listOf<Patch>(
         defaultPlaybackQualityPatch,
         downloadReelPatch,
         downloadStoryPatch,
@@ -328,7 +330,7 @@ class DefaultCatalogTest {
         translatedStartPatch,
     )
 
-    private val optIn = listOf<Patch<*>>(
+    private val optIn = listOf<Patch>(
         changeVersionCodePatch,
         installNextToInstagramPatch,
         pureBlackPatch,
@@ -341,7 +343,7 @@ class DefaultCatalogTest {
     }
 
     @Test fun initiallyNeutralControlsAreAvailableInSimpleMode() {
-        assertEquals(133, neutral.size)
+        assertEquals(134, neutral.size)
         neutral.forEach { assertEquals(it.name, true, it.default) }
     }
 
@@ -353,7 +355,7 @@ class DefaultCatalogTest {
     @Test fun generatedCatalogMatchesAllReviewedDeclarations() {
         val all = prior + neutral + optIn
         val declarations = all.associate { it.name!! to it.default }
-        assertEquals("every named patch needs one reviewed decision", 154, all.size)
+        assertEquals("every named patch needs one reviewed decision", 155, all.size)
         assertEquals("the review must not name a patch twice", all.size, declarations.size)
         val file = File("patches-list.json").takeIf(File::isFile) ?: File("../patches-list.json")
         val rows = JsonParser.parseString(file.readText()).asJsonObject.getAsJsonArray("patches")

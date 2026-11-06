@@ -761,6 +761,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Stop the blink under the bar",
+                    "If the video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.",
+                    Settings.SEE_THROUGH_VIDEO_IN_WINDOW
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Floating bottom bar",
                     "Show the main feed's tabs on a rounded, see-through dark pill that floats over the video. Needs See-through bottom bar.",
                     Settings.FLOATING_BOTTOM_BAR
@@ -815,6 +821,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     new String[]{"Soft blur", "Standard", "Strong blur"},
                     new String[]{"light", "standard", "strong"})
                     .withNote("How much the video behind the glass pill on the main feed is blurred."));
+            addPreference(new TogglePreference(
+                    context,
+                    "Bend the video at the edges",
+                    "The glass pill's edges bend the blurred video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.",
+                    Settings.GLASS_REFRACTION
+            ));
             addPreference(new TogglePreference(
                     context,
                     "See-through status bar",

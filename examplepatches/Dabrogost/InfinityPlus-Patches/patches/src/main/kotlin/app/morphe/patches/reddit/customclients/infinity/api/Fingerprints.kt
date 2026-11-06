@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 
 internal val getDefaultUserAgentFingerprint = Fingerprint(
     definingClass = EXTENSION_CLASS_NAME,
@@ -52,6 +53,18 @@ internal val redirectUriFingerprint = Fingerprint(
     // the application package. Patch those as well as the authorization activities.
     // Exclude the injected defaults, which must not call their own redirect getter.
     custom = { _, classDef -> !classDef.type.startsWith("Lapp/morphe/extension/") }
+)
+
+internal val moreChildrenEndpointFingerprint = Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.ABSTRACT),
+    returnType = "Ljava/lang/Object;",
+    custom = { method, _ ->
+        method.annotations.any { annotation ->
+            annotation.elements.any { element ->
+                (element.value as? StringEncodedValue)?.value == MORE_CHILDREN_ENDPOINT
+            }
+        }
+    }
 )
 
 internal val settingsActivityOnBackStackChangedFingerprint = Fingerprint(

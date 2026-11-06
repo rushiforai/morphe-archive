@@ -2,11 +2,11 @@ group = "aj.cubes"
 
 patches {
     about {
-        name = "Lock Me Out Premium"
-        description = "Premium unlocked for Lock Me Out"
+        name = "AJ-cubes' Morphe Patches"
+        description = "App patches via Morphe"
         source = "https://github.com/AJcubes/morphe-patches"
         author = "AJ-cubes"
-        contact = "na"
+        contact = "ajcubes33@gmail.com"
         website = "na"
         license = "GPLv3"
     }

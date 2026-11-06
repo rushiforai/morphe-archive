@@ -9,7 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-10-28
+ * Modified by lavinhoque33, 2026-11-06.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -76,7 +76,7 @@ import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.patches.components.ActionButtonsFilter;
-import app.morphe.extension.youtube.patches.components.ActionButtonsFilter.ActionButton;
+import app.morphe.extension.youtube.patches.player.VideoActionBarLayoutPatch;
 import app.morphe.extension.youtube.returnyoutubedislike.DislikePill;
 import app.morphe.extension.youtube.returnyoutubedislike.ReturnYouTubeDislike;
 import app.morphe.extension.youtube.settings.Settings;
@@ -454,9 +454,9 @@ public class ReturnYouTubeDislikePatch {
      */
     private static boolean regularActionButtonCountOverlaysAreUnsupported() {
         return Settings.DISABLE_LAYOUT_UPDATES.get()
-                || Settings.RESTORE_OLD_VIDEO_ACTION_BAR.get()
-                // Segmented/old layouts already receive the count through onLithoTextLoaded().
-                || ActionButtonsFilter.hasCurrentVideoActionButton(ActionButton.LIKE_DISLIKE);
+                // Minimal splits server-sent segmented buttons, so it needs regular count overlays.
+                || VideoActionBarLayoutPatch.getLayout().usesSegmentedCounts(
+                        ActionButtonsFilter.hasCurrentVideoSegmentedButton());
     }
 
     /**

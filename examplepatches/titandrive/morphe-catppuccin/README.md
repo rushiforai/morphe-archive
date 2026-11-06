@@ -6,7 +6,7 @@ Add `titandrive/morphe-catppuccin` as a remote patch source in Morphe.
 
 ## Boost
 
-For **Boost 1.12.12**, apply **Catppuccin theme** alongside the original [Patcheddit patches](https://github.com/wchill/patcheddit). This add-on does not include their login/API fixes.
+For **Boost 1.12.12 or 1.14.2**, apply **Catppuccin theme** alongside the original [Patcheddit patches](https://github.com/wchill/patcheddit). This add-on does not include their login/API fixes. Boost 1.14.2 requires compatible Patcheddit patches (tested with 2.1.0-dev.3).
 
 Open Boost’s theme selector and choose **Catppuccin Macchiato** (dark) or **Catppuccin Latte** (light).
 
@@ -25,6 +25,8 @@ For a custom font, also select **Gboard custom font**, open its options, and cho
 For **AnkiDroid 2.25.1 or 2.25.2**, apply **AnkiDroid Catppuccin theme and fonts**. No other patch source is needed.
 
 In **Settings → Appearance**, choose **Catppuccin Latte** as the day theme and **Catppuccin Macchiato** as the night theme. **Font and text size** offers App default, bundled JetBrains Mono, a custom TTF picker, and 70–150% text scaling. Selected fonts override card template fonts in study and preview screens; App default restores the original fonts.
+
+**Widget appearance** adds Catppuccin widget colors, JetBrains Mono and 0–100% background opacity with a preview. Deck names use the theme text color; new, learning and review counts use Catppuccin blue, red and green. The opacity setting applies to widget backgrounds only.
 
 Start with an **original, unpatched APK** when updating. Morphe signs the result with its own key, so it cannot install directly over a Google Play/GitHub-signed AnkiDroid installation. Back up/sync your collection before switching installations, and keep using the same Morphe signing key for subsequent updates. AnkiCat remains a separate app.
 
@@ -60,7 +62,7 @@ Use an original APK, not a previously patched copy. Keep the same Morphe signing
 
 ## Immich
 
-For **Immich 3.3.5 (arm64)**, select **Immich Catppuccin**. The app’s light and dark modes use **Latte** and **Macchiato**, with mauve selected tab icons and labels and a darker Mantle dock in dark mode. This replaces the existing palettes; it does not add theme picker entries. The patch checks the exact native binary and rejects other builds.
+For **Immich 3.3.5 or 3.3.6 (arm64)**, select **Immich Catppuccin**. The app’s light and dark modes use **Latte** and **Macchiato**, with mauve selected tab icons and labels and a darker Mantle dock in dark mode. This replaces the existing palettes; it does not add theme picker entries. The patch checks the exact native binary and rejects other builds.
 
 Optionally select **Immich custom font**, open its options, and choose a **TTF file**. It replaces interface fonts while preserving icons. Repatch an original APK to change or remove the font. Keep the same Morphe signing key for updates.
 

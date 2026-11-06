@@ -42,12 +42,12 @@
       "attribution": "ENABLE2K word list via dolph/dictionary; Wordnik open word list (wordnik/wordlist)",
       "file": "wordlists/en-us/words.txt.gz",
       "license": "Public domain (ENABLE) and MIT (Wordnik, Copyright (c) 2020 Wordnik)",
-      "removed": 0,
-      "sha256": "ebebc666e1002cc47ecc4a562eae5ab37952a9e35ec7184bb64e35a5044d0389",
-      "size": 502716,
+      "removed": 2,
+      "sha256": "7f585cd780e98ead005b552669d776dd09ef83cffcbe4710b742de83a1bb1448",
+      "size": 502712,
       "source_words": 194220,
-      "version": 2,
-      "words": 194220
+      "version": 4,
+      "words": 194218
     },
     "es": {
       "added": 0,
@@ -78,12 +78,12 @@
       "attribution": "Lexique des formes fléchies du français, Grammalecte v7.7 (Olivier R.)",
       "file": "wordlists/fr/words.txt.gz",
       "license": "MPL 2.0",
-      "removed": 0,
-      "sha256": "dd9e9cccd029ad2bb4fc8f30e232d5c9f345949a87dea88df44b63d38f096c2c",
-      "size": 970528,
+      "removed": 12,
+      "sha256": "3eeafbe904658181632059ff3c5607e7ff5c9d230212bb6a4daa889a2d04ea76",
+      "size": 970523,
       "source_words": 407899,
-      "version": 2,
-      "words": 407899
+      "version": 3,
+      "words": 407898
     },
     "nb": {
       "added": 0,
@@ -98,28 +98,28 @@
       "words": 126426
     },
     "nl": {
-      "added": 0,
+      "added": 4,
       "attribution": "OpenTaal word list, via jensanjo/wordfeud-wordlists",
       "file": "wordlists/nl/words.txt.gz",
       "license": "Revised BSD and/or CC BY 3.0 (OpenTaal)",
-      "removed": 1,
-      "sha256": "1f4c2116ef8deaa84bcac12bae3c74a0b42ad0e987f3532df00fae30252bc4eb",
-      "size": 1018313,
+      "removed": 5,
+      "sha256": "4e5ce7ef8f7eb149a65b6f8f462cbd15b33f5da6e79835e8a4e9c6a6641bc41f",
+      "size": 1018308,
       "source_words": 340672,
-      "version": 2,
+      "version": 9,
       "words": 340671
     },
     "nn": {
-      "added": 0,
+      "added": 9,
       "attribution": "Norsk ordbank (nynorsk 2012), Språkbanken / Språkrådet, via Ondkloss/norwegian-wordlist",
       "file": "wordlists/nn/words.txt.gz",
       "license": "CC BY 4.0",
-      "removed": 0,
-      "sha256": "3d61b813150c75dcf3c0102b7e45b5f03d7a5c5c4606d60ec264a9756eedcb97",
-      "size": 326581,
+      "removed": 5,
+      "sha256": "ff9c6ff378b2fb7a331e22141fa1cdee62d62c6f8a8a25b8a6957750cdaa20c5",
+      "size": 326590,
       "source_words": 98470,
-      "version": 1,
-      "words": 98470
+      "version": 12,
+      "words": 98474
     },
     "pt": {
       "added": 0,

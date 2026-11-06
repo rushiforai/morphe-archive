@@ -37,9 +37,18 @@ public final class Settings {
     static final String GHOST_MODE = "ghost_mode";
     static final String BLOCK_TRACKING = "block_tracking";
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
+    static final String GLASS_NAVIGATION_BAR = "glass_navigation_bar";
+    static final String HIDE_TAB_LABELS = "hide_tab_labels";
+    static final String HIDE_TAB_BADGES = "hide_tab_badges";
+    static final String SHOW_TAB_JOBS = "show_tab_jobs";
+    static final String SHOW_TAB_NETWORK = "show_tab_network";
+    static final String SHOW_TAB_NOTIFICATIONS = "show_tab_notifications";
     static final String REMOVE_GAPS_AND_DIVIDERS = "remove_gaps_and_dividers";
     static final String MATERIAL_YOU = "material_you";
+    static final String PITCH_BLACK = "pitch_black";
     static final String HIDE_MORE_TAB = "hide_more_tab";
+    static final String SHOW_TAB_MORE = "show_tab_more";
+    static final String MOVE_MORE_ITEMS = "move_more_items";
     static final String GAMES_SHORTCUT = "games_shortcut";
     /** Items of the More tab last seen, as JSON (MoreMenu). */
     static final String MORE_ITEMS = "more_items";
@@ -120,6 +129,10 @@ public final class Settings {
         return false;
     }
 
+    public static boolean isGlassNavigationBarIncluded() {
+        return false;
+    }
+
     public static boolean isMaterialYouIncluded() {
         return false;
     }
@@ -130,8 +143,48 @@ public final class Settings {
         return isRemoveGapsAndDividersIncluded() && get(REMOVE_GAPS_AND_DIVIDERS, true);
     }
 
+    static boolean glassNavigationBar() {
+        return isGlassNavigationBarIncluded() && get(GLASS_NAVIGATION_BAR, true);
+    }
+
+    public static boolean isNavigationBarIncluded() {
+        return false;
+    }
+
+    static boolean hideTabLabels() {
+        return isNavigationBarIncluded() && get(HIDE_TAB_LABELS, false);
+    }
+
+    static boolean hideTabBadges() {
+        return isNavigationBarIncluded() && get(HIDE_TAB_BADGES, false);
+    }
+
+    /** Whether the bottom bar leaves out the tab, named by its constant in HomeTabInfo. */
+    static boolean tabHidden(String tab) {
+        switch (tab) {
+            case "MORE":
+                return isNavigationBarIncluded() && !showMoreTab();
+            case "JOBS":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_JOBS, true);
+            case "RELATIONSHIPS":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_NETWORK, true);
+            case "NOTIFICATIONS":
+                return isNavigationBarIncluded() && !get(SHOW_TAB_NOTIFICATIONS, true);
+            default:
+                return false;
+        }
+    }
+
     static boolean materialYou() {
         return isMaterialYouIncluded() && get(MATERIAL_YOU, true);
+    }
+
+    public static boolean isAmoledBlackIncluded() {
+        return false;
+    }
+
+    static boolean pitchBlack() {
+        return isAmoledBlackIncluded() && get(PITCH_BLACK, true);
     }
 
     public static boolean isMoreMenuIncluded() {
@@ -146,8 +199,17 @@ public final class Settings {
         return isMoreMenuIncluded() && get(GAMES_SHORTCUT, true);
     }
 
-    static boolean hideMoreTab() {
-        return isMoreMenuIncluded() && get(HIDE_MORE_TAB, true);
+    /** Whether the single switch that both hid the More tab and moved its items was on: the default of the two that follow it. */
+    private static boolean moreHiddenAndMoved() {
+        return get(HIDE_MORE_TAB, true);
+    }
+
+    static boolean showMoreTab() {
+        return get(SHOW_TAB_MORE, !moreHiddenAndMoved());
+    }
+
+    static boolean moveMoreItems() {
+        return isMoreMenuIncluded() && get(MOVE_MORE_ITEMS, moreHiddenAndMoved());
     }
 
     public static boolean isGmsCoreSupportIncluded() {

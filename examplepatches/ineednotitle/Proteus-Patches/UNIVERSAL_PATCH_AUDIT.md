@@ -131,3 +131,19 @@ shared helpers and the six manifest patches above.
 > with the new option set. On-device validation of the aggressive permission
 > defaults is still recommended (camera / storage / notifications / SMS can break
 > app features when removed).
+
+## Permission-patch usability follow-up (v2.2.2 replacement)
+
+The replacement bundle retains the
+previously requested aggressive category defaults and stable option keys, while
+making their consequences and the legacy override's AdServices behavior clear.
+Permission lists now accept standard Android short names (`AD_ID` maps to the
+Google permission), reject malformed entries rather than silently ignoring a
+mistyped exemption, and apply keep-list precedence consistently. The nearby
+Wi-Fi category now targets `NEARBY_WIFI_DEVICES`. Permission removal is limited
+to direct manifest declarations and handles namespace-aware Android attributes.
+See `docs/UNIVERSAL-PATCHES.md` for user-facing examples and limitations.
+
+`./gradlew :patches:testPermissionRemoval` runs the permission policy and DOM
+regression suite; CI also verifies the generated Android bundle before release.
+On-device verification of actual apps is still needed before publishing.

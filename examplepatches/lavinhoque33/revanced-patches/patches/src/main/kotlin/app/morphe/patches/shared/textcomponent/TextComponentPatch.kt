@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.music.utils.playservice.is_9_00_or_greater
 import app.morphe.patches.music.utils.playservice.versionCheckPatch
@@ -14,8 +15,6 @@ import app.morphe.patches.shared.indexOfSpannableStringInstruction
 import app.morphe.patches.shared.spannableStringBuilderFingerprint
 import app.morphe.patches.youtube.utils.playservice.is_21_07_or_greater
 import app.morphe.util.cloneMutableAndPreserveParameters
-import app.morphe.util.fingerprint.methodOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.Opcode
@@ -43,7 +42,7 @@ val textComponentPatch = bytecodePatch(
 ) {
     dependsOn(versionCheckPatch, youtubeVersionCheckPatch)
     execute {
-        spannableStringBuilderFingerprint.methodOrThrow().apply {
+        spannableStringBuilderFingerprint.method.apply {
             spannedMethod = this
             spannedIndex = indexOfSpannableStringInstruction(this)
             spannedRegister = getInstruction<FiveRegisterInstruction>(spannedIndex).registerC

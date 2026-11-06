@@ -65,7 +65,13 @@ Laporan bersifat publik dan ditinjau sebelum saluran ditambahkan ke daftar. Peng
     <string name="revanced_copy_video_title_summary">Ketuk dan tahan judul video untuk menyalinnya</string>
     <string name="revanced_copy_video_title_title">Salin judul video</string>
     <string name="morphe_auto_translate_additional_languages_summary">Menambahkan lebih banyak bahasa ke menu terjemahan otomatis</string>
-    <string name="morphe_auto_translate_additional_languages_title">Tambahkan bahasa terjemahan otomatis tambahan</string>
+    <string name="morphe_auto_translate_additional_languages_title">Bahasa tambahan untuk terjemahan otomatis</string>
+    <string name="morphe_caption_block_translation_failed">Beberapa terjemahan teks tidak tersedia. Menampilkan teks yang tersedia</string>
+    <string name="morphe_caption_blocks_too_large">Kedua bahasa teks tidak dapat ditampilkan pada pemutar ini. Menampilkan bahasa utama</string>
+    <string name="morphe_caption_scale_summary">Berlaku untuk teks bahasa tunggal dan dwibahasa</string>
+    <string name="morphe_caption_scale_title">Ukuran teks</string>
+    <string name="morphe_captions_screen_summary">Kelola teks otomatis dan cookie teks</string>
+    <string name="morphe_captions_screen_title">Teks</string>
     <string name="morphe_custom_branding_apply_to_rvx_settings_summary">Gunakan ikon aplikasi yang dipilih untuk entri pengaturan RVX jika tersedia</string>
     <string name="morphe_custom_branding_apply_to_rvx_settings_title">Gunakan ikon RVX Di pengaturan</string>
     <string name="morphe_custom_branding_icon_title">Ikon aplikasi</string>
@@ -103,6 +109,9 @@ Video diminta dengan awalan pendek dari ID video yang di-hash, sehingga server t
     <string name="morphe_disable_scrolling_speed_limit_title">Nonaktifkan batas kecepatan menggulir</string>
     <string name="morphe_disable_system_splash_summary">Membuat ikon splash sistem statis menjadi transparan</string>
     <string name="morphe_disable_system_splash_title">Nonaktifkan splash sistem</string>
+    <string name="morphe_disable_toolbar_navigation_tabs_summary">Menampilkan Subscription di bilah navigasi, jika YouTube memindahkannya ke tab di bagian atas Beranda</string>
+    <string name="morphe_disable_toolbar_navigation_tabs_title">Nonaktifkan tab navigasi toolbar</string>
+    <string name="morphe_dual_captions_enabled_title">Teks Dwibahasa</string>
     <string name="morphe_expand_livestream_dvr_duration_not_available">"'Perluas durasi siaran langsung DVR' mungkin tidak tersedia
 
 Untuk memperbaikinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' menjadi 'TV Simply' atau 'visionOS'"</string>
@@ -111,9 +120,9 @@ Untuk memperbaikinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' m
     <string name="morphe_explore_menu_screen_summary">Pilih komponen mana yang akan ditampilkan di menu eksplorasi</string>
     <string name="morphe_explore_menu_screen_title">Menu eksplorasi</string>
     <string name="morphe_external_potoken_provider_user_dialog_message">Jika tidak berhasil, coba hentikan paksa MicroG</string>
-    <string name="morphe_feed_long_press_menu_summary">Mengetuk dan menahan di mana saja pada video umpan membuka menunya</string>
+    <string name="morphe_feed_long_press_menu_summary">Mengetuk dan menahan di mana saja pada video feed membuka menunya</string>
     <string name="morphe_feed_long_press_menu_title">Ketuk dan tahan untuk membuka menu video</string>
-    <string name="morphe_feed_watch_later_button_summary">Tombol Tonton nanti ditampilkan pada thumbnail video umpan. Mengetuk dan menekannya akan membuka Simpan ke daftar putar</string>
+    <string name="morphe_feed_watch_later_button_summary">Tombol Tonton nanti ditampilkan pada thumbnail video feed, dengan tanda centang jika video disimpan. Mengetuk tombol ini akan menyimpan atau menghapus video, dan mengetuk serta menahannya akan membuka Simpan ke daftar putar</string>
     <string name="morphe_feed_watch_later_button_title">Tampilkan tombol Tonton nanti pada thumbnail</string>
     <string name="morphe_force_original_audio_not_available">Untuk menggunakan fitur ini, ubah \'Palsukan aliran video\' ke klien apa pun kecuali \'Android Studio\' dan \'Android VR Downgraded\'</string>
     <string name="morphe_force_original_audio_summary_off">Menggunakan audio bawaan</string>
@@ -190,6 +199,32 @@ Untuk menampilkan menu 'Trek Audio', ubah 'Palsukan aliran video' ke klien apa p
     <string name="morphe_hide_youtube_works_menu_title">Sembunyikan menu \'Cara YouTube bekerja\'</string>
     <string name="morphe_light_theme_custom_color_title">Warna tema terang Kustom</string>
     <string name="morphe_light_theme_title">Tema Terang</string>
+    <string name="morphe_live_chat_translate_bold_summary">Menampilkan teks yang diterjemahkan dalam huruf tebal</string>
+    <string name="morphe_live_chat_translate_bold_title">Teks terjemahan tebal</string>
+    <string name="morphe_live_chat_translate_color_summary">Atur warna hex untuk teks yang diterjemahkan</string>
+    <string name="morphe_live_chat_translate_color_title">Warna teks terjemahan</string>
+    <string name="morphe_live_chat_translate_copied">Pesan disalin ke papan klip</string>
+    <string name="morphe_live_chat_translate_copy_button_summary">Menambahkan tombol salin kecil pada setiap pesan chat</string>
+    <string name="morphe_live_chat_translate_copy_button_title">Tampilkan tombol salin pesan</string>
+    <string name="morphe_live_chat_translate_deepl_api_key_summary">Kunci API DeepL Anda. Google Translate digunakan jika DeepL gagal, seperti saat batas bulanan kunci tercapai</string>
+    <string name="morphe_live_chat_translate_deepl_api_key_title">Kunci API DeepL</string>
+    <string name="morphe_live_chat_translate_exclude_summary">Kode bahasa yang dipisahkan dengan koma, contohnya: id,en. Pesan dalam bahasa tersebut tidak diterjemahkan</string>
+    <string name="morphe_live_chat_translate_exclude_title">Bahasa yang dikecualikan</string>
+    <string name="morphe_live_chat_translate_language_title">Bahasa terjemahan</string>
+    <string name="morphe_live_chat_translate_max_length_no_limit">Tanpa batas</string>
+    <string name="morphe_live_chat_translate_max_length_summary">Pesan yang lebih panjang ditampilkan tanpa diterjemahkan</string>
+    <string name="morphe_live_chat_translate_max_length_title">Panjang pesan maksimum</string>
+    <string name="morphe_live_chat_translate_provider_deepl">DeepL</string>
+    <string name="morphe_live_chat_translate_screen_summary">Terjemahkan pesan live chat dan rekaman live chat</string>
+    <string name="morphe_live_chat_translate_screen_title">Terjemahan live chat</string>
+    <string name="morphe_live_chat_translate_style_original_and_translated">Asli (diterjemahkan)</string>
+    <string name="morphe_live_chat_translate_style_title">Gaya terjemahan</string>
+    <string name="morphe_live_chat_translate_style_translated_and_original">(Diterjemahkan) asli</string>
+    <string name="morphe_live_chat_translate_style_translated_only">Terjemahan saja</string>
+    <string name="morphe_live_chat_translate_summary">Menerjemahkan pesan live chat dan rekaman live chat begitu pesan tersebut muncul di layar</string>
+    <string name="morphe_live_chat_translate_title">Terjemahkan live chat</string>
+    <string name="morphe_live_chat_translate_use_color_summary">Menerapkan warna kustom pada teks yang diterjemahkan</string>
+    <string name="morphe_live_chat_translate_use_color_title">Warna teks terjemahan kustom</string>
     <string name="morphe_livestream_dvr_not_available">"'Aktifkan siaran langsung DVR' mungkin tidak tersedia
 
 Untuk memperbaikinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' menjadi 'TV Simply' atau 'visionOS'"</string>
@@ -197,6 +232,9 @@ Untuk memperbaikinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' m
     <string name="morphe_livestream_dvr_title">Aktifkan siaran langsung DVR</string>
     <string name="morphe_music_package_name_summary">Nama paket aplikasi musik yang terinstal</string>
     <string name="morphe_music_package_name_title">Nama paket aplikasi musik</string>
+    <string name="morphe_navigation_bar_style_entry_2">Translusen</string>
+    <string name="morphe_navigation_bar_style_title">Gaya bilah navigasi</string>
+    <string name="morphe_navigation_bar_style_user_dialog_message">Gaya ini mungkin tidak didukung oleh perangkat atau versi YouTube Anda, dan dapat menyebabkan masalah tata letak atau crash</string>
     <string name="morphe_notification_dot_color_summary">Ubah warna dot Notifikasi</string>
     <string name="morphe_notification_dot_color_title">Warna dot Notifikasi</string>
     <string name="morphe_oauth2_connection_failure_auth_error">Tidak dapat masuk ke VR: %s</string>
@@ -225,6 +263,16 @@ Untuk memperbaikinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' m
     <string name="morphe_playback_in_feeds_title">Pemutaran di feed</string>
     <string name="morphe_player_control_buttons_background_opacity_summary">Sesuaikan opasitas latar belakang di belakang tombol kontrol pemutar dan bilah waktu (0 tidak terlihat, 100 solid)</string>
     <string name="morphe_player_control_buttons_background_opacity_title">Opasitas latar belakang tombol kontrol</string>
+    <string name="morphe_post_image_download_failed">Tidak dapat mengunduh gambar</string>
+    <string name="morphe_post_image_download_flyout">Unduh gambar</string>
+    <string name="morphe_post_image_download_flyout_single">Unduh gambar</string>
+    <string name="morphe_post_image_download_not_found">Tidak ditemukan gambar dalam postingan ini</string>
+    <string name="morphe_post_image_download_saved">%1$s gambar disimpan ke %2$s</string>
+    <string name="morphe_post_image_download_saved_single">Gambar disimpan ke %s</string>
+    <string name="morphe_post_image_download_started">Mengunduh %s gambar…</string>
+    <string name="morphe_post_image_download_started_single">Mengunduh gambar…</string>
+    <string name="morphe_post_image_download_summary">Tombol unduh ditampilkan di samping tombol Bagikan pada postingan dengan gambar atau GIF, dan item unduh ditambahkan ke menu mereka</string>
+    <string name="morphe_post_image_download_title">Unduh gambar postingan</string>
     <string name="morphe_potoken_provider_summary">"Memperbaiki isu Playback menggunakan provider PoToken bawaan (Experimental)
 
 Jika anda pengguna YouTube Premium, pengaturan ini mungkin tidak diperlukan"</string>
@@ -232,7 +280,7 @@ Jika anda pengguna YouTube Premium, pengaturan ini mungkin tidak diperlukan"</st
     <string name="morphe_potoken_provider_unavailable_summary">"Memperbaiki isu Playback menggunakan provider PoToken bawaan (Experimental)
 
 Untuk menggunakan fitur ini, matikan \'Spoof video streams\'"</string>
-    <string name="morphe_preferred_caption_language_summary">Memilih subtitle dari penyedia terlebih dahulu, lalu menerjemahkan secara otomatis ke bahasa pilihan</string>
+    <string name="morphe_preferred_caption_language_summary">Memilih bahasa teks secara otomatis untuk setiap video</string>
     <string name="morphe_preferred_caption_language_title">Bahasa teks pilihan</string>
     <string name="morphe_queue_manager_check_failed_auth">Belum masuk</string>
     <string name="morphe_queue_manager_check_failed_video_id">Tidak ditemukan ID video</string>
@@ -265,6 +313,14 @@ Untuk menggunakan fitur ini, matikan \'Spoof video streams\'"</string>
     <string name="morphe_save_to_watch_later_shorts_flyout_button_summary">Memungkinkan Anda menyimpan Shorts ke \'Tonton Nanti\' melalui menu flyout</string>
     <string name="morphe_save_to_watch_later_shorts_flyout_button_title">Tampilkan tombol Simpan ke Tonton Nanti di flyout Shorts</string>
     <string name="morphe_save_to_watch_later_success_toast">Video berhasil disimpan di daftar tonton nanti</string>
+    <string name="morphe_search_comments_applied">Ubah urutan pengurutan atau buka kembali komentar untuk mencarinya</string>
+    <string name="morphe_search_comments_clear">Hapus</string>
+    <string name="morphe_search_comments_cleared">Pencarian dihapus. Ubah urutan pengurutan atau buka kembali komentar untuk menampilkan semua komentar</string>
+    <string name="morphe_search_comments_hint">Kata yang ingin dicari</string>
+    <string name="morphe_search_comments_summary">Ketuk tombol cari di komentar untuk menampilkan hanya komentar yang dimuat yang mengandung semua kata yang dicari. Letakkan kata dalam tanda kutip untuk mencari frasa</string>
+    <string name="morphe_search_comments_title">Cari komentar</string>
+    <string name="morphe_secondary_caption_language_summary">Menampilkan bahasa kedua melalui teks, serta menambahkan tombol pilihan teks Dwibahasa ke dalam menu teks</string>
+    <string name="morphe_secondary_caption_language_title">Bahasa teks sekunder</string>
     <string name="morphe_seekbar_thumbnail_heatmap_peak_point">Paling sering di-replay</string>
     <string name="morphe_seekbar_thumbnail_preview_summary">Menampilkan thumbnail video saat menggeser bilah geser</string>
     <string name="morphe_seekbar_thumbnail_preview_title">Aktifkan thumbnail pada bilah geser</string>
@@ -275,6 +331,8 @@ Untuk menggunakan fitur ini, matikan \'Spoof video streams\'"</string>
     <string name="morphe_settings_name_custom_item_hint">Masukkan nama</string>
     <string name="morphe_settings_name_empty_warning">Nama tidak boleh kosong</string>
     <string name="morphe_settings_name_title">Nama setelan RVX</string>
+    <string name="morphe_settings_new_indicator_days_summary">Jumlah hari titik ditampilkan di samping setelan dan opsi yang ditambahkan oleh pembaruan</string>
+    <string name="morphe_settings_new_indicator_days_title">Sorot setelan baru</string>
     <string name="morphe_skip_silence_minimum_pause_summary">Hanya jeda yang setidaknya selama ini yang dipersingkat. Berlaku saat video berikutnya dimulai</string>
     <string name="morphe_skip_silence_minimum_pause_title">Durasi jeda minimum</string>
     <string name="morphe_skip_silence_summary">Secara otomatis melewati jeda hening di audio video</string>
@@ -345,6 +403,8 @@ Untuk mengunakan fitur ini, matikan 'Penyedia PoToken'"</string>
 
 Jika Anda adalah pengguna YouTube Premium, setelan ini mungkin tidak diperlukan"</string>
     <string name="morphe_spoof_video_streams_user_dialog_message">Mematikan setelan ini dapat menyebabkan masalah pemutaran</string>
+    <string name="morphe_stable_caption_blocks_summary">Kelompokkan teks otomatis dalam satu bahasa ke dalam blok yang stabil dan mudah dibaca. Takarir dwibahasa selalu menggunakan format blok. Beberapa kata mungkin muncul sebelum kata tersebut diucapkan</string>
+    <string name="morphe_stable_caption_blocks_title">Blok teks tetap</string>
     <string name="morphe_swap_save_and_queue_actions_summary">Ketuk untuk pilihan antrean, ketuk dan tahan untuk menyimpan ke Tonton Nanti</string>
     <string name="morphe_swap_save_and_queue_actions_title">Tukar Tindakan Simpan dan Antrean</string>
     <string name="morphe_tablet_layout_in_player_summary">"Mengembalikan tata letak pemutar lama
@@ -1881,6 +1941,8 @@ Masalah ini dapat diatasi dengan mudah dengan mengklik tombol 'Muat Ulang Video'
 
 Di antara klien JavaScript, klien yang direkomendasikan adalah TV Simply"</string>
     <string name="revanced_spoof_streaming_data_vr_auth_token_about_title">Tentang Android VR Auth</string>
+    <string name="revanced_status_bar_translucency_entry_opaque">Solid</string>
+    <string name="revanced_status_bar_translucency_entry_transparent">Transparan</string>
     <string name="revanced_swipe_brightness_summary_off">Pengusapan kecerahan layar penuh dinonaktifkan</string>
     <string name="revanced_swipe_brightness_summary_on">"Pengusapan kecerahan layar penuh diaktifkan
 
@@ -1892,7 +1954,7 @@ Sesuaikan kecerahan dengan mengusap secara vertikal pada sisi kiri layar"</strin
     <string name="revanced_swipe_lowest_value_enable_auto_brightness_summary_off">Mengusap ke bawah ke nilai terendah tidak mengaktifkan kecerahan otomatis</string>
     <string name="revanced_swipe_lowest_value_enable_auto_brightness_summary_on">Mengusap ke bawah ke nilai terendah dari gerakan kecerahan akan menyalakan kecerahan otomatis</string>
     <string name="revanced_swipe_lowest_value_enable_auto_brightness_title">Aktifkan gerakan kecerahan otomatis</string>
-    <string name="revanced_swipe_overlay_background_opacity_summary">Sesuaikan level transparansi (0 transparan, 100 buram)</string>
+    <string name="revanced_swipe_overlay_background_opacity_summary">Sesuaikan level transparansi (0 transparan, 100 pekat)</string>
     <string name="revanced_swipe_overlay_background_opacity_title">Opasitas latar belakang hamparan usap</string>
     <string name="revanced_swipe_overlay_progress_brightness_color_summary">Atur warna bilah kemajuan kontrol kecerahan</string>
     <string name="revanced_swipe_overlay_progress_brightness_color_title">Warna kecerahan lapisan usap</string>
@@ -2065,4 +2127,9 @@ Anda harus melakukan otentikasi untuk meminta terjemahan dengan suara asli untuk
     <string name="revanced_yandex_transcribe_subtitles_language_title">Terjemahan dari Yandex</string>
     <string name="revanced_yandex_transcribe_subtitles_summary">Gunakan transkripsi Yandex alih-alih Gemini. Yandex lebih cepat dan lebih dapat diandalkan. Tidak diperlukan kunci API</string>
     <string name="revanced_yandex_transcribe_subtitles_title">Transkripsi Yandex</string>
+    <string name="revanced_copy_select_text_copy_all">Salin semua</string>
+    <string name="revanced_copy_select_text_dialog_title">Pilih teks</string>
+    <string name="revanced_copy_select_text_success">Teks disalin ke papan klip</string>
+    <string name="revanced_copy_select_text_summary">Tekan dan tahan deskripsi video atau postingan untuk memilih dan menyalin bagian mana pun darinya</string>
+    <string name="revanced_copy_select_text_title">Pilih teks deskripsi dan postingan</string>
 </resources>

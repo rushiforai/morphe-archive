@@ -14,35 +14,25 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 internal const val OWN_VERSION = "Lapp/hushmessenger/extension/OwnVersion;"
 private const val PACKAGE_INFO = "Landroid/content/pm/PackageInfo;"
 internal const val VERSION_FIELD = "$PACKAGE_INFO->versionCode:I"
 internal const val VERSION_GETTER = "$PACKAGE_INFO->getLongVersionCode()J"
-private const val OWN_NAME = "Landroid/content/Context;->getPackageName()Ljava/lang/String;"
-private const val OWN_APPLICATION_INFO = "Landroid/content/Context;->getApplicationInfo()Landroid/content/pm/ApplicationInfo;"
-private const val ITEM_NAME = "Landroid/content/pm/PackageItemInfo;->packageName:Ljava/lang/String;"
-private val PACKAGE_LOOKUPS = setOf(
-    "Landroid/content/pm/PackageManager;->getPackageInfo(Ljava/lang/String;I)$PACKAGE_INFO",
-    "Landroid/content/pm/PackageManager;->getPackageInfo(Ljava/lang/String;Landroid/content/pm/PackageManager\$PackageInfoFlags;)$PACKAGE_INFO",
-)
 
 /**
- * Messenger's reads of its own version code in the arm64 build, 17 in 586: AppComponentManager's check (which logs
- * a mismatch with the APK's own code), its service, ACRA's crash-time data, Profilo's trace end, the int helper, Mapbox's
- * two identifiers, the Hatch bug report's app_version, ML Kit's Clearcut logger, Play Billing's proxy activity and its
- * request params, and six more. A different count means the build changed, and nothing is rewritten.
+ * Every PackageInfo version read in 586's arm64 build, 66 in 61 methods. Most read another app (Google Play services,
+ * the Play Store, Facebook, WebView, ART) and keep what Android reports. The rest are Messenger's own: AppComponentManager's
+ * check, the job scheduler's "Version Codes do not match" check, ACRA's crash data, Profilo's trace end, Mapbox, the
+ * Hatch bug report and Play Billing among them. A different count means the build changed, and nothing is rewritten.
  */
-internal const val SELF_VERSION_READS = 17
+internal const val SELF_VERSION_READS = 66
 
-/** The armv7 build keeps ACRA's pre-Android 9 branch, so its crash-time data reads both getLongVersionCode and versionCode. */
-internal const val ARMV7_SELF_VERSION_READS = 18
+/** The armv7 build keeps pre-Android 9 branches (ACRA, Play services, WebView and a few more read the code both ways). */
+internal const val ARMV7_SELF_VERSION_READS = 75
 
 internal fun selfVersionReadsFor(profile: ControlProfile) =
     if (profile === PROFILE_347215341) ARMV7_SELF_VERSION_READS else SELF_VERSION_READS
@@ -57,74 +47,19 @@ private fun Instruction.registers(): List<Int> = when (this) {
     else -> emptyList()
 }
 
-/** The last instruction before [at], in code order, that sets [register]. Branches aren't followed. */
-private fun List<Instruction>.writerOf(at: Int, register: Int): Int {
-    for (index in at - 1 downTo 0) {
-        val instruction = this[index]
-        if (!instruction.opcode.setsRegister()) continue
-        val written = (instruction as? OneRegisterInstruction)?.registerA ?: continue
-        if (written == register || instruction.opcode.setsWideRegister() && written + 1 == register) return index
-    }
-    return -1
-}
-
-private fun List<Instruction>.isResultOf(index: Int, call: String) =
-    index > 0 && this[index].opcode == Opcode.MOVE_RESULT_OBJECT && this[index - 1].reference() == call
-
-/** Whether the package name in [register] at [at] is the app's own: Context.getPackageName(), or getApplicationInfo().packageName. */
-private fun List<Instruction>.isOwnName(at: Int, register: Int): Boolean {
-    val writer = writerOf(at, register)
-    if (writer < 0) return false
-    if (isResultOf(writer, OWN_NAME)) return true
-    val read = this[writer]
-    if (read.opcode != Opcode.IGET_OBJECT || read.reference() != ITEM_NAME) return false
-    return isResultOf(writerOf(writer, (read as TwoRegisterInstruction).registerB), OWN_APPLICATION_INFO)
-}
-
-/**
- * True when every PackageInfo [method] can hold is the app's own: each one comes from getPackageInfo on the app's own
- * name, or from one of [wrappers], and none from a parameter, a field, a cast, an array or any other call.
- */
-private fun ownInfoOnly(method: Method, code: List<Instruction>, wrappers: Set<String>): Boolean {
-    if (method.parameterTypes.any { it.toString() == PACKAGE_INFO }) return false
-    var lookups = 0
-    for ((index, instruction) in code.withIndex()) {
-        if (instruction.opcode == Opcode.AGET_OBJECT) return false
-        if (instruction.opcode == Opcode.CHECK_CAST && instruction.reference() == PACKAGE_INFO) return false
-        val reference = (instruction as? ReferenceInstruction)?.reference
-        if (reference is FieldReference && reference.type == PACKAGE_INFO) return false
-        if (reference !is MethodReference || reference.returnType != PACKAGE_INFO) continue
-        val id = reference.toString()
-        when {
-            id in PACKAGE_LOOKUPS -> if (!code.isOwnName(index, instruction.registers()[1])) return false
-            id in wrappers -> Unit
-            else -> return false
-        }
-        lookups++
-    }
-    return lookups > 0
-}
-
 private fun Instruction.isVersionRead() = reference().let { it == VERSION_FIELD || it == VERSION_GETTER }
 
 /**
- * The methods that read the version code only from the app's own PackageInfo, with how many reads each has. A
- * one-level wrapper that hands back the app's own PackageInfo counts as a source. HushMessenger's own classes are left
- * out: Copy setup reads the installed code on purpose.
+ * Every method that reads a PackageInfo version code, with how many reads each has. Where a PackageInfo came from
+ * isn't traced: a parameter, a field, a cached wrapper or a loop over services can all hold Messenger's own (#120 found
+ * the job scheduler's check and ACRA's constant fields that way), and OwnVersion checks the package name when the read
+ * runs, so another app's PackageInfo keeps what Android reported. HushMessenger's own classes are left out: Copy setup
+ * reads the installed code on purpose.
  */
-internal fun findSelfVersionReads(methods: Iterable<Method>): Map<Method, Int> {
-    val readers = mutableListOf<Pair<Method, List<Instruction>>>()
-    val wrappers = mutableSetOf<String>()
-    for (method in methods) {
-        if (method.definingClass.startsWith("Lapp/hushmessenger/")) continue
-        val code = method.code()
-        if (code.isEmpty()) continue
-        if (code.any { it.isVersionRead() }) readers += method to code
-        if (method.returnType == PACKAGE_INFO && ownInfoOnly(method, code, emptySet())) wrappers += method.hookId()
-    }
-    return readers.filter { (method, code) -> ownInfoOnly(method, code, wrappers) }
-        .associate { (method, code) -> method to code.count { it.isVersionRead() } }
-}
+internal fun findSelfVersionReads(methods: Iterable<Method>): Map<Method, Int> = methods
+    .filterNot { it.definingClass.startsWith("Lapp/hushmessenger/") }
+    .mapNotNull { method -> method.code().count { it.isVersionRead() }.takeIf { it > 0 }?.let { method to it } }
+    .toMap()
 
 private fun refuse(reason: String): Nothing = throw PatchException("$SPOOF_VERSION_PATCH: $reason. Nothing was changed.")
 
@@ -141,7 +76,7 @@ internal fun Method.validateVersionReads() {
 internal fun planSelfVersionReads(methods: Iterable<Method>, expected: Int = SELF_VERSION_READS): Set<String> {
     val found = findSelfVersionReads(methods)
     val total = found.values.sum()
-    if (total != expected) refuse("found $total reads of Messenger's own version code, expected $expected")
+    if (total != expected) refuse("found $total version code reads, expected $expected")
     found.keys.forEach { it.validateVersionReads() }
     return found.keys.mapTo(sortedSetOf()) { it.hookId() }
 }
@@ -168,7 +103,8 @@ internal fun MutableMethod.answerOwnVersionReads() {
 
 /**
  * Keeps Messenger's reads of its own version code at the build it really is while Spoof package version raises what
- * Android reports. Runs only as part of that patch.
+ * Android reports. Every version read goes through OwnVersion, which leaves other apps' codes alone. Runs only as part
+ * of that patch.
  */
 internal val spoofSelfReadsPatch = bytecodePatch(description = "Answer Messenger's own version reads with its original code") {
     dependsOn(settingsExtension)

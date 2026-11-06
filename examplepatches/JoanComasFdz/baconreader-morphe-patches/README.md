@@ -16,14 +16,28 @@
 ## ⚡ Install
 
 1. Install [Morphe Manager](https://morphe.software).
-2. On your phone, open [**Add to Morphe Manager**](https://morphe.software/add-source?github=JoanComasFdz/baconreader-morphe-patches) and add the source. Or, in Morphe Manager, add `https://github.com/JoanComasFdz/baconreader-morphe-patches` as a remote source.
-3. Patch your **BaconReader 6.1.4** APK, free or Premium.
+2. Add this repository as a patch source, one of two ways:
+   - On your phone, open [**Add to Morphe Manager**](https://morphe.software/add-source?github=JoanComasFdz/baconreader-morphe-patches) and tap **Open in Morphe**.
+   - Or, in Morphe Manager, tap **Sources** in the bottom bar, then **+**, stay on the **Remote** tab, paste this address and tap **Add**:
+     ```text
+     https://github.com/JoanComasFdz/baconreader-morphe-patches
+     ```
+   Add the repository's address, not a `.mpp` file from its releases (the **Local** tab), nor another link.
+3. On Morphe Manager's home screen, tap **BaconReader Premium** or **BaconReader**, the one your APK is, and patch your **BaconReader 6.1.4** APK.
 4. Uninstall the original BaconReader, then install the patched one.
 
 Settings live in BaconReader → **Settings → Patches**.
 
 > [!WARNING]
 > Use an APK you trust. Repackaged "Premium" APKs often carry malware.
+
+### Troubleshooting
+
+- **Morphe Manager asks for the non-premium BaconReader APK:** the repository was added wrongly. In **Sources**,
+  remove it, then add it again as step 2 says, with the link or the address
+  `https://github.com/JoanComasFdz/baconreader-morphe-patches` on the **Remote** tab. Both **BaconReader** and
+  **BaconReader Premium** then show on the home screen.
+- **"Invalid source URL":** the address must be the repository's, as above.
 
 ## 🧩 What's inside
 

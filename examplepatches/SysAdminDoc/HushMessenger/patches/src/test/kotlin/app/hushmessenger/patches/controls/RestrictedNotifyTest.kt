@@ -27,7 +27,7 @@ private const val NOTIFY_SETTING = "Lcom/facebook/messaging/model/threads/Notifi
 private const val FOLDER_READ = "iget-object v5, v2, $THREAD_SUMMARY->A10:$FOLDER"
 
 /** The folder enum's type in each stock build. */
-private val NATIVE_FOLDERS = mapOf(PROFILE_347215341 to "LX/20T;", PROFILE_347215348 to FOLDER)
+private val NATIVE_FOLDERS = mapOf(PROFILE_347215273 to "LX/205;", PROFILE_347215341 to "LX/20T;", PROFILE_347215348 to FOLDER)
 
 /**
  * The thread check cut down from 586: Other, Spam and Restricted end it, a muted chat ends it, and only Inbox gets a

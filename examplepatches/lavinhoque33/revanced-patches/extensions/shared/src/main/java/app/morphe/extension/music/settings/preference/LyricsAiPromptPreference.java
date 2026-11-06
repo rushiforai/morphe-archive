@@ -19,9 +19,11 @@ import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.util.concurrent.ExecutorService;
@@ -64,10 +66,6 @@ public class LyricsAiPromptPreference extends SwitchPreference {
         String key = getKey();
         if (key == null) return null;
         switch (key) {
-            case "morphe_music_lyrics_use_ai_translation":
-                return Settings.LYRICS_USE_AI_TRANSLATION;
-            case "morphe_music_lyrics_use_ai_romanization":
-                return Settings.LYRICS_USE_AI_ROMANIZATION;
             case "morphe_music_lyrics_use_ai_section":
                 return Settings.LYRICS_USE_AI_SECTION;
             default:
@@ -79,10 +77,6 @@ public class LyricsAiPromptPreference extends SwitchPreference {
         String key = getKey();
         if (key == null) return null;
         switch (key) {
-            case "morphe_music_lyrics_use_ai_translation":
-                return Settings.LYRICS_AI_TRANSLATION_PROMPT;
-            case "morphe_music_lyrics_use_ai_romanization":
-                return Settings.LYRICS_AI_ROMANIZATION_PROMPT;
             case "morphe_music_lyrics_use_ai_section":
                 return Settings.LYRICS_AI_SECTION_PROMPT;
             default:
@@ -138,7 +132,6 @@ public class LyricsAiPromptPreference extends SwitchPreference {
         promptInput.setMinLines(4);
         promptInput.setMaxLines(8);
         promptInput.setVerticalScrollBarEnabled(true);
-        promptInput.setHint(str("morphe_music_lyrics_ai_prompt_dialog_title"));
         String currentPrompt = promptSetting.get();
         if (!currentPrompt.isEmpty()) {
             promptInput.setText(currentPrompt);
@@ -148,17 +141,14 @@ public class LyricsAiPromptPreference extends SwitchPreference {
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        TextView caption = new TextView(context);
-        caption.setText(str("morphe_music_lyrics_ai_prompt_dialog_hint"));
-        caption.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
-        caption.setTextColor(BaseThemeUtils.getAppForegroundColor() & 0xAAFFFFFF);
-        LinearLayout.LayoutParams captionParams = new LinearLayout.LayoutParams(
+        LinearLayout.LayoutParams reasoningParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT);
-        captionParams.topMargin = Dim.dp8;
-        content.addView(caption, captionParams);
+        reasoningParams.topMargin = Dim.dp16;
+        content.addView(createReasoningRow(context), reasoningParams);
 
-        content.addView(createReasoningRow(context), reasoningRowParams());
+        content.addView(LyricsProviderConfigDialog.createHint(context,
+                "morphe_music_lyrics_ai_prompt_dialog_hint"));
 
         Pair<Dialog, LinearLayout> dialogPair = CustomDialog.create(
                 context,
@@ -190,10 +180,13 @@ public class LyricsAiPromptPreference extends SwitchPreference {
         Dialog dialog = dialogPair.first;
         LinearLayout mainLayout = dialogPair.second;
 
-        mainLayout.addView(content, mainLayout.getChildCount() - 1,
-                new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT));
+        ScrollView scroll = new ScrollView(context);
+        scroll.addView(content, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1.0f);
+        scrollParams.bottomMargin = Dim.dp12;
+        mainLayout.addView(scroll, mainLayout.getChildCount() - 1, scrollParams);
 
         dialog.setOnDismissListener(d -> {
             dialogShowing = false;
@@ -310,12 +303,4 @@ public class LyricsAiPromptPreference extends SwitchPreference {
                 thread.setDaemon(true);
                 return thread;
             });
-
-    private static LinearLayout.LayoutParams reasoningRowParams() {
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT);
-        params.topMargin = Dim.dp16;
-        return params;
-    }
 }

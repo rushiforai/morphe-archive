@@ -39,13 +39,17 @@ class RootPostMutesFixtureTest {
     private val owners = setOf(POST, POST.removeSuffix(";") + "JsonAdapter;", ROOT_POST_WRAPPER, ROOT_MENU_OWNER,
         LOCAL_TIMELINE, ROOT_TIMELINE_OBJECT, "Luxl;", "La2k;", "Lii9;", "Lctm;",
         "Lcom/tumblr/ui/widget/PostCardHeader;", "Lcom/tumblr/ui/fragment/TimelineFragment\$a;",
-        "Lcom/tumblr/components/bottomsheet/b\$a;", "Lcom/tumblr/components/bottomsheet/b\$b;")
+        "Lcom/tumblr/components/bottomsheet/b\$a;", "Lcom/tumblr/components/bottomsheet/b\$b;",
+        "Lcom/tumblr/ui/fragment/GraywaterFragment;", DASHBOARD_HOST, FRAGMENT) + ROOT_DASHBOARDS
 
     @Test
     fun `native root bridges menu action and local cache rebind preserve their actual values`() {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, owners).values)
             postJsonPresencePatch.execute(context)
+            // The shared dashboard page patch is a dependency, so the patcher applies it first.
+            val page = context.resolveDashboardPage()
+            dashboardPagePatch.execute(context)
             val plan = context.resolveRootPostMutes()
             assertEquals(listOf("$POST->K0()Ljava/lang/String;", "$POST->G0()Ljava/lang/String;", "$POST->z0()Ljava/lang/String;",
                 "$POST->B0()Ljava/util/List;"), plan.roots[0].getters)
@@ -60,10 +64,59 @@ class RootPostMutesFixtureTest {
                     assertEquals(listOf(0, 1, 2, 3, 4), (bridge[9] as FiveRegisterInstruction)
                         .let { listOf(it.registerC, it.registerD, it.registerE, it.registerF, it.registerG) })
                 } else assertEquals(WRAPPED_CANONICAL_ROOT, bridge.first().fieldRef().toString())
+                assertTrue(HUSH_BLOG_RULE_POST in owner.interfaces)
+                val blog = owner.methods.single { it.name == "hushBlogRule" }.instructionList()
+                if (root.owner == POST) {
+                    // The posting blog, then the root, the parent and the trail: the same proofs the root bridge reads.
+                    assertEquals(listOf(plan.blogName, root.getters[0], root.getters[1], root.getters[3], BLOG_RULE),
+                        blog.mapNotNull { it.methodRef()?.toString() })
+                    assertEquals("$POST->M()Ljava/lang/String;", plan.blogName)
+                    assertEquals(ROOT_TRAIL_PRESENT, blog[8].fieldRef().toString())
+                    assertEquals(listOf(0, 1, 2, 3, 4), (blog[9] as FiveRegisterInstruction)
+                        .let { listOf(it.registerC, it.registerD, it.registerE, it.registerF, it.registerG) })
+                } else assertEquals(WRAPPED_BLOG_RULE, blog.first().fieldRef().toString())
             }
             val capture = plan.wrapperConstructor.instructionList()
             assertEquals("$HUSH_ROOT_POST->hushRootId()Ljava/lang/String;", capture[1].methodRef().toString())
             assertEquals(WRAPPED_CANONICAL_ROOT, capture[3].fieldRef().toString())
+            assertEquals("$HUSH_BLOG_RULE_POST->hushBlogRule()Ljava/lang/String;", capture[4].methodRef().toString())
+            assertEquals(WRAPPED_BLOG_RULE, capture[6].fieldRef().toString())
+            assertEquals(listOf(8, 8), listOf(capture[1], capture[4]).map { (it as RegisterRangeInstruction).startRegister })
+            assertEquals("Ljava/lang/Object;-><init>()V", capture[0].methodRef().toString())
+            // The liked and own-reblog facts follow the mute capture: the post in, the answer into the wrapper.
+            assertSame(page.wrapperConstructor, plan.wrapperConstructor)
+            assertEquals(POST_FACTS, capture[7].methodRef().toString())
+            assertEquals(listOf(1, 8), (capture[7] as FiveRegisterInstruction).let { listOf(it.registerCount, it.registerC) })
+            assertEquals(Opcode.MOVE_RESULT to page.factsScratch, capture[8].opcode to (capture[8] as OneRegisterInstruction).registerA)
+            assertEquals(Opcode.IPUT, capture[9].opcode)
+            assertEquals(WRAPPED_POST_FACTS, capture[9].fieldRef().toString())
+            assertEquals(listOf(page.factsScratch, 7), (capture[9] as TwoRegisterInstruction).let { listOf(it.registerA, it.registerB) })
+            val wrapper = context.mutableClassDefBy(ROOT_POST_WRAPPER)
+            assertTrue(HUSH_POST_FACTS in wrapper.interfaces)
+            val facts = wrapper.methods.single { it.name == "hushPostFacts" }.instructionList()
+            assertEquals(listOf(Opcode.IGET, Opcode.RETURN), facts.map { it.opcode })
+            assertEquals(WRAPPED_POST_FACTS, facts[0].fieldRef().toString())
+            for (dashboard in ROOT_DASHBOARDS) assertTrue(HUSH_DASHBOARD_TIMELINE in context.mutableClassDefBy(dashboard).interfaces)
+            assertFalse(HUSH_DASHBOARD_TIMELINE in context.mutableClassDefBy(LOCAL_TIMELINE).interfaces)
+            // Explore and Communities reuse the tab class, so a tab answers by the host whose child it is.
+            val answers = ROOT_DASHBOARDS.associateWith { type ->
+                context.mutableClassDefBy(type).methods.single { it.name == "hushDashboard" }.instructionList() }
+            assertEquals(listOf(Opcode.CONST_4, Opcode.RETURN), answers.getValue(ROOT_DASHBOARDS[0]).map { it.opcode })
+            assertEquals(1, (answers.getValue(ROOT_DASHBOARDS[0])[0] as NarrowLiteralInstruction).narrowLiteral)
+            val tab = answers.getValue(DASHBOARD_TAB)
+            assertEquals(listOf(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT, Opcode.INSTANCE_OF, Opcode.RETURN), tab.map { it.opcode })
+            assertEquals("$FRAGMENT->getParentFragment()$FRAGMENT", tab[0].methodRef().toString())
+            assertEquals(1, (tab[0] as FiveRegisterInstruction).registerC)
+            assertEquals(DASHBOARD_HOST, (tab[2] as ReferenceInstruction).reference.toString())
+            // Blog rules filter the page at the head of its delivery: the fragment and the page in, the kept page back into the page's register.
+            val delivery = page.delivery.instructionList()
+            val (self, items) = page.delivery.implementation!!.registerCount.let { listOf(it - 6, it - 4) }
+            assertEquals(DASHBOARD_PAGE, delivery[0].methodRef().toString())
+            assertEquals(listOf(self, items), (delivery[0] as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
+            assertEquals(Opcode.MOVE_RESULT_OBJECT to items, delivery[1].opcode to (delivery[1] as OneRegisterInstruction).registerA)
+            val payload = context.mutableClassDefBy(ROOT_MENU).methods.single { it.name == "cardPayload" }.instructionList()
+            assertEquals(listOf("La2k;->l()Lcom/tumblr/rumblr/model/Timelineable;", "$ROOT_TIMELINE_OBJECT->getData()Lcom/tumblr/rumblr/model/Timelineable;"),
+                payload.mapNotNull { it.methodRef()?.toString() })
             val reader = context.mutableClassDefBy(POST.removeSuffix(";") + "JsonAdapter;").methods.single {
                 it.name == "fromJson" && it.returnType == "Ljava/lang/Object;"
             }.instructionList()
@@ -316,8 +369,23 @@ class RootPostMutesFixtureTest {
         }
     }
 
+    @Test
+    fun `a dashboard tab whose host is gone refuses before anything is edited`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = PatchContexts.of(ExtensionDex.classes() + FixtureDex.classes(build, owners - DASHBOARD_HOST).values)
+            // The shared dashboard page patch owns the dashboard markers now and refuses before Mute runs.
+            assertThrows(PatchException::class.java) {
+                postJsonPresencePatch.execute(context); dashboardPagePatch.execute(context); muteRootPostsPatch.execute(context)
+            }
+            assertUnchanged(context)
+        }
+    }
+
     private fun assertUnchanged(context: app.morphe.patcher.patch.BytecodePatchContext) {
         assertFalse(HUSH_ROOT_POST in context.mutableClassDefBy(POST).interfaces)
+        assertFalse(HUSH_BLOG_RULE_POST in context.mutableClassDefBy(POST).interfaces)
+        for (dashboard in ROOT_DASHBOARDS) assertFalse(HUSH_DASHBOARD_TIMELINE in context.mutableClassDefBy(dashboard).interfaces
+            || context.mutableClassDefBy(dashboard).methods.any { it.name == "hushDashboard" })
         assertFalse(HUSH_LOCAL_TIMELINE in context.mutableClassDefBy(LOCAL_TIMELINE).interfaces)
         assertFalse("Lii9;" in context.mutableClassDefBy(ROOT_ACTION).interfaces)
         assertFalse(HUSH_ROOT_MENU_HOST in context.mutableClassDefBy(ROOT_MENU_CALLBACK).interfaces)

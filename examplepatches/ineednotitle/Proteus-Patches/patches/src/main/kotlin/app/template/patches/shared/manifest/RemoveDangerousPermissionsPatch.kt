@@ -3,108 +3,22 @@ package app.template.patches.shared.manifest
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
-import app.template.patches.shared.RELAXED_LIST_VALIDATOR
-import app.template.patches.shared.UNIVERSAL_PERMISSION_TAGS
 import app.template.patches.shared.logUniversal
-import app.template.patches.shared.parseTokens
-import app.template.patches.shared.removeManifestElements
-
-/**
- * Universal "Remove dangerous permissions" patch.
- *
- * Usability: instead of editing one long comma-separated list, users toggle
- * permission **categories**. All categories are ON by default (aggressive),
- * with an optional keep-list, an optional extra list and a legacy exact-list
- * override for existing configurations.
- *
- * Optimization: a single DOM traversal via [removeManifestElements] replaces
- * the previous three separate `getElementsByTagName` passes.
- */
-
-private const val ADSERVICES_PREFIX = "android.permission.ACCESS_ADSERVICES_"
-
-/** Category key -> concrete permission names. AdServices is handled by prefix. */
-private val PERMISSION_GROUPS = linkedMapOf(
-    "packageVisibility" to setOf(
-        "android.permission.QUERY_ALL_PACKAGES",
-    ),
-    "phone" to setOf(
-        "android.permission.READ_PHONE_STATE",
-        "android.permission.READ_BASIC_PHONE_STATE",
-        "android.permission.READ_PHONE_NUMBERS",
-        "android.permission.CALL_PHONE",
-    ),
-    "accounts" to setOf(
-        "android.permission.GET_ACCOUNTS",
-    ),
-    "location" to setOf(
-        "android.permission.ACCESS_FINE_LOCATION",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_BACKGROUND_LOCATION",
-    ),
-    "contacts" to setOf(
-        "android.permission.READ_CONTACTS",
-        "android.permission.WRITE_CONTACTS",
-    ),
-    "microphone" to setOf(
-        "android.permission.RECORD_AUDIO",
-    ),
-    "camera" to setOf(
-        "android.permission.CAMERA",
-    ),
-    "storage" to setOf(
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.MANAGE_EXTERNAL_STORAGE",
-        "android.permission.READ_MEDIA_IMAGES",
-        "android.permission.READ_MEDIA_VIDEO",
-        "android.permission.READ_MEDIA_AUDIO",
-    ),
-    "sms" to setOf(
-        "android.permission.READ_SMS",
-        "android.permission.RECEIVE_SMS",
-        "android.permission.SEND_SMS",
-    ),
-    "calendar" to setOf(
-        "android.permission.READ_CALENDAR",
-        "android.permission.WRITE_CALENDAR",
-    ),
-    "sensors" to setOf(
-        "android.permission.BODY_SENSORS",
-        "android.permission.ACTIVITY_RECOGNITION",
-    ),
-    "nearbyDevices" to setOf(
-        "android.permission.BLUETOOTH_SCAN",
-        "android.permission.BLUETOOTH_CONNECT",
-        "android.permission.BLUETOOTH_ADVERTISE",
-        "android.permission.NEARBY_WIFI",
-    ),
-    "screenCaptureDetection" to setOf(
-        "android.permission.DETECT_SCREEN_CAPTURE",
-    ),
-    "adId" to setOf(
-        "com.google.android.gms.permission.AD_ID",
-    ),
-    "notifications" to setOf(
-        "android.permission.POST_NOTIFICATIONS",
-    ),
-)
 
 @Suppress("unused")
 val removeDangerousPermissionsPatch = resourcePatch(
     name = "Remove dangerous permissions",
     description = """
-        Removes privacy-invasive permissions from any app's manifest using simple
-        category switches. All categories are ON by default (aggressive): package
-        visibility, phone, accounts, location, contacts, microphone, camera,
-        storage, SMS, calendar, sensors, nearby devices, ad ID, AdServices,
-        notifications and screen-capture detection.
+        Removes selected permission declarations from an app's manifest. The patch
+        is off by default. When enabled, all category switches start ON, including
+        camera, storage, SMS and notifications. Turn off categories the app needs.
 
-        Use "Permissions to keep" to exempt a single permission, or "Advanced:
-        exact removal list" to replace the switches with your own list.
+        Permissions to keep always wins. Extra permissions are added to the selected
+        categories. A non-empty advanced list replaces the category selections,
+        except that AdServices remains controlled by its own switch.
 
-        Removing a permission the app actually needs can break features (login,
-        calls, camera, file picker, notifications). Off by default.
+        Removing permissions can break features or prevent an app from starting.
+        This does not block every way an app may collect data.
     """.trimIndent(),
     default = false,
 ) {
@@ -119,31 +33,31 @@ val removeDangerousPermissionsPatch = resourcePatch(
         key = "permPhone",
         default = true,
         title = "Phone state & numbers",
-        description = "Remove READ_PHONE_STATE / phone-number / CALL_PHONE permissions.",
+        description = "Remove phone state, phone numbers and calling permissions. Calls or sign-in may stop working.",
     )
     val permAccounts by booleanOption(
         key = "permAccounts",
         default = true,
         title = "Accounts",
-        description = "Remove GET_ACCOUNTS (account enumeration for login/ads).",
+        description = "Remove GET_ACCOUNTS. Account discovery or sign-in may stop working.",
     )
     val permLocation by booleanOption(
         key = "permLocation",
         default = true,
         title = "Location",
-        description = "Remove fine, coarse and background location permissions.",
+        description = "Remove fine, coarse and background location. Maps or location features may stop working.",
     )
     val permContacts by booleanOption(
         key = "permContacts",
         default = true,
         title = "Contacts",
-        description = "Remove read/write contacts permissions.",
+        description = "Remove read/write contacts. Contact sync and sharing may stop working.",
     )
     val permMicrophone by booleanOption(
         key = "permMicrophone",
         default = true,
         title = "Microphone",
-        description = "Remove RECORD_AUDIO.",
+        description = "Remove RECORD_AUDIO. Voice messages, calls and recording may stop working.",
     )
     val permCamera by booleanOption(
         key = "permCamera",
@@ -155,31 +69,31 @@ val removeDangerousPermissionsPatch = resourcePatch(
         key = "permStorage",
         default = true,
         title = "Storage & media",
-        description = "Remove legacy storage, MANAGE_EXTERNAL_STORAGE and READ_MEDIA_* permissions.",
+        description = "Remove storage and media permissions. File access and media features may stop working.",
     )
     val permSms by booleanOption(
         key = "permSms",
         default = true,
         title = "SMS",
-        description = "Remove READ_SMS / RECEIVE_SMS / SEND_SMS.",
+        description = "Remove SMS permissions. Messaging or automatic verification may stop working.",
     )
     val permCalendar by booleanOption(
         key = "permCalendar",
         default = true,
         title = "Calendar",
-        description = "Remove read/write calendar permissions.",
+        description = "Remove read/write calendar permissions. Calendar integration may stop working.",
     )
     val permSensors by booleanOption(
         key = "permSensors",
         default = true,
         title = "Sensors & activity",
-        description = "Remove BODY_SENSORS and ACTIVITY_RECOGNITION.",
+        description = "Remove BODY_SENSORS and ACTIVITY_RECOGNITION. Fitness features may stop working.",
     )
     val permNearbyDevices by booleanOption(
         key = "permNearbyDevices",
         default = true,
         title = "Nearby devices",
-        description = "Remove Bluetooth scan/connect/advertise and NEARBY_WIFI.",
+        description = "Remove Bluetooth and nearby Wi-Fi permissions. Device pairing may stop working.",
     )
     val permScreenCaptureDetection by booleanOption(
         key = "permScreenCaptureDetection",
@@ -211,34 +125,32 @@ val removeDangerousPermissionsPatch = resourcePatch(
         key = "permissionsToKeep",
         default = "",
         title = "Permissions to keep",
-        description = "Comma-separated permission names that are never removed, even if their " +
-            "category is on. Example: android.permission.CAMERA,android.permission.POST_NOTIFICATIONS",
+        description = "Always keep these permissions, even if a category, extra list or AdServices " +
+            "would remove them. Use commas, semicolons or new lines; e.g. CAMERA, POST_NOTIFICATIONS.",
         required = false,
-        validator = RELAXED_LIST_VALIDATOR,
+        validator = { isPermissionListValid(it) },
     )
     val extraPermissionsToRemove by stringOption(
         key = "extraPermissionsToRemove",
         default = "",
         title = "Extra permissions to remove",
-        description = "Comma-separated permission names added on top of the enabled categories.",
+        description = "Add permissions to remove. Use commas, semicolons or new lines; " +
+            "e.g. CAMERA or com.example.permission.CUSTOM. The keep list takes priority.",
         required = false,
-        validator = RELAXED_LIST_VALIDATOR,
+        validator = { isPermissionListValid(it) },
     )
     val permissionsToRemove by stringOption(
         key = "permissionsToRemove",
         default = "",
         title = "Advanced: exact removal list",
-        description = "Legacy override. If non-empty, replaces ALL category switches with this " +
-            "exact comma-separated list. Leave empty to use the switches above.",
+        description = "Legacy override: when non-empty, replaces the category selections with this " +
+            "list. AdServices is still controlled by its switch; extra and keep lists still apply. " +
+            "Leave blank to use categories.",
         required = false,
-        validator = RELAXED_LIST_VALIDATOR,
+        validator = { isPermissionListValid(it) },
     )
 
     execute {
-        val keep = parseTokens(permissionsToKeep)
-        val extra = parseTokens(extraPermissionsToRemove)
-        val legacy = parseTokens(permissionsToRemove)
-
         val selections = mapOf(
             "packageVisibility" to permPackageVisibility,
             "phone" to permPhone,
@@ -256,39 +168,23 @@ val removeDangerousPermissionsPatch = resourcePatch(
             "adId" to permAdId,
             "notifications" to permNotifications,
         )
-
-        val removalSet = if (legacy.isNotEmpty()) {
-            legacy.toMutableSet()
-        } else {
-            PERMISSION_GROUPS
-                .filter { (key, _) -> selections[key] ?: true }
-                .values
-                .flatten()
-                .toMutableSet()
-        }
-        removalSet.addAll(extra)
-        removalSet.removeAll(keep)
-
-        val removeAdServicesEnabled = permAdServices ?: true
+        val policy = PermissionRemovalPolicy.fromOptions(
+            selections = selections,
+            removeAdServices = permAdServices ?: true,
+            keep = permissionsToKeep,
+            extra = extraPermissionsToRemove,
+            legacy = permissionsToRemove,
+        )
         val removed = document("AndroidManifest.xml").use { doc ->
-            doc.removeManifestElements(*UNIVERSAL_PERMISSION_TAGS) { element ->
-                val name = element.getAttribute("android:name")
-                if (name.isBlank() || name in keep) return@removeManifestElements false
-                name in removalSet ||
-                    (removeAdServicesEnabled && name.startsWith(ADSERVICES_PREFIX))
-            }
+            removeRequestedPermissions(doc, policy)
         }
 
-        val preview = removed.take(4).joinToString(", ")
-        val suffix = when {
-            removed.isEmpty() -> ""
-            removed.size <= 4 -> " ($preview)"
-            else -> " ($preview, …)"
-        }
+        val preview = removed.distinct().take(6).joinToString(", ")
+        val suffix = if (removed.isEmpty()) "" else " Names: $preview" +
+            if (removed.distinct().size > 6) ", …" else ""
         logUniversal(
-            "Remove dangerous permissions: ${removed.size} declaration(s) removed" +
-                "$suffix; ${removalSet.size} exact name(s) + " +
-                "${if (removeAdServicesEnabled) "AdServices prefix" else "no AdServices prefix"} configured.",
+            "Remove dangerous permissions: removed ${removed.size} declaration(s)." + suffix +
+                if (policy.usesLegacyList) " Advanced list active; category switches are ignored except AdServices." else "",
         )
     }
 }

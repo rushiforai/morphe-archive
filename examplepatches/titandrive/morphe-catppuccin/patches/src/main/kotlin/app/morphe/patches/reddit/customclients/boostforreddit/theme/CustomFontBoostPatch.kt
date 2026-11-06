@@ -16,7 +16,7 @@ val customFontBoostPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(Compatibility(name = "Boost for Reddit", packageName = "com.rubenmayayo.reddit",
-        targets = listOf(AppTarget(version = "1.12.12"))))
+        targets = listOf(AppTarget(version = "1.12.12"), AppTarget(version = "1.14.2"))))
     val fontFile = filePathOption(
         key = "font-file", default = null, title = "Custom TTF font",
         description = "Choose a TTF file to embed as Boost's font. Repatch to change or remove it.",
@@ -73,10 +73,12 @@ val customFontBoostPatch = bytecodePatch(
     execute {
         // Boost assigns post/comment fonts programmatically through this cache.
         // Reuse its asset loader and cache rather than repeatedly loading a font.
-        val loader = mutableClassDefBy("Lhe/q;").methods.single {
-            it.name == "a" && it.parameterTypes == listOf("Landroid/content/Context;", "Ljava/lang/String;") &&
+        val modern = packageMetadata.versionName == "1.14.2"
+        val loader = mutableClassDefBy(if (modern) "Lps2;" else "Lhe/q;").methods.single {
+            it.name == (if (modern) "e0" else "a") && it.parameterTypes == listOf("Landroid/content/Context;", "Ljava/lang/String;") &&
                 it.returnType == "Landroid/graphics/Typeface;"
         }
-        loader.addInstructions(0, "const-string p2, \"catppuccin/boost-custom-font.ttf\"")
+        val argument = if (modern) "p1" else "p2"
+        loader.addInstructions(0, "const-string $argument, \"catppuccin/boost-custom-font.ttf\"")
     }
 }

@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-03.
+ * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
  */
 
@@ -79,6 +79,7 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
     private final TextView position;
     private final TextView duration;
     private final TextView seekHint;
+    private final TextView sponsorSkip;
 
     private final OfflineSubtitleOverlay subtitles;
     private boolean controlsVisible = true;
@@ -152,6 +153,16 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         seekHint.setVisibility(View.GONE);
         root.addView(seekHint, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.CENTER));
+
+        sponsorSkip = text(16, Color.WHITE);
+        sponsorSkip.setBackgroundColor(0xDD333333);
+        sponsorSkip.setPadding(hintPadding, hintPadding, hintPadding, hintPadding);
+        sponsorSkip.setVisibility(View.GONE);
+        sponsorSkip.setOnClickListener(view -> OfflinePlayer.skipManualSponsor());
+        FrameLayout.LayoutParams sponsorParams = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM | Gravity.END);
+        sponsorParams.setMargins(hintPadding, hintPadding, hintPadding, Utils.dipToPixels(80));
+        root.addView(sponsorSkip, sponsorParams);
 
         // region controls
         FrameLayout overlay = new FrameLayout(activity);
@@ -252,6 +263,7 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
                 ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
         root.addView(overlay, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
+        sponsorSkip.bringToFront();
         // endregion
 
         GestureDetector gestures = new GestureDetector(activity, new GestureDetector.SimpleOnGestureListener() {
@@ -565,6 +577,9 @@ final class OfflinePlayerScreen implements OfflineScreens.Screen, OfflinePlayer.
         previous.setAlpha(OfflinePlayer.hasPrevious() || OfflinePlayer.getPosition() > 3000 ? 1f : 0.4f);
         next.setEnabled(OfflinePlayer.hasNext());
         next.setAlpha(OfflinePlayer.hasNext() ? 1f : 0.4f);
+        String sponsorText = OfflinePlayer.manualSponsorText();
+        sponsorSkip.setText(sponsorText);
+        sponsorSkip.setVisibility(sponsorText.isEmpty() ? View.GONE : View.VISIBLE);
         if (playing) {
             activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             if (controlsVisible) scheduleHide();

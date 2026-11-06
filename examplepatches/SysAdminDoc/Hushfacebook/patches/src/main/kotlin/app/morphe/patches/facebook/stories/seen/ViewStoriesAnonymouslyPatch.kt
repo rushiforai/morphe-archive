@@ -46,7 +46,13 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *
  * Facebook also opens a bucket at its first card not marked seen, and that mark is lost on a
  * restart for a view it never heard about, so one more hook, in the check that picks the card a
- * bucket opens at, passes over each card watched on this phone (#218).
+ * bucket opens at, passes over each card watched on this phone (#218). The method asking that
+ * check skips it for a bucket that reads as watched and takes a card the launch names over it, so
+ * another hook goes first there and names the first card not watched on this phone instead. A Page
+ * opened from its picture asks that method about a loading stand-in only, and the real bucket that
+ * replaces it stays on the stand-in's card, story 1. Three last hooks, where the viewer takes in the
+ * real bucket, swap the card it was on for the one that method would have opened and the index it
+ * moves to for that card's.
  *
  * In the default selection with its switch and the button's both off, since it changes what other
  * people see.
@@ -95,12 +101,41 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
         if (opener.localRegisterCount() < 1) {
             throw PatchException("$PATCH: ${opener.definingClass}->${opener.name} has no local register for the start hook")
         }
+        // The start check is asked through the one interface its class implements.
+        val cardInterface = classDefByOrNull(opener.definingClass)?.interfaces?.singleOrNull() ?: throw PatchException(
+            "$PATCH: ${opener.definingClass} doesn't implement one interface for the start check",
+        )
+        val pickers = mutableListOf<Method>()
+        classDefForEachReferencing(types = listOf(cardInterface)) { classDef ->
+            classDef.methods.filterTo(pickers) { isStartPicker(it, cardInterface, opener.name) }
+        }
+        val picker = pickers.singleOrNull() ?: throw PatchException(
+            "$PATCH: expected one static ($cardInterface, Object, String, int, int)I method asking " +
+                "$cardInterface->${opener.name} of each card, found ${pickers.size}",
+        )
+        if (picker.localRegisterCount() < 1) {
+            throw PatchException("$PATCH: ${picker.definingClass}->${picker.name} has no local register for the start card hook")
+        }
+        val swaps = classDefByStrings(DATA_CHANGED, StringComparisonType.EQUALS).flatMap { owner ->
+            owner.methods.filter { loads(it, DATA_CHANGED) }.mapNotNull { method -> loadingSwap(method)?.let { method to it } }
+        }
+        val (dataChanged, swap) = swaps.singleOrNull() ?: throw PatchException(
+            "$PATCH: expected one method loading \"$DATA_CHANGED\" that checks the new copy of a bucket against the one " +
+                "it replaces, looks for the card it was on by id, checks it against the card at its place, looks " +
+                "for it again and moves the viewer by index, found ${swaps.size}",
+        )
         val tables = { call: MethodReference -> classDefByOrNull(call.definingClass)?.let { resolveStatic(it, call) } }
         val helper = seenHelper(callers, sender, tables)
         val card = cardSeen(helper)
         val storyCard = classDefByOrNull(STORY_CARD) ?: throw PatchException("$PATCH: this Facebook build has no $STORY_CARD")
         if (storyCard.methods.none { "${it.definingClass}->${it.name}()${it.returnType}" == CARD_ID && it.parameterTypes.isEmpty() }) {
             throw PatchException("$PATCH: $STORY_CARD has no getId()")
+        }
+        for (call in startCalls(opener)) {
+            val declared = storyCard.methods.singleOrNull { it.name == call.name && it.parameterTypes.isEmpty() && it.returnType == call.returnType }
+            if (declared == null || !AccessFlags.PUBLIC.isSet(declared.accessFlags)) {
+                throw PatchException("$PATCH: ${call.smali()} isn't public, so the extension can't ask it")
+            }
         }
         val activations = classDefByStrings(ACTIVATE_STATE, StringComparisonType.EQUALS)
             .flatMap { owner -> owner.methods.filter(::isCardActivation).map { owner to it } }
@@ -166,10 +201,13 @@ val viewStoriesAnonymouslyPatch = bytecodePatch(
         mutableClassDefBy(STORY_BUCKET).methods.single { it.sameAs(marking.buckets.hasUnwatched) }.answerWatchedFirst()
         mutableClassDefBy(REGULAR_BUCKET).methods.single { it.sameAs(marking.buckets.override) }.answerWatchedFirst()
         mutableClassDefBy(opener.definingClass).methods.single { it.sameAs(opener) }.skipWatchedCards()
+        mutableClassDefBy(picker.definingClass).methods.single { it.sameAs(picker) }.nameStartCard(opener.definingClass)
+        mutableClassDefBy(dataChanged.definingClass).methods.single { it.sameAs(dataChanged) }.openAfterLoading(swap)
         sendStub.fillSend(sender)
         cardIdStub.fillCardId()
         fillEyeStubs(eyeStubs, flag, helper.type, later.session)
         fillSeenStubs(stubs, marking.buckets, marking.publisher)
+        fillStartStubs(stubs, opener)
         enableStatus("storySeen")
     }
 }

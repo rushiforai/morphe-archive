@@ -18,7 +18,7 @@ private const val NETWORK_SECURITY_CONFIG = "res/xml/network_security_config.xml
  */
 @Suppress("unused")
 internal val dilinkTlsPatch = resourcePatch(
-    name = "Apple Music DiLink TLS trust",
+    name = "DiLink: TLS trust",
     description = "Trusts the bundled Apple Root CA (res/raw/apple_ca) for gsd.apple.com only, " +
         "inside the APK, so the Apple sign-in page loads on a head unit whose system CA store " +
         "lacks that root. Nothing is installed on the device.",

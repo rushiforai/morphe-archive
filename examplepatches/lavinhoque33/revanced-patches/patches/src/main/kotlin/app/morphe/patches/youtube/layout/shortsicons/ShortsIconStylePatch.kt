@@ -3,7 +3,7 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3287
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-25
+ * Modified by lavinhoque33, 2026-11-05
  */
 
 package app.morphe.patches.youtube.layout.shortsicons
@@ -18,7 +18,6 @@ import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.ResourceGroup
 import app.morphe.util.Utils.printWarn
 import app.morphe.util.copyResources
-import java.io.File
 
 private const val EXTENSION_ICON_DRAWABLE_PATH = "app.morphe.extension.youtube.patches.shortsicons.ShortsIconDrawable"
 
@@ -131,23 +130,19 @@ val shortsIconStylePatch = resourcePatch(
  * @return The number of icons that were replaced.
  */
 private fun ResourcePatchContext.wrapAppBitmapIcons(icons: List<Pair<String, String>>): Int {
-    val drawableDirectories = get("res").listFiles { file ->
-        file.isDirectory && file.name.startsWith("drawable")
-    }.orEmpty()
-
     var wrapped = 0
     icons.forEach { (appName, wrapperClass) ->
-        val bitmaps = drawableDirectories.flatMap { directory ->
-            listOf("png", "webp").map { extension -> File(directory, "$appName.$extension") }
-        }.filter(File::exists)
+        // The stock resources are decoded on request, so they are listed through the patcher.
+        val bitmaps = listDecodableFiles("res/drawable*/$appName.*")
+            .filter { it.endsWith(".png") || it.endsWith(".webp") }
         if (bitmaps.isEmpty()) return@forEach
 
         bitmaps.forEach { bitmap ->
-            bitmap.copyTo(
-                File(bitmap.parentFile, "$ORIGINAL_NAME_PREFIX$appName.${bitmap.extension}"),
-                overwrite = true
-            )
-            bitmap.delete()
+            val directory = bitmap.substringBeforeLast('/')
+            val extension = bitmap.substringAfterLast('.')
+            get("$directory/$ORIGINAL_NAME_PREFIX$appName.$extension")
+                .writeBytes(get(bitmap).readBytes())
+            delete(bitmap)
         }
 
         val wrapper = iconWrapper(wrapperClass)

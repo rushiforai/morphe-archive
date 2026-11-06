@@ -56,6 +56,15 @@ internal object InboxPagingInvalidationFingerprint : Fingerprint(
     ),
 )
 
+/** A method of the built-in main Inbox space class. Its toString() is "Inbox". */
+internal object InboxSpaceFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(
+        string("BI/inbox"),
+    ),
+)
+
 /**
  * Last items of the inbox title menu for the built-in spaces: "Merge Chats…" and "Settings".
  * The last filter is the call that draws the "Settings" row.

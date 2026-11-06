@@ -11,6 +11,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getReference
 import app.morphe.patches.shared.litho.context.conversionContextPatch
 import app.morphe.patches.shared.litho.lithoFilterPatch
 import app.morphe.patches.shared.litho.relayout.lithoRelayoutPatch
@@ -27,10 +29,7 @@ import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.patches.youtube.video.videoid.hookVideoId
 import app.morphe.patches.youtube.video.videoid.videoIdPatch
 import app.morphe.patches.shared.misc.media.MediaSessionSetMetadataFingerprint
-import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
-import app.morphe.util.findFreeRegister
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -95,7 +94,7 @@ val restoreOriginalTitlesPatch = bytecodePatch(
         // The playlist panel on the watch page does not use Litho.
         PlaylistPanelVideoBindFingerprint.matchAll().forEach {
             it.method.apply {
-                val titleViewField = it.instructionMatches.first().getFieldAccessed()
+                val titleViewField = it.instructionMatches.first().fieldReference
                 // Video id is stored in a field of the view holder.
                 val videoIdIndex = it.instructionMatches.last().index
                 val insertIndex = videoIdIndex + 1
@@ -128,7 +127,7 @@ val restoreOriginalTitlesPatch = bytecodePatch(
                 val titleSetterMatch = it.instructionMatches.last()
                 val titleSetter = titleSetterMatch.getMethodCalled()
                 val titleViewField = compactVideoTitleSetterFingerprint(titleSetter.definingClass, titleSetter.name)
-                    .instructionMatches.first().getFieldAccessed()
+                    .instructionMatches.first().fieldReference
 
                 val insertIndex = titleSetterMatch.index + 1
                 val presenterRegister = titleSetterMatch.getInstruction<FiveRegisterInstruction>().registerC
@@ -150,7 +149,7 @@ val restoreOriginalTitlesPatch = bytecodePatch(
         SuggestedVideoEndScreenBindFingerprint.let {
             it.method.apply {
                 val rendererGetterMatch = it.instructionMatches.first()
-                val rendererGetter = rendererGetterMatch.instruction.getReference<MethodReference>()!!
+                val rendererGetter = rendererGetterMatch.methodReference
                 val endScreenRegister = rendererGetterMatch.getInstruction<FiveRegisterInstruction>().registerC
                 // Video id is the only string of the renderer.
                 val videoIdField = classDefBy(rendererGetter.returnType).instanceFields.single { field ->

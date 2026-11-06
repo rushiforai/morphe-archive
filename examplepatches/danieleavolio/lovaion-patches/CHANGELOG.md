@@ -1,3 +1,15 @@
+## [1.6.0](https://github.com/danieleavolio/lovaion-patches/compare/v1.5.0...v1.6.0) (2026-11-06)
+
+### ✨ New Features
+
+* **rarecam:** add Rarecam Pro unlock patch ([2e08bf6](https://github.com/danieleavolio/lovaion-patches/commit/2e08bf64f40a6ce44219e80513837ec3540c1fc8))
+
+## [1.6.0-dev.1](https://github.com/danieleavolio/lovaion-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-11-06)
+
+### ✨ New Features
+
+* **rarecam:** add Rarecam Pro unlock patch ([2e08bf6](https://github.com/danieleavolio/lovaion-patches/commit/2e08bf64f40a6ce44219e80513837ec3540c1fc8))
+
 ## [1.5.0](https://github.com/danieleavolio/lovaion-patches/compare/v1.4.1...v1.5.0) (2026-11-03)
 
 ### ✨ New Features

@@ -13,7 +13,7 @@ Click the button below, or add this repository URL to Morphe Manager manually: h
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/CharlesAttend/beeper-morphe-patch/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.1](https://github.com/CharlesAttend/beeper-morphe-patch/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Beeper&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -22,7 +22,7 @@ Click the button below, or add this repository URL to Morphe Manager manually: h
 
 **🎯 Supported versions:**
 
-| 4.61.1 |
+| 4.63.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

@@ -3,21 +3,40 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3942
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-24: the RVX panel subheader fingerprint is reused, and the
- * return of the constructor is found in the patch, as this patcher has no MatchAfterLast.
+ * Modified by lavinhoque33, 2026-11-05: replaced with the anddea version, which supports older app versions too.
  */
 
 package app.morphe.patches.youtube.interaction.searchcomments
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
+import app.morphe.patcher.InstructionLocation.MatchAfterLast
 import app.morphe.patcher.InstructionLocation.MatchFirst
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
+import app.morphe.patches.shared.mapping.ResourceType
+import app.morphe.patches.shared.mapping.resourceLiteral
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+
+/**
+ * Sets up the header of an engagement panel, such as the comments panel.
+ */
+internal object PanelSubheaderFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "V",
+    filters = listOf(
+        resourceLiteral(ResourceType.ID, "panel_header"),
+        resourceLiteral(ResourceType.ID, "close_button"),
+        resourceLiteral(ResourceType.ID, "panel_subheader"),
+        methodCall(
+            opcode = Opcode.INVOKE_VIRTUAL,
+            name = "removeAllViews"
+        )
+    )
+)
 
 /**
  * A method of the controller of a section list, such as the list of the comments panel.
@@ -35,7 +54,8 @@ internal object SectionListControllerConstructorFingerprint : Fingerprint(
     classFingerprint = SectionListControllerFingerprint,
     name = "<init>",
     filters = listOf(
-        fieldAccess(opcode = Opcode.IPUT_OBJECT, type = "Landroid/view/View;")
+        fieldAccess(opcode = Opcode.IPUT_OBJECT, type = "Landroid/view/View;"),
+        opcode(Opcode.RETURN_VOID, MatchAfterLast())
     )
 )
 
@@ -67,4 +87,19 @@ internal object SectionListRefreshFingerprint : Fingerprint(
             location = MatchAfterImmediately()
         )
     )
+)
+
+/** Older section-list controllers expose the list through an abstract getter. */
+internal object SectionListViewFingerprint : Fingerprint(
+    classFingerprint = SectionListControllerFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.ABSTRACT),
+    returnType = "Landroid/view/View;",
+    parameters = listOf()
+)
+
+/** The older controller has no View field in its constructor. */
+internal object SectionListLegacyConstructorFingerprint : Fingerprint(
+    classFingerprint = SectionListControllerFingerprint,
+    name = "<init>",
+    filters = listOf(opcode(Opcode.RETURN_VOID, MatchAfterLast()))
 )

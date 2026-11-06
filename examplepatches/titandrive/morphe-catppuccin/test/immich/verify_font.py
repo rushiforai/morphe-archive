@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
-"""Check a font-only patched APK against the original without account access."""
+"""Check a font or combined patched APK without account access."""
 import argparse
 import hashlib
 import json
+from pathlib import Path
 import zipfile
 
 p = argparse.ArgumentParser()
 p.add_argument('original')
 p.add_argument('patched')
 p.add_argument('ttf')
+p.add_argument('--palette-recipe', help='Expected native edits when the theme patch is also selected')
 args = p.parse_args()
 font = open(args.ttf, 'rb').read()
 digest = lambda data: hashlib.sha256(data).digest()
@@ -28,6 +30,16 @@ with zipfile.ZipFile(args.original) as original, zipfile.ZipFile(args.patched) a
     assert count == 8
     for path in original.namelist():
         if path.startswith('lib/') and not path.endswith('/'):
-            assert digest(patched.read(path)) == digest(original.read(path)), path
+            expected = bytearray(original.read(path))
+            if args.palette_recipe and path == 'lib/arm64-v8a/libapp.so':
+                lines = [line for line in Path(args.palette_recipe).read_text().splitlines() if line and not line.startswith('#')]
+                assert hashlib.sha256(expected).hexdigest() == lines[0]
+                for line in lines[1:]:
+                    address, before, after = line.split('\t')
+                    offset = int(address, 16)
+                    before, after = bytes.fromhex(before), bytes.fromhex(after)
+                    assert expected[offset:offset+len(before)] == before
+                    expected[offset:offset+len(after)] = after
+            assert digest(patched.read(path)) == digest(expected), path
     assert patched.testzip() is None
-print('PASS: eight text font assets replaced; icons, manifest and native libraries preserved')
+print('PASS: eight text fonts replaced; icons/manifest preserved; native libraries match only the expected edits')

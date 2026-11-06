@@ -6,6 +6,7 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-06
  */
 
 package app.morphe.extension.youtube.patches.video;
@@ -23,13 +24,10 @@ import app.morphe.extension.youtube.innertube.ClientAbrStateOuterClass.ClientAbr
 import com.google.android.libraries.youtube.innertube.model.media.FormatStreamModel;
 import com.google.android.libraries.youtube.innertube.model.media.VideoQuality;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.IntegerSetting;
@@ -66,22 +64,10 @@ public class VideoQualityPatch {
      */
     public static final int AUTOMATIC_VIDEO_QUALITY_VALUE = -2;
 
-    /**
-     * The default setting for 'Hide video ads' is ON.
-     * Since 'Hide video ads' can only be changed in the settings when the 'Hide ads' patch is included, the patch status is not checked.
-     */
-    private static final boolean HIDE_VIDEO_ADS = Settings.HIDE_VIDEO_ADS.get();
-
-    // Set the access modifier to final to override the flag only after the state snapshot is reloaded.
-    private static final boolean SETTINGS_INITIALIZED = Settings.SETTINGS_INITIALIZED.get();
-
     private static final IntegerSetting shortsQualityMobile = Settings.DEFAULT_VIDEO_QUALITY_MOBILE_SHORTS;
     private static final IntegerSetting shortsQualityWifi = Settings.DEFAULT_VIDEO_QUALITY_WIFI_SHORTS;
     private static final IntegerSetting videoQualityMobile = Settings.DEFAULT_VIDEO_QUALITY_MOBILE;
     private static final IntegerSetting videoQualityWifi = Settings.DEFAULT_VIDEO_QUALITY_WIFI;
-
-    private static boolean qualityNeedsUpdating;
-    private static boolean userChangedQuality;
 
     /**
      * 'Advanced' video quality setting, used when the user selects a quality from the quality menu.
@@ -95,11 +81,16 @@ public class VideoQualityPatch {
     private static volatile String userSelectedQualityVideoId = "";
     private static volatile int userSelectedQualityResolution = AUTOMATIC_VIDEO_QUALITY_VALUE;
 
+    /**
+     * ID of the video whose buffered video is cleared once the player sets the quality
+     * selected by the user, or an empty string.
+     */
+    private static volatile String clearVideoBufferVideoId = "";
+
     private static void setUserSelectedQuality(int resolution) {
-        // Keep the legacy format selector from overriding an explicit menu selection.
-        userChangedQuality = true;
         userSelectedQualityResolution = resolution;
         userSelectedQualityVideoId = VideoInformation.getVideoId();
+        clearVideoBufferVideoId = userSelectedQualityVideoId;
     }
 
     /**
@@ -109,20 +100,6 @@ public class VideoQualityPatch {
         String videoId = VideoInformation.getVideoId();
         return !videoId.isEmpty() && videoId.equals(userSelectedQualityVideoId);
     }
-
-
-
-    /**
-     * The available formats of the current video.
-     */
-    @Nullable
-    private static List<FormatStreamModel> currentFormats;
-
-    /**
-     * The preferred format.
-     */
-    @Nullable
-    private static FormatStreamModel preferredFormat;
 
     /**
      * The available qualities of the current video.
@@ -172,7 +149,6 @@ public class VideoQualityPatch {
     }
 
     public static boolean shouldRememberVideoQuality() {
-        userChangedQuality = true;
         if (!PatchStatus.VideoPlayback()) {
             return false;
         }
@@ -194,15 +170,15 @@ public class VideoQualityPatch {
     }
 
     public static void saveDefaultQuality(int qualityResolution) {
-        final boolean shortPlayerOpen = isShortsActive();
+        final boolean isShorts = isShortsActive();
         String networkTypeMessage;
         IntegerSetting qualitySetting;
         if (Utils.getNetworkType() == Utils.NetworkType.MOBILE) {
             networkTypeMessage = str("revanced_remember_video_quality_mobile");
-            qualitySetting = shortPlayerOpen ? shortsQualityMobile : videoQualityMobile;
+            qualitySetting = isShorts ? shortsQualityMobile : videoQualityMobile;
         } else {
             networkTypeMessage = str("revanced_remember_video_quality_wifi");
-            qualitySetting = shortPlayerOpen ? shortsQualityWifi : videoQualityWifi;
+            qualitySetting = isShorts ? shortsQualityWifi : videoQualityWifi;
         }
 
         if (qualitySetting.get() == qualityResolution) {
@@ -212,21 +188,20 @@ public class VideoQualityPatch {
         }
         qualitySetting.save(qualityResolution);
 
-        if (Settings.REMEMBER_VIDEO_QUALITY_LAST_SELECTED_TOAST.get()) {
+        BooleanSetting showToastSetting = isShorts
+                ? Settings.REMEMBER_VIDEO_QUALITY_SHORTS_LAST_SELECTED_TOAST
+                : Settings.REMEMBER_VIDEO_QUALITY_LAST_SELECTED_TOAST;
+
+        if (showToastSetting.get()) {
             String qualityLabel = qualityResolution + "p";
             Utils.showToastShort(str(
-                    shortPlayerOpen
+                    isShorts
                             ? "revanced_remember_video_quality_toast_shorts"
                             : "revanced_remember_video_quality_toast",
                     networkTypeMessage,
                     qualityLabel)
             );
         }
-    }
-
-    private static String getQualityNameWithITag(String qualityName, int itag) {
-        // e.g.: '1080p (itag: 248)', '720p (itag: 247)'
-        return String.format(Locale.ENGLISH, "%s (itag: %d)", qualityName, itag);
     }
 
     /**
@@ -408,74 +383,6 @@ public class VideoQualityPatch {
     }
 
     /**
-     * Injection point.
-     *
-     * @param formats Formats available, ordered from largest to smallest.
-     */
-    public static void setVideoFormat(List<FormatStreamModel> formats) {
-        if (PatchStatus.VideoPlayback() && !userChangedQuality && !CollectionUtils.isEmpty(formats) &&
-                (currentFormats == null || !CollectionUtils.isEqualCollection(currentFormats, formats))) {
-            try {
-                // If the video format is overridden while a Shorts is playing or a video ad is playing,
-                // the player UI becomes weird.
-                if (!HIDE_VIDEO_ADS || isShortsActive()) {
-                    userChangedQuality = true;
-                    return;
-                }
-                final int preferredQuality = getDefaultQualityResolution();
-                if (preferredQuality == AUTOMATIC_VIDEO_QUALITY_VALUE) {
-                    userChangedQuality = true;
-                    return;
-                }
-                currentFormats = formats;
-                List<String> videoFormats = new ArrayList<>(formats.size());
-                for (FormatStreamModel format : formats) {
-                    final int itag = format.patch_getITag();
-                    final String qualityName = format.patch_getQualityName();
-                    final int qualityResolution = format.patch_getResolution();
-                    videoFormats.add(getQualityNameWithITag(qualityName, itag));
-                    if (preferredFormat == null && qualityResolution <= preferredQuality) {
-                        preferredFormat = format;
-                    }
-                }
-                Logger.printDebug(() -> "VideoFormats: " + videoFormats);
-            } catch (Exception ex) {
-                Logger.printException(() -> "setVideoFormat failure", ex);
-            }
-        }
-    }
-
-    /**
-     * Injection point.
-     * <p>
-     * Overrides the initial video quality to not follow the 'Video quality preferences' in YouTube settings.
-     * (e.g. 'Auto (recommended)' - 360p/480p, 'Higher picture quality' - 720p/1080p...)
-     * Called after {@link #setVideoFormat(List)}.
-     * Called before {@link #setVideoQuality(VideoQualityInterface[], VideoQualityMenuInterface, int)}.
-     */
-    public static FormatStreamModel getVideoFormat(FormatStreamModel format) {
-        if (PatchStatus.VideoPlayback() && format != null && !userChangedQuality && preferredFormat != null) {
-            try {
-                final String currentQuality = format.patch_getQualityName();
-                final String preferredQuality = preferredFormat.patch_getQualityName();
-                final int currentITag = format.patch_getITag();
-                final int preferredITag = preferredFormat.patch_getITag();
-                final String currentQualityWithITag = getQualityNameWithITag(currentQuality, currentITag);
-                final String preferredQualityWithITag = getQualityNameWithITag(preferredQuality, preferredITag);
-                final boolean qualityNeedsChange = currentITag != preferredITag;
-                Logger.printDebug(() -> qualityNeedsChange
-                        ? "Changing video format from: " + currentQualityWithITag + " to: " + preferredQualityWithITag
-                        : "Video format already has the preferred quality: " + currentQualityWithITag
-                );
-                return preferredFormat;
-            } catch (Exception ex) {
-                Logger.printException(() -> "getVideoFormat failure", ex);
-            }
-        }
-        return format;
-    }
-
-    /**
      * Compatibility bridge for the legacy YouTube quality model.
      *
      * The 20.51 callback passes a {@code VideoQuality[]} array. Arrays are invariant, so the
@@ -492,8 +399,11 @@ public class VideoQualityPatch {
 
     /**
      * Injection point.
+     * <p>
+     * The default quality is used as the initial quality of the video, so the quality
+     * chosen by YouTube is always used and this only keeps the current qualities.
      *
-     * @param qualities            Video qualities available, ordered from largest to smallest, with index 0 being the 'automatic' value of -2
+     * @param qualities Video qualities available, ordered from largest to smallest, with index 0 being the 'automatic' value of -2
      * @param originalQualityIndex quality index to use, as chosen by YouTube
      */
     public static int setVideoQuality(VideoQualityInterface[] qualities, VideoQualityMenuInterface menu, int originalQualityIndex) {
@@ -501,9 +411,7 @@ public class VideoQualityPatch {
             Utils.verifyOnMainThread();
             currentMenuInterface = menu;
 
-            final boolean availableQualitiesChanged = (currentQualities == null)
-                    || !Arrays.equals(currentQualities, qualities);
-            if (availableQualitiesChanged) {
+            if (currentQualities == null || !Arrays.equals(currentQualities, qualities)) {
                 currentQualities = qualities;
                 Logger.printDebug(() -> "VideoQualities: " + Arrays.toString(currentQualities));
             }
@@ -511,50 +419,12 @@ public class VideoQualityPatch {
             // This value may sometimes be -1 if the client is spoofed as a 'TV' or 'MWEB':
             // Exception: length=8; index=-1
             // java.lang.ArrayIndexOutOfBoundsException: length=8; index=-1
-            originalQualityIndex = Math.max(originalQualityIndex, 0);
-
-            VideoQualityInterface updatedCurrentQuality = qualities[originalQualityIndex];
-            setCurrentQuality(updatedCurrentQuality);
-
-            final int preferredQuality = getDefaultQualityResolution();
-            if (preferredQuality == AUTOMATIC_VIDEO_QUALITY_VALUE) {
-                return originalQualityIndex; // Nothing to do.
+            // On extremely slow internet connections the index can initially be -1
+            VideoQualityInterface updatedCurrentQuality = qualities[Math.max(0, originalQualityIndex)];
+            if (updatedCurrentQuality.patch_getResolution() != AUTOMATIC_VIDEO_QUALITY_VALUE) {
+                setCurrentQuality(updatedCurrentQuality);
             }
-
-            // After changing videos the qualities can initially be for the prior video.
-            // If the qualities have changed and the default is not auto then an update is needed.
-            if (!qualityNeedsUpdating && !availableQualitiesChanged) {
-                return originalQualityIndex;
-            }
-            qualityNeedsUpdating = false;
-
-            // Find the highest quality that is equal to or less than the preferred.
-            int i = 0;
-            for (VideoQualityInterface quality : qualities) {
-                final int qualityResolution = quality.patch_getResolution();
-                if ((qualityResolution != AUTOMATIC_VIDEO_QUALITY_VALUE && qualityResolution <= preferredQuality)
-                        // Use the lowest video quality if the default is lower than all available.
-                        || i == qualities.length - 1) {
-                    final boolean qualityNeedsChange = (i != originalQualityIndex);
-                    Logger.printDebug(() -> qualityNeedsChange
-                            ? "Changing video quality from: " + updatedCurrentQuality + " to: " + quality
-                            : "Video is already the preferred quality: " + quality
-                    );
-
-                    if (qualityNeedsChange) {
-                        updateQualityString(quality.patch_getQualityName());
-                        if (menu != null) {
-                            menu.patch_setQuality(qualities[i]);
-                        }
-
-                        return i;
-                    }
-
-                    return originalQualityIndex;
-                }
-                i++;
-            }
-        } catch (Throwable ex) {
+        } catch (Exception ex) {
             Logger.printException(() -> "setVideoQuality failure", ex);
         }
         return originalQualityIndex;
@@ -606,13 +476,9 @@ public class VideoQualityPatch {
         Utils.verifyOnMainThread();
 
         Logger.printDebug(() -> "newVideoStarted");
-        currentFormats = null;
         currentQualities = null;
         currentQuality = null;
         currentMenuInterface = null;
-        preferredFormat = null;
-        qualityNeedsUpdating = true;
-        userChangedQuality = false;
 
         // Hide the quality until playback starts and the qualities are available.
         updateQualityString(null);
@@ -733,5 +599,27 @@ public class VideoQualityPatch {
      */
     public static boolean useAdvancedVideoQualitySetting() {
         return isDefaultQualitySet();
+    }
+
+    /**
+     * Injection point.
+     * <p>
+     * When the quality changes, the player keeps playing the video already buffered and
+     * plays the new quality only after it. Shorts are often buffered entirely when they open,
+     * so the quality selected for a Short is not played, not even when the Short loops.
+     * So the buffered video is cleared the first time the player sets the video formats
+     * after the user selected the quality of the current video.
+     *
+     * @return If the buffered video is cleared.
+     */
+    public static boolean clearVideoBufferOnQualityChange(boolean original) {
+        final String videoId = clearVideoBufferVideoId;
+        if (videoId.isEmpty()) {
+            return original;
+        }
+
+        clearVideoBufferVideoId = "";
+        // Not cleared if another video started before the player set the selected quality.
+        return original || videoId.equals(VideoInformation.getVideoId());
     }
 }

@@ -75,6 +75,8 @@ private val PICTURE_STATIC_CALLS = setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STA
 private val PICTURE_VIRTUAL_CALLS = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE)
 private val PICTURE_STRINGS = setOf(Opcode.CONST_STRING, Opcode.CONST_STRING_JUMBO)
 private val PICTURE_MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
+private val PICTURE_FIELD_WRITES = setOf(Opcode.IPUT, Opcode.IPUT_WIDE, Opcode.IPUT_OBJECT, Opcode.IPUT_BOOLEAN, Opcode.IPUT_BYTE,
+    Opcode.IPUT_CHAR, Opcode.IPUT_SHORT)
 
 /** The one instruction that sets [register] wherever the code reaches [at], or null when that's a parameter or more than one. */
 private fun ReadFlow.pictureSource(at: Int, register: Int): Int? = definitionsAt(at, register).singleOrNull()?.takeIf { it >= 0 }
@@ -171,10 +173,20 @@ private fun resolvePictureRecipe(byType: Map<String, ClassDef>): AutoReplyPictur
     val sender = sendRef.definingClass
     if (method("$sender-><init>($FB_USER_SESSION)V") == null) return null
 
-    // The media resource checks the two values a resource can't go without: its file and its media type.
+    // The media resource checks the values a resource can't go without: its file, its media type and, on the 273 family,
+    // a second enum. The builder's own constructor fills in everything checked but the media type, so that's the one
+    // checked enum it leaves unset.
     val media = byType[AUTO_REPLY_MEDIA] ?: return null
     val shaped = media.methods.filter { it.name == "<init>" && it.parameterTypes.size == 1 }.mapNotNull { ctor ->
         val builderType = ctor.parameterTypes[0].toString()
+        val defaults = method("$builderType-><init>()V")?.let { init ->
+            val self = init.parameterRegister(0)
+            init.pictureCode().mapNotNull { insn ->
+                val field = insn.pictureRef() as? FieldReference
+                field?.takeIf { insn.opcode in PICTURE_FIELD_WRITES && (insn as TwoRegisterInstruction).registerB == self && it.definingClass == builderType }
+                    ?.pictureId()
+            }.toSet()
+        } ?: return@mapNotNull null
         val code = ctor.pictureCode()
         val param = ctor.parameterRegister(1)
         val required = code.indices.mapNotNull { i ->
@@ -185,11 +197,11 @@ private fun resolvePictureRecipe(byType: Map<String, ClassDef>): AutoReplyPictur
             field.takeIf { code[check].opcode == Opcode.IF_EQZ && (code[check] as OneRegisterInstruction).registerA == read.registerA }
         }
         val uri = required.singleOrNull { it.type == PICTURE_URI }
-        val kind = required.singleOrNull { it.type != PICTURE_URI && byType[it.type]?.superclass == PICTURE_ENUM }
-        if (required.size == 2 && uri != null && kind != null) Triple(builderType, uri, kind) else null
+        val kind = required.filter { it.type != PICTURE_URI && it.pictureId() !in defaults }.singleOrNull()
+            ?.takeIf { byType[it.type]?.superclass == PICTURE_ENUM }
+        if (uri != null && kind != null) Triple(builderType, uri, kind) else null
     }
     val (builder, uriField, typeField) = shaped.singleOrNull() ?: return null
-    if (method("$builder-><init>()V") == null) return null
     val threadField = byType[builder]?.fields?.singleOrNull { it.type == THREAD_KEY_TYPE && !AccessFlags.STATIC.isSet(it.accessFlags) }
         ?.let { "$builder->${it.name}:${it.type}" } ?: return null
     // The photo constant is the enum entry its initializer names PHOTO.

@@ -7,6 +7,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-10-21.
  */
 
 package app.morphe.patches.youtube.general.components
@@ -16,6 +18,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.getReference
 import app.morphe.patches.shared.litho.addLithoFilter
 import app.morphe.patches.shared.litho.lithoFilterPatch
 import app.morphe.patches.shared.viewgroup.viewGroupMarginLayoutParamsHookPatch
@@ -26,7 +29,6 @@ import app.morphe.patches.youtube.utils.fix.litho.lithoLayoutPatch
 import app.morphe.patches.youtube.utils.patch.PatchList.HIDE_LAYOUT_COMPONENTS
 import app.morphe.patches.youtube.utils.playservice.is_20_21_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_04_or_greater
-import app.morphe.patches.youtube.utils.playservice.is_21_07_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_11_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_25_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_26_or_greater
@@ -40,7 +42,6 @@ import app.morphe.util.Utils.printWarn
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
 import app.morphe.util.injectHideViewCall
@@ -86,7 +87,7 @@ val layoutComponentsPatch = bytecodePatch(
         // region patch for disable pip notification
 
         if (!is_21_04_or_greater) {
-            pipNotificationFingerprint.matchOrThrow().let {
+            pipNotificationFingerprint.let {
                 it.method.apply {
                     val checkCastCalls = implementation!!.instructions.withIndex()
                         .filter { instruction ->
@@ -116,7 +117,7 @@ val layoutComponentsPatch = bytecodePatch(
 
         // region patch for disable update screen
 
-        appBlockingCheckResultToStringFingerprint.mutableClassOrThrow().methods.first { method ->
+        appBlockingCheckResultToStringFingerprint.classDef.methods.first { method ->
             MethodUtil.isConstructor(method) &&
                     method.parameters == listOf("Landroid/content/Intent;", "Z")
         }.addInstructions(
@@ -129,7 +130,7 @@ val layoutComponentsPatch = bytecodePatch(
         // region patch for hide account menu
 
         // for you tab
-        accountListFingerprint.methodOrThrow(accountListParentFingerprint).apply {
+        accountListFingerprint.method.apply {
             val literalIndex = indexOfFirstLiteralInstructionOrThrow(ytCallToAction)
             val targetIndex = indexOfFirstInstructionOrThrow(literalIndex) {
                 opcode == Opcode.INVOKE_VIRTUAL &&
@@ -145,7 +146,7 @@ val layoutComponentsPatch = bytecodePatch(
         }
 
         // for tablet and old clients
-        accountMenuFingerprint.matchOrThrow(accountMenuParentFingerprint).let {
+        accountMenuFingerprint.let {
             it.method.apply {
                 val targetIndex = it.instructionMatches.first().index + 2
                 val targetInstruction = getInstruction<FiveRegisterInstruction>(targetIndex)
@@ -189,7 +190,7 @@ val layoutComponentsPatch = bytecodePatch(
 
         // region patch for hide handle
 
-        accountSwitcherAccessibilityLabelFingerprint.methodOrThrow().apply {
+        accountSwitcherAccessibilityLabelFingerprint.method.apply {
             val constIndex =
                 indexOfFirstLiteralInstructionOrThrow(accountSwitcherAccessibility)
             val insertIndex = indexOfFirstInstructionOrThrow(constIndex, Opcode.IF_EQZ)
@@ -214,7 +215,7 @@ val layoutComponentsPatch = bytecodePatch(
 
         // YouTube 21.39 removed feature flag 45384061 (fullscreen tooltip) entirely; skip this hook if the method is gone.
         // The fullscreen tooltip code path is gone in 21.39, and the remaining tooltips are still hidden below.
-        runCatching { tooltipContentFullscreenFingerprint.methodOrThrow() }.getOrNull()?.apply {
+        runCatching { tooltipContentFullscreenFingerprint.method }.getOrNull()?.apply {
             val literalIndex = indexOfFirstLiteralInstructionOrThrow(45384061L)
             val targetIndex = indexOfFirstInstructionOrThrow(literalIndex, Opcode.MOVE_RESULT)
             val targetRegister = getInstruction<OneRegisterInstruction>(targetIndex).registerA
@@ -225,7 +226,7 @@ val layoutComponentsPatch = bytecodePatch(
             )
         }
 
-        tooltipContentViewFingerprint.methodOrThrow().addInstruction(
+        tooltipContentViewFingerprint.method.addInstruction(
             0,
             "return-void"
         )
@@ -260,24 +261,6 @@ val layoutComponentsPatch = bytecodePatch(
                 move-result p2
             """
         )
-
-        // endregion
-
-        // region disable UI padding feature flags
-
-        if (is_21_07_or_greater) {
-            listOf(
-                CommentReplyPaddingFeatureFlagFingerprint,
-                IncognitoSearchPaddingFeatureFlagFingerprint
-            ).forEach { fingerprint ->
-                fingerprint.matchAll().forEach {
-                    it.method.insertLiteralOverride(
-                        it.instructionMatches.first().index,
-                        "$LAYOUT_COMPONENTS_FILTER_CLASS_DESCRIPTOR->disableUIPaddingFeatureFlags(Z)Z"
-                    )
-                }
-            }
-        }
 
         // endregion
 

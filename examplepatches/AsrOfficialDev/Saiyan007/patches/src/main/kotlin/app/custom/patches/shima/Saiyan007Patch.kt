@@ -1,5 +1,6 @@
 package app.custom.patches.shima
 
+import app.custom.patches.shared.playStoreInstallerSourcePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.ApkFileType

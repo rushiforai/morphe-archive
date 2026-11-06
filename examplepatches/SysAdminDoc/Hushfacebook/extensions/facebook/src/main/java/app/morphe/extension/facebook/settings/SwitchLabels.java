@@ -57,11 +57,14 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_POST_COUNTS) return L10n.t("Hide counts on posts");
         if (setting == Settings.HIDE_POST_REACTIONS) return L10n.t("Hide the reaction preview on posts");
         if (setting == Settings.HIDE_COMMENT_REACTIONS) return L10n.t("Hide the reaction preview on comments");
+        if (setting == Settings.HIDE_FEED_PROFILE_PICTURES) return L10n.t("Hide profile pictures on posts");
+        if (setting == Settings.HIDE_COMMENT_PROFILE_PICTURES) return L10n.t("Hide profile pictures in comments");
         if (setting == Settings.HIDE_SEEN_POSTS) return L10n.t("Hide posts you've already seen");
         if (setting == Settings.SEEN_POSTS_COME_BACK_ONCE) return L10n.t("Let each post come back once");
         if (setting == Settings.HIDE_META_AI_QUESTIONS) return L10n.t("Hide Meta AI questions under posts");
         if (setting == Settings.KEEP_POST_DATES) return L10n.t("Keep post dates");
         if (setting == Settings.SHOW_FULL_POST_TEXT) return L10n.t("Show full post text");
+        if (setting == Settings.SHOW_FULL_REEL_CAPTIONS) return L10n.t("Show full reel captions");
         if (setting == Settings.TRANSLATE_POST_LINK) return L10n.t("Add a Translate link to posts");
         if (setting == Settings.TRANSLATE_POSTS_BY_THEMSELVES) return L10n.t("Translate posts by themselves");
         if (setting == Settings.SEE_WHO_SHARED) return L10n.t("See who shared");
@@ -106,6 +109,9 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_STORY_REPLY_SUGGESTIONS) return L10n.t("Hide reply suggestions");
         if (setting == Settings.HIDE_STORY_SUBSCRIBE) return L10n.t("Hide the Subscribe button");
         if (setting == Settings.STORY_PROGRESS_BAR) return L10n.t("Progress bar at the bottom");
+        if (setting == Settings.HIDE_FEED_STORY_RINGS) return L10n.t("Hide rings in the feed");
+        if (setting == Settings.HIDE_COMMENT_STORY_RINGS) return L10n.t("Hide rings in comments");
+        if (setting == Settings.HIDE_PROFILE_STORY_RINGS) return L10n.t("Hide rings on profiles");
         if (setting == Settings.PINCH_TO_ZOOM) return L10n.t("Pinch to zoom");
         if (setting == Settings.PINCH_TO_ZOOM_KEEP) return L10n.t("Stay zoomed");
         if (setting == Settings.PINCH_TO_ZOOM_DOUBLE_TAP) return L10n.t("Double tap to zoom");
@@ -193,7 +199,9 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_AUDIO_LINE) return L10n.t("Hide the audio line on reels");
         if (setting == Settings.HIDE_SLOW_CONNECTION_MESSAGE) return L10n.t("Hide the slow connection message");
         if (setting == Settings.HIDE_UP_NEXT) return L10n.t("Hide Up next on videos");
+        if (setting == Settings.HIDE_REEL_FULLSCREEN_PILL) return L10n.t("Hide the Fullscreen button");
         if (setting == Settings.FEED_VIDEOS_ALONE) return L10n.t("Open feed videos on their own");
+        if (setting == Settings.WATCH_AGAIN_IN_PLACE) return L10n.t("Replay feed videos in place");
         if (setting == Settings.PLAY_FEED_REELS_WHOLE) return L10n.t("Play whole reels in the feed's Reels row");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
         if (setting == Settings.NEWEST_REELS_FIRST) return L10n.t("Sort loaded reels");
@@ -281,6 +289,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_CHAT_META_AI_BUTTON) return L10n.t("Hide the Meta AI button in Chats");
         if (setting == Settings.OPEN_MESSENGER_APP) return L10n.t("Open the Messenger app");
         if (setting == Settings.LEAVE_CALLS_AND_CHATS_TO_MESSENGER) return L10n.t("Leave calls and chats to Messenger");
+        if (setting == Settings.OPEN_CHATS_IN_MESSENGER) return L10n.t("Open chats in Messenger");
         if (setting == Settings.SAVED_SHORTCUT) return L10n.t("Saved shortcut");
         if (setting == Settings.WATCH_HISTORY_SHORTCUT) return L10n.t("Watch history shortcut");
         if (setting == Settings.FREE_STUFF_SHORTCUT) return L10n.t("Free stuff shortcut");

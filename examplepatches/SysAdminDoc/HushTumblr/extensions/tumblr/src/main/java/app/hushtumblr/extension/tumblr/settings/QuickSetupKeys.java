@@ -48,10 +48,11 @@ final class QuickSetupKeys {
             Settings.HIDE_DASHBOARD_COUNT,
             Settings.HIDE_COMMUNITIES_COUNT));
 
-    /** Less sent about you: Tumblr's tracking, the ad ID and screenshot watching. */
+    /** Less sent about you: Tumblr's tracking, the ad ID, the share tag and screenshot watching. */
     static final List<BooleanSetting> PRIVACY = Collections.unmodifiableList(Arrays.asList(
             Settings.DISABLE_ANALYTICS,
             Settings.HIDE_ADVERTISING_ID,
+            Settings.SANITIZE_SHARING_LINKS,
             Settings.TURN_OFF_SCREENSHOT_SHARING));
 
     /** Every feature switch, the same list a settings file carries: Pause, debug and the release check stay as they are. */

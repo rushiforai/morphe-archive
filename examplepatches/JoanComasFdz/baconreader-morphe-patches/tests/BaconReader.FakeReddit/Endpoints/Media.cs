@@ -22,6 +22,13 @@ internal static class Media
 
     private const string SignedPreviewHost = "preview.redd.it/";
 
+    private const string ImgurImages = "i.imgur.com/";
+
+    private const string ImgflipImages = "i.imgflip.com/";
+
+    // What Imgflip answered on 2026-11-05 for an image it doesn't have: 404 with its "not found" page.
+    private const string ImgflipNotFound = "<!DOCTYPE html><html><head><title>Imgflip</title></head><body><h1>404 - Not Found</h1></body></html>";
+
     public static void Map(WebApplication app, RedditWorld world)
     {
         app.MapGet("/video/{id}", (HttpContext context, string id) => VideoPost(context, world, id));
@@ -55,6 +62,20 @@ internal static class Media
                 if (world.FindMedia(stored) is { } file)
                 {
                     return Results.File(file.Bytes, file.ContentType, enableRangeProcessing: true);
+                }
+
+                // An Imgur image, at any of Imgur's sizes: <id>l.jpg, <id>t.png…
+                if (stored.StartsWith(ImgurImages, StringComparison.Ordinal) && world.Imgur.FindImageFile(stored[ImgurImages.Length..]) is { } image)
+                {
+                    return Results.File(image.Bytes, image.ContentType, enableRangeProcessing: true);
+                }
+
+                // An Imgflip meme template, as a thumbnail or at full size, or one Imgflip doesn't have.
+                if (stored.StartsWith(ImgflipImages, StringComparison.Ordinal) && world.Imgflip.Answer(stored[ImgflipImages.Length..]) is { } template)
+                {
+                    return template.File is { } templateFile
+                        ? Results.File(templateFile.Bytes, templateFile.ContentType, enableRangeProcessing: true)
+                        : Results.Content(ImgflipNotFound, "text/html", statusCode: StatusCodes.Status404NotFound);
                 }
             }
 

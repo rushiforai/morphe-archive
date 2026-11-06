@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/catsmoker/anime-witcher-patches/compare/v1.2.0...v1.3.0) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* correct PNG channel order in icon badge; remove crashing About credit typeface injection [skip ci] ([2cf90b5](https://github.com/catsmoker/anime-witcher-patches/commit/2cf90b5792a868a396633ffa4f25f5a631465aa3))
+* replace AWT/ImageIO icon badging with portable PNG renderer [skip ci] ([99c2d6d](https://github.com/catsmoker/anime-witcher-patches/commit/99c2d6d63eadc90d7dcd8beb7591ec2621208860))
+
+### ✨ New Features
+
+* add AMOLED black theme patch; consolidate TV and rebranding patches ([8fe3ff2](https://github.com/catsmoker/anime-witcher-patches/commit/8fe3ff23f235b85a0ab4d8adfc414577348bddc4))
+* add configurable Rebranding options (telegram handle, about credit) ([e891a9b](https://github.com/catsmoker/anime-witcher-patches/commit/e891a9b294bf9e4866443a6c299888f48b6ce612))
+
 ## [1.2.0](https://github.com/catsmoker/anime-witcher-patches/compare/v1.1.0...v1.2.0) (2026-09-05)
 
 ### ✨ New Features

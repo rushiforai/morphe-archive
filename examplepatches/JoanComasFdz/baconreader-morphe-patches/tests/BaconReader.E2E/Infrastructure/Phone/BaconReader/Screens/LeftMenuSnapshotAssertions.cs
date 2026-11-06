@@ -19,6 +19,17 @@ public static class LeftMenuSnapshotAssertions
         return that;
     }
 
+    /// <summary>The menu shows <paramref name="entry"/> right after <paramref name="previous"/>.</summary>
+    public static AssertingThat<LeftMenuSnapshot> ShowsAfter(this AssertingThat<LeftMenuSnapshot> that, MenuEntry entry, MenuEntry previous)
+    {
+        var entries = that.InstanceToAssert.Entries;
+        var at = entries.IndexOf(previous);
+        Assert.True(
+            at >= 0 && at + 1 < entries.Length && entries[at + 1] == entry,
+            $"The left menu shows {Listed(entries)}, but \"{entry.ToShownText()}\" was expected right after \"{previous.ToShownText()}\".");
+        return that;
+    }
+
     /// <summary>The menu shows the test account's user name (<see cref="TestAccount"/>): the account is logged in.</summary>
     public static AssertingThat<LeftMenuSnapshot> ShowsTheTestAccountsUserName(this AssertingThat<LeftMenuSnapshot> that)
     {

@@ -1,0 +1,7 @@
+__pycache__/
+bins/
+*.mpp
+.gradle/
+build/
+node_modules/
+.local/

@@ -11,7 +11,7 @@ val COMPATIBILITY_ANIME_WITCHER = Compatibility(
     appIconColor = 0xFF0000,
     targets = listOf(
         AppTarget(
-            version = "1.4.8"
+            version = "1.4.9"
         )
     )
 )

@@ -68,11 +68,31 @@ public sealed partial class Reddit(RedditWorld world)
         world.AddPost(subreddit, title, post => post.LinkingTo("https://www.reddit.com/gallery/" + PostTitled(target).Id));
 
     /// <summary>
+    /// "Reddit has a link post "&lt;title&gt;" in r/&lt;subreddit&gt; linking to the video of "&lt;target&gt;"": a link post
+    /// whose address is that video's, <c>https://v.redd.it/&lt;id&gt;</c>, without the video. Reddit's own address, not the
+    /// fake's: BaconReader looks such a post up by <c>www.reddit.com/video/&lt;id&gt;</c>, made from it, which "Fix Reddit
+    /// links" recognizes only on Reddit's address.
+    /// </summary>
+    public void HasALinkPostLinkingToTheVideoOf(string title, string subreddit, string target)
+    {
+        var video = PostTitled(target).VideoId
+            ?? throw new InvalidOperationException($"The post \"{target}\" has no video: a Given line makes it a video post first.");
+        world.AddPost(subreddit, title, post => post.LinkingTo("https://v.redd.it/" + video));
+    }
+
+    /// <summary>
     /// "Reddit has a post "&lt;title&gt;" in r/&lt;subreddit&gt; with the text "&lt;text&gt;" and an image": a text post
     /// whose text is <paramref name="text"/> and then an image uploaded in it.
     /// </summary>
     public void HasAPostWithTheTextAndAnImage(string title, string subreddit, string text) =>
         world.AddPost(subreddit, title, post => post.WithTextAndImage(text));
+
+    /// <summary>
+    /// "Reddit has a post "&lt;title&gt;" in r/&lt;subreddit&gt; with an image and then the text "&lt;text&gt;"": a text
+    /// post whose text starts with an image uploaded in it, then says <paramref name="text"/>.
+    /// </summary>
+    public void HasAPostWithAnImageAndThenTheText(string title, string subreddit, string text) =>
+        world.AddPost(subreddit, title, post => post.WithImageAndThenText(text));
 
     /// <summary>
     /// "Reddit has a post "&lt;title&gt;" in r/&lt;subreddit&gt; with the text "&lt;text&gt;"": a text post whose text is
@@ -127,6 +147,13 @@ public sealed partial class Reddit(RedditWorld world)
     public RedditPost ThePost(string title) => new(world, PostTitled(title));
 
     /// <summary>
+    /// "Reddit's chat has a link "&lt;text&gt;" to the post "&lt;title&gt;"": the fake's chat page (Reddit's chat is a
+    /// website with no API) links the post at Reddit's own address, which a link in the chat has.
+    /// </summary>
+    public void TheChatHasALinkToThePost(string text, string title) =>
+        world.Chat.AddLink(text, "https://www.reddit.com" + PostTitled(title).Permalink);
+
+    /// <summary>
     /// "the test account has an unread message "&lt;subject&gt;" saying "&lt;body&gt;"": a private message, the newest
     /// of its inbox.
     /// </summary>
@@ -173,6 +200,13 @@ public sealed partial class Reddit(RedditWorld world)
         new([.. world.Actions.Where(action => action.Name == "vote").Select(action => new RedditVote(
             world.Posts.FirstOrDefault(post => post.FullName == action.Form.GetValueOrDefault("id"))?.Title ?? action.Form.GetValueOrDefault("id") ?? "",
             int.TryParse(action.Form.GetValueOrDefault("dir"), out var direction) ? direction : 0))]);
+
+    /// <summary>Waits until Reddit got <paramref name="count"/> messages marked as read: the app marks them in the background.</summary>
+    public Task WaitUntilMessagesMarkedAsReadAsync(int count) =>
+        WaitUntilAsync(
+            () => ReadMessagesMarkedAsRead().Subjects.Length >= count,
+            TimeSpan.FromSeconds(15),
+            $"Reddit didn't get {count} messages marked as read within 15 s.");
 
     /// <summary>The messages Reddit got marked as read (<c>api/read_message</c>), oldest first, by their subjects.</summary>
     public RedditReadMessagesSnapshot ReadMessagesMarkedAsRead()
@@ -243,6 +277,62 @@ public sealed class RedditPost(RedditWorld world, Post post)
 {
     /// <summary>"… has a comment "&lt;text&gt;"": a comment that says only <paramref name="text"/>.</summary>
     public void HasAComment(string text) => world.AddComment(post, text);
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" with the link &lt;link&gt;": the text, then the link on its own line, bare (Reddit
+    /// shows its address) or written as <c>[words](address)</c>.
+    /// </summary>
+    public void HasACommentWithTheLink(string text, string link) => world.AddComment(post, $"{text}\n\n{link}");
+
+    /// <summary>"… has a comment "&lt;text&gt;" with a bare link to the YouTube video "&lt;video&gt;"": its watch page, as Reddit auto-links it.</summary>
+    public void HasACommentWithABareLinkToTheYouTubeVideo(string text, string video) =>
+        HasACommentWithTheLink(text, YouTubeVideo(video).Link);
+
+    /// <summary>"… with a bare short link to the YouTube video "&lt;video&gt;" at &lt;seconds&gt; seconds": <c>https://youtu.be/&lt;id&gt;?t=&lt;seconds&gt;</c>.</summary>
+    public void HasACommentWithABareShortLinkToTheYouTubeVideoAt(string text, string video, int seconds) =>
+        HasACommentWithTheLink(text, YouTubeVideo(video).ShortLink(seconds));
+
+    /// <summary>"… with a bare link to the YouTube Short "&lt;video&gt;"": <c>https://www.youtube.com/shorts/&lt;id&gt;</c>.</summary>
+    public void HasACommentWithABareLinkToTheYouTubeShort(string text, string video) =>
+        HasACommentWithTheLink(text, $"https://www.youtube.com/shorts/{YouTubeVideo(video).Id}");
+
+    /// <summary>"… with the link "&lt;words&gt;" to the YouTube video "&lt;video&gt;"": written as <c>[words](address)</c>.</summary>
+    public void HasACommentWithTheLinkToTheYouTubeVideo(string text, string words, string video) =>
+        HasACommentWithTheLink(text, $"[{words}]({YouTubeVideo(video).Link})");
+
+    /// <summary>"… with a bare link to the YouTube channel "@&lt;channel&gt;"": <c>https://www.youtube.com/@&lt;channel&gt;</c>.</summary>
+    public void HasACommentWithABareLinkToTheYouTubeChannel(string text, string channel) =>
+        HasACommentWithTheLink(text, $"https://www.youtube.com/@{channel.TrimStart('@')}");
+
+    /// <summary>"… has a comment "&lt;text&gt;" with a bare link to the X post "&lt;post&gt;"": the post's address, its text starting so.</summary>
+    public void HasACommentWithABareLinkToTheXPost(string text, string xPost) =>
+        HasACommentWithTheLink(text, XPost(xPost).Link);
+
+    /// <summary>"… with a bare link to an X post X doesn't have".</summary>
+    public void HasACommentWithABareLinkToAnXPostXDoesntHave(string text) => HasACommentWithTheLink(text, Reddit.MissingXPost);
+
+    /// <summary>"… with the link "&lt;words&gt;" to the X post "&lt;post&gt;"": written as <c>[words](address)</c>.</summary>
+    public void HasACommentWithTheLinkToTheXPost(string text, string words, string xPost) =>
+        HasACommentWithTheLink(text, $"[{words}]({XPost(xPost).Link})");
+
+    /// <summary>"… with a bare link to the Bluesky post "&lt;post&gt;"": the post's address.</summary>
+    public void HasACommentWithABareLinkToTheBlueskyPost(string text, string blueskyPost) =>
+        HasACommentWithTheLink(text, BlueskyPost(blueskyPost).Link);
+
+    /// <summary>"… with a bare link to a Bluesky post Bluesky doesn't have".</summary>
+    public void HasACommentWithABareLinkToABlueskyPostBlueskyDoesntHave(string text) => HasACommentWithTheLink(text, Reddit.MissingBlueskyPost);
+
+    private XPost XPost(string text) =>
+        world.X.FindPostStarting(text)
+            ?? throw new InvalidOperationException($"The scenario's X has no post starting \"{text}\": a Given line makes it first.");
+
+    private BlueskyPost BlueskyPost(string text) =>
+        world.Bluesky.FindPostSaying(text)
+            ?? throw new InvalidOperationException($"The scenario's Bluesky has no post \"{text}\": a Given line makes it first.");
+
+    private YouTubeVideo YouTubeVideo(string title) =>
+        world.YouTube.FindVideoTitled(title)
+            ?? throw new InvalidOperationException($"The scenario's YouTube has no video \"{title}\": a Given line makes it first.");
 
     /// <summary>"… has a comment "&lt;text&gt;" with &lt;count&gt; Silver awards": a comment given Reddit's Silver that many times.</summary>
     public void HasACommentWithSilverAwards(string text, int count) => world.AddComment(post, text, comment => comment.WithSilver(count));
@@ -330,6 +420,17 @@ public sealed class RedditPost(RedditWorld world, Post post)
     }
 
     /// <summary>
+    /// "… has a comment "&lt;text&gt;" with a link to the Imgur album "&lt;album&gt;"": the text, then the album's bare
+    /// link, at Imgur's own address, on a line of its own.
+    /// </summary>
+    public void HasACommentWithALinkToTheImgurAlbum(string text, string album)
+    {
+        var link = world.Imgur.Albums.SingleOrDefault(found => found.Title == album)?.Link
+            ?? throw new InvalidOperationException($"The scenario's Imgur has no album \"{album}\": a Given line makes it first.");
+        world.AddComment(post, $"{text}\n\n{link}");
+    }
+
+    /// <summary>
     /// "… has a comment "&lt;text&gt;" linking to the video of "&lt;title&gt;"": a link to the video's own address,
     /// <c>https://v.redd.it/&lt;id&gt;</c>, where "E2E fake Reddit" moves it, as Reddit's comments link a video.
     /// </summary>
@@ -384,6 +485,18 @@ public sealed class RedditPost(RedditWorld world, Post post)
     /// <summary>"… has a comment "&lt;text&gt;" with a GIF": <paramref name="text"/>, then a GIF uploaded in it.</summary>
     public void HasACommentWithAGif(string text) => world.AddComment(post, text, comment => comment.WithGif());
 
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" with the Snoomoji "&lt;name&gt;"": <paramref name="text"/>, then Reddit's emote
+    /// <paramref name="name"/> on its line, sent as Reddit sends every emote now, as its placeholder.
+    /// </summary>
+    public void HasACommentWithTheSnoomoji(string text, string name) => world.AddComment(post, text, comment => comment.WithSnoomoji(name));
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" with an emote of r/&lt;subreddit&gt;": <paramref name="text"/>, then an emote of
+    /// the post's subreddit on its line, sent as Reddit sends every emote now, as its placeholder.
+    /// </summary>
+    public void HasACommentWithAnEmoteOfItsSubreddit(string text) => world.AddComment(post, text, comment => comment.WithSubredditEmote());
+
     /// <summary>"… has a comment "&lt;text&gt;" with a link to an image": <paramref name="text"/>, then a bare link to a JPEG.</summary>
     public void HasACommentWithALinkToAnImage(string text) => world.AddComment(post, text, comment => comment.LinkingToAnImage());
 
@@ -395,6 +508,50 @@ public sealed class RedditPost(RedditWorld world, Post post)
     /// seconds long.
     /// </summary>
     public void HasACommentWithALinkToAVideo(string text) => world.AddComment(post, text, comment => comment.LinkingToAVideo());
+
+    /// <summary>
+    /// "… has a comment by u/&lt;author&gt; with only an image": an image uploaded in it and nothing else, as most come:
+    /// its preview's bare link alone in its body, and its entry in <c>media_metadata</c>.
+    /// </summary>
+    public void HasACommentByWithOnlyAnImage(string author) => world.AddComment(post, "", comment => comment.By(author).WithImage());
+
+    /// <summary>
+    /// "… has a comment by u/&lt;author&gt; with an image and then the text "&lt;text&gt;"": an image uploaded in it first,
+    /// then <paramref name="text"/>.
+    /// </summary>
+    public void HasACommentByWithAnImageAndThenTheText(string author, string text) =>
+        world.AddComment(post, "", comment => comment.By(author).WithImage().ThenSaying(text));
+
+    /// <summary>"… has a comment by u/&lt;author&gt; with only a GIF": a GIF uploaded in it and nothing else.</summary>
+    public void HasACommentByWithOnlyAGif(string author) => world.AddComment(post, "", comment => comment.By(author).WithGif());
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" with &lt;count&gt; different images": <paramref name="text"/>, then that many
+    /// images uploaded in it, each a different picture (a PNG, then a JPEG).
+    /// </summary>
+    public void HasACommentWithDifferentImages(string text, int count)
+    {
+        MediaAsset[] pictures = [MediaAsset.Png, MediaAsset.Jpeg];
+        if (count > pictures.Length)
+        {
+            throw new InvalidOperationException($"The fake has {pictures.Length} different pictures, not {count}.");
+        }
+
+        world.AddComment(post, text, comment =>
+        {
+            foreach (var picture in pictures.Take(count))
+            {
+                comment.WithImage(picture);
+            }
+        });
+    }
+
+    /// <summary>
+    /// "… has a comment "&lt;text&gt;" with an image and a link to another image": <paramref name="text"/>, then a PNG
+    /// uploaded in it, then a bare link to a JPEG.
+    /// </summary>
+    public void HasACommentWithAnImageAndALinkToAnotherImage(string text) =>
+        world.AddComment(post, text, comment => comment.WithImage(MediaAsset.Png).LinkingToAnImage(MediaAsset.Jpeg));
 }
 
 /// <summary>A comment of the scenario's Reddit, which a Given line adds replies to.</summary>

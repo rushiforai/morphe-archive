@@ -428,6 +428,63 @@ class SaveVoiceMenuTest {
         assertEquals(setOf(MENU_ROWS_CTOR, MENU_TAP, MENU_SHEET, MENU_SHEET_TAP), found(saveVoiceMenuFixture() + named))
     }
 
+    /** 586 family B's string pool, cut down to the menu Bundle's two keys under 0x26f and 0x270. */
+    private val rowPool = "LX/6pu;->A00(I)Ljava/lang/String;"
+    private fun rowPoolClass(key: String = MENU_ROW_MESSAGE) = fixtureClass("LX/6pu;", listOf(fixtureMethod(rowPool, """
+        packed-switch p0, :keys
+        const-string v0, ""
+        return-object v0
+        :block
+        const-string v0, "manageBlockParam"
+        return-object v0
+        :row
+        const-string v0, "$key"
+        return-object v0
+        :keys
+        .packed-switch 0x26f
+            :block
+            :row
+        .end packed-switch
+    """.trimIndent(), 1, PUBLIC_STATIC)))
+
+    /** The tap as family B reads its Bundle: the key from the pool, and the message straight out by it. */
+    private fun pooledTapBody(key: Int = 0x270) = changed(TAP_BODY, "const-string v0, \"$MENU_ROW_MESSAGE\"", """
+        check-cast v4, Landroid/os/Bundle;
+        const/16 v0, $key
+        invoke-static {v0}, $rowPool
+        move-result-object v0
+        invoke-virtual {v4, v0}, Landroid/os/Bundle;->getParcelable(Ljava/lang/String;)Landroid/os/Parcelable;
+        move-result-object v12
+        check-cast v12, $MESSAGE
+    """.trimIndent())
+
+    @Test fun familyBsTapTakesItsBundleKeyFromAStringPool() {
+        val tap = tapClass(tapMethod(body = pooledTapBody()))
+        assertEquals(setOf(MENU_ROWS_CTOR, MENU_TAP, MENU_SHEET, MENU_SHEET_TAP), found(saveVoiceMenuFixture(tap) + rowPoolClass()))
+        validateControls(mirroredControls(saveVoiceMenuFixture(tap) + rowPoolClass()), setOf(SAVE_VOICE_MENU))
+
+        // The hook still goes in ahead of the handler's name, and the pooled read stays as it was.
+        val method = tapMethod(body = pooledTapBody())
+        val before = method.code()
+        injectControl(SAVE_VOICE_MENU, mapOf(SAVE_VOICE_MENU to listOf(method)))
+        val code = method.code()
+        val at = before.indexOfFirst { it.reference() == MENU_TAP_NAME }
+        assertEquals(SAVE_VOICE_MENU_CLICKED, code[at].reference())
+        assertEquals(before.map { it.opcode }, code.filterIndexed { i, _ -> i !in at until at + 5 }.map { it.opcode })
+
+        val cases = mapOf(
+            "a pool that answers another key" to saveVoiceMenuFixture(tap) + rowPoolClass("row"),
+            "a key the pool doesn't have" to saveVoiceMenuFixture(tapClass(tapMethod(body = pooledTapBody(0x271)))) + rowPoolClass(),
+            "no pool" to saveVoiceMenuFixture(tap),
+            "a pooled key read as something else" to
+                saveVoiceMenuFixture(tapClass(tapMethod(body = changed(pooledTapBody(), "check-cast v12, $MESSAGE", "check-cast v12, $OBJECT")))) + rowPoolClass(),
+        )
+        for ((case, classes) in cases) {
+            assertEquals(emptySet(), found(classes), case)
+            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), setOf(SAVE_VOICE_MENU)) }
+        }
+    }
+
     @Test fun aNewMenusRowsPassTheExtensionOnTheirWayIntoTheMenu() {
         val method = rowsMethod()
         val before = method.code()

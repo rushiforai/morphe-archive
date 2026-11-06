@@ -1,3 +1,9 @@
+## [1.1.1](https://github.com/CharlesAttend/beeper-morphe-patch/compare/v1.1.0...v1.1.1) (2026-11-06)
+
+### 🚀 Updated App Support
+
+* Support Beeper 4.63.0 ([ea4698a](https://github.com/CharlesAttend/beeper-morphe-patch/commit/ea4698ae2a518509c3fa09d3d22b940b346fefac))
+
 ## [1.1.0](https://github.com/CharlesAttend/beeper-morphe-patch/compare/v1.0.0...v1.1.0) (2026-11-04)
 
 ### ✨ New Features

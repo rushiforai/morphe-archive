@@ -1,4 +1,4 @@
-/* Kanalvorgaben für die offizielle Cobalt-TV-Oberfläche; keine Änderungen an deren Konfiguration. */
+/* Kanalvorgaben und Standardtempo für die offizielle Cobalt-TV-Oberfläche. */
 (function (root, factory) {
     var api = factory();
     if (typeof module === 'object' && module.exports) module.exports = api;
@@ -6,11 +6,13 @@
 }(typeof window !== 'undefined' ? window : null, function () {
     'use strict';
     var KEY = 'ysamjo-tv-channel-speeds';
+    var RTL_SPORT = { id: 'UC8WYi3XQXsf-6FNvqoEvxag', handle: '@RTLSport', name: 'RTL Sport', speed: 1 };
     var DEFAULT_CHANNELS = [
         { id: 'UCE0RhriywrL8XhXbo87tMKQ', handle: '@sportstudio', name: 'sportstudio', speed: 1 },
         { id: 'UCRFsyeKu07-LnHDG44O6uCA', handle: '@sportschau', name: 'Sportschau', speed: 1 },
         { id: 'UCDVYQ4Zhbm3S2dlz7P1GBDg', handle: '@nfl', name: 'NFL', speed: 1.1 },
-        { id: 'UCK2izXoHvraUFaPMU5B7vMQ', handle: '@primevideosportde', name: 'Prime Video Sport', speed: 1 }
+        { id: 'UCK2izXoHvraUFaPMU5B7vMQ', handle: '@primevideosportde', name: 'Prime Video Sport', speed: 1 },
+        RTL_SPORT
     ];
     function copy(value) { return JSON.parse(JSON.stringify(value)); }
     function validSpeed(value) { var n = Number(value); return value !== '' && value !== null && isFinite(n) && n >= 0.05 && n <= 5 ? n : null; }
@@ -23,11 +25,17 @@
     function readSettings(storage) {
         var saved = readObject(storage, KEY), nativeConfig = readObject(storage, 'ytaf-configuration') || {};
         var globalSpeed = saved && validSpeed(saved.globalSpeed) !== null ? Number(saved.globalSpeed) : validSpeed(nativeConfig.videoSpeed) || 1;
-        return { version: 1, globalSpeed: globalSpeed, kidsNormalSpeed: !saved || saved.kidsNormalSpeed !== false,
-            channels: (saved && Array.isArray(saved.channels) ? saved.channels : DEFAULT_CHANNELS).filter(function (r) {
-                return r && channelId(r.id) && validSpeed(r.speed) !== null;
-            }).map(function (r) { return { id: r.id, name: String(r.name || r.handle || r.id), handle: String(r.handle || ''), speed: Number(r.speed) }; }) };
+        var channels = (saved && Array.isArray(saved.channels) ? saved.channels : DEFAULT_CHANNELS).filter(function (r) {
+            return r && channelId(r.id) && validSpeed(r.speed) !== null;
+        }).map(function (r) { return { id: r.id, name: String(r.name || r.handle || r.id), handle: String(r.handle || ''), speed: Number(r.speed) }; });
+        if (saved && Number(saved.version || 1) < 2) {
+            if (!channels.some(function (r) { return r.id === RTL_SPORT.id; })) channels.push(copy(RTL_SPORT));
+            // Version 1 froze the initial 1× default while the native menu saved later choices separately.
+            if (globalSpeed === 1 && validSpeed(nativeConfig.videoSpeed) !== null) globalSpeed = Number(nativeConfig.videoSpeed);
+        }
+        return { version: 2, globalSpeed: globalSpeed, kidsNormalSpeed: !saved || saved.kidsNormalSpeed !== false, channels: channels };
     }
+
     function isKids(root) {
         var loc = root.location || {}, cfg = root.yt && root.yt.config_ || {};
         return /(^|\.)youtubekids\.com$/.test(loc.hostname || '') || /TVHTML5_KIDS|WEB_KIDS/.test(String(cfg.INNERTUBE_CLIENT_NAME || ''))
@@ -112,11 +120,15 @@
             return state;
         }
         function currentVideo() { return doc.querySelector('video'); }
-        function manual(rate) {
+        function manual(rate, saveDefault) {
             rate = validSpeed(rate);
             if (rate === null) return;
             var state = sync(currentVideo(), false);
             if (!state) return;
+            if (saveDefault && !isKids(root) && state.policyKey === 'global' && context().channelId && settings.globalSpeed !== rate) {
+                var next = copy(settings); next.globalSpeed = rate;
+                persist(next);
+            }
             state.manual = true; state.rate = state.stepRate = rate; state.retryAfter = 0;
             writeRate(state);
             log('MANUAL ' + rate);
@@ -148,7 +160,7 @@
                 var rule = settings.channels[i];
                 items.push(button(rule.name + ': ' + format(rule.speed), rule.handle || rule.id, 'YSAMJO_SPEED_EDIT', { channelId: rule.id, name: rule.name, handle: rule.handle }));
             }
-            send(modal('Kanalgeschwindigkeiten', 'Manuell ändern gilt nur für dieses Video. Beim nächsten Video wieder die Vorgabe.', items, 'ysamjo-channel-speeds', update));
+            send(modal('Kanalgeschwindigkeiten', 'Sonderkanäle starten mit ihrer Vorgabe. Übrige Kanäle verwenden das gespeicherte Standardtempo.', items, 'ysamjo-channel-speeds', update));
         }
         function showEditor(info, global) {
             var value = settings.globalSpeed, found = null, items = [], title = global ? 'Standardtempo' : info.name || info.channelId;
@@ -159,7 +171,7 @@
             items.push(button('Tempo +0,1', 'Aktuell: ' + format(value), 'YSAMJO_SPEED_SAVE', { info: info, global: global, speed: Math.min(5, Math.round((value + 0.1) * 100) / 100) }));
             for (var j = 0; j < values.length; j++) items.push(button(format(values[j]), Math.abs(value - values[j]) < 0.00005 ? 'Aktuelle Vorgabe' : '', 'YSAMJO_SPEED_SAVE', { info: info, global: global, speed: values[j] }));
             if (!global && found) items.push(button('Kanalvorgabe entfernen', 'Für diesen Kanal gilt wieder das Standardtempo', 'YSAMJO_SPEED_REMOVE', info));
-            send(modal(title, 'Dauerhafte Vorgabe wählen. Die normale Tempoauswahl bleibt temporär.', items, 'ysamjo-speed-editor'));
+            send(modal(title, 'Dauerhafte Vorgabe wählen. Sonderkanäle lassen sich je Video manuell übersteuern.', items, 'ysamjo-speed-editor'));
         }
         function custom(action, args) {
             if (action.indexOf('YSAMJO_SPEED_') !== 0) return false;
@@ -200,12 +212,12 @@
             if (!command || typeof command !== 'object') return false;
             var action = command.customAction || command.signalAction && command.signalAction.customAction;
             if (action && typeof action.action === 'string' && custom(action.action, action.parameters)) return true;
-            if (action && action.action === 'SET_PLAYER_SPEED') manual(action.parameters);
+            if (action && action.action === 'SET_PLAYER_SPEED') manual(action.parameters, true);
             var endpoint = command.setClientSettingEndpoint;
             if (endpoint && Array.isArray(endpoint.settingDatas)) endpoint.settingDatas.forEach(function (setting) {
                 if (!setting) return;
                 var item = setting.clientSettingEnum && setting.clientSettingEnum.item || '';
-                if (item === 'videoSpeed' || /PLAYBACK.*(?:SPEED|RATE)/.test(item)) manual(setting.intValue === undefined ? setting.stringValue : setting.intValue);
+                if (item === 'videoSpeed' || /PLAYBACK.*(?:SPEED|RATE)/.test(item)) manual(setting.intValue === undefined ? setting.stringValue : setting.intValue, true);
             });
             var popup = command.openPopupAction;
             if (popup && ['tt-settings', 'tt-speed', 'playback-settings'].indexOf(popup.uniqueId) !== -1) {
@@ -256,6 +268,7 @@
             wrapped.__ysamjoChannelMetadata = true; root.JSON.parse = wrapped;
         }
         function keydown(event) {
+            if (!/^#\/watch(?:[/?]|$)/.test(root.location.hash || '')) return;
             var target = event.target || {}, tag = String(target.tagName || '').toLowerCase();
             if (['input', 'textarea', 'select'].indexOf(tag) !== -1 || target.isContentEditable || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
             var key = String(event.key || '').toLowerCase(), video = currentVideo();
@@ -275,7 +288,8 @@
         }
         function start() {
             if (started) return; started = true;
-            if (!readObject(storage, KEY)) persist(settings);
+            var stored = readObject(storage, KEY);
+            if (!stored || stored.version !== settings.version) persist(settings);
             installParseHook(); attachRouter(); sync(currentVideo(), false);
             ['loadedmetadata', 'loadeddata', 'canplay', 'play', 'playing', 'seeking', 'seeked'].forEach(function (type) { doc.addEventListener(type, media, true); });
             doc.addEventListener('keydown', keydown, true);

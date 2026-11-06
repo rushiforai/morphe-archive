@@ -12,22 +12,23 @@ import app.morphe.patches.tumblr.misc.extension.enableStatus
 import app.morphe.patches.tumblr.misc.extension.requireStatusMethod
 import app.morphe.patches.tumblr.misc.extension.tumblrExtensionPatch
 import app.morphe.patches.tumblr.misc.settings.settingsPatch
+import app.morphe.patches.tumblr.rootmute.dashboardPagePatch
 
 /**
  * Turns on the extension's own reblog rule. Tumblr marks every post on a blog you can edit with
- * `can_edit`, so a reblog that carries it is one you made. The timeline hook takes such a reblog
- * out of a dashboard page before Tumblr shows it, and leaves your blog, your likes and search
- * alone. The rule is in `PostRules`, and which page it's on comes from `PageSource`.
+ * `can_edit`, so a reblog that carries it is one you made. The dashboard page hook takes such a
+ * reblog out of a dashboard page before Tumblr shows it, and leaves your blog, your review queue,
+ * your Blaze lists and the rest of Tumblr alone. The rule is in `DashboardPosts`.
  */
 @Suppress("unused")
 val hideOwnReblogsPatch = bytecodePatch(
     name = "Hide your own reblogs",
-    description = "Takes the reblogs you made out of your dashboard and the feeds like it as each page loads." +
-        " Your blog still shows them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
+    description = "Takes the reblogs you made out of your dashboard as each page loads. Your blog and the rest" +
+        " of Tumblr still show them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
     default = true,
 ) {
     category("Feed")
-    dependsOn(settingsPatch, tumblrExtensionPatch, timelineListHookPatch, postBridgePatch, paidPostBridgePatch)
+    dependsOn(settingsPatch, tumblrExtensionPatch, timelineListHookPatch, postBridgePatch, paidPostBridgePatch, dashboardPagePatch)
     compatibleWith(*AppCompatibilities.tumblr())
 
     execute {

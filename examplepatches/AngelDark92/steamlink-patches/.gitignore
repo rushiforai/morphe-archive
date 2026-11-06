@@ -247,3 +247,8 @@ diagnostics/steamlink-recommended-defaults/*
 !diagnostics/4xvr-galaxyxr/
 diagnostics/4xvr-galaxyxr/*
 !diagnostics/4xvr-galaxyxr/*.md
+
+# Keep the Alpha-0 / Appear on top retirement record reviewable.
+!diagnostics/steamlink-alpha0-retirement/
+diagnostics/steamlink-alpha0-retirement/*
+!diagnostics/steamlink-alpha0-retirement/*.md

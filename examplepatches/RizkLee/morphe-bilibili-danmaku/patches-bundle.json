@@ -1,0 +1,7 @@
+{
+    "created_at":  "2026-11-06T14:44:44",
+    "description":  "Standalone Bilibili danmaku add-on. Requires official Morphe Patches with Mute button and SponsorBlock; tested with YouTube 21.30.216 and official patches 2.1.0-dev.7.",
+    "download_url":  "https://cdn.jsdelivr.net/gh/RizkLee/morphe-bilibili-danmaku@v2.1.0/dist/patches-2.1.0.mpp",
+    "version":  "2.1.0",
+    "public_key":  "VtcXBh7CWtVqYAifY1sggm1XvrmFXpZTbljMTriHhio="
+}

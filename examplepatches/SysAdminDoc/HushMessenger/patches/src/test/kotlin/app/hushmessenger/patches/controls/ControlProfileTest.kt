@@ -20,12 +20,17 @@ class ControlProfileTest {
     }
 
     @Test fun eachBuildListsTheSameControlsWithTheSameNumberOfHooks() {
+        // The other arm64 builds' Redex pass merged the emoji drawer readers and split the Roboto lookup.
+        val familyB = mapOf(EMOJI_DRAWER to 1, FONT_ROBOTO to 3)
         for (profile in controlProfiles.values) {
             assertEquals(BASE_PROFILE.hooks.keys, profile.hooks.keys)
             for (key in BASE_PROFILE.hooks.keys) {
-                assertEquals(BASE_PROFILE.hooks.getValue(key).size, profile.hooks.getValue(key).size, key)
+                val expected = if (profile === PROFILE_347215273) familyB[key] ?: BASE_PROFILE.hooks.getValue(key).size
+                    else BASE_PROFILE.hooks.getValue(key).size
+                assertEquals(expected, profile.hooks.getValue(key).size, key)
             }
-            assertEquals(ExpectedTotals.HOOKS_586, profile.hooks.values.sumOf { it.size })
+            assertEquals(if (profile === PROFILE_347215273) ExpectedTotals.HOOKS_586_FAMILY_B else ExpectedTotals.HOOKS_586,
+                profile.hooks.values.sumOf { it.size })
         }
         assertEquals(7, BASE_PROFILE.hooks.getValue(EMOJI_DRAWER).size)
     }
@@ -36,6 +41,8 @@ class ControlProfileTest {
         for (code in listOf("347215348", "346814999", null)) assertSame(BASE_PROFILE, controlProfileFor(code))
         // The armv7 build is the same release under other Redex names, so it gets its own profile, never the base one.
         assertSame(PROFILE_347215341, controlProfileFor("347215341"))
+        // So do the three arm64 builds from another Redex pass, which share one.
+        for (code in listOf("347215273", "347215275", "347215277")) assertSame(PROFILE_347215273, controlProfileFor(code))
         val profiles = controlProfiles + (348000001 to SYNTHETIC_PROFILE)
         assertSame(SYNTHETIC_PROFILE, controlProfileFor("348000001", profiles))
         assertSame(BASE_PROFILE, controlProfileFor("347215348", profiles))

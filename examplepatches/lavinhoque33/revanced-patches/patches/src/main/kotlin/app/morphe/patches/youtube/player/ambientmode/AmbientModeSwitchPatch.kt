@@ -6,17 +6,25 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-10-21.
  */
 
 package app.morphe.patches.youtube.player.ambientmode
 
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.youtube.utils.playservice.is_21_12_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_43_or_greater
+import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.matchAllMethodIndicesForEach
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.util.findFieldFromToString
-import app.morphe.util.matchAllMethodIndicesForEach
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -35,10 +43,10 @@ import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.findMethodOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.indexOfFirstStringInstructionOrThrow
+import app.morphe.util.insertLiteralOverride
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -83,58 +91,109 @@ val ambientModeSwitchPatch = bytecodePatch(
     execute {
         // region patch for bypass ambient mode restrictions
 
-        // 21.39: there are two matching BroadcastReceivers (each with its own synthetic Consumer),
-        // and the "(Object)V" fingerprint now matches an unrelated method whose nearest invoke-direct
-        // class has no `accept`. Patch every receiver match and skip classes without `accept`.
-        val syntheticClassList = mutableListOf<String>()
+        if (is_21_43_or_greater) {
+            // Keep this fork's boolean extension signature while covering upstream's inlined checks.
+            fun MutableMethod.hook() {
+                findInstructionIndicesReversedOrThrow(
+                    methodCall(IS_POWER_SAVE_MODE_METHOD_CALL)
+                ).forEach { index ->
+                    val register = getInstruction<OneRegisterInstruction>(index + 1).registerA
 
-        val fingerprintMatches = buildList {
-            runCatching { powerSaveModeBroadcastReceiverFingerprint.matchAll() }.getOrNull()
-                ?.forEach { add(it.method to false) }
-            runCatching { powerSaveModeSyntheticFingerprint.match() }.getOrNull()
-                ?.let { add(it.method to true) }
-        }
-
-        fingerprintMatches.forEach { (method, reversed) ->
-            runCatching {
-                method.apply {
-                    val stringIndex =
-                        indexOfFirstStringInstructionOrThrow("android.os.action.POWER_SAVE_MODE_CHANGED")
-                    val targetIndex =
-                        if (reversed)
-                            indexOfFirstInstructionReversedOrThrow(stringIndex, Opcode.INVOKE_DIRECT)
-                        else
-                            indexOfFirstInstructionOrThrow(stringIndex, Opcode.INVOKE_DIRECT)
-                    val targetClass =
-                        (getInstruction<ReferenceInstruction>(targetIndex).reference as MethodReference).definingClass
-
-                    syntheticClassList += targetClass
+                    addInstructions(
+                        index + 2,
+                        """
+                            invoke-static/range { v$register .. v$register }, $PLAYER_CLASS_DESCRIPTOR->bypassAmbientModeRestrictions(Z)Z
+                            move-result v$register
+                        """
+                    )
                 }
             }
-        }
 
-        syntheticClassList.distinct().forEach { className ->
-            (findMethodsOrThrow(className).firstOrNull { it.name == "accept" } ?: return@forEach).apply {
-                implementation!!.instructions
-                    .withIndex()
-                    .filter { (_, instruction) ->
-                        val reference = (instruction as? ReferenceInstruction)?.reference
-                        instruction.opcode == Opcode.INVOKE_VIRTUAL &&
-                                reference is MethodReference &&
-                                reference.name == "isPowerSaveMode"
-                    }
-                    .map { (index, _) -> index }
-                    .reversed()
-                    .forEach { index ->
-                        val register = getInstruction<OneRegisterInstruction>(index + 1).registerA
+            val intentActionFingerprints = listOf(
+                IntentActionBroadcastReceiverFingerprint,
+                IntentActionBroadcastReceiverAlternativeFingerprint,
+            )
+            intentActionFingerprints.forEach { fingerprint ->
+                fingerprint.let {
+                    it.method.apply {
+                        val index = it.instructionMatches[2].index
+                        val reference =
+                            getInstruction<ReferenceInstruction>(index).reference as MethodReference
 
-                        addInstructions(
-                            index + 2, """
-                                invoke-static {v$register}, $PLAYER_CLASS_DESCRIPTOR->bypassAmbientModeRestrictions(Z)Z
-                                move-result v$register
-                                """
-                        )
+                        // This fingerprint is used multiple times.
+                        PowerSaveModeSyntheticFingerprint.clearMatch()
+
+                        // Match may be null, as it may have already been replaced by another fingerprint.
+                        PowerSaveModeSyntheticFingerprint.matchOrNull(
+                                            mutableClassDefBy(reference.definingClass)
+                                        )?.method?.hook()
+
+                        // 21.43+ inlines the lambda into the receiver.
+                        hook()
                     }
+                }
+            }
+
+            IntentActionSyntheticAlternativeFingerprint.method.hook()
+
+            // 21.43+ inlines the lambdas that read the first value for the Ambient mode receiver.
+            // The receiver is registered on the main thread, or asynchronously if a server flag is on.
+            powerSaveModeInitialValueFingerprint(PowerSaveModeReceiverRegisterFingerprint.method).method.hook()
+            PowerSaveModeInitialValueAsyncFingerprint.method.hook()
+        } else {
+            // 21.39: there are two matching BroadcastReceivers (each with its own synthetic Consumer),
+            // and the "(Object)V" fingerprint now matches an unrelated method whose nearest invoke-direct
+            // class has no `accept`. Patch every receiver match and skip classes without `accept`.
+            val syntheticClassList = mutableListOf<String>()
+
+            val fingerprintMatches = buildList {
+                runCatching { powerSaveModeBroadcastReceiverFingerprint.matchAll() }.getOrNull()
+                    ?.forEach { add(it.method to false) }
+                runCatching { powerSaveModeSyntheticFingerprint.match() }.getOrNull()
+                    ?.let { add(it.method to true) }
+            }
+
+            fingerprintMatches.forEach { (method, reversed) ->
+                runCatching {
+                    method.apply {
+                        val stringIndex =
+                            indexOfFirstStringInstructionOrThrow("android.os.action.POWER_SAVE_MODE_CHANGED")
+                        val targetIndex =
+                            if (reversed)
+                                indexOfFirstInstructionReversedOrThrow(stringIndex, Opcode.INVOKE_DIRECT)
+                            else
+                                indexOfFirstInstructionOrThrow(stringIndex, Opcode.INVOKE_DIRECT)
+                        val targetClass =
+                            (getInstruction<ReferenceInstruction>(targetIndex).reference as MethodReference).definingClass
+
+                        syntheticClassList += targetClass
+                    }
+                }
+            }
+
+            syntheticClassList.distinct().forEach { className ->
+                (findMethodsOrThrow(className).firstOrNull { it.name == "accept" } ?: return@forEach).apply {
+                    implementation!!.instructions
+                        .withIndex()
+                        .filter { (_, instruction) ->
+                            val reference = (instruction as? ReferenceInstruction)?.reference
+                            instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+                                    reference is MethodReference &&
+                                    reference.name == "isPowerSaveMode"
+                        }
+                        .map { (index, _) -> index }
+                        .reversed()
+                        .forEach { index ->
+                            val register = getInstruction<OneRegisterInstruction>(index + 1).registerA
+
+                            addInstructions(
+                                index + 2, """
+                                    invoke-static {v$register}, $PLAYER_CLASS_DESCRIPTOR->bypassAmbientModeRestrictions(Z)Z
+                                    move-result v$register
+                                    """
+                            )
+                        }
+                }
             }
         }
 
@@ -147,7 +206,7 @@ val ambientModeSwitchPatch = bytecodePatch(
 
         // Feature flags. 21.30+ inlines the flag lookups and must patch 4 places for each flag.
         // Each flag is on if ambient mode is not disabled.
-        AmbientModeFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
+        if (!is_21_43_or_greater) AmbientModeFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
             val moveResultIndex = indexOfFirstInstructionOrThrow(index, Opcode.MOVE_RESULT)
             val register = getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
 
@@ -161,6 +220,13 @@ val ambientModeSwitchPatch = bytecodePatch(
             )
         }
 
+        // Black background experiment: ambient mode is always inactive, whatever the
+        // CinematicContainerRenderer, power save mode or flyout menu toggle say.
+        // Turn it off, so the watch page uses the same ambient mode and layout as outside the experiment.
+        if (is_21_12_or_greater) AmbientModeBlackBackgroundFeatureFlagFingerprint.matchAllMethodIndicesForEach { index ->
+            insertLiteralOverride(index, false)
+        }
+
         // The /next response can have no CinematicContainerRenderer, a static color style
         // (the background does not change with the video, issue #3783)
         // or ambient mode off by default. Override what the server decides.
@@ -168,15 +234,15 @@ val ambientModeSwitchPatch = bytecodePatch(
         val rendererType = rendererClass.type
 
         val styleMatches = cinematicContainerPresentationStyleFingerprint(rendererType).instructionMatches
-        val hasBitsField = styleMatches[0].getFieldAccessed()
+        val hasBitsField = styleMatches[0].fieldReference
         val styleHasBitMask = styleMatches[1].getInstruction<NarrowLiteralInstruction>().narrowLiteral
-        val styleField = styleMatches[3].getFieldAccessed()
+        val styleField = styleMatches[3].fieldReference
 
         val configField = cinematicContainerConfigFingerprint(rendererType).matchAll().single()
-            .instructionMatches.last().getFieldAccessed()
+            .instructionMatches.last().fieldReference
         val configType = configField.type
         val enabledByDefaultField = cinematicContainerEnabledByDefaultFingerprint(configType).matchAll().single()
-            .instructionMatches[3].getFieldAccessed()
+            .instructionMatches[3].fieldReference
 
         val defaultRendererField = rendererClass.fields.first { field ->
             field.type == rendererType && AccessFlags.STATIC.isSet(field.accessFlags)
@@ -185,8 +251,8 @@ val ambientModeSwitchPatch = bytecodePatch(
         val stateType = CinematicContainerRendererWithStateFingerprint.method
             .findFieldFromToString("rendererLoadedState=").type
         val stateMatch = cinematicContainerRendererLoadedStateFingerprint(stateType).matchAll().single()
-        val waitingStateField = stateMatch.instructionMatches[1].getFieldAccessed()
-        val loadedStateField = stateMatch.instructionMatches[3].getFieldAccessed()
+        val waitingStateField = stateMatch.instructionMatches[1].fieldReference
+        val loadedStateField = stateMatch.instructionMatches[3].fieldReference
 
         CinematicContainerRendererWithStateFingerprint.classDef.apply {
             val constructor = methods.first { method ->
@@ -215,8 +281,15 @@ val ambientModeSwitchPatch = bytecodePatch(
                         const/4 v0, 0x1
                         invoke-static { v0 }, $EXTENSION_IS_AMBIENT_MODE_ENABLED
                         move-result v0
-                        if-eqz v0, :keep
+                        if-nez v0, :enabled
 
+                        # Ambient mode is disabled, so the renderer of the server is not used either.
+                        # 21.43+ has no feature flags that turn ambient mode off.
+                        invoke-static { }, $optionalType->empty()$optionalType
+                        move-result-object p1
+                        return-object p1
+
+                        :enabled
                         # No /next response yet.
                         sget-object v0, $waitingStateField
                         if-eq p0, v0, :keep

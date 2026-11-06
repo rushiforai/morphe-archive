@@ -1,0 +1,22 @@
+package app.revanced.patches.kakaotalk.misc.tracker
+
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.returnEarly
+import app.revanced.patches.kakaotalk.misc.tracker.fingerprints.BuildSdkTrackerUrlFingerprint
+import app.revanced.patches.kakaotalk.shared.Constants.COMPATIBILITY_KAKAO
+import app.revanced.patches.shared.misc.string.replaceStringPatch
+
+@Suppress("unused")
+val disableSdkTrackerPatch = bytecodePatch(
+    name = "Disable SDK Tracker",
+    description = "KakaoTalkのSDKトラッカーを無効化します。"
+) {
+    compatibleWith(COMPATIBILITY_KAKAO)
+    dependsOn(
+        replaceStringPatch("ad.daum.net", "example.com")
+    )
+
+    execute {
+        BuildSdkTrackerUrlFingerprint.method.returnEarly("")
+    }
+}

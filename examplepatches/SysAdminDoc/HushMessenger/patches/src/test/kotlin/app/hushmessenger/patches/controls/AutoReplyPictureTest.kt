@@ -45,6 +45,8 @@ private const val KIND_FIELD = "$KIND->A19:$KIND"
 private const val URI_FIELD = "$BUILDER->A0H:Landroid/net/Uri;"
 private const val TYPE_FIELD = "$BUILDER->A0R:$TYPE"
 private const val THREAD_FIELD = "$BUILDER->A0K:$THREAD_KEY_TYPE"
+private const val SOURCE = "LX/ArSource;"
+private const val SOURCE_FIELD = "$BUILDER->A0P:$SOURCE"
 private const val PHOTO_FIELD = "$TYPE->A0F:$TYPE"
 private const val EMPTY_MAP = "$AUTO_REPLY_EMPTY_MAPS->A03:$MAP"
 private const val FACTORY_INIT = "$AUTO_REPLY_FACTORY-><init>(Landroid/content/Context;)V"
@@ -97,14 +99,18 @@ private fun replyBody(
     return-object v0
 """.trimIndent()
 
-/** MediaResource's builder constructor: it refuses a resource without a file or a media type, then copies the rest. */
-private fun mediaBody(extraCheck: Boolean = false) = """
+/**
+ * MediaResource's builder constructor: it refuses a resource without a file or a media type, then copies the rest.
+ * [sourceCheck] also refuses one without a source, as the 273 family does.
+ */
+private fun mediaBody(extraCheck: Boolean = false, sourceCheck: Boolean = false) = """
     invoke-direct {p0}, Ljava/lang/Object;-><init>()V
     iget-object v0, p1, $URI_FIELD
     const-string v1, "Required value was null."
     if-eqz v0, :missing
     iget-object v0, p1, $TYPE_FIELD
     if-eqz v0, :missing
+    ${if (sourceCheck) "iget-object v0, p1, $SOURCE_FIELD\n    if-eqz v0, :missing" else "nop"}
     iget-object v0, p1, $THREAD_FIELD
     ${if (extraCheck) "if-eqz v0, :missing" else "nop"}
     return-void
@@ -138,6 +144,7 @@ private fun pictureClasses(
     service: String = serviceBody(),
     reply: String = replyBody(send = send),
     media: String = mediaBody(),
+    builderInit: String = "return-void",
     builderFields: Int = PUBLIC,
     senderFlags: Int = PUBLIC,
     photo: String = AUTO_REPLY_PHOTO,
@@ -168,9 +175,10 @@ private fun pictureClasses(
         fixtureClass(TRIGGER, listOf(nullMethod(TRIGGER_OF, 2, STATIC))),
         fixtureClass(MESSAGE),
         fixtureClass(AUTO_REPLY_MEDIA, listOf(fixtureMethod(MEDIA_INIT, media, 4, CONSTRUCTOR))),
-        fixtureClass(BUILDER, listOf(ctor("$BUILDER-><init>()V", 1)), extraFields = listOf(
+        fixtureClass(BUILDER, listOf(fixtureMethod("$BUILDER-><init>()V", builderInit, 3, CONSTRUCTOR)), extraFields = listOf(
             field(BUILDER, "A0H", "Landroid/net/Uri;", builderFields), field(BUILDER, "A0R", TYPE, builderFields),
-            field(BUILDER, "A0K", THREAD_KEY_TYPE, builderFields))),
+            field(BUILDER, "A0K", THREAD_KEY_TYPE, builderFields), field(BUILDER, "A0P", SOURCE, builderFields))),
+        fixtureClass(SOURCE, superclass = enum, extraFields = listOf(field(SOURCE, "A0D", SOURCE, CONSTANT))),
         fixtureClass(TYPE, listOf(fixtureMethod("$TYPE-><clinit>()V", typeInit(photo), 3, AccessFlags.STATIC.value or AccessFlags.CONSTRUCTOR.value)),
             superclass = enum, extraFields = listOf(field(TYPE, "A0H", TYPE, CONSTANT), field(TYPE, "A0F", TYPE, CONSTANT))),
         fixtureClass(AUTO_REPLY_FACTORY, listOf(ctor(FACTORY_INIT, 2), nullMethod(factory, 14, STATIC))),
@@ -188,6 +196,24 @@ class AutoReplyPictureTest {
 
     @Test fun theRecipeComesFromTheReplySendAndTheMediaFactory() {
         assertEquals(recipe, resolveAutoReplyPictureRecipe(pictureClasses()))
+    }
+
+    /**
+     * The 273 family's resource also refuses a builder without a source, an enum the builder's own constructor fills in.
+     * The media type is still the one checked enum that constructor leaves unset.
+     */
+    @Test fun aCheckedEnumTheBuilderFillsInItselfIsntTheMediaType() {
+        val defaultsSource = """
+            invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+            sget-object v0, $SOURCE->A0D:$SOURCE
+            iput-object v0, p0, $SOURCE_FIELD
+            return-void
+        """.trimIndent()
+        assertEquals(recipe, resolveAutoReplyPictureRecipe(pictureClasses(media = mediaBody(sourceCheck = true), builderInit = defaultsSource)))
+        // Written on another builder, or not at all, the source is a second unset enum and the media type is unclear.
+        assertNull(resolveAutoReplyPictureRecipe(pictureClasses(media = mediaBody(sourceCheck = true))))
+        assertNull(resolveAutoReplyPictureRecipe(pictureClasses(media = mediaBody(sourceCheck = true),
+            builderInit = defaultsSource.replace("iput-object v0, p0,", "new-instance v1, $BUILDER\niput-object v0, v1,"))))
     }
 
     /** The reply handler has to be the service's own; one on its abstract parent or on an unrelated class isn't read. */

@@ -15,6 +15,8 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 import app.morphe.extension.shared.requests.Requester;
@@ -74,6 +76,42 @@ public class SBRequester {
         }
     }
 
+
+    /** Independent, silent requests for stored downloads. */
+    public enum DownloadStatus {OK, NONE, ERROR}
+
+    public record DownloadSegments(DownloadStatus status, JSONArray segments, long durationMs) {
+    }
+
+    /** Does not depend on player initialization or emit connection-error toasts. */
+    public static DownloadSegments getSegments(String videoId, List<String> categories) {
+        Utils.verifyOffMainThread();
+        HttpURLConnection connection = null;
+        try {
+            String encoded = URLEncoder.encode(new JSONArray(categories).toString(), StandardCharsets.UTF_8.name());
+            connection = getConnectionFromRoute(SBRoutes.GET_SEGMENTS, videoId, encoded);
+            connection.setConnectTimeout(2000);
+            connection.setReadTimeout(2000);
+            int status = connection.getResponseCode();
+            if (status == 404) return new DownloadSegments(DownloadStatus.NONE, new JSONArray(), 0);
+            if (status != HTTP_STATUS_CODE_SUCCESS) {
+                return new DownloadSegments(DownloadStatus.ERROR, new JSONArray(), 0);
+            }
+            JSONArray segments = Requester.parseJSONArray(connection);
+            long duration = 0;
+            for (int index = 0; index < segments.length(); index++) {
+                JSONObject segment = segments.optJSONObject(index);
+                if (segment != null) duration = Math.max(duration, (long) (segment.optDouble("videoDuration", 0) * 1000));
+            }
+            return new DownloadSegments(segments.length() == 0 ? DownloadStatus.NONE : DownloadStatus.OK,
+                    segments, duration);
+        } catch (Exception ex) {
+            Logger.printInfo(() -> "Offline SponsorBlock lookup failed for " + videoId, ex);
+            return new DownloadSegments(DownloadStatus.ERROR, new JSONArray(), 0);
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+    }
     @NonNull
     public static SponsorSegment[] getSegments(String videoId) {
         Utils.verifyOffMainThread();

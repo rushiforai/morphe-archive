@@ -83,7 +83,7 @@ public final class MoreMenu {
     /** Items for the Me panel: none unless the items are moved there, then the ones not hidden. */
     private static List<Item> shownItems() {
         List<Item> shown = new ArrayList<>();
-        if (!Settings.hideMoreTab()) return shown;
+        if (!Settings.moveMoreItems()) return shown;
         for (Item item : items()) if (Settings.get(item.key(), true)) shown.add(item);
         return shown;
     }
@@ -126,25 +126,6 @@ public final class MoreMenu {
         if (!json.equals(Settings.getString(Settings.MORE_ITEMS, null))) {
             Settings.setString(Settings.MORE_ITEMS, json);
             Settings.debugLog("more items: " + json);
-        }
-    }
-
-    // endregion
-
-    // region Bottom bar
-
-    /** Injected at the returns of HomeNavTabsManager.getHomeNavTabs(): drops the More tab when it is hidden. */
-    public static List<Object> filterTabs(List<Object> tabs) {
-        if (tabs == null || !Settings.hideMoreTab()) return tabs;
-        try {
-            Object more = Class.forName("com.linkedin.android.home.HomeTabInfo").getField("MORE").get(null);
-            if (!tabs.contains(more)) return tabs;
-            List<Object> result = new ArrayList<>(tabs);
-            result.remove(more);
-            return result;
-        } catch (Throwable t) {
-            Diagnostics.error("filterTabs failed", t);
-            return tabs;
         }
     }
 

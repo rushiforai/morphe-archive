@@ -1,0 +1,52 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ */
+
+package app.morphe.extension.youtube.shared;
+
+import androidx.annotation.Nullable;
+
+import java.util.function.Consumer;
+
+import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.ui.SheetBottomDialog;
+
+public final class PipDismissHelper {
+
+    private PipDismissHelper() {}
+
+    /**
+     * Dismisses {@code dialog} when the player enters Picture-in-Picture mode,
+     * and cleans up the observer when the dialog is dismissed for any reason.
+     */
+    public static void dismissOnPip(SheetBottomDialog.SlideDialog dialog) {
+        dismissOnPip(dialog, null);
+    }
+
+    /**
+     * Same as {@link #dismissOnPip(SheetBottomDialog.SlideDialog)}, and runs {@code onDismiss} when the dialog is dismissed.
+     */
+    public static void dismissOnPip(SheetBottomDialog.SlideDialog dialog, @Nullable Runnable onDismiss) {
+        Consumer<PlayerType> observer = new Consumer<>() {
+            @Override
+            public void accept(PlayerType type) {
+                if (!dialog.isShowing()) {
+                    PlayerType.getOnChange().removeObserver(this);
+                } else if (type == PlayerType.WATCH_WHILE_PICTURE_IN_PICTURE) {
+                    Logger.printDebug(() -> "Dismissing dialog due to PiP mode");
+                    dialog.dismiss();
+                }
+            }
+        };
+        PlayerType.getOnChange().addObserver(observer);
+        dialog.setOnDismissListener(d -> {
+            PlayerType.getOnChange().removeObserver(observer);
+            if (onDismiss != null) {
+                onDismiss.run();
+            }
+        });
+    }
+}

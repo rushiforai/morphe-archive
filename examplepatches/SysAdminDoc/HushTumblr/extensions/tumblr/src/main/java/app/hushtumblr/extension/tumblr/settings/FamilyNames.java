@@ -34,10 +34,12 @@ public final class FamilyNames {
     public static final String VISIBLE_ALT_TEXT = "Visible image descriptions";
     public static final String SHARE_VIDEO_LINKS = "Share video links";
     public static final String SHARPER_IMAGES = "Sharper images";
+    public static final String COLLAPSE_LONG_POSTS = "Collapse long posts";
     public static final String SHOW_POST_TIMESTAMPS = "Show post timestamps";
     public static final String HIDE_ADS = "Hide ads";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String HIDE_ADVERTISING_ID = "Hide advertising ID";
+    public static final String SANITIZE_SHARING_LINKS = "Sanitize sharing links";
     public static final String REMOVE_AD_TRACKING_PERMISSIONS = "Remove ad tracking permissions";
     public static final String SPOOF_SIGNATURE = "Spoof signature for Google sign-in";
     public static final String HIDE_AD_FREE_BANNER = "Hide the ad-free banner";

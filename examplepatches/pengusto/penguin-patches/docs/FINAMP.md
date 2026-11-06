@@ -29,8 +29,9 @@ checks below are distinct from that APK compatibility evidence.
 
 The latest official release checked is [Finamp 1.0.2](https://github.com/finamp-app/finamp/releases/tag/1.0.2),
 published on 2026-10-29 from `hotfix-1.0.2`, before the two October 31 merges.
-**All seven Penguin patches remain selectable for the original official 1.0.1
-APK.** Upstream merges do not change that APK; Finamp 1.0.2 is not a supported
+**The seven earlier Penguin fixes remain individually selectable in the separate
+individual source for the original official 1.0.1 APK** and are included in
+Finamp Complete. Upstream merges do not change that APK; Finamp 1.0.2 is not a supported
 input for these version-pinned native patches. Later releases must be assessed
 separately. [Native-patch setup and verification](FINAMP_NATIVE.md).
 

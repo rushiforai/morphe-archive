@@ -30,7 +30,7 @@ import org.xml.sax.InputSource
 
 /** Local tooling only. This class is excluded from the distributed bundle. */
 object CatalogTool {
-    private fun dependency(patch: Patch<*>, ancestors: Set<Patch<*>> = emptySet()): JsonObject {
+    private fun dependency(patch: Patch, ancestors: Set<Patch> = emptySet()): JsonObject {
         require(patch !in ancestors) { "Cyclic patch dependency" }
         require(!patch.name.isNullOrBlank() || !patch.description.isNullOrBlank()) {
             "Hidden dependencies need stable descriptions for the public catalog"
@@ -54,7 +54,7 @@ object CatalogTool {
     // Patcher 1.15 deprecates Option.title in favor of name, but its option builders still take a
     // separate key and title, and name returns the key for those options.
     @Suppress("DEPRECATION")
-    private fun options(patch: Patch<*>): JsonArray = JsonArray(patch.options.values.sortedBy { it.key }.map { option ->
+    private fun options(patch: Patch): JsonArray = JsonArray(patch.options.values.sortedBy { it.key }.map { option ->
         require(option.key.isNotBlank() && !option.title.isNullOrBlank() && !option.description.isNullOrBlank()) {
             "Options need a key, title and description for the public catalog"
         }
@@ -74,7 +74,7 @@ object CatalogTool {
         "Spoof package version", "Clone install under another package name", "Custom new-message sound", "Custom launcher icon",
         "GmsCore support")
 
-    fun catalog(version: String, patches: Set<Patch<*>>): JsonObject = JsonObject(linkedMapOf(
+    fun catalog(version: String, patches: Set<Patch>): JsonObject = JsonObject(linkedMapOf(
         "NOTE" to JsonPrimitive("Generated locally from the built MPP with :patches:generatePatchCatalog. Do not edit by hand."),
         "version" to JsonPrimitive(version),
         "patches" to JsonArray(patches.sortedBy { it.name }.map { patch ->

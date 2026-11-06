@@ -493,6 +493,25 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting STORY_PROGRESS_BAR =
             new BooleanSetting("hushfacebook_story_progress_bar", FALSE);
 
+    /**
+     * The story and LIVE rings leave the profile pictures at the top of posts, and a tap on the picture
+     * opens the profile ({@link app.morphe.extension.facebook.stories.StoryRings}, #397). Starts off.
+     * Read as each post's header draws.
+     */
+    public static final BooleanSetting HIDE_FEED_STORY_RINGS =
+            new BooleanSetting("hushfacebook_hide_feed_story_rings", FALSE);
+
+    /** The story ring leaves the profile pictures beside comments (#397). Starts off. Read as each comment draws. */
+    public static final BooleanSetting HIDE_COMMENT_STORY_RINGS =
+            new BooleanSetting("hushfacebook_hide_comment_story_rings", FALSE);
+
+    /**
+     * The story and LIVE rings leave the profile picture on a profile, and the lists and search
+     * results that draw it the same way (#397). Starts off. Read as the picture draws.
+     */
+    public static final BooleanSetting HIDE_PROFILE_STORY_RINGS =
+            new BooleanSetting("hushfacebook_hide_profile_story_rings", FALSE);
+
     /** The two page filters that take server-inlined ads out of Reels and Watch. */
     public static final BooleanSetting HIDE_SPONSORED_REELS =
             new BooleanSetting("hushfacebook_hide_sponsored_reels", TRUE);
@@ -902,6 +921,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_up_next", FALSE);
 
     /**
+     * The Fullscreen pill under a wide video in the Reels viewer isn't drawn ({@link
+     * app.morphe.extension.facebook.reels.ReelDeclutter#hideFullscreenPill}, #394). Off by default.
+     * A change shows as the next video draws.
+     */
+    public static final BooleanSetting HIDE_REEL_FULLSCREEN_PILL =
+            new BooleanSetting("hushfacebook_hide_reel_fullscreen_pill", FALSE);
+
+    /**
      * The tiles in the feed's Reels row play their reel from the start to its end instead of the
      * short clip Facebook picks, which is often one second played over and over
      * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#allowsPreviewClip} and
@@ -919,6 +946,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting FEED_VIDEOS_ALONE =
             new BooleanSetting("hushfacebook_feed_videos_alone", FALSE);
+
+    /**
+     * Watch again at the end of a feed video plays it again where it is instead of opening it in
+     * the Reels viewer ({@link app.morphe.extension.facebook.reels.WatchAgain}, #403). Off by
+     * default. A change shows on the next tap.
+     */
+    public static final BooleanSetting WATCH_AGAIN_IN_PLACE =
+            new BooleanSetting("hushfacebook_watch_again_in_place", FALSE);
 
     /**
      * The batches of watched reels the Reels viewer sends as FbShortsSeenStateMutation: only their
@@ -1630,8 +1665,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_frame_step", FALSE);
 
     /**
-     * Two fingers on a profile's photo or a story zoom it in place, and it springs back when they
-     * lift ({@link app.morphe.extension.facebook.media.PinchZoom}, #220). Starts off. Asked as each
+     * Two fingers on a profile's photo, a story, a feed video or a photo in Photo carousel's row zoom
+     * it in place, and it springs back when they lift ({@link
+     * app.morphe.extension.facebook.media.PinchZoom}, #220). Starts off. Asked as each
      * second finger lands, so a change shows from the next pinch. Off or paused, every touch goes to
      * Facebook as before.
      */
@@ -1665,10 +1701,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_pinch_to_zoom_dim", TRUE, Setting.parent(PINCH_TO_ZOOM));
 
     /**
-     * Pinch to zoom's fifth switch (#220): a video zoomed on a profile or Page keeps playing in the
-     * zoom, its copy redrawn from the video's own surface, and a press and hold on a kept zoom pauses
-     * the video and plays it again. A story stays one frame, held as before. Off, a video zooms on
-     * the frame it showed. Asked as each zoom starts.
+     * Pinch to zoom's fifth switch (#220): a zoomed video keeps playing in the zoom, its copy redrawn
+     * from the video's own surface, and a press and hold on a kept zoom pauses the video and plays it
+     * again. A story plays on too, unless it was held before the pinch, which zooms the frame it
+     * paused on. Off, a video zooms on the frame it showed. Asked as each zoom starts.
      */
     public static final BooleanSetting PINCH_TO_ZOOM_LIVE =
             new BooleanSetting("hushfacebook_pinch_to_zoom_live", FALSE, Setting.parent(PINCH_TO_ZOOM));
@@ -1899,6 +1935,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting LEAVE_CALLS_AND_CHATS_TO_MESSENGER =
             new BooleanSetting("hushfacebook_leave_calls_and_chats_to_messenger", FALSE, true);
+
+    /**
+     * While Meta's Messenger is installed and enabled, chats open in Messenger instead of inside
+     * Facebook, the Message button on a profile included (#392). Starts off. Facebook keeps its
+     * Messenger lookup for the process, so the switch restarts it. Without Messenger, chats stay in
+     * Facebook.
+     */
+    public static final BooleanSetting OPEN_CHATS_IN_MESSENGER =
+            new BooleanSetting("hushfacebook_open_chats_in_messenger", FALSE, true);
 
     /**
      * The Upgrades section of Facebook's Menu, the group Facebook types UPSELL, with its offers.
@@ -2772,6 +2817,21 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_comment_reaction_preview", FALSE);
 
     /**
+     * The profile picture leaves the top of posts, and the name moves over into its space
+     * ({@link app.morphe.extension.facebook.feed.ProfilePictures}, #400). Off by default. Read as each
+     * post's header draws.
+     */
+    public static final BooleanSetting HIDE_FEED_PROFILE_PICTURES =
+            new BooleanSetting("hushfacebook_hide_feed_profile_pictures", FALSE);
+
+    /**
+     * The profile picture leaves comments, and the name and text move over into its space (#400). Off
+     * by default. Read as each comment draws.
+     */
+    public static final BooleanSetting HIDE_COMMENT_PROFILE_PICTURES =
+            new BooleanSetting("hushfacebook_hide_comment_profile_pictures", FALSE);
+
+    /**
      * Posts you've already scrolled past stay out of the feed on later loads
      * ({@link app.morphe.extension.facebook.feed.SeenPosts}). Off by default: it remembers which
      * posts you saw, on the phone only. Posts already on screen are never touched, and a change
@@ -2813,12 +2873,20 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_keep_post_dates", TRUE);
 
     /**
-     * Posts in the feed and reel captions show their whole text instead of Facebook's cut with See more
-     * ({@link app.morphe.extension.facebook.feed.FullPostText}). A change shows on the posts and reels
-     * drawn after it.
+     * Posts in the feed show their whole text instead of Facebook's cut with See more
+     * ({@link app.morphe.extension.facebook.feed.FullPostText}). A change shows on the posts drawn
+     * after it.
      */
     public static final BooleanSetting SHOW_FULL_POST_TEXT =
-            new BooleanSetting("hushfacebook_show_full_post_text", FALSE);
+            new BooleanSetting(ReelCaptionSetting.FEED_KEY, FALSE);
+
+    /**
+     * Reel captions start whole instead of cut with "more" (#398, split from
+     * {@link #SHOW_FULL_POST_TEXT}, whose stored value it takes over once). A change shows on the
+     * reels drawn after it.
+     */
+    public static final BooleanSetting SHOW_FULL_REEL_CAPTIONS =
+            new ReelCaptionSetting("hushfacebook_show_full_reel_captions");
 
     /**
      * A post in another language gets a Translate line under its text, and a tap sends the text to
@@ -2878,7 +2946,9 @@ public class Settings extends BaseSettings {
 
     /**
      * Reels come without the "Are you interested in this reel?" prompt
-     * ({@link app.morphe.extension.facebook.reels.ReelPrompts}). A change shows on the reels built
+     * ({@link app.morphe.extension.facebook.reels.ReelPrompts}) or the "To what extent does this
+     * video match your interests?" survey card between them (#405,
+     * {@link app.morphe.extension.facebook.reels.ReelMidCards}). A change shows on the reels built
      * after it.
      */
     public static final BooleanSetting HIDE_REEL_PROMPTS =

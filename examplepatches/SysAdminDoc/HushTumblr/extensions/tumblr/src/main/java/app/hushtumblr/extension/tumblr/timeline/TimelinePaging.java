@@ -86,8 +86,8 @@ public final class TimelinePaging {
         }
     }
 
-    /** Called by {@link TimelineFilter} when [family]'s switch took the last item out of a page. */
-    static void emptied(String family) {
+    /** Called by {@link TimelineFilter}, or a dashboard blog rule, when [family]'s switch took the last item out of a page. */
+    public static void emptied(String family) {
         emptiedBy = family;
         HookStatus.counted(family, EMPTIED);
     }

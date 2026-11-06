@@ -68,6 +68,21 @@ internal object EmojiGlobalLayoutFingerprint : Fingerprint(
 )
 
 /**
+ * c1.g(PlayerMainFragment) is the lyrics screen: it hides the nav bar with
+ * setSystemUiVisibility(4098) without LAYOUT_HIDE_NAVIGATION, which leaves a black band in the
+ * nav bar area on API 29 (the app content keeps 990 px, the bar 90 px).
+ */
+internal object PlayerLyricsImmersiveFingerprint : Fingerprint(
+    definingClass = "Lcom/apple/android/music/player/c1;",
+    name = "g",
+    parameters = listOf(
+        "Landroidx/fragment/app/s;",
+        "Lcom/apple/android/music/player/fragment/PlayerMainFragment\$l;",
+    ),
+    returnType = "V",
+)
+
+/**
  * The implementing class is obfuscated (Le7/i; in 7.0.0), so it is identified by the
  * interface it implements. getAppIntegrityToken is the only method with this name in a
  * class implementing IExternalAppIntegrityProvider.
@@ -594,7 +609,7 @@ private fun Instruction.isNewInstanceOf(type: String): Boolean =
 
 @Suppress("unused")
 val appleMusicDiLinkPatch = bytecodePatch(
-    name = "Apple Music DiLink support",
+    name = "DiLink: support",
     description = "Unlocks landscape rotation, lowers the API floor to Android 10 (API 29), " +
         "backports the API 30 java/androidx/accessibility calls and bypasses Play Integrity.",
     default = true,
@@ -617,6 +632,23 @@ val appleMusicDiLinkPatch = bytecodePatch(
         // The original body registers API 30 window insets listeners; returning early on
         // API < 30 skips all of them, including setDecorFitsSystemWindows(false).
         EmojiGlobalLayoutFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    sget v0, $SDK_INT
+                    const/16 v1, 0x1e
+                    if-ge v0, v1, :supported
+                    return-void
+                """,
+                ExternalLabel("supported", getInstruction(0)),
+            )
+        }
+
+        // c1.g(...) has 4 registers and 2 parameters (v2/v3), so v0/v1 are free at entry.
+        // Skipping the whole method below API 30 keeps the BYD nav bar visible, as on every
+        // other screen, instead of leaving its 90 px area black; API 30+ keeps the immersive
+        // behavior because LAYOUT_HIDE_NAVIGATION there resizes the content.
+        PlayerLyricsImmersiveFingerprint.method.apply {
             addInstructionsWithLabels(
                 0,
                 """

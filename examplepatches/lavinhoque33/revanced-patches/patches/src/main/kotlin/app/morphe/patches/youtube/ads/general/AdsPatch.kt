@@ -1,3 +1,13 @@
+/*
+ * Copyright 2026 Morphe.
+ * https://github.com/MorpheApp/morphe-patches
+ *
+ * Original hard forked code:
+ * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
+ *
+ * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ */
+
 package app.morphe.patches.youtube.ads.general
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -6,12 +16,16 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.ANDROID_AUTOMOTIVE_STRING
 import app.morphe.patches.shared.ads.adsPatch
 import app.morphe.patches.shared.autoMotiveFingerprint
 import app.morphe.patches.shared.litho.addLithoFilter
 import app.morphe.patches.shared.litho.lithoFilterPatch
+import app.morphe.patches.youtube.general.spoofappversion.Endpoint
+import app.morphe.patches.youtube.general.spoofappversion.addOSNameHook
+import app.morphe.patches.youtube.general.spoofappversion.clientContextHookPatch
 import app.morphe.patches.shared.spoof.guide.addClientOSVersionHook
 import app.morphe.patches.shared.spoof.guide.spoofClientGuideEndpointPatch
 import app.morphe.patches.youtube.utils.engagement.addEngagementPanelIdHook
@@ -35,7 +49,6 @@ import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.indexOfFirstStringInstructionOrThrow
 import app.morphe.util.injectHideViewCall
 import app.morphe.util.updatePatchStatus
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.Opcode
@@ -59,6 +72,7 @@ val adsPatch = adsPatch(
             lithoLayoutPatch,
             sharedResourceIdPatch,
             spoofClientGuideEndpointPatch,
+            clientContextHookPatch,
             versionCheckPatch,
             engagementPanelHookPatch,
         )
@@ -194,8 +208,13 @@ val adsPatch = adsPatch(
 
         // region patch for hide shorts ad
 
+        addOSNameHook(
+            Endpoint.REEL,
+            "$ADS_FILTER_CLASS_DESCRIPTOR->hideShortsAds(Ljava/lang/String;)Ljava/lang/String;"
+        )
+
         // Hide Shorts ads by changing 'OSName' to 'Android Automotive'
-        autoMotiveFingerprint.methodOrThrow().apply {
+        autoMotiveFingerprint.method.apply {
             val insertIndex = indexOfFirstStringInstructionOrThrow(ANDROID_AUTOMOTIVE_STRING) - 1
             val insertRegister = getInstruction<OneRegisterInstruction>(insertIndex).registerA
 

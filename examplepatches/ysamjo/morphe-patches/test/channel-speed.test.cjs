@@ -3,6 +3,8 @@ const assert = require('node:assert/strict');
 const api = require('../extensions/extension/src/main/js/channel-speed.js');
 const SPORT = 'UCE0RhriywrL8XhXbo87tMKQ';
 const NFL = 'UCDVYQ4Zhbm3S2dlz7P1GBDg';
+const RTL = 'UC8WYi3XQXsf-6FNvqoEvxag';
+const NORMAL = 'UC1234567890123456789012';
 function target() {
     const listeners = {};
     return { addEventListener(type, fn) { (listeners[type] ||= new Set()).add(fn); },
@@ -67,8 +69,8 @@ function fixture({ channel = SPORT, speed = 2.5, saved, kids = false, readyState
 function items(command) { return command.openPopupAction.popup.overlaySectionRenderer.overlay.overlayTwoPanelRenderer.actionPanel.overlayPanelRenderer.content.overlayPanelItemListRenderer.items; }
 function settingsMenu(id = 'tt-settings') { return api.modal('Einstellungen', '', [api.button('Vorhanden', '', 'UNCHANGED')], id); }
 
-test('Vier Browser-Kanäle starten mit ihren Vorgaben', () => {
-    for (const [channel, speed] of [[SPORT, 1], ['UCRFsyeKu07-LnHDG44O6uCA', 1], [NFL, 1.1], ['UCK2izXoHvraUFaPMU5B7vMQ', 1]]) assert.equal(fixture({ channel }).video.playbackRate, speed);
+test('Fünf Browser-Kanäle starten mit ihren Vorgaben', () => {
+    for (const [channel, speed] of [[SPORT, 1], ['UCRFsyeKu07-LnHDG44O6uCA', 1], [NFL, 1.1], ['UCK2izXoHvraUFaPMU5B7vMQ', 1], [RTL, 1]]) assert.equal(fixture({ channel }).video.playbackRate, speed);
 });
 test('D/S/R überschreiben sportstudio temporär, neue Video-ID setzt zurück', () => {
     const env = fixture(); env.key('d'); assert.equal(env.video.playbackRate, 1.1); env.key('s'); assert.equal(env.video.playbackRate, 1);
@@ -83,7 +85,7 @@ test('Native Speed-Befehle funktionieren sofort, auch 1,0×', () => {
 });
 test('Nicht konfigurierte Kanäle verwenden unverändert das bisherige TV-Standardtempo', () => {
     const env = fixture({ channel: 'UC1234567890123456789012' }); assert.equal(env.video.playbackRate, 2.5);
-    env.nativeSpeed(1.25); env.next('second', 'UC1234567890123456789012'); assert.equal(env.video.playbackRate, 2.5);
+    env.nativeSpeed(1.25); env.next('second', 'UC1234567890123456789012'); assert.equal(env.video.playbackRate, 1.25);
 });
 test('Pause, Spulen und späte automatische Resets behalten manuelles Tempo', () => {
     const env = fixture(); env.nativeSpeed(1.5);
@@ -94,7 +96,7 @@ test('Veraltete verzögerte Callbacks können nächstes Video nicht überschreib
     const env = fixture(); env.nativeSpeed(1.75); env.media('loadeddata'); env.next('second', NFL); env.flush(1200); assert.equal(env.video.playbackRate, 1.1);
 });
 test('Gespeicherte individuelle Regeln und Dritt-Konfiguration bleiben erhalten', () => {
-    const saved = { globalSpeed: 1.8, kidsNormalSpeed: false, channels: [{ id: NFL, name: 'Eigene NFL-Regel', speed: 1.6 }] };
+    const saved = { version: 2, globalSpeed: 1.8, kidsNormalSpeed: false, channels: [{ id: NFL, name: 'Eigene NFL-Regel', speed: 1.6 }] };
     const env = fixture({ channel: NFL, saved }); assert.equal(env.video.playbackRate, 1.6); env.nativeSpeed(2);
     assert.deepEqual(env.control.getSettings().channels, [{ id: NFL, name: 'Eigene NFL-Regel', handle: '', speed: 1.6 }]);
     assert.equal(JSON.parse(env.storage.getItem('ytaf-configuration')).unrelated, 'erhalten');
@@ -140,7 +142,7 @@ test('Andere Kanalregeln löschen manuelle Auswahl nicht', () => {
 });
 test('Persistente Standardänderung gilt sofort und beim nächsten Video', () => {
     const env = fixture({ channel: '' }); env.action('YSAMJO_SPEED_SAVE', { global: true, speed: 1.8 }); assert.equal(env.video.playbackRate, 1.8);
-    env.nativeSpeed(2); env.next(); assert.equal(env.video.playbackRate, 1.8);
+    env.key('d'); env.next(); assert.equal(env.video.playbackRate, 1.8);
 });
 test('Speicherfehler und ungültige Tempowerte verändern Vorgaben nicht', () => {
     const env = fixture(); const before = env.control.getSettings(); env.failStorage();
@@ -149,6 +151,8 @@ test('Speicherfehler und ungültige Tempowerte verändern Vorgaben nicht', () =>
 });
 test('Eingaben und Fernbedienungs-Navigation werden nicht abgefangen', () => {
     const env = fixture(); for (const [key, extra] of [['d', { target: { tagName: 'INPUT' } }], ['d', { ctrlKey: true }], ['ArrowDown', {}], ['Escape', {}]]) assert.equal(env.key(key, extra).prevented, undefined);
+    env.root.location.hash = '#/search?';
+    for (const key of ['d', 's', 'r']) assert.equal(env.key(key).prevented, undefined);
     assert.equal(env.video.playbackRate, 1);
 });
 test('Später neu gesetzter nativer Router wird wieder eingebunden', () => {
@@ -189,5 +193,79 @@ test('Die native TizenTube-Schrittweite erlaubt auch Tempo unter 0,25×', () => 
     env.nativeSpeed(0.05);
     assert.equal(env.video.playbackRate, 0.05);
     env.next();
-    assert.equal(env.video.playbackRate, 0.2);
+    assert.equal(env.video.playbackRate, 0.05);
+});
+
+
+test('Standardtempo bleibt nach RTL, sportstudio, NFL und einem Neustart gespeichert', () => {
+    const env = fixture({ channel: NORMAL });
+    env.nativeSpeed(1.75);
+    for (const channel of [RTL, SPORT, NFL]) {
+        env.next('special-' + channel, channel);
+        assert.equal(env.video.playbackRate, channel === NFL ? 1.1 : 1);
+        env.nativeSpeed(1.25);
+        assert.equal(env.video.playbackRate, 1.25);
+        env.next('normal-' + channel, NORMAL);
+        assert.equal(env.video.playbackRate, 1.75);
+    }
+    const saved = JSON.parse(env.storage.getItem(api.key));
+    assert.equal(saved.globalSpeed, 1.75);
+    const restart = fixture({ channel: NORMAL, speed: 1.25, saved });
+    assert.equal(restart.video.playbackRate, 1.75);
+});
+
+test('Kids und D/S/R überschreiben ein gespeichertes Standardtempo nur vorübergehend', () => {
+    const env = fixture({ channel: NORMAL });
+    env.nativeSpeed(1.75);
+    env.key('d');
+    assert.equal(env.video.playbackRate, 1.85);
+    env.next();
+    assert.equal(env.video.playbackRate, 1.75);
+    env.root.location.hostname = 'www.youtubekids.com';
+    env.next('kids');
+    env.nativeSpeed(1.5);
+    env.root.location.hostname = 'www.youtube.com';
+    env.next('normal');
+    assert.equal(env.video.playbackRate, 1.75);
+});
+
+test('Alte Installation übernimmt zuletzt gewähltes natives Tempo und RTL genau einmal', () => {
+    const saved = { version: 1, globalSpeed: 1, kidsNormalSpeed: true, channels: [{ id: SPORT, name: 'sportstudio', speed: 1 }] };
+    const env = fixture({ channel: NORMAL, speed: 1.75, saved });
+    assert.equal(env.video.playbackRate, 1.75);
+    const migrated = JSON.parse(env.storage.getItem(api.key));
+    assert.equal(migrated.version, 2);
+    assert.equal(migrated.channels.filter(r => r.id === RTL).length, 1);
+    env.action('YSAMJO_SPEED_REMOVE', { channelId: RTL });
+    const restart = fixture({ channel: NORMAL, speed: 1.25, saved: JSON.parse(env.storage.getItem(api.key)) });
+    assert.equal(restart.video.playbackRate, 1.75);
+    assert.equal(restart.control.getSettings().channels.some(r => r.id === RTL), false);
+});
+
+test('Migration bewahrt ein bewusst gesetztes Standardtempo und individuelle RTL-Regeln', () => {
+    const env = fixture({ channel: NORMAL, speed: 1.25, saved: { version: 1, globalSpeed: 1.8, channels: [{ id: RTL, name: 'RTL', speed: 1.1 }] } });
+    assert.equal(env.video.playbackRate, 1.8);
+    env.next('rtl', RTL);
+    assert.equal(env.video.playbackRate, 1.1);
+    assert.equal(env.control.getSettings().channels.length, 1);
+});
+
+test('Fehlende Kanalidentität speichert keine irrtümliche Standardänderung', () => {
+    const env = fixture({ channel: '' });
+    env.nativeSpeed(1.5);
+    assert.equal(env.control.getSettings().globalSpeed, 2.5);
+    env.identify('first', RTL);
+    env.next('normal', NORMAL);
+    assert.equal(env.video.playbackRate, 2.5);
+});
+
+
+test('Kids-Auswahl bleibt auch bei ausgeschalteter 1,0×-Vorgabe vorübergehend', () => {
+    const env = fixture({ channel: NORMAL, kids: true, saved: { version: 2, globalSpeed: 1.75, kidsNormalSpeed: false, channels: [] } });
+    env.nativeSpeed(1.25);
+    assert.equal(env.video.playbackRate, 1.25);
+    assert.equal(env.control.getSettings().globalSpeed, 1.75);
+    env.root.location.hostname = 'www.youtube.com';
+    env.next();
+    assert.equal(env.video.playbackRate, 1.75);
 });

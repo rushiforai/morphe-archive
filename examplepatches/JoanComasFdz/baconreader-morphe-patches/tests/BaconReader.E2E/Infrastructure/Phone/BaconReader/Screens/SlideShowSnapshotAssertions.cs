@@ -15,4 +15,11 @@ public static class SlideShowSnapshotAssertions
         Assert.True(shown == count, $"The slide show shows {shown} gallery thumbnails, but its first image over {count} was expected.");
         return that;
     }
+
+    /// <summary>The post on the screen plays its video.</summary>
+    public static AssertingThat<SlideShowSnapshot> PlaysTheVideo(this AssertingThat<SlideShowSnapshot> that)
+    {
+        Assert.True(that.InstanceToAssert.PlaysAVideo, "The slide show shows no video, but one playing was expected.");
+        return that;
+    }
 }

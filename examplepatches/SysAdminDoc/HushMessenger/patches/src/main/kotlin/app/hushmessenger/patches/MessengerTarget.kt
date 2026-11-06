@@ -7,8 +7,9 @@ import app.morphe.patcher.patch.SupportedAbi
 
 /**
  * The stock Messenger builds the patches were checked against. APKMirror lists eight arm64 builds of 586 (one per
- * screen density, nodpi among them) and one armv7. Three of the arm64 ones (347215273, 347215275, 347215277) were
- * optimized differently, so strings and calls several finders anchor on sit in other methods, and they aren't here yet.
+ * screen density, nodpi among them) and one armv7, and every one is here. Three of the arm64 ones (347215273,
+ * 347215275, 347215277) went through another Redex pass, so they keep pooled strings, merged classes and inlined
+ * helpers of their own and get their own profiles.
  *
  * A version name alone is insufficient: Meta publishes several DEX variants with that name. Each
  * build is recorded in scripts/profiles by CompatReport; the APKs themselves are local research
@@ -20,13 +21,18 @@ internal object MessengerTarget {
 
     /** Each supported version name and the version codes of its checked builds. */
     val VERSIONS: Map<String, List<Int>> = mapOf(
-        "586.0.0.55.92" to listOf(347215257, 347215330, 347215341, 347215343, 347215344, 347215348),
+        "586.0.0.55.92" to listOf(
+            347215257, 347215273, 347215275, 347215277, 347215330, 347215341, 347215343, 347215344, 347215348,
+        ),
     )
     val VERSION_CODES = VERSIONS.values.flatten()
 
     /** The ABI each checked build is for, as its record's APK ships native code for. */
     val ABIS: Map<Int, SupportedAbi> = mapOf(
         347215257 to SupportedAbi.ARM64_V8A,
+        347215273 to SupportedAbi.ARM64_V8A,
+        347215275 to SupportedAbi.ARM64_V8A,
+        347215277 to SupportedAbi.ARM64_V8A,
         347215330 to SupportedAbi.ARM64_V8A,
         347215341 to SupportedAbi.ARMEABI_V7A,
         347215343 to SupportedAbi.ARM64_V8A,

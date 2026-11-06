@@ -44,9 +44,9 @@ class LegacyDrawerPatchTest {
 
     @Test fun factoryUsesFreshNativeModelsAndItsOwnCachedKeyAcrossAllFactoryMappings() {
         val profiles = controlProfiles.values.distinct()
-        // 586 makes the Settings icon in place, as 582 and 584.1's armv7 build did. 585 called the icon's factory, a shape
-        // this test still gives each profile.
-        assertEquals(setOf(true), profiles.map { legacyDrawerFixture(it).mapping.inlineIcon }.toSet())
+        // Most 586 builds make the Settings icon in place, as 582 and 584.1's armv7 build did. 585 called the icon's factory,
+        // as 347215273, 347215275 and 347215277 do again, a shape this test still gives each profile.
+        assertEquals(profiles.map { it !== PROFILE_347215273 }, profiles.map { legacyDrawerFixture(it).mapping.inlineIcon })
         for (profile in profiles) {
             val fixture = legacyDrawerFixture(profile, inlineIcon = false)
             val before = fixture.methods.map { it.implementation?.instructions?.toList() }
@@ -84,8 +84,8 @@ class LegacyDrawerPatchTest {
             assertFailsWith<PatchException> { plan(unrelated, profile) }
             assertEquals(before, unrelated.methods.map { it.implementation?.instructions?.toList() })
         }
-        // No supported build puts the factory on the icon's parent.
-        assertTrue(controlProfiles.values.distinct().none { legacyDrawerFixture(it).mapping.iconFactoryOnBase })
+        // Only 586's other arm64 builds put the factory on the icon's parent, FAF.A00 returning FBV.
+        assertEquals(listOf(PROFILE_347215273), controlProfiles.values.distinct().filter { legacyDrawerFixture(it).mapping.iconFactoryOnBase })
     }
 
     @Test fun anInlineSettingsIconUsesItsOwnConstructorAndKeepsTheFactoryUnused() {

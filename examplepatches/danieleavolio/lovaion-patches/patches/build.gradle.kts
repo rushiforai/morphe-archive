@@ -3,8 +3,8 @@ group = "app.daniele"
 patches {
     about {
         name = "Lovaion Patches"
-        description = "Morphe patches for Cinemaniac, Column, GuitarTuna, Photon Camera " +
-            "and Tickdrop. Patched by Morphe."
+        description = "Morphe patches for Cinemaniac, Column, GuitarTuna, Photon Camera, " +
+            "Rare and Tickdrop. Patched by Morphe."
         source = "https://github.com/danieleavolio/lovaion-patches"
         author = "Daniele Avolio"
         contact = "https://github.com/danieleavolio"
@@ -76,6 +76,28 @@ tasks {
 
         classpath = sourceSets["main"].output + e2eRuntime
         mainClass.set("util.E2ePhotonMainKt")
+
+        doFirst {
+            val apk = providers.gradleProperty("apk").orNull
+                ?: error("Pass -Papk=<input.apk> -Pout=<output.apk>")
+            val out = providers.gradleProperty("out").orNull
+                ?: error("Pass -Pout=<output.apk>")
+
+            args(apk, out)
+        }
+    }
+
+    /**
+     * Applies the Rare patches to an APK with the real patcher engine, to check
+     * that the fingerprints still match and that the output dex is valid:
+     *
+     *   .\gradlew.bat :patches:e2eRare -Papk=<input.apk> -Pout=<patched.apk>
+     */
+    register<JavaExec>("e2eRare") {
+        description = "Apply the Rare patches to an APK and write the patched file"
+
+        classpath = sourceSets["main"].output + e2eRuntime
+        mainClass.set("util.E2eRareMainKt")
 
         doFirst {
             val apk = providers.gradleProperty("apk").orNull

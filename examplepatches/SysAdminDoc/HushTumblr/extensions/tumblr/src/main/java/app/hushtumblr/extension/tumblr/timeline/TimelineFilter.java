@@ -91,11 +91,18 @@ public final class TimelineFilter {
      * The kinds of item that are an ad whatever else they carry, by the constant names Tumblr's
      * {@code TimelineObjectType} keeps. {@code BLAZED_POST} isn't one: it's a campaign in the list
      * of your own Blaze dashboard, which loads through the same page. A paid Blaze post in a feed is
-     * a post served as sponsored, see {@link Model#isPaidPlacement}.
+     * a post served as sponsored, see {@link Model#isPaidPlacement}. {@code RICH_BANNER} is the
+     * server's {@code sponsored_day}, a sponsor's banner carrying ad verification beacons.
      */
     static final Set<String> AD_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
             "GEMINI_AD", "FACEBOOK_BIDDAABLE", "NIMBUS_AD", "DISPLAY_IO_INTERSCROLLER_S2S_ADS", "VUNGLE_AD",
-            "CLIENT_SIDE_AD", "CLIENT_SIDE_MEDIATION", "DISPLAY_IO_INTERSCROLLER_AD", "GOOGLE_NATIVE")));
+            "CLIENT_SIDE_AD", "CLIENT_SIDE_MEDIATION", "DISPLAY_IO_INTERSCROLLER_AD", "GOOGLE_NATIVE", "RICH_BANNER")));
+
+    /**
+     * The server's {@code takeover_banner}. It's an ad when it names a sponsor. The same kind also
+     * carries Tumblr's Answer Time banner, so one without a sponsor stays.
+     */
+    static final String BANNER = "BANNER";
 
     /**
      * Blogs Tumblr suggests you follow, as cards, rows and the small cards of a carousel, and the
@@ -461,19 +468,27 @@ public final class TimelineFilter {
 
     /**
      * True when [item] is a timeline object Tumblr marks as an ad: by its kind, by the Sponsored
-     * label, as a paid placement, or by its structured paid header context. One that can't be read
-     * is kept.
+     * label, as a paid placement, by its structured paid header context, or as a banner naming its
+     * sponsor. One that can't be read is kept.
      */
     static boolean isAd(Object item) {
         Model found = modelFor(item, FamilyNames.HIDE_ADS);
         if (found == null) return false;
         try {
-            return AD_TYPES.contains(found.typeOf(item)) || Boolean.TRUE.equals(found.sponsored.invoke(item))
-                    || found.isPaidPlacement(item) || hasPaidHeader(found.data.invoke(item));
+            String type = found.typeOf(item);
+            return AD_TYPES.contains(type) || Boolean.TRUE.equals(found.sponsored.invoke(item))
+                    || found.isPaidPlacement(item) || hasPaidHeader(found.data.invoke(item))
+                    || BANNER.equals(type) && namesASponsor(found.data.invoke(item));
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_ADS, "timeline item", failure);
             return false;
         }
+    }
+
+    /** Whether a banner's [payload] names the sponsor Tumblr shows on it, by the getter Tumblr keeps. */
+    private static boolean namesASponsor(Object payload) throws ReflectiveOperationException {
+        Object sponsor = read(payload, "getSponsoredBy");
+        return sponsor instanceof String && !((String) sponsor).trim().isEmpty();
     }
 
     /**

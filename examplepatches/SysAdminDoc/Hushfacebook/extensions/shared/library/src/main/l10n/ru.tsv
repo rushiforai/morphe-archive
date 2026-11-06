@@ -1026,7 +1026,9 @@ The phone's language	Язык телефона
 Languages to leave alone	Языки без перевода
 None picked. Posts in every language can be translated.	Ничего не выбрано. Можно переводить публикации на любом языке.
 Left alone: %s	Без перевода: %s
-Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	Публикации в Ленте и подписи к Reels отображаются полностью, поэтому нажимать «Еще» не нужно. Нажмите на текст, чтобы снова свернуть его.
+Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold it back. Reel captions have their own switch under Reels and Watch.	Публикации в Ленте отображаются полностью, поэтому нажимать «Еще» не нужно. Нажмите на текст, чтобы снова свернуть его. Для подписей к Reels есть отдельный переключатель в разделе Reels и Watch.
+Show full reel captions	Показывать полные подписи к Reels
+Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	Длинные подписи к Reels сразу отображаются полностью. Нажмите на подпись, чтобы снова свернуть ее. Изменение действует со следующего ролика.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Посмотреть, кто поделился
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Добавляет пункт «Посмотреть, кто поделился» в меню публикации. Он открывает список пользователей Facebook, которые поделились ею.
@@ -1041,8 +1043,8 @@ Hide the Feeds header	Скрывать заголовок вкладки «Ле�
 Shows the Feeds tab straight on its posts, without the title row or the filters. Restart Facebook to see the change.	Открывает вкладку «Ленты» сразу со списком публикаций, без строки заголовка и фильтров. Перезапустите Facebook, чтобы увидеть изменения.
 # context: switch title under Reels and Watch; the prompt is Facebook's "Are you interested in this reel?" question on a reel
 Hide reel interest prompts	Скрывать вопросы об интересе к Reels
-# context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it
-No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	В Reels больше не появляется вопрос «Вам интересен этот Reels?». Видео воспроизводится как обычно.
+# context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it; the survey card is Facebook's "To what extent does this video match your interests?" card shown between reels
+No "Are you interested in this reel?" prompt on reels, and no survey card between them asking how well a video matches your interests.	В Reels больше не появляется вопрос «Вам интересен этот Reels?», а между видео нет опроса о том, насколько ролик соответствует вашим интересам.
 # context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
 Hide affiliate product links	Скрывать партнерские ссылки на товары
 Hides product cards from shopping links that creators add to posts, reels and comments.	Скрывает карточки товаров из партнерских ссылок, которые авторы добавляют в публикации, Reels и комментарии.
@@ -1413,6 +1415,7 @@ A few seconds after you leave Facebook, it closes all the way and leaves your re
 Facebook asks for your fingerprint, face or screen lock at startup and when you return after the time below. Your phone needs a screen lock.	При запуске Facebook и после возвращения в приложение по истечении указанного ниже времени запрашивает отпечаток пальца, распознавание лица или блокировку экрана. На телефоне должна быть настроена блокировка экрана.
 # context: toast when Lock Facebook is turned on and the phone has no screen lock to ask for
 Set a screen lock in your phone's settings first, so Facebook has something to ask for.	Сначала настройте блокировку экрана в параметрах телефона, чтобы Facebook мог запрашивать ее.
+Lock Facebook needs Android 10 or newer.	Чтобы блокировать Facebook, нужен Android 10 или новее.
 # context: title of the row and list that picks how long Facebook may be away before it locks
 Lock after	Блокировать через
 # context: Lock after choice: Facebook locks the moment you leave it
@@ -1782,8 +1785,8 @@ Longer music on photo stories	Увеличить длительность муз
 A song you add to a photo for your Story plays for up to 30 seconds instead of 15. Applies to the next song you pick.	Добавленная к фото для Истории песня воспроизводится до 30 секунд вместо 15. Применяется к следующей выбранной песне.
 # context: switch title under Stories; two fingers spread apart on a story or a profile photo make it bigger
 Pinch to zoom	Масштабирование жестом
-# context: summary of that switch; "let go" means lifting your fingers off the screen
-Pinch a story or a photo on someone's profile to zoom in. It goes back when you let go.	Разведите пальцы на Истории или фото в чужом профиле, чтобы увеличить изображение. После отпускания пальцев масштаб вернется.
+# context: summary of that switch; "let go" means lifting your fingers off the screen; "Photo carousel" is the label of another switch, so use its translation
+Pinch a story, a video in your feed, or a photo on someone's profile or in Photo carousel to zoom in. It goes back when you let go.	Разведите пальцы на Истории, видео в ленте или фото в чужом профиле или в карусели фото, чтобы увеличить изображение. После отпускания пальцев масштаб вернется.
 # context: switch title under Stories, right below Pinch to zoom; the zoomed picture stays zoomed after the fingers lift
 Stay zoomed	Сохранять масштаб
 # context: summary of that switch; "Pinch to zoom" is the label of the switch above it, so use its translation; "Back" is the phone's Back button
@@ -1798,8 +1801,8 @@ Dim around a zoom	Затемнять вокруг увеличения
 With Pinch to zoom on, the screen around a photo or story darkens as you zoom in. Turn it off to keep the rest of the screen as it is.	Если включено масштабирование жестом, экран вокруг фото или Истории темнеет, пока вы увеличиваете. Выключите, чтобы остальная часть экрана оставалась как есть.
 # context: a switch under Pinch to zoom; with it on, a video you zoom keeps moving instead of freezing on the frame it showed
 Keep videos playing while zoomed	Не останавливать видео при увеличении
-# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a Page is a business's or public figure's Facebook page; a story is the full-screen picture or video someone shares for a day
-With Pinch to zoom on, a video you zoom on a profile or Page keeps playing. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it. Stories hold still while you zoom.	Если включено масштабирование жестом, видео, которое вы увеличили в профиле или на Странице, продолжает играть. Если также включено «Сохранять масштаб», нажмите и удерживайте увеличенное изображение, чтобы поставить видео на паузу, и еще раз, чтобы воспроизвести его. Истории во время увеличения не двигаются.
+# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a story is the full-screen picture or video someone shares for a day; "hold it first" means pressing and holding one finger on the story before the second finger comes down
+With Pinch to zoom on, a video you zoom keeps playing, stories included. To zoom a story on a still frame, hold it first and then pinch. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it.	Если включено масштабирование жестом, видео, которое вы увеличили, продолжает играть, в том числе в Историях. Чтобы увеличить Историю на неподвижном кадре, сначала нажмите и удерживайте ее, а затем разведите пальцы. Если также включено «Сохранять масштаб», нажмите и удерживайте увеличенное изображение, чтобы поставить видео на паузу, и еще раз, чтобы воспроизвести его.
 No ads downloaded in advance	Не загружать рекламу заранее
 No ad tracking	Не отслеживать рекламу
 No Facebook ads in other apps	Не показывать рекламу Facebook в других приложениях
@@ -1971,6 +1974,10 @@ Takes the phone's status bar, with the time and battery, off Facebook's main scr
 Open feed videos on their own	Открывать видео из Ленты отдельно
 # context: summary of that switch; the Reels tab itself still scrolls normally
 A video you tap in the feed opens full screen by itself, with no reels to swipe to after it. The Reels tab keeps scrolling. Off by default, since it hasn't been tried on a real account yet.	При нажатии на видео в Ленте оно открывается отдельно в полноэкранном режиме, без возможности перелистывать следующие Reels. Вкладка Reels продолжает прокручиваться. По умолчанию выключено, поскольку функция еще не проверялась на реальном аккаунте.
+# context: switch title under Reels and Watch; on, tapping Watch again when a video in the news feed ends plays it again in the feed instead of opening it in the Reels viewer
+Replay feed videos in place	Повторять видео из Ленты на месте
+# context: summary of that switch; Watch again is Facebook's own button shown when a feed video ends, so use Facebook's wording in your language if you know it
+Watch again at the end of a feed video plays it again right there, instead of opening it in Reels.	Кнопка «Посмотреть снова» в конце видео из Ленты запускает его заново прямо там, а не открывает в Reels.
 Hide the new comments pop-up	Скрывать всплывающее уведомление о новых комментариях
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Пузырь «Новые комментарии» больше не появляется во время чтения комментариев. Новые комментарии по-прежнему отображаются в списке.
@@ -2616,3 +2623,17 @@ With Seek bar on stories on, the bar fades a few seconds after the story starts 
 Clean mode	Чистый режим
 Clean mode button on reels	Кнопка чистого режима в Reels
 Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	Добавляет кнопку чистого режима к кнопкам сбоку от Reels. Нажмите ее, чтобы скрыть их, и чистый режим останется включенным при пролистывании. Собственная кнопка чистого режима Facebook возвращает их.
+Open chats in Messenger	Открывать чаты в Messenger
+Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	Чаты открываются в приложении Messenger, а не внутри Facebook, в том числе по кнопке «Отправить сообщение» в профиле, пока Messenger установлен и включён. Без Messenger чаты остаются в Facebook. Перезапустите Facebook после изменения.
+Hide the Fullscreen button	Скрывать кнопку «Во весь экран»
+Takes the Fullscreen button off the space under a wide video in Reels. A change shows from the next video.	Убирает кнопку «Во весь экран» из пустого места под широким видео в Reels. Изменение применяется начиная со следующего видео.
+Hide rings in the feed	Скрыть кольца в ленте
+Hide rings in comments	Скрыть кольца в комментариях
+Hide rings on profiles	Скрыть кольца в профилях
+Takes the story and LIVE rings off the profile pictures at the top of posts. Tapping the picture opens the profile. Applies to posts drawn after the change.	Убирает кольца Историй и LIVE с фото профиля вверху публикаций. Нажатие на фото открывает профиль. Действует для публикаций, показанных после изменения.
+Takes the story ring off the profile pictures next to comments. Applies to comments drawn after the change.	Убирает кольцо Истории с фото профиля рядом с комментариями. Действует для комментариев, показанных после изменения.
+Takes the story and LIVE rings off the picture on a profile, and in the lists and search results that show it the same way. Applies the next time the picture draws.	Убирает кольца Историй и LIVE с фото в профиле, а также в списках и результатах поиска, где оно показано так же. Действует со следующего показа фото.
+Hide profile pictures on posts	Скрывать фото профиля в публикациях
+Hide profile pictures in comments	Скрывать фото профиля в комментариях
+Takes the profile picture off the top of posts, so the name starts where the picture was. A change shows on the posts drawn after it.	Убирает фото профиля в верхней части публикаций, и имя начинается там, где было фото. Изменение видно на публикациях, показанных после него.
+Takes the profile picture off comments, so the name and text start where the picture was. A change shows on the comments drawn after it.	Убирает фото профиля у комментариев, и имя с текстом начинаются там, где было фото. Изменение видно на комментариях, показанных после него.

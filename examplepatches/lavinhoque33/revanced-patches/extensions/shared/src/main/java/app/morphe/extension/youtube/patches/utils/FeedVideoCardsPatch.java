@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
 import app.morphe.extension.youtube.patches.FeedVideoActionsPatch;
+import app.morphe.extension.youtube.patches.PostImageDownloadPatch;
 import app.morphe.extension.youtube.patches.feed.FeedEngagementCountsPatch;
 import app.morphe.extension.youtube.patches.feed.FeedViewCountPatch;
 import app.morphe.extension.youtube.shared.PlayerType;
@@ -63,7 +64,7 @@ public final class FeedVideoCardsPatch {
 
     // The Watch later button of Feed video actions is hidden on cards whose video plays in the feed.
     private static final boolean ENABLED = FeedViewCountPatch.ENABLED || FeedEngagementCountsPatch.ENABLED
-            || Settings.FEED_WATCH_LATER_BUTTON.get();
+            || Settings.FEED_WATCH_LATER_BUTTON.get() || PostImageDownloadPatch.ENABLED;
 
     /**
      * A card must be as wide as a card of a grid of up to three columns, such as the feed in landscape.
@@ -116,6 +117,18 @@ public final class FeedVideoCardsPatch {
             Pattern.compile("/vi(?:_webp)?/([A-Za-z0-9_-]{11})/");
 
     private static final byte[] THUMBNAIL_PATH = "/vi".getBytes(StandardCharsets.US_ASCII);
+
+    /**
+     * Delimiter of the parts of the accessibility description of a video card,
+     * such as "Title - 12 minutes - Channel - 4.7M views - 2 days ago - play video".
+     */
+    private static final String DESCRIPTION_DELIMITER = " - ";
+
+    /**
+     * Invisible format characters, such as the ones the elements of the classic layout add
+     * after the title (U+2060 to U+2064), which the card does not show.
+     */
+    private static final Pattern FORMAT_CHARACTERS_PATTERN = Pattern.compile("\\p{Cf}+");
 
     /** Text -> video id, or {@link #AMBIGUOUS}. Oldest texts are removed first. */
     @GuardedBy("itself")
@@ -199,7 +212,10 @@ public final class FeedVideoCardsPatch {
     private FeedVideoCardsPatch() {
     }
 
-    private static boolean contains(byte[] bytes, byte[] search) {
+    /**
+     * @return If the bytes include the search bytes, such as an ASCII text of an element.
+     */
+    public static boolean contains(byte[] bytes, byte[] search) {
         final int last = bytes.length - search.length;
         outer:
         for (int i = 0; i <= last; i++) {
@@ -211,6 +227,13 @@ public final class FeedVideoCardsPatch {
             return true;
         }
         return false;
+    }
+
+    /**
+     * @return The text as it's matched between an element and a card.
+     */
+    private static String normalizeText(CharSequence text) {
+        return FORMAT_CHARACTERS_PATTERN.matcher(text).replaceAll("").trim();
     }
 
     private static boolean isVideoText(String text) {
@@ -278,7 +301,7 @@ public final class FeedVideoCardsPatch {
 
             synchronized (textVideoIds) {
                 for (ProtoNode node : textNodes) {
-                    String text = node.getText().trim();
+                    String text = normalizeText(node.getText());
                     if (!isVideoText(text)) {
                         continue;
                     }
@@ -391,7 +414,7 @@ public final class FeedVideoCardsPatch {
         if (textContent != null) {
             for (CharSequence text : textContent.getTextItems()) {
                 if (text != null) {
-                    if (isVideoBadgeText(text.toString().trim())) {
+                    if (isVideoBadgeText(normalizeText(text))) {
                         return true;
                     }
                 }
@@ -410,7 +433,7 @@ public final class FeedVideoCardsPatch {
         if (textContent != null) {
             for (CharSequence text : textContent.getTextItems()) {
                 if (text != null) {
-                    String item = text.toString().trim();
+                    String item = normalizeText(text);
                     if (isVideoText(item) && !texts.contains(item)) {
                         texts.add(item);
                     }
@@ -525,6 +548,47 @@ public final class FeedVideoCardsPatch {
             }
         }
 
+        // The texts of a mix or a playlist, which are never shared with a video.
+        // A single short text can belong to an element of another video that was not seen.
+        return findBestMatch(scores);
+    }
+
+    /**
+     * Litho draws only the part of a card that is shown, so a card that enters from the bottom
+     * of the list shows its thumbnail before its texts, and its video is not known by its texts.
+     * The accessibility description of the card is set already, and starts with the title,
+     * such as "Title - 12 minutes - Channel - 4.7M views - 2 days ago - play video".
+     *
+     * @return The video of the card found by the start of its description, or null if not known.
+     */
+    @Nullable
+    public static String findVideoIdByDescription(ComponentHost root) {
+        CharSequence description = root.getContentDescription();
+        if (description == null) {
+            return null;
+        }
+        String text = description.toString();
+        synchronized (textVideoIds) {
+            // A title can contain the delimiter too, so the longest start of the description
+            // that is a text of a video is used.
+            for (int end = text.lastIndexOf(DESCRIPTION_DELIMITER); end > 0;
+                 end = text.lastIndexOf(DESCRIPTION_DELIMITER, end - 1)) {
+                String videoId = textVideoIds.get(normalizeText(text.substring(0, end)));
+                if (videoId != null) {
+                    return videoId.equals(AMBIGUOUS) ? null : videoId;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * @param scores Match -> score of the texts that belong to it, where a long text scores 2.
+     * @return The match with the highest score, or null if there is a tie
+     *         or the best match has only a single short text.
+     */
+    @Nullable
+    public static String findBestMatch(Map<String, Integer> scores) {
         String best = null;
         int bestScore = 0;
         boolean tie = false;
@@ -538,8 +602,6 @@ public final class FeedVideoCardsPatch {
                 tie = true;
             }
         }
-        // The texts of a mix or a playlist, which are never shared with a video.
-        // A single short text can belong to an element of another video that was not seen.
         return tie || bestScore < 2 ? null : best;
     }
 
@@ -552,6 +614,18 @@ public final class FeedVideoCardsPatch {
             parent = componentHost.getParent();
         }
         return root;
+    }
+
+    /**
+     * @return The root host of the card that contains the tapped view.
+     */
+    @Nullable
+    public static ComponentHost findTappedRootHost(View sender) {
+        ViewParent parent = sender instanceof ComponentHost host ? host : sender.getParent();
+        while (parent instanceof View view && !(parent instanceof ComponentHost)) {
+            parent = view.getParent();
+        }
+        return parent instanceof ComponentHost host ? findRootHost(host) : null;
     }
 
     /**
@@ -621,7 +695,6 @@ public final class FeedVideoCardsPatch {
      */
     public static void scheduleRetry(ComponentHost root) {
         scheduleScrollCheck(root);
-
         Integer count = retries.get(root);
         final int attempt = count == null ? 0 : count;
         if (attempt >= MAX_RETRIES) {
@@ -672,6 +745,7 @@ public final class FeedVideoCardsPatch {
                 FeedViewCountPatch.onCardLaidOut(root, cardVideoId);
                 FeedEngagementCountsPatch.onCardLaidOut(root, cardVideoId);
                 FeedVideoActionsPatch.onCardLaidOut(root, cardVideoId);
+                PostImageDownloadPatch.onRootLaidOut(root);
             }
         } catch (Exception ex) {
             Logger.printException(() -> "updateRoots failure", ex);

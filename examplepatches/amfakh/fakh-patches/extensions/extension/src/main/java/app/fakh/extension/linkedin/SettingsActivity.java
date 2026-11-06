@@ -165,7 +165,7 @@ public final class SettingsActivity extends Activity {
                 feed.toggle(Settings.EXPAND_POSTS, false, "Expand posts by default", "Posts start expanded. Tap the text to collapse.");
             }
             if (Settings.isFeedFiltersIncluded()) {
-                feed.toggle(Settings.FOCUS_MODE, false, "Focus mode", "Hide like, comment, and repost counts.")
+                feed.toggle(Settings.FOCUS_MODE, false, "Hide engagement counts", "Hide like, comment, and repost counts.")
                         .toggle(Settings.HIDE_CELEBRATIONS, false, "Hide celebration posts",
                                 "Work anniversaries and new jobs.")
                         .toggle(Settings.HIDE_FEED_JOBS, false, "Hide job posts",
@@ -184,17 +184,38 @@ public final class SettingsActivity extends Activity {
             categories.add(feed);
         }
 
-        if (Settings.isMoreMenuIncluded()) {
-            Category more = new Category("More tab")
-                    .toggle(Settings.HIDE_MORE_TAB, true, "Move to the profile menu",
-                            "Hide the More tab and list its items in the profile menu.")
-                    .toggle(Settings.GAMES_SHORTCUT, true, "Puzzle games shortcut",
-                            "Add it to the menu of the LinkedIn app icon.", () -> GamesShortcut.update(this));
-            for (MoreMenu.Item item : MoreMenu.items()) more.check(item.key(), true, item.label);
-            categories.add(more);
+        if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()) {
+            Category navigation = new Category("Navigation bar");
+            if (Settings.isGlassNavigationBarIncluded()) {
+                navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Glass navigation bar",
+                        "A floating, translucent navigation bar.");
+            }
+            if (Settings.isNavigationBarIncluded()) {
+                navigation.toggle(Settings.HIDE_TAB_LABELS, false, "Hide tab labels", "Text under the navigation bar icons.")
+                        .toggle(Settings.HIDE_TAB_BADGES, false, "Hide notification badges",
+                                "The count on the navigation bar tabs.")
+                        .action("Navigation bar tabs", "Home is always shown.", null)
+                        .check(Settings.SHOW_TAB_JOBS, true, "Jobs")
+                        .check(Settings.SHOW_TAB_NETWORK, true, "Network")
+                        .check(Settings.SHOW_TAB_NOTIFICATIONS, true, "Notifications")
+                        .check(Settings.SHOW_TAB_MORE, Settings.showMoreTab(), "More");
+            }
+            categories.add(navigation);
         }
 
-        if (Settings.isRemoveGapsAndDividersIncluded() || Settings.isMaterialYouIncluded()) {
+        if (Settings.isMoreMenuIncluded()) {
+            Category more = new Category("More tab")
+                    .toggle(Settings.MOVE_MORE_ITEMS, Settings.moveMoreItems(), "Show in the profile menu",
+                            "Also list the items of the More tab in the profile menu.");
+            for (MoreMenu.Item item : MoreMenu.items()) more.check(item.key(), true, item.label);
+            categories.add(more);
+            categories.add(new Category("Shortcuts")
+                    .toggle(Settings.GAMES_SHORTCUT, true, "Puzzle games shortcut",
+                            "Add it to the menu of the LinkedIn app icon.", () -> GamesShortcut.update(this)));
+        }
+
+        if (Settings.isRemoveGapsAndDividersIncluded() || Settings.isMaterialYouIncluded()
+                || Settings.isAmoledBlackIncluded()) {
             Category appearance = new Category("Appearance");
             if (Settings.isRemoveGapsAndDividersIncluded()) {
                 appearance.toggle(Settings.REMOVE_GAPS_AND_DIVIDERS, true, "Remove gaps and dividers",
@@ -203,6 +224,10 @@ public final class SettingsActivity extends Activity {
             if (Settings.isMaterialYouIncluded()) {
                 appearance.toggle(Settings.MATERIAL_YOU, true, "Material You",
                         "Colors from your wallpaper across the app.");
+            }
+            if (Settings.isAmoledBlackIncluded()) {
+                appearance.toggle(Settings.PITCH_BLACK, true, "Pitch black",
+                        "Black backgrounds in dark mode.");
             }
             categories.add(appearance);
         }
@@ -368,6 +393,10 @@ public final class SettingsActivity extends Activity {
             background = materialYou[0];
             canvas = materialYou[1];
             accent = materialYou[3];
+        }
+        if (dark && Settings.pitchBlack()) {
+            background = 0xFF0D0D0D;
+            canvas = 0xFF000000;
         }
 
         Window window = getWindow();
@@ -671,6 +700,9 @@ public final class SettingsActivity extends Activity {
                 {"Block tracking", Settings.isBlockTrackingIncluded()},
                 {"Remove gaps and dividers", Settings.isRemoveGapsAndDividersIncluded()},
                 {"Material You", Settings.isMaterialYouIncluded()},
+                {"Pitch black", Settings.isAmoledBlackIncluded()},
+                {"Glass navigation bar", Settings.isGlassNavigationBarIncluded()},
+                {"Navigation bar", Settings.isNavigationBarIncluded()},
                 {"More tab", Settings.isMoreMenuIncluded()},
                 {"GmsCore support", Settings.isGmsCoreSupportIncluded()},
         };

@@ -1,11 +1,10 @@
 ![HushMessenger. Keep the conversation. Cut the friction.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.28.0"><img src="https://img.shields.io/badge/version-0.28.0-0084FF" alt="Version 0.28.0"></a>
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/development-0.29.0-5AC8FA" alt="Development version 0.29.0"></a>
+  <a href="https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.29.0"><img src="https://img.shields.io/badge/version-0.29.0-0084FF" alt="Version 0.29.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B%20arm64%20%7C%20armv7-3DDC84" alt="Platform Android 9 or newer, arm64 and armv7">
-  <img src="https://img.shields.io/badge/Messenger-585.0.0.53.94-0084FF" alt="Messenger 585.0.0.53.94">
+  <img src="https://img.shields.io/badge/Messenger-586.0.0.55.92-0084FF" alt="Messenger 586.0.0.55.92">
 </p>
 
 <p align="center">
@@ -22,7 +21,7 @@
 
 HushMessenger is a set of [Morphe](https://morphe.software) patches for Facebook Messenger. You bring the Messenger APK, Morphe patches it on your phone, and you get a Messenger with a settings screen full of switches that stock Messenger doesn't have. Hide the ads, the suggested people, the stories row and Meta AI. Stop sending read receipts and typing indicators. Watch stories without showing up in the viewer list. Keep a log of messages so an unsend can't take them back. Send photos at their real quality, use your own font, let Material You color the app, and more.
 
-Every switch starts off, so a freshly patched Messenger behaves like stock until you turn something on. The current release has 71 patches. What changed in each version is in the [changelog](CHANGELOG.md).
+Every switch starts off, so a freshly patched Messenger behaves like stock until you turn something on. The current release has 88 patches. What changed in each version is in the [changelog](CHANGELOG.md).
 
 **[Add HushMessenger to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushMessenger)**
 
@@ -31,12 +30,12 @@ Every switch starts off, so a freshly patched Messenger behaves like stock until
 
 ## Install
 
-1. **Get the APK.** The current release, v0.28.0, patches Messenger 585.0.0.53.94. Download it from [APKMirror's 585.0.0.53.94 page](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-585-0-0-53-94-release/). APKMirror added more builds of that version after the release went out, and v0.28.0 only takes the seven it was checked against, so check the version code before you download. Most phones (arm64) should take `347015062`, the `nodpi` one. A 32-bit (armv7) phone takes `347014974` or `347014990`. The other arm64 builds that work are `347014996`, `347015064`, `347015065` and `347015067`.
-2. **Add the source.** Open the link above on your phone with Morphe Manager (2.3.0 or newer) installed. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushMessenger`. The card should show **71 patches**. If it shows an older version, tap its refresh button. Manager also shows **Signed by `4d8d c2b3 fbcd 3ab6`** on the card. That's this project's key, and [Verify a download](#verify-a-download) has more on it.
+1. **Get the APK.** The current release, v0.29.0, patches Messenger 586.0.0.55.92. Download it from [APKMirror's 586.0.0.55.92 page](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-586-0-0-55-92-release/). APKMirror lists more builds of that version than v0.29.0 takes, so check the version code before you download. Most phones (arm64) should take `347215257` or `347215343`, the `nodpi` ones. A 32-bit (armv7) phone takes `347215341`. The other arm64 builds that work are `347215330`, `347215344` and `347215348`. Skip `347215273`, `347215275` and `347215277` for now.
+2. **Add the source.** Open the link above on your phone with Morphe Manager (2.4.0 or newer) installed. Or in Manager open **Sources**, tap **+**, choose **Remote** and enter `github.com/SysAdminDoc/HushMessenger`. The card should show **88 patches**. If it shows an older version, tap its refresh button. Manager also shows **Signed by `4d8d c2b3 fbcd 3ab6`** on the card. That's this project's key, and [Verify a download](#verify-a-download) has more on it.
 3. **Patch Messenger.** The default selection includes every switch. Five patches start unselected because they change the app itself, with no switch to undo them: **Clone install under another package name**, **Spoof package version**, **Custom new-message sound**, **Custom launcher icon** and **GmsCore support**. To add one, turn on **Settings → Advanced → Expert mode** in Manager and use **Choose patches**.
 4. **Keep one source.** Don't add the remote source and a local copy together, and don't mix in Messenger patches from other sources.
 
-Prefer a local source? Download [`patches-0.28.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.28.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 1.20.0 or newer can load the same source too.
+Prefer a local source? Download [`patches-0.29.0.mpp`](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.29.0) and add it through **Sources > + > Local**. It won't update itself. The `.mpp` file is a patch bundle, not a Messenger APK. Morphe Desktop 2.0.0 or newer can load the same source too.
 
 ## Settings
 
@@ -116,7 +115,7 @@ These screenshots come from the code on this page, so they can be a step ahead o
 | Keep unsent messages | Keeps messages on the older unsend routes and marks them "[unsent]". An encrypted chat can't keep the message itself, so its notification stays up instead. |
 | Allow screenshots | Lets you screenshot protected photos and media, view-once included, with no screenshot notice to the sender. |
 | Hide pictures on the Blocked list | The list of people you've blocked, under Privacy and safety, shows their names and Unblock without their profile pictures. |
-| Notify for restricted chats | Messages from people you've restricted notify you like any other chat, unless you've muted that chat. They still can't see when you're active or when you've read their messages. |
+| Notify for restricted chats | Messages from people you've restricted notify you like any other chat, unless you've muted that chat or it's end-to-end encrypted. They still can't see when you're active or when you've read their messages. A restricted encrypted chat also drops out of your chat list, so search the person's name in Messenger and open it from the results. |
 | Use system emoji | Draws emoji with your phone's own set on Android 12 and newer. |
 | Send photos at original quality | With HD on, a JPEG photo up to 20 MB goes out at its full size instead of Messenger's smaller copy. Location and camera details are stripped, as Messenger does. |
 | Send videos without re-encoding | A video up to 25 MB goes out as it is. |
@@ -190,25 +189,28 @@ With **Hide read receipts** on, a chat you open stays unread on your phone, beca
 
 ## Supported Messenger builds
 
-This table is for the next release, which moves to Messenger 586.0.0.55.92. v0.28.0, the current one, still takes the 585.0.0.53.94 builds listed in step 1 under Install.
+This table is for the next release. v0.29.0, the current one, doesn't take `347215273`, `347215275` or `347215277` yet.
 
 | Field | Value |
 | --- | --- |
 | Package | `com.facebook.orca` |
 | Version | `586.0.0.55.92` |
-| Version codes, arm64-v8a | `347215257`, `347215330`, `347215343`, `347215344`, `347215348` |
+| Version codes, arm64-v8a | `347215257`, `347215273`, `347215275`, `347215277`, `347215330`, `347215343`, `347215344`, `347215348` |
 | Version code, armeabi-v7a | `347215341` |
-| Icons for every screen density | `347215257`, `347215343` |
-| Icons for one screen density | 120-160 dpi `347215344`. 360-480 dpi `347215330` and the armeabi-v7a build. 560-640 dpi `347215348` |
+| Icons for every screen density | `347215257`, `347215273`, `347215343` |
+| Icons for one screen density | 120-160 dpi `347215344`. 213-240 dpi `347215275`. 360-480 dpi `347215277`, `347215330` and the armeabi-v7a build. 560-640 dpi `347215348` |
 | Minimum Android version | Android 9 (API 28) |
 | APKMirror download | [586.0.0.55.92](https://www.apkmirror.com/apk/facebook-2/messenger/facebook-messenger-586-0-0-55-92-release/) |
 
-APKMirror lists three more arm64 builds of 586 (`347215273`, `347215275` and `347215277`). Meta compiled those a little differently, and they aren't supported yet, so pick one from the table. The patch checks the version code before it changes anything and stops on a build that isn't listed. Older Messenger versions aren't supported by current bundles. v0.28.0 takes 585.0.0.53.94 (armv7 too), v0.27.0 takes 584.1.0.61.98, v0.26.0 takes 584.0.0.49.98, v0.25.0 takes 583.0.0.29.95 and v0.23.0 takes 582.0.0.61.92.
+That's every build APKMirror lists for 586. Meta compiled `347215273`, `347215275` and `347215277` a little differently from the rest, and the patches find their way around both kinds. The patch checks the version code before it changes anything and stops on a build that isn't listed. Older Messenger versions aren't supported by current bundles. v0.28.0 takes 585.0.0.53.94 (armv7 too), v0.27.0 takes 584.1.0.61.98, v0.26.0 takes 584.0.0.49.98, v0.25.0 takes 583.0.0.29.95 and v0.23.0 takes 582.0.0.61.92.
 
 SHA-256 of the stock APKs the checks ran against:
 
 ```text
 347215257  d362ca4c12b3df2255cadfe16bad6e6b8e6f7dce28f678ef1c148c50343938a2
+347215273  954a17fafc4e1081becf82bf9e9c80b49fbd83470b52a0f578e0d4e9453da35b
+347215275  204bfaa3da0fd5371ceac595a764d115fe2ca74c5b462db6a86be51c76e80093
+347215277  5eb448e8615f50790414d475af7e4f2cf76813e687848a6ccf06ed00e80721d7
 347215330  503251702dc69d100feba9d56cfa28e96ec1c9ea974cf385bf88d6ee2ed037c1
 347215341  c2a2b65edf52bede0de5b1d5603f332813a7c404784ac8913801a29670190691
 347215343  d6335e5da25effadd6c8f03220750e0990bc17bcd2670275883bfd8dd3605edc
@@ -220,10 +222,10 @@ On Windows, compare your file with `Get-FileHash -Algorithm SHA256 .\messenger.a
 
 ## Verify a download
 
-The [v0.28.0 release](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.28.0) ships `SHA256SUMS.txt` beside the bundle. Compare its `.mpp` hash with your download.
+The [v0.29.0 release](https://github.com/SysAdminDoc/HushMessenger/releases/tag/v0.29.0) ships `SHA256SUMS.txt` beside the bundle. Compare its `.mpp` hash with your download.
 
 ```text
-10c7bd6da6455c3af3187c390ba2c7fda7397b0afb5608d97a2a6fd956f59a7d  patches-0.28.0.mpp
+46c43c6a817e9f4dc8262ad881b1f8a6c9237c8691eb234d4f2ef33d98326a61  patches-0.29.0.mpp
 ```
 
 `SHA256SUMS.txt.sig` is an SSH signature made with the project's release key. Its fingerprint is `SHA256:Z+UfHy7IUbtgNRO/wHkIr68+u4I+SIKPY9avfx/VAPU` and its public half is in [`scripts/release_signers`](scripts/release_signers). Morphe doesn't check this signature, so checking it is up to you. Download the three files from the same tag and run this in a terminal (OpenSSH 8.1 or newer, which Windows 10 and later include). In PowerShell, wrap it in `cmd /c "..."`.

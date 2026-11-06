@@ -34,6 +34,25 @@ public sealed class MediaTests(FakeRedditFixture fixture) : FakeRedditTest(fixtu
     }
 
     [Fact]
+    public async Task A_comment_that_starts_with_an_image_has_its_previews_bare_link_first_in_its_body_and_html()
+    {
+        var post = World.AddPost("e2e", "Weekly thread");
+        var comment = World.AddComment(post, "", build => build.WithImage().ThenSaying("Look above"));
+        var id = Assert.Single(comment.Media.Keys);
+
+        var data = await ReadCommentAsync(post);
+
+        // As most images uploaded in comments come: the preview's URL first, alone on its line.
+        var preview = $"{Server.Url}/_media/preview.redd.it/{id}.png?width=320&format=png&auto=webp&s=e2e";
+        Assert.Equal($"{preview}\n\nLook above", data.GetProperty("body").GetString());
+        Assert.Equal(preview, data.GetProperty("media_metadata").GetProperty(id).GetProperty("s").GetProperty("u").GetString());
+        var linked = preview.Replace("&", "&amp;amp;", StringComparison.Ordinal);
+        Assert.StartsWith(
+            $"&lt;div class=\"md\"&gt;&lt;p&gt;&lt;a href=\"{linked}\"&gt;{linked}&lt;/a&gt;&lt;/p&gt;\n&lt;p&gt;Look above&lt;/p&gt;",
+            data.GetProperty("body_html").GetString());
+    }
+
+    [Fact]
     public async Task A_jpeg_uploaded_in_a_comment_is_a_pjpg_preview_as_Reddit_names_it()
     {
         var post = World.AddPost("e2e", "Weekly thread");
@@ -108,6 +127,23 @@ public sealed class MediaTests(FakeRedditFixture fixture) : FakeRedditTest(fixtu
         var linked = preview.Replace("&", "&amp;amp;", StringComparison.Ordinal);
         Assert.Contains($"&lt;p&gt;Look at this&lt;/p&gt;\n&lt;p&gt;&lt;a href=\"{linked}\"&gt;{linked}&lt;/a&gt;&lt;/p&gt;", data.GetProperty("selftext_html").GetString());
         await AssertServesAsync(preview, "image/png", MediaAsset.Png.Bytes);
+    }
+
+    [Fact]
+    public async Task A_text_post_that_starts_with_an_image_has_its_previews_bare_link_first_in_its_text_and_html()
+    {
+        var post = World.AddPost("e2e", "A picture first", build => build.WithImageAndThenText("Above is my photo"));
+        var id = Assert.Single(post.Media.Keys);
+
+        var page = await GetJsonAsync($"/comments/{post.Id}/.json");
+
+        var data = page[0].GetProperty("data").GetProperty("children")[0].GetProperty("data");
+        var preview = $"{Server.Url}/_media/preview.redd.it/{id}.png?width=320&format=png&auto=webp&s=e2e";
+        Assert.Equal($"{preview}\n\nAbove is my photo", data.GetProperty("selftext").GetString());
+        var linked = preview.Replace("&", "&amp;amp;", StringComparison.Ordinal);
+        Assert.Contains(
+            $"&lt;div class=\"md\"&gt;&lt;p&gt;&lt;a href=\"{linked}\"&gt;{linked}&lt;/a&gt;&lt;/p&gt;\n&lt;p&gt;Above is my photo&lt;/p&gt;",
+            data.GetProperty("selftext_html").GetString());
     }
 
     // The data of the post's one comment.

@@ -83,6 +83,12 @@ jobs:
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Attribution override: semantic-release commits are authored as the
+          # repository owner so bots do not appear in the Contributors list.
+          GIT_AUTHOR_NAME: ineednotitle
+          GIT_AUTHOR_EMAIL: 100122698+ineednotitle@users.noreply.github.com
+          GIT_COMMITTER_NAME: ineednotitle
+          GIT_COMMITTER_EMAIL: 100122698+ineednotitle@users.noreply.github.com
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true'

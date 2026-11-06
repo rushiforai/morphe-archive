@@ -27,7 +27,7 @@ Errors of the patches show in a dialog over the current screen, with the details
 | Section | Setting | Key | Default |
 |---|---|---|---|
 | Images and videos | Show images | `revanced_baconreader_show_images` | On |
-| Images and videos | Full width by default | `revanced_baconreader_images_full_width` | Off. Needs Show images |
+| Images and videos | Full width by default | `revanced_baconreader_images_full_width` | Off. Needs Show images. Comments only: images in posts always start at full width |
 | Images and videos | Long press to download | `revanced_baconreader_images_long_press_download` | On. Needs Show images |
 | Images and videos | Load images only on Wi-Fi | `revanced_baconreader_images_wifi_only` | Off. Needs Show images |
 | Images and videos | Play videos in comments | `revanced_baconreader_show_videos` | On |
@@ -103,6 +103,8 @@ The ports follow ReVanced's BaconReader merge requests !6989 and !6998 closely: 
 - **Settings entry.** It's called "Patches".
 - **Morphe's errors.** Errors the Morphe extensions library reports with `Logger.printException` show in the patches' error dialog instead of a toast. The dialog's "Patches" line shows the patches' version.
 - **User agent.** Avatar images and the audio of saved videos are downloaded with the user agent `android:com.onelouder.baconreader (Morphe)`.
+- **Redgifs refused token.** ReVanced's interceptor asks for a new token only for a request that already carried one, and then gets the cached token back until it expires. BaconReader's own requests to the Redgifs API carry none, so after the phone's address changes Redgifs refuses the cached token (401 WrongSender, checked on 2026-11-03) and BaconReader falls back to Redgifs' web page. This port asks for a new token, skipping the cache, when Redgifs refuses a request, and sends the request again once.
+- **Imgur still images.** ReVanced leaves `ImgurImage.isVideo` and `getLink` as BaconReader has them, which take an image for a video when its `mp4` isn't null. Imgur's own API sends `"mp4": ""` for every still image (checked on 2026-11-03), so BaconReader's album viewer plays an empty video in place of each image of an album or a gallery post. This port takes an empty `mp4` for no video: the viewer shows the image, and plays only real videos.
 - **List thumbnails.** For Imgur posts, BaconReader writes the image's URL into the register of the post, which the thumbnail loader then got instead of the post. The port does the app's Imgur step in the extension (`imgurThumbnail`), so the loader gets the post.
 - **Fix unread messages.** While Reddit chat keeps chat messages apart from the inbox, the unread check asks for up to 100 messages and leaves the chat ones out.
 - **Tables and accessibility.** ReVanced draws a table on one character of the text, so TalkBack and UI tests see nothing of it. Here each cell and the "↔ Expand" / "Fit to screen" button are virtual views of the text, with their text and where they show, and the button and the cells with a link can be clicked.

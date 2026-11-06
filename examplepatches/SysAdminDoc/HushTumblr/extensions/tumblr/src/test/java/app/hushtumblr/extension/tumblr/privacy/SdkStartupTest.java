@@ -38,7 +38,10 @@ import app.hushtumblr.extension.tumblr.settings.PatchFamily;
 import app.hushtumblr.extension.tumblr.settings.PatchFamilyForTests;
 import app.hushtumblr.extension.tumblr.settings.Settings;
 
-/** When the launch hooks keep Tumblr's ad SDKs and LiveRamp from starting, and when they let them start. */
+/**
+ * When the launch hooks keep Tumblr's ad SDKs and LiveRamp from starting and Crashlytics collection
+ * off, and when they leave Tumblr's own behavior.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
 public class SdkStartupTest {
@@ -104,10 +107,27 @@ public class SdkStartupTest {
     }
 
     @Test
+    public void crashlyticsCollectionStaysOffWhileDisableAnalyticsIsOn() {
+        Settings.HIDE_ADS.save(true);
+        Settings.DISABLE_ANALYTICS.save(false);
+        assertTrue("Crashlytics follows Disable analytics, not Hide ads", SdkStartup.crashReports(app, true));
+        Settings.DISABLE_ANALYTICS.save(true);
+        assertFalse(SdkStartup.crashReports(app, true));
+        assertFalse("Tumblr's own off stays off", SdkStartup.crashReports(app, false));
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains("Crashlytics collection kept off 2"));
+        // Each capability answers for its own hook: without this one, Tumblr's value goes through.
+        PatchFamilyForTests.capabilities(EnumSet.complementOf(EnumSet.of(PatchFamily.Capability.CRASH_REPORTS)));
+        assertTrue(SdkStartup.crashReports(app, true));
+        assertTrue("LiveRamp keeps its own capability", SdkStartup.liveRamp(provider));
+    }
+
+    @Test
     public void offPausedOrNotPatchedEverySdkStartsAsTumblrHasIt() {
         Settings.HIDE_ADS.save(true);
         Settings.DISABLE_ANALYTICS.save(true);
-        assertTrue("the control: both switches are on", SdkStartup.vungle(provider) && SdkStartup.liveRamp(provider));
+        assertTrue("the control: both switches are on", SdkStartup.vungle(provider) && SdkStartup.liveRamp(provider)
+                && !SdkStartup.crashReports(app, true));
 
         PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
         assertStartsEverything();
@@ -130,6 +150,7 @@ public class SdkStartupTest {
         SettingsContextRule.withoutContext(() -> {
             assertFalse(SdkStartup.vungle(null));
             assertFalse(SdkStartup.liveRamp(null));
+            assertTrue("Tumblr's value goes through", SdkStartup.crashReports(null, true));
             assertFalse("a provider not yet attached has no context", SdkStartup.vungle(new Provider()));
             assertFalse(Utils.settingsReady());
         });
@@ -145,6 +166,10 @@ public class SdkStartupTest {
         });
         SettingsContextRule.withoutContext(() -> {
             assertNull(SdkStartup.nimbus(app));
+            assertTrue(Utils.settingsReady());
+        });
+        SettingsContextRule.withoutContext(() -> {
+            assertFalse("the launch setup's application readies them too", SdkStartup.crashReports(app, true));
             assertTrue(Utils.settingsReady());
         });
     }
@@ -182,5 +207,7 @@ public class SdkStartupTest {
         assertFalse(SdkStartup.liveRamp(provider));
         assertSame(app, SdkStartup.mobileAds(app));
         assertSame(app, SdkStartup.nimbus(app));
+        assertTrue(SdkStartup.crashReports(app, true));
+        assertFalse(SdkStartup.crashReports(app, false));
     }
 }

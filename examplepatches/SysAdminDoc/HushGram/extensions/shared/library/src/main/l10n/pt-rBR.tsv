@@ -283,6 +283,13 @@ Once you turn on Instagram's auto scroll in Reels, it stays on after a restart o
 Move on when a reel ends	Avançar quando um reel terminar
 When a reel ends, Reels moves on to the next one instead of playing it again. It uses Instagram's own auto scroll, even on accounts where Instagram doesn't offer it. While it's on, Instagram's own Auto scroll switch can't turn it off. Restart Instagram to see the change.	Quando um reel termina, o Reels passa para o próximo em vez de tocá-lo de novo. Usa a rolagem automática do próprio Instagram, mesmo em contas em que o Instagram não a oferece. Enquanto estiver ativado, o botão de rolagem automática do próprio Instagram não consegue desativá-lo. Reinicie o Instagram para ver a mudança.
 Stop Reels scrolling	Parar a rolagem no Reels
+# context: Reels page, the three switches under Stop Reels scrolling. They name that switch by its label, and each lets one kind of viewer keep scrolling.
+Still scroll reels from a profile	Continuar rolando reels abertos de um perfil
+With Stop Reels scrolling on, reels you open from a profile still move on when you swipe.	Com Parar a rolagem no Reels ligado, os reels abertos de um perfil continuam avançando quando você desliza.
+Still scroll reels from Search and Explore	Continuar rolando reels abertos de Busca e Explorar
+With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	Com Parar a rolagem no Reels ligado, os reels abertos de Busca, Explorar, uma hashtag ou um local continuam avançando quando você desliza.
+Still scroll reels from a song page	Continuar rolando reels abertos da página de uma música
+With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	Com Parar a rolagem no Reels ligado, os reels abertos da página de uma música ou áudio continuam avançando quando você desliza.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	Deslizar no Reels não passa mais para o próximo reel, e puxar para baixo não carrega novos. O reel que você abriu continua tocando. Reinicie o Instagram para ver a mudança.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Trave um reel em 2x (segure a borda e deslize para baixo) e os próximos reels também tocam em 2x. Deslize a trava para tirá-la, ou segure a borda e solte, para voltar à velocidade normal.
 Open links in external browser	Abrir links no navegador externo
@@ -418,6 +425,11 @@ Hide the Threads button	Ocultar o botão do Threads
 Takes the Threads button off the top of profiles, yours included. The menu and the other buttons stay where they were.	Tira o botão do Threads do topo dos perfis, incluindo o seu. O menu e os outros botões continuam onde estavam.
 Show profile posts as a list	Mostrar posts do perfil como lista
 Opening someone's profile takes you on to their posts as a scrolling list of full posts. Go Back for the grid. Your own profile keeps its grid.	Ao abrir o perfil de alguém, você vai direto para os posts dessa pessoa em uma lista rolável de posts completos. Volte para ver a grade. Seu próprio perfil mantém a grade.
+Jump a profile's posts to a date	Pular para uma data nas publicações de um perfil
+Puts a calendar on a profile's top bar. Pick a day and the posts grid goes back to that day. Pull down for the newest again.	Coloca um calendário na barra superior de um perfil. Escolha um dia e a grade de publicações volta para esse dia. Puxe para baixo para ver as mais novas de novo.
+Open the profile's posts first	Abra primeiro as publicações
+Still loading, try again	Ainda carregando, tente de novo
+Going to that date	Indo para essa data
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Os cards de pessoas e criadores para seguir que o Instagram coloca entre os reels. Todos os reels continuam tocando.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Deixa de fora os reels com o rótulo Parceria paga e os que o Instagram marca como impulsionados. Os anúncios têm uma chave própria.
 Turn on Start Home on Following to use this choice.	Ative Abrir o Início em Seguindo para usar esta opção.
@@ -486,6 +498,11 @@ Save comment photo	Salvar foto do comentário
 Adds Save to a selected comment's menu when the comment has its own photo or GIF. Saves the largest size Instagram sent.	Adiciona Salvar ao menu de um comentário selecionado quando o comentário tem a própria foto ou GIF. Salva o maior tamanho que o Instagram enviou.
 Reply with a comment's GIF	Responder com o GIF de um comentário
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	Quando um comentário tem um GIF, o menu dele ganha uma resposta com GIF que envia esse mesmo GIF como sua resposta, animado.
+Show a comment GIF's name	Mostrar o nome do GIF de um comentário
+When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	Quando um comentário tem um GIF ou uma figurinha, o menu dele mostra o nome. Toque no nome para copiar.
+GIF name	Nome do GIF
+GIF name copied	Nome do GIF copiado
+Couldn't copy the GIF name	Não foi possível copiar o nome do GIF
 Couldn't reply with this GIF	Não foi possível responder com este GIF
 # context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
 Mark as seen button	Botão Marcar como visto
@@ -841,7 +858,7 @@ Download video covers	Baixar capas de vídeos
 Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	Adiciona Baixar capa ao menu de um post do feed com vídeo e de um carrossel mostrando um. Salva a imagem estática exibida antes de o vídeo começar, no maior tamanho.
 # context: Downloads switch under the feed video and photo downloads; it puts a Download icon in a feed post's action row beside Save
 Download button on feed posts	Botão de download nas publicações do feed
-Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them.	Coloca um ícone de download na linha abaixo da publicação, à esquerda de Salvar, para que um toque a salve sem abrir o menu. Em um carrossel, ele pergunta se é só esta página ou todas.
+Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	Coloca um ícone de download na linha abaixo da publicação, à esquerda de Salvar, para que um toque a salve sem abrir o menu. Em um carrossel, ele pergunta se é só esta página ou todas. Precisa de Baixar vídeos do feed ou Baixar fotos do feed.
 Download button on reels	Botão de download nos reels
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	Coloca um ícone de download abaixo de Salvar ao lado de um reel, para que um toque o salve como Baixar no menu dele. Precisa de Baixar nos reels.
 Nothing to download on this post	Nada para baixar nesta publicação
@@ -1008,14 +1025,14 @@ More	Mais
 Hide the tab bar as you scroll	Ocultar a barra de abas ao rolar
 Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	Rolar uma lista para baixo tira a barra de abas do caminho. Rolar para cima, chegar ao topo ou trocar de aba a traz de volta. Funciona com ou sem a Barra de abas de vidro. Reinicie o Instagram depois de alterar.
 Hide the tab bar on Reels	Ocultar a barra de abas nos Reels
-# context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
+# context: a choice in the Hide the tab bar on Reels list; the bar is never hidden there
 Never	Nunca
 # context: a choice in the Hide the tab bar on Reels list; %1$d is 2, 3, 5 or 8
 After %1$d seconds	Depois de %1$d segundos
 # context: summary of the Hide the tab bar on Reels row while its choice is Never
-Never. Pick a time and the pill slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Nunca. Escolha um tempo e a pílula desliza para fora quando um reel é reproduzido por esse tempo sem toque. Reinicie o Instagram depois de alterar.
+Never. Pick a time and the tab bar slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Nunca. Escolha um tempo e a barra de abas desliza para fora quando um reel é reproduzido por esse tempo sem toque. Reinicie o Instagram depois de alterar.
 # context: summary of the Hide the tab bar on Reels row; %1$d is the seconds picked, 2, 3, 5 or 8
-On Reels, the pill slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Nos Reels, a pílula desliza para fora após %1$d segundos sem toque. Toque na borda inferior da tela, troque de aba ou pressione Voltar para trazê-la de volta. Reinicie o Instagram depois de alterar.
+On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Nos Reels, a barra de abas desliza para fora após %1$d segundos sem toque. Toque na borda inferior da tela, troque de aba ou pressione Voltar para trazê-la de volta. Reinicie o Instagram depois de alterar.
 Start feed videos with sound	Iniciar vídeos do feed com som
 The first video on Home plays with its sound on, the same as tapping its speaker. Your phone's ringer and volume still count, so on silent or with the volume down, it stays quiet.	O primeiro vídeo do Início toca com o som ligado, igual a tocar no alto-falante dele. O toque e o volume do celular continuam valendo, então no silencioso ou com o volume zerado, ele fica mudo.
 Tap a feed video to pause it	Tocar em um vídeo do feed para pausar
@@ -1024,6 +1041,10 @@ Long press a photo to zoom	Toque e segure uma foto para ampliar
 Press and hold a photo in a feed to see it twice as big around your finger, and slide to look around. Let go to close it. While this is on, it takes the place of Instagram's own long press on a photo.	Toque e segure uma foto em um feed para vê-la duas vezes maior em volta do seu dedo, e deslize para explorar. Solte para fechar. Enquanto isso estiver ativado, substitui o toque e segure do próprio Instagram em uma foto.
 Keep the zoom open	Manter o zoom aberto
 The zoom stays up after you let go. Drag to look around, pinch to zoom from 1x to 4x, and tap or press Back to close it.	O zoom continua aberto quando você solta. Arraste para olhar em volta, faça o gesto de pinça para ampliar de 1x a 4x e toque ou pressione Voltar para fechar.
+# context: Feed settings, right under Keep the zoom open, and the toast when a post's video can't be opened in the full screen viewer. Close matches the viewer's Close button.
+Long press a post for full screen	Segure uma publicação para ver em tela cheia
+Press and hold a post in a feed to open it full screen. Pinch a photo to zoom and tap it to close. A video plays with a slider and a Close button. While this is on, it goes before the zoom and Instagram's own long press.	Segure uma publicação no feed para abri-la em tela cheia. Faça o gesto de pinça em uma foto para ampliar e toque para fechar. Um vídeo toca com um controle deslizante e um botão Fechar. Enquanto estiver ativado, vem antes do zoom e do toque longo do Instagram.
+Couldn't play this video	Não foi possível reproduzir o vídeo
 # context: what TalkBack reads for the zoomed photo left open over the feed
 Zoomed photo	Foto ampliada
 Full screen Reels	Reels em tela cheia
@@ -1071,6 +1092,15 @@ Hide Your algorithm on reels	Ocultar Seu algoritmo nos reels
 Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The rest of the bar stays.	Tira o botão Seu algoritmo do topo da aba Reels e fecha o espaço. O resto da barra continua.
 Hide the Friends tab on Reels	Ocultar a aba Amigos nos reels
 Takes the Friends tab, with reels the people you follow shared, off the top of the Reels tab. Reels stays where it is.	Tira a aba Amigos, com os reels que as pessoas que você segue compartilharam, do topo da aba Reels. Reels continua onde está.
+# context: Reels settings. Shows Instagram's Friends tab at the top of the Reels tab on accounts that never got it. Friends tab wording matches the Hide the Friends tab row above it.
+Show the Friends tab on Reels	Mostrar a aba Amigos nos reels
+Adds the Friends tab to the top of the Reels tab if your account never got it. What's in it still comes from Instagram, so it can be empty. Hide the Friends tab wins.	Adiciona a aba Amigos no topo da aba Reels se sua conta nunca a recebeu. O conteúdo continua vindo do Instagram, então pode ficar vazia. Ocultar a aba Amigos tem prioridade.
+# context: Reels settings and the list held open from the Friends tab at the top of the Reels tab. Friends tab wording matches the Hide the Friends tab row above it. The last two are short toasts.
+Hold the Friends tab to pick friends	Segure a aba Amigos para escolher amigos
+Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	Segure a aba Amigos nos reels e escolha entre os amigos que ela mostrou. Depois ela mantém só os reels que eles curtiram ou compartilharam. Uma página sem eles mantém um reel para que a próxima possa carregar.
+Pick friends	Escolher amigos
+Open the Friends tab first.	Abra a aba Amigos primeiro.
+Applies to the next reels loaded.	Vale para os próximos reels carregados.
 Hide the Save button on reels	Ocultar o botão Salvar nos reels
 Burn-in guard	Proteção contra burn-in
 Dim when idle	Escurecer quando parado
@@ -1090,6 +1120,9 @@ Reels open in clear mode from the first one, with no tap. Leave it yourself and 
 # context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
 Don't vibrate in clear mode	Não vibrar no modo limpo
 Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Para a vibração curta que o Instagram faz quando um reel abre no modo limpo. Com Manter o modo limpo ativado, isso acontece a cada deslize.
+# context: Reels settings: a switch under Don't vibrate in clear mode (#480). It keeps the seek bar on screen in clear mode; seek bar and clear mode use the same words as Keep a seek bar and Keep clear mode on
+Always show seek bar in clear mode	Sempre mostrar a barra de progresso no modo limpo
+Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other buttons stay hidden. Short reels get a bar too, in clear mode or not.	Mantém a barra de progresso em um reel no modo limpo, e você ainda pode arrastá-la, enquanto os outros botões continuam ocultos. Reels curtos também ganham uma barra, no modo limpo ou não.
 Unlock with	Desbloquear com
 Phone lock	Bloqueio do celular
 HushGram PIN	PIN do HushGram
@@ -1397,7 +1430,7 @@ Couldn't use that folder. Saves go where they did.	Não deu para usar a pasta. S
 Saves go to Movies and Pictures again.	O que você salva volta a ir para Movies e Pictures.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s não aceitou este salvamento, então ele foi para Movies e Pictures.
 Start reels with sound	Iniciar reels com som
-A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Um reel que você abre a partir de um post no Início toca com som, e o Início volta a ficar silenciado quando você volta. O modo de toque e o volume do celular continuam valendo.
+A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Um reel que você abre pela aba Reels ou a partir de um post no Início toca com som, e o Início volta a ficar silenciado quando você volta. O modo de toque e o volume do celular continuam valendo.
 Keep your place in Home	Manter seu lugar no Início
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Ao voltar ao Instagram, o Início fica no post em que você estava, não importa quanto tempo ficou fora. Puxar para baixo para atualizar continua recarregando.
 Filter the Stories tray by verified accounts	Filtrar a fileira de stories por contas verificadas

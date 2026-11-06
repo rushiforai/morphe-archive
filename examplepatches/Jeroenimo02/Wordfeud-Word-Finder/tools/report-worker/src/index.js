@@ -36,6 +36,58 @@ export async function allowed(env, ip) {
   return true;
 }
 
+const LANGUAGES = ["English (US)", "Norsk bokmål", "Nederlands", "Dansk", "Svenska", "English (intl)", "Español",
+  "Français", "Svenska (strikt)", "Deutsch", "Norsk nynorsk", "Suomi", "Português"];
+
+/** A usage ping: {"type":"ping","patch":"1.2.3","rulesets":[2,5]} (once per day per install), or null. */
+export function validatePing(body) {
+  if (!body || typeof body !== "object" || body.type !== "ping") return null;
+  if (!Array.isArray(body.rulesets) || body.rulesets.length > 13) return null;
+  const rulesets = [];
+  for (const r of body.rulesets) {
+    if (!Number.isInteger(r) || r < 0 || r > 12) return null;
+    if (!rulesets.includes(r)) rulesets.push(r);
+  }
+  const patch = typeof body.patch === "string" && PATCH.test(body.patch) ? body.patch : "unknown";
+  return { patch, rulesets };
+}
+
+/** Adds a ping to the counters of today (KV key stats:YYYY-MM-DD, kept a year). Nothing but counts is stored. */
+async function countPing(env, ping) {
+  if (!env.REPORT_KV) return;
+  const key = "stats:" + new Date().toISOString().slice(0, 10);
+  const s = JSON.parse((await env.REPORT_KV.get(key)) || '{"total":0,"versions":{},"rulesets":{}}');
+  s.total += 1;
+  s.versions[ping.patch] = (s.versions[ping.patch] || 0) + 1;
+  for (const r of ping.rulesets) s.rulesets[r] = (s.rulesets[r] || 0) + 1;
+  await env.REPORT_KV.put(key, JSON.stringify(s), { expirationTtl: 400 * 86400 });
+}
+
+function esc(t) {
+  return String(t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+}
+
+/** GET /stats?key=STATS_KEY: daily active installs of the last 60 days, per version and language. */
+async function stats(env) {
+  const rows = [];
+  for (let i = 0; i < 60; i++) {
+    const day = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+    const v = env.REPORT_KV ? await env.REPORT_KV.get("stats:" + day) : null;
+    if (v) rows.push([day, JSON.parse(v)]);
+  }
+  const fmt = (o, name) => Object.entries(o).sort((a, b) => b[1] - a[1]).map(([k, n]) => `${esc(name(k))}: ${n}`).join("<br>");
+  const body = rows.map(([d, s]) => `<tr><td>${d}</td><td class=n>${s.total}</td><td>${fmt(s.versions, (k) => k)}</td>` +
+    `<td>${fmt(s.rulesets, (k) => LANGUAGES[k] || k)}</td></tr>`).join("");
+  const html = `<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Wordfeud Word Finder usage</title><style>body{font:15px system-ui,sans-serif;margin:16px;color:#222}
+table{border-collapse:collapse}td,th{padding:6px 10px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}
+.n{text-align:right;font-weight:600}</style><h1>Daily active installs</h1>
+<p>Installs that opened Wordfeud on that day (UTC), one anonymous ping each.</p>
+<table><tr><th>Day</th><th>Installs</th><th>Patch version</th><th>Languages played</th></tr>${body ||
+    "<tr><td colspan=4>No pings yet.</td></tr>"}</table>`;
+  return new Response(html, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+}
+
 function reply(status, text) {
   return new Response(text + "\n", { status, headers: { "content-type": "text/plain; charset=utf-8" } });
 }
@@ -61,6 +113,10 @@ export function validate(body) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/stats" && request.method === "GET") {
+      if (!env.STATS_KEY || url.searchParams.get("key") !== env.STATS_KEY) return reply(404, "not found");
+      return stats(env);
+    }
     if (url.pathname !== "/report") return reply(404, "not found");
     if (request.method !== "POST") return reply(405, "method not allowed");
 
@@ -80,6 +136,15 @@ export default {
       body = JSON.parse(text);
     } catch {
       return reply(400, "invalid json");
+    }
+    const ping = validatePing(body);
+    if (ping) {
+      try {
+        await countPing(env, ping);
+      } catch {
+        return reply(503, "not counted");
+      }
+      return reply(202, "counted");
     }
     const report = validate(body);
     if (!report) return reply(400, "invalid report");

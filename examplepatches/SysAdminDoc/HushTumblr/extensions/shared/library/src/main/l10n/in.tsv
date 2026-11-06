@@ -160,6 +160,7 @@ Privacy	Privasi
 Disable analytics	Nonaktifkan analitik
 Firebase and Google Analytics collection is turned off	Pengumpulan data Firebase dan Google Analytics dinonaktifkan
 Hide advertising ID	Sembunyikan ID iklan
+Sanitize sharing links	Bersihkan tautan yang dibagikan
 Remove ad tracking permissions	Hapus izin pelacakan iklan
 Tumblr can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Tumblr tidak lagi bisa memakai izin ID iklan Google atau layanan iklan Android. Ini diatur saat Anda menambal. Tambal ulang tanpanya untuk mengembalikannya.
 Tumblr's access to the ad ID and Android's ad services is removed	akses Tumblr ke ID iklan dan layanan iklan Android dihapus
@@ -222,6 +223,7 @@ Lets a patched Tumblr sign up for push notifications when Google would turn it a
 Open Tumblr's settings from the gear on your account tab. HushTumblr doesn't change any of these.	Buka pengaturan Tumblr dari ikon roda gigi di tab akun. HushTumblr tidak mengubah satu pun pengaturan ini.
 Push alerts	Peringatan push
 Tumblr and the ad companies inside it see an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Tumblr dan perusahaan iklan di dalamnya melihat ID iklan kosong dengan pelacakan iklan dibatasi, seolah Anda menghapus ID iklan di setelan Android.
+Links you share or copy leave out the share tag Tumblr adds to them. They still open the same post.	Tautan yang Anda bagikan atau salin tidak membawa tanda berbagi yang ditambahkan Tumblr. Tautan tetap membuka postingan yang sama.
 Use the email on your Tumblr account and a Tumblr password. Google sign-in may not work, because this patched app is signed with a different key. Push notifications haven't been tested.	Gunakan email akun Tumblr Anda dan kata sandi Tumblr. Masuk dengan Google mungkin tidak berfungsi, karena aplikasi yang ditambal ini ditandatangani dengan kunci yang berbeda. Notifikasi push belum diuji.
 # context: the Feed page and its Hide ads switch.
 Feed	Feed
@@ -230,7 +232,7 @@ Takes ads and paid Blaze posts out of your dashboard and other feeds. Once Tumbl
 Keep Blaze posts	Pertahankan postingan Blaze
 When ads are hidden, keep posts people paid to promote with Blaze. Other ads and post filters still apply.	Saat iklan disembunyikan, pertahankan postingan yang dipromosikan dengan bayaran lewat Blaze. Iklan dan filter postingan lainnya tetap berlaku.
 # context: the Disable analytics switch on the Privacy page.
-Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Firebase and Google's analytics collection stay off until you patch again without it.	Menghentikan pelacakan dan pengukuran iklan milik Tumblr, dan mencegah pelacak LiveRamp berjalan. Pengumpulan data Firebase dan Google Analytics tetap mati sampai kamu menambal ulang tanpanya.
+Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Crashlytics crash reports stay off while this is on. Firebase and Google's analytics collection stay off until you patch again without it.	Menghentikan pelacakan dan pengukuran iklan milik Tumblr, dan mencegah pelacak LiveRamp berjalan. Laporan crash Crashlytics tetap mati selama ini aktif. Pengumpulan data Firebase dan Google Analytics tetap mati sampai kamu menambal ulang tanpanya.
 # context: the Hide the ad-free banner switch on the Feed page.
 Hide the ad-free banner	Sembunyikan banner bebas iklan
 Hides the dashboard banner that asks you to pay for Ad-Free Browsing.	Menyembunyikan banner di dasbor yang memintamu membayar untuk menjelajah tanpa iklan.
@@ -391,9 +393,9 @@ When reblogs are hidden, keep ones with tags. Other post filters still apply.	Sa
 Keep reblogs with added content	Pertahankan reblog dengan konten tambahan
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Saat reblog disembunyikan, pertahankan yang diberi tambahan sendiri oleh pembuat reblog. Filter postingan lainnya tetap berlaku.
 Hide your own reblogs	Sembunyikan reblog milikmu
-Takes the reblogs you made out of your dashboard and the feeds like it. Your blog still shows them.	Menghapus reblog yang kamu buat dari dasbor dan feed sejenisnya. Blogmu tetap menampilkannya.
+Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Menghapus reblog yang kamu buat dari dasbor. Blogmu dan bagian lain Tumblr tetap menampilkannya.
 Hide liked posts	Sembunyikan postingan yang disukai
-Takes the posts you've already liked out of your dashboard and the feeds like it. Your likes and blogs still show them.	Menghapus postingan yang sudah kamu sukai dari dasbor dan feed sejenisnya. Daftar sukamu dan blog tetap menampilkannya.
+Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Menghapus postingan yang sudah kamu sukai dari dasbor. Daftar sukamu dan bagian lain Tumblr tetap menampilkannya.
 Match current post text	Cocokkan teks postingan saat ini
 Match reblog trail text	Cocokkan teks rantai reblog
 Match current post tags	Cocokkan tag postingan saat ini
@@ -410,7 +412,7 @@ Shows author-provided image descriptions below images.	Menampilkan deskripsi gam
 photo image descriptions	deskripsi foto
 gallery image descriptions	deskripsi galeri
 Mute posts locally	Bisukan postingan secara lokal
-Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account.	Tambahkan postingan ke daftar pribadi melalui menunya. Postingan asli dan reblognya tetap tersembunyi untuk akun ini.
+Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account. On the dashboard, the menu can also hide one blog's reblogs or originals.	Tambahkan postingan ke daftar pribadi melalui menunya. Postingan asli dan reblognya tetap tersembunyi untuk akun ini. Di dasbor, menu juga bisa menyembunyikan reblog atau postingan asli dari satu blog.
 Mute this post locally	Bisukan postingan ini secara lokal
 Manage muted posts	Kelola postingan yang dibisukan
 Unmute posts or clear this account's private list	Tampilkan kembali postingan atau kosongkan daftar pribadi akun ini
@@ -418,7 +420,7 @@ Couldn't update muted posts	Tidak dapat memperbarui postingan yang dibisukan
 Post muted locally	Postingan dibisukan secara lokal
 Muted posts restored	Postingan yang dibisukan dipulihkan
 Muted posts aren't available for this account yet	Postingan yang dibisukan belum tersedia untuk akun ini
-Stored only on this device for this Tumblr account. Tap a post to unmute it. Up to 500 posts are kept per account.	Disimpan hanya di perangkat ini untuk akun Tumblr ini. Ketuk postingan untuk menampilkannya kembali. Maksimal 500 postingan disimpan per akun.
+Stored only on this device for this Tumblr account. Tap a row to remove it. Up to 500 posts and blog rules are kept per account.	Disimpan hanya di perangkat ini untuk akun Tumblr ini. Ketuk baris untuk menghapusnya. Maksimal 500 postingan dan aturan blog disimpan per akun.
 This device keeps muted post lists for eight accounts. When a ninth account mutes a post, the list that's gone longest without a change is deleted.	Perangkat ini menyimpan daftar postingan yang dibisukan untuk delapan akun. Saat akun kesembilan membisukan postingan, daftar yang paling lama tidak berubah akan dihapus.
 Post	Postingan
 Clear muted posts	Hapus postingan yang dibisukan
@@ -430,7 +432,7 @@ Show mutual markers	Tampilkan penanda saling mengikuti
 Marks blogs that follow your primary blog when you follow them.	Menandai blog yang mengikuti blog utama Anda dan Anda ikuti.
 Mutual	Saling mengikuti
 Done	Selesai
-No muted posts. Use a post's menu to mute it on this device.	Tidak ada postingan yang dibisukan. Gunakan menu postingan untuk membisukannya di perangkat ini.
+No muted posts or blog rules. Use a post's menu to add one on this device.	Tidak ada postingan yang dibisukan atau aturan blog. Gunakan menu postingan untuk menambahkannya di perangkat ini.
 Updating muted posts	Memperbarui postingan yang dibisukan
 Couldn't restore muted posts. Try again.	Tidak dapat memulihkan postingan yang dibisukan. Coba lagi.
 Couldn't read this account's muted posts. Nothing was changed or deleted.	Tidak dapat membaca postingan yang dibisukan untuk akun ini. Tidak ada yang diubah atau dihapus.
@@ -443,6 +445,16 @@ Clearing diagnostic data	Menghapus data diagnostik
 Putting diagnostic data back	Memulihkan data diagnostik
 Couldn't clear the diagnostic data. Try again.	Tidak dapat menghapus data diagnostik. Coba lagi.
 Couldn't update this feed. The post is still muted locally.	Tidak dapat memperbarui feed ini. Postingan masih dibisukan secara lokal.
+Hide reblogs from %1$s	Sembunyikan reblog dari %1$s
+Hide originals from %1$s	Sembunyikan postingan asli dari %1$s
+Hiding reblogs from %1$s	Menyembunyikan reblog dari %1$s
+Hiding originals from %1$s	Menyembunyikan postingan asli dari %1$s
+Blog rule removed	Aturan blog dihapus
+Reblogs from %1$s	Reblog dari %1$s
+Originals from %1$s	Postingan asli dari %1$s
+Show reblogs from %1$s again	Tampilkan lagi reblog dari %1$s
+Show originals from %1$s again	Tampilkan lagi postingan asli dari %1$s
+Couldn't update this feed. The blog rule is still saved.	Tidak dapat memperbarui feed ini. Aturan blog masih tersimpan.
 Unmute post	Tampilkan kembali postingan
 HushTumblr	HushTumblr
 Your settings	Pengaturanmu
@@ -470,7 +482,7 @@ Hidden. Tap to show it again.	Disembunyikan. Ketuk untuk menampilkannya lagi.
 Quick setups hidden. Bring it back from %1$s.	Penyiapan cepat disembunyikan. Tampilkan lagi dari %1$s.
 Quiet	Tenang
 Hides ads, suggestions, prompts and unread counts.	Menyembunyikan iklan, saran, ajakan, dan penghitung belum dibaca.
-Stops Tumblr's tracking and screenshot watching, and hides your advertising ID.	Menghentikan pelacakan Tumblr dan pemantauan tangkapan layar, serta menyembunyikan ID iklan Anda.
+Stops Tumblr's tracking and screenshot watching. Hides your advertising ID and the share tag on links.	Menghentikan pelacakan Tumblr dan pemantauan tangkapan layar. Menyembunyikan ID iklan Anda dan tanda berbagi pada tautan.
 Back to defaults	Kembali ke bawaan
 Puts every feature switch back the way it started.	Mengembalikan setiap sakelar fitur seperti semula.
 Changed %1$d setting	%1$d pengaturan diubah
@@ -482,6 +494,16 @@ Long-press a video in a post to share or copy its link, or save it.	Tekan lama v
 # context: the Sharper images switch on the Posts page, and its summary
 Sharper images	Gambar lebih tajam
 Loads images in posts at a higher resolution. Uses more data.	Memuat gambar di postingan dengan resolusi lebih tinggi. Memakai lebih banyak data.
+# context: the Collapse long posts switch on the Posts page, and its summary
+Collapse long posts	Ciutkan postingan panjang
+Cuts long posts with a Read more row, at the length below. Tap it to open the whole post.	Memotong postingan panjang sesuai panjang di bawah, dengan baris Baca selengkapnya. Ketuk untuk membuka postingan lengkap.
+# context: the Collapsed post length row under that switch: its title, the lengths a tap moves through, its summary and the note when a save fails
+Collapsed post length	Panjang postingan yang diciutkan
+About half a screen	Sekitar setengah layar
+About a screen	Sekitar satu layar
+About two screens	Sekitar dua layar
+%1$s. Tap to change.	%1$s. Ketuk untuk mengubah.
+Couldn't save the length. Try again.	Panjang tidak bisa disimpan. Coba lagi.
 # context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
 Share video link	Bagikan tautan video ini
 Copy video link	Salin tautan video
@@ -493,7 +515,11 @@ Saving to Downloads	Menyimpan ke Unduhan
 Video saved to Downloads	Video disimpan ke Unduhan
 Couldn't save the video	Video gagal disimpan
 ad networks at launch	jaringan iklan saat dibuka
+Explore's sponsored header	header bersponsor di Jelajahi
+long reblog trail entries	entri panjang dalam rantai reblog
+opening a cut post in place	membuka postingan yang dipotong di tempatnya
 LiveRamp at launch	LiveRamp saat dibuka
+Crashlytics at launch	Crashlytics saat dibuka
 # context: the Try it on a post part of the Words to hide and Allowed words editors. Post text, Reblog trail text, Tags and Summary label its fields and fill the field names in the result lines (%2$s and %4$s). %1$s in the Not matched line is a Match switch's title, %1$s and %3$s in the result lines are the matched words.
 Try it on a post	Coba pada sebuah postingan
 Nothing you type here is saved.	Apa pun yang Anda ketik di sini tidak disimpan.

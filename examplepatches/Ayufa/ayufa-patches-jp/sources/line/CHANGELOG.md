@@ -1,0 +1,674 @@
+## [3.10.0](https://github.com/andrewliang25/morphe-patches/compare/v3.9.0...v3.10.0) (2026-11-03)
+
+### ✨ New Features
+
+* **Facebook:** add Andrew's Patch Setting ([eef74c6](https://github.com/andrewliang25/morphe-patches/commit/eef74c64198228c1ca0215ef6b505b05dc054cea))
+* **LINE - Hide Agent i buttons:** hide Agent i in chats permanently ([4ba9872](https://github.com/andrewliang25/morphe-patches/commit/4ba98720c9ba2ae1de406f92f0810b95f31556a5)), closes [#208](https://github.com/andrewliang25/morphe-patches/issues/208)
+
+## [3.10.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.9.0...v3.10.0-dev.1) (2026-11-01)
+
+### ✨ New Features
+
+* **Facebook:** add Andrew's Patch Setting ([eef74c6](https://github.com/andrewliang25/morphe-patches/commit/eef74c64198228c1ca0215ef6b505b05dc054cea))
+* **LINE - Hide Agent i buttons:** hide Agent i in chats permanently ([4ba9872](https://github.com/andrewliang25/morphe-patches/commit/4ba98720c9ba2ae1de406f92f0810b95f31556a5)), closes [#208](https://github.com/andrewliang25/morphe-patches/issues/208)
+
+## [3.9.0](https://github.com/andrewliang25/morphe-patches/compare/v3.8.0...v3.9.0) (2026-10-23)
+
+### ✨ New Features
+
+* **Facebook:** enable the "Save as H.264" download option by default ([7cfef68](https://github.com/andrewliang25/morphe-patches/commit/7cfef68fa9b058a00a74be5d8a1769814ffb7762))
+* **LINE:** add Restore biometric login patch and cover Remote Config in Restore push notifications ([02b1485](https://github.com/andrewliang25/morphe-patches/commit/02b1485db65c0baf04595c76044dafeac38d79b5))
+
+### 🚀 Updated App Support
+
+* **LINE:** add support for LINE 26.16.0 ([b2e3597](https://github.com/andrewliang25/morphe-patches/commit/b2e359785d05c8331fc1974e522b63708bb8b2b0))
+
+## [3.9.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v3.9.0-dev.1...v3.9.0-dev.2) (2026-10-23)
+
+### 🚀 Updated App Support
+
+* **LINE:** add support for LINE 26.16.0 ([b2e3597](https://github.com/andrewliang25/morphe-patches/commit/b2e359785d05c8331fc1974e522b63708bb8b2b0))
+
+## [3.9.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.8.0...v3.9.0-dev.1) (2026-10-23)
+
+### ✨ New Features
+
+* **Facebook:** enable the "Save as H.264" download option by default ([7cfef68](https://github.com/andrewliang25/morphe-patches/commit/7cfef68fa9b058a00a74be5d8a1769814ffb7762))
+* **LINE:** add Restore biometric login patch and cover Remote Config in Restore push notifications ([02b1485](https://github.com/andrewliang25/morphe-patches/commit/02b1485db65c0baf04595c76044dafeac38d79b5))
+
+## [3.8.0](https://github.com/andrewliang25/morphe-patches/compare/v3.7.0...v3.8.0) (2026-10-16)
+
+### 🐛 Bug Fixes
+
+* **LINE - Custom font:** close LINE after each font change ([fb2d9b6](https://github.com/andrewliang25/morphe-patches/commit/fb2d9b6ba90cc9787f9b3b3932d72f746ac02110))
+* **LINE - Custom font:** stop the crash on Root Mount installs ([ce95a3d](https://github.com/andrewliang25/morphe-patches/commit/ce95a3dee38a92f7b5b86d088e65569d0d8d4ad3))
+* **LINE - Disable LINE Premium:** hide the promos on the Font page ([64a231e](https://github.com/andrewliang25/morphe-patches/commit/64a231e0ba3be83d9fd3ce91147a18acad3fec9e))
+
+### ✨ New Features
+
+* **LINE - Keep unsent messages:** show a red "Unsent" label next to the time ([60a877d](https://github.com/andrewliang25/morphe-patches/commit/60a877d52729d0bafeb8f7c87a7c61ace26a318e))
+
+## [3.8.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v3.8.0-dev.1...v3.8.0-dev.2) (2026-10-16)
+
+### 🐛 Bug Fixes
+
+* **LINE - Custom font:** close LINE after each font change ([fb2d9b6](https://github.com/andrewliang25/morphe-patches/commit/fb2d9b6ba90cc9787f9b3b3932d72f746ac02110))
+
+## [3.8.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.7.1-dev.1...v3.8.0-dev.1) (2026-10-16)
+
+### ✨ New Features
+
+* **LINE - Keep unsent messages:** show a red "Unsent" label next to the time ([60a877d](https://github.com/andrewliang25/morphe-patches/commit/60a877d52729d0bafeb8f7c87a7c61ace26a318e))
+
+## [3.7.1-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.7.0...v3.7.1-dev.1) (2026-10-16)
+
+### 🐛 Bug Fixes
+
+* **LINE - Custom font:** stop the crash on Root Mount installs ([ce95a3d](https://github.com/andrewliang25/morphe-patches/commit/ce95a3dee38a92f7b5b86d088e65569d0d8d4ad3))
+* **LINE - Disable LINE Premium:** hide the promos on the Font page ([64a231e](https://github.com/andrewliang25/morphe-patches/commit/64a231e0ba3be83d9fd3ce91147a18acad3fec9e))
+
+## [3.7.0](https://github.com/andrewliang25/morphe-patches/compare/v3.6.0...v3.7.0) (2026-10-16)
+
+### ✨ New Features
+
+* **LINE:** add custom font upload to the Font page ([597701e](https://github.com/andrewliang25/morphe-patches/commit/597701e8619877c6cce40a232905a592738dad09)), closes [#186](https://github.com/andrewliang25/morphe-patches/issues/186)
+
+## [3.7.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.6.0...v3.7.0-dev.1) (2026-10-15)
+
+### ✨ New Features
+
+* **LINE:** add custom font upload to the Font page ([597701e](https://github.com/andrewliang25/morphe-patches/commit/597701e8619877c6cce40a232905a592738dad09)), closes [#186](https://github.com/andrewliang25/morphe-patches/issues/186)
+
+## [3.6.0](https://github.com/andrewliang25/morphe-patches/compare/v3.5.0...v3.6.0) (2026-10-14)
+
+### ✨ New Features
+
+* **LINE:** add runtime switches for the chat UI hide patches ([d17d8f5](https://github.com/andrewliang25/morphe-patches/commit/d17d8f5a390537ff4546f9f65ff9192878678dcb))
+
+### 🚀 Updated App Support
+
+* **LINE:** add support for LINE 26.15.1 ([1c7d4a9](https://github.com/andrewliang25/morphe-patches/commit/1c7d4a9c733c8284fc7e48c2be5acd64e624f812))
+
+## [3.6.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v3.6.0-dev.1...v3.6.0-dev.2) (2026-10-14)
+
+### 🚀 Updated App Support
+
+* **LINE:** add support for LINE 26.15.1 ([1c7d4a9](https://github.com/andrewliang25/morphe-patches/commit/1c7d4a9c733c8284fc7e48c2be5acd64e624f812))
+
+## [3.6.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.5.0...v3.6.0-dev.1) (2026-10-14)
+
+### ✨ New Features
+
+* **LINE:** add runtime switches for the chat UI hide patches ([d17d8f5](https://github.com/andrewliang25/morphe-patches/commit/d17d8f5a390537ff4546f9f65ff9192878678dcb))
+
+## [3.5.0](https://github.com/andrewliang25/morphe-patches/compare/v3.4.0...v3.5.0) (2026-10-08)
+
+### ✨ New Features
+
+* **Facebook - [Reels] Picture-in-picture:** keep a reel playing in a small window ([a194a2f](https://github.com/andrewliang25/morphe-patches/commit/a194a2f4d45fce78fdb2dd130827d7447a026a1d)), closes [#174](https://github.com/andrewliang25/morphe-patches/issues/174)
+* **LINE:** add "[General] Trust user-installed CAs" for LIFF traffic ([2c00dd6](https://github.com/andrewliang25/morphe-patches/commit/2c00dd6be27cc89cdd1f764f286eb217d3ea9dd8)), closes [#182](https://github.com/andrewliang25/morphe-patches/issues/182)
+* **LINE:** add "Andrew's Patch Setting" to turn patches on or off in LINE ([a94eed6](https://github.com/andrewliang25/morphe-patches/commit/a94eed6481d74eaf4a4b760259b10fd520dad961))
+
+## [3.5.0-dev.3](https://github.com/andrewliang25/morphe-patches/compare/v3.5.0-dev.2...v3.5.0-dev.3) (2026-10-08)
+
+### ✨ New Features
+
+* **LINE:** add "[General] Trust user-installed CAs" for LIFF traffic ([2c00dd6](https://github.com/andrewliang25/morphe-patches/commit/2c00dd6be27cc89cdd1f764f286eb217d3ea9dd8)), closes [#182](https://github.com/andrewliang25/morphe-patches/issues/182)
+
+## [3.5.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v3.5.0-dev.1...v3.5.0-dev.2) (2026-10-08)
+
+### ✨ New Features
+
+* **Facebook - [Reels] Picture-in-picture:** keep a reel playing in a small window ([a194a2f](https://github.com/andrewliang25/morphe-patches/commit/a194a2f4d45fce78fdb2dd130827d7447a026a1d)), closes [#174](https://github.com/andrewliang25/morphe-patches/issues/174)
+
+## [3.5.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.4.0...v3.5.0-dev.1) (2026-10-07)
+
+### ✨ New Features
+
+* **LINE:** add "Andrew's Patch Setting" to turn patches on or off in LINE ([a94eed6](https://github.com/andrewliang25/morphe-patches/commit/a94eed6481d74eaf4a4b760259b10fd520dad961))
+
+## [3.4.0](https://github.com/andrewliang25/morphe-patches/compare/v3.3.2...v3.4.0) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* make search result cards black in the AMOLED theme ([3268483](https://github.com/andrewliang25/morphe-patches/commit/326848304a9ac7d6b63c535689a1ca6b6383a52f)), closes [#333334](https://github.com/andrewliang25/morphe-patches/issues/333334) [#3B3C3E](https://github.com/andrewliang25/morphe-patches/issues/3B3C3E) [#136](https://github.com/andrewliang25/morphe-patches/issues/136)
+
+### ✨ New Features
+
+* add the option "Save as H.264" to story and reel download ([f18cb4d](https://github.com/andrewliang25/morphe-patches/commit/f18cb4d2d47a657fa20de7504867d3278a4e3b3f)), closes [#155](https://github.com/andrewliang25/morphe-patches/issues/155)
+* save VP9 stories in full quality ([0bbd0f7](https://github.com/andrewliang25/morphe-patches/commit/0bbd0f73cffb1fc13f1d36650d7c3500ecf28c5f))
+
+## [3.4.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.3.3-dev.1...v3.4.0-dev.1) (2026-10-03)
+
+### ✨ New Features
+
+* add the option "Save as H.264" to story and reel download ([f18cb4d](https://github.com/andrewliang25/morphe-patches/commit/f18cb4d2d47a657fa20de7504867d3278a4e3b3f)), closes [#155](https://github.com/andrewliang25/morphe-patches/issues/155)
+* save VP9 stories in full quality ([0bbd0f7](https://github.com/andrewliang25/morphe-patches/commit/0bbd0f73cffb1fc13f1d36650d7c3500ecf28c5f))
+
+## [3.3.3-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.3.2...v3.3.3-dev.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* make search result cards black in the AMOLED theme ([3268483](https://github.com/andrewliang25/morphe-patches/commit/326848304a9ac7d6b63c535689a1ca6b6383a52f)), closes [#333334](https://github.com/andrewliang25/morphe-patches/issues/333334) [#3B3C3E](https://github.com/andrewliang25/morphe-patches/issues/3B3C3E) [#136](https://github.com/andrewliang25/morphe-patches/issues/136)
+
+## [3.3.2](https://github.com/andrewliang25/morphe-patches/compare/v3.3.1...v3.3.2) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **facebook:** rename "Hide suggested and promoted posts" to "Hide page suggestions and promo cards" ([e466869](https://github.com/andrewliang25/morphe-patches/commit/e46686992675ea757590095ebd7eef059475f202)), closes [#143](https://github.com/andrewliang25/morphe-patches/issues/143)
+
+## [3.3.2-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.3.1...v3.3.2-dev.1) (2026-09-29)
+
+### 🐛 Bug Fixes
+
+* **facebook:** rename "Hide suggested and promoted posts" to "Hide page suggestions and promo cards" ([e466869](https://github.com/andrewliang25/morphe-patches/commit/e46686992675ea757590095ebd7eef059475f202)), closes [#143](https://github.com/andrewliang25/morphe-patches/issues/143)
+
+## [3.3.1](https://github.com/andrewliang25/morphe-patches/compare/v3.3.0...v3.3.1) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* keep the sound of DASH saves whose audio starts before zero ([25d3aed](https://github.com/andrewliang25/morphe-patches/commit/25d3aed524f9249f29927249b449eba02d7e9afe))
+
+## [3.3.1-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.3.0...v3.3.1-dev.1) (2026-09-28)
+
+### 🐛 Bug Fixes
+
+* keep the sound of DASH saves whose audio starts before zero ([25d3aed](https://github.com/andrewliang25/morphe-patches/commit/25d3aed524f9249f29927249b449eba02d7e9afe))
+
+## [3.3.0](https://github.com/andrewliang25/morphe-patches/compare/v3.2.0...v3.3.0) (2026-09-28)
+
+### ✨ New Features
+
+* block Facebook feed auto refresh ([84a62de](https://github.com/andrewliang25/morphe-patches/commit/84a62de440a50bbb16bbd97d4cc2d7192bc2ad32)), closes [#128](https://github.com/andrewliang25/morphe-patches/issues/128) [#128](https://github.com/andrewliang25/morphe-patches/issues/128)
+* disable Facebook story auto advance ([8a2aa76](https://github.com/andrewliang25/morphe-patches/commit/8a2aa76d2162daedb553c7f75d4a3819f5edd948))
+* hide Facebook affiliate product links ([a934b40](https://github.com/andrewliang25/morphe-patches/commit/a934b40608e5645cf119dd4101ded7767a9cdc73))
+* hide Facebook interest prompts in the feed and Reels ([16464b2](https://github.com/andrewliang25/morphe-patches/commit/16464b2ba606745de0ebe9cc52f18ef42e6a05d8))
+* view Facebook stories anonymously ([1bd74ed](https://github.com/andrewliang25/morphe-patches/commit/1bd74eda91cb6c30b7a128a355a7713ccffd662e)), closes [#111](https://github.com/andrewliang25/morphe-patches/issues/111) [#111](https://github.com/andrewliang25/morphe-patches/issues/111)
+
+## [3.3.0-dev.5](https://github.com/andrewliang25/morphe-patches/compare/v3.3.0-dev.4...v3.3.0-dev.5) (2026-09-28)
+
+### ✨ New Features
+
+* disable Facebook story auto advance ([8a2aa76](https://github.com/andrewliang25/morphe-patches/commit/8a2aa76d2162daedb553c7f75d4a3819f5edd948))
+
+## [3.3.0-dev.4](https://github.com/andrewliang25/morphe-patches/compare/v3.3.0-dev.3...v3.3.0-dev.4) (2026-09-28)
+
+### ✨ New Features
+
+* hide Facebook affiliate product links ([a934b40](https://github.com/andrewliang25/morphe-patches/commit/a934b40608e5645cf119dd4101ded7767a9cdc73))
+
+## [3.3.0-dev.3](https://github.com/andrewliang25/morphe-patches/compare/v3.3.0-dev.2...v3.3.0-dev.3) (2026-09-28)
+
+### ✨ New Features
+
+* view Facebook stories anonymously ([1bd74ed](https://github.com/andrewliang25/morphe-patches/commit/1bd74eda91cb6c30b7a128a355a7713ccffd662e)), closes [#111](https://github.com/andrewliang25/morphe-patches/issues/111) [#111](https://github.com/andrewliang25/morphe-patches/issues/111)
+
+## [3.3.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v3.3.0-dev.1...v3.3.0-dev.2) (2026-09-28)
+
+### ✨ New Features
+
+* block Facebook feed auto refresh ([84a62de](https://github.com/andrewliang25/morphe-patches/commit/84a62de440a50bbb16bbd97d4cc2d7192bc2ad32)), closes [#128](https://github.com/andrewliang25/morphe-patches/issues/128) [#128](https://github.com/andrewliang25/morphe-patches/issues/128)
+
+## [3.3.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.2.0...v3.3.0-dev.1) (2026-09-28)
+
+### ✨ New Features
+
+* hide Facebook interest prompts in the feed and Reels ([16464b2](https://github.com/andrewliang25/morphe-patches/commit/16464b2ba606745de0ebe9cc52f18ef42e6a05d8))
+
+## [3.2.0](https://github.com/andrewliang25/morphe-patches/compare/v3.1.0...v3.2.0) (2026-09-25)
+
+### 🐛 Bug Fixes
+
+* Facebook: open profiles and settings on re-signed Facebook builds ([69a2f20](https://github.com/andrewliang25/morphe-patches/commit/69a2f20cbea21ffe49b3421c3ab56b0ec62cdf57))
+* Facebook: block the ads and the sponsored product banner inside a reel ([23334d1](https://github.com/andrewliang25/morphe-patches/commit/23334d14ec7462ac696dbf5b624475f6887409e2), [0d930d1](https://github.com/andrewliang25/morphe-patches/commit/0d930d1e348912d172eeab04de8881d77b62af11))
+* Facebook: stop the Reels ad-break lookup instead of retrying it ([eaca2ee](https://github.com/andrewliang25/morphe-patches/commit/eaca2ee9fcd2b427bb561ae53ee3fba775092c8b))
+* Facebook: save a photo story as a picture, and save stories with our own downloader ([56d7957](https://github.com/andrewliang25/morphe-patches/commit/56d7957ce7933c153301dbf6c4b77afa75b7315b), [4f229a1](https://github.com/andrewliang25/morphe-patches/commit/4f229a1e6ac4fe5246a7582585cd1bde78bd1e2b))
+
+### ✨ New Features
+
+* LINE: hide the Agent i and AI Friends buttons in LINE ([0ddc176](https://githubpatches/commit/0ddc1760a4f15edca734890968f0818b7cbb6215)), closes [#133](https://github.comhes/issues/133)
+* LINE: hide the "CHECK" tips under LINE chat messages ([c2f234d](https://githubpatches/commit/c2f234da10ff8e7d856fa188d88047eb06a5244f))
+* Facebook: add an AMOLED black theme for Facebook ([799d0ae](https://github.com/andrewliang25/morphe-patches/commit/799d0aec55b4e409c6cec6b5f9d6b947240ab9ec)), closes [#108](https://github.com/andrewliang25/morphe-patches/issues/108)
+* Facebook: add a download button beside every reel ([e0007d8](https://github.com/andrewliang25/morphe-patches/co1f38dfd6d21f45bbda8))
+* Facebook: save stories and reels at the quality the player streams ([d250464](https://githubpatches/commit/d250464794c1882aac02d7617a06742efdbe75f4), [16a9184](https://github.com/andrewliang25/morphe-patches/commit/16a9184e9284d1))
+
+## [3.2.0-dev.7](https://github.com/andrewliang25/morphe-patches/compare/v3.2.0-dev.6...v3.2.0-dev.7) (2026-09-24)
+
+### ✨ New Features
+
+* hide the Agent i and AI Friends buttons ([0ddc176](https://github.com/andrewliang25/morphe-patches/commit/0ddc1760a4f15edca734890968f0818b7cbb6215)), closes [#133](https://github.com/andrewliang25/morphe-patches/issues/133)
+
+## [3.2.0-dev.6](https://github.com/andrewliang25/morphe-patches/compare/v3.2.0-dev.5...v3.2.0-dev.6) (2026-09-24)
+
+### ✨ New Features
+
+* hide the "CHECK" tips under chat messages ([c2f234d](https://github.com/andrewliang25/morphe-patches/commit/c2f234da10ff8e7d856fa188d88047eb06a5244f))
+
+## [3.2.0-dev.5](https://github.com/andrewliang25/morphe-patches/compare/v3.2.0-dev.4...v3.2.0-dev.5) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* make the profile and Settings black in the AMOLED theme ([9a64a3d](https://github.com/andrewliang25/morphe-patches/commit/9a64a3db74e2fea9d1d1015b8191089457fd53d8)), closes [#252728](https://github.com/andrewliang25/morphe-patches/issues/252728) [#108](https://github.com/andrewliang25/morphe-patches/issues/108)
+* open profiles and settings on re-signed Facebook builds ([69a2f20](https://github.com/andrewliang25/morphe-patches/commit/69a2f20cbea21ffe49b3421c3ab56b0ec62cdf57)), closes [#117](https://github.com/andrewliang25/morphe-patches/issues/117) [#99](https://github.com/andrewliang25/morphe-patches/issues/99)
+
+## [3.2.0-dev.4](https://github.com/andrewliang25/morphe-patches/compare/v3.2.0-dev.3...v3.2.0-dev.4) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* save a photo story as a picture, not as a video ([56d7957](https://github.com/andrewliang25/morphe-patches/commit/56d7957ce7933c153301dbf6c4b77afa75b7315b))
+
+### ✨ New Features
+
+* save reels from the player's DASH manifest ([16a9184](https://github.com/andrewliang25/morphe-patches/commit/16a9184c26e043da5175a6e1943d03bb5e9284d1))
+* save video stories at the quality the player streams ([d250464](https://github.com/andrewliang25/morphe-patches/commit/d250464794c1882aac02d7617a06742efdbe75f4))
+
+## [3.2.0-dev.3](https://github.com/andrewliang25/morphe-patches/compare/v3.2.0-dev.2...v3.2.0-dev.3) (2026-09-24)
+
+### 🐛 Bug Fixes
+
+* block the ads that play inside a reel ([23334d1](https://github.com/andrewliang25/morphe-patches/commit/23334d14ec7462ac696dbf5b624475f6887409e2)), closes [#121](https://github.com/andrewliang25/morphe-patches/issues/121)
+* hide the sponsored product banner over a reel ([0d930d1](https://github.com/andrewliang25/morphe-patches/commit/0d930d1e348912d172eeab04de8881d77b62af11)), closes [#121](https://github.com/andrewliang25/morphe-patches/issues/121)
+* stop the Reels ad-break lookup instead of retrying it ([eaca2ee](https://github.com/andrewliang25/morphe-patches/commit/eaca2ee9fcd2b427bb561ae53ee3fba775092c8b)), closes [#121](https://github.com/andrewliang25/morphe-patches/issues/121)
+
+## [3.2.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v3.2.0-dev.1...v3.2.0-dev.2) (2026-09-22)
+
+### 🐛 Bug Fixes
+
+* make the borrowed registers a check, not a comment ([033d4ed](https://github.com/andrewliang25/morphe-patches/commit/033d4ed87f5b1c81f85e378dede35ce9c0777c52))
+* read the rendition Facebook states, not the word it happens to carry ([50f3252](https://github.com/andrewliang25/morphe-patches/commit/50f3252e4aa1d80790d68b88ccd3dfa986d3d4dc))
+* save stories with our own downloader, not Facebook's ([4f229a1](https://github.com/andrewliang25/morphe-patches/commit/4f229a1e6ac4fe5246a7582585cd1bde78bd1e2b)), closes [#110](https://github.com/andrewliang25/morphe-patches/issues/110)
+
+### ✨ New Features
+
+* add a download button beside every reel ([e0007d8](https://github.com/andrewliang25/morphe-patches/commit/e0007d8dca083ce50c4c81f38dfd6d21f45bbda8))
+
+## [3.2.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.1.0...v3.2.0-dev.1) (2026-09-22)
+
+### ✨ New Features
+
+* add an AMOLED black theme for Facebook ([799d0ae](https://github.com/andrewliang25/morphe-patches/commit/799d0aec55b4e409c6cec6b5f9d6b947240ab9ec)), closes [#108](https://github.com/andrewliang25/morphe-patches/issues/108) [#000000](https://github.com/andrewliang25/morphe-patches/issues/000000) [#108](https://github.com/andrewliang25/morphe-patches/issues/108)
+
+## [3.1.0](https://github.com/andrewliang25/morphe-patches/compare/v3.0.0...v3.1.0) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* block the on-demand ad inserts in Reels and Stories ([92db9d8](https://github.com/andrewliang25/morphe-patches/commit/92db9d8b33e16faa4e1a52534c681e5cdb775509))
+* remove the server-inlined ads from the Reels page ([8ad2d13](https://github.com/andrewliang25/morphe-patches/commit/8ad2d137d91261c1dbc25d368f1689652ac4cb74))
+
+### ✨ New Features
+
+* open Facebook links in the external browser ([07bf98a](https://github.com/andrewliang25/morphe-patches/commit/07bf98a91fa64644b022cb7f1fb503644d2a5922))
+* unlock Facebook's save option for any story ([ea17778](https://github.com/andrewliang25/morphe-patches/commit/ea17778afa7dbcbb4aea7edacdd7034fd215c7f1))
+
+## [3.1.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v3.1.0-dev.1...v3.1.0-dev.2) (2026-09-19)
+
+### ✨ New Features
+
+* unlock Facebook's save option for any story ([ea17778](https://github.com/andrewliang25/morphe-patches/commit/ea17778afa7dbcbb4aea7edacdd7034fd215c7f1))
+
+## [3.1.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.0.1-dev.1...v3.1.0-dev.1) (2026-09-19)
+
+### ✨ New Features
+
+* open Facebook links in the external browser ([07bf98a](https://github.com/andrewliang25/morphe-patches/commit/07bf98a91fa64644b022cb7f1fb503644d2a5922))
+
+## [3.0.1-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v3.0.0...v3.0.1-dev.1) (2026-09-19)
+
+### 🐛 Bug Fixes
+
+* block the on-demand ad inserts in Reels and Stories ([92db9d8](https://github.com/andrewliang25/morphe-patches/commit/92db9d8b33e16faa4e1a52534c681e5cdb775509))
+* remove the server-inlined ads from the Reels page ([8ad2d13](https://github.com/andrewliang25/morphe-patches/commit/8ad2d137d91261c1dbc25d368f1689652ac4cb74))
+
+## [3.0.0](https://github.com/andrewliang25/morphe-patches/compare/v2.1.0...v3.0.0) (2026-09-15)
+
+### ⚠ BREAKING CHANGES
+
+* Check your patch selection before you patch an app. This
+release renames every patch. Morphe Manager and the Morphe CLI both store a
+selection by patch name, so your saved selection no longer matches. Every patch
+goes back to its default, which is enabled. A patch that you turned off is on
+again. The Manager also reports the renamed patches as new.
+
+### ✨ New Features
+
+* add Facebook ad patches ([e7040ec](https://github.com/andrewliang25/morphe-patches/commit/e7040ec16df13d0334462df77443203d2c5b4fac))
+* group patch names by category, and rename the MicroG-RE patches ([22c756e](https://github.com/andrewliang25/morphe-patches/commit/22c756ebd02166f040d570c3f9d9a451ae82e110))
+
+## [3.0.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v2.1.0...v3.0.0-dev.1) (2026-09-15)
+
+### ⚠ BREAKING CHANGES
+
+* Check your patch selection before you patch an app. This
+release renames every patch. Morphe Manager and the Morphe CLI both store a
+selection by patch name, so your saved selection no longer matches. Every patch
+goes back to its default, which is enabled. A patch that you turned off is on
+again. The Manager also reports the renamed patches as new.
+
+### ✨ New Features
+
+* add Facebook ad patches ([e7040ec](https://github.com/andrewliang25/morphe-patches/commit/e7040ec16df13d0334462df77443203d2c5b4fac))
+* group patch names by category, and rename the MicroG-RE patches ([22c756e](https://github.com/andrewliang25/morphe-patches/commit/22c756ebd02166f040d570c3f9d9a451ae82e110))
+
+## [2.1.0](https://github.com/andrewliang25/morphe-patches/compare/v2.0.0...v2.1.0) (2026-09-07)
+
+### ✨ New Features
+
+* draw the location maps through GmsCore (issue [#92](https://github.com/andrewliang25/morphe-patches/issues/92)) ([e0a69fe](https://github.com/andrewliang25/morphe-patches/commit/e0a69fe31cb861811f92f8e4d2b8bd546acab212))
+
+## [2.1.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v2.0.0...v2.1.0-dev.1) (2026-09-07)
+
+### ✨ New Features
+
+* draw the location maps through GmsCore (issue [#92](https://github.com/andrewliang25/morphe-patches/issues/92)) ([e0a69fe](https://github.com/andrewliang25/morphe-patches/commit/e0a69fe31cb861811f92f8e4d2b8bd546acab212))
+
+## [2.0.0](https://github.com/andrewliang25/morphe-patches/compare/v1.8.0...v2.0.0) (2026-09-04)
+
+### ⚠ BREAKING CHANGES
+
+* The patch fingerprints use the obfuscated class and method
+names of 26.14.0. These names do not exist in 26.11.0. Update LINE to 26.14.0
+before you patch.
+
+### 🐛 Bug Fixes
+
+* hide the Friends sub-tab Calendar block ([60cabac](https://github.com/andrewliang25/morphe-patches/commit/60cabacab96f98786d95274b96c6759eec22a5fb))
+
+### ✨ New Features
+
+* hide new item badges ([d1bccdb](https://github.com/andrewliang25/morphe-patches/commit/d1bccdbff51f45f1e724d7dcce8a807924640de5))
+
+### 🚀 Updated App Support
+
+* drop support for LINE 26.11.0 ([ec5d7d5](https://github.com/andrewliang25/morphe-patches/commit/ec5d7d57d0dbc878291d0c7c15a70869097ae3dd))
+* re-anchor all LINE patches for 26.14.0 ([48ba2e1](https://github.com/andrewliang25/morphe-patches/commit/48ba2e1922263d8e082864ed1a0442756db8fdb0))
+
+## [2.0.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.8.0...v2.0.0-dev.1) (2026-09-04)
+
+### ⚠ BREAKING CHANGES
+
+* The patch fingerprints use the obfuscated class and method
+names of 26.14.0. These names do not exist in 26.11.0. Update LINE to 26.14.0
+before you patch.
+
+### 🐛 Bug Fixes
+
+* hide the Friends sub-tab Calendar block ([60cabac](https://github.com/andrewliang25/morphe-patches/commit/60cabacab96f98786d95274b96c6759eec22a5fb))
+
+### ✨ New Features
+
+* hide new item badges ([d1bccdb](https://github.com/andrewliang25/morphe-patches/commit/d1bccdbff51f45f1e724d7dcce8a807924640de5))
+
+### 🚀 Updated App Support
+
+* drop support for LINE 26.11.0 ([ec5d7d5](https://github.com/andrewliang25/morphe-patches/commit/ec5d7d57d0dbc878291d0c7c15a70869097ae3dd))
+* re-anchor all LINE patches for 26.14.0 ([48ba2e1](https://github.com/andrewliang25/morphe-patches/commit/48ba2e1922263d8e082864ed1a0442756db8fdb0))
+
+## [1.8.0](https://github.com/andrewliang25/morphe-patches/compare/v1.7.0...v1.8.0) (2026-08-23)
+
+### 🐛 Bug Fixes
+
+* hide the Home tab LYP upsell under "Disable LINE Premium" ([#71](https://github.com/andrewliang25/morphe-patches/issues/71)) ([d4362b3](https://github.com/andrewliang25/morphe-patches/commit/d4362b3b54929c9e90584120d09e6e190353e5bd)), closes [#70](https://github.com/andrewliang25/morphe-patches/issues/70)
+* resolve every hidepremium lookup before the first mutation ([68d9778](https://github.com/andrewliang25/morphe-patches/commit/68d97783d064c72d31b269e1109eff2ee0e6d48f))
+* stop the Home tab refetch loop that "Hide Home content feed" starts ([5eea7c3](https://github.com/andrewliang25/morphe-patches/commit/5eea7c3535bbb46839042f63941135ce29ef8ee2)), closes [#69](https://github.com/andrewliang25/morphe-patches/issues/69)
+
+### ✨ New Features
+
+* add "Hide Home content feed" patch (issue [#69](https://github.com/andrewliang25/morphe-patches/issues/69)) ([6bcb05b](https://github.com/andrewliang25/morphe-patches/commit/6bcb05bd54e86be115d0f01567c39bdc9bead29f)), closes [#15](https://github.com/andrewliang25/morphe-patches/issues/15)
+
+## [1.8.0-dev.3](https://github.com/andrewliang25/morphe-patches/compare/v1.8.0-dev.2...v1.8.0-dev.3) (2026-08-23)
+
+### 🐛 Bug Fixes
+
+* stop the Home tab refetch loop that "Hide Home content feed" starts ([5eea7c3](https://github.com/andrewliang25/morphe-patches/commit/5eea7c3535bbb46839042f63941135ce29ef8ee2)), closes [#69](https://github.com/andrewliang25/morphe-patches/issues/69)
+
+## [1.8.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v1.8.0-dev.1...v1.8.0-dev.2) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* resolve every hidepremium lookup before the first mutation ([68d9778](https://github.com/andrewliang25/morphe-patches/commit/68d97783d064c72d31b269e1109eff2ee0e6d48f))
+
+## [1.8.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.7.0...v1.8.0-dev.1) (2026-08-22)
+
+### 🐛 Bug Fixes
+
+* hide the Home tab LYP upsell under "Disable LINE Premium" ([#71](https://github.com/andrewliang25/morphe-patches/issues/71)) ([d4362b3](https://github.com/andrewliang25/morphe-patches/commit/d4362b3b54929c9e90584120d09e6e190353e5bd)), closes [#70](https://github.com/andrewliang25/morphe-patches/issues/70)
+
+### ✨ New Features
+
+* add "Hide Home content feed" patch (issue [#69](https://github.com/andrewliang25/morphe-patches/issues/69)) ([6bcb05b](https://github.com/andrewliang25/morphe-patches/commit/6bcb05bd54e86be115d0f01567c39bdc9bead29f)), closes [#15](https://github.com/andrewliang25/morphe-patches/issues/15)
+
+## [1.7.0](https://github.com/andrewliang25/morphe-patches/compare/v1.6.1...v1.7.0) (2026-08-20)
+
+### ✨ New Features
+
+* add "Hide Shopping tab" patch ([04b256b](https://github.com/andrewliang25/morphe-patches/commit/04b256b9fa446217997a16b5ab2c46e98ecab1ea)), closes [#59](https://github.com/andrewliang25/morphe-patches/issues/59)
+
+## [1.7.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.6.1...v1.7.0-dev.1) (2026-08-20)
+
+### ✨ New Features
+
+* add "Hide Shopping tab" patch ([04b256b](https://github.com/andrewliang25/morphe-patches/commit/04b256b9fa446217997a16b5ab2c46e98ecab1ea)), closes [#59](https://github.com/andrewliang25/morphe-patches/issues/59)
+
+## [1.6.1](https://github.com/andrewliang25/morphe-patches/compare/v1.6.0...v1.6.1) (2026-08-20)
+
+### 🐛 Bug Fixes
+
+* stop Settings ▸ Chats crashing under "Disable LINE Premium" ([8aaac97](https://github.com/andrewliang25/morphe-patches/commit/8aaac9702d54644aea42a98801eb1ca189c4006a))
+
+## [1.6.1-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.6.0...v1.6.1-dev.1) (2026-08-20)
+
+### 🐛 Bug Fixes
+
+* stop Settings ▸ Chats crashing under "Disable LINE Premium" ([8aaac97](https://github.com/andrewliang25/morphe-patches/commit/8aaac9702d54644aea42a98801eb1ca189c4006a))
+
+## [1.6.0](https://github.com/andrewliang25/morphe-patches/compare/v1.5.0...v1.6.0) (2026-08-12)
+
+### ✨ New Features
+
+* fix chat-history backup sign-in via GmsCore ([a6fba22](https://github.com/andrewliang25/morphe-patches/commit/a6fba224300610ed1498900875f34980382d202b))
+
+## [1.6.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-08-12)
+
+### ✨ New Features
+
+* fix chat-history backup sign-in via GmsCore ([a6fba22](https://github.com/andrewliang25/morphe-patches/commit/a6fba224300610ed1498900875f34980382d202b))
+
+## [1.5.0](https://github.com/andrewliang25/morphe-patches/compare/v1.4.0...v1.5.0) (2026-08-09)
+
+### ✨ New Features
+
+* add Keep unsent messages patch ([3cf6bd7](https://github.com/andrewliang25/morphe-patches/commit/3cf6bd7bca4923cba967919d365e58d40a9530d7))
+
+## [1.5.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-08-09)
+
+### ✨ New Features
+
+* add Keep unsent messages patch ([3cf6bd7](https://github.com/andrewliang25/morphe-patches/commit/3cf6bd7bca4923cba967919d365e58d40a9530d7))
+
+## [1.4.0](https://github.com/andrewliang25/morphe-patches/compare/v1.3.0...v1.4.0) (2026-08-02)
+
+### ✨ New Features
+
+* add "Fix push notifications" patch ([e20ce9d](https://github.com/andrewliang25/morphe-patches/commit/e20ce9d99de2f38286710683a9fcdbeba07a05e3))
+
+## [1.4.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-08-01)
+
+### ✨ New Features
+
+* add "Fix push notifications" patch ([e20ce9d](https://github.com/andrewliang25/morphe-patches/commit/e20ce9d99de2f38286710683a9fcdbeba07a05e3))
+
+## [1.3.0](https://github.com/andrewliang25/morphe-patches/compare/v1.2.0...v1.3.0) (2026-08-01)
+
+### ✨ New Features
+
+* hide the "Unsend" option for messages past the free unsend window ([1cce49d](https://github.com/andrewliang25/morphe-patches/commit/1cce49dd9550ac778370dc6d1359d554696abe50))
+* redirect LINE Pay to the standalone LINE Pay app ([2d9c476](https://github.com/andrewliang25/morphe-patches/commit/2d9c476d69561a9d7fb1c0fc43d97af7f7aa1e67))
+
+## [1.3.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-08-01)
+
+### ✨ New Features
+
+* hide the "Unsend" option for messages past the free unsend window ([1cce49d](https://github.com/andrewliang25/morphe-patches/commit/1cce49dd9550ac778370dc6d1359d554696abe50))
+* redirect LINE Pay to the standalone LINE Pay app ([2d9c476](https://github.com/andrewliang25/morphe-patches/commit/2d9c476d69561a9d7fb1c0fc43d97af7f7aa1e67))
+
+## [1.2.0](https://github.com/andrewliang25/morphe-patches/compare/v1.1.0...v1.2.0) (2026-07-31)
+
+### ⚠ BREAKING CHANGES
+
+* drop non-functional unlock patch; enable Disable LINE Premium by default
+
+### 🐛 Bug Fixes
+
+* also hide the green "Unsend discreetly" button, not just its label ([dbfdb5b](https://github.com/andrewliang25/morphe-patches/commit/dbfdb5b63b2e900c8e33be89ac1a0c1fbaccfab9))
+
+### ✨ New Features
+
+* add Disable LINE Premium patch (hide all LYP upsells & entry points) ([c0244b4](https://github.com/andrewliang25/morphe-patches/commit/c0244b40fa040fa6f768ac2c5551028be4c06758))
+* add experimental LYP premium unlock patch + premium gating doc ([b7dcfca](https://github.com/andrewliang25/morphe-patches/commit/b7dcfca0291da09ad1c407364bcb1d73c699749a))
+* add Hide premium unsend upsells patch ([e5ce130](https://github.com/andrewliang25/morphe-patches/commit/e5ce130575e8772ba350680c83ce19bcb2af0ca8))
+* drop non-functional unlock patch; enable Disable LINE Premium by default ([38cea29](https://github.com/andrewliang25/morphe-patches/commit/38cea2951f07e35a429a8260f4a2359e050399e9))
+* enable Hide premium unsend upsells by default ([9d12e7b](https://github.com/andrewliang25/morphe-patches/commit/9d12e7bd6d84f6ac54d90ad836b7823f73bb3fe1))
+
+## [1.2.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-07-31)
+
+### ⚠ BREAKING CHANGES
+
+* drop non-functional unlock patch; enable Disable LINE Premium by default
+
+### 🐛 Bug Fixes
+
+* also hide the green "Unsend discreetly" button, not just its label ([dbfdb5b](https://github.com/andrewliang25/morphe-patches/commit/dbfdb5b63b2e900c8e33be89ac1a0c1fbaccfab9))
+
+### ✨ New Features
+
+* add Disable LINE Premium patch (hide all LYP upsells & entry points) ([c0244b4](https://github.com/andrewliang25/morphe-patches/commit/c0244b40fa040fa6f768ac2c5551028be4c06758))
+* add experimental LYP premium unlock patch + premium gating doc ([b7dcfca](https://github.com/andrewliang25/morphe-patches/commit/b7dcfca0291da09ad1c407364bcb1d73c699749a))
+* add Hide premium unsend upsells patch ([e5ce130](https://github.com/andrewliang25/morphe-patches/commit/e5ce130575e8772ba350680c83ce19bcb2af0ca8))
+* drop non-functional unlock patch; enable Disable LINE Premium by default ([38cea29](https://github.com/andrewliang25/morphe-patches/commit/38cea2951f07e35a429a8260f4a2359e050399e9))
+* enable Hide premium unsend upsells by default ([9d12e7b](https://github.com/andrewliang25/morphe-patches/commit/9d12e7bd6d84f6ac54d90ad836b7823f73bb3fe1))
+
+## [1.1.0](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0...v1.1.0) (2026-07-29)
+
+### ✨ New Features
+
+* also hide the chat-menu "Events" row ([a7e592f](https://github.com/andrewliang25/morphe-patches/commit/a7e592fb61301b5e0bbc701713f9e8672eb62940))
+* hide all server-driven extra tools in the + attach menu ([b8dc6a0](https://github.com/andrewliang25/morphe-patches/commit/b8dc6a0f917e55c1838fe624b310a0b9f417842c))
+* hide in-chat-room calendar buttons ([bf7b46e](https://github.com/andrewliang25/morphe-patches/commit/bf7b46e2f8b3dac840d12486b030b7f453da57eb))
+* hide the Transfer and LINE GIFT buttons in the + attach menu ([af8b4df](https://github.com/andrewliang25/morphe-patches/commit/af8b4df3419361738a5f5314d4d3dd3347d991d1))
+* split Events into its own patch; rename calendar patch to "Hide LINE Calendar" ([9370397](https://github.com/andrewliang25/morphe-patches/commit/93703972b1e0fe0a641cafc2fb2ee3a4b194d09e))
+
+## [1.1.0-dev.1](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0...v1.1.0-dev.1) (2026-07-29)
+
+### ✨ New Features
+
+* also hide the chat-menu "Events" row ([a7e592f](https://github.com/andrewliang25/morphe-patches/commit/a7e592fb61301b5e0bbc701713f9e8672eb62940))
+* hide all server-driven extra tools in the + attach menu ([b8dc6a0](https://github.com/andrewliang25/morphe-patches/commit/b8dc6a0f917e55c1838fe624b310a0b9f417842c))
+* hide in-chat-room calendar buttons ([bf7b46e](https://github.com/andrewliang25/morphe-patches/commit/bf7b46e2f8b3dac840d12486b030b7f453da57eb))
+* hide the Transfer and LINE GIFT buttons in the + attach menu ([af8b4df](https://github.com/andrewliang25/morphe-patches/commit/af8b4df3419361738a5f5314d4d3dd3347d991d1))
+* split Events into its own patch; rename calendar patch to "Hide LINE Calendar" ([9370397](https://github.com/andrewliang25/morphe-patches/commit/93703972b1e0fe0a641cafc2fb2ee3a4b194d09e))
+
+## 1.0.0 (2026-07-25)
+
+### 🐛 Bug Fixes
+
+* Disambiguate chat-header button fingerprints ([1b13686](https://github.com/andrewliang25/morphe-patches/commit/1b13686b30fbc6019e6debc9d87fcc19cccdb97d))
+* Drop the rename-package patch ([6b53b86](https://github.com/andrewliang25/morphe-patches/commit/6b53b86e30125af795a1f964c9bf8511bb612b08))
+* Fix read-receipts, hide-ad-views, and external-browser on device ([1009baa](https://github.com/andrewliang25/morphe-patches/commit/1009baa382484082cfda1346b5fa1d0f3b7b978a))
+* Hide Home modules crashed on open (VerifyError) ([4bf52ff](https://github.com/andrewliang25/morphe-patches/commit/4bf52ff438ebc5b9b608dd1e10a3273d4d5a859f))
+* Home modules blocklist — add FLEX for 即時夯話題 (test round) ([e3177fe](https://github.com/andrewliang25/morphe-patches/commit/e3177fe9ac49cc3355720e5773fb6471205d1981))
+* Retarget Hide Home modules to the feed state (x72.h$a) ([c3fe14a](https://github.com/andrewliang25/morphe-patches/commit/c3fe14a8765b3c3a5a0633a301fcdf5c56991f7d))
+
+### ✨ New Features
+
+* Add experimental Hide Home modules patch ([02a84ea](https://github.com/andrewliang25/morphe-patches/commit/02a84ea212bc5b2f1c60f54698b9a11b24d4872b))
+* Add hide-calendar-button and hide-community-button patches ([a073efc](https://github.com/andrewliang25/morphe-patches/commit/a073efc7eb86db0c235ecba1bbd349a1ad0ad845))
+* Add LINE disable-pay patch ([b97dd49](https://github.com/andrewliang25/morphe-patches/commit/b97dd4934e3fb50ea5dd611f6db528e536806c0f))
+* Add LINE disable-voom patch ([dd780cd](https://github.com/andrewliang25/morphe-patches/commit/dd780cd07ee210ea08cabe534832a170e2d2ac46))
+* Add LINE hide-ad-views patch ([79af586](https://github.com/andrewliang25/morphe-patches/commit/79af586389c709ba895b919005fe1a51064c9ac4))
+* Add LINE hide-line-today-tab patch ([92255fd](https://github.com/andrewliang25/morphe-patches/commit/92255fdfa7bb1cf5de4651bf71816394715c986e))
+* Add LINE hide-voom-tab patch ([e7a33f6](https://github.com/andrewliang25/morphe-patches/commit/e7a33f6035bdde6011fa7781ab71c7f8bfc0aef6))
+* Add LINE hide-wallet-tab patch ([661c955](https://github.com/andrewliang25/morphe-patches/commit/661c9550fca657703bf7b564795cb7957d165df9))
+* Add LINE open-links-in-external-browser patch ([9c90b23](https://github.com/andrewliang25/morphe-patches/commit/9c90b231135c6f58ec1baadf7f3e5d13ba0b294a))
+* Add LINE prevent-read-receipts patch ([79b07b2](https://github.com/andrewliang25/morphe-patches/commit/79b07b2b0c9fd7f8f271ec3bc4f2f2bb4d8db930))
+* Add LINE remove-banner-ads patch and enable LINE patches by default ([96c8334](https://github.com/andrewliang25/morphe-patches/commit/96c83349f9c6162b3809ed7c01b9ec3f5d132e04))
+* Add LINE rename-package patch (opt-in) ([096193f](https://github.com/andrewliang25/morphe-patches/commit/096193f354b6b21cf72163311cefb99a4bb287dd))
+* Finalize Hide Home modules (confirmed blocklist, default on) ([0176f5a](https://github.com/andrewliang25/morphe-patches/commit/0176f5af582313f59951fb94efe2286b4cc8ef8f))
+* Replace prevent-read-receipts with keep-chats-unread ([1a8d9af](https://github.com/andrewliang25/morphe-patches/commit/1a8d9aff3a2585efc82a1f7dd350e4a6d2005f1f))
+
+### 🚀 Updated App Support
+
+* Cut pre-release for Home modules diagnostics ([5b54f94](https://github.com/andrewliang25/morphe-patches/commit/5b54f94f7b4e4cebb54d94101bc00ca048bf0a24)), closes [#11](https://github.com/andrewliang25/morphe-patches/issues/11)
+
+## [1.0.0-dev.10](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.9...v1.0.0-dev.10) (2026-07-25)
+
+### 🐛 Bug Fixes
+
+* Disambiguate chat-header button fingerprints ([1b13686](https://github.com/andrewliang25/morphe-patches/commit/1b13686b30fbc6019e6debc9d87fcc19cccdb97d))
+
+## [1.0.0-dev.9](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.8...v1.0.0-dev.9) (2026-07-25)
+
+### 🐛 Bug Fixes
+
+* Drop the rename-package patch ([6b53b86](https://github.com/andrewliang25/morphe-patches/commit/6b53b86e30125af795a1f964c9bf8511bb612b08))
+
+### ✨ New Features
+
+* Replace prevent-read-receipts with keep-chats-unread ([1a8d9af](https://github.com/andrewliang25/morphe-patches/commit/1a8d9aff3a2585efc82a1f7dd350e4a6d2005f1f))
+
+## [1.0.0-dev.8](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.7...v1.0.0-dev.8) (2026-07-25)
+
+### ✨ New Features
+
+* Add hide-calendar-button and hide-community-button patches ([a073efc](https://github.com/andrewliang25/morphe-patches/commit/a073efc7eb86db0c235ecba1bbd349a1ad0ad845))
+* Add LINE rename-package patch (opt-in) ([096193f](https://github.com/andrewliang25/morphe-patches/commit/096193f354b6b21cf72163311cefb99a4bb287dd))
+* Finalize Hide Home modules (confirmed blocklist, default on) ([0176f5a](https://github.com/andrewliang25/morphe-patches/commit/0176f5af582313f59951fb94efe2286b4cc8ef8f))
+
+## [1.0.0-dev.7](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.6...v1.0.0-dev.7) (2026-07-25)
+
+### 🐛 Bug Fixes
+
+* Home modules blocklist — add FLEX for 即時夯話題 (test round) ([e3177fe](https://github.com/andrewliang25/morphe-patches/commit/e3177fe9ac49cc3355720e5773fb6471205d1981))
+
+## [1.0.0-dev.6](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.5...v1.0.0-dev.6) (2026-07-25)
+
+### 🐛 Bug Fixes
+
+* Retarget Hide Home modules to the feed state (x72.h$a) ([c3fe14a](https://github.com/andrewliang25/morphe-patches/commit/c3fe14a8765b3c3a5a0633a301fcdf5c56991f7d))
+
+## [1.0.0-dev.5](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.4...v1.0.0-dev.5) (2026-07-25)
+
+### 🚀 Updated App Support
+
+* Cut pre-release for Home modules diagnostics ([5b54f94](https://github.com/andrewliang25/morphe-patches/commit/5b54f94f7b4e4cebb54d94101bc00ca048bf0a24)), closes [#11](https://github.com/andrewliang25/morphe-patches/issues/11)
+
+## [1.0.0-dev.4](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.3...v1.0.0-dev.4) (2026-07-25)
+
+### 🐛 Bug Fixes
+
+* Hide Home modules crashed on open (VerifyError) ([4bf52ff](https://github.com/andrewliang25/morphe-patches/commit/4bf52ff438ebc5b9b608dd1e10a3273d4d5a859f))
+
+## [1.0.0-dev.3](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.2...v1.0.0-dev.3) (2026-07-24)
+
+### ✨ New Features
+
+* Add experimental Hide Home modules patch ([02a84ea](https://github.com/andrewliang25/morphe-patches/commit/02a84ea212bc5b2f1c60f54698b9a11b24d4872b))
+* Add LINE hide-line-today-tab patch ([92255fd](https://github.com/andrewliang25/morphe-patches/commit/92255fdfa7bb1cf5de4651bf71816394715c986e))
+
+## [1.0.0-dev.2](https://github.com/andrewliang25/morphe-patches/compare/v1.0.0-dev.1...v1.0.0-dev.2) (2026-07-24)
+
+### 🐛 Bug Fixes
+
+* Fix read-receipts, hide-ad-views, and external-browser on device ([1009baa](https://github.com/andrewliang25/morphe-patches/commit/1009baa382484082cfda1346b5fa1d0f3b7b978a))
+
+## 1.0.0-dev.1 (2026-07-24)
+
+### ✨ New Features
+
+* Add LINE disable-pay patch ([b97dd49](https://github.com/andrewliang25/morphe-patches/commit/b97dd4934e3fb50ea5dd611f6db528e536806c0f))
+* Add LINE disable-voom patch ([dd780cd](https://github.com/andrewliang25/morphe-patches/commit/dd780cd07ee210ea08cabe534832a170e2d2ac46))
+* Add LINE hide-ad-views patch ([79af586](https://github.com/andrewliang25/morphe-patches/commit/79af586389c709ba895b919005fe1a51064c9ac4))
+* Add LINE hide-voom-tab patch ([e7a33f6](https://github.com/andrewliang25/morphe-patches/commit/e7a33f6035bdde6011fa7781ab71c7f8bfc0aef6))
+* Add LINE hide-wallet-tab patch ([661c955](https://github.com/andrewliang25/morphe-patches/commit/661c9550fca657703bf7b564795cb7957d165df9))
+* Add LINE open-links-in-external-browser patch ([9c90b23](https://github.com/andrewliang25/morphe-patches/commit/9c90b231135c6f58ec1baadf7f3e5d13ba0b294a))
+* Add LINE prevent-read-receipts patch ([79b07b2](https://github.com/andrewliang25/morphe-patches/commit/79b07b2b0c9fd7f8f271ec3bc4f2f2bb4d8db930))
+* Add LINE remove-banner-ads patch and enable LINE patches by default ([96c8334](https://github.com/andrewliang25/morphe-patches/commit/96c83349f9c6162b3809ed7c01b9ec3f5d132e04))

@@ -288,6 +288,13 @@ Once you turn on Instagram's auto scroll in Reels, it stays on after a restart o
 Move on when a reel ends	Reel 結束後播放下一則
 When a reel ends, Reels moves on to the next one instead of playing it again. It uses Instagram's own auto scroll, even on accounts where Instagram doesn't offer it. While it's on, Instagram's own Auto scroll switch can't turn it off. Restart Instagram to see the change.	Reel 結束後會切換至下一則，而非重播。使用 Instagram 本身的自動捲動，即使帳號未提供此功能也適用。啟用期間，Instagram 的「自動捲動」開關無法將其關閉。請重新啟動 Instagram 以套用變更。
 Stop Reels scrolling	停用 Reels 捲動
+# context: Reels page, the three switches under Stop Reels scrolling. They name that switch by its label, and each lets one kind of viewer keep scrolling.
+Still scroll reels from a profile	從個人檔案開啟的 Reels 仍可捲動
+With Stop Reels scrolling on, reels you open from a profile still move on when you swipe.	開啟「停用 Reels 捲動」時，從個人檔案開啟的 Reels 滑動時仍會切換。
+Still scroll reels from Search and Explore	從搜尋和探索開啟的 Reels 仍可捲動
+With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	開啟「停用 Reels 捲動」時，從搜尋、探索、主題標籤或地點開啟的 Reels 滑動時仍會切換。
+Still scroll reels from a song page	從歌曲頁面開啟的 Reels 仍可捲動
+With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	開啟「停用 Reels 捲動」時，從歌曲或音訊頁面開啟的 Reels 滑動時仍會切換。
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	在 Reels 滑動不再切換至下一則，下拉也不會載入新影片。已開啟的 Reel 仍會播放。請重新啟動 Instagram 以套用變更。
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	將 Reel 鎖定為 2 倍速（按住邊緣後向下滑動），之後的 Reels 也會以 2 倍速播放。滑動解除鎖定，或按住邊緣後放開，即可恢復正常速度。
 Open links in external browser	在外部瀏覽器中開啟連結
@@ -423,6 +430,11 @@ Hide the Threads button	隱藏 Threads 按鈕
 Takes the Threads button off the top of profiles, yours included. The menu and the other buttons stay where they were.	移除個人檔案頂端的 Threads 按鈕，自己的個人檔案也適用。選單與其他按鈕仍會保留在原位。
 Show profile posts as a list	以清單顯示個人檔案貼文
 Opening someone's profile takes you on to their posts as a scrolling list of full posts. Go Back for the grid. Your own profile keeps its grid.	開啟他人個人檔案時，直接以可捲動的完整貼文清單顯示。返回即可查看網格。自己的個人檔案仍使用網格。
+Jump a profile's posts to a date	跳到個人檔案貼文的某個日期
+Puts a calendar on a profile's top bar. Pick a day and the posts grid goes back to that day. Pull down for the newest again.	在個人檔案頂端列加上日曆。選一天，貼文格狀畫面就會回到那天。往下拉可再看最新的。
+Open the profile's posts first	請先開啟個人檔案的貼文
+Still loading, try again	仍在載入，請再試一次
+Going to that date	正在前往該日期
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	隱藏 Instagram 在 Reels 之間插入的推薦用戶與創作者卡片。每則 Reel 仍會播放。
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	隱藏標示「付費合作夥伴」或 Instagram 標記為加強推廣的 Reels。廣告另有獨立開關。
 Turn on Start Home on Following to use this choice.	請啟用「首頁預設顯示追蹤中」以使用此選項。
@@ -491,6 +503,11 @@ Save comment photo	儲存留言照片
 Adds Save to a selected comment's menu when the comment has its own photo or GIF. Saves the largest size Instagram sent.	若留言含有自己的照片或 GIF，則在所選留言的選單中新增「儲存」。以 Instagram 傳送的最大尺寸儲存。
 Reply with a comment's GIF	用留言的 GIF 回覆
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	留言含有 GIF 時，其選單會多出 GIF 回覆，將同一個 GIF 以動畫形式作為你的回覆傳回。
+Show a comment GIF's name	顯示留言 GIF 的名稱
+When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	留言含有 GIF 或貼圖時，其選單會顯示名稱。點一下名稱即可複製。
+GIF name	GIF 名稱
+GIF name copied	已複製 GIF 名稱
+Couldn't copy the GIF name	無法複製 GIF 名稱
 Couldn't reply with this GIF	無法用這個 GIF 回覆
 # context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
 Mark as seen button	標記為已讀按鈕
@@ -839,7 +856,7 @@ Download video covers	下載影片封面
 Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	在動態首頁影片貼文與目前顯示影片的輪播貼文選單中新增「下載封面」，以最大尺寸儲存影片播放前的靜態圖片。
 # context: Downloads switch under the feed video and photo downloads; it puts a Download icon in a feed post's action row beside Save
 Download button on feed posts	貼文下載按鈕
-Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them.	在貼文下方儲存按鈕的左側加入下載圖示，點擊即可儲存，不必開啟選單。輪播貼文會詢問儲存目前頁面或全部頁面。
+Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	在貼文下方儲存按鈕的左側加入下載圖示，點擊即可儲存，不必開啟選單。輪播貼文會詢問儲存目前頁面或全部頁面。需啟用「下載動態首頁影片」或「下載動態首頁照片」。
 Download button on reels	Reels 下載按鈕
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	在 Reel 旁的儲存按鈕下方加入下載圖示，點擊即可執行與選單中「下載」相同的操作。需啟用「Reels 下載選項」。
 Nothing to download on this post	此貼文沒有可下載的內容
@@ -1006,14 +1023,14 @@ More	更多
 Hide the tab bar as you scroll	捲動時隱藏分頁列
 Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	向下捲動清單時，分頁列會滑出畫面；向上捲動、回到頂端或切換分頁時會重新出現。無論是否啟用「玻璃分頁列」都可使用。變更後請重新啟動 Instagram。
 Hide the tab bar on Reels	在 Reels 隱藏分頁列
-# context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
+# context: a choice in the Hide the tab bar on Reels list; the bar is never hidden there
 Never	永不
 # context: a choice in the Hide the tab bar on Reels list; %1$d is 2, 3, 5 or 8
 After %1$d seconds	%1$d 秒後
 # context: summary of the Hide the tab bar on Reels row while its choice is Never
-Never. Pick a time and the pill slides away once a reel has played that long without a touch. Restart Instagram after changing it.	永不隱藏。選擇時間後，Reel 播放達指定時間且未觸碰畫面時，膠囊就會滑出畫面。變更後請重新啟動 Instagram。
+Never. Pick a time and the tab bar slides away once a reel has played that long without a touch. Restart Instagram after changing it.	永不隱藏。選擇時間後，Reel 播放達指定時間且未觸碰畫面時，分頁列就會滑出畫面。變更後請重新啟動 Instagram。
 # context: summary of the Hide the tab bar on Reels row; %1$d is the seconds picked, 2, 3, 5 or 8
-On Reels, the pill slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	在 Reels 中，未觸碰畫面 %1$d 秒後膠囊會滑出畫面。點擊螢幕底部邊緣、切換分頁或按返回即可重新顯示。變更後請重新啟動 Instagram。
+On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	在 Reels 中，未觸碰畫面 %1$d 秒後分頁列會滑出畫面。點擊螢幕底部邊緣、切換分頁或按返回即可重新顯示。變更後請重新啟動 Instagram。
 Start feed videos with sound	動態首頁影片預設開啟聲音
 The first video on Home plays with its sound on, the same as tapping its speaker. Your phone's ringer and volume still count, so on silent or with the volume down, it stays quiet.	首頁第一部影片會開啟聲音播放，等同點擊喇叭按鈕。仍受手機鈴聲與音量設定影響，因此靜音或音量調低時仍不會出聲。
 Tap a feed video to pause it	點擊動態首頁影片以暫停
@@ -1022,6 +1039,10 @@ Long press a photo to zoom	長按照片放大
 Press and hold a photo in a feed to see it twice as big around your finger, and slide to look around. Let go to close it. While this is on, it takes the place of Instagram's own long press on a photo.	長按動態中的照片，即可在手指周圍放大為兩倍，滑動可查看其他區域，放開即關閉。啟用時會取代 Instagram 原本的照片長按操作。
 Keep the zoom open	保持放大畫面
 The zoom stays up after you let go. Drag to look around, pinch to zoom from 1x to 4x, and tap or press Back to close it.	放開手指後仍維持放大。拖曳可查看其他區域，雙指可在 1 至 4 倍間縮放，點擊或按返回即可關閉。
+# context: Feed settings, right under Keep the zoom open, and the toast when a post's video can't be opened in the full screen viewer. Close matches the viewer's Close button.
+Long press a post for full screen	長按貼文以全螢幕顯示
+Press and hold a post in a feed to open it full screen. Pinch a photo to zoom and tap it to close. A video plays with a slider and a Close button. While this is on, it goes before the zoom and Instagram's own long press.	在動態中長按貼文即可全螢幕開啟。以雙指縮放相片，輕觸即可關閉。影片會以滑桿和「關閉」按鈕播放。開啟後，會優先於縮放和 Instagram 原本的長按動作。
+Couldn't play this video	無法播放這部影片
 # context: what TalkBack reads for the zoomed photo left open over the feed
 Zoomed photo	放大的照片
 Full screen Reels	全螢幕 Reels
@@ -1065,6 +1086,15 @@ Hide Your algorithm on reels	隱藏 Reels 上的「你的演算法」
 Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The rest of the bar stays.	移除 Reels 分頁頂端的「你的演算法」按鈕並收起空白。頂端列的其他內容仍會保留。
 Hide the Friends tab on Reels	隱藏 Reels 的好友分頁
 Takes the Friends tab, with reels the people you follow shared, off the top of the Reels tab. Reels stays where it is.	移除 Reels 分頁頂端的「好友」分頁，其中包含你追蹤的人分享的 Reels。「Reels」仍會保留在原位。
+# context: Reels settings. Shows Instagram's Friends tab at the top of the Reels tab on accounts that never got it. Friends tab wording matches the Hide the Friends tab row above it.
+Show the Friends tab on Reels	顯示 Reels 的好友分頁
+Adds the Friends tab to the top of the Reels tab if your account never got it. What's in it still comes from Instagram, so it can be empty. Hide the Friends tab wins.	如果你的帳號從未出現好友分頁，就在 Reels 分頁頂端加上它。內容仍來自 Instagram，所以可能是空的。隱藏好友分頁優先。
+# context: Reels settings and the list held open from the Friends tab at the top of the Reels tab. Friends tab wording matches the Hide the Friends tab row above it. The last two are short toasts.
+Hold the Friends tab to pick friends	長按好友分頁以選擇好友
+Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	在 Reels 長按好友分頁，從它顯示過的好友中挑選。之後只保留他們按讚或分享的 Reels。沒有他們的頁面會留下一則 Reels，讓下一頁能載入。
+Pick friends	選擇好友
+Open the Friends tab first.	請先開啟好友分頁。
+Applies to the next reels loaded.	從接下來載入的 Reels 開始套用。
 Hide the Save button on reels	隱藏 Reels 上的儲存按鈕
 Burn-in guard	防烙印保護
 Dim when idle	閒置時淡化
@@ -1084,6 +1114,9 @@ Reels open in clear mode from the first one, with no tap. Leave it yourself and 
 # context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
 Don't vibrate in clear mode	清爽模式中不震動
 Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Reel 以清爽模式開啟時，停止 Instagram 播放的短暫震動。開啟「保持清爽模式」時，每次滑動都會震動。
+# context: Reels settings: a switch under Don't vibrate in clear mode (#480). It keeps the seek bar on screen in clear mode; seek bar and clear mode use the same words as Keep a seek bar and Keep clear mode on
+Always show seek bar in clear mode	清爽模式中一律顯示進度列
+Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other buttons stay hidden. Short reels get a bar too, in clear mode or not.	在清爽模式的 Reel 上保留進度列，仍可拖曳，其他按鈕維持隱藏。不論是否為清爽模式，短 Reels 也會有進度列。
 Unlock with	解鎖方式
 Phone lock	手機鎖定
 HushGram PIN	HushGram PIN 碼
@@ -1400,7 +1433,7 @@ Couldn't use that folder. Saves go where they did.	無法使用該資料夾。�
 Saves go to Movies and Pictures again.	儲存的內容已改回放在 Movies 和 Pictures。
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s 無法存放這次儲存的內容，因此改放在 Movies 和 Pictures。
 Start reels with sound	Reels 預設開啟聲音
-A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	從首頁貼文點開的 Reel 會有聲音播放，返回後首頁會再次靜音。手機的鈴聲模式和音量仍然有效。
+A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	從 Reels 分頁或首頁貼文開啟的 Reel 會有聲音播放，返回後首頁會再次靜音。手機的鈴聲模式和音量仍然有效。
 Keep your place in Home	保留首頁的瀏覽位置
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	回到 Instagram 時，不論離開多久，首頁都會停在你剛才看的貼文。下拉重新整理仍會重新載入。
 Filter the Stories tray by verified accounts	依已驗證帳號篩選限時動態橫幅

@@ -14,6 +14,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Runtime support for the Proteus Reddit "Block AutoMod comments" and
@@ -29,7 +31,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Injection contract used by the patches:
  * <ul>
  *   <li>{@code hideAutoModComments(List) -> List} — drops comment rows authored
- *       by u/AutoModerator (posts by AutoModerator are kept).</li>
+ *       by u/AutoModerator (posts by AutoModerator are kept).  Logs a one-time
+ *       "filter is live" probe and throttled drop counts to {@code System.out}
+ *       (visible via {@code adb logcat}) so device builds can confirm the
+ *       choke point ran; when the author getter cannot be resolved it falls
+ *       back to the canonical AutoModerator boilerplate footer before giving
+ *       up.</li>
  *   <li>{@code filterContent(List) -> List} — applies the patch-time keyword /
  *       community / author / flair rules and, when enabled, clears local
  *       NSFW / spoiler / quarantine / blur gates on the returned items.</li>
@@ -54,6 +61,21 @@ public final class RedditContentFilterHelper {
 
     private static volatile Config parsedConfig;
 
+    /** Set once the first hideAutoModComments pass completes; lets device logs prove the hook is live. */
+    private static final AtomicBoolean AUTO_MOD_PROBE_LOGGED = new AtomicBoolean();
+    private static final AtomicInteger AUTO_MOD_DROP_LOG_COUNT = new AtomicInteger();
+
+    private static void logAutoMod(String message) {
+        System.out.println("[Proteus][Block AutoMod] " + message);
+    }
+
+    private static void logAutoModDrop(int dropped, int total) {
+        int n = AUTO_MOD_DROP_LOG_COUNT.incrementAndGet();
+        if (n <= 5 || n % 25 == 0) {
+            logAutoMod("dropped " + dropped + " of " + total + " rows (event " + n + ")");
+        }
+    }
+
     private static final Map<Class<?>, Boolean> MODEL_CLASS_CACHE = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Accessors> ACCESSOR_CACHE = new ConcurrentHashMap<>();
     private static final Map<Class<?>, List<Field>> GATE_FIELD_CACHE = new ConcurrentHashMap<>();
@@ -68,7 +90,9 @@ public final class RedditContentFilterHelper {
             "getSelftext", "getSelfText", "getBody"
     };
     private static final String[] AUTHOR_GETTERS = {
-            "getAuthor", "getAuthorName", "getAuthorFullname", "getUsername", "getUser"
+            "getAuthor", "getAuthorName", "getAuthorFullname", "getAuthorFullName",
+            "getAuthorDisplayName", "getUsername", "getUser", "getCreatorName",
+            "getNickname", "getName"
     };
     private static final String[] COMMUNITY_GETTERS = {
             "getSubreddit", "getSubredditName", "getCommunity", "getCommunityName",
@@ -78,7 +102,7 @@ public final class RedditContentFilterHelper {
             "getLinkFlairText", "getFlairText", "getFlair", "getAuthorFlairText"
     };
     private static final String[] KIND_GETTERS = {
-            "getKindWithId", "getFullName", "getFullname"
+            "getKindWithId", "getKind", "getFullName", "getFullname", "getType"
     };
     private static final String[] COMMENT_MARKER_GETTERS = {
             "getParentId", "getLinkId", "getDepth", "getReplies", "getParent"
@@ -94,16 +118,36 @@ public final class RedditContentFilterHelper {
      * Drops every comment-shaped row whose author is AutoModerator / AutoMod.
      * Post-shaped rows (kind "t3_*", or with a title getter) are deliberately
      * kept: weekly threads and other AutoModerator submissions are not comments.
+     *
+     * <p>Results are memoized per list identity (see {@link ProteusListMemo}):
+     * Compose re-reads {@code Listing.getChildren()} on the UI path, and each
+     * read would otherwise redo the reflective row scan.  Output is unchanged
+     * on every pass of the same list instance.
      */
     public static List<?> hideAutoModComments(List<?> list) {
         if (list == null || list.isEmpty()) {
             return list;
         }
+        List<?> memoized = ProteusListMemo.get(list);
+        if (memoized != null) {
+            return memoized;
+        }
+        List<?> result = hideAutoModCommentsInner(list);
+        ProteusListMemo.put(list, result);
+        return result;
+    }
+
+    private static List<?> hideAutoModCommentsInner(List<?> list) {
+        if (!AUTO_MOD_PROBE_LOGGED.getAndSet(true)) {
+            logAutoMod("filter is live (first pass over " + list.size() + " rows)");
+        }
 
         List<Object> filtered = null;
+        int dropped = 0;
         for (int i = 0, size = list.size(); i < size; i++) {
             Object item = list.get(i);
             if (isAutoModComment(item)) {
+                dropped++;
                 if (filtered == null) {
                     filtered = new ArrayList<Object>(list.subList(0, i));
                 }
@@ -113,19 +157,37 @@ public final class RedditContentFilterHelper {
                 filtered.add(item);
             }
         }
-        return filtered != null ? filtered : list;
+        if (filtered != null) {
+            logAutoModDrop(dropped, list.size());
+            return filtered;
+        }
+        return list;
     }
 
     /**
      * Applies the configured content rules.  Also clears local content gates on
      * kept items when "Bypass built-in content gates" is enabled.  This cannot
      * restore posts that Reddit never returned (server-side filtering).
+     *
+     * <p>Results are memoized per list identity (see {@link ProteusListMemo}):
+     * Compose reads the listing's {@code getChildren()} repeatedly, and each
+     * read would otherwise redo the reflective row scan.  Output is unchanged
+     * on every pass of the same list instance.
      */
     public static List<?> filterContent(List<?> list) {
         if (list == null || list.isEmpty()) {
             return list;
         }
+        List<?> memoized = ProteusListMemo.get(list);
+        if (memoized != null) {
+            return memoized;
+        }
+        List<?> result = filterContentInner(list);
+        ProteusListMemo.put(list, result);
+        return result;
+    }
 
+    private static List<?> filterContentInner(List<?> list) {
         Config config = config();
         if (!config.active()) {
             return list;
@@ -164,8 +226,23 @@ public final class RedditContentFilterHelper {
             return false;
         }
         String author = stringValue(invoke(accessors.author, model));
-        return isAutoModerator(author);
+        if (isAutoModerator(author)) {
+            return true;
+        }
+        // Fallback for builds where the author getter cannot be resolved:
+        // AutoModerator footers always carry this canonical sentence, and a
+        // resolved non-AutoModerator author must win over text matching.
+        if (author == null || author.trim().isEmpty()) {
+            String body = stringValue(invoke(accessors.body, model));
+            return body != null && body.toLowerCase(Locale.ROOT)
+                    .contains(AUTO_MOD_BOILERPLATE);
+        }
+        return false;
     }
+
+    /** Canonical closing sentence present in every AutoModerator bot footer. */
+    private static final String AUTO_MOD_BOILERPLATE =
+            "i am a bot, and this action was performed automatically";
 
     private static boolean isAutoModerator(String raw) {
         String author = raw == null ? "" : raw.trim();
@@ -361,6 +438,11 @@ public final class RedditContentFilterHelper {
      * comment models (getAuthor/getBody/getParentId/...).
      */
     private static Object findModel(Object value) {
+        // Fast path: rows that already are Reddit models skip the
+        // IdentityHashMap allocation and the recursive field walk entirely.
+        if (value != null && isRedditModel(value.getClass())) {
+            return value;
+        }
         return findModel(value, 0, Collections.newSetFromMap(new IdentityHashMap<Object, Boolean>()));
     }
 

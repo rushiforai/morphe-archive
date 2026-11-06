@@ -867,6 +867,35 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/postprompts/PostFollowText.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #396: the Follow a collab post or a partnership ad adds after its second name. In Facebook 585 CollabFollowTitleTextPlugin and FBPADualHeaderFollowTextPlugin (kept class names) each build that \" · Follow\" text themselves and hand it to the title segment's (click, CharSequence) constructor as their last step, outside the follow check Hide the Follow link on posts already answers. The patch hands the text to the extension right before that constructor, and the extension answers an empty text of the same kind while the switch is on, so the header has no dot, no word and nothing to tap."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoryRings.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/stories/rings/HideStoryRingsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #397: the story and LIVE rings on profile pictures. In Facebook 585 the feed's post header decorators build components that name themselves FeedStoryRingComponent and FeedLiveRingComponent, and their ring checks ask two statics that take the post's GraphQLActor and answer whether to draw a ring; the patch hands every answer of both to the extension. The comment ring helper is the static of the class holding the comment StoryRingPlugin name that answers a ring state, and the patch has it answer the state Facebook builds for someone with no story when the extension says so. The profile photo (FDSProfilePhoto, a kept class name) takes its ring kind as a constructor argument that may be null, and in the two renders that test for a ring the patch passes that argument through the extension, which answers null while the switch is on."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/ProfilePictures.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/profilepictures/HideProfilePicturesPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook for issue #400: the profile pictures at the top of posts and next to comments. In Facebook 585 the one static holding the FeedStoryBaseHeader.shell.fds trace name switches on the header's actor type, every case jumps to one merge with the picture model in one register, and its default sets that register to null, Facebook's own header with no picture; the patch hands the model to the extension on the merge's own label, so every case passes through it. The comment render holding the comment_profile_picture test tag builds the picture's wrapper once and adds it to the row, which already skips null and has a null path of its own; the patch hands the built picture to the extension right after the build. The extension answers null while each switch is on."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/postprompts/PostJoinButton.kt"
       ],
       "origin": "original",

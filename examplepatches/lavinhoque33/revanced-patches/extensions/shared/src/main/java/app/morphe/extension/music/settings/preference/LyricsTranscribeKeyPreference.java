@@ -12,8 +12,6 @@ import static app.morphe.extension.shared.utils.StringRef.str;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.preference.Preference;
 import android.text.InputType;
 import android.util.AttributeSet;
@@ -36,17 +34,13 @@ import app.morphe.extension.shared.ui.CustomDialog;
 import app.morphe.extension.shared.ui.Dim;
 
 /**
- * The key for the service that transcribes or time-aligns the lyrics of the current track. It
- * lives next to the AI endpoint settings because both are keys for a service the lyrics are sent
- * to, and shares nothing with them but that.
+ * The key for the service that transcribes or time-aligns the lyrics of the current track, opened
+ * from its row in the lyrics service list.
  */
 @SuppressWarnings({"unused", "deprecation"})
 public class LyricsTranscribeKeyPreference extends Preference {
 
     private static final String DASHBOARD_URL = "https://quicklrc.com/dashboard";
-
-    @Nullable
-    private Dialog activeDialog;
 
     public LyricsTranscribeKeyPreference(Context context, AttributeSet attrs, int defStyleAttr,
             int defStyleRes) {
@@ -85,17 +79,18 @@ public class LyricsTranscribeKeyPreference extends Preference {
 
     @Override
     protected void onClick() {
-        showDialog();
+        showDialog(null);
+    }
+
+    /** Opens the key dialog; {@code onSaved} runs once a key the service accepted was stored. */
+    void showDialog(@Nullable Runnable onSaved) {
+        showKeyDialog(getContext(), onSaved);
     }
 
     @SuppressWarnings("ConstantValue")
-    private void showDialog() {
-        final Context context = getContext();
+    static void showKeyDialog(Context context, @Nullable Runnable onSaved) {
         if (!(context instanceof Activity activity)
                 || activity.isFinishing() || activity.isDestroyed()) {
-            return;
-        }
-        if (activeDialog != null && activeDialog.isShowing()) {
             return;
         }
 
@@ -128,16 +123,7 @@ public class LyricsTranscribeKeyPreference extends Preference {
 
         final Button getKeyButton = CustomDialog.createButton(context, null,
                 str("morphe_music_token_dialog_get_token"),
-                () -> {
-                    try {
-                        final Intent intent = new Intent(Intent.ACTION_VIEW,
-                                Uri.parse(DASHBOARD_URL));
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        context.startActivity(intent);
-                    } catch (Exception ex) {
-                        Logger.printDebug(() -> "QuickLRC dashboard button failure", ex);
-                    }
-                },
+                () -> ThemedInput.openInBrowser(context, DASHBOARD_URL, "QuickLRC dashboard button"),
                 false, false);
         final LinearLayout.LayoutParams getKeyParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, Dim.dp36);
@@ -155,7 +141,6 @@ public class LyricsTranscribeKeyPreference extends Preference {
                     if (key.isEmpty()) {
                         // Saving nothing clears it, which is also what the reset button does.
                         Settings.LYRICS_TRANSCRIBE_KEY.resetToDefault();
-                        updateSummary();
                         Utils.showToastShort(str("morphe_music_lyrics_transcribe_key_cleared"));
                         return;
                     }
@@ -168,8 +153,10 @@ public class LyricsTranscribeKeyPreference extends Preference {
                             return;
                         }
                         Settings.LYRICS_TRANSCRIBE_KEY.save(key);
-                        updateSummary();
                         Utils.showToastShort(str("morphe_music_lyrics_transcribe_key_saved"));
+                        if (onSaved != null) {
+                            onSaved.run();
+                        }
                     });
                 },
                 null,
@@ -177,7 +164,6 @@ public class LyricsTranscribeKeyPreference extends Preference {
                 () -> {
                     Settings.LYRICS_TRANSCRIBE_KEY.resetToDefault();
                     keyInput.setText("");
-                    updateSummary();
                     Utils.showToastShort(str("morphe_music_lyrics_transcribe_key_cleared"));
                 },
                 false
@@ -190,16 +176,9 @@ public class LyricsTranscribeKeyPreference extends Preference {
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT));
 
-        activeDialog = dialog;
-        dialog.setOnDismissListener(d -> {
-            if (activeDialog == d) {
-                activeDialog = null;
-            }
-        });
         try {
             dialog.show();
         } catch (WindowManager.BadTokenException ex) {
-            activeDialog = null;
             Logger.printDebug(() -> "Transcribe key dialog could not be shown", ex);
         }
     }

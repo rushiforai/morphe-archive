@@ -3,6 +3,7 @@ package app.hushmessenger.patches
 import app.hushmessenger.patches.coexist.expectedDexSitesFor
 import app.hushmessenger.patches.controls.BASE_PROFILE
 import app.hushmessenger.patches.controls.ControlProfile
+import app.hushmessenger.patches.controls.PROFILE_347215273
 import app.hushmessenger.patches.controls.PROFILE_347215341
 import app.hushmessenger.patches.controls.PROFILE_347215348
 import app.hushmessenger.patches.controls.controlProfileFor
@@ -87,6 +88,9 @@ class CompatProfileTest {
 
     @Test fun record347215341GeneratesItsProfileAndSitesExactlyAsInTheSource(@TempDir dir: Path) =
         assertRecordGeneratesTheSource(347215341, PROFILE_347215341, dir)
+
+    @Test fun record347215273GeneratesItsProfileAndSitesExactlyAsInTheSource(@TempDir dir: Path) =
+        assertRecordGeneratesTheSource(347215273, PROFILE_347215273, dir)
 
     private fun assertRecordGeneratesTheSource(code: Int, profile: ControlProfile, dir: Path) {
         assertSame(profile, controlProfileFor("$code"))

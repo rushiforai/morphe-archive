@@ -18,4 +18,12 @@ public final class FixImgurApiPatch {
     public static void setUploadContentType(HttpURLConnection connection) {
         connection.setRequestProperty("Content-Type", "application/octet-stream");
     }
+
+    /**
+     * Whether an image of an Imgur album is a video. Imgur's API sends "mp4" empty for a still image,
+     * which BaconReader takes for a video because it only checks it for null.
+     */
+    public static boolean isVideo(String mp4) {
+        return mp4 != null && !mp4.isEmpty();
+    }
 }

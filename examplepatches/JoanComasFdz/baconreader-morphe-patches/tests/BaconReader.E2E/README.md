@@ -101,12 +101,45 @@ the test process.
   | `https://www.reddit.com`, `https://oauth.reddit.com`, `https://api.reddit.com`, `https://ssl.reddit.com`, `https://reddit.com`, `https://m.reddit.com`, `http://www.reddit.com`, `http://reddit.com` | `<baseUrl>` |
   | `https://i.redd.it/`, `https://preview.redd.it/`, `https://v.redd.it/` | `<baseUrl>/_media/i.redd.it/`, `<baseUrl>/_media/preview.redd.it/`, `<baseUrl>/_media/v.redd.it/` |
   | `https://cf-baconreader.onelouder.com/` | `<baseUrl>/_onelouder/` |
+  | `https://api.imgur.com/` | `<baseUrl>/_imgur/` |
+  | `https://i.imgur.com/` | `<baseUrl>/_media/i.imgur.com/` |
+  | `https://api.redgifs.com/` | `<baseUrl>/_redgifs/` |
+  | `https://www.youtube.com/oembed` | `<baseUrl>/_youtube/oembed` |
+  | `https://i.ytimg.com/` | `<baseUrl>/_media/i.ytimg.com/` |
+  | `https://cdn.syndication.twimg.com/` | `<baseUrl>/_x/` |
+  | `https://public.api.bsky.app/` | `<baseUrl>/_bluesky/` |
+  | `https://pbs.twimg.com/` | `<baseUrl>/_media/pbs.twimg.com/` |
+  | `https://www.redditstatic.com/` | `<baseUrl>/_media/www.redditstatic.com/` |
+  | `https://i.imgflip.com/` | `<baseUrl>/_media/i.imgflip.com/` |
 
-  Bare domains (`reddit.com`, `v.redd.it`, `amp.reddit.com`…) stay: BaconReader recognizes Reddit links in posts by
-  them. Two of BaconReader's checks assume Reddit's own addresses, so the patch also takes a URL under
+  A string that starts with `https://www.reddit.com/gallery` stays: BaconReader and "Fix Reddit links" know a gallery by
+  Reddit's own address. Bare domains (`reddit.com`, `v.redd.it`, `amp.reddit.com`…) stay: BaconReader recognizes Reddit
+  links in posts by them. Two of BaconReader's checks assume Reddit's own addresses, so the patch also takes a URL under
   `<baseUrl>/_media/v.redd.it/` for a Reddit video (BaconReader plays one only by the host `v.redd.it`), and keeps the
   fake's plain HTTP where BaconReader saves a video from an https URL. Its option, `baseUrl` (default `http://127.0.0.1:5080`), is `E2E_FAKE_REDDIT_URL` (`--options baseUrl=…`
   after the test-only `--patches`).
+- **Third-party services the patches fetch from** have their hosts in the same table: Imgur's API and images, which
+  "Fix Imgur API" and "Embed comment images" load, and RedGIFs' API, which "Fix Redgifs API", "Fix list thumbnails"
+  and "Improve post media loading" ask, YouTube's oEmbed and thumbnails, which "Embed comment images" and "Fix list
+  thumbnails" load, and X's embed service and Bluesky's public API, where "Embed comment images" finds a post, and the Snoomoji
+  emotes at `https://www.redditstatic.com/`, whose GIF it finds from an emote's name, and Imgflip's meme templates, which "Fix meme templates" shows. The
+  patch asks X for a small photo only at X's own address, `https://pbs.twimg.com/`, so that prefix moves too. "Fix Redgifs API" builds its own RedGIFs addresses from the host
+  `api.redgifs.com` and the path `/v2/oauth/client`, so the patch also replaces those exact strings: the host with the
+  fake's, and the path with `/_redgifs/v2/oauth/client`. RedGIFs' answers point at its videos'
+  `https://media.redgifs.com/…`, which the fake gives at its own address. The fake answers them as the service does
+  ([BaconReader.FakeReddit](../BaconReader.FakeReddit/README.md), "Imgur", "RedGIFs", "YouTube", "X and Bluesky", "Emotes", "Imgflip").
+  Content links to them keep the service's real address (`https://imgur.com/a/<id>`,
+  `https://www.redgifs.com/watch/<id>`, `https://www.youtube.com/watch?v=<id>`, `https://x.com/<handle>/status/<id>`,
+  `https://bsky.app/profile/<handle>/post/<key>`), as for Reddit below: BaconReader and the patches know each by it.
+- **Content keeps Reddit's addresses; only what the app fetches goes to the fake.** A link in the Reddit data a scenario
+  makes (a post's `url`, a link in a comment or a post's text) that a patch must recognize as Reddit's keeps Reddit's
+  real address, `https://www.reddit.com/…`, `https://v.redd.it/<id>`, as Reddit sends it. The patch moves the app's own
+  addresses, so what the app fetches from such a link still reaches the fake. A link moved to the fake in the content
+  takes a path real Reddit never takes: the patch's code doesn't see a Reddit link, and the scenario passes or fails
+  for another reason. "Fix Reddit links" missed a gallery that way, and a link post to a video
+  ([BaconReader.FakeReddit](../BaconReader.FakeReddit/README.md), "Real addresses in content"). Media files, which the
+  app only loads, may be at the fake's address. Where a check can't see Reddit's address (`RedditVideo.isValid` on a
+  video moved to the fake), add the smallest hook to "E2E fake Reddit", and say so above.
 - **Every scenario gets it.** BaseE2E adds "E2E fake Reddit" to every scenario's patches. A Given and `[PatchedWith]`
   never name it, only the patches under test (`ScenarioShapeTests` checks it).
 - **The bundle's other patch.** "E2E inbox envelope label", which every scenario gets too: with unread messages, the
@@ -125,8 +158,9 @@ the test process.
 - **Unanswered requests fail the scenario.** After each scenario, BaseE2E fails it if the app asked the fake for
   something it doesn't answer (it says 404 and logs it), listing each request: the fake lacks an endpoint, or the
   scenario's Given lacks data. `UnhandledRequests.Ignored` lists the few no scenario cares about, each with why.
-- **Out of scope:** Reddit's chat (`chat.reddit.com`, `accounts.reddit.com`) and Snoomoji emotes
-  (`www.redditstatic.com`) stay on Reddit.
+- **Reddit's chat** (`www.reddit.com/chat`) moves with the rest of www.reddit.com: Reddit's chat is a website behind a
+  login, with no API, so the fake answers it with a plain page of its own (BaconReader.FakeReddit's README, "Reddit
+  chat"). `chat.reddit.com` and `accounts.reddit.com` stay on Reddit.
 
 ## Run and record
 
@@ -215,10 +249,23 @@ arguments: a Markdown table is `Scores\n\n¦ Player ¦ Score ¦\n¦---¦---¦\n�
 | `link post with preview: <subreddit> \| <title>` | a link post to a web page that runs JavaScript, with a preview and no thumbnail |
 | `gallery post: <subreddit> \| <title> \| <images>` | a gallery of that many images |
 | `crosspost: <subreddit> \| <title> \| <shared post title>` | a crosspost of that post |
+| `link post to video: <subreddit> \| <title> \| <video post title>` | a link post to that post's video, on v.redd.it |
 | `avatar: <user>` | the user's avatar, for "Show user avatars" |
 | `late media: <post title> \| <seconds>` | the post's image or GIF answered that late |
 | `fail media: <post title> \| <status>` | the post's image or GIF answered with that status |
 | `fail thumbnail: <post title> \| <status> \| <times>` | the post's thumbnail answered with that status the first times |
+| `imgur album: <title> \| <images>`, `imgur video album: <title> \| <videos>`, `imgur gallery post: <title> \| <images>` | an Imgur album of that many JPEGs, or MP4 videos, or an album on Imgur's gallery |
+| `imgur album post: <subreddit> \| <title> \| <album>` | a link post to that Imgur album, at Imgur's address |
+| `comment with imgur album: <post title> \| <text> \| <album>` | a comment: the text, then a bare link to that Imgur album |
+| `redgifs post: <subreddit> \| <title>`, `deleted redgifs post: …`, `missing redgifs post: …` | a link post to a RedGIFs video, at RedGIFs' address: one RedGIFs has, one it deleted (410), or one it never had (404) |
+| `youtube video: <title> \| @<channel>`, `removed youtube video: <title>` | a YouTube video, with its title and thumbnails, or one YouTube removed (oEmbed answers 404); ids are `e2eVideo000`, `e2eVideo001`… in the order made |
+| `youtube post: <subreddit> \| <title> \| <video>` | a link post to that YouTube video, at YouTube's address, with no thumbnail or preview of Reddit's |
+| `x post: <name> \| @<handle> \| <text> \| none\|photo\|video`, `long x post: <name> \| @<handle> \| <start>` | an X post; ids are `1990000000000000000`, `…001`… in the order made, dated 2 October 2025 |
+| `bluesky post: <name> \| @<handle> \| <text> \| none\|images\|video\|external\|gallery` | a Bluesky post; record keys are `3e2epost00000`, `…00001`… in the order made |
+| `comment with link: <post title> \| <text> \| <link>` | a comment: the text, then the link on its own line, bare or as `[words](address)` |
+| `comment with snoomoji: <post title> \| <text> \| <name>`, `comment with subreddit emote: <post title> \| <text>` | a comment: the text, then Reddit's emote of that name, or one of the post's subreddit, as Reddit sends emotes now |
+| `imgflip templates`, `removed imgflip template: <name>` | Imgflip serves the meme templates "Fix meme templates" shows; one of them no longer at full size |
+| `phone joins another network` | the fake RedGIFs refuses each token it gave, 401 WrongSender, as RedGIFs does once the phone's address changes |
 
 **The phone and what Reddit saw:**
 
@@ -275,6 +322,11 @@ Scenarios/LoggedIn/Comments/EmbedCommentImages/EmbedCommentImagesTests.cs
 
 ## Patches without scenarios
 
+- **"Reddit chat": Reddit's chat itself.** `RedditChatTests` covers the patch's own part: the chat messages Reddit also
+  sends to the inbox, kept apart and counted next to Chat, and the chat's place in the main screen, under the toolbar's
+  "Chat", with its links. Reddit's chat app (logging in, rooms, sending, attaching images, each account's own login)
+  is Reddit's website, with no API to fake, so the fake shows a plain page instead. Left out too: a link to another
+  site, which leaves the app for the browser, and the notification of new chat messages.
 - **"Disable feedback popup".** BaconReader's own time tracking shows "Please take a few moments to provide feedback"
   only after about an hour of use, and regular use of the patched app on the owner's phone already covers it.
 

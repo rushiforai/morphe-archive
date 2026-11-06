@@ -1,0 +1,75 @@
+package app.revanced.patches.kakaotalk.interaction.send
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getFreeRegisterProvider
+import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
+import app.morphe.util.setExtensionIsPatchIncluded
+import app.revanced.patches.kakaotalk.interaction.send.fingerprints.StripInvalidCharFormatPredicateFingerprint
+import app.revanced.patches.kakaotalk.interaction.send.fingerprints.StripInvalidCharFormatSanitizerFingerprint
+import app.revanced.patches.kakaotalk.misc.settings.PreferenceScreen
+import app.revanced.patches.kakaotalk.misc.settings.addSettingsTabPatch
+import app.revanced.patches.kakaotalk.shared.Constants.COMPATIBILITY_KAKAO
+
+private const val EXTENSION_CLASS =
+    "Lapp/revanced/extension/kakaotalk/patches/AllowInvisibleCharactersPatch;"
+
+private const val ALLOW_INVISIBLE_CHARACTERS =
+    "Lapp/revanced/extension/kakaotalk/settings/Settings;->allowInvisibleCharacters()Z"
+
+@Suppress("unused")
+val allowInvisibleCharactersPatch = bytecodePatch(
+    name = "Allow invisible characters",
+    description = "ゼロ幅文字などの不可視文字が、チャット入力やチャットルームに表示されるメッセージから取り除かれないようにします。",
+) {
+    compatibleWith(COMPATIBILITY_KAKAO)
+    dependsOn(addSettingsTabPatch)
+
+    execute {
+        PreferenceScreen.CHAT.addPreferences(
+            SwitchPreference(
+                key = "morphe_pref_allow_invisible_characters",
+                titleKey = "morphe_settings_patch_allow_invisible_characters",
+                summary = true,
+            ),
+        )
+        setExtensionIsPatchIncluded(EXTENSION_CLASS)
+
+        // A null return value tells the input filter contract to keep the typed text as is.
+        StripInvalidCharFormatPredicateFingerprint.classDef.methods
+            .first { it.name == "filter" }
+            .apply {
+                val free = getFreeRegisterProvider(0, 1).getFreeRegister4Bit()
+
+                addInstructionsWithLabels(
+                    0,
+                    """
+                        invoke-static {}, $ALLOW_INVISIBLE_CHARACTERS
+                        move-result v$free
+                        if-eqz v$free, :morphe_original
+                        const/4 v$free, 0x0
+                        return-object v$free
+                        :morphe_original
+                        nop
+                    """
+                )
+            }
+
+        StripInvalidCharFormatSanitizerFingerprint.method.apply {
+            val free = findFreeRegister(0)
+
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static {}, $ALLOW_INVISIBLE_CHARACTERS
+                    move-result v$free
+                    if-eqz v$free, :morphe_original
+                    return-object p0
+                    :morphe_original
+                    nop
+                """
+            )
+        }
+    }
+}

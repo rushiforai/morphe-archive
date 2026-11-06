@@ -1,3 +1,80 @@
+## [1.4.0](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.3.0...v1.4.0) (2026-11-06)
+
+### ✨ New Features
+
+* Wordfeud 5.8.0 ondersteund; controlescript en handleiding voor nieuwe versies ([6a892a4](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/6a892a4c34e7fc95c4fec8591fd4aa5edfbb0007))
+
+### 🐛 Bug Fixes
+
+* **wordlists:** en-us: REIM verwijderd (geweigerd door de server) ([310dd8d](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/310dd8de201c8385e4b67a0d6978be70c682f26c))
+* **wordlists:** en-us: RIEM verwijderd (geweigerd door de server) ([21c705c](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/21c705caa09f92dbc0c60c01d77f8e10fe9f9d72))
+* **wordlists:** nl: GIGJE toegevoegd (gespeeld, ontbrak in de lijst) ([e03e6d8](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/e03e6d8044dfeb298ba3656ea30633604f7a2748))
+* **wordlists:** nl: TARDEN,TEXEN toegevoegd (gespeeld, ontbrak in de lijst) ([42c5613](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/42c5613a5d7137e8f2be45a2ae56bf241ec2c828))
+* **wordlists:** nl: VIEZEN toegevoegd (gespeeld, ontbrak in de lijst) ([1f36ab5](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/1f36ab5cb9af28c1295a90a2b04b5cc92aa79945))
+* **wordlists:** nn: CF verwijderd (geweigerd door de server) ([5903f6a](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/5903f6afa8d2f4cbe2dd7fe195e34f70b38623e3))
+* **wordlists:** nn: CG verwijderd (geweigerd door de server) ([63c3e6a](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/63c3e6a5001aed143ba2533f048301db29b7a9ea))
+* **wordlists:** nn: HET toegevoegd (gespeeld, ontbrak in de lijst) ([af14e79](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/af14e7962c5ae27273fc8e58b9299b7a409dcbf5))
+* **wordlists:** nn: MS verwijderd (geweigerd door de server) ([0123b5a](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/0123b5af3a56b48f4dff90b989841132b945f4f3))
+* **wordlists:** nn: MW verwijderd (geweigerd door de server) ([719e8c2](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/719e8c28fd117f0e7b85e9375cfaaa3dadd38817))
+* **wordlists:** nn: ØN toegevoegd (gespeeld, ontbrak in de lijst) ([ce4ebbc](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/ce4ebbc1face6a8d9ecd91d889430fa566bdff9e))
+* **wordlists:** nn: RIG,HOER toegevoegd (gespeeld, ontbrak in de lijst) ([5eefc81](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/5eefc81f0be2a7acaee04e956af96e169da17c99))
+* **wordlists:** nn: UN toegevoegd (gespeeld, ontbrak in de lijst) ([1ca59f6](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/1ca59f6e038a58f143144446f9578d50e301129a))
+* **wordlists:** nn: YRA,RIGA toegevoegd (gespeeld, ontbrak in de lijst) ([c4d3b8f](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/c4d3b8fe0f1b2e5bb04c6d8b3c3d65c5d268c95a))
+
+## [1.4.0-dev.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.3.0...v1.4.0-dev.1) (2026-11-06)
+
+### ✨ New Features
+
+* Wordfeud 5.8.0 ondersteund; controlescript en handleiding voor nieuwe versies ([6a892a4](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/6a892a4c34e7fc95c4fec8591fd4aa5edfbb0007))
+
+## [1.3.0](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.2.3...v1.3.0) (2026-11-06)
+
+### ✨ New Features
+
+* anoniem dagelijks gebruiksseintje en een overzicht in de Worker ([87ed839](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/87ed839f725a577d31d13d5b07131072a0ad66f0))
+
+## [1.3.0-dev.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.2.3...v1.3.0-dev.1) (2026-11-06)
+
+### ✨ New Features
+
+* anoniem dagelijks gebruiksseintje en een overzicht in de Worker ([87ed839](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/87ed839f725a577d31d13d5b07131072a0ad66f0))
+
+## [1.2.3](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.2.2...v1.2.3) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **wordlists:** fr: AV verwijderd (gemeld door de patch) ([2e4623a](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/2e4623a97b94f37522f46bd5535aa312a2f44cdd))
+* **wordlists:** fr: NF,FV verwijderd (gemeld door de patch) ([891b65b](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/891b65bffb6bfee7ac2a5a98ee29211ed224c15d))
+* **wordlists:** fr: OP verwijderd (gemeld door de patch) ([53f74d4](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/53f74d41c2b2b2988f416760174b9995b16f1593))
+* **wordlists:** fr: opnieuw gebouwd op main (v1.2.0) ([cdda801](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/cdda8016b990ff3dc8563ee19f230509a5cf8e15))
+* **wordlists:** fr: PBQ,PV verwijderd (gemeld door de patch) ([bea7ede](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/bea7ede7bcebdeb0facdf7681218360cc492d79f))
+* **wordlists:** fr: PHZ,PC,ZM verwijderd (gemeld door de patch) ([639725a](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/639725ab555966141a147a93d0eef580d6eb0b4e))
+* **wordlists:** fr: SB verwijderd (gemeld door de patch) ([f548583](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/f548583473825ee47450817251016e70d80dddc4))
+* **wordlists:** fr: ZBQ,ZV verwijderd (gemeld door de patch) ([23a6a7b](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/23a6a7bcac536f5f11fbf8c3c0be358341514c8d))
+
+## [1.2.2](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.2.1...v1.2.2) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **wordlists:** nn: ÆS, BILTE toegevoegd (gespeeld, ontbrak in de lijst) ([97092ca](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/97092caf1266f470e4ed9cc8af7b506df2826300))
+* **wordlists:** nn: HAGR verwijderd (gemeld door de patch) ([0c3c225](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/0c3c225ab2c71ee358fd554d0256696e62bd13b0))
+
+## [1.2.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.2.0...v1.2.1) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* meldingen gaan niet meer verloren bij gelijktijdige meldingen of GitHub-fouten ([47e5018](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/47e50180981927c58e17f584a532e57d7ff96b26))
+* **wordlists:** nl: EAUX verwijderd (gemeld door de patch) ([87fbeef](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/87fbeef14b827d477c629790d2bca9bea52c073f))
+* **wordlists:** nl: FAIT verwijderd (gemeld door de patch) ([81e7722](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/81e7722a8cc61e4404871aa2d5583ac21d6c2446))
+* **wordlists:** nl: HRKETEL verwijderd (gemeld door de patch) ([74ff960](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/74ff960c5f01c955bcd612f6d4368813f0bf2bbc))
+* **wordlists:** nl: HRKETELS verwijderd (gemeld door de patch) ([e26fc82](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/e26fc822f49d91b4b2e6bdbb05743d3072a793c3))
+
+## [1.2.1-dev.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.2.0...v1.2.1-dev.1) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* meldingen gaan niet meer verloren bij gelijktijdige meldingen of GitHub-fouten ([47e5018](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/47e50180981927c58e17f584a532e57d7ff96b26))
+
 ## [1.2.0](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.1.1...v1.2.0) (2026-11-05)
 
 ### ✨ New Features
@@ -33,13 +110,6 @@
 ### 🐛 Bug Fixes
 
 * releases botsen niet meer; Gradle-waarschuwingen; meldlimiet in Worker ([be3781c](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/be3781cb198e92bb1c6bb0989fa28e17e0f00b5d))
-
-## [1.1.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.1.0...v1.1.1) (2026-11-04)
-
-### 🐛 Bug Fixes
-
-* meld-PR ook later aanmaken en opnieuw proberen bij GitHub-fouten ([f3a2d9e](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/f3a2d9e0095d2a23c6fa43500674592b6b9ad65c))
-* **wordlists:** nl: CDI verwijderd (gemeld door de patch) ([cedf04b](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/commit/cedf04b6122770539a4aaa16f92d20e1bdc0be77))
 
 ## [1.1.1](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/compare/v1.1.0...v1.1.1) (2026-11-04)
 

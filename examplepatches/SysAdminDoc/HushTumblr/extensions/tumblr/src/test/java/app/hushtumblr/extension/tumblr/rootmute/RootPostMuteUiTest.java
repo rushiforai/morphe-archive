@@ -350,6 +350,68 @@ public class RootPostMuteUiTest {
         assertNull(RootPostMenu.action(selected, controller.get(), callback));
     }
 
+    @Test public void onlyADashboardMenuOffersTheBlogHalfAndItRemovesThatHalfUntilUndo() {
+        BlogPost reblog = new BlogPost("11", "reblogs:art-blog"), original = new BlogPost("22", "originals:art-blog");
+        BlogPost secondReblog = new BlogPost("33", "reblogs:art-blog"), otherBlog = new BlogPost("44", "reblogs:other");
+        FakeDashboard dashboard = new FakeDashboard(List.of(reblog, original, secondReblog, otherBlog));
+        assertNull(RootPostMenu.blogAction(reblog, controller.get(), new FakeTimeline(List.of(reblog))));
+        // An Explore tab shares the dashboard tab's class but isn't held by the dashboard.
+        FakeDashboard explore = new FakeDashboard(List.of(reblog));
+        explore.held = false;
+        assertNull(RootPostMenu.blogAction(reblog, controller.get(), (HushRootMenuHost) () -> explore));
+        assertNotNull(RootPostMenu.action(reblog, controller.get(), (HushRootMenuHost) () -> explore));
+        assertNull(RootPostMenu.blogAction(reblog, controller.get(), (HushRootMenuHost) () -> new FakeTimeline(List.of(reblog))));
+        assertNull(RootPostMenu.blogAction(new BlogPost("55", null), controller.get(), (HushRootMenuHost) () -> dashboard));
+        assertNull(RootPostMenu.blogAction(new BlogPost("66", "reblogs:absent"), controller.get(), (HushRootMenuHost) () -> dashboard));
+        RootPostMuteAction action = RootPostMenu.blogAction(reblog, controller.get(), (HushRootMenuHost) () -> dashboard);
+        assertNotNull(action);
+        assertEquals("reblogs:art-blog", action.entry());
+        assertEquals("Hide reblogs from " + app.hushtumblr.extension.shared.L10n.isolate("art-blog"), RootPostMuteUi.menuTitle(action.entry()));
+        assertEquals("Hide originals from " + app.hushtumblr.extension.shared.L10n.isolate("art-blog"), RootPostMuteUi.menuTitle("originals:art-blog"));
+        assertNotNull(RootPostMenu.action(reblog, controller.get(), (HushRootMenuHost) () -> dashboard));
+
+        action.run();
+        assertEquals(List.of(original, otherBlog), dashboard.items);
+        assertEquals(java.util.Set.of("reblogs:art-blog"), RootPostMutes.capture().roots);
+        Button undo = find(controller.get().findViewById(android.R.id.content), Button.class);
+        assertNotNull(undo); undo.performClick();
+        assertEquals(List.of(reblog, original, secondReblog, otherBlog), dashboard.items);
+        assertTrue(RootPostMutes.capture().roots.isEmpty());
+    }
+
+    @Test public void theListNamesABlogRuleAndItsRowRemovesOnlyThatRule() {
+        mute("11"); mute("originals:art-blog");
+        AlertDialog dialog = RootPostMuteUi.manage(controller.get());
+        layoutManager(dialog);
+        StringBuilder shown = new StringBuilder();
+        shownText(dialog.getWindow().getDecorView(), shown);
+        String blog = app.hushtumblr.extension.shared.L10n.isolate("art-blog");
+        assertTrue(shown.toString(), shown.toString().contains("Originals from " + blog));
+        assertTrue(shown.toString(), shown.toString().contains("Show originals from " + blog + " again"));
+        ListView list = find(dialog.getWindow().getDecorView(), ListView.class);
+        View row = list.findViewWithTag("originals:art-blog");
+        assertNotNull(row);
+        list.performItemClick(row, list.getPositionForView(row), 0);
+        assertEquals(java.util.Set.of("11"), RootPostMutes.capture().roots);
+        dialog.dismiss();
+    }
+
+    private static final class BlogPost implements app.hushtumblr.extension.tumblr.timeline.HushRootPost, HushBlogRulePost {
+        private final String root, rule;
+        BlogPost(String root, String rule) { this.root = root; this.rule = rule; }
+        @Override public String hushRootId() { return root; }
+        @Override public String hushBlogRule() { return rule; }
+    }
+
+    private static final class FakeDashboard implements HushLocalTimeline, HushDashboardTimeline {
+        List<Object> items;
+        boolean held = true;
+        FakeDashboard(List<?> items) { this.items = new ArrayList<>(items); }
+        @Override public boolean hushDashboard() { return held; }
+        @Override public List<?> hushTimelineItems() { return new ArrayList<>(items); }
+        @Override public void hushApplyTimelineItems(List<?> items) { this.items = new ArrayList<>(items); }
+    }
+
     @Test public void anAccountChangeAfterCallbackMenuCreationMakesItsActionInert() {
         app.hushtumblr.extension.tumblr.timeline.HushRootPost selected = () -> "11";
         FakeTimeline owner = new FakeTimeline(List.of(selected));
@@ -622,7 +684,7 @@ public class RootPostMuteUiTest {
         StringBuilder all = new StringBuilder();
         shownText(decor, all);
         String shown = all.toString();
-        assertTrue(shown, shown.contains("Up to 500 posts are kept per account."));
+        assertTrue(shown, shown.contains("Up to 500 posts and blog rules are kept per account."));
         assertEquals("This device keeps muted post lists for eight accounts. When a ninth account mutes a post, "
                 + "the list that's gone longest without a change is deleted.", limits.getText().toString());
         assertTrue(shown, shown.contains("7202"));

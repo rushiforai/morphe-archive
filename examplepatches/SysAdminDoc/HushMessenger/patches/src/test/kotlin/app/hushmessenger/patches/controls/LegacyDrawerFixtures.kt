@@ -11,11 +11,14 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 internal data class DrawerFixtureMapping(
     val provider: String, val getter: String, val row: String, val section: String,
     val dispatcher: String, val iconBase: String, val icon: String, val glyph: String, val enums: String,
-    /** The Settings icon is built in place instead of coming from the icon's static factory (582, 584.1's armv7 build and 586). */
+    /** The Settings icon is built in place instead of coming from the icon's static factory (582, 584.1's armv7 build and six of 586's builds). */
     val inlineIcon: Boolean = false,
     /** 584 through 586 build their QR code row after Settings, from the same row class and its own folder key. */
     val qrRow: Boolean = false,
-    /** The icon factory sits on [iconBase] and returns [icon] (584.1's second arm64 family, G7K.A00 returning G7P). */
+    /**
+     * The icon factory sits on [iconBase] and returns [icon] (584.1's second arm64 family, G7K.A00 returning G7P, and
+     * 586's 347215273, 347215275 and 347215277).
+     */
     val iconFactoryOnBase: Boolean = false,
 ) {
     fun iconFactory(owner: String = if (iconFactoryOnBase) iconBase else icon) = "$owner->A00($glyph)$icon"
@@ -27,6 +30,9 @@ private fun drawerMapping(refreshOwner: String) = when (refreshOwner) {
         inlineIcon = true, qrRow = true)
     "LX/92V;" -> DrawerFixtureMapping("LX/9xs;", "BVb", "LX/QGT;", "LX/QGR;", "LX/HsE;", "LX/J3u;", "LX/QGW;", "LX/1pM;", "LX/0R2;",
         inlineIcon = true, qrRow = true)
+    // 586's other arm64 builds take the Settings icon from FAF.A00 again, returning FBV.
+    "LX/8yr;" -> DrawerFixtureMapping("LX/9sS;", "BVU", "LX/FBS;", "LX/FBQ;", "LX/FAH;", "LX/FAF;", "LX/FBV;", "LX/1oy;", "LX/0R1;",
+        qrRow = true, iconFactoryOnBase = true)
     else -> error("Unrecorded drawer mapping: $refreshOwner")
 }
 

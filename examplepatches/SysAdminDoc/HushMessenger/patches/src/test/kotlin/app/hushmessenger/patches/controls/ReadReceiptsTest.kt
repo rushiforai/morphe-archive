@@ -160,6 +160,37 @@ class ReadReceiptsTest {
         }
     }
 
+    /**
+     * 586's family B builds read the thread's id String in one call where 348 reads a long and converts it, so the body
+     * is two shorter and the seam sits two sooner. Each size takes only its own seam.
+     */
+    @Test fun familyBsShorterDispatcherIsPatchedAtItsOwnSeam() {
+        val shape = REPLY_READ_SHAPE_FAMILY_B
+        val d = shape.dispatch
+        val s = d - shape.stage
+        val method = send(shape = shape)
+        mirroredControls(readReceiptsFixture(sendMethod = method))
+        val before = method.code()
+        assertEquals(395, before.size)
+        assertEquals(d, method.validateReplyRead())
+        method.injectReplyRead()
+        val c = method.code()
+        assertEquals(Opcode.MOVE_OBJECT_16, c[s].opcode)
+        assertEquals(DISPATCH, (c[d + 1] as ReferenceInstruction).reference.toString())
+        assertEquals("$SETTINGS->noteMessageSent(Ljava/lang/Object;Ljava/lang/Object;)V", (c[d + 4] as ReferenceInstruction).reference.toString())
+        assertStockCode(before, c, setOf(s, d + 2, d + 3, d + 4), "family B send dispatcher")
+
+        val moved = ReplyReadShape(sizes = setOf(395), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 236, composerReg = 20, stage = 4)
+        for ((label, bad) in listOf(
+            "348's seam in a family B body" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(shape = moved), shape.registers, STATIC),
+            "family B's seam in a 348 body" to fixtureMethod(SYNTHETIC_SEND_EVENT, sendBody(shape = shape, size = 397), shape.registers, STATIC),
+        )) {
+            val stock = bad.code()
+            assertFailsWith<PatchException>(label) { bad.injectReplyRead() }
+            assertStockCode(stock, bad.code(), emptySet(), label)
+        }
+    }
+
     @Test fun changedIdentityFlowOrLiveScratchRefusesBothHooksBeforeAnyEdit() {
         val n = REPLY_READ_SHAPE.nullThread
         val d = REPLY_READ_SHAPE.dispatch

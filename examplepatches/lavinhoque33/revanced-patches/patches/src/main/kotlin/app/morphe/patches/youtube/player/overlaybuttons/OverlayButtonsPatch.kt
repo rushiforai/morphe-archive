@@ -6,6 +6,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-10-21.
  */
 
 /*
@@ -65,6 +67,8 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.youtube.player.icons.PLAYER_ICONS_RESOURCE_DIRECTORY
@@ -99,9 +103,7 @@ import app.morphe.util.Utils.printWarn
 import app.morphe.util.copyResources
 import app.morphe.util.doRecursively
 import app.morphe.util.findElementByAttributeValue
-import app.morphe.util.findFreeRegister
 import app.morphe.util.fingerprint.methodOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversed
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
@@ -437,7 +439,7 @@ val overlayButtonsPatch = resourcePatch(
         )
 
         bottomControlsLayoutFileNames.forEach { xmlFile ->
-            val targetXml = get("res").resolve("layout").resolve(xmlFile)
+            val targetXml = get("res/layout/$xmlFile")
             if (targetXml.exists()) {
                 // YouTube 21.39 migrated these layouts to androidx.constraintlayout.widget.ConstraintLayout,
                 // so merge into the target's root element whatever its tag is.
@@ -470,7 +472,7 @@ val overlayButtonsPatch = resourcePatch(
         }
 
         (bottomControlsLayoutFileNames.toList() + legacyFullscreenLayouts.values).forEach { xmlFile ->
-            val targetXml = get("res").resolve("layout").resolve(xmlFile)
+            val targetXml = get("res/layout/$xmlFile")
             if (targetXml.exists()) {
                 document("res/layout/$xmlFile").use { document ->
                     document.doRecursively loop@{ node ->
@@ -556,6 +558,7 @@ val overlayButtonsPatch = resourcePatch(
                         // the scroll container also preserves portrait/landscape button limits.
                         if (!isExploderLayout && id == "@+id/revanced_overlay_buttons_scroll_view") {
                             node.setAttribute("android:layout_height", layoutHeightWidth)
+                            node.setAttribute("android:tag", "morphe_legacy_overlay")
                         }
 
                         if (isButton) {

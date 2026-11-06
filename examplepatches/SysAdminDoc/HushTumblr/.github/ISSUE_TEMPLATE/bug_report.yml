@@ -17,7 +17,7 @@ body:
     attributes:
       label: HushTumblr and Tumblr versions
       description: Open Tumblr's Settings and tap HushTumblr, or long-press the Tumblr icon and tap HushTumblr. Then tap About, near the bottom under More settings, and copy the Version line.
-      placeholder: HushTumblr 0.0.9 on Tumblr 46.8.1.100
+      placeholder: HushTumblr 0.0.10 on Tumblr 47.0.0.108
     validations:
       required: true
   - type: input
@@ -25,7 +25,7 @@ body:
     attributes:
       label: Which Tumblr file did you patch?
       description: Where it came from, such as APKMirror's bundle, and its version code if you know it. Most bugs on a build that should work come from a different build of the same version.
-      placeholder: APKMirror bundle, 46.8.1.100 (1460801100)
+      placeholder: APKMirror bundle, 47.0.0.108 (1470000108)
   - type: dropdown
     id: manager
     attributes:
@@ -41,7 +41,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 2.4.0
+      placeholder: Morphe Manager 2.5.0
     validations:
       required: true
   - type: dropdown
@@ -69,6 +69,7 @@ body:
       description: Every patch but Spoof signature for Google sign-in is selected by default. That one is only in your build if you picked it in Expert mode.
       multiple: true
       options:
+        - Collapse long posts
         - Dark background color
         - Disable analytics
         - Disable update prompts
@@ -114,6 +115,7 @@ body:
         - Remove ad tracking permissions
         - Reorder the bottom bar
         - Reveal allowed mature content
+        - Sanitize sharing links
         - Share video links
         - Sharper images
         - Show mutual markers

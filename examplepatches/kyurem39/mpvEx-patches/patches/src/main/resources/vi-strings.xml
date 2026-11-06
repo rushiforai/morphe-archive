@@ -237,7 +237,7 @@
     <string name="anime4k_quality_balanced">Cân bằng</string>
     <string name="anime4k_quality_high">Chất lượng cao</string>
     <string name="pref_about_title">kyurem39's patches</string>
-    <string name="pref_about_summary">Cài đặt bản vá, Giới thiệu</string>
+    <string name="pref_about_summary">Cài đặt bản vá, giới thiệu</string>
     <string name="pref_about_oss_libraries">Các thư viện nguồn mở</string>
     <string name="pref_about_donate_title">Ủng hộ nhà phát triển</string>
     <string name="pref_about_donate_kofi">Qua Ko-fi</string>
@@ -410,7 +410,7 @@
     <string name="recently_played">Phát gần đây</string>
     <string name="open_link">Mở địa chỉ đường dẫn</string>
     <string name="install">Cài đặt ứng dụng</string>
-    <string name="download">Tải tệp xuống</string>
+    <string name="download">Download</string>
     <string name="failed_load_audio_invalid_uri">Không thể tải tệp âm thanh: Địa chỉ URI không hợp lệ</string>
     <string name="audio_track_added">Đã thêm thành công đường âm thanh</string>
     <string name="failed_load_audio">Lỗi tải luồng âm thanh: %s</string>

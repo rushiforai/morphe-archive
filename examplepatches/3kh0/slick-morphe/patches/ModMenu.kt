@@ -186,6 +186,31 @@ val modMenu =
                 addInstructions(indexed(Opcode.RETURN_VOID).one().index, call("p0", "Menu;->insert(Ljava/lang/Object;)V"))
             }
 
+            method("Lslack/home/header/components/UserAvatarWithStatusPresenter;", "present").run {
+                check(registers == 31)
+                val (i, x) = indexed(Opcode.RETURN_OBJECT).one()
+                check(x.reg == 14)
+                addInstructions(
+                    i,
+                    """
+                    move-object/from16 v0, p0
+                    move-object/from16 v1, p2
+                    invoke-static {v14, v0, v1}, Lslick/android/Menu;->popup(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object v14
+                    check-cast v14, Lslack/home/header/NavHeaderYouModel;
+                    """,
+                )
+            }
+
+            method("Lslack/home/header/components/YouMenuKt\$\$ExternalSyntheticLambda5;", "invoke").run {
+                check(parameterTypes == listOf("Ljava/lang/Object;"))
+                check(registers == 9)
+                intercept(
+                    "${call("p1", "Menu;->popupClick(Ljava/lang/Object;)Z")}\nmove-result v0",
+                    "sget-object v0, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;\nreturn-object v0",
+                )
+            }
+
             method("Lslack/features/later/ui/LaterActionsDialogFragment\$initAdapter\$2;", "onResultClick").run {
                 check(parameterTypes == listOf("Lslack/uikit/components/list/viewmodels/SKListViewModel;", "I", "Z"))
                 check(registers > 4)

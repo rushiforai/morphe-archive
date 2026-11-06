@@ -194,6 +194,7 @@ public final class MorpheHook {
                         if (checked == enabled) return;
 
                         MorphePrefs.setVietnameseEnabled(activity, checked);
+                        MorpheLocale.overrideConfiguration(activity);
                         dialog.dismiss();
                         show(activity, backstack);
                         restart(activity);
@@ -201,6 +202,8 @@ public final class MorpheHook {
                 }
             );
         }
+
+        final boolean[] openAboutRequested = new boolean[1];
 
         dialog.setOnShowListener(
             new DialogInterface.OnShowListener() {
@@ -210,11 +213,30 @@ public final class MorpheHook {
                         new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
+                                openAboutRequested[0] = true;
                                 dialog.dismiss();
-                                openAbout(activity, backstack);
                             }
                         }
                     );
+                }
+            }
+        );
+
+        dialog.setOnDismissListener(
+            new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface d) {
+                    if (openAboutRequested[0]) {
+                        activity.getWindow().getDecorView().postDelayed(
+                            new Runnable() {
+                                @Override
+                                public void run() {
+                                    openAbout(activity, backstack);
+                                }
+                            },
+                            200
+                        );
+                    }
                 }
             }
         );
@@ -436,6 +458,7 @@ public final class MorpheHook {
             }
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             activity.startActivity(intent);
+            activity.finish();
         } catch (Throwable ignored) {
             activity.recreate();
         }

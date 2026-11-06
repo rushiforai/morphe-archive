@@ -173,6 +173,18 @@ public sealed class PostBuilder
         return WithText($"{markdown}\n\n{RedditMarkdown.UploadedImageUrl(world.BaseUrl, uploaded)}");
     }
 
+    /// <summary>
+    /// A text post that starts with an image uploaded in it, as Reddit sends one (<see cref="WithTextAndImage"/>), and then
+    /// says <paramref name="markdown"/>: its preview's bare link is the first thing in its text. A PNG unless
+    /// <paramref name="image"/> says otherwise.
+    /// </summary>
+    public PostBuilder WithImageAndThenText(string markdown, MediaAsset? image = null)
+    {
+        var uploaded = UploadedMedia.Upload(world, image ?? MediaAsset.Png);
+        Post.Media[uploaded.Id] = uploaded;
+        return WithText($"{RedditMarkdown.UploadedImageUrl(world.BaseUrl, uploaded)}\n\n{markdown}");
+    }
+
     /// <summary>Its score: upvotes less downvotes.</summary>
     public PostBuilder WithScore(int score)
     {
@@ -281,10 +293,31 @@ public sealed class CommentBuilder
     public CommentBuilder LinkingToAnImage(MediaAsset? image = null) => LinkingTo(image ?? MediaAsset.Jpeg);
 
     /// <summary>
+    /// <paramref name="markdown"/>, in a paragraph of its own after what the body says already: the text after an image
+    /// or a GIF, when the comment starts with it.
+    /// </summary>
+    public CommentBuilder ThenSaying(string markdown) => Add(markdown);
+
+    /// <summary>
     /// A bare link to a video file the fake serves, <c>&lt;baseUrl&gt;/_media/example.com/&lt;id&gt;.mp4</c>, posted on
     /// its own line: ten seconds long unless <paramref name="video"/> says otherwise.
     /// </summary>
     public CommentBuilder LinkingToAVideo(MediaAsset? video = null) => LinkingTo(video ?? MediaAsset.LongMp4);
+
+    /// <summary>
+    /// The Snoomoji <paramref name="name"/> (Reddit's own emote, as <c>grin</c>) after what the body says, on its line:
+    /// <c>![img](emote|free_emotes_pack|&lt;name&gt;)</c>, sent as Reddit sends every emote (<see cref="RedditEmotes"/>).
+    /// The fake serves its GIF.
+    /// </summary>
+    public CommentBuilder WithSnoomoji(string name) => WithEmote($"emote|free_emotes_pack|{name}", name);
+
+    /// <summary>
+    /// An emote of the comment's subreddit after what the body says, on its line:
+    /// <c>![img](emote|t5_&lt;subreddit id&gt;|&lt;number&gt;)</c>, sent as Reddit sends every emote
+    /// (<see cref="RedditEmotes"/>).
+    /// </summary>
+    public CommentBuilder WithSubredditEmote() =>
+        WithEmote($"emote|t5_{Comment.Post.Subreddit.Id}|{4258 + Comment.Media.Count}", null);
 
     /// <summary>Its score.</summary>
     public CommentBuilder WithScore(int score)
@@ -305,6 +338,14 @@ public sealed class CommentBuilder
         var uploaded = UploadedMedia.Upload(world, asset);
         Comment.Media[uploaded.Id] = uploaded;
         return Add($"![{kind}]({uploaded.Id})");
+    }
+
+    private CommentBuilder WithEmote(string id, string? snoomoji)
+    {
+        Comment.Media[id] = RedditEmotes.Add(world, id, snoomoji);
+        var separator = Comment.Body.Length == 0 ? "" : " ";
+        Comment.Body += $"{separator}![img]({id})";
+        return this;
     }
 
     private CommentBuilder LinkingTo(MediaAsset asset) =>

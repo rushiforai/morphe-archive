@@ -12,6 +12,11 @@ object Constants {
         appIconColor = 0xFF5500,
         targets = listOf(
             AppTarget(
+                version = "2026.11.02-release",
+                minSdk = 29,
+                description = "Verified with all five patches on Android 16 using Morphe Manager 2.5.0.",
+            ),
+            AppTarget(
                 version = "2026.08.26-release"
             ),
             AppTarget(

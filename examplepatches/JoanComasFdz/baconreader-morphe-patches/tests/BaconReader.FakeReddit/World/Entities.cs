@@ -293,6 +293,9 @@ public sealed record UploadedMedia(string Id, string ContentType, string Path, i
 
     public bool IsVideo => ContentType.StartsWith("video/", StringComparison.Ordinal);
 
+    /// <summary>An emote, which its Markdown names <c>![img](emote|&lt;pack&gt;|&lt;name&gt;)</c>: see <see cref="RedditEmotes"/>.</summary>
+    public bool IsEmote => Id.StartsWith("emote|", StringComparison.Ordinal);
+
     /// <summary>
     /// An image or GIF uploaded to Reddit, in <paramref name="world"/>'s media store: a GIF at
     /// <c>i.redd.it/&lt;id&gt;.gif</c>, an image at its preview, <c>preview.redd.it/&lt;id&gt;.png</c>, and its full

@@ -14,12 +14,12 @@ Add the patch source in Morphe with the badge above, or open
 - Lists all legal moves, sortable by score, length or A-Z.
 - The Play button sends the chosen move through the Wordfeud API.
 
-Supported app: `com.hbwares.wordfeud.free` **5.7.1**. Other versions are experimental.
+Supported app: `com.hbwares.wordfeud.free` **5.7.1** and **5.8.0**. Other versions are experimental; see `docs/UPDATING.md` for checking and adding a new Wordfeud version.
 
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v1.2.0](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.4.0](https://github.com/Jeroenimo02/Wordfeud-Word-Finder/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Wordfeud&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -28,8 +28,8 @@ Supported app: `com.hbwares.wordfeud.free` **5.7.1**. Other versions are experim
 
 **🎯 Supported versions:**
 
-| 5.7.1 |
-| :---: |
+| 5.7.1 | 5.8.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -87,14 +87,15 @@ Every message shows a short text and a code.
 
 - Using this patch may conflict with Wordfeud's terms of service. Possible consequences include a warning or a suspended account. You use it at your own risk.
 - Moves are sent outside the app's own UI, straight to the API, using your Wordfeud session cookie. The cookie never leaves the device except to `api.wordfeud.com`.
-- Network access is limited to `api.wordfeud.com`, the word lists in this repository and, when a release has a report address, the word report worker. There is no analytics or tracking.
+- Network access is limited to `api.wordfeud.com`, the word lists in this repository and, when a release has a report address, the word report worker. Once a day the patch sends an anonymous ping (patch version and the languages of your games, nothing else) so the maintainer can count active users.
 - **Word reports:** when the Wordfeud server rejects a word that is in our list, or when a word played in one of your games (by you or your opponent, so accepted by the server) is missing from our list, the patch sends that word to the project's report worker (`tools/report-worker`) once, in the background: only the report type (remove/add), the ruleset number, the words and the patch version, no user name, game, cookie or device id. The maintainer reviews the reported words before the list changes for everyone.
 
 ## Status and limitations
 
 - Requires Android 7.0 (API 24) or newer.
-- Verified on a device with Wordfeud 5.7.1 and the Dutch word list: moves, blanks, cross words, the seven-tile bonus, refresh after a move, light and dark themes. Other word lists and rulesets are not available yet.
-- The exact form of a word rejection by the server (V6) and the button position with an ad banner (V7) are not verified yet.
+- Verified on a device with Wordfeud 5.7.1 and 5.8.0: moves, blanks, cross words, the seven-tile bonus, refresh after a move, light and dark themes, word rejections by the server, and games in all languages (including the Spanish CH, LL and RR tiles).
+- Word lists exist for every Wordfeud language (rulesets 0-12). They come from open sources and approximate Wordfeud's own lists, so the server sometimes rejects a suggested word or accepts one that is not suggested. Rejected words and words played in your games that are missing from the list are reported (see above), reviewed by the maintainer and fixed in a following release.
+- Assumptions not confirmed by Wordfeud: Swedish strict (ruleset 8) allows base forms only; Portuguese (ruleset 12) is European Portuguese.
 
 ## Translations
 

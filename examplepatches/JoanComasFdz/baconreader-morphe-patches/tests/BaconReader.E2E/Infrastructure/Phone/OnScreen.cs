@@ -89,12 +89,14 @@ public static class OnScreen
 
     /// <summary>
     /// Scrolls <paramref name="scrollable"/> down, a screen at a time, until <paramref name="target"/> is on the screen (a
-    /// button at the end of a web page), and up from its end when it isn't below.
+    /// button at the end of a web page), and back the other way each time it can't scroll further.
     /// </summary>
     public static async Task ScrollToAsync(AndroidDriver driver, By scrollable, By target, string what)
     {
         await WaitForActionGapAsync(driver);
-        // Down first, then up once the list can't scroll further down: the target may be above the screen.
+        // Down first, then up once the list can't scroll further down: the target may be above the screen. Then down again
+        // once it can't scroll further up: on the Pixel 6 Pro the Front Page jumped back to its top right after the login,
+        // in 1 run of 5 of Fix Reddit links' first step (2026-11-03), and a swipe during the jump couldn't scroll.
         var direction = "down";
         for (var screens = 0; !await Task.Run(() => IsOnScreen(driver, target)); screens++)
         {
@@ -109,9 +111,14 @@ public static class OnScreen
                 ["direction"] = direction,
                 ["percent"] = 0.75,
             }));
-            if (canScrollMore is false && direction == "down")
+            if (canScrollMore is false)
             {
-                direction = "up";
+                if (direction == "up")
+                {
+                    RunLog.RetryFired("OnScreen.ScrollToAsync: scrolling down again from the top", screens + 1, what);
+                }
+
+                direction = direction == "down" ? "up" : "down";
             }
         }
 

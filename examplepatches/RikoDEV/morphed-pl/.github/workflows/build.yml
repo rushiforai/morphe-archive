@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches-ignore:
-      - main
+      - dev
   workflow_dispatch:
 
 permissions:

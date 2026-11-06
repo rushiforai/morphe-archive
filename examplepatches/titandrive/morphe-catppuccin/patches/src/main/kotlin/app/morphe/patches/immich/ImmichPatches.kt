@@ -6,7 +6,7 @@ import app.morphe.patches.shared.fonts.readTrueType
 import java.security.MessageDigest
 
 private val immich = Compatibility(name = "Immich", packageName = "app.alextran.immich",
-    targets = listOf(AppTarget(version = "3.3.5")))
+    targets = listOf(AppTarget(version = "3.3.5"), AppTarget(version = "3.3.6")))
 
 private object ImmichResources
 
@@ -23,11 +23,13 @@ val immichThemePatch = resourcePatch(
         }
         val file = get(path)
         val data = file.readBytes()
-        val recipe = ImmichResources::class.java.classLoader
-            .getResourceAsStream("catppuccin/immich/3.3.5-arm64.tsv")!!
-            .bufferedReader().use { it.readLines() }.filter { it.isNotBlank() && !it.startsWith("#") }
         val sha = MessageDigest.getInstance("SHA-256").digest(data).joinToString("") { "%02x".format(it) }
-        require(sha == recipe.first()) { "Immich's Flutter binary differs from the verified build; refusing to modify it." }
+        val recipe = listOf("3.3.5", "3.3.6").map { version ->
+            ImmichResources::class.java.classLoader
+                .getResourceAsStream("catppuccin/immich/$version-arm64.tsv")!!
+                .bufferedReader().use { it.readLines() }.filter { it.isNotBlank() && !it.startsWith("#") }
+        }.singleOrNull { it.first() == sha }
+        requireNotNull(recipe) { "Immich's Flutter binary differs from the verified builds; refusing to modify it." }
         fun hex(value: String) = value.chunked(2).map { it.toInt(16).toByte() }.toByteArray()
         for (line in recipe.drop(1)) {
             val (address, beforeHex, afterHex) = line.split('\t')

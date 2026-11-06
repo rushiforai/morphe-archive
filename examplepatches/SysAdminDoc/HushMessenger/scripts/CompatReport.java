@@ -95,8 +95,9 @@ public class CompatReport {
     static final long SEARCH_ICON_FLAG = 0x810b0200004674L;
     // Only the method that builds the top bar's search icon names this class, which ties the flag to the search bar
     static final String SEARCH_ICON_ANCHOR = "com.facebook.messaging.search.plugins.toolbarbutton.searchbutton.InboxSearchToolbarButtonImplementation";
-    // Controls whose hook count follows how Redex inlined one flag read, so it differs between releases
-    static final Set<String> RELEASE_HOOK_COUNTS = Set.of("emoji_drawer", "inbox_search_bar", "pinned_chats");
+    // Controls whose hook count follows how Redex inlined one flag read, so it differs between releases and between
+    // builds of one release: 586's family B (347215273, 275 and 277) reads the emoji drawer once and the font three times
+    static final Set<String> RELEASE_HOOK_COUNTS = Set.of("emoji_drawer", "font_roboto", "inbox_search_bar", "pinned_chats");
 
     // Material You theme finds its targets by shape when it patches (MaterialYouPatch.kt), so no profile records them
     static final String DARK_SCHEME = "Lcom/facebook/mig/scheme/schemes/DarkColorScheme;";
@@ -457,14 +458,14 @@ public class CompatReport {
      */
     static List<Problem> unresolved(Profile found, Collection<Profile> recorded) {
         var problems = new ArrayList<Problem>();
-        // Builds of one release share every count. A new release is held to any recorded build's counts, except
-        // where the count follows Redex's inlining of one flag read, which needs only one hook or more.
+        // Builds of one release share every other count. A new release is held to any recorded build's counts, except
+        // where the count follows Redex's inlining of one flag read, which needs only one hook or more in any build.
         Profile sameRelease = recorded.stream().filter(p -> p.version.equals(found.version)).findFirst().orElse(null);
         Profile shape = sameRelease != null ? sameRelease : recorded.isEmpty() ? null : recorded.iterator().next();
         for (var key : CONTROL_KEYS) {
             int count = found.hooks.getOrDefault(key, Set.of()).size();
             int expected = shape == null ? Math.max(count, 1) : shape.hooks.getOrDefault(key, Set.of()).size();
-            if (sameRelease == null && RELEASE_HOOK_COUNTS.contains(key) && count >= 1) continue;
+            if (RELEASE_HOOK_COUNTS.contains(key) && count >= 1) continue;
             if (count != expected) problems.add(new Problem(key, Set.of(key), "expected " + expected + " hooks, found " + count));
         }
         for (var entry : FIELD_CONTROLS.entrySet()) {
@@ -729,9 +730,11 @@ public class CompatReport {
         var modes = controls.get("bubble_mode");
         if (modes.size() == 1) {
             var modeCode = instructions(modes.get(0));
-            if (modeCode.size() == 25) {
-                found.fields.put("bubbleCapabilityGetter", ref(modeCode.get(11)));
-                found.fields.put("bubbleRolloutGetter", ref(modeCode.get(21)));
+            // Family B's mode gate inlines the eligibility check (8 more) and fetches its config by number (2 more).
+            if (modeCode.size() == 25 || modeCode.size() == 35) {
+                int e = modeCode.size() == 35 ? 8 : 0, f = modeCode.size() == 35 ? 10 : 0;
+                found.fields.put("bubbleCapabilityGetter", ref(modeCode.get(11 + e)));
+                found.fields.put("bubbleRolloutGetter", ref(modeCode.get(21 + f)));
             }
             var routes = nativeBubbleRoutes(classes, hookId(modes.get(0)));
             if (routes != null) found.fields.put("nativeBubbleRoutes", routes);
@@ -782,27 +785,57 @@ public class CompatReport {
 
     static boolean validNativeBubbleMode(Method m, String eligibility, Profile profile) {
         var c = instructions(m);
-        var shape = List.of(Opcode.CONST_4, Opcode.INVOKE_STATIC, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT,
-            Opcode.IF_EQZ, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT,
+        // NativeBubbles.kt: family B copies A00's checks into the gate (e) and fetches the config by number (f).
+        boolean inline = c.size() == 35;
+        int e = inline ? 8 : 0, f = inline ? 10 : 0, last = 24 + f;
+        var shape = new ArrayList<>(List.of(Opcode.CONST_4, Opcode.INVOKE_STATIC));
+        shape.addAll(inline ? List.of(Opcode.SGET, Opcode.CONST_16, Opcode.IF_LT, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT,
+            Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_NEZ)
+            : List.of(Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_EQZ));
+        shape.addAll(List.of(Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT_OBJECT,
             Opcode.CHECK_CAST, Opcode.CONST_16, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.IF_EQZ,
-            Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE, Opcode.INVOKE_STATIC,
-            Opcode.MOVE_RESULT_OBJECT, Opcode.CONST_WIDE, Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE,
-            Opcode.MOVE_RESULT, Opcode.RETURN, Opcode.RETURN);
+            Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_INTERFACE));
+        shape.addAll(inline ? List.of(Opcode.CONST, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST)
+            : List.of(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT));
+        shape.addAll(List.of(Opcode.CONST_WIDE, Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT, Opcode.RETURN, Opcode.RETURN));
         String capability = profile.fields.get("bubbleCapabilityGetter"), rollout = profile.fields.get("bubbleRolloutGetter");
         return capability != null && rollout != null && !AccessFlags.STATIC.isSet(m.getAccessFlags()) &&
             "Z".equals(m.getReturnType()) && m.getParameterTypes().equals(List.of(BUBBLE_SESSION)) && m.getImplementation() != null &&
             m.getImplementation().getRegisterCount() == 5 && m.getImplementation().getTryBlocks().isEmpty() &&
             c.stream().map(Instruction::getOpcode).toList().equals(shape) &&
-            register(c.get(0)) == 2 && ((NarrowLiteralInstruction)c.get(0)).getNarrowLiteral() == 0 &&
-            calls(c.get(1),4,2) && eligibility.equals(ref(c.get(2))) && calls(c.get(2),3) && register(c.get(3)) == 0 &&
-            register(c.get(4)) == 0 && jumpsTo(c,4,24) && capability.split("->")[0].equals(ref(c.get(9))) && register(c.get(9)) == 1 &&
-            register(c.get(10)) == 0 && ((NarrowLiteralInstruction)c.get(10)).getNarrowLiteral() == 28 &&
-            capability.equals(ref(c.get(11))) && calls(c.get(11),1,4,0) && register(c.get(12)) == 0 &&
-            register(c.get(13)) == 0 && jumpsTo(c,13,24) && register(c.get(18)) == 2 && register(c.get(19)) == 0 &&
-            ((WideLiteralInstruction)c.get(19)).getWideLiteral() == BUBBLE_ROLLOUT && register(c.get(20)) == 2 &&
-            "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;".equals(ref(c.get(20))) &&
-            rollout.equals(ref(c.get(21))) && calls(c.get(21),2,0,1) && register(c.get(22)) == 0 &&
-            register(c.get(23)) == 0 && register(c.get(24)) == 2;
+            register(c.get(0)) == 2 && ((NarrowLiteralInstruction)c.get(0)).getNarrowLiteral() == 0 && calls(c.get(1),4,2) &&
+            (inline ? inlineBubbleEligibility(c, m.getDefiningClass(), eligibility, last)
+                : eligibility.equals(ref(c.get(2))) && calls(c.get(2),3) && register(c.get(3)) == 0 &&
+                    register(c.get(4)) == 0 && jumpsTo(c,4,last)) &&
+            capability.split("->")[0].equals(ref(c.get(9+e))) && register(c.get(9+e)) == 1 &&
+            register(c.get(10+e)) == 0 && ((NarrowLiteralInstruction)c.get(10+e)).getNarrowLiteral() == 28 &&
+            capability.equals(ref(c.get(11+e))) && calls(c.get(11+e),1,4,0) && register(c.get(12+e)) == 0 &&
+            register(c.get(13+e)) == 0 && jumpsTo(c,13+e,last) &&
+            (inline ? numberedBubbleConfig(c, 17+e) : register(c.get(18)) == 2) && register(c.get(19+f)) == 0 &&
+            ((WideLiteralInstruction)c.get(19+f)).getWideLiteral() == BUBBLE_ROLLOUT && register(c.get(20+f)) == 2 &&
+            "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;".equals(ref(c.get(20+f))) &&
+            rollout.equals(ref(c.get(21+f))) && calls(c.get(21+f),2,0,1) && register(c.get(22+f)) == 0 &&
+            register(c.get(23+f)) == 0 && register(c.get(last)) == 2;
+    }
+
+    /** NativeBubbles.kt inlineEligibility: A00's checks on A00's own holder, both false branches returning v2. */
+    static boolean inlineBubbleEligibility(List<Instruction> c, String owner, String eligibility, int last) {
+        return eligibility.split("->")[0].equals(owner) && "Landroid/os/Build$VERSION;->SDK_INT:I".equals(ref(c.get(2))) &&
+            register(c.get(2)) == 1 && ((NarrowLiteralInstruction)c.get(3)).getNarrowLiteral() == 30 && register(c.get(3)) == 0 &&
+            ((TwoRegisterInstruction)c.get(4)).getRegisterA() == 1 && ((TwoRegisterInstruction)c.get(4)).getRegisterB() == 0 &&
+            jumpsTo(c,4,last) && ((ReferenceInstruction)c.get(5)).getReference() instanceof FieldReference holder &&
+            owner.equals(holder.getDefiningClass()) && ((TwoRegisterInstruction)c.get(5)).getRegisterA() == 0 &&
+            ((TwoRegisterInstruction)c.get(5)).getRegisterB() == 3 && "Landroid/app/ActivityManager;".equals(ref(c.get(9))) &&
+            register(c.get(9)) == 0 && "Landroid/app/ActivityManager;->isLowRamDevice()Z".equals(ref(c.get(10))) && calls(c.get(10),0) &&
+            register(c.get(11)) == 0 && register(c.get(12)) == 0 && jumpsTo(c,12,last);
+    }
+
+    /** const v0, n; invoke-static {v0}, (I)Object; move-result-object v2; check-cast v2. */
+    static boolean numberedBubbleConfig(List<Instruction> c, int at) {
+        return register(c.get(at)) == 0 && calls(c.get(at+1),0) &&
+            ((ReferenceInstruction)c.get(at+1)).getReference() instanceof MethodReference fetch &&
+            fetch.getParameterTypes().size() == 1 && "I".equals(fetch.getParameterTypes().get(0).toString()) &&
+            "Ljava/lang/Object;".equals(fetch.getReturnType()) && register(c.get(at+2)) == 2 && register(c.get(at+3)) == 2;
     }
 
     static boolean reachesBubbleApi(Map<String,ClassDef> byType, Method m, String api, int depth, Map<String,Integer> seen) {
@@ -1897,8 +1930,8 @@ public class CompatReport {
     static final int GENERATE_MENU_LABEL = 0x7f141c4e;
     // The same label in 586's armv7 string pack, two resources on
     static final int GENERATE_MENU_LABEL_ARMV7 = 0x7f141c50;
-    // The viewer's onCreateDialog override in 586, A1L in its armv7 build
-    static final Set<String> EPHEMERAL_DIALOGS = Set.of("A1K", "A1L");
+    // The viewer's onCreateDialog override in 586, A1L in its armv7 build and A1M in its other arm64 builds
+    static final Set<String> EPHEMERAL_DIALOGS = Set.of("A1K", "A1L", "A1M");
     // The Quicksnap viewer's onCreateView frame in 586: 39 registers, 38 in its armv7 build
     static final Set<Integer> QUICKSNAP_FRAMES = Set.of(39, 38);
 
@@ -2001,25 +2034,33 @@ public class CompatReport {
     }
 
     /**
-     * Mirrors NativeMediaControls.kt: 586's cell, its label, how many renders offer that label, the same for its Generate
-     * menu label, and its render's size (24 registers). Four renders offer the AI label and one the menu label. Each ABI's
-     * DEX names the cell differently, so each gets a row.
+     * Mirrors NativeMediaControls.kt discoverAiCells: the cell is the one class of its name whose constructor stores its
+     * last argument as its A00 label, whose render overrides the abstract render of the Litho base it extends, and whose
+     * labels and render size match one of AI_CELL_SHAPES. Four renders offer the AI label and one the Generate menu label
+     * (24 registers). Every build names the cell and its types differently, so they're read off the class that matches.
      */
     record AiCell(String type, String superclass, String scope, String component, int label, int sources, int size, int menu, int menuSources) {
         String render() { return type + "->render(" + scope + ")" + component; }
     }
-    static final List<AiCell> AI_CELLS = List.of(
-        new AiCell("LX/REu;", "LX/1JA;", "LX/2Ca;", "LX/1Gk;", GENERATE_AI_LABEL, 4, 113, GENERATE_MENU_LABEL, 1),
-        new AiCell("LX/O19;", "LX/1JZ;", "LX/2Cz;", "LX/1H9;", GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL_ARMV7, 1));
-    static List<Method> findAiStickerCells(List<ClassDef> classes) {
-        var result = new ArrayList<Method>();
-        for (var shape : AI_CELLS) {
-            var matching = classes.stream().filter(c -> c.getType().equals(shape.type())).toList();
-            if (matching.size() != 1) continue;
-            var cls = matching.getFirst();
-            if (!Objects.equals(cls.getSuperclass(), shape.superclass())) continue;
+    record AiCellShape(int label, int sources, int size, int menu, int menuSources) {}
+    static final List<AiCellShape> AI_CELL_SHAPES = List.of(
+        new AiCellShape(GENERATE_AI_LABEL, 4, 113, GENERATE_MENU_LABEL, 1),
+        new AiCellShape(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL_ARMV7, 1),
+        // 586's other arm64 builds (347215273, 275 and 277): arm64's Generate label and armv7's shorter render.
+        new AiCellShape(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL, 1));
+    record FoundAiCell(AiCell cell, Method render) {}
+    static List<FoundAiCell> discoverAiCells(List<ClassDef> classes) {
+        var byType = new HashMap<String, List<ClassDef>>();
+        var renders = new ArrayList<Method>();
+        for (var cls : classes) {
+            byType.computeIfAbsent(cls.getType(), k -> new ArrayList<>()).add(cls);
+            for (var m : cls.getMethods()) if (m.getName().equals("render")) renders.add(m);
+        }
+        var result = new ArrayList<FoundAiCell>();
+        for (var cls : classes) {
             int fields = 0; for (var f : cls.getFields()) if (f.getName().equals("A00") && f.getType().equals("I") && !AccessFlags.STATIC.isSet(f.getAccessFlags())) fields++;
             if (fields != 1) continue;
+            String type = cls.getType();
             var ctors = new ArrayList<Method>();
             for (var m : cls.getMethods()) { var p = bubbleParameters(m);
                 if (m.getName().equals("<init>") && p.size() == 11 && p.getFirst().equals(BUBBLE_SESSION) && p.getLast().equals("I") &&
@@ -2028,12 +2069,30 @@ public class CompatReport {
             var ctor = ctors.getFirst(); var b = instructions(ctor);
             if (AccessFlags.STATIC.isSet(ctor.getAccessFlags()) || ctor.getImplementation() == null || ctor.getImplementation().getRegisterCount() != 12 || b.size() != 15 ||
                     b.get(5).getOpcode() != Opcode.IPUT || !(b.get(5) instanceof TwoRegisterInstruction store) || store.getRegisterA() != 11 || store.getRegisterB() != 0 ||
-                    !Objects.equals(ref(b.get(5)), shape.type() + "->A00:I") || b.stream().filter(i -> Objects.equals(ref(i), shape.type() + "->A00:I")).count() != 1 ||
+                    !Objects.equals(ref(b.get(5)), type + "->A00:I") || b.stream().filter(i -> Objects.equals(ref(i), type + "->A00:I")).count() != 1 ||
                     b.subList(0, 5).stream().anyMatch(i -> mediaWrites(i, 0) || mediaWrites(i, 11)) ||
                     b.stream().anyMatch(i -> i instanceof OffsetInstruction) || !ctor.getImplementation().getTryBlocks().isEmpty()) continue;
-            int sources = 0, menus = 0;
-            for (var sourceClass : classes) for (var source : sourceClass.getMethods()) {
-                if (!source.getName().equals("render")) continue;
+            if (byType.get(type).size() != 1) continue;
+            var own = new ArrayList<Method>();
+            for (var m : cls.getMethods()) if (m.getName().equals("render")) own.add(m);
+            if (own.size() != 1) continue;
+            var render = own.getFirst();
+            var params = bubbleParameters(render);
+            if (params.size() != 1) continue;
+            String scope = params.getFirst(), component = render.getReturnType();
+            var bases = cls.getSuperclass() == null ? null : byType.get(cls.getSuperclass());
+            if (bases == null || bases.size() != 1) continue;
+            var base = bases.getFirst();
+            boolean declared = false;
+            for (var m : base.getMethods()) if (m.getName().equals("render") && AccessFlags.ABSTRACT.isSet(m.getAccessFlags()) &&
+                    m.getReturnType().equals(component) && bubbleParameters(m).equals(List.of(scope))) declared = true;
+            if (!AccessFlags.ABSTRACT.isSet(base.getAccessFlags()) || !Objects.equals(base.getSuperclass(), component) || !declared) continue;
+            if (AccessFlags.STATIC.isSet(render.getAccessFlags()) || render.getImplementation() == null ||
+                    render.getImplementation().getRegisterCount() != 24 || render.getImplementation().getTryBlocks().size() != 4) continue;
+            // Each label constant that reaches the constructor's label argument, and those that get there in a straight run.
+            var labels = new ArrayList<Integer>();
+            var straight = new ArrayList<Integer>();
+            for (var source : renders) {
                 var c = instructions(source);
                 for (int at = 0; at < c.size(); at++) {
                     if (!Set.of(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE).contains(c.get(at).getOpcode()) || !Objects.equals(ref(c.get(at)), hookId(ctor))) continue;
@@ -2042,17 +2101,23 @@ public class CompatReport {
                     if (literal < 0 || !(c.get(literal) instanceof NarrowLiteralInstruction n)) continue;
                     boolean branchFree = true; for (int j = literal + 1; j < at; j++) if (c.get(j) instanceof OffsetInstruction) branchFree = false;
                     if (!branchFree) continue;
+                    labels.add(n.getNarrowLiteral());
                     boolean joined = false; for (int t : mediaTargets(source)) if (t > literal && t <= at) joined = true;
-                    if (n.getNarrowLiteral() == shape.label() && !joined) sources++;
-                    // The music sticker branch jumps into the menu cell's constructor call, so only the straight run from the literal counts.
-                    if (n.getNarrowLiteral() == shape.menu()) menus++;
+                    if (!joined) straight.add(n.getNarrowLiteral());
                 }
             }
-            if (sources != shape.sources() || menus != shape.menuSources()) continue;
-            for (var m : cls.getMethods()) if (hookId(m).equals(shape.render()) && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null &&
-                    m.getImplementation().getRegisterCount() == 24 && instructions(m).size() == shape.size() && m.getImplementation().getTryBlocks().size() == 4) result.add(m);
+            int size = instructions(render).size();
+            // The music sticker branch jumps into the menu cell's constructor call, so the menu label counts either way.
+            var shape = AI_CELL_SHAPES.stream().filter(s -> s.size() == size &&
+                    straight.stream().filter(v -> v == s.label()).count() == s.sources() &&
+                    labels.stream().filter(v -> v == s.menu()).count() == s.menuSources()).findFirst().orElse(null);
+            if (shape == null) continue;
+            result.add(new FoundAiCell(new AiCell(type, base.getType(), scope, component, shape.label(), shape.sources(), shape.size(), shape.menu(), shape.menuSources()), render));
         }
         return result;
+    }
+    static List<Method> findAiStickerCells(List<ClassDef> classes) {
+        return discoverAiCells(classes).stream().map(FoundAiCell::render).toList();
     }
 
     static final Set<Opcode> MEDIA_GOTOS = Set.of(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32);
@@ -2143,12 +2208,53 @@ public class CompatReport {
         return found.size() == 1 ? found.getFirst() : null;
     }
     static List<Method> findAiStickerGrids(List<ClassDef> classes) {
+        var cells = discoverAiCells(classes).stream().map(FoundAiCell::cell).toList();
         var result = new ArrayList<Method>();
-        for (var cls : classes) for (var m : cls.getMethods()) if (AI_CELLS.stream().anyMatch(cell -> aiStickerGrid(m, cell) != null)) result.add(m);
+        for (var cls : classes) for (var m : cls.getMethods()) if (cells.stream().anyMatch(cell -> aiStickerGrid(m, cell) != null)) result.add(m);
         return result;
     }
 
     record CommunityInbox(Method render, String identity) {}
+    /**
+     * The folder switch's lifecycle read with its checked static getter inlined, as 586's family B builds have it: the
+     * field into v1, a null test jumping to a throwing tail of three, 45 instructions in all. CommunityInbox.kt matches it too.
+     */
+    static boolean inlineLifecycleRead(List<Instruction> c) {
+        int n = c.size();
+        return n == 45 && c.get(0).getOpcode() == Opcode.IGET_OBJECT && c.get(1).getOpcode() == Opcode.IF_EQZ &&
+            register(c.get(0)) == 1 && register(c.get(1)) == 1 && jumpsTo(c, 1, n - 3) && throwingTail(c, n - 3);
+    }
+
+    /** An inlined null check's landing: a static call that makes the exception, its result, and the throw. */
+    static boolean throwingTail(List<Instruction> c, int at) {
+        return at >= 0 && at + 2 < c.size() && c.get(at).getOpcode() == Opcode.INVOKE_STATIC &&
+            c.get(at + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && c.get(at + 2).getOpcode() == Opcode.THROW &&
+            register(c.get(at + 1)) == register(c.get(at + 2));
+    }
+
+    /**
+     * Family B's coordinator scope getter: its lifecycle field, a null test that throws, the lifecycle's config, and the
+     * config's scope, with the result's own null test before the return. CommunityInbox.kt matches the same shape.
+     */
+    static boolean coordinatorScopeGetter(Method m) {
+        var c = instructions(m);
+        var shape = List.of(Opcode.IGET_OBJECT, Opcode.IF_NEZ, Opcode.CONST_STRING, Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC,
+            Opcode.MOVE_RESULT_OBJECT, Opcode.THROW, Opcode.IGET_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT_OBJECT,
+            Opcode.IF_NEZ, Opcode.CONST_STRING, Opcode.INVOKE_STATIC, Opcode.GOTO, Opcode.RETURN_OBJECT);
+        if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getParameterTypes().isEmpty() || m.getImplementation() == null ||
+            !c.stream().map(Instruction::getOpcode).toList().equals(shape)) return false;
+        int self = m.getImplementation().getRegisterCount() - 1;
+        return ((ReferenceInstruction)c.get(0)).getReference() instanceof FieldReference lifecycle &&
+            ((ReferenceInstruction)c.get(7)).getReference() instanceof FieldReference config &&
+            ((ReferenceInstruction)c.get(8)).getReference() instanceof MethodReference scope && lifecycle.getDefiningClass().equals(m.getDefiningClass()) &&
+            config.getDefiningClass().equals(lifecycle.getType()) && scope.getDefiningClass().equals(config.getType()) &&
+            scope.getParameterTypes().isEmpty() && scope.getReturnType().equals(m.getReturnType()) &&
+            ((TwoRegisterInstruction)c.get(0)).getRegisterB() == self && register(c.get(0)) == register(c.get(1)) &&
+            ((TwoRegisterInstruction)c.get(7)).getRegisterB() == register(c.get(0)) && calls(c.get(8), register(c.get(7))) &&
+            register(c.get(9)) == register(c.get(10)) && register(c.get(9)) == register(c.get(14)) &&
+            jumpsTo(c, 1, 7) && jumpsTo(c, 10, 14);
+    }
+
     static CommunityInbox communityInbox(List<ClassDef> input) {
         if (input.stream().noneMatch(c->new CommunityDiscovery(List.of(c)).original(c).equals("InboxFragment"))) return null;
         try { return new CommunityDiscovery(input).prove(); } catch (RuntimeException changed) { return null; }
@@ -2281,6 +2387,39 @@ public class CompatReport {
         }
         return true;
     }
+    /**
+     * The closure body's pinned layout by register count: second read, list register, alias register, moves after the
+     * alias, then the hook's two scratch registers. Mirrors communityLayout in CommunityInbox.kt.
+     */
+    static int[] communityLayout(Method invoke) {
+        if(invoke.getImplementation()==null || AccessFlags.STATIC.isSet(invoke.getAccessFlags())) return null;
+        return switch(invoke.getImplementation().getRegisterCount()) {
+            case 21 -> new int[]{60,1,17,1,0,3};
+            case 22 -> new int[]{76,2,18,2,0,1};
+            default -> null;
+        };
+    }
+    /**
+     * Family B's joined predicate with the key test inlined: a null key, or a type that's neither of the two compared,
+     * returns false; either type returns the subscribed flag. Mirrors CommunityInbox.kt.
+     */
+    boolean inlineJoinedShape(Method m) {
+        var b=instructions(m);
+        if(m.getImplementation()==null || m.getImplementation().getRegisterCount()!=3 || !m.getImplementation().getTryBlocks().isEmpty() ||
+            !AccessFlags.STATIC.isSet(m.getAccessFlags()) || !b.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IGET_OBJECT,Opcode.IF_EQZ,
+            Opcode.IGET_OBJECT,Opcode.SGET_OBJECT,Opcode.IF_EQ,Opcode.SGET_OBJECT,Opcode.IF_NE,Opcode.CONST_4,Opcode.CONST_4,Opcode.IF_EQZ,
+            Opcode.IGET_BOOLEAN,Opcode.IF_EQZ,Opcode.CONST_4,Opcode.RETURN,Opcode.CONST_4,Opcode.GOTO))) return false;
+        if(!(ref(b.get(0)) instanceof FieldReference key && key.getDefiningClass().equals(SUMMARY) && key.getType().equals(KEY)) ||
+            !(ref(b.get(2)) instanceof FieldReference type && type.getDefiningClass().equals(KEY)) ||
+            !(ref(b.get(3)) instanceof FieldReference first && first.getDefiningClass().equals(type.getType()) && first.getType().equals(type.getType())) ||
+            !(ref(b.get(5)) instanceof FieldReference second && second.getDefiningClass().equals(type.getType()) && second.getType().equals(type.getType())) ||
+            !(ref(b.get(10)) instanceof FieldReference flag && flag.getDefiningClass().equals(SUMMARY) && flag.getType().equals("Z"))) return false;
+        java.util.function.BiPredicate<Integer,int[]> two=(at,r)->((TwoRegisterInstruction)b.get(at)).getRegisterA()==r[0] && ((TwoRegisterInstruction)b.get(at)).getRegisterB()==r[1];
+        return two.test(0,new int[]{0,2}) && register(b.get(1))==0 && branch(m,1)==14 && two.test(2,new int[]{1,0}) && register(b.get(3))==0 &&
+            two.test(4,new int[]{1,0}) && branch(m,4)==7 && register(b.get(5))==0 && two.test(6,new int[]{1,0}) && branch(m,6)==14 &&
+            literal(b.get(7),0,1) && literal(b.get(8),1,0) && register(b.get(9))==0 && branch(m,9)==13 && two.test(10,new int[]{0,2}) &&
+            register(b.get(11))==0 && branch(m,11)==13 && literal(b.get(12),1,1) && register(b.get(13))==1 && literal(b.get(14),0,0) && branch(m,15)==8;
+    }
     Method singleMethod(String type, String name) { return single(methods(classes.get(type)).stream().filter(m->m.getName().equals(name)).toList(),type+"->"+name); }
     boolean sessionCapturedFirst(List<Instruction> ctorCode) {
         var store=ctorCode.get(2);
@@ -2313,7 +2452,8 @@ public class CompatReport {
         var folderOverride=single(methods(main).stream().filter(m->hasString(m,"folderName")).toList(),"main typed folder override");
         var overrideCode=instructions(folderOverride);
         // Some 584.1 arm64 builds drop a flag store and move the config's apply into a static helper: 38 instructions, not 42.
-        require(hasString(folderOverride,"InboxLoaderCoordinator.setFolderAndFilter") && (overrideCode.size()==42 || overrideCode.size()==38) && overrideCode.get(0).getOpcode()==Opcode.INVOKE_STATIC && overrideCode.get(1).getOpcode()==Opcode.MOVE_RESULT_OBJECT && folderOverride.getParameterTypes().size()==2,"main folder switch changed");
+        // 586's family B builds read the lifecycle field inline and throw from a tail of three when it's null: 45.
+        require(hasString(folderOverride,"InboxLoaderCoordinator.setFolderAndFilter") && (overrideCode.size()==42 || overrideCode.size()==38 || inlineLifecycleRead(overrideCode)) && (inlineLifecycleRead(overrideCode) || (overrideCode.get(0).getOpcode()==Opcode.INVOKE_STATIC && overrideCode.get(1).getOpcode()==Opcode.MOVE_RESULT_OBJECT)) && folderOverride.getParameterTypes().size()==2,"main folder switch changed");
         String scopeType=folderOverride.getParameterTypes().get(1).toString();
         var scopeLabels=enumFieldNames(scopeType); var folderLabels=enumFieldNames(folderType);
         var pending=(FieldReference)ref(overrideCode.get(4)); var requests=(FieldReference)ref(overrideCode.get(2));
@@ -2363,7 +2503,10 @@ public class CompatReport {
         int scopeResult=-1; for(int at=callAt-1;at>=0;at--) if(writes(renderCode.get(at),scopeArgument)) { scopeResult=at; break; }
         require(scopeResult>=1 && renderCode.get(scopeResult).getOpcode()==Opcode.MOVE_RESULT_OBJECT && ref(renderCode.get(scopeResult-1)) instanceof MethodReference,"captured scope result disconnected");
         var scopeGetter=definition((MethodReference)ref(renderCode.get(scopeResult-1)));
-        require(scopeGetter.getDefiningClass().equals(loaderCtor.getDefiningClass()) && scopeGetter.getReturnType().equals(scopeType) && instructions(scopeGetter).size()==13 && calls(scopeGetter).stream().anyMatch(m->m.getDefiningClass().equals(folderGetter.getDefiningClass()) && m.getReturnType().equals(scopeType)),"scope does not read current native config");
+        // 348 calls the loader's 13-instruction getter, which walks the loader's coordinator and lifecycle to the config.
+        // Family B reads the loader's coordinator in the render and calls the coordinator's own 15-instruction getter.
+        boolean coordinatorRead=coordinatorScopeGetter(scopeGetter);
+        require((coordinatorRead || (scopeGetter.getDefiningClass().equals(loaderCtor.getDefiningClass()) && instructions(scopeGetter).size()==13)) && scopeGetter.getReturnType().equals(scopeType) && calls(scopeGetter).stream().anyMatch(m->m.getDefiningClass().equals(folderGetter.getDefiningClass()) && m.getReturnType().equals(scopeType)),"scope does not read current native config");
         int prefixAt=scopeAt+4;
         var prefix=(FieldReference)ref(ctorCode.get(prefixAt));
         require(prefix.getName().equals("$prefixOffsetCallback") && ctorCode.get(prefixAt).getOpcode()==Opcode.IPUT_OBJECT && ((TwoRegisterInstruction)ctorCode.get(prefixAt)).getRegisterA()==8,"Main callback capture disconnected");
@@ -2382,19 +2525,32 @@ public class CompatReport {
         require(callbackCtor.getParameterTypes().equals(List.of(main.getType())) && callbackCode.size()==3 && callbackCode.get(0).getOpcode()==Opcode.IPUT_OBJECT && ((TwoRegisterInstruction)callbackCode.get(0)).getRegisterA()==1 && ((TwoRegisterInstruction)callbackCode.get(0)).getRegisterB()==0,"callback Main pointer disconnected");
         var callbackMain=(FieldReference)ref(callbackCode.get(0));
         int getterCall=scopeResult-1, getterReceiver=args(renderCode.get(getterCall)).get(0);
-        // 584 reads the loader through a lazy field: the field, a null test that skips a checked static getter, then the call.
-        require(getterCall>=4 && renderCode.get(getterCall-1).getOpcode()==Opcode.MOVE_RESULT_OBJECT && register(renderCode.get(getterCall-1))==getterReceiver &&
-            renderCode.get(getterCall-2).getOpcode()==Opcode.INVOKE_STATIC && renderCode.get(getterCall-3).getOpcode()==Opcode.IF_NEZ &&
-            register(renderCode.get(getterCall-3))==getterReceiver && branch(render,getterCall-3)==getterCall &&
-            renderCode.get(getterCall-4).getOpcode()==Opcode.IGET_OBJECT && register(renderCode.get(getterCall-4))==getterReceiver,"Main loader source absent");
-        var mainLoader=(FieldReference)ref(renderCode.get(getterCall-4));
-        var checkedLoader=definition((MethodReference)ref(renderCode.get(getterCall-2))); var checkedCode=instructions(checkedLoader);
-        require(AccessFlags.STATIC.isSet(checkedLoader.getAccessFlags()) && checkedLoader.getParameterTypes().stream().map(Object::toString).toList().equals(List.of(main.getType())) &&
-            checkedLoader.getReturnType().equals(mainLoader.getType()) && checkedCode.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IGET_OBJECT,
-            Opcode.IF_EQZ, Opcode.RETURN_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.THROW)) &&
-            Objects.toString(ref(checkedCode.get(0))).equals(mainLoader.toString()),"Main loader getter changed");
         var getterCode=instructions(scopeGetter);
-        var currentPath=List.of(callbackMain,mainLoader,(FieldReference)ref(getterCode.get(0)),(FieldReference)ref(getterCode.get(1)),(FieldReference)ref(getterCode.get(8)));
+        List<FieldReference> currentPath;
+        if(coordinatorRead) {
+            // The loader field, a null test that jumps to a throwing tail, then the loader's coordinator field.
+            require(getterCall>=3 && renderCode.get(getterCall-1).getOpcode()==Opcode.IGET_OBJECT && register(renderCode.get(getterCall-1))==getterReceiver &&
+                ((TwoRegisterInstruction)renderCode.get(getterCall-1)).getRegisterB()==getterReceiver &&
+                renderCode.get(getterCall-2).getOpcode()==Opcode.IF_EQZ && register(renderCode.get(getterCall-2))==getterReceiver && throwingTail(renderCode,branch(render,getterCall-2)) &&
+                renderCode.get(getterCall-3).getOpcode()==Opcode.IGET_OBJECT && register(renderCode.get(getterCall-3))==getterReceiver,"Main loader source absent");
+            var mainLoader=(FieldReference)ref(renderCode.get(getterCall-3)); var coordinator=(FieldReference)ref(renderCode.get(getterCall-1));
+            require(mainLoader.getType().equals(loaderCtor.getDefiningClass()) && coordinator.getDefiningClass().equals(mainLoader.getType()) &&
+                coordinator.getType().equals(scopeGetter.getDefiningClass()),"Main loader getter changed");
+            currentPath=List.of(callbackMain,mainLoader,coordinator,(FieldReference)ref(getterCode.get(0)),(FieldReference)ref(getterCode.get(7)));
+        } else {
+            // 584 reads the loader through a lazy field: the field, a null test that skips a checked static getter, then the call.
+            require(getterCall>=4 && renderCode.get(getterCall-1).getOpcode()==Opcode.MOVE_RESULT_OBJECT && register(renderCode.get(getterCall-1))==getterReceiver &&
+                renderCode.get(getterCall-2).getOpcode()==Opcode.INVOKE_STATIC && renderCode.get(getterCall-3).getOpcode()==Opcode.IF_NEZ &&
+                register(renderCode.get(getterCall-3))==getterReceiver && branch(render,getterCall-3)==getterCall &&
+                renderCode.get(getterCall-4).getOpcode()==Opcode.IGET_OBJECT && register(renderCode.get(getterCall-4))==getterReceiver,"Main loader source absent");
+            var mainLoader=(FieldReference)ref(renderCode.get(getterCall-4));
+            var checkedLoader=definition((MethodReference)ref(renderCode.get(getterCall-2))); var checkedCode=instructions(checkedLoader);
+            require(AccessFlags.STATIC.isSet(checkedLoader.getAccessFlags()) && checkedLoader.getParameterTypes().stream().map(Object::toString).toList().equals(List.of(main.getType())) &&
+                checkedLoader.getReturnType().equals(mainLoader.getType()) && checkedCode.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IGET_OBJECT,
+                Opcode.IF_EQZ, Opcode.RETURN_OBJECT, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.THROW)) &&
+                Objects.toString(ref(checkedCode.get(0))).equals(mainLoader.toString()),"Main loader getter changed");
+            currentPath=List.of(callbackMain,mainLoader,(FieldReference)ref(getterCode.get(0)),(FieldReference)ref(getterCode.get(1)),(FieldReference)ref(getterCode.get(8)));
+        }
         String owner=callbackCtor.getDefiningClass();
         for(var f:currentPath) { require(f.getDefiningClass().equals(owner),"current folder path disconnected");
             var nativeField=single(methodFields(classes.get(owner),f.getName()),"current folder field");
@@ -2427,42 +2583,52 @@ public class CompatReport {
         Method invoke=single(methods(closure).stream().filter(m->m.getName().equals("invoke") && m.getParameterTypes().equals(List.of("Ljava/lang/Object;"))).toList(),"section closure invoke");
         var code=instructions(invoke);
         var listReads=new ArrayList<Integer>(); for(int at=0;at<code.size();at++) if(reads(code.get(at),captured.toString())) listReads.add(at);
-        // The second read follows a session-gated block before the search bar, at 60, with the search icon flag asked
-        // through a getter.
-        require(listReads.size()==2 && listReads.get(0)==5 && listReads.get(1)==60,"presentation read shape changed: "+listReads);
-        int secondRead=listReads.get(1);
-        require(hasString(invoke,"searchBarSection") && code.get(secondRead) instanceof TwoRegisterInstruction read && read.getRegisterA()==1 && read.getRegisterB()==4,"header or local presentation read changed");
-        // The list goes into v1, and the sink takes an $onThreadInViewport after the list, moved into place after the alias.
-        int listRegister=((TwoRegisterInstruction)code.get(secondRead)).getRegisterA(), aliasAt=-1;
-        for(int at=secondRead+1;at<code.size() && aliasAt<0;at++) if(code.get(at).getOpcode()==Opcode.MOVE_OBJECT_FROM16 && ((TwoRegisterInstruction)code.get(at)).getRegisterA()==17) aliasAt=at;
+        // Two pinned layouts, picked by the body's register count. 348 and 341 (21 registers) read the list into v1 at 60,
+        // alias it into v17 and move the $onThreadInViewport after it, with v0 and v3 free. Family B (22 registers)
+        // inlines the section builder's helpers, reads the list into v2 at 76, aliases it into v18 and moves the callback
+        // and the data key after it, with v3 holding the builder and v0 and v1 free.
+        var layout=communityLayout(invoke);
+        require(layout!=null,"presentation body shape changed");
+        require(listReads.size()==2 && listReads.get(0)==5 && listReads.get(1)==layout[0],"presentation read shape changed: "+listReads);
+        int secondRead=listReads.get(1), listRegister=layout[1];
+        require(hasString(invoke,"searchBarSection") && code.get(secondRead) instanceof TwoRegisterInstruction read && read.getRegisterA()==listRegister && read.getRegisterB()==4,"header or local presentation read changed");
+        int aliasAt=-1;
+        for(int at=secondRead+1;at<code.size() && aliasAt<0;at++) if(code.get(at).getOpcode()==Opcode.MOVE_OBJECT_FROM16 && ((TwoRegisterInstruction)code.get(at)).getRegisterA()==layout[2]) aliasAt=at;
         require(aliasAt>0 && ((TwoRegisterInstruction)code.get(aliasAt)).getRegisterB()==listRegister,"second list alias changed");
-        require(aliasAt+1<code.size() && code.get(aliasAt+1).getOpcode()==Opcode.MOVE_OBJECT_FROM16,"viewport callback alias changed");
-        int sinkAt=aliasAt+2;
+        for(int at=aliasAt+1;at<=aliasAt+layout[3];at++) require(at<code.size() && code.get(at).getOpcode()==Opcode.MOVE_OBJECT_FROM16,"viewport callback alias changed");
+        int sinkAt=aliasAt+layout[3]+1;
         require(sinkAt<code.size() && code.get(sinkAt).getOpcode()==Opcode.INVOKE_STATIC_RANGE && ref(code.get(sinkAt)) instanceof MethodReference,"list section sink changed");
         var sink=(MethodReference)ref(code.get(sinkAt));
-        require(sink.getParameterTypes().size()==13 && sink.getParameterTypes().get(11).toString().equals("Ljava/util/List;") && args(code.get(sinkAt)).get(11)==17,"renderer list argument disconnected");
-        require(code.size()==sinkAt+8 && invoke.getImplementation().getRegisterCount()==21 && invoke.getImplementation().getTryBlocks().isEmpty(),"presentation body shape changed");
+        require(sink.getParameterTypes().size()==13 && sink.getParameterTypes().get(11).toString().equals("Ljava/util/List;") && args(code.get(sinkAt)).get(11)==layout[2],"renderer list argument disconnected");
+        require(code.size()==sinkAt+8 && invoke.getImplementation().getTryBlocks().isEmpty(),"presentation body shape changed");
         require(code.get(6).getOpcode()==Opcode.INVOKE_VIRTUAL && Objects.toString(ref(code.get(6))).equals("Ljava/util/AbstractCollection;->isEmpty()Z") && args(code.get(6)).equals(List.of(0)),"original empty/header gate changed");
         for(int at=secondRead+1;at<aliasAt;at++) require(!writes(code.get(at),listRegister),"list overwritten before render");
         require(targets(invoke).stream().noneMatch(t->t>secondRead && t<=sinkAt),"branch bypasses second-read hook");
-        // The hook's two scratch registers are v0 and v3.
-        for(int scratch:List.of(0,3)) require(deadFrom(invoke,secondRead+1,scratch),"scope scratch register still live");
+        // The hook's two scratch registers are the layout's pair.
+        for(int scratch:List.of(layout[4],layout[5])) require(deadFrom(invoke,secondRead+1,scratch),"scope scratch register still live");
         var search=classes.values().stream().filter(c->Set.of("MessagingTabbedSearchFragment","SearchListItemFragment","MsysMessageSearchThreadListFragment","FoldersFragment").contains(original(c))).toList();
         require(search.stream().anyMatch(c->original(c).equals("MessagingTabbedSearchFragment")) && search.stream().anyMatch(c->original(c).equals("SearchListItemFragment")) && search.stream().anyMatch(c->original(c).equals("FoldersFragment")),"separate native Search/folder fragments absent");
         require(search.stream().noneMatch(c->c.getType().equals(main.getType())),"Search shares main fragment");
-        var joined=new ArrayList<Method>();
+        var joined=new ArrayList<Method>(); var inlined=new ArrayList<Method>();
         for(var cls:classes.values()) for(var method:cls.getMethods()) if(method.getParameterTypes().equals(List.of(SUMMARY)) && method.getReturnType().equals("Z") && instructions(method).size()==9) {
             var b=instructions(method);
             if(b.get(0).getOpcode()==Opcode.IGET_OBJECT && ref(b.get(0)) instanceof FieldReference f && f.getDefiningClass().equals(SUMMARY) && f.getType().equals(KEY) && b.get(1).getOpcode()==Opcode.INVOKE_STATIC && ref(b.get(1)) instanceof MethodReference m && m.getDefiningClass().equals(KEY) && m.getParameterTypes().equals(List.of(KEY)) && m.getReturnType().equals("Z") && b.get(5).getOpcode()==Opcode.IGET_BOOLEAN) joined.add(method);
-        }
-        var predicate=single(joined,"native joined channel predicate"); var joinedCode=instructions(predicate);
+        } else if(method.getParameterTypes().equals(List.of(SUMMARY)) && method.getReturnType().equals("Z") && inlineJoinedShape(method)) inlined.add(method);
+        require(joined.size()+inlined.size()==1,"native joined channel predicate count="+(joined.size()+inlined.size()));
+        // 586's family B builds inline the null-safe community key test: the key, its two community types, then subscribed.
+        boolean inlineJoined=!inlined.isEmpty();
+        var predicate=inlineJoined ? inlined.get(0) : joined.get(0); var joinedCode=instructions(predicate);
+        String keyField, firstType, secondType; List<String> keyParts;
+        if(inlineJoined) {
+            keyField=Objects.toString(ref(joinedCode.get(2))); firstType=Objects.toString(ref(joinedCode.get(3))); secondType=Objects.toString(ref(joinedCode.get(5)));
+            keyParts=List.of();
+        } else {
         require(joinedCode.stream().map(Instruction::getOpcode).toList().equals(List.of(Opcode.IGET_OBJECT,Opcode.INVOKE_STATIC,Opcode.MOVE_RESULT,Opcode.CONST_4,Opcode.IF_EQZ,Opcode.IGET_BOOLEAN,Opcode.IF_EQZ,Opcode.CONST_4,Opcode.RETURN)),"native joined branch changed");
         require(predicate.getImplementation().getRegisterCount()==3 && predicate.getImplementation().getTryBlocks().isEmpty() &&
             ((TwoRegisterInstruction)joinedCode.get(0)).getRegisterA()==0 && ((TwoRegisterInstruction)joinedCode.get(0)).getRegisterB()==2 && args(joinedCode.get(1)).equals(List.of(0)) &&
             ((OneRegisterInstruction)joinedCode.get(2)).getRegisterA()==0 && literal(joinedCode.get(3),1,0) && branch(predicate,4)==8 && branch(predicate,6)==8 &&
             ((TwoRegisterInstruction)joinedCode.get(5)).getRegisterA()==0 && ((TwoRegisterInstruction)joinedCode.get(5)).getRegisterB()==2 &&
             literal(joinedCode.get(7),1,1) && ((OneRegisterInstruction)joinedCode.get(8)).getRegisterA()==1,"native membership value flow changed");
-        var subscribed=(FieldReference)ref(joinedCode.get(5)); require(classes.values().stream().anyMatch(c->methods(c).stream().anyMatch(m->hasString(m,"thread.isSubscribed") && instructions(m).stream().anyMatch(i->Objects.toString(ref(i)).equals(subscribed.toString())))),"subscribed native label absent");
         var keyPredicate=definition((MethodReference)ref(joinedCode.get(1)));
         var keyAny=definition(single(calls(keyPredicate).stream().filter(m->m.getDefiningClass().equals(KEY) && m.getParameterTypes().isEmpty() && m.getReturnType().equals("Z")).toList(),"nullable key-to-community predicate"));
         require(instructions(keyPredicate).size()==8 && calls(keyPredicate).stream().anyMatch(m->id(m).equals(id(keyAny))),"null-safe community wrapper changed");
@@ -2482,14 +2648,21 @@ public class CompatReport {
             Objects.toString(ref(k.get(0))).equals(Objects.toString(ref(a.get(3)))) && ((TwoRegisterInstruction)k.get(0)).getRegisterA()==1 && ((TwoRegisterInstruction)k.get(0)).getRegisterB()==2 &&
             register(k.get(1))==0 && ((TwoRegisterInstruction)k.get(2)).getRegisterA()==1 && ((TwoRegisterInstruction)k.get(2)).getRegisterB()==0 && branch(keyChannel,2)==5 &&
             literal(k.get(3),0,1) && register(k.get(4))==0 && literal(k.get(5),0,0) && register(k.get(6))==0,"community channel check changed");
-        String keyField=Objects.toString(ref(a.get(3))), channelType=Objects.toString(ref(k.get(1))), announcementType=Objects.toString(ref(a.get(4)));
+        keyField=Objects.toString(ref(a.get(3))); firstType=Objects.toString(ref(k.get(1))); secondType=Objects.toString(ref(a.get(4)));
+        keyParts=List.of(id(keyPredicate),id(keyAny),id(keyChannel));
+        }
+        var subscribed=(FieldReference)ref(joinedCode.get(inlineJoined ? 10 : 5)); require(classes.values().stream().anyMatch(c->methods(c).stream().anyMatch(m->hasString(m,"thread.isSubscribed") && instructions(m).stream().anyMatch(i->Objects.toString(ref(i)).equals(subscribed.toString())))),"subscribed native label absent");
         var keyType=single(fieldsOf(KEY, keyField.substring(keyField.lastIndexOf(':')+1)),"typed key enum"); var enums=enumMembers(keyType.getType());
-        require(keyField.equals(keyType.toString()) && channelType.equals(enums.get("COMMUNITY_CHANNEL").toString()) && announcementType.equals(enums.get("COMMUNITY_ANNOUNCEMENT_CHANNEL").toString()),"joined predicate accepts other types");
+        String channelType=enums.get("COMMUNITY_CHANNEL").toString(), announcementType=enums.get("COMMUNITY_ANNOUNCEMENT_CHANNEL").toString();
+        // The inlined test compares the two types in either order; 348's split test asks the channel type first.
+        require(keyField.equals(keyType.toString()) && (inlineJoined ? !firstType.equals(secondType) && Set.of(firstType,secondType).equals(Set.of(channelType,announcementType)) :
+            firstType.equals(channelType) && secondType.equals(announcementType)),"joined predicate accepts other types");
         String rowType=single(renderCode.stream().filter(i->i.getOpcode()==Opcode.INSTANCE_OF).map(i->((TypeReference)ref(i)).getType()).distinct().filter(t->fieldsOf(t,SUMMARY).size()==1).toList(),"native row type");
         var rowSummary=single(fieldsOf(rowType,SUMMARY),"native row summary");
         require(AccessFlags.PUBLIC.isSet(classes.get(rowType).getAccessFlags()) && AccessFlags.PUBLIC.isSet(rowSummary.getAccessFlags()) && AccessFlags.FINAL.isSet(rowSummary.getAccessFlags()) &&
             AccessFlags.PUBLIC.isSet(classes.get(predicate.getDefiningClass()).getAccessFlags()) && AccessFlags.PUBLIC.isSet(predicate.getAccessFlags()) && AccessFlags.STATIC.isSet(predicate.getAccessFlags()),"typed native contract inaccessible");
-        var identityParts=new ArrayList<>(List.of(id(render),id(ctor),id(scopeGetter),id(folderOverride),rowSummary.toString(),id(predicate),id(keyPredicate),id(keyAny),id(keyChannel)));
+        var identityParts=new ArrayList<>(List.of(id(render),id(ctor),id(scopeGetter),id(folderOverride),rowSummary.toString(),id(predicate)));
+        identityParts.addAll(keyParts);
         identityParts.add(requests.toString()); identityParts.add(prefix.toString());
         currentPath.forEach(f->identityParts.add(f.toString())); identityParts.add(id(folderGetter)); identityParts.add(folders.get("INBOX").toString());
         String identity=String.join("|",identityParts);
@@ -2680,25 +2853,24 @@ public class CompatReport {
     }
 
     /**
-     * 586's renderer asks a static ()Z getter instead of loading the flag. The getter has to be the read alone: the
-     * config object from a no-argument static call, the flag, an optional cast of another register, one (J)Z check
-     * handed the flag last, and its answer returned as is. Mirrors EmojiDrawer.kt's isEmojiDrawerGetter.
+     * 586's renderer asks a ()Z getter instead of loading the flag. The getter has to be the read alone: the config
+     * object, the flag, an optional cast of another register, one (J)Z check handed the flag last, and its answer
+     * returned as is. The config comes from a no-argument static call, or in family B from a static (I)Object call on
+     * a constant, cast. Mirrors EmojiDrawer.kt's isEmojiDrawerGetter.
      */
     static boolean emojiDrawerGetter(Method method) {
-        if (!AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"Z".equals(method.getReturnType()) ||
-            !method.getParameterTypes().isEmpty()) return false;
+        if (!"Z".equals(method.getReturnType()) || !method.getParameterTypes().isEmpty()) return false;
         var code = instructions(method);
-        if (code.size() != 6 && code.size() != 7) return false;
-        if (code.get(0).getOpcode() != Opcode.INVOKE_STATIC || ((FiveRegisterInstruction) code.get(0)).getRegisterCount() != 0 ||
-            code.get(1).getOpcode() != Opcode.MOVE_RESULT_OBJECT || code.get(2).getOpcode() != Opcode.CONST_WIDE ||
-            ((WideLiteralInstruction) code.get(2)).getWideLiteral() != EMOJI_DRAWER_FLAG) return false;
-        int pair = ((OneRegisterInstruction) code.get(2)).getRegisterA();
-        int call = 3;
-        if (code.size() == 7) {
-            if (code.get(3).getOpcode() != Opcode.CHECK_CAST) return false;
-            int held = ((OneRegisterInstruction) code.get(3)).getRegisterA();
+        int fetch = emojiDrawerConfigFetch(code);
+        if (fetch < 0 || (code.size() != fetch + 4 && code.size() != fetch + 5)) return false;
+        if (code.get(fetch).getOpcode() != Opcode.CONST_WIDE || ((WideLiteralInstruction) code.get(fetch)).getWideLiteral() != EMOJI_DRAWER_FLAG) return false;
+        int pair = ((OneRegisterInstruction) code.get(fetch)).getRegisterA();
+        int call = fetch + 1;
+        if (code.size() == fetch + 5) {
+            if (code.get(call).getOpcode() != Opcode.CHECK_CAST) return false;
+            int held = ((OneRegisterInstruction) code.get(call)).getRegisterA();
             if (held == pair || held == pair + 1) return false;
-            call = 4;
+            call++;
         }
         if (!(code.get(call) instanceof FiveRegisterInstruction invoke) ||
             !Set.of(Opcode.INVOKE_STATIC, Opcode.INVOKE_INTERFACE, Opcode.INVOKE_VIRTUAL).contains(invoke.getOpcode()) ||
@@ -2713,13 +2885,31 @@ public class CompatReport {
             ((OneRegisterInstruction) back).getRegisterA() == ((OneRegisterInstruction) result).getRegisterA();
     }
 
+    /** How many instructions fetch the emoji drawer getter's config object, or -1 when it isn't fetched one of the two ways. */
+    static int emojiDrawerConfigFetch(List<? extends Instruction> code) {
+        if (code.size() > 1 && code.get(0) instanceof FiveRegisterInstruction first && first.getOpcode() == Opcode.INVOKE_STATIC &&
+            first.getRegisterCount() == 0 && code.get(1).getOpcode() == Opcode.MOVE_RESULT_OBJECT) return 2;
+        if (code.size() < 4 || code.get(0).getOpcode() != Opcode.CONST || code.get(1).getOpcode() != Opcode.INVOKE_STATIC ||
+            code.get(2).getOpcode() != Opcode.MOVE_RESULT_OBJECT || code.get(3).getOpcode() != Opcode.CHECK_CAST) return -1;
+        var call = (FiveRegisterInstruction) code.get(1);
+        if (!(((ReferenceInstruction) call).getReference() instanceof MethodReference target)) return -1;
+        boolean shaped = call.getRegisterCount() == 1 && call.getRegisterC() == ((OneRegisterInstruction) code.get(0)).getRegisterA() &&
+            target.getParameterTypes().size() == 1 && "I".equals(target.getParameterTypes().get(0).toString()) &&
+            "Ljava/lang/Object;".equals(target.getReturnType()) &&
+            ((OneRegisterInstruction) code.get(3)).getRegisterA() == ((OneRegisterInstruction) code.get(2)).getRegisterA();
+        return shaped ? 4 : -1;
+    }
+
     /**
      * Every method that loads the emoji drawer flag, but only when the one renderer that throws the anchor loads it
-     * too, itself or through a call to an emojiDrawerGetter reader. Mirrors EmojiDrawer.kt.
+     * too, itself or through a call to an emojiDrawerGetter reader: a static one by its own id, an instance one
+     * (family B) through an interface of its class. Mirrors EmojiDrawer.kt.
      */
     static List<Method> emojiDrawerReaders(List<ClassDef> classes) {
         var readers = new ArrayList<Method>();
         var anchors = new ArrayList<Method>();
+        var shared = new HashSet<String>();
+        var getters = new HashSet<String>();
         for (var cls : classes) for (var method : cls.getMethods()) {
             if (method.getImplementation() == null) continue;
             boolean reads = false, anchor = false;
@@ -2728,14 +2918,20 @@ public class CompatReport {
                 if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr &&
                     EMOJI_DRAWER_ANCHOR.equals(sr.getString())) anchor = true;
             }
-            if (reads) readers.add(method);
+            if (reads) {
+                readers.add(method);
+                if (emojiDrawerGetter(method)) {
+                    if (AccessFlags.STATIC.isSet(method.getAccessFlags())) getters.add(hookId(method));
+                    else for (var iface : cls.getInterfaces()) shared.add(iface + "->" + method.getName() + "()Z");
+                }
+            }
             if (anchor) anchors.add(method);
         }
         if (anchors.size() != 1) return List.of();
         var anchor = hookId(anchors.get(0));
-        var getters = readers.stream().filter(CompatReport::emojiDrawerGetter).map(CompatReport::hookId).collect(Collectors.toSet());
         boolean linked = readers.stream().anyMatch(reader -> hookId(reader).equals(anchor)) || instructions(anchors.get(0)).stream().anyMatch(i ->
-            i.getOpcode() == Opcode.INVOKE_STATIC && getters.contains(((ReferenceInstruction) i).getReference().toString()));
+            (i.getOpcode() == Opcode.INVOKE_STATIC && getters.contains(((ReferenceInstruction) i).getReference().toString())) ||
+            (i.getOpcode() == Opcode.INVOKE_INTERFACE && shared.contains(((ReferenceInstruction) i).getReference().toString())));
         return linked ? readers : List.of();
     }
 
@@ -4062,6 +4258,13 @@ public class CompatReport {
     static final String TYPEFACE = "Landroid/graphics/Typeface;";
     static final String FONT_COLORS = "Landroid/content/res/ColorStateList;";
 
+    /** CustomFont.kt isFontRobotoCopy: an instance (Context)Typeface copy that logs under the builder's class. */
+    static boolean robotoCopy(Method m, String builder) {
+        return !AccessFlags.STATIC.isSet(m.getAccessFlags()) && TYPEFACE.equals(m.getReturnType()) &&
+            fontParameters(m).equals(List.of("Landroid/content/Context;")) && !builder.equals(m.getDefiningClass()) &&
+            instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.CONST_CLASS && builder.equals(ref(i)));
+    }
+
     static List<String> fontParameters(Method m) {
         return m.getParameterTypes().stream().map(Object::toString).toList();
     }
@@ -4108,9 +4311,18 @@ public class CompatReport {
                 !params.get(0).startsWith("L") || !params.get(1).equals(repository.getDefiningClass()) || !"I".equals(params.get(3)) ||
                 !fontCalls(repository).contains("Ljava/lang/Enum;->name()Ljava/lang/String;")) repository = null;
         }
-        var roboto = holders.get(FONT_ROBOTO_ANCHOR).size() == 1 ? holders.get(FONT_ROBOTO_ANCHOR).iterator().next() : null;
-        if (roboto != null && (!AccessFlags.STATIC.isSet(roboto.getAccessFlags()) || !TYPEFACE.equals(roboto.getReturnType()) ||
-            !fontParameters(roboto).equals(List.of("Landroid/content/Context;", "Ljava/lang/Integer;")))) roboto = null;
+        // The builder, plus family B's per-weight copies of it (CustomFont.kt robotoBuilders). Nothing if any other holder.
+        var robotos = new ArrayList<Method>();
+        var builders = holders.get(FONT_ROBOTO_ANCHOR).stream().filter(m -> AccessFlags.STATIC.isSet(m.getAccessFlags()) &&
+            TYPEFACE.equals(m.getReturnType()) && fontParameters(m).equals(List.of("Landroid/content/Context;", "Ljava/lang/Integer;"))).toList();
+        if (builders.size() == 1) {
+            var builder = builders.get(0);
+            robotos.add(builder);
+            for (var m : holders.get(FONT_ROBOTO_ANCHOR)) if (m != builder) {
+                if (robotoCopy(m, builder.getDefiningClass())) robotos.add(m);
+                else { robotos.clear(); break; }
+            }
+        }
         var asked = new ArrayList<Method>();
         if (repository != null) for (var m : byName) {
             boolean asks = false;
@@ -4123,7 +4335,7 @@ public class CompatReport {
         var found = new LinkedHashMap<String, List<Method>>();
         found.put("font_layout", layout == null ? List.of() : List.of(layout));
         found.put("font_repository", repository == null ? List.of() : List.of(repository));
-        found.put("font_roboto", roboto == null ? List.of() : List.of(roboto));
+        found.put("font_roboto", robotos);
         found.put("font_by_name", asked);
         found.put("font_input", inputs);
         return found;
@@ -4698,15 +4910,27 @@ public class CompatReport {
         return aiMentionRowChecks(classes, AI_ROW_FLAGS);
     }
 
+    static Set<Long> serverFlags(Method method) {
+        var flags = new HashSet<Long>();
+        for (var i : method.getImplementation().getInstructions())
+            if (i.getOpcode() == Opcode.CONST_WIDE && i instanceof WideLiteralInstruction flag) flags.add(flag.getWideLiteral());
+        return flags;
+    }
+
     static List<Method> aiMentionRowChecks(List<ClassDef> classes, AiRowFlags build) {
+        // Family B reads the shared flag in a static ()Z getter of its own, and a call to one counts as reading it.
+        var getters = new HashSet<String>();
+        for (var cls : classes) for (var method : cls.getMethods())
+            if (method.getImplementation() != null && AccessFlags.STATIC.isSet(method.getAccessFlags()) && method.getParameterTypes().isEmpty() &&
+                "Z".equals(method.getReturnType()) && serverFlags(method).equals(Set.of(build.shared()))) getters.add(hookId(method));
         var rows = new TreeMap<String, List<Method>>();
         for (var cls : classes) for (var method : cls.getMethods()) {
             if (method.getImplementation() == null || AccessFlags.STATIC.isSet(method.getAccessFlags()) || !"Z".equals(method.getReturnType())) continue;
             var params = new ArrayList<String>();
             for (var p : method.getParameterTypes()) params.add(p.toString());
-            var flags = new HashSet<Long>();
+            var flags = serverFlags(method);
             for (var i : method.getImplementation().getInstructions())
-                if (i.getOpcode() == Opcode.CONST_WIDE && i instanceof WideLiteralInstruction flag) flags.add(flag.getWideLiteral());
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference target && getters.contains(target.toString())) flags.add(build.shared());
             String row = null;
             if (params.isEmpty() && flags.containsAll(build.row())) row = "meta_ai";
             else if (params.equals(List.of(FB_SESSION_TYPE, CAPABILITIES)) && flags.containsAll(build.chat())) row = "meta_ai_chats";
@@ -4945,8 +5169,35 @@ public class CompatReport {
         return extras.size() == 1;
     }
 
+    static final String MENU_BUNDLE_READ = "Landroid/os/Bundle;->getParcelable(Ljava/lang/String;)Landroid/os/Parcelable;";
+
+    /**
+     * What the Bundle key read at {@code at} says when it's a Redex string pool's answer, as 586's family B taps read it: a
+     * constant key, the pool's static (I)String lookup, its answer, then getParcelable by it cast straight to a Message.
+     * Null for anything else. Mirrors SaveVoiceMenu.kt's pooledMessageKey and the pool check in resolveSaveVoiceMenu.
+     */
+    static String menuPooledMessageKey(Map<String, ClassDef> byType, List<Instruction> code, int at) {
+        if (at < 2 || at + 3 >= code.size() || code.get(at).getOpcode() != Opcode.MOVE_RESULT_OBJECT || code.get(at - 1).getOpcode() != Opcode.INVOKE_STATIC ||
+            !(code.get(at - 1) instanceof FiveRegisterInstruction lookup) || lookup.getRegisterCount() != 1) return null;
+        var pool = menuCall(lookup);
+        if (pool == null || !"Ljava/lang/String;".equals(pool.getReturnType()) || !refParams(pool).equals(List.of("I"))) return null;
+        var key = code.get(at - 2);
+        if (!Set.of(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16).contains(key.getOpcode()) || register(key) != lookup.getRegisterC()) return null;
+        var read = code.get(at + 1);
+        var args = callArgs(read);
+        if (read.getOpcode() != Opcode.INVOKE_VIRTUAL || !MENU_BUNDLE_READ.equals(ref(read)) || args.size() < 2 || args.get(1) != register(code.get(at))) return null;
+        var message = code.get(at + 2);
+        var cast = code.get(at + 3);
+        if (message.getOpcode() != Opcode.MOVE_RESULT_OBJECT || cast.getOpcode() != Opcode.CHECK_CAST || !MENU_MESSAGE.equals(ref(cast)) || register(cast) != register(message)) return null;
+        var owner = byType.get(pool.getDefiningClass());
+        if (owner == null) return null;
+        var pools = new ArrayList<Method>();
+        for (var m : owner.getMethods()) if (hookId(m).equals(pool.toString())) pools.add(m);
+        return pools.size() == 1 ? poolString(pools.get(0), ((NarrowLiteralInstruction) key).getNarrowLiteral()) : null;
+    }
+
     /** The chat menu's tap method: returns the handler field and its type, or null for anything else. */
-    static String[] menuTapSite(Method method) {
+    static String[] menuTapSite(Method method, Map<String, ClassDef> byType) {
         if (!"Z".equals(method.getReturnType()) || AccessFlags.STATIC.isSet(method.getAccessFlags()) || !params(method).equals(List.of(MENU_ITEM, "Ljava/lang/Object;"))) return null;
         var code = instructions(method);
         int start = -1;
@@ -4958,6 +5209,8 @@ public class CompatReport {
             }
             if ("rowMessage".equals(menuString(code.get(i)))) row = true;
         }
+        // Family B builds read the Bundle's key from a string pool instead.
+        for (int i = 0; i < code.size() && !row; i++) if ("rowMessage".equals(menuPooledMessageKey(byType, code, i))) row = true;
         if (start < 0 || !row) return null;
         int scratch = register(code.get(start));
         int first = method.getImplementation().getRegisterCount() - 3;
@@ -5168,7 +5421,7 @@ public class CompatReport {
         Method tap = null;
         String[] tapSite = null;
         for (var cls : classes) for (var m : cls.getMethods()) {
-            var site = menuTapSite(m);
+            var site = menuTapSite(m, byType);
             if (site == null) continue;
             if (tap != null) return List.of();
             tap = m;
@@ -5551,8 +5804,14 @@ public class CompatReport {
      */
     static final int[] REPLY_READ_SHAPE = {10, 20, 26, 71, 236, 20, 4, 36, 18};
 
-    /** Its body size: 397 instructions on 586 arm64. */
-    static final Set<Integer> REPLY_READ_SIZES = Set.of(397);
+    /**
+     * Family B (347215273, 275 and 277) reads the thread's id String in one call where 347215348 converts its long, so
+     * the dispatch and everything after it sit two sooner. Mirrors ReadReceipts.kt's REPLY_READ_SHAPE_FAMILY_B.
+     */
+    static final int[] REPLY_READ_SHAPE_FAMILY_B = {10, 20, 26, 71, 234, 20, 4, 36, 18};
+
+    /** Each shape by its body size: 397 instructions on 586's arm64 and armv7 builds, 395 on family B. */
+    static final Map<Integer, int[]> REPLY_READ_SHAPES = Map.of(397, REPLY_READ_SHAPE, 395, REPLY_READ_SHAPE_FAMILY_B);
 
     /**
      * reply_read injects at fixed indices, so ReadReceipts.kt's validateReplyRead pins the method's shape. The same
@@ -5563,11 +5822,11 @@ public class CompatReport {
      */
     static boolean replyReadShape(Method method) {
         var impl = method.getImplementation();
-        if (impl == null || impl.getRegisterCount() != REPLY_READ_SHAPE[7]) return false;
+        if (impl == null) return false;
         var code = new ArrayList<Instruction>();
         impl.getInstructions().forEach(code::add);
-        int[] shape = REPLY_READ_SHAPE;
-        if (!REPLY_READ_SIZES.contains(code.size())) return false;
+        int[] shape = REPLY_READ_SHAPES.get(code.size());
+        if (shape == null || impl.getRegisterCount() != shape[7]) return false;
         int composer = shape[0], session = shape[1], n = shape[2], absent = shape[3], d = shape[4], cr = shape[5], s = d - shape[6];
         var params = method.getParameterTypes();
         if (code.get(n + 2).getOpcode() != Opcode.INVOKE_INTERFACE_RANGE || !(code.get(n + 2) instanceof ReferenceInstruction g) ||
@@ -5791,6 +6050,23 @@ public class CompatReport {
                 anchor = method;
             }
         }
+        // Family B: no EditText names it, its onTextChanged calls a static helper that does.
+        if (anchors == 0) {
+            var helpers = new HashSet<String>();
+            for (var cls : classes) for (var method : cls.getMethods())
+                if (AccessFlags.STATIC.isSet(method.getAccessFlags()) &&
+                    literals(method).contains("updateState:TextInputComponent.remeasureForUpdatedText")) helpers.add(hookId(method));
+            for (var cls : classes) {
+                if (!"Landroid/widget/EditText;".equals(cls.getSuperclass())) continue;
+                for (var method : cls.getMethods()) {
+                    if (instructions(method).stream().noneMatch(i -> (i.getOpcode() == Opcode.INVOKE_STATIC ||
+                        i.getOpcode() == Opcode.INVOKE_STATIC_RANGE) && helpers.contains(ref(i)))) continue;
+                    anchors++;
+                    field = cls;
+                    anchor = method;
+                }
+            }
+        }
         if (anchors != 1 || AccessFlags.STATIC.isSet(anchor.getAccessFlags()) ||
             !hookId(anchor).endsWith(";->onTextChanged(Ljava/lang/CharSequence;III)V")) return List.of();
         var selection = new ArrayList<Method>();
@@ -5823,7 +6099,29 @@ public class CompatReport {
                 code.get(at + 2).getOpcode() != Opcode.MOVE_RESULT) return List.of();
             found.add(method);
         }
-        return found;
+        // Family B reads it in static getters that return the answer as it is, and their callers read it in their place.
+        var getters = new HashSet<String>();
+        for (var method : found) {
+            var code = instructions(method);
+            int at = 0;
+            while (code.get(at).getOpcode() != Opcode.CONST_WIDE || ((WideLiteralInstruction) code.get(at)).getWideLiteral() != PINNED_CHAT_LIMIT_CONFIG) at++;
+            if (AccessFlags.STATIC.isSet(method.getAccessFlags()) && "I".equals(method.getReturnType()) && at + 3 < code.size() &&
+                code.get(at + 3).getOpcode() == Opcode.RETURN && register(code.get(at + 3)) == register(code.get(at + 2))) getters.add(hookId(method));
+        }
+        if (found.isEmpty() || getters.isEmpty()) return found;
+        var readers = new ArrayList<Method>();
+        for (var method : found) if (!getters.contains(hookId(method))) readers.add(method);
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (method.getImplementation() == null) continue;
+            var code = instructions(method);
+            var calls = new ArrayList<Integer>();
+            for (int at = 0; at < code.size(); at++)
+                if (code.get(at) instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference ref && getters.contains(ref.toString())) calls.add(at);
+            if (calls.isEmpty()) continue;
+            if (calls.size() != 1 || calls.get(0) + 1 >= code.size() || code.get(calls.get(0) + 1).getOpcode() != Opcode.MOVE_RESULT) return List.of();
+            readers.add(method);
+        }
+        return readers;
     }
 
     static final String PIN_MENU_ITEM = "Lcom/facebook/messaging/threadlist/threaditemmenu/plugins/core/pinmenuitem/PinMenuItemImplementation;";
@@ -8149,19 +8447,38 @@ public class CompatReport {
         if (tap == null) return List.of();
         String pickField = appThemePickSite(tap);
         if (pickField == null) return List.of();
-        var picker = byType.get(pickField.substring(0, pickField.indexOf("->")));
-        if (picker == null) return List.of();
-        int redraws = 0;
-        for (var m : picker.getMethods()) {
+        // Family B moved the list builder up into the picker's abstract base: take the nearest class on the chain that has one.
+        var chain = new ArrayList<ClassDef>();
+        for (var c = byType.get(pickField.substring(0, pickField.indexOf("->"))); c != null && chain.size() < 8;
+             c = c.getSuperclass() == null ? null : byType.get(c.getSuperclass())) chain.add(c);
+        for (int owner = 0; owner < chain.size(); owner++) {
+            var redraws = appThemeRedraws(byType, chain.get(owner));
+            if (redraws.isEmpty()) continue;
+            if (redraws.size() != 1) return List.of();
+            var redraw = redraws.get(0);
+            for (var below : chain.subList(0, owner))
+                for (var m : below.getMethods()) if (m.getName().equals(redraw.getName()) && m.getParameterTypes().isEmpty()) return List.of();
+            boolean callable = owner == 0 || AccessFlags.PUBLIC.isSet(redraw.getAccessFlags()) ||
+                packageOf(redraw.getDefiningClass()).equals(packageOf(tap.getDefiningClass()));
+            return callable ? List.of(tap) : List.of();
+        }
+        return List.of();
+    }
+
+    /** The class's no-argument, non-private instance methods returning V that ask the theme check. */
+    static List<Method> appThemeRedraws(Map<String, ClassDef> byType, ClassDef cls) {
+        var redraws = new ArrayList<Method>();
+        for (var m : cls.getMethods()) {
             if (!m.getParameterTypes().isEmpty() || !"V".equals(m.getReturnType()) || "<init>".equals(m.getName()) ||
                 AccessFlags.STATIC.isSet(m.getAccessFlags()) || AccessFlags.PRIVATE.isSet(m.getAccessFlags())) continue;
-            boolean asks = false;
             for (var i : instructions(m))
                 if (i.getOpcode() == Opcode.INVOKE_STATIC && i instanceof ReferenceInstruction ri && ri.getReference() instanceof MethodReference call &&
-                    "Z".equals(call.getReturnType()) && refParams(call).equals(List.of(FB_SESSION_TYPE)) && asksAppThemeGate(byType, call)) asks = true;
-            if (asks) redraws++;
+                    "Z".equals(call.getReturnType()) && refParams(call).equals(List.of(FB_SESSION_TYPE)) && asksAppThemeGate(byType, call)) {
+                    redraws.add(m);
+                    break;
+                }
         }
-        return redraws == 1 ? List.of(tap) : List.of();
+        return redraws;
     }
 
     static boolean isAppThemeTap(Method m) {

@@ -19,6 +19,7 @@ public sealed class SlideShow(AndroidDriver driver)
     private static readonly OpenQA.Selenium.By Page = Locate.AnyWebPage();
     private static readonly OpenQA.Selenium.By GalleryStrip = Locate.AppId("recyclerView");
     private static readonly OpenQA.Selenium.By GalleryThumbnail = Locate.AppId("imageView");
+    private static readonly OpenQA.Selenium.By Video = Locate.AppId("videoView");
 
     /// <summary>Taps "Slide Show View" in the post's toolbar, which shows the post's media over the whole screen.</summary>
     public Task ClickSlideShowViewAsync() => OnScreen.PressAsync(driver, SlideShowViewButton);
@@ -38,8 +39,13 @@ public sealed class SlideShow(AndroidDriver driver)
     public Task WaitUntilGalleryShownAsync() =>
         Waiting.UntilAsync(() => GalleryThumbnails() > 0, TimeSpan.FromSeconds(15), "The gallery");
 
-    /// <summary>What the slide show shows: a gallery's thumbnails in its strip (0 without a gallery).</summary>
-    public Task<SlideShowSnapshot> ReadAsync() => OnScreen.ReadAsync(driver, () => new SlideShowSnapshot(GalleryThumbnails()));
+    /// <summary>Waits until a video plays in the post's player.</summary>
+    public Task WaitUntilVideoPlaysAsync() =>
+        Waiting.UntilAsync(PlaysAVideo, TimeSpan.FromSeconds(15), "The video playing");
+
+    /// <summary>What the slide show shows: a gallery's thumbnails in its strip (0 without a gallery), a video playing.</summary>
+    public Task<SlideShowSnapshot> ReadAsync() =>
+        OnScreen.ReadAsync(driver, () => new SlideShowSnapshot(GalleryThumbnails()) { PlaysAVideo = PlaysAVideo() });
 
     /// <summary>Taps "Detail View" in the toolbar, which shows the post over its comments again.</summary>
     public Task ClickDetailViewAsync() => OnScreen.PressAsync(driver, DetailViewButton);
@@ -51,7 +57,16 @@ public sealed class SlideShow(AndroidDriver driver)
     // The thumbnails in a gallery's strip, under the image it shows; 0 without a gallery.
     private int GalleryThumbnails() =>
         driver.FindElements(GalleryStrip).Where(strip => strip.Displayed).Sum(strip => strip.FindElements(GalleryThumbnail).Count);
+
+    // Whether the post on the screen plays a video. The slide show is a pager that has the posts before and after it
+    // ready, to each side of the screen: their players are left out.
+    private bool PlaysAVideo() =>
+        driver.FindElements(Video).Any(video => video.Displayed && video.Location.X >= 0 && video.Location.X < 100);
 }
 
-/// <summary>What the slide show shows: a gallery's thumbnails in its strip (0 without a gallery).</summary>
-public sealed record SlideShowSnapshot(int GalleryThumbnails);
+/// <summary>What the slide show shows: a gallery's thumbnails in its strip (0 without a gallery), a video playing.</summary>
+public sealed record SlideShowSnapshot(int GalleryThumbnails)
+{
+    /// <summary>Whether the post on the screen plays a video in its player.</summary>
+    public bool PlaysAVideo { get; init; }
+}

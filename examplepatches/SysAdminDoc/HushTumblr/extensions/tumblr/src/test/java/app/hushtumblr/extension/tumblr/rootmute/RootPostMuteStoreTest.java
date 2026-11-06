@@ -56,6 +56,21 @@ public class RootPostMuteStoreTest {
         assertThrows(IllegalArgumentException.class, () -> new RootPostMuteStore().withRoots("user-uuid", Set.of("11")));
     }
 
+    @Test public void blogRulesShareTheListAndOnlyLowercaseBlogNamesFit() throws Exception {
+        RootPostMuteStore store = new RootPostMuteStore().withRoots(account, Set.of("11", "reblogs:art-blog", "originals:x9"));
+        assertEquals(Set.of("11", "reblogs:art-blog", "originals:x9"), RootPostMuteStore.decode(store.encode()).roots(account));
+        assertTrue(RootPostMuteStore.reblogRule("reblogs:art-blog"));
+        assertFalse(RootPostMuteStore.reblogRule("originals:x9"));
+        assertEquals("art-blog", RootPostMuteStore.ruleBlog("reblogs:art-blog"));
+        for (String rule : new String[]{"reblogs:", "reblogs:Art", "likes:art", "reblogs:art blog", "originals:a_b",
+                "reblogs:" + "a".repeat(65), "reblogs:art:11", "Reblogs:art"}) {
+            assertFalse(rule, RootPostMuteStore.validEntry(rule));
+            assertThrows(IllegalArgumentException.class, () -> new RootPostMuteStore().withRoots(account, Set.of(rule)));
+            String document = "{\"version\":1,\"accounts\":[{\"account\":\"" + account + "\",\"roots\":[\"" + rule + "\"]}]}";
+            assertThrows(JSONException.class, () -> RootPostMuteStore.decode(document));
+        }
+    }
+
     @Test public void duplicateRootsAccountsAndWrongTypesAreRefusedAsWholeDocuments() {
         String prefix = "{\"version\":1,\"accounts\":[{\"account\":\"" + account + "\",\"roots\":";
         for (String roots : new String[]{"[\"11\",\"11\"]", "[11]", "[null]", "[\"unknown\"]"}) {

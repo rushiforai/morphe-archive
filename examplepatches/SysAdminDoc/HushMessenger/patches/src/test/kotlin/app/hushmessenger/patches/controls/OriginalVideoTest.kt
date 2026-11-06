@@ -9,6 +9,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import java.nio.file.Files
 import java.nio.file.Path
@@ -77,9 +78,12 @@ private fun assertPassthroughHook(before: List<Instruction>, target: Int, after:
     val call = after[site + 1] as FiveRegisterInstruction
     assertEquals("$SETTINGS->videoPassthrough(IJ)I", (call as ReferenceInstruction).reference.toString(), message)
     assertEquals(Opcode.INVOKE_STATIC, after[site + 1].opcode, message)
-    assertEquals(listOf(11, 13, 14), listOf(call.registerC, call.registerD, call.registerE), message)
+    // The helper takes the compare's own result and size pair, and its answer goes back into the result.
+    val cmp = before[site] as ThreeRegisterInstruction
+    assertEquals(Opcode.CMP_LONG, before[site].opcode, message)
+    assertEquals(listOf(cmp.registerA, cmp.registerB, cmp.registerB + 1), listOf(call.registerC, call.registerD, call.registerE), message)
     assertEquals(Opcode.MOVE_RESULT, after[site + 2].opcode, message)
-    assertEquals(11, (after[site + 2] as OneRegisterInstruction).registerA, message)
+    assertEquals(cmp.registerA, (after[site + 2] as OneRegisterInstruction).registerA, message)
     assertEquals(before, after.filterIndexed { i, _ -> i != site + 1 && i != site + 2 }, message)
     assertEquals(branch, after[site + 3].opcode, message)
     assertTrue(target >= 0, message)

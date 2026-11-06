@@ -8,6 +8,14 @@ kept below, unchanged.
 
 Nothing yet.
 
+## Oxbow v454-0-0-54-77, patch bundle 1.3.2
+
+### Fixed
+- **Hidden tabs coming back, and the settings long-press going away, after a while.** On some
+  Instagram 454 builds Oxbow attached to the wrong screen element instead of the bottom bar,
+  so a hidden Reels tab could reappear and holding Home or Messages stopped opening the
+  settings. Oxbow now finds the bottom bar reliably and follows it if Instagram rebuilds it.
+
 ## Oxbow v454-0-0-54-77, patch bundle 1.3.1
 
 ### Changed

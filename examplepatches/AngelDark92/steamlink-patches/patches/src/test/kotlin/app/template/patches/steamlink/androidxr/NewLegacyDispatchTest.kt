@@ -21,11 +21,6 @@ class NewLegacyDispatchTest {
             assertTrue(isTwoProjectionSteamLinkBuild(version, code), "$version/$code")
             assertTrue(isMouseOnlySteamLinkBuild(version, code), "$version/$code")
             assertEquals(
-                ANDROID_SURFACE_TRIGGER_5001712_RESOURCE_LIBRARY,
-                androidSurfaceTriggerResourceLibraryForBuild(version, code),
-                "$version/$code",
-            )
-            assertEquals(
                 XrPointerRouteMethods("routeXrPointerAsMouse5001712", "routeXrPointerAsMouseGeneric5001712"),
                 xrPointerRouteMethodsFor(version, code),
                 "$version/$code",
@@ -46,11 +41,6 @@ class NewLegacyDispatchTest {
         ).forEach { (version, code) ->
             assertFalse(isTwoProjectionSteamLinkBuild(version, code), "$version/$code")
             assertFalse(isMouseOnlySteamLinkBuild(version, code), "$version/$code")
-            assertEquals(
-                ANDROID_SURFACE_TRIGGER_LIBRARY,
-                androidSurfaceTriggerResourceLibraryForBuild(version, code),
-                "$version/$code",
-            )
             assertEquals(
                 XrPointerRouteMethods("routeXrPointerAsMouse", "routeXrPointerAsMouseGeneric"),
                 xrPointerRouteMethodsFor(version, code),

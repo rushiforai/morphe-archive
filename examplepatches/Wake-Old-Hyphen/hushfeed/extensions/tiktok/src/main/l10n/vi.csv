@@ -2447,6 +2447,8 @@ Hide streak pop-ups,Ẩn cửa sổ bật lên chuỗi
 Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.,Chặn các cảnh báo chuỗi trượt vào trên TikTok cùng tin nhắn và mẹo về chuỗi mà nó thêm vào cuộc trò chuyện của bạn.
 Long press on For You opens my watch history,Nhấn giữ Dành cho bạn sẽ mở lịch sử xem của tôi
 Instead of these settings. The list has a button that brings you back here.,Thay cho phần cài đặt này. Danh sách có nút đưa bạn quay lại đây.
+Long press on Profile opens my watch history,Nhấn giữ Trang cá nhân sẽ mở lịch sử xem của tôi
+"Instead of TikTok's Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press.","Thay cho Lịch sử xem của TikTok. Thao tác chạm bình thường vào Trang cá nhân vẫn hoạt động như cũ. Nếu việc nhấn giữ Trang cá nhân dùng để chuyển đổi tài khoản trên thiết bị của bạn, tính năng này sẽ thay thế cử chỉ đó."
 Auto tap in LIVE rooms,Tự động chạm trong phòng LIVE
 "Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.","Thêm nút Tự động chạm vào phòng LIVE. Chạm vào nút để gửi lượt chạm vào buổi phát với nhịp đều, chạm lại để dừng. Tính năng cũng dừng khi bạn rời phòng hoặc vuốt sang phòng khác, rời TikTok hoặc khóa màn hình."
 Auto tap speed,Tốc độ tự động chạm
@@ -2493,3 +2495,19 @@ Offer Audio only in LIVE quality,Thêm Chỉ âm thanh vào chất lượng LIVE
 Audio only,Chỉ âm thanh
 "Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.","Thêm Chỉ âm thanh vào danh sách chất lượng video của LIVE. Phòng phát âm thanh mà không có hình, tốn ít dữ liệu hơn nhiều, cho đến khi bạn chọn chất lượng khác hoặc rời đi. Ghi từ luồng vẫn lưu video."
 Pick a video quality to record the screen,Chọn chất lượng video để quay màn hình
+Discover in the bottom bar,Khám phá ở thanh dưới cùng
+"Discover takes the place of Friends in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.","Khám phá thay chỗ Bạn bè ở thanh dưới cùng, giống cách TikTok sắp xếp ở một số quốc gia. Khu vực và bảng tin của bạn vẫn giữ nguyên."
+"%1$s, new","%1$s, mới"
+Startup message,Thông báo khi mở
+Show a message of your own each time TikTok opens.,Hiện một thông báo của riêng bạn mỗi lần mở TikTok.
+Message title,Tiêu đề thông báo
+The heading at the top. Leave it empty for none.,Dòng tiêu đề ở trên cùng. Để trống nếu không cần.
+Message text,Nội dung thông báo
+What the message says.,Nội dung mà thông báo hiển thị.
+Close with Back or a tap outside,Đóng bằng nút Quay lại hoặc chạm ra ngoài
+"Off, only its button closes it.","Khi tắt, chỉ nút của nó mới đóng được."
+dialog popup greeting,hộp thoại cửa sổ bật lên lời chào
+Stop the blink under the bar,Hết nhấp nháy dưới thanh
+"If the video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.","Nếu video nhấp nháy khi bạn vuốt lúc bật Thanh dưới cùng trong suốt, tùy chọn này vẽ video ngay trong TikTok thay vì trên một lớp riêng. Có thể tốn pin hơn một chút. Yêu cầu bật Thanh dưới cùng trong suốt."
+Bend the video at the edges,Bẻ cong video ở viền
+"The glass pill's edges bend the blurred video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.","Viền của thanh hình viên thuốc bằng kính bẻ cong phần video bị làm mờ phía sau, giống mép kính thật, và màu sắc hiện lên đậm hơn một chút. Yêu cầu bật Làm mờ video phía sau thanh điều hướng và thiết bị chạy Android 13 trở lên."

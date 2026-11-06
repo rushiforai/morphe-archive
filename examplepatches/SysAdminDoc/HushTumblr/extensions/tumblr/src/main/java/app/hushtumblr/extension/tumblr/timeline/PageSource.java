@@ -76,25 +76,6 @@ final class PageSource {
     }
 
     /**
-     * Whether the page being built on this thread right now is a page of the dashboard, or of a feed
-     * that loads like it, and not of search results. Never throws.
-     */
-    static boolean onDashboard() {
-        return onDashboard(new Throwable().getStackTrace());
-    }
-
-    /** Whether a page built under [frames] is a dashboard page, see {@link #onDashboard()}. */
-    static boolean onDashboard(StackTraceElement[] frames) {
-        boolean dashboard = false;
-        for (StackTraceElement frame : frames) {
-            String owner = frame.getClassName();
-            if (SEARCH_RESULTS.equals(owner)) return false;
-            if (DASHBOARD.equals(owner)) dashboard = true;
-        }
-        return dashboard;
-    }
-
-    /**
      * What a page built under [frames] was parsed for. Search results win wherever they are on the
      * stack, so the blogs offered beside a result stay with it.
      */

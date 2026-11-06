@@ -20,7 +20,7 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "1.3.3"
+    id("app.morphe.patches") version "2.1.0"
 }
 
 settings {
@@ -28,3 +28,7 @@ settings {
         defaultNamespace = "app.morphe.extension.applemusic"
     }
 }
+
+// Standalone Android TV client that talks to the patched Apple Music engine
+// through the framework MediaBrowser/MediaController API.
+include(":tv-app")

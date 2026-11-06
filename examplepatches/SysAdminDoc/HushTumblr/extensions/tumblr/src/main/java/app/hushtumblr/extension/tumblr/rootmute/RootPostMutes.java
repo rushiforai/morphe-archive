@@ -22,14 +22,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.function.Consumer;
 
 import app.hushtumblr.extension.shared.Utils;
+import app.hushtumblr.extension.shared.diagnostics.HookStatus;
+import app.hushtumblr.extension.tumblr.settings.FamilyNames;
 import app.hushtumblr.extension.tumblr.settings.PatchFamily;
 import app.hushtumblr.extension.tumblr.settings.Settings;
+import app.hushtumblr.extension.tumblr.timeline.DashboardPosts;
 import app.hushtumblr.extension.tumblr.timeline.HushRootPost;
+import app.hushtumblr.extension.tumblr.timeline.TimelinePaging;
 
 /** Local account-partitioned mutes. Unknown, loading and invalidated accounts always keep posts. */
 public final class RootPostMutes {
@@ -260,13 +265,72 @@ public final class RootPostMutes {
                     && RootPostMuteStore.validRoot(current) ? current : null;
         } catch (Throwable unreadable) { return null; }
     }
+    /**
+     * The blog rule for a post by [blog]: its reblogs when it says what it reblogs or carries a
+     * trail, its originals only when the trail arrived empty and it names no root or parent.
+     * Anything else is unknown, and an unknown post is never hidden by a blog rule.
+     */
+    public static String blogRule(String blog, String root, String parent, List<?> trail, boolean trailPresent) {
+        try {
+            if (blog == null) return null;
+            String name = blog.toLowerCase(Locale.ROOT);
+            boolean rebloggedFrom = parent != null && !parent.isEmpty(), rooted = root != null && !root.isEmpty();
+            String rule = rebloggedFrom || trail != null && !trail.isEmpty() ? RootPostMuteStore.REBLOGS + name
+                    : trailPresent && trail != null && !rooted ? RootPostMuteStore.ORIGINALS + name : null;
+            return RootPostMuteStore.validBlogRule(rule) ? rule : null;
+        } catch (Throwable unreadable) { return null; }
+    }
     public static boolean active() { Session value = capture(); return enabled() && value != null && !value.roots.isEmpty(); }
+    /** A muted root hides its post on every page. Blog rules are left to {@link #dashboardPage}. */
     public static boolean shouldHide(Object post) {
         if (!active() || !(post instanceof HushRootPost)) return false;
         Session value = capture();
+        if (value == null) return false;
         try {
             String root = ((HushRootPost) post).hushRootId();
-            return value != null && RootPostMuteStore.validRoot(root) && value.roots.contains(root) && current(value);
+            return RootPostMuteStore.validRoot(root) && value.roots.contains(root) && current(value);
+        } catch (Throwable unreadable) { return false; }
+    }
+
+    /**
+     * Injected at the head of the method every timeline screen gets its pages through. Parsing
+     * can't tell which screen asked for a page, so the rules that only touch the dashboard wait
+     * until here: on a dashboard screen blog rules take out that half of the blog's posts, then
+     * {@link DashboardPosts} takes out liked posts and your own reblogs. Every other screen, the
+     * blog's own page included, gets [items] back as it came. Never throws.
+     */
+    public static List<?> dashboardPage(Object fragment, List<?> items) {
+        if (items == null || items.isEmpty()) return items;
+        List<?> kept = blogRules(fragment, items);
+        return kept == null || kept.isEmpty() ? kept : DashboardPosts.page(fragment, kept);
+    }
+
+    /** [items] without the posts a blog rule takes off a dashboard screen. Never throws. */
+    private static List<?> blogRules(Object fragment, List<?> items) {
+        try {
+            if (!active() || !onDashboard(fragment)) return items;
+            Session value = capture();
+            if (value == null || !RootPostMuteStore.anyBlogRule(value.roots)) return items;
+            List<Object> kept = new ArrayList<>(items.size());
+            for (Object item : items) if (!ruled(item, value.roots)) kept.add(item);
+            if (kept.size() == items.size() || !current(value)) return items;
+            for (int i = kept.size(); i < items.size(); i++) HookStatus.counted(FamilyNames.MUTE_ROOT_POSTS, "post removed");
+            // Tumblr takes an empty page for the end of the feed, so the fragment is told to go on.
+            if (kept.isEmpty()) TimelinePaging.emptied(FamilyNames.MUTE_ROOT_POSTS);
+            return kept;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.MUTE_ROOT_POSTS, "dashboard page", failure);
+            return items;
+        }
+    }
+    /** A dashboard screen, asked each time: Explore's tabs share the dashboard tab's class. */
+    public static boolean onDashboard(Object fragment) {
+        return fragment instanceof HushDashboardTimeline && ((HushDashboardTimeline) fragment).hushDashboard();
+    }
+    private static boolean ruled(Object item, Set<String> entries) {
+        try {
+            String rule = RootPostMenu.blogRule(item);
+            return RootPostMuteStore.validBlogRule(rule) && entries.contains(rule);
         } catch (Throwable unreadable) { return false; }
     }
 
@@ -274,7 +338,7 @@ public final class RootPostMutes {
     static void remove(Session target, String root, Consumer<Undo> done) { change(target, root, true, done); }
     static void clear(Session target, Consumer<Undo> done) { change(target, null, true, done); }
     private static void change(Session target, String root, boolean remove, Consumer<Undo> done) {
-        if (target == null || !current(target) || !remove && !enabled() || root != null && !RootPostMuteStore.validRoot(root)) { finish(done, null); return; }
+        if (target == null || !current(target) || !remove && !enabled() || root != null && !RootPostMuteStore.validEntry(root)) { finish(done, null); return; }
         if (!submit(() -> {
             Undo undo = null;
             synchronized (FILE_LOCK) {

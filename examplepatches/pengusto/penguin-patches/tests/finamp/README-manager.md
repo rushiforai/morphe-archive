@@ -1,5 +1,29 @@
 # Actual Android Morphe Manager acceptance
 
+## Compact source regression
+
+Use a disposable account-free Android 35 AVD named `penguin-compact-test` with
+Manager and a same-key Finamp fixture already installed. Import the candidate
+compact MPP locally, disable overlapping Finamp sources, load the official
+original APK and open the compact patch selector. Set a recognizable language
+in the fixture first. With an existing SDK and Java 21, run:
+
+```sh
+python3 -B tests/finamp/manager_compact.py \
+  --adb "$ADB" --apksigner "$APKSIGNER" --serial emulator-5580 \
+  --avd penguin-compact-test --disposable-fixture \
+  --original-apk "$FINAMP_APK" --bundle "$COMPACT_MPP" \
+  --out-root .scratch/finamp-compact/manager-case \
+  --source-label 'Penguin Patches - Finamp' \
+  --expected-welcome 'Willkommen bei Finamp'
+```
+
+The test requires rooted ADB on the disposable AVD and rejects Android accounts.
+It verifies Manager's cached original and bundle, applies the patch through the
+UI, installs without clearing data, and compares the signer, native snapshot,
+settings file and visible language. The local candidate is not a released remote
+source. Remove the test's own scratch files and disposable AVD afterwards.
+
 This records the historical 1.1.0 three-patch suite. For the five-patch 1.2.0
 suite and released remote-source checks, see [the next-fixes acceptance](README-next-fixes.md).
 

@@ -281,6 +281,17 @@ internal sealed class Things(RedditWorld world)
             };
         }
 
+        // An emote: Reddit's placeholder GIF, with no MP4 and no previews.
+        if (media.IsEmote)
+        {
+            return new MediaMetadata("valid", "AnimatedImage", media.Id)
+            {
+                M = media.ContentType,
+                S = new MediaSize(media.Height, media.Width) { Gif = url },
+                T = "sticker",
+            };
+        }
+
         var full = media.IsAnimated
             ? new MediaSize(media.Height, media.Width) { Gif = url, Mp4 = url }
             : new MediaSize(media.Height, media.Width) { U = RedditMarkdown.UploadedImageUrl(world.BaseUrl, media) };

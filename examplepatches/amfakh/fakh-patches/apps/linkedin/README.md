@@ -4,7 +4,7 @@ Patches for the LinkedIn app (`com.linkedin.android`, versions `4.1.1264`, `4.1.
 
 ## Patches
 
-Every patch is on by default except Material You, Remove gaps and dividers, and GmsCore support.
+Every patch is on by default except Material You, Pitch black, Remove gaps and dividers, and GmsCore support.
 Morphe Manager groups them by category.
 
 | Category | Patch | Default | What it does |
@@ -13,10 +13,11 @@ Morphe Manager groups them by category.
 | Ads | Hide promoted jobs | On | Removes promoted job listings from the Jobs tab and job search. |
 | Ads | Hide Premium upsells | On | Removes Premium and AI upsell cards and banners, including on profiles and the profile menu. |
 | Feature | Download media | On | A download button on full screen photos and videos, profile photos and banners. |
-| Feature | More tab | On | Hides items of the More tab (Puzzle games, Groups, Events, Newsletters), or moves them to the bottom of the profile menu and removes the tab. Adds a Puzzle games shortcut to the LinkedIn app icon, with its own switch. |
+| Feature | More tab | On | Hides items of the More tab (Puzzle games, Groups, Events, Newsletters), or lists them at the bottom of the profile menu. Adds a Puzzle games shortcut to the LinkedIn app icon, with its own switch. |
+| Feature | Navigation bar | On | Adds switches in Fakh Patches to show or hide the More, Jobs, Network and Notifications tabs of the navigation bar, its notification badges and its tab labels. |
 | Feature | GmsCore support | Off | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |
 | Feed | Hide suggested posts | On | Removes "Suggested" posts from people outside your network. |
-| Feed | Feed filters | On | Adds filters you can turn on in Fakh Patches: focus mode, celebrations, job cards, network activity (likes, comments, reposts), video posts, "Recommended for you", puzzle games, the "New posts" pill and "Show translation". All start off. |
+| Feed | Feed filters | On | Adds filters you can turn on in Fakh Patches: engagement counts, celebrations, job cards, network activity (likes, comments, reposts), video posts, "Recommended for you", puzzle games, the "New posts" pill and "Show translation". All start off. |
 | Feed | Disable double-tap like | On | Double tapping a post or photo no longer likes it. |
 | Feed | Expand posts | On | Adds a switch in Fakh Patches that shows posts expanded by default. Tapping the text collapses them. Starts off. |
 | Privacy | Messaging | On | Hides sponsored messages, and adds an optional ghost mode that sends no typing indicator and no automatic read receipts. |
@@ -24,7 +25,9 @@ Morphe Manager groups them by category.
 | Privacy | Sanitize share links | On | Strips tracking parameters from LinkedIn links you copy or share. |
 | Privacy | Block tracking | On | Adds a switch, off by default, that stops most LinkedIn analytics events from being sent. |
 | Theme | Material You | Off | Wallpaper colors (Android 12+) instead of LinkedIn blue for accents, backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers keep their own colors. |
+| Theme | Pitch black | Off | Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter black. Works with or without Material You. |
 | Theme | Remove gaps and dividers | Off | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |
+| Theme | Glass navigation bar | Off | Draws the navigation bar as a floating, translucent capsule, in the style of the glass navigation bar of [Morphe Patches](https://github.com/MorpheApp/morphe-patches). |
 
 Settings are in **Fakh Patches** on LinkedIn's Settings screen (profile menu → Settings & Privacy), or long press
 the Home tab.

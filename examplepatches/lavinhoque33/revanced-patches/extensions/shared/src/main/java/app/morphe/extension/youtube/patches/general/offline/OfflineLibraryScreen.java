@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-26.
  */
@@ -524,11 +525,12 @@ final class OfflineLibraryScreen implements OfflineScreens.Screen {
                 input.selectAll();
             }
         } catch (Exception ex) {
-            Logger.printDebug(() -> "Could not read the clipboard", ex);
+            Logger.printException(() -> "Could not read the playlist clipboard", ex);
         }
         createLibraryDialog(str("revanced_offline_batch_menu"),
                 str("revanced_offline_batch_input_message"), input, () -> {
                     String playlistId = OfflinePlaylist.parseId(input.getText().toString());
+                    Logger.printInfo(() -> "Library playlist dialog confirmed, parsed id: " + playlistId);
                     if (playlistId == null) {
                         Utils.showToastLong(str("revanced_offline_batch_input_invalid"));
                     } else {

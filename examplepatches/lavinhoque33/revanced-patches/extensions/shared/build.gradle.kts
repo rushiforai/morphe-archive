@@ -27,10 +27,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    testOptions {
+        // The caption tests run code that logs through android.util.Log.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    // The Android SDK has only stubs of org.json, which the caption translator tests need to run.
+    testImplementation("org.json:json:20240303")
     compileOnly(libs.annotation)
     compileOnly(libs.preference)
 

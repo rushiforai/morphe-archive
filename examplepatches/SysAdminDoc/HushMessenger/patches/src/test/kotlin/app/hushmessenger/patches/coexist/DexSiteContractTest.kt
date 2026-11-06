@@ -31,9 +31,13 @@ class DexSiteContractTest {
         assertEquals(MessengerTarget.VERSION_CODES.toSet(), expectedDexSitesByBuild.keys)
         validateDexSites(expectedDexSites347215348.toList(), expectedDexSitesFor("347215348"))
         validateDexSites(expectedDexSites347215341.toList(), expectedDexSitesFor("347215341"))
-        // 586's two builds load the same permissions under other names, so neither build's sites pass for the other.
-        assertFailsWith<PatchException> { validateDexSites(expectedDexSites347215348.toList(), expectedDexSitesFor("347215341")) }
-        assertFailsWith<PatchException> { validateDexSites(expectedDexSites347215341.toList(), expectedDexSitesFor("347215348")) }
+        for (code in listOf("347215273", "347215275", "347215277")) validateDexSites(expectedDexSites347215273.toList(), expectedDexSitesFor(code))
+        // 586's three families load the same permissions under other names, so no family's sites pass for another.
+        val families = mapOf("347215348" to expectedDexSites347215348, "347215341" to expectedDexSites347215341, "347215273" to expectedDexSites347215273)
+        for (code in families.keys) for ((other, sites) in families) if (other != code) {
+            assertFailsWith<PatchException>("$other on $code") { validateDexSites(sites.toList(), expectedDexSitesFor(code)) }
+        }
+        assertEquals(listOf(6, 6, 6), families.values.map { it.size })
         val sites = expectedDexSitesByBuild + (347215349 to otherSites)
         validateDexSites(otherSites.toList(), expectedDexSitesFor("347215349", sites))
         assertFailsWith<PatchException> { validateDexSites(otherSites.toList(), expectedDexSitesFor("347215348", sites)) }

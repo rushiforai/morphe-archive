@@ -14,7 +14,7 @@ namespace BaconReader.E2E.Scenarios.LoggedIn.Links;
 /// posts on a user's profile, open in BaconReader instead of its browser, or the profile, even with BaconReader's "Open
 /// links inside app" off. A gallery post's own thumbnail and link still open its gallery; a video's link opens the post
 /// its redirect leads to, or plays the video when no post has it; and the slide show of a link post to a gallery
-/// fetches the gallery's post.
+/// fetches the gallery's post, and that of a link post to a video plays the video.
 /// </summary>
 public sealed class FixRedditLinksTests : BaseE2E
 {
@@ -30,6 +30,7 @@ public sealed class FixRedditLinksTests : BaseE2E
           And Reddit has a post "Profile post" on the test account's profile
           And Reddit has a link post "Shared as a link" in r/e2e linking to a share link of the post "Shared post"
           And Reddit has a link post "Album link" in r/e2e linking to the gallery of "Holiday photos"
+          And Reddit has a link post "Video link" in r/e2e linking to the video of "Clip"
           And the post "Links" has a comment "Shared" linking to a share link of the post "Shared post"
           And the post "Links" has a comment "Shared from a profile" linking to a profile share link of the post "Profile post"
           And the post "Links" has a comment "Expired share" linking to a share link Reddit no longer knows in r/e2e
@@ -96,6 +97,11 @@ public sealed class FixRedditLinksTests : BaseE2E
           Then the gallery shows its first image
           When I tap "Detail View" in the toolbar
           And I go back to the posts
+          And I tap the post "Video link"
+          And I tap "Slide Show View" in the toolbar
+          Then the video plays
+          When I tap "Detail View" in the toolbar
+          And I go back to the posts
           And I open the left menu
           And I tap "Settings"
           And I tap "Other"
@@ -115,6 +121,7 @@ public sealed class FixRedditLinksTests : BaseE2E
         Reddit.HasAPostOnTheTestAccountsProfile("Profile post");
         Reddit.HasALinkPostLinkingToAShareLinkOfThePost("Shared as a link", "e2e", "Shared post");
         Reddit.HasALinkPostLinkingToTheGalleryOf("Album link", "e2e", "Holiday photos");
+        Reddit.HasALinkPostLinkingToTheVideoOf("Video link", "e2e", "Clip");
         Reddit.ThePost("Links").HasACommentLinkingToAShareLinkOfThePost("Shared", "Shared post");
         Reddit.ThePost("Links").HasACommentLinkingToAProfileShareLinkOfThePost("Shared from a profile", "Profile post");
         Reddit.ThePost("Links").HasACommentLinkingToAShareLinkRedditNoLongerKnowsIn("Expired share", "e2e");
@@ -280,6 +287,20 @@ public sealed class FixRedditLinksTests : BaseE2E
         // Then
         var albumLink = await Phone.BaconReader.SlideShow.ReadAsync();
         Asserting.That(albumLink).ShowsTheGalleryWith(1);
+
+        // When
+        await Phone.BaconReader.SlideShow.ClickDetailViewAsync();
+        await Phone.BaconReader.SlideShow.WaitUntilDetailViewShownAsync();
+        await Phone.BaconReader.GoBackToThePostsAsync();
+        await Phone.BaconReader.Main.Posts.WaitUntilPostShownAsync("Video link");
+        await Phone.BaconReader.Main.Posts.ClickPostAsync("Video link");
+        await Phone.BaconReader.Detail.WaitUntilPostShownAsync("Video link");
+        await Phone.BaconReader.SlideShow.ClickSlideShowViewAsync();
+        await Phone.BaconReader.SlideShow.WaitUntilVideoPlaysAsync();
+
+        // Then
+        var videoLink = await Phone.BaconReader.SlideShow.ReadAsync();
+        Asserting.That(videoLink).PlaysTheVideo();
 
         // When
         await Phone.BaconReader.SlideShow.ClickDetailViewAsync();

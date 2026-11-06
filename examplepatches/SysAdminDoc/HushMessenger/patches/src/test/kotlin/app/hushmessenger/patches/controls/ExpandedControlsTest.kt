@@ -39,7 +39,7 @@ class ExpandedControlsTest {
         val shared = patches.map { it.dependencies.filterIsInstance<BytecodePatch>().single() }.toSet()
         assertEquals(1, shared.size)
         assertNull(shared.single().name)
-        fun descendants(patch: Patch<*>): Set<Patch<*>> = patch.dependencies.flatMap { setOf(it) + descendants(it) }.toSet()
+        fun descendants(patch: Patch): Set<Patch> = patch.dependencies.flatMap { setOf(it) + descendants(it) }.toSet()
         for (patch in patches) {
             assertTrue(descendants(patch).all { it.name == null }, "${patch.name} implicitly selects a visible feature")
         }

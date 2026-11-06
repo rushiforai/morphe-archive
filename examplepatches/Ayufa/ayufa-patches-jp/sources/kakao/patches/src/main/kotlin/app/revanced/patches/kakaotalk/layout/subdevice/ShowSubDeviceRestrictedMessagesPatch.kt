@@ -1,0 +1,43 @@
+package app.revanced.patches.kakaotalk.layout.subdevice
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.getFreeRegisterProvider
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.returnEarly
+import app.revanced.patches.kakaotalk.shared.Constants.COMPATIBILITY_KAKAO
+import app.revanced.util.smaliReference
+import com.android.tools.smali.dexlib2.iface.Field
+
+@Suppress("unused")
+val showSubDeviceRestrictedMessagesPatch = bytecodePatch(
+    name = "Show messages restricted to mobile",
+    description = "サブデバイスでログイン中にモバイルで開くよう求めるプレースホルダーに置き換えられる、AlimTalk、Leverage、Universalメッセージの内容を表示します。",
+) {
+    compatibleWith(COMPATIBILITY_KAKAO)
+
+    execute {
+        val visibleCoverState = AlimtalkCoverStateFingerprint.instructionMatches.first().getFieldAccessed()
+
+        AlimtalkCoverStateFingerprint.method.returnCoverState(visibleCoverState)
+        LeverageCoverStateFingerprint.method.returnCoverState(visibleCoverState)
+
+        UniversalMobileOnlyFingerprint.instructionMatches.first().getMethodCalled().returnEarly(false)
+    }
+}
+
+private fun MutableMethod.returnCoverState(coverState: Field) {
+    if (returnType != coverState.type) {
+        throw PatchException("Unexpected cover state type in $definingClass->$name.")
+    }
+
+    val register = getFreeRegisterProvider(0, 1).getFreeRegister4Bit()
+    addInstructions(
+        0,
+        """
+            sget-object v$register, ${coverState.smaliReference}
+            return-object v$register
+        """.trimIndent(),
+    )
+}

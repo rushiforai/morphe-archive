@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-06.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -59,9 +60,6 @@ import com.google.protobuf.MessageLite;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -77,115 +75,41 @@ import app.morphe.extension.youtube.innertube.NextResponseOuterClass.NewElement;
 import app.morphe.extension.youtube.innertube.NextResponseOuterClass.SecondaryContents;
 import app.morphe.extension.youtube.innertube.NextResponseOuterClass.SingleColumnWatchNextResults;
 import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.patches.components.VideoActionBarButtons.ActionButton;
 import app.morphe.extension.youtube.shared.VideoInformation;
 
 @SuppressWarnings("unused")
 public final class ActionButtonsFilter extends Filter {
-    public enum ActionButton {
-        UNKNOWN(false),
-        ASK(
-                Settings.HIDE_ASK_BUTTON.get(),
-                "yt_fill_experimental_spark",
-                "yt_fill_spark"
-        ),
-        // modified by lavinhoque33, 2026-10-16: Ported from Morphe, hide channel and Subscribe button.
-        CHANNEL_PROFILE(Settings.HIDE_CHANNEL_PROFILE_BUTTON.get()),
-        CLIP(Settings.HIDE_CLIP_BUTTON.get()),
-        COMMENTS(
-                Settings.HIDE_COMMENTS_BUTTON.get(),
-                "yt_outline_experimental_text_bubble",
-                "yt_outline_message_bubble",
-                "yt_outline_message_bubble_right"
-        ),
-        CONNECT(Settings.HIDE_CONNECT_BUTTON.get()),
-        DISLIKE(Settings.HIDE_DISLIKE_BUTTON.get()),
-        DOWNLOAD(Settings.HIDE_DOWNLOAD_BUTTON.get()),
-        HYPE(
-                Settings.HIDE_HYPE_BUTTON.get(),
-                "yt_outline_experimental_hype",
-                "yt_outline_star_shooting"
-        ),
-        LIKE(Settings.HIDE_LIKE_BUTTON.get()),
-        LIKE_DISLIKE(Settings.HIDE_LIKE_DISLIKE_BUTTON.get()),
-        MORE(Settings.HIDE_MORE_BUTTON.get()),
-        PLAYLIST(Settings.HIDE_PLAYLIST_BUTTON.get()),
-        PROMOTE(
-                Settings.HIDE_PROMOTE_BUTTON.get(),
-                "yt_outline_experimental_megaphone",
-                "yt_outline_megaphone"
-        ),
-        REMIX(
-                Settings.HIDE_REMIX_BUTTON.get(),
-                "yt_outline_youtube_shorts_plus",
-                "yt_outline_experimental_remix"
-        ),
-        REPORT(
-                Settings.HIDE_REPORT_BUTTON.get(),
-                "yt_outline_experimental_flag",
-                "yt_outline_flag"
-        ),
-        REWARDS(
-                Settings.HIDE_REWARDS_BUTTON.get(),
-                "yt_outline_experimental_account_link",
-                "yt_outline_account_link"
-        ),
-        SHARE(
-                Settings.HIDE_SHARE_BUTTON.get(),
-                "yt_outline_experimental_share",
-                "yt_outline_share"
-        ),
-        SHOP(
-                Settings.HIDE_SHOP_BUTTON.get(),
-                "yt_outline_experimental_bag",
-                "yt_outline_bag"
-        ),
-        STOP_ADS(
-                Settings.HIDE_STOP_ADS_BUTTON.get(),
-                "yt_outline_experimental_circle_slash",
-                "yt_outline_slash_circle_left"
-        ),
-        THANKS(
-                Settings.HIDE_THANKS_BUTTON.get(),
-                "yt_outline_experimental_dollar_sign_heart",
-                "yt_outline_dollar_sign_heart"
-        );
-
-        public final boolean shouldHide;
-        @NonNull
-        public final List<String> iconNames;
-
-        ActionButton(boolean shouldHide) {
-            this.shouldHide = shouldHide;
-            this.iconNames = Collections.emptyList();
-        }
-
-        ActionButton(boolean shouldHide, @NonNull String... iconNames) {
-            this.shouldHide = shouldHide;
-            this.iconNames = Arrays.asList(iconNames);
-        }
-    }
-
-    /**
-     * Whether to parse watch next results and remove action buttons from the tree node list.
-     */
-    private static final boolean HIDE_ACTION_BUTTON;
+    private static final java.util.Set<ActionButton> hiddenButtons = java.util.EnumSet.noneOf(ActionButton.class);
 
     static {
-        boolean hideActionButton = false;
-        for (ActionButton button : ActionButton.values()) {
-            if (button.shouldHide) {
-                hideActionButton = true;
-                break;
-            }
-        }
-        HIDE_ACTION_BUTTON = !Settings.HIDE_ACTION_BUTTON_INDEX.get() && hideActionButton;
+        if (Settings.HIDE_ASK_BUTTON.get()) hiddenButtons.add(ActionButton.ASK);
+        if (Settings.HIDE_CHANNEL_PROFILE_BUTTON.get()) hiddenButtons.add(ActionButton.CHANNEL_PROFILE);
+        if (Settings.HIDE_CLIP_BUTTON.get()) hiddenButtons.add(ActionButton.CLIP);
+        if (Settings.HIDE_COMMENTS_BUTTON.get()) hiddenButtons.add(ActionButton.COMMENTS);
+        if (Settings.HIDE_CONNECT_BUTTON.get()) hiddenButtons.add(ActionButton.CONNECT);
+        if (Settings.HIDE_DISLIKE_BUTTON.get()) hiddenButtons.add(ActionButton.DISLIKE);
+        if (Settings.HIDE_DOWNLOAD_BUTTON.get()) hiddenButtons.add(ActionButton.DOWNLOAD);
+        if (Settings.HIDE_HYPE_BUTTON.get()) hiddenButtons.add(ActionButton.HYPE);
+        if (Settings.HIDE_LIKE_BUTTON.get()) hiddenButtons.add(ActionButton.LIKE);
+        if (Settings.HIDE_LIKE_DISLIKE_BUTTON.get()) hiddenButtons.add(ActionButton.LIKE_DISLIKE);
+        if (Settings.HIDE_MORE_BUTTON.get()) hiddenButtons.add(ActionButton.MORE);
+        if (Settings.HIDE_PLAYLIST_BUTTON.get()) hiddenButtons.add(ActionButton.PLAYLIST);
+        if (Settings.HIDE_PROMOTE_BUTTON.get()) hiddenButtons.add(ActionButton.PROMOTE);
+        if (Settings.HIDE_REMIX_BUTTON.get()) hiddenButtons.add(ActionButton.REMIX);
+        if (Settings.HIDE_REPORT_BUTTON.get()) hiddenButtons.add(ActionButton.REPORT);
+        if (Settings.HIDE_REWARDS_BUTTON.get()) hiddenButtons.add(ActionButton.REWARDS);
+        if (Settings.HIDE_SHARE_BUTTON.get()) hiddenButtons.add(ActionButton.SHARE);
+        if (Settings.HIDE_SHOP_BUTTON.get()) hiddenButtons.add(ActionButton.SHOP);
+        if (Settings.HIDE_STOP_ADS_BUTTON.get()) hiddenButtons.add(ActionButton.STOP_ADS);
+        if (Settings.HIDE_THANKS_BUTTON.get()) hiddenButtons.add(ActionButton.THANKS);
     }
 
     /**
-     * Caches a list of action buttons based on video ID.
+     * Caches only the segmented-layout flag needed by Return YouTube Dislike, by video ID.
      */
     @GuardedBy("itself")
-    private static final Map<String, List<ActionButton>> actionButtonLookup =
+    private static final Map<String, Boolean> segmentedButtonLookup =
             Utils.createSizeRestrictedMap(10);
 
     private static final String COMPACT_CHANNEL_BAR_PREFIX = "compact_channel_bar.";
@@ -196,10 +120,9 @@ public final class ActionButtonsFilter extends Filter {
     private static final String MORE_BUTTON_PATH = "overflow_menu_button.e";
 
     private final StringFilterGroup actionBarGroup;
+    private final StringFilterGroup channelBarGroup;
     private final StringFilterGroup likeSubscribeGlow;
     private final StringFilterGroup moreButton;
-    // modified by lavinhoque33, 2026-10-16: Ported from Morphe, hide channel profile and Subscribe button in the action bar.
-    // The watch next response is not always parsed on newer app versions, so the channel bar is also filtered by path.
     private final StringFilterGroup channelProfileButton;
     private final StringFilterGroup subscribeButton;
     private final StringFilterGroupList accessibilityGroupList = new StringFilterGroupList();
@@ -212,7 +135,8 @@ public final class ActionButtonsFilter extends Filter {
                         ? new String[]{VIDEO_ACTION_BAR_PREFIX}
                         : new String[]{VIDEO_ACTION_BAR_PREFIX, COMPACTIFY_VIDEO_ACTION_BAR_PREFIX}
         );
-        addIdentifierCallbacks(actionBarGroup);
+        channelBarGroup = new StringFilterGroup(Settings.HIDE_CHANNEL_PROFILE_BUTTON, COMPACT_CHANNEL_BAR_PREFIX);
+        addIdentifierCallbacks(actionBarGroup, channelBarGroup);
 
         likeSubscribeGlow = new StringFilterGroup(
                 Settings.DISABLE_LIKE_DISLIKE_GLOW,
@@ -222,7 +146,6 @@ public final class ActionButtonsFilter extends Filter {
                 Settings.HIDE_MORE_BUTTON,
                 MORE_BUTTON_PATH
         );
-        // modified by lavinhoque33, 2026-10-16: Ported from Morphe, hide channel profile and Subscribe button in the action bar.
         channelProfileButton = new StringFilterGroup(
                 Settings.HIDE_CHANNEL_PROFILE_BUTTON,
                 "|compact_channel_bar.e"
@@ -268,16 +191,6 @@ public final class ActionButtonsFilter extends Filter {
         return StringUtils.startsWithAny(identifier, COMPACTIFY_VIDEO_ACTION_BAR_PREFIX, VIDEO_ACTION_BAR_PREFIX);
     }
 
-    private static ActionButton getActionButton(@NonNull String iconName) {
-        for (ActionButton button : ActionButton.values()) {
-            for (String icon : button.iconNames) {
-                if (iconName.contains(icon)) {
-                    return button;
-                }
-            }
-        }
-        return ActionButton.UNKNOWN;
-    }
 
     @Override
     public boolean isFiltered(String path, String identifier, String allValue, byte[] buffer,
@@ -294,15 +207,17 @@ public final class ActionButtonsFilter extends Filter {
             return true;
         }
         if (matchedGroup == channelProfileButton || matchedGroup == subscribeButton) {
-            // modified by lavinhoque33, 2026-10-16: Only the channel bar and its Subscribe and Join buttons in the action bar.
-            return StringUtils.startsWithAny(path, COMPACTIFY_VIDEO_ACTION_BAR_PREFIX, VIDEO_ACTION_BAR_PREFIX);
+            // Also covers the separate channel row in Classic Two-Rows.
+            return StringUtils.startsWithAny(path, COMPACT_CHANNEL_BAR_PREFIX,
+                    COMPACTIFY_VIDEO_ACTION_BAR_PREFIX, VIDEO_ACTION_BAR_PREFIX);
+        }
+        if (matchedGroup == channelBarGroup) {
+            return VideoActionBarButtons.shouldHideChannelBar(
+                    Settings.HIDE_CHANNEL_PROFILE_BUTTON.get(), Settings.HIDE_ACTION_BAR.get());
         }
         if (matchedGroup == actionBarGroup) {
             if (Settings.HIDE_ACTION_BAR.get()) {
                 return true;
-            }
-            if (Settings.HIDE_ACTION_BUTTON_INDEX.get()) {
-                return false;
             }
 
             String accessibility = allValue == null ? "" : allValue;
@@ -335,48 +250,20 @@ public final class ActionButtonsFilter extends Filter {
         return true;
     }
 
-    /**
-     * Injection point.
-     * Called after {@link #onSingleColumnWatchNextResultsLoaded(MessageLite)}.
-     */
-    public static void onLazilyConvertedElementLoaded(@NonNull List<Object> treeNodeResultList,
-                                                      @NonNull String identifier) {
-        if (!HIDE_ACTION_BUTTON || !isVideoActionBar(identifier)) {
-            return;
-        }
-
-        synchronized (actionButtonLookup) {
-            String videoId = VideoInformation.getVideoId();
-            List<ActionButton> actionButtons = actionButtonLookup.get(videoId);
-            if (actionButtons == null) {
-                return;
-            }
-
-            int actionButtonSize = actionButtons.size();
-            int treeNodeResultListSize = treeNodeResultList.size();
-            if (actionButtonSize != treeNodeResultListSize) {
-                Logger.printDebug(() -> "The sizes of the lists do not match, actionButtonSize: "
-                        + actionButtonSize + ", treeNodeResultListSize: " + treeNodeResultListSize);
-                return;
-            }
-
-            for (int i = actionButtonSize - 1; i > -1; i--) {
-                ActionButton actionButton = actionButtons.get(i);
-                if (actionButton.shouldHide && i < treeNodeResultListSize) {
-                    treeNodeResultList.remove(i);
-                }
-            }
+    /** Injection point. Remove hidden buttons from the element, including Minimal overflow items. */
+    public static byte[] hideActionButtons(byte[] bytes) {
+        try {
+            return VideoActionBarButtons.hide(bytes, hiddenButtons);
+        } catch (Exception ex) {
+            Logger.printException(() -> "hideActionButtons failure", ex);
+            return bytes;
         }
     }
 
-    /**
-     * Returns whether the unfiltered watch-next model contains an action button. Unlike the
-     * visible index, this can identify the segmented layout even when that button is hidden.
-     */
-    public static boolean hasCurrentVideoActionButton(@NonNull ActionButton actionButton) {
-        synchronized (actionButtonLookup) {
-            List<ActionButton> actionButtons = actionButtonLookup.get(VideoInformation.getVideoId());
-            return actionButtons != null && actionButtons.contains(actionButton);
+    /** Whether the unfiltered server model has a segmented like/dislike button, even if hidden. */
+    public static boolean hasCurrentVideoSegmentedButton() {
+        synchronized (segmentedButtonLookup) {
+            return Boolean.TRUE.equals(segmentedButtonLookup.get(VideoInformation.getVideoId()));
         }
     }
 
@@ -385,11 +272,11 @@ public final class ActionButtonsFilter extends Filter {
      * Invoke as soon as the endpoint response is received.
      */
     public static void onSingleColumnWatchNextResultsLoaded(@NonNull MessageLite messageLite) {
-        if (!HIDE_ACTION_BUTTON && !Settings.RYD_ENABLED.get()) {
+        if (!Settings.RYD_ENABLED.get()) {
             return;
         }
 
-        synchronized (actionButtonLookup) {
+        synchronized (segmentedButtonLookup) {
             try {
                 var singleColumnWatchNextResults = SingleColumnWatchNextResults.parseFrom(messageLite.toByteArray());
                 var primaryResults = singleColumnWatchNextResults.getPrimaryResults();
@@ -408,7 +295,7 @@ public final class ActionButtonsFilter extends Filter {
 
                 var slimVideoMetadataSectionRenderer = finalSecondaryContents.getSlimVideoMetadataSectionRenderer();
                 String videoId = slimVideoMetadataSectionRenderer.getVideoId();
-                if (actionButtonLookup.containsKey(videoId)) {
+                if (segmentedButtonLookup.containsKey(videoId)) {
                     return;
                 }
 
@@ -444,46 +331,14 @@ public final class ActionButtonsFilter extends Filter {
                     return;
                 }
 
-                List<ActionButton> actionButtons = new ArrayList<>(finalActionButtons.size());
-                for (var buttons : finalActionButtons) {
-                    ActionButton actionButton = ActionButton.UNKNOWN;
-                    var primaryButtonViewModel = buttons.getPrimaryButtonViewModel();
-
-                    if (primaryButtonViewModel.hasSecondaryButtonViewModel()) {
-                        String iconName = primaryButtonViewModel.getSecondaryButtonViewModel().getIconName();
-                        if (iconName != null) {
-                            actionButton = getActionButton(iconName);
-                            if (actionButton == ActionButton.UNKNOWN) {
-                                Logger.printDebug(() -> "Unknown iconName: " + iconName + ", videoId: " + videoId);
-                            }
-                        }
-                    } else if (primaryButtonViewModel.hasAccountLinkButtonViewModel()) {
-                        actionButton = ActionButton.CONNECT;
-                    } else if (primaryButtonViewModel.hasAddToPlaylistButtonViewModel()) {
-                        actionButton = ActionButton.PLAYLIST;
-                    } else if (primaryButtonViewModel.hasClipButtonViewModel()) {
-                        actionButton = ActionButton.CLIP;
-                    } else if (primaryButtonViewModel.hasCompactChannelBarViewModel()) {
-                        actionButton = ActionButton.CHANNEL_PROFILE;
-                    } else if (primaryButtonViewModel.hasDislikeButtonViewModel()) {
-                        actionButton = ActionButton.DISLIKE;
-                    } else if (primaryButtonViewModel.hasDownloadButtonViewModel()) {
-                        actionButton = ActionButton.DOWNLOAD;
-                    } else if (primaryButtonViewModel.hasLikeButtonViewModel()) {
-                        actionButton = ActionButton.LIKE;
-                    } else if (primaryButtonViewModel.hasOverflowMenuButtonViewModel()) {
-                        actionButton = ActionButton.MORE;
-                    } else if (primaryButtonViewModel.hasSegmentedLikeDislikeButtonViewModel()) {
-                        actionButton = ActionButton.LIKE_DISLIKE;
-                    } else {
-                        Logger.printDebug(() -> "Unknown buttonViewModel: " + primaryButtonViewModel + ", videoId: " + videoId);
+                boolean segmented = false;
+                for (ActionButtons button : finalActionButtons) {
+                    if (button.getPrimaryButtonViewModel().hasSegmentedLikeDislikeButtonViewModel()) {
+                        segmented = true;
+                        break;
                     }
-
-                    actionButtons.add(actionButton);
                 }
-
-                Logger.printDebug(() -> "New video id: " + videoId + ", action buttons: " + actionButtons);
-                actionButtonLookup.put(videoId, actionButtons);
+                segmentedButtonLookup.put(videoId, segmented);
             } catch (Exception ex) {
                 Logger.printException(() -> "Failed to parse SingleColumnWatchNextResults", ex);
             }

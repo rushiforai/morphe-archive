@@ -3,6 +3,8 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ *
+ * Modified by lavinhoque33, 2026-10-21.
  */
 
 package app.morphe.patches.youtube.general.spoofappversion
@@ -13,7 +15,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.youtube.utils.extension.sharedExtensionPatch
-import app.morphe.patches.youtube.utils.playservice.is_21_05_or_greater
+import app.morphe.patches.shared.spoof.guide.BuildClientContextBodyFingerprint
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.cloneMutableAndPreserveParameters
@@ -24,12 +26,14 @@ import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import java.lang.ref.WeakReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private lateinit var clientInfoField: FieldReference
 private lateinit var clientVersionField: FieldReference
 private lateinit var messageLiteBuilderField: FieldReference
 private lateinit var messageLiteBuilderMethod: MethodReference
+private lateinit var osNameFieldRef: WeakReference<FieldReference>
 private var contextHookInitialized = false
 
 internal enum class Endpoint(
@@ -46,9 +50,8 @@ internal enum class Endpoint(
 /**
  * Provides endpoint-specific hooks for fields shared by InnerTube request bodies.
  *
- * The global spoof-app-version hook is intentionally left in place for normal requests. Shorts
- * needs a separate hook because YouTube 21.05 and newer no longer contain the legacy overlay that
- * the older Reel response selects.
+ * Shorts use their own OS-name hook so a whitelisted regular channel cannot enable Shorts feed ads.
+ * The version hook also selects the modern Shorts overlay on YouTube 21.05 and newer.
  */
 internal val clientContextHookPatch = bytecodePatch(
     description = "Hooks the context body of the Shorts endpoint.",
@@ -58,9 +61,6 @@ internal val clientContextHookPatch = bytecodePatch(
     execute {
         contextHookInitialized = false
         Endpoint.entries.forEach { it.smaliInstructions = "" }
-
-        // The endpoint-specific hook is only needed by the modern Shorts client.
-        if (!is_21_05_or_greater) return@execute
 
         BuildDummyClientContextBodyFingerprint.let {
             it.method.apply {
@@ -84,6 +84,12 @@ internal val clientContextHookPatch = bytecodePatch(
             messageLiteBuilderMethod =
                 getInstruction<ReferenceInstruction>(messageLiteBuilderIndex).reference as MethodReference
         }
+
+        osNameFieldRef = WeakReference(
+            BuildClientContextBodyFingerprint.method.getInstruction<ReferenceInstruction>(
+                BuildClientContextBodyFingerprint.instructionMatches[1].index
+            ).reference as FieldReference
+        )
 
         contextHookInitialized = true
     }
@@ -159,4 +165,16 @@ internal fun addClientVersionHook(endpoint: Endpoint, descriptor: String) {
         move-result-object v2
         iput-object v2, v1, $clientVersionField
         """
+}
+
+internal fun addOSNameHook(endPoint: Endpoint, descriptor: String) {
+    val osNameField = osNameFieldRef.get()!!
+    val smaliInstructions = """
+        iget-object v2, v1, $osNameField
+        invoke-static { v2 }, $descriptor
+        move-result-object v2
+        iput-object v2, v1, $osNameField
+        """
+
+    endPoint.smaliInstructions += smaliInstructions
 }

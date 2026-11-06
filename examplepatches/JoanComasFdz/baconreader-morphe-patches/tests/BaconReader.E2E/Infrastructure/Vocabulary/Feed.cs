@@ -23,6 +23,9 @@ public partial record Feed
     /// <summary>Reddit removed it in December 2024; "Remove Random feeds" takes it out of the feed list.</summary>
     public partial record MyRandom;
 
+    /// <summary>"Reddit chat"'s Chat, which the toolbar names in a feed's place while the chat shows.</summary>
+    public partial record Chat;
+
     /// <summary>A subreddit's feed, named by the subreddit's name without "r/" ("e2e").</summary>
     public partial record Subreddit(string Name);
 
@@ -33,7 +36,7 @@ public partial record Feed
 /// <summary>What the app shows for each <see cref="Feed"/>: the only place those strings live.</summary>
 public static class FeedShowing
 {
-    private static readonly Feed[] Listed = [new Feed.FrontPage(), new Feed.All(), new Feed.Popular(), new Feed.Friends(), new Feed.Random(), new Feed.MyRandom()];
+    private static readonly Feed[] Listed = [new Feed.FrontPage(), new Feed.All(), new Feed.Popular(), new Feed.Friends(), new Feed.Random(), new Feed.MyRandom(), new Feed.Chat()];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
     public static string ToShownText(this Feed value) =>
@@ -44,6 +47,7 @@ public static class FeedShowing
             friends => "Friends",
             random => "Random",
             myRandom => "My Random",
+            chat => "Chat",
             subreddit => subreddit.Name,
             unlisted => unlisted.Shown);
 

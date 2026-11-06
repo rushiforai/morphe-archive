@@ -82,12 +82,20 @@ patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lii9;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lflh;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Laf1;
-patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|La2k;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lki9;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Ljlh;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lzsl;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lcyl;
 patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt|Lr4g;
+
+# Dashboard page, shared by Mute posts locally, Hide liked posts and Hide your own reblogs.
+# TimelineFragment.p4(Luxl;List;TimelinePaginationLink;Map;Z)V is found by its kept owner and
+# exact parameter list, Luxl being the page type enum whose <clinit> names PAGINATION. A page's
+# post cards are Lr4g, which extends La2k, whose l() returns the Timelineable the card wraps;
+# the cardPayload stub reads it through those two only after an instance-of check.
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|Luxl;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|La2k;
+patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/DashboardPagePatch.kt|Lr4g;
 
 # Shared Post JSON presence. Ladb's 178-register reader has exactly one successful Post
 # allocation/constructor/return path and one null missing-fields return through Lbbb.a(String).
@@ -96,3 +104,38 @@ patches/src/main/kotlin/app/morphe/patches/tumblr/rootmute/MuteRootPostsPatch.kt
 patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Ladb;
 patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Lbbb;
 patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/PostJsonPresencePatch.kt|Lh47;
+
+# Collapse long posts. Lfmf lists a post card's rows: h(Lr4g;I)List appends Ljm2.g()'s list of the
+# post's own rows through e(List,List)Z and adds its Read more row d on the cut flag it tested for
+# Ljm2's own cut. Ltj2 is one row of blocks, its only list field a. Ljtl is the screen's timeline
+# field m, whose n()Z is Tumblr's own test for drawing a Read more cut (false on a post opened by
+# itself). Checked liveness keeps every register the hook writes dead past Tumblr's own use, and
+# exact-target fixtures cover the hook and the bridge.
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Lfmf;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Ljm2;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Ltj2;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Ljtl;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongPostsPatch.kt|Lr4g;
+# Ln6h is the reblog trail entry: its constructor splits the entry's blocks into rows (field l), then
+# reads its author's cut (field j), an index into its blocks (field h). Field o is its ask layout.
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/CollapseLongTrails.kt|Ln6h;
+# Read more in place. Lr0h is the post row composer's d row, the Read more under a post's own rows:
+# i(Lr4g;,ReadMoreViewHolder,List,I) takes the row's Button with f1() and sets its tap to a listener
+# calling the static h(Lr0h;,View), which calls m(View). m reads field b, the Lqfe screen, and hands
+# the button and field d, a trail entry's id, to its x3. A trail entry's copy of the binder sets d.
+# Lr4g is a timeline item and La2k its base class, whose l() is the item's post. The timeline screen
+# implements Lqfe. Its z5() is the list's adapter Lw4a, a Graywater adapter Lzx9 whose y0 and U take
+# an item out and back in, and RecyclerView$h.x() redraws.
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lr0h;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lqfe;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lr4g;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|La2k;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lw4a;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lzx9;
+# Tumblr's own cut on tag pages. Laf1 is the post base class a timeline item's post extends: l2(Z)
+# marks the post opened, g2() reads that back the way Tumblr's inline View post does, and C1() is
+# the server's force_truncate. Lkjh is the capped card item, a Lr4g subclass cut to its own height
+# either way. The preflight refuses a build where the post doesn't extend Laf1 or Lkjh doesn't
+# extend Lr4g.
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Laf1;
+patches/src/main/kotlin/app/morphe/patches/tumblr/timeline/ExpandLongPosts.kt|Lkjh;

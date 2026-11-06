@@ -30,6 +30,12 @@ internal fun communityStub(id: String, body: String = "const/4 v0, 0x0\nreturn v
  * community check asks the key's own channel test, then compares the key type with the announcement channel, as 585
  * does; [anyBody] and [channelBody] replace the two, and [inlineCheck] builds 583 and 584's form that compares both
  * types inline.
+ *
+ * A family B record (586's 347215273, 275 and 277) has 15 parts: those builds inline the key test into the joined
+ * predicate, so it names no key methods. Its fixture reads the loader and the loader's coordinator in the render, calls
+ * the coordinator's own scope getter, reads the switch's lifecycle field inline, and has 22 registers in the closure,
+ * which reads the list into v2 at 76 and keeps the section builder live in v3. [inlineCheck] on a family B record
+ * builds 583 and 584's split form with made-up key method IDs.
  */
 internal fun communityInboxFixture(anyBody: String? = null, channelBody: String? = null, inlineCheck: Boolean = false,
     secondRead: Int = 60): List<MutableClass> {
@@ -37,26 +43,49 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
     val record = code?.let { Files.readAllLines(Path.of("../scripts/profiles/$it.txt")) }
     val ids = (record?.single { it.startsWith("nativeCommunityInbox ") }?.substringAfter(' ') ?: SYNTHETIC_PROFILE.nativeCommunityInbox).split('|')
     val (updateId, ctorId, scopeGetterId, switchId, summaryField) = ids
-    val joinedId = ids[5]; val nullableId = ids[6]; val anyId = ids[7]; val channelId = ids[8]
-    check(ids.size == 18) { "nativeCommunityInbox has ${ids.size} parts" }
-    val rest = ids.drop(9)
+    val familyB = ids.size == 15
+    check(ids.size == 18 || familyB) { "nativeCommunityInbox has ${ids.size} parts" }
+    val keyIds = if (familyB) listOf("$TK->A0m($TK)Z", "$TK->A1J()Z", "$TK->A1W()Z") else ids.subList(6, 9)
+    val joinedId = ids[5]; val nullableId = keyIds[0]; val anyId = keyIds[1]; val channelId = keyIds[2]
+    val rest = ids.drop(if (familyB) 6 else 9)
     val requests = rest[0]; val prefix = rest[1]; val path = rest.subList(2, 7); val folderGetter = rest[7]; val inbox = rest[8]
     val callbackType = path.first().substringBefore("->")
     val COORDINATOR = path[2].substringAfter(':'); val LIFE = path[3].substringAfter(':'); val CONFIG = path[4].substringAfter(':')
     val FOLDER = inbox.substringBefore("->")
     val main = updateId.substringBefore("->")
     val closure = ctorId.substringBefore("->")
-    val loader = scopeGetterId.substringBefore("->")
+    // Main's loader field holds the loader in every build. 348's scope getter is the loader's own.
+    val loader = path[1].substringAfter(':')
     val scope = requests.substringBefore("->")
     val model = Regex("L[^;]+;").findAll(updateId.substringAfter('(')).map { it.value }.toList()[1]
     val row = summaryField.substringBefore("->")
     val mainPrefix = "$main->prefix:${prefix.substringAfter(':')}"
-    val getter = fixtureMethod(scopeGetterId, sparse(13, mapOf(
+    val getter = if (familyB) fixtureMethod(scopeGetterId, """
+        iget-object v0, p0, ${path[3]}
+        if-nez v0, :life
+        const-string v0, "itemSupplierPluginLifecycle"
+        invoke-static {v0}, LX/Checks;->named(Ljava/lang/String;)V
+        :missing
+        invoke-static {}, LX/Checks;->missing()Ljava/lang/IllegalStateException;
+        move-result-object v0
+        throw v0
+        :life
+        iget-object v0, v0, ${path[4]}
+        invoke-virtual {v0}, $CONFIG->scope()$scope
+        move-result-object v1
+        if-nez v1, :done
+        const-string v0, "INVOKE_RETURN"
+        invoke-static {v1, v0}, LX/Checks;->returned(Ljava/lang/Object;Ljava/lang/String;)V
+        goto :missing
+        :done
+        return-object v1
+    """.trimIndent(), 3) else fixtureMethod(scopeGetterId, sparse(13, mapOf(
         0 to "iget-object v0, p0, ${path[2]}",
         1 to "iget-object v0, v0, ${path[3]}",
         2 to "if-nez v0, :config", 7 to "throw v0",
         8 to ":config\niget-object v0, v0, ${path[4]}",
         9 to "invoke-virtual {v0}, $CONFIG->scope()$scope", 10 to "move-result-object v0", 12 to "return-object v0")), 2)
+    val missing = "invoke-static {}, LX/Checks;->missing()Ljava/lang/IllegalArgumentException;"
     val loaderCtorId = "$loader-><init>(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;LX/MainBase;LX/Config;LX/Publisher;Ljava/util/List;)V"
     val loaderCtor = fixtureMethod(loaderCtorId, "invoke-direct {v0}, $COORDINATOR-><init>()V\nreturn-void", 7)
     val mainCtor = fixtureMethod("$main-><init>()V", "new-instance v0, $callbackType\ninvoke-direct {v0, p0}, $callbackType-><init>($main)V\niput-object v0, p0, $mainPrefix\ninvoke-direct/range {v0 .. v6}, $loaderCtorId\nreturn-void", 7)
@@ -71,25 +100,34 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
         move-result-object v0
         throw v0
     """.trimIndent(), 2, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
-    val update = fixtureMethod(updateId, sparse(197, mapOf(
+    // Family B reads the loader, tests it with a jump to a throwing tail after the return, then reads its coordinator.
+    val loading = if (familyB) mapOf(
+        107 to "iget-object v4, v13, ${path[1]}", 108 to "if-eqz v4, :no_loader",
+        109 to "iget-object v4, v4, ${path[2]}", 110 to "invoke-virtual {v4}, $scopeGetterId", 111 to "move-result-object v23",
+        197 to ":no_loader\n$missing", 198 to "move-result-object v0", 199 to "throw v0")
+    else mapOf(
+        106 to "iget-object v4, v13, ${path[1]}", 107 to "if-nez v4, :loaded",
+        108 to "invoke-static {v13}, $checkedLoaderId", 109 to "move-result-object v4",
+        110 to ":loaded\ninvoke-virtual {v4}, $scopeGetterId", 111 to "move-result-object v23")
+    val update = fixtureMethod(updateId, sparse(if (familyB) 200 else 197, mapOf(
         12 to "const-string v0, \"InboxFragment_updateSectionTree\"",
         57 to "iget-object v3, v7, $model->rows:$IMMUTABLE_LIST", 58 to "move-object/from16 v26, v3",
         74 to "instance-of v3, v5, $row",
-        106 to "iget-object v4, v13, ${path[1]}", 107 to "if-nez v4, :loaded",
-        108 to "invoke-static {v13}, $checkedLoaderId", 109 to "move-result-object v4",
-        110 to ":loaded\ninvoke-virtual {v4}, $scopeGetterId", 111 to "move-result-object v23",
         134 to "iget-object v3, v13, $mainPrefix", 152 to "move-object/from16 v21, v3",
-        143 to "new-instance v0, $closure", 155 to "invoke-direct/range {v14 .. v29}, $ctorId", 196 to "return-void")),
+        143 to "new-instance v0, $closure", 155 to "invoke-direct/range {v14 .. v29}, $ctorId", 196 to "return-void") + loading),
         30,
         AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
-    val switch = fixtureMethod(switchId, sparse(42, mapOf(
-        0 to "invoke-static {p0}, $checkedLoaderId", 1 to "move-result-object v1",
+    // Family B's switch reads the lifecycle field into v1 itself and throws from a tail of three when it's null.
+    val switch = fixtureMethod(switchId, sparse(if (familyB) 45 else 42, mapOf(
+        0 to (if (familyB) "iget-object v1, p0, ${path[1]}" else "invoke-static {p0}, $checkedLoaderId"),
+        1 to (if (familyB) "if-eqz v1, :no_loader" else "move-result-object v1"),
         2 to "sget-object v0, $requests", 3 to "if-ne p1, v0, :inbox",
         4 to "sget-object v4, $FOLDER->pending:$FOLDER", 7 to "sget-object v4, $FOLDER->pending:$FOLDER",
         9 to "const-string v1, \"InboxLoaderCoordinator.setFolderAndFilter\"",
         12 to "goto :config", 13 to ":inbox\nsget-object v4, $inbox", 14 to "goto :config",
         15 to ":config\nnop", 25 to "iput-object v5, v1, $BUILDER->scope:$scope",
-        28 to "iput-object v4, v1, $BUILDER->folder:$FOLDER", 29 to "const-string v0, \"folderName\"", 37 to "return-void")), 6,
+        28 to "iput-object v4, v1, $BUILDER->folder:$FOLDER", 29 to "const-string v0, \"folderName\"", 37 to "return-void") +
+        (if (familyB) mapOf(42 to ":no_loader\n$missing", 43 to "move-result-object v0", 44 to "throw v0") else emptyMap())), 6,
         AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
     val ctor = fixtureMethod(ctorId, sparse(19, mapOf(0 to "iput-object v13, v1, $closure->\$inboxUnitItems:$IMMUTABLE_LIST",
         2 to "iput-object v2, v1, $closure->\$fbUserSession:$FB_USER_SESSION",
@@ -101,7 +139,22 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
     // 586 reads the search icon flag through a two-instruction getter call, three fewer than 585's inline check, so everything
     // from the second read on sits three earlier. A [secondRead] off 60 moves the whole tail with it.
     val shift = secondRead - 60
-    val invoke = fixtureMethod(invokeId, sparse(81 + shift, mapOf(
+    // Family B's layout: 98 instructions, the second read into v2 at 76, the viewport callback into v1 at 83, the data key
+    // into v0 at 84, the list, callback and key aliases at 87 to 89, the sink at 90, and the section builder live in v3.
+    val invoke = if (familyB) fixtureMethod(invokeId, sparse(98 + shift, mapOf(
+        5 to "iget-object v0, v4, $closure->\$inboxUnitItems:$IMMUTABLE_LIST",
+        6 to "invoke-virtual {v0}, Ljava/util/AbstractCollection;->isEmpty()Z",
+        8 to "if-nez v0, :empty", 27 to "iget-object v1, v4, $closure->\$threadTypeFilter:$scope",
+        32 to "const-string v0, \"searchBarSection\"",
+        76 + shift to "iget-object v2, v4, $closure->\$inboxUnitItems:$IMMUTABLE_LIST",
+        83 + shift to "iget-object v1, v4, $closure->\$onThreadInViewport:Lkotlin/jvm/functions/Function1;",
+        84 + shift to "iget-object v0, v4, $closure->\$dataInstanceKey:Ljava/lang/String;",
+        87 + shift to "move-object/from16 v18, v2", 88 + shift to "move-object/from16 v19, v1", 89 + shift to "move-object/from16 v16, v0",
+        90 + shift to "invoke-static/range {v7 .. v19}, LX/Section;->build(LX/Session;LX/Scope;LX/Observer;LX/Binder;LX/Header;LX/Footer;LX/Loading;LX/Theme;LX/Publisher;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Lkotlin/jvm/functions/Function1;)LX/Section;",
+        91 + shift to "move-result-object v0", 92 + shift to "invoke-virtual {v3, v0}, LX/Builder;->add(LX/Section;)V",
+        93 + shift to "return-object v3", 94 + shift to ":empty\nconst/4 v6, 0x1", 95 + shift to "goto :end", 97 + shift to "goto :end",
+        48 to ":end\nnop")), 22)
+    else fixtureMethod(invokeId, sparse(81 + shift, mapOf(
         5 to "iget-object v0, v4, $closure->\$inboxUnitItems:$IMMUTABLE_LIST",
         6 to "invoke-virtual {v0}, Ljava/util/AbstractCollection;->isEmpty()Z",
         8 to "if-nez v0, :empty", 27 to "iget-object v1, v4, $closure->\$threadTypeFilter:$scope",
@@ -113,7 +166,29 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
         74 + shift to "move-result-object v0", 75 + shift to "invoke-virtual {v2, v0}, LX/Builder;->add(LX/Section;)V",
         76 + shift to "return-object v2", 79 + shift to ":empty\nconst/4 v3, 0x0", 80 + shift to "goto :end",
         48 to ":end\nnop")), 21)
-    val joined = fixtureMethod(joinedId, """
+    // Family B asks the key's type against both community types inline, then the subscribed flag.
+    val joined = if (familyB && !inlineCheck) fixtureMethod(joinedId, """
+        iget-object v0, p0, $TS->A0d:$TK
+        if-eqz v0, :no
+        iget-object v1, v0, $TK->kind:$KEY_KIND
+        sget-object v0, $KEY_KIND->channel:$KEY_KIND
+        if-eq v1, v0, :community
+        sget-object v0, $KEY_KIND->announcement:$KEY_KIND
+        if-ne v1, v0, :no
+        :community
+        const/4 v0, 0x1
+        :check
+        const/4 v1, 0x0
+        if-eqz v0, :done
+        iget-boolean v0, p0, $TS->A2N:Z
+        if-eqz v0, :done
+        const/4 v1, 0x1
+        :done
+        return v1
+        :no
+        const/4 v0, 0x0
+        goto :check
+    """.trimIndent(), 3, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value) else fixtureMethod(joinedId, """
         iget-object v0, p0, $TS->A0d:$TK
         invoke-static {v0}, $nullableId
         move-result v0
@@ -207,10 +282,17 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
         sget-object v0, $CONFIG->cached:$FOLDER
         return-object v0
     """.trimIndent(), 3)
-    return listOf(fixtureClass(main, listOf(mainCtor, update, switch, checkedLoader), "InboxFragment", superclass = "LX/MainBase;", extraFields = listOf(nativeField(path[1]))),
+    // 348's scope getter sits on the loader. Family B's sits on the coordinator, and Main has no checked loader getter.
+    val keyMethods = when {
+        familyB && inlineCheck -> listOf(nullable, any)
+        familyB -> emptyList()
+        else -> listOfNotNull(nullable, any, channel.takeUnless { inlineCheck })
+    }
+    return listOf(fixtureClass(main, listOfNotNull(mainCtor, update, switch, checkedLoader.takeUnless { familyB }), "InboxFragment", superclass = "LX/MainBase;", extraFields = listOf(nativeField(path[1]))),
         fixtureClass(callbackType, listOf(callbackCtor), extraFields = listOf(nativeField(path[0]))),
-        fixtureClass(closure, listOf(ctor, invoke)), fixtureClass(model), fixtureClass(loader, listOf(loaderCtor, getter), extraFields = listOf(nativeField(path[2]))),
-        fixtureClass(COORDINATOR, listOf(coordinatorCtor), "InboxLoaderCoordinator", extraFields = listOf(nativeField(path[3]))),
+        fixtureClass(closure, listOf(ctor, invoke)), fixtureClass(model),
+        fixtureClass(loader, listOfNotNull(loaderCtor, getter.takeUnless { familyB }), extraFields = listOf(nativeField(path[2]))),
+        fixtureClass(COORDINATOR, listOfNotNull(coordinatorCtor, getter.takeIf { familyB }), "InboxLoaderCoordinator", extraFields = listOf(nativeField(path[3]))),
         fixtureClass(LIFE, extraFields = listOf(nativeField(path[4]))),
         fixtureClass(CONFIG, listOf(fixtureMethod("$CONFIG->scope()$scope", "const/4 v0, 0x0\nreturn-object v0"),
             configFolderGetter,
@@ -219,7 +301,7 @@ internal fun communityInboxFixture(anyBody: String? = null, channelBody: String?
         fixtureClass("Lcom/facebook/messaging/msys/threadlist/plugins/core/itemsupplier/ThreadListItemSupplierImplementation;",
             extraFields = listOf(fixtureField("Lcom/facebook/messaging/msys/threadlist/plugins/core/itemsupplier/ThreadListItemSupplierImplementation;", "config", CONFIG))),
         fixtureClass(row, extraFields = listOf(fixtureField(row, summaryField.substringAfter("->").substringBefore(':'), TS))),
-        fixtureClass(joined.definingClass, listOf(joined)), fixtureClass(TK, listOfNotNull(nullable, any, channel.takeUnless { inlineCheck }),
+        fixtureClass(joined.definingClass, listOf(joined)), fixtureClass(TK, keyMethods,
             extraFields = listOf(fixtureField(TK, "kind", KEY_KIND))),
         fixtureClass("LX/SubscriptionLabel;", listOf(fixtureMethod("LX/SubscriptionLabel;->label()V",
             "const-string v0, \"thread.isSubscribed\"\niget-boolean v0, v1, $TS->A2N:Z\nreturn-void"))),

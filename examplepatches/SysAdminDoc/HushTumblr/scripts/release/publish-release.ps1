@@ -4,9 +4,11 @@
 
 .DESCRIPTION
     The last release stage, which release.ps1 -Stage publish runs. It starts from the pushed
-    prepare commit and the assets -Stage build signed. Before anything reaches GitHub, -Walk has
-    to name the walk-receipt.json of a whole-app walk of the signed bundle on a release phone or
-    an emulator (walk-receipt.ps1). Then it goes in this order:
+    prepare commit and the assets -Stage build signed. Commits that change only the source census
+    or the release scripts can sit on top of the prepare commit (Get-PrepareCommit
+    -AllowAfterPrepare). Before anything reaches GitHub, -Walk has to name the walk-receipt.json
+    of a whole-app walk of the signed bundle on a release phone or an emulator (walk-receipt.ps1),
+    and the source census has to pass Test-SourceReleaseGate. Then it goes in this order:
 
       1. The notes: every bullet of the released CHANGELOG section, between -Intro and -Tail.
       2. gh release create vX.Y.Z at the prepare commit with the five assets. GitHub's tag is
@@ -50,6 +52,7 @@ param(
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'release-common.ps1')
 . (Join-Path (Split-Path -Parent $PSScriptRoot) 'walk-receipt.ps1')
+. (Join-Path (Split-Path -Parent $PSScriptRoot) 'tumblr-sources.ps1')
 $Root = Resolve-ReleaseRoot $Root
 Import-ReleaseEnvironment
 $tag = "v$Version"
@@ -72,13 +75,15 @@ function Get-PublishedRelease {
 }
 
 Assert-ReleaseClean $Root
-$source = Get-PrepareCommit -Root $Root -Version $Version -AllowIndex
+$source = Get-PrepareCommit -Root $Root -Version $Version -AllowIndex -AllowAfterPrepare
 if (-not $source) {
-    throw ("HEAD is neither '$($script:PrepareSubject -f $Version)' nor its index commit. Run release.ps1 " +
-        '-Stage prepare, preflight, gate and build first.')
+    throw ("HEAD doesn't lead back to '$($script:PrepareSubject -f $Version)' through its index commit and commits " +
+        'that change only the source census and the release scripts. Run release.ps1 -Stage prepare, preflight, gate and build first.')
 }
 $head = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', 'HEAD')
-$indexed = $head -cne $source
+# A census refreshed after the cut can sit between the prepare commit and HEAD, so only the
+# subject says whether HEAD is the index commit.
+$indexed = (Get-ReleaseSubject -Root $Root -Commit $head) -ceq ($script:IndexSubject -f $Version)
 $signing = Get-SigningInputs -Fingerprint $TrustedFingerprint -PublicKey $TrustedPublicKeyPath -NoKeyring
 $built = Test-ReleaseAssets -Root $Root -Version $Version -Commit $source -TrustedPublicKeyPath $signing.PublicKey `
     -TrustedFingerprint $signing.Fingerprint -Gpg $Gpg
@@ -92,6 +97,11 @@ if (-not $walked.Valid) {
         'Patch an APK from this bundle, walk the whole app on a release phone or an emulator, and pass its walk-receipt.json as -Walk.')
 }
 Write-ReleaseStep "walked on $($walked.Receipt.device): $($walked.Receipt.screens) screens, no crash"
+# The index step's release check holds the source census to the day too. Asked here, a stale
+# census stops the run before GitHub holds anything: 0.0.10's release was public when it did.
+$census = Test-SourceReleaseGate -Root $Root
+if (-not $census.Valid) { throw "Nothing was published, since the release can't go out on this source census: $($census.Reason)" }
+Write-ReleaseStep $census.Summary
 $remote = Get-RemoteMain $Root
 if ($remote -cne $source -and $remote -cne $head) {
     throw "origin's main is at $remote, which is neither the prepare commit $source nor HEAD. A release publishes the commit its gate passed."

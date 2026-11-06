@@ -160,6 +160,7 @@ Privacy	Gizlilik
 Disable analytics	Analizleri devre dışı bırak
 Firebase and Google Analytics collection is turned off	Firebase ve Google Analytics veri toplama kapalı
 Hide advertising ID	Reklam kimliğini gizle
+Sanitize sharing links	Paylaşılan bağlantıları temizle
 Remove ad tracking permissions	Reklam izleme izinlerini kaldır
 Tumblr can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Tumblr artık Google'ın reklam kimliği iznini veya Android'in reklam hizmetlerini kullanamaz. Bu, yamalarken ayarlandı. Geri getirmek için bu yama olmadan yeniden yamala.
 Tumblr's access to the ad ID and Android's ad services is removed	Tumblr'ın reklam kimliğine ve Android reklam hizmetlerine erişimi kaldırıldı
@@ -222,6 +223,7 @@ Lets a patched Tumblr sign up for push notifications when Google would turn it a
 Open Tumblr's settings from the gear on your account tab. HushTumblr doesn't change any of these.	Tumblr ayarlarını hesap sekmenizdeki dişli simgesinden açın. HushTumblr bunların hiçbirini değiştirmez.
 Push alerts	Anlık uyarılar
 Tumblr and the ad companies inside it see an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Tumblr ve içindeki reklam şirketleri, reklam takibi sınırlı olarak boş bir reklam kimliği görür. Reklam kimliğini Android ayarlarından silmişsin gibi olur.
+Links you share or copy leave out the share tag Tumblr adds to them. They still open the same post.	Paylaştığın veya kopyaladığın bağlantılar, Tumblr'ın eklediği paylaşım etiketini taşımaz. Yine aynı gönderiyi açarlar.
 Use the email on your Tumblr account and a Tumblr password. Google sign-in may not work, because this patched app is signed with a different key. Push notifications haven't been tested.	Tumblr hesabındaki e-postayı ve bir Tumblr parolasını kullan. Bu yamalı uygulama farklı bir anahtarla imzalandığı için Google ile giriş çalışmayabilir. Anlık bildirimler test edilmedi.
 # context: the Feed page and its Hide ads switch.
 Feed	Akış
@@ -230,7 +232,7 @@ Takes ads and paid Blaze posts out of your dashboard and other feeds. Once Tumbl
 Keep Blaze posts	Blaze gönderilerini tut
 When ads are hidden, keep posts people paid to promote with Blaze. Other ads and post filters still apply.	Reklamlar gizlenirken birinin Blaze ile tanıtmak için ödeme yaptığı gönderileri tutar. Diğer reklamlar ve gönderi filtreleri uygulanmaya devam eder.
 # context: the Disable analytics switch on the Privacy page.
-Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Firebase and Google's analytics collection stay off until you patch again without it.	Tumblr'ın kendi izlemesini ve reklam ölçümünü durdurur, LiveRamp izleyicisinin başlamasını da engeller. Firebase ve Google Analytics veri toplama, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
+Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Crashlytics crash reports stay off while this is on. Firebase and Google's analytics collection stay off until you patch again without it.	Tumblr'ın kendi izlemesini ve reklam ölçümünü durdurur, LiveRamp izleyicisinin başlamasını da engeller. Bu açıkken Crashlytics çökme raporları kapalı kalır. Firebase ve Google Analytics veri toplama, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
 # context: the Hide the ad-free banner switch on the Feed page.
 Hide the ad-free banner	Reklamsız gezinme banner'ını gizle
 Hides the dashboard banner that asks you to pay for Ad-Free Browsing.	Panoda reklamsız gezinme için ödeme yapmanı isteyen banner'ı gizler.
@@ -391,9 +393,9 @@ When reblogs are hidden, keep ones with tags. Other post filters still apply.	Ye
 Keep reblogs with added content	Eklenen içeriği olan yeniden bloglamaları tut
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Yeniden bloglamalar gizlenirken, yeniden bloglayanın kendi eklemesi olanları tutar. Diğer gönderi filtreleri uygulanmaya devam eder.
 Hide your own reblogs	Kendi yeniden bloglarını gizle
-Takes the reblogs you made out of your dashboard and the feeds like it. Your blog still shows them.	Yaptığın yeniden blogları panondan ve benzeri akışlardan kaldırır. Blogun onları göstermeye devam eder.
+Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Yaptığın yeniden blogları panondan kaldırır. Blogun ve Tumblr'ın geri kalanı onları göstermeye devam eder.
 Hide liked posts	Beğenilen gönderileri gizle
-Takes the posts you've already liked out of your dashboard and the feeds like it. Your likes and blogs still show them.	Zaten beğendiğin gönderileri panondan ve benzeri akışlardan kaldırır. Beğenilerin ve bloglar onları göstermeye devam eder.
+Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Zaten beğendiğin gönderileri panondan kaldırır. Beğenilerin ve Tumblr'ın geri kalanı onları göstermeye devam eder.
 Match current post text	Geçerli gönderi metninde eşleştir
 Match reblog trail text	Yeniden bloglama zinciri metninde eşleştir
 Match current post tags	Geçerli gönderi etiketlerinde eşleştir
@@ -410,7 +412,7 @@ Shows author-provided image descriptions below images.	Yazarın sağladığı re
 photo image descriptions	fotoğraf açıklamaları
 gallery image descriptions	galeri açıklamaları
 Mute posts locally	Gönderileri bu cihazda sustur
-Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account.	Gönderileri menülerinden özel bir listeye ekleyin. Asıl gönderiler ve yeniden paylaşımları bu hesap için gizli kalır.
+Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account. On the dashboard, the menu can also hide one blog's reblogs or originals.	Gönderileri menülerinden özel bir listeye ekleyin. Asıl gönderiler ve yeniden paylaşımları bu hesap için gizli kalır. Panoda menü bir blogun yeniden paylaşımlarını veya asıl gönderilerini de gizleyebilir.
 Mute this post locally	Bu gönderiyi bu cihazda sustur
 Manage muted posts	Susturulan gönderileri yönet
 Unmute posts or clear this account's private list	Gönderilerin susturmasını kaldırın veya bu hesabın özel listesini temizleyin
@@ -418,7 +420,7 @@ Couldn't update muted posts	Susturulan gönderiler güncellenemedi
 Post muted locally	Gönderi bu cihazda susturuldu
 Muted posts restored	Susturulan gönderiler geri yüklendi
 Muted posts aren't available for this account yet	Susturulan gönderiler bu hesap için henüz kullanılamıyor
-Stored only on this device for this Tumblr account. Tap a post to unmute it. Up to 500 posts are kept per account.	Yalnızca bu cihazda ve bu Tumblr hesabı için saklanır. Susturmayı kaldırmak için bir gönderiye dokunun. Hesap başına en fazla 500 gönderi saklanır.
+Stored only on this device for this Tumblr account. Tap a row to remove it. Up to 500 posts and blog rules are kept per account.	Yalnızca bu cihazda ve bu Tumblr hesabı için saklanır. Kaldırmak için bir satıra dokunun. Hesap başına en fazla 500 gönderi ve blog kuralı saklanır.
 This device keeps muted post lists for eight accounts. When a ninth account mutes a post, the list that's gone longest without a change is deleted.	Bu cihaz sekiz hesap için susturulan gönderi listesi saklar. Dokuzuncu bir hesap gönderi susturduğunda, en uzun süredir değişmeyen liste silinir.
 Post	Gönderi
 Clear muted posts	Susturulan gönderileri temizle
@@ -430,7 +432,7 @@ Show mutual markers	Karşılıklı takip işaretlerini göster
 Marks blogs that follow your primary blog when you follow them.	Ana bloğunu takip eden ve senin de takip ettiğin blogları işaretler.
 Mutual	Karşılıklı
 Done	Bitti
-No muted posts. Use a post's menu to mute it on this device.	Susturulan gönderi yok. Bir gönderiyi bu cihazda susturmak için gönderinin menüsünü kullan.
+No muted posts or blog rules. Use a post's menu to add one on this device.	Susturulan gönderi veya blog kuralı yok. Bu cihazda eklemek için bir gönderinin menüsünü kullan.
 Updating muted posts	Susturulan gönderiler güncelleniyor
 Couldn't restore muted posts. Try again.	Susturulan gönderiler geri yüklenemedi. Tekrar dene.
 Couldn't read this account's muted posts. Nothing was changed or deleted.	Bu hesabın susturulan gönderileri okunamadı. Hiçbir şey değiştirilmedi veya silinmedi.
@@ -443,6 +445,16 @@ Clearing diagnostic data	Tanılama verileri temizleniyor
 Putting diagnostic data back	Tanılama verileri geri yükleniyor
 Couldn't clear the diagnostic data. Try again.	Tanılama verileri temizlenemedi. Tekrar dene.
 Couldn't update this feed. The post is still muted locally.	Bu akış güncellenemedi. Gönderi bu cihazda hâlâ susturulmuş durumda.
+Hide reblogs from %1$s	%1$s blogunun yeniden paylaşımlarını gizle
+Hide originals from %1$s	%1$s blogunun asıl gönderilerini gizle
+Hiding reblogs from %1$s	%1$s blogunun yeniden paylaşımları gizleniyor
+Hiding originals from %1$s	%1$s blogunun asıl gönderileri gizleniyor
+Blog rule removed	Blog kuralı kaldırıldı
+Reblogs from %1$s	%1$s blogunun yeniden paylaşımları
+Originals from %1$s	%1$s blogunun asıl gönderileri
+Show reblogs from %1$s again	%1$s blogunun yeniden paylaşımlarını tekrar göster
+Show originals from %1$s again	%1$s blogunun asıl gönderilerini tekrar göster
+Couldn't update this feed. The blog rule is still saved.	Bu akış güncellenemedi. Blog kuralı hâlâ kayıtlı.
 Unmute post	Gönderiyi yeniden göster
 HushTumblr	HushTumblr
 Your settings	Ayarların
@@ -470,7 +482,7 @@ Hidden. Tap to show it again.	Gizli. Yeniden göstermek için dokun.
 Quick setups hidden. Bring it back from %1$s.	Hızlı kurulumlar gizlendi. %1$s sayfasından geri getirebilirsin.
 Quiet	Sessiz
 Hides ads, suggestions, prompts and unread counts.	Reklamları, önerileri, hatırlatmaları ve okunmamış sayılarını gizler.
-Stops Tumblr's tracking and screenshot watching, and hides your advertising ID.	Tumblr'ın izlemesini ve ekran görüntüsü takibini durdurur, reklam kimliğini gizler.
+Stops Tumblr's tracking and screenshot watching. Hides your advertising ID and the share tag on links.	Tumblr'ın izlemesini ve ekran görüntüsü takibini durdurur. Reklam kimliğini ve bağlantılardaki paylaşım etiketini gizler.
 Back to defaults	Varsayılanlara dön
 Puts every feature switch back the way it started.	Her özellik anahtarını başlangıçtaki hâline döndürür.
 Changed %1$d setting	%1$d ayar değiştirildi
@@ -482,6 +494,16 @@ Long-press a video in a post to share or copy its link, or save it.	Bağlantıs�
 # context: the Sharper images switch on the Posts page, and its summary
 Sharper images	Daha net resimler
 Loads images in posts at a higher resolution. Uses more data.	Gönderilerdeki resimleri daha yüksek çözünürlükte yükler. Daha fazla veri kullanır.
+# context: the Collapse long posts switch on the Posts page, and its summary
+Collapse long posts	Uzun gönderileri kısalt
+Cuts long posts with a Read more row, at the length below. Tap it to open the whole post.	Uzun gönderileri aşağıdaki uzunlukta Devamını oku satırıyla keser. Gönderinin tamamını açmak için ona dokun.
+# context: the Collapsed post length row under that switch: its title, the lengths a tap moves through, its summary and the note when a save fails
+Collapsed post length	Kısaltılmış gönderi uzunluğu
+About half a screen	Yaklaşık yarım ekran
+About a screen	Yaklaşık bir ekran
+About two screens	Yaklaşık iki ekran
+%1$s. Tap to change.	%1$s. Değiştirmek için dokun.
+Couldn't save the length. Try again.	Uzunluk kaydedilemedi. Yeniden dene.
 # context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
 Share video link	Video bağlantısını paylaş
 Copy video link	Video bağlantısını kopyala
@@ -493,7 +515,11 @@ Saving to Downloads	İndirilenler'e kaydediliyor
 Video saved to Downloads	Video İndirilenler'e kaydedildi
 Couldn't save the video	Video kaydedilemedi
 ad networks at launch	açılışta reklam ağları
+Explore's sponsored header	Keşfet'teki sponsorlu başlık
+long reblog trail entries	yeniden bloglama zincirindeki uzun girdiler
+opening a cut post in place	kısaltılmış gönderileri yerinde açma
 LiveRamp at launch	açılışta LiveRamp
+Crashlytics at launch	açılışta Crashlytics
 # context: the Try it on a post part of the Words to hide and Allowed words editors. Post text, Reblog trail text, Tags and Summary label its fields and fill the field names in the result lines (%2$s and %4$s). %1$s in the Not matched line is a Match switch's title, %1$s and %3$s in the result lines are the matched words.
 Try it on a post	Bir gönderide dene
 Nothing you type here is saved.	Buraya yazdıkların kaydedilmez.

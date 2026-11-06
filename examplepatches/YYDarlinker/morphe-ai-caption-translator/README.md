@@ -74,7 +74,7 @@ Use a chat-completion endpoint compatible with the request protocol, and compare
 The section below is generated from the latest published patch metadata.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
+> **[v1.6.1](https://github.com/YYDarlinker/morphe-ai-caption-translator/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patch total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

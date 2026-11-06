@@ -38,6 +38,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: 'platform-tools build-tools;37.0.0 platforms;android-35'
+
       - name: Fetch pinned Finamp verification input
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -100,8 +105,43 @@ jobs:
 
       # Always verify compilation when semantic-release did not publish a release.
       # This covers non-main/dev branches, chore commits, docs commits, etc.
-      - name: Verify project compiles
+      - name: Verify build and split bundles
         if: steps.release.outputs.new_release_published != 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:buildAndroid clean --no-daemon
+        run: |
+          ./gradlew :patches:buildAndroid --no-daemon
+          version=$(sed -n 's/^version *= *//p' gradle.properties)
+          test -n "$version"
+          jq --arg version "$version" --arg repo "$GITHUB_REPOSITORY" \
+            '.version=$version | .download_url=("https://github.com/"+$repo+"/releases/download/v"+$version+"/patches-"+$version+".mpp")' \
+            patches-bundle.json > "$RUNNER_TEMP/split-input.json"
+          python3 -B .github/scripts/split_bundles.py \
+            --bundle "patches/build/libs/patches-$version.mpp" --version "$version" \
+            --metadata "$RUNNER_TEMP/split-input.json" --output-dir patches/build/libs \
+            --metadata-dir "$RUNNER_TEMP/split-metadata" \
+            --d8 "$ANDROID_HOME/build-tools/37.0.0/d8" \
+            --android-jar "$ANDROID_HOME/platforms/android-35/android.jar" \
+            --classpath "$MORPHE_DESKTOP_JAR" \
+            --compact-classes patches/build/classes/kotlin/main
+          python3 -B .github/scripts/verify_split_bundles.py \
+            --full "patches/build/libs/patches-$version.mpp" \
+            --standard "patches/build/libs/patches-standard-$version.mpp" \
+            --finamp "patches/build/libs/patches-finamp-$version.mpp" \
+            --finamp-individual "patches/build/libs/patches-finamp-individual-$version.mpp" \
+            --combined "patches/build/libs/patches-combined-$version.mpp" \
+            --compact-classes patches/build/classes/kotlin/main
+          python3 -B tests/finamp/verify_compact.py \
+            --java "$JAVA_HOME/bin/java" --desktop "$MORPHE_DESKTOP_JAR" \
+            --bundle "patches/build/libs/patches-finamp-$version.mpp" \
+            --original-apk "$FINAMP_ORIGINAL_APK" --work-dir "$RUNNER_TEMP/finamp-compact-check"
+          python3 -B tests/finamp/verify_compact.py \
+            --java "$JAVA_HOME/bin/java" --desktop "$MORPHE_DESKTOP_JAR" \
+            --bundle "patches/build/libs/patches-combined-$version.mpp" \
+            --original-apk "$FINAMP_ORIGINAL_APK" --work-dir "$RUNNER_TEMP/finamp-combined-check"
+          ./gradlew :patches:generatePatchesListFromBundle --no-daemon \
+            -PpatchListBundle="patches/build/libs/patches-combined-$version.mpp" \
+            -PpatchListOutput="$RUNNER_TEMP/compact-patches-list.json"
+          jq -e '[.patches[] | select(any(.compatiblePackages[]?; .packageName == "com.unicornsonlsd.finamp"))] | length == 1 and .[0].name == "Finamp complete: all eight fixes"' "$RUNNER_TEMP/compact-patches-list.json" > /dev/null
+          python3 -B -m unittest discover -s .github/scripts -p 'test_*.py' -q
+          python3 -B -m unittest discover -s tests/mihon -p 'test_*.py' -q

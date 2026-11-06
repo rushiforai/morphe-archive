@@ -360,13 +360,21 @@ public class AmazonHelper {
 
     // ── Dark mode (inspired by amznkiller dark_mode.js, GPL-3.0, hxreborn) ──
 
-    /** Vendored dark-mode fixups — mirrors amznkiller dark_mode.js (GPL-3.0, hxreborn) */
+    /**
+     * Vendored dark-mode fixups — mirrors amznkiller dark_mode.js (GPL-3.0, hxreborn).
+     * Background fixups use pure AMOLED black (#000000) with the header/footer/card
+     * surfaces forced black as well, so the page reads as true black on OLED panels.
+     * asin-container / asin-image-wrapper stay white on purpose (product imagery).
+     */
     private static final String DARK_FIX_CSS =
         "[class*=image-container] img{mix-blend-mode:normal!important}"
         + "img[style*=\"mix-blend-mode\"]{mix-blend-mode:normal!important}"
         + "[class*=asin-metadata]{mix-blend-mode:normal!important}"
-        + "html{background-color:#1a1a1a!important}"
-        + "body{background-color:#1a1a1a!important}"
+        + "html{background-color:#000000!important}"
+        + "body{background-color:#000000!important}"
+        + "header,footer{background-color:#000000!important}"
+        + "[id*=nav-belt],[id*=nav-main]{background-color:#000000!important}"
+        + "[class*=a-cardui]{background-color:#000000!important}"
         + "[class*=asin-container],[class*=asin-image-wrapper]{background-color:white!important}"
         + "[class*=badgeMessage]{background-color:transparent!important}"
         + ".a-button-primary,.a-button-oneclick{color-scheme:only light!important}";

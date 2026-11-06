@@ -12,6 +12,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEncodedValue
 import app.morphe.patches.reddit.customclients.infinity.InfinityCompatible
 import app.morphe.patches.reddit.customclients.infinity.misc.extension.sharedExtensionPatch
 import app.morphe.patches.reddit.customclients.spoofClientPatch
@@ -26,6 +27,8 @@ internal const val FRAGMENT_CLASS_NAME = "app.morphe.extension.infinity.APIKeysP
 internal const val GET_CLIENT_ID_METHOD = "$EXTENSION_CLASS_NAME->getClientId"
 internal const val GET_USER_AGENT_METHOD = "$EXTENSION_CLASS_NAME->getUserAgent"
 internal const val GET_REDIRECT_URI_METHOD = "$EXTENSION_CLASS_NAME->getRedirectUri"
+internal const val MORE_CHILDREN_ENDPOINT = "/api/morechildren.json?raw_json=1&api_type=json"
+internal const val MORE_CHILDREN_SLASH_ENDPOINT = "/api/morechildren/.json?raw_json=1&api_type=json"
 
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val ATTRIBUTION_KEY = "morphe_patcheddit_attribution"
@@ -153,6 +156,27 @@ val spoofClientPatch = spoofClientPatch { clientIdOption, redirectUriOption, use
 
         redirectUriFingerprint.matchAll().forEach { match ->
             match.replaceStringMatchesWithFunc(GET_REDIRECT_URI_METHOD)
+        }
+
+        val moreChildrenMethods = moreChildrenEndpointFingerprint.matchAllOrNull()
+            ?.map { it.method }
+            ?.takeIf { it.size == 2 }
+            ?: throw PatchException("Expected exactly two morechildren API endpoint methods.")
+
+        moreChildrenMethods.forEach { method ->
+            var updated = false
+            for (annotation in method.annotations) {
+                for (element in annotation.elements) {
+                    val value = element.value as? MutableStringEncodedValue ?: continue
+                    if (value.value == MORE_CHILDREN_ENDPOINT) {
+                        value.setValue(MORE_CHILDREN_SLASH_ENDPOINT)
+                        updated = true
+                    }
+                }
+            }
+            if (!updated) {
+                throw PatchException("Failed to update morechildren endpoint annotation on $method")
+            }
         }
     }
 }

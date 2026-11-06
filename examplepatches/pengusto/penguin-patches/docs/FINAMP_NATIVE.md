@@ -19,6 +19,13 @@ Other versions, F-Droid/recompiled binaries and earlier `Finamp Debug` APKs do
 not have declared compatibility. Repatch the original APK with all desired
 selections together; an already patched snapshot is deliberately rejected.
 
+Releases containing **Finamp Complete** update the existing Finamp and combined
+sources to one default-selected patch applying all eight fixes below together.
+A separate, larger Finamp individual source retains independent selection.
+Use one Finamp source per patching run: Complete includes the artist-order
+behavior as well as the fixes. Review saved selections after a source update.
+See [source setup and migration](SETUP.md#add-the-source-and-patch).
+
 ## Eight independent selections
 
 | Patch name in Morphe | Behavior | Upstream contribution |
@@ -32,8 +39,8 @@ selections together; an already patched snapshot is deliberately rejected.
 | **Fix quick settings banner contrast** | Uses the matching foreground color for banner text with custom accents | Existing [`hotfix-1.0.2` fix](https://github.com/finamp-app/finamp/commit/124edc8b94ea8fcba637a1dba31e7bd266644aa8); duplicate [PR #1837](https://github.com/finamp-app/finamp/pull/1837) **closed on 2026-10-29**; [issue #1756](https://github.com/finamp-app/finamp/issues/1756) |
 | **Show album and track information** | Opens available Jellyfin descriptions for albums and tracks; normal downloads retain descriptions for offline use | [PR #1853](https://github.com/finamp-app/finamp/pull/1853), [issue #1852](https://github.com/finamp-app/finamp/issues/1852) |
 
-All eight are optional (`default=false`). Choose any subset of the eight in
-one Morphe run. The artist-order default promotes only album artists also
+In the individual source, all eight are optional (`default=false`); choose any
+subset in one Morphe run. The artist-order default promotes only album artists also
 credited on the song, then alphabetizes remaining credits. With no matching
 album artist, it retains song metadata order. It does not rewrite music tags or
 server metadata, or create a per-song lead role that Jellyfin does not provide.

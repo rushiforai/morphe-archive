@@ -17,6 +17,7 @@ p = argparse.ArgumentParser()
 p.add_argument('libapp')
 p.add_argument('analysis', help='Blutter asm output directory')
 p.add_argument('output')
+p.add_argument('--version', default='3.3.5', choices=('3.3.5', '3.3.6'))
 args = p.parse_args()
 binary = Path(args.libapp).read_bytes()
 scheme = Path(args.analysis, 'flutter/src/material/color_scheme.dart').read_text()
@@ -150,7 +151,7 @@ nop
 assert len(dock) == 24
 edit(0x12afe38, dock)
 
-lines = ['# Immich 3.3.5 arm64; SHA256 checked before modifying any byte.', hashlib.sha256(binary).hexdigest()]
+lines = [f'# Immich {args.version} arm64; SHA256 checked before modifying any byte.', hashlib.sha256(binary).hexdigest()]
 for offset, before, after in sorted(edits):
     lines.append(f'{offset:x}\t{before.hex()}\t{after.hex()}')
 Path(args.output).write_text('\n'.join(lines)+'\n')

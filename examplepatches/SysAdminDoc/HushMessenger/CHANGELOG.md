@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- The patches are built with Morphe patcher 2.3.0 now, the one that comes with Morphe Manager 2.5.0 and Morphe Desktop 2.1.0. Manager won't load a bundle made with a newer patcher than its own, so update Manager to 2.5.0 or newer (or Desktop to 2.1.0) before you add the next release.
+- Take Messenger 586's other three arm64 builds (347215273, 347215275 and 347215277). Meta built them from the same code as the others but packed it differently, so a dozen patches couldn't find what they change. Now every patch finds its spot in them too, so all nine 586 builds on APKMirror work. Refs #145.
+- With `Spoof package version` on, parts of Messenger still saw the raised version number, like its background job check and its crash reports, because they get the app's version info in roundabout ways the patch didn't follow. Now every place Messenger reads a version number asks first whose it is. Messenger's own answers with the build you patched, and other apps keep the number Android gives. Refs #120.
+
+## 0.29.0 (2026-11-05)
+
 ### New
 
 - `Clone install under another package name` has a new option, `Facebook package to open`. Put a Facebook clone's ID there (like `com.facebook.katana.morphe`) and a Messenger clone opens profiles, shared stories and other Facebook links in that clone, and checks for it instead of the regular app when it asks whether Facebook is installed. Sign-in and account sharing still use the regular Facebook app. (Hushfacebook #348)
@@ -27,7 +33,7 @@
 - `Hide pictures on the Blocked list` is a new switch under Privacy. The list of people you've blocked, in Privacy and safety, keeps their names and Unblock but drops their profile pictures, the same way Messenger already shows someone it can't look up. It starts off. (Hushfacebook #361)
 - `Allow landscape` is a new switch under Conversations. Messenger turns sideways with your phone when auto-rotate is on, so you get a wider keyboard and bigger photos and videos, and a photo or video you close doesn't snap the screen back upright. Calls, the camera, payments and a few other screens stay upright. Messenger needs a restart after you change it. It starts off while it's experimental. Refs #140.
 - `Hide chosen chats` is a new switch under Inbox. Press and hold a chat and tap Hide from chat list, and that chat stays off your list even when new messages come in. Search still finds it. The chats you've hidden are listed under the switch with an Unhide button each, and they're kept per account on this phone. Hiding doesn't stop notifications, so mute the chat in Messenger for that. This one's experimental too, and it starts off. Refs #139.
-- `Notify for restricted chats` is a new switch under Privacy. Restricting someone in Messenger also stops their messages from notifying you. With this on they notify you like any other chat, and a chat you've muted still stays quiet. The chat stays in your restricted list, and they still can't see when you're active or when you've read their messages. It's experimental and it starts off. Refs #143.
+- `Notify for restricted chats` is a new switch under Privacy. Restricting someone in Messenger also stops their messages from notifying you. With this on they notify you like any other chat, and a chat you've muted still stays quiet. End-to-end encrypted chats aren't covered, and most one-to-one chats are encrypted now. The chat stays in your restricted list, and they still can't see when you're active or when you've read their messages. It's experimental and it starts off. Refs #143.
 
 ### Changed and fixed
 

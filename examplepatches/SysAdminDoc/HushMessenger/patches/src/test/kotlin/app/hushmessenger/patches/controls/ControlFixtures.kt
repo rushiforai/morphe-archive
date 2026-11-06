@@ -146,6 +146,47 @@ internal fun nativeBubbleModeMethod(body: String? = null) = fixtureMethod(active
     return v2
 """.trimIndent(), 5)
 
+/** Build 347215273's A01: A00's checks copied in where 348 calls it, and the config fetched by number. */
+internal fun inlinedBubbleModeMethod(sdk: Int = 0x1e, holderOwner: String = activeProfile.hooks.getValue("bubbles").single().substringBefore("->")) =
+    fixtureMethod(activeProfile.hooks.getValue("bubble_mode").single(), """
+    const/4 v2, 0x0
+    invoke-static {p1, v2}, LX/98P;->A0m(Ljava/lang/Object;I)V
+    sget v1, Landroid/os/Build${'$'}VERSION;->SDK_INT:I
+    const/16 v0, $sdk
+    if-lt v1, v0, :not_native
+    iget-object v0, p0, $holderOwner->A02:LX/2wA;
+    iget-object v0, v0, LX/2wA;->A00:LX/0LD;
+    invoke-interface {v0}, LX/0LD;->get()Ljava/lang/Object;
+    move-result-object v0
+    check-cast v0, Landroid/app/ActivityManager;
+    invoke-virtual {v0}, Landroid/app/ActivityManager;->isLowRamDevice()Z
+    move-result v0
+    if-nez v0, :not_native
+    iget-object v0, p0, ${activeProfile.hooks.getValue("bubbles").single().substringBefore("->")}->A01:LX/2wA;
+    iget-object v0, v0, LX/2wA;->A00:LX/0LD;
+    invoke-interface {v0}, LX/0LD;->get()Ljava/lang/Object;
+    move-result-object v1
+    check-cast v1, ${activeProfile.bubbleCapabilityGetter.substringBefore("->")}
+    const/16 v0, 0x1c
+    invoke-virtual {v1, p1, v0}, ${activeProfile.bubbleCapabilityGetter}
+    move-result v0
+    if-eqz v0, :not_native
+    iget-object v0, p0, ${activeProfile.hooks.getValue("bubbles").single().substringBefore("->")}->A03:LX/2wA;
+    iget-object v0, v0, LX/2wA;->A00:LX/0LD;
+    invoke-interface {v0}, LX/0LD;->get()Ljava/lang/Object;
+    const v0, 0x241a1
+    invoke-static {v0}, LX/2w1;->A02(I)Ljava/lang/Object;
+    move-result-object v2
+    check-cast v2, LX/5cX;
+    const-wide v0, ${BUBBLE_ROLLOUT}L
+    check-cast v2, Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;
+    invoke-interface {v2, v0, v1}, ${activeProfile.bubbleRolloutGetter}
+    move-result v0
+    return v0
+    :not_native
+    return v2
+""".trimIndent(), 5)
+
 internal fun inboxRefreshRouteMethod(body: String = "const-string v0, \"\"\nreturn-object v0", flags: Int = AccessFlags.STATIC.value) =
     fixtureMethod(INBOX_REFRESH_ROUTE, body, 1, flags)
 

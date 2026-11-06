@@ -1,6 +1,62 @@
-# Handoff — Apple Music DiLink
+# Handoff — Apple Music
 
-Atualizado em **2026-11-05**. Documento de passagem de contexto; não é uma release.
+Atualizado em **2026-11-06**. Documento de passagem de contexto; não é uma release.
+
+## Sessão 2026-11-06 — Android TV (branch `feat/android-tv`)
+
+Suporte a Android TV no mesmo bundle, **versão 1.3.0** (a 1.2.0 já estava publicada no `main`,
+então o bump foi para 1.3.0). O branch foi atualizado para `main` (`231d0d7`) antes do bump, logo
+a 1.3.0 herda as correções de UI do API 29 da 1.2.0 (tema do login no WebView e faixa preta das
+letras).
+
+Patches novos (todos `default=false`, dependem uns dos outros):
+
+- `TV: manifest` (`tv/TvManifestPatch.kt`): intent-filter `LEANBACK_LAUNCHER` +
+  `android:banner="@mipmap/ic_launcher"` na `MainActivity` e `uses-feature` de
+  `android.software.leanback`/`android.hardware.touchscreen` com `required=false`. Depende do
+  patch `DiLink: support` (minSdk 29 + tablet).
+- `TV: D-pad focus` (`tv/TvDpadPatch.kt`): `defaultFocusHighlightEnabled` e
+  ripple/foreground nos cards do Listen Now, nas linhas da Busca, no pill do mini player e nos
+  controles do player; `player_controls` deixa de ser focável; `nextFocusDown` no pill; padding no
+  `tab_navigation_host` (topo `?attr/actionBarSize`, base 80dp) para o foco sair da lista.
+- `TV: player expand focus` (`tv/TvExpandedFocusPatch.kt` +
+  `extensions/.../TvFocusCompat.java`): hook no `onStateChanged` (`PlayerMainFragment$i.c`) leva o
+  foco ao `play_pause` quando o sheet expande e devolve ao mini player/lista quando fecha.
+
+Device: TV box Xiaomi `MiTV-AFMU0` (product `twilight`), Android 14 / API 34, `armeabi-v7a`,
+1920×1080 a 320 dpi, `adb 100.74.105.35:5555`.
+
+Evidências (1.3.0):
+
+- Build: `.mpp` 1.3.0 em `patches/build/libs/` (784.251 B) e `patches-list.json` com 7 patches
+  (4 DiLink + 3 TV).
+- APK de release: `.pipeline/tv/merged32.apk` (base + `config.armeabi_v7a` + `config.xhdpi` do
+  APKM) → `.pipeline/release/AppleMusic-1.3.0-AndroidTV-arm32.apk` (100.455.600 B, SHA-256
+  `c4e1687845cee5952cc71aab9253c5d9744ade8be3031293c1d9f39e54a9f80c`).
+- `aapt2 dump badging`: `leanback-launchable-activity: ...MainActivity`,
+  `native-code: 'armeabi-v7a'`, `minSdkVersion:'29'`, `targetSdkVersion:'36'`,
+  `uses-feature-not-required` para leanback/touchscreen.
+- `apksigner verify --print-certs`: `CN=Morphe`, SHA-256
+  `1e058623722ed37eb59bb55411d01d6b7b212c6a8353aacecd60d515cee60463` (o mesmo do APK do DiLink,
+  então `install -r` manteve a conta).
+- Instalado com `adb install -r` e aberto com
+  `am start -n com.apple.android.music/com.apple.android.music.common.MainActivity`.
+- D-pad validado no controle: grade da Busca → pill do mini player → ENTER abre o Now Playing com
+  foco no play/pause → BACK volta para a lista; ENTER alterna PLAYING/PAUSED.
+- `dumpsys media_session`: a sessão do Apple Music fica em `PLAYING(3)` com metadata
+  `Lost In Hollywood / System Of A Down / Mezmerize`. As duas sessões em `ERROR(7)` com
+  "Áudio Bluetooth desconectado" são do `com.android.bluetooth`, não do app.
+- Screenshot: `.pipeline/tv/release-check.png` (abertura + Now Playing com foco);
+
+Limitações e pendências:
+
+- O indicador de foco é o highlight/ripple do framework, **não** escala o card; não há recursos
+  `-television`. As abas do topo são alcançadas com UP + LEFT a partir do conteúdo.
+- Banner provisório (`@mipmap/ic_launcher`); não há banner 320×180 no APK.
+- TV 32-bit exige o split `armeabi-v7a` no merge; o APK do DiLink (arm64) não instala no box.
+- Pendente: push do branch, merge/tag `v1.3.0` e release com `patches-1.3.0.mpp` +
+  `AppleMusic-1.3.0-AndroidTV-arm32.apk`; validar em outra TV (arm64/4-ABI) e decidir sobre
+  escala de foco.
 
 ## Sessão 2026-11-05 — trabalho sem acesso ao carro
 
@@ -30,12 +86,12 @@ O DiLink não estava acessível nesta sessão. Foi feito o que não depende dele
   `patches-list.json` sem JVM local. Precisa dos secrets `GPR_KEY` (token com `read:packages`) e
   `GPR_USER`, porque o `GITHUB_TOKEN` do repositório não lê o registry da organização MorpheApp.
   Os secrets foram configurados e o workflow rodou com sucesso
-  ([run 41950676081](https://github.com/andersonlucasg3/AppleMusic-DiLink/actions/runs/41950676081),
+  ([run 41950676081](https://github.com/andersonlucasg3/apple-music-morphe-patches/actions/runs/41950676081),
   build em 2m01s): `patches-1.0.4.mpp` (708.779 B) + `patches-list.json` gerados, com
   `Patcher-Version: 1.6.0`, `classes.dex` e `extensions/extension.mpe` contendo
   `AccessibilityCompat`.
 - **Release 1.0.4 publicada** em
-  <https://github.com/andersonlucasg3/AppleMusic-DiLink/releases/tag/v1.0.4> com o asset
+  <https://github.com/andersonlucasg3/apple-music-morphe-patches/releases/tag/v1.0.4> com o asset
   `patches-1.0.4.mpp` (SHA-256 `2a185656a6e13a46023e289f32da8366e694b9d6aac4ad279f15ac31cd330c1a`).
   `patches-bundle.json` e `patches-list.json` apontam para 1.0.4. O bundle foi salvo em
   `Downloads/Buddy/patches-1.0.4.mpp` no celular.
@@ -77,7 +133,7 @@ Fazer o Apple Music 7.0.0 (`com.apple.android.music`, versionCode 1614) rodar no
 
 ## Estado do repositório
 
-- Repositório: `/root/.buddy/work/AppleMusic-DiLink`
+- Repositório: `https://github.com/andersonlucasg3/apple-music-morphe-patches`
 - Branch: `main`
 - HEAD: `8c31f47 chore: regenerate patches-list for 1.0.4`
 - Working tree: limpo quando este handoff foi escrito.
@@ -445,5 +501,44 @@ Progresso concreto (tudo na fonte/mpp):
 - Pendências: layout em API 29 (faixa preta nas letras, cards cortados à direita, gaps no Ajustes).
 - Release 1.1.0: `.mpp` (entrada XAPK; APKM rejeitado pelo `apkFileType = XAPK`) e APK merged
   `AppleMusic-1.1.0-DiLink.apk` para instalação manual.
+
+## Sessão 2026-11-06 — fixes de UI (sem o carro)
+
+O carro não estava acessível; tudo abaixo foi feito por análise de código/screenshots e build
+local. **Nada foi validado no DiLink com o build novo.**
+
+- **Repositório renomeado** para `andersonlucasg3/apple-music-morphe-patches`: remote, README,
+  `patches-bundle.json`, metadados do `patches/build.gradle.kts`, URL raw de
+  `DilinkWebAssetsPatch.kt` e `analysis/validation.md` atualizados (commit `22820a8`). A release
+  1.1.0 continua acessível no nome novo.
+- **Login (WebView) — coloração quebrada (corrigido na fonte):** o widget da Apple escolhe o tema
+  com `matchMedia("(prefers-color-scheme: dark)")`; o WebView 74 tem `matchMedia`, mas não a media
+  feature, então `matches` é sempre falso. Resultado: fundo preto (WebView) + textos do tema claro
+  (`#1d1d1f`/`#494949`) e input claro. No S24 o `matches` é verdadeiro e o tema escuro fecha.
+  Correção em `PlatformCompat.interceptWebResource`: o JS servido por `shouldInterceptRequest`
+  passa por `applyColorSchemeCompat`, que troca as 6 ocorrências (1 `.matches` + 5 atribuições) por
+  um resultado "dark". JS reescrito passou no `node --check`.
+- **Letras — faixa preta (corrigido na fonte):** `player/c1.g` esconde a nav bar com
+  `setSystemUiVisibility(vis | 4098)` (IMMERSIVE_STICKY|HIDE_NAVIGATION) sem
+  `LAYOUT_HIDE_NAVIGATION`; em API 29 o conteúdo continua com 990 px e a área da barra (90 px)
+  fica preta. Fingerprint `PlayerLyricsImmersiveFingerprint`: em API < 30 o método retorna antes
+  de aplicar o imersivo (a barra do BYD volta, como nas outras telas); API 30+ inalterada.
+  Verificado por `dexdump` no dex patcheado.
+- **Carrosséis:** a geometria está correta — 6 cards de 274 px + 30 px de vão + 34 dp de margem
+  esquerda; os 54 px à direita são o `peek` de 36 dp do próximo card (`AbsolutePeekCarousel`).
+  O 6º card termina dentro da tela; o "Chill" cortado é a própria arte. Decisão de remover o peek
+  é de design, não bug de API.
+- **Ajustes:** tela é Compose (`AccountSettingsFragment` → `LazyColumn`). As linhas de toggle de
+  "Buscar Amigos" reservam altura (249 px cada) mas não pintam nada (pixels 0,0,0 até com
+  brightness 8×). Suspeita: alpha/cores do Compose theme no host; ainda **UNVERIFIED** — precisa
+  de dump da árvore (uiautomator já não derruba o app) ou reprodução em emulador.
+- **Build local voltou a funcionar:** o erro `IllegalArgumentException` do plugin `app.morphe.patches`
+  era falta de `GITHUB_ACTOR`/`GITHUB_TOKEN` (não do JVM). Com JDK 21 + essas variáveis,
+  `:patches:buildAndroid` e `morphe-desktop patch` rodam. Test build:
+  `.pipeline/tmp/ui-fix-test.apk` (104 MB, arm64, assinado pelo morphe-desktop) e
+  `patches/build/libs/patches-1.1.0.mpp` regenerado localmente (sem release).
+- **Emulador:** o AVD x86_64 API 29 foi criado em `.pipeline/emulator/` (WHPX OK), mas o APK é
+  arm64-only (`INSTALL_FAILED_NO_MATCHING_ABIS`). Para separar API de qualificador de tela, o
+  teste correto é o mesmo APK num emulador API 36 1920x1080/240dpi, não num API 29 x86.
 
 

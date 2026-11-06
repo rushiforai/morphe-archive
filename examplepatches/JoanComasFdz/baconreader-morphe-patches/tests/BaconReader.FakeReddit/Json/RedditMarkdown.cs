@@ -11,7 +11,8 @@ namespace BaconReader.FakeReddit.Json;
 /// <summary>
 /// Turns Markdown into the HTML Reddit sends in <c>body_html</c> and <c>selftext_html</c>, only as far as the scenarios
 /// use it: paragraphs, quotes, lists, headings, code, tables, links (also bare URLs and r/ u/ names), bold, italics,
-/// strikethrough, inline code, spoilers (<c>&gt;!…!&lt;</c>), and GIFs uploaded in comments (<c>![gif](id)</c>).
+/// strikethrough, inline code, spoilers (<c>&gt;!…!&lt;</c>), GIFs uploaded in comments (<c>![gif](id)</c>), and emotes
+/// (<c>![img](emote|…)</c>, <see cref="RedditEmotes"/>).
 /// Reddit sends that HTML entity-escaped (<c>&amp;lt;div class="md"&amp;gt;…</c>), and so does <see cref="ToEscapedHtml"/>.
 /// </summary>
 public static partial class RedditMarkdown
@@ -170,6 +171,17 @@ public static partial class RedditMarkdown
             return $"<a href=\"{file}\" target=\"_blank\"><img src=\"{file}\" width=\"{found.Width}\" height=\"{found.Height}\"></a>";
         }
 
+        if (groups["emote"].Success)
+        {
+            if (media is null || !media.TryGetValue(groups["emote"].Value, out var emote))
+            {
+                return WebUtility.HtmlEncode(match.Value);
+            }
+
+            // Reddit's placeholder, the same for every emote (RedditEmotes), with no link around it.
+            return $"<img src=\"{baseUrl}/_media/{emote.Path}\" width=\"{emote.Width}\" height=\"{emote.Height}\" style=\"vertical-align:middle\">";
+        }
+
         if (groups["spoiler"].Success)
         {
             return $"<span class=\"md-spoiler-text\">{Inline(groups["spoiler"].Value)}</span>";
@@ -228,6 +240,7 @@ public static partial class RedditMarkdown
 
     [GeneratedRegex(
         @"!\[gif\]\((?<media>[^)|\s]+)\)"
+        + @"|!\[(?:img|gif)\]\((?<emote>emote\|[^)\s]+)\)"
         + @"|>!(?<spoiler>.+?)!<"
         + @"|\[(?<linkText>[^\]]+)\]\((?<linkUrl>[^)\s]+)\)"
         + @"|(?<![\w/])(?<url>https?://[^\s<>()]+)"

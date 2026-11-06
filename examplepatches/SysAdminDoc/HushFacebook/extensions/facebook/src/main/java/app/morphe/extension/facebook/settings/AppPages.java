@@ -15,6 +15,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Context;
+import android.os.Build;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
@@ -55,6 +56,12 @@ final class AppPages {
         return forced != null ? forced.contains(PatchFamily.MESSENGER_ICON) : MessengerHandoff.inBuild();
     }
 
+    /** Whether this build carries Open chats in Messenger's hook, counted in the same way for tests. */
+    static boolean chatsInBuild() {
+        Set<PatchFamily> forced = PatchFamily.inBuildForTests;
+        return forced != null ? forced.contains(PatchFamily.MESSENGER_ICON) : MessengerHandoff.chatsInBuild();
+    }
+
     /** Chats: the Get Messenger card, the chat list clean-up, the Messenger icon and leaving calls to Messenger. */
     static void chats(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
@@ -89,6 +96,13 @@ final class AppPages {
                                 + "enabled. Restart Facebook after changing this switch, or after installing, removing, enabling "
                                 + "or disabling Messenger, so call routing updates. If you're signed out of Messenger, you'll "
                                 + "miss calls and messages.")));
+            }
+            // A build without Facebook's chats gate keeps the icon without this switch (#392).
+            if (build.contains(PatchFamily.MESSENGER_ICON) && chatsInBuild()) {
+                chats.addPreference(toggle(context, Settings.OPEN_CHATS_IN_MESSENGER,
+                        L10n.t("Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile "
+                                + "included, while Messenger is installed and enabled. Without Messenger, chats stay in "
+                                + "Facebook. Restart Facebook after changing it.")));
             }
             if (build.contains(PatchFamily.ORIGINAL_CHAT_MEDIA)) {
                 chats.addPreference(toggle(context, Settings.ORIGINAL_CHAT_MEDIA,
@@ -579,8 +593,10 @@ final class AppPages {
                         + "time below. Your phone needs a screen lock."));
         lock.setOnPreferenceChangeListener((preference, value) -> {
             if (Boolean.TRUE.equals(value) && !AppLock.canLock(context)) {
-                Utils.showToastLong(L10n.t("Set a screen lock in your phone's settings first, so Facebook has "
-                        + "something to ask for."));
+                Utils.showToastLong(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
+                        ? L10n.t("Lock Facebook needs Android 10 or newer.")
+                        : L10n.t("Set a screen lock in your phone's settings first, so Facebook has "
+                                + "something to ask for."));
                 return false;
             }
             return true;

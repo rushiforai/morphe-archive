@@ -6,6 +6,10 @@ import app.morphe.patcher.apk.ApkMerger
 import app.morphe.patcher.apk.ApkUtils
 import app.morphe.patcher.apk.ApkUtils.applyTo
 import app.morphe.patcher.patch.loadPatchesFromJar
+import com.android.tools.smali.dexlib2.DexFileFactory
+import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -91,6 +95,7 @@ class DisableAdsAndTrackersPatchTest {
             // Copy merged APK to final standalone destination
             mergedApk.copyTo(standalonePatchedApk, overwrite = true)
             patcherResult.applyTo(standalonePatchedApk)
+            assertSentryHooks(standalonePatchedApk)
 
             // Inject custom Google Maps API key from .env if configured
             if (customMapsKey != null) {
@@ -151,6 +156,7 @@ class DisableAdsAndTrackersPatchTest {
             results.forEach { assertNull(it.exception) }
             val patcherResult = patcher.get()
             patcherResult.applyTo(patchedBaseApk)
+            assertSentryHooks(patchedBaseApk)
         }
 
         if (customMapsKey != null) {
@@ -314,4 +320,46 @@ class DisableAdsAndTrackersPatchTest {
         }
         println("In-place replaced Google Maps API key in ${apkFile.name} (preserved 100% STORED compression and 4096-byte alignment)!")
     }
+}
+
+
+/** Verify the hooks in both output forms, including extension-class packaging. */
+private fun assertSentryHooks(apk: File) {
+    val helperType = "Lapp/template/extension/smartnews/SentryRequestBlocker;"
+    val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+    val classes = container.dexEntryNames.flatMap { container.getEntry(it)!!.dexFile.classes }
+    assertTrue(classes.any { it.type == helperType }, "Sentry blocker extension must be packaged")
+
+    // These class names are assertions for the fixed 26.10.30 E2E input, not patch selectors.
+    for (clientType in listOf("Lki2;")) {
+        val client = classes.single { it.type == clientType }
+        val intercept = client.methods.single { it.name == "shouldInterceptRequest" }
+        val calls = intercept.implementation!!.instructions.filterIsInstance<ReferenceInstruction>()
+            .mapNotNull { it.reference as? MethodReference }
+        assertTrue(calls.first().definingClass == helperType && calls.first().name == "responseForRequest",
+            "$clientType must intercept Sentry before the original client")
+        assertTrue(calls.any { it.definingClass == "Landroid/webkit/WebViewClient;" &&
+            it.name == "shouldInterceptRequest" }, "Non-Sentry requests must retain the original fallback")
+    }
+
+    val articleClient = classes.single { it.type == "Ld1j;" }
+    for (method in articleClient.methods.filter { it.name == "shouldInterceptRequest" }) {
+        val firstCall = (method.implementation!!.instructions.first() as ReferenceInstruction)
+            .reference as MethodReference
+        assertTrue(firstCall.definingClass == helperType,
+            "Both article callback overloads must intercept Sentry first")
+    }
+    val wrapper = classes.single { it.type == "Ljp/gocro/smartnews/android/view/WebViewWrapper;" }
+    assertTrue(wrapper.methods.single { it.name == "<clinit>" }.implementation!!.instructions
+        .filterIsInstance<ReferenceInstruction>().mapNotNull { it.reference as? MethodReference }
+        .any { it.definingClass == "Lvzh;" && it.name == "<init>" },
+        "The existing tracker filter must be initialized during class initialization")
+
+    val articleFilter = classes.single { it.type == "Lvzh;" }.methods.single {
+        it.name == "a" && it.parameterTypes == listOf("Ljava/lang/String;")
+    }
+    assertTrue(articleFilter.implementation!!.instructions.filterIsInstance<ReferenceInstruction>()
+        .mapNotNull { it.reference as? MethodReference }
+        .any { it.definingClass == helperType && it.name == "isBlocked" },
+        "Article filtering must use the same Sentry host predicate")
 }

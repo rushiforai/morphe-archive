@@ -20,6 +20,9 @@ public sealed class MediaViewer(AndroidDriver driver)
     private static readonly OpenQA.Selenium.By GalleryStrip = Locate.AppId("recyclerView");
     private static readonly OpenQA.Selenium.By GalleryThumbnail = Locate.AppId("imageView");
     private static readonly OpenQA.Selenium.By Video = Locate.AppId("videoView");
+    // BaconReader's message in place of media it can't show: "Improve post media loading" says so for a RedGIFs video
+    // that was deleted, "This RedGIFs video was deleted", or that RedGIFs never had, "This RedGIFs video was not found".
+    private static readonly OpenQA.Selenium.By Message = Locate.AppId("errorText");
 
     private const string Loading = "Loading media";
     private const string Failed = "Media failed to load";
@@ -51,6 +54,10 @@ public sealed class MediaViewer(AndroidDriver driver)
     public Task WaitUntilVideoPlaysAsync() =>
         Waiting.UntilShownAsync(driver, Video, TimeSpan.FromSeconds(15), "The video playing");
 
+    /// <summary>Waits until the media shows the message "<paramref name="text"/>" in its place.</summary>
+    public Task WaitUntilMessageShownAsync(string text) =>
+        Waiting.UntilAsync(() => ShownMessage() == text, TimeSpan.FromSeconds(15), $"The message \"{text}\"");
+
     /// <summary>Waits until the screen shows a web page, a link post's.</summary>
     public Task WaitUntilPageShownAsync() =>
         Waiting.UntilShownAsync(driver, Page, TimeSpan.FromSeconds(10), "The link post's web page");
@@ -66,6 +73,7 @@ public sealed class MediaViewer(AndroidDriver driver)
         OnScreen.ReadAsync(driver, () => new MediaViewerSnapshot(LoadingState(), GalleryThumbnails())
         {
             PlaysAVideo = driver.FindElements(Video).Any(video => video.Displayed),
+            Message = ShownMessage(),
         });
 
     // The description of the media's view on the screen, while the loading bar shows; null without one. The viewer is a
@@ -73,6 +81,10 @@ public sealed class MediaViewer(AndroidDriver driver)
     private string? LoadingState() =>
         driver.FindElements(Media).Where(media => media.Displayed && Math.Abs(media.Location.X) < 10)
             .Select(media => media.GetAttribute("content-desc")).FirstOrDefault(state => state is { Length: > 0 });
+
+    // The message shown in the media's place; null without one.
+    private string? ShownMessage() =>
+        driver.FindElements(Message).Where(message => message.Displayed).Select(message => message.Text).FirstOrDefault(text => text is { Length: > 0 });
 
     // The thumbnails in a gallery's strip, under the image it shows; 0 without a gallery.
     private int GalleryThumbnails() =>
@@ -87,4 +99,7 @@ public sealed record MediaViewerSnapshot(string? Loading, int GalleryThumbnails)
 {
     /// <summary>Whether the media's player shows a video.</summary>
     public bool PlaysAVideo { get; init; }
+
+    /// <summary>The message shown in the media's place ("This RedGIFs video was deleted"); null without one.</summary>
+    public string? Message { get; init; }
 }

@@ -27,6 +27,13 @@ public partial record PatchSetting
     public partial record AvatarSize;
     public partial record AvatarBackground;
     public partial record AutoplayVideosInDetailView;
+    public partial record ShowYouTubeVideoTitles;
+    public partial record ShowYouTubeThumbnails;
+    public partial record ShowXPosts;
+    public partial record ShowBlueskyPosts;
+
+    /// <summary>"Reddit chat" keeps Reddit's copies of chat messages out of the inbox and counts them next to Chat.</summary>
+    public partial record ChatMessagesApartFromTheInbox;
 
     /// <summary>What the app shows that no case names yet: a failing assertion names it as the app shows it.</summary>
     public partial record Unlisted(string Shown);
@@ -52,6 +59,11 @@ public static class PatchSettingShowing
         new PatchSetting.AvatarSize(),
         new PatchSetting.AvatarBackground(),
         new PatchSetting.AutoplayVideosInDetailView(),
+        new PatchSetting.ShowYouTubeVideoTitles(),
+        new PatchSetting.ShowYouTubeThumbnails(),
+        new PatchSetting.ShowXPosts(),
+        new PatchSetting.ShowBlueskyPosts(),
+        new PatchSetting.ChatMessagesApartFromTheInbox(),
     ];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
@@ -71,6 +83,11 @@ public static class PatchSettingShowing
             avatarSize => "Avatar size",
             avatarBackground => "Avatar background",
             autoplayVideosInDetailView => "Autoplay videos in Detail View",
+            showYouTubeVideoTitles => "Show YouTube video titles",
+            showYouTubeThumbnails => "Show YouTube thumbnails",
+            showXPosts => "Show X posts",
+            showBlueskyPosts => "Show Bluesky posts",
+            chatMessagesApartFromTheInbox => "Chat messages apart from the inbox",
             unlisted => unlisted.Shown);
 
     /// <summary>The case the app's <paramref name="shown"/> text names, or <see cref="PatchSetting.Unlisted"/>.</summary>

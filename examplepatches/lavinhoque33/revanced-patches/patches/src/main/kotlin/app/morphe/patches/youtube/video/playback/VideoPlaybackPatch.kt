@@ -7,6 +7,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-10-13.
  */
 
 package app.morphe.patches.youtube.video.playback
@@ -15,10 +17,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getFreeRegisterProvider
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
-import app.morphe.util.getFreeRegisterProvider
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import app.morphe.patches.youtube.video.playbackstart.playbackStartDescriptorPatch
@@ -51,6 +53,7 @@ import app.morphe.patches.youtube.utils.playservice.is_19_30_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_40_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_14_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_21_or_greater
+import app.morphe.patches.youtube.utils.playservice.is_21_17_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_04_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.patches.youtube.utils.recyclerview.recyclerViewTreeObserverHook
@@ -74,7 +77,6 @@ import app.morphe.patches.youtube.video.videoid.videoIdPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.ResourceGroup
 import app.morphe.util.copyResources
-import app.morphe.util.findFreeRegister
 import app.morphe.util.findInstructionIndicesReversedOrThrow
 import app.morphe.util.findMethodOrThrow
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -279,7 +281,7 @@ val videoPlaybackPatch = bytecodePatch(
 
         val videoQualitySettingMethod = VideoQualitySettingEnumFingerprint.let {
             val videoQualitySettingType = it.classDef.type
-            val advancedMenuField = it.instructionMatches.last().instruction.getReference<FieldReference>()!!
+            val advancedMenuField = it.instructionMatches.last().fieldReference
 
             getVideoQualitySettingFingerprint(videoQualitySettingType).method.apply {
                 addInstructionsWithLabels(
@@ -353,13 +355,13 @@ val videoPlaybackPatch = bytecodePatch(
         // and without one the quality is chosen automatically, such as 720p for the size of the player.
         // The default quality is used as the quality last selected, as if the user just selected it.
         val videoIdField = LastSelectedVideoQualityConstructorFingerprint.let {
-            val videoIdField = it.instructionMatches[1].instruction.getReference<FieldReference>()!!
+            val videoIdField = it.instructionMatches[1].fieldReference
 
             it.method.apply {
-                val selectedTimeField = it.instructionMatches[0].instruction.getReference<FieldReference>()!!
-                val playbackStartTimeField = it.instructionMatches[3].instruction.getReference<FieldReference>()!!
-                val resolutionField = it.instructionMatches[4].instruction.getReference<FieldReference>()!!
-                val directionField = it.instructionMatches[5].instruction.getReference<FieldReference>()!!
+                val selectedTimeField = it.instructionMatches[0].fieldReference
+                val playbackStartTimeField = it.instructionMatches[3].fieldReference
+                val resolutionField = it.instructionMatches[4].fieldReference
+                val directionField = it.instructionMatches[5].fieldReference
 
                 // All fields are set, so the registers are free before the return.
                 addInstructionsAtControlFlowLabel(
@@ -535,6 +537,36 @@ val videoPlaybackPatch = bytecodePatch(
                     false,
                 )
             }
+        }
+
+        // The player plays another quality of the same resolution if this flag is off,
+        // such as 720p after selecting a 480p quality that YouTube gives the resolution 720.
+        // Without a quality selected in the Shorts quality menu, the player has no formats to use.
+        QualityFormatsFeatureFlagFingerprint.let {
+            it.method.insertLiteralOverride(
+                it.instructionMatches.first().index,
+                true
+            )
+        }
+
+        // When the quality changes, the player keeps playing the video already buffered,
+        // so the buffered video is cleared when the quality selected by the user is set.
+        if (is_21_17_or_greater) {
+            PlaybackControllerSetVideoFormatsFingerprint.method.addInstructions(
+                0,
+                """
+                    invoke-static { p1 }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->clearVideoBufferOnQualityChange(Z)Z
+                    move-result p1
+                """
+            )
+
+            AsyncMediaFetchControllerSetVideoFormatsFingerprint.method.addInstructions(
+                0,
+                """
+                    invoke-static { p2 }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->clearVideoBufferOnQualityChange(Z)Z
+                    move-result p2
+                """
+            )
         }
 
         // endregion

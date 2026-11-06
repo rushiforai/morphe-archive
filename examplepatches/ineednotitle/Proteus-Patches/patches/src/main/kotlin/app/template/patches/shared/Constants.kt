@@ -1539,6 +1539,18 @@ val FIREFOX_COMPATIBILITY = Compatibility(
         targets = listOf(AppTarget(version = "158.0.2", versionCode = 2016191575))
     )
 
+val BRAVE_COMPATIBILITY = Compatibility(
+        name = "Brave Browser",
+        packageName = "com.brave.browser",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0xFF4500,
+        targets = listOf(AppTarget(
+            version = "1.98.63",
+            isExperimental = true,
+            description = "Unverified standalone Brave 1.98.63 ARM APK; other variants are unverified."
+        ))
+    )
+
 val PINTEREST_COMPATIBILITY = Compatibility(
         name = "Pinterest",
         packageName = "com.pinterest",
@@ -2041,7 +2053,7 @@ val LEAP_FITNESS_ALL = arrayOf(
      * the patch set against it, and drop versions older than a few months.
      *
      * Component map (verified via public static analysis of a merged com.mubi
-     * APK, targetSdk 36 (100.0), and the MediaHub deep-link registry):
+     * APK, targetSdk 34, and the MediaHub deep-link registry):
      *   com.mubi.ui.MainActivity                         launcher + App Links
      *   com.mubi.ui.player.PlayerActivity                phone playback
      *   com.mubi.ui.player.tv.TvPlayerActivity           TV playback
@@ -2065,42 +2077,24 @@ val LEAP_FITNESS_ALL = arrayOf(
         )
     )
 
-    /**
-     * Meesho: Online Shopping App (com.meesho.supply, FashNear Technologies).
-     *
-     * Ships as an app bundle (base + config splits → APKM), minSdk 21.
-     * Latest observed: 29.7 (uploaded 2026-10-28, base APK 36.7 MB). Known
-     * versionCodes from APKMirror listings: 29.3 = 864, 28.6 = 846, 28.4 = 841;
-     * the exact versionCodes for 29.6/29.7 were not publicly visible, so the
-     * targets are version-only for now — fill in versionCode once read from a
-     * real APKM with apktool (`aapt dump badging`).
-     *
-     * Component map (from a decoded AndroidManifest.xml of a real build,
-     * compileSdk 34, plus εxodus report 766078 for 28.8):
-     *   com.meesho.supply.main.SupplyApplication   application, allowBackup=false
-     *   com.meesho.supply.main.MainActivity        launcher (exported)
-     *   com.meesho.supply.main.HomeActivity
-     *   com.meesho.supply.main.TrampolineActivity  exported deep links
-     *     (https App Links + custom scheme, string-resource hosts)
-     *   com.meesho.supply.main.deeplinkresolver.SharedTextRedirectionActivity
-     *     (exported, ACTION_SEND text/plain)
-     *   com.meesho.supply.main.AppUpdateReceiver   exported, MY_PACKAGE_REPLACED
-     *   com.meesho.inapppopup.impl.InAppPopupActivity
-     *   com.meesho.pushnotify.MyFcmService + pullnotifications.br.* receivers
-     *   SDKs: AppsFlyer, Mixpanel, Facebook, Firebase (Analytics/Crashlytics/
-     *     Messaging), Truecaller, Otpless, JusPay, Verloop, com.shield.android
-     *
-     * Payments, login and anti-fraud (Shield) are server/signature-side; none
-     * of the Meesho patches attempt to bypass them.
-     */
-    val MEESHO_COMPATIBILITY = Compatibility(
-        name = "Meesho",
-        packageName = "com.meesho.supply",
-        apkFileType = ApkFileType.APKM,
-        appIconColor = 0xF43397,
+val MINT_COMPATIBILITY = Compatibility(
+        name = "Mint",
+        packageName = "com.htmedia.mint",
+        appIconColor = 0xE01F26,
         targets = listOf(
-            AppTarget(version = "29.7"),
-            AppTarget(version = "29.6"),
+            // store versions observed 2026-11-06 (APKCombo/Uptodown listings)
+            AppTarget(version = "5.7.5"),
+            AppTarget(version = "5.8.4"),
+        )
+    )
+
+val HINDUSTAN_TIMES_COMPATIBILITY = Compatibility(
+        name = "Hindustan Times",
+        packageName = "com.ht.news",
+        appIconColor = 0x0C5594,
+        targets = listOf(
+            // store version observed 2026-11-06 (APKCombo/Uptodown listings)
+            AppTarget(version = "4.9.16"),
         )
     )
 }

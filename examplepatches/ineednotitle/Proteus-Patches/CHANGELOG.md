@@ -1,5 +1,10 @@
 ## [2.2.2](https://github.com/ineednotitle/Proteus-Patches/compare/v2.2.1...v2.2.2) (2026-11-05)
 
+### 🐛 Fixes and usability
+
+* **bundle:** rebuild and verify the Android DEX bundle after generating patch metadata, replacing the withdrawn v2.2.2 release.
+* **permissions:** clarify category and legacy-list behavior, validate custom lists, accept short Android permission names, and fix nearby Wi-Fi matching. Added regression tests and a usage guide.
+
 ### ✨ Improvements
 
 * **universal:** optimize all 24 universal patches with shared single-pass manifest helpers, tolerant list parsing, consistent logging and guarded best-effort layers

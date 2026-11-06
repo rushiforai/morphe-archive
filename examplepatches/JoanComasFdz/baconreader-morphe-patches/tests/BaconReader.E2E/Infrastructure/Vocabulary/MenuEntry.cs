@@ -15,6 +15,9 @@ public partial record MenuEntry
     /// <summary>The account's inbox: its messages.</summary>
     public partial record Inbox;
 
+    /// <summary>"Reddit chat"'s Chat, with the count of its unread chat messages: "Chat (2)", or "Chat" with none.</summary>
+    public partial record Chat(int Unread);
+
     /// <summary>The app's settings: BaconReader's sections, then the patches' "Patches".</summary>
     public partial record Settings;
 
@@ -26,7 +29,7 @@ public partial record MenuEntry
 }
 
 /// <summary>What the app shows for each <see cref="MenuEntry"/>: the only place those strings live.</summary>
-public static class MenuEntryShowing
+public static partial class MenuEntryShowing
 {
     private static readonly MenuEntry[] Listed = [new MenuEntry.AddAccount(), new MenuEntry.Inbox(), new MenuEntry.Settings(), new MenuEntry.SubmitPost()];
 
@@ -35,11 +38,18 @@ public static class MenuEntryShowing
         value.Match(
             addAccount => "Add account",
             inbox => "Inbox",
+            chat => chat.Unread > 0 ? $"Chat ({chat.Unread})" : "Chat",
             settings => "Settings",
             submitPost => "Submit post",
             unlisted => unlisted.Shown);
 
     /// <summary>The case the app's <paramref name="shown"/> text names, or <see cref="MenuEntry.Unlisted"/>.</summary>
     public static MenuEntry ReadMenuEntry(string shown) =>
-        Listed.FirstOrDefault(value => value.ToShownText() == shown) ?? new MenuEntry.Unlisted(shown);
+        Listed.FirstOrDefault(value => value.ToShownText() == shown)
+        ?? (shown == "Chat" ? new MenuEntry.Chat(0) : (MenuEntry?)null)
+        ?? (ChatWithUnread().Match(shown) is { Success: true } chat ? new MenuEntry.Chat(int.Parse(chat.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture)) : (MenuEntry?)null)
+        ?? new MenuEntry.Unlisted(shown);
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^Chat \((\d+)\)$")]
+    private static partial System.Text.RegularExpressions.Regex ChatWithUnread();
 }

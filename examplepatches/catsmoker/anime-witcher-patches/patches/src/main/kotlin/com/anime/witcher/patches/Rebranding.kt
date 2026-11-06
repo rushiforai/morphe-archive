@@ -60,7 +60,7 @@ val rebrandingBytecodePatch = bytecodePatch(
         val replacements = mapOf(
             "animewitcher_support" to safeHandle,
             "https://t.me/animewitcher_support?text=" to "https://t.me/$safeHandle?text=",
-            "اصدار التطبيق : 1.4.8" to "اصدار التطبيق : 1.4.8\\n\\n\u2726 $safeCredit \u2726",
+            "اصدار التطبيق : 1.4.9" to "اصدار التطبيق : 1.4.9\\n\\n\u2726 $safeCredit \u2726",
         )
 
         classDefForEach { classDef ->

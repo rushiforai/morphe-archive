@@ -11,6 +11,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import com.tumblr.rumblr.model.Banner;
 import com.tumblr.rumblr.model.BlazedPost;
 import com.tumblr.rumblr.model.SponsoredState;
 import com.tumblr.rumblr.model.TimelineObject;
@@ -107,6 +108,40 @@ public class TimelineFilterTest {
         List<?> shown = TimelineFilter.filter(page);
         assertEquals(1, shown.size());
         assertSame(page.get(1), shown.get(0));
+    }
+
+    /**
+     * A takeover banner that names its sponsor goes, and so does a sponsored day banner. A banner
+     * with no sponsor or a blank one, as Answer Time's comes, stays. With Hide ads off or paused
+     * every banner stays.
+     */
+    @Test
+    public void sponsoredBannersAreTakenOutAndOtherBannersStay() {
+        TimelineObject sponsored = new TimelineObject(new Banner("Acme Pictures"), false);
+        TimelineObject unsponsored = new TimelineObject(new Banner(null), false);
+        TimelineObject blank = new TimelineObject(new Banner(" "), false);
+        List<Object> page = Arrays.asList(TimelineItems.post(), sponsored, unsponsored, blank,
+                TimelineItems.of(TimelineObjectType.RICH_BANNER), TimelineItems.post());
+        assertEquals(Arrays.asList(page.get(0), unsponsored, blank, page.get(5)), TimelineFilter.filter(page));
+        String report = String.join("\n", HookStatus.report(""));
+        assertTrue(report, report.contains("ad removed 2"));
+
+        Settings.HIDE_ADS.save(false);
+        assertSame(page, TimelineFilter.filter(page));
+        Settings.HIDE_ADS.save(true);
+        PauseForTests.pause(HushTumblrPause.Reason.SWITCH);
+        assertSame(page, TimelineFilter.filter(page));
+    }
+
+    /** A banner whose sponsor can't be read is kept, and the failure is reported. */
+    @Test
+    public void aBannerWhoseSponsorCantBeReadIsKept() {
+        TimelineObject broken = new TimelineObject(new Banner("Acme Pictures") {
+            @Override public String getSponsoredBy() { throw new IllegalStateException("unreadable"); }
+        }, false);
+        List<Object> page = Arrays.asList(broken, TimelineItems.post());
+        assertSame(page, TimelineFilter.filter(page));
+        assertTrue(String.join("\n", HookStatus.report("")).contains("timeline item"));
     }
 
     /**

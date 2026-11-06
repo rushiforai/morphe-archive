@@ -19,9 +19,14 @@ https://github.com/AsrOfficialDev/Saiyan007
 | App | Package | Patch | Features | Versions |
 | --- | --- | --- | --- | --- |
 | Shima: Dynamic Island | `com.piyush.island` | **Saiyan007** | Pro features and Google Play installer-source fix | Any version with matching bytecode; verified on `0.4.0` |
+| SevenGrid: Calm Habit Tracker | `app.sevengrid` | **SevenGrid Pro** | Pro habits, themes, history, statistics, and reminders | Any version with matching Hermes v96 bytecode; verified on `1.5.2` |
+| Sensu | `com.piyush.pie` | **Sensu Pro** | Pro, all themes, and overlay feature gates | Any version with matching bytecode; verified on `0.1.1` |
 
 Shima Pro features include alerts, gesture rules, swipe gestures, the secondary
-pill, and backups. Its installer fix applies automatically with the patch.
+pill, and backups. SevenGrid starts with Pro enabled before network setup and
+keeps its status through customer-info refreshes and restore flows. Sensu seeds
+its observable product set with the full catalog and enables its local feature
+gates. The Google Play installer-source fix applies automatically for all three apps.
 
 More apps can be added to this collection and delivered through the same source.
 
@@ -29,7 +34,9 @@ More apps can be added to this collection and delivered through the same source.
 
 1. Add the source using the button above.
 2. Select a supported app's original APK or XAPK in Morphe.
-3. Choose its patches from **Saiyan007** and patch. For Shima, select **Saiyan007**.
+3. Choose the app's patch from **Saiyan007**: **Saiyan007** for Shima,
+   **SevenGrid Pro** for SevenGrid, or **Sensu Pro** for Sensu.
+4. Patch and install the resulting APK.
 
 For manual import or Morphe Desktop, download the `.mpp` bundle from
 [Releases](https://github.com/AsrOfficialDev/Saiyan007/releases/latest).
@@ -82,10 +89,14 @@ Morphe reads this feed when checking for source updates; users keep the same
 
 ## Verification
 
-Build, patch application, APK signature, and bytecode checks passed using
-**Shima 0.4.0 (version code 7)**. Other versions have not been verified, and an
-incompatible bytecode layout will produce a patching error. The rebuilt APK has
-not been tested on a device.
+Build, patch application, APK signature, bytecode, and resource checks passed
+using **Shima 0.4.0 (7)**, **SevenGrid 1.5.2 (80)**, and **Sensu 0.1.1 (3)**.
+SevenGrid's Hermes checksum, instruction boundaries, and isolated entitlement
+flows were also checked. See [the 1.2.0 verification report](docs/verification-1.2.0.md).
+
+App-version selection is unrestricted. Other app versions have not been
+verified; incompatible bytecode layouts produce a patching error. On-device
+testing is pending.
 
 ## License and attribution
 

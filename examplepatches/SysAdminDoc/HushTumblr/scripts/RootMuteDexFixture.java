@@ -27,6 +27,8 @@ public final class RootMuteDexFixture {
     private static final String POST = "Lcom/tumblr/rumblr/model/post/Post;", ADAPTER = POST.substring(0, POST.length() - 1) + "JsonAdapter;";
     private static final String ROOT = BASE + "rootmute/RootPostMutes;", MENU = BASE + "rootmute/RootPostMenu;";
     private static final String ACTION = BASE + "rootmute/RootPostMuteAction;", ROOT_BRIDGE = BASE + "timeline/HushRootPost;";
+    private static final String BLOG_BRIDGE = BASE + "rootmute/HushBlogRulePost;";
+    private static final String FACTS_OWNER = BASE + "timeline/DashboardPosts;", FACTS_FACE = BASE + "timeline/HushPostFacts;";
     private static final String LOCAL_BRIDGE = BASE + "rootmute/HushLocalTimeline;", LOCAL = "Lcom/tumblr/ui/fragment/TimelineFragment;";
     private static final String MENU_HOST = BASE + "rootmute/HushRootMenuHost;", MENU_OWNER = "Lcom/tumblr/ui/fragment/TimelineFragment$a;";
     private static final String HEADER = "Lcom/tumblr/ui/widget/PostCardHeader;";
@@ -92,7 +94,7 @@ public final class RootMuteDexFixture {
 
     private static void models(Map<String, ClassDef> classes, boolean patched, String fault) {
         List<Field> fields = new ArrayList<>(); List<Method> methods = new ArrayList<>();
-        String[] names = {"K0", "G0", "z0", "B0"}, members = {"X", "parent", "a", "W1"};
+        String[] names = {"K0", "G0", "z0", "B0", "M"}, members = {"X", "parent", "a", "W1", "b"};
         for (int i = 0; i < names.length; i++) {
             String result = i == 3 ? LIST : STRING;
             fields.add(member(POST, members[i], result, AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue()));
@@ -100,8 +102,17 @@ public final class RootMuteDexFixture {
                     code(field(Opcode.IGET_OBJECT, 0, 0, POST, members[i], result), returns(0))));
         }
         if (patched) {
+            List<Instruction> blog = new ArrayList<>();
+            String[] reads = {"M", "K0", "G0", "B0"};
+            for (int i = 0; i < reads.length; i++) { blog.add(call(Opcode.INVOKE_VIRTUAL, POST, reads[i], i == 3 ? LIST : STRING, new int[]{5})); blog.add(result(i)); }
+            blog.add(field(Opcode.IGET_BOOLEAN, 4, 5, POST, "hushRootTrailPresent", "Z"));
+            blog.add(call(Opcode.INVOKE_STATIC, ROOT, "blogRule", STRING, new int[]{0, 1, 2, 3, 4}, STRING, STRING, STRING, LIST, "Z"));
+            blog.add(result(0)); blog.add(returns(0));
+            methods.add(method(POST, "hushBlogRule", STRING, PUBLIC, 6, blog));
+        }
+        if (patched) {
             List<Instruction> root = new ArrayList<>();
-            for (int i = 0; i < names.length; i++) {
+            for (int i = 0; i < 4; i++) {
                 root.add(call(Opcode.INVOKE_VIRTUAL, POST, fault.equals("wrong-current-getter") && i == 2 ? "G0" : names[i],
                         i == 3 ? LIST : STRING, new int[]{5})); root.add(result(i));
             }
@@ -111,9 +122,9 @@ public final class RootMuteDexFixture {
             root.add(result(0)); root.add(returns(0));
             methods.add(method(POST, "hushRootId", STRING, PUBLIC, 6, root));
         }
-        classes.put(POST, clazz(POST, patched ? List.of(TIMELINEABLE, ROOT_BRIDGE) : List.of(TIMELINEABLE), fields, methods));
+        classes.put(POST, clazz(POST, patched ? List.of(TIMELINEABLE, ROOT_BRIDGE, BLOG_BRIDGE) : List.of(TIMELINEABLE), fields, methods));
         List<Instruction> writer = new ArrayList<>();
-        String[] keys = {"reblogged_root_id", "reblogged_from_id", "id", "trail"};
+        String[] keys = {"reblogged_root_id", "reblogged_from_id", "id", "trail", "blog_name"};
         for (int i = 0; i < keys.length; i++) writer.addAll(code(string(0, keys[i]),
                 call(Opcode.INVOKE_VIRTUAL, POST, names[i], i == 3 ? LIST : STRING, new int[]{3})));
         writer.add(end());
@@ -125,13 +136,24 @@ public final class RootMuteDexFixture {
             constructor.addAll(1, code(new ImmutableInstruction3rc(fault.equals("wrapper-current-id") ? Opcode.INVOKE_VIRTUAL_RANGE : Opcode.INVOKE_INTERFACE_RANGE,
                             8, 1, AccountDexFixture.ref(fault.equals("wrapper-current-id") ? POST : ROOT_BRIDGE,
                             fault.equals("wrapper-current-id") ? "z0" : "hushRootId", STRING)), result(0),
-                    field(Opcode.IPUT_OBJECT, 0, fault.equals("wrapper-wrong-receiver") ? 8 : 7, "Laf1;", "hushCanonicalRoot", STRING)));
+                    field(Opcode.IPUT_OBJECT, 0, fault.equals("wrapper-wrong-receiver") ? 8 : 7, "Laf1;", "hushCanonicalRoot", STRING),
+                    new ImmutableInstruction3rc(Opcode.INVOKE_INTERFACE_RANGE, 8, 1, AccountDexFixture.ref(BLOG_BRIDGE, "hushBlogRule", STRING)), result(0),
+                    field(Opcode.IPUT_OBJECT, 0, 7, "Laf1;", "hushBlogRule", STRING),
+                    // The dashboard page's liked and own-reblog facts, captured after the mute's.
+                    call(Opcode.INVOKE_STATIC, FACTS_OWNER, "facts", "I", new int[]{8}, OBJECT), AccountDexFixture.result(0, false),
+                    field(Opcode.IPUT, 0, fault.equals("wrong-facts-receiver") ? 8 : 7, "Laf1;", "hushPostFacts", "I")));
             wrapped.add(method("Laf1;", "hushRootId", STRING, PUBLIC, 2,
                     code(field(Opcode.IGET_OBJECT, 0, 1, "Laf1;", "hushCanonicalRoot", STRING), returns(0))));
+            wrapped.add(method("Laf1;", "hushBlogRule", STRING, PUBLIC, 2,
+                    code(field(Opcode.IGET_OBJECT, 0, 1, "Laf1;", "hushBlogRule", STRING), returns(0))));
+            wrapped.add(method("Laf1;", "hushPostFacts", "I", PUBLIC, 2,
+                    code(field(Opcode.IGET, 0, 1, "Laf1;", "hushPostFacts", "I"), AccountDexFixture.returns(0, false))));
         }
         wrapped.add(method("Laf1;", "<init>", "V", PUBLIC | AccessFlags.CONSTRUCTOR.getValue(), 9, constructor, POST));
-        classes.put("Laf1;", clazz("Laf1;", patched ? List.of(TIMELINEABLE, ROOT_BRIDGE) : List.of(TIMELINEABLE), patched
-                ? List.of(member("Laf1;", "hushCanonicalRoot", STRING, AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue())) : List.of(), wrapped));
+        int captured = AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue();
+        classes.put("Laf1;", clazz("Laf1;", patched ? List.of(TIMELINEABLE, ROOT_BRIDGE, BLOG_BRIDGE, FACTS_FACE) : List.of(TIMELINEABLE), patched
+                ? List.of(member("Laf1;", "hushCanonicalRoot", STRING, captured), member("Laf1;", "hushBlogRule", STRING, captured),
+                        member("Laf1;", "hushPostFacts", "I", captured)) : List.of(), wrapped));
         classes.put(ITEM, clazz(ITEM, List.of(), List.of(), List.of(method(ITEM, "getData", TIMELINEABLE, PUBLIC, 2,
                 code(integer(0, 0), returns(0))), method(ITEM, "getName", STRING, PUBLIC, 2, code(integer(0, 0), returns(0))))));
         classes.put("La2k;", clazz("La2k;", List.of(), List.of(), List.of(method("La2k;", "l", TIMELINEABLE, PUBLIC, 2,
@@ -205,23 +227,18 @@ public final class RootMuteDexFixture {
         classes.put(CONCRETE, clazz(CONCRETE, BUILDER, List.of(), List.of(), List.of(method(CONCRETE, "<init>", "V",
                 PUBLIC | AccessFlags.CONSTRUCTOR.getValue(), 2, code(call(Opcode.INVOKE_DIRECT, OBJECT, "<init>", "V", new int[]{0}), end()), CONTEXT))));
         if (!patched) return;
-        List<Instruction> card = code(new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 2, new ImmutableTypeReference("Lr4g;")),
-                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 1), type(Opcode.CHECK_CAST, 2, "Lr4g;"),
-                call(Opcode.INVOKE_VIRTUAL, "La2k;", "l", TIMELINEABLE, new int[]{2}), result(0), new ImmutableInstruction10t(Opcode.GOTO, 1),
-                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 2, new ImmutableTypeReference(ITEM)),
-                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 1), type(Opcode.CHECK_CAST, 2, ITEM),
+        List<Instruction> card = code(new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 1, new ImmutableTypeReference("Lr4g;")),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 1), type(Opcode.CHECK_CAST, 1, "Lr4g;"),
+                call(Opcode.INVOKE_VIRTUAL, "La2k;", "l", TIMELINEABLE, new int[]{1}), result(0), returns(0),
+                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 0, 1, new ImmutableTypeReference(ITEM)),
+                new ImmutableInstruction21t(Opcode.IF_EQZ, 0, 1), type(Opcode.CHECK_CAST, 1, ITEM),
                 call(Opcode.INVOKE_VIRTUAL, ITEM, fault.equals("wrong-card-payload") ? "getName" : "getData",
-                        fault.equals("wrong-card-payload") ? STRING : TIMELINEABLE, new int[]{2}), result(0),
-                new ImmutableInstruction22c(Opcode.INSTANCE_OF, 1, 0, new ImmutableTypeReference(ROOT_BRIDGE)),
-                new ImmutableInstruction21t(Opcode.IF_EQZ, 1, 1), type(Opcode.CHECK_CAST, 0, ROOT_BRIDGE),
-                call(Opcode.INVOKE_INTERFACE, ROOT_BRIDGE, "hushRootId", STRING, new int[]{0}), result(0), returns(0), integer(0, 0), returns(0));
+                        fault.equals("wrong-card-payload") ? STRING : TIMELINEABLE, new int[]{1}), result(0), returns(0), integer(0, 0), returns(0));
         card.set(1, new ImmutableInstruction21t(Opcode.IF_EQZ, 0, offset(card, 1, 6)));
-        card.set(5, new ImmutableInstruction10t(Opcode.GOTO, offset(card, 5, 11)));
-        card.set(7, new ImmutableInstruction21t(Opcode.IF_EQZ, 0, offset(card, 7, 17)));
-        card.set(12, new ImmutableInstruction21t(Opcode.IF_EQZ, 1, offset(card, 12, 17)));
+        card.set(7, new ImmutableInstruction21t(Opcode.IF_EQZ, 0, offset(card, 7, 12)));
         classes.put(MENU, clazz(MENU, List.of(), List.of(), List.of(
                 method(MENU, "add", "V", PUBLIC | STATIC, 4, code(call(Opcode.INVOKE_STATIC, UTILS, "settingsReady", "Z", new int[]{}), end()), OBJECT, OBJECT, CONTEXT, OBJECT),
-                method(MENU, "cardRoot", STRING, PUBLIC | STATIC, 3, card, OBJECT),
+                method(MENU, "cardPayload", OBJECT, PUBLIC | STATIC, 2, card, OBJECT),
                 method(MENU, "addNative", "V", PUBLIC | STATIC, 3,
                         code(type(Opcode.CHECK_CAST, 0, BUILDER), call(Opcode.INVOKE_VIRTUAL, BUILDER, "c", BUILDER,
                                 new int[]{0, 1, 2}, STRING, CALLBACK), end()), OBJECT, STRING, ACTION),
@@ -301,11 +318,25 @@ public final class RootMuteDexFixture {
                 member(UNIT, "other", UNIT, PUBLIC | STATIC | AccessFlags.FINAL.getValue())), List.of()));
         if (!patched) return classes;
         classes.put(ROOT_BRIDGE, contract(ROOT_BRIDGE, new String[]{"hushRootId"}, new String[]{STRING}, new String[][]{new String[0]}));
+        classes.put(BLOG_BRIDGE, contract(BLOG_BRIDGE, new String[]{"hushBlogRule"}, new String[]{STRING}, new String[][]{new String[0]}));
+        classes.put(FACTS_FACE, contract(FACTS_FACE, new String[]{"hushPostFacts"}, new String[]{"I"}, new String[][]{new String[0]}));
+        classes.put(FACTS_OWNER, clazz(FACTS_OWNER, List.of(), List.of(), List.of(
+                method(FACTS_OWNER, "facts", "I", PUBLIC | STATIC, 2, code(integer(0, 0), AccountDexFixture.returns(0, false)), OBJECT))));
         classes.put(LOCAL_BRIDGE, contract(LOCAL_BRIDGE, new String[]{"hushTimelineItems", "hushApplyTimelineItems"}, new String[]{LIST, "V"},
                 new String[][]{new String[0], new String[]{LIST}}));
         ClassDef root = classes.get(ROOT); List<Method> hooks = new ArrayList<>(); root.getMethods().forEach(hooks::add);
         hooks.add(method(ROOT, "canonicalRoot", STRING, PUBLIC | STATIC, 6, code(integer(0, 0), returns(0)), STRING, STRING, STRING, LIST, "Z"));
+        hooks.add(method(ROOT, "blogRule", STRING, PUBLIC | STATIC, 6, code(integer(0, 0), returns(0)), STRING, STRING, STRING, LIST, "Z"));
+        // A feature hook reads a family control, here settings readiness, and hands the page back.
+        hooks.add(method(ROOT, "dashboardPage", LIST, PUBLIC | STATIC, 3, code(call(Opcode.INVOKE_STATIC, UTILS, "settingsReady", "Z", new int[0]),
+                AccountDexFixture.result(0, false), returns(2)), OBJECT, LIST));
         classes.put(ROOT, clazz(ROOT, List.of(), List.of(), hooks));
+        // Blog rules filter a dashboard page at the head of its delivery, before Tumblr or the paging question reads it.
+        int self = fault.equals("wrong-dashboard-receiver") ? 4 : 3, at = fault.equals("late-dashboard-page") ? 2 : 0;
+        if (!fault.equals("missing-dashboard-page")) edit(classes, LOCAL, "n4", body -> {
+            body.addAll(at, List.of(call(Opcode.INVOKE_STATIC, ROOT, "dashboardPage", LIST, new int[]{self, 5}, OBJECT, LIST), result(5)));
+            return body;
+        });
         if (fault.equals("wrong-account-uuid")) edit(classes, AccountDexFixture.USER, "hushAccountId", body -> {
             body.set(0, field(Opcode.IGET_OBJECT, 0, 1, AccountDexFixture.USER, "E", STRING)); return body;
         });
@@ -341,6 +372,7 @@ public final class RootMuteDexFixture {
         fixture(root, "missing-error-return", "Post JSON presence proof changed");
         fixture(root, "wrapper-current-id", "root wrapper capture changed");
         fixture(root, "wrapper-wrong-receiver", "root wrapper capture changed");
+        fixture(root, "wrong-facts-receiver", "dashboard post facts changed");
         fixture(root, "wrong-menu-card", "root menu hook changed");
         fixture(root, "wrong-menu-builder", "root menu hook changed");
         fixture(root, "late-menu-hook", "root menu hook changed");
@@ -349,6 +381,8 @@ public final class RootMuteDexFixture {
         fixture(root, "missing-callback-interface", "root callback bridge changed");
         fixture(root, "wrong-callback-unit", "root callback bridge changed");
         fixture(root, "wrong-card-payload", "root callback bridge changed");
+        for (String fault : List.of("missing-dashboard-page", "wrong-dashboard-receiver", "late-dashboard-page"))
+            fixture(root, fault, "root dashboard page hook changed");
         for (String fault : List.of("missing-menu-owner-interface", "missing-menu-owner-getter", "wrong-menu-owner-field", "mutable-menu-owner", "wrong-menu-owner-constructor"))
             fixture(root, fault, "root menu owner bridge changed");
         for (String fault : List.of("missing-redesigned-hook", "wrong-redesigned-card", "wrong-redesigned-context", "wrong-redesigned-callback", "late-redesigned-hook", "bypassed-redesigned-hook"))

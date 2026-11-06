@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 internal const val CUSTOM_FONT = "custom_font"
 internal const val FONT_LAYOUT = "font_layout"
@@ -79,6 +80,25 @@ internal fun Method.isFontRepository() = AccessFlags.STATIC.isSet(accessFlags) &
 internal fun Method.isFontRoboto() = AccessFlags.STATIC.isSet(accessFlags) && returnType == TYPEFACE &&
     fontParameters() == listOf(CONTEXT, "Ljava/lang/Integer;") && holds(FONT_ROBOTO_ANCHOR)
 
+/**
+ * Family B's copies of the builder for one weight each (Regular, Bold): an instance (Context)Typeface method that still
+ * logs under [builder]'s class, with one return.
+ */
+internal fun Method.isFontRobotoCopy(builder: String) = !AccessFlags.STATIC.isSet(accessFlags) && returnType == TYPEFACE &&
+    fontParameters() == listOf(CONTEXT) && holds(FONT_ROBOTO_ANCHOR) && definingClass != builder &&
+    fontCode().any { it.opcode == Opcode.CONST_CLASS && ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type == builder }
+
+/** The builder, then any copies of it. Nothing when another method holds the string. */
+private fun robotoBuilders(holders: Set<Method>): List<Method> {
+    val builder = holders.singleOrNull { it.isFontRoboto() } ?: return emptyList()
+    val copies = holders.filter { it !== builder }
+    return if (copies.all { it.isFontRobotoCopy(builder.definingClass) }) listOf(builder) + copies else emptyList()
+}
+
+/** A copy validates against the profile's own builder, the one static (Context, Integer) entry. */
+private fun Method.copiesProfiledRoboto() = activeProfile.hooks.getValue(FONT_ROBOTO)
+    .filter { it.endsWith("(${CONTEXT}Ljava/lang/Integer;)$TYPEFACE") }.any { isFontRobotoCopy(it.substringBefore("->")) }
+
 /** MIG's typeface by name: a repository family by its constant's name, else Android's family of that name. */
 internal fun Method.isFontByName() = AccessFlags.STATIC.isSet(accessFlags) && returnType == TYPEFACE &&
     fontParameters() == listOf(CONTEXT, "Ljava/lang/String;", "I") && fontCode().mapNotNull { it.fontCall()?.toString() }
@@ -114,7 +134,7 @@ internal fun findCustomFont(classes: Iterable<ClassDef>): Map<String, List<Metho
     return mapOf(
         FONT_LAYOUT to listOfNotNull(only(FONT_LAYOUT_ANCHOR) { isFontLayout() }),
         FONT_REPOSITORY to listOfNotNull(repository),
-        FONT_ROBOTO to listOfNotNull(only(FONT_ROBOTO_ANCHOR) { isFontRoboto() }),
+        FONT_ROBOTO to robotoBuilders(holders.getValue(FONT_ROBOTO_ANCHOR)),
         FONT_BY_NAME to repository?.let { found -> byName.filter { it.asksRepository(found) } }.orEmpty(),
         FONT_INPUT to inputs,
     )
@@ -158,9 +178,9 @@ internal fun Method.fontRepositorySite(): Int {
     return at
 }
 
-/** The Roboto builder's one return, a branch target, so the return itself becomes the call. */
+/** The Roboto builder's one return, a branch target, so the return itself becomes the call. A copy's return too. */
 internal fun Method.fontRobotoSite(): Int {
-    if (!isFontRoboto()) fontChanged("Roboto builder")
+    if (!isFontRoboto() && !copiesProfiledRoboto()) fontChanged("Roboto builder")
     return fontReturn("Roboto builder")
 }
 

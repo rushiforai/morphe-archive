@@ -1,0 +1,157 @@
+name: Release
+
+# Builds the single combined .mpp (NewX + Twitch, Japanese localized)
+# and, when publishing, creates the GitHub release for tag v<version>
+# and refreshes patches-bundle.json on main.
+#
+# Publish paths:
+#   - push a tag vX.Y.Z, or
+#   - run manually with publish_release = true.
+# A manual run with publish_release = false only builds and verifies,
+# uploading the bundle as a workflow artifact.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Bundle version (semver, without the leading v)"
+        required: true
+        type: string
+      publish_release:
+        description: "Publish a GitHub release for this build"
+        required: true
+        default: false
+        type: boolean
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and release
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PUBLISH: ${{ inputs.publish_release }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            PUBLISH="true"
+          else
+            VERSION="$INPUT_VERSION"
+            PUBLISH="$INPUT_PUBLISH"
+          fi
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid version: $VERSION" >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "publish=$PUBLISH" >> "$GITHUB_OUTPUT"
+          echo "Ayufa Patches JP v$VERSION (publish=$PUBLISH)"
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Ensure Android SDK Platform 36
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
+
+      - name: Build combined bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GRADLE_OPTS: -Dorg.gradle.caching=true
+        run: python3 build_combined.py --version "${{ steps.version.outputs.version }}"
+
+      - name: Verify bundle
+        run: |
+          set -euo pipefail
+          # The patches list is a published release asset (Morphe reads
+          # it to list this source's patches). Its generation is
+          # best-effort inside build_combined.py, so fail loudly here
+          # if it went missing -- v1.1.0 silently shipped without it
+          # when an upstream validation test blocked generation.
+          if [ ! -f bins/patches-list.json ]; then
+            echo "patches-list.json was not generated" >&2
+            exit 1
+          fi
+          ARGS="bins/patches-${{ steps.version.outputs.version }}.mpp"
+          ARGS="$ARGS --version ${{ steps.version.outputs.version }}"
+          ARGS="$ARGS --patches-list bins/patches-list.json"
+          python3 scripts/verify_bundle.py $ARGS
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ayufa-patches-jp-${{ steps.version.outputs.version }}
+          path: |
+            bins/patches-*.mpp
+            bins/patches-list.json
+            bins/build-metadata.json
+            bins/bundle-summary.json
+          if-no-files-found: warn
+
+      - name: Write release notes
+        if: steps.version.outputs.publish == 'true'
+        run: |
+          python3 scripts/write_release_notes.py \
+            --metadata bins/build-metadata.json \
+            --summary bins/bundle-summary.json \
+            --out bins/release-notes.md
+
+      - name: Create GitHub release
+        if: steps.version.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          ASSETS="bins/patches-$VERSION.mpp"
+          if [ -f bins/patches-list.json ]; then
+            ASSETS="$ASSETS bins/patches-list.json"
+          fi
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release upload "v$VERSION" $ASSETS --clobber
+          else
+            gh release create "v$VERSION" $ASSETS \
+              --title "Ayufa Patches JP v$VERSION" \
+              --notes-file bins/release-notes.md \
+              --target "$GITHUB_SHA"
+          fi
+
+      - name: Update patches-bundle.json
+        if: steps.version.outputs.publish == 'true'
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+          python3 scripts/update_bundle_json.py \
+            --version "$VERSION" --notes bins/release-notes.md
+          git add patches-bundle.json
+          if git diff --cached --quiet; then
+            echo "patches-bundle.json unchanged"
+            exit 0
+          fi
+          git commit -m "chore: update release metadata for v$VERSION [skip ci]"
+          git push origin main

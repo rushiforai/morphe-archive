@@ -91,6 +91,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_ADS, "Hide ads");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Disable analytics");
         ROW_TITLES.put(PatchFamily.HIDE_ADVERTISING_ID, "Hide advertising ID");
+        ROW_TITLES.put(PatchFamily.SANITIZE_SHARING_LINKS, "Sanitize sharing links");
         ROW_TITLES.put(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS, "Remove ad tracking permissions");
         ROW_TITLES.put(PatchFamily.SPOOF_SIGNATURE, "Spoof signature for Google sign-in");
         ROW_TITLES.put(PatchFamily.HIDE_AD_FREE_BANNER, "Hide the ad-free banner");
@@ -138,6 +139,7 @@ public class HushTumblrPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.VISIBLE_ALT_TEXT, "Visible image descriptions");
         ROW_TITLES.put(PatchFamily.SHARE_VIDEO_LINKS, "Share video links");
         ROW_TITLES.put(PatchFamily.SHARPER_IMAGES, "Sharper images");
+        ROW_TITLES.put(PatchFamily.COLLAPSE_LONG_POSTS, "Collapse long posts");
         ROW_TITLES.put(PatchFamily.MUTE_ROOT_POSTS, "Mute posts locally");
         ROW_TITLES.put(PatchFamily.SHOW_MUTUAL_MARKERS, "Show mutual markers");
         ROW_TITLES.put(PatchFamily.REVEAL_ALLOWED_MATURE_CONTENT, "Reveal allowed mature content");
@@ -226,6 +228,7 @@ public class HushTumblrPreferenceFragmentTest {
         editors.put(HushTumblrPreferenceFragment.TAB_ORDER_ROW, PatchFamily.REORDER_TABS);
         editors.put(HushTumblrPreferenceFragment.FONT_FILE_ROW, PatchFamily.APP_FONT);
         editors.put(HushTumblrPreferenceFragment.PHONE_FONT_ROW, PatchFamily.APP_FONT);
+        editors.put(HushTumblrPreferenceFragment.LONG_POST_SIZE_ROW, PatchFamily.COLLAPSE_LONG_POSTS);
         editors.put("hushtumblr_manage_root_mutes", PatchFamily.MUTE_ROOT_POSTS);
 
         List<String> wrong = new ArrayList<>();

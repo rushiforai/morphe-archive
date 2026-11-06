@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Morphe patches project for **Anime Witcher** (`com.anime.witcher`, target version **1.4.8**).
+Morphe patches project for **Anime Witcher** (`com.anime.witcher`, target version **1.4.9**).
 Generates a patch bundle (`.mpp`) that the Morphe patcher applies to the stock APK.
 
 ## Layout

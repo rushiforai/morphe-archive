@@ -1,3 +1,67 @@
+## [1.7.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.6.0...v1.7.0) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** ask Redgifs for a new token when it refuses the one it gave ([896e952](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/896e952172d01209645d5e3c61ed9c5bc4329aae))
+* **baconreader:** drop the chat's unread count from the menu once the chat shows ([e6799c9](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/e6799c903e46ec09d1192bddc3558e85a9925f85))
+* **baconreader:** Embed comment images shows the images of a post's text in card mode ([8743b80](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8743b80b2952641f548d688cd5823194d7cafb91))
+* **baconreader:** Embed comment images shows the media of a text that starts with a bare media link once, not twice ([c544f5d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c544f5d6f94401e76e8e828748638a6c7ec40890))
+* **baconreader:** show emotes with "Show images" off, instead of their HTML tags ([669e112](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/669e112f155ee4b7a5bb00210f227d010da46e10))
+* **baconreader:** show the first photo of a Bluesky gallery post ([c357f68](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c357f68de9cc51b217d279602a174d2cc45f1206))
+* **baconreader:** show the still images of Imgur albums, which Imgur's API sends with an empty mp4 ([3704021](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/3704021dac2647bb19dbcd9fe00cce2b1c4f65f4))
+
+### ✨ New Features
+
+* **baconreader:** Embed comment images shows the media of a comment's bare links where the links are, and a post's images at full width ([67aa3d5](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/67aa3d5a2c61605345d48c71e61fe85d7dfc9893))
+* **baconreader:** Embed comment images shows the media of a post's bare links where the links are ([90d8a10](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/90d8a10ee0c0aea3b12d017aeae853d8fd1c0354))
+
+## [1.7.0-dev.5](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.7.0-dev.4...v1.7.0-dev.5) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** Embed comment images shows the media of a text that starts with a bare media link once, not twice ([c544f5d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c544f5d6f94401e76e8e828748638a6c7ec40890))
+
+## [1.7.0-dev.4](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.7.0-dev.3...v1.7.0-dev.4) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** drop the chat's unread count from the menu once the chat shows ([e6799c9](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/e6799c903e46ec09d1192bddc3558e85a9925f85))
+
+## [1.7.0-dev.3](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.7.0-dev.2...v1.7.0-dev.3) (2026-11-05)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** show emotes with "Show images" off, instead of their HTML tags ([669e112](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/669e112f155ee4b7a5bb00210f227d010da46e10))
+
+## [1.7.0-dev.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.7.0-dev.1...v1.7.0-dev.2) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** show the first photo of a Bluesky gallery post ([c357f68](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c357f68de9cc51b217d279602a174d2cc45f1206))
+
+## [1.7.0-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.6.1-dev.2...v1.7.0-dev.1) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** Embed comment images shows the images of a post's text in card mode ([8743b80](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8743b80b2952641f548d688cd5823194d7cafb91))
+
+### ✨ New Features
+
+* **baconreader:** Embed comment images shows the media of a comment's bare links where the links are, and a post's images at full width ([67aa3d5](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/67aa3d5a2c61605345d48c71e61fe85d7dfc9893))
+* **baconreader:** Embed comment images shows the media of a post's bare links where the links are ([90d8a10](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/90d8a10ee0c0aea3b12d017aeae853d8fd1c0354))
+
+## [1.6.1-dev.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.6.1-dev.1...v1.6.1-dev.2) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** ask Redgifs for a new token when it refuses the one it gave ([896e952](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/896e952172d01209645d5e3c61ed9c5bc4329aae))
+
+## [1.6.1-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.6.0...v1.6.1-dev.1) (2026-11-03)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** show the still images of Imgur albums, which Imgur's API sends with an empty mp4 ([3704021](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/3704021dac2647bb19dbcd9fe00cce2b1c4f65f4))
+
 ## [1.6.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.5.1...v1.6.0) (2026-11-03)
 
 ### 🐛 Bug Fixes

@@ -102,7 +102,8 @@ public class SharperImagesTest {
     @Test public void aSixHundredFortyRequestLoadsTheTwelveEightyCopy() {
         Settings.SHARPER_IMAGES.save(true);
         assertSame(p1280, SharperImages.pick(sizes, p640, 640));
-        assertTrue(report(), report().contains("upgraded 1"));
+        assertTrue(report(), report().contains("Counted: " + SharperImages.UPGRADED + " 1"));
+        assertFalse(report(), report().contains(SharperImages.GIF_UPGRADED));
     }
 
     @Test public void pausedOrWithoutItsHookOrSettingsTumblrsPickStays() {
@@ -136,17 +137,33 @@ public class SharperImagesTest {
         assertSame("over the pixel cap", tall, SharperImages.pick(Arrays.asList(taller, tall), tall, 1280));
     }
 
-    @Test public void aStillStaysStillAndAGifKeepsTumblrsSize() {
+    @Test public void aStillStaysStillAndAGifStaysAGif() {
         Settings.SHARPER_IMAGES.save(true);
         Size small = gif(400, 300);
+        Size larger = gif(800, 600);
         assertSame("a larger still", small, SharperImages.pick(Arrays.asList(photo(800, 600), small), small, 400));
-        assertSame("a larger GIF", small, SharperImages.pick(Arrays.asList(gif(800, 600), small), small, 400));
-        assertTrue(report(), report().contains(SharperImages.ANIMATED + " 2"));
         Size still = photo(400, 300);
-        assertSame(still, SharperImages.pick(Arrays.asList(gif(800, 600), still), still, 400));
-        assertTrue(report(), report().contains(SharperImages.OTHER_KIND + " 1"));
+        assertSame(still, SharperImages.pick(Arrays.asList(larger, still), still, 400));
+        assertTrue(report(), report().contains(SharperImages.OTHER_KIND + " 2"));
+        assertSame("a larger GIF", larger, SharperImages.pick(Arrays.asList(photo(800, 600), larger, small), small, 400));
+        assertTrue(report(), report().contains(SharperImages.GIF_UPGRADED + " 1"));
         Size query = new Size("https://64.media.tumblr.com/abc123/s800x600/def456.jpg?format=gif", 800, 600);
         assertSame("the query doesn't make it a GIF", query, SharperImages.pick(Arrays.asList(query, still), still, 400));
+    }
+
+    @Test public void aGifStaysUnderItsOwnLowerCap() {
+        Settings.SHARPER_IMAGES.save(true);
+        Size square = gif(640, 640);
+        assertSame("1280 by 1280 is past a GIF's cap", square,
+                SharperImages.pick(Arrays.asList(gif(1280, 1280), square), square, 640));
+        assertTrue(report(), report().contains(SharperImages.OVER_CAP + " 1"));
+        Size wide = gif(640, 480);
+        Size most = gif(1280, 960);
+        assertSame("1280 by 960 is the most", most, SharperImages.pick(Arrays.asList(most, wide), wide, 640));
+        Size stillSquare = photo(640, 640);
+        Size stillLarger = photo(1280, 1280);
+        assertSame("a still the same size isn't held to it", stillLarger,
+                SharperImages.pick(Arrays.asList(stillLarger, stillSquare), stillSquare, 640));
     }
 
     @Test public void aCropInAnotherShapeIsNeverPicked() {

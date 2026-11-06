@@ -4,12 +4,12 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-06.
  */
 
 package app.morphe.patches.youtube.player.components
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.InstructionLocation.MatchAfterImmediately
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
@@ -20,6 +20,8 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
+import app.morphe.patcher.util.getReference
+import app.morphe.patcher.util.numberOfParameterRegisters
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -34,6 +36,7 @@ import app.morphe.patches.shared.startVideoInformerFingerprint
 import app.morphe.patches.shared.textcomponent.hookSpannableString
 import app.morphe.patches.shared.textcomponent.textComponentPatch
 import app.morphe.patches.youtube.shared.WatchNextResponseParserFingerprint
+import app.morphe.patches.youtube.shared.watchNextResultsFingerprint
 import app.morphe.patches.youtube.utils.bottomsheet.bottomSheetHookPatch
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.patches.youtube.utils.dismiss.dismissPlayerHookPatch
@@ -88,13 +91,11 @@ import app.morphe.util.fingerprint.injectLiteralInstructionViewCall
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.getWalkerMethod
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
-import app.morphe.util.numberOfParameterRegisters
 import app.morphe.util.or
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -532,7 +533,7 @@ val playerComponentsPatch = bytecodePatch(
                 name == "onClick"
             }.hookInitVideoPanel(0)
 
-            startVideoInformerFingerprint.methodOrThrow().hookInitVideoPanel(1)
+            startVideoInformerFingerprint.method.hookInitVideoPanel(1)
 
             engagementPanelBuilderMethod.addInstructionsWithLabels(
                 0, """
@@ -807,7 +808,7 @@ val playerComponentsPatch = bytecodePatch(
 
         val continuationsField = with(WatchNextResponseParserFingerprint) {
             clearMatch()
-            instructionMatches[2].instruction.getReference<FieldReference>()!!
+            instructionMatches[2].fieldReference
         }
         val resultsClass = continuationsField.definingClass
         val helperMethodParameter = listOf(
@@ -825,39 +826,13 @@ val playerComponentsPatch = bytecodePatch(
                     name = "emptyProtobufList",
                 ),
             ),
-        ).instructionMatches.last().instruction.getReference<MethodReference>()!!
+        ).instructionMatches.last().methodReference
 
-        val sectionIdentifierField = RelatedItemSectionFingerprint
-            .instructionMatches[1].instruction.getReference<FieldReference>()!!
-        val watchNextResponseModelClass = WatchNextResponseModelClassResolverFingerprint
-            .instructionMatches.last().instruction.getReference<TypeReference>()!!.type
-
-        Fingerprint(
-            definingClass = watchNextResponseModelClass,
-            accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
-            returnType = "V",
-            parameters = listOf(resultsClass),
-            filters = listOf(
-                fieldAccess(
-                    opcode = Opcode.IGET_OBJECT,
-                    definingClass = resultsClass,
-                    type = emptyProtobufListMethod.returnType,
-                ),
-                methodCall(
-                    opcode = Opcode.INVOKE_INTERFACE,
-                    name = "iterator",
-                    location = MatchAfterImmediately(),
-                ),
-                fieldAccess(
-                    opcode = Opcode.IGET_OBJECT,
-                    type = sectionIdentifierField.definingClass,
-                ),
-            ),
-        ).let {
+        watchNextResultsFingerprint(emptyProtobufListMethod.returnType, resultsClass).let {
             val contentsField =
-                it.instructionMatches.first().instruction.getReference<FieldReference>()!!
+                it.instructionMatches.first().fieldReference
             val itemSectionRendererField =
-                it.instructionMatches.last().instruction.getReference<FieldReference>()!!
+                it.instructionMatches.last().fieldReference
             val itemSectionRendererDefaultInstance =
                 "${itemSectionRendererField.type}->a:${itemSectionRendererField.type}"
 

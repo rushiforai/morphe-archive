@@ -39,6 +39,12 @@ import semicoloncolonel.mobilestream.patches.primevideo.shared.Constants as Prim
 import semicoloncolonel.mobilestream.patches.pluto.shared.Constants as Pluto
 import semicoloncolonel.mobilestream.patches.tubi.shared.Constants as Tubi
 import semicoloncolonel.mobilestream.patches.xumo.shared.Constants as Xumo
+import semicoloncolonel.mobilestream.patches.mlb.shared.Constants as Mlb
+import semicoloncolonel.mobilestream.patches.npr.shared.Constants as Npr
+import semicoloncolonel.mobilestream.patches.apnews.shared.Constants as ApNews
+import semicoloncolonel.mobilestream.patches.newsbreak.shared.Constants as NewsBreak
+import semicoloncolonel.mobilestream.patches.shudder.shared.Constants as Shudder
+import semicoloncolonel.mobilestream.patches.sundancenow.shared.Constants as SundanceNow
 import semicoloncolonel.mobilestream.patches.wsj.shared.Constants as Wsj
 import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as WashingtonPost
 import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as WhiteHouse
@@ -113,7 +119,7 @@ val spoofCarrierPatch = bytecodePatch(
     description = "Hides your mobile carrier from the app, or reports a carrier name you choose.",
     default = false,
 ) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Moviebase.COMPATIBILITY, WhiteHouse.COMPATIBILITY, *SHOPPING_APPS, AppleTv.COMPATIBILITY, JustWatch.COMPATIBILITY, Nps.COMPATIBILITY, Nfg.COMPATIBILITY, RecGov.COMPATIBILITY, Xumo.COMPATIBILITY)
+    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Moviebase.COMPATIBILITY, WhiteHouse.COMPATIBILITY, *SHOPPING_APPS, AppleTv.COMPATIBILITY, JustWatch.COMPATIBILITY, Nps.COMPATIBILITY, Nfg.COMPATIBILITY, RecGov.COMPATIBILITY, Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
 

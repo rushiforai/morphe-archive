@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-06.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -98,18 +99,6 @@ object InnerTubeRoutes {
     val GET_PLAYLIST_PAGE = compileRoute(
         endpoint = "next",
         params = arrayOf("fields=contents.singleColumnWatchNextResults.playlist.playlist"),
-    )
-
-    @JvmField
-    val GET_VIDEO_ACTION_BUTTON = compileRoute(
-        endpoint = "next",
-        params = arrayOf(
-            "fields=contents.singleColumnWatchNextResults." +
-                    "results.results.contents.slimVideoMetadataSectionRenderer." +
-                    "contents.elementRenderer.newElement.type.componentType." +
-                    "model.videoActionBarModel.videoActionBarData.buttons." +
-                    "buttonViewModel"
-        )
     )
 
     @JvmField

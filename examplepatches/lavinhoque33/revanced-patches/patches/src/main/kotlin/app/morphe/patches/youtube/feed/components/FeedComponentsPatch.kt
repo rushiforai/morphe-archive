@@ -11,6 +11,8 @@
  * https://github.com/ReVanced/revanced-patches/commit/724e6d61b2ecd868c1a9a37d465a688e83a74799
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ *
+ * Modified by lavinhoque33, 2026-10-21.
  */
 
 package app.morphe.patches.youtube.feed.components
@@ -22,6 +24,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
+import app.morphe.patcher.util.findFreeRegister
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.litho.addLithoFilter
 import app.morphe.patches.shared.mainactivity.onCreateMethod
@@ -49,15 +53,16 @@ import app.morphe.patches.youtube.utils.resourceid.sharedResourceIdPatch
 import app.morphe.patches.youtube.utils.settings.ResourceUtils.addPreference
 import app.morphe.patches.youtube.utils.proto.elementProtoParserHookPatch
 import app.morphe.patches.youtube.utils.proto.hookElement
+import app.morphe.patches.youtube.utils.navigation.addBrowseIdHook
+import app.morphe.patches.youtube.utils.navigation.addSearchResultsHook
+import app.morphe.patches.youtube.utils.navigation.browseIdHookPatch
 import app.morphe.patches.youtube.utils.settings.settingsPatch
 import app.morphe.util.REGISTER_TEMPLATE_REPLACEMENT
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableClassOrThrow
-import app.morphe.util.findFreeRegister
 import app.morphe.util.fingerprint.injectLiteralInstructionViewCall
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
 import app.morphe.util.indexOfFirstLiteralInstructionOrThrow
@@ -90,6 +95,7 @@ val feedComponentsPatch = bytecodePatch(
     dependsOn(
         mainActivityResolvePatch,
         navigationBarHookPatch,
+        browseIdHookPatch,
         playerTypeHookPatch,
         sharedResourceIdPatch,
         settingsPatch,
@@ -382,6 +388,7 @@ val feedComponentsPatch = bytecodePatch(
                     """,
                     ExternalLabel("return_empty_component", returnEmptyComponentInstruction),
                 )
+
             }
         }
 
@@ -538,6 +545,11 @@ val feedComponentsPatch = bytecodePatch(
         // endregion
 
         addLithoFilter(FEED_COMPONENTS_FILTER_CLASS_DESCRIPTOR)
+
+        // The community posts are not hidden on the community page of a channel.
+        addBrowseIdHook("$FEED_COMPONENTS_FILTER_CLASS_DESCRIPTOR->setBrowseId(Ljava/lang/String;)V")
+        addSearchResultsHook("$FEED_COMPONENTS_FILTER_CLASS_DESCRIPTOR->clearBrowseId()V")
+
         addLithoFilter(FEED_VIDEO_VIEWS_FILTER_CLASS_DESCRIPTOR)
         addLithoFilter(KEYWORD_FILTER_CLASS_DESCRIPTOR)
         addLithoFilter(AISLIST_FILTER_CLASS_DESCRIPTOR)

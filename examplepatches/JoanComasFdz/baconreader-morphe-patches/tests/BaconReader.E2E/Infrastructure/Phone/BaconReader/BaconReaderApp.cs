@@ -60,6 +60,15 @@ public sealed class BaconReaderApp(
     /// <summary>The screen a post's thumbnail opens in the list view: its media, or its web page.</summary>
     public MediaViewer MediaViewer { get; } = new(driver);
 
+    /// <summary>The Imgur album viewer (ImgurGalleryViewer), which an Imgur album post's link opens.</summary>
+    public ImgurGalleryViewer ImgurGalleryViewer { get; } = new(driver);
+
+    /// <summary>The drawing screen (DrawChat), which "Draw" in "Attach media" opens.</summary>
+    public DrawChat DrawChat { get; } = new(driver);
+
+    /// <summary>The meme templates' grid, which "Memes" in the drawing screen's "Choose" dialog opens.</summary>
+    public MemeTemplates MemeTemplates { get; } = new(driver);
+
     /// <summary>The post's screen in its "Slide Show View": a link post's page.</summary>
     public SlideShow SlideShow { get; } = new(driver);
 
@@ -108,7 +117,16 @@ public sealed class BaconReaderApp(
     /// <summary>
     /// Logs the test account in from the main screen, as a scenario's "Given the test account is logged in" says: "Add
     /// account" in the left menu, Reddit's "Log In" with the test account, "Accept", then closes the left menu BaconReader
-    /// comes back with, and waits until the feed shows its posts. On the emulator the login screen at times closed by
+    /// comes back with, and waits until the feed shows its posts.
+    /// <para>
+    /// Right after the login BaconReader loads the Front Page and, as the test account has no subscriptions, subscribes it
+    /// to every default subreddit, both at once. A Front Page loaded after the first subscription and before the one of the
+    /// scenario's subreddit shows "No data": Reddit shows an account with subscriptions only theirs. On the Pixel 6 Pro
+    /// that happened in 3 runs of 31 of Markdown editor's (2026-11-05), and every subscription was answered within 0.4 s
+    /// of the Front Page's request, 2 s before the left menu closes. So on "No data" it taps "Refresh", as the user would,
+    /// and the Front Page loads with every subscription.
+    /// </para>
+    /// On the emulator the login screen at times closed by
     /// itself while its fields were filled in, and it started again from "Add account"; on the Pixel 6 Pro it never did
     /// in 4 runs of every scenario (2026-10-31), so it logs in once.
     /// </summary>
@@ -126,7 +144,31 @@ public sealed class BaconReaderApp(
         await Main.WaitUntilShownAsync();
         await Main.LeftMenu.WaitUntilShownAsync();
         await Main.LeftMenu.CloseAsync();
+        if (!await Main.Posts.WaitUntilPostsOrNoDataShownAsync())
+        {
+            RunLog.RetryFired("Log in: \"Refresh\" on the Front Page", 1, "it loaded while BaconReader subscribed the test account to the default subreddits, and shows \"No data\"");
+            await Main.Toolbar.ClickRefreshAsync();
+        }
+
         await Main.Posts.WaitUntilPostsShownAsync();
+    }
+
+    /// <summary>
+    /// Goes back, Back after Back, until the main screen shows the chat's <paramref name="text"/>: from the settings, or
+    /// from a post a chat link opened.
+    /// </summary>
+    public async Task GoBackToTheChatAsync(string text)
+    {
+        for (var backs = 0; !(await Main.Chat.ReadAsync()).Texts.Contains(text); backs++)
+        {
+            if (backs == 8)
+            {
+                throw new InvalidOperationException($"The chat didn't show \"{text}\" after going back 8 times.");
+            }
+
+            await OnScreen.DoAsync(driver, () => driver.PressKeyCode(AndroidKeyCode.Back));
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
     }
 
     /// <summary>

@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-10-21.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -40,6 +41,8 @@
  */
 
 package app.morphe.extension.music.settings;
+
+import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -87,8 +90,10 @@ public class ActivityHook {
         return REVANCED_SETTINGS_INTENT.equals(dataString);
     }
 
-    public static boolean handleFinish() {
-        return searchViewController != null && YouTubeMusicSearchViewController.handleFinish(searchViewController);
+    public static boolean handleFinish(Activity activity) {
+        return (searchViewController != null && YouTubeMusicSearchViewController.handleFinish(searchViewController))
+                || AbstractPreferenceFragment
+                .showRestartDialogIfNeeded(activity);
     }
 
     /**
@@ -186,7 +191,7 @@ public class ActivityHook {
                 if (searchViewController != null && searchViewController.isSearchActive()) {
                     searchViewController.closeSearch();
                 } else {
-                    activity.finish();
+                    BaseActivityHook.closeSettings(activity);
                 }
             };
         }

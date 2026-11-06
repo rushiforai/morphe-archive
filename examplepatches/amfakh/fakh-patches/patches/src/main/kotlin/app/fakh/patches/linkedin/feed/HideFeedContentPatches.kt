@@ -54,7 +54,7 @@ val expandPostsPatch = bytecodePatch(
 @Suppress("unused")
 val feedFiltersPatch = bytecodePatch(
     name = "Feed filters",
-    description = "Adds optional filters (off by default, turned on in Fakh Patches): focus mode, " +
+    description = "Adds optional filters (off by default, turned on in Fakh Patches): engagement counts, " +
         "celebrations, job cards, network activity (likes, comments, reposts), video posts, \"Recommended for you\", puzzle games, the \"New posts\" pill and \"Show translation\".",
     default = true
 ) {

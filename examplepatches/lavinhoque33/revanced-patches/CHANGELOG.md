@@ -1,3 +1,94 @@
+## [1.32.2](https://github.com/lavinhoque33/revanced-patches/compare/v1.32.1...v1.32.2) (2026-11-06)
+
+### Bug Fixes
+
+* **YouTube - Video quality:** Make the Shorts quality toast switch control Shorts only, and the video
+  quality toast switch control regular videos only. If you previously turned off video quality toasts,
+  turn off the Shorts quality toast switch too to keep Shorts toasts off; existing choices are not copied.
+
+## [1.32.1](https://github.com/lavinhoque33/revanced-patches/compare/v1.32.0...v1.32.1) (2026-11-06)
+
+### Bug Fixes
+
+* **YouTube - Settings:** Clarify quality, speed, toast, settings-button and queue-manager titles by location,
+  distinguish Feed and Player flyout menus, and add Shorts quality, Shorts speed and Playback headings.
+  Keep all settings and their behavior unchanged.
+
+## [1.32.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.31.0...v1.32.0) (2026-11-06)
+
+### Features
+
+* **YouTube - Settings:** Add an About card above the settings sections, with the chosen settings name,
+  patch and app versions, GitHub links, credits and licences, and a privacy-safe Copy debug info action.
+
+### Bug Fixes
+
+* **YouTube - Settings:** Keep the About card first with either icon style, and log failed About actions
+  without closing settings.
+
+## [1.31.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.30.0...v1.31.0) (2026-11-06)
+
+### Features
+
+* **YouTube - Video action bar layout:** Choose Default, Classic One-Row, Classic Two-Rows or Minimal layouts independently
+  of the layout sent by YouTube (ported from Morphe). Existing restore selections migrate to Classic One-Row;
+  the removed tablet layout toggle migrates to Classic Two-Rows and takes precedence. New installations
+  use Default. Classic layouts retain the old-style More videos overlay.
+  Keep Clip, Connect and other overflow actions when converting to Classic layouts.
+* **YouTube - Hide action buttons:** Remove hidden buttons from every action bar layout, including
+  Minimal overflow and the separate Two-Rows channel bar (ported from Morphe). Remove the obsolete
+  Hide action button by index and Remix button index settings.
+  Hiding the channel and Subscribe button also removes server-provided standalone channel bars.
+
+## [1.30.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.29.1...v1.30.0) (2026-11-06)
+
+Merged anddea/revanced-patches@dev (89104d55b, v4.4.0-dev.5).
+
+### Features
+
+* **YouTube - Built-in downloader:** Choose native subtitle languages and SRT or VTT for playlist downloads.
+  Subtitle failures do not stop videos; the batch summary reports saved, skipped and rate-limited tracks.
+  Private subtitle cues no longer enlarge the download index or its resume-position writes.
+* **YouTube - Built-in downloader:** Save SponsorBlock segments with single or playlist downloads and choose
+  categories below the subtitle row. The built-in player follows your category behavior, including background
+  audio auto-skips and a manual skip button, without cutting the media file.
+* **YouTube - Built-in downloader:** Select playlist items before queuing them, with thumbnails, durations and
+  an individual video height cap or audio-only choice. Already-downloaded items start unchecked; the batch
+  keeps its global quality, subtitle and SponsorBlock choices. Unavailable playlists report a failure.
+* **YouTube - Captions:** Add the Captions patch (secondary caption language, caption scale, stable caption
+  blocks) from upstream. Settings are under Captions.
+* **YouTube - Translate live chat:** Add live chat translation with provider, language, exclusion, style and
+  colour settings from upstream.
+* **YouTube - Download post images:** Add a download action for community post images from upstream.
+* **YouTube - Unlock queue:** Add the video queue unlock option from upstream (YouTube 20.21 or later).
+  The fork's Add to queue patch is unchanged.
+* **YouTube - Navigation bar:** Add the navigation bar style option, the Watch later navigation item and the
+  reorderable navigation bar from upstream. The hide switches of single navigation buttons are replaced by the
+  navigation bar order setting.
+* **YouTube - Copy text:** Add the select text option to the fork's Copy text patch.
+* **YouTube - Search comments:** Use the upstream implementation. The fork's setting key, default (off) and
+  place under Player are kept.
+* **YouTube - Settings:** Add the new settings indicator and the page padding fix from upstream.
+* **YouTube Music - Lyrics:** Take the upstream lyrics rework (line scale, centering, providers, miniplayer
+  lyrics options).
+* **Translations:** Union of the fork's and upstream's strings in all languages.
+
+### Bug Fixes
+
+* **YouTube - Built-in downloader:** Keep the complete footer visible in landscape and at larger font sizes,
+  including the playlist picker. Give the subtitle row a CC icon and the SponsorBlock settings toggle its shield icon.
+  Dismissed pickers ignore late loading results, including after font-size changes.
+* **YouTube Music - Track crossfade:** Match the loop-state adapter with a prefix, because the string of the
+  app has a suffix. Repeat-one detection works again.
+* **Both - Visual preferences icons:** Add icons for all new settings.
+
+### Not taken from upstream
+
+* The upstream Offline UI snapshot; the fork's newer version stays.
+* The upstream LithoSpannableStringPatch and the `morphe_copy_*` keys; the fork's Copy text stays.
+* The upstream Search comments default (on) and place (General).
+* The Music lyrics AI strings and the upstream version, bundle and patch list files.
+
 ## [1.29.1](https://github.com/lavinhoque33/revanced-patches/compare/v1.29.0...v1.29.1) (2026-11-04)
 
 ### Bug Fixes
@@ -498,6 +589,33 @@ First release of the lavinhoque33 fork, based on anddea 4.3.1-dev.1 (published a
 
 * **YouTube:** Support YouTube 21.39.525 ([d95145b](https://github.com/lavinhoque33/revanced-patches/commit/d95145b))
 * **YouTube Music:** Support YouTube Music 9.40.51 ([0bdbd84](https://github.com/lavinhoque33/revanced-patches/commit/0bdbd84))
+
+# [4.4.0-dev.5](https://github.com/anddea/revanced-patches/compare/v4.4.0-dev.4...v4.4.0-dev.5) (2026-11-03)
+
+
+### Features
+
+* **YouTube - Copy text:** Add option to select text of descriptions and posts ([9ecb6b9](https://github.com/anddea/revanced-patches/commit/9ecb6b970b71d14b2f9e4737d7a7d8ce091fc602))
+* **YouTube - Navigation bar components:** Add `Watch later` option for `Navigation bar items` setting ([b1151a0](https://github.com/anddea/revanced-patches/commit/b1151a0616f669d294df5cc2bbfc3daf73653a09))
+* **YouTube:** Add `Translate live chat` patch ([fd06c13](https://github.com/anddea/revanced-patches/commit/fd06c13ee62d58d95d552b569e85dd7bce5da232))
+* **YouTube:** Add `Unlock queue` patch ([6fb6e5c](https://github.com/anddea/revanced-patches/commit/6fb6e5ceaea2f0287d48e6819151c2b7dc33d8cb))
+
+# [4.4.0-dev.4](https://github.com/anddea/revanced-patches/compare/v4.4.0-dev.3...v4.4.0-dev.4) (2026-10-30)
+
+
+### Bug Fixes
+
+* **YouTube - Hide player buttons:** Hiding fullscreen overlay button in the video player left an empty gap ([36732b2](https://github.com/anddea/revanced-patches/commit/36732b27a2eb7c63c311bb85dcd64c36f252b3b5))
+* **YouTube - Hook download actions:** Use YouTube-style icons and check marks in the offline library and player ([#1889](https://github.com/anddea/revanced-patches/issues/1889)) ([a29768f](https://github.com/anddea/revanced-patches/commit/a29768f1cc8b268e4d7977f5829befc77fddc056))
+* **YouTube Music - Third-party lyrics:** Normalize LRCLIB title and artist metadata ([#1888](https://github.com/anddea/revanced-patches/issues/1888)) ([6862b24](https://github.com/anddea/revanced-patches/commit/6862b24554ff3fc2196aa893c2d7c4c751741304))
+* **YouTube Music:** Last played music state lost after app termination ([8595c10](https://github.com/anddea/revanced-patches/commit/8595c105ad851157ec6325ad44fdbb47b1d26e7b))
+
+
+### Features
+
+* **YouTube - Navigation bar components:** Add "Navigation bar style" setting ([221112a](https://github.com/anddea/revanced-patches/commit/221112a2cb5c4754ac5f3930118eb91bcabd009c))
+* **YouTube:** Add `Download post images` patch ([5d75658](https://github.com/anddea/revanced-patches/commit/5d756583cabd88d2c8a6a49c58130f6a801b77d7))
+* **YouTube:** Add `Search comments` patch ([30cc24f](https://github.com/anddea/revanced-patches/commit/30cc24f6d48b9d4320bb7cd3900062b759d3a1bf))
 
 # [4.4.0-dev.3](https://github.com/anddea/revanced-patches/compare/v4.4.0-dev.2...v4.4.0-dev.3) (2026-10-22)
 

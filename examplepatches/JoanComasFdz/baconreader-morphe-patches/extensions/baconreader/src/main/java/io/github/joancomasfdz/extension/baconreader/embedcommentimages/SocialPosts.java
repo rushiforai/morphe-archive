@@ -353,7 +353,7 @@ final class SocialPosts {
 
     /** The photo's size in the text: the width of a YouTube thumbnail, narrower when the photo is tall. */
     private static int[] imageSize(TextView textView, int width, int height) {
-        int baseWidth = EmbedCommentImagesPatch.isFullWidthDefault() ? contentWidth(textView) : dp(textView, IMAGE_WIDTH_DP);
+        int baseWidth = EmbedCommentImagesPatch.fullWidthFor(textView) ? contentWidth(textView) : dp(textView, IMAGE_WIDTH_DP);
         float ratio = width > 0 && height > 0 ? (float) height / width : 9f / 16f;
         int w = baseWidth;
         int h = Math.round(w * ratio);
@@ -463,7 +463,7 @@ final class SocialPosts {
                 parseDate(json.optString("created_at", "")), imageUrl, width, height, video);
     }
 
-    /** A Bluesky post (getPostThread). Its first image, video still or link preview is shown. */
+    /** A Bluesky post (getPostThread). Its first image, gallery photo, video still or link preview is shown. */
     static Post parseBluesky(JSONObject json) throws Exception {
         JSONObject thread = json.optJSONObject("thread");
         JSONObject post = thread == null ? null : thread.optJSONObject("post");
@@ -488,6 +488,15 @@ final class SocialPosts {
                 JSONObject first = images == null || images.length() == 0 ? null : images.getJSONObject(0);
                 if (first != null) {
                     imageUrl = first.optString("thumb", null);
+                    ratio = first.optJSONObject("aspectRatio");
+                }
+            } else if (type.startsWith("app.bsky.embed.gallery")) {
+                // Bluesky sends a post's photos as a gallery too (seen on 2026-11-04): each item
+                // has its "thumbnail" where an image has its "thumb".
+                JSONArray items = embed.optJSONArray("items");
+                JSONObject first = items == null || items.length() == 0 ? null : items.getJSONObject(0);
+                if (first != null) {
+                    imageUrl = first.optString("thumbnail", null);
                     ratio = first.optJSONObject("aspectRatio");
                 }
             } else if (type.startsWith("app.bsky.embed.video")) {

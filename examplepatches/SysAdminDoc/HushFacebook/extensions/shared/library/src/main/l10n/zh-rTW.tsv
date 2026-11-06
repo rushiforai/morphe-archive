@@ -1004,7 +1004,9 @@ The phone's language	手機語言
 Languages to leave alone	不翻譯的語言
 None picked. Posts in every language can be translated.	未選擇。任何語言的貼文都可以翻譯。
 Left alone: %s	不翻譯：%s
-Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	動態中的貼文和連續短片的說明會顯示全部文字，不用再點「顯示更多」。輕觸文字即可重新收合。
+Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold it back. Reel captions have their own switch under Reels and Watch.	動態中的貼文會顯示全部文字，不用再點「顯示更多」。輕觸文字即可重新收合。連續短片的說明在 Reels 與 Watch 裡有獨立的開關。
+Show full reel captions	顯示完整連續短片說明
+Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	連續短片的長說明會直接顯示全部文字。輕觸說明即可重新收合。變更從下一部連續短片開始生效。
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	查看誰分享了
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	在貼文選單中加入「查看誰分享了」，開啟 Facebook 上分享這則貼文的使用者清單。
@@ -1019,8 +1021,8 @@ Hide the Feeds header	隱藏動態消息標題列
 Shows the Feeds tab straight on its posts, without the title row or the filters. Restart Facebook to see the change.	「動態消息」分頁直接顯示貼文，不顯示標題列與篩選器。重新啟動 Facebook 後生效。
 # context: switch title under Reels and Watch; the prompt is Facebook's "Are you interested in this reel?" question on a reel
 Hide reel interest prompts	隱藏 Reels 興趣提示
-# context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it
-No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	Reels 不再顯示「你對這則 Reels 感興趣嗎？」提示。Reels 仍照常播放。
+# context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it; the survey card is Facebook's "To what extent does this video match your interests?" card shown between reels
+No "Are you interested in this reel?" prompt on reels, and no survey card between them asking how well a video matches your interests.	Reels 不再顯示「你對這則 Reels 感興趣嗎？」提示，Reels 之間也不再顯示詢問影片是否符合你興趣的調查卡片。
 # context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
 Hide affiliate product links	隱藏聯盟行銷商品連結
 # context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
@@ -1389,6 +1391,7 @@ A few seconds after you leave Facebook, it closes all the way and leaves your re
 Facebook asks for your fingerprint, face or screen lock at startup and when you return after the time below. Your phone needs a screen lock.	Facebook 啟動時，以及離開達下方時間後返回時，會要求使用指紋、臉部辨識或螢幕鎖定驗證。手機需已設定螢幕鎖定。
 # context: toast when Lock Facebook is turned on and the phone has no screen lock to ask for
 Set a screen lock in your phone's settings first, so Facebook has something to ask for.	請先在手機設定中設定螢幕鎖定，Facebook 才能要求驗證。
+Lock Facebook needs Android 10 or newer.	鎖定 Facebook 需要 Android 10 或更新版本.
 # context: title of the row and list that picks how long Facebook may be away before it locks
 Lock after	鎖定時間
 # context: Lock after choice: Facebook locks the moment you leave it
@@ -1744,8 +1747,8 @@ Longer music on photo stories	延長相片限時動態的音樂
 A song you add to a photo for your Story plays for up to 30 seconds instead of 15. Applies to the next song you pick.	加入相片限時動態的歌曲最多可播放 30 秒，取代原本的 15 秒。從下一首選擇的歌曲起生效。
 # context: switch title under Stories; two fingers spread apart on a story or a profile photo make it bigger
 Pinch to zoom	雙指縮放
-# context: summary of that switch; "let go" means lifting your fingers off the screen
-Pinch a story or a photo on someone's profile to zoom in. It goes back when you let go.	以雙指縮放限時動態或他人個人檔案上的相片。放開後會恢復原狀。
+# context: summary of that switch; "let go" means lifting your fingers off the screen; "Photo carousel" is the label of another switch, so use its translation
+Pinch a story, a video in your feed, or a photo on someone's profile or in Photo carousel to zoom in. It goes back when you let go.	以雙指縮放限時動態、動態消息中的影片、他人個人檔案上的相片或相片輪播中的相片。放開後會恢復原狀。
 # context: switch title under Stories, right below Pinch to zoom; the zoomed picture stays zoomed after the fingers lift
 Stay zoomed	保持縮放
 # context: summary of that switch; "Pinch to zoom" is the label of the switch above it, so use its translation; "Back" is the phone's Back button
@@ -1760,8 +1763,8 @@ Dim around a zoom	縮放時調暗周圍
 With Pinch to zoom on, the screen around a photo or story darkens as you zoom in. Turn it off to keep the rest of the screen as it is.	啟用「雙指縮放」後，放大相片或限時動態時，周圍的畫面會隨之變暗。關閉後，畫面其餘部分維持原樣。
 # context: a switch under Pinch to zoom; with it on, a video you zoom keeps moving instead of freezing on the frame it showed
 Keep videos playing while zoomed	縮放時影片繼續播放
-# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a Page is a business's or public figure's Facebook page; a story is the full-screen picture or video someone shares for a day
-With Pinch to zoom on, a video you zoom on a profile or Page keeps playing. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it. Stories hold still while you zoom.	啟用「雙指縮放」後，在個人檔案或粉絲專頁上縮放的影片會繼續播放。同時啟用「保持縮放」時，長按縮放的畫面可暫停影片，再次長按即可繼續播放。縮放時限時動態會保持靜止。
+# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a story is the full-screen picture or video someone shares for a day; "hold it first" means pressing and holding one finger on the story before the second finger comes down
+With Pinch to zoom on, a video you zoom keeps playing, stories included. To zoom a story on a still frame, hold it first and then pinch. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it.	啟用「雙指縮放」後，縮放的影片會繼續播放，限時動態也一樣。如要在靜止畫面上縮放限時動態，請先長按，再以雙指縮放。同時啟用「保持縮放」時，長按縮放的畫面可暫停影片，再次長按即可繼續播放。
 No ads downloaded in advance	不預先下載廣告
 No ad tracking	不進行廣告追蹤
 No Facebook ads in other apps	不在其他應用程式顯示 Facebook 廣告
@@ -1929,6 +1932,10 @@ Takes the phone's status bar, with the time and battery, off Facebook's main scr
 Open feed videos on their own	單獨開啟動態消息影片
 # context: summary of that switch; the Reels tab itself still scrolls normally
 A video you tap in the feed opens full screen by itself, with no reels to swipe to after it. The Reels tab keeps scrolling. Off by default, since it hasn't been tried on a real account yet.	點按動態消息中的影片後，會單獨以全螢幕開啟，結束後沒有可滑動切換的 Reels。Reels 分頁仍可持續捲動。預設停用，因為尚未使用真實帳號測試。
+# context: switch title under Reels and Watch; on, tapping Watch again when a video in the news feed ends plays it again in the feed instead of opening it in the Reels viewer
+Replay feed videos in place	在動態消息中原地重播影片
+# context: summary of that switch; Watch again is Facebook's own button shown when a feed video ends, so use Facebook's wording in your language if you know it
+Watch again at the end of a feed video plays it again right there, instead of opening it in Reels.	動態消息中的影片結束時點按「再看一次」，會在原處重新播放，而不是在 Reels 中開啟。
 Hide the new comments pop-up	隱藏新留言彈出提示
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	閱讀留言時不再彈出「新留言」泡泡。新留言仍會顯示在清單中。
@@ -2566,3 +2573,17 @@ With Seek bar on stories on, the bar fades a few seconds after the story starts 
 Clean mode	簡潔模式
 Clean mode button on reels	Reels 上的簡潔模式按鈕
 Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	在 Reels 側邊的按鈕中加入簡潔模式按鈕。點按它即可隱藏這些按鈕，滑動時簡潔模式會保持開啟。Facebook 內建的簡潔模式按鈕可讓它們重新顯示。
+Open chats in Messenger	在 Messenger 中開啟聊天
+Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	在 Messenger 應用程式中開啟聊天，而不是在 Facebook 內開啟，包括個人檔案上的「傳送訊息」按鈕，前提是已安裝並啟用 Messenger。未安裝 Messenger 時，聊天仍在 Facebook 中開啟。變更後請重新啟動 Facebook。
+Hide the Fullscreen button	隱藏「全螢幕」按鈕
+Takes the Fullscreen button off the space under a wide video in Reels. A change shows from the next video.	移除 Reels 中寬螢幕影片下方空白處的「全螢幕」按鈕。從下一部影片起生效。
+Hide rings in the feed	隱藏動態消息中的圓環
+Hide rings in comments	隱藏留言中的圓環
+Hide rings on profiles	隱藏個人檔案上的圓環
+Takes the story and LIVE rings off the profile pictures at the top of posts. Tapping the picture opens the profile. Applies to posts drawn after the change.	移除貼文頂部大頭貼照上的限時動態和 LIVE 圓環。點按大頭貼照會開啟個人檔案。對變更後顯示的貼文生效。
+Takes the story ring off the profile pictures next to comments. Applies to comments drawn after the change.	移除留言旁大頭貼照上的限時動態圓環。對變更後顯示的留言生效。
+Takes the story and LIVE rings off the picture on a profile, and in the lists and search results that show it the same way. Applies the next time the picture draws.	移除個人檔案大頭貼照上的限時動態和 LIVE 圓環，以及以相同方式顯示的清單和搜尋結果中的圓環。從大頭貼照下次顯示時生效。
+Hide profile pictures on posts	隱藏貼文上的大頭貼照
+Hide profile pictures in comments	隱藏留言中的大頭貼照
+Takes the profile picture off the top of posts, so the name starts where the picture was. A change shows on the posts drawn after it.	移除貼文頂端的大頭貼照，名字從大頭貼照原本的位置開始。變更對之後顯示的貼文生效。
+Takes the profile picture off comments, so the name and text start where the picture was. A change shows on the comments drawn after it.	移除留言中的大頭貼照，名字和內容從大頭貼照原本的位置開始。變更對之後顯示的留言生效。

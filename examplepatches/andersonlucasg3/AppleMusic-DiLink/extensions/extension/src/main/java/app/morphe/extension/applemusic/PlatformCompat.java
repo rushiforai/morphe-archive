@@ -296,6 +296,7 @@ public final class PlatformCompat {
             if (code == null) {
                 return null;
             }
+            code = applyColorSchemeCompat(code);
             android.webkit.WebResourceResponse response = new android.webkit.WebResourceResponse(
                     "application/javascript",
                     "UTF-8",
@@ -308,6 +309,24 @@ public final class PlatformCompat {
         } catch (Throwable t) {
             return null;
         }
+    }
+
+    /**
+     * The DiLink WebView (Chromium 74) has matchMedia but not the prefers-color-scheme media
+     * feature, so the login page always picks the light theme on a black WebView background.
+     * Rewriting the served JS reports a dark scheme, which the page renders legibly.
+     */
+    private static String applyColorSchemeCompat(String code) {
+        if (!code.contains("prefers-color-scheme")) {
+            return code;
+        }
+        return code
+                .replaceAll(
+                        "window\\.matchMedia\\(\"\\(prefers-color-scheme: dark\\)\"\\)\\.matches",
+                        "true")
+                .replaceAll(
+                        "([A-Za-z_$][A-Za-z0-9_$]*)\\s*=\\s*window\\.matchMedia\\(\"\\(prefers-color-scheme: dark\\)\"\\)(?!\\s*\\.)",
+                        "$1 = {matches: true, addListener: function () {}, removeListener: function () {}, addEventListener: function () {}, removeEventListener: function () {}}");
     }
 
     private static java.util.Map<String, String> dlAssets() {

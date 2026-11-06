@@ -1,3 +1,35 @@
+# [0.10.1](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.10.1) (2026-11-06)
+
+### Fixes
+
+* **AnkiDroid:** Fix JetBrains Mono in home-screen widgets. Render widget labels with the bundled font before passing them to the launcher, preserving original text accessibility and tap actions. Keep Catppuccin colors and background opacity.
+
+# [0.10.0](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.10.0) (2026-11-06)
+
+### Updates
+
+* **AnkiDroid:** Theme home-screen widgets with Catppuccin Latte/Macchiato, light deck-name text in dark mode, and matching blue/red/green card counts. Bundle JetBrains Mono for widget text.
+* **AnkiDroid:** Add Appearance → Widget appearance with a 0–100% background-opacity control and preview. Keep text fully visible and refresh existing widgets when opacity or theme changes.
+
+# [0.9.1](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.9.1) (2026-11-06)
+
+### Updates
+
+* **Boost:** Increase Catppuccin comment-level indicators from 2 dp to 3 dp on Boost 1.14.2. Keep the approved post separators and comment colors.
+
+# [0.9.0](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.9.0) (2026-11-06)
+
+### Updates
+
+* **Boost:** Support 1.14.2 alongside 1.12.12 for separate Catppuccin Latte/Macchiato themes and custom TTF fonts. Apply alongside compatible Patcheddit patches using an original APK.
+* **Boost:** Restore themed navigation, media viewers, flair, username badges, Follow buttons, refresh indicators, text-post panels and profile patterns. Use 2 dp colored comment indicators and single surface0 post separators; fix media-viewer crashes while preserving stock themes.
+
+# [0.8.1](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.8.1) (2026-11-05)
+
+### Updates
+
+* **Immich:** Support the verified 3.3.6 arm64 APK for Catppuccin Latte/Macchiato and custom TTF fonts, keeping mauve selected labels and the Mantle dock. Retain 3.3.5 support and strict native-binary checks.
+
 # [0.8.0](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.8.0) (2026-10-24)
 
 ### Features

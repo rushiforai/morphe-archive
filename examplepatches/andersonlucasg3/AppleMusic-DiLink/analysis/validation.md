@@ -57,7 +57,7 @@ Sem o patch, `m1.x()` classificaria 1080/480dpi = 360dp como `PHONE` e `MainActi
 
 | Passo | Resultado |
 |---|---|
-| Source `github.com/andersonlucasg3/AppleMusic-DiLink` | adicionada; "Apple Music" aparece com `v7.0.0` |
+| Source `github.com/andersonlucasg3/apple-music-morphe-patches` | adicionada; "Apple Music" aparece com `v7.0.0` |
 | Pacote do app | XAPK 7.0.0 selecionado do armazenamento |
 | Patch | `Apple Music DiLink Patches 1.0.0`, 1 patch, status **Patchado** |
 | Instalação | feita pelo Manager (Play Protect barrou a 1ª tentativa; verificador desativado temporariamente e restaurado) |

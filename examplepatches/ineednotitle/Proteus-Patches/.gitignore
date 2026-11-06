@@ -9,3 +9,5 @@ extensions/extension/build/
 # export GITHUB_ACTOR / GITHUB_TOKEN, or ~/.gradle/gradle.properties
 # gradle.properties is tracked for project config; keep secrets out of it.
 local.properties
+__pycache__/
+*.py[cod]

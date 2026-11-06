@@ -36,8 +36,8 @@ world.LoginPage.ShowCookieBanner = true;
   comment's text. Each fills in everything Reddit sends for it, with media the fake serves:
   - a flair is the post's `link_flair_text`, a `link_flair_css_class` made of its words, and one text part in its
     `link_flair_richtext`;
-  - a gallery (`AsGallery`) is one JPEG or more: `is_gallery`, the URL `https://www.reddit.com/gallery/<id>` moved to
-    the fake (`<baseUrl>/gallery/<id>`, as BaconReader recognizes one), the images in `media_metadata`, with Reddit's
+  - a gallery (`AsGallery`) is one JPEG or more: `is_gallery`, the URL `https://www.reddit.com/gallery/<id>`, Reddit's
+    own, which "E2E fake Reddit" doesn't move ("Real addresses in content"), the images in `media_metadata`, with Reddit's
     `p` previews 108, 216 and 320 pixels wide (signed, their "&" HTML-escaped), and `gallery_data`; each image's full
     file at `i.redd.it/<id>.jpeg`, where the gallery viewer loads it;
   - a GIF post (`WithGif`) is `MediaAsset.LargeGif` at i.redd.it, a still of it as thumbnail and preview, and the GIF in
@@ -86,6 +86,9 @@ world.LoginPage.ShowCookieBanner = true;
   as DASH and HLS playlists and their video and sound renditions (and playlists without the sound), and a web page whose
   script asks for the page again with `?script=ran` once it runs. `AddVideoWithoutPost()` serves one that no post has, whose `/video/<id>` is a 404. `AddRedditVideo(id)` serves a video as v.redd.it
   does.
+- `Imgur.AddAlbum(…)` makes an Imgur album ("Imgur" below), `RedGifs.AddGif(…)` a RedGIFs video ("RedGIFs" below),
+  `YouTube.AddVideo(…)` a YouTube video ("YouTube" below), `X.AddPost(…)` and `Bluesky.AddPost(…)` a post ("X and
+  Bluesky" below).
 - `GiveAvatar(user, seeThrough)` gives a user an avatar, a picture or one that is all see-through, which `api/user_data_by_account_ids` names.
 - A `RequestTrouble` with `Times` hits only the first requests it matches: a network hiccup.
 - The E2E project wraps this in the Gherkins' words (`Infrastructure/Reddit/`).
@@ -121,11 +124,122 @@ without is logged out, and Reddit's API refuses it with `HTTP 403 Blocked`, as R
 | `GET /api/v1/authorize/answer` ("Accept" or "Decline") | 302 to `<redirect_uri>?state=<state>&code=<code>`, or `error=access_denied` |
 | `POST /api/v1/access_token` | Basic auth by the client ID; trades a code (once) or a refresh token for `access_token`, `refresh_token`, `token_type`, `expires_in`, `scope` |
 | `GET`, `HEAD /_media/{host}/{path}` | the media store's file; `www.reddit.com/video/…` is `v.redd.it/…`, as BaconReader rewrites it; a video's own `v.redd.it/<id>` is a 302 to `/video/<id>`, and BaconReader's rewrite of it, `www.reddit.com/video/<id>`, answers as `/video/<id>`; a `preview.redd.it` URL whose query still has `&amp;` is a 403, as Reddit refuses a signature that doesn't match |
+| `GET /_imgur/3/album/{id}/images` | Imgur's API, "Imgur" below: the album's images (`{"data": [image…], "success": true, "status": 200}`); 404 with `"album not found"` for an album the world doesn't have |
+| `GET /_imgur/3/gallery/{id}` | Imgur's gallery post: the album with its title and images; Imgur's HTML 404 page for one the world doesn't have |
+| `POST /_imgur/3/image` | an upload: the raw file stored at `i.imgur.com/<id>.<ext>` and answered as Imgur does (`link`, `type`, `deletehash`…), recorded in `Imgur.Uploads` with its content type; one sent as a form (`application/x-www-form-urlencoded`, BaconReader's without "Fix Imgur API") or that isn't a PNG or a JPEG is refused, 400 |
+| `GET /_redgifs/v2/auth/temporary` | RedGIFs' API, "RedGIFs" below: a temporary token for the request's User-Agent (`token`, `addr`, `agent`, `session`, `rtfm`) |
+| `GET /_redgifs/v2/gifs/{id}` | the video's information (`gif.urls`: `hd`, `sd`, `poster`, `thumbnail`, `html`), with a token RedGIFs gave and its User-Agent; RedGIFs' errors otherwise |
+| `GET /_youtube/oembed?format=json&url=…` | YouTube's oEmbed, "YouTube" below: the linked video's title and channel; 404 `Not Found` for one YouTube removed or never had |
+| `GET /_x/tweet-result?id=…&token=…` | X's embed service, "X and Bluesky" below: the post; a 404 page for one X doesn't have |
+| `GET /_bluesky/xrpc/app.bsky.feed.getPostThread?…&uri=at://…` | Bluesky's public API: the post's thread; `400 NotFound` for one Bluesky doesn't have |
 | `GET`, `POST`, `PUT /_fake/…` | for debugging: `requests`, `unhandled`, `actions`, `logins`, `world`; `reset`, `accounts`, `subscriptions`, `posts`, `comments`, `media/{path}` |
 | anything else | 404, recorded in `Unhandled` |
 
 Each step of the login records the client ID, redirect URI and User-Agent it saw (`Logins`), so a test can check that
 "Spoof client" logged in as RedReader.
+
+## Imgur
+
+"E2E fake Reddit" moves Imgur's API, `https://api.imgur.com/`, to `<base>/_imgur/`, and its images,
+`https://i.imgur.com/`, to `<base>/_media/i.imgur.com/`: "Fix Imgur API" and "Embed comment images" fetch albums and
+upload images there. `RedditWorld.Imgur` holds the albums and the uploads.
+
+- `Imgur.AddAlbum(title, images, inGallery, videos)`: an album of that many JPEGs, then MP4 videos, linked
+  `https://imgur.com/a/<id>`, or on Imgur's gallery `https://imgur.com/gallery/<id>`. A post or a comment links it at
+  that address, Imgur's own: BaconReader and "Embed comment images" know an album by it ("Real addresses in content").
+- Its answers have every field Imgur's API sent BaconReader's client ID on 2026-11-03 (album `AmB1y`, gallery post
+  `EoM2jZi`), in Imgur's order: a still image with `"mp4": ""`, as Imgur sends it, not left out; a video with its `mp4`,
+  `gifv`, `hls`, `mp4_size` and `processing`. Each image's `link` is at the fake's address, which BaconReader only loads.
+- `i.imgur.com/<id><size>.<ext>` serves the image whatever size letter (`s`, `b`, `t`, `m`, `l`, `h`) and extension are
+  asked for, as Imgur does; a video's sizes are a still of it.
+- A request without Imgur's `Authorization: Client-ID …` is refused, 401.
+- Unconfirmed: what Imgur answers an upload it refuses (the fake doesn't upload to the real Imgur to see).
+
+## RedGIFs
+
+"E2E fake Reddit" moves RedGIFs' API, `https://api.redgifs.com/`, to `<base>/_redgifs/`: "Fix Redgifs API" asks it for a
+temporary token and for a video's files, "Fix list thumbnails" for a video's thumbnail, and "Improve post media
+loading" tells from its errors that a video is gone. `RedditWorld.RedGifs` holds the videos, the tokens it gave and
+what the app asked (`RedGifs.Requests`: each token asked for, and each lookup with its token, User-Agent and status).
+
+- `RedGifs.AddGif(state)`: a video, linked `https://www.redgifs.com/watch/<id>`, RedGIFs' own address, which BaconReader
+  and the patches know it by. Its id is lowercase letters, as RedGIFs' are, and its files are served at
+  `<base>/_media/media.redgifs.com/<Id>.mp4`, `-mobile.mp4`, `-poster.jpg` and `-mobile.jpg`, named as RedGIFs names
+  them. `RedGifState.Deleted` makes one RedGIFs deleted.
+- Every answer is RedGIFs' own of 2026-11-03, its fields in RedGIFs' order: a token is bound to the User-Agent it was
+  given to (RedGIFs binds it to the address too); a lookup without a token is `401 AuthorizationHeaderMissing`, with one
+  RedGIFs never gave `401 Unauthorized`, with another User-Agent `401 WrongSender`; a deleted video is `410 GifDeleted`,
+  one RedGIFs never had `404 GifNotFound`.
+- `RedGifs.ForgetTokens()` refuses each token it gave, `401 WrongSender`, as RedGIFs does once the phone's address
+  changes, until the app asks for a new one.
+
+## YouTube
+
+"E2E fake Reddit" moves YouTube's oEmbed endpoint, `https://www.youtube.com/oembed`, to `<base>/_youtube/oembed`, and
+its thumbnails, `https://i.ytimg.com/`, to `<base>/_media/i.ytimg.com/`: "Embed comment images" asks oEmbed for a bare
+YouTube link's title, and it and "Fix list thumbnails" load a video's thumbnail. `RedditWorld.YouTube` holds the videos.
+
+- `YouTube.AddVideo(title, channel, removed)`: a video on the channel `@<channel>`, linked
+  `https://www.youtube.com/watch?v=<id>` (or `https://youtu.be/<id>`, `/shorts/<id>`), YouTube's own address, which the
+  patches know it by. Its id is 11 characters, as YouTube's are, and its thumbnails are served at
+  `i.ytimg.com/vi/<id>/mqdefault.jpg` and `hqdefault.jpg`. `removed` makes one YouTube no longer has.
+- oEmbed answers as YouTube answered on 2026-11-04, every field in its order (`title`, `author_name`, `author_url`,
+  `type`, `height`, `width`, `version`, `provider_name`, `provider_url`, `thumbnail_height`, `thumbnail_width`,
+  `thumbnail_url`, `html`). A video YouTube removed or never had is `404` with the body `Not Found`, as YouTube answers
+  one (an id it can't read is `400 Bad Request` there; the patch treats both alike).
+- Its `thumbnail_url` is YouTube's own address, as YouTube sends it. The patches load a video's thumbnail from its id
+  instead, and read this one only for a playlist, which the fake doesn't have: the patch takes it only at an https
+  address, which the fake's plain HTTP isn't.
+
+## X and Bluesky
+
+"E2E fake Reddit" moves X's embed service, `https://cdn.syndication.twimg.com/`, to `<base>/_x/`, Bluesky's public API,
+`https://public.api.bsky.app/`, to `<base>/_bluesky/`, and X's photos, `https://pbs.twimg.com/`, to
+`<base>/_media/pbs.twimg.com/`: "Embed comment images" shows a bare X or Bluesky link as the post. `RedditWorld.X` and
+`RedditWorld.Bluesky` hold the posts.
+
+- `X.AddPost(name, handle, text, createdAt, media, long)`: a post linked `https://x.com/<handle>/status/<id>`, X's own
+  address. Its answer is X's of 2026-11-04, its fields in X's order: a photo or video still in `mediaDetails`, at the
+  fake's `pbs.twimg.com` (the patch asks for it with `?name=small`), whose `t.co` link ends the text, outside
+  `display_text_range`; a `long` post cut at 279 characters, with `note_tweet`. A post X doesn't have is `404` with an
+  HTML page. X didn't check the token on 2026-11-04, and neither does the fake.
+- `Bluesky.AddPost(name, handle, text, createdAt, embed)`: a post linked `https://bsky.app/profile/<handle>/post/<key>`.
+  `getPostThread` answers as Bluesky did on 2026-11-04, with the embed's view: `images`, `video`, `external` (a link
+  card) or `gallery`, which Bluesky sent for a post of several photos; each picture at the fake's `cdn.bsky.app` or
+  `video.bsky.app`. A post Bluesky doesn't have is `400 {"error": "NotFound", …}`.
+
+## Emotes
+
+A comment's emotes are `![img](emote|<pack>|<name>)` in its body: a Snoomoji, Reddit's own (`free_emotes_pack`), or a
+subreddit's (`t5_<subreddit id>`). `CommentBuilder.WithSnoomoji(name)` and `WithSubredditEmote()` add one after the
+body's text, on its line. Reddit's API sent every emote the same way on 2026-11-05 (an r/wallstreetbets comment of 2024,
+`RedditEmotes`), and so does the fake: its placeholder, the Snoomoji `dizzy_face`, in `body_html`
+(`<img src="…/dizzy_face.gif" width="60" height="60" style="vertical-align:middle">`) and in `media_metadata` (an
+`AnimatedImage` whose `s.gif` is that GIF, `t` `sticker`). "Embed comment images" finds a Snoomoji's GIF from its name,
+at `https://www.redditstatic.com/…/free_emotes_pack/<name>.gif`, which "E2E fake Reddit" moves to
+`<base>/_media/www.redditstatic.com/`; the fake serves the placeholder and each Snoomoji a comment has. A subreddit's
+emote had its own image in `media_metadata` until 2024 (the Arctic Shift archive); now nothing Reddit sends holds it. No
+comment written since early 2025 has an emote.
+
+## Imgflip
+
+"E2E fake Reddit" moves `https://i.imgflip.com/` to `<base>/_media/i.imgflip.com/`: "Fix meme templates" shows Imgflip's
+100 most used templates in the drawing screen's template grid, a fixed list in the patch, as their thumbnails
+(`4/<id>.jpg`), and downloads a tapped one at full size (`<id>.jpg` or `.png`). `Imgflip.Templates` is the same list, in
+the patch's order, with each template's name on Imgflip.
+
+- `RedditWorld.Imgflip.AddTemplates()`: Imgflip serves every template, as Imgflip did on 2026-11-05: a thumbnail is a
+  JPEG, a full template a JPEG or a PNG, as its file says.
+- `RemoveTemplate(name)`: Imgflip no longer has the template at full size: `404` with an HTML page, as Imgflip answers an
+  image it doesn't have. Its thumbnail still shows.
+- Without `AddTemplates()`, a request for a template is unhandled.
+
+## Reddit chat
+
+"Reddit chat" shows `https://www.reddit.com/chat` in a web view, which "E2E fake Reddit" moves to `<base>/chat` with the
+rest of www.reddit.com. Reddit's chat is a website behind a login, with no API, so the fake answers `/chat` and its
+pages with a plain page of its own, not Reddit's: the heading "Chats", then a link each `RedditWorld.Chat.AddLink(text,
+address)` made. A scenario gives it the links it taps, at Reddit's own addresses, as a link in the chat has them.
 
 ## The JSON
 
@@ -146,8 +260,31 @@ Each step of the login records the client ID, redirect URI and User-Agent it saw
 - **`v.redd.it` links:** BaconReader turns any link containing "v.redd.it" into one with `www.reddit.com/video`, by
   string replace: `/_media/www.reddit.com/video/x` serves `v.redd.it/x`. A video post needs `media.reddit_video` with
   an `.mp4` `fallback_url`: without it, BaconReader follows a redirect that must point at a reddit.com host.
-- **Galleries:** BaconReader recognizes one by a `url` containing `<baseUrl>/gallery/` (its `https://www.reddit.com/gallery`
-  moved there), and needs `gallery_data` and `media_metadata`.
+- **Galleries:** BaconReader recognizes one by a `url` containing `https://www.reddit.com/gallery/`, which "E2E fake
+  Reddit" leaves as it is, and needs `gallery_data` and `media_metadata`.
+
+## Real addresses in content
+
+**Content links that a patch must recognize as Reddit's keep Reddit's real address; only what the app fetches goes to
+the fake.** "E2E fake Reddit" moves every full Reddit URL prefix in the app's code to the fake. Data the fake serves is
+not code: a link in it stays as written. Write a link the app or a patch checks by host or prefix as Reddit sends it
+(`https://www.reddit.com/…`, `https://v.redd.it/<id>`); what the app then fetches, from addresses its code makes,
+reaches the fake. A link written with the fake's address takes a path real Reddit never takes, and the scenario
+doesn't test the patch. Two such gaps reached users or a test:
+
+- A gallery's `url`, `https://www.reddit.com/gallery/<id>`: moved, "Fix Reddit links" didn't take it for a Reddit link,
+  and its gallery regression passed the tests. The patch now leaves strings that start with it alone.
+- A link post to a video, `https://v.redd.it/<id>` (`Reddit.HasALinkPostLinkingToTheVideoOf`): BaconReader turns it
+  into `https://www.reddit.com/video/<id>` to find the video's post, which "Fix Reddit links" answers with the video.
+  Moved, it was `<baseUrl>/_media/www.reddit.com/video/<id>`, which the patch doesn't know: the app's own lookup got a
+  403.
+
+Where a check needs Reddit's address and the content can't keep it, "E2E fake Reddit" has the smallest hook instead:
+`RedditVideo.isValid` takes a URL under `<baseUrl>/_media/v.redd.it/` for a Reddit video, so videos posted to the fake
+play. A comment's link to a video's address uses the moved form for that reason, and is faithful through the hook.
+
+Media files the app only loads (`i.redd.it`, `preview.redd.it`, a video's playlists, an example page) are at the fake's
+address: nothing checks their host before loading them, beyond the hook.
 - **Video posts:** BaconReader plays and saves a post as a Reddit video only when its URL's host is `v.redd.it`, then plays
   its HLS playlist and saves its `fallback_url` made https. "E2E fake Reddit" takes a URL under
   `<baseUrl>/_media/v.redd.it/` for a Reddit video and keeps the fake's plain HTTP when a video is saved; without them,
@@ -157,5 +294,5 @@ Each step of the login records the client ID, redirect URI and User-Agent it saw
 - **Relative links:** `RedditSpanner` builds `//reddit.com/…` for relative links, which stays on Reddit.
 - **Reddit links in content:** BaconReader recognizes them by bare domain. Content that should open as a Reddit link
   says `https://www.reddit.com/…`: the app then fetches it through the moved API. Not `<baseUrl>/r/…`.
-- **Out of scope:** Reddit's chat (`chat.reddit.com`, `accounts.reddit.com`, `.reddit.com` cookies) and Snoomoji emotes
-  (`www.redditstatic.com`).
+- **Out of scope:** Reddit's own chat app (`chat.reddit.com`, `accounts.reddit.com`, `.reddit.com` cookies): see
+  "Reddit chat".

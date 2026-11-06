@@ -8,13 +8,23 @@ Every Hushfeed release, newest first.
 
 * `Show where commenters are from` also checks the country field on a commenter's account, and uses it only when it holds a two letter code (#201).
 * `Long press on Profile opens my watch history` makes holding the Profile tab show the watch history kept on your phone, so the long press on For You can keep opening Hushfeed settings. A tap on Profile works as before. It starts off, and it sits under `Keep my own watch history` (#172).
+* `Discover in the bottom bar` puts Discover where Friends sits in the bottom bar, the layout TikTok gives Indonesia, and your region and feed stay as they are. It starts off, lives in Hushfeed settings > Feed tabs and takes a TikTok restart (#98).
 * The Feature Gate Lab can override experiments TikTok reads as a whole object, like the home tab layout. It couldn't reach those before. An override changes only the fields you give it, and it still applies when TikTok sent your account nothing for that experiment (#98).
+* The diagnostic export has a Font section. It shows which font TikTok's text went out in, whether an imported font loaded (and if it didn't, why), and the Samsung font style on Galaxy phones (#346).
+* Settings an update adds get a small dot after their name in Hushfeed settings, and the closed section they sit in gets one too, so you can spot what's new. A dot goes away after the visit that shows it, and a fresh install starts with none (#349).
+* `Startup message` shows a message you write each time TikTok opens, with an optional title. Turn off `Close with Back or a tap outside` and only its OK button closes it. Rotating the phone or changing TikTok's theme doesn't bring it back. It starts off and lives in Hushfeed settings > App (#347).
+* With a color picked in `AMOLED dark theme`'s options, Profile, Inbox and TikTok's other full pages take that color too. Before, they stayed black. The light look and the video feed don't change (#348).
+* `Block P2P video relay` also takes out the LIVE relay's two leftover libraries, about 1 MB more. The split APK bundle never had them, so nothing changes for those installs (#70).
+* `Bend the video at the edges` makes the glass pill's rim bend the blurred video behind it the way the edge of real glass does, and it gives the colors there a small lift. It sits under `Blur the video behind the bar`, starts off and needs Android 13 or newer (#231).
 
 ### Bug Fixes
 
 * A bio handle with a period and a date stuck to it, like @john.doe11/30/24, stays plain text now. In 0.81.0 it linked only the part before the period, which opened a different account (#247).
 * With `Long-press Profile for Watch history` on, holding Profile opens Watch history again after you remove your second account. Before, the hold did nothing until TikTok rebuilt its tab bar (#341).
 * Hushfeed adds less lag when a video opens from Search or Explore. The part that hides buttons on videos rebuilt its whole lookup list on every screen layout while the page opened, and now builds it once. With `Playback quality` set, each video's addresses get checked once too, instead of again in every place the player asks (#344).
+* LIVE Auto tap taps the host's side of the stream now. In a battle or a room with guests it used to tap near the middle, hit the other creator's half and open their profile card, which stopped it after a second. If a tap still opens a card, the next start in that room skips that spot (#335).
+* With `LIVE recording source` set to Screen, a recording keeps going after you allow it. Android's permission screen made TikTok think you were leaving the room, so TikTok shrank the LIVE into its own picture-in-picture window and the recording stopped a few seconds in.
+* On some phones the screen blinked each time a video slid under the bar with `See-through bottom bar` on. The new `Stop the blink under the bar` switch under it has TikTok draw the video inside its own window instead of on a separate layer, which those phones were dropping for a frame. It starts off and takes a TikTok restart (#232).
 
 ## 0.81.0 (2026-11-05)
 

@@ -22,6 +22,7 @@ public sealed class PostList(AndroidDriver driver)
     private static readonly OpenQA.Selenium.By List = Locate.AppId("rv_links");
     private static readonly OpenQA.Selenium.By Title = Locate.AppId("title");
     private static readonly OpenQA.Selenium.By Message = Locate.AppId("errorText");
+    private static readonly OpenQA.Selenium.By NoData = Locate.AppIdWithText("text", "No data");
     private static readonly OpenQA.Selenium.By Card = Locate.AppId("card");
     private static readonly OpenQA.Selenium.By Row = Locate.AppId("post");
     private static readonly OpenQA.Selenium.By Points = Locate.AppId("points");
@@ -46,6 +47,19 @@ public sealed class PostList(AndroidDriver driver)
         Waiting.UntilShownAsync(driver, Title, TimeSpan.FromSeconds(10), "A post in the main screen's list");
 
     /// <summary>
+    /// Waits until the list shows a post, or "No data" when the feed has none, and tells whether it shows a post.
+    /// </summary>
+    public async Task<bool> WaitUntilPostsOrNoDataShownAsync()
+    {
+        var showsPosts = false;
+        await Waiting.UntilAsync(
+            () => (showsPosts = driver.FindElements(Title).Count > 0) || driver.FindElements(NoData).Count > 0,
+            TimeSpan.FromSeconds(10),
+            "A post, or \"No data\", in the main screen's list");
+        return showsPosts;
+    }
+
+    /// <summary>
     /// Waits until the list shows BaconReader's message instead of posts, when the feed failed to load: "Greetings! …
     /// BaconReader is no longer operational", or with "Show request errors" the request's error. A message the list
     /// showed when last read, another feed's, doesn't count.
@@ -56,12 +70,14 @@ public sealed class PostList(AndroidDriver driver)
             TimeSpan.FromSeconds(10),
             "BaconReader's message instead of the feed's posts");
 
-    /// <summary>Taps the post titled <paramref name="title"/>, which opens it with its comments.</summary>
+    /// <summary>
+    /// Taps the post titled <paramref name="title"/>, which opens it with its comments, scrolling to it first: the list
+    /// may have moved since it was last seen (the Front Page jumps back to its top right after the login).
+    /// </summary>
     public async Task ClickPostAsync(string title)
     {
-        var post = Locate.AppIdWithText("title", title);
-        await Waiting.UntilShownAsync(driver, post, TimeSpan.FromSeconds(10), $"The post \"{title}\" in the main screen's list");
-        await OnScreen.PressAsync(driver, post);
+        await WaitUntilPostShownAsync(title);
+        await OnScreen.PressAsync(driver, Locate.AppIdWithText("title", title));
     }
 
     /// <summary>
@@ -116,6 +132,23 @@ public sealed class PostList(AndroidDriver driver)
     public async Task WaitUntilCardImageShownAsync(string title)
     {
         await WaitUntilPostShownAsync(title);
+        // The scroll stops once the title is on the screen, and a card's image is under its title: further down, a bit
+        // at a time, until the image is on the screen too (the list's end shows the last card whole).
+        for (var scrolls = 0; scrolls < 5 && await Task.Run(() => FindPost(title)?.FindElements(CardImage).Any(image => image.Displayed) != true); scrolls++)
+        {
+            object? canScrollMore = null;
+            await OnScreen.DoAsync(driver, () => canScrollMore = driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
+            {
+                ["elementId"] = ((OpenQA.Selenium.Appium.AppiumElement)driver.FindElement(List)).Id,
+                ["direction"] = "down",
+                ["percent"] = 0.3,
+            }));
+            if (canScrollMore is false)
+            {
+                break;
+            }
+        }
+
         await Waiting.UntilAsync(
             () => FindPost(title)?.FindElements(CardImage).Any(image => image.Displayed) == true,
             TimeSpan.FromSeconds(10),

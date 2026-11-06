@@ -156,7 +156,9 @@ public final class FixMemeTemplatesPatch {
     }
 
     private static String getFullUrl(String thumbnailUrl) {
-        String name = thumbnailUrl.substring(THUMBNAIL_URL.length());
+        // The thumbnail's file name, after the last "/". Not THUMBNAIL_URL.length(): the compiler makes that a number,
+        // which no longer fits once the address is moved (the e2e tests move it to their fake Imgflip).
+        String name = thumbnailUrl.substring(thumbnailUrl.lastIndexOf('/') + 1);
         String id = name.substring(0, name.lastIndexOf('.'));
         for (String template : TEMPLATES) {
             if (template.startsWith(id + ".")) return BASE_URL + template;

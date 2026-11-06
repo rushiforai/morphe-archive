@@ -45,6 +45,11 @@ private val READ_BODY = """
     return v0
 """.trimIndent()
 
+private const val FAMILY_B_LIMIT_GETTER = "LX/2n7;->A00($FB_USER_SESSION)I"
+
+/** Family B's getter: the read alone, its answer returned as it is. */
+private val GETTER_BODY = READ_BODY.substringBefore("const/4 v1, 0x3") + "return v0"
+
 private fun reader(body: String = READ_BODY, id: String = SYNTHETIC_PINNED_CHAT_LIMIT, flags: Int = STATIC, registers: Int = 3) =
     fixtureMethod(id, body, registers = registers, flags = flags)
 
@@ -145,6 +150,7 @@ private fun Method.code() = implementation!!.instructions.toList()
 class PinnedChatsTest {
     @AfterTest fun reset() {
         activeProfile = SYNTHETIC_PROFILE
+        pinLimitGetters = emptySet()
     }
 
     private fun found(classes: List<MutableClass>) = mirroredControls(classes).getValue(PINNED_CHATS).map { it.hookId() }.toSet()
@@ -177,6 +183,25 @@ class PinnedChatsTest {
         assertEquals(listOf(SYNTHETIC_PIN_FULL), found.getValue(PIN_FULL).map { it.hookId() })
         assertEquals(setOf(SYNTHETIC_PIN_ROW, SYNTHETIC_UNPIN_ROW), found.getValue(PIN_ROWS).map { it.hookId() }.toSet())
         validateControls(found, setOf(PINNED_CHATS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_ROWS))
+    }
+
+    @Test fun familyBsCallersOfTheLimitsGetterReadItInItsPlace() {
+        val getter = reader(GETTER_BODY, id = FAMILY_B_LIMIT_GETTER)
+        val caller = "invoke-static {p0}, $FAMILY_B_LIMIT_GETTER\nmove-result v0\nconst/4 v1, 0x3\nif-ge v0, v1, :done\nconst/4 v0, 0x0\n:done\nreturn v0"
+        val ask = "new-instance v6, $PIN_LAMBDA\ninvoke-static {v11}, $FAMILY_B_LIMIT_GETTER\nmove-result v2\nreturn-void"
+        val found = mirroredControls(pinnedChatsFixture(ask = pinAsk(ask)) + pinnedChatLimitFixture(reader(caller), getter))
+        assertEquals(listOf(SYNTHETIC_PINNED_CHAT_LIMIT), found.getValue(PINNED_CHATS).map { it.hookId() })
+        assertEquals(listOf(SYNTHETIC_PIN_ASK), found.getValue(PIN_ASK).map { it.hookId() })
+        assertEquals(listOf(SYNTHETIC_PIN_FULL), found.getValue(PIN_FULL).map { it.hookId() })
+        validateControls(found, setOf(PINNED_CHATS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_ROWS))
+        // The caller asks the switch right after the getter's answer, and the getter itself is left alone.
+        val read = found.getValue(PINNED_CHATS).single() as MutableMethod
+        read.injectPinnedChatLimit()
+        assertEquals(PINNED_CHAT_LIMIT_GATE, (read.code()[2] as ReferenceInstruction).reference.toString())
+        assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.CONST_4), read.code().drop(3).take(2).map { it.opcode })
+        // Two calls in one place aren't a read the patch can raise, so no read is.
+        val twice = caller.replace("return v0", "invoke-static {p0}, $FAMILY_B_LIMIT_GETTER\nmove-result v0\nreturn v0")
+        assertTrue(mirroredControls(pinnedChatLimitFixture(reader(twice), getter)).getValue(PINNED_CHATS).isEmpty())
     }
 
     @Test fun theChatRowsAnswerGoesThroughTheExtensionAtEveryReturnEvenOnABranchIntoIt() {

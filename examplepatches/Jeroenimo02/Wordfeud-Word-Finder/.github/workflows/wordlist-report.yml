@@ -13,9 +13,8 @@ permissions:
   contents: write
   pull-requests: write
 
-concurrency:
-  group: wordlist-report
-  cancel-in-progress: false
+# No concurrency group: GitHub keeps only one queued run per group and cancels the others, which would lose
+# reports that arrive close together. Runs that race on the same branch instead retry their push (see below).
 
 env:
   BASE: main
@@ -24,14 +23,14 @@ jobs:
   report:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ env.BASE }}
           fetch-depth: 0
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: build/wordlist-cache
           key: wordlist-sources-${{ hashFiles('wordlists/sources.json') }}
@@ -52,53 +51,59 @@ jobs:
           )
           echo "code=$code" >> "$GITHUB_OUTPUT"
 
-      - name: Switch to wordlist branch
+      - name: Apply report to the wordlist branch
+        # Switch to wordlist/<code> (merged with the base), add the reported words, rebuild and push. When the push
+        # fails (another report pushed first, or a GitHub error) everything is redone on the latest branch, up to 5
+        # times, so reports that arrive together are all kept.
+        id: add
         if: steps.lang.outputs.code != ''
         env:
           CODE: ${{ steps.lang.outputs.code }}
+          RULESET: ${{ github.event.client_payload.ruleset }}
+          WORDS: ${{ join(github.event.client_payload.words, ',') }}
+          TYPE: ${{ github.event.client_payload.type || 'remove' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           B="wordlist/$CODE"
-          if git ls-remote --exit-code --heads origin "$B" >/dev/null; then
-            git checkout -B "$B" "origin/$B"
-            if ! git merge --no-edit "origin/$BASE"; then
-              # Generated files are rebuilt below, so take the base versions; remove.txt / add.txt merge as a union
-              # (.gitattributes). Any other conflict fails the job.
-              for f in $(git diff --name-only --diff-filter=U); do
-                case "$f" in
-                  wordlists/manifest.json|wordlists/*/words.txt.gz) git checkout "origin/$BASE" -- "$f" ;;
-                  *) echo "Unexpected conflict in $f"; exit 1 ;;
-                esac
-              done
-              git add -A wordlists
-              git -c core.editor=true merge --continue
+          switch_branch() {
+            git fetch -q origin "$BASE"
+            git merge --abort 2>/dev/null || true
+            git reset -q --hard
+            if git ls-remote --exit-code --heads origin "$B" >/dev/null; then
+              git fetch -q origin "$B"
+              git checkout -q -B "$B" "origin/$B"
+              if ! git merge -q --no-edit "origin/$BASE"; then
+                # Generated files are rebuilt below, so take the base versions; remove.txt / add.txt merge as a
+                # union (.gitattributes). Any other conflict fails the job.
+                for f in $(git diff --name-only --diff-filter=U); do
+                  case "$f" in
+                    wordlists/manifest.json|wordlists/*/words.txt.gz) git checkout "origin/$BASE" -- "$f" ;;
+                    *) echo "Unexpected conflict in $f"; exit 1 ;;
+                  esac
+                done
+                git add -A wordlists
+                git -c core.editor=true merge --continue
+              fi
+            else
+              git checkout -q -B "$B" "origin/$BASE"
             fi
-          else
-            git checkout -B "$B" "origin/$BASE"
-          fi
-
-      - name: Add reported words
-        id: add
-        if: steps.lang.outputs.code != ''
-        env:
-          RULESET: ${{ github.event.client_payload.ruleset }}
-          WORDS: ${{ join(github.event.client_payload.words, ',') }}
-          TYPE: ${{ github.event.client_payload.type || 'remove' }}
-        run: python3 -I tools/wordlists/report.py --type "$TYPE" --ruleset "$RULESET" --words "$WORDS" | tee -a "$GITHUB_OUTPUT"
-
-      - name: Rebuild, commit and push
-        if: steps.add.outputs.added != ''
-        env:
-          CODE: ${{ steps.lang.outputs.code }}
-          ADDED: ${{ steps.add.outputs.added }}
-          TYPE: ${{ github.event.client_payload.type || 'remove' }}
-        run: |
-          python3 -I tools/wordlists/build.py --only "$CODE"
-          git add wordlists
+          }
           if [ "$TYPE" = "add" ]; then what="toegevoegd (gespeeld, ontbrak in de lijst)"; else what="verwijderd (geweigerd door de server)"; fi
-          git commit -m "fix(wordlists): $CODE: $ADDED $what"
-          git push origin "wordlist/$CODE"
+          for attempt in 1 2 3 4 5; do
+            switch_branch
+            out=$(python3 -I tools/wordlists/report.py --type "$TYPE" --ruleset "$RULESET" --words "$WORDS")
+            echo "$out"
+            added=$(echo "$out" | sed -n 's/^added=//p')
+            if [ -z "$added" ]; then echo "added=" >> "$GITHUB_OUTPUT"; exit 0; fi
+            python3 -I tools/wordlists/build.py --only "$CODE"
+            git add wordlists
+            git commit -q -m "fix(wordlists): $CODE: $added $what"
+            if git push origin "$B"; then echo "added=$added" >> "$GITHUB_OUTPUT"; exit 0; fi
+            echo "Push failed (attempt $attempt); retrying on the latest branch"
+            sleep $((attempt * 10))
+          done
+          exit 1
 
       - name: Pull request
         # Also when nothing new was added: a pull request that failed to open earlier (e.g. a GitHub 5xx) is then

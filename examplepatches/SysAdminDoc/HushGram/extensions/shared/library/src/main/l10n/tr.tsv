@@ -283,6 +283,13 @@ Once you turn on Instagram's auto scroll in Reels, it stays on after a restart o
 Move on when a reel ends	Reel bitince sonrakine geç
 When a reel ends, Reels moves on to the next one instead of playing it again. It uses Instagram's own auto scroll, even on accounts where Instagram doesn't offer it. While it's on, Instagram's own Auto scroll switch can't turn it off. Restart Instagram to see the change.	Bir reel bittiğinde Reels onu yeniden oynatmak yerine sonrakine geçer. Instagram'ın kendi otomatik kaydırmasını kullanır, Instagram'ın bunu sunmadığı hesaplarda bile. Açıkken Instagram'ın kendi otomatik kaydırma anahtarı bunu kapatamaz. Değişikliği görmek için Instagram'ı yeniden başlat.
 Stop Reels scrolling	Reels'te kaydırmayı durdur
+# context: Reels page, the three switches under Stop Reels scrolling. They name that switch by its label, and each lets one kind of viewer keep scrolling.
+Still scroll reels from a profile	Profilden açılan reel'lerde kaydırmaya devam et
+With Stop Reels scrolling on, reels you open from a profile still move on when you swipe.	Reels'te kaydırmayı durdur açıkken, bir profilden açtığın reel'ler kaydırınca yine ilerler.
+Still scroll reels from Search and Explore	Arama ve Keşfet'ten açılan reel'lerde kaydırmaya devam et
+With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	Reels'te kaydırmayı durdur açıkken, Arama, Keşfet, bir hashtag veya bir yerden açtığın reel'ler kaydırınca yine ilerler.
+Still scroll reels from a song page	Şarkı sayfasından açılan reel'lerde kaydırmaya devam et
+With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	Reels'te kaydırmayı durdur açıkken, bir şarkı veya ses sayfasından açtığın reel'ler kaydırınca yine ilerler.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	Reels'te kaydırmak artık sonraki reels'e geçmez, aşağı çekmek de yenilerini yüklemez. Açtığın reels oynamaya devam eder. Değişikliği görmek için Instagram'ı yeniden başlat.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Bir reel'i 2x'te kilitle (kenarını basılı tut, sonra aşağı kaydır), sonraki reels'ler de 2x oynar. Normal hıza dönmek için kilidi kaydırıp kaldır ya da kenarı basılı tutup bırak.
 Open links in external browser	Bağlantıları harici tarayıcıda aç
@@ -418,6 +425,11 @@ Hide the Threads button	Threads düğmesini gizle
 Takes the Threads button off the top of profiles, yours included. The menu and the other buttons stay where they were.	Threads düğmesini profillerin üstünden, seninki dahil, kaldırır. Menü ve diğer düğmeler oldukları yerde kalır.
 Show profile posts as a list	Profil gönderilerini liste olarak göster
 Opening someone's profile takes you on to their posts as a scrolling list of full posts. Go Back for the grid. Your own profile keeps its grid.	Birinin profilini açtığında doğrudan gönderilerine, tam gönderilerden oluşan kaydırılabilir bir listeye geçersin. Izgara için Geri'ye dön. Kendi profilin ızgara olarak kalır.
+Jump a profile's posts to a date	Profil gönderilerinde bir tarihe git
+Puts a calendar on a profile's top bar. Pick a day and the posts grid goes back to that day. Pull down for the newest again.	Profilin üst çubuğuna bir takvim ekler. Bir gün seçtiğinde gönderi ızgarası o güne döner. En yenileri için aşağı çek.
+Open the profile's posts first	Önce profilin gönderilerini aç
+Still loading, try again	Hâlâ yükleniyor, tekrar dene
+Going to that date	O tarihe gidiliyor
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Instagram'ın reel'ler arasına koyduğu, takip edilecek kişi ve içerik üreticisi kartları. Her reel oynatılmaya devam eder.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Ücretli ortaklık etiketi taşıyan reel'leri ve Instagram'ın öne çıkarılmış olarak işaretlediği reel'leri dışarıda bırakır. Reklamların kendi anahtarı var.
 Turn on Start Home on Following to use this choice.	Bu seçimi kullanmak için Ana Sayfa'yı Takip Edilenler ile aç seçeneğini açın.
@@ -486,6 +498,11 @@ Save comment photo	Yorum fotoğrafını kaydet
 Adds Save to a selected comment's menu when the comment has its own photo or GIF. Saves the largest size Instagram sent.	Kendi fotoğrafı veya GIF'i olan seçili bir yorumun menüsüne Kaydet seçeneğini ekler. Instagram'ın gönderdiği en büyük boyutu kaydeder.
 Reply with a comment's GIF	Yorumun GIF'iyle yanıtla
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	Bir yorumda GIF varsa menüsüne, aynı GIF'i animasyonlu olarak yanıtın olarak gönderen bir GIF yanıtı eklenir.
+Show a comment GIF's name	Yorumdaki GIF'in adını göster
+When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	Bir yorumda GIF veya çıkartma varsa menüsünde adı görünür. Kopyalamak için ada dokun.
+GIF name	GIF adı
+GIF name copied	GIF adı kopyalandı
+Couldn't copy the GIF name	GIF adı kopyalanamadı
 Couldn't reply with this GIF	Bu GIF ile yanıt verilemedi
 # context: View stories anonymously's second switch, and the label TalkBack reads for its eye button in a story's header
 Mark as seen button	Görüldü olarak işaretle düğmesi
@@ -841,7 +858,7 @@ Download video covers	Video kapaklarını indir
 Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	Videolu bir akış gönderisinin ve video gösteren bir karuselin menüsüne Kapağı indir ekler. Video oynatılmadan önce görünen hareketsiz görüntüyü en büyük boyutunda kaydeder.
 # context: Downloads switch under the feed video and photo downloads; it puts a Download icon in a feed post's action row beside Save
 Download button on feed posts	Akış gönderilerinde indirme düğmesi
-Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them.	Bir gönderinin altındaki satıra, Kaydet'in soluna bir indirme simgesi koyar, böylece tek dokunuşla menüyü açmadan kaydedebilirsin. Karuselde yalnızca bu sayfayı mı yoksa hepsini mi istediğini sorar.
+Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	Bir gönderinin altındaki satıra, Kaydet'in soluna bir indirme simgesi koyar, böylece tek dokunuşla menüyü açmadan kaydedebilirsin. Karuselde yalnızca bu sayfayı mı yoksa hepsini mi istediğini sorar. Akıştaki videoları indir veya Akıştaki fotoğrafları indir açık olmalı.
 Download button on reels	Reels'te indirme düğmesi
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	Bir reel'in yanında Kaydet'in altına bir indirme simgesi koyar, böylece tek dokunuş onu menüsündeki İndir gibi kaydeder. Reels'te indir açık olmalı.
 Nothing to download on this post	Bu gönderide indirilecek bir şey yok
@@ -1008,14 +1025,14 @@ More	Daha fazla
 Hide the tab bar as you scroll	Kaydırırken sekme çubuğunu gizle
 Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	Bir listeyi aşağı kaydırmak sekme çubuğunu yoldan çeker. Yukarı kaydırmak, en üste ulaşmak veya sekme değiştirmek onu geri getirir. Cam sekme çubuğu açık da kapalı da çalışır. Değiştirdikten sonra Instagram'ı yeniden başlatın.
 Hide the tab bar on Reels	Reels'te sekme çubuğunu gizle
-# context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
+# context: a choice in the Hide the tab bar on Reels list; the bar is never hidden there
 Never	Hiçbir zaman
 # context: a choice in the Hide the tab bar on Reels list; %1$d is 2, 3, 5 or 8
 After %1$d seconds	%1$d saniye sonra
 # context: summary of the Hide the tab bar on Reels row while its choice is Never
-Never. Pick a time and the pill slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Hiçbir zaman. Bir süre seçerseniz, bir reel o kadar süre dokunulmadan oynadığında çubuk kayarak kaybolur. Değiştirdikten sonra Instagram'ı yeniden başlatın.
+Never. Pick a time and the tab bar slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Hiçbir zaman. Bir süre seçerseniz, bir reel o kadar süre dokunulmadan oynadığında çubuk kayarak kaybolur. Değiştirdikten sonra Instagram'ı yeniden başlatın.
 # context: summary of the Hide the tab bar on Reels row; %1$d is the seconds picked, 2, 3, 5 or 8
-On Reels, the pill slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Reels'te çubuk, %1$d saniye dokunulmadığında kayarak kaybolur. Geri getirmek için ekranın alt kenarına dokunun, sekme değiştirin veya Geri'ye basın. Değiştirdikten sonra Instagram'ı yeniden başlatın.
+On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Reels'te çubuk, %1$d saniye dokunulmadığında kayarak kaybolur. Geri getirmek için ekranın alt kenarına dokunun, sekme değiştirin veya Geri'ye basın. Değiştirdikten sonra Instagram'ı yeniden başlatın.
 Start feed videos with sound	Akış videolarını sesli başlat
 The first video on Home plays with its sound on, the same as tapping its speaker. Your phone's ringer and volume still count, so on silent or with the volume down, it stays quiet.	Ana Sayfa'daki ilk video, hoparlörüne dokunmuş gibi sesi açık olarak oynar. Telefonunuzun zil modu ve ses düzeyi yine geçerlidir, bu yüzden sessizde veya ses kapalıyken video sessiz kalır.
 Tap a feed video to pause it	Duraklatmak için akış videosuna dokun
@@ -1024,6 +1041,10 @@ Long press a photo to zoom	Yakınlaştırmak için fotoğrafa uzun bas
 Press and hold a photo in a feed to see it twice as big around your finger, and slide to look around. Let go to close it. While this is on, it takes the place of Instagram's own long press on a photo.	Bir akıştaki fotoğrafa basılı tut, parmağının çevresinde iki kat büyük gör ve etrafa bakmak için kaydır. Kapatmak için bırak. Bu açıkken, Instagram'ın bir fotoğraftaki kendi uzun basmasının yerini alır.
 Keep the zoom open	Yakınlaştırmayı açık tut
 The zoom stays up after you let go. Drag to look around, pinch to zoom from 1x to 4x, and tap or press Back to close it.	Parmağını kaldırdığında yakınlaştırma açık kalır. Etrafa bakmak için sürükle, 1x ile 4x arasında yakınlaştırmak için iki parmakla sıkıştır, kapatmak için dokun ya da Geri'ye bas.
+# context: Feed settings, right under Keep the zoom open, and the toast when a post's video can't be opened in the full screen viewer. Close matches the viewer's Close button.
+Long press a post for full screen	Tam ekran için gönderiye uzun bas
+Press and hold a post in a feed to open it full screen. Pinch a photo to zoom and tap it to close. A video plays with a slider and a Close button. While this is on, it goes before the zoom and Instagram's own long press.	Akıştaki bir gönderiye basılı tutarak onu tam ekranda aç. Fotoğrafı iki parmakla yakınlaştır, kapatmak için dokun. Video bir kaydırıcı ve Kapat düğmesiyle oynatılır. Bu açıkken yakınlaştırmadan ve Instagram'ın kendi uzun basmasından önce gelir.
+Couldn't play this video	Bu video oynatılamadı
 # context: what TalkBack reads for the zoomed photo left open over the feed
 Zoomed photo	Yakınlaştırılmış fotoğraf
 Full screen Reels	Tam ekran Reels
@@ -1071,6 +1092,15 @@ Hide Your algorithm on reels	Reels'te Algoritman düğmesini gizle
 Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The rest of the bar stays.	Algoritman düğmesini Reels sekmesinin üstünden kaldırır ve boşluğu kapatır. Çubuğun geri kalanı kalır.
 Hide the Friends tab on Reels	Reels'te Arkadaşlar sekmesini gizle
 Takes the Friends tab, with reels the people you follow shared, off the top of the Reels tab. Reels stays where it is.	Takip ettiğin kişilerin paylaştığı reels videolarının olduğu Arkadaşlar sekmesini Reels sekmesinin üstünden kaldırır. Reels yerinde kalır.
+# context: Reels settings. Shows Instagram's Friends tab at the top of the Reels tab on accounts that never got it. Friends tab wording matches the Hide the Friends tab row above it.
+Show the Friends tab on Reels	Reels'te Arkadaşlar sekmesini göster
+Adds the Friends tab to the top of the Reels tab if your account never got it. What's in it still comes from Instagram, so it can be empty. Hide the Friends tab wins.	Hesabın hiç almadıysa Arkadaşlar sekmesini Reels sekmesinin üstüne ekler. İçeriği yine Instagram'dan gelir, bu yüzden boş olabilir. Arkadaşlar sekmesini gizle önceliklidir.
+# context: Reels settings and the list held open from the Friends tab at the top of the Reels tab. Friends tab wording matches the Hide the Friends tab row above it. The last two are short toasts.
+Hold the Friends tab to pick friends	Arkadaş seçmek için Arkadaşlar sekmesini basılı tut
+Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	Reels'te Arkadaşlar sekmesini basılı tut ve sana gösterdiği arkadaşlar arasından seç. Sekme artık yalnızca onların beğendiği veya paylaştığı reelleri tutar. Onların olmadığı bir sayfa, sonraki sayfa yüklenebilsin diye bir reel bırakır.
+Pick friends	Arkadaş seç
+Open the Friends tab first.	Önce Arkadaşlar sekmesini aç.
+Applies to the next reels loaded.	Sonraki yüklenen reellere uygulanır.
 Hide the Save button on reels	Reels'te Kaydet düğmesini gizle
 Burn-in guard	Ekran yanığı koruması
 Dim when idle	Boştayken karart
@@ -1090,6 +1120,9 @@ Reels open in clear mode from the first one, with no tap. Leave it yourself and 
 # context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
 Don't vibrate in clear mode	Temiz modda titreşim olmasın
 Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Bir reel temiz modda açıldığında Instagram'ın yaptığı kısa titreşimi durdurur. Temiz mod açık kalsın açıkken bu her kaydırmada olur.
+# context: Reels settings: a switch under Don't vibrate in clear mode (#480). It keeps the seek bar on screen in clear mode; seek bar and clear mode use the same words as Keep a seek bar and Keep clear mode on
+Always show seek bar in clear mode	Temiz modda ilerleme çubuğu hep görünsün
+Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other buttons stay hidden. Short reels get a bar too, in clear mode or not.	Temiz moddaki bir reel'de ilerleme çubuğunu tutar ve onu sürükleyebilirsin, diğer düğmeler gizli kalır. Kısa reel'lerde de, temiz modda olsun olmasın, çubuk görünür.
 Unlock with	Kilidi şununla aç
 Phone lock	Telefon kilidi
 HushGram PIN	HushGram PIN'i
@@ -1397,7 +1430,7 @@ Couldn't use that folder. Saves go where they did.	O klasör kullanılamadı. Ka
 Saves go to Movies and Pictures again.	Kayıtlar yine Movies ve Pictures'a gidiyor.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s bu kaydı kabul etmedi, bu yüzden Movies ve Pictures klasörlerine gitti.
 Start reels with sound	Reel'leri sesli başlat
-A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Ana Sayfa'daki bir gönderiden açtığınız reel sesli oynar ve geri döndüğünüzde Ana Sayfa yeniden sessize alınır. Telefonunuzun zil modu ve ses düzeyi yine geçerlidir.
+A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Reels sekmesinden veya Ana Sayfa'daki bir gönderiden açtığınız reel sesli oynar ve geri döndüğünüzde Ana Sayfa yeniden sessize alınır. Telefonunuzun zil modu ve ses düzeyi yine geçerlidir.
 Keep your place in Home	Ana sayfadaki yerini koru
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Instagram'a döndüğünde, ne kadar uzak kalmış olursan ol, Ana sayfa bulunduğun gönderide kalır. Yenilemek için aşağı çekmek yine de yeniden yükler.
 Filter the Stories tray by verified accounts	Hikaye sırasını doğrulanmış hesaplara göre filtrele

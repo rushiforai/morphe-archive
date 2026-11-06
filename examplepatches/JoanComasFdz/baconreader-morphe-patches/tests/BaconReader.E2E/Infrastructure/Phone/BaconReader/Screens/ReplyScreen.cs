@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 JoanComasFdz
 // SPDX-License-Identifier: GPL-3.0-only
 
+using BaconReader.E2E.Infrastructure.Phone.BaconReader.Dialogs;
 using OpenQA.Selenium.Appium.Android;
 
 namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
@@ -16,9 +17,19 @@ public sealed class ReplyScreen(AndroidDriver driver)
     private static readonly OpenQA.Selenium.By ReplyTo = Locate.AppId("ReplyCommentSubText");
     private static readonly OpenQA.Selenium.By Replied = Locate.AppId("ReplyCommentText");
     private static readonly OpenQA.Selenium.By Send = Locate.AppId("action_send");
+    private static readonly OpenQA.Selenium.By AttachMediaButton = Locate.AppId("action_attach_media");
 
     /// <summary>The text box, with "Markdown editor"'s formats and counter.</summary>
     public MarkdownEditor Editor { get; } = new(driver);
+
+    /// <summary>The dialog "Attach media" opens: "Camera", "Gallery", "Draw".</summary>
+    public AttachMedia AttachMedia { get; } = new(driver);
+
+    /// <summary>
+    /// Taps "Attach media", which opens its dialog. Found by its id: the send button next to it is described "Attach media"
+    /// too.
+    /// </summary>
+    public Task ClickAttachMediaAsync() => OnScreen.PressAsync(driver, AttachMediaButton);
 
     /// <summary>Waits until the screen shows whom the reply answers.</summary>
     public Task WaitUntilShownAsync() =>

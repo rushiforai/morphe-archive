@@ -2481,6 +2481,8 @@ Hide streak pop-ups	Streak-Pop-ups ausblenden
 Stop the streak alerts that slide in over TikTok and the streak messages and tips it adds to your chats.	Hält die Streak-Hinweise an, die über TikTok einblenden, sowie die Streak-Nachrichten und Tipps in deinen Chats.
 Long press on For You opens my watch history	Langes Drücken auf Für dich öffnet meinen Wiedergabeverlauf
 Instead of these settings. The list has a button that brings you back here.	Statt dieser Einstellungen. Die Liste hat eine Schaltfläche, die dich hierher zurückbringt.
+Long press on Profile opens my watch history	Langes Drücken auf Profil öffnet meinen Wiedergabeverlauf
+Instead of TikTok's Watch history. A tap on Profile works as before. If holding Profile switches accounts for you, this takes that press.	Statt des Wiedergabeverlaufs von TikTok. Ein Tippen auf Profil funktioniert wie bisher. Wenn du durch langes Drücken auf Profil das Konto wechselst, übernimmt dies diesen Druck.
 Auto tap in LIVE rooms	Auto-Tippen in LIVE-Räumen
 Adds an Auto tap button to LIVE rooms. Tap it to send taps to the stream at a steady pace, and tap it again to stop. It also stops when you leave or swipe to another room, leave TikTok or lock the screen.	Fügt LIVE-Räumen eine Auto-Tippen-Taste hinzu. Tippe sie an, um in gleichmäßigem Tempo auf den Stream zu tippen, und tippe erneut, um aufzuhören. Es stoppt auch, wenn du den Raum verlässt oder zu einem anderen wischst, TikTok verlässt oder den Bildschirm sperrst.
 Auto tap speed	Tempo beim Auto-Tippen
@@ -2527,3 +2529,23 @@ Offer Audio only in LIVE quality	Nur Audio in der LIVE-Qualität anbieten
 Audio only	Nur Audio
 Adds Audio only to a LIVE's Video quality list. The room plays its sound without the picture, which uses much less data, until you pick another quality or leave. Recording from the stream still saves the video.	Fügt der Videoqualität eines LIVE die Option Nur Audio hinzu. Der Raum spielt den Ton ohne Bild, was viel weniger Daten braucht, bis du eine andere Qualität wählst oder gehst. Aufnahmen aus dem Stream speichern weiterhin das Video.
 Pick a video quality to record the screen	Wähl eine Videoqualität für die Bildschirmaufnahme
+Discover in the bottom bar	Entdecken in der unteren Leiste
+Discover takes the place of Friends in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	Entdecken ersetzt Freunde in der unteren Leiste, so wie TikTok sie in manchen Ländern anordnet. Deine Region und dein Feed bleiben, wie sie sind.
+# context: what screen readers say for a setting an update added, next to its blue dot; %1$s is the setting's title (#349)
+%1$s, new	%1$s, neu
+Startup message	Startnachricht
+Show a message of your own each time TikTok opens.	Zeigt bei jedem Öffnen von TikTok eine eigene Nachricht.
+Message title	Titel der Nachricht
+The heading at the top. Leave it empty for none.	Die Überschrift oben. Leer lassen für keine.
+Message text	Text der Nachricht
+What the message says.	Was in der Nachricht steht.
+Close with Back or a tap outside	Mit Zurück oder Tippen daneben schließen
+Off, only its button closes it.	Aus: Nur die Schaltfläche schließt sie.
+# context: extra search words for the Startup message setting, not shown anywhere (#347)
+dialog popup greeting	Dialog Popup Begrüßung
+# context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
+Stop the blink under the bar	Flackern unter der Leiste stoppen
+If the video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Wenn das Video beim Wischen mit Durchsichtige untere Leiste flackert, zeichnet dies es direkt in TikTok statt auf einer eigenen Ebene. Kann etwas mehr Akku brauchen. Braucht Durchsichtige untere Leiste.
+# context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
+Bend the video at the edges	Video an den Rändern brechen
+The glass pill's edges bend the blurred video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	Die Ränder der Glaskapsel brechen das unscharfe Video dahinter wie der Rand von echtem Glas, und die Farben wirken etwas satter. Braucht Video hinter der Leiste unscharf machen und Android 13 oder neuer.

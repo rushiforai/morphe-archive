@@ -1,0 +1,135 @@
+package app.revanced.patches.kakaotalk.misc.integrity.fingerprints
+
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.OpcodesFilter
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.util.getReference
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction21s
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+
+internal object MoatScanDispatcherFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("Ljava/util/ArrayList;", "L", "Ljava/lang/String;", "Ljava/lang/String;"),
+    returnType = "Ljava/util/concurrent/CompletableFuture;",
+    strings = listOf("MoatSdk.setExtraValue.reportMeasureTime"),
+    filters = listOf(
+        methodCall(
+            definingClass = "Ljava/util/concurrent/CompletableFuture;",
+            name = "supplyAsync",
+            parameters = listOf("Ljava/util/function/Supplier;"),
+            returnType = "Ljava/util/concurrent/CompletableFuture;",
+        ),
+    ),
+)
+
+internal object MoatLibraryLoaderFingerprint : Fingerprint(
+    parameters = listOf("Landroid/content/Context;"),
+    returnType = "V",
+    strings = listOf("toyger"),
+    custom = { _, classDef ->
+        classDef.methods.any { method ->
+            AccessFlags.NATIVE.isSet(method.accessFlags) &&
+                    method.parameterTypes == listOf("Landroid/content/Context;") &&
+                    method.returnType == "Ljava/util/List;"
+        } && classDef.methods.any { method ->
+            AccessFlags.NATIVE.isSet(method.accessFlags) &&
+                    method.parameterTypes == listOf("Landroid/content/Context;") &&
+                    method.returnType == "Lkotlin/Pair;"
+        }
+    },
+)
+
+internal object CheckApkChecksumsFingerprint : Fingerprint(
+    classFingerprint = MoatScanDispatcherFingerprint,
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf(),
+    returnType = "Lkotlin/Pair;",
+    filters = OpcodesFilter.opcodesToFilters(
+        Opcode.INVOKE_DIRECT,
+        Opcode.MOVE_RESULT_OBJECT,
+        Opcode.INVOKE_STATIC,
+        Opcode.MOVE_RESULT,
+        Opcode.IF_EQZ,
+        Opcode.MOVE_OBJECT,
+        Opcode.CHECK_CAST,
+        Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT_WIDE,
+        Opcode.SGET_OBJECT,
+    ),
+    custom = { method, _ ->
+        method.instructions.lastOrNull { it.opcode == Opcode.SGET_OBJECT }
+            ?.getReference<FieldReference>()?.name == "VERIFIED"
+    }
+)
+
+internal object MoatResultClassFingerprint : Fingerprint(
+    name = "<init>",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    returnType = "V",
+    filters = OpcodesFilter.opcodesToFilters(
+        Opcode.INVOKE_DIRECT,
+        Opcode.IPUT_OBJECT,
+        Opcode.IPUT_OBJECT,
+        Opcode.IPUT_OBJECT,
+        Opcode.IPUT_OBJECT,
+        Opcode.IPUT_BOOLEAN,
+        Opcode.CONST_16,
+        Opcode.IPUT,
+        Opcode.CONST_16,
+        Opcode.IPUT,
+        Opcode.RETURN_VOID,
+    ),
+    custom = { method, _ ->
+        method.parameters.size == 5 && (method.instructions.firstOrNull { it.opcode == Opcode.CONST_16 } as Instruction21s?)?.wideLiteral?.toInt() == 5000
+    }
+)
+
+internal object MoatSecurityInfoFingerprint : Fingerprint(
+    classFingerprint = MoatScanDispatcherFingerprint,
+    parameters = listOf("L"),
+    returnType = "Lkotlin/Pair;",
+    strings = listOf("Unsupported API Level", "Permission Denied"),
+)
+
+internal object MoatNetworkFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    parameters = listOf("Ljava/lang/String;", "Ljava/util/Map;", "[B", "I"),
+    returnType = "[B",
+    strings = listOf("Network.requestHttpsPostSyncWithVerifyForNative.reportApiLatency"),
+)
+
+internal object MoatConnectionFactoryFingerprint : Fingerprint(
+    parameters = listOf("Ljava/net/URL;", "L", "Ljava/util/Map;"),
+    returnType = "Ljavax/net/ssl/HttpsURLConnection;",
+    filters = listOf(
+        methodCall("Ljava/net/URL;->openConnection()Ljava/net/URLConnection;"),
+    ),
+)
+
+internal object MoatMonitorFingerprint : Fingerprint(
+    name = "<clinit>",
+    strings = listOf("%s_set_extra_value", "%s_set_x_auth", "%s_detect_async", "%s_get_session_key"),
+)
+
+internal object MoatForceOffReportFingerprint : Fingerprint(
+    parameters = listOf("Ljava/lang/String;", "L", "Lkotlin/coroutines/Continuation;"),
+    returnType = "Ljava/lang/Object;",
+    strings = listOf("[MOAT] report 제외대상, reserved: "),
+    custom = { _, classDef -> classDef.sourceFile == "PaySecurityWorker.kt" },
+)
+
+internal object MoatForceOffRepositoryFingerprint : Fingerprint(
+    parameters = listOf("Ljava/lang/String;", "Ljava/util/List;", "Lkotlin/coroutines/Continuation;"),
+    returnType = "Ljava/lang/Object;",
+    custom = { _, classDef -> classDef.sourceFile == "PaySecurityReportForceOffRepositoryImpl.kt" },
+)
+
+internal fun moatTiaraTrackerFingerprint(type: String) = Fingerprint(
+    definingClass = type,
+    name = "track",
+    parameters = listOf("L"),
+    returnType = "V",
+)

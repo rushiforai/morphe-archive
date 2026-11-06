@@ -46,9 +46,30 @@ function Write-HushLeaseRecord($Stream, $Record) {
     $Stream.Flush($true)
 }
 
+# Every lease check holds the shared lease file alone, and a session waiting for the phone may be
+# reading that file at the same instant. A sharing or lock violation (codes 32 and 33) is retried
+# for about four seconds; anything else, a missing lease included, and a lock that outlasts the
+# retries still stop the caller.
+function Invoke-HushLeaseFileRetry {
+    param([Parameter(Mandatory)][scriptblock]$Action)
+    foreach ($delay in @(100, 250, 500, 1000, 2000, 0)) {
+        try {
+            return & $Action
+        } catch [IO.IOException] {
+            if (($_.Exception.GetBaseException().HResult -band 0xFFFF) -notin 32, 33 -or $delay -eq 0) { throw }
+            Start-Sleep -Milliseconds $delay
+        }
+    }
+}
+
+function Open-HushLeaseFile {
+    param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][IO.FileAccess]$Access)
+    Invoke-HushLeaseFileRetry { [IO.File]::Open($Path, [IO.FileMode]::Open, $Access, [IO.FileShare]::None) }
+}
+
 function Renew-HushDeviceLease {
     param([Parameter(Mandatory)]$Lease)
-    $stream = [IO.File]::Open($Lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    $stream = Open-HushLeaseFile $Lease.Path ReadWrite
     try {
         $record = Read-HushLeaseRecord $stream
         if ($record.serial -ne $Lease.Serial -or $record.project -ne $Lease.Project -or
@@ -67,14 +88,18 @@ function Exit-HushDeviceLease {
     param($Lease)
     if (-not $Lease -or -not $Lease.Owned) { return }
     if (-not (Test-Path -LiteralPath $Lease.Path)) { throw 'Owned device lease disappeared.' }
-    $stream = [IO.File]::Open($Lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
-    try {
-        $record = Read-HushLeaseRecord $stream
-        if ($record.ownershipToken -cne $Lease.Token -or $record.serial -ne $Lease.Serial) {
-            throw 'Device lease ownership changed. Release refused.'
-        }
-    } finally { $stream.Dispose() }
-    Remove-Item -LiteralPath $Lease.Path -ErrorAction Stop
+    # The token check and the delete share one handle that lets nothing but the delete in, so the
+    # lease can't change hands between them. A reader holding the file is waited out by the retry.
+    Invoke-HushLeaseFileRetry {
+        $stream = [IO.File]::Open($Lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Delete)
+        try {
+            $record = Read-HushLeaseRecord $stream
+            if ($record.ownershipToken -cne $Lease.Token -or $record.serial -ne $Lease.Serial) {
+                throw 'Device lease ownership changed. Release refused.'
+            }
+            [IO.File]::Delete($Lease.Path)
+        } finally { $stream.Dispose() }
+    }
 }
 
 function Get-HushDeviceIdentity {
@@ -108,7 +133,7 @@ function Confirm-HushLeasedDevice {
     param([string]$Adb, $Lease, [scriptblock]$Invoker, $Identity)
     Renew-HushDeviceLease $Lease
     if (-not $Identity) { $Identity = Get-HushDeviceIdentity -Adb $Adb -Serial $Lease.Serial -AdbInvoker $Invoker }
-    $stream = [IO.File]::Open($Lease.Path, [IO.FileMode]::Open, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
+    $stream = Open-HushLeaseFile $Lease.Path ReadWrite
     try {
         $record = Read-HushLeaseRecord $stream
         if ($record.serial -cne $Lease.Serial -or $record.project -cne $Lease.Project -or
@@ -155,7 +180,7 @@ function Enter-HushDeviceLease {
     $path = Join-Path $directory "$Serial.json"
     $owned = $false
     if ($LeaseToken) {
-        $stream = [IO.File]::Open($path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::None)
+        $stream = Open-HushLeaseFile $path Read
         try { $record = Read-HushLeaseRecord $stream } finally { $stream.Dispose() }
         if ($record.serial -cne $Serial -or $record.project -cne $Project -or
             $record.ownershipToken -cne $LeaseToken -or ($ChatIdentity -and $record.chatIdentity -cne $ChatIdentity)) {
@@ -168,7 +193,11 @@ function Enter-HushDeviceLease {
         try { $stream = [IO.File]::Open($path, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None) }
         catch [IO.IOException] {
             if (-not (Test-Path -LiteralPath $path)) { throw }
-            $held = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json
+            # The holder may still be writing it, so a lease that can't be read yet is busy.
+            try {
+                $heldStream = Open-HushLeaseFile $path Read
+                try { $held = Read-HushLeaseRecord $heldStream } finally { $heldStream.Dispose() }
+            } catch { throw "Device $Serial is leased to another caller ($($_.Exception.Message))." }
             if ([DateTimeOffset]::Parse($held.expiresUtc) -le [DateTimeOffset]::UtcNow) {
                 throw "Device $Serial has an expired lease. Confirm the previous test stopped before removing it."
             }

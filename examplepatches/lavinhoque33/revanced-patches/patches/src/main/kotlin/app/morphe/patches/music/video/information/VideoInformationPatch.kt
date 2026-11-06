@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-10-21.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -46,6 +47,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -65,7 +67,6 @@ import app.morphe.util.fingerprint.matchOrNull
 import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.getWalkerMethod
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.or
@@ -306,8 +307,8 @@ val videoInformationPatch = bytecodePatch(
             }
         }
 
-        fun Pair<String, Fingerprint>.getPlayerResponseInstruction(returnType: String): String {
-            methodOrThrow().apply {
+        fun Fingerprint.getPlayerResponseInstruction(returnType: String): String {
+            method.apply {
                 val targetReference = getInstruction<ReferenceInstruction>(
                     indexOfFirstInstructionOrThrow {
                         val reference = getReference<MethodReference>()
@@ -320,6 +321,9 @@ val videoInformationPatch = bytecodePatch(
                 return "invoke-interface {v$REGISTER_PLAYER_RESPONSE_MODEL}, $targetReference"
             }
         }
+
+        fun Pair<String, Fingerprint>.getPlayerResponseInstruction(returnType: String): String =
+            second.getPlayerResponseInstruction(returnType)
 
         videoEndFingerprint.methodOrThrow().apply {
             findMethodOrThrow(definingClass).let {
@@ -345,7 +349,7 @@ val videoInformationPatch = bytecodePatch(
             )
         }
 
-        mdxPlayerDirectorSetVideoStageFingerprint.methodOrThrow().apply {
+        mdxPlayerDirectorSetVideoStageFingerprint.method.apply {
             findMethodOrThrow(definingClass).let {
                 mdxConstructorMethod = it
                 mdxConstructorInsertIndex = it.indexOfFirstInstructionOrThrow {
@@ -358,7 +362,7 @@ val videoInformationPatch = bytecodePatch(
 
             // Create extension interface methods.
             addSeekInterfaceMethods(
-                mdxPlayerDirectorSetVideoStageFingerprint.mutableClassOrThrow(),
+                mdxPlayerDirectorSetVideoStageFingerprint.classDef,
                 this,
                 seekSourceMethodName,
                 "overrideMDXVideoTime",

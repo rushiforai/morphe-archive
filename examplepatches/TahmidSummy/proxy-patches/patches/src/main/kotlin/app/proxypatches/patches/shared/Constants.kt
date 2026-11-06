@@ -13,6 +13,7 @@ object Constants {
         targets = listOf(
             // Tested end to end (traffic capture on a real device).
             AppTarget(version = "2026.40.0"),
+            AppTarget(version = "2026.24.0"),
             // The patch only touches stable, non-obfuscated classes, so newer versions
             // are expected to work.
             AppTarget(version = null, isExperimental = true),

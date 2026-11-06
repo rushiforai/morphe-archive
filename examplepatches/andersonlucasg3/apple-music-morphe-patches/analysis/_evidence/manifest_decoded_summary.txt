@@ -1,0 +1,212 @@
+### ROOT <manifest>
+  android:sharedUserId = com.apple.android
+  android:versionCode = 1614
+  android:versionName = 7.0.0
+  android:compileSdkVersion = 36
+  android:compileSdkVersionCodename = 16
+  android:requiredSplitTypes = base__abi,base__density
+  android:splitTypes = 
+  package = com.apple.android.music
+  platformBuildVersionCode = 36
+  platformBuildVersionName = 16
+  element count(manifest children): 33
+
+### <uses-sdk>
+   {'android:minSdkVersion': '30', 'android:targetSdkVersion': '36'}
+
+### <uses-feature>
+   {'android:name': 'android.hardware.camera', 'android:required': 'false'}
+
+### <supports-screens>
+
+### <uses-library>
+
+### <queries>
+   package: {'android:name': 'com.snapchat.android'}
+   package: {'android:name': 'com.facebook.katana'}
+   package: {'android:name': 'com.instagram.android'}
+   package: {'android:name': 'com.google.android.apps.messaging'}
+   package: {'android:name': 'com.whatsapp'}
+   package: {'android:name': 'com.apple.android.music.classical'}
+   package: {'android:name': 'com.apple.android.music.classical.qa'}
+   package: {'android:name': 'com.google.android.gm'}
+   package: {'android:name': 'com.facebook.orca'}
+   package: {'android:name': 'com.android.music.classical.development'}
+   package: {'android:name': 'org.telegram.messenger'}
+   package: {'android:name': 'com.google.android.apps.maps'}
+   intent: {}
+   intent: {}
+   intent: {}
+   intent: {}
+   provider: {'android:name': 'androidx.car.app.connection.provider', 'android:authorities': 'androidx.car.app.connection'}
+   intent: {}
+   intent: {}
+   package: {'android:name': 'com.google.android.gms.policy_cast_dynamite'}
+   package: {'android:name': 'com.apple.android.music'}
+   package: {'android:name': 'com.apple.atve.androidtv.appletv'}
+   package: {'android:name': 'com.shazam.android'}
+
+### <application>
+{
+  "android:theme": "@style/AppTheme.Splash",
+  "android:label": "@string/app_name",
+  "android:icon": "@mipmap/ic_launcher",
+  "android:name": "com.apple.android.music.AppleMusicApplication",
+  "android:taskAffinity": ".amioTHcqthjM0cEs9G",
+  "android:allowBackup": "false",
+  "android:largeHeap": "true",
+  "android:supportsRtl": "true",
+  "android:extractNativeLibs": "true",
+  "android:resizeableActivity": "true",
+  "android:networkSecurityConfig": "@xml/network_security_config",
+  "android:appComponentFactory": "androidx.core.app.CoreComponentFactory",
+  "android:localeConfig": "@xml/locales_config"
+}
+
+### ACTIVITIES (name | orientation | configChanges | resizeable | launchMode | exported)
+  {"name": "com.apple.android.music.connect.activity.ConnectPostDetailPageActivity", "orientation": "behind", "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": "singleTop", "exported": null, "theme": null, "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.social.activities.SocialWebActivity", "orientation": "behind", "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": null, "theme": "@style/CommonDialog", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.settings.activity.AccountSettingsSubscriptionActivity", "orientation": "behind", "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": null, "theme": null, "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.common.activity.ChoosePictureActivity", "orientation": "behind", "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": null, "theme": "@style/AppTheme", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.common.activity.StaticHtmlActivity", "orientation": "behind", "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": null, "theme": "@style/CommonDialog", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.settings.activity.ManageDownloadedContentActivity", "orientation": "behind", "configChanges": null, "resizeable": null, "launchMode": null, "exported": null, "theme": null, "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.player2.FullScreenVideoActivity", "orientation": null, "configChanges": "fontScale|fontWeightAdjustment|grammaticalGender|layoutDirection|density|smallestScreenSize|screenSize|uiMode|screenLayout|orientation|navigation|keyboardHidden|keyboard|locale|mnc|mcc", "resizeable": null, "launchMode": "singleTask", "exported": null, "theme": "@style/AppTheme.Immersive", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.equalizer.EQActivity", "orientation": "behind", "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": null, "theme": null, "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.common.MainActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": "singleTask", "exported": "true", "theme": null, "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.commerce.activities.SonosAuthActivity", "orientation": null, "configChanges": "smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden", "resizeable": null, "launchMode": null, "exported": "true", "theme": "@style/Transparent", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.navigation.deeplink.SdkAuthActivity", "orientation": null, "configChanges": "smallestScreenSize|screenSize|uiMode|screenLayout|orientation|keyboardHidden", "resizeable": null, "launchMode": null, "exported": "true", "theme": "@style/Transparent", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.commerce.activities.ChromeTabsActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": "singleTop", "exported": "true", "theme": null, "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.common.activity.ConsumptionOnlyActivity", "orientation": "behind", "configChanges": null, "resizeable": null, "launchMode": null, "exported": null, "theme": "@style/AppTheme", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.widget.nowplaying.AppleMusicWidgetConfigActivity", "orientation": null, "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": "true", "theme": "@style/AppWidgetSettingsStyle", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.widget.charts.ChartsWidgetConfigActivity", "orientation": null, "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": "true", "theme": "@style/AppWidgetSettingsStyle", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.widget.recentlyplayed.RecentlyPlayedWidgetConfigActivity", "orientation": null, "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": "true", "theme": "@style/AppWidgetSettingsStyle", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.widget.RecommendationsWidgetConfigActivity", "orientation": null, "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": "true", "theme": "@style/AppWidgetSettingsStyle", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.widget.radio.RadioWidgetConfigActivity", "orientation": null, "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": "true", "theme": "@style/AppWidgetSettingsStyle", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.widget.pins.PinsWidgetConfigActivity", "orientation": null, "configChanges": "screenSize|orientation", "resizeable": null, "launchMode": null, "exported": "true", "theme": "@style/AppWidgetSettingsStyle", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.apple.android.music.mli.MLIChromeTabActivity", "orientation": "portrait", "configChanges": null, "resizeable": null, "launchMode": "singleTop", "exported": "true", "theme": null, "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "androidx.glance.appwidget.action.ActionTrampolineActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": null, "exported": "false", "theme": "@android:style/Theme.NoDisplay", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "androidx.glance.appwidget.action.InvisibleActionTrampolineActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": "singleInstance", "exported": "false", "theme": "@style/Widget.Glance.AppWidget.CallbackTrampoline", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "androidx.car.app.CarAppPermissionActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": null, "exported": "false", "theme": "@android:style/Theme.Translucent.NoTitleBar", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.android.billingclient.api.ProxyBillingActivity", "orientation": null, "configChanges": "screenSize|screenLayout|orientation|keyboardHidden|keyboard", "resizeable": null, "launchMode": null, "exported": "false", "theme": "@android:style/Theme.Translucent.NoTitleBar", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.android.billingclient.api.ProxyBillingActivityV2", "orientation": null, "configChanges": "screenSize|screenLayout|orientation|keyboardHidden|keyboard", "resizeable": null, "launchMode": null, "exported": "false", "theme": "@android:style/Theme.Translucent.NoTitleBar", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "androidx.credentials.playservices.HiddenActivity", "orientation": null, "configChanges": "screenSize|screenLayout|orientation|keyboardHidden", "resizeable": null, "launchMode": null, "exported": "false", "theme": "@style/Theme.Hidden", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "androidx.credentials.playservices.IdentityCredentialApiHiddenActivity", "orientation": null, "configChanges": "screenSize|screenLayout|orientation|keyboardHidden", "resizeable": null, "launchMode": null, "exported": "false", "theme": "@style/Theme.Hidden", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.google.android.gms.auth.api.signin.internal.SignInHubActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": null, "exported": "false", "theme": "@android:style/Theme.Translucent.NoTitleBar", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.google.android.play.agesignals.AgeSharingConsentWrapperActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": null, "exported": "false", "theme": "@style/Theme.Play.AgeSignals.Transparent", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.google.android.gms.common.api.GoogleApiActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": null, "exported": "false", "theme": "@android:style/Theme.Translucent.NoTitleBar", "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "androidx.compose.ui.tooling.PreviewActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": null, "exported": "true", "theme": null, "parent": null, "hardwareAccel": null, "maxAspect": null}
+  {"name": "com.google.android.play.core.common.PlayCoreDialogWrapperActivity", "orientation": null, "configChanges": null, "resizeable": null, "launchMode": null, "exported": "false", "theme": "@style/Theme.PlayCore.Transparent", "parent": null, "hardwareAccel": null, "maxAspect": null}
+
+### ORIENTATION TALLY
+  (unset): 23
+  behind: 8
+  portrait: 1
+
+### resizeableActivity tally
+   {'(unset)': 32}
+
+### <activity-alias>
+   {'android:name': 'com.apple.android.music.deeplink', 'android:enabled': 'true', 'android:exported': 'true', 'android:targetActivity': 'com.apple.android.music.common.MainActivity'}
+
+### SERVICES
+   {'android:name': 'com.apple.android.music.player.MediaPlaybackService', 'android:exported': 'true', 'android:foregroundServiceType': 'mediaPlayback'}
+   {'android:name': 'com.apple.android.music.download.controller.DownloadService', 'android:exported': 'false', 'android:foregroundServiceType': 'dataSync'}
+   {'android:name': 'com.apple.android.music.settings.services.MediaTransferService', 'android:exported': 'false'}
+   {'android:name': 'com.apple.android.music.icloud.ICloudApiService'}
+   {'android:name': 'com.apple.android.music.pushnotifications.controllers.PushNotificationsService', 'android:exported': 'true', 'android:stopWithTask': 'false'}
+   {'android:name': 'com.apple.android.music.settings.services.DownloadManagerMigrationStepService', 'android:exported': 'false'}
+   {'android:name': 'androidx.glance.appwidget.GlanceRemoteViewsService', 'android:permission': 'android.permission.BIND_REMOTEVIEWS', 'android:exported': 'true'}
+   {'android:name': 'com.google.firebase.components.ComponentDiscoveryService', 'android:exported': 'false', 'android:directBootAware': 'true'}
+   {'android:name': 'com.google.firebase.sessions.SessionLifecycleService', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'androidx.work.impl.background.systemjob.SystemJobService', 'android:permission': 'android.permission.BIND_JOB_SERVICE', 'android:enabled': '@bool/enable_system_job_service_default', 'android:exported': 'true', 'android:directBootAware': 'false'}
+   {'android:name': 'androidx.work.impl.foreground.SystemForegroundService', 'android:enabled': '@bool/enable_system_foreground_service_default', 'android:exported': 'false', 'android:directBootAware': 'false'}
+   {'android:name': 'androidx.credentials.playservices.CredentialProviderMetadataHolder', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'com.google.android.gms.cast.framework.ReconnectionService', 'android:exported': 'false'}
+   {'android:name': 'com.google.android.gms.auth.api.signin.RevocationBoundService', 'android:permission': 'com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION', 'android:exported': 'true', 'android:visibleToInstantApps': 'true'}
+   {'android:name': 'com.google.firebase.messaging.FirebaseMessagingService', 'android:exported': 'false', 'android:directBootAware': 'true'}
+   {'android:name': 'com.google.android.gms.measurement.AppMeasurementService', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'com.google.android.gms.measurement.AppMeasurementJobService', 'android:permission': 'android.permission.BIND_JOB_SERVICE', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'androidx.core.widget.RemoteViewsCompatService', 'android:permission': 'android.permission.BIND_REMOTEVIEWS'}
+   {'android:name': 'androidx.room.MultiInstanceInvalidationService', 'android:exported': 'false', 'android:directBootAware': 'true'}
+   {'android:name': 'com.google.android.datatransport.runtime.backends.TransportBackendDiscovery', 'android:exported': 'false'}
+   {'android:name': 'com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService', 'android:permission': 'android.permission.BIND_JOB_SERVICE', 'android:exported': 'false'}
+
+### RECEIVERS
+   {'android:label': '@string/appwidget_name_now_playing', 'android:icon': '@mipmap/ic_launcher', 'android:name': 'com.apple.android.music.widget.AppleMusicWidget', 'android:exported': 'true'}
+   {'android:label': '@string/appwidget_name_recently_played', 'android:name': 'com.apple.android.music.widget.RecentlyPlayedWidgetProvider', 'android:exported': 'true'}
+   {'android:label': '@string/appwidget_name_recommendations', 'android:name': 'com.apple.android.music.widget.RecommendationsWidgetProvider', 'android:exported': 'true'}
+   {'android:label': '@string/appwidget_name_charts', 'android:name': 'com.apple.android.music.widget.ChartsWidgetProvider', 'android:exported': 'true'}
+   {'android:label': '@string/appwidget_name_pins', 'android:name': 'com.apple.android.music.widget.PinsWidgetReceiver', 'android:exported': 'true'}
+   {'android:label': '@string/appwidget_name_radio', 'android:name': 'com.apple.android.music.widget.RadioWidgetReceiver', 'android:exported': 'true'}
+   {'android:name': 'com.apple.android.music.common.controllers.UpgradeReceiver', 'android:exported': 'false'}
+   {'android:name': 'com.apple.android.music.pushnotifications.NotificationBroadcastReceiver', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'com.apple.android.music.common.controllers.PartnerInstallReceiver', 'android:enabled': 'true', 'android:exported': 'true'}
+   {'android:name': 'androidx.mediarouter.media.MediaTransferReceiver', 'android:exported': 'true'}
+   {'android:name': 'androidx.glance.appwidget.action.ActionCallbackBroadcastReceiver', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'androidx.glance.appwidget.UnmanagedSessionReceiver', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'androidx.glance.appwidget.MyPackageReplacedReceiver', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'androidx.car.app.notification.CarAppNotificationBroadcastReceiver', 'android:exported': 'false'}
+   {'android:name': 'androidx.work.impl.utils.ForceStopRunnable.BroadcastReceiver', 'android:enabled': 'true', 'android:exported': 'false', 'android:directBootAware': 'false'}
+   {'android:name': 'androidx.work.impl.background.systemalarm.RescheduleReceiver', 'android:enabled': 'false', 'android:exported': 'false', 'android:directBootAware': 'false'}
+   {'android:name': 'androidx.work.impl.diagnostics.DiagnosticsReceiver', 'android:permission': 'android.permission.DUMP', 'android:enabled': 'true', 'android:exported': 'true', 'android:directBootAware': 'false'}
+   {'android:name': 'com.google.android.gms.cast.framework.media.MediaIntentReceiver', 'android:exported': 'false'}
+   {'android:name': 'com.google.firebase.iid.FirebaseInstanceIdReceiver', 'android:permission': 'com.google.android.c2dm.permission.SEND', 'android:exported': 'true'}
+   {'android:name': 'com.google.android.gms.measurement.AppMeasurementReceiver', 'android:enabled': 'true', 'android:exported': 'false'}
+   {'android:name': 'androidx.profileinstaller.ProfileInstallReceiver', 'android:permission': 'android.permission.DUMP', 'android:enabled': 'true', 'android:exported': 'true', 'android:directBootAware': 'false'}
+   {'android:name': 'com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver', 'android:exported': 'false'}
+
+### PROVIDERS
+   {'android:name': 'androidx.core.content.FileProvider', 'android:exported': 'false', 'android:authorities': 'com.apple.android.music.provider', 'android:grantUriPermissions': 'true'}
+   {'android:name': 'com.apple.android.music.provider.ArtworkContentProvider', 'android:exported': 'true', 'android:authorities': 'com.apple.android.music.provider.ArtworkProvider'}
+   {'android:name': 'com.apple.android.music.provider.WidgetImageProvider', 'android:exported': 'true', 'android:authorities': 'com.apple.android.music.provider.WidgetImageProvider'}
+   {'android:name': 'androidx.startup.InitializationProvider', 'android:exported': 'false', 'android:authorities': 'com.apple.android.music.androidx-startup'}
+   {'android:name': 'com.google.firebase.provider.FirebaseInitProvider', 'android:exported': 'false', 'android:authorities': 'com.apple.android.music.firebaseinitprovider', 'android:initOrder': '100', 'android:directBootAware': 'true'}
+   {'android:name': 'com.apple.mediaservices.amskit.device.AMSStableIdentifier', 'android:enabled': 'true', 'android:exported': 'true', 'android:authorities': 'com.apple.android.music.ams.stable'}
+
+### <uses-permission> (count=28)
+   android.permission.INTERNET | maxSdk= None
+   android.permission.READ_EXTERNAL_STORAGE | maxSdk= None
+   android.permission.WRITE_EXTERNAL_STORAGE | maxSdk= None
+   android.permission.WAKE_LOCK | maxSdk= None
+   android.permission.MODIFY_AUDIO_SETTINGS | maxSdk= None
+   android.permission.ACCESS_WIFI_STATE | maxSdk= None
+   android.permission.CHANGE_WIFI_STATE | maxSdk= None
+   android.permission.CHANGE_NETWORK_STATE | maxSdk= None
+   android.permission.ACCESS_NETWORK_STATE | maxSdk= None
+   android.permission.BLUETOOTH | maxSdk= None
+   com.google.android.apps.photos.permission.GOOGLE_PHOTOS | maxSdk= None
+   android.permission.READ_CONTACTS | maxSdk= None
+   android.permission.DOWNLOAD_WITHOUT_NOTIFICATION | maxSdk= None
+   android.permission.FOREGROUND_SERVICE | maxSdk= None
+   android.permission.FOREGROUND_SERVICE_DATA_SYNC | maxSdk= None
+   android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK | maxSdk= None
+   android.permission.POST_NOTIFICATIONS | maxSdk= None
+   android.permission.ACCESS_COARSE_LOCATION | maxSdk= None
+   android.permission.RECEIVE_BOOT_COMPLETED | maxSdk= None
+   com.android.vending.BILLING | maxSdk= None
+   android.permission.USE_BIOMETRIC | maxSdk= None
+   android.permission.USE_FINGERPRINT | maxSdk= None
+   com.google.android.c2dm.permission.RECEIVE | maxSdk= None
+   com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE | maxSdk= None
+   com.google.android.gms.permission.AD_ID | maxSdk= None
+   android.permission.ACCESS_ADSERVICES_ATTRIBUTION | maxSdk= None
+   android.permission.ACCESS_ADSERVICES_AD_ID | maxSdk= None
+   com.apple.android.music.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION | maxSdk= None
+
+### <permission>
+   {'android:name': 'com.apple.android.music.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION', 'android:protectionLevel': 'signature'}
+
+### main intent-filter of launch activity
+  activity: com.apple.android.music.common.MainActivity launchMode: singleTask
+   actions: ['android.intent.action.MAIN']
+   categories: ['android.intent.category.LAUNCHER']
+
+### all <data> schemes per activity (VIEW filters)
+   com.apple.android.music.common.MainActivity -> [{'android:host': 'music.apple.com'}, {'android:host': 'applemusic.com'}, {'android:host': 'itun.es'}, {'android:host': 'itunes.apple.com'}, {'android:host': 'se2.itunes.apple.com'}, {'android:scheme': 'http'}, {'android:scheme': 'https'}, {'android:pathPattern': '/.*'}, {'android:pathPattern': '.*'}, {'android:scheme': 'https', 'android:host': 'buy.itunes.apple.com', 'android:path': '/WebObjects/MZFinance.woa/wa/returnFromEmailVerify'}, {'android:scheme': 'https', 'android:host': 'buy.itunes.apple.com', 'android:path': '/WebObjects/MZFinance.woa/wa/DirectAction/manageSubscriptions'}, {'android:scheme': 'https', 'android:host': 'buy.itunes.apple.com', 'android:path': '/WebObjects/MZFinance.woa/wa/com.apple.jingle.app.finance.DirectAction/freeProductCodeWizard'}, {'android:scheme': 'https', 'android:host': 'buy.itunes.apple.com', 'android:path': '/WebObjects/MZFinance.woa/wa/freeProductCodeWizard'}]
+   com.apple.android.music.common.MainActivity -> [{'android:scheme': 'apple-music'}, {'android:scheme': 'apple-musics'}, {'android:pathPattern': '/.*'}]
+   com.apple.android.music.common.MainActivity -> [{'android:scheme': 'https', 'android:host': 'search.itunes.apple.com', 'android:pathPrefix': '/WebObjects/MZContentLink.woa/wa/link'}]
+   com.apple.android.music.common.MainActivity -> [{'android:scheme': 'https', 'android:host': 'setup.icloud.com', 'android:pathPattern': '/email/prefs/family'}, {'android:scheme': 'https', 'android:host': 'setup.icloud.com', 'android:pathPattern': '/family/messages'}]
+   com.apple.android.music.commerce.activities.SonosAuthActivity -> [{'android:scheme': 'music', 'android:host': 'itunes.apple.com', 'android:pathPattern': '/sonosAuth'}]
+   com.apple.android.music.navigation.deeplink.SdkAuthActivity -> [{'android:scheme': 'musicsdk', 'android:host': 'applemusic', 'android:pathPattern': '/authenticate-v.*'}]
+   com.apple.android.music.commerce.activities.ChromeTabsActivity -> [{'android:scheme': 'https', 'android:host': 'buy.itunes.apple.com', 'android:path': '/WebObjects/MZFinance.woa/wa/userSignedPayPalBA*?.*'}, {'android:scheme': 'musics'}]
+   com.apple.android.music.mli.MLIChromeTabActivity -> [{'android:scheme': 'applemusic', 'android:host': 'transfer-music'}]

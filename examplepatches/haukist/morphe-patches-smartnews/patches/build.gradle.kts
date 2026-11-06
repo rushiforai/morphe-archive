@@ -26,6 +26,7 @@ dependencies {
 tasks {
     test {
         useJUnitPlatform()
+        systemProperty("smartnews.sentryDiagnostics", providers.gradleProperty("sentryDiagnostics").getOrElse("false"))
         dependsOn(jar)
         testLogging {
             events("PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR")

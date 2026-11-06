@@ -1,0 +1,53 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const vm = require('node:vm');
+const root = path.resolve(__dirname, '../../patches/src/main/resources/reactnative');
+let adapter, enabled = true, notifications = 0, reports = 0;
+const runtime = {target(id, name, factory) { adapter = factory; }};
+const context = vm.createContext({globalThis: {__twitchPatchRuntime: runtime}});
+vm.runInContext(fs.readFileSync(path.join(root, 'stream-ad-state.js'), 'utf8')
+    .replace('__TWITCH_CONTROLLER_HOOK_MODULE__', '12').replace('__TWITCH_AD_CONTROLLER_MODULE__', '13'), context);
+const React = {useMemo: factory => factory()};
+const policy = {policyHook: () => enabled, log() { reports++; }};
+let nativeState = {playing: true, remaining: 0, clickUrl: 'fixture'};
+let listener = null, cleanups = 0;
+const ad = {getState: () => nativeState, subscribe(callback) { listener = callback; return () => { listener = null; cleanups++; }; }};
+const getSnapshot = function () {
+    assert.equal(arguments.length, 0, 'Twitch reads snapshots through a zero-argument closure');
+    return ad.getState();
+};
+let activeController, activeSnapshot, previous;
+const equal = (left, right) => left.playing === right.playing;
+const original = function (controller, snapshot, compare) {
+    activeController = controller; activeSnapshot = snapshot;
+    assert.equal(this.fixture, true, 'original hook receiver is preserved');
+    assert.equal(compare, equal);
+    const next = snapshot();
+    if (previous === undefined || !compare(previous, next)) previous = next;
+    return previous;
+};
+const hook = adapter(original, React, policy, () => ({adState: ad}));
+assert.equal(hook.call({fixture: true}, ad, getSnapshot, equal).playing, false);
+assert.equal(activeController, ad, 'original subscription controller retains its identity');
+const idleSnapshot = activeSnapshot();
+assert.equal(activeSnapshot(), idleSnapshot, 'idle model remains stable for external-store comparisons');
+const unsubscribe = activeController.subscribe(() => notifications++);
+nativeState = {playing: true, remaining: 30}; listener();
+assert.equal(notifications, 1);
+assert.equal(activeSnapshot().playing, false);
+assert.equal(nativeState.playing, true, 'presentation does not alter SDK state or impressions');
+enabled = false;
+assert.equal(hook.call({fixture: true}, ad, getSnapshot, equal).playing, true);
+assert.equal(activeSnapshot, getSnapshot, 'disabled policy restores the original snapshot closure');
+enabled = true;
+assert.equal(hook.call({fixture: true}, ad, getSnapshot, equal).playing, false,
+    're-enabling overrides the original callback that closes over the unmodified controller');
+assert.equal(activeSnapshot().clickUrl, undefined);
+assert.equal(reports, 1, 'suppression evidence is emitted once without metadata');
+const other = {getState: () => ({playing: true, position: 10})};
+const otherSnapshot = () => other.getState();
+assert.equal(hook.call({fixture: true}, other, otherSnapshot, equal).position, 10);
+assert.equal(activeController, other); assert.equal(activeSnapshot, otherSnapshot);
+unsubscribe(); assert.equal(cleanups, 1);
+console.log('Ad snapshot callbacks, toggle restoration and subscription conservation passed.');

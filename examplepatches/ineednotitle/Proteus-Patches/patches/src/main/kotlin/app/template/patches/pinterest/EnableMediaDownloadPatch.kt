@@ -9,19 +9,16 @@ import app.template.patches.shared.Constants.PINTEREST_COMPATIBILITY
  * Pinterest hides the Download action for most Pins: every Pin model carries
  * the server flag "is_eligible_for_image_download", and the pin-detail menu
  * builder (which reads pin.L5() in 14.41.0) only offers download when that
- * flag is true. This patch makes the accessor report TRUE for every pin, so
- * the Download option appears uniformly — including Idea pins / video pins
- * whose bitrates are otherwise menu-gated.
- *
- * Scope note: this flips what the pin model reports to UI consumers; it does
- * not touch any other pin metadata or server behavior. Verified against
- * 14.41.0 (vc 14418020).
+ * flag is true. This patch makes that image-download accessor report TRUE.
+ * This patch alone does not change the download action to select video. The
+ * separate experimental video patch adds that behavior. The accessor was identified
+ * in Pinterest 14.41.0 (vc 14418020).
  */
 @Suppress("unused")
 val enableMediaDownloadPatch = bytecodePatch(
     name = "Enable media downloads",
-    description = "Forces the pin-level download eligibility flag so the Download action is " +
-        "available on every Pin (images and videos).",
+    description = "Enables the pin-level image download eligibility flag. " +
+        "Use the separate experimental video download patch for supported video Pins.",
     default = true,
 ) {
     compatibleWith(PINTEREST_COMPATIBILITY)

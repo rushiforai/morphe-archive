@@ -80,11 +80,15 @@ public class RedgifsTokenManager {
         }
     }
 
-    public static RedgifsToken refreshToken(String userAgent) throws IOException, JSONException {
+    /**
+     * @param force Ask for a new token even when the cached one hasn't expired: Redgifs refuses a token
+     *              after the phone's address changes.
+     */
+    public static RedgifsToken refreshToken(String userAgent, boolean force) throws IOException, JSONException {
         synchronized (tokenMap) {
             // Reference: https://github.com/JeffreyCA/Apollo-ImprovedCustomApi/pull/67
             RedgifsToken token = tokenMap.get(userAgent);
-            if (token != null && token.isValid()) {
+            if (!force && token != null && token.isValid()) {
                 return token;
             }
 

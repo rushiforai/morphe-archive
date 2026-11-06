@@ -26,26 +26,24 @@ class StockQuadCompositionPatchTest {
     private val steamLink = "com.valvesoftware.steamlinkvr"
 
     @Test
-    fun `patch is exact six base experimental and default off`() {
-        assertEquals("Stock quad composition (experimental)", stockQuadCompositionPatch.name)
-        assertFalse(stockQuadCompositionPatch.default)
+    fun `patch is exact six base stable recommended and not experimental`() {
+        assertEquals("Stock quad composition", stockQuadCompositionPatch.name)
+        assertFalse(stockQuadCompositionPatch.name.orEmpty().contains("experimental", ignoreCase = true))
+        assertTrue(stockQuadCompositionPatch.default)
         assertEquals(PatchCategories.IMAGE_QUALITY, stockQuadCompositionPatch.category)
         assertEquals(1, stockQuadCompositionPatch.dependencies.size)
         assertTrue(stockQuadCompositionPatch.options.isEmpty())
         val targets = stockQuadCompositionPatch.compatibility.orEmpty().flatMap { compatibility ->
             assertEquals(steamLink, compatibility.packageName)
-            assertEquals(EXPERIMENTAL_COMPATIBILITY_NAME, compatibility.name)
+            assertFalse(compatibility.name == EXPERIMENTAL_COMPATIBILITY_NAME)
             compatibility.targets.flatMap { target ->
                 target.versionCodes.orEmpty().values.map { target.version to it.toString() }
             }
         }.toSet()
         assertEquals(exactBases.toSet(), targets)
         assertPatchDescriptionContract(stockQuadCompositionPatch)
-        assertTrue(stockQuadCompositionPatch.description.orEmpty().contains(
-            "Needs: deselect Alpha-0 high-resolution trigger.",
-        ))
-        assertFalse(alpha0HighResolutionTriggerPatch.dependencies.contains(stockQuadCompositionPatch))
-        assertTrue(alpha0HighResolutionTriggerPatch.default)
+        assertFalse(stockQuadCompositionPatch.description.orEmpty().contains("Alpha-0"))
+        assertFalse(stockQuadCompositionPatch.description.orEmpty().contains("Needs:"))
     }
 
     @Test
@@ -134,31 +132,18 @@ class StockQuadCompositionPatchTest {
     }
 
     @Test
-    fun `alpha-0 conflicts in both patch orders`() = withSyntheticBase { root ->
-        // Alpha-0 first.
-        val alpha0 = File(libDirectory(root), ANDROID_SURFACE_TRIGGER_LIBRARY)
-        alpha0.writeBytes(byteArrayOf(1, 2, 3))
-        assertFailsWith<PatchException> { installStockQuadResources(root, steamLink, "2.0.24", "5002395") }
-        assertContentEquals(byteArrayOf(1, 2, 3), alpha0.readBytes())
-        assertFalse(File(libDirectory(root), STOCK_QUAD_LIBRARY).exists())
-        assertFalse(File(layerDirectory(root), STOCK_QUAD_MANIFEST).exists())
-        alpha0.delete()
-
-        // Stock quad first.
-        assertTrue(installStockQuadResources(root, steamLink, "2.0.24", "5002395"))
-        val requested = ProjectionModeResources(
-            ANDROID_SURFACE_TRIGGER_MODE,
-            ANDROID_SURFACE_TRIGGER_LIBRARY,
-            ANDROID_SURFACE_TRIGGER_MANIFEST,
-        )
-        assertFailsWith<PatchException> {
-            installProjectionModeResources(
-                libDirectory(root), layerDirectory(root), requested, byteArrayOf(1, 2, 3),
-            )
-        }
-        assertFalse(alpha0.exists())
-        assertFalse(File(layerDirectory(root), ANDROID_SURFACE_TRIGGER_MANIFEST).exists())
-        assertTrue(File(libDirectory(root), STOCK_QUAD_LIBRARY).isFile)
+    fun `retired alpha-0 leftovers are removed instead of blocking and reapply is stable`() = withSyntheticBase { root ->
+        val lib = libDirectory(root)
+        val layers = layerDirectory(root).apply { mkdirs() }
+        val leftovers = listOf(
+            File(lib, "libgxr_ast.so"),
+            File(lib, "libgxr_ast_5001712.so"),
+            File(layers, "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1.json"),
+        ).onEach { it.writeBytes(byteArrayOf(1, 2, 3)) }
+        repeat(2) { assertTrue(installStockQuadResources(root, steamLink, "2.0.24", "5002395")) }
+        leftovers.forEach { assertFalse(it.exists(), it.name) }
+        assertTrue(File(lib, STOCK_QUAD_LIBRARY).isFile)
+        assertTrue(File(layers, STOCK_QUAD_MANIFEST).isFile)
     }
 
     @Test
@@ -213,26 +198,18 @@ class StockQuadCompositionPatchTest {
     }
 
     @Test
-    fun `manifest mode metadata conflicts with alpha-0 in both orders and is stable`() {
-        assertTrue(projectionModesConflict(ANDROID_SURFACE_TRIGGER_MODE, STOCK_QUAD_MODE))
-        assertTrue(projectionModesConflict(STOCK_QUAD_MODE, ANDROID_SURFACE_TRIGGER_MODE))
-        assertFalse(projectionModesConflict(STOCK_QUAD_MODE, STOCK_QUAD_MODE))
+    fun `manifest mode metadata is stable and replaces a retired alpha-0 mode`() {
+        val stock = manifestDocument()
+        configurePermissionFreeProjectionMode(stock, STOCK_QUAD_MODE)
+        configurePermissionFreeProjectionMode(stock, STOCK_QUAD_MODE)
+        assertEquals(listOf(STOCK_QUAD_MODE), resolutionModes(stock))
 
-        val stockFirst = manifestDocument()
-        configurePermissionFreeProjectionMode(stockFirst, STOCK_QUAD_MODE)
-        configurePermissionFreeProjectionMode(stockFirst, STOCK_QUAD_MODE)
-        assertEquals(listOf(STOCK_QUAD_MODE), resolutionModes(stockFirst))
-        assertFailsWith<PatchException> {
-            configurePermissionFreeProjectionMode(stockFirst, ANDROID_SURFACE_TRIGGER_MODE)
-        }
-        assertEquals(listOf(STOCK_QUAD_MODE), resolutionModes(stockFirst))
-
-        val alpha0First = manifestDocument()
-        configurePermissionFreeProjectionMode(alpha0First, ANDROID_SURFACE_TRIGGER_MODE)
-        assertFailsWith<PatchException> {
-            configurePermissionFreeProjectionMode(alpha0First, STOCK_QUAD_MODE)
-        }
-        assertEquals(listOf(ANDROID_SURFACE_TRIGGER_MODE), resolutionModes(alpha0First))
+        val retiredAlpha0Mode = "android_surface_trigger_passthrough_v1"
+        val migrated = manifestDocument()
+        configurePermissionFreeProjectionMode(migrated, retiredAlpha0Mode)
+        assertEquals(listOf(retiredAlpha0Mode), resolutionModes(migrated))
+        configurePermissionFreeProjectionMode(migrated, STOCK_QUAD_MODE)
+        assertEquals(listOf(STOCK_QUAD_MODE), resolutionModes(migrated))
     }
 
     @Test

@@ -2,6 +2,7 @@ package app.hushmessenger.patches.controls
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.PatcherProgress
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.resource.ResourceMode
@@ -116,7 +117,7 @@ class SaveStoriesTest {
                     .newInstance(config, resources.packageMetadata) as BytecodePatchContext
                 val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
                 BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", patchClasses)
-                    .invoke(context, patchClasses.getConstructor(Set::class.java).newInstance(classes.toSet()))
+                    .invoke(context, patchClasses.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes.toSet(), null))
                 context.use {
                     val owner = context.mutableClassDefBy("LX/JgG;")
                     assertTrue(owner.directMethods.isEmpty())

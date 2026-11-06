@@ -10,13 +10,13 @@ package app.morphe.patches.youtube.utils.litho.rendernext
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.returnEarly
 import app.morphe.patches.youtube.utils.compatibility.Constants.YOUTUBE_PACKAGE_NAME
 import app.morphe.patches.youtube.utils.playservice.is_20_29_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_20_47_or_greater
 import app.morphe.patches.youtube.utils.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.utils.playservice.versionCheckPatch
 import app.morphe.util.insertLiteralOverride
-import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 
 /**
@@ -52,7 +52,7 @@ val disableRenderNextPatch = bytecodePatch(
         enablementCheckMethod.returnEarly(false)
 
         val configRenderNextField = getRenderNextConfigFieldFingerprint(enablementCheckMethod)
-            .instructionMatches.first().getFieldAccessed()
+            .instructionMatches.first().fieldReference
 
         // Every read of the config field decides if an element is RenderNext.
         getRenderNextConfigFieldReadFingerprint(configRenderNextField).matchAll().forEach {

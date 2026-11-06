@@ -1,7 +1,7 @@
 package app.hushmessenger.patches.controls
 
 import app.morphe.patcher.Patcher
-import app.morphe.patcher.patch.BytecodePatch
+import app.morphe.patcher.patch.Patch
 import app.morphe.patcher.patch.PatchResult
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -187,7 +187,8 @@ internal fun lifecycleManifest(apk: File): Document {
 
 /** Count the real extension stream, restoring the singleton provider even when an assertion fails. */
 internal fun <T> withLifecycleExtension(bytes: ByteArray, action: (() -> Int) -> T): T {
-    val field = BytecodePatch::class.java.getDeclaredField("extensionStreamProviders").apply { isAccessible = true }
+    // Patcher 2.3.0 moved the providers from BytecodePatch up to Patch, and getDeclaredField skips superclasses.
+    val field = Patch::class.java.getDeclaredField("extensionStreamProviders").apply { isAccessible = true }
     val original = field.get(settingsExtension)
     var reads = 0
     val provider = Supplier { listOf(Supplier { reads++; ByteArrayInputStream(bytes) }) }

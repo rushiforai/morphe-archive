@@ -28,7 +28,7 @@ private const val ROW = "LX/91d;"
 private const val PICTURE = "LX/KNi;"
 
 /** The row's picture type in each stock build, the same one-method interface under each build's own name. */
-private val NATIVE_PICTURES = mapOf(PROFILE_347215341 to "LX/KUL;", PROFILE_347215348 to PICTURE)
+private val NATIVE_PICTURES = mapOf(PROFILE_347215273 to "LX/HXv;", PROFILE_347215341 to "LX/KUL;", PROFILE_347215348 to PICTURE)
 private const val TILE = "LX/91c;"
 private const val LOOKUP = "LX/NNP;->A0j(LX/1xr;Ljava/lang/String;)$USER_MODEL"
 private const val TILE_PARAMS = "LX/1xl;->A0f($USER_MODEL)LX/VuA;"

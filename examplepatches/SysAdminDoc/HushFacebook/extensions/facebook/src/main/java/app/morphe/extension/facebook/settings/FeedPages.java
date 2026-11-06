@@ -172,6 +172,7 @@ final class FeedPages {
                 || build.contains(PatchFamily.AFFILIATE_LINKS)
                 || build.contains(PatchFamily.POST_WORDS)
                 || build.contains(PatchFamily.POST_PROMPTS)
+                || build.contains(PatchFamily.PROFILE_PICTURES)
                 || build.contains(PatchFamily.SEEN_POSTS)
                 || build.contains(PatchFamily.META_AI_QUESTIONS)
                 || build.contains(PatchFamily.POST_DATES)
@@ -286,6 +287,12 @@ final class FeedPages {
                                 + "so a tap where they were still opens the list of reactions. To take the number off the Like "
                                 + "button too, turn on Hide counts on posts.")));
             }
+            if (build.contains(PatchFamily.PROFILE_PICTURES)) {
+                // Read as each post's header is built, so a change shows on the posts drawn after it.
+                feed.addPreference(toggle(context, Settings.HIDE_FEED_PROFILE_PICTURES,
+                        L10n.t("Takes the profile picture off the top of posts, so the name starts where the picture "
+                                + "was. A change shows on the posts drawn after it.")));
+            }
             if (build.contains(PatchFamily.META_AI_QUESTIONS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_META_AI_QUESTIONS,
                         L10n.t("Hides the row of Meta AI questions under some posts. The post, its link card and its buttons stay.")));
@@ -314,8 +321,8 @@ final class FeedPages {
             }
             if (build.contains(PatchFamily.FULL_POST_TEXT)) {
                 feed.addPreference(toggle(context, Settings.SHOW_FULL_POST_TEXT,
-                        L10n.t("Posts in the feed and captions on reels show all of their text, so there's no See more to tap. "
-                                + "Tap the text to fold it back.")));
+                        L10n.t("Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold "
+                                + "it back. Reel captions have their own switch under Reels and Watch.")));
             }
             if (build.contains(PatchFamily.TRANSLATE_POSTS)) {
                 feed.addPreference(toggle(context, Settings.TRANSLATE_POST_LINK,
@@ -651,7 +658,7 @@ final class FeedPages {
                 || build.contains(PatchFamily.STORY_DOWNLOAD) || build.contains(PatchFamily.STORY_UPLOAD_HD)
                 || build.contains(PatchFamily.STORY_MUSIC_LENGTH) || build.contains(PatchFamily.STORIES_TRAY_CIRCLES)
                 || build.contains(PatchFamily.STORY_TAPS) || build.contains(PatchFamily.STORY_VIEWER_CLEANUP)
-                || build.contains(PatchFamily.PINCH_TO_ZOOM)) {
+                || build.contains(PatchFamily.STORY_RINGS) || build.contains(PatchFamily.PINCH_TO_ZOOM)) {
             PreferenceCategory stories = category(screen, L10n.t("Stories"));
             if (build.contains(PatchFamily.SPONSORED_STORIES)) {
                 stories.addPreference(toggle(context, Settings.HIDE_SPONSORED_STORIES,
@@ -749,6 +756,18 @@ final class FeedPages {
                 stories.addPreference(toggle(context, Settings.STORY_PROGRESS_BAR,
                         L10n.t("Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.")));
             }
+            if (build.contains(PatchFamily.STORY_RINGS)) {
+                // Read each time a picture draws, so a change shows on what's drawn after it.
+                stories.addPreference(toggle(context, Settings.HIDE_FEED_STORY_RINGS,
+                        L10n.t("Takes the story and LIVE rings off the profile pictures at the top of posts. Tapping "
+                                + "the picture opens the profile. Applies to posts drawn after the change.")));
+                stories.addPreference(toggle(context, Settings.HIDE_COMMENT_STORY_RINGS,
+                        L10n.t("Takes the story ring off the profile pictures next to comments. Applies to comments "
+                                + "drawn after the change.")));
+                stories.addPreference(toggle(context, Settings.HIDE_PROFILE_STORY_RINGS,
+                        L10n.t("Takes the story and LIVE rings off the picture on a profile, and in the lists and "
+                                + "search results that show it the same way. Applies the next time the picture draws.")));
+            }
             if (build.contains(PatchFamily.TAP_TO_PLAY)) {
                 // Read as each story's video draws, so a change shows on the story that's open.
                 stories.addPreference(toggle(context, Settings.STORY_SEEK_BAR,
@@ -762,7 +781,8 @@ final class FeedPages {
             if (build.contains(PatchFamily.PINCH_TO_ZOOM)) {
                 // Asked as each second finger lands, so a change shows from the next pinch.
                 stories.addPreference(toggle(context, Settings.PINCH_TO_ZOOM,
-                        L10n.t("Pinch a story or a photo on someone's profile to zoom in. It goes back when you let go.")));
+                        L10n.t("Pinch a story, a video in your feed, or a photo on someone's profile or in Photo carousel "
+                                + "to zoom in. It goes back when you let go.")));
                 stories.addPreference(toggle(context, Settings.PINCH_TO_ZOOM_KEEP,
                         L10n.t("With Pinch to zoom on, the photo or story stays zoomed when you let go, and a story "
                                 + "stays paused. Drag with one finger or pinch again. Tap or press Back when you're done."))
@@ -776,9 +796,9 @@ final class FeedPages {
                                 + "Turn it off to keep the rest of the screen as it is."))
                         .needs(Settings.PINCH_TO_ZOOM));
                 stories.addPreference(toggle(context, Settings.PINCH_TO_ZOOM_LIVE,
-                        L10n.t("With Pinch to zoom on, a video you zoom on a profile or Page keeps playing. "
-                                + "With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it. "
-                                + "Stories hold still while you zoom."))
+                        L10n.t("With Pinch to zoom on, a video you zoom keeps playing, stories included. "
+                                + "To zoom a story on a still frame, hold it first and then pinch. "
+                                + "With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it."))
                         .needs(Settings.PINCH_TO_ZOOM));
             }
         }
@@ -796,7 +816,8 @@ final class FeedPages {
         boolean reactions = build.contains(PatchFamily.POST_PROMPTS);
         boolean fullHeight = build.contains(PatchFamily.FULL_HEIGHT_COMMENTS);
         boolean tags = build.contains(PatchFamily.TAG_SUGGESTIONS);
-        if (!order && !summaries && !options && !reactions && !fullHeight && !tags) return;
+        boolean pictures = build.contains(PatchFamily.PROFILE_PICTURES);
+        if (!order && !summaries && !options && !reactions && !fullHeight && !tags && !pictures) return;
         PreferenceCategory comments = category(screen, L10n.t("Comments and writing"));
         if (order) {
             comments.addPreference(toggle(context, Settings.DEFAULT_COMMENT_ORDER,
@@ -812,6 +833,12 @@ final class FeedPages {
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_REACTIONS,
                     L10n.t("Hides the stacked reaction icons in the corner of a comment. The space stays, so a tap "
                             + "where they were still opens the list of reactions.")));
+        }
+        if (pictures) {
+            // Read as each comment is built, so a change shows on the comments drawn after it.
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENT_PROFILE_PICTURES,
+                    L10n.t("Takes the profile picture off comments, so the name and text start where the picture "
+                            + "was. A change shows on the comments drawn after it.")));
         }
         if (options) {
             comments.addPreference(toggle(context, Settings.LIKE_ONLY,

@@ -14,8 +14,8 @@ namespace BaconReader.E2E.Scenarios.LoggedIn.Media;
 /// UiAutomator in the media view's description ("Loading media, GIF · 0.4 MB"); a gallery's thumbnail strip loads small
 /// previews, not the full images; and "JavaScript in link posts", "Blocked sites" and "Allowed sites" decide whether a
 /// link post's page runs its script, in the post's slide show (BaconReader's own browser always runs it); and when an
-/// image fails to load, the bar turns red, which the media view's description tells ("Media failed to load"). Left out:
-/// the RedGIFs message, which needs RedGIFs.
+/// image fails to load, the bar turns red, which the media view's description tells ("Media failed to load"); and a
+/// RedGIFs video RedGIFs deleted or never had shows a message in place of RedGIFs' page.
 /// </summary>
 public sealed class ImprovePostMediaLoadingTests : BaseE2E
 {
@@ -29,6 +29,8 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
           And Reddit has a gallery post "Album" in r/e2e of 3 images
           And Reddit has an image post "Broken image" in r/e2e
           And Reddit answers the image of "Broken image" with an error
+          And Reddit has a RedGIFs post "Deleted clip" in r/e2e whose video was deleted
+          And Reddit has a RedGIFs post "Missing clip" in r/e2e whose video RedGIFs never had
           And Reddit has a link post "Link with a preview" in r/e2e to a page that runs JavaScript
           And BaconReader is patched with every patch
           And BaconReader is open
@@ -49,6 +51,12 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
           When I go back to the posts
           And I tap the thumbnail of "Broken image"
           Then the media shows its loading bar as failed
+          When I go back to the posts
+          And I tap the thumbnail of "Deleted clip"
+          Then the media shows "This RedGIFs video was deleted"
+          When I go back to the posts
+          And I tap the thumbnail of "Missing clip"
+          Then the media shows "This RedGIFs video was not found"
           When I go back to the posts
           And I tap the post "Link with a preview"
           And I tap "Slide Show View" in the toolbar
@@ -108,6 +116,8 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         Reddit.HasAGalleryPostOf("Album", "e2e", 3);
         Reddit.HasAnImagePost("Broken image", "e2e");
         Reddit.AnswersTheImageOfThePostWithAnError("Broken image");
+        Reddit.HasARedGifsPostWhoseVideoWasDeleted("Deleted clip", "e2e");
+        Reddit.HasARedGifsPostWhoseVideoRedGifsNeverHad("Missing clip", "e2e");
         Reddit.HasALinkPostToAPageThatRunsJavaScript("Link with a preview", "e2e");
         await Phone.BaconReader.OpenAsync();
         await Phone.BaconReader.LogInWithTheTestAccountAsync();
@@ -156,6 +166,24 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         // Then
         var failed = await Phone.BaconReader.MediaViewer.ReadAsync();
         Asserting.That(failed).ShowsItsLoadingBarAsFailed();
+
+        // When
+        await Phone.BaconReader.GoBackToThePostsAsync();
+        await Phone.BaconReader.Main.Posts.ClickThumbnailAsync("Deleted clip");
+        await Phone.BaconReader.MediaViewer.WaitUntilMessageShownAsync("This RedGIFs video was deleted");
+
+        // Then
+        var deleted = await Phone.BaconReader.MediaViewer.ReadAsync();
+        Asserting.That(deleted).ShowsTheMessage("This RedGIFs video was deleted");
+
+        // When
+        await Phone.BaconReader.GoBackToThePostsAsync();
+        await Phone.BaconReader.Main.Posts.ClickThumbnailAsync("Missing clip");
+        await Phone.BaconReader.MediaViewer.WaitUntilMessageShownAsync("This RedGIFs video was not found");
+
+        // Then
+        var missing = await Phone.BaconReader.MediaViewer.ReadAsync();
+        Asserting.That(missing).ShowsTheMessage("This RedGIFs video was not found");
 
         // When
         await Phone.BaconReader.GoBackToThePostsAsync();

@@ -93,6 +93,22 @@ private val ROBOTO_BODY = """
     return-object v1
 """.trimIndent()
 
+internal const val FONT_ROBOTO_COPY = "LX/2KO;->A00(Landroid/content/Context;)$TYPEFACE"
+
+/** Family B's instance copy of one Roboto weight, logging under the builder's class. Its return is a branch target too. */
+private fun robotoCopyBody(builder: String = "LX/1z1;") = """
+    const-string v0, "sans-serif"
+    const/4 v1, 0x0
+    invoke-static {v0, v1}, $TYPEFACE->create(Ljava/lang/String;I)$TYPEFACE
+    move-result-object v0
+    if-nez v0, :done
+    const-class v1, $builder
+    const-string v0, "$FONT_ROBOTO_ANCHOR"
+    const/4 v0, 0x0
+    :done
+    return-object v0
+""".trimIndent()
+
 /** MIG's typeface by name: the repository's family of that name, else Android's, then styled. Parameters start at v2. */
 private fun byNameBody(repository: String = "LX/7V1;") = """
     invoke-static {p1}, LX/7Uy;->valueOf(Ljava/lang/String;)LX/7Uy;
@@ -219,6 +235,17 @@ class CustomFontTest {
         assertEquals(FONT_ROBOTO_CALL, builder.code()[at].reference())
     }
 
+    @Test fun familyBsInstanceCopiesOfTheRobotoBuilderAreHookedBesideIt() {
+        val copy = fixtureClass("LX/2KO;", listOf(fixtureMethod(FONT_ROBOTO_COPY, robotoCopyBody(), registers = 4)))
+        val found = findCustomFont(customFontFixture() + copy)
+        assertEquals(listOf(FONT_ROBOTO_BUILDER, FONT_ROBOTO_COPY), found.getValue(FONT_ROBOTO).map { it.hookId() })
+        for (method in found.getValue(FONT_ROBOTO)) injectAndCheck(FONT_ROBOTO, method as MutableMethod, method.hookId())
+        // A holder that doesn't name the builder's class isn't a copy, and the builder goes unfound with it.
+        val stray = fixtureClass("LX/2KO;", listOf(fixtureMethod(FONT_ROBOTO_COPY, robotoCopyBody("LX/Abc;"), registers = 4)))
+        assertTrue(findCustomFont(customFontFixture() + stray).getValue(FONT_ROBOTO).isEmpty())
+        assertFailsWith<PatchException> { fixtureMethod(FONT_ROBOTO_COPY, robotoCopyBody("LX/Abc;"), registers = 4).validateCustomFont(FONT_ROBOTO) }
+    }
+
     @Test fun anInputCallOnARangeStopsThePatch() {
         val ranged = inputBody(field = 6, style = 14).replace("invoke-virtual {v0, v1, v2}", "invoke-virtual/range {v0 .. v2}")
         val input = fontInput(FONT_INPUT_FIELD, ranged)
@@ -293,8 +320,10 @@ class CustomFontTest {
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val found = findCustomFont(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })
             validateControls(found, CUSTOM_FONT_HOOKS.toSet())
-            // The layout, the repository, the Roboto builder, the by-name lookup and three text inputs.
-            assertEquals(7, found.values.sumOf { it.size }, code)
+            // The layout, the repository, the Roboto builder, the by-name lookup and three text inputs. Family B adds two
+            // instance copies of the builder.
+            assertEquals(6 + found.getValue(FONT_ROBOTO).size, found.values.sumOf { it.size }, code)
+            assertTrue(found.getValue(FONT_ROBOTO).size in setOf(1, 3), code)
             for ((hook, methods) in found) for (method in methods) injectAndCheck(hook, MutableMethod(method), "$code ${method.hookId()}")
         }
     }

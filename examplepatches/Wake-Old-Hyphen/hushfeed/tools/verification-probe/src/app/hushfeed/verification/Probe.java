@@ -914,6 +914,39 @@ public final class Probe extends Instrumentation {
                         }
                         break;
                     }
+                    case "lablatest": {
+                        // What the Lab's recorder last saw one gate read as, at any time since
+                        // TikTok started rather than inside a recording, so a gate read once at
+                        // startup (the tab layout's tab_fcp_config_v2) can be captured: -e key
+                        // <name>. Needs the Feature Gate Recorder patch. Logged in parts like
+                        // labreport, since a structured gate runs past one log line.
+                        Class<?> learn = loader.loadClass(
+                                "app.morphe.extension.tiktok.featuregatelab.FeatureGateLearnMode");
+                        Field latestField = learn.getDeclaredField("latest");
+                        latestField.setAccessible(true);
+                        String key = required(intent, "key");
+                        Map<String, String> seen = new java.util.LinkedHashMap<>();
+                        synchronized (learn) {
+                            for (Map.Entry<?, ?> entry : ((Map<?, ?>) latestField.get(null)).entrySet()) {
+                                String[] identity = String.valueOf(entry.getKey()).split("\n", 3);
+                                if (identity.length == 3 && key.equals(identity[1])) {
+                                    seen.put(identity[0] + " " + identity[2], String.valueOf(entry.getValue()));
+                                }
+                            }
+                        }
+                        if (seen.isEmpty()) Log.i(TAG, "ok lablatest " + key + " seen=false");
+                        for (Map.Entry<String, String> entry : seen.entrySet()) {
+                            String text = entry.getValue();
+                            int size = 3000;
+                            int parts = Math.max(1, (text.length() + size - 1) / size);
+                            for (int part = 0; part < parts; part++) {
+                                Log.i(TAG, "ok lablatest " + key + " " + entry.getKey() + " part "
+                                        + (part + 1) + "/" + parts + " "
+                                        + text.substring(part * size, Math.min(text.length(), (part + 1) * size)));
+                            }
+                        }
+                        break;
+                    }
                     case "feedmute": {
                         // What Mute feed videos matches on: each engine it has seen with the
                         // source id TikTok's player reports for it, whether it counts as a feed
@@ -2578,6 +2611,83 @@ public final class Probe extends Instrumentation {
                         Log.i(TAG, "ok call " + target.getName() + " -> " + shown);
                         break;
                     }
+                    case "font": {
+                        // Use an imported font (#346). -e path P imports the font file at P
+                        // through the same receive and install the file picker's import runs
+                        // (the app's own external files folder is one adb can write and TikTok
+                        // can read). Then, with or without a path: both switches, the stored
+                        // file's name, whether this process loaded a face from it, which family
+                        // the hook decides on, and how many shown text views measure
+                        // monospaced, since a monospaced import that took shows up that way.
+                        Class<?> importedFont = loader.loadClass("app.morphe.extension.tiktok.font.ImportedFont");
+                        String path = intent.getStringExtra("path");
+                        if (path != null) {
+                            java.io.File source = new java.io.File(path);
+                            Object incoming = importedFont.getMethod("receive", Context.class,
+                                    java.io.InputStream.class, String.class)
+                                    .invoke(null, app, new java.io.FileInputStream(source), source.getName());
+                            Object kept = incoming.getClass().getMethod("install").invoke(incoming);
+                            Log.i(TAG, "font imported as " + kept);
+                        }
+                        if ("true".equals(intent.getStringExtra("remove"))) {
+                            // -e remove true takes the stored font off again, the way the
+                            // settings row's Remove does, so a check leaves no file behind.
+                            Object removed = importedFont.getMethod("remove", Context.class).invoke(null, app);
+                            Log.i(TAG, "font removed " + removed);
+                        }
+                        Class<?> settings = loader.loadClass("app.morphe.extension.tiktok.settings.Settings");
+                        Object importedSwitch = settings.getField("IMPORTED_FONT").get(null);
+                        Object systemSwitch = settings.getField("SYSTEM_FONT").get(null);
+                        Object fileName = importedFont.getMethod("name", Context.class).invoke(null, app);
+                        Field knownField = importedFont.getDeclaredField("known");
+                        knownField.setAccessible(true);
+                        boolean knownBefore = knownField.getBoolean(null);
+                        android.graphics.Typeface face = (android.graphics.Typeface)
+                                importedFont.getMethod("typeface").invoke(null);
+                        Method decide = loader.loadClass("app.morphe.extension.tiktok.font.SystemFont")
+                                .getDeclaredMethod("replacementFamily");
+                        decide.setAccessible(true);
+                        Object family = decide.invoke(null);
+                        int mono = 0;
+                        int proportional = 0;
+                        List<android.view.View> pending = new ArrayList<>(windowRoots());
+                        while (!pending.isEmpty()) {
+                            android.view.View view = pending.remove(pending.size() - 1);
+                            if (!view.isShown()) continue;
+                            if (view instanceof android.view.ViewGroup) {
+                                android.view.ViewGroup group = (android.view.ViewGroup) view;
+                                for (int i = 0; i < group.getChildCount(); i++) pending.add(group.getChildAt(i));
+                            }
+                            if (!(view instanceof android.widget.TextView)) continue;
+                            android.widget.TextView textView = (android.widget.TextView) view;
+                            if (textView.getText() == null || textView.getText().length() == 0) continue;
+                            // The view's own paint, read and never changed: a fresh Paint given
+                            // the view's typeface measures in Samsung's font style instead while
+                            // one is set, though the view draws in the face it was given.
+                            android.text.TextPaint paint = textView.getPaint();
+                            float narrow = paint.measureText("iiiiiiiiii");
+                            float wide = paint.measureText("MMMMMMMMMM");
+                            if (Math.abs(narrow - wide) < Math.max(1f, wide / 100f)) mono++;
+                            else proportional++;
+                        }
+                        Log.i(TAG, "ok font imported_font=" + importedSwitch.getClass().getMethod("get").invoke(importedSwitch)
+                                + " system_font=" + systemSwitch.getClass().getMethod("get").invoke(systemSwitch)
+                                + " file=" + fileName + " known_before=" + knownBefore
+                                + " face=" + (face == null ? "null" : face == android.graphics.Typeface.DEFAULT ? "default" : "loaded")
+                                + " decided=" + (family == null ? "tiktok" : family == android.graphics.Typeface.DEFAULT ? "system"
+                                        : family == face ? "imported" : "other")
+                                + " text_views mono=" + mono + " proportional=" + proportional);
+                        // The FONT section the diagnostic export carries, line by line.
+                        Class<?> fontReport = loader.loadClass("app.morphe.extension.tiktok.font.SystemFont$Report");
+                        Field reportInstance = fontReport.getDeclaredField("INSTANCE");
+                        reportInstance.setAccessible(true);
+                        Method reportLines = fontReport.getDeclaredMethod("lines");
+                        reportLines.setAccessible(true);
+                        for (Object line : (List<?>) reportLines.invoke(reportInstance.get(null))) {
+                            Log.i(TAG, "font section " + line);
+                        }
+                        break;
+                    }
                     case "privacy-call": {
                         // The blockers TikTok's rewired contact and app-list calls go through,
                         // called with what those call sites pass. TikTok reads contacts and the
@@ -2891,6 +3001,10 @@ public final class Probe extends Instrumentation {
                     }
                     case "startwatch": {
                         AutoAdvanceWatch.start(loader, intent);
+                        break;
+                    }
+                    case "mainsample": {
+                        MainThreadSampler.start(intent);
                         break;
                     }
                     case "holdslide": {

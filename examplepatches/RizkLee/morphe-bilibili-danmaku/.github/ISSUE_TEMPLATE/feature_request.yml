@@ -1,0 +1,15 @@
+name: ✨ 功能建议 / Feature request
+description: 提出 B 站弹幕补丁的功能或体验建议。
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    attributes:
+      label: 希望增加或改进什么？
+      description: 请描述使用场景、目前遇到的问题和期望的体验。
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: 补充信息
+      description: 如有参考截图或示例，请注意隐藏账号和其他个人信息。

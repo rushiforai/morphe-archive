@@ -9,6 +9,7 @@
  * - inotia00 (https://github.com/inotia00)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-10-21.
  *
  * ------------------------------------------------------------------------
  * GPLv3 Section 7 – Additional Terms & Attribution Requirements
@@ -59,9 +60,9 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import app.morphe.patcher.util.getReference
 import app.morphe.patches.shared.mapping.ResourceType
 import app.morphe.patches.shared.mapping.resourceLiteral
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.parametersEqual
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -239,7 +240,7 @@ internal fun indexOfPlaylistDownloadActionInvokeInstruction(method: Method) =
 
 internal val offlinePlaylistEndpointFingerprint = Fingerprint(
     returnType = "V",
-    strings = listOf("Object is not an offlineable playlist: "),
+    strings = listOf(string("Object is not an offlineable playlist: ", StringComparisonType.STARTS_WITH)),
 )
 
 internal val offlineVideoEndpointFingerprint = Fingerprint(
@@ -251,7 +252,7 @@ internal val offlineVideoEndpointFingerprint = Fingerprint(
         "Ljava/lang/String;", // VideoId
         "L"
     ),
-    strings = listOf("Object is not an offlineable video: "),
+    strings = listOf(string("Object is not an offlineable video: ", StringComparisonType.STARTS_WITH)),
 )
 
 internal val setPlaylistDownloadButtonVisibilityFingerprint = Fingerprint(

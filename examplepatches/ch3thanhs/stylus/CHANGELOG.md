@@ -1,3 +1,15 @@
+## [1.9.2](https://github.com/ch3thanhs/stylus/compare/v1.9.1...v1.9.2) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **where-is-my-train:** apply custom font to chips and station names ([3ea6974](https://github.com/ch3thanhs/stylus/commit/3ea6974645c9c6c9d16d7bff8536fa8f296cc375)), closes [#53](https://github.com/ch3thanhs/stylus/issues/53)
+
+## [1.9.2-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.9.1...v1.9.2-dev.1) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **where-is-my-train:** apply custom font to chips and station names ([3ea6974](https://github.com/ch3thanhs/stylus/commit/3ea6974645c9c6c9d16d7bff8536fa8f296cc375)), closes [#53](https://github.com/ch3thanhs/stylus/issues/53)
+
 ## [1.9.1](https://github.com/ch3thanhs/stylus/compare/v1.9.0...v1.9.1) (2026-11-02)
 
 ### 🐛 Bug Fixes

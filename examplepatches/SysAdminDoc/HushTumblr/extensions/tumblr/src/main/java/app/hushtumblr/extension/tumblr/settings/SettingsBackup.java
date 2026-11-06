@@ -101,6 +101,7 @@ public final class SettingsBackup {
             Settings.HIDE_ADS,
             Settings.KEEP_BLAZE_POSTS,
             Settings.HIDE_ADVERTISING_ID,
+            Settings.SANITIZE_SHARING_LINKS,
             Settings.DISABLE_ANALYTICS,
             Settings.HIDE_AD_FREE_BANNER,
             Settings.HIDE_TUMBLR_TV,
@@ -155,6 +156,7 @@ public final class SettingsBackup {
             Settings.SHOW_IMAGE_DESCRIPTIONS,
             Settings.SHARE_VIDEO_LINKS,
             Settings.SHARPER_IMAGES,
+            Settings.COLLAPSE_LONG_POSTS,
             Settings.MUTE_ROOT_POSTS,
             Settings.REVEAL_ALLOWED_MATURE_CONTENT,
             Settings.SHOW_MUTUAL_MARKERS,
@@ -166,13 +168,16 @@ public final class SettingsBackup {
             Settings.FIX_PUSH_NOTIFICATIONS));
 
     /**
-     * Version 2 carries hidden words and tab order; version 3 also carries allowed words.
+     * Version 2 carries hidden words and tab order; version 3 also carries allowed words. The long
+     * post length came later without a new version, since an older build leaves out a text name it
+     * doesn't know and says so, and a file without it leaves the length as it is.
      * An import checks each value by the rule its settings row saves by ({@link #textValue}).
      */
     static final List<StringSetting> TEXT_ALLOWLIST = Collections.unmodifiableList(Arrays.asList(
             TextSettings.HIDDEN_WORDS,
             TextSettings.ALLOWED_WORDS,
-            TextSettings.TAB_ORDER));
+            TextSettings.TAB_ORDER,
+            TextSettings.LONG_POST_SIZE));
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be
@@ -275,7 +280,8 @@ public final class SettingsBackup {
 
         /**
          * The switches, then the text settings, whose saved value this file changes. Saved, not what
-         * a paused Tumblr is answered: a file holds what the person chose.
+         * a paused Tumblr is answered: a file holds what the person chose. A long post length the
+         * row never offers reads as about a screen, so a file saying about a screen changes nothing.
          */
         Map<Setting<?>, Object> changes() {
             Map<Setting<?>, Object> changes = new LinkedHashMap<>();
@@ -285,8 +291,9 @@ public final class SettingsBackup {
                 }
             }
             for (Map.Entry<StringSetting, String> entry : texts.entrySet()) {
-                if (!entry.getValue().equals(entry.getKey().persistedValue())) {
-                    changes.put(entry.getKey(), entry.getValue());
+                StringSetting setting = entry.getKey();
+                if (!asRead(setting, entry.getValue()).equals(asRead(setting, setting.persistedValue()))) {
+                    changes.put(setting, entry.getValue());
                 }
             }
             return changes;
@@ -473,7 +480,7 @@ public final class SettingsBackup {
             checkSize(file);
             Snapshot parsed = parse(new String(file.getBytes(StandardCharsets.UTF_8), StandardCharsets.UTF_8));
             for (StringSetting setting : TEXT_ALLOWLIST) {
-                if (!setting.persistedValue().equals(parsed.texts.get(setting))) {
+                if (!exported(setting).equals(parsed.texts.get(setting))) {
                     throw new Rejected(Reason.VALUE, "Saved text does not round-trip");
                 }
             }
@@ -517,7 +524,7 @@ public final class SettingsBackup {
         }
         JSONObject texts = new JSONObject();
         for (StringSetting setting : TEXT_ALLOWLIST) {
-            String value = replacements.containsKey(setting) ? replacements.get(setting) : setting.persistedValue();
+            String value = replacements.containsKey(setting) ? replacements.get(setting) : exported(setting);
             if (reserve && setting == TextSettings.TAB_ORDER) value = BottomBarTabs.join(BottomBarTabs.TABS);
             texts.put(setting.key, value);
         }
@@ -546,6 +553,20 @@ public final class SettingsBackup {
         return escaped == null ? file : escaped.append(file, start, file.length()).toString();
     }
 
+    /**
+     * What a settings file carries for [setting]: its saved text, or for the long post length one
+     * its row never offers (left by another build), the default every reader takes it as.
+     */
+    private static String exported(StringSetting setting) {
+        return asRead(setting, setting.persistedValue());
+    }
+
+    /** [value] as its readers take it: a long post length its row never offers reads as the default. */
+    private static String asRead(StringSetting setting, String value) {
+        if (setting == TextSettings.LONG_POST_SIZE && textValue(setting, value) == null) return setting.defaultValue;
+        return value;
+    }
+
     /** Whether a file carries the setting stored under [key], a switch or a text setting. */
     static boolean carries(@Nullable String key) {
         for (BooleanSetting setting : ALLOWLIST) {
@@ -566,14 +587,16 @@ public final class SettingsBackup {
     /**
      * [value] as the settings row for [setting] would have saved it, or null when that row never
      * could: anything but text, or for the tab order anything but nothing (Tumblr's order) or tab
-     * names from Tumblr's tab list, comma separated, each once. The words to hide take any text,
-     * trimmed as their box trims it.
+     * names from Tumblr's tab list, comma separated, each once, and for the long post length
+     * anything but one of the lengths its row offers. The words to hide take any text, trimmed as
+     * their box trims it.
      */
     @Nullable
     static String textValue(StringSetting setting, @Nullable Object value) {
         if (!(value instanceof String)) return null;
         String text = (String) value;
         if (setting == TextSettings.HIDDEN_WORDS || setting == TextSettings.ALLOWED_WORDS) return text.trim();
+        if (setting == TextSettings.LONG_POST_SIZE) return TextSettings.LONG_POST_SIZES.contains(text) ? text : null;
         if (setting == TextSettings.TAB_ORDER) {
             return text.isEmpty() || text.equals(BottomBarTabs.join(BottomBarTabs.parse(text))) ? text : null;
         }

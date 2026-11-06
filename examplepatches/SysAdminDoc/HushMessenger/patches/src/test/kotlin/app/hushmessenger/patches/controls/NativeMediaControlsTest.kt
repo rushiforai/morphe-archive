@@ -14,6 +14,8 @@ import com.android.tools.smali.dexlib2.iface.MethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.*
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableField
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import java.nio.file.Files
 import java.nio.file.Path
 import java.security.MessageDigest
@@ -22,6 +24,20 @@ import kotlin.test.*
 
 /** Emoji drawer flag reads in 586, one in each of its seven drawer hooks. 585 had six. */
 private const val EMOJI_DRAWER_READS = 7
+
+/** 586's arm64 builds that went through the other R8/Redex pass, with their helpers outlined or inlined differently. */
+internal val FAMILY_B_CODES = setOf("347215273", "347215275", "347215277")
+
+/**
+ * The AI sticker cell under each 586 build's naming: arm64 347215348's, armv7's (four fewer render instructions and its
+ * own Generate label), and family B's (arm64's Generate label with the shorter render). Discovery reads these names off
+ * the DEX, so the rows only tell the fixtures what to build and the tests what to expect back.
+ */
+internal val aiCells = listOf(
+    AiCell("LX/REu;", "LX/1JA;", "LX/2Ca;", "LX/1Gk;"),
+    AiCell("LX/O19;", "LX/1JZ;", "LX/2Cz;", "LX/1H9;", size = AI_CELL_SIZE_SHORT, menu = GENERATE_MENU_LABEL_ARMV7),
+    AiCell("LX/L7A;", "LX/1JB;", "LX/2Cb;", "LX/1Gl;", size = AI_CELL_SIZE_SHORT),
+)
 
 /** [resumeTail] pads onResume after the guarded part: 22 instructions in 586. An older release's two more are refused. */
 internal fun screenshotViewerFixture(
@@ -109,8 +125,18 @@ internal fun aiStickerCellFixture(
     grid: Boolean = false,
     gridAi: Boolean = false,
     gridChange: String? = null,
+    // What to break in the Litho base the cell extends.
+    baseChange: String? = null,
 ): List<MutableClass> {
     val type = id.substringBefore("->")
+    val scope = id.substringAfter('(').substringBefore(')')
+    val component = id.substringAfter(')')
+    val abstract = AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value
+    val baseRender = ImmutableMethod(superclass, "render", listOf(ImmutableMethodParameter(if (baseChange == "scope") "LX/OtherScope;" else scope, null, null)),
+        component, if (baseChange == "concrete_render") AccessFlags.PUBLIC.value else abstract, null, null, null)
+    val base = fixtureClass(superclass, if (baseChange == "no_render") emptyList() else listOf(baseRender),
+        superclass = if (baseChange == "parent") "LX/OtherComponent;" else component,
+        flags = if (baseChange == "concrete") AccessFlags.PUBLIC.value else abstract)
     val render = fixtureMethod(id, "const/4 v0, 0x0\n" + List(size - 2) { "nop" }.joinToString("\n") + "\nreturn-object v0", AI_CELL_REGISTERS)
     render.implementation!!.run {
         for (at in listOf(1, 3, 5, 7)) addCatch(newLabelForIndex(at), newLabelForIndex(at + 1), newLabelForIndex(size - 1))
@@ -148,7 +174,7 @@ internal fun aiStickerCellFixture(
             goto :joined
         """.trimIndent(), 14)))
     }
-    return listOf(cell) + sources + menus
+    return listOf(cell) + sources + base + menus
 }
 
 /**
@@ -295,8 +321,8 @@ class NativeMediaControlsTest {
         assertFailsWith<PatchException> { screenshotViewerFixture(resume, resumeTail = 24).screenshotViewerSites() }
         val mask = screenshotViewerFixture(resume).apply { replaceInstruction(9, "const/16 v1, 0x80") }
         assertFailsWith<PatchException> { mask.screenshotViewerSites() }
-        // 586 names it A1K, the name 584 once used, and A1L in its armv7 build.
-        for (name in listOf(EPHEMERAL_DIALOG, EPHEMERAL_DIALOG_ARMV7)) {
+        // 586 names it A1K, the name 584 once used, A1L in its armv7 build and A1M in its other arm64 builds.
+        for (name in listOf(EPHEMERAL_DIALOG, EPHEMERAL_DIALOG_ARMV7, EPHEMERAL_DIALOG_FAMILY_B)) {
             val dialog = screenshotViewerFixture("$EPHEMERAL_VIEWER->$name(Landroid/os/Bundle;)Landroid/app/Dialog;")
             assertEquals(listOf(9), dialog.screenshotViewerSites(), name)
             assertEquals(listOf(9), CompatMirror.screenshotViewerSites(dialog), name)
@@ -346,6 +372,8 @@ class NativeMediaControlsTest {
     @Test fun eachAiCellNeedsItsOwnLabelAndAllItsSources() {
         for (cell in aiCells) {
             assertEquals(listOf(cell.render), findAiStickerCells(aiStickerCellFixture(cell.render)).map { it.hookId() })
+            // Discovery reads the cell's names off the classes, so it hands the switch the same row the build has.
+            assertEquals(listOf(cell), aiStickerCells, cell.type)
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, sourceCount = cell.sources - 1)).isEmpty())
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, sourceCount = cell.sources + 1)).isEmpty())
             // An older release's label for the same row (585's, 584's and 582's), or one of 585's Generate menu labels.
@@ -357,16 +385,45 @@ class NativeMediaControlsTest {
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menuSources = cell.menuSources + 1)).isEmpty())
             // "Generate custom stickers" in the menu label's place: the custom sticker cell isn't the AI menu.
             assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = 0x7f14128f)).isEmpty())
-            // Each build's cell keeps its own Generate label and render size: the other ABI's are refused.
-            for (other in aiCells.filter { it.render != cell.render }) {
-                assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, menu = other.menu)).isEmpty(), other.render)
-                assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, size = other.size)).isEmpty(), other.render)
-            }
+            // Each build family pairs its Generate label with its own render size: the long render with armv7's label is
+            // no build's, and neither is a render an instruction off.
+            assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, size = AI_CELL_SIZE, menu = GENERATE_MENU_LABEL_ARMV7)).isEmpty())
+            for (size in listOf(cell.size - 1, cell.size + 1))
+                assertTrue(findAiStickerCells(aiStickerCellFixture(cell.render, size = size)).isEmpty(), "${cell.type} $size")
         }
-        // 586's cell offers its AI label from four renders and its Generate menu label from one, in both ABIs. The armv7
-        // render runs four instructions shorter and its Generate label sits two resources on.
-        assertEquals(listOf(listOf(GENERATE_AI_LABEL, 4, 113, GENERATE_MENU_LABEL, 1), listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL_ARMV7, 1)),
-            aiCells.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources) })
+        // 586's cell offers its AI label from four renders and its Generate menu label from one, in every build. The armv7
+        // render runs four instructions shorter and its Generate label sits two resources on. Family B pairs arm64's label
+        // with the shorter render.
+        val shapes = listOf(listOf(GENERATE_AI_LABEL, 4, 113, GENERATE_MENU_LABEL, 1), listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL_ARMV7, 1),
+            listOf(GENERATE_AI_LABEL, 4, 109, GENERATE_MENU_LABEL, 1))
+        assertEquals(shapes, aiCellShapes.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources) })
+        assertEquals(shapes, aiCells.map { listOf(it.label, it.sources, it.size, it.menu, it.menuSources) })
+    }
+
+    @Test fun familyBsCellIsFoundByItsShapeUnderItsOwnNames() {
+        // 347215273's cell: L7A under the abstract 1JB, arm64's Generate label, the 109-instruction render armv7 has.
+        val familyB = aiCells.single { it.type == "LX/L7A;" }
+        val fixture = aiStickerCellFixture(familyB.render)
+        assertEquals(listOf(familyB.render), findAiStickerCells(fixture).map { it.hookId() })
+        assertEquals(listOf(familyB), aiStickerCells)
+        // The cell and the grid around it both come out of the mirrored discovery under family B's names.
+        val base = SYNTHETIC_PROFILE
+        activeProfile = ControlProfile(base.hooks + ("ai_sticker_cell" to setOf(familyB.render)), base.pluginSentinel, base.preferenceGetter,
+            base.peopleKey, base.peopleFlagCheck, base.subtabsSupplier, base.browserPreferenceKey, base.browserPreferenceIndex,
+            base.bubbleCapabilityGetter, base.bubbleRolloutGetter, base.nativeBubbleRoutes, base.nativeCommunityInbox)
+        validateControls(mirroredControls(aiStickerCellFixture(familyB.render, grid = true)), setOf("ai_sticker_cell", "ai_sticker_grid"))
+        val method = findAiStickerCells(fixture).single() as MutableMethod
+        method.injectAiStickerCell()
+        val after = method.implementation!!.instructions.toList()
+        assertEquals("LX/L7A;->A00:I", (after[1] as ReferenceInstruction).reference.toString())
+        assertEquals(GENERATE_AI_LABEL, (after[2] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(GENERATE_MENU_LABEL, (after[4] as NarrowLiteralInstruction).narrowLiteral)
+        // The base has to be the abstract Litho component the render overrides; anything else is some other cell.
+        for (change in listOf("concrete", "concrete_render", "no_render", "scope", "parent")) {
+            val broken = aiStickerCellFixture(familyB.render, baseChange = change)
+            assertTrue(findAiStickerCells(broken).isEmpty(), change)
+            assertFailsWith<PatchException>(change) { validateControls(mirroredControls(broken), setOf("ai_sticker_cell")) }
+        }
     }
 
     @Test fun aMenuLabelThatBranchesBeforeTheCellIsNotASource() {
@@ -593,7 +650,8 @@ class NativeMediaControlsTest {
             validateControls(discovered, setOf("ai_sticker_cell", "screenshot_viewers", EMOJI_DRAWER, ANALYTICS_UPLOADS, MESSAGE_LOG))
             // The emoji drawer rides on the same discovery: every flag read takes the helper and nothing else moves.
             val drawerReads = discovered.getValue(EMOJI_DRAWER).sumOf { assertEmojiDrawerInjected(it, "$code ${it.hookId()}") }
-            assertEquals(EMOJI_DRAWER_READS, drawerReads, code)
+            // Family B's drawer hooks all ask one shared getter, so its one read is the getter's own.
+            assertEquals(if (code in FAMILY_B_CODES) 1 else EMOJI_DRAWER_READS, drawerReads, code)
             // So do the analytics uploads: each entry point keeps every original instruction after the switch's guard.
             for (native in discovered.getValue(ANALYTICS_UPLOADS)) {
                 val method = MutableMethod(native)

@@ -48,20 +48,23 @@ val amoledPatch = resourcePatch(
             }
         }
 
-        // Bottom mini player
-        document("res/drawable/bth_footer_shape.xml").use { document ->
-            val shapes = document.getElementsByTagName("shape")
+        // The player also selects a separate drawable on dark surfaces.
+        // Older releases may only include the default variant.
+        listOf("bth_footer_shape", "bth_footer_shape_dark_surfaces").forEach { name ->
+            val path = "res/drawable/$name.xml"
+            if (name.endsWith("dark_surfaces") && !get(path).isFile) return@forEach
 
-            val solid = (shapes.item(0) as Element)
-                .getElementsByTagName("solid")
-                .item(0)
-                .let {it as Element}
-            solid.setAttribute("android:color", "@color/blackOT")
-
-            val shape1 = shapes.item(1) as Element
-            val gradient = shape1.getElementsByTagName("gradient").item(0)
-            shape1.removeChild(gradient)
-            shape1.appendChild(solid.cloneNode(false))
+            document(path).use { document ->
+                val shapes = document.getElementsByTagName("shape")
+                for (index in 0 until shapes.length) {
+                    val shape = shapes.item(index) as Element
+                    val gradients = shape.getElementsByTagName("gradient")
+                    while (gradients.length > 0) shape.removeChild(gradients.item(0))
+                    val solid = shape.getElementsByTagName("solid").item(0) as? Element
+                        ?: document.createElement("solid").also { shape.appendChild(it) }
+                    solid.setAttribute("android:color", trueBlack)
+                }
+            }
         }
     }
 }

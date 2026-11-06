@@ -284,6 +284,13 @@ Once you turn on Instagram's auto scroll in Reels, it stays on after a restart o
 Move on when a reel ends	릴스가 끝나면 다음으로 넘어가기
 When a reel ends, Reels moves on to the next one instead of playing it again. It uses Instagram's own auto scroll, even on accounts where Instagram doesn't offer it. While it's on, Instagram's own Auto scroll switch can't turn it off. Restart Instagram to see the change.	릴스가 끝나면 다시 재생하지 않고 다음 릴스로 넘어갑니다. Instagram의 자동 스크롤을 사용하며, Instagram이 이 기능을 제공하지 않는 계정에서도 작동합니다. 켜져 있는 동안에는 Instagram의 자동 스크롤 스위치로 끌 수 없습니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Stop Reels scrolling	릴스 스크롤 정지
+# context: Reels page, the three switches under Stop Reels scrolling. They name that switch by its label, and each lets one kind of viewer keep scrolling.
+Still scroll reels from a profile	프로필에서 연 릴스는 계속 스크롤
+With Stop Reels scrolling on, reels you open from a profile still move on when you swipe.	릴스 스크롤 정지가 켜져 있어도 프로필에서 연 릴스는 스와이프하면 다음으로 넘어갑니다.
+Still scroll reels from Search and Explore	검색과 탐색에서 연 릴스는 계속 스크롤
+With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	릴스 스크롤 정지가 켜져 있어도 검색, 탐색, 해시태그, 장소에서 연 릴스는 스와이프하면 다음으로 넘어갑니다.
+Still scroll reels from a song page	노래 페이지에서 연 릴스는 계속 스크롤
+With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	릴스 스크롤 정지가 켜져 있어도 노래나 오디오 페이지에서 연 릴스는 스와이프하면 다음으로 넘어갑니다.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	릴스에서 넘겨도 다음 릴스로 이동하지 않고, 아래로 당겨도 새 릴스를 불러오지 않습니다. 연 릴스는 계속 재생됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	릴스를 2배속으로 고정하면 (릴스 가장자리를 길게 탭한 다음 아래로 밀기), 다음 릴스도 2배속으로 재생됩니다. 일반 속도로 돌아가려면 잠금 표시를 밀어서 해제하거나, 가장자리를 길게 누른 후 손을 떼세요
 Open links in external browser	외부 브라우저에서 링크 열기
@@ -419,6 +426,11 @@ Hide the Threads button	Threads 버튼 숨기기
 Takes the Threads button off the top of profiles, yours included. The menu and the other buttons stay where they were.	모든 프로필 상단에서 Threads 버튼을 숨깁니다. 내 프로필에도 적용됩니다. 메뉴와 다른 버튼은 원래 자리에 그대로 있습니다.
 Show profile posts as a list	프로필 게시물을 목록으로 보기
 Opening someone's profile takes you on to their posts as a scrolling list of full posts. Go Back for the grid. Your own profile keeps its grid.	다른 사람의 프로필을 열면 바로 전체 게시물이 이어지는 스크롤 목록으로 이동합니다. 뒤로 가면 그리드가 나옵니다. 내 프로필은 그리드 그대로입니다.
+Jump a profile's posts to a date	프로필 게시물에서 날짜로 이동
+Puts a calendar on a profile's top bar. Pick a day and the posts grid goes back to that day. Pull down for the newest again.	프로필 상단 바에 달력을 추가합니다. 날짜를 고르면 게시물 그리드가 그날로 돌아갑니다. 아래로 당기면 다시 최신 게시물이 나옵니다.
+Open the profile's posts first	먼저 프로필 게시물을 여세요
+Still loading, try again	아직 로드 중입니다. 다시 시도하세요
+Going to that date	해당 날짜로 이동 중
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	릴스 사이에 표시되는 팔로우할 사람 및 크리에이터 추천 카드를 숨깁니다. 릴스 자체는 모두 정상적으로 재생됩니다
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	유료 광고 파트너십 라벨이 있는 릴스와 Instagram이 홍보됨으로 표시한 릴스를 제외합니다. 광고는 별도의 스위치가 있습니다.
 Turn on Start Home on Following to use this choice.	이 옵션을 사용하려면 ‘팔로잉에서 홈 시작’을 활성화하세요
@@ -487,6 +499,11 @@ Save comment photo	댓글 사진 저장
 Adds Save to a selected comment's menu when the comment has its own photo or GIF. Saves the largest size Instagram sent.	사진이나 GIF가 첨부된 댓글 메뉴에 저장 옵션을 추가합니다. 저장할 때는 Instagram에서 전송한 것 중 가장 큰 크기를 저장합니다
 Reply with a comment's GIF	댓글의 GIF로 답글 달기
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	댓글에 GIF가 있으면 메뉴에 GIF 답글이 추가되어 같은 GIF를 움직이는 그대로 답글로 보냅니다
+Show a comment GIF's name	댓글 GIF 이름 표시
+When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	댓글에 GIF나 스티커가 있으면 메뉴에 그 이름이 표시됩니다. 이름을 탭하면 복사됩니다.
+GIF name	GIF 이름
+GIF name copied	GIF 이름을 복사했습니다
+Couldn't copy the GIF name	GIF 이름을 복사할 수 없습니다
 Couldn't reply with this GIF	이 GIF로 답글을 달지 못했습니다
 Mark as seen button	읽음으로 표시 버튼 추가
 Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.	 스토리를 몰래 보는 동안 각 스토리 상단에 눈 모양 버튼을 추가합니다. 이 버튼을 누르면 해당 스토리의 조회자 목록에 내 계정이 표시됩니다. 다른 스토리는 계속 익명으로 유지됩니다
@@ -840,7 +857,7 @@ Download video covers	동영상 커버 다운로드
 Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	동영상이 있는 피드 게시물과 동영상을 보여 주는 캐러셀의 메뉴에 커버 다운로드를 추가합니다. 동영상이 재생되기 전에 보이는 정지 이미지를 가장 큰 크기로 저장합니다.
 # context: Downloads switch under the feed video and photo downloads; it puts a Download icon in a feed post's action row beside Save
 Download button on feed posts	피드 게시물 다운로드 버튼
-Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them.	게시물 아래 줄의 저장 왼쪽에 다운로드 아이콘을 넣어, 메뉴를 열지 않고 한 번 탭으로 저장합니다. 캐러셀에서는 이 페이지만 저장할지 모두 저장할지 묻습니다.
+Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	게시물 아래 줄의 저장 왼쪽에 다운로드 아이콘을 넣어, 메뉴를 열지 않고 한 번 탭으로 저장합니다. 캐러셀에서는 이 페이지만 저장할지 모두 저장할지 묻습니다. 피드 동영상 다운로드 메뉴 추가 또는 피드 사진 다운로드가 필요합니다.
 Download button on reels	릴스 다운로드 버튼
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	릴스 옆 저장 아래에 다운로드 아이콘을 넣어, 한 번 탭으로 메뉴의 다운로드와 똑같이 저장합니다. 릴스 다운로드 메뉴 추가가 켜져 있어야 합니다.
 Nothing to download on this post	이 게시물에는 다운로드할 항목이 없습니다
@@ -1007,14 +1024,14 @@ More	더
 Hide the tab bar as you scroll	스크롤할 때 탭 바 숨기기
 Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching the top, or changing tab brings it back. It works with or without Glass tab bar. Restart Instagram after changing it.	목록을 아래로 스크롤하면 탭 바가 아래로 비켜 줍니다. 위로 스크롤하거나 맨 위에 닿거나 탭을 바꾸면 다시 나타납니다. 유리 탭 바를 켜든 끄든 작동합니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
 Hide the tab bar on Reels	릴스에서 탭 바 숨기기
-# context: a choice in the Hide the tab bar on Reels list under Glass tab bar; the bar is never hidden there
+# context: a choice in the Hide the tab bar on Reels list; the bar is never hidden there
 Never	안 함
 # context: a choice in the Hide the tab bar on Reels list; %1$d is 2, 3, 5 or 8
 After %1$d seconds	%1$d초 후
 # context: summary of the Hide the tab bar on Reels row while its choice is Never
-Never. Pick a time and the pill slides away once a reel has played that long without a touch. Restart Instagram after changing it.	안 함. 시간을 선택하면 릴스가 터치 없이 그 시간만큼 재생된 뒤 알약 모양 바가 아래로 사라집니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
+Never. Pick a time and the tab bar slides away once a reel has played that long without a touch. Restart Instagram after changing it.	안 함. 시간을 선택하면 릴스가 터치 없이 그 시간만큼 재생된 뒤 탭 바가 아래로 사라집니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
 # context: summary of the Hide the tab bar on Reels row; %1$d is the seconds picked, 2, 3, 5 or 8
-On Reels, the pill slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	릴스에서 %1$d초 동안 터치가 없으면 알약 모양 바가 아래로 사라집니다. 다시 보려면 화면 아래쪽 가장자리를 탭하거나 탭을 바꾸거나 뒤로를 누르세요. 변경한 뒤에는 Instagram을 다시 시작하세요.
+On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	릴스에서 %1$d초 동안 터치가 없으면 탭 바가 아래로 사라집니다. 다시 보려면 화면 아래쪽 가장자리를 탭하거나 탭을 바꾸거나 뒤로를 누르세요. 변경한 뒤에는 Instagram을 다시 시작하세요.
 Start feed videos with sound	피드 동영상을 소리와 함께 시작
 The first video on Home plays with its sound on, the same as tapping its speaker. Your phone's ringer and volume still count, so on silent or with the volume down, it stays quiet.	홈의 첫 번째 동영상이 스피커를 누른 것처럼 소리가 켜진 채로 재생됩니다. 휴대전화의 벨소리 모드와 볼륨은 그대로 적용되므로 무음이거나 볼륨이 꺼져 있으면 조용한 상태로 유지됩니다.
 Tap a feed video to pause it	피드 동영상을 탭하여 일시정지
@@ -1023,6 +1040,10 @@ Long press a photo to zoom	사진을 길게 눌러 확대
 Press and hold a photo in a feed to see it twice as big around your finger, and slide to look around. Let go to close it. While this is on, it takes the place of Instagram's own long press on a photo.	피드에서 사진을 길게 누르면 손가락 주변이 두 배로 확대되어 보이고, 밀어서 둘러볼 수 있습니다. 손을 떼면 닫힙니다. 이 기능이 켜져 있는 동안에는 사진을 길게 눌렀을 때 Instagram의 기본 동작 대신 이 기능이 실행됩니다.
 Keep the zoom open	확대 화면 유지
 The zoom stays up after you let go. Drag to look around, pinch to zoom from 1x to 4x, and tap or press Back to close it.	손을 떼도 확대 화면이 그대로 유지됩니다. 드래그해서 둘러보고, 두 손가락으로 오므리거나 벌려 1x에서 4x까지 확대할 수 있으며, 탭하거나 뒤로를 누르면 닫힙니다.
+# context: Feed settings, right under Keep the zoom open, and the toast when a post's video can't be opened in the full screen viewer. Close matches the viewer's Close button.
+Long press a post for full screen	게시물을 길게 눌러 전체 화면으로 보기
+Press and hold a post in a feed to open it full screen. Pinch a photo to zoom and tap it to close. A video plays with a slider and a Close button. While this is on, it goes before the zoom and Instagram's own long press.	피드에서 게시물을 길게 누르면 전체 화면으로 열립니다. 사진은 두 손가락으로 확대하고 탭하면 닫힙니다. 동영상은 슬라이더와 닫기 버튼과 함께 재생됩니다. 이 기능이 켜져 있으면 확대와 Instagram의 길게 누르기보다 먼저 실행됩니다.
+Couldn't play this video	이 동영상을 재생할 수 없습니다
 # context: what TalkBack reads for the zoomed photo left open over the feed
 Zoomed photo	확대된 사진
 Full screen Reels	릴스 전체 화면
@@ -1070,6 +1091,15 @@ Hide Your algorithm on reels	릴스의 내 알고리즘 숨기기
 Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The rest of the bar stays.	릴스 탭 맨 위에서 내 알고리즘 버튼을 숨기고 빈자리를 없앱니다. 나머지 바는 그대로입니다.
 Hide the Friends tab on Reels	릴스의 친구 탭 숨기기
 Takes the Friends tab, with reels the people you follow shared, off the top of the Reels tab. Reels stays where it is.	릴스 탭 맨 위에서 팔로우하는 사람들이 공유한 릴스가 있는 친구 탭을 숨깁니다. 릴스는 그대로 있습니다.
+# context: Reels settings. Shows Instagram's Friends tab at the top of the Reels tab on accounts that never got it. Friends tab wording matches the Hide the Friends tab row above it.
+Show the Friends tab on Reels	릴스의 친구 탭 표시
+Adds the Friends tab to the top of the Reels tab if your account never got it. What's in it still comes from Instagram, so it can be empty. Hide the Friends tab wins.	계정에 친구 탭이 없었다면 릴스 탭 위쪽에 추가합니다. 내용은 그대로 Instagram에서 오므로 비어 있을 수 있습니다. 친구 탭 숨기기가 우선합니다.
+# context: Reels settings and the list held open from the Friends tab at the top of the Reels tab. Friends tab wording matches the Hide the Friends tab row above it. The last two are short toasts.
+Hold the Friends tab to pick friends	친구 탭을 길게 눌러 친구 선택
+Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	릴스의 친구 탭을 길게 눌러 지금까지 표시된 친구 중에서 고릅니다. 그러면 그 친구들이 좋아하거나 공유한 릴스만 남습니다. 해당 친구가 없는 페이지는 다음 페이지를 불러올 수 있도록 릴스 하나를 남깁니다.
+Pick friends	친구 선택
+Open the Friends tab first.	먼저 친구 탭을 여세요.
+Applies to the next reels loaded.	다음에 불러오는 릴스부터 적용됩니다.
 Hide the Save button on reels	릴스의 저장 버튼 숨기기
 Burn-in guard	번인 방지
 Dim when idle	사용하지 않을 때 어둡게
@@ -1089,6 +1119,9 @@ Reels open in clear mode from the first one, with no tap. Leave it yourself and 
 # context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
 Don't vibrate in clear mode	클리어 모드에서 진동 끄기
 Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	릴스가 클리어 모드로 열릴 때 Instagram이 내는 짧은 진동을 끕니다. 클리어 모드 유지가 켜져 있으면 넘길 때마다 진동합니다.
+# context: Reels settings: a switch under Don't vibrate in clear mode (#480). It keeps the seek bar on screen in clear mode; seek bar and clear mode use the same words as Keep a seek bar and Keep clear mode on
+Always show seek bar in clear mode	클리어 모드에서 재생바 항상 표시
+Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other buttons stay hidden. Short reels get a bar too, in clear mode or not.	클리어 모드의 릴스에 재생바를 남겨 계속 끌 수 있고, 다른 버튼은 숨겨진 채로 둡니다. 짧은 릴스에도 클리어 모드 여부와 상관없이 재생바가 표시됩니다.
 Unlock with	잠금 해제 방법
 Phone lock	휴대폰 잠금
 HushGram PIN	HushGram PIN
@@ -1396,7 +1429,7 @@ Couldn't use that folder. Saves go where they did.	그 폴더를 사용할 수 �
 Saves go to Movies and Pictures again.	저장한 항목이 다시 Movies와 Pictures에 들어갑니다.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s에서 이 항목을 저장하지 못해 Movies와 Pictures에 저장했습니다.
 Start reels with sound	릴스를 소리와 함께 시작
-A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	홈의 게시물에서 연 릴스는 소리와 함께 재생되고, 돌아가면 홈은 다시 음소거됩니다. 휴대폰의 벨소리 모드와 볼륨은 그대로 적용됩니다.
+A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	릴스 탭이나 홈의 게시물에서 연 릴스는 소리와 함께 재생되고, 돌아가면 홈은 다시 음소거됩니다. 휴대폰의 벨소리 모드와 볼륨은 그대로 적용됩니다.
 Keep your place in Home	홈에서 보던 위치 유지
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Instagram으로 돌아오면 얼마나 오래 떠나 있었든 홈이 보던 게시물에 그대로 머뭅니다. 아래로 당겨 새로고침하면 여전히 다시 불러옵니다.
 Filter the Stories tray by verified accounts	인증된 계정으로 스토리 선반 필터링

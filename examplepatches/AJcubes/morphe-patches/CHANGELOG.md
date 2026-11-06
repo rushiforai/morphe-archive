@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/AJcubes/morphe-patches/compare/v1.1.0...v1.2.0) (2026-11-06)
+
+### ✨ New Features
+
+* customize patch bundle name ([41cfc49](https://github.com/AJcubes/morphe-patches/commit/41cfc49ca62b89be1c1264975c4dc8d7c296dec2))
+
 ## [1.1.0](https://github.com/AJcubes/morphe-patches/compare/v1.0.0...v1.1.0) (2026-11-05)
 
 ### ✨ New Features

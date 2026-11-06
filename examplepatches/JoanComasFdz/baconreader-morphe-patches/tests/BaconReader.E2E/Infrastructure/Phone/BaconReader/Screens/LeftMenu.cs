@@ -23,8 +23,15 @@ public sealed class LeftMenu(AndroidDriver driver)
     // "Patches entry in settings"'s line at the bottom of the drawer, under the menu: "Patches <version> (<patcher>)".
     private static readonly OpenQA.Selenium.By PatchesVersion = Locate.TextStartingWith("Patches ");
 
-    /// <summary>Opens the menu: taps the toolbar's menu button.</summary>
-    public Task OpenAsync() => OnScreen.PressAsync(driver, MenuButton);
+    /// <summary>
+    /// Opens the menu: taps the toolbar's menu button, after bringing the toolbar back when the posts were scrolled down
+    /// (<see cref="Toolbar"/>).
+    /// </summary>
+    public async Task OpenAsync()
+    {
+        await Toolbar.BringBackAsync(driver, MenuButton, "The menu button, \"Navigate up\",");
+        await OnScreen.PressAsync(driver, MenuButton);
+    }
 
     /// <summary>
     /// Waits until the menu is shown, slid all the way in (where it is no longer changes from one look to the next): a

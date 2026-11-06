@@ -55,4 +55,14 @@ public static class MediaViewerSnapshotAssertions
             $"The gallery shows {viewer.GalleryThumbnails} thumbnails{(viewer.Loading is null ? "" : $" and its loading bar, \"{viewer.Loading}\"")}, but its first image over {count} thumbnails was expected.");
         return that;
     }
+
+    /// <summary>The media shows the message "<paramref name="text"/>" in its place.</summary>
+    public static AssertingThat<MediaViewerSnapshot> ShowsTheMessage(this AssertingThat<MediaViewerSnapshot> that, string text)
+    {
+        var shown = that.InstanceToAssert.Message;
+        Assert.True(
+            shown == text,
+            shown is null ? $"The media shows no message, but \"{text}\" was expected." : $"The media shows the message \"{shown}\", but \"{text}\" was expected.");
+        return that;
+    }
 }

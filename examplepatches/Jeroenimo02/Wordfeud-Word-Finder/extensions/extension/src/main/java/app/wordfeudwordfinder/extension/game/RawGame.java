@@ -4,6 +4,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * A game as Wordfeud's API returns it, before replay: ids (game, board, ruleset), whose turn it is, whether it ended,
+ * the local player's position and the game log. {@link GameReplay} turns it into a {@link GameState}.
+ */
 public final class RawGame {
     private final long id;
     private final int boardId;

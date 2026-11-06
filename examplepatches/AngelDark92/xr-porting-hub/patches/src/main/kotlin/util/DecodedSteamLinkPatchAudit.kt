@@ -5,17 +5,15 @@ import app.morphe.patcher.PatcherConfig
 import app.morphe.patcher.apk.ApkUtils.applyTo
 import app.morphe.patcher.patch.rawResourcePatch
 import app.morphe.patcher.patch.Patch
-import app.template.patches.steamlink.androidxr.androidSurfaceTriggerBuildIdForBuild
-import app.template.patches.steamlink.androidxr.ANDROID_SURFACE_TRIGGER_MANIFEST
+import app.template.patches.steamlink.androidxr.STOCK_QUAD_LIBRARY
+import app.template.patches.steamlink.androidxr.STOCK_QUAD_MANIFEST
 import app.template.patches.steamlink.androidxr.patchModernTongueTransport
-import app.template.patches.steamlink.androidxr.androidSurfaceTriggerResourceLibraryForBuild
 import app.template.patches.steamlink.androidxr.ensureIdsXml
-import app.template.patches.steamlink.androidxr.appearOnTopPatch
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
 import app.template.patches.steamlink.androidxr.unrestrictedBatteryUsagePatch
 import app.template.patches.steamlink.androidxr.xrCoreRuntimePatch
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
-import app.template.patches.steamlink.androidxr.alpha0HighResolutionTriggerPatch
+import app.template.patches.steamlink.androidxr.stockQuadCompositionPatch
 import app.template.patches.steamlink.androidxr.xrInputRoutingConfigPatch
 import app.template.patches.steamlink.androidxr.xrLauncherBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
@@ -69,20 +67,19 @@ private val legacySites = mapOf(
 )
 
 private val publicPatchesFor5002363: List<Patch<*>> = listOf(
-    gxrFacebridgePatch, alpha0HighResolutionTriggerPatch,
+    gxrFacebridgePatch, stockQuadCompositionPatch,
     microphoneInputPresetPatch, oledCalibrationPatch, unrestrictedBatteryUsagePatch, hmdOnlyPatch,
 )
 
 private val publicPatchesFor5001712: List<Patch<*>> = listOf(
     androidXrNativePermissionNamesPatch,
-    appearOnTopPatch,
     changePackageNamePatch,
     deviceIdentityPatch,
     forceHmdInitializationGatesPatch,
     forceLobbyPermissionStateGatePatch,
     forceStreamXrGatesPatch,
     gxrFacebridgePatch,
-    alpha0HighResolutionTriggerPatch,
+    stockQuadCompositionPatch,
     microphoneInputPresetPatch,
     oledCalibrationPatch,
     unrestrictedBatteryUsagePatch,
@@ -178,7 +175,7 @@ private suspend fun runSingleAudit(args: Array<String>) {
             configurePublicAuditOptions(patch, base)
             executePatch(fixture, patch, File(patchDirectory, "temporary"), output)
             verifyPublicPatchOutput(output, patch, base)
-            if (patch == alpha0HighResolutionTriggerPatch) {
+            if (patch == stockQuadCompositionPatch) {
                 verifyStandaloneHighResolutionBoundary(fixture, output, base)
             }
             println("PASS ${base.versionName}/${base.versionCode} public patch output: $patchName: $output")
@@ -191,7 +188,7 @@ private suspend fun runSingleAudit(args: Array<String>) {
             val caseDirectory = File(outputDirectory, "high-resolution-${fixture.versionCode}")
             val output = File(caseDirectory, "steamlink-${fixture.versionCode}-high-resolution-unsigned.apk")
             output.parentFile.mkdirs()
-            executePatch(input, alpha0HighResolutionTriggerPatch, File(caseDirectory, "temporary"), output)
+            executePatch(input, stockQuadCompositionPatch, File(caseDirectory, "temporary"), output)
             verifyHighResolutionOutput(output, fixture)
             verifyStandaloneHighResolutionBoundary(input, output, fixture)
             println("PASS ${fixture.versionName}/${fixture.versionCode} high-resolution output: $output")
@@ -260,11 +257,6 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>, fixture: H
                 scene.requireBytesAt(sites.eye, "android.permission.EYE_TRACKING_FINE".paddedAscii(36))
             }
 
-            appearOnTopPatch -> {
-                manifest.requireEncodedString("android.permission.SYSTEM_ALERT_WINDOW")
-                apk.requireDexString("GxrOverlayBridge")
-            }
-
             changePackageNamePatch -> {
                 manifest.requireEncodedString("com.valvesoftware.steamlinkvr.gxr")
                 apk.requireDexString("com.valvesoftware.steamlinkvr.gxr")
@@ -295,7 +287,7 @@ private fun verifyPublicPatchOutput(outputApk: File, patch: Patch<*>, fixture: H
                 manifest.requireEncodedString("android.permission.FACE_TRACKING")
             }
 
-            alpha0HighResolutionTriggerPatch -> verifyHighResolutionZip(apk, fixture)
+            stockQuadCompositionPatch -> verifyHighResolutionZip(apk, fixture)
 
             microphoneInputPresetPatch -> scene.requireBytesAt(sites.mic, "c1008052".hexBytes())
 
@@ -398,7 +390,7 @@ private fun verifyModernPublicOutput(
             }
         }
     } }
-    if (patch == alpha0HighResolutionTriggerPatch) {
+    if (patch == stockQuadCompositionPatch) {
         verifyHighResolutionOutput(output, fixture)
         verifyStandaloneHighResolutionBoundary(input, output, fixture)
     }
@@ -491,28 +483,22 @@ private fun verifyHighResolutionZip(
     check(apk.getEntry("lib/arm64-v8a/libgxr_ast_underside.so") == null)
     check(apk.getEntry("assets/openxr/1/api_layers/implicit.d/" +
         "XR_APILAYER_local_GalaxyXR_android_surface_underside_projection_v1.json") == null)
-    val installedHelper = apk.requireEntryBytes("lib/arm64-v8a/libgxr_ast.so")
+    // Retired Alpha-0 payloads must never survive on a stock-quad output.
+    check(apk.getEntry("lib/arm64-v8a/libgxr_ast.so") == null)
+    check(apk.getEntry("lib/arm64-v8a/libgxr_ast_5001712.so") == null)
+    check(apk.getEntry("assets/openxr/1/api_layers/implicit.d/" +
+        "XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1.json") == null)
+    val installedHelper = apk.requireEntryBytes("lib/arm64-v8a/$STOCK_QUAD_LIBRARY")
     installedHelper.requireBytesAt(0, byteArrayOf(0x7f, 0x45, 0x4c, 0x46))
-    val expectedResourceName = androidSurfaceTriggerResourceLibraryForBuild(
-        fixture.versionName,
-        fixture.versionCode,
-    )
     val expectedHelper = requireNotNull(DecodedSteamLinkPatchAudit::class.java.getResourceAsStream(
-        "/steamlink/androidxr/$expectedResourceName",
-    )) { "Missing bundled high-resolution helper: $expectedResourceName" }.use { it.readBytes() }
+        "/steamlink/androidxr/$STOCK_QUAD_LIBRARY",
+    )) { "Missing bundled stock-quad helper" }.use { it.readBytes() }
     check(installedHelper.contentEquals(expectedHelper)) {
-        "${fixture.versionName}/${fixture.versionCode}: installed helper does not match " +
-            expectedResourceName
+        "${fixture.versionName}/${fixture.versionCode}: installed helper does not match $STOCK_QUAD_LIBRARY"
     }
-    val expectedBuildId = androidSurfaceTriggerBuildIdForBuild(
-        fixture.versionName,
-        fixture.versionCode,
-    )
-    installedHelper.requireEncodedString(expectedBuildId)
     apk.requireEntryBytes(
-        "assets/openxr/1/api_layers/implicit.d/" + ANDROID_SURFACE_TRIGGER_MANIFEST,
-    ).requireEncodedString("XR_APILAYER_local_GalaxyXR_android_surface_trigger_passthrough_v1")
-
+        "assets/openxr/1/api_layers/implicit.d/" + STOCK_QUAD_MANIFEST,
+    ).requireEncodedString("XR_APILAYER_local_GalaxyXR_stock_quad_v1")
     val bytes = apk.requireEntryBytes("lib/arm64-v8a/libvrlink_scene.so")
     val actual = bytes.copyOfRange(
         fixture.permissionOffset,

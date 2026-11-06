@@ -74,7 +74,7 @@ public final class WordPreview {
             if (text != null && !text.trim().isEmpty()) typed = true;
         }
         if (!typed) return new WordPreview(Outcome.EMPTY, null, null);
-        PostRules rules = new PostRules(false, false, false, false, false, false, false, false,
+        PostRules rules = new PostRules(false, false, false, false, false, false,
                 words, PostRules.parseWords(allowedWords),
                 selected.contains(PostRules.WordField.CURRENT_TEXT), selected.contains(PostRules.WordField.REBLOG_TRAIL),
                 selected.contains(PostRules.WordField.TAGS), selected.contains(PostRules.WordField.SUMMARY), false);

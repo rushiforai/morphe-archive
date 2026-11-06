@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-06.
  * Written by lavinhoque33, 2026-10-29
  *
  * ------------------------------------------------------------------------
@@ -58,6 +59,7 @@ internal val youtubeStockIcons = mapOf(
     "morphe_preference_screen_explore_menu" to "compass",
     "morphe_preference_screen_theme_settings" to "paint_palette",
     "morphe_proxy_screen" to "globe",
+    "morphe_video_action_bar_layout" to "adjust",
     "notification_key" to "bell",
     "offline_key" to "download",
     "pair_with_tv_key" to "tv",

@@ -465,6 +465,9 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelDeclutter;->hideSaveCount(
 # callbacks (a shorter sibling that only swaps the icon holds the same constant), and it's the hook's
 # only caller, so once-call.
 once-call Lapp/hushgram/extension/instagram/reels/ReelsTopBar;->friendsTab(Landroid/view/View;)V in (Lcom/google/android/material/tabs/TabLayout;*Lkotlin/jvm/functions/Function1;*)V holding const:0x7f0806a7
+# Show the Friends tab on Reels asks friendsTabAnyway(Object) at the no of the check that decides a
+# viewer's tabs at the top (#499), in the static method building that viewer's top bar state.
+once-call Lapp/hushgram/extension/instagram/reels/ReelsTopBar;->friendsTabAnyway(Ljava/lang/Object;)Z in static (L*;)V pooled holding android_purge_26_q2_ClipsViewerOverlayActionBarDelegateProvider_provide
 # Keep clear mode on, the same patch's eighth switch, has Instagram's clear mode (its fullscreen view)
 # carry from reel to reel. The action handler's turn-on and turn-off each tell the extension once,
 # after the action they run, with what they were handed: entered(handler, reason) in the one instance
@@ -1639,6 +1642,11 @@ once-call Lapp/hushgram/extension/instagram/stories/StorySeenRings;->seen(Ljava/
 # or elsewhere, it isn't the hook the patch wrote.
 once-call Lapp/hushgram/extension/instagram/stories/StoryTrayOrder;->order(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List; in instance (Ljava/util/List;)Ljava/util/List; calling static LX/*;->*(Lcom/instagram/common/session/UserSession;Ljava/util/List;)Ljava/util/ArrayList; holding const:0x81133000016851
 once-call Lapp/hushgram/extension/instagram/stories/StoryTrayOrder;->order(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List; in instance (ZZ)Ljava/util/List; holding main\sfeed\stray\sreels\sis\sempty
+# The tray manager's response method (07hG.G7Y on 386014758) tells StoryTrayOrder why each tray came,
+# right after the store has it, so a pull to refresh starts the row over and a fetch on the way back
+# from a longer watch doesn't (#377). Left out, a story just watched keeps its place even after a pull
+# to refresh; twice or elsewhere, it isn't the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/stories/StoryTrayOrder;->responded(Ljava/lang/Object;)V in instance (LX/*;LX/*;LX/*;LX/*;J)V pooled holding ReelTrayManager.onReelTrayResponseReady\s-\suseCache:\s
 # Stories priority hands the same two lists to StoryPriority.order after that sort, once each (#451),
 # so the accounts a user listed go first while they have an unwatched story. Same two methods.
 once-call Lapp/hushgram/extension/instagram/stories/StoryPriority;->order(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List; in instance (Ljava/util/List;)Ljava/util/List; calling static LX/*;->*(Lcom/instagram/common/session/UserSession;Ljava/util/List;)Ljava/util/ArrayList; holding const:0x81133000016851
@@ -2068,11 +2076,12 @@ once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->keepNot
 # to the loop's next row on a yes. Left out, Featured rows the reply hook never sees (saved or paged
 # ones) still draw.
 once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->skipsFeaturedRow(Ljava/lang/String;)Z in static (Landroid/content/Context;L*;Lcom/instagram/common/session/UserSession;L*;L*;L*;L*;L*;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;ZZ)L*; holding priority_stories new_stories
-# Keep Featured off the heart's dot (#189) hands the dot's count and the sum of the likes, comments,
-# comment likes, follows and tags counts to ProfileSuggestions.featuredDot before the badge counts are
-# boxed (LX/04rE.EN9 on 453, the one method loading activity_feed_dot_badge and the five counts), and
-# keeps the answer as the dot's count. Left out, a Featured-only dot still lights the heart.
-once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->featuredDot(II)I in instance (L*;)V holding activity_feed_dot_badge comment_likes relationships usertags
+# Keep Featured off the heart's dot (#189) hands the map of badge counts by name to
+# ProfileSuggestions.featuredCounts right before LX/07AF.A01 returns it (454). Every route to the heart's
+# badge reads its counts through that method. Its twin LX/07AF.A02 reads the same two fields (name and
+# count) but keys the map by badge, through a call with the name, and the account switcher uses that one.
+# Left out, a Featured-only dot still lights the heart.
+once-call Lapp/hushgram/extension/instagram/profile/ProfileSuggestions;->featuredCounts(Ljava/util/Map;)V in static (LX/*;)Ljava/util/LinkedHashMap; lacking static LX/*;->*(Ljava/lang/String;)LX/*; holding const:0x302bcfe const:0x5a7510f
 
 # Hide highlights asks ProfileHighlights before the same row list (0EBd.A04 on 452)
 # adds the row of story highlights, in place of its read of the tray's row type. It's called once
@@ -2190,6 +2199,12 @@ once-call Lapp/hushgram/extension/instagram/reels/HiddenSounds;->page(Ljava/util
 # HidePaidPartnershipReelsHookTest.
 once-call Lapp/hushgram/extension/instagram/reels/LowViewReels;->page(Ljava/util/List;Ljava/lang/String;)Ljava/util/List; in instance (L*;)V holding android_purge_26_q2_ClipsItemsNetworkCallback_onSuccess
 
+# Hold the Friends tab to pick friends hands the same pages, at the same join, to
+# FriendLanePicks.page, once (#503). Its stubs read the friends named on a post through getters
+# FriendLanePicksFixtureTest finds on every retained build; the join itself is checked by
+# HidePaidPartnershipReelsHookTest.
+once-call Lapp/hushgram/extension/instagram/reels/FriendLanePicks;->page(Ljava/util/List;Ljava/lang/String;)Ljava/util/List; in instance (L*;)V holding android_purge_26_q2_ClipsItemsNetworkCallback_onSuccess
+
 # Show a reel's exact time hands the Reels title and the list of its column's parts to
 # ReelPostTime.line just before the title makes that column (the one method loading the title's
 # render marker below), once, so the line with the time goes in after the name row and Instagram's
@@ -2298,13 +2313,13 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelAutoScroll;->install(I)Z i
 # handlers of the pull-down layout around the Reels viewer ask ReelScrolling.pull first, each picked
 # by the trace name it loads. Left out, Reels scroll and pull as before; twice or elsewhere, it isn't
 # the hook the patch wrote. StopReelsScrollingHookTest checks on the 449 fixture where each lands.
-once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pager(Ljava/lang/Object;)I in static (Landroid/os/BaseBundle;Landroid/view/View;*)V holding android_purge_26_q3_ClipsViewPagerImpl_setupView
+once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pager(Ljava/lang/Object;Ljava/lang/Object;)I in static (Landroid/os/BaseBundle;Landroid/view/View;*)V holding android_purge_26_q3_ClipsViewPagerImpl_setupView
 start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->userInput(Ljava/lang/Object;I)I in instance (Z)V holding Landroidx/viewpager2/widget/ViewPager2;->A09:Z
 once-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->userInput(Ljava/lang/Object;I)I in instance (Z)V holding Landroidx/viewpager2/widget/ViewPager2;->A09:Z
-start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onInterceptTouchEvent
-shared-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onInterceptTouchEvent
-start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onTouchEvent
-shared-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull()I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onTouchEvent
+start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull(Ljava/lang/Object;)I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onInterceptTouchEvent
+shared-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull(Ljava/lang/Object;)I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onInterceptTouchEvent
+start-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull(Ljava/lang/Object;)I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onTouchEvent
+shared-call Lapp/hushgram/extension/instagram/reels/ReelScrolling;->pull(Ljava/lang/Object;)I in instance (Landroid/view/MotionEvent;)Z holding android_purge_26_q3_ClipsSwipeRefreshLayout_onTouchEvent
 # Swipe left to open the profile hands the answer of the Reels viewer's last swipe gate to
 # SwipeToProfile.allow right after it is read, in the one method holding the marker below (05PF.A00
 # on 452). Left out, the switch does nothing; twice or elsewhere, it isn't the hook the patch wrote.
@@ -2535,6 +2550,12 @@ once-call Lapp/hushgram/extension/instagram/download/ProfilePicture;->offerPopup
 # its call. Left out, the button never shows; twice or elsewhere, it isn't the hook the patch wrote.
 start-call Lapp/hushgram/extension/instagram/download/ProfileExtras;->bound(Landroid/view/View;Landroid/view/View;Ljava/lang/Object;)V in instance (Lcom/instagram/common/session/UserSession;Landroid/app/Activity;LX/*;LX/*;Landroid/content/Context;Lkotlin/jvm/functions/Function1;)V holding userSession activity Lcom/instagram/profile/actionbar/ProfileActionBar;->A06:Lcom/instagram/common/ui/base/IgLinearLayout;
 once-call Lapp/hushgram/extension/instagram/download/ProfileExtras;->bound(Landroid/view/View;Landroid/view/View;Ljava/lang/Object;)V in instance (Lcom/instagram/common/session/UserSession;Landroid/app/Activity;LX/*;LX/*;Landroid/content/Context;Lkotlin/jvm/functions/Function1;)V holding userSession activity Lcom/instagram/profile/actionbar/ProfileActionBar;->A06:Lcom/instagram/common/ui/base/IgLinearLayout;
+# Jump a profile's posts to a date (#498) tells GridJump which posts tab is up, right after its super
+# onResume, hands it the bar's right row once the bind has filled it, and passes the grid request's
+# max_id through it first thing in the request.
+once-call Lapp/hushgram/extension/instagram/profile/GridJump;->resumed(Ljava/lang/Object;)V in instance ()V calling instance LX/*;->onResume()V class-holding ProfileMediaTabFragment.profile_tab_identifier
+once-call Lapp/hushgram/extension/instagram/profile/GridJump;->bound(Landroid/view/View;)V in instance (Lcom/instagram/common/session/UserSession;Landroid/app/Activity;LX/*;LX/*;Landroid/content/Context;Lkotlin/jvm/functions/Function1;)V holding userSession activity Lcom/instagram/profile/actionbar/ProfileActionBar;->A06:Lcom/instagram/common/ui/base/IgLinearLayout;
+once-call Lapp/hushgram/extension/instagram/profile/GridJump;->maxId(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String; in static (Lcom/instagram/common/session/UserSession;Ljava/lang/Integer;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IZZZZZZZ)LX/*; pooled holding IGProfileTimelineQuery max_id user_id
 # Download voice messages (#20) hands VoiceMessage.offer the answer to whether a message's kind can be
 # saved, and the message, right after the menu model's builder asks it (09xN.invoke on 450, the
 # lambda building the long-press menu's model, the one method of this shape loading these strings

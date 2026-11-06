@@ -44,12 +44,19 @@ private fun flagRead(flag: Long) = """
     move-result v0
 """.trimIndent()
 
+private const val SHARED_FLAG_GETTER = "$ROW_CHECKS->A07()Z"
+
+/** Family B's read: the shared flag through the checks' own static getter, every other flag in place. */
+private fun familyBRead(flag: Long) =
+    if (flag == META_AI_SHARED_FLAG) "invoke-static {}, $SHARED_FLAG_GETTER\nmove-result v0" else flagRead(flag)
+
 /** The Meta AI row check: either of its two flags turns the row on. */
-private fun metaAiRow(id: String = SYNTHETIC_META_AI_ROW, flags: List<Long> = META_AI_ROW_FLAGS.toList()) = fixtureMethod(id, """
+private fun metaAiRow(id: String = SYNTHETIC_META_AI_ROW, flags: List<Long> = META_AI_ROW_FLAGS.toList(), read: (Long) -> String = ::flagRead) =
+    fixtureMethod(id, """
     const/4 v3, 0x0
-    ${flagRead(flags[0])}
+    ${read(flags[0])}
     if-nez v0, :on
-    ${flags.getOrNull(1)?.let { flagRead(it) } ?: "const/4 v0, 0x0"}
+    ${flags.getOrNull(1)?.let { read(it) } ?: "const/4 v0, 0x0"}
     if-eqz v0, :off
     :on
     const/4 v3, 0x1
@@ -58,15 +65,16 @@ private fun metaAiRow(id: String = SYNTHETIC_META_AI_ROW, flags: List<Long> = ME
 """.trimIndent(), registers = 5)
 
 /** The regular-chat Meta AI check: a capability, then both of its flags. */
-private fun metaAiChatsRow(id: String = SYNTHETIC_META_AI_CHATS_ROW, flags: List<Long> = META_AI_CHAT_FLAGS.toList()) = fixtureMethod(id, """
+private fun metaAiChatsRow(id: String = SYNTHETIC_META_AI_CHATS_ROW, flags: List<Long> = META_AI_CHAT_FLAGS.toList(), read: (Long) -> String = ::flagRead) =
+    fixtureMethod(id, """
     const/4 v4, 0x0
     const/16 v0, 0x148
     invoke-virtual {v7, v0}, $CAPABILITIES->A00(I)Z
     move-result v0
     if-eqz v0, :off
-    ${flagRead(flags[0])}
+    ${read(flags[0])}
     if-nez v0, :off
-    ${flags.getOrNull(1)?.let { flagRead(it) } ?: "const/4 v0, 0x0"}
+    ${flags.getOrNull(1)?.let { read(it) } ?: "const/4 v0, 0x0"}
     if-eqz v0, :off
     const/4 v4, 0x1
     :off
@@ -74,12 +82,13 @@ private fun metaAiChatsRow(id: String = SYNTHETIC_META_AI_CHATS_ROW, flags: List
 """.trimIndent(), registers = 8)
 
 /** The encrypted-chat Meta AI check: the shared Meta AI flag, then the encrypted flag. */
-private fun metaAiEncryptedRow(id: String = SYNTHETIC_META_AI_ENCRYPTED_ROW, flags: List<Long> = listOf(META_AI_SHARED_FLAG, META_AI_ENCRYPTED_FLAG)) =
+private fun metaAiEncryptedRow(id: String = SYNTHETIC_META_AI_ENCRYPTED_ROW, flags: List<Long> = listOf(META_AI_SHARED_FLAG, META_AI_ENCRYPTED_FLAG),
+    read: (Long) -> String = ::flagRead) =
     fixtureMethod(id, """
         const/4 v3, 0x0
-        ${flagRead(flags[0])}
+        ${read(flags[0])}
         if-eqz v0, :off
-        ${flagRead(flags[1])}
+        ${read(flags[1])}
         if-eqz v0, :off
         const/4 v3, 0x1
         :off
@@ -120,7 +129,30 @@ private fun assertSwitched(before: List<Instruction>, after: List<Instruction>, 
 }
 
 class AiMentionRowsTest {
-    @AfterTest fun reset() { activeProfile = SYNTHETIC_PROFILE }
+    @AfterTest fun reset() {
+        activeProfile = SYNTHETIC_PROFILE
+        metaAiFlagGetters = emptySet()
+    }
+
+    @Test fun familyBsMetaAiChecksReadTheSharedFlagThroughAGetterOfTheirOwn() {
+        fun checks() = listOf(metaAiRow(read = ::familyBRead), metaAiChatsRow(read = ::familyBRead), metaAiEncryptedRow(read = ::familyBRead)) +
+            rowChecks().drop(3)
+        val getter = fixtureMethod(SHARED_FLAG_GETTER, flagRead(META_AI_SHARED_FLAG) + "\nreturn v0", registers = 3,
+            flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
+        val familyB = checks()
+        val found = mirroredControls(listOf(rowClass(checks = familyB + getter)))
+        assertEquals(setOf(SYNTHETIC_META_AI_ROW, SYNTHETIC_META_AI_CHATS_ROW, SYNTHETIC_META_AI_ENCRYPTED_ROW, SYNTHETIC_IMAGINE_ROW,
+            SYNTHETIC_IMAGINE_YOURSELF_ROW), found.getValue(AI_MENTION_ROWS).map { it.hookId() }.toSet())
+        validateControls(found, setOf(AI_MENTION_ROWS))
+        val before = familyB.map { it.code() }
+        injectControl(AI_MENTION_ROWS, mapOf(AI_MENTION_ROWS to familyB))
+        familyB.zip(before).forEach { (method, code) -> assertSwitched(code, method.code(), method.hookId()) }
+        // With no getter that reads only the shared flag, the three Meta AI checks don't read it and no row is taken.
+        assertTrue(findAiMentionRows(listOf(rowClass(checks = checks()))).isEmpty())
+        val mixed = fixtureMethod(SHARED_FLAG_GETTER, flagRead(META_AI_SHARED_FLAG) + "\n" + flagRead(IMAGINE_ROW_FLAG) + "\nreturn v0",
+            registers = 3, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
+        assertTrue(findAiMentionRows(listOf(rowClass(checks = checks() + mixed))).isEmpty())
+    }
 
     @Test fun eachRowCheckAnswersFalseWhileTheSwitchIsOn() {
         val checks = rowChecks()

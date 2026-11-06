@@ -25,4 +25,9 @@ public class RecyclerView extends ViewGroup {
     public static int patch_getChildAdapterPosition(RecyclerView parent, View child) {
         return -1;
     }
+
+    @Override
+    public int computeHorizontalScrollOffset() {
+        return 0;
+    }
 }

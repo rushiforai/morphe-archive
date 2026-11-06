@@ -11,6 +11,7 @@
  * - Jav1x (https://github.com/Jav1x)
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-10-21.
  *
  * Modified by lavinhoque33, 2026-10-24
  *
@@ -64,6 +65,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
@@ -109,8 +111,6 @@ import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodCall
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
-import app.morphe.util.fingerprint.originalMethodOrThrow
-import app.morphe.util.getReference
 import app.morphe.util.getWalkerMethod
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
@@ -437,7 +437,7 @@ val videoInformationPatch = bytecodePatch(
             videoEndMethod = getWalkerMethod(walkerIndex)
         }
 
-        mdxPlayerDirectorSetVideoStageFingerprint.methodOrThrow().apply {
+        mdxPlayerDirectorSetVideoStageFingerprint.method.apply {
             findMethodOrThrow(definingClass).let {
                 mdxConstructorMethod = it
                 mdxConstructorInsertIndex = it.indexOfFirstInstructionOrThrow {
@@ -448,11 +448,11 @@ val videoInformationPatch = bytecodePatch(
             // hook the MDX director for use through extension
             onCreateHookMdx(EXTENSION_CLASS_DESCRIPTOR, "initializeMdx")
 
-            cloneSeekRelativeSourceMethod(mdxPlayerDirectorSetVideoStageFingerprint.mutableClassOrThrow())
+            cloneSeekRelativeSourceMethod(mdxPlayerDirectorSetVideoStageFingerprint.classDef)
 
             // Create extension interface methods.
             addSeekInterfaceMethods(
-                mdxPlayerDirectorSetVideoStageFingerprint.mutableClassOrThrow(),
+                mdxPlayerDirectorSetVideoStageFingerprint.classDef,
                 this,
                 seekSourceMethodName,
                 "overrideMDXVideoTime",
@@ -460,7 +460,7 @@ val videoInformationPatch = bytecodePatch(
                 "videoInformationMDXClass"
             )
             addSeekInterfaceMethods(
-                mdxPlayerDirectorSetVideoStageFingerprint.mutableClassOrThrow(),
+                mdxPlayerDirectorSetVideoStageFingerprint.classDef,
                 this,
                 seekRelativeSourceMethodName,
                 "overrideMDXVideoTimeRelative",
@@ -476,15 +476,15 @@ val videoInformationPatch = bytecodePatch(
                 val matches = it.matchAll(2..3)
                 val playerResponseType = matches.first().method.parameterTypes.first().toString()
                 val channelIdMethodCall = getModernChannelIdFingerprint(playerResponseType)
-                    .instructionMatches.first().instruction.getReference<MethodReference>()!!
+                    .instructionMatches.first().methodReference
                 val channelNameMethodCall = getModernChannelNameFingerprint(playerResponseType)
-                    .instructionMatches.last().instruction.getReference<MethodReference>()!!
+                    .instructionMatches.last().methodReference
 
                 // The helper this resolves through only exists in later targets, and the title is
                 // only used by the minimal miniplayer, which is only rebuilt for those.
                 val videoTitleInstructions = if (is_21_29_or_greater) {
                     val videoTitleMethodCall = getVideoTitleFingerprint(playerResponseType)
-                        .instructionMatches.first().instruction.getReference<MethodReference>()!!
+                        .instructionMatches.first().methodReference
 
                     """
                         invoke-interface { p1 }, $videoTitleMethodCall
@@ -1222,7 +1222,7 @@ val videoInformationPatch = bytecodePatch(
                 val onQualityItemClickField =
                     it.instructionMatches[0].instruction.getReference<FieldReference>()!!
                 val setQualityField =
-                    it.instructionMatches[1].instruction.getReference<FieldReference>()!!
+                    it.instructionMatches[1].fieldReference
 
                 findMutableClassOrThrow(setQualityField.type).apply {
                     interfaces.add(EXTENSION_VIDEO_QUALITY_MENU_INTERFACE)
@@ -1374,7 +1374,7 @@ val videoInformationPatch = bytecodePatch(
                 .methodCall()
 
             val formatStreamITagReference =
-                formatStreamModelToStringFingerprint.originalMethodOrThrow()
+                formatStreamModelToStringFingerprint.originalMethod
                     .findMethodFromToString("FormatStream(itag=")
                     .methodCall()
 
@@ -1386,11 +1386,6 @@ val videoInformationPatch = bytecodePatch(
                         val formatStreamIndex = it.instructionMatches.first().index + 1
                         val formatStreamResolutionReference =
                             getInstruction<ReferenceInstruction>(formatStreamIndex).reference as MethodReference
-
-                        addInstructions(
-                            0,
-                            "invoke-static { p0 }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->setVideoFormat(Ljava/util/List;)V"
-                        )
 
                         formatStreamResolutionReference
                     }
@@ -1436,29 +1431,8 @@ val videoInformationPatch = bytecodePatch(
                     )
             }
 
-            initFormatStreamFingerprint.match(initFormatStreamParentFingerprint.classDef).method.apply {
-                    val preferredFormatStreamIndex =
-                        indexOfPreferredFormatStreamInstruction(this)
-                    val preferredFormatStreamReference =
-                        getInstruction<ReferenceInstruction>(preferredFormatStreamIndex).reference
-                    val preferredFormatStreamInstruction =
-                        getInstruction<TwoRegisterInstruction>(preferredFormatStreamIndex)
-                    val preferredFormatStreamRegister =
-                        preferredFormatStreamInstruction.registerA
-                    val definingClassRegister =
-                        preferredFormatStreamInstruction.registerB
-
-                    addInstructions(
-                        preferredFormatStreamIndex + 1, """
-                        invoke-static { v$preferredFormatStreamRegister }, $EXTENSION_VIDEO_QUALITY_CLASS_DESCRIPTOR->getVideoFormat($YOUTUBE_FORMAT_STREAM_MODEL_CLASS_TYPE)$YOUTUBE_FORMAT_STREAM_MODEL_CLASS_TYPE
-                        move-result-object v$preferredFormatStreamRegister
-                        iput-object v$preferredFormatStreamRegister, v$definingClassRegister, $preferredFormatStreamReference
-                        """
-                    )
-                }
-
             val playbackStartParametersToStringMethod =
-                playbackStartParametersToStringFingerprint.originalMethodOrThrow()
+                playbackStartParametersToStringFingerprint.originalMethod
             val initialResolutionField = playbackStartParametersToStringMethod
                 .findFieldFromToString(FIXED_RESOLUTION_STRING)
             val playbackStartParametersClass =

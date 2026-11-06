@@ -29,18 +29,24 @@ import app.hushtumblr.extension.tumblr.settings.Settings;
  * screen already loads the original and keeps doing so.
  *
  * <p>Tumblr's pick stays while the switch is off, HushTumblr is paused, the settings aren't ready
- * or anything throws, and when the pick is a GIF, isn't one of the sizes or no larger size
- * qualifies. A still is never swapped for a GIF or a size in another shape, and none over
- * {@link #MAX_WIDTH} pixels across or {@link #MAX_PIXELS} pixels in all is picked, so one image
- * can't take too much memory. The width is the one Tumblr lays the image out at, before it
- * shrinks the request for a slow connection, so a slow connection gets the same copy. While the switch is on, each answer counts its outcome
- * under one of the names below on the diagnostic report's line for this patch.
+ * or anything throws, and when the pick isn't one of the sizes or no larger size qualifies. A
+ * still is never swapped for a GIF, a GIF never for a still, and neither for a size in another
+ * shape. None over {@link #MAX_WIDTH} pixels across or {@link #MAX_PIXELS} pixels in all is
+ * picked, and no GIF over {@link #MAX_GIF_PIXELS}, so one image can't take too much memory. The
+ * width is the one Tumblr lays the image out at, before it shrinks the request for a slow
+ * connection, so a slow connection gets the same copy. While the switch is on, each answer counts
+ * its outcome under one of the names below on the diagnostic report's line for this patch.
  */
 public final class SharperImages {
     /** The widest size this picks. Tumblr's originals go up to 2048 across. */
     static final int MAX_WIDTH = 2048;
     /** The most pixels a size this picks may hold, a 2048 by 3072 image's. */
     static final long MAX_PIXELS = 2048L * 3072L;
+    /**
+     * The most pixels a GIF this picks may hold, a 1280 by 960 one's. A playing GIF keeps a few
+     * frames decoded at its size, so its cap sits far below a still's.
+     */
+    static final long MAX_GIF_PIXELS = 1280L * 960L;
 
     /** The step a failed pick is reported under. */
     static final String STEP = "image size";
@@ -48,15 +54,15 @@ public final class SharperImages {
     // What the diagnostic report counts for each answer while the switch is on. Fixed text only:
     // never an address.
     static final String UPGRADED = "upgraded";
+    static final String GIF_UPGRADED = "GIF upgraded";
     static final String ALREADY_LARGEST = "pick already the largest";
     static final String NOT_LISTED = "pick not among the sizes";
     static final String NO_SIZES = "no sizes";
     static final String UNREADABLE = "pick's size unreadable";
     static final String BLANK = "pick empty";
-    static final String ANIMATED = "pick animated";
     static final String OVER_CAP = "larger only past the cap";
     static final String OTHER_SHAPE = "larger only in another shape";
-    static final String OTHER_KIND = "larger only animated";
+    static final String OTHER_KIND = "larger only still or only animated";
 
     private SharperImages() {
     }
@@ -91,10 +97,11 @@ public final class SharperImages {
     }
 
     /**
-     * The largest still of [sizes] with [chosen]'s shape, an address, and no more than twice
-     * [width] across (twice [chosen]'s own width when Tumblr asked for none) within the caps,
-     * counted as upgraded, or [chosen] itself when there are no sizes, it's a GIF, it isn't one of
-     * them by address, its size can't be read or none is larger, counted by why.
+     * The largest of [sizes] of [chosen]'s kind (a still for a still, a GIF for a GIF) with its
+     * shape, an address, and no more than twice [width] across (twice [chosen]'s own width when
+     * Tumblr asked for none) within the caps, counted as upgraded, or [chosen] itself when there
+     * are no sizes, it isn't one of them by address, its size can't be read or none is larger,
+     * counted by why.
      */
     static Pick choose(@Nullable List<?> sizes, Object chosen, int width) {
         // Tumblr answers its own empty size when an image lists none, so this goes first.
@@ -105,8 +112,8 @@ public final class SharperImages {
         int pickedWidth = picked.getWidth();
         int pickedHeight = picked.getHeight();
         if (url == null || url.isEmpty() || pickedWidth <= 0 || pickedHeight <= 0) return new Pick(chosen, BLANK);
-        // Every frame of a GIF is decoded at its size, so a larger one costs many times a photo's memory.
-        if (animated(url)) return new Pick(chosen, ANIMATED);
+        boolean gif = animated(url);
+        long most = gif ? MAX_GIF_PIXELS : MAX_PIXELS;
         long widest = Math.min(MAX_WIDTH, 2L * (width > 0 ? width : pickedWidth));
         long pickedPixels = (long) pickedWidth * pickedHeight;
         boolean listed = false;
@@ -126,11 +133,11 @@ public final class SharperImages {
             if (candidateWidth <= 0 || candidateHeight <= 0) continue;
             long pixels = (long) candidateWidth * candidateHeight;
             boolean larger = pixels > pickedPixels;
-            if (animated(candidateUrl)) {
+            if (animated(candidateUrl) != gif) {
                 otherKind |= larger;
                 continue;
             }
-            if (candidateWidth > widest || pixels > MAX_PIXELS) {
+            if (candidateWidth > widest || pixels > most) {
                 overCap |= larger;
                 continue;
             }
@@ -144,7 +151,7 @@ public final class SharperImages {
             }
         }
         if (!listed) return new Pick(chosen, NOT_LISTED);
-        if (best != chosen) return new Pick(best, UPGRADED);
+        if (best != chosen) return new Pick(best, gif ? GIF_UPGRADED : UPGRADED);
         return new Pick(chosen, overCap ? OVER_CAP : otherShape ? OTHER_SHAPE : otherKind ? OTHER_KIND : ALREADY_LARGEST);
     }
 

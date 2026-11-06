@@ -4,6 +4,11 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * A Wordfeud ruleset ({@code rulesets[]} in games/detail): its id (0..12, see spec section 6.1), language code and the
+ * points and counts per tile. The tile names are the alphabet of the word list; digraph tiles (Spanish "CH") appear
+ * as multi-letter names (see {@link app.wordfeudwordfinder.extension.core.Tiles}).
+ */
 public final class Ruleset {
     private final int id;
     private final String languageCode;

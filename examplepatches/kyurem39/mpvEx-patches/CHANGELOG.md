@@ -1,3 +1,15 @@
+## [1.4.0](https://github.com/kyurem39/mpvEx-patches/compare/v1.3.0...v1.4.0) (2026-11-06)
+
+### ✨ New Features
+
+* add Vietnamese Compose localization and UI fixes ([23db164](https://github.com/kyurem39/mpvEx-patches/commit/23db164d2defbef9e80ace1d18b105baf79d66e0))
+
+## [1.4.0-dev.1](https://github.com/kyurem39/mpvEx-patches/compare/v1.3.0...v1.4.0-dev.1) (2026-11-06)
+
+### ✨ New Features
+
+* add Vietnamese Compose localization and UI fixes ([23db164](https://github.com/kyurem39/mpvEx-patches/commit/23db164d2defbef9e80ace1d18b105baf79d66e0))
+
 ## [1.3.0](https://github.com/kyurem39/mpvEx-patches/compare/v1.2.1...v1.3.0) (2026-10-29)
 
 ### 🐛 Bug Fixes

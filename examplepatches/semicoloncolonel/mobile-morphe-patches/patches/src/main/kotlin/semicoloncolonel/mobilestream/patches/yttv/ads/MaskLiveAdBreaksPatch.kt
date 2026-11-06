@@ -53,7 +53,7 @@ internal object KeepLiveDaiFingerprint : Fingerprint(
 @Suppress("unused")
 val maskLiveAdBreaksPatch = bytecodePatch(
     name = "Mask live ad breaks",
-    description = "Covers and mutes YouTube TV's own ads in live breaks.",
+    description = "Covers and mutes the ads YouTube TV inserts into live breaks, but not the commercials built into the broadcast.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)

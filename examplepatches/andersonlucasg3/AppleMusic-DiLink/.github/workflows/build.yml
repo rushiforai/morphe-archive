@@ -1,13 +1,22 @@
-name: Build patch bundle
+name: Build and release patch bundle
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Versão sem o prefixo v (opcional; sem ela, só artifact)"
+        required: false
+        default: ""
+      source_url:
+        description: "URL do APKM/XAPK 4-ABI (default: secret TV_SOURCE_URL)"
+        required: false
+        default: ""
   push:
     tags:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
   packages: read
 
 jobs:
@@ -23,6 +32,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Java 21
         uses: actions/setup-java@v4
@@ -37,6 +48,42 @@ jobs:
           yes | "$SDKMANAGER" --licenses > /dev/null
           "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
+      # A tag push releases v<tag>; workflow_dispatch with a version input releases
+      # that version (gh creates the tag). Without either, only the artifact is built.
+      - name: Resolve version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          VERSION="${INPUT_VERSION#v}"
+          if [ -z "$VERSION" ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "Sem tag e sem input version: build do artifact apenas"
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "release=true" >> "$GITHUB_OUTPUT"
+          echo "VERSION=$VERSION"
+
+      - name: Resolve APK source URL
+        id: source
+        env:
+          INPUT_SOURCE_URL: ${{ inputs.source_url }}
+          SECRET_SOURCE_URL: ${{ secrets.TV_SOURCE_URL }}
+        run: |
+          set -euo pipefail
+          URL="${INPUT_SOURCE_URL:-$SECRET_SOURCE_URL}"
+          if [ -n "$URL" ]; then
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "Fonte do APK: $URL"
+          else
+            echo "Sem source_url nem TV_SOURCE_URL: release somente com .mpp"
+          fi
+
       # The app.morphe:* artifacts live in GitHub Packages of the MorpheApp org, so the
       # default GITHUB_TOKEN of this repository cannot read them. Add a repository secret
       # GPR_KEY with a token that has read:packages (and GPR_USER with the account name).
@@ -46,6 +93,7 @@ jobs:
           GITHUB_ACTOR: ${{ secrets.GPR_USER != '' && secrets.GPR_USER || github.actor }}
           GITHUB_TOKEN: ${{ secrets.GPR_KEY != '' && secrets.GPR_KEY || secrets.GITHUB_TOKEN }}
         run: |
+          set -euo pipefail
           chmod +x gradlew
           ./gradlew clean :patches:generatePatchesList :patches:buildAndroid --no-daemon \
             -Pkotlin.compiler.execution.strategy=in-process
@@ -58,3 +106,133 @@ jobs:
           path: |
             patches/build/libs/*.mpp
             patches-list.json
+
+      - name: Collect bundle paths
+        if: steps.version.outputs.release == 'true'
+        run: |
+          set -euo pipefail
+          MPP="$(find patches/build/libs -maxdepth 1 -type f -name 'patches-*.mpp' \
+            ! -name '*-sources.mpp' ! -name '*-javadoc.mpp' -print -quit)"
+          if [ -z "$MPP" ] || [ ! -f patches-list.json ]; then
+            echo "::error::bundle .mpp ou patches-list.json ausente"
+            exit 1
+          fi
+          echo "MPP=$MPP" >> "$GITHUB_ENV"
+          echo "MPP=$MPP"
+
+      - name: Download patching tools
+        if: steps.version.outputs.release == 'true' && steps.source.outputs.url != ''
+        run: |
+          set -euo pipefail
+          mkdir -p tools
+          curl -L --fail --retry 3 -o tools/APKEditor-1.4.9.jar \
+            https://github.com/REAndroid/APKEditor/releases/download/V1.4.9/APKEditor-1.4.9.jar
+          curl -L --fail --retry 3 -o tools/morphe-desktop-2.1.1-all.jar \
+            https://github.com/MorpheApp/morphe-desktop/releases/download/v2.1.1/morphe-desktop-2.1.1-all.jar
+
+      - name: Download and extract TV splits
+        if: steps.version.outputs.release == 'true' && steps.source.outputs.url != ''
+        env:
+          SOURCE_URL: ${{ steps.source.outputs.url }}
+        run: |
+          set -euo pipefail
+          curl -L --fail --retry 3 -o tv-source.bin "$SOURCE_URL"
+          rm -rf tv-source splits32
+          mkdir -p tv-source splits32
+          unzip -q -o tv-source.bin -d tv-source
+          find tv-source -type f -name '*.apk' | sort
+
+          BASE="$(find tv-source -type f \( -name 'base.apk' -o -name 'com.apple.android.music.apk' \) -print -quit)"
+          ABI="$(find tv-source -type f \( -name 'split_config.armeabi_v7a.apk' -o -name 'config.armeabi_v7a.apk' \) -print -quit)"
+          DPI="$(find tv-source -type f \( -name 'split_config.xhdpi.apk' -o -name 'config.xhdpi.apk' \) -print -quit)"
+          if [ -z "$BASE" ] || [ -z "$ABI" ] || [ -z "$DPI" ]; then
+            echo "::error::fonte sem base.apk, armeabi_v7a ou xhdpi"
+            exit 1
+          fi
+          echo "base=$BASE abi=$ABI dpi=$DPI"
+
+          # APKEditor merges the bundle by file name: base as the package name and
+          # splits as config.<qualifier>.apk, the same layout validated locally.
+          cp "$BASE" splits32/com.apple.android.music.apk
+          cp "$ABI" splits32/config.armeabi_v7a.apk
+          cp "$DPI" splits32/config.xhdpi.apk
+          ls -l splits32
+
+      - name: Build TV APK
+        if: steps.version.outputs.release == 'true' && steps.source.outputs.url != ''
+        run: |
+          set -euo pipefail
+          java -jar tools/APKEditor-1.4.9.jar m -i splits32 -o merged32.apk
+          APK="AppleMusic-${VERSION}-AndroidTV-arm32.apk"
+          java -jar tools/morphe-desktop-2.1.1-all.jar patch \
+            -p "$MPP" \
+            -o "$APK" \
+            merged32.apk \
+            -e "TV: manifest" \
+            -e "TV: D-pad focus" \
+            -e "TV: player expand focus"
+          if [ ! -f "$APK" ]; then
+            echo "::error::APK de TV não foi gerado"
+            exit 1
+          fi
+          echo "APK=$APK" >> "$GITHUB_ENV"
+          ls -l "$APK"
+
+      - name: Validate TV APK
+        if: steps.version.outputs.release == 'true' && steps.source.outputs.url != ''
+        run: |
+          set -euo pipefail
+          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
+          BADGING="$("$BUILD_TOOLS/aapt2" dump badging "$APK")"
+          if ! grep -q "leanback-launchable-activity" <<< "$BADGING"; then
+            echo "::error::APK sem leanback-launchable-activity"
+            exit 1
+          fi
+          if ! grep -q "native-code: 'armeabi-v7a'" <<< "$BADGING"; then
+            echo "::error::APK sem native-code armeabi-v7a"
+            exit 1
+          fi
+          echo "$BADGING" | grep -E "leanback-launchable-activity|native-code|sdkVersion"
+          "$BUILD_TOOLS/apksigner" verify --print-certs "$APK" | tee apksigner.txt
+          if ! grep -q "CN=Morphe" apksigner.txt; then
+            echo "::error::APK não está assinado com CN=Morphe"
+            exit 1
+          fi
+
+      - name: Prepare release notes
+        if: steps.version.outputs.release == 'true'
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+
+          with open("patches-bundle.json", encoding="utf-8") as f:
+              bundle = json.load(f)
+          description = (bundle.get("description") or "").strip()
+          if not description:
+              raise SystemExit("patches-bundle.json sem description")
+          with open("release-notes.md", "w", encoding="utf-8") as f:
+              f.write(description + "\n")
+          print(f"release notes: {len(description)} chars")
+          PY
+
+      - name: Create GitHub release
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          ASSETS=(patches/build/libs/*.mpp patches-list.json)
+          if [ -n "${APK:-}" ]; then
+            ASSETS+=("$APK")
+          fi
+          for asset in "${ASSETS[@]}"; do
+            if [ ! -f "$asset" ]; then
+              echo "::error::asset ausente: $asset"
+              exit 1
+            fi
+          done
+          gh release create "v$VERSION" \
+            --title "Apple Music $VERSION" \
+            --notes-file release-notes.md \
+            "${ASSETS[@]}"

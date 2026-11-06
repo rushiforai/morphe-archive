@@ -51,6 +51,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_IMAGE_DESCRIPTIONS = new BooleanSetting("hushtumblr_show_image_descriptions", FALSE);
     public static final BooleanSetting SHARE_VIDEO_LINKS = new BooleanSetting("hushtumblr_share_video_links", FALSE);
     public static final BooleanSetting SHARPER_IMAGES = new BooleanSetting("hushtumblr_sharper_images", FALSE);
+    public static final BooleanSetting COLLAPSE_LONG_POSTS = new BooleanSetting("hushtumblr_collapse_long_posts", FALSE);
     public static final BooleanSetting SHOW_POST_TIMESTAMPS = new BooleanSetting("hushtumblr_show_post_timestamps", FALSE);
     public static final BooleanSetting WORDS_CURRENT_TEXT = new BooleanSetting("hushtumblr_words_current_text", TRUE);
     public static final BooleanSetting WORDS_REBLOG_TRAIL = new BooleanSetting("hushtumblr_words_reblog_trail", TRUE);
@@ -87,6 +88,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_ADVERTISING_ID =
             new BooleanSetting("hushtumblr_hide_ad_id", TRUE);
+
+    /**
+     * Shared and copied links leave out the {@code source=share} tag Tumblr adds
+     * ({@link app.hushtumblr.extension.tumblr.privacy.ShareLinks}).
+     */
+    public static final BooleanSetting SANITIZE_SHARING_LINKS =
+            new BooleanSetting("hushtumblr_sanitize_sharing_links", TRUE);
 
     /**
      * Firebase gets Tumblr's own certificate fingerprint when it signs this install up for push

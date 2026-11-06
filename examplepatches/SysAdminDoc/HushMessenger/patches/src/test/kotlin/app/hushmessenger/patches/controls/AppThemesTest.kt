@@ -185,6 +185,30 @@ class AppThemesTest {
         )) assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes, null), setOf(APP_THEME_PICK)) }
     }
 
+    @Test fun familyBsPickerInheritsTheListBuilderFromItsBase() {
+        val base = "LX/FB8;"
+        fun picker(vararg own: MutableMethod) = fixtureClass(PICKER, listOf(
+            fixtureMethod("$PICKER->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V", ASK_GATE, 4),
+            fixtureMethod("$PICKER->A1i()V", "return-void", 1)) + own, superclass = base)
+        fun classes(pickerClass: MutableClass = picker()) = appThemePickFixture(picker = pickerClass) +
+            fixtureClass(base, listOf(fixtureMethod("$base->A1j()V", ASK_GATE, 2)), flags = AccessFlags.PUBLIC.value or AccessFlags.ABSTRACT.value)
+        val found = mirroredControls(classes(), null)
+        assertEquals(setOf(THEME_TAP), found.getValue(APP_THEME_PICK).map { it.hookId() }.toSet())
+        validateControls(found, setOf(APP_THEMES, APP_THEME_PICK))
+        assertEquals("$base->A1j()V", appThemePick!!.redraw)
+        val tap = themeTap()
+        mirroredControls(appThemePickFixture(tap, picker()) + classes().last(), null)
+        tap.injectAppThemePick()
+        assertEquals("$base->A1j()V", (tap.implementation!!.instructions.toList()[17] as ReferenceInstruction).reference.toString())
+
+        for ((case, changed) in listOf(
+            // The picker's own A1j would answer the call instead, and it doesn't redraw.
+            "an override that doesn't redraw" to classes(picker(fixtureMethod("$PICKER->A1j()V", "return-void", 1))),
+            "a base the tap's package can't call" to (appThemePickFixture(picker = fixtureClass(PICKER, superclass = "Lcom/other/Base;")) +
+                fixtureClass("Lcom/other/Base;", listOf(fixtureMethod("Lcom/other/Base;->A1j()V", ASK_GATE, 2, 0)))),
+        )) assertFailsWith<PatchException>(case) { validateControls(mirroredControls(changed, null), setOf(APP_THEME_PICK)) }
+    }
+
     @Test fun aPickRedrawsTheListAfterTheToastWhileOnAndOffJumpsOnAsBefore() {
         val tap = themeTap()
         mirroredControls(appThemePickFixture(tap), null)
@@ -227,8 +251,10 @@ class AppThemesTest {
             val pick = resolveAppThemePick(classes)
             assertTrue(pick != null, code)
             assertEquals(activeProfile.hooks.getValue(APP_THEME_PICK), setOf(pick.tap.hookId()), code)
-            // The list builder belongs to the picker the pick is written into, and asks the very check app_themes answers.
-            assertEquals(pick.site.pickField.substringBefore("->"), pick.redraw.substringBefore("->"), code)
+            // The list builder belongs to the picker the pick is written into (family B: its base), and asks the very check app_themes answers.
+            val byType = classes.associateBy { it.type }
+            val chain = generateSequence(byType[pick.site.pickField.substringBefore("->")]) { it.superclass?.let(byType::get) }.map { it.type }.toList()
+            assertTrue(pick.redraw.substringBefore("->") in chain, code)
             val builder = classes.first { it.type == pick.redraw.substringBefore("->") }.methods.single { it.hookId() == pick.redraw }
             assertTrue(builder.implementation!!.instructions.any { (it as? ReferenceInstruction)?.reference?.toString() in activeProfile.hooks.getValue(APP_THEMES) }, code)
             appThemePick = pick

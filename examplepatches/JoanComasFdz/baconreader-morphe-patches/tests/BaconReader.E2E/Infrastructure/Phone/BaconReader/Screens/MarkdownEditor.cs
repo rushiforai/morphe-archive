@@ -92,6 +92,13 @@ public sealed class MarkdownEditor(AndroidDriver driver)
             return new MarkdownBarSnapshot([.. formats.Select(MarkdownFormatShowing.ReadMarkdownFormat)]);
         });
 
+    /// <summary>
+    /// Waits until the text box holds <paramref name="text"/>: what the app puts in it comes when the screen it opened
+    /// closes (a drawing's tag).
+    /// </summary>
+    public Task WaitUntilTextShownAsync(string text) =>
+        Waiting.UntilAsync(() => driver.FindElements(Box).FirstOrDefault()?.Text == text, TimeSpan.FromSeconds(10), $"The text box holding \"{text}\"");
+
     /// <summary>What the text box holds, and what the counter shows.</summary>
     public Task<MarkdownTextBoxSnapshot> ReadAsync() =>
         OnScreen.ReadAsync(driver, () => new MarkdownTextBoxSnapshot(driver.FindElement(Box).Text, CounterText()));

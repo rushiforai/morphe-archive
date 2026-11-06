@@ -302,11 +302,11 @@ public class DexDiff {
             Map.entry("answers", 4), Map.entry("settings", 3), Map.entry("firebaseCertificate", 1), Map.entry("activityNotifications", 7),
             Map.entry("settingsRow", 3), Map.entry("featureSwitch", 4), Map.entry("timelineList", 7), Map.entry("timelinePaging", 5),
             Map.entry("timelineCarousel", 3), Map.entry("paidPostBridge", 7), Map.entry("postJsonPresence", 3), Map.entry("imageDescriptions", 10), Map.entry("reviewPrompt", 3),
-            Map.entry("blogNotificationReminder", 2), Map.entry("giftMessagePopup", 3), Map.entry("postLine", 3), Map.entry("videoLinkPress", 6), Map.entry("imageSizes", 4), Map.entry("fontChoice", 6),
+            Map.entry("crashReports", 3), Map.entry("blogNotificationReminder", 2), Map.entry("giftMessagePopup", 3), Map.entry("postLine", 3), Map.entry("videoLinkPress", 6), Map.entry("imageSizes", 4), Map.entry("longPostRows", 6), Map.entry("exploreHeaderAd", 4), Map.entry("shareLinkTag", 5), Map.entry("longTrailRows", 4), Map.entry("longPostExpand", 17), Map.entry("fontChoice", 6),
             Map.entry("followButton", 5), Map.entry("footerButton", 3), Map.entry("postTags", 6),
             Map.entry("noteCounts", 9), Map.entry("unreadDots", 2), Map.entry("nativeTimestamps", 6), Map.entry("bottomBarTabs", 3),
             Map.entry("darkBackground", 9), Map.entry("storeButtons", 5), Map.entry("accountIdentity", 10),
-            Map.entry("matureContent", 12), Map.entry("rootPostMutes", 10), Map.entry("mutualMarkers", 13));
+            Map.entry("matureContent", 12), Map.entry("rootPostMutes", 9), Map.entry("dashboardPage", 9), Map.entry("mutualMarkers", 13));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -2611,12 +2611,13 @@ public class DexDiff {
          * Families that need a shared hook without owning one of its capabilities, the rule's last
          * column: Hide ads asks the feature switch hook too, and the card and post families the
          * timeline list hook, each owning only the capability of its own bridge. Hide your own reblogs
-         * reads the paid-post bridge's can_edit getter.
+         * reads the paid-post bridge's can_edit getter. The dashboard page hook serves blog rules,
+         * Hide liked posts and Hide your own reblogs.
          */
         static List<String> users(Contract rule) {
             return rule.target.equals("featureSwitch") || rule.target.equals("timelineList") || rule.target.equals("timelinePaging")
                     || rule.target.equals("accountIdentity") || rule.target.equals("postJsonPresence")
-                    || rule.target.equals("paidPostBridge")
+                    || rule.target.equals("paidPostBridge") || rule.target.equals("dashboardPage")
                     ? List.of(rule.strings.get(rule.strings.size() - 1).split(",")) : List.of();
         }
 
@@ -4316,14 +4317,14 @@ public class DexDiff {
         /** Canonical IDs, explicit JSON presence, local-only rebinds and the native menu action. */
         void rootPostMutes(Contract c) {
             String root = c.strings.get(0), menu = c.strings.get(1), post = c.strings.get(2), wrapper = c.strings.get(3), menuKey = c.strings.get(4),
-                    timeline = c.strings.get(5), face = c.strings.get(6), local = c.strings.get(7), action = c.strings.get(8), timelineObject = c.strings.get(9);
+                    timeline = c.strings.get(5), face = c.strings.get(6), local = c.strings.get(7), action = c.strings.get(8);
             String object = "Ljava/lang/Object;", list = "Ljava/util/List;", mode = "Luxl;", callback = "Lii9;", unit = "Lctm;",
-                    builder = "Lcom/tumblr/components/bottomsheet/b$b;", concrete = "Lcom/tumblr/components/bottomsheet/b$a;", payload = "Lcom/tumblr/rumblr/model/Timelineable;";
+                    builder = "Lcom/tumblr/components/bottomsheet/b$b;", concrete = "Lcom/tumblr/components/bottomsheet/b$a;";
             String canonical = root + "->canonicalRoot(" + STRING_TYPE + STRING_TYPE + STRING_TYPE + list + "Z)" + STRING_TYPE;
             String presenceField = post + "->hushRootTrailPresent:Z", captureField = wrapper + "->hushCanonicalRoot:" + STRING_TYPE;
             String rootReason = "root canonical bridge changed", captureReason = "root wrapper capture changed",
                     menuReason = "root menu hook changed", localReason = "root local timeline bridge changed", callbackReason = "root callback bridge changed";
-            for (String type : List.of(post, wrapper, timeline, mode, timelineObject, "La2k;")) preserveClass(type);
+            for (String type : List.of(post, wrapper, timeline, mode)) preserveClass(type);
             List<MethodReference> getters = new ArrayList<>();
             for (String key : List.of("reblogged_root_id", "reblogged_from_id", "id", "trail")) getters.add(canonicalGetter(post, key, key.equals("trail") ? list : STRING_TYPE));
             Method bridge = actual(post + "->hushRootId()" + STRING_TYPE);
@@ -4340,6 +4341,31 @@ public class DexDiff {
             if (canonicalGood && canonicalSites.size() == 1) vouch(bridge, canonicalSites.get(0), List.of(0, 1, 2, 3, 4));
             if (!canonicalGood) fail(rootReason);
             boolean found = canonicalGood;
+
+            // The posting blog and the same proofs, for a rule that hides one half of a blog.
+            String blogFace = root.substring(0, root.lastIndexOf('/') + 1) + "HushBlogRulePost;", blogField = wrapper + "->hushBlogRule:" + STRING_TYPE;
+            String blogHook = root + "->blogRule(" + STRING_TYPE + STRING_TYPE + STRING_TYPE + list + "Z)" + STRING_TYPE, blogReason = "root blog rule bridge changed";
+            MethodReference blogName = canonicalGetter(post, "blog_name", STRING_TYPE);
+            List<MethodReference> blogReads = java.util.Arrays.asList(blogName, getters.get(0), getters.get(1), getters.get(3));
+            Method blogBridge = actual(post + "->hushBlogRule()" + STRING_TYPE);
+            List<Instruction> bb = blogBridge == null ? List.of() : instructions(blogBridge);
+            boolean blogGood = implementsBridge(post, blogFace) && blogBridge != null && !isStatic(blogBridge) && AccessFlags.PUBLIC.isSet(blogBridge.getAccessFlags())
+                    && blogBridge.getImplementation().getRegisterCount() == 6 && bb.size() == 12 && blogReads.stream().noneMatch(java.util.Objects::isNull);
+            for (int k = 0; blogGood && k < 4; k++) blogGood &= callIs(bb.get(2 * k), Opcode.INVOKE_VIRTUAL, blogReads.get(k).toString(), 5)
+                    && movesTo(bb.get(2 * k + 1), k, Opcode.MOVE_RESULT_OBJECT);
+            blogGood &= bb.size() == 12 && fieldIs(bb.get(8), Opcode.IGET_BOOLEAN, presenceField, 4, 5)
+                    && callIs(bb.get(9), Opcode.INVOKE_STATIC, blogHook, 0, 1, 2, 3, 4) && movesTo(bb.get(10), 0, Opcode.MOVE_RESULT_OBJECT) && movesTo(bb.get(11), 0, Opcode.RETURN_OBJECT);
+            featureControls = false; // Like the canonicalizer, the rule reads only its arguments.
+            List<Integer> blogSites = calls(blogBridge, blogHook, 1);
+            featureControls = true;
+            if (blogGood && blogSites.size() == 1) vouch(blogBridge, blogSites.get(0), List.of(0, 1, 2, 3, 4));
+            Method wrappedBlog = actual(wrapper + "->hushBlogRule()" + STRING_TYPE);
+            List<Instruction> wbb = wrappedBlog == null ? List.of() : instructions(wrappedBlog);
+            blogGood &= implementsBridge(wrapper, blogFace) && hasField(patched, wrapper, "hushBlogRule", STRING_TYPE, AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue(), AccessFlags.STATIC.getValue())
+                    && !hasField(clean, wrapper, "hushBlogRule", STRING_TYPE, 0, 0) && wrappedBlog != null && !isStatic(wrappedBlog) && AccessFlags.PUBLIC.isSet(wrappedBlog.getAccessFlags())
+                    && wbb.size() == 2 && fieldIs(wbb.get(0), Opcode.IGET_OBJECT, blogField, 0, parameter(wrappedBlog, -1)) && movesTo(wbb.get(1), 0, Opcode.RETURN_OBJECT);
+            if (!blogGood) fail(blogReason);
+            found &= blogGood;
 
             if (!hasField(patched, post, "hushRootTrailPresent", "Z", AccessFlags.PRIVATE.getValue(), AccessFlags.STATIC.getValue()) || actual(post + "->hushSetJsonPresence(II)V") == null) { fail(rootReason); found = false; }
 
@@ -4359,13 +4385,16 @@ public class DexDiff {
                         && callIs(get(before, 0), Opcode.INVOKE_DIRECT, "Ljava/lang/Object;-><init>()V", 7)
                         && callIs(get(body, 1), Opcode.INVOKE_INTERFACE_RANGE, face + "->hushRootId()" + STRING_TYPE, 8)
                         && movesTo(get(body, 2), scratch, Opcode.MOVE_RESULT_OBJECT) && scratch >= 0 && scratch < 7 && deadAt(constructor, 1, scratch)
-                        && fieldIs(get(body, 3), Opcode.IPUT_OBJECT, captureField, scratch, 7);
-                if (injected) { claimed.add(m + "@1"); remove(m, 1, 4); anchor(m, 1, 1, captureReason); fallthroughOnly(constructor, 1, captureReason); }
+                        && fieldIs(get(body, 3), Opcode.IPUT_OBJECT, captureField, scratch, 7)
+                        && callIs(get(body, 4), Opcode.INVOKE_INTERFACE_RANGE, blogFace + "->hushBlogRule()" + STRING_TYPE, 8)
+                        && movesTo(get(body, 5), scratch, Opcode.MOVE_RESULT_OBJECT) && fieldIs(get(body, 6), Opcode.IPUT_OBJECT, blogField, scratch, 7);
+                if (injected) { claimed.add(m + "@1"); claimed.add(m + "@4"); remove(m, 1, 7); anchor(m, 1, 1, captureReason); fallthroughOnly(constructor, 1, captureReason); }
                 capture &= injected;
             }
             ClassDef wrapperClass = patched.classes.get(wrapper);
             if (wrapperClass != null) for (Method m : wrapperClass.getMethods()) for (Instruction i : instructions(m))
-                if (i.getOpcode() == Opcode.IPUT_OBJECT && captureField.equals(String.valueOf(reference(i))) && (constructor == null || !m.toString().equals(constructor.toString()))) capture = false;
+                if (i.getOpcode() == Opcode.IPUT_OBJECT && List.of(captureField, blogField).contains(String.valueOf(reference(i)))
+                        && (constructor == null || !m.toString().equals(constructor.toString()))) capture = false;
             if (!capture) fail(captureReason);
             found &= capture;
 
@@ -4437,10 +4466,91 @@ public class DexDiff {
             callbackGood &= add != null && isStatic(add) && ab.size() == 3 && movesTo(ab.get(0), parameter(add, 0), Opcode.CHECK_CAST) && builder.equals(String.valueOf(reference(ab.get(0))))
                     && callIs(ab.get(1), Opcode.INVOKE_VIRTUAL, builder + "->c(" + STRING_TYPE + callback + ")" + builder, parameter(add, 0), parameter(add, 1), parameter(add, 2)) && ab.get(2).getOpcode() == Opcode.RETURN_VOID
                     && nativeUnit != null && isStatic(nativeUnit) && ub.size() == 2 && fieldIs(ub.get(0), Opcode.SGET_OBJECT, unit + "->a:" + unit, 0, -1) && movesTo(ub.get(1), 0, Opcode.RETURN_OBJECT);
-            callbackGood &= rootCardStub(menu, face, timelineObject, payload);
             if (!callbackGood) fail(callbackReason);
             found &= callbackGood;
             capability(c.callee, found);
+        }
+
+        /**
+         * The dashboard's page filter, shared by blog rules, Hide liked posts and Hide your own
+         * reblogs: the dashboard fragments say they're the dashboard, the page delivery hands each
+         * page to the extension, a card hands back its payload, and the card wrapper notes what the
+         * filter needs from its post while it's built.
+         */
+        void dashboardPages(Contract c) {
+            if (users(c).stream().noneMatch(this::flag)) return;
+            String root = c.strings.get(0), menu = c.strings.get(1), post = c.strings.get(2), wrapper = c.strings.get(3),
+                    timeline = c.strings.get(4), timelineObject = c.strings.get(5), factsHook = c.strings.get(6), factsFace = c.strings.get(7);
+            String list = "Ljava/util/List;", payload = "Lcom/tumblr/rumblr/model/Timelineable;";
+            String pageReason = "root dashboard page hook changed", cardReason = "root callback bridge changed", factsReason = "dashboard post facts changed";
+            for (String type : List.of(post, wrapper, timeline, timelineObject, "La2k;")) preserveClass(type);
+            // A shared rule runs without feature controls, but the page hook decides per switch, so it must read them.
+            featureControls = true;
+            if (!dashboardPage(timeline, root, list)) fail(pageReason);
+            if (!rootCardStub(menu, timelineObject, payload)) fail(cardReason);
+
+            String factsField = wrapper + "->hushPostFacts:I";
+            Method getter = actual(wrapper + "->hushPostFacts()I");
+            List<Instruction> gb = getter == null ? List.of() : instructions(getter);
+            boolean facts = implementsBridge(wrapper, factsFace)
+                    && hasField(patched, wrapper, "hushPostFacts", "I", AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue(), AccessFlags.STATIC.getValue())
+                    && !hasField(clean, wrapper, "hushPostFacts", "I", 0, 0) && getter != null && !isStatic(getter) && AccessFlags.PUBLIC.isSet(getter.getAccessFlags())
+                    && gb.size() == 2 && fieldIs(gb.get(0), Opcode.IGET, factsField, 0, parameter(getter, -1)) && movesTo(gb.get(1), 0, Opcode.RETURN);
+            Method constructor = nativeMethod(wrapper + "-><init>(" + post + ")V", factsReason);
+            if (constructor == null) facts = false;
+            else {
+                Method m = actual(constructor);
+                // The facts read only the post they're handed. The switches are read where the page is filtered.
+                featureControls = false;
+                List<Integer> sites = calls(m, factsHook, 1);
+                featureControls = true;
+                List<Instruction> body = m == null ? List.of() : instructions(m);
+                int at = sites.size() == 1 ? sites.get(0) : -1, scratch = firstRegister(get(body, at + 1));
+                boolean injected = at >= 1 && !isStatic(constructor) && constructor.getImplementation().getRegisterCount() == 9
+                        && callIs(get(instructions(constructor), 0), Opcode.INVOKE_DIRECT, "Ljava/lang/Object;-><init>()V", 7)
+                        && callIs(get(body, at), Opcode.INVOKE_STATIC, factsHook, 8)
+                        && movesTo(get(body, at + 1), scratch, Opcode.MOVE_RESULT) && scratch >= 0 && scratch < 7 && deadAt(constructor, 1, scratch)
+                        && fieldIs(get(body, at + 2), Opcode.IPUT, factsField, scratch, 7);
+                if (injected) { remove(m, at, at + 3); anchor(m, at, 1, factsReason); fallthroughOnly(constructor, 1, factsReason); }
+                facts &= injected;
+            }
+            ClassDef wrapperClass = patched.classes.get(wrapper);
+            if (wrapperClass != null) for (Method m : wrapperClass.getMethods()) for (Instruction i : instructions(m))
+                if (i.getOpcode() == Opcode.IPUT && factsField.equals(String.valueOf(reference(i)))
+                        && (constructor == null || !m.toString().equals(constructor.toString()))) facts = false;
+            if (!facts) fail(factsReason);
+        }
+
+        /**
+         * Blog rules hide posts on the dashboard only, and parsing can't tell which screen a page is
+         * for. So the page delivery hands each page and its fragment to the extension first thing and
+         * goes on with the list it gets back. Nothing of Tumblr's runs before it, and no branch of
+         * Tumblr's lands past it.
+         */
+        boolean dashboardPage(String timeline, String root, String list) {
+            String hook = root + "->dashboardPage(Ljava/lang/Object;" + list + ")" + list, reason = "root dashboard page hook";
+            ClassDef owner = clean.classes.get(timeline);
+            List<Method> deliveries = new ArrayList<>();
+            if (owner != null) for (Method candidate : owner.getMethods()) {
+                List<? extends CharSequence> p = candidate.getParameterTypes();
+                if (!isStatic(candidate) && candidate.getImplementation() != null && candidate.getReturnType().equals("V") && p.size() == 5
+                        && p.get(1).toString().equals(list) && p.get(2).toString().equals("Lcom/tumblr/timeline/model/link/TimelinePaginationLink;")
+                        && p.get(3).toString().equals("Ljava/util/Map;") && p.get(4).toString().equals("Z")) deliveries.add(candidate);
+            }
+            Method old = unique(deliveries, "timeline page delivery");
+            if (old == null) return false;
+            int self = parameter(old, -1), items = parameter(old, 1);
+            Method m = actual(old);
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return false;
+            List<Instruction> body = instructions(m);
+            boolean injected = sites.get(0) == 0 && callIs(get(body, 0), Opcode.INVOKE_STATIC, hook, self, items)
+                    && movesTo(get(body, 1), items, Opcode.MOVE_RESULT_OBJECT);
+            if (!injected) return false;
+            remove(m, 0, 2);
+            anchor(m, 0, 0, reason);
+            labelAnchors.add(new Anchor(m, 0, 0, reason));
+            return true;
         }
 
         /** The native callback exposes only the final owner assigned from its constructor argument. */
@@ -4560,21 +4670,19 @@ public class DexDiff {
             return true;
         }
 
-        boolean rootCardStub(String menu, String face, String timelineObject, String payload) {
+        /** A card or timeline object hands back its payload. The extension reads the bridges from it. */
+        boolean rootCardStub(String menu, String timelineObject, String payload) {
             Method cardGetter = clean.methods.get("La2k;->l()" + payload), timelineGetter = clean.methods.get(timelineObject + "->getData()" + payload);
-            Method m = actual(menu + "->cardRoot(Ljava/lang/Object;)" + STRING_TYPE);
+            Method m = actual(menu + "->cardPayload(Ljava/lang/Object;)Ljava/lang/Object;");
             List<Instruction> b = m == null ? List.of() : instructions(m);
-            return publicGetter(cardGetter, payload) & publicGetter(timelineGetter, payload) && m != null && isStatic(m) && b.size() == 19 && m.getImplementation().getRegisterCount() == 3
-                    && fieldIsType(b.get(0), Opcode.INSTANCE_OF, "Lr4g;", 0, 2) && movesTo(b.get(1), 0, Opcode.IF_EQZ) && target(m, 1) == 6
-                    && movesTo(b.get(2), 2, Opcode.CHECK_CAST) && "Lr4g;".equals(String.valueOf(reference(b.get(2))))
-                    && callIs(b.get(3), Opcode.INVOKE_VIRTUAL, cardGetter.toString(), 2) && movesTo(b.get(4), 0, Opcode.MOVE_RESULT_OBJECT) && b.get(5).getOpcode() == Opcode.GOTO && target(m, 5) == 11
-                    && fieldIsType(b.get(6), Opcode.INSTANCE_OF, timelineObject, 0, 2) && movesTo(b.get(7), 0, Opcode.IF_EQZ) && target(m, 7) == 17
-                    && movesTo(b.get(8), 2, Opcode.CHECK_CAST) && timelineObject.equals(String.valueOf(reference(b.get(8))))
-                    && callIs(b.get(9), Opcode.INVOKE_VIRTUAL, timelineGetter.toString(), 2) && movesTo(b.get(10), 0, Opcode.MOVE_RESULT_OBJECT)
-                    && fieldIsType(b.get(11), Opcode.INSTANCE_OF, face, 1, 0) && movesTo(b.get(12), 1, Opcode.IF_EQZ) && target(m, 12) == 17
-                    && movesTo(b.get(13), 0, Opcode.CHECK_CAST) && face.equals(String.valueOf(reference(b.get(13))))
-                    && callIs(b.get(14), Opcode.INVOKE_INTERFACE, face + "->hushRootId()" + STRING_TYPE, 0) && movesTo(b.get(15), 0, Opcode.MOVE_RESULT_OBJECT)
-                    && movesTo(b.get(16), 0, Opcode.RETURN_OBJECT) && literalIs(b.get(17), Opcode.CONST_4, 0, 0) && movesTo(b.get(18), 0, Opcode.RETURN_OBJECT);
+            return publicGetter(cardGetter, payload) & publicGetter(timelineGetter, payload) && m != null && isStatic(m) && b.size() == 14 && m.getImplementation().getRegisterCount() == 2
+                    && fieldIsType(b.get(0), Opcode.INSTANCE_OF, "Lr4g;", 0, 1) && movesTo(b.get(1), 0, Opcode.IF_EQZ) && target(m, 1) == 6
+                    && movesTo(b.get(2), 1, Opcode.CHECK_CAST) && "Lr4g;".equals(String.valueOf(reference(b.get(2))))
+                    && callIs(b.get(3), Opcode.INVOKE_VIRTUAL, cardGetter.toString(), 1) && movesTo(b.get(4), 0, Opcode.MOVE_RESULT_OBJECT) && movesTo(b.get(5), 0, Opcode.RETURN_OBJECT)
+                    && fieldIsType(b.get(6), Opcode.INSTANCE_OF, timelineObject, 0, 1) && movesTo(b.get(7), 0, Opcode.IF_EQZ) && target(m, 7) == 12
+                    && movesTo(b.get(8), 1, Opcode.CHECK_CAST) && timelineObject.equals(String.valueOf(reference(b.get(8))))
+                    && callIs(b.get(9), Opcode.INVOKE_VIRTUAL, timelineGetter.toString(), 1) && movesTo(b.get(10), 0, Opcode.MOVE_RESULT_OBJECT)
+                    && movesTo(b.get(11), 0, Opcode.RETURN_OBJECT) && literalIs(b.get(12), Opcode.CONST_4, 0, 0) && movesTo(b.get(13), 0, Opcode.RETURN_OBJECT);
         }
 
         static boolean fieldIsType(Instruction i, Opcode op, String type, int value, int receiver) {
@@ -5101,6 +5209,35 @@ public class DexDiff {
         }
 
         /**
+         * Tumblr's launch setup, the one static method taking the application that holds the setup
+         * key and turns Crashlytics collection on once, hands the hook the application and the value
+         * right before that call, and the answer goes back into the value's register, which nothing
+         * after the call may read again. A build without Crashlytics has nothing to keep off.
+         */
+        void crashReports(Contract c) {
+            String hook = c.strings.get(0), setter = c.strings.get(1);
+            if (!clean.classes.containsKey(setter.substring(0, setter.indexOf("->")))) {
+                capability(c.callee, true);
+                return;
+            }
+            List<Method> setups = new ArrayList<>();
+            for (Method m : clean.holding(c.strings.get(2))) if (isStatic(m) && descriptor(m).equals("(Landroid/app/Application;)V")
+                    && callSites(instructions(m), setter).size() == 1) setups.add(m);
+            Method old = unique(setups, "Tumblr's Crashlytics launch setup");
+            boolean found = false;
+            if (old != null) {
+                int set = callSites(instructions(old), setter).get(0);
+                List<Integer> passed = arguments(instructions(old).get(set));
+                if (passed.size() != 2) fail("Tumblr's Crashlytics launch setup doesn't pass one value to " + setter);
+                else if (!deadAt(old, set + 1, passed.get(1))
+                        || !flow(old).handlers.get(set).stream().allMatch(handler -> deadAt(old, handler, passed.get(1))))
+                    fail("Tumblr's Crashlytics launch setup reads the value it hands " + setter + " again after the call");
+                else found = hookAt(old, actual(old), set, hook, List.of(parameter(old, 0), passed.get(1)), passed.get(1), List.of(passed.get(1)));
+            }
+            capability(c.callee, found);
+        }
+
+        /**
          * [hook] asked first thing in [old]'s patched copy for its context parameter, which goes back
          * into that parameter: on null the method returns at once (null for an object result, or
          * what [fallback] makes when there is one), and otherwise Tumblr's own code runs on the
@@ -5447,6 +5584,504 @@ public class DexDiff {
             }
             if (!answers) fail(size + " doesn't answer every getter of " + face + " with its own public getter");
             capability(c.callee, picks && answers);
+        }
+
+        /**
+         * Tumblr's post row composer hands a post it didn't cut and the post's own rows to the
+         * extension, and draws a shorter answer as its own cut with its Read more row under it. Its
+         * block row answers the extension's bridge with its blocks.
+         */
+        void longPostRows(Contract c) {
+            String composer = c.strings.get(1), screen = c.strings.get(4), row = c.strings.get(3), face = c.strings.get(5);
+            boolean rows = postRows(c.strings.get(0), composer, c.strings.get(2), screen);
+            boolean bridge = immutableBridge(row, face, "hushBlocks", "Ljava/util/List;", "a", "Lcom/google/common/collect/ImmutableList;", Opcode.IGET_OBJECT);
+            if (!bridge) fail(row + " doesn't answer " + face + " with its own list of blocks");
+            capability(c.callee, rows && bridge);
+        }
+
+        /**
+         * Read more under a post the post hook cut opens the post in place. The Read more binder's row
+         * bind hands its button and timeline item to the first hook right before it makes the
+         * button's listener, and the binder's tap asks the second first thing, returning on yes. The
+         * binder answers the extension's bridge with the screen it hands taps to while it has no
+         * trail entry id, the timeline item's base class answers its bridge with its post, and the
+         * timeline screen answers its bridge by marking the item's post opened for Tumblr's own cut,
+         * taking the item out of its adapter and back in, then redrawing. The patch skips a binder,
+         * card, timeline or post that changed shape, so such a clean APK only requires the
+         * capability off. The shape here is every check the patch makes.
+         */
+        void longPostExpand(Contract c) {
+            List<String> s = c.strings;
+            String binder = s.get(2), screen = s.get(3), holder = s.get(4), item = s.get(5), card = s.get(6), timeline = s.get(7),
+                    adapter = s.get(8), graywater = s.get(9), recycler = s.get(10), binderFace = s.get(11), itemFace = s.get(12),
+                    timelineFace = s.get(13), post = s.get(14), postBase = s.get(15), capped = s.get(16);
+            String view = "Landroid/view/View;", list = "Ljava/util/List;", object = "Ljava/lang/Object;", string = STRING_TYPE,
+                    timelineable = "Lcom/tumblr/rumblr/model/Timelineable;";
+            ClassDef cd = clean.classes.get(binder), host = clean.classes.get(timeline), base = clean.classes.get(card), items = clean.classes.get(item);
+            boolean classes = cd != null && host != null && base != null && items != null && !AccessFlags.INTERFACE.isSet(cd.getAccessFlags())
+                    && !AccessFlags.INTERFACE.isSet(host.getAccessFlags()) && !AccessFlags.INTERFACE.isSet(base.getAccessFlags())
+                    && card.equals(items.getSuperclass()) && host.getInterfaces().contains(screen)
+                    && !cd.getInterfaces().contains(binderFace) && !base.getInterfaces().contains(itemFace) && !host.getInterfaces().contains(timelineFace)
+                    && hasField(clean, binder, "b", screen, AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue(), AccessFlags.STATIC.getValue())
+                    && hasField(clean, binder, "d", string, 0, AccessFlags.STATIC.getValue())
+                    && !declares(cd, "hushReadMoreScreen") && !declares(base, "hushPost") && !declares(host, "hushExpandPost")
+                    && hasPublic(base, "l", "()" + timelineable);
+            Method tap = classes ? single(cd, m -> !isStatic(m) && descriptor(m).equals("(" + view + ")V") && m.getImplementation() != null
+                    && instructions(m).stream().filter(i -> i.getOpcode() == Opcode.INVOKE_INTERFACE
+                            && isCall(i, screen, "x3", "(" + view + string + ")V")).count() == 1) : null;
+            Method entry = classes ? single(cd, m -> isStatic(m) && descriptor(m).equals("(" + binder + view + ")V")) : null;
+            Method bind = classes ? single(cd, m -> !isStatic(m) && descriptor(m).equals("(" + item + holder + list + "I)V")) : null;
+            if (tap == null || entry == null || bind == null) { capability(c.callee, false); return; }
+
+            // The tap: reads the binder's screen first and its entry id somewhere, with a free local for the answer.
+            List<Instruction> tapped = instructions(tap);
+            int self = parameter(tap, -1), clicked = parameter(tap, 0);
+            boolean scratch = false;
+            for (int r = 0; r < self && !scratch; r++) scratch = deadAt(tap, 0, r);
+            Instruction first = get(tapped, 0);
+            boolean tapShaped = first != null && fieldIs(first, Opcode.IGET_OBJECT, binder + "->b:" + screen, firstRegister(first), self)
+                    && tapped.stream().anyMatch(i -> i.getOpcode() == Opcode.IGET_OBJECT && (binder + "->d:" + string).equals(String.valueOf(reference(i))))
+                    && self < 16 && clicked < 16 && scratch;
+
+            // The tap's entry: the static step the button's listener calls, which only calls the tap.
+            List<Instruction> entered = instructions(entry);
+            boolean entryShaped = entered.size() == 2 && entered.get(1).getOpcode() == Opcode.RETURN_VOID
+                    && callIs(entered.get(0), Opcode.INVOKE_DIRECT, tap.toString(), parameter(entry, 0), parameter(entry, 1));
+
+            // The row bind: takes the row's button and, straight on with the button and the item untouched, makes its listener.
+            List<Instruction> bound = instructions(bind);
+            int shownItem = parameter(bind, 0);
+            List<Integer> takes = new ArrayList<>();
+            for (int k = 0; k < bound.size(); k++)
+                if (bound.get(k).getOpcode() == Opcode.INVOKE_VIRTUAL && isCall(bound.get(k), holder, "f1", "()Landroid/widget/Button;")) takes.add(k);
+            int take = takes.size() == 1 ? takes.get(0) : -1;
+            Instruction moved = take >= 0 ? get(bound, take + 1) : null;
+            int held = moved != null && moved.getOpcode() == Opcode.MOVE_RESULT_OBJECT ? firstRegister(moved) : -1;
+            int made = held >= 0 ? listenerAt(bound, held, entry.toString()) : -1;
+            boolean bindShaped = made > take + 1 && endsOnce(bound) && straight(bind, take + 1, made) && !writtenBetween(bound, take + 2, made, held)
+                    && !overwritten(bind, shownItem, made) && held < 16 && shownItem < 16 && held != shownItem;
+
+            // The timeline hands out its list's adapter, a Graywater adapter that takes an item out and back in quietly.
+            ClassDef subclass = clean.classes.get(adapter), above = clean.classes.get(graywater), recycled = clean.classes.get(recycler);
+            boolean adapterShaped = single(host, m -> m.getName().equals("z5") && descriptor(m).equals("()" + adapter) && !isStatic(m)
+                            && !AccessFlags.PRIVATE.isSet(m.getAccessFlags()) && !AccessFlags.ABSTRACT.isSet(m.getAccessFlags())) != null
+                    && subclass != null && graywater.equals(subclass.getSuperclass()) && above != null && recycler.equals(above.getSuperclass())
+                    && hasPublic(above, "f0", "()" + list) && hasPublic(above, "y0", "(IZ)" + object)
+                    && hasPublic(above, "U", "(I" + object + "Z)V") && recycled != null && hasPublic(recycled, "x", "()V");
+
+            // The item's post drops Tumblr's own cut through a plain setter of the flag its cut check reads, the base reads the server's cut, and the capped card is an item.
+            ClassDef posted = clean.classes.get(post), based = clean.classes.get(postBase), cappedItem = clean.classes.get(capped);
+            FieldReference lifted = posted == null ? null : movedFlag(posted, "l2", "(Z)V", Opcode.IPUT_BOOLEAN, Opcode.RETURN_VOID);
+            boolean cutShaped = based != null && cappedItem != null && lifted != null && postBase.equals(posted.getSuperclass())
+                    && item.equals(cappedItem.getSuperclass())
+                    && lifted.equals(movedFlag(posted, "g2", "()Z", Opcode.IGET_BOOLEAN, Opcode.RETURN))
+                    && movedFlag(based, "C1", "()Z", Opcode.IGET_BOOLEAN, Opcode.RETURN) != null;
+            if (!tapShaped || !entryShaped || !bindShaped || !adapterShaped || !cutShaped) { capability(c.callee, false); return; }
+
+            boolean shown = hookAt(bind, actual(bind), made, s.get(0), List.of(held, shownItem), -1, List.of(held));
+            if (!shown) fail("the Read more row's bind doesn't hand its button and item to " + s.get(0) + " right before the button's listener");
+            boolean asked = guardFirst(tap, s.get(1), List.of(self, clicked), 1, RETURN_NOTHING);
+            boolean screens = answersScreen(binder, binderFace, screen);
+            if (!screens) fail(binder + " doesn't answer " + binderFace + " with the screen it hands a tap to, and null for a trail entry");
+            boolean posts = covariantBridge(card, itemFace, "hushPost", object, clean.methods.get(card + "->l()" + timelineable));
+            if (!posts) fail(card + " doesn't answer " + itemFace + " with its post");
+            boolean expands = implementsBridge(timeline, timelineFace) && expandsInPlace(timeline, adapter, graywater, recycler, card, post, postBase, capped);
+            if (!expands) fail(timeline + " doesn't answer " + timelineFace + " by building the item again where it is in its adapter");
+            capability(c.callee, shown && asked && screens && posts && expands);
+        }
+
+        /**
+         * The binder's bridge: its entry id, and when that's null its screen, else null. Both fields
+         * are the binder's own, as the clean binder declares them.
+         */
+        boolean answersScreen(String binder, String face, String screen) {
+            String key = binder + "->hushReadMoreScreen()Ljava/lang/Object;";
+            Method m = clean.methods.containsKey(key) ? null : actual(key);
+            List<Instruction> b = m == null ? List.of() : instructions(m);
+            int self = m == null ? -1 : parameter(m, -1);
+            return implementsBridge(binder, face) && m != null && !isStatic(m) && AccessFlags.PUBLIC.isSet(m.getAccessFlags())
+                    && m.getImplementation().getTryBlocks().isEmpty() && b.size() == 6
+                    && hasField(patched, binder, "b", screen, AccessFlags.PRIVATE.getValue() | AccessFlags.FINAL.getValue(), AccessFlags.STATIC.getValue())
+                    && hasField(patched, binder, "d", STRING_TYPE, 0, AccessFlags.STATIC.getValue())
+                    && fieldIs(b.get(0), Opcode.IGET_OBJECT, binder + "->d:" + STRING_TYPE, 0, self)
+                    && movesTo(b.get(1), 0, Opcode.IF_NEZ) && target(m, 1) == 4
+                    && fieldIs(b.get(2), Opcode.IGET_OBJECT, binder + "->b:" + screen, 0, self) && movesTo(b.get(3), 0, Opcode.RETURN_OBJECT)
+                    && literalIs(b.get(4), Opcode.CONST_4, 0, 0) && movesTo(b.get(5), 0, Opcode.RETURN_OBJECT);
+        }
+
+        /**
+         * The timeline's bridge: its adapter's items and the item's place in them, then, for a card
+         * item that isn't capped whose post the server didn't cut, the post marked opened so Tumblr's
+         * own cut drops, the item taken out and put back at that place without telling the list, and
+         * the list redrawn. False when there's no adapter, the item isn't in it, or it's refused.
+         */
+        boolean expandsInPlace(String timeline, String adapter, String graywater, String recycler, String card, String post, String postBase,
+                String capped) {
+            String key = timeline + "->hushExpandPost(Ljava/lang/Object;)Z";
+            Method m = clean.methods.containsKey(key) ? null : actual(key);
+            List<Instruction> b = m == null ? List.of() : instructions(m);
+            return m != null && !isStatic(m) && AccessFlags.PUBLIC.isSet(m.getAccessFlags()) && m.getImplementation().getRegisterCount() == 6
+                    && m.getImplementation().getTryBlocks().isEmpty() && b.size() == 32 && parameter(m, -1) == 4
+                    && callIs(b.get(0), Opcode.INVOKE_VIRTUAL, timeline + "->z5()" + adapter, 4)
+                    && movesTo(b.get(1), 0, Opcode.MOVE_RESULT_OBJECT) && movesTo(b.get(2), 0, Opcode.IF_EQZ) && target(m, 2) == 30
+                    && callIs(b.get(3), Opcode.INVOKE_VIRTUAL, graywater + "->f0()Ljava/util/List;", 0)
+                    && movesTo(b.get(4), 1, Opcode.MOVE_RESULT_OBJECT)
+                    && callIs(b.get(5), Opcode.INVOKE_INTERFACE, "Ljava/util/List;->indexOf(Ljava/lang/Object;)I", 1, 5)
+                    && movesTo(b.get(6), 1, Opcode.MOVE_RESULT) && movesTo(b.get(7), 1, Opcode.IF_LTZ) && target(m, 7) == 30
+                    && fieldIsType(b.get(8), Opcode.INSTANCE_OF, capped, 2, 5) && movesTo(b.get(9), 2, Opcode.IF_NEZ) && target(m, 9) == 30
+                    && fieldIsType(b.get(10), Opcode.INSTANCE_OF, card, 2, 5) && movesTo(b.get(11), 2, Opcode.IF_EQZ) && target(m, 11) == 30
+                    && moveIs(b.get(12), Opcode.MOVE_OBJECT, 2, 5) && fieldIsType(b.get(13), Opcode.CHECK_CAST, card, 2, -1)
+                    && callIs(b.get(14), Opcode.INVOKE_VIRTUAL, card + "->l()Lcom/tumblr/rumblr/model/Timelineable;", 2)
+                    && movesTo(b.get(15), 2, Opcode.MOVE_RESULT_OBJECT)
+                    && fieldIsType(b.get(16), Opcode.INSTANCE_OF, post, 3, 2) && movesTo(b.get(17), 3, Opcode.IF_EQZ) && target(m, 17) == 30
+                    && fieldIsType(b.get(18), Opcode.CHECK_CAST, post, 2, -1)
+                    && callIs(b.get(19), Opcode.INVOKE_VIRTUAL, postBase + "->C1()Z", 2)
+                    && movesTo(b.get(20), 3, Opcode.MOVE_RESULT) && movesTo(b.get(21), 3, Opcode.IF_NEZ) && target(m, 21) == 30
+                    && literalIs(b.get(22), Opcode.CONST_4, 3, 1) && callIs(b.get(23), Opcode.INVOKE_VIRTUAL, post + "->l2(Z)V", 2, 3)
+                    && literalIs(b.get(24), Opcode.CONST_4, 2, 0)
+                    && callIs(b.get(25), Opcode.INVOKE_VIRTUAL, graywater + "->y0(IZ)Ljava/lang/Object;", 0, 1, 2)
+                    && callIs(b.get(26), Opcode.INVOKE_VIRTUAL, graywater + "->U(ILjava/lang/Object;Z)V", 0, 1, 5, 2)
+                    && callIs(b.get(27), Opcode.INVOKE_VIRTUAL, recycler + "->x()V", 0)
+                    && literalIs(b.get(28), Opcode.CONST_4, 0, 1) && movesTo(b.get(29), 0, Opcode.RETURN)
+                    && literalIs(b.get(30), Opcode.CONST_4, 0, 0) && movesTo(b.get(31), 0, Opcode.RETURN);
+        }
+
+        /** The one boolean of [cd] that its public [name] of [shape] only moves with [moves], then [exits], or null. */
+        static FieldReference movedFlag(ClassDef cd, String name, String shape, Opcode moves, Opcode exits) {
+            Method m = hasPublic(cd, name, shape) ? single(cd, x -> x.getName().equals(name) && descriptor(x).equals(shape)) : null;
+            List<Instruction> b = m == null ? List.of() : instructions(m);
+            return b.size() == 2 && b.get(0).getOpcode() == moves && b.get(1).getOpcode() == exits
+                    && reference(b.get(0)) instanceof FieldReference f && f.getDefiningClass().equals(cd.getType()) && f.getType().equals("Z")
+                    ? f : null;
+        }
+
+        /** The one method of [cd] with code that passes [test], or null. */
+        static Method single(ClassDef cd, java.util.function.Predicate<Method> test) {
+            Method found = null;
+            int count = 0;
+            for (Method m : cd.getMethods()) if (test.test(m)) { found = m; count++; }
+            return count == 1 && found.getImplementation() != null ? found : null;
+        }
+
+        /** Whether [cd] declares any method named [name]. */
+        static boolean declares(ClassDef cd, String name) {
+            for (Method m : cd.getMethods()) if (m.getName().equals(name)) return true;
+            return false;
+        }
+
+        /** Whether [cd] declares a public instance [name] with code, of [shape]. */
+        static boolean hasPublic(ClassDef cd, String name, String shape) {
+            for (Method m : cd.getMethods())
+                if (m.getName().equals(name) && descriptor(m).equals(shape) && !isStatic(m) && AccessFlags.PUBLIC.isSet(m.getAccessFlags())
+                        && !AccessFlags.ABSTRACT.isSet(m.getAccessFlags())) return true;
+            return false;
+        }
+
+        /** Whether [body] leaves only through the return-void at its end. */
+        static boolean endsOnce(List<Instruction> body) {
+            Set<Opcode> exits = Set.of(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW);
+            return body.size() > 1 && body.get(body.size() - 1).getOpcode() == Opcode.RETURN_VOID
+                    && body.stream().filter(i -> exits.contains(i.getOpcode())).count() == 1;
+        }
+
+        /** Whether each instruction of [m] after [from] up to [to] is reached only by stepping from the one before it. */
+        boolean straight(Method m, int from, int to) {
+            if (from < 0) return false;
+            for (int k = from + 1; k <= to; k++) if (!onlyFrom(m, k, k - 1)) return false;
+            return true;
+        }
+
+        /**
+         * Where [body] makes the listener it sets as [button]'s tap, once, when that listener's
+         * onClick calls [tap] once, or -1. Mirrors the patch, which doesn't care whose
+         * setOnClickListener it is.
+         */
+        int listenerAt(List<Instruction> body, int button, String tap) {
+            List<Integer> sets = new ArrayList<>();
+            for (int k = 0; k < body.size(); k++) {
+                MethodReference r = body.get(k).getOpcode() == Opcode.INVOKE_VIRTUAL ? called(body.get(k)) : null;
+                if (r != null && r.getName().equals("setOnClickListener") && descriptor(r).equals("(Landroid/view/View$OnClickListener;)V")) sets.add(k);
+            }
+            if (sets.size() != 1) return -1;
+            int set = sets.get(0);
+            List<Integer> args = arguments(body.get(set));
+            if (args.size() != 2 || args.get(0) != button) return -1;
+            int made = -1;
+            for (int k = 0; k < set; k++) if (writes(body.get(k), args.get(1))) made = k;
+            if (made < 0 || body.get(made).getOpcode() != Opcode.NEW_INSTANCE || !(reference(body.get(made)) instanceof TypeReference type)) return -1;
+            ClassDef listener = clean.classes.get(type.getType());
+            Method click = listener == null ? null : single(listener, m -> m.getName().equals("onClick") && descriptor(m).equals("(Landroid/view/View;)V"));
+            return click != null && instructions(click).stream().filter(i -> i.getOpcode() == Opcode.INVOKE_STATIC
+                    && tap.equals(String.valueOf(reference(i)))).count() == 1 ? made : -1;
+        }
+
+        /**
+         * Explore's header presenter asks the hook about the radar header it fetched, right before the
+         * one static call that builds the header's model, and on yes jumps to the constant return its
+         * drawn and failed-load paths share, past the drawing, the impression and the takeover ad.
+         * The patch skips a presenter it can't find, finds twice or that changed shape, so such a
+         * clean APK only requires the capability off. The shape here is every check the patch makes.
+         */
+        void exploreHeaderAd(Contract c) {
+            String hook = c.strings.get(0), response = c.strings.get(1), failText = c.strings.get(3);
+            List<Method> found = new ArrayList<>();
+            for (Method held : clean.holding(failText)) if (clean.texts.get(held.toString()).contains(c.strings.get(2))
+                    && instructions(held).stream().anyMatch(i -> i.getOpcode() == Opcode.CHECK_CAST && response.equals(String.valueOf(reference(i)))))
+                found.add(held);
+            if (found.size() != 1) { capability(c.callee, false); return; }
+            Method old = found.get(0);
+            List<Instruction> was = instructions(old);
+            Set<Opcode> ends = Set.of(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW);
+            List<Integer> casts = new ArrayList<>(), fails = new ArrayList<>();
+            for (int k = 0; k < was.size(); k++) {
+                if (was.get(k).getOpcode() == Opcode.CHECK_CAST && response.equals(String.valueOf(reference(was.get(k))))) casts.add(k);
+                if (failText.equals(literal(was.get(k)))) fails.add(k);
+            }
+            int cast = casts.size() == 1 ? casts.get(0) : -1;
+            int held = cast >= 0 ? firstRegister(was.get(cast)) : -1;
+            Instruction build = get(was, cast + 1);
+            MethodReference built = cast >= 0 ? called(build) : null;
+            int exit = cast >= 0 ? firstIndex(was, cast + 2, i -> i instanceof OffsetInstruction || ends.contains(i.getOpcode())) : -1;
+            Instruction jump = get(was, exit);
+            int done = jump != null && (jump.getOpcode() == Opcode.GOTO || jump.getOpcode() == Opcode.GOTO_16 || jump.getOpcode() == Opcode.GOTO_32) ? target(old, exit) : -1;
+            int fail = fails.size() == 1 ? fails.get(0) : -1;
+            int failEnd = fail > exit ? firstIndex(was, fail + 1, i -> i instanceof OffsetInstruction || ends.contains(i.getOpcode())) : -1;
+            boolean scratchFree = false;
+            for (int r = 0; r < parameter(old, -1) && !scratchFree && done > 0; r++) scratchFree = r != held && deadAt(old, cast + 1, r) && deadAt(old, done, r);
+            boolean shaped = built != null && build.getOpcode() == Opcode.INVOKE_STATIC && arguments(build).equals(List.of(held))
+                    && built.getParameterTypes().size() == 1 && response.equals(built.getParameterTypes().get(0).toString()) && held < 16
+                    && done > exit && get(was, done).getOpcode() == Opcode.SGET_OBJECT && movesTo(get(was, done + 1), firstRegister(was.get(done)), Opcode.RETURN_OBJECT)
+                    && fail > exit && fail < done && (failEnd < 0 || failEnd >= done) && scratchFree;
+            if (!shaped) { capability(c.callee, false); return; }
+            Method m = actual(old);
+            List<Integer> sites = m == null ? List.of() : callSites(instructions(m), hook);
+            if (sites.isEmpty()) { capability(c.callee, false); return; }
+            sites = calls(m, hook, 1);
+            if (sites.size() != 1) { capability(c.callee, false); return; }
+            int at = sites.get(0);
+            List<Instruction> body = instructions(m);
+            Instruction answer = get(body, at + 1);
+            int scratch = answer == null ? -1 : firstRegister(answer);
+            boolean injected = at == cast + 1 && callIs(get(body, at), Opcode.INVOKE_STATIC, hook, held)
+                    && movesTo(answer, scratch, Opcode.MOVE_RESULT) && scratch >= 0 && scratch < parameter(m, -1) && scratch != held
+                    && movesTo(get(body, at + 2), scratch, Opcode.IF_NEZ) && target(m, at + 2) == done + 3
+                    && deadAt(old, cast + 1, scratch) && deadAt(old, done, scratch);
+            if (!injected) fail("the Explore header hook doesn't ask about the radar header before its model call and jump to the presenter's end on yes in " + m);
+            else {
+                remove(m, at, at + 3);
+                anchor(m, at, cast + 1, hook);
+                fallthroughOnly(old, cast + 1, hook);
+                vouch(m, at, List.of(held));
+            }
+            capability(c.callee, injected);
+        }
+
+        /**
+         * Tumblr's share link builder, the one static void method of two parameters holding "source"
+         * and "share" that appends them in one call, asks the hook right before the tag's name and on
+         * yes jumps to its MalformedURLException handler, which reads the link again without the tag
+         * and meets the tagged path at one step. The patch refuses a builder it can't find or that
+         * changed shape, so each check it makes is a failure here.
+         */
+        void shareLinkTag(Contract c) {
+            String hook = c.strings.get(0), name = c.strings.get(1), value = c.strings.get(2), append = c.strings.get(3), guard = c.strings.get(4);
+            List<Method> builders = new ArrayList<>();
+            for (Method held : clean.holding(name)) if (isStatic(held) && held.getReturnType().equals("V") && held.getParameterTypes().size() == 2
+                    && clean.texts.get(held.toString()).contains(value) && !callSites(instructions(held), append).isEmpty()) builders.add(held);
+            Method old = unique(builders, "Tumblr's share link builder");
+            if (old == null) { capability(c.callee, false); return; }
+            List<Instruction> was = instructions(old);
+            List<Integer> names = new ArrayList<>(), parses = new ArrayList<>();
+            for (int k = 0; k < was.size(); k++) {
+                if (name.equals(literal(was.get(k)))) names.add(k);
+                if (isCall(was.get(k), "Landroid/net/Uri;", "parse", "(Ljava/lang/String;)Landroid/net/Uri;")) parses.add(k);
+            }
+            int at = names.size() == 1 ? names.get(0) : -1, owner = parameter(old, 0);
+            Instruction tagValue = get(was, at + 1), add = get(was, at + 2);
+            boolean shaped = at >= 0 && value.equals(literal(tagValue)) && callIs(add, Opcode.INVOKE_VIRTUAL, append,
+                    add == null ? -1 : firstRegister(add), firstRegister(was.get(at)), firstRegister(tagValue));
+            int parse = parses.size() == 1 && parses.get(0) < at ? parses.get(0) : -1, read = parse - 2;
+            MethodReference linkRead = called(get(was, read));
+            shaped &= linkRead != null && was.get(read).getOpcode() == Opcode.INVOKE_VIRTUAL && linkRead.getParameterTypes().isEmpty()
+                    && linkRead.getReturnType().equals(STRING_TYPE) && arguments(was.get(read)).equals(List.of(owner))
+                    && movesTo(get(was, read + 1), arguments(was.get(parse)).get(0), Opcode.MOVE_RESULT_OBJECT);
+            Layout layout = new Layout(old.getImplementation());
+            List<? extends TryBlock<? extends ExceptionHandler>> tries = old.getImplementation().getTryBlocks();
+            int untagged = -1;
+            if (shaped && tries.size() == 1 && tries.get(0).getExceptionHandlers().size() == 1
+                    && guard.equals(tries.get(0).getExceptionHandlers().get(0).getExceptionType())) {
+                int start = tries.get(0).getStartCodeAddress(), end = start + tries.get(0).getCodeUnitCount();
+                if (layout.addresses.get(read) >= start && layout.addresses.get(at + 2) < end)
+                    untagged = layout.addresses.indexOf(tries.get(0).getExceptionHandlers().get(0).getHandlerCodeAddress());
+            }
+            Instruction again = get(was, untagged), link = get(was, untagged + 1), tagged = get(was, untagged - 2), jump = get(was, untagged - 1);
+            Set<Opcode> ends = Set.of(Opcode.RETURN_VOID, Opcode.RETURN, Opcode.RETURN_WIDE, Opcode.RETURN_OBJECT, Opcode.THROW);
+            shaped &= untagged > at + 2 && callIs(again, Opcode.INVOKE_VIRTUAL, String.valueOf(linkRead), owner)
+                    && link != null && link.getOpcode() == Opcode.MOVE_RESULT_OBJECT && untagged - 2 > at + 2
+                    && movesTo(tagged, firstRegister(link), Opcode.MOVE_RESULT_OBJECT)
+                    && jump.getOpcode() == Opcode.GOTO && target(old, untagged - 1) == untagged + 2
+                    && firstIndex(was, at + 3, i -> i instanceof OffsetInstruction || ends.contains(i.getOpcode())) == untagged - 1;
+            if (!shaped) { fail("Tumblr's share link builder " + old + " no longer reads, tags and hands on its link the way the hook expects"); return; }
+            Method m = actual(old);
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return;
+            int hookAt = sites.get(0);
+            List<Instruction> body = instructions(m);
+            Instruction answer = get(body, hookAt + 1);
+            int scratch = answer == null ? -1 : firstRegister(answer);
+            boolean injected = hookAt == at && callIs(get(body, hookAt), Opcode.INVOKE_STATIC, hook)
+                    && movesTo(answer, scratch, Opcode.MOVE_RESULT) && scratch >= 0 && scratch < parameter(m, -1)
+                    && movesTo(get(body, hookAt + 2), scratch, Opcode.IF_NEZ) && target(m, hookAt + 2) == untagged + 3
+                    && deadAt(old, at, scratch) && deadAt(old, untagged, scratch);
+            if (!injected) fail("the share link hook doesn't ask before the tag's name and jump to the untagged link on yes in " + m);
+            else {
+                remove(m, hookAt, hookAt + 3);
+                anchor(m, hookAt, at, hook);
+                fallthroughOnly(old, at, hook);
+            }
+            capability(c.callee, injected);
+        }
+
+        /**
+         * The reblog trail entry's constructor, right after building its rows and before reading its
+         * author's cut, hands the cut, the ask layout, the rows and the blocks to the hook in four free
+         * locals and stores the answer as the cut. The patch skips an entry that changed shape, so such
+         * a clean APK only requires the capability off. The shape here is every check the patch makes.
+         */
+        void longTrailRows(Contract c) {
+            String hook = c.strings.get(0), entry = c.strings.get(1), trail = c.strings.get(2), ask = c.strings.get(3);
+            String list = "Ljava/util/List;", integer = "Ljava/lang/Integer;", cutField = entry + "->j:" + integer;
+            ClassDef cd = clean.classes.get(entry);
+            Set<String> held = new HashSet<>();
+            if (cd != null) for (Field f : cd.getFields()) if (!AccessFlags.STATIC.isSet(f.getAccessFlags())) held.add(f.getName() + ":" + f.getType());
+            List<Method> built = new ArrayList<>();
+            if (cd != null && !AccessFlags.INTERFACE.isSet(cd.getAccessFlags())) for (Method m : cd.getMethods())
+                if (m.getName().equals("<init>") && descriptor(m).equals("(" + trail + ")V") && m.getImplementation() != null) built.add(m);
+            boolean fields = held.containsAll(List.of("h:" + list, "j:" + integer, "l:" + list, "o:" + ask));
+            Method old = fields && built.size() == 1 ? built.get(0) : null;
+            List<Instruction> was = old == null ? List.of() : instructions(old);
+            int read = firstIndex(was, 0, i -> i.getOpcode() == Opcode.IGET_OBJECT && cutField.equals(String.valueOf(reference(i))));
+            int self = read > 0 && was.get(read) instanceof TwoRegisterInstruction t ? t.getRegisterB() : -1;
+            Instruction rows = get(was, read - 1), tested = get(was, read + 1);
+            MethodReference made = read > 0 ? called(rows) : null;
+            boolean shaped = self >= 0 && self < 16 && rows.getOpcode() == Opcode.INVOKE_DIRECT && made != null
+                    && made.getDefiningClass().equals(entry) && !made.getName().equals("<init>") && descriptor(made).equals("()V")
+                    && arguments(rows).equals(List.of(self))
+                    && tested != null && tested.getOpcode() == Opcode.IF_EQZ && firstRegister(tested) == firstRegister(was.get(read));
+            boolean indexed = false;
+            for (int k = read + 2; shaped && k < was.size() && !indexed; k++)
+                indexed = was.get(k).getOpcode() == Opcode.INVOKE_INTERFACE && "Ljava/util/List;->indexOf(Ljava/lang/Object;)I".equals(String.valueOf(reference(was.get(k))))
+                        && fieldIs(was.get(k - 1), Opcode.IGET_OBJECT, entry + "->h:" + list, arguments(was.get(k)).get(0), -1);
+            for (int k = read; indexed && k < was.size(); k++)
+                if (was.get(k).getOpcode() == Opcode.IPUT_OBJECT && cutField.equals(String.valueOf(reference(was.get(k))))) indexed = false;
+            boolean fallsThrough = false;
+            if (indexed) {
+                FeatureFlow graph = new FeatureFlow(old);
+                fallsThrough = graph.normal.get(read - 1).contains(read);
+                for (int k = 0; fallsThrough && k < graph.normal.size(); k++)
+                    if (k != read - 1 && graph.normal.get(k).contains(read) || graph.handlers.get(k).contains(read)) fallsThrough = false;
+            }
+            int free = 0;
+            for (int r = 0; fallsThrough && r < Math.min(16, parameter(old, -1)); r++) if (r != self && deadAt(old, read, r)) free++;
+            if (free < 4) { capability(c.callee, false); return; }
+            Method m = actual(old);
+            List<Integer> sites = m == null ? List.of() : callSites(instructions(m), hook);
+            if (sites.isEmpty()) { capability(c.callee, false); return; }
+            sites = calls(m, hook, 1);
+            if (sites.size() != 1) { capability(c.callee, false); return; }
+            int call = sites.get(0), at = call - 4;
+            List<Instruction> body = instructions(m);
+            List<Integer> locals = new ArrayList<>();
+            for (int k = at; k < call; k++) locals.add(get(body, k) == null ? -1 : firstRegister(get(body, k)));
+            boolean injected = at == read && locals.size() == 4 && new HashSet<>(locals).size() == 4 && !locals.contains(self)
+                    && fieldIs(get(body, at), Opcode.IGET_OBJECT, cutField, locals.get(0), self)
+                    && fieldIs(get(body, at + 1), Opcode.IGET_OBJECT, entry + "->o:" + ask, locals.get(1), self)
+                    && fieldIs(get(body, at + 2), Opcode.IGET_OBJECT, entry + "->l:" + list, locals.get(2), self)
+                    && fieldIs(get(body, at + 3), Opcode.IGET_OBJECT, entry + "->h:" + list, locals.get(3), self)
+                    && callIs(get(body, call), Opcode.INVOKE_STATIC, hook, locals.toArray(new Integer[0]))
+                    && movesTo(get(body, call + 1), locals.get(0), Opcode.MOVE_RESULT_OBJECT)
+                    && fieldIs(get(body, call + 2), Opcode.IPUT_OBJECT, cutField, locals.get(0), self)
+                    && locals.stream().allMatch(r -> r >= 0 && r < 16 && r < parameter(m, -1) && deadAt(old, read, r));
+            if (!injected) fail("the trail hook doesn't hand the entry's cut, ask, rows and blocks through four free locals and keep its answer as the cut in " + m);
+            else {
+                remove(m, at, at + 7);
+                anchor(m, at, read, hook);
+                fallthroughOnly(old, read, hook);
+                vouch(m, call, locals);
+            }
+            capability(c.callee, injected);
+        }
+
+        /**
+         * Eight steps in front of [cleanAt] of [old], at [start] of [m]: whether the screen draws a
+         * Read more cut into a scratch local, [hook] on it and [args], and on a list, 1 into [cut] and the
+         * list into [list]. On null they jump to Tumblr's own step. The scratch local, or -1.
+         */
+        int rowHook(Method old, Method m, int start, int cleanAt, String hook, String composer, String screen, int self, int cut, int list, int... args) {
+            List<Instruction> body = instructions(m);
+            int scratch = get(body, start) instanceof OneRegisterInstruction o ? o.getRegisterA() : -1;
+            List<Integer> asked = new ArrayList<>();
+            for (int arg : args) asked.add(arg < 0 ? scratch : arg);
+            boolean shaped = scratch >= 0 && scratch < 16 && scratch != self && scratch != cut && scratch != list
+                    && Arrays.stream(args).noneMatch(arg -> arg == scratch) && deadAt(old, cleanAt, scratch)
+                    && fieldIs(get(body, start), Opcode.IGET_OBJECT, composer + "->m:" + screen, scratch, self)
+                    && callIs(get(body, start + 1), Opcode.INVOKE_VIRTUAL, screen + "->n()Z", scratch)
+                    && movesTo(get(body, start + 2), scratch, Opcode.MOVE_RESULT)
+                    && callIs(get(body, start + 3), Opcode.INVOKE_STATIC, hook, asked.toArray(new Integer[0]))
+                    && movesTo(get(body, start + 4), scratch, Opcode.MOVE_RESULT_OBJECT)
+                    && movesTo(get(body, start + 5), scratch, Opcode.IF_EQZ) && target(m, start + 5) == start + 8
+                    && literalIs(get(body, start + 6), Opcode.CONST_4, cut, 1)
+                    && moveIs(get(body, start + 7), Opcode.MOVE_OBJECT, list, scratch);
+            if (!shaped) return -1;
+            remove(m, start, start + 8);
+            anchor(m, start, cleanAt, hook);
+            vouch(m, start + 3, asked);
+            return scratch;
+        }
+
+        /**
+         * The post hook in front of the call appending every row of a post Tumblr didn't cut, handed
+         * the post the rows were read from. The one way into the read of every row tests the cut
+         * flag, which the next test of it after the append puts Tumblr's Read more row under the rows
+         * on. The author's own cut jumps straight to the append, so it must land past the hook.
+         */
+        boolean postRows(String hook, String composer, String post, String screen) {
+            String list = "Ljava/util/List;";
+            Method old = nativeMethod(composer + "->h(Lr4g;I)" + list, "the post row composer");
+            if (old == null) return false;
+            List<Instruction> was = instructions(old);
+            List<Integer> reads = callSites(was, post + "->g()" + list);
+            int all = reads.size() == 1 ? reads.get(0) : -1;
+            Instruction append = get(was, all + 2);
+            MethodReference appended = called(append);
+            List<Integer> args = append == null ? List.of() : arguments(append);
+            int rows = all >= 0 && get(was, all + 1) != null && was.get(all + 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT ? firstRegister(was.get(all + 1)) : -1;
+            boolean shaped = rows >= 0 && append != null && append.getOpcode() == Opcode.INVOKE_DIRECT && appended != null && appended.getDefiningClass().equals(composer)
+                    && descriptor(appended).equals("(" + list + list + ")Z") && args.size() == 3 && args.get(2) == rows;
+            int self = shaped ? args.get(0) : -1;
+            FeatureFlow graph = flow(old);
+            List<Integer> into = new ArrayList<>();
+            for (int k = 0; all >= 0 && k < graph.normal.size(); k++) if (graph.normal.get(k).contains(all) || graph.handlers.get(k).contains(all)) into.add(k);
+            int branch = into.size() == 1 ? into.get(0) : -1;
+            int cut = branch >= 0 && branch != all - 1 && was.get(branch).getOpcode() == Opcode.IF_EQZ ? firstRegister(was.get(branch)) : -1;
+            int test = shaped && cut >= 0 ? firstIndex(was, all + 3, i -> namesRegister(i, cut)) : -1;
+            Instruction readMore = get(was, test + 1);
+            // The post the rows came from: the read is on it, and only the rows' move lies between it and the append.
+            List<Integer> source = all >= 0 ? arguments(was.get(all)) : List.of();
+            int held = source.size() == 1 ? source.get(0) : -1;
+            shaped &= test >= 0 && movesTo(was.get(test), cut, Opcode.IF_EQZ) && readMore != null && readMore.getOpcode() == Opcode.IGET_OBJECT
+                    && names(field(readMore), composer + "->d") && readMore instanceof TwoRegisterInstruction t && t.getRegisterB() == self
+                    && rows < 16 && self < 16 && cut < 16 && cut != rows && cut != self
+                    && held >= 0 && held < 16 && held != rows && held != self && cut != held
+                    && deadAt(old, all + 3, rows) && deadAt(old, test + 1, cut) && deadAt(old, target(old, test), cut);
+            Method m = actual(old);
+            List<Integer> sites = calls(m, hook, 1);
+            if (!shaped) fail("the post row composer " + old + " no longer appends every row of a post it didn't cut where the post hook goes");
+            if (m == null || sites.size() != 1 || !shaped) return false;
+            int start = sites.get(0) - 3;
+            boolean injected = rowHook(old, m, start, all + 2, hook, composer, screen, self, cut, rows, held, -1, rows) >= 0 && onlyFrom(m, start, start - 1);
+            if (!injected) fail("the post hook doesn't hand the post and every row of it Tumblr didn't cut through in front of their append, past the author's own cut, in " + m);
+            return injected;
         }
 
         static boolean readsContainer(Instruction i, String container) {
@@ -6464,14 +7099,21 @@ public class DexDiff {
                     case "postJsonPresence": postJsonPresence(c); break;
                     case "matureContent": matureContent(c); break;
                     case "rootPostMutes": rootPostMutes(c); break;
+                    case "dashboardPage": dashboardPages(c); break;
                     case "mutualMarkers": mutualMarkers(c); break;
                     case "reviewPrompt": reviewPrompt(c); break;
                     case "sdkStartup": sdkStartup(c); break;
+                    case "crashReports": crashReports(c); break;
                     case "blogNotificationReminder": blogNotificationReminder(c); break;
                     case "giftMessagePopup": giftMessagePopup(c); break;
                     case "postLine": postLine(c); break;
                     case "videoLinkPress": videoLinkPress(c); break;
                     case "imageSizes": imageSizes(c); break;
+                    case "longPostRows": longPostRows(c); break;
+                    case "exploreHeaderAd": exploreHeaderAd(c); break;
+                    case "shareLinkTag": shareLinkTag(c); break;
+                    case "longTrailRows": longTrailRows(c); break;
+                    case "longPostExpand": longPostExpand(c); break;
                     case "fontChoice": fontChoice(c); break;
                     case "followButton": followButton(c); break;
                     case "footerButton": footerButton(c); break;

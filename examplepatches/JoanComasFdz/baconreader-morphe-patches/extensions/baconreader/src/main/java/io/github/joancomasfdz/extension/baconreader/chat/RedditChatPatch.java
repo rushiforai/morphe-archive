@@ -195,6 +195,8 @@ public final class RedditChatPatch {
             if (panel != null && panel.isShowing()) {
                 panel.onResume();
                 ChatMessages.onChatShown(activity);
+                // Its messages are read now: Chat in the menu drops their count.
+                refreshDrawer();
             }
         } catch (Exception exception) {
             ErrorDialog.printException(() -> "Could not resume the chat", exception);
@@ -382,6 +384,8 @@ public final class RedditChatPatch {
         if (screen.panel == null) screen.panel = new ChatPanel(activity, views());
         screen.panel.show(url);
         ChatMessages.onChatShown(activity);
+        // Its messages are read now: Chat in the menu drops their count.
+        refreshDrawer();
     }
 
     /** MainActivity's views the chat goes between, and its toolbar's refresh. */

@@ -63,6 +63,7 @@ import app.morphe.extension.facebook.feed.FeedFilter;
 import app.morphe.extension.facebook.feed.SeenPostsForTests;
 import app.morphe.extension.facebook.feed.FeedGuardForTests;
 import app.morphe.extension.facebook.feed.HomeBack;
+import app.morphe.extension.facebook.feed.ProfilePictures;
 import app.morphe.extension.facebook.feed.ProfileSuggestionsForTests;
 import app.morphe.extension.facebook.feed.RelatedPosts;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
@@ -121,6 +122,7 @@ import app.morphe.extension.facebook.reels.NewestReelsForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
 import app.morphe.extension.facebook.reels.TapShowsControls;
+import app.morphe.extension.facebook.reels.WatchAgain;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
 import app.morphe.extension.facebook.search.SearchDateRange;
 import app.morphe.extension.facebook.search.SearchHistory;
@@ -128,6 +130,7 @@ import app.morphe.extension.facebook.stories.StoryAdvance;
 import app.morphe.extension.facebook.stories.StorySeenForTests;
 import app.morphe.extension.facebook.stories.StoryMusic;
 import app.morphe.extension.facebook.stories.StoryProgressBarForTests;
+import app.morphe.extension.facebook.stories.StoryRings;
 import app.morphe.extension.facebook.stories.StoryTapsForTests;
 import app.morphe.extension.facebook.stories.StoryUpload;
 import app.morphe.extension.facebook.stories.StoryViewerCleanup;
@@ -286,6 +289,7 @@ public class ColdStartHooksTest {
         assertFalse(ReelDeclutter.skipSocialBubbles());
         assertFalse("a Threads card read before the context came off", ReelMidCardsForTests.dropsAThreadsCard());
         assertFalse("a reel made before the context started in Clean mode", ReelCleanMode.startClean(false));
+        assertTrue("a Watch again tap before the context came off replayed in place", WatchAgain.opensElsewhere(true));
         assertFalse("a batch of watched reels sent before the context was held back", SeenStateSendForTests.heldBack());
         assertFalse("a Reels rerank before the context put the newest first", NewestReelsForTests.putsTheNewestFirst());
         assertFalse("a double-tap skip test read before the context was turned on", DoubleTapSkip.flag(false));
@@ -368,6 +372,16 @@ public class ColdStartHooksTest {
         assertFalse("a story's suggested replies drawn before the context drew nothing",
                 StoryViewerCleanup.hideReplySuggestions());
         assertFalse("a story played before the context got a progress bar", StoryProgressBarForTests.drawsABar());
+        assertTrue("a post header drawn before the context lost its story ring",
+                StoryRings.feedRing(1));
+        assertFalse("a comment drawn before the context lost its story ring",
+                StoryRings.hideCommentRing());
+        assertEquals("a profile drawn before the context lost its story ring", "ring",
+                StoryRings.profileRing("ring"));
+        assertEquals("a post header drawn before the context lost its picture", "person",
+                ProfilePictures.feedPicture("person"));
+        assertEquals("a comment drawn before the context lost its picture", "picture",
+                ProfilePictures.commentPicture("picture"));
         assertFalse(PlayerSourcesForTests.recordsAPlayer());
         assertFalse("a post menu built before the context got the video item", VideoMenuItemForTests.addsAnItem());
         assertFalse("a post menu built before the context got the photo item", PhotoMenuItemForTests.addsAnItem());

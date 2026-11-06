@@ -32,6 +32,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import app.hushtumblr.extension.tumblr.rootmute.HushDashboardTimeline;
+import app.hushtumblr.extension.tumblr.rootmute.RootPostMutes;
+
 /** Timeline objects built from the stand-ins in {@code com.tumblr.rumblr.model}. */
 public final class TimelineItems {
     private TimelineItems() {}
@@ -299,12 +302,22 @@ public final class TimelineItems {
 
     /** PausedHooksTest's probe for Hide your own reblogs. */
     public static boolean aPageLosesYourReblog() {
-        return aPageLoses(yourReblogOf(Collections.singletonList(new TextBlock("first")), new TextBlock("mine")));
+        return aDashboardScreenLoses(yourReblogOf(Collections.singletonList(new TextBlock("first")), new TextBlock("mine")));
     }
 
     /** PausedHooksTest's probe for Hide liked posts. */
     public static boolean aPageLosesItsLikedPost() {
-        return aPageLoses(likedPostWith(new TextBlock("liked already")));
+        return aDashboardScreenLoses(likedPostWith(new TextBlock("liked already")));
+    }
+
+    /**
+     * True when the dashboard page hook takes [item]'s post from between two others on a
+     * dashboard screen. These switches leave parsing alone, since a post you open loads the same
+     * response as the dashboard.
+     */
+    private static boolean aDashboardScreenLoses(TimelineObject item) {
+        HushDashboardTimeline dashboard = () -> true;
+        return RootPostMutes.dashboardPage(dashboard, Arrays.asList(post().getData(), item.getData(), post().getData())).size() == 2;
     }
 
     /** PausedHooksTest's probe for Hide video posts. */

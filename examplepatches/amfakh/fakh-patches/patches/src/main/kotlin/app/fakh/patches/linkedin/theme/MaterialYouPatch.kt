@@ -428,7 +428,7 @@ private fun ResourcePatchContext.writeColors(directory: String, colors: Map<Stri
                 it.setAttribute("name", name)
                 resources.appendChild(it)
             }
-            color.textContent = "@android:color/$system"
+            color.textContent = if (system.startsWith("#")) system else "@android:color/$system"
         }
     }
 }
@@ -718,17 +718,12 @@ val removeGapsAndDividersPatch = bytecodePatch(
     }
 }
 
-@Suppress("unused")
-val materialYouPatch = bytecodePatch(
-    name = "Material You",
-    description = "Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the " +
-        "green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. " +
-        "Some screens drawn by LinkedIn's servers may keep their own colors.",
-    default = false
-) {
-    compatibleWith(COMPATIBILITY_LINKEDIN)
-    category("Theme")
-    dependsOn(settingsPatch, materialYouResourcePatch, materialYouBackgroundsResourcePatch, sharedColorsPatch)
+/**
+ * The runtime color hooks of the Compose themes, the server drawn screens and the system bars, which "Material You"
+ * and "Pitch black" both use. Each hook checks the settings of the patches that are included.
+ */
+private val colorHooksPatch = bytecodePatch {
+    dependsOn(settingsPatch, sharedColorsPatch)
 
     execute {
         var replaced = 0
@@ -857,6 +852,22 @@ val materialYouPatch = bytecodePatch(
             }
         }
         if (contrasts == 0) throw PatchException("No navigation bar contrast calls found")
+    }
+}
+
+@Suppress("unused")
+val materialYouPatch = bytecodePatch(
+    name = "Material You",
+    description = "Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the " +
+        "green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. " +
+        "Some screens drawn by LinkedIn's servers may keep their own colors.",
+    default = false
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Theme")
+    dependsOn(settingsPatch, materialYouResourcePatch, materialYouBackgroundsResourcePatch, colorHooksPatch)
+
+    execute {
         markIncluded("isMaterialYouIncluded")
     }
 }
@@ -869,4 +880,48 @@ private fun Instruction.secondArgument(): Int = when (this) {
     is FiveRegisterInstruction -> registerD
     is RegisterRangeInstruction -> startRegister + 1
     else -> throw PatchException("Unexpected call $opcode")
+}
+
+/** Dark mode colors of the Mercado themes as AMOLED tones: black canvas, cards and tints a step above it. */
+private val AMOLED_COLORS = listOf(
+    "#000000" to listOf(
+        "mercado_mvp_color_background_canvas_dark", "mercado_mvp_dark_color_background_canvas",
+        "mercado_mvp_dark_color_background_canvas_dark", "mercado_mvp_dark_color_background_canvas_mobile",
+        "color_splash_canvas_background", "color_status_bar",
+    ),
+    "#0D0D0D" to listOf(
+        "mercado_mvp_color_background_container_dark", "mercado_mvp_dark_color_background_container",
+        "mercado_mvp_dark_color_background_container_dark",
+    ),
+    "#1A1A1A" to listOf(
+        "mercado_mvp_color_background_canvas_dark_tint", "mercado_mvp_color_background_container_dark_tint",
+        "mercado_mvp_dark_color_background_canvas_dark_tint", "mercado_mvp_dark_color_background_canvas_tint",
+        "mercado_mvp_dark_color_background_container_dark_tint", "mercado_mvp_dark_color_background_container_tint",
+    ),
+)
+
+/**
+ * Overrides the dark backgrounds in the night colors file. A night resource wins over Material You's version
+ * specific ones (values-v31, values-v34), whichever patch runs first.
+ */
+private val amoledResourcePatch = resourcePatch {
+    execute {
+        writeColors("values-night", AMOLED_COLORS.flatMap { (hex, names) -> names.map { it to hex } }.toMap())
+    }
+}
+
+@Suppress("unused")
+val amoledBlackPatch = bytecodePatch(
+    name = "Pitch black",
+    description = "Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter " +
+        "black. Takes effect when the system is in dark mode. Works with or without Material You.",
+    default = false
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Theme")
+    dependsOn(settingsPatch, amoledResourcePatch, colorHooksPatch)
+
+    execute {
+        markIncluded("isAmoledBlackIncluded")
+    }
 }

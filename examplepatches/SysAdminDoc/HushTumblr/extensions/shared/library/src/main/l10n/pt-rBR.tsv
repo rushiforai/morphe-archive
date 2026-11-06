@@ -157,6 +157,7 @@ Privacy	Privacidade
 Disable analytics	Desativar análises
 Firebase and Google Analytics collection is turned off	A coleta do Firebase e do Google Analytics está desativada
 Hide advertising ID	Ocultar ID de publicidade
+Sanitize sharing links	Limpar links compartilhados
 Remove ad tracking permissions	Remover permissões de rastreamento de anúncios
 Tumblr can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	O Tumblr não pode mais usar a permissão de ID de publicidade do Google nem os serviços de anúncios do Android. Isso foi definido ao aplicar os patches. Aplique de novo sem ele para recuperá-los.
 Tumblr's access to the ad ID and Android's ad services is removed	o acesso do Tumblr ao ID de publicidade e aos serviços de anúncios do Android foi removido
@@ -219,6 +220,7 @@ Lets a patched Tumblr sign up for push notifications when Google would turn it a
 Open Tumblr's settings from the gear on your account tab. HushTumblr doesn't change any of these.	Abra as configurações do Tumblr pela engrenagem na sua aba de conta. O HushTumblr não muda nenhuma delas.
 Push alerts	Alertas push
 Tumblr and the ad companies inside it see an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.	O Tumblr e as empresas de anúncios dentro dele veem um ID de publicidade vazio, com o rastreamento de anúncios limitado, como se você tivesse apagado seu ID de publicidade nas configurações do Android.
+Links you share or copy leave out the share tag Tumblr adds to them. They still open the same post.	Os links que você compartilha ou copia ficam sem a marca de compartilhamento que o Tumblr adiciona. Eles continuam abrindo o mesmo post.
 Use the email on your Tumblr account and a Tumblr password. Google sign-in may not work, because this patched app is signed with a different key. Push notifications haven't been tested.	Use o e-mail da sua conta do Tumblr e uma senha do Tumblr. O login com Google pode não funcionar, porque este app com patches é assinado com outra chave. As notificações push não foram testadas.
 # context: the Feed page and its Hide ads switch.
 Feed	Feed
@@ -227,7 +229,7 @@ Takes ads and paid Blaze posts out of your dashboard and other feeds. Once Tumbl
 Keep Blaze posts	Manter posts do Blaze
 When ads are hidden, keep posts people paid to promote with Blaze. Other ads and post filters still apply.	Ao ocultar anúncios, mantém os posts que alguém pagou para promover com o Blaze. Os outros anúncios e filtros continuam valendo.
 # context: the Disable analytics switch on the Privacy page.
-Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Firebase and Google's analytics collection stay off until you patch again without it.	Para o rastreamento próprio do Tumblr e a medição de anúncios, e impede que o rastreador da LiveRamp inicie. A coleta do Firebase e do Google Analytics continua desligada até você aplicar o patch de novo sem ele.
+Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Crashlytics crash reports stay off while this is on. Firebase and Google's analytics collection stay off until you patch again without it.	Para o rastreamento próprio do Tumblr e a medição de anúncios, e impede que o rastreador da LiveRamp inicie. Os relatórios de falhas do Crashlytics ficam desligados enquanto isto estiver ativado. A coleta do Firebase e do Google Analytics continua desligada até você aplicar o patch de novo sem ele.
 # context: the Hide the ad-free banner switch on the Feed page.
 Hide the ad-free banner	Ocultar o banner sem anúncios
 Hides the dashboard banner that asks you to pay for Ad-Free Browsing.	Esconde o banner do painel que pede para você pagar pela navegação sem anúncios.
@@ -388,9 +390,9 @@ When reblogs are hidden, keep ones with tags. Other post filters still apply.	Ao
 Keep reblogs with added content	Manter reblogs com conteúdo adicionado
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Ao ocultar reblogs, mantém aqueles em que quem reblogou adicionou algo próprio. Os outros filtros continuam valendo.
 Hide your own reblogs	Ocultar seus próprios reblogs
-Takes the reblogs you made out of your dashboard and the feeds like it. Your blog still shows them.	Tira os reblogs que você fez do seu painel e dos feeds parecidos. Seu blog continua mostrando esses reblogs.
+Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Tira os reblogs que você fez do seu painel. Seu blog e o resto do Tumblr continuam mostrando esses reblogs.
 Hide liked posts	Ocultar posts curtidos
-Takes the posts you've already liked out of your dashboard and the feeds like it. Your likes and blogs still show them.	Tira do seu painel e dos feeds parecidos os posts que você já curtiu. Suas curtidas e os blogs continuam mostrando esses posts.
+Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Tira do seu painel os posts que você já curtiu. Suas curtidas e o resto do Tumblr continuam mostrando esses posts.
 Match current post text	Buscar no texto do post atual
 Match reblog trail text	Buscar no texto da cadeia de reblogs
 Match current post tags	Buscar nas tags do post atual
@@ -407,7 +409,7 @@ Shows author-provided image descriptions below images.	Mostra abaixo das imagens
 photo image descriptions	descrições de fotos
 gallery image descriptions	descrições de galerias
 Mute posts locally	Silenciar posts localmente
-Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account.	Adicione posts a uma lista privada pelo menu deles. Os originais e seus reblogs ficam ocultos nesta conta.
+Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account. On the dashboard, the menu can also hide one blog's reblogs or originals.	Adicione posts a uma lista privada pelo menu deles. Os originais e seus reblogs ficam ocultos nesta conta. No painel, o menu também pode ocultar os reblogs ou os originais de um blog.
 Mute this post locally	Silenciar este post localmente
 Manage muted posts	Gerenciar posts silenciados
 Unmute posts or clear this account's private list	Volte a mostrar posts ou limpe a lista privada desta conta
@@ -415,7 +417,7 @@ Couldn't update muted posts	Não foi possível atualizar os posts silenciados
 Post muted locally	Post silenciado localmente
 Muted posts restored	Posts silenciados restaurados
 Muted posts aren't available for this account yet	Os posts silenciados ainda não estão disponíveis nesta conta
-Stored only on this device for this Tumblr account. Tap a post to unmute it. Up to 500 posts are kept per account.	Armazenados apenas neste dispositivo para esta conta do Tumblr. Toque em um post para voltar a mostrá-lo. Até 500 posts são mantidos por conta.
+Stored only on this device for this Tumblr account. Tap a row to remove it. Up to 500 posts and blog rules are kept per account.	Armazenados apenas neste dispositivo para esta conta do Tumblr. Toque em uma linha para removê-la. Até 500 posts e regras de blog são mantidos por conta.
 This device keeps muted post lists for eight accounts. When a ninth account mutes a post, the list that's gone longest without a change is deleted.	Este dispositivo mantém listas de posts silenciados para oito contas. Quando uma nona conta silencia um post, a lista que está há mais tempo sem mudanças é apagada.
 Post	Post
 Clear muted posts	Limpar posts silenciados
@@ -427,7 +429,7 @@ Show mutual markers	Mostrar seguidores mútuos
 Marks blogs that follow your primary blog when you follow them.	Marca os blogs que seguem seu blog principal e que você segue.
 Mutual	Mútuos
 Done	Concluído
-No muted posts. Use a post's menu to mute it on this device.	Nenhum post silenciado. Use o menu de um post para silenciá-lo neste dispositivo.
+No muted posts or blog rules. Use a post's menu to add one on this device.	Nenhum post silenciado ou regra de blog. Use o menu de um post para silenciá-lo ou criar uma regra de blog neste dispositivo.
 Updating muted posts	Atualizando posts silenciados
 Couldn't restore muted posts. Try again.	Não foi possível restaurar os posts silenciados. Tente de novo.
 Couldn't read this account's muted posts. Nothing was changed or deleted.	Não foi possível ler os posts silenciados desta conta. Nada foi alterado nem apagado.
@@ -440,6 +442,16 @@ Clearing diagnostic data	Limpando dados de diagnóstico
 Putting diagnostic data back	Restaurando dados de diagnóstico
 Couldn't clear the diagnostic data. Try again.	Não foi possível limpar os dados de diagnóstico. Tente novamente.
 Couldn't update this feed. The post is still muted locally.	Não foi possível atualizar este feed. O post continua silenciado localmente.
+Hide reblogs from %1$s	Ocultar reblogs de %1$s
+Hide originals from %1$s	Ocultar originais de %1$s
+Hiding reblogs from %1$s	Ocultando reblogs de %1$s
+Hiding originals from %1$s	Ocultando originais de %1$s
+Blog rule removed	Regra do blog removida
+Reblogs from %1$s	Reblogs de %1$s
+Originals from %1$s	Originais de %1$s
+Show reblogs from %1$s again	Mostrar os reblogs de %1$s de novo
+Show originals from %1$s again	Mostrar os originais de %1$s de novo
+Couldn't update this feed. The blog rule is still saved.	Não foi possível atualizar este feed. A regra do blog continua salva.
 Unmute post	Reexibir post
 HushTumblr	HushTumblr
 Your settings	Suas configurações
@@ -467,7 +479,7 @@ Hidden. Tap to show it again.	Oculta. Toque para mostrar de novo.
 Quick setups hidden. Bring it back from %1$s.	Configurações rápidas ocultas. Traga de volta em %1$s.
 Quiet	Tranquilo
 Hides ads, suggestions, prompts and unread counts.	Oculta anúncios, sugestões, avisos e contadores de não lidos.
-Stops Tumblr's tracking and screenshot watching, and hides your advertising ID.	Interrompe o rastreamento do Tumblr e a vigilância de capturas de tela, e oculta seu ID de publicidade.
+Stops Tumblr's tracking and screenshot watching. Hides your advertising ID and the share tag on links.	Interrompe o rastreamento do Tumblr e a vigilância de capturas de tela. Oculta seu ID de publicidade e a marca de compartilhamento dos links.
 Back to defaults	Voltar ao padrão
 Puts every feature switch back the way it started.	Volta cada opção de recurso ao estado inicial.
 Changed %1$d setting	%1$d configuração alterada
@@ -479,6 +491,16 @@ Long-press a video in a post to share or copy its link, or save it.	Toque e segu
 # context: the Sharper images switch on the Posts page, and its summary
 Sharper images	Imagens mais nítidas
 Loads images in posts at a higher resolution. Uses more data.	Carrega as imagens das publicações em resolução maior. Usa mais dados.
+# context: the Collapse long posts switch on the Posts page, and its summary
+Collapse long posts	Recolher posts longos
+Cuts long posts with a Read more row, at the length below. Tap it to open the whole post.	Corta posts longos no tamanho abaixo, com uma linha de Ler mais. Toque nela para abrir o post inteiro.
+# context: the Collapsed post length row under that switch: its title, the lengths a tap moves through, its summary and the note when a save fails
+Collapsed post length	Tamanho dos posts recolhidos
+About half a screen	Cerca de meia tela
+About a screen	Cerca de uma tela
+About two screens	Cerca de duas telas
+%1$s. Tap to change.	%1$s. Toque para mudar.
+Couldn't save the length. Try again.	Não deu para salvar o tamanho. Tente de novo.
 # context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
 Share video link	Compartilhar link do vídeo
 Copy video link	Copiar link do vídeo
@@ -490,7 +512,11 @@ Saving to Downloads	Salvando em Downloads
 Video saved to Downloads	Vídeo salvo em Downloads
 Couldn't save the video	Não foi possível salvar o vídeo
 ad networks at launch	as redes de anúncios ao abrir
+Explore's sponsored header	o cabeçalho patrocinado do Explorar
+long reblog trail entries	as entradas longas da cadeia de reblogs
+opening a cut post in place	a abertura no lugar de publicações cortadas
 LiveRamp at launch	o LiveRamp ao abrir
+Crashlytics at launch	o Crashlytics ao abrir
 # context: the Try it on a post part of the Words to hide and Allowed words editors. Post text, Reblog trail text, Tags and Summary label its fields and fill the field names in the result lines (%2$s and %4$s). %1$s in the Not matched line is a Match switch's title, %1$s and %3$s in the result lines are the matched words.
 Try it on a post	Teste em um post
 Nothing you type here is saved.	Nada do que você digitar aqui é salvo.

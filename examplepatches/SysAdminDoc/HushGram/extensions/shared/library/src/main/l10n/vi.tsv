@@ -281,6 +281,13 @@ Once you turn on Instagram's auto scroll in Reels, it stays on after a restart o
 Move on when a reel ends	Chuyển tiếp khi reel kết thúc
 When a reel ends, Reels moves on to the next one instead of playing it again. It uses Instagram's own auto scroll, even on accounts where Instagram doesn't offer it. While it's on, Instagram's own Auto scroll switch can't turn it off. Restart Instagram to see the change.	Khi reel kết thúc, Reels chuyển sang reel kế tiếp thay vì phát lại. Dùng tự động cuộn của chính Instagram, kể cả trên tài khoản mà Instagram không có tính năng này. Khi bật, công tắc Tự động cuộn của Instagram không tắt được. Hãy khởi động lại Instagram để thấy thay đổi.
 Stop Reels scrolling	Ngừng cuộn Reels
+# context: Reels page, the three switches under Stop Reels scrolling. They name that switch by its label, and each lets one kind of viewer keep scrolling.
+Still scroll reels from a profile	Vẫn cuộn reel mở từ trang cá nhân
+With Stop Reels scrolling on, reels you open from a profile still move on when you swipe.	Khi bật Ngừng cuộn Reels, reel bạn mở từ trang cá nhân vẫn chuyển tiếp khi bạn vuốt.
+Still scroll reels from Search and Explore	Vẫn cuộn reel mở từ Tìm kiếm và Khám phá
+With Stop Reels scrolling on, reels you open from Search, Explore, a hashtag or a place still move on when you swipe.	Khi bật Ngừng cuộn Reels, reel bạn mở từ Tìm kiếm, Khám phá, hashtag hoặc địa điểm vẫn chuyển tiếp khi bạn vuốt.
+Still scroll reels from a song page	Vẫn cuộn reel mở từ trang bài hát
+With Stop Reels scrolling on, reels you open from a song or audio page still move on when you swipe.	Khi bật Ngừng cuộn Reels, reel bạn mở từ trang bài hát hoặc âm thanh vẫn chuyển tiếp khi bạn vuốt.
 A swipe in Reels no longer moves on to the next reel, and pulling down doesn't load new ones. The reel you opened still plays. Restart Instagram to see the change.	Vuốt trong Reels không chuyển sang reel kế tiếp nữa và kéo xuống không tải reel mới. Reel bạn đã mở vẫn phát. Hãy khởi động lại Instagram để thấy thay đổi.
 Lock a reel at 2x (hold its edge, then slide down) and the next reels play at 2x too. Slide the lock off, or hold the edge and let go, to go back to normal speed.	Khóa reel ở tốc độ 2x (giữ mép màn hình rồi trượt xuống), các reel kế tiếp cũng phát ở 2x. Trượt khóa ra, hoặc giữ mép màn hình rồi thả, để về tốc độ bình thường.
 Open links in external browser	Mở liên kết trong trình duyệt ngoài
@@ -418,6 +425,11 @@ Hide the Threads button	Ẩn nút Threads
 Takes the Threads button off the top of profiles, yours included. The menu and the other buttons stay where they were.	Gỡ nút Threads khỏi đầu trang cá nhân, kể cả của bạn. Menu và các nút khác vẫn ở chỗ cũ.
 Show profile posts as a list	Hiện bài viết trên trang cá nhân dạng danh sách
 Opening someone's profile takes you on to their posts as a scrolling list of full posts. Go Back for the grid. Your own profile keeps its grid.	Mở trang cá nhân của ai đó sẽ đưa bạn đến bài viết của họ dạng danh sách cuộn các bài viết đầy đủ. Quay lại để về lưới. Trang cá nhân của bạn vẫn dạng lưới.
+Jump a profile's posts to a date	Nhảy đến một ngày trong bài viết của trang cá nhân
+Puts a calendar on a profile's top bar. Pick a day and the posts grid goes back to that day. Pull down for the newest again.	Thêm lịch vào thanh trên cùng của trang cá nhân. Chọn một ngày và lưới bài viết quay về ngày đó. Kéo xuống để xem mới nhất.
+Open the profile's posts first	Hãy mở bài viết trước
+Still loading, try again	Vẫn đang tải, hãy thử lại
+Going to that date	Đang đến ngày đó
 The cards of people and creators to follow that Instagram puts between reels. Every reel still plays.	Các thẻ người và nhà sáng tạo để theo dõi mà Instagram chèn giữa các reel. Mọi reel vẫn phát.
 Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have their own switch.	Bỏ các reel có nhãn Hợp tác trả phí và reel Instagram đánh dấu là được quảng bá. Quảng cáo có công tắc riêng.
 Turn on Start Home on Following to use this choice.	Hãy bật Mở trang chủ ở Đang theo dõi để dùng lựa chọn này.
@@ -486,6 +498,11 @@ Save comment photo	Lưu ảnh trong bình luận
 Adds Save to a selected comment's menu when the comment has its own photo or GIF. Saves the largest size Instagram sent.	Thêm Lưu vào menu của bình luận đã chọn khi bình luận có ảnh hoặc GIF riêng. Lưu kích thước lớn nhất mà Instagram gửi.
 Reply with a comment's GIF	Trả lời bằng GIF của bình luận
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	Khi bình luận có GIF, menu của nó có mục trả lời bằng GIF, gửi lại đúng GIF đó làm câu trả lời của bạn, vẫn chuyển động.
+Show a comment GIF's name	Hiện tên GIF của bình luận
+When a comment has a GIF or sticker, its menu shows its name. Tap the name to copy it.	Khi bình luận có GIF hoặc nhãn dán, menu của nó hiện tên của chúng. Chạm vào tên để sao chép.
+GIF name	Tên GIF
+GIF name copied	Đã sao chép tên GIF
+Couldn't copy the GIF name	Không sao chép được tên GIF
 Couldn't reply with this GIF	Không trả lời được bằng GIF này
 Mark as seen button	Nút đánh dấu đã xem
 Adds an eye button to the top of each story while you view anonymously. Tap it to show up on that story's viewer list. The other stories stay hidden.	Thêm nút hình con mắt ở đầu mỗi tin khi bạn xem ẩn danh. Nhấn để hiện trong danh sách người xem của tin đó. Các tin khác vẫn ẩn.
@@ -829,7 +846,7 @@ Shows HushGram's logo instead of Instagram's on the screen you see while Instagr
 Download video covers	Tải ảnh bìa video
 Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	Thêm Tải ảnh bìa vào menu của bài viết bảng feed có video và của ảnh nhiều trang đang hiện video. Lưu ảnh tĩnh hiện trước khi video phát, ở kích thước lớn nhất.
 Download button on feed posts	Nút tải xuống trên bài viết bảng feed
-Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them.	Đặt biểu tượng tải xuống ở hàng bên dưới bài viết, bên trái Lưu, để một lần nhấn là lưu mà không cần mở menu. Với ảnh nhiều trang, sẽ hỏi lưu trang này hay tất cả.
+Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	Đặt biểu tượng tải xuống ở hàng bên dưới bài viết, bên trái Lưu, để một lần nhấn là lưu mà không cần mở menu. Với ảnh nhiều trang, sẽ hỏi lưu trang này hay tất cả. Cần Tải video trên bảng feed hoặc ảnh.
 Download button on reels	Nút tải xuống trên reel
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	Đặt biểu tượng tải xuống dưới Lưu cạnh reel, để một lần nhấn là lưu như Tải xuống trong menu. Cần bật Tải xuống trên reel.
 Nothing to download on this post	Bài viết này không có gì để tải
@@ -987,8 +1004,8 @@ Scrolling a list down slides the tab bar out of the way. Scrolling up, reaching 
 Hide the tab bar on Reels	Ẩn thanh tab trên Reels
 Never	Không bao giờ
 After %1$d seconds	Sau %1$d giây
-Never. Pick a time and the pill slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Không bao giờ. Hãy chọn một thời gian và viên thanh sẽ trượt đi khi reel phát chừng đó mà không chạm vào. Hãy khởi động lại Instagram sau khi thay đổi.
-On Reels, the pill slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Trên Reels, thanh trượt đi sau %1$d giây không chạm. Nhấn vào mép dưới màn hình, đổi tab hoặc nhấn Quay lại để đưa nó trở lại. Hãy khởi động lại Instagram sau khi thay đổi.
+Never. Pick a time and the tab bar slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Không bao giờ. Hãy chọn một thời gian và thanh tab sẽ trượt đi khi reel phát chừng đó mà không chạm vào. Hãy khởi động lại Instagram sau khi thay đổi.
+On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Trên Reels, thanh tab trượt đi sau %1$d giây không chạm. Nhấn vào mép dưới màn hình, đổi tab hoặc nhấn Quay lại để đưa nó trở lại. Hãy khởi động lại Instagram sau khi thay đổi.
 Start feed videos with sound	Bắt đầu video bảng feed có tiếng
 The first video on Home plays with its sound on, the same as tapping its speaker. Your phone's ringer and volume still count, so on silent or with the volume down, it stays quiet.	Video đầu tiên trên trang chủ phát có tiếng, giống như nhấn loa của nó. Chuông và âm lượng điện thoại vẫn có tác dụng, nên ở chế độ im lặng hoặc khi hạ âm lượng, video vẫn không có tiếng.
 Tap a feed video to pause it	Nhấn video bảng feed để tạm dừng
@@ -997,6 +1014,10 @@ Long press a photo to zoom	Nhấn giữ ảnh để phóng to
 Press and hold a photo in a feed to see it twice as big around your finger, and slide to look around. Let go to close it. While this is on, it takes the place of Instagram's own long press on a photo.	Nhấn giữ ảnh trong bảng feed để thấy ảnh lớn gấp đôi quanh ngón tay và trượt để xem xung quanh. Thả ra để đóng. Khi bật, mục này thay cho thao tác nhấn giữ ảnh của Instagram.
 Keep the zoom open	Giữ ảnh phóng to
 The zoom stays up after you let go. Drag to look around, pinch to zoom from 1x to 4x, and tap or press Back to close it.	Ảnh phóng to vẫn mở sau khi bạn thả tay. Kéo để xem xung quanh, chụm ngón để thu phóng từ 1x đến 4x, nhấn hoặc nhấn Quay lại để đóng.
+# context: Feed settings, right under Keep the zoom open, and the toast when a post's video can't be opened in the full screen viewer. Close matches the viewer's Close button.
+Long press a post for full screen	Nhấn giữ bài đăng để xem toàn màn hình
+Press and hold a post in a feed to open it full screen. Pinch a photo to zoom and tap it to close. A video plays with a slider and a Close button. While this is on, it goes before the zoom and Instagram's own long press.	Nhấn giữ bài đăng trong bảng feed để mở toàn màn hình. Chụm ảnh để thu phóng và chạm để đóng. Video phát cùng thanh trượt và nút Đóng. Khi bật, tính năng này được ưu tiên trước thu phóng và thao tác nhấn giữ của Instagram.
+Couldn't play this video	Không phát được video này
 Zoomed photo	Ảnh phóng to
 Full screen Reels	Reels toàn màn hình
 Hides the status bar and the navigation bar while Reels shows. Swipe in from the edge to bring them back for a moment. Back and the keyboard work as usual.	Ẩn thanh trạng thái và thanh điều hướng khi Reels hiện. Vuốt từ mép vào để đưa chúng trở lại trong giây lát. Quay lại và bàn phím hoạt động như thường.
@@ -1042,6 +1063,15 @@ Hide Your algorithm on reels	Ẩn Thuật toán của bạn trên reel
 Takes the Your algorithm button off the top of the Reels tab and closes up the gap. The rest of the bar stays.	Gỡ nút Thuật toán của bạn khỏi đầu tab Reels và thu hẹp khoảng trống. Phần còn lại của thanh vẫn giữ.
 Hide the Friends tab on Reels	Ẩn tab Bạn bè trên Reels
 Takes the Friends tab, with reels the people you follow shared, off the top of the Reels tab. Reels stays where it is.	Gỡ tab Bạn bè, gồm các reel mà người bạn theo dõi chia sẻ, khỏi đầu tab Reels. Reels vẫn ở nguyên chỗ.
+# context: Reels settings. Shows Instagram's Friends tab at the top of the Reels tab on accounts that never got it. Friends tab wording matches the Hide the Friends tab row above it.
+Show the Friends tab on Reels	Hiện tab Bạn bè trên Reels
+Adds the Friends tab to the top of the Reels tab if your account never got it. What's in it still comes from Instagram, so it can be empty. Hide the Friends tab wins.	Thêm tab Bạn bè lên đầu tab Reels nếu tài khoản của bạn chưa từng có. Nội dung vẫn do Instagram cung cấp nên có thể trống. Tùy chọn Ẩn tab Bạn bè được ưu tiên.
+# context: Reels settings and the list held open from the Friends tab at the top of the Reels tab. Friends tab wording matches the Hide the Friends tab row above it. The last two are short toasts.
+Hold the Friends tab to pick friends	Giữ tab Bạn bè để chọn bạn bè
+Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	Giữ tab Bạn bè trên Reels rồi chọn trong số những người bạn tab đã hiện. Sau đó tab chỉ giữ các reel họ đã thích hoặc chia sẻ. Trang không có họ vẫn giữ một reel để trang tiếp theo có thể tải.
+Pick friends	Chọn bạn bè
+Open the Friends tab first.	Hãy mở tab Bạn bè trước.
+Applies to the next reels loaded.	Áp dụng cho các reel tải tiếp theo.
 Hide the Save button on reels	Ẩn nút Lưu trên reel
 Burn-in guard	Chống ám màn hình
 Dim when idle	Làm mờ khi không dùng
@@ -1060,6 +1090,9 @@ Reels open in clear mode from the first one, with no tap. Leave it yourself and 
 # context: Reels settings: a switch under Start every reel in clear mode (#480). It stops the short vibration Instagram plays when a reel opens in clear mode; Keep clear mode on is HushGram's switch of that name, so use the same words as that row
 Don't vibrate in clear mode	Không rung ở chế độ xem sạch
 Stops the short buzz Instagram plays when a reel opens in clear mode. With Keep clear mode on, that's every swipe.	Tắt rung ngắn mà Instagram phát khi một reel mở ở chế độ xem sạch. Khi bật Giữ chế độ xem sạch luôn bật, việc này xảy ra mỗi lần vuốt.
+# context: Reels settings: a switch under Don't vibrate in clear mode (#480). It keeps the seek bar on screen in clear mode; seek bar and clear mode use the same words as Keep a seek bar and Keep clear mode on
+Always show seek bar in clear mode	Luôn hiện thanh tua trong chế độ xem sạch
+Keeps the seek bar on a reel in clear mode, and you can still drag it, while the other buttons stay hidden. Short reels get a bar too, in clear mode or not.	Giữ thanh tua trên reel trong chế độ xem sạch để bạn vẫn kéo được, còn các nút khác vẫn ẩn. Reel ngắn cũng có thanh tua, dù có ở chế độ xem sạch hay không.
 Unlock with	Mở khóa bằng
 Phone lock	Khóa điện thoại
 HushGram PIN	PIN HushGram
@@ -1339,7 +1372,7 @@ Couldn't use that folder. Saves go where they did.	Không dùng được thư m�
 Saves go to Movies and Pictures again.	Bản lưu lại vào Movies và Pictures.
 %1$s didn't take this save, so it went to Movies and Pictures.	%1$s không nhận bản lưu này nên nó vào Movies và Pictures.
 Start reels with sound	Bắt đầu reel có tiếng
-A reel you tap open from a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Reel bạn nhấn mở từ bài viết trên trang chủ phát có tiếng, và trang chủ tắt tiếng lại khi bạn quay về. Chuông và âm lượng điện thoại vẫn có tác dụng.
+A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count.	Reel bạn mở từ tab Reels hoặc từ bài viết trên trang chủ phát có tiếng, và trang chủ tắt tiếng lại khi bạn quay về. Chuông và âm lượng điện thoại vẫn có tác dụng.
 Keep your place in Home	Giữ vị trí của bạn trên trang chủ
 Coming back to Instagram leaves Home on the post you were on, however long you were away. Pull down to refresh still reloads it.	Quay lại Instagram thì trang chủ vẫn ở bài viết bạn đang xem, dù bạn rời đi bao lâu. Kéo xuống để làm mới vẫn tải lại.
 Filter the Stories tray by verified accounts	Lọc khay Tin theo tài khoản đã xác minh

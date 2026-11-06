@@ -12,40 +12,65 @@
 
 **Your apps. A little better.**
 
-Focused Android fixes, ready for Morphe.
+Use Infinity+ with your own Reddit OAuth client, plus focused fixes for your other Android apps, ready for Morphe.
 
 Penguin Patches is an independent collection of fixes for selected Android apps. Each app guide identifies the exact original APK and documents what was tested.
 
-<a href="https://morphe.software/add-source?github=pengusto/penguin-patches"><img src="docs/assets/add-to-morphe.svg" alt="Add to Morphe →" width="242" height="52"></a>
+**[Set up Infinity+ →](docs/INFINITY.md)** · [Choose a Morphe source](docs/SETUP.md#add-the-source-and-patch)
+
+### Choose your patches
+
+In Morphe Manager, copy a source URL and add it as a **remote JSON source**:
+
+- **Standard:** Infinity+, Fossify and the other supported apps except Finamp. [Standard source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/standard/patches-bundle.json)
+- **Finamp:** One small, default-selected patch applies all eight fixes together, including the artist-order change. The [existing Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp/patches-bundle.json) switches to the compact bundle with the release containing this change.
+- **Finamp individual:** Choose any subset of the eight patches; this optional source downloads the large native selection matrix. The [individual Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp-individual/patches-bundle.json) becomes available with that release.
+
+The [original combined source](https://morphe.software/add-source?github=pengusto/penguin-patches) also switches to the compact Finamp patch. Existing installations and signing keys are unaffected. After the source update, Morphe can immediately start patching Finamp with all eight fixes selected; enable Expert mode to review the selection first. Choose either Finamp Complete or individual patches for a patching run, not both. [Setup and migration details →](docs/SETUP.md#add-the-source-and-patch)
 
 <!-- PATCHES_SUMMARY_START -->
-**24 patches · 14 apps · [v1.7.0](https://github.com/pengusto/penguin-patches/releases/tag/v1.7.0)**
+**17 patches · 14 apps · [v1.9.1](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.1)**
 <!-- PATCHES_SUMMARY_END -->
 
 [Before & after](#patch-previews) · [Supported apps](#generated-patch-catalogue) · [Setup & signing](#patch-an-app) · [Latest release](https://github.com/pengusto/penguin-patches/releases/latest)
 
 <!-- PATCHES_APPS_START -->
-<p>
-<a href="docs/MESSAGES.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Messages/02f511b292cc9790d0189a7e3d96ce3d71493890/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Messages app icon" width="32" height="32"> Fossify Messages</a> &nbsp;
-<a href="docs/CLOCK.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Clock/0511f508368ada82cdb587b0bf8df9d56cf9e6ad/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Clock app icon" width="32" height="32"> Fossify Clock</a> &nbsp;
-<a href="docs/INFINITY.md"><img src="https://raw.githubusercontent.com/Docile-Alligator/Infinity-For-Reddit/cc2845af8c4bb9375ee56b93944c5a0fa3ad70e0/fastlane/metadata/android/en-US/images/icon.png" alt="Infinity+ app icon" width="32" height="32"> Infinity+</a> &nbsp;
-<a href="docs/FINAMP_NATIVE.md"><img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="32" height="32"> Finamp</a> &nbsp;
-<a href="docs/READYOU.md"><img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/d2b979ccad9a3e54b9499929a9dc2824578b0fd9/fastlane/metadata/android/en-US/images/icon.png" alt="Read You app icon" width="32" height="32"> Read You</a> &nbsp;
-<a href="docs/FILE_MANAGER.md"><img src="https://raw.githubusercontent.com/FossifyOrg/File-Manager/c95de62b90c9f42601b88eca4f795338da3b161c/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify File Manager app icon" width="32" height="32"> Fossify File Manager</a> &nbsp;
-<a href="docs/KOMIKKU.md"><img src="https://raw.githubusercontent.com/komikku-app/komikku/383ffaa81667f45fc6c2975edb1760a7606531d3/.github/readme-images/app-icon.png" alt="Komikku app icon" width="32" height="32"> Komikku</a> &nbsp;
-<a href="docs/TASKS.md"><img src="https://raw.githubusercontent.com/tasks/tasks/d7c0afdb94f913943fd54833d3e108871e78bc36/fastlane/metadata/android/en-US/images/icon.png" alt="Tasks.org app icon" width="32" height="32"> Tasks.org</a> &nbsp;
-<a href="docs/MUSIC.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Music-Player/e76d0f222eaba2cfd4501ccc3b6a8d2e9f29b0c3/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Music Player app icon" width="32" height="32"> Fossify Music Player</a> &nbsp;
-<a href="docs/MIHON.md"><img src="https://raw.githubusercontent.com/mihonapp/mihon/ede052af170e2ef2949dac2acd91adfb58043a96/fastlane/metadata/android/en-US/images/icon.png" alt="Mihon app icon" width="32" height="32"> Mihon</a> &nbsp;
-<a href="docs/CALENDAR.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Calendar/a0d428461b5caac11ad570f77a4134b912093205/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Calendar app icon" width="32" height="32"> Fossify Calendar</a> &nbsp;
-<a href="docs/KVAESITSO.md"><img src="https://raw.githubusercontent.com/MM2-0/Kvaesitso/c4805f3f18d5bcf071c5287f81466efd79169b20/fastlane/metadata/android/en-US/images/icon.png" alt="Kvaesitso app icon" width="32" height="32"> Kvaesitso</a> &nbsp;
-<a href="docs/CONTACTS.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Contacts/6938eccfd1a10f924a6ced13695c73bd0cd84328/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Contacts app icon" width="32" height="32"> Fossify Contacts</a> &nbsp;
-<a href="docs/FEEDER.md"><img src="https://raw.githubusercontent.com/spacecowboy/Feeder/846b19d39b932b1a9864b4317365034f36fc4856/fastlane/metadata/android/en-US/images/icon.png" alt="Feeder app icon" width="32" height="32"> Feeder</a>
-</p>
+**Featured**
+
+<p><a href="docs/INFINITY.md"><img src="https://raw.githubusercontent.com/Docile-Alligator/Infinity-For-Reddit/cc2845af8c4bb9375ee56b93944c5a0fa3ad70e0/fastlane/metadata/android/en-US/images/icon.png" alt="Infinity+ app icon" width="32" height="32"><br>Infinity+</a></p>
+
+**Fossify**
+
+<table>
+<tr><td align="center"><a href="docs/CALENDAR.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Calendar/a0d428461b5caac11ad570f77a4134b912093205/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Calendar app icon" width="32" height="32"><br>Calendar</a></td><td align="center"><a href="docs/CLOCK.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Clock/0511f508368ada82cdb587b0bf8df9d56cf9e6ad/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Clock app icon" width="32" height="32"><br>Clock</a></td></tr>
+<tr><td align="center"><a href="docs/CONTACTS.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Contacts/6938eccfd1a10f924a6ced13695c73bd0cd84328/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Contacts app icon" width="32" height="32"><br>Contacts</a></td><td align="center"><a href="docs/FILE_MANAGER.md"><img src="https://raw.githubusercontent.com/FossifyOrg/File-Manager/c95de62b90c9f42601b88eca4f795338da3b161c/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify File Manager app icon" width="32" height="32"><br>File Manager</a></td></tr>
+<tr><td align="center"><a href="docs/MESSAGES.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Messages/02f511b292cc9790d0189a7e3d96ce3d71493890/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Messages app icon" width="32" height="32"><br>Messages</a></td><td align="center"><a href="docs/MUSIC.md"><img src="https://raw.githubusercontent.com/FossifyOrg/Music-Player/e76d0f222eaba2cfd4501ccc3b6a8d2e9f29b0c3/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Music Player app icon" width="32" height="32"><br>Music Player</a></td></tr>
+</table>
+
+**More apps**
+
+<table>
+<tr><td align="center"><a href="docs/FEEDER.md"><img src="https://raw.githubusercontent.com/spacecowboy/Feeder/846b19d39b932b1a9864b4317365034f36fc4856/fastlane/metadata/android/en-US/images/icon.png" alt="Feeder app icon" width="32" height="32"><br>Feeder</a></td><td align="center"><a href="docs/KOMIKKU.md"><img src="https://raw.githubusercontent.com/komikku-app/komikku/383ffaa81667f45fc6c2975edb1760a7606531d3/.github/readme-images/app-icon.png" alt="Komikku app icon" width="32" height="32"><br>Komikku</a></td></tr>
+<tr><td align="center"><a href="docs/KVAESITSO.md"><img src="https://raw.githubusercontent.com/MM2-0/Kvaesitso/c4805f3f18d5bcf071c5287f81466efd79169b20/fastlane/metadata/android/en-US/images/icon.png" alt="Kvaesitso app icon" width="32" height="32"><br>Kvaesitso</a></td><td align="center"><a href="docs/MIHON.md"><img src="https://raw.githubusercontent.com/mihonapp/mihon/ede052af170e2ef2949dac2acd91adfb58043a96/fastlane/metadata/android/en-US/images/icon.png" alt="Mihon app icon" width="32" height="32"><br>Mihon</a></td></tr>
+<tr><td align="center"><a href="docs/READYOU.md"><img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/d2b979ccad9a3e54b9499929a9dc2824578b0fd9/fastlane/metadata/android/en-US/images/icon.png" alt="Read You app icon" width="32" height="32"><br>Read You</a></td><td align="center"><a href="docs/TASKS.md"><img src="https://raw.githubusercontent.com/tasks/tasks/d7c0afdb94f913943fd54833d3e108871e78bc36/fastlane/metadata/android/en-US/images/icon.png" alt="Tasks.org app icon" width="32" height="32"><br>Tasks.org</a></td></tr>
+</table>
+
+**Optional Finamp**
+
+<p><a href="docs/FINAMP_NATIVE.md"><img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="32" height="32"><br>Finamp</a></p>
 <!-- PATCHES_APPS_END -->
 
 **Before installing:** use the exact original APK in your app's guide, verify your backup and keep your signing key. [Read the setup guide →](docs/SETUP.md)
 
-## Finamp, with the album artist first.
+## Infinity+: your Reddit client, your OAuth setup
+
+Use your authorized Reddit OAuth client and reach the existing login flow without the app subscription prompt. Reddit API approval and access are still required.
+
+In Morphe Manager 2.4.0, enable **Expert mode** before setting the three OAuth options. [Setup and current Manager limitation](docs/INFINITY.md#configure-and-patch).
+
+**[Set up Infinity+ →](docs/INFINITY.md)** · [See the comparison and its baseline →](#preview-configure-custom-oauth-for-infinity)
+
+## More fixes: Finamp, with the album artist first
 
 Album artists first. Other credits alphabetical. More modes in settings.
 
@@ -56,12 +81,12 @@ Album artists first. Other credits alphabetical. More modes in settings.
 Real Android APK captures with synthetic music data. [Evidence & limits](tests/finamp/evidence/2026-10-28/README.md).
 
 <!-- FINAMP_COUNT_START -->
-**[Explore the 8 Finamp patches →](docs/FINAMP_NATIVE.md)**
+**[Explore the 1 Finamp patch →](docs/FINAMP_NATIVE.md)**
 <!-- FINAMP_COUNT_END -->
 
 Choose how song credits appear, keep Output reachable with hidden player buttons, improve banner contrast, and fix library browsing or settings errors. For the official **Finamp 1.0.1 universal APK → ARM64 output**.
 
-**Upstream status · 2026-10-29:** the [title fix is merged](https://github.com/finamp-app/finamp/pull/1830), and the [banner fix already exists on `hotfix-1.0.2`](https://github.com/finamp-app/finamp/tree/hotfix-1.0.2). Both remain selectable as Penguin backports for the original **Finamp 1.0.1 APK**. [Status & release details](docs/FINAMP.md#upstream-status-2026-10-29).
+**Upstream status · 2026-10-29:** the [title fix is merged](https://github.com/finamp-app/finamp/pull/1830), and the [banner fix already exists on `hotfix-1.0.2`](https://github.com/finamp-app/finamp/tree/hotfix-1.0.2). Both are included in Finamp Complete and remain individually selectable in the separate source for the original **Finamp 1.0.1 APK**. [Status & release details](docs/FINAMP.md#upstream-status-2026-10-29).
 
 [Player output](#preview-keep-player-output-controls-accessible) · [Banner contrast](#preview-fix-quick-settings-banner-contrast) · [Title validation](#preview-fix-section-title-validation) · [Artist-page loading](#preview-load-artist-pages-faster) · [Offline artists](#preview-fix-offline-artist-tracks) · [Alphabet jumps](#preview-fix-track-alphabet-navigation)
 
@@ -77,221 +102,6 @@ Choose how song credits appear, keep Output reachable with hidden player buttons
 Open any patch below to see its matching before/after pair, right here. Grouped by app, with the capture baseline and evidence beside every pair. [Open the separate gallery →](docs/PATCH_EXAMPLES.md)
 
 <!-- PATCHES_PREVIEWS_START -->
-<a id="previews-com-unicornsonlsd-finamp"></a>
-
-### <img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="24" height="24"> Finamp · 8 patches
-
-<a id="preview-fix-offline-artist-tracks"></a>
-
-<details>
-<summary><strong>Fix offline artist tracks</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-Keep only tracks credited to the selected performing artist when a downloaded
-album contains several artists. Album-artist inclusion is preserved.
-
-**Android APK captures.** Same downloaded synthetic album, B Guest performing-artist
-filter, Name ordering, Dark theme and display size. Tracks 7–8 have other credits.
-The after image is an actual Morphe Manager export installed with the same key.
-
-| Before | After |
-| :---: | :---: |
-| **8 songs, including 2 unrelated tracks** | **6 matching songs** |
-| <img src="tests/finamp/evidence/2026-10-28-next/1689-before-tracks.png" width="300" alt="Before: B Guest includes Lead Solo and Album Credit Only"> | <img src="tests/finamp/evidence/2026-10-28-next/1689-after-tracks.png" width="300" alt="After: B Guest contains only the six credited songs"> |
-
-[Capture provenance & checks](tests/finamp/evidence/2026-10-28-next/README.md) · [Back to patch index](#patch-previews)
-
-</details>
-
-<a id="preview-fix-quick-settings-banner-contrast"></a>
-
-<details>
-<summary><strong>Fix quick settings banner contrast</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-Keep the quick-settings banner readable with a custom accent. Its text uses the matching `onPrimaryContainer` color, like its existing icons.
-
-**Upstream status · 2026-10-29:** the fix already exists on [`hotfix-1.0.2`](https://github.com/finamp-app/finamp/tree/hotfix-1.0.2) ([`124edc8`](https://github.com/finamp-app/finamp/commit/124edc8b94ea8fcba637a1dba31e7bd266644aa8)). Duplicate [PR #1837](https://github.com/finamp-app/finamp/pull/1837) is closed; this Penguin backport remains selectable for the original Finamp 1.0.1 APK.
-
-**Android APK captures.** Same Home screen, synthetic music, Light theme, accent **#152E85**, viewport and clock. The before retains the official native code; the after is the installed Manager export with only this patch selected.
-
-| Before | After |
-| :---: | :---: |
-| **Dark text is hard to read on the blue banner** | **Matching foreground keeps the banner readable** |
-| <img src="tests/finamp/evidence/2026-10-29-ui/banner-before.png" width="300" alt="Before: Dark text is hard to read on the blue banner"> | <img src="tests/finamp/evidence/2026-10-29-ui/banner-after.png" width="300" alt="After: Matching foreground keeps the banner readable"> |
-
-[Raw captures, provenance & Manager checks](tests/finamp/evidence/2026-10-29-ui/README.md) · [Closed duplicate PR #1837](https://github.com/finamp-app/finamp/pull/1837) · [Back to patch index](#patch-previews)
-
-</details>
-
-<a id="preview-fix-section-title-validation"></a>
-
-<details>
-<summary><strong>Fix section title validation</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-Typing a valid custom home-section title updates validation and enables Save immediately.
-
-**Upstream status · 2026-10-29:** [PR #1830](https://github.com/finamp-app/finamp/pull/1830) is merged into `redesign`. This Penguin backport remains selectable for the original Finamp 1.0.1 APK.
-
-**Source-widget comparison, not Android APK screenshots.** These are actual Finamp widgets rendered by Flutter tests, upstream redesign versus the combined source fixes. The native APK fix is verified separately in the [APK record](tests/finamp/evidence/2026-10-28/README.md); its original before-image is obscured by the keyboard.
-
-| Before | After |
-| :---: | :---: |
-| **Playlists entered; error remains and Save is disabled** | **Playlists entered; error clears and Save is enabled** |
-| <img src="https://raw.githubusercontent.com/pengusto/finamp/7e168434482e4e1e7b77a0c37337edb28291e2f8/contribution-evidence/2026-10-28/title-validation-before.png" width="300" alt="Before: Playlists entered; error remains and Save is disabled"> | <img src="https://raw.githubusercontent.com/pengusto/finamp/7e168434482e4e1e7b77a0c37337edb28291e2f8/contribution-evidence/2026-10-28/title-validation-after.png" width="300" alt="After: Playlists entered; error clears and Save is enabled"> |
-
-[Capture provenance & checks](https://github.com/pengusto/finamp/tree/7e168434482e4e1e7b77a0c37337edb28291e2f8/contribution-evidence/2026-10-28) · [Back to patch index](#patch-previews)
-
-</details>
-
-<a id="preview-fix-track-alphabet-navigation"></a>
-
-<details>
-<summary><strong>Fix track alphabet navigation</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-Compare the selected sidebar letter and track titles with consistent case.
-Existing missing-letter behavior and paging remain in place.
-
-**Android APK captures.** Same synthetic library, Name ordering, no filters and
-the same tap on M. The after image uses the independently selected alphabet fix
-exported by Morphe Manager. This is a correctness comparison, not a performance benchmark.
-
-| Before | After |
-| :---: | :---: |
-| **M stays in the numeric section** | **M reaches Midnight 01** |
-| <img src="tests/finamp/evidence/2026-10-28-next/1790-before-M.png" width="300" alt="Before: an M jump stays among numeric track titles"> | <img src="tests/finamp/evidence/2026-10-28-next/1790-after-M.png" width="300" alt="After: the same M jump reaches Midnight 01"> |
-
-[Capture provenance & checks](tests/finamp/evidence/2026-10-28-next/README.md) · [Back to patch index](#patch-previews)
-
-</details>
-
-<a id="preview-keep-player-output-controls-accessible"></a>
-
-<details>
-<summary><strong>Keep player output controls accessible</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-When bottom actions are hidden, the track menu ends with **Output, Queue and
-Lyrics**. Both menu-button and artwork-context access respect disabled gestures.
-Visible bottom actions have no duplicates in the menu.
-
-**Android APK captures.** Same synthetic track paused at 00:17, Dark theme, hidden
-bottom actions, disabled gestures, 1080×1920 viewport and 09:41 clock. The before
-APK retains the official native code; the after APK is the actual Player-only
-Morphe Manager export, installed through Manager’s Install action with the same test key.
-
-| Before | After |
-| :---: | :---: |
-| **Hidden bottom actions leave no menu routes** | **Output, Queue and Lyrics remain reachable** |
-| <img src="tests/finamp/evidence/2026-10-30-player/player-before.png" width="300" alt="Before: original player menu ends without Output, Queue or Lyrics"> | <img src="tests/finamp/evidence/2026-10-30-player/player-after.png" width="300" alt="After: installed Manager export adds Output, Queue and Lyrics at the menu bottom"> |
-
-[Capture provenance & checks](tests/finamp/evidence/2026-10-30-player/README.md) · [Back to patch index](#patch-previews)
-
-</details>
-
-<a id="preview-load-artist-pages-faster"></a>
-
-<details>
-<summary><strong>Load artist pages faster</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-Show the artist preview and track count without waiting for the full discography response.
-
-**Installed Android APK captures.** The fixture deliberately holds unbounded artist-track requests. Both captures use the same Dark theme, synthetic library, eight downloaded tracks, sort, viewport and demo clock. The patched APK was exported and installed through Morphe Manager. This verifies query behavior on the synthetic fixture.
-
-| Before | After |
-| :---: | :---: |
-| **Pending full-song queries: spinner and 0 Tracks** | **Bounded queries: preview and 8 Tracks appear** |
-| <img src="tests/finamp/evidence/2026-10-30-artist-review/artist-held-before.png" width="300" alt="Before: Pending full-song queries: spinner and 0 Tracks"> | <img src="tests/finamp/evidence/2026-10-30-artist-review/artist-held-after.png" width="300" alt="After: Bounded queries: preview and 8 Tracks appear"> |
-
-[Capture provenance & checks](tests/finamp/evidence/2026-10-30-artist-review/README.md) · [Back to patch index](#patch-previews)
-
-</details>
-
-<a id="preview-show-album-and-track-information"></a>
-
-<details>
-<summary><strong>Show album and track information</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-Read Jellyfin's available album and track descriptions, including descriptions
-saved with downloads. The track action follows the common actions in its menu.
-
-**Installed Android APK captures.** The same downloaded synthetic album, song,
-Light theme and display; the after APK was exported by Morphe Manager using the
-full locally built bundle. See the evidence for the scope of that test.
-
-| Before | After |
-| :---: | :---: |
-| **No track information action** | **Information action with icon** |
-| <img src="tests/finamp/evidence/2026-11-05-notes/track-before.png" width="300" alt="Before: track menu without an information action"> | <img src="tests/finamp/evidence/2026-11-05-notes/track-after.png" width="300" alt="After: track information with an icon below the common actions"> |
-
-[Album before](tests/finamp/evidence/2026-11-05-notes/album-before.png) · [Album after](tests/finamp/evidence/2026-11-05-notes/album-after.png) · [Raw captures and provenance](tests/finamp/evidence/2026-11-05-notes/README.md) · [Back to patch index](#patch-previews)
-
-</details>
-
-<a id="preview-song-artist-order"></a>
-
-<details>
-<summary><strong>Song artist order</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-Put the album artist first, then alphabetize the other song credits. Choose alternative modes in settings without rewriting music metadata.
-
-**Android APK captures.** Same synthetic album and Dark theme. The before APK retains the official native code; the after APK has the native patch.
-
-| Before | After |
-| :---: | :---: |
-| **A Guest, B Guest, Z Lead** | **Z Lead, A Guest, B Guest** |
-| <img src="tests/finamp/evidence/2026-10-28/credits-before.png" width="300" alt="Before: A Guest, B Guest, Z Lead"> | <img src="tests/finamp/evidence/2026-10-28/credits-after.png" width="300" alt="After: Z Lead, A Guest, B Guest"> |
-
-[Capture provenance & checks](tests/finamp/evidence/2026-10-28/README.md) · [Back to patch index](#patch-previews)
-
-</details>
-
-<a id="previews-com-nononsenseapps-feeder"></a>
-
-### <img src="https://raw.githubusercontent.com/spacecowboy/Feeder/846b19d39b932b1a9864b4317365034f36fc4856/fastlane/metadata/android/en-US/images/icon.png" alt="Feeder app icon" width="24" height="24"> Feeder · 1 patch
-
-<a id="preview-zoom-article-images"></a>
-
-<details>
-<summary><strong>Zoom article images</strong> · Before / after</summary>
-<br>
-
-**Feeder 2.25.0 · project GitHub F-Droid APK** · [Setup & patch details](docs/FEEDER.md)
-
-Open an article image in its own viewer and pinch, pan or double-tap to inspect small details.
-
-**Android APK captures.** Same synthetic offline article and image; the after capture shows actual zoom in the separate Morphe-patched viewer.
-
-| Before | After |
-| :---: | :---: |
-| **Diagram stays at article width** | **Same diagram enlarged in the image viewer** |
-| <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/feeder-391/2026-10-24/before.png" width="300" alt="Before: Diagram stays at article width"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/feeder-391/2026-10-24/zoomed.png" width="300" alt="After: Same diagram enlarged in the image viewer"> |
-
-[Capture provenance & checks](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/feeder-391/2026-10-24) · [Back to patch index](#patch-previews)
-
-</details>
-
 <a id="previews-ml-docilealligator-infinityforreddit-plus"></a>
 
 ### <img src="https://raw.githubusercontent.com/Docile-Alligator/Infinity-For-Reddit/cc2845af8c4bb9375ee56b93944c5a0fa3ad70e0/fastlane/metadata/android/en-US/images/icon.png" alt="Infinity+ app icon" width="24" height="24"> Infinity+ · 1 patch
@@ -565,6 +375,31 @@ Show the artwork embedded in the current track rather than reusing another track
 
 </details>
 
+<a id="previews-com-nononsenseapps-feeder"></a>
+
+### <img src="https://raw.githubusercontent.com/spacecowboy/Feeder/846b19d39b932b1a9864b4317365034f36fc4856/fastlane/metadata/android/en-US/images/icon.png" alt="Feeder app icon" width="24" height="24"> Feeder · 1 patch
+
+<a id="preview-zoom-article-images"></a>
+
+<details>
+<summary><strong>Zoom article images</strong> · Before / after</summary>
+<br>
+
+**Feeder 2.25.0 · project GitHub F-Droid APK** · [Setup & patch details](docs/FEEDER.md)
+
+Open an article image in its own viewer and pinch, pan or double-tap to inspect small details.
+
+**Android APK captures.** Same synthetic offline article and image; the after capture shows actual zoom in the separate Morphe-patched viewer.
+
+| Before | After |
+| :---: | :---: |
+| **Diagram stays at article width** | **Same diagram enlarged in the image viewer** |
+| <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/feeder-391/2026-10-24/before.png" width="300" alt="Before: Diagram stays at article width"> | <img src="https://raw.githubusercontent.com/pengusto/penguin-patches/8177428db162ed2e1a1b8de245cce479969046d3/feeder-391/2026-10-24/zoomed.png" width="300" alt="After: Same diagram enlarged in the image viewer"> |
+
+[Capture provenance & checks](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/feeder-391/2026-10-24) · [Back to patch index](#patch-previews)
+
+</details>
+
 <a id="previews-app-komikku"></a>
 
 ### <img src="https://raw.githubusercontent.com/komikku-app/komikku/383ffaa81667f45fc6c2975edb1760a7606531d3/.github/readme-images/app-icon.png" alt="Komikku app icon" width="24" height="24"> Komikku · 1 patch
@@ -702,6 +537,223 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 [Capture provenance & checks](https://github.com/pengusto/penguin-patches/tree/8177428db162ed2e1a1b8de245cce479969046d3/tasks-2838/2026-10-24) · [Back to patch index](#patch-previews)
 
 </details>
+
+<a id="previews-com-unicornsonlsd-finamp"></a>
+
+### <img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="24" height="24"> Finamp · 1 patch
+
+Finamp Complete combines the eight fixes shown below; individual selection is available separately.
+
+<a id="preview-finamp-complete-all-eight-fixes"></a>
+
+<details>
+<summary><strong>Finamp complete: all eight fixes</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+The compact patch applies the eight individual fixes together. This pair
+illustrates one included change: the track-information action. See the eight
+individual comparisons for the other changes.
+
+**Installed Android APK captures.** The before image is the original APK and
+the after image is the separately selected track-information patch, using the
+same synthetic track and display. The captures do not depict the compact bundle.
+
+| Before | After |
+| :---: | :---: |
+| **No track information action** | **Information action with icon** |
+| <img src="tests/finamp/evidence/2026-11-05-notes/track-before.png" width="300" alt="Before: track menu without an information action"> | <img src="tests/finamp/evidence/2026-11-05-notes/track-after.png" width="300" alt="After: track information with an icon below the common actions"> |
+
+[Capture provenance and limits](tests/finamp/evidence/2026-11-05-notes/README.md) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="preview-fix-section-title-validation"></a>
+
+<details>
+<summary><strong>Fix section title validation</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+Typing a valid custom home-section title updates validation and enables Save immediately.
+
+**Upstream status · 2026-10-29:** [PR #1830](https://github.com/finamp-app/finamp/pull/1830) is merged into `redesign`. This Penguin backport remains selectable for the original Finamp 1.0.1 APK.
+
+**Source-widget comparison, not Android APK screenshots.** These are actual Finamp widgets rendered by Flutter tests, upstream redesign versus the combined source fixes. The native APK fix is verified separately in the [APK record](tests/finamp/evidence/2026-10-28/README.md); its original before-image is obscured by the keyboard.
+
+| Before | After |
+| :---: | :---: |
+| **Playlists entered; error remains and Save is disabled** | **Playlists entered; error clears and Save is enabled** |
+| <img src="https://raw.githubusercontent.com/pengusto/finamp/7e168434482e4e1e7b77a0c37337edb28291e2f8/contribution-evidence/2026-10-28/title-validation-before.png" width="300" alt="Before: Playlists entered; error remains and Save is disabled"> | <img src="https://raw.githubusercontent.com/pengusto/finamp/7e168434482e4e1e7b77a0c37337edb28291e2f8/contribution-evidence/2026-10-28/title-validation-after.png" width="300" alt="After: Playlists entered; error clears and Save is enabled"> |
+
+[Capture provenance & checks](https://github.com/pengusto/finamp/tree/7e168434482e4e1e7b77a0c37337edb28291e2f8/contribution-evidence/2026-10-28) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="preview-song-artist-order"></a>
+
+<details>
+<summary><strong>Song artist order</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+Put the album artist first, then alphabetize the other song credits. Choose alternative modes in settings without rewriting music metadata.
+
+**Android APK captures.** Same synthetic album and Dark theme. The before APK retains the official native code; the after APK has the native patch.
+
+| Before | After |
+| :---: | :---: |
+| **A Guest, B Guest, Z Lead** | **Z Lead, A Guest, B Guest** |
+| <img src="tests/finamp/evidence/2026-10-28/credits-before.png" width="300" alt="Before: A Guest, B Guest, Z Lead"> | <img src="tests/finamp/evidence/2026-10-28/credits-after.png" width="300" alt="After: Z Lead, A Guest, B Guest"> |
+
+[Capture provenance & checks](tests/finamp/evidence/2026-10-28/README.md) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="preview-load-artist-pages-faster"></a>
+
+<details>
+<summary><strong>Load artist pages faster</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+Show the artist preview and track count without waiting for the full discography response.
+
+**Installed Android APK captures.** The fixture deliberately holds unbounded artist-track requests. Both captures use the same Dark theme, synthetic library, eight downloaded tracks, sort, viewport and demo clock. The patched APK was exported and installed through Morphe Manager. This verifies query behavior on the synthetic fixture.
+
+| Before | After |
+| :---: | :---: |
+| **Pending full-song queries: spinner and 0 Tracks** | **Bounded queries: preview and 8 Tracks appear** |
+| <img src="tests/finamp/evidence/2026-10-30-artist-review/artist-held-before.png" width="300" alt="Before: Pending full-song queries: spinner and 0 Tracks"> | <img src="tests/finamp/evidence/2026-10-30-artist-review/artist-held-after.png" width="300" alt="After: Bounded queries: preview and 8 Tracks appear"> |
+
+[Capture provenance & checks](tests/finamp/evidence/2026-10-30-artist-review/README.md) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="preview-fix-offline-artist-tracks"></a>
+
+<details>
+<summary><strong>Fix offline artist tracks</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+Keep only tracks credited to the selected performing artist when a downloaded
+album contains several artists. Album-artist inclusion is preserved.
+
+**Android APK captures.** Same downloaded synthetic album, B Guest performing-artist
+filter, Name ordering, Dark theme and display size. Tracks 7–8 have other credits.
+The after image is an actual Morphe Manager export installed with the same key.
+
+| Before | After |
+| :---: | :---: |
+| **8 songs, including 2 unrelated tracks** | **6 matching songs** |
+| <img src="tests/finamp/evidence/2026-10-28-next/1689-before-tracks.png" width="300" alt="Before: B Guest includes Lead Solo and Album Credit Only"> | <img src="tests/finamp/evidence/2026-10-28-next/1689-after-tracks.png" width="300" alt="After: B Guest contains only the six credited songs"> |
+
+[Capture provenance & checks](tests/finamp/evidence/2026-10-28-next/README.md) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="preview-fix-track-alphabet-navigation"></a>
+
+<details>
+<summary><strong>Fix track alphabet navigation</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+Compare the selected sidebar letter and track titles with consistent case.
+Existing missing-letter behavior and paging remain in place.
+
+**Android APK captures.** Same synthetic library, Name ordering, no filters and
+the same tap on M. The after image uses the independently selected alphabet fix
+exported by Morphe Manager. This is a correctness comparison, not a performance benchmark.
+
+| Before | After |
+| :---: | :---: |
+| **M stays in the numeric section** | **M reaches Midnight 01** |
+| <img src="tests/finamp/evidence/2026-10-28-next/1790-before-M.png" width="300" alt="Before: an M jump stays among numeric track titles"> | <img src="tests/finamp/evidence/2026-10-28-next/1790-after-M.png" width="300" alt="After: the same M jump reaches Midnight 01"> |
+
+[Capture provenance & checks](tests/finamp/evidence/2026-10-28-next/README.md) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="preview-keep-player-output-controls-accessible"></a>
+
+<details>
+<summary><strong>Keep player output controls accessible</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+When bottom actions are hidden, the track menu ends with **Output, Queue and
+Lyrics**. Both menu-button and artwork-context access respect disabled gestures.
+Visible bottom actions have no duplicates in the menu.
+
+**Android APK captures.** Same synthetic track paused at 00:17, Dark theme, hidden
+bottom actions, disabled gestures, 1080×1920 viewport and 09:41 clock. The before
+APK retains the official native code; the after APK is the actual Player-only
+Morphe Manager export, installed through Manager’s Install action with the same test key.
+
+| Before | After |
+| :---: | :---: |
+| **Hidden bottom actions leave no menu routes** | **Output, Queue and Lyrics remain reachable** |
+| <img src="tests/finamp/evidence/2026-10-30-player/player-before.png" width="300" alt="Before: original player menu ends without Output, Queue or Lyrics"> | <img src="tests/finamp/evidence/2026-10-30-player/player-after.png" width="300" alt="After: installed Manager export adds Output, Queue and Lyrics at the menu bottom"> |
+
+[Capture provenance & checks](tests/finamp/evidence/2026-10-30-player/README.md) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="preview-fix-quick-settings-banner-contrast"></a>
+
+<details>
+<summary><strong>Fix quick settings banner contrast</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+Keep the quick-settings banner readable with a custom accent. Its text uses the matching `onPrimaryContainer` color, like its existing icons.
+
+**Upstream status · 2026-10-29:** the fix already exists on [`hotfix-1.0.2`](https://github.com/finamp-app/finamp/tree/hotfix-1.0.2) ([`124edc8`](https://github.com/finamp-app/finamp/commit/124edc8b94ea8fcba637a1dba31e7bd266644aa8)). Duplicate [PR #1837](https://github.com/finamp-app/finamp/pull/1837) is closed; this Penguin backport remains selectable for the original Finamp 1.0.1 APK.
+
+**Android APK captures.** Same Home screen, synthetic music, Light theme, accent **#152E85**, viewport and clock. The before retains the official native code; the after is the installed Manager export with only this patch selected.
+
+| Before | After |
+| :---: | :---: |
+| **Dark text is hard to read on the blue banner** | **Matching foreground keeps the banner readable** |
+| <img src="tests/finamp/evidence/2026-10-29-ui/banner-before.png" width="300" alt="Before: Dark text is hard to read on the blue banner"> | <img src="tests/finamp/evidence/2026-10-29-ui/banner-after.png" width="300" alt="After: Matching foreground keeps the banner readable"> |
+
+[Raw captures, provenance & Manager checks](tests/finamp/evidence/2026-10-29-ui/README.md) · [Closed duplicate PR #1837](https://github.com/finamp-app/finamp/pull/1837) · [Back to patch index](#patch-previews)
+
+</details>
+
+<a id="preview-show-album-and-track-information"></a>
+
+<details>
+<summary><strong>Show album and track information</strong> · Before / after</summary>
+<br>
+
+**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
+
+Read Jellyfin's available album and track descriptions, including descriptions
+saved with downloads. The track action follows the common actions in its menu.
+
+**Installed Android APK captures.** The same downloaded synthetic album, song,
+Light theme and display; the after APK was exported by Morphe Manager using the
+full locally built bundle. See the evidence for the scope of that test.
+
+| Before | After |
+| :---: | :---: |
+| **No track information action** | **Information action with icon** |
+| <img src="tests/finamp/evidence/2026-11-05-notes/track-before.png" width="300" alt="Before: track menu without an information action"> | <img src="tests/finamp/evidence/2026-11-05-notes/track-after.png" width="300" alt="After: track information with an icon below the common actions"> |
+
+[Album before](tests/finamp/evidence/2026-11-05-notes/album-before.png) · [Album after](tests/finamp/evidence/2026-11-05-notes/album-after.png) · [Raw captures and provenance](tests/finamp/evidence/2026-11-05-notes/README.md) · [Back to patch index](#patch-previews)
+
+</details>
 <!-- PATCHES_PREVIEWS_END -->
 
 <a id="the-fixes"></a>
@@ -711,39 +763,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 <details>
 <summary><strong>All 14 apps and supported versions</strong></summary>
 
-> **[v1.7.0](https://github.com/pengusto/penguin-patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;24 patches total
-<details>
-<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Messages/02f511b292cc9790d0189a7e3d96ce3d71493890/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Messages app icon" width="24" height="24"> Fossify Messages&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.10.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="avoid-notifications-for-visible-conversations"></a>[Avoid notifications for visible conversations](docs/MESSAGES.md)<br>[Before / after](#preview-avoid-notifications-for-visible-conversations) | Check visible conversation on the main thread before posting an incoming-message notification. |  |
-| <a id="dismiss-notifications-when-marking-conversations-read"></a>[Dismiss notifications when marking conversations read](docs/MESSAGES.md)<br>[Before / after](#preview-dismiss-notifications-when-marking-conversations-read) | Remove the selected conversation's notification after Mark as read in the conversation list. |  |
-| <a id="keep-background-conversations-unread"></a>[Keep background conversations unread](docs/MESSAGES.md)<br>[Before / after](#preview-keep-background-conversations-unread) | Do not mark incoming messages read when their conversation is left in the background. |  |
-
-</details>
-
-<details>
-<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Clock/0511f508368ada82cdb587b0bf8df9d56cf9e6ad/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Clock app icon" width="24" height="24"> Fossify Clock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.6.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="choose-upcoming-alarm-notification-time"></a>[Choose upcoming alarm notification time](docs/CLOCK.md)<br>[Before / after](#preview-choose-upcoming-alarm-notification-time) | Choose the advance notice in Morphe, with separate notifications and skip actions for each alarm occurrence. Keeps native ringing times and alarm definitions. | • Upcoming alarm notice (minutes) |
-
-</details>
-
+> **[v1.9.1](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details>
 <summary><img src="https://raw.githubusercontent.com/Docile-Alligator/Infinity-For-Reddit/cc2845af8c4bb9375ee56b93944c5a0fa3ad70e0/fastlane/metadata/android/en-US/images/icon.png" alt="Infinity+ app icon" width="24" height="24"> Infinity+&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -756,118 +776,6 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | <a id="configure-custom-oauth-for-infinity"></a>[Configure custom OAuth for Infinity+](docs/INFINITY.md)<br>[Before / after](#preview-configure-custom-oauth-for-infinity) | Use a configured Reddit OAuth client consistently through login and token exchange in Infinity+ 8.3.4, without the app subscription gate. | • OAuth client ID<br>• Registered redirect URI<br>• API user agent |
-
-</details>
-
-<details>
-<summary><img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="24" height="24"> Finamp&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.0.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="fix-offline-artist-tracks"></a>[Fix offline artist tracks](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-fix-offline-artist-tracks) | Exclude unrelated songs from shared albums on offline performing-artist pages (#1689). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-| <a id="fix-quick-settings-banner-contrast"></a>[Fix quick settings banner contrast](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-fix-quick-settings-banner-contrast) | Use the banner's matching foreground color so its text stays readable with custom accents (#1756). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-| <a id="fix-section-title-validation"></a>[Fix section title validation](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-fix-section-title-validation) | Update validation and enable Save when a custom home-section title is entered (#1830). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-| <a id="fix-track-alphabet-navigation"></a>[Fix track alphabet navigation](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-fix-track-alphabet-navigation) | Compare song names and target letters consistently when jumping through the Tracks alphabet (#1790). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-| <a id="keep-player-output-controls-accessible"></a>[Keep player output controls accessible](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-keep-player-output-controls-accessible) | Keep Output, Queue and Lyrics at the bottom of the player menu when bottom actions are hidden, while respecting disabled gestures (#1355). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-| <a id="load-artist-pages-faster"></a>[Load artist pages faster](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-load-artist-pages-faster) | Load artist previews and track counts without downloading the full discography (#1832). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-| <a id="show-album-and-track-information"></a>[Show album and track information](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-show-album-and-track-information) | Show available Jellyfin album and track descriptions, including descriptions saved by download sync (#1852). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-| <a id="song-artist-order"></a>[Song artist order](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-song-artist-order) | Choose song-credit display order, including album artists first, metadata order and alphabetical (#1831). Requires the original official Finamp 1.0.1 APK. Produces ARM64-only output; other native architectures are removed. |  |
-
-</details>
-
-<details>
-<summary><img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/d2b979ccad9a3e54b9499929a9dc2824578b0fd9/fastlane/metadata/android/en-US/images/icon.png" alt="Read You app icon" width="24" height="24"> Read You&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 0.16.2 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="import-nested-opml-feeds"></a>[Import nested OPML feeds](docs/READYOU.md)<br>[Before / after](#preview-import-nested-opml-feeds) | Import feeds inside nested OPML folders into their outer group, preserving document order and feed settings. Official GitHub Read You 0.16.2 APK only. |  |
-
-</details>
-
-<details>
-<summary><img src="https://raw.githubusercontent.com/FossifyOrg/File-Manager/c95de62b90c9f42601b88eca4f795338da3b161c/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify File Manager app icon" width="24" height="24"> Fossify File Manager&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.6.2 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="keep-favorites-consistent-after-folder-rename-or-removal"></a>[Keep favorites consistent after folder rename or removal](docs/FILE_MANAGER.md)<br>[Before / after](#preview-keep-favorites-consistent-after-folder-rename-or-removal) | Update nested favorite paths after successful single or multiple renames and remove nested favorites with their deleted parent. |  |
-
-</details>
-
-<details>
-<summary><img src="https://raw.githubusercontent.com/komikku-app/komikku/383ffaa81667f45fc6c2975edb1760a7606531d3/.github/readme-images/app-icon.png" alt="Komikku app icon" width="24" height="24"> Komikku&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.14.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="keep-local-manga-in-exclusion-searches"></a>[Keep local manga in exclusion searches](docs/KOMIKKU.md)<br>[Before / after](#preview-keep-local-manga-in-exclusion-searches) | Keep local manga when an excluded search term does not match. Matching titles, tags and remote source IDs are still excluded. Official GitHub Komikku 1.14.1 ARM64 APK tested. |  |
-
-</details>
-
-<details>
-<summary><img src="https://raw.githubusercontent.com/tasks/tasks/d7c0afdb94f913943fd54833d3e108871e78bc36/fastlane/metadata/android/en-US/images/icon.png" alt="Tasks.org app icon" width="24" height="24"> Tasks.org&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 15.13 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="navigate-to-the-parent-task"></a>[Navigate to the parent task](docs/TASKS.md)<br>[Before / after](#preview-navigate-to-the-parent-task) | Add a parent-task arrow to the existing editor. Keeps Back behavior and the current filter; asks whether to save, discard or cancel when the draft has changes. Official project F-Droid APK 15.13 only. |  |
-
-</details>
-
-<details>
-<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Music-Player/e76d0f222eaba2cfd4501ccc3b6a8d2e9f29b0c3/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Music Player app icon" width="24" height="24"> Fossify Music Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.8.4 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="prefer-each-track-s-embedded-cover"></a><a id="prefer-each-tracks-embedded-cover"></a>[Prefer each track's embedded cover](docs/MUSIC.md)<br>[Before / after](#preview-prefer-each-track-s-embedded-cover) | Use file-specific cover artwork before shared album art, retaining the original fallback and worker callback. |  |
-
-</details>
-
-<details>
-<summary><img src="https://raw.githubusercontent.com/mihonapp/mihon/ede052af170e2ef2949dac2acd91adfb58043a96/fastlane/metadata/android/en-US/images/icon.png" alt="Mihon app icon" width="24" height="24"> Mihon&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 0.21.3 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| <a id="preserve-excluded-default-category-downloads"></a>[Preserve excluded Default-category downloads](docs/MIHON.md)<br>[Before / after](#preview-preserve-excluded-default-category-downloads) | Keep read chapter downloads when Default is excluded from deletion. Corrects the Default category's numeric ID without changing other deletion preferences. Official GitHub Mihon 0.21.3 ARM64 APK tested. |  |
 
 </details>
 
@@ -888,17 +796,17 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
-<summary><img src="https://raw.githubusercontent.com/MM2-0/Kvaesitso/c4805f3f18d5bcf071c5287f81466efd79169b20/fastlane/metadata/android/en-US/images/icon.png" alt="Kvaesitso app icon" width="24" height="24"> Kvaesitso&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Clock/0511f508368ada82cdb587b0bf8df9d56cf9e6ad/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Clock app icon" width="24" height="24"> Fossify Clock&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.41.0 |
+| 1.6.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| <a id="restore-widget-editing-from-the-search-menu"></a>[Restore widget editing from the search menu](docs/KVAESITSO.md)<br>[Before / after](#preview-restore-widget-editing-from-the-search-menu) | Open the existing widget editor from the search bar menu when the Edit button is hidden, without changing the preference or stored widgets. |  |
+| <a id="choose-upcoming-alarm-notification-time"></a>[Choose upcoming alarm notification time](docs/CLOCK.md)<br>[Before / after](#preview-choose-upcoming-alarm-notification-time) | Choose the advance notice in Morphe, with separate notifications and skip actions for each alarm occurrence. Keeps native ringing times and alarm definitions. | • Upcoming alarm notice (minutes) |
 
 </details>
 
@@ -918,6 +826,53 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 </details>
 
 <details>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/File-Manager/c95de62b90c9f42601b88eca4f795338da3b161c/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify File Manager app icon" width="24" height="24"> Fossify File Manager&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.6.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="keep-favorites-consistent-after-folder-rename-or-removal"></a>[Keep favorites consistent after folder rename or removal](docs/FILE_MANAGER.md)<br>[Before / after](#preview-keep-favorites-consistent-after-folder-rename-or-removal) | Update nested favorite paths after successful single or multiple renames and remove nested favorites with their deleted parent. |  |
+
+</details>
+
+<details>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Messages/02f511b292cc9790d0189a7e3d96ce3d71493890/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Messages app icon" width="24" height="24"> Fossify Messages&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.10.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="avoid-notifications-for-visible-conversations"></a>[Avoid notifications for visible conversations](docs/MESSAGES.md)<br>[Before / after](#preview-avoid-notifications-for-visible-conversations) | Check visible conversation on the main thread before posting an incoming-message notification. |  |
+| <a id="dismiss-notifications-when-marking-conversations-read"></a>[Dismiss notifications when marking conversations read](docs/MESSAGES.md)<br>[Before / after](#preview-dismiss-notifications-when-marking-conversations-read) | Remove the selected conversation's notification after Mark as read in the conversation list. |  |
+| <a id="keep-background-conversations-unread"></a>[Keep background conversations unread](docs/MESSAGES.md)<br>[Before / after](#preview-keep-background-conversations-unread) | Do not mark incoming messages read when their conversation is left in the background. |  |
+
+</details>
+
+<details>
+<summary><img src="https://raw.githubusercontent.com/FossifyOrg/Music-Player/e76d0f222eaba2cfd4501ccc3b6a8d2e9f29b0c3/fastlane/metadata/android/en-US/images/icon.png" alt="Fossify Music Player app icon" width="24" height="24"> Fossify Music Player&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.8.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="prefer-each-track-s-embedded-cover"></a><a id="prefer-each-tracks-embedded-cover"></a>[Prefer each track's embedded cover](docs/MUSIC.md)<br>[Before / after](#preview-prefer-each-track-s-embedded-cover) | Use file-specific cover artwork before shared album art, retaining the original fallback and worker callback. |  |
+
+</details>
+
+<details>
 <summary><img src="https://raw.githubusercontent.com/spacecowboy/Feeder/846b19d39b932b1a9864b4317365034f36fc4856/fastlane/metadata/android/en-US/images/icon.png" alt="Feeder app icon" width="24" height="24"> Feeder&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -932,6 +887,96 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 
 </details>
 
+<details>
+<summary><img src="https://raw.githubusercontent.com/komikku-app/komikku/383ffaa81667f45fc6c2975edb1760a7606531d3/.github/readme-images/app-icon.png" alt="Komikku app icon" width="24" height="24"> Komikku&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.14.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="keep-local-manga-in-exclusion-searches"></a>[Keep local manga in exclusion searches](docs/KOMIKKU.md)<br>[Before / after](#preview-keep-local-manga-in-exclusion-searches) | Keep local manga when an excluded search term does not match. Matching titles, tags and remote source IDs are still excluded. Official GitHub Komikku 1.14.1 ARM64 APK tested. |  |
+
+</details>
+
+<details>
+<summary><img src="https://raw.githubusercontent.com/MM2-0/Kvaesitso/c4805f3f18d5bcf071c5287f81466efd79169b20/fastlane/metadata/android/en-US/images/icon.png" alt="Kvaesitso app icon" width="24" height="24"> Kvaesitso&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.41.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="restore-widget-editing-from-the-search-menu"></a>[Restore widget editing from the search menu](docs/KVAESITSO.md)<br>[Before / after](#preview-restore-widget-editing-from-the-search-menu) | Open the existing widget editor from the search bar menu when the Edit button is hidden, without changing the preference or stored widgets. |  |
+
+</details>
+
+<details>
+<summary><img src="https://raw.githubusercontent.com/mihonapp/mihon/ede052af170e2ef2949dac2acd91adfb58043a96/fastlane/metadata/android/en-US/images/icon.png" alt="Mihon app icon" width="24" height="24"> Mihon&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 0.21.3 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="preserve-excluded-default-category-downloads"></a>[Preserve excluded Default-category downloads](docs/MIHON.md)<br>[Before / after](#preview-preserve-excluded-default-category-downloads) | Keep read chapter downloads when Default is excluded from deletion. Corrects the Default category's numeric ID without changing other deletion preferences. Official GitHub Mihon 0.21.3 ARM64 APK tested. |  |
+
+</details>
+
+<details>
+<summary><img src="https://raw.githubusercontent.com/ReadYouApp/ReadYou/d2b979ccad9a3e54b9499929a9dc2824578b0fd9/fastlane/metadata/android/en-US/images/icon.png" alt="Read You app icon" width="24" height="24"> Read You&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 0.16.2 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="import-nested-opml-feeds"></a>[Import nested OPML feeds](docs/READYOU.md)<br>[Before / after](#preview-import-nested-opml-feeds) | Import feeds inside nested OPML folders into their outer group, preserving document order and feed settings. Official GitHub Read You 0.16.2 APK only. |  |
+
+</details>
+
+<details>
+<summary><img src="https://raw.githubusercontent.com/tasks/tasks/d7c0afdb94f913943fd54833d3e108871e78bc36/fastlane/metadata/android/en-US/images/icon.png" alt="Tasks.org app icon" width="24" height="24"> Tasks.org&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 15.13 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="navigate-to-the-parent-task"></a>[Navigate to the parent task](docs/TASKS.md)<br>[Before / after](#preview-navigate-to-the-parent-task) | Add a parent-task arrow to the existing editor. Keeps Back behavior and the current filter; asks whether to save, discard or cancel when the draft has changes. Official project F-Droid APK 15.13 only. |  |
+
+</details>
+
+<details>
+<summary><img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="24" height="24"> Finamp&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.0.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| <a id="finamp-complete-all-eight-fixes"></a>[Finamp complete: all eight fixes](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-finamp-complete-all-eight-fixes) | Apply all eight Penguin Finamp fixes together, including song artist order and album/track information. Requires the original official Finamp 1.0.1 APK; produces ARM64-only output. |  |
+
+</details>
+
 </details>
 <!-- PATCHES_END -->
 
@@ -940,7 +985,7 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 <details>
 <summary><strong>Setup, signing & verification</strong></summary>
 
-1. [Add the source to Morphe](https://morphe.software/add-source?github=pengusto/penguin-patches).
+1. [Choose and add your Morphe source](docs/SETUP.md#add-the-source-and-patch).
 2. Pick the exact original APK from the app guide, select patches and set their options.
 3. Patch, sign and install with your backed-up Morphe key.
 

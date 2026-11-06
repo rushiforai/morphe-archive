@@ -160,6 +160,7 @@ Privacy	Datenschutz
 Disable analytics	Analyse deaktivieren
 Firebase and Google Analytics collection is turned off	Die Datenerfassung von Firebase und Google Analytics ist ausgeschaltet
 Hide advertising ID	Werbe-ID verbergen
+Sanitize sharing links	Geteilte Links bereinigen
 Remove ad tracking permissions	Werbe-Tracking-Berechtigungen entfernen
 Tumblr can no longer use Google's ad ID permission or Android's ad services. This was set when you patched. Patch again without it to bring them back.	Tumblr kann die Werbe-ID-Berechtigung von Google und die Werbedienste von Android nicht mehr nutzen. Das wurde beim Patchen festgelegt. Patche erneut ohne diesen Patch, um sie zurückzubekommen.
 Tumblr's access to the ad ID and Android's ad services is removed	Tumblrs Zugriff auf die Werbe-ID und die Werbedienste von Android ist entfernt
@@ -222,6 +223,7 @@ Lets a patched Tumblr sign up for push notifications when Google would turn it a
 Open Tumblr's settings from the gear on your account tab. HushTumblr doesn't change any of these.	Öffne Tumblrs Einstellungen über das Zahnrad im Konto-Tab. HushTumblr ändert keine davon.
 Push alerts	Push-Hinweise
 Tumblr and the ad companies inside it see an empty advertising ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Tumblr und die Werbefirmen darin sehen eine leere Werbe-ID mit eingeschränktem Werbe-Tracking, so als hättest du deine Werbe-ID in den Android-Einstellungen gelöscht.
+Links you share or copy leave out the share tag Tumblr adds to them. They still open the same post.	Links, die du teilst oder kopierst, lassen das Teilen-Kennzeichen weg, das Tumblr anhängt. Sie öffnen weiterhin denselben Beitrag.
 Use the email on your Tumblr account and a Tumblr password. Google sign-in may not work, because this patched app is signed with a different key. Push notifications haven't been tested.	Nutze die E-Mail-Adresse deines Tumblr-Kontos und ein Tumblr-Passwort. Die Google-Anmeldung funktioniert vielleicht nicht, weil diese gepatchte App mit einem anderen Schlüssel signiert ist. Push-Benachrichtigungen wurden nicht getestet.
 # context: the Feed page and its Hide ads switch.
 Feed	Feed
@@ -230,7 +232,7 @@ Takes ads and paid Blaze posts out of your dashboard and other feeds. Once Tumbl
 Keep Blaze posts	Blaze-Beiträge behalten
 When ads are hidden, keep posts people paid to promote with Blaze. Other ads and post filters still apply.	Behält Beiträge, für die jemand mit Blaze bezahlt hat, wenn Werbung ausgeblendet ist. Andere Werbung und Beitragsfilter gelten weiter.
 # context: the Disable analytics switch on the Privacy page.
-Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Firebase and Google's analytics collection stay off until you patch again without it.	Beendet Tumblrs eigenes Tracking und die Werbemessung und lässt den Tracker von LiveRamp nicht starten. Die Datenerfassung von Firebase und Google Analytics bleibt aus, bis du ohne diesen Patch neu patchst.
+Stops Tumblr's own tracking and ad measurement, and keeps LiveRamp's tracker from starting. Crashlytics crash reports stay off while this is on. Firebase and Google's analytics collection stay off until you patch again without it.	Beendet Tumblrs eigenes Tracking und die Werbemessung und lässt den Tracker von LiveRamp nicht starten. Crashlytics-Absturzberichte bleiben aus, solange das an ist. Die Datenerfassung von Firebase und Google Analytics bleibt aus, bis du ohne diesen Patch neu patchst.
 # context: the Hide the ad-free banner switch on the Feed page.
 Hide the ad-free banner	Werbefrei-Banner ausblenden
 Hides the dashboard banner that asks you to pay for Ad-Free Browsing.	Blendet das Banner im Dashboard aus, das dich bittet, für werbefreies Surfen zu bezahlen.
@@ -391,9 +393,9 @@ When reblogs are hidden, keep ones with tags. Other post filters still apply.	Be
 Keep reblogs with added content	Reblogs mit eigenem Inhalt behalten
 When reblogs are hidden, keep ones where the reblogger added something of their own. Other post filters still apply.	Behält Reblogs, bei denen jemand etwas Eigenes hinzugefügt hat, wenn Reblogs ausgeblendet sind. Andere Beitragsfilter gelten weiter.
 Hide your own reblogs	Eigene Reblogs ausblenden
-Takes the reblogs you made out of your dashboard and the feeds like it. Your blog still shows them.	Entfernt die Reblogs, die du gemacht hast, aus deinem Dashboard und ähnlichen Feeds. Dein Blog zeigt sie weiterhin.
+Takes the reblogs you made out of your dashboard. Your blog and the rest of Tumblr still show them.	Entfernt die Reblogs, die du gemacht hast, aus deinem Dashboard. Dein Blog und der Rest von Tumblr zeigen sie weiterhin.
 Hide liked posts	Gelikte Beiträge ausblenden
-Takes the posts you've already liked out of your dashboard and the feeds like it. Your likes and blogs still show them.	Entfernt Beiträge, die du schon geliked hast, aus deinem Dashboard und ähnlichen Feeds. Deine Likes und Blogs zeigen sie weiterhin.
+Takes the posts you've already liked out of your dashboard. Your likes and the rest of Tumblr still show them.	Entfernt Beiträge, die du schon geliked hast, aus deinem Dashboard. Deine Likes und der Rest von Tumblr zeigen sie weiterhin.
 Match current post text	Aktuellen Beitragstext prüfen
 Match reblog trail text	Text der Reblog-Kette prüfen
 Match current post tags	Tags des aktuellen Beitrags prüfen
@@ -410,7 +412,7 @@ Shows author-provided image descriptions below images.	Zeigt Bildbeschreibungen 
 photo image descriptions	Bildbeschreibungen von Fotos
 gallery image descriptions	Bildbeschreibungen in Galerien
 Mute posts locally	Posts lokal stummschalten
-Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account.	Füge Posts über ihr Menü einer privaten Liste hinzu. Originale und ihre Reblogs bleiben für dieses Konto ausgeblendet.
+Add posts to a private list from their menu. Originals and their reblogs stay hidden for this account. On the dashboard, the menu can also hide one blog's reblogs or originals.	Füge Posts über ihr Menü einer privaten Liste hinzu. Originale und ihre Reblogs bleiben für dieses Konto ausgeblendet. Auf dem Dashboard kann das Menü auch die Reblogs oder die Originale eines Blogs ausblenden.
 Mute this post locally	Diesen Post lokal stummschalten
 Manage muted posts	Stummgeschaltete Posts verwalten
 Unmute posts or clear this account's private list	Posts wieder anzeigen oder die private Liste dieses Kontos leeren
@@ -418,7 +420,7 @@ Couldn't update muted posts	Stummgeschaltete Posts konnten nicht aktualisiert we
 Post muted locally	Post lokal stummgeschaltet
 Muted posts restored	Stummgeschaltete Posts wiederhergestellt
 Muted posts aren't available for this account yet	Stummgeschaltete Posts sind für dieses Konto noch nicht verfügbar
-Stored only on this device for this Tumblr account. Tap a post to unmute it. Up to 500 posts are kept per account.	Nur auf diesem Gerät für dieses Tumblr-Konto gespeichert. Tippe auf einen Post, um ihn wieder anzuzeigen. Pro Konto werden bis zu 500 Posts gespeichert.
+Stored only on this device for this Tumblr account. Tap a row to remove it. Up to 500 posts and blog rules are kept per account.	Nur auf diesem Gerät für dieses Tumblr-Konto gespeichert. Tippe auf eine Zeile, um sie zu entfernen. Pro Konto werden bis zu 500 Posts und Blog-Regeln gespeichert.
 This device keeps muted post lists for eight accounts. When a ninth account mutes a post, the list that's gone longest without a change is deleted.	Dieses Gerät speichert Listen stummgeschalteter Posts für acht Konten. Wenn ein neuntes Konto einen Post stummschaltet, wird die Liste gelöscht, die am längsten unverändert ist.
 Post	Post
 Clear muted posts	Stummgeschaltete Posts löschen
@@ -430,7 +432,7 @@ Show mutual markers	Gegenseitige Follows markieren
 Marks blogs that follow your primary blog when you follow them.	Markiert Blogs, die deinem Hauptblog folgen und denen du folgst.
 Mutual	Gegenseitig
 Done	Fertig
-No muted posts. Use a post's menu to mute it on this device.	Keine stummgeschalteten Posts. Nutze das Menü eines Posts, um ihn auf diesem Gerät stummzuschalten.
+No muted posts or blog rules. Use a post's menu to add one on this device.	Keine stummgeschalteten Posts oder Blog-Regeln. Nutze das Menü eines Posts, um ihn auf diesem Gerät stummzuschalten oder eine Blog-Regel hinzuzufügen.
 Updating muted posts	Stummgeschaltete Posts werden aktualisiert
 Couldn't restore muted posts. Try again.	Stummgeschaltete Posts konnten nicht wiederhergestellt werden. Versuche es noch einmal.
 Couldn't read this account's muted posts. Nothing was changed or deleted.	Die stummgeschalteten Posts dieses Kontos konnten nicht gelesen werden. Es wurde nichts geändert oder gelöscht.
@@ -443,6 +445,16 @@ Clearing diagnostic data	Diagnosedaten werden gelöscht
 Putting diagnostic data back	Diagnosedaten werden wiederhergestellt
 Couldn't clear the diagnostic data. Try again.	Die Diagnosedaten konnten nicht gelöscht werden. Versuch es erneut.
 Couldn't update this feed. The post is still muted locally.	Dieser Feed konnte nicht aktualisiert werden. Der Beitrag bleibt lokal stummgeschaltet.
+Hide reblogs from %1$s	Reblogs von %1$s ausblenden
+Hide originals from %1$s	Originale von %1$s ausblenden
+Hiding reblogs from %1$s	Reblogs von %1$s werden ausgeblendet
+Hiding originals from %1$s	Originale von %1$s werden ausgeblendet
+Blog rule removed	Blog-Regel entfernt
+Reblogs from %1$s	Reblogs von %1$s
+Originals from %1$s	Originale von %1$s
+Show reblogs from %1$s again	Reblogs von %1$s wieder anzeigen
+Show originals from %1$s again	Originale von %1$s wieder anzeigen
+Couldn't update this feed. The blog rule is still saved.	Dieser Feed konnte nicht aktualisiert werden. Die Blog-Regel bleibt gespeichert.
 Unmute post	Post wieder anzeigen
 HushTumblr	HushTumblr
 Your settings	Deine Einstellungen
@@ -470,7 +482,7 @@ Hidden. Tap to show it again.	Ausgeblendet. Tippe, um sie wieder einzublenden.
 Quick setups hidden. Bring it back from %1$s.	Schnelleinstellungen ausgeblendet. Du findest sie wieder unter „%1$s“.
 Quiet	Ruhig
 Hides ads, suggestions, prompts and unread counts.	Blendet Werbung, Vorschläge, Hinweise und Zähler für Ungelesenes aus.
-Stops Tumblr's tracking and screenshot watching, and hides your advertising ID.	Stoppt Tumblrs Tracking und das Beobachten von Screenshots und verbirgt deine Werbe-ID.
+Stops Tumblr's tracking and screenshot watching. Hides your advertising ID and the share tag on links.	Stoppt Tumblrs Tracking und das Beobachten von Screenshots. Verbirgt deine Werbe-ID und das Teilen-Kennzeichen an Links.
 Back to defaults	Zurück zum Standard
 Puts every feature switch back the way it started.	Setzt jeden Funktionsschalter auf seinen Ausgangszustand zurück.
 Changed %1$d setting	%1$d Einstellung geändert
@@ -482,6 +494,16 @@ Long-press a video in a post to share or copy its link, or save it.	Halte ein Vi
 # context: the Sharper images switch on the Posts page, and its summary
 Sharper images	Schärfere Bilder
 Loads images in posts at a higher resolution. Uses more data.	Lädt Bilder in Beiträgen in höherer Auflösung. Verbraucht mehr Daten.
+# context: the Collapse long posts switch on the Posts page, and its summary
+Collapse long posts	Lange Beiträge kürzen
+Cuts long posts with a Read more row, at the length below. Tap it to open the whole post.	Kürzt lange Beiträge auf die Länge darunter, mit einer Weiterlesen-Zeile. Tippe darauf, um den ganzen Beitrag zu öffnen.
+# context: the Collapsed post length row under that switch: its title, the lengths a tap moves through, its summary and the note when a save fails
+Collapsed post length	Länge gekürzter Beiträge
+About half a screen	Etwa ein halber Bildschirm
+About a screen	Etwa ein Bildschirm
+About two screens	Etwa zwei Bildschirme
+%1$s. Tap to change.	%1$s. Tippe zum Ändern.
+Couldn't save the length. Try again.	Länge nicht gespeichert. Versuche es erneut.
 # context: the menu a long press on a video in a post opens, its clipboard label and the notes after a pick
 Share video link	Videolink teilen
 Copy video link	Videolink kopieren
@@ -493,7 +515,11 @@ Saving to Downloads	Wird in Downloads gespeichert
 Video saved to Downloads	In Downloads gespeichert
 Couldn't save the video	Video nicht gespeichert
 ad networks at launch	Werbenetzwerke beim Start
+Explore's sponsored header	den gesponserten Kopfbereich in Entdecken
+long reblog trail entries	lange Einträge in Reblog-Ketten
+opening a cut post in place	das Öffnen gekürzter Beiträge an Ort und Stelle
 LiveRamp at launch	LiveRamp beim Start
+Crashlytics at launch	Crashlytics beim Start
 # context: the Try it on a post part of the Words to hide and Allowed words editors. Post text, Reblog trail text, Tags and Summary label its fields and fill the field names in the result lines (%2$s and %4$s). %1$s in the Not matched line is a Match switch's title, %1$s and %3$s in the result lines are the matched words.
 Try it on a post	An einem Beitrag ausprobieren
 Nothing you type here is saved.	Was du hier eingibst, wird nicht gespeichert.

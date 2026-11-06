@@ -38,25 +38,26 @@ function Assert-ReviewedGradleWrapper {
         throw "The Gradle wrapper must pin an official binary distribution and its resolved version: $path"
     }
     $version = $Matches[1]
-    # Reviewed against Gradle's own advisories on 2026-10-12. These affect the build tool, not
-    # the extension runtime. A newer distribution needs a review and its official checksums too.
-    if ($version -cne '9.8.1') {
-        throw ("Unreviewed Gradle wrapper $version. Use the reviewed 9.8.1 distribution before starting Gradle " +
+    # Reviewed against Gradle's own advisories on 2026-11-06 (the newest three were fixed in 9.8.1).
+    # These affect the build tool, not the extension runtime. A newer distribution needs a review
+    # and its official checksums too.
+    if ($version -cne '9.8.2') {
+        throw ("Unreviewed Gradle wrapper $version. Use the reviewed 9.8.2 distribution before starting Gradle " +
             '(GHSA-mvvg-497x-hmj8, GHSA-xwqc-3h47-hg64, GHSA-j5m7-59rp-24f5).')
     }
-    # https://services.gradle.org/distributions/gradle-9.8.1-bin.zip.sha256
-    if ($properties['distributionSha256Sum'] -cne 'dce76f55f8e251a3a1f130eb120f30b3d271de2b76c9b0729d316b5a1b6dc01f') {
-        throw "The Gradle 9.8.1 distribution checksum is missing or differs from the reviewed official checksum: $path"
+    # https://services.gradle.org/distributions/gradle-9.8.2-bin.zip.sha256
+    if ($properties['distributionSha256Sum'] -cne '21bd5da2de49b642904077f38c0efdc7778e92b3ed0889392dca61b97e389607') {
+        throw "The Gradle 9.8.2 distribution checksum is missing or differs from the reviewed official checksum: $path"
     }
     if ($properties['validateDistributionUrl'] -cne 'true') {
         throw "The Gradle wrapper must keep validateDistributionUrl=true: $path"
     }
     $jar = Join-Path $Root 'gradle/wrapper/gradle-wrapper.jar'
     if (-not (Test-Path -LiteralPath $jar -PathType Leaf)) { throw "The Gradle wrapper JAR is missing: $jar" }
-    # https://services.gradle.org/distributions/gradle-9.8.1-wrapper.jar.sha256
+    # https://services.gradle.org/distributions/gradle-9.8.2-wrapper.jar.sha256 (the same JAR as 9.8.1's)
     if ((Get-FileHash -LiteralPath $jar -Algorithm SHA256).Hash -ine
             '3b8a25775a69158b5ad2b1d17a80a88dc7b40a352a73eb27d06c612a7ce68e98') {
-        throw "The Gradle wrapper JAR differs from the reviewed official 9.8.1 checksum: $jar"
+        throw "The Gradle wrapper JAR differs from the reviewed official 9.8.2 checksum: $jar"
     }
     return [pscustomobject]@{ Path = $path; GradleVersion = $version }
 }

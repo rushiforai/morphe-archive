@@ -11,8 +11,11 @@ object Constants {
         // V11: the APK comes from APKPure, which serves split builds as XAPK.
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x1B5E9E,
+        // Tested versions. On a new Wordfeud release: run tools/check-apk/check_apk.py on its XAPK, test on a device
+        // and add it here (see docs/UPDATING.md). Other versions can still be patched as "experimental".
         targets = listOf(
             AppTarget(version = "5.7.1"),
+            AppTarget(version = "5.8.0"),
             AppTarget(version = null, isExperimental = true)
         )
     )

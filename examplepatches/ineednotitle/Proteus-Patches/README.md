@@ -2,16 +2,16 @@
 
 > *One bundle, patches everywhere. A curated [Morphe](https://github.com/MorpheApp/Morphe) patch suite for Android.*
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](#license)
-[![Patches](https://img.shields.io/badge/patches-157-blue.svg)](#whats-inside)
+[![License: GPL-3.0-only](https://img.shields.io/badge/License-GPL--3.0--only-green.svg)](#license)
+[![Patches](https://img.shields.io/badge/patches-163-blue.svg)](#whats-inside)
 [![Universal patches](https://img.shields.io/badge/universal-24-purple.svg)](#universal-patches)
-[![Apps](https://img.shields.io/badge/apps-23-orange.svg)](#supported-apps)
+[![Apps](https://img.shields.io/badge/apps-28-orange.svg)](#supported-apps)
 
 **Proteus Patches** is a Morphe patch bundle (`.mpp`) that removes tracking,
 ads, annoyances and risky defaults from popular Android apps — plus a set of
 **universal patches** that apply to any app.
 
-- **v2.2.2** — curated release: **157 patches**, **24 universal**, across **28 app packages** (23 apps)
+- **[v2.2.8](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.8)** — pre-release: v2.2.7 contents (six experimental, off-by-default Brave patches adapted from kveld9/kveld-morphe-patches, Reddit AutoMod/show-deleted-comments fixes, Amazon AMOLED dark, listing performance fix) plus a broader universal "Block analytics & tracking SDKs" marker list (WebEngage, CleverTap, Flurry, Branch, Kochava), two app-scoped variants — "Mint: Block analytics & tracking SDKs" and "Hindustan Times: Block analytics & tracking SDKs" (same universal heuristic, off by default, unverified on device) — and a Mint & Hindustan Times analysis. No APK was decompiled; no binary-specific Mint/HT patches exist yet. See [the Brave doc](docs/BRAVE.md), [the Reddit doc](docs/REDDIT-DELETED-COMMENTS.md) and [docs/HT-NEWS-APPS.md](docs/HT-NEWS-APPS.md)
 - Built and verified with the Morphe Manager v2.3.0 patcher (`patches-list.json` regenerated, zip integrity checked)
 
 [![Add to Morphe](https://img.shields.io/badge/Add_to-Morphe-1f6feb?style=for-the-badge)](https://morphe.software/add-source?github=ineednotitle/Proteus-Patches)
@@ -26,7 +26,14 @@ Patch source URL (to add manually in Morphe Manager → Sources):
 https://github.com/ineednotitle/Proteus-Patches
 ```
 
+Use the remote repository source for updates. Morphe checks enabled remote sources
+on launch (subject to network and Manager settings); locally imported `.mpp` files
+must be updated manually.
+
 ---
+
+For configuration advice, limitations, and permission-patch examples, see the
+[universal patches guide](docs/UNIVERSAL-PATCHES.md).
 
 ## 📦 Install
 
@@ -34,15 +41,29 @@ https://github.com/ineednotitle/Proteus-Patches
 2. Easiest: tap the **Add to Morphe** button above, or add
    `https://github.com/ineednotitle/Proteus-Patches` as a patch source.
 3. Or download the latest bundle from **[Releases](https://github.com/ineednotitle/Proteus-Patches/releases)**
-   (`patches-2.2.2.mpp`) and use **Settings → Patches → Import patches** in the Manager.
+   (`patches-2.2.6.mpp`) and use **Settings → Patches → Import patches** in the Manager.
 4. Pick the apps you patch, choose your patches, and patch.
+
+> If you installed the withdrawn v2.2.2 bundle, refresh the source in Morphe
+> Manager after the replacement release is published. If it still fails, remove
+> and re-add the remote source or import the replacement bundle from Releases.
+
+> ⚠️ **Installing patched Brave?** If patching succeeds but Android refuses to
+> install with `INSTALL_FAILED_NO_MATCHING_ABIS … Failed to extract native
+> libraries (res=-113)` — most visible on 16 KB page-size devices (e.g. Android 16
+> / realme RMX5110) — the bundle used didn't carry the extraction fix. Re-patch
+> with **v2.2.6 or newer** (every Brave patch in it sets `extractNativeLibs=true`,
+> so the libraries are extracted to disk at install time) using the standalone
+> ARM64 `BraveMonoarm64.apk`, and install that APK. The Brave patches remain
+> experimental; on-device startup is still unverified. See
+> [docs/BRAVE.md](docs/BRAVE.md#install-troubleshooting) for details.
 
 > ⚠️ v2.0.0 is a **breaking, curated** release — patches for apps outside the
 > list below were removed from this bundle. Use `patches-1.19.0.mpp` (or earlier)
 > if you need the full app set.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.2.2](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;157 patches total
+> **[v2.2.8](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;163 patches total
 <details open>
 <summary>📦 Google Photos&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -65,7 +86,7 @@ https://github.com/ineednotitle/Proteus-Patches
 </details>
 
 <details open>
-<summary>📦 Pinterest&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 Pinterest&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -77,7 +98,8 @@ https://github.com/ineednotitle/Proteus-Patches
 |----------|----------------|-----------|
 | [Ad-free feed (remove promoted Pins)](#ad-free-feed-remove-promoted-pins) | Removes promoted/sponsored Pins from every feed, search result, and board list during deserialization, so they never render. Organic pinning, boards and saving are unaffected. |  |
 | [Block analytics and data collection](#block-analytics-and-data-collection) | No-ops Firebase screen/event tracking and AppsFlyer attribution + event logging (concrete SDK entry points, verified in 14.41.0). Push notifications keep working; Pinterest features are untouched. |  |
-| [Enable media downloads](#enable-media-downloads) | Forces the pin-level download eligibility flag so the Download action is available on every Pin (images and videos). |  |
+| [Enable media downloads](#enable-media-downloads) | Enables the pin-level image download eligibility flag. Use the separate experimental video download patch for supported video Pins. |  |
+| [Enable video download](#enable-video-download) | Experimental: enables the download row on video Pins and saves an available MP4. Streaming-only or unavailable videos are reported instead of saved as images. |  |
 
 </details>
 
@@ -96,32 +118,6 @@ https://github.com/ineednotitle/Proteus-Patches
 | [Bypass native integrity checks](#bypass-native-integrity-checks) | libunnamed_raw.so JNI-throws 'app integrity check failed' on re-signed builds, killing camera session start (preview) - observed via diagnostic crash log. This patch catches the throw at the session-opening wrapper and substitutes a valid session result. Required together with 'Allow re-signed/sideloaded installs'. |  |
 | [Diagnostic crash log](#diagnostic-crash-log) | DIAGNOSTIC ONLY - writes the full stack trace to Downloads/mereframe-crash-*.txt when the app crashes, for remote diagnosis. Off by default; enable when asked to produce a crash log. Chain-forwards to the original crash handler. |  |
 | [Unlock Pro features](#unlock-pro-features) | Includes every registered feature in the resolved feature set by dropping the ownership check at the entitlement resolver (nv.e). LOCAL client-side effect only. WARNING (kept off by default): on at least one device (realme/Android 16) enabling the single registered Pro feature crashes capture - the Pro pipeline path is gated by this flag and we cannot verify its safety side. Enable only if you specifically want the Pro toolset; the app works fully (RAW capture incl.) with just 'Allow re-signed installs'. |  |
-
-</details>
-
-<details open>
-<summary>📦 Meesho&nbsp;&nbsp;•&nbsp;&nbsp;12 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 29.7 | 29.6 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Allow screenshots & screen recording](#allow-screenshots-screen-recording) | Removes FLAG_SECURE and secure-surface flags from Meesho's windows so screenshots and screen recording work. Payment screens may still capture black. |  |
-| [Block analytics & tracking](#block-analytics-tracking) | No-ops AppsFlyer, Mixpanel, Facebook App Events, Firebase Analytics, GMS AppMeasurement and Crashlytics logging in Meesho. Push notifications and login/payments keep working. |  |
-| [Bypass forced update](#bypass-forced-update) | Neutralizes Play Core's update-availability checks so Meesho does not block usage on a newer version. Running an outdated build may break. |  |
-| [Change package name](#change-package-name) | Installs Meesho beside the official app by changing the package, permission names, provider authorities and launcher label. Payments (JusPay), Truecaller/Otpless login, Google sign-in and Shield anti-fraud may not work on the clone. | • Package name<br>• App name |
-| [Disable in-app popup upsells](#disable-in-app-popup-upsells) | Disables Meesho's InAppPopupActivity so full-screen promo/upsell popups never render. May break a flow that legitimately routes through it — verify first. |  |
-| [Disable reels autoplay](#disable-reels-autoplay) | Stops Meesho's reels from autoplaying muted previews. Opening a reel still plays normally. Heuristic — verify ExoPlayer anchors against the real APK. |  |
-| [Hide sponsored listings & ad slots](#hide-sponsored-listings-ad-slots) | Hides 'Ad'-labelled sponsored products in Meesho's search and feed by forcing app-side boolean ad gates to false. Heuristic — verify anchors against the real APK. Server still serves ads; only client rendering is affected. |  |
-| [Lock exported share-in / bank-link activities](#lock-exported-share-in-bank-link-activities) | Makes Meesho's exported SharedTextRedirectionActivity and MyBankActivity non-exported. Internal navigation still works; external apps/links can no longer start them. |  |
-| [Packaging toolkit (signature, install source, MicroG)](#packaging-toolkit-signature-install-source-microg) | Applies the shared signature, install-source and GmsCore/MicroG patches to Meesho in one step. Does not bypass Play Integrity, Shield or fix payments. |  |
-| [Prefer external browser over Custom Tabs](#prefer-external-browser-over-custom-tabs) | Removes Meesho's Custom Tabs service query so browser links can fall back to the normal external browser. No effect if Meesho launches Custom Tabs directly. |  |
-| [Remove dangerous permissions (keep storage & SMS)](#remove-dangerous-permissions-keep-storage-sms) | Removes contacts, phone-state, microphone, location, screen-capture detection and advertising-ID permissions from Meesho's manifest. Storage and SMS permissions are kept. Truecaller login, support voice calls and location-based address entry may degrade. |  |
-| [Stop pull-notification alarms (keep push)](#stop-pull-notification-alarms-keep-push) | Disables Meesho's alarm-based pull-notification receivers so the app is not periodically woken to fetch marketing notifications. FCM push keeps working. |  |
 
 </details>
 
@@ -241,7 +237,7 @@ https://github.com/ineednotitle/Proteus-Patches
 </details>
 
 <details open>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -256,6 +252,7 @@ https://github.com/ineednotitle/Proteus-Patches
 | [Disable Click Tracking](#disable-click-tracking) | Forces the outbound click-tracking account preference off at the Account deserialization choke point (local; server-side click analytics may still be recorded). Enabled by default. |  |
 | [Employee Debug Flags](#employee-debug-flags) | Spoofs is_employee locally at the Account JSON adapter, exposing Reddit's internal employee/debug UI menus (mostly non-functional without the employee backend, and a few may misbehave — enable for exploration only). Off by default. |  |
 | [Remove ads](#remove-ads) | Hides promoted posts in feeds and banner ads in comment threads. |  |
+| [Show deleted comments](#show-deleted-comments) | Shows the original text of comments deleted or removed on Reddit, restored at render time from the free Arctic Shift archive (no API key; falls back to PullPush). Only the ids of deleted comments in the threads you open are sent, and restored text is prefixed with [archived]. Coverage depends on the archive; needs network. Off by default. |  |
 | [Unlock Account Entitlements](#unlock-account-entitlements) | Locally flips account-gating flags at the Account JSON adapter: can_create_subreddit, can_edit_name, password_set (kills the SSO 'set password' nag) and has_verified_email. Off by default; server entitlements still rule API actions. |  |
 | [Unlock Premium](#unlock-premium) | Flips the local isGold/has_gold_subscription account flags at the JSON adapter to enable Reddit Premium UI (custom icons, premium screens). Server-side perks cannot be unlocked. |  |
 
@@ -274,6 +271,34 @@ https://github.com/ineednotitle/Proteus-Patches
 |----------|----------------|-----------|
 | [Block Firefox telemetry](#block-firefox-telemetry) | IronFox-style hardening: never initializes Glean telemetry, Nimbus experiments, Sentry crash reporting, or Adjust attribution at startup; kills Mozilla-side server traffic during browsing (Firefox Suggest/Merino, sponsored shortcuts/Contile, Pocket feed + sponsored stories, search suggestion streaming incl. private tabs, studies previews); and makes the telemetry toggles in Settings read OFF. Browsing, Sync and add-ons keep working; local-only suggestions untouched. |  |
 | [Improve startup performance](#improve-startup-performance) | Skips two launch-time routines whose only job is metrics/experiments upkeep: the 4k-line startup-metrics coroutine (pure telemetry writes, ~64 metric writes per launch) and the forced Nimbus experiment fetch right after first render. Less launch I/O = faster, smoother open/close. Browser features unchanged. |  |
+
+</details>
+
+<details open>
+<summary>📦 Brave Browser&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 🧪&nbsp;1.98.63 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Block Motion Sensors](#block-motion-sensors) | Attempts to disable Chromium's Android sensor provider; may also block ambient sensors. Requires device validation. |  |
+| [Block Popups & Ratings](#block-popups-ratings) | Disables the identified rating and Brave Ads signup eligibility checks; other dialogs can still appear. |  |
+| [Block Telemetry](#block-telemetry) | Blocks usage analytics, crash uploads and experiment downloads. | • Block offers server |
+| [Brave Origin](#brave-origin) | Unlocks Brave Origin feature switches across Rewards, News, Wallet, and VPN. |  |
+| [Clean New Tab](#clean-new-tab) | Removes sponsored wallpapers, news feed and promo cards. | • Hide shortcut tiles |
+| [Close Tab In Group Order](#close-tab-in-group-order) | Selects the previous tab in the tab group when closing a tab. |  |
+| [Custom Brave theme](#custom-brave-theme) | Applies custom colors to Brave dark mode chrome, defaulting to pure OLED black for battery saving on OLED screens. | • Background color<br>• Surfaces use background color<br>• Surface / container color<br>• Text ink color<br>• Accent highlight color<br>• Disable Material You dynamic colors<br>• Window background color<br>• Preference card color<br>• Style preference rows as cards<br>• Modulate text tiers by luminance<br>• Patch Material You system color roles<br>• Patch color state list lStar selectors<br>• Patch vector drawable surface fills |
+| [Preserve last active tab](#preserve-last-active-tab) | Disables the identified new-tab opening-screen override after inactivity. Does not prevent tab unloading under memory pressure. |  |
+| [Remove Extra Languages](#remove-extra-languages) | Replaces larger unselected Chromium locale PAKs with the English fallback; gender variants and Android resources are not removed. | • Languages to keep |
+| [Remove Unused AI & VPN](#remove-unused-ai-vpn) | Deletes unused AR and XR files to shrink the app. | • Remove VPN library |
+| [Skip Welcome Screens](#skip-welcome-screens) | Reports the first-run flow complete; may skip essential consent, search or setup screens. |  |
+| [Stop Background Wakeups](#stop-background-wakeups) | Disables the identified Chromium background-sync scheduler gate; other wakeups remain and site background sync can break. |  |
+| [Stop Promo Notifications](#stop-promo-notifications) | Disables identified Chromium tips and retention notification entry points; other notifications may remain. |  |
+| [Stop Text Sharing with System](#stop-text-sharing-with-system) | Disables Chromium's OnscreenContentProvider content-capture gate, not every possible text-sharing mechanism. |  |
 
 </details>
 
@@ -569,15 +594,45 @@ https://github.com/ineednotitle/Proteus-Patches
 </details>
 
 <details open>
+<summary>📦 Mint&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.7.5 | 5.8.4 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Mint: Block analytics & tracking SDKs](#mint-block-analytics-tracking-sdks) | Blocks Mint's analytics & tracking SDKs (Firebase Analytics, AppsFlyer, Adjust,<br>WebEngage, CleverTap and similar) using the same universal heuristic as<br>'Block analytics & tracking SDKs'.<br><br>Applies to com.htmedia.mint only. Heuristic; obfuscated or reflection-based<br>reporting is not covered. Unverified on device. |  |
+
+</details>
+
+<details open>
+<summary>📦 Hindustan Times&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.9.16 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Hindustan Times: Block analytics & tracking SDKs](#hindustan-times-block-analytics-tracking-sdks) | Blocks Hindustan Times' analytics & tracking SDKs (Firebase Analytics,<br>AppsFlyer, Adjust, WebEngage, CleverTap and similar) using the same universal<br>heuristic as 'Block analytics & tracking SDKs'.<br><br>Applies to com.ht.news only. Heuristic; obfuscated or reflection-based<br>reporting is not covered. Unverified on device. |  |
+
+</details>
+
+<details open>
 <summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;24 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Allow screenshots & screen recording](#allow-screenshots-screen-recording) | Removes FLAG_SECURE from the app's windows so screenshots and screen<br>recordings work. Payment/banking screens may still capture black.<br><br>Applies to any app. Inverse of "Block screenshots & screen recording". |  |
+| [Allow screenshots & screen recording](#allow-screenshots-screen-recording) | Attempts to remove recognizable FLAG_SECURE and secure SurfaceView settings<br>so screenshots and screen recordings can work. Some screens or protection<br>methods may still block capture, including payment or banking screens.<br><br>Applies to any app. Do not combine with "Block screenshots & screen recording". |  |
 | [Block analytics & tracking SDKs](#block-analytics-tracking-sdks) | Disables common analytics/tracking SDKs (Firebase Analytics, AppsFlyer, Adjust,<br>Facebook AppEvents, Segment, Amplitude, Mixpanel and similar) by removing their<br>event-reporting calls.<br><br>Heuristic: obfuscated or reflection-based reporting is not covered. Applies to<br>any app. |  |
 | [Block cleartext (HTTP) traffic](#block-cleartext-http-traffic) | Sets android:usesCleartextTraffic="false" so the app cannot send plaintext<br>HTTP requests. Breaks apps that still use legacy HTTP endpoints.<br><br>Applies to any app. |  |
-| [Block screenshots & screen recording](#block-screenshots-screen-recording) | Sets FLAG_SECURE on all activity windows so screenshots, screen recorders,<br>overlay apps and accessibility services cannot capture the app's content<br>(they see a black surface).<br><br>Applies to any app. Does not remove existing protections - it adds them. |  |
+| [Block screenshots & screen recording](#block-screenshots-screen-recording) | Attempts to add FLAG_SECURE to activity windows and secure SurfaceViews.<br>This can make screenshots and screen recordings show a black surface.<br>Only recognizable code with available registers can be changed, so this<br>is not a guarantee that all screens or capture methods are protected.<br><br>Applies to any app. Do not combine with "Allow screenshots & screen recording". |  |
 | [Block user-added certificate authorities](#block-user-added-certificate-authorities) | Removes user-added certificate authorities from the app's network security<br>config (if it declares one), so the app does not trust certificates installed<br>on the device.<br><br>Applies to any app. No effect if the app has no network security config. |  |
 | [Change package name (clone app)](#change-package-name-clone-app) | Installs a clone of any app beside the original by changing the package,<br>permission names, provider authorities and launcher label.<br><br>The clone is re-signed: payments, SDK logins, Google sign-in and anti-fraud<br>checks bound to the original signature may not work on the clone. | • Package name<br>• App name |
 | [Disable PairIP license check](#disable-pairip-license-check) | Disables PairIP license verification: integrity/VM checks, the licensing<br>client and repeated background checks.<br><br>Applies to any app. No effect if the app does not use PairIP. |  |
@@ -590,7 +645,7 @@ https://github.com/ineednotitle/Proteus-Patches
 | [Lock down exported components](#lock-down-exported-components) | Sets android:exported="false" on activities, services and receivers that have no<br>intent filter, so other apps cannot start them directly. Deep links, share-in<br>targets and the launcher activity (all of them have intent filters) are never<br>touched.<br><br>Applies to any app. May break apps that rely on explicitly exported entry points. |  |
 | [Prefer external browser over Custom Tabs](#prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom Tab,<br>by rewriting CustomTabsIntent.launchUrl call sites into ACTION_VIEW intents.<br><br>Applies to any app. Some apps rely on the Custom Tab session (shared cookies,<br>return results) and may misbehave. |  |
 | [Provide Original app certificate](#provide-original-app-certificate) | Automatically reads the signing certificate from the APK you are patching — no original app installed or file provided needed. Only fill the options below if you are patching an APK that was already re-signed (e.g. a previously patched build): in that case point to the original APK file, or enter the certificate manually. | • Path to original APK (if uninstalled)<br>• Certificate SHA-1 (manual)<br>• Certificate SHA-256 (manual)<br>• Certificate Base64 DER (manual) |
-| [Remove dangerous permissions](#remove-dangerous-permissions) | Removes privacy-invasive permissions from any app's manifest using simple<br>category switches. All categories are ON by default (aggressive): package<br>visibility, phone, accounts, location, contacts, microphone, camera,<br>storage, SMS, calendar, sensors, nearby devices, ad ID, AdServices,<br>notifications and screen-capture detection.<br><br>Use "Permissions to keep" to exempt a single permission, or "Advanced:<br>exact removal list" to replace the switches with your own list.<br><br>Removing a permission the app actually needs can break features (login,<br>calls, camera, file picker, notifications). Off by default. | • Package visibility<br>• Phone state & numbers<br>• Accounts<br>• Location<br>• Contacts<br>• Microphone<br>• Camera<br>• Storage & media<br>• SMS<br>• Calendar<br>• Sensors & activity<br>• Nearby devices<br>• Screen-capture detection<br>• Advertising ID<br>• AdServices permissions<br>• Notifications<br>• Permissions to keep<br>• Extra permissions to remove<br>• Advanced: exact removal list |
+| [Remove dangerous permissions](#remove-dangerous-permissions) | Removes selected permission declarations from an app's manifest. The patch<br>is off by default. When enabled, all category switches start ON, including<br>camera, storage, SMS and notifications. Turn off categories the app needs.<br><br>Permissions to keep always wins. Extra permissions are added to the selected<br>categories. A non-empty advanced list replaces the category selections,<br>except that AdServices remains controlled by its own switch.<br><br>Removing permissions can break features or prevent an app from starting.<br>This does not block every way an app may collect data. | • Package visibility<br>• Phone state & numbers<br>• Accounts<br>• Location<br>• Contacts<br>• Microphone<br>• Camera<br>• Storage & media<br>• SMS<br>• Calendar<br>• Sensors & activity<br>• Nearby devices<br>• Screen-capture detection<br>• Advertising ID<br>• AdServices permissions<br>• Notifications<br>• Permissions to keep<br>• Extra permissions to remove<br>• Advanced: exact removal list |
 | [Spoof Widevine / DRM level](#spoof-widevine-drm-level) | Reports Widevine L1 (hardware DRM) to apps that check DRM level locally.<br><br>Useful for apps that refuse to play HD/4K content on L3 devices or after re-signing.<br><br>Does not bypass server-side DRM - Netflix, Disney+ and similar are not affected.<br>Applies to any app; no effect if the app does not query Widevine. | • Widevine security level to report<br>• HDCP level to report |
 | [Spoof app signature](#spoof-app-signature) | Makes the app think its signing certificate is unchanged after Morphe re-signs it.<br><br>Useful when an app crashes or shows a tamper warning because it checks its own certificate.<br><br>Does not bypass Play Integrity / SafetyNet hardware attestation.<br><br>Apply with Original app certificate patch. | • Package name override (optional)<br>• Certificate Base64 override (optional) |
 | [Spoof install source](#spoof-install-source) | Makes the app think it was installed from a specific store (default: Google Play).<br><br>Useful when an app blocks features or shows errors because it detects it was not installed from the Play Store.<br><br>Only affects what the app itself sees - does not change the real system install record. | • Store to impersonate |
@@ -613,8 +668,10 @@ Every patch follows a fail-safe design (details:
   sites are skipped, never guessed at, and component class names are never renamed
 - No payment, purchase or account bypasses. The PairIP and DRM patches only disable
   local client-side checks; they do not defeat server-side billing or attestation
-- No network calls, no exec, no secrets in the bundle
-- Meesho's patch set deliberately **keeps storage and SMS permissions**
+- No network calls, no exec, no secrets in the bundle — with one opt-in exception: the Reddit
+  "[Show deleted comments](#show-deleted-comments)" patch contacts the Arctic Shift archive
+  (PullPush fallback) at view time while enabled, and only for deleted comments in the threads
+  you open
 
 Understand the risk classes before enabling signature/integrity-related
 patches on apps you don't trust — see the audit for details.
@@ -640,7 +697,9 @@ Releases are versioned by semantic-release (conventional commits); CI builds the
 
 ## 📄 Docs
 
+- [docs/BRAVE.md](docs/BRAVE.md) — Brave patch status, the v2.2.6 `res=-113` fix and install troubleshooting
 - [UNIVERSAL_PATCH_AUDIT.md](UNIVERSAL_PATCH_AUDIT.md) — per-patch correctness & UX audit
+- [docs/REDDIT-DELETED-COMMENTS.md](docs/REDDIT-DELETED-COMMENTS.md) — how the "Show deleted comments" patch works, limits and privacy notes
 - [CHANGELOG.md](CHANGELOG.md) — release history
 - [docs/COMMUNITY-LISTING.md](docs/COMMUNITY-LISTING.md) — patch listing for community indexes
 
@@ -650,5 +709,4 @@ The Project created becoz I am a big fan of Morphe Project & I Love my Privacy a
 
 ## ⚖️ License
 
-[MIT](LICENSE). Patches modify third-party apps at your own risk — use only on
-APKs whose signature you trust.
+Proteus Patches is licensed under [GPL-3.0-only](LICENSE). The full license is also included in the patch bundle. Third-party GPL-derived works and their attribution notices remain covered by their respective notices; see [Brave](docs/BRAVE.md) and [Pinterest](docs/PINTEREST-VIDEO.md). Patches modify third-party apps at your own risk — use only on APKs whose signature you trust.

@@ -1,5 +1,5 @@
 {
-  "version": "v1.29.1",
+  "version": "v1.32.2",
   "patches": [
     {
       "name": "Add to queue",
@@ -181,6 +181,29 @@
       "options": []
     },
     {
+      "name": "Captions",
+      "description": "Adds options to disable captions from being automatically enabled, select a preferred and a secondary caption language, add more auto-translate languages, and show captions in stable blocks.",
+      "use": true,
+      "dependencies": [
+        "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
       "name": "Certificate spoof",
       "description": "Enables YouTube Music to work with Android Auto by spoofing the YouTube Music certificate.",
       "use": true,
@@ -202,7 +225,6 @@
       "use": true,
       "dependencies": [
         "ResourcePatch",
-        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
@@ -360,7 +382,7 @@
     },
     {
       "name": "Copy text",
-      "description": "Adds options to copy the video title and comments by tapping and holding them.",
+      "description": "Adds options to copy the video title and comments, and to select text of video descriptions and posts, by tapping and holding them.",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -870,6 +892,7 @@
       "description": "Adds an option to disable the Miniplayer 'Continue watching' from resuming on app startup.",
       "use": true,
       "dependencies": [
+        "ResourcePatch",
         "ResourcePatch"
       ],
       "compatiblePackages": {
@@ -924,6 +947,26 @@
       "dependencies": [
         "ResourcePatch",
         "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Download post images",
+      "description": "Adds a button and a menu item to download the images and GIFs of posts.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
       ],
       "compatiblePackages": {
         "com.google.android.youtube": [
@@ -1582,8 +1625,6 @@
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {
@@ -1630,6 +1671,7 @@
         "BytecodePatch",
         "ResourcePatch",
         "BytecodePatch",
+        "BytecodePatch",
         "ResourcePatch",
         "BytecodePatch",
         "ResourcePatch"
@@ -1672,6 +1714,7 @@
       "description": "Adds options to hide components related to feeds.",
       "use": true,
       "dependencies": [
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
@@ -2408,7 +2451,8 @@
         "BytecodePatch",
         "ResourcePatch",
         "BytecodePatch",
-        "ResourcePatch"
+        "ResourcePatch",
+        "BytecodePatch"
       ],
       "compatiblePackages": {
         "com.google.android.apps.youtube.music": [
@@ -2428,7 +2472,8 @@
       "dependencies": [
         "BytecodePatch",
         "ResourcePatch",
-        "ResourcePatch"
+        "ResourcePatch",
+        "BytecodePatch"
       ],
       "compatiblePackages": {
         "com.google.android.youtube": [
@@ -2632,7 +2677,7 @@
     },
     {
       "name": "Return YouTube Dislike",
-      "description": "Adds an option to show the dislike count of videos using the Return YouTube Dislike API, and the like count and like percentage on the thumbnails of feed videos.",
+      "description": "Adds an option to show the dislike count of videos using the Return YouTube Dislike API.",
       "use": true,
       "dependencies": [
         "ResourcePatch",
@@ -2736,7 +2781,6 @@
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
-        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {
@@ -2775,10 +2819,10 @@
       "dependencies": [
         "BytecodePatch",
         "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch",
         "ResourcePatch",
-        "BytecodePatch",
-        "BytecodePatch",
-        "BytecodePatch",
         "ResourcePatch"
       ],
       "compatiblePackages": {
@@ -2839,6 +2883,7 @@
       "dependencies": [
         "BytecodePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
         "BytecodePatch",
@@ -3319,6 +3364,7 @@
         "BytecodePatch",
         "BytecodePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {
@@ -3344,6 +3390,7 @@
         "BytecodePatch",
         "BytecodePatch",
         "ResourcePatch",
+        "BytecodePatch",
         "BytecodePatch"
       ],
       "compatiblePackages": {
@@ -3531,7 +3578,7 @@
     },
     {
       "name": "Third-party lyrics",
-      "description": "Adds an option to show synced lyrics with experience enhancement from 18+ providers in the lyrics panel.",
+      "description": "Adds an option to show synced lyrics with experience enhancement from 19+ providers in the lyrics panel.",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -3588,6 +3635,26 @@
           "8.30.54",
           "8.28.54",
           "8.12.54"
+        ]
+      },
+      "options": []
+    },
+    {
+      "name": "Translate live chat",
+      "description": "Adds an option to translate live chat and live chat replay messages.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "BytecodePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.13.164",
+          "20.05.46"
         ]
       },
       "options": []
@@ -3683,6 +3750,26 @@
           "values": null
         }
       ]
+    },
+    {
+      "name": "Unlock queue",
+      "description": "Adds an option to unlock YouTube’s video queue.",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "BytecodePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.google.android.youtube": [
+          "21.39.525",
+          "21.13.164",
+          "20.05.46"
+        ]
+      },
+      "options": []
     },
     {
       "name": "Video delay",

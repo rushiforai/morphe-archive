@@ -3,12 +3,14 @@
  * https://github.com/MorpheApp/morphe-patches/pull/3942
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
- * Modified by lavinhoque33, 2026-10-24: adapted to the RVX extension classes and Litho filter API.
+ * Modified by lavinhoque33, 2026-11-05: replaced with the anddea version, which supports older app versions too.
  */
 
 package app.morphe.extension.youtube.patches.components;
 
 import static app.morphe.extension.shared.utils.StringRef.str;
+import static app.morphe.extension.youtube.settings.YouTubeActivityHook.USE_BOLD_ICONS;
+import static app.morphe.extension.youtube.utils.ExtendedUtils.IS_20_22_OR_GREATER;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -29,6 +31,8 @@ import android.widget.RelativeLayout;
 
 import androidx.annotation.Nullable;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -40,18 +44,18 @@ import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import app.morphe.extension.shared.patches.components.Filter;
-import app.morphe.extension.shared.patches.components.StringFilterGroup;
-import app.morphe.extension.shared.ui.CustomDialog;
-import app.morphe.extension.shared.ui.Dim;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceType;
 import app.morphe.extension.shared.utils.ResourceUtils;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.shared.patches.components.Filter;
+import app.morphe.extension.shared.patches.components.LegacyLithoFilterPatch;
+import app.morphe.extension.shared.patches.components.StringFilterGroup;
+import app.morphe.extension.shared.ui.CustomDialog;
+import app.morphe.extension.shared.ui.Dim;
+import app.morphe.extension.youtube.shared.VideoInformation;
 import app.morphe.extension.youtube.settings.Settings;
 import app.morphe.extension.youtube.shared.EngagementPanel;
-import app.morphe.extension.youtube.shared.VideoInformation;
-import app.morphe.extension.youtube.utils.ThemeUtils;
 
 /**
  * Shows only the comments that contain the searched words.
@@ -80,6 +84,19 @@ public final class CommentsSearchFilter extends Filter {
 
     private static final String SEARCH_BUTTON_TAG = "morphe_search_comments_button";
 
+    /**
+     * Start of the ids of the comments panels of videos, posts and Shorts. Newer app versions use
+     * the first id for videos, and the id of the panel of a post ends with the id of the post.
+     * Other panels with "comment" in their id are not searched, such as the replies of a comment,
+     * which open in a panel of their own.
+     */
+    private static final String[] COMMENTS_PANEL_ID_PREFIXES = {
+            "comment-item-section",
+            "engagement-panel-comments-section",
+            "post-comments-",
+            "shorts-comments-panel"
+    };
+
     private static final int ID_CLOSE_BUTTON =
             ResourceUtils.getIdentifier(ResourceType.ID, "close_button");
 
@@ -94,6 +111,12 @@ public final class CommentsSearchFilter extends Filter {
     private static volatile String searchVideoId = "";
 
     private static final String COMMENT_THREAD_PATH = "comment_thread.eml";
+    /**
+     * Older thread buffers contain only the wrapper and reply button. The nested comment
+     * buffer owns the author and text, so rejecting the wrapper would hide every result.
+     */
+    private static final String COMMENT_PATH = IS_20_22_OR_GREATER
+            ? COMMENT_THREAD_PATH : "comment.eml";
 
     /**
      * Shortest text of a buffer that is taken as an id, such as the id of a comment
@@ -154,7 +177,7 @@ public final class CommentsSearchFilter extends Filter {
 
     private final StringFilterGroup commentThread = new StringFilterGroup(
             Settings.SEARCH_COMMENTS,
-            COMMENT_THREAD_PATH
+            COMMENT_PATH
     );
 
     /**
@@ -169,11 +192,18 @@ public final class CommentsSearchFilter extends Filter {
         addPathCallbacks(commentThread, commentReplies);
     }
 
+    /**
+     * Searches each comment's own buffer on older targets as well as the modern Litho bridge.
+     */
     @Override
-    public boolean isFiltered(Object contextSource,
+    public boolean useModernFilterDataInLegacyBridge() {
+        return true;
+    }
+
+    @Override
+    public boolean isFiltered(String path,
                               String identifier,
                               String accessibility,
-                              String path,
                               byte[] buffer,
                               StringFilterGroup matchedGroup,
                               FilterContentType contentType,
@@ -183,10 +213,23 @@ public final class CommentsSearchFilter extends Filter {
             return false;
         }
 
+        if (!IS_20_22_OR_GREATER && matchedGroup == commentThread
+                && !isCommentRoot(path, contentIndex)) {
+            // Legacy conversion visits children before their parent. Search only the complete
+            // comment root, so a previous comment's decision cannot be inherited by a new child.
+            return false;
+        }
+
+        // The legacy parser buffer can belong to a different component. The converter hook
+        // supplies the current FlatBuffer, including on versions before the v20.21 bridge.
+        if (!IS_20_22_OR_GREATER) {
+            buffer = LegacyLithoFilterPatch.getDirectProtoBuffer();
+        }
+
         CommentDecision last = lastComment.get();
 
         if (matchedGroup == commentReplies) {
-            if (path.contains(COMMENT_THREAD_PATH)) {
+            if (path.contains(COMMENT_PATH)) {
                 return false; // Part of a comment.
             }
             return isRepliesHidden(path, buffer, terms, last);
@@ -205,12 +248,23 @@ public final class CommentsSearchFilter extends Filter {
         // The buffer is not text, but the text of the comment is in it as UTF-8.
         String text = foldCase(new String(buffer, StandardCharsets.UTF_8));
         final boolean hidden = !containsAllTerms(text, terms);
-        String commentPath = path;
+        String commentPath = path.toString();
         CommentDecision decision = new CommentDecision(commentPath, terms, hidden);
         lastComment.set(decision);
         rememberIds(buffer, decision);
         Logger.printDebug(() -> (hidden ? "Hiding comment: " : "Showing comment: ") + commentPath);
         return hidden;
+    }
+
+    /** A root path ends after the component name, template hash, and its first layout type. */
+    private static boolean isCommentRoot(String path, int contentIndex) {
+        int end = contentIndex;
+        for (int i = 0; i < 3; i++) {
+            end = path.indexOf('|', end);
+            if (end < 0) return false;
+            end++;
+        }
+        return end == path.length();
     }
 
     private static boolean isRepliesHidden(CharSequence path, byte[] buffer,
@@ -367,14 +421,17 @@ public final class CommentsSearchFilter extends Filter {
             return;
         }
 
-        try {
-            View listView = sectionList.patch_getListView();
-            if (listView != null) {
-                sectionLists.put(listView, new WeakReference<>(sectionList));
+        // Older controllers initialize their view in a subclass, after this constructor hook.
+        Utils.runOnMainThread(() -> {
+            try {
+                View listView = sectionList.patch_getListView();
+                if (listView != null) {
+                    sectionLists.put(listView, new WeakReference<>(sectionList));
+                }
+            } catch (Exception ex) {
+                Logger.printException(() -> "onSectionListCreated failure", ex);
             }
-        } catch (Exception ex) {
-            Logger.printException(() -> "onSectionListCreated failure", ex);
-        }
+        });
     }
 
     /**
@@ -461,7 +518,7 @@ public final class CommentsSearchFilter extends Filter {
             }
         }
 
-        final boolean isCommentsPanel = isCommentsPanelOpen();
+        final boolean isCommentsPanel = StringUtils.startsWithAny(EngagementPanel.getLastOpenedPanelId(), COMMENTS_PANEL_ID_PREFIXES);
         searchButton.setVisibility(isCommentsPanel ? View.VISIBLE : View.GONE);
         if (isCommentsPanel) {
             updateSearchButtonIcon(searchButton);
@@ -484,16 +541,10 @@ public final class CommentsSearchFilter extends Filter {
         return null;
     }
 
-    private static boolean isCommentsPanelOpen() {
-        String panelId = EngagementPanel.getId();
-        // The comments of videos and Shorts, and the replies of a comment.
-        return panelId.contains("comment");
-    }
-
     @Nullable
     private static View createSearchButton(ViewGroup header, View closeButton) {
         Context context = header.getContext();
-        Drawable icon = ResourceUtils.getDrawable("morphe_search_comments_button");
+        Drawable icon = getSearchButtonIcon(false);
         if (icon == null) {
             Logger.printException(() -> "Search comments drawable not found");
             return null;
@@ -516,7 +567,7 @@ public final class CommentsSearchFilter extends Filter {
 
         FrameLayout button = new FrameLayout(context);
         button.setTag(SEARCH_BUTTON_TAG);
-        button.setContentDescription(str("morphe_search_comments_dialog_title"));
+        button.setContentDescription(str("morphe_search_comments_title"));
         button.setClickable(true);
         button.setFocusable(true);
 
@@ -531,14 +582,22 @@ public final class CommentsSearchFilter extends Filter {
     }
 
     /**
-     * The icon is filled while searching, so it's clear why comments are missing.
+     * Matches the icon style used by YouTube and the custom flyout actions in both search states.
+     */
+    @Nullable
+    private static Drawable getSearchButtonIcon(boolean active) {
+        String iconName = active ? "morphe_search_comments_button_active" : "morphe_search_comments_button";
+        return ResourceUtils.getDrawable(USE_BOLD_ICONS ? iconName + "_bold" : iconName);
+    }
+
+    /**
+     * Both icons stay white; a dot marks an active search so it's clear why comments are missing.
      */
     private static void updateSearchButtonIcon(View searchButton) {
         if (searchButton instanceof ViewGroup group && group.getChildAt(0) instanceof ImageView iconView) {
-            Drawable icon = iconView.getDrawable();
+            Drawable icon = getSearchButtonIcon(isSearching());
             if (icon != null) {
-                icon.setTint(ThemeUtils.getAppForegroundColor());
-                iconView.setAlpha(isSearching() ? 1.0f : 0.6f);
+                iconView.setImageDrawable(icon);
             }
         }
     }
@@ -555,10 +614,10 @@ public final class CommentsSearchFilter extends Filter {
 
             Pair<Dialog, LinearLayout> dialogPair = CustomDialog.create(
                     context,
-                    str("morphe_search_comments_dialog_title"),
+                    str("morphe_search_comments_title"),
                     null,
                     editText,
-                    str("morphe_search_comments_search"),
+                    str("revanced_change_start_page_entry_search"),
                     () -> {
                         String newText = editText.getText().toString();
                         setSearch(newText);

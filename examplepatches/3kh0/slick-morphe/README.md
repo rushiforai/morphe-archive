@@ -25,7 +25,7 @@ Slack should not be awful to use on Android. Let's fix that!
 - Cache cleaner: manage Slack's cache and storage
 - Feature flags: turn Slack features and experiments on or off
 
-You can toggle your settings by clicking on your profile in the top right, and hit "Slick Settings" in the menu.
+Open your profile in the top right, then **Preferences > Slick settings**. The older profile menu also has a direct **Slick settings** shortcut.
 
 ## Build from source
 

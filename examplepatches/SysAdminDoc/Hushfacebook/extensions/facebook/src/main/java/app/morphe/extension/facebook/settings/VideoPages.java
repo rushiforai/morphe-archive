@@ -93,7 +93,8 @@ final class VideoPages {
         }
         if (build.contains(PatchFamily.REEL_PROMPTS)) {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_PROMPTS,
-                    L10n.t("No \"Are you interested in this reel?\" prompt on reels. The reel plays as usual.")));
+                    L10n.t("No \"Are you interested in this reel?\" prompt on reels, and no survey card between them "
+                            + "asking how well a video matches your interests.")));
         }
         // Both reel filters work on each batch of reels as it arrives, so a change leaves the
         // reels already loaded as they are, and the rows say so.
@@ -219,15 +220,29 @@ final class VideoPages {
                     L10n.t("Takes the UP NEXT bar with the next video off the bottom of a video you open from the "
                             + "feed, and the empty space kept for it, so the seek bar stays at the bottom. A change "
                             + "shows from the next video you open.")));
+            // Asked as the pill draws, so a change shows from the next video (#394).
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_FULLSCREEN_PILL,
+                    L10n.t("Takes the Fullscreen button off the space under a wide video in Reels. "
+                            + "A change shows from the next video.")));
             // Asked as a feed video's player asks for more, so a change shows from the next feed video.
             reels.addPreference(toggle(context, Settings.FEED_VIDEOS_ALONE,
                     L10n.t("A video you tap in the feed opens full screen by itself, with no reels to swipe to after it. "
                             + "The Reels tab keeps scrolling. Off by default, since it hasn't been tried on a real "
                             + "account yet.")));
+            // Asked as Watch again is tapped, so a change shows on the next tap (#403).
+            reels.addPreference(toggle(context, Settings.WATCH_AGAIN_IN_PLACE,
+                    L10n.t("Watch again at the end of a feed video plays it again right there, instead of "
+                            + "opening it in Reels.")));
             // Asked as each tile of the feed's Reels row is drawn, so a change shows on the next tiles.
             reels.addPreference(toggle(context, Settings.PLAY_FEED_REELS_WHOLE,
                     L10n.t("The reels in your feed's Reels row play from the start and keep going, instead of "
                             + "repeating a second or two. Tiles drawn after a change pick it up.")));
+        }
+        // Show full post text's reel half, a switch of its own since #398, read as each caption starts.
+        if (build.contains(PatchFamily.FULL_POST_TEXT)) {
+            reels.addPreference(toggle(context, Settings.SHOW_FULL_REEL_CAPTIONS,
+                    L10n.t("Long captions on reels show all of their text right away. Tap the caption to fold it back. "
+                            + "A change shows from the next reel.")));
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
             reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,

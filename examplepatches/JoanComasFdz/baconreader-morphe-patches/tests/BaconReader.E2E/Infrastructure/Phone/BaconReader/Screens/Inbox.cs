@@ -10,6 +10,7 @@ public sealed class Inbox(AndroidDriver driver)
 {
     private static readonly OpenQA.Selenium.By Body = Locate.AppId("bodyView");
     private static readonly OpenQA.Selenium.By Label = Locate.AppId("labelView");
+    private static readonly OpenQA.Selenium.By Subject = Locate.AppId("subjectView");
 
     /// <summary>Waits until the inbox shows a message.</summary>
     public Task WaitUntilShownAsync() =>
@@ -25,12 +26,19 @@ public sealed class Inbox(AndroidDriver driver)
             driver.FindElements(Label).Select(label => label.Text).FirstOrDefault(label => label.StartsWith(subject + ": ", StringComparison.Ordinal))
                 ?? throw new InvalidOperationException($"The message \"{subject}\" isn't in the inbox.")));
 
+    /// <summary>What the inbox shows: the subjects of its messages on the screen, top to bottom.</summary>
+    public Task<InboxSnapshot> ReadAsync() =>
+        OnScreen.ReadAsync(driver, () => new InboxSnapshot([.. driver.FindElements(Subject).OrderBy(subject => subject.Location.Y).Select(subject => subject.Text.Trim())]));
+
     /// <summary>Taps the private message "<paramref name="subject"/>", by its subject, which opens its menu.</summary>
     public Task ClickTheMessageAsync(string subject) => OnScreen.PressAsync(driver, Locate.AppIdWithText("subjectView", subject));
 
     /// <summary>Taps the message saying "<paramref name="body"/>", which opens its menu.</summary>
     public Task ClickMessageAsync(string body) => OnScreen.PressAsync(driver, Locate.AppIdWithText("bodyView", body));
 }
+
+/// <summary>The inbox: the subjects of the messages on the screen, top to bottom.</summary>
+public sealed record InboxSnapshot(System.Collections.Immutable.ImmutableArray<string> Subjects);
 
 /// <summary>A message of the inbox: its subject, and the label over it ("Hello: from ￼ e2e_sender").</summary>
 public sealed record InboxMessageSnapshot(string Subject, string Label);

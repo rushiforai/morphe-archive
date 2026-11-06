@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<screen xmlns:android="http://schemas.android.com/apk/res/android" key="morphe_settings_music_screen_9_misc">
+    <PreferenceScreen android:key="dyskal_discord_rpc_settings" android:title="Discord rich presence"
+        android:summary="Connection, cover art, and profile headline" android:persistent="false">
+        <app.morphe.extension.shared.settings.preference.ResettableEditTextPreference
+            android:key="dyskal_discord_application_id" android:title="Discord application ID"
+            android:dialogTitle="Discord application ID" android:inputType="number"
+            android:summary="Defaults to Dyskal's application; changing it requires signing in again"
+            android:persistent="false" />
+        <Preference android:key="dyskal_discord_connect" android:title="Connect with Discord" android:persistent="false" />
+        <Preference android:key="dyskal_discord_cancel" android:title="Cancel sign-in" android:persistent="false" />
+        <SwitchPreference android:key="dyskal_discord_enabled" android:title="Share currently playing music" android:persistent="false" />
+        <app.morphe.extension.shared.settings.preference.CustomDialogListPreference
+            android:key="dyskal_discord_headline" android:title="Profile headline" android:persistent="false" />
+        <Preference android:key="dyskal_discord_disconnect" android:title="Disconnect and forget account" android:persistent="false" />
+        <Preference android:key="dyskal_discord_about" android:title="About and licenses" android:persistent="false" />
+        <me.dyskal.ytmrpc.DiscordPreferences android:key="dyskal_discord_status" android:title="Connection status"
+            android:selectable="false" android:persistent="false" />
+    </PreferenceScreen>
+</screen>

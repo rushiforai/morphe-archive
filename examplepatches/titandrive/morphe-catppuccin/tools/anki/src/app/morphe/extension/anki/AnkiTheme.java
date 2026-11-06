@@ -30,6 +30,7 @@ public final class AnkiTheme implements Application.ActivityLifecycleCallbacks {
     public static void install(Application application) {
         if (app != null) return;
         app = application;
+        WidgetTheme.install(application);
         // Local test APKs must never discover the user's shared external collection.
         if (application.getPackageName().equals("com.ichi2.anki.catppuccin.test")) {
             File directory = new File(application.getFilesDir(), "patch-test-collection");

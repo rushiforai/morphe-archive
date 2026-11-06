@@ -6,36 +6,45 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.extensions.InstructionExtensions.instructionsOrNull
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
+import com.android.tools.smali.dexlib2.builder.BuilderSwitchPayload
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val EXTENSION_CLASS = "Lapp/charlesattend/extension/beeper/InboxOrderPatch;"
 private const val MENU_ITEM_CLASS = "Lapp/charlesattend/extension/beeper/InboxOrderMenuItem;"
 
-/** Must be the same as QUERY_FIELD_NAMES in InboxOrderPatch.java. */
-private val QUERY_FIELD_NAMES = listOf(
-    "\$space",
-    "\$effectiveFilterIsPinned",
-    "\$filterArchived",
-    "\$filterLowPriority",
-    "\$filterMessageRequests",
-)
+private const val BOOLEAN_TYPE = "Ljava/lang/Boolean;"
+
+/** toString() of the main Inbox space. Must be the same as MAIN_INBOX_SPACE in InboxOrderPatch.java. */
+private const val MAIN_INBOX_SPACE = "Inbox"
+
+/** Name of the helper method that the patch adds to each inbox query lambda. */
+private const val QUERY_HELPER_NAME = "morphe_isMainInboxQuery"
 
 @Suppress("unused")
 val inboxOrderOptionPatch = bytecodePatch(
@@ -62,12 +71,52 @@ val inboxOrderOptionPatch = bytecodePatch(
         // region Let the extension choose the ORDER BY clause of the inbox queries.
 
         listOf(InboxQueryFingerprint, InboxPagingQueryFingerprint).forEach { fingerprint ->
-            // The extension reads these fields with reflection.
-            val fieldNames = fingerprint.classDef.fields.map { it.name }.toSet()
-            val missingFields = QUERY_FIELD_NAMES.filterNot { it in fieldNames }
-            if (missingFields.isNotEmpty()) {
-                throw PatchException("${fingerprint.classDef.type} has no fields $missingFields")
+            val lambdaClass = fingerprint.classDef
+            val lambdaType = lambdaClass.type
+
+            // The lambda holds an Inbox4SpaceQuery and the pinned filter.
+            val queryField = lambdaClass.fieldByName("\$query")
+            val pinnedField = lambdaClass.fieldByName("\$effectiveFilterIsPinned", BOOLEAN_TYPE)
+
+            // The field names of Inbox4SpaceQuery are obfuscated, so read them from its toString().
+            val queryClass = classDefBy(queryField.type)
+            val forMainInboxField = queryClass.fieldFromToString("Inbox4SpaceQuery(filterForMainInbox=", "Z")
+            val archivedField = queryClass.fieldFromToString(", filterArchived=", BOOLEAN_TYPE)
+            val lowPriorityField = queryClass.fieldFromToString(", filterLowPriority=", BOOLEAN_TYPE)
+            val requestsField = queryClass.fieldFromToString(", filterMessageRequests=", BOOLEAN_TYPE)
+
+            // The fields of the lambda are package-private, so the helper must be in the lambda class.
+            // Registers: v0 to v4, and p0 (the lambda) is v5.
+            val helperMethod = ImmutableMethod(
+                lambdaType,
+                QUERY_HELPER_NAME,
+                listOf(ImmutableMethodParameter(lambdaType, null, null)),
+                "Z",
+                AccessFlags.PUBLIC.value or AccessFlags.STATIC.value,
+                null,
+                null,
+                ImmutableMethodImplementation(6, emptyList(), null, null),
+            ).toMutable().apply {
+                addInstructions(
+                    0,
+                    """
+                        iget-object v0, p0, ${queryField.toSmali()}
+                        if-eqz v0, :morphe_not_main_inbox
+                        iget-boolean v1, v0, ${forMainInboxField.toSmali()}
+                        iget-object v2, v0, ${archivedField.toSmali()}
+                        iget-object v3, v0, ${lowPriorityField.toSmali()}
+                        iget-object v4, v0, ${requestsField.toSmali()}
+                        iget-object v0, p0, ${pinnedField.toSmali()}
+                        invoke-static { v1, v0, v2, v3, v4 }, $EXTENSION_CLASS->isMainInboxQuery(Z$BOOLEAN_TYPE$BOOLEAN_TYPE$BOOLEAN_TYPE$BOOLEAN_TYPE)Z
+                        move-result v0
+                        return v0
+                        :morphe_not_main_inbox
+                        const/4 v0, 0x0
+                        return v0
+                    """,
+                )
             }
+            lambdaClass.methods.add(helperMethod)
 
             val orderByMatch = fingerprint.instructionMatches.first()
             val index = orderByMatch.index
@@ -81,7 +130,9 @@ val inboxOrderOptionPatch = bytecodePatch(
                 addInstructionsWithLabels(
                     index + 1,
                     """
-                        invoke-static/range { v$register .. v$register }, $EXTENSION_CLASS->orderBy(Ljava/lang/Object;)Ljava/lang/String;
+                        invoke-static/range { v$register .. v$register }, $lambdaType->$QUERY_HELPER_NAME($lambdaType)Z
+                        move-result v$register
+                        invoke-static/range { v$register .. v$register }, $EXTENSION_CLASS->orderBy(Z)Ljava/lang/String;
                         move-result-object v$register
                         if-nez v$register, :morphe_custom_order
                         const-string v$register, "${originalOrderBy.toSmaliString()}"
@@ -200,26 +251,38 @@ val inboxOrderOptionPatch = bytecodePatch(
             throw PatchException("Expected one caller of $footerReference, found ${menuCallers.size}")
         }
 
+        // The extension compares the space with the toString() of the main Inbox space.
+        val inboxSpaceClass = InboxSpaceFingerprint.match().originalClassDef
+        val inboxSpaceToString = inboxSpaceClass.methods.firstOrNull {
+            it.name == "toString" && it.parameterTypes.isEmpty()
+        }?.instructionsOrNull?.any {
+            it.opcode == Opcode.CONST_STRING &&
+                ((it as ReferenceInstruction).reference as StringReference).string == MAIN_INBOX_SPACE
+        } ?: false
+        if (!inboxSpaceToString) {
+            throw PatchException("${inboxSpaceClass.type}.toString() does not return \"$MAIN_INBOX_SPACE\"")
+        }
+        val spaceTypes = supertypesOf(inboxSpaceClass.type) - "Ljava/lang/Object;"
+
         menuCallers.single().method.apply {
             val callIndex = instructions.indexOfFirst {
                 it.opcode == Opcode.INVOKE_STATIC &&
                     ((it as ReferenceInstruction).reference as MethodReference).toSmali() == footerReference
             }
-            // The menu dispatch checks the space with instance-of just before it calls the footer.
-            val instanceOfIndex = (callIndex - 1 downTo maxOf(0, callIndex - 30)).firstOrNull {
-                getInstruction(it).opcode == Opcode.INSTANCE_OF
-            } ?: throw PatchException("Could not find the space check before the menu footer call")
-            val spaceRegister = getInstruction<TwoRegisterInstruction>(instanceOfIndex).registerB
 
-            if ((instanceOfIndex + 1 until callIndex).any { getInstruction(it).writesRegister(spaceRegister) }) {
-                throw PatchException("The space register v$spaceRegister changes before the menu footer call")
-            }
-            if (getInstruction(callIndex).location.labels.isNotEmpty()) {
-                throw PatchException("The menu footer call is a branch target")
-            }
+            // The menu dispatch casts the space to a space type and then calls the footer for some
+            // spaces. The app reuses the space register before the call, so send the space to the
+            // extension right after the cast. Every path to the call must go through that cast.
+            val spaceCastIndex = (callIndex - 1 downTo 0).firstOrNull { index ->
+                val instruction = getInstruction(index)
+                instruction.opcode == Opcode.CHECK_CAST &&
+                    ((instruction as ReferenceInstruction).reference as TypeReference).type in spaceTypes &&
+                    isOnEveryPath(index, callIndex)
+            } ?: throw PatchException("Could not find the space cast before the menu footer call")
+            val spaceRegister = getInstruction<OneRegisterInstruction>(spaceCastIndex).registerA
 
             addInstructions(
-                callIndex,
+                spaceCastIndex + 1,
                 "invoke-static/range { v$spaceRegister .. v$spaceRegister }, $EXTENSION_CLASS->setMenuSpace(Ljava/lang/Object;)V",
             )
         }
@@ -277,6 +340,54 @@ val inboxOrderOptionPatch = bytecodePatch(
 private fun MethodReference.toSmali() =
     "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
+private fun FieldReference.toSmali() = "$definingClass->$name:$type"
+
+private fun ClassDef.fieldByName(name: String, expectedType: String? = null): FieldReference {
+    val field = fields.firstOrNull { it.name == name }
+        ?: throw PatchException("$type has no field $name")
+    if (expectedType != null && field.type != expectedType) {
+        throw PatchException("Unexpected type of $type->$name: ${field.type}")
+    }
+    return field
+}
+
+private val INSTANCE_GET_OPCODES = setOf(
+    Opcode.IGET, Opcode.IGET_WIDE, Opcode.IGET_OBJECT, Opcode.IGET_BOOLEAN,
+    Opcode.IGET_BYTE, Opcode.IGET_CHAR, Opcode.IGET_SHORT,
+)
+
+/**
+ * Finds a field from the generated toString() of a data class:
+ * `"Name(field1=" + this.a + ", field2=" + this.b + ...`.
+ * The field is the only field read between [label] and the next string constant.
+ */
+private fun ClassDef.fieldFromToString(label: String, expectedType: String): FieldReference {
+    val toStringMethod = methods.firstOrNull {
+        it.name == "toString" && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
+    } ?: throw PatchException("$type has no toString()")
+    val instructions = toStringMethod.instructionsOrNull?.toList()
+        ?: throw PatchException("$type.toString() has no code")
+
+    fun Instruction.isString() = opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO
+
+    val labelIndex = instructions.indexOfFirst {
+        it.isString() && ((it as ReferenceInstruction).reference as StringReference).string == label
+    }
+    if (labelIndex < 0) throw PatchException("$type.toString() has no \"$label\"")
+
+    val fieldReads = instructions.drop(labelIndex + 1)
+        .takeWhile { !it.isString() }
+        .filter { it.opcode in INSTANCE_GET_OPCODES }
+        .map { (it as ReferenceInstruction).reference as FieldReference }
+        .filter { it.definingClass == type }
+    val field = fieldReads.singleOrNull()
+        ?: throw PatchException("Expected one field after \"$label\" in $type.toString(), found ${fieldReads.size}")
+    if (field.type != expectedType) {
+        throw PatchException("Unexpected type of the field after \"$label\": ${field.type}")
+    }
+    return field
+}
+
 private fun String.toSmaliString() = buildString {
     for (char in this@toSmaliString) {
         when (char) {
@@ -293,10 +404,55 @@ private fun Long.toSmaliInt(): String {
     return "0x" + toString(16)
 }
 
-private fun Instruction.writesRegister(register: Int): Boolean {
-    if (!opcode.setsRegister()) return false
-    val registerA = (this as? OneRegisterInstruction)?.registerA ?: return false
-    return registerA == register || (opcode.setsWideRegister() && registerA + 1 == register)
+/** The type, its superclasses and all its interfaces, as far as the app contains them. */
+private fun BytecodePatchContext.supertypesOf(type: String): Set<String> {
+    val result = mutableSetOf<String>()
+    val pending = ArrayDeque(listOf(type))
+    while (pending.isNotEmpty()) {
+        val current = pending.removeFirst()
+        if (!result.add(current)) continue
+        val classDef = classDefByOrNull(current) ?: continue
+        classDef.superclass?.let { pending.add(it) }
+        pending.addAll(classDef.interfaces)
+    }
+    return result
+}
+
+/**
+ * True if every path from the start of the method to [targetIndex] goes through [nodeIndex].
+ * Methods with try blocks are not supported, so this returns false for them.
+ */
+private fun MutableMethod.isOnEveryPath(nodeIndex: Int, targetIndex: Int): Boolean {
+    val implementation = implementation ?: return false
+    if (implementation.tryBlocks.isNotEmpty()) return false
+    val instructions = implementation.instructions
+    if (nodeIndex == 0) return true
+
+    // Search the paths from the start that do not go through nodeIndex.
+    val visited = BooleanArray(instructions.size)
+    val pending = ArrayDeque<Int>()
+    fun visit(index: Int) {
+        if (index in instructions.indices && index != nodeIndex && !visited[index]) {
+            visited[index] = true
+            pending.add(index)
+        }
+    }
+    visit(0)
+    while (pending.isNotEmpty()) {
+        val index = pending.removeLast()
+        if (index == targetIndex) return false
+        val instruction = instructions[index]
+        if (instruction.opcode.canContinue()) visit(index + 1)
+        if (instruction is BuilderOffsetInstruction) {
+            val target = instructions[instruction.target.location.index]
+            if (target is BuilderSwitchPayload) {
+                target.switchElements.forEach { visit(it.target.location.index) }
+            } else {
+                visit(instruction.target.location.index)
+            }
+        }
+    }
+    return true
 }
 
 private fun MutableMethod.replaceBody(smali: String) {

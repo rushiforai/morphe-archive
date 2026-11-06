@@ -5,13 +5,10 @@ import android.content.SharedPreferences;
 import android.util.Log;
 import android.widget.Toast;
 
-import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Lets the user show the main inbox with the oldest chats first.
@@ -34,28 +31,12 @@ public final class InboxOrderPatch {
     /** toString() of the built-in main inbox space. */
     static final String MAIN_INBOX_SPACE = "Inbox";
 
-    /**
-     * Fields of the inbox query lambdas, in this order:
-     * space, pinned filter, archived filter, low priority filter, message requests filter.
-     * The patch checks at patch time that these fields exist.
-     */
-    static final String[] QUERY_FIELD_NAMES = {
-            "$space",
-            "$effectiveFilterIsPinned",
-            "$filterArchived",
-            "$filterLowPriority",
-            "$filterMessageRequests",
-    };
-
-    private static final Field[] NO_FIELDS = new Field[0];
-
     private static final Object LOCK = new Object();
 
     private static volatile Context context;
     private static volatile Boolean oldestFirst;
     private static volatile Object menuSpace;
 
-    private static final Map<Class<?>, Field[]> queryFields = new ConcurrentHashMap<>();
     private static final Set<Object> pagingSources = Collections.newSetFromMap(new WeakHashMap<>());
 
     private InboxOrderPatch() {
@@ -71,17 +52,36 @@ public final class InboxOrderPatch {
     /**
      * Called by the inbox query builders instead of the ORDER BY constant.
      *
+     * @param isMainInboxQuery the result of {@link #isMainInboxQuery} for this query.
      * @return the new ORDER BY clause, or null to keep the original one.
      */
-    public static String orderBy(Object queryLambda) {
+    public static String orderBy(boolean isMainInboxQuery) {
         try {
-            if (isOldestFirst() && isMainInboxQuery(queryLambda)) {
+            if (isMainInboxQuery && isOldestFirst()) {
                 return ORDER_BY_OLDEST_FIRST;
             }
         } catch (Throwable throwable) {
-            Log.e(TAG, "Could not read the inbox query", throwable);
+            Log.e(TAG, "Could not read the inbox order setting", throwable);
         }
         return null;
+    }
+
+    /**
+     * Called by a helper method that the patch adds to each inbox query lambda.
+     * The helper reads these values from the lambda and from its Inbox4SpaceQuery.
+     *
+     * @return true for the list of the main inbox, but not for its pinned chats
+     * and not for the Archive, Low priority and Requests filters.
+     */
+    public static boolean isMainInboxQuery(boolean filterForMainInbox, Boolean filterIsPinned,
+                                           Boolean filterArchived, Boolean filterLowPriority,
+                                           Boolean filterMessageRequests) {
+        return filterForMainInbox
+                // The pinned chats use their own query (pinned = TRUE).
+                && Boolean.FALSE.equals(filterIsPinned)
+                && !Boolean.TRUE.equals(filterArchived)
+                && !Boolean.TRUE.equals(filterLowPriority)
+                && !Boolean.TRUE.equals(filterMessageRequests);
     }
 
     /** Called by the inbox paging source constructor, right after its superclass constructor. */
@@ -162,39 +162,6 @@ public final class InboxOrderPatch {
 
         // Load the list again, so that all pages use the new order.
         invalidatePagingSources();
-    }
-
-    static boolean isMainInboxQuery(Object queryLambda) throws IllegalAccessException {
-        Field[] fields = queryFields(queryLambda.getClass());
-        if (fields.length == 0) {
-            return false;
-        }
-        return MAIN_INBOX_SPACE.equals(String.valueOf(fields[0].get(queryLambda)))
-                // The pinned chats use their own query (pinned = TRUE).
-                && Boolean.FALSE.equals(fields[1].get(queryLambda))
-                && !Boolean.TRUE.equals(fields[2].get(queryLambda))
-                && !Boolean.TRUE.equals(fields[3].get(queryLambda))
-                && !Boolean.TRUE.equals(fields[4].get(queryLambda));
-    }
-
-    private static Field[] queryFields(Class<?> lambdaClass) {
-        Field[] fields = queryFields.get(lambdaClass);
-        if (fields != null) {
-            return fields;
-        }
-        try {
-            fields = new Field[QUERY_FIELD_NAMES.length];
-            for (int i = 0; i < QUERY_FIELD_NAMES.length; i++) {
-                Field field = lambdaClass.getDeclaredField(QUERY_FIELD_NAMES[i]);
-                field.setAccessible(true);
-                fields[i] = field;
-            }
-        } catch (NoSuchFieldException exception) {
-            Log.e(TAG, "Unknown inbox query class: " + lambdaClass, exception);
-            fields = NO_FIELDS;
-        }
-        queryFields.put(lambdaClass, fields);
-        return fields;
     }
 
     private static void invalidatePagingSources() {

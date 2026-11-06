@@ -17,7 +17,7 @@ final class RootPostLocalTimeline {
     static boolean contains(HushLocalTimeline host, String root) {
         try {
             List<?> items = host.hushTimelineItems();
-            return items != null && items.size() <= MAX_ITEMS && items.stream().anyMatch(item -> root.equals(RootPostMenu.root(item)));
+            return items != null && items.size() <= MAX_ITEMS && items.stream().anyMatch(item -> root.equals(RootPostMenu.entryOf(item, root)));
         } catch (Throwable unavailable) { return false; }
     }
 
@@ -29,7 +29,7 @@ final class RootPostLocalTimeline {
             List<Object> after = new ArrayList<>();
             List<Object> removed = new ArrayList<>();
             for (Object item : before) {
-                if (root.equals(RootPostMenu.root(item))) removed.add(item); else after.add(item);
+                if (root.equals(RootPostMenu.entryOf(item, root))) removed.add(item); else after.add(item);
             }
             if (removed.isEmpty()) {
                 // A newly filtered page may have converged while the private write ran.

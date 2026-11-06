@@ -47,6 +47,15 @@ The worker allows at most 20 reports per IP address per hour when a KV namespace
 
 (With `wrangler deploy` the `[[ratelimits]]` block in `wrangler.toml` works as well.)
 
+## Usage numbers
+
+Once a day (when Wordfeud shows the games list) the patch also sends `{"type":"ping","patch":"1.2.3","rulesets":[2]}`.
+The worker only counts these per day, version and language in `REPORT_KV` (key `stats:YYYY-MM-DD`); they are not
+forwarded to GitHub. To see the numbers, add a secret once: worker → Settings → Variables and Secrets → *Add* →
+type **Secret**, name `STATS_KEY`, any long random value. Then open
+`https://wordfeud-word-report.jeroenimo02.workers.dev/stats?key=<that value>`. Without `STATS_KEY` the page does
+not exist (404). Note: the free plan allows 1,000 KV writes a day; each ping uses two (rate limit + counter).
+
 ## Trying it
 
 ```sh

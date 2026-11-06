@@ -44,6 +44,10 @@ def pkg_emoji(pkg):
 # Phone makers' own apps, each maker's listed together under one spoiler: (title, name prefix dropped when sorting,
 # package prefixes, packages without the maker's prefix).
 VENDOR_GROUPS = [
+    # Home screen apps from every vendor get one dropdown of their own, listed first,
+    # instead of sitting in their vendor's.
+    ("Launchers", "", (), ("com.sec.android.app.launcher", "com.hihonor.android.launcher", "com.android.launcher",
+                           "com.nothing.launcher", "net.oneplus.launcher", "com.sonymobile.launcher")),
     ("Samsung Apps", "samsung ", ("com.samsung.", "com.sec."), ()),
     ("Xiaomi Apps", "xiaomi ", ("com.miui.", "com.xiaomi."), ("com.android.soundrecorder", "com.android.calendar")),
     ("Nothing Apps", "nothing ", ("com.nothing.",), ()),
@@ -52,10 +56,9 @@ VENDOR_GROUPS = [
     ("LG Apps", "lg ", ("com.lge.",), ()),
     # OPPO's ColorOS, also OnePlus's OxygenOS and realme UI: apps carry the OnePlus or OPPO name.
     ("ColorOS Apps", ("oneplus ", "oppo ", "coloros ", "realme "),
-     ("com.oneplus.", "net.oneplus.", "com.coloros.", "com.oplus.", "com.oppo."), ()),
-    # Home screen apps from every vendor get one dropdown of their own instead of sitting in their vendor's.
-    ("Launchers", "", (), ("com.sec.android.app.launcher", "com.hihonor.android.launcher", "com.android.launcher",
-                           "com.nothing.launcher", "net.oneplus.launcher")),
+     ("com.oneplus.", "net.oneplus.", "com.coloros.", "com.oplus.", "com.oppo."), ("com.android.contacts",)),
+    # Sony's apps: Xperia's own (com.sonymobile.*) and the older Sony Ericsson names Album still carries.
+    ("Sony Apps", "sony ", ("com.sonymobile.", "com.sony.", "com.sonyericsson."), ()),
 ]
 
 
@@ -78,6 +81,10 @@ APP_RENAMES = {
     "com.google.android.apps.maps": (
         '<img src="docs/icons/pin-google.png" width="20" height="20" align="top"> Google Maps',
         '<img src="docs/icons/pin-ungoogled.png" width="20" height="20" align="top"> Ungoogled Maps',
+    ),
+    "com.google.android.gm": (
+        '<img src="docs/icons/gmail.png" width="20" height="20" align="top"> Gmail',
+        '<img src="docs/icons/gmail.png" width="20" height="20" align="top"> Gmail',
     ),
     "com.waze": (
         '<img src="docs/icons/waze.png" width="20" height="20" align="top"> Waze',
@@ -171,9 +178,29 @@ APP_RENAMES = {
         '<img src="docs/icons/samsung-voice-recorder.png" width="20" height="20" align="top"> Samsung Voice Recorder',
         '<img src="docs/icons/samsung-voice-recorder.png" width="20" height="20" align="top"> Samsung Voice Recorder',
     ),
+    "com.sec.app.screenrecorder": (
+        '<img src="docs/icons/samsung-screen-recorder.png" width="20" height="20" align="top"> Samsung Screen Recorder',
+        '<img src="docs/icons/samsung-screen-recorder.png" width="20" height="20" align="top"> Samsung Screen Recorder',
+    ),
+    "com.samsung.android.email.provider": (
+        '<img src="docs/icons/samsung-email.png" width="20" height="20" align="top"> Samsung Email',
+        '<img src="docs/icons/samsung-email.png" width="20" height="20" align="top"> Samsung Email',
+    ),
     "com.sec.android.app.launcher": (
         '<img src="docs/icons/samsung-one-ui-home.png" width="20" height="20" align="top"> One UI Home',
         '<img src="docs/icons/samsung-one-ui-home.png" width="20" height="20" align="top"> One UI Home',
+    ),
+    "com.samsung.android.goodlock": (
+        '<img src="docs/icons/samsung-good-lock.png" width="20" height="20" align="top"> Good Lock',
+        '<img src="docs/icons/samsung-good-lock.png" width="20" height="20" align="top"> Good Lock',
+    ),
+    "com.samsung.android.app.homestar": (
+        '<img src="docs/icons/samsung-home-up.png" width="20" height="20" align="top"> Home Up',
+        '<img src="docs/icons/samsung-home-up.png" width="20" height="20" align="top"> Home Up',
+    ),
+    "com.samsung.android.wonderland.wallpaper": (
+        '<img src="docs/icons/samsung-wonderland.png" width="20" height="20" align="top"> Wonderland',
+        '<img src="docs/icons/samsung-wonderland.png" width="20" height="20" align="top"> Wonderland',
     ),
     "com.miui.compass": (
         '<img src="docs/icons/xiaomi-compass.png" width="20" height="20" align="top"> Xiaomi Compass',
@@ -219,6 +246,10 @@ APP_RENAMES = {
         '<img src="docs/icons/nothing-recorder.png" width="20" height="20" align="top"> Nothing Recorder',
         '<img src="docs/icons/nothing-recorder.png" width="20" height="20" align="top"> Nothing Recorder',
     ),
+    "com.nothing.ntscreenshot": (
+        '<img src="docs/icons/nothing-screenshot.png" width="20" height="20" align="top"> Nothing Screenshot',
+        '<img src="docs/icons/nothing-screenshot.png" width="20" height="20" align="top"> Nothing Screenshot',
+    ),
     "com.nothing.launcher": (
         '<img src="docs/icons/nothing-launcher.png" width="20" height="20" align="top"> Nothing Launcher',
         '<img src="docs/icons/nothing-launcher.png" width="20" height="20" align="top"> Nothing Launcher',
@@ -258,6 +289,10 @@ APP_RENAMES = {
     "com.hihonor.android.totemweather": (
         '<img src="docs/icons/honor-weather.png" width="20" height="20" align="top"> Honor Weather',
         '<img src="docs/icons/honor-weather.png" width="20" height="20" align="top"> Honor Weather',
+    ),
+    "com.hihonor.screenrecorder": (
+        '<img src="docs/icons/honor-screen-recorder.png" width="20" height="20" align="top"> Honor Screen recording',
+        '<img src="docs/icons/honor-screen-recorder.png" width="20" height="20" align="top"> Honor Screen recording',
     ),
     "com.hihonor.android.launcher": (
         '<img src="docs/icons/honor-home.png" width="20" height="20" align="top"> Honor Home',
@@ -317,6 +352,11 @@ APP_RENAMES = {
         '<img src="docs/icons/coloros-recorder.png" width="20" height="20" align="top"> OnePlus Recorder',
         '<img src="docs/icons/coloros-recorder.png" width="20" height="20" align="top"> OnePlus Recorder',
     ),
+    # OnePlus Contacts (ColorOS 16 contacts + dial pad, installed as org.ungoogled.opluscontacts)
+    "com.android.contacts": (
+        '<img src="docs/icons/coloros-contacts.png" width="20" height="20" align="top"> OnePlus Contacts',
+        '<img src="docs/icons/coloros-contacts.png" width="20" height="20" align="top"> OnePlus Contacts',
+    ),
     # OnePlus System Launcher (ColorOS / OxygenOS 16 home screen, coloros-launcher)
     "com.android.launcher": (
         '<img src="docs/icons/coloros-launcher.png" width="20" height="20" align="top"> OnePlus System Launcher',
@@ -326,6 +366,16 @@ APP_RENAMES = {
     "net.oneplus.launcher": (
         '<img src="docs/icons/oneplus-launcher.png" width="20" height="20" align="top"> OnePlus Launcher (OxygenOS 11)',
         '<img src="docs/icons/oneplus-launcher.png" width="20" height="20" align="top"> OnePlus Launcher (OxygenOS 11)',
+    ),
+    # Sony Album (Xperia's gallery, sony-ports)
+    "com.sonyericsson.album": (
+        '<img src="docs/icons/sony-album.png" width="20" height="20" align="top"> Sony Album',
+        '<img src="docs/icons/sony-album.png" width="20" height="20" align="top"> Sony Album',
+    ),
+    # Xperia Home (Sony's launcher, sony-ports): listed under Launchers.
+    "com.sonymobile.launcher": (
+        '<img src="docs/icons/xperia-home.png" width="20" height="20" align="top"> Xperia Home',
+        '<img src="docs/icons/xperia-home.png" width="20" height="20" align="top"> Xperia Home',
     ),
 }
 

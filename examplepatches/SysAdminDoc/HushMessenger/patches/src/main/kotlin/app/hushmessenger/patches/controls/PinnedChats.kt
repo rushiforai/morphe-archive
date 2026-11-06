@@ -44,9 +44,9 @@ internal const val PIN_ARRANGE_CALL = "$LOCAL_PINS->arrange(Ljava/lang/Object;)V
 internal const val PINNED_CHAT_ROUTE = "$HOST_SCREENS->pinnedChatRoute()Ljava/lang/String;"
 
 /**
- * The config number Messenger reads its pinned chat limit from. 586 has no getter for it and reads it in place
- * wherever the pinned count is compared with it: the Pin row's check before a pin, the recount after one, the chat
- * list's fetch of pinned chats and the thread details' Pin state.
+ * The config number Messenger reads its pinned chat limit from. Most 586 builds have no getter for it and read it in
+ * place wherever the pinned count is compared with it: the Pin row's check before a pin, the recount after one, the chat
+ * list's fetch of pinned chats and the thread details' Pin state. Family B reads it in one getter those places call.
  */
 internal const val PINNED_CHAT_LIMIT_CONFIG = 0x82059c00020fdeL
 
@@ -66,6 +66,7 @@ private fun Method.limitLoads(): List<Int> = implementation?.instructions?.withI
  */
 internal fun Method.pinnedChatLimitRead(): Int? {
     val loads = limitLoads()
+    if (loads.isEmpty()) return pinLimitGot()
     if (loads.size != 1) return null
     val code = implementation!!.instructions.toList()
     val at = loads.single()
@@ -78,10 +79,37 @@ internal fun Method.pinnedChatLimitRead(): Int? {
     return if (code.getOrNull(at + 2)?.opcode == Opcode.MOVE_RESULT) at + 2 else null
 }
 
-/** Every method that reads the limit, when each one reads it that way, or none. */
+/**
+ * Family B moves the read into static getters that return its answer as it is, and each place that compared the count
+ * calls one instead. Their ids, set by [findPinnedChats] before anything asks [pinnedChatLimitRead].
+ */
+internal var pinLimitGetters: Set<String> = emptySet()
+
+private fun Method.isPinLimitGetter(): Boolean {
+    val taken = pinnedChatLimitRead() ?: return false
+    val code = implementation!!.instructions.toList()
+    val back = code.getOrNull(taken + 1) as? OneRegisterInstruction ?: return false
+    return isStatic() && returnType == "I" && back.opcode == Opcode.RETURN && back.registerA == (code[taken] as OneRegisterInstruction).registerA
+}
+
+private fun Instruction.callsPinLimitGetter() = ((this as? ReferenceInstruction)?.reference as? MethodReference)?.toString() in pinLimitGetters
+
+/** Index of the `move-result` taking a getter's answer, when this calls one getter once and takes the answer next. */
+private fun Method.pinLimitGot(): Int? {
+    val code = implementation?.instructions?.toList() ?: return null
+    val at = code.indices.filter { code[it].callsPinLimitGetter() }.singleOrNull() ?: return null
+    return if (code.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT) at + 1 else null
+}
+
+/** Every method that reads the limit, when each one reads it that way, or none. A getter's callers read it in its place. */
 private fun pinLimitReaders(classes: Iterable<ClassDef>): List<Method> {
-    val readers = classes.flatMap { it.methods }.filter { it.limitLoads().isNotEmpty() }
-    return if (readers.isNotEmpty() && readers.all { it.pinnedChatLimitRead() != null }) readers else emptyList()
+    pinLimitGetters = emptySet()
+    val direct = classes.flatMap { it.methods }.filter { it.limitLoads().isNotEmpty() }
+    if (direct.isEmpty() || direct.any { it.pinnedChatLimitRead() == null }) return emptyList()
+    pinLimitGetters = direct.filter { it.isPinLimitGetter() }.map { it.hookId() }.toSet()
+    if (pinLimitGetters.isEmpty()) return direct
+    val callers = classes.flatMap { it.methods }.filter { m -> m.implementation?.instructions?.any { it.callsPinLimitGetter() } == true }
+    return if (callers.all { it.pinnedChatLimitRead() != null }) direct.filterNot { it.hookId() in pinLimitGetters } + callers else emptyList()
 }
 
 private fun Method.takesThreadKey() = parameterTypes.any { it.toString() == THREAD_KEY_TYPE }

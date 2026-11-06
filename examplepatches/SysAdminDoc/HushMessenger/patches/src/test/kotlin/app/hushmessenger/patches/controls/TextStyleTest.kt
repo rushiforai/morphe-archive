@@ -148,6 +148,37 @@ class TextStyleTest {
         }
     }
 
+    /** Build 347215273's shape: onTextChanged calls the spec's static A08, and only A08 names the remeasure. */
+    private fun outlinedFixture(helperFlags: Int = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, extra: List<MutableClass> = emptyList()): List<MutableClass> {
+        val helper = "LX/5R9;->A08(LX/1Vm;)V"
+        val changed = fixtureMethod(TEXT_FIELD_CHANGED, """
+            invoke-super {p0, p1, p2, p3, p4}, Landroid/widget/TextView;->onTextChanged(Ljava/lang/CharSequence;III)V
+            const/4 v0, 0x0
+            invoke-static {v0}, $helper
+            return-void
+        """.trimIndent(), registers = 6)
+        return listOf(
+            fixtureClass(FIELD, listOf(selection(), changed), superclass = EDIT_TEXT),
+            fixtureClass("LX/5R9;", listOf(fixtureMethod(helper, "const-string v0, \"$TEXT_INPUT_REMEASURE\"\nreturn-void", registers = 2,
+                flags = helperFlags)), superclass = "LX/1QA;"),
+            fixtureClass("LX/Zq1;", listOf(selection(owner = "LX/Zq1;")), superclass = EDIT_TEXT),
+        ) + extra
+    }
+
+    @Test fun familyBsOnTextChangedNamesTheRemeasureThroughTheSpecsStaticHelper() {
+        assertEquals(setOf(SYNTHETIC_TEXT_FIELD_SELECTION), found(outlinedFixture()))
+        validateControls(mirroredControls(outlinedFixture()), setOf(TEXT_STYLE))
+        val second = fixtureClass("LX/Zq2;", listOf(fixtureMethod("LX/Zq2;->onTextChanged(Ljava/lang/CharSequence;III)V",
+            "const/4 v0, 0x0\ninvoke-static {v0}, LX/5R9;->A08(LX/1Vm;)V\nreturn-void", registers = 6)), superclass = EDIT_TEXT)
+        for ((case, classes) in mapOf(
+            "an instance helper" to outlinedFixture(helperFlags = AccessFlags.PUBLIC.value),
+            "two EditTexts call it" to outlinedFixture(extra = listOf(second)),
+        )) {
+            assertTrue(found(classes).isEmpty(), case)
+            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), setOf(TEXT_STYLE)) }
+        }
+    }
+
     @Test fun theSelectionChangeHandsTheFieldToTheExtensionBeforeAnythingElse() {
         val method = selection()
         val before = method.code()

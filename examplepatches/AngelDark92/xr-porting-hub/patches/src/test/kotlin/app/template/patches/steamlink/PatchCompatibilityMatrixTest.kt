@@ -1,7 +1,6 @@
 package app.template.patches.steamlink
 
 import app.morphe.patcher.patch.Patch
-import app.template.patches.steamlink.androidxr.appearOnTopPatch
 import app.template.patches.steamlink.androidxr.androidXrUiExtensionPatch
 import app.template.patches.steamlink.androidxr.controllerGripHapticsPatch
 import app.template.patches.steamlink.androidxr.controllerHalPosePatch
@@ -16,7 +15,6 @@ import app.template.patches.steamlink.androidxr.xrCodecsSupportPatch
 import app.template.patches.steamlink.androidxr.xrCoreRuntimePatch
 import app.template.patches.steamlink.androidxr.xrDeviceConfigBaselinePatch
 import app.template.patches.steamlink.androidxr.xrDirectInputFixPatch
-import app.template.patches.steamlink.androidxr.alpha0HighResolutionTriggerPatch
 import app.template.patches.steamlink.androidxr.xrInputRoutingConfigPatch
 import app.template.patches.steamlink.androidxr.xrLauncherBootstrapPatch
 import app.template.patches.steamlink.androidxr.xrManifestCapabilityPackPatch
@@ -31,7 +29,6 @@ import app.template.patches.steamlink.binary.hmdOnlyPatch
 import app.template.patches.steamlink.binary.microphoneInputPresetPatch
 import app.template.patches.steamlink.binary.networkOptimizationsPatch
 import app.template.patches.steamlink.binary.oledCalibrationPatch
-import app.template.patches.steamlink.binary.optionalNetworkOptimizationsPatch
 import app.template.patches.steamlink.identity.changePackageNamePatch
 import app.template.patches.steamlink.identity.deviceIdentityPatch
 import app.template.patches.steamlink.identity.galaxyXrVendorDriverPatch
@@ -43,27 +40,24 @@ import kotlin.test.assertTrue
 class PatchCompatibilityMatrixTest {
     @Test
     fun `every pre-2363 build recommends its own set`() {
-        // Network Optimizations is recommended on the exact 2.0.20 bases only; its optional
-        // sibling carries the later bases without recommending them.
-        val withNetwork = legacyRecommendedPatches
-        val withoutNetwork = withNetwork - networkOptimizationsPatch
-        assertEquals(21, withNetwork.size)
-        assertEquals(withNetwork, recommendedFor("2.0.20", 5001712).toSet(), "2.0.20/5001712")
-        assertEquals(withNetwork, recommendedFor("2.0.20", 5001812).toSet(), "2.0.20/5001812")
-        assertEquals(withoutNetwork, recommendedFor("2.0.21", 5001968).toSet(), "2.0.21/5001968")
-        assertEquals(withoutNetwork, recommendedFor("2.0.22", 5002244).toSet(), "2.0.22/5002244")
-        withNetwork.forEach { assertTrue(it.default, it.name) }
-        assertTrue(networkOptimizationsPatch.supports("2.0.20", 5001812))
-        assertFalse(networkOptimizationsPatch.supports("2.0.21", 5001968))
-        assertTrue(optionalNetworkOptimizationsPatch.supports("2.0.21", 5001968))
-        assertFalse(optionalNetworkOptimizationsPatch.default)
+        // One Network Optimizations patch is recommended on every verified base; each loaded
+        // build dispatches to its own layout.
+        val recommended = legacyRecommendedPatches
+        assertEquals(21, recommended.size)
+        listOf("2.0.20" to 5001712, "2.0.20" to 5001812, "2.0.21" to 5001968, "2.0.22" to 5002244)
+            .forEach { (version, code) ->
+                assertEquals(recommended, recommendedFor(version, code).toSet(), "$version/$code")
+                assertTrue(networkOptimizationsPatch.supports(version, code), "$version/$code")
+                assertTrue(stockQuadCompositionPatch.supports(version, code), "$version/$code")
+            }
+        recommended.forEach { assertTrue(it.default, it.name) }
     }
-
     @Test
     fun `earlier native builds recommend their own set`() {
         listOf("2.0.23" to 5002363, "2.0.24" to 5002395).forEach { (version, code) ->
             assertEquals(nativeRecommendedPatches, recommendedFor(version, code).toSet(), "$version/$code")
             assertFalse(deviceIdentityPatch.supports(version, code))
+            assertTrue(networkOptimizationsPatch.supports(version, code), "$version/$code")
         }
         nativeRecommendedPatches.forEach { assertTrue(it.default, it.name) }
     }
@@ -80,6 +74,7 @@ class PatchCompatibilityMatrixTest {
                 oledCalibrationPatch,
                 controllerVelocityFramePatch,
                 blueNoisePatch, // fovea and background options are both default-on
+                networkOptimizationsPatch, // exact 5002527 layout, default on
             ),
             recommendedFor("2.0.24", 5002527).toSet(),
         )
@@ -126,9 +121,8 @@ class PatchCompatibilityMatrixTest {
     @Test
     fun `legacy base exposes every standalone patch with matching defaults`() {
         val reference = allIndividualPatches.filter { it.supports("2.0.20", 5001712) }.toSet()
-        // Every public patch except the optional later-base Network Optimizations object.
-        assertEquals(allIndividualPatches.toSet() - optionalNetworkOptimizationsPatch, reference)
-        assertEquals(30, reference.size)
+        assertEquals(allIndividualPatches.toSet(), reference)
+        assertEquals(28, reference.size)
         recommendedFor("2.0.20", 5001712).forEach { assertTrue(it.default, it.name) }
         (reference - legacyRecommendedPatches).forEach { patch ->
             assertFalse(patch.default, patch.name)
@@ -138,10 +132,9 @@ class PatchCompatibilityMatrixTest {
     @Test
     fun `native bases expose exactly their individual patches`() {
         val earlierNative = setOf(
-            alpha0HighResolutionTriggerPatch,
+            networkOptimizationsPatch,
             gxrFacebridgePatch,
             microphoneInputPresetPatch,
-            optionalNetworkOptimizationsPatch,
             blueNoisePatch,
             xrCodecsSupportPatch,
             performanceBoostPatch,
@@ -156,9 +149,10 @@ class PatchCompatibilityMatrixTest {
             controllerPoseExtrapolationPatch,
             controllerPoseTimePatch,
         )
-        // Only adapted patches follow the registry onto 5002527. Alpha-0, stock quad, OpenXR BOOST,
-        // the identity driver, Network Optimizations and the legacy patches keep their old scope.
+        // Only adapted patches follow the registry onto 5002527. Stock quad, OpenXR BOOST,
+        // the identity driver and the legacy patches keep their old scope; Network Optimizations covers it.
         val expected5002527 = setOf(
+            networkOptimizationsPatch,
             gxrFacebridgePatch,
             microphoneInputPresetPatch,
             blueNoisePatch,
@@ -176,9 +170,8 @@ class PatchCompatibilityMatrixTest {
         assertEquals(earlierNative, allIndividualPatches.filter { it.supports("2.0.24", 5002395) }.toSet())
         assertEquals(expected5002527, allIndividualPatches.filter { it.supports("2.0.24", 5002527) }.toSet())
         listOf(
-            alpha0HighResolutionTriggerPatch, stockQuadCompositionPatch, performanceBoostPatch,
-            galaxyXrVendorDriverPatch, networkOptimizationsPatch, optionalNetworkOptimizationsPatch,
-            appearOnTopPatch, deviceIdentityPatch,
+            stockQuadCompositionPatch, performanceBoostPatch,
+            galaxyXrVendorDriverPatch, deviceIdentityPatch,
         ).forEach { assertFalse(it.supports("2.0.24", 5002527), it.name) }
         listOf("2.0.22" to 5002322, "2.0.22" to 5002363, "2.0.23" to 5002322, "2.0.23" to 5002364,
             "2.0.24" to 5002363, "2.0.24" to 5002394)
@@ -187,8 +180,8 @@ class PatchCompatibilityMatrixTest {
                     assertFalse(patch.supports(version, versionCode), "${patch.name}: $version/$versionCode")
                 }
             }
-        assertEquals(31, allIndividualPatches.size)
-        assertEquals(14, allIndividualPatches.toSet().size - earlierNative.size)
+        assertEquals(28, allIndividualPatches.size)
+        assertEquals(12, allIndividualPatches.toSet().size - earlierNative.size)
         val modernClosure = nativeRecommendedPatches.flatMap { it.dependencyClosure() }.toSet()
         assertTrue(modernClosure.intersect(allIndividualPatches.toSet() - earlierNative).isEmpty())
         val closure5002527 = recommendedFor("2.0.24", 5002527).flatMap { it.dependencyClosure() }.toSet()
@@ -208,7 +201,7 @@ class PatchCompatibilityMatrixTest {
         assertTrue(xrManifestCapabilityPackPatch in routingClosure)
         assertTrue(xrCoreRuntimePatch in routingClosure)
 
-        listOf(alpha0HighResolutionTriggerPatch, gxrFacebridgePatch).forEach { patch ->
+        listOf(stockQuadCompositionPatch, gxrFacebridgePatch).forEach { patch ->
             val closure = patch.dependencyClosure()
             assertFalse(xrLauncherBootstrapPatch in closure, patch.name)
             assertFalse(xrPermissionSettingsBootstrapPatch in closure, patch.name)
@@ -242,7 +235,7 @@ class PatchCompatibilityMatrixTest {
 
     @Test
     fun `every public patch is inventoried and registry growth cannot widen the unadapted ones`() {
-        // The inventory is the 31 public patches (PatchCategoriesTest owns the category map).
+        // The inventory is the 28 public patches (PatchCategoriesTest owns the category map).
         assertEquals(allIndividualPatches.size, allIndividualPatches.toSet().size)
         listOf(performanceBoostPatch, galaxyXrVendorDriverPatch).forEach { patch ->
             // Previously supported on both earlier native builds, never on 5002527.
@@ -280,17 +273,15 @@ class PatchCompatibilityMatrixTest {
         val allIndividualPatches = listOf(
             xrStartupPermissionsPatch,
             androidXrNativePermissionNamesPatch,
-            appearOnTopPatch,
             changePackageNamePatch,
             deviceIdentityPatch,
             forceHmdInitializationGatesPatch,
             forceLobbyPermissionStateGatePatch,
             forceStreamXrGatesPatch,
             gxrFacebridgePatch,
-            alpha0HighResolutionTriggerPatch,
+            stockQuadCompositionPatch,
             microphoneInputPresetPatch,
             networkOptimizationsPatch,
-            optionalNetworkOptimizationsPatch,
             blueNoisePatch,
             xrCodecsSupportPatch,
             performanceBoostPatch,
@@ -308,7 +299,6 @@ class PatchCompatibilityMatrixTest {
             controllerPoseExtrapolationPatch,
             controllerPoseTimePatch,
             galaxyXrVendorDriverPatch,
-            stockQuadCompositionPatch,
         )
 
         val legacyRecommendedPatches = setOf(
@@ -317,7 +307,7 @@ class PatchCompatibilityMatrixTest {
             forceLobbyPermissionStateGatePatch,
             forceStreamXrGatesPatch,
             gxrFacebridgePatch,
-            alpha0HighResolutionTriggerPatch,
+            stockQuadCompositionPatch,
             microphoneInputPresetPatch,
             oledCalibrationPatch,
             unrestrictedBatteryUsagePatch,
@@ -334,9 +324,10 @@ class PatchCompatibilityMatrixTest {
             controllerVelocityFramePatch,
         )
 
-        // 2.0.23/5002363 and 2.0.24/5002395; Network Optimizations is no longer recommended here.
+        // 2.0.23/5002363 and 2.0.24/5002395.
         val nativeRecommendedPatches = setOf(
-            alpha0HighResolutionTriggerPatch,
+            stockQuadCompositionPatch,
+            networkOptimizationsPatch,
             gxrFacebridgePatch,
             microphoneInputPresetPatch,
             xrCodecsSupportPatch,

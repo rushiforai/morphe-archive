@@ -1,0 +1,7 @@
+<<<<<<< HEAD
+=======
+    <string name="morphe_niconico_comments_timed_comments_title">Show timed comments</string>
+    <string name="morphe_niconico_comments_timed_comments_summary">On videos without a chat, top comments that contain a time such as 1:23 are shown at that time</string>
+    <string name="morphe_niconico_comments_timed_comments_with_replay_title">Show timed comments with chat replay</string>
+    <string name="morphe_niconico_comments_timed_comments_with_replay_summary">On replays of live streams and Premieres, timed comments are also shown with the chat</string>
+>>>>>>> 0a7a90f739d02e274e7042536f36c9f9e1801e9c

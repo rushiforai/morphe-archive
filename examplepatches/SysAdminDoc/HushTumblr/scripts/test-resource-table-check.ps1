@@ -249,7 +249,7 @@ public final class TwoPackages {
     public static void main(String[] args) throws Exception {
         TableBlock table;
         try (ZipFile zip = new ZipFile(args[0]); InputStream in = new BufferedInputStream(zip.getInputStream(zip.getEntry("resources.arsc")))) {
-            table = TableBlock.load(in);
+            table = TableBlock.load(in, (read, total) -> { });
         }
         PackageBlock base = table.pickOne(0x7f);
         // ARSCLib merges only packages of one id, so the copy takes its own id afterwards.
@@ -1393,12 +1393,18 @@ try {
     $swap = @{ Said = @{} }
     function Invoke-HeldMerge([hashtable]$At, [string]$To) {
         $global:HushTumblrHeldJava = @{ Java = $Java; Work = $swapDir; At = $At; Reached = @() }
-        $result = [pscustomobject]@{ Path = $null; Refused = $null; Reached = @() }
+        $result = [pscustomobject]@{ Path = $null; Refused = $null; Untrusted = $false; Reached = @() }
         try {
             $result.Path = Get-MergedApk -Apk $signedApkm -Destination $To -Java $heldJava -DesktopJar $DesktopJar `
                 -Aapt2 $Aapt2 -PackageName 'com.tumblr' -Signers $pinned
         } catch {
             $result.Refused = $_.Exception.Message
+            # Windows with redirection guard on won't follow a junction an ordinary user made, from any
+            # process (ERROR_UNTRUSTED_MOUNT_POINT, 448), so a destination reached through one is refused
+            # by the first open under it, before anything is written there.
+            for ($e = $_.Exception; $e; $e = $e.InnerException) {
+                if (($e -is [ComponentModel.Win32Exception] -and $e.NativeErrorCode -eq 448) -or ($e.HResult -band 0xFFFF) -eq 448) { $result.Untrusted = $true }
+            }
         }
         $result.Reached = @($global:HushTumblrHeldJava.Reached)
         return $result
@@ -1697,22 +1703,33 @@ try {
                 $swap.Said['turn'] = Invoke-Intruder @("move|$realDir|$realDir.moved", "move|$splitDir|$splitDir.moved", "unlink|$link", "junction|$link|$otherDir")
                 $swap.Unpacked = $splitDir
             } }
-        Assert-True (($swap.Said['turn'] -join "`n") -ceq (@("move|$realDir|$denied", "move|$($swap.Unpacked)|$denied", "unlink|$link|done",
-                "junction|$link|done") -join "`n")) "The folders a merge is made in were not kept where they are, or the junction was not turned:`n$($swap.Said['turn'] -join "`n")"
-        Assert-True (Test-Path -LiteralPath (Join-Path $link 'other-folder.txt') -PathType Leaf) `
-            'The junction does not lead to the other folder, so the case shows nothing.'
-        Assert-True ($null -eq $turned.Refused -and $turned.Path -eq (Join-Path $realDir 'out.apk')) `
-            "A merge asked for through a junction was not handed back by the real path of the folder it was made in: $($turned.Path) $($turned.Refused)"
-        Assert-True ((Get-HeldMerges)[$turned.Path].Sha256 -ceq $cleanDigest -and (Get-TestSha256 $turned.Path) -ceq $cleanDigest -and
-            (Test-Path -LiteralPath "$($turned.Path).authentic.json") -and
-            (@(Get-ChildItem -LiteralPath $otherDir -Force | ForEach-Object { $_.Name } | Sort-Object) -join ' ') -ceq 'other-folder.txt out.apk' -and
-            (Get-TestSha256 (Join-Path $otherDir 'out.apk')) -ceq $forgedDigest) `
-            'A junction turned while the merge was made moved what was merged, or where it was written.'
-        Assert-True ((Invoke-Intruder @("move|$realDir|$realDir.moved")) -ceq "move|$realDir|$denied") `
-            'The folder of a merge that is still held could be renamed, and another put in its place.'
-        Close-MergedApk -Merged $turned.Path
-        Assert-True ((Invoke-Intruder @("move|$realDir|$realDir.moved")) -ceq "move|$realDir|done") `
-            'A folder with nothing held in it could not be renamed either, so the refusals above were not the hold.'
+        if ($turned.Untrusted) {
+            # Nothing was unpacked, merged or held, in the folder the junction led to or where it can be
+            # turned, and the turn was never tried, since no APK got as far as being checked.
+            Assert-True ($null -eq $turned.Path -and $null -eq $swap.Said['turn'] -and (Test-NothingHandedOn (Join-Path $realDir 'out.apk')) -and
+                @(Get-ChildItem -LiteralPath $realDir -Force).Count -eq 0 -and
+                (@(Get-ChildItem -LiteralPath $otherDir -Force | ForEach-Object { $_.Name } | Sort-Object) -join ' ') -ceq 'other-folder.txt out.apk' -and
+                (Get-TestSha256 (Join-Path $otherDir 'out.apk')) -ceq $forgedDigest -and (Get-HeldMerges).Count -eq $heldAtFour) `
+                "A merge asked for through a junction Windows won't follow left something behind, or got as far as the turn: $($turned.Refused)"
+            Write-Host "[resource-table] Windows here won't follow a junction an ordinary user made, so a junction turned during a merge went unchecked"
+        } else {
+            Assert-True (($swap.Said['turn'] -join "`n") -ceq (@("move|$realDir|$denied", "move|$($swap.Unpacked)|$denied", "unlink|$link|done",
+                    "junction|$link|done") -join "`n")) "The folders a merge is made in were not kept where they are, or the junction was not turned:`n$($swap.Said['turn'] -join "`n")"
+            Assert-True (Test-Path -LiteralPath (Join-Path $link 'other-folder.txt') -PathType Leaf) `
+                'The junction does not lead to the other folder, so the case shows nothing.'
+            Assert-True ($null -eq $turned.Refused -and $turned.Path -eq (Join-Path $realDir 'out.apk')) `
+                "A merge asked for through a junction was not handed back by the real path of the folder it was made in: $($turned.Path) $($turned.Refused)"
+            Assert-True ((Get-HeldMerges)[$turned.Path].Sha256 -ceq $cleanDigest -and (Get-TestSha256 $turned.Path) -ceq $cleanDigest -and
+                (Test-Path -LiteralPath "$($turned.Path).authentic.json") -and
+                (@(Get-ChildItem -LiteralPath $otherDir -Force | ForEach-Object { $_.Name } | Sort-Object) -join ' ') -ceq 'other-folder.txt out.apk' -and
+                (Get-TestSha256 (Join-Path $otherDir 'out.apk')) -ceq $forgedDigest) `
+                'A junction turned while the merge was made moved what was merged, or where it was written.'
+            Assert-True ((Invoke-Intruder @("move|$realDir|$realDir.moved")) -ceq "move|$realDir|$denied") `
+                'The folder of a merge that is still held could be renamed, and another put in its place.'
+            Close-MergedApk -Merged $turned.Path
+            Assert-True ((Invoke-Intruder @("move|$realDir|$realDir.moved")) -ceq "move|$realDir|done") `
+                'A folder with nothing held in it could not be renamed either, so the refusals above were not the hold.'
+        }
     } finally {
         if (Test-Path -LiteralPath $link) { [System.IO.Directory]::Delete($link, $false) }
     }

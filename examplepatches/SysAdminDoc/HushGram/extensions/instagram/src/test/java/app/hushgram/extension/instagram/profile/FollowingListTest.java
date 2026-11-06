@@ -10,7 +10,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.text.method.SingleLineTransformationMethod;
+
 import android.content.Context;
+import android.os.Build;
 import android.view.View;
 import android.widget.TextView;
 
@@ -134,6 +137,46 @@ public class FollowingListTest {
                 android.text.TextUtils.TruncateAt.END);
         assertTrue(shown.toString(), shown.toString().startsWith(MARK));
         assertTrue(shown.toString(), shown.length() < row.text().length());
+    }
+
+    /**
+     * #351: the row's Message button can leave too little room for the mark itself, so a marked line
+     * may take two. Instagram doesn't set the lines again on a rebind, so the row hands them back,
+     * however it was limited to one and whichever way the mark goes.
+     */
+    @Test
+    public void aMarkedLineTakesTwoLinesAndGivesThemBack() {
+        Reader reader = new Reader(Kind.FOLLOWING, ME, ME);
+        for (int shape = 0; shape < 3; shape++) {
+            TextView line = new TextView(context);
+            boolean singleLine = shape == 0;
+            if (shape == 0) {
+                line.setSingleLine(true);
+            } else if (shape == 1) {
+                line.setMaxLines(1);
+            } else {
+                // Instagram's own line on the phone: single-line with no transformation to show for it.
+                line.setSingleLine(true);
+                line.setTransformationMethod(null);
+            }
+            Row row = new Row(line);
+
+            row.bind(notFollowing, "Ana", reader, ON);
+            assertEquals(FollowingList.MARKED_LINES, line.getMaxLines());
+            assertFalse(line.getTransformationMethod() instanceof SingleLineTransformationMethod);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) assertFalse("shape " + shape + " can wrap", line.isSingleLine());
+
+            row.bind(following, "Ben", reader, ON);
+            assertEquals("Ben", row.text());
+            assertEquals(1, line.getMaxLines());
+            assertEquals(singleLine, line.getTransformationMethod() instanceof SingleLineTransformationMethod);
+
+            row.bind(notFollowing, "Ana", reader, ON);
+            FollowingList.row(binder, row.view, notFollowing, reader, OFF);
+            assertEquals("Ana", row.text());
+            assertEquals(1, line.getMaxLines());
+            assertEquals(singleLine, line.getTransformationMethod() instanceof SingleLineTransformationMethod);
+        }
     }
 
     /** Before Instagram has checked, the row says nothing, whether it has a name or not. */

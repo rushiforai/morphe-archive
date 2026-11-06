@@ -1,5 +1,5 @@
 {
-  "version": "v0.0.9",
+  "version": "v0.0.10",
   "appNames": {
     "com.tumblr": "Tumblr"
   },
@@ -8,6 +8,45 @@
       "name": "App font",
       "description": "Replaces Tumblr's own font with your phone's font, or a font file you choose in settings. Fonts a post's author picked stay as they are. Starts off. Turn it on in Tumblr settings > HushTumblr > Interface.",
       "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushTumblr settings"
+      ],
+      "compatiblePackages": {
+        "com.tumblr": [
+          "47.0.0.108"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Tumblr",
+          "packageName": "com.tumblr",
+          "description": null,
+          "appIconColor": 6453,
+          "signatures": [
+            "39ac9c821ad2d605e4849f066e8aad3cca27d5e13eb03ad8755be234a2985dfd"
+          ],
+          "targets": [
+            {
+              "version": "47.0.0.108",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 1470000108,
+                "ARMEABI_V7A": 1470000108,
+                "X86": 1470000108,
+                "X86_64": 1470000108
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Collapse long posts",
+      "description": "Cuts long posts in your timelines to about a screen, with Tumblr's own Read more row under them. Tap it and the whole post opens right there in the timeline. A long entry in a reblog trail gets cut the same way, and its Read more opens the post. Asks keep Tumblr's layout. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts, where you can make the cut half a screen or two screens instead.",
+      "category": "Posts",
       "use": true,
       "dependencies": [
         "BytecodePatch",
@@ -95,7 +134,7 @@
     },
     {
       "name": "Disable analytics",
-      "description": "Turns off Firebase crash reports and Google's analytics collection, and Tumblr's own tracking and ad measurement once it restarts. LiveRamp's identity tracker doesn't start when Tumblr launches. The Firebase and Google part stays until you patch again without it. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy.",
+      "description": "Turns off Firebase and Google's analytics collection, and Tumblr's own tracking and ad measurement once it restarts. LiveRamp's identity tracker doesn't start when Tumblr launches, and Crashlytics crash reports stay off while the switch is on. The Firebase and Google analytics part stays until you patch again without it. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy.",
       "category": "Privacy",
       "use": true,
       "dependencies": [
@@ -408,7 +447,7 @@
     },
     {
       "name": "Hide ads",
-      "description": "Takes ad cards and paid Blaze posts out of your dashboard and other feeds. Tumblr stops asking its ad networks for more and stops showing a full-screen ad when you open a blog, and the ad networks don't start when Tumblr launches. Its Keep Blaze posts option leaves the Blaze posts in. On by default. Turn it off in Tumblr settings > HushTumblr > Feed.",
+      "description": "Takes ad cards and paid Blaze posts out of your dashboard and other feeds. Sponsored banners go too, and a sponsored header at the top of Explore stays empty. Tumblr stops asking its ad networks for more and stops showing a full-screen ad when you open a blog, and the ad networks don't start when Tumblr launches. Its Keep Blaze posts option leaves the Blaze posts in. On by default. Turn it off in Tumblr settings > HushTumblr > Feed.",
       "category": "Ads",
       "use": true,
       "dependencies": [
@@ -642,7 +681,7 @@
     },
     {
       "name": "Hide liked posts",
-      "description": "Takes the posts you've already liked out of your dashboard and the feeds like it as each page loads. Your likes and blogs still show them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
+      "description": "Takes the posts you've already liked out of your dashboard as each page loads. Your likes and the rest of Tumblr still show them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -1500,7 +1539,7 @@
     },
     {
       "name": "Hide your own reblogs",
-      "description": "Takes the reblogs you made out of your dashboard and the feeds like it as each page loads. Your blog still shows them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
+      "description": "Takes the reblogs you made out of your dashboard as each page loads. Your blog and the rest of Tumblr still show them. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -1617,7 +1656,7 @@
     },
     {
       "name": "Mute posts locally",
-      "description": "Adds a local mute action to post menus. Originals and their reblogs stay hidden for this account. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
+      "description": "Adds a local mute action to post menus. Originals and their reblogs stay hidden for this account. On the dashboard the menu can also hide one blog's reblogs or its originals. Starts off. Turn it on in Tumblr settings > HushTumblr > Feed.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -1773,6 +1812,45 @@
       "options": []
     },
     {
+      "name": "Sanitize sharing links",
+      "description": "Links you share or copy from Tumblr leave out the ?source=share tag Tumblr adds to them, and still open the same post or blog. On by default. Turn it off in Tumblr settings > HushTumblr > Privacy.",
+      "category": "Privacy",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushTumblr settings"
+      ],
+      "compatiblePackages": {
+        "com.tumblr": [
+          "47.0.0.108"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Tumblr",
+          "packageName": "com.tumblr",
+          "description": null,
+          "appIconColor": 6453,
+          "signatures": [
+            "39ac9c821ad2d605e4849f066e8aad3cca27d5e13eb03ad8755be234a2985dfd"
+          ],
+          "targets": [
+            {
+              "version": "47.0.0.108",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 1470000108,
+                "ARMEABI_V7A": 1470000108,
+                "X86": 1470000108,
+                "X86_64": 1470000108
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Share video links",
       "description": "Long-press a video in a post to share or copy its direct link, or save the video to your phone. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts.",
       "category": "Posts",
@@ -1813,7 +1891,7 @@
     },
     {
       "name": "Sharper images",
-      "description": "Loads images in posts at a higher resolution when Tumblr has a larger copy, up to twice the width Tumblr shows them at, even on a slow connection. GIFs keep Tumblr's size. Uses more data. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts.",
+      "description": "Loads images in posts at a higher resolution when Tumblr has a larger copy, up to twice the width Tumblr shows them at, even on a slow connection. GIFs go up too, but never past the pixel count of a 1280 by 960 one. Uses more data. Starts off. Turn it on in Tumblr settings > HushTumblr > Posts.",
       "category": "Posts",
       "use": true,
       "dependencies": [

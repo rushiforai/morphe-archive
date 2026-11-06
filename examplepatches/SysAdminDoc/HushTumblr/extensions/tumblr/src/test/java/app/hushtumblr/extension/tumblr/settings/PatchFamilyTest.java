@@ -198,7 +198,8 @@ public class PatchFamilyTest {
         assertEquals("disableAnalytics", family.statusMethod);
         assertEquals(permanent, family.staysWhilePaused);
         assertEquals(Collections.singletonList(Settings.DISABLE_ANALYTICS), family.switches);
-        assertEquals(EnumSet.of(PatchFamily.Capability.ANALYTICS_FLAGS, PatchFamily.Capability.LIVERAMP_STARTUP),
+        assertEquals(EnumSet.of(PatchFamily.Capability.ANALYTICS_FLAGS, PatchFamily.Capability.LIVERAMP_STARTUP,
+                        PatchFamily.Capability.CRASH_REPORTS),
                 family.expectedCapabilities());
         assertTrue("the Privacy page draws it", PatchFamily.PRIVACY_PAGE.contains(family));
         assertEquals(summary, PatchFamily.staysWhilePausedSummary(build));

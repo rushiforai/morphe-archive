@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-23.
  */
 
@@ -39,10 +40,14 @@ import app.morphe.extension.youtube.patches.utils.requests.ChannelSearchRoutes;
  * the account of the app.
  */
 final class OfflinePlaylist {
-    record Entry(String videoId, String title) {
+    record Entry(String videoId, String title, long lengthMs) {
     }
 
     record Result(String title, List<Entry> entries) {
+    }
+
+    static boolean hasVideos(@Nullable Result playlist) {
+        return playlist != null && !playlist.entries().isEmpty();
     }
 
     private static final Pattern PLAYLIST_ID = Pattern.compile("[A-Za-z0-9_-]{2,64}");
@@ -117,12 +122,16 @@ final class OfflinePlaylist {
                 body = ChannelSearchRoutes.createContinuationBody(token, locale);
             }
 
-            if (entries.isEmpty()) return null;
+            if (entries.isEmpty()) {
+                Logger.printInfo(() -> "Playlist " + playlistId + " lists no videos (authenticated: "
+                        + authenticated + ")");
+                return null;
+            }
             final int count = entries.size();
             Logger.printInfo(() -> "Playlist " + playlistId + ": " + count + " videos");
             return new Result(title, new ArrayList<>(entries.values()));
         } catch (Exception ex) {
-            Logger.printInfo(() -> "Could not load playlist " + playlistId, ex);
+            Logger.printException(() -> "Could not load playlist " + playlistId, ex);
             return null;
         }
     }
@@ -148,7 +157,7 @@ final class OfflinePlaylist {
         return Requester.parseJSONObjectAndDisconnect(connection);
     }
 
-    private static String parseTitle(JSONObject json) {
+    static String parseTitle(JSONObject json) {
         JSONObject header = json.optJSONObject("header");
         JSONObject renderer = header == null ? null : header.optJSONObject("pageHeaderRenderer");
         String title = renderer == null ? "" : renderer.optString("pageTitle");
@@ -165,7 +174,7 @@ final class OfflinePlaylist {
      * The mobile web client lists a video as a {@code lockupViewModel}; older responses use a
      * {@code playlistVideoRenderer}. The continuation command sits at a varying depth.
      */
-    private static void collect(Object node, List<Entry> entries, List<String> tokens) {
+    static void collect(Object node, List<Entry> entries, List<String> tokens) {
         if (node instanceof JSONArray array) {
             for (int i = 0, length = array.length(); i < length; i++) collect(array.opt(i), entries, tokens);
             return;
@@ -178,7 +187,8 @@ final class OfflinePlaylist {
                 JSONObject metadata = lockup.optJSONObject("metadata");
                 JSONObject lockupMetadata = metadata == null ? null : metadata.optJSONObject("lockupMetadataViewModel");
                 JSONObject title = lockupMetadata == null ? null : lockupMetadata.optJSONObject("title");
-                add(entries, lockup.optString("contentId"), title == null ? "" : title.optString("content"));
+                add(entries, lockup.optString("contentId"), title == null ? "" : title.optString("content"),
+                        OfflinePlaylistDuration.from(lockup, true));
             }
             return;
         }
@@ -187,7 +197,8 @@ final class OfflinePlaylist {
             JSONObject title = legacy.optJSONObject("title");
             JSONArray runs = title == null ? null : title.optJSONArray("runs");
             JSONObject run = runs == null ? null : runs.optJSONObject(0);
-            add(entries, legacy.optString("videoId"), run == null ? "" : run.optString("text"));
+            add(entries, legacy.optString("videoId"), run == null ? "" : run.optString("text"),
+                    OfflinePlaylistDuration.from(legacy, false));
             return;
         }
 
@@ -206,7 +217,9 @@ final class OfflinePlaylist {
         }
     }
 
-    private static void add(List<Entry> entries, String videoId, String title) {
-        if (VIDEO_ID.matcher(videoId).matches()) entries.add(new Entry(videoId, title.isEmpty() ? videoId : title));
+    private static void add(List<Entry> entries, String videoId, String title, long lengthMs) {
+        if (VIDEO_ID.matcher(videoId).matches()) {
+            entries.add(new Entry(videoId, title.isEmpty() ? videoId : title, lengthMs));
+        }
     }
 }

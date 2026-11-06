@@ -365,6 +365,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_SETTINGS_ROW =
             new BooleanSetting("hide_settings_row", FALSE);
+    /** A message of the reader's own, shown each time TikTok opens (#347). */
+    public static final BooleanSetting STARTUP_MESSAGE = new BooleanSetting("startup_message", FALSE);
+    public static final StringSetting STARTUP_MESSAGE_TITLE = new StringSetting(
+            "startup_message_title", "", false, Setting.parent(STARTUP_MESSAGE));
+    public static final StringSetting STARTUP_MESSAGE_TEXT = new StringSetting(
+            "startup_message_text", "", false, Setting.parent(STARTUP_MESSAGE));
+    /** Off, only the message's button closes it. */
+    public static final BooleanSetting STARTUP_MESSAGE_DISMISSIBLE = new BooleanSetting(
+            "startup_message_dismissible", TRUE, false, Setting.parent(STARTUP_MESSAGE));
     /**
      * On by default: the setup runs before anyone can reach this switch, so picking the patch is
      * the choice. Off brings the screens back the next time TikTok runs its setup.
@@ -550,6 +559,8 @@ public class Settings extends BaseSettings {
             false,
             false
     );
+    /** Discover in the Friends spot of the bottom bar; TikTok reads the layout once at launch. */
+    public static final BooleanSetting DISCOVER_BOTTOM_TAB = new BooleanSetting("discover_bottom_tab", FALSE, true);
     /** The red count on Inbox and the dot on Profile, the pull that reopens the app. */
     public static final BooleanSetting HIDE_TAB_BADGES = new BooleanSetting("hide_tab_badges", FALSE, true);
     /** The names under the bottom tab icons, and a name of the user's own for each; empty keeps TikTok's. Read before each frame. */
@@ -1046,6 +1057,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SEE_THROUGH_BOTTOM_BAR = new BooleanSetting("see_through_bottom_bar", FALSE);
     /**
+     * With See-through bottom bar, has TikTok draw feed video into its own window instead of on a
+     * layer of its own (#232), which some phones (an Honor X9c) blink when the video slides under
+     * the clear bar. SeeThroughVideoLayer answers the player's view gate; TikTok reads it as the
+     * player starts, so it takes a restart.
+     */
+    public static final BooleanSetting SEE_THROUGH_VIDEO_IN_WINDOW = new BooleanSetting(
+            "see_through_video_in_window", FALSE, true, Setting.parent(SEE_THROUGH_BOTTOM_BAR));
+    /**
      * With See-through bottom bar, draws the tabs on a rounded see-through pill inset from the
      * bar's sides and bottom instead of nothing (#124). Only the bar's background changes, so the
      * tabs keep their places. Read on each layout.
@@ -1080,6 +1099,14 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting GLASS_BLUR_STRENGTH = new StringSetting(
             "glass_blur_strength", "standard", false, Setting.parent(GLASS_VIDEO_BLUR));
+    /**
+     * With Blur the video behind the bar on Android 13 and newer, bends the blurred video along
+     * the pill's rim the way the edge of a glass lens would and lifts its colors a little (#231),
+     * the look of KernelSU's liquid glass bar. A shader over the blurred strip, so nothing more is
+     * read back from the video. Read on each draw.
+     */
+    public static final BooleanSetting GLASS_REFRACTION = new BooleanSetting(
+            "glass_refraction", FALSE, false, Setting.parent(GLASS_VIDEO_BLUR));
     /**
      * With Liquid glass look, how solid the glass's tint is: "clear", "light", "standard" or
      * "frosted", which scale the tint by a half, three quarters, one and 1.35. Read on each draw.
@@ -1247,6 +1274,12 @@ public class Settings extends BaseSettings {
     /** A long press on For You opens that list over the feed instead of these settings (#172). */
     public static final BooleanSetting FOR_YOU_HOLD_OPENS_WATCH_HISTORY = new BooleanSetting(
             "for_you_hold_opens_watch_history", FALSE, Setting.parent(LOCAL_WATCH_HISTORY));
+    /**
+     * A long press on the Profile tab opens that list, in place of TikTok's Watch history or its
+     * account switcher, so For You can keep opening these settings (#172).
+     */
+    public static final BooleanSetting PROFILE_HOLD_OPENS_LOCAL_WATCH_HISTORY = new BooleanSetting(
+            "profile_hold_opens_local_watch_history", FALSE, Setting.parent(LOCAL_WATCH_HISTORY));
     public static final BooleanSetting HIDE_PLAYLIST_BAR = new BooleanSetting("hide_playlist_bar", FALSE, true);
     public static final BooleanSetting HIDE_EVENT_BADGE = new BooleanSetting("hide_event_badge", FALSE, true);
     public static final BooleanSetting HIDE_INSERTED_CARDS = new BooleanSetting("hide_inserted_cards", FALSE, true);

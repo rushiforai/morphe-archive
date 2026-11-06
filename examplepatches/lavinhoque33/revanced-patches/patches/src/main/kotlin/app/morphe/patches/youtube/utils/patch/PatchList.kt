@@ -5,21 +5,13 @@ internal enum class PatchList(
     val summary: String,
     var included: Boolean? = false
 ) {
-    SKIP_SILENCE(
-        "Skip silence",
-        "Adds an option to automatically skip silent pauses in audio playback."
+    ADD_TO_QUEUE(
+        "Add to queue",
+        "Overrides the feed flyout 'Play next in queue' with the RVX video queue."
     ),
     APP_REFRESH_RATE(
         "App refresh rate",
         "Adds an option to change the app refresh rate."
-    ),
-    DEARROW(
-        "DeArrow",
-        "Adds options to replace video thumbnails and titles using the DeArrow API, or replace video thumbnails with image captures from the video."
-    ),
-    ADD_TO_QUEUE(
-        "Add to queue",
-        "Overrides the feed flyout 'Play next in queue' with the RVX video queue."
     ),
     AMBIENT_MODE_CONTROL(
         "Ambient mode control",
@@ -32,6 +24,10 @@ internal enum class PatchList(
     BYPASS_URL_REDIRECTS(
         "Bypass URL redirects",
         "Adds an option to bypass URL redirects and open the original URL directly."
+    ),
+    CAPTIONS(
+        "Captions",
+        "Adds stable caption blocks, caption size, and synchronized bilingual captions."
     ),
     CHANGE_FORM_FACTOR(
         "Change form factor",
@@ -55,7 +51,7 @@ internal enum class PatchList(
     ),
     COPY_TEXT(
         "Copy text",
-        "Adds options to copy the video title and comments by tapping and holding them."
+        "Adds options to copy the video title and comments, and to select text of video descriptions and posts, by tapping and holding them."
     ),
     CUSTOM_SHORTS_ACTION_BUTTONS(
         "Custom Shorts action buttons",
@@ -73,6 +69,10 @@ internal enum class PatchList(
         "Custom DPI",
         "Forces a higher display density for this app only, so the whole UI scales up without changing system density."
     ),
+    DEARROW(
+        "DeArrow",
+        "Adds options to replace video thumbnails and titles using the DeArrow API, or replace video thumbnails with image captures from the video."
+    ),
     DESCRIPTION_COMPONENTS(
         "Description components",
         "Adds options to hide and disable description components."
@@ -81,55 +81,14 @@ internal enum class PatchList(
         "Disable auto feed refresh",
         "Adds an option to stop feeds from refreshing automatically after they become outdated."
     ),
+    // modified by lavinhoque33, 2026-10-17: disable continue watching prompt patch ported from Morphe.
+    DISABLE_CONTINUE_WATCHING_PROMPT(
+        "Disable continue watching prompt",
+        "Adds an option to keep autoplay going instead of pausing with a \"Continue watching\" prompt after a period of inactivity."
+    ),
     DISABLE_QUIC_PROTOCOL(
         "Disable QUIC protocol",
         "Adds an option to disable CronetEngine's QUIC protocol."
-    ),
-    NETWORK_PROXY(
-        "Network proxy",
-        "Adds options to route supported network requests through an HTTP or HTTPS proxy. " +
-                "Including this patch may cause connectivity problems on certain devices."
-    ),
-    FEED_CARD_LAYOUT(
-        "Feed card layout",
-        "Adds an option to show or hide the card layout of feed videos, which YouTube sends as an A/B test."
-    ),
-    FEED_VIEW_COUNT(
-        "Feed view count",
-        "Adds an option to show the view count at the bottom left of the thumbnails of feed videos."
-    ),
-    FEED_VIDEO_ACTIONS(
-        "Feed video actions",
-        "Adds a Watch later button to video thumbnails in feeds, " +
-                "and opens the video menu by tapping and holding anywhere on a video."
-    ),
-    FORCE_ANIMATIONS(
-        "Force animations",
-        "Adds an option to always turn on or off the app animations that YouTube can turn off, such as the player transitions."
-    ),
-    FORCE_ORIGINAL_AUDIO(
-        "Force original audio",
-        "Adds an option to disable audio tracks from being automatically enabled."
-    ),
-    // modified by lavinhoque33, 2026-10-15: Force system font patch entry.
-    FORCE_SYSTEM_FONT(
-        "Force system font",
-        "Adds an option to show the app with the device system font instead of YouTube Sans."
-    ),
-    // modified by lavinhoque33, 2026-10-16: Hide status bar patch entry.
-    HIDE_STATUS_BAR(
-        "Hide status bar",
-        "Adds an option to hide the system status bar. Swipe down from the top edge to show it for a moment."
-    ),
-    // modified by lavinhoque33, 2026-10-24: Media notification controls patch entry.
-    MEDIA_NOTIFICATION_CONTROLS(
-        "Media notification controls",
-        "Adds options to disable the seekbar, hide the previous/next buttons, or make them seek in the " +
-                "media notification and headphone controls."
-    ),
-    PREFERRED_CAPTION_LANGUAGE(
-        "Preferred caption language",
-        "Adds an option to automatically select captions in your preferred language."
     ),
     DISABLE_FORCED_AUTO_CAPTIONS(
         "Disable forced auto captions",
@@ -138,11 +97,6 @@ internal enum class PatchList(
     DISABLE_HAPTIC_FEEDBACK(
         "Disable haptic feedback",
         "Adds options to disable haptic feedback when swiping in the video player."
-    ),
-    // modified by lavinhoque33, 2026-10-17: disable continue watching prompt patch ported from Morphe.
-    DISABLE_CONTINUE_WATCHING_PROMPT(
-        "Disable continue watching prompt",
-        "Adds an option to keep autoplay going instead of pausing with a \"Continue watching\" prompt after a period of inactivity."
     ),
     DISABLE_LAYOUT_UPDATES(
         "Disable layout updates",
@@ -168,6 +122,10 @@ internal enum class PatchList(
         "Disable sign in to TV popup",
         "Adds an option to disable the popup asking to sign into a TV on the same local network."
     ),
+    DOWNLOAD_POST_IMAGES(
+        "Download post images",
+        "Adds a button and a menu item to download the images and GIFs of posts."
+    ),
     ENABLE_DEBUG_LOGGING(
         "Enable debug logging",
         "Adds an option for debugging and exporting RVX logs to the clipboard."
@@ -175,6 +133,32 @@ internal enum class PatchList(
     ENABLE_GRADIENT_LOADING_SCREEN(
         "Enable gradient loading screen",
         "Adds an option to enable the gradient loading screen."
+    ),
+    FEED_CARD_LAYOUT(
+        "Feed card layout",
+        "Adds an option to show or hide the card layout of feed videos, which YouTube sends as an A/B test."
+    ),
+    FEED_VIDEO_ACTIONS(
+        "Feed video actions",
+        "Adds a Watch later button to video thumbnails in feeds, " +
+                "and opens the video menu by tapping and holding anywhere on a video."
+    ),
+    FEED_VIEW_COUNT(
+        "Feed view count",
+        "Adds an option to show the view count at the bottom left of the thumbnails of feed videos."
+    ),
+    FORCE_ANIMATIONS(
+        "Force animations",
+        "Adds an option to always turn on or off the app animations that YouTube can turn off, such as the player transitions."
+    ),
+    FORCE_ORIGINAL_AUDIO(
+        "Force original audio",
+        "Adds an option to disable audio tracks from being automatically enabled."
+    ),
+    // modified by lavinhoque33, 2026-10-15: Force system font patch entry.
+    FORCE_SYSTEM_FONT(
+        "Force system font",
+        "Adds an option to show the app with the device system font instead of YouTube Sans."
     ),
     FULLSCREEN_COMPONENTS(
         "Fullscreen components",
@@ -236,14 +220,20 @@ internal enum class PatchList(
         "Hide shortcuts",
         "Remove, at compile time, the app shortcuts that appears when the app icon is long pressed."
     ),
-    OVERRIDE_YOUTUBE_MUSIC_BUTTONS(
-        "Override YouTube Music buttons",
-        "Overrides YouTube Music buttons to open RVX Music or any compatible third-party client."
+    // modified by lavinhoque33, 2026-10-16: Hide status bar patch entry.
+    HIDE_STATUS_BAR(
+        "Hide status bar",
+        "Adds an option to hide the system status bar. Swipe down from the top edge to show it for a moment."
     ),
-    // Built-in downloader and offline library.
     HOOK_DOWNLOAD_ACTIONS(
         "Hook download actions",
         "Adds support to download videos with the built-in downloader or an external downloader app, and an offline library for downloaded videos."
+    ),
+    // modified by lavinhoque33, 2026-10-24: Media notification controls patch entry.
+    MEDIA_NOTIFICATION_CONTROLS(
+        "Media notification controls",
+        "Adds options to disable the seekbar, hide the previous/next buttons, or make them seek in the " +
+                "media notification and headphone controls."
     ),
     MINIPLAYER(
         "Miniplayer",
@@ -252,6 +242,11 @@ internal enum class PatchList(
     NAVIGATION_BAR_COMPONENTS(
         "Navigation bar components",
         "Adds options to hide or change components related to the navigation bar."
+    ),
+    NETWORK_PROXY(
+        "Network proxy",
+        "Adds options to route supported network requests through an HTTP or HTTPS proxy. " +
+                "Including this patch may cause connectivity problems on certain devices."
     ),
     OPEN_CHANNEL_OF_LIVE_AVATAR(
         "Open channel of live avatar",
@@ -264,6 +259,10 @@ internal enum class PatchList(
     OVERLAY_BUTTONS(
         "Overlay buttons",
         "Adds options to display useful overlay buttons in the video player."
+    ),
+    OVERRIDE_YOUTUBE_MUSIC_BUTTONS(
+        "Override YouTube Music buttons",
+        "Overrides YouTube Music buttons to open RVX Music or any compatible third-party client."
     ),
     PICTURE_IN_PICTURE_BUTTON(
         "Picture-in-picture button",
@@ -289,13 +288,13 @@ internal enum class PatchList(
         "PoToken provider",
         "Adds option to get PoToken using the built-in PoToken provider."
     ),
+    PREFERRED_CAPTION_LANGUAGE(
+        "Preferred caption language",
+        "Adds an option to automatically select captions in your preferred language."
+    ),
     RELOAD_VIDEO(
         "Reload video",
         "Adds an option to display a button in the video player to reload the current video."
-    ),
-    SAVE_TO_WATCH_LATER(
-        "Save to Watch later",
-        "Adds options to save videos to Watch later from the video player or feed flyout menu."
     ),
     REMOVE_BACKGROUND_PLAYBACK_RESTRICTIONS(
         "Remove background playback restrictions",
@@ -315,7 +314,7 @@ internal enum class PatchList(
     ),
     RETURN_YOUTUBE_DISLIKE(
         "Return YouTube Dislike",
-        "Adds an option to show the dislike count of videos using the Return YouTube Dislike API, and the like count and like percentage on the thumbnails of feed videos."
+        "Adds an option to show the dislike count of videos using the Return YouTube Dislike API."
     ),
     RETURN_YOUTUBE_USERNAME(
         "Return YouTube Username",
@@ -324,6 +323,10 @@ internal enum class PatchList(
     SANITIZE_SHARING_LINKS(
         "Sanitize sharing links",
         "Adds an option to sanitize sharing links by removing tracking query parameters."
+    ),
+    SAVE_TO_WATCH_LATER(
+        "Save to Watch later",
+        "Adds options to save videos to Watch later from the video player or feed flyout menu."
     ),
     SEARCH_COMMENTS(
         "Search comments",
@@ -357,6 +360,10 @@ internal enum class PatchList(
         "Skip live Shorts",
         "Adds an option to automatically skip live streams that appear in the Shorts feed."
     ),
+    SKIP_SILENCE(
+        "Skip silence",
+        "Adds an option to automatically skip silent pauses in audio playback."
+    ),
     SNACK_BAR_COMPONENTS(
         "Snack bar components",
         "Adds options to hide or change components related to the snack bar."
@@ -385,9 +392,17 @@ internal enum class PatchList(
         "Toolbar components",
         "Adds options to hide or change components located on the toolbar, such as the search bar, header, and toolbar buttons."
     ),
+    TRANSLATE_LIVE_CHAT(
+        "Translate live chat",
+        "Adds an option to translate live chat and live chat replay messages."
+    ),
     TRANSLATIONS_FOR_YOUTUBE(
         "Translations for YouTube",
         "Add translations or remove string resources."
+    ),
+    UNLOCK_QUEUE(
+        "Unlock queue",
+        "Adds an option to unlock YouTube’s video queue."
     ),
     VIDEO_DELAY(
         "Video delay",

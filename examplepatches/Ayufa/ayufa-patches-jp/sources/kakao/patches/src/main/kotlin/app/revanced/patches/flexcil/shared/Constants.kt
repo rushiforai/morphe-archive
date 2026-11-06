@@ -1,0 +1,46 @@
+package app.revanced.patches.flexcil.shared
+
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
+
+object Constants {
+    val COMPATIBILITY_FLEXCIL = Compatibility(
+        name = "Flexcil",
+        packageName = "com.flexcil.flexcilnote",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0x0096FA,
+        targets = listOf(
+            AppTarget(
+                version = "1.5.0.16"
+            ),
+            AppTarget(
+                version = "1.5.0.11"
+            ),
+            AppTarget(
+                version = "1.5.0.10"
+            ),
+            AppTarget(
+                version = "1.5.0.9"
+            ),
+            AppTarget(
+                version = "1.5.0.8"
+            ),
+            AppTarget(
+                version = "1.5.0.7"
+            ),
+            AppTarget(
+                version = "1.4.4.14"
+            ),
+            AppTarget(
+                version = "1.4.4.12"
+            ),
+            AppTarget(
+                version = "1.4.4.10"
+            ),
+            AppTarget(
+                version = "1.4.4.9"
+            )
+        )
+    )
+}

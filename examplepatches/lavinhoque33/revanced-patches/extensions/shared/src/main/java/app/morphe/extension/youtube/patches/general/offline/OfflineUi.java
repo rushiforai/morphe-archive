@@ -5,7 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
- * Modified by lavinhoque33, 2026-11-03.
+ * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-20.
  */
 
@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Switch;
 
 import androidx.annotation.Nullable;
 
@@ -53,6 +54,50 @@ final class OfflineUi {
             drawable.setTint(color);
         }
         return drawable;
+    }
+
+    /** Icon, wrapping title/summary and a textless switch, shared by download pickers. */
+    static Switch toggleRow(Context context, LinearLayout parent, String iconName, String title,
+                            String summary, int foreground, boolean enabled, boolean checked) {
+        int padding = Utils.dipToPixels(16);
+        LinearLayout row = new LinearLayout(context);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(padding, Utils.dipToPixels(10), padding, Utils.dipToPixels(10));
+        row.setAlpha(enabled ? 1f : 0.4f);
+
+        ImageView image = new ImageView(context);
+        image.setImageDrawable(icon(context, iconName, foreground));
+        int iconSize = Utils.dipToPixels(24);
+        row.addView(image, new LinearLayout.LayoutParams(iconSize, iconSize));
+
+        LinearLayout labels = new LinearLayout(context);
+        labels.setOrientation(LinearLayout.VERTICAL);
+        labels.setPadding(padding, 0, padding, 0);
+        TextView heading = new TextView(context);
+        heading.setText(title);
+        heading.setTextSize(16);
+        heading.setTextColor(foreground);
+        labels.addView(heading);
+        if (!summary.isEmpty()) {
+            TextView caption = new TextView(context);
+            caption.setText(summary);
+            caption.setTextSize(13);
+            caption.setTextColor(foreground);
+            caption.setAlpha(0.7f);
+            labels.addView(caption);
+        }
+        row.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        Switch toggle = new Switch(context);
+        toggle.setContentDescription(title);
+        toggle.setEnabled(enabled);
+        toggle.setChecked(enabled && checked);
+        row.addView(toggle);
+        row.setOnClickListener(view -> {
+            if (toggle.isEnabled()) toggle.toggle();
+        });
+        parent.addView(row);
+        return toggle;
     }
 
     /**

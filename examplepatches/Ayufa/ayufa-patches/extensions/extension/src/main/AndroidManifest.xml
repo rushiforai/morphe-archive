@@ -1,1 +1,11 @@
-<manifest/>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Settings screen for the Ayufa Simeji patches. If this
+             declaration is not merged into a build, the settings UI
+             falls back to a dialog, so nothing breaks either way. -->
+        <activity
+            android:name="app.ayufa.extension.simeji.SimejiSettingsActivity"
+            android:exported="false"
+            android:label="Ayufaパッチ設定" />
+    </application>
+</manifest>

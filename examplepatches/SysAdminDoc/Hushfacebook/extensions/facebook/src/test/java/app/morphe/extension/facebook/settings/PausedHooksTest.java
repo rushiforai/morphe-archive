@@ -99,6 +99,7 @@ import app.morphe.extension.facebook.feed.MetaAiQuestions;
 import app.morphe.extension.facebook.feed.NotificationFooter;
 import app.morphe.extension.facebook.feed.PostDates;
 import app.morphe.extension.facebook.feed.PostPrompts;
+import app.morphe.extension.facebook.feed.ProfilePictures;
 import app.morphe.extension.facebook.feed.ProfileSuggestionsForTests;
 import app.morphe.extension.facebook.feed.RelatedPosts;
 import app.morphe.extension.facebook.misc.AppLockForTests;
@@ -175,6 +176,7 @@ import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.ReelPrompts;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
 import app.morphe.extension.facebook.reels.TapShowsControls;
+import app.morphe.extension.facebook.reels.WatchAgain;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
 import app.morphe.extension.facebook.search.PreSearchSectionsForTests;
 import app.morphe.extension.facebook.search.SearchDateRange;
@@ -433,6 +435,8 @@ public class PausedHooksTest {
                 FeedGuardForTests::endOfHomeSaysWhy,
                 // The Groups tab's suggested groups card lays out as nothing.
                 SuggestedGroupsCard::hide,
+                // So does the row of groups the Groups tab closes its feed with.
+                SuggestedGroupsCard::hideDiscoverRow,
                 // The search screen draws its For you section as an empty row.
                 PreSearchSectionsForTests::drawsForYouEmpty,
                 // The socket under a post's buttons gets a no for the Related posts list.
@@ -517,6 +521,8 @@ public class PausedHooksTest {
         probes.put(PatchFamily.POST_PROMPTS, Arrays.asList(
                 () -> !PostPrompts.keep(true),
                 () -> !PostPrompts.showFollowLink(true),
+                // A collab or partnership header's own " · Follow" comes back empty.
+                () -> PostPrompts.followText(" · Follow").length() == 0,
                 // A header the X check says yes to is drawn as one without the X.
                 () -> !PostPrompts.showPostX(true),
                 PostPrompts::hidePostCounts,
@@ -525,6 +531,10 @@ public class PausedHooksTest {
                 () -> PostPrompts.hideReactionPreview(true),
                 // So is the count beside a post's faces.
                 () -> PostPrompts.reactionCount("56") == null));
+        // A post header gets no person to draw a picture from, and a comment row no picture to add.
+        probes.put(PatchFamily.PROFILE_PICTURES, Arrays.asList(
+                () -> ProfilePictures.feedPicture("person") == null,
+                () -> ProfilePictures.commentPicture("picture") == null));
         // A post the store remembers is dropped by the feed guard while the switch is on.
         probes.put(PatchFamily.SEEN_POSTS, Collections.singletonList(SeenPostsForTests::hidesARememberedPost));
         // The pill socket's yes for Meta AI's questions is answered as a no, so it draws no row for
@@ -600,6 +610,11 @@ public class PausedHooksTest {
                 app.morphe.extension.facebook.stories.StoryViewerCleanup::hideCredits,
                 app.morphe.extension.facebook.stories.StoryViewerCleanup::hideReplySuggestions,
                 app.morphe.extension.facebook.stories.StoryProgressBarForTests::drawsABar));
+        // A profile picture in the feed, beside a comment and on a profile draws without its ring.
+        probes.put(PatchFamily.STORY_RINGS, Arrays.asList(
+                () -> !app.morphe.extension.facebook.stories.StoryRings.feedRing(1),
+                app.morphe.extension.facebook.stories.StoryRings::hideCommentRing,
+                () -> app.morphe.extension.facebook.stories.StoryRings.profileRing("ring") == null));
         // A photo's song gets the longer clip.
         probes.put(PatchFamily.STORY_MUSIC_LENGTH, Collections.singletonList(() -> StoryMusic.clipLength(15000) == 30000));
         probes.put(PatchFamily.SPONSORED_REELS, Arrays.asList(
@@ -736,7 +751,9 @@ public class PausedHooksTest {
                     return FeedVideoAlone.seedOnly(new Object());
                 },
                 // And that viewer's list shows no loading page after the video.
-                FeedVideoAloneForTests::dropsTheLoadingPage));
+                FeedVideoAloneForTests::dropsTheLoadingPage,
+                // Watch again at the end of a feed video replays it in place instead of opening Reels (#403).
+                () -> !WatchAgain.opensElsewhere(true)));
         // A reel that would get the interest prompt is answered as one that doesn't.
         probes.put(PatchFamily.REEL_PROMPTS, Collections.singletonList(() -> !ReelPrompts.keep(true)));
         // The Reels batcher's send of the reels you watched never reaches its executor.

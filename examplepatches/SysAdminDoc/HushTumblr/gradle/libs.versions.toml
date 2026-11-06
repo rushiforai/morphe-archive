@@ -6,16 +6,19 @@
 # dependencies match 2.1.0's. Since 2.1.0 it checks bundle signatures and hides compatiblePackages
 # behind compatibility (PatchListGenerator rebuilds the old field). Fingerprint strings match the
 # whole literal, and only the resources a patch asks for get decoded. Manager 1.x refuses a 2.x
-# bundle with its update prompt.
-morphe-patcher = "2.2.0"
+# bundle with its update prompt. 2.3.0 went stable on 2026-11-06 with Manager 2.5.0 and desktop
+# 2.1.0: Patch lost its type parameter, extensionStreamProviders moved up from BytecodePatch to
+# Patch, PatchClasses takes a PatcherProgress beside the class set, and ARSCLib moved to
+# 675bed2de3 (smali stays ac700e1942).
+morphe-patcher = "2.3.0"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value.
-manager-floor = "2.4.0"
+manager-floor = "2.5.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official
 # release, which google/smali 3.0.10 delivered on 2026-08-20: the pin has to be the commit the
-# patcher above requests (2.2.0 and 2.1.0 ask for ac700e1942; 2.0.0 asked for 4220ae75f7).
+# patcher above requests (2.3.0 back to 2.1.0 ask for ac700e1942; 2.0.0 asked for 4220ae75f7).
 # Gradle keeps whichever version sorts higher, not the newer commit, and another group's smali
 # would put two copies of dexlib2 on the R8 classpath (buildAndroid fails with "Classpath type
 # already present").
@@ -24,14 +27,14 @@ smali = "ac700e1942"
 # The Android Gradle plugin and Kotlin come from the app.morphe.patches settings plugin
 # (2.1.0 brings AGP 9.1.0 and Kotlin 2.4.21); nothing here pins them.
 annotation = "1.10.0"
-gson = "2.14.0"
+gson = "2.15.0"
 # No build file references this alias: the extension gets its stdlib from the Kotlin plugin
 # the settings plugin brings. It's kept at that plugin's Kotlin, 2.4.21, so the two never
 # disagree if a build file starts using it.
 kotlin-stdlib = "2.4.21"
 # Tooling pins also apply to settings/build/test/provided graphs.
-guava = "33.7.2-jre"
-commons-lang3 = "3.18.0"
+guava = "33.8.0-jre"
+commons-lang3 = "3.21.0"
 httpclient = "4.5.14"
 # Every org.bouncycastle request in this build is rewritten to this, in :extensions:tumblr's
 # test graph and in :patches' build graph. It has to be a version that publishes all three

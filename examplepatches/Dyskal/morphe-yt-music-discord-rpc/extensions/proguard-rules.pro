@@ -1,0 +1,6 @@
+-dontobfuscate
+-dontoptimize
+-keepattributes *
+-keep class me.dyskal.ytmrpc.** { *; }
+-dontwarn java.lang.reflect.AnnotatedType
+-dontwarn javax.lang.model.element.Modifier

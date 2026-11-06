@@ -4,10 +4,12 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-24
+ * Modified by lavinhoque33, 2026-11-05.
  */
 
 package app.morphe.extension.youtube.shared;
+
+import android.view.View;
 
 import androidx.annotation.Nullable;
 
@@ -46,11 +48,27 @@ public final class PipDismissHelper {
             }
         };
         PlayerType.getOnChange().addObserver(observer);
-        dialog.setOnDismissListener(d -> {
+        boolean[] cleanedUp = {false};
+        Runnable cleanup = () -> {
+            if (cleanedUp[0]) return;
+            cleanedUp[0] = true;
             PlayerType.getOnChange().removeObserver(observer);
-            if (onDismiss != null) {
-                onDismiss.run();
+            if (onDismiss != null) onDismiss.run();
+        };
+        View decor = dialog.getWindow().getDecorView();
+        View.OnAttachStateChangeListener attachment = new View.OnAttachStateChangeListener() {
+            @Override public void onViewAttachedToWindow(View view) {
             }
+
+            @Override public void onViewDetachedFromWindow(View view) {
+                view.removeOnAttachStateChangeListener(this);
+                cleanup.run();
+            }
+        };
+        decor.addOnAttachStateChangeListener(attachment);
+        dialog.setOnDismissListener(d -> {
+            decor.removeOnAttachStateChangeListener(attachment);
+            cleanup.run();
         });
     }
 }

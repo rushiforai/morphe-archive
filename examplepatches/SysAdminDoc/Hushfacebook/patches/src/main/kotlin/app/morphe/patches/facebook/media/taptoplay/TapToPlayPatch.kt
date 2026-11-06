@@ -28,6 +28,7 @@ import app.morphe.patches.facebook.misc.extension.parameterRegister
 import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.settings.settingsPatch
+import app.morphe.patches.facebook.reels.feedVideoOpeningPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
@@ -55,7 +56,8 @@ val tapToPlayPatch = bytecodePatch(
         "The switches start off in Hushfacebook settings > Video and audio.",
 ) {
     category("Playback")
-    dependsOn(settingsPatch)
+    // A tapped feed video's player can start well after the tap; these hooks say one is opening (#393).
+    dependsOn(settingsPatch, feedVideoOpeningPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {
@@ -82,6 +84,11 @@ val tapToPlayPatch = bytecodePatch(
         val checker = hookAutoplaySetting()
         hookReelPlayButton(checker)
         hookReelPlayback()
+        try {
+            hookReelAutoplayDisabled()
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on, and a reel's play button can come back while it plays.")
+        }
         hookTouches()
         enableStatus("tapToPlay")
     }

@@ -9,7 +9,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
 
 val ankiTestIdentityPatch = bytecodePatch(name="AnkiDroid isolated test identity", default=false) {
-    compatibleWith(Compatibility(name="AnkiDroid",packageName="com.ichi2.anki",targets=listOf(AppTarget(version="2.25.1"))))
+    compatibleWith(Compatibility(name="AnkiDroid",packageName="com.ichi2.anki",targets=listOf(AppTarget(version="2.25.1"),AppTarget(version="2.25.2"))))
     dependsOn(resourcePatch {
         execute {
             document("AndroidManifest.xml").use { xml ->
@@ -21,6 +21,11 @@ val ankiTestIdentityPatch = bytecodePatch(name="AnkiDroid isolated test identity
                         if(node.hasAttribute(name)) node.setAttribute(name,node.getAttribute(name).replace("com.ichi2.anki", "com.ichi2.anki.catppuccin.test"))
                     }
                     if(node.tagName in listOf("permission","uses-permission") && node.getAttribute("android:name").startsWith("com.ichi2.anki.")) node.setAttribute("android:name",node.getAttribute("android:name").replace("com.ichi2.anki", "com.ichi2.anki.catppuccin.test"))
+                }
+                val activities=xml.getElementsByTagName("activity")
+                for(i in 0 until activities.length) {
+                    val activity=activities.item(i) as Element
+                    if(activity.getAttribute("android:name")=="app.morphe.extension.anki.WidgetSettingsActivity")activity.setAttribute("android:exported","true")
                 }
                 (xml.getElementsByTagName("application").item(0) as Element).apply {
                     setAttribute("android:label","AnkiDroid Patch Test")

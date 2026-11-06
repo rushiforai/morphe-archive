@@ -8,11 +8,11 @@
     <string name="revanced_settings_baconreader_screen_2_links_title">Links</string>
     <string name="revanced_settings_baconreader_screen_3_comments_title">Comments</string>
     <string name="revanced_baconreader_show_images_title">Show images</string>
-    <string name="revanced_baconreader_show_images_summary_on">GIFs, image links, Imgur albums and emotes are shown as images</string>
-    <string name="revanced_baconreader_show_images_summary_off">GIFs, image links, Imgur albums and emotes are shown as links</string>
+    <string name="revanced_baconreader_show_images_summary_on">GIFs, image links and Imgur albums are shown as images. Emotes show in the text either way</string>
+    <string name="revanced_baconreader_show_images_summary_off">GIFs, image links and Imgur albums are shown as links. Emotes show in the text either way</string>
     <string name="revanced_baconreader_images_full_width_title">Full width by default</string>
-    <string name="revanced_baconreader_images_full_width_summary_on">Images are shown at full width</string>
-    <string name="revanced_baconreader_images_full_width_summary_off">Images are shown at up to 200×200</string>
+    <string name="revanced_baconreader_images_full_width_summary_on">Images in comments are shown at full width. Images in posts always are</string>
+    <string name="revanced_baconreader_images_full_width_summary_off">Images in comments are shown at up to 200×200. Images in posts start at full width</string>
     <string name="revanced_baconreader_images_long_press_download_title">Long press to download</string>
     <string name="revanced_baconreader_images_long_press_download_summary_on">Long press an image to save it to Downloads/BaconReader</string>
     <string name="revanced_baconreader_images_long_press_download_summary_off">Long press does not download images</string>

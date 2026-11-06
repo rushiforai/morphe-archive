@@ -57,6 +57,40 @@ class NativeBubblesTest {
         }
     }
 
+    @Test fun familyBsInlinedEligibilityFollowsTheBubblesSwitchAndKeepsTheAccountCheck() {
+        val eligibility = bubbleEligibilityMethod()
+        val mode = inlinedBubbleModeMethod()
+        val capability = nativeBubbleRoutesMethod()
+        val oldMode = mode.implementation!!.instructions.toList()
+        assertEquals(listOf(mode.hookId()), mirroredControls(listOf(fixtureClass(mode.definingClass, listOf(mode))))
+            .getValue("bubble_mode").map { it.hookId() })
+        injectNativeBubbles(eligibility, mode, capability, true)
+
+        val c = mode.implementation!!.instructions.toList()
+        assertEquals("$SETTINGS->forceChatHeads()Z", (c[0] as ReferenceInstruction).reference.toString())
+        assertEquals(5, c.branchTarget(2))
+        // Picking Android bubbles skips the copied SDK and low-memory checks, as A00's own switch does in 348.
+        assertEquals("$SETTINGS->enableBubbles()Z", (c[7] as ReferenceInstruction).reference.toString())
+        assertEquals(21, c.branchTarget(9))
+        assertSame(oldMode[13], c[21])
+        assertEquals(activeProfile.bubbleCapabilityGetter, (c[27] as ReferenceInstruction).reference.toString())
+        assertEquals(BUBBLE_ROLLOUT, (c[37] as WideLiteralInstruction).wideLiteral)
+        assertEquals("$SETTINGS->nativeBubbleRollout(Z)Z", (c[41] as ReferenceInstruction).reference.toString())
+        // Every false branch still lands on return v2, the stock false.
+        assertEquals(listOf(44, 44, 44), listOf(c.branchTarget(12), c.branchTarget(20), c.branchTarget(29)))
+        assertEquals(2, (c[44] as OneRegisterInstruction).registerA)
+        assertEquals(oldMode, c.drop(5).take(2) + c.drop(10).take(31) + c.drop(43))
+    }
+
+    @Test fun familyBsInlinedEligibilityIsRefusedWhenItsChecksOrHolderMove() {
+        rejected(mode = inlinedBubbleModeMethod(sdk = 0x1d))
+        rejected(mode = inlinedBubbleModeMethod(holderOwner = "LX/Other;"))
+        rejected(mode = inlinedBubbleModeMethod().apply {
+            replaceInstruction(26, "invoke-static {v0}, LX/2w1;->A02(I)LX/5cX;")
+        })
+        rejected(mode = inlinedBubbleModeMethod().apply { replaceInstruction(34, "return v0") })
+    }
+
     private fun rejected(eligibility: MutableMethod = bubbleEligibilityMethod(), mode: MutableMethod = nativeBubbleModeMethod(),
                          capability: MutableMethod = nativeBubbleRoutesMethod()) {
         val targets = listOf(eligibility, mode, capability)

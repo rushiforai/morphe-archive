@@ -664,7 +664,7 @@ final class SettingsTextZhTw {
         {"blocked_list_pictures.title", "隱藏封鎖名單上的大頭貼照"},
         {"blocked_list_pictures.description", "隱藏「隱私和安全」中封鎖名單上你封鎖的人的大頭貼照。他們的名字和「解除封鎖」仍會顯示。"},
         {"restricted_notify.title", "接收受限制聊天的通知"},
-        {"restricted_notify.description", "與你限制的人的聊天會像其他聊天一樣通知你。你設為靜音的聊天仍保持安靜。受限制的人仍無法看到你何時在線上，或何時已讀他們的訊息。"},
+        {"restricted_notify.description", "與你限制的人的聊天會像其他聊天一樣通知你，但端對端加密的聊天除外。你設為靜音的聊天仍保持安靜。受限制的人仍無法看到你何時在線上，或何時已讀他們的訊息。"},
         {"material_you.title", "Material You 主題"},
         {"material_you.description", "在 Android 12 以上版本中，依桌布配色為 Messenger 深色模式上色；在 Android 11 中則使用固定藍色。請先在 Messenger 中啟用深色模式。除非開啟「淺色模式強調色」，否則淺色模式保持原本的顏色。"},
         {"app_icons.title", "解鎖應用程式圖示"},

@@ -24,6 +24,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 private const val VERSION_CHECK_LOG = "Android PackageManager returned version code"
+private const val JOB_CHECK_LOG = "Version Codes do not match!"
 
 class SpoofSelfReadsTest {
     private val static = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value
@@ -90,7 +91,12 @@ class SpoofSelfReadsTest {
 
     private fun ids(methods: List<Method>) = findSelfVersionReads(methods).mapKeys { it.key.hookId() }
 
-    @Test fun onlyReadsOfTheAppsOwnPackageInfoAreFound() {
+    /**
+     * #120: the spoofed code reached Messenger through reads whose PackageInfo can't be traced to a lookup by its own
+     * name (a parameter, a cached field, a services loop), so every read outside HushMessenger is found. OwnVersion
+     * leaves another app's code alone when the read runs.
+     */
+    @Test fun everyVersionReadOutsideHushMessengerIsFound() {
         val own = ownField()
         val getter = ownGetter()
         val viaWrapper = throughWrapper()
@@ -98,6 +104,22 @@ class SpoofSelfReadsTest {
         val stockName = lookupOf("com.facebook.orca", "LX/MQw;->A01(Landroid/content/Context;)I")
         val param = fixtureMethod("LX/0E7;->A00(Landroid/content/pm/PackageInfo;)J",
             "invoke-virtual {p0}, $VERSION_GETTER\nmove-result-wide v0\nreturn-wide v0", 3, static)
+        // The job scheduler's shape: its own PackageInfo, then a loop over the services it lists.
+        val services = fixtureMethod("LX/4b6;->A00(Landroid/content/Context;)I", """
+            invoke-virtual {p0}, $manager
+            move-result-object v2
+            invoke-virtual {p0}, Landroid/content/Context;->getApplicationInfo()Landroid/content/pm/ApplicationInfo;
+            move-result-object v0
+            iget-object v0, v0, Landroid/content/pm/PackageItemInfo;->packageName:Ljava/lang/String;
+            const/16 v1, 0x1284
+            invoke-virtual {v2, v0, v1}, $lookup
+            move-result-object v3
+            iget v0, v3, $VERSION_FIELD
+            iget-object v1, v3, Landroid/content/pm/PackageInfo;->services:[Landroid/content/pm/ServiceInfo;
+            const/4 v2, 0x0
+            aget-object v1, v1, v2
+            return v0
+        """.trimIndent(), 4, static)
         // Its own name in one lookup and Google Play services' in another: either could reach the read.
         val mixed = fixtureMethod("LX/mixed;->A00(Landroid/content/Context;)I", """
             invoke-virtual {p0}, $manager
@@ -121,8 +143,9 @@ class SpoofSelfReadsTest {
         // Copy setup reads the installed code on purpose.
         val ours = ownField("Lapp/hushmessenger/extension/SettingsActivity;->code(Landroid/content/Context;)I")
 
-        val found = ids(listOf(own, getter, wrapper(), viaWrapper, gms, stockName, param, mixed, field, ours))
-        assertEquals(mapOf(own.hookId() to 1, getter.hookId() to 1, viaWrapper.hookId() to 1), found)
+        val found = ids(listOf(own, getter, wrapper(), viaWrapper, gms, stockName, param, mixed, field, services, ours))
+        // The wrapper hands its PackageInfo back without reading a code, so it has nothing to rewrite.
+        assertEquals(listOf(own, getter, viaWrapper, gms, stockName, param, mixed, field, services).associate { it.hookId() to 1 }, found)
     }
 
     @Test fun theFieldReadBecomesACallIntoTheSameRegister() {
@@ -167,7 +190,7 @@ class SpoofSelfReadsTest {
         assertEquals(setOf(methods[0].hookId(), methods[1].hookId(), methods[3].hookId()), planSelfVersionReads(methods, expected = 3))
         val before = methods.map { it.implementation!!.instructions.toList() }
         val failure = assertFailsWith<PatchException> { planSelfVersionReads(methods) }
-        assertContains(failure.message.orEmpty(), "found 3 reads of Messenger's own version code, expected $SELF_VERSION_READS")
+        assertContains(failure.message.orEmpty(), "found 3 version code reads, expected $SELF_VERSION_READS")
         assertEquals(before, methods.map { it.implementation!!.instructions.toList() })
 
         val odd = fixtureMethod("LX/odd;->A00(Landroid/content/Context;)J", """
@@ -190,10 +213,10 @@ class SpoofSelfReadsTest {
         assertTrue(spoofSelfReadsPatch in spoofPackageVersionPatch.dependencies)
     }
 
-    /** The armv7 build expects ACRA's extra pre-Android 9 read, and the arm64 build the usual 17. */
-    @Test fun theArmv7BuildExpectsOneMoreRead() {
+    /** The armv7 build expects its pre-Android 9 branches' reads too, 75 to the arm64 builds' 66. */
+    @Test fun theArmv7BuildExpectsItsOlderBranches() {
         for (code in MessengerTarget.VERSION_CODES) {
-            assertEquals(if (code == 347215341) 18 else 17, selfVersionReadsFor(controlProfileFor(code.toString())), "$code")
+            assertEquals(if (code == 347215341) 75 else 66, selfVersionReadsFor(controlProfileFor(code.toString())), "$code")
         }
     }
 
@@ -221,16 +244,23 @@ class SpoofSelfReadsTest {
             }.map { it.hookId() }.distinct()
             assertEquals(1, versionCheck.size, "$apk $versionCheck")
             assertContains(found, versionCheck.single(), "$apk")
+            // #120: the job scheduler's check reads Messenger's own code and was missed before.
+            val jobCheck = methods.filter { m ->
+                m.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string?.startsWith(JOB_CHECK_LOG) == true } == true
+            }.map { it.hookId() }.distinct()
+            assertEquals(1, jobCheck.size, "$apk $jobCheck")
+            assertContains(found, jobCheck.single(), "$apk")
             assertEquals(1, found.count { it.startsWith("LX/") && it.contains(";->logOnTraceEnd(") }, "$apk $found")
             for (anchor in listOf("Lcom/facebook/appcomponentmanager/AppComponentManagerService;->A06(",
                 "Lcom/facebook/acra/CrashTimeDataCollector;->getPackageManagerVersionCode(",
                 "Lcom/android/billingclient/api/ProxyBillingActivity;->onCreate(",
                 "Lcom/mapbox/mapboxsdk/http/HttpIdentifier;->getIdentifier(",
-                "Lcom/meta/hatch/ui/settings/bugreport/data/HatchBugReportSender\$send\$1;->invokeSuspend(")) {
+                "Lcom/meta/hatch/ui/settings/bugreport/data/HatchBugReportSender\$send\$1;->invokeSuspend(",
+                "Lcom/facebook/acra/ErrorReporter;->populateConstantFields(")) {
                 assertTrue(found.any { it.startsWith(anchor) }, "$apk $anchor")
             }
-            // Android's ART, Google Play services and WebView keep what Android reports.
-            assertTrue(found.none { "DexStoreUtils" in it || "BlockStoreSetupManager" in it || "playservices" in it }, "$apk $found")
+            // HushMessenger's own classes keep reading what Android reports.
+            assertTrue(found.none { it.startsWith("Lapp/hushmessenger/") }, "$apk $found")
         }
         assertEquals(emptyList(), miscounts)
     }

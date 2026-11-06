@@ -12,10 +12,14 @@ Current target: `app.marlboroadvance.mpvex` v1.3.1-playstore (universal APK).
 
 Click here to add these patches to Morphe: https://morphe.software/add-source?github=kyurem39/mpvEx-patches
 
+<a href="https://morphe.software/add-source?github=kyurem39/mpvEx-patches">
+  <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
+</a>
+
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/kyurem39/mpvEx-patches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.4.0](https://github.com/kyurem39/mpvEx-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 mpvEx&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -45,4 +49,4 @@ See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation
 
 ## 📜 License
 
-kyurem39 Morphe patches are licensed under the [GNU General Public License v3.0](LICENSE)
+kyurem39's patches are licensed under the [GNU General Public License v3.0](LICENSE)

@@ -2,10 +2,13 @@ package app.morphe.extension.shared.settings;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static app.morphe.extension.shared.utils.StringRef.sf;
 import static app.morphe.extension.shared.settings.Setting.migrateOldSettingToNew;
 import static app.morphe.extension.shared.settings.Setting.parent;
 import static app.morphe.extension.shared.settings.Setting.parentInverted;
 
+import app.morphe.extension.shared.settings.preference.SeekBarPreference;
+import app.morphe.extension.shared.settings.preference.SeekBarPreference.SeekBarConfig;
 import app.morphe.extension.shared.patches.PatchStatus;
 import app.morphe.extension.shared.patches.SkipSilencePatch.MinimumPause;
 import app.morphe.extension.shared.patches.PoTokenProviderPatch.PoTokenProviderAvailability;
@@ -44,6 +47,7 @@ public class SharedYouTubeSettings extends BaseSettings {
             "morphe_proxy_auth_password", "", true, false, null, parent(PROXY_AUTH_ENABLED));
     public static final BooleanSetting PROXY_ALLOW_DIRECT_FALLBACK = new BooleanSetting(
             "morphe_proxy_allow_direct_fallback", FALSE, true, parent(PROXY_ENABLED));
+    public static final IntegerSetting SETTINGS_NEW_INDICATOR_DAYS = new IntegerSetting("morphe_settings_new_indicator_days", 3);
 
     /** Name shown for the RVX settings entry: a preset value or a name entered by the user. */
     public static final StringSetting SETTINGS_NAME = new StringSetting(
@@ -100,6 +104,7 @@ public class SharedYouTubeSettings extends BaseSettings {
             true,
             "morphe_external_potoken_provider_user_dialog_message",
             new PoTokenProviderAvailability());
+    public static final BooleanSetting POTOKEN_PROVIDER_EXPIRED_DIALOG = new BooleanSetting("morphe_potoken_provider_expired_dialog", FALSE, false, false);
     public static final LongSetting POTOKEN_PROVIDER_EXPIRED_DIALOG_LAST_SHOWN = new LongSetting("morphe_potoken_provider_expired_dialog_last_shown", 0L, false, false);
 
     public static final BooleanSetting SANITIZE_SHARING_LINKS = new BooleanSetting("morphe_sanitize_sharing_links", TRUE);
@@ -114,6 +119,10 @@ public class SharedYouTubeSettings extends BaseSettings {
     private static final BooleanSetting DEPRECATED_SANITIZE_URL_QUERY = new BooleanSetting("morphe_sanitize_url_query", TRUE);
 
     static {
+        // Both apps provide this shared label for the disabled indicator duration.
+        SeekBarPreference.register(new SeekBarConfig(SETTINGS_NEW_INDICATOR_DAYS,
+                0, 30, 1, "", 1, sf("morphe_playback_in_feeds_entry_off"), null));
+
         // Prioritize stream spoofing on upgrades, including installs that already saved
         // both settings as enabled. Otherwise, each setting disables the other's switch.
         if (SPOOF_VIDEO_STREAMS.get() && POTOKEN_PROVIDER.get()) {

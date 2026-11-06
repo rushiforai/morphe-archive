@@ -5,6 +5,7 @@
 package io.github.joancomasfdz.patches.baconreader.fix.imgur
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstructions
 import app.morphe.patcher.patch.bytecodePatch
@@ -15,6 +16,8 @@ import io.github.joancomasfdz.patches.shared.Constants.COMPATIBILITY_BACONREADER
 import io.github.joancomasfdz.patches.shared.Constants.COMPATIBILITY_BACONREADER_PREMIUM
 
 private const val EXTENSION_CLASS_DESCRIPTOR = "$EXTENSION_PACKAGE/imgur/FixImgurApiPatch;"
+
+private const val IMGUR_IMAGE = "Lcom/onelouder/baconreader/imgur_gallery/ImgurImage;"
 
 @Suppress("unused")
 val fixImgurApiPatch = bytecodePatch(
@@ -46,5 +49,31 @@ val fixImgurApiPatch = bytecodePatch(
                     "$EXTENSION_CLASS_DESCRIPTOR->setUploadContentType(Ljava/net/HttpURLConnection;)V",
             )
         }
+
+        // Imgur's own API sends every still image with an empty "mp4", which the album viewer takes for a video: it
+        // plays "" and never shows the image. An empty "mp4" is no video.
+        ImgurImageIsVideoFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                iget-object v0, p0, $IMGUR_IMAGE->mp4:Ljava/lang/String;
+                invoke-static { v0 }, $EXTENSION_CLASS_DESCRIPTOR->isVideo(Ljava/lang/String;)Z
+                move-result v0
+                return v0
+            """,
+        )
+        ImgurImageGetLinkFingerprint.method.addInstructionsWithLabels(
+            0,
+            """
+                iget-object v0, p0, $IMGUR_IMAGE->mp4:Ljava/lang/String;
+                invoke-static { v0 }, $EXTENSION_CLASS_DESCRIPTOR->isVideo(Ljava/lang/String;)Z
+                move-result v0
+                if-eqz v0, :still_image
+                iget-object v0, p0, $IMGUR_IMAGE->mp4:Ljava/lang/String;
+                return-object v0
+                :still_image
+                iget-object v0, p0, $IMGUR_IMAGE->link:Ljava/lang/String;
+                return-object v0
+            """,
+        )
     }
 }

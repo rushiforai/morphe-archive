@@ -73,7 +73,7 @@ jobs:
       # Makes the patches of any branch downloadable from the workflow run.
       - name: Upload patches
         if: steps.release.outputs.new_release_published != 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: patches
           path: patches/build/libs/patches-*.mpp

@@ -11,7 +11,7 @@ Morphe patches for the apps I use.
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v1.5.0](https://github.com/danieleavolio/lovaion-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+> **[v1.6.0](https://github.com/danieleavolio/lovaion-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 Photon Camera&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -25,6 +25,22 @@ Morphe patches for the apps I use.
 |----------|----------------|-----------|
 | [Bypass PairIP license check](#bypass-pairip-license-check) | Disables the PairIP license check so a re-signed build of Photon Camera starts instead of being refused. Required by every other patch. |  |
 | [Unlock Premium](#unlock-premium) | Forces the premium entitlement to always resolve as active, unlocking the VIP LUT packs, the AI photo review and the LUT Creator, with or without a Play purchase and with or without a network connection. |  |
+
+</details>
+
+<details open>
+<summary>📦 Rare&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.0.95 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Bypass PairIP license check](#bypass-pairip-license-check) | Disables the PairIP license check so a re-signed build of Rare starts instead of being refused. Required by every other patch. |  |
+| [Unlock Rarecam Pro](#unlock-rarecam-pro) | Forces the Rarecam Pro entitlement to always resolve as active, unlocking the Pro looks, the custom 3D LUT import, the S-Log3 and 16-bit TIFF export, unlimited Mist, Bayer RAW (DNG) saving and multi-frame RAW Stack capture, with or without a Play purchase and with or without a network connection. |  |
 
 </details>
 

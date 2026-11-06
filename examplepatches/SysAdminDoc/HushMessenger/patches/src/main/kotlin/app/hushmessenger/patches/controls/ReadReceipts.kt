@@ -200,13 +200,24 @@ internal class ReplyReadShape(
  */
 internal val REPLY_READ_SHAPE = ReplyReadShape(sizes = setOf(397), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 236, composerReg = 20, stage = 4)
 
+/**
+ * 586's family B builds (347215273, 275 and 277): the same dispatcher, but it reads the thread's id String in one call
+ * where 347215348 takes its long and converts it, so the body is two shorter and the dispatch sits at 234.
+ */
+internal val REPLY_READ_SHAPE_FAMILY_B = ReplyReadShape(sizes = setOf(395), composer = 10, session = 20, nullThread = 26, absent = 71, dispatch = 234, composerReg = 20, stage = 4)
+
+internal val REPLY_READ_SHAPES = listOf(REPLY_READ_SHAPE, REPLY_READ_SHAPE_FAMILY_B)
+
+/** The known shape a dispatcher of this body size and frame has, or null. */
+private fun MutableMethod.replyReadShape(size: Int) =
+    REPLY_READ_SHAPES.singleOrNull { size in it.sizes && implementation?.registerCount == it.registers }
+
 /** The exact 586 staging seam. The thread survives in v12 until the account is staged there for dispatch. */
 internal fun MutableMethod.validateReplyRead(): Int {
-    val shape = REPLY_READ_SHAPE
-    readRequire(isReplyReadDispatch() && implementation!!.registerCount == shape.registers)
+    readRequire(isReplyReadDispatch())
     val flow = ReadFlow(this)
     val c = flow.code
-    readRequire(c.size in shape.sizes)
+    val shape = replyReadShape(c.size) ?: throw PatchException("Messenger controls: the account-scoped read receipt contract changed (identity flow)")
     val d = shape.dispatch
     val s = d - shape.stage
     val cr = shape.composerReg
@@ -246,11 +257,12 @@ internal fun MutableMethod.validateReplyRead(): Int {
 
 internal fun MutableMethod.injectReplyRead() {
     val dispatch = validateReplyRead()
+    val stage = replyReadShape(readCode().size)!!.stage
     // Insert backwards so both indices refer to the unmodified stock method.
     addInstructions(dispatch + 1, """
         move-object v0, v10
         move-object/from16 v1, p13
         invoke-static {v0, v1}, $SETTINGS->noteMessageSent(Ljava/lang/Object;Ljava/lang/Object;)V
     """.trimIndent())
-    addInstructions(dispatch - REPLY_READ_SHAPE.stage, "move-object/16 p13, v12")
+    addInstructions(dispatch - stage, "move-object/16 p13, v12")
 }

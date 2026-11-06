@@ -980,6 +980,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 updateSearchResults(savedQuery);
             }
         }
+        // Before the rows bind, so the first frame already has its dots.
+        if (getActivity() != null) NewSettingDots.start(getActivity(), this::newSettingRows);
         ListView list = getView().findViewById(android.R.id.list);
         if (list != null && list.getAdapter() != null) {
             styledAdapter = new SettingsListAdapter(list.getAdapter(), searchRows);
@@ -1561,7 +1563,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             Settings.HIDE_SEARCH_SUGGESTIONS.key, "search suggestions",
             Settings.HIDE_INBOX_TAKO.key, "AI chat",
             Settings.HIDE_CHAT_AI_REPLIES.key, "AI Tako",
-            Settings.DOWNLOAD_ORIGINAL_PHOTOS.key, "save photos");
+            Settings.DOWNLOAD_ORIGINAL_PHOTOS.key, "save photos",
+            Settings.STARTUP_MESSAGE.key, "dialog popup greeting");
 
     private static String searchKeywords(Context context, String key) {
         String aliases = SEARCH_ALIASES.get(key);
@@ -2111,11 +2114,30 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     return true;
                 }
         );
-        row.setKey("section_" + section.name().toLowerCase(java.util.Locale.ROOT));
+        row.setKey(sectionKey(section));
         row.setCompact(true);
         row.setExpandable(true);
         sectionMenus.put(section, row);
         screen.addPreference(row);
+    }
+
+    private static String sectionKey(Section section) {
+        return "section_" + section.name().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    /**
+     * Every row the settings show, with the section row it sits under, for the dots on new
+     * settings (#349). A checklist row's boxes are settings of their own, each on that row.
+     */
+    private List<NewSettingDots.Row> newSettingRows() {
+        List<NewSettingDots.Row> rows = new ArrayList<>();
+        for (SearchResult result : buildSearchIndex(getActivity(), FeatureGateLabRuntime.isInstalled())) {
+            rows.add(new NewSettingDots.Row(
+                    result.section == null ? null : sectionKey(result.section),
+                    result.key,
+                    result.member != null ? result.member : result.key));
+        }
+        return rows;
     }
 
     private void expandSection(Section section) {
@@ -2391,6 +2413,8 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     @Override
     public void onPause() {
         budgetTicks.removeCallbacks(budgetTick);
+        // The new rows the person has had on screen are no longer new next time.
+        NewSettingDots.commit();
         super.onPause();
     }
 

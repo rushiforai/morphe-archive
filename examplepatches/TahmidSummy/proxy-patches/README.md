@@ -83,7 +83,7 @@ The only other traffic is the phone's DNS lookup of the proxy's own hostname.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.1](https://github.com/TahmidSummy/proxy-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.3.2](https://github.com/TahmidSummy/proxy-patches/releases/tag/v1.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -92,8 +92,8 @@ The only other traffic is the phone's DNS lookup of the proxy's own hostname.
 
 **🎯 Supported versions:**
 
-| 2026.40.0 |
-| :---: |
+| 2026.40.0 | 2026.24.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

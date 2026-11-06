@@ -1,5 +1,9 @@
 # Ontwikkelen
 
+Nieuwe Wordfeud-versie? Zie `docs/UPDATING.md` (controlescript `tools/check-apk/check_apk.py`, testlijst en
+waar je wat aanpast). Elk pakket van de extensie heeft een `package-info.java` met wat het doet en op welk deel van
+Wordfeud het leunt.
+
 De extensie vereist **Android 7.0 (API 24) of nieuwer** (o.a. `java.util.function`, `Comparator.comparing`,
 `List.sort`, `URLConnection.getContentLengthLong`, `Math.addExact`). Gebruik geen API's boven 24 zonder versiecheck.
 

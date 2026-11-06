@@ -5,6 +5,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertNull;
 
 import java.util.List;
+import java.util.Map;
 
 import app.morphe.extension.music.patches.lyrics.Word;
 
@@ -45,8 +46,10 @@ public class LocalRomanizersTest {
 
     @Test
     public void alphabetRomanizationPreservesUnrelatedText() {
-        assertEquals("Privet ABC 123", CyrillicRomanizer.romanize("Привет ABC 123"));
-        assertEquals("kalimera ABC", GreekRomanizer.romanize("καλημερα ABC"));
+        AlphabetRomanizer romanizer = new AlphabetRomanizer(ScriptDetector::isCyrillic,
+                Map.of("п", "p", "р", "r", "и", "i", "в", "v", "е", "e", "т", "t"),
+                Map.of(), false);
+        assertEquals("Privet ABC 123", romanizer.romanize("Привет ABC 123"));
     }
     @Test
     public void alignsSpokenCharactersWithoutAssigningPunctuation() {
@@ -62,5 +65,27 @@ public class LocalRomanizersTest {
     public void rejectsReadingsThatCannotFitTheTimedWords() {
         assertNull(LocalRomanizer.spreadReading(
                 List.of(new Word(0, 100, "你好")), "ni hao extra"));
+    }
+    @Test
+    public void shortReadingsSpreadWithoutSplittingTokens() {
+        String[] reading = LocalRomanizer.allocateReading("bān-sū jû-ì", 4, null);
+        assertEquals(4, reading.length);
+        assertEquals(2, java.util.Arrays.stream(reading).filter(part -> !part.isBlank()).count());
+        assertEquals("bān-sū jû-ì", String.join(" ", reading).trim().replaceAll("\\s+", " "));
+    }
+
+    @Test
+    public void tokenAllocationFollowsGuidesAndPreservesWordBoundaries() {
+        String[] reading = LocalRomanizer.allocateReading("ni hao shi jie", 4,
+                List.of("ni", "hao", "shi", "jie"));
+        assertEquals(List.of("ni", "hao", "shi", "jie"),
+                java.util.Arrays.stream(reading).map(String::trim).toList());
+    }
+
+    @Test
+    public void emptyReadingsAndSlotCountsAreSafe() {
+        assertArrayEquals(new String[]{"", ""}, LocalRomanizer.allocateReading(null, 2, null));
+        assertEquals(0, LocalRomanizer.allocateReading("hello", 0, null).length);
+        assertEquals(0, LocalRomanizer.allocateReading("hello", -1, null).length);
     }
 }

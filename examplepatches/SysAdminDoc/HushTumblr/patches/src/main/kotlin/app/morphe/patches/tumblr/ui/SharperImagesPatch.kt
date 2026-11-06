@@ -61,7 +61,9 @@ internal class SharperImagesPlan(val chooser: MutableMethod, val returns: List<S
 val sharperImagesPatch = bytecodePatch(
     name = PATCH,
     description = "Loads images in posts at a higher resolution when Tumblr has a larger copy, up to twice the width" +
-        " Tumblr shows them at, even on a slow connection. GIFs keep Tumblr's size. Uses more data. Starts off." +
+        " Tumblr shows them at, even on a slow connection. GIFs go up too, but never past the pixel count of a" +
+        " 1280 by 960 one. Uses more" +
+        " data. Starts off." +
         " Turn it on in Tumblr settings > HushTumblr > Posts.",
     default = true,
 ) {

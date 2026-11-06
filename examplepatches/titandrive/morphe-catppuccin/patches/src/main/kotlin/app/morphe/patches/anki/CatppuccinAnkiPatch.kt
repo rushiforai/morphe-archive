@@ -19,6 +19,7 @@ private object AnkiAssets
 private const val EXT = "Lapp/morphe/extension/anki/AnkiTheme;"
 private val ankiResources = resourcePatch {
     execute {
+        applyWidgetResources()
         val files = listOf("theme.xml", "catppuccin_drawer_text.xml", "catppuccin_latte_drawer_background.xml", "catppuccin_macchiato_drawer_background.xml", "catppuccin_button_again.xml", "catppuccin_button_hard.xml", "catppuccin_button_good.xml", "catppuccin_button_easy.xml", "nav_drawer_catppuccin_latte.png", "nav_drawer_catppuccin_macchiato.png")
         val loader = AnkiAssets::class.java.classLoader!!
         // Theme_Light and Theme_Dark retain their resource IDs and upstream selectors.
@@ -108,13 +109,14 @@ private val ankiResources = resourcePatch {
 @Suppress("unused")
 val catppuccinAnkiPatch = bytecodePatch(
     name = "AnkiDroid Catppuccin theme and fonts",
-    description = "Replaces Light with Latte and Dark with Macchiato. Adds JetBrains Mono, custom TTF import, and font sizing under Appearance. Selected fonts override card template fonts.",
+    description = "Replaces Light with Latte and Dark with Macchiato. Adds JetBrains Mono, custom TTF import, and font sizing under Appearance. Selected fonts override card template fonts. Themes widgets with JetBrains Mono and adjustable background opacity.",
     default = false,
 ) {
     compatibleWith(Compatibility(name="AnkiDroid", packageName="com.ichi2.anki", targets=listOf(AppTarget(version="2.25.1"), AppTarget(version="2.25.2"))))
     dependsOn(ankiResources)
     extendWith("catppuccin/anki.dex")
     execute {
+        applyWidgetHooks()
         mutableClassDefBy("Lcom/ichi2/anki/AnkiDroidApp;").methods.single { it.name == "onCreate" }.addInstructions(0,
             "invoke-static/range {p0 .. p0}, $EXT->install(Landroid/app/Application;)V")
         // Locate the shared Activity base structurally, rather than hardcoding its R8 name.

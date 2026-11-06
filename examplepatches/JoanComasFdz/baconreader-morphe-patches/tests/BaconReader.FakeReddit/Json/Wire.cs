@@ -388,6 +388,10 @@ public sealed record MediaMetadata(string Status, string E, string Id)
 
     [JsonPropertyName("isGif"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public bool? IsGif { get; init; }
+
+    /// <summary>An emote's kind: <c>sticker</c>.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? T { get; init; }
 }
 
 /// <summary>A size of an uploaded image: its URL (<c>u</c>, or <c>gif</c> and <c>mp4</c> for a GIF), width and height.</summary>

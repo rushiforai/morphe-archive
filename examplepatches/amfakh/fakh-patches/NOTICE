@@ -95,3 +95,16 @@ LinkedIn patches
 The LinkedIn patches and their extension (app.fakh.patches.linkedin and
 app.fakh.extension.linkedin) are based on Michii Patches by heyymichii
 (https://github.com/heyymichii/michii-patches), licensed under GPLv3.
+
+
+Glass navigation bar
+====================
+
+The look of the glass navigation bar (app.fakh.extension.linkedin.GlassNavigationBar), a
+floating translucent capsule, follows the glass navigation bar of Morphe Patches,
+licensed under GPLv3 with the Morphe NOTICE terms above. The code is written for
+LinkedIn's navigation bar.
+
+https://github.com/MorpheApp/morphe-patches
+
+=============

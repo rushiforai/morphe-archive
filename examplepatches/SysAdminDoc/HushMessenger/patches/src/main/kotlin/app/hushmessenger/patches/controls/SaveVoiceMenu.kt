@@ -1,5 +1,6 @@
 package app.hushmessenger.patches.controls
 
+import app.hushmessenger.patches.coexist.poolString
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -147,7 +148,36 @@ private fun Method.menuRowsSite(): MenuRowsSite? {
     return MenuRowsSite(copy, list, source, scratch, extra)
 }
 
-private class MenuTapSite(val start: Int, val scratch: Int, val first: Int, val tapHandler: String, val handler: String)
+/**
+ * The tap's start, scratch and first parameter registers, and its handler. [pooledRows] is empty when the tap names
+ * [MENU_ROW_MESSAGE] itself, or else holds each string pool lookup it reads a Message out of the Bundle by.
+ */
+private class MenuTapSite(val start: Int, val scratch: Int, val first: Int, val tapHandler: String, val handler: String,
+    val pooledRows: List<Pair<MethodReference, Int>>)
+
+private const val MENU_BUNDLE_READ = "Landroid/os/Bundle;->getParcelable(Ljava/lang/String;)Landroid/os/Parcelable;"
+private val MENU_POOL_KEYS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16)
+
+/**
+ * 586's family B builds take the Bundle's key from a Redex string pool: a constant key, the pool's static (I)String
+ * lookup, its answer at [at], then getParcelable by that answer cast straight to a Message. The pool and key, or null.
+ */
+private fun List<Instruction>.pooledMessageKey(at: Int): Pair<MethodReference, Int>? {
+    if (at < 2 || at + 3 >= size || this[at].opcode != Opcode.MOVE_RESULT_OBJECT) return null
+    val lookup = this[at - 1] as? FiveRegisterInstruction ?: return null
+    val pool = lookup.menuCall() ?: return null
+    if (lookup.opcode != Opcode.INVOKE_STATIC || lookup.registerCount != 1 || pool.returnType != "Ljava/lang/String;" || pool.menuParams() != listOf("I")) return null
+    val key = this[at - 2]
+    if (key.opcode !in MENU_POOL_KEYS || (key as OneRegisterInstruction).registerA != lookup.registerC) return null
+    val read = this[at + 1]
+    if (read.opcode != Opcode.INVOKE_VIRTUAL || read.menuRef()?.toString() != MENU_BUNDLE_READ ||
+        read.menuArgs().getOrNull(1) != (this[at] as OneRegisterInstruction).registerA) return null
+    val message = this[at + 2]
+    val cast = this[at + 3]
+    if (message.opcode != Opcode.MOVE_RESULT_OBJECT || cast.opcode != Opcode.CHECK_CAST || cast.menuRef()?.toString() != MESSAGE ||
+        (cast as OneRegisterInstruction).registerA != (message as OneRegisterInstruction).registerA) return null
+    return pool to (key as NarrowLiteralInstruction).narrowLiteral
+}
 
 /**
  * The chat menu's tap method: an instance (item, extra) method that names [MENU_TAP_NAME] and reads the Bundle's message.
@@ -158,7 +188,9 @@ private fun Method.menuTapSite(): MenuTapSite? {
     if (returnType != "Z" || AccessFlags.STATIC.isSet(accessFlags) || menuParams() != listOf(MENU_ITEM, OBJECT)) return null
     val code = menuCode()
     val start = code.indices.singleOrNull { code[it].menuString() == MENU_TAP_NAME } ?: return null
-    if (code.none { it.menuString() == MENU_ROW_MESSAGE }) return null
+    val named = code.any { it.menuString() == MENU_ROW_MESSAGE }
+    val pooledRows = if (named) emptyList() else code.indices.mapNotNull { code.pooledMessageKey(it) }
+    if (!named && pooledRows.isEmpty()) return null
     val scratch = (code[start] as? OneRegisterInstruction)?.registerA ?: return null
     val first = implementation!!.registerCount - 3
     if (first < 0 || scratch >= first || scratch > 15) return null
@@ -169,7 +201,7 @@ private fun Method.menuTapSite(): MenuTapSite? {
     } ?: return null
     val cast = code.getOrNull(read + 1) ?: return null
     if (cast.opcode != Opcode.CHECK_CAST || (cast as OneRegisterInstruction).registerA != (code[read] as TwoRegisterInstruction).registerA) return null
-    return MenuTapSite(start, scratch, first, code[read].menuRef().toString(), cast.menuRef().toString())
+    return MenuTapSite(start, scratch, first, code[read].menuRef().toString(), cast.menuRef().toString(), pooledRows)
 }
 
 private class MoreSheetSite(val at: Int, val builder: Int, val hold: Int, val builderType: String)
@@ -234,7 +266,11 @@ internal fun resolveSaveVoiceMenu(classes: Iterable<ClassDef>): SaveVoiceMenuRec
         ?.any { it.name == "<init>" && it.menuParams() == params.toList() && isPublic(it.accessFlags) } == true
 
     val rows = byType[MENU_PARAMS]?.methods?.singleOrNull { it.menuRowsSite() != null } ?: return null
-    val taps = classes.flatMap { cls -> cls.methods.filter { it.returnType == "Z" && it.menuTapSite() != null } }
+    // A pooled Bundle key only counts when its pool answers the key the extension reads the message by.
+    fun readsRowMessage(site: MenuTapSite) = site.pooledRows.isEmpty() || site.pooledRows.any { (pool, key) ->
+        byType[pool.definingClass]?.methods?.singleOrNull { it.hookId() == pool.toString() }?.let { poolString(it, key) } == MENU_ROW_MESSAGE
+    }
+    val taps = classes.flatMap { cls -> cls.methods.filter { it.returnType == "Z" && it.menuTapSite()?.let(::readsRowMessage) == true } }
     val tap = taps.singleOrNull() ?: return null
     val tapSite = tap.menuTapSite()!!
 

@@ -74,6 +74,9 @@ public final class FeatureDexFixture {
     private static final String LIVERAMP = "Lcom/liveramp/ats/LRInitProvider;";
     private static final String NIMBUS = "Lcom/tumblr/startup/NimbusStartupInitializer;";
     private static final String SDK_STARTUP = BASE + "privacy/SdkStartup;";
+    private static final String CRASHLYTICS = "Lcom/google/firebase/crashlytics/FirebaseCrashlytics;";
+    private static final String CRASH_SETUP = "Lfixture/CrashSetup;";
+    private static final String APPLICATION = "Landroid/app/Application;";
     private static final Map<String, String> SUPERCLASSES = Map.of(APP, CORE_APP, ACTIVITY, COMPONENT_ACTIVITY,
             CORE_APP, "Landroid/app/Application;", COMPONENT_ACTIVITY, "Landroid/app/Activity;", POSTS_RESPONSE, TIMELINE_RESPONSE,
             "Lfixture/PostSpacing;", "Landroidx/recyclerview/widget/RecyclerView$o;", MOBILE_ADS, PROVIDER,
@@ -138,6 +141,11 @@ public final class FeatureDexFixture {
     private static final List<String> SHORTCUTS = List.of("pushDynamicShortcut", "addDynamicShortcuts", "setDynamicShortcuts", "updateShortcuts", "removeAllDynamicShortcuts");
     private static final Map<String, String[]> FAMILIES = new LinkedHashMap<>();
     private static final Map<String, Boolean> FLAGS = new LinkedHashMap<>();
+    /**
+     * No fixture dex carries Explore's header presenter, the reblog trail entry or the Read more
+     * binder, so the patch leaves those capabilities off.
+     */
+    private static final Set<String> ABSENT = Set.of("exploreHeaderAd", "longTrailRows", "longPostExpand");
     private static final List<String> SMALL_CASES = new ArrayList<>();
 
     private static ImmutableMethodReference ref(String type, String name, String result, String... parameters) {
@@ -299,7 +307,7 @@ public final class FeatureDexFixture {
 
     static void enable(String name) {
         FLAGS.put(name, true);
-        for (String cap : capabilities(name)) FLAGS.put(cap, true);
+        for (String cap : capabilities(name)) FLAGS.put(cap, !ABSENT.contains(cap));
     }
 
     /** A family's capability flags; none for a manifest-only family, whose contract column is empty. */
@@ -840,7 +848,7 @@ public final class FeatureDexFixture {
         SMALL_CASES.add(name + "|" + reason.isEmpty() + "|" + reason);
     }
 
-    private static void smallSelectors(File root, Map<String, List<Method>> settings) throws Exception {
+    private static void smallSelectors(File root, Map<String, List<Method>> settings, Map<String, List<Method>> sdkClean) throws Exception {
         SMALL_CASES.clear();
         for (String variant : List.of("good", "missing", "copy-missing", "wrong-list", "late", "direct-missing", "direct-wrong-id", "direct-late")) {
             reset(); enable("hideReblogs");
@@ -927,6 +935,16 @@ public final class FeatureDexFixture {
             timeline(classes, true); featureSwitch(classes, true); paidPostBridge(classes, variant);
             smallCase(root, "feature-small-paid-presence-" + variant, classes, "hideAds", variant.equals("good") ? ""
                     : variant.equals("wrong-known-getter") ? "paid-post ownership presence bridge changed" : "Post JSON presence proof changed");
+        }
+        // Against the SDK launch clean, the only one with Crashlytics in it.
+        for (String variant : List.of("crash-good", "crash-missing", "crash-wrong-value")) {
+            reset(); enable("disableAnalytics");
+            Map<String, List<Method>> classes = new LinkedHashMap<>(sdkClean);
+            classes.putAll(hosts(true));
+            featureSwitch(classes, true);
+            sdkStartup(classes, variant);
+            smallCase(root, "feature-sdk-startup-" + variant, classes, "disableAnalytics", variant.equals("crash-good") ? ""
+                    : variant.equals("crash-missing") ? "has 0 calls" : "doesn't take what its rule hands it");
         }
         Files.write(new File(root, "small-selector-cases.txt").toPath(), SMALL_CASES, StandardCharsets.UTF_8);
     }
@@ -1172,7 +1190,10 @@ public final class FeatureDexFixture {
      * providers (v0 free), Google Mobile Ads' attachInfo with no local and its static MobileAds
      * initialize (the context in v2), and the Nimbus initializer's bridge create with no local.
      * Unless clean, Hide ads guards the ad SDKs and Disable analytics LiveRamp, each first thing,
-     * by the flags set.
+     * by the flags set. Tumblr's static Crashlytics launch setup holds the SDK in v1, the value it
+     * turns collection on with in v2, a second flag in v3 and the application in v4; Disable
+     * analytics hands its hook that value right before the call (the second flag instead in
+     * crash-wrong-value, nothing in crash-missing).
      */
     private static void sdkStartup(Map<String, List<Method>> classes, String variant) {
         boolean clean = variant.equals("clean");
@@ -1245,6 +1266,19 @@ public final class FeatureDexFixture {
                 new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0)));
         classes.put(NIMBUS, List.of(method(NIMBUS, "create", OBJECT, false, 2, create, CONTEXT),
                 method(NIMBUS, "b", VOID, false, 2, List.of(end()), CONTEXT)));
+        List<Instruction> setup = new ArrayList<>(List.of(invoke(Opcode.INVOKE_STATIC, ref(CRASHLYTICS, "getInstance", CRASHLYTICS)),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 1), new ImmutableInstruction11n(Opcode.CONST_4, 3, 0),
+                new ImmutableInstruction11n(Opcode.CONST_4, 2, 1)));
+        if (liveRamp && !variant.equals("crash-missing")) setup.addAll(List.of(
+                invoke(Opcode.INVOKE_STATIC, ref(SDK_STARTUP, "crashReports", "Z", CONTEXT, "Z"), 4, variant.equals("crash-wrong-value") ? 3 : 2),
+                new ImmutableInstruction11x(Opcode.MOVE_RESULT, 2)));
+        setup.addAll(List.of(invoke(Opcode.INVOKE_VIRTUAL, ref(CRASHLYTICS, "setCrashlyticsCollectionEnabled", VOID, "Z"), 1, 2),
+                literal("Device_Year_Class", 0), invoke(Opcode.INVOKE_VIRTUAL, ref(CRASHLYTICS, "setCustomKey", VOID, STRING, "Z"), 1, 0, 3), end()));
+        classes.put(CRASH_SETUP, List.of(method(CRASH_SETUP, "e", VOID, true, 5, setup, APPLICATION)));
+        classes.put(CRASHLYTICS, List.of(method(CRASHLYTICS, "getInstance", CRASHLYTICS, true, 1,
+                        List.of(new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0))),
+                method(CRASHLYTICS, "setCrashlyticsCollectionEnabled", VOID, false, 2, List.of(end()), "Z"),
+                method(CRASHLYTICS, "setCustomKey", VOID, false, 3, List.of(end()), STRING, "Z")));
         if (!ads && !liveRamp) return;
         // Each hook is v0 then its parameter, and answers once the settings are ready.
         List<Method> answers = new ArrayList<>();
@@ -1252,6 +1286,8 @@ public final class FeatureDexFixture {
                 List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 0)), PROVIDER));
         for (String name : List.of("audienceNetwork", "mobileAds", "nimbus")) answers.add(method(SDK_STARTUP, name, CONTEXT, true, 2,
                 List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN_OBJECT, 1)), CONTEXT));
+        answers.add(method(SDK_STARTUP, "crashReports", "Z", true, 3,
+                List.of(readiness(), new ImmutableInstruction11x(Opcode.MOVE_RESULT, 0), new ImmutableInstruction11x(Opcode.RETURN, 2)), CONTEXT, "Z"));
         classes.put(SDK_STARTUP, answers);
     }
 
@@ -1556,6 +1592,6 @@ public final class FeatureDexFixture {
             activityNotifications(classes, variant);
             write(root, "feature-activity-" + variant, classes, true, "filterActivityNotifications");
         }
-        smallSelectors(root, settings);
+        smallSelectors(root, settings, sdkClean);
     }
 }

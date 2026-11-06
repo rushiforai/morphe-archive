@@ -55,7 +55,7 @@ fun main(args: Array<String>) = runBlocking {
         patcher += patches
         val metadata = patcher.context.packageMetadata
         check(metadata.packageName == "com.soundcloud.android")
-        check(mapOf("2026.08.26-release" to "369070", "2026.09.23-release" to "374050")[metadata.versionName] == metadata.versionCode)
+        check(mapOf("2026.08.26-release" to "369070", "2026.09.23-release" to "374050", "2026.11.02-release" to "379060")[metadata.versionName] == metadata.versionCode)
         patcher().collect { result ->
             check(result.exception == null) { "${result.patch.name} failed: ${result.exception}" }
             println("Executed: ${result.patch.name}")
@@ -75,11 +75,21 @@ fun main(args: Array<String>) = runBlocking {
                 check(value(colors, "color", it) == "@color/blackOT") { "AMOLED color not patched: $it" }
             }
             listOf("black", "dialog_dark").forEach { check(value(colors, "color", it) == "#000000") }
-            val footer = xml(File(decoded, "res/drawable/bth_footer_shape.xml"))
-            check(footer.getElementsByTagName("gradient").length == 0)
-            val solids = footer.getElementsByTagName("solid")
-            check(solids.length >= 2)
-            (0 until solids.length).forEach { check((solids.item(it) as Element).getAttribute("android:color") == "@color/blackOT") }
+            listOf("bth_footer_shape", "bth_footer_shape_dark_surfaces").forEach { name ->
+                val file = File(decoded, "res/drawable/$name.xml")
+                if (name.endsWith("dark_surfaces") && metadata.versionName != "2026.11.02-release" && !file.isFile) return@forEach
+                val footer = xml(file)
+                check(footer.getElementsByTagName("gradient").length == 0) { "Mini-player gradient not removed: $name" }
+                val solids = footer.getElementsByTagName("solid")
+                check(solids.length >= 2)
+                (0 until solids.length).forEach {
+                    check((solids.item(it) as Element).getAttribute("android:color") == "@color/blackOT") {
+                        "Mini-player surface not black: $name"
+                    }
+                }
+                check(footer.getElementsByTagName("corners").length == 2) { "Mini-player corners changed: $name" }
+                check(footer.getElementsByTagName("stroke").length == 1) { "Mini-player border removed: $name" }
+            }
         }
         if ("Material You dynamic theme" in requested) {
             val colors = xml(File(decoded, "res/values-v31/colors.xml"))

@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
  */
@@ -31,16 +32,21 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.view.Surface;
 
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.settings.Settings;
+import app.morphe.extension.youtube.sponsorblock.objects.SegmentCategory;
 import app.morphe.extension.youtube.shared.PlayerType;
 import app.morphe.extension.youtube.shared.VideoInformation;
 
@@ -87,6 +93,66 @@ public final class OfflinePlayer {
     private static int videoHeight;
     @Nullable
     private static AudioFocusRequest focusRequest;
+    private static final Set<OfflineSponsorSegments.Segment> skippedOnce = new HashSet<>();
+    private static OfflineSponsorSegments.Segment manualSegment;
+    private static long lastSponsorSkip;
+    private static final java.util.function.Function<String, String> sponsorBehavior = OfflineSponsorBlock::behavior;
+
+    private static final Runnable sponsorTicker = new Runnable() {
+        @Override
+        public void run() {
+            if (!isPlaying()) return;
+            OfflineVideo video = current;
+            if (video == null || video.sponsorSegments.isEmpty()) return;
+            long position = getPosition();
+            boolean valid = Settings.SB_ENABLED.get()
+                    && OfflineSponsorSegments.durationMatches(video.sponsorDurationMs, getDuration());
+            OfflineSponsorSegments.Segment automatic = valid ? OfflineSponsorSegments.at(video.sponsorSegments,
+                    video.sponsorCategories, position, true, skippedOnce, sponsorBehavior) : null;
+            if (automatic != null && OfflineSponsorSegments.skipTarget(automatic, position,
+                    video.sponsorDurationMs, getDuration()) >= 0
+                    && OfflineSponsorSegments.canRepeat(SystemClock.elapsedRealtime(), lastSponsorSkip)) {
+                skipSponsor(automatic);
+            }
+            OfflineSponsorSegments.Segment manual = valid ? OfflineSponsorSegments.at(video.sponsorSegments,
+                    video.sponsorCategories, getPosition(), false, skippedOnce, sponsorBehavior) : null;
+            if (manual != manualSegment) {
+                manualSegment = manual;
+                notifyListeners();
+            }
+            handler.removeCallbacks(this);
+            handler.postDelayed(this, OfflineSponsorSegments.nextDelay(video.sponsorSegments, getPosition(), speed));
+        }
+    };
+
+    static String manualSponsorText() {
+        if (manualSegment == null || getPosition() < manualSegment.startMs()
+                || getPosition() >= manualSegment.endMs()) return "";
+        SegmentCategory category = SegmentCategory.byCategoryKey(manualSegment.category());
+        return category == null ? "" : category.skipButtonTextMiddle.toString();
+    }
+
+    static void skipManualSponsor() {
+        if (!manualSponsorText().isEmpty()) skipSponsor(manualSegment);
+    }
+
+    private static void skipSponsor(OfflineSponsorSegments.Segment segment) {
+        long position = getPosition();
+        OfflineVideo video = current;
+        if (video == null) return;
+        long target = OfflineSponsorSegments.skipTarget(segment, position, video.sponsorDurationMs, getDuration());
+        if (target < 0) return;
+        skippedOnce.add(segment);
+        lastSponsorSkip = SystemClock.elapsedRealtime();
+        manualSegment = null;
+        seekTo(target);
+        SegmentCategory category = SegmentCategory.byCategoryKey(segment.category());
+        if (category != null && Settings.SB_TOAST_ON_SKIP.get()) {
+            long duration = getDuration();
+            Utils.showToastShort((position < duration / 4 ? category.skippedToastBeginning
+                    : position > duration * 3 / 4 ? category.skippedToastEnd : category.skippedToastMiddle).toString());
+        }
+    }
 
     private OfflinePlayer() {
     }
@@ -196,7 +262,9 @@ public final class OfflinePlayer {
         releasePlayer();
         Context context = Utils.getContext();
         current = video;
-        // modified by lavinhoque33, 2026-10-14: say so instead of showing a grey picture when the AV1 cannot be decoded.
+        skippedOnce.clear();
+        manualSegment = null;
+        lastSponsorSkip = 0;
         if (!video.audioOnly && OfflineFormats.CODEC_AV1.equals(video.codec)) {
             java.util.regex.Matcher quality = java.util.regex.Pattern.compile("^(\\d+)p(\\d+)?").matcher(video.qualityLabel);
             if (quality.find() && !OfflineFormats.canDecodeAv1(0, Integer.parseInt(quality.group(1)),
@@ -431,6 +499,8 @@ public final class OfflinePlayer {
         prepared = false;
         unregisterNoisyReceiver();
         handler.removeCallbacks(positionSaver);
+        handler.removeCallbacks(sponsorTicker);
+        manualSegment = null;
         if (mediaPlayer != null) {
             try {
                 mediaPlayer.reset();
@@ -707,6 +777,8 @@ public final class OfflinePlayer {
         updatePlaybackState();
         handler.removeCallbacks(positionSaver);
         if (isPlaying()) handler.postDelayed(positionSaver, POSITION_SAVE_INTERVAL_MS);
+        handler.removeCallbacks(sponsorTicker);
+        if (isPlaying()) handler.post(sponsorTicker);
         OfflineServiceHooks.updatePlaybackNotification();
         notifyListeners();
     }

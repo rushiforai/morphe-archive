@@ -1000,7 +1000,9 @@ The phone's language	Sprache des Handys
 Languages to leave alone	Sprachen, die bleiben, wie sie sind
 None picked. Posts in every language can be translated.	Keine ausgewählt. Beiträge in jeder Sprache können übersetzt werden.
 Left alone: %s	Bleiben unverändert: %s
-Posts in the feed and captions on reels show all of their text, so there's no See more to tap. Tap the text to fold it back.	Beiträge im Feed und Beschreibungen bei Reels zeigen ihren ganzen Text, du musst also nicht auf Mehr ansehen tippen. Tippe auf den Text, um ihn wieder einzuklappen.
+Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold it back. Reel captions have their own switch under Reels and Watch.	Beiträge im Feed zeigen ihren ganzen Text, du musst also nicht auf Mehr ansehen tippen. Tippe auf den Text, um ihn wieder einzuklappen. Für Beschreibungen bei Reels gibt es einen eigenen Schalter unter Reels und Watch.
+Show full reel captions	Ganze Reel-Beschreibungen zeigen
+Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	Lange Beschreibungen bei Reels zeigen sofort ihren ganzen Text. Tippe auf die Beschreibung, um sie wieder einzuklappen. Die Änderung gilt ab dem nächsten Reel.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Wer hat geteilt
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Fügt dem Menü eines Beitrags Wer hat geteilt hinzu. Es öffnet die Facebook-Liste der Personen, die ihn geteilt haben.
@@ -1015,8 +1017,8 @@ Hide the Feeds header	Feeds-Kopfzeile ausblenden
 Shows the Feeds tab straight on its posts, without the title row or the filters. Restart Facebook to see the change.	Zeigt den Feeds-Tab direkt mit seinen Beiträgen, ohne Titelzeile und ohne Filter. Starte Facebook neu, um die Änderung zu sehen.
 # context: switch title under Reels and Watch; the prompt is Facebook's "Are you interested in this reel?" question on a reel
 Hide reel interest prompts	Interessenfrage bei Reels ausblenden
-# context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it
-No "Are you interested in this reel?" prompt on reels. The reel plays as usual.	Keine Frage „Interessiert dich dieses Reel?“ bei Reels. Das Reel läuft wie gewohnt.
+# context: description of that switch; the quoted text is Facebook's own prompt, so use Facebook's wording in your language if you know it; the survey card is Facebook's "To what extent does this video match your interests?" card shown between reels
+No "Are you interested in this reel?" prompt on reels, and no survey card between them asking how well a video matches your interests.	Keine Frage „Interessiert dich dieses Reel?“ bei Reels und keine Umfragekarte zwischen ihnen, wie gut ein Video zu deinen Interessen passt.
 # context: switch title under News feed; affiliate product links are the shop links creators add to their posts to earn a commission
 Hide affiliate product links	Affiliate-Produktlinks ausblenden
 # context: description of that switch; "Commission eligible" is Facebook's own label, so use Facebook's wording in your language if you know it
@@ -1387,6 +1389,7 @@ A few seconds after you leave Facebook, it closes all the way and leaves your re
 Facebook asks for your fingerprint, face or screen lock at startup and when you return after the time below. Your phone needs a screen lock.	Facebook fragt beim Start und nach der unten gewählten Zeit nach deinem Fingerabdruck, Gesicht oder deiner Bildschirmsperre. Dein Telefon braucht eine Bildschirmsperre.
 # context: toast when Lock Facebook is turned on and the phone has no screen lock to ask for
 Set a screen lock in your phone's settings first, so Facebook has something to ask for.	Richte zuerst in den Einstellungen deines Handys eine Displaysperre ein, damit Facebook etwas abfragen kann.
+Lock Facebook needs Android 10 or newer.	Facebook sperren braucht Android 10 oder neuer.
 # context: title of the row and list that picks how long Facebook may be away before it locks
 Lock after	Sperren nach
 # context: Lock after choice: Facebook locks the moment you leave it
@@ -1742,8 +1745,8 @@ Longer music on photo stories	Längere Musik in Foto-Storys
 A song you add to a photo for your Story plays for up to 30 seconds instead of 15. Applies to the next song you pick.	Ein Song, den du einem Foto für deine Story hinzufügst, läuft bis zu 30 statt 15 Sekunden. Gilt ab dem nächsten Song, den du auswählst.
 # context: switch title under Stories; two fingers spread apart on a story or a profile photo make it bigger
 Pinch to zoom	Zum Zoomen auseinanderziehen
-# context: summary of that switch; "let go" means lifting your fingers off the screen
-Pinch a story or a photo on someone's profile to zoom in. It goes back when you let go.	Zieh eine Story oder ein Foto auf einem Profil mit zwei Fingern auseinander, um hineinzuzoomen. Wenn du loslässt, springt es zurück.
+# context: summary of that switch; "let go" means lifting your fingers off the screen; "Photo carousel" is the label of another switch, so use its translation
+Pinch a story, a video in your feed, or a photo on someone's profile or in Photo carousel to zoom in. It goes back when you let go.	Zieh eine Story, ein Video in deinem Feed oder ein Foto auf einem Profil oder im Fotokarussell mit zwei Fingern auseinander, um hineinzuzoomen. Wenn du loslässt, springt es zurück.
 # context: switch title under Stories, right below Pinch to zoom; the zoomed picture stays zoomed after the fingers lift
 Stay zoomed	Gezoomt bleiben
 # context: summary of that switch; "Pinch to zoom" is the label of the switch above it, so use its translation; "Back" is the phone's Back button
@@ -1758,8 +1761,8 @@ Dim around a zoom	Um den Zoom abdunkeln
 With Pinch to zoom on, the screen around a photo or story darkens as you zoom in. Turn it off to keep the rest of the screen as it is.	Wenn „Zum Zoomen auseinanderziehen“ an ist, wird der Bildschirm um ein Foto oder eine Story dunkler, während du hineinzoomst. Schalte es aus, damit der Rest des Bildschirms bleibt, wie er ist.
 # context: a switch under Pinch to zoom; with it on, a video you zoom keeps moving instead of freezing on the frame it showed
 Keep videos playing while zoomed	Videos beim Zoomen weiterlaufen lassen
-# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a Page is a business's or public figure's Facebook page; a story is the full-screen picture or video someone shares for a day
-With Pinch to zoom on, a video you zoom on a profile or Page keeps playing. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it. Stories hold still while you zoom.	Wenn „Zum Zoomen auseinanderziehen“ an ist, läuft ein Video, das du auf einem Profil oder einer Seite zoomst, weiter. Ist auch „Gezoomt bleiben“ an, halte den Zoom gedrückt, um das Video zu pausieren, und noch mal, um es abzuspielen. Storys bleiben beim Zoomen stehen.
+# context: that switch's summary; "Pinch to zoom" and "Stay zoomed" are the labels of switches above it, so use their translations; a story is the full-screen picture or video someone shares for a day; "hold it first" means pressing and holding one finger on the story before the second finger comes down
+With Pinch to zoom on, a video you zoom keeps playing, stories included. To zoom a story on a still frame, hold it first and then pinch. With Stay zoomed on too, press and hold the zoom to pause the video, and again to play it.	Wenn „Zum Zoomen auseinanderziehen“ an ist, läuft ein Video, das du zoomst, weiter, auch in Storys. Um eine Story auf einem Standbild zu zoomen, halte sie zuerst gedrückt und zieh dann auseinander. Ist auch „Gezoomt bleiben“ an, halte den Zoom gedrückt, um das Video zu pausieren, und noch mal, um es abzuspielen.
 No ads downloaded in advance	Keine im Voraus geladenen Anzeigen
 No ad tracking	Kein Anzeigen-Tracking
 No Facebook ads in other apps	Keine Facebook-Anzeigen in anderen Apps
@@ -1927,6 +1930,10 @@ Takes the phone's status bar, with the time and battery, off Facebook's main scr
 Open feed videos on their own	Feed-Videos einzeln öffnen
 # context: summary of that switch; the Reels tab itself still scrolls normally
 A video you tap in the feed opens full screen by itself, with no reels to swipe to after it. The Reels tab keeps scrolling. Off by default, since it hasn't been tried on a real account yet.	Ein Video, das du im Feed antippst, öffnet sich allein im Vollbild, ohne Reels, zu denen du danach wischen kannst. Der Reels-Tab scrollt weiter wie gewohnt. Standardmäßig aus, da es noch nicht mit einem echten Konto getestet wurde.
+# context: switch title under Reels and Watch; on, tapping Watch again when a video in the news feed ends plays it again in the feed instead of opening it in the Reels viewer
+Replay feed videos in place	Feed-Videos an Ort und Stelle wiederholen
+# context: summary of that switch; Watch again is Facebook's own button shown when a feed video ends, so use Facebook's wording in your language if you know it
+Watch again at the end of a feed video plays it again right there, instead of opening it in Reels.	„Nochmal ansehen“ am Ende eines Feed-Videos spielt es direkt dort erneut ab, statt es in Reels zu öffnen.
 Hide the new comments pop-up	Pop-up für neue Kommentare ausblenden
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Die Blase „neue Kommentare“ erscheint nicht mehr, während du Kommentare liest. Neue Kommentare stehen weiter in der Liste.
@@ -2562,3 +2569,17 @@ With Seek bar on stories on, the bar fades a few seconds after the story starts 
 Clean mode	Clean-Modus
 Clean mode button on reels	Clean-Modus-Taste bei Reels
 Adds a Clean mode button to the buttons down the side of a reel. Tap it to hide them, and Clean mode stays on as you swipe. Facebook's own Clean mode button brings them back.	Fügt den Tasten an der Seite eines Reels eine Clean-Modus-Taste hinzu. Tippe darauf, um sie auszublenden, und der Clean-Modus bleibt beim Wischen an. Facebooks eigene Clean-Modus-Taste holt sie zurück.
+Open chats in Messenger	Chats in Messenger öffnen
+Opens chats in the Messenger app instead of inside Facebook, the Message button on a profile included, while Messenger is installed and enabled. Without Messenger, chats stay in Facebook. Restart Facebook after changing it.	Öffnet Chats in der Messenger-App statt in Facebook, auch über die Nachricht-Schaltfläche auf einem Profil, solange Messenger installiert und aktiviert ist. Ohne Messenger bleiben Chats in Facebook. Starte Facebook nach einer Änderung neu.
+Hide the Fullscreen button	Vollbild-Schaltfläche ausblenden
+Takes the Fullscreen button off the space under a wide video in Reels. A change shows from the next video.	Entfernt die Vollbild-Schaltfläche aus dem leeren Bereich unter einem breiten Video in Reels. Die Änderung gilt ab dem nächsten Video.
+Hide rings in the feed	Ringe im Feed ausblenden
+Hide rings in comments	Ringe in Kommentaren ausblenden
+Hide rings on profiles	Ringe auf Profilen ausblenden
+Takes the story and LIVE rings off the profile pictures at the top of posts. Tapping the picture opens the profile. Applies to posts drawn after the change.	Entfernt die Story- und LIVE-Ringe von den Profilbildern oben in Beiträgen. Ein Tippen auf das Bild öffnet das Profil. Gilt für Beiträge, die nach der Änderung geladen werden.
+Takes the story ring off the profile pictures next to comments. Applies to comments drawn after the change.	Entfernt den Story-Ring von den Profilbildern neben Kommentaren. Gilt für Kommentare, die nach der Änderung geladen werden.
+Takes the story and LIVE rings off the picture on a profile, and in the lists and search results that show it the same way. Applies the next time the picture draws.	Entfernt die Story- und LIVE-Ringe vom Bild auf einem Profil und in den Listen und Suchergebnissen, die es genauso zeigen. Gilt ab dem nächsten Laden des Bilds.
+Hide profile pictures on posts	Profilbilder bei Beiträgen ausblenden
+Hide profile pictures in comments	Profilbilder in Kommentaren ausblenden
+Takes the profile picture off the top of posts, so the name starts where the picture was. A change shows on the posts drawn after it.	Entfernt das Profilbild oben an Beiträgen, sodass der Name dort beginnt, wo das Bild war. Eine Änderung zeigt sich bei den Beiträgen, die danach geladen werden.
+Takes the profile picture off comments, so the name and text start where the picture was. A change shows on the comments drawn after it.	Entfernt das Profilbild von Kommentaren, sodass Name und Text dort beginnen, wo das Bild war. Eine Änderung zeigt sich bei den Kommentaren, die danach geladen werden.

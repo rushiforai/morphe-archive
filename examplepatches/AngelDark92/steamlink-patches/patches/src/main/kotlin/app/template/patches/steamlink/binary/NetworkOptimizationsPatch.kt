@@ -39,6 +39,8 @@ private data class NetworkLayout(
     val sceneEdits: List<Edit>,
     val mainSize: Int,
     val mainEdit: Edit,
+    // Optional SHA-256 pin of libmain.so (stock or already-patched). Empty means size plus windows only.
+    val mainSha256: Set<String> = emptySet(),
 )
 
 private fun String.hex(): ByteArray {
@@ -143,6 +145,38 @@ private val NETWORK_LAYOUTS = listOf(
         "003040f99e3c0c942000805297ffff17",
         "003040f91f2003d52000805297ffff17",
         "E4 decoder flush removal")),
+    // 2.0.24/5002527: same four mechanisms, re-derived from this build's own decode.
+    //  E1 0x1696a8: retransmit-list overflow abort (cmp w20,#0x1ff -> log -> latch -> exit 0x1698e0).
+    //     The send-path join `ldr w10,[x19,#8]` sits at 0x169824, 0x15c bytes after the abort
+    //     branch (0x1696c8), the same distance as 5002395 (0x1682c0 -> 0x16841c): imm26 0x57.
+    //  E2 0x16a448: reorder bound `cmp w24,#6` after `csel w24,wzr,w11,eq` (6 -> 12).
+    //  E3 0x179950: `mov w8,#0x20000` feeding setsockopt(fd,SOL_SOCKET=1,SO_SNDBUF=7) (-> 1 MiB).
+    //  E4 0x940410: the AMediaCodec_flush BL (PLT 0xc50690, GOT 0xcca718). Of its two callers
+    //     0x93e870 is the teardown path; 0x940414 is in BHandleOutputBuffer's
+    //     `ldr x0,[x0,#0x60]; bl; mov w0,#1; b` shape, the same shape as 5002244/5002363/5002395.
+    // libmain.so is written by this patch only, so it is also pinned by SHA-256. The scene library
+    // is shared with other recommended patches in any order, so it is pinned by size and windows.
+    NetworkLayout("2.0.24", 5002527, 2_333_472, listOf(
+        Edit(0x1696a8,
+            "00fafff0610a40b900741d915fe70294682261f929008052f4031f2a0941313986000014e9ff9f5234008052",
+            "00fafff0610a40b900741d915fe702941f2003d51f2003d51f2003d51f2003d557000014e9ff9f5234008052",
+            "E1 retransmit-abort fallback"),
+        Edit(0x16a448,
+            "f8038b1aff0200f91f1b0071562107b9",
+            "f8038b1aff0200f91f330071562107b9",
+            "E2 backtrack window"),
+        Edit(0x179950,
+            "4800a052809a40b9e80b00b9e3230091",
+            "0802a052809a40b9e80b00b9e3230091",
+            "E3 UDP send buffer"),
+    ), 16_211_704, Edit(0x940410,
+        "003040f99f400c942000805296ffff17",
+        "003040f91f2003d52000805296ffff17",
+        "E4 decoder flush removal"),
+        mainSha256 = setOf(
+            "ceddfaf39c3fba0b760ce5afea53ea9a5743502aa770e7d600f8109d67bf8e58", // stock
+            "34ff572255a3b4dc28603c937bb5b3d9f5eb65f5d2e28c244e18722e72bdd816", // patched
+        )),
 )
 
 private fun ByteArray.matchesAt(offset: Int, pattern: ByteArray): Boolean =
@@ -213,53 +247,65 @@ internal fun applyNetworkOptimizationsMain(
                 "expected ${layout.mainSize}",
         )
     }
+    requireHash(bytes, layout.mainSha256, "libmain.so", versionName, versionCode)
     return replaceExact(bytes, layout.mainEdit)
 }
 
+// A pinned layout accepts only the pinned stock or pinned patched bytes. Only this patch writes
+// libmain.so, so its input is always stock or this patch's own output.
+private fun requireHash(bytes: ByteArray, accepted: Set<String>, name: String, versionName: String, versionCode: String) {
+    if (accepted.isEmpty()) return
+    val actual = sha256(bytes)
+    if (actual !in accepted) {
+        throw PatchException("unexpected $name SHA-256 $actual for $versionName/$versionCode")
+    }
+}
+
+// Automatic loaded-build dispatch: the patch resolves the exact layout of the APK being patched
+// (package + versionName + versionCode) and applies that build's own offsets. Any other package or
+// build is rejected here, so the dependency-free mutation below stays inert on it.
 internal fun isNetworkOptimizationsTarget(
     packageName: String,
     versionName: String,
     versionCode: String,
-    recommended: Boolean,
 ): Boolean = packageName == "com.valvesoftware.steamlinkvr" &&
-    layoutFor(versionName, versionCode)?.let { (it.version == "2.0.20") == recommended } == true
+    layoutFor(versionName, versionCode) != null
 
-private fun createNetworkOptimizationsPatch(name: String, recommended: Boolean) = run {
-    val compatibilities = COMPATIBILITIES_STEAM_LINK.filter { compatibility ->
-        compatibility.targets.any { target ->
-            target.versionCodes?.values?.any { code ->
-                isNetworkOptimizationsTarget(
-                    compatibility.packageName.orEmpty(), target.version.orEmpty(), code.toString(), recommended)
-            } == true
-        }
-    }
-    rawResourcePatch(
-        name = name,
-        description = "Keeps streaming smooth after packet loss. " +
-            buildLabel(compatibilities),
-        default = recommended,
-    ) {
-        category(PatchCategories.STREAMING_AND_NETWORK)
-        compatibleWith(*compatibilities.toTypedArray())
+// Exact builds that carry a verified layout, in registry order, for tests and catalogs.
+internal fun networkOptimizationsBuilds(): List<Pair<String, String>> =
+    NETWORK_LAYOUTS.map { it.version to it.versionCode.toString() }
 
-        execute {
-            if (!isNetworkOptimizationsTarget(packageMetadata.packageName, packageMetadata.versionName,
-                    packageMetadata.versionCode, recommended)) return@execute
-            val scene = get("lib/arm64-v8a/libvrlink_scene.so")
-            val main = get("lib/arm64-v8a/libmain.so")
-            val patchedScene = applyNetworkOptimizationsScene(
-                scene.readBytes(), packageMetadata.versionName, packageMetadata.versionCode)
-            val patchedMain = applyNetworkOptimizationsMain(
-                main.readBytes(), packageMetadata.versionName, packageMetadata.versionCode)
-            scene.writeBytes(patchedScene)
-            main.writeBytes(patchedMain)
-        }
+private val NETWORK_COMPATIBILITIES = COMPATIBILITIES_STEAM_LINK.filter { compatibility ->
+    compatibility.targets.any { target ->
+        target.versionCodes?.values?.any { code ->
+            isNetworkOptimizationsTarget(
+                compatibility.packageName.orEmpty(), target.version.orEmpty(), code.toString())
+        } == true
     }
 }
 
-// Morphe's default is global: separate names retain optional later-build edits without recommending them.
+// One patch for every verified base. E3 (UDP send buffer) exists only on layouts that need it, so
+// each build gets exactly its own edits.
 @Suppress("unused")
-val networkOptimizationsPatch = createNetworkOptimizationsPatch("Network Optimizations", recommended = true)
+val networkOptimizationsPatch = rawResourcePatch(
+    name = "Network Optimizations",
+    description = "Keeps streaming smooth after packet loss. " +
+        buildLabel(NETWORK_COMPATIBILITIES),
+    default = true,
+) {
+    category(PatchCategories.STREAMING_AND_NETWORK)
+    compatibleWith(*NETWORK_COMPATIBILITIES.toTypedArray())
 
-@Suppress("unused")
-val optionalNetworkOptimizationsPatch = createNetworkOptimizationsPatch("Network Optimizations (optional)", recommended = false)
+    execute {
+        if (!isNetworkOptimizationsTarget(packageMetadata.packageName, packageMetadata.versionName,
+                packageMetadata.versionCode)) return@execute
+        val scene = get("lib/arm64-v8a/libvrlink_scene.so")
+        val main = get("lib/arm64-v8a/libmain.so")
+        val patchedScene = applyNetworkOptimizationsScene(
+            scene.readBytes(), packageMetadata.versionName, packageMetadata.versionCode)
+        val patchedMain = applyNetworkOptimizationsMain(
+            main.readBytes(), packageMetadata.versionName, packageMetadata.versionCode)
+        scene.writeBytes(patchedScene)
+        main.writeBytes(patchedMain)
+    }
+}

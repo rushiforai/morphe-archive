@@ -57,6 +57,7 @@ import com.tumblr.rumblr.model.TimelineObject;
 import com.tumblr.rumblr.model.TimelineObjectType;
 import com.tumblr.rumblr.model.Timelineable;
 import com.tumblr.rumblr.model.post.blocks.TextBlock;
+import com.tumblr.rumblr.response.RadarHeaderResponse;
 
 import app.hushtumblr.extension.tumblr.flags.FeatureSwitches;
 import app.hushtumblr.extension.tumblr.flags.FeatureSwitchesTest;
@@ -77,13 +78,17 @@ import app.hushtumblr.extension.tumblr.mutual.HushMutualSource;
 import app.hushtumblr.extension.tumblr.mutual.HushPrimaryBlog;
 import app.hushtumblr.extension.tumblr.mutual.MutualMarkers;
 import app.hushtumblr.extension.tumblr.privacy.AdvertisingId;
+import app.hushtumblr.extension.tumblr.privacy.ShareLinks;
 import app.hushtumblr.extension.tumblr.rootmute.HushAccountIdentity;
 import app.hushtumblr.extension.tumblr.rootmute.MatureAccountsForTests;
 import app.hushtumblr.extension.tumblr.rootmute.RootPostMutes;
+import app.hushtumblr.extension.tumblr.timeline.ExploreHeader;
+import app.hushtumblr.extension.tumblr.timeline.HushBlockRow;
 import app.hushtumblr.extension.tumblr.timeline.HushPaidPost;
 import app.hushtumblr.extension.tumblr.timeline.HushPost;
 import app.hushtumblr.extension.tumblr.timeline.HushRootPost;
 import app.hushtumblr.extension.tumblr.timeline.HushTrail;
+import app.hushtumblr.extension.tumblr.timeline.LongPosts;
 import app.hushtumblr.extension.tumblr.timeline.TimelineFilter;
 import app.hushtumblr.extension.tumblr.timeline.TimelineItems;
 import app.hushtumblr.extension.tumblr.ui.AltTextCaptions;
@@ -170,16 +175,19 @@ public class PausedHooksTest {
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
         PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
         Map<BooleanSetting, List<Probe>> probes = new LinkedHashMap<>();
-        // A page with an ad comes back without it, and Tumblr's own ad requests and its full-screen
-        // ad are turned off.
+        // A page with an ad comes back without it, Explore's sponsored header goes undrawn, and
+        // Tumblr's own ad requests and its full-screen ad are turned off.
         probes.put(Settings.HIDE_ADS, Arrays.asList(
                 TimelineItems::aPageLosesItsAd,
+                () -> ExploreHeader.hideSponsored(new RadarHeaderResponse(new RadarHeaderResponse.RadarHeader("sponsored", null, null))),
                 () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("MAKE_ADX_REQUESTS"), true),
                 () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("MAKE_NIMBUS_INTERSTITIAL_CLIENT_AD_REQUESTS"), true)));
         // Both getters of Google's advertising ID info answer as if the ID were deleted.
         probes.put(Settings.HIDE_ADVERTISING_ID, Arrays.asList(
                 () -> !"real".equals(AdvertisingId.id("real")),
                 () -> AdvertisingId.limitTracking(false)));
+        // A shared or copied link leaves out Tumblr's share tag.
+        probes.put(Settings.SANITIZE_SHARING_LINKS, Collections.singletonList(ShareLinks::dropShareTag));
         // Tumblr's own tracking flags answer off.
         probes.put(Settings.DISABLE_ANALYTICS, Collections.singletonList(
                 () -> !FeatureSwitches.isEnabled(FeatureSwitchesTest.flag("LIVERAMP_ATS"), true)));
@@ -302,6 +310,9 @@ public class PausedHooksTest {
         probes.put(Settings.SHARE_VIDEO_LINKS, Collections.singletonList(() -> videoLinkMenu(context)));
         // Tumblr's 640 pick of an image becomes its listed 1280 copy.
         probes.put(Settings.SHARPER_IMAGES, Collections.singletonList(PausedHooksTest::sharperPick));
+        // A long post keeps its first rows above Tumblr's Read more row, and a long trail entry gets a cut.
+        probes.put(Settings.COLLAPSE_LONG_POSTS, Arrays.asList(() -> LongPosts.post(new Object(), true, longRows()) != null,
+                PausedHooksTest::trailCut));
         probes.put(Settings.MUTE_ROOT_POSTS, Collections.singletonList(() -> mutedRoot(context)));
         probes.put(Settings.REVEAL_ALLOWED_MATURE_CONTENT, Collections.singletonList(PausedHooksTest::matureCover));
         probes.put(Settings.SHOW_MUTUAL_MARKERS, Collections.singletonList(() -> mutualMarker(context)));
@@ -356,6 +367,30 @@ public class PausedHooksTest {
     private static boolean sharperPick() {
         HushPhotoSize picked = photoSize(640, 960);
         return SharperImages.pick(Arrays.asList(photoSize(1280, 1920), picked), picked, 640) != picked;
+    }
+
+    /** Twenty paragraphs of about five lines each, a post of a couple of screens. */
+    private static List<Object> longRows() {
+        List<Object> rows = new ArrayList<>();
+        String paragraph = String.join("", Collections.nCopies(40, "words "));
+        for (int i = 0; i < 20; i++) rows.add((HushBlockRow) () -> Collections.singletonList(new TextBlock(paragraph)));
+        return rows;
+    }
+
+    /**
+     * A trail entry its author didn't cut, of twenty different paragraphs, so each block is found in
+     * its own row the way Tumblr looks for the cut.
+     */
+    private static boolean trailCut() {
+        List<Object> rows = new ArrayList<>();
+        List<Object> blocks = new ArrayList<>();
+        String paragraph = String.join("", Collections.nCopies(40, "words "));
+        for (int i = 0; i < 20; i++) {
+            TextBlock block = new TextBlock(paragraph + i);
+            blocks.add(block);
+            rows.add((HushBlockRow) () -> Collections.singletonList(block));
+        }
+        return LongPosts.trail(null, null, rows, blocks) != null;
     }
 
     private static HushPhotoSize photoSize(int width, int height) {

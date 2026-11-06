@@ -9,6 +9,7 @@ import app.hushmessenger.patches.MessengerTarget
 import app.hushmessenger.patches.controls.BASE_PROFILE
 import app.hushmessenger.patches.controls.DEFAULT_STRINGS
 import app.hushmessenger.patches.controls.MANIFEST_STRINGS
+import app.hushmessenger.patches.controls.PROFILE_347215273
 import app.hushmessenger.patches.controls.PROFILE_347215341
 import app.hushmessenger.patches.controls.SETTINGS_LABEL
 import app.hushmessenger.patches.controls.SETTINGS_LABEL_NAME
@@ -298,10 +299,28 @@ private fun List<Instruction>.ownNameFromPool(load: Int, pools: Set<String>): Bo
     return key != null && "$pool#${key.narrowLiteral}" in pools
 }
 
-/** Every setPackage call in [this] that gets Messenger's own name, by instruction index. */
+/**
+ * Every setPackage call in [this] that gets Messenger's own name and is the only thing that reads it, by instruction
+ * index. A name that other calls read too stays Messenger's: in 347215273, 347215275 and 347215277 the Hatch share
+ * sheet checks the app and starts it with one name, where the other builds hand that name to helpers that call
+ * setPackage on a parameter, which never was a clone site.
+ */
 private fun Method.selfIntentCalls(pools: Set<String>): List<Int> {
     val code = implementation?.instructions?.toList() ?: return emptyList()
-    return code.indices.filter { code.ownNameLoad(it, pools) != null }
+    return code.indices.filter { call ->
+        val load = code.ownNameLoad(call, pools) ?: return@filter false
+        sendsOnlyTo(code, call, load, (code[load] as OneRegisterInstruction).registerA)
+    }
+}
+
+/**
+ * Whether Messenger's name loaded at [load] goes only to the setPackage call at [call], or to the story link button's
+ * check that the app is installed, its store page fallback and then that call.
+ */
+private fun Method.sendsOnlyTo(code: List<Instruction>, call: Int, load: Int, register: Int): Boolean {
+    val readers = readersOf(load, register)
+    val uses = readers.map { code[it].ownNameUse(register) }
+    return readers.lastOrNull() == call && (uses == listOf("setPackage") || uses == listOf("installed", "store", "setPackage"))
 }
 
 /** The backup lookup and attachment check by method, and each setPackage call that sends Messenger to itself by method and index. */
@@ -320,7 +339,8 @@ private const val CLICK = "->onClick(Landroid/view/View;)V"
 /**
  * Each build family's backup lookup and attachment check, then every setPackage call that sends Messenger to itself:
  * the in-app broadcast sender, the push notification's click and link intents, the bulk delete link in the inbox and
- * the story link button. 586 has an arm64 and an armv7 build. The native test checks them on every supported build.
+ * the story link button. 586 has two arm64 families and an armv7 build. The native test checks them on every supported
+ * build.
  */
 internal fun expectedCloneSitesFor(versionCode: String): Set<String> {
     validateVersionCode(versionCode)
@@ -329,6 +349,8 @@ internal fun expectedCloneSitesFor(versionCode: String): Set<String> {
             "LX/93D;->A04${NOTIFICATION}LX/9Xq;@228", "LX/93D;->A04${NOTIFICATION}LX/9Xq;@323", "LX/Cg3;$CLICK@83", "LX/Jm8;$CLICK@155")
         PROFILE_347215341 -> setOf("LX/MJk;-><init>()V", "LX/4No;$ATTACHMENT_CHECK", "LX/39H;$BROADCAST@1",
             "LX/947;->A05${NOTIFICATION}LX/9Z4;@186", "LX/947;->A05${NOTIFICATION}LX/9Z4;@281", "LX/Cgh;$CLICK@83", "LX/Jrm;$CLICK@151")
+        PROFILE_347215273 -> setOf("LX/Lut;-><init>()V", "LX/4MC;$ATTACHMENT_CHECK", "LX/38z;$BROADCAST@1",
+            "LX/90T;->A04${NOTIFICATION}LX/9UX;@228", "LX/90T;->A04${NOTIFICATION}LX/9UX;@323", "LX/CbF;$CLICK@81", "LX/S5L;$CLICK@62")
         else -> fail("version code $versionCode has no checked clone sites")
     }
 }
@@ -449,11 +471,7 @@ internal fun Method.selfIntentSite(call: Int, pools: Set<String>): Pair<Int, Int
     val code = implementation?.instructions?.toList() ?: fail("${hookId()} has no code")
     val load = code.ownNameLoad(call, pools) ?: fail("${hookId()}@$call no longer sends to Messenger's own package")
     val register = register(load, "its package name")
-    val readers = readersOf(load, register)
-    val uses = readers.map { code[it].ownNameUse(register) }
-    if (readers.lastOrNull() != call || uses != listOf("setPackage") && uses != listOf("installed", "store", "setPackage")) {
-        fail("${hookId()} uses Messenger's name for more than the intent at $call")
-    }
+    if (!sendsOnlyTo(code, call, load, register)) fail("${hookId()} uses Messenger's name for more than the intent at $call")
     return load to register
 }
 

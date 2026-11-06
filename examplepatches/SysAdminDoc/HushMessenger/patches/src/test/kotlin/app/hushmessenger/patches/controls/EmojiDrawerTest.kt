@@ -66,6 +66,29 @@ private fun helperRenderer(call: String = DRAWER_HELPER) = fixtureMethod("LX/4tE
     return-void
 """.trimIndent())
 
+/** Family B's getter: an instance method of a class implementing [FAMILY_B_DRAWER_FACE], its config from a numbered fetch. */
+private const val FAMILY_B_DRAWER_FACE = "LX/6li;"
+private const val FAMILY_B_DRAWER_GETTER = "LX/5qX;->DHM()Z"
+private fun familyBGetter(constant: String = "v0") = fixtureMethod(FAMILY_B_DRAWER_GETTER, """
+    const $constant, 0x241a1
+    invoke-static {v0}, LX/2w1;->A02(I)Ljava/lang/Object;
+    move-result-object v2
+    check-cast v2, LX/5cX;
+    const-wide v0, ${FLAG}L
+    check-cast v2, $CONFIG
+    invoke-interface {v2, v0, v1}, $CONFIG->B1S(J)Z
+    move-result v0
+    return v0
+""".trimIndent(), registers = 4)
+
+/** Family B's renderer asks the getter through the interface, then throws the anchor. */
+private fun familyBRenderer(face: String = FAMILY_B_DRAWER_FACE) = fixtureMethod("LX/51A;->A02($face)V", """
+    invoke-interface {v2}, $face->DHM()Z
+    move-result v0
+    const-string v1, "$EMOJI_DRAWER_ANCHOR"
+    return-void
+""".trimIndent(), registers = 3, flags = STATIC)
+
 /**
  * The renderer reads the flag itself, twice, the first answer in a register outside the 4-bit range. A path without
  * a config object skips the first read and lands just after its answer.
@@ -144,6 +167,23 @@ class EmojiDrawerTest {
             base.nativeCommunityInbox)
         validateControls(mirroredControls(classes), setOf(EMOJI_DRAWER))
         assertEquals(1, assertEmojiDrawerInjected(drawerHelper(), "getter"))
+    }
+
+    @Test fun familyBsRendererAsksAnInstanceGetterThroughItsInterface() {
+        val face = fixtureClass(FAMILY_B_DRAWER_FACE, flags = AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value)
+        fun classes(getter: MutableMethod = familyBGetter(), renderer: MutableMethod = familyBRenderer()) = listOf(face,
+            fixtureClass("LX/5qX;", listOf(getter), interfaces = listOf(FAMILY_B_DRAWER_FACE)), fixtureClass("LX/51A;", listOf(renderer)))
+        assertEquals(setOf(FAMILY_B_DRAWER_GETTER), found(classes()))
+        val base = SYNTHETIC_PROFILE
+        activeProfile = ControlProfile(base.hooks + (EMOJI_DRAWER to setOf(FAMILY_B_DRAWER_GETTER)), base.pluginSentinel,
+            base.preferenceGetter, base.peopleKey, base.peopleFlagCheck, base.subtabsSupplier, base.browserPreferenceKey,
+            base.browserPreferenceIndex, base.bubbleCapabilityGetter, base.bubbleRolloutGetter, base.nativeBubbleRoutes,
+            base.nativeCommunityInbox)
+        validateControls(mirroredControls(classes()), setOf(EMOJI_DRAWER))
+        assertEquals(1, assertEmojiDrawerInjected(familyBGetter(), "family B getter"))
+        // An interface the getter's class doesn't implement, or a fetch that isn't handed its constant, links nothing.
+        assertTrue(found(classes(renderer = familyBRenderer("LX/6lj;"))).isEmpty())
+        assertTrue(found(classes(getter = familyBGetter(constant = "v1"))).isEmpty())
     }
 
     @Test fun theFlagCountsOnlyWhenTheRendererThatThrowsTheAnchorReadsIt() {

@@ -5,6 +5,8 @@
 package app.hushgram.extension.instagram.profile;
 
 import android.text.TextUtils;
+import android.text.method.SingleLineTransformationMethod;
+import android.text.method.TransformationMethod;
 import android.view.View;
 import android.widget.TextView;
 
@@ -71,6 +73,9 @@ public final class FollowingList {
     static final String ORDER = "following list order";
     static final String REBUILD = "following list rebuild";
 
+    /** How many lines a marked name line may take. */
+    static final int MARKED_LINES = 2;
+
     /** How long after the last no from the server the list is rebuilt, so one page's answers rebuild it once. */
     static final long REBUILD_DELAY_MS = 400;
 
@@ -119,11 +124,15 @@ public final class FollowingList {
         final CharSequence before;
         final CharSequence wrote;
         final int visibility;
+        @Nullable final TransformationMethod method;
+        final int maxLines;
 
-        Mark(CharSequence before, CharSequence wrote, int visibility) {
+        Mark(CharSequence before, CharSequence wrote, int visibility, @Nullable TransformationMethod method, int maxLines) {
             this.before = before;
             this.wrote = wrote;
             this.visibility = visibility;
+            this.method = method;
+            this.maxLines = maxLines;
         }
     }
 
@@ -370,24 +379,41 @@ public final class FollowingList {
 
     /**
      * Puts [label] before the name, or on the hidden name line of an account with no name, which it
-     * then shows. Whatever goes wrong partway puts the line back as it was.
+     * then shows. The row's Message button leaves that line little room, enough to cut the mark itself
+     * short, so a marked line may take a second one (#351). Whatever goes wrong partway puts the line
+     * back as it was.
      */
     private static void mark(TextView subtitle, String label) {
         CharSequence before = subtitle.getText();
         int visibility = subtitle.getVisibility();
+        TransformationMethod method = subtitle.getTransformationMethod();
+        int maxLines = subtitle.getMaxLines();
         CharSequence wrote = visibility == View.VISIBLE ? ahead(label, before) : label;
         try {
             subtitle.setText(wrote);
             if (visibility != View.VISIBLE) subtitle.setVisibility(View.VISIBLE);
+            // Instagram's line is single-line with no transformation to show for it, and setting the
+            // most lines alone leaves it on one. Any other transformation it had still applies.
+            subtitle.setSingleLine(false);
+            if (method != null && !(method instanceof SingleLineTransformationMethod)) subtitle.setTransformationMethod(method);
+            subtitle.setMaxLines(MARKED_LINES);
         } catch (RuntimeException failure) {
             subtitle.setText(before);
             subtitle.setVisibility(visibility);
+            linesBack(subtitle, method, maxLines);
             throw failure;
         }
         synchronized (marked) {
-            marked.put(subtitle, new Mark(before, wrote, visibility));
+            marked.put(subtitle, new Mark(before, wrote, visibility, method, maxLines));
         }
         Logger.printDebug(() -> "Following list: marked an account that doesn't follow you");
+    }
+
+    /** Gives [subtitle] back the lines it had. Instagram doesn't set them again when it rebinds a row. */
+    private static void linesBack(TextView subtitle, @Nullable TransformationMethod method, int maxLines) {
+        if (maxLines == 1) subtitle.setSingleLine(true);
+        else if (maxLines > 0) subtitle.setMaxLines(maxLines);
+        subtitle.setTransformationMethod(method);
     }
 
     /**
@@ -401,14 +427,17 @@ public final class FollowingList {
 
     /**
      * Takes back the mark on [subtitle], when it still holds it. Once Instagram has filled the line
-     * in again for the row's next account, the mark is gone already and the line is left alone.
+     * in again for the row's next account, the mark is gone already and only the lines it took are
+     * given back.
      */
     private static void unmark(TextView subtitle) {
         Mark mark;
         synchronized (marked) {
             mark = marked.remove(subtitle);
         }
-        if (mark == null || !TextUtils.equals(subtitle.getText(), mark.wrote)) return;
+        if (mark == null) return;
+        linesBack(subtitle, mark.method, mark.maxLines);
+        if (!TextUtils.equals(subtitle.getText(), mark.wrote)) return;
         subtitle.setText(mark.before);
         if (mark.visibility != View.VISIBLE && subtitle.getVisibility() == View.VISIBLE) {
             subtitle.setVisibility(mark.visibility);

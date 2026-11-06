@@ -29,6 +29,13 @@ private val TRACKER_MARKERS = listOf(
     "com/localytics",
     "com/countly",
     "com/urbanairship",
+    // Indian-market and push-engagement stacks commonly embedded by
+    // Indian news / content apps (incl. HT Media's apps).
+    "com/webengage",
+    "com/clevertap",
+    "com/flurry",
+    "io/branch",
+    "com/kochava",
 )
 
 private val EVENT_METHODS = setOf("logEvent", "trackEvent", "track", "send", "sendEvent", "report")

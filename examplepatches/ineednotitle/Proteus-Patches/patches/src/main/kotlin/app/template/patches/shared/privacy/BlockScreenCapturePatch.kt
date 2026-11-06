@@ -50,11 +50,12 @@ private fun BytecodePatchContext.isActivitySubclass(classDef: ClassDef): Boolean
 val blockScreenCapturePatch = bytecodePatch(
     name = "Block screenshots & screen recording",
     description = """
-        Sets FLAG_SECURE on all activity windows so screenshots, screen recorders,
-        overlay apps and accessibility services cannot capture the app's content
-        (they see a black surface).
+        Attempts to add FLAG_SECURE to activity windows and secure SurfaceViews.
+        This can make screenshots and screen recordings show a black surface.
+        Only recognizable code with available registers can be changed, so this
+        is not a guarantee that all screens or capture methods are protected.
 
-        Applies to any app. Does not remove existing protections - it adds them.
+        Applies to any app. Do not combine with "Allow screenshots & screen recording".
     """.trimIndent(),
     default = false,
 ) {

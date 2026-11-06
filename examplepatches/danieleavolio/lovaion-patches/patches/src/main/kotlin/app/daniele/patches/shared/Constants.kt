@@ -91,6 +91,28 @@ object Constants {
     )
 
     /**
+     * Rare (com.rarecam.app). The Pro flow and the PairIP entry point are matched
+     * structurally on top of exact instruction checks, so only the analyzed release
+     * is targeted.
+     */
+    val COMPATIBILITY_RARE = Compatibility(
+        name = "Rare", // App name as it appears in the Android launcher.
+        packageName = "com.rarecam.app",
+        // Rare is distributed as split APKs (base + locale/density splits).
+        apkFileType = ApkFileType.XAPK,
+        // Icon color in Morphe Manager (0xRRGGBB) - the sage of the app icon.
+        appIconColor = 0xA3B58C,
+        // SHA-256 of the signing certificate (apksigner verify --print-certs).
+        signatures = setOf(
+            "42947b25f3b0a5fc1b3905ba33f7e61cfc4b1fab9be3cc2173edf4103f2231cd",
+        ),
+        targets = listOf(
+            // Exact release the patches were developed against.
+            AppTarget(version = "1.0.95"),
+        ),
+    )
+
+    /**
      * GuitarTuna (com.ovelin.guitartuna). The subscription gates are native
      * entry points matched by exact bytes, so only the analyzed release is
      * targeted.

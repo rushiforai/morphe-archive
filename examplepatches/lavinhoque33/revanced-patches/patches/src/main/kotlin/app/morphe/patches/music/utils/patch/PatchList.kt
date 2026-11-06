@@ -5,10 +5,6 @@ internal enum class PatchList(
     val summary: String,
     var included: Boolean? = false
 ) {
-    SKIP_SILENCE(
-        "Skip silence",
-        "Adds an option to automatically skip silent pauses in audio playback."
-    ),
     APP_REFRESH_RATE(
         "App refresh rate",
         "Adds an option to change the app refresh rate."
@@ -37,6 +33,21 @@ internal enum class PatchList(
         "Custom branding for YouTube Music",
         "Adds in-app app-name, launcher-icon, header, splash, and settings-icon selection."
     ),
+    // modified by lavinhoque33, 2026-10-16: force portrait orientation ported from Morphe.
+    FORCE_PORTRAIT_ORIENTATION(
+        "Force portrait orientation",
+        "Adds an option to keep the app in portrait orientation when the device is rotated."
+    ),
+    // modified by lavinhoque33, 2026-10-16: media notification controls ported from Morphe.
+    MEDIA_NOTIFICATION_CONTROLS(
+        "Media notification controls",
+        "Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls."
+    ),
+    NETWORK_PROXY(
+        "Network proxy",
+        "Adds options to route supported network requests through an HTTP or HTTPS proxy. " +
+                "Including this patch may cause connectivity problems on certain devices."
+    ),
     DARK_THEME(
         "Theme",
         "Changes the app's dark theme to the values specified in patch options."
@@ -44,10 +55,6 @@ internal enum class PatchList(
     DISABLE_CAIRO_SPLASH_ANIMATION(
         "Disable Cairo splash animation",
         "Adds an option to disable Cairo splash animation."
-    ),
-    FORCE_ORIGINAL_AUDIO(
-        "Force original audio",
-        "Adds an option to disable audio tracks from being automatically enabled."
     ),
     DISABLE_FORCED_AUTO_CAPTIONS(
         "Disable forced auto captions",
@@ -65,11 +72,6 @@ internal enum class PatchList(
         "Disable QUIC protocol",
         "Adds an option to disable CronetEngine's QUIC protocol."
     ),
-    NETWORK_PROXY(
-        "Network proxy",
-        "Adds options to route supported network requests through an HTTP or HTTPS proxy. " +
-                "Including this patch may cause connectivity problems on certain devices."
-    ),
     DOWNLOADS(
         "Downloads",
         "Adds support to download songs and playlists for offline playback in YouTube Music's own device files library and player."
@@ -86,10 +88,9 @@ internal enum class PatchList(
         "Flyout menu components",
         "Adds options to hide or change flyout menu components."
     ),
-    // modified by lavinhoque33, 2026-10-16: force portrait orientation ported from Morphe.
-    FORCE_PORTRAIT_ORIENTATION(
-        "Force portrait orientation",
-        "Adds an option to keep the app in portrait orientation when the device is rotated."
+    FORCE_ORIGINAL_AUDIO(
+        "Force original audio",
+        "Adds an option to disable audio tracks from being automatically enabled."
     ),
     GMSCORE_SUPPORT(
         "GmsCore support",
@@ -118,11 +119,6 @@ internal enum class PatchList(
     HIDE_PLAYER_OVERLAY_FILTER(
         "Hide player overlay filter",
         "Removes, at compile time, the dark overlay that appears when single-tapping in the player."
-    ),
-    // modified by lavinhoque33, 2026-10-16: media notification controls ported from Morphe.
-    MEDIA_NOTIFICATION_CONTROLS(
-        "Media notification controls",
-        "Adds options to disable the seekbar and previous/next buttons in the media notification and headphone controls."
     ),
     NAVIGATION_BAR_COMPONENTS(
         "Navigation bar components",
@@ -167,6 +163,10 @@ internal enum class PatchList(
     SETTINGS_MENU_FILTER(
         "Settings menu filter",
         "Adds an option to hide items on the standard YouTube Music settings screen by their visible name."
+    ),
+    SKIP_SILENCE(
+        "Skip silence",
+        "Adds an option to automatically skip silent pauses in audio playback."
     ),
     SPONSORBLOCK(
         "SponsorBlock",

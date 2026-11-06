@@ -1,0 +1,500 @@
+package app.revanced.extension.dcinside.settings;
+
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Typeface;
+import android.os.Bundle;
+import android.preference.Preference;
+import android.preference.SwitchPreference;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AbsListView;
+import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.BooleanSetting;
+import app.morphe.extension.shared.settings.preference.MorphePreferenceStyle;
+import app.morphe.extension.shared.settings.preference.SettingsActivityLayout;
+import app.morphe.extension.shared.settings.preference.ToolbarPreferenceFragment;
+import app.revanced.extension.dcinside.helper.ResourceHelper;
+import app.revanced.extension.dcinside.patches.DisableDcconLoadingPatch;
+import app.revanced.extension.dcinside.patches.GalleryWatchModePatch;
+import app.revanced.extension.dcinside.patches.HideMiniGalleryCoverImagePatch;
+import app.revanced.extension.dcinside.patches.HidePostListPageIndicatorsPatch;
+import app.revanced.extension.dcinside.patches.HomeComponentsPatch;
+import app.revanced.extension.dcinside.patches.OfficialNoticePatch;
+import app.revanced.extension.dcinside.patches.AuthorIdentifierPatch;
+import app.revanced.extension.dcinside.patches.RenderBigDcconAsNormalPatch;
+import app.revanced.extension.dcinside.patches.RestoreOldPostIconsPatch;
+
+public final class SettingsActivity extends Activity {
+    private static final String SETTINGS_SHORTCUT_ID = "morphe_dcinside_settings";
+    private static final String PREF_HIDE_OFFICIAL_NOTICES = "morphe_pref_hide_official_notices";
+    private static final String PREF_BLOCK_POST_DCCON_LOADING = "morphe_pref_block_post_dccon_loading";
+    private static final String PREF_BLOCK_REPLY_DCCON_LOADING = "morphe_pref_block_reply_dccon_loading";
+    private static final String PREF_RENDER_BIG_DCCON_AS_NORMAL = "morphe_pref_render_big_dccon_as_normal";
+    private static final String PREF_HIDE_MINI_GALLERY_COVER_IMAGE = "morphe_pref_hide_mini_gallery_cover_image";
+    private static final String PREF_HIDE_POST_LIST_PAGE_INDICATORS =
+            "morphe_pref_hide_post_list_page_indicators";
+    private static final String PREF_GALLERY_WATCH_MODE = "morphe_pref_gallery_watch_mode";
+    private static final String PREF_GALLERY_WATCH_SOUND = "morphe_pref_gallery_watch_sound";
+    private static final String PREF_GALLERY_WATCH_VIBRATION =
+            "morphe_pref_gallery_watch_vibration";
+    private static final String PREF_RESTORE_LEGACY_POST_ICONS = "morphe_pref_restore_legacy_post_icons";
+    private static final String PREF_SHOW_POST_HISTORY_AUTHOR_IDENTIFIER =
+            "morphe_pref_show_post_history_author_identifier";
+    private static final String PREF_SHOW_POST_AUTHOR_IDENTIFIER =
+            "morphe_pref_show_post_author_identifier";
+    private static final String PREF_SHOW_COMMENT_AUTHOR_IDENTIFIER =
+            "morphe_pref_show_comment_author_identifier";
+    private static final String PREF_HIDE_HOME_SEARCH_MENU = "morphe_pref_hide_home_search_menu";
+    private static final String PREF_HIDE_HOME_RECENT_GALLERIES = "morphe_pref_hide_home_recent_galleries";
+    private static final String PREF_HIDE_HOME_RECOMMENDED_GALLERIES = "morphe_pref_hide_home_recommended_galleries";
+    private static final String PREF_HIDE_HOME_GALLERY_RANKING = "morphe_pref_hide_home_gallery_ranking";
+    private static final String PREF_HIDE_HOME_LIVE_BEST = "morphe_pref_hide_home_live_best";
+    private static final String PREF_HIDE_HOME_RECOMMENDED_POSTS = "morphe_pref_hide_home_recommended_posts";
+    private static final String PREF_APPLY_USER_MEMO_PRESET = "morphe_pref_apply_user_memo_preset";
+    private static final String PREF_CLEAR_USER_MEMOS = "morphe_pref_clear_user_memos";
+    private static final String PREF_DEBUG = "morphe_pref_debug";
+    private static final String PREF_DEBUG_STACKTRACE = "morphe_pref_debug_stacktrace";
+    private static final String PREF_DEBUG_TOAST = "morphe_pref_debug_toast";
+    private static final String PREF_APP_VERSION = "morphe_pref_app_version";
+    private static final String PREF_PATCHES_VERSION = "morphe_pref_patches_version";
+    private static final String PREF_PACKAGE_NAME = "morphe_pref_package_name";
+    private static final String PREF_RESET = "morphe_pref_reset";
+    private static final String MESSAGE_RESTART_REQUIRED_TITLE = "morphe_settings_restart_required_title";
+    private static final String MESSAGE_RESTART_REQUIRED = "morphe_settings_restart_required";
+    private static final String MESSAGE_RESTART_REQUIRED_RESTART = "morphe_settings_restart_required_restart";
+    private static final String PREF_EXPORT_SETTINGS = "morphe_pref_export_settings";
+    private static final String PREF_IMPORT_SETTINGS = "morphe_pref_import_settings";
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        Utils.setContext(getApplicationContext());
+        MorphePreferenceStyle.setThemeModeProvider(SettingsActivity::resolveDarkMode);
+        SettingsActivityLayout.applyTheme(this);
+
+        super.onCreate(savedInstanceState);
+        int containerId = SettingsActivityLayout.setContentView(
+                this,
+                resString("morphe_label_for_ample_settings", "Morphe Settings")
+        );
+
+        if (savedInstanceState == null) {
+            getFragmentManager()
+                    .beginTransaction()
+                    .replace(containerId, new SettingsFragment())
+                    .commit();
+        }
+    }
+
+    private static Boolean resolveDarkMode(Context context) {
+        int mode = context.getSharedPreferences("save", Context.MODE_PRIVATE)
+                .getInt("themeMode", 0);
+        if (mode == 1) {
+            return true;
+        }
+        if (mode == 0) {
+            return false;
+        }
+        return null;
+    }
+
+    public static void bindSettingsShortcut(View rootView) {
+        if (rootView == null) {
+            return;
+        }
+
+        Context context = rootView.getContext();
+        int shortcutId = context.getResources().getIdentifier(
+                SETTINGS_SHORTCUT_ID,
+                "id",
+                context.getPackageName()
+        );
+        if (shortcutId == 0) {
+            return;
+        }
+
+        View shortcut = rootView.findViewById(shortcutId);
+        if (shortcut == null) {
+            return;
+        }
+
+        shortcut.setOnClickListener(view ->
+                view.getContext().startActivity(new Intent(view.getContext(), SettingsActivity.class))
+        );
+    }
+
+    private String resString(String name, String fallback) {
+        int resourceId = ResourceHelper.getResourceId("string", name);
+        return resourceId == 0 ? fallback : getString(resourceId);
+    }
+
+    private static int requireResourceId(String defType, String name) {
+        int resourceId = ResourceHelper.getResourceId(defType, name);
+        if (resourceId == 0) {
+            throw new IllegalStateException("Missing resource: " + defType + "/" + name);
+        }
+        return resourceId;
+    }
+
+    public static final class SettingsFragment extends ToolbarPreferenceFragment {
+        private final List<SwitchBinding> switchBindings = new ArrayList<>();
+        private final Set<BooleanSetting> resettableSettings = new LinkedHashSet<>();
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            addPreferencesFromResource(requireResourceId("xml", "morphe_dcinside_settings_preferences"));
+
+            bindSwitchIfIncluded(PREF_HIDE_OFFICIAL_NOTICES, Settings.HIDE_OFFICIAL_NOTICES, OfficialNoticePatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_BLOCK_POST_DCCON_LOADING, Settings.BLOCK_POST_DCCON_LOADING, DisableDcconLoadingPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_BLOCK_REPLY_DCCON_LOADING, Settings.BLOCK_REPLY_DCCON_LOADING, DisableDcconLoadingPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_RENDER_BIG_DCCON_AS_NORMAL, Settings.RENDER_BIG_DCCON_AS_NORMAL, RenderBigDcconAsNormalPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_HIDE_MINI_GALLERY_COVER_IMAGE, Settings.HIDE_MINI_GALLERY_COVER_IMAGE, HideMiniGalleryCoverImagePatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_HIDE_POST_LIST_PAGE_INDICATORS, Settings.HIDE_POST_LIST_PAGE_INDICATORS, HidePostListPageIndicatorsPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_GALLERY_WATCH_MODE, Settings.GALLERY_WATCH_MODE, GalleryWatchModePatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_GALLERY_WATCH_SOUND, Settings.GALLERY_WATCH_SOUND, GalleryWatchModePatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_GALLERY_WATCH_VIBRATION, Settings.GALLERY_WATCH_VIBRATION, GalleryWatchModePatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_RESTORE_LEGACY_POST_ICONS, Settings.RESTORE_LEGACY_POST_ICONS, RestoreOldPostIconsPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_SHOW_POST_AUTHOR_IDENTIFIER, Settings.SHOW_POST_AUTHOR_IDENTIFIER, AuthorIdentifierPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_SHOW_COMMENT_AUTHOR_IDENTIFIER, Settings.SHOW_COMMENT_AUTHOR_IDENTIFIER, AuthorIdentifierPatch.isCommentPatchIncluded());
+            bindSwitchIfIncluded(PREF_SHOW_POST_HISTORY_AUTHOR_IDENTIFIER, Settings.SHOW_POST_HISTORY_AUTHOR_IDENTIFIER, AuthorIdentifierPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_HIDE_HOME_SEARCH_MENU, Settings.HIDE_HOME_SEARCH_MENU, HomeComponentsPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_HIDE_HOME_RECENT_GALLERIES, Settings.HIDE_HOME_RECENT_GALLERIES, HomeComponentsPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_HIDE_HOME_RECOMMENDED_GALLERIES, Settings.HIDE_HOME_RECOMMENDED_GALLERIES, HomeComponentsPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_HIDE_HOME_GALLERY_RANKING, Settings.HIDE_HOME_GALLERY_RANKING, HomeComponentsPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_HIDE_HOME_LIVE_BEST, Settings.HIDE_HOME_LIVE_BEST, HomeComponentsPatch.isPatchIncluded());
+            bindSwitchIfIncluded(PREF_HIDE_HOME_RECOMMENDED_POSTS, Settings.HIDE_HOME_RECOMMENDED_POSTS, HomeComponentsPatch.isPatchIncluded());
+            bindUserMemoPresetPreferenceIfIncluded(UserMemoPatch.isPatchIncluded());
+            bindSwitch(PREF_DEBUG, BaseSettings.DEBUG);
+            bindSwitch(PREF_DEBUG_STACKTRACE, BaseSettings.DEBUG_STACKTRACE);
+            bindSwitch(PREF_DEBUG_TOAST, BaseSettings.DEBUG_TOAST_ON_ERROR);
+
+            bindInfoPreference(PREF_APP_VERSION, Utils.getAppVersionName());
+            bindInfoPreference(PREF_PATCHES_VERSION, Utils.getPatchesReleaseVersion());
+            bindInfoPreference(PREF_PACKAGE_NAME, requireActivity().getPackageName());
+            bindClearUserMemosPreferenceIfIncluded(UserMemoPatch.isPatchIncluded());
+            bindBackupPreferences();
+            bindResetPreference();
+            removeEmptyPreferenceGroups();
+            setPreferenceScreenToolbar(getPreferenceScreen());
+            refreshPreferences();
+        }
+
+        private void bindUserMemoPresetPreferenceIfIncluded(boolean included) {
+            if (!included) {
+                removePreference(PREF_APPLY_USER_MEMO_PRESET);
+                return;
+            }
+
+            bindUserMemoPresetPreference();
+        }
+
+        private void bindUserMemoPresetPreference() {
+            Preference preference = requirePreference(PREF_APPLY_USER_MEMO_PRESET, Preference.class);
+            preference.setPersistent(false);
+            preference.setOnPreferenceClickListener(pref -> {
+                showUserMemoPresetSelectionDialog();
+                return true;
+            });
+        }
+
+        private void showUserMemoPresetSelectionDialog() {
+            Activity activity = requireActivity();
+            UserMemoPatch.Preset[] presets = UserMemoPatch.getPresets();
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+            builder
+                    .setTitle(resString(
+                            "morphe_settings_user_memo_preset_select_title",
+                            "Select user memo preset"
+                    ))
+                    .setAdapter(new PresetAdapter(builder.getContext(), presets),
+                            (dialog, which) -> showUserMemoPresetConfirmDialog(presets[which]))
+                    .setNegativeButton(resString(
+                            "morphe_settings_user_memo_preset_dialog_negative",
+                            "Cancel"
+                    ), null)
+                    .show();
+        }
+
+        private void showUserMemoPresetConfirmDialog(UserMemoPatch.Preset preset) {
+            Activity activity = requireActivity();
+            String title = preset.getTitle(activity);
+            String description = preset.getDescription(activity);
+            new AlertDialog.Builder(activity)
+                    .setTitle(resString(
+                            "morphe_settings_user_memo_preset_dialog_title",
+                            "Register user memo preset?"
+                    ))
+                    .setMessage(resString(
+                            "morphe_settings_user_memo_preset_dialog_message",
+                            "%1$s\n%2$s\n\nRegister it to global user memo now?",
+                            title,
+                            description
+                    ))
+                    .setPositiveButton(resString(
+                            "morphe_settings_user_memo_preset_dialog_positive",
+                            "Use"
+                    ), (dialog, which) -> UserMemoPatch.registerUserMemoPreset(activity, preset))
+                    .setNegativeButton(resString(
+                            "morphe_settings_user_memo_preset_dialog_negative",
+                            "Cancel"
+                    ), null)
+                    .show();
+        }
+
+        private void bindClearUserMemosPreferenceIfIncluded(boolean included) {
+            if (!included) {
+                removePreference(PREF_CLEAR_USER_MEMOS);
+                return;
+            }
+
+            bindClearUserMemosPreference();
+        }
+
+        private void bindClearUserMemosPreference() {
+            Preference preference = requirePreference(PREF_CLEAR_USER_MEMOS, Preference.class);
+            preference.setPersistent(false);
+            preference.setOnPreferenceClickListener(pref -> {
+                Activity activity = requireActivity();
+                new AlertDialog.Builder(activity)
+                        .setTitle(resString(
+                                "morphe_settings_user_memo_clear_dialog_title",
+                                "Clear user memos?"
+                        ))
+                        .setMessage(resString(
+                                "morphe_settings_user_memo_clear_dialog_message",
+                                "All user memos stored in the app will be deleted. Continue?"
+                        ))
+                        .setPositiveButton(resString(
+                                "morphe_settings_user_memo_clear_dialog_positive",
+                                "Clear"
+                        ), (dialog, which) -> UserMemoPatch.clearUserMemos(activity))
+                        .setNegativeButton(resString(
+                                "morphe_settings_user_memo_preset_dialog_negative",
+                                "Cancel"
+                        ), null)
+                        .show();
+                return true;
+            });
+        }
+
+        @Override
+        public void onResume() {
+            super.onResume();
+            refreshPreferences();
+        }
+
+        private void bindSwitch(String key, BooleanSetting setting) {
+            SwitchPreference preference = requirePreference(key, SwitchPreference.class);
+            preference.setPersistent(false);
+            switchBindings.add(new SwitchBinding(preference, setting));
+            resettableSettings.add(setting);
+            preference.setOnPreferenceChangeListener((pref, newValue) -> {
+                setting.save((Boolean) newValue);
+                refreshPreferences();
+                return true;
+            });
+        }
+
+        private void bindSwitchIfIncluded(String key, BooleanSetting setting, boolean included) {
+            if (!included) {
+                removePreference(key);
+                return;
+            }
+
+            bindSwitch(key, setting);
+        }
+
+        private void bindInfoPreference(String key, String summary) {
+            Preference preference = requirePreference(key, Preference.class);
+            preference.setPersistent(false);
+            preference.setSelectable(false);
+            preference.setSummary(normalizeSummary(summary));
+        }
+
+        private void bindBackupPreferences() {
+            requirePreference(PREF_EXPORT_SETTINGS, Preference.class)
+                    .setOnPreferenceClickListener(preference -> {
+                        exportSettings();
+                        return true;
+                    });
+            requirePreference(PREF_IMPORT_SETTINGS, Preference.class)
+                    .setOnPreferenceClickListener(preference -> {
+                        importSettings();
+                        return true;
+                    });
+        }
+
+        @Override
+        protected void onSettingsImported(boolean restartNeeded) {
+            refreshPreferences();
+            if (restartNeeded) {
+                showRestartRequiredDialog();
+            }
+        }
+
+        private void showRestartRequiredDialog() {
+            showRestartDialog(
+                    requireActivity(),
+                    resString(MESSAGE_RESTART_REQUIRED_TITLE, "Restart required"),
+                    resString(MESSAGE_RESTART_REQUIRED, "Restart the app to apply this setting."),
+                    resString(MESSAGE_RESTART_REQUIRED_RESTART, "Restart")
+            );
+        }
+
+        private void bindResetPreference() {
+            Preference preference = requirePreference(PREF_RESET, Preference.class);
+            preference.setPersistent(false);
+            preference.setOnPreferenceClickListener(pref -> {
+                for (BooleanSetting setting : resettableSettings) {
+                    setting.resetToDefault();
+                }
+                refreshPreferences();
+                return true;
+            });
+        }
+
+        private void refreshPreferences() {
+            for (SwitchBinding binding : switchBindings) {
+                binding.preference.setChecked(binding.setting.get());
+                binding.preference.setEnabled(binding.setting.isAvailable());
+            }
+        }
+
+        private String normalizeSummary(String summary) {
+            if (summary == null) {
+                return "-";
+            }
+
+            String trimmed = summary.trim();
+            return trimmed.isEmpty() ? "-" : trimmed;
+        }
+
+        private String resString(String name, String fallback) {
+            int resourceId = ResourceHelper.getResourceId("string", name);
+            return resourceId == 0 ? fallback : requireActivity().getString(resourceId);
+        }
+
+        private String resString(String name, String fallback, Object... formatArgs) {
+            int resourceId = ResourceHelper.getResourceId("string", name);
+            return resourceId == 0
+                    ? String.format(fallback, formatArgs)
+                    : requireActivity().getString(resourceId, formatArgs);
+        }
+
+        private Activity requireActivity() {
+            Activity activity = getActivity();
+            if (activity == null) {
+                throw new IllegalStateException("Settings fragment is not attached");
+            }
+            return activity;
+        }
+
+        private static final class PresetAdapter extends BaseAdapter {
+            private final Context context;
+            private final UserMemoPatch.Preset[] presets;
+
+            PresetAdapter(Context context, UserMemoPatch.Preset[] presets) {
+                this.context = context;
+                this.presets = presets;
+            }
+
+            @Override
+            public int getCount() {
+                return presets.length;
+            }
+
+            @Override
+            public UserMemoPatch.Preset getItem(int position) {
+                return presets[position];
+            }
+
+            @Override
+            public long getItemId(int position) {
+                return position;
+            }
+
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                ViewHolder holder;
+                if (convertView instanceof LinearLayout && convertView.getTag() instanceof ViewHolder) {
+                    holder = (ViewHolder) convertView.getTag();
+                } else {
+                    LinearLayout layout = new LinearLayout(context);
+                    layout.setOrientation(LinearLayout.VERTICAL);
+                    layout.setLayoutParams(new AbsListView.LayoutParams(
+                            AbsListView.LayoutParams.MATCH_PARENT,
+                            AbsListView.LayoutParams.WRAP_CONTENT
+                    ));
+                    layout.setMinimumHeight(MorphePreferenceStyle.dp(context, 64));
+                    layout.setPadding(MorphePreferenceStyle.dp(context, 24), MorphePreferenceStyle.dp(context, 12),
+                            MorphePreferenceStyle.dp(context, 24), MorphePreferenceStyle.dp(context, 12));
+
+                    TextView title = new TextView(context);
+                    title.setTypeface(Typeface.DEFAULT_BOLD);
+                    title.setTextSize(16);
+                    title.setSingleLine(false);
+                    title.setTextColor(MorphePreferenceStyle.primaryTextColor(context));
+
+                    TextView description = new TextView(context);
+                    description.setTextSize(13);
+                    description.setSingleLine(false);
+                    description.setLineSpacing(0, 1.1f);
+                    description.setPadding(0, MorphePreferenceStyle.dp(context, 4), 0, 0);
+                    description.setTextColor(MorphePreferenceStyle.secondaryTextColor(context));
+
+                    layout.addView(title, new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                    ));
+                    layout.addView(description, new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT
+                    ));
+
+                    holder = new ViewHolder(title, description);
+                    layout.setTag(holder);
+                    convertView = layout;
+                }
+
+                UserMemoPatch.Preset preset = getItem(position);
+                holder.title.setText(preset.getTitle(context));
+                holder.description.setText(preset.getDescription(context));
+                return convertView;
+            }
+        }
+
+        private static final class ViewHolder {
+            private final TextView title;
+            private final TextView description;
+
+            ViewHolder(TextView title, TextView description) {
+                this.title = title;
+                this.description = description;
+            }
+        }
+    }
+
+    private static final class SwitchBinding {
+        private final SwitchPreference preference;
+        private final BooleanSetting setting;
+
+        private SwitchBinding(SwitchPreference preference, BooleanSetting setting) {
+            this.preference = preference;
+            this.setting = setting;
+        }
+    }
+}

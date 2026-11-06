@@ -10,6 +10,16 @@ namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
 public static class ToolbarSnapshotAssertions
 {
     /// <summary>The toolbar names <paramref name="feed"/>.</summary>
+    /// <summary>The toolbar shows <paramref name="buttons"/> and no other button.</summary>
+    public static AssertingThat<ToolbarSnapshot> ShowsOnlyTheButtons(this AssertingThat<ToolbarSnapshot> that, params ToolbarButton[] buttons)
+    {
+        var shown = that.InstanceToAssert.Buttons;
+        Assert.True(
+            shown.SequenceEqual(buttons),
+            $"The toolbar shows {(shown.IsEmpty ? "no button" : string.Join(", ", shown.Select(button => $"\"{button.ToShownText()}\"")))}, but only {string.Join(", ", buttons.Select(button => $"\"{button.ToShownText()}\""))} was expected.");
+        return that;
+    }
+
     public static AssertingThat<ToolbarSnapshot> ShowsFeed(this AssertingThat<ToolbarSnapshot> that, Feed feed)
     {
         var shown = that.InstanceToAssert.Feed;

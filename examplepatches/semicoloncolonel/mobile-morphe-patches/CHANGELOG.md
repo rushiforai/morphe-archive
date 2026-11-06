@@ -1,3 +1,11 @@
+## [1.0.12](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.11...v1.0.12) (2026-11-06)
+
+
+### Features
+
+* add C-SPAN, NewsNation, The Daily Wire, USA TODAY, Substack, MLB, NPR, AP News, and NewsBreak, and support Pluto TV on Android TV ([1173da3](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/1173da345c569fefd1b41e4f2989594f8a9cd1fe))
+* add theScore, Shudder, Sundance Now, ESPN betting and prediction-market removal, and WaPo and CNN fixes ([1dcbf4b](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/1dcbf4b74b98ba12c8ae16de695186fc47131e21))
+
 ## [1.0.11](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.10...v1.0.11) (2026-11-05)
 
 

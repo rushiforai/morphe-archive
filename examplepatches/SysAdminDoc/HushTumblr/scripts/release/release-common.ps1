@@ -11,6 +11,13 @@
 
 $script:PrepareSubject = 'release: prepare {0}'
 $script:IndexSubject = 'release: publish the {0} index to Morphe Manager'
+# What a commit between a release's prepare commit and its index commit may change: the source
+# census, which has to be fresh on the day the release goes out, and the release scripts. Neither
+# goes into the bundle, which is built and tagged at the prepare commit. 0.0.10's census went
+# stale between the cut and the publish and was refreshed this way.
+$script:AfterPreparePaths = @('sources/tumblr-sources.json', 'scripts/audit-tumblr-sources.ps1',
+    'scripts/tumblr-sources.ps1', 'scripts/test-tumblr-sources.ps1')
+$script:AfterPrepareFolders = @('scripts/release/')
 
 function Write-ReleaseStep([string]$Text) { Write-Host "[release] $Text" }
 
@@ -95,6 +102,20 @@ function Get-ReleaseSubject([string]$Root, [string]$Commit) {
     return Get-ReleaseGitText -Root $Root -Arguments @('log', '-1', '--format=%s', $Commit)
 }
 
+function Test-AfterPrepareCommit {
+    <# Whether a commit with one parent changes only files $script:AfterPreparePaths and $script:AfterPrepareFolders name. #>
+    param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)][string]$Commit)
+
+    $parents = @((Get-ReleaseGitText -Root $Root -Arguments @('rev-list', '--parents', '-n', '1', $Commit)) -split ' ' | Where-Object { $_ })
+    if ($parents.Count -ne 2) { return $false }
+    $changed = @((Get-ReleaseGitText -Root $Root -Arguments @('diff', '--name-only', "$Commit^", $Commit)) -split "`n" | Where-Object { $_ })
+    foreach ($path in $changed) {
+        $inFolder = @($script:AfterPrepareFolders | Where-Object { $path.StartsWith($_, [StringComparison]::Ordinal) }).Count -gt 0
+        if (-not $inFolder -and $script:AfterPreparePaths -cnotcontains $path) { return $false }
+    }
+    return $true
+}
+
 function Get-PrepareCommit {
     <#
     .SYNOPSIS
@@ -102,20 +123,27 @@ function Get-PrepareCommit {
         when HEAD is that release's index commit and -AllowIndex is given, else $null.
     .DESCRIPTION
         A prepare commit also has to leave gradle.properties at the version, so a commit that only
-        borrowed the subject isn't taken for one.
+        borrowed the subject isn't taken for one. With -AllowAfterPrepare the prepare commit can
+        also sit below commits that change only the source census and the release scripts
+        (Test-AfterPrepareCommit), under the index commit when there is one.
     #>
-    param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)][string]$Version, [switch]$AllowIndex)
+    param([Parameter(Mandatory = $true)][string]$Root, [Parameter(Mandatory = $true)][string]$Version, [switch]$AllowIndex,
+        [switch]$AllowAfterPrepare)
 
-    $head = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', 'HEAD')
-    $subject = Get-ReleaseSubject -Root $Root -Commit $head
-    $candidate = $null
-    if ($subject -ceq ($script:PrepareSubject -f $Version)) {
-        $candidate = $head
-    } elseif ($AllowIndex -and $subject -ceq ($script:IndexSubject -f $Version)) {
-        $parent = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', 'HEAD^')
-        if ((Get-ReleaseSubject -Root $Root -Commit $parent) -ceq ($script:PrepareSubject -f $Version)) { $candidate = $parent }
+    $prepare = $script:PrepareSubject -f $Version
+    $candidate = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', 'HEAD')
+    $subject = Get-ReleaseSubject -Root $Root -Commit $candidate
+    if ($AllowIndex -and $subject -ceq ($script:IndexSubject -f $Version)) {
+        $candidate = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', "$candidate^")
+        $subject = Get-ReleaseSubject -Root $Root -Commit $candidate
     }
-    if (-not $candidate) { return $null }
+    # Twenty is far more commits than a census refresh and a release script fix take.
+    for ($step = 0; $AllowAfterPrepare -and $subject -cne $prepare -and $step -lt 20; $step++) {
+        if (-not (Test-AfterPrepareCommit -Root $Root -Commit $candidate)) { return $null }
+        $candidate = Get-ReleaseGitText -Root $Root -Arguments @('rev-parse', "$candidate^")
+        $subject = Get-ReleaseSubject -Root $Root -Commit $candidate
+    }
+    if ($subject -cne $prepare) { return $null }
     $properties = Get-ReleaseGitText -Root $Root -Arguments @('show', "${candidate}:gradle.properties")
     if ($properties -notmatch "(?m)^version\s*=\s*$([regex]::Escape($Version))\s*$") { return $null }
     return $candidate

@@ -5,7 +5,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  *
- * Modified by lavinhoque33, 2026-10-29
+ * Modified by lavinhoque33, 2026-11-05
  */
 
 package app.morphe.patches.youtube.player.icons
@@ -348,12 +348,6 @@ private val appSkipSelectors = listOf(
     "player_prev" to "SkipPrevious",
 )
 
-// Every configuration of a resource type, such as drawable-xxhdpi for drawable.
-private fun ResourcePatchContext.resourceDirectories(type: String) =
-    get("res", false).listFiles { file ->
-        file.isDirectory && file.name.startsWith(type)
-    }.orEmpty()
-
 /**
  * Replaces an app icon that exists only as density specific bitmaps with a wrapper.
  * A density specific bitmap wins over a default drawable, so every bitmap is removed.
@@ -368,17 +362,17 @@ internal fun ResourcePatchContext.wrapAppBitmapIcon(
     wrapperClass: String,
     originalName: String? = null,
 ): Boolean {
-    val bitmaps = resourceDirectories("drawable").flatMap { directory ->
-        listOf("png", "webp").map { extension -> directory.resolve("$appName.$extension") }
-    }.filter { it.exists() }
+    val bitmaps = listDecodableFiles("res/drawable*/$appName.*")
+        .filter { it.endsWith(".png") || it.endsWith(".webp") }
     if (bitmaps.isEmpty()) return false
 
     bitmaps.forEach { bitmap ->
-        val directory = bitmap.parentFile.name
         if (originalName != null) {
-            bitmap.copyTo(get("res/$directory/$originalName.${bitmap.extension}"), overwrite = true)
+            val extension = bitmap.substringAfterLast('.')
+            get("${bitmap.substringBeforeLast('/')}/$originalName.$extension")
+                .writeBytes(get(bitmap).readBytes())
         }
-        delete("res/$directory/${bitmap.name}")
+        delete(bitmap)
     }
 
     val wrapper = appPlayerIconWrapper(wrapperClass)
@@ -404,8 +398,8 @@ private fun appPlayerIconWrapper(wrapperClass: String, appIcon: String? = null):
  * The wrapper gets the app icon as android:drawable, since the icon differs per screen size.
  */
 private fun ResourcePatchContext.wrapAppSelectorIcons(selectorName: String, wrapperClass: String) {
-    resourceDirectories("drawable").filter { it.resolve("$selectorName.xml").exists() }.forEach { directory ->
-        document("res/${directory.name}/$selectorName.xml").use { document ->
+    listDecodableFiles("res/drawable*/$selectorName.xml").forEach { selector ->
+        document(selector).use { document ->
             val items = document.getElementsByTagName("item")
             for (i in 0 until items.length) {
                 val item = items.item(i) as Element
@@ -455,11 +449,10 @@ private fun ResourcePatchContext.wrapAppFullscreenIcons() {
 private fun ResourcePatchContext.wrapAppSettingsButtonIcon() {
     var settingsIcon: String? = null
 
-    resourceDirectories("layout")
-        .flatMap { it.listFiles().orEmpty().toList() }
-        .filter { it.readText().contains("\"@id/player_overflow_button\"") }
+    listDecodableFiles("res/layout*/*.xml")
+        .filter { get(it).readText().contains("\"@id/player_overflow_button\"") }
         .forEach { layout ->
-            document("res/${layout.parentFile.name}/${layout.name}").use { document ->
+            document(layout).use { document ->
                 val elements = document.getElementsByTagName("*")
                 for (i in 0 until elements.length) {
                     val element = elements.item(i) as Element

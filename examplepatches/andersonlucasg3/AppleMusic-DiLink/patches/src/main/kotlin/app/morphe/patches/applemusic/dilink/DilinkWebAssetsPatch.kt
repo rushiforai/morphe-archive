@@ -17,7 +17,7 @@ private const val AMS_ADAPTOR = "res/raw/js_ams_adaptor.js"
  */
 @Suppress("unused")
 internal val dilinkWebAssetsPatch = resourcePatch(
-    name = "Apple Music DiLink web assets",
+    name = "DiLink: web assets",
     description = "Embeds Chrome 74-compatible copies of the Apple sign-in JavaScript assets so " +
         "the sign-in page can run on the DiLink WebView, without a PC at runtime.",
     default = true,
@@ -29,7 +29,7 @@ internal val dilinkWebAssetsPatch = resourcePatch(
         // The .mpp bundle only carries classes.dex, so the blob is fetched at patch time (CLI or
         // Morphe Manager) and embedded in the APK; the head unit needs no network for this step.
         val url = java.net.URI(
-            "https://raw.githubusercontent.com/andersonlucasg3/AppleMusic-DiLink/main/assets/transpiled_assets.bin",
+            "https://raw.githubusercontent.com/andersonlucasg3/apple-music-morphe-patches/main/assets/transpiled_assets.bin",
         ).toURL()
         val json = url.openStream().use { it.readBytes().decodeToString() }
         val encoded = java.util.Base64.getEncoder().encodeToString(json.toByteArray())

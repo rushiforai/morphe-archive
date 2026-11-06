@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Emulate all palette call sites for both modes without running Immich."""
 import argparse
+import hashlib
 import struct
 from pathlib import Path
 from unicorn import Uc, UC_ARCH_ARM64, UC_MODE_ARM
@@ -13,6 +14,7 @@ args = p.parse_args()
 source = Path(args.libapp).read_bytes()
 binary = bytearray(source)
 lines = [line for line in Path(args.recipe).read_text().splitlines() if line and not line.startswith('#')]
+assert hashlib.sha256(source).hexdigest() == lines[0], 'Recipe does not match the input binary'
 sites = []
 for line in lines[1:]:
     address, before, after = line.split('\t')

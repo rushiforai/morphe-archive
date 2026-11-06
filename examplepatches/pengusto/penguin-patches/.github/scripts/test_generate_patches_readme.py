@@ -46,7 +46,8 @@ class ReleaseReadmeTests(unittest.TestCase):
         self.assertIn(f"{len(metadata['patches'])} patches · {app_count(metadata)} apps", result)
         for guide in re.findall(r"\]\((docs/[^)#]+)", result):
             self.assertTrue((ROOT / guide).is_file(), guide)
-        self.assertIn("[Song artist order](docs/FINAMP_NATIVE.md)", result)
+        self.assertTrue("[Song artist order](docs/FINAMP_NATIVE.md)" in result or
+                        "[Finamp complete: all eight fixes](docs/FINAMP_NATIVE.md)" in result)
         self.assertIn("[Separate all-day reminder defaults](docs/CALENDAR_REMINDERS.md)", result)
         self.assertIn('id="prefer-each-track-s-embedded-cover"', result)
         self.assertIn('id="prefer-each-tracks-embedded-cover"', result)
@@ -65,16 +66,40 @@ class ReleaseReadmeTests(unittest.TestCase):
         data = json.loads((ROOT / "patches-list.json").read_text())
         result = self.render(data)
         strip = result.split("<!-- PATCHES_APPS_START -->")[1].split("<!-- PATCHES_APPS_END -->")[0]
-        self.assertLess(result.index("<!-- PATCHES_APPS_START -->"), result.index("## Finamp"))
+        self.assertLess(result.index("<!-- PATCHES_APPS_START -->"), result.index("## Infinity+"))
         self.assertNotIn("<details", strip)
         self.assertEqual(strip.count('width="32" height="32"'), app_count(data))
         self.assertIn('href="docs/FINAMP_NATIVE.md"', strip)
         self.assertIn('alt="Finamp app icon"', strip)
-        data["patches"] = [p for p in data["patches"] if p["name"] == "Song artist order"]
+        data["patches"] = [p for p in data["patches"] if any(
+            c.get("packageName") == "com.unicornsonlsd.finamp" for c in p.get("compatiblePackages", []))][:1]
         smaller = self.render(data).split("<!-- PATCHES_APPS_START -->")[1].split("<!-- PATCHES_APPS_END -->")[0]
         self.assertEqual(smaller.count('width="32" height="32"'), 1)
         self.assertIn("Finamp", smaller)
         self.assertNotIn("Fossify", smaller)
+
+    def test_infinity_preview_is_featured_first(self):
+        data = json.loads((ROOT / "patches-list.json").read_text())
+        previews = self.render(data).split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
+        self.assertLess(previews.index("Infinity+ ·"), previews.index("Finamp ·"))
+
+    def test_fossify_apps_stay_grouped_in_strip_and_catalogue(self):
+        data = json.loads((ROOT / "patches-list.json").read_text())
+        result = self.render(data)
+        strip = result.split("<!-- PATCHES_APPS_START -->")[1].split("<!-- PATCHES_APPS_END -->")[0]
+        self.assertLess(strip.index("**Featured**"), strip.index("**Fossify**"))
+        fossify = strip.split("**Fossify**")[1].split("**More apps**")[0]
+        packages = {p["packageName"] for patch in data["patches"]
+                    for p in patch.get("compatiblePackages", []) if p["packageName"].startswith("org.fossify.")}
+        self.assertEqual(fossify.count('app icon"'), len(packages))
+        self.assertNotIn("Finamp", fossify)
+        cells = re.findall(r'<td align="center">(.*?)</td>', fossify)
+        self.assertGreaterEqual(len(cells), len(packages))
+        self.assertEqual(sum("<img " in cell and "<br>" in cell for cell in cells), len(packages))
+        catalogue = result.split("<!-- PATCHES_START -->")[1].split("<!-- PATCHES_END -->")[0]
+        names = re.findall(r'<summary><img [^>]+alt="([^"]+) app icon"', catalogue)
+        positions = [i for i, name in enumerate(names) if name.startswith("Fossify ")]
+        self.assertEqual(positions, list(range(min(positions), max(positions) + 1)))
 
     def test_preview_group_headings_show_app_icons(self):
         data = json.loads((ROOT / "patches-list.json").read_text())
@@ -88,7 +113,8 @@ class ReleaseReadmeTests(unittest.TestCase):
     def test_small_next_prerelease_updates_summary_without_expanding(self):
         data = json.loads((ROOT / "patches-list.json").read_text())
         data["version"] = "v1.2.0-dev.1"
-        data["patches"] = [p for p in data["patches"] if p["name"] == "Song artist order"]
+        data["patches"] = [p for p in data["patches"] if any(
+            c.get("packageName") == "com.unicornsonlsd.finamp" for c in p.get("compatiblePackages", []))][:1]
         result = self.render(data)
         self.assertNotIn("<details open>", result)
         self.assertIn("1 patch · 1 app", result)
@@ -150,6 +176,19 @@ class ReleaseReadmeTests(unittest.TestCase):
         self.assertIn('src="tests/finamp/evidence/2026-11-05-notes/track-before.png"', result)
         self.assertIn('src="tests/finamp/evidence/2026-11-05-notes/track-after.png"', result)
 
+    def test_compact_default_keeps_individual_previews_without_duplicate_anchor(self):
+        data = {"version": "2.0.0", "patches": [{
+            "name": "Finamp complete: all eight fixes", "description": "All eight Finamp fixes",
+            "compatiblePackages": [{"packageName": "com.unicornsonlsd.finamp", "name": "Finamp",
+                                    "targets": [{"version": "1.0.1"}]}]}]}
+        result = self.render(data)
+        self.assertIn("1 patch · 1 app", result)
+        self.assertEqual(result.count('id="preview-finamp-complete-all-eight-fixes"'), 1)
+        self.assertIn('id="preview-show-album-and-track-information"', result)
+        self.assertIn('id="preview-song-artist-order"', result)
+        previews = result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
+        self.assertEqual(previews.count("<summary>"), 9)
+
     def test_mihon_preview_embeds_real_pair_and_guide(self):
         data = {"version": "1.5.0", "patches": [{
             "name": "Preserve excluded Default-category downloads",
@@ -167,11 +206,18 @@ class ReleaseReadmeTests(unittest.TestCase):
         data = json.loads((ROOT / "patches-list.json").read_text())
         result = self.render(data)
         previews = result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
-        self.assertEqual(previews.count("<summary>"), len(data["patches"]))
+        # The alternate Finamp source has its own previews without affecting
+        # the released default bundle's metadata count.
+        names = {p["name"] for p in data["patches"]}
+        extra = 8 if "Finamp complete: all eight fixes" in names else 1
+        self.assertEqual(previews.count("<summary>"), len(data["patches"]) + extra)
         self.assertEqual(len(re.findall(r"^### ", previews, re.MULTILINE)), app_count(data))
         self.assertGreaterEqual(len(re.findall(r'<img [^>]*alt="(?:Before|After):', previews)), 2 * len(data["patches"]))
         self.assertNotIn("## About these comparisons", previews)
         sections = dict(re.findall(r'<a id="preview-([^"]+)"></a>(.*?)(?=\n<a id=|\Z)', previews, re.DOTALL))
+        compact = sections["finamp-complete-all-eight-fixes"]
+        self.assertIn("captures do not depict the compact bundle", compact)
+        self.assertEqual(len(re.findall(r'<img [^>]*alt="(?:Before|After):', compact)), 2)
         for patch in data["patches"]:
             slug = re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", patch["name"].lower())).strip("-")
             with self.subTest(patch=patch["name"]):
@@ -200,13 +246,16 @@ class ReleaseReadmeTests(unittest.TestCase):
         count = sum(any(package.get("packageName") == "com.unicornsonlsd.finamp"
                         for package in patch.get("compatiblePackages", [])) for patch in data["patches"])
         stale = re.sub(r"Explore the \d+ Finamp patches", "Explore the 3 Finamp patches", (ROOT / "README.md").read_text())
-        self.assertIn(f"Explore the {count} Finamp patches", self.render(data, readme=stale))
-        data["patches"] = [p for p in data["patches"] if p["name"] == "Song artist order"]
+        noun = "patch" if count == 1 else "patches"
+        self.assertIn(f"Explore the {count} Finamp {noun}", self.render(data, readme=stale))
+        data["patches"] = [{"name": "Song artist order", "description": "Sort song credits",
+                            "compatiblePackages": [{"packageName": "com.unicornsonlsd.finamp",
+                                                    "name": "Finamp", "targets": [{"version": "1.0.1"}]}]}]
         result = self.render(data, readme=stale)
         self.assertIn("Explore the 1 Finamp patch →", result)
         self.assertNotIn("Explore the 3 Finamp patches", result)
         previews = result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
-        self.assertEqual(len(re.findall(r'<img [^>]*alt="(?:Before|After):', previews)), 2)
+        self.assertEqual(len(re.findall(r'<img [^>]*alt="(?:Before|After):', previews)), 4)
 
     def test_missing_released_preview_fails_without_rewriting_readme(self):
         with tempfile.TemporaryDirectory() as tmp:

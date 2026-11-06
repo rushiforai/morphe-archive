@@ -63,7 +63,37 @@ final class RootPostMuteUi {
     }
 
     static void recoverMute(Context context, RootPostMutes.Undo saved, String root) {
-        changed(context, L10n.t("Couldn't update this feed. The post is still muted locally."), saved, null, root);
+        changed(context, RootPostMuteStore.validBlogRule(root) ? L10n.t("Couldn't update this feed. The blog rule is still saved.")
+                : L10n.t("Couldn't update this feed. The post is still muted locally."), saved, null, root);
+    }
+
+    // A list entry is a post or one half of a blog. Each kind gets its own words everywhere it shows.
+    static String menuTitle(String entry) {
+        if (!RootPostMuteStore.validBlogRule(entry)) return L10n.t("Mute this post locally");
+        String blog = L10n.isolate(RootPostMuteStore.ruleBlog(entry));
+        return RootPostMuteStore.reblogRule(entry) ? L10n.f("Hide reblogs from %1$s", blog) : L10n.f("Hide originals from %1$s", blog);
+    }
+
+    static String mutedMessage(String entry) {
+        if (!RootPostMuteStore.validBlogRule(entry)) return L10n.t("Post muted locally");
+        String blog = L10n.isolate(RootPostMuteStore.ruleBlog(entry));
+        return RootPostMuteStore.reblogRule(entry) ? L10n.f("Hiding reblogs from %1$s", blog) : L10n.f("Hiding originals from %1$s", blog);
+    }
+
+    static String removedMessage(String entry) {
+        return RootPostMuteStore.validBlogRule(entry) ? L10n.t("Blog rule removed") : L10n.t("Post unmuted");
+    }
+
+    private static String rowText(String entry) {
+        if (!RootPostMuteStore.validBlogRule(entry)) return L10n.t("Post") + " " + L10n.isolate(entry);
+        String blog = L10n.isolate(RootPostMuteStore.ruleBlog(entry));
+        return RootPostMuteStore.reblogRule(entry) ? L10n.f("Reblogs from %1$s", blog) : L10n.f("Originals from %1$s", blog);
+    }
+
+    private static String rowDescription(String entry) {
+        if (!RootPostMuteStore.validBlogRule(entry)) return L10n.f("Unmute post %1$s", L10n.isolate(entry));
+        String blog = L10n.isolate(RootPostMuteStore.ruleBlog(entry));
+        return RootPostMuteStore.reblogRule(entry) ? L10n.f("Show reblogs from %1$s again", blog) : L10n.f("Show originals from %1$s again", blog);
     }
 
     private static void changed(Context context, String message, RootPostMutes.Undo undo, Runnable afterRestore, String rootToUnmute) {
@@ -80,7 +110,7 @@ final class RootPostMuteUi {
                 ignored -> { }, panel -> {
                     root.removeView(panel);
                     if (afterRestore != null) afterRestore.run();
-                    Utils.showToastShort(rootToUnmute == null ? L10n.t("Muted posts restored") : L10n.t("Post unmuted"));
+                    Utils.showToastShort(rootToUnmute == null ? L10n.t("Muted posts restored") : removedMessage(rootToUnmute));
                 }, root::removeView);
         bar.setLayoutDirection(themed.getResources().getConfiguration().getLayoutDirection());
         int padding = dp(themed, 12);
@@ -164,14 +194,14 @@ final class RootPostMuteUi {
             LinearLayout.LayoutParams retryPosition = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             retryPosition.gravity = Gravity.END;
             header.addView(retry, retryPosition);
-            help = paragraph(context, L10n.t("Stored only on this device for this Tumblr account. Tap a post to unmute it. Up to 500 posts are kept per account."));
+            help = paragraph(context, L10n.t("Stored only on this device for this Tumblr account. Tap a row to remove it. Up to 500 posts and blog rules are kept per account."));
             help.setTag("root_mute_help");
             header.addView(help);
             // Says the policy only. Which other accounts have a list, or how many, never shows here.
             limits = paragraph(context, L10n.t("This device keeps muted post lists for eight accounts. When a ninth account mutes a post, the list that's gone longest without a change is deleted."));
             limits.setTag("root_mute_limits");
             header.addView(limits);
-            empty = paragraph(context, L10n.t("No muted posts. Use a post's menu to mute it on this device."));
+            empty = paragraph(context, L10n.t("No muted posts or blog rules. Use a post's menu to add one on this device."));
             header.addView(empty);
             list.addHeaderView(header, null, false);
             rows = new BaseAdapter() {
@@ -183,8 +213,8 @@ final class RootPostMuteUi {
                 @Override public View getView(int position, View recycled, ViewGroup parent) {
                     TextView row = recycled instanceof TextView ? (TextView) recycled : new TextView(context);
                     String root = getItem(position);
-                    row.setText(L10n.t("Post") + " " + L10n.isolate(root));
-                    row.setContentDescription(L10n.f("Unmute post %1$s", L10n.isolate(root)));
+                    row.setText(rowText(root));
+                    row.setContentDescription(rowDescription(root));
                     row.setTextSize(16);
                     row.setTextColor(ScreenColors.DEFAULT.title);
                     ScreenColors.startSide(row);
@@ -249,7 +279,7 @@ final class RootPostMuteUi {
             if (!ready() || busy || !roots.contains(root)) return;
             setBusy(true);
             feedback.message(L10n.t("Updating muted posts"));
-            RootPostMutes.remove(account, root, undo -> finished(undo, L10n.t("Post unmuted")));
+            RootPostMutes.remove(account, root, undo -> finished(undo, removedMessage(root)));
         }
 
         void finished(RootPostMutes.Undo undo, String message) {
@@ -360,7 +390,7 @@ final class RootPostMuteUi {
         void offer(String message, RootPostMutes.Undo value, String root) {
             token = value;
             rootToUnmute = root;
-            undo.setText(root == null ? L10n.t("Undo") : L10n.t("Unmute post"));
+            undo.setText(root == null || RootPostMuteStore.validBlogRule(root) ? L10n.t("Undo") : L10n.t("Unmute post"));
             undo.setVisibility(VISIBLE);
             undo.setEnabled(!busy);
             message(message);
@@ -382,7 +412,7 @@ final class RootPostMuteUi {
                 busyChanged.accept(false);
                 if (success) {
                     clearUndo();
-                    message(chosenRoot == null ? L10n.t("Muted posts restored") : L10n.t("Post unmuted"));
+                    message(chosenRoot == null ? L10n.t("Muted posts restored") : removedMessage(chosenRoot));
                     restored.accept(this);
                 } else {
                     message(L10n.t("Couldn't restore muted posts. Try again."));

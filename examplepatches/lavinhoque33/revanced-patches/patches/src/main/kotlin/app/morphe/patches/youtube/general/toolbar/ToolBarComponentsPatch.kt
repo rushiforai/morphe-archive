@@ -64,6 +64,8 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.getFreeRegisterProvider
+import app.morphe.patcher.util.getReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
@@ -98,8 +100,6 @@ import app.morphe.util.fingerprint.matchOrThrow
 import app.morphe.util.fingerprint.methodCall
 import app.morphe.util.fingerprint.methodOrThrow
 import app.morphe.util.fingerprint.mutableClassOrThrow
-import app.morphe.util.getFreeRegisterProvider
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.indexOfFirstInstructionOrThrow
 import app.morphe.util.indexOfFirstInstructionReversedOrThrow
@@ -517,16 +517,16 @@ val toolBarComponentsPatch = bytecodePatch(
 
         if (is_20_15_or_greater) {
             val searchSuggestionEndpointField = SearchSuggestionEndpoint2021Fingerprint
-                .instructionMatches.first().instruction.getReference<FieldReference>()!!
+                .instructionMatches.first().fieldReference
             val searchSuggestionEndpointClass = searchSuggestionEndpointField.definingClass
 
             SearchBoxTypingStringFingerprint.let {
                 it.method.apply {
                     // Includes trending searches ("You may like") and search history.
                     val searchSuggestionCollectionField =
-                        it.instructionMatches.first().instruction.getReference<FieldReference>()!!
+                        it.instructionMatches.first().fieldReference
                     val typedStringField =
-                        it.instructionMatches[2].instruction.getReference<FieldReference>()!!
+                        it.instructionMatches[2].fieldReference
 
                     val helperMethod = ImmutableMethod(
                         definingClass,

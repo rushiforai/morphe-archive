@@ -88,6 +88,7 @@ public final class TrackerBlocker {
             "branch-sf5.cbs.com", // Branch, on Paramount's own link domain
             // HBO Max phone (7.14.0)
             "appsflyer.com", "appsflyersdk.com", // AppsFlyer
+            "ingest.sentry.io", "ingest.us.sentry.io", "ingest.de.sentry.io", // Sentry error/session telemetry
             "mediamelon.com", // MediaMelon video analytics
             // Peacock phone (7.10.20)
             "mparticle.com", // mParticle
@@ -104,6 +105,9 @@ public final class TrackerBlocker {
             "parsely.com", // Parse.ly
             "snplow.net", // Snowplow collector
             "rlcdn.com", // LiveRamp ATS identity
+            "liveramp.com", // LiveRamp on-device ATS
+            "analytics-tracker.thescore.com",
+            "api.eu.amplitude.com",
             // Starz phone (6.11.0)
             "clevertap-prod.com", // CleverTap engagement analytics
             "leanplum.com", // Leanplum engagement analytics
@@ -131,6 +135,13 @@ public final class TrackerBlocker {
             "prodregistryv2.org", // Statsig event logging (not its flag hosts)
             // Fandango at Home (10.24)
             "kochava.kvaedit.site", "kochava.dewrain.life", // Kochava fallback hosts
+            "kvaedit.site", "dewrain.life", "dewrain.site", "dewrain.world", // Kochava rotating failover domains
+            "vaicore.site", "vaicore.xyz", "vaicore.store", "akisinn.info", "akisinn.site", // Kochava rotating failover domains
+            "api.intercom.io", // Intercom in-app messaging/support events
+            "crwdcntrl.net", // Lotame audience data
+            "ml314.com", // Bombora audience data
+            "nice264.com", // NPAW/YOUBORA video analytics
+            "cdp.customer.io", // Customer.io event pipeline (not its push)
             // CBS News (5.20)
             "saa.cbsi.com", // CBS's Adobe Analytics
             "data.flurry.com", "cfg.flurry.com", // Flurry
@@ -151,6 +162,10 @@ public final class TrackerBlocker {
             "logx.optimizely.com",
             "analytics-ingress-global.bitmovin.com", // Bitmovin player analytics
             "mixpanel.com",
+            // NPR (7.10.0), AP News (6.31.2), and NewsBreak (26.44.1)
+            "quantserve.com", "quantcount.com", // Quantcast measurement
+            "tahoe-analytics.publishers.advertising.a2z.com", // Amazon publisher ad analytics
+            "apcdp.apnews.com", // AP News BlueConic customer-data platform
     };
 
     /**

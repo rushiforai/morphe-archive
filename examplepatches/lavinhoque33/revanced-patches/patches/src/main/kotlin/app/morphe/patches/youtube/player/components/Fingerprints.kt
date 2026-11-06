@@ -4,6 +4,7 @@
  * https://github.com/MorpheApp/morphe-patches
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
+ * Modified by lavinhoque33, 2026-11-06.
  */
 
 @file:Suppress("SpellCheckingInspection")
@@ -18,6 +19,7 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.opcode
 import app.morphe.patcher.string
+import app.morphe.patcher.util.getReference
 import app.morphe.patches.youtube.utils.PLAYER_RESPONSE_MODEL_CLASS_DESCRIPTOR
 import app.morphe.patches.youtube.utils.resourceid.componentLongClickListener
 import app.morphe.patches.youtube.utils.resourceid.darkBackground
@@ -36,7 +38,6 @@ import app.morphe.patches.youtube.utils.resourceid.verticalTouchOffsetToStartFin
 import app.morphe.patches.youtube.utils.resourceid.videoZoomSnapIndicator
 import app.morphe.util.containsLiteralInstruction
 import app.morphe.util.fingerprint.legacyFingerprint
-import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstruction
 import app.morphe.util.or
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -317,39 +318,6 @@ internal val infoCardsIncognitoFingerprint = legacyFingerprint(
     strings = listOf("vibrator")
 )
 
-internal object RelatedItemSectionFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    returnType = "Z",
-    parameters = listOf("L"),
-    filters = listOf(
-        opcode(Opcode.AND_INT_LIT8),
-        fieldAccess(
-            opcode = Opcode.IGET_OBJECT,
-            type = "Ljava/lang/String;",
-        ),
-        string(
-            string = "related-items",
-            location = MatchAfterWithin(3),
-        ),
-    ),
-)
-
-internal object WatchNextResponseModelClassResolverFingerprint : Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = emptyList(),
-    filters = listOf(
-        string("Request being made from non-critical thread"),
-        methodCall(
-            opcode = Opcode.INVOKE_INTERFACE,
-            smali = "Lcom/google/common/util/concurrent/ListenableFuture;->get()Ljava/lang/Object;",
-        ),
-        opcode(
-            opcode = Opcode.CHECK_CAST,
-            location = MatchAfterWithin(3),
-        ),
-    ),
-)
 
 internal val lithoComponentOnClickListenerFingerprint = legacyFingerprint(
     name = "lithoComponentOnClickListenerFingerprint",

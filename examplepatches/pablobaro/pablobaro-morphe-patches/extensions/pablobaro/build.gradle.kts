@@ -5,3 +5,7 @@ extension {
 android {
     namespace = "app.pablobaro.extension"
 }
+
+dependencies {
+    testImplementation("junit:junit:4.13.2")
+}

@@ -90,6 +90,44 @@ public final class WordReporter {
         }
     }
 
+    /**
+     * The daily usage ping ({@link UsagePing}): {@code {"type":"ping","patch":"x.y.z","rulesets":[...]}}. Runs
+     * {@code onSent} after a successful request and {@code onDone} afterwards in every case. Never throws.
+     */
+    public void ping(java.util.Collection<Integer> rulesets, Runnable onSent, Runnable onDone) {
+        final String json;
+        try {
+            JSONObject o = new JSONObject();
+            o.put("type", "ping");
+            o.put("patch", BuildInfo.PATCH_VERSION);
+            JSONArray a = new JSONArray();
+            for (Integer r : rulesets) a.put(r.intValue());
+            o.put("rulesets", a);
+            json = o.toString();
+        } catch (Exception e) {
+            onDone.run();
+            return;
+        }
+        if (!enabled()) {
+            onDone.run();
+            return;
+        }
+        try {
+            executor.execute(() -> {
+                try {
+                    sink.post(url, json);
+                    onSent.run();
+                } catch (Throwable ignored) {
+                    // not sent: tried again the next time Wordfeud shows games
+                } finally {
+                    onDone.run();
+                }
+            });
+        } catch (RuntimeException e) {
+            onDone.run();
+        }
+    }
+
     static String body(String type, int rulesetId, List<String> words, String patch) throws Exception {
         JSONObject o = new JSONObject();
         o.put("type", type);
@@ -130,8 +168,8 @@ public final class WordReporter {
             try (OutputStream out = c.getOutputStream()) {
                 out.write(payload);
             }
-            c.getResponseCode();
-            try (InputStream in = c.getResponseCode() < 400 ? c.getInputStream() : c.getErrorStream()) {
+            int status = c.getResponseCode();
+            try (InputStream in = status < 400 ? c.getInputStream() : c.getErrorStream()) {
                 if (in != null) {
                     byte[] buf = new byte[256];
                     while (in.read(buf) != -1) {
@@ -139,6 +177,7 @@ public final class WordReporter {
                     }
                 }
             }
+            if (status < 200 || status >= 300) throw new IOException("status " + status);
         } finally {
             c.disconnect();
         }

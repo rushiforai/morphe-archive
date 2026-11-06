@@ -4,6 +4,7 @@
 using System.Net;
 using System.Text.Json;
 using BaconReader.FakeReddit.Tests.Support;
+using BaconReader.FakeReddit.World;
 
 namespace BaconReader.FakeReddit.Tests;
 
@@ -83,6 +84,68 @@ public sealed class CommentTests(FakeRedditFixture fixture) : FakeRedditTest(fix
         using var served = await SendAsync(HttpMethod.Get, new Uri(gif).PathAndQuery);
         Assert.Equal(HttpStatusCode.OK, served.StatusCode);
         Assert.Equal("image/gif", served.Content.Headers.ContentType!.MediaType);
+    }
+
+    [Fact]
+    public async Task A_comment_with_a_snoomoji_names_it_in_its_body_and_sends_reddits_placeholder_for_it()
+    {
+        var post = World.AddPost("e2e", "Weekly thread");
+        World.AddComment(post, "Love it", build => build.WithSnoomoji("grin"));
+        const string id = "emote|free_emotes_pack|grin";
+
+        var page = await GetJsonAsync($"/comments/{post.Id}/.json");
+
+        var data = page[1].GetProperty("data").GetProperty("children")[0].GetProperty("data");
+        Assert.Equal($"Love it ![img]({id})", data.GetProperty("body").GetString());
+        var placeholder = $"{Server.Url}/_media/{RedditEmotes.SnoomojiGif("dizzy_face")}";
+        Assert.Equal(
+            $"&lt;div class=\"md\"&gt;&lt;p&gt;Love it &lt;img src=\"{placeholder}\" width=\"60\" height=\"60\" style=\"vertical-align:middle\"&gt;&lt;/p&gt;\n&lt;/div&gt;",
+            data.GetProperty("body_html").GetString());
+        var metadata = data.GetProperty("media_metadata").GetProperty(id);
+        Assert.Equal("valid", metadata.GetProperty("status").GetString());
+        Assert.Equal("AnimatedImage", metadata.GetProperty("e").GetString());
+        Assert.Equal("image/gif", metadata.GetProperty("m").GetString());
+        Assert.Equal("sticker", metadata.GetProperty("t").GetString());
+        Assert.Equal(id, metadata.GetProperty("id").GetString());
+        var size = metadata.GetProperty("s");
+        Assert.Equal(placeholder, size.GetProperty("gif").GetString());
+        Assert.Equal(60, size.GetProperty("x").GetInt32());
+        Assert.Equal(60, size.GetProperty("y").GetInt32());
+        Assert.False(size.TryGetProperty("mp4", out _));
+        Assert.False(metadata.TryGetProperty("p", out _));
+    }
+
+    [Fact]
+    public async Task The_fake_serves_reddits_placeholder_and_the_snoomoji_a_comment_has()
+    {
+        var post = World.AddPost("e2e", "Weekly thread");
+        World.AddComment(post, "Love it", build => build.WithSnoomoji("grin"));
+
+        foreach (var name in new[] { "dizzy_face", "grin" })
+        {
+            using var served = await SendAsync(HttpMethod.Get, $"/_media/{RedditEmotes.SnoomojiGif(name)}");
+            Assert.Equal(HttpStatusCode.OK, served.StatusCode);
+            Assert.Equal("image/gif", served.Content.Headers.ContentType!.MediaType);
+        }
+
+        using var other = await SendAsync(HttpMethod.Get, $"/_media/{RedditEmotes.SnoomojiGif("joy")}");
+        Assert.Equal(HttpStatusCode.NotFound, other.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_comment_with_a_subreddit_emote_names_it_by_the_subreddit_and_sends_reddits_placeholder_for_it()
+    {
+        var post = World.AddPost("e2e", "Weekly thread");
+        World.AddComment(post, "Stonks", build => build.WithSubredditEmote());
+        var id = $"emote|t5_{World.Subreddit("e2e").Id}|4258";
+
+        var page = await GetJsonAsync($"/comments/{post.Id}/.json");
+
+        var data = page[1].GetProperty("data").GetProperty("children")[0].GetProperty("data");
+        Assert.Equal($"Stonks ![img]({id})", data.GetProperty("body").GetString());
+        var placeholder = $"{Server.Url}/_media/{RedditEmotes.SnoomojiGif("dizzy_face")}";
+        Assert.Contains($"Stonks &lt;img src=\"{placeholder}\" width=\"60\" height=\"60\" style=\"vertical-align:middle\"&gt;", data.GetProperty("body_html").GetString());
+        Assert.Equal(placeholder, data.GetProperty("media_metadata").GetProperty(id).GetProperty("s").GetProperty("gif").GetString());
     }
 
     [Fact]

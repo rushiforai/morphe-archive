@@ -28,7 +28,12 @@ internal const val GENERATE_MENU_LABEL_ARMV7 = 0x7f141c50
 internal const val EPHEMERAL_DIALOG = "A1K"
 /** The same override in 586's armv7 build, with the same body. */
 internal const val EPHEMERAL_DIALOG_ARMV7 = "A1L"
-internal val EPHEMERAL_DIALOGS = setOf(EPHEMERAL_DIALOG, EPHEMERAL_DIALOG_ARMV7)
+/**
+ * The same override in 586's other arm64 builds (347215273, 275 and 277), with the same body. Older releases used other
+ * names for this body, so the name is what keeps their viewers out.
+ */
+internal const val EPHEMERAL_DIALOG_FAMILY_B = "A1M"
+internal val EPHEMERAL_DIALOGS = setOf(EPHEMERAL_DIALOG, EPHEMERAL_DIALOG_ARMV7, EPHEMERAL_DIALOG_FAMILY_B)
 /** The Quicksnap viewer's onCreateView frame in 586. */
 internal const val QUICKSNAP_REGISTERS = 39
 /** One register fewer in 586's armv7 build. */
@@ -135,9 +140,8 @@ internal fun MutableMethod.injectScreenshotViewer() {
 }
 
 /**
- * The cell under 586's naming, the label it shows, how many renders offer that label, the same for its Generate menu label,
- * and how many instructions its own render has (24 registers). Four renders offer the AI label and one the menu label.
- * Each ABI's DEX names the cell and its types differently, so each gets a row.
+ * The AI sticker cell as discovery found it: its class, the Litho base it extends, its render's scope and component
+ * types, and the [AiCellShape] numbers it matched.
  */
 internal data class AiCell(
     val type: String, val superclass: String, val scope: String, val component: String,
@@ -146,35 +150,64 @@ internal data class AiCell(
 ) {
     val render = "$type->render($scope)$component"
 }
-internal val aiCells = listOf(
-    AiCell("LX/REu;", "LX/1JA;", "LX/2Ca;", "LX/1Gk;"),
+
+/**
+ * What tells the cell apart in each of 586's build families: the AI label it shows, how many renders offer that label,
+ * how many instructions its own render has (24 registers), its Generate menu label and how many renders offer that.
+ * Four renders offer the AI label and one the menu label. Every build names the cell and its types differently, so
+ * discovery reads those off the class whose numbers match.
+ */
+internal data class AiCellShape(val label: Int, val sources: Int, val size: Int, val menu: Int, val menuSources: Int)
+internal val aiCellShapes = listOf(
+    AiCellShape(GENERATE_AI_LABEL, AI_CELL_SOURCES, AI_CELL_SIZE, GENERATE_MENU_LABEL, AI_MENU_SOURCES),
     // 586's armv7 build: four fewer instructions in the render, and its own Generate label.
-    AiCell("LX/O19;", "LX/1JZ;", "LX/2Cz;", "LX/1H9;", size = 109, menu = GENERATE_MENU_LABEL_ARMV7),
+    AiCellShape(GENERATE_AI_LABEL, AI_CELL_SOURCES, AI_CELL_SIZE_SHORT, GENERATE_MENU_LABEL_ARMV7, AI_MENU_SOURCES),
+    // 586's other arm64 builds (347215273, 275 and 277): arm64's Generate label and armv7's shorter render.
+    AiCellShape(GENERATE_AI_LABEL, AI_CELL_SOURCES, AI_CELL_SIZE_SHORT, GENERATE_MENU_LABEL, AI_MENU_SOURCES),
 )
 internal const val AI_CELL_SIZE = 113
+internal const val AI_CELL_SIZE_SHORT = 109
 internal const val AI_CELL_REGISTERS = 24
 internal const val AI_CELL_SOURCES = 4
 internal const val AI_MENU_SOURCES = 1
 
-/** This is a single icon/click prefix cell, not the result grid. A00 is its label resource. */
-internal fun findAiStickerCells(classes: Iterable<ClassDef>): List<Method> {
-    val found = mutableListOf<Method>()
-    for (shape in aiCells) {
-        val cls = classes.singleOrNull { it.type == shape.type } ?: continue
-        if (cls.superclass != shape.superclass || cls.fields.count { it.name == "A00" && it.type == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) } != 1) continue
+/** The cells the last discovery found, which the cell and grid switches check their method against. */
+internal var aiStickerCells: List<AiCell> = emptyList()
+
+/**
+ * This is a single icon/click prefix cell, not the result grid. A00 is its label resource. The cell is the one class of
+ * its name whose constructor stores its last argument as that label, whose render overrides the abstract render of the
+ * Litho base it extends, and whose labels and render size match one of [aiCellShapes].
+ */
+internal fun discoverAiCells(classes: Iterable<ClassDef>): List<Pair<AiCell, Method>> {
+    val all = classes.toList()
+    val byType = all.groupBy { it.type }
+    val renders = all.flatMap { it.methods }.filter { it.name == "render" }
+    val found = mutableListOf<Pair<AiCell, Method>>()
+    for (cls in all) {
+        if (cls.fields.count { it.name == "A00" && it.type == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) } != 1) continue
         val ctor = cls.methods.singleOrNull { it.name == "<init>" && it.parameterTypes.size == 11 &&
-            it.parameterTypes.first().toString() == "Lcom/facebook/auth/usersession/FbUserSession;" && it.parameterTypes.last().toString() == "I" &&
+            it.parameterTypes.first().toString() == FB_USER_SESSION && it.parameterTypes.last().toString() == "I" &&
             it.parameterTypes.slice(7..8).map { p -> p.toString() } == List(2) { "Lkotlin/jvm/functions/Function0;" } } ?: continue
         val body = ctor.mediaCode()
         val store = body.getOrNull(5) as? TwoRegisterInstruction
         if (AccessFlags.STATIC.isSet(ctor.accessFlags) || ctor.implementation?.registerCount != 12 || body.size != 15 ||
-            body[5].opcode != Opcode.IPUT || store?.registerA != 11 || store.registerB != 0 || body[5].mediaRef() != "${shape.type}->A00:I" ||
-            body.count { it.mediaRef() == "${shape.type}->A00:I" } != 1 || body.take(5).any { it.writes(0) || it.writes(11) } ||
+            body[5].opcode != Opcode.IPUT || store?.registerA != 11 || store.registerB != 0 || body[5].mediaRef() != "${cls.type}->A00:I" ||
+            body.count { it.mediaRef() == "${cls.type}->A00:I" } != 1 || body.take(5).any { it.writes(0) || it.writes(11) } ||
             body.any { it is OffsetInstruction } || ctor.implementation!!.tryBlocks.isNotEmpty()) continue
-        var sources = 0
-        var menus = 0
-        for (sourceClass in classes) for (source in sourceClass.methods) {
-            if (source.name != "render") continue
+        if (byType.getValue(cls.type).size != 1) continue
+        val render = cls.methods.singleOrNull { it.name == "render" } ?: continue
+        val scope = render.parameterTypes.singleOrNull()?.toString() ?: continue
+        val base = cls.superclass?.let { byType[it] }?.singleOrNull() ?: continue
+        if (!AccessFlags.ABSTRACT.isSet(base.accessFlags) || base.superclass != render.returnType || base.methods.none {
+                it.name == "render" && AccessFlags.ABSTRACT.isSet(it.accessFlags) && it.returnType == render.returnType &&
+                    it.parameterTypes.map { p -> p.toString() } == listOf(scope) }) continue
+        if (AccessFlags.STATIC.isSet(render.accessFlags) || render.implementation?.registerCount != AI_CELL_REGISTERS ||
+            render.implementation!!.tryBlocks.size != 4) continue
+        // Each label constant that reaches the constructor's label argument, in a straight run.
+        val labels = mutableListOf<Int>()
+        val straight = mutableListOf<Int>()
+        for (source in renders) {
             val code = source.mediaCode()
             for (at in code.indices) {
                 if (code[at].opcode !in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE) || code[at].mediaRef() != ctor.hookId()) continue
@@ -182,21 +215,28 @@ internal fun findAiStickerCells(classes: Iterable<ClassDef>): List<Method> {
                 val literal = (at - 1 downTo maxOf(0, at - 24)).firstOrNull { code[it].writes(arg) } ?: continue
                 val value = (code[literal] as? NarrowLiteralInstruction)?.narrowLiteral ?: continue
                 if ((literal + 1 until at).any { code[it] is OffsetInstruction }) continue
-                if (value == shape.label && source.jumpTargets().none { it in literal + 1..at }) sources++
-                // The music sticker branch jumps into the menu cell's constructor call, so only the straight run from the literal counts.
-                if (value == shape.menu) menus++
+                labels += value
+                if (source.jumpTargets().none { it in literal + 1..at }) straight += value
             }
         }
-        if (sources != shape.sources || menus != shape.menuSources) continue
-        val render = cls.methods.singleOrNull { it.hookId() == shape.render } ?: continue
-        if (!AccessFlags.STATIC.isSet(render.accessFlags) && render.implementation?.registerCount == AI_CELL_REGISTERS &&
-            render.mediaCode().size == shape.size && render.implementation!!.tryBlocks.size == 4) found.add(render)
+        val size = render.mediaCode().size
+        // The music sticker branch jumps into the menu cell's constructor call, so the menu label counts either way.
+        val shape = aiCellShapes.firstOrNull { shape ->
+            shape.size == size && straight.count { it == shape.label } == shape.sources && labels.count { it == shape.menu } == shape.menuSources
+        } ?: continue
+        found += AiCell(cls.type, base.type, scope, render.returnType, shape.label, shape.sources, shape.size, shape.menu, shape.menuSources) to render
     }
     return found
 }
 
+internal fun findAiStickerCells(classes: Iterable<ClassDef>): List<Method> {
+    val found = discoverAiCells(classes)
+    aiStickerCells = found.map { it.first }
+    return found.map { it.second }
+}
+
 internal fun MutableMethod.validateAiStickerCell(): AiCell {
-    val cell = aiCells.singleOrNull { it.render == hookId() }
+    val cell = aiStickerCells.singleOrNull { it.render == hookId() }
     if (cell == null || hookId() !in activeProfile.hooks.getValue("ai_sticker_cell") ||
         AccessFlags.STATIC.isSet(accessFlags) || implementation?.registerCount != AI_CELL_REGISTERS || mediaCode().size != cell.size ||
         implementation!!.tryBlocks.size != 4) mediaFailure(this)
@@ -301,13 +341,19 @@ internal fun Method.aiStickerGrid(cell: AiCell): AiGrid? {
     return found.singleOrNull()
 }
 
-/** The Suggested grid renders that skip the Generate items, found by the loop around the cell rather than by name. */
-internal fun findAiStickerGrids(classes: Iterable<ClassDef>): List<Method> =
-    classes.flatMap { it.methods }.filter { method -> aiCells.any { method.aiStickerGrid(it) != null } }
+/**
+ * The Suggested grid renders that skip the Generate items, found by the loop around the cell rather than by name. The
+ * grid runs its own cell discovery, so it doesn't depend on the cell finder having run first.
+ */
+internal fun findAiStickerGrids(classes: Iterable<ClassDef>): List<Method> {
+    val cells = discoverAiCells(classes).map { it.first }
+    aiStickerCells = cells
+    return classes.flatMap { it.methods }.filter { method -> cells.any { method.aiStickerGrid(it) != null } }
+}
 
 internal fun MutableMethod.validateAiStickerGrid(): AiGrid {
     if (hookId() !in activeProfile.hooks.getValue("ai_sticker_grid")) mediaFailure(this)
-    return aiCells.mapNotNull { aiStickerGrid(it) }.singleOrNull() ?: mediaFailure(this)
+    return aiStickerCells.mapNotNull { aiStickerGrid(it) }.singleOrNull() ?: mediaFailure(this)
 }
 
 /**

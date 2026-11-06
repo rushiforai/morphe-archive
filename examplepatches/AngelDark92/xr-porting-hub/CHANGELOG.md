@@ -1,3 +1,15 @@
+## [2.7.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.6.0...v2.7.0) (2026-11-06)
+
+### ✨ New Features
+
+* retire Alpha-0 and Appear on top, promote stock quad, merge network optimizations ([b2077dd](https://github.com/AngelDark92/xr-porting-hub/commit/b2077dd73d47f50d4a391a1288e4b07981f5b2c5))
+
+## [2.7.0-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.6.0...v2.7.0-dev.1) (2026-11-06)
+
+### ✨ New Features
+
+* retire Alpha-0 and Appear on top, promote stock quad, merge network optimizations ([b2077dd](https://github.com/AngelDark92/xr-porting-hub/commit/b2077dd73d47f50d4a391a1288e4b07981f5b2c5))
+
 ## [2.6.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.5.0...v2.6.0) (2026-11-04)
 
 ### 🐛 Bug Fixes

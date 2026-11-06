@@ -64,11 +64,23 @@ internal fun Method.selectionSuperCall(): Int? {
  * entries (Bold and Italic, and every other app's) only to a field that has one, so the chat box gets Bold and Italic
  * as rows of its own menu instead (#42, #125). The input is the one EditText whose onTextChanged names its remeasure, and
  * the hook is that class's own onSelectionChanged. A Litho spec names the remeasure too, but it isn't a view. Nothing
- * unless there's exactly one of each.
+ * unless there's exactly one of each. Family B's onTextChanged leaves the remeasure to a static helper that names it,
+ * so when no EditText names it directly, one calling such a helper counts.
  */
 internal fun findTextStyleField(classes: Iterable<ClassDef>): List<Method> {
-    val anchors = classes.filter { it.superclass == EDIT_TEXT }
-        .flatMap { cls -> cls.methods.filter { it.namesRemeasure() }.map { cls to it } }
+    val fields = classes.filter { it.superclass == EDIT_TEXT }
+    var anchors = fields.flatMap { cls -> cls.methods.filter { it.namesRemeasure() }.map { cls to it } }
+    if (anchors.isEmpty()) {
+        val helpers = classes.flatMap { cls ->
+            cls.methods.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.namesRemeasure() }.map { it.hookId() }
+        }.toSet()
+        anchors = fields.flatMap { cls ->
+            cls.methods.filter { m -> m.implementation?.instructions?.any { i ->
+                (i.opcode == Opcode.INVOKE_STATIC || i.opcode == Opcode.INVOKE_STATIC_RANGE) &&
+                    ((i as? ReferenceInstruction)?.reference as? MethodReference)?.toString() in helpers
+            } == true }.map { cls to it }
+        }
+    }
     val (field, anchor) = anchors.singleOrNull() ?: return emptyList()
     if (AccessFlags.STATIC.isSet(anchor.accessFlags) || anchor.signature() != TEXT_CHANGED) return emptyList()
     return field.methods.filter { it.selectionSuperCall() != null }.takeIf { it.size == 1 }.orEmpty()

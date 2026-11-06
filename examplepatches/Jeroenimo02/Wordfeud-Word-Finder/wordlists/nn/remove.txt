@@ -1,2 +1,7 @@
 # Woorden die uit de lijst gehaald worden (een per regel). Een # begint commentaar.
 # Wordt toegepast door tools/wordlists/build.py.
+HAGR
+MW
+MS
+CF
+CG

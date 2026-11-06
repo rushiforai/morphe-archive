@@ -18,6 +18,7 @@ package app.morphe
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.PatcherProgress
 import app.morphe.patcher.patch.BytecodePatchContext
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -53,7 +54,8 @@ internal object PatchContexts {
         val context = BytecodePatchContext::class.java.getConstructor(PatcherConfig::class.java, metadataType)
             .newInstance(config, metadata)
         val poolType = Class.forName("app.morphe.patcher.util.PatchClasses")
-        val pool = poolType.getConstructor(Set::class.java).newInstance(classes.toSet())
+        // Patcher 2.3.0 hands PatchClasses a PatcherProgress beside the classes; tests report none.
+        val pool = poolType.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes.toSet(), null)
         BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", poolType).invoke(context, pool)
         BytecodePatchContext::class.java.getMethod("setOpcodes\$morphe_patcher", Opcodes::class.java)
             .invoke(context, Opcodes.getDefault())

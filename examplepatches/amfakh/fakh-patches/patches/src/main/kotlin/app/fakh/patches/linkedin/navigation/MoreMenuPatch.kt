@@ -6,26 +6,15 @@ import app.fakh.patches.linkedin.shared.markIncluded
 import app.fakh.patches.linkedin.shared.sduiComponentFilterPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/MoreMenu;"
-
-/** HomeNavTabsManager.getHomeNavTabs(): the tabs of the bottom bar. */
-private object HomeNavTabsFingerprint : Fingerprint(
-    definingClass = "Lcom/linkedin/android/home/HomeNavTabsManager;",
-    name = "getHomeNavTabs",
-    returnType = "Ljava/util/List;",
-    parameters = emptyList(),
-)
 
 /**
  * The HomeNavPanelFeature lambda that builds the list at the bottom of the Me panel: a divider put first, then
@@ -54,8 +43,8 @@ private object NavPanelSectionBindFingerprint : Fingerprint(
 @Suppress("unused")
 val moreMenuPatch = bytecodePatch(
     name = "More tab",
-    description = "Lets you hide items of the More tab (Puzzle games, Groups, Events, Newsletters), or move them " +
-        "to the bottom of the profile menu and remove the tab.",
+    description = "Lets you hide items of the More tab (Puzzle games, Groups, Events, Newsletters), or list them " +
+        "at the bottom of the profile menu.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -65,12 +54,6 @@ val moreMenuPatch = bytecodePatch(
 
     execute {
         markIncluded("isMoreMenuIncluded")
-
-        // Each return is replaced in place (rather than code inserted before it) because branches
-        // may jump straight to the return instruction and would skip inserted code.
-        HomeNavTabsFingerprint.method.wrapReturns(
-            "$EXTENSION_CLASS->filterTabs(Ljava/util/List;)Ljava/util/List;"
-        )
 
         // Right after the divider goes into the footer list, so the items are added above it.
         NavPanelFooterFingerprint.let {
@@ -94,22 +77,3 @@ val moreMenuPatch = bytecodePatch(
         }
     }
 }
-
-/** Passes the value of every return-object through the static extension method. */
-private fun MutableMethod.wrapReturns(method: String) {
-    returnIndices(Opcode.RETURN_OBJECT).forEach { index ->
-        val register = getInstruction<OneRegisterInstruction>(index).registerA
-        replaceInstruction(index, "invoke-static/range { v$register .. v$register }, $method")
-        addInstructions(
-            index + 1,
-            """
-                move-result-object v$register
-                return-object v$register
-            """
-        )
-    }
-}
-
-/** Indices of all instructions with the opcode, last first so edits keep earlier indices valid. */
-private fun MutableMethod.returnIndices(opcode: Opcode) =
-    implementation!!.instructions.withIndex().filter { it.value.opcode == opcode }.map { it.index }.reversed()

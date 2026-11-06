@@ -68,3 +68,14 @@ internal val OKHTTP_BODY_REWRITE_API = OKHTTP_INTERCEPTOR_API + listOf(
     "Lokio/Buffer;-><init>()V",
     "Lokio/Buffer;->readUtf8()Ljava/lang/String;",
 )
+
+/**
+ * The OkHttp calls of an interceptor that rewrites JSON responses from one
+ * API: the body-rewrite calls, plus matching the URL path, skipping
+ * still-compressed bodies, and dropping the stale Content-Length.
+ */
+internal val OKHTTP_JSON_FILTER_API = OKHTTP_BODY_REWRITE_API + listOf(
+    "Lokhttp3/HttpUrl;->encodedPath()Ljava/lang/String;",
+    "Lokhttp3/Response;->header(Ljava/lang/String;)Ljava/lang/String;",
+    "Lokhttp3/Response\$Builder;->removeHeader(Ljava/lang/String;)Lokhttp3/Response\$Builder;",
+)

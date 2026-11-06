@@ -59,10 +59,10 @@ buildscript {
             // The settings classpath resolves before the version catalog exists. Keep these
             // reviewed host-tool pins aligned with gradle/libs.versions.toml.
             if (requested.group == "com.google.guava" && requested.name == "guava") {
-                useVersion("33.7.2-jre")
+                useVersion("33.8.0-jre")
             }
             if (requested.group == "org.apache.commons" && requested.name == "commons-lang3") {
-                useVersion("3.18.0")
+                useVersion("3.21.0")
             }
             if (requested.group == "org.apache.httpcomponents" && requested.name == "httpclient") {
                 useVersion("4.5.14")

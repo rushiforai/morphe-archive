@@ -29,16 +29,46 @@ jobs:
       - name: Build Android patch bundle
         run: |
           ./gradlew buildAndroid --stacktrace > build.log 2>&1 && tail -5 build.log && exit 0
-          echo "=== ROOT CAUSE (first relevant lines) ==="
-          grep -nE "What went wrong|> |error:|e: |Exception|Caused by|Could not|Failed to|Unresolved" build.log | head -25 | while read -r line; do
+          echo "=== GREP: exception headers ==="
+          grep -n -m 12 -E "What went wrong|FAILURE:|Caused by|Exception|Error|Killed|No space|OutOfMemory|ExceptionInInitializerError|AssertionError" build.log | while IFS= read -r line; do
             echo "::error::$line"
             echo "$line"
           done
-          echo "=== LAST 60 LINES OF GRADLE LOG ==="
-          tail -60 build.log
+          echo "=== CONTEXT: around 'What went wrong' (if any) ==="
+          grep -n -m 1 -A8 "What went wrong" build.log | while IFS= read -r line; do
+            echo "::warning::$line"
+            echo "$line"
+          done
+          echo "=== LAST 12 RAW LINES ==="
+          tail -n 12 build.log | while IFS= read -r line; do
+            echo "::warning::$line"
+            echo "$line"
+          done
           exit 1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Test Pinterest video URLs
+        run: bash .github/scripts/test_pinterest_video_urls.sh
+
+      - name: Test permission removal and Brave helpers
+        run: ./gradlew :patches:testPermissionRemoval :patches:testBravePrivacy --stacktrace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Exercise the same build-then-metadata sequence used by releases. The
+      # metadata task must not leave a JVM-only archive in place of the MPP.
+      - name: Generate patch metadata
+        run: ./gradlew generatePatchesList --stacktrace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify Android bundle and remote source metadata
+        run: |
+          python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+          VERSION=$(sed -n 's/^version[[:space:]]*=[[:space:]]*//p' gradle.properties)
+          python3 .github/scripts/verify_android_bundle.py "patches/build/libs/patches-${VERSION}.mpp" "$VERSION"
+          python3 .github/scripts/verify_patch_source.py patches-bundle.json "$VERSION"
 
       - name: Upload .mpp artifact
         if: success()

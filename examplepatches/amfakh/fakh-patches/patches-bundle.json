@@ -1,8 +1,8 @@
 {
-  "created_at": "2026-11-06T04:02:15",
-  "description": "## [1.12.0](https://github.com/amfakh/fakh-patches/compare/v1.11.6...v1.12.0) (2026-11-06)\n\n### ✨ New Features\n\n* **FlipSide:** add Premium unlock for version 1.6, which unlocks every locked feature with no trial limit ([f109f3b](https://github.com/amfakh/fakh-patches/commit/f109f3b37f85a0c31031d2a4bc1bd032b96a2cdc))\n* **DoDo Music:** all patches now work on version 2.0.17 ([be80325](https://github.com/amfakh/fakh-patches/commit/be803250f2675d52842a30b61f140b6de78299d6))\n\n### 🐛 Bug Fixes\n\n* **Smart Life, Tuya Smart, BARDI:** log why the app closes after opening, to help track down the integrity error some phones still get ([b6dd5de](https://github.com/amfakh/fakh-patches/commit/b6dd5de0326f69362856077fd9ddafe6baa8f83d))",
-  "download_url": "https://github.com/amfakh/fakh-patches/releases/download/v1.12.0/patches-1.12.0.mpp",
+  "created_at": "2026-11-06T11:21:03",
+  "description": "## [1.13.2](https://github.com/amfakh/fakh-patches/compare/v1.13.1...v1.13.2) (2026-11-06)\n\n### 🐛 Bug Fixes\n\n* **Smart Life, Tuya Smart & BARDI:** keep the signature fix working on devices that block the hidden-API exemption, where the app could still close after opening with \"Invalid client\" ([b559baf](https://github.com/amfakh/fakh-patches/commit/b559bafeec270c5534f36fd131e94da37391dd97))",
+  "download_url": "https://github.com/amfakh/fakh-patches/releases/download/v1.13.2/patches-1.13.2.mpp",
   "signature_download_url": "",
-  "version": "1.12.0",
+  "version": "1.13.2",
   "public_key": "nc1YwEs3krD1RUOqS0yPCgPBbEghEwaSuL+204GzCV4="
 }

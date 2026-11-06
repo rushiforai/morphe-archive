@@ -198,22 +198,34 @@ fi
 
 # screenrecord writes a frame only when the screen changes: fps= gives the GIF and the MP4 a steady rate.
 hold_end="tpad=stop_mode=clone:stop_duration=3"
-palette="split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle"
-gif_filter="fps=15,$hold_end,scale=360:-1:flags=lanczos,$palette"
+gif_filter="fps=15,$hold_end,scale=360:-1:flags=lanczos"
 # A browser run (the extension's scenarios): from when VS Code's workbench showed, 20 fps, 800 px wide.
-browser_gif_filter="$hold_end,fps=20,scale=800:-1:flags=lanczos,$palette"
+browser_gif_filter="$hold_end,fps=20,scale=800:-1:flags=lanczos"
+# A GIF in two passes: its palette from the whole video first, then the frames with it. In one pass (split, palettegen,
+# paletteuse) ffmpeg holds every frame until the video ends: 13.8 GB for a 29 min recording, which the cloud session's
+# memory limit killed (2026-11-04). Two passes keep it flat and give the same GIF.
+# gif <input options and file …> <filter> <gif>
+gif() {
+  local filter="${*: -2:1}" target="${*: -1}" palette
+  local input=("${@:1:$#-2}")
+  palette="$(mktemp --suffix .png)"
+  ffmpeg -nostdin -loglevel error -y "${input[@]}" -vf "$filter,palettegen=max_colors=128:stats_mode=diff" -update 1 "$palette"
+  ffmpeg -nostdin -loglevel error -y "${input[@]}" -i "$palette" \
+    -lavfi "$filter[frames];[frames][1:v]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle" "$target"
+  rm -f "$palette"
+}
 records=()
 while IFS= read -r record; do
   domain="$(dirname "${record#"$raw"/}")"
   name="$(basename "$record" .json)"
   mkdir -p "$out/$domain"
   if [ -f "${record%.json}.mp4" ]; then
-    ffmpeg -nostdin -loglevel error -y -i "${record%.json}.mp4" -vf "$gif_filter" "$out/$domain/$name.gif"
+    gif -i "${record%.json}.mp4" "$gif_filter" "$out/$domain/$name.gif"
     ffmpeg -nostdin -loglevel error -y -i "${record%.json}.mp4" -vf "fps=30,$hold_end" -an \
       -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -movflags +faststart "$out/$domain/$name.mp4"
   elif [ -f "${record%.json}.webm" ]; then
     read -r _ _ _ offset < <(e2e_tool find-home "$record") || offset=0
-    ffmpeg -nostdin -loglevel error -y -ss "${offset:-0}" -i "${record%.json}.webm" -vf "$browser_gif_filter" "$out/$domain/$name.gif"
+    gif -ss "${offset:-0}" -i "${record%.json}.webm" "$browser_gif_filter" "$out/$domain/$name.gif"
     ffmpeg -nostdin -loglevel error -y -ss "${offset:-0}" -i "${record%.json}.webm" -vf "$hold_end" -an \
       -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart "$out/$domain/$name.mp4"
   else

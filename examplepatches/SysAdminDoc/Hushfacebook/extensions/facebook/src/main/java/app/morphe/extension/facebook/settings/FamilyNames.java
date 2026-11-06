@@ -29,6 +29,7 @@ public final class FamilyNames {
     public static final String AI_DETECTED_REELS = "Hide AI-detected posts (Reels and Watch)";
     public static final String POST_WORDS = "Hide posts by words";
     public static final String POST_PROMPTS = "Hide post prompts";
+    public static final String PROFILE_PICTURES = "Hide profile pictures";
     public static final String SEEN_POSTS = "Hide seen posts";
     public static final String META_AI_QUESTIONS = "Hide Meta AI questions under posts";
     public static final String POST_DATES = "Keep post dates";
@@ -50,6 +51,7 @@ public final class FamilyNames {
     public static final String STORIES_TRAY_CIRCLES = "Round stories tray";
     public static final String STORY_TAPS = "Story viewer taps";
     public static final String STORY_VIEWER_CLEANUP = "Clean up the story viewer";
+    public static final String STORY_RINGS = "Hide story rings";
     public static final String SPONSORED_REELS = "Hide sponsored reels";
     public static final String SPONSORED_SEARCH = "Hide sponsored search results";
     public static final String SPONSORED_PROFILE_POSTS = "Hide sponsored profile posts";

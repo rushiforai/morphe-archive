@@ -1,6 +1,7 @@
 package app.hushmessenger.patches.controls
 
 import app.morphe.patcher.PatcherConfig
+import app.morphe.patcher.PatcherProgress
 import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -75,7 +76,7 @@ class ControlFailureTest {
                 .newInstance(config, resources.packageMetadata) as BytecodePatchContext
             val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
             BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", patchClasses)
-                .invoke(context, patchClasses.getConstructor(Set::class.java).newInstance(classes))
+                .invoke(context, patchClasses.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes, null))
             context.use {
                 feature.execute(resources)
                 discovery.execute(context)
@@ -142,7 +143,7 @@ class ControlFailureTest {
                             .newInstance(config, resources.packageMetadata) as BytecodePatchContext
                         val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
                         BytecodePatchContext::class.java.getMethod("setPatchClasses\$morphe_patcher", patchClasses)
-                            .invoke(context, patchClasses.getConstructor(Set::class.java).newInstance(classes))
+                            .invoke(context, patchClasses.getConstructor(Set::class.java, PatcherProgress::class.java).newInstance(classes, null))
                         context.use {
                             record.execute(resources)
                             discoveredControls = mirroredControls(classes)

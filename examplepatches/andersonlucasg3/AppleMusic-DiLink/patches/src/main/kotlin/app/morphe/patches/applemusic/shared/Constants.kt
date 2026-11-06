@@ -15,7 +15,7 @@ object Constants {
      * modified or unrelated APK before patching.
      */
     val APPLE_MUSIC_DILINK = Compatibility(
-        name = "Apple Music (DiLink)",
+        name = "Apple Music",
         packageName = "com.apple.android.music",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xFA243C,

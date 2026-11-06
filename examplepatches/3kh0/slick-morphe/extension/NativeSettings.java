@@ -29,7 +29,7 @@ public final class NativeSettings {
         .newInstance(args);
   }
 
-  private static Activity activity(Object composer) throws ReflectiveOperationException {
+  static Activity activity(Object composer) throws ReflectiveOperationException {
     Object local =
         Class.forName("androidx.compose.ui.platform.AndroidCompositionLocals_androidKt")
             .getField("LocalContext")

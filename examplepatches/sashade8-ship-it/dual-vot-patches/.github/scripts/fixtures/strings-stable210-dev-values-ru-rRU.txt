@@ -1,0 +1,7 @@
+<<<<<<< HEAD
+=======
+  <string name="morphe_niconico_comments_timed_comments_title">Показывать привязанные к времени комментарии</string>
+  <string name="morphe_niconico_comments_timed_comments_summary">В видео без чата топ-комментарии, содержащие отметку времени, например 1:23, отображаются в соответствующий момент</string>
+  <string name="morphe_niconico_comments_timed_comments_with_replay_title">Показывать привязанные к времени комментарии при повторе чата</string>
+  <string name="morphe_niconico_comments_timed_comments_with_replay_summary">При повторах прямых трансляций и премьер привязанные к времени комментарии также отображаются вместе с чатом</string>
+>>>>>>> 0a7a90f739d02e274e7042536f36c9f9e1801e9c

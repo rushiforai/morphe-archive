@@ -18,7 +18,7 @@ private const val MLI_CHROME_TAB_ACTIVITY = "com.apple.android.music.mli.MLIChro
  */
 @Suppress("unused")
 internal val dilinkManifestPatch = resourcePatch(
-    name = "Apple Music DiLink manifest",
+    name = "DiLink: manifest",
     description = "Lowers minSdkVersion from 30 to 29 (Android 10) and removes the portrait lock of MLIChromeTabActivity.",
     default = false,
 ) {

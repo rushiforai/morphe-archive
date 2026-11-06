@@ -5,6 +5,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * Licensed under the GNU General Public License v3.0.
+ * Modified by lavinhoque33, 2026-11-05.
  * Written by lavinhoque33, 2026-10-10.
  * Modified by lavinhoque33, 2026-10-24.
  */
@@ -35,6 +36,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -62,7 +65,6 @@ import app.morphe.extension.youtube.utils.ThemeUtils;
 final class OfflinePickerSheet {
     private static final String THUMBNAIL_URL = "https://i.ytimg.com/vi/%s/mqdefault.jpg";
     private static final int ANIMATION_DURATION_MS = 180;
-    private static final float MAX_LIST_HEIGHT_FRACTION = 0.55f;
 
     private final Activity activity;
     private final SheetBottomDialog.SlideDialog dialog;
@@ -72,6 +74,9 @@ final class OfflinePickerSheet {
     private final TextView title;
     private final TextView author;
     private final ProgressBar loading;
+    private OfflineCaptions.Catalog playlistCaptions;
+    private final OfflineSponsorBlock.Picker sponsorPicker;
+    private boolean dismissed;
 
     private final int foreground;
     private final int secondary;
@@ -80,6 +85,7 @@ final class OfflinePickerSheet {
 
     OfflinePickerSheet(Activity activity, @Nullable String videoId, Runnable onDismiss) {
         this.activity = activity;
+        sponsorPicker = new OfflineSponsorBlock.Picker(videoId == null, this::isActive);
         foreground = ThemeUtils.getAppForegroundColor();
         secondary = withAlpha(foreground, 0xAA);
         divider = withAlpha(foreground, 0x1F);
@@ -133,20 +139,31 @@ final class OfflinePickerSheet {
         root.addView(loading, loadingParams);
 
         dialog = SheetBottomDialog.createSlideDialog(activity, root, ANIMATION_DURATION_MS);
-        dialog.setOnDismissListener(d -> onDismiss.run());
-        PipDismissHelper.dismissOnPip(dialog);
-        if (videoId != null) loadThumbnail(videoId);
+        PipDismissHelper.dismissOnPip(dialog, () -> {
+            dismissed = true;
+            onDismiss.run();
+        });
+        if (videoId != null) {
+            sponsorPicker.fetch(videoId);
+            loadThumbnail(videoId);
+        }
     }
 
     void show() {
+        if (activity.isFinishing() || activity.isDestroyed()) return;
         dialog.show();
     }
 
+    boolean isActive() {
+        return !dismissed && dialog.isShowing() && !activity.isFinishing() && !activity.isDestroyed();
+    }
+
     void dismiss() {
+        dismissed = true;
         try {
             dialog.dismiss();
         } catch (Exception ex) {
-            Logger.printDebug(() -> "Could not dismiss the quality picker", ex);
+            Logger.printException(() -> "Could not dismiss the quality picker", ex);
         }
     }
 
@@ -154,42 +171,25 @@ final class OfflinePickerSheet {
         title.setText(text);
     }
 
-    /**
-     * Replaces the loading state of a playlist with the largest video height to download.
-     *
-     * @param onPick Called with the height limit, {@link Integer#MAX_VALUE} for no limit.
-     */
-    void showHeightLimits(String playlistTitle, int videoCount, String firstVideoId, Consumer<Integer> onPick) {
-        title.setText(playlistTitle.isEmpty() ? str("revanced_offline_batch_title") : playlistTitle);
-        author.setText(str("revanced_offline_batch_count", videoCount));
+    /** Scrollable batch options and recycled playlist rows, with an always-visible download footer. */
+    void showPlaylist(OfflinePlaylist.Result playlist, List<OfflinePlaylistSelection.Item> items,
+                      Consumer<List<OfflinePlaylistSelection.Item>> onPick) {
+        if (!isActive()) return;
+        title.setText(playlist.title().isEmpty() ? str("revanced_offline_batch_title") : playlist.title());
+        author.setText(str("revanced_offline_batch_count", items.size()));
         author.setVisibility(View.VISIBLE);
-        loadThumbnail(firstVideoId);
+        loadThumbnail(playlist.entries().get(0).videoId());
         root.removeView(loading);
 
         View line = new View(activity);
         line.setBackgroundColor(divider);
         root.addView(line, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, Dim.dp1));
 
-        TextView section = text(13, secondary, 1);
-        section.setTypeface(Typeface.DEFAULT_BOLD);
-        section.setText(str("revanced_offline_batch_subtitle"));
-        section.setPadding(Dim.dp16, Dim.dp12, Dim.dp16, Dim.dp4);
-        root.addView(section);
-
-        boolean[] picked = {false};
-        for (int limit : heightLimits()) {
-            LinearLayout row = baseRow(v -> {
-                if (picked[0]) return; // A second tap while the sheet slides away.
-                picked[0] = true;
-                onPick.accept(limit);
-            });
-            TextView label = text(16, foreground, 1);
-            label.setTypeface(Typeface.DEFAULT_BOLD);
-            label.setText(limit == Integer.MAX_VALUE ? str("revanced_offline_batch_best") : limit + "p");
-            row.addView(label);
-            root.addView(row, new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        }
+        LinearLayout header = new LinearLayout(activity);
+        header.setOrientation(LinearLayout.VERTICAL);
+        playlistCaptions = OfflineCaptions.Catalog.forBatch();
+        OfflineSubtitlePicker.add(activity, header, playlistCaptions, foreground);
+        sponsorPicker.add(activity, header, foreground);
 
         String footerText = str("revanced_offline_batch_footer");
         if (OfflineOptions.isRangeNarrowed()) {
@@ -197,11 +197,31 @@ final class OfflinePickerSheet {
                     OfflineOptions.minHeight() + "p", OfflineOptions.maxHeight() + "p");
         }
         if (OfflineOptions.allVideoCodecsOff()) footerText += "\n" + str("revanced_offline_codecs_all_off");
-        addFooter(root, footerText);
+        LinearLayout footer = new LinearLayout(activity);
+        footer.setOrientation(LinearLayout.VERTICAL);
+        Button download = new Button(activity);
+        footer.addView(download);
+        footer.addView(createFooter(footerText));
+
+        ListView list = new MaxHeightListView(activity, footer, root);
+        list.setDivider(null);
+        new OfflinePlaylistPicker(activity, list, header, download, items, foreground, this::isActive, onPick);
+        root.addView(list, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(footer, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+    }
+
+    OfflineCaptions.Selection playlistSubtitles() {
+        return playlistCaptions == null ? OfflineCaptions.Selection.none() : playlistCaptions.selection();
+    }
+
+    OfflineSponsorBlock.Selection sponsorSelection() {
+        return sponsorPicker.selection();
     }
 
     /** Best, then the usual limits that lie within the quality range of the settings. */
-    private static List<Integer> heightLimits() {
+    static List<Integer> heightLimits() {
         List<Integer> limits = new ArrayList<>();
         limits.add(Integer.MAX_VALUE);
         for (int limit : new int[]{1080, 720, 480, 360}) {
@@ -215,6 +235,7 @@ final class OfflinePickerSheet {
      */
     void showFormats(OfflineFormats.Resolved resolved, Consumer<OfflineFormats.Stream> onPick,
                      Runnable onThumbnail) {
+        if (!isActive()) return;
         showDetails(resolved);
         root.removeView(loading);
 
@@ -231,18 +252,12 @@ final class OfflinePickerSheet {
         LinearLayout list = new LinearLayout(activity);
         list.setOrientation(LinearLayout.VERTICAL);
         OfflineSubtitlePicker.add(activity, list, resolved.captions(), foreground);
+        sponsorPicker.add(activity, list, foreground);
         addVideoSection(list, resolved, video -> once.accept(() -> onPick.accept(video)));
         addAudioSection(list, resolved, audio -> once.accept(() -> onPick.accept(audio)));
         addThumbnailSection(list, () -> once.accept(onThumbnail));
 
-        ScrollView scroll = new MaxHeightScrollView(activity,
-                (int) (activity.getResources().getDisplayMetrics().heightPixels * MAX_LIST_HEIGHT_FRACTION));
-        scroll.setVerticalScrollBarEnabled(false);
-        scroll.addView(list);
-        root.addView(scroll, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        addFooter(root, str("revanced_offline_picker_footer",
+        addCappedList(list, str("revanced_offline_picker_footer",
                 OfflineMediaStore.Collection.VIDEO.relativePath(OfflineOptions.videoFolder()),
                 OfflineMediaStore.Collection.AUDIO.relativePath(OfflineOptions.audioFolder()))
                 + "\n" + str("revanced_offline_subtitles_footer"));
@@ -312,12 +327,23 @@ final class OfflinePickerSheet {
         return note;
     }
 
-    private void addFooter(LinearLayout parent, String text) {
-        TextView footer = text(12, secondary, 4);
-        footer.setText(text);
+    private TextView createFooter(String footerText) {
+        TextView footer = text(12, secondary, Integer.MAX_VALUE);
+        footer.setEllipsize(null);
+        footer.setText(footerText);
         footer.setGravity(Gravity.CENTER);
         footer.setPadding(Dim.dp16, Dim.dp8, Dim.dp16, Dim.dp4);
-        parent.addView(footer, new LinearLayout.LayoutParams(
+        return footer;
+    }
+
+    private void addCappedList(LinearLayout list, String footerText) {
+        TextView footer = createFooter(footerText);
+        ScrollView scroll = new MaxHeightScrollView(activity, footer, root);
+        scroll.setVerticalScrollBarEnabled(false);
+        scroll.addView(list);
+        root.addView(scroll, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(footer, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
     }
 
@@ -416,12 +442,14 @@ final class OfflinePickerSheet {
     private void loadThumbnail(String videoId) {
         Utils.runOnBackgroundThread(() -> {
             Bitmap bitmap = fetchThumbnail(String.format(Locale.US, THUMBNAIL_URL, videoId));
-            if (bitmap != null) Utils.runOnMainThread(() -> thumbnail.setImageBitmap(bitmap));
+            if (bitmap != null) Utils.runOnMainThread(() -> {
+                if (isActive()) thumbnail.setImageBitmap(bitmap);
+            });
         });
     }
 
     @Nullable
-    private static Bitmap fetchThumbnail(String url) {
+    static Bitmap fetchThumbnail(String url) {
         HttpURLConnection connection = null;
         try {
             connection = (HttpURLConnection) new URL(url).openConnection();
@@ -461,16 +489,45 @@ final class OfflinePickerSheet {
 
     /** Keeps the sheet's header and footer on screen when a video has many qualities. */
     private static final class MaxHeightScrollView extends ScrollView {
-        private final int maxHeight;
+        private final View footer;
+        private final ViewGroup root;
 
-        MaxHeightScrollView(Context context, int maxHeight) {
+        MaxHeightScrollView(Context context, View footer, ViewGroup root) {
             super(context);
-            this.maxHeight = maxHeight;
+            this.footer = footer;
+            this.root = root;
         }
 
         @Override
         protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-            super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.AT_MOST));
+            int cap = listCap(this, footer, root, widthMeasureSpec, heightMeasureSpec);
+            super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(cap, MeasureSpec.AT_MOST));
+        }
+    }
+
+    private static int listCap(View list, View footer, ViewGroup root, int widthSpec, int heightSpec) {
+        footer.measure(widthSpec, View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        int screenHeight = list.getResources().getDisplayMetrics().heightPixels;
+        int available = View.MeasureSpec.getMode(heightSpec) == View.MeasureSpec.UNSPECIFIED
+                ? screenHeight : View.MeasureSpec.getSize(heightSpec);
+        return OfflinePickerLayout.scrollCap(screenHeight, available, footer.getMeasuredHeight(),
+                root.getPaddingBottom() + Dim.dp8, Dim.dp(120));
+    }
+
+    private static final class MaxHeightListView extends ListView {
+        private final View footer;
+        private final ViewGroup root;
+
+        MaxHeightListView(Context context, View footer, ViewGroup root) {
+            super(context);
+            this.footer = footer;
+            this.root = root;
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            int cap = listCap(this, footer, root, widthMeasureSpec, heightMeasureSpec);
+            super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(cap, MeasureSpec.AT_MOST));
         }
     }
 }

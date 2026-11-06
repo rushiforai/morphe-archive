@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/V4n1X/morphe-patches/compare/v1.4.0...v1.4.1) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* **soundcloud:** support November release and black out mini-player on AMOLED ([149ea4a](https://github.com/V4n1X/morphe-patches/commit/149ea4a3b7bf1b196d78100bddcdc781752625b7)), closes [#5](https://github.com/V4n1X/morphe-patches/issues/5) [#6](https://github.com/V4n1X/morphe-patches/issues/6) [#7](https://github.com/V4n1X/morphe-patches/issues/7)
+
 ## [1.4.0](https://github.com/V4n1X/morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-30)
 
 ### 🐛 Bug Fixes

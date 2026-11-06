@@ -8,7 +8,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.feurstagram.patches.settings.TabBarBinderFingerprint
+import com.feurstagram.patches.settings.tabBarBinder
 import com.feurstagram.patches.shared.Constants.COMPATIBILITY_INSTAGRAM
 import com.feurstagram.patches.shared.Constants.EXTENSION
 
@@ -55,7 +55,7 @@ val debugBridgePatch = bytecodePatch(
     execute {
         // Same anchor as the settings entry point: the tab-bar root is the first
         // handle we get on a logged-in window, and both hooks want it.
-        TabBarBinderFingerprint.method.apply {
+        tabBarBinder().apply {
             val tabBarStore = instructions.first {
                 it.opcode == Opcode.IPUT_OBJECT &&
                     ((it as? ReferenceInstruction)?.reference as? FieldReference)?.type ==
