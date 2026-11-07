@@ -1,26 +1,32 @@
-name: Build and release patch bundle
+name: Release APKs (engine + TV + Car)
 
+# Publica APKs, não bundles .mpp. O produto são os companions (:tv-app/:car-app) e o
+# engine (Apple Music 7.0.0 patcheado) por ABI. Todos os APKs saem assinados com o
+# MESMO certificado Morphe (secrets MORPHE_*): o engine e o companion compartilham
+# sharedUserId e o MediaBrowserService recusa a conexão se o cert for diferente.
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Versão sem o prefixo v (opcional; sem ela, só artifact)"
-        required: false
-        default: ""
+        description: "Versão da release, sem o prefixo v (ex.: 1.5.1)"
+        required: true
+        type: string
       source_url:
-        description: "URL do APKM/XAPK 4-ABI (default: secret TV_SOURCE_URL)"
+        description: "URL do APKM 4-ABI (default: secret ENGINE_SOURCE_URL; vazio = só companions)"
         required: false
         default: ""
-  push:
-    tags:
-      - "v*"
+        type: string
+      publish:
+        description: "Criar/atualizar a release apps-<version> (desmarque para só artifacts)"
+        required: false
+        default: true
+        type: boolean
 
 permissions:
   contents: write
-  packages: read
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     env:
       # The ubuntu runner image ships the Android SDK and cmdline-tools; the
@@ -28,6 +34,12 @@ jobs:
       # tries to install the removed "tools" package and fails.
       ANDROID_HOME: /usr/local/lib/android/sdk
       ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      BUILD_TOOLS: /usr/local/lib/android/sdk/build-tools/36.0.0
+      PUBLISH: ${{ inputs.publish }}
+      MORPHE_KEYSTORE_P12: ${{ secrets.MORPHE_KEYSTORE_P12 }}
+      MORPHE_KEYSTORE_PASSWORD: ${{ secrets.MORPHE_KEYSTORE_PASSWORD }}
+      MORPHE_KEY_ALIAS: ${{ secrets.MORPHE_KEY_ALIAS }}
+      MORPHE_KEY_PASSWORD: ${{ secrets.MORPHE_KEY_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -43,85 +55,132 @@ jobs:
 
       - name: Install Android platform and build tools
         run: |
-          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager | head -n 1)"
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager -print -quit)"
           echo "Using $SDKMANAGER"
           yes | "$SDKMANAGER" --licenses > /dev/null
           "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
-      # A tag push releases v<tag>; workflow_dispatch with a version input releases
-      # that version (gh creates the tag). Without either, only the artifact is built.
       - name: Resolve version
-        id: version
         env:
           INPUT_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           VERSION="${INPUT_VERSION#v}"
-          if [ -z "$VERSION" ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then
-            VERSION="${GITHUB_REF_NAME#v}"
-          fi
           if [ -z "$VERSION" ]; then
-            echo "Sem tag e sem input version: build do artifact apenas"
-            echo "release=false" >> "$GITHUB_OUTPUT"
-            exit 0
+            echo "::error::input version é obrigatório (ex.: 1.5.1)"
+            exit 1
+          fi
+          if [[ ! "$VERSION" =~ ^[0-9A-Za-z._-]+$ ]]; then
+            echo "::error::versão inválida: $VERSION"
+            exit 1
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "release=true" >> "$GITHUB_OUTPUT"
           echo "VERSION=$VERSION"
 
+      # Sem source_url nem ENGINE_SOURCE_URL o job NÃO falha: publica os companions e
+      # marca "engine não anexado" nas notas. Com URL, qualquer falha do engine derruba
+      # o job (melhor não publicar um release quebrado).
       - name: Resolve APK source URL
         id: source
         env:
           INPUT_SOURCE_URL: ${{ inputs.source_url }}
-          SECRET_SOURCE_URL: ${{ secrets.TV_SOURCE_URL }}
+          SECRET_SOURCE_URL: ${{ secrets.ENGINE_SOURCE_URL }}
         run: |
           set -euo pipefail
           URL="${INPUT_SOURCE_URL:-$SECRET_SOURCE_URL}"
+          echo "SOURCE_URL=$URL" >> "$GITHUB_ENV"
           if [ -n "$URL" ]; then
             echo "url=$URL" >> "$GITHUB_OUTPUT"
-            echo "Fonte do APK: $URL"
+            echo "Fonte do APKM 4-ABI: $URL"
           else
-            echo "Sem source_url nem TV_SOURCE_URL: release somente com .mpp"
+            echo "::warning::sem source_url e sem ENGINE_SOURCE_URL: release só com os companions"
           fi
+
+      # O p12 em base64 é o cert do release (CN=Morphe, SHA-256 1e0586...). Ele é
+      # decodificado uma vez e usado pelo apksigner em todos os APKs.
+      - name: Decode the Morphe keystore
+        run: |
+          set -euo pipefail
+          if [ -z "$MORPHE_KEYSTORE_P12" ]; then
+            echo "::error::secret MORPHE_KEYSTORE_P12 ausente"
+            exit 1
+          fi
+          printf '%s' "$MORPHE_KEYSTORE_P12" | base64 -d > "$RUNNER_TEMP/morphe.p12"
+          if [ ! -s "$RUNNER_TEMP/morphe.p12" ]; then
+            echo "::error::falha ao decodificar o p12"
+            exit 1
+          fi
+          file "$RUNNER_TEMP/morphe.p12"
 
       # The app.morphe:* artifacts live in GitHub Packages of the MorpheApp org, so the
       # default GITHUB_TOKEN of this repository cannot read them. Add a repository secret
       # GPR_KEY with a token that has read:packages (and GPR_USER with the account name).
       # Without it the build fails at dependency resolution.
-      - name: Build .mpp and patch list
+      #
+      # The companions link four dex files; mergeExtDex OOMs on the runner's default
+      # heap (~2 GB), so the build runs with 4 GB heap and 1 GB metaspace.
+      - name: Build patches bundle and companions
         env:
           GITHUB_ACTOR: ${{ secrets.GPR_USER != '' && secrets.GPR_USER || github.actor }}
           GITHUB_TOKEN: ${{ secrets.GPR_KEY != '' && secrets.GPR_KEY || secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           chmod +x gradlew
-          ./gradlew clean :patches:generatePatchesList :patches:buildAndroid --no-daemon \
-            -Pkotlin.compiler.execution.strategy=in-process
+          ./gradlew :patches:buildAndroid :tv-app:assembleRelease :car-app:assembleRelease \
+            --no-daemon \
+            -Pkotlin.compiler.execution.strategy=in-process \
+            "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
 
-      - name: Upload bundle
-        uses: actions/upload-artifact@v4
-        with:
-          name: patches-${{ github.run_number }}
-          if-no-files-found: error
-          path: |
-            patches/build/libs/*.mpp
-            patches-list.json
-
-      - name: Collect bundle paths
-        if: steps.version.outputs.release == 'true'
+      # AGP gera *-release-unsigned.apk (os módulos desligam o debug keystore de
+      # propósito); zipalign + apksigner aplicam o p12 em cada companion.
+      - name: Sign companions
         run: |
           set -euo pipefail
-          MPP="$(find patches/build/libs -maxdepth 1 -type f -name 'patches-*.mpp' \
-            ! -name '*-sources.mpp' ! -name '*-javadoc.mpp' -print -quit)"
-          if [ -z "$MPP" ] || [ ! -f patches-list.json ]; then
-            echo "::error::bundle .mpp ou patches-list.json ausente"
+          mkdir -p dist
+          sign_apk() {
+            local input="$1" output="$2"
+            "$BUILD_TOOLS/zipalign" -f -p 4 "$input" "$RUNNER_TEMP/$output.aligned.apk"
+            "$BUILD_TOOLS/apksigner" sign \
+              --ks "$RUNNER_TEMP/morphe.p12" --ks-type PKCS12 \
+              --ks-pass "pass:$MORPHE_KEYSTORE_PASSWORD" \
+              --ks-key-alias "$MORPHE_KEY_ALIAS" \
+              --key-pass "pass:$MORPHE_KEY_PASSWORD" \
+              --out "dist/$output" "$RUNNER_TEMP/$output.aligned.apk"
+          }
+          TV_APK="$(find tv-app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          CAR_APK="$(find car-app/build/outputs/apk/release -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          if [ -z "$TV_APK" ] || [ -z "$CAR_APK" ]; then
+            echo "::error::release APK do :tv-app ou :car-app não encontrado"
             exit 1
           fi
-          echo "MPP=$MPP" >> "$GITHUB_ENV"
-          echo "MPP=$MPP"
+          sign_apk "$TV_APK" AppleMusic-TV.apk
+          sign_apk "$CAR_APK" AppleMusic-Car.apk
+          ls -l dist
 
-      - name: Download patching tools
-        if: steps.version.outputs.release == 'true' && steps.source.outputs.url != ''
+      - name: Validate companion certificates
+        run: |
+          set -euo pipefail
+          EXPECTED_CERT_SHA256="1e058623722ed37eb59bb55411d01d6b7b212c6a8353aacecd60d515cee60463"
+          verify_cert() {
+            local apk="$1" certs fingerprint
+            certs="$("$BUILD_TOOLS/apksigner" verify --print-certs "$apk")"
+            if ! grep -q "CN=Morphe" <<< "$certs"; then
+              echo "::error::$apk não está assinado com CN=Morphe"
+              exit 1
+            fi
+            fingerprint="$(grep -m 1 "certificate SHA-256 digest" <<< "$certs" \
+              | sed 's/.*digest: *//' | tr -d ':' | tr 'A-F' 'a-f')"
+            if [ "$fingerprint" != "$EXPECTED_CERT_SHA256" ]; then
+              echo "::error::$apk assinado com cert errado: $fingerprint"
+              exit 1
+            fi
+            echo "$apk: CN=Morphe / $fingerprint"
+          }
+          verify_cert dist/AppleMusic-TV.apk
+          verify_cert dist/AppleMusic-Car.apk
+
+      - name: Download engine tools
+        if: steps.source.outputs.url != ''
         run: |
           set -euo pipefail
           mkdir -p tools
@@ -130,109 +189,191 @@ jobs:
           curl -L --fail --retry 3 -o tools/morphe-desktop-2.1.1-all.jar \
             https://github.com/MorpheApp/morphe-desktop/releases/download/v2.1.1/morphe-desktop-2.1.1-all.jar
 
-      - name: Download and extract TV splits
-        if: steps.version.outputs.release == 'true' && steps.source.outputs.url != ''
+      # APKEditor merges the bundle by file name: base as the package name and the
+      # splits as config.<qualifier>.apk, the same layout validated locally
+      # (.pipeline/splits).
+      - name: Download source bundle and assemble ABI splits
+        if: steps.source.outputs.url != ''
         env:
           SOURCE_URL: ${{ steps.source.outputs.url }}
         run: |
           set -euo pipefail
-          curl -L --fail --retry 3 -o tv-source.bin "$SOURCE_URL"
-          rm -rf tv-source splits32
-          mkdir -p tv-source splits32
-          unzip -q -o tv-source.bin -d tv-source
-          find tv-source -type f -name '*.apk' | sort
+          curl -L --fail --retry 3 -o "$RUNNER_TEMP/source.bin" "$SOURCE_URL"
+          rm -rf source splits32 splits64
+          mkdir -p source
+          unzip -q -o "$RUNNER_TEMP/source.bin" -d source
+          find source -type f -name '*.apk' | sort
 
-          BASE="$(find tv-source -type f \( -name 'base.apk' -o -name 'com.apple.android.music.apk' \) -print -quit)"
-          ABI="$(find tv-source -type f \( -name 'split_config.armeabi_v7a.apk' -o -name 'config.armeabi_v7a.apk' \) -print -quit)"
-          DPI="$(find tv-source -type f \( -name 'split_config.xhdpi.apk' -o -name 'config.xhdpi.apk' \) -print -quit)"
-          if [ -z "$BASE" ] || [ -z "$ABI" ] || [ -z "$DPI" ]; then
-            echo "::error::fonte sem base.apk, armeabi_v7a ou xhdpi"
-            exit 1
-          fi
-          echo "base=$BASE abi=$ABI dpi=$DPI"
+          BASE="$(find source -type f \( -name 'base.apk' -o -name 'com.apple.android.music.apk' \) -print -quit)"
+          ABI32="$(find source -type f \( -name 'split_config.armeabi_v7a.apk' -o -name 'config.armeabi_v7a.apk' \) -print -quit)"
+          ABI64="$(find source -type f \( -name 'split_config.arm64_v8a.apk' -o -name 'config.arm64_v8a.apk' \) -print -quit)"
+          DPI="$(find source -type f \( -name 'split_config.xhdpi.apk' -o -name 'config.xhdpi.apk' \) -print -quit)"
+          for pair in "base:$BASE" "armeabi_v7a:$ABI32" "arm64_v8a:$ABI64" "xhdpi:$DPI"; do
+            if [ -z "${pair#*:}" ]; then
+              echo "::error::fonte sem ${pair%%:*}"
+              exit 1
+            fi
+          done
+          echo "base=$BASE"
+          echo "abi32=$ABI32 abi64=$ABI64 dpi=$DPI"
 
-          # APKEditor merges the bundle by file name: base as the package name and
-          # splits as config.<qualifier>.apk, the same layout validated locally.
-          cp "$BASE" splits32/com.apple.android.music.apk
-          cp "$ABI" splits32/config.armeabi_v7a.apk
-          cp "$DPI" splits32/config.xhdpi.apk
-          ls -l splits32
+          mkdir -p splits32 splits64
+          for dir in splits32 splits64; do
+            cp "$BASE" "$dir/com.apple.android.music.apk"
+            cp "$DPI" "$dir/config.xhdpi.apk"
+          done
+          cp "$ABI32" splits32/config.armeabi_v7a.apk
+          cp "$ABI64" splits64/config.arm64_v8a.apk
+          ls -l splits32 splits64
 
-      - name: Build TV APK
-        if: steps.version.outputs.release == 'true' && steps.source.outputs.url != ''
+      # A CLI do morphe-desktop assina o APK de saída com o keystore que ela gera em
+      # tools/morphe-data (outro cert). Por isso o patch roda com --unsigned e a
+      # assinatura do release é aplicada depois pelo apksigner com o p12 MORPHE_*.
+      - name: Build engine APKs (arm32 TV, arm64 car)
+        if: steps.source.outputs.url != ''
         run: |
           set -euo pipefail
-          java -jar tools/APKEditor-1.4.9.jar m -i splits32 -o merged32.apk
-          APK="AppleMusic-${VERSION}-AndroidTV-arm32.apk"
-          java -jar tools/morphe-desktop-2.1.1-all.jar patch \
-            -p "$MPP" \
-            -o "$APK" \
-            merged32.apk \
-            -e "TV: manifest" \
-            -e "TV: D-pad focus" \
-            -e "TV: player expand focus"
-          if [ ! -f "$APK" ]; then
-            echo "::error::APK de TV não foi gerado"
+          MPP="$(find patches/build/libs -maxdepth 1 -type f -name 'patches-*.mpp' \
+            ! -name '*-sources.mpp' ! -name '*-javadoc.mpp' -print -quit)"
+          if [ -z "$MPP" ]; then
+            echo "::error::bundle .mpp não encontrado em patches/build/libs"
             exit 1
           fi
-          echo "APK=$APK" >> "$GITHUB_ENV"
-          ls -l "$APK"
+          echo "MPP=$MPP"
 
-      - name: Validate TV APK
-        if: steps.version.outputs.release == 'true' && steps.source.outputs.url != ''
+          build_engine() {
+            local splits="$1" abi="$2" output="$3"
+            java -Xmx4096m -XX:MaxMetaspaceSize=1024m -jar tools/APKEditor-1.4.9.jar \
+              m -i "$splits" -o "merged-$abi.apk"
+            java -Xmx4096m -XX:MaxMetaspaceSize=1024m -jar tools/morphe-desktop-2.1.1-all.jar \
+              patch -p "$MPP" -o "engine-$abi-unsigned.apk" "merged-$abi.apk" \
+              --unsigned -e "DiLink: hide engine launcher"
+            "$BUILD_TOOLS/zipalign" -f -p 4 "engine-$abi-unsigned.apk" "$RUNNER_TEMP/engine-$abi-aligned.apk"
+            "$BUILD_TOOLS/apksigner" sign \
+              --ks "$RUNNER_TEMP/morphe.p12" --ks-type PKCS12 \
+              --ks-pass "pass:$MORPHE_KEYSTORE_PASSWORD" \
+              --ks-key-alias "$MORPHE_KEY_ALIAS" \
+              --key-pass "pass:$MORPHE_KEY_PASSWORD" \
+              --out "dist/$output" "$RUNNER_TEMP/engine-$abi-aligned.apk"
+            ls -l "dist/$output"
+          }
+          build_engine splits32 armeabi-v7a AppleMusic-engine-arm32.apk
+          build_engine splits64 arm64-v8a AppleMusic-engine-arm64.apk
+
+      # O engine não pode aparecer no launcher (o companion é a única entrada) e precisa
+      # da lib da ABI certa: o merge sem o split da ABI instala com
+      # INSTALL_FAILED_NO_MATCHING_ABIS na TV box 32-bit.
+      - name: Validate engine APKs
+        if: steps.source.outputs.url != ''
         run: |
           set -euo pipefail
-          BUILD_TOOLS="$ANDROID_HOME/build-tools/36.0.0"
-          BADGING="$("$BUILD_TOOLS/aapt2" dump badging "$APK")"
-          if ! grep -q "leanback-launchable-activity" <<< "$BADGING"; then
-            echo "::error::APK sem leanback-launchable-activity"
-            exit 1
-          fi
-          if ! grep -q "native-code: 'armeabi-v7a'" <<< "$BADGING"; then
-            echo "::error::APK sem native-code armeabi-v7a"
-            exit 1
-          fi
-          echo "$BADGING" | grep -E "leanback-launchable-activity|native-code|sdkVersion"
-          "$BUILD_TOOLS/apksigner" verify --print-certs "$APK" | tee apksigner.txt
-          if ! grep -q "CN=Morphe" apksigner.txt; then
-            echo "::error::APK não está assinado com CN=Morphe"
-            exit 1
-          fi
+          EXPECTED_CERT_SHA256="1e058623722ed37eb59bb55411d01d6b7b212c6a8353aacecd60d515cee60463"
+          verify_cert() {
+            local apk="$1" certs fingerprint
+            certs="$("$BUILD_TOOLS/apksigner" verify --print-certs "$apk")"
+            if ! grep -q "CN=Morphe" <<< "$certs"; then
+              echo "::error::$apk não está assinado com CN=Morphe"
+              exit 1
+            fi
+            fingerprint="$(grep -m 1 "certificate SHA-256 digest" <<< "$certs" \
+              | sed 's/.*digest: *//' | tr -d ':' | tr 'A-F' 'a-f')"
+            if [ "$fingerprint" != "$EXPECTED_CERT_SHA256" ]; then
+              echo "::error::$apk assinado com cert errado: $fingerprint"
+              exit 1
+            fi
+            echo "$apk: CN=Morphe / $fingerprint"
+          }
+          check_engine() {
+            local apk="$1" abi="$2" badging
+            badging="$("$BUILD_TOOLS/aapt2" dump badging "$apk")"
+            grep -E "package:|launchable-activity|native-code|sdkVersion" <<< "$badging" || true
+            if grep -qE "launchable-activity: name='com\.apple\.android\.music" <<< "$badging"; then
+              echo "::error::$apk ainda expõe a activity do engine no launcher"
+              exit 1
+            fi
+            if ! grep -q "native-code:.*$abi" <<< "$badging"; then
+              echo "::error::$apk sem native-code $abi"
+              exit 1
+            fi
+          }
+          verify_cert dist/AppleMusic-engine-arm32.apk
+          check_engine dist/AppleMusic-engine-arm32.apk armeabi-v7a
+          verify_cert dist/AppleMusic-engine-arm64.apk
+          check_engine dist/AppleMusic-engine-arm64.apk arm64-v8a
+
+      - name: Write SHA256SUMS
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum -- *.apk > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: applemusic-apps-${{ inputs.version }}
+          if-no-files-found: error
+          path: |
+            dist/*.apk
+            dist/SHA256SUMS
 
       - name: Prepare release notes
-        if: steps.version.outputs.release == 'true'
+        if: env.PUBLISH == 'true'
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import json
+          ENGINE_WARNING=""
+          if [ -z "${SOURCE_URL:-}" ]; then
+            ENGINE_WARNING="> **Aviso: engine não anexado.** O input source_url e o secret ENGINE_SOURCE_URL não foram informados, então esta release traz apenas os companions AppleMusic-TV.apk e AppleMusic-Car.apk. Sem o engine instalado o companion não conecta ao MediaBrowserService; gere o engine separadamente e instale-o antes do companion."
+          fi
+          {
+            echo "# Apple Music — apps $VERSION"
+            echo
+            if [ -n "$ENGINE_WARNING" ]; then
+              echo "$ENGINE_WARNING"
+              echo
+            fi
+            echo "Todos os APKs desta release estão assinados com o **mesmo** certificado Morphe"
+            echo "(CN=Morphe, SHA-256 1e058623722ed37eb59bb55411d01d6b7b212c6a8353aacecd60d515cee60463)."
+            echo "O engine e o companion compartilham o UID (sharedUserId com.apple.android);"
+            echo "certificados diferentes fazem o MediaBrowserService recusar a conexão."
+            echo
+            echo "## Instalação (nesta ordem)"
+            echo
+            echo "1. Desinstale o Apple Music oficial (com.apple.android.music): a assinatura é outra."
+            echo "2. Instale o engine do device: AppleMusic-engine-arm32.apk (TV 32-bit) ou"
+            echo "   AppleMusic-engine-arm64.apk (carro/arm64)."
+            echo "3. Instale o companion: AppleMusic-TV.apk (TV) ou AppleMusic-Car.apk (carro)."
+            echo
+            echo "## Limitações conhecidas"
+            echo
+            echo "- Busca indisponível: o MediaBrowserService do engine não anuncia SEARCH_SUPPORTED."
+            echo "- Criar estação: só a partir do item atual; a sessão não expõe a ação para outros itens."
+            echo
+            echo "Confira os downloads com SHA256SUMS."
+          } > release-notes.md
+          cat release-notes.md
 
-          with open("patches-bundle.json", encoding="utf-8") as f:
-              bundle = json.load(f)
-          description = (bundle.get("description") or "").strip()
-          if not description:
-              raise SystemExit("patches-bundle.json sem description")
-          with open("release-notes.md", "w", encoding="utf-8") as f:
-              f.write(description + "\n")
-          print(f"release notes: {len(description)} chars")
-          PY
-
-      - name: Create GitHub release
-        if: steps.version.outputs.release == 'true'
+      - name: Create or update release
+        if: env.PUBLISH == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          ASSETS=(patches/build/libs/*.mpp patches-list.json)
-          if [ -n "${APK:-}" ]; then
-            ASSETS+=("$APK")
+          mapfile -t ASSETS < <(find dist -maxdepth 1 -type f \( -name '*.apk' -o -name 'SHA256SUMS' \) | sort)
+          EXPECTED_ASSETS=3
+          if [ -n "${SOURCE_URL:-}" ]; then
+            EXPECTED_ASSETS=5
           fi
-          for asset in "${ASSETS[@]}"; do
-            if [ ! -f "$asset" ]; then
-              echo "::error::asset ausente: $asset"
-              exit 1
-            fi
-          done
-          gh release create "v$VERSION" \
-            --title "Apple Music $VERSION" \
-            --notes-file release-notes.md \
-            "${ASSETS[@]}"
+          if [ "${#ASSETS[@]}" -ne "$EXPECTED_ASSETS" ]; then
+            echo "::error::assets inesperados: ${#ASSETS[@]} (esperado $EXPECTED_ASSETS)"
+            printf '%s\n' "${ASSETS[@]}"
+            exit 1
+          fi
+          RELEASE="apps-$VERSION"
+          if gh release view "$RELEASE" > /dev/null 2>&1; then
+            gh release upload "$RELEASE" "${ASSETS[@]}" --clobber
+            gh release edit "$RELEASE" --title "Apple Music apps $VERSION" --notes-file release-notes.md
+          else
+            gh release create "$RELEASE" --title "Apple Music apps $VERSION" \
+              --notes-file release-notes.md "${ASSETS[@]}"
+          fi

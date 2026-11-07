@@ -85,6 +85,7 @@ public final class Settings {
     public static final int PRIMARY = 0xFFFFFFFF;
 
     static final String SPONSORS_URL = "https://github.com/sponsors/aic0d3r";
+    static final String REPO_URL = "https://github.com/aic0d3r/oxbow";
     public static final int ON_PRIMARY = 0xFF101010;
     /**
      * Destructive actions. A monochrome scheme has no red to lean on, so they
@@ -788,6 +789,32 @@ public final class Settings {
     }
 
     private static void buildUpdates(Context context, LinearLayout column) {
+        String igVersion = UpdateChecker.realInstalledVersion(context);
+        String build = UpdateChecker.isOfficialBuild(context) ? "Official release" : "Patched yourself";
+        String placement = UpdateChecker.isCloneBuild(context) ? "Clone" : "Replaces Instagram";
+        String installer = installerLabel(context);
+        String versions = "Instagram " + (igVersion == null ? "unknown" : igVersion)
+                + " · patches " + BuildConfig.BUNDLE_VERSION;
+
+        LinearLayout installed = addGroup(context, column);
+        LinearLayout info = makeRow(context, installed, "Installed", versions + "\n" + build + " · " + placement
+                + "\n" + (installer == null ? "Installer unknown" : "Installed with " + installer));
+        // Long-press copies a one-line summary for bug reports.
+        info.setOnLongClickListener(v -> {
+            String summary = "Oxbow: " + versions + " · " + build + " · " + placement
+                    + " · installer " + (installer == null ? "unknown" : installer);
+            try {
+                ((android.content.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE))
+                        .setPrimaryClip(android.content.ClipData.newPlainText("Oxbow version", summary));
+                // Always toast: OEM skins (MIUI) drop Android 13's own clipboard notice.
+                Toast.makeText(context, "Version info copied", Toast.LENGTH_SHORT).show();
+            } catch (Throwable t) {
+                Toast.makeText(context, "Couldn't copy the version info", Toast.LENGTH_SHORT).show();
+            }
+            return true;
+        });
+        sealGroup(context, installed);
+
         LinearLayout updates = addGroup(context, column);
         addRow(context, updates, "Automatic update check", "auto_update", Config.isAutoUpdateEnabled());
         sealGroup(context, updates);
@@ -797,14 +824,39 @@ public final class Settings {
         column.addView(checkUpdate, stackedButtonParams(context, 12));
     }
 
+    /** The app that installed this package, by name where Android lets us see it; null if unknown. */
+    private static String installerLabel(Context context) {
+        try {
+            PackageManager pm = context.getPackageManager();
+            String pkg = context.getPackageName();
+            String installer = Build.VERSION.SDK_INT >= 30
+                    ? pm.getInstallSourceInfo(pkg).getInstallingPackageName()
+                    : pm.getInstallerPackageName(pkg);
+            if (installer == null) return null;
+            if (installer.equals(pkg)) return "Oxbow's updater";
+            if (installer.equals("com.android.shell")) return "adb";
+            try {
+                return pm.getApplicationLabel(pm.getApplicationInfo(installer, 0)).toString();
+            } catch (Throwable hidden) {
+                return installer; // package visibility can hide the label; the id still helps
+            }
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
     private static void buildSupport(Context context, LinearLayout column) {
+        Button star = makeButton(context, "Star on GitHub", SURFACE_CONTAINER_HIGH, ON_SURFACE, true);
+        star.setOnClickListener(v -> openUrl(context, REPO_URL));
+        column.addView(star, stackedButtonParams(context, 16));
+
         Button sponsors = makeButton(context, "Sponsor on GitHub", SURFACE_CONTAINER_HIGH, ON_SURFACE, true);
         sponsors.setOnClickListener(v -> openUrl(context, SPONSORS_URL));
-        column.addView(sponsors, stackedButtonParams(context, 16));
+        column.addView(sponsors, stackedButtonParams(context, 10));
 
         Button source = makeButton(context, "Source code and issues", 0, ON_SURFACE, false);
         source.setBackground(outlined(context, OUTLINE_VARIANT));
-        source.setOnClickListener(v -> openUrl(context, "https://github.com/aic0d3r/oxbow"));
+        source.setOnClickListener(v -> openUrl(context, REPO_URL));
         column.addView(source, stackedButtonParams(context, 10));
 
         Button upstream = makeButton(context, "Built on FeurStagram by Jean Herail", 0, ON_SURFACE, false);
@@ -1327,7 +1379,8 @@ public final class Settings {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            context.startActivity(inBrowser(context, intent));
+            // Only Sponsors pages break in the GitHub app; other links open in whatever app claims them.
+            context.startActivity(url.contains("/sponsors/") ? inBrowser(context, intent) : intent);
         } catch (Throwable t) {
             Toast.makeText(context, "No browser available", Toast.LENGTH_LONG).show();
         }

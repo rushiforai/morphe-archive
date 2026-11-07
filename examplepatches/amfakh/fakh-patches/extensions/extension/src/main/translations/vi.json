@@ -66,6 +66,8 @@
   "Strip tracking from LinkedIn links you copy or share.": "",
   "Block tracking": "Chặn theo dõi",
   "Stop most analytics events. Turn off if something breaks.": "",
+  "Anonymous profile viewing": "",
+  "Visit profiles without being listed in Who viewed your profile.": "",
   "Language": "Ngôn ngữ",
   "Automatic (device language)": "Tự động (ngôn ngữ thiết bị)",
   "Export settings": "Xuất cài đặt",
@@ -126,5 +128,12 @@
   "Notifications": "",
   "More": "",
   "Navigation bar tabs": "",
-  "Hide tab labels": ""
+  "Hide tab labels": "",
+  "Swipe between tabs": "",
+  "Swipe sideways to go to the next or previous tab of the navigation bar.": "",
+  "Copy text": "",
+  "Press and hold text to select and copy it.": "",
+  "Copy all": "",
+  "Close": "",
+  "Text copied": ""
 }

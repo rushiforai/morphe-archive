@@ -44,10 +44,28 @@ FORM_FACTORS = {
     "AUTOMOTIVE": ("🚗", "Android Automotive"),
 }
 
+# Relative paths to app icons shown in the generated patches list.
+APP_ICONS = {
+    "com.ezviz": ".github/assets/apps/com.ezviz.png",
+    "com.cloudflare.onedotonedotonedotone": ".github/assets/apps/com.cloudflare.onedotonedotonedotone.png",
+    "com.dubox.drive": ".github/assets/apps/com.dubox.drive.png",
+    "com.camel.corp.universalcopy": ".github/assets/apps/com.camel.corp.universalcopy.png",
+    "cz.mroczis.netmonster": ".github/assets/apps/cz.mroczis.netmonster.png",
+    "com.anetcapture.mock": ".github/assets/apps/com.anetcapture.mock.png",
+}
+
 
 def pkg_emoji(form_factor):
     """Return the emoji for a form factor, or a standard package emoji."""
     return FORM_FACTORS.get(form_factor, ("📦", None))[0]
+
+
+def pkg_icon(pkg, form_factor):
+    """Return an <img> tag for a bundled app icon, or a form-factor emoji."""
+    icon = APP_ICONS.get(pkg)
+    if icon:
+        return f'<img src="{icon}" alt="" height="20">'
+    return pkg_emoji(form_factor)
 
 
 def pkg_label(name, form_factor):
@@ -78,7 +96,7 @@ for patch in data["patches"]:
         if key not in by_pkg:
             by_pkg[key] = {
                 "name":    pkg_label(name, form_factor),
-                "emoji":   pkg_emoji(form_factor),
+                "icon":    pkg_icon(pkg, form_factor),
                 "patches": {},
                 "targets": pkg_entry.get("targets", []),
             }
@@ -171,7 +189,7 @@ def build_content(expanded=False):
     # One spoiler per app, in the order they appear in the JSON
     for entry in by_pkg.values():
         patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
+        label   = f"{entry['icon']} {entry['name']}"
         lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
         lines.append("")
 

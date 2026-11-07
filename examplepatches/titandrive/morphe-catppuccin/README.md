@@ -6,7 +6,7 @@ Add `titandrive/morphe-catppuccin` as a remote patch source in Morphe.
 
 ## Boost
 
-For **Boost 1.12.12 or 1.14.2**, apply **Catppuccin theme** alongside the original [Patcheddit patches](https://github.com/wchill/patcheddit). This add-on does not include their login/API fixes. Boost 1.14.2 requires compatible Patcheddit patches (tested with 2.1.0-dev.3).
+For **Boost 1.12.12, 1.14.2 or 1.14.3**, apply **Catppuccin theme** alongside the original [Patcheddit patches](https://github.com/wchill/patcheddit). This add-on does not include their login/API fixes. Boost 1.14.3 requires compatible Patcheddit patches (tested with 2.1.0-dev.5).
 
 Open Boost’s theme selector and choose **Catppuccin Macchiato** (dark) or **Catppuccin Latte** (light).
 

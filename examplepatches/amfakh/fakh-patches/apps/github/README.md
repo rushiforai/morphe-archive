@@ -1,6 +1,6 @@
 # GitHub
 
-Patches for the GitHub app (`com.github.android`, version `1.282.0`, APKM from APKMirror).
+Patches for the GitHub app (`com.github.android`, versions `1.282.0` and `1.283.0`, APKM from APKMirror).
 
 ## Patches
 
@@ -9,6 +9,9 @@ Enabled by default.
 | Category | Patch | What it does |
 |---|---|---|
 | Theme | Material You | Colors the app from your wallpaper (Android 12+): the accent color instead of GitHub blue, and tinted surfaces, cards and borders in light and dark mode. Adds a **Fakh Patches** section to Settings with a **Material You** switch and a **Pitch black in dark mode** switch. |
+| Feature | Navigation bar | Adds a **Hide navigation bar labels** switch to Settings that removes the text under the icons of the bottom bar. |
+| Theme | Glass navigation bar | Draws the bottom bar (the side bar in landscape) as a floating, translucent capsule. Off by default; turn it on with the **Glass navigation bar** switch in Settings. |
+| Feature | Navigation bar on the right | Adds a **Navigation bar on the right** switch to Settings that moves the landscape navigation bar from the left edge to the right one. |
 
 The app draws its screens with both Views and Jetpack Compose, so the patch recolors both: resource
 colors for the Views, and the Compose palettes and schemes when the app starts. Markdown and README
@@ -27,10 +30,10 @@ otherwise Android asks you to uninstall first.
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o github-patched.apk com.github.android_1.282.0-953_4arch_6dpi_apkmirror.com.apkm
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o github-patched.apk com.github.android_1.283.0-954_4arch_6dpi_apkmirror.com.apkm
 ```
 
 ## Getting the APK
 
-Download the `1.282.0` APKM from APKMirror. Morphe Manager looks the app up on APKMirror itself,
+Download the `1.283.0` APKM from APKMirror; `1.282.0` works too. Morphe Manager looks the app up on APKMirror itself,
 so it can take you to that page.

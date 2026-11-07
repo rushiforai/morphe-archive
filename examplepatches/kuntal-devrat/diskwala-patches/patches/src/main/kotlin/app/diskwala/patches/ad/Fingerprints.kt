@@ -1,151 +1,101 @@
 package app.diskwala.patches.ad
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.methodCall
-import app.morphe.patcher.opcode
-import app.morphe.patcher.string
-import com.android.tools.smali.dexlib2.AccessFlags
-import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Fingerprints for ad SDK init providers and React Native bridge modules.
- * All are non-obfuscated, so we match on full class name + method signature.
- * Filters are kept minimal to survive SDK version bumps.
+ * Ad SDK fingerprints for DiskWala 26.9 (native Kotlin/Compose).
+ *
+ * Ads are initialized from two places:
+ *  1. AndroidX/ContentProvider auto-init at process start.
+ *  2. j5.u.a() - the app's Google MobileAds initialization wrapper.
+ *
+ * Stubbing both layers keeps every SDK cold without touching app logic.
  */
 
-// Init providers - stub onCreate() to avoid SDK init without crash
+// App's Google MobileAds initializer (called when the session is NOT_PREMIUM).
+internal object GoogleMobileAdsInitializerFingerprint : Fingerprint(
+    definingClass = "Lj5/u;",
+    name = "a",
+    returnType = "V",
+    parameters = emptyList()
+)
+
+// Google MobileAds provider actually initializes from attachInfo(), not onCreate().
+internal object MobileAdsInitProviderAttachInfoFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/gms/ads/MobileAdsInitProvider;",
+    name = "attachInfo",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;", "Landroid/content/pm/ProviderInfo;")
+)
+
+// ContentProvider auto-init hooks.
 internal object AppLovinInitProviderFingerprint : Fingerprint(
     definingClass = "Lcom/applovin/sdk/AppLovinInitProvider;",
     name = "onCreate",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf(),
-    filters = listOf(
-        methodCall(
-            definingClass = "Lcom/applovin/impl/h1;",
-            name = "a",
-            parameters = listOf("Landroid/content/Context;")
-        )
-    )
+    returnType = "Z"
 )
 
-internal object InMobiInitProviderFingerprint : Fingerprint(
-    definingClass = "Lcom/inmobi/sdk/InMobiInitProvider;",
-    name = "onCreate",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf(),
-    filters = listOf(
-        methodCall(
-            definingClass = "Lcom/inmobi/sdk/InMobiSdk;",
-            name = "initFromContentProvider"
-        )
-    )
-)
-
-// MobileAdsInitProvider.onCreate currently returns 0 in 24.5, but keep fingerprint for future
 internal object MobileAdsInitProviderFingerprint : Fingerprint(
     definingClass = "Lcom/google/android/gms/ads/MobileAdsInitProvider;",
     name = "onCreate",
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf()
+    returnType = "Z"
 )
 
-// React Native AppLovin MAX bridge - the JS entry points for ads
-internal object AppLovinMAXInitializeFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
+internal object VungleProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/vungle/ads/VungleProvider;",
+    name = "onCreate",
+    returnType = "Z"
+)
+
+internal object IronSourceLifecycleProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/ironsource/lifecycle/IronsourceLifecycleProvider;",
+    name = "onCreate",
+    returnType = "Z"
+)
+
+internal object IronSourceLevelPlayLifecycleProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/ironsource/lifecycle/LevelPlayActivityLifecycleProvider;",
+    name = "onCreate",
+    returnType = "Z"
+)
+
+internal object MBComponentLifecycleProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/mbridge/msdk/config/component/status/MBComponentLifecycleProvider;",
+    name = "onCreate",
+    returnType = "Z"
+)
+
+internal object BigoAdsProviderFingerprint : Fingerprint(
+    definingClass = "Lsg/bigo/ads/controller/provider/BigoAdsProvider;",
+    name = "onCreate",
+    returnType = "Z"
+)
+
+internal object BidMachineInitProviderFingerprint : Fingerprint(
+    definingClass = "Lio/bidmachine/BidMachineInitProvider;",
+    name = "onCreate",
+    returnType = "Z"
+)
+
+internal object AudienceNetworkContentProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/facebook/ads/AudienceNetworkContentProvider;",
+    name = "onCreate",
+    returnType = "Z"
+)
+
+internal object AppMeasurementContentProviderFingerprint : Fingerprint(
+    definingClass = "Lcom/google/android/gms/measurement/AppMeasurementContentProvider;",
+    name = "onCreate",
+    returnType = "Z"
+)
+
+// Direct AppLovin initialization safety net (the provider is normally enough).
+internal object AppLovinSdkInitializeFingerprint : Fingerprint(
+    definingClass = "Lcom/applovin/sdk/AppLovinSdk;",
     name = "initialize",
     returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Lcom/facebook/react/bridge/Promise;")
-)
-
-internal object AppLovinMAXLoadInterstitialFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "loadInterstitial",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;")
-)
-
-internal object AppLovinMAXShowInterstitialFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "showInterstitial",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;")
-)
-
-internal object AppLovinMAXLoadRewardedAdFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "loadRewardedAd",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;")
-)
-
-internal object AppLovinMAXShowRewardedAdFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "showRewardedAd",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;")
-)
-
-internal object AppLovinMAXIsInterstitialReadyFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "isInterstitialReady",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;", "Lcom/facebook/react/bridge/Promise;")
-)
-
-internal object AppLovinMAXIsRewardedAdReadyFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "isRewardedAdReady",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;", "Lcom/facebook/react/bridge/Promise;")
-)
-
-internal object AppLovinMAXLoadAppOpenAdFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "loadAppOpenAd",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;")
-)
-
-internal object AppLovinMAXShowAppOpenAdFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "showAppOpenAd",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;")
-)
-
-internal object AppLovinMAXCreateBannerFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "createBanner",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Z")
-)
-
-internal object AppLovinMAXCreateMRecFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-    name = "createMRec",
-    returnType = "V",
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;")
-)
-
-// Additional ad view managers - hide banner/MREC views
-internal object AppLovinMAXAdViewFingerprint : Fingerprint(
-    definingClass = "Lcom/applovin/reactnative/AppLovinMAXAdView;",
-    // any method constructing view - use class fingerprint fallback
-    filters = listOf(
-        string("AppLovinMAXAdView")
+    parameters = listOf(
+        "Lcom/applovin/sdk/AppLovinSdkInitializationConfiguration;",
+        "Lcom/applovin/sdk/AppLovinSdk\$SdkInitializationListener;"
     )
 )

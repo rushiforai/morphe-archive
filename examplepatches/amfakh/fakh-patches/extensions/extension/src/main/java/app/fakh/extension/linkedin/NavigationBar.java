@@ -69,6 +69,7 @@ public final class NavigationBar {
             ViewGroup tabs = (ViewGroup) row;
             if (prepared.put(tabs, true) == null) {
                 if (Settings.glassNavigationBar()) GlassNavigationBar.install(bar, tabs);
+                if (Settings.isSwipeTabsIncluded()) SwipeTabs.install(bar, tabs);
                 tabs.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> arrange(bar, tabs));
             }
             arrange(bar, tabs);

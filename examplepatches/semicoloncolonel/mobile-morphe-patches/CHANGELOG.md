@@ -1,3 +1,10 @@
+## [1.0.13](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.12...v1.0.13) (2026-11-07)
+
+
+### Bug Fixes
+
+* say which build to patch for Pluto TV, Starz, and Disney+ on Android TV ([a3cc7ea](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/a3cc7ea04ed28d2da29739c6af95acd315b3d36a))
+
 ## [1.0.12](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.11...v1.0.12) (2026-11-06)
 
 

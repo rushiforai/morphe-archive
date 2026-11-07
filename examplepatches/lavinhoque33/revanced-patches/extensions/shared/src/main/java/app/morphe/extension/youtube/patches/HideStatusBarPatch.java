@@ -4,6 +4,7 @@
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
  * Ported to RVX by lavinhoque33, 2026-10-16.
+ * Modified by lavinhoque33, 2026-11-06.
  */
 
 package app.morphe.extension.youtube.patches;
@@ -17,6 +18,7 @@ import android.view.WindowInsetsController;
 
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.Utils;
+import app.morphe.extension.youtube.patches.general.GlassNavigationBar;
 import app.morphe.extension.youtube.settings.Settings;
 
 @SuppressWarnings("unused")
@@ -46,9 +48,42 @@ public final class HideStatusBarPatch {
                         hideStatusBar(window, decorView);
                     }
                 });
+
+                if (GlassNavigationBar.isEnabled()) {
+                    rehideWhenWindowRegainsFocus(activity, window, decorView);
+                }
             } catch (Exception ex) {
                 Logger.printException(() -> "initialize failure", ex);
             }
+        });
+    }
+
+    /**
+     * The layout listener above is the only way the status bar is hidden again, and it only runs when a layout
+     * pass sees the status bar shown. After the app was stopped, for example by opening another app from
+     * the miniplayer, it is not guaranteed to run once the system shows the bar again, so the bar is also
+     * hidden again when the window has the focus back.
+     * <p>
+     * The hide request runs from a posted message, after the app handled the focus change itself.
+     * It is only added with glass, so without glass nothing changes.
+     */
+    private static void rehideWhenWindowRegainsFocus(Activity activity, Window window, View decorView) {
+        decorView.getViewTreeObserver().addOnWindowFocusChangeListener(hasFocus -> {
+            if (!hasFocus) {
+                return;
+            }
+
+            decorView.post(() -> {
+                try {
+                    if (HideStatusBarPolicy.shouldRehideOnFocus(decorView.hasWindowFocus(),
+                            activity.isInPictureInPictureMode(), activity.isInMultiWindowMode(),
+                            activity.isFinishing() || activity.isDestroyed())) {
+                        hideStatusBar(window, decorView);
+                    }
+                } catch (Exception ex) {
+                    Logger.printException(() -> "rehideWhenWindowRegainsFocus failure", ex);
+                }
+            });
         });
     }
 

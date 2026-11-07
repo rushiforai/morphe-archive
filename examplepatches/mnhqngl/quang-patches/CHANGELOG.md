@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/mnhqngl/quang-patches/compare/v1.0.3...v1.1.0) (2026-11-07)
+
+### ✨ New Features
+
+* add Zalo Google Photos picker patch ([109027c](https://github.com/mnhqngl/quang-patches/commit/109027cd3e0ac35d16dea1d41b1b7be61d5ec5a1))
+
 ## [1.0.3](https://github.com/mnhqngl/quang-patches/compare/v1.0.2...v1.0.3) (2026-11-03)
 
 ### 🐛 Bug Fixes

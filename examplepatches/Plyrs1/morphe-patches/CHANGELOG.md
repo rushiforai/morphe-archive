@@ -1,3 +1,9 @@
+## [1.5.0-dev.2](https://github.com/Plyrs1/morphe-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-07)
+
+### ✨ New Features
+
+* **nusuk:** add integrity check bypass patch for com.moh.nusukapp ([fbe13e9](https://github.com/Plyrs1/morphe-patches/commit/fbe13e983b20bd2c19b3b280dd7f8b6b11566eb0))
+
 ## [1.4.0](https://github.com/Plyrs1/morphe-patches/compare/v1.3.0...v1.4.0) (2026-09-29)
 
 ### 🐛 Bug Fixes

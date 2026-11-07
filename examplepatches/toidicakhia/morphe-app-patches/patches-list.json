@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "patches": [
     {
       "name": "Bypass SSL pinning",
@@ -13,7 +13,7 @@
           "name": "EZVIZ",
           "description": null,
           "apkFileType": "XAPK",
-          "appIconColor": "#00A0E9",
+          "appIconColor": "#FFFFFF",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
@@ -45,7 +45,7 @@
           "name": "EZVIZ",
           "description": null,
           "apkFileType": "XAPK",
-          "appIconColor": "#00A0E9",
+          "appIconColor": "#FFFFFF",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
@@ -67,56 +67,6 @@
       "options": []
     },
     {
-      "name": "Clone app",
-      "description": "Installs TeraBox as a separate app alongside the original, with its own account. Each copy needs a different clone number.",
-      "default": false,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.27.5",
-              "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
-              },
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": [
-        {
-          "key": "packageName",
-          "title": "Package name",
-          "description": "Package name of this copy.",
-          "required": true,
-          "type": "kotlin.String",
-          "default": "com.dubox.drive.clone1",
-          "values": {
-            "Clone 1": "com.dubox.drive.clone1",
-            "Clone 2": "com.dubox.drive.clone2",
-            "Clone 3": "com.dubox.drive.clone3",
-            "Clone 4": "com.dubox.drive.clone4",
-            "Clone 5": "com.dubox.drive.clone5"
-          }
-        }
-      ]
-    },
-    {
       "name": "Disable Analytics / Telemetry",
       "description": "Disables all Cloudflare telemetry by no-oping the analytics bundle builder and the Firebase event dispatchers.",
       "default": true,
@@ -127,7 +77,7 @@
           "name": "1.1.1.1",
           "description": null,
           "apkFileType": "APKM",
-          "appIconColor": "#F48120",
+          "appIconColor": "#F16F69",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
@@ -159,7 +109,7 @@
           "name": "1.1.1.1",
           "description": null,
           "apkFileType": "APKM",
-          "appIconColor": "#F48120",
+          "appIconColor": "#F16F69",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
@@ -173,40 +123,6 @@
               },
               "isExperimental": false,
               "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Fix Google login",
-      "description": "Makes Sign in with Google work in the patched app, where it would otherwise fail. Works as soon as you patch it in, with no switch.",
-      "default": true,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.27.5",
-              "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
-              },
-              "isExperimental": false,
-              "minSdk": 23,
               "description": null
             }
           ]
@@ -249,108 +165,6 @@
       "options": []
     },
     {
-      "name": "Hide consent form",
-      "description": "Hides the ad consent form shown at startup.",
-      "default": true,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.27.5",
-              "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
-              },
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Hide promotions",
-      "description": "Hides Premium upgrade cards and banners, prize and campaign cards, speed-up prompts, floating invites, and sale, coupon and promotional popups.",
-      "default": true,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.27.5",
-              "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
-              },
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Hide video recommendations",
-      "description": "Hides the recommended videos below the video player.",
-      "default": true,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.27.5",
-              "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
-              },
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Remove Ads",
       "description": "Removes banner, splash and hot open-screen ads.",
       "default": true,
@@ -361,7 +175,7 @@
           "name": "EZVIZ",
           "description": null,
           "apkFileType": "XAPK",
-          "appIconColor": "#00A0E9",
+          "appIconColor": "#FFFFFF",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
@@ -393,7 +207,7 @@
           "name": "1.1.1.1",
           "description": null,
           "apkFileType": "APKM",
-          "appIconColor": "#F48120",
+          "appIconColor": "#F16F69",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
@@ -416,7 +230,7 @@
     },
     {
       "name": "Unlock Plus",
-      "description": "Unlocks Universal Copy Plus: removes ads and upgrade prompts, and bypasses the PairIP license check so the patched app starts.",
+      "description": "Unlocks Universal Copy Plus: removes ads, upgrade prompts and the Internet permission, and bypasses the PairIP license check so the patched app starts.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -432,15 +246,15 @@
           "formFactor": "MOBILE",
           "targets": [
             {
-              "version": "7.1.0",
+              "version": "7.2.0",
               "versionCodes": {
-                "ARM64_V8A": 104,
-                "ARMEABI_V7A": 104,
-                "X86_64": 104,
-                "X86": 104
+                "ARM64_V8A": 106,
+                "ARMEABI_V7A": 106,
+                "X86_64": 106,
+                "X86": 106
               },
               "isExperimental": false,
-              "minSdk": 29,
+              "minSdk": 26,
               "description": null
             }
           ]
@@ -459,7 +273,7 @@
           "name": "NetMonster",
           "description": null,
           "apkFileType": "APKM",
-          "appIconColor": "#1565C0",
+          "appIconColor": "#0A995B",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [
@@ -481,40 +295,6 @@
       "options": []
     },
     {
-      "name": "Unlock Premium Plus",
-      "description": "Unlocks HD up to original quality, playback speeds up to 3x and video uploads. HD buffers faster over parallel connections.",
-      "default": true,
-      "category": null,
-      "compatiblePackages": [
-        {
-          "packageName": "com.dubox.drive",
-          "name": "TeraBox",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#226DF6",
-          "signatures": [
-            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "4.27.5",
-              "versionCodes": {
-                "ARM64_V8A": 702,
-                "ARMEABI_V7A": 702,
-                "X86_64": 702,
-                "X86": 702
-              },
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Unlock VIP",
       "description": "Forces permanent professional VIP tier, removes ads and upgrade popups, bypasses PairIP.",
       "default": true,
@@ -525,7 +305,7 @@
           "name": "HTTP Sniffer",
           "description": null,
           "apkFileType": "XAPK",
-          "appIconColor": "#2196F3",
+          "appIconColor": "#673AB7",
           "signatures": null,
           "formFactor": "MOBILE",
           "targets": [

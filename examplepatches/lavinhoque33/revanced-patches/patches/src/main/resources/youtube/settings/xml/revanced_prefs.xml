@@ -162,6 +162,11 @@
             <!-- SETTINGS: NAVIGATION_BAR_STYLE
             <app.morphe.extension.shared.settings.preference.CustomDialogListPreference android:title="@string/morphe_navigation_bar_style_title" android:key="morphe_navigation_bar_style" android:entries="@array/morphe_navigation_bar_style_entries" android:entryValues="@array/morphe_navigation_bar_style_entry_values" />SETTINGS: NAVIGATION_BAR_STYLE -->
 
+            <!-- SETTINGS: NAVIGATION_BAR_GLASS
+            <SwitchPreference android:title="@string/morphe_navigation_bar_glass_title" android:key="morphe_navigation_bar_glass" android:summary="@string/morphe_navigation_bar_glass_summary" />
+            <app.morphe.extension.shared.settings.preference.SliderPreference android:title="@string/morphe_navigation_bar_glass_opacity_title" android:key="morphe_navigation_bar_glass_opacity" android:summary="@string/morphe_navigation_bar_glass_opacity_summary" android:inputType="number" />
+            <app.morphe.extension.youtube.settings.preference.GlassNavigationBarPreference android:title="@string/morphe_navigation_bar_glass_size_title" android:key="morphe_navigation_bar_glass_height" android:summary="@string/morphe_navigation_bar_glass_size_summary" />SETTINGS: NAVIGATION_BAR_GLASS -->
+
             <!-- SETTINGS: STATUS_BAR_TRANSLUCENCY
             <app.morphe.extension.shared.settings.preference.CustomDialogListPreference android:entries="@array/revanced_status_bar_translucency_entries" android:title="@string/revanced_status_bar_translucency_title" android:key="revanced_status_bar_translucency" android:entryValues="@array/revanced_status_bar_translucency_entry_values" />SETTINGS: STATUS_BAR_TRANSLUCENCY -->
 

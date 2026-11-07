@@ -1,6 +1,7 @@
 package app.fakh.extension.linkedin;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Build;
 
@@ -93,6 +94,20 @@ public final class MaterialYou {
     }
 
     private MaterialYou() {
+    }
+
+    /**
+     * Injected at the start of AppCompatActivity.attachBaseContext. The black colors of Pitch black sit under the
+     * {@code notlong} screen qualifier, so this forces it on while the switch is on and off while it is off.
+     * Without it, bars and other screens drawn from resources stay black whatever the switch says.
+     */
+    public static Context pitchBlackContext(Context base) {
+        Configuration override = new Configuration();
+        // Layout direction bits left at 0 keep the base context's own direction.
+        override.screenLayout = base.getResources().getConfiguration().screenLayout
+                & ~(Configuration.SCREENLAYOUT_LONG_MASK | Configuration.SCREENLAYOUT_LAYOUTDIR_MASK)
+                | (Settings.pitchBlack() ? Configuration.SCREENLAYOUT_LONG_NO : Configuration.SCREENLAYOUT_LONG_YES);
+        return base.createConfigurationContext(override);
     }
 
     /**

@@ -200,16 +200,16 @@ you want. Oxbow is the other way round, set up calm on first launch.
 | | FeurStagram | piko | HushGram | **Oxbow** |
 |---|---|---|---|---|
 | Calm out of the box | Yes | No | No, most switches start off | **Yes** |
-| Blocks feed, Reels, Explore, ads | Yes | Partly | Yes, as switches | **Yes** |
-| Permanent lock | Yes | Focus Lock (timed, 24 h cooldown) | Chat lock only | **Yes**, until you reinstall |
+| Blocks feed, Reels, Explore, ads | Yes | Partly (feed only in pre-release) | Yes, as switches | **Yes** |
+| Permanent lock | Yes | Focus Lock (timed, 24 h cooldown) | Settings lock (1 to 72 h wait) | **Yes**, until you reinstall, or a 1 to 72 h cooldown |
 | Downloads | No | Yes | Yes | **Yes**, native menu row + HD avatars |
-| Download a whole carousel | No | No | Partly, carousels with music | **Yes**, optional |
+| Download a whole carousel | No | Pre-release, pick slides or all | Partly, carousels with music | **Yes**, optional |
 | Ghost mode | No | Yes | Yes | **Yes** |
 | Tracker-free links | No | Yes | Yes | **Yes** |
 | Comments off | No | Yes | Yes | **Yes** |
-| Latest Instagram supported | 452.0 | 452.1, pre-release | 452.1 | **454.0** |
+| Latest Instagram supported | 454.0 | 452.1, pre-release (447.0 stable) | 454.0 | **454.0** |
 
-*Compared from each project's README and changelog in October 2026. Spot an error? [Open an
+*Compared from each project's README, patch list and releases in November 2026. Spot an error? [Open an
 issue](https://github.com/aic0d3r/oxbow/issues/new/choose).*
 
 ## Build it yourself

@@ -3,26 +3,28 @@ package org.ungoogled.patches.honorhome.misc
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resource.resourceId
+import app.morphe.patcher.util.smali.ExternalLabel
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import org.ungoogled.patches.coloroslauncher.misc.redirectHiddenMembers
 import org.ungoogled.patches.honor.followMagicDayNight
 import org.ungoogled.patches.honor.redirectMagicFrameworkLookups
 import org.ungoogled.patches.honor.replaceMagicFrameworkIds
 import org.ungoogled.patches.honor.replaceMagicFrameworkReferences
 import org.ungoogled.patches.honor.replaceMagicInterpolators
 import org.ungoogled.patches.honorhome.HIDDEN_CONSTRUCTORS
+import org.ungoogled.patches.honorhome.HIDDEN_CONSTRUCTORS_16_17
 import org.ungoogled.patches.honorhome.HIDDEN_MEMBERS
+import org.ungoogled.patches.honorhome.HIDDEN_MEMBERS_16_17
 import org.ungoogled.patches.honorhome.HonorHomeConstants.COMPATIBILITY_HONOR_HOME
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.ungoogled.patches.samsung.redirectCalls
-import org.ungoogled.patches.samsung.redirectMembers
 import org.ungoogled.patches.samsung.rewriteStringLiterals
 
 internal const val HONOR_HOME_EXTENSION = "extensions/honorhome.mpe"
@@ -186,8 +188,8 @@ private val HOME_STYLES_OFF = setOf(
 )
 
 /**
- * MagicOS's theme values and interpolators, the day/night theme of its screens, and the widget permission dialog's
- * host activity.
+ * MagicOS's theme values and interpolators, the day/night theme of its screens, the widget permission dialog's host
+ * activity, and a badge authority of its own (so it installs beside the OnePlus System Launcher port).
  */
 private val resourcesPatch = resourcePatch(
     description = "Gives Honor Home the sizes, colours, icons and day/night theme MagicOS would.",
@@ -252,9 +254,40 @@ private val resourcesPatch = resourcePatch(
             activity.setAttribute("android:excludeFromRecents", "true")
             activity.setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
             application.appendChild(activity)
+
+            // The launcher provider also answers OPPO's badge authority (com.android.badge), which the OnePlus System
+            // Launcher port declares as its own badge provider: two apps cannot both declare an authority, so the two
+            // ports could not be installed together. Honor Home's own code never uses it (its badges go through
+            // com.hihonor.android.launcher.settings); it gets a name of its own.
+            val providers = manifest.getElementsByTagName("provider")
+            var badge = 0
+            for (i in 0 until providers.length) {
+                val p = providers.item(i) as org.w3c.dom.Element
+                val authorities = p.getAttribute("android:authorities").split(";")
+                if (OPPO_BADGE_AUTHORITY !in authorities) continue
+                p.setAttribute(
+                    "android:authorities",
+                    authorities.joinToString(";") { if (it == OPPO_BADGE_AUTHORITY) HONOR_BADGE_AUTHORITY else it },
+                )
+                badge++
+            }
+            // Measured against 14.0.0.210: one, com.hihonor.android.launcher.LauncherProvider.
+            if (badge != 1) throw PatchException("providers with the $OPPO_BADGE_AUTHORITY authority: $badge")
         }
     }
 }
+
+private const val OPPO_BADGE_AUTHORITY = "com.android.badge"
+private const val HONOR_BADGE_AUTHORITY = "com.hihonor.android.launcher.badge"
+
+/**
+ * System service calls that need a permission only the system holds (INTERACT_ACROSS_USERS); the member helper answers
+ * the SecurityException with "absent" (user 0).
+ */
+private val REFUSED_CALLS = setOf(
+    "Landroid/app/IActivityManager;->getCurrentUser()Landroid/content/pm/UserInfo;",
+    "Landroid/app/ActivityManager;->getCurrentUser()I",
+)
 
 /**
  * Honor Home is a system app built against the full Android framework; an installed app may not link to its hidden
@@ -267,10 +300,13 @@ private val hiddenApisPatch = bytecodePatch(
     extendWith(HONOR_HOME_EXTENSION)
 
     execute {
-        val (calls, fields) = redirectMembers(
-            "$EXT/Framework;", "$EXT/Hidden;", HIDDEN_MEMBERS + MAGIC_MEMBERS_WITHOUT_STAND_IN,
-        ) { _, _ -> false }
-        val constructors = redirectConstructors("$EXT/Framework;", "$EXT/Hidden;", HIDDEN_CONSTRUCTORS)
+        val (calls, fields) = redirectHiddenMembers(
+            "$EXT/Framework;", "$EXT/Hidden;",
+            HIDDEN_MEMBERS + HIDDEN_MEMBERS_16_17 + REFUSED_CALLS + MAGIC_MEMBERS_WITHOUT_STAND_IN,
+        )
+        val constructors = redirectConstructors(
+            "$EXT/Framework;", "$EXT/Hidden;", HIDDEN_CONSTRUCTORS + HIDDEN_CONSTRUCTORS_16_17,
+        )
         val rebased = rebaseSubclasses(REBASES)
         skipCastOfNull("$EXT/Hidden;")
         log.info("hidden members: $calls calls, $fields fields; constructors: $constructors; rebased classes: $rebased")

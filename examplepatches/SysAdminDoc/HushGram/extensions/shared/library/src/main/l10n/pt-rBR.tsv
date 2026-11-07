@@ -525,6 +525,8 @@ Bigger seek bar on reels	Barra de progresso maior nos Reels
 Makes the seek bar thicker, with a round white handle and the time above it, over a soft dark fade so it shows on any video. Drag it to seek. It also keeps the bar on short reels.	Deixa a barra de progresso mais grossa, com um controle redondo branco e o tempo acima, sobre um degradê escuro suave para aparecer em qualquer vídeo. Arraste para avançar. Também mantém a barra em Reels curtos.
 Seek bar like DM videos	Barra de progresso como nos vídeos de mensagens
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar on reels is on too, this look wins. It also keeps the bar on short reels.	Dá aos Reels a barra de progresso de um vídeo em uma conversa, uma linha cinza fina que fica branca conforme toca, com um controle redondo branco grande. O tempo aparece acima. Arraste para avançar. Se Barra de progresso maior nos Reels também estiver ligada, este estilo vale. Também mantém a barra em Reels curtos.
+Seek bar on photos with music	Barra de progresso em fotos com música
+Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	Reels que são uma foto com uma música ganham a mesma barra de progresso e o mesmo tempo de um Reel de vídeo, acompanhando a música. Arraste para avançar ou voltar.
 Blur the bars around a reel	Desfocar as barras ao redor de um reel
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Um reel que não preenche a tela mostra uma cópia desfocada de si mesmo acima e abaixo, em vez de barras pretas, e a faixa sob a barra de abas e a área atrás do relógio também mostram o reel desfocado. A cópia só aparece onde o reel deixa espaço, como com Mostrar o reel inteiro ativado. Abra os Reels de novo depois de uma alteração.
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -605,6 +607,8 @@ Turns the switches that keep what you do to yourself on or off in one go, like V
 View live anonymously	Ver lives anonimamente
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Fotos e vídeos enviados como visualização única ou reproduzíveis ficam na conversa para você abrir de novo. Abra a conversa outra vez para atualizar os que já carregaram.
 Swipe through a chat's reels	Deslizar pelos reels de uma conversa
+Swipe through a chat's photos and posts	Deslizar pelas fotos e publicações de uma conversa
+Open a photo or video from a chat and swipe up for the next photo, video or shared post in that chat, in chat order. Swipe down to go back one. Back takes you to the chat.	Abra uma foto ou vídeo de uma conversa e deslize para cima para ver a próxima foto, vídeo ou publicação compartilhada nela, na ordem da conversa. Deslize para baixo para voltar uma. Voltar leva você à conversa.
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Deslizar para cima em um reel aberto de uma conversa passa pelos outros reels compartilhados nela antes de qualquer reel sugerido. Voltar leva você à conversa.
 Stop after the chat's reels	Parar depois dos reels da conversa
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Os reels abertos de uma conversa terminam no último compartilhado nela, sem reels sugeridos depois. Funciona com Deslizar pelos reels de uma conversa ativado.
@@ -838,6 +842,10 @@ Badges in the accent color	Selos na cor de destaque
 The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	Os pontos e números vermelhos de novas mensagens e notificações ficam na cor que você escolheu. Reinicie o Instagram para ver a mudança.
 Icons in the accent color	Ícones na cor de destaque
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Os ícones do Instagram na barra superior, na barra de abas e embaixo dos posts ficam na cor que você escolheu. O texto continua como está. Reinicie o Instagram para ver a mudança.
+Story rings in the accent color	Anéis de stories na cor de destaque
+Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Os anéis dos stories ficam na cor que você escolheu em vez do degradê do Instagram. Alguns outros degradês usam essas cores e mudam junto. Reinicie o Instagram para ver a mudança.
+Backgrounds in the accent color	Fundos na cor de destaque
+Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Telas, painéis, cartões e menus ficam em um tom escuro ou claro da cor que você escolheu. Os visualizadores de stories e reels mantêm o próprio fundo. Tem prioridade sobre Pure black dark mode. Reinicie o Instagram para ver a mudança.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
 Color	Cor
 Instagram blue	Azul do Instagram
@@ -1806,3 +1814,9 @@ Playing in the background	Tocando em segundo plano
 Paused in the background	Pausado em segundo plano
 Play	Reproduzir
 Stop	Parar
+# context: a warning added to a setting's description
+Can slow down older phones.	Pode deixar celulares mais antigos lentos.
+# context: a switch under Ambient light
+Blend post edges	Suavizar as bordas dos posts
+# context: what that switch does
+Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	Funde a parte de cima e de baixo da foto ou do vídeo de um post com o brilho dele, para a borda não aparecer como uma linha marcada.

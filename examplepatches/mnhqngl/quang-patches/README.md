@@ -19,7 +19,25 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.3](https://github.com/mnhqngl/quang-patches/releases/tag/v1.0.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.1.0](https://github.com/mnhqngl/quang-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+<details open>
+<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.zing.zalo`
+
+**🎯 Supported versions:**
+
+| 26.10.02 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Allow Zalo to see Photos (Zalo)](#allow-zalo-to-see-photos-zalo) | Thêm Google Photos bản Morphe vào <queries> của Zalo để Zalo nhìn thấy app này. | • Package Photos (Morphe) |
+| [Change Photos picker package (Zalo)](#change-photos-picker-package-zalo) | Nút Google Photos trong trình chọn ảnh của Zalo sẽ mở Google Photos bản Morphe. | • Package Photos (Morphe) |
+
+</details>
+
 <details open>
 <summary>📦 Messenger&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>

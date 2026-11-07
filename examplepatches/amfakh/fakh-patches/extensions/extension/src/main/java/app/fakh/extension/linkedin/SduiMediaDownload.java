@@ -5,7 +5,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -154,6 +153,7 @@ public final class SduiMediaDownload {
         if (button == null) {
             button = createDownloadButton(activity);
             content.addView(button);
+            ViewerControls.follow(content, button);
         }
         button.bringToFront();
         button.setOnClickListener(v -> onDownloadClick(activity, fragment));
@@ -166,22 +166,14 @@ public final class SduiMediaDownload {
     }
 
     private static View createDownloadButton(Context context) {
-        ImageButton button = new ImageButton(context);
+        ImageButton button = Downloads.createButton(context);
         button.setTag(DOWNLOAD_TAG);
-        button.setImageResource(android.R.drawable.stat_sys_download);
-        button.setContentDescription("Download");
-        GradientDrawable background = new GradientDrawable();
-        background.setShape(GradientDrawable.OVAL);
-        background.setColor(0x99000000);
-        button.setBackground(background);
-        int padding = dp(context, 10);
-        button.setPadding(padding, padding, padding, padding);
 
-        int size = dp(context, 44);
+        int size = dp(context, 48);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.END);
-        // Below the viewer's top bar.
-        params.topMargin = dp(context, 88);
-        params.setMarginEnd(dp(context, 16));
+        // Until the controls of the viewer are read, which then level the button with its back button.
+        params.topMargin = dp(context, 40);
+        params.setMarginEnd(dp(context, 8));
         button.setLayoutParams(params);
         return button;
     }

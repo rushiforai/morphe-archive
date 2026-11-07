@@ -1,7 +1,6 @@
 package app.fakh.extension.linkedin;
 
 import android.content.Context;
-import android.graphics.drawable.GradientDrawable;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -47,21 +46,13 @@ public final class DownloadMediaPatch {
         FrameLayout overlay = new FrameLayout(context);
         overlay.setTag(OVERLAY_TAG);
 
-        ImageButton button = new ImageButton(context);
-        button.setImageResource(android.R.drawable.stat_sys_download);
-        button.setContentDescription("Download");
-        GradientDrawable background = new GradientDrawable();
-        background.setShape(GradientDrawable.OVAL);
-        background.setColor(0x80000000);
-        button.setBackground(background);
-        int padding = dp(context, 10);
-        button.setPadding(padding, padding, padding, padding);
+        ImageButton button = Downloads.createButton(context);
 
-        int size = dp(context, 44);
+        int size = dp(context, 48);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.END);
         // Below the viewer's top bar (close / overflow buttons).
         params.topMargin = dp(context, 112);
-        params.setMarginEnd(dp(context, 16));
+        params.setMarginEnd(dp(context, 12));
         overlay.addView(button, params);
         return overlay;
     }

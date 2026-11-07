@@ -6,14 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Use this template for patch.sh failures, APK installation problems, clone/classic install conflicts, Android warnings, APKM/bundle questions, or device architecture compatibility.
+        Use this template for build.sh failures, APK installation problems, clone/classic install conflicts, Android warnings, APKM/bundle questions, or device architecture compatibility.
 
   - type: dropdown
     id: issue-type
     attributes:
       label: Problem type
       options:
-        - patch.sh failed
+        - build.sh failed
         - APK does not install
         - Android security / unknown sources warning
         - Clone APK conflict
@@ -27,7 +27,7 @@ body:
   - type: input
     id: feurstagram-version
     attributes:
-      label: Feurstagram version or commit
+      label: Oxbow version or commit
       placeholder: "Example: v1.2.3 or commit hash"
     validations:
       required: false
@@ -91,7 +91,7 @@ body:
         FEURSTAGRAM_KEYSTORE=./feurstagram.keystore \
         FEURSTAGRAM_KEYSTORE_PASS=android \
         FEURSTAGRAM_KEY_ALIAS=feurstagram \
-        ./patch.sh instagram.apk
+        ./build.sh instagram.apk
     validations:
       required: false
 

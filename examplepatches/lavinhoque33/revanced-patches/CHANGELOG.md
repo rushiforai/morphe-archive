@@ -1,3 +1,16 @@
+## [1.33.0](https://github.com/lavinhoque33/revanced-patches/compare/v1.32.2...v1.33.0) (2026-11-06)
+
+### Features
+
+* **YouTube - Navigation bar:** Add Morphe's optional floating glass capsule with an animated selected-tab
+  highlight, adjustable opacity and a live size preview for height, maximum width and button spacing.
+  Buttons that do not fit are hidden from the end, while the selected tab stays visible.
+  Existing navigation-bar appearance stays unchanged until glass is enabled.
+  The size preview shows existing tabs immediately after first enabling glass, before restarting.
+  Reset restores exact defaults even for imported values between slider steps.
+  With glass enabled, Hide status bar keeps the status bar hidden when returning to the app
+  from another app or the miniplayer.
+
 ## [1.32.2](https://github.com/lavinhoque33/revanced-patches/compare/v1.32.1...v1.32.2) (2026-11-06)
 
 ### Bug Fixes

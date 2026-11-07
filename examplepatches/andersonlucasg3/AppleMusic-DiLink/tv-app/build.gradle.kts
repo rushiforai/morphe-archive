@@ -47,7 +47,16 @@ kotlin {
     }
 }
 
+// Compose compiler metrics/reports: build/compose-metrics (module classes) and
+// build/compose-reports (composables, stability). See README, Performance.
+composeCompiler {
+    metricsDestination = layout.buildDirectory.dir("compose-metrics")
+    reportsDestination = layout.buildDirectory.dir("compose-reports")
+}
+
 dependencies {
+    implementation(project(":core"))
+
     val composeBom = platform("androidx.compose:compose-bom:2026.06.01")
     implementation(composeBom)
     implementation("androidx.compose.foundation:foundation")

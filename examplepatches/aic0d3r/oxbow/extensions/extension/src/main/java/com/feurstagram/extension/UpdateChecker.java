@@ -276,6 +276,10 @@ public final class UpdateChecker implements Runnable {
 
     /** True when this is the side-by-side clone package (asset name ends in -clone.apk). */
     private boolean isCloneBuild() {
+        return isCloneBuild(context);
+    }
+
+    static boolean isCloneBuild(Context context) {
         String pkg = context.getPackageName();
         return pkg != null && (pkg.endsWith(".oxbow") || pkg.endsWith(".feurstagram"));
     }
@@ -450,7 +454,7 @@ public final class UpdateChecker implements Runnable {
      * looks up a release by this exact tag, so a made-up version would only ever
      * 404.
      */
-    private static String realInstalledVersion(Context context) {
+    static String realInstalledVersion(Context context) {
         try {
             PackageManager pm = context.getPackageManager();
             return pm.getPackageInfo(context.getPackageName(), 0).versionName;
@@ -580,13 +584,13 @@ public final class UpdateChecker implements Runnable {
                     ViewGroup.LayoutParams.WRAP_CONTENT, 8));
             Settings.boundToFrame(frame, card, scroll);
 
-            Button sponsor = Settings.makeButton(context, "Sponsor on GitHub",
+            Button star = Settings.makeButton(context, "Star on GitHub",
                     Settings.SURFACE_CONTAINER_HIGH, Settings.ON_SURFACE, true);
-            sponsor.setOnClickListener(v -> {
+            star.setOnClickListener(v -> {
                 dialog.dismiss();
-                Settings.openUrl(context, Settings.SPONSORS_URL);
+                Settings.openUrl(context, Settings.REPO_URL);
             });
-            card.addView(sponsor, marginParams(context, ViewGroup.LayoutParams.MATCH_PARENT,
+            card.addView(star, marginParams(context, ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT, 20));
 
             Button done = Settings.makeButton(context, "Got it", Settings.PRIMARY, Settings.ON_PRIMARY, true);

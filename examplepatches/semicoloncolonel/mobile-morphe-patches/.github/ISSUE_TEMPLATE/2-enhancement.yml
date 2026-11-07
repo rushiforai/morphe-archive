@@ -1,0 +1,135 @@
+name: ✨ Enhancement
+description: Improve a patch that already exists, for example an ad, prompt, or tracker it misses, or an empty space it leaves behind.
+title: "enhancement: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve a patch. Only the description is required, but every other field helps.
+
+        If the patch fails or the app crashes, use the Bug report form instead.
+  - type: checkboxes
+    id: before
+    attributes:
+      label: Before you submit
+      options:
+        - label: "I read [What the patches do](https://github.com/semicoloncolonel/mobile-morphe-patches#what-the-patches-do) and the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches#known-issues) in the README."
+          required: true
+        - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this enhancement."
+          required: true
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      description: The app the patch is for.
+      options:
+        - "ABC News"
+        - "Amazon Shopping"
+        - "AMC+"
+        - "AP News"
+        - "Apple TV"
+        - "Best Buy"
+        - "C-SPAN Now"
+        - "CBS News"
+        - "CNN"
+        - "CVS"
+        - "DealSeek"
+        - "Disney+"
+        - "ESPN"
+        - "Fandango at Home"
+        - "FEMA"
+        - "Fox Local"
+        - "Fox News"
+        - "Fox One"
+        - "HBO Max"
+        - "Hulu"
+        - "JustWatch"
+        - "MGM+"
+        - "Mint Mobile"
+        - "MLB"
+        - "Moviebase"
+        - "MS NOW"
+        - "My Verizon"
+        - "myAT&T"
+        - "MyTSA"
+        - "National Forests & Grasslands"
+        - "NBA"
+        - "NBC News"
+        - "NewsBreak"
+        - "NewsNation"
+        - "NewsNation (Android TV)"
+        - "NFL"
+        - "NPR"
+        - "NPS"
+        - "Paramount+"
+        - "PBS"
+        - "Peacock"
+        - "Plex"
+        - "Pluto TV"
+        - "Prime Video"
+        - "Recreation.gov"
+        - "Shudder"
+        - "Starz"
+        - "Substack"
+        - "Sundance Now"
+        - "T-Life"
+        - "T-Mobile Play"
+        - "Target"
+        - "The Daily Wire"
+        - "The Home Depot"
+        - "The New York Times"
+        - "The Wall Street Journal"
+        - "The Washington Post"
+        - "theScore"
+        - "Tubi"
+        - "USA TODAY"
+        - "Visible"
+        - "Walgreens"
+        - "Walmart"
+        - "White House"
+        - "Xfinity"
+        - "Xumo Play"
+        - "YouTube TV"
+        - "Other (name it in the description)"
+  - type: input
+    id: patch
+    attributes:
+      label: Patch
+      description: The patch you would like improved.
+      placeholder: "Skip ads"
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      placeholder: "17.3.0"
+  - type: dropdown
+    id: build
+    attributes:
+      label: Phone or Android TV build
+      options:
+        - Phone or tablet
+        - Android TV or Google TV
+        - Both
+  - type: input
+    id: patches-version
+    attributes:
+      label: Patches version
+      description: The version of these patches, shown under Sources in Morphe Manager.
+      placeholder: "1.0.13"
+  - type: textarea
+    id: description
+    attributes:
+      label: What could be better
+      description: What the patch misses or leaves behind, and where in the app you see it.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or video
+      description: Drag files here to attach them. A screenshot of what is left behind helps the most.
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else

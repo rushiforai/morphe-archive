@@ -2,117 +2,132 @@
 
 # DiskWala Patches for Morphe
 
-**Bytecode patches for DiskWala (`com.diskwalaapp`) — no ads, premium unlocked, no forced update screen.**
+## ⛔ PROJECT DISCONTINUED
 
-Patches are built with [Morphe Patcher](https://github.com/MorpheApp/morphe-patcher) and install directly into the [Morphe](https://morphe.software) app as a patch bundle, exactly like popular bundles such as `piko`.
+**This project has been permanently dropped.** DiskWala's server-side attestation (Play Integrity + Keystore attestation) makes it impossible for a re-signed/patched APK to communicate with `api.diskwala.com` without root. See the [technical explanation](#why-this-project-is-impossible-without-root) below.
 
-[![Release](https://img.shields.io/github/v/release/kuntal-devrat/diskwala-patches?sort=semver&label=release)](https://github.com/kuntal-devrat/diskwala-patches/releases)
-[![Bundles](https://img.shields.io/badge/bundles-.mpp-blueviolet)](https://github.com/kuntal-devrat/diskwala-patches/releases/latest)
+[![Release](https://img.shields.io/github/v/release/kuntal-devrat/diskwala-patches?sort=semver&label=last%20release)](https://github.com/kuntal-devrat/diskwala-patches/releases)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue)](LICENSE)
 
 </div>
 
 ---
 
-> [!NOTE]
-> **Active Development Notice**: This project is currently under active development. While the core patches (anti-tamper bypass, ad blocking, and premium unlock) are fully functional, some experimental features or secondary flows may occasionally have bugs. We are actively refining and testing improvements. Feedback and bug reports are welcome!
-
-## Quick start — install in Morphe
-
-### Option A — one click
-
-From your phone:
-
-**[Add source to Morphe »](https://morphe.software/add-source?github=kuntal-devrat/diskwala-patches)**
-
-### Option B — manually in the Morphe app
-
-1. Open **Morphe** → **Sources**
-2. Tap **Add** and paste:
-
-```
-https://github.com/kuntal-devrat/diskwala-patches
-```
-
-3. Back on the patches screen, select the **DiskWala Patches** bundle, pick DiskWala `24.5` (or a compatible version) and patch.
-
-No root is required — Morphe builds a signed, patched APK you install over the original app.
-
-> [!TIP]
-> DiskWala ships as an XAPK (base + config splits, ~79 MB). Provide the **base APK** (`com.diskwalaapp.apk`) to Morphe. After patching, reinstall with all original splits via `adb install-multiple`, or repack the XAPK.
+> [!CAUTION]
+> **Do not use these patches.** While the existing v1.0.3 patches (targeting DiskWala 24.5) can bypass PairIP and remove ads locally, the patched app **cannot connect to the DiskWala server**. Shared files, streaming, link resolution, and any server-dependent feature will fail with `attestation_failed` / `missing_token` / `invalid_token` errors. This applies to **all versions** of DiskWala with server-side attestation (24.x and newer).
 
 ---
 
-## Patches
+## Why this project is impossible without root
 
-<!-- PATCHES_START EXPANDED -->
-> **[v1.0.3](https://github.com/kuntal-devrat/diskwala-patches/releases/tag/v1.0.3)**&nbsp;&nbsp;â€¢&nbsp;&nbsp;`main`&nbsp;&nbsp;â€¢&nbsp;&nbsp;4 patches total
-<details open>
-<summary>ðŸ“¦ DiskWala&nbsp;&nbsp;â€¢&nbsp;&nbsp;4 patches</summary>
-<br>
+### The attestation chain
 
-**ðŸŽ¯ Supported versions:**
+DiskWala 26.9 (and recent versions) implement a multi-layer server-side attestation flow that cannot be bypassed by client-side patching alone:
 
-| 24.5 |
-| :---: |
+```
+App launch
+  │
+  ├─► POST /attest/challenge          → Server returns nonce
+  │
+  ├─► Play Integrity token request    → Google Play Services (separate process)
+  │     • Checks APK signing cert against Play Store
+  │     • Returns signed token with app verdict
+  │     • Runs OUTSIDE the app — cannot be hooked without root
+  │
+  ├─► Keystore attestation (TEE)      → Hardware-backed
+  │     • Generates attestation key bound to app identity
+  │     • Attestation cert chain includes real signing cert SHA-256
+  │     • Rooted in Google's root CA — cannot be forged
+  │
+  └─► POST /attest/verify             → Server validates both tokens
+        • Decrypts Play Integrity token via Google's API
+        • Verifies Keystore attestation cert chain
+        • Checks signing cert matches Play Store listing
+        • Result: "modified_app" → REJECTED ❌
+```
 
-| ðŸ’Š&nbsp;Patch | ðŸ“œ&nbsp;Description | âš™ï¸&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable ads](#disable-ads) | Stubs AppLovin, AdMob, InMobi and other ad SDKs at the bytecode level to prevent ads from loading without breaking the app. |  |
-| [Disable forced update](#disable-forced-update) | Bypasses PairIP license check ('Download from Play Store'), Play Integrity, and signature verification to allow modified and sideloaded app usage. |  |
-| [Patch native libraries](#patch-native-libraries) | Neutralizes PairIP traps in native .so libraries and patches Hermes bundle. |  |
-| [Unlock premium](#unlock-premium) | Makes RevenueCat entitlements appear active so ads-free and premium features are unlocked. |  |
+### Diagnostic test results
 
-</details>
+Tested on a certified device (vivo, Android 16, `MEETS_DEVICE_INTEGRITY`):
 
-<!-- PATCHES_END -->
+| Step | Result |
+|---|---|
+| `POST /attest/challenge` | ✅ 200 |
+| Play Integrity token request | ✅ succeeded |
+| `POST /attest/verify` | ❌ 400 `attestation_failed` |
+| Server reason | `modified_app` |
+
+The server does **not** reject the device — it rejects the **re-signed app**. The signing identity is verified through Google Play Integrity (which runs in Google Play Services, outside the app process) and TEE-backed Keystore attestation (hardware-level, cryptographically unforgeable).
+
+### Why no client-side patch can fix this
+
+1. **Play Integrity runs in Google Play Services** — a separate system process. Without root, you cannot hook or modify its behavior. It will always report the real APK signing certificate.
+
+2. **Keystore attestation is TEE-backed** — the Trusted Execution Environment is hardware-isolated. The attestation certificate chain is rooted in Google's hardware root CA and includes the app's real signing cert digest. No software patch can alter what the TEE reports.
+
+3. **Server-side validation** — DiskWala's server decrypts the Play Integrity token using Google's server-side API and verifies the Keystore attestation chain. These checks happen entirely on the server and cannot be influenced by the client.
+
+4. **Nonce prevents replay** — each attestation session starts with a fresh server nonce, so tokens from the official app cannot be replayed.
+
+### What would actually work (but requires root)
+
+- **Magisk + Play Integrity Fix** — spoofs device properties so Google Play Services reports the app as legitimate
+- **LSPosed/Xposed framework** — hooks PackageManager and Keystore at the system level
+- Both require an **unlocked bootloader + Magisk**, which conflicts with the no-root goal of this project
+
+---
+
+## Alternatives for users (no root required)
+
+### 1. Official DiskWala + system-wide ad blocking (recommended)
+
+Install the official app from the Play Store (passes attestation), then block ads at the network level:
+
+- **Private DNS**: Set `dns.adguard.com` or `dns.nextdns.io` in Settings → Network → Private DNS
+- **Local VPN blockers**: [AdGuard](https://adguard.com/), [Blokada](https://blokada.org/), or [NextDNS](https://nextdns.io/)
+
+Server features work normally. Most ads are blocked. Premium features remain locked.
+
+### 2. Official app + local playback
+
+Use the official app for downloading/resolving links, play downloaded content in a third-party player (VLC, MX Player).
+
+---
+
+## Previous patches (archived, non-functional for server features)
 
 <details>
-<summary><b>What each patch does — technical description</b></summary>
+<summary>v1.0.3 patches — DiskWala 24.5 (server connectivity broken)</summary>
 
-#### Disable ads
-- Stubs SDK entry points `com.applovin.sdk.AppLovinInitProvider#onCreate`, `com.inmobi.sdk.InMobiInitProvider#onCreate` and AdMob `MobileAdsInitProvider` to `return true` without initializing the SDKs.
-- Stubs the React Native bridge `com.applovin.reactnative.AppLovinMAXModule`: `initialize`, `loadInterstitial`, `showInterstitial`, `loadRewardedAd`, `showRewardedAd`, `loadAppOpenAd`, `showAppOpenAd`, `createBanner`, `createMRec` all return without touching the ad network.
-- `isInterstitialReady` / `isRewardedAdReady` resolve their JS `Promise` with `false` so the Hermes bundle never hangs waiting for an ad that will never come.
+These patches target DiskWala `24.5` (`versionCode 334`). They successfully bypass PairIP anti-tamper, disable ads, and unlock premium UI — but the patched app **cannot authenticate with the server**.
 
-#### Unlock premium
-- Forces `com.revenuecat.purchases.EntitlementInfo#isActive()` → `true`.
-- Forces `EntitlementInfos#getActive()` to return all entitlements, clearing the *"Buy Subscription to enjoy Ads Free Experience"* gate.
+| Patch | Description |
+|---|---|
+| Disable ads | Stubs AppLovin, AdMob, InMobi and other ad SDKs |
+| Disable forced update | Bypasses PairIP license check and signature verification |
+| Patch native libraries | Neutralizes PairIP traps in native .so libraries |
+| Unlock premium | Makes RevenueCat entitlements appear active |
 
-#### Disable forced update
-- Neutralizes PairIP: `StartupLauncher.launch()` → `return-void`, `VMRunner.invoke()` → `null` (native `executeVM` never runs).
-- `SignatureCheck.verifyIntegrity()` → no-op, `verifySignatureMatches()` → `true`.
-- `com.diskwalaapp.integrity.PlayIntegrityModule.requestToken()` resolves with a stub token (`diskwala_stub_integrity_token`) instead of the real Play Integrity flow — `forceUpdate` / `Modded APK Detected` never fire.
-
-All fingerprints are defined in `patches/src/main/kotlin/app/diskwala/patches/**/Fingerprints.kt` and target non-obfuscated class/method signatures, so most updates of DiskWala should keep working experimentally.
+**Source:** [`patches/`](patches/) directory
 
 </details>
 
 ---
 
-## Compatibility
+## Development (archived)
 
-| App | Package | Tested version | Notes |
-|---|---|---|---|
-| DiskWala | `com.diskwalaapp` | `24.5 (334)` | Other versions enabled experimentally |
-
-Patches are fingerprinted against DiskWala `24.5` (`versionCode 334`, `arm64-v8a`). The bundle declares every newer version as *experimental* — string/opcode-based fingerprints usually survive minor app updates, but verify on a spare build first.
-
----
-
-## Development
+<details>
+<summary>Build instructions (for reference only)</summary>
 
 ### Requirements
 
 - JDK 21
-- A GitHub personal access token (classic) with `read:packages` scope, in `~/.gradle/gradle.properties`:
+- GitHub PAT with `read:packages` scope in `~/.gradle/gradle.properties`:
 
   ```properties
   gpr.user=your_github_username
   gpr.key=ghp_your_token
   ```
-
-  (Or set `GITHUB_ACTOR` / `GITHUB_TOKEN` environment variables.) This is required because Morphe publishes its patcher libraries to GitHub Packages.
 
 ### Build
 
@@ -121,46 +136,31 @@ Patches are fingerprinted against DiskWala `24.5` (`versionCode 334`, `arm64-v8a
 # → patches/build/libs/patches-<version>.mpp
 ```
 
-The `.mpp` bundle can be loaded directly in the Morphe app or Morphe Desktop CLI for testing.
-
 ### Layout
 
 ```
 patches/
-  build.gradle.kts          ← bundle metadata (name, author, website)
+  build.gradle.kts
   src/main/kotlin/app/diskwala/patches/
-    shared/Constants.kt     ← Compatibility declaration
-    ad/                     ← Disable ads patch + fingerprints
-    premium/                ← Unlock premium patch + fingerprints
-    update/                 ← Disable forced update patch + fingerprints
-settings.gradle.kts         ← plugin resolution (mirror + jitpack)
+    shared/Constants.kt
+    ad/
+    premium/
+    update/
+settings.gradle.kts
 ```
 
-### CI / releases
-
-- Work happens on **`dev`** — `fix:`/`feat:` commits produce `*-dev.*` pre-releases automatically.
-- Merge `dev` → `main` for a stable `vX.Y.Z` release; the `patches-<version>.mpp` asset and `patches-bundle.json` are published by the release workflow.
-- `patches-list.json`, `patches-bundle.json`, `CHANGELOG.md` and the patches table in this README are CI-generated. Do not hand-edit.
-- Dependencies are mirrored to [`kuntal-devrat/registry`](https://github.com/kuntal-devrat/registry) so CI builds resolve without extra GitHub Packages credentials beyond `gpr.*`.
-
----
-
-## Verification
-
-After installing the patched app:
-
-```bash
-adb logcat | grep -i -E "AppLovin|InMobi|PlayIntegrity|SignatureCheck|VMRunner"
-```
-
-Expected: no ad loader traffic, no `INTEGRITY_ERROR`, no PairIP VM execution (`Executing XrSWhF7qgXWkwZNT`), and no forced-update dialog at launch.
+</details>
 
 ---
 
 ## License
 
-[GPL-3.0](LICENSE). Forks of the Morphe ecosystem must follow the Morphe brand terms: do not use the *Morphe* name/logo for branding; describe this project as *compatible with Morphe*.
+[GPL-3.0](LICENSE).
 
 ## Credits
 
 - [Morphe](https://github.com/MorpheApp) — patcher, patch framework and release tooling.
+
+## Acknowledgments
+
+Thank you to everyone who reported bugs, tested builds, and supported this project. The DiskWala team has implemented robust server-side security that makes no-root patching infeasible. This is not a failure of effort — it's a fundamental technical limitation imposed by hardware-backed attestation.

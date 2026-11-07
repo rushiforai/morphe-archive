@@ -1,6 +1,6 @@
 # LinkedIn
 
-Patches for the LinkedIn app (`com.linkedin.android`, versions `4.1.1264`, `4.1.1267` and `4.1.1269`, APKM from APKMirror).
+Patches for the LinkedIn app (`com.linkedin.android`, versions `4.1.1264`, `4.1.1267`, `4.1.1269` and `4.1.1270`, APKM from APKMirror).
 
 ## Patches
 
@@ -14,16 +14,19 @@ Morphe Manager groups them by category.
 | Ads | Hide Premium upsells | On | Removes Premium and AI upsell cards and banners, including on profiles and the profile menu. |
 | Feature | Download media | On | A download button on full screen photos and videos, profile photos and banners. |
 | Feature | More tab | On | Hides items of the More tab (Puzzle games, Groups, Events, Newsletters), or lists them at the bottom of the profile menu. Adds a Puzzle games shortcut to the LinkedIn app icon, with its own switch. |
+| Feature | Swipe between tabs | On | Swipe sideways to go to the next or previous tab of the navigation bar, with a slide animation. Does not act where something under the finger can scroll sideways. |
 | Feature | Navigation bar | On | Adds switches in Fakh Patches to show or hide the More, Jobs, Network and Notifications tabs of the navigation bar, its notification badges and its tab labels. |
 | Feature | GmsCore support | Off | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |
 | Feed | Hide suggested posts | On | Removes "Suggested" posts from people outside your network. |
 | Feed | Feed filters | On | Adds filters you can turn on in Fakh Patches: engagement counts, celebrations, job cards, network activity (likes, comments, reposts), video posts, "Recommended for you", puzzle games, the "New posts" pill and "Show translation". All start off. |
+| Feed | Copy text | On | Press and hold a post, comment or any other text to open it in a sheet where it can be selected and copied. Adds a switch in Fakh Patches. |
 | Feed | Disable double-tap like | On | Double tapping a post or photo no longer likes it. |
 | Feed | Expand posts | On | Adds a switch in Fakh Patches that shows posts expanded by default. Tapping the text collapses them. Starts off. |
 | Privacy | Messaging | On | Hides sponsored messages, and adds an optional ghost mode that sends no typing indicator and no automatic read receipts. |
 | Privacy | Open links directly | On | Opens outside links without LinkedIn's warning page, including `lnkd.in` short links. |
 | Privacy | Sanitize share links | On | Strips tracking parameters from LinkedIn links you copy or share. |
 | Privacy | Block tracking | On | Adds a switch, off by default, that stops most LinkedIn analytics events from being sent. |
+| Privacy | Anonymous profile viewing | On | Adds a switch, off by default, that stops the app from reporting your visits to profiles, so they are not listed in "Who viewed your profile". |
 | Theme | Material You | Off | Wallpaper colors (Android 12+) instead of LinkedIn blue for accents, backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers keep their own colors. |
 | Theme | Pitch black | Off | Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter black. Works with or without Material You. |
 | Theme | Remove gaps and dividers | Off | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |
@@ -53,12 +56,12 @@ chat as read or unread from the chat list still works.
 With [morphe-desktop](https://github.com/MorpheApp/morphe-cli/releases) (needs Java 21):
 
 ```bash
-java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o linkedin-patched.apk <LinkedIn 4.1.1269 APKM>
+java -jar morphe-desktop-1.19.1-all.jar patch -p patches/build/libs/patches-<version>.mpp -o linkedin-patched.apk <LinkedIn 4.1.1270 APKM>
 ```
 
 ## Getting the APK
 
-Download the `4.1.1269` APKM from APKMirror; `4.1.1264` and `4.1.1267` work too. Morphe Manager looks the app up on
+Download the `4.1.1270` APKM from APKMirror; `4.1.1264`, `4.1.1267` and `4.1.1269` work too. Morphe Manager looks the app up on
 APKMirror itself, so it can take you to that page.
 
 ## Credits

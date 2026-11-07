@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.5.0...v1.6.0) (2026-11-07)
+
+### ✨ New Features
+
+* **universal copy:** support 7.2.0 and remove Internet permission ([04b8b1b](https://github.com/toidicakhia/morphe-app-patches/commit/04b8b1be9d71103f9aa4be8b6896bbab35f5d1ef))
+
 ## [1.5.0](https://github.com/toidicakhia/morphe-app-patches/compare/v1.4.1...v1.5.0) (2026-10-30)
 
 ### ✨ New Features

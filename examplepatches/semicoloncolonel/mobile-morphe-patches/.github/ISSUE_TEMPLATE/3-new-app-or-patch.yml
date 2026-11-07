@@ -1,0 +1,63 @@
+name: 📦 New app or patch request
+description: Ask for an app that is not supported yet, a new patch for a supported app, another version, or the Android TV build.
+title: "request: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the suggestion. Only the request itself is required, but every other field helps.
+
+        Before you start, please check the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) for the same request.
+  - type: checkboxes
+    id: before
+    attributes:
+      label: Before you submit
+      options:
+        - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this request."
+          required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type of request
+      options:
+        - A new app
+        - A new patch for an app that is already supported
+        - Support for another version of a supported app
+        - Support for the Android TV build of a supported app
+        - Something else
+  - type: input
+    id: app
+    attributes:
+      label: App name
+      placeholder: "Pluto TV"
+  - type: input
+    id: link
+    attributes:
+      label: Play Store or APKMirror link
+      placeholder: "https://play.google.com/store/apps/details?id=..."
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: The version you would like supported, if it matters.
+  - type: dropdown
+    id: build
+    attributes:
+      label: Phone or Android TV build
+      options:
+        - Phone or tablet
+        - Android TV or Google TV
+        - Both
+  - type: textarea
+    id: request
+    attributes:
+      label: What the patch should do
+      description: For example, which ads, prompts, or tracking to remove. Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: Links, other projects that patch this app, or anything else that could help.

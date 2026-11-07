@@ -144,6 +144,8 @@ public final class MaterialYou {
 
     // Read once per process, except AMOLED black, which switches in place: Material You needs a restart.
     private static Boolean materialYou;
+    /** The application context, kept by the first activity, for settings read outside a screen. */
+    private static Context appContext;
     private static Boolean amoled;
 
     private MaterialYou() {
@@ -335,11 +337,13 @@ public final class MaterialYou {
         ((Application) context.getApplicationContext()).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             @Override
             public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+                appContext = activity.getApplicationContext();
                 CREATED_BLACK.put(activity, isAmoled(activity));
             }
 
             @Override
             public void onActivityResumed(Activity activity) {
+                NavigationBar.install(activity);
                 Boolean black = CREATED_BLACK.get(activity);
                 if (black != null && black != isAmoled(activity)) activity.recreate();
             }
@@ -432,6 +436,18 @@ public final class MaterialYou {
     private static boolean isAmoled(Context context) {
         if (amoled == null) amoled = prefs(context).getBoolean(AMOLED, false);
         return amoled;
+    }
+
+    /** A Fakh Patches switch that is off unless turned on. */
+    static boolean flag(String key) {
+        if (appContext == null) {
+            // Static initializers of the app's classes can run before the first activity exists.
+            try {
+                appContext = (Context) Class.forName("android.app.ActivityThread").getMethod("currentApplication").invoke(null);
+            } catch (ReflectiveOperationException ignored) {
+            }
+        }
+        return appContext != null && prefs(appContext).getBoolean(key, false);
     }
 
     /** GitHub's settings file, where the Fakh Patches switches save their state. */

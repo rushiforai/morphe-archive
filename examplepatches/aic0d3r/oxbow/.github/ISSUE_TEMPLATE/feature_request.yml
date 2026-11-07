@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an improvement for Feurstagram
+description: Suggest an improvement for Oxbow
 title: "[Feature]: "
 labels: ["enhancement", "needs triage"]
 body:
@@ -20,7 +20,7 @@ body:
     id: solution
     attributes:
       label: Proposed solution
-      description: Describe what you would like Feurstagram to do.
+      description: Describe what you would like Oxbow to do.
     validations:
       required: true
 

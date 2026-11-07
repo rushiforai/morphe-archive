@@ -66,6 +66,8 @@
   "Strip tracking from LinkedIn links you copy or share.": "",
   "Block tracking": "Блокировать отслеживание",
   "Stop most analytics events. Turn off if something breaks.": "",
+  "Anonymous profile viewing": "",
+  "Visit profiles without being listed in Who viewed your profile.": "",
   "Language": "Язык",
   "Automatic (device language)": "Автоматически (язык устройства)",
   "Export settings": "Экспорт настроек",
@@ -126,5 +128,12 @@
   "Notifications": "",
   "More": "",
   "Navigation bar tabs": "",
-  "Hide tab labels": ""
+  "Hide tab labels": "",
+  "Swipe between tabs": "",
+  "Swipe sideways to go to the next or previous tab of the navigation bar.": "",
+  "Copy text": "",
+  "Press and hold text to select and copy it.": "",
+  "Copy all": "",
+  "Close": "",
+  "Text copied": ""
 }

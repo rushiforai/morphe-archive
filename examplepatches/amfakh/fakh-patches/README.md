@@ -5,8 +5,8 @@ Each app has its own README with the full patch list.
 
 | App | Package | Version | Format | Details |
 |---|---|---|---|---|
-| GitHub | `com.github.android` | `1.282.0` | APKM from APKMirror | [apps/github](apps/github/README.md) |
-| LinkedIn | `com.linkedin.android` | `4.1.1264`, `4.1.1267`, `4.1.1269` | APKM from APKMirror | [apps/linkedin](apps/linkedin/README.md) |
+| GitHub | `com.github.android` | `1.282.0`, `1.283.0` | APKM from APKMirror | [apps/github](apps/github/README.md) |
+| LinkedIn | `com.linkedin.android` | `4.1.1264`, `4.1.1267`, `4.1.1269`, `4.1.1270` | APKM from APKMirror | [apps/linkedin](apps/linkedin/README.md) |
 | Radio Indonesia | `com.appmind.radios.id` | `4.2.30` | XAPK from APKPure | [apps/radio](apps/radio/README.md) |
 | DoDo Music | `com.dundunstudio.autoplay` | `2.0.14`, `2.0.17` | XAPK from APKPure | [apps/dodo](apps/dodo/README.md) |
 | Windy | `com.windyty.android` | `51.3.2` | APKM from APKMirror | [apps/windy](apps/windy/README.md) |

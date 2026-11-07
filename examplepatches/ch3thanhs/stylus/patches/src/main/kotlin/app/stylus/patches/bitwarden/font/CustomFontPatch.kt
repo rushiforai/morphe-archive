@@ -2,8 +2,10 @@ package app.stylus.patches.bitwarden.font
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.deleteResource
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.stylus.patches.bitwarden.shared.Constants.COMPATIBILITY_BITWARDEN
@@ -131,7 +133,7 @@ private val fontFeatureSettingsOption = stringOption(
  * so it can also apply the feature settings to Compose text; this dependency
  * handles the font files.
  */
-private val customFontResourcesBitwardenPatch = resourcePatch(
+private val customFontResourcesBitwardenPatch = patch(
     name = "Custom font resources",
     description = "Internal font resource replacement.",
     default = false,
@@ -160,7 +162,7 @@ private val customFontResourcesBitwardenPatch = resourcePatch(
         // replace or remove.
         decode("res/font*")
 
-        val fontResDir = get("res").resolve("font")
+        val fontResDir = resourceFile("res").resolve("font")
         val fontExtension = fontFile.extension.lowercase()
 
         // Remove a previously copied custom font with a different extension so
@@ -179,7 +181,7 @@ private val customFontResourcesBitwardenPatch = resourcePatch(
                 val bundledFontFile = fontResDir.resolve("${target.resourceName}.$extension")
                 if (bundledFontFile.exists()) {
                     // Mark the bundled font for removal from the rebuilt APK.
-                    delete("res/font/${bundledFontFile.name}")
+                    deleteResource("res/font/${bundledFontFile.name}")
                 }
             }
 
@@ -194,7 +196,7 @@ private val customFontResourcesBitwardenPatch = resourcePatch(
 }
 
 @Suppress("unused")
-val customFontBitwardenPatch = bytecodePatch(
+val customFontBitwardenPatch = patch(
     name = "Custom font",
     description = "Replaces the bundled DM Sans UI fonts with your own font.",
     default = false,

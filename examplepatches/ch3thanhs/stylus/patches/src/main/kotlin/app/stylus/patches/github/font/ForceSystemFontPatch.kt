@@ -1,14 +1,14 @@
 package app.stylus.patches.github.font
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.stylus.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 
 private const val EXTENSION_CLASS =
     "Lapp/stylus/extension/github/patches/ForceSystemFontPatch;"
 
-private val forceSystemFontGithubCssPatch = resourcePatch(
+private val forceSystemFontGithubCssPatch = patch(
     name = "Force system font web content",
     description = "Internal webview CSS override.",
     default = true,
@@ -17,7 +17,7 @@ private val forceSystemFontGithubCssPatch = resourcePatch(
     compatibleWith(COMPATIBILITY_GITHUB)
 
     execute {
-        val fontCssFile = get("assets").resolve("webview").resolve("font.css")
+        val fontCssFile = resourceFile("assets").resolve("webview").resolve("font.css")
         fontCssFile.writeText(
             """@font-face {
     font-family: inter;
@@ -41,7 +41,7 @@ samp {
 }
 
 @Suppress("unused")
-val forceSystemFontGithubPatch = bytecodePatch(
+val forceSystemFontGithubPatch = patch(
     name = "Force system font",
     description = "Uses the device's system font for UI text.",
     default = true,

@@ -18,6 +18,7 @@ import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragme
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.reelCapBreakRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.reelCapCountRow;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.scrollBreakRow;
+import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.slowsOlderPhones;
 import static app.hushgram.extension.instagram.settings.HushgramPreferenceFragment.toggle;
 
 import android.content.Context;
@@ -240,6 +241,9 @@ final class ReelsCategory {
                     L10n.t("Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, "
                             + "with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek "
                             + "bar on reels is on too, this look wins. It also keeps the bar on short reels.")));
+            reels.add(toggle(context, Settings.PHOTO_REEL_SEEK_BAR, L10n.t("Seek bar on photos with music"),
+                    L10n.t("Reels that are a photo with a song get the same seek bar and time as a video reel, "
+                            + "following the song. Drag it to seek.")));
         }
         if (build.contains(PatchFamily.REEL_ZOOM)) {
             reels.add(toggle(context, Settings.PINCH_ZOOM_REELS, L10n.t("Pinch to zoom"),
@@ -248,10 +252,10 @@ final class ReelsCategory {
         }
         if (build.contains(PatchFamily.REEL_BLUR_BARS)) {
             reels.add(toggle(context, Settings.BLUR_REEL_BARS, L10n.t("Blur the bars around a reel"),
-                    L10n.t("A reel that doesn't fill the screen shows a blurred copy of itself above and below it "
+                    slowsOlderPhones(L10n.t("A reel that doesn't fill the screen shows a blurred copy of itself above and below it "
                             + "instead of black bars, and the strip under the tab bar and the band behind the clock show the reel "
                             + "blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. "
-                            + "Open Reels again after a change.")));
+                            + "Open Reels again after a change."))));
         }
         if (build.contains(PatchFamily.REEL_AUTO_SCROLL)) {
             reels.add(toggle(context, Settings.KEEP_REEL_AUTO_SCROLL, L10n.t("Keep auto scroll on"),

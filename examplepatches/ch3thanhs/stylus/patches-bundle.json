@@ -1,8 +1,8 @@
 {
-  "created_at": "2026-11-06T13:48:49",
-  "description": "## [1.9.2](https://github.com/ch3thanhs/stylus/compare/v1.9.1...v1.9.2) (2026-11-06)\n\n### 🐛 Bug Fixes\n\n* **where-is-my-train:** apply custom font to chips and station names ([3ea6974](https://github.com/ch3thanhs/stylus/commit/3ea6974645c9c6c9d16d7bff8536fa8f296cc375)), closes [#53](https://github.com/ch3thanhs/stylus/issues/53)",
-  "download_url": "https://github.com/ch3thanhs/stylus/releases/download/v1.9.2/patches-1.9.2.mpp",
+  "created_at": "2026-11-07T03:28:16",
+  "description": "## [1.9.3](https://github.com/ch3thanhs/stylus/compare/v1.9.2...v1.9.3) (2026-11-07)\n\n### 🚀 Updated App Support\n\n* **GitHub:** Update app support to 1.283.0 ([47c0cad](https://github.com/ch3thanhs/stylus/commit/47c0cad082b4595a0c85c91c067c2224301de84a))\n* **Telegram web:** Update app support to 13.2.0 ([7630c33](https://github.com/ch3thanhs/stylus/commit/7630c336b67c0625372ce492c4dfcd0401563987))\n* **Telegram:** Update app support to 13.2.0 ([a7d54e9](https://github.com/ch3thanhs/stylus/commit/a7d54e9a59a6f18546824f7d04b40ba14e6bf092))",
+  "download_url": "https://github.com/ch3thanhs/stylus/releases/download/v1.9.3/patches-1.9.3.mpp",
   "signature_download_url": "",
-  "version": "1.9.2",
+  "version": "1.9.3",
   "public_key": "cWGf3WaVbkfbXxmHi+zYBAhD/stTunPUMpe/xsR7TdM="
 }

@@ -22,7 +22,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 ## 🌷 Available patches
 
 <!-- PATCHES_START -->
-> **[v1.0.36](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.36)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.0.41](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.41)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
 <summary>🌸 Orientation Control&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -110,6 +110,23 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 |----------|----------------|-----------|
 | [Disable Pairip](#disable-pairip) | Skips the local license and integrity checks so the app can keep running offline. |  |
 | [Pro Options](#pro-options) | Uses a local preference so optional Pro options stay available. |  |
+
+</details>
+
+<details open>
+<summary>🌸 Sound Assistant&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**Package name:** `com.samsung.android.soundassistant`
+
+**🌻 Supported versions:**
+
+| 8.5.00.2 |
+| :---: |
+
+| 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
+|----------|----------------|-----------|
+| [Fix Multi Sound Restricted](#fix-multi-sound-restricted) | Disables force-update exit and forces multi-sound restricted checks to allow so ads no longer pause audio. |  |
 
 </details>
 

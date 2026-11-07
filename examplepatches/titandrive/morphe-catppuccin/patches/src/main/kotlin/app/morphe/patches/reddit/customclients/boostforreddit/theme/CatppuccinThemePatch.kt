@@ -48,7 +48,7 @@ private val themeLabelIds = listOf(0x7f131000, 0x7f131001)
 
 private val catppuccinResourcesPatch = resourcePatch {
     execute {
-        if (packageMetadata.versionName == "1.14.2") {
+        if (packageMetadata.versionName in setOf("1.14.2", "1.14.3")) {
             applyModernBoostResources()
             return@execute
         }
@@ -173,9 +173,9 @@ val catppuccinThemePatch = bytecodePatch(
     extendWith("catppuccin/boost-modern.dex")
     dependsOn(catppuccinResourcesPatch)
     compatibleWith(Compatibility(name = "Boost for Reddit", packageName = "com.rubenmayayo.reddit",
-        targets = listOf(AppTarget(version = "1.12.12"), AppTarget(version = "1.14.2"))))
+        targets = listOf(AppTarget(version = "1.12.12"), AppTarget(version = "1.14.2"), AppTarget(version = "1.14.3"))))
     execute {
-        if (packageMetadata.versionName == "1.14.2") {
+        if (packageMetadata.versionName in setOf("1.14.2", "1.14.3")) {
             applyModernBoostTheme()
             return@execute
         }

@@ -530,6 +530,8 @@ Bigger seek bar on reels	加大 Reels 進度列
 Makes the seek bar thicker, with a round white handle and the time above it, over a soft dark fade so it shows on any video. Drag it to seek. It also keeps the bar on short reels.	加粗進度列，加入白色圓形拖曳鈕與上方時間，並以柔和的深色漸層為背景，讓任何影片上都清楚可見。拖曳即可跳轉，也會保留短 Reels 的進度列。
 Seek bar like DM videos	使用私訊影片樣式的進度列
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar on reels is on too, this look wins. It also keeps the bar on short reels.	讓 Reels 使用聊天影片的進度列：播放時由灰轉白的細線，搭配大型白色圓形拖曳鈕，上方顯示時間。拖曳即可跳轉。同時啟用「加大 Reels 進度列」時，會優先使用此樣式。也會保留短 Reels 的進度列。
+Seek bar on photos with music	在含音樂的相片上顯示進度列
+Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	相片搭配歌曲的 Reels 會顯示與影片 Reels 相同的進度列和時間，並跟著歌曲前進。拖曳即可跳轉。
 Blur the bars around a reel	模糊 Reel 周圍的留白
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	未填滿螢幕的 Reel 會在上下顯示自身的模糊影像，取代黑邊；分頁列下方與時鐘後方也會顯示模糊的 Reel。模糊影像只會出現在 Reel 留有空間的地方，例如開啟「顯示完整的 Reels」時。變更後請重新開啟 Reels。
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -610,6 +612,8 @@ Turns the switches that keep what you do to yourself on or off in one go, like V
 View live anonymously	匿名觀看直播
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	以只能看一次或可重播方式傳送的照片與影片會保留在聊天室，讓你再次開啟。已載入的內容請重新開啟聊天以更新。
 Swipe through a chat's reels	在聊天室的 Reels 之間滑動
+Swipe through a chat's photos and posts	在聊天室的相片和貼文之間滑動
+Open a photo or video from a chat and swipe up for the next photo, video or shared post in that chat, in chat order. Swipe down to go back one. Back takes you to the chat.	開啟聊天室中的相片或影片後往上滑，即可依聊天順序看該聊天室的下一張相片、下一部影片或分享的貼文。往下滑可回到上一個。返回會回到聊天室。
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	在從聊天室開啟的 Reels 上往上滑，會先看完該聊天室分享的其他 Reels，再看到推薦的 Reels。返回會回到聊天室。
 Stop after the chat's reels	看完聊天室的 Reels 就停止
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	從聊天室開啟的 Reels 會在該聊天室分享的最後一則結束，之後不會出現推薦的 Reels。需開啟「在聊天室的 Reels 之間滑動」。
@@ -1406,6 +1410,10 @@ That reel isn't on their profile. It might be a trial reel.	該 Reel 不在對�
 The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	新訊息和通知的紅點與數字會改用你選擇的顏色。請重新啟動 Instagram 以套用變更。
 Icons in the accent color	圖示使用強調色
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	頂部列、分頁列和貼文下方的 Instagram 圖示會改用你選擇的顏色。文字保持不變。請重新啟動 Instagram 以套用變更。
+Story rings in the accent color	限時動態圓環使用強調色
+Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	限時動態圓環會改用你選擇的顏色,取代 Instagram 的漸層。少數使用相同顏色的其他漸層也會一起改變。請重新啟動 Instagram 以查看變更。
+Backgrounds in the accent color	背景使用強調色
+Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	畫面、面板、卡片和選單會改用你選擇顏色的深色或淺色調。限時動態和 Reels 檢視器保留自己的背景。優先於 Pure black dark mode。請重新啟動 Instagram 以查看變更。
 Your fonts in story text	限時動態文字的自訂字型
 Your story fonts	你的限時動態字型
 Date in backup file names	在備份檔名加入日期
@@ -1809,3 +1817,9 @@ Playing in the background	正在背景播放
 Paused in the background	已在背景暫停
 Play	播放
 Stop	停止
+# context: a warning added to a setting's description
+Can slow down older phones.	可能會讓較舊的手機變慢.
+# context: a switch under Ambient light
+Blend post edges	融合貼文邊緣
+# context: what that switch does
+Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	讓貼文相片或影片的上下邊緣融入光暈，邊緣就不會像一條生硬的線.

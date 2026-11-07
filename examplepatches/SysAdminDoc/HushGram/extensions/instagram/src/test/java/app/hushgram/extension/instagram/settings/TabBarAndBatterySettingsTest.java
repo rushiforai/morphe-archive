@@ -262,13 +262,13 @@ public class TabBarAndBatterySettingsTest {
         assertEquals("Turn on Glass tab bar to use this slider.", String.valueOf(strength.getSummary()));
         ((SwitchPreference) row(Settings.GLASS_TAB_BAR.key)).setChecked(true);
         ShadowLooper.idleMainLooper();
-        assertEquals("18 dp (standard)", String.valueOf(strength.getSummary()));
+        assertEquals("8 dp (standard)", String.valueOf(strength.getSummary()));
         assertFalse("the row opens no dialog, the slider is the control", strength.isSelectable());
         assertFalse(Settings.GLASS_TAB_BAR_BLUR_RADIUS.rebootApp);
 
         SeekBar slider = sliderOf(strength);
         assertEquals("2 dp to 48 dp a notch at a time", 46, slider.getMax());
-        assertEquals(16, slider.getProgress());
+        assertEquals(6, slider.getProgress());
         assertEquals("Blur strength", String.valueOf(slider.getContentDescription()));
         SeekBar.OnSeekBarChangeListener listener = ((ShadowSeekBar) org.robolectric.Shadows.shadowOf(slider)).getOnSeekBarChangeListener();
         assertNotNull(listener);
@@ -278,7 +278,7 @@ public class TabBarAndBatterySettingsTest {
         listener.onProgressChanged(slider, 28, true);
         TextView summary = (TextView) ((View) slider.getParent()).findViewById(android.R.id.summary);
         assertEquals("30 dp", String.valueOf(summary.getText()));
-        assertEquals("not saved mid-drag", 18, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
+        assertEquals("not saved mid-drag", 8, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
         listener.onStopTrackingTouch(slider);
         ShadowLooper.idleMainLooper();
         assertEquals(30, (int) Settings.GLASS_TAB_BAR_BLUR_RADIUS.savedValue());
@@ -467,7 +467,7 @@ public class TabBarAndBatterySettingsTest {
         assertEquals("Liquid glass look", String.valueOf(liquid.getTitle()));
         assertEquals("Rounds the pill and its highlight and puts Search in a glass circle of its own. Scrolling a list "
                 + "down shrinks the bar to the tab you're on and Search, unless Hide the tab bar as you scroll is on. "
-                + "Restart Instagram after changing it.", String.valueOf(liquid.getSummary()));
+                + "Restart Instagram after changing it. Can slow down older phones.", String.valueOf(liquid.getSummary()));
         assertFalse(liquid.isChecked());
         assertFalse(Settings.GLASS_TAB_BAR_LIQUID.defaultValue);
         assertTrue(Settings.GLASS_TAB_BAR_LIQUID.rebootApp);
@@ -543,7 +543,7 @@ public class TabBarAndBatterySettingsTest {
         assertNotNull(refract);
         assertEquals("Bend light at the edges", String.valueOf(refract.getTitle()));
         assertEquals("The liquid pill's rim bends what's behind it like real glass, so what passes under the edge "
-                + "shows upside down. Android 13 and newer. Restart Instagram after changing it.",
+                + "shows upside down. Android 13 and newer. Restart Instagram after changing it. Can slow down older phones.",
                 String.valueOf(refract.getSummary()));
         assertFalse(refract.isChecked());
         assertFalse(Settings.GLASS_TAB_BAR_REFRACT.defaultValue);

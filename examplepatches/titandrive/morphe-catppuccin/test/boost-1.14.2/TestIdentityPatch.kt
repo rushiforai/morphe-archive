@@ -14,7 +14,7 @@ private const val original = "com.rubenmayayo.reddit"
 private const val isolated = "com.rubenmayayo.reddit.catppuccin.test"
 
 val boostTestIdentityPatch = bytecodePatch(name="Boost isolated test identity",default=false) {
-    compatibleWith(Compatibility(name="Boost for Reddit",packageName=original,targets=listOf(AppTarget(version="1.14.2"))))
+    compatibleWith(Compatibility(name="Boost for Reddit",packageName=original,targets=listOf(AppTarget(version="1.14.2"),AppTarget(version="1.14.3"))))
     dependsOn(resourcePatch { execute {
         document("AndroidManifest.xml").use { xml ->
             xml.documentElement.setAttribute("package",isolated)
@@ -28,6 +28,10 @@ val boostTestIdentityPatch = bytecodePatch(name="Boost isolated test identity",d
                 if(node.tagName=="application") {
                     node.setAttribute("android:label","Boost Theme Test")
                     node.setAttribute("android:allowBackup","false")
+                    node.appendChild(xml.createElement("activity").apply {
+                        setAttribute("android:name","app.morphe.extension.boost.LinkProbe")
+                        setAttribute("android:exported","true")
+                    })
                 }
             }
         }

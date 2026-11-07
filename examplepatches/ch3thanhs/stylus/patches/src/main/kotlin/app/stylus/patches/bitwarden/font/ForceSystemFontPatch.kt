@@ -1,14 +1,14 @@
 package app.stylus.patches.bitwarden.font
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.stylus.patches.bitwarden.shared.Constants.COMPATIBILITY_BITWARDEN
 
 private const val EXTENSION_CLASS =
     "Lapp/stylus/extension/bitwarden/patches/ForceSystemFontPatch;"
 
 @Suppress("unused")
-val forceSystemFontPatch = bytecodePatch(
+val forceSystemFontPatch = patch(
     name = "Force system font",
     description = "Uses the device's system font for UI text. Monospace text keeps its bundled font.",
     default = true,

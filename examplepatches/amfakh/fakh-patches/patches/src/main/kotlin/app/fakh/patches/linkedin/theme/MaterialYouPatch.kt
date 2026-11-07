@@ -901,12 +901,14 @@ private val AMOLED_COLORS = listOf(
 )
 
 /**
- * Overrides the dark backgrounds in the night colors file. A night resource wins over Material You's version
- * specific ones (values-v31, values-v34), whichever patch runs first.
+ * Puts the dark backgrounds in a night colors file under the `notlong` screen qualifier, which outranks Material
+ * You's version specific ones (values-v31, values-v34) whichever patch runs first. Phones report `long` or
+ * `notlong` on their own, so the extension forces it per activity: `notlong` while Pitch black is on, `long` while
+ * it is off, and the black colors of bars and screens follow the switch.
  */
 private val amoledResourcePatch = resourcePatch {
     execute {
-        writeColors("values-night", AMOLED_COLORS.flatMap { (hex, names) -> names.map { it to hex } }.toMap())
+        writeColors("values-notlong-night", AMOLED_COLORS.flatMap { (hex, names) -> names.map { it to hex } }.toMap())
     }
 }
 
@@ -923,5 +925,15 @@ val amoledBlackPatch = bytecodePatch(
 
     execute {
         markIncluded("isAmoledBlackIncluded")
+
+        // Every screen's activity picks the black resources through its base context.
+        mutableClass("Landroidx/appcompat/app/AppCompatActivity;").methods.first { it.name == "attachBaseContext" }
+            .addInstructions(
+                0,
+                """
+                    invoke-static/range { p1 .. p1 }, $EXTENSION_PACKAGE/MaterialYou;->pitchBlackContext(Landroid/content/Context;)Landroid/content/Context;
+                    move-result-object p1
+                """
+            )
     }
 }

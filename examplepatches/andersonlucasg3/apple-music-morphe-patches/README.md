@@ -4,7 +4,8 @@ Bundle de patches [Morphe](https://github.com/MorpheApp) para o **Apple Music 7.
 (`com.apple.android.music`, versionCode 1614) rodar no head unit **BYD DiLink 3.0** (Android 9/10).
 
 Objetivo final do bundle: destravar o landscape, rebaixar o `minSdk` de 30 para 28/29 e rodar sem
-GMS/Play Integrity. A partir da 1.3.0 o mesmo bundle também gera um APK para **Android TV**.
+GMS/Play Integrity. O bundle gera o **engine** (backend); a UI é dos companions `tv-app`
+(Android TV) e `car-app` (DiLink) — ver [Engine e companions](#engine-e-companions).
 
 > **Estado atual (1.4.0):** o app **instala, abre, loga e reproduz no DiLink** (API 29, landscape).
 > O login passa por e-mail, senha, 2FA e pelo `AMSIDMSAuthenticationCompleteAction`; o player toca
@@ -17,9 +18,8 @@ GMS/Play Integrity. A partir da 1.3.0 o mesmo bundle também gera um APK para **
 > aplicado em API 30+). O smoke da 1.2.0 foi feito no Galaxy S24; a validação no DiLink (carro)
 > ainda não foi feita.
 >
-> A 1.3.0 acrescenta **Android TV**: entrada leanback no manifest e foco de D-pad no conteúdo,
-> no pill do mini player e no Now Playing. Validado em TV box Xiaomi (API 34, 32-bit): instala,
-> abre, loga, toca e navega com o controle remoto — ver [Android TV](#android-tv).
+> A 1.3.0 acrescentou patches de **Android TV** (leanback + foco de D-pad); eles foram **removidos**
+> — a UI de TV agora é o companion `tv-app` e o engine roda como backend oculto.
 >
 > Validado: build, aplicação no APK, bytecode, carregamento no patcher do Manager, fluxo completo
 > no Morphe mobile, startup sem GMS, runtime no DiLink (1.1.0), smoke no S24 (1.2.0) e TV box
@@ -33,14 +33,13 @@ GMS/Play Integrity. A partir da 1.3.0 o mesmo bundle também gera um APK para **
 | `DiLink: manifest` | não (dependência) | `minSdkVersion` 30 → 29 e remove `screenOrientation="portrait"` da única activity que o declarava (`MLIChromeTabActivity`), eliminando a feature implícita `android.hardware.screen.portrait`. |
 | `DiLink: TLS trust` | não (dependência) | Substitui `res/xml/network_security_config.xml` para confiar em `@raw/apple_ca` (Apple Root CA - G3, já embutida no APK) **apenas** em `gsd.apple.com`; o resto continua usando o store do sistema. Nada é instalado no head unit. |
 | `DiLink: web assets` | sim | Embute os assets JS da Apple (page + chunks `appleauth`) **transpilados para Chrome 74** dentro de `res/raw/js_ams_adaptor.js`; `PlatformCompat.interceptWebResource` serve esses assets em `shouldInterceptRequest`. Sem isso o WebView 74 do DiLink não parseia o ES2020 da Apple. |
-| `TV: manifest` | não | Adiciona um intent-filter `LEANBACK_LAUNCHER` (e banner) na `MainActivity` e declara `android.software.leanback`/`android.hardware.touchscreen` como `required=false`; sem isso a TV não lista o app. Reaproveita os layouts `w600dp` do tablet. |
-| `TV: D-pad focus` | não | Foco em escala nos cards do Listen Now e da Busca (`stateListAnimator` de 1,06× + 8 dp de elevação), highlight nos controles do pill e do Now Playing, `player_controls` fora do caminho das setas, `nextFocusDown` no pill e padding no host do conteúdo para o foco sair da lista em cima/embaixo. |
-| `TV: player expand focus` | não | Hook no `onStateChanged` do `BottomSheetBehavior`: ao expandir o Now Playing o foco vai para o play/pause; ao fechar, volta ao mini player (ou à lista). |
+| `DiLink: hide engine launcher` | não (engine) | Remove a categoria `LAUNCHER` da `MainActivity`: o engine não aparece no launcher e o companion é a única entrada. A action `MAIN` continua, então a intent explícita do companion (e `am start -n`) resolve. |
 
 Evidências da análise (com `arquivo:linha`) em [`analysis/apple-music-7.0.0.md`](analysis/apple-music-7.0.0.md);
-resultados dos testes em aparelho em [`analysis/validation.md`](analysis/validation.md). Para TV:
-[`analysis/android-tv-viability.md`](analysis/android-tv-viability.md) e
-[`analysis/tv-dpad-plan.md`](analysis/tv-dpad-plan.md).
+resultados dos testes em aparelho em [`analysis/validation.md`](analysis/validation.md). As análises de
+TV ([`analysis/android-tv-viability.md`](analysis/android-tv-viability.md) e
+[`analysis/tv-dpad-plan.md`](analysis/tv-dpad-plan.md)) são históricas: descrevem os patches `TV:`
+que foram removidos.
 
 ### Limitações conhecidas
 
@@ -55,9 +54,9 @@ resultados dos testes em aparelho em [`analysis/validation.md`](analysis/validat
   na 1.2.0 (smoke no S24 OK; validação no carro pendente). Seguem em aberto as linhas de toggle do
   Ajustes que não são pintadas e a decisão sobre o `peek` dos carrosséis (geometria está correta;
   os 36 dp à direita são o card seguinte).
-- **Android TV:** o card focado cresce 6% via `stateListAnimator` e os controles usam highlight;
-  as abas do topo são alcançadas com UP + LEFT; e TV box 32-bit só instala com o split
-  `armeabi-v7a`. Detalhes em [Android TV](#android-tv).
+- **TV:** a UI é o `tv-app`; o engine não tem entrada no launcher nem patches de foco. O bundle
+  arm32 do engine precisa do split `armeabi-v7a` para instalar em TV box 32-bit — ver
+  [Engine e companions](#engine-e-companions).
 - **Entrada para patch: XAPK.** O bundle declara `apkFileType = XAPK`; arquivos `.apkm` são
   rejeitados pelo Manager. Use o XAPK do Apple Music 7.0.0 (APKPure).
 - A identidade ADI embutida é sintética (sem conta); o APK final é merged e assinado com
@@ -75,12 +74,9 @@ patches/
     app/morphe/patches/applemusic/dilink/AppleMusicDiLinkPatch.kt  # landscape + API 29 backport
     app/morphe/patches/applemusic/dilink/DilinkManifestPatch.kt    # minSdk + portrait lock
     app/morphe/patches/applemusic/dilink/DilinkTlsPatch.kt         # Apple Root CA G3 p/ gsd.apple.com
-    app/morphe/patches/applemusic/tv/TvManifestPatch.kt            # LEANBACK_LAUNCHER + banner + features
-    app/morphe/patches/applemusic/tv/TvDpadPatch.kt                # foco: escala nos cards + highlight
-    app/morphe/patches/applemusic/tv/TvExpandedFocusPatch.kt       # foco no player ao expandir o sheet
+    app/morphe/patches/applemusic/dilink/EngineLauncherPatch.kt    # engine sem entrada no launcher
     util/PatchListGenerator.kt       # gera patches-list.json
 extensions/extension/                # módulo de extensão (.mpe), namespace app.morphe.extension.applemusic
-  src/main/java/app/morphe/extension/applemusic/TvFocusCompat.java  # hand-off de foco do Now Playing
 patches-list.json                    # gerado por :patches:generatePatchesList
 tools/                               # jars locais (não versionados): morphe-desktop, APKEditor
 ```
@@ -137,51 +133,50 @@ Artefatos gerados em `patches/build/libs/`:
 > automaticamente para compilação in-process (o build continua verde). Para evitar o erro no log:
 > `.\gradlew.bat :patches:build "-Pkotlin.compiler.execution.strategy=in-process"`.
 
-### Build via GitHub Actions
-
-Quando não há JVM utilizável no local (por exemplo, no próprio Android), o workflow
-[`.github/workflows/build.yml`](.github/workflows/build.yml) roda:
-
-```sh
-./gradlew clean :patches:generatePatchesList :patches:buildAndroid --no-daemon
-```
-
-e publica `patches/build/libs/*.mpp` + `patches-list.json` como artefato (`if-no-files-found:
-error`). Roda em `workflow_dispatch` (artifact) e em push de tag `v*`; no caso da tag ele também
-cria a release — ver [Publicação (CI)](#publicação-ci).
-
-Requer o secret de repositório **`GPR_KEY`** (token com `read:packages`, para o registry
-`maven.pkg.github.com/MorpheApp/registry`) e, opcionalmente, **`GPR_USER`**. O `GITHUB_TOKEN`
-padrão do repositório não tem acesso aos pacotes de outra organização. O JDK 21 e o SDK Android
-(`platforms;android-36`, `build-tools;36.0.0`) são instalados no runner.
-
 ## Publicação (CI)
 
-Um push de tag `v*` (ex.: `v1.3.0`) builda e publica a release `v1.3.0` em **uma única execução**
-do workflow, anexando `patches/build/libs/*.mpp` e `patches-list.json`. Se houver fonte de APK, o
-mesmo job também gera e anexa `AppleMusic-<versão>-AndroidTV-arm32.apk` (base + `armeabi_v7a` +
-`xhdpi` mergeados pelo APKEditor 1.4.9 e patcheados pela CLI do morphe-desktop 2.1.1), validado
-com `aapt2 dump badging` (`leanback-launchable-activity`, `native-code: 'armeabi-v7a'`) e
-`apksigner verify --print-certs` (`CN=Morphe`). Sem fonte, a release sai só com o bundle.
+O workflow [`.github/workflows/build.yml`](.github/workflows/build.yml) é de **release de APKs**;
+o bundle `.mpp` não é mais publicado. Ele roda só por `workflow_dispatch`:
 
-As notas da release são a seção `description` do [`patches-bundle.json`](patches-bundle.json),
-copiada tal e qual — atualize-a antes de taguear. O job falha se um asset esperado não existir; a
-publicação não é silenciada.
+| Input | Obrigatório | Default | O que faz |
+|---|---|---|---|
+| `version` | sim | — | versão da release `apps-<version>` (ex.: `1.5.1`, sem o `v`) |
+| `source_url` | não | `secrets.ENGINE_SOURCE_URL` | URL do APKM 4-ABI; vazio = release só com os companions |
+| `publish` | não | `true` | `false` = só artifacts, sem release |
 
-O `workflow_dispatch` tem os inputs opcionais `version` (sem o `v`) e `source_url`. Com `version`,
-ele também publica a release (o `gh` cria a tag); sem `version`, só gera o artifact.
+O job:
+
+1. builda com `:patches:buildAndroid :tv-app:assembleRelease :car-app:assembleRelease`
+   (`-Xmx4096m -XX:MaxMetaspaceSize=1024m`: o `mergeExtDex` dos companions estoura o heap padrão
+   de ~2 GB do runner);
+2. assina `AppleMusic-TV.apk` e `AppleMusic-Car.apk` com o p12 dos secrets `MORPHE_*` via
+   `apksigner` e valida `CN=Morphe` + SHA-256 do certificado;
+3. com `source_url`, baixa o APKM, monta `splits32` (base + `config.armeabi_v7a` + `config.xhdpi`)
+   e `splits64` (base + `config.arm64_v8a` + `config.xhdpi`), mergeia com o APKEditor 1.4.9 e aplica
+   o `.mpp` com a CLI do morphe-desktop 2.1.1 (`--unsigned -e "DiLink: hide engine launcher"`). A
+   assinatura do morphe-desktop **não** é usada: o APK é re-assinado com o p12 e validado com
+   `aapt2 dump badging` (ABI certa e **sem** `launchable-activity` de `com.apple.android.music`);
+4. publica `apps-<version>` com `AppleMusic-engine-arm32.apk`, `AppleMusic-engine-arm64.apk`,
+   `AppleMusic-TV.apk`, `AppleMusic-Car.apk` e `SHA256SUMS`.
+
+Sem `source_url` (e sem `ENGINE_SOURCE_URL`) o job **não falha**: publica só os dois companions e a
+release abre com o aviso **engine não anexado**. Com URL preenchida, qualquer falha no engine
+derruba o job — engine quebrado não é publicado.
 
 Secrets:
 
+- **`MORPHE_KEYSTORE_P12`** (obrigatório) — base64 do PKCS#12 `CN=Morphe`; **`MORPHE_KEYSTORE_PASSWORD`**,
+  **`MORPHE_KEY_ALIAS`** e **`MORPHE_KEY_PASSWORD`** — credenciais desse certificado. É o cert do
+  `sharedUserId`; perdê-lo quebra o UID compartilhado.
 - **`GPR_KEY`** (obrigatório) — token com `read:packages` para `app.morphe:morphe-patcher` no
   GitHub Packages; **`GPR_USER`** (opcional) — conta do token. O `GITHUB_TOKEN` padrão do
   repositório não lê pacotes de outra organização.
-- **`TV_SOURCE_URL`** (opcional) — URL do APKM/XAPK 4-ABI usado no APK de TV; o input
-  `source_url` do dispatch tem precedência. Sem ela, a release publica só `.mpp` +
-  `patches-list.json`.
+- **`ENGINE_SOURCE_URL`** (opcional) — URL estável do APKM 4-ABI; o input `source_url` tem
+  precedência.
 
-A release é criada pelo `gh` com o `github.token` do próprio workflow (o job declara
-`permissions: contents: write`); não é preciso PAT extra.
+A release é criada/atualizada pelo `gh` com o `github.token` do próprio workflow (o job declara
+`permissions: contents: write`); não é preciso PAT extra. As notas saem de um template do próprio
+workflow (ordem de instalação, cert único e limitações).
 
 ## Aplicar o bundle localmente (sem celular)
 
@@ -231,13 +226,11 @@ Outros comandos úteis da CLI (`java -jar tools\morphe-desktop-2.1.1-all.jar --h
 
 ## Usar no app Morphe (Android)
 
-O bundle é publicado em [releases](https://github.com/andersonlucasg3/apple-music-morphe-patches/releases)
-e o repositório serve como *patch source*:
+O bundle `.mpp` **não é mais publicado** nos releases (o produto agora são os APKs — ver
+[Publicação (CI)](#publicação-ci)). Para usar no Morphe, gere o bundle localmente:
 
-- **Remote**: no Morphe → **Sources** → **+** → Remote →
-  `github.com/andersonlucasg3/apple-music-morphe-patches`.
-- **Local**: baixe `patches-1.3.0.mpp` do release e abra no Morphe, ou
-  `adb push patches-1.3.0.mpp /sdcard/Download/` e abra o arquivo no aparelho.
+- **Local**: `.\gradlew.bat :patches:buildAndroid` gera `patches/build/libs/patches-<versão>.mpp`;
+  abra o arquivo no Morphe ou `adb push patches/build/libs/patches-<versão>.mpp /sdcard/Download/`.
 
 O Apple Music não é distribuído por este repositório, então o Morphe não oferece link de
 download: forneça o **XAPK 7.0.0 (vc 1614)** na tela de seleção de APK. O Manager funde os
@@ -265,13 +258,20 @@ Checklist de teste no carro:
 3. Seletor de emoji abre sem crash (em API < 30 o teclado não abre automaticamente).
 4. Login e reprodução funcionam sem GMS; se o servidor recusar por falta de integrity, ver limitações.
 
-## Android TV
+## Engine e companions
 
-Os três patches de TV são `default=false` e dependem uns dos outros. Para gerar o APK de TV,
-habilite-os explicitamente (`-e`) na CLI ou marque-os no Morphe Manager; os patches DiLink
-continuam habilitados por padrão e são dependência do patch de manifest.
+O engine é só backend: o bundle carrega os patches DiLink (support/web assets e as dependências
+de manifest/TLS) e, no APK do engine, `DiLink: hide engine launcher` — a `MainActivity` não
+aparece no launcher. A UI é dos companions:
 
-### Bundle de splits: TV 32-bit precisa de `armeabi-v7a`
+- `tv-app/` — Android TV, navegação por D-pad;
+- `car-app/` — head unit BYD DiLink, toque/D-pad.
+
+Engine e companion são assinados com o mesmo cert e usam o UID compartilhado; o companion conecta
+no `MediaBrowserService` do engine e o login abre a `MainActivity` do engine por intent explícita.
+O plano de distribuição está no [ROADMAP](ROADMAP.md).
+
+### Engine 32-bit (TV) precisa do split `armeabi-v7a`
 
 O Apple Music 7.0.0 é distribuído por ABI **e** densidade. TV boxes (Mi Box/TV Stick, inclusive o
 Xiaomi validado) são 32-bit: o APK só instala com `lib/armeabi-v7a`, e um bundle montado só com
@@ -281,54 +281,41 @@ Xiaomi validado) são 32-bit: o APK só instala com `lib/armeabi-v7a`, e um bund
 ```powershell
 java -jar tools\APKEditor-1.4.9.jar m -i .pipeline\tv\splits32 -o .pipeline\tv\merged32.apk
 java -jar tools\morphe-desktop-2.1.1-all.jar patch `
-  -p patches\build\libs\patches-1.3.0.mpp `
-  -o .pipeline\release\AppleMusic-1.3.0-AndroidTV-arm32.apk `
+  -p patches\build\libs\patches-1.4.0.mpp `
+  -o .pipeline\release\AppleMusic-engine-arm32.apk `
   .pipeline\tv\merged32.apk `
-  -e "TV: manifest" `
-  -e "TV: D-pad focus" `
-  -e "TV: player expand focus"
+  -e "DiLink: hide engine launcher"
 ```
 
 Conferir o APK de saída (build-tools 36.0.0):
 
 ```powershell
 & "$env:LOCALAPPDATA\Android\Sdk\build-tools\36.0.0\aapt2.exe" dump badging `
-  .pipeline\release\AppleMusic-1.3.0-AndroidTV-arm32.apk | Select-String `
-  "leanback-launchable-activity|native-code|sdkVersion"
+  .pipeline\release\AppleMusic-engine-arm32.apk | Select-String `
+  "launchable-activity|native-code|sdkVersion"
 & "$env:LOCALAPPDATA\Android\Sdk\build-tools\36.0.0\apksigner.bat" verify --print-certs `
-  .pipeline\release\AppleMusic-1.3.0-AndroidTV-arm32.apk
+  .pipeline\release\AppleMusic-engine-arm32.apk
 ```
 
-Esperado: `leanback-launchable-activity: name='com.apple.android.music.common.MainActivity'`,
+Esperado: nenhum `launchable-activity` (o engine não aparece no launcher),
 `native-code: 'armeabi-v7a'`, `sdkVersion:'29'` e certificado `CN=Morphe`.
 
-### Instalação na TV
+### Instalação
 
-O APK sai no asset do release (`AppleMusic-1.3.0-AndroidTV-arm32.apk`) ou é gerado localmente.
-Instale por ADB ou por um app de transferência de arquivos:
+O engine sai no release (`AppleMusic-engine-arm32.apk` para TV 32-bit,
+`AppleMusic-engine-arm64.apk` para arm64) ou é gerado localmente. Instale o engine e depois o
+companion (`AppleMusic-TV.apk` / `AppleMusic-Car.apk`) por ADB ou por um app de transferência de
+arquivos:
 
 ```powershell
 adb connect <ip-da-tv>:5555
-adb install -r .pipeline\release\AppleMusic-1.3.0-AndroidTV-arm32.apk
-adb shell am start -n com.apple.android.music/com.apple.android.music.common.MainActivity
+adb install -r AppleMusic-engine-arm32.apk
+adb install -r AppleMusic-TV.apk
 ```
 
-O ícone aparece no launcher de TV por causa do `LEANBACK_LAUNCHER` (o banner ainda é o
-`@mipmap/ic_launcher` provisório — não há banner 320×180 no APK).
-
-### Limitações reais
-
-- **Foco:** os cards do Listen Now e da Busca crescem 6% e sobem 8 dp via
-  `android:stateListAnimator="@anim/tv_focus_scale"` (o tipo `anim` já existe no APK; criar
-  `res/animator` novo é recusado pelo patcher). Pill e controles do Now Playing usam
-  highlight/ripple. Não há `-television` nem tamanhos de 10-foot UI; o layout é o de tablet
-  (`w600dp`).
-- **Abas:** o D-pad não percorre a barra de abas no eixo horizontal. A partir do conteúdo, suba
-  com **UP** e use **LEFT** para chegar às abas (Início/Novo/Rádio/Biblioteca/Buscar).
-- O login continua sendo o WebView da Apple; no TV box ele abre e aceita a conta, mas digitar
-  depende do teclado do sistema/controle — não há fluxo de QR/device code no 7.0.0.
-- O bundle de TV não é o mesmo APK do DiLink (ABI e densidade diferentes); trocar de um para o
-  outro exige `adb install -r` do APK correspondente.
+`am start -n com.apple.android.music/com.apple.android.music.common.MainActivity` continua
+funcionando para abrir a tela de login do engine: a action `MAIN` permanece, só a categoria
+`LAUNCHER` é removida.
 
 ## Licença
 

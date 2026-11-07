@@ -524,6 +524,8 @@ Bigger seek bar on reels	Thanh tua lớn hơn trên reel
 Makes the seek bar thicker, with a round white handle and the time above it, over a soft dark fade so it shows on any video. Drag it to seek. It also keeps the bar on short reels.	Làm thanh tua dày hơn, có núm tròn trắng và thời gian ở phía trên, trên nền tối mờ để hiện rõ trên mọi video. Kéo để tua. Thanh cũng được giữ trên reel ngắn.
 Seek bar like DM videos	Thanh tua giống video trong Direct
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar on reels is on too, this look wins. It also keeps the bar on short reels.	Cho reel thanh tua của video trong cuộc trò chuyện, một đường mảnh màu xám chuyển trắng khi phát, với núm tròn trắng lớn. Thời gian hiện ở phía trên. Kéo để tua. Khi Thanh tua lớn hơn trên reel cũng bật thì kiểu này được ưu tiên. Thanh cũng được giữ trên reel ngắn.
+Seek bar on photos with music	Thanh tua trên ảnh có nhạc
+Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	Reel là ảnh kèm bài hát có cùng thanh tua và thời gian như reel video, chạy theo bài hát. Kéo để tua.
 Blur the bars around a reel	Làm mờ các thanh quanh reel
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Reel không lấp đầy màn hình sẽ hiện bản mờ của chính nó ở trên và dưới thay vì thanh đen, còn dải dưới thanh tab và dải sau đồng hồ cũng hiện reel mờ. Bản mờ chỉ hiện ở chỗ reel chừa trống, như khi bật Hiện toàn bộ reel. Hãy mở lại Reels sau khi thay đổi.
 Settings entry	Lối vào cài đặt
@@ -605,6 +607,8 @@ Turns the switches that keep what you do to yourself on or off in one go, like V
 View live anonymously	Xem phát trực tiếp ẩn danh
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Ảnh và video gửi dạng xem một lần hoặc xem lại được vẫn ở trong cuộc trò chuyện để bạn mở lại. Hãy mở lại cuộc trò chuyện để cập nhật những mục đã tải.
 Swipe through a chat's reels	Vuốt qua các reel của cuộc trò chuyện
+Swipe through a chat's photos and posts	Vuốt qua ảnh và bài viết của cuộc trò chuyện
+Open a photo or video from a chat and swipe up for the next photo, video or shared post in that chat, in chat order. Swipe down to go back one. Back takes you to the chat.	Mở ảnh hoặc video từ cuộc trò chuyện rồi vuốt lên để đến ảnh, video hoặc bài viết được chia sẻ tiếp theo trong đó, theo thứ tự cuộc trò chuyện. Vuốt xuống để lùi lại một mục. Quay lại sẽ đưa bạn về cuộc trò chuyện.
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Vuốt lên trên reel bạn mở từ cuộc trò chuyện sẽ đi qua các reel khác được chia sẻ trong đó trước khi đến reel gợi ý. Quay lại sẽ đưa bạn về cuộc trò chuyện.
 Stop after the chat's reels	Dừng sau các reel của cuộc trò chuyện
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Các reel bạn mở từ cuộc trò chuyện kết thúc sau reel cuối cùng được chia sẻ trong đó, không có reel gợi ý phía sau. Hoạt động cùng với Vuốt qua các reel của cuộc trò chuyện.
@@ -831,6 +835,10 @@ Badges in the accent color	Huy hiệu theo màu nhấn
 The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	Chấm đỏ và số lượng tin nhắn, thông báo mới lấy màu bạn đã chọn. Hãy khởi động lại Instagram để thấy thay đổi.
 Icons in the accent color	Biểu tượng theo màu nhấn
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Biểu tượng của Instagram trên thanh trên cùng, thanh tab và dưới bài viết lấy màu bạn đã chọn. Văn bản giữ nguyên. Hãy khởi động lại Instagram để thấy thay đổi.
+Story rings in the accent color	Vòng tin theo màu nhấn
+Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Vòng tin lấy màu bạn đã chọn thay cho dải màu của Instagram. Một vài dải màu khác dùng chung các màu đó và đổi theo. Khởi động lại Instagram để thấy thay đổi.
+Backgrounds in the accent color	Nền theo màu nhấn
+Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Màn hình, bảng, thẻ và menu lấy tông tối hoặc sáng của màu bạn đã chọn. Trình xem tin và reel giữ nền riêng. Được ưu tiên hơn Pure black dark mode. Khởi động lại Instagram để thấy thay đổi.
 Color	Màu
 Instagram blue	Xanh Instagram
 Purple	Tím
@@ -1723,3 +1731,9 @@ Playing in the background	Đang phát trong nền
 Paused in the background	Đã tạm dừng trong nền
 Play	Phát
 Stop	Dừng
+# context: a warning added to a setting's description
+Can slow down older phones.	Có thể làm chậm các điện thoại cũ.
+# context: a switch under Ambient light
+Blend post edges	Hòa viền bài đăng
+# context: what that switch does
+Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	Làm phần trên và dưới của ảnh hoặc video trong bài đăng hòa vào ánh sáng của nó, để viền không hiện thành một đường cứng.

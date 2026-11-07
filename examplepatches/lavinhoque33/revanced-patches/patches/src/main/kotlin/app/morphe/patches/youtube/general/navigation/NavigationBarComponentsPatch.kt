@@ -13,7 +13,7 @@
  *
  * See the included NOTICE file for GPLv3 §7(b) and §7(c) terms that apply to Morphe contributions.
  *
- * Modified by lavinhoque33, 2026-10-21.
+ * Modified by lavinhoque33, 2026-11-06.
  */
 
 package app.morphe.patches.youtube.general.navigation
@@ -44,6 +44,7 @@ import app.morphe.patches.shared.misc.fix.proto.parseByteArrayWithRegistryMethod
 import app.morphe.patches.shared.spoof.guide.addClientOSVersionHook
 import app.morphe.patches.shared.spoof.guide.spoofClientGuideEndpointPatch
 import app.morphe.patches.youtube.utils.compatibility.Constants.COMPATIBILITY_YOUTUBE
+import app.morphe.patches.youtube.utils.YOUTUBE_PIVOT_BAR_CLASS_TYPE
 import app.morphe.patches.youtube.utils.extension.Constants.GENERAL_PATH
 import app.morphe.patches.youtube.utils.extension.Constants.PATCHES_PATH
 import app.morphe.patches.youtube.utils.fix.padding.BrowseListBottomPaddingFingerprint
@@ -245,6 +246,7 @@ val navigationBarComponentsPatch = bytecodePatch(
                         val override = when (flag) {
                             NAVIGATION_BAR_COVERS_SYSTEM_BUTTONS_FLAG -> "useTranslucentNavigationBar"
                             FEED_BEHIND_NAVIGATION_BAR_FLAG -> "useFeedBehindNavigationBar"
+                            TRANSLUCENT_NAVIGATION_BAR_STYLE_FLAG -> "useTranslucentNavigationBarStyle"
                             else -> "useTranslucentNavigationBarBackground"
                         }
                         insertLiteralOverride(index, "$EXTENSION_CLASS_DESCRIPTOR->$override(Z)Z")
@@ -267,6 +269,106 @@ val navigationBarComponentsPatch = bytecodePatch(
                             move-result v$hardwareAcceleratedRegister
                         """
                     )
+                }
+            }
+
+            var glassSupported = false
+            val roomMatches = if (NavigationBarBottomPaddingFingerprint.matchOrNull() == null) emptyList()
+                else NavigationBarBottomPaddingFingerprint.matchAll()
+            if (roomMatches.isEmpty()) {
+                printWarn("Glass navigation bar room is not supported in this version: inset hook not found.")
+            } else {
+                val matches = roomMatches.first().instructionMatches
+                val roomField = matches[0].fieldReference
+                val updateHeightMethod = matches[1].getMethodCalled()
+                mutableClassDefBy(YOUTUBE_PIVOT_BAR_CLASS_TYPE).apply {
+                    interfaces.add(
+                        "Lapp/morphe/extension/youtube/patches/general/NavigationButtonsPatch\$PivotBarAccess;"
+                    )
+                    addBridge(
+                        "patch_setSystemButtonsRoom", listOf("I"), "V", 2,
+                        """
+                            iput p1, p0, $roomField
+                            invoke-virtual { p0 }, $updateHeightMethod
+                            return-void
+                        """
+                    )
+                    addBridge(
+                        "patch_getSystemButtonsRoom", listOf(), "I", 2,
+                        """
+                            iget v0, p0, $roomField
+                            return v0
+                        """
+                    )
+                }
+
+                roomMatches.forEach { match ->
+                    match.method.apply {
+                        val index = match.instructionMatches.first().index
+                        val instruction = getInstruction<TwoRegisterInstruction>(index)
+                        addInstructionsAtControlFlowLabel(
+                            index,
+                            """
+                                invoke-static { v${instruction.registerB}, v${instruction.registerA} }, $EXTENSION_CLASS_DESCRIPTOR->getNavigationBarBottomPadding(Landroid/view/View;I)I
+                                move-result v${instruction.registerA}
+                            """
+                        )
+                    }
+                }
+                addBottomBarContainerHook("$EXTENSION_CLASS_DESCRIPTOR->watchSlimStatusBar(Landroid/view/View;)V")
+                val tintCall = NavigationBarBlurTintCallFingerprint.matchOrNull()
+                val tintMatch = tintCall?.let {
+                    NavigationBarBlurTintFingerprint.matchOrNull(it.instructionMatches[2].getMethodCalled())
+                }
+                val pivotBar = mutableClassDefBy(YOUTUBE_PIVOT_BAR_CLASS_TYPE)
+                val overrides = setOf("onMeasure", "setTranslationY", "setPadding", "setPaddingRelative")
+                if (tintMatch == null || pivotBar.methods.any { it.name in overrides }) {
+                    printWarn("Glass navigation bar is not supported: tint hook missing or PivotBar overrides changed.")
+                } else {
+                    pivotBar.apply {
+                        addBridge(
+                            "onMeasure", listOf("I", "I"), "V", 3,
+                            """
+                                invoke-static { p0, p2 }, $EXTENSION_CLASS_DESCRIPTOR->getNavigationBarHeightMeasureSpec(Landroid/view/View;I)I
+                                move-result p2
+                                invoke-super { p0, p1, p2 }, $superclass->onMeasure(II)V
+                                return-void
+                            """,
+                            AccessFlags.PROTECTED.value
+                        )
+                        addBridge(
+                            "setTranslationY", listOf("F"), "V", 2,
+                            """
+                                invoke-static { p0, p1 }, $EXTENSION_CLASS_DESCRIPTOR->getNavigationBarTranslationY(Landroid/view/View;F)F
+                                move-result p1
+                                invoke-super { p0, p1 }, $superclass->setTranslationY(F)V
+                                return-void
+                            """,
+                            AccessFlags.PUBLIC.value
+                        )
+                        listOf("setPadding", "setPaddingRelative").forEach { name ->
+                            addBridge(
+                                name, listOf("I", "I", "I", "I"), "V", 5,
+                                """
+                                    invoke-static { p0, p4 }, $EXTENSION_CLASS_DESCRIPTOR->getNavigationBarPadding(Landroid/view/View;I)I
+                                    move-result p4
+                                    invoke-super { p0, p1, p2, p3, p4 }, $superclass->$name(IIII)V
+                                    return-void
+                                """,
+                                AccessFlags.PUBLIC.value
+                            )
+                        }
+                    }
+                    tintMatch.method.apply {
+                        val index = tintMatch.instructionMatches.last().index
+                        val register = getInstruction<FiveRegisterInstruction>(index).registerC
+                        addInstruction(
+                            index + 1,
+                            "invoke-static { v$register }, $EXTENSION_CLASS_DESCRIPTOR->setNavigationBarBlurTint(Landroid/graphics/Paint;)V"
+                        )
+                    }
+                    addBottomBarContainerHook("$EXTENSION_CLASS_DESCRIPTOR->setNavigationBarGlass(Landroid/view/View;)V")
+                    glassSupported = true
                 }
             }
 
@@ -398,6 +500,7 @@ val navigationBarComponentsPatch = bytecodePatch(
             settingArray += "PREFERENCE_CATEGORY: GENERAL_EXPERIMENTAL_FLAGS"
             settingArray += "SETTINGS: STATUS_BAR_TRANSLUCENCY"
             settingArray += "SETTINGS: NAVIGATION_BAR_STYLE"
+            if (glassSupported) settingArray += "SETTINGS: NAVIGATION_BAR_GLASS"
         }
 
         // endregion

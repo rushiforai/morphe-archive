@@ -4,7 +4,7 @@ patches {
     // TODO: Update this section with your project details.
     about {
         name = "mnhqngl Patches"
-        description = "Patches cho Messenger"
+        description = "Patches cho Messenger và Zalo"
         source = "git@github.com:mnhqngl/quang-patches.git"
         author = "mnhqngl"
         contact = "na"

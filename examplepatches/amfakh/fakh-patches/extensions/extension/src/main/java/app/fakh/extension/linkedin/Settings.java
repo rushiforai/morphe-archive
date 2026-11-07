@@ -36,7 +36,10 @@ public final class Settings {
     static final String HIDE_SPONSORED_MESSAGES = "hide_sponsored_messages";
     static final String GHOST_MODE = "ghost_mode";
     static final String BLOCK_TRACKING = "block_tracking";
+    static final String ANONYMOUS_PROFILE_VIEWING = "anonymous_profile_viewing";
     static final String DISABLE_DOUBLE_TAP_LIKE = "disable_double_tap_like";
+    static final String SWIPE_TABS = "swipe_tabs";
+    static final String COPY_TEXT = "copy_text";
     static final String GLASS_NAVIGATION_BAR = "glass_navigation_bar";
     static final String HIDE_TAB_LABELS = "hide_tab_labels";
     static final String HIDE_TAB_BADGES = "hide_tab_badges";
@@ -271,6 +274,31 @@ public final class Settings {
     /** Off by default. */
     static boolean blockTracking() {
         return isBlockTrackingIncluded() && get(BLOCK_TRACKING, false);
+    }
+
+    public static boolean isAnonymousProfileViewingIncluded() {
+        return false;
+    }
+
+    /** Off by default. */
+    static boolean anonymousProfileViewing() {
+        return isAnonymousProfileViewingIncluded() && get(ANONYMOUS_PROFILE_VIEWING, false);
+    }
+
+    public static boolean isSwipeTabsIncluded() {
+        return false;
+    }
+
+    static boolean swipeTabs() {
+        return isSwipeTabsIncluded() && get(SWIPE_TABS, true);
+    }
+
+    public static boolean isCopyTextIncluded() {
+        return false;
+    }
+
+    static boolean copyText() {
+        return isCopyTextIncluded() && get(COPY_TEXT, true);
     }
 
     public static boolean isMessagingIncluded() {

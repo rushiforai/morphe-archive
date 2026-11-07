@@ -1,0 +1,14 @@
+# Build output
+.gradle/
+.kotlin/
+**/build/
+local.properties
+*.mpp
+*.mpe
+*.log
+
+# Unpacked jars (checking a bundle's manifest)
+META-INF/
+
+.idea/
+.vscode/

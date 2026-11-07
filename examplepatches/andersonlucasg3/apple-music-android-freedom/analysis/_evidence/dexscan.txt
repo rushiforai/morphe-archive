@@ -1,0 +1,94 @@
+### PER-DEX COUNTS
+  classes.dex: classes=13451 strings=48113
+  classes2.dex: classes=10508 strings=53780
+  classes3.dex: classes=7696 strings=44643
+  classes4.dex: classes=10101 strings=49086
+  TOTAL classes=41756 unique_strings=157290
+
+### MARKER STRING COUNTS (sum over dex files)
+  apple_music_classes            16358   {'classes.dex': 860, 'classes2.dex': 9771, 'classes3.dex': 5416, 'classes4.dex': 311}
+  mediaservices                   3697   {'classes.dex': 1185, 'classes2.dex': 102, 'classes3.dex': 2379, 'classes4.dex': 31}
+  amskit                          2690   {'classes.dex': 338, 'classes2.dex': 67, 'classes3.dex': 2267, 'classes4.dex': 18}
+  gms_root                        1473   {'classes.dex': 150, 'classes2.dex': 34, 'classes3.dex': 29, 'classes4.dex': 1260}
+  gms_internal                    1380   {'classes.dex': 147, 'classes2.dex': 26, 'classes3.dex': 28, 'classes4.dex': 1179}
+  car_app                          358   {'classes.dex': 354, 'classes2.dex': 2, 'classes3.dex': 1, 'classes4.dex': 1}
+  android_auto                     358   {'classes.dex': 354, 'classes2.dex': 2, 'classes3.dex': 1, 'classes4.dex': 1}
+  androidx_recyclerview            251   {'classes.dex': 154, 'classes2.dex': 52, 'classes3.dex': 22, 'classes4.dex': 23}
+  androidx_glance                  199   {'classes.dex': 193, 'classes2.dex': 2, 'classes3.dex': 4}
+  androidx_fragment                192   {'classes.dex': 136, 'classes2.dex': 37, 'classes3.dex': 11, 'classes4.dex': 8}
+  firebase                         176   {'classes.dex': 12, 'classes2.dex': 3, 'classes3.dex': 7, 'classes4.dex': 154}
+  androidx_appcompat               161   {'classes.dex': 125, 'classes2.dex': 11, 'classes3.dex': 10, 'classes4.dex': 15}
+  androidx_room                    151   {'classes.dex': 113, 'classes2.dex': 23, 'classes3.dex': 8, 'classes4.dex': 7}
+  fcm                              120   {'classes.dex': 5, 'classes2.dex': 2, 'classes3.dex': 6, 'classes4.dex': 107}
+  compose_ui                       111   {'classes.dex': 99, 'classes2.dex': 5, 'classes3.dex': 5, 'classes4.dex': 2}
+  billing                          109   {'classes.dex': 28, 'classes2.dex': 36, 'classes3.dex': 36, 'classes4.dex': 9}
+  androidx_work                     95   {'classes.dex': 60, 'classes2.dex': 13, 'classes3.dex': 16, 'classes4.dex': 6}
+  androidx_mediarouter              85   {'classes.dex': 76, 'classes2.dex': 7, 'classes3.dex': 1, 'classes4.dex': 1}
+  androidx_window                   40   {'classes.dex': 38, 'classes2.dex': 2}
+  gms_cast                          22   {'classes2.dex': 6, 'classes4.dex': 16}
+  crashlytics                       16   {'classes.dex': 2, 'classes2.dex': 1, 'classes3.dex': 1, 'classes4.dex': 12}
+  gms_measurement                   13   {'classes4.dex': 13}
+  gms_auth                          12   {'classes.dex': 1, 'classes4.dex': 11}
+  WindowMetrics                      7   {'classes.dex': 5, 'classes4.dex': 2}
+  isTablet                           7   {'classes.dex': 1, 'classes2.dex': 3, 'classes3.dex': 3}
+  WindowInsetsController             6   {'classes.dex': 3, 'classes2.dex': 1, 'classes4.dex': 2}
+  sw600dp                            6   {'classes2.dex': 6}
+  gms_location                       6   {'classes4.dex': 6}
+  credman_playservices               5   {'classes.dex': 4, 'classes4.dex': 1}
+  compose_foundation                 3   {'classes.dex': 3}
+  compose_runtime                    2   {'classes.dex': 2}
+  getCurrentWindowMetrics            2   {'classes.dex': 1, 'classes4.dex': 1}
+  play_core_common                   2   {'classes2.dex': 1, 'classes4.dex': 1}
+  integrity_caps                     2   {'classes2.dex': 2}
+  getInstallSourceInfo               2   {'classes2.dex': 1, 'classes3.dex': 1}
+  play_core_review                   1   {'classes2.dex': 1}
+  setRequestedOrientation            1   {'classes2.dex': 1}
+  play_core_integrity                1   {'classes4.dex': 1}
+  play_agesignals                    1   {'classes4.dex': 1}
+
+### TOP DEFINED-CLASS PACKAGES (by first 4 path segments)
+   10021  com/apple/android/music
+    1400  com/apple/mediaservices/amskit
+    1203  com/google/android/exoplayer2
+    1164  com/google/android/gms
+     900  q8
+     658  com/apple/mediaservices/amsuikit
+     441  w0
+     430  Rb
+     356  J4
+     348  com/google/protobuf
+     290  Se
+     286  com/google/android/material
+     217  k8
+     203  O
+     203  la
+     195  p1
+     183  b0
+     174  com/apple/android/medialibrary
+     174  ja
+     169  z0
+     166  w9
+     165  bb
+     162  androidx/paging
+     162  Vf
+     161  androidx/car/app/model
+     158  S
+     158  x9
+     156  Z2
+     155  o1
+     155  l0
+     154  K
+     154  com/apple/android/svgroupactivities
+     149  com/google/gson/internal
+     144  H
+     143  I
+     140  androidx/recyclerview/widget
+     136  m1
+     135  Rj
+     131  com/google/crypto/tink
+     129  androidx/glance/appwidget/protobuf
+
+### DEFINED CLASSES in com/apple/android/music (count)
+   10021
+  written: analysis\_evidence\defined_classes.txt
+  written: analysis\_evidence\dex_strings.txt

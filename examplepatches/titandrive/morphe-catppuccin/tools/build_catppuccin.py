@@ -61,7 +61,7 @@ if os.environ.get('CATPPUCCIN_ANKI_TEST') == '1':
 
 MORPHE_VERSION = '1.18.0'
 KOTLIN_VERSION = '2.3.21'
-BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.10.1')
+BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.11.0')
 
 
 def fetch(name, url):
@@ -180,8 +180,11 @@ def main():
     if boost_classes.exists():
         shutil.rmtree(boost_classes)
     boost_classes.mkdir()
+    boost_sources = sorted((ROOT / 'tools/boost/src').rglob('*.java'))
+    if os.environ.get('CATPPUCCIN_BOOST_TEST') == '1':
+        boost_sources.append(ROOT / 'test/boost-1.14.2/LinkProbe.java')
     run(java_home / 'bin/javac', '--release', '8', '-classpath', android_jar,
-        '-d', boost_classes, *sorted((ROOT / 'tools/boost/src').rglob('*.java')))
+        '-d', boost_classes, *boost_sources)
     boost_jar = BUILD / 'boost-modern-extension.jar'
     with zipfile.ZipFile(boost_jar, 'w') as archive:
         for path in boost_classes.rglob('*.class'):

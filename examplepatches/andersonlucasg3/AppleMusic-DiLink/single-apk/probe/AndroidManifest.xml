@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Standalone build of the probe (debug aid only: the spike ships it inside the engine APK).
+     Declares the engine package in <queries> so the MediaBrowser can bind to it on API 30+,
+     and shares the engine UID so the MediaBrowserService accepts the caller. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.anderson.applemusic.probe"
+    android:sharedUserId="com.apple.android"
+    android:versionCode="1"
+    android:versionName="1.0">
+
+    <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="34" />
+
+    <queries>
+        <package android:name="com.apple.android.music" />
+        <intent>
+            <action android:name="android.media.browse.MediaBrowserService" />
+        </intent>
+    </queries>
+
+    <application
+        android:label="single-apk probe"
+        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+        <activity
+            android:name="com.anderson.applemusic.probe.ProbeActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

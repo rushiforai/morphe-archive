@@ -1,0 +1,99 @@
+--------- beginning of main
+11-06 22:18:33.843 I/SingleApkProbe( 7835): onCreate pkg=com.apple.android.music pid=7835
+11-06 22:18:38.163 I/SingleApkProbe( 7835): MediaBrowser connected, root=ROOT_MEDIA_ITEM
+11-06 22:18:38.166 I/SingleApkProbe( 7835): sessão: state=0
+11-06 22:18:38.184 I/SingleApkProbe( 7835): subscribe __AUTO_ROOT__
+11-06 22:18:38.210 I/SingleApkProbe( 7835): children parent=__AUTO_ROOT__ count=3 -> Início [browsable]; Rádio [browsable]; Biblioteca [browsable]; 
+11-06 22:18:38.229 I/SingleApkProbe( 7835): status: conectado: __AUTO_ROOT__ = 3 filhos
+11-06 22:18:38.230 I/SingleApkProbe( 7835): subscribe __AUTO_ROOT__/home
+11-06 22:18:38.230 I/SingleApkProbe( 7835): subscribe __AUTO_ROOT__/radio
+11-06 22:18:38.230 I/SingleApkProbe( 7835): subscribe __AUTO_ROOT__/library
+11-06 22:18:38.423 I/SingleApkProbe( 7835): children parent=__AUTO_ROOT__/library count=5 -> Biblioteca (Aleatória) [playable]; Adições Recentes [browsable]; Playlists [browsable]; Artistas [browsable]; Álbuns [browsable]; 
+11-06 22:18:38.423 I/SingleApkProbe( 7835): playFromMediaId id=__AUTO_ROOT__/library/songs title=Biblioteca (Aleatória)
+11-06 22:18:38.423 I/SingleApkProbe( 7835): status: playFromMediaId: Biblioteca (Aleatória)
+11-06 22:18:38.433 I/SingleApkProbe( 7835): playbackState=0
+11-06 22:18:38.434 I/SingleApkProbe( 7835): sessão: state=0
+11-06 22:18:38.507 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:38.508 I/SingleApkProbe( 7835): sessão: state=6
+11-06 22:18:38.509 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:38.510 I/SingleApkProbe( 7835): sessão: state=6
+11-06 22:18:38.514 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:38.515 I/SingleApkProbe( 7835): sessão: state=6
+11-06 22:18:38.524 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:38.526 I/SingleApkProbe( 7835): sessão: state=6
+11-06 22:18:38.577 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:38.579 I/SingleApkProbe( 7835): sessão: state=6
+11-06 22:18:38.794 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:38.795 I/SingleApkProbe( 7835): sessão: state=6
+11-06 22:18:38.797 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:38.798 I/SingleApkProbe( 7835): sessão: state=6
+11-06 22:18:38.813 I/SingleApkProbe( 7835): metadata title=Arco-Íris artist=Mundo Bita & Xuxa
+11-06 22:18:38.814 I/SingleApkProbe( 7835): sessão: state=6  Arco-Íris / Mundo Bita & Xuxa
+11-06 22:18:39.738 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:39.739 I/SingleApkProbe( 7835): sessão: state=6  Arco-Íris / Mundo Bita & Xuxa
+11-06 22:18:39.744 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:39.744 I/SingleApkProbe( 7835): sessão: state=6  Arco-Íris / Mundo Bita & Xuxa
+11-06 22:18:39.759 I/SingleApkProbe( 7835): metadata title=Arco-Íris artist=Mundo Bita & Xuxa
+11-06 22:18:39.760 I/SingleApkProbe( 7835): sessão: state=6  Arco-Íris / Mundo Bita & Xuxa
+11-06 22:18:39.774 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:39.775 I/SingleApkProbe( 7835): sessão: state=6  Arco-Íris / Mundo Bita & Xuxa
+11-06 22:18:39.782 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:39.783 I/SingleApkProbe( 7835): sessão: state=6  Arco-Íris / Mundo Bita & Xuxa
+11-06 22:18:39.996 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:39.997 I/SingleApkProbe( 7835): sessão: state=6  Arco-Íris / Mundo Bita & Xuxa
+11-06 22:18:40.065 I/SingleApkProbe( 7835): children parent=__AUTO_ROOT__/radio count=10 -> Apple Music 1 [playable]; Apple Music Hits [playable]; Apple Music Country [playable]; Apple Música Uno [playable]; Apple Music Club [playable]; Apple Music Chill [playable]; Programas [browsable]; Rádio por Gênero [browsable]; Rádios Locais [browsable]; Rádios Internacionais [browsable]; 
+11-06 22:18:40.262 I/SingleApkProbe( 7835): metadata title=Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança artist=Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.263 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.270 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.271 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.271 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.273 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.344 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.345 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.527 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.528 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.554 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.555 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.569 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.570 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.606 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.607 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.609 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.611 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.671 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.673 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.707 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.711 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.726 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.727 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.900 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.901 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.902 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.903 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.904 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.906 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.974 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.976 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:40.976 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:40.977 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:41.171 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:41.173 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:41.174 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:41.175 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:41.226 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:41.227 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:41.231 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:41.231 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:41.241 I/SingleApkProbe( 7835): playbackState=6
+11-06 22:18:41.242 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:41.313 I/SingleApkProbe( 7835): children parent=__AUTO_ROOT__/home count=21 -> Mais relevantes pra você [browsable]; Reproduções recentes [browsable]; MPB [browsable]; Playlists feitas para você [browsable]; Hard rock [browsable]; Estações para você [browsable]; Na vibe de… [browsable]; Novos lançamentos para você [browsable]; Mais álbuns como A Town Called Paradise (Deluxe Version) [browsable]; Pagode [browsable]; Fãs de Tiësto gostam [browsable]; Anos 2010 [browsable]; Metal [browsable]; Rock em português [browsable]; Hard rock ao vivo [browsable]; Sertanejo [browsable]; Axé [browsable]; Música alternativa brasileira dos anos 2010: essenciais [browsable]; MPB dos anos 2010: álbuns [browsable]; Samba [browsable]; Replay: suas músicas mais ouvidas [browsable]; 
+11-06 22:18:41.505 I/SingleApkProbe( 7835): metadata title=Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança artist=Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:41.507 I/SingleApkProbe( 7835): sessão: state=6  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:41.881 I/SingleApkProbe( 7835): playbackState=3
+11-06 22:18:41.883 I/SingleApkProbe( 7835): sessão: state=3  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:42.000 I/SingleApkProbe( 7835): playbackState=3
+11-06 22:18:42.002 I/SingleApkProbe( 7835): sessão: state=3  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:42.238 I/SingleApkProbe( 7835): playbackState=3
+11-06 22:18:42.241 I/SingleApkProbe( 7835): sessão: state=3  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz
+11-06 22:18:42.245 I/SingleApkProbe( 7835): playbackState=3
+11-06 22:18:42.247 I/SingleApkProbe( 7835): sessão: state=3  Cinengiocoronariografia / Coração de Jacaré / A Pipa do Vovô / Cuba Lança / Fabiano Cambota, Pedra Leticia & Rafael Cortéz

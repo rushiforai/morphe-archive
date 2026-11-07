@@ -1,14 +1,14 @@
 package app.stylus.patches.wimt.font
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.stylus.patches.wimt.shared.Constants.COMPATIBILITY_WIMT
 
 private const val EXTENSION_CLASS =
     "Lapp/stylus/extension/wimt/patches/ForceSystemFontPatch;"
 
 @Suppress("unused")
-val forceSystemFontWimtPatch = bytecodePatch(
+val forceSystemFontWimtPatch = patch(
     name = "Force system font",
     description = "Uses the device's system font for UI text.",
     default = true,

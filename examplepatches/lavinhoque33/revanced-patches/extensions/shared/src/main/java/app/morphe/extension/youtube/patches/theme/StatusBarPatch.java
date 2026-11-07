@@ -7,6 +7,7 @@
  * https://github.com/anddea/revanced-patches
  *
  * See the included NOTICE file for GPLv3 Section 7 terms that apply to this code.
+ * Modified by lavinhoque33, 2026-11-06.
  */
 
 package app.morphe.extension.youtube.patches.theme;
@@ -29,6 +30,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import app.morphe.extension.youtube.patches.general.NavigationButtonsPatch;
+import app.morphe.extension.youtube.patches.general.GlassNavigationBar;
 import app.morphe.extension.shared.utils.BaseThemeUtils;
 import app.morphe.extension.shared.utils.Logger;
 import app.morphe.extension.shared.utils.ResourceType;
@@ -238,7 +240,9 @@ public final class StatusBarPatch {
                 // Only with the system navigation buttons at the bottom of the screen. The navigation bar
                 // covering them can change how the window is laid out, so only a window laid out with it
                 // tells that the device keeps the window above them.
-                if (edgeToEdge && insets.isVisible(WindowInsets.Type.navigationBars())
+                if ((edgeToEdge || (GlassNavigationBar.isEnabled()
+                        && NavigationButtonsPatch.isNavigationBarCoveringSystemButtons()))
+                        && insets.isVisible(WindowInsets.Type.navigationBars())
                         && insets.getInsetsIgnoringVisibility(WindowInsets.Type.navigationBars()).bottom > 0) {
                     final boolean aboveNavigationBar = windowBottom < displayHeight;
                     if ((!aboveNavigationBar || NavigationButtonsPatch.isNavigationBarCoveringSystemButtons())

@@ -96,7 +96,26 @@ internal fun ResourcePatchContext.applyModernBoostResources() {
 }
 
 internal fun BytecodePatchContext.applyModernBoostTheme() {
-    val utils=mutableClassDefBy("Lk83;")
+    val latest = packageMetadata.versionName == "1.14.3"
+    val themeUtils = if (latest) "Ln83;" else "Lk83;"
+    val downloadActivity = if (latest) "Lai0;" else "Ldi0;"
+    val drawerActivity = if (latest) "Luj0;" else "Lxj0;"
+    val viewUtils = if (latest) "Lkk3;" else "Ljk3;"
+    // Use URL-specific visited styling instead of coloring every link as an accent.
+    mutableClassDefBy("Lcom/rubenmayayo/reddit/ui/customviews/LinkTextView;")
+        .methods.single { it.name=="setText" }.addInstructions(0,"""
+            invoke-static/range {p0 .. p1}, $modernExt->links(Landroid/widget/TextView;Ljava/lang/CharSequence;)Ljava/lang/CharSequence;
+            move-result-object p1
+        """)
+    val linkListener=mutableClassDefBy("Lcom/rubenmayayo/reddit/ui/customviews/c;")
+        .methods.single { it.name=="a" }
+    val openLink=linkListener.implementation!!.instructions.indexOfFirst { it.opcode==Opcode.INVOKE_STATIC }
+    require(openLink>=0) { "Boost link click handler changed" }
+    linkListener.addInstructions(openLink,"invoke-static/range {p0 .. p1}, $modernExt->visitLink(Landroid/content/Context;Ljava/lang/String;)V")
+    mutableClassDefBy("Lcom/rubenmayayo/reddit/ui/activities/ThemeActivity;")
+        .methods.single { it.name=="d1" && it.parameterTypes==listOf("I") }
+        .addInstructions(0,"invoke-static/range {p0 .. p1}, $modernExt->selectTheme(Landroid/app/Activity;I)V")
+    val utils=mutableClassDefBy(themeUtils)
     val init=utils.methods.single { it.name=="<clinit>" }
     val code=StringBuilder()
     for ((field,type,values) in listOf(
@@ -104,12 +123,12 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
         Triple("e","I",listOf("0x7f131000","0x7f131001")),
         Triple("d","Ljava/lang/String;",listOf("Catppuccin.Latte","Catppuccin.Macchiato")))) {
         val copy=if(type=="I") "I" else "Ljava/lang/Object;"
-        code.append("sget-object v0, Lk83;->$field:[$type\nconst/16 v1, 19\ninvoke-static {v0, v1}, Ljava/util/Arrays;->copyOf([${copy}I)[$copy\nmove-result-object v0\ncheck-cast v0, [$type\n")
+        code.append("sget-object v0, $themeUtils->$field:[$type\nconst/16 v1, 19\ninvoke-static {v0, v1}, Ljava/util/Arrays;->copyOf([${copy}I)[$copy\nmove-result-object v0\ncheck-cast v0, [$type\n")
         values.forEachIndexed { i,value ->
             code.append("const/16 v1, ${17+i}\n")
             code.append(if(type=="I") "const v2, $value\naput v2, v0, v1\n" else "const-string v2, \"$value\"\naput-object v2, v0, v1\n")
         }
-        code.append("sput-object v0, Lk83;->$field:[$type\n")
+        code.append("sput-object v0, $themeUtils->$field:[$type\n")
     }
     init.addInstructions(init.implementation!!.instructions.indexOfFirst { it.opcode==Opcode.RETURN_VOID },code.toString())
     val select=mutableClassDefBy("Lcom/rubenmayayo/reddit/ui/activities/a;").methods.single { it.name=="setCurrentTheme" }
@@ -138,10 +157,10 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
             method.addInstructions(index+1,"move-result v$reg\nreturn v$reg")
         }
     }
-    for ((name,helper) in mapOf("c" to "accent","d" to "text","e" to "text","f" to "accent",
+    for ((name,helper) in mapOf("c" to "accent","d" to "text","e" to "text","f" to "link",
         "g" to "header","h" to "header","i" to "secondary","j" to "sticky","k" to "secondary",
-        "l" to "title","n" to "secondary","o" to "text","p" to "secondary")) hook("Lk83;",name,helper)
-    hook("Lk83;","t","material",true);hook("Lk83;","s","dynamic",true);hook("Lk83;","r","amoled",true)
+        "l" to "title","n" to "secondary","o" to "text","p" to "secondary")) hook(themeUtils,name,helper)
+    hook(themeUtils,"t","material",true);hook(themeUtils,"s","dynamic",true);hook(themeUtils,"r","amoled",true)
     hook("Lps2;","V","toolbarMode")
     val index=utils.methods.single { it.name=="q" }
     val indexLimits=index.implementation!!.instructions.mapIndexedNotNull { i,ins ->
@@ -161,7 +180,7 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
     }
     // Run after native media setup; the newer app reapplies AMOLED themes in
     // several base classes and inflates each gallery page separately.
-    for(type in listOf("Ldi0;", "Lgq1;",
+    for(type in listOf(downloadActivity, "Lgq1;",
         "Lcom/rubenmayayo/reddit/ui/activities/ImageActivity;",
         "Lcom/rubenmayayo/reddit/ui/activities/ImageActivity2;",
         "Lcom/rubenmayayo/reddit/ui/activities/MediaImageActivity;",
@@ -277,7 +296,10 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
         }
     }
     endHook("Lcom/rubenmayayo/reddit/models/reddit/RichFlairView;","c","invoke-static/range {p0 .. p0}, $modernExt->flair(Landroid/view/View;)V")
-    endHook("Ljk3;","M","invoke-static/range {p1 .. p1}, $modernExt->postPanel(Landroid/view/View;)V")
+    val panelMethod = if(latest) "O" else "M"
+    require(mutableClassDefBy(viewUtils).methods.single { it.name==panelMethod }.parameterTypes ==
+        listOf("Landroid/content/Context;", "Landroid/view/View;")) { "Boost text-post panel signature changed" }
+    endHook(viewUtils,panelMethod,"invoke-static/range {p1 .. p1}, $modernExt->postPanel(Landroid/view/View;)V")
     val postConstructor=mutableClassDefBy("Lcom/rubenmayayo/reddit/ui/adapters/SubmissionViewHolder;")
         .methods.single { it.name=="<init>" }
     val postBind=postConstructor.implementation!!.instructions.indexOfFirst {
@@ -355,13 +377,13 @@ internal fun BytecodePatchContext.applyModernBoostTheme() {
         }
     }
     // Tint only the account-header pattern, leaving avatars and downloaded images intact.
-    val drawer=mutableClassDefBy("Lxj0;")
+    val drawer=mutableClassDefBy(drawerActivity)
     var patternHooks=0
     for(method in drawer.methods) {
         val instructions=method.implementation?.instructions?.toList() ?: continue
         for(i in instructions.indices.reversed()) {
             val ref=(instructions[i] as? ReferenceInstruction)?.reference as? MethodReference ?: continue
-            if(ref.definingClass!="Lia1;" || ref.name!="b")continue
+            if(ref.definingClass!=(if(latest) "Lha1;" else "Lia1;") || ref.name!="b")continue
             val call=instructions[i] as FiveRegisterInstruction
             method.addInstructions(i+1,"invoke-static {v${call.registerD}}, $modernExt->pattern(Landroid/widget/ImageView;)V")
             patternHooks++

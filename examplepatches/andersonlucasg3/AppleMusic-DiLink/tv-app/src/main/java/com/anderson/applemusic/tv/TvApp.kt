@@ -1,13 +1,13 @@
-@file:OptIn(ExperimentalTvMaterial3Api::class)
+@file:OptIn(ExperimentalTvMaterial3Api::class, ExperimentalFoundationApi::class)
 
 package com.anderson.applemusic.tv
 
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -28,9 +28,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.layout.LazyLayoutCacheWindow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -53,12 +55,16 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -68,37 +74,45 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.tv.material3.Card
-import androidx.tv.material3.CardDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
-import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import com.anderson.applemusic.core.BrowseItem
+import com.anderson.applemusic.core.PlaybackSnapshot
+import com.anderson.applemusic.core.Section
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
-private val Background = Color(0xFF0A0A0B)
-private val CardColor = Color(0xFF1C1C1E)
-private val CardColorFocused = Color(0xFF34343A)
-private val TextPrimary = Color(0xFFFFFFFF)
-private val TextSecondary = Color(0xFF9A9A9E)
-private val Accent = Color(0xFFFA233B)
-
 private const val CARDS_PER_ROW = 4
 private const val SEEK_STEP_MS = 10_000L
+private const val LONG_PRESS_MS = 500L
+
+private val CardWidth = 220.dp
+private val CardHeight = 124.dp
 
 @Composable
 fun TvApp(viewModel: TvViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val firstTabFocus = remember { FocusRequester() }
     val playerFocus = remember { FocusRequester() }
+    val actionsButtonFocus = remember { FocusRequester() }
     var everOpenedPlayer by remember { mutableStateOf(false) }
+    var openedActionsOnce by remember { mutableStateOf(false) }
+    var openedMenuOnce by remember { mutableStateOf(false) }
+    var menuOriginFocus by remember { mutableStateOf<FocusRequester?>(null) }
 
     // TV apps start with nothing focused; put the D-pad on the tab bar and put it
     // back there whenever the drill-down stack returns to a tab root.
     LaunchedEffect(state.tabs.size, state.stack.size) {
-        if (state.tabs.isNotEmpty() && state.stack.isEmpty() && !state.nowPlayingOpen && !state.searchOpen) {
+        if (
+            state.tabs.isNotEmpty() && state.stack.isEmpty() && !state.nowPlayingOpen &&
+            !state.searchOpen && state.itemMenu == null && !state.actionsOpen
+        ) {
             withFrameNanos { }
             runCatching { firstTabFocus.requestFocus() }
         }
@@ -114,20 +128,46 @@ fun TvApp(viewModel: TvViewModel = viewModel()) {
         }
     }
 
-    BackHandler(enabled = state.nowPlayingOpen) { viewModel.closeNowPlaying() }
-    BackHandler(enabled = !state.nowPlayingOpen && state.stack.isNotEmpty()) { viewModel.back() }
+    // Closing the action sheet returns the D-pad to its "Ações" button.
+    LaunchedEffect(state.actionsOpen) {
+        if (state.actionsOpen) {
+            openedActionsOnce = true
+        } else if (openedActionsOnce && state.nowPlayingOpen) {
+            withFrameNanos { }
+            runCatching { actionsButtonFocus.requestFocus() }
+        }
+    }
+
+    // Closing the card menu returns the D-pad to the card that opened it.
+    LaunchedEffect(state.itemMenu) {
+        if (state.itemMenu != null) {
+            openedMenuOnce = true
+        } else if (openedMenuOnce) {
+            withFrameNanos { }
+            runCatching { menuOriginFocus?.requestFocus() }
+        }
+    }
+
+    BackHandler(enabled = state.actionsOpen) { viewModel.closeActions() }
+    BackHandler(enabled = state.itemMenu != null) { viewModel.closeItemMenu() }
+    BackHandler(enabled = state.nowPlayingOpen && !state.actionsOpen) { viewModel.closeNowPlaying() }
+    BackHandler(
+        enabled = !state.nowPlayingOpen && state.itemMenu == null && state.stack.isNotEmpty(),
+    ) { viewModel.back() }
     BackHandler(enabled = !state.nowPlayingOpen && state.searchOpen) { viewModel.closeSearch() }
 
-    MaterialTheme {
+    AppleMusicTvTheme {
         Box(Modifier.fillMaxSize().background(Background)) {
             if (state.nowPlayingOpen) {
                 NowPlayingScreen(
-                    playback = state.playback,
+                    playbackFlow = viewModel.playback,
                     seekFeedback = state.seekFeedback,
+                    actionsButtonFocus = actionsButtonFocus,
                     onPlayPause = viewModel::togglePlayPause,
                     onPrevious = viewModel::previous,
                     onNext = viewModel::next,
                     onSeekBy = viewModel::seekBy,
+                    onOpenActions = viewModel::openActions,
                 )
             } else {
                 Column(Modifier.fillMaxSize()) {
@@ -135,7 +175,7 @@ fun TvApp(viewModel: TvViewModel = viewModel()) {
                         tabs = state.tabs,
                         selected = state.selectedTab,
                         searchOpen = state.searchOpen,
-                        playback = state.playback,
+                        playbackFlow = viewModel.playback,
                         onSelect = viewModel::selectTab,
                         onSearch = viewModel::openSearch,
                         onOpenPlayer = viewModel::openNowPlaying,
@@ -152,13 +192,24 @@ fun TvApp(viewModel: TvViewModel = viewModel()) {
                                 ConnectionPhase.CONNECTED -> {
                                     val top = state.stack.lastOrNull()
                                     if (top == null) {
-                                        TabRoot(state, viewModel)
+                                        TabRoot(
+                                            state = state,
+                                            viewModel = viewModel,
+                                            onItemMenu = { item, requester ->
+                                                menuOriginFocus = requester
+                                                viewModel.openItemMenu(item)
+                                            },
+                                        )
                                     } else {
                                         LevelGrid(
                                             title = state.stack.joinToString(" › ") { it.title },
                                             items = state.levelItems[top.id],
                                             failed = top.id in state.levelFailed,
                                             onItem = viewModel::enter,
+                                            onItemMenu = { item, requester ->
+                                                menuOriginFocus = requester
+                                                viewModel.openItemMenu(item)
+                                            },
                                         )
                                     }
                                 }
@@ -167,6 +218,22 @@ fun TvApp(viewModel: TvViewModel = viewModel()) {
                     }
                 }
             }
+            if (state.actionsOpen) {
+                ActionsSheet(
+                    playbackFlow = viewModel.playback,
+                    onAction = viewModel::runAction,
+                    onClose = viewModel::closeActions,
+                )
+            }
+            state.itemMenu?.let { item ->
+                CardMenuSheet(
+                    item = item,
+                    playbackFlow = viewModel.playback,
+                    onAction = { actionId -> viewModel.runItemAction(item, actionId) },
+                    onClose = viewModel::closeItemMenu,
+                )
+            }
+            state.message?.let { MessageToast(it) }
         }
     }
 }
@@ -176,13 +243,16 @@ private fun Header(
     tabs: List<TvTab>,
     selected: Int,
     searchOpen: Boolean,
-    playback: PlaybackSnapshot,
+    playbackFlow: StateFlow<PlaybackSnapshot>,
     onSelect: (Int) -> Unit,
     onSearch: () -> Unit,
     onOpenPlayer: () -> Unit,
     firstTabFocus: FocusRequester,
     playerFocus: FocusRequester,
 ) {
+    // Collected here, not in TvApp: a playback update then only invalidates the header
+    // row instead of the whole browse tree.
+    val playback by playbackFlow.collectAsStateWithLifecycle()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -232,7 +302,7 @@ private fun TabPill(
             .background(
                 when {
                     selected -> Accent
-                    focused -> CardColorFocused
+                    focused -> SurfaceFocused
                     else -> Color.Transparent
                 },
             )
@@ -267,7 +337,7 @@ private fun HeaderIconButton(
             .size(34.dp)
             .scale(scale)
             .clip(CircleShape)
-            .background(if (focused) CardColorFocused else Color.Transparent)
+            .background(if (focused) SurfaceFocused else Color.Transparent)
             .border(
                 BorderStroke(2.dp, if (focused) Color.White else if (selected) Accent else Color.Transparent),
                 CircleShape,
@@ -295,17 +365,22 @@ private fun PlayerChip(
     val hasTrack = playback.hasSession && playback.title.isNotBlank()
     var focused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "chipScale")
-    val elevation by animateDpAsState(if (focused) 14.dp else 0.dp, label = "chipElevation")
     Row(
         modifier = Modifier
             .focusRequester(focusRequester)
             .scale(scale)
-            .shadow(elevation, RoundedCornerShape(12.dp))
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (focused) CardColorFocused else CardColor)
+            .clip(RoundedCornerShape(CardRadius))
+            // Discrete chip: a soft surface gradient instead of a flat block.
+            .background(
+                if (focused) {
+                    Brush.horizontalGradient(listOf(SurfaceFocused, SurfaceFocused))
+                } else {
+                    Brush.horizontalGradient(listOf(Color(0xFF232326), Color(0xFF151517)))
+                },
+            )
             .border(
                 BorderStroke(2.dp, if (focused) Color.White else Color.Transparent),
-                RoundedCornerShape(12.dp),
+                RoundedCornerShape(CardRadius),
             )
             .then(
                 if (hasTrack) {
@@ -319,9 +394,9 @@ private fun PlayerChip(
             .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Artwork(playback, 40.dp)
+        Artwork(playback, 36.dp)
         Spacer(Modifier.width(10.dp))
-        Column(Modifier.widthIn(max = 220.dp)) {
+        Column(Modifier.widthIn(max = 200.dp)) {
             Text(
                 text = if (hasTrack) playback.title else "Nada tocando",
                 color = if (hasTrack) TextPrimary else TextSecondary,
@@ -346,18 +421,30 @@ private fun PlayerChip(
 }
 
 @Composable
-private fun TabRoot(state: TvUiState, viewModel: TvViewModel) {
+private fun TabRoot(
+    state: TvUiState,
+    viewModel: TvViewModel,
+    onItemMenu: (BrowseItem, FocusRequester) -> Unit,
+) {
     val visibleSections = state.sections.filter { it.loading || it.items.isNotEmpty() }
+    // Keep a shelf composed while it is up to 360 dp outside the viewport: without a
+    // cache window a row that scrolls out is disposed and the next DOWN (or UP) pays
+    // its full ~7-card composition again. Compose 1.11 has no beyondBoundsItemCount.
+    val columnState = rememberLazyListState(
+        cacheWindow = LazyLayoutCacheWindow(ahead = 360.dp, behind = 360.dp),
+    )
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+        state = columnState,
+        modifier = Modifier.fillMaxSize().padding(horizontal = PagePadding),
+        verticalArrangement = Arrangement.spacedBy(SectionGap),
         contentPadding = PaddingValues(top = 8.dp, bottom = 16.dp),
     ) {
-        items(visibleSections, key = { it.id }) { section ->
+        items(visibleSections, key = { it.id }, contentType = { "section" }) { section ->
             SectionRow(
                 section = section,
                 onOpenSection = { viewModel.openSection(section) },
                 onItem = viewModel::enter,
+                onItemMenu = onItemMenu,
             )
         }
     }
@@ -368,6 +455,7 @@ private fun SectionRow(
     section: Section,
     onOpenSection: () -> Unit,
     onItem: (BrowseItem) -> Unit,
+    onItemMenu: (BrowseItem, FocusRequester) -> Unit,
 ) {
     val rowState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -376,8 +464,8 @@ private fun SectionRow(
             Text(
                 text = section.title,
                 color = TextPrimary,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontSize = 19.sp,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 2.dp, vertical = 3.dp),
             )
             Spacer(Modifier.width(10.dp))
@@ -393,17 +481,28 @@ private fun SectionRow(
             ) {
                 val offset = if (section.direct) 0 else 1
                 if (!section.direct) {
-                    item(key = "open-${section.id}") {
+                    item(key = "open-${section.id}", contentType = "seeAll") {
                         SeeAllCard(
                             count = section.items.size,
                             onClick = onOpenSection,
                         )
                     }
                 }
-                itemsIndexed(section.items, key = { _, item -> item.id }) { index, item ->
+                itemsIndexed(
+                    section.items,
+                    key = { _, item -> item.id },
+                    contentType = { _, _ -> "card" },
+                ) { index, item ->
                     TvCard(
                         item = item,
-                        onFocused = { scope.launch { rowState.animateScrollToItem(index + offset) } },
+                        onFocused = {
+                            // Only scroll when the focused card is clipped; an
+                            // already visible card costs no animation at all.
+                            if (rowState.needsScrollTo(index + offset)) {
+                                scope.launch { rowState.animateScrollToItem(index + offset) }
+                            }
+                        },
+                        onItemMenu = onItemMenu,
                         onClick = { onItem(item) },
                     )
                 }
@@ -412,32 +511,26 @@ private fun SectionRow(
     }
 }
 
+/**
+ * True when [index] is not fully inside the viewport, so the focused item needs a
+ * scroll. Items that are already fully visible cost nothing.
+ */
+private fun LazyListState.needsScrollTo(index: Int): Boolean {
+    val info = layoutInfo
+    val item = info.visibleItemsInfo.firstOrNull { it.index == index } ?: return true
+    return item.offset < info.viewportStartOffset ||
+        item.offset + item.size > info.viewportEndOffset
+}
+
 /** Focusable "open this shelf as a grid" entry at the start of every row. */
 @Composable
 private fun SeeAllCard(count: Int, onClick: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val elevation by animateDpAsState(if (focused) 18.dp else 0.dp, label = "seeAllElevation")
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .width(132.dp)
-            .height(112.dp)
-            .onFocusChanged { focused = it.isFocused }
-            .shadow(elevation, RoundedCornerShape(10.dp)),
-        shape = CardDefaults.shape(RoundedCornerShape(10.dp)),
-        colors = CardDefaults.colors(
-            containerColor = CardColor,
-            contentColor = TextPrimary,
-            focusedContainerColor = CardColorFocused,
-            focusedContentColor = TextPrimary,
-        ),
-        scale = CardDefaults.scale(1f, 1.06f, 1f),
-    ) {
+    FocusCard(onClick = onClick, width = 132.dp, height = CardHeight) {
         Column(
             modifier = Modifier.fillMaxSize().padding(12.dp),
             verticalArrangement = Arrangement.Center,
         ) {
-            Text("Ver tudo", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+            Text("Ver tudo", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
             Text("$count itens", color = TextSecondary, fontSize = 11.sp)
         }
     }
@@ -449,6 +542,7 @@ private fun LevelGrid(
     items: List<BrowseItem>?,
     failed: Boolean,
     onItem: (BrowseItem) -> Unit,
+    onItemMenu: (BrowseItem, FocusRequester) -> Unit,
 ) {
     if (failed) {
         CenteredMessage("Não foi possível carregar “$title”")
@@ -465,6 +559,7 @@ private fun LevelGrid(
     val columnState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val firstCard = remember { FocusRequester() }
+    val rows = remember(items) { items.chunked(CARDS_PER_ROW) }
 
     LaunchedEffect(items) {
         withFrameNanos { }
@@ -486,19 +581,23 @@ private fun LevelGrid(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(bottom = 16.dp),
         ) {
-            items(items.chunked(CARDS_PER_ROW)) { rowItems ->
+            itemsIndexed(
+                rows,
+                key = { _, rowItems -> rowItems.first().id },
+                contentType = { _, _ -> "gridRow" },
+            ) { rowIndex, rowItems ->
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     rowItems.forEach { item ->
                         val isFirst = item === items.first()
                         TvCard(
                             item = item,
-                            modifier = if (isFirst) Modifier.focusRequester(firstCard) else Modifier,
+                            focusRequester = if (isFirst) firstCard else null,
                             onFocused = {
-                                val rowIndex = items.indexOf(item) / CARDS_PER_ROW
-                                if (rowIndex >= 0) {
+                                if (columnState.needsScrollTo(rowIndex)) {
                                     scope.launch { columnState.animateScrollToItem(rowIndex) }
                                 }
                             },
+                            onItemMenu = onItemMenu,
                             onClick = { onItem(item) },
                         )
                     }
@@ -508,72 +607,194 @@ private fun LevelGrid(
     }
 }
 
+/**
+ * The focusable surface used by every card.
+ *
+ * tv-material's `Card` brings a clickable surface with ripple indication, a border node,
+ * a glow node and its own D-pad key handler. Dropping it is a ~10 % win on the
+ * composition of a fresh shelf (README, Performance), not the main lever, but it is
+ * less machinery per card. Same look as before — focus scale + focused container
+ * colour — with a [graphicsLayer] scale (draw phase, no recomposition) and a
+ * [clickable] with no indication.
+ */
+@Composable
+private fun FocusCard(
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+    width: Dp = CardWidth,
+    height: Dp = CardHeight,
+    modifier: Modifier = Modifier,
+    onFocused: () -> Unit = {},
+    content: @Composable () -> Unit,
+) {
+    var focused by remember { mutableStateOf(false) }
+    var longFired by remember { mutableStateOf(false) }
+    var longPressJob by remember { mutableStateOf<Job?>(null) }
+    val scope = rememberCoroutineScope()
+    val scale by animateFloatAsState(if (focused) 1.05f else 1f, label = "cardScale")
+    Box(
+        modifier = modifier
+            .width(width)
+            .height(height)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(CardRadius))
+            .background(if (focused) SurfaceFocused else Surface)
+            .onFocusChanged {
+                focused = it.isFocused
+                if (it.isFocused) {
+                    onFocused()
+                } else {
+                    // The menu steals focus while ENTER is still held; drop the pending
+                    // press so the next click works.
+                    longPressJob?.cancel()
+                    longPressJob = null
+                    longFired = false
+                }
+            }
+            // Long-press ENTER: `clickable` only reports a plain click, and holding the
+            // D-pad centre is not a touch gesture, so the press is timed here. A remote
+            // or `adb shell input keyevent --longpress` that reports the platform flag
+            // takes the immediate path.
+            .onPreviewKeyEvent { event ->
+                if (onLongClick == null || event.key != Key.DirectionCenter) {
+                    return@onPreviewKeyEvent false
+                }
+                when (event.type) {
+                    KeyEventType.KeyDown -> {
+                        if (longFired) return@onPreviewKeyEvent true
+                        if (
+                            event.nativeKeyEvent.flags and
+                            android.view.KeyEvent.FLAG_LONG_PRESS != 0
+                        ) {
+                            longPressJob?.cancel()
+                            longPressJob = null
+                            longFired = true
+                            onLongClick()
+                            true
+                        } else {
+                            // Held keys repeat KeyDown; keep a single timer.
+                            if (longPressJob == null) {
+                                longPressJob = scope.launch {
+                                    delay(LONG_PRESS_MS)
+                                    if (!longFired) {
+                                        longFired = true
+                                        onLongClick()
+                                    }
+                                }
+                            }
+                            false
+                        }
+                    }
+
+                    KeyEventType.KeyUp -> {
+                        longPressJob?.cancel()
+                        longPressJob = null
+                        // Swallow the release so `clickable` does not also fire onClick().
+                        if (longFired) {
+                            longFired = false
+                            true
+                        } else {
+                            false
+                        }
+                    }
+
+                    else -> false
+                }
+            }
+            .clickable(interactionSource = null, indication = null) { onClick() },
+    ) {
+        content()
+        if (focused) {
+            Box(Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.10f)))
+        }
+    }
+}
+
 @Composable
 private fun TvCard(
     item: BrowseItem,
     modifier: Modifier = Modifier,
-    width: Dp = 200.dp,
-    height: Dp = 112.dp,
+    focusRequester: FocusRequester? = null,
+    width: Dp = CardWidth,
+    height: Dp = CardHeight,
     onFocused: () -> Unit = {},
+    onItemMenu: ((BrowseItem, FocusRequester) -> Unit)? = null,
     onClick: () -> Unit,
 ) {
-    var focused by remember(item.id) { mutableStateOf(false) }
-    val elevation by animateDpAsState(if (focused) 18.dp else 0.dp, label = "cardElevation")
-
-    Card(
+    val ownFocus = remember { FocusRequester() }
+    val cardFocus = focusRequester ?: ownFocus
+    val longPress = if (item.playable && onItemMenu != null) {
+        { onItemMenu(item, cardFocus) }
+    } else {
+        null
+    }
+    FocusCard(
         onClick = onClick,
-        modifier = modifier
-            .width(width)
-            .height(height)
-            .onFocusChanged {
-                focused = it.isFocused
-                if (it.isFocused) onFocused()
-            }
-            .shadow(elevation, RoundedCornerShape(10.dp)),
-        shape = CardDefaults.shape(RoundedCornerShape(10.dp)),
-        colors = CardDefaults.colors(
-            containerColor = CardColor,
-            contentColor = TextPrimary,
-            focusedContainerColor = CardColorFocused,
-            focusedContentColor = TextPrimary,
-        ),
-        scale = CardDefaults.scale(1f, 1.06f, 1f),
+        onLongClick = longPress,
+        width = width,
+        height = height,
+        modifier = modifier.focusRequester(cardFocus),
+        onFocused = onFocused,
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.size(52.dp)) {
-                ArtworkPlaceholder(52.dp)
-                if (item.artworkUri != null) {
-                    AsyncImage(
-                        model = item.artworkUri,
-                        contentDescription = null,
-                        modifier = Modifier.size(52.dp).clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop,
-                    )
-                }
+        Box(Modifier.fillMaxSize()) {
+            if (item.artworkUri != null) {
+                val context = LocalContext.current
+                val density = LocalDensity.current
+                val artWidth = with(density) { width.roundToPx() }
+                val artHeight = with(density) { height.roundToPx() }
+                AsyncImage(
+                    // Explicit target size: Coil decodes the card cover instead of
+                    // whatever the CDN serves.
+                    model = remember(item.artworkUri, artWidth, artHeight) {
+                        ImageRequest.Builder(context)
+                            .data(item.artworkUri)
+                            .size(artWidth, artHeight)
+                            .build()
+                    },
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                CardArtworkPlaceholder(Modifier.fillMaxSize())
             }
-            Spacer(Modifier.width(10.dp))
-            Column(Modifier.weight(1f)) {
+            // Artwork-first card: a soft bottom scrim keeps the two text lines legible.
+            Box(
+                Modifier.fillMaxSize().background(
+                    Brush.verticalGradient(
+                        0.4f to Color.Transparent,
+                        1f to Color.Black.copy(alpha = 0.86f),
+                    ),
+                ),
+            )
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+            ) {
                 Text(
                     text = item.title,
                     color = TextPrimary,
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 2,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-                if (item.subtitle.isNotEmpty()) {
+                // One secondary line only: the subtitle, or the "Tocar" hint for a
+                // playable-only item (they never show together).
+                val secondary = item.subtitle.ifEmpty { if (item.playable) "Tocar" else "" }
+                if (secondary.isNotEmpty()) {
                     Text(
-                        text = item.subtitle,
-                        color = TextSecondary,
+                        text = secondary,
+                        color = if (item.subtitle.isEmpty()) Accent else TextSecondary,
                         fontSize = 11.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
-                } else if (item.playable) {
-                    Text("Tocar", color = Accent, fontSize = 11.sp)
                 }
             }
         }
@@ -581,14 +802,29 @@ private fun TvCard(
 }
 
 @Composable
+private fun CardArtworkPlaceholder(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier.background(
+            Brush.linearGradient(listOf(Accent.copy(alpha = 0.85f), Color(0xFF5A1018))),
+        ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text("♪", color = Color.White, fontSize = 38.sp)
+    }
+}
+
+@Composable
 private fun NowPlayingScreen(
-    playback: PlaybackSnapshot,
+    playbackFlow: StateFlow<PlaybackSnapshot>,
     seekFeedback: SeekFeedback?,
+    actionsButtonFocus: FocusRequester,
     onPlayPause: () -> Unit,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
     onSeekBy: (Long) -> Unit,
+    onOpenActions: () -> Unit,
 ) {
+    val playback by playbackFlow.collectAsStateWithLifecycle()
     val playFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
         withFrameNanos { }
@@ -603,11 +839,11 @@ private fun NowPlayingScreen(
             ),
     ) {
         Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 64.dp, vertical = 32.dp),
+            modifier = Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 32.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             BigArtwork(playback.artwork, 360.dp)
-            Spacer(Modifier.width(56.dp))
+            Spacer(Modifier.width(48.dp))
             Column(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
                 verticalArrangement = Arrangement.Center,
@@ -667,6 +903,11 @@ private fun NowPlayingScreen(
                         description = "Próxima",
                         onClick = onNext,
                     )
+                    Spacer(Modifier.width(6.dp))
+                    ActionsButton(
+                        focusRequester = actionsButtonFocus,
+                        onClick = onOpenActions,
+                    )
                 }
                 Spacer(Modifier.height(30.dp))
                 SeekControl(
@@ -698,7 +939,7 @@ private fun PlayerButton(
     var focused by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "playerButtonScale")
     val background by animateColorAsState(
-        if (focused) Color.White else CardColorFocused,
+        if (focused) Color.White else SurfaceFocused,
         label = "playerButtonBackground",
     )
     val tint by animateColorAsState(if (focused) Color.Black else TextPrimary, label = "playerButtonTint")
@@ -722,6 +963,42 @@ private fun PlayerButton(
     }
 }
 
+/** Opens the session action sheet (Favorito, Criar Estação, …). */
+@Composable
+private fun ActionsButton(focusRequester: FocusRequester, onClick: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(if (focused) 1.05f else 1f, label = "actionsScale")
+    val background by animateColorAsState(
+        if (focused) Color.White else SurfaceFocused,
+        label = "actionsBackground",
+    )
+    val contentColor by animateColorAsState(
+        if (focused) Color.Black else TextPrimary,
+        label = "actionsContent",
+    )
+    Row(
+        modifier = Modifier
+            .focusRequester(focusRequester)
+            .scale(scale)
+            .height(48.dp)
+            .clip(RoundedCornerShape(50))
+            .background(background)
+            .border(
+                BorderStroke(2.dp, if (focused) Color.White else Color.Transparent),
+                RoundedCornerShape(50),
+            )
+            .onFocusChanged { focused = it.isFocused }
+            .clickable { onClick() }
+            .padding(horizontal = 18.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Text("•••", color = contentColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.width(8.dp))
+        Text("Ações", color = contentColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
 /** Focusable progress bar: left/right seek by [SEEK_STEP_MS] and show a hint. */
 @Composable
 private fun SeekControl(
@@ -737,7 +1014,7 @@ private fun SeekControl(
             .fillMaxWidth()
             .scale(scale)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (focused) CardColorFocused else Color.Transparent)
+            .background(if (focused) SurfaceFocused else Color.Transparent)
             .border(
                 BorderStroke(2.dp, if (focused) Color.White else Color.Transparent),
                 RoundedCornerShape(12.dp),
@@ -789,7 +1066,7 @@ private fun SeekControl(
 
 @Composable
 private fun BigArtwork(bitmap: Bitmap?, size: Dp) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(OverlayRadius)
     if (bitmap != null) {
         Image(
             bitmap = bitmap.asImageBitmap(),
@@ -855,7 +1132,7 @@ private fun ProgressBar(positionMs: Long, durationMs: Long, modifier: Modifier =
         modifier = modifier
             .height(4.dp)
             .clip(RoundedCornerShape(2.dp))
-            .background(Color(0xFF3A3A3C)),
+            .background(SeekTrack),
     ) {
         Box(
             Modifier
@@ -922,7 +1199,7 @@ private fun ErrorPane(message: String?, onRetry: () -> Unit) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
-                .background(if (focused) Accent else CardColor)
+                .background(if (focused) Accent else Surface)
                 .border(
                     BorderStroke(2.dp, if (focused) Color.White else Color.Transparent),
                     RoundedCornerShape(10.dp),

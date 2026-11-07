@@ -1,0 +1,85 @@
+name: Verify patches
+
+# Builds the patches, applies them to a real APK with the Morphe CLI
+# and checks that the "Hide ads" patch was applied.
+#
+# The APK is downloaded from `apk_url` (manual run), the TEST_APK_URL repository
+# variable, or the default below. XAPK / APKM / APKS bundles are merged by the CLI.
+
+on:
+  workflow_dispatch:
+    inputs:
+      apk_url:
+        description: Direct download URL of the 火車時刻表 APK / XAPK
+        required: false
+  push:
+    branches-ignore:
+      - main
+      - dev
+
+env:
+  DEFAULT_APK_URL: https://drive.usercontent.google.com/download?id=16G97lUdjIQ8HjX1rO9NMuPj30nF4lR37&export=download&confirm=t
+
+jobs:
+  verify:
+    name: Apply patches to APK
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Download Morphe CLI
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download --repo MorpheApp/morphe-cli --pattern '*-all.jar' --output morphe-cli.jar \
+            || gh release download --repo MorpheApp/morphe-cli --pattern '*.jar' --output morphe-cli.jar
+          java -jar morphe-cli.jar --version || true
+
+      - name: Download APK
+        env:
+          APK_URL: ${{ inputs.apk_url || vars.TEST_APK_URL || env.DEFAULT_APK_URL }}
+        run: |
+          curl -fsSL -o app.xapk "$APK_URL"
+          file app.xapk
+          unzip -l app.xapk | head -40
+
+      - name: Patch APK
+        run: |
+          ls -la patches/build/libs
+          MPP=$(ls patches/build/libs/*.mpp | head -n 1)
+          java -jar morphe-cli.jar patch \
+            -p "$MPP" \
+            --result-file "$PWD/result.json" \
+            -o "$PWD/patched.apk" \
+            "$PWD/app.xapk"
+          cat result.json
+
+      - name: Check patches were applied
+        run: |
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --quiet androguard
+          "$RUNNER_TEMP/venv/bin/python" -I .github/scripts/verify_patches.py patched.apk
+
+      - name: Upload patched APK
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          # Upload the APK as is, not wrapped in a zip.
+          archive: false
+          if-no-files-found: ignore
+          path: patched.apk

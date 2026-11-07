@@ -2,7 +2,7 @@
 
 This guide explains how to build Oxbow yourself. Building from source lets
 you inspect the patches and avoid trusting a prebuilt APK. Oxbow is a fork of
-[Feurstagram](https://github.com/jean-voila/FeurStagram) by Jean Herail (GPL-3.0).
+[FeurStagram](https://github.com/jean-voila/FeurStagram) by Jean Herail (GPL-3.0).
 
 ## Requirements
 

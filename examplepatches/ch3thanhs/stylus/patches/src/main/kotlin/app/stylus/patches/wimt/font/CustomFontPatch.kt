@@ -3,8 +3,10 @@ package app.stylus.patches.wimt.font
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.deleteResource
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.stringOption
 import app.stylus.patches.wimt.shared.Constants.COMPATIBILITY_WIMT
 import com.android.tools.smali.dexlib2.Opcode
@@ -350,7 +352,7 @@ private val fontFeatureSettingsOption = stringOption(
  * so it can also apply the feature settings to Compose text; this dependency
  * handles the font files, View styles, and Material 3 feature string.
  */
-private val customFontResourcesWimtPatch = resourcePatch(
+private val customFontResourcesWimtPatch = patch(
     name = "Custom font resources",
     description = "Internal font resource replacement.",
     default = false,
@@ -378,7 +380,7 @@ private val customFontResourcesWimtPatch = resourcePatch(
             )
         }
 
-        val resDir = get("res")
+        val resDir = resourceFile("res")
 
         // Morphe Patcher 2.0.0 and newer decode resources on request instead of
         // up front, so a directory only holds what has been decoded so far.
@@ -428,7 +430,7 @@ private val customFontResourcesWimtPatch = resourcePatch(
             if (target.extension.lowercase() in allowedFontExtensions) {
                 // Mark the old font for removal from the rebuilt APK. Deleting the
                 // staged file alone leaves the original entry in the output.
-                delete("res/${target.parentFile.name}/${target.name}")
+                deleteResource("res/${target.parentFile.name}/${target.name}")
             }
 
             val xmlFile = target.parentFile.resolve("$resourceName.xml")
@@ -462,7 +464,7 @@ private val customFontResourcesWimtPatch = resourcePatch(
 }
 
 @Suppress("unused")
-val customFontWimtPatch = bytecodePatch(
+val customFontWimtPatch = patch(
     name = "Custom font",
     description = "Replaces the bundled Google Sans, Nunito Sans, and Roboto UI fonts with " +
         "your own font.",

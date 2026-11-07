@@ -8,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-/** Helpers for the supported native 1.14.2 theme registry. No retained Activity. */
+/** Helpers for the supported native 1.14.x theme registry. No retained Activity. */
 public final class BoostTheme {
     private BoostTheme() {}
 
@@ -18,6 +18,78 @@ public final class BoostTheme {
     private static int color(int original, int latte, int macchiato) {
         int mode = mode();
         return mode == 17 ? latte : mode == 18 ? macchiato : original;
+    }
+    public static void selectTheme(Activity activity, int requested) {
+        if (requested == 17 || requested == 18) {
+            android.preference.PreferenceManager.getDefaultSharedPreferences(activity).edit()
+                .putBoolean("pref_dynamic_colors", false).apply();
+        }
+    }
+    public static int link(int original) { return color(original, 0xff1e66f5, 0xff8aadf4); }
+    // Keep URL history private to this installation; never retain a screen.
+    private static final java.util.WeakHashMap<android.widget.TextView, Boolean> linkViews = new java.util.WeakHashMap<>();
+    private static android.content.SharedPreferences linkHistory;
+    private static android.content.SharedPreferences history(android.content.Context context) {
+        if (linkHistory == null) linkHistory = context.getApplicationContext()
+            .getSharedPreferences("catppuccin_visited_links", android.content.Context.MODE_PRIVATE);
+        return linkHistory;
+    }
+    private static String linkKey(String url) {
+        if (url == null || !(url.startsWith("https://") || url.startsWith("http://"))) return null;
+        try {
+            byte[] digest = java.security.MessageDigest.getInstance("SHA-256").digest(url.getBytes("UTF-8"));
+            StringBuilder key = new StringBuilder(64);
+            for (byte value : digest) key.append(String.format(java.util.Locale.ROOT, "%02x", value & 255));
+            return key.toString();
+        } catch (java.security.GeneralSecurityException | java.io.UnsupportedEncodingException ignored) { return null; }
+    }
+    public static void visitLink(android.content.Context context, String url) {
+        if (!enabled()) return;
+        String key = linkKey(url);
+        if (key == null) return;
+        android.content.SharedPreferences prefs = history(context);
+        java.util.Set<String> visited = new java.util.LinkedHashSet<>(prefs.getStringSet("urls", java.util.Collections.<String>emptySet()));
+        visited.remove(key);
+        visited.add(key);
+        while (visited.size() > 4096) visited.remove(visited.iterator().next());
+        prefs.edit().putStringSet("urls", visited).apply();
+        for (android.widget.TextView view : new java.util.ArrayList<>(linkViews.keySet())) {
+            if (view != null) view.invalidate();
+        }
+    }
+    public static CharSequence links(android.widget.TextView view, CharSequence text) {
+        if (!enabled() || !(text instanceof android.text.Spanned)) return text;
+        android.text.Spanned source = (android.text.Spanned) text;
+        android.text.style.URLSpan[] spans = source.getSpans(0, text.length(), android.text.style.URLSpan.class);
+        if (spans.length == 0) return text;
+        android.text.SpannableString result = new android.text.SpannableString(text);
+        android.content.SharedPreferences prefs = history(view.getContext());
+        for (android.text.style.URLSpan span : spans) {
+            if (span instanceof VisitedLinkSpan) continue;
+            String key = linkKey(span.getURL());
+            if (key == null) continue; // Spoiler spans keep their original behavior.
+            int start = source.getSpanStart(span), end = source.getSpanEnd(span), flags = source.getSpanFlags(span);
+            result.removeSpan(span);
+            result.setSpan(new VisitedLinkSpan(span, key, prefs), start, end, flags);
+        }
+        linkViews.put(view, Boolean.TRUE);
+        return result;
+    }
+    private static final class VisitedLinkSpan extends android.text.style.URLSpan {
+        private final android.text.style.URLSpan original;
+        private final String key;
+        private final android.content.SharedPreferences prefs;
+        VisitedLinkSpan(android.text.style.URLSpan original, String key, android.content.SharedPreferences prefs) {
+            super(original.getURL()); this.original = original; this.key = key; this.prefs = prefs;
+        }
+        @Override public void updateDrawState(android.text.TextPaint paint) {
+            original.updateDrawState(paint);
+            if (enabled()) paint.setColor(prefs.getStringSet("urls", java.util.Collections.<String>emptySet()).contains(key) ? secondary(0) : link(0));
+        }
+        @Override public void onClick(View widget) {
+            visitLink(widget.getContext(), getURL());
+            original.onClick(widget);
+        }
     }
     public static int accent(int original) { return color(original, 0xff8839ef, 0xffc6a0f6); }
     public static int text(int original) { return color(original, 0xff4c4f69, 0xffcad3f5); }

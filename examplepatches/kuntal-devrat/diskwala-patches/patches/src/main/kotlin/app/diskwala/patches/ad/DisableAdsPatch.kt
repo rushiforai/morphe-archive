@@ -1,27 +1,35 @@
 package app.diskwala.patches.ad
 
 import app.diskwala.patches.shared.Constants.COMPATIBILITY_DISKWALA
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 
 /**
- * Disables ads by stubbing SDK initializers and React Native bridge ad calls.
- * Design: early return with safe defaults so callers do not crash.
- * - Init providers: return true immediately without calling SDK init
- * - Bridge load/show: return-void without delegating to impl (no ad request)
- * - Bridge isReady: resolve Promise with false (ad not ready) then return
+ * Disables ads at the SDK boundary for DiskWala 26.9.
+ *
+ * The premium patch keeps the app on the PREMIUM branch, so the native ad
+ * initialization call (j5/u.a) is normally never reached. This patch is the
+ * safety net for provider auto-init and for any remaining direct SDK init.
  */
 @Suppress("unused")
 val disableAdsPatch = bytecodePatch(
     name = "Disable ads",
-    description = "Stubs AppLovin, AdMob, InMobi and other ad SDKs at the bytecode level to prevent ads from loading without breaking the app.",
+    description = "Prevents AppLovin, Google MobileAds, Vungle, IronSource/LevelPlay, Mintegral, BigoAds, BidMachine and Meta Audience Network from initializing, so no ads are requested.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_DISKWALA)
 
     execute {
-        fun stubBooleanProvider(fingerprint: Fingerprint) = runCatching {
+        fun MutableMethod.replaceBody(smali: String) {
+            val count = implementation?.instructions?.count()
+                ?: error("Method ${definingClass}->${name} has no implementation")
+            removeInstructions(0, count)
+            addInstructions(0, smali)
+        }
+
+        fun stubBooleanProvider(fingerprint: app.morphe.patcher.Fingerprint) {
             fingerprint.method.addInstructions(
                 0,
                 """
@@ -31,78 +39,43 @@ val disableAdsPatch = bytecodePatch(
             )
         }
 
-        fun stubVoid(fingerprint: Fingerprint) = runCatching {
-            fingerprint.method.addInstructions(0, "return-void")
-        }
+        // ---------------------------------------------------------------
+        // 1. App-level Google MobileAds init wrapper
+        // ---------------------------------------------------------------
+        // This is the only ad initialization reachable from the launch-state
+        // flow when the session is not premium. Stub it unconditionally.
+        GoogleMobileAdsInitializerFingerprint.method.addInstructions(0, "return-void")
 
-        fun stubReadiness(fingerprint: Fingerprint) = runCatching {
-            fingerprint.method.addInstructions(
-                0,
-                """
-                    sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
-                    invoke-interface {p2, v0}, Lcom/facebook/react/bridge/Promise;->resolve(Ljava/lang/Object;)V
-                    return-void
-                """
-            )
-        }
-
-        // 1) Stub InitProviders - prevent native SDK init.
-        stubBooleanProvider(AppLovinInitProviderFingerprint)
-        stubBooleanProvider(InMobiInitProviderFingerprint)
+        // ---------------------------------------------------------------
+        // 2. Google MobileAds auto-init provider
+        // ---------------------------------------------------------------
+        // The real initialization is in attachInfo(), not onCreate().
+        MobileAdsInitProviderAttachInfoFingerprint.method.replaceBody(
+            """
+                invoke-super {p0, p1, p2}, Landroid/content/ContentProvider;->attachInfo(Landroid/content/Context;Landroid/content/pm/ProviderInfo;)V
+                return-void
+            """
+        )
         stubBooleanProvider(MobileAdsInitProviderFingerprint)
 
-        // Best-effort Yandex init provider.
-        runCatching {
-            val yandex = Fingerprint(
-                definingClass = "Lcom/yandex/mobile/ads/core/initializer/YandexAdsInitializeProvider;",
-                name = "onCreate",
-                returnType = "Z"
-            )
-            stubBooleanProvider(yandex)
-        }
+        // ---------------------------------------------------------------
+        // 3. Third-party ad provider auto-init
+        // ---------------------------------------------------------------
+        stubBooleanProvider(AppLovinInitProviderFingerprint)
+        stubBooleanProvider(VungleProviderFingerprint)
+        stubBooleanProvider(IronSourceLifecycleProviderFingerprint)
+        stubBooleanProvider(IronSourceLevelPlayLifecycleProviderFingerprint)
+        stubBooleanProvider(MBComponentLifecycleProviderFingerprint)
+        stubBooleanProvider(BigoAdsProviderFingerprint)
+        stubBooleanProvider(BidMachineInitProviderFingerprint)
+        stubBooleanProvider(AudienceNetworkContentProviderFingerprint)
+        stubBooleanProvider(AppMeasurementContentProviderFingerprint)
 
-        // 2) Stub React Native AppLovin MAX bridge - void methods -> return-void.
-        //    The initialize bridge resolves the JS promise so the RN side continues without the SDK.
-        runCatching {
-            AppLovinMAXInitializeFingerprint.method.addInstructions(
-                0,
-                """
-                    const-string v0, "stub_initialized"
-                    invoke-interface {p3, v0}, Lcom/facebook/react/bridge/Promise;->resolve(Ljava/lang/Object;)V
-                    return-void
-                """
-            )
-        }
-        stubVoid(AppLovinMAXLoadInterstitialFingerprint)
-        stubVoid(AppLovinMAXShowInterstitialFingerprint)
-        stubVoid(AppLovinMAXLoadRewardedAdFingerprint)
-        stubVoid(AppLovinMAXShowRewardedAdFingerprint)
-        stubVoid(AppLovinMAXLoadAppOpenAdFingerprint)
-        stubVoid(AppLovinMAXShowAppOpenAdFingerprint)
-        stubVoid(AppLovinMAXCreateBannerFingerprint)
-        stubVoid(AppLovinMAXCreateMRecFingerprint)
-
-        // 3) Readiness checks resolve Promise with false.
-        stubReadiness(AppLovinMAXIsInterstitialReadyFingerprint)
-        stubReadiness(AppLovinMAXIsRewardedAdReadyFingerprint)
-        runCatching {
-            stubReadiness(
-                Fingerprint(
-                    definingClass = "Lcom/applovin/reactnative/AppLovinMAXModule;",
-                    name = "isAppOpenAdReady",
-                    returnType = "V",
-                    parameters = listOf("Ljava/lang/String;", "Lcom/facebook/react/bridge/Promise;")
-                )
-            )
-        }
-
-        // 4) Direct SDK initialization safety net (JS may bypass bridge).
-        runCatching {
-            Fingerprint(
-                definingClass = "Lcom/applovin/sdk/AppLovinSdk;",
-                name = "initializeSdk",
-                returnType = "V"
-            ).method.addInstructions(0, "return-void")
-        }
+        // ---------------------------------------------------------------
+        // 4. Direct SDK initialization fallback
+        // ---------------------------------------------------------------
+        // If the AppLovin provider is bypassed but something still calls the
+        // SDK directly, keep it cold as well.
+        AppLovinSdkInitializeFingerprint.method.addInstructions(0, "return-void")
     }
 }

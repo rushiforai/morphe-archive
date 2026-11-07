@@ -8,7 +8,8 @@ object Constants {
     val COMPATIBILITY = Compatibility(
         name = "Starz",
         packageName = "com.bydeluxe.d3.android.program.starz",
-        description = "The Starz phone and tablet app.",
+        description = "The Starz phone and tablet app, not the Android TV app. " +
+            "Both are version 6.11.0, and the phone build is version code 4513.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x000000,
         targets = listOf(AppTarget("6.11.0"))

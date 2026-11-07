@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a problem with Feurstagram
+description: Report a problem with Oxbow
 title: "[Bug]: "
 labels: ["bug", "needs triage"]
 body:
@@ -11,8 +11,8 @@ body:
   - type: input
     id: feurstagram-version
     attributes:
-      label: Feurstagram version
-      description: Which Feurstagram release are you using?
+      label: Oxbow version
+      description: Which Oxbow release are you using?
       placeholder: "Example: v1.2.3"
     validations:
       required: true
@@ -81,7 +81,7 @@ body:
       label: Installation source
       options:
         - GitHub Releases
-        - Built locally with patch.sh
+        - Built locally with build.sh
         - Other
         - Not sure
     validations:
@@ -124,7 +124,7 @@ body:
   - type: textarea
     id: feurstagram-settings
     attributes:
-      label: Feurstagram settings
+      label: Oxbow settings
       description: List the relevant toggles and whether you cleared cache, restarted, reinstalled, or changed settings recently.
       placeholder: |
         Example:
@@ -162,6 +162,6 @@ body:
     id: screenshots
     attributes:
       label: Screenshots, screen recordings, or logs
-      description: Add screenshots, screen recordings, crash logs, or adb logcat output if useful. For Feurstagram logs, try `adb logcat -s "Feurstagram:D"`.
+      description: Add screenshots, screen recordings, crash logs, or adb logcat output if useful. For Oxbow logs, try `adb logcat -s FeurFeed:I FeurNet:I FeurTray:I FeurUpdate:I OxbowMetaAi:I`.
     validations:
       required: false

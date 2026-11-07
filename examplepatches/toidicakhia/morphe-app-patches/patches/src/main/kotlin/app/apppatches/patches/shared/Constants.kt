@@ -11,7 +11,7 @@ object Constants {
         name = "NetMonster",
         packageName = "cz.mroczis.netmonster",
         apkFileType = ApkFileType.APKM,
-        appIconColor = 0x1565C0,
+        appIconColor = 0x0A995B,
         targets = listOf(
             AppTarget(
                 version = "4.0.5",
@@ -25,7 +25,7 @@ object Constants {
         name = "EZVIZ",
         packageName = "com.ezviz",
         apkFileType = ApkFileType.XAPK,
-        appIconColor = 0x00A0E9,
+        appIconColor = 0xFFFFFF,
         targets = listOf(
             AppTarget(
                 version = "7.6.1.0824",
@@ -40,7 +40,7 @@ object Constants {
         name = "HTTP Sniffer",
         packageName = "com.anetcapture.mock",
         apkFileType = ApkFileType.XAPK,
-        appIconColor = 0x2196F3,
+        appIconColor = 0x673AB7,
         targets = listOf(
             AppTarget(
                 version = "2.5.2-ad_mob",
@@ -71,7 +71,7 @@ object Constants {
         )
     )
 
-    // Universal Copy 7.1.0 (version code 104), distributed as an XAPK.
+    // Universal Copy 7.2.0 (version code 106), distributed as an XAPK.
     val UNIVERSAL_COPY_COMPATIBILITY = Compatibility(
         name = "Universal Copy",
         packageName = "com.camel.corp.universalcopy",
@@ -82,9 +82,9 @@ object Constants {
         ),
         targets = listOf(
             AppTarget(
-                version = "7.1.0",
-                versionCode = 104,
-                minSdk = 29
+                version = "7.2.0",
+                versionCode = 106,
+                minSdk = 26
             )
         )
     )
@@ -94,7 +94,7 @@ object Constants {
         name = "1.1.1.1",
         packageName = "com.cloudflare.onedotonedotonedotone",
         apkFileType = ApkFileType.APKM,
-        appIconColor = 0xF48120,
+        appIconColor = 0xF16F69,
         targets = listOf(
             AppTarget(
                 version = "6.38.11",

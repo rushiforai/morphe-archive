@@ -1,7 +1,8 @@
 package app.stylus.patches.github.font
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.stringOption
 import app.stylus.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import java.io.File
@@ -18,7 +19,7 @@ private val customMonospaceFontFileOption = stringOption(
 )
 
 @Suppress("unused")
-val customMonospaceFontGithubPatch = resourcePatch(
+val customMonospaceFontGithubPatch = patch(
     name = "Custom monospace font",
     description = "Replaces the bundled Roboto Mono code font with your own monospace font.",
     default = false,
@@ -48,7 +49,7 @@ val customMonospaceFontGithubPatch = resourcePatch(
                     "Use one of: ${allowedMonospaceFontExtensions.joinToString(", ") { ".${it}" }}."
             )
 
-        val fontResDir = get("res").resolve("font")
+        val fontResDir = resourceFile("res").resolve("font")
         val fontExtension = fontFile.extension.lowercase()
 
         listOf("ttf", "otf").forEach { extension ->
@@ -59,7 +60,7 @@ val customMonospaceFontGithubPatch = resourcePatch(
             overwrite = true,
         )
 
-        val webviewResDir = get("assets").resolve("webview")
+        val webviewResDir = resourceFile("assets").resolve("webview")
         listOf("colors_light.css", "colors_dark.css").forEach { fileName ->
             val cssFile = webviewResDir.resolve(fileName)
             val originalCss = cssFile.readText()

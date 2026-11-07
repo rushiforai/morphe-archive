@@ -1,27 +1,21 @@
 package app.fakh.extension.linkedin;
 
-import android.app.Activity;
-import android.content.Context;
-import android.content.ContextWrapper;
+import android.animation.ValueAnimator;
 import android.content.res.ColorStateList;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.LinearGradient;
-import android.graphics.Paint;
-import android.graphics.PixelFormat;
 import android.graphics.RectF;
-import android.graphics.Shader;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.DecelerateInterpolator;
 
-/** Draws LinkedIn's bottom bar as a floating, translucent capsule, in the style of Morphe's glass navigation bar. */
+import app.fakh.extension.shared.GlassCapsule;
+
+/** Draws LinkedIn's bottom bar as a floating, translucent capsule, using the shared {@link GlassCapsule}. */
 final class GlassNavigationBar {
-    private static final float FILL_ALPHA = 0.85f;
     private static final int SIDE_MARGIN_DP = 12;
     private static final int INNER_PADDING_DP = 14;
     /** The widest a tab gets, so the capsule stays compact on a wide screen. */
@@ -40,13 +34,21 @@ final class GlassNavigationBar {
             View view = NavigationBar.child(bar, name);
             if (view != null) view.setScaleY(0);
         }
-        Activity activity = activity(bar.getContext());
-        if (activity != null) {
-            activity.getWindow().setNavigationBarColor(Color.TRANSPARENT);
-            activity.getWindow().setNavigationBarContrastEnforced(false);
-        }
+        GlassCapsule.clearSystemBar(bar.getContext());
         bar.setElevation(0);
-        bar.setBackground(new Capsule(tabs, color, bar.getResources().getDisplayMetrics().density));
+        float density = bar.getResources().getDisplayMetrics().density;
+        Selection selection = new Selection(tabs, density);
+        GlassCapsule capsule = new GlassCapsule(color, density, selection);
+        selection.glass = capsule;
+        bar.setBackground(capsule);
+        // On a light theme the app paints both backgrounds again after the bar is shown, so the capsule goes back.
+        bar.getViewTreeObserver().addOnPreDrawListener(() -> {
+            if (bar.getBackground() != capsule) bar.setBackground(capsule);
+            if (tabs.getBackground() != null) tabs.setBackground(null);
+            // Selecting a tab redraws the tab, not the bar, so the pill behind the selected tab is refreshed here.
+            selection.refreshSelection();
+            return true;
+        });
     }
 
     /** Gives the tabs equal shares of the capsule, and a ripple that stays inside the tab. */
@@ -67,18 +69,10 @@ final class GlassNavigationBar {
         }
     }
 
-    private static Activity activity(Context context) {
-        while (context instanceof ContextWrapper) {
-            if (context instanceof Activity) return (Activity) context;
-            context = ((ContextWrapper) context).getBaseContext();
-        }
-        return null;
-    }
-
     /** A ripple that stays inside its tab, as a pill, where LinkedIn's own one spreads past the capsule. */
     private static final class TabRipple extends RippleDrawable {
         TabRipple() {
-            super(ColorStateList.valueOf(0x33FFFFFF), null, mask());
+            super(ColorStateList.valueOf(0x33808080), null, mask());
         }
 
         private static Drawable mask() {
@@ -89,55 +83,87 @@ final class GlassNavigationBar {
         }
     }
 
-    /** The capsule, around the tabs, which the row centers, with the bar's own color as a translucent fill. */
-    private static final class Capsule extends Drawable {
+    /**
+     * Where the capsule and the pill behind the selected tab are, for the shared {@link GlassCapsule}: the capsule
+     * wraps the tabs, which the row centers, and the pill slides to the tab that became selected.
+     */
+    private static final class Selection implements GlassCapsule.Layout {
         private final ViewGroup tabs;
         private final float density;
-        private final RectF rect = new RectF();
-        private final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint sheen = new Paint(Paint.ANTI_ALIAS_FLAG);
-        private final Paint edge = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private GlassCapsule glass;
+        private int selected = -1;
+        /** Where the pill was drawn last (in the tabs' coordinates), and how far it is on its way to the selected tab. */
+        private float lastLeft;
+        private float lastRight;
+        private float fromLeft;
+        private float fromRight;
+        private float progress = 1;
+        private ValueAnimator slide;
+        /** Left edge of the tabs in the bar, set by {@link #capsule} for {@link #pill}. */
+        private float left;
 
-        Capsule(ViewGroup tabs, int color, float density) {
+        Selection(ViewGroup tabs, float density) {
             this.tabs = tabs;
             this.density = density;
-            fill.setColor(Color.argb(Math.round(255 * FILL_ALPHA), Color.red(color), Color.green(color), Color.blue(color)));
-            fill.setShadowLayer(10 * density, 0, 3 * density, 0x50000000);
-            edge.setStyle(Paint.Style.STROKE);
-            edge.setStrokeWidth(density);
+        }
+
+        /** Redraws the capsule when another tab became the selected one. */
+        void refreshSelection() {
+            int now = -1;
+            for (int i = 0; i < tabs.getChildCount() && now < 0; i++) {
+                if (tabs.getChildAt(i).isSelected()) now = i;
+            }
+            if (now == selected) return;
+            boolean moving = selected >= 0 && now >= 0 && lastRight > lastLeft;
+            selected = now;
+            if (slide != null) slide.cancel();
+            if (moving) {
+                // The pill slides from where it is to the new tab.
+                fromLeft = lastLeft;
+                fromRight = lastRight;
+                progress = 0;
+                slide = ValueAnimator.ofFloat(0, 1).setDuration(260);
+                slide.setInterpolator(new DecelerateInterpolator());
+                slide.addUpdateListener(a -> {
+                    progress = (float) a.getAnimatedValue();
+                    glass.invalidateSelf();
+                });
+                slide.start();
+            } else {
+                progress = 1;
+            }
+            glass.invalidateSelf();
         }
 
         @Override
-        public void draw(Canvas canvas) {
+        public boolean capsule(RectF out) {
             int count = tabs.getChildCount();
-            if (count == 0) return;
+            if (count == 0) return false;
             View row = (View) tabs.getParent();
             float top = row.getTop() + tabs.getTop();
-            float left = row.getLeft() + tabs.getLeft();
+            left = row.getLeft() + tabs.getLeft();
             float padding = INNER_PADDING_DP * density;
-            rect.set(left + tabs.getChildAt(0).getLeft() - padding, top,
+            out.set(left + tabs.getChildAt(0).getLeft() - padding, top,
                     left + tabs.getChildAt(count - 1).getRight() + padding, top + tabs.getHeight());
-            sheen.setShader(new LinearGradient(0, rect.top, 0, rect.bottom, 0x1FFFFFFF, Color.TRANSPARENT,
-                    Shader.TileMode.CLAMP));
-            edge.setShader(new LinearGradient(0, rect.top, 0, rect.bottom, 0x55FFFFFF, 0x12FFFFFF,
-                    Shader.TileMode.CLAMP));
-            float radius = rect.height() / 2;
-            canvas.drawRoundRect(rect, radius, radius, fill);
-            canvas.drawRoundRect(rect, radius, radius, sheen);
-            canvas.drawRoundRect(rect, radius, radius, edge);
+            return true;
         }
 
         @Override
-        public void setAlpha(int alpha) {
-        }
-
-        @Override
-        public void setColorFilter(ColorFilter filter) {
-        }
-
-        @Override
-        public int getOpacity() {
-            return PixelFormat.TRANSLUCENT;
+        public boolean pill(RectF out) {
+            if (selected < 0 || selected >= tabs.getChildCount()) return false;
+            // A pill behind the selected tab, inset from the capsule so a thin rim of it stays around the pill.
+            View tab = tabs.getChildAt(selected);
+            float inset = 5 * density;
+            lastLeft = fromLeft + (tab.getLeft() - fromLeft) * progress;
+            lastRight = fromRight + (tab.getRight() - fromRight) * progress;
+            if (progress >= 1) {
+                lastLeft = tab.getLeft();
+                lastRight = tab.getRight();
+            }
+            View row = (View) tabs.getParent();
+            float top = row.getTop() + tabs.getTop();
+            out.set(left + lastLeft + inset, top + inset, left + lastRight - inset, top + tabs.getHeight() - inset);
+            return true;
         }
     }
 }

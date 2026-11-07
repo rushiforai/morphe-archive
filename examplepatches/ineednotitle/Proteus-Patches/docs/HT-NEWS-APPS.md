@@ -37,11 +37,11 @@ and ad rails — one decompile probably covers both.
 
 | # | Patch | Type | Confidence | Binary must confirm |
 |---|---|---|---|---|
-| 1 | Disable video autoplay in feeds | bytecode (ExoPlayer/Media3 `setPlayWhenReady(true)` sites) or resource | HIGH | Player creation sites, ad-vs-content video tagging |
+| 1 | Disable video autoplay in feeds — **heuristic shipped** (universal + Mint/HT scoped); binary fingerprint still ideal | bytecode (ExoPlayer/Media3 `setPlayWhenReady(true)` sites) | HIGH (heuristic) | Player creation sites for a precise version once APK lands |
 | 2 | Block/neutralize in-feed sponsored articles & native ads | bytecode heuristic (ad SDK call sites + promoted-flag heuristic à la RedditFeedHelper) | MEDIUM | Which ad SDK (GAM/AdMob/in-house) renders rows; any `promoted`/`sponsored` flag on row models |
-| 3 | Open article links in external browser | bytecode (WebView path / intent builder) | HIGH | Whether articles render in in-app WebView or native views |
+| 3 | Open article links in external browser — **Custom Tabs path shipped** (universal + Mint/HT scoped); article WebViews still need the binary | bytecode (WebView path / intent builder) | HIGH (Custom Tabs) / — (WebViews) | Whether articles render in in-app WebView or native views |
 | 4 | AMOLED black reading surface | resource (night/dark themes) + optional WebView CSS, à la Amazon dark patch | HIGH (WebView confirmed) / MEDIUM (native themes) | WebView usage for article bodies; dark theme resources |
-| 5 | Remove rating / in-app review nag (`ReviewManager`) | bytecode (invocation sites) | MEDIUM-HIGH | `com/google/android/play/core/review` usage |
+| 5 | Remove rating / in-app review nag (`ReviewManager`) — **blocked**: fabricating `Task<ReviewInfo>` needs the play-review classes on the extension compile classpath, which this bundle does not have | bytecode (invocation sites) | MEDIUM-HIGH | `com/google/android/play/core/review` usage in the APK |
 | 6 | Disable push permission nag | bytecode (POST_NOTIFICATIONS rationale UI) | MEDIUM | Custom nag vs system dialog |
 | 7 | Mute "breaking news" notification categories | resource/bytecode (notification channel defaults) | MEDIUM | Channel definitions in manifest `<meta-data>` / channels in code |
 | 8 | ePaper ad cleanup | WebView/resource | LOW-MEDIUM | ePaper rendering path (page viewer? web pages? images?) |
@@ -79,8 +79,8 @@ CI build + `:patches:test*` + the same review the Brave patches received.
 
 ## What the v2.2.8 re-cut ships for these apps (and what it does not)
 
-The re-cut **v2.2.8** (same release number; the pre-existing v2.2.8 build was
-deleted and re-created from the updated commit) includes:
+The re-cut **v2.2.8** (same release number; prior builds were deleted and
+re-created from the updated commit) includes:
 
 1. **Mint: Block analytics & tracking SDKs** — scoped entry visible under
    `com.htmedia.mint` in the patcher. Applies the *same universal heuristic*
@@ -90,19 +90,38 @@ deleted and re-created from the updated commit) includes:
    decompiled or fingerprinted; there is no app-specific bytecode in the bundle.
 2. **Hindustan Times: Block analytics & tracking SDKs** — same, scoped to
    `com.ht.news` (target 4.9.16).
-3. The universal Block-analytics marker extension + this analysis.
-4. All v2.2.7 content.
+3. **Disable video autoplay (ExoPlayer/Media3)** — new universal heuristic:
+   flips literal `setPlayWhenReady(true)` call sites to `false`. Off by default;
+   can stop playback entirely in apps whose only play path is such a literal —
+   disable it if videos never start.
+   - **Mint: Disable video autoplay (ExoPlayer)** — scoped wrapper.
+   - **Hindustan Times: Disable video autoplay (ExoPlayer)** — scoped wrapper.
+4. **Prefer external browser over Custom Tabs** — existing universal rewrite
+   (CustomTabsIntent.launchUrl → ACTION_VIEW), plus scoped wrappers:
+   - **Mint: Prefer external browser over Custom Tabs**
+   - **Hindustan Times: Prefer external browser over Custom Tabs**
+   Covers Custom Tabs call sites only — not article WebViews.
+5. The universal Block-analytics marker extension + this analysis.
+6. All v2.2.7 content.
 
 What it does **not** include, and why:
 
-- **No bytecode fingerprints** — autoplay, sponsored-row suppression, ePaper
-  ad cleanup, ReviewManager nag removal, forced AMOLED themes. All of these
-  need the APK in hand; none was written.
+- **No sponsored / in-feed ad suppression** — needs to know which ad SDK(s)
+  and which row/flag model each app uses; binary-only analysis, no APK in hand.
+- **No ePaper ad cleanup** — ePaper rendering path unknown (WebView? image
+  viewer? PDF viewer?); binary-only.
+- **No AMOLED reading surface** — needs the theme/resource layout of this
+  build; binary-only.
+- **No rating-nag (Play In-App Review) removal** — the swap needs a fabricated
+  `Task<ReviewInfo>` passenger type, and this bundle has no `play-review`
+  classes to compile against, so nothing is faked. Marked blocked, not guessed.
 - **No premium unlock** — "Mint Premium" / "HT Premium" are server-side
-  entitlements; a client patch cannot bypass them.
+  entitlements; a client patch cannot bypass them. Never in scope.
 - **Version targets are listing-observed only** — the `compatibleWith` lists
   are the store versions seen on 2026-11-06; other builds will not be offered
   the patch until the lists are extended.
+- **Unverified on device** — none of the entries has been run on a device;
+  heuristics may under- or over-match.
 
-To implement targets 1–5 from the table above, provide the APKs (see the
-`adb` section); they would land in a new release.
+To implement the binary-specific targets, provide the APKs (see the `adb`
+section); they would land in a new release.

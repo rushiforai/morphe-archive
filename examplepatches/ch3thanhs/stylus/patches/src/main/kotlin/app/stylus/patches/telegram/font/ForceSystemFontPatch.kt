@@ -1,9 +1,10 @@
 package app.stylus.patches.telegram.font
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.stylus.patches.telegram.shared.Constants.COMPATIBILITY_TELEGRAM
 import app.stylus.patches.telegram.shared.Constants.COMPATIBILITY_TELEGRAM_WEB
 import org.w3c.dom.Element
@@ -21,7 +22,7 @@ private const val EXTENSION_CLASS =
  * This mainly protects the patch against future Telegram releases which
  * move more typography into XML resources.
  */
-private val forceSystemFontTelegramXmlPatch = resourcePatch(
+private val forceSystemFontTelegramXmlPatch = patch(
     name = "Force system font XML",
     description = "Points bundled @font XML families at the system sans-serif font.",
     default = true,
@@ -32,7 +33,7 @@ private val forceSystemFontTelegramXmlPatch = resourcePatch(
 )
 
     execute {
-        val resDir = get("res")
+        val resDir = resourceFile("res")
 
         // Morphe Patcher 2.0.0 and newer decode resources on request instead of
         // up front, so decode res before walking it for XML files.
@@ -139,7 +140,7 @@ private val forceSystemFontTelegramXmlPatch = resourcePatch(
 }
 
 @Suppress("unused")
-val forceSystemFontTelegramPatch = bytecodePatch(
+val forceSystemFontTelegramPatch = patch(
     name = "Force system font",
     description = "Uses the device's system font for all app text.",
     default = true,

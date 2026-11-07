@@ -1,5 +1,6 @@
 /*
  * Copyright 2026 Morphe.
+ * Modified by lavinhoque33, 2026-11-06.
  * https://github.com/MorpheApp/morphe-patches
  *
  * Original hard forked code:
@@ -22,7 +23,8 @@ import app.morphe.patcher.literal
 internal val TRANSLUCENT_NAVIGATION_BAR_FEATURE_FLAGS = listOf(
     45630927L, // Blurred, translucent background of the navigation bar.
     NAVIGATION_BAR_COVERS_SYSTEM_BUTTONS_FLAG,
-    FEED_BEHIND_NAVIGATION_BAR_FLAG
+    FEED_BEHIND_NAVIGATION_BAR_FLAG,
+    TRANSLUCENT_NAVIGATION_BAR_STYLE_FLAG
 )
 
 /**
@@ -36,6 +38,8 @@ internal const val NAVIGATION_BAR_COVERS_SYSTEM_BUTTONS_FLAG = 45632194L
  * of the screen, and its list gets the navigation bar height as bottom padding.
  */
 internal const val FEED_BEHIND_NAVIGATION_BAR_FLAG = 45631257L
+
+internal const val TRANSLUCENT_NAVIGATION_BAR_STYLE_FLAG = 45633329L
 
 internal object TranslucentNavigationBarFeatureFlagsFingerprint : Fingerprint(
     filters = listOf(

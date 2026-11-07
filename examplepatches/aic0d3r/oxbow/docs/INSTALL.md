@@ -1,6 +1,6 @@
 # Installation Guide
 
-Oxbow is a fork of [Feurstagram](https://github.com/jean-voila/FeurStagram) by Jean Herail (GPL-3.0).
+Oxbow is a fork of [FeurStagram](https://github.com/jean-voila/FeurStagram) by Jean Herail (GPL-3.0).
 
 ## Option 1: Download a prebuilt APK
 

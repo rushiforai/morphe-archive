@@ -47,7 +47,7 @@ VENDOR_GROUPS = [
     # Home screen apps from every vendor get one dropdown of their own, listed first,
     # instead of sitting in their vendor's.
     ("Launchers", "", (), ("com.sec.android.app.launcher", "com.hihonor.android.launcher", "com.android.launcher",
-                           "com.nothing.launcher", "net.oneplus.launcher", "com.sonymobile.launcher")),
+                           "com.nothing.launcher", "net.oneplus.launcher", "com.sonymobile.launcher", "com.asus.launcher", "com.motorola.launcher3", "com.miui.home")),
     ("Samsung Apps", "samsung ", ("com.samsung.", "com.sec."), ()),
     ("Xiaomi Apps", "xiaomi ", ("com.miui.", "com.xiaomi."), ("com.android.soundrecorder", "com.android.calendar")),
     ("Nothing Apps", "nothing ", ("com.nothing.",), ()),
@@ -377,7 +377,26 @@ APP_RENAMES = {
         '<img src="docs/icons/xperia-home.png" width="20" height="20" align="top"> Xperia Home',
         '<img src="docs/icons/xperia-home.png" width="20" height="20" align="top"> Xperia Home',
     ),
+    # ASUS Launcher (ZenUI's home screen): listed under Launchers.
+    "com.asus.launcher": (
+        '<img src="docs/icons/asus-launcher.png" width="20" height="20" align="top"> ASUS Launcher',
+        '<img src="docs/icons/asus-launcher.png" width="20" height="20" align="top"> ASUS Launcher',
+    ),
+    # Moto App Launcher (Motorola's home screen): listed under Launchers.
+    "com.motorola.launcher3": (
+        '<img src="docs/icons/moto-launcher.png" width="20" height="20" align="top"> Moto App Launcher',
+        '<img src="docs/icons/moto-launcher.png" width="20" height="20" align="top"> Moto App Launcher',
+    ),
+    # HyperOS launcher (Xiaomi's System launcher, com.miui.home): listed under Launchers, not Xiaomi Apps.
+    "com.miui.home": (
+        '<img src="docs/icons/hyperos-launcher.png" width="20" height="20" align="top"> HyperOS Launcher',
+        '<img src="docs/icons/hyperos-launcher.png" width="20" height="20" align="top"> HyperOS Launcher',
+    ),
 }
+
+
+# Shown under the patch list, every time the list is generated.
+FOOTER = "Can't find an APK in Morphe Manager? See [where to get each APK](docs/APK-SOURCES.md)."
 
 
 def pkg_label(pkg, entry):
@@ -570,6 +589,9 @@ def build_content(expanded=False):
 
 </details>""")
         lines.append("")
+
+    lines.append(FOOTER)
+    lines.append("")
 
     return "\n".join(lines)
 

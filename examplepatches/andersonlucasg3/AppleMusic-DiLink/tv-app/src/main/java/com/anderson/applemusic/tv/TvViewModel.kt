@@ -1,9 +1,16 @@
 package com.anderson.applemusic.tv
 
 import android.app.Application
+import android.os.SystemClock
 import android.util.Log
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.anderson.applemusic.core.BrowseItem
+import com.anderson.applemusic.core.CustomAction
+import com.anderson.applemusic.core.MediaBrowserClient
+import com.anderson.applemusic.core.PlaybackSnapshot
+import com.anderson.applemusic.core.Section
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,21 +25,14 @@ enum class ConnectionPhase { CONNECTING, CONNECTED, FAILED }
 /** A top level tab (Início / Rádio / Biblioteca). */
 data class TvTab(val id: String, val title: String)
 
-/** A horizontal shelf of the tab root, or a single "play" shortcut. */
-data class Section(
-    val id: String,
-    val title: String,
-    val items: List<BrowseItem> = emptyList(),
-    val loading: Boolean = true,
-    val direct: Boolean = false,
-)
-
 /** One entry of the drill-down stack. */
 data class LevelNode(val id: String, val title: String)
 
 /** Transient "seeked by N seconds" hint shown by the full player. */
 data class SeekFeedback(val deltaMs: Long, val positionMs: Long)
 
+// @Immutable: same reason as Section — all collections are replaced through copy().
+@Immutable
 data class TvUiState(
     val phase: ConnectionPhase = ConnectionPhase.CONNECTING,
     val error: String? = null,
@@ -42,10 +42,15 @@ data class TvUiState(
     val stack: List<LevelNode> = emptyList(),
     val levelItems: Map<String, List<BrowseItem>> = emptyMap(),
     val levelFailed: Set<String> = emptySet(),
-    val playback: PlaybackSnapshot = PlaybackSnapshot(),
     val nowPlayingOpen: Boolean = false,
     val seekFeedback: SeekFeedback? = null,
     val searchOpen: Boolean = false,
+    /** The session action list is open on top of the full player. */
+    val actionsOpen: Boolean = false,
+    /** The long-press context menu is open over the browse tree. */
+    val itemMenu: BrowseItem? = null,
+    /** Transient "Favorito aplicado" style hint. */
+    val message: String? = null,
 )
 
 class TvViewModel(application: Application) : AndroidViewModel(application) {
@@ -53,7 +58,14 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
     private val client = MediaBrowserClient(application)
     private val _state = MutableStateFlow(TvUiState())
     val state: StateFlow<TvUiState> = _state.asStateFlow()
+
+    // Playback lives in its own flow: the progress tick must not invalidate the
+    // browse tree (shelves, grid) on every update.
+    private val _playback = MutableStateFlow(PlaybackSnapshot())
+    val playback: StateFlow<PlaybackSnapshot> = _playback.asStateFlow()
+
     private var seekFeedbackJob: Job? = null
+    private var messageJob: Job? = null
 
     private val listener = object : MediaBrowserClient.Listener {
         override fun onConnected() {
@@ -64,7 +76,13 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
         override fun onDisconnected(message: String) {
             Log.w(TAG, "disconnected: $message")
             _state.update {
-                it.copy(phase = ConnectionPhase.FAILED, error = message, nowPlayingOpen = false)
+                it.copy(
+                    phase = ConnectionPhase.FAILED,
+                    error = message,
+                    nowPlayingOpen = false,
+                    actionsOpen = false,
+                    itemMenu = null,
+                )
             }
         }
 
@@ -92,7 +110,7 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         override fun onPlayback(snapshot: PlaybackSnapshot) {
-            _state.update { it.copy(playback = snapshot) }
+            _playback.value = snapshot
         }
     }
 
@@ -101,14 +119,17 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
         connect()
         viewModelScope.launch {
             while (isActive) {
-                client.refreshPlayback()
                 delay(PROGRESS_REFRESH_MS)
+                // The position only matters on the full player; everywhere else the
+                // MediaController callbacks already deliver track changes.
+                if (_state.value.nowPlayingOpen) client.refreshPlayback()
             }
         }
     }
 
     fun connect() {
         _state.value = TvUiState()
+        _playback.value = PlaybackSnapshot()
         if (!MediaBrowserClient.isAppleMusicInstalled(getApplication())) {
             _state.update {
                 it.copy(
@@ -147,7 +168,7 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun openNowPlaying() {
-        val playback = _state.value.playback
+        val playback = _playback.value
         if (!playback.hasSession || playback.title.isBlank()) return
         _state.update { it.copy(nowPlayingOpen = true) }
     }
@@ -155,7 +176,9 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
     fun closeNowPlaying() {
         seekFeedbackJob?.cancel()
         seekFeedbackJob = null
-        _state.update { it.copy(nowPlayingOpen = false, seekFeedback = null) }
+        _state.update {
+            it.copy(nowPlayingOpen = false, seekFeedback = null, actionsOpen = false)
+        }
     }
 
     fun openSearch() {
@@ -166,18 +189,96 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
         _state.update { it.copy(searchOpen = false) }
     }
 
+    /** Opens the session action sheet over the full player. */
+    fun openActions() {
+        _state.update { it.copy(actionsOpen = true) }
+    }
+
+    fun closeActions() {
+        _state.update { it.copy(actionsOpen = false) }
+    }
+
+    /** ENTER on an action row: hand the engine's action id back to the session. */
+    fun runAction(action: CustomAction) {
+        client.sendCustomAction(action.action)
+        _state.update { it.copy(actionsOpen = false) }
+        showMessage(feedbackFor(action))
+    }
+
+    /** Long-press ENTER on a card: only playable items have a context menu. */
+    fun openItemMenu(item: BrowseItem) {
+        if (!item.playable) return
+        _state.update { it.copy(itemMenu = item) }
+    }
+
+    fun closeItemMenu() {
+        _state.update { it.copy(itemMenu = null) }
+    }
+
+    /**
+     * Card context action ("Criar estação" / "Adicionar à Biblioteca"): the session
+     * custom actions describe the *current* track, so play the item first and wait for
+     * the engine to load it (or [ITEM_ACTION_TIMEOUT_MS]) before sending the id.
+     */
+    fun runItemAction(item: BrowseItem, actionId: String) {
+        closeItemMenu()
+        showMessage(
+            if (actionId == ACTION_CREATE_STATION) "Criando estação…" else "Adicionando à Biblioteca…",
+        )
+        client.play(item.id)
+        viewModelScope.launch {
+            if (awaitAction(actionId)) {
+                client.sendCustomAction(actionId)
+                if (actionId == ACTION_ADD_TO_LIBRARY) showMessage("Adicionado à Biblioteca")
+            } else {
+                showMessage("Indisponível para este item")
+            }
+        }
+    }
+
+    private suspend fun awaitAction(actionId: String): Boolean {
+        // The session actions describe the loaded track, so wait for the item to
+        // replace the previous one (or for the 1.5 s deadline) before deciding.
+        val previousTitle = _playback.value.title
+        val deadline = SystemClock.elapsedRealtime() + ITEM_ACTION_TIMEOUT_MS
+        while (SystemClock.elapsedRealtime() < deadline) {
+            val playback = _playback.value
+            if (
+                playback.playing &&
+                playback.title != previousTitle &&
+                playback.customActions.any { it.action == actionId }
+            ) {
+                return true
+            }
+            delay(100L)
+        }
+        return _playback.value.customActions.any { it.action == actionId }
+    }
+
+    private fun feedbackFor(action: CustomAction): String = when {
+        action.action == ACTION_FAVORITE -> "Favorito aplicado"
+        action.action == ACTION_CREATE_STATION -> "Criando estação…"
+        action.title.isNotBlank() -> "${action.title} aplicado"
+        else -> "Ação enviada"
+    }
+
+    private fun showMessage(text: String) {
+        messageJob?.cancel()
+        _state.update { it.copy(message = text) }
+        messageJob = viewModelScope.launch {
+            delay(MESSAGE_MS)
+            _state.update { if (it.message == text) it.copy(message = null) else it }
+        }
+    }
+
     /** D-pad left/right on the full player's seek bar: +/- [deltaMs]. */
     fun seekBy(deltaMs: Long) {
-        val playback = _state.value.playback
+        val playback = _playback.value
         if (playback.durationMs <= 0L) return
         val target = (playback.positionMs + deltaMs).coerceIn(0L, playback.durationMs)
         client.seekTo(target)
-        _state.update {
-            it.copy(
-                playback = it.playback.copy(positionMs = target),
-                seekFeedback = SeekFeedback(deltaMs, target),
-            )
-        }
+        _playback.update { it.copy(positionMs = target) }
+        _state.update { it.copy(seekFeedback = SeekFeedback(deltaMs, target)) }
         seekFeedbackJob?.cancel()
         seekFeedbackJob = viewModelScope.launch {
             delay(SEEK_FEEDBACK_MS)
@@ -293,6 +394,7 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         seekFeedbackJob?.cancel()
+        messageJob?.cancel()
         client.disconnect()
         super.onCleared()
     }
@@ -301,5 +403,14 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
         private const val TAG = "AppleMusicTv"
         private const val PROGRESS_REFRESH_MS = 500L
         private const val SEEK_FEEDBACK_MS = 1500L
+        private const val ITEM_ACTION_TIMEOUT_MS = 1500L
+        private const val MESSAGE_MS = 2000L
+
+        // Session action ids published by the engine. The sheet is generic (it renders
+        // whatever `PlaybackSnapshot.customActions` carries); these two also have a
+        // card-level entry point.
+        const val ACTION_FAVORITE = "com.apple.android.music.playback.action.FAVORITE"
+        const val ACTION_ADD_TO_LIBRARY = "com.apple.android.music.playback.action.ADD_TO_LIBRARY"
+        const val ACTION_CREATE_STATION = "com.apple.android.music.playback.action.CREATE_STATION"
     }
 }

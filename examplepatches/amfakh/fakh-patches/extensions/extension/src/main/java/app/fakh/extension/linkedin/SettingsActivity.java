@@ -155,11 +155,20 @@ public final class SettingsActivity extends Activity {
         }
 
         if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()
-                || Settings.isExpandPostsIncluded()) {
+                || Settings.isExpandPostsIncluded() || Settings.isSwipeTabsIncluded()
+                || Settings.isCopyTextIncluded()) {
             Category feed = new Category("Feed");
             if (Settings.isDisableDoubleTapLikeIncluded()) {
                 feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Turn off double-tap to like",
                         "Double-tapping a post or photo won't like it.");
+            }
+            if (Settings.isSwipeTabsIncluded()) {
+                feed.toggle(Settings.SWIPE_TABS, true, "Swipe between tabs",
+                        "Swipe sideways to go to the next or previous tab of the navigation bar.");
+            }
+            if (Settings.isCopyTextIncluded()) {
+                feed.toggle(Settings.COPY_TEXT, true, "Copy text",
+                        "Press and hold text to select and copy it.");
             }
             if (Settings.isExpandPostsIncluded()) {
                 feed.toggle(Settings.EXPAND_POSTS, false, "Expand posts by default", "Posts start expanded. Tap the text to collapse.");
@@ -293,7 +302,7 @@ public final class SettingsActivity extends Activity {
         }
 
         if (Settings.isOpenLinksDirectlyIncluded() || Settings.isBlockTrackingIncluded()
-                || Settings.isSanitizeShareLinksIncluded()) {
+                || Settings.isSanitizeShareLinksIncluded() || Settings.isAnonymousProfileViewingIncluded()) {
             Category privacy = new Category("Privacy");
             if (Settings.isOpenLinksDirectlyIncluded()) {
                 privacy.toggle(Settings.OPEN_LINKS_DIRECTLY, true, "Open links directly",
@@ -308,6 +317,10 @@ public final class SettingsActivity extends Activity {
             if (Settings.isBlockTrackingIncluded()) {
                 privacy.toggle(Settings.BLOCK_TRACKING, false, "Block tracking",
                         "Stop most analytics events. Turn off if something breaks.");
+            }
+            if (Settings.isAnonymousProfileViewingIncluded()) {
+                privacy.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, false, "Anonymous profile viewing",
+                        "Visit profiles without being listed in Who viewed your profile.");
             }
             categories.add(privacy);
         }
@@ -693,11 +706,14 @@ public final class SettingsActivity extends Activity {
                 {"Feed filters", Settings.isFeedFiltersIncluded()},
                 {"Disable double-tap like", Settings.isDisableDoubleTapLikeIncluded()},
                 {"Expand posts", Settings.isExpandPostsIncluded()},
+                {"Swipe between tabs", Settings.isSwipeTabsIncluded()},
+                {"Copy text", Settings.isCopyTextIncluded()},
                 {"Download media", Settings.isDownloadMediaIncluded()},
                 {"Messaging", Settings.isMessagingIncluded()},
                 {"Open links directly", Settings.isOpenLinksDirectlyIncluded()},
                 {"Sanitize share links", Settings.isSanitizeShareLinksIncluded()},
                 {"Block tracking", Settings.isBlockTrackingIncluded()},
+                {"Anonymous profile viewing", Settings.isAnonymousProfileViewingIncluded()},
                 {"Remove gaps and dividers", Settings.isRemoveGapsAndDividersIncluded()},
                 {"Material You", Settings.isMaterialYouIncluded()},
                 {"Pitch black", Settings.isAmoledBlackIncluded()},

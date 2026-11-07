@@ -3,7 +3,7 @@
 > *One bundle, patches everywhere. A curated [Morphe](https://github.com/MorpheApp/Morphe) patch suite for Android.*
 
 [![License: GPL-3.0-only](https://img.shields.io/badge/License-GPL--3.0--only-green.svg)](#license)
-[![Patches](https://img.shields.io/badge/patches-163-blue.svg)](#whats-inside)
+[![Patches](https://img.shields.io/badge/patches-168-blue.svg)](#whats-inside)
 [![Universal patches](https://img.shields.io/badge/universal-24-purple.svg)](#universal-patches)
 [![Apps](https://img.shields.io/badge/apps-28-orange.svg)](#supported-apps)
 
@@ -11,7 +11,7 @@
 ads, annoyances and risky defaults from popular Android apps — plus a set of
 **universal patches** that apply to any app.
 
-- **[v2.2.8](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.8)** — pre-release: v2.2.7 contents (six experimental, off-by-default Brave patches adapted from kveld9/kveld-morphe-patches, Reddit AutoMod/show-deleted-comments fixes, Amazon AMOLED dark, listing performance fix) plus a broader universal "Block analytics & tracking SDKs" marker list (WebEngage, CleverTap, Flurry, Branch, Kochava), two app-scoped variants — "Mint: Block analytics & tracking SDKs" and "Hindustan Times: Block analytics & tracking SDKs" (same universal heuristic, off by default, unverified on device) — and a Mint & Hindustan Times analysis. No APK was decompiled; no binary-specific Mint/HT patches exist yet. See [the Brave doc](docs/BRAVE.md), [the Reddit doc](docs/REDDIT-DELETED-COMMENTS.md) and [docs/HT-NEWS-APPS.md](docs/HT-NEWS-APPS.md)
+- **[v2.2.8](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.8)** — pre-release: v2.2.7 contents (six experimental, off-by-default Brave patches adapted from kveld9/kveld-morphe-patches, Reddit AutoMod/show-deleted-comments fixes, Amazon AMOLED dark, listing performance fix) plus: a broader universal "Block analytics & tracking SDKs" marker list (WebEngage, CleverTap, Flurry, Branch, Kochava); a new universal "Disable video autoplay (ExoPlayer/Media3)" heuristic; and Mint/Hindustan Times app-scoped entries for both of those plus "Prefer external browser over Custom Tabs" (same heuristics, off by default, unverified on device), and a Mint & Hindustan Times analysis. No APK was decompiled; no binary-specific Mint/HT patches exist yet. See [the Brave doc](docs/BRAVE.md), [the Reddit doc](docs/REDDIT-DELETED-COMMENTS.md) and [docs/HT-NEWS-APPS.md](docs/HT-NEWS-APPS.md)
 - Built and verified with the Morphe Manager v2.3.0 patcher (`patches-list.json` regenerated, zip integrity checked)
 
 [![Add to Morphe](https://img.shields.io/badge/Add_to-Morphe-1f6feb?style=for-the-badge)](https://morphe.software/add-source?github=ineednotitle/Proteus-Patches)
@@ -63,7 +63,7 @@ For configuration advice, limitations, and permission-patch examples, see the
 > if you need the full app set.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.2.8](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;163 patches total
+> **[v2.2.8](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;168 patches total
 <details open>
 <summary>📦 Google Photos&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -594,7 +594,7 @@ For configuration advice, limitations, and permission-patch examples, see the
 </details>
 
 <details open>
-<summary>📦 Mint&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Mint&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -605,11 +605,13 @@ For configuration advice, limitations, and permission-patch examples, see the
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Mint: Block analytics & tracking SDKs](#mint-block-analytics-tracking-sdks) | Blocks Mint's analytics & tracking SDKs (Firebase Analytics, AppsFlyer, Adjust,<br>WebEngage, CleverTap and similar) using the same universal heuristic as<br>'Block analytics & tracking SDKs'.<br><br>Applies to com.htmedia.mint only. Heuristic; obfuscated or reflection-based<br>reporting is not covered. Unverified on device. |  |
+| [Mint: Disable video autoplay (ExoPlayer)](#mint-disable-video-autoplay-exoplayer) | Stops video autoplay in the Mint feed/article bodies (ExoPlayer/Media3)<br>using the same heuristic as 'Disable video autoplay (ExoPlayer/Media3)'.<br><br>Applies to com.htmedia.mint only. Heuristic; see the universal entry for<br>limitations. Unverified on device. |  |
+| [Mint: Prefer external browser over Custom Tabs](#mint-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.htmedia.mint only. Some article WebViews are not affected<br>— this covers Custom Tabs / CustomTabsIntent call sites only.<br>Unverified on device. |  |
 
 </details>
 
 <details open>
-<summary>📦 Hindustan Times&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Hindustan Times&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -620,11 +622,13 @@ For configuration advice, limitations, and permission-patch examples, see the
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Hindustan Times: Block analytics & tracking SDKs](#hindustan-times-block-analytics-tracking-sdks) | Blocks Hindustan Times' analytics & tracking SDKs (Firebase Analytics,<br>AppsFlyer, Adjust, WebEngage, CleverTap and similar) using the same universal<br>heuristic as 'Block analytics & tracking SDKs'.<br><br>Applies to com.ht.news only. Heuristic; obfuscated or reflection-based<br>reporting is not covered. Unverified on device. |  |
+| [Hindustan Times: Disable video autoplay (ExoPlayer)](#hindustan-times-disable-video-autoplay-exoplayer) | Stops video autoplay in the Hindustan Times feed/article bodies<br>(ExoPlayer/Media3) using the same heuristic as 'Disable video autoplay<br>(ExoPlayer/Media3)'.<br><br>Applies to com.ht.news only. Heuristic; see the universal entry for<br>limitations. Unverified on device. |  |
+| [Hindustan Times: Prefer external browser over Custom Tabs](#hindustan-times-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.ht.news only. Some article WebViews are not affected —<br>this covers Custom Tabs / CustomTabsIntent call sites only.<br>Unverified on device. |  |
 
 </details>
 
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;24 patches</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;25 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -637,6 +641,7 @@ For configuration advice, limitations, and permission-patch examples, see the
 | [Change package name (clone app)](#change-package-name-clone-app) | Installs a clone of any app beside the original by changing the package,<br>permission names, provider authorities and launcher label.<br><br>The clone is re-signed: payments, SDK logins, Google sign-in and anti-fraud<br>checks bound to the original signature may not work on the clone. | • Package name<br>• App name |
 | [Disable PairIP license check](#disable-pairip-license-check) | Disables PairIP license verification: integrity/VM checks, the licensing<br>client and repeated background checks.<br><br>Applies to any app. No effect if the app does not use PairIP. |  |
 | [Disable app backup (allowBackup=false)](#disable-app-backup-allowbackup-false) | Sets android:allowBackup="false" so the app's private data is excluded from<br>ADB backups, cloud backups and device-to-device transfers.<br><br>Applies to any app. You lose automatic backup/restore of this app's data. |  |
+| [Disable video autoplay (ExoPlayer/Media3)](#disable-video-autoplay-exoplayer-media3) | Stops ExoPlayer/Media3 players from starting on their own by flipping<br>literal 'setPlayWhenReady(true)' call sites to false.<br><br>Applies to any app bundling ExoPlayer/Media3. Heuristic: reflection or<br>obfuscated player setup is not covered. Can stop playback entirely in<br>apps whose only play path is a flipped literal call — turn it off if<br>videos never start. Applies best alongside the per-app Mint/HT entries.<br>Unverified on device. |  |
 | [Empty telephony identifiers (IMEI, phone number, SIM)](#empty-telephony-identifiers-imei-phone-number-sim) | Makes TelephonyManager device-identifier getters (IMEI, device ID, phone<br>number, subscriber ID, SIM serial, software version) return an empty string<br>to the app.<br><br>Applies to any app. Features that need the real IMEI/number may degrade. |  |
 | [Fix Firebase after re-signing](#fix-firebase-after-re-signing) | Fixes Firebase services (push notifications, Remote Config, Firebase Auth) that break after Morphe re-signs the app with a different certificate.<br><br>Apply with Original app certificate patch — no other config needed. |  |
 | [Force not debuggable](#force-not-debuggable) | Sets android:debuggable="false" in the manifest so the patched app cannot be<br>inspected or modified over ADB/USB debugging.<br><br>Applies to any app. Safe for release builds. |  |

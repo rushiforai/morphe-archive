@@ -1,0 +1,71 @@
+name: Build and Release MPP
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Android SDK Environment
+        run: |
+          echo "ANDROID_HOME=/usr/local/lib/android/sdk" >> $GITHUB_ENV
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+
+      - name: Read version from gradle.properties
+        id: get_version
+        run: |
+          VER=$(grep '^version' gradle.properties | cut -d'=' -f2 | tr -d ' ')
+          echo "VERSION=$VER" >> $GITHUB_ENV
+          echo "VERSION=$VER" >> $GITHUB_OUTPUT
+
+      - name: Build Android patch bundle
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x ./gradlew
+          ./gradlew :patches:buildAndroid --no-daemon
+
+      - name: Prepare Release Artifacts
+        run: |
+          cd patches/build/libs
+          for f in *.mpp; do
+            if [ -f "$f" ] && [ "$f" != "patches-${{ env.VERSION }}.mpp" ]; then
+              cp "$f" "patches-${{ env.VERSION }}.mpp"
+            fi
+          done
+          ls -la
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          files: patches/build/libs/*.mpp
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-${{ env.VERSION }}
+          path: patches/build/libs/*.mpp

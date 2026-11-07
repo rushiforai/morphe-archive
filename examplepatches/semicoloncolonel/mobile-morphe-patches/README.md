@@ -1,10 +1,25 @@
 # Mobile Morphe Patches
 
+[![Latest release](https://img.shields.io/github/v/release/semicoloncolonel/mobile-morphe-patches?label=release&color=4f46e5)](https://github.com/semicoloncolonel/mobile-morphe-patches/releases/latest) [![Apps](https://img.shields.io/badge/apps-67-0ea5e9)](#apps) [![Android TV](https://img.shields.io/badge/Android_TV-4_apps-14b8a6)](#android-tv) [![License](https://img.shields.io/github/license/semicoloncolonel/mobile-morphe-patches?color=64748b)](LICENSE)
+
 Morphe patches that remove ads and block tracking in the phone versions of streaming, news, shopping, carrier, and government apps.
 
-Some patches are phone ports of [ajstrick81's Android TV patches](https://github.com/ajstrick81/morphe-androidtv-patches), and the original hook designs are their work. For the Android TV apps, use the original project.
+<p align="center">
+  <a href="https://morphe.software/add-source?github=semicoloncolonel/mobile-morphe-patches"><img alt="Add to Morphe Manager" src="https://img.shields.io/badge/%2B_Add_to-Morphe_Manager-4f46e5?style=for-the-badge"></a>
+  <br>
+  <sub>Open this link on your phone with Morphe Manager installed.</sub>
+</p>
 
-**[Add to Morphe Manager](https://morphe.software/add-source?github=semicoloncolonel/mobile-morphe-patches)**: open this link on your phone with Morphe Manager installed.
+<p align="center">
+  <a href="#install">Install</a> ·
+  <a href="#apps">Apps</a> ·
+  <a href="#what-the-patches-do">What the patches do</a> ·
+  <a href="#known-issues">Known issues</a> ·
+  <a href="https://github.com/semicoloncolonel/mobile-morphe-patches/issues/new/choose">Report a problem</a>
+</p>
+
+> [!NOTE]
+> Some patches are phone ports of [ajstrick81's Android TV patches](https://github.com/ajstrick81/morphe-androidtv-patches), and the original hook designs are their work. For the Android TV apps, use the original project.
 
 ## Install
 
@@ -12,110 +27,137 @@ Some patches are phone ports of [ajstrick81's Android TV patches](https://github
 2. Add this project in Morphe Manager with the link above, or go to Sources, tap +, choose Remote, and paste `https://raw.githubusercontent.com/semicoloncolonel/mobile-morphe-patches/main/patches-bundle.json`.
 3. Select the file and apply the patches.
 
-YouTube TV and Moviebase sign in with Google through MicroG RE, so install it first. The patched YouTube TV installs beside the official app and asks to see MicroG RE's accounts, which Android lists under Contacts. It cannot read your contacts. The patched Moviebase replaces the official app unless you turn on the Clone app option.
+> [!NOTE]
+> YouTube TV and Moviebase sign in with Google through MicroG RE, so install it first. The patched YouTube TV installs beside the official app and asks to see MicroG RE's accounts, which Android lists under Contacts. It cannot read your contacts. The patched Moviebase replaces the official app unless you turn on the Clone app option.
+
+### Android TV
+
+> [!IMPORTANT]
+> Pluto TV, Plex, and JustWatch also work on Android TV. On a TV, patch the Android TV build, which APKMirror lists separately with "Android TV" in its name. Morphe Manager's download link searches by package name and version, so it can lead to the phone build instead. Pluto TV's phone and Android TV builds are both version 17.3.0, so check the version code: the Android TV build is 520000991, and the phone build is 420000991. Starz and Disney+ also have Android TV builds with the same version names as their phone builds, but their patches support only the phone builds.
+
+> [!TIP]
+> To download the Android TV build directly, use [Aurora Store](https://auroraoss.com/) with a spoofed Android TV device. Aurora's [config generator](https://auroraoss.com/config-generator) creates the device config for spoofing.
 
 ## Apps
 
-¹ Experimental: still in testing and may not always work. If you run into an error, please leave a detailed report in [Issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues).<br>
-² Off by default: this patch is not applied unless you select it in Morphe Manager when patching.
+| | Meaning |
+|---|---|
+| 🧪 | Experimental: still in testing and may not always work. If you run into an error, please leave a detailed report in [Issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues/new/choose). |
+| ⚙️ | Off by default: this patch is not applied unless you select it in Morphe Manager when patching. |
+| 📺 | Also works on the Android TV app. |
 
-### Streaming
-
-| App | Patches | Tested version | Last updated |
-|-----|---------|----------------|--------------|
-| AMC+ | Skip launch video, Skip ads¹, Block analytics & tracking¹ ² | `1.8.62.1` | 10/31/26 |
-| Apple TV | Skip ads¹, Block analytics & tracking¹ ² | `3.0.0` | 10/30/26 |
-| Disney+ | Skip launch video, Skip ads, Block analytics & tracking¹ ² | `26.20.0+rc2-2026.10.28` | 11/02/26 |
-| ESPN | Skip ads¹, Block analytics & tracking¹ ² | `8.29.0` | 11/04/26 |
-| Fandango at Home | Mask ads, Block analytics & tracking² | `10.24.r009.179279954` | 11/02/26 |
-| Fox One | Skip ads¹, Disable Pairip license check, Block analytics & tracking¹ ² | `1.24.0` | 10/30/26 |
-| HBO Max | Skip ads, Remove social sign-in, Block analytics & tracking¹ ² | `7.14.0.530` | 10/30/26 |
-| Hulu | Skip ads¹, Block analytics & tracking¹ ² | `6.34.0+18552420-google` | 10/31/26 |
-| JustWatch | Block ads, Hide sponsored titles, Block analytics & tracking² | `26.44.2`, Android TV `26.43.8` | 11/04/26 |
-| MGM+ | Skip ads¹, Skip pre-roll promo¹, Skip lion intro, Disable MGM+ AI², Remove social sign-in, Block analytics & tracking¹ ² | `240.0.2026240000` | 10/30/26 |
-| Moviebase | GmsCore support, Disable Pairip license check, Block ads, Hide Premium upsell, Block analytics & tracking² | `7.7.0` | 11/02/26 |
-| MLB | GmsCore support², Skip ads, Hide surveys and rating prompt, Mask live ad breaks¹ ², Hide betting odds², Block analytics & tracking² | `26.21.0.49` | 11/05/26 |
-| NBA | Skip ads¹, Disable Ask NBA AI¹ ², Block analytics & tracking¹ ² | `1.2.0` | 10/31/26 |
-| NFL | Skip ads¹, Block analytics & tracking¹ ² | `61.0.18` | 10/31/26 |
-| Paramount+ | Skip launch video, Skip ads, Block analytics & tracking¹ ² | `17.3.0` | 11/04/26 |
-| PBS | Skip ads¹, Block analytics & tracking¹ ² | `5.27.0` | 10/30/26 |
-| Peacock | Skip ads¹, Disable Xfinity auto sign-in, Block analytics & tracking¹ ² | `7.10.20` | 10/30/26 |
-| Plex | Skip ads, Hide sponsored content, Block analytics & tracking² | `2026.22.0`, Android TV `2026.22.0` | 11/05/26 |
-| Pluto TV | Skip launch video, Skip ads, Mask live ad breaks, Block analytics & tracking¹ ² | `17.3.0`, Android TV `17.3.0` | 11/06/26 |
-| Prime Video | Skip ads, Rename shared permissions, Disable AI¹ ², Block analytics & tracking¹ ² | `3.0.480.457` | 11/04/26 |
-| Shudder | Block analytics & tracking² | `10.1.1` | 11/05/26 |
-| Starz | Skip launch video, Skip pre-roll promo¹, Remove social sign-in, Block analytics & tracking¹ ² | `6.11.0` | 10/31/26 |
-| Sundance Now | Block analytics & tracking² | `5.0.25.2` | 11/05/26 |
-| Tubi | Skip ads, Remove social sign-in, Hide sign-in prompts, Block analytics & tracking¹ ² | `10.44.1` | 11/04/26 |
-| Xumo Play | Skip ads, Mask live ad breaks¹, Block analytics & tracking¹ ² | `4.6.21` | 11/04/26 |
-| YouTube TV | GmsCore support, Skip ads¹, Mask live ad breaks¹ ², Start at high quality¹ ², Fix picture-in-picture¹, Change app name, Block telemetry², Hide prompts and promos², Hide membership upsell² | `10.44.0` | 11/05/26 |
-
-### News
+<details open>
+<summary><b>🎬 Streaming</b> · 26 apps</summary>
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| ABC News | Skip ads¹, Mask live ad breaks, Block analytics & tracking² | `8.98.2` | 11/02/26 |
-| AP News | GmsCore support², Skip ads, Hide donate button, Block analytics & tracking², Route traffic through a proxy² | `6.31.2` | 11/05/26 |
-| CBS News | Disable signature check, Skip ads, Hide surveys, Opt out of data sale & sharing, Block analytics & tracking² | `5.20` | 11/02/26 |
-| CNN | Skip ads¹, Faster launch, Opt out of data sale & sharing, Remove social sign-in, Block analytics & tracking¹ ² | `26.21.0` | 11/05/26 |
-| C-SPAN Now | Skip ads¹, Hide promo banners, Block analytics & tracking² | `1.25.0` | 11/05/26 |
-| Fox Local | Skip ads¹, Hide pop-ups and rating prompts, Opt out of data sale & sharing, Block analytics & tracking² | `7.22.0` | 11/02/26 |
-| Fox News | Skip ads¹, Opt out of data sale & sharing, Block analytics & tracking¹ ², Enable developer menu² | `5.49.2` | 10/31/26 |
-| MS NOW | Opt out of data sale & sharing, Block analytics & tracking¹ ² | `14.6.0` | 10/31/26 |
-| NBC News | Skip ads, Hide surveys and rating prompt, Opt out of data sale & sharing, Block analytics & tracking² | `15.0.1` | 11/02/26 |
-| NewsBreak | GmsCore support², Skip ads, Hide rating prompt, Hide Premium upsells, Hide My Town intro, Block installed-app scan, Disable NewsBreak AI, Hide AI summaries², Block analytics & tracking², Route traffic through a proxy² | `26.44.1` | 11/05/26 |
-| NewsNation | Skip ads (phone), Block analytics & tracking² | `510.3.0` | 11/05/26 |
-| NewsNation (Android TV) | Skip ads (Android TV), Hide rating prompt (Android TV), Block analytics & tracking² | `4.71` | 11/05/26 |
-| NPR | Fix media connection crash, Skip ads, Hide Waze bar, Hide donate buttons, Opt out of data sale & sharing, Block analytics & tracking², Route traffic through a proxy² | `7.10.0` | 11/05/26 |
-| Substack | Block analytics & tracking², Disable screenshot detection, Hide follow upsell | `3.12.0` | 11/05/26 |
-| The Daily Wire | GmsCore support², Skip ads, Block analytics & tracking² | `3.5.21` | 11/05/26 |
-| The New York Times | Skip ads¹, Hide upsell pop-ups¹, Remove social sign-in, Block analytics & tracking¹ ² | `11.98.0` | 10/30/26 |
-| The Wall Street Journal | Skip ads¹, Hide marketing pop-ups¹, Block analytics & tracking¹ ² | `15.12.0.42675` | 10/30/26 |
-| The Washington Post | Skip ads¹, Hide marketing pop-ups¹, Disable AI¹ ², Block analytics & tracking¹ ² | `7.18.1` | 10/30/26 |
-| theScore | Block analytics & tracking² | `26.16.0` | 11/05/26 |
-| USA TODAY | Skip ads, Hide subscription prompts, Hide rating prompt, Block analytics & tracking² | `8.15.0` | 11/06/26 |
+| AMC+ | Skip launch video, Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `1.8.62.1` | 10/31/26 |
+| Apple TV | Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `3.0.0` | 10/30/26 |
+| Disney+ | Skip launch video, Skip ads, Block analytics & tracking 🧪⚙️ | `26.20.0+rc2-2026.10.28` | 11/02/26 |
+| ESPN | Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `8.29.0` | 11/04/26 |
+| Fandango at Home | Mask ads, Block analytics & tracking ⚙️ | `10.24.r009.179279954` | 11/02/26 |
+| Fox One | Skip ads 🧪, Disable Pairip license check, Block analytics & tracking 🧪⚙️ | `1.24.0` | 10/30/26 |
+| HBO Max | Skip ads, Remove social sign-in, Block analytics & tracking 🧪⚙️ | `7.14.0.530` | 10/30/26 |
+| Hulu | Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `6.34.0+18552420-google` | 10/31/26 |
+| JustWatch 📺 | Block ads, Hide sponsored titles, Block analytics & tracking ⚙️ | `26.44.2`, Android TV `26.43.8` | 11/04/26 |
+| MGM+ | Skip ads 🧪, Skip pre-roll promo 🧪, Skip lion intro, Disable MGM+ AI ⚙️, Remove social sign-in, Block analytics & tracking 🧪⚙️ | `240.0.2026240000` | 10/30/26 |
+| Moviebase | GmsCore support, Disable Pairip license check, Block ads, Hide Premium upsell, Block analytics & tracking ⚙️ | `7.7.0` | 11/02/26 |
+| MLB | GmsCore support ⚙️, Skip ads, Hide surveys and rating prompt, Mask live ad breaks 🧪⚙️, Hide betting odds ⚙️, Block analytics & tracking ⚙️ | `26.21.0.49` | 11/05/26 |
+| NBA | Skip ads 🧪, Disable Ask NBA AI 🧪⚙️, Block analytics & tracking 🧪⚙️ | `1.2.0` | 10/31/26 |
+| NFL | Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `61.0.18` | 10/31/26 |
+| Paramount+ | Skip launch video, Skip ads, Block analytics & tracking 🧪⚙️ | `17.3.0` | 11/04/26 |
+| PBS | Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `5.27.0` | 10/30/26 |
+| Peacock | Skip ads 🧪, Disable Xfinity auto sign-in, Block analytics & tracking 🧪⚙️ | `7.10.20` | 10/30/26 |
+| Plex 📺 | Skip ads, Hide sponsored content, Block analytics & tracking ⚙️ | `2026.22.0`, Android TV `2026.22.0` | 11/05/26 |
+| Pluto TV 📺 | Skip launch video, Skip ads, Mask live ad breaks, Block analytics & tracking 🧪⚙️ | `17.3.0`, Android TV `17.3.0` | 11/06/26 |
+| Prime Video | Skip ads, Rename shared permissions, Disable AI 🧪⚙️, Block analytics & tracking 🧪⚙️ | `3.0.480.457` | 11/04/26 |
+| Shudder | Block analytics & tracking ⚙️ | `10.1.1` | 11/05/26 |
+| Starz | Skip launch video, Skip pre-roll promo 🧪, Remove social sign-in, Block analytics & tracking 🧪⚙️ | `6.11.0` | 10/31/26 |
+| Sundance Now | Block analytics & tracking ⚙️ | `5.0.25.2` | 11/05/26 |
+| Tubi | Skip ads, Remove social sign-in, Hide sign-in prompts, Block analytics & tracking 🧪⚙️ | `10.44.1` | 11/04/26 |
+| Xumo Play | Skip ads, Mask live ad breaks 🧪, Block analytics & tracking 🧪⚙️ | `4.6.21` | 11/04/26 |
+| YouTube TV | GmsCore support, Skip ads 🧪, Mask live ad breaks 🧪⚙️, Start at high quality 🧪⚙️, Fix picture-in-picture 🧪, Change app name, Block telemetry ⚙️, Hide prompts and promos ⚙️, Hide membership upsell ⚙️ | `10.44.0` | 11/05/26 |
 
-### Government
+</details>
 
-| App | Patches | Tested version | Last updated |
-|-----|---------|----------------|--------------|
-| FEMA | Save content for offline use, Block analytics & tracking² | `3.2.1` | 11/02/26 |
-| MyTSA | Block analytics & tracking² | `5.1.0` | 11/02/26 |
-| National Forests & Grasslands | Disable Pairip license check, Block analytics & tracking² | `1.3.0` | 11/02/26 |
-| NPS | Block analytics & tracking², Block Bluetooth scanning² | `2.15.0` | 11/02/26 |
-| Recreation.gov | Skip location on open, Hide rating prompt, Block analytics & tracking², Show hidden details² | `2.2.67` | 11/04/26 |
-| White House | Skip launch video, Disable Pairip license check, Remove microphone access, Hide social feeds², Hide promotions², Block analytics & tracking², Route traffic through a proxy² | `47.7.8` | 11/05/26 |
-
-### Shopping
+<details>
+<summary><b>📰 News</b> · 20 apps</summary>
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| Amazon Shopping | Hide sponsored listings¹, Disable AI¹ ² | `32.19.0.100` | 11/01/26 |
-| Best Buy | Hide sponsored listings¹, Disable AI¹ ² | `26.10.10` | 11/01/26 |
-| CVS | Disable AI¹ ² | `26.10.50` | 11/01/26 |
-| DealSeek | Strip affiliate links, Hide pop-ups, Disable Pairip license check, Block analytics & tracking¹ ² | `1.64.0` | 11/05/26 |
-| Target | Hide sponsored listings¹, Disable AI¹ ² | `2026.43.0` | 11/01/26 |
-| The Home Depot | Disable AI¹ ² | `8.2.5` | 11/01/26 |
+| ABC News | Skip ads 🧪, Mask live ad breaks, Block analytics & tracking ⚙️ | `8.98.2` | 11/02/26 |
+| AP News | GmsCore support ⚙️, Skip ads, Hide donate button, Block analytics & tracking ⚙️, Route traffic through a proxy ⚙️ | `6.31.2` | 11/05/26 |
+| CBS News | Disable signature check, Skip ads, Hide surveys, Opt out of data sale & sharing, Block analytics & tracking ⚙️ | `5.20` | 11/02/26 |
+| CNN | Skip ads 🧪, Faster launch, Opt out of data sale & sharing, Remove social sign-in, Block analytics & tracking 🧪⚙️ | `26.21.0` | 11/05/26 |
+| C-SPAN Now | Skip ads 🧪, Hide promo banners, Block analytics & tracking ⚙️ | `1.25.0` | 11/05/26 |
+| Fox Local | Skip ads 🧪, Hide pop-ups and rating prompts, Opt out of data sale & sharing, Block analytics & tracking ⚙️ | `7.22.0` | 11/02/26 |
+| Fox News | Skip ads 🧪, Opt out of data sale & sharing, Block analytics & tracking 🧪⚙️, Enable developer menu ⚙️ | `5.49.2` | 10/31/26 |
+| MS NOW | Opt out of data sale & sharing, Block analytics & tracking 🧪⚙️ | `14.6.0` | 10/31/26 |
+| NBC News | Skip ads, Hide surveys and rating prompt, Opt out of data sale & sharing, Block analytics & tracking ⚙️ | `15.0.1` | 11/02/26 |
+| NewsBreak | GmsCore support ⚙️, Skip ads, Hide rating prompt, Hide Premium upsells, Hide My Town intro, Block installed-app scan, Disable NewsBreak AI, Hide AI summaries ⚙️, Block analytics & tracking ⚙️, Route traffic through a proxy ⚙️ | `26.44.1` | 11/05/26 |
+| NewsNation | Skip ads (phone), Block analytics & tracking ⚙️ | `510.3.0` | 11/05/26 |
+| NewsNation (Android TV) 📺 | Skip ads (Android TV), Hide rating prompt (Android TV), Block analytics & tracking ⚙️ | `4.71` | 11/05/26 |
+| NPR | Fix media connection crash, Skip ads, Hide Waze bar, Hide donate buttons, Opt out of data sale & sharing, Block analytics & tracking ⚙️, Route traffic through a proxy ⚙️ | `7.10.0` | 11/05/26 |
+| Substack | Block analytics & tracking ⚙️, Disable screenshot detection, Hide follow upsell | `3.12.0` | 11/05/26 |
+| The Daily Wire | GmsCore support ⚙️, Skip ads, Block analytics & tracking ⚙️ | `3.5.21` | 11/05/26 |
+| The New York Times | Skip ads 🧪, Hide upsell pop-ups 🧪, Remove social sign-in, Block analytics & tracking 🧪⚙️ | `11.98.0` | 10/30/26 |
+| The Wall Street Journal | Skip ads 🧪, Hide marketing pop-ups 🧪, Block analytics & tracking 🧪⚙️ | `15.12.0.42675` | 10/30/26 |
+| The Washington Post | Skip ads 🧪, Hide marketing pop-ups 🧪, Disable AI 🧪⚙️, Block analytics & tracking 🧪⚙️ | `7.18.1` | 10/30/26 |
+| theScore | Block analytics & tracking ⚙️ | `26.16.0` | 11/05/26 |
+| USA TODAY | Skip ads, Hide subscription prompts, Hide rating prompt, Block analytics & tracking ⚙️ | `8.15.0` | 11/06/26 |
+
+</details>
+
+<details>
+<summary><b>🏛️ Government</b> · 6 apps</summary>
+
+| App | Patches | Tested version | Last updated |
+|-----|---------|----------------|--------------|
+| FEMA | Save content for offline use, Block analytics & tracking ⚙️ | `3.2.1` | 11/02/26 |
+| MyTSA | Block analytics & tracking ⚙️ | `5.1.0` | 11/02/26 |
+| National Forests & Grasslands | Disable Pairip license check, Block analytics & tracking ⚙️ | `1.3.0` | 11/02/26 |
+| NPS | Block analytics & tracking ⚙️, Block Bluetooth scanning ⚙️ | `2.15.0` | 11/02/26 |
+| Recreation.gov | Skip location on open, Hide rating prompt, Block analytics & tracking ⚙️, Show hidden details ⚙️ | `2.2.67` | 11/04/26 |
+| White House | Skip launch video, Disable Pairip license check, Remove microphone access, Hide social feeds ⚙️, Hide promotions ⚙️, Block analytics & tracking ⚙️, Route traffic through a proxy ⚙️ | `47.7.8` | 11/05/26 |
+
+</details>
+
+<details>
+<summary><b>🛒 Shopping</b> · 8 apps</summary>
+
+| App | Patches | Tested version | Last updated |
+|-----|---------|----------------|--------------|
+| Amazon Shopping | Hide sponsored listings 🧪, Disable AI 🧪⚙️ | `32.19.0.100` | 11/01/26 |
+| Best Buy | Hide sponsored listings 🧪, Disable AI 🧪⚙️ | `26.10.10` | 11/01/26 |
+| CVS | Disable AI 🧪⚙️ | `26.10.50` | 11/01/26 |
+| DealSeek | Strip affiliate links, Hide pop-ups, Disable Pairip license check, Block analytics & tracking 🧪⚙️ | `1.64.0` | 11/05/26 |
+| Target | Hide sponsored listings 🧪, Disable AI 🧪⚙️ | `2026.43.0` | 11/01/26 |
+| The Home Depot | Disable AI 🧪⚙️ | `8.2.5` | 11/01/26 |
 | Walgreens | The shared privacy patches only | `118.0` | 11/01/26 |
-| Walmart | Disable AI¹ ² | `26.42` | 11/02/26 |
+| Walmart | Disable AI 🧪⚙️ | `26.42` | 11/02/26 |
 
-### Carriers
+</details>
+
+<details>
+<summary><b>📶 Carriers</b> · 7 apps</summary>
 
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
-| Mint Mobile | Block analytics & tracking² | `2.3.41` | 11/04/26 |
-| My Verizon | Block session recording, Block analytics & tracking², Disable AI¹ ² | `22.2.5` | 11/02/26 |
-| myAT&T | Block session recording, Block background network reports¹, Block analytics & tracking², Disable AI² | `2026.10.1` | 11/01/26 |
-| T-Life | Block location tracking, Block session recording, Block analytics & tracking², Disable AI² | `12.3.1` | 11/01/26 |
-| T-Mobile Play | Block ads, Block analytics & tracking², Block TV discovery², Hide stories² | `19.4.4` | 11/01/26 |
-| Visible | Block ads, Block session recording, Block analytics & tracking² | `3.0.5` | 11/01/26 |
-| Xfinity | Block analytics & tracking², Block Advanced Security telemetry², Disable AI² | `6.14.0-2` | 11/01/26 |
+| Mint Mobile | Block analytics & tracking ⚙️ | `2.3.41` | 11/04/26 |
+| My Verizon | Block session recording, Block analytics & tracking ⚙️, Disable AI 🧪⚙️ | `22.2.5` | 11/02/26 |
+| myAT&T | Block session recording, Block background network reports 🧪, Block analytics & tracking ⚙️, Disable AI ⚙️ | `2026.10.1` | 11/01/26 |
+| T-Life | Block location tracking, Block session recording, Block analytics & tracking ⚙️, Disable AI ⚙️ | `12.3.1` | 11/01/26 |
+| T-Mobile Play | Block ads, Block analytics & tracking ⚙️, Block TV discovery ⚙️, Hide stories ⚙️ | `19.4.4` | 11/01/26 |
+| Visible | Block ads, Block session recording, Block analytics & tracking ⚙️ | `3.0.5` | 11/01/26 |
+| Xfinity | Block analytics & tracking ⚙️, Block Advanced Security telemetry ⚙️, Disable AI ⚙️ | `6.14.0-2` | 11/01/26 |
+
+</details>
 
 ## What the patches do
 
 Everything runs on the phone, inside the patched app. The patches do not send data anywhere.
 
-### Ads
+### 🚫 Ads
 
 **Skip ads** removes the ads in videos and in the app. Ads that are part of a live broadcast still play, except on NBA.
 
@@ -158,7 +200,11 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 
 **Mask live ad breaks** (ABC News, Pluto TV, Xumo Play, and YouTube TV) and **Mask ads** (Fandango at Home) cover ads that cannot be removed with a "We'll be right back!" screen and mute them until the break ends. Live ads are part of the broadcast, and Fandango streams a free title only after its ads play. On ABC News, the cover counts down the break. On YouTube TV, it covers only the ads YouTube TV inserts into a live break. The commercials built into the channel's own broadcast are not covered and still play.
 
-To turn off Mask live ad breaks on Pluto TV without patching again, create a file named `slate_off` in `Android/data/tv.pluto.android/files`. A file named `pluto_slate_mode` that contains `black` or `mute` keeps only the cover or only the muting.
+> [!TIP]
+> To turn off Mask live ad breaks on Pluto TV without patching again, create a file named `slate_off` in `Android/data/tv.pluto.android/files`. A file named `pluto_slate_mode` that contains `black` or `mute` keeps only the cover or only the muting.
+
+<details>
+<summary>Sponsored content patches · 4</summary>
 
 | Patch | App | What it does |
 |-------|-----|--------------|
@@ -167,7 +213,12 @@ To turn off Mask live ad breaks on Pluto TV without patching again, create a fil
 | Hide sponsored titles | JustWatch | Removes sponsored title cards and the sponsored trailers before videos. |
 | Strip affiliate links | DealSeek | Opens each deal at the store's own page, without DealSeek's click tracker or affiliate tags. Covers Amazon, Walmart, Best Buy, eBay, Wayfair, and Target. |
 
-### Pop-ups and prompts
+</details>
+
+### 🔕 Pop-ups and prompts
+
+<details>
+<summary>All pop-up and prompt patches · 27</summary>
 
 | Patch | App | What it hides |
 |-------|-----|---------------|
@@ -199,11 +250,14 @@ To turn off Mask live ad breaks on Pluto TV without patching again, create a fil
 | Hide social feeds | White House | The feeds you choose: Truth Social, X, Instagram, Facebook, LinkedIn, TikTok, YouTube, or the Wire. A hidden feed's tab shows that it could not load. Hiding YouTube also empties the Live tab. |
 | Hide stories | T-Mobile Play | The Storyteller stories and video clips in the feeds. |
 
-Push notifications and breaking-news alerts still arrive.
+</details>
 
-The White House patches let you remove only the parts of the app you do not want. With every option turned on, almost nothing of the app is left.
+> [!NOTE]
+> Push notifications and breaking-news alerts still arrive.
+>
+> The White House patches let you remove only the parts of the app you do not want. With every option turned on, almost nothing of the app is left.
 
-### AI features
+### 🤖 AI features
 
 **Disable AI** turns off the app's AI assistant and AI features.
 
@@ -228,7 +282,7 @@ The White House patches let you remove only the parts of the app you do not want
 
 </details>
 
-### Privacy
+### 🛡️ Privacy
 
 **Block analytics & tracking** stops each app's analytics, ad measurement, and marketing services. Sign-in and playback are left alone, and so is crash reporting, except on Recreation.gov and T-Life. In every app except Apple TV, it also stops Firebase and Google Analytics, Meta app events and the Meta Pixel, Google Ads conversion tracking, Optimizely events, Bitmovin player analytics, and Mixpanel. Facebook sign-in and sharing keep working.
 
@@ -293,6 +347,9 @@ The White House patches let you remove only the parts of the app you do not want
 
 </details>
 
+<details>
+<summary>App-specific privacy patches · 11</summary>
+
 | Patch | App | What it does |
 |-------|-----|--------------|
 | Block telemetry | YouTube TV | Stops quality reports, interaction logging, view tracking, and ad measurement. Watch history, resume points, location checks, and DRM licenses are left alone. |
@@ -307,7 +364,10 @@ The White House patches let you remove only the parts of the app you do not want
 | Skip location on open | Recreation.gov | Stops the precise location check at every launch. Nearby search and permit check-in still use location. |
 | Route traffic through a proxy | AP News, NewsBreak, NPR, White House | Sends the app's traffic through the proxy you set, such as Orbot for Tor or a SOCKS5 server from a VPN service. A SOCKS5 proxy that needs a login is entered as `socks5://user:password@host:port`, and the login is stored in the patched app. The app cannot connect while the proxy is off, and web pages inside the app do not use it. |
 
-These are off by default and shared across apps:
+</details>
+
+<details>
+<summary>Shared privacy patches, off by default · 9</summary>
 
 | Patch | Works on | What it does |
 |-------|----------|--------------|
@@ -321,7 +381,12 @@ These are off by default and shared across apps:
 | Block background location | Shopping apps and T-Life | Removes background location access. Store-arrival features and pickup check-in can stop working. |
 | Disable auto-updates | Every app except The Washington Post, White House, Mint Mobile, T-Mobile Play, and YouTube TV | Stops the Play Store from replacing the patched app with the official one. To update, patch the newer version. It is always on with Tubi's Skip ads. |
 
-### Sign-in and startup
+</details>
+
+### 🔑 Sign-in and startup
+
+<details>
+<summary>Sign-in and startup patches · 10</summary>
 
 | Patch | App | What it does |
 |-------|-----|--------------|
@@ -336,7 +401,9 @@ These are off by default and shared across apps:
 | Skip lion intro | MGM+ | Opens the app without the lion video. |
 | Skip pre-roll promo | MGM+, Starz | Skips the app's own promo before a title. |
 
-### Needed for the app to run
+</details>
+
+### 🔧 Needed for the app to run
 
 | Patch | App | Why |
 |-------|-----|-----|
@@ -345,7 +412,7 @@ These are off by default and shared across apps:
 | Fix media connection crash | NPR | NPR closes when Android Auto, the Google app, or another approved player connects with a signature the app does not expect. The connection is refused or allowed instead. |
 | Rename shared permissions | Prime Video | Lets Amazon Shopping and other Amazon apps install beside the patched Prime Video. |
 
-### Extra features
+### ✨ Extra features
 
 **Save content for offline use** (FEMA) keeps the Prepare guides, disaster declarations, FAQ, and the images you have viewed readable without a connection. Long-press the app icon for **Save all**, which downloads every guide in English and Spanish (about 150 MB), or **Refresh**, which updates the saved pages. Saved content is replaced only after the new copy downloads completely.
 

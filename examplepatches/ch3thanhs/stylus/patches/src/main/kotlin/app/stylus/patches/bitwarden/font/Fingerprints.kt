@@ -2,8 +2,8 @@ package app.stylus.patches.bitwarden.font
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.methodCall
-import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.classDefByOrNull
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -51,7 +51,6 @@ internal data class ComposeParagraphPaintTarget(
  * TextPaint. The field name is obfuscated, so it is discovered from the
  * constructor instead of being hard-coded.
  */
-context(context: BytecodePatchContext)
 internal fun resolveComposeParagraphPaintTarget(): ComposeParagraphPaintTarget {
     val method = ComposeParagraphIntrinsicsFingerprint.method
     val instructions = method.implementation?.instructions?.toList()
@@ -77,7 +76,6 @@ internal fun resolveComposeParagraphPaintTarget(): ComposeParagraphPaintTarget {
     return ComposeParagraphPaintTarget(method, paintField)
 }
 
-context(context: BytecodePatchContext)
 private fun isPaintType(type: String): Boolean {
     var current: String? = type
     val visited = mutableSetOf<String>()
@@ -86,7 +84,7 @@ private fun isPaintType(type: String): Boolean {
         if (current == "Landroid/graphics/Paint;" || current == "Landroid/text/TextPaint;") {
             return true
         }
-        current = context.classDefByOrNull(current)?.superclass
+        current = classDefByOrNull(current)?.superclass
     }
 
     return false
@@ -122,7 +120,6 @@ internal object ModernTypefaceCompatCreateFromResourcesFontFileFingerprint : Fin
     ),
 )
 
-context(_: BytecodePatchContext)
 internal fun resolveTypefaceCompatCreateFromResourcesFontFileTarget(): TypefaceCompatCreateFromResourcesFontFileTarget {
     listOf(
         TypefaceCompatCreateFromResourcesFontFileVariant.LEGACY_STATIC to LegacyTypefaceCompatCreateFromResourcesFontFileFingerprint,

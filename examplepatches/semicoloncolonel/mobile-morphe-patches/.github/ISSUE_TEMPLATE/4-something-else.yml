@@ -1,0 +1,32 @@
+name: 💬 Something else
+description: A question, an idea, a problem with the README, or anything that does not fit the other forms.
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for getting in touch. Only the details are required.
+  - type: checkboxes
+    id: before
+    attributes:
+      label: Before you submit
+      options:
+        - label: "I read the README, including the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches#known-issues)."
+          required: true
+        - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this topic."
+          required: true
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      options:
+        - A question about using the patches
+        - An idea or suggestion
+        - The README or other documentation
+        - Something else
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+    validations:
+      required: true

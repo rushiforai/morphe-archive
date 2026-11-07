@@ -1,0 +1,1415 @@
+{
+  "engine": ".pipeline\\release\\AppleMusic-1.4.0-AndroidTV-arm32.apk",
+  "apps": {
+    "tv-app\\build\\outputs\\apk\\release\\tv-app-release-unsigned.apk": {
+      "classes": 14658,
+      "shared": 1151,
+      "different": 51,
+      "prefixes": {
+        "Landroidx/": {
+          "engine": 2039,
+          "app": 11221,
+          "shared": 49,
+          "different": 36
+        },
+        "Lcoil3/": {
+          "engine": 0,
+          "app": 513,
+          "shared": 0,
+          "different": 0
+        },
+        "Lkotlin/": {
+          "engine": 1131,
+          "app": 1080,
+          "shared": 1067,
+          "different": 9
+        },
+        "Lkotlinx/": {
+          "engine": 0,
+          "app": 1142,
+          "shared": 0,
+          "different": 0
+        },
+        "Lcoil/": {
+          "engine": 0,
+          "app": 0,
+          "shared": 0,
+          "different": 0
+        },
+        "Lokhttp3/": {
+          "engine": 2,
+          "app": 319,
+          "shared": 1,
+          "different": 1
+        },
+        "Lokio/": {
+          "engine": 0,
+          "app": 124,
+          "shared": 0,
+          "different": 0
+        },
+        "Lcom/google/": {
+          "engine": 3508,
+          "app": 9,
+          "shared": 0,
+          "different": 0
+        },
+        "Lorg/jetbrains/": {
+          "engine": 7,
+          "app": 30,
+          "shared": 7,
+          "different": 3
+        }
+      },
+      "examples": [
+        {
+          "class": "Landroidx/core/widget/NestedScrollView;",
+          "engine_methods": 86,
+          "app_methods": 122,
+          "app_only_methods": [
+            "abortAnimatedScroll()V",
+            "access$000(Landroidx/core/widget/NestedScrollView;)Landroid/widget/OverScroller;",
+            "arrowScroll(I)Z",
+            "canOverScroll()Z",
+            "canScroll()Z",
+            "clamp(III)I",
+            "computeScrollDeltaToGetChildRectOnScreen(Landroid/graphics/Rect;)I",
+            "consumeFlingInVerticalStretch(I)I",
+            "dispatchNestedPreScroll(II[I[II)Z",
+            "dispatchNestedScroll(IIII[II)Z",
+            "dispatchNestedScroll(IIII[II[I)V",
+            "doScrollY(I)V",
+            "edgeEffectFling(I)Z",
+            "endTouchDrag()V",
+            "executeKeyEvent(Landroid/view/KeyEvent;)Z",
+            "findFocusableViewInBounds(ZII)Landroid/view/View;",
+            "fling(I)V",
+            "fullScroll(I)Z",
+            "getScrollFeedbackProvider()Landroidx/core/view/ScrollFeedbackProviderCompat;",
+            "getSplineFlingDistance(I)F",
+            "hasNestedScrollingParent(I)Z",
+            "inChild(II)Z",
+            "initOrResetVelocityTracker()V",
+            "initScrollView()V",
+            "initVelocityTrackerIfNotExists()V",
+            "initializeTouchDrag(II)V",
+            "isFillViewport()Z",
+            "isOffScreen(Landroid/view/View;)Z",
+            "isSmoothScrollingEnabled()Z",
+            "isViewDescendantOf(Landroid/view/View;Landroid/view/View;)Z",
+            "isWithinDeltaOfScreen(Landroid/view/View;II)Z",
+            "onNestedPreScroll(Landroid/view/View;II[II)V",
+            "onNestedScroll(Landroid/view/View;IIIII)V",
+            "onNestedScroll(Landroid/view/View;IIIII[I)V",
+            "onNestedScrollAccepted(Landroid/view/View;Landroid/view/View;II)V",
+            "onNestedScrollInternal(II[I)V",
+            "onSecondaryPointerUp(Landroid/view/MotionEvent;)V",
+            "onStartNestedScroll(Landroid/view/View;Landroid/view/View;II)Z",
+            "onStopNestedScroll(Landroid/view/View;I)V",
+            "overScrollByCompat(IIIIIIIIZ)Z",
+            "pageScroll(I)Z",
+            "recycleVelocityTracker()V",
+            "releaseVerticalGlow(IF)I",
+            "runAnimatedScroll(Z)V",
+            "scrollAndFocus(III)Z",
+            "scrollBy(IIIZ)I",
+            "scrollBy(IILandroid/view/MotionEvent;IIZ)I",
+            "scrollToChild(Landroid/view/View;)V",
+            "scrollToChildRect(Landroid/graphics/Rect;Z)Z",
+            "setOnScrollChangeListener(Landroidx/core/widget/NestedScrollView$OnScrollChangeListener;)V",
+            "shouldAbsorb(Landroid/widget/EdgeEffect;I)Z",
+            "smoothScrollBy(II)V",
+            "smoothScrollBy(III)V",
+            "smoothScrollBy(IIIZ)V",
+            "smoothScrollTo(II)V",
+            "smoothScrollTo(III)V",
+            "smoothScrollTo(IIIZ)V",
+            "smoothScrollTo(IIZ)V",
+            "startNestedScroll(II)Z",
+            "stopGlowAnimations(Landroid/view/MotionEvent;)Z",
+            "stopNestedScroll(I)V"
+          ]
+        },
+        {
+          "class": "Landroidx/core/graphics/drawable/IconCompat;",
+          "engine_methods": 13,
+          "app_methods": 37,
+          "app_only_methods": [
+            "addToShortcutIntent(Landroid/content/Intent;Landroid/graphics/drawable/Drawable;Landroid/content/Context;)V",
+            "checkResource(Landroid/content/Context;)V",
+            "createFromBundle(Landroid/os/Bundle;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createFromIcon(Landroid/content/Context;Landroid/graphics/drawable/Icon;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createFromIcon(Landroid/graphics/drawable/Icon;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createFromIconOrNullIfZeroResId(Landroid/graphics/drawable/Icon;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createLegacyIconFromAdaptiveIcon(Landroid/graphics/Bitmap;Z)Landroid/graphics/Bitmap;",
+            "createWithAdaptiveBitmap(Landroid/graphics/Bitmap;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithAdaptiveBitmapContentUri(Landroid/net/Uri;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithAdaptiveBitmapContentUri(Ljava/lang/String;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithBitmap(Landroid/graphics/Bitmap;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithContentUri(Landroid/net/Uri;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithContentUri(Ljava/lang/String;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithData([BII)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithResource(Landroid/content/Context;I)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithResource(Landroid/content/res/Resources;Ljava/lang/String;I)Landroidx/core/graphics/drawable/IconCompat;",
+            "getBitmap()Landroid/graphics/Bitmap;",
+            "getResId()I",
+            "getResPackage()Ljava/lang/String;",
+            "getResources(Landroid/content/Context;Ljava/lang/String;)Landroid/content/res/Resources;",
+            "getType()I",
+            "getUri()Landroid/net/Uri;",
+            "getUriInputStream(Landroid/content/Context;)Ljava/io/InputStream;",
+            "loadDrawable(Landroid/content/Context;)Landroid/graphics/drawable/Drawable;",
+            "onPostParceling()V",
+            "onPreParceling(Z)V",
+            "setTint(I)Landroidx/core/graphics/drawable/IconCompat;",
+            "setTintList(Landroid/content/res/ColorStateList;)Landroidx/core/graphics/drawable/IconCompat;",
+            "setTintMode(Landroid/graphics/PorterDuff$Mode;)Landroidx/core/graphics/drawable/IconCompat;",
+            "toBundle()Landroid/os/Bundle;",
+            "toIcon()Landroid/graphics/drawable/Icon;",
+            "toIcon(Landroid/content/Context;)Landroid/graphics/drawable/Icon;",
+            "typeToString(I)Ljava/lang/String;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/SavedStateHandle;",
+          "engine_methods": 5,
+          "app_methods": 18,
+          "app_only_methods": [
+            "<clinit>()V",
+            "<init>(Ljava/util/Map;)V",
+            "access$getImpl$p(Landroidx/lifecycle/SavedStateHandle;)Landroidx/lifecycle/internal/SavedStateHandleImpl;",
+            "clearSavedStateProvider(Ljava/lang/String;)V",
+            "contains(Ljava/lang/String;)Z",
+            "createHandle(Landroid/os/Bundle;Landroid/os/Bundle;)Landroidx/lifecycle/SavedStateHandle;",
+            "get(Ljava/lang/String;)Ljava/lang/Object;",
+            "getLiveData(Ljava/lang/String;)Landroidx/lifecycle/MutableLiveData;",
+            "getLiveData(Ljava/lang/String;Ljava/lang/Object;)Landroidx/lifecycle/MutableLiveData;",
+            "getLiveDataInternal(Ljava/lang/String;ZLjava/lang/Object;)Landroidx/lifecycle/MutableLiveData;",
+            "getMutableStateFlow(Ljava/lang/String;Ljava/lang/Object;)Lkotlinx/coroutines/flow/MutableStateFlow;",
+            "getStateFlow(Ljava/lang/String;Ljava/lang/Object;)Lkotlinx/coroutines/flow/StateFlow;",
+            "keys()Ljava/util/Set;",
+            "remove(Ljava/lang/String;)Ljava/lang/Object;",
+            "savedStateProvider()Landroidx/savedstate/SavedStateRegistry$SavedStateProvider;",
+            "set(Ljava/lang/String;Ljava/lang/Object;)V",
+            "setSavedStateProvider(Ljava/lang/String;Landroidx/savedstate/SavedStateRegistry$SavedStateProvider;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/window/layout/adapter/sidecar/SidecarCompat;",
+          "engine_methods": 6,
+          "app_methods": 16,
+          "app_only_methods": [
+            "<clinit>()V",
+            "<init>(Landroidx/window/sidecar/SidecarInterface;Landroidx/window/layout/adapter/sidecar/SidecarAdapter;)V",
+            "access$getExtensionCallback$p(Landroidx/window/layout/adapter/sidecar/SidecarCompat;)Landroidx/window/layout/adapter/sidecar/SidecarCompat$DistinctElementCallback;",
+            "access$getSidecarAdapter$p(Landroidx/window/layout/adapter/sidecar/SidecarCompat;)Landroidx/window/layout/adapter/sidecar/SidecarAdapter;",
+            "access$getWindowListenerRegisteredContexts$p(Landroidx/window/layout/adapter/sidecar/SidecarCompat;)Ljava/util/Map;",
+            "getSidecar()Landroidx/window/sidecar/SidecarInterface;",
+            "getWindowLayoutInfo(Landroid/app/Activity;)Landroidx/window/layout/WindowLayoutInfo;",
+            "onWindowLayoutChangeListenerAdded(Landroid/app/Activity;)V",
+            "onWindowLayoutChangeListenerRemoved(Landroid/app/Activity;)V",
+            "register(Landroid/os/IBinder;Landroid/app/Activity;)V",
+            "registerConfigurationChangeListener$lambda$0(Landroidx/window/layout/adapter/sidecar/SidecarCompat;Landroid/app/Activity;Landroid/content/res/Configuration;)V",
+            "registerConfigurationChangeListener(Landroid/app/Activity;)V",
+            "setExtensionCallback(Landroidx/window/layout/adapter/sidecar/ExtensionInterfaceCompat$ExtensionCallbackInterface;)V",
+            "unregisterComponentCallback(Landroid/app/Activity;)V",
+            "validateExtensionInterface()Z"
+          ]
+        },
+        {
+          "class": "Landroidx/core/content/FileProvider;",
+          "engine_methods": 16,
+          "app_methods": 24,
+          "app_only_methods": [
+            "<init>(I)V",
+            "access$000(Ljava/lang/String;)Ljava/lang/String;",
+            "buildPath(Ljava/io/File;[Ljava/lang/String;)Ljava/io/File;",
+            "copyOf([Ljava/lang/Object;I)[Ljava/lang/Object;",
+            "copyOf([Ljava/lang/String;I)[Ljava/lang/String;",
+            "getFileProviderPathsMetaData(Landroid/content/Context;Ljava/lang/String;Landroid/content/pm/ProviderInfo;I)Landroid/content/res/XmlResourceParser;",
+            "getLocalPathStrategy()Landroidx/core/content/FileProvider$PathStrategy;",
+            "getPathStrategy(Landroid/content/Context;Ljava/lang/String;I)Landroidx/core/content/FileProvider$PathStrategy;",
+            "getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
+            "getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;Ljava/lang/String;)Landroid/net/Uri;",
+            "modeToMode(Ljava/lang/String;)I",
+            "parsePathStrategy(Landroid/content/Context;Ljava/lang/String;I)Landroidx/core/content/FileProvider$PathStrategy;",
+            "removeTrailingSlash(Ljava/lang/String;)Ljava/lang/String;"
+          ]
+        },
+        {
+          "class": "Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;",
+          "engine_methods": 4,
+          "app_methods": 13,
+          "app_only_methods": [
+            "access$noLocalProvidedFor(Ljava/lang/String;)Ljava/lang/Void;",
+            "getLocalConfiguration()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalContext()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalImageVectorCache()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalLifecycleOwner$annotations()V",
+            "getLocalLifecycleOwner()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalResourceIdCache()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalResources()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalSavedStateRegistryOwner$annotations()V",
+            "getLocalSavedStateRegistryOwner()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalView()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "noLocalProvidedFor(Ljava/lang/String;)Ljava/lang/Void;"
+          ]
+        },
+        {
+          "class": "Landroidx/core/app/RemoteActionCompat;",
+          "engine_methods": 1,
+          "app_methods": 13,
+          "app_only_methods": [
+            "<init>(Landroidx/core/app/RemoteActionCompat;)V",
+            "<init>(Landroidx/core/graphics/drawable/IconCompat;Ljava/lang/CharSequence;Ljava/lang/CharSequence;Landroid/app/PendingIntent;)V",
+            "createFromRemoteAction(Landroid/app/RemoteAction;)Landroidx/core/app/RemoteActionCompat;",
+            "getActionIntent()Landroid/app/PendingIntent;",
+            "getContentDescription()Ljava/lang/CharSequence;",
+            "getIcon()Landroidx/core/graphics/drawable/IconCompat;",
+            "getTitle()Ljava/lang/CharSequence;",
+            "isEnabled()Z",
+            "setEnabled(Z)V",
+            "setShouldShowIcon(Z)V",
+            "shouldShowIcon()Z",
+            "toRemoteAction()Landroid/app/RemoteAction;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/Transformations;",
+          "engine_methods": 2,
+          "app_methods": 11,
+          "app_only_methods": [
+            "$r8$lambda$skahzJt915myAFMlecWfN1CaVsE(Landroidx/lifecycle/MediatorLiveData;Ljava/lang/Object;)Lkotlin/Unit;",
+            "distinctUntilChanged$lambda$0(Landroidx/lifecycle/MediatorLiveData;Lkotlin/jvm/internal/Ref$BooleanRef;Ljava/lang/Object;)Lkotlin/Unit;",
+            "distinctUntilChanged(Landroidx/lifecycle/LiveData;)Landroidx/lifecycle/LiveData;",
+            "map$lambda$0(Landroidx/lifecycle/MediatorLiveData;Lkotlin/jvm/functions/Function1;Ljava/lang/Object;)Lkotlin/Unit;",
+            "map$lambda$1(Landroidx/lifecycle/MediatorLiveData;Landroidx/arch/core/util/Function;Ljava/lang/Object;)Lkotlin/Unit;",
+            "map(Landroidx/lifecycle/LiveData;Landroidx/arch/core/util/Function;)Landroidx/lifecycle/LiveData;",
+            "map(Landroidx/lifecycle/LiveData;Lkotlin/jvm/functions/Function1;)Landroidx/lifecycle/LiveData;",
+            "switchMap$lambda$0$0(Landroidx/lifecycle/MediatorLiveData;Ljava/lang/Object;)Lkotlin/Unit;",
+            "switchMap$lambda$0(Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/Ref$ObjectRef;Landroidx/lifecycle/MediatorLiveData;Ljava/lang/Object;)Lkotlin/Unit;",
+            "switchMap(Landroidx/lifecycle/LiveData;Landroidx/arch/core/util/Function;)Landroidx/lifecycle/LiveData;",
+            "switchMap(Landroidx/lifecycle/LiveData;Lkotlin/jvm/functions/Function1;)Landroidx/lifecycle/LiveData;"
+          ]
+        },
+        {
+          "class": "Landroidx/loader/app/LoaderManagerImpl;",
+          "engine_methods": 3,
+          "app_methods": 11,
+          "app_only_methods": [
+            "<clinit>()V",
+            "<init>(Landroidx/lifecycle/LifecycleOwner;Landroidx/lifecycle/ViewModelStore;)V",
+            "createAndInstallLoader(ILandroid/os/Bundle;Landroidx/loader/app/LoaderManager$LoaderCallbacks;Landroidx/loader/content/Loader;)Landroidx/loader/content/Loader;",
+            "destroyLoader(I)V",
+            "dump(Ljava/lang/String;Ljava/io/FileDescriptor;Ljava/io/PrintWriter;[Ljava/lang/String;)V",
+            "getLoader(I)Landroidx/loader/content/Loader;",
+            "hasRunningLoaders()Z",
+            "initLoader(ILandroid/os/Bundle;Landroidx/loader/app/LoaderManager$LoaderCallbacks;)Landroidx/loader/content/Loader;",
+            "markForRedelivery()V",
+            "restartLoader(ILandroid/os/Bundle;Landroidx/loader/app/LoaderManager$LoaderCallbacks;)Landroidx/loader/content/Loader;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/CoroutineLiveDataKt;",
+          "engine_methods": 1,
+          "app_methods": 8,
+          "app_only_methods": [
+            "addDisposableSource(Landroidx/lifecycle/MediatorLiveData;Landroidx/lifecycle/LiveData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;",
+            "liveData$default(Ljava/time/Duration;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Landroidx/lifecycle/LiveData;",
+            "liveData$default(Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;ILjava/lang/Object;)Landroidx/lifecycle/LiveData;",
+            "liveData(Ljava/time/Duration;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;",
+            "liveData(Ljava/time/Duration;Lkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;",
+            "liveData(Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;",
+            "liveData(Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;",
+            "liveData(Lkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;"
+          ]
+        },
+        {
+          "class": "Landroidx/profileinstaller/ProfileInstallerInitializer;",
+          "engine_methods": 3,
+          "app_methods": 9,
+          "app_only_methods": [
+            "create(Landroid/content/Context;)Landroidx/profileinstaller/ProfileInstallerInitializer$Result;",
+            "create(Landroid/content/Context;)Ljava/lang/Object;",
+            "dependencies()Ljava/util/List;",
+            "installAfterDelay(Landroid/content/Context;)V",
+            "lambda$create$0$androidx-profileinstaller-ProfileInstallerInitializer(Landroid/content/Context;J)V",
+            "lambda$installAfterDelay$1(Landroid/content/Context;)V",
+            "lambda$writeInBackground$2(Landroid/content/Context;)V",
+            "writeInBackground(Landroid/content/Context;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/graphics/path/ConicConverter;",
+          "engine_methods": 2,
+          "app_methods": 9,
+          "app_only_methods": [
+            "convert$default(Landroidx/graphics/path/ConicConverter;[FFFIILjava/lang/Object;)V",
+            "convert([FFFI)V",
+            "getCurrentQuadratic()I",
+            "getQuadraticCount()I",
+            "nextQuadratic$default(Landroidx/graphics/path/ConicConverter;[FIILjava/lang/Object;)Z",
+            "nextQuadratic([FI)Z",
+            "setCurrentQuadratic(I)V"
+          ]
+        },
+        {
+          "class": "Lokhttp3/internal/publicsuffix/PublicSuffixDatabase;",
+          "engine_methods": 5,
+          "app_methods": 9,
+          "app_only_methods": [
+            "access$getInstance$cp()Lokhttp3/internal/publicsuffix/PublicSuffixDatabase;",
+            "findMatchingRule(Ljava/util/List;)Ljava/util/List;",
+            "getEffectiveTldPlusOne(Ljava/lang/String;)Ljava/lang/String;",
+            "readTheList()V",
+            "readTheListUninterruptibly()V",
+            "setListBytes([B[B)V",
+            "splitDomain(Ljava/lang/String;)Ljava/util/List;"
+          ]
+        },
+        {
+          "class": "Landroidx/graphics/path/PathIteratorPreApi34Impl;",
+          "engine_methods": 8,
+          "app_methods": 14,
+          "app_only_methods": [
+            "<init>(Landroid/graphics/Path;Landroidx/graphics/path/PathIterator$ConicEvaluation;F)V",
+            "<init>(Landroid/graphics/Path;Landroidx/graphics/path/PathIterator$ConicEvaluation;FILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+            "calculateSize(Z)I",
+            "hasNext()Z",
+            "next([FI)Landroidx/graphics/path/PathSegment$Type;",
+            "peek()Landroidx/graphics/path/PathSegment$Type;"
+          ]
+        },
+        {
+          "class": "Landroidx/loader/app/LoaderManagerImpl$LoaderInfo;",
+          "engine_methods": 13,
+          "app_methods": 13,
+          "app_only_methods": [
+            "<init>(ILandroid/os/Bundle;Landroidx/loader/content/Loader;Landroidx/loader/content/Loader;)V",
+            "destroy(Z)Landroidx/loader/content/Loader;",
+            "getLoader()Landroidx/loader/content/Loader;",
+            "onLoadComplete(Landroidx/loader/content/Loader;Ljava/lang/Object;)V",
+            "removeObserver(Landroidx/lifecycle/Observer;)V",
+            "setCallback(Landroidx/lifecycle/LifecycleOwner;Landroidx/loader/app/LoaderManager$LoaderCallbacks;)Landroidx/loader/content/Loader;"
+          ]
+        },
+        {
+          "class": "Landroidx/emoji2/text/EmojiCompatInitializer;",
+          "engine_methods": 3,
+          "app_methods": 6,
+          "app_only_methods": [
+            "create(Landroid/content/Context;)Ljava/lang/Boolean;",
+            "create(Landroid/content/Context;)Ljava/lang/Object;",
+            "delayUntilFirstResume(Landroid/content/Context;)V",
+            "dependencies()Ljava/util/List;",
+            "loadEmojiCompatAfterDelay()V"
+          ]
+        },
+        {
+          "class": "Landroidx/compose/ui/platform/ComposeView;",
+          "engine_methods": 9,
+          "app_methods": 10,
+          "app_only_methods": [
+            "<clinit>()V",
+            "<init>(Landroid/content/Context;Landroid/util/AttributeSet;IILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+            "Content(Landroidx/compose/runtime/Composer;I)V",
+            "setContent(Lkotlin/jvm/functions/Function2;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/CoroutineLiveData;",
+          "engine_methods": 8,
+          "app_methods": 7,
+          "app_only_methods": [
+            "<init>(Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;)V",
+            "<init>(Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+            "emitSource$lifecycle_livedata(Landroidx/lifecycle/LiveData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/ProcessLifecycleInitializer;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "create(Landroid/content/Context;)Landroidx/lifecycle/LifecycleOwner;",
+            "create(Landroid/content/Context;)Ljava/lang/Object;",
+            "dependencies()Ljava/util/List;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/Transformations$switchMap$2;",
+          "engine_methods": 6,
+          "app_methods": 5,
+          "app_only_methods": [
+            "<init>(Landroidx/arch/core/util/Function;Landroidx/lifecycle/MediatorLiveData;)V",
+            "getLiveData()Landroidx/lifecycle/LiveData;",
+            "setLiveData(Landroidx/lifecycle/LiveData;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/window/layout/adapter/extensions/MulticastConsumer;",
+          "engine_methods": 4,
+          "app_methods": 6,
+          "app_only_methods": [
+            "addListener(Landroidx/core/util/Consumer;)V",
+            "isEmpty()Z",
+            "removeListener(Landroidx/core/util/Consumer;)V"
+          ]
+        },
+        {
+          "class": "Lkotlin/time/ComparableTimeMark;",
+          "engine_methods": 6,
+          "app_methods": 9,
+          "app_only_methods": [
+            "compareTo(Ljava/lang/Object;)I",
+            "minus-LRDsOJo(J)Lkotlin/time/TimeMark;",
+            "plus-LRDsOJo(J)Lkotlin/time/TimeMark;"
+          ]
+        },
+        {
+          "class": "Landroidx/core/app/RemoteActionCompatParcelizer;",
+          "engine_methods": 3,
+          "app_methods": 3,
+          "app_only_methods": [
+            "read(Landroidx/versionedparcelable/VersionedParcel;)Landroidx/core/app/RemoteActionCompat;",
+            "write(Landroidx/core/app/RemoteActionCompat;Landroidx/versionedparcelable/VersionedParcel;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/core/graphics/drawable/IconCompatParcelizer;",
+          "engine_methods": 3,
+          "app_methods": 3,
+          "app_only_methods": [
+            "read(Landroidx/versionedparcelable/VersionedParcel;)Landroidx/core/graphics/drawable/IconCompat;",
+            "write(Landroidx/core/graphics/drawable/IconCompat;Landroidx/versionedparcelable/VersionedParcel;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/compose/ui/platform/LifecycleRetainedValuesStoreOwner;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "<clinit>()V",
+            "getOrCreateRetainedValuesStoreEntry(I)Landroidx/compose/ui/platform/LifecycleRetainedValuesStoreOwner$RetainedValuesStoreEntry;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/MediatorLiveData;",
+          "engine_methods": 6,
+          "app_methods": 6,
+          "app_only_methods": [
+            "addSource(Landroidx/lifecycle/LiveData;Landroidx/lifecycle/Observer;)V",
+            "removeSource(Landroidx/lifecycle/LiveData;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/CoroutineLiveDataKt$sam$androidx_lifecycle_Observer$0;",
+          "engine_methods": 5,
+          "app_methods": 5,
+          "app_only_methods": [
+            "<init>(Lkotlin/jvm/functions/Function1;)V",
+            "getFunctionDelegate()Lkotlin/Function;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/Transformations$sam$androidx_lifecycle_Observer$0;",
+          "engine_methods": 5,
+          "app_methods": 5,
+          "app_only_methods": [
+            "<init>(Lkotlin/jvm/functions/Function1;)V",
+            "getFunctionDelegate()Lkotlin/Function;"
+          ]
+        },
+        {
+          "class": "Landroidx/profileinstaller/ProfileInstallReceiver;",
+          "engine_methods": 2,
+          "app_methods": 4,
+          "app_only_methods": [
+            "saveProfile(ILandroidx/profileinstaller/ProfileInstaller$DiagnosticsCallback;)V",
+            "saveProfile(Landroidx/profileinstaller/ProfileInstaller$DiagnosticsCallback;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/versionedparcelable/CustomVersionedParcelable;",
+          "engine_methods": 1,
+          "app_methods": 3,
+          "app_only_methods": [
+            "onPostParceling()V",
+            "onPreParceling(Z)V"
+          ]
+        },
+        {
+          "class": "Landroidx/versionedparcelable/ParcelImpl;",
+          "engine_methods": 5,
+          "app_methods": 6,
+          "app_only_methods": [
+            "<init>(Landroidx/versionedparcelable/VersionedParcelable;)V",
+            "getVersionedParcel()Landroidx/versionedparcelable/VersionedParcelable;"
+          ]
+        },
+        {
+          "class": "Landroidx/window/layout/adapter/sidecar/DistinctElementSidecarCallback;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "<init>(Landroidx/window/layout/adapter/sidecar/SidecarAdapter;Landroidx/window/sidecar/SidecarInterface$SidecarCallback;)V",
+            "<init>(Landroidx/window/sidecar/SidecarInterface$SidecarCallback;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/compose/ui/input/pointer/PointerInputEventHandler;",
+          "engine_methods": 1,
+          "app_methods": 1,
+          "app_only_methods": [
+            "invoke(Landroidx/compose/ui/input/pointer/PointerInputScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;"
+          ]
+        },
+        {
+          "class": "Landroidx/core/app/CoreComponentFactory;",
+          "engine_methods": 7,
+          "app_methods": 7,
+          "app_only_methods": [
+            "checkCompatWrapper(Ljava/lang/Object;)Ljava/lang/Object;"
+          ]
+        },
+        {
+          "class": "Lkotlin/coroutines/Continuation;",
+          "engine_methods": 2,
+          "app_methods": 2,
+          "app_only_methods": [
+            "getContext()Lkotlin/coroutines/CoroutineContext;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/ComputableLiveData$_liveData$1;",
+          "engine_methods": 2,
+          "app_methods": 2,
+          "app_only_methods": [
+            "<init>(Landroidx/lifecycle/ComputableLiveData;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/LiveDataKt$observe$wrappedObserver$1;",
+          "engine_methods": 2,
+          "app_methods": 2,
+          "app_only_methods": [
+            "<init>(Lkotlin/jvm/functions/Function1;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/MediatorLiveData$Source;",
+          "engine_methods": 4,
+          "app_methods": 4,
+          "app_only_methods": [
+            "<init>(Landroidx/lifecycle/LiveData;Landroidx/lifecycle/Observer;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/loader/app/LoaderManagerImpl$LoaderObserver;",
+          "engine_methods": 6,
+          "app_methods": 6,
+          "app_only_methods": [
+            "<init>(Landroidx/loader/content/Loader;Landroidx/loader/app/LoaderManager$LoaderCallbacks;)V"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KProperty0;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "getGetter()Lkotlin/reflect/KProperty$Getter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KMutableProperty0;",
+          "engine_methods": 2,
+          "app_methods": 3,
+          "app_only_methods": [
+            "getSetter()Lkotlin/reflect/KMutableProperty$Setter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KProperty1;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "getGetter()Lkotlin/reflect/KProperty$Getter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KMutableProperty1;",
+          "engine_methods": 2,
+          "app_methods": 3,
+          "app_only_methods": [
+            "getSetter()Lkotlin/reflect/KMutableProperty$Setter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KProperty2;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "getGetter()Lkotlin/reflect/KProperty$Getter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KMutableProperty2;",
+          "engine_methods": 2,
+          "app_methods": 3,
+          "app_only_methods": [
+            "getSetter()Lkotlin/reflect/KMutableProperty$Setter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/time/TimeSource$WithComparableMarks;",
+          "engine_methods": 1,
+          "app_methods": 2,
+          "app_only_methods": [
+            "markNow()Lkotlin/time/TimeMark;"
+          ]
+        },
+        {
+          "class": "Lorg/jetbrains/annotations/Contract;",
+          "engine_methods": 2,
+          "app_methods": 3,
+          "app_only_methods": [
+            "mutates()Ljava/lang/String;"
+          ]
+        },
+        {
+          "class": "Lorg/jetbrains/annotations/Nls;",
+          "engine_methods": 0,
+          "app_methods": 1,
+          "app_only_methods": [
+            "capitalization()Lorg/jetbrains/annotations/Nls$Capitalization;"
+          ]
+        },
+        {
+          "class": "Lorg/jetbrains/annotations/NotNull;",
+          "engine_methods": 1,
+          "app_methods": 2,
+          "app_only_methods": [
+            "exception()Ljava/lang/Class;"
+          ]
+        },
+        {
+          "class": "Landroid/support/v4/app/RemoteActionCompatParcelizer;",
+          "engine_methods": 3,
+          "app_methods": 3,
+          "app_only_methods": []
+        },
+        {
+          "class": "Landroid/support/v4/graphics/drawable/IconCompatParcelizer;",
+          "engine_methods": 3,
+          "app_methods": 3,
+          "app_only_methods": []
+        }
+      ]
+    },
+    "car-app\\build\\outputs\\apk\\release\\car-app-release-unsigned.apk": {
+      "classes": 16383,
+      "shared": 1151,
+      "different": 51,
+      "prefixes": {
+        "Landroidx/": {
+          "engine": 2039,
+          "app": 13004,
+          "shared": 49,
+          "different": 36
+        },
+        "Lcoil3/": {
+          "engine": 0,
+          "app": 513,
+          "shared": 0,
+          "different": 0
+        },
+        "Lkotlin/": {
+          "engine": 1131,
+          "app": 1080,
+          "shared": 1067,
+          "different": 9
+        },
+        "Lkotlinx/": {
+          "engine": 0,
+          "app": 1142,
+          "shared": 0,
+          "different": 0
+        },
+        "Lcoil/": {
+          "engine": 0,
+          "app": 0,
+          "shared": 0,
+          "different": 0
+        },
+        "Lokhttp3/": {
+          "engine": 2,
+          "app": 319,
+          "shared": 1,
+          "different": 1
+        },
+        "Lokio/": {
+          "engine": 0,
+          "app": 124,
+          "shared": 0,
+          "different": 0
+        },
+        "Lcom/google/": {
+          "engine": 3508,
+          "app": 9,
+          "shared": 0,
+          "different": 0
+        },
+        "Lorg/jetbrains/": {
+          "engine": 7,
+          "app": 30,
+          "shared": 7,
+          "different": 3
+        }
+      },
+      "examples": [
+        {
+          "class": "Landroidx/core/widget/NestedScrollView;",
+          "engine_methods": 86,
+          "app_methods": 122,
+          "app_only_methods": [
+            "abortAnimatedScroll()V",
+            "access$000(Landroidx/core/widget/NestedScrollView;)Landroid/widget/OverScroller;",
+            "arrowScroll(I)Z",
+            "canOverScroll()Z",
+            "canScroll()Z",
+            "clamp(III)I",
+            "computeScrollDeltaToGetChildRectOnScreen(Landroid/graphics/Rect;)I",
+            "consumeFlingInVerticalStretch(I)I",
+            "dispatchNestedPreScroll(II[I[II)Z",
+            "dispatchNestedScroll(IIII[II)Z",
+            "dispatchNestedScroll(IIII[II[I)V",
+            "doScrollY(I)V",
+            "edgeEffectFling(I)Z",
+            "endTouchDrag()V",
+            "executeKeyEvent(Landroid/view/KeyEvent;)Z",
+            "findFocusableViewInBounds(ZII)Landroid/view/View;",
+            "fling(I)V",
+            "fullScroll(I)Z",
+            "getScrollFeedbackProvider()Landroidx/core/view/ScrollFeedbackProviderCompat;",
+            "getSplineFlingDistance(I)F",
+            "hasNestedScrollingParent(I)Z",
+            "inChild(II)Z",
+            "initOrResetVelocityTracker()V",
+            "initScrollView()V",
+            "initVelocityTrackerIfNotExists()V",
+            "initializeTouchDrag(II)V",
+            "isFillViewport()Z",
+            "isOffScreen(Landroid/view/View;)Z",
+            "isSmoothScrollingEnabled()Z",
+            "isViewDescendantOf(Landroid/view/View;Landroid/view/View;)Z",
+            "isWithinDeltaOfScreen(Landroid/view/View;II)Z",
+            "onNestedPreScroll(Landroid/view/View;II[II)V",
+            "onNestedScroll(Landroid/view/View;IIIII)V",
+            "onNestedScroll(Landroid/view/View;IIIII[I)V",
+            "onNestedScrollAccepted(Landroid/view/View;Landroid/view/View;II)V",
+            "onNestedScrollInternal(II[I)V",
+            "onSecondaryPointerUp(Landroid/view/MotionEvent;)V",
+            "onStartNestedScroll(Landroid/view/View;Landroid/view/View;II)Z",
+            "onStopNestedScroll(Landroid/view/View;I)V",
+            "overScrollByCompat(IIIIIIIIZ)Z",
+            "pageScroll(I)Z",
+            "recycleVelocityTracker()V",
+            "releaseVerticalGlow(IF)I",
+            "runAnimatedScroll(Z)V",
+            "scrollAndFocus(III)Z",
+            "scrollBy(IIIZ)I",
+            "scrollBy(IILandroid/view/MotionEvent;IIZ)I",
+            "scrollToChild(Landroid/view/View;)V",
+            "scrollToChildRect(Landroid/graphics/Rect;Z)Z",
+            "setOnScrollChangeListener(Landroidx/core/widget/NestedScrollView$OnScrollChangeListener;)V",
+            "shouldAbsorb(Landroid/widget/EdgeEffect;I)Z",
+            "smoothScrollBy(II)V",
+            "smoothScrollBy(III)V",
+            "smoothScrollBy(IIIZ)V",
+            "smoothScrollTo(II)V",
+            "smoothScrollTo(III)V",
+            "smoothScrollTo(IIIZ)V",
+            "smoothScrollTo(IIZ)V",
+            "startNestedScroll(II)Z",
+            "stopGlowAnimations(Landroid/view/MotionEvent;)Z",
+            "stopNestedScroll(I)V"
+          ]
+        },
+        {
+          "class": "Landroidx/core/graphics/drawable/IconCompat;",
+          "engine_methods": 13,
+          "app_methods": 37,
+          "app_only_methods": [
+            "addToShortcutIntent(Landroid/content/Intent;Landroid/graphics/drawable/Drawable;Landroid/content/Context;)V",
+            "checkResource(Landroid/content/Context;)V",
+            "createFromBundle(Landroid/os/Bundle;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createFromIcon(Landroid/content/Context;Landroid/graphics/drawable/Icon;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createFromIcon(Landroid/graphics/drawable/Icon;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createFromIconOrNullIfZeroResId(Landroid/graphics/drawable/Icon;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createLegacyIconFromAdaptiveIcon(Landroid/graphics/Bitmap;Z)Landroid/graphics/Bitmap;",
+            "createWithAdaptiveBitmap(Landroid/graphics/Bitmap;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithAdaptiveBitmapContentUri(Landroid/net/Uri;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithAdaptiveBitmapContentUri(Ljava/lang/String;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithBitmap(Landroid/graphics/Bitmap;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithContentUri(Landroid/net/Uri;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithContentUri(Ljava/lang/String;)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithData([BII)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithResource(Landroid/content/Context;I)Landroidx/core/graphics/drawable/IconCompat;",
+            "createWithResource(Landroid/content/res/Resources;Ljava/lang/String;I)Landroidx/core/graphics/drawable/IconCompat;",
+            "getBitmap()Landroid/graphics/Bitmap;",
+            "getResId()I",
+            "getResPackage()Ljava/lang/String;",
+            "getResources(Landroid/content/Context;Ljava/lang/String;)Landroid/content/res/Resources;",
+            "getType()I",
+            "getUri()Landroid/net/Uri;",
+            "getUriInputStream(Landroid/content/Context;)Ljava/io/InputStream;",
+            "loadDrawable(Landroid/content/Context;)Landroid/graphics/drawable/Drawable;",
+            "onPostParceling()V",
+            "onPreParceling(Z)V",
+            "setTint(I)Landroidx/core/graphics/drawable/IconCompat;",
+            "setTintList(Landroid/content/res/ColorStateList;)Landroidx/core/graphics/drawable/IconCompat;",
+            "setTintMode(Landroid/graphics/PorterDuff$Mode;)Landroidx/core/graphics/drawable/IconCompat;",
+            "toBundle()Landroid/os/Bundle;",
+            "toIcon()Landroid/graphics/drawable/Icon;",
+            "toIcon(Landroid/content/Context;)Landroid/graphics/drawable/Icon;",
+            "typeToString(I)Ljava/lang/String;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/SavedStateHandle;",
+          "engine_methods": 5,
+          "app_methods": 18,
+          "app_only_methods": [
+            "<clinit>()V",
+            "<init>(Ljava/util/Map;)V",
+            "access$getImpl$p(Landroidx/lifecycle/SavedStateHandle;)Landroidx/lifecycle/internal/SavedStateHandleImpl;",
+            "clearSavedStateProvider(Ljava/lang/String;)V",
+            "contains(Ljava/lang/String;)Z",
+            "createHandle(Landroid/os/Bundle;Landroid/os/Bundle;)Landroidx/lifecycle/SavedStateHandle;",
+            "get(Ljava/lang/String;)Ljava/lang/Object;",
+            "getLiveData(Ljava/lang/String;)Landroidx/lifecycle/MutableLiveData;",
+            "getLiveData(Ljava/lang/String;Ljava/lang/Object;)Landroidx/lifecycle/MutableLiveData;",
+            "getLiveDataInternal(Ljava/lang/String;ZLjava/lang/Object;)Landroidx/lifecycle/MutableLiveData;",
+            "getMutableStateFlow(Ljava/lang/String;Ljava/lang/Object;)Lkotlinx/coroutines/flow/MutableStateFlow;",
+            "getStateFlow(Ljava/lang/String;Ljava/lang/Object;)Lkotlinx/coroutines/flow/StateFlow;",
+            "keys()Ljava/util/Set;",
+            "remove(Ljava/lang/String;)Ljava/lang/Object;",
+            "savedStateProvider()Landroidx/savedstate/SavedStateRegistry$SavedStateProvider;",
+            "set(Ljava/lang/String;Ljava/lang/Object;)V",
+            "setSavedStateProvider(Ljava/lang/String;Landroidx/savedstate/SavedStateRegistry$SavedStateProvider;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/window/layout/adapter/sidecar/SidecarCompat;",
+          "engine_methods": 6,
+          "app_methods": 16,
+          "app_only_methods": [
+            "<clinit>()V",
+            "<init>(Landroidx/window/sidecar/SidecarInterface;Landroidx/window/layout/adapter/sidecar/SidecarAdapter;)V",
+            "access$getExtensionCallback$p(Landroidx/window/layout/adapter/sidecar/SidecarCompat;)Landroidx/window/layout/adapter/sidecar/SidecarCompat$DistinctElementCallback;",
+            "access$getSidecarAdapter$p(Landroidx/window/layout/adapter/sidecar/SidecarCompat;)Landroidx/window/layout/adapter/sidecar/SidecarAdapter;",
+            "access$getWindowListenerRegisteredContexts$p(Landroidx/window/layout/adapter/sidecar/SidecarCompat;)Ljava/util/Map;",
+            "getSidecar()Landroidx/window/sidecar/SidecarInterface;",
+            "getWindowLayoutInfo(Landroid/app/Activity;)Landroidx/window/layout/WindowLayoutInfo;",
+            "onWindowLayoutChangeListenerAdded(Landroid/app/Activity;)V",
+            "onWindowLayoutChangeListenerRemoved(Landroid/app/Activity;)V",
+            "register(Landroid/os/IBinder;Landroid/app/Activity;)V",
+            "registerConfigurationChangeListener$lambda$0(Landroidx/window/layout/adapter/sidecar/SidecarCompat;Landroid/app/Activity;Landroid/content/res/Configuration;)V",
+            "registerConfigurationChangeListener(Landroid/app/Activity;)V",
+            "setExtensionCallback(Landroidx/window/layout/adapter/sidecar/ExtensionInterfaceCompat$ExtensionCallbackInterface;)V",
+            "unregisterComponentCallback(Landroid/app/Activity;)V",
+            "validateExtensionInterface()Z"
+          ]
+        },
+        {
+          "class": "Landroidx/core/content/FileProvider;",
+          "engine_methods": 16,
+          "app_methods": 24,
+          "app_only_methods": [
+            "<init>(I)V",
+            "access$000(Ljava/lang/String;)Ljava/lang/String;",
+            "buildPath(Ljava/io/File;[Ljava/lang/String;)Ljava/io/File;",
+            "copyOf([Ljava/lang/Object;I)[Ljava/lang/Object;",
+            "copyOf([Ljava/lang/String;I)[Ljava/lang/String;",
+            "getFileProviderPathsMetaData(Landroid/content/Context;Ljava/lang/String;Landroid/content/pm/ProviderInfo;I)Landroid/content/res/XmlResourceParser;",
+            "getLocalPathStrategy()Landroidx/core/content/FileProvider$PathStrategy;",
+            "getPathStrategy(Landroid/content/Context;Ljava/lang/String;I)Landroidx/core/content/FileProvider$PathStrategy;",
+            "getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;",
+            "getUriForFile(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;Ljava/lang/String;)Landroid/net/Uri;",
+            "modeToMode(Ljava/lang/String;)I",
+            "parsePathStrategy(Landroid/content/Context;Ljava/lang/String;I)Landroidx/core/content/FileProvider$PathStrategy;",
+            "removeTrailingSlash(Ljava/lang/String;)Ljava/lang/String;"
+          ]
+        },
+        {
+          "class": "Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;",
+          "engine_methods": 4,
+          "app_methods": 13,
+          "app_only_methods": [
+            "access$noLocalProvidedFor(Ljava/lang/String;)Ljava/lang/Void;",
+            "getLocalConfiguration()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalContext()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalImageVectorCache()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalLifecycleOwner$annotations()V",
+            "getLocalLifecycleOwner()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalResourceIdCache()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalResources()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalSavedStateRegistryOwner$annotations()V",
+            "getLocalSavedStateRegistryOwner()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "getLocalView()Landroidx/compose/runtime/ProvidableCompositionLocal;",
+            "noLocalProvidedFor(Ljava/lang/String;)Ljava/lang/Void;"
+          ]
+        },
+        {
+          "class": "Landroidx/core/app/RemoteActionCompat;",
+          "engine_methods": 1,
+          "app_methods": 13,
+          "app_only_methods": [
+            "<init>(Landroidx/core/app/RemoteActionCompat;)V",
+            "<init>(Landroidx/core/graphics/drawable/IconCompat;Ljava/lang/CharSequence;Ljava/lang/CharSequence;Landroid/app/PendingIntent;)V",
+            "createFromRemoteAction(Landroid/app/RemoteAction;)Landroidx/core/app/RemoteActionCompat;",
+            "getActionIntent()Landroid/app/PendingIntent;",
+            "getContentDescription()Ljava/lang/CharSequence;",
+            "getIcon()Landroidx/core/graphics/drawable/IconCompat;",
+            "getTitle()Ljava/lang/CharSequence;",
+            "isEnabled()Z",
+            "setEnabled(Z)V",
+            "setShouldShowIcon(Z)V",
+            "shouldShowIcon()Z",
+            "toRemoteAction()Landroid/app/RemoteAction;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/Transformations;",
+          "engine_methods": 2,
+          "app_methods": 11,
+          "app_only_methods": [
+            "$r8$lambda$skahzJt915myAFMlecWfN1CaVsE(Landroidx/lifecycle/MediatorLiveData;Ljava/lang/Object;)Lkotlin/Unit;",
+            "distinctUntilChanged$lambda$0(Landroidx/lifecycle/MediatorLiveData;Lkotlin/jvm/internal/Ref$BooleanRef;Ljava/lang/Object;)Lkotlin/Unit;",
+            "distinctUntilChanged(Landroidx/lifecycle/LiveData;)Landroidx/lifecycle/LiveData;",
+            "map$lambda$0(Landroidx/lifecycle/MediatorLiveData;Lkotlin/jvm/functions/Function1;Ljava/lang/Object;)Lkotlin/Unit;",
+            "map$lambda$1(Landroidx/lifecycle/MediatorLiveData;Landroidx/arch/core/util/Function;Ljava/lang/Object;)Lkotlin/Unit;",
+            "map(Landroidx/lifecycle/LiveData;Landroidx/arch/core/util/Function;)Landroidx/lifecycle/LiveData;",
+            "map(Landroidx/lifecycle/LiveData;Lkotlin/jvm/functions/Function1;)Landroidx/lifecycle/LiveData;",
+            "switchMap$lambda$0$0(Landroidx/lifecycle/MediatorLiveData;Ljava/lang/Object;)Lkotlin/Unit;",
+            "switchMap$lambda$0(Lkotlin/jvm/functions/Function1;Lkotlin/jvm/internal/Ref$ObjectRef;Landroidx/lifecycle/MediatorLiveData;Ljava/lang/Object;)Lkotlin/Unit;",
+            "switchMap(Landroidx/lifecycle/LiveData;Landroidx/arch/core/util/Function;)Landroidx/lifecycle/LiveData;",
+            "switchMap(Landroidx/lifecycle/LiveData;Lkotlin/jvm/functions/Function1;)Landroidx/lifecycle/LiveData;"
+          ]
+        },
+        {
+          "class": "Landroidx/loader/app/LoaderManagerImpl;",
+          "engine_methods": 3,
+          "app_methods": 11,
+          "app_only_methods": [
+            "<clinit>()V",
+            "<init>(Landroidx/lifecycle/LifecycleOwner;Landroidx/lifecycle/ViewModelStore;)V",
+            "createAndInstallLoader(ILandroid/os/Bundle;Landroidx/loader/app/LoaderManager$LoaderCallbacks;Landroidx/loader/content/Loader;)Landroidx/loader/content/Loader;",
+            "destroyLoader(I)V",
+            "dump(Ljava/lang/String;Ljava/io/FileDescriptor;Ljava/io/PrintWriter;[Ljava/lang/String;)V",
+            "getLoader(I)Landroidx/loader/content/Loader;",
+            "hasRunningLoaders()Z",
+            "initLoader(ILandroid/os/Bundle;Landroidx/loader/app/LoaderManager$LoaderCallbacks;)Landroidx/loader/content/Loader;",
+            "markForRedelivery()V",
+            "restartLoader(ILandroid/os/Bundle;Landroidx/loader/app/LoaderManager$LoaderCallbacks;)Landroidx/loader/content/Loader;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/CoroutineLiveDataKt;",
+          "engine_methods": 1,
+          "app_methods": 8,
+          "app_only_methods": [
+            "addDisposableSource(Landroidx/lifecycle/MediatorLiveData;Landroidx/lifecycle/LiveData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;",
+            "liveData$default(Ljava/time/Duration;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)Landroidx/lifecycle/LiveData;",
+            "liveData$default(Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;ILjava/lang/Object;)Landroidx/lifecycle/LiveData;",
+            "liveData(Ljava/time/Duration;Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;",
+            "liveData(Ljava/time/Duration;Lkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;",
+            "liveData(Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;",
+            "liveData(Lkotlin/coroutines/CoroutineContext;Lkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;",
+            "liveData(Lkotlin/jvm/functions/Function2;)Landroidx/lifecycle/LiveData;"
+          ]
+        },
+        {
+          "class": "Landroidx/profileinstaller/ProfileInstallerInitializer;",
+          "engine_methods": 3,
+          "app_methods": 9,
+          "app_only_methods": [
+            "create(Landroid/content/Context;)Landroidx/profileinstaller/ProfileInstallerInitializer$Result;",
+            "create(Landroid/content/Context;)Ljava/lang/Object;",
+            "dependencies()Ljava/util/List;",
+            "installAfterDelay(Landroid/content/Context;)V",
+            "lambda$create$0$androidx-profileinstaller-ProfileInstallerInitializer(Landroid/content/Context;J)V",
+            "lambda$installAfterDelay$1(Landroid/content/Context;)V",
+            "lambda$writeInBackground$2(Landroid/content/Context;)V",
+            "writeInBackground(Landroid/content/Context;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/graphics/path/ConicConverter;",
+          "engine_methods": 2,
+          "app_methods": 9,
+          "app_only_methods": [
+            "convert$default(Landroidx/graphics/path/ConicConverter;[FFFIILjava/lang/Object;)V",
+            "convert([FFFI)V",
+            "getCurrentQuadratic()I",
+            "getQuadraticCount()I",
+            "nextQuadratic$default(Landroidx/graphics/path/ConicConverter;[FIILjava/lang/Object;)Z",
+            "nextQuadratic([FI)Z",
+            "setCurrentQuadratic(I)V"
+          ]
+        },
+        {
+          "class": "Lokhttp3/internal/publicsuffix/PublicSuffixDatabase;",
+          "engine_methods": 5,
+          "app_methods": 9,
+          "app_only_methods": [
+            "access$getInstance$cp()Lokhttp3/internal/publicsuffix/PublicSuffixDatabase;",
+            "findMatchingRule(Ljava/util/List;)Ljava/util/List;",
+            "getEffectiveTldPlusOne(Ljava/lang/String;)Ljava/lang/String;",
+            "readTheList()V",
+            "readTheListUninterruptibly()V",
+            "setListBytes([B[B)V",
+            "splitDomain(Ljava/lang/String;)Ljava/util/List;"
+          ]
+        },
+        {
+          "class": "Landroidx/graphics/path/PathIteratorPreApi34Impl;",
+          "engine_methods": 8,
+          "app_methods": 14,
+          "app_only_methods": [
+            "<init>(Landroid/graphics/Path;Landroidx/graphics/path/PathIterator$ConicEvaluation;F)V",
+            "<init>(Landroid/graphics/Path;Landroidx/graphics/path/PathIterator$ConicEvaluation;FILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+            "calculateSize(Z)I",
+            "hasNext()Z",
+            "next([FI)Landroidx/graphics/path/PathSegment$Type;",
+            "peek()Landroidx/graphics/path/PathSegment$Type;"
+          ]
+        },
+        {
+          "class": "Landroidx/loader/app/LoaderManagerImpl$LoaderInfo;",
+          "engine_methods": 13,
+          "app_methods": 13,
+          "app_only_methods": [
+            "<init>(ILandroid/os/Bundle;Landroidx/loader/content/Loader;Landroidx/loader/content/Loader;)V",
+            "destroy(Z)Landroidx/loader/content/Loader;",
+            "getLoader()Landroidx/loader/content/Loader;",
+            "onLoadComplete(Landroidx/loader/content/Loader;Ljava/lang/Object;)V",
+            "removeObserver(Landroidx/lifecycle/Observer;)V",
+            "setCallback(Landroidx/lifecycle/LifecycleOwner;Landroidx/loader/app/LoaderManager$LoaderCallbacks;)Landroidx/loader/content/Loader;"
+          ]
+        },
+        {
+          "class": "Landroidx/emoji2/text/EmojiCompatInitializer;",
+          "engine_methods": 3,
+          "app_methods": 6,
+          "app_only_methods": [
+            "create(Landroid/content/Context;)Ljava/lang/Boolean;",
+            "create(Landroid/content/Context;)Ljava/lang/Object;",
+            "delayUntilFirstResume(Landroid/content/Context;)V",
+            "dependencies()Ljava/util/List;",
+            "loadEmojiCompatAfterDelay()V"
+          ]
+        },
+        {
+          "class": "Landroidx/compose/ui/platform/ComposeView;",
+          "engine_methods": 9,
+          "app_methods": 10,
+          "app_only_methods": [
+            "<clinit>()V",
+            "<init>(Landroid/content/Context;Landroid/util/AttributeSet;IILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+            "Content(Landroidx/compose/runtime/Composer;I)V",
+            "setContent(Lkotlin/jvm/functions/Function2;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/CoroutineLiveData;",
+          "engine_methods": 8,
+          "app_methods": 7,
+          "app_only_methods": [
+            "<init>(Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;)V",
+            "<init>(Lkotlin/coroutines/CoroutineContext;JLkotlin/jvm/functions/Function2;ILkotlin/jvm/internal/DefaultConstructorMarker;)V",
+            "emitSource$lifecycle_livedata(Landroidx/lifecycle/LiveData;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/ProcessLifecycleInitializer;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "create(Landroid/content/Context;)Landroidx/lifecycle/LifecycleOwner;",
+            "create(Landroid/content/Context;)Ljava/lang/Object;",
+            "dependencies()Ljava/util/List;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/Transformations$switchMap$2;",
+          "engine_methods": 6,
+          "app_methods": 5,
+          "app_only_methods": [
+            "<init>(Landroidx/arch/core/util/Function;Landroidx/lifecycle/MediatorLiveData;)V",
+            "getLiveData()Landroidx/lifecycle/LiveData;",
+            "setLiveData(Landroidx/lifecycle/LiveData;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/window/layout/adapter/extensions/MulticastConsumer;",
+          "engine_methods": 4,
+          "app_methods": 6,
+          "app_only_methods": [
+            "addListener(Landroidx/core/util/Consumer;)V",
+            "isEmpty()Z",
+            "removeListener(Landroidx/core/util/Consumer;)V"
+          ]
+        },
+        {
+          "class": "Lkotlin/time/ComparableTimeMark;",
+          "engine_methods": 6,
+          "app_methods": 9,
+          "app_only_methods": [
+            "compareTo(Ljava/lang/Object;)I",
+            "minus-LRDsOJo(J)Lkotlin/time/TimeMark;",
+            "plus-LRDsOJo(J)Lkotlin/time/TimeMark;"
+          ]
+        },
+        {
+          "class": "Landroidx/compose/ui/platform/LifecycleRetainedValuesStoreOwner;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "<clinit>()V",
+            "getOrCreateRetainedValuesStoreEntry(I)Landroidx/compose/ui/platform/LifecycleRetainedValuesStoreOwner$RetainedValuesStoreEntry;"
+          ]
+        },
+        {
+          "class": "Landroidx/core/app/RemoteActionCompatParcelizer;",
+          "engine_methods": 3,
+          "app_methods": 3,
+          "app_only_methods": [
+            "read(Landroidx/versionedparcelable/VersionedParcel;)Landroidx/core/app/RemoteActionCompat;",
+            "write(Landroidx/core/app/RemoteActionCompat;Landroidx/versionedparcelable/VersionedParcel;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/versionedparcelable/CustomVersionedParcelable;",
+          "engine_methods": 1,
+          "app_methods": 3,
+          "app_only_methods": [
+            "onPostParceling()V",
+            "onPreParceling(Z)V"
+          ]
+        },
+        {
+          "class": "Landroidx/core/graphics/drawable/IconCompatParcelizer;",
+          "engine_methods": 3,
+          "app_methods": 3,
+          "app_only_methods": [
+            "read(Landroidx/versionedparcelable/VersionedParcel;)Landroidx/core/graphics/drawable/IconCompat;",
+            "write(Landroidx/core/graphics/drawable/IconCompat;Landroidx/versionedparcelable/VersionedParcel;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/MediatorLiveData;",
+          "engine_methods": 6,
+          "app_methods": 6,
+          "app_only_methods": [
+            "addSource(Landroidx/lifecycle/LiveData;Landroidx/lifecycle/Observer;)V",
+            "removeSource(Landroidx/lifecycle/LiveData;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/CoroutineLiveDataKt$sam$androidx_lifecycle_Observer$0;",
+          "engine_methods": 5,
+          "app_methods": 5,
+          "app_only_methods": [
+            "<init>(Lkotlin/jvm/functions/Function1;)V",
+            "getFunctionDelegate()Lkotlin/Function;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/Transformations$sam$androidx_lifecycle_Observer$0;",
+          "engine_methods": 5,
+          "app_methods": 5,
+          "app_only_methods": [
+            "<init>(Lkotlin/jvm/functions/Function1;)V",
+            "getFunctionDelegate()Lkotlin/Function;"
+          ]
+        },
+        {
+          "class": "Landroidx/profileinstaller/ProfileInstallReceiver;",
+          "engine_methods": 2,
+          "app_methods": 4,
+          "app_only_methods": [
+            "saveProfile(ILandroidx/profileinstaller/ProfileInstaller$DiagnosticsCallback;)V",
+            "saveProfile(Landroidx/profileinstaller/ProfileInstaller$DiagnosticsCallback;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/versionedparcelable/ParcelImpl;",
+          "engine_methods": 5,
+          "app_methods": 6,
+          "app_only_methods": [
+            "<init>(Landroidx/versionedparcelable/VersionedParcelable;)V",
+            "getVersionedParcel()Landroidx/versionedparcelable/VersionedParcelable;"
+          ]
+        },
+        {
+          "class": "Landroidx/window/layout/adapter/sidecar/DistinctElementSidecarCallback;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "<init>(Landroidx/window/layout/adapter/sidecar/SidecarAdapter;Landroidx/window/sidecar/SidecarInterface$SidecarCallback;)V",
+            "<init>(Landroidx/window/sidecar/SidecarInterface$SidecarCallback;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/compose/ui/input/pointer/PointerInputEventHandler;",
+          "engine_methods": 1,
+          "app_methods": 1,
+          "app_only_methods": [
+            "invoke(Landroidx/compose/ui/input/pointer/PointerInputScope;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;"
+          ]
+        },
+        {
+          "class": "Lkotlin/coroutines/Continuation;",
+          "engine_methods": 2,
+          "app_methods": 2,
+          "app_only_methods": [
+            "getContext()Lkotlin/coroutines/CoroutineContext;"
+          ]
+        },
+        {
+          "class": "Landroidx/core/app/CoreComponentFactory;",
+          "engine_methods": 7,
+          "app_methods": 7,
+          "app_only_methods": [
+            "checkCompatWrapper(Ljava/lang/Object;)Ljava/lang/Object;"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/ComputableLiveData$_liveData$1;",
+          "engine_methods": 2,
+          "app_methods": 2,
+          "app_only_methods": [
+            "<init>(Landroidx/lifecycle/ComputableLiveData;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/LiveDataKt$observe$wrappedObserver$1;",
+          "engine_methods": 2,
+          "app_methods": 2,
+          "app_only_methods": [
+            "<init>(Lkotlin/jvm/functions/Function1;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/lifecycle/MediatorLiveData$Source;",
+          "engine_methods": 4,
+          "app_methods": 4,
+          "app_only_methods": [
+            "<init>(Landroidx/lifecycle/LiveData;Landroidx/lifecycle/Observer;)V"
+          ]
+        },
+        {
+          "class": "Landroidx/loader/app/LoaderManagerImpl$LoaderObserver;",
+          "engine_methods": 6,
+          "app_methods": 6,
+          "app_only_methods": [
+            "<init>(Landroidx/loader/content/Loader;Landroidx/loader/app/LoaderManager$LoaderCallbacks;)V"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KProperty0;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "getGetter()Lkotlin/reflect/KProperty$Getter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KMutableProperty0;",
+          "engine_methods": 2,
+          "app_methods": 3,
+          "app_only_methods": [
+            "getSetter()Lkotlin/reflect/KMutableProperty$Setter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KProperty1;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "getGetter()Lkotlin/reflect/KProperty$Getter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KMutableProperty1;",
+          "engine_methods": 2,
+          "app_methods": 3,
+          "app_only_methods": [
+            "getSetter()Lkotlin/reflect/KMutableProperty$Setter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KProperty2;",
+          "engine_methods": 3,
+          "app_methods": 4,
+          "app_only_methods": [
+            "getGetter()Lkotlin/reflect/KProperty$Getter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/reflect/KMutableProperty2;",
+          "engine_methods": 2,
+          "app_methods": 3,
+          "app_only_methods": [
+            "getSetter()Lkotlin/reflect/KMutableProperty$Setter;"
+          ]
+        },
+        {
+          "class": "Lkotlin/time/TimeSource$WithComparableMarks;",
+          "engine_methods": 1,
+          "app_methods": 2,
+          "app_only_methods": [
+            "markNow()Lkotlin/time/TimeMark;"
+          ]
+        },
+        {
+          "class": "Lorg/jetbrains/annotations/Contract;",
+          "engine_methods": 2,
+          "app_methods": 3,
+          "app_only_methods": [
+            "mutates()Ljava/lang/String;"
+          ]
+        },
+        {
+          "class": "Lorg/jetbrains/annotations/Nls;",
+          "engine_methods": 0,
+          "app_methods": 1,
+          "app_only_methods": [
+            "capitalization()Lorg/jetbrains/annotations/Nls$Capitalization;"
+          ]
+        },
+        {
+          "class": "Lorg/jetbrains/annotations/NotNull;",
+          "engine_methods": 1,
+          "app_methods": 2,
+          "app_only_methods": [
+            "exception()Ljava/lang/Class;"
+          ]
+        },
+        {
+          "class": "Landroid/support/v4/app/RemoteActionCompatParcelizer;",
+          "engine_methods": 3,
+          "app_methods": 3,
+          "app_only_methods": []
+        },
+        {
+          "class": "Landroid/support/v4/graphics/drawable/IconCompatParcelizer;",
+          "engine_methods": 3,
+          "app_methods": 3,
+          "app_only_methods": []
+        }
+      ]
+    }
+  }
+}

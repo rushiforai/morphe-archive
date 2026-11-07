@@ -1,3 +1,19 @@
+## [1.9.3](https://github.com/ch3thanhs/stylus/compare/v1.9.2...v1.9.3) (2026-11-07)
+
+### 🚀 Updated App Support
+
+* **GitHub:** Update app support to 1.283.0 ([47c0cad](https://github.com/ch3thanhs/stylus/commit/47c0cad082b4595a0c85c91c067c2224301de84a))
+* **Telegram web:** Update app support to 13.2.0 ([7630c33](https://github.com/ch3thanhs/stylus/commit/7630c336b67c0625372ce492c4dfcd0401563987))
+* **Telegram:** Update app support to 13.2.0 ([a7d54e9](https://github.com/ch3thanhs/stylus/commit/a7d54e9a59a6f18546824f7d04b40ba14e6bf092))
+
+## [1.9.3-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.9.2...v1.9.3-dev.1) (2026-11-07)
+
+### 🚀 Updated App Support
+
+* **GitHub:** Update app support to 1.283.0 ([47c0cad](https://github.com/ch3thanhs/stylus/commit/47c0cad082b4595a0c85c91c067c2224301de84a))
+* **Telegram web:** Update app support to 13.2.0 ([7630c33](https://github.com/ch3thanhs/stylus/commit/7630c336b67c0625372ce492c4dfcd0401563987))
+* **Telegram:** Update app support to 13.2.0 ([a7d54e9](https://github.com/ch3thanhs/stylus/commit/a7d54e9a59a6f18546824f7d04b40ba14e6bf092))
+
 ## [1.9.2](https://github.com/ch3thanhs/stylus/compare/v1.9.1...v1.9.2) (2026-11-06)
 
 ### 🐛 Bug Fixes

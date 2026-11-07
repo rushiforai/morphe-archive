@@ -1,0 +1,54 @@
+engine: .pipeline\release\AppleMusic-1.4.0-AndroidTV-arm32.apk
+  classes: 42895
+
+app: tv-app\build\outputs\apk\release\tv-app-release-unsigned.apk
+  classes: 14658  shared with engine: 1151  different method sets: 51
+  Landroidx/       engine=2039   app=11221  shared=49     different=36   
+  Lcoil3/          engine=0      app=513    shared=0      different=0    
+  Lkotlin/         engine=1131   app=1080   shared=1067   different=9    
+  Lkotlinx/        engine=0      app=1142   shared=0      different=0    
+  Lcoil/           engine=0      app=0      shared=0      different=0    
+  Lokhttp3/        engine=2      app=319    shared=1      different=1    
+  Lokio/           engine=0      app=124    shared=0      different=0    
+  Lcom/google/     engine=3508   app=9      shared=0      different=0    
+  Lorg/jetbrains/  engine=7      app=30     shared=7      different=3    
+  app-only methods on shared classes: 287
+   Landroidx/core/widget/NestedScrollView;                                engine=86   app=122   app-only: abortAnimatedScroll()V, access$000(Landroidx/core/widget/NestedScrollView;)Landroid/, arrowScroll(I)Z
+   Landroidx/core/graphics/drawable/IconCompat;                           engine=13   app=37    app-only: addToShortcutIntent(Landroid/content/Intent;Landroid/graphic, checkResource(Landroid/content/Context;)V, createFromBundle(Landroid/os/Bundle;)Landroidx/core/graphics
+   Landroidx/lifecycle/SavedStateHandle;                                  engine=5    app=18    app-only: <clinit>()V, <init>(Ljava/util/Map;)V, access$getImpl$p(Landroidx/lifecycle/SavedStateHandle;)Landr
+   Landroidx/window/layout/adapter/sidecar/SidecarCompat;                 engine=6    app=16    app-only: <clinit>()V, <init>(Landroidx/window/sidecar/SidecarInterface;Landroidx/w, access$getExtensionCallback$p(Landroidx/window/layout/adapte
+   Landroidx/core/content/FileProvider;                                   engine=16   app=24    app-only: <init>(I)V, access$000(Ljava/lang/String;)Ljava/lang/String;, buildPath(Ljava/io/File;[Ljava/lang/String;)Ljava/io/File;
+   Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;      engine=4    app=13    app-only: access$noLocalProvidedFor(Ljava/lang/String;)Ljava/lang/Void, getLocalConfiguration()Landroidx/compose/runtime/ProvidableC, getLocalContext()Landroidx/compose/runtime/ProvidableComposi
+   Landroidx/core/app/RemoteActionCompat;                                 engine=1    app=13    app-only: <init>(Landroidx/core/app/RemoteActionCompat;)V, <init>(Landroidx/core/graphics/drawable/IconCompat;Ljava/lan, createFromRemoteAction(Landroid/app/RemoteAction;)Landroidx/
+   Landroidx/lifecycle/Transformations;                                   engine=2    app=11    app-only: $r8$lambda$skahzJt915myAFMlecWfN1CaVsE(Landroidx/lifecycle/M, distinctUntilChanged$lambda$0(Landroidx/lifecycle/MediatorLi, distinctUntilChanged(Landroidx/lifecycle/LiveData;)Landroidx
+   Landroidx/loader/app/LoaderManagerImpl;                                engine=3    app=11    app-only: <clinit>()V, <init>(Landroidx/lifecycle/LifecycleOwner;Landroidx/lifecycl, createAndInstallLoader(ILandroid/os/Bundle;Landroidx/loader/
+   Landroidx/lifecycle/CoroutineLiveDataKt;                               engine=1    app=8     app-only: addDisposableSource(Landroidx/lifecycle/MediatorLiveData;Lan, liveData$default(Ljava/time/Duration;Lkotlin/coroutines/Coro, liveData$default(Lkotlin/coroutines/CoroutineContext;JLkotli
+   Landroidx/profileinstaller/ProfileInstallerInitializer;                engine=3    app=9     app-only: create(Landroid/content/Context;)Landroidx/profileinstaller/, create(Landroid/content/Context;)Ljava/lang/Object;, dependencies()Ljava/util/List;
+   Landroidx/graphics/path/ConicConverter;                                engine=2    app=9     app-only: convert$default(Landroidx/graphics/path/ConicConverter;[FFFI, convert([FFFI)V, getCurrentQuadratic()I
+
+app: car-app\build\outputs\apk\release\car-app-release-unsigned.apk
+  classes: 16383  shared with engine: 1151  different method sets: 51
+  Landroidx/       engine=2039   app=13004  shared=49     different=36   
+  Lcoil3/          engine=0      app=513    shared=0      different=0    
+  Lkotlin/         engine=1131   app=1080   shared=1067   different=9    
+  Lkotlinx/        engine=0      app=1142   shared=0      different=0    
+  Lcoil/           engine=0      app=0      shared=0      different=0    
+  Lokhttp3/        engine=2      app=319    shared=1      different=1    
+  Lokio/           engine=0      app=124    shared=0      different=0    
+  Lcom/google/     engine=3508   app=9      shared=0      different=0    
+  Lorg/jetbrains/  engine=7      app=30     shared=7      different=3    
+  app-only methods on shared classes: 287
+   Landroidx/core/widget/NestedScrollView;                                engine=86   app=122   app-only: abortAnimatedScroll()V, access$000(Landroidx/core/widget/NestedScrollView;)Landroid/, arrowScroll(I)Z
+   Landroidx/core/graphics/drawable/IconCompat;                           engine=13   app=37    app-only: addToShortcutIntent(Landroid/content/Intent;Landroid/graphic, checkResource(Landroid/content/Context;)V, createFromBundle(Landroid/os/Bundle;)Landroidx/core/graphics
+   Landroidx/lifecycle/SavedStateHandle;                                  engine=5    app=18    app-only: <clinit>()V, <init>(Ljava/util/Map;)V, access$getImpl$p(Landroidx/lifecycle/SavedStateHandle;)Landr
+   Landroidx/window/layout/adapter/sidecar/SidecarCompat;                 engine=6    app=16    app-only: <clinit>()V, <init>(Landroidx/window/sidecar/SidecarInterface;Landroidx/w, access$getExtensionCallback$p(Landroidx/window/layout/adapte
+   Landroidx/core/content/FileProvider;                                   engine=16   app=24    app-only: <init>(I)V, access$000(Ljava/lang/String;)Ljava/lang/String;, buildPath(Ljava/io/File;[Ljava/lang/String;)Ljava/io/File;
+   Landroidx/compose/ui/platform/AndroidCompositionLocals_androidKt;      engine=4    app=13    app-only: access$noLocalProvidedFor(Ljava/lang/String;)Ljava/lang/Void, getLocalConfiguration()Landroidx/compose/runtime/ProvidableC, getLocalContext()Landroidx/compose/runtime/ProvidableComposi
+   Landroidx/core/app/RemoteActionCompat;                                 engine=1    app=13    app-only: <init>(Landroidx/core/app/RemoteActionCompat;)V, <init>(Landroidx/core/graphics/drawable/IconCompat;Ljava/lan, createFromRemoteAction(Landroid/app/RemoteAction;)Landroidx/
+   Landroidx/lifecycle/Transformations;                                   engine=2    app=11    app-only: $r8$lambda$skahzJt915myAFMlecWfN1CaVsE(Landroidx/lifecycle/M, distinctUntilChanged$lambda$0(Landroidx/lifecycle/MediatorLi, distinctUntilChanged(Landroidx/lifecycle/LiveData;)Landroidx
+   Landroidx/loader/app/LoaderManagerImpl;                                engine=3    app=11    app-only: <clinit>()V, <init>(Landroidx/lifecycle/LifecycleOwner;Landroidx/lifecycl, createAndInstallLoader(ILandroid/os/Bundle;Landroidx/loader/
+   Landroidx/lifecycle/CoroutineLiveDataKt;                               engine=1    app=8     app-only: addDisposableSource(Landroidx/lifecycle/MediatorLiveData;Lan, liveData$default(Ljava/time/Duration;Lkotlin/coroutines/Coro, liveData$default(Lkotlin/coroutines/CoroutineContext;JLkotli
+   Landroidx/profileinstaller/ProfileInstallerInitializer;                engine=3    app=9     app-only: create(Landroid/content/Context;)Landroidx/profileinstaller/, create(Landroid/content/Context;)Ljava/lang/Object;, dependencies()Ljava/util/List;
+   Landroidx/graphics/path/ConicConverter;                                engine=2    app=9     app-only: convert$default(Landroidx/graphics/path/ConicConverter;[FFFI, convert([FFFI)V, getCurrentQuadratic()I
+
+wrote single-apk\evidence\phase-b-dex-overlap.json

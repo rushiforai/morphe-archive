@@ -525,6 +525,8 @@ Bigger seek bar on reels	Barra de progreso más grande en Reels
 Makes the seek bar thicker, with a round white handle and the time above it, over a soft dark fade so it shows on any video. Drag it to seek. It also keeps the bar on short reels.	Hace la barra de progreso más gruesa, con un control redondo blanco y el tiempo encima, sobre un degradado oscuro suave para que se vea en cualquier video. Arrástrala para avanzar. También mantiene la barra en los Reels cortos.
 Seek bar like DM videos	Barra de progreso como en los videos de mensajes
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar on reels is on too, this look wins. It also keeps the bar on short reels.	Da a los Reels la barra de progreso de un video en un chat, una línea gris fina que se vuelve blanca al reproducirse, con un control redondo blanco grande. El tiempo aparece encima. Arrástrala para avanzar. Si Barra de progreso más grande en Reels también está activada, se usa este estilo. También mantiene la barra en los Reels cortos.
+Seek bar on photos with music	Barra de progreso en fotos con música
+Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	Los Reels que son una foto con una canción tienen la misma barra de progreso y el mismo tiempo que un Reel de video, siguiendo la canción. Arrástrala para saltar.
 Blur the bars around a reel	Desenfocar las barras alrededor de un reel
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Un reel que no llena la pantalla muestra una copia desenfocada de sí mismo arriba y abajo en lugar de barras negras, y la franja bajo la barra de pestañas y la zona detrás del reloj también muestran el reel desenfocado. La copia solo aparece donde un reel deja espacio, como con Mostrar el reel completo activado. Vuelve a abrir Reels después de un cambio.
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -605,6 +607,8 @@ Turns the switches that keep what you do to yourself on or off in one go, like V
 View live anonymously	Ver directos de forma anónima
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Las fotos y videos enviados para ver una vez o reproducibles se quedan en el chat para que puedas abrirlos otra vez. Abre el chat de nuevo para actualizar los ya cargados.
 Swipe through a chat's reels	Desliza por los reels de un chat
+Swipe through a chat's photos and posts	Desliza por las fotos y publicaciones de un chat
+Open a photo or video from a chat and swipe up for the next photo, video or shared post in that chat, in chat order. Swipe down to go back one. Back takes you to the chat.	Abre una foto o un video de un chat y desliza hacia arriba para ver la siguiente foto, video o publicación compartida de ese chat, en el orden del chat. Desliza hacia abajo para volver a la anterior. Atrás te lleva al chat.
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Al deslizar hacia arriba en un reel que abriste desde un chat, pasas por los demás reels compartidos en ese chat antes de cualquier reel sugerido. Atrás te lleva al chat.
 Stop after the chat's reels	Parar después de los reels del chat
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Los reels que abriste desde un chat terminan después del último compartido en ese chat, sin reels sugeridos después. Funciona con Desliza por los reels de un chat activado.
@@ -838,6 +842,10 @@ Badges in the accent color	Insignias en el color de acento
 The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	Los puntos y números rojos de mensajes y notificaciones nuevos toman el color que elegiste. Reinicia Instagram para ver el cambio.
 Icons in the accent color	Iconos en el color de acento
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Los iconos de Instagram en la barra superior, la barra de pestañas y debajo de las publicaciones toman el color que elegiste. El texto se queda como está. Reinicia Instagram para ver el cambio.
+Story rings in the accent color	Anillos de historias en el color de acento
+Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Los anillos de las historias toman el color que elegiste en lugar del degradado de Instagram. Algunos otros degradados comparten esos colores y cambian con ellos. Reinicia Instagram para ver el cambio.
+Backgrounds in the accent color	Fondos en el color de acento
+Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Las pantallas, los paneles, las tarjetas y los menús toman un tono oscuro o claro del color que elegiste. Los visores de historias y reels conservan su propio fondo. Tiene prioridad sobre Pure black dark mode. Reinicia Instagram para ver el cambio.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
 Color	Color
 Instagram blue	Azul de Instagram
@@ -1806,3 +1814,9 @@ Playing in the background	Reproduciendo en segundo plano
 Paused in the background	En pausa en segundo plano
 Play	Reproducir
 Stop	Detener
+# context: a warning added to a setting's description
+Can slow down older phones.	Puede hacer más lentos los teléfonos antiguos.
+# context: a switch under Ambient light
+Blend post edges	Difuminar los bordes de las publicaciones
+# context: what that switch does
+Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	Funde la parte superior e inferior de la foto o el video de una publicación con su brillo, para que el borde no se vea como una línea marcada.

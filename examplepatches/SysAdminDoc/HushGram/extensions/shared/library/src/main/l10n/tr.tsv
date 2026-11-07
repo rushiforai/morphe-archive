@@ -525,6 +525,8 @@ Bigger seek bar on reels	Reel'lerde daha büyük ilerleme çubuğu
 Makes the seek bar thicker, with a round white handle and the time above it, over a soft dark fade so it shows on any video. Drag it to seek. It also keeps the bar on short reels.	İlerleme çubuğunu daha kalın yapar. Yuvarlak beyaz tutamaç ve üstünde süre gösterir, her videoda görünsün diye yumuşak koyu bir geçişin üzerinde durur. Sürükleyerek ilerle. Kısa Reel'lerde de çubuğu tutar.
 Seek bar like DM videos	Mesajlardaki videolar gibi ilerleme çubuğu
 Gives reels the seek bar of a video in a chat, a thin gray line that turns white as it plays, with a big round white handle. The time shows above it. Drag it to seek. When Bigger seek bar on reels is on too, this look wins. It also keeps the bar on short reels.	Reel'lere sohbetteki bir videonun ilerleme çubuğunu verir. Oynadıkça beyaza dönen ince gri bir çizgi ve büyük, yuvarlak beyaz bir tutamaç. Süre üstünde görünür. Sürükleyerek ilerle. Reel'lerde daha büyük ilerleme çubuğu da açıksa bu görünüm kullanılır. Kısa Reel'lerde de çubuğu tutar.
+Seek bar on photos with music	Müzikli fotoğraflarda ilerleme çubuğu
+Reels that are a photo with a song get the same seek bar and time as a video reel, following the song. Drag it to seek.	Şarkılı bir fotoğraftan oluşan Reel'ler, video Reel'leriyle aynı ilerleme çubuğunu ve süreyi şarkıya göre gösterir. Sarmak için sürükleyin.
 Blur the bars around a reel	Reel çevresindeki çubukları bulanıklaştır
 A reel that doesn't fill the screen shows a blurred copy of itself above and below it instead of black bars, and the strip under the tab bar and the band behind the clock show the reel blurred too. The copy shows only where a reel leaves room, as with Show the whole reel on. Open Reels again after a change.	Ekranı doldurmayan bir Reel, siyah çubuklar yerine üstünde ve altında kendisinin bulanık bir kopyasını gösterir, sekme çubuğunun altındaki şerit ve saatin arkasındaki alan da Reel'i bulanık gösterir. Kopya yalnızca Reel'in boşluk bıraktığı yerde görünür, örneğin Reels videosunun tamamını göster açıkken. Değişiklikten sonra Reels'i yeniden aç.
 # Chosen navigation long-press settings entry. Account tab availability varies.
@@ -605,6 +607,8 @@ Turns the switches that keep what you do to yourself on or off in one go, like V
 View live anonymously	Canlı yayınları anonim izle
 Photos and videos sent as view once or replayable stay in the chat so you can open them again. Open the chat again to update ones already loaded.	Tek seferlik veya tekrar oynatılabilir gönderilen fotoğraflar ve videolar sohbette kalır, böylece tekrar açabilirsin. Önceden yüklenenleri güncellemek için sohbeti yeniden aç.
 Swipe through a chat's reels	Bir sohbetin reels videolarında kaydır
+Swipe through a chat's photos and posts	Bir sohbetin fotoğraf ve gönderilerinde kaydır
+Open a photo or video from a chat and swipe up for the next photo, video or shared post in that chat, in chat order. Swipe down to go back one. Back takes you to the chat.	Bir sohbetten fotoğraf veya video aç, o sohbetteki sonraki fotoğraf, video veya paylaşılan gönderi için yukarı kaydır, sıra sohbetteki gibidir. Bir öncekine dönmek için aşağı kaydır. Geri tuşu seni sohbete döndürür.
 Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels. Back takes you to the chat.	Bir sohbetten açtığın bir reels videosunda yukarı kaydırınca, önerilen videolardan önce o sohbette paylaşılan diğer videolar gelir. Geri tuşu seni sohbete döndürür.
 Stop after the chat's reels	Sohbetin reels videolarından sonra dur
 Reels you opened from a chat end after the last one shared in that chat, with no suggested reels after it. Works with Swipe through a chat's reels on.	Bir sohbetten açtığın reels videoları o sohbette paylaşılan sonuncusunda biter, ardından önerilen video gelmez. Bir sohbetin reels videolarında kaydır açıkken çalışır.
@@ -838,6 +842,10 @@ Badges in the accent color	Rozetler vurgu renginde
 The red dots and counts for new messages and notifications take the color you picked. Restart Instagram to see the change.	Yeni mesajlar ve bildirimler için kırmızı noktalar ve sayılar seçtiğin rengi alır. Değişikliği görmek için Instagram'ı yeniden başlat.
 Icons in the accent color	Simgeler vurgu renginde
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Instagram'ın üst çubuktaki, sekme çubuğundaki ve gönderilerin altındaki simgeleri seçtiğin rengi alır. Metin olduğu gibi kalır. Değişikliği görmek için Instagram'ı yeniden başlat.
+Story rings in the accent color	Hikaye halkaları vurgu renginde
+Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Hikaye halkaları Instagram'ın gradyanı yerine seçtiğin rengi alır. Aynı renkleri kullanan birkaç başka gradyan da onlarla değişir. Değişikliği görmek için Instagram'ı yeniden başlat.
+Backgrounds in the accent color	Arka planlar vurgu renginde
+Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Ekranlar, paneller, kartlar ve menüler seçtiğin rengin koyu veya açık bir tonunu alır. Hikaye ve Reels görüntüleyicileri kendi arka planını korur. Pure black dark mode'a göre önceliklidir. Değişikliği görmek için Instagram'ı yeniden başlat.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
 Color	Renk
 Instagram blue	Instagram mavisi
@@ -1806,3 +1814,9 @@ Playing in the background	Arka planda oynatılıyor
 Paused in the background	Arka planda duraklatıldı
 Play	Oynat
 Stop	Durdur
+# context: a warning added to a setting's description
+Can slow down older phones.	Eski telefonları yavaşlatabilir.
+# context: a switch under Ambient light
+Blend post edges	Gönderi kenarlarını yumuşat
+# context: what that switch does
+Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	Bir gönderinin fotoğrafının veya videosunun üstünü ve altını parıltısına karıştırır, böylece kenar sert bir çizgi gibi görünmez.

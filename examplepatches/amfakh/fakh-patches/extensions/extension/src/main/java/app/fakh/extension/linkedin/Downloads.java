@@ -2,13 +2,46 @@ package app.fakh.extension.linkedin;
 
 import android.app.DownloadManager;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.util.TypedValue;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 /** Saves media through the system DownloadManager, into the folder chosen in Fakh Patches. */
 final class Downloads {
 
     private Downloads() {
+    }
+
+    /**
+     * The download button of the media viewers, drawn like the app's own download button of a document: the app's
+     * download icon in light gray on the viewer, with a ripple and no backdrop.
+     */
+    static ImageButton createButton(Context context) {
+        ImageButton button = new ImageButton(context);
+        button.setContentDescription("Download");
+        Drawable icon = themeDrawable(context, context.getResources().getIdentifier(
+                "voyagerIcUiDownloadMedium24dp", "attr", context.getPackageName()));
+        if (icon == null) icon = context.getDrawable(android.R.drawable.stat_sys_download);
+        button.setImageDrawable(icon);
+        button.setColorFilter(0xFFE0E0E0);
+        button.setBackground(themeDrawable(context, android.R.attr.selectableItemBackgroundBorderless));
+        int padding = dp(context, 12);
+        button.setPadding(padding, padding, padding, padding);
+        return button;
+    }
+
+    /** The drawable a theme attribute points to, or null. */
+    private static Drawable themeDrawable(Context context, int attr) {
+        TypedValue value = new TypedValue();
+        if (attr == 0 || !context.getTheme().resolveAttribute(attr, value, true) || value.resourceId == 0) return null;
+        return context.getDrawable(value.resourceId);
+    }
+
+    static int dp(Context context, int value) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
+                context.getResources().getDisplayMetrics());
     }
 
     /** Public directory for a file type, honoring the "split photos and videos" option. */

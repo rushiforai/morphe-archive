@@ -66,6 +66,8 @@
   "Strip tracking from LinkedIn links you copy or share.": "Buang pelacak dari link LinkedIn yang kamu salin atau bagikan.",
   "Block tracking": "Blokir tracking",
   "Stop most analytics events. Turn off if something breaks.": "Hentikan sebagian besar event analytics. Matikan kalau ada yang error.",
+  "Anonymous profile viewing": "Lihat profil anonim",
+  "Visit profiles without being listed in Who viewed your profile.": "Kunjungi profil tanpa tercatat di Siapa yang melihat profil kamu.",
   "Language": "Bahasa",
   "Automatic (device language)": "Otomatis (ikuti bahasa HP)",
   "Export settings": "Ekspor pengaturan",
@@ -134,5 +136,12 @@
   "Notifications": "Notifications",
   "More": "More",
   "Navigation bar tabs": "Tab navigation bar",
-  "Hide tab labels": "Sembunyikan label tab"
+  "Hide tab labels": "Sembunyikan label tab",
+  "Swipe between tabs": "Geser antar tab",
+  "Swipe sideways to go to the next or previous tab of the navigation bar.": "Geser ke samping untuk pindah ke tab berikutnya atau sebelumnya di navigation bar.",
+  "Copy text": "Salin teks",
+  "Press and hold text to select and copy it.": "Tekan dan tahan teks untuk memilih dan menyalinnya.",
+  "Copy all": "Salin semua",
+  "Close": "Tutup",
+  "Text copied": "Teks disalin"
 }

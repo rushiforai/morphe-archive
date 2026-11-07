@@ -10,6 +10,6 @@ object Constants {
         packageName = "com.github.android",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x1B1F23,
-        targets = listOf(AppTarget(version = "1.282.0")),
+        targets = listOf(AppTarget(version = "1.282.0"), AppTarget(version = "1.283.0")),
     )
 }

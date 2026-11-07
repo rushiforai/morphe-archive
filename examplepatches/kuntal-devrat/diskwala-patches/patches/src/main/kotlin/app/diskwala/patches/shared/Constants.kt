@@ -13,10 +13,11 @@ object Constants {
         appIconColor = 0xFF1A73E8L.toInt() and 0xFFFFFF,
         targets = listOf(
             AppTarget(
-                version = "24.5",
-                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 334)
+                version = "26.9",
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 363)
             ),
-            // Allow any future version experimentally - patches are string/opcode based and should survive
+            // Allow future versions experimentally. The patch targets native
+            // Kotlin/Compose code, so failed fingerprints surface immediately.
             AppTarget(
                 version = null,
                 isExperimental = true

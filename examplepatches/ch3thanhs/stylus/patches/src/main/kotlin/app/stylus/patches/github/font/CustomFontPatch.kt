@@ -1,7 +1,10 @@
 package app.stylus.patches.github.font
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.deleteResource
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.stringOption
 import app.stylus.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import java.io.File
@@ -77,7 +80,7 @@ private val customFontFileOption = stringOption(
 )
 
 @Suppress("unused")
-val customFontGithubPatch = resourcePatch(
+val customFontGithubPatch = patch(
     name = "Custom font",
     description = "Replaces the bundled Inter and Mona Sans UI fonts with your own font.",
     default = false,
@@ -112,7 +115,7 @@ val customFontGithubPatch = resourcePatch(
         // replace or remove.
         decode("res/font*")
 
-        val fontResDir = get("res").resolve("font")
+        val fontResDir = resourceFile("res").resolve("font")
         val fontResourceName = "custom_ui_font"
         val fontAssetFile = fontResDir.resolve("$fontResourceName.${fontFile.extension.lowercase()}")
         fontFile.copyTo(fontAssetFile, overwrite = true)
@@ -127,7 +130,7 @@ val customFontGithubPatch = resourcePatch(
             legacyFontFiles.forEach { legacyFile ->
                 if (legacyFile.exists()) {
                     // Mark the legacy font for removal from the rebuilt APK.
-                    delete("res/font/${legacyFile.name}")
+                    deleteResource("res/font/${legacyFile.name}")
                 }
             }
 
@@ -139,7 +142,7 @@ val customFontGithubPatch = resourcePatch(
             xmlFile.writeText(buildFontFamilyXml(fontResourceName, family.entries))
         }
 
-        val webviewResDir = get("assets").resolve("webview")
+        val webviewResDir = resourceFile("assets").resolve("webview")
         // Assets are extracted on request too, so the directory may not be staged
         // yet and writing font.css would fail without it.
         webviewResDir.mkdirs()

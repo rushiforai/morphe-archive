@@ -8,7 +8,8 @@ object Constants {
     val COMPATIBILITY = Compatibility(
         name = "Pluto TV",
         packageName = "tv.pluto.android",
-        description = "The Pluto TV app, for phones and Android TV.",
+        description = "The Pluto TV app, for phones and Android TV. Both builds are version 17.3.0. " +
+            "On a TV, patch the Android TV build (version code 520000991), not the phone build (420000991).",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xB8B004,
         targets = listOf(AppTarget("17.3.0"))

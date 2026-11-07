@@ -1,7 +1,7 @@
 ![HushGram. Keep the moments. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.18-E1306C" alt="Version 0.0.18">
+  <img src="https://img.shields.io/badge/version-0.0.19-E1306C" alt="Version 0.0.19">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Instagram-454.0.0.54.77-E1306C" alt="Instagram 454.0.0.54.77">
@@ -24,7 +24,7 @@ HushGram is a set of [Morphe](https://morphe.software) patches for Instagram on 
 
 Most switches start off, so a freshly patched Instagram looks like Instagram until you turn something on. It's the Instagram member of a small family. [Hushfacebook](https://github.com/SysAdminDoc/Hushfacebook) does the same job for Facebook, and HushGram is built on its foundation.
 
-The latest release is [v0.0.18](https://github.com/SysAdminDoc/HushGram/releases/tag/v0.0.18), with 139 patches. Add it to Morphe Manager with [this link](https://morphe.software/add-source?github=SysAdminDoc%2FHushGram).
+The latest release is [v0.0.19](https://github.com/SysAdminDoc/HushGram/releases/tag/v0.0.19), with 154 patches. Add it to Morphe Manager with [this link](https://morphe.software/add-source?github=SysAdminDoc%2FHushGram).
 
 What changed in each version is in the [changelog](CHANGELOG.md).
 
@@ -64,7 +64,7 @@ Back it up right after your first patch. In Morphe Manager open **Settings → S
 
 ## Patches
 
-There are 155 patches for `com.instagram.android`, checked against Instagram 454.0.0.54.77. Manager's simple mode includes 151 of them, so you don't need Expert mode to get any feature below. A patch that comes in this way changes nothing until you turn its switch on in HushGram settings, and each description says where that switch is. A few start on: Hide ads, Sanitize sharing links, Open links in external browser, Remove build expired popup, Hide suggested posts, Hide suggested stories, Hide Meta AI's search and posts switches, Show if a profile follows you, Download any reel, Download any story and Keep the reel speed. Story ring size and Default playback quality start on too, but they keep Instagram's own size and quality until you pick one. Tab bar layout has no switch at all and keeps the bar Instagram gives you until you pick another.
+There are 156 patches for `com.instagram.android`, checked against Instagram 454.0.0.54.77. Manager's simple mode includes 152 of them, so you don't need Expert mode to get any feature below. A patch that comes in this way changes nothing until you turn its switch on in HushGram settings, and each description says where that switch is. A few start on: Hide ads, Sanitize sharing links, Open links in external browser, Remove build expired popup, Hide suggested posts, Hide suggested stories, Hide Meta AI's search and posts switches, Show if a profile follows you, Download any reel, Download any story and Keep the reel speed. Story ring size and Default playback quality start on too, but they keep Instagram's own size and quality until you pick one. Tab bar layout has no switch at all and keeps the bar Instagram gives you until you pick another.
 
 Four patches stay out of simple mode. Tick them in Manager's patch list (Expert mode, then **Choose patches**) if you want them:
 
@@ -159,6 +159,7 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Chat history tools` | Tap the clock button at the top of a chat, or long press its name, to jump to its first message or to a date, or to save the chat as a text file. The chat loads its older messages on its own, with a count and a Cancel button. Both start off. Turn them on in HushGram settings > Messages. | Included |
 | `Preview chats` | Long press a chat in your messages and tap Preview to read its newest messages without opening it, so nobody sees Seen. You can reply from there too. Starts off. Turn it on in HushGram settings > Messages. | Included |
 | `Swipe through a chat's reels` | Swiping up on a reel you opened from a chat goes through the other reels shared in that chat before any suggested reels, can stop after them and can leave out the ones you sent. All start off. Turn them on in HushGram settings > Messages. | Included |
+| `Swipe through a chat's photos and posts` | Open a photo or video from a chat and swipe up through the chat's other photos, videos and shared posts, in chat order. Starts off. Turn it on in HushGram settings > Messages. | Included |
 | `Keep playing in the background` | A video or reel playing with sound keeps going when you leave Instagram or turn the screen off, with a notification to pause or stop it. Starts off. Turn it on in HushGram settings > Playback. | Included |
 | `Keep Reels auto scroll on` | Keeps Instagram's auto scroll in Reels turned on after you leave Reels or restart Instagram, until you turn it off yourself. It can also move on to the next reel when one ends on accounts where Instagram doesn't offer auto scroll. Starts off. Turn it on in HushGram settings > Reels. | Included |
 | `Keep the reel speed` | Keeps the 2x speed on for the next reels after you lock a reel at 2x (hold its edge, then slide down), until you slide the lock off. On by default. Turn it off in HushGram settings > Reels. | Included |
@@ -186,7 +187,7 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Resume long videos` | A video or reel longer than two minutes picks up where you left off the next time you play it on the same account. Live videos and ads start as usual. Starts off. Turn it on in HushGram settings > Playback. | Included |
 | `Rounded post corners` | Rounds the corners of a post's photo, video and carousel pages in Home and Following, and of reels and stories if you like, at a small or large size. Profiles and Explore stay as Instagram draws them. Starts off. Turn it on in HushGram settings > Feed. | Included |
 | `Sanitize sharing links` | Removes tracking tags from the links you copy or share, and opens bio links without Instagram's click tracker. The link still opens the same post, reel, story or profile. On by default. Turn it off in HushGram settings > Ads and privacy. | Included |
-| `Save comment photo` | Adds Save to the menu on a comment that has its own photo or GIF, saving the largest size Instagram sent. A GIF is saved as a .gif in Pictures/Instagram, taken from Instagram's own copy, not Giphy. If Instagram lists only an animated WebP or an MP4 for it, you get that file instead, and an MP4 goes in Movies/Instagram like a video. It can also add a GIF reply to a comment with a GIF, sending that same GIF back as your reply. Starts off. Turn it on in HushGram settings > Comments. | Included |
+| `Save comment photo` | Adds Save to the menu on a comment that has its own photo or GIF, saving the largest size Instagram sent. A GIF is saved as a .gif in Pictures/Instagram, taken from Instagram's own copy, not Giphy. If Instagram lists only an animated WebP or an MP4 for it, you get that file instead, and an MP4 goes in Movies/Instagram like a video. It can also add a GIF reply to a comment with a GIF, sending that same GIF back as your reply, or show a comment GIF's or sticker's name in that menu. Starts off. Turn it on in HushGram settings > Comments. | Included |
 | `Save profile picture` | Adds Save profile picture, View profile picture, Copy username and Copy bio to the menu on someone's profile. View opens the picture full screen and lets you zoom. Starts off. Turn it on in HushGram settings > Downloads. | Included |
 | `Saved on your profile` | Adds a bookmark to the tabs on your own profile, beside posts, reels and tagged, that opens Saved. Starts off. Turn it on in HushGram settings > Profiles, then restart Instagram. | Included |
 | `Show a post's exact time` | Shows the date and time a post went up, like Oct 2, 3:45 PM, instead of how long ago. It does the same for comments. Starts off. Turn it on in HushGram settings > Feed. | Included |
@@ -208,7 +209,7 @@ In Expert mode the patches are grouped under Ads, Ghost mode, Privacy, Messages,
 | `Start reels with sound` | A reel you open from the Reels tab or a post on Home plays with sound, and Home is muted again when you go back. Your phone's ringer and volume still count. A separate switch, Start reels muted, starts every reel silent instead. Both start off. Turn them on in HushGram settings > Playback. | Included |
 | `Start stories with sound` | Opens stories with their sound on, the same as tapping Instagram's speaker. Your phone's ringer and volume still count. Starts off. Turn it on in HushGram settings > Stories. | Included |
 | `Stop background wake-ups` | Stops two alarms that wake your phone while Instagram is in the background. One goes off every minute or two only to note that Instagram is still running, and the other wakes it five minutes later to upload usage events. Messages and notifications still arrive. Starts off. Turn it on in HushGram settings > Battery. | Included |
-| `Stop Reels scrolling` | Stops a swipe in Reels from moving to the next reel, so you stay on the one you opened. A second switch stops swiping after as many reels as you pick, for as long as you pick, and Take a scroll break covers Home, Reels and Explore for 5 minutes after the time you pick. Starts off. Turn it on in HushGram settings > Reels. | Included |
+| `Stop Reels scrolling` | Stops a swipe in Reels from moving to the next reel, so you stay on the one you opened, with switches that leave reels from a profile, Search and Explore or a song page free to scroll. Another switch stops swiping after as many reels as you pick, for as long as you pick, and Take a scroll break covers Home, Reels and Explore for 5 minutes after the time you pick. Starts off. Turn it on in HushGram settings > Reels. | Included |
 | `Stop Story auto-advance` | Keeps each story on screen until you tap or swipe. Starts off. Turn it on in HushGram settings > Stories. | Included |
 | `Stop swipe to create` | Stops a sideways swipe on Home from opening the camera. The + button still opens it. Starts off. Turn it on in HushGram settings > Feed. | Included |
 | `Stop swipe up to reply` | Stops a swipe up on someone's story from opening the reply box and its reactions. Tapping Send message still replies. Starts off. Turn it on in HushGram settings > Stories. | Included |

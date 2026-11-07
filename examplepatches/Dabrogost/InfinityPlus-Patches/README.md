@@ -1,11 +1,11 @@
-# Infinity+ Patches
+# InfinityPlus-Patches <a href="https://github.com/Dabrogost/InfinityPlus-Patches/releases"><img align="right" src="https://img.shields.io/github/downloads/Dabrogost/InfinityPlus-Patches/total?color=1f6feb&logo=github" alt="Downloads"></a>
 
 A lightweight [Morphe](https://morphe.software/) patch bundle for **Infinity for Reddit+**, based on [Patcheddit](https://github.com/wchill/patcheddit) v1.4.0 and incorporating the Infinity+ 8.3.x compatibility change proposed in [PR #108](https://github.com/wchill/patcheddit/pull/108).
 
 This project maintains only the Infinity+ patches, removing implementations for unrelated Reddit clients.
 
 **Supported package:** `ml.docilealligator.infinityforreddit.plus` (Infinity+ only; not Patreon)  
-**Suggested APK:** Infinity+ 8.3.4<br>
+**Suggested APK:** Infinity+ 8.3.5<br>
 **GitHub repository:** [InfinityPlus-Patches](https://github.com/Dabrogost/InfinityPlus-Patches)  
 **Gitea mirror:** [InfinityPlus-Patches](https://gitea.com/Dabrogost/InfinityPlus-Patches)
 
@@ -96,17 +96,8 @@ Enter your own valid 22-character Reddit OAuth client ID. The redirect URI must 
 - Successful APK patching does **not** guarantee successful Reddit OAuth login.
 - Login behavior depends on Reddit's authorization service as well as the configured client ID, redirect URI, user agent, and WebView behavior.
 
-## Compatibility and testing
-
-Verified on **Infinity+ 8.3.3**, **Morphe Manager 1.35.0**, **patcher 1.15.1**, and **Android 16**:
-
-- The patching and signing process completed successfully.
-- The Patcheddit attribution appeared at the bottom of Infinity+'s main Settings screen.
-- Selecting that attribution opened the Patcheddit subreddit within Infinity+.
-
 **Limitations:**
 
-- End-to-end Reddit login success is not established by these patching tests.
 - The subscription fingerprints may change with future Infinity+ updates.
 - Patreon and other Infinity variants are not supported by this patch bundle.
 
@@ -140,14 +131,6 @@ patches/build/libs/patches-<version>.mpp
 The build script compiles pinned public Morphe dependencies, installs them in an isolated Maven directory under `~/.cache/infinity-plus-deps`, and then builds the patch bundle. It does **not** require GitHub Packages credentials or `GH_PACKAGES_*` secrets. Public downloads from GitHub, Maven Central, Google, and JitPack are still needed.
 
 See [ci/README.md](ci/README.md) for dependency versions, cache details, and maintenance instructions.
-
-### Actions and publishing
-
-The GitHub **Build Infinity+ patches** workflow runs on pushes to `main` and supports manual execution. It uses the `github-infinity` self-hosted runner and uploads the `.mpp` file as a workflow artifact.
-
-To publish a new version, manually run the GitHub [**Publish Infinity+ source** workflow](.github/workflows/publish-infinity-source.yml) on `main`. It uses the `github-infinity` self-hosted runner to build the `.mpp` bundle, publishes a GitHub Release, and commits an updated `patches-bundle.json` pointing to the GitHub release asset. The separate **Build Infinity+ patches** workflow only uploads a workflow artifact and does not publish a new Morphe source version.
-
-The patch source metadata is stored in [`patches-bundle.json`](patches-bundle.json), and the current version is controlled by the project build configuration.
 
 ## Project background
 

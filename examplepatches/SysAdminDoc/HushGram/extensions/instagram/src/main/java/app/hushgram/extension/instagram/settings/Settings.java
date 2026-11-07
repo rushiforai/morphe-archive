@@ -531,6 +531,10 @@ public class Settings extends BaseSettings {
             new EnumSetting<>("hushgram_ambient_light_speed", app.hushgram.extension.instagram.feed.AmbientSpeed.MEDIUM,
                     parentsAny(AMBIENT_LIGHT, AMBIENT_LIGHT_STORIES));
 
+    /** Under {@link #AMBIENT_LIGHT}: fades a post's picture into its glow at the edges (#510). Off to start. */
+    public static final BooleanSetting AMBIENT_LIGHT_BLEND =
+            new BooleanSetting("hushgram_ambient_light_blend", FALSE, parent(AMBIENT_LIGHT));
+
     /**
      * The stories you watch, which Instagram posts to media/seen/ to put you on their viewer lists.
      * Held back, you stay off them. Replies and reactions still show you. Off to start.
@@ -821,6 +825,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting MESSAGES_AFTER_CHAT_REELS =
             new BooleanSetting("hushgram_messages_after_chat_reels", FALSE, parent(SWIPE_CHAT_REELS));
+
+    /**
+     * A photo or video opened from a chat pages up and down through the chat's other photos, videos and
+     * shared posts, in chat order ({@link app.hushgram.extension.instagram.direct.ChatMediaWalk}, #350).
+     * Off to start.
+     */
+    public static final BooleanSetting SWIPE_CHAT_MEDIA = new BooleanSetting("hushgram_swipe_chat_media", FALSE);
 
     /**
      * Long pressing a chat's name offers to jump to its first message or to a date, paging back
@@ -1467,7 +1478,7 @@ public class Settings extends BaseSettings {
 
     /**
      * Under {@link #GLASS_TAB_BAR_BLUR}: how far the pill blurs what's behind it, in dp, from a slider
-     * (#289, #391). Starts on the blur the bar has always had. Read as each frame records the backdrop,
+     * (#289, #391). Starts at {@link app.hushgram.extension.instagram.misc.GlassTabBar#BLUR_DP}. Read as each frame records the backdrop,
      * so a change shows on the bar without a restart.
      */
     public static final IntegerSetting GLASS_TAB_BAR_BLUR_RADIUS =
@@ -1729,6 +1740,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting ACCENT_ICONS =
             new BooleanSetting("hushgram_accent_icons", FALSE, true, parent(ACCENT_COLOR));
+
+    /**
+     * Under {@link #ACCENT_COLOR}: the gradient on story rings runs through the picked color instead
+     * of Instagram's (#187, {@link app.hushgram.extension.instagram.misc.AccentTheme}). A few other
+     * things read that gradient and change with it. A change shows after a restart. Off to start.
+     */
+    public static final BooleanSetting ACCENT_RINGS =
+            new BooleanSetting("hushgram_accent_rings", FALSE, true, parent(ACCENT_COLOR));
+
+    /**
+     * Under {@link #ACCENT_COLOR}: screens, panels, cards and menus take a very dark or very light
+     * shade of the picked color (#187, {@link app.hushgram.extension.instagram.misc.AccentTheme}).
+     * Story and reel viewers keep theirs. A change shows after a restart. Off to start.
+     */
+    public static final BooleanSetting ACCENT_BACKGROUNDS =
+            new BooleanSetting("hushgram_accent_backgrounds", FALSE, true, parent(ACCENT_COLOR));
 
     /**
      * HushGram's logo on the screen Android shows while Instagram starts, on Android 13 and newer
@@ -2806,6 +2833,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DM_REEL_SEEK_BAR =
             new BooleanSetting("hushgram_dm_reel_seek_bar", FALSE);
+
+    /**
+     * A reel that's a photo with a song gets the seek bar and the time label of a video reel (#10),
+     * sized from the song's player ({@link app.hushgram.extension.instagram.reels.ReelSeekBar}). On its
+     * own switch since it asks nothing of video reels. Decided as each reel shows, so no restart. Off to start.
+     */
+    public static final BooleanSetting PHOTO_REEL_SEEK_BAR =
+            new BooleanSetting("hushgram_photo_reel_seek_bar", FALSE);
 
     /**
      * A reel shows the date and time it was posted on a line under its author's name

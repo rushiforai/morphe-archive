@@ -1,6 +1,6 @@
 # Privacy
 
-Oxbow is a fork of [Feurstagram](https://github.com/jean-voila/FeurStagram) by Jean Herail (GPL-3.0).
+Oxbow is a fork of [FeurStagram](https://github.com/jean-voila/FeurStagram) by Jean Herail (GPL-3.0).
 
 Oxbow is designed to remove distracting and intrusive parts of Instagram.
 

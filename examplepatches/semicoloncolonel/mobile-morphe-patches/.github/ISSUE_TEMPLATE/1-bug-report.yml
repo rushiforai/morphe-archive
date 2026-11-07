@@ -1,0 +1,225 @@
+name: 🐞 Bug report
+description: A patch fails to apply, the patched app crashes or will not play, or a patch does not do what the README says.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem. Only the description is required, but every other field helps find the cause faster.
+
+        Before you start, please check the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) for the same problem.
+  - type: checkboxes
+    id: before
+    attributes:
+      label: Before you submit
+      options:
+        - label: "I read the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches#known-issues) in the README."
+          required: true
+        - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this problem."
+          required: true
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      description: The app you patched.
+      options:
+        - "ABC News"
+        - "Amazon Shopping"
+        - "AMC+"
+        - "AP News"
+        - "Apple TV"
+        - "Best Buy"
+        - "C-SPAN Now"
+        - "CBS News"
+        - "CNN"
+        - "CVS"
+        - "DealSeek"
+        - "Disney+"
+        - "ESPN"
+        - "Fandango at Home"
+        - "FEMA"
+        - "Fox Local"
+        - "Fox News"
+        - "Fox One"
+        - "HBO Max"
+        - "Hulu"
+        - "JustWatch"
+        - "MGM+"
+        - "Mint Mobile"
+        - "MLB"
+        - "Moviebase"
+        - "MS NOW"
+        - "My Verizon"
+        - "myAT&T"
+        - "MyTSA"
+        - "National Forests & Grasslands"
+        - "NBA"
+        - "NBC News"
+        - "NewsBreak"
+        - "NewsNation"
+        - "NewsNation (Android TV)"
+        - "NFL"
+        - "NPR"
+        - "NPS"
+        - "Paramount+"
+        - "PBS"
+        - "Peacock"
+        - "Plex"
+        - "Pluto TV"
+        - "Prime Video"
+        - "Recreation.gov"
+        - "Shudder"
+        - "Starz"
+        - "Substack"
+        - "Sundance Now"
+        - "T-Life"
+        - "T-Mobile Play"
+        - "Target"
+        - "The Daily Wire"
+        - "The Home Depot"
+        - "The New York Times"
+        - "The Wall Street Journal"
+        - "The Washington Post"
+        - "theScore"
+        - "Tubi"
+        - "USA TODAY"
+        - "Visible"
+        - "Walgreens"
+        - "Walmart"
+        - "White House"
+        - "Xfinity"
+        - "Xumo Play"
+        - "YouTube TV"
+        - "Other (name it in the description)"
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: The version you patched. In Morphe Manager it is shown when you select the APK.
+      placeholder: "17.3.0"
+  - type: input
+    id: version-code
+    attributes:
+      label: App version code
+      description: Some apps have phone and Android TV builds with the same version, and only the version code tells them apart. APKMirror shows it on the download page.
+      placeholder: "520000991"
+  - type: dropdown
+    id: build
+    attributes:
+      label: Phone or Android TV build
+      description: Which build of the app you patched.
+      options:
+        - Phone or tablet
+        - Android TV or Google TV
+        - Not sure
+  - type: dropdown
+    id: apk-source
+    attributes:
+      label: Where the APK came from
+      options:
+        - APKMirror
+        - Aurora Store
+        - Installed copy from the Play Store
+        - Morphe Manager's download link
+        - Other (name it in the description)
+  - type: input
+    id: patches-version
+    attributes:
+      label: Patches version
+      description: The version of these patches, shown under Sources in Morphe Manager.
+      placeholder: "1.0.13"
+  - type: input
+    id: manager-version
+    attributes:
+      label: Morphe Manager version
+      placeholder: "2.5.0"
+  - type: textarea
+    id: selected-patches
+    attributes:
+      label: Patches selected
+      description: The patches you applied. If you kept the defaults, say so.
+  - type: dropdown
+    id: clone
+    attributes:
+      label: Clone app
+      description: Whether the Clone app option was on, which installs the app under a new package name.
+      options:
+        - "Off"
+        - "On"
+        - Not sure
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: The phone, tablet, or TV device model.
+      placeholder: "Galaxy S25 Ultra, NVIDIA Shield, Google TV Streamer"
+  - type: dropdown
+    id: android-version
+    attributes:
+      label: Android version
+      description: On a phone, see Settings > About phone. On a TV, see Settings > System > About.
+      options:
+        - "Android 16"
+        - "Android 15"
+        - "Android 14"
+        - "Android 13"
+        - "Android 12 or 12L"
+        - "Android 11"
+        - "Android 10"
+        - "Android 9 or older"
+        - "Not sure"
+  - type: dropdown
+    id: root
+    attributes:
+      label: Rooted
+      options:
+        - "No"
+        - "Yes"
+  - type: dropdown
+    id: dns-filter
+    attributes:
+      label: Ad blockers or DNS filters
+      description: Ad blockers and DNS filters can stop video or sign-in on their own. Select any that were on.
+      multiple: true
+      options:
+        - None
+        - AdGuard
+        - Control D
+        - NextDNS
+        - Pi-hole
+        - Private DNS (set in Android settings)
+        - Other (name it in the description)
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened
+      description: What you expected, what happened instead, and when it started.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. Play a movie
+        3. ...
+  - type: textarea
+    id: logs
+    attributes:
+      label: Crash log
+      description: |
+        If the app crashes, connect it with adb and run `adb logcat -b crash`, or `adb logcat | grep -A 40 "FATAL EXCEPTION"`. Please include everything from `FATAL EXCEPTION` down.
+      render: shell
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots or video
+      description: Drag files here to attach them.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: The problem does not happen in the unpatched app.

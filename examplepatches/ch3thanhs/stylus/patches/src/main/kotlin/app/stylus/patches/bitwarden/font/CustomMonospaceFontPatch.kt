@@ -1,7 +1,10 @@
 package app.stylus.patches.bitwarden.font
 
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.decode
+import app.morphe.patcher.patch.deleteResource
+import app.morphe.patcher.patch.patch
+import app.morphe.patcher.patch.resourceFile
 import app.morphe.patcher.patch.stringOption
 import app.stylus.patches.bitwarden.shared.Constants.COMPATIBILITY_BITWARDEN
 import java.io.File
@@ -20,7 +23,7 @@ private val customMonospaceFontFileOption = stringOption(
 )
 
 @Suppress("unused")
-val customMonospaceFontBitwardenPatch = resourcePatch(
+val customMonospaceFontBitwardenPatch = patch(
     name = "Custom monospace font",
     description = "Replaces the bundled Roboto Mono font with your own monospace font.",
     default = false,
@@ -54,7 +57,7 @@ val customMonospaceFontBitwardenPatch = resourcePatch(
         // up front, so decode the font directory before replacing the font.
         decode("res/font*")
 
-        val fontResDir = get("res").resolve("font")
+        val fontResDir = resourceFile("res").resolve("font")
         val fontExtension = fontFile.extension.lowercase()
 
         // Keep the resource name so the app's Compose typography keeps
@@ -67,7 +70,7 @@ val customMonospaceFontBitwardenPatch = resourcePatch(
                 val bundledFontFile = fontResDir.resolve("$MONOSPACE_FONT_RESOURCE_NAME.$extension")
                 if (bundledFontFile.exists()) {
                     // Mark the bundled font for removal from the rebuilt APK.
-                    delete("res/font/${bundledFontFile.name}")
+                    deleteResource("res/font/${bundledFontFile.name}")
                 }
             }
 

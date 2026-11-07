@@ -85,6 +85,18 @@ val navigationBarPatch = bytecodePatch(
 }
 
 @Suppress("unused")
+val swipeTabsPatch = bytecodePatch(
+    name = "Swipe between tabs",
+    description = "Swipe sideways to go to the next or previous tab of the navigation bar.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feature")
+    dependsOn(navigationHooksPatch)
+    execute { markIncluded("isSwipeTabsIncluded") }
+}
+
+@Suppress("unused")
 val glassNavigationBarPatch = bytecodePatch(
     name = "Glass navigation bar",
     description = "Draws the navigation bar as a floating, translucent capsule.",

@@ -29,7 +29,7 @@ internal val dilinkWebAssetsPatch = resourcePatch(
         // The .mpp bundle only carries classes.dex, so the blob is fetched at patch time (CLI or
         // Morphe Manager) and embedded in the APK; the head unit needs no network for this step.
         val url = java.net.URI(
-            "https://raw.githubusercontent.com/andersonlucasg3/apple-music-morphe-patches/main/assets/transpiled_assets.bin",
+            "https://raw.githubusercontent.com/andersonlucasg3/apple-music-android-freedom/main/assets/transpiled_assets.bin",
         ).toURL()
         val json = url.openStream().use { it.readBytes().decodeToString() }
         val encoded = java.util.Base64.getEncoder().encodeToString(json.toByteArray())
