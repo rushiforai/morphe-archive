@@ -3843,14 +3843,6 @@
                 "updatedAt": 1793428177630
             },
             {
-                "name": "instagram-custom-branding-patches",
-                "source": "https://raw.githubusercontent.com/yashsehrawatdelete550-dotg/instagram-custom-branding-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 540,
-                "createdAt": 1793428178043,
-                "updatedAt": 1793428178043
-            },
-            {
                 "name": "drtv-morphe-patches",
                 "source": "https://raw.githubusercontent.com/zenthora/drtv-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4665,6 +4657,46 @@
                 "sortOrder": 645,
                 "createdAt": 1794001954814,
                 "updatedAt": 1794001954814
+            },
+            {
+                "name": "apple-music-android-freedom",
+                "source": "https://raw.githubusercontent.com/andersonlucasg3/apple-music-android-freedom/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 646,
+                "createdAt": 1794028147138,
+                "updatedAt": 1794028147138
+            },
+            {
+                "name": "ayufa-youtube-patches",
+                "source": "https://raw.githubusercontent.com/Ayufa/ayufa-youtube-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 647,
+                "createdAt": 1794028149017,
+                "updatedAt": 1794028149017
+            },
+            {
+                "name": "TWRailway-patch",
+                "source": "https://raw.githubusercontent.com/GahahaWang/TWRailway-patch/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 648,
+                "createdAt": 1794028153651,
+                "updatedAt": 1794028153651
+            },
+            {
+                "name": "carbridge-patches",
+                "source": "https://raw.githubusercontent.com/jmwerk/carbridge-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 649,
+                "createdAt": 1794028159037,
+                "updatedAt": 1794028159037
+            },
+            {
+                "name": "Quwis-Patches",
+                "source": "https://raw.githubusercontent.com/salmanbappi/Quwis-Patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 650,
+                "createdAt": 1794028166547,
+                "updatedAt": 1794028166547
             }
         ]
     }

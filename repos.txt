@@ -49,6 +49,7 @@ amit-0i/myspoti-morphe-patches
 Amitaisela/travian-morphe-patches
 AmpleReVanced/revanced-patches
 anddea/revanced-patches
+andersonlucasg3/apple-music-android-freedom
 andersonlucasg3/apple-music-morphe-patches
 andersonlucasg3/AppleMusic-DiLink
 andersonlucasg3/PetalMaps-AndroidAuto
@@ -79,6 +80,7 @@ ausamnco/gboard-enc-patches
 axelbarks/tiktok-patches-for-morphe
 Ayufa/ayufa-patches
 Ayufa/ayufa-patches-jp
+Ayufa/ayufa-youtube-patches
 azain47/blackmagic-camera-patches
 azkiabenington/es-file-explorer-morphe-patches
 azksama/aniskip-stremio
@@ -216,6 +218,7 @@ Fuku856/smartlife-patches
 furkngld/tiktok-lite-patches-for-morphe
 fynnaly/morphe-patches
 fynnaly/test-morphe-patch
+GahahaWang/TWRailway-patch
 Gamer92000/pixelcamera-patches
 ggYasin/ggyasin-morphe-patches
 giaaaacomo/nifty-patches-selection
@@ -314,6 +317,7 @@ Jman-Github/Awesome-ReVanced
 Jman-Github/Patch-Bundle-Registry
 Jman-Github/ReVanced-Patch-Bundles
 Jman-Github/Universal-ReVanced-Manager
+jmwerk/carbridge-patches
 JoanComasFdz/baconreader-morphe-patches
 JoFSlash/quora-patches
 johninnl/nl-morphe-patches
@@ -508,8 +512,8 @@ Rosaldivo/rosaldivo-morphe-patches
 RoundSalmon4/morphe-patches-template
 rubenaaroncalahorra/gospel-library-patches
 rufusin/revanced-patches
-rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
+rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 ryuya0124/gemini-microg-patches
 ryykitty/twitch-patched
 sabbirexist/kodex-patches
@@ -518,6 +522,7 @@ Sabrina-Moonlight/gracie-patches
 sahilwasgood/patches
 saieshshirodkar/saiesh-morphe-patches
 SailHighSea/sailhighsea-patches
+salmanbappi/Quwis-Patches
 Santodan/santodan-patches
 SapitoSucio/FroggoMorphePatches
 sarvottam99/SARVO-Patches
@@ -563,10 +568,10 @@ Supperelias2/sbs-morphe-patches
 Supperelias2/sbs-tv-morphe-patches
 sushruth/imgur-patches
 Sylonin/xposed-newx-patches
-SysAdminDoc/HushFacebook
 SysAdminDoc/Hushfacebook
-SysAdminDoc/HushFeed
+SysAdminDoc/HushFacebook
 SysAdminDoc/hushfeed
+SysAdminDoc/HushFeed
 SysAdminDoc/HushGram
 SysAdminDoc/HushMessenger
 SysAdminDoc/HushPine
