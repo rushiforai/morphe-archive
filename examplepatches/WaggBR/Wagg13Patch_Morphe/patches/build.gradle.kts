@@ -16,6 +16,9 @@ val patchListGeneratorClasspath = configurations.create("patchListGeneratorClass
 
 dependencies {
     compileOnly(libs.gson)
+    // ARSCLib for resource handling; the patches library provides helpers/addResources.
+    compileOnly("com.github.REAndroid:ARSCLib:a28c6fb2a7")
+    implementation(libs.morphe.patches.library)
     patchListGeneratorClasspath(libs.gson)
 }
 

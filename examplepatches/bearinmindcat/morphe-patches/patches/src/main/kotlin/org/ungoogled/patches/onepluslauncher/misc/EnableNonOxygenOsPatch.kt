@@ -16,10 +16,14 @@ import org.ungoogled.patches.coloros.exportDynamicReceivers
 import org.ungoogled.patches.coloroslauncher.misc.redirectHiddenMembers
 import org.ungoogled.patches.onepluslauncher.HIDDEN_CONSTRUCTORS
 import org.ungoogled.patches.onepluslauncher.HIDDEN_CONSTRUCTORS_16_17
+import org.ungoogled.patches.onepluslauncher.HIDDEN_CONSTRUCTORS_CANARY
 import org.ungoogled.patches.onepluslauncher.HIDDEN_MEMBERS
 import org.ungoogled.patches.onepluslauncher.HIDDEN_MEMBERS_16_17
+import org.ungoogled.patches.onepluslauncher.HIDDEN_MEMBERS_CANARY
 import org.ungoogled.patches.onepluslauncher.OnePlusLauncherConstants.COMPATIBILITY_ONEPLUS_LAUNCHER
 import org.ungoogled.patches.samsung.redirectCalls
+import org.ungoogled.patches.shared.enablePageSizeCompat
+import org.ungoogled.patches.shared.supportedVersionCheck
 
 internal const val ONEPLUS_LAUNCHER_EXTENSION = "extensions/onepluslauncher.mpe"
 
@@ -177,6 +181,11 @@ private val telemetryPatch = bytecodePatch(
  * rebased. The OPLUS SDK stubs it carries answer "absent" instead of throwing. Its broadcast receivers registered at run time get the export flag Android 14+ demands, and its settings
  * (first-boot state, its own options) are kept locally where Android refuses the write.
  */
+/** The bundled SQLite libraries are 4 KB aligned: page size compatibility mode on 16 KB phones (see enablePageSizeCompat). */
+private val pageSizePatch = resourcePatch {
+    execute { enablePageSizeCompat() }
+}
+
 private val hiddenApisPatch = bytecodePatch(
     description = "Answers Android's hidden parts where an installed app may not use them.",
 ) {
@@ -186,7 +195,7 @@ private val hiddenApisPatch = bytecodePatch(
         // The OPLUS SDK compile-time stubs the APK carries (846 classes) answer "absent" instead of throwing.
         val stubs = neutralizeStubs()
         log.info("stub methods: $stubs")
-        // Measured against 5.2.66: 7,287 stub methods.
+        // Measured against 5.2.66: 7,320 stub methods.
         if (stubs < 1000) throw PatchException("only $stubs stub methods found")
         // Settings first: some of its calls are hidden per-user ones, which LocalSettings answers for the app's user.
         val settings = redirectCalls(SETTINGS_CALLS)
@@ -194,10 +203,10 @@ private val hiddenApisPatch = bytecodePatch(
         // Measured against 5.2.66: 113 settings calls.
         if (settings < 50) throw PatchException("only $settings settings calls found")
         val (calls, fields) = redirectHiddenMembers(
-            "$EXT/Members;", "$EXT/Hidden;", HIDDEN_MEMBERS + HIDDEN_MEMBERS_16_17 + REFUSED_CALLS,
+            "$EXT/Members;", "$EXT/Hidden;", HIDDEN_MEMBERS + HIDDEN_MEMBERS_16_17 + HIDDEN_MEMBERS_CANARY + REFUSED_CALLS,
         )
         val constructors = redirectConstructors(
-            "$EXT/Members;", "$EXT/Hidden;", HIDDEN_CONSTRUCTORS + HIDDEN_CONSTRUCTORS_16_17,
+            "$EXT/Members;", "$EXT/Hidden;", HIDDEN_CONSTRUCTORS + HIDDEN_CONSTRUCTORS_16_17 + HIDDEN_CONSTRUCTORS_CANARY,
         )
         val rebased = rebaseSubclasses(REBASES)
         skipCastOfNull("$EXT/Hidden;")
@@ -270,6 +279,9 @@ private val hiddenApisPatch = bytecodePatch(
     }
 }
 
+/** Another version of the app or too old an Android stops here with a clear message (see supportedVersionCheck). */
+private val versionCheckPatch = supportedVersionCheck(COMPATIBILITY_ONEPLUS_LAUNCHER)
+
 /**
  * Off OxygenOS the launcher stops at once (it is the OxygenOS 11 launcher of 2021, net.oneplus.launcher 5.2.66).
  * The extension carries stand-ins for the OnePlus / ColorOS framework classes it calls; on a OnePlus phone the
@@ -283,6 +295,7 @@ val enableNonOxygenOsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_ONEPLUS_LAUNCHER)
-    dependsOn(deviceCheckPatch, hiddenApisPatch, telemetryPatch)
+    dependsOn(versionCheckPatch, deviceCheckPatch, hiddenApisPatch, telemetryPatch, pageSizePatch)
     extendWith(ONEPLUS_LAUNCHER_EXTENSION)
+    dependsOn(org.ungoogled.patches.shared.launcherCoexistencePatch())
 }

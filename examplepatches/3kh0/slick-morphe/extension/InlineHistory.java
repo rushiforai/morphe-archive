@@ -410,8 +410,8 @@ public final class InlineHistory {
                 entry.text,
                 thread,
                 null);
-    Method copy = copy(messageType, 28);
-    Object[] args = new Object[28];
+    Method copy = copy(messageType, 29);
+    Object[] args = new Object[29];
     Class<?>[] types = copy.getParameterTypes();
     for (int i = 0; i < types.length; i++) {
       if (types[i] == int.class) args[i] = 0;
@@ -419,24 +419,21 @@ public final class InlineHistory {
     }
     args[0] = message;
     args[1] = entry.ts;
-    args[25] = ~16;
-    args[26] = -1;
-    args[27] = 0x0fffffff;
+    args[26] = ~16;
+    args[27] = -1;
+    args[28] = 0x3fffffff;
     message = copy.invoke(null, args);
-    Object state =
-        Class.forName("kotlin.ResultKt")
-            .getMethod("stateFromTs", messageType)
-            .invoke(null, message);
+    Object state = Host.messageState(message);
     Class<?> pmoType = Class.forName("slack.model.PersistedMessageObj");
     Object pmo =
         Class.forName("slack.model.PersistedModelObj")
             .getMethod(
                 "from",
-                String.class,
-                String.class,
                 messageType,
-                Class.forName("slack.model.MessageState"))
-            .invoke(null, "slick-history:" + entry.ts, channel, message, state);
+                String.class,
+                Class.forName("slack.model.MessageState"),
+                String.class)
+            .invoke(null, message, "slick-history:" + entry.ts, state, channel);
     return factory
         .getClass()
         .getMethod(

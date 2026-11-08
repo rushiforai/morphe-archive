@@ -4,6 +4,9 @@
  */
 package app.morphe.extension.tiktok.font;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -18,6 +21,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 
 /**
@@ -34,6 +38,7 @@ public class SystemFontTest {
 
     @After public void tearDown() {
         Settings.SYSTEM_FONT.resetToDefault();
+        SystemFont.resetReportForTests();
         HookStatus.clear();
     }
 
@@ -53,10 +58,57 @@ public class SystemFontTest {
         assertTrue("the TikTok typeface was handed straight back", replaced != tiktok);
     }
 
-    @Test public void nullIsAlwaysPassedThrough() {
+    @Test public void nullPassesThroughWithTheSwitchesOff() {
+        SystemFont.requested(700, 0);
         assertNull(SystemFont.systemize(null));
+    }
+
+    /**
+     * #346: patched from the split bundle, TikTok's font files aren't installed, so the engine
+     * answers null for every face. The replacement still goes out, at the weight it was asked for.
+     */
+    @Test public void aFaceTheEngineCannotBuildStillComesOutInTheReplacement() {
         Settings.SYSTEM_FONT.save(true);
-        assertNull(SystemFont.systemize(null));
+        // Legacy typefaces keep the asked weight as their style, so the style is the weight carried.
+        SystemFont.requested(700, 0);
+        Typeface bold = SystemFont.systemize(null);
+        assertNotNull("the engine's null went back with the switch on", bold);
+        assertEquals("the requested weight was dropped",
+                Typeface.create(Typeface.DEFAULT, 700, false).getStyle(), bold.getStyle());
+        assertFalse(bold.isItalic());
+
+        SystemFont.requestedAsset("font/TikTok-Text-Bold.otf");
+        assertEquals("the asset's weight was not read from its name",
+                Typeface.create(Typeface.DEFAULT, 700, false).getStyle(), SystemFont.systemize(null).getStyle());
+    }
+
+    /**
+     * The slant half of the #346 case, on the style path below Android 9: Robolectric's Android 9
+     * typefaces keep the weight a face is made at but not its slant, so only this path shows it.
+     * Its legacy typefaces answer 0 to getStyle(), so the style is read from the face's shadow.
+     */
+    @Test @Config(sdk = 27) public void aFaceTheEngineCannotBuildKeepsTheRequestedSlant() {
+        Settings.SYSTEM_FONT.save(true);
+        SystemFont.requested(400, 1);
+        Typeface italic = SystemFont.systemize(null);
+        assertNotNull(italic);
+        assertEquals("the requested slant was dropped", Typeface.ITALIC, styleOf(italic));
+
+        SystemFont.requestedAsset("font/TikTok-Text-BoldItalic.otf");
+        assertEquals("the asset's weight or slant was not read from its name",
+                Typeface.BOLD_ITALIC, styleOf(SystemFont.systemize(null)));
+    }
+
+    private static int styleOf(Typeface typeface) {
+        return Shadows.shadowOf(typeface).getFontDescription().getStyle();
+    }
+
+    @Test public void aFontFileNameGivesItsWeight() {
+        assertEquals(700, SystemFont.weightNamed("font/TikTok-Display-Bold.otf"));
+        assertEquals(500, SystemFont.weightNamed("font/TikTok-Text-Medium.otf"));
+        assertEquals(400, SystemFont.weightNamed("font/TikTok-Text-Regular.otf"));
+        assertEquals(600, SystemFont.weightNamed("font/TikTokSans-SemiBold.otf"));
+        assertEquals(400, SystemFont.weightNamed(null));
     }
 
     @Test public void theExportNamesTheStateWhicheverWayTheSwitchIsSet() {

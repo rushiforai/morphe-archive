@@ -4,12 +4,13 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.tinder.TinderCompatibility
+import app.morphe.patches.tinder.tinderTelegramLinkPatch
 
 // ============================================================================
-// VERSÃO SUPORTADA: 17.37.3 (travada via TinderCompatibility)
+// VERSÃO SUPORTADA: 17.41.0 (travada via TinderCompatibility)
 //
 // FINGERPRINT 1 — CardStackAdsConfig.<init>(shouldShowAds, isGoogleRecsAdsEnabled, config)
-// (classe Lcj4; nesta versão)
+// (classe Lkc4; nesta versão)
 //
 // Campos confirmados pelo toString() e pelo construtor:
 //   a (Z) = shouldShowAds | b (Z) = isGoogleRecsAdsEnabled | c = googleRecsAdConfig
@@ -21,10 +22,10 @@ import app.morphe.patches.tinder.TinderCompatibility
 // ============================================================================
 
 private object CardStackAdsConfigFingerprint : Fingerprint(
-    definingClass = "Lcj4;",
+    definingClass = "Lkc4;",
     name = "<init>",
     returnType = "V",
-    parameters = listOf("Z", "Z", "Le4e;"),
+    parameters = listOf("Z", "Z", "Llnd;"),
 )
 
 // ============================================================================
@@ -42,6 +43,44 @@ private object NimbusRecsAdsEnabledFingerprint : Fingerprint(
     parameters = listOf("Ljava/lang/Object;"),
 )
 
+// ============================================================================
+// FINGERPRINTS 3 e 4 — injetores de cartão de anúncio no deck (adsrecs)
+//
+// Terceira camada, vinda do repo Kirby1997/morphe-patches (17.15.0) e
+// re-derivada na 17.41.0. AdRecsInjectionRule decide, a cada swipe, se insere
+// um cartão patrocinado no deck. Cada injetor tem um suspend
+// shouldInsertAdRec que devolve Boolean boxed. Confirmado no bytecode: o
+// método que instancia a continuação $shouldInsertAdRec$1 é d(ContinuationImpl)
+// em cada classe, com 8 registradores e 2 de entrada (v0 livre).
+//
+//   AdMainCardStackInjectorImpl    -> Lcom/tinder/library/adsrecs/internal/rule/c;
+//   AdCuratedCardStackInjectorImpl -> Lcom/tinder/library/adsrecs/internal/rule/b;
+//
+// ATENÇÃO: os nomes mudaram em relação ao Kirby (na 17.15.0 o principal era
+// "d" e o curado "b"). Devolver FALSE = "sem anúncio neste swipe"; a corrotina
+// termina de forma síncrona, então não há contrato COROUTINE_SUSPENDED a honrar.
+// O deck curado não é tocado pelas fingerprints 1 e 2.
+// ============================================================================
+
+private object MainCardStackShouldInsertAdRecFingerprint : Fingerprint(
+    definingClass = "Lcom/tinder/library/adsrecs/internal/rule/c;",
+    name = "d",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Lkotlin/coroutines/jvm/internal/ContinuationImpl;"),
+)
+
+private object CuratedCardStackShouldInsertAdRecFingerprint : Fingerprint(
+    definingClass = "Lcom/tinder/library/adsrecs/internal/rule/b;",
+    name = "d",
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Lkotlin/coroutines/jvm/internal/ContinuationImpl;"),
+)
+
+private const val RETURN_FALSE_BOXED = """
+    sget-object v0, Ljava/lang/Boolean;->FALSE:Ljava/lang/Boolean;
+    return-object v0
+"""
+
 // Construtor com 0 locais: p1 == v1 (cabe em const/4). Escrever em p1 antes do
 // super-init é válido (só "this" fica não inicializado).
 private const val FORCE_SHOULD_SHOW_ADS_FALSE = """
@@ -55,10 +94,15 @@ val tinderRemoveAdsPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(TinderCompatibility.TINDER)
+    dependsOn(tinderTelegramLinkPatch)
 
     execute {
         // --- Anúncios Google no deck: shouldShowAds sempre false ---
         CardStackAdsConfigFingerprint.method.addInstructions(0, FORCE_SHOULD_SHOW_ADS_FALSE)
+
+        // --- Injetores de cartão de anúncio (deck principal e curado): nunca inserem ---
+        MainCardStackShouldInsertAdRecFingerprint.method.addInstructions(0, RETURN_FALSE_BOXED)
+        CuratedCardStackShouldInsertAdRecFingerprint.method.addInstructions(0, RETURN_FALSE_BOXED)
 
         // --- Anúncios Nimbus no deck: flow "enabled" sempre false ---
         // invokeSuspend tem 4 locais, então v0 é livre.
@@ -81,6 +125,6 @@ val tinderRemoveAdsPatch = bytecodePatch(
  *    do bouncer paywall e de interesse patrocinado.
  *
  * 2. VERSÃO TRAVADA
- *    "Lcj4;" é nome do R8 e muda a cada versão. Compatibilidade declarada em
- *    TinderCompatibility.TINDER (17.37.3).
+ *    "Lkc4;" e "Llnd;" são nomes do R8 e mudam a cada versão. Compatibilidade
+ *    declarada em TinderCompatibility.TINDER (17.41.0).
  */

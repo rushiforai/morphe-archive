@@ -7,6 +7,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -20,6 +21,16 @@ internal fun BytecodePatchContext.method(
     name: String,
     match: (MutableMethod) -> Boolean = { true },
 ) = (mutableClassDefByOrNull(type) ?: moved(type, name)).methods.single { it.name == name && match(it) }
+
+internal fun BytecodePatchContext.findMethod(
+    name: String,
+    match: (Method) -> Boolean,
+): MutableMethod {
+    val found = mutableListOf<Method>()
+    classDefForEach { c -> found += c.methods.filter { it.name == name && match(it) } }
+    check(found.size == 1) { "Expected one $name matching its signature, found ${found.size}" }
+    return method(found.single().definingClass, name) { match(it) }
+}
 
 // R8 renumbers generated classes ($3, $$ExternalSyntheticLambda0) and merges unrelated ones under one
 // arbitrary name, which differs between builds of the same Slack version. Fall back to the class that

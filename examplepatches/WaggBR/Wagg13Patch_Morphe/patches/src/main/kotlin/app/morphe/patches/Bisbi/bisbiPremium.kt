@@ -26,8 +26,7 @@ object BisbiVersionFingerprint : Fingerprint(
 
 val testPremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Forces the Premium state source before it is recalculated " +
-        "and adds the mod author signature below the Bisbi version.",
+    description = "Unlocks premium features in Bisbi.",
     default = true,
 ) {
     compatibleWith(

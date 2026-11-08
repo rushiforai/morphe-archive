@@ -86,6 +86,8 @@ public final class AuditMode {
             Settings.HIDE_BACKGROUND_POSTS,
             Settings.HIDE_REPOSTS,
             Settings.HIDE_PAGE_POSTS,
+            Settings.HIDE_GROUP_POSTS,
+            Settings.ONLY_FRIENDS_POSTS,
             Settings.HIDE_OTHER_LANGUAGES,
             Settings.HIDE_SEEN_POSTS));
 

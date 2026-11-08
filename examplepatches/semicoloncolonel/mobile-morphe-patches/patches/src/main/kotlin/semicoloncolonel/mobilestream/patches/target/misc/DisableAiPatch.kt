@@ -47,24 +47,29 @@ internal object BooleanFlagConstructorFingerprint : Fingerprint(
     strings = listOf("key", "defaultPageId"),
 )
 
-// The Ask Target button: (onClick, modifier, feature type, composer, changed, defaults).
-// The feature type is Target's own, unobfuscated enum.
+// The Ask Target button: (onClick, modifier, feature type, composer, changed,
+// defaults). Target 2026.44.0 adds its entry-point config after the feature
+// type. The feature type is Target's own, unobfuscated enum.
 internal object AskTargetButtonFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
     returnType = "V",
-    parameters = listOf(
-        "Lkotlin/jvm/functions/Function0;",
-        "Landroidx/compose/ui/Modifier;",
-        "Lcom/target/firefly/schema/FeatureType;",
-        "Landroidx/compose/runtime/Composer;",
-        "I",
-        "I",
-    ),
     strings = listOf("onClick", "animator_duration_scale"),
+    custom = { method, _ ->
+        val types = method.parameterTypes.map { it.toString() }
+        types.size in 6..7 &&
+            types.take(3) == listOf(
+                "Lkotlin/jvm/functions/Function0;",
+                "Landroidx/compose/ui/Modifier;",
+                "Lcom/target/firefly/schema/FeatureType;",
+            ) &&
+            types.takeLast(3) == listOf("Landroidx/compose/runtime/Composer;", "I", "I")
+    },
 )
 
-private const val SKIP_BUTTON = "$AI_FILTER->skipTargetAskTargetButton(" +
-    "Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;II)V"
+// The skip helper has one overload per button signature: every object
+// argument becomes Object, and the two flag ints stay.
+private fun skipButton(parameterCount: Int) =
+    "$AI_FILTER->skipTargetAskTargetButton(" + "Ljava/lang/Object;".repeat(parameterCount - 2) + "II)V"
 
 @Suppress("unused")
 val disableAiPatch = bytecodePatch(
@@ -178,7 +183,7 @@ val disableAiPatch = bytecodePatch(
                     val smali = when (instruction) {
                         is RegisterRangeInstruction -> {
                             val last = instruction.startRegister + instruction.registerCount - 1
-                            "invoke-static/range { v${instruction.startRegister} .. v$last }, $SKIP_BUTTON"
+                            "invoke-static/range { v${instruction.startRegister} .. v$last }, ${skipButton(button.parameterTypes.size)}"
                         }
                         is FiveRegisterInstruction -> throw PatchException("Unexpected short call to the Ask Target button")
                         else -> return@forEachIndexed

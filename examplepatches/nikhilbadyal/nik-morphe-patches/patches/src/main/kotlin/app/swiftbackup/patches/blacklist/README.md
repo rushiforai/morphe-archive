@@ -26,10 +26,13 @@ the offline anonymous session used by the premium patch does not gain blacklist 
 connecting the same Google Drive account again. The metadata journal patch cannot sync writes that
 the app never sends to its database.
 
-The app's settings export includes `SwiftBackupSettingsHelper$SettingsData.blacklist`; its `restore()`
-method writes that list back through `gs0.d(..., false)`. Export settings before uninstalling, retain
-the exported file outside private app storage, and import it after reinstalling. The new limit patch
-must be present before importing more than 100 entries or the stock normalizer will truncate them.
+With **Swift Backup Local Cloud Metadata**, signed-in users recover the account blacklist automatically
+when the metadata journal is loaded or the connected cloud sends its first copy. Edits made before that
+pull are replayed per app, preserving entries the device has yet to download. A settings import also
+writes the blacklist to the signed-in account so subsequent installs can recover it automatically.
+
+Anonymous users can recover their blacklist through the settings export and import flow. Keep the
+export outside private app storage. Apply the limit patch before importing more than 100 entries.
 
 ## Verification
 

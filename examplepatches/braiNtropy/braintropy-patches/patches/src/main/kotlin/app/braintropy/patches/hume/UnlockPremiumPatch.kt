@@ -53,8 +53,7 @@ private fun fakePurchaseJson(sku: String) =
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Unlocks Hume Plus by feeding fake Play Billing purchases to the " +
-        "purchase stream the app's Dart subscription repository listens to.",
+    description = "Unlocks Hume Plus.",
     default = true
 ) {
     category("Unlock")

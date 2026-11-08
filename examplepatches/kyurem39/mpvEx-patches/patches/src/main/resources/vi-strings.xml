@@ -236,8 +236,8 @@
     <string name="anime4k_quality_fast">Nhanh</string>
     <string name="anime4k_quality_balanced">Cân bằng</string>
     <string name="anime4k_quality_high">Chất lượng cao</string>
-    <string name="pref_about_title">kyurem39's patches</string>
-    <string name="pref_about_summary">Cài đặt bản vá, giới thiệu</string>
+    <string name="pref_about_title">Giới thiệu mpvEx</string>
+    <string name="pref_about_summary">Phiên bản, giấy phép, v.v.</string>
     <string name="pref_about_oss_libraries">Các thư viện nguồn mở</string>
     <string name="pref_about_donate_title">Ủng hộ nhà phát triển</string>
     <string name="pref_about_donate_kofi">Qua Ko-fi</string>

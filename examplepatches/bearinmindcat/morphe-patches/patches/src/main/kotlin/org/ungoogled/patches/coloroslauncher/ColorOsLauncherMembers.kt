@@ -2908,6 +2908,43 @@ internal val HIDDEN_SUPERCLASSES = mapOf(
     "Lcom/android/internal/widget/RecyclerView\$ViewHolder;" to ("Ljava/lang/Object;" to listOf()),
 )
 
+/* Android 13 */
+/*
+ * Members and constructors OnePlus System Launcher calls from its own code that Android 13 refuses or lacks although
+ * Android 15 has them (Android 14 and 15 additions; its newer Java library calls go through shared/NewerJavaCalls.kt).
+ * Found by checking the patched APK against the Android 13 emulator's boot classpath and hidden API flags (One UI 5.1's
+ * framework gives the same list); they go through the same member helper (used where the phone has them, else the
+ * fallback or "absent").
+ */
+internal val HIDDEN_MEMBERS_13 = setOf(
+    "Landroid/app/ActivityOptions;->setPendingIntentBackgroundActivityStartMode(I)Landroid/app/ActivityOptions;",
+    "Landroid/app/ActivityOptions;->setPendingIntentCreatorBackgroundActivityStartMode(I)Landroid/app/ActivityOptions;",
+    "Landroid/app/PendingIntent;->send(Landroid/os/Bundle;)V",
+    "Landroid/app/WallpaperManager;->getDrawable(I)Landroid/graphics/drawable/Drawable;",
+    "Landroid/app/WallpaperManager;->getWallpaperInfo(I)Landroid/app/WallpaperInfo;",
+    "Landroid/app/admin/DevicePolicyManager;->getManagedSubscriptionsPolicy()Landroid/app/admin/ManagedSubscriptionsPolicy;",
+    "Landroid/app/admin/ManagedSubscriptionsPolicy;->getPolicyType()I",
+    "Landroid/appwidget/AppWidgetManager;->getWidgetPreview(Landroid/content/ComponentName;Landroid/os/UserHandle;I)Landroid/widget/RemoteViews;",
+    "Landroid/content/ClipData\$Item;->getIntentSender()Landroid/content/IntentSender;",
+    "Landroid/hardware/HardwareBuffer;->getId()J",
+    "Landroid/hardware/devicestate/DeviceState;->getIdentifier()I",
+    "Landroid/hardware/devicestate/DeviceStateManager;->registerCallback(Ljava/util/concurrent/Executor;Landroid/hardware/devicestate/DeviceStateManager\$DeviceStateCallback;)V",
+    "Landroid/hardware/devicestate/DeviceStateManager;->unregisterCallback(Landroid/hardware/devicestate/DeviceStateManager\$DeviceStateCallback;)V",
+    "Landroid/os/SystemClock;->uptimeNanos()J",
+    "Landroid/view/SurfaceControl\$Transaction;->addTransactionCompletedListener(Ljava/util/concurrent/Executor;Ljava/util/function/Consumer;)Landroid/view/SurfaceControl\$Transaction;",
+    "Landroid/view/SurfaceControl\$Transaction;->setFrameTimeline(J)Landroid/view/SurfaceControl\$Transaction;",
+    "Landroid/view/SurfaceControlViewHost\$SurfacePackage;->getSurfaceControl()Landroid/view/SurfaceControl;",
+    "Landroid/view/SurfaceView;->setSurfaceLifecycle(I)V",
+    "Landroid/window/SurfaceSyncGroup;->add(Landroid/view/AttachedSurfaceControl;Ljava/lang/Runnable;)Z",
+    "Landroid/window/SurfaceSyncGroup;->addTransaction(Landroid/view/SurfaceControl\$Transaction;)V",
+    "Landroid/window/SurfaceSyncGroup;->markSyncReady()V",
+    "Landroid/window/SystemPerformanceHinter\$HighPerfSession;->close()V",
+)
+
+internal val HIDDEN_CONSTRUCTORS_13 = setOf(
+    "Landroid/window/SurfaceSyncGroup;-><init>(Ljava/lang/String;)V",
+)
+
 /* Android 16 and 17 */
 /*
  * Members and constructors OnePlus System Launcher references that Android 16 or 17 refuses or lacks although Android
@@ -3016,4 +3053,18 @@ internal val HIDDEN_CONSTRUCTORS_16_17 = setOf(
     "Landroid/window/KeyguardState\$Builder;-><init>()V",
     "Landroid/window/TransitionRequestInfo;-><init>(ILandroid/app/ActivityManager\$RunningTaskInfo;Landroid/app/ActivityManager\$RunningTaskInfo;Landroid/window/RemoteTransition;Landroid/window/TransitionRequestInfo\$DisplayChange;I)V",
     "Lcom/android/internal/policy/FoldLockSettingsObserver;-><init>(Landroid/os/Handler;Landroid/content/Context;)V",
+)
+
+/* Android canary */
+/*
+ * Members and constructors OnePlus System Launcher 16.4.30 references that the Android canary (the preview of the
+ * Android after 17, emulator build ZP11.260918.008, SDK 37.2) refuses or lacks although Android 17 allowed them. Found
+ * by checking the patched APK against that image's boot classpath and hidden API flags; they go through the same member
+ * helper (used where the phone has them, "absent" elsewhere).
+ */
+internal val HIDDEN_MEMBERS_CANARY = setOf<String>(
+)
+
+internal val HIDDEN_CONSTRUCTORS_CANARY = setOf(
+    "Landroid/view/InputChannel;-><init>()V",
 )

@@ -6,21 +6,17 @@ import app.morphe.patcher.patch.Compatibility
 
 object Constants {
     val COMPATIBILITY_X = Compatibility(
-        name = "X (Twitter)", // App name as it appears in the Android launcher.
+        name = "X (Twitter)",
         packageName = "com.twitter.android",
-        apkFileType = ApkFileType.APK, // Preferred or recommended file type.
-        appIconColor = 0x000000, // Ícone preto do X.
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x000000,
         targets = listOf(
             AppTarget(
-                version = "12.33.0-alpha.02", // Experimental
-                isExperimental = true
-            ),  
-            AppTarget(
-                version = "12.31.0-prod.01", // Experimental
+                version = "12.40.1-prod.01", // Experimental (migration in progress)
                 isExperimental = true
             ),
             AppTarget(
-                version = "12.29.1-prod.01", // Recomendada
+                version = "12.38.1-prod.01", // Validated
                 isExperimental = false
             )
         )

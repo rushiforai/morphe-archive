@@ -28,9 +28,30 @@ version = match.group(1)
 bundle = json.loads((ROOT / "patches-bundle.json").read_text(encoding="utf-8"))
 patches = json.loads((ROOT / "patches-list.json").read_text(encoding="utf-8"))
 require(bundle["version"] == patches["version"], "Morphe JSON versions disagree")
-require(version == bundle["version"], "Gradle version and Morphe metadata disagree")
+metadata_version = bundle["version"]
+
+# Generated Morphe metadata is owned by semantic-release, not edited by hand.
+# Immediately before the explicitly approved manual release, the Gradle
+# version may be exactly one patch ahead of the last published metadata.
+if version != metadata_version:
+    require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) is not None,
+            "Only a stable patch release candidate may be staged")
+    require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", metadata_version) is not None,
+            "Published metadata must be a stable version")
+    new = tuple(int(x) for x in version.split("."))
+    old = tuple(int(x) for x in metadata_version.split("."))
+    require(new[:2] == old[:2] and new[2] == old[2] + 1,
+            "Release candidate must be exactly one patch version newer")
+    require((ROOT / ".github" / "release-notes" / f"v{version}.md").is_file(),
+            "Approved release notes missing")
+    exists = subprocess.run(
+        ["git", "show-ref", "--verify", "--quiet", f"refs/tags/v{version}"],
+        cwd=ROOT, check=False,
+    ).returncode == 0
+    require(not exists, "Published release tag must not be staged again")
+
 require(bundle["download_url"] ==
-        f"https://github.com/chikuwadon/nicoid-re-patches/releases/download/v{version}/patches-{version}.mpp",
+        f"https://github.com/chikuwadon/nicoid-re-patches/releases/download/v{metadata_version}/patches-{metadata_version}.mpp",
         "Morphe release URL mismatch")
 require(any(pkg.get("packageName") == "com.sauzask.nicoid"
             and any(t.get("version") == "6.49" for t in pkg.get("targets", []))

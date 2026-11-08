@@ -37,6 +37,7 @@ import app.hushgram.extension.instagram.misc.NotificationGroups;
 import app.hushgram.extension.instagram.misc.SettingsRows;
 import app.hushgram.extension.instagram.misc.SpoofLocation;
 import app.hushgram.extension.instagram.misc.AppProxy;
+import app.hushgram.extension.instagram.misc.CustomAccent;
 import app.hushgram.extension.instagram.reels.TabOrder;
 import app.hushgram.extension.instagram.share.ShareSheetActions;
 import app.hushgram.extension.instagram.share.SharingDomain;
@@ -203,6 +204,7 @@ public final class ConfigurationBackup {
         if (PatchFamily.REELS_TAB.inBuild()) {
             settings.put(Settings.START_TAB.key, Settings.START_TAB);
             settings.put(Settings.TAB_ORDER.key, Settings.TAB_ORDER);
+            settings.put(Settings.TAB_ICON_SIZE.key, Settings.TAB_ICON_SIZE);
         }
         if (PatchFamily.GLASS_TAB_BAR.inBuild()) {
             settings.put(Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key, Settings.GLASS_TAB_BAR_HAPTIC_STYLE);
@@ -217,7 +219,10 @@ public final class ConfigurationBackup {
         if (PatchFamily.SHARE_SHEET.inBuild()) {
             settings.put(Settings.HIDDEN_SHARE_SHEET_BUTTONS.key, Settings.HIDDEN_SHARE_SHEET_BUTTONS);
         }
-        if (PatchFamily.ACCENT_COLOR.inBuild()) settings.put(Settings.ACCENT_HUE.key, Settings.ACCENT_HUE);
+        if (PatchFamily.ACCENT_COLOR.inBuild()) {
+            settings.put(Settings.ACCENT_HUE.key, Settings.ACCENT_HUE);
+            settings.put(Settings.ACCENT_CUSTOM.key, Settings.ACCENT_CUSTOM);
+        }
         if (PatchFamily.FONT.inBuild()) settings.put(Settings.FONT.key, Settings.FONT);
         if (PatchFamily.EMOJI_STYLE.inBuild()) settings.put(Settings.EMOJI_FONT.key, Settings.EMOJI_FONT);
         if (PatchFamily.APP_ICON.inBuild()) settings.put(Settings.APP_ICON.key, Settings.APP_ICON);
@@ -226,6 +231,7 @@ public final class ConfigurationBackup {
             settings.put(Settings.DOWNLOAD_REEL_COVER.key, Settings.DOWNLOAD_REEL_COVER);
             settings.put(Settings.DOWNLOAD_REEL_AUDIO.key, Settings.DOWNLOAD_REEL_AUDIO);
             settings.put(Settings.REEL_DOWNLOAD_BUTTON.key, Settings.REEL_DOWNLOAD_BUTTON);
+            settings.put(Settings.REEL_DOWNLOAD_BUTTON_ASKS.key, Settings.REEL_DOWNLOAD_BUTTON_ASKS);
             settings.put(Settings.REEL_NOT_INTERESTED_BUTTON.key, Settings.REEL_NOT_INTERESTED_BUTTON);
             settings.put(Settings.REEL_BLOCK_BUTTON.key, Settings.REEL_BLOCK_BUTTON);
             settings.put(Settings.HIDE_SOUND_REELS.key, Settings.HIDE_SOUND_REELS);
@@ -276,6 +282,7 @@ public final class ConfigurationBackup {
         settings.put(Settings.SETTINGS_SHORTCUT.key, Settings.SETTINGS_SHORTCUT);
         settings.put(Settings.SETTINGS_LOGO_PRESS.key, Settings.SETTINGS_LOGO_PRESS);
         settings.put(Settings.CATEGORY_PAGES.key, Settings.CATEGORY_PAGES);
+        settings.put(Settings.CATEGORY_OWN_PAGE.key, Settings.CATEGORY_OWN_PAGE);
         settings.put(Settings.CATEGORY_GRID.key, Settings.CATEGORY_GRID);
         settings.put(Settings.DESCRIPTIONS_BEHIND_INFO.key, Settings.DESCRIPTIONS_BEHIND_INFO);
         settings.put(Settings.SETTINGS_BLACK_LOOK.key, Settings.SETTINGS_BLACK_LOOK);
@@ -487,6 +494,8 @@ public final class ConfigurationBackup {
         if (setting == Settings.SPOOF_LOCATION_PLACE) return text.trim().isEmpty() || SpoofLocation.parse(text) != null;
         // The row saves the server as host:port, so a file holds it that way or blank.
         if (setting == Settings.APP_PROXY_SERVER) return text.equals(AppProxy.normalize(text));
+        // The row saves the custom color as #RRGGBB, so a file holds it that way or blank.
+        if (setting == Settings.ACCENT_CUSTOM) return text.isEmpty() || text.equals(CustomAccent.normalize(text));
         if (setting == Settings.TAB_ORDER) return text.equals(TabOrder.join(TabOrder.parse(text)));
         // The share sheet buttons to leave out, as Instagram's names for them with commas between.
         if (setting == Settings.HIDDEN_SHARE_SHEET_BUTTONS) {

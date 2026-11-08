@@ -93,6 +93,15 @@ public final class AiFeatureFilter {
         logOff("Ask Target button");
     }
 
+    /**
+     * Target 2026.44.0 and later: the Ask Target button also takes its entry-point config
+     * (onClick, modifier, feature type, entry point, composer, changed flags, default flags).
+     */
+    public static void skipTargetAskTargetButton(Object onClick, Object modifier, Object featureType,
+                                                 Object entryPoint, Object composer, int changed, int defaults) {
+        logOff("Ask Target button");
+    }
+
     public static boolean isTargetAiKey(String key) {
         return key != null && TARGET_AI_FLAGS.contains(key) && logOff(key);
     }

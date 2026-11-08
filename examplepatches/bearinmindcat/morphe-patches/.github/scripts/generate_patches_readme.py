@@ -53,10 +53,10 @@ VENDOR_GROUPS = [
     ("Nothing Apps", "nothing ", ("com.nothing.",), ()),
     ("Honor Apps", "honor ", ("com.hihonor.",), ()),
     ("RedMagic Apps", "redmagic ", ("cn.nubia.",), ()),
-    ("LG Apps", "lg ", ("com.lge.",), ()),
+    ("LG Apps", "lg ", ("com.lge.",), ("com.android.gallery3d",)),
     # OPPO's ColorOS, also OnePlus's OxygenOS and realme UI: apps carry the OnePlus or OPPO name.
     ("ColorOS Apps", ("oneplus ", "oppo ", "coloros ", "realme "),
-     ("com.oneplus.", "net.oneplus.", "com.coloros.", "com.oplus.", "com.oppo."), ("com.android.contacts",)),
+     ("com.oneplus.", "net.oneplus.", "com.coloros.", "com.oplus.", "com.oppo.", "andes.oplus."), ("com.android.contacts",)),
     # Sony's apps: Xperia's own (com.sonymobile.*) and the older Sony Ericsson names Album still carries.
     ("Sony Apps", "sony ", ("com.sonymobile.", "com.sony.", "com.sonyericsson."), ()),
 ]
@@ -182,6 +182,14 @@ APP_RENAMES = {
         '<img src="docs/icons/samsung-screen-recorder.png" width="20" height="20" align="top"> Samsung Screen Recorder',
         '<img src="docs/icons/samsung-screen-recorder.png" width="20" height="20" align="top"> Samsung Screen Recorder',
     ),
+    "com.samsung.android.app.smartcapture": (
+        '<img src="docs/icons/samsung-capture.png" width="20" height="20" align="top"> Samsung Capture',
+        '<img src="docs/icons/samsung-capture.png" width="20" height="20" align="top"> Samsung Capture',
+    ),
+    "com.sec.android.app.sbrowser": (
+        '<img src="docs/icons/samsung-internet.png" width="20" height="20" align="top"> Samsung Internet',
+        '<img src="docs/icons/samsung-internet.png" width="20" height="20" align="top"> Samsung Internet',
+    ),
     "com.samsung.android.email.provider": (
         '<img src="docs/icons/samsung-email.png" width="20" height="20" align="top"> Samsung Email',
         '<img src="docs/icons/samsung-email.png" width="20" height="20" align="top"> Samsung Email',
@@ -201,6 +209,10 @@ APP_RENAMES = {
     "com.samsung.android.wonderland.wallpaper": (
         '<img src="docs/icons/samsung-wonderland.png" width="20" height="20" align="top"> Wonderland',
         '<img src="docs/icons/samsung-wonderland.png" width="20" height="20" align="top"> Wonderland',
+    ),
+    "com.samsung.android.sidegesturepad": (
+        '<img src="docs/icons/samsung-one-hand-operation.png" width="20" height="20" align="top"> One Hand Operation +',
+        '<img src="docs/icons/samsung-one-hand-operation.png" width="20" height="20" align="top"> One Hand Operation +',
     ),
     "com.miui.compass": (
         '<img src="docs/icons/xiaomi-compass.png" width="20" height="20" align="top"> Xiaomi Compass',
@@ -310,6 +322,10 @@ APP_RENAMES = {
         '<img src="docs/icons/lg-health.png" width="20" height="20" align="top"> LG Health',
         '<img src="docs/icons/lg-health.png" width="20" height="20" align="top"> LG Health',
     ),
+    "com.android.gallery3d": (
+        '<img src="docs/icons/lg-gallery.png" width="20" height="20" align="top"> LG Gallery',
+        '<img src="docs/icons/lg-gallery.png" width="20" height="20" align="top"> LG Gallery',
+    ),
     "com.oneplus.calculator": (
         '<img src="docs/icons/coloros-calculator.png" width="20" height="20" align="top"> OnePlus Calculator',
         '<img src="docs/icons/coloros-calculator.png" width="20" height="20" align="top"> OnePlus Calculator',
@@ -357,6 +373,16 @@ APP_RENAMES = {
         '<img src="docs/icons/coloros-contacts.png" width="20" height="20" align="top"> OnePlus Contacts',
         '<img src="docs/icons/coloros-contacts.png" width="20" height="20" align="top"> OnePlus Contacts',
     ),
+    # OnePlus Documents (ColorOS / OxygenOS documents reader, issue #149)
+    "andes.oplus.documentsreader": (
+        '<img src="docs/icons/coloros-documents.png" width="20" height="20" align="top"> OnePlus Documents',
+        '<img src="docs/icons/coloros-documents.png" width="20" height="20" align="top"> OnePlus Documents',
+    ),
+    # OnePlus Camera (the phone's own system camera, root mount install on OnePlus / OPPO phones)
+    "com.oplus.camera": (
+        '<img src="docs/icons/coloros-camera.png" width="20" height="20" align="top"> OnePlus Camera',
+        '<img src="docs/icons/coloros-camera.png" width="20" height="20" align="top"> OnePlus Camera',
+    ),
     # OnePlus System Launcher (ColorOS / OxygenOS 16 home screen, coloros-launcher)
     "com.android.launcher": (
         '<img src="docs/icons/coloros-launcher.png" width="20" height="20" align="top"> OnePlus System Launcher',
@@ -371,6 +397,16 @@ APP_RENAMES = {
     "com.sonyericsson.album": (
         '<img src="docs/icons/sony-album.png" width="20" height="20" align="top"> Sony Album',
         '<img src="docs/icons/sony-album.png" width="20" height="20" align="top"> Sony Album',
+    ),
+    # Sony Music (Xperia's music player)
+    "com.sonyericsson.music": (
+        '<img src="docs/icons/sony-music.png" width="20" height="20" align="top"> Sony Music',
+        '<img src="docs/icons/sony-music.png" width="20" height="20" align="top"> Sony Music',
+    ),
+    # Xperia Keyboard (Xperia's keyboard)
+    "com.sonyericsson.textinput.uxp": (
+        '<img src="docs/icons/xperia-keyboard.png" width="20" height="20" align="top"> Xperia Keyboard',
+        '<img src="docs/icons/xperia-keyboard.png" width="20" height="20" align="top"> Xperia Keyboard',
     ),
     # Xperia Home (Sony's launcher, sony-ports): listed under Launchers.
     "com.sonymobile.launcher": (

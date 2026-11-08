@@ -30,7 +30,7 @@ private const val PUSH_SERVICE = "Lcom/ss/android/ugc/awemepushlib/interaction/P
 class SuggestedVideoPushBlockFixturesTest {
     @Test
     fun `each declared host posts its 16 notifications through the filter, the push handler among them`() {
-        val expected = mapOf("47.5.3" to 16)
+        val expected = mapOf("47.6.3" to 16)
         assertEquals(Fixtures.declaredVersions().toSet(), expected.keys)
         Fixtures.forEachDeclared { apk ->
             val version = Fixtures.versionOf(apk)

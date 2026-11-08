@@ -36,6 +36,16 @@ public final class GboardPatchesSettingsContract {
         default void onHidden(FeatureHost host) {
         }
 
+        default boolean updatesDuringKeyboardPreview() { return false; }
+
+        default int getEntryIcon() {
+            return GboardPatchesIcons.NONE;
+        }
+
+        default String getEntryTone() {
+            return null;
+        }
+
         Screen buildScreen(FeatureHost host);
     }
 
@@ -120,6 +130,12 @@ public final class GboardPatchesSettingsContract {
         default void openBinaryDocument(String[] mimeTypes,
                 BinaryDocumentConsumer documentConsumer) {
             throw new UnsupportedOperationException("Binary document import is unavailable");
+        }
+
+        /** Bounded import; document processing runs on a worker thread. */
+        default void openBinaryDocument(String[] mimeTypes, int maxBytes,
+                BinaryDocumentConsumer documentConsumer) {
+            throw new UnsupportedOperationException("Bounded document import is unavailable");
         }
 
         default void requestTargetRestart() {
@@ -229,6 +245,11 @@ public final class GboardPatchesSettingsContract {
     public static void openBinaryDocument(FeatureHost host, String[] mimeTypes,
             BinaryDocumentConsumer documentConsumer) {
         submit(host, adapter -> adapter.openBinaryDocument(mimeTypes, documentConsumer));
+    }
+
+    public static void openBinaryDocument(FeatureHost host, String[] mimeTypes, int maxBytes,
+            BinaryDocumentConsumer documentConsumer) {
+        submit(host, adapter -> adapter.openBinaryDocument(mimeTypes, maxBytes, documentConsumer));
     }
 
     public static void requestTargetRestart(FeatureHost host) {
@@ -530,6 +551,44 @@ public final class GboardPatchesSettingsContract {
         public List<PreviewMedia> getMediaItems() {
             return mediaItems;
         }
+
+        public boolean hasVideo() {
+            for (PreviewMedia media : mediaItems) {
+                if (media instanceof PreviewVideo) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public static final class RowDecoration {
+        private int leadingIcon = GboardPatchesIcons.NONE;
+        private String leadingTone;
+        private ToggleRow entryToggle;
+
+        public RowDecoration leadingIcon(int icon, String tone) {
+            this.leadingIcon = icon;
+            this.leadingTone = tone;
+            return this;
+        }
+
+        public RowDecoration entryToggle(ToggleRow toggle) {
+            this.entryToggle = toggle;
+            return this;
+        }
+
+        public int getLeadingIcon() {
+            return leadingIcon;
+        }
+
+        public String getLeadingTone() {
+            return leadingTone;
+        }
+
+        public ToggleRow getEntryToggle() {
+            return entryToggle;
+        }
     }
 
     public static final class StatusBlock {
@@ -605,6 +664,7 @@ public final class GboardPatchesSettingsContract {
         private final RefreshPolicy refreshPolicy;
         private final PanelStyle panelStyle;
         private final CommandRow primaryAction;
+        private boolean masterToggleFirst;
         private final List<ToolbarAction> toolbarActions;
         private final boolean fullBleed;
 
@@ -702,6 +762,14 @@ public final class GboardPatchesSettingsContract {
             return statusBlocks;
         }
 
+        /** Places diagnostic controls before their changing results when requested. */
+        public Screen setMasterToggleFirst(boolean first) {
+            masterToggleFirst = first;
+            return this;
+        }
+
+        public boolean isMasterToggleFirst() { return masterToggleFirst; }
+
         public List<Section> getSections() {
             return sections;
         }
@@ -740,6 +808,9 @@ public final class GboardPatchesSettingsContract {
         private final String summary;
         private final boolean enabled;
         private final PreviewSpec previewSpec;
+        private RowDecoration decoration;
+        private String restartKey;
+        private Boolean masterToggle;
 
         protected Row(CharSequence title, String summary, boolean enabled) {
             this(title, summary, enabled, null);
@@ -766,6 +837,41 @@ public final class GboardPatchesSettingsContract {
 
         public PreviewSpec getPreviewSpec() {
             return previewSpec;
+        }
+
+        public RowDecoration getDecoration() {
+            return decoration;
+        }
+
+        public Row setDecoration(RowDecoration decoration) {
+            this.decoration = decoration;
+            return this;
+        }
+
+        public Row setRestartRequired(String restartKey) {
+            this.restartKey = restartKey == null || restartKey.isEmpty() ? null : restartKey;
+            return this;
+        }
+
+        public String getRestartKey() {
+            return restartKey;
+        }
+
+        public boolean isRestartRequired() {
+            return restartKey != null;
+        }
+
+        public Row setMasterToggle(boolean masterToggle) {
+            this.masterToggle = masterToggle;
+            return this;
+        }
+
+        public Boolean isMasterToggleExplicit() {
+            return masterToggle;
+        }
+
+        public boolean isMasterToggle() {
+            return masterToggle != null && masterToggle;
         }
     }
 
@@ -911,6 +1017,13 @@ public final class GboardPatchesSettingsContract {
 
         public Runnable getAction() {
             return action;
+        }
+    }
+
+    /** Search control, separate from read-only dictionary results. */
+    public static final class SearchRow extends CommandRow {
+        public SearchRow(CharSequence title, String summary, Runnable action) {
+            super(title, summary, true, action);
         }
     }
 

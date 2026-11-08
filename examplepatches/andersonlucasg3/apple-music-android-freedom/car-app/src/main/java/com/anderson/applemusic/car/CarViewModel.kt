@@ -12,7 +12,11 @@ import com.anderson.applemusic.core.BrowseItem
 import com.anderson.applemusic.core.CustomAction
 import com.anderson.applemusic.core.MediaBrowserClient
 import com.anderson.applemusic.core.PlaybackSnapshot
+import com.anderson.applemusic.core.SearchClient
+import com.anderson.applemusic.core.SearchOutcome
+import com.anderson.applemusic.core.SearchResult
 import com.anderson.applemusic.core.Section
+import com.anderson.applemusic.core.mediaIdCandidates
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -53,11 +57,18 @@ data class CarUiState(
     val itemMenu: BrowseItem? = null,
     /** Session action list over the full player. */
     val actionsOpen: Boolean = false,
+    /** Catalogue search overlay. */
+    val searchOpen: Boolean = false,
+    val searchQuery: String = "",
+    val searchBusy: Boolean = false,
+    val searchResults: List<SearchResult> = emptyList(),
+    val searchError: String? = null,
 )
 
 class CarViewModel(application: Application) : AndroidViewModel(application) {
 
     private val client = MediaBrowserClient(application)
+    private val searchClient = SearchClient(application)
     private val _state = MutableStateFlow(CarUiState())
     val state: StateFlow<CarUiState> = _state.asStateFlow()
 
@@ -66,6 +77,7 @@ class CarViewModel(application: Application) : AndroidViewModel(application) {
     val playback: StateFlow<PlaybackSnapshot> = _playback.asStateFlow()
 
     private var messageJob: Job? = null
+    private var searchJob: Job? = null
 
     private val listener = object : MediaBrowserClient.Listener {
         override fun onConnected() {
@@ -252,6 +264,97 @@ class CarViewModel(application: Application) : AndroidViewModel(application) {
 
     fun closeItemMenu() {
         _state.update { it.copy(itemMenu = null) }
+    }
+
+    fun openSearch() {
+        _state.update { it.copy(searchOpen = true) }
+    }
+
+    fun closeSearch() {
+        searchJob?.cancel()
+        _state.update { it.copy(searchOpen = false, searchBusy = false) }
+    }
+
+    /** Catalogue search, debounced: every keystroke would otherwise cost a round trip. */
+    fun setSearchQuery(text: String) {
+        _state.update {
+            it.copy(searchQuery = text, searchError = null)
+        }
+        searchJob?.cancel()
+        val term = text.trim()
+        if (term.length < MIN_QUERY_LENGTH) {
+            _state.update { it.copy(searchResults = emptyList(), searchBusy = false) }
+            return
+        }
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            _state.update { it.copy(searchBusy = true) }
+            when (val outcome = searchClient.search(term)) {
+                is SearchOutcome.Results -> _state.update {
+                    it.copy(searchBusy = false, searchResults = outcome.results, searchError = null)
+                }
+
+                SearchOutcome.TokenUnavailable -> _state.update {
+                    it.copy(
+                        searchBusy = false,
+                        searchResults = emptyList(),
+                        searchError = "Não foi possível ler o token do Apple Music",
+                    )
+                }
+
+                is SearchOutcome.Failure -> _state.update {
+                    it.copy(
+                        searchBusy = false,
+                        searchResults = emptyList(),
+                        searchError = outcome.message,
+                    )
+                }
+            }
+        }
+    }
+
+    fun retrySearch() {
+        setSearchQuery(_state.value.searchQuery)
+    }
+
+    /** Opens the engine's own search screen (token unreadable / result not playable). */
+    fun openEngineSearch() {
+        SearchClient.openEngineSearch(getApplication())
+    }
+
+    /**
+     * Tap on a result: the catalogue id goes to `playFromMediaId`; if the engine does
+     * not load the item, its own search plays the top hit for "title artist".
+     */
+    fun playSearchResult(result: SearchResult) {
+        val before = _playback.value
+        showMessage("Tocando ${result.title}…")
+        viewModelScope.launch {
+            for (candidate in result.mediaIdCandidates()) {
+                client.play(candidate)
+                if (awaitNewTrack(before)) return@launch
+            }
+            SearchClient.playInEngine(getApplication(), "${result.title} ${result.artist}".trim())
+            showMessage("Buscando no app do Apple Music…")
+        }
+    }
+
+    /**
+     * The engine loaded something: a different track, or the same one restarted (the
+     * position jumps back), or playback resumed from a paused session. A result that
+     * merely keeps the current queue untouched looks like "no change" and falls through
+     * to the engine search.
+     */
+    private suspend fun awaitNewTrack(before: PlaybackSnapshot): Boolean {
+        val deadline = SystemClock.elapsedRealtime() + PLAY_WAIT_MS
+        while (SystemClock.elapsedRealtime() < deadline) {
+            val now = _playback.value
+            if (now.title.isNotBlank() && now.title != before.title) return true
+            if (now.playing && !before.playing) return true
+            if (now.title.isNotBlank() && now.positionMs + 1000L < before.positionMs) return true
+            delay(100L)
+        }
+        return false
     }
 
     /** Full-player action: the action already belongs to the current track. */
@@ -462,6 +565,7 @@ class CarViewModel(application: Application) : AndroidViewModel(application) {
 
     override fun onCleared() {
         messageJob?.cancel()
+        searchJob?.cancel()
         client.disconnect()
         super.onCleared()
     }
@@ -472,6 +576,9 @@ class CarViewModel(application: Application) : AndroidViewModel(application) {
         private const val PROGRESS_REFRESH_MS = 500L
         private const val MESSAGE_MS = 2500L
         private const val ITEM_ACTION_TIMEOUT_MS = 1500L
+        private const val SEARCH_DEBOUNCE_MS = 400L
+        private const val MIN_QUERY_LENGTH = 2
+        private const val PLAY_WAIT_MS = 1500L
 
         const val ACTION_FAVORITE = "com.apple.android.music.playback.action.FAVORITE"
         const val ACTION_ADD_TO_LIBRARY = "com.apple.android.music.playback.action.ADD_TO_LIBRARY"

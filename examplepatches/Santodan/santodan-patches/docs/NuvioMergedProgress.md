@@ -1,6 +1,12 @@
 # NuvioTV merged tracking progress
 
-Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
+Current target: **NuvioTV 1.1.0-beta.10 (1073)**. See [beta.10 contracts and verification](NuvioBeta10.md), including the quick-startup reconciliation correction. The current quick path shows saved CW first, skips old bulk membership decoding before refresh, then awaits native automatic provider refresh and publishes its result. Native cooldowns remain in effect. The sampling-only quick path described below is historical and superseded for the current target.
+
+For beta.10 immediate playback updates, the local-write observer must pass
+native `data.local.vb/wb/tb/ub` resume states through unchanged for `bc.C/D/A/B`.
+The older names restart the cloned body with placeholder arguments and can
+prevent details/CW overlay publication. See the 2026-11-06 investigation and
+verification in [NuvioBeta10.md](NuvioBeta10.md).
 
 ## Immediate local playback overlay (beta.8, 2026-10-25)
 

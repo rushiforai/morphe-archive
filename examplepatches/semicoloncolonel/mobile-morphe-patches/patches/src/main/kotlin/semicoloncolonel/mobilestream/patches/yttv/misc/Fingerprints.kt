@@ -49,6 +49,15 @@ internal object CastContextFetchFingerprint : Fingerprint(
 
 // Google Notifications Platform registration (zfw.b(Object)Object). The
 // second filter is the move-result of Context.getPackageName().
+// YouTube TV 10.45 moved the Android ID lookup into its own class. This finds that
+// class; the registration target method calls into it (see gnpRegistrationTarget).
+internal object GnpAndroidIdFingerprint : Fingerprint(
+    returnType = "J",
+    filters = listOf(
+        string("Failed to get android ID."),
+    )
+)
+
 internal object GnpRegistrationTargetFingerprint : Fingerprint(
     filters = listOf(
         methodCall(

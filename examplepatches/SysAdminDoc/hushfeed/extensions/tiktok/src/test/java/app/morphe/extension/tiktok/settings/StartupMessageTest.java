@@ -13,6 +13,7 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.os.Looper;
 
 import org.junit.After;
@@ -22,6 +23,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowAlertDialog;
@@ -58,6 +60,7 @@ public class StartupMessageTest {
         Settings.STARTUP_MESSAGE_TITLE.resetToDefault();
         Settings.STARTUP_MESSAGE_TEXT.resetToDefault();
         Settings.STARTUP_MESSAGE_DISMISSIBLE.resetToDefault();
+        Settings.STARTUP_MESSAGE_HIDDEN.resetToDefault();
     }
 
     /** What the patched MainActivity.onCreate does, then the first frames. */
@@ -136,6 +139,67 @@ public class StartupMessageTest {
         first.pause().stop().destroy();
         try (ActivityController<MainScreen> ignored = open()) {
             assertNull("a recreation showed it again", ShadowAlertDialog.getLatestAlertDialog());
+        }
+    }
+
+    /** #347's reporter: having it come up every time gets tiresome. */
+    @Test public void dontShowAgainHidesThatMessageUntilItChanges() {
+        ActivityController<MainScreen> first = open();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull(dialog);
+        assertEquals("Don't show again", dialog.getButton(AlertDialog.BUTTON_NEUTRAL).getText().toString());
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(dialog.isShowing());
+        ShadowAlertDialog.reset();
+        first.get().finish();
+        first.pause().stop().destroy();
+
+        ActivityController<MainScreen> second = open();
+        assertNull("a hidden message came back", ShadowAlertDialog.getLatestAlertDialog());
+        second.get().finish();
+        second.pause().stop().destroy();
+
+        Settings.STARTUP_MESSAGE_TEXT.save("Go to bed before eleven");
+        try (ActivityController<MainScreen> ignored = open()) {
+            AlertDialog changed = ShadowAlertDialog.getLatestAlertDialog();
+            assertNotNull("a new message stayed hidden", changed);
+            assertEquals("Go to bed before eleven", String.valueOf(shadowOf(changed).getMessage()));
+        }
+    }
+
+    /** #347's reporter: dismissing it once per download is enough. */
+    @Test public void aNewInstallOrUpdateShowsAHiddenMessageOnceMore() {
+        Context application = RuntimeEnvironment.getApplication();
+        shadowOf(application.getPackageManager())
+                .getInternalMutablePackageInfo(application.getPackageName()).lastUpdateTime = 1_700_000_000_000L;
+        ActivityController<MainScreen> first = open();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull(dialog);
+        dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        ShadowAlertDialog.reset();
+        first.get().finish();
+        first.pause().stop().destroy();
+
+        ActivityController<MainScreen> same = open();
+        assertNull("hidden, yet it came back on the same install", ShadowAlertDialog.getLatestAlertDialog());
+        same.get().finish();
+        same.pause().stop().destroy();
+
+        shadowOf(application.getPackageManager())
+                .getInternalMutablePackageInfo(application.getPackageName()).lastUpdateTime = 1_700_000_600_000L;
+        ActivityController<MainScreen> updated = open();
+        AlertDialog again = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull("an updated TikTok kept it hidden", again);
+        again.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        ShadowAlertDialog.reset();
+        updated.get().finish();
+        updated.pause().stop().destroy();
+
+        try (ActivityController<MainScreen> ignored = open()) {
+            assertNull("hidden again on the update, yet it came back", ShadowAlertDialog.getLatestAlertDialog());
         }
     }
 

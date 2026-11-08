@@ -25,11 +25,15 @@ import org.ungoogled.patches.coloroslauncher.misc.substituteSuperConstructors
 import org.ungoogled.patches.samsung.redirectCalls
 import org.ungoogled.patches.xiaomilauncher.HIDDEN_CONSTRUCTORS
 import org.ungoogled.patches.xiaomilauncher.HIDDEN_CONSTRUCTORS_16_17
+import org.ungoogled.patches.xiaomilauncher.HIDDEN_CONSTRUCTORS_CANARY
 import org.ungoogled.patches.xiaomilauncher.HIDDEN_MEMBERS
 import org.ungoogled.patches.xiaomilauncher.HIDDEN_MEMBERS_16_17
+import org.ungoogled.patches.xiaomilauncher.HIDDEN_MEMBERS_CANARY
 import org.ungoogled.patches.xiaomilauncher.HIDDEN_SUPERCLASSES
 import org.ungoogled.patches.xiaomilauncher.SUPER_CONSTRUCTORS
 import org.ungoogled.patches.xiaomilauncher.XiaomiLauncherConstants.COMPATIBILITY_XIAOMI_LAUNCHER
+import org.ungoogled.patches.shared.enablePageSizeCompat
+import org.ungoogled.patches.shared.supportedVersionCheck
 
 internal const val XIAOMI_LAUNCHER_EXTENSION = "extensions/xiaomilauncher.mpe"
 
@@ -118,6 +122,12 @@ private val UNINSTALL_CALLS = mapOf(
         "$EXT/Launch;->deletePackageAsUser(Landroid/content/pm/PackageManager;Ljava/lang/String;Ljava/lang/Object;II)V",
 )
 
+/** Injected keys (INJECT_EVENTS is the system's): a HOME key starts the launcher's home screen (see Launch). */
+private val KEY_INJECTIONS = mapOf(
+    "Landroid/hardware/input/InputManager;->injectInputEvent(Landroid/view/InputEvent;I)Z" to
+        "$EXT/Launch;->injectInputEvent(Ljava/lang/Object;Landroid/view/InputEvent;I)Z",
+)
+
 /** Calls an installed app may make but that fail for it (see Calls). */
 private val GUARDED_CALLS = mapOf(
     "Landroid/content/ContentResolver;->registerContentObserver(Landroid/net/Uri;ZLandroid/database/ContentObserver;)V" to
@@ -172,10 +182,10 @@ private val hiddenApisPatch = bytecodePatch(
     execute {
         val (calls, fields) = redirectHiddenMembers(
             "$EXT/Members;", "$EXT/Hidden;",
-            HIDDEN_MEMBERS + HIDDEN_MEMBERS_16_17 + PROCESS_MANAGER_GAPS + SYSTEM_ONLY_CALLS,
+            HIDDEN_MEMBERS + HIDDEN_MEMBERS_16_17 + HIDDEN_MEMBERS_CANARY + PROCESS_MANAGER_GAPS + SYSTEM_ONLY_CALLS,
         )
         val constructors = redirectConstructors(
-            "$EXT/Members;", "$EXT/Hidden;", HIDDEN_CONSTRUCTORS + HIDDEN_CONSTRUCTORS_16_17,
+            "$EXT/Members;", "$EXT/Hidden;", HIDDEN_CONSTRUCTORS + HIDDEN_CONSTRUCTORS_16_17 + HIDDEN_CONSTRUCTORS_CANARY,
         )
         val superCalls = substituteSuperConstructors(SUPER_CONSTRUCTORS)
         val rebased = rebaseSubclasses(HIDDEN_SUPERCLASSES + SUPERCLASSES_16_17)
@@ -246,6 +256,9 @@ private val systemPrivilegesPatch = bytecodePatch(
         val bars = redirectCalls(BAR_CALLS)
         val uninstalls = redirectCalls(UNINSTALL_CALLS)
         val binds = redirectCalls(WIDGET_BINDS)
+        val keys = redirectCalls(KEY_INJECTIONS)
+        log.info("key injections: $keys")
+        if (keys == 0) throw PatchException("no InputManager.injectInputEvent calls found")
         log.info("widget binds: $binds")
         if (binds == 0) throw PatchException("no AppWidgetManager.bindAppWidgetIdIfAllowed calls found")
         log.info("uninstall calls: $uninstalls")
@@ -374,7 +387,8 @@ private val offlinePatch = bytecodePatch(
 
 /**
  * Android's uninstall dialog (see Launch.deletePackage) only opens for apps that ask for REQUEST_DELETE_PACKAGES; the
- * widget permission dialog is asked for from an activity of the extension's (see Widgets).
+ * widget permission dialog is asked for from an activity of the extension's (see Widgets). The bundled filament and
+ * jniLibs libraries are 4 KB aligned: page size compatibility mode on 16 KB phones (see enablePageSizeCompat).
  */
 private val manifestPatch = resourcePatch(
     description = "Lets the launcher open Android's uninstall and widget permission dialogs.",
@@ -397,8 +411,70 @@ private val manifestPatch = resourcePatch(
                 root.insertBefore(permission, permissions.item(0))
             }
         }
+        enablePageSizeCompat()
     }
 }
+
+private val CONTEXT_ROOTS = setOf(
+    "Landroid/content/Context;", "Landroid/content/ContextWrapper;", "Landroid/view/ContextThemeWrapper;",
+    "Landroid/app/Application;", "Landroid/app/Service;",
+)
+private val ACTIVITIES = setOf("Landroid/app/Activity;", "Landroid/app/ListActivity;", "Landroid/preference/PreferenceActivity;")
+private val STARTS = listOf("(Landroid/content/Intent;)V", "(Landroid/content/Intent;Landroid/os/Bundle;)V")
+private val STARTS_FOR_RESULT = listOf("(Landroid/content/Intent;I)V", "(Landroid/content/Intent;ILandroid/os/Bundle;)V")
+
+/**
+ * The launcher opens its own screens (settings and their sub-pages, ...) with implicit intents of Xiaomi's actions,
+ * which POCO Launcher answers too: on a POCO phone each opened Android's chooser. Every Context / Activity start goes
+ * through Launch, which keeps such an intent in the launcher when the launcher answers it (see Launch.own).
+ */
+private val ownScreensPatch = bytecodePatch(
+    description = "Opens the launcher's own screens without asking which launcher should open them.",
+) {
+    extendWith(XIAOMI_LAUNCHER_EXTENSION)
+
+    execute {
+        fun BytecodePatchContext.kind(type: String): String? {
+            var t: String? = type
+            repeat(32) {
+                if (t in ACTIVITIES) return "activity"
+                if (t in CONTEXT_ROOTS) return "context"
+                t = classDefByOrNull(t ?: return null)?.superclass ?: return null
+            }
+            return null
+        }
+        val owners = mutableSetOf<String>()
+        classDefForEach { c ->
+            if (c.type.startsWith("Lorg/ungoogled/")) return@classDefForEach
+            for (m in c.methods) {
+                for (insn in m.implementation?.instructions ?: continue) {
+                    if (insn.opcode != Opcode.INVOKE_VIRTUAL && insn.opcode != Opcode.INVOKE_VIRTUAL_RANGE) continue
+                    val r = (insn as ReferenceInstruction).reference as? MethodReference ?: continue
+                    if (r.name == "startActivity" || r.name == "startActivityForResult") owners += r.definingClass
+                }
+            }
+        }
+        val calls = mutableMapOf<String, String>()
+        for (owner in owners) {
+            val kind = kind(owner) ?: continue
+            for (shape in STARTS) {
+                calls["$owner->startActivity$shape"] = "$EXT/Launch;->startActivity(Landroid/content/Context;${shape.substring(1)}"
+            }
+            if (kind != "activity") continue
+            for (shape in STARTS_FOR_RESULT) {
+                calls["$owner->startActivityForResult$shape"] =
+                    "$EXT/Launch;->startActivityForResult(Landroid/app/Activity;${shape.substring(1)}"
+            }
+        }
+        val starts = redirectCalls(calls)
+        log.info("activity starts: $starts")
+        // Measured against 7.50.06.2372: 84.
+        if (starts < 50) throw PatchException("only $starts activity starts found")
+    }
+}
+
+/** Another version of the app or too old an Android stops here with a clear message (see supportedVersionCheck). */
+private val versionCheckPatch = supportedVersionCheck(COMPATIBILITY_XIAOMI_LAUNCHER)
 
 /**
  * Off HyperOS the launcher dies at once on HyperOS's framework classes (miui.os.Build first) and then on Android's hidden
@@ -413,6 +489,14 @@ val enableNonHyperOsLauncherPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_XIAOMI_LAUNCHER)
-    dependsOn(hiddenApisPatch, systemPrivilegesPatch, manifestPatch, offlinePatch)
+    dependsOn(versionCheckPatch, hiddenApisPatch, systemPrivilegesPatch, manifestPatch, offlinePatch)
     extendWith(XIAOMI_LAUNCHER_EXTENSION)
+    // The file provider's authority is also built from the package name; on POCO phones the settings authority is POCO's.
+    dependsOn(ownScreensPatch)
+    dependsOn(
+        org.ungoogled.patches.shared.launcherCoexistencePatch(
+            keep = setOf("com.miui.home.fileprovider"),
+            aliases = mapOf("com.mi.android.globallauncher.launcher.settings" to "com.miui.home.launcher.settings"),
+        ),
+    )
 }

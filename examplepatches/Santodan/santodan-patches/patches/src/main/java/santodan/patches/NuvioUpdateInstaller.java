@@ -11,10 +11,10 @@ import java.util.*;
 public final class NuvioUpdateInstaller {
     public static final String INSTALLER = "Llb/c;";
     public static final String RECEIVER = "Lcom/nuvio/tv/updater/UpdateInstallResultReceiver;";
-    public static final String INSTALL_ACTION = "Lcom/nuvio/tv/data/local/da;";
+    public static final String INSTALL_ACTION = "Lcom/nuvio/tv/data/local/ea;";
     static final String AUTHORITY = "com.nuvio.tv.fileprovider";
     static final String DM_KEY = "com.nuvio.tv.updater.WITH_DEX_METADATA";
-    static final String RECEIVER_HASH = "b1a786864cb39d37ddde4b34a1b2cd864bde6540e5fe343d3b6cb703a096de7b";
+    static final String RECEIVER_HASH = "151ada0b84f88d4dea85f1452dd74059150b386375e56a29564f01051534d9d4";
     static MutableMethod unique(MutableClass owner, String name) {
         var matches = new ArrayList<MutableMethod>();
         for (var method : owner.getMethods()) if (method.getName().equals(name)) matches.add(method);
@@ -75,7 +75,7 @@ public final class NuvioUpdateInstaller {
             throw new IllegalArgumentException("Invalid clone update authority");
         MutableMethod install = unique(action, "invokeSuspend");
         if (!install.toString().equals(INSTALL_ACTION + "->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;") ||
-            !NuvioPlaybackButtonsPatch.fingerprint(install).equals("4da35b93ee483f675689cfc62c3f14c8306a3f874364df811216383c13005929"))
+            !NuvioPlaybackButtonsPatch.fingerprint(install).equals("b428d01fca3eae56102a9664a90b6e0db7b4b9af69bbc2308e5fb72ee66c2587"))
             throw new IllegalStateException("Changed or already renamed install action");
         MutableMethod callback = receiver(receiver);
         for (var method : List.of(install, callback)) {

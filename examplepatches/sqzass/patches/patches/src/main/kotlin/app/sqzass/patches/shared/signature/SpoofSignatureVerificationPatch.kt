@@ -49,6 +49,7 @@ internal val SignatureHookAppStaticInitFingerprint = Fingerprint(
  */
 internal val extractPackageNamePatch = resourcePatch {
     execute {
+        extractedPackageName = ""
         document("AndroidManifest.xml").use { doc ->
             extractedPackageName = (doc.getElementsByTagName("manifest").item(0) as Element)
                 .getAttribute("package")

@@ -24,6 +24,18 @@ public final class NativeSettings {
       throws ReflectiveOperationException {
     return java.util.Arrays.stream(Class.forName(type).getConstructors())
         .filter(c -> c.getParameterCount() == arity)
+        .filter(c -> {
+          Class<?>[] types = c.getParameterTypes();
+          for (int i = 0; i < types.length; i++) {
+            Class<?> parameter = types[i];
+            if (parameter == boolean.class) parameter = Boolean.class;
+            else if (parameter == int.class) parameter = Integer.class;
+            else if (parameter == long.class) parameter = Long.class;
+            if (args[i] == null ? types[i].isPrimitive() : !parameter.isInstance(args[i]))
+              return false;
+          }
+          return true;
+        })
         .findFirst()
         .orElseThrow()
         .newInstance(args);

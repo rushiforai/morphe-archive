@@ -17,14 +17,14 @@ val cacheCleaner =
                 Triple(
                     "Landroidx/media3/datasource/cache/SimpleCache;",
                     listOf(
-                        "Landroidx/media3/database/StandaloneDatabaseProvider;",
                         "Ljava/io/File;",
                         "Lslack/services/multimedia/player/cache/ConfigurableLeastRecentlyUsedCacheEvictor;",
+                        "Landroidx/media3/database/StandaloneDatabaseProvider;",
                     ),
                     "video",
                 ),
             )) {
-                method(type, "<init>") { it.parameterTypes == parameters && it.returnType == "V" }.run {
+                method(type, "<init>") { it.parameterTypes.map { p -> p.toString() }.sorted() == parameters.sorted() && it.returnType == "V" }.run {
                     val exits = indexed(Opcode.RETURN_VOID).map { it.index }
                     check(exits.isNotEmpty()) { "No successful constructor exit for $type" }
                     for (i in exits.reversed()) {

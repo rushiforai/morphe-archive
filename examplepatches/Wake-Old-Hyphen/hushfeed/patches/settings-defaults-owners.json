@@ -52,7 +52,8 @@
       "VIDEO_LENGTH_ON_GRID",
       "PROFILE_GRID_SORT",
       "LIKED_GRID_SORT",
-      "SOUND_GRID_SORT"
+      "SOUND_GRID_SORT",
+      "LIKED_JUMP_TO_DATE"
     ],
     "Always upload in HD": [
       "ALWAYS_UPLOAD_HD"
@@ -123,6 +124,7 @@
       "BLOCK_FROM_COMMENT_MENU",
       "HIDE_COMMENT_LIKE_COUNT",
       "HIDE_COMMENT_DISLIKE",
+      "HIDE_COMMENT_AVATARS",
       "COMMENT_SEARCH",
       "COMMENT_EXPORT",
       "COMMENT_SEARCH_FOLDED",
@@ -138,6 +140,8 @@
       "CAPTION_ABOVE_COMMENTS",
       "HIDE_COMMENT_SEARCH_SUGGESTIONS",
       "COMPACT_COMMENT_HEADER",
+      "HIDE_COMMENT_CLOSE_BUTTON",
+      "HIDE_COMMENT_EXPAND_BUTTON",
       "LARGER_COMMENT_LIKE_TARGET"
     ],
     "Confirm feed interactions": [
@@ -363,6 +367,7 @@
     ],
     "Hide inbox items": [
       "HIDE_INBOX_STORIES",
+      "HIDE_INBOX_ON_THIS_DAY",
       "HIDE_INBOX_NEW_FOLLOWERS",
       "HIDE_INBOX_ACTIVITY",
       "HIDE_INBOX_ARCHIVE",
@@ -427,10 +432,12 @@
       "FADE_CONTROLS_OPACITY",
       "FADE_IN_CLEAR_DISPLAY",
       "SEE_THROUGH_BOTTOM_BAR",
+      "SEE_THROUGH_VIDEO_IN_WINDOW",
       "FLOATING_BOTTOM_BAR",
       "LIQUID_GLASS_BOTTOM_BAR",
       "GLASS_TAB_LENS",
       "GLASS_VIDEO_BLUR",
+      "GLASS_REFRACTION",
       "GLASS_BLUR_STRENGTH",
       "GLASS_OPACITY",
       "GLASS_BAR_HEIGHT",
@@ -514,6 +521,7 @@
       "OFFER_LIVE_QUALITY",
       "REMEMBER_LIVE_QUALITY",
       "OFFER_LIVE_CLEAR_SCREEN",
+      "KEEP_LIVE_CLEAR_SCREEN",
       "DARK_LIVE_PANELS",
       "RECORD_LIVE",
       "LIVE_RECORD_QUALITY",
@@ -592,6 +600,7 @@
       "DEFAULT_SPEED",
       "CUSTOM_SPEEDS",
       "HOLD_SPEED",
+      "HOLD_SPEED_CUSTOM",
       "HOLD_SPEED_SLIDE",
       "HOLD_SPEED_HUD_STYLE",
       "HOLD_SPEED_SLIDE_AXIS",
@@ -613,7 +622,8 @@
       "SIM_SPOOF_TIME_ZONE",
       "SIMSPOOF_MCCMNC",
       "SIMSPOOF_OP_NAME",
-      "SIM_SPOOF_FEED_REAL"
+      "SIM_SPOOF_FEED_REAL",
+      "LIVE_FEED_COUNTRIES"
     ],
     "Remember clear display": [
       "AUTOMATIC_CLEAR_DISPLAY",
@@ -624,10 +634,14 @@
     "Remove avatar rings": [
       "HIDE_STORY_RINGS",
       "HIDE_LIVE_RING",
+      "HIDE_RINGS_FEED",
+      "HIDE_RINGS_COMMENTS",
+      "HIDE_RINGS_PROFILES",
       "OPEN_STORY_OVER_LIVE"
     ],
     "Report a newer phone to effects": [
-      "REPORT_NEWER_PHONE_TO_EFFECTS"
+      "REPORT_NEWER_PHONE_TO_EFFECTS",
+      "EFFECT_PHONE_MODEL"
     ],
     "Resource and battery governor": [
       "BLOCK_MOTION_SENSORS",
@@ -645,7 +659,11 @@
       "MORPHE_LANGUAGE",
       "SHOW_MENU_ICONS",
       "HIDE_SETTINGS_ROW",
-      "SETTINGS_AS_LIST"
+      "SETTINGS_AS_LIST",
+      "STARTUP_MESSAGE",
+      "STARTUP_MESSAGE_TITLE",
+      "STARTUP_MESSAGE_TEXT",
+      "STARTUP_MESSAGE_DISMISSIBLE"
     ],
     "Share sheet tools": [
       "HIDE_SHARE_CHANNELS",
@@ -810,6 +828,7 @@
     "FIRST_TIME_APP_LAUNCHED": "Runtime state or legacy migration data; not a configurable feature default.",
     "EXPERIMENTAL_APP_CONFIRMED": "Runtime state or legacy migration data; not a configurable feature default.",
     "PAUSED": "Runtime state or legacy migration data; not a configurable feature default.",
-    "SAFE_MODE": "Runtime state or legacy migration data; not a configurable feature default."
+    "SAFE_MODE": "Runtime state or legacy migration data; not a configurable feature default.",
+    "STARTUP_MESSAGE_HIDDEN": "Runtime state or legacy migration data; not a configurable feature default."
   }
 }

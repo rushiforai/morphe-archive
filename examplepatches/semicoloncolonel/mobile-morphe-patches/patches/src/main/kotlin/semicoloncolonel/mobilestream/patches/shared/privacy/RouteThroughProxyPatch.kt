@@ -13,6 +13,7 @@ import semicoloncolonel.mobilestream.patches.whitehouse.shared.Constants as Whit
 import semicoloncolonel.mobilestream.patches.npr.shared.Constants as Npr
 import semicoloncolonel.mobilestream.patches.apnews.shared.Constants as ApNews
 import semicoloncolonel.mobilestream.patches.newsbreak.shared.Constants as NewsBreak
+import semicoloncolonel.mobilestream.patches.truthsocial.shared.Constants as TruthSocial
 
 // Sends the app's traffic through a proxy chosen in the patch option, for
 // example Orbot's local SOCKS proxy to use Tor, or a SOCKS5 server from a
@@ -35,6 +36,7 @@ val routeThroughProxyPatch = bytecodePatch(
         Npr.COMPATIBILITY,
         ApNews.COMPATIBILITY,
         NewsBreak.COMPATIBILITY,
+        TruthSocial.COMPATIBILITY,
     )
 
     extendWith("extensions/extension.mpe")

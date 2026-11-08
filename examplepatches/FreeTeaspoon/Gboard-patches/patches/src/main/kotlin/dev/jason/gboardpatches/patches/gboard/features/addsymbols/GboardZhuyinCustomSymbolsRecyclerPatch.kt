@@ -9,10 +9,10 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallEmitt
 import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 
 private const val BASE_RECYCLER_ADAPTER_CLASS = "Ljt;"
-private const val EMOTICON_RECYCLER_ADAPTER_CLASS = "Lizu;"
+private const val EMOTICON_RECYCLER_ADAPTER_CLASS = "Ljiu;"
 
 internal val gboardZhuyinCustomSymbolsRecyclerPatch = bytecodePatch(
-    description = "移植 add-symbols 的 custom recycler bind rendering。"
+    description = "調整 add-symbols 的 custom recycler bind rendering。"
 ) {
     dependsOn(gboardZhuyinCustomSymbolsExtensionPatch)
 
@@ -32,7 +32,7 @@ private fun patchConstructor() = with(context) {
         returnType = "V",
         parameterTypes = listOf(
             "Landroid/content/Context;",
-            "Ljan;",
+            "Ljjn;",
             "Ljava/util/function/Consumer;",
             "I",
             "I"
@@ -62,7 +62,7 @@ context(context: BytecodePatchContext)
 private fun patchViewType() = with(context) {
     val mutableMethod = findMutableMethodOrThrow(
         classType = BASE_RECYCLER_ADAPTER_CLASS,
-        name = "gT",
+        name = "gW",
         returnType = "I",
         parameterTypes = listOf("I")
     )

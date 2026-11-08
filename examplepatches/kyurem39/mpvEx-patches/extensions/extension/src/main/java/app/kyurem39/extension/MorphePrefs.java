@@ -19,6 +19,7 @@ public final class MorphePrefs {
     private static final String KEY_VIETNAMESE_UI = "vietnamese_ui";
     private static final String KEY_SUBTITLE_TRANSLATION = "subtitle_translation";
     private static final String KEY_SUBTITLE_TARGET = "subtitle_target_language";
+    private static final String KEY_INDEPENDENT_AUDIO = "independent_audio";
 
     public static final Locale VIETNAMESE = Locale.forLanguageTag("vi");
     public static final String DEFAULT_SUBTITLE_TARGET = "vi";
@@ -67,6 +68,29 @@ public final class MorphePrefs {
 
     public static void setSubtitleTargetLanguage(Context context, String language) {
         preferences(context).edit().putString(KEY_SUBTITLE_TARGET, language).apply();
+    }
+
+    /**
+     * Whether audio playback in mpvEx is independent of other applications.
+     * True by default, read fresh from SharedPreferences without caching.
+     */
+    public static boolean isIndependent(Context context) {
+        if (context == null) {
+            context = MorpheHook.currentActivity();
+        }
+        if (context == null) return true;
+        return preferences(context).getBoolean(KEY_INDEPENDENT_AUDIO, true);
+    }
+
+    public static boolean isIndependent() {
+        return isIndependent(null);
+    }
+
+    /**
+     * Stored synchronously with commit().
+     */
+    public static void setIndependentAudioEnabled(Context context, boolean enabled) {
+        preferences(context).edit().putBoolean(KEY_INDEPENDENT_AUDIO, enabled).commit();
     }
 
     private static SharedPreferences preferences(Context context) {

@@ -20,6 +20,11 @@ import org.ungoogled.patches.samsunglauncher.HIDDEN_CONSTRUCTORS_16_17
 import org.ungoogled.patches.samsunglauncher.HIDDEN_MEMBERS
 import org.ungoogled.patches.samsunglauncher.HIDDEN_MEMBERS_16_17
 import org.ungoogled.patches.samsunglauncher.SamsungLauncherConstants.COMPATIBILITY_SAMSUNG_LAUNCHER
+import org.ungoogled.patches.samsunglauncher.v16.HIDDEN_CONSTRUCTORS as V16_HIDDEN_CONSTRUCTORS
+import org.ungoogled.patches.samsunglauncher.v16.HIDDEN_MEMBERS as V16_HIDDEN_MEMBERS
+import org.ungoogled.patches.samsunglauncher.v16.HIDDEN_SUPERCLASSES as V16_HIDDEN_SUPERCLASSES
+import org.ungoogled.patches.shared.redirectNewerJavaCalls
+import org.ungoogled.patches.shared.supportedVersionCheck
 
 internal const val SAMSUNG_LAUNCHER_EXTENSION = "extensions/samsunglauncher.mpe"
 
@@ -27,6 +32,12 @@ private const val EXT = "Lorg/ungoogled/samsunglauncher"
 private const val ACTIVITY_OPTIONS = "Landroid/app/ActivityOptions;"
 
 private val log = java.util.logging.Logger.getLogger("OneUiHome")
+
+/**
+ * 16.0.09.35 is the Android 13 build (One UI 6/7's home screen): its lists are generated against Android 13, 15, 16 and
+ * 17 (v16/SamsungLauncher16Members.kt), and a few of its own classes have an older shape.
+ */
+private fun isAndroid13Build(version: String?) = version?.startsWith("16.") == true
 
 private val SETTINGS_SHAPES = listOf(
     "getString(Landroid/content/ContentResolver;Ljava/lang/String;)Ljava/lang/String;" to "GetString",
@@ -89,6 +100,12 @@ private val WIDGET_BINDS = listOf(
         "$EXT/Widgets;->bind(Landroid/appwidget/AppWidgetManager;${shape.substring(1)}"
 }
 
+/** The wallpaper picture, refused to an installed app (see Wallpapers): Home Up's backups read it. */
+private val WALLPAPER_CALLS = mapOf(
+    "Landroid/app/WallpaperManager;->getDrawable()Landroid/graphics/drawable/Drawable;" to
+        "$EXT/Wallpapers;->getDrawable(Landroid/app/WallpaperManager;)Landroid/graphics/drawable/Drawable;",
+)
+
 /**
  * The widget permission dialog's host activity. Some icons are SPR files, Samsung's vector format that only One UI
  * can draw: they become vector drawables.
@@ -99,7 +116,7 @@ private val resourcesPatch = resourcePatch(
     execute {
         val converted = convertSprDrawables()
         log.info("SPR drawables: $converted")
-        // Measured against 18.0.07.59: 9 files.
+        // Measured against 18.0.07.59: 9 files; 16.0.09.35: 10.
         if (converted == 0) throw PatchException("no SPR drawables found")
 
         document("AndroidManifest.xml").use { manifest ->
@@ -133,7 +150,7 @@ private val oneUiMembersPatch = bytecodePatch(
     execute {
         val (calls, fields) = redirectOneUiMembers("$EXT/OneUi;", "$EXT/Sem;")
         log.info("One UI members: $calls calls, $fields fields")
-        // Measured against 18.0.07.59: 314 calls, 81 field accesses.
+        // Measured against 18.0.07.59: 314 calls, 81 field accesses; 16.0.09.35: 217 calls, 67 field accesses.
         if (calls < 50) throw PatchException("only $calls One UI calls found")
     }
 }
@@ -169,8 +186,9 @@ private val REBASES = mapOf(
  * One UI Home is a system app built against the full Android framework; an installed app may not link to its hidden
  * parts. Each hidden member it uses goes through OneUi (used where Android allows it, "absent" elsewhere), each
  * `new` of a class an app may not construct through OneUi.construct, and subclasses of such classes are rebased.
- * The lists cover Android 15, 16 and 17, and the generated helpers take objects untyped: on Android 16+ a rebased
- * listener (TaskSnapshotListener) no longer verified as the class the call named, and the launcher did not start.
+ * The lists cover Android 15, 16 and 17 (16.0's also Android 13), and the generated helpers take objects untyped: on
+ * Android 16+ a rebased listener (TaskSnapshotListener) no longer verified as the class the call named, and the
+ * launcher did not start.
  */
 private val hiddenApisPatch = bytecodePatch(
     description = "Answers Android's hidden parts where an installed app may not use them.",
@@ -178,32 +196,46 @@ private val hiddenApisPatch = bytecodePatch(
     extendWith(SAMSUNG_LAUNCHER_EXTENSION)
 
     execute {
+        val android13Build = isAndroid13Build(packageMetadata.versionName)
+        // Java 21 library calls first (see Java21): Android 13 has none of them, and the member helper could only answer
+        // them "absent". 18.0 needs Android 15, which has them.
+        val java = if (android13Build) redirectNewerJavaCalls("$EXT/Java21;") else 0
         val (calls, fields) = redirectHiddenMembers(
-            "$EXT/OneUi;", "$EXT/Hidden;", HIDDEN_MEMBERS + HIDDEN_MEMBERS_16_17 + REFUSED_CALLS,
+            "$EXT/OneUi;", "$EXT/Hidden;",
+            (if (android13Build) V16_HIDDEN_MEMBERS else HIDDEN_MEMBERS + HIDDEN_MEMBERS_16_17) + REFUSED_CALLS,
         )
         val constructors = redirectConstructors(
-            "$EXT/OneUi;", "$EXT/Hidden;", HIDDEN_CONSTRUCTORS + HIDDEN_CONSTRUCTORS_16_17,
+            "$EXT/OneUi;", "$EXT/Hidden;",
+            if (android13Build) V16_HIDDEN_CONSTRUCTORS else HIDDEN_CONSTRUCTORS + HIDDEN_CONSTRUCTORS_16_17,
         )
-        val rebased = rebaseSubclasses(REBASES)
+        val rebased = rebaseSubclasses(if (android13Build) REBASES + V16_HIDDEN_SUPERCLASSES else REBASES)
         skipCastOfNull("$EXT/Hidden;")
-        log.info("hidden members: $calls calls, $fields fields; constructors: $constructors; rebased classes: $rebased")
+        log.info(
+            "java calls: $java; hidden members: $calls calls, $fields fields; constructors: $constructors; " +
+                "rebased classes: $rebased",
+        )
 
         // Fold state listeners are made with a constructor only system apps may call: off a foldable there is no fold
-        // state to follow, so registering the missing listener is skipped.
-        val deviceState = mutableClassDefBy("Lcom/honeyspace/common/wrapper/DeviceStateManagerWrapper;")
-        for ((name, callback) in listOf("registerCallback" to "p2", "unregisterCallback" to "p1")) {
-            val method = deviceState.methods.firstOrNull { it.name == name }
-                ?: throw PatchException("DeviceStateManagerWrapper.$name not found")
-            method.addInstructionsWithLabels(
-                0,
-                """
-                    if-nez $callback, :callback
-                    return-void
-                """,
-                ExternalLabel("callback", method.implementation!!.instructions.first()),
-            )
+        // state to follow, so registering the missing listener is skipped. (16.0 follows the fold state elsewhere,
+        // through a rebased listener.)
+        if (!android13Build) {
+            val deviceState = mutableClassDefBy("Lcom/honeyspace/common/wrapper/DeviceStateManagerWrapper;")
+            for ((name, callback) in listOf("registerCallback" to "p2", "unregisterCallback" to "p1")) {
+                val method = deviceState.methods.firstOrNull { it.name == name }
+                    ?: throw PatchException("DeviceStateManagerWrapper.$name not found")
+                method.addInstructionsWithLabels(
+                    0,
+                    """
+                        if-nez $callback, :callback
+                        return-void
+                    """,
+                    ExternalLabel("callback", method.implementation!!.instructions.first()),
+                )
+            }
         }
-        // Measured against 18.0.07.59: 947 calls, 359 field accesses, 63 constructors, 24 rebased classes.
+        // Measured against 18.0.07.59: 947 calls, 359 field accesses, 63 constructors, 24 rebased classes; 16.0.09.35: one
+        // Java call, 775 calls, 293 field accesses, 49 constructors, 9 rebased classes.
+        if (android13Build && java == 0) throw PatchException("no newer Java library calls found")
         if (calls < 100) throw PatchException("only $calls hidden member calls found")
         if (constructors == 0 || rebased == 0) throw PatchException("hidden constructors not found")
     }
@@ -223,6 +255,7 @@ private val systemPrivilegesPatch = bytecodePatch(
         val settings = redirectCalls(SETTINGS_CALLS)
         val widgets = redirectCalls(WIDGET_BINDS)
         val windows = redirectCalls(WINDOW_CALLS)
+        val wallpapers = redirectCalls(WALLPAPER_CALLS)
         val reflection = redirectCalls(REFLECTION_CALLS)
         log.info("reflection lookups: $reflection")
 
@@ -241,10 +274,12 @@ private val systemPrivilegesPatch = bytecodePatch(
             """,
             ExternalLabel("own", invoke.implementation!!.instructions.first()),
         )
-        log.info("system services: $services, settings calls: $settings, widget binds: $widgets, windows: $windows")
-        // Measured against 18.0.07.59: 168 settings calls.
+        log.info("system services: $services, settings calls: $settings, widget binds: $widgets, windows: $windows, wallpaper reads: $wallpapers")
+        // Measured against 18.0.07.59: 168 settings calls; 16.0.09.35: 117.
         if (settings < 50) throw PatchException("only $settings settings calls found")
         if (widgets == 0) throw PatchException("no widget binds found")
+        // Measured against 18.0.07.59: 1 (the Home Up backup picture).
+        if (wallpapers == 0) throw PatchException("the wallpaper read of Home Up backups was not found")
 
         // App launches: without the remote animation permission, Android's own launch (the path One UI Home itself
         // takes in DeX).
@@ -318,11 +353,20 @@ private val systemPrivilegesPatch = bytecodePatch(
             """,
             ExternalLabel("show", update.implementation!!.instructions.first()),
         )
-        val hideExceptions = systemUi.methods.firstOrNull {
-            it.name.startsWith("updateSystemUI\$lambda") && it.parameterTypes.map { t -> t.toString() } ==
-                listOf("I", "Landroid/view/WindowInsetsController;", "I")
-        } ?: throw PatchException("SystemUIControlUtils.updateSystemUI lambda not found")
-        hideExceptions.addInstructions(0, "const/4 p2, 0x0")
+        if (isAndroid13Build(packageMetadata.versionName)) {
+            // 16.0 works out the bars to keep hidden for the home screen in a helper of its own.
+            val exceptions = systemUi.methods.firstOrNull {
+                it.name == "getShowExceptionTypes" && it.returnType == "I" &&
+                    it.parameterTypes.map { t -> t.toString() } == listOf("I", "Landroid/view/Window;")
+            } ?: throw PatchException("SystemUIControlUtils.getShowExceptionTypes not found")
+            exceptions.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+        } else {
+            val hideExceptions = systemUi.methods.firstOrNull {
+                it.name.startsWith("updateSystemUI\$lambda") && it.parameterTypes.map { t -> t.toString() } ==
+                    listOf("I", "Landroid/view/WindowInsetsController;", "I")
+            } ?: throw PatchException("SystemUIControlUtils.updateSystemUI lambda not found")
+            hideExceptions.addInstructions(0, "const/4 p2, 0x0")
+        }
 
         // Everything else that asks for a remote animation (widget and recents launches). The method has no spare
         // register, so it is rebuilt with one.
@@ -357,6 +401,9 @@ private val systemPrivilegesPatch = bytecodePatch(
     }
 }
 
+/** Another version of the app or too old an Android stops here with a clear message (see supportedVersionCheck). */
+private val versionCheckPatch = supportedVersionCheck(COMPATIBILITY_SAMSUNG_LAUNCHER)
+
 /**
  * Off One UI the home screen dies at once on SemFloatingFeature (a One UI class). The extension carries stand-ins for
  * the One UI classes it calls; on a Samsung phone the framework's own classes load first, so they never run there.
@@ -369,6 +416,8 @@ val enableNonOneUiPatch = bytecodePatch(
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SAMSUNG_LAUNCHER)
-    dependsOn(resourcesPatch, oneUiMembersPatch, hiddenApisPatch, systemPrivilegesPatch)
+    dependsOn(versionCheckPatch, resourcesPatch, oneUiMembersPatch, hiddenApisPatch, systemPrivilegesPatch)
     extendWith(SAMSUNG_LAUNCHER_EXTENSION)
+    // Samsung's names exist only on Samsung phones, which have this package themselves; Home Up uses them.
+    dependsOn(org.ungoogled.patches.shared.launcherCoexistencePatch(keep = setOf("com.samsung.", "com.sec.", "com.honeyspace.")))
 }

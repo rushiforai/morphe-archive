@@ -364,7 +364,7 @@ People looking at a post don't see that you're writing a comment.	查看帖子�
 Hide read receipts	隐藏已读回执
 People you chat with in Facebook's own chats can't see that you've read their messages. The chat can stay unread on this phone.	在 Facebook 自带聊天中与你聊天的人看不到你已读他们的消息。这部手机上的聊天可以保持未读状态。
 Facebook can't tell when you take a screenshot or record your screen, so it can't react.	Facebook 无法得知你何时截屏或录屏，因此不会作出反应。
-Stops sending Facebook your list of watched reels. It uses the list to rank your feed, so reels you've watched may come back.	停止向 Facebook 发送你已观看的 Reels 列表。它会用这份列表为你的动态消息排序，所以你看过的 Reels 可能会再次出现。
+Stops sending Facebook your list of watched reels, and where you stopped in each video and how long you watched it. Facebook ranks your feed with these, so videos you've watched may come back.	停止向 Facebook 发送你已观看的 Reels 列表，以及每个视频看到哪里、看了多久。它会用这些信息为你的动态消息排序，所以你看过的视频可能会再次出现。
 # context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
 Newest reels first	最新 Reels 优先
 # context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
@@ -1369,6 +1369,10 @@ Hide reposts	隐藏转发的帖子
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	隐藏分享了另一条帖子的帖子，无论有无附言。原创帖子保留。默认关闭，因为尚未在真实动态上试过。
 Hide posts from Pages	隐藏公共主页的帖子
 Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	隐藏公共主页发布的帖子，包括你关注的主页。好友和小组的帖子会保留，好友分享的公共主页帖子也会保留。
+# context: switch title under News feed; the feed keeps only posts written by the user's Facebook friends
+Only friends' posts	仅显示好友的帖子
+# context: summary of that switch; %1$s is the name of the Following feed on Home switch, which puts the newest posts first
+Shows only posts your friends wrote and hides Pages, groups, ads, suggested posts and feed reels. A post whose author it can't tell stays. Turn on %1$s too for the newest posts first.	只显示好友发布的帖子，隐藏公共主页、小组、广告、推荐帖子和动态中的短视频。无法判断作者的帖子会保留。同时开启“%1$s”可以先看到最新的帖子。
 Hide posts in other languages	隐藏其他语言的帖子
 Hides posts and Reels tab reels in a language you don't keep, going by the phone's own guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing leaves the phone.	根据手机自己对每条帖子文字或每个 Reels 短视频说明的判断，隐藏用你未保留的语言写的帖子和 Reels 标签页里的短视频。手机不确定的内容会保留，所有内容都不会离开手机。
 Languages to keep	要保留的语言
@@ -1725,7 +1729,7 @@ On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also
 # context: switch title under Picture-in-picture on the Playback page: the small window opens only from the Picture-in-picture row this adds to a reel's three-dot More menu, not when you leave Facebook
 Only from a reel's More menu	仅限 Reels 的“更多”菜单
 # context: summary of that switch; Picture-in-picture is the name of the row in the reel's menu, translated as the row is; the three dots are the reel's own menu button
-Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row shows on upright reels, not wide ones.	离开 Facebook 时不会打开小窗口。需要时，请点按 Reels“更多”菜单（三个点）中的“画中画”。竖屏 Reels 会显示该行，横屏的不会。
+Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one.	离开 Facebook 时不会打开小窗口。需要时，请点按 Reels“更多”菜单（三个点）中的“画中画”。
 # context: switch title under Picture-in-picture on the Playback page; the button floats over a reel or video and opens the small window when tapped
 Picture-in-picture button	画中画按钮
 # context: summary of that switch; "the window" is the small picture-in-picture window
@@ -1929,6 +1933,10 @@ A video you tap in the feed opens full screen by itself, with no reels to swipe 
 Replay feed videos in place	在动态中原地重播视频
 # context: summary of that switch; Watch again is Facebook's own button shown when a feed video ends, so use Facebook's wording in your language if you know it
 Watch again at the end of a feed video plays it again right there, instead of opening it in Reels.	动态中的视频结束时点按“再看一遍”，会在原处重新播放，而不是在 Reels 中打开。
+# context: switch title under Reels and Watch; on, a video tapped in Facebook's Saved list plays in the regular video player instead of the Reels viewer
+Open saved videos in the video player	在视频播放器中打开收藏的视频
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	在“收藏夹”中点按的视频会在视频播放器中播放，而不是在 Reels 中打开，因为 Reels 中下一次滑动是推荐的视频。
 Hide the new comments pop-up	隐藏新评论弹窗
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	阅读评论时不再弹出“新评论”气泡。新评论仍会显示在列表中。
@@ -1950,6 +1958,10 @@ Skipping silent parts again	已重新跳过无声片段
 Hide posts from groups you're not in	隐藏你未加入的小组的帖子
 # context: summary of that switch; a group post a friend commented on or shared reaches the feed wrapped in the friend's activity, and the switch hides it too
 Hides posts from groups you haven't joined, like a friend's post in a public group, and a group post a friend commented on or shared. Posts from your groups stay.	隐藏你未加入的小组中的帖子，比如朋友在公开小组里发的帖子，以及朋友评论或分享过的小组帖子。你所在小组的帖子会保留。
+# context: switch title under News feed; hides every post that comes from a group, including groups the user is a member of
+Hide all group posts	隐藏所有小组帖子
+# context: summary of that switch; the Groups tab is Facebook's own tab of group posts, which this switch leaves alone
+Hides every post from a group in your feed, your own groups' too, and a group post a friend commented on or shared. The Groups tab keeps its feed.	隐藏动态中所有来自小组的帖子，包括你所在小组的帖子，以及朋友评论或分享过的小组帖子。“小组”标签页的动态会保留。
 # context: switch title under Search; For you is the section of searches Facebook suggests on the search screen before anything is typed, under a header that reads For you
 Hide For you in search	在搜索中隐藏“为你推荐”
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
@@ -2538,6 +2550,7 @@ There's no Facebook link in what you shared.	你分享的内容中没有 Faceboo
 Open in Facebook from the share menu	分享菜单中的 Open in Facebook
 Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	在 Messenger 的浏览器或其他应用中分享 Facebook 链接，选择 Open in Facebook，即可在这里打开。
 GmsCore support	GmsCore 支持
+Clone install under another package name	以其他包名安装副本
 Version %1$s for Facebook %2$s	版本 %1$s，适用于 Facebook %2$s
 Show all settings as a list	以列表显示所有设置
 Show settings by category	按类别显示设置

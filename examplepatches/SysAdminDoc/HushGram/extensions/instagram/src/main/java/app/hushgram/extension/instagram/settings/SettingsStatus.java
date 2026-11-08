@@ -422,6 +422,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean commentGifs() {
+        return false;
+    }
+
     public static boolean commentKeyboard() {
         return false;
     }
@@ -534,6 +538,11 @@ public final class SettingsStatus {
 
     /** Rewritten by the Pinch to zoom on Reels patch. */
     public static boolean reelZoom() {
+        return false;
+    }
+
+    /** Rewritten by the Double tap to skip on Reels patch. */
+    public static boolean reelDoubleTapSkip() {
         return false;
     }
 

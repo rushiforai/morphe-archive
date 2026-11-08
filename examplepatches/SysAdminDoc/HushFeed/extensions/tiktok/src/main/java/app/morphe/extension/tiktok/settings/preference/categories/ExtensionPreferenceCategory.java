@@ -9,6 +9,7 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.tiktok.misc.EffectDeviceSpoof;
 import app.morphe.extension.tiktok.privacy.StoreIdentity;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
@@ -435,10 +436,19 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     context,
                     "Report a newer phone to effects",
                     "Effects ask TikTok's server whether your phone can run them, and some get turned down on older phones. "
-                            + "This tells the effects server you have a Galaxy S24 Ultra instead. Sign-in and everything else "
-                            + "still see your real phone. An effect your phone really can't run may still fail or look wrong.",
+                            + "This tells the effects server you have a Galaxy S24 Ultra instead, or the phone you type below. "
+                            + "Sign-in and everything else still see your real phone. An effect your phone really can't run may "
+                            + "still fail or look wrong.",
                     Settings.REPORT_NEWER_PHONE_TO_EFFECTS
             ));
+            addPreference(new InputTextPreference(context, "Phone model for effects",
+                    "Pick the phone the effects server is told about, or type any model. "
+                            + "An effect turned down for one phone may open for another. Empty means the Galaxy S24 Ultra.",
+                    Settings.EFFECT_PHONE_MODEL)
+                    .withFreeTextKeyboard()
+                    .withCheck(EffectDeviceSpoof::modelProblem)
+                    .withChoices(EffectDeviceSpoof.listedLabels(), EffectDeviceSpoof.listedModels(),
+                            "Type another model"));
         }
         if (SettingsStatus.launcherShortcutsEnabled) {
             addPreference(new TogglePreference(

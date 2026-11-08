@@ -1,13 +1,20 @@
 package app.morphe.patches.notificationssimulator
 
 
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.resourcePatch
 import java.io.File
 
-private const val PACKAGE_NAME = "com.xinesoft.notifications"
 private const val TARGET_VERSION = "1.11.1"
 private const val TELEGRAM_URL = "https://t.me/wagg13mods"
 private const val CHANNEL_LABEL = "Channel Wagg13 Mods"
+
+private val NOTIFICATIONS_SIMULATOR_COMPATIBILITY = Compatibility(
+    name = "Notifications Simulator",
+    packageName = "com.xinesoft.notifications",
+    targets = listOf(AppTarget(version = TARGET_VERSION)),
+)
 
 /** Localiza o bundle principal (o hash no nome muda a cada versão do app). */
 private fun findBundle(assetsDir: File): File =
@@ -36,10 +43,10 @@ private val HEADER_TITLE = Regex(
 @Suppress("unused")
 val removeAdsPatch = resourcePatch(
     name = "Remove ads and video blocking",
-    description = "Removes the AdMob banner and the rewarded video dialog (Schedule/Favorite).",
+    description = "Removes banners and rewarded video ads when scheduling or favoriting.",
     default = true,
 ) {
-    compatibleWith(PACKAGE_NAME(TARGET_VERSION))
+    compatibleWith(NOTIFICATIONS_SIMULATOR_COMPATIBILITY)
 
     execute {
         val bundle = findBundle(get("assets/public/assets"))

@@ -12,7 +12,12 @@ final class Pillo627Import {
         Pillo627.requireField(classes, "Lkotlin/Unit;->a:Lkotlin/Unit;", true);
         Pillo627.requireField(classes, "Lxyz/rtrvr/pillo/models/entities/tracker/TrackerType;->WEIGHT:Lxyz/rtrvr/pillo/models/entities/tracker/TrackerType;", true);
         Pillo627.requireField(classes, "Lxyz/rtrvr/pillo/data/persistence/database/AppDatabaseManager;->Companion:Lxyz/rtrvr/pillo/data/persistence/database/AppDatabaseManager$Companion;", true);
-        Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/components/buttons/ButtonsKt;->ButtonM-vRFhKjU(Ls3/s;ZLjava/lang/String;JJLkotlin/jvm/functions/Function2;Lkotlin/jvm/functions/Function0;Lg3/q;II)V");
+        Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/components/buttons/ButtonsKt;->ButtonM-jB83MbM(Ls3/s;ZLjava/lang/String;JJLkotlin/jvm/functions/Function0;Lg3/q;II)V");
+        for (String provider : List.of("2", "3")) {
+            String owner = "Lxyz/rtrvr/pillo/ui/components/buttons/ButtonProps$" + provider + ";";
+            Pillo627.requireField(classes, owner + "->INSTANCE:" + owner, true);
+            Pillo627.require(classes, owner + "->invoke-WaAFU9c(Lg3/q;I)J");
+        }
         Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/components/layout/SpacedColumnKt;->SpacedColumn-DzVHIIc(Ls3/s;FLs3/d;Lkotlin/jvm/functions/Function3;Lg3/q;II)V");
         Pillo627.require(classes, "Lxyz/rtrvr/pillo/ui/tracker/common/components/LoggingBottomBarKt;->LoggingBottomBar(Ls3/s;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;ZZLjava/lang/String;Lg3/q;II)V");
         String root = "Lxyz/rtrvr/pillo/";

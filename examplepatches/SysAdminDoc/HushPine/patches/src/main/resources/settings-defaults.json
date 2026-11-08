@@ -123,6 +123,9 @@
     "Enable voice comments": [
       "enable_voice_comments"
     ],
+    "Episodes in full screen": [
+      "landscape_episodes"
+    ],
     "Expand activity list": [
       "expand_activity_list"
     ],
@@ -261,6 +264,9 @@
       "auto_streak_recipient",
       "auto_streak_minute",
       "auto_streak_message"
+    ],
+    "Keep list position": [
+      "keep_list_position"
     ],
     "Keep playing in the background": [
       "background_play",
@@ -422,6 +428,16 @@
     ],
     "Stop search autoplay": [
       "stop_search_autoplay"
+    ],
+    "Subtitle and dub preference": [
+      "subtitle_priority",
+      "force_subtitle",
+      "force_original_subtitle",
+      "dub_priority",
+      "force_dub",
+      "force_original_dub",
+      "hide_no_preferred_subtitle",
+      "hide_no_preferred_dub"
     ],
     "Translate comments": [
       "comment_batch_translation",
@@ -917,6 +933,12 @@
       "type": "boolean",
       "default": false
     },
+    "dub_priority": {
+      "field": "DUB_PRIORITY",
+      "key": "dub_priority",
+      "type": "string",
+      "default": ""
+    },
     "enable_live_search": {
       "field": "ENABLE_LIVE_SEARCH",
       "key": "enable_live_search",
@@ -998,6 +1020,30 @@
     "following_latest_first": {
       "field": "FOLLOWING_LATEST_FIRST",
       "key": "following_latest_first",
+      "type": "boolean",
+      "default": false
+    },
+    "force_dub": {
+      "field": "FORCE_DUB",
+      "key": "force_dub",
+      "type": "boolean",
+      "default": false
+    },
+    "force_original_dub": {
+      "field": "FORCE_ORIGINAL_DUB",
+      "key": "force_original_dub",
+      "type": "boolean",
+      "default": false
+    },
+    "force_original_subtitle": {
+      "field": "FORCE_ORIGINAL_SUBTITLE",
+      "key": "force_original_subtitle",
+      "type": "boolean",
+      "default": false
+    },
+    "force_subtitle": {
+      "field": "FORCE_SUBTITLE",
+      "key": "force_subtitle",
       "type": "boolean",
       "default": false
     },
@@ -1247,6 +1293,18 @@
       "type": "boolean",
       "default": false
     },
+    "hide_no_preferred_dub": {
+      "field": "HIDE_NO_PREFERRED_DUB",
+      "key": "hide_no_preferred_dub",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_no_preferred_subtitle": {
+      "field": "HIDE_NO_PREFERRED_SUBTITLE",
+      "key": "hide_no_preferred_subtitle",
+      "type": "boolean",
+      "default": false
+    },
     "hide_offline_videos": {
       "field": "HIDE_OFFLINE_VIDEOS",
       "key": "hide_offline_videos",
@@ -1409,6 +1467,12 @@
       "type": "boolean",
       "default": true
     },
+    "keep_list_position": {
+      "field": "KEEP_LIST_POSITION",
+      "key": "keep_list_position",
+      "type": "boolean",
+      "default": true
+    },
     "keep_offline_videos": {
       "field": "KEEP_OFFLINE_VIDEOS",
       "key": "keep_offline_videos",
@@ -1426,6 +1490,12 @@
       "key": "keep_pulled_sounds",
       "type": "boolean",
       "default": false
+    },
+    "landscape_episodes": {
+      "field": "LANDSCAPE_EPISODES",
+      "key": "landscape_episodes",
+      "type": "boolean",
+      "default": true
     },
     "liked_grid_sort": {
       "field": "LIKED_GRID_SORT",
@@ -2092,6 +2162,12 @@
       "key": "story_seekbar",
       "type": "boolean",
       "default": false
+    },
+    "subtitle_priority": {
+      "field": "SUBTITLE_PRIORITY",
+      "key": "subtitle_priority",
+      "type": "string",
+      "default": ""
     },
     "system_emoji": {
       "field": "SYSTEM_EMOJI",

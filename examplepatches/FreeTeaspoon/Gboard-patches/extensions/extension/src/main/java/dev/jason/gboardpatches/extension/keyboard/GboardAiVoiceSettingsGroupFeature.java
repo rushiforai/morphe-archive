@@ -1,6 +1,7 @@
 package dev.jason.gboardpatches.extension.keyboard;
 
 import android.content.Context;
+import dev.jason.gboardpatches.extension.wisprflow.WisprFlowSettingsFeature;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +10,7 @@ import dev.jason.gboardpatches.extension.R;
 import dev.jason.gboardpatches.extension.advancedvoice.GboardAdvancedVoiceSettingsFeature;
 import dev.jason.gboardpatches.extension.bluetoothmicrophone.GboardBluetoothMicrophoneSettingsFeature;
 import dev.jason.gboardpatches.extension.settings.GboardFeatureGroup;
+import dev.jason.gboardpatches.extension.settings.GboardPatchesIcons;
 import dev.jason.gboardpatches.extension.settings.GboardPatchesSettingsContract;
 import dev.jason.gboardpatches.extension.settings.GboardSettingsText;
 import dev.jason.gboardpatches.extension.writingtools.GboardAiWritingToolsSettingsFeature;
@@ -31,7 +33,8 @@ public final class GboardAiVoiceSettingsGroupFeature
                 Arrays.asList(
                         new GboardAiWritingToolsSettingsFeature(context),
                         new GboardAdvancedVoiceSettingsFeature(context),
-                        new GboardBluetoothMicrophoneSettingsFeature(context)));
+                        new GboardBluetoothMicrophoneSettingsFeature(context),
+                        new WisprFlowSettingsFeature(context)));
     }
 
     @Override
@@ -42,6 +45,16 @@ public final class GboardAiVoiceSettingsGroupFeature
     @Override
     public String getEntrySummary() {
         return delegate.getEntrySummary();
+    }
+
+    @Override
+    public int getEntryIcon() {
+        return GboardPatchesIcons.SPARKLE;
+    }
+
+    @Override
+    public String getEntryTone() {
+        return "violet";
     }
 
     @Override

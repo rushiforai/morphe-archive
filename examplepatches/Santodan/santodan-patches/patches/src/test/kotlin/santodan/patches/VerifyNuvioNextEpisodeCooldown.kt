@@ -69,6 +69,8 @@ fun main() = runBlocking {
         step(200_001, state.copy(enabled = true))
         step(230_000); check(calls.size == 7)
         step(230_001); check(calls.size == 8)
+        step(230_002, state.copy(priorityBingeGroup = "release-B"))
+        check(calls.size == 9 && calls.last().priorityBingeGroup == "release-B")
     } finally { worker.cancelAndJoin() }
     check(permit == null)
     println("PASS: successful and failed cooldowns survive pause/buffering, completion-at-pause is retained, active searches cancel with backoff, and profile/target/enable changes invalidate correctly")

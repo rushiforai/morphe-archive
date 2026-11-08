@@ -13,7 +13,7 @@ class NextEpisodePreloader(
     private val onState: (Snapshot, Long) -> Unit = { _, _ -> }
 ) {
     data class Snapshot(val profile: Any?, val currentVideoId: String?, val next: StreamTargets.Media?,
-                        val enabled: Boolean, val playing: Boolean)
+                        val enabled: Boolean, val playing: Boolean, val priorityBingeGroup: String? = null)
 
     suspend fun run(): Unit = coroutineScope {
         var previous: Snapshot? = null
@@ -35,7 +35,7 @@ class NextEpisodePreloader(
                     !state.currentVideoId.isNullOrBlank() && state.next != null &&
                     state.next.videoId != state.currentVideoId && playedMs >= 30_000
                 val sameTarget = target?.profile == state.profile && target?.currentVideoId == state.currentVideoId &&
-                    target?.next == state.next
+                    target?.next == state.next && target?.priorityBingeGroup == state.priorityBingeGroup
                 if (!sameTarget || !state.enabled) {
                     permit(null)
                     fetch?.cancelAndJoin()

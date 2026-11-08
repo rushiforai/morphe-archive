@@ -28,6 +28,10 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew clean :patches:buildAndroid :patches:generatePatchesList --no-daemon
+      - name: Verify release candidate MPP and regressions
+        run: |
+          python3 porting/revisions/v1.10.4/verify-mpp.py 1.10.4
+          python3 porting/tests/regression136.py
       - name: Verify MPP was produced
         shell: bash
         run: |

@@ -12,6 +12,11 @@ patches {
     }
 }
 
+// The Android Auto rules live in CarBridge's core module (git submodule), shared with the app
+kotlin.sourceSets.named("main") {
+    kotlin.srcDir(rootProject.file("carbridge/core/src/main/kotlin"))
+}
+
 // Separate configuration so gson is available at runtime for the
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")

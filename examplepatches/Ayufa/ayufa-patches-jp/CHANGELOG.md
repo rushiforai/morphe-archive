@@ -2,6 +2,12 @@
 
 このプロジェクトのバージョンは、バンドル全体に対する独立したセマンティックバージョニング（`vX.Y.Z`）で管理します。上流（crimera/piko、ryykitty/twitch-patched）のバージョンとは連動しません。方針は [docs/UPSTREAM.md](docs/UPSTREAM.md) を参照してください。
 
+## [1.5.1] - 2026-11-08
+
+- **KakaoTalk のパッチを正式版として公開**（v1.5.0 プレリリースの内容をそのまま正式化）。実機確認を経て安定版になりました。
+- X 側: 本家 piko-newx の更新を取り込み、**X 12.41.0-prod.01 に対応**。
+- LINE 側: 本家 morphe-patches v3.11.0 を取り込み。「Restore biometric login」（生体認証ログインの復元）がデフォルトで有効になりました。
+
 ## [1.5.0] - 2026-11-06
 
 - **KakaoTalk のパッチを追加**（本家 [AmpleReVanced/revanced-patches](https://github.com/AmpleReVanced/revanced-patches) v1.5.0 ベース）。広告の除去、タブの非表示、削除・非表示・編集されたメッセージの表示、既読確認の表示、ゴーストモード、各種の整合性チェック回避など、KakaoTalk 向けパッチ全76件を収録。対応 KakaoTalk バージョンは 26.9.0。同じ本家の他アプリ（DC Inside、AfreecaTV/SOOP、Naver ゲームコミュニティ、Onyx Note、Flexcil、Naver Map、Samsung Keyboard、Chzzk、StarNote）向けパッチは収録していません。なお、KakaoTalk の「Disable Sentry」が依存する共通パッチ「Disable Sentry telemetry」も併せて収録しています。

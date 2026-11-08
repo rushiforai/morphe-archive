@@ -8,10 +8,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.*;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
 import java.util.List;
 
-/** Reuse beta.10's native updater host and banner without replacing its drawing code. */
+/** Reuse beta.12's native updater host and banner without replacing its drawing code. */
 final class NuvioNativeSyncBanner {
     static final String EXT = "Lsoftware/santodan/extension/nuviomerged/NuvioSyncBanner;";
-    static final String HOST = "Lna/k1;->n(Llb/k0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lr1/s;Lh1/n;I)V";
+    static final String HOST = "Lna/r1;->n(Llb/k0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lr1/s;Lh1/n;I)V";
     static void hook(BytecodePatchContext context) {
         hookRoot(context.mutableClassDefBy("Lq8/l;"));
         hookBanner(context.mutableClassDefBy("Lnb/a;"));
@@ -21,7 +21,7 @@ final class NuvioNativeSyncBanner {
     }
     static void hookRoot(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"invoke",3);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("dedc41390385f7d6434496467cb757aa41aa84172c0c0525440f91b9a5afce4c"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("892869bed97523e9fc6c4f0afae64d24071d7e319341260d8d3b04ba832faea1"))
             throw new IllegalStateException("Native updater root changed or already patched");
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);
         int anchor=-1;
@@ -38,7 +38,7 @@ final class NuvioNativeSyncBanner {
     }
     static void hookBanner(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"b",10);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("c8a2b537c95418e3872f356ef34f9c380a25526551df17ebda0567f5a427b89b"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("dd74962f128ebe88dd76c76708f34008bb45aa6a8cd9ceb3613b180017fe967c"))
             throw new IllegalStateException("Native updater banner changed or already patched");
         var code=method.getImplementation();
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);
@@ -58,7 +58,7 @@ final class NuvioNativeSyncBanner {
                 code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,installed));
                 timerGuards++;
             }
-            // Original beta.10 b(): instruction 731, v34 cached isDownloading, directly
+            // Original beta.12 b(): instruction 731, v34 cached isDownloading, directly
             // after the primary action group closes. Its branch hides only the Close control.
             if(i==731){
                 if(instruction.getOpcode()!=Opcode.IF_NEZ || ((OneRegisterInstruction)instruction).getRegisterA()!=34 ||
@@ -73,7 +73,7 @@ final class NuvioNativeSyncBanner {
                     throw new IllegalStateException("Native banner close label changed");
                 name="closeText";args=List.of("I","Ljava/lang/Object;");closeLabels++;
             }
-            if(target.equals("Lm9/a5;->i(Lh1/k0;IILh1/k0;Z)Ljava/lang/String;")){
+            if(target.equals("Lm9/v4;->j(Lh1/k0;IILh1/k0;Z)Ljava/lang/String;")){
                 name="groupText";args=List.of("Ljava/lang/Object;","I","I","Ljava/lang/Object;","Z");
             } else if(target.equals("Lu6/g;->e0(I[Ljava/lang/Object;Lh1/n;)Ljava/lang/String;")){
                 name="formatted";args=List.of("I","[Ljava/lang/Object;","Ljava/lang/Object;");

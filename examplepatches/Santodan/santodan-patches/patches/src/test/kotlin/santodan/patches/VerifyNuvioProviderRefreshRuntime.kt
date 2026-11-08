@@ -106,6 +106,36 @@ private suspend fun verifyHomePipelineGate() = coroutineScope {
         println("PASS: native Home pipeline pause cancels metadata children, preserves cards and resumes once for its owner")
 }
 
+private suspend fun verifyColdProviderRead(method: String) = coroutineScope {
+    // Model a cold native refresh already queued behind startup work.
+    // Scale seconds to milliseconds while using the production policy.
+    val normalDeadline = NuvioMergeWork.providerDeadline(false) / 1_000
+    val coldDeadline = NuvioMergeWork.providerDeadline(true) / 1_000
+    check(normalDeadline == 45L && coldDeadline == 120L)
+    val coldProvider = RefreshFixture()
+    val coldRead = async(start = CoroutineStart.UNDISPATCHED) {
+        NuvioMergeWork.providerResult("MDBList", coldDeadline) {
+            NuvioProviderRefresh.await(coldProvider, method, false)
+            coldProvider.seeds.first()
+        }
+    }
+    check(coldProvider.intent == RefreshIntent.AUTOMATIC)
+    delay(normalDeadline + 10)
+    check(!coldRead.isCompleted) { "Cold startup was cut off by the manual provider deadline" }
+    coldProvider.seeds.value = "Marriage Toxin episode 9"
+    coldProvider.completion!!.resumeWith(Result.success(Unit))
+    check(coldRead.await().getOrThrow() == "Marriage Toxin episode 9")
+    val stalledColdRead = async(start = CoroutineStart.UNDISPATCHED) {
+        NuvioMergeWork.providerResult("MDBList", coldDeadline) {
+            NuvioProviderRefresh.await(coldProvider, method, false)
+        }
+    }
+    check(stalledColdRead.await().isFailure) { "Cold startup lost its bounded deadline" }
+    coldProvider.completion!!.resumeWith(Result.success(Unit))
+
+    println("PASS: cold automatic refresh outlasts normal deadline; bounded failure and current episode publication retained")
+}
+
 fun main() = runBlocking {
     verifyEpisodeProjection()
     withTimeout(5_000) {
@@ -531,6 +561,35 @@ fun main() = runBlocking {
         check(startup.await() == listOf("cached episode")) { "Home startup lost the cached native fallback" }
         println("PASS: empty completed snapshots and playback resume never collect refresh-on-start flows; Home startup fallback and live snapshot updates retained")
         for (method in listOf("v")) {
+            verifyColdProviderRead(method)
+
+            // Quick startup keeps its saved card visible, but must await the
+            // native automatic refresh before replacing it with current seeds.
+            val startupProvider = RefreshFixture()
+            startupProvider.seeds.value = "Marriage Toxin episode 5"
+            val visible = MutableStateFlow<Any?>("Marriage Toxin episode 5")
+            val reconciliation = async(start = CoroutineStart.UNDISPATCHED) {
+                val result = NuvioMergeWork.providerResult("MDBList") {
+                    NuvioProviderRefresh.await(startupProvider, method, false)
+                    startupProvider.seeds.first()
+                }
+                result.onSuccess { visible.value = it }
+                result
+            }
+            check(startupProvider.intent == RefreshIntent.AUTOMATIC && !reconciliation.isCompleted)
+            check(visible.value == "Marriage Toxin episode 5")
+            startupProvider.seeds.value = "Marriage Toxin episode 9"
+            startupProvider.completion!!.resumeWith(Result.success(Unit))
+            check(reconciliation.await().isSuccess && visible.value == "Marriage Toxin episode 9")
+            val unavailable = async(start = CoroutineStart.UNDISPATCHED) {
+                NuvioMergeWork.providerResult("MDBList", 50) {
+                    NuvioProviderRefresh.await(startupProvider, method, false)
+                    visible.value = "stale card"
+                }
+            }
+            check(unavailable.await().isFailure && visible.value == "Marriage Toxin episode 9")
+            startupProvider.completion!!.resumeWith(Result.success(Unit))
+
             val provider = RefreshFixture()
             val refresh = async(start = CoroutineStart.UNDISPATCHED) {
                 NuvioProviderRefresh.await(provider, method)

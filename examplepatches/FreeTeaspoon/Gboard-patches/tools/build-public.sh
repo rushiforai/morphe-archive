@@ -4,8 +4,8 @@ set -euo pipefail
 
 project_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 build_cache="$project_root/.validation/public-build"
-plugin_commit=52be641ed3b965a20c33bd43e0cbe9efd308bc64 # Morphe Gradle plugin v1.3.3
-patcher_commit=026b0b762932ff13cb7923d713c6482fe73d24d6 # Morphe patcher v1.8.0
+plugin_commit=5b7e4619931a8c78b7858e598e002222d37021b9 # Morphe Gradle plugin v2.1.0
+patcher_commit=f3997dc1011b84a301c1ffe426fd9dfdd85095ba # Morphe patcher v2.1.0
 mkdir -p "$build_cache/maven"
 
 checkout_source() {
@@ -34,14 +34,14 @@ export GITHUB_ACTOR="${GITHUB_ACTOR:-public-source-build}"
 export GITHUB_TOKEN="${GITHUB_TOKEN:-unused-for-local-source-build}"
 source_stamp="$plugin_commit $patcher_commit"
 if [[ ! -f "$build_cache/ready" ]] || [[ "$(cat "$build_cache/ready")" != "$source_stamp" ]]; then
-    checkout_source morphe-patches-gradle-plugin "$build_cache/plugin" "$plugin_commit"
-    checkout_source morphe-patcher "$build_cache/patcher" "$patcher_commit"
+    checkout_source morphe-patches-gradle-plugin "$build_cache/plugin-$plugin_commit" "$plugin_commit"
+    checkout_source morphe-patcher "$build_cache/patcher-$patcher_commit" "$patcher_commit"
     (
-        cd "$build_cache/plugin"
+        cd "$build_cache/plugin-$plugin_commit"
         bash ./gradlew -Dmaven.repo.local="$build_cache/maven" publishToMavenLocal --console=plain
     )
     (
-        cd "$build_cache/patcher"
+        cd "$build_cache/patcher-$patcher_commit"
         bash ./gradlew -Dmaven.repo.local="$build_cache/maven" publishToMavenLocal --console=plain
     )
     printf '%s\n' "$source_stamp" > "$build_cache/ready"

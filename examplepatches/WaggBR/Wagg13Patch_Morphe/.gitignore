@@ -125,3 +125,24 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+
+# Local AI session logs, instructions, and scratch work
+AGENTS.md
+**/AGENTS.md
+CLAUDE.md
+**/CLAUDE.md
+GEMINI.md
+**/GEMINI.md
+.cursor/
+.cursorrules
+.windsurf/
+.windsurfrules
+.clinerules
+/.opencode-import/
+/.superpowers/
+/scratch/
+/scratch-gradle-info.txt
+/state/
+/.kotlin/
+/META-INF/
+

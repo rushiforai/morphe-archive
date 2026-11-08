@@ -35,9 +35,9 @@ private val oldPackageOption = app.morphe.patcher.patch.stringOption(
 )
 private val dexNewPackageOption = app.morphe.patcher.patch.stringOption(
     key = "dexNewPackageName",
-    default = "com.example.renamed",
-    title = "New Package Name",
-    description = "Replacement package name written into dex strings.",
+    default = "",
+    title = "New Package Name (or .suffix)",
+    description = "Package name to use for the renamed app. Leave blank to use the current package name as-is (autofilled, no rename); edit this field to change it. Use a leading '.' to append a suffix (e.g. '.sqz'), '+' to insert a suffix after the current package, or enter a full package name to replace it entirely.",
     validator = { true },
 )
 
@@ -63,7 +63,9 @@ val changePackageNameDexPatch = bytecodePatch(
 
     execute {
         val oldPackage = oldPackageOption.value?.takeIf { it.isNotBlank() } ?: packageMetadata.packageName
-        val newPackage = dexNewPackageOption.value?.takeIf { it.isNotBlank() } ?: newPackageOption.value?.takeIf { it.isNotBlank() } ?: return@execute
+        val rawNew = newPackageOption.value?.takeIf { it.isNotBlank() }
+            ?: dexNewPackageOption.value?.takeIf { it.isNotBlank() }
+        val newPackage = resolveNewPackageName(rawNew, oldPackage)
         if (rewriteDexStringsOption.value != true && hookPackageNameOption.value != true) {
             logger.info("Dex rewrite and getPackageName hook are off.")
             return@execute

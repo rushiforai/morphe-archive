@@ -97,6 +97,7 @@ public final class ShareModelFilter {
     }
 
     public static List<?> actions(List<?> items) {
+        HELD_REPORT.remove();
         try {
             ShareActionCatalog.observe(items, current);
         } catch (Throwable ex) {
@@ -104,12 +105,56 @@ public final class ShareModelFilter {
             Logger.printException(() -> "Could not record the share actions", ex);
         }
         try {
-            return filter("actions", items, Settings.HIDE_SHARE_ACTIONS.get());
+            List<?> kept = filter("actions", items, Settings.HIDE_SHARE_ACTIONS.get());
+            return holdHiddenReport(items, kept);
         } catch (Throwable ex) {
             HookStatus.threw(FAMILY, "actions", ex);
             Logger.printException(() -> "Could not filter the share actions row", ex);
             return items;
         }
+    }
+
+    /**
+     * A Report this filter hides, kept in the row for Block this creator to take its place (#367).
+     * Block goes beside Report and leaves rows TikTok built without one alone, so hiding Report
+     * took Block with it. TikTok sorts the row after this filter runs (Report leads the sorted
+     * row), so only the sorted row knows where Report belongs: the snapshot constructor runs this
+     * filter, sorts, and then hands the row to ShareBlockAuthor on the same thread, which takes
+     * Report out again and puts Block where it sat.
+     */
+    private static final ThreadLocal<Object> HELD_REPORT = new ThreadLocal<>();
+
+    private static List<?> holdHiddenReport(List<?> items, List<?> kept) {
+        if (items == null || kept == null || kept == items || !ShareBlockAuthor.wantsReportSlot()) return kept;
+        Object report = null;
+        for (Object item : items) {
+            if ("report".equals(Reflect.string(item, "key", "key")) && !containsSame(kept, item)) {
+                report = item;
+                break;
+            }
+        }
+        if (report == null) return kept;
+        List<Object> held = new ArrayList<>(kept.size() + 1);
+        for (Object item : items) if (item == report || containsSame(kept, item)) held.add(item);
+        HELD_REPORT.set(report);
+        Logger.printDebug(() -> "Share sheet model " + current + " actions: hidden Report held for Block this creator");
+        return held;
+    }
+
+    private static boolean containsSame(List<?> list, Object item) {
+        for (Object each : list) if (each == item) return true;
+        return false;
+    }
+
+    /** The hidden Report this thread's last actions filter kept in its row, once; null when none. */
+    static Object takeHeldReport() {
+        Object report = HELD_REPORT.get();
+        HELD_REPORT.remove();
+        return report;
+    }
+
+    static void forgetHeldReportForTests() {
+        HELD_REPORT.remove();
     }
 
     public static boolean contacts(boolean original) {

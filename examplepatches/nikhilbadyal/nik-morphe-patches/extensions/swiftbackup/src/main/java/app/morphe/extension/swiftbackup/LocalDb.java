@@ -23,11 +23,13 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -235,6 +237,48 @@ public final class LocalDb {
         }
     }
 
+    /** Upsert only edited entries. A list captured by a dialog before restore may omit downloaded apps. */
+    static synchronized String editBlacklist(String uid, String before, String after) throws Exception {
+        load();
+        List<String> path = Arrays.asList("users", uid, "blacklistApps", "dataMap");
+        // An existing local list may predate the account journal. Keep its entries on the first edit.
+        boolean seedLocalEntries = get(path) == null;
+        Map<String, Object> previous = asMap(fromJson(new JSONObject(before).optJSONObject("dataMap")));
+        Map<String, Object> next = asMap(fromJson(new JSONObject(after).optJSONObject("dataMap")));
+        Map<String, Object> changes = new HashMap<>();
+        for (Map.Entry<String, Object> entry : next.entrySet()) {
+            if (seedLocalEntries || !Objects.equals(previous.get(entry.getKey()), entry.getValue())) {
+                changes.put(entry.getKey(), entry.getValue());
+            }
+        }
+        if (!changes.isEmpty()) write("m", path, changes);
+        return accountBlacklist(uid);
+    }
+
+    /** The native remove action identifies one package, even if its dialog's list is stale. */
+    static synchronized String removeBlacklistApp(String uid, String key, String remaining) throws Exception {
+        load();
+        List<String> path = Arrays.asList("users", uid, "blacklistApps", "dataMap");
+        // If the list only exists in native preferences, seed the surviving entries in the same commit.
+        Map<String, Object> changes = asMap(get(path) == null
+                ? fromJson(new JSONObject(remaining).optJSONObject("dataMap")) : null);
+        changes.put(key, null);
+        write("m", path, changes);
+        return accountBlacklist(uid);
+    }
+
+    /** An explicit import supplies the whole list and can intentionally replace the account copy. */
+    static synchronized void importBlacklist(String uid, String value) throws Exception {
+        write("p", Arrays.asList("users", uid, "blacklistApps"), fromJson(new JSONObject(value)));
+    }
+
+    /** Detach the account data before passing it back through the app's native Gson adapter. */
+    static synchronized String accountBlacklist(String uid) throws Exception {
+        load();
+        Object value = get(Arrays.asList("users", uid, "blacklistApps"));
+        return value == null ? null : toJson(value).toString();
+    }
+
     /**
      * Called once the database client is set up.
      *
@@ -258,14 +302,16 @@ public final class LocalDb {
                 @Override
                 public void run() {
                     try {
-                        SettingsBackup.tick();
-                    } catch (Throwable t) {
-                        log("Automatic settings capture failed; previous backup retained", t);
-                    }
-                    try {
                         sync();
                     } catch (Throwable t) {
                         log("sync failed", t);
+                    }
+                    // Apply the recovered list before exporting settings, so a stale list can't be captured here.
+                    try {
+                        BlacklistSync.restore();
+                        SettingsBackup.tick();
+                    } catch (Throwable t) {
+                        log("Automatic blacklist restore or settings capture failed", t);
                     }
                 }
             }, 5, SYNC_INTERVAL_SECONDS, TimeUnit.SECONDS);

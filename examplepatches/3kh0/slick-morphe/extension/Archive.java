@@ -112,8 +112,9 @@ public final class Archive {
   public static void history(Object owner, Object chunk, String thread, Object trace) {
     if (!Settings.enabled("message_logger")) return;
     try {
-      String scope = scope(owner), channel = Host.string(chunk, "conversationId");
-      Object dao = Host.get(owner, "searchClogger");
+      String scope = Accounts.scope(Host.get(owner, "requestJobs")),
+          channel = Host.string(chunk, "conversationId");
+      Object dao = Host.get(owner, "fetchResult");
       Method get =
           Class.forName("slack.persistence.messages.MessageDao")
               .getMethod(

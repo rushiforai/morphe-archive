@@ -68,7 +68,7 @@ class AppCompatibilitiesMatchFixturesTest {
     fun `each declared target carries the version code of its vendor build`() {
         val pineDrama = AppCompatibilities.pineDrama().single()
         assertEquals("com.ss.android.ttmd.video", pineDrama.packageName)
-        val expected = mapOf("47.5.3" to AppCompatibilities.PINEDRAMA_4753_VERSION_CODE)
+        val expected = mapOf("47.6.3" to AppCompatibilities.PINEDRAMA_4763_VERSION_CODE)
         assertEquals("declared versions", expected.keys, pineDrama.targets.map { it.version }.toSet())
         assertEquals("the codes the Play Store patch accepts", expected.values.toSet(), AppCompatibilities.DECLARED_VERSION_CODES)
         for (target in pineDrama.targets) {

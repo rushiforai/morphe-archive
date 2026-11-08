@@ -142,8 +142,10 @@ public class ApiEngine extends Engine {
             conn.setReadTimeout(TIMEOUT_MS);
             conn.setDoOutput(true);
 
+            // chess-api.com's validator strictly rejects FENs with en-passant target squares (e.g. e3, d6)
+            String targetFen = normalizeEnPassant(fen);
             JSONObject body = new JSONObject();
-            body.put("fen", fen);
+            body.put("fen", targetFen);
             body.put("depth", depth);
 
             byte[] jsonBytes = body.toString().getBytes(StandardCharsets.UTF_8);
@@ -164,10 +166,7 @@ public class ApiEngine extends Engine {
 
                         int mate = 0;
                         if (json.has("mate") && !json.isNull("mate")) {
-                            try {
-                                mate = Integer.parseInt(json.getString("mate"));
-                            } catch (Exception ignored) {
-                            }
+                            mate = json.optInt("mate", 0);
                         }
 
                         float score = 0f;
@@ -230,10 +229,7 @@ public class ApiEngine extends Engine {
 
                         int mate = 0;
                         if (json.has("mate") && !json.isNull("mate")) {
-                            try {
-                                mate = Integer.parseInt(json.getString("mate"));
-                            } catch (Exception ignored) {
-                            }
+                            mate = json.optInt("mate", 0);
                         }
 
                         float score = 0f;
@@ -278,5 +274,25 @@ public class ApiEngine extends Engine {
             sb.append(line);
         }
         return sb.toString();
+    }
+
+    /**
+     * Normalizes the en-passant field in FEN to "-" for chess-api.com.
+     * chess-api.com strictly fails with INVALID_FEN_VALIDATION_ERROR on any FEN
+     * containing a pseudo en-passant target square (e.g. "e3", "d6").
+     */
+    private static String normalizeEnPassant(String fen) {
+        if (fen == null) return null;
+        String[] parts = fen.trim().split("\\s+");
+        if (parts.length >= 4 && !"-".equals(parts[3])) {
+            parts[3] = "-";
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < parts.length; i++) {
+                if (i > 0) sb.append(' ');
+                sb.append(parts[i]);
+            }
+            return sb.toString();
+        }
+        return fen;
     }
 }

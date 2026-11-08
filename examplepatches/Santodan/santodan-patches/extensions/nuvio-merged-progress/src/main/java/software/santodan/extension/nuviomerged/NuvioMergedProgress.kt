@@ -297,7 +297,6 @@ object NuvioMergedProgress {
     }
 
     private fun updateSync(message: String, step: Int = syncStep, total: Int = syncSteps) {
-        if (startupReconcile) return
         if (syncProfile != null && syncProfile != snapshotKey()) return
         syncMessage = if (syncStartedNanos != 0L &&
             (message.contains("Sync failed:") || message.startsWith("Sync deferred"))) "$message Elapsed ${syncElapsed()}." else message
@@ -912,15 +911,16 @@ object NuvioMergedProgress {
                             mergeWorkCheck.set(checkpoint)
                             try {
                                 if (quick && cachedSnapshotAvailable && cachedSnapshotValidated) {
-                                    quickSnapshot(checkpoint)
+                                    // Fresh provider history replaces membership; do not decode the
+                                    // old full membership before starting the remote reconciliation.
+                                    quickSnapshot(checkpoint, restoreMembership = false)
                                     checkpoint()
                                     // Exactly one startup reconciliation, never an observer/navigation catch-up.
-                                    val quickSummary = syncMessage
                                     updateSync("Checking included trackers once for this startup...", 3, 3)
                                     startupReconcile = true
                                     refreshSyncBanner()
-                                    try { mergeSnapshot(refreshProviders = false) }
-                                    finally { startupReconcile = false; updateSync(quickSummary, 3, 3) }
+                                    try { mergeSnapshot(refreshProviders = true) }
+                                    finally { startupReconcile = false }
 
                                 }
                                 else {
@@ -1236,12 +1236,23 @@ object NuvioMergedProgress {
             else "Preparing selected tracking services", 2, syncSteps)
         val snapshotProviders = LinkedHashMap<String, Any>()
         val unavailable = LinkedHashSet<String>()
+        val providerFailures = ArrayList<String>()
         for (provider in included) {
             if (deferred()) return
             val sourceLabel = providerSource(provider)
             updateSync("Fetching $sourceLabel…", completedProviders + 2)
             Log.d(TAG, "Provider read started: source=$sourceLabel manual=$manual refresh=$refreshProviders")
-            val result = NuvioMergeWork.providerResult(sourceLabel, 45_000) {
+            var providerStage = "authentication"
+            val providerStarted = System.nanoTime()
+            fun stage(name: String) {
+                Log.d(TAG, "Provider stage completed: source=$sourceLabel stage=$providerStage elapsedMs=${(System.nanoTime() - providerStarted) / 1_000_000}")
+                providerStage = name
+                updateSync("$sourceLabel: $name", completedProviders + 2)
+            }
+            // Native MDBList serializes startup refreshes. Keep the cached Home
+            // visible while allowing a cold queued refresh to finish; manual
+            // requests retain their normal deadline and native intent.
+            val result = NuvioMergeWork.providerResult(sourceLabel, NuvioMergeWork.providerDeadline(startupReconcile)) {
                 val authenticated = (findMethod(provider.javaClass, "b", 0).invoke(provider) as Flow<Any>).first() as? Boolean ?: false
                 if (deferred()) return@providerResult
                 if (!authenticated) {
@@ -1251,13 +1262,15 @@ object NuvioMergedProgress {
                 }
                 // onStart can launch a refresh without awaiting it (notably MDBList),
                 // and Trakt's seed flow has no refresh hook. Wait before reading.
+                stage("refreshing remote progress")
                 if (!onlyMain && refreshProviders) NuvioProviderRefresh.await(provider, providerLayout.refreshMethod, manual)
                 if (deferred()) return@providerResult
                 // Sample once during startup or explicit sync; notifications never schedule another merge.
+                stage("reading next-up seeds")
                 val seeds = (findMethod(provider.javaClass, "f", 0).invoke(provider) as Flow<Any>).first() as? Collection<Any>
                 if (deferred()) return@providerResult
                 if (providerId(provider) == "TRAKT") {
-                    // beta.8 ba.pc.a -> ba.jb; T is set only after f() installs
+                    // beta.8 ba.oc.a -> ba.ib; T is set only after f() installs
                     // watched episode maps and the canonical watched-show seeds.
                     val service = field(provider, "a").get(provider)
                     if (!field(service, "T").getBoolean(service)) {
@@ -1271,8 +1284,11 @@ object NuvioMergedProgress {
                 }
                 // Trigger projections, then wait for the native readiness signal and re-read.
                 // A refresh call alone does not guarantee these cold flows are hydrated.
+                stage("loading progress projection")
                 (findMethod(provider.javaClass, allProgressMethod, 0).invoke(provider) as Flow<Any>).first()
+                stage("waiting for snapshot readiness")
                 NuvioProviderRefresh.ready(provider, providerLayout.snapshotReadyMethod)
+                stage("reading loaded progress")
                 val items = (findMethod(provider.javaClass, allProgressMethod, 0).invoke(provider) as Flow<Any>).first() as? Collection<Any>
                 if (deferred()) return@providerResult
                 if (items != null) {
@@ -1281,16 +1297,19 @@ object NuvioMergedProgress {
                     sourceCounts.add("$source=${items.size}")
                     sourceItems[source] = items
                     candidates.addAll(items)
+                    stage("reading watched episode membership")
                     sourceWatched[source] = invokeSuspending(provider, "g") as? Map<String, Set<Any>> ?: emptyMap()
                     if (deferred()) return@providerResult
                     if (!startupReconcile) sourceWatchedItems[source] = (findMethod(provider.javaClass, "d", 0).invoke(provider) as Flow<Any>)
                         .first() as? List<Any> ?: emptyList()
                     if (deferred()) return@providerResult
+                    stage("reading show aliases")
                     val aliases = invokeSuspending(provider, providerLayout.siblingsMethod) as? Map<String, Set<String>> ?: emptyMap()
                     if (deferred()) return@providerResult
                     // Simkl's progress/history accessors can finish loading after the
                     // first nextUpSeeds read. Do not publish those pre-refresh seeds
                     // alongside the refreshed watched history and evict cached cards.
+                    stage("reading refreshed next-up seeds")
                     val refreshedSeeds = (findMethod(provider.javaClass, "f", 0).invoke(provider) as Flow<Any>)
                         .first() as? Collection<Any>
                     if (deferred()) return@providerResult
@@ -1313,6 +1332,7 @@ object NuvioMergedProgress {
             if (result.isFailure) {
                 val error = result.exceptionOrNull()!!
                 if (onlyMain) throw error
+                providerFailures.add("$sourceLabel ($providerStage): ${error.message ?: error.javaClass.simpleName}")
                 unavailable.add(sourceLabel)
                 sourceItems.remove(sourceLabel)
                 sourceSeeds.remove(sourceLabel)
@@ -1320,7 +1340,7 @@ object NuvioMergedProgress {
                 sourceWatchedItems.remove(sourceLabel)
                 snapshotProviders.remove(sourceLabel)
                 sourceCounts.removeAll { it.startsWith("$sourceLabel=") }
-                sourceCounts.add("$sourceLabel: unavailable (saved progress retained)")
+                sourceCounts.add(providerFailures.last())
                 Log.w(TAG, "Provider unavailable: source=$sourceLabel; continuing other services", error)
             }
             completedProviders++
@@ -1330,8 +1350,10 @@ object NuvioMergedProgress {
         Log.d(TAG, "Merge provider reads: ${(System.nanoTime() - started) / 1_000_000}ms")
         if (!NuvioMergeWork.canPublishProviders(sourceItems.keys.count { it != "Nuvio Sync" },
                 unavailable.size, "NUVIO_SYNC" in selected)) {
-            syncError = !startupReconcile
-            updateSync("Providers are still loading or unavailable. Saved Continue Watching retained.", syncSteps)
+            syncError = true
+            val failure = "Sync failed: ${providerFailures.joinToString("; ")}. Saved Continue Watching retained."
+            preferences().edit().putString("${snapshotKey()}_last_sync", failure).apply()
+            updateSync(failure, syncSteps)
             Log.d(TAG, "No fresh provider snapshot; saved progress/history retained without rewriting cache")
             return
         }
@@ -1425,6 +1447,7 @@ object NuvioMergedProgress {
         if (startupReconcile && published == mergedProgress.value && publishedSeeds == mergedNextUpSeeds.value &&
             watchedHistory == mergedWatchedHistory && publishedSiblings == mergedShowSiblings) {
             Log.d(TAG, "Startup snapshots unchanged; no publication or cache write")
+            finishStartupReconciliation(unavailable, sourceCounts)
             return
         }
         val committed = NuvioMergeWork.commit(
@@ -1464,6 +1487,7 @@ object NuvioMergedProgress {
             persistLightweight(published, publishedSeeds, origins, cacheKey, true)
             notifyRestoredMembership()
             Log.d(TAG, "Startup snapshots updated: progress=${published.size} seeds=${publishedSeeds.size}; no full watched-model read or save")
+            finishStartupReconciliation(unavailable, sourceCounts)
             return
         }
         persistSnapshot(published, publishedSeeds, origins, watchedItems, cacheKey)
@@ -1475,6 +1499,15 @@ object NuvioMergedProgress {
         Log.d(TAG, "Merge total: ${(System.nanoTime() - started) / 1_000_000}ms")
         Log.d(TAG, "Sources: ${sourceCounts.joinToString()}")
         Log.d(TAG, "Published ${merged.size} progress entries and ${publishedSeeds.size} next-up seeds for ${histories.size} shows from ${candidates.size} provider records")
+    }
+
+    private fun finishStartupReconciliation(unavailable: Collection<String>, sourceCounts: List<String>) {
+        syncError = unavailable.isNotEmpty()
+        val summary = if (syncError)
+            "Startup sync completed with unavailable services: ${sourceCounts.joinToString()}. Saved entries retained for unavailable services."
+        else "Startup sync complete: ${sourceCounts.joinToString()}. Continue Watching updated in ${syncElapsed()}."
+        preferences().edit().putString("${snapshotKey()}_last_sync", summary).apply()
+        updateSync(summary, syncSteps)
     }
 
     private fun key(item: Any): String {

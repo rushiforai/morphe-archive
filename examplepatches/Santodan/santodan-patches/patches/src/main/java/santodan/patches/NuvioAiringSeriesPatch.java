@@ -68,7 +68,7 @@ public final class NuvioAiringSeriesPatch {
     }
 
     static void hookUpcomingSplit(MutableClass owner) {
-        MutableMethod target = unique(owner, "E", 2);
+        MutableMethod target = unique(owner, "D", 2);
         List<Instruction> ins = instructions(target);
         int match = -1, value = -1, model = -1;
         for (int i = 0; i < ins.size(); i++) {

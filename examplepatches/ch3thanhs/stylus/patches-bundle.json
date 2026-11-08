@@ -1,8 +1,8 @@
 {
-  "created_at": "2026-11-07T03:28:16",
-  "description": "## [1.9.3](https://github.com/ch3thanhs/stylus/compare/v1.9.2...v1.9.3) (2026-11-07)\n\n### 🚀 Updated App Support\n\n* **GitHub:** Update app support to 1.283.0 ([47c0cad](https://github.com/ch3thanhs/stylus/commit/47c0cad082b4595a0c85c91c067c2224301de84a))\n* **Telegram web:** Update app support to 13.2.0 ([7630c33](https://github.com/ch3thanhs/stylus/commit/7630c336b67c0625372ce492c4dfcd0401563987))\n* **Telegram:** Update app support to 13.2.0 ([a7d54e9](https://github.com/ch3thanhs/stylus/commit/a7d54e9a59a6f18546824f7d04b40ba14e6bf092))",
-  "download_url": "https://github.com/ch3thanhs/stylus/releases/download/v1.9.3/patches-1.9.3.mpp",
+  "created_at": "2026-11-07T11:02:48",
+  "description": "## [1.11.0](https://github.com/ch3thanhs/stylus/compare/v1.10.0...v1.11.0) (2026-11-07)\n\n### ✨ New Features\n\n* **github:** support variable font weights and font feature settings ([f56bd19](https://github.com/ch3thanhs/stylus/commit/f56bd19c6c515bf384a1f3ade951ab97b9f3d290))",
+  "download_url": "https://github.com/ch3thanhs/stylus/releases/download/v1.11.0/patches-1.11.0.mpp",
   "signature_download_url": "",
-  "version": "1.9.3",
+  "version": "1.11.0",
   "public_key": "cWGf3WaVbkfbXxmHi+zYBAhD/stTunPUMpe/xsR7TdM="
 }

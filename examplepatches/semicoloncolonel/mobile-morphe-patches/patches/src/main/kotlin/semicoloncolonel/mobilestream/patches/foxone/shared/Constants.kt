@@ -1,8 +1,8 @@
 package semicoloncolonel.mobilestream.patches.foxone.shared
 
 import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -12,6 +12,6 @@ object Constants {
             "different build. Needs the Pairip license-check patch to run once re-signed.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x030B1A,
-        targets = listOf(AppTarget("1.24.0"))
+        targets = listOf(devTarget("1.25.1"))
     )
 }

@@ -8,6 +8,7 @@ package app.morphe.extension.pinedrama.settings.preference.categories;
 
 import android.content.Context;
 import android.preference.PreferenceScreen;
+import app.morphe.extension.pinedrama.captions.TrackPreference;
 import app.morphe.extension.pinedrama.settings.Settings;
 import app.morphe.extension.pinedrama.settings.L10n;
 import app.morphe.extension.pinedrama.settings.SettingsStatus;
@@ -31,6 +32,7 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                 || SettingsStatus.h264PlaybackEnabled || SettingsStatus.playbackSpeedEnabled
                 || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled
                 || SettingsStatus.fullScreenHoldEnabled || SettingsStatus.keepPulledSoundsEnabled
+                || SettingsStatus.landscapeEpisodesEnabled || SettingsStatus.subtitleDubPreferenceEnabled
                 || SettingsStatus.backgroundPlayEnabled
                 || SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled || SettingsStatus.resumeVideoAfterScrollEnabled;
     }
@@ -61,6 +63,48 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     "Also turns on PineDrama's own Auto scroll for videos opened from search. "
                             + "Restart PineDrama to apply this.",
                     Settings.AUTO_ADVANCE_SEARCH));
+        }
+        if (SettingsStatus.landscapeEpisodesEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Dramas"));
+            addPreference(new TogglePreference(context, "Episodes in full screen",
+                    "Swipe up for the next episode and down for the previous one without leaving "
+                            + "full screen. The next episode starts when one ends, instead of "
+                            + "the same one looping.",
+                    Settings.LANDSCAPE_EPISODES));
+        }
+        if (SettingsStatus.subtitleDubPreferenceEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Subtitles"));
+            addPreference(new InputTextPreference(context, "Subtitle priority",
+                    "Language codes in the order you want them, separated by commas, like en, "
+                            + "original. original means the video's own subtitle. Used when a "
+                            + "video starts playing.",
+                    Settings.SUBTITLE_PRIORITY)
+                    .withCheck(TrackPreference::priorityProblem)
+                    .withNameKeyboard());
+            addPreference(new TogglePreference(context, "Force subtitle",
+                    "Always use the first subtitle on your list that a video has, even with "
+                            + "captions off. A video with none of them plays as usual. Turning "
+                            + "captions off yourself lasts until the app restarts.",
+                    Settings.FORCE_SUBTITLE));
+            addPreference(new TogglePreference(context, "Force original subtitle",
+                    "Always use the video's own subtitle, never a translated one, even with "
+                            + "captions off. A video without one plays as usual.",
+                    Settings.FORCE_ORIGINAL_SUBTITLE));
+            addPreference(new SectionHeadingPreference(context, "Dubs"));
+            addPreference(new InputTextPreference(context, "Dub priority",
+                    "Language codes in the order you want them, separated by commas, like en, "
+                            + "original. original means the video's own audio. Used when a "
+                            + "video starts playing.",
+                    Settings.DUB_PRIORITY)
+                    .withCheck(TrackPreference::priorityProblem)
+                    .withNameKeyboard());
+            addPreference(new TogglePreference(context, "Force dub",
+                    "Always use the first dub on your list that a video has, even with dubbing "
+                            + "off. A video with none of them plays as usual.",
+                    Settings.FORCE_DUB));
+            addPreference(new TogglePreference(context, "Force original dub",
+                    "Always play the video's own audio, never an AI dub.",
+                    Settings.FORCE_ORIGINAL_DUB));
         }
         // None of these is auto-advance, and under its heading they read as parts of it: each keeps
         // you on the video you're on, paused behind the comments, held or stopped at its end, or

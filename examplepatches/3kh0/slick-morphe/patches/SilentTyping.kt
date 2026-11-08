@@ -17,7 +17,7 @@ val silentTyping =
             Compatibility(
                 name = "Slack",
                 packageName = "com.Slack",
-                targets = listOf(AppTarget(version = "26.10.20.0")),
+                targets = listOf(AppTarget(version = "26.11.10.0")),
             ),
         )
 

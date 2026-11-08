@@ -1,7 +1,6 @@
 package app.morphe.patches.youtube.interaction.catlock
 
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.playercontrols.addTopControl
 import app.morphe.patches.youtube.misc.playercontrols.initializeTopControl
@@ -12,7 +11,7 @@ import app.morphe.patches.youtube.shared.Constants.COMPATIBILITY_YOUTUBE
 import app.morphe.util.ResourceGroup
 import app.morphe.util.copyResources
 
-private val catLockResourcePatch = resourcePatch {
+private val catLockResourcePatch = patch {
     dependsOn(
         legacyPlayerControlsPatch,
         settingsPatch,
@@ -45,7 +44,7 @@ private val catLockResourcePatch = resourcePatch {
 private const val EXTENSION_BUTTON = "Lapp/morphe/extension/youtube/videoplayer/CatLockButton;"
 
 @Suppress("unused")
-val catLockPatch = bytecodePatch(
+val catLockPatch = patch(
     name = "Cat lock",
     description = "Adds a cat button to the video player that locks the screen so a pet can watch " +
         "without accidentally swiping the video away; unlock by quickly tapping alternating " +

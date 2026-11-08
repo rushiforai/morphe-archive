@@ -128,6 +128,19 @@ val removeBottomBarPatch = bytecodePatch(
                     it.returnType == "Z"
             } ?: throw PatchException("Failed to resolve MediaListFragment isRoot() method in ${baseMediaClass.type}->Z")
 
+        // Use the exact getter invoked by the stock menu code. Its obfuscated name changed
+        // from y6 in 3.4.1 to x6 in 3.4.3; hardcoding it causes a startup NoSuchMethodError.
+        val currentFragmentMethods = baseZInsns.mapNotNull { insn ->
+            if (insn.opcode != Opcode.INVOKE_VIRTUAL) return@mapNotNull null
+            val ref = (insn as? ReferenceInstruction)?.reference as? MethodReference ?: return@mapNotNull null
+            ref.takeIf {
+                it.definingClass == "Lcom/mxtech/videoplayer/ActivityList;" &&
+                    it.parameterTypes.isEmpty() && it.returnType == "Landroidx/fragment/app/Fragment;"
+            }
+        }.distinctBy { it.toString() }
+        val currentFragmentMethod = currentFragmentMethods.singleOrNull()
+            ?: throw PatchException("Failed to uniquely resolve the current fragment getter in ${baseMediaClass.type}->Z")
+
         val accountIdHex = "0x${accountIdLiteral.toUInt().toString(16)}"
         val meIconResId = resolveMeNormalIconResId(TabTypeClinitFingerprint.originalClassDef)
         val meIconHex = "0x${meIconResId.toUInt().toString(16)}"
@@ -170,7 +183,7 @@ val removeBottomBarPatch = bytecodePatch(
                 const/4 v1, 0x2
                 invoke-interface {v0, v1}, Landroid/view/MenuItem;->setShowAsAction(I)V
                 iget-object v1, p0, Lcom/mxtech/videoplayer/b;->b:Lcom/mxtech/videoplayer/ad/ActivityWelcomeMX;
-                invoke-virtual {v1}, Lcom/mxtech/videoplayer/ActivityList;->y6()Landroidx/fragment/app/Fragment;
+                invoke-virtual {v1}, $currentFragmentMethod
                 move-result-object v1
                 const/4 v2, 0x1
                 instance-of v3, v1, $AD_MEDIA_LIST_FRAGMENT_CLASS

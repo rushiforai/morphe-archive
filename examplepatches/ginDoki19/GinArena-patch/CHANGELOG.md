@@ -1,3 +1,15 @@
+## [2.9.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.9.0...v2.9.1) (2026-11-07)
+
+### 🚀 Updated App Support
+
+* **mx-player:** support MX Player 3.4.3 ([62e86fb](https://github.com/ginDoki19/GinArena-patch/commit/62e86fba61b73b27322de29b8bd10eb33cbb0884))
+
+## [2.9.1-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.9.0...v2.9.1-dev.1) (2026-11-07)
+
+### 🚀 Updated App Support
+
+* **mx-player:** support MX Player 3.4.3 ([62e86fb](https://github.com/ginDoki19/GinArena-patch/commit/62e86fba61b73b27322de29b8bd10eb33cbb0884))
+
 ## [2.9.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.8.2...v2.9.0) (2026-11-05)
 
 ### ✨ New Features

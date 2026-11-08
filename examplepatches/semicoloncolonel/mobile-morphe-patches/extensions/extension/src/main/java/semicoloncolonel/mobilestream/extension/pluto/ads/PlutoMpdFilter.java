@@ -57,9 +57,9 @@ import javax.xml.transform.stream.StreamResult;
  *   - Fail-open: any surprise returns the original bytes, so ads remain and
  *     playback never breaks.
  *
- * The removed spans are kept so {@link #mapResumePosition(long)} can move a
- * "Continue Watching" bookmark from the original timeline into the shortened
- * one (TV project issue #147).
+ * No resume remap is needed. Pluto converts a "Continue Watching" position
+ * into the stitched timeline by adding the session's ad breaks, and Skip ads
+ * empties that list, so the start position already matches the stripped one.
  */
 @SuppressWarnings("unused")
 public final class PlutoMpdFilter {
@@ -68,15 +68,6 @@ public final class PlutoMpdFilter {
     private static final Pattern DURATION = Pattern.compile(
             "^P(?:(\\d+(?:\\.\\d+)?)D)?(?:T(?:(\\d+(?:\\.\\d+)?)H)?(?:(\\d+(?:\\.\\d+)?)M)?(?:(\\d+(?:\\.\\d+)?)S)?)?$");
 
-    private static final long RESUME_END_MARGIN_MS = 5_000L;
-    // The remap only trusts a timeline recorded this recently, so a resume can
-    // never be shifted by a previous title's ads.
-    private static final long RESUME_MAX_AGE_MS = 20_000L;
-
-    private static volatile long[] removedAdStartsMs = new long[0];
-    private static volatile long[] removedAdDursMs = new long[0];
-    private static volatile long strippedDurationMs = 0;
-    private static volatile long strippedAtMs = 0;
 
     private PlutoMpdFilter() {
     }
@@ -108,10 +99,7 @@ public final class PlutoMpdFilter {
         Document document = factory.newDocumentBuilder().parse(new ByteArrayInputStream(original));
         Element mpd = document.getDocumentElement();
         if (mpd == null || !"MPD".equals(localName(mpd))) return null;
-        if ("dynamic".equalsIgnoreCase(mpd.getAttribute("type"))) {
-            clearResumeOffsets(); // live: nothing to remap
-            return null;
-        }
+        if ("dynamic".equalsIgnoreCase(mpd.getAttribute("type"))) return null;
 
         List<Element> periods = new ArrayList<>();
         for (Node n = mpd.getFirstChild(); n != null; n = n.getNextSibling()) {
@@ -166,24 +154,11 @@ public final class PlutoMpdFilter {
                 kept++;
             }
         }
-        if (removed.isEmpty()) {
-            clearResumeOffsets();
-            return null;
-        }
+        if (removed.isEmpty()) return null;
         if (kept == 0) return null; // never strip a title down to nothing
 
         mpd.setAttribute("mediaPresentationDuration", formatDuration(newCursor));
 
-        long[] adStarts = new long[removed.size()];
-        long[] adDurs = new long[removed.size()];
-        for (int i = 0; i < removed.size(); i++) {
-            adStarts[i] = removed.get(i)[0];
-            adDurs[i] = removed.get(i)[1];
-        }
-        removedAdStartsMs = adStarts;
-        removedAdDursMs = adDurs;
-        strippedDurationMs = newCursor;
-        strippedAtMs = android.os.SystemClock.elapsedRealtime();
 
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
@@ -271,44 +246,6 @@ public final class PlutoMpdFilter {
                 || value.contains("_ad_bumper");
     }
 
-    /**
-     * Called with the start position just before AviaPlayer.startExoplayer
-     * seeks to it. Moves an original-timeline bookmark into the stripped
-     * timeline by subtracting the ad time removed before it. Fail-open.
-     */
-    public static long mapResumePosition(long originalPos) {
-        try {
-            long[] starts = removedAdStartsMs;
-            long[] durs = removedAdDursMs;
-            long age = android.os.SystemClock.elapsedRealtime() - strippedAtMs;
-            if (originalPos <= 0 || starts.length == 0) return originalPos;
-            if (age > RESUME_MAX_AGE_MS) {
-                Log.i(TAG, "resume " + originalPos + "ms left as is: ad timeline is " + age + "ms old");
-                return originalPos;
-            }
-            long shift = 0;
-            for (int i = 0; i < starts.length; i++) {
-                if (starts[i] >= originalPos) break;
-                // A bookmark inside an ad lands at the content right after it.
-                shift += Math.min(durs[i], originalPos - starts[i]);
-            }
-            long mapped = originalPos - shift;
-            long limit = strippedDurationMs - RESUME_END_MARGIN_MS;
-            if (limit > 0 && mapped > limit) mapped = limit;
-            mapped = Math.max(0, mapped);
-            Log.i(TAG, "resume " + originalPos + "ms -> " + mapped + "ms (ad timeline " + age + "ms old)");
-            return mapped;
-        } catch (Throwable t) {
-            return originalPos;
-        }
-    }
-
-    private static void clearResumeOffsets() {
-        removedAdStartsMs = new long[0];
-        removedAdDursMs = new long[0];
-        strippedDurationMs = 0;
-        strippedAtMs = 0;
-    }
 
     private static String localName(Node node) {
         String name = node.getLocalName();

@@ -19,6 +19,18 @@ no resources — only `androidx.compose.runtime` for the `@Immutable` annotation
   `isAppleMusicInstalled(context)` checks the engine package.
 - `BrowseItem` — one entry of the browse tree (id, title, subtitle, browsable,
   playable, artwork URI).
+- `SearchClient(context)` — catalogue search through the engine's own amp-api:
+  `search(query, limit)` returns `SearchOutcome.Results` / `TokenUnavailable` /
+  `Failure`. It reads the developer token from
+  `/data/data/com.apple.android.music/files/datastore/encrypted_tokens.preferences_pb`,
+  decrypts it with the AndroidKeyStore alias `music_token_store_key`, keeps it in
+  memory only and re-reads it once on a 401. Storefront/language come from `Locale`
+  (storefront falls back to `us`). Companions call it with
+  `SearchClient.openEngineSearch(context)` (deep link to the engine's search) and
+  `SearchClient.playInEngine(context, query)` (`MEDIA_SEARCH`) as fallbacks.
+- `SearchResult` — one catalogue hit (`id`, `kind`, `title`, `artist`, `artworkUrl`);
+  `SearchKind` labels the four groups. `SearchResult.mediaIdCandidates()` is the
+  `playFromMediaId` id list (the bare catalogue id, empty for artists).
 - `Section` — a shelf of a tab root (or the synthetic "play" shortcut shelf) with its
   `items`, `loading` and `direct` flags.
 - `PlaybackSnapshot` — `hasSession`, `playing`, `positionMs`, `durationMs`, `title`,

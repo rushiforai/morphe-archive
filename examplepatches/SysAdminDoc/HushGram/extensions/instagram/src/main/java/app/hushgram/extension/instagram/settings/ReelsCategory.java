@@ -107,6 +107,9 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.HIDE_REEL_COMMENT_BAR_EVERYWHERE, L10n.t("Hide the comment bar on all reels"),
                     L10n.t("The Add a comment bar under every reel, including the ones in the Reels tab. The comment "
                             + "button still opens the comments.")));
+            reels.add(toggle(context, Settings.KEEP_REEL_COMMENT_BAR_SPACE, L10n.t("Keep the comment bar's space"),
+                    L10n.t("Leaves an empty band where a hidden comment bar was on reels you open from a post or a "
+                            + "profile, so the reel, its buttons and the seek bar don't move down.")));
             reels.add(toggle(context, Settings.HIDE_REEL_REPLY_BAR, L10n.t("Hide the reply bar on reels from chats"),
                     L10n.t("The Reply to box under a reel you open from a chat, with its reactions and plus button. "
                             + "The chat's own message box stays.")));
@@ -249,6 +252,11 @@ final class ReelsCategory {
             reels.add(toggle(context, Settings.PINCH_ZOOM_REELS, L10n.t("Pinch to zoom"),
                     L10n.t("Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. "
                             + "Restart Instagram to see the change.")));
+        }
+        if (build.contains(PatchFamily.REEL_DOUBLE_TAP_SKIP)) {
+            reels.add(toggle(context, Settings.DOUBLE_TAP_SKIP_REELS, L10n.t("Double tap to skip"),
+                    L10n.t("A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes "
+                            + "ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.")));
         }
         if (build.contains(PatchFamily.REEL_BLUR_BARS)) {
             reels.add(toggle(context, Settings.BLUR_REEL_BARS, L10n.t("Blur the bars around a reel"),

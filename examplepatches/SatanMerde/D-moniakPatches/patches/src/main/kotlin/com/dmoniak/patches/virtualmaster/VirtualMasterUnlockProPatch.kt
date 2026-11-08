@@ -11,8 +11,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val virtualMasterUnlockProPatch = bytecodePatch(
-    name = "Unlock Pro & Multi-Instance - Virtual Master (Experimental)",
-    description = "⚠️ [Experimental / Untested] Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing.",
+    name = "Unlock Pro & Multi-Instance - Virtual Master",
+    description = "Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing.",
 ) {
     compatibleWith(COMPATIBILITY_VIRTUAL_MASTER, COMPATIBILITY_VIRTUAL_MASTER_ALT)
 

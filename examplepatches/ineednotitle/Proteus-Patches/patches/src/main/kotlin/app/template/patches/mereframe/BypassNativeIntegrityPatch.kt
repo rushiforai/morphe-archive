@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.MEREFRAME_COMPATIBILITY
 import app.template.patches.shared.clearBody
+import app.template.patches.shared.logUniversal
 
 /**
  * The app's native pipeline (libunnamed_raw.so) self-verifies the APK and
@@ -20,26 +21,44 @@ import app.template.patches.shared.clearBody
  * same kill switch.
  *
  * Strategy: contain the throw at the highest business-relevant wrapper first.
- * The original body computes the session pair via JNI; on SecurityException
- * we substitute a well-formed result: long[]{0L, 1L} - element[1]=1 passes
- * d()'s own domain check ((0,4)) and Jm.m's enum lookup (R1.c.get(1));
- * element[0]=0 becomes Jm.m's returned long. The success path remains 100%
- * native-computed on un-tampered verdicts.
+ * Issue #5 root-caused the previous revision: Morphe's inline-smali compiler
+ * compiles snippets into a dummy method and splices back only the instruction
+ * list — the inline `.catch` never landed in d()'s code item, so the
+ * SecurityException escaped to the caller. The fix moves the call inside a
+ * REAL JVM try/catch in the extension (MereframeIntegrityHook): the injected
+ * smali is now just a zero-material invoke-static → move-result-object →
+ * return-object with NO registers beyond the parameters themselves.
  *
- * This deliberately also probes scope: if the native kernel checks integrity
- * per-call, the next crash log will name another B* bridge; if it is
- * session-scoped, capture works after this.
+ * The helper resolves everything reflectively (bridge class B1e6..., static
+ * field `a`, native method nd2ccc...), defensively degrades to long[]{0,1} on
+ * ANY mismatch/throw, validates the native verdict's domain
+ * ((0,4) via Jm.m's enum lookup, exactly like the old fallback), and still
+ * returns the 100% native-computed verdict on un-tampered devices.
+ *
+ * NOTE: the wrapper names are Mereframe-0.8.4-shape additions only — if the
+ * bridge class/method are renamed in a future build, the patch degrades to
+ * the synthetic verdict (no integrity crash) instead of failing hard.
+ *
+ * REGISTER-FORM REQUIREMENT: the ZZZZFZ call has six parameters. `invoke-static`
+ * without `/range` is limited to five registers (instruct35c) — the regular
+ * form makes InlineSmaliCompiler's dummy method unbuildable, surfacing on-device
+ * as PatchException "Collection is empty" at addInstructions (observed
+ * 2026-11-07). Any injection with more than five source registers MUST use
+ * the /range form.
  */
 @Suppress("unused")
 val bypassNativeIntegrityPatch = bytecodePatch(
     name = "Bypass native integrity checks",
     description = "libunnamed_raw.so JNI-throws 'app integrity check failed' on re-signed builds, " +
         "killing camera session start (preview) - observed via diagnostic crash log. This patch " +
-        "catches the throw at the session-opening wrapper and substitutes a valid session result. " +
-        "Required together with 'Allow re-signed/sideloaded installs'.",
+        "calls the session-opening wrapper inside a real JVM try/catch (extension) and substitutes " +
+        "a well-formed session result on failure. Required together with " +
+        "'Allow re-signed/sideloaded installs'.",
     default = true,
 ) {
     compatibleWith(MEREFRAME_COMPATIBILITY)
+
+    extendWith("extensions/extension.mpe")
 
     execute {
         Fingerprint(
@@ -52,41 +71,14 @@ val bypassNativeIntegrityPatch = bytecodePatch(
             addInstructions(
                 0,
                 """
-                sget-object v0, Lapp/unnamed/rawrecording/b/B1e6ad8077f6880e309d8da4b;->a:Lapp/unnamed/rawrecording/b/B1e6ad8077f6880e309d8da4b;
-                :try_start_0
-                move v1, p0
-                move v2, p1
-                move v3, p2
-                move v4, p3
-                move v5, p4
-                move v6, p5
-                invoke-direct/range {v0 .. v6}, Lapp/unnamed/rawrecording/b/B1e6ad8077f6880e309d8da4b;->nd2cccb916f63efbcf8b5b19b(ZZZZFZ)[J
+                invoke-static/range {p0 .. p5}, Lapp/template/extension/extension/MereframeIntegrityHook;->openSessionWithFallback(ZZZZFZ)[J
                 move-result-object p0
-                :try_end_0
-                .catch Ljava/lang/SecurityException; {:try_start_0 .. :try_end_0} :catch_0
-                array-length p1, p0
-                const/4 p2, 0x2
-                if-ne p1, p2, :fallback
-                const/4 p1, 0x1
-                aget-wide p1, p0, p1
-                const-wide/16 p3, 0x0
-                cmp-long p3, p3, p1
-                if-gtz p3, :fallback
-                const-wide/16 p3, 0x4
-                cmp-long p1, p1, p3
-                if-gez p1, :fallback
-                return-object p0
-                :catch_0
-                move-exception v0
-                :fallback
-                const/4 p0, 0x2
-                new-array p0, p0, [J
-                const/4 p1, 0x1
-                const-wide/16 p2, 0x1
-                aput-wide p2, p0, p1
                 return-object p0
                 """,
             )
         }
+        logUniversal("Bypass native integrity: session wrapper routed through MereframeIntegrityHook " +
+            "(JVM try/catch) in Lapp/unnamed/rawrecording/b/B1e6ad8077f6880e309d8da4b;->d(ZZZZFZ)[J — " +
+            "if the crash reappears at this exact frame, this patch is not present in the crashing build.")
     }
 }

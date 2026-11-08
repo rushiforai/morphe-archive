@@ -108,7 +108,7 @@ final class ButtonsUi {
                     modifier, state, padding, spacing, null, null, true, null, items, nested, 0, 488);
                 return unit(loader);
             }), true);
-        NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.LIBRARY_CONTENT_NAME), "z", 19).invoke(null,
+        NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.LIBRARY_CONTENT_NAME), NuvioNative.LIBRARY_DIALOG_METHOD, 19).invoke(null,
             callback(loader, "Function0", args -> { dismiss.run(); return unit(loader); }), title,
             movingId.isEmpty() ? "Hold OK to move a button. Press OK for visibility and group." :
                 "Up/Down to move within this group. OK to save; Back to cancel.", 640f,

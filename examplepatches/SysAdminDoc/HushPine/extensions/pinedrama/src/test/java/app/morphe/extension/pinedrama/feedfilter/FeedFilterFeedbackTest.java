@@ -220,7 +220,8 @@ public class FeedFilterFeedbackTest {
         // list. None of them is a predicate on a marker, and none is pinned.
         for (String reason : new String[]{"KeywordFilter", "CreatorFilter", "SoundFilter",
                 "ViewCountFilter", "LikeCountFilter", "RegionFilter", "PublicationAgeFilter",
-                "QualityFilter", "SeenVideoFilter", "LiveFilter", "AdsFilter", "MidAdFilter", "CaptionLanguageFilter"}) {
+                "QualityFilter", "SeenVideoFilter", "LiveFilter", "AdsFilter", "MidAdFilter", "CaptionLanguageFilter",
+                "PreferredSubtitleFilter", "PreferredDubFilter"}) {
             FeedFilterFeedback.resetForTests();
             FeedFilterCounters.clear();
             Map<String, Integer> reasons = reasons(reason, 10);

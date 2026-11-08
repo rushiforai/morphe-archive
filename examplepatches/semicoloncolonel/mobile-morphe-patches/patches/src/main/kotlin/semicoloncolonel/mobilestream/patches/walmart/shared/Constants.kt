@@ -1,8 +1,8 @@
 package semicoloncolonel.mobilestream.patches.walmart.shared
 
 import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -11,6 +11,6 @@ object Constants {
         description = "The Walmart shopping app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x0071DC,
-        targets = listOf(AppTarget("26.42"))
+        targets = listOf(devTarget("26.42.1"))
     )
 }

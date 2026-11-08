@@ -89,18 +89,15 @@ internal object NuvioPlaybackBridge {
 
     @Suppress("UNCHECKED_CAST")
     fun invoke(owner: Any, name: String, completion: Any, args: Array<Any?>, saved: (Continuation<Any?>) -> Any?): Any? {
-        // Original R8 state machines re-enter the wrapper with placeholder arguments.
-        val state = mapOf("C" to "pb", "D" to "qb", "A" to "nb", "B" to "ob")[name]
-        val resume = state != null && completion.javaClass.name == "com.nuvio.tv.data.local.$state"
-        val callback = if (!NuvioMergedProgress.playbackEnabled() || resume) completion else
-            NuvioLocalWriteContinuation(completion as Continuation<Any?>) { persisted ->
+        val callback = if (!NuvioMergedProgress.playbackEnabled()) completion else
+            NuvioLocalWriteContinuation.observe(name, completion as Continuation<Any?>) { persisted ->
                 runCatching { if (NuvioMergedProgress.playbackEnabled()) saved(persisted) else kotlin.Unit }
                     .onFailure { Log.w("SantodanMergedProgress", "Local playback overlay notification failed", it) }.getOrDefault(kotlin.Unit)
             }
         val method = NuvioMergedProgress.playbackMethod(owner, "santodanLocal$name", args.size + 1)
         val result = try { method.invoke(owner, *args, callback) }
         catch (error: InvocationTargetException) { throw (error.cause ?: error) }
-        return if (callback is NuvioLocalWriteContinuation && !resume) callback.inlineResult(result) else result
+        return if (callback is NuvioLocalWriteContinuation) callback.inlineResult(result) else result
     }
 
     fun save(profile: String, records: Any?, provider: String, completion: Continuation<Any?>): Any {

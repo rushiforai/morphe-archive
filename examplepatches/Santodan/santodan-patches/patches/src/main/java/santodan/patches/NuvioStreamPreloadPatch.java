@@ -56,6 +56,8 @@ final class NuvioStreamPreloadPatch {
                 if ("next_episode".equals(mode)) {
                     {
                         MutableClass controller = context.mutableClassDefBy(NuvioNative.PLAYER_CONTROLLER_TYPE);
+                        validateNextEpisodeContext(controller,
+                            new MutableClass(context.classDefBy("Lcom/nuvio/tv/domain/model/PluginKt;")));
                         if (controller.getFields().stream().filter(f -> f.getName().equals("T")
                             && f.getType().equals("Ljava/lang/String;")).count() != 1)
                             throw NuvioRemainingEpisodesPatch.unsupported("Beta7 native playback request type changed");
@@ -80,6 +82,18 @@ final class NuvioStreamPreloadPatch {
             !method.toString().equals(NuvioNative.REF_STREAM_SEARCH) || (method.getAccessFlags() & 8) == 0 ||
             !NuvioPlaybackButtonsPatch.fingerprint(method).equals(NuvioNative.HASH_STREAM_SEARCH))
             throw NuvioRemainingEpisodesPatch.unsupported("Native default stream search signature/body changed");
+    }
+
+    static void validateNextEpisodeContext(MutableClass controller, MutableClass plugins) {
+        if (!controller.getType().equals(NuvioNative.PLAYER_CONTROLLER_TYPE)
+            || controller.getFields().stream().filter(f -> f.getName().equals("u3")
+                && f.getType().equals("Ljava/lang/String;") && (f.getAccessFlags() & 8) == 0).count() != 1)
+            throw NuvioRemainingEpisodesPatch.unsupported("Native playback binge-group field changed");
+        MutableMethod parser = NuvioRemainingEpisodesPatch.unique(plugins, "scraperIdFromPluginBingeGroup", 1);
+        if (!plugins.getType().equals("Lcom/nuvio/tv/domain/model/PluginKt;")
+            || !parser.getParameterTypes().equals(List.of("Ljava/lang/String;"))
+            || !parser.getReturnType().equals("Ljava/lang/String;") || (parser.getAccessFlags() & 8) == 0)
+            throw NuvioRemainingEpisodesPatch.unsupported("Native playback binge-group parser changed");
     }
 
     static void validateDetailResolver(MutableClass owner) {
@@ -209,7 +223,7 @@ final class NuvioStreamPreloadPatch {
             NuvioRemainingEpisodesPatch.calls(i, NuvioNative.PLAYER_ROUTES_TYPE, "r")).count();
         long triggeredReads = thresholdInstructions.stream().filter(i -> i.getOpcode() == Opcode.IGET_BOOLEAN
             && i instanceof ReferenceInstruction && ((ReferenceInstruction) i).getReference().toString()
-                .equals(NuvioNative.PLAYER_CONTROLLER_TYPE + ("->s2:Z"))).count();
+                .equals(NuvioNative.PLAYER_CONTROLLER_TYPE + ("->t2:Z"))).count();
         if (delegates != 1 || triggeredReads != 1 || threshold.getImplementation().getRegisterCount() != (13)
             || thresholdInstructions.isEmpty() || thresholdInstructions.get(0).getOpcode() != Opcode.CONST_STRING
             || ((OneRegisterInstruction) thresholdInstructions.get(0)).getRegisterA() != 0)

@@ -190,6 +190,9 @@ Never save AV1 video	AV1 동영상 저장 안 함
 # context: Downloads settings: a switch that passes HDR pictures over for apps that show HDR with a yellow or green cast (#352)
 Never save HDR video	HDR 동영상 저장 안 함
 For apps that show HDR with a yellow or green cast, such as Messenger. A video Instagram has at full size only in HDR is saved at its largest standard size instead.	Messenger처럼 HDR을 노랗거나 녹색으로 보여주는 앱을 위한 설정입니다. Instagram에 전체 크기가 HDR로만 있는 동영상은 가장 큰 일반 크기로 저장됩니다.
+# context: Downloads settings: a switch that saves joined videos as Matroska (.mkv) files instead of .mp4 (#547)
+Save videos as MKV	동영상을 MKV로 저장
+Saves videos as .mkv files instead of .mp4, for galleries that show no thumbnail for VP9 or AV1 videos. Nothing is re-encoded. A video Instagram sends as one file stays .mp4.	VP9 또는 AV1 동영상의 미리보기를 보여주지 않는 갤러리를 위해 동영상을 .mp4 대신 .mkv 파일로 저장합니다. 다시 인코딩하지 않습니다. Instagram이 하나의 파일로 보내는 동영상은 .mp4로 유지됩니다.
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes or in HDR stay smaller.	다른 앱에서 열 수 있는 동영상을 원본 크기로 저장합니다. Instagram에 VP9 또는 AV1로만 있는 동영상은 작게 저장하는 대신 휴대폰에서 H.264로 변환합니다. 더 느리며, 3분이 넘거나 HDR인 동영상은 작게 저장됩니다.
 Converting to H.264	H.264로 변환하는 중
 Download quality	다운로드 화질
@@ -376,6 +379,8 @@ the raised version code	높인 버전 코드
 Sharing	공유
 Hide group buttons	그룹 버튼 숨기기
 Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.	공유 시트에서 새 그룹과 선택한 사람들에게 그룹으로 보내는 버튼을 제거합니다. 개별적으로 보내는 기능은 그대로 유지되며, 메시지에서는 계속 그룹을 만들 수 있습니다
+Hide the search bar	검색창 숨기기
+Takes the search bar off the top of the share sheet. The people you can send to still show.	공유 시트 맨 위의 검색창을 없앱니다. 보낼 수 있는 사람들은 그대로 표시됩니다.
 Story ring size	스토리 링 사이즈
 Draws the rings in the stories row at the top of Home at the size below, and the rings of stories you haven't watched in the color below. Restart Instagram to see a change.	홈 상단 스토리 목록의 링을 아래에서 고른 크기로, 아직 보지 않은 스토리의 링을 아래에서 고른 색상으로 표시합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Ring size	링 사이즈
@@ -672,6 +677,9 @@ Hide story rewinds	스토리 리와인드 숨기기
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	홈 상단의 스토리 줄에서는 내 스토리를 포함해 아무것도 불러오지 않으며, 프로필의 하이라이트도 비어 있습니다. 데이터를 아낍니다. 프로필이나 채팅의 스토리 링은 여전히 스토리를 엽니다.
 Expandable categories	펼칠 수 있는 카테고리
 Tap a category to show or hide its settings on this page.	카테고리를 탭하면 이 페이지에서 해당 설정을 펼치거나 접을 수 있습니다.
+# context: Settings entry switch; with it on, tapping a settings category opens that category alone on its own page
+Categories on their own page	카테고리를 별도 페이지로
+With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.	펼칠 수 있는 카테고리가 켜져 있으면 카테고리를 탭할 때 별도 페이지로 열립니다. 뒤로를 누르면 목록으로 돌아갑니다.
 Descriptions behind an info button	정보 버튼 뒤에 설명 숨기기
 Shows each switch by its name alone. Tap the i next to a name to read what it does.	각 스위치를 이름만으로 표시합니다. 이름 옆의 i를 탭하면 기능 설명을 볼 수 있습니다.
 Expanded	펼쳐짐
@@ -689,6 +697,9 @@ Takes the Comment button and the comment count off the posts in your feed.	피�
 # context: Comments: the switch that hides the row of quick emoji above the comment box (#248). Comment box is the field where you type a comment.
 Hide the emoji row	이모지 줄 숨기기
 Takes the row of quick emoji off above the comment box. The box itself stays.	댓글 입력창 위에 있는 빠른 이모지 줄을 없앱니다. 입력창은 그대로 표시됩니다
+# context: Comments: the switch that takes GIFs and stickers out of a post's comments (#511). A comment that has words keeps its words and loses only the picture. A comment that's only a GIF disappears, and its replies with it. Comment box is the field where you type a comment.
+Hide GIFs in comments	댓글의 GIF 숨기기
+Takes GIFs and stickers out of comments, and the GIF button off the comment box. A comment with words keeps them. One that's only a GIF goes, along with its replies.	댓글에서 GIF와 스티커를 없애고 댓글 입력창의 GIF 버튼도 없앱니다. 글이 있는 댓글은 글이 그대로 남습니다. GIF만 있는 댓글은 답글과 함께 사라집니다.
 Open comments without the keyboard	키보드 없이 댓글 열기
 Comments open with the keyboard down. A tap in the comment box, or on Reply, still brings it up.	댓글이 키보드가 내려간 상태로 열립니다. 댓글 입력란이나 답글 달기를 탭하면 키보드가 그대로 나타납니다.
 # context: Feed: the switch that hides the Follow and Subscribe buttons beside the author's name on a post (#248). Follow and Subscribe are the labels Instagram uses on those buttons.
@@ -792,6 +803,8 @@ Turn on Show if a profile follows you to use this choice.	이 옵션을 사용�
 The Add comment bar under a reel you open from a profile's reposts. The comment button still opens the comments.	프로필의 다시 게시한 항목에서 연 릴스 아래의 댓글 달기 창입니다. 댓글 버튼은 계속 댓글을 엽니다.
 Hide the comment bar on all reels	모든 릴스의 댓글 창 숨기기
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	릴스 탭을 포함한 모든 릴스 아래의 댓글 달기 창입니다. 댓글 버튼은 계속 댓글을 엽니다.
+Keep the comment bar's space	댓글 창 공간 유지
+Leaves an empty band where a hidden comment bar was on reels you open from a post or a profile, so the reel, its buttons and the seek bar don't move down.	게시물이나 프로필에서 연 릴스에서 숨긴 댓글 창 자리에 빈 띠를 남겨 릴스와 버튼, 탐색 바가 아래로 내려가지 않게 합니다.
 Adds Copy username and Copy bio to the menu on someone's profile. Each copies the text exactly as the account has it.	다른 사람 프로필의 메뉴에 사용자 이름 복사와 소개 복사를 추가합니다. 각각 계정에 있는 텍스트를 그대로 복사합니다.
 Adds View profile picture to the menu on someone's profile. Opens their picture full screen at the largest size Instagram has, with pinch zoom and a Save button.	다른 사람 프로필의 메뉴에 프로필 사진 보기를 추가합니다. Instagram에 있는 가장 큰 크기의 사진을 전체 화면으로 열며, 손가락으로 확대할 수 있고 저장 버튼이 있습니다.
 Bio	소개
@@ -843,6 +856,8 @@ Icons in the accent color	아이콘을 강조 색상으로
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	상단 바, 탭 바, 게시물 아래에 있는 Instagram 아이콘이 선택한 색상으로 바뀝니다. 텍스트는 그대로 유지됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Story rings in the accent color	스토리 링을 강조 색상으로
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	스토리 링이 Instagram의 그라데이션 대신 선택한 색상으로 바뀝니다. 같은 색상을 쓰는 다른 그라데이션 몇 가지도 함께 바뀝니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Solid story rings	단색 스토리 링
+Story rings are one solid shade of the color you picked instead of running light to dark. Restart Instagram to see the change.	스토리 링이 밝은 색에서 어두운 색으로 바뀌는 대신 선택한 색상의 한 가지 톤으로 표시됩니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 Backgrounds in the accent color	배경을 강조 색상으로
 Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	화면, 패널, 카드, 메뉴가 선택한 색상의 어둡거나 밝은 톤으로 바뀝니다. 스토리와 릴스 뷰어는 원래 배경을 유지합니다. Pure black dark mode보다 우선합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
@@ -868,6 +883,8 @@ Download button on feed posts	피드 게시물 다운로드 버튼
 Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	게시물 아래 줄의 저장 왼쪽에 다운로드 아이콘을 넣어, 메뉴를 열지 않고 한 번 탭으로 저장합니다. 캐러셀에서는 이 페이지만 저장할지 모두 저장할지 묻습니다. 피드 동영상 다운로드 메뉴 추가 또는 피드 사진 다운로드가 필요합니다.
 Download button on reels	릴스 다운로드 버튼
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	릴스 옆 저장 아래에 다운로드 아이콘을 넣어, 한 번 탭으로 메뉴의 다운로드와 똑같이 저장합니다. 릴스 다운로드 메뉴 추가가 켜져 있어야 합니다.
+Ask what to save	저장할 항목 묻기
+A tap on the download icon beside a reel lets you pick the reel, its cover or its sound, whichever it has.	릴스 옆 다운로드 아이콘을 탭하면 릴스, 커버, 사운드 중 해당 릴스에 있는 것을 골라 저장할 수 있습니다.
 Nothing to download on this post	이 게시물에는 다운로드할 항목이 없습니다
 # context: Downloads switch; a hold with two or three fingers on a feed post or a reel saves it
 Hold to download	길게 눌러 다운로드
@@ -995,6 +1012,8 @@ Instagram's default	Instagram 기본값
 A tap on a reel pauses it, and another tap plays it again.	릴스를 탭하면 일시정지되고, 다시 탭하면 재생됩니다.
 A tap on a playing reel turns its sound off or on and keeps it playing. A reel that's paused still plays on a tap.	재생 중인 릴스를 탭하면 소리가 꺼지거나 켜지고 계속 재생됩니다. 일시정지된 릴스는 탭하면 재생됩니다.
 A tap on a reel does what Instagram does.	릴스를 탭하면 Instagram이 하는 대로 동작합니다.
+Keep playing	계속 재생
+A tap on a playing reel does nothing, so a stray touch doesn't stop it. A reel that's paused still plays on a tap.	재생 중인 릴스를 탭해도 아무 일도 일어나지 않아 실수로 닿아도 멈추지 않습니다. 일시정지된 릴스는 탭하면 재생됩니다.
 Keep reels muted on the volume keys	볼륨 키를 눌러도 릴스 음소거 유지
 Volume up still raises the phone's volume, but a muted reel stays muted until you unmute it.	볼륨 올리기는 휴대폰 볼륨을 그대로 올리지만, 음소거된 릴스는 직접 켤 때까지 음소거로 유지됩니다.
 Start stories with sound	스토리를 소리와 함께 시작
@@ -1013,6 +1032,10 @@ Show categories as a grid	카테고리를 격자로 보기
 Show categories as rows	카테고리를 목록으로 보기
 Show settings by category	카테고리별로 설정 보기
 Tab bar height	탭 바 높이
+# context: Tab bar settings: a list that draws the tab bar's icons bigger, by a share of Instagram's size (#541)
+Tab icon size	탭 아이콘 크기
+The icons on the tab bar are the size Instagram gives them.	탭 바의 아이콘이 Instagram이 정한 크기로 표시됩니다.
+The icons on the tab bar are %1$s of the size Instagram gives them.	탭 바의 아이콘이 Instagram이 정한 크기의 %1$s로 표시됩니다.
 Standard	기본
 Blur strength	흐림 강도
 # context: the blur slider's value under its title; dp is Android's screen unit, keep it
@@ -1447,6 +1470,8 @@ Only verified accounts	인증된 계정만
 Only accounts that aren't verified	인증되지 않은 계정만
 Pinch to zoom	두 손가락으로 확대
 Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	재생 중인 릴스를 사진처럼 두 손가락으로 확대합니다. 손가락을 떼면 원래대로 돌아갑니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.
+Double tap to skip	두 번 탭하여 건너뛰기
+A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.	릴스 왼쪽을 두 번 탭하면 10초 뒤로, 오른쪽을 두 번 탭하면 10초 앞으로 이동합니다. 가운데를 두 번 탭하면 그대로 좋아요가 눌립니다. 10초 미만의 릴스는 건너뛰지 않습니다.
 Mute notification types	알림 유형 무음
 Stops the notification types you tick, even ones Instagram's own notification settings can't turn off.	체크한 알림 유형을 막습니다. Instagram 자체 알림 설정에서 끌 수 없는 유형도 막습니다.
 %1$d notification type is muted.	알림 유형 %1$d개가 무음입니다.
@@ -1819,3 +1844,21 @@ Can slow down older phones.	오래된 휴대폰에서는 느려질 수 있습니
 Blend post edges	게시물 가장자리 흐리게
 # context: what that switch does
 Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	게시물 사진이나 동영상의 위아래를 빛에 녹아들게 해서 가장자리가 선명한 선으로 보이지 않게 합니다.
+# context: a color in the Accent color list
+Dusk blue	황혼 파랑
+# context: a color in the Accent color list
+Pine	소나무
+# context: a color in the Accent color list
+Slate	슬레이트
+# context: a color in the Accent color list, the one typed in the row below it
+Custom	사용자 지정
+# context: a row under Accent color where a color is typed as hex
+Custom color	사용자 지정 색상
+# context: the Custom color dialog's message
+A color as six hex digits, like #4A6B82. HushGram makes it darker or lighter where text needs it. Restart Instagram to see it.	#4A6B82처럼 16진수 여섯 자리로 쓴 색상입니다. 글자가 잘 보이도록 HushGram이 필요한 곳에서 어둡게 또는 밝게 바꿉니다. 보려면 Instagram을 다시 시작하세요.
+# context: the Custom color row's summary when nothing is typed yet
+None yet. Custom stays Instagram's blue until you type one.	아직 없습니다. 색상을 입력하기 전까지 사용자 지정은 Instagram 파란색으로 남습니다.
+# context: shown under the Custom color field when what's typed isn't a color
+That isn't a color. Try #4A6B82.	색상이 아닙니다. #4A6B82처럼 입력해 보세요.
+Count on the heart	하트에 숫자 표시
+The heart at the top of Home shows how many notifications are waiting, like the number on Messages, in place of the red dot. Restart Instagram to see the change.	홈 상단의 하트에 빨간 점 대신 메시지처럼 기다리는 알림 수를 표시합니다. 변경 사항을 보려면 Instagram을 다시 시작하세요.

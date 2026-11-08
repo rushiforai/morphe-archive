@@ -14,7 +14,8 @@ import java.util.List;
 @SuppressWarnings("unused")
 public final class DownloadMediaPatch {
     private static final String TAG = "LinkedInPatches";
-    private static final String OVERLAY_TAG = "morphe_download_overlay";
+    /** Also read by SduiMediaDownload, which hides both button variants together. */
+    static final String OVERLAY_TAG = "morphe_download_overlay";
 
     /**
      * Injected at the start of onBind(ViewData, ViewDataBinding) of the media viewer presenters.
@@ -35,6 +36,7 @@ public final class DownloadMediaPatch {
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             }
             overlay.bringToFront();
+            overlay.setVisibility(View.VISIBLE);
             // Presenters are recycled, so always rebind to the current item.
             ((ViewGroup) overlay).getChildAt(0).setOnClickListener(v -> download(v.getContext(), viewData));
         } catch (Throwable t) {

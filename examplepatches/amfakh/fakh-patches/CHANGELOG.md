@@ -1,3 +1,9 @@
+## [1.15.1](https://github.com/amfakh/fakh-patches/compare/v1.15.0...v1.15.1) (2026-11-07)
+
+### New Features
+
+* **LinkedIn:** complete the French translation of the settings ([019b79e](https://github.com/amfakh/fakh-patches/commit/019b79eda4a0c5c5fb531a72b230300c5610d421))
+
 ## [1.15.0](https://github.com/amfakh/fakh-patches/compare/v1.14.2...v1.15.0) (2026-11-07)
 
 ### New Features

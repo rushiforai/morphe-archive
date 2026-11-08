@@ -1,6 +1,6 @@
 package app.morphe.patches.all.misc.clone
 
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
 
 private var targetPackageName: String? = null
 
@@ -12,7 +12,7 @@ fun resetTargetPackageName() {
     targetPackageName = null
 }
 
-internal val cloneAppPatch = resourcePatch {
+internal val cloneAppPatch = patch {
     execute {
         resetTargetPackageName()
     }

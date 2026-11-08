@@ -37,6 +37,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_PEOPLE_YOU_MAY_KNOW) return L10n.t("Hide \"People you may know\"");
         if (setting == Settings.HIDE_SUGGESTED_GROUPS) return L10n.t("Hide suggested groups");
         if (setting == Settings.HIDE_GROUP_POSTS_NOT_JOINED) return L10n.t("Hide posts from groups you're not in");
+        if (setting == Settings.HIDE_GROUP_POSTS) return L10n.t("Hide all group posts");
         if (setting == Settings.HIDE_STORIES_YOU_MIGHT_LIKE) return L10n.t("Hide \"Stories you might like\"");
         if (setting == Settings.HIDE_FEED_MEMORIES) return L10n.t("Hide Memories in the feed");
         if (setting == Settings.HIDE_FEED_FRIEND_REQUESTS) return L10n.t("Hide friend requests in the feed");
@@ -88,6 +89,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_BACKGROUND_POSTS) return L10n.t("Hide posts on a colored background");
         if (setting == Settings.HIDE_REPOSTS) return L10n.t("Hide reposts");
         if (setting == Settings.HIDE_PAGE_POSTS) return L10n.t("Hide posts from Pages");
+        if (setting == Settings.ONLY_FRIENDS_POSTS) return L10n.t("Only friends' posts");
         if (setting == Settings.HIDE_OTHER_LANGUAGES) return L10n.t("Hide posts in other languages");
         if (setting == Settings.HIDE_SPONSORED_STORIES) return L10n.t("Hide sponsored stories");
         if (setting == Settings.HIDE_SUGGESTED_STORIES) return L10n.t("Hide suggested stories");
@@ -202,6 +204,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_FULLSCREEN_PILL) return L10n.t("Hide the Fullscreen button");
         if (setting == Settings.FEED_VIDEOS_ALONE) return L10n.t("Open feed videos on their own");
         if (setting == Settings.WATCH_AGAIN_IN_PLACE) return L10n.t("Replay feed videos in place");
+        if (setting == Settings.SAVED_VIDEOS_IN_PLAYER) return L10n.t("Open saved videos in the video player");
         if (setting == Settings.PLAY_FEED_REELS_WHOLE) return L10n.t("Play whole reels in the feed's Reels row");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
         if (setting == Settings.NEWEST_REELS_FIRST) return L10n.t("Sort loaded reels");

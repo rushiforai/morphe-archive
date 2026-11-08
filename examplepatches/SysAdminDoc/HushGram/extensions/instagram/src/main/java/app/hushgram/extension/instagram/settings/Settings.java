@@ -122,6 +122,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_category_pages", TRUE);
 
     /**
+     * A tapped category opens on a page of its own instead of under its row, and Back returns to the
+     * list (#525). Only means something while {@link #CATEGORY_PAGES} is on. Off to start. A
+     * page-look choice, so Pause doesn't turn it off.
+     */
+    public static final BooleanSetting CATEGORY_OWN_PAGE =
+            new BooleanSetting("hushgram_category_own_page", FALSE);
+
+    /**
      * The categories as two-column tiles instead of rows (#494). A tile opens its section in place,
      * below the tiles, as a row does. Only means something while {@link #CATEGORY_PAGES} is on.
      * Off to start. A page-look choice, so Pause doesn't turn it off.
@@ -1365,6 +1373,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_SHARE_SHEET_GROUP =
             new BooleanSetting("hushgram_hide_share_sheet_group", FALSE);
 
+    /** The search bar at the top of the share sheet (#545). Off to start. */
+    public static final BooleanSetting HIDE_SHARE_SHEET_SEARCH =
+            new BooleanSetting("hushgram_hide_share_sheet_search", FALSE);
+
     /**
      * The buttons the share sheet leaves out of its row of round buttons under the people, by the
      * name the sheet gives each, comma separated ({@link app.hushgram.extension.instagram.share.ShareSheetActions},
@@ -1719,11 +1731,20 @@ public class Settings extends BaseSettings {
     /**
      * Under {@link #ACCENT_COLOR}: the color ({@link app.hushgram.extension.instagram.misc.AccentHue}).
      * Starts on purple, and Instagram blue keeps the stock color. Material You (#187) takes the
-     * wallpaper's colors on Android 12 and newer. A change shows after a restart.
+     * wallpaper's colors on Android 12 and newer, and Custom (#520) the color in {@link #ACCENT_CUSTOM}.
+     * A change shows after a restart.
      */
     public static final EnumSetting<app.hushgram.extension.instagram.misc.AccentHue> ACCENT_HUE =
             new EnumSetting<>("hushgram_accent_hue",
                     app.hushgram.extension.instagram.misc.AccentHue.PURPLE, true, parent(ACCENT_COLOR));
+
+    /**
+     * Under {@link #ACCENT_COLOR}: the color typed for Custom (#520), {@code #RRGGBB}
+     * ({@link app.hushgram.extension.instagram.misc.CustomAccent}). Empty to start, which leaves Custom
+     * on Instagram's blue. A change shows after a restart.
+     */
+    public static final StringSetting ACCENT_CUSTOM =
+            new StringSetting("hushgram_accent_custom", "", true, parent(ACCENT_COLOR));
 
     /**
      * Under {@link #ACCENT_COLOR}: Instagram's red badges, the dots and counts on its icons, take the
@@ -1748,6 +1769,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting ACCENT_RINGS =
             new BooleanSetting("hushgram_accent_rings", FALSE, true, parent(ACCENT_COLOR));
+
+    /**
+     * Under {@link #ACCENT_RINGS}: story rings take one shade of the picked color, the fill, instead
+     * of running light to deep (#519, {@link app.hushgram.extension.instagram.misc.AccentTheme}). A
+     * change shows after a restart. Off to start.
+     */
+    public static final BooleanSetting ACCENT_RINGS_SOLID =
+            new BooleanSetting("hushgram_accent_rings_solid", FALSE, true, parent(ACCENT_RINGS));
 
     /**
      * Under {@link #ACCENT_COLOR}: screens, panels, cards and menus take a very dark or very light
@@ -2274,6 +2303,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_comment_emoji_row", FALSE);
 
     /**
+     * Comments lose their GIFs and stickers and the comment box its GIF button
+     * ({@link app.hushgram.extension.instagram.feed.CommentGifs}). Read as each comment's row is
+     * built and each frame of a resumed screen, so it needs no restart. Off to start.
+     */
+    public static final BooleanSetting HIDE_COMMENT_GIFS =
+            new BooleanSetting("hushgram_hide_comment_gifs", FALSE);
+
+    /**
      * The comment sheet opens without bringing the keyboard up on its own
      * ({@link app.hushgram.extension.instagram.feed.CommentKeyboard}). A tap in the box still brings
      * it up. Read each time a sheet opens, so it needs no restart. Off to start.
@@ -2374,6 +2411,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_REEL_COMMENT_BAR_EVERYWHERE =
             new BooleanSetting("hushgram_hide_reel_comment_bar_everywhere", FALSE);
+
+    /**
+     * Leaves the room of a hidden comment bar empty under a reel opened from a post or a profile, so
+     * the reel, its buttons and the seek bar stay where they'd be with the bar (#523). The Reels tab's
+     * own bar keeps no room. Off to start.
+     */
+    public static final BooleanSetting KEEP_REEL_COMMENT_BAR_SPACE =
+            new BooleanSetting("hushgram_keep_reel_comment_bar_space", FALSE,
+                    parentsAny(HIDE_REEL_COMMENT_BAR, HIDE_REEL_COMMENT_BAR_EVERYWHERE));
 
     /**
      * The reply bar under a reel opened from a chat (#177): the Reply to field, the quick reactions
@@ -2684,6 +2730,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_ghost_button_on_home", FALSE, true);
 
     /**
+     * Count on the heart (#541): the heart on Home's header shows a number in place of its red dot
+     * ({@link app.hushgram.extension.instagram.reels.HeartCount}). Given as the header draws, and
+     * a heart already showing one keeps it, so a change takes a restart. Off to start.
+     */
+    public static final BooleanSetting HEART_COUNT =
+            new BooleanSetting("hushgram_heart_count", FALSE, true);
+
+    /**
      * The ghost switches Ghost mode turns, as their keys with a comma between (#251): its settings row,
      * the button on Home's header and the long presses all flip only these, and the others keep what you
      * set. Empty, or naming none of the switches in the build, means all of them, which is how it starts.
@@ -2787,12 +2841,26 @@ public class Settings extends BaseSettings {
             new EnumSetting<>("hushgram_start_tab", app.hushgram.extension.instagram.reels.StartTab.HOME, true);
 
     /**
+     * The tabs the bar was last built with, as the tab enum's names, comma separated. Not a choice:
+     * {@link app.hushgram.extension.instagram.reels.TabStart} keeps it so a start's first ask, which
+     * comes before that start's list, knows whether Messages is on the bar (#534). Left out of backups.
+     */
+    public static final StringSetting TAB_BAR_SEEN = new StringSetting("hushgram_tab_bar_seen", "", false, false);
+
+    /**
      * Which tab bar Instagram draws ({@link app.hushgram.extension.instagram.reels.TabBarLayout}, #356):
      * the one Instagram picks for the account, the newer swipe bar or the classic one. The tab host
      * lays itself out once, as Instagram starts, so a change takes a restart. Starts on Instagram's.
      */
     public static final EnumSetting<app.hushgram.extension.instagram.reels.TabBarLayoutChoice> TAB_BAR_LAYOUT =
             new EnumSetting<>("hushgram_tab_bar_layout", app.hushgram.extension.instagram.reels.TabBarLayoutChoice.INSTAGRAM, true);
+
+    /**
+     * How big the tab bar's icons are drawn ({@link app.hushgram.extension.instagram.misc.TabIcons}, #541),
+     * as a share of Instagram's size. It takes effect on the next frame. Starts on Instagram's size.
+     */
+    public static final EnumSetting<app.hushgram.extension.instagram.misc.TabIconSize> TAB_ICON_SIZE =
+            new EnumSetting<>("hushgram_tab_icon_size", app.hushgram.extension.instagram.misc.TabIconSize.INSTAGRAM);
 
     /**
      * The speed locked with Instagram's own 2x lock on a reel stays for the next reels, until the
@@ -3065,6 +3133,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_reel_download_button", FALSE, parent(DOWNLOAD_REELS));
 
     /**
+     * With it on, a tap on that Download icon asks what to save first: the reel, its cover or its
+     * sound, whichever the reel has (#524). Off, a tap saves the reel at once. Starts off.
+     */
+    public static final BooleanSetting REEL_DOWNLOAD_BUTTON_ASKS =
+            new BooleanSetting("hushgram_reel_download_button_asks", FALSE, parent(REEL_DOWNLOAD_BUTTON));
+
+    /**
      * A Not interested icon in the column beside a reel (#191), so one tap runs Instagram's own Not
      * interested for that reel without opening its menu. Starts off, so the column stays Instagram's own.
      */
@@ -3157,9 +3232,10 @@ public class Settings extends BaseSettings {
 
     /**
      * What a single tap on a reel does ({@link app.hushgram.extension.instagram.reels.ReelTapAndVolume}):
-     * Instagram's own tap, pause, or mute. It starts as Instagram's own, so nothing changes until a
-     * choice is made. Paused, it answers Instagram's own like every setting. A reel you paused still
-     * resumes on a tap, and a double tap and a long press are untouched.
+     * Instagram's own tap, pause, mute, or keep playing, where a tap on a playing reel does nothing
+     * (#554). It starts as Instagram's own, so nothing changes until a choice is made. Paused, it
+     * answers Instagram's own like every setting. A reel you paused still resumes on a tap, and a
+     * double tap and a long press are untouched.
      */
     public static final EnumSetting<app.hushgram.extension.instagram.reels.ReelTapChoice> REEL_TAP_CHOICE =
             new EnumSetting<>("hushgram_reel_tap_choice", app.hushgram.extension.instagram.reels.ReelTapChoice.DEFAULT);
@@ -3196,6 +3272,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting PINCH_ZOOM_REELS =
             new BooleanSetting("hushgram_pinch_zoom_reels", FALSE, true);
+
+    /**
+     * A double tap along the left edge of a reel goes back 10 seconds and one along the right edge
+     * goes ahead 10 seconds, through Instagram's own double tap to skip and its server flags
+     * ({@link app.hushgram.extension.instagram.reels.ReelSkip}). A double tap in the middle stays
+     * Instagram's like. Off to start (#554).
+     */
+    public static final BooleanSetting DOUBLE_TAP_SKIP_REELS =
+            new BooleanSetting("hushgram_double_tap_skip_reels", FALSE);
 
     /**
      * A video or reel over two minutes left partway picks up there the next time a player starts
@@ -3410,6 +3495,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DOWNLOAD_NO_HDR =
             new BooleanSetting("hushgram_download_no_hdr", FALSE);
+
+    /**
+     * Saves a video HushGram joins from a picture track and a sound track as a Matroska file (.mkv)
+     * instead of an MP4 (#547). The samples are copied as they are, so nothing is re-encoded. A
+     * track the MKV writer can't take is saved as an MP4, as before. Starts off.
+     */
+    public static final BooleanSetting SAVE_VIDEOS_AS_MKV =
+            new BooleanSetting("hushgram_save_videos_as_mkv", FALSE);
 
     /**
      * A save remembers what reached the gallery, and the same post, carousel page, reel, story,

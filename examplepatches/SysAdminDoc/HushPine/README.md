@@ -1,11 +1,11 @@
 ![HushPine. PineDrama, on your terms.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.0.1-4E9F7C" alt="Version 0.0.1"></a>
+  <a href="CHANGELOG.md"><img src="https://img.shields.io/badge/version-0.1.1-4E9F7C" alt="Version 0.0.1"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android-3DDC84" alt="Platform Android">
-  <a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/pinedrama-short-dramas/"><img alt="PineDrama 47.5.3" src="https://img.shields.io/badge/PineDrama-47.5.3-2F6B4F"></a>
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.3.0%2B-8A2BE2" alt="For Morphe Manager 2.3.0 or newer">
+  <a href="https://www.apkmirror.com/apk/tiktok-pte-ltd/pinedrama-short-dramas/"><img alt="PineDrama 47.6.3" src="https://img.shields.io/badge/PineDrama-47.6.3-2F6B4F"></a>
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.5.0%2B-8A2BE2" alt="For Morphe Manager 2.5.0 or newer">
 </p>
 
 <p>
@@ -20,9 +20,9 @@ HushPine is a set of [Morphe](https://morphe.software) patches for PineDrama, Ti
 
 Most switches start off, so a freshly patched PineDrama looks and works the way it ships until you turn something on. Changes are listed in the [changelog](CHANGELOG.md). This repo split off from [Hushfeed](https://github.com/SysAdminDoc/hushfeed), which now covers TikTok only.
 
-HushPine v0.0.1 contains 97 patches for PineDrama 47.5.3. New in this one: PineDrama's patches move out of Hushfeed into their own bundle, and pressing and holding any tab at the top of the feed opens HushPine's settings. It needs Morphe Manager 2.3.0 or newer.
+HushPine v0.1.0 contains 100 patches for PineDrama 47.6.3. New in this one: full screen lets you swipe through a drama's episodes, and you can pick subtitles and dubs by language. It needs Morphe Manager 2.5.0 or newer.
 
-The main branch contains 97 patches, the same set as v0.0.1.
+The main branch contains 100 patches, the same set as v0.1.0.
 
 **[Add HushPine to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushPine)**
 
@@ -31,10 +31,10 @@ The main branch contains 97 patches, the same set as v0.0.1.
 
 ## Install
 
-1. Get PineDrama 47.5.3 from [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/pinedrama-short-dramas/pinedrama-short-dramas-47-5-3-release/), the file marked **BUNDLE** (an `.apkm`). Google Play only offers the newest build, which may not be the one HushPine supports. Manager merges the bundle into a single APK for you.
-2. Use Morphe Manager 2.3.0 or newer. HushPine is built against patcher 2.1.0, which Manager 2.3.0 was the first to ship, and older Managers won't load it. morphe-desktop 1.20.0 or newer works from a computer if you give it 2 GB of memory (`java -Xmx2g -jar morphe-desktop-1.20.0-all.jar patch ...`).
+1. Get PineDrama 47.6.3 from [APKMirror](https://www.apkmirror.com/apk/tiktok-pte-ltd/pinedrama-short-dramas/pinedrama-short-dramas-47-6-3-release/), the file marked **BUNDLE** (an `.apkm`). Google Play only offers the newest build, which may not be the one HushPine supports. Manager merges the bundle into a single APK for you.
+2. Use Morphe Manager 2.5.0 or newer. HushPine is built against patcher 2.3.0, which Manager 2.5.0 was the first to ship, and older Managers won't load it. morphe-desktop 2.1.0 or newer works from a computer if you give it 2 GB of memory (`java -Xmx2g -jar morphe-desktop-2.1.0-all.jar patch ...`).
 3. Add HushPine as a source. On the phone, open [Add HushPine to Morphe Manager](https://morphe.software/add-source?github=SysAdminDoc%2FHushPine). If **Open in Morphe** leaves you in the browser, open Manager, tap **Sources**, tap **+** and paste `https://github.com/SysAdminDoc/HushPine`. You can also download the `.mpp` file from the [latest release](https://github.com/SysAdminDoc/HushPine/releases/latest) and load it as a local bundle.
-4. Pick the patches. Simple mode selects 87 of the 97. The other 10 need Expert mode in Manager's settings, and they're marked in [Patches](#patches). Manager 2.3.0 shows all 97 HushPine patches in categories you can expand or collapse. Leave **Use embedded VM** on under **Settings > Patcher**, since it lets the patcher use whatever memory the phone can spare.
+4. Pick the patches. Simple mode selects 90 of the 100. The other 10 need Expert mode in Manager's settings, and they're marked in [Patches](#patches). Manager 2.5.0 shows all 100 HushPine patches in categories you can expand or collapse. Leave **Use embedded VM** on under **Settings > Patcher**, since it lets the patcher use whatever memory the phone can spare.
 5. Uninstall store PineDrama, then install the patched app and log in. Android won't put one over the other because they're signed with different keys.
 
 If you patched PineDrama with Hushfeed before, patch again with HushPine using the same signing key and install over that copy.
@@ -47,7 +47,7 @@ The page comes in English, German, Spanish, Italian, Indonesian, Brazilian Portu
 
 ## Patches
 
-There are 97 patches.
+There are 100 patches.
 
 | Patch | What it does |
 |---|---|
@@ -78,6 +78,7 @@ There are 97 patches.
 | `Downloads` | Saves videos and photos without PineDrama's watermark, even when the creator turned downloads off. You can also choose the folders and file names. On by default. Turn it off in HushPine settings > Downloads. |
 | `Drop the animated image cache` | Lets you make PineDrama decode animated stickers and GIFs one frame at a time as they play, instead of a few frames ahead, so they use a little less memory. Starts off. Turn it on in HushPine settings > App. |
 | `Enable voice comments` | Lets you turn on PineDrama's voice comments, so you can record and post a spoken comment, for accounts that don't have them yet. It hasn't been tried on a real account, so it may not work. Starts off. Turn it on in HushPine settings > Comments. |
+| `Episodes in full screen` | Lets you swipe between a drama's episodes in full screen, and moves on to the next episode when one ends instead of looping it. On by default. Turn it off in HushPine settings > Playback. |
 | `Expand activity list` | Shows the whole Activity and New followers lists in the Inbox, so you don't have to tap View all. Starts off. Turn it on in HushPine settings > Inbox. |
 | `Feature Gate Lab` | Adds an advanced page that lists the hidden settings PineDrama uses to test features and lets you change them. It's for people who like to experiment. Starts off. Turn it on in HushPine settings > Diagnostics. |
 | `Feature Gate Recorder` | Records which hidden PineDrama settings the app reads while you use it, and which ones changed. It's a research tool and changes nothing in PineDrama. Start a recording in HushPine settings > Diagnostics. Expert mode only. |
@@ -100,6 +101,7 @@ There are 97 patches.
 | `Hold-and-slide 2x lock` | Turns on PineDrama's own gesture where you hold a video, slide down and let go to keep it playing fast without holding. Starts off. Turn it on in HushPine settings > Feed screen. |
 | `In-app browser privacy guard` | Stops websites you open in PineDrama's built-in browser from reaching into the PineDrama app. PineDrama's own pages, like Watch history and checkout, keep working. Starts off. Turn it on in HushPine settings > Privacy. |
 | `Keep a streak going` | Sends a daily message you choose to people you pick, at a time you set, so your message streaks keep going on days you don't open PineDrama. Starts off. Turn it on in HushPine settings > Inbox. |
+| `Keep list position` | Stops the History and Favorites lists on your profile from jumping back to the top when you switch tabs or come back from a video. A list you haven't scrolled still updates. On by default. Turn it off in HushPine settings. |
 | `Keep playing in the background` | Keeps the video playing when you leave PineDrama or turn the screen off, with a notification to pause it. It can also start the video over when it ends. Handy for music and talks. Starts off. Turn it on in HushPine settings > Playback, then restart PineDrama. |
 | `Keep pulled sounds` | Plays the sound on videos PineDrama muted for copyright or because of where you live. PineDrama may still say the sound isn't available. Starts off. Turn it on in HushPine settings > Playback. |
 | `Keep recent stickers` | Adds Recently used above Saved in the comment sticker panel, with the last stickers you sent, and keeps it when you close and reopen the app. Works as soon as you patch it in, with no switch. |
@@ -142,6 +144,7 @@ There are 97 patches.
 | `Stop recording watch history` | Stops PineDrama adding the videos you watch to your Watch history. The catch: your views stop counting, and your feed learns less about what you like. Starts off. Turn it on in HushPine settings > Privacy. |
 | `Stop saving search history` | Stops PineDrama saving your new searches on your phone. Older searches stay until you delete them, and PineDrama's servers may keep their own record. Starts off. Turn it on in HushPine settings > Privacy. |
 | `Stop search autoplay` | Stops videos in search results from playing by themselves. Each one shows its cover until you open it, so searching stays quiet. Starts off. Turn it on in HushPine settings > App. |
+| `Subtitle and dub preference` | Lets you choose which subtitle and dub videos use, by language, and hide videos without them. Everything starts off. Set it up in HushPine settings under Playback and Feed filter. |
 | `Translate comments` | Translates comments as they load, using PineDrama's own translator, so you don't have to tap Translate on each one. Starts off. Turn it on in HushPine settings > Comments, where more rows list languages PineDrama's automatic translation should leave alone, keep videos in the language they were made in, pick the language translations come out in, and add PineDrama's translate button beside the comment count. |
 | `Trust user certificates` | Lets PineDrama trust security certificates you install yourself, so a tool like mitmproxy can show what the app sends. The risk: anyone who gets a certificate onto your phone can read PineDrama's traffic too. Use it only on a test phone. Expert mode only. |
 | `Turn off haptics` | Stops the little vibrations PineDrama makes when you tap or hold things. Your keyboard and your phone's own vibrations stay. Starts off. Turn it on in HushPine settings > App. |
@@ -203,9 +206,9 @@ If PineDrama closes while saves are still going, the next time you open it the d
 ## Supported target
 
 - App: PineDrama, the package `com.ss.android.ttmd.video`
-- Version: [47.5.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/pinedrama-short-dramas/pinedrama-short-dramas-47-5-3-release/), on APKMirror since 2026-10-23.
-- Build: version code 2024705030, arm64-v8a and armeabi-v7a, minSdk 23
-- SHA-256 of the APK every patch was verified against: `332ee375945b79d0ea8656f8cc17229cf3e83393860d7a056678d2bdbd0e2114` (47.5.3)
+- Version: [47.6.3](https://www.apkmirror.com/apk/tiktok-pte-ltd/pinedrama-short-dramas/pinedrama-short-dramas-47-6-3-release/), on APKMirror since 2026-11-02.
+- Build: version code 2024706030, arm64-v8a and armeabi-v7a, minSdk 23
+- SHA-256 of the APK every patch was verified against: `49a22026ef8b5c81a2960d60e8178eeb5984637c7083e9f990d098bd73a32ac0` (47.6.3)
 - SHA-256 of the `.apkm` you download: `342718aea7431cda9f21b3e06073286304608d558b9fcca2ec3632984766b13b`
 
 The first hash is the bundle after merging, so yours can differ if your tool merges it another way. Check the `.apkm` with `Get-FileHash -Algorithm SHA256 .\pinedrama.apkm` on Windows or `sha256sum pinedrama.apkm` on Linux and macOS.

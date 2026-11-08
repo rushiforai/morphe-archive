@@ -80,7 +80,8 @@ public final class CreatorExceptions {
             AdvancedFeedRules.PromotionalMusicFilter.class,
             AdvancedFeedRules.LiveReplayFilter.class,
             RegionFilter.class,
-            CaptionLanguageFilter.class);
+            CaptionLanguageFilter.class,
+            PreferredSubtitleFilter.class, PreferredDubFilter.class);
 
     /** One list's exact names and its mask token, kept while the list reads the same. */
     private static final class Names {

@@ -11,8 +11,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val megaAllowScreenshotsPatch = bytecodePatch(
-    name = "Allow Screenshots & Export - MEGA (Experimental)",
-    description = "Disables FLAG_SECURE window restrictions to allow taking screenshots of documents and media in MEGA, and bypasses local export restrictions.",
+    name = "Allow Screenshots & Screen Recording - MEGA",
+    description = "Disables FLAG_SECURE window restrictions to allow taking screenshots and screen recordings of documents, media, and chat in MEGA, and bypasses local export restrictions.",
 ) {
     compatibleWith(COMPATIBILITY_MEGA)
 
@@ -35,15 +35,14 @@ fun BytecodePatchContext.executeMegaAllowScreenshotsLogic(logger: Logger) {
         }
 
         val superType = classDef.superclass ?: ""
-        val isActivity = superType.endsWith("Activity;") ||
-                         type.endsWith("Activity;") ||
-                         type.contains("Activity$") ||
-                         superType.contains("Activity")
-
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
-        // 1. Inject Window.clearFlags(0x2000) into every Activity lifecycle (onResume or onCreate)
-        if (isActivity && (tl.contains("mega") || !tl.startsWith("lcom/google/"))) {
+        // 1. Inject Window.clearFlags(0x2000) into every concrete Activity lifecycle
+        val isConcreteActivity = !type.contains("$") &&
+                (type.endsWith("Activity;") || superType.endsWith("Activity;") || superType.contains("Activity")) &&
+                (tl.contains("mega") || !tl.startsWith("lcom/google/"))
+
+        if (isConcreteActivity) {
             for (method in classDef.methods.toList()) {
                 if (method.implementation == null) continue
                 val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
@@ -62,7 +61,7 @@ fun BytecodePatchContext.executeMegaAllowScreenshotsLogic(logger: Logger) {
                         cloned.addInstructions(
                             0,
                             """
-                            invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+                            invoke-virtual/range {p0 .. p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
                             move-result-object v0
                             if-eqz v0, :cond_clear_flag_secure
                             const/16 v1, 0x2000
@@ -104,51 +103,22 @@ fun BytecodePatchContext.executeMegaAllowScreenshotsLogic(logger: Logger) {
                         smaliCode = "return-void"
                     )
                     hookedMethods++
-                    logger.info("[MEGA Screenshots] Neutralized screen security setter: ${type}->${method.name}")
+                    logger.fine("[MEGA Screenshots] Neutralized security setter: ${type}->${method.name}")
                 } catch (e: Exception) {
-                    logger.fine("[MEGA Screenshots] Skip setter hook: ${e.message}")
+                    logger.fine("[MEGA Screenshots] Skip setter hook on ${type}: ${e.message}")
                 }
             }
 
-            val isSecurityGetter = !isStatic && (
-                mName.contains("flagsecure") ||
-                mName.contains("screensecurity") ||
-                mName.contains("blockscreenshot") ||
-                mName.contains("disablescreenshot") ||
-                mName.contains("issecurewindow")
-            ) && retType == "Z" && pTypes.isEmpty()
-
-            if (isSecurityGetter) {
-                try {
-                    mutableClass.replaceMethod(
-                        method,
-                        registerCount = 2,
-                        smaliCode = """
-                            const/4 v0, 0x0
-                            return v0
-                        """.trimIndent()
-                    )
-                    hookedMethods++
-                    logger.info("[MEGA Screenshots] Forced screen security to false: ${type}->${method.name}")
-                } catch (e: Exception) {
-                    logger.fine("[MEGA Screenshots] Skip getter hook: ${e.message}")
-                }
-            }
-
-            // 3. Unlock export, download and screenshot permissions
-            val isExportGetter = !isStatic && (
+            // 3. Allow local export & bypass download locks
+            val isExportCheck = !isStatic && (
                 mName == "isexportallowed" ||
                 mName == "canexport" ||
-                mName == "isdownloadallowed" ||
                 mName == "candownload" ||
-                mName == "issaveallowed" ||
-                mName == "cansavetodevice" ||
-                mName == "isscreenshotallowed" ||
-                mName == "canscreenshot" ||
-                mName == "isofflineallowed"
+                mName == "isshareallowed" ||
+                mName == "canshare"
             ) && retType == "Z" && pTypes.isEmpty()
 
-            if (isExportGetter) {
+            if (isExportCheck) {
                 try {
                     mutableClass.replaceMethod(
                         method,
@@ -159,9 +129,9 @@ fun BytecodePatchContext.executeMegaAllowScreenshotsLogic(logger: Logger) {
                         """.trimIndent()
                     )
                     hookedMethods++
-                    logger.info("[MEGA Export] Unlocked export permission: ${type}->${method.name}")
+                    logger.fine("[MEGA Screenshots] Hooked export permission check: ${type}->${method.name} -> true")
                 } catch (e: Exception) {
-                    logger.fine("[MEGA Export] Skip export hook: ${e.message}")
+                    logger.fine("[MEGA Screenshots] Skip export check hook on ${type}: ${e.message}")
                 }
             }
         }

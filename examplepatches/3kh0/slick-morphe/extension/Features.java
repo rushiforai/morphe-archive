@@ -25,21 +25,20 @@ public final class Features {
 
   private static final class PronounSuffix {}
 
-  public static void timestampPronouns(Object binding) {
+  public static void timestampPronouns(Object views, Object metadata, Object bindingMetadata) {
     try {
-      TextView time = (TextView) Host.get(Host.get(binding, "L$3"), "messageTime");
+      TextView time = (TextView) Host.get(views, "messageTime");
       SpannableStringBuilder text = new SpannableStringBuilder(time.getText());
       for (PronounSuffix m : text.getSpans(0, text.length(), PronounSuffix.class)) {
         int start = text.getSpanStart(m), end = text.getSpanEnd(m);
         text.removeSpan(m);
         text.delete(start, end);
       }
-      Object metadata = Host.get(binding, "L$5");
       if (time.getVisibility() == View.VISIBLE
           && text.length() > 0
           && !Boolean.TRUE.equals(Host.get(metadata, "isHidden"))
           && !Boolean.TRUE.equals(Host.get(metadata, "isPendingEdit"))) {
-        String suffix = pronouns("", Host.get(Host.get(binding, "L$1"), "user"));
+        String suffix = pronouns("", Host.get(bindingMetadata, "user"));
         if (!suffix.isEmpty()) {
           int start = text.length();
           text.append(suffix);

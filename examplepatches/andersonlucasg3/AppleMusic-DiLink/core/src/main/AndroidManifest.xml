@@ -1,2 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!-- PackageInstaller result callback for the in-app updater (see update/). -->
+        <receiver
+            android:name="com.anderson.applemusic.core.update.InstallResultReceiver"
+            android:exported="false" />
+    </application>
+
+</manifest>

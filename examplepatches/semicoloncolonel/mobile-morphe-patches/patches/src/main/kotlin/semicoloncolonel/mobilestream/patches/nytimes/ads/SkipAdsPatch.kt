@@ -1,27 +1,28 @@
 package semicoloncolonel.mobilestream.patches.nytimes.ads
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import semicoloncolonel.mobilestream.patches.nytimes.shared.Constants
 
-// NYT phone 11.98.0. Every native ad slot (section fronts, the article feed,
-// slideshows; banners and native ads alike) asks AdRepositoryImpl for its ad.
-// Both public entry points funnel into one method, renamed j(position, page
-// context, ad type) in this build. It writes a state for the slot into
-// LocalAdCache and returns that cache entry as a Flow the slot observes.
+// NYT phone 11.98.0 and 11.99.0. Every native ad slot (section fronts, the
+// article feed, slideshows; banners and native ads alike) asks the ad
+// repository (AdRepositoryImpl) for its ad. The app has its own EmptyAd state,
+// which a slot shows as nothing.
 //
-// The app already has an EmptyAd state (gj$c, "EmptyAd(position=...)") that a
-// slot shows as nothing. This patch writes EmptyAd for every slot and returns
-// the cache flow, before any ad request or the alternate request path runs.
-// The obfuscated names are read from j's own instructions, not hard-coded.
-internal object AdRepositoryFetchFingerprint : Fingerprint(
+// 11.98.0: the fetch method writes EmptyAd to the cache itself. The patch
+// writes EmptyAd for every slot and returns the cache flow, before any ad
+// request. The obfuscated names are read from the method's own instructions.
+internal object AdRepositoryFetchLegacyFingerprint : Fingerprint(
     returnType = "Lkotlinx/coroutines/flow/Flow;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     custom = { method, classDef ->
@@ -34,6 +35,19 @@ internal object AdRepositoryFetchFingerprint : Fingerprint(
 private fun MethodReference.smali() =
     "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
+// 11.99.0: the repository class is renamed, and the fetch method first reads
+// the app's "Google Ad Manager enabled" flag. When it is off, the app writes
+// EmptyAd and returns without requesting an ad. The patch sets the flag off
+// right after it is read. The method is found by the consent preferences it
+// sets before an ad request.
+internal object AdRepositoryFetchFingerprint : Fingerprint(
+    strings = listOf("gad_has_consent_for_cookies", "gad_rdp"),
+    custom = { method, _ ->
+        method.parameterTypes.size == 3 &&
+            method.parameterTypes.first().toString() == "Ljava/lang/String;"
+    },
+)
+
 @Suppress("unused")
 val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
@@ -42,7 +56,8 @@ val skipAdsPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
-        AdRepositoryFetchFingerprint.method.apply {
+        // 11.98.0
+        AdRepositoryFetchLegacyFingerprint.methodOrNull?.apply {
             val instructions = implementation!!.instructions.toList()
             val references = instructions.mapNotNull { (it as? ReferenceInstruction)?.reference }
 
@@ -73,6 +88,13 @@ val skipAdsPatch = bytecodePatch(
                     return-object v0
                 """.trimIndent(),
             )
+        } ?: AdRepositoryFetchFingerprint.method.apply {
+            // 11.99.0
+            val instructions = implementation!!.instructions.toList()
+            val flagRead = instructions.indexOfFirst { it.opcode == Opcode.IGET_BOOLEAN }
+            if (flagRead < 0) throw PatchException("Ad Manager flag read not found")
+            val register = (instructions[flagRead] as OneRegisterInstruction).registerA
+            addInstruction(flagRead + 1, "const/16 v$register, 0x0")
         }
     }
 }

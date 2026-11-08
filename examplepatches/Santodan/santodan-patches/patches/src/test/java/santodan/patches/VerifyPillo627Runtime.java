@@ -67,10 +67,11 @@ public final class VerifyPillo627Runtime {
                 "Object a,Object b,Object c,Object d,Object e,float f,Object g,float h,float i,float j,boolean k,Object l,Object m,int n) {" +
                 "callback.run(); return null; }}");
             Pillo627ImportFixture.prepare(stubs);
-            List<String> compile = new ArrayList<>(List.of("-d", stubs.toString()));
+            List<String> compile = new ArrayList<>(List.of("-d", stubs.toString(), "-classpath", System.getProperty("java.class.path")));
             try (var paths = Files.walk(stubs)) { paths.filter(p -> p.toString().endsWith(".java")).forEach(p -> compile.add(p.toString())); }
             int result = ToolProvider.getSystemJavaCompiler().run(null, null, null, compile.toArray(new String[0]));
             check(result == 0, "Native stub compilation failed");
+            Pillo627ImportFixture.renameUiMethods(stubs);
             URL classes = PilloWeightSummary627.class.getProtectionDomain().getCodeSource().getLocation();
             try (URLClassLoader loader = new URLClassLoader(new URL[]{stubs.toUri().toURL(), classes}, VerifyPillo627Runtime.class.getClassLoader()) {
                 @Override protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
@@ -121,6 +122,7 @@ public final class VerifyPillo627Runtime {
                 check(PilloWeightSummary627.takeLast(2, List.of(1,2,3)).equals(List.of(2,3)), "Reordered native takeLast arguments changed history");
                 System.out.println("PASS: explicit render captures, exception cleanup, signed totals, reordered takeLast ABI");
                 Class<?> importer = loader.loadClass("software.santodan.extension.pilloweight.PilloWeightImport627");
+                verifyWeightFooter(loader, importer);
                 Method save = importer.getDeclaredMethod("importEntries", List.class, String.class); save.setAccessible(true);
                 var entries = software.santodan.extension.pilloweight.WeightBackup.parse("{\"weights\":[{\"date\":1751583600000,\"weight\":105},{\"date\":1751683600000,\"weight\":104}]}", true);
                 check(save.invoke(null, entries, "owner").equals(2), "Asynchronous import failed");
@@ -139,5 +141,41 @@ public final class VerifyPillo627Runtime {
                 System.out.println("PASS: 0.6.27 firstOnIO/suspend ABI, asynchronous writes, duplicates, profiles, partial retry and write rejection");
             }
         } finally { LocalArchive.delete(root.toFile()); }
+    }
+    private static void verifyWeightFooter(ClassLoader loader, Class<?> importer) throws Exception {
+        Method footer = importer.getMethod("footer", Object.class, Object.class, Object.class,
+            boolean.class, boolean.class, String.class, Object.class, int.class, int.class);
+        Class<?> button = loader.loadClass("xyz.rtrvr.pillo.ui.components.buttons.ButtonsKt");
+        Class<?> bar = loader.loadClass("xyz.rtrvr.pillo.ui.tracker.common.components.LoggingBottomBarKt");
+        Object modifier = new Object(), composer = new Object();
+        int[] clicks = {0, 0};
+        kotlin.jvm.functions.Function0<Object> back = () -> { clicks[0]++; return null; };
+        kotlin.jvm.functions.Function0<Object> next = () -> { clicks[1]++; return null; };
+        for (boolean previous : List.of(false, true)) for (boolean enabled : List.of(false, true)) {
+            footer.invoke(null, modifier, back, next, previous, enabled, "Save weight", composer, 123456, 17);
+            Object[] args = (Object[]) bar.getField("args").get(null);
+            check(args[0] == modifier && args[1] == back && args[2] == next && args[6] == composer,
+                "Footer lost native modifier, callbacks or composition context");
+            check(args[3].equals(previous) && args[4].equals(enabled) && args[5].equals("Save weight")
+                && args[7].equals(0) && args[8].equals(17), "Footer changed native logging state/defaults");
+            ((kotlin.jvm.functions.Function0<?>) args[1]).invoke();
+            ((kotlin.jvm.functions.Function0<?>) args[2]).invoke();
+            Object importClick = button.getField("click").get(null);
+            check(((kotlin.jvm.functions.Function0<?>) importClick).invoke() != null, "Missing import action Unit");
+        }
+        check(button.getField("draws").getInt(null) == 4 && bar.getField("draws").getInt(null) == 4
+            && clicks[0] == 4 && clicks[1] == 4, "Footer or native actions did not render/run on recomposition");
+        RuntimeException failure = new IllegalStateException("native button failure");
+        button.getField("failure").set(null, failure);
+        try {
+            footer.invoke(null, modifier, back, next, false, true, "Save weight", composer, 0, 0);
+            throw new AssertionError("Swallowed native rendering failure");
+        } catch (InvocationTargetException expected) {
+            Throwable cause = expected;
+            while (cause.getCause() != null) cause = cause.getCause();
+            check(cause == failure, "Rendering failure lost its original cause");
+        }
+        check(bar.getField("draws").getInt(null) == 4, "Rendered native bar after button failure");
+        System.out.println("PASS: weight footer renders text-only button with native colors; recomposition, native enabled/back/save state and failure propagation");
     }
 }

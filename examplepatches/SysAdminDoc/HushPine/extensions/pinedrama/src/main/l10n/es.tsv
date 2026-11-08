@@ -1382,7 +1382,6 @@ Comment with live photos, the camera or audio	Comentar con fotos en vivo, la cá
 Save comments to Favorites	Guardar comentarios en Favoritos
 Comment sort and dislike styles	Orden de comentarios y estilos de No me gusta
 Message bubble colors, Inbox archive and sharing to more chats	Colores de las burbujas de mensajes, archivo de la Bandeja de entrada y compartir con más chats
-Manage topics	Gestionar temas
 Visual search	Búsqueda visual
 AI Self	AI Self
 Long-press menu on every post	Menú de pulsación larga en cada publicación
@@ -1639,7 +1638,6 @@ Sign in without a passkey	Iniciar sesión sin llave de acceso
 PineDrama treats your phone as one without passkeys, so signing in asks for your password or a code by email or text instead. Password managers won't hand a passkey to a patched app. If PineDrama's 2-step check still wants only a passkey, add email or text as a way to verify on tiktok.com or another phone first.	PineDrama trata tu teléfono como uno sin llaves de acceso, así que al iniciar sesión te pide tu contraseña o un código por correo o SMS. Los gestores de contraseñas no le dan una llave de acceso a una app parcheada. Si la verificación en dos pasos de PineDrama sigue pidiendo solo una llave de acceso, agrega primero el correo o SMS como forma de verificar en tiktok.com o en otro teléfono.
 # context: opens the complete published changelog from the concise What's new dialog.
 Full changelog	Todos los cambios
-More hashtags per post	Más hashtags por publicación
 New comment emoji	Nuevos emojis en comentarios
 Hide root	Ocultar root
 Hide root status and details about root tools from PineDrama.	Oculta a PineDrama el estado de root y los detalles de las herramientas de root.
@@ -1832,3 +1830,28 @@ Sticker added to Saved	Sticker añadido a tus guardados
 Recently used	Usados recientemente
 # context: A video's share sheet. Make sticker is a button HushPine adds after Save cover, and it turns the video's cover into one of your saved comment stickers. Keep it about as short as Save cover, since share sheet labels get two short lines under the icon
 Make sticker	Crear sticker
+Keep your place in History and Favorites	Mantener tu posición en Historial y Favoritos
+Stops these lists jumping back to the top when you switch tabs or come back from a video. A list you haven't scrolled still updates.	Evita que estas listas vuelvan arriba al cambiar de pestaña o al volver de un vídeo. Una lista que no has desplazado se sigue actualizando.
+Dramas	Dramas
+Episodes in full screen	Episodios a pantalla completa
+Swipe up for the next episode and down for the previous one without leaving full screen. The next episode starts when one ends, instead of the same one looping.	Desliza hacia arriba para el siguiente episodio y hacia abajo para el anterior sin salir de la pantalla completa. Cuando termina un episodio empieza el siguiente en lugar de repetirse el mismo.
+Subtitles	Subtítulos
+Subtitle priority	Prioridad de subtítulos
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own subtitle. Used when a video starts playing.	Códigos de idioma en el orden que quieras, separados por comas, como en, original. original es el subtítulo propio del video. Se usa cuando empieza un video.
+Force subtitle	Forzar subtítulo
+Always use the first subtitle on your list that a video has, even with captions off. A video with none of them plays as usual. Turning captions off yourself lasts until the app restarts.	Usa siempre el primer subtítulo de tu lista que tenga el video, aunque los subtítulos estén desactivados. Un video sin ninguno se reproduce como siempre. Si desactivas los subtítulos tú mismo, sigue así hasta que reinicies la app.
+Force original subtitle	Forzar subtítulo original
+Always use the video's own subtitle, never a translated one, even with captions off. A video without one plays as usual.	Usa siempre el subtítulo propio del video, nunca uno traducido, aunque los subtítulos estén desactivados. Un video sin él se reproduce como siempre.
+Dubs	Doblajes
+Dub priority	Prioridad de doblaje
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own audio. Used when a video starts playing.	Códigos de idioma en el orden que quieras, separados por comas, como en, original. original es el audio propio del video. Se usa cuando empieza un video.
+Force dub	Forzar doblaje
+Always use the first dub on your list that a video has, even with dubbing off. A video with none of them plays as usual.	Usa siempre el primer doblaje de tu lista que tenga el video, aunque el doblaje esté desactivado. Un video sin ninguno se reproduce como siempre.
+Force original dub	Forzar audio original
+Always play the video's own audio, never an AI dub.	Reproduce siempre el audio propio del video, nunca un doblaje con IA.
+Hide videos without a preferred subtitle	Ocultar videos sin un subtítulo preferido
+Hides videos with no subtitle from Subtitle priority in Playback, and that includes videos with no subtitles at all. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Oculta los videos sin un subtítulo de Prioridad de subtítulos en Reproducción, incluidos los que no tienen ningún subtítulo. Si se ocultara una página entera, queda un video para que el feed siga cargando. No hace nada mientras la lista esté vacía.
+Hide videos without a preferred dub	Ocultar videos sin un doblaje preferido
+Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Oculta los videos sin un doblaje de Prioridad de doblaje en Reproducción. Si pones original en esa lista, se quedan todos los videos, porque cada uno tiene su propio audio. Si se ocultara una página entera, queda un video para que el feed siga cargando. No hace nada mientras la lista esté vacía.
+Preferred subtitles	Subtítulos preferidos
+Preferred dubs	Doblajes preferidos

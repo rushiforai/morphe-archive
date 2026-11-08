@@ -189,6 +189,9 @@ Never save AV1 video	Nunca salvar vídeos AV1
 # context: Downloads settings: a switch that passes HDR pictures over for apps that show HDR with a yellow or green cast (#352)
 Never save HDR video	Nunca salvar vídeos HDR
 For apps that show HDR with a yellow or green cast, such as Messenger. A video Instagram has at full size only in HDR is saved at its largest standard size instead.	Para apps que mostram HDR com um tom amarelado ou esverdeado, como o Messenger. Um vídeo que o Instagram só tem em tamanho completo em HDR é salvo no seu maior tamanho padrão.
+# context: Downloads settings: a switch that saves joined videos as Matroska (.mkv) files instead of .mp4 (#547)
+Save videos as MKV	Salvar vídeos como MKV
+Saves videos as .mkv files instead of .mp4, for galleries that show no thumbnail for VP9 or AV1 videos. Nothing is re-encoded. A video Instagram sends as one file stays .mp4.	Salva os vídeos como arquivos .mkv em vez de .mp4, para galerias que não mostram miniatura de vídeos VP9 ou AV1. Nada é recodificado. Um vídeo que o Instagram envia como um único arquivo continua .mp4.
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes or in HDR stay smaller.	Salva vídeos que outros apps conseguem abrir, em tamanho original. Um vídeo que o Instagram só tem em VP9 ou AV1 é convertido para H.264 no seu celular em vez de ser salvo menor. É mais lento, e vídeos com mais de 3 minutos ou em HDR continuam menores.
 Converting to H.264	Convertendo para H.264
 Download quality	Qualidade do download
@@ -375,6 +378,8 @@ the raised version code	o código de versão aumentado
 Sharing	Compartilhamento
 Hide group buttons	Ocultar botões de grupo
 Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.	Tira Novo grupo do menu de compartilhamento e o botão que envia para as pessoas escolhidas como grupo. Enviar separadamente continua, e você ainda pode criar um grupo nas suas mensagens.
+Hide the search bar	Ocultar a barra de pesquisa
+Takes the search bar off the top of the share sheet. The people you can send to still show.	Tira a barra de pesquisa do topo do menu de compartilhamento. As pessoas para quem você pode enviar continuam aparecendo.
 Story ring size	Tamanho dos anéis dos stories
 Draws the rings in the stories row at the top of Home at the size below, and the rings of stories you haven't watched in the color below. Restart Instagram to see a change.	Desenha os anéis da fileira de stories no topo do Início no tamanho abaixo, e os anéis dos stories que você ainda não viu na cor abaixo. Reinicie o Instagram para ver uma mudança.
 Ring size	Tamanho dos anéis
@@ -673,6 +678,9 @@ Hide story rewinds	Ocultar rewinds de stories
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	Nada na fileira de stories no topo do Início carrega, nem o seu próprio story, e os destaques nos perfis também ficam vazios. Economiza dados. Um anel de story em um perfil ou em uma conversa ainda abre os stories.
 Expandable categories	Categorias expansíveis
 Tap a category to show or hide its settings on this page.	Toque em uma categoria para mostrar ou ocultar suas configurações nesta página.
+# context: Settings entry switch; with it on, tapping a settings category opens that category alone on its own page
+Categories on their own page	Categorias em página própria
+With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.	Com Categorias expansíveis ativado, tocar em uma categoria a abre em uma página própria. Voltar leva você de volta à lista.
 Descriptions behind an info button	Descrições atrás de um botão de informação
 Shows each switch by its name alone. Tap the i next to a name to read what it does.	Mostra cada chave só pelo nome. Toque no i ao lado de um nome para ler o que ela faz.
 Expanded	Expandida
@@ -690,6 +698,9 @@ Takes the Comment button and the comment count off the posts in your feed.	Tira 
 # context: Comments: the switch that hides the row of quick emoji above the comment box (#248). Comment box is the field where you type a comment.
 Hide the emoji row	Ocultar a linha de emojis
 Takes the row of quick emoji off above the comment box. The box itself stays.	Tira a linha de emojis rápidos acima da caixa de comentários. A caixa continua lá.
+# context: Comments: the switch that takes GIFs and stickers out of a post's comments (#511). A comment that has words keeps its words and loses only the picture. A comment that's only a GIF disappears, and its replies with it. Comment box is the field where you type a comment.
+Hide GIFs in comments	Ocultar GIFs nos comentários
+Takes GIFs and stickers out of comments, and the GIF button off the comment box. A comment with words keeps them. One that's only a GIF goes, along with its replies.	Tira GIFs e figurinhas dos comentários e o botão de GIF da caixa de comentários. Um comentário com texto mantém o texto. Um que só tem um GIF some junto com as respostas.
 Open comments without the keyboard	Abrir comentários sem o teclado
 Comments open with the keyboard down. A tap in the comment box, or on Reply, still brings it up.	Os comentários abrem com o teclado fechado. Tocar na caixa de comentário, ou em Responder, ainda abre o teclado.
 # context: Feed: the switch that hides the Follow and Subscribe buttons beside the author's name on a post (#248). Follow and Subscribe are the labels Instagram uses on those buttons.
@@ -793,6 +804,8 @@ Turn on Show if a profile follows you to use this choice.	Ative Mostrar se um pe
 The Add comment bar under a reel you open from a profile's reposts. The comment button still opens the comments.	A barra Adicionar comentário abaixo de um reel que você abre a partir dos reposts de um perfil. O botão de comentários continua abrindo os comentários.
 Hide the comment bar on all reels	Ocultar a barra de comentários em todos os reels
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	A barra Adicionar um comentário abaixo de cada reel, inclusive os da aba Reels. O botão de comentários continua abrindo os comentários.
+Keep the comment bar's space	Manter o espaço da barra de comentários
+Leaves an empty band where a hidden comment bar was on reels you open from a post or a profile, so the reel, its buttons and the seek bar don't move down.	Deixa uma faixa vazia onde ficava a barra de comentários oculta nos reels que você abre por uma publicação ou um perfil, para que o reel, seus botões e a barra de progresso não desçam.
 Adds Copy username and Copy bio to the menu on someone's profile. Each copies the text exactly as the account has it.	Adiciona Copiar nome de usuário e Copiar bio ao menu no perfil de alguém. Cada um copia o texto exatamente como está na conta.
 Adds View profile picture to the menu on someone's profile. Opens their picture full screen at the largest size Instagram has, with pinch zoom and a Save button.	Adiciona Ver foto do perfil ao menu no perfil de alguém. Abre a foto em tela cheia no maior tamanho que o Instagram tiver, com zoom de pinça e um botão Salvar.
 Bio	Bio
@@ -844,6 +857,8 @@ Icons in the accent color	Ícones na cor de destaque
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Os ícones do Instagram na barra superior, na barra de abas e embaixo dos posts ficam na cor que você escolheu. O texto continua como está. Reinicie o Instagram para ver a mudança.
 Story rings in the accent color	Anéis de stories na cor de destaque
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Os anéis dos stories ficam na cor que você escolheu em vez do degradê do Instagram. Alguns outros degradês usam essas cores e mudam junto. Reinicie o Instagram para ver a mudança.
+Solid story rings	Anéis de stories em cor sólida
+Story rings are one solid shade of the color you picked instead of running light to dark. Restart Instagram to see the change.	Os anéis dos stories ficam em um único tom da cor que você escolheu em vez de ir do claro ao escuro. Reinicie o Instagram para ver a mudança.
 Backgrounds in the accent color	Fundos na cor de destaque
 Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Telas, painéis, cartões e menus ficam em um tom escuro ou claro da cor que você escolheu. Os visualizadores de stories e reels mantêm o próprio fundo. Tem prioridade sobre Pure black dark mode. Reinicie o Instagram para ver a mudança.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
@@ -869,6 +884,8 @@ Download button on feed posts	Botão de download nas publicações do feed
 Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	Coloca um ícone de download na linha abaixo da publicação, à esquerda de Salvar, para que um toque a salve sem abrir o menu. Em um carrossel, ele pergunta se é só esta página ou todas. Precisa de Baixar vídeos do feed ou Baixar fotos do feed.
 Download button on reels	Botão de download nos reels
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	Coloca um ícone de download abaixo de Salvar ao lado de um reel, para que um toque o salve como Baixar no menu dele. Precisa de Baixar nos reels.
+Ask what to save	Perguntar o que salvar
+A tap on the download icon beside a reel lets you pick the reel, its cover or its sound, whichever it has.	Tocar no ícone de download ao lado de um reel permite escolher o reel, a capa ou o som, conforme o que ele tiver.
 Nothing to download on this post	Nada para baixar nesta publicação
 # context: Downloads switch; a hold with two or three fingers on a feed post or a reel saves it
 Hold to download	Segurar para baixar
@@ -996,6 +1013,8 @@ Instagram's default	Padrão do Instagram
 A tap on a reel pauses it, and another tap plays it again.	Tocar em um reel o pausa, e outro toque o reproduz de novo.
 A tap on a playing reel turns its sound off or on and keeps it playing. A reel that's paused still plays on a tap.	Tocar em um reel em reprodução liga ou desliga o som e o mantém tocando. Um reel pausado volta a tocar com um toque.
 A tap on a reel does what Instagram does.	Tocar em um reel faz o que o Instagram faz.
+Keep playing	Continuar tocando
+A tap on a playing reel does nothing, so a stray touch doesn't stop it. A reel that's paused still plays on a tap.	Tocar em um reel em reprodução não faz nada, assim um toque sem querer não o para. Um reel pausado volta a tocar com um toque.
 Keep reels muted on the volume keys	Manter reels silenciados com as teclas de volume
 Volume up still raises the phone's volume, but a muted reel stays muted until you unmute it.	Aumentar o volume ainda sobe o volume do celular, mas um reel silenciado continua silenciado até você ativar o som.
 Start stories with sound	Iniciar stories com som
@@ -1014,6 +1033,10 @@ Show categories as a grid	Mostrar categorias em grade
 Show categories as rows	Mostrar categorias em linhas
 Show settings by category	Mostrar configurações por categoria
 Tab bar height	Altura da barra de abas
+# context: Tab bar settings: a list that draws the tab bar's icons bigger, by a share of Instagram's size (#541)
+Tab icon size	Tamanho dos ícones das abas
+The icons on the tab bar are the size Instagram gives them.	Os ícones da barra de abas ficam do tamanho que o Instagram dá a eles.
+The icons on the tab bar are %1$s of the size Instagram gives them.	Os ícones da barra de abas ficam com %1$s do tamanho que o Instagram dá a eles.
 Standard	Padrão
 Blur strength	Intensidade do desfoque
 # context: the blur slider's value under its title; dp is Android's screen unit, keep it
@@ -1448,6 +1471,8 @@ Only verified accounts	Só contas verificadas
 Only accounts that aren't verified	Só contas não verificadas
 Pinch to zoom	Pinçar para dar zoom
 Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	Com dois dedos você dá zoom em um reel que está tocando, como numa foto. Solte e ele volta ao normal. Reinicie o Instagram para ver a mudança.
+Double tap to skip	Toque duplo para pular
+A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.	Um toque duplo no lado esquerdo de um reel volta 10 segundos, e no lado direito avança 10 segundos. Um toque duplo no meio ainda curte. Reels com menos de 10 segundos não pulam.
 Mute notification types	Silenciar tipos de notificação
 Stops the notification types you tick, even ones Instagram's own notification settings can't turn off.	Bloqueia os tipos de notificação que você marcar, até os que as configurações de notificação do próprio Instagram não conseguem desativar.
 %1$d notification type is muted.	%1$d tipo de notificação está silenciado.
@@ -1820,3 +1845,21 @@ Can slow down older phones.	Pode deixar celulares mais antigos lentos.
 Blend post edges	Suavizar as bordas dos posts
 # context: what that switch does
 Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	Funde a parte de cima e de baixo da foto ou do vídeo de um post com o brilho dele, para a borda não aparecer como uma linha marcada.
+# context: a color in the Accent color list
+Dusk blue	Azul crepúsculo
+# context: a color in the Accent color list
+Pine	Pinho
+# context: a color in the Accent color list
+Slate	Ardósia
+# context: a color in the Accent color list, the one typed in the row below it
+Custom	Personalizada
+# context: a row under Accent color where a color is typed as hex
+Custom color	Cor personalizada
+# context: the Custom color dialog's message
+A color as six hex digits, like #4A6B82. HushGram makes it darker or lighter where text needs it. Restart Instagram to see it.	Uma cor em seis dígitos hexadecimais, como #4A6B82. O HushGram a escurece ou clareia onde o texto precisa. Reinicie o Instagram para ver.
+# context: the Custom color row's summary when nothing is typed yet
+None yet. Custom stays Instagram's blue until you type one.	Nenhuma ainda. Personalizada fica no azul do Instagram até você digitar uma.
+# context: shown under the Custom color field when what's typed isn't a color
+That isn't a color. Try #4A6B82.	Isso não é uma cor. Tente #4A6B82.
+Count on the heart	Número no coração
+The heart at the top of Home shows how many notifications are waiting, like the number on Messages, in place of the red dot. Restart Instagram to see the change.	O coração no topo da Página inicial mostra quantas notificações estão esperando, como o número em Mensagens, no lugar do ponto vermelho. Reinicie o Instagram para ver a mudança.

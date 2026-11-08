@@ -19,7 +19,7 @@
 
 This fork adds a **Duck email** button to Gboard’s draggable toolbar menu. Tap it to generate a new private `@duck.com` address and insert it into the focused text field.
 
-1. Patch Gboard `18.0.3.954559732-release-arm64-v8a` with this source. Include **DuckDuckGo Email Protection**.
+1. Patch Gboard `18.5.4.993608717-release-arm64-v8a` with this source. Include **DuckDuckGo Email Protection**.
 2. Open **Gboard settings > Patches > Keyboard Tools & Shortcuts > DuckDuckGo Email Protection**.
 3. Choose **Enter Duck address and send code** and enter your existing `name@duck.com` address. Check its forwarding inbox.
 4. Enter the emailed code or four-word passphrase. You can reopen **Enter emailed code** after checking your inbox.
@@ -32,6 +32,16 @@ An existing DuckDuckGo Email Protection account and an internet connection are r
 <img alt="Duck email in Gboard’s draggable toolbar menu" src="docs/assets/features/duck-email/toolbar.png" width="360">
 
 <img alt="Duck email patch settings" src="docs/assets/features/duck-email/settings.png" width="360">
+
+### Wispr Flow integration
+
+The optional **Wispr Flow** patch adds a draggable dictation button to the toolbar menu.
+Its companion LSPosed module starts dictation inside the original Wispr app and hides
+the idle floating bubble. Wispr's recording and transcription controls remain visible.
+This experimental integration targets Gboard 18.5.4, Wispr Flow 2.8.5 and Android 14 or
+later. It has build and unit-test coverage, and live dictation and text insertion have
+been confirmed on a REDMI K90.
+See the [bridge setup and build instructions](integrations/wispr-flow-bridge/README.md).
 
 Based on [jasonwu1994/Gboard-patches](https://github.com/jasonwu1994/Gboard-patches). All upstream patches remain available. The original project’s documentation follows below.
 
@@ -46,6 +56,12 @@ Gboard Patches is a public Morphe source for a curated set of Gboard enhancement
 Features designed and built by this project rather than simply unlocking an existing Gboard flag.
 
 <details>
+  <summary><code>Dictionaries &amp; Predictions</code></summary>
+
+  Choose resource versions for dictionaries, predictions, and input correction.
+</details>
+
+<details>
   <summary><code>Clipboard Enhancements</code></summary>
 
   Lets you enhance clipboard retention time, item count limits, preview lines, countdown and creation-time labels, order index, grid columns, and optionally render only the first 1,000 characters on each clipboard card.
@@ -58,9 +74,9 @@ Features designed and built by this project rather than simply unlocking an exis
 
   Preview:
 
-  <img alt="Web Clipboard pairing gate" src="docs/assets/features/web-clipboard/01-pairing-gate.png" width="720">
+  <img alt="Web Clipboard pairing gate" src="assets/features/web-clipboard/01-pairing-gate.png" width="720">
 
-  <img alt="Web Clipboard conversation view" src="docs/assets/features/web-clipboard/02-conversation-view.png" width="720">
+  <img alt="Web Clipboard conversation view" src="assets/features/web-clipboard/02-conversation-view.png" width="720">
 
 </details>
 
@@ -126,9 +142,15 @@ Import custom ZIP themes and beautiful themes from the official Rboard repositor
 </details>
 
 <details>
+  <summary><code>Swipe Down to Dismiss Keyboard</code></summary>
+
+  Swipe down from the suggestions or toolbar to close the keyboard.
+</details>
+
+<details>
   <summary><code>G Logo on Spacebar</code></summary>
 
-  Show the G Logo on the spacebar and hide the language label.
+  Show a built-in icon or your own PNG, WebP, or JPEG on the spacebar. Keep its original colors or choose a single color, adjust its size, and include imported images in settings backups.
 </details>
 
 <details>
@@ -159,6 +181,12 @@ Customize the bottom tab order in Gboard's Emojis, stickers & GIFs panel with dr
 ### Gboard Feature Unlocks
 
 Features already present in Gboard that are exposed by enabling hidden settings, rollout gates, or built-in behavior.
+
+<details>
+  <summary><code>Keypress Vibration Intensity Control</code></summary>
+
+  Control keypress vibration intensity instead of duration.
+</details>
 
 <details>
   <summary><code>AI Writing Tools</code></summary>
@@ -242,12 +270,6 @@ Features already present in Gboard that are exposed by enabling hidden settings,
   <summary><code>Quick Insert</code></summary>
 
 Enables the Quick Insert panel and toolbar access point.
-</details>
-
-<details>
-  <summary><code>Hyperspeed Typing Animation</code></summary>
-
-Shows the animation during sustained fast typing with support for all keyboards.
 </details>
 
 <details>

@@ -1,36 +1,27 @@
 package app.morphe.patches.instants
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 /**
- * Adds a native gallery button to Instants and feeds selected media through
- * the existing capture pipeline on the next shutter press.
+ * Gallery upload: a gallery button on the camera screen; the picked image replaces the captured
+ * photo on the next shutter press, so it is posted through the app's own pipeline.
+ * Part of [instantsModPatch].
  */
-@Suppress("unused")
 val instantsGalleryPatch = bytecodePatch {  // unnamed: only loaded through [instantsModPatch]
     compatibleWith(INSTANTS_COMPATIBILITY)
     extendWith("extensions/extension.mpe")
+    dependsOn(instantsActivityPatch)
 
     execute {
-        MoonshotOnCreateFingerprint.method.addInstructions(
-            0,
-            """
-            invoke-static/range {p0 .. p0}, $GALLERY_HELPER->setActivity(Landroid/app/Activity;)V
-            """.trimIndent(),
-        )
-
-        // CameraControlButton is composed only while the camera controls are on screen
-        // (it is used by the flash and flip buttons, not by the shutter). Use it purely as
-        // a signal to attach the gallery button; no parameter is read, so no registers.
+        // 1) The camera's control buttons are composed only while the camera is on screen: use that
+        //    as the signal to attach the gallery button. No parameter is read, so no registers.
         CameraControlButtonFingerprint.method.addInstructions(
             0,
             """
@@ -38,43 +29,53 @@ val instantsGalleryPatch = bytecodePatch {  // unnamed: only loaded through [ins
             """.trimIndent(),
         )
 
-        // The selected Bitmap is stored by the extension. On the user's next real shutter
-        // press, this hook substitutes it for both Bitmap inputs before QuickSnap's
-        // existing processing begins.
-        // p1/p2 are v17/v18 (registers=26, ins=10), hence move-object/from16.
-        // The label is only referenced here: addInstructionsWithLabels defines it.
-        QuickSnapProcessBitmapFingerprint.method.addInstructionsWithLabels(
-            0,
+        // 2) The "photo captured" callback receives the captured Bitmap as its first argument. Right
+        //    after it is cast, swap it for the picked image (the helper returns the same bitmap when
+        //    no image is pending). Everything downstream - the posted photo, the thumbnails and the
+        //    archive peek animation - then works from the picked image.
+        val captured = CapturedPhotoFingerprint.method
+        val capturedInstructions = captured.implementation!!.instructions
+        val castIndex = capturedInstructions.indexOfFirst { instruction ->
+            instruction.opcode == Opcode.CHECK_CAST &&
+                ((instruction as ReferenceInstruction).reference as TypeReference).type == "Landroid/graphics/Bitmap;"
+        }
+        check(castIndex >= 0) { "Instants: captured bitmap cast not found" }
+        val bitmapRegister = (capturedInstructions[castIndex] as OneRegisterInstruction).registerA
+        captured.addInstructions(
+            castIndex + 1,
             """
-            invoke-static {}, $GALLERY_HELPER->consumePendingBitmap()Landroid/graphics/Bitmap;
-            move-result-object v0
-            if-eqz v0, :instants_gallery_original
-            move-object/from16 p1, v0
-            move-object/from16 p2, v0
+            invoke-static/range {v$bitmapRegister .. v$bitmapRegister}, $GALLERY_HELPER->substituteCaptured(Landroid/graphics/Bitmap;)Landroid/graphics/Bitmap;
+            move-result-object v$bitmapRegister
             """.trimIndent(),
-            ExternalLabel("instants_gallery_original", QuickSnapProcessBitmapFingerprint.method.getInstruction(0)),
         )
 
-        // The thumbnail that flies to the archive after posting is built by a separate step
-        // from the same two Bitmap parameters; without this it would show the camera frame.
-        // p1/p2 are v27/v28 (registers=43, ins=17); each gets its own copy because this step
-        // draws on one and recycles the other.
-        QuickSnapArchivePeekFingerprint.method.addInstructionsWithLabels(
+        // 3) Video: when a recording ends, the pipeline works from the recorded File (thumbnail,
+        //    archive peek, upload; the size, duration and rotation are read from the file). Swap it
+        //    for the video picked from the gallery. The constructor also receives the video's two
+        //    dimensions as reported by the recorder; the helper keeps them consistent.
+        val video = VideoRecordedFingerprint.method
+        val videoTypes = video.parameterTypes.map { it.toString() }
+        val fileIndex = videoTypes.indexOf("Ljava/io/File;")
+        val sizeIndexes = videoTypes.withIndex().filter { (index, type) -> index > fileIndex && type == "I" }.map { it.index }
+        check(fileIndex >= 0 && sizeIndexes.size >= 2) { "Instants: unexpected video recorded constructor" }
+        // Non-static constructor: parameter N is register pN + 1 (p0 is this).
+        val fileRegister = "p${fileIndex + 1}"
+        val sizeA = "p${sizeIndexes[0] + 1}"
+        val sizeB = "p${sizeIndexes[1] + 1}"
+        video.addInstructions(
             0,
             """
-            invoke-static {}, $GALLERY_HELPER->consumePendingBitmap()Landroid/graphics/Bitmap;
-            move-result-object v0
-            if-eqz v0, :instants_gallery_original
-            move-object/from16 p1, v0
-            invoke-static {v0}, $GALLERY_HELPER->duplicate(Landroid/graphics/Bitmap;)Landroid/graphics/Bitmap;
-            move-result-object v0
-            move-object/from16 p2, v0
+            invoke-static {$fileRegister, $sizeA, $sizeB}, $GALLERY_HELPER->substituteVideo(Ljava/io/File;II)Ljava/io/File;
+            move-result-object $fileRegister
+            invoke-static {$sizeA}, $GALLERY_HELPER->videoSizeA(I)I
+            move-result $sizeA
+            invoke-static {$sizeB}, $GALLERY_HELPER->videoSizeB(I)I
+            move-result $sizeB
             """.trimIndent(),
-            ExternalLabel("instants_gallery_original", QuickSnapArchivePeekFingerprint.method.getInstruction(0)),
         )
 
-        // Hide the gallery button outside the camera. The navigator wrapper reports every
-        // route change; the helper shows the button only while the Home route is on top.
+        // 4) Hide the gallery button outside the camera. The navigator wrapper reports every route
+        //    change; the helper shows the button only while the Home route is on top.
         val forward = NavigateForwardFingerprint.method
         val forwardIndex = forward.delegateCallIndex()
         forward.addInstructions(
@@ -88,11 +89,11 @@ val instantsGalleryPatch = bytecodePatch {  // unnamed: only loaded through [ins
         val backIndex = back.delegateCallIndex()
         // After the delegate pops, the wrapper reads the new top route into a register
         // (invoke-direct getter + move-result-object); report that route.
-        val instructions = back.implementation!!.instructions
-        val moveResult = (backIndex + 1 until instructions.size).first {
-            instructions[it].opcode == Opcode.MOVE_RESULT_OBJECT
+        val backInstructions = back.implementation!!.instructions
+        val moveResult = (backIndex + 1 until backInstructions.size).first {
+            backInstructions[it].opcode == Opcode.MOVE_RESULT_OBJECT
         }
-        val routeRegister = (instructions[moveResult] as OneRegisterInstruction).registerA
+        val routeRegister = (backInstructions[moveResult] as OneRegisterInstruction).registerA
         back.addInstructions(
             moveResult + 1,
             """
@@ -101,7 +102,6 @@ val instantsGalleryPatch = bytecodePatch {  // unnamed: only loaded through [ins
         )
     }
 }
-
 
 // Index of the call that forwards to the wrapped navigator: an invoke-interface with the same
 // name as this method, on a different class.

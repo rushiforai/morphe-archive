@@ -6,13 +6,10 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import org.w3c.dom.Element
 
-private const val PKG = "com.ovz.carscanner"
-private const val VERSION = "2.1.50"
-
 private val carScannerStripAdManifestPatch = resourcePatch(
     description = "Removes the AdMob auto-init provider from the manifest.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(CAR_SCANNER_COMPATIBILITY)
 
     execute {
         document("AndroidManifest.xml").use { doc ->
@@ -30,9 +27,9 @@ private val carScannerStripAdManifestPatch = resourcePatch(
 @Suppress("unused")
 val carScannerRemoveAdsPatch = bytecodePatch(
     name = "Remove ads",
-    description = "Disables AdMob ads (banner, interstitial, app open, rewarded) and the consent form.",
+    description = "Disables ads (banner, interstitial, open, rewarded) and the consent pop-up.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(CAR_SCANNER_COMPATIBILITY)
     dependsOn(carScannerStripAdManifestPatch)
 
     execute {

@@ -12,7 +12,9 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityNodeProvider;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Swipe between feeds: on the home feed, swiping left opens Network and swiping right opens For you, like the tabs
@@ -36,6 +38,11 @@ public final class FeedSwipe {
     /** The touch already handled: nested Compose views each see it. */
     private static long handledDownTime = -1;
     private static long lastSwitch;
+    /**
+     * The last rect a tab was found at, per screen and tab. The My Network header stops exposing the inactive tab
+     * to accessibility as soon as one is selected, but its position does not move, so the rect can be reused.
+     */
+    private static final Map<String, Rect> lastTabBounds = new HashMap<>();
 
     private FeedSwipe() {
     }
@@ -95,8 +102,9 @@ public final class FeedSwipe {
             if (provider == null || ids == null) continue;
             for (int id : ids) {
                 AccessibilityNodeInfo info = provider.createAccessibilityNodeInfo(id);
-                if (info == null || !info.isVisibleToUser()) continue;
-                if (scrollsSideways(info) || PAGES.matcher(label(info)).find()) {
+                if (info == null) continue;
+                // A tab can still be reachable while the app marks it invisible to accessibility: match it anyway.
+                if (info.isVisibleToUser() && (scrollsSideways(info) || PAGES.matcher(label(info)).find())) {
                     info.getBoundsInScreen(bounds);
                     if (bounds.contains(startX, startY)) {
                         Settings.debugLog("feed swipe: left to a carousel or document (" + label(info) + " " + bounds + ")");
@@ -124,17 +132,23 @@ public final class FeedSwipe {
                 // The tab's own state, as TalkBack would read it; the parents (the whole bar) are not reliable.
                 AccessibilityNodeInfo info = found[0].createAccessibilityNodeInfo();
                 targetSelected = false;
-                Settings.debugLog("feed swipe: native tab " + (tab == 0 ? "Grow" : "Catch up") + " at " + target
+                Settings.debugLog("feed swipe: native tab " + tabName(tab) + " at " + target
                         + " selected=" + targetSelected);
             }
+        }
+        if (target == null) {
+            // The My Network header stops exposing the inactive tab once one is selected; its place has not moved.
+            target = remembered(view.getRootView(), tab);
+            if (target != null) Settings.debugLog("feed swipe: " + tabName(tab) + " remembered at " + target);
         }
         if (target == null || target.isEmpty()) {
             Settings.debugLog("feed swipe: tabs not on screen (" + composeViews.size() + " views)");
             return false;
         }
+        remember(tab, target);
         // Swiping toward the open tab does nothing, but it must not open a photo either.
         if (targetSelected) {
-            Settings.debugLog("feed swipe: " + (tab == 0 ? "For you" : "Network") + " is open already");
+            Settings.debugLog("feed swipe: " + tabName(tab) + " is open already");
             return true;
         }
         // Nested Compose views can each see the same swipe.
@@ -144,7 +158,7 @@ public final class FeedSwipe {
             return true;
         }
         lastSwitch = now;
-        Settings.debugLog("feed swipe: " + (tab == 0 ? "For you" : "Network"));
+        Settings.debugLog("feed swipe: " + tabName(tab));
         // After the swipe's own touch has finished.
         final Rect tabBounds = target;
         MAIN.post(() -> tap(view.getRootView(), tabBounds.exactCenterX(), tabBounds.exactCenterY()));
@@ -209,6 +223,31 @@ public final class FeedSwipe {
     private static boolean myNetworkTab(AccessibilityNodeInfo info) {
         String label = label(info);
         return label.startsWith("Grow") || label.startsWith("Catch up");
+    }
+
+    /** The tab's name for the log: the home feed and My Network have different pairs. */
+    private static String tabName(int tab) {
+        if (SduiMediaDownload.resumedScreen().endsWith(".MyNetwork")) return tab == 0 ? "Grow" : "Catch up";
+        return tab == 0 ? "For you" : "Network";
+    }
+
+    /** Remembers where a tab was found, so it can be tapped again while the app hides it from accessibility. */
+    private static void remember(int tab, Rect rect) {
+        if (rect == null || rect.isEmpty()) return;
+        lastTabBounds.put(SduiMediaDownload.resumedScreen() + "|" + tab, new Rect(rect));
+    }
+
+    /** A remembered rect that is still on screen and in the header area, or null. */
+    private static Rect remembered(View root, int tab) {
+        Rect rect = lastTabBounds.get(SduiMediaDownload.resumedScreen() + "|" + tab);
+        if (rect == null || rect.isEmpty()) return null;
+        int[] origin = new int[2];
+        root.getLocationOnScreen(origin);
+        int left = rect.left - origin[0];
+        int top = rect.top - origin[1];
+        // The tab bar sits at the top; anything else means the layout moved and the rect is stale.
+        if (left < 0 || top < 0 || left > root.getWidth() || top > root.getHeight() * 0.5f) return null;
+        return new Rect(rect);
     }
 
     private static boolean isSelected(AccessibilityNodeInfo info) {

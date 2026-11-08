@@ -400,8 +400,8 @@ public final class LanFtpEngine implements AutoCloseable {
     private static void quiesceResources(Listener currentListener,
             LanFtpTransferCoordinator currentTransfers,
             ThreadPoolExecutor currentSessionExecutor) {
-        stopListener(currentListener);
         closeSessions(currentListener);
+        stopListener(currentListener);
         if (currentTransfers != null) {
             try {
                 currentTransfers.quiesce();

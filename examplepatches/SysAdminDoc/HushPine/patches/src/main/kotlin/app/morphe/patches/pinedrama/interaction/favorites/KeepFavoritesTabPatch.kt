@@ -19,7 +19,6 @@ import app.morphe.patches.pinedrama.misc.settings.settingsPatch
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
-import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
@@ -38,9 +37,13 @@ private const val QUICK_FAVORITES_DARK = "Lapp/morphe/extension/pinedrama/favori
 internal const val QUICK_FAVORITE_PANEL_TRACE =
     "com/ss/android/ugc/aweme/favorites/business/collection/quickfavorite/AbstractQuickFavoritePanelDialog"
 
-/** The method that opens a popup: an instance void method carrying [QUICK_FAVORITE_PANEL_TRACE] and "show". */
+/**
+ * The method that opens a popup: a void method carrying [QUICK_FAVORITE_PANEL_TRACE] and "show".
+ * It's an instance method through 47.5.3. 47.6.3 moves the lambda's body into a static
+ * `accept$1(lambda, Object)`, so static counts too.
+ */
 internal fun Method.isQuickFavoritePanelShow(): Boolean {
-    if (returnType != "V" || AccessFlags.STATIC.isSet(accessFlags)) return false
+    if (returnType != "V") return false
     val strings = implementation?.instructions?.mapNotNull { it.getReference<StringReference>()?.string } ?: return false
     return QUICK_FAVORITE_PANEL_TRACE in strings && "show" in strings
 }

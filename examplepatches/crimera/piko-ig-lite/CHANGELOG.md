@@ -1,3 +1,15 @@
+## [0.7.0](https://github.com/crimera/piko-ig-lite/compare/v0.6.0...v0.7.0) (2026-11-07)
+
+### ✨ New Features
+
+*  support 454.0.0.54.77 ([d41d8e9](https://github.com/crimera/piko-ig-lite/commit/d41d8e974377edabe61736d73c848b3779d1a68d))
+
+## [0.7.0-dev.1](https://github.com/crimera/piko-ig-lite/compare/v0.6.0...v0.7.0-dev.1) (2026-11-04)
+
+### ✨ New Features
+
+*  support 454.0.0.54.77 ([d41d8e9](https://github.com/crimera/piko-ig-lite/commit/d41d8e974377edabe61736d73c848b3779d1a68d))
+
 ## [0.6.0](https://github.com/crimera/piko-ig-lite/compare/v0.5.0...v0.6.0) (2026-10-29)
 
 ### ✨ New Features

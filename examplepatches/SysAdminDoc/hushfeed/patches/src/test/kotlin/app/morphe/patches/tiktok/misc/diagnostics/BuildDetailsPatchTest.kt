@@ -27,7 +27,7 @@ import org.junit.rules.TemporaryFolder
 
 class BuildDetailsPatchTest {
     @get:Rule val temporary = TemporaryFolder()
-    private val target = packageMetadata("com.zhiliaoapp.musically", "47.7.2", "2024707020")
+    private val target = packageMetadata("com.zhiliaoapp.musically", "47.7.3", "2024707030")
     private val fingerprint = "A1234567890123456789B" + "c".repeat(43)
 
     @Test fun `bundle manifest paths preserve plus spaces percent and unicode and release the jar`() {
@@ -280,8 +280,8 @@ class BuildDetailsPatchTest {
         assertTrue(buildDetailsPatch in dependencies(liveStreamSuiteOptimizerPatch.dependencies.first()))
     }
 
-    private fun dependencies(patch: Patch<*>): Set<Patch<*>> = linkedSetOf<Patch<*>>().apply {
-        fun visit(current: Patch<*>) { if (add(current)) current.dependencies.forEach(::visit) }
+    private fun dependencies(patch: Patch): Set<Patch> = linkedSetOf<Patch>().apply {
+        fun visit(current: Patch) { if (add(current)) current.dependencies.forEach(::visit) }
         visit(patch)
     }
 

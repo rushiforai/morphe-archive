@@ -10,8 +10,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val cryptomatorUnlockFullPatch = bytecodePatch(
-    name = "Unlock Full Version & Permanent License - Cryptomator (Experimental)",
-    description = "⚠️ [Experimental / Untested] Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants.",
+    name = "Unlock Full Version & Permanent License - Cryptomator",
+    description = "Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants.",
 ) {
     compatibleWith(COMPATIBILITY_CRYPTOMATOR, COMPATIBILITY_CRYPTOMATOR_FREEMIUM)
 

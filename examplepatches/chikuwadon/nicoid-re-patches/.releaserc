@@ -12,6 +12,11 @@
       {
         "releaseRules": [
           {
+            "type": "feat",
+            "subject": "prepare v1.10.4-dev.1 controls and incremental comment updates",
+            "release": "patch"
+          },
+          {
             "type": "fix",
             "release": "patch"
           },
@@ -44,22 +49,22 @@
           "types": [
             {
               "type": "fix",
-              "section": "🐛 Bug Fixes",
+              "section": "\ud83d\udc1b Bug Fixes",
               "hidden": false
             },
             {
               "type": "feat",
-              "section": "✨ New Features",
+              "section": "\u2728 New Features",
               "hidden": false
             },
             {
               "type": "bump",
-              "section": "🚀 Updated App Support",
+              "section": "\ud83d\ude80 Updated App Support",
               "hidden": false
             },
             {
               "type": "perf",
-              "section": "🔧 Improvements",
+              "section": "\ud83d\udd27 Improvements",
               "hidden": false
             },
             {
@@ -94,7 +99,9 @@
           "CHANGELOG.md",
           "gradle.properties",
           "patches-bundle.json",
-          "patches-list.json"
+          "patches-list.json",
+          "patches/src/main/resources/nicoid/helpers.mpe",
+          "patches/src/main/resources/nicoid/method-delta.dex"
         ],
         "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }

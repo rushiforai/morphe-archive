@@ -1,0 +1,10 @@
+Shikify includes modified MaterialLoadingIndicator.java and MaterialLoadingShapes.java.
+Copyright 2024 The Android Open Source Project; Copyright 2026 hxreborn.
+These files are licensed under Apache-2.0; their copyright and license headers are retained.
+Adapted from https://github.com/hxreborn/morphe-patches/commit/1cc54c37f6fa78e43e5f85f5511105da45ccd389
+The animation and MaterialShapes outlines originate in Material Components for Android,
+https://github.com/material-components/material-components-android . Shape outlines
+were precomputed/morphed upstream with androidx.graphics:graphics-shapes 1.0.1.
+Shikify changes: renderer independent of View/Compose/animator; native Boost frame
+callbacks and refresh state; theme roles, reduced-motion handling and lifecycle guards.
+Other Shikify feature sources retain their GPL-3.0 licensing.

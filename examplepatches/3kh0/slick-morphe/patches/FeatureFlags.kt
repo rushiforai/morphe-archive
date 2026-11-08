@@ -16,9 +16,12 @@ val featureFlags =
                 val (i) = indexed { it.opcode == Opcode.INVOKE_DIRECT && (it.ref as? MethodReference)?.name == "<init>" }.first()
                 addInstructions(i + 1, call("p0", "FeatureFlags;->store(Ljava/lang/Object;)V"))
             }
-            // The other flag stores delegate here, so one override covers every check, dependencies included.
-            method(STORE, "isEnabled") { it.parameterTypes == listOf("Lslack/featureflag/FeatureFlagEnum;", "Z") }.run {
-                check(returnType == "Z" && registers == 8)
+            findMethod("resolve") {
+                it.parameterTypes ==
+                    listOf("Lslack/services/featureflag/store/FeatureFlagLayer;", "Lslack/featureflag/FeatureFlagEnum;", "Z", "Z") &&
+                    it.returnType == "Z" && it.accessFlags and 0x8 != 0
+            }.run {
+                check(returnType == "Z" && registers == 7)
                 addInstructions(
                     0,
                     """

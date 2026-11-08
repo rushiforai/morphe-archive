@@ -12,8 +12,8 @@ internal val INSTANTS_COMPATIBILITY = Compatibility(
     appIconColor = 0xE1306C,
     targets = listOf(
         AppTarget(
-            version = "444.0.0.45.108",
-            versionCodes = mapOf(SupportedAbi.ARM64_V8A to 44501396),
+            version = "451.0.0.53.106",
+            versionCodes = mapOf(SupportedAbi.ARM64_V8A to 45201468),
         ),
     ),
 )

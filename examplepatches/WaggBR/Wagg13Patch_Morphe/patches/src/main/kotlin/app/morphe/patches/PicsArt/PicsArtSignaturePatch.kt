@@ -13,7 +13,7 @@ private const val ORIGINAL_SIGNATURE_MD5 = "62a1b22cd095777b9ae08a1250c2764d"
 @Suppress("unused")
 val picsartBypassSignatureCheckPatch = bytecodePatch(
     name = "Bypass signature check",
-    description = "Stops Picsart from killing the process after a few seconds when the APK is re-signed.",
+    description = "Prevents the app from closing automatically after being patched.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_PICSART)

@@ -1,5 +1,6 @@
 package dev.jason.gboardpatches.patches.gboard.registry
 
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.Patch
 import dev.jason.gboardpatches.patches.gboard.features.editingaccesspoints.gboardEditingAccessPointsFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.editingaccesspoints.gboardEditingAccessPointsLifecyclePatch
@@ -57,7 +58,6 @@ import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardInline
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardInlineSuggestionsFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardKeyShapeSelectionFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.featureflags.gboardKeyShapeSelectionFlagValuePatch
-import dev.jason.gboardpatches.patches.gboard.features.flowmode.gboardFlowModeFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.lanftp.gboardLanFtpFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.lanftp.gboardLanFtpManifestPatch
 import dev.jason.gboardpatches.patches.gboard.features.latinglobe.gboardLatinGlobeKeyIgnoreIntervalBytecodePatch
@@ -84,13 +84,10 @@ import dev.jason.gboardpatches.patches.gboard.features.splitkeyboard.gboardSplit
 import dev.jason.gboardpatches.patches.gboard.features.spacebarlogo.gboardSpacebarLogoFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.symbolfooter.gboardSymbolFooterOrderBytecodePatch
 import dev.jason.gboardpatches.patches.gboard.features.symbolfooter.gboardSymbolFooterOrderFeatureMarkerPatch
+import dev.jason.gboardpatches.patches.gboard.features.swipedismiss.gboardSwipeDismissBytecodePatch
+import dev.jason.gboardpatches.patches.gboard.features.swipedismiss.gboardSwipeDismissFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.toprowswipe.gboardTopRowSwipeFeatureMarkerPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFeatureMarkerPatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803AutoFixAcceptancePatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803AutoFixRoutePatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803GenAiInitPatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803GenAiRefreshPatch
-import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingTools1803SmartEditInitPatch
 import dev.jason.gboardpatches.patches.gboard.features.writingtools.gboardAiWritingToolsFlagValuePatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesExtensionCarrierPatch
 import dev.jason.gboardpatches.patches.gboard.shared.gboardPatchesSettingsPatch
@@ -100,7 +97,34 @@ import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhu
 import dev.jason.gboardpatches.patches.gboard.features.zhuyinbottomrow.gboardZhuyinBottomRowWeightSoftKeyPatch
 import dev.jason.gboardpatches.patches.gboard.features.duckemail.gboardDuckEmailLifecyclePatch
 import dev.jason.gboardpatches.patches.gboard.features.duckemail.gboardDuckEmailResourcePatch
+import dev.jason.gboardpatches.patches.gboard.features.wisprflow.gboardWisprFlowResourcePatch
 import dev.jason.gboardpatches.patches.shared.Constants.COMPATIBILITY_GBOARD
+
+@Suppress("unused")
+val gboardLanguageModelVersionsPatch = gboardPublicResourcePatch(
+    featureId = "language_model_versions",
+    name = "Dictionaries & Predictions",
+    description = "可選擇字典、預測及輸入修正的資源版本\nChoose resource versions for dictionaries, predictions, and input correction.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(gboardPatchesSettingsPatch,
+        dev.jason.gboardpatches.patches.gboard.features.languagemodels.gboardLanguageModelFeatureMarkerPatch,
+        dev.jason.gboardpatches.patches.gboard.features.languagemodels.gboardLanguageModelResourcesPatch)
+}
+
+@Suppress("unused")
+val gboardKeypressHapticsPatch = gboardPublicResourcePatch(
+    featureId = "keypress_haptics",
+    name = "Keypress Vibration Intensity Control",
+    description = "將按鍵震動由持續時間改為力度控制。\nControl keypress vibration intensity instead of duration.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(gboardPatchesSettingsPatch,
+        dev.jason.gboardpatches.patches.gboard.features.keypresshaptics.gboardKeypressHapticsFeatureMarkerPatch,
+        dev.jason.gboardpatches.patches.gboard.features.keypresshaptics.gboardKeypressHapticsFlagValuePatch)
+}
 
 private fun gboardPublicResourcePatch(
     featureId: String,
@@ -173,8 +197,8 @@ val gboardLongPressQuickActionsPatch = gboardPublicResourcePatch(
 val gboardSpacebarLogoPatch = gboardPublicResourcePatch(
     featureId = "g_logo_on_spacebar",
     name = "G Logo on Spacebar",
-    description = "在空白鍵顯示 G Logo，並隱藏語言名稱\n" +
-        "Show the G Logo on the spacebar and hide the language label.",
+    description = "自訂空白鍵圖示、圖片、顏色及大小，並隱藏語言名稱\n" +
+        "Choose a built-in or imported spacebar image, its colors and size, and hide the language label.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
@@ -239,6 +263,22 @@ val gboardDuckEmailPatch = gboardPublicResourcePatch(
 }
 
 @Suppress("unused")
+val gboardWisprFlowPatch = gboardPublicResourcePatch(
+    featureId = "wispr_flow",
+    name = "Wispr Flow",
+    description = "Add a draggable Wispr Flow dictation button. Requires Android 14+ and " +
+        "the companion LSPosed bridge scoped to Wispr Flow 2.8.5.",
+    default = false,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardWisprFlowResourcePatch,
+        gboardAccessPointContributions1803Patch,
+    )
+}
+
+@Suppress("unused")
 val gboardFloatingWebSearchPatch = gboardPublicResourcePatch(
     featureId = "floating_web_search",
     name = "Floating Web Search",
@@ -270,6 +310,23 @@ val gboardSimpleCalculatorPatch = gboardPublicResourcePatch(
         gboardPatchesSettingsPatch,
         gboardCalculatorFeatureMarkerPatch,
         gboardCalculatorLifecyclePatch,
+    )
+}
+
+@Suppress("unused")
+val gboardSwipeDismissPatch = gboardPublicResourcePatch(
+    featureId = "swipe_down_to_dismiss_keyboard",
+    name = "Swipe Down to Dismiss Keyboard",
+    description = "從建議列或工具列向下滑動以關閉鍵盤。\n" +
+        "Swipe down from the suggestions or toolbar to close the keyboard.",
+    default = true,
+) {
+    compatibleWith(COMPATIBILITY_GBOARD)
+
+    dependsOn(
+        gboardPatchesSettingsPatch,
+        gboardSwipeDismissFeatureMarkerPatch,
+        gboardSwipeDismissBytecodePatch,
     )
 }
 
@@ -453,22 +510,6 @@ val gboardCloseProactiveSuggestionsPatch = gboardPublicResourcePatch(
         gboardPatchesSettingsPatch,
         gboardCloseProactiveSuggestionsFeatureMarkerPatch,
         gboardCloseProactiveSuggestionsFlagValuePatch,
-    )
-}
-
-@Suppress("unused")
-val gboardFlowModeAnimationPatch = gboardPublicResourcePatch(
-    featureId = "flow_mode_animation",
-    name = "Hyperspeed Typing Animation",
-    description = "持續快速輸入時顯示動畫，並支援所有鍵盤\n" +
-        "Show the animation during sustained fast typing with support for all keyboards.",
-    default = true,
-) {
-    compatibleWith(COMPATIBILITY_GBOARD)
-
-    dependsOn(
-        gboardPatchesSettingsPatch,
-        gboardFlowModeFeatureMarkerPatch,
     )
 }
 
@@ -748,11 +789,6 @@ val gboardAiWritingToolsPatch = gboardPublicResourcePatch(
         gboardPatchesSettingsPatch,
         gboardAiWritingToolsFeatureMarkerPatch,
         gboardAiWritingToolsFlagValuePatch,
-        gboardAiWritingTools1803AutoFixRoutePatch,
-        gboardAiWritingTools1803AutoFixAcceptancePatch,
-        gboardAiWritingTools1803GenAiInitPatch,
-        gboardAiWritingTools1803GenAiRefreshPatch,
-        gboardAiWritingTools1803SmartEditInitPatch,
     )
 }
 
@@ -853,12 +889,7 @@ val gboardPackageRenamePatch = gboardPublicResourcePatch(
     )
 
     finalize {
-        document("AndroidManifest.xml").use { manifestDocument ->
-            applyGboardApplicationDisplayName(
-                manifestDocument = manifestDocument,
-                displayName = checkNotNull(appDisplayName.value),
-            )
-        }
+        applyGboardApplicationDisplayName(displayName = checkNotNull(appDisplayName.value))
     }
 }
 
@@ -886,7 +917,9 @@ object GboardPublishedPatchCatalog {
         gboardFloatingWebSearchPatch,
         gboardEditingAccessPointsPatch,
         gboardDuckEmailPatch,
+        gboardWisprFlowPatch,
         gboardSimpleCalculatorPatch,
+        gboardSwipeDismissPatch,
         gboardAdvancedVoiceTypingPatch,
         gboardBluetoothMicrophonePatch,
         gboardEmojiSizePatch,
@@ -898,7 +931,6 @@ object GboardPublishedPatchCatalog {
         gboardFrostedGlassPatch,
         gboardAccessPointCountPatch,
         gboardCloseProactiveSuggestionsPatch,
-        gboardFlowModeAnimationPatch,
         gboardCustomThemePatch,
         gboardQuickInsertPatch,
         gboardZhuyinQuickTraditionalSimplifiedTogglePatch,
@@ -916,6 +948,8 @@ object GboardPublishedPatchCatalog {
         gboardInlineSuggestionsFlagPatch,
         gboardKeyShapeSelectionFlagPatch,
         gboardAiWritingToolsPatch,
+        gboardLanguageModelVersionsPatch,
+        gboardKeypressHapticsPatch,
         gboardOcrScanTextPatch,
         gboardSettingsHomepagePatch,
         gboardLatinGlobeKeyIgnoreIntervalPatch,
@@ -924,17 +958,16 @@ object GboardPublishedPatchCatalog {
         gboardSignatureBypassPatch,
     ).filterTo(linkedSetOf()) { patch -> patch.name != null }
 
-    @Suppress("DEPRECATION")
     fun publishedInventory(version: String): String {
         val publishedPatches = morpheRegistrations.sortedBy { patch -> patch.name }.map { patch ->
             PublishedPatch(
                 name = patch.name!!,
                 description = patch.description,
-                use = patch.use,
+                use = patch.default,
                 dependencies = patch.dependencies.mapNotNull { dependency -> dependency.name }.sorted(),
-                compatiblePackages = patch.compatiblePackages?.associate { (packageName, versions) ->
-                    packageName to versions
-                },
+                compatiblePackages = patch.compatibility?.mapNotNull { compatibility ->
+                    compatibility.publishedPackageVersions()
+                }?.toMap(),
                 options = patch.options.values.map { option ->
                     PublishedPatch.Option(
                         key = option.key,
@@ -959,6 +992,17 @@ object GboardPublishedPatchCatalog {
         }
 
         return gson.toJson(inventory) + "\n"
+    }
+
+    // Keeps the published package-to-versions shape that patcher 2.x no longer exposes:
+    // stable targets win over experimental ones, and any version-less target means all versions.
+    private fun Compatibility.publishedPackageVersions(): Pair<String, Set<String>?>? {
+        val packageName = packageName ?: return null
+        val listedTargets = targets.filter { target -> !target.isExperimental }.ifEmpty { targets }
+        if (listedTargets.isEmpty() || listedTargets.any { target -> target.version == null }) {
+            return packageName to null
+        }
+        return packageName to listedTargets.mapTo(linkedSetOf()) { target -> target.version!! }
     }
 
     private class PublishedPatch(

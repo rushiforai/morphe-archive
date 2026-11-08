@@ -2,87 +2,43 @@
 
 # Niconico YT Comments
 
-Android版YouTubeプレーヤー上に、ライブチャットとチャットリプレイをニコニコ風の弾幕コメントとして表示するMorpheパッチです。
+> **この機能は公式Morphe Patchesに統合されました。**
+>
+> このリポジトリで提供していたニコニコ風のライブチャット・チャットリプレイ機能は、
+> **Morphe Patches 2.0.0以降**に含まれています。
+> 個別のパッチバンドルや、このリポジトリのリモートソースを追加する必要はありません。
 
-## 主な機能
+新規インストールや更新には、
+[公式Morphe Patches](https://github.com/MorpheApp/morphe-patches)をご利用ください。
 
-- 公開ライブチャットとチャットリプレイの表示
-- YouTubeカスタム絵文字、メンバーシップコメント、Super Chatの色表示
-- コメント表示を切り替えるプレーヤーの`弾`ボタン
-- `弾`ボタンの長押しによるフォントサイズと透明度の設定
+## 公式パッチの使い方
 
-※ログインが必要な非公開、メンバー限定、年齢制限付きチャットなどには対応していません。
+1. Morphe Managerと公式の**Morphe Patches**ソースを最新の安定版に更新します。
+2. 従来の個別ソース**Niconico YT Comments Patches**を無効化または削除します。
+   個人テスト用の**Niconico YT Integration Test**ソースを追加していた場合は、そちらも無効化または削除してください。
+3. 公式ソースが対応する未改変のYouTube APKを選択します。
+   **Niconico comments**が選択されていることを確認してください。デフォルトのパッチ選択に含まれています。
+4. 公式ソースでYouTubeをパッチし、生成されたAPKをインストールします。
+5. パッチ済みYouTubeの**設定 → Morphe → Player → Niconico comments**で
+   機能を有効にし、案内に従ってアプリを再起動します。
 
-<img width="480" height="412" alt="image" src="https://github.com/user-attachments/assets/aebf4f85-b6c4-40d0-8df0-3e2a75655b4f" />
-<img width="480" height="412" alt="image" src="https://github.com/user-attachments/assets/1e6fcc4c-1a60-499c-9c9b-deaced660d17" />
+プレーヤーのコメントアイコンをタップすると、コメント表示を切り替えられます。
+長押しするとクイック設定が開きます。
 
-https://github.com/user-attachments/assets/f29e2231-e159-43ad-8999-8451dfaef7f3
+**パッチソースの更新だけでは、インストール済みのYouTubeアプリは更新されません。
+公式実装へ切り替えるには、APKへの再パッチとインストールが必要です。**
+切り替え後は、ニコニココメントの設定も確認してください。
 
-## 必要環境
+## このリポジトリについて
 
-- Morphe
-- Android 9以降（API 28+）
-- 未改変のYouTube `21.20.405` APK（`21.04.223`の対応も維持）
-- MorpheのExpert modeを有効化
+このリポジトリは、最初の個別Morpheパッチバンドルを記録として残すためにアーカイブされています。
 
-バンドル`1.3.3`は、Morphe Patcher 2で発生する`VideoTimeReferenceFingerprint`照合エラーを修正し、従来の再生速度の互換性修正も含みます。YouTube `21.20.405`とMorphe Patches `1.48.0`の組み合わせで、選択した105個のパッチ適用とAPK再構築がすべて成功しました。今回の更新では、端末での再生動作と旧バージョンのAPKは再検証していません。
+この機能は[PR #4080](https://github.com/MorpheApp/morphe-patches/pull/4080)を通じて
+2026年10月27日に公式Morphe Patchesへマージされ、
+[Morphe Patches 2.0.0](https://github.com/MorpheApp/morphe-patches/releases/tag/v2.0.0)で初めて正式リリースされました。
 
-## インストール方法
+その後も公式実装には改善が加えられています。
+現在の対応バージョン、更新情報、お問い合わせ先は
+[公式リポジトリ](https://github.com/MorpheApp/morphe-patches)をご確認ください。
 
-### 1. Expert modeを有効にする
-
-このパッチはSimple modeでは自動選択されません。Morpheで次のメニューを開きます。
-
-```text
-Settings → Advanced → Expert settings → Expert mode
-```
-
-Expert modeを有効にし、確認メッセージを承認します。
-
-### 2. パッチソースを追加する
-
-#### リモートソース（推奨）
-
-Morpheで次のメニューを開きます。
-
-```text
-Sources → ＋ → Remote
-```
-
-次のリポジトリURLを入力して**Add**をタップします。
-
-```text
-https://github.com/david419kr/niconico-yt-morphe-patches
-```
-
-Android端末では、[Morpheで開く](https://morphe.software/add-source?github=david419kr%2Fniconico-yt-morphe-patches&name=Niconico%20YT%20Comments)リンクも利用できます。
-
-#### ローカル`.mpp`ソース
-
-1. [最新のGitHub Release](https://github.com/david419kr/niconico-yt-morphe-patches/releases/latest)から`patches-1.3.3.mpp`をダウンロードします。
-2. Morpheで`Sources → ＋ → Local`を開きます。
-3. ダウンロードした`.mpp`ファイルを選択し、**Add**をタップします。
-
-ファイル名や拡張子を変更したり、再圧縮したりしないでください。Androidのファイルマネージャーから`.mpp`を直接開き、Morpheを選択することもできます。
-
-### 3. YouTubeをパッチする
-
-1. Morpheのホーム画面で**YouTube**を選択します。
-2. バージョン`21.20.405`を選び、未改変の`.apk`ファイルを指定します。`21.04.223`を使い続ける場合は、そのバージョンに対応する公式パッチと組み合わせてください。
-3. **Morphe Patches**タブで推奨パッチを有効にします。
-4. **Niconico YT Comments Patches**タブで次のパッチを有効にします。
-
-   ```text
-   Niconico-style live/replay comments (Experimental)
-   ```
-
-5. **Proceed to patching**をタップします。
-6. 複数のパッチソースに関する警告を確認します。公式Morpheパッチとこのパッチを同時に選択するのは意図した動作です。
-7. パッチ済みAPKをインストールします。Androidから不明なアプリのインストール権限を求められた場合は、Morpheに許可します。
-
-非root端末では、公式Morpheの推奨パッチとこのパッチを併用することを推奨します。このコメント専用パッチに含まれない一般的なパッケージ名変更やログイン対応を公式パッチが提供します。
-
-## 更新方法
-
-- **リモートソース:** `Sources`で**Niconico YT Comments Patches**を選び、**Update**をタップします。バージョン`1.3.3`を確認し、未改変のYouTube APKに再度パッチを適用します。上記リポジトリURLは、常に現在公開されているバンドルを参照します。
-- **ローカルソース:** 既存のソースを削除し、新しい`.mpp`をダウンロードして追加し直します。
+この機能を統合・改善してくださったMorpheのメンテナーの皆様に感謝します！

@@ -273,6 +273,30 @@ internal val HIDDEN_CONSTRUCTORS = setOf(
     "Lsun/misc/Signal;-><init>(Ljava/lang/String;)V",
 )
 
+/* Android 13 */
+/*
+ * Members and constructors Honor Home calls from its own code that Android 13 refuses or lacks although Android 15 has
+ * them (Android 14 and 15 additions). Found by checking the patched APK against the Android 13 emulator's boot
+ * classpath and hidden API flags (One UI 5.1's framework gives the same list); they go through the same member helper
+ * (used where the phone has them, else the fallback or "absent").
+ */
+internal val HIDDEN_MEMBERS_13 = setOf(
+    "Landroid/content/pm/ApplicationInfo;->hasFragileUserData()Z",
+    "Landroid/hardware/devicestate/DeviceStateManager;->registerCallback(Ljava/util/concurrent/Executor;Landroid/hardware/devicestate/DeviceStateManager\$DeviceStateCallback;)V",
+    "Landroid/hardware/devicestate/DeviceStateManager;->unregisterCallback(Landroid/hardware/devicestate/DeviceStateManager\$DeviceStateCallback;)V",
+    "Landroid/text/Layout;->getTextDirectionHeuristic()Landroid/text/TextDirectionHeuristic;",
+    "Landroid/util/TypedValue;->deriveDimension(IFLandroid/util/DisplayMetrics;)F",
+    "Landroid/window/BackEvent;->getProgress()F",
+    "Landroid/window/BackEvent;->getSwipeEdge()I",
+    "Landroid/window/BackEvent;->getTouchY()F",
+    "Landroid/window/SurfaceSyncGroup;->add(Landroid/view/AttachedSurfaceControl;Ljava/lang/Runnable;)Z",
+    "Landroid/window/SurfaceSyncGroup;->markSyncReady()V",
+)
+
+internal val HIDDEN_CONSTRUCTORS_13 = setOf(
+    "Landroid/window/SurfaceSyncGroup;-><init>(Ljava/lang/String;)V",
+)
+
 /* Android 16 and 17 */
 /*
  * Members and constructors Honor Home references that Android 16 or 17 refuses or lacks although Android 15 allowed
@@ -369,4 +393,20 @@ internal val HIDDEN_CONSTRUCTORS_16_17 = setOf(
     "Landroid/window/TransitionFilter\$Requirement;-><init>()V",
     "Landroid/window/TransitionFilter;-><init>()V",
     "Landroid/window/WindowContainerTransaction;-><init>()V",
+)
+
+/* Android canary */
+/*
+ * Members and constructors Honor Home references that the Android canary (the preview of the Android after 17, emulator
+ * build ZP11.260918.008, SDK 37.2) refuses or lacks although Android 17 allowed them. Found by checking the patched APK
+ * against that image's boot classpath and hidden API flags; they go through the same member helper (used where the
+ * phone has them, "absent" elsewhere).
+ */
+internal val HIDDEN_MEMBERS_CANARY = setOf(
+    "Landroid/view/IWindowManager;->overridePendingAppTransitionMultiThumbFuture(Landroid/view/IAppTransitionAnimationSpecsFuture;Landroid/os/IRemoteCallback;ZI)V",
+    "Landroid/view/IWindowManager;->overridePendingAppTransitionRemote(Landroid/view/RemoteAnimationAdapter;I)V",
+)
+
+internal val HIDDEN_CONSTRUCTORS_CANARY = setOf(
+    "Landroid/view/InputChannel;-><init>()V",
 )

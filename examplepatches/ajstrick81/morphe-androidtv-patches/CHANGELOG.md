@@ -1,3 +1,56 @@
+# [1.51.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.50.3...v1.51.0) (2026-11-08)
+
+
+### Features
+
+* **primevideo:** build the ad-strip hook for arm64-v8a as well as armeabi-v7a ([fd7603b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/fd7603be1e6653546fa1c56451c063778d91206b)), closes [#error](https://github.com/ajstrick81/morphe-androidtv-patches/issues/error) [260/#282](https://github.com/ajstrick81/morphe-androidtv-patches/issues/282)
+* **primevideo:** ship the v16 chapteringAdBreak inline patch (rescued from a stash) ([d4d6196](https://github.com/ajstrick81/morphe-androidtv-patches/commit/d4d6196fbccade07dc9a7e171c1d9512fe8de7a9)), closes [#310](https://github.com/ajstrick81/morphe-androidtv-patches/issues/310)
+* **primevideo:** support 6.24.7 / 6.24.13 (v16) as experimental targets ([2212d68](https://github.com/ajstrick81/morphe-androidtv-patches/commit/2212d68868ed8c1bbc93f2e5e73387909b7287f4))
+
+## [1.50.3](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.50.2...v1.50.3) (2026-11-07)
+
+
+### Bug Fixes
+
+* **primevideo:** close truncated regolith playlist in front of the tail object ([#260](https://github.com/ajstrick81/morphe-androidtv-patches/issues/260)) ([a531e13](https://github.com/ajstrick81/morphe-androidtv-patches/commit/a531e13ab63179d30572a99094c306d818a2da02)), closes [#263](https://github.com/ajstrick81/morphe-androidtv-patches/issues/263)
+* **primevideo:** empty a truncated regolith playlist across contiguous chunks ([#260](https://github.com/ajstrick81/morphe-androidtv-patches/issues/260)) ([6fcdd7b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/6fcdd7b1afee7da09714371e132f7532465f4bf9))
+* **primevideo:** ship split-tail native hook in bundled resource .so ([#260](https://github.com/ajstrick81/morphe-androidtv-patches/issues/260)) ([83c8c85](https://github.com/ajstrick81/morphe-androidtv-patches/commit/83c8c850f5376b98b24bf09cae5bc9a79f02d6b4)), closes [#120-era](https://github.com/ajstrick81/morphe-androidtv-patches/issues/120-era)
+
+## [1.50.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.50.1...v1.50.2) (2026-11-07)
+
+
+### Bug Fixes
+
+* **pluto:** correct the v17 seekbar timeline by emptying stale ad-break metadata ([#308](https://github.com/ajstrick81/morphe-androidtv-patches/issues/308)) ([8a8047b](https://github.com/ajstrick81/morphe-androidtv-patches/commit/8a8047b977374369957ba072e6e721af1c86fb3b)), closes [#300](https://github.com/ajstrick81/morphe-androidtv-patches/issues/300) [#298](https://github.com/ajstrick81/morphe-androidtv-patches/issues/298) [#300](https://github.com/ajstrick81/morphe-androidtv-patches/issues/300)
+
+## [1.50.1](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.50.0...v1.50.1) (2026-11-07)
+
+
+### Bug Fixes
+
+* **pluto:** no-op the live-slate patch on v17 instead of aborting the run ([#307](https://github.com/ajstrick81/morphe-androidtv-patches/issues/307)) ([48ebd82](https://github.com/ajstrick81/morphe-androidtv-patches/commit/48ebd82dd7cfbeb005d8389e1a79a8f1228b1bdc)), closes [#298](https://github.com/ajstrick81/morphe-androidtv-patches/issues/298)
+
+# [1.50.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.49.0...v1.50.0) (2026-11-07)
+
+
+### Bug Fixes
+
+* **disney:** drop Disney+ targets cut off by server-side version enforcement ([195a904](https://github.com/ajstrick81/morphe-androidtv-patches/commit/195a904eb0711c1283ce428878ed252106a42131)), closes [#302](https://github.com/ajstrick81/morphe-androidtv-patches/issues/302)
+* **disney:** scope Suppress Household Prompt to the build it is pinned to ([#289](https://github.com/ajstrick81/morphe-androidtv-patches/issues/289)) ([17dad4c](https://github.com/ajstrick81/morphe-androidtv-patches/commit/17dad4c77b095946441ed1596bd003020d3bcfe0))
+
+
+### Features
+
+* **disney:** add experimental Disney+ 26.20.0+rc3-2026.11.02 target ([753fa9d](https://github.com/ajstrick81/morphe-androidtv-patches/commit/753fa9dfce86d0d8c04cc2d335dea102b93d690a)), closes [#167](https://github.com/ajstrick81/morphe-androidtv-patches/issues/167)
+* **disney:** support Disney+ 26.20.0+rc3-2026.11.02 ([770bb00](https://github.com/ajstrick81/morphe-androidtv-patches/commit/770bb00847048291d7eaca5b3a35e8b28310bd7f)), closes [#167](https://github.com/ajstrick81/morphe-androidtv-patches/issues/167)
+
+# [1.49.0](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.48.2...v1.49.0) (2026-11-07)
+
+
+### Features
+
+* **hbomax:** add experimental 7.14.0.69 target ([#288](https://github.com/ajstrick81/morphe-androidtv-patches/issues/288)) ([9ca4665](https://github.com/ajstrick81/morphe-androidtv-patches/commit/9ca4665a4639924ddc8c705bbf222db0167527c5))
+
 ## [1.48.2](https://github.com/ajstrick81/morphe-androidtv-patches/compare/v1.48.1...v1.48.2) (2026-11-02)
 
 

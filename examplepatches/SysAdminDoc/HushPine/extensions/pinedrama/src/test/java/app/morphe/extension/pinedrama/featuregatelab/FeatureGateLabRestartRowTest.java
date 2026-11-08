@@ -117,7 +117,7 @@ public class FeatureGateLabRestartRowTest {
             settle();
 
             assertTrue(lab.runLabChangeForTests(() -> {
-                FeatureGateLabUndo.applyPreset("47.5.3", "hashtag_limit", catalog);
+                FeatureGateLabUndo.applyPreset("47.6.3", "comment_emoji", catalog);
                 return "";
             }));
             settle();
@@ -167,19 +167,18 @@ public class FeatureGateLabRestartRowTest {
         return (TextView) row;
     }
 
-    /** The shipped 47.5.3 entries the hashtag preset writes, as FeatureGateCommentAndPublishPresetsTest reads them. */
+    /** The shipped 47.6.3 entry the comment emoji preset writes, as FeatureGateTypedPresetsTest reads it. */
     private static Map<String, FeatureGateCatalog.Entry> presetCatalog() throws Exception {
-        BuildNames.setRunningBuildForTests("47.5.3");
+        BuildNames.setRunningBuildForTests("47.6.3");
         Map<String, FeatureGateCatalog.Entry> catalog = new LinkedHashMap<>();
         Map<String, String> types = new LinkedHashMap<>();
-        for (FeatureGateCatalog.Entry entry : FeatureGateCatalog.readStaticCatalog("47.5.3")) {
-            if (entry.manager.equals("abmock") && (entry.key.equals("studio_publish_limit_hashtag_switch")
-                    || entry.key.equals("studio_publish_hashtag_max_limit"))) {
+        for (FeatureGateCatalog.Entry entry : FeatureGateCatalog.readStaticCatalog("47.6.3")) {
+            if (entry.manager.equals("abmock") && entry.key.equals("tt_cmt_new_emoji")) {
                 catalog.put(entry.identity(), entry);
                 types.put(entry.key, entry.type);
             }
         }
-        assertEquals("the hashtag preset's keys must exist in the shipped catalog", 2, catalog.size());
+        assertEquals("the emoji preset's key must exist in the shipped catalog", 1, catalog.size());
         var cachedTypes = FeatureGateCatalog.class.getDeclaredField("cachedAbTypes");
         cachedTypes.setAccessible(true);
         cachedTypes.set(null, Map.copyOf(types));

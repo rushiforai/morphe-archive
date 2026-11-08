@@ -364,7 +364,7 @@ People looking at a post don't see that you're writing a comment.	Wer sich einen
 Hide read receipts	Lesebestätigungen verbergen
 People you chat with in Facebook's own chats can't see that you've read their messages. The chat can stay unread on this phone.	Wer mit dir in Facebooks eigenen Chats schreibt, sieht nicht, dass du seine Nachrichten gelesen hast. Der Chat kann auf diesem Telefon ungelesen bleiben.
 Facebook can't tell when you take a screenshot or record your screen, so it can't react.	Facebook merkt nicht, wenn du einen Screenshot machst oder den Bildschirm aufnimmst, und kann deshalb nicht reagieren.
-Stops sending Facebook your list of watched reels. It uses the list to rank your feed, so reels you've watched may come back.	Sendet Facebook deine Liste angesehener Reels nicht mehr. Facebook nutzt sie zum Sortieren deines Feeds, daher können angesehene Reels wiederkommen.
+Stops sending Facebook your list of watched reels, and where you stopped in each video and how long you watched it. Facebook ranks your feed with these, so videos you've watched may come back.	Sendet Facebook deine Liste angesehener Reels nicht mehr, ebenso wenig, wo du in einem Video aufgehört hast und wie lange du es angesehen hast. Facebook sortiert damit deinen Feed, daher können angesehene Videos wiederkommen.
 # context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
 Newest reels first	Neueste Reels zuerst
 # context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
@@ -1373,6 +1373,10 @@ Hide reposts	Geteilte Beiträge ausblenden
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Blendet Beiträge aus, die einen anderen Beitrag teilen, mit oder ohne eigenen Text. Originalbeiträge bleiben. Standardmäßig aus, weil es auf einem echten Feed noch nicht ausprobiert wurde.
 Hide posts from Pages	Beiträge von Seiten ausblenden
 Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Blendet Beiträge aus, die Seiten geschrieben haben, auch von Seiten, denen du folgst. Beiträge von Freunden und aus Gruppen bleiben, ebenso der Beitrag einer Seite, den ein Freund teilt.
+# context: switch title under News feed; the feed keeps only posts written by the user's Facebook friends
+Only friends' posts	Nur Beiträge von Freunden
+# context: summary of that switch; %1$s is the name of the Following feed on Home switch, which puts the newest posts first
+Shows only posts your friends wrote and hides Pages, groups, ads, suggested posts and feed reels. A post whose author it can't tell stays. Turn on %1$s too for the newest posts first.	Zeigt nur Beiträge, die deine Freunde geschrieben haben, und blendet Seiten, Gruppen, Werbung, vorgeschlagene Beiträge und Reels im Feed aus. Ein Beitrag, dessen Verfasser nicht erkennbar ist, bleibt. Schalte auch %1$s ein, um die neuesten Beiträge zuerst zu sehen.
 Hide posts in other languages	Beiträge in anderen Sprachen ausblenden
 Hides posts and Reels tab reels in a language you don't keep, going by the phone's own guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing leaves the phone.	Blendet Beiträge und Reels im Reels-Tab in einer Sprache aus, die du nicht behältst, nach der eigenen Einschätzung des Telefons zum Text jedes Beitrags oder zur Beschreibung jedes Reels. Was es nicht sicher erkennt, bleibt, und nichts verlässt das Telefon.
 Languages to keep	Sprachen, die bleiben
@@ -1730,7 +1734,7 @@ On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also
 # context: switch title under Picture-in-picture on the Playback page: the small window opens only from the Picture-in-picture row this adds to a reel's three-dot More menu, not when you leave Facebook
 Only from a reel's More menu	Nur über das Menü eines Reels
 # context: summary of that switch; Picture-in-picture is the name of the row in the reel's menu, translated as the row is; the three dots are the reel's own menu button
-Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row shows on upright reels, not wide ones.	Wenn du Facebook verlässt, öffnet sich kein Fenster. Tippe im Menü eines Reels (die drei Punkte) auf Bild im Bild, wenn du eins möchtest. Die Zeile gibt es bei Reels im Hochformat, nicht bei breiten.
+Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one.	Wenn du Facebook verlässt, öffnet sich kein Fenster. Tippe im Menü eines Reels (die drei Punkte) auf Bild im Bild, wenn du eins möchtest.
 # context: switch title under Picture-in-picture on the Playback page; the button floats over a reel or video and opens the small window when tapped
 Picture-in-picture button	Schaltfläche für Bild im Bild
 # context: summary of that switch; "the window" is the small picture-in-picture window
@@ -1934,6 +1938,10 @@ A video you tap in the feed opens full screen by itself, with no reels to swipe 
 Replay feed videos in place	Feed-Videos an Ort und Stelle wiederholen
 # context: summary of that switch; Watch again is Facebook's own button shown when a feed video ends, so use Facebook's wording in your language if you know it
 Watch again at the end of a feed video plays it again right there, instead of opening it in Reels.	„Nochmal ansehen“ am Ende eines Feed-Videos spielt es direkt dort erneut ab, statt es in Reels zu öffnen.
+# context: switch title under Reels and Watch; on, a video tapped in Facebook's Saved list plays in the regular video player instead of the Reels viewer
+Open saved videos in the video player	Gespeicherte Videos im Videoplayer öffnen
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	Ein Video, das du unter „Gespeichert“ antippst, läuft im Videoplayer statt in Reels, wo beim nächsten Wischen ein vorgeschlagenes Reel kommt.
 Hide the new comments pop-up	Pop-up für neue Kommentare ausblenden
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Die Blase „neue Kommentare“ erscheint nicht mehr, während du Kommentare liest. Neue Kommentare stehen weiter in der Liste.
@@ -1955,6 +1963,10 @@ Skipping silent parts again	Stille Stellen werden wieder übersprungen
 Hide posts from groups you're not in	Beiträge aus Gruppen ausblenden, in denen du nicht bist
 # context: summary of that switch; a group post a friend commented on or shared reaches the feed wrapped in the friend's activity, and the switch hides it too
 Hides posts from groups you haven't joined, like a friend's post in a public group, and a group post a friend commented on or shared. Posts from your groups stay.	Blendet Beiträge aus Gruppen aus, denen du nicht beigetreten bist, etwa den Beitrag eines Freundes in einer öffentlichen Gruppe, und Gruppenbeiträge, die ein Freund kommentiert oder geteilt hat. Beiträge aus deinen Gruppen bleiben.
+# context: switch title under News feed; hides every post that comes from a group, including groups the user is a member of
+Hide all group posts	Alle Gruppenbeiträge ausblenden
+# context: summary of that switch; the Groups tab is Facebook's own tab of group posts, which this switch leaves alone
+Hides every post from a group in your feed, your own groups' too, and a group post a friend commented on or shared. The Groups tab keeps its feed.	Blendet jeden Beitrag aus einer Gruppe in deinem Feed aus, auch aus deinen eigenen Gruppen, und Gruppenbeiträge, die ein Freund kommentiert oder geteilt hat. Der Gruppen-Tab behält seinen Feed.
 # context: switch title under Search; For you is the section of searches Facebook suggests on the search screen before anything is typed, under a header that reads For you
 Hide For you in search	Für dich in der Suche ausblenden
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
@@ -2543,6 +2555,7 @@ There's no Facebook link in what you shared.	In dem, was du geteilt hast, ist ke
 Open in Facebook from the share menu	Open in Facebook im Teilen-Menü
 Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Teile einen Facebook-Link aus dem Browser von Messenger oder einer anderen App und wähle Open in Facebook, dann öffnet er sich hier.
 GmsCore support	GmsCore-Unterstützung
+Clone install under another package name	Klon-Installation unter anderem Paketnamen
 Version %1$s for Facebook %2$s	Version %1$s für Facebook %2$s
 Show all settings as a list	Alle Einstellungen als Liste zeigen
 Show settings by category	Einstellungen nach Kategorie zeigen

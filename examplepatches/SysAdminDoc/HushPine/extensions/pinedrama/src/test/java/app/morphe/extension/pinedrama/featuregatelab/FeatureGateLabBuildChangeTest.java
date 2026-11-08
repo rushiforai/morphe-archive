@@ -29,17 +29,17 @@ import org.robolectric.annotation.Config;
  * the catalogs say its gate is still the same gate.
  *
  * <p>The bundle declares only the newest build, so the build a user moves from is no longer in
- * the catalog: 47.4.3, which 47.5.3 replaced, stands for it here. The gates below are 47.5.3's:
- * 1005_max_limit_count_daily, low_memory_kill_monitor, AWEDanmakuSupportMask and the
+ * the catalog: 47.4.3, which 47.6.3 replaced, stands for it here. The gates below are 47.6.3's:
+ * 28_max_limit_count_daily, low_memory_kill_monitor, AWEDanmakuSupportMask and the
  * lynxview_command_blacklist read (a String[] model) are in its catalog; comment_cell_badge_dedup
  * isn't; and the SettingsManager read drama_innerfeed_lynxcard_delete_card_on_error_config has a
- * model class R8 renamed (X.0UNW on 47.5.3).
+ * model class R8 renamed (X.1AM on 47.6.3).
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class FeatureGateLabBuildChangeTest {
     private static final String DROPPED = "47.4.3";
-    private static final String DECLARED = "47.5.3";
+    private static final String DECLARED = "47.6.3";
 
     @Rule public final SettingsContextRule settings = new SettingsContextRule();
 
@@ -78,7 +78,7 @@ public class FeatureGateLabBuildChangeTest {
     public void anUpgradeFromABuildTheCatalogDroppedKeepsTheRulesWhoseGatesTheNewBuildCarries() {
         assertFalse("the build moved from still has a catalog", FeatureGateCatalog.hasCatalogFor(DROPPED));
         FeatureGateLabStore.setMasterEnabled(true);
-        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        save("abmock", "28_max_limit_count_daily", "INT", "9", true);
         save("abmock", "low_memory_kill_monitor", "INT", "50", true);
         save("player_config", "AWEDanmakuSupportMask", "BOOLEAN", "true", true);
         save("settings_manager", "lynxview_command_blacklist", "OBJECT", "{\"LIZ\":true}", true);
@@ -86,30 +86,30 @@ public class FeatureGateLabBuildChangeTest {
         save("settings_manager", "drama_innerfeed_lynxcard_delete_card_on_error_config", "OBJECT",
                 "{\"LIZ\":true}", true);
         // The same gate under a type its catalog row doesn't carry, and one no catalog has.
-        save("abmock", "1005_max_limit_count_daily", "LONG", "9", true);
+        save("abmock", "28_max_limit_count_daily", "LONG", "9", true);
         save("abmock", "only_seen_at_runtime", "BOOLEAN", "true", true);
         // Already off: left off, and not counted as turned off.
         save("abmock", "comment_cell_bind_dedup", "BOOLEAN", "true", false);
-        assertEquals(9, FeatureGateLabRuntime.overrideInt("1005_max_limit_count_daily", 5));
+        assertEquals(9, FeatureGateLabRuntime.overrideInt("28_max_limit_count_daily", 5));
 
         upgradeTo(DECLARED);
 
-        assertTrue(enabled("abmock", "1005_max_limit_count_daily", "INT"));
+        assertTrue(enabled("abmock", "28_max_limit_count_daily", "INT"));
         assertTrue(enabled("abmock", "low_memory_kill_monitor", "INT"));
         assertTrue(enabled("player_config", "AWEDanmakuSupportMask", "BOOLEAN"));
         assertTrue("a SettingsManager read whose model keeps its name",
                 enabled("settings_manager", "lynxview_command_blacklist", "OBJECT"));
-        assertFalse("a gate 47.5.3 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
+        assertFalse("a gate 47.6.3 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
         assertFalse("a SettingsManager model R8 renamed",
                 enabled("settings_manager", "drama_innerfeed_lynxcard_delete_card_on_error_config", "OBJECT"));
-        assertFalse("a type the catalog doesn't carry", enabled("abmock", "1005_max_limit_count_daily", "LONG"));
+        assertFalse("a type the catalog doesn't carry", enabled("abmock", "28_max_limit_count_daily", "LONG"));
         assertFalse("a gate no catalog has", enabled("abmock", "only_seen_at_runtime", "BOOLEAN"));
         assertFalse(enabled("abmock", "comment_cell_bind_dedup", "BOOLEAN"));
         // Every rule is still there to review, with the value it had.
         assertEquals("true", FeatureGateLabStore.rule("abmock", "comment_cell_badge_dedup", "BOOLEAN").value);
         assertTrue("the master switch keeps what carried over working", FeatureGateLabStore.masterEnabled());
 
-        assertEquals(9, FeatureGateLabRuntime.overrideInt("1005_max_limit_count_daily", 5));
+        assertEquals(9, FeatureGateLabRuntime.overrideInt("28_max_limit_count_daily", 5));
         assertEquals(50, FeatureGateLabRuntime.overrideInt("low_memory_kill_monitor", 89));
 
         assertEquals(4, FeatureGateLabStore.consumeMigrationNotice());
@@ -121,22 +121,22 @@ public class FeatureGateLabBuildChangeTest {
         BuildNames.setRunningBuildForTests(DECLARED);
         FeatureGateLabStore.resetAllLabData();
         FeatureGateLabStore.setMasterEnabled(true);
-        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        save("abmock", "28_max_limit_count_daily", "INT", "9", true);
         save("player_config", "AWEDanmakuSupportMask", "BOOLEAN", "true", true);
 
         upgradeTo("47.2.1");
 
         assertEquals("47.2.1", FeatureGateLabStore.targetVersion());
-        assertFalse(enabled("abmock", "1005_max_limit_count_daily", "INT"));
+        assertFalse(enabled("abmock", "28_max_limit_count_daily", "INT"));
         assertFalse(enabled("player_config", "AWEDanmakuSupportMask", "BOOLEAN"));
-        assertEquals(5, FeatureGateLabRuntime.overrideInt("1005_max_limit_count_daily", 5));
+        assertEquals(5, FeatureGateLabRuntime.overrideInt("28_max_limit_count_daily", 5));
         assertEquals(2, FeatureGateLabStore.consumeMigrationNotice());
     }
 
     @Test
     public void aSecondaryProcessAppliesNoRuleBeforeTheMainProcessMovesThem() {
         FeatureGateLabStore.setMasterEnabled(true);
-        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        save("abmock", "28_max_limit_count_daily", "INT", "9", true);
         save("abmock", "comment_cell_badge_dedup", "BOOLEAN", "true", true);
 
         Context app = RuntimeEnvironment.getApplication();
@@ -150,14 +150,14 @@ public class FeatureGateLabBuildChangeTest {
         BuildNames.setRunningBuildForTests(DECLARED);
         FeatureGateLabRuntime.reloadRules();
         assertFalse(Utils.isMainProcess());
-        assertEquals("a rule stored for 47.4.3 applied in a 47.5.3 process that hadn't checked it",
-                5, FeatureGateLabRuntime.overrideInt("1005_max_limit_count_daily", 5));
+        assertEquals("a rule stored for 47.4.3 applied in a 47.6.3 process that hadn't checked it",
+                5, FeatureGateLabRuntime.overrideInt("28_max_limit_count_daily", 5));
         assertFalse(FeatureGateLabRuntime.overrideBoolean("comment_cell_badge_dedup", false));
 
         Utils.setContext(app);
         FeatureGateLabRuntime.reloadRules();
         assertEquals("the main process moved the rules and applies what carried over",
-                9, FeatureGateLabRuntime.overrideInt("1005_max_limit_count_daily", 5));
+                9, FeatureGateLabRuntime.overrideInt("28_max_limit_count_daily", 5));
         assertFalse(FeatureGateLabRuntime.overrideBoolean("comment_cell_badge_dedup", false));
     }
 
@@ -166,7 +166,7 @@ public class FeatureGateLabBuildChangeTest {
         BuildNames.setRunningBuildForTests(DECLARED);
         FeatureGateLabStore.resetAllLabData();
         FeatureGateLabStore.setMasterEnabled(true);
-        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        save("abmock", "28_max_limit_count_daily", "INT", "9", true);
         save("abmock", "low_memory_kill_monitor", "INT", "50", true);
         String backup = SettingsBackup.create(false);
         assertEquals(DECLARED, new JSONObject(backup).getString("target"));
@@ -176,7 +176,7 @@ public class FeatureGateLabBuildChangeTest {
         SettingsBackup.restore(Utils.getContext(), backup, true);
 
         assertFalse("the Lab half was left out", SettingsBackup.labRulesWereSkipped(backup));
-        assertTrue(enabled("abmock", "1005_max_limit_count_daily", "INT"));
+        assertTrue(enabled("abmock", "28_max_limit_count_daily", "INT"));
         assertTrue(enabled("abmock", "low_memory_kill_monitor", "INT"));
         assertTrue(FeatureGateLabStore.masterEnabled());
         assertEquals(0, FeatureGateLabStore.consumeMigrationNotice());
@@ -186,7 +186,7 @@ public class FeatureGateLabBuildChangeTest {
     public void aBackupFromABuildTheCatalogDroppedKeepsTheRulesWhoseGatesTheRunningBuildCarries() throws Exception {
         assertFalse("the build the backup was made on still has a catalog", FeatureGateCatalog.hasCatalogFor(DROPPED));
         FeatureGateLabStore.setMasterEnabled(true);
-        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        save("abmock", "28_max_limit_count_daily", "INT", "9", true);
         save("player_config", "AWEDanmakuSupportMask", "BOOLEAN", "true", true);
         save("settings_manager", "lynxview_command_blacklist", "OBJECT", "{\"LIZ\":true}", true);
         save("abmock", "comment_cell_badge_dedup", "BOOLEAN", "true", true);
@@ -204,23 +204,23 @@ public class FeatureGateLabBuildChangeTest {
         SettingsBackup.restore(Utils.getContext(), backup, true);
 
         assertFalse("the Lab half was left out", SettingsBackup.labRulesWereSkipped(backup));
-        assertTrue(enabled("abmock", "1005_max_limit_count_daily", "INT"));
+        assertTrue(enabled("abmock", "28_max_limit_count_daily", "INT"));
         assertTrue(enabled("player_config", "AWEDanmakuSupportMask", "BOOLEAN"));
         assertTrue("a SettingsManager read whose model keeps its name",
                 enabled("settings_manager", "lynxview_command_blacklist", "OBJECT"));
-        assertFalse("a gate 47.5.3 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
+        assertFalse("a gate 47.6.3 doesn't have", enabled("abmock", "comment_cell_badge_dedup", "BOOLEAN"));
         assertFalse("a SettingsManager model R8 renamed",
                 enabled("settings_manager", "drama_innerfeed_lynxcard_delete_card_on_error_config", "OBJECT"));
         assertFalse(enabled("abmock", "comment_cell_bind_dedup", "BOOLEAN"));
         assertEquals("true", FeatureGateLabStore.rule("abmock", "comment_cell_badge_dedup", "BOOLEAN").value);
         assertTrue(FeatureGateLabStore.masterEnabled());
-        assertEquals(9, FeatureGateLabRuntime.overrideInt("1005_max_limit_count_daily", 5));
+        assertEquals(9, FeatureGateLabRuntime.overrideInt("28_max_limit_count_daily", 5));
     }
 
     @Test
     public void aBackupFromADroppedBuildIsLeftOutWhenTheRunningBuildHasNoCatalog() throws Exception {
         FeatureGateLabStore.setMasterEnabled(true);
-        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        save("abmock", "28_max_limit_count_daily", "INT", "9", true);
         String backup = SettingsBackup.create(false);
 
         BuildNames.setRunningBuildForTests("47.2.1");
@@ -237,7 +237,7 @@ public class FeatureGateLabBuildChangeTest {
     @Test
     public void anUndoCopyFromABuildTheCatalogDroppedKeepsTheRulesWhoseGatesTheNewBuildCarries() throws Exception {
         FeatureGateLabStore.setMasterEnabled(true);
-        save("abmock", "1005_max_limit_count_daily", "INT", "9", true);
+        save("abmock", "28_max_limit_count_daily", "INT", "9", true);
         save("abmock", "comment_cell_badge_dedup", "BOOLEAN", "true", true);
         JSONObject saved = FeatureGateLabStore.exportSettings();
         assertEquals(DROPPED, saved.getString("tiktok_version"));
@@ -246,7 +246,7 @@ public class FeatureGateLabBuildChangeTest {
         java.util.List<FeatureGateLabStore.Rule> rules = FeatureGateLabStore.parseSettings(saved);
         assertEquals(2, rules.size());
         for (FeatureGateLabStore.Rule rule : rules) {
-            assertEquals(rule.key, "1005_max_limit_count_daily".equals(rule.key), rule.enabled);
+            assertEquals(rule.key, "28_max_limit_count_daily".equals(rule.key), rule.enabled);
         }
     }
 

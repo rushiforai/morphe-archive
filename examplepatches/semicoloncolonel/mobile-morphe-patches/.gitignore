@@ -146,3 +146,7 @@ local-keys/
 
 # Private key that signs the patch bundle. It lives in the MORPHE_SIGNING_KEY secret.
 morphe-signing.key
+
+# Python bytecode
+__pycache__/
+*.pyc

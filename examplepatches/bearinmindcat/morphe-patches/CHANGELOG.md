@@ -1,3 +1,80 @@
+## [2.9.4](https://github.com/bearinmindcat/morphe-patches/compare/v2.9.3...v2.9.4) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* add samsung internet patches; issue [#152](https://github.com/bearinmindcat/morphe-patches/issues/152) ([1fd1b59](https://github.com/bearinmindcat/morphe-patches/commit/1fd1b59ee06aeeaef5c8b972e36be65537feac13))
+* oneplus system launcher drag and drop on android 11; issue [#135](https://github.com/bearinmindcat/morphe-patches/issues/135) ([c5de3be](https://github.com/bearinmindcat/morphe-patches/commit/c5de3beb4ebf65cd799bf1584371e7ce6976aaaa))
+* oneplus system launcher keeps the navigation bar on android 11; issue [#135](https://github.com/bearinmindcat/morphe-patches/issues/135) ([cdf2bf5](https://github.com/bearinmindcat/morphe-patches/commit/cdf2bf5a4ffb60055d2e8ea10a2fa540f1093617))
+* oneplus system launcher wallpaper and icon options; issue [#135](https://github.com/bearinmindcat/morphe-patches/issues/135) ([ba83bd7](https://github.com/bearinmindcat/morphe-patches/commit/ba83bd7150037633ffe922fc9b1475ab3df2c15d))
+* samsung capture lets touches through while recording on galaxy phones; issue [#145](https://github.com/bearinmindcat/morphe-patches/issues/145) ([b5f73bd](https://github.com/bearinmindcat/morphe-patches/commit/b5f73bd0e2f7ef855b48ed32518866b1e1cf43ba))
+
+## [2.9.3](https://github.com/bearinmindcat/morphe-patches/compare/v2.9.2...v2.9.3) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* oneplus camera without telemetry or background running (root mount install) ([725b8c6](https://github.com/bearinmindcat/morphe-patches/commit/725b8c6aac9adbbd62497409316479d25062d6e7))
+
+## [2.9.2](https://github.com/bearinmindcat/morphe-patches/compare/v2.9.1...v2.9.2) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* home up hides the features that need one ui; issue [#150](https://github.com/bearinmindcat/morphe-patches/issues/150) ([fa65b3a](https://github.com/bearinmindcat/morphe-patches/commit/fa65b3aafeeb766fe705e615c894d8cef6ffdb62))
+* moto app launcher runs on android 13 ([c32237c](https://github.com/bearinmindcat/morphe-patches/commit/c32237c59fd4a64a0de97ed9aae14a7d8b89078a))
+* one ui home runs on android 13 ([bbafdf2](https://github.com/bearinmindcat/morphe-patches/commit/bbafdf235a16f9c1652254c5cbe944f1791da947))
+* oneplus photos runs on android 11 ([8d17b87](https://github.com/bearinmindcat/morphe-patches/commit/8d17b8764275ab7cbcf3f8dd27f800153d6ecdf7))
+* samsung capture records on galaxy phones (one ui core clone); issue [#145](https://github.com/bearinmindcat/morphe-patches/issues/145) ([39eaddb](https://github.com/bearinmindcat/morphe-patches/commit/39eaddb828c70c6cc9f712b370f45c5a31fe6aab))
+
+## [2.9.1](https://github.com/bearinmindcat/morphe-patches/compare/v2.9.0...v2.9.1) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* add oneplus documents non-coloros support; issue [#149](https://github.com/bearinmindcat/morphe-patches/issues/149) ([02e71d5](https://github.com/bearinmindcat/morphe-patches/commit/02e71d578db50ef777984d8a4e253e94912eb302))
+
+## [2.9.0](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.11...v2.9.0) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* add lg gallery non-lg support ([cb18334](https://github.com/bearinmindcat/morphe-patches/commit/cb18334ce25c0f674f2aa4b44d7b4a4c918f0993))
+* asus launcher adds widgets that have a set-up screen ([023a78a](https://github.com/bearinmindcat/morphe-patches/commit/023a78abd300b63832061e95e77e0c555acdb9c7))
+* gmail microg no longer stops at the play protect screen; issue [#70](https://github.com/bearinmindcat/morphe-patches/issues/70) ([df4fbc8](https://github.com/bearinmindcat/morphe-patches/commit/df4fbc8df03ddf5962951e462e2e8e4b45215610))
+* good lock discover wallpapers can be set; issue [#146](https://github.com/bearinmindcat/morphe-patches/issues/146) ([25d6747](https://github.com/bearinmindcat/morphe-patches/commit/25d674705a26404d9b3bfb152c3587537ad9bd54))
+* hyperos launcher home screen layout no longer crashes ([613aa87](https://github.com/bearinmindcat/morphe-patches/commit/613aa873e0752a7af32bff3558d0651431673cdd))
+* hyperos launcher settings open without a chooser; issue [#144](https://github.com/bearinmindcat/morphe-patches/issues/144) ([155f31b](https://github.com/bearinmindcat/morphe-patches/commit/155f31b03aac433c6e9519029ce9a91d6d94af57))
+* hyperos launcher shows pinned shortcut icons ([88b23ee](https://github.com/bearinmindcat/morphe-patches/commit/88b23ee5de698cecd42d1b95d7c752eda4af975a))
+* launchers install next to the phone's own launcher; issue [#144](https://github.com/bearinmindcat/morphe-patches/issues/144) ([6782624](https://github.com/bearinmindcat/morphe-patches/commit/678262487d9cea53d163d4683f8d43bdcc7b9806))
+* launchers start on the android canary preview; issue [#142](https://github.com/bearinmindcat/morphe-patches/issues/142) ([ed6a0f4](https://github.com/bearinmindcat/morphe-patches/commit/ed6a0f4a6ac7678eeecef17e4133d507fcb38006))
+* oneplus system launcher adds widgets without errors ([9516d9b](https://github.com/bearinmindcat/morphe-patches/commit/9516d9b2e3995d93c1ca08c53dfbfaa19b6237ea))
+* oneplus system launcher starts with a work profile or private space; issue [#142](https://github.com/bearinmindcat/morphe-patches/issues/142) ([4791054](https://github.com/bearinmindcat/morphe-patches/commit/479105471709544ba77ef90512e26e88dbefb5bd))
+
+### ✨ New Features
+
+* add samsung capture non-one ui support; issue [#145](https://github.com/bearinmindcat/morphe-patches/issues/145) ([5afda3e](https://github.com/bearinmindcat/morphe-patches/commit/5afda3e9c56b71e5826a21521dc76ec6010a617c))
+
+## [2.8.11](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.10...v2.8.11) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* add change app name patch for gmail; issue [#143](https://github.com/bearinmindcat/morphe-patches/issues/143) ([78b1882](https://github.com/bearinmindcat/morphe-patches/commit/78b18825fb89bf8758419b466b83d29ed506fb90))
+* add sony music non-xperia support ([bf86225](https://github.com/bearinmindcat/morphe-patches/commit/bf86225b128ebaba4f5ef09635beff26dbd22d5b))
+* add xperia keyboard non-xperia support ([f5149be](https://github.com/bearinmindcat/morphe-patches/commit/f5149be3fbff686220911297923bdd7289685f2a))
+* launchers start on android 13 and one ui; issue [#142](https://github.com/bearinmindcat/morphe-patches/issues/142) ([081bc86](https://github.com/bearinmindcat/morphe-patches/commit/081bc86922ea8412da7575d0981aa8742270b314))
+* nothing gallery supports 3.1.4.1030 ([1551663](https://github.com/bearinmindcat/morphe-patches/commit/1551663e8a096dc0033e69cb1d5ec3c3f7d54eda))
+* nothing launcher runs on android 15 ([2b8a34c](https://github.com/bearinmindcat/morphe-patches/commit/2b8a34c9e2e1adea428ab4e00461991abf0ccf32))
+* oneplus launcher (oxygenos 11) opens apps; issue [#142](https://github.com/bearinmindcat/morphe-patches/issues/142) ([08328bc](https://github.com/bearinmindcat/morphe-patches/commit/08328bc2eb5f88264f3501b175877dfb0d210709))
+* oneplus system launcher runs on android 11; issue [#135](https://github.com/bearinmindcat/morphe-patches/issues/135) ([b392e3a](https://github.com/bearinmindcat/morphe-patches/commit/b392e3ac6dd723ba56e76583f80c3abc3bc88830))
+* samsung gallery selfies open without flipping; issue [#104](https://github.com/bearinmindcat/morphe-patches/issues/104) ([30ad8a1](https://github.com/bearinmindcat/morphe-patches/commit/30ad8a16664f60b6c8944a382124164be8c18330))
+
+## [2.8.10](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.9...v2.8.10) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* add samsung one hand operation+ non-one ui support; issue [#132](https://github.com/bearinmindcat/morphe-patches/issues/132) ([1115d55](https://github.com/bearinmindcat/morphe-patches/commit/1115d5537e729408a1bb9be3af5ce8b3e4dae077))
+* morphe manager shows which android each app version needs; issue [#134](https://github.com/bearinmindcat/morphe-patches/issues/134) ([dd2cd9a](https://github.com/bearinmindcat/morphe-patches/commit/dd2cd9aa3cde2b9e655c2098f20f84f13deb2695))
+* navigation media controls can be closed again; issue [#136](https://github.com/bearinmindcat/morphe-patches/issues/136) ([e9cfce4](https://github.com/bearinmindcat/morphe-patches/commit/e9cfce4b6b42326bd06c375b390f59160c114295))
+* oneplus contacts installs next to the phone's own contacts app; issue [#106](https://github.com/bearinmindcat/morphe-patches/issues/106) ([795152a](https://github.com/bearinmindcat/morphe-patches/commit/795152a68b52d8d0224d6994204093d8dd2dd0a7))
+* oneplus system launcher explains unsupported versions; issue [#135](https://github.com/bearinmindcat/morphe-patches/issues/135) ([ecf7a39](https://github.com/bearinmindcat/morphe-patches/commit/ecf7a396b376a80d73cf82b75527f45f52a0d02f))
+* samsung my files shows sd cards and usb drives; issue [#139](https://github.com/bearinmindcat/morphe-patches/issues/139) ([8af5a2b](https://github.com/bearinmindcat/morphe-patches/commit/8af5a2b4a5eb57446921431d276244722978a4eb))
+
 ## [2.8.9](https://github.com/bearinmindcat/morphe-patches/compare/v2.8.8...v2.8.9) (2026-11-06)
 
 ### 🐛 Bug Fixes

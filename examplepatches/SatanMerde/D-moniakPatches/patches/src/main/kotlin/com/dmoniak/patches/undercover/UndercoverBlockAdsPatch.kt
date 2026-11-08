@@ -11,8 +11,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val undercoverBlockAdsPatch = bytecodePatch(
-    name = "Block Ads & Commercials - Undercover (Experimental)",
-    description = "⚠️ [Experimental / Untested] Strips interstitial video ads between rounds, banner ads in lobby and voting screens, and rewarded video gates by neutralizing ad SDK calls.",
+    name = "Block Ads & Commercials - Undercover",
+    description = "Strips interstitial video ads between rounds, banner ads in lobby and voting screens, and rewarded video gates by neutralizing ad SDK calls.",
 ) {
     compatibleWith(COMPATIBILITY_UNDERCOVER)
 

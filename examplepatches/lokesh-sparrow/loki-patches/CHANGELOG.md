@@ -1,3 +1,25 @@
+## 1.2.4 (2026-11-07)
+
+### Fixes
+- Download media: the button hides and shows with the viewer's own controls, and stays hidden while a video plays full screen instead of floating over it.
+- Swipe between feeds: swiping back to Grow on My Network works again.
+
+**22 patches in total.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#patches).
+
+## 1.2.3 (2026-11-07)
+
+### Fixes
+- Diagnostic log: the file is renamed to loki_log.txt.
+
+**22 patches in total.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#patches).
+
+## 1.2.2 (2026-11-07)
+
+### What's New
+- Supports LinkedIn 4.1.1270, 4.1.1269 and 4.1.1267.
+
+**22 patches in total.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#patches).
+
 ## 1.2.1 (2026-11-06)
 
 ### What's New

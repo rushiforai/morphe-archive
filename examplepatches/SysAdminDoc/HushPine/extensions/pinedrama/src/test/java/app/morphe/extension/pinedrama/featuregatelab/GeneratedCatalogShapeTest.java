@@ -117,7 +117,7 @@ public class GeneratedCatalogShapeTest {
             BuildNames.setRunningBuildForTests(build);
             FeatureGateCatalog.Snapshot snapshot = load();
 
-            entry(snapshot, "abmock", "1005_max_limit_count_daily", "INT", "5");
+            entry(snapshot, "abmock", "28_max_limit_count_daily", "INT", "5");
             entry(snapshot, "player_config", "AWEDanmakuSupportMask", "BOOLEAN", "false");
             entry(snapshot, "ve_config", "aeabtest_v2api", "BOOLEAN", "false");
             FeatureGateCatalog.Entry array = entry(snapshot, "settings_manager",
@@ -140,8 +140,8 @@ public class GeneratedCatalogShapeTest {
      * are ones older builds had otherwise: a default that moved, a gate added and one dropped.
      */
     @Test public void theRunningBuildsCatalogIsTheOneShown() throws Exception {
-        BuildNames.setRunningBuildForTests("47.5.3");
-        assertEquals("47.5.3", FeatureGateCatalog.catalogBuild());
+        BuildNames.setRunningBuildForTests("47.6.3");
+        assertEquals("47.6.3", FeatureGateCatalog.catalogBuild());
         FeatureGateCatalog.Snapshot shown = load();
         entry(shown, "abmock", "low_memory_kill_monitor", "INT", "89");
         entry(shown, "abmock", "4710_lifecycle_job_next_day_fixed", "INT", "0");
@@ -149,7 +149,7 @@ public class GeneratedCatalogShapeTest {
     }
 
     @Test public void aBuildWithNoCatalogIsShownTheNewestOne() {
-        // 47.4.3 had a catalog until 47.5.3 replaced it.
+        // 47.4.3 had a catalog until 47.6.3 replaced it.
         BuildNames.setRunningBuildForTests("47.4.3");
         assertFalse(FeatureGateCatalog.hasCatalogFor("47.4.3"));
         assertEquals(FeatureGateCatalog.newestCatalogBuild(), FeatureGateCatalog.catalogBuild());

@@ -40,7 +40,7 @@ public final class FeatureFlags {
     store = new WeakReference<>(s);
   }
 
-  /** Hook: start of FeatureFlagStoreImpl.isEnabled. Returns 1 or 0 to force a flag, else -1. */
+  /** Hook: start of Slack's shared flag resolver. Returns 1 or 0 to force a flag, else -1. */
   public static int override(Object flag) {
     try {
       Map<String, Boolean> map = overrides();

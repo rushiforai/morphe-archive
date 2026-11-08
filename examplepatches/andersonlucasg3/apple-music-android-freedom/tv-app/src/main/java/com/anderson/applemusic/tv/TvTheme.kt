@@ -1,5 +1,6 @@
 package com.anderson.applemusic.tv
 
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.Color
@@ -22,10 +23,19 @@ internal val TextSecondary = Color(0xFF8E8E93)
 internal val Accent = Color(0xFFFA243C)
 internal val SeekTrack = Color(0xFF3A3A3C)
 
-internal val CardRadius = 14.dp
+internal val CardRadius = 16.dp
 internal val OverlayRadius = 16.dp
 internal val PagePadding = 32.dp
 internal val SectionGap = 18.dp
+
+// Focus feedback is a 160 ms tween: fast enough to feel immediate on a D-pad, slow
+// enough not to pop. Nothing in the UI animates continuously.
+internal val FocusScaleSpec = tween<Float>(durationMillis = 160)
+internal val FocusColorSpec = tween<Color>(durationMillis = 160)
+
+// Type scale (Apple Music hierarchy, Inter):
+//   display 36 / line 42 · section 26 / 32 · card title 15 / 19 · caption 12-13 / 16-18
+//   body 15 / 21. Titles are 600-700, body and captions 400.
 
 /**
  * Inter (SIL OFL, see `res/raw/inter_license.txt`) instead of SF Pro, which cannot be

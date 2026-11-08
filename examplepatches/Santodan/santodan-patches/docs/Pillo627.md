@@ -83,11 +83,34 @@ ABI. Exact reflection contracts are in `Pillo627Contracts.java` and
   is reused for the result; retain native Medisafe/account restore routes.
 - **Weight import:** redirect `LoggingBottomBar` in
   `TrackerRecordLogLayoutWeightKt.LogWeightLayout_Uww_Ezs$lambda$1`. Compose uses
-  `g3.q`/`s3.s`; use native `ButtonM-vRFhKjU` and `SpacedColumn-DzVHIIc` defaults.
+  `g3.q`/`s3.s`; use native text-only `ButtonM-jB83MbM` and
+  `SpacedColumn-DzVHIIc`. The prefix overload `ButtonM-vRFhKjU` checks its
+  `prefix` argument for null before rendering, regardless of default-mask bits.
+  Passing null there can close the weight logging menu from Today or Progress.
+  Its only defaultable parameters are modifier/fullWidth; colors are required.
+  Use mask 1 for the text-only button, explicitly retain fullWidth=true, and
+  resolve background/content colors through the native `ButtonProps$2`/`$3`
+  singleton `invoke-WaAFU9c(g3.q,int):long` methods. These classes are package-private;
+  make their INSTANCE fields accessible before reading them. The providers are
+  the native ButtonProps constructor's defaults (bits 4096 and 8192), reading
+  the current theme's `xy.k.q`/`xy.k.y` values without inventing packed colors.
+  Recompute native bottom-bar changed flags inside the new column (pass 0),
+  while preserving its modifier, Back/Save callbacks, label, booleans and defaults.
   The repository moved to `data.repository.tracker.TrackerEventRepository`.
   `shared.coroutine.FlowExtensionsKt.firstOnIO(mw.l,Continuation)` provides
   initial records; singleton fields are `a`, resumed failures use `ResultKt.b`.
   Preserve async completion, units, profiles, duplicates and partial retries.
+
+  On 2026-11-06 the user reported both logging entry points closing with the
+  import patch selected. Neither supplied log capture exposed a Pillo stack
+  trace; the null-prefix failure was established from the original 0.6.27 DEX
+  and the injected call, not a captured device exception. The runtime fixture
+  now invokes the full footer through JVM fixtures with real mangled method
+  names, package-private theme singletons and native callback contracts. It
+  covers repeated composition, both boolean states, Back/Save invocation,
+  importer action without a host, theme resolution and native failure propagation.
+  Existing tests had only exercised data import. Device confirmation of the
+  corrected menu remains pending.
 - **Summaries:** `jv.e.s1(int,List)` reverses the old takeLast argument order.
   Keep full history in the list wrapper. The filter button moved into
   `WeightChartContent$lambda$7$0`. Wrap the static bridge to

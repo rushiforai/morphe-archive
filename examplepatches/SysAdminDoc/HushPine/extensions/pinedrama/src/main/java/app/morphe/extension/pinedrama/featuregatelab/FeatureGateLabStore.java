@@ -622,13 +622,10 @@ public final class FeatureGateLabStore {
             new Preset("messages", "Message bubble colors, Inbox archive and sharing to more chats", CATALOG_BUILDS,
                     "dm_customize_message_bubble:INT:1", "inbox_bb_archive_enable:INT:1",
                     "im_contacts_multi_select_limit:INT:999"),
-            new Preset("manage_topics", "Manage topics", CATALOG_BUILDS,
-                    "manage_topics_enable:BOOLEAN:true"),
             new Preset("visual_search", "Visual search", CATALOG_BUILDS,
                     "show_visual_search_entrance:BOOLEAN:true"),
             new Preset("ai_self", "AI Self", CATALOG_BUILDS,
-                    "ai_self_enable:BOOLEAN:true", "ai_self_effects_panel_enabled:BOOLEAN:true",
-                    "ai_self_free_create_enable:BOOLEAN:true"),
+                    "ai_self_enable:BOOLEAN:true", "ai_self_effects_panel_enabled:BOOLEAN:true"),
             new Preset("long_press_menu", "Long-press menu on every post", CATALOG_BUILDS,
                     "feed_long_press_panel_support_all_type:BOOLEAN:true"),
             new Preset("hold_to_speed_up", "PineDrama's hold to speed up", CATALOG_BUILDS,
@@ -654,9 +651,6 @@ public final class FeatureGateLabStore {
             new Preset("live_translate", "LIVE chat auto-translate", CATALOG_BUILDS,
                     LIVE_RULE + "live_auto_translate_model_audience:INT:2")
                     .note("The Translate comments button in a LIVE room also needs a Japanese SIM. Turn on Override SIM details in HushPine settings > Region, set SIM country preset to Japan, NTT DOCOMO (44010), then restart PineDrama."),
-            // Disable the client check; changing its separate maximum to 0 would reject all tags.
-            new Preset("hashtag_limit", "More hashtags per post", CATALOG_BUILDS,
-                    "studio_publish_limit_hashtag_switch:BOOLEAN:false"),
     };
 
     /**

@@ -48,8 +48,8 @@ internal object PauseAdsResponseToStringFingerprint : Fingerprint(
     custom = { method, _ -> method.name == "toString" }
 )
 
-// The resume seek (TV project issue #147): AviaPlayer.startExoplayer reads
-// AbstractAviaMediaAsset.getStartPosition() and seeks the ExoPlayer to it.
+// AviaPlayer.startExoplayer, where the player starts. Mask live ad breaks
+// hooks it.
 internal object AviaStartExoplayerFingerprint : Fingerprint(
     returnType = "V",
     custom = { method, classDef ->

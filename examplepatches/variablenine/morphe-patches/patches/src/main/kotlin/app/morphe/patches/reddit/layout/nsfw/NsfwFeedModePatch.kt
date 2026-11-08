@@ -3,8 +3,7 @@ package app.morphe.patches.reddit.layout.nsfw
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patches.all.misc.resources.resourceMappingPatch
 import app.morphe.patches.reddit.misc.settings.settingsPatch
@@ -27,7 +26,7 @@ private const val REFRESH_EXTENSION_CLASS =
 private const val ICON_EXTENSION_CLASS =
     "Lapp/morphe/extension/reddit/patches/NsfwModeIcon;"
 
-private val nsfwFeedModeResourcePatch = resourcePatch {
+private val nsfwFeedModeResourcePatch = patch {
     execute {
         copyResources(
             "nsfwmode",
@@ -40,7 +39,7 @@ private val nsfwFeedModeResourcePatch = resourcePatch {
 }
 
 @Suppress("unused")
-val nsfwFeedModePatch = bytecodePatch(
+val nsfwFeedModePatch = patch(
     name = "NSFW mode",
     description = "Adds an NSFW row to the navigation drawer that reduces the home feed to " +
             "its 18+ posts. Turned off until it is switched on. Reddit only sends 18+ posts to " +

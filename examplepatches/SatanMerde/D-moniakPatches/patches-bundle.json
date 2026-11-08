@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-31T16:08:52",
-  "description": "## [1.62.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.62.0...v1.62.1) (2026-10-31)\n\n### 🐛 Bug Fixes\n\n* **silt:** fix PAD asset pack resolution to eliminate infinite loading freeze ([bfc1693](https://github.com/SatanMerde/D-moniakPatches/commit/bfc169316dd65a9cc51c9746c3d78e8e6690a13b))",
-  "download_url": "https://github.com/SatanMerde/D-moniakPatches/releases/download/v1.62.1/patches-1.62.1.mpp",
+  "created_at": "2026-11-07T19:03:22",
+  "description": "## [1.68.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.67.0...v1.68.0) (2026-11-07)\n\n### ✨ New Features\n\n* **mega:** rewrite AMOLED with Compose token hooks, fix register bug, add promo blocker and keep-awake patches ([0e7bc86](https://github.com/SatanMerde/D-moniakPatches/commit/0e7bc8623b949aeaf385151f38fe682baeb5cbc2))",
+  "download_url": "https://github.com/SatanMerde/D-moniakPatches/releases/download/v1.68.0/patches-1.68.0.mpp",
   "signature_download_url": "",
-  "version": "1.62.1"
+  "version": "1.68.0"
 }

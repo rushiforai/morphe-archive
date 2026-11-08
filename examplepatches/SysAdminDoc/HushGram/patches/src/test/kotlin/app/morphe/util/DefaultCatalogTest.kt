@@ -42,6 +42,7 @@ import app.morphe.patches.instagram.feed.place.keepHomePlacePatch
 import app.morphe.patches.instagram.feed.commentkeyboard.commentKeyboardPatch
 import app.morphe.patches.instagram.feed.audioicon.feedAudioIconPatch
 import app.morphe.patches.instagram.feed.captions.hideCaptionsPatch
+import app.morphe.patches.instagram.feed.commentgifs.hideCommentGifsPatch
 import app.morphe.patches.instagram.feed.comments.hideCommentsPatch
 import app.morphe.patches.instagram.feed.emojirow.hideCommentEmojiRowPatch
 import app.morphe.patches.instagram.feed.feedfollow.hideFeedFollowPatch
@@ -117,6 +118,7 @@ import app.morphe.patches.instagram.reels.tab.hideReelsTabPatch
 import app.morphe.patches.instagram.reels.tablayout.tabBarLayoutPatch
 import app.morphe.patches.instagram.reels.tapvolume.reelTapAndVolumePatch
 import app.morphe.patches.instagram.reels.sound.startReelsWithSoundPatch
+import app.morphe.patches.instagram.reels.skip.doubleTapSkipReelsPatch
 import app.morphe.patches.instagram.reels.time.showReelTimePatch
 import app.morphe.patches.instagram.reels.topbar.keepReelsTopBarPatch
 import app.morphe.patches.instagram.direct.viewonce.markViewOncePatch
@@ -205,6 +207,7 @@ class DefaultCatalogTest {
         hideActiveStatusPatch,
         hideCommentsPatch,
         hideCommentEmojiRowPatch,
+        hideCommentGifsPatch,
         hideFeedFollowPatch,
         hideCaptionsPatch,
         feedAudioIconPatch,
@@ -295,6 +298,7 @@ class DefaultCatalogTest {
         startStoriesWithSoundPatch,
         startReelsWithSoundPatch,
         pinchZoomReelsPatch,
+        doubleTapSkipReelsPatch,
         refreshRatePatch,
         stopSwipeReplyPatch,
         hideStoryReplyBoxPatch,
@@ -345,7 +349,7 @@ class DefaultCatalogTest {
     }
 
     @Test fun initiallyNeutralControlsAreAvailableInSimpleMode() {
-        assertEquals(135, neutral.size)
+        assertEquals(137, neutral.size)
         neutral.forEach { assertEquals(it.name, true, it.default) }
     }
 
@@ -357,7 +361,7 @@ class DefaultCatalogTest {
     @Test fun generatedCatalogMatchesAllReviewedDeclarations() {
         val all = prior + neutral + optIn
         val declarations = all.associate { it.name!! to it.default }
-        assertEquals("every named patch needs one reviewed decision", 156, all.size)
+        assertEquals("every named patch needs one reviewed decision", 158, all.size)
         assertEquals("the review must not name a patch twice", all.size, declarations.size)
         val file = File("patches-list.json").takeIf(File::isFile) ?: File("../patches-list.json")
         val rows = JsonParser.parseString(file.readText()).asJsonObject.getAsJsonArray("patches")

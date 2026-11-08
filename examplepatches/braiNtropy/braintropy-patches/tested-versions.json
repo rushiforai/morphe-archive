@@ -1,0 +1,6 @@
+{
+  "NOTE": "Versions listed here are shown in the README's 'Tested' column. Any other declared target is shown as user-reported. Only the latest of each is shown. This file is only read by .github/scripts/generate_patches_readme.py.",
+  "com.rp.hypertrophy": ["1.6.0", "1.9.0"],
+  "com.elink.fittrackhealth.pro": ["9.29.2"],
+  "org.wakingup.android": ["3.24.1", "3.27.0"]
+}

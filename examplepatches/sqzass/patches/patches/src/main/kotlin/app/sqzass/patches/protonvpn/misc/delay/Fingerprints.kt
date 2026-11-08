@@ -1,0 +1,23 @@
+/*
+ * Copyright (C) 2026 Hoo-dles
+ * Copyright (C) 2026 sqzass
+ * SPDX-License-Identifier: GPL-3.0-only
+ *
+ * Ported from hoo-dles/morphe-patches:
+ * https://github.com/hoo-dles/morphe-patches/commit/3ad54cf13090739041b9f74c64c95e9994a0d980
+ * Commit 3ad54cf13090739041b9f74c64c95e9994a0d980 (2026-07-27),
+ * patches/src/main/kotlin/hoodles/morphe/patches/protonvpn/delay/Fingerprints.kt
+ */
+package app.sqzass.patches.protonvpn.misc.delay
+
+import app.morphe.patcher.Fingerprint
+
+internal val changeServerDelayFingerprints =
+    listOf("getChangeServerLongDelayInSeconds", "getChangeServerShortDelayInSeconds").map { getter ->
+        Fingerprint(
+            definingClass = "Lcom/protonvpn/android/appconfig/AppConfigResponse;",
+            name = getter,
+            returnType = "I",
+            parameters = emptyList(),
+        )
+    }

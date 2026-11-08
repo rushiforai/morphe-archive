@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.9.3",
+  "version": "1.11.0",
   "patches": [
     {
       "name": "Custom font",
@@ -83,6 +83,15 @@
           "title": "Custom font",
           "description": "The file path to your font. Tap the file picker and select it. The font must be in TTF or OTF format. A variable font is recommended so heading and body text keep their different weights.",
           "required": true,
+          "type": "kotlin.String",
+          "default": null,
+          "values": null
+        },
+        {
+          "key": "fontFeatureSettings",
+          "title": "Font feature settings",
+          "description": "Optional OpenType features for the custom font. For example, enter 'ss01' 1 to use Inter's open-style digits. You can also paste a CSS declaration such as font-feature-settings: \"ss01\" 1;. Android ignores features that the selected font does not support.",
+          "required": false,
           "type": "kotlin.String",
           "default": null,
           "values": null
@@ -266,55 +275,6 @@
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": 32,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Force system font",
-      "description": "Uses the device's system font for all app text.",
-      "default": true,
-      "category": "Font",
-      "compatiblePackages": [
-        {
-          "packageName": "org.telegram.messenger",
-          "name": "Telegram",
-          "description": null,
-          "apkFileType": "APK_REQUIRED",
-          "appIconColor": "#2CA5E0",
-          "signatures": [
-            "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "13.1.1",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 23,
-              "description": null
-            }
-          ]
-        },
-        {
-          "packageName": "org.telegram.messenger.web",
-          "name": "Telegram (web version)",
-          "description": null,
-          "apkFileType": "APK_REQUIRED",
-          "appIconColor": "#2CA5E0",
-          "signatures": [
-            "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1"
-          ],
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "13.1.0",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": 23,
               "description": null
             }
           ]

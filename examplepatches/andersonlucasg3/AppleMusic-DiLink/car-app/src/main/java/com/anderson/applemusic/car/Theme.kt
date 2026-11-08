@@ -28,6 +28,11 @@ internal val ControlRadius = 14.dp
 internal val PagePadding = 24.dp
 internal val SectionGap = 28.dp
 
+// Type scale shared with :tv-app (values in sp, so the head unit at 240 dpi draws the
+// same optical sizes): display 32–36 (full player title), section 24–28 (shelf titles),
+// card 15–16 (cover/list titles) and caption 12–13 (subtitles, timestamps, counts).
+// Weights are limited to Inter 400 / 600 / 700.
+
 /**
  * Inter (SIL OFL, see `res/raw/inter_license.txt`): 400/500/600/700 are bundled as
  * static TTFs. Android falls back to the platform font (FontFamily.Default) for any

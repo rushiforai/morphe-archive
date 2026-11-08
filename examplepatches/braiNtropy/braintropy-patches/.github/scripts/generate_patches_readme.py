@@ -3,28 +3,28 @@
 Generates the patches section of README.md from patches-list.json
 and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
 
-Spoilers are expanded (open by default) if:
-  1. Total patch count <= AUTO_EXPAND_THRESHOLD.
-  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
+Versions listed in tested-versions.json (package name -> [versions]) appear in
+the "Tested" column; any other declared target appears as user-reported.
+Only the latest version of each kind is shown.
 
-python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
+python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md] [tested-versions.json]
 """
 
 import json
 import re
 import sys
-import os
 from pathlib import Path
 
 
 if len(sys.argv) < 3:
-    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme]")
+    print("Usage: generate_patches_readme.py <owner/repo> <branch> [json] [readme] [tested-json]")
     sys.exit(1)
 
 repo_full   = sys.argv[1]
 branch      = sys.argv[2]
 json_path   = Path(sys.argv[3]) if len(sys.argv) > 3 else Path("patches-list.json")
 readme_path = Path(sys.argv[4]) if len(sys.argv) > 4 else Path("README.md")
+tested_path = Path(sys.argv[5]) if len(sys.argv) > 5 else Path("tested-versions.json")
 
 
 if "/" not in repo_full:
@@ -36,15 +36,37 @@ owner, repo = repo_full.split("/", 1)
 with open(json_path, encoding="utf-8") as f:
     data = json.load(f)
 
+# package name -> versions verified by the maintainer; anything else is user-reported
+tested_map = {}
+if tested_path.exists():
+    with open(tested_path, encoding="utf-8") as f:
+        tested_map = json.load(f)
 
-def pkg_emoji(pkg):
-    """Return a standard package emoji regardless of the package name."""
-    return "📦"
 
-# Group patches by package; patches with no compatiblePackages are universal.
+# Emoji and label suffix for each form factor. Mobile and unspecified use no suffix.
+FORM_FACTORS = {
+    "TV":         ("📺", "Android TV"),
+    "WEARABLE":   ("⌚", "Wear OS"),
+    "AUTOMOTIVE": ("🚗", "Android Automotive"),
+}
+
+
+def pkg_emoji(form_factor):
+    """Return the emoji for a form factor, or a standard package emoji."""
+    return FORM_FACTORS.get(form_factor, ("📦", None))[0]
+
+
+def pkg_label(name, form_factor):
+    """Return the app name, with the form factor appended if it is not mobile."""
+    suffix = FORM_FACTORS.get(form_factor, (None, None))[1]
+    return f"{name} ({suffix})" if suffix else name
+
+
+# Group patches by package and form factor; patches with no compatiblePackages are universal.
+# The same package name can be used by different apps for each form factor.
 # JSON structure: compatiblePackages is a list of objects with
-# { packageName, name, targets: [{ version, isExperimental, description }] }
-by_pkg = {}   # packageName -> { name, emoji, patches, targets }
+# { packageName, name, formFactor, targets: [{ version, isExperimental, description }] }
+by_pkg = {}   # (packageName, formFactor) -> { name, package, emoji, patches, targets }
 universal = {}
 
 for patch in data["patches"]:
@@ -57,119 +79,87 @@ for patch in data["patches"]:
     for pkg_entry in cp:
         pkg  = pkg_entry["packageName"]
         name = pkg_entry.get("name") or pkg  # fall back to package name if no label
-        if pkg not in by_pkg:
-            by_pkg[pkg] = {
-                "name":    name,
-                "emoji":   pkg_emoji(pkg),
+        form_factor = pkg_entry.get("formFactor")
+        key  = (pkg, form_factor)
+        if key not in by_pkg:
+            by_pkg[key] = {
+                "name":    pkg_label(name, form_factor),
+                "package": pkg,
+                "emoji":   pkg_emoji(form_factor),
                 "patches": {},
                 "targets": pkg_entry.get("targets", []),
             }
         # Deduplicate patches that appear across multiple packages
-        if patch["name"] not in by_pkg[pkg]["patches"]:
-            by_pkg[pkg]["patches"][patch["name"]] = patch
+        if patch["name"] not in by_pkg[key]["patches"]:
+            by_pkg[key]["patches"][patch["name"]] = patch
 
 
-def anchor(name):
-    """Convert a patch name to a GitHub-compatible anchor slug."""
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
-
-
-def patches_table(patches):
-    """Render a sorted markdown table of patches with name, description, and options."""
-    rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
-        "|----------|----------------|-----------|",
-    ]
-    for p in sorted(patches, key=lambda x: x["name"]):
-        a = anchor(p["name"])
-        options = p.get("options") or []
-        if options:
-            # Show only option titles as a bullet list
-            parts = [opt.get("title") or opt.get("key") or "" for opt in options]
-            opts_cell = "<br>".join(f"• {t}" for t in parts)
-        else:
-            opts_cell = ""
-        desc = (p.get("description") or "").replace("\n", "<br>")
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
-    return "\n".join(rows)
-
-
-def versions_table(targets):
-    """Render a markdown table of supported versions.
-    Experimental versions get a 🧪 prefix.
-    Versions with a description get it shown in a second row below.
-    """
-    if not targets:
-        return ""
-
-    cells = []
+def latest_version(targets, package, want_tested):
+    """Return the last declared target version in the tested or reported bucket."""
+    tested_versions = set(tested_map.get(package, []))
+    result = None
     for t in targets:
-        ver   = t["version"]
+        ver = t["version"]
         if ver is None:
             continue
-        label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
-        cells.append(label)
-
-    if not cells:
-        return ""
-
-    header = "| " + " | ".join(cells) + " |"
-    sep = "| " + " | ".join(":---:" for _ in cells) + " |"
-    rows = [header, sep]
-
-    # Optional description row — only rendered if at least one target has one
-    descs = [(t.get("description") or "").replace("\n", "<br>") for t in targets]
-    if any(descs):
-        rows.append("| " + " | ".join(descs) + " |")
-
-    return "\n".join(rows)
+        if (ver in tested_versions) == want_tested:
+            result = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
+    return result or "—"
 
 
-def spoiler(label, count, targets, tbl, expanded=False):
-    """Wrap a patches table in a <details> spoiler with a versions sub-table.
-    If expanded=True, the spoiler is open by default (for repos with few patches).
-    """
-    noun = "patch" if count == 1 else "patches"
-    vtbl = versions_table(targets)
-    versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
-    tag = "<details open>" if expanded else "<details>"
-    return f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
-<br>
-
-{versions_section}{tbl}
-
-</details>"""
+def options_cell(patch):
+    """Render option titles as a bullet list, or an empty cell."""
+    options = patch.get("options") or []
+    return "<br>".join(f"• {opt.get('title') or opt.get('key') or ''}" for opt in options)
 
 
-def build_content(expanded=False):
+def build_content():
     """Build the full generated patches section."""
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
         f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} patches total"
+        f"{total} patches total",
+        "",
     ]
 
-    # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
-        patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
-        lines.append("")
+    # Options column only exists when at least one patch declares options
+    any_options = any(
+        p.get("options")
+        for e in by_pkg.values() for p in e["patches"].values()
+    ) or any(p.get("options") for p in universal.values())
+    opts_header = " | ⚙️&nbsp;Options" if any_options else ""
+    opts_sep    = " |--------" if any_options else ""
+
+    lines += [
+        f"| App | 💊&nbsp;Patch | Function{opts_header} | ✅&nbsp;Tested | 👤&nbsp;User-reported |",
+        f"|-----|--------|----------{opts_sep}|---------|----------------|",
+    ]
+    for entry in by_pkg.values():
+        patches  = sorted(entry["patches"].values(), key=lambda x: x["name"])
+        tested   = latest_version(entry["targets"], entry["package"], want_tested=True)
+        reported = latest_version(entry["targets"], entry["package"], want_tested=False)
+        app_cell = f"{entry['emoji']} {entry['name']}"
+        for i, p in enumerate(patches):
+            desc = (p.get("description") or "").replace("\n", "<br>")
+            opts = f" | {options_cell(p)}" if any_options else ""
+            lines.append(
+                f"| {app_cell if i == 0 else ''} | {p['name']} | {desc}{opts}"
+                f" | {tested} | {reported} |"
+            )
 
     # Universal patches (no specific app)
     if universal:
-        uni_patches = list(universal.values())
-        noun = "patch" if len(uni_patches) == 1 else "patches"
-        tag  = "<details open>" if expanded else "<details>"
-        lines.append(f"""{tag}
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
-<br>
-
-{patches_table(uni_patches)}
-
-</details>""")
-        lines.append("")
+        lines += [
+            "",
+            "**🌐 Universal patches**",
+            "",
+            f"| 💊&nbsp;Patch | Function{opts_header} |",
+            f"|--------|----------{opts_sep}|",
+        ]
+        for p in sorted(universal.values(), key=lambda x: x["name"]):
+            desc = (p.get("description") or "").replace("\n", "<br>")
+            opts = f" | {options_cell(p)}" if any_options else ""
+            lines.append(f"| {p['name']} | {desc}{opts} |")
 
     return "\n".join(lines)
 
@@ -190,7 +180,7 @@ marker_match = re.search(START_PATTERN, readme)
 
 if not marker_match or END_MARKER not in readme:
     # Fallback: print to stdout so CI can catch the issue
-    print(build_content(expanded=False))
+    print(build_content())
     sys.stderr.write(
         f"⚠️  Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
         "Printed to stdout instead.\n"
@@ -199,19 +189,7 @@ if not marker_match or END_MARKER not in readme:
 
 actual_start = marker_match.group(0)
 
-# Auto-expand threshold
-AUTO_EXPAND_THRESHOLD = 20
-
-# Spoilers are expanded if:
-# 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)
-#    with only a few patches where collapsing adds no benefit.
-# 2. The README marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
-expanded = (
-    total <= AUTO_EXPAND_THRESHOLD or
-    "EXPANDED" in actual_start
-)
-
-generated  = build_content(expanded=expanded)
+generated = build_content()
 
 # Replace template links if present
 readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")
@@ -224,4 +202,4 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
-print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches)")

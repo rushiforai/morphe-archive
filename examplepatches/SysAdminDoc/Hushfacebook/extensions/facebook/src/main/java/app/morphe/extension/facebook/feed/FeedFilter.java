@@ -19,6 +19,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.BooleanSetting;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
@@ -226,6 +227,12 @@ public final class FeedFilter {
      * first other author's type, or why nothing was read. Never a name or an id.
      */
     static final String PAGES_ROUTE = "Posts from Pages";
+    /**
+     * The stories Only friends' posts read, counted only while its switch is on, with what
+     * {@link PostSources#friendKind} found as the kind: a friend's friendship status, why a post isn't
+     * a friend's, or why nothing was read. Never a name or an id.
+     */
+    static final String FRIENDS_ROUTE = "Only friends' posts";
     /**
      * The Stories tray adapters the feed asked for, each call counted with its adapter as the kind,
      * and a skipped one as a removal. The tray is never a feed edge: the feed's adapter list adds it
@@ -481,7 +488,8 @@ public final class FeedFilter {
                         + (aiPatched ? " genai=" + flagValue(GenAiLabel.FLAG, feedUnit, aiAccessor)
                                 + " ailabel=" + flagValue(GenAiLabel.SELF_LABEL, feedUnit, aiLabelAccessor) : "")
                         + (ENGAGEMENT_PROMO.equals(categoryName) ? " qp=" + promotionId(feedUnit) : "")
-                        + (wordsPatched ? " author=" + PostSources.authorKind(feedUnit, PostSources.ACTORS) : "")
+                        + (wordsPatched ? " author=" + PostSources.authorKind(feedUnit, PostSources.ACTORS)
+                                + " friend=" + PostSources.friendKind(feedUnit, PostSources.ACTORS) : "")
                         + (id != null ? " id=" + id : "");
             });
             // An edge a prefetch adds before the settings are ready stays: no switch can be read yet.
@@ -493,34 +501,35 @@ public final class FeedFilter {
             HiddenTally.Kind kind = HiddenTally.Kind.ADS;
             if (sponsoredPatched && hiddenCategory(category)) {
                 reason = categoryName;
-            } else if (sponsoredPatched && Settings.HIDE_SPONSORED_POSTS.get()
+            } else if (sponsoredPatched && withFriendsOnly(Settings.HIDE_SPONSORED_POSTS)
                     && MULTI_ADS_TYPE.equals(typeName(feedUnit))) {
                 reason = MULTI_ADS_TYPE;
             }
             if (reason == null) kind = HiddenTally.Kind.REELS;
-            if (reason == null && reelsPatched && Settings.HIDE_FEED_REELS.get()) {
+            if (reason == null && reelsPatched && withFriendsOnly(Settings.HIDE_FEED_REELS)) {
                 reason = isReelsCategory(categoryName) ? categoryName : showcaseReason(feedUnit, showcaseAccessor);
             }
             if (reason == null) kind = HiddenTally.Kind.SUGGESTED;
             if (reason == null && suggestedPatched) {
-                if (Settings.HIDE_SUGGESTED_POSTS.get()) reason = suggestedUnitName(feedUnit);
+                boolean suggestedPosts = withFriendsOnly(Settings.HIDE_SUGGESTED_POSTS);
+                boolean suggestedGroups = withFriendsOnly(Settings.HIDE_SUGGESTED_GROUPS);
+                if (suggestedPosts) reason = suggestedUnitName(feedUnit);
                 if (reason == null && ENGAGEMENT_PROMO.equals(categoryName)) {
-                    if (Settings.HIDE_SUGGESTED_POSTS.get()) {
+                    if (suggestedPosts) {
                         reason = ENGAGEMENT_PROMO;
-                    } else if (Settings.HIDE_SUGGESTED_GROUPS.get()
-                            && GROUPS_PROMOTION_ID.equals(promotionId(feedUnit))) {
+                    } else if (suggestedGroups && GROUPS_PROMOTION_ID.equals(promotionId(feedUnit))) {
                         reason = ENGAGEMENT_PROMO + ":" + GROUPS_PROMOTION_ID;
                     }
                 }
-                if (reason == null && Settings.HIDE_SUGGESTED_FOR_YOU.get()) {
+                if (reason == null && withFriendsOnly(Settings.HIDE_SUGGESTED_FOR_YOU)) {
                     reason = suggestedCategory(categoryName);
                     if (reason == null) {
                         reason = flagReason(RecommendationLabel.FLAG, RECOMMENDATION_ROUTE, feedUnit, recommendationAccessor);
                     }
                 }
-                boolean storiesYouMightLike = Settings.HIDE_STORIES_YOU_MIGHT_LIKE.get();
-                if (reason == null && (Settings.HIDE_SUGGESTED_POSTS.get() || Settings.HIDE_PEOPLE_YOU_MAY_KNOW.get()
-                        || Settings.HIDE_SUGGESTED_GROUPS.get() || storiesYouMightLike || Settings.HIDE_FEED_MEMORIES.get()
+                boolean storiesYouMightLike = withFriendsOnly(Settings.HIDE_STORIES_YOU_MIGHT_LIKE);
+                if (reason == null && (suggestedPosts || withFriendsOnly(Settings.HIDE_PEOPLE_YOU_MAY_KNOW)
+                        || suggestedGroups || storiesYouMightLike || Settings.HIDE_FEED_MEMORIES.get()
                         || Settings.HIDE_FEED_FRIEND_REQUESTS.get() || Settings.HIDE_FRIENDS_LOCATIONS.get())) {
                     String type = typeName(feedUnit);
                     reason = suggestedTypeReason(type);
@@ -530,8 +539,10 @@ public final class FeedFilter {
                     }
                 }
                 if (reason == null) kind = HiddenTally.Kind.GROUPS;
-                if (reason == null && groupReaders != null && Settings.HIDE_GROUP_POSTS_NOT_JOINED.get()) {
-                    reason = groupReason(feedUnit, groupReaders);
+                if (reason == null && groupReaders != null && withFriendsOnly(Settings.HIDE_GROUP_POSTS)) {
+                    reason = groupReason(feedUnit, groupReaders, true);
+                } else if (reason == null && groupReaders != null && Settings.HIDE_GROUP_POSTS_NOT_JOINED.get()) {
+                    reason = groupReason(feedUnit, groupReaders, false);
                 }
             }
             if (reason == null) kind = HiddenTally.Kind.STORIES;
@@ -563,8 +574,11 @@ public final class FeedFilter {
             if (reason == null && wordsPatched) {
                 reason = sourcesReason(feedUnit, PostSources.ACTORS, PostSources.ATTACHMENTS, attachedAccessor);
             }
-            if (reason == null && wordsPatched && Settings.HIDE_PAGE_POSTS.get()) {
+            if (reason == null && wordsPatched && withFriendsOnly(Settings.HIDE_PAGE_POSTS)) {
                 reason = pagesReason(feedUnit, PostSources.ACTORS);
+            }
+            if (reason == null && wordsPatched && Settings.ONLY_FRIENDS_POSTS.get()) {
+                reason = friendsReason(feedUnit, PostSources.ACTORS);
             }
             if (reason == null && wordsPatched && Settings.HIDE_OTHER_LANGUAGES.get()) {
                 reason = languageReason(feedUnit, messageAccessor, attachedAccessor, PostSources.ATTACHMENTS,
@@ -688,16 +702,16 @@ public final class FeedFilter {
      */
     private static String suggestedTypeReason(String type) {
         if (type == null) return null;
-        if (Settings.HIDE_SUGGESTED_POSTS.get()) {
+        if (withFriendsOnly(Settings.HIDE_SUGGESTED_POSTS)) {
             for (String kind : SUGGESTED_TYPES) {
                 if (kind.equals(type)) return kind;
             }
         }
         if (PEOPLE_YOU_MAY_KNOW_TYPE.equals(type)) {
-            return Settings.HIDE_PEOPLE_YOU_MAY_KNOW.get() ? PEOPLE_YOU_MAY_KNOW_TYPE : null;
+            return withFriendsOnly(Settings.HIDE_PEOPLE_YOU_MAY_KNOW) ? PEOPLE_YOU_MAY_KNOW_TYPE : null;
         }
         if (GROUPS_YOU_SHOULD_JOIN_TYPE.equals(type)) {
-            return Settings.HIDE_SUGGESTED_GROUPS.get() ? GROUPS_YOU_SHOULD_JOIN_TYPE : null;
+            return withFriendsOnly(Settings.HIDE_SUGGESTED_GROUPS) ? GROUPS_YOU_SHOULD_JOIN_TYPE : null;
         }
         if (FRIEND_REQUESTS_TYPE.equals(type)) {
             return Settings.HIDE_FEED_FRIEND_REQUESTS.get() ? FRIEND_REQUESTS_TYPE : null;
@@ -819,6 +833,29 @@ public final class FeedFilter {
     }
 
     /**
+     * Only friends' posts (#406): what {@link PostSources#friendKind} found, such as
+     * {@code not a friend: Page}, when none of the post's own authors is a friend, otherwise null.
+     * A post whose authors can't be read stays. Each story it reads is counted on its route by kind.
+     */
+    static String friendsReason(Object feedUnit, StoryFlag.Accessor actors) {
+        FeedFilterCounters.sawList(FRIENDS_ROUTE, 1);
+        String kind = PostSources.friendKind(feedUnit, actors);
+        FeedFilterCounters.sawKind(FRIENDS_ROUTE, kind);
+        if (!PostSources.notAFriend(kind)) return null;
+        FeedFilterCounters.removed(FRIENDS_ROUTE, 1, kind);
+        return kind;
+    }
+
+    /**
+     * Whether a switch Only friends' posts turns on with it is on (#406): its own value, or true
+     * while Only friends' posts is on. The switch's saved value doesn't change, so turning Only
+     * friends' posts off puts back what was picked.
+     */
+    static boolean withFriendsOnly(BooleanSetting setting) {
+        return setting.get() || Settings.ONLY_FRIENDS_POSTS.get();
+    }
+
+    /**
      * Hide posts from Pages (#262): {@value PostSources#PAGE} when every author of the post is a
      * Page, otherwise null. Only the post's own authors count, so a friend's share of a Page's post
      * stays, and so does a post in a group, which its member wrote. An author whose type can't be
@@ -884,16 +921,18 @@ public final class FeedFilter {
      * Hide posts from groups you're not in: the group type and the join state, such as
      * {@code Group:CAN_JOIN}, when the post was posted in a group Facebook would show a Join button
      * for, or wraps one a friend commented on or shared ({@code Group:wrapped CAN_JOIN}), otherwise
-     * null. Nothing is read while the switch is off, and a post that can't be read stays. Each post
-     * it reads is counted on its route by what the read found.
+     * null. With [all], Hide all group posts (#409): any group, your own included, such as
+     * {@code Group:MEMBER}. Nothing is read while the switch is off, and a post that can't be read
+     * stays. Each post it reads is counted on the switch's route by what the read found.
      */
-    static String groupReason(Object feedUnit, GroupPosts.Readers readers) {
+    static String groupReason(Object feedUnit, GroupPosts.Readers readers, boolean all) {
+        String route = all ? GroupPosts.ALL_ROUTE : GroupPosts.ROUTE;
         String kind = GroupPosts.read(feedUnit, readers);
-        FeedFilterCounters.sawList(GroupPosts.ROUTE, 1);
-        FeedFilterCounters.sawKind(GroupPosts.ROUTE, kind);
-        if (!GroupPosts.notJoined(kind)) return null;
+        FeedFilterCounters.sawList(route, 1);
+        FeedFilterCounters.sawKind(route, kind);
+        if (!(all ? GroupPosts.inAGroup(kind) : GroupPosts.notJoined(kind))) return null;
         String reason = GroupPosts.GROUP_TYPE + ":" + kind;
-        FeedFilterCounters.removed(GroupPosts.ROUTE, 1, reason);
+        FeedFilterCounters.removed(route, 1, reason);
         return reason;
     }
 
@@ -1014,8 +1053,8 @@ public final class FeedFilter {
     static boolean hiddenCategory(Object category) {
         if (!(category instanceof Enum)) return false;
         String name = ((Enum<?>) category).name();
-        if (SPONSORED.equals(name)) return Settings.HIDE_SPONSORED_POSTS.get();
-        if (PROMOTION.equals(name)) return Settings.HIDE_PROMOTED_POSTS.get();
+        if (SPONSORED.equals(name)) return withFriendsOnly(Settings.HIDE_SPONSORED_POSTS);
+        if (PROMOTION.equals(name)) return withFriendsOnly(Settings.HIDE_PROMOTED_POSTS);
         return false;
     }
 
@@ -1278,7 +1317,7 @@ public final class FeedFilter {
             HookStatus.invoked(FamilyNames.FEED_REELS);
             FeedFilterCounters.sawList(REELS_ROUTE, 1);
             FeedFilterCounters.sawKind(REELS_ROUTE, PRE_EOF_UNIT);
-            boolean hide = Utils.settingsReady() && Settings.HIDE_FEED_REELS.get();
+            boolean hide = Utils.settingsReady() && withFriendsOnly(Settings.HIDE_FEED_REELS);
             if (hide) FeedFilterCounters.removed(REELS_ROUTE, 1, PRE_EOF_UNIT);
             logPreEofOnce(hide);
             return hide;

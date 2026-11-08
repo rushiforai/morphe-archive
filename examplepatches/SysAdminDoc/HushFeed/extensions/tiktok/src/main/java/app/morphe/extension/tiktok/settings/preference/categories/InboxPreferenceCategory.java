@@ -34,6 +34,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
         return SettingsStatus.inboxFilterEnabled
                 || SettingsStatus.hideSuggestedAccountsEnabled
                 || SettingsStatus.hideInboxStoriesEnabled
+                || SettingsStatus.inboxOnThisDayEnabled
                 || SettingsStatus.chatDeclutterEnabled
                 || SettingsStatus.expandActivityListEnabled
                 || SettingsStatus.notificationControlsEnabled
@@ -175,6 +176,14 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 "The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.",
                 Settings.HIDE_INBOX_STORIES
         ));
+        }
+        if (SettingsStatus.inboxOnThisDayEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide On this day",
+                    "The On this day memory at the front of the stories tray goes, and the stories after it move into its place. Nothing is deleted.",
+                    Settings.HIDE_INBOX_ON_THIS_DAY
+            ));
         }
         if (SettingsStatus.inboxFilterEnabled || SettingsStatus.hideSuggestedAccountsEnabled) {
         addPreference(new TogglePreference(

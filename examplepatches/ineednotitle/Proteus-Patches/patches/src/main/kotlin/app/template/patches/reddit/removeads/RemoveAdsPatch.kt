@@ -2,7 +2,6 @@ package app.template.patches.reddit.removeads
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.PatchException
@@ -91,22 +90,15 @@ val redditRemoveAdsPatch = bytecodePatch(
                 )
             }
 
-        // ── Layer 3: comment banner ad loader — entry-point kill ─────────────
-        // Injected at index 0; original body remains below and is simply never
-        // reached when the helper returns true (if-eqz = branch-if-zero, so
-        // helper==true falls through to return-void). Short-circuiting without
-        // clearBody keeps register frames provably untouched.
-        CommentsViewModelAdLoaderFingerprint.method.addInstructionsWithLabels(
-            0,
-            """
-                invoke-static { }, $HELPER->hideCommentAds()Z
-                move-result v0
-                if-eqz v0, :show
-                return-void
-                :show
-                nop
-            """
-        )
+        // ── Layer 3: comment banner ad loader — constant entry kill ──────────
+        // hideCommentAds() is a compile-time-true constant-returning helper, so
+        // the short-circuit branch shape previously used here (move-result into
+        // v0 = the receiver register) was pure fragility: unobservable today
+        // only because the helper always short-circuits, but type-corrupting
+        // the frame by construction the moment the helper's semantics drift.
+        // An unconditional constant return-void is behavior-identical, touches
+        // NO registers, and carries no label-collision or fall-through risk.
+        CommentsViewModelAdLoaderFingerprint.method.addInstructions(0, "return-void")
 
         // ── Layer 4: comment ad placeholders (Reddit 2026.04+) ───────────────
         // CommentsAdState.adsLoadCompleted gates placeholder rendering. The
@@ -154,6 +146,16 @@ val redditRemoveAdsPatch = bytecodePatch(
         // (obfuscation-proof — names change per build) and no-op them with a
         // framework-safe early return-void. Kills rendering AND ad-impression
         // callbacks inside, without touching any data model.
+        //
+        // KEEP DECISION (2026-11-07): this is the riskiest injection in the
+        // Reddit set on re-composition-triggered read paths (a save triggers
+        // an optimistic mutation → list diff/re-bind → re-render). Field
+        // reports describe intermittent crashes after saving a post, which is
+        // exactly that path — but with no stack trace available (no device
+        // log yet), removing the layer would be guess-driven. It stays ON;
+        // it fails loudly (thrown PatchException → patch-time failure) or not
+        // at all, never silently corrupting. If a device crash-log lands
+        // pointing here, this layer moves to its own off-by-default patch.
         runCatching {
             val adSectionClassDef = AdPostSectionToStringFingerprint.originalClassDef
 

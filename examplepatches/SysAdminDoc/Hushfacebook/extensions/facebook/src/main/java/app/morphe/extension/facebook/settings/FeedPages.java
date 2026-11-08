@@ -224,6 +224,9 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_GROUP_POSTS_NOT_JOINED,
                         L10n.t("Hides posts from groups you haven't joined, like a friend's post in a public group, and a "
                                 + "group post a friend commented on or shared. Posts from your groups stay.")));
+                feed.addPreference(toggle(context, Settings.HIDE_GROUP_POSTS,
+                        L10n.t("Hides every post from a group in your feed, your own groups' too, and a group post a friend "
+                                + "commented on or shared. The Groups tab keeps its feed.")));
                 feed.addPreference(toggle(context, Settings.HIDE_STORIES_YOU_MIGHT_LIKE,
                         L10n.t("Hides the row of Stories from people you aren't connected to, between posts. Your friends' Stories "
                                 + "and the Stories tray stay.")));
@@ -436,6 +439,10 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_PAGE_POSTS,
                         L10n.t("Hides posts written by Pages, the ones you follow too. Posts from friends and groups "
                                 + "stay, and so does a friend's share of a Page's post.")));
+                feed.addPreference(toggle(context, Settings.ONLY_FRIENDS_POSTS,
+                        L10n.f("Shows only posts your friends wrote and hides Pages, groups, ads, suggested posts and "
+                                + "feed reels. A post whose author it can't tell stays. Turn on %1$s too for the newest "
+                                + "posts first.", L10n.isolate(SwitchLabels.title(Settings.FOLLOWING_FEED_HOME)))));
                 feed.addPreference(toggle(context, Settings.HIDE_OTHER_LANGUAGES,
                         L10n.t("Hides posts and Reels tab reels in a language you don't keep, going by the phone's own "
                                 + "guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing "

@@ -46,7 +46,7 @@ class HexPatchBuilder internal constructor(
 
 // The replacements being passed using a function is intended.
 // Previously the replacements were a property of the patch. Getter were being delegated to that property.
-// This late evaluation was being leveraged in app.morphe.patches.all.misc.hex.HexPatch.
+// This late evaluation was being leveraged in app.sqzass.patches.all.misc.hex.HexPatch.
 // Without the function, the replacements would be evaluated at the time of patch creation.
 // This isn't possible because the delegated property is not accessible at that time.
 @Deprecated("Use the hexPatch function with the builder parameter instead.")

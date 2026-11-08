@@ -33,6 +33,8 @@ val blockAnalyticsPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
+        // The Android TV build has no such adapter; do nothing there.
+        if (classDefByOrNull(ADAPTER) == null) return@execute
         val methods = mutableClassDefBy(ADAPTER).methods.filter {
             (it.name == "recordEvent" || it.name == "flushEvents") && it.returnType == RESULT
         }

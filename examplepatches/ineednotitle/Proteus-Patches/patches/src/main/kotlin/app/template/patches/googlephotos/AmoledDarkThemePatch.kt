@@ -118,6 +118,12 @@ private val ignoredColorNameParts = listOf(
     "warning",
 )
 
+// Only android: framework attributes belong here. Material library attributes
+// (colorSurface*, colorBackgroundFloating, ...) cannot be re-resolved by the
+// reandroid resource encoder at encode time — it aborts the whole patch with
+// "Unknown attribute name: <item name=\"colorSurface\">#ff000000</item>"
+// (observed on Amazon mShop 32.19.0.300; same failure class). Material
+// surfaces still go black through the <color>-token pass instead.
 private val amoledStyleItems = mapOf(
     "android:colorBackground" to AMOLED_BLACK,
     "android:navigationBarColor" to AMOLED_BLACK,
@@ -125,15 +131,6 @@ private val amoledStyleItems = mapOf(
     "android:windowBackground" to AMOLED_BLACK,
     "android:windowLightNavigationBar" to "false",
     "android:windowLightStatusBar" to "false",
-    "colorBackgroundFloating" to AMOLED_BLACK,
-    "colorSurface" to AMOLED_BLACK,
-    "colorSurfaceBright" to AMOLED_BLACK,
-    "colorSurfaceContainer" to AMOLED_BLACK,
-    "colorSurfaceContainerHigh" to AMOLED_BLACK,
-    "colorSurfaceContainerHighest" to AMOLED_BLACK,
-    "colorSurfaceContainerLow" to AMOLED_BLACK,
-    "colorSurfaceContainerLowest" to AMOLED_BLACK,
-    "colorSurfaceDim" to AMOLED_BLACK,
 )
 
 // Resource-only AMOLED approach adapted from xob0t and hoo-dles Morphe example patches.
@@ -250,6 +247,10 @@ private fun Element.hasDarkThemeItem(): Boolean {
 }
 
 private fun Element.ensureStyleItem(document: Document, name: String, value: String): Boolean? {
+    // Hard guard: the reandroid encoder can only re-resolve android: framework
+    // attributes. Never create or rewrite a non-framework attribute item.
+    if (!name.startsWith("android:")) return null
+
     val children = childNodes
     for (i in 0 until children.length) {
         val item = children.item(i) as? Element ?: continue

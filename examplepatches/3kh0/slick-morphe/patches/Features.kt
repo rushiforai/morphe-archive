@@ -1,6 +1,7 @@
 package slick.android
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -9,6 +10,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
@@ -19,6 +21,23 @@ val nativeFeatures =
     bytecodePatch {
         dependsOn(modMenu)
         execute {
+            val stateMethod =
+                findMethod("stateFromTs") {
+                    it.parameterTypes == listOf("Lslack/model/Message;") &&
+                        it.returnType == "Lslack/model/MessageState;" && it.accessFlags and 0x8 != 0
+                }
+            method("Lslick/android/Host;", "messageState").run {
+                removeInstructions(0, code.size)
+                addInstructions(
+                    0,
+                    """
+                    check-cast p0, Lslack/model/Message;
+                    invoke-static {p0}, $stateMethod
+                    move-result-object p0
+                    return-object p0
+                    """,
+                )
+            }
             val compat = "Landroidx/core/content/res/ResourcesCompat;"
             method("Landroidx/compose/ui/text/font/FontFamilyResolverImpl;", "resolve") {
                 it.parameterTypes == listOf("Landroidx/compose/ui/text/font/TypefaceRequest;")
@@ -37,19 +56,24 @@ val nativeFeatures =
                 )
             }
             method(compat, "loadFont").run {
+                val callback = parameterTypes.getOrNull(4)?.toString()
                 check(
-                    parameterTypes ==
+                    parameterTypes.take(4) ==
                         listOf(
                             "Landroid/content/Context;",
                             "I",
                             "Landroid/util/TypedValue;",
                             "I",
-                            "Lcoil/util/-Lifecycles;",
-                            "Z",
-                            "Z",
-                        ),
-                )
-                check(registers == 19)
+                        ) &&
+                        parameterTypes.drop(5) == listOf("Z", "Z") &&
+                        callback?.startsWith("L") == true && returnType == "Landroid/graphics/Typeface;",
+                ) { "Unexpected font loader signature: $parameterTypes -> $returnType" }
+                check(
+                    classDefBy(callback!!).methods.any {
+                        it.name == "onFontRetrieved" && it.parameterTypes == listOf("Landroid/graphics/Typeface;") && it.returnType == "V"
+                    },
+                ) { "Font callback contract changed: $callback" }
+                check(registers == 19) { "Font loader register layout changed: $registers" }
                 intercept(
                     "invoke-static/range {p0 .. p6}, Lslick/android/Fonts;->load(Landroid/content/Context;ILandroid/util/TypedValue;ILjava/lang/Object;ZZ)Landroid/graphics/Typeface;\n$RESULT",
                     "return-object v0",
@@ -110,13 +134,33 @@ val nativeFeatures =
                 }
             }
 
-            // R8 merged this coroutine into a files class; target only the user-header body.
-            method(
-                "Lslack/files/FilesRepositoryImpl\$getModelsMapFromDb\$1;",
-                "invokeSuspend\$slack\$messagerendering\$impl\$binders\$MessageHeaderBinderImpl\$setMessageHeaderAvatarAndNameForUser\$1\$6",
-            ).run {
-                check(parameterTypes == listOf("Ljava/lang/Object;"))
-                addInstructions(indexed(Opcode.RETURN_OBJECT).one().index, call("p0", "Features;->timestampPronouns(Ljava/lang/Object;)V"))
+            // R8 merged the user-header renderer into this coroutine. Hook only its header branch.
+            method("Lslack/reactorsview/ReactorsViewDataProviderImpl\$invoke\$2;", "invokeSuspend").run {
+                check(parameterTypes == listOf("Ljava/lang/Object;") && returnType == "Ljava/lang/Object;")
+                val (end, badge) =
+                    indexed {
+                        it.opcode == Opcode.IGET_OBJECT &&
+                            it.field?.definingClass == "Lslack/messagerendering/impl/binders/HeaderBindingMetadata;" &&
+                            it.field?.name == "guestBadgeVerified"
+                    }.one()
+                val start = code.take(end).indexOfLast { it.opcode == Opcode.CHECK_CAST && it.cast == "Lslack/messagerendering/impl/binders/HeaderBindingMetadata;" }
+                check(start >= 0)
+                val binding = code[start].reg
+                check((badge as TwoRegisterInstruction).registerB == binding)
+                val views =
+                    (start until end)
+                        .map { code[it] }
+                        .single {
+                            it.opcode == Opcode.CHECK_CAST && it.cast == "Lslack/messagerendering/api/binders/MessageHeaderBinder\$HeaderViews;"
+                        }.reg
+                val metadata =
+                    (start until end).single {
+                        code[it].opcode == Opcode.CHECK_CAST && code[it].cast == "Lslack/messagerendering/model/MessageMetadata;"
+                    }
+                addInstructions(
+                    metadata + 1,
+                    "invoke-static {v$views, v${code[metadata].reg}, v$binding}, Lslick/android/Features;->timestampPronouns(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V",
+                )
             }
 
             val messages = "Lslack/services/messages/delegate/MessagesDelegateImpl;"

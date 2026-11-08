@@ -1,3 +1,15 @@
+## [1.2.0](https://github.com/jmwerk/carbridge-patches/compare/v1.1.0...v1.2.0) (2026-11-07)
+
+### ✨ New Features
+
+* use CarBridge's shared Android Auto rules ([7d5ed04](https://github.com/jmwerk/carbridge-patches/commit/7d5ed045aa9693148267e6e62157b89df71070ed))
+
+## [1.2.0-dev.1](https://github.com/jmwerk/carbridge-patches/compare/v1.1.0...v1.2.0-dev.1) (2026-11-07)
+
+### ✨ New Features
+
+* use CarBridge's shared Android Auto rules ([7d5ed04](https://github.com/jmwerk/carbridge-patches/commit/7d5ed045aa9693148267e6e62157b89df71070ed))
+
 ## [1.1.0](https://github.com/jmwerk/carbridge-patches/compare/v1.0.0...v1.1.0) (2026-11-06)
 
 ### ✨ New Features

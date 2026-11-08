@@ -22,7 +22,7 @@ public final class VerifyNuvioCurrentStreamRuntime {
             Map.entry("h1.h", "package h1; public class h {public static h1.r1 s(Object v){return new h1.r1(v);} public static Object s(long v){throw new AssertionError(\"Wrong factory\");}}"),
             Map.entry("x1.q", "package x1; public interface q {}"),
             Map.entry("k2.e", "package k2; public class e {}"),
-            Map.entry("gb.gd", "package gb; import kotlin.jvm.functions.Function0; public class gd {\n    public static boolean enabled; public static Function0 toggle,noop;\n    public static void m(String title,String description,boolean value,Function0 click,x1.q modifier,Function0 focus,boolean disabled,k2.e icon,long tint,boolean busy,h1.n composer,int flags,int defaults){\n        if(!title.equals(\"Indicate current stream\")||defaults!=1008||flags!=0)throw new AssertionError(title);\n        enabled=value;toggle=click;noop=focus;\n    }\n}")
+            Map.entry("gb.hd", "package gb; import kotlin.jvm.functions.Function0; public class hd {\n    public static boolean enabled; public static Function0 toggle,noop;\n    public static void m(String title,String description,boolean value,Function0 click,x1.q modifier,Function0 focus,boolean disabled,k2.e icon,long tint,boolean busy,h1.n composer,int flags,int defaults){\n        if(!title.equals(\"Indicate current stream\")||defaults!=1008||flags!=0)throw new AssertionError(title);\n        enabled=value;toggle=click;noop=focus;\n    }\n}")
         );
         List<String> compile = new ArrayList<>(List.of("-classpath", System.getProperty("java.class.path"), "-d", root.toString()));
         for (var entry : sources.entrySet()) {
@@ -46,7 +46,7 @@ public final class VerifyNuvioCurrentStreamRuntime {
             }
         }) {
             Class<?> bridge = loader.loadClass("software.santodan.extension.nuviocurrentstream.NuvioCurrentStream");
-            Class<?> thread = loader.loadClass("android.app.ActivityThread"), row = loader.loadClass("gb.gd");
+            Class<?> thread = loader.loadClass("android.app.ActivityThread"), row = loader.loadClass("gb.hd");
             var label = bridge.getMethod("label", String.class, boolean.class);
             var render = bridge.getMethod("renderSettings", Object.class);
             // Unselected rows never read preferences, even before Application exists.

@@ -1,0 +1,71 @@
+/*
+ * Copyright (C) 2026 sqzass
+ * SPDX-License-Identifier: GPL-3.0-only
+ */
+package app.sqzass.patches.shared.misc.proton
+
+import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.Patch
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.getFreeRegisterProvider
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
+import app.sqzass.patches.shared.misc.fillAppliedPatch
+import app.sqzass.patches.shared.misc.fillPatchMetadata
+import app.sqzass.patches.shared.misc.returnTrueFrom
+
+internal const val PROTON_EXTENSION_PACKAGE = "Lapp/sqzass/extension/proton/"
+internal const val ACCENT_COLOR_CLASS = "${PROTON_EXTENSION_PACKAGE}AccentColor;"
+internal const val AMOLED_THEME_CLASS = "${PROTON_EXTENSION_PACKAGE}AmoledTheme;"
+internal const val MATERIAL_SWITCHES_CLASS = "${PROTON_EXTENSION_PACKAGE}MaterialSwitches;"
+internal const val UPSELLING_VISIBILITY_CLASS = "${PROTON_EXTENSION_PACKAGE}UpsellingVisibility;"
+internal const val PATCHES_MENU_CLASS = "${PROTON_EXTENSION_PACKAGE}PatchesMenu;"
+private const val PATCH_CONTEXT_CLASS = "${PROTON_EXTENSION_PACKAGE}PatchContext;"
+private const val APPLIED_PATCHES_CLASS = "${PROTON_EXTENSION_PACKAGE}AppliedPatches;"
+
+internal fun BytecodePatchContext.attachPatchContext(applicationClass: String) =
+    mutableClassDefBy(applicationClass).methods
+        .single { it.name == "onCreate" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+        .addInstruction(
+            0,
+            "invoke-static/range { p0 .. p0 }, $PATCH_CONTEXT_CLASS->attach(Landroid/app/Application;)V",
+        )
+
+internal fun BytecodePatchContext.markFeaturePatched(featureClass: String) = returnTrueFrom(featureClass, "isPatched")
+
+internal fun MutableMethod.returnVoidWhenUpsellingHidden() = returnVoidWhen("$UPSELLING_VISIBILITY_CLASS->isHidden()Z")
+
+internal fun MutableMethod.returnVoidWhen(condition: String) {
+    val free = getFreeRegisterProvider(0, 1).getFreeRegister()
+
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static { }, $condition
+            move-result v$free
+            if-eqz v$free, :show
+            return-void
+        """,
+        ExternalLabel("show", getInstruction(0)),
+    )
+}
+
+internal fun BytecodePatchContext.markPatchApplied(methodName: String, patch: Patch<*>) =
+    fillAppliedPatch(APPLIED_PATCHES_CLASS, methodName, patch, withDescription = false)
+
+internal fun appliedPatchMarkerPatch(methodName: String, patch: () -> Patch<*>) = bytecodePatch {
+    extendWith("extensions/extension.mpe")
+
+    execute {
+        markPatchApplied(methodName, patch())
+    }
+}
+
+internal fun BytecodePatchContext.markPatchMetadata(
+    methodName: String,
+    patch: Patch<*>,
+    withDescription: Boolean = false,
+) = fillPatchMetadata(APPLIED_PATCHES_CLASS, methodName, patch, withDescription)

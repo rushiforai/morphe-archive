@@ -53,7 +53,7 @@ val skipAdsPatch = bytecodePatch(
     name = "Skip ads",
     description = "Blocks HBO Max's ad servers, so videos play without ads.",
 ) {
-    compatibleWith(Constants.COMPATIBILITY)
+    compatibleWith(Constants.COMPATIBILITY, Constants.STREAM_COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
 

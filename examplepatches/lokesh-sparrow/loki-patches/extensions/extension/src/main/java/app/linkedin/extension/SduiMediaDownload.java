@@ -197,6 +197,8 @@ public final class SduiMediaDownload {
             button.setLayoutParams(params);
         }
         button.bringToFront();
+        // A video viewer opens immersive, so start hidden there rather than over a bare screen.
+        button.setVisibility(ViewerChrome.controlsVisible() ? View.VISIBLE : View.GONE);
         button.setOnClickListener(v -> onDownloadClick(activity, fragment));
         button.setOnLongClickListener(v -> {
             SettingsActivity.open(activity);
@@ -208,6 +210,28 @@ public final class SduiMediaDownload {
         ViewGroup content = activity.findViewById(android.R.id.content);
         View view = content == null ? null : content.findViewWithTag(tag);
         if (view != null) content.removeView(view);
+    }
+
+    /**
+     * Shows or hides both download button variants. A single tap in the viewers hides the app's own chrome,
+     * so the button follows it instead of floating over an empty screen.
+     */
+    static void setButtonVisible(Activity activity, boolean visible) {
+        if (activity == null) return;
+        ViewGroup content = activity.findViewById(android.R.id.content);
+        if (content == null) return;
+        for (String tag : new String[]{DOWNLOAD_TAG, DownloadMediaPatch.OVERLAY_TAG}) {
+            View view = content.findViewWithTag(tag);
+            if (view != null) view.setVisibility(visible ? View.VISIBLE : View.GONE);
+        }
+    }
+
+    /** Whether the download button is showing; true when the screen has no button to hide. */
+    static boolean buttonVisible(Activity activity) {
+        if (activity == null) return true;
+        ViewGroup content = activity.findViewById(android.R.id.content);
+        View view = content == null ? null : content.findViewWithTag(DOWNLOAD_TAG);
+        return view == null || view.getVisibility() == View.VISIBLE;
     }
 
     private static View createDownloadButton(Context context) {

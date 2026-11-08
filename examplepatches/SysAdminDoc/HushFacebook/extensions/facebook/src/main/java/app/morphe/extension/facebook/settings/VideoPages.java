@@ -233,6 +233,10 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.WATCH_AGAIN_IN_PLACE,
                     L10n.t("Watch again at the end of a feed video plays it again right there, instead of "
                             + "opening it in Reels.")));
+            // Asked as a video in Saved is tapped, so a change shows on the next tap (#404).
+            reels.addPreference(toggle(context, Settings.SAVED_VIDEOS_IN_PLAYER,
+                    L10n.t("A video you tap in Saved plays in the video player instead of Reels, where the next "
+                            + "swipe is a suggested reel.")));
             // Asked as each tile of the feed's Reels row is drawn, so a change shows on the next tiles.
             reels.addPreference(toggle(context, Settings.PLAY_FEED_REELS_WHOLE,
                     L10n.t("The reels in your feed's Reels row play from the start and keep going, instead of "
@@ -246,8 +250,9 @@ final class VideoPages {
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
             reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,
-                    L10n.t("Stops sending Facebook your list of watched reels. It uses the list to rank your feed, so reels "
-                            + "you've watched may come back.")));
+                    L10n.t("Stops sending Facebook your list of watched reels, and where you stopped in each video and "
+                            + "how long you watched it. Facebook ranks your feed with these, so videos you've watched may "
+                            + "come back.")));
         }
         if (build.contains(PatchFamily.NEWEST_REELS_FIRST)) {
             Preference sort = toggle(context, Settings.NEWEST_REELS_FIRST,
@@ -484,7 +489,7 @@ final class VideoPages {
                 // Asked as each window is armed and on each tap of the row, so a change shows from the next reel.
                 playback.addPreference(toggle(context, Settings.PICTURE_IN_PICTURE_FROM_MENU,
                         L10n.t("Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu "
-                                + "(the three dots) when you want one. That row shows on upright reels, not wide ones.")));
+                                + "(the three dots) when you want one.")));
                 // Asked as each screen is armed and as the screen changes, so a change shows within a moment.
                 playback.addPreference(toggle(context, Settings.PICTURE_IN_PICTURE_BUTTON,
                         L10n.t("Shows a small button at the left edge of a reel or video that has the window ready. Tap it to open "

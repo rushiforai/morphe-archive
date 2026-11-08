@@ -52,6 +52,7 @@ APP_ICONS = {
     "com.camel.corp.universalcopy": ".github/assets/apps/com.camel.corp.universalcopy.png",
     "cz.mroczis.netmonster": ".github/assets/apps/cz.mroczis.netmonster.png",
     "com.anetcapture.mock": ".github/assets/apps/com.anetcapture.mock.png",
+    "vn.vtv.vtvgo": ".github/assets/apps/vn.vtv.vtvgo.png",
 }
 
 

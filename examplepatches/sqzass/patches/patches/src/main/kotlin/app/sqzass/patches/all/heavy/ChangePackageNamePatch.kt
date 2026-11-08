@@ -23,11 +23,26 @@ private val COMPONENT_TAGS = mapOf(
 
 internal val newPackageOption = stringOption(
     key = "newPackageName",
-    default = "com.example.renamed",
-    title = "New Package Name",
-    description = "Replacement package name written into the manifest and dex strings.",
-    validator = { value -> value.isNullOrBlank() || value!!.matches(Regex("[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)+")) },
+    default = "",
+    title = "New Package Name (or .suffix)",
+    description = "Package name to use for the renamed app. Leave blank to use the current package name as-is (autofilled, no rename); edit this field to change it. Use a leading '.' to append a suffix (e.g. '.sqz'), '+' to insert a suffix after the current package, or enter a full package name to replace it entirely.",
+    validator = { value ->
+        if (value.isNullOrBlank()) true
+        else if (value.startsWith(".")) value.substring(1).matches(Regex("[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*"))
+        else if (value.startsWith("+")) value.substring(1).matches(Regex("[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*"))
+        else value.matches(Regex("[a-zA-Z][a-zA-Z0-9_]*(\\.[a-zA-Z][a-zA-Z0-9_]*)+"))
+    },
 )
+
+internal fun resolveNewPackageName(input: String?, originalPackage: String): String {
+    val trimmed = input?.trim().orEmpty()
+    return when {
+        trimmed.isEmpty() -> originalPackage
+        trimmed.startsWith(".") -> originalPackage + trimmed
+        trimmed.startsWith("+") -> "$originalPackage.${trimmed.substring(1)}"
+        else -> trimmed
+    }
+}
 
 private val rewriteManifestOption = booleanOption(
     key = "rewriteManifest",
@@ -70,12 +85,6 @@ val changePackageNamePatch = resourcePatch(
     dependsOn(changePackageNameDexPatch)
 
     execute {
-        val newPackage = newPackageOption.value?.takeIf { it.isNotBlank() }
-        if (newPackage == null) {
-            logger.info("New package name missing or invalid.")
-            return@execute
-        }
-
         document("AndroidManifest.xml").use { document ->
             val root = document.documentElement
             val oldPackage = root.getAttribute(PACKAGE_ATTR).ifEmpty { null }
@@ -83,6 +92,8 @@ val changePackageNamePatch = resourcePatch(
                 logger.info("Manifest has no package attribute.")
                 return@use
             }
+
+            val newPackage = resolveNewPackageName(newPackageOption.value, oldPackage)
 
             if (rewriteManifestOption.value == true) {
                 root.setAttribute(PACKAGE_ATTR, newPackage)

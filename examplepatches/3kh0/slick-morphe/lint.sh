@@ -34,7 +34,7 @@ tar -xzf "$tools/actionlint.tar.gz" -C "$tools" actionlint
 chmod +x "$tools/ktlint" "$tools/shfmt"
 export PATH="$tools:$PATH" # actionlint runs shellcheck on workflow scripts
 
-java_files=(extension/*.java)
+java_files=(extension/*.java scripts/*.java)
 shell_files=(*.sh)
 status=0
 run() { "$@" || status=1; }

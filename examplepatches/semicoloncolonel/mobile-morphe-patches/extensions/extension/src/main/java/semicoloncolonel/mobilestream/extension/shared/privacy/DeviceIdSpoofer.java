@@ -47,6 +47,25 @@ public final class DeviceIdSpoofer {
         return Settings.Secure.getString(resolver, name);
     }
 
+    /**
+     * Masks an ID the app generated from the device (for example, Adjust's
+     * device ID that Truth Social sends to its own server). The answer is a
+     * random value for this install, in the same 32-character hex form, and
+     * stays the same across launches.
+     */
+    public static String maskId(String original) {
+        if (original == null || original.isEmpty()) return original;
+        try {
+            byte[] digest = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(("msp-mask:" + fakeAndroidId()).getBytes("UTF-8"));
+            StringBuilder sb = new StringBuilder(32);
+            for (int i = 0; i < 16; i++) sb.append(String.format("%02x", digest[i] & 0xff));
+            return sb.toString();
+        } catch (Throwable t) {
+            return randomHex16() + randomHex16();
+        }
+    }
+
     static String fakeAndroidId() {
         String id = cachedId;
         if (id != null && persisted) return id;

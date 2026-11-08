@@ -25,6 +25,7 @@ private var originalApplicationClass: String? = null
 @Suppress("unused")
 private val bypassPairIpInternalPatch = bytecodePatch {
     execute {
+        originalApplicationClass = null
         classDefForEach { classDef ->
             if (classDef.type == STUB_TYPE) {
                 originalApplicationClass = classDef.superclass

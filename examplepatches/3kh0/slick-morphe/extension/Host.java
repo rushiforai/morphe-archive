@@ -4,6 +4,10 @@ import java.lang.reflect.Field;
 import java.util.concurrent.ConcurrentHashMap;
 
 final class Host {
+  static Object messageState(Object message) {
+    throw new IllegalStateException("Message state hook was not applied");
+  }
+
   private static final ConcurrentHashMap<Class<?>, ConcurrentHashMap<String, Field>> fields =
       new ConcurrentHashMap<>();
 

@@ -694,6 +694,13 @@ public class SettingsStatus {
         likedGridSortEnabled = true;
     }
 
+    /** The Liked list request and the grid fragment's refresh were found, so a Liked grid can jump to a date (#350). */
+    public static boolean likedJumpEnabled = false;
+
+    public static void enableLikedJump() {
+        likedJumpEnabled = true;
+    }
+
     /** The detail page grid adapter hands over its label, so a sound's page can be sorted (#180). */
     public static boolean soundGridSortEnabled = false;
 
@@ -762,6 +769,13 @@ public class SettingsStatus {
 
     public static void enableGroupChatBanner() {
         groupChatBannerEnabled = true;
+    }
+
+    /** Hide inbox items found the stories tray's On this day cell on this build and hooked its bind. */
+    public static boolean inboxOnThisDayEnabled = false;
+
+    public static void enableInboxOnThisDay() {
+        inboxOnThisDayEnabled = true;
     }
 
     /** Hide profile shortcuts found the profile picture's Thoughts bubble on this build and hooked it. */

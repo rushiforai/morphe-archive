@@ -1,0 +1,28 @@
+name: Build release artifacts
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Build bundle and patch metadata
+        run: ./build.sh
+      - name: Prepare local release assets
+        run: python3 tools/prepare-release.py --repository "$GITHUB_REPOSITORY"
+      - name: Upload assets for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: shikify-release
+          path: release/
+          if-no-files-found: error

@@ -117,6 +117,7 @@ public final class FamilyNames {
     public static final String HIDE_COMMENTS = "Hide comments";
     public static final String COMMENT_EMOJI_ROW = "Hide the comment emoji row";
     public static final String COMMENT_KEYBOARD = "Open comments without the keyboard";
+    public static final String COMMENT_GIFS = "Hide GIFs in comments";
     public static final String FEED_FOLLOW = "Hide Follow on feed posts";
     public static final String ACTIVITY_BUBBLES = "Hide activity bubbles";
     public static final String HIDE_CAPTIONS = "Hide captions";
@@ -140,6 +141,7 @@ public final class FamilyNames {
     public static final String REEL_TAP_AND_VOLUME = "Control taps and volume on Reels";
     public static final String REEL_SOUND = "Start reels with sound";
     public static final String REEL_ZOOM = "Pinch to zoom on Reels";
+    public static final String REEL_DOUBLE_TAP_SKIP = "Double tap to skip on Reels";
     public static final String REEL_AUTO_SCROLL = "Keep Reels auto scroll on";
     public static final String REEL_SCROLLING = "Stop Reels scrolling";
     public static final String SWIPE_TO_PROFILE = "Swipe left to open the profile";

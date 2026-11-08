@@ -27,8 +27,11 @@ import app.morphe.patcher.util.matchAllMethodIndicesForEach
 import app.morphe.patcher.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import semicoloncolonel.mobilestream.patches.shared.misc.gms.GMS_EXTENSION_CLASS
@@ -238,16 +241,47 @@ val gmsCoreSupportPatch = bytecodePatch(
         )
 
         // GNP expects the original Google package even when the installed app is renamed.
-        GnpRegistrationTargetFingerprint.apply {
-            val result = instructionMatches[1]
-            method.replaceInstruction(
-                result.index,
-                BuilderInstruction21c(
-                    Opcode.CONST_STRING,
-                    (result.instruction as OneRegisterInstruction).registerA,
-                    ImmutableStringReference(FROM_PACKAGE_NAME),
-                ),
-            )
+        // Up to 10.44 the target method reads the Android ID itself, so one fingerprint
+        // finds it. From 10.45 the Android ID lookup is its own class: the target is the
+        // one (Object)Object method that calls into that class and reads the package name.
+        val (_, gnpMethod, gnpIndex) = GnpRegistrationTargetFingerprint.matchOrNull()?.let {
+            Triple(it.classDef.type, it.method, it.instructionMatches[1].index)
+        } ?: run {
+            val idClass = GnpAndroidIdFingerprint.classDef.type
+            val found = mutableListOf<Pair<String, Method>>()
+            classDefForEach { classDef ->
+                classDef.methods.forEach { method ->
+                    if (method.returnType != "Ljava/lang/Object;" ||
+                        method.parameterTypes.map { it.toString() } != listOf("Ljava/lang/Object;")
+                    ) return@forEach
+                    val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+                    val callsIdClass = instructions.any {
+                        ((it as? ReferenceInstruction)?.reference as? MethodReference)?.definingClass == idClass
+                    }
+                    if (callsIdClass && packageNameResult(instructions) != null) found += classDef.type to method
+                }
+            }
+            if (found.size != 1) throw PatchException("GNP registration target not found (${found.size} matches)")
+            val (type, method) = found.single()
+            val mutable = mutableClassDefBy(type).methods.first { it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType }
+            Triple(type, mutable, packageNameResult(mutable.implementation!!.instructions.toList())!!)
         }
+        val register = gnpMethod.getInstruction<OneRegisterInstruction>(gnpIndex).registerA
+        gnpMethod.replaceInstruction(
+            gnpIndex,
+            BuilderInstruction21c(Opcode.CONST_STRING, register, ImmutableStringReference(FROM_PACKAGE_NAME)),
+        )
     }
+}
+
+/** Index of the move-result-object right after Context.getPackageName(), or null. */
+private fun packageNameResult(instructions: List<Instruction>): Int? {
+    instructions.forEachIndexed { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+        if (instruction.opcode == Opcode.INVOKE_VIRTUAL &&
+            reference.definingClass == "Landroid/content/Context;" && reference.name == "getPackageName" &&
+            instructions.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT
+        ) return index + 1
+    }
+    return null
 }

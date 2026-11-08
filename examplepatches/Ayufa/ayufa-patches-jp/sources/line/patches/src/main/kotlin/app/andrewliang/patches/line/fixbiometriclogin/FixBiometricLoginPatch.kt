@@ -12,7 +12,7 @@ private const val EXTENSION_CLASS = "Lapp/andrewliang/extension/LineSignature;"
 val fixBiometricLoginPatch = bytecodePatch(
     name = "[Fix] Restore biometric login",
     description = "再署名ビルドでも生体認証ログインを再び連携できます。Root Mountインストールにはこのパッチは不要です。",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_LINE)
 

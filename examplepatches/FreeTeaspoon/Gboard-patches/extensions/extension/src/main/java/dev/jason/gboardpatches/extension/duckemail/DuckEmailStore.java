@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
+import dev.jason.gboardpatches.extension.settings.GboardPatchesSettings;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
 import java.util.UUID;
@@ -26,7 +27,15 @@ final class DuckEmailStore {
     private final TokenCipher cipher;
 
     DuckEmailStore(Context context) {
-        this(context.getSharedPreferences(FILE, Context.MODE_PRIVATE), new KeystoreCipher());
+        this(privatePreferences(context), new KeystoreCipher());
+    }
+
+    private static SharedPreferences privatePreferences(Context context) {
+        // Keep credentials outside exported settings and never open CE storage before unlock.
+        if (!GboardPatchesSettings.isUserUnlocked(context)) {
+            throw new IllegalStateException("Duck email storage requires an unlocked user");
+        }
+        return context.getSharedPreferences(FILE, Context.MODE_PRIVATE);
     }
     DuckEmailStore(SharedPreferences preferences, TokenCipher cipher) {
         this.preferences = preferences;

@@ -11,6 +11,9 @@ object Constants {
         description = "The JustWatch streaming guide app, for phones and Android TV.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFBC500,
-        targets = listOf(AppTarget("26.44.2"), AppTarget("26.43.8"))
+        targets = listOf(
+            AppTarget("26.44.2", 2644002, description = "Phone build"),
+            AppTarget("26.43.8", 2643008, description = "Android TV build"),
+        )
     )
 }

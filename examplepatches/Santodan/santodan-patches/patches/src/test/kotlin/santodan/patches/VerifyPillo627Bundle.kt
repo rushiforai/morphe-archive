@@ -75,6 +75,11 @@ fun main(args: Array<String>) = runBlocking {
     }
     Pillo627.validateBackup(originals)
     Pillo627Import.validate(originals)
+    for (owner in listOf("Lxyz/rtrvr/pillo/ui/components/buttons/ButtonsKt;",
+        "Lxyz/rtrvr/pillo/ui/components/buttons/ButtonProps\$2;", "Lxyz/rtrvr/pillo/ui/components/buttons/ButtonProps\$3;")) {
+        check(runCatching { Pillo627Import.validate(originals.filterNot { it.type == owner }) }.isFailure)
+        check(runCatching { Pillo627Import.validate(originals + originals.single { it.type == owner }) }.isFailure)
+    }
     Pillo627Contracts.summary(originals)
     Pillo627Contracts.progress(originals)
     val premium = PilloPremiumPatch.validate(originals)

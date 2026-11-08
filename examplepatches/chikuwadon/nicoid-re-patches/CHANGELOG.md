@@ -1,3 +1,44 @@
+## 1.10.4 (2026-11-08)
+
+### ✨ New Features
+
+* **nicoid:** Display additional historical comments progressively while retrieval continues.
+
+### 🔧 Improvements
+
+* **nicoid:** Set playback controls and seek bar visibility to 2 seconds in normal and popup playback.
+* **nicoid:** Batch comment updates to avoid excessive refreshes during retrieval.
+* **nicoid:** Avoid redundant comment parsing and unnecessary processing before updates.
+* **nicoid:** Reduce memory allocations by eliminating redundant comment-list copies and releasing temporary retrieval data earlier.
+
+## 1.10.3 (2026-11-07)
+
+### ✨ New Features
+
+* **nicoid:** Add an option to continue audio playback when the screen turns off during normal playback, enabled by default. ([#112](https://github.com/chikuwadon/nicoid-re-patches/issues/112))
+* **nicoid:** Support adding videos to local playlists directly from NicoNico video URLs or video IDs.
+* **nicoid:** Add "Add to playlist" to the video information menu.
+* **nicoid:** Add an unlimited comment retrieval option with memory protection and support for existing retrieval limits.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix the custom color picker preview not reflecting RGB adjustments.
+* **nicoid:** Fix incorrect completion detection for packed video caches when using the optimized cache index.
+* **nicoid:** Fix deep scroll positions being lost or incorrectly clamped while paginated lists are loading.
+* **nicoid:** Fix unintended scroll position changes when executing, cancelling, or leaving My Page gestures unassigned.
+* **nicoid:** Fix temporary cache index state not being released after exceptional loading failures.
+
+### 🔧 Improvements
+
+* **nicoid:** Reduce the swipe distance required to switch tabs for more responsive navigation.
+* **nicoid:** Extend customizable gesture controls to My Page.
+* **nicoid:** Improve scroll position restoration for asynchronously loaded lists, reducing redundant loading requests and restoration attempts.
+* **nicoid:** Save video upload dates and playback statistics when adding videos to local playlists.
+* **nicoid:** Automatically retrieve missing metadata for existing playlist entries, preserving scroll positions and limiting background requests to visible items.
+* **nicoid:** Optimize cache listing performance with single-pass file indexing and fallback validation.
+* **nicoid:** Improve gesture lifecycle handling and memory management by releasing unused view references and visual feedback resources.
+* **nicoid:** Unify dialog appearance and improve comment retrieval setting descriptions.
+
 ## 1.10.2 (2026-11-06)
 
 ### ✨ New Features

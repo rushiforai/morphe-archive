@@ -263,6 +263,7 @@ public class MediaCacheJournalHandoffTest {
                 journal(durable).getPath(), uri(10).toString()).redirectErrorStream(true);
         builder.environment().remove("JAVA_TOOL_OPTIONS");
         builder.environment().remove("JDK_JAVA_OPTIONS");
+        builder.environment().remove("_JAVA_OPTIONS");
         Process other = builder.start();
         ExecutorService writer = Executors.newSingleThreadExecutor();
         Future<?> publication = null;

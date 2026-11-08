@@ -82,7 +82,9 @@ public final class TrackerBlocker {
             "demdex.net", "adobedc.net", "omtrdc.net", "adobedtm.com", // Adobe Analytics
             "newrelic.com", "nr-data.net", // New Relic
             "igodigital.com", // Salesforce Marketing Cloud
-            "tm.pluto.tv", // Tealium tag config
+            // tm.pluto.tv and sparrow.pluto.tv save Continue Watching
+            // positions, so they are blocked only in aggressive mode. See
+            // blockResumeTracking().
             // Paramount+ phone (17.2.0)
             "tiqcdn.com", // Tealium
             "branch-sf5.cbs.com", // Branch, on Paramount's own link domain
@@ -211,6 +213,18 @@ public final class TrackerBlocker {
         return false;
     }
 
+    // Hosts that also save watch positions. Blocked only when a patch turns on
+    // aggressive blocking, because Continue Watching stops saving.
+    private static final String[] RESUME_TRACKING_DOMAINS = {
+            "tm.pluto.tv", // Pluto's Tealium config, which turns on Sparrow
+            "sparrow.pluto.tv", // Pluto's playback beacons, which save positions
+    };
+
+    // Overwritten to return true by a patch's aggressive blocking option.
+    public static boolean blockResumeTracking() {
+        return false;
+    }
+
     private static boolean isBraze(String host) {
         for (String domain : BRAZE_DOMAINS) {
             if (matches(host, domain)) return true;
@@ -229,6 +243,13 @@ public final class TrackerBlocker {
         for (String domain : BLOCKED_DOMAINS) {
             if (matches(h, domain)) {
                 return true;
+            }
+        }
+        if (blockResumeTracking()) {
+            for (String domain : RESUME_TRACKING_DOMAINS) {
+                if (matches(h, domain)) {
+                    return true;
+                }
             }
         }
         if (h.startsWith(FIRST_PARTY_PREFIX)) {
@@ -260,6 +281,19 @@ public final class TrackerBlocker {
 
     private static boolean matches(String host, String domain) {
         return host.equals(domain) || host.endsWith("." + domain);
+    }
+
+    /**
+     * Replaces InetAddress.getAllByName(String) in apps that rename OkHttp
+     * (Pluto TV): OkHttp's default DNS calls it for every request, so a
+     * blocked host fails before any connection is made.
+     */
+    public static java.net.InetAddress[] lookup(String host) throws java.net.UnknownHostException {
+        if (isBlocked(host)) {
+            logBlocked("dns", host);
+            throw new java.net.UnknownHostException("Blocked by Morphe privacy patch: " + host);
+        }
+        return java.net.InetAddress.getAllByName(host);
     }
 
     private static void logBlocked(String layer, String host) {

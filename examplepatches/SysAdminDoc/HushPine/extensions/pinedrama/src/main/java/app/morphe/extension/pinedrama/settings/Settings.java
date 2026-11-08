@@ -538,6 +538,17 @@ public class Settings extends BaseSettings {
     );
     /** Keeps the full-screen viewer on a video when it ends; the Stay on the video in full screen patch. */
     public static final BooleanSetting FULL_SCREEN_HOLD = new BooleanSetting("full_screen_hold", FALSE, true);
+    /** A drama's whole series in the full-screen viewer (issue #1). Read each time it opens. */
+    public static final BooleanSetting LANDSCAPE_EPISODES = new BooleanSetting("landscape_episodes", TRUE);
+    /** Language codes in the order to prefer them, with "original" for the video's own track. */
+    public static final StringSetting SUBTITLE_PRIORITY = new StringSetting("subtitle_priority", "");
+    public static final BooleanSetting FORCE_SUBTITLE = new BooleanSetting("force_subtitle", FALSE);
+    public static final BooleanSetting FORCE_ORIGINAL_SUBTITLE = new BooleanSetting("force_original_subtitle", FALSE);
+    public static final StringSetting DUB_PRIORITY = new StringSetting("dub_priority", "");
+    public static final BooleanSetting FORCE_DUB = new BooleanSetting("force_dub", FALSE);
+    public static final BooleanSetting FORCE_ORIGINAL_DUB = new BooleanSetting("force_original_dub", FALSE);
+    public static final BooleanSetting HIDE_NO_PREFERRED_SUBTITLE = new BooleanSetting("hide_no_preferred_subtitle", FALSE);
+    public static final BooleanSetting HIDE_NO_PREFERRED_DUB = new BooleanSetting("hide_no_preferred_dub", FALSE);
     /**
      * Plays the audio PineDrama mutes on a post whose sound was pulled; the Keep pulled sounds
      * patch. Read as each video starts, so no restart.
@@ -919,6 +930,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting PINEDRAMA_COMMENT_PHOTOS = new BooleanSetting("pinedrama_comment_photos", FALSE, true);
     public static final BooleanSetting KEEP_FAVORITES_TAB =
             new BooleanSetting("keep_favorites_tab", TRUE, true);
+    /** History and Favorites stay where you scrolled (issue #2). Read as each page is built. */
+    public static final BooleanSetting KEEP_LIST_POSITION =
+            new BooleanSetting("keep_list_position", TRUE, true);
     /** The collections popup from holding the bookmark, dark when TikTok is (issue #142). */
     public static final BooleanSetting DARK_QUICK_FAVORITES = new BooleanSetting("dark_quick_favorites", TRUE);
     /** The Following and For You names above the feed; the pager under them keeps swiping (issue #32). */

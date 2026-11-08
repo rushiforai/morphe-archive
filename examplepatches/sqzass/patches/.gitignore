@@ -121,6 +121,7 @@ gradle-app.setting
 
 # Local API docs cached from morphe-patcher (not part of the repo)
 .local-docs/
+PDocs
 
 # Dependency directories
 node_modules/
@@ -132,5 +133,9 @@ node_modules/
 .idea/
 local.properties
 
-# The work tracker must survive clones; it overrides the *.log rule above
-!handoff.log
+# Scripts (duh), currently holds a decomp for APKs.
+scripts/
+
+# Local APK workspace and input
+workspaces/
+apks/

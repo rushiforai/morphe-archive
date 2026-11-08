@@ -24,3 +24,14 @@ updates:
     target-branch: dev
     schedule:
       interval: monthly
+
+  # CarBridge (the carbridge submodule) holds the shared Android Auto rules
+  - package-ecosystem: gitsubmodule
+    labels: []
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: weekly
+    commit-message:
+      # Retitle to feat: or fix: before merging when core/ changed, so a release is made
+      prefix: chore

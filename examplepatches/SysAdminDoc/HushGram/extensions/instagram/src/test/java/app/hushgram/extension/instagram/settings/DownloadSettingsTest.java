@@ -94,6 +94,7 @@ public class DownloadSettingsTest {
         Settings.DOWNLOAD_CHOOSE_PAGES.resetToDefault();
         Settings.FEED_DOWNLOAD_BUTTON.resetToDefault();
         Settings.FEED_DOWNLOAD_ALL_PAGES.resetToDefault();
+        Settings.REEL_DOWNLOAD_BUTTON_ASKS.resetToDefault();
         Settings.REEL_DOWNLOAD_BUTTON.resetToDefault();
         Settings.REEL_NOT_INTERESTED_BUTTON.resetToDefault();
         Settings.REEL_BLOCK_BUTTON.resetToDefault();
@@ -131,16 +132,36 @@ public class DownloadSettingsTest {
             ShadowLooper.idleMainLooper();
             assertFalse("it waits for Download on reels", row.isEnabled());
             assertTrue(ConfigurationBackup.eligible().containsKey(Settings.REEL_DOWNLOAD_BUTTON.key));
+
+            // Ask what to save (#524) sits right under it and waits for it.
+            List<Preference> rows = rowsOf(page);
+            assertEquals(indexOfKey(rows, Settings.REEL_DOWNLOAD_BUTTON.key) + 1,
+                    indexOfKey(rows, Settings.REEL_DOWNLOAD_BUTTON_ASKS.key));
+            Preference asks = downloads.findPreference(Settings.REEL_DOWNLOAD_BUTTON_ASKS.key);
+            assertTrue(asks instanceof SwitchPreference);
+            assertEquals("Ask what to save", String.valueOf(asks.getTitle()));
+            assertFalse("it starts off", ((SwitchPreference) asks).isChecked());
+            ((SwitchPreference) page.findPreference(Settings.DOWNLOAD_REELS.key)).setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertFalse("it waits for the icon's switch", asks.isEnabled());
+            ((SwitchPreference) row).setChecked(true);
+            ShadowLooper.idleMainLooper();
+            assertTrue(asks.isEnabled());
+            assertTrue(ConfigurationBackup.eligible().containsKey(Settings.REEL_DOWNLOAD_BUTTON_ASKS.key));
         }
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REEL_DOWNLOAD, PatchFamily.VIDEO_DOWNLOAD);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             List<Preference> rows = rowsOf(pageIn(controller));
             assertEquals(indexOfKey(rows, Settings.FEED_DOWNLOAD_ALL_PAGES.key) + 1, indexOfKey(rows, Settings.REEL_DOWNLOAD_BUTTON.key));
+            assertEquals(indexOfKey(rows, Settings.REEL_DOWNLOAD_BUTTON.key) + 1,
+                    indexOfKey(rows, Settings.REEL_DOWNLOAD_BUTTON_ASKS.key));
         }
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.VIDEO_DOWNLOAD);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             assertEquals(-1, indexOfKey(rowsOf(pageIn(controller)), Settings.REEL_DOWNLOAD_BUTTON.key));
+            assertEquals(-1, indexOfKey(rowsOf(pageIn(controller)), Settings.REEL_DOWNLOAD_BUTTON_ASKS.key));
             assertFalse(ConfigurationBackup.eligible().containsKey(Settings.REEL_DOWNLOAD_BUTTON.key));
+            assertFalse(ConfigurationBackup.eligible().containsKey(Settings.REEL_DOWNLOAD_BUTTON_ASKS.key));
         }
     }
 
@@ -441,7 +462,6 @@ public class DownloadSettingsTest {
 
             int noHdr = indexOfKey(rows, Settings.DOWNLOAD_NO_HDR.key);
             assertEquals("the HDR switch isn't right under the AV1 one (#352)", noAv1 + 1, noHdr);
-            assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 1, noHdr);
             Preference noHdrRow = rows.get(noHdr);
             assertTrue(noHdrRow instanceof SwitchPreference);
             assertFalse(((SwitchPreference) noHdrRow).isChecked());
@@ -449,6 +469,17 @@ public class DownloadSettingsTest {
             assertEquals("For apps that show HDR with a yellow or green cast, such as Messenger. A video Instagram "
                     + "has at full size only in HDR is saved at its largest standard size instead.",
                     String.valueOf(noHdrRow.getSummary()));
+
+            int mkv = indexOfKey(rows, Settings.SAVE_VIDEOS_AS_MKV.key);
+            assertEquals("the MKV switch isn't right under the HDR one (#547)", noHdr + 1, mkv);
+            assertEquals(indexOfKey(rows, Settings.DOWNLOAD_QUALITY.key) - 1, mkv);
+            Preference mkvRow = rows.get(mkv);
+            assertTrue(mkvRow instanceof SwitchPreference);
+            assertFalse(((SwitchPreference) mkvRow).isChecked());
+            assertEquals("Save videos as MKV", String.valueOf(mkvRow.getTitle()));
+            assertEquals("Saves videos as .mkv files instead of .mp4, for galleries that show no thumbnail for VP9 "
+                    + "or AV1 videos. Nothing is re-encoded. A video Instagram sends as one file stays .mp4.",
+                    String.valueOf(mkvRow.getSummary()));
         }
 
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_ADS);
@@ -462,6 +493,8 @@ public class DownloadSettingsTest {
                     -1, indexOfKey(rows, Settings.DOWNLOAD_NO_AV1.key));
             assertEquals("an HDR row with no download in the build",
                     -1, indexOfKey(rows, Settings.DOWNLOAD_NO_HDR.key));
+            assertEquals("an MKV row with no download in the build",
+                    -1, indexOfKey(rows, Settings.SAVE_VIDEOS_AS_MKV.key));
         }
     }
 

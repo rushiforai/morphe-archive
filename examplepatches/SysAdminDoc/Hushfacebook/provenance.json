@@ -601,12 +601,13 @@
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/reels/ReelWatchHistory.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/reels/watchhistory/DontSendReelWatchHistoryPatch.kt",
-        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/watchhistory/SeenStateSend.kt"
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/watchhistory/SeenStateSend.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/reels/watchhistory/WatchedVideoSends.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the switch on the batches of watched reels Facebook's Reels viewer sends as FbShortsSeenStateMutation. The patch finds the batcher's flush in Facebook 577 and 580 by the mutation's name, its video_ids input and the Redex name of the runnable it hands its executor, and puts the extension in place of that hand-over. The extension holds a batch back while the switch is on and sends anything it doesn't recognise as Facebook handed it over."
+      "changes": "Written for Hushfacebook: the switch on the batches of watched reels Facebook's Reels viewer sends as FbShortsSeenStateMutation. The patch finds the batcher's flush in Facebook 577 and 580 by the mutation's name, its video_ids input and the Redex name of the runnable it hands its executor, and puts the extension in place of that hand-over. The extension holds a batch back while the switch is on and sends anything it doesn't recognise as Facebook handed it over. Since #408 the same switch also asks first thing in the static method sending SfdVideoPositionWatchedMutation and in the VOD/Reels view-time logger, each found by the literals it loads, and returns before either builds anything."
     },
     {
       "paths": [
@@ -1480,6 +1481,19 @@
       ],
       "license": "GPL-3.0-only with the Morphe section 7 notices",
       "changes": "HushMessenger's GmsCore support moved to Facebook. Facebook 585 has the same Play services availability check and the same androidx Credential Manager framework provider, and Facebook's original certificate is the one Messenger's is. Hushfacebook's own classes under app/morphe keep Google's names, the preflight asks the extension for its gmsCore status method in place of Messenger's version code check, and the patch marks itself in SettingsStatus so the settings page and the diagnostic report know it's patched in."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/coexist/CloneInstallPatch.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushMessenger",
+      "commit": "71a9b696aec15db5b960143afcd9f007b118babd",
+      "via": [
+        "https://github.com/rushiranpise/morphe-patches"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "HushMessenger's clone install moved to Facebook. The manifest rename and the two options are Messenger's: permissions, provider authorities, task affinities, push categories, meta-data values and the queries entries that name the app follow the new package, with the same reserved names and checks. Facebook's own process affinities (an empty one and the ':' ones) are left alone, the label goes through Hushfacebook's App name string, and the one check that compares a launched component's package with Facebook's name is handed the running package through OwnAuthorities so the copy's own screens open. Recents labels are hooked so a task shows the copy's name, the patch marks itself in SettingsStatus, and Messenger's backup, attachment and dedup sites are left to the shared package rename Hushfacebook already applies."
     },
     {
       "paths": [

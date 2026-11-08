@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.62.1",
+  "version": "1.68.0",
   "patches": [
     {
       "name": "120 FPS High Refresh Rate & Low Latency - Subway Surfers (Experimental)",
@@ -408,33 +408,6 @@
       "options": []
     },
     {
-      "name": "AMOLED Dark Theme & Declutter - MEGA (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into MEGA cloud file browser, transfer queue, and settings, and hides Pro upgrade promotion banners.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "mega.privacy.android.app",
-          "name": "MEGA",
-          "description": "MEGA: Cloud Storage & Chat by Mega Ltd",
-          "apkFileType": null,
-          "appIconColor": "#D9272E",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "AMOLED Dark Theme & Declutter - Perplexity (Experimental)",
       "description": "⚠️ [Experimental / Untested] Replaces gray backgrounds with pure OLED black (#000000) in Perplexity search threads and removes 'Try Pro' upgrade banners.",
       "default": true,
@@ -516,8 +489,8 @@
       "options": []
     },
     {
-      "name": "AMOLED Dark Theme & Privacy - Undercover (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Enforces dark mode and strips analytics telemetry (Firebase Analytics, App Measurement) in Undercover.",
+      "name": "AMOLED Dark Theme & Privacy - Undercover",
+      "description": "Enforces dark mode and strips analytics telemetry (Firebase Analytics, App Measurement) in Undercover.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -766,8 +739,8 @@
       "options": []
     },
     {
-      "name": "Ad-Free & Clean Environment - Virtual Master (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers.",
+      "name": "Ad-Free & Clean Environment - Virtual Master",
+      "description": "Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -934,6 +907,33 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ad-Free & Live Sports Ad-Block - JioHotstar",
+      "description": "Strips pre-roll, mid-roll, and ad pods during live cricket and sports streams, and eliminates banner and sponsored recommendation cards in JioHotstar.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "in.startv.hotstar",
+          "name": "JioHotstar",
+          "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
+          "apkFileType": null,
+          "appIconColor": "#0C203B",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.10.26.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -1458,33 +1458,6 @@
       "options": []
     },
     {
-      "name": "Allow Screenshots & Export - MEGA (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Disables FLAG_SECURE window restrictions to allow taking screenshots of documents and media in MEGA, and bypasses local export restrictions.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "mega.privacy.android.app",
-          "name": "MEGA",
-          "description": "MEGA: Cloud Storage & Chat by Mega Ltd",
-          "apkFileType": null,
-          "appIconColor": "#D9272E",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Allow Screenshots & Privacy - Proton Drive (Experimental)",
       "description": "⚠️ [Experimental / Untested] Removes Android FLAG_SECURE window restrictions in Proton Drive, allowing screenshots and screen recording of previewed documents and media.",
       "default": true,
@@ -1593,8 +1566,8 @@
       "options": []
     },
     {
-      "name": "Allow Screenshots & Screen Recording - Cryptomator (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview.",
+      "name": "Allow Screenshots & Screen Recording - Cryptomator",
+      "description": "Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -1610,7 +1583,7 @@
             {
               "version": "2.1.0",
               "versionCodes": null,
-              "isExperimental": true,
+              "isExperimental": false,
               "minSdk": null,
               "description": null
             }
@@ -1627,7 +1600,34 @@
             {
               "version": "2.1.0",
               "versionCodes": null,
-              "isExperimental": true,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Allow Screenshots & Screen Recording - MEGA",
+      "description": "Disables FLAG_SECURE window restrictions to allow taking screenshots and screen recordings of documents, media, and chat in MEGA, and bypasses local export restrictions.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "mega.privacy.android.app",
+          "name": "MEGA",
+          "description": "MEGA: Cloud Storage & Chat by Mega Ltd",
+          "apkFileType": null,
+          "appIconColor": "#D9272E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "16.14",
+              "versionCodes": null,
+              "isExperimental": false,
               "minSdk": null,
               "description": null
             }
@@ -2123,8 +2123,8 @@
       "options": []
     },
     {
-      "name": "Block Ads & Commercials - Undercover (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Strips interstitial video ads between rounds, banner ads in lobby and voting screens, and rewarded video gates by neutralizing ad SDK calls.",
+      "name": "Block Ads & Commercials - Undercover",
+      "description": "Strips interstitial video ads between rounds, banner ads in lobby and voting screens, and rewarded video gates by neutralizing ad SDK calls.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -2690,8 +2690,8 @@
       "options": []
     },
     {
-      "name": "Block Cookie & Consent Banner - Undercover (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Blocks and removes the GDPR / Google UMP Cookie consent dialog on first launch by spoofing consent status as OBTAINED and neutralizing consent form presentation.",
+      "name": "Block Cookie & Consent Banner - Undercover",
+      "description": "Blocks and removes the GDPR / Google UMP Cookie consent dialog on first launch by spoofing consent status as OBTAINED and neutralizing consent form presentation.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -2784,6 +2784,33 @@
           "targets": [
             {
               "version": "3.0.323",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Block Promos, Quota Popups & Declutter - MEGA",
+      "description": "Strips Pro upgrade prompts, cloud storage and transfer quota warning banners, sync upsell bottom sheets, and promotional marketing cards across file explorer, media player, transfer queue, and account settings in MEGA.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "mega.privacy.android.app",
+          "name": "MEGA",
+          "description": "MEGA: Cloud Storage & Chat by Mega Ltd",
+          "apkFileType": null,
+          "appIconColor": "#D9272E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "16.14",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -3498,6 +3525,60 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass Root & VPN Detection - JioHotstar",
+      "description": "Neutralizes RootBeer and native root detection (su binary, test-keys, Magisk) and disables VPN/Proxy network interface flags (isVpnActive, IsProxy), allowing seamless streaming through VPNs and AdGuard DNS.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "in.startv.hotstar",
+          "name": "JioHotstar",
+          "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
+          "apkFileType": null,
+          "appIconColor": "#0C203B",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.10.26.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Bypass Signature & Integrity Check - JioHotstar",
+      "description": "Bypasses signature verification and anti-tamper telemetry (IsTampered, package signatures) in JioHotstar, preventing account flagging, session termination, and NET_201 security blocks.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "in.startv.hotstar",
+          "name": "JioHotstar",
+          "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
+          "apkFileType": null,
+          "appIconColor": "#0C203B",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.10.26.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -8275,6 +8356,33 @@
       "options": []
     },
     {
+      "name": "Keep Screen Awake During Transfers & Media - MEGA",
+      "description": "Keeps the device screen turned on during active file/folder upload and download transfers, camera auto-uploads, and audio/video playback in MEGA, preventing transfers from stalling when the device enters sleep mode.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "mega.privacy.android.app",
+          "name": "MEGA",
+          "description": "MEGA: Cloud Storage & Chat by Mega Ltd",
+          "apkFileType": null,
+          "appIconColor": "#D9272E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "16.14",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Keep Screen On During Generation - ChatGPT (Experimental)",
       "description": "⚠️ [Experimental / Untested] Keeps the screen illuminated and active while ChatGPT is streaming responses and code snippets, preventing device sleep during long answers.",
       "default": true,
@@ -9463,8 +9571,8 @@
       "options": []
     },
     {
-      "name": "Pure AMOLED Dark Theme - Cryptomator (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings.",
+      "name": "Pure AMOLED Dark Theme - Cryptomator",
+      "description": "Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -9480,7 +9588,7 @@
             {
               "version": "2.1.0",
               "versionCodes": null,
-              "isExperimental": true,
+              "isExperimental": false,
               "minSdk": null,
               "description": null
             }
@@ -9497,7 +9605,7 @@
             {
               "version": "2.1.0",
               "versionCodes": null,
-              "isExperimental": true,
+              "isExperimental": false,
               "minSdk": null,
               "description": null
             }
@@ -9550,6 +9658,33 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Pure AMOLED Dark Theme - MEGA",
+      "description": "Enforces pure pitch-black (#000000) across MEGA's Jetpack Compose theme system (BackgroundColor, ComponentsColor), navigation bar, status bar, and root Activity windows for maximum OLED battery savings.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "mega.privacy.android.app",
+          "name": "MEGA",
+          "description": "MEGA: Cloud Storage & Chat by Mega Ltd",
+          "apkFileType": null,
+          "appIconColor": "#D9272E",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "16.14",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -9681,33 +9816,6 @@
           "description": "YouTube: Watch, Stream & Discover Videos by Google LLC",
           "apkFileType": null,
           "appIconColor": "#FF0000",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Remove Ads & Update Prompts - MT Manager (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Removes banner and interstitial advertisements, disables forced update dialogs and upgrade check nags in MT Manager.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "bin.mt.plus",
-          "name": "MT Manager",
-          "description": "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
-          "apkFileType": null,
-          "appIconColor": "#F57C00",
           "signatures": null,
           "targets": [
             {
@@ -10901,8 +11009,8 @@
       "options": []
     },
     {
-      "name": "Unlock Advanced Game Settings - Undercover (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Unlocks advanced game configuration (custom player counts, exact role distribution sliders for Civilians, Undercover agents, and Mr. White, custom discussion timers, and voting rules).",
+      "name": "Unlock Advanced Game Settings - Undercover",
+      "description": "Unlocks advanced game configuration (custom player counts, exact role distribution sliders for Civilians, Undercover agents, and Mr. White, custom discussion timers, and voting rules).",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -11151,8 +11259,8 @@
       "options": []
     },
     {
-      "name": "Unlock All Word Packs & Premium - Undercover (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Hooks in-app purchase verification, pack enums, and preference stores to unlock all premium word packs (Adult 18+, Pop Culture, Geek, Cinema, Science & History, 50+ languages) and remove all paywalls.",
+      "name": "Unlock All Word Packs & Premium - Undercover",
+      "description": "Hooks in-app purchase verification, pack enums, and preference stores to unlock all premium word packs (Adult 18+, Pop Culture, Geek, Cinema, Science & History, 50+ languages) and remove all paywalls.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -11367,8 +11475,8 @@
       "options": []
     },
     {
-      "name": "Unlock Custom Words Creator - Undercover (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Unlocks the custom word pack creator allowing players to create, save, and edit unlimited secret word pairs and custom clue databases without subscription restrictions.",
+      "name": "Unlock Custom Words Creator - Undercover",
+      "description": "Unlocks the custom word pack creator allowing players to create, save, and edit unlimited secret word pairs and custom clue databases without subscription restrictions.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -11460,6 +11568,33 @@
           "description": "Waze Navigation & Live Traffic by Waze / Google",
           "apkFileType": null,
           "appIconColor": "#33CCFF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock FotMob+ & Ad-Free - FotMob (Experimental)",
+      "description": "Enables FotMob+ membership, removes banner and fullscreen advertisements, and unlocks live match notifications and priority updates in FotMob.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.mobilefootie.wc2010",
+          "name": "FotMob",
+          "description": "FotMob: Soccer and Football Live Scores, Stats, and News by FotMob",
+          "apkFileType": null,
+          "appIconColor": "#008000",
           "signatures": null,
           "targets": [
             {
@@ -11585,8 +11720,8 @@
       "options": []
     },
     {
-      "name": "Unlock Full Version & Permanent License - Cryptomator (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants.",
+      "name": "Unlock Full Version & Permanent License - Cryptomator",
+      "description": "Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -11602,7 +11737,7 @@
             {
               "version": "2.1.0",
               "versionCodes": null,
-              "isExperimental": true,
+              "isExperimental": false,
               "minSdk": null,
               "description": null
             }
@@ -11619,7 +11754,7 @@
             {
               "version": "2.1.0",
               "versionCodes": null,
-              "isExperimental": true,
+              "isExperimental": false,
               "minSdk": null,
               "description": null
             }
@@ -12064,6 +12199,60 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium & Ad-Free - The Athletic (Experimental)",
+      "description": "Unlocks full access to all articles, exclusive sports stories, in-depth analytical reporting, and eliminates banner and sponsored ads in The Athletic.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.theathletic",
+          "name": "The Athletic",
+          "description": "The Athletic: Sports News, Stories, Scores, and Analysis by The New York Times Company",
+          "apkFileType": null,
+          "appIconColor": "#000000",
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium & Enhanced Playback - JioHotstar",
+      "description": "Unlocks premium UI features, bypasses subscription gates for higher video resolution selections, allows screenshots/screen recording, and enables playback over HDMI and screen mirroring in JioHotstar.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "in.startv.hotstar",
+          "name": "JioHotstar",
+          "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
+          "apkFileType": null,
+          "appIconColor": "#0C203B",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.10.26.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -12536,8 +12725,8 @@
       "options": []
     },
     {
-      "name": "Unlock Pro & Multi-Instance - Virtual Master (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing.",
+      "name": "Unlock Pro & Multi-Instance - Virtual Master",
+      "description": "Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -13145,33 +13334,6 @@
               "version": "2.10.2",
               "versionCodes": null,
               "isExperimental": true,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Unlock VIP Features & Themes - MT Manager (Experimental)",
-      "description": "⚠️ [Experimental / Untested] Unlocks MT Manager VIP features (batch rename, DEX/Arsc editor++, syntax highlighting, XML/DEX search & replace, signature verification bypass, VIP theme customization) by hooking VIP privilege getters, expiration checks, and Google Play Billing.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "bin.mt.plus",
-          "name": "MT Manager",
-          "description": "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
-          "apkFileType": null,
-          "appIconColor": "#F57C00",
-          "signatures": null,
-          "targets": [
-            {
-              "version": null,
-              "versionCodes": null,
-              "isExperimental": false,
               "minSdk": null,
               "description": null
             }

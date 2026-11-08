@@ -32,7 +32,7 @@ private const val MUS_NOTICE = "Lcom/ss/android/ugc/aweme/notice/repo/list/bean/
 class InboxQueryOwnerFixturesTest {
     @Test
     fun `both current native bind variants capture after success without replacing a listener or model`() {
-        assertEquals(listOf("47.5.3"), Fixtures.declaredVersions())
+        assertEquals(listOf("47.6.3"), Fixtures.declaredVersions())
         Fixtures.forEachDeclared { apk ->
             val dex = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val cell = dex.classOf(TEMPLATE_NOTIFICATION_CELL)
@@ -96,31 +96,31 @@ class InboxQueryOwnerFixturesTest {
             // leaves them behind fails here instead of turning search off.
             val names = extensionNames()
             val stub = dex.classOf(STUB)
-            assertEquals("LX/jt5;", stub.method(names.getValue("STUB_STATE")).returnType)
-            assertEquals("LX/n49;", stub.fields.single { it.name == names.getValue("STUB_ADAPTER") }.type)
+            assertEquals("LX/gcf;", stub.method(names.getValue("STUB_STATE")).returnType)
+            assertEquals("LX/fmG;", stub.fields.single { it.name == names.getValue("STUB_ADAPTER") }.type)
             val adapter = dex.classOf(ADAPTER)
             assertEquals(STUB, adapter.methods.single { it.name == names.getValue("ADAPTER_PRIMARY_STUB") && it.parameterTypes.isEmpty() }.returnType)
-            assertEquals("LX/n4S;", adapter.fields.single { it.name == names.getValue("ADAPTER_DIFF") }.type)
+            assertEquals("LX/KSe;", adapter.fields.single { it.name == names.getValue("ADAPTER_DIFF") }.type)
             assertEquals("Lcom/bytedance/ies/powerlist/page/PowerPageLoader;",
                 adapter.fields.single { it.name == names.getValue("ADAPTER_PAGER") }.type)
-            val recycler = dex.classOf("LX/n4E;")
-            assertEquals("LX/jt5;", recycler.method("getState").returnType)
-            val state = dex.classOf("LX/jt5;")
+            val recycler = dex.classOf("LX/gcE;")
+            assertEquals("LX/gcf;", recycler.method("getState").returnType)
+            val state = dex.classOf("LX/gcf;")
             assertEquals("Lcom/bytedance/ies/powerlist/ListState;", state.superclass)
             assertEquals("Ljava/util/List;", state.fields.single { it.name == "LJ" }.type)
             assertEquals("Ljava/util/concurrent/locks/ReentrantLock;", state.fields.single { it.name == "LJFF" }.type)
             val fragment = dex.classOf(FRAGMENT)
             assertEquals(recycler.type, fragment.method(names.getValue("FRAGMENT_LIST")).returnType)
-            val spring = dex.classOf("LX/edk;")
+            val spring = dex.classOf("LX/Y6q;")
             assertEquals(spring.type, fragment.method(names.getValue("FRAGMENT_SPRING")).returnType)
-            assertEquals("LX/jqF;", spring.superclass)
+            assertEquals("LX/myM;", spring.superclass)
             val constrainedParent = dex.classOf(spring.superclass!!)
             assertEquals("Landroid/widget/FrameLayout;", constrainedParent.superclass)
             assertTrue(constrainedParent.method("getNestedChild").references<MethodReference>()
                 .any { it.name == "getChildCount" })
             assertTrue(constrainedParent.method("getNestedChild").references<MethodReference>()
                 .any { it.definingClass == "Ljava/lang/IllegalArgumentException;" && it.name == "<init>" })
-            assertEquals("LX/gWU;", fragment.method("dM").returnType)
+            assertEquals("LX/Kqi;", fragment.method("DN").returnType)
             assertEquals("Lcom/ss/android/ugc/aweme/inbox/widget/v2/InboxWidgetContainer;",
                 fragment.fields.single { it.name == names.getValue("FRAGMENT_CONTAINER") }.type)
         }

@@ -55,9 +55,9 @@ https://github.com/6zev/morphe-patches
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/6zev/morphe-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.6.8](https://github.com/6zev/morphe-patches/releases/tag/v1.6.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
 <details open>
-<summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
 
 **Package name:** `dev.vodik7.tvquickactions`
@@ -70,8 +70,9 @@ https://github.com/6zev/morphe-patches
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [ADB server log](#adb-server-log) | Writes the native ADB server's own log to /data/local/tmp/tvqa-server.log and lets its debug messages through. The server is started again every few seconds and nothing of what it says is reachable otherwise: its logger is built at a level that drops every message, and its output is sent to /dev/null. Use this to find out why it ends, not as a fix. |  |
+| [Initialize ADB server Looper](#initialize-adb-server-looper) | Neutralizes the redundant Looper.prepare() call from the ADB server main entry point. |  |
 | [Never stop itself](#never-stop-itself) | Keeps the app from stopping its own package. Stop recent apps, Restart app and Force stop app all end in `am force-stop <package>` run over ADB, and the app is in the recents list it works from, so once an ADB connection is up the app stops itself, restarts, and loops every few seconds. The app only skips the foreground app, and only when the matching preference is enabled, so this covers what the preference does not. Custom ADB command actions are covered too, and such a command is logged under the TVQA-GUARD tag before it is dropped. |  |
-| [Unlock native engine](#unlock-native-engine) | Patches the native engine libraries so that they run on a re-signed APK. The anti-tamper constructor of libd.so that destroys a global mutex is disabled, and the trap instructions the verification routine plants inside its own code - udf #0 (SIGILL) and stores of the markers 0xdead and 0xdeadbeef (SIGSEGV) - are replaced by no-ops, leaving the routine's work intact. This is what makes Web Widget Overlay and button emulation work. The only `system()` call of liba.so, which force-stops the app when the ADB speed-up server loads it, is turned into no-ops as well, which is what stops the app from killing itself in a loop. |  |
+| [Unlock native engine](#unlock-native-engine) | Patches the native engine libraries so that they run on a re-signed APK. The anti-tamper constructor of libd.so that destroys a global mutex is disabled, and the trap instructions the verification routine plants inside its own code - udf #0 (SIGILL) and stores of the markers 0xdead and 0xdeadbeef (SIGSEGV) - are replaced by no-ops, leaving the routine's work intact. This is what makes Web Widget Overlay and button emulation work. The server-only liba.so self-stop calls are also disabled for ARM32 and ARM64 so ADB speed-up does not terminate the app. |  |
 | [Unlock premium](#unlock-premium) | Makes the bundled Google LVL policy always report the app as licensed, which unlocks the premium features. |  |
 
 </details>
@@ -139,9 +140,11 @@ java -jar morphe-desktop-*-all.jar patch -p patches-*.mpp tvquickactions.apk
 patches/src/main/kotlin/app/tvqa/patches/
 ├── shared/Constants.kt                     # app compatibility (package, versions)
 └── tvquickactions/
-    ├── UnlockPremiumPatch.kt               # licence policy -> allowAccess() = true
-    ├── NativeEnginePatch.kt                # libd.so: the aborting constructor and the traps
-    └── NeverStopItselfPatch.kt             # stop actions: drop the app's own stop command
+    ├── AdbServerLogPatch.kt                  # redirects ADB server output to a readable log
+    ├── InitializeServerLooperPatch.kt         # avoids preparing the ADB main Looper twice
+    ├── UnlockPremiumPatch.kt                  # licence policy -> allowAccess() = true
+    ├── NativeEnginePatch.kt                   # libd anti-tamper + liba server self-stop (ARM32/64)
+    └── NeverStopItselfPatch.kt                # stop actions: drop the app's own stop command
 ```
 
 `NativeEnginePatch` is a resource patch. Morphe's patcher does not list native libraries as

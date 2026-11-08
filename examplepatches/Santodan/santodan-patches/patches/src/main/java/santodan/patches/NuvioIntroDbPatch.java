@@ -26,10 +26,10 @@ public final class NuvioIntroDbPatch {
             builder.execute(context -> {
                 if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                     !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0-beta.10");
+                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0-beta.12");
                 validateState(new MutableClass(context.classDefBy(NuvioNative.PLAYER_STATE_TYPE)));
                 for (String signature : UI) require(new MutableClass(context.classDefBy(signature.substring(0, signature.indexOf("->")))), signature);
-                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE)), "c:Lbb/ml;", "d:Lbb/jl;", "i:Lc2/z;", "j:Lkotlin/jvm/functions/Function0;", "k:Lkotlin/jvm/functions/Function0;");
+                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE)), "c:Lbb/ql;", "d:Lbb/nl;", "i:Lc2/z;", "j:Lkotlin/jvm/functions/Function0;", "k:Lkotlin/jvm/functions/Function0;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MODEL_TYPE)), "Y:Lbb/gc;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLLER_TYPE)), "H0:Lkotlinx/coroutines/flow/StateFlow;", "U0:Lkotlinx/coroutines/Job;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_SESSION_TYPE)), "d:Z");
@@ -63,8 +63,8 @@ public final class NuvioIntroDbPatch {
     static final String TIMER_HASH = "cac1514d788a270048bbde00099a27b8bc2fdc6a009426e6ee3e2a341698af2e";
     static final String PAUSE_TIMER = NuvioNative.PLAYER_TIMERS_TYPE + "->" + NuvioNative.PAUSE_TIMER_METHOD + "(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
     static final String CANCEL_PAUSE = NuvioNative.PLAYER_TIMERS_TYPE + "->" + NuvioNative.CANCEL_PAUSE_METHOD + "(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
-    static final String PAUSE_TIMER_HASH = "8c28ea89547f5af178f4e1aaad6580b2bc31c44f4bdd63d974e21ad413deb7cf";
-    static final String CANCEL_PAUSE_HASH = "632680bdc233b26d5c745230ed00c80346c96c9a3c003feb93d0490a32e5f041";
+    static final String PAUSE_TIMER_HASH = "eced0af32ad8ce294d557de53e6dfc24ffaf87cb6ecf6300e1acec750c7992a9";
+    static final String CANCEL_PAUSE_HASH = "ded9a3edaa6e0825cb51db87cc2c2eba868da2ea7e284538a0122a0087c40bb2";
     static final String HOLD_TIMER = EXT + "->holdControlsTimer(Ljava/lang/Object;)Z";
     static void validateTimer(MutableMethod method) {
         String hash = method.toString().equals(NuvioNative.REF_PLAYER_TIMERS_F) ? TIMER_HASH :

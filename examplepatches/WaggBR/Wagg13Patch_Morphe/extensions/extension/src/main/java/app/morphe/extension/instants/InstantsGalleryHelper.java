@@ -5,9 +5,9 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Outline;
 import android.graphics.drawable.GradientDrawable;
+import android.media.MediaMetadataRetriever;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -15,6 +15,7 @@ import android.view.ViewOutlineProvider;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 
 /**
@@ -31,12 +32,16 @@ public final class InstantsGalleryHelper {
 
     private static WeakReference<Activity> activityRef = new WeakReference<>(null);
     private static volatile Bitmap pendingBitmap;
-    // A capture reads the pending image once on the UI path (archive peek animation) and
-    // once on the upload path. After both reads, or CAPTURE_WINDOW_MS, it is released.
-    private static final int READS_PER_CAPTURE = 2;
-    private static final long CAPTURE_WINDOW_MS = 5000L;
-    private static volatile int reads;
-    private static long firstReadAt;
+
+    // A video picked from the gallery: the file (a private copy), its thumbnail and its stored size.
+    private static File pendingVideoFile;
+    private static Bitmap pendingVideoThumbnail;
+    private static int pendingVideoWidth;
+    private static int pendingVideoHeight;
+    // Size to report for the video that replaced the recording, see substituteVideo.
+    private static boolean videoSizeApplied;
+    private static int videoSizeA;
+    private static int videoSizeB;
     // False while a screen other than the camera (Home) is on top of the navigation stack.
     private static volatile boolean cameraRoute = true;
     private static ImageButton button;
@@ -72,50 +77,105 @@ public final class InstantsGalleryHelper {
     }
 
     /**
-     * Returns a private mutable copy of the selected image for the capture in progress, or
-     * null when none is pending. Copies are handed out because the app recycles and draws on
+     * Called by the patched "photo captured" callback with the camera's bitmap. When an image
+     * was picked from the gallery it is returned instead, and released: it is used for one
+     * capture only. A private mutable copy is handed out because the app draws on and recycles
      * the bitmaps it receives.
      */
-    public static synchronized Bitmap consumePendingBitmap() {
+    public static synchronized Bitmap substituteCaptured(Bitmap original) {
         Bitmap source = pendingBitmap;
-        if (source == null) return null;
-        long now = SystemClock.uptimeMillis();
-        if (reads == 0) {
-            firstReadAt = now;
-            MAIN.post(InstantsGalleryHelper::showGalleryIcon);
-        } else if (now - firstReadAt > CAPTURE_WINDOW_MS) {
-            releasePending();
-            return null;
-        }
-        Bitmap copy = duplicate(source);
-        if (++reads >= READS_PER_CAPTURE) releasePending();
-        return copy;
-    }
-
-    public static Bitmap duplicate(Bitmap source) {
-        return source.copy(Bitmap.Config.ARGB_8888, true);
+        if (source == null) return original;
+        Bitmap copy = source.copy(Bitmap.Config.ARGB_8888, true);
+        pendingBitmap = null;
+        MAIN.post(InstantsGalleryHelper::showGalleryIcon);
+        return copy != null ? copy : original;
     }
 
     public static synchronized void setPendingBitmap(Bitmap bitmap) {
         pendingBitmap = bitmap;
-        reads = 0;
+        clearPendingVideo();
         MAIN.post(InstantsGalleryHelper::showGalleryIcon);
     }
 
-    private static void releasePending() {
+    public static synchronized void setPendingVideo(File file, Bitmap thumbnail, int width, int height) {
         pendingBitmap = null;
-        reads = 0;
+        pendingVideoFile = file;
+        pendingVideoThumbnail = thumbnail;
+        pendingVideoWidth = width;
+        pendingVideoHeight = height;
         MAIN.post(InstantsGalleryHelper::showGalleryIcon);
+    }
+
+    private static void clearPendingVideo() {
+        pendingVideoFile = null;
+        pendingVideoThumbnail = null;
+    }
+
+    /**
+     * Called by the patched "video recorded" step with the recording and its two reported
+     * dimensions. When a video was picked from the gallery its file is returned instead, and
+     * released (one capture only). The recorded file is not touched.
+     */
+    public static synchronized File substituteVideo(File recording, int a, int b) {
+        videoSizeApplied = false;
+        File replacement = pendingVideoFile;
+        if (replacement == null || !replacement.exists()) return recording;
+
+        // The step also receives the video's size, as the recorder reports it. Keep the same
+        // convention: stored size (before rotation) or swapped, whichever the recording's size matches.
+        int[] recorded = storedSize(recording);
+        if (recorded != null && a == recorded[0] && b == recorded[1]) {
+            videoSizeA = pendingVideoWidth;
+            videoSizeB = pendingVideoHeight;
+            videoSizeApplied = true;
+        } else if (recorded != null && a == recorded[1] && b == recorded[0]) {
+            videoSizeA = pendingVideoHeight;
+            videoSizeB = pendingVideoWidth;
+            videoSizeApplied = true;
+        }
+        Log.i(GalleryPickerFragment.TAG, "video replaced; reported size " + a + "x" + b
+                + (videoSizeApplied ? " -> " + videoSizeA + "x" + videoSizeB : " kept"));
+        clearPendingVideo();
+        MAIN.post(InstantsGalleryHelper::showGalleryIcon);
+        return replacement;
+    }
+
+    /** First reported dimension: the replacement's when the video was replaced, else [original]. */
+    public static synchronized int videoSizeA(int original) {
+        return videoSizeApplied ? videoSizeA : original;
+    }
+
+    /** Second reported dimension, see [videoSizeA]. */
+    public static synchronized int videoSizeB(int original) {
+        return videoSizeApplied ? videoSizeB : original;
+    }
+
+    private static int[] storedSize(File video) {
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        try {
+            retriever.setDataSource(video.getAbsolutePath());
+            return new int[]{
+                    Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)),
+                    Integer.parseInt(retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)),
+            };
+        } catch (Throwable t) {
+            return null;
+        } finally {
+            try {
+                retriever.release();
+            } catch (Throwable ignored) {
+                // Nothing to release.
+            }
+        }
     }
 
     // While a gallery image is waiting to be sent, the button shows its thumbnail so it
     // is obvious that the next shutter press will send that image instead of the camera.
     private static void showGalleryIcon() {
         ImageButton b = button;
-        Bitmap pending = pendingBitmap;
+        Bitmap pending = pendingBitmap != null ? pendingBitmap : pendingVideoThumbnail;
         if (b == null) return;
-        // The thumbnail is shown only until the capture starts reading the image.
-        if (pending != null && reads == 0) {
+        if (pending != null) {
             b.setPadding(0, 0, 0, 0);
             b.setScaleType(ImageButton.ScaleType.CENTER_CROP);
             b.setImageBitmap(pending);

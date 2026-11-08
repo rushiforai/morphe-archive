@@ -32,14 +32,16 @@ public final class NicoidDexMerger {
     private NicoidDexMerger() { }
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 4) {
-            throw new IllegalArgumentException("Expected generated.dex, existing.mpe, overrides.dex and output.dex");
+        if (args.length != 5) {
+            throw new IllegalArgumentException("Expected generated.dex, existing.mpe, overrides.dex, validated.zip and output.dex");
         }
 
         DexBackedDexFile generated = readDex(new File(args[0]));
         DexBackedDexFile existing = readDex(new File(args[1]));
         DexBackedDexFile overrides = readDex(new File(args[2]));
+        DexBackedDexFile validated = readDex(new File(args[3]));
         Set<String> overrideTypes = new HashSet<>();
+        Set<String> validatedTypes = new HashSet<>();
         Set<String> generatedTypes = new HashSet<>();
         Set<String> mergedTypes = new HashSet<>();
         DexPool pool = new DexPool(generated.getOpcodes());
@@ -48,10 +50,27 @@ public final class NicoidDexMerger {
         for (ClassDef c : generated.getClasses()) providedTypes.add(c.getType());
         for (ClassDef c : existing.getClasses()) providedTypes.add(c.getType());
         for (ClassDef c : overrides.getClasses()) providedTypes.add(c.getType());
+        for (ClassDef c : validated.getClasses()) {
+            if (c.getType().startsWith("Le/e/a/BikeRun")) {
+                validatedTypes.add(c.getType());
+                providedTypes.add(c.getType());
+            }
+        }
+        if (validatedTypes.size() != 22) throw new IllegalStateException("Validated compatibility class count mismatch");
+
+        // Favor only the explicitly scoped locally validated classes. All other
+        // generated and reviewed classes continue to come from the dev build.
+        for (ClassDef classDef : validated.getClasses()) {
+            if (!validatedTypes.contains(classDef.getType())) continue;
+            mergedTypes.add(classDef.getType());
+            pool.internClass(classDef);
+            selected.add(classDef);
+        }
 
         // Reviewed smali overrides preserve changes recovered from the device-tested dev bundle.
         // Remove an override when its Java source becomes the canonical implementation.
         for (ClassDef classDef : overrides.getClasses()) {
+            if (overridden(classDef.getType(), validatedTypes)) continue;
             overrideTypes.add(classDef.getType());
             mergedTypes.add(classDef.getType());
             pool.internClass(classDef);
@@ -61,7 +80,7 @@ public final class NicoidDexMerger {
         // Prefer freshly compiled versions for any classes present in both DEXes.
         for (ClassDef classDef : generated.getClasses()) {
             generatedTypes.add(classDef.getType());
-            if (overridden(classDef.getType(), overrideTypes)) continue;
+            if (overridden(classDef.getType(), overrideTypes) || overridden(classDef.getType(), validatedTypes)) continue;
             mergedTypes.add(classDef.getType());
             pool.internClass(classDef);
             selected.add(classDef);
@@ -69,7 +88,8 @@ public final class NicoidDexMerger {
 
         // Keep DEX-only helpers (for example DynamicTheme and ModernDebug).
         for (ClassDef classDef : existing.getClasses()) {
-            if (!overridden(classDef.getType(), generatedTypes) && !overridden(classDef.getType(), overrideTypes)) {
+            if (!overridden(classDef.getType(), generatedTypes) && !overridden(classDef.getType(), overrideTypes)
+                    && !overridden(classDef.getType(), validatedTypes)) {
                 mergedTypes.add(classDef.getType());
                 pool.internClass(classDef);
                 selected.add(classDef);
@@ -111,7 +131,7 @@ public final class NicoidDexMerger {
             }
         }
 
-        File output = new File(args[3]);
+        File output = new File(args[4]);
         File parent = output.getParentFile();
         if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
             throw new IOException("Could not create merged DEX directory: " + parent);
@@ -137,6 +157,15 @@ public final class NicoidDexMerger {
     }
 
     private static DexBackedDexFile readDex(File file) throws IOException {
+        if (file.getName().endsWith(".zip")) {
+            try (java.util.zip.ZipFile archive = new java.util.zip.ZipFile(file)) {
+                java.util.zip.ZipEntry entry = archive.getEntry("classes.dex");
+                if (entry == null) throw new IOException("Compatibility archive has no DEX entry");
+                try (BufferedInputStream input = new BufferedInputStream(archive.getInputStream(entry))) {
+                    return DexBackedDexFile.fromInputStream(Opcodes.getDefault(), input);
+                }
+            }
+        }
         try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(file))) {
             return DexBackedDexFile.fromInputStream(Opcodes.getDefault(), input);
         }

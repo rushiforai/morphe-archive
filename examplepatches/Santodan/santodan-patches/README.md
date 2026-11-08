@@ -14,7 +14,7 @@ https://github.com/Santodan/santodan-patches
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v0.16.4](https://github.com/Santodan/santodan-patches/releases/tag/v0.16.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
+> **[v0.16.5](https://github.com/Santodan/santodan-patches/releases/tag/v0.16.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
 <details>
 <summary>📦 Car Scanner ELM OBD2&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -82,7 +82,7 @@ Startup app selection and **After standby** are cumulative: enabling both is int
 <summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
 
-These sixteen patches target NuvioTV beta.10 only. See [beta.10 verification](docs/NuvioBeta10.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
+These sixteen patches target NuvioTV beta.12 only. See [beta.12 verification](docs/NuvioBeta12.md). For future app updates, see the [shared contracts and maintenance workflow](docs/NuvioMaintenance.md).
 
 - **GitHub APK updates**: Optional patch that checks APK releases from `Santodan/santodan-patches`, shares background download progress with the native banner, and opens Android's normal APK installer for foreground installation progress. The installed release version defaults to the bundle version. Includes installer fixes for patched APKs and side-by-side installations. See [GitHub release publishing instructions](docs/NuvioApkUpdates.md).
 
@@ -148,7 +148,7 @@ The patch settings are under **Layout > Santodan-Patches**, grouped under **Cont
 
 **🎯 Supported versions:**
 
-| 1.1.0-beta.10 |
+| 1.1.0-beta.12 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

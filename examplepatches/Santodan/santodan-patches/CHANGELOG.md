@@ -1,3 +1,16 @@
+## [0.16.5](https://github.com/Santodan/santodan-patches/compare/v0.16.4...v0.16.5) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* **nuviotv:** match next episode preload cache context [skip ci] ([88e2114](https://github.com/Santodan/santodan-patches/commit/88e21142b21148a41333560f642092d8e0cce667))
+* **nuviotv:** preserve suspended playback updates [skip ci] ([e841232](https://github.com/Santodan/santodan-patches/commit/e841232024d56eeda77857f5d1049f3babbce12c))
+* **nuviotv:** reconcile quick startup tracking progress [skip ci] ([b38245e](https://github.com/Santodan/santodan-patches/commit/b38245ed39c6c534e7a7a494438a458b6c54ab46))
+* **pillo:** restore weight logging menu [skip ci] ([c9c3202](https://github.com/Santodan/santodan-patches/commit/c9c32027e7f704d221b2948ee360d1b41661e82e))
+
+### 🚀 Updated App Support
+
+* **nuviotv:** support 1.1.0-beta.12 ([d32e079](https://github.com/Santodan/santodan-patches/commit/d32e0798bba2415e0325f8b490d2d33558fb9145))
+
 ## [0.16.4](https://github.com/Santodan/santodan-patches/compare/v0.16.3...v0.16.4) (2026-11-04)
 
 ### 🚀 Updated App Support

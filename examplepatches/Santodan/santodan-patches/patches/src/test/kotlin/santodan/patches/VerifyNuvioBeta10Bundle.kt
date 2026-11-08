@@ -36,7 +36,8 @@ fun main(args: Array<String>) = runBlocking {
             zip.getInputStream(entry).use { input -> File(originalDex, entry.name).outputStream().use { input.copyTo(it) } }
             zip.getInputStream(entry).buffered().use { input ->
                 for (owner in DexBackedDexFile.fromInputStream(null, input).classes) {
-                    if (owner.type in libraryTypes || owner.type in localStores || owner.type in setOf("Lbb/ng;", "Lbb/ml;", "Lbb/gc;")) originals[owner.type] = owner
+                    if (owner.type in libraryTypes || owner.type in localStores || owner.type in setOf("Lbb/ng;", "Lbb/ml;", "Lbb/gc;",
+                        "Lba/o5;", "Lba/p5;", "Lbb/dg;", "Lbb/xf;", "Lbb/zf;", "Lcom/nuvio/tv/domain/model/PluginKt;")) originals[owner.type] = owner
                     for (method in owner.methods) for (instruction in method.implementation?.instructions ?: emptyList()) {
                         val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
                         if (ref.toString() == "Lbb/ng;->G(Lbb/gc;Lcom/nuvio/tv/domain/model/Video;Z)V")
@@ -48,6 +49,29 @@ fun main(args: Array<String>) = runBlocking {
     }
     check(pickerCallers.size == 3 && pickerCallers.all { it == "Lbb/eg;->invokeSuspend" })
     val original = originals.getValue("Lbb/ng;")
+    val controller = originals.getValue("Lbb/gc;")
+    val plugins = originals.getValue("Lcom/nuvio/tv/domain/model/PluginKt;")
+    NuvioStreamPreloadPatch.validateNextEpisodeContext(MutableClass(controller), MutableClass(plugins))
+    fun contextRejected(candidate: MutableClass, parser: MutableClass) {
+        var failed = false
+        try { NuvioStreamPreloadPatch.validateNextEpisodeContext(candidate, parser) }
+        catch (expected: IllegalStateException) { failed = true }
+        check(failed)
+    }
+    val missingGroup = MutableClass(controller)
+    missingGroup.fields.removeAll { it.name == "r3" }
+    contextRejected(missingGroup, MutableClass(plugins))
+    val missingParser = MutableClass(plugins)
+    missingParser.methods.removeAll { it.name == "scraperIdFromPluginBingeGroup" }
+    contextRejected(MutableClass(controller), missingParser)
+    for (searchOwner in listOf("Lbb/dg;", "Lbb/xf;", "Lbb/zf;")) check(
+        originals.getValue(searchOwner).methods.single { it.name == "invokeSuspend" }.implementation!!.instructions.any {
+            (it as? ReferenceInstruction)?.reference?.toString() == "Lbb/gc;->r3:Ljava/lang/String;"
+        })
+    check(originals.getValue("Lba/p5;").fields.single { it.name == "h" }.type == "Ljava/lang/String;")
+    check(originals.getValue("Lba/o5;").methods.single { it.name == "f" }.parameterTypes.takeLast(3) ==
+        listOf("Z", "Z", "Ljava/lang/String;"))
+    println("PASS: beta.10 native binge-group request readers, cache-key context and missing-field/parser rejection")
     check(originals.getValue("Lbb/ml;").fields.single { it.name == "Y" }.type == "Lbb/gc;")
     check(originals.getValue("Lbb/gc;").fields.single { it.name == "T" }.type == "Ljava/lang/String;")
     check(original.methods.single { it.name == "r" }.implementation!!.instructions.any {

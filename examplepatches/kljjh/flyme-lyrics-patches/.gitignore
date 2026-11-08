@@ -1,0 +1,7 @@
+work/
+dist/
+__pycache__/
+*.pyc
+.gradle/
+local.properties
+**/build/

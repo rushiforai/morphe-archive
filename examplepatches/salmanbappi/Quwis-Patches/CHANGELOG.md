@@ -1,3 +1,27 @@
+# [1.9.28](https://github.com/salmanbappi/Quwis-Patches/compare/v1.9.27...v1.9.28) (2026-11-07)
+
+### Bug Fixes
+
+* **Game Review (4.10.23):** eliminate `NullPointerException` at `GameReviewViewModel$4$stateMachine$1$12.invokeSuspend` (SourceFile:198) by setting starting position `playedMove` and `classification` to null (bypassing unplayable ply 0 move conversion), while populating all history parameters in `buildDummyMoveResult` and supplying safe non-null enum/constructor instances via `AppTypes.defaultFor` so `j0.o` handles position 0 seamlessly
+
+# [1.9.27](https://github.com/salmanbappi/Quwis-Patches/compare/v1.9.26...v1.9.27) (2026-11-07)
+
+### Bug Fixes
+
+* **Game Review (4.10.23):** eliminate `IndexOutOfBoundsException: Index 55 out of bounds for length 55` at `GameReviewViewModel$4$stateMachine$1$12.invokeSuspend` (SourceFile:720) by restoring position 0 (starting board) with a non-null valid `PlayedMove`, ensuring the review list retains all `totalMoves + 1` entries while preventing NPEs in `j0.o` and making history reflection dynamic across obfuscated classes
+
+# [1.9.26](https://github.com/salmanbappi/Quwis-Patches/compare/v1.9.25...v1.9.26) (2026-11-07)
+
+### Performance & Bug Fixes
+
+* **Cloud Stockfish Engine:** fixed `INVALID_FEN_VALIDATION_ERROR` rejection on `chess-api.com` caused by en-passant target notation on double pawn moves, preventing slow fallback stalls and ensuring sub-second evaluation response times across all moves
+
+# [1.9.25](https://github.com/salmanbappi/Quwis-Patches/compare/v1.9.24...v1.9.25) (2026-11-07)
+
+### Bug Fixes
+
+* **Game Review (4.10.23):** eliminate `NullPointerException` at `com.chess.gamereview.v2.j0.o` by aligning `AnalyzedGameData.positions` 1-to-1 with played history plies (avoiding prepended unplayed starting position with null `playedMove`), restore static register mapping (`p0, p1`), and support 4.10.23 obfuscated classification enums and `MoveConverterKt.b`
+
 # [1.9.24](https://github.com/salmanbappi/Quwis-Patches/compare/v1.9.23...v1.9.24) (2026-11-06)
 
 ### Bug Fixes

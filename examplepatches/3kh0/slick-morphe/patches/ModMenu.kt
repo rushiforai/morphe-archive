@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
@@ -161,7 +162,7 @@ val modMenu =
                 .addInstructions(0, call("p0", "Settings;->initialize(Landroid/app/Application;)V"))
 
             method("Lslack/features/settings/circuit/MessageDisplayUiKt;", "PreferenceSettingsUi").run {
-                check(registers == 23)
+                check(registers == 24)
                 val group = code.indexOfFirst { (it.ref as? MethodReference)?.name == "startRestartGroup" }
                 check(group == 6) // v0 = state, v15 = composer; hook stays inside the restart scope.
                 addInstructions(
@@ -173,8 +174,8 @@ val modMenu =
             """,
                 )
             }
-            method("Lslack/features/sharesheet/ui/ShareSheetUiKt\$\$ExternalSyntheticLambda0;", "invoke").run {
-                val title = indexed { (it as? WideLiteralInstruction)?.wideLiteral == 0x7f13296aL }.one().index
+            method("Lslack/features/slackbot/dm/SlackbotDmUiKt\$\$ExternalSyntheticLambda2;", "invoke").run {
+                val title = indexed { (it as? WideLiteralInstruction)?.wideLiteral == 0x7f132a59L }.one().index
                 check((code[title + 1].ref as MethodReference).name == "stringResource")
                 addInstructions(
                     title + 1,
@@ -186,25 +187,36 @@ val modMenu =
                 addInstructions(indexed(Opcode.RETURN_VOID).one().index, call("p0", "Menu;->insert(Ljava/lang/Object;)V"))
             }
 
-            method("Lslack/home/header/components/UserAvatarWithStatusPresenter;", "present").run {
-                check(registers == 31)
+            method("Lslack/home/header/components/UserAvatarWithStatusPresenter;", "present") {
+                it.returnType == "Lslack/home/header/NavHeaderYouModel;"
+            }.run {
+                check(registers == 48)
                 val (i, x) = indexed(Opcode.RETURN_OBJECT).one()
-                check(x.reg == 14)
+                check(x.reg == 16)
+                val end = code[i - 1]
+                check(
+                    (end.ref as? MethodReference)?.let {
+                        it.definingClass == "Landroidx/compose/runtime/GapComposer;" && it.name == "end" && it.parameterTypes == listOf("Z")
+                    } == true,
+                ) { "Profile presenter composition exit changed" }
+                val composer = (end as FiveRegisterInstruction).registerC
                 addInstructions(
                     i,
                     """
-                    move-object/from16 v0, p0
-                    move-object/from16 v1, p2
-                    invoke-static {v14, v0, v1}, Lslick/android/Menu;->popup(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-                    move-result-object v14
-                    check-cast v14, Lslack/home/header/NavHeaderYouModel;
+                    move-object/from16 v2, v$composer
+                    move-object/from16 v0, v16
+                    move-object/from16 v1, p0
+                    invoke-static {v0, v1, v2}, Lslick/android/Menu;->popup(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                    move-result-object v0
+                    check-cast v0, Lslack/home/header/NavHeaderYouModel;
+                    move-object/from16 v16, v0
                     """,
                 )
             }
 
             method("Lslack/home/header/components/YouMenuKt\$\$ExternalSyntheticLambda5;", "invoke").run {
                 check(parameterTypes == listOf("Ljava/lang/Object;"))
-                check(registers == 9)
+                check(registers == 13)
                 intercept(
                     "${call("p1", "Menu;->popupClick(Ljava/lang/Object;)Z")}\nmove-result v0",
                     "sget-object v0, Lkotlin/Unit;->INSTANCE:Lkotlin/Unit;\nreturn-object v0",

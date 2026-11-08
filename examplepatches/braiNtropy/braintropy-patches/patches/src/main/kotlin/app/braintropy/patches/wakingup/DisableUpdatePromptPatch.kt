@@ -29,10 +29,7 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.mentio
 @Suppress("unused")
 val disableUpdatePromptPatch = bytecodePatch(
     name = "Disable update prompt",
-    description = "Suppresses the \"Update Required\" dialog shown on launch when the server " +
-        "reports a newer preferred build, and spoofs the app-version/app-build request " +
-        "headers so the server (which rejects outdated builds with a 404) keeps serving " +
-        "the app. Does not affect the version shown in the app.",
+    description = "Stops the forced \"Update Required\" dialog so older versions keep working.",
     default = true
 ) {
     category("Updates")

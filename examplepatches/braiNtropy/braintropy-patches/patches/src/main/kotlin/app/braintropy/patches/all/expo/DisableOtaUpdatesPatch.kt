@@ -11,9 +11,7 @@ private fun org.w3c.dom.Node.attr(name: String) =
 @Suppress("unused")
 val disableOtaUpdatesPatch = resourcePatch(
     name = "Disable Expo OTA updates",
-    description = "Disables expo-updates: the app no longer contacts the Expo update server " +
-        "(u.expo.dev) on launch and can never download or run over-the-air JavaScript updates " +
-        "published by the developer. Only applies to apps built with Expo.",
+    description = "Blocks over-the-air JavaScript updates in Expo apps.",
     default = false
 ) {
     category("Updates")

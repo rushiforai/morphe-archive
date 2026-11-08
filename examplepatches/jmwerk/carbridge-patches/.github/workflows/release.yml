@@ -18,6 +18,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # carbridge/ holds the shared Android Auto rules (CarBridge's core module)
+          submodules: true
 
       - name: Setup Java
         uses: actions/setup-java@v6

@@ -5,6 +5,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.twrailway.patches.settings.PATCH_SETTINGS_CLASS
+import app.twrailway.patches.settings.markPatchApplied
+import app.twrailway.patches.settings.patchSettingsPatch
 import app.twrailway.patches.shared.Constants.COMPATIBILITY_TRAIN_SCHEDULE
 
 /**
@@ -19,6 +22,8 @@ import app.twrailway.patches.shared.Constants.COMPATIBILITY_TRAIN_SCHEDULE
  * `onAdFailedToLoad` event (no fill) for the ad, then `result.success(null)`.
  * The app handles the failure like any unfilled ad request, so no ad is shown and the
  * space reserved for the banner at the bottom of the screen is released.
+ *
+ * It can be turned off in the patch settings, then ads are loaded as usual.
  */
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
@@ -29,7 +34,11 @@ val hideAdsPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_TRAIN_SCHEDULE)
 
+    dependsOn(patchSettingsPatch)
+
     execute {
+        markPatchApplied("hide_ads")
+
         // AdInstanceManager.onAdFailedToLoad(int, FlutterLoadAdError)
         val onAdFailedToLoad = AdInstanceManagerOnAdFailedToLoadFingerprint.originalMethod
         val adInstanceManagerType = onAdFailedToLoad.definingClass
@@ -78,6 +87,10 @@ val hideAdsPatch = bytecodePatch(
             addInstructionsWithLabels(
                 0,
                 """
+                    invoke-static { }, $PATCH_SETTINGS_CLASS->hideAds()Z
+                    move-result v0
+                    if-eqz v0, :original
+
                     move-object/from16 v0, p1
                     iget-object v1, v0, $methodCallType->${methodNameField.name}:Ljava/lang/String;
                     if-eqz v1, :original

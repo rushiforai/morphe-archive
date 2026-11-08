@@ -23,8 +23,8 @@ import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
 import app.morphe.patcher.string
 import app.morphe.patches.shared.FormatStreamModelToStringFingerprint
+import app.morphe.patches.shared.VideoStreamingDataToStringFingerprint
 import app.morphe.patches.youtube.shared.SeekbarFingerprint
-import app.morphe.patches.youtube.shared.VideoStreamingDataToStringFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -145,6 +145,12 @@ internal object ShortsDisableSeekbarThumbnailsFeatureFlagFingerprint : Fingerpri
     )
 )
 
+internal object ShortsSeekbarDetachFeatureFlagFingerprint : Fingerprint(
+    filters = listOf(
+        literal(45421233)
+    )
+)
+
 internal object VideoStreamingDataAllowSeekingFingerprint : Fingerprint(
     classFingerprint = VideoStreamingDataToStringFingerprint,
     returnType = "Z",
@@ -205,13 +211,18 @@ internal object SeekbarUpdatePointFingerprint : Fingerprint (
     )
 )
 
+/**
+ * Constructor of the touch handler of slide to seek (press and hold the player, then slide).
+ */
+internal object SlideSeekbarHandlerConstructorFingerprint : Fingerprint (
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
+    filters = listOf(
+        resourceLiteral(ResourceType.DIMEN, "seek_easy_horizontal_touch_offset_to_start_scrubbing")
+    )
+)
+
 internal object SlideSeekbarHandlerOnTouchFingerprint : Fingerprint (
-    classFingerprint = Fingerprint (
-        accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.CONSTRUCTOR),
-        filters = listOf(
-            resourceLiteral(ResourceType.DIMEN, "seek_easy_horizontal_touch_offset_to_start_scrubbing")
-        )
-    ),
+    classFingerprint = SlideSeekbarHandlerConstructorFingerprint,
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf("Landroid/view/View;", "Landroid/view/MotionEvent;")
@@ -275,22 +286,27 @@ internal object SeekbarBigBoardsUpdateFingerprint : Fingerprint (
     )
 )
 
-internal object SeekbarBigBoardsUpdateLegacyFingerprint : Fingerprint (
-    classFingerprint = Fingerprint(
-        accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-        returnType = "V",
-        parameters = listOf("Z"),
-        filters = listOf(
-            fieldAccess(
-                opcode = Opcode.SGET_OBJECT,
-                smali = $$"Landroid/widget/ImageView$ScaleType;->CENTER_CROP:Landroid/widget/ImageView$ScaleType;"
-            ),
-            fieldAccess(
-                opcode = Opcode.SGET_OBJECT,
-                smali = $$"Landroid/widget/ImageView$ScaleType;->FIT_CENTER:Landroid/widget/ImageView$ScaleType;"
-            )
+/**
+ * Where the full screen seek preview (big boards) sets the scale of its image: center crop or fit center.
+ */
+internal object SeekbarBigBoardsScaleTypeFingerprint : Fingerprint (
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "V",
+    parameters = listOf("Z"),
+    filters = listOf(
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            smali = $$"Landroid/widget/ImageView$ScaleType;->CENTER_CROP:Landroid/widget/ImageView$ScaleType;"
+        ),
+        fieldAccess(
+            opcode = Opcode.SGET_OBJECT,
+            smali = $$"Landroid/widget/ImageView$ScaleType;->FIT_CENTER:Landroid/widget/ImageView$ScaleType;"
         )
-    ),
+    )
+)
+
+internal object SeekbarBigBoardsUpdateLegacyFingerprint : Fingerprint (
+    classFingerprint = SeekbarBigBoardsScaleTypeFingerprint,
     accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf(),
@@ -298,6 +314,24 @@ internal object SeekbarBigBoardsUpdateLegacyFingerprint : Fingerprint (
         literal(1),
         opcode(opcode = Opcode.IF_NEZ, location = MatchAfterImmediately()),
         opcode(opcode = Opcode.RETURN, location = MatchAfterImmediately())
+    )
+)
+
+/**
+ * Where the full screen seek preview handles a scrub start (1), move (2) or end (3, 4).
+ * A scrub start shows the preview, then seeks it, and that is the last call of the seek method.
+ */
+internal object SeekbarBigBoardsScrubFingerprint : Fingerprint (
+    classFingerprint = SeekbarBigBoardsScaleTypeFingerprint,
+    returnType = "V",
+    parameters = listOf("I", "J"),
+    filters = listOf(
+        methodCall(
+            opcode = Opcode.INVOKE_DIRECT,
+            definingClass = "this",
+            parameters = listOf("J"),
+            returnType = "V"
+        )
     )
 )
 

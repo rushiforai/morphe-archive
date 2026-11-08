@@ -11,6 +11,105 @@ All sixteen public patches use `contracts/nuvio/native.properties` and exact
 beta.10 compatibility. Dedicated `VerifyNuvioBeta10*` fixtures cover this target;
 historical version fixtures are preserved. No release version is bumped.
 
+## Quick startup reconciliation (2026-11-05)
+
+Quick startup shows saved Continue Watching immediately, then awaits one native
+automatic refresh per included provider after Home is presented. It publishes
+fresh progress, next-up seeds and watched membership without reading or saving
+all watched-item models. Catalog refresh continues independently. The old quick
+path skipped the awaited refresh and could retain stale episode data until a
+manual full sync. It also decoded bulk saved membership before contacting
+trackers; a device capture measured 20 seconds for 1,734 shows. The current
+pre-refresh phase skips that obsolete membership decode.
+
+Background startup reconciliation allows **120 seconds per provider**; explicit
+sync retains its 45-second deadline. Native automatic/user-initiated intents,
+rate limits, refresh coalescing, cancellation and profile/navigation guards
+remain in effect. Saved CW stays usable during refresh and is retained on
+failure. Startup status messages include the active provider operation and the
+actual failure instead of leaving a red banner without details or overwriting
+failure with the earlier quick-cache success message.
+
+Original beta.10 DEX shows `Lu9/m7;->v` delegates to `Lu9/l6;->k`, which dispatches
+`Leb/x0;->c` through `Lq9/j0;->a`. The native gate serializes refreshes with a Mutex
+and coalesces completion by profile generation/sequence. Paired device captures
+show startup exhausting 45 seconds inside remote refresh, while a later full
+sync completes that operation in 3.121 seconds. Queueing, hydration and network
+time cannot be separated from those logs; the longer bound accommodates cold
+startup work without claiming a specific underlying MDBList fault is fixed.
+
+The user subsequently reported successful startup sync. The 10:31 device log
+confirms Home fully drawn in **8.4 seconds**, MDBList refresh in about 25.2
+seconds, provider reads in 31.7 seconds, and publication of **271 next-up seeds**
+with watched membership for **1,734 shows**. Final status is `Startup sync
+complete` in **37.8 seconds**. Catalog refresh also completes. Marriage Toxin is
+already preloaded as episode 9 before reconciliation, so this capture proves
+successful refresh/publication but does not itself show an episode-5-to-9
+transition.
+
+Host checks cover cached episode 5 remaining visible while refresh is pending,
+episode 9 publication only after completion, cold refresh exceeding the normal
+deadline, bounded failure, cancellation and retained snapshots. `buildAndroid`,
+`verifyNuvioProviderRefreshRuntime`, `verifyNuvioPlaybackOverlayRuntime`, all
+`verifyNuvioBeta10Bundle` selections, `verifyAndroidBundle` and Desktop 2.0.0 import
+passed for the final code. The complete `verifyNuvioLatest` suite also passed
+before the reporting/deadline follow-ups. Verification logs are
+`quick-reconcile-cold-refresh.log` and `quick-reconcile-cold-refresh-import.log`
+in the beta.10 evidence directory; earlier `quick-reconcile-*` logs retain the
+intermediate investigation, including the obsolete Desktop 1.19.1 path failure.
+
+Bundle: `patches/build/libs/patches-0.16.4.mpp` (release version unchanged).
+SHA-256: `0b6c03809b7f7fc3cceda93d9bbf44c2c86b7c4a60c97a53bcd3f049bc3acf4c`.
+Local verification applied packaged selections and checked assembled DEX. The
+agent did not rebuild an installable APK, sign or install it; the successful TV
+run is the user's test. No separate fast-startup patch was added.
+
+## Immediate playback updates after suspended writes (2026-11-06)
+
+The user reported that completing Marriage Toxin episode 9 left its detail
+watched marker and Continue Watching stale until restart. The log confirms
+93.26% playback, successful tracker stop dispatch, and a later startup refresh
+advancing next-up to episode 10. Tracker acknowledgement alone does not establish
+that the local overlay received the native persistence event.
+
+Original beta.10 local progress methods `bc.C/D/A/B` resume through
+`data.local.vb/wb/tb/ub`, respectively. The runtime still recognized the older
+`pb/qb/nb/ob` names. Native `invokeSuspend` re-enters the public store wrapper
+with null/zero placeholder arguments. If that continuation is wrapped again,
+the cloned body starts a new write instead of resuming its original state, so
+the successful-save overlay callback can be lost.
+
+`NuvioLocalWriteContinuation.observe` now preserves those exact native resume
+states. The original-DEX verifier checks its bindings against each method's
+INSTANCE_OF instruction. The runtime fixture exercises native wrapper re-entry,
+failure propagation, exactly-once notification, and four completed episodes
+appearing in detail/history/next-up projections without sync or restart. Existing
+native persistence, completion thresholds and remote writes remain unchanged.
+No new native hook, older-version mapping or startup synchronization was added.
+
+Evidence: `local-write-resume-evidence.md`, `local-write-resume-validation.log`
+and `local-write-resume-bundle.log` in the beta.10 inspection directory. The host
+and DEX regression is distinct from device confirmation; another TV playback
+test is needed. No signing or installation was performed.
+
+Validation passed: `buildAndroid`, `verifyNuvioBeta10`,
+`verifyNuvioPlaybackOverlayRuntime`, `verifyNuvioProviderRefreshRuntime`, all
+`verifyNuvioBeta10Bundle` selections, `verifyAndroidBundle` and Desktop 2.0.0
+import. An isolated before/after harness reproduces failed resume handling for
+all four old bindings and passes with the corrected bindings; its output is
+`local-write-resume-repro/result.log`. The updated bundle keeps the existing
+`patches/build/libs/patches-0.16.4.mpp` filename and release version.
+
+A second user capture from the same pre-fix playback session shows episode 9
+at 374,491ms near 20:50:12, successful stop reporting at 26.25%, and a subsequent
+launch reporting position 210ms rather than resuming. Partial positions share
+the corrected local-save bridge, so this is consistent with the same resume
+state mismatch; the log alone does not prove which saved position reached the
+player. The added suspended-C regression preserves a 374,491ms partial record
+in both merged resumable progress and episode details without marking it
+watched. `local-write-resume-position.log` records that runtime check. Device
+resume/seek confirmation with the corrected bundle remains required.
+
 ## Native contracts
 
 | Contract | Beta.10 binding |
@@ -31,12 +130,19 @@ historical version fixtures are preserved. No release version is bumped.
 | Scoped Hilt providers | profile `B`, stream repository `g3`, tracking coordinator `T3`; verified against native `get()` consumers and casts |
 
 The native default search dispatcher now owns the stream-search entry point.
-Preloading passes the native default mask `208` (16 + 64 + 128), preserving
-false force-refresh and the two new false search flags, with a null group.
+Next-episode preloading passes the player's `gc.r3` priority binge group and
+uses native mask `16`. Force-refresh stays false; both plugin flags are enabled
+together for the additional local-plugin
+autoplay cache entry when appropriate. Continue Watching and detail searches
+retain a null group. See [source cache reuse](NuvioNextEpisodePreload.md).
 Its exact static descriptor, register layout and instruction fingerprint are
 validated before mutation; the incompatible suspend search remains unused.
 Native session caching, profile isolation and scoped local-scraper permission
 remain in effect.
+The group/mode cache correction passed focused runtime and standalone/combined
+bundle verification on 2026-11-05. The user subsequently confirmed successful TV
+behavior with the next-episode setting enabled in the test profile. See the
+source-cache document for the evidence and the disabled-setting diagnostic.
 
 R8 splits the icon utilities again. Playback buttons resolve factory owner and
 method together from the same full native references validated at patch time.

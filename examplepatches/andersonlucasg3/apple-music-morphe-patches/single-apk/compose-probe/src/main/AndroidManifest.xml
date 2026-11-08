@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Spike module: the only theme is a framework style — no app resources, no R.*.
+     The dex of this app is injected into the engine APK (which keeps its own resources). -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application
+        android:label="Compose probe"
+        android:theme="@android:style/Theme.Material.NoActionBar">
+        <activity
+            android:name=".ComposeProbeActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

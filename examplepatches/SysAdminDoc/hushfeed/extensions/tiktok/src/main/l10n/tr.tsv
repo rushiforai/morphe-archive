@@ -634,7 +634,7 @@ Hide the floating promotional badge over the feed.	Akışın üzerindeki yüzen 
 Hide the follow button on the feed	Akıştaki takip et düğmesini gizle
 Hide the friend recommendation card and the other cards TikTok slots between videos.	Arkadaş öneri kartını ve TikTok'un videoların arasına yerleştirdiği diğer kartları gizle.
 Hide the launcher shortcuts	Başlatıcı kısayollarını gizle
-Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.	Akışın sağ üstündeki büyüteci gizle. Gelen Kutusu'ndaki arama ve yorumların üzerindeki öneriler değişmez.
+Hide the magnifying glass at the top right of the feed and the one over the video while comments are open. Search in Inbox and suggestions above comments stay unchanged.	Akışın sağ üstündeki büyüteci ve yorumlar açıkken videonun üstündeki büyüteci gizle. Gelen Kutusu'ndaki arama ve yorumların üzerindeki öneriler değişmez.
 Hide the music line	Müzik satırını gizle
 Hide the playlist bar	Oynatma listesi çubuğunu gizle
 Hide the playlist bar along the bottom of videos that belong to a series.	Bir seriye ait videoların alt kısmındaki oynatma listesi çubuğunu gizle.
@@ -1118,7 +1118,7 @@ Start recording	Kaydı başlat
 Start the day at	Günün başlangıç saati
 Start today over	Bugünü baştan başlat
 Start typing	Yazmaya başla
-Hides the comment count, the sort and close buttons and the suggestions above them. Use Back or swipe down to close comments.	Yorum sayısını, sıralama ve kapatma düğmelerini ve üstlerindeki önerileri gizler. Yorumları kapatmak için Geri'yi kullan veya aşağı kaydır.
+Hides the comment count, the sort, translate and close buttons and the suggestions above them. Use Back or swipe down to close comments.	Yorum sayısını, sıralama, çeviri ve kapatma düğmelerini ve üstlerindeki önerileri gizler. Yorumları kapatmak için Geri'yi kullan veya aşağı kaydır.
 Sticker	Çıkartma
 Sticker destination	Çıkartma kayıt konumu
 Sticker saved to %1$s	Çıkartma şuraya kaydedildi: %1$s
@@ -1131,7 +1131,17 @@ Stops TikTok from slowing your screen to match each video's frame rate. On a 90 
 Keep the screen's brightness in the camera	Kamerada ekran parlaklığını koru
 Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	TikTok'un video çekerken, düzenlerken veya paylaşırken ekranını parlatmasını engeller. Ön flaş ekranı yine beyaz yapar, ama senin kendi parlaklığında.
 Report a newer phone to effects	Efektlere daha yeni bir telefon bildir
-Effects ask TikTok's server whether your phone can run them, and some get turned down on older phones. This tells the effects server you have a Galaxy S24 Ultra instead. Sign-in and everything else still see your real phone. An effect your phone really can't run may still fail or look wrong.	Efektler, telefonunun onları çalıştırıp çalıştıramayacağını TikTok sunucusuna sorar ve bazıları eski telefonlarda reddedilir. Bu ayar, efekt sunucusuna Galaxy S24 Ultra kullandığını söyler. Giriş ve geri kalan her şey gerçek telefonunu görmeye devam eder. Telefonunun gerçekten çalıştıramadığı bir efekt yine de hata verebilir veya yanlış görünebilir.
+Effects ask TikTok's server whether your phone can run them, and some get turned down on older phones. This tells the effects server you have a Galaxy S24 Ultra instead, or the phone you type below. Sign-in and everything else still see your real phone. An effect your phone really can't run may still fail or look wrong.	Efektler, telefonunun onları çalıştırıp çalıştıramayacağını TikTok sunucusuna sorar ve bazıları eski telefonlarda reddedilir. Bu ayar, efekt sunucusuna Galaxy S24 Ultra ya da aşağıya yazdığın telefonu kullandığını söyler. Giriş ve geri kalan her şey gerçek telefonunu görmeye devam eder. Telefonunun gerçekten çalıştıramadığı bir efekt yine de hata verebilir veya yanlış görünebilir.
+# context: settings row under Report a newer phone to effects; the user types a phone model name there (#176)
+Phone model for effects	Efektler için telefon modeli
+# context: summary of Phone model for effects; tapping the row lists phones to pick and its last row opens a box to type one; Galaxy S24 Ultra stays as it is (#176)
+Pick the phone the effects server is told about, or type any model. An effect turned down for one phone may open for another. Empty means the Galaxy S24 Ultra.	Efekt sunucusuna bildirilecek telefonu seç ya da herhangi bir model yaz. Bir telefon için reddedilen efekt başka biri için açılabilir. Boşsa Galaxy S24 Ultra bildirilir.
+# context: first row of the phone list under Phone model for effects; %1$s is a phone name like Galaxy S24 Ultra (SM-S928B) (#176)
+%1$s, the default	%1$s, varsayılan
+# context: last row of the phone list under Phone model for effects; opens a box to type a model name (#176)
+Type another model	Başka bir model yaz
+# context: shown when the typed phone model has other characters or is over 40 long (#176)
+Use up to 40 letters and numbers. Spaces, dots, dashes and brackets are fine too.	En fazla 40 harf ve rakam kullan. Boşluk, nokta, tire ve parantez de olur.
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.	TikTok'un telefonunun hareket ve pusula sensörlerini okumasını engeller. Uygulamalar bunlarla telefonunu tanıyabilir.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.	TikTok'un kopyaladıklarını okumasını durdur. TikTok'tan bağlantı kopyalamak yine çalışır.
 Stop a long press on Like from opening TikTok's repost action.	Beğen'e uzun basmanın TikTok'un yeniden yayınlama işlemini açmasını durdur.
@@ -1407,6 +1417,10 @@ Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll
 Hide the unread badges on the bottom tabs	Alt sekmelerdeki okunmamış rozetlerini gizle
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Gelen Kutusu ve Profil dahil tüm alt sekmelerdeki kırmızı sayaçları ve noktaları, ayrıca Gelen Kutusu'nun üstünde yeni beğenileri, takipçileri, yorumları ve kimin LIVE'da olduğunu sayan baloncuğu gizler. Gelen kutusunun kendisi gelenleri göstermeye devam eder.
 Speed while you hold the video	Videoyu basılı tutarken hız
+# context: a typed speed for the hold gesture and its pull-down lock; %1$s and %2$s are the slowest and fastest speeds (#357)
+Custom hold speed	Özel basılı tutma hızı
+One speed from %1$s to %2$s, like 1.8, for the hold and its pull-down lock. It takes the place of the speed above. Leave empty to use that one.	Basılı tutma ve aşağı çekerek kilitleme için %1$s ile %2$s arasında bir hız, örneğin 1.8. Yukarıdaki hızın yerini alır. Onu kullanmak için boş bırakın.
+Enter one speed from %1$s to %2$s	%1$s ile %2$s arasında bir hız girin
 Slide to change the hold speed	Basılı tutma hızını kaydırarak değiştir
 Hold speed bubble style	Basılı tutma hızı balonunun stili
 Pill	Hap
@@ -1498,9 +1512,11 @@ Couldn't forget the saved videos. Try again.	Kaydedilen videolar unutulamadı. T
 Saved videos put back	Kaydedilen videolar geri getirildi
 Couldn't put the saved videos back. Try again.	Kaydedilen videolar geri getirilemedi. Tekrar dene.
 Too late to put the saved videos back	Kaydedilen videoları geri getirmek için artık çok geç
-Remembers up to %1$s videos you saved here. If the file is still there, you get Open or Save again instead of a second copy.	Burada kaydettiğin en fazla %1$s videoyu hatırlar. Dosya hâlâ duruyorsa ikinci bir kopya yerine Aç veya Yeniden kaydet seçeneğini görürsün.
+Remembers up to %1$s videos and sounds you saved here. If the file is still there, you get Open or Save again instead of a second copy.	Burada kaydettiğin en fazla %1$s video ve sesi hatırlar. Dosya hâlâ duruyorsa ikinci bir kopya yerine Aç veya Yeniden kaydet seçeneğini görürsün.
 Already saved. Open TikTok to save another copy.	Zaten kayıtlı. Başka kopya için TikTok'u aç.
 This video is already saved	Bu video zaten kayıtlı
+# context: title of the choice that comes up when an original sound saved before is saved again; it offers Open or Save again (#356)
+This sound is already saved	Bu ses zaten kayıtlı
 Save again	Yeniden kaydet
 The saved-video choice couldn't open. Try again.	Kayıtlı video seçenekleri açılamadı. Yeniden deneyin.
 The saved-video choice is still open	Kayıtlı video seçenekleri hâlâ açık
@@ -1657,7 +1673,14 @@ HDR videos light the screen extra bright. This plays the standard (SDR) version 
 Remove story rings	Hikâye halkalarını kaldır
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Akışta, yorumlarda ve profillerde profil fotoğraflarındaki hikâye halkasını kaldır. Fotoğrafa dokunmak hikâye yerine profili açar.
 Remove the LIVE ring	LIVE halkasını kaldır
-Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Akışta ve yorumlarda profil fotoğraflarındaki yanıp sönen LIVE halkasını kaldır. Canlı yayındaki bir üreticinin fotoğrafına dokunmak LIVE yerine profilini açar.
+Take the pulsing LIVE ring off profile pictures on the feed, in comments and on profiles. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Akışta, yorumlarda ve profillerde profil fotoğraflarındaki yanıp sönen LIVE halkasını kaldır. Canlı yayındaki bir üreticinin fotoğrafına dokunmak LIVE yerine profilini açar.
+# context: three switches under Remove story rings and Remove the LIVE ring; each picks one screen the rings come off (#351)
+Remove rings on the feed	Akıştaki halkaları kaldır
+Take the rings off the creator's picture in the feed's right column. Needs Remove story rings or Remove the LIVE ring.	Akışın sağ sütunundaki üretici fotoğrafından halkaları kaldır. Hikâye halkalarını kaldır veya LIVE halkasını kaldır açık olmalı.
+Remove rings in comments	Yorumlardaki halkaları kaldır
+Take the rings off profile pictures in comments. Needs Remove story rings or Remove the LIVE ring.	Yorumlardaki profil fotoğraflarından halkaları kaldır. Hikâye halkalarını kaldır veya LIVE halkasını kaldır açık olmalı.
+Remove rings on profiles	Profillerdeki halkaları kaldır
+Take the rings off the big picture at the top of a profile. Needs Remove story rings or Remove the LIVE ring.	Profilin üstündeki büyük fotoğraftan halkaları kaldır. Hikâye halkalarını kaldır veya LIVE halkasını kaldır açık olmalı.
 Open the Story when a creator is LIVE	Üretici LIVE'dayken hikâyeyi aç
 When a creator who's LIVE also has a Story, tapping their picture on their profile or on your chat with them in the Inbox opens the Story. Tap the picture again to join the LIVE.	LIVE'daki bir üreticinin hikâyesi de varsa, profilindeki ya da Gelen Kutusu'ndaki sohbetinizde fotoğrafına dokunmak hikâyeyi açar. LIVE'a katılmak için fotoğrafa tekrar dokun.
 Writing	Yazma
@@ -1777,6 +1800,10 @@ Keep the LIVE quality after TikTok restarts	TikTok yeniden başlayınca LIVE kal
 TikTok forgets the LIVE quality you picked when it closes. This starts rooms at that quality again after a restart. A room whose stream doesn't have it opens at TikTok's choice.	TikTok kapandığında seçtiğin LIVE kalitesini unutur. Bu, yeniden başlatmadan sonra odaları yine o kalitede açar. Yayınında o kalite olmayan bir oda TikTok'un seçtiği kalitede açılır.
 Offer clear screen in every LIVE room	Her LIVE odasında temiz ekran sun
 Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.	Temiz ekran bir LIVE'ın sohbetini, hediyelerini ve düğmelerini gizler, yalnızca yayın görünür. TikTok bunu yalnızca bazı odaların menüsüne koyar. Bu, onu diğerlerine de ekler.
+# context: LIVE settings row next to Offer clear screen in every LIVE room; clear screen is TikTok's LIVE mode that hides chat, gifts and buttons (#354)
+Keep clear screen in the next LIVE	Sonraki LIVE'da temiz ekranı koru
+# context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
+A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	Kaydırdığın LIVE sohbeti, hediyeleri ve düğmeleriyle geri gelir. Bu, sen kapatana kadar temiz ekranı odadan odaya açık tutar.
 Dark LIVE panels in dark mode	Karanlık modda koyu LIVE panelleri
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	TikTok karanlık moddayken bile bir LIVE odası paylaşım menüsünü, hayran kulübünü ve diğer panelleri açık renklerle açar. Bu ayar onları koyu açar.
 Keep watching in a small window	Küçük bir pencerede izlemeye devam et
@@ -2540,9 +2567,54 @@ Close with Back or a tap outside	Geri veya dışarı dokunarak kapat
 Off, only its button closes it.	Kapalıyken yalnızca düğmesi kapatır.
 # context: extra search words for the Startup message setting, not shown anywhere (#347)
 dialog popup greeting	iletişim kutusu açılır pencere karşılama
+# context: the startup message's button that stops this message showing; a changed message shows again (#347)
+Don't show again	Bir daha gösterme
 # context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
 Stop the blink under the bar	Çubuğun altındaki titremeyi durdur
-If the video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Şeffaf alt çubuk açıkken kaydırırken video yanıp sönüyorsa, bu seçenek videoyu ayrı bir katman yerine TikTok'un içinde çizer. Biraz daha fazla pil kullanabilir. Şeffaf alt çubuk açık olmalıdır.
+If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Şeffaf alt çubuk açıkken kaydırırken video yanıp sönüyorsa, bu seçenek videoyu ayrı bir katman yerine TikTok'un içinde çizer. Biraz daha fazla pil kullanabilir. Şeffaf alt çubuk açık olmalıdır.
 # context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
 Bend the video at the edges	Videoyu kenarlarda bük
-The glass pill's edges bend the blurred video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	Cam hapın kenarları arkasındaki bulanık videoyu gerçek camın kenarı gibi büker ve renkler biraz daha canlı görünür. Çubuğun arkasındaki videoyu bulanıklaştır ve Android 13 veya üstü gerekir.
+The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	Cam hapın kenarları arkasındaki bulanık videoyu gerçek camın kenarı gibi büker ve renkler biraz daha canlı görünür. Çubuğun arkasındaki videoyu bulanıklaştır ve Android 13 veya üstü gerekir.
+# context: Inbox settings, the switch that hides the On this day memory TikTok puts first in the stories tray. On this day is TikTok's own name for it, kept in English like Footnotes.
+Hide On this day	On this day'i gizle
+The On this day memory at the front of the stories tray goes, and the stories after it move into its place. Nothing is deleted.	Hikaye şeridinin başındaki On this day anısı kalkar ve ondan sonraki hikayeler onun yerine geçer. Hiçbir şey silinmez.
+# context: Comments settings, next to Hide like counts on comments; the switch that takes the commenter's profile picture off each comment and reply so the name and text start at the left.
+Hide profile pictures in comments	Yorumlardaki profil fotoğraflarını gizle
+Hide the picture beside each comment and reply. The name and the comment move over to fill its place.	Her yorumun ve yanıtın yanındaki fotoğrafı gizler. Ad ve yorum onun yerine kayar.
+# context: a one-time toast over a TikTok puzzle while Hide CAPTCHA popups is off; names that switch, which would have skipped the puzzle
+Hide CAPTCHA popups in Hushfeed skips these	Bunu atlamak için: CAPTCHA pencerelerini gizle
+# context: Region page row title; a list of countries the LIVE feed asks TikTok for rooms from
+LIVE feed countries	CANLI akışı ülkeleri
+# context: Region page row summary for LIVE feed countries; 'rooms' are LIVE rooms, 'switches above' are the SIM and region switches on the same page
+Separate country codes with commas, like BR, MX. Each page of the LIVE feed asks TikTok for rooms from one of them, taking turns. TikTok doesn't say which country a room is in, and your IP address and account still count, so rooms from elsewhere can still show up. This works without the switches above. Leave empty for TikTok's usual rooms.	Ülke kodlarını virgülle ayırın, örneğin BR, MX. CANLI akışının her sayfası TikTok'tan sırayla bunlardan birinin odalarını ister. TikTok bir odanın hangi ülkede olduğunu söylemez, IP adresiniz ve hesabınız da hâlâ etkilidir, bu yüzden başka yerlerden odalar yine görünebilir. Bu, yukarıdaki anahtarlar olmadan da çalışır. TikTok'un olağan odaları için boş bırakın.
+# context: Interface page row title in the publish date group; a switch that adds a button on TikTok's Liked tab grid to start the list at a chosen year or month
+Jump to a date on Liked grids	Beğenilenler ızgaralarında bir tarihe git
+# context: Row summary for Jump to a date on Liked grids; 'Newest likes' is the first item of the button's menu, keep it the same as that string
+Adds a button to the Liked grid's top corner that starts your likes at a year or month you pick, so older ones load without scrolling past newer ones. Pick Newest likes there to go back.	Beğenilenler ızgarasının üst köşesine, beğenilerinizi seçtiğiniz yıl veya aydan başlatan bir düğme ekler. Böylece eskiler, yenilerin arasından kaydırmadan yüklenir. Geri dönmek için orada En yeni beğeniler seçeneğini seçin.
+# context: Label and accessibility name of the button on the Liked grid, and the title of its year menu
+Jump to a date	Bir tarihe git
+# context: Button label on the Liked grid after a jump; %1$s is a short month and year like Mar 2022, or a year alone; the grid shows likes from up to that date
+Up to %1$s	%1$s tarihine kadar
+# context: First item of the Liked grid's jump menu; goes back to TikTok's usual newest-first list
+Newest likes	En yeni beğeniler
+# context: First item of the month menu; jumps to the end of the chosen year
+Whole year	Tüm yıl
+# context: Toast after picking a date when the grid couldn't reload by itself; pulling down to refresh loads the likes from that date; two lines of 28 characters at most, no full stop
+Pull down on the grid to load them	Yüklemek için ızgarayı aşağı çekin
+# context: Comments settings, Hiding section. Switch that hides TikTok's X (close) button at the top of the comment panel
+Hide the close button in comments	Yorumlarda kapatma düğmesini gizle
+# context: Comments settings, Hiding section. Switch that hides TikTok's button that stretches the comment panel to full screen
+Hide the expand button in comments	Yorumlarda genişletme düğmesini gizle
+# context: Summary under the close button switch; Back is the phone's Back
+Hides the X at the top of the comments, and the buttons next to it move over to fill the gap. Use Back or swipe down to close comments.	Yorumların üstündeki X'i gizler, yanındaki düğmeler boşluğu doldurmak için kayar. Yorumları kapatmak için Geri'yi kullan veya aşağı kaydır.
+# context: Summary under the expand button switch; Open the comments at full height is another switch's title
+Hides the button that stretches the comments over the whole screen. Turn on Open the comments at full height to have them open that way.	Yorumları tüm ekrana yayan düğmeyi gizler. Yorumların hep böyle açılması için Yorumları tam yükseklikte aç'ı aç.
+# context: Switch title in the Clear display section; the button is a small eye drawn over the main feed
+Invisible controls button	Görünmez kontroller düğmesi
+A small eye button at the top left of the main feed. Tap it and the buttons, caption and tabs go invisible but still take taps, which helps against burn-in on OLED screens. Tap it again to bring them back. They stay the way you left them across videos and restarts. Videos you open from a profile or search keep their controls.	Ana akışın sol üstünde küçük bir göz düğmesi. Dokununca düğmeler, açıklama ve sekmeler görünmez olur ama dokunuşları almaya devam eder, bu da OLED ekranlarda ekran yanmasına karşı yardımcı olur. Geri getirmek için tekrar dokun. Videolar ve yeniden başlatmalar boyunca bıraktığın gibi kalırlar. Bir profilden veya aramadan açtığın videolar kontrollerini korur.
+Keep the caption in sight	Açıklamayı görünür tut
+While the controls are invisible on the main feed, the creator's name, the caption and the music line stay in sight.	Ana akışta kontroller görünmezken içerik üreticisinin adı, açıklama ve müzik satırı görünür kalır.
+# context: Spoken label of that eye button while the controls show
+Make the controls invisible	Kontrolleri görünmez yap
+# context: Spoken label of that eye button while the controls are invisible
+Show the controls	Kontrolleri göster

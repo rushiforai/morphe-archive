@@ -208,6 +208,84 @@ class PureBlackTest {
     }
 
     /**
+     * The menu you get by holding a message or a chat goes pure black in both dark styles that set
+     * it (#543). The light theme's menu and the overlay's other colors stay.
+     */
+    @Test
+    fun theDarkMenusGetPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="IgdsPrismBGBlurFallbackFixDark">
+                        <item name="igds_color_background_blur_fallback_dark">@color/igds_prism_gray_09_alpha_95</item>
+                        <item name="igds_context_menu_background_color">?attr/igds_color_background_blur_fallback_dark</item>
+                    </style>
+                    <style name="IgdsSemanticColorsDark">
+                        <item name="igds_context_menu_background_color">@color/igds_prism_gray_10_alpha_95</item>
+                    </style>
+                    <style name="IgdsSemanticColorsLight">
+                        <item name="igds_context_menu_background_color">@color/igds_context_menu_background_color</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        assertEquals(DARK_MENUS, blackenMenus(styles))
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { (list.item(it) as Element).textContent }
+        }
+        assertEquals(
+            listOf(
+                "@color/igds_prism_gray_09_alpha_95", PURE_BLACK_COLOR, PURE_BLACK_COLOR,
+                "@color/igds_context_menu_background_color",
+            ),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenMenus(styles))
+    }
+
+    /**
+     * The newer comments screen's theme gets pure black behind the comments and on the sheet, so a
+     * picture's rounded corners stop showing gray (#538). Its dividers, its text and another style's
+     * backgrounds stay.
+     */
+    @Test
+    fun theCommentsThemeGetsPureBlack() {
+        val styles = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(
+            """
+                <resources>
+                    <style name="$COMMENT_COLORS" parent="IgdsSemanticColorsDark">
+                        <item name="dividerColor">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_elevated_background">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_elevated_separator">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_primary_background">@color/bds_grey_9_95_transparent</item>
+                        <item name="igds_color_primary_text">@color/bds_white</item>
+                    </style>
+                    <style name="${COMMENT_COLORS}Legacy" parent="$COMMENT_COLORS">
+                        <item name="igds_color_link">@color/bds_blue_1</item>
+                    </style>
+                    <style name="IgdsSemanticColorsDarkBanner">
+                        <item name="igds_color_primary_background">@color/bds_grey_9_95_transparent</item>
+                    </style>
+                </resources>
+            """.trimIndent().byteInputStream(),
+        )
+
+        assertEquals(COMMENT_BACKGROUNDS, blackenComments(styles))
+
+        val items = styles.getElementsByTagName("item").let { list ->
+            (0 until list.length).map { (list.item(it) as Element).textContent }
+        }
+        val gray = "@color/bds_grey_9_95_transparent"
+        assertEquals(
+            listOf(gray, PURE_BLACK_COLOR, gray, PURE_BLACK_COLOR, "@color/bds_white", "@color/bds_blue_1", gray),
+            items,
+        )
+        assertEquals("a second pass finds nothing", emptyList<String>(), blackenComments(styles))
+    }
+
+    /**
      * A Likes row's normal fill goes pure black (#248), in the form a decoded file may spell it, and
      * its pressed fill keeps its own attribute so a press still shows.
      */
@@ -284,6 +362,8 @@ class PureBlackTest {
     fun eachBuildsDarkSheetsGoPureBlackAndEveryOtherSheetStays() {
         val dark = DARK_SHEETS.map { "values/$it" }
         val darkStories = DARK_STORIES.map { "values/$it" }
+        val darkMenus = DARK_MENUS.map { "values/$it" }
+        val lightMenu = "values/IgdsSemanticColorsLight"
         val light = "values/IgdsPrismSemanticColorsExperimentLight"
         val builds = resourceBuilds()
         assertEquals("every build of Instagram ${Fixtures.VERSION} has a fixture", Fixtures.BUILDS, builds.size)
@@ -315,6 +395,18 @@ class PureBlackTest {
                         storiesBefore.filterKeys { it in darkStories },
                     )
                     assertEquals("$code: the light stories' gray", "@color/igds_prism_gray_09", storiesBefore[light])
+                    val menusBefore = attributeColors(res, MENU_BACKGROUND)
+                    assertEquals(
+                        "$code: the dark menus' grays",
+                        mapOf(
+                            "values/IgdsPrismBGBlurFallbackFixDark" to true,
+                            "values/IgdsSemanticColorsDark" to true,
+                        ),
+                        menusBefore.filterKeys { it in darkMenus }.mapValues { (_, color) ->
+                            color == "@color/igds_prism_gray_10_alpha_95" || color.endsWith("igds_color_background_blur_fallback_dark")
+                        },
+                    )
+                    assertTrue("$code: the light theme sets a menu's color", lightMenu in menusBefore)
                     assertEquals(
                         "$code: the dark sheets' grays",
                         mapOf(
@@ -330,6 +422,20 @@ class PureBlackTest {
                     val launchBefore = attributeColors(res, "windowSplashScreenBackground")
                     assertEquals("$code: the launch screen's color", SPLASH_BACKGROUND_COLOR, launchBefore[darkLaunch])
                     assertEquals("$code: the light launch screen's color", SPLASH_BACKGROUND_COLOR, launchBefore[lightLaunch])
+                    val comments = "values/$COMMENT_COLORS"
+                    val commentGray = "@color/bds_grey_9_95_transparent"
+                    assertTrue(
+                        "$code: the comments' gray is #f2262626",
+                        Regex("""<color name="bds_grey_9_95_transparent">#f2262626</color>""", RegexOption.IGNORE_CASE)
+                            .containsMatchIn(File(res, "values/colors.xml").readText()),
+                    )
+                    val commentAttributes = COMMENT_BACKGROUNDS + listOf("dividerColor", "igds_color_elevated_separator")
+                    assertEquals(
+                        "$code: the comments theme's grays",
+                        commentAttributes.associateWith { commentGray },
+                        commentAttributes.associateWith { attributeColors(res, it)[comments] },
+                    )
+                    val primaryBefore = attributeColors(res, "igds_color_primary_background")
 
                     context.blackenThemes()
 
@@ -344,7 +450,7 @@ class PureBlackTest {
 
                     val after = attributeColors(res, SHEET_BACKGROUND)
                     assertEquals("$code: the dark sheets", dark.associateWith { PURE_BLACK_COLOR }, after.filterKeys { it in dark })
-                    assertEquals("$code: every other sheet", before - dark, after - dark)
+                    assertEquals("$code: every other sheet", before - dark - comments, after - dark - comments)
                     assertNotEquals("$code: the light sheet", PURE_BLACK_COLOR, after[light])
                     val storiesAfter = attributeColors(res, STORY_BACKGROUND)
                     assertEquals(
@@ -353,6 +459,30 @@ class PureBlackTest {
                         storiesAfter.filterKeys { it in darkStories },
                     )
                     assertEquals("$code: every other story style", storiesBefore - darkStories, storiesAfter - darkStories)
+                    val menusAfter = attributeColors(res, MENU_BACKGROUND)
+                    assertEquals(
+                        "$code: the dark menus (#543)",
+                        darkMenus.associateWith { PURE_BLACK_COLOR },
+                        menusAfter.filterKeys { it in darkMenus },
+                    )
+                    assertEquals("$code: every other menu style", menusBefore - darkMenus, menusAfter - darkMenus)
+                    assertNotEquals("$code: the light menu", PURE_BLACK_COLOR, menusAfter[lightMenu])
+                    assertEquals(
+                        "$code: the comments theme (#538)",
+                        mapOf(
+                            "igds_color_primary_background" to PURE_BLACK_COLOR,
+                            SHEET_BACKGROUND to PURE_BLACK_COLOR,
+                            "dividerColor" to commentGray,
+                            "igds_color_elevated_separator" to commentGray,
+                        ),
+                        commentAttributes.associateWith { attributeColors(res, it)[comments] },
+                    )
+                    val primaryAfter = attributeColors(res, "igds_color_primary_background")
+                    assertEquals(
+                        "$code: every other style's background but the prism black ones",
+                        (primaryBefore - comments).filterValues { it != PRISM_BLACK_COLOR },
+                        (primaryAfter - comments).filterKeys { primaryBefore[it] != PRISM_BLACK_COLOR },
+                    )
                     val row = File(res, "drawable/$ROW_DRAWABLE.xml").readText()
                     assertTrue("$code: the Likes row goes black (#248)\n$row", PURE_BLACK_COLOR in row)
                     assertTrue("$code: its press keeps its gray\n$row", "${ROW_BACKGROUND}_pressed" in row)

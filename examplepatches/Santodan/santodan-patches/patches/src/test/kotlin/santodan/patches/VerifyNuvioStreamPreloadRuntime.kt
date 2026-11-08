@@ -29,7 +29,10 @@ private class RuntimePlayerState(@JvmField val F0: String, @JvmField val y1: Run
                                 @JvmField val a: Boolean = true, @JvmField val b: Boolean = false,
                                 @JvmField val c: Boolean = false, @JvmField val d: Any? = null,
                                 @JvmField val m1: String? = null, @JvmField val g: String = "")
-private class RuntimePlayerController { @JvmField val T: String = "SERIES" }
+private class RuntimePlayerController {
+    @JvmField val T: String = "SERIES"
+    @JvmField var u3: String? = "release-A"
+}
 private class RuntimePlayerModel(private val flow: MutableStateFlow<RuntimePlayerState>) {
     @JvmField val Y = RuntimePlayerController()
     fun e(): StateFlow<RuntimePlayerState> = flow
@@ -41,8 +44,8 @@ private class RuntimeRepository(private val profile: RuntimeProfile, private val
     companion object {
         @JvmStatic fun l(owner: RuntimeRepository, type: String, id: String, season: Int?, episode: Int?,
                          refresh: Boolean, group: String?, first: Boolean, second: Boolean, mask: Int): Flow<Any> {
-            check(!refresh && group == null && !first && !second && mask == 208)
-            return owner.l(type, id, season, episode, false)
+            check(!refresh && first == second && mask == 16)
+            return owner.l(type, id, season, episode, false, group, first)
         }
     }
     @JvmField val l = MutableStateFlow(false)
@@ -58,9 +61,12 @@ private class RuntimeRepository(private val profile: RuntimeProfile, private val
     val localSearches = ConcurrentHashMap.newKeySet<String>()
     private val sessions = ConcurrentHashMap<String, Deferred<Any>>()
     // This fixture models the native session boundary, not the patch's queue or target selection.
-    fun l(type: String, id: String, season: Int?, episode: Int?, force: Boolean): Flow<Any> = flow {
+    fun l(type: String, id: String, season: Int?, episode: Int?, force: Boolean,
+          group: String? = null, preferred: Boolean = false): Flow<Any> = flow {
         if (Thread.currentThread().name == "main") mainThreadSearches.incrementAndGet()
-        val key = "${profile.f.value}|$type|$id|$season|$episode"
+        val mode = if (preferred) "continuePluginOnly" else ""
+        val keyGroup = if (preferred) "" else group?.trim().orEmpty()
+        val key = "${profile.f.value}|$type|$id|$season|$episode|$mode|$keyGroup"
         if (force) {
             forceRefreshes.incrementAndGet()
             sessions.remove(key)?.cancel() // Native force-refresh really discards the warmed session.
@@ -151,10 +157,20 @@ fun main() = runBlocking {
         check("ttnext:1:2" in repository.localSearches) // Exact next target runs even while native playback is paused.
         check(repository.l.value) // The singleton pause flag was never cleared.
         val nextSources = withContext(Dispatchers.Default) {
-            repository.l("series", "ttnext:1:2", 1, 2, NuvioStreamPreload.nextEpisodePickerRefresh(true)).first()
+            repository.l("series", "ttnext:1:2", 1, 2, NuvioStreamPreload.nextEpisodePickerRefresh(true), "release-A").first()
         }
         check(((nextSources as b9.r).a as List<*>).let { (it.single() as RuntimeAddonStreams).streams } == listOf("source-ttnext:1:2"))
         check(repository.networkCalls.get() == 5)
+        // Changing the active source group must invalidate the preload cooldown. Local-plugin
+        // autoplay and the full manual list use different native modes, and both must be warm.
+        playerModel.Y.u3 = "local-plugin-demo|1080p"
+        waitFor { repository.networkCalls.get() == 7 }
+        withContext(Dispatchers.Default) {
+            repository.l("series", "ttnext:1:2", 1, 2, false, playerModel.Y.u3).first()
+            repository.l("series", "ttnext:1:2", 1, 2, false, playerModel.Y.u3, true).first()
+        }
+        check(repository.networkCalls.get() == 7)
+        println("PASS: beta.12 binge-group cache keys, source-group changes and preferred-plugin autoplay reuse")
         check(NuvioStreamPreload.nextEpisodePluginPause(RuntimePluginRequest(repository, "unrelated", "series", 1, 2)).first())
         NuvioStreamPreload.stopNextEpisode(playerModel)
         playerFlow.value = RuntimePlayerState("ttnext:1:2", RuntimePlayerNext("ttnext:1:3", 1, 3))
@@ -165,8 +181,8 @@ fun main() = runBlocking {
         check(Log.errors.isEmpty()) { Log.errors.joinToString() }
         println("PASS: real delayed player observer, next-episode cache reuse, scoped local-scraper permission, duplicate observers and disposal")
         repository.l.value = false
-        withContext(Dispatchers.Default) { repository.l("series", "ttnext:1:2", 1, 2, true).first() }
-        check(repository.networkCalls.get() == 6 && repository.forceRefreshes.get() == 1)
+        withContext(Dispatchers.Default) { repository.l("series", "ttnext:1:2", 1, 2, true, playerModel.Y.u3).first() }
+        check(repository.networkCalls.get() == 8 && repository.forceRefreshes.get() == 1)
         prefs.edit().putBoolean("next_episode", false).apply()
         check(NuvioStreamPreload.useNativeNextEpisodeThresholdPreload())
         check(NuvioStreamPreload.nextEpisodePickerRefresh(true))

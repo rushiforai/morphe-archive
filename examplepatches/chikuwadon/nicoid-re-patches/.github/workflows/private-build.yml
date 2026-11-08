@@ -25,9 +25,7 @@ jobs:
           javac -d /tmp/nicoid-shorts-tests extensions/extension/src/main/java/e/e/a/ShortsRules.java porting/tests/ShortsRulesTest.java
           java -cp /tmp/nicoid-shorts-tests ShortsRulesTest
       - name: Check model regressions
-        run: |
-          javac -d /tmp/nicoid-bike-tests extensions/extension/src/main/java/e/e/a/BikeRunModel.java porting/tests/BikeRunModelTest.java
-          java -cp /tmp/nicoid-bike-tests e.e.a.BikeRunModelTest
+        run: bash porting/tests/audit136-model.sh > /tmp/model-regressions.log 2>&1
       - name: Check UI translations
         run: |
           javac -d /tmp/nicoid-ui-tests extensions/extension/src/main/java/e/e/a/UiStrings.java porting/tests/UiStringsTest.java
@@ -73,24 +71,51 @@ jobs:
           java -cp /tmp/nicoid-cookie-tests e.e.a.ManualCookieTest
       - name: Validate bundled Android manifest
         run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
+      - name: Verify screen-off audio defaults to ON
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          source = Path("porting/revisions/v1.10.4/java/e/e/a/Dev119.java").read_text()
+          assert "option.setDefaultValue(Boolean.TRUE)" in source
+          assert ".getBoolean(KEY, true)" in source
+          assert "option.setDefaultValue(Boolean.FALSE)" not in source
+          print("PASS: new installs default ON; stored explicit OFF remains effective")
+          PY
+      - name: Check additional cache, audio and gesture regressions
+        run: python3 porting/tests/regression136.py
+      - name: Test comment lifecycle and player controls regressions
+        run: python3 porting/tests/regression141.py
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.10.2-dev.11/verify-mpp.py 1.10.2-dev.11
+        run: python3 porting/revisions/v1.10.4/verify-mpp.py 1.10.4
+      - name: Verify stable resources and feature continuity
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nicoid-baseline /tmp/nicoid-stage
+          gh release download v1.10.3 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.3.mpp --dir /tmp/nicoid-baseline
+          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.3.mpp patches/build/libs/patches-1.10.4.mpp
+          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.3.mpp patches/build/libs/patches-1.10.4.mpp
+          cp -a porting/revisions/v1.10.1/helpers porting/revisions/v1.10.1/method-delta /tmp/nicoid-stage/
+          python3 porting/revisions/v1.10.4/patch-payloads.py /tmp/nicoid-stage 1.10.4
+          python3 porting/tests/VerifyReleaseContinuity.py porting/revisions/v1.10.1/helpers /tmp/nicoid-stage/helpers /tmp/nicoid-stage/method-delta
+          python3 porting/tests/VerifyQualityRegisters195.py /tmp/nicoid-stage
       - name: Prepare development sources and verification report
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.2-dev.11
+          version=1.10.4
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.10.2-dev.11/sync-source-payloads.py "$version"
+          python3 porting/revisions/v1.10.4/sync-source-payloads.py "$version"
           {
             echo "nicoid Re $version / development verification"
             echo "Commit: $GITHUB_SHA"
@@ -98,9 +123,14 @@ jobs:
             echo "Shipped-MPP payload and visible version verification: PASS"
             echo "Development source overlay tests: PASS (build-payloads.sh/verify-overlay.py)"
             echo "Source ZIP/TAR DEX parity with generated MPP: PASS"
+            echo "Audit fixes: packed cache fallback, cache index cleanup, shared dialog theme, gesture lifecycle and restoration, hidden-row metadata deferral"
+            echo "Additional JVM regressions: PASS"
+            echo "Stable v1.10.3 resource and feature continuity: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: reviewed scroll restoration, thumbnail dedup/batching, and settings listener lifecycle"
+            echo "Changes: 2-second controls timeout and coalesced incremental historical comment updates"
+            echo "Comment lifecycle and controls boundary tests: PASS (JVM doubles; Android runtime not covered)"
+            echo "Issue #112: screen-off audio option and lifecycle hook"
             echo
             echo "Files (SHA-256):"
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*
@@ -108,13 +138,13 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.2-dev.11-mpp
+          name: nicoid-re-v1.10.4-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 2
       - uses: actions/upload-artifact@v4
         with:
-          name: nicoid-re-v1.10.2-dev.11-source-verification
+          name: nicoid-re-v1.10.4-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 2

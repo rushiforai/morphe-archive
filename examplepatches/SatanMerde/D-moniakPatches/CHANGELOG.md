@@ -1,3 +1,44 @@
+## [1.68.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.67.0...v1.68.0) (2026-11-07)
+
+### ✨ New Features
+
+* **mega:** rewrite AMOLED with Compose token hooks, fix register bug, add promo blocker and keep-awake patches ([0e7bc86](https://github.com/SatanMerde/D-moniakPatches/commit/0e7bc8623b949aeaf385151f38fe682baeb5cbc2))
+
+## [1.67.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.66.0...v1.67.0) (2026-11-07)
+
+### ✨ New Features
+
+* **hotstar:** add signature bypass, root/vpn bypass, and promote JioHotstar patches ([4fd0ca3](https://github.com/SatanMerde/D-moniakPatches/commit/4fd0ca34d960ba45e625b7e591b81f726921718c))
+
+## [1.66.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.65.0...v1.66.0) (2026-11-07)
+
+### ✨ New Features
+
+* **patches:** promote Undercover and Virtual Master patches to tested and functional ([5733492](https://github.com/SatanMerde/D-moniakPatches/commit/57334927f04bb9475e2f770e1dd23e2856e8e2a2))
+
+## [1.65.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.64.0...v1.65.0) (2026-11-07)
+
+### ✨ New Features
+
+* **cryptomator:** promote Cryptomator patches to tested and functional ([3c1846e](https://github.com/SatanMerde/D-moniakPatches/commit/3c1846e24f04042213a2c55ed2522cce0e1faec3))
+
+## [1.64.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.63.0...v1.64.0) (2026-11-07)
+
+### ✨ New Features
+
+* **mtmanager:** remove MT Manager patches due to unsupported native anti-tamper and multi-tier signature verification ([4e3a414](https://github.com/SatanMerde/D-moniakPatches/commit/4e3a41428e69f3cbbdc2dd618648cbbbb93e4f12))
+
+## [1.63.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.62.1...v1.63.0) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* Fix syntax error in Constants.kt and add JioHotstar Ad-Free & Premium patches (closes [#22](https://github.com/SatanMerde/D-moniakPatches/issues/22)) ([9edc634](https://github.com/SatanMerde/D-moniakPatches/commit/9edc63478f116fb62fe6c2a9a4a342f8883b4542))
+* **mega:** Fix AMOLED Dark Theme and Allow Screenshots patches and set default false on universal patches (closes [#21](https://github.com/SatanMerde/D-moniakPatches/issues/21)) ([b330257](https://github.com/SatanMerde/D-moniakPatches/commit/b330257bb2ffe2e5b1deede93991af44414a3d66))
+
+### ✨ New Features
+
+* Add Unlock Premium patches for The Athletic and FotMob+ ([92f936b](https://github.com/SatanMerde/D-moniakPatches/commit/92f936b57bfc62fdb0ce20f02bb680d82aaea16d))
+
 ## [1.62.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.62.0...v1.62.1) (2026-10-31)
 
 ### 🐛 Bug Fixes

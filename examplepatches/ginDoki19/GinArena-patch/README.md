@@ -19,7 +19,7 @@ github.com/ginDoki19/GinArena-patch
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v2.9.0](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
+> **[v2.9.1](https://github.com/ginDoki19/GinArena-patch/releases/tag/v2.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details>
 <summary>📦 1DM&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -46,14 +46,14 @@ github.com/ginDoki19/GinArena-patch
 
 **🎯 Supported versions:**
 
-| 3.4.1 |
-| :---: |
-| Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003551 |
+| 3.4.1 | 3.4.3 |
+| :---: | :---: |
+| Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003551 | Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003553 |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Clean Me page](#clean-me-page) | Removes Status Saver, Legal, and Help from the Me page. |  |
-| [Custom codec](#custom-codec) | Bundles a custom codec so AC-3, E-AC-3, DTS, and TrueHD audio play out of the box. | • Custom codec file |
+| [Custom codec](#custom-codec) | Bundles an MX Player custom codec; official v3.1.0_r1 codecs are verified. | • Custom codec file<br>• Allow unverified codecs |
 | [Remove ads & bloat](#remove-ads-bloat) | Removes ads and online extras like Live TV, Tube, Shorts, and Games for a clean local player. |  |
 | [Remove bottom navigation bar](#remove-bottom-navigation-bar) | Removes the bottom navigation bar and moves Me to the top-right corner. |  |
 
@@ -246,7 +246,7 @@ Do **not** use the separate **20257** variant for this patch.
 
 ---
 
-## 📦 MX Player (3.4.1, build 2001003551)
+## 📦 MX Player (3.4.1 and 3.4.3)
 
 <details>
 <summary><b>📖 App details</b> — what it does, target version and notes (click to expand)</summary>
@@ -264,7 +264,7 @@ Keeping it simple here: these patches turn free **MX Player** (`com.mxtech.video
 
 #### Clean Me page
 
-*On by default.* Tidies the **Me** tab: Status Saver, Legal, Help, and promo clutter are gone. Your local tools, **App Theme**, **Settings**, and **Custom Pop-up Play** stay.
+*On by default.* Tidies the **Me** tab: Status Saver, Legal, Help, and promo clutter are gone. Your local tools, **App Theme**, **Settings**, **Data Privacy**, and **Custom Pop-up Play** stay.
 
 #### Remove bottom navigation bar
 
@@ -272,21 +272,22 @@ Keeping it simple here: these patches turn free **MX Player** (`com.mxtech.video
 
 #### Custom codec
 
-*Optional, off by default.* Only for Dolby/DTS fans: pick `aio-v3.1.0_r1.zip` in the patch option and **E-AC-3**, **TrueHD**, **DTS**, and **AC-3** videos play out of the box. Don't need it? Skip it.
+*Optional, off by default.* Select the official v3.1.0_r1 **AIO**, **ARMv7**, or **ARM64** codec ZIP. For a dual-ABI APK, the patch downloads and verifies the matching official companion when needed; an internet connection is required for that download. AIO and matching single-ABI APKs need no download.
+
+Other codecs must cover every ABI in the input APK and require **Allow unverified codecs**. Their authenticity and decoding capabilities are not verified, so only use files you trust.
 
 ### Target app & downloads (MX Player)
 
 > **Important:** Download the **standalone `.apk` file** (~111 MB), **not** a `.xapk` or
-> `.apkm` split bundle. APKPure, Uptodown, and APKMirror all distribute the exact same official
-> Amazon Mobile LLC signed standalone APK below.
+> `.apkm` split bundle. Check the version, build, and signing certificate before patching.
 
 | Field | Value |
 | --- | --- |
 | Package | `com.mxtech.videoplayer.ad` |
-| Version | **3.4.1** (versionCode 2001003551) — standalone universal APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
+| Versions | **3.4.1** (2001003551) and **3.4.3** (2001003553) — standalone APK (`arm64-v8a` + `armeabi-v7a`, Android 7.0+) |
 | Stock APK — **APKPure** | [Latest 3.4.1 APK](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad) · [Version history (`3.4.1`)](https://apkpure.com/mx-player-app/com.mxtech.videoplayer.ad/versions) *(choose the **APK** download, not `XAPK`)* |
 | Stock APK — **Uptodown** | [MX Player versions (`apk 3.4.1`)](https://mx-player.en.uptodown.com/android/versions) *(choose the **`apk`** variant)* |
-| Stock APK — **APKMirror** | [MX Player releases on APKMirror](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/) *(choose the **`3.4.1` `APK`** variant, not `BUNDLE`)* |
+| Stock APK — **APKMirror** | [MX Player 3.4.3 standalone APK](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/mx-player-3-4-3-release/mx-player-3-4-3-2-android-apk-download/) · [Version history](https://www.apkmirror.com/apk/amazon-mobile-llc/mx-player/) *(choose a supported **standalone `APK`**, not `BUNDLE`)* |
 | Signing certificate SHA-256 | `0d9b4c778672e753d45aba4f10df31e1d10bf75b1245469131ef01b82f0f91b6` |
 | `3.4.1` APK SHA-256 | `db775bd81460e31bd21602cf0b842bc3e2fd769b0bd23250e70036cc4cf95bf4` |
 | Optional **Custom Codec v3.1.0** | [GitHub — `iDNA420/MX-FFmpeg` `v3.1.0_r1` (`aio-v3.1.0_r1.zip` recommended)](https://github.com/iDNA420/MX-FFmpeg/releases/tag/v3.1.0_r1) (`SHA-256: ebb0bd5db0f855caca6167747987a229836d7cc0062a2d5c23dbf91d057c617b`) — keep it as a `.zip` and select it inside the **Custom codec** patch option in Morphe Manager |
@@ -543,9 +544,9 @@ Enables local premium tools and cleans up VIP labels and buttons.
 
 1. Add this repository as a remote patch source using the link at the top of this README.
 2. Download the stock **1DM 20.0 APKM**, **CRICFy TV 7.4 APK**, **CricZ TV 7.3 APK**,
-   **PlayZ TV 2.3.1 APK**, **SK Tech TV 2.7 APK**, **MX Player 3.4.1 APK**, or
+   **PlayZ TV 2.3.1 APK**, **SK Tech TV 2.7 APK**, **MX Player 3.4.1 or 3.4.3 APK**, or
    **APK Decompiler 4.12.0 APK** above onto your device.
-3. Uninstall the stock app first if it is already installed (re-signing changes the APK signature).
+3. Updates require a compatible signing key. If Android reports a signature conflict, stop: uninstalling the existing app can permanently erase its data. Back up what you can and your Morphe signing key first.
 4. In Morphe Manager, choose **Select from storage**, pick the downloaded stock `.apkm` / `.apk`
    file (rather than an already-patched installed app), configure options if desired (for MX
    Player's optional **Custom codec** patch, tap its gear icon and pick `aio-v3.1.0_r1.zip`

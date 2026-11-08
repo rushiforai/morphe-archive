@@ -28,6 +28,16 @@ def method(classes,cls,name,desc=None):
 def ops(m):return [(i.get_name(),i.get_output()) for i in m.get_instructions()]
 def text(m):return '\n'.join(i.get_output() for i in m.get_instructions())
 def idx(m):return list(m.get_instructions_idx())
+def caught_types(path,cls_name,method_name):
+    with zipfile.ZipFile(path) as z:
+        for dex_name in [n for n in z.namelist() if re.fullmatch(r'classes\d*\.dex',n)]:
+            dex=DEX(z.read(dex_name))
+            cls=next((c for c in dex.get_classes() if c.get_name()==cls_name),None)
+            if cls is None: continue
+            m=next((m for m in cls.get_methods() if m.get_name()==method_name),None)
+            if m is None or m.get_code() is None: return []
+            return [dex.get_cm_type(pair.get_type_idx()) for handler in m.get_code().get_handlers().get_list() for pair in handler.get_handlers()]
+    return []
 original=load_classes(a.original)
 patched=load_classes(a.patched)
 original_apk=APK(str(a.original))
@@ -61,6 +71,13 @@ if version=='14.0.0.4.149':
     surface=method(patched,'Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;','AuraElevatedIconSurface-7poYlZM',surface_desc)
     callback='Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback14;'
     json_callback='AuraMCDebugJsonBridge'
+elif version=='15.0.0.3.156':
+    menu_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/5Ih;ZLX/5Ng;II)V'
+    surface_desc='(LX/4yE;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/5Ih;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/GrK;LX/5Ih;ZLX/5Ng;II)V'
+    menu=method(patched,'Lcom/facebook/aura/header/view/HatchHeaderLeadingButtonKt;','HatchHeaderLeadingButton',menu_desc)
+    surface=method(patched,'Lcom/facebook/aura/vds/compose/button/AuraElevatedButtonKt;','AuraElevatedIconSurface-7poYlZM',surface_desc)
+    callback='Lcom/facebook/aura/settings/internal/mcdebug/SidePanelShortcutCallback15;'
+    json_callback='AuraMCDebugJsonBridge'
 else:
     menu_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2hz;ZLX/2Os;II)V'
     surface_desc='(LX/2QG;Ljava/lang/String;Lkotlin/jvm/functions/Function0;LX/2hz;ZFLcom/facebook/aura/vds/compose/icons/AuraIconSize;LX/FMb;LX/2hz;ZLX/2Os;II)V'
@@ -74,24 +91,31 @@ if version=='14.0.0.4.149':
     nav_name='A0S'
     nav_desc='(LX/2yV;Ljava/lang/Object;I)Lcom/facebook/aura/navigation/AuraNavigator;'
     callback_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2yV;)Lkotlin/jvm/functions/Function0;'
+    nav_class='LX/3NK;'
+elif version=='15.0.0.3.156':
+    nav_name='A0U'
+    nav_desc='(LX/5Ng;)Lcom/facebook/aura/navigation/AuraNavigator;'
+    callback_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/5Ng;)Lkotlin/jvm/functions/Function0;'
+    nav_class='LX/002;'
 else:
     nav_name='A0M'
     nav_desc='(LX/2Os;)Lcom/facebook/aura/navigation/AuraNavigator;'
     callback_desc='(Lcom/facebook/aura/header/view/HeaderLeadingButton;Lkotlin/jvm/functions/Function0;LX/2Os;)Lkotlin/jvm/functions/Function0;'
+    nav_class='LX/3NK;'
 callback_wrap=method(patched,callback,'maybeWrap',callback_desc)
-nav_ref='LX/3NK;->'+nav_name+nav_desc
+nav_ref=nav_class+'->'+nav_name+nav_desc
 check('Long-press navigator accessor matches this Muse version',nav_ref.replace(' ','') in text(callback_wrap).replace(' ',''))
-method(original,'LX/3NK;',nav_name,nav_desc)
+method(original,nav_class,nav_name,nav_desc)
 json_menu=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugScreenKt$OptionsMenu$1$1$1;','invoke','(Lcom/facebook/aura/vds/compose/contextmenu/AuraContextMenuItem;)V')
-result_desc='(LX/2yV;I)LX/1dG;' if version=='14.0.0.4.149' else '(LX/2Os;I)LX/9IF;'
+result_desc='(LX/5Ng;I)LX/HDM;' if version=='15.0.0.3.156' else ('(LX/2yV;I)LX/1dG;' if version=='14.0.0.4.149' else '(LX/2Os;I)LX/9IF;')
 json_result=method(patched,'Lcom/facebook/aura/settings/internal/mcdebug/AuraMCDebugScreenKt$OptionsMenu$1$2;','invoke',result_desc)
 json_activity=method(patched,'Lcom/facebook/aura/main/AuraMainActivity;','onActivityResult','(IILandroid/content/Intent;)V')
 check('Mobile Config import/export actions wired',all(s in text(json_menu) for s in ['exportOverrides','importOverrides']))
 check('Mobile Config import/export menu options exposed',all(s in text(json_result) for s in ['Export modified flags','Import flags']))
 check('Mobile Config document picker result wired',json_callback in text(json_activity))
 if not a.trust:
-    guard_name='guards-14.tsv' if version=='14.0.0.4.149' else 'guards.tsv'
-    trust_classes={'LX/AOc;','LX/AOC;','LX/Ezu;','LX/CZ3;','LX/AO7;','LX/AO8;','LX/CWm;','LX/CWl;','Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;'}
+    guard_name='guards-15.tsv' if version=='15.0.0.3.156' else ('guards-14.tsv' if version=='14.0.0.4.149' else 'guards.tsv')
+    trust_classes={'LX/AOc;','LX/AOC;','LX/Ezu;','LX/CZ3;','LX/AO7;','LX/AO8;','LX/CWm;','LX/CWl;','LX/DEW;','LX/DGu;','LX/DEh;','LX/DEi;','LX/DEk;','LX/DHj;','LX/DpF;','Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;'}
     guards=Path(__file__).resolve().parents[1]/'src/main/resources/muse'/guard_name
     for row in guards.read_text().splitlines():
         cls,signature,*_=row.split('\t')
@@ -142,6 +166,41 @@ elif version=='14.0.0.4.149':
     check('CWm bypasses only the local metadata preflight',branch.get_name().startswith('goto') and target==cw[pos+4][0])
     cwl=text(method(patched,'LX/CWl;','A00','(Landroid/content/Context;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;Lkotlin/jvm/functions/Function0;LX/CWl;LX/CXI;LX/CVI;I)LX/CXg;'))
     check('Account transport uses self-package identity, not signer trust','LX/AOC;->A04' not in cwl and 'Context;->getPackageName()' in cwl and 'String;->equals' in cwl)
+    wa=method(patched,'Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;','readWhatsAppAccount')
+    seq=idx(wa);byoff=dict(seq);gotos=[(off,ins) for off,ins in seq if ins.get_name().startswith('goto')]
+    check('WhatsApp local owner check bypass reaches actual resolver',any('getContentResolver()' in byoff[off+ins.get_ref_off()*2].get_output() for off,ins in gotos))
+    check('WhatsApp response, expiry and token fields retained',all(s in text(wa) for s in ['response_code','wire_version','expiration_ts','restricted_token','currentTimeMillis']))
+elif version=='15.0.0.3.156':
+    trust_true=[
+        ('LX/DEW;','A03','(Landroid/content/Context;II)Z'),
+        ('LX/DEW;','A04','(Landroid/content/Context;Ljava/lang/String;)Z'),
+        ('LX/DEh;','A01','(LX/DES;Z)Z'),
+        ('LX/DEi;','A01','(Landroid/content/Context;Landroid/content/pm/ApplicationInfo;Landroid/content/pm/ApplicationInfo;LX/DEi;)Z'),
+        ('LX/DEk;','A01','(Landroid/content/Context;Landroid/content/pm/ApplicationInfo;LX/DEk;)Z'),
+        ('LX/DHj;','A04','(Landroid/content/Context;LX/DHv;)Z')
+    ]
+    for cls,name,desc in trust_true:check(cls+'->'+name+' permits local caller',ops(method(patched,cls,name,desc))==[('const/4','v0, 1'),('return','v0')])
+    check('DEW production-routing decision remains disabled',ops(method(patched,'LX/DEW;','A02','(Landroid/content/Context;)Z'))==[('const/4','v0, 0'),('return','v0')])
+    for name in ['A00','A01']:
+        check('DHj.'+name+' initialization preserved',ops(method(original,'LX/DHj;',name))==ops(method(patched,'LX/DHj;',name)))
+    dg=text(method(patched,'LX/DGu;','A01','(Landroid/content/Context;Ljava/lang/String;)Z'))
+    check('DGu keeps Facebook Services allowlist and enabled check only','com.facebook.services' in dg and 'com.facebook.services.dev' in dg and 'getApplicationInfo' in dg and '->enabled' in dg and not any(s in dg for s in ['MessageDigest','->signatures','requestedPermissions','LX/DEW;']))
+    provider_method=method(patched,'LX/DEh;','A00','(Landroid/content/Context;Landroid/net/Uri;)Landroid/content/ContentProviderClient;')
+    provider=text(provider_method)
+    check('DEh provider acquisition and platform rejection retained','acquireUnstableContentProviderClient' in provider and 'Ljava/lang/SecurityException;' in caught_types(a.patched,'LX/DEh;','A00') and 'LX/DEW;->A02' not in provider)
+    for cls in ['LX/DEi;','LX/DEk;']:
+        check(cls+' broadcast intent remains unchanged',ops(method(patched,cls,'AAf','(Landroid/content/BroadcastReceiver;Landroid/content/Context;Landroid/content/Intent;)Landroid/content/Intent;'))==[('return-object','v3')])
+    dp_original=idx(method(original,'LX/DpF;','ABI','(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/DqZ;)Ljava/util/ArrayList;'))
+    dp_patched=idx(method(patched,'LX/DpF;','ABI','(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;Ljava/util/Set;LX/DqZ;)Ljava/util/ArrayList;'))
+    pos=next(i for i,(_,ins) in enumerate(dp_patched) if 'BaseBundle;->containsKey' in ins.get_output())
+    off,branch=dp_patched[pos+3];target=off+branch.get_ref_off()*2
+    original_pos=next(i for i,(_,ins) in enumerate(dp_original) if 'BaseBundle;->containsKey' in ins.get_output())
+    original_off,original_branch=dp_original[original_pos+3];original_target=original_off+original_branch.get_ref_off()*2
+    original_target_ins=dict(dp_original)[original_target]
+    patched_target_ins=dict(dp_patched)[target]
+    check('DpF bypasses only the local metadata preflight',branch.get_name().startswith('goto') and original_target_ins.get_output()==patched_target_ins.get_output())
+    dek=text(method(patched,'LX/DEk;','A00','(Landroid/content/Context;Landroid/content/Intent;Ljava/lang/String;Ljava/util/List;)Landroid/content/Intent;'))
+    check('Account transport uses self-package identity, not signer trust','LX/DEW;->A04' not in dek and 'Context;->getPackageName()' in dek and 'String;->equals' in dek)
     wa=method(patched,'Lcom/facebook/aura/login/nativeflow/NativeLoginAccountResolver;','readWhatsAppAccount')
     seq=idx(wa);byoff=dict(seq);gotos=[(off,ins) for off,ins in seq if ins.get_name().startswith('goto')]
     check('WhatsApp local owner check bypass reaches actual resolver',any('getContentResolver()' in byoff[off+ins.get_ref_off()*2].get_output() for off,ins in gotos))

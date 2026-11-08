@@ -220,11 +220,11 @@ public final class CommentTools {
     }
 
     private static final String POLL_HOOK_FAMILY = "comment polls";
-    private static final String[] DISLIKE_BUTTON_IDS = {"47.5.3:fgz"};
+    private static final String[] DISLIKE_BUTTON_IDS = {"47.6.3:fhl"};
 
     /** One log line for a cell with no thumbs down, not a verdict on the build. */
     private static boolean warnedNoDislikeControl;
-    private static final String[] DISLIKE_ICON_IDS = {"47.5.3:gwz"};
+    private static final String[] DISLIKE_ICON_IDS = {"47.6.3:gxd"};
     /**
      * Faded enough to read as blocked, still readable. At 0.35 the comment text dropped to about
      * 3:1 on the sheet, which is below the floor for text of that size.

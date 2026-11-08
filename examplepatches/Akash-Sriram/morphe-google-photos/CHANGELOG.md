@@ -1,3 +1,9 @@
+## [1.17.11](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.10...v1.17.11) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Toolkit:** restore 7.99.0 symbol candidates to support older app versions ([#73](https://github.com/Akash-Sriram/morphe-google-photos/issues/73)) ([91028f4](https://github.com/Akash-Sriram/morphe-google-photos/commit/91028f46c3f708857d51228a6cf82b0b08ad645b))
+
 ## [1.17.10](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.17.9...v1.17.10) (2026-11-04)
 
 ### 🐛 Bug Fixes

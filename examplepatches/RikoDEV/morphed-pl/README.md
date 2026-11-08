@@ -14,7 +14,7 @@
 
 > [!WARNING]
 > - **No affiliation.** This is an independent community project. It is not affiliated with, endorsed by any app developer, or the Morphe project.
-> - **Trademarks.** Yanosik, Android Auto and all other product names, logos and brands belong to their respective owners. They are used here only to say which apps the patches work with.
+> - **Trademarks.** Yanosik, Orange, InPost, Android Auto and all other product names, logos and brands belong to their respective owners. They are used here only to say which apps the patches work with.
 > - **No app files.** This repository contains only patch code. It **does not** host or distribute any original or modified APKs. You need to get the app yourself from an official source.
 > - **Your responsibility.** Modifying an app may break its terms of service, and some patches, change how paid features are offered. You are responsible for making sure your use follows the app's terms. If you find the app useful, consider supporting its developer.
 > - **Road safety.** Patched apps may behave differently from the original, including alerts and Android Auto behaviour. Don't rely on them alone, follow traffic rules, and don't handle your phone while driving.
@@ -31,28 +31,65 @@
 | App | Package |
 | --- | --- |
 | Yanosik | `pl.neptis.yanosik.mobi.android` |
+| Mój Orange | `pl.orange.mojeorange` |
+| InPost Mobile | `pl.inpost.inmobile` |
 
 All patches are enabled by default.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.4.0](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 Yanosik&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 26.9.0 |
-| :---: |
+| 26.9.0 | 26.10.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block Yanosik telemetry](#block-yanosik-telemetry) | Blocks analytics, crash reporting, usage statistics, the notiOne SDK and Wi-Fi/cell tower data collection. Location reporting for POI alerts and traffic keeps working. |  |
 | [Bypass Android Auto certificate checks](#bypass-android-auto-certificate-checks) | Bypasses the Car App Library host certificate validation so Yanosik works on Android Auto. |  |
 | [Home screen dark mode](#home-screen-dark-mode) | Makes the home screen follow the system light or dark theme. |  |
-| [Remove Yanosik ads](#remove-yanosik-ads) | Removes banner ads, splash/start adverts and advert-based navigation POIs. |  |
+| [Remove Yanosik ads](#remove-yanosik-ads) | Removes banner ads, splash/start adverts, voice adverts, advert-based navigation POIs and selects the ad-free map style. |  |
 | [Remove Yanosik radio](#remove-yanosik-radio) | Removes the built-in Radio Yanosik from the main screen and the map button. |  |
 | [Unlock Yanosik PRO](#unlock-yanosik-pro) | Reports an active premium entitlement and unlocks the PRO-only settings (view after launch, floating icon). |  |
+
+</details>
+
+<details open>
+<summary>📦 InPost Mobile&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.23.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Block telemetry](#block-telemetry) | Blocks app analytics, Firebase Analytics, Crashlytics and Performance, Microsoft Clarity session recording, Adjust, Facebook app events and Synerise event tracking. |  |
+| [Hide Von Halsky](#hide-von-halsky) | Removes Von Halsky shopping: the Kupuj tab, the home search box, and the banners and promotions in parcel lists, details, the cart and the More menu. |  |
+| [Hide promotional banners](#hide-promotional-banners) | Removes the promotional banner carousel from the home screen. |  |
+
+</details>
+
+<details open>
+<summary>📦 Mój Orange&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.153.0.87591 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Block telemetry](#block-telemetry) | Blocks Firebase Analytics and Crashlytics, Quantum Metric session replay, AppsFlyer, Synerise event tracking and sponsored offer reporting. |  |
+| [Hide notification prompt](#hide-notification-prompt) | Stops the popup asking to turn on notifications. |  |
+| [Hide offer carousels](#hide-offer-carousels) | Removes the offer carousels from the home screen. |  |
+| [Hide stories](#hide-stories) | Removes the Instagram-style stories row at the top of the home screen. |  |
 
 </details>
 
@@ -60,26 +97,6 @@ All patches are enabled by default.
 
 > [!NOTE]
 > **Bypass Android Auto certificate checks** also needs [Android-Auto-XLauncher-Unlocked](https://github.com/Rikj000/Android-Auto-XLauncher-Unlocked) (root + LSPosed). See [#2](https://github.com/RikoDEV/morphed-pl/issues/2).
-
-## 🔍 What Yanosik collects
-
-**Block Yanosik telemetry** stops the collectors below. Location reporting for POI alerts and traffic keeps working.
-
-| Source | Data |
-| --- | --- |
-| Yanosik analytics (`AnalyticsManager`, `AnalyticsService`) | App events from native and Flutter screens, settings changes |
-| Usage analytics (`UsageAnalyticsService`) | App activity, navigation state, GPS status and location |
-| Wi-Fi and app statistics (`StatisticScanService`) | Nearby and connected Wi-Fi networks, app uninstall events |
-| Cell tower samples (`BtsService`) | GSM, LTE, 5G and CDMA cell data, recorded with your location |
-| Insurance analytics (`KioskAnalyticsService`) | Steps through the insurance purchase flow, including vehicle and offer data |
-| Advert statistics (`AdvertStatisticsManager`) | Advert events with device and location details |
-| Firebase Analytics and Sessions | App events and session starts |
-| Crashlytics | Crash reports, logs, custom keys and your user ID |
-| proxi.cloud SDK | Geofence and beacon events, Wi-Fi location, advertising ID |
-| notiOne SDK | Bluetooth tag scans and location samples linked to your user ID, restarted after reboot |
-| RevenueCat | Paywall and feature events |
-
-Besides privacy, this saves battery: these collectors wake the Bluetooth, Wi-Fi and cellular radios, run background timers and uploads when you aren't using the app, and keep mobile data active with frequent small transfers.
 
 ## 🛠️ Development
 

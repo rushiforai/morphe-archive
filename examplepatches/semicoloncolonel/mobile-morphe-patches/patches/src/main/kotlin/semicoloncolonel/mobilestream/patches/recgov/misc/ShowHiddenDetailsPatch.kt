@@ -1,13 +1,14 @@
 package semicoloncolonel.mobilestream.patches.recgov.misc
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
@@ -33,22 +34,32 @@ import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 private const val HELPER = "Lsemicoloncolonel/mobilestream/extension/recgov/HiddenDetails;"
 private const val MODEL = "Lcom/bah/r1smobile/model/"
 
-/** Passes every returned String of [this] through HELPER.[helper](this, text). */
-private fun MutableMethod.filterReturnedText(helper: String) {
-    val implementation = implementation ?: throw PatchException("$definingClass->$name has no code")
-    if (implementation.registerCount > 16) throw PatchException("$definingClass->$name uses too many registers")
-    val returns = implementation.instructions.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }
-    if (returns.isEmpty()) throw PatchException("$definingClass->$name has no return")
-    // Last first, so earlier indices stay valid. The return becomes the call, so a branch to
-    // the return still runs it.
-    returns.reversed().forEach { (index, instruction) ->
-        val register = (instruction as OneRegisterInstruction).registerA
-        replaceInstruction(
-            index,
-            "invoke-static { p0, v$register }, $HELPER->$helper(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;",
-        )
-        addInstructions(index + 1, "move-result-object v$register\nreturn-object v$register")
-    }
+/**
+ * Makes [this] return HELPER.[helper](this, original text). The original body is kept as
+ * `<name>$msp`, and the method now starts with `return HELPER.[helper](this)`, which calls the
+ * copy. Wrapping each return in place does not work: these getters reuse the `this` register
+ * for their own strings, so `this` is gone by the time they return.
+ */
+private fun MutableMethod.wrapReturnedText(classDef: MutableClass, helper: String) {
+    val copy = ImmutableMethod(
+        definingClass,
+        "$name\$msp",
+        emptyList(),
+        returnType,
+        accessFlags,
+        null,
+        null,
+        implementation ?: throw PatchException("$definingClass->$name has no code"),
+    ).toMutable()
+    classDef.methods.add(copy)
+    addInstructions(
+        0,
+        """
+            invoke-static { p0 }, $HELPER->$helper(Ljava/lang/Object;)Ljava/lang/String;
+            move-result-object p0
+            return-object p0
+        """,
+    )
 }
 
 @Suppress("unused")
@@ -66,7 +77,7 @@ val showHiddenDetailsPatch = bytecodePatch(
             val count = forEachMatchingMethod(
                 { it.type == "$MODEL$model;" },
                 { it.name == method && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;" },
-            ) { it.filterReturnedText(helper) }
+            ) { it.wrapReturnedText(mutableClassDefBy(it.definingClass), helper) }
             if (count != 1) throw PatchException("$model.$method not found ($count)")
         }
 

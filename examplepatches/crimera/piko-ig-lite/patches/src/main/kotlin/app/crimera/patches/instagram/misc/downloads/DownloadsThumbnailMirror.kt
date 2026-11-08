@@ -66,10 +66,10 @@ private val VALUE_PRODUCING_OPCODES =
             Opcode.CONST,
         )
 
-/** One concrete decode facade and the registers its return hook needs. */
+/** One concrete decode facade, its mirror-hook insertion point and the registers the hook needs. */
 private class FacadeCapture(
     val facade: MethodReference,
-    val returnIndex: Int,
+    val insertionIndex: Int,
     val resultRegister: Int,
     val keyRegister: Int,
     val postRegister: Int,
@@ -154,7 +154,7 @@ private fun resolveImageCacheKeyIdentityField(cacheKeyDescriptor: String): Field
 /**
  * The decode-and-add method is the one method carrying [DECODE_ANCHOR]; its cache interface owns
  * the matching abstract method, and every concrete method that invokes that interface method is a
- * facade whose return is hooked. A release has one or two facades.
+ * facade whose decode result is hooked. A release has one or two facades.
  */
 context(patchContext: BytecodePatchContext)
 private fun resolveDecodeCapture(chain: CachedBitmapChain, identityField: FieldReference): DecodeCapture {
@@ -220,9 +220,11 @@ private fun resolveDecodeCapture(chain: CachedBitmapChain, identityField: FieldR
 
 /**
  * Resolves one facade: the decode invoke is followed by the single `move-result-object` the facade
- * returns. The key parameter is the `String` parameter every external call site loads from the
- * `ImageCacheKey` identity field. The postprocessor parameter is the parameter forwarded to the
- * cache interface's postprocessor slot, so transformed decodes can be excluded at runtime.
+ * uses. A facade that returns the result is hooked before its `return-object`; one that consumes
+ * the bitmap field (454 moved the decode into a background task) is hooked after the move-result.
+ * The key is the `String` parameter or decode argument that traces to the `ImageCacheKey` identity
+ * field, and the postprocessor is the argument forwarded to the cache interface's postprocessor
+ * slot, so transformed decodes can be excluded at runtime.
  */
 context(patchContext: BytecodePatchContext)
 private fun resolveFacade(
@@ -250,36 +252,15 @@ private fun resolveFacade(
         throw PatchException("Decode invoke in $facade is not followed by move-result-object: $afterInvoke")
     }
     val resultRegister = (afterInvoke as OneRegisterInstruction).registerA
-    val returnInstruction =
-        requireExactlyOne(
-            "return-object in $facade",
-            instructions.withIndex().filter { (_, instruction) -> instruction.opcode == Opcode.RETURN_OBJECT },
-        )
-    if ((returnInstruction.value as OneRegisterInstruction).registerA != resultRegister) {
-        throw PatchException("Facade $facade does not return the decode result in v$resultRegister")
-    }
+    val returnInstructions =
+        instructions.withIndex().filter { (_, instruction) -> instruction.opcode == Opcode.RETURN_OBJECT }
+    val returnsResult =
+        returnInstructions.size == 1 &&
+            (returnInstructions.single().value as OneRegisterInstruction).registerA == resultRegister
 
     val parameters = facade.parameterTypes.map { it.toString() }
-    val stringParameters =
-        parameters.withIndex().filter { (_, descriptor) -> descriptor == STRING_DESCRIPTOR }.map { it.index }
-    val callSites = decodeCallSites(facade)
-    if (callSites.isEmpty()) {
-        throw PatchException("Decode facade $facade has no call sites to resolve its ImageCacheKey parameter")
-    }
-    val keyCandidates =
-        stringParameters.filter { parameterIndex ->
-            callSites.all { (callerInstructions, callIndex) ->
-                val argument = callArgumentRegister(callerInstructions[callIndex], 1 + parameterIndex)
-                tracesToField(callerInstructions, argument, callIndex, identityField)
-            }
-        }
-    val keyParameter = requireExactlyOne("ImageCacheKey parameter of $facade", keyCandidates)
-
     val postprocessorType = chain.cacheLookup.parameterTypes.map { it.toString() }.getOrNull(1)
         ?: throw PatchException("Cache lookup ${chain.cacheLookup} has no postprocessor slot")
-    val postParameters =
-        parameters.withIndex().filter { (_, descriptor) -> descriptor == postprocessorType }.map { it.index }
-    val postParameter = requireExactlyOne("postprocessor parameter of $facade", postParameters)
     // The postprocessor is found by its type: 449 put another parameter in front of it in the decode method.
     val decodePostIndex =
         requireExactlyOne(
@@ -288,22 +269,86 @@ private fun resolveFacade(
         )
     val postArgument =
         callArgumentRegister(invoke, 1 + parameterWordOffset(decodeParameters, decodePostIndex))
-    val forwardedPost =
-        traceArgumentToParameter(facade, instructions, decodeInvoke.index, postArgument)
-    if (forwardedPost != postParameter) {
-        throw PatchException(
-            "Postprocessor parameter $postParameter of $facade is forwarded as $forwardedPost",
+
+    return if (returnsResult) {
+        val stringParameters =
+            parameters.withIndex().filter { (_, descriptor) -> descriptor == STRING_DESCRIPTOR }.map { it.index }
+        val callSites = decodeCallSites(facade)
+        if (callSites.isEmpty()) {
+            throw PatchException("Decode facade $facade has no call sites to resolve its ImageCacheKey parameter")
+        }
+        val keyCandidates =
+            stringParameters.filter { parameterIndex ->
+                callSites.all { (callerInstructions, callIndex) ->
+                    val argument = callArgumentRegister(callerInstructions[callIndex], 1 + parameterIndex)
+                    tracesToField(callerInstructions, argument, callIndex, identityField)
+                }
+            }
+        val keyParameter = requireExactlyOne("ImageCacheKey parameter of $facade", keyCandidates)
+
+        val postParameters =
+            parameters.withIndex().filter { (_, descriptor) -> descriptor == postprocessorType }.map { it.index }
+        val postParameter = requireExactlyOne("postprocessor parameter of $facade", postParameters)
+        val forwardedPost =
+            traceArgumentToParameter(facade, instructions, decodeInvoke.index, postArgument)
+        if (forwardedPost != postParameter) {
+            throw PatchException(
+                "Postprocessor parameter $postParameter of $facade is forwarded as $forwardedPost",
+            )
+        }
+
+        FacadeCapture(
+            facade = methodReference(facade.toString()),
+            insertionIndex = returnInstructions.single().index,
+            resultRegister = resultRegister,
+            keyRegister = facade.registerOfParameterIndex(keyParameter),
+            postRegister = facade.registerOfParameterIndex(postParameter),
+            postType = parameters[postParameter],
+        )
+    } else {
+        // Newer releases can decode inside a task that consumes the bitmap field instead of
+        // returning the result. Mirror at the move-result, before the task reads the bitmap.
+        val readsBitmap =
+            instructions.withIndex().any { (index, instruction) ->
+                index > decodeInvoke.index + 1 &&
+                    instruction.opcode == Opcode.IGET_OBJECT &&
+                    (instruction as TwoRegisterInstruction).registerB == resultRegister &&
+                    instruction.getReference<FieldReference>()?.let { field ->
+                        field.definingClass == chain.bitmapField.definingClass &&
+                            field.name == chain.bitmapField.name &&
+                            field.type == chain.bitmapField.type
+                    } == true
+            }
+        if (!readsBitmap) {
+            throw PatchException(
+                "Decode facade $facade neither returns the decode result nor reads ${chain.bitmapField} from it",
+            )
+        }
+        val keyArgument =
+            requireExactlyOne(
+                "ImageCacheKey argument of $facade",
+                decodeParameters.withIndex()
+                    .filter { (_, descriptor) -> descriptor == STRING_DESCRIPTOR }
+                    .map { (parameterIndex, _) -> 1 + parameterWordOffset(decodeParameters, parameterIndex) }
+                    .filter { wordIndex ->
+                        tracesToField(
+                            instructions,
+                            callArgumentRegister(invoke, wordIndex),
+                            decodeInvoke.index,
+                            identityField,
+                        )
+                    },
+            )
+
+        FacadeCapture(
+            facade = methodReference(facade.toString()),
+            insertionIndex = decodeInvoke.index + 2,
+            resultRegister = resultRegister,
+            keyRegister = callArgumentRegister(invoke, keyArgument),
+            postRegister = postArgument,
+            postType = postprocessorType,
         )
     }
-
-    return FacadeCapture(
-        facade = methodReference(facade.toString()),
-        returnIndex = returnInstruction.index,
-        resultRegister = resultRegister,
-        keyRegister = facade.registerOfParameterIndex(keyParameter),
-        postRegister = facade.registerOfParameterIndex(postParameter),
-        postType = parameters[postParameter],
-    )
 }
 
 /** Every invoke of [facade] anywhere in the app, with the caller's instruction list and index. */
@@ -443,8 +488,9 @@ private fun emitDecodeCapture(capture: DecodeCapture) {
                 },
             )
         mutable.insertHook(
-            index = facade.returnIndex,
-            excludedRegisters = mutable.parameterBlock() + facade.resultRegister,
+            index = facade.insertionIndex,
+            excludedRegisters =
+                mutable.parameterBlock() + facade.resultRegister + facade.keyRegister + facade.postRegister,
             relocateBranchTargets = false,
         ) {
             ifEqz(facade.resultRegister, Target.Original)

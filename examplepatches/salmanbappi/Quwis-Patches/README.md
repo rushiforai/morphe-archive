@@ -2,25 +2,30 @@
 
 <p align="center">
   A fork of <a href="https://github.com/ImNoammm/Noams-Morphe-Patches">Noam's Morphe Patches</a> for chess.com only,
-  with Game Review on your own computer and Great/Brilliant marks as separate patches.
+  maintained by <a href="https://github.com/salmanbappi">@salmanbappi</a>, featuring high-speed Cloud Stockfish engine,
+  active gameplay move suggestion arrows, and unlimited Game Review.
 </p>
 
 <p align="center">
-  <a href="https://github.com/quwi26/Quwis-Patches/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/quwi26/Quwis-Patches?label=release"></a>
+  <a href="https://github.com/salmanbappi/Quwis-Patches/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/salmanbappi/Quwis-Patches?label=release"></a>
   <img alt="Morphe patches" src="https://img.shields.io/badge/Morphe-patches-3DDC84?logo=android&logoColor=white">
   <a href="LICENSE"><img alt="GPL-3.0" src="https://img.shields.io/badge/license-GPL--3.0-lightgrey"></a>
 </p>
 
 Add this source to [Morphe](https://morphe.software) Manager once -
-[Add to Morphe](https://morphe.software/add-source?github=quwi26/Quwis-Patches) - or paste the URL:
+[Add to Morphe](https://morphe.software/add-source?github=salmanbappi/Quwis-Patches) - or paste the URL:
 
 ```
-https://raw.githubusercontent.com/quwi26/Quwis-Patches/main/patches-bundle.json
+https://raw.githubusercontent.com/salmanbappi/Quwis-Patches/main/patches-bundle.json
 ```
+
+For developer guidelines, architecture details, and continuation notes, see [CONTINUATION.md](CONTINUATION.md).
 
 ## What this fork adds
 
-Five patches, all for chess.com:
+Six patches, all for chess.com:
+
+- **Cloud Stockfish Engine & In-Game Suggestion Arrows** - replaces the heavy 80 MB local binary download with high-speed cloud REST engine calls (`chess-api.com` & `stockfish.online`). Real-time best-move arrows are active during live games, bots, daily matches, and puzzles without cluttering the Game Review screen.
 
 - **Great and Brilliant moves analysis** - marks chess.com's “!” and “!!” in a review by Local Stockfish or by
   Stockfish on your computer. Great is the engine's own best move when it was also the only one that kept the

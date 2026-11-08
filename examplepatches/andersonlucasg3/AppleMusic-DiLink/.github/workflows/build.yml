@@ -74,8 +74,15 @@ jobs:
             echo "::error::versão inválida: $VERSION"
             exit 1
           fi
+          # appVersionCode scheme shared with the in-app updater: 1.6.1 -> 10601.
+          VERSION_CODE="$(VERSION="$VERSION" python3 -c 'import os,re; m=re.match(r"^(\d+)\.(\d+)(?:\.(\d+))?$", os.environ["VERSION"]); print(int(m.group(1))*10000+int(m.group(2))*100+int(m.group(3) or 0) if m else "")')"
+          if [ -z "$VERSION_CODE" ] || [ "$VERSION_CODE" -le 0 ]; then
+            echo "::error::versão $VERSION não segue MAJOR.MINOR[.PATCH]; não é possível derivar o versionCode"
+            exit 1
+          fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          echo "VERSION=$VERSION"
+          echo "VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION VERSION_CODE=$VERSION_CODE"
 
       # Sem source_url nem ENGINE_SOURCE_URL o job NÃO falha: publica os companions e
       # marca "engine não anexado" nas notas. Com URL, qualquer falha do engine derruba
@@ -129,6 +136,8 @@ jobs:
           ./gradlew :patches:buildAndroid :tv-app:assembleRelease :car-app:assembleRelease \
             --no-daemon \
             -Pkotlin.compiler.execution.strategy=in-process \
+            -PappVersionName="$VERSION" \
+            -PappVersionCode="$VERSION_CODE" \
             "-Dorg.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m"
 
       # AGP gera *-release-unsigned.apk (os módulos desligam o debug keystore de
@@ -301,11 +310,209 @@ jobs:
           verify_cert dist/AppleMusic-engine-arm64.apk
           check_engine dist/AppleMusic-engine-arm64.apk arm64-v8a
 
+      # O APK único: a UI framework-only de single-apk/single-ui é compilada no runner
+      # (javac + d8 dos build-tools), empacotada como classesN.dex e injetada no engine já
+      # assinado, por ABI. A activity do engine (login) continua no APK; só a entrada
+      # LAUNCHER muda para OneActivity. O updater da UI precisa de REQUEST_INSTALL_PACKAGES.
+      - name: Build single APKs (UI injected per ABI)
+        if: steps.source.outputs.url != ''
+        run: |
+          set -euo pipefail
+          ANDROID_JAR="$ANDROID_HOME/platforms/android-36/android.jar"
+          DEX="one/dex/classes.dex"
+          rm -rf one
+          mkdir -p one/classes one/dex one/generated/com/anderson/applemusic/one
+          cat > one/generated/com/anderson/applemusic/one/Version.java <<EOF
+          package com.anderson.applemusic.one;
+
+          /** Generated at build time by the CI; do not edit. */
+          final class Version {
+              static final String NAME = "$VERSION";
+              static final int CODE = $VERSION_CODE;
+
+              private Version() {
+              }
+          }
+          EOF
+          javac --release 8 -Xlint:-options -encoding UTF-8 -classpath "$ANDROID_JAR" \
+            -d one/classes one/generated/com/anderson/applemusic/one/Version.java \
+            $(find single-apk/single-ui/src/main/java -name '*.java')
+          jar cf one/single-ui.jar -C one/classes .
+          "$BUILD_TOOLS/d8" --release --min-api 29 --lib "$ANDROID_JAR" \
+            --output one/dex one/single-ui.jar
+
+          FOREIGN="$("$BUILD_TOOLS/dexdump" -l plain "$DEX" \
+            | sed -n "s/.*Class descriptor *: '\([^']*\)'.*/\1/p" \
+            | grep -v '^Lcom/anderson/applemusic/one/' || true)"
+          if [ -n "$FOREIGN" ]; then
+            echo "::error::o dex da UI contém classes fora de com.anderson.applemusic.one"
+            echo "$FOREIGN"
+            exit 1
+          fi
+          echo "dex: $("$BUILD_TOOLS/dexdump" -l plain "$DEX" | grep -c 'Class descriptor') classes, all com.anderson.applemusic.one.*"
+
+          build_one() {
+            local abi="$1"
+            local engine="dist/AppleMusic-engine-$abi.apk" work="one/$abi"
+            mkdir -p "$work"
+            unzip -p "$engine" AndroidManifest.xml > "$work/manifest.bin"
+            python3 single-apk/tools/axml_inject.py --in "$work/manifest.bin" \
+              --out "$work/manifest-patched.bin" \
+              --activity com.anderson.applemusic.one.OneActivity --theme 0x0103022e \
+              --permission android.permission.REQUEST_INSTALL_PACKAGES
+            python3 single-apk/tools/pack_single_apk.py --engine "$engine" --dex "$DEX" \
+              --manifest "$work/manifest-patched.bin" --out "$work/unsigned.apk"
+            "$BUILD_TOOLS/zipalign" -f -p 4 "$work/unsigned.apk" "$work/aligned.apk"
+            "$BUILD_TOOLS/apksigner" sign \
+              --ks "$RUNNER_TEMP/morphe.p12" --ks-type PKCS12 \
+              --ks-pass "pass:$MORPHE_KEYSTORE_PASSWORD" \
+              --ks-key-alias "$MORPHE_KEY_ALIAS" \
+              --key-pass "pass:$MORPHE_KEY_PASSWORD" \
+              --out "dist/AppleMusic-one-$abi.apk" "$work/aligned.apk"
+            ls -l "dist/AppleMusic-one-$abi.apk"
+          }
+          build_one arm32
+          build_one arm64
+
+      # O APK único precisa da assinatura Morphe, da OneActivity como LAUNCHER, da lib da
+      # ABI certa e da permissão que o PackageInstaller exige para se auto-atualizar.
+      - name: Validate single APKs
+        if: steps.source.outputs.url != ''
+        run: |
+          set -euo pipefail
+          EXPECTED_CERT_SHA256="1e058623722ed37eb59bb55411d01d6b7b212c6a8353aacecd60d515cee60463"
+          verify_one() {
+            local abi="$1" arch="$2"
+            local apk="dist/AppleMusic-one-$abi.apk" certs fingerprint badging
+            "$BUILD_TOOLS/zipalign" -c -p 4 "$apk"
+            certs="$("$BUILD_TOOLS/apksigner" verify --print-certs "$apk")"
+            grep -q "CN=Morphe" <<< "$certs"
+            fingerprint="$(grep -m 1 "certificate SHA-256 digest" <<< "$certs" \
+              | sed 's/.*digest: *//' | tr -d ':' | tr 'A-F' 'a-f')"
+            if [ "$fingerprint" != "$EXPECTED_CERT_SHA256" ]; then
+              echo "::error::$apk assinado com cert errado: $fingerprint"
+              exit 1
+            fi
+            badging="$("$BUILD_TOOLS/aapt2" dump badging "$apk")"
+            if ! grep -q "launchable-activity: name='com.anderson.applemusic.one.OneActivity'" <<< "$badging"; then
+              echo "::error::$apk sem OneActivity como LAUNCHER"
+              exit 1
+            fi
+            if ! grep -q "native-code:.*$arch" <<< "$badging"; then
+              echo "::error::$apk sem native-code $arch"
+              exit 1
+            fi
+            if ! "$BUILD_TOOLS/aapt2" dump permissions "$apk" \
+              | grep -q "android.permission.REQUEST_INSTALL_PACKAGES"; then
+              echo "::error::$apk sem REQUEST_INSTALL_PACKAGES (updater não instala)"
+              exit 1
+            fi
+            echo "$apk: CN=Morphe / OneActivity / $arch / REQUEST_INSTALL_PACKAGES"
+          }
+          verify_one arm32 armeabi-v7a
+          verify_one arm64 arm64-v8a
+
+      # Metadados lidos pelo updater in-app (core): versão, versionCode e, por artefato,
+      # nome/sha256/tamanho/versionCode. Roda depois dos APKs e antes do SHA256SUMS para
+      # que o checksum também cubra este arquivo.
+      - name: Write updates.json
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, re, subprocess
+          from datetime import datetime, timezone
+
+          version = os.environ["VERSION"]
+          version_code = int(os.environ["VERSION_CODE"])
+          dist = "dist"
+          build_tools = os.environ["BUILD_TOOLS"]
+
+          def sha256(path):
+              digest = hashlib.sha256()
+              with open(path, "rb") as fh:
+                  for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+                      digest.update(chunk)
+              return digest.hexdigest()
+
+          def add(key, filename, version_code=None):
+              path = os.path.join(dist, filename)
+              if not os.path.exists(path):
+                  return False
+              entry = {
+                  "name": filename,
+                  "sha256": sha256(path),
+                  "size": os.path.getsize(path),
+              }
+              if version_code is not None:
+                  entry["versionCode"] = version_code
+              assets[key] = entry
+              return True
+
+          assets = {}
+          for key, filename in (("tv", "AppleMusic-TV.apk"), ("car", "AppleMusic-Car.apk")):
+              if not add(key, filename, version_code):
+                  print(f"::error::{filename} ausente em dist/")
+                  raise SystemExit(1)
+
+          for key, filename in (
+              ("engine-arm32", "AppleMusic-engine-arm32.apk"),
+              ("engine-arm64", "AppleMusic-engine-arm64.apk"),
+          ):
+              path = os.path.join(dist, filename)
+              if not os.path.exists(path):
+                  continue
+              badging = subprocess.run(
+                  [os.path.join(build_tools, "aapt2"), "dump", "badging", path],
+                  check=True, capture_output=True, text=True,
+              ).stdout
+              match = re.search(r"versionCode='(\d+)'", badging)
+              if not match:
+                  print(f"::error::sem versionCode em {filename}")
+                  raise SystemExit(1)
+              assets[key] = {
+                  "name": filename,
+                  "sha256": sha256(path),
+                  "size": os.path.getsize(path),
+                  "versionCode": int(match.group(1)),
+              }
+
+          # O APK único carrega a versão da UI (Version.CODE), não o versionCode do engine:
+          # é essa que o updater do APK único compara com a instalada.
+          for key, filename in (
+              ("one-arm32", "AppleMusic-one-arm32.apk"),
+              ("one-arm64", "AppleMusic-one-arm64.apk"),
+          ):
+              path = os.path.join(dist, filename)
+              if not os.path.exists(path):
+                  if os.environ.get("SOURCE_URL"):
+                      print(f"::error::{filename} ausente em dist/")
+                      raise SystemExit(1)
+                  continue
+              assets[key] = {
+                  "name": filename,
+                  "sha256": sha256(path),
+                  "size": os.path.getsize(path),
+                  "versionCode": version_code,
+                  "version": version,
+              }
+
+          document = {
+              "version": version,
+              "versionCode": version_code,
+              "releasedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "assets": assets,
+          }
+          with open(os.path.join(dist, "updates.json"), "w", encoding="utf-8") as fh:
+              json.dump(document, fh, indent=2, sort_keys=True)
+              fh.write("\n")
+          print(json.dumps(document, indent=2, sort_keys=True))
+          PY
+
       - name: Write SHA256SUMS
         run: |
           set -euo pipefail
           cd dist
-          sha256sum -- *.apk > SHA256SUMS
+          sha256sum -- *.apk updates.json > SHA256SUMS
           cat SHA256SUMS
 
       - name: Upload artifacts
@@ -316,6 +523,7 @@ jobs:
           path: |
             dist/*.apk
             dist/SHA256SUMS
+            dist/updates.json
 
       - name: Prepare release notes
         if: env.PUBLISH == 'true'
@@ -344,12 +552,35 @@ jobs:
             echo "   AppleMusic-engine-arm64.apk (carro/arm64)."
             echo "3. Instale o companion: AppleMusic-TV.apk (TV) ou AppleMusic-Car.apk (carro)."
             echo
+            if [ -n "${SOURCE_URL:-}" ]; then
+              echo "## APK único (engine + UI no mesmo pacote)"
+              echo
+              echo "A release também traz \`AppleMusic-one-arm32.apk\` (arm32/TV) e"
+              echo "\`AppleMusic-one-arm64.apk\` (arm64/carro): o engine com a UI embutida, sem"
+              echo "companion."
+              echo
+              echo "1. Desinstale o Apple Music oficial e instale \`AppleMusic-one-<abi>.apk\` por cima"
+              echo "   do engine (mesmo pacote/cert: a conta é preservada), ou no lugar de"
+              echo "   engine + companion."
+              echo "2. O botão **Atualizações** (e a checagem ao abrir, no máximo 1x/dia) lê o"
+              echo "   \`updates.json\`, compara o \`versionCode\`, baixa o APK da ABI, confere o"
+              echo "   SHA-256 e abre o instalador do sistema."
+              echo
+            fi
             echo "## Limitações conhecidas"
             echo
             echo "- Busca indisponível: o MediaBrowserService do engine não anuncia SEARCH_SUPPORTED."
             echo "- Criar estação: só a partir do item atual; a sessão não expõe a ação para outros itens."
             echo
             echo "Confira os downloads com SHA256SUMS."
+            echo
+            echo "## Atualizações in-app"
+            echo
+            echo "O arquivo \`updates.json\` descreve esta release (versão, versionCode e, por APK,"
+            echo "SHA-256 e tamanho). Os companions com o updater in-app e o APK único"
+            echo "(\`one-arm32\`/\`one-arm64\`) leem esse arquivo em \`releases/latest\`, baixam o"
+            echo "APK novo, verificam o SHA-256 e abrem o instalador do sistema; no companion"
+            echo "o engine é atualizado antes do app quando houver versão nova."
           } > release-notes.md
           cat release-notes.md
 
@@ -359,10 +590,11 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          mapfile -t ASSETS < <(find dist -maxdepth 1 -type f \( -name '*.apk' -o -name 'SHA256SUMS' \) | sort)
-          EXPECTED_ASSETS=3
+          mapfile -t ASSETS < <(find dist -maxdepth 1 -type f \( -name '*.apk' -o -name 'SHA256SUMS' -o -name 'updates.json' \) | sort)
+          # TV + Car + updates.json + SHA256SUMS; com engine: +2 engines +2 APKs únicos.
+          EXPECTED_ASSETS=4
           if [ -n "${SOURCE_URL:-}" ]; then
-            EXPECTED_ASSETS=5
+            EXPECTED_ASSETS=8
           fi
           if [ "${#ASSETS[@]}" -ne "$EXPECTED_ASSETS" ]; then
             echo "::error::assets inesperados: ${#ASSETS[@]} (esperado $EXPECTED_ASSETS)"

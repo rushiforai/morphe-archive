@@ -151,12 +151,22 @@ final class AppTypes {
     }
 
     static Object defaultFor(Class<?> t) {
-        if (!t.isPrimitive()) return t == List.class ? new java.util.ArrayList<>() : null;
         if (t == boolean.class) return false;
         if (t == float.class) return 0f;
         if (t == double.class) return 0d;
         if (t == long.class) return 0L;
-        return 0;
+        if (t.isPrimitive()) return 0;
+        if (t == List.class) return new java.util.ArrayList<>();
+        if (t.isEnum()) {
+            Object[] c = t.getEnumConstants();
+            if (c != null && c.length > 0) return c[0];
+        }
+        try {
+            Constructor<?> ctor = t.getDeclaredConstructor();
+            ctor.setAccessible(true);
+            return ctor.newInstance();
+        } catch (Throwable ignored) {}
+        return null;
     }
 
     static Class<?> load(String name) {

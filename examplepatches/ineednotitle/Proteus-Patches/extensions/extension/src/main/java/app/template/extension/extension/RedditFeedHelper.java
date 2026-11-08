@@ -19,7 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * Contract expected by the patch (must stay in sync):
  *   hideOldPostAds(List)  → same or shorter list (promoted items removed)
- *   hideCommentAds()      → true
+ *   hideCommentAds()      → true (now unreferenced — the comment-loader layer
+ *                          uses a constant return-void; kept for API compatibility)
  *   hideCommentAds(Z)Z    → true (OR with original)
  *
  * The former hideNewPostAds entry point was REMOVED: the AdPostSection
@@ -77,7 +78,10 @@ public final class RedditFeedHelper {
     }
 
     /**
-     * Injection point — comment banner ad loader entry kill.
+     * Was the comment banner ad loader entry-kill injection point.
+     * Unreferenced as of v2.2.9 — the patch now injects a constant return-void
+     * with zero register activity. Kept so the helper API contract does not
+     * break for already-patched builds.
      */
     public static boolean hideCommentAds() {
         return true;

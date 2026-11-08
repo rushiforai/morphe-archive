@@ -185,9 +185,20 @@ public final class FeedVideoCardsPatch {
     private static final Map<String, Boolean> liveVideoIds = Utils
             .createSizeRestrictedMap(MAX_LIVE_VIDEOS, true);
 
-    /** Root host -> video of the card, of the cards laid out last. Used only on the main thread. */
+    /**
+     * Root host -> video of the card, of the cards laid out last, and card inside a root host -> its video,
+     * see {@link #innerCards}. Used only on the main thread.
+     */
     private static final Map<ComponentHost, String> cardVideoIds = Collections.synchronizedMap(
             new WeakHashMap<>());
+
+    /**
+     * Root host that is not shaped like a full width card -> the hosts inside it that the like count is drawn on:
+     * the host of a thumbnail beside the texts (see {@link #findSideThumbnail(ComponentHost)}), or the cards
+     * of a row of a grid, such as the shelves of a channel on tablets, which are shaped like full width cards.
+     * Used only on the main thread.
+     */
+    private static final Map<ComponentHost, List<ComponentHost>> innerCards = new WeakHashMap<>();
 
     static {
         if (ENABLED) {
@@ -740,6 +751,60 @@ public final class FeedVideoCardsPatch {
     }
 
     /**
+     * Cards of some layouts show the thumbnail beside the texts, such as the search results on tablets.
+     * The host of the thumbnail is then shaped like a full width card without texts below its thumbnail,
+     * so what is drawn on the thumbnail of a full width card is drawn on it.
+     *
+     * @return The host of the thumbnail at the start side of a card shaped like that: as tall as the card,
+     *         16:9 and at least {@link #MIN_SIDE_THUMBNAIL_WIDTH_DP} wide. Null if the card is not shaped like that.
+     */
+    @Nullable
+    public static ComponentHost findSideThumbnail(ComponentHost root) {
+        final float density = root.getResources().getDisplayMetrics().density;
+        return findSideThumbnail(root, root, 0, 0, Math.round(MAX_THUMBNAIL_INSET_DP * density),
+                FeedViewCountPatch.isRtl(root), MAX_THUMBNAIL_SEARCH_DEPTH);
+    }
+
+    @Nullable
+    private static ComponentHost findSideThumbnail(ComponentHost root, ComponentHost host, int left, int top,
+                                                   int inset, boolean rtl, int depth) {
+        final int width = root.getWidth();
+        final float density = root.getResources().getDisplayMetrics().density;
+        for (int i = 0, count = host.getChildCount(); i < count; i++) {
+            if (!(host.getChildAt(i) instanceof ComponentHost child) || child.getVisibility() != View.VISIBLE) {
+                continue;
+            }
+            final int childLeft = left + child.getLeft();
+            final int childTop = top + child.getTop();
+            if (childTop > inset || (rtl ? childLeft + child.getWidth() < width - inset : childLeft > inset)) {
+                continue;
+            }
+            if (child.getHeight() >= root.getHeight() - 2 * inset
+                    && child.getWidth() >= MIN_SIDE_THUMBNAIL_WIDTH_DP * density && child.getWidth() <= width / 2
+                    && Math.abs(child.getWidth() * THUMBNAIL_RATIO - child.getHeight())
+                    <= child.getHeight() * SIDE_THUMBNAIL_RATIO_TOLERANCE) {
+                return child;
+            }
+            if (depth > 1) {
+                ComponentHost thumbnail = findSideThumbnail(root, child, childLeft, childTop, inset, rtl, depth - 1);
+                if (thumbnail != null) {
+                    return thumbnail;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Smallest thumbnail beside the texts, such as of the rows of a list on phones,
+     * which fits the compact like count next to the duration.
+     */
+    private static final int MIN_SIDE_THUMBNAIL_WIDTH_DP = 120;
+
+    /** How far the height of a thumbnail beside the texts may differ from 16:9, relative to its height. */
+    private static final float SIDE_THUMBNAIL_RATIO_TOLERANCE = 0.1f;
+
+    /**
      * A shelf shows many videos, and is shaped like a single video. The texts of its first video
      * would decide the video of the whole shelf, and stay when the shelf is scrolled.
      */
@@ -759,7 +824,9 @@ public final class FeedVideoCardsPatch {
      */
     @Nullable
     public static String findVideoId(ComponentHost root) {
-        if (!isVideoShaped(root) || hasHorizontalList(root)) {
+        // The badge of a card with the thumbnail beside the texts is on the host of the thumbnail.
+        ComponentHost thumbnail = isVideoShaped(root) ? root : findSideThumbnail(root);
+        if (thumbnail == null || hasHorizontalList(root)) {
             return null;
         }
         List<String> texts = new ArrayList<>();
@@ -767,7 +834,7 @@ public final class FeedVideoCardsPatch {
         if (texts.isEmpty()) {
             return NOT_READY;
         }
-        if (!hasVideoBadge(root, root, new Rect())) {
+        if (!hasVideoBadge(thumbnail, thumbnail, new Rect())) {
             // A mix or a playlist, which shows a badge without a duration.
             return PLAYLIST;
         }
@@ -828,15 +895,18 @@ public final class FeedVideoCardsPatch {
      */
     @Nullable
     public static String findVideoIdByDescription(ComponentHost root) {
-        CharSequence description = root.getContentDescription();
-        if (description == null) {
+        // The host of the card can be inside the root host.
+        View described = root.getContentDescription() != null
+                ? root
+                : Utils.getChildView(root, true, view -> view.getContentDescription() != null);
+        if (described == null) {
             return null;
         }
-        String text = description.toString();
+        String text = described.getContentDescription().toString();
         synchronized (textVideoIds) {
             // A title can contain the delimiter too, so the longest start of the description
-            // that is a text of a video is used.
-            for (int end = text.lastIndexOf(DESCRIPTION_DELIMITER); end > 0;
+            // that is a text of a video is used. The element of a Short has the whole description.
+            for (int end = text.length(); end > 0;
                  end = text.lastIndexOf(DESCRIPTION_DELIMITER, end - 1)) {
                 String videoId = textVideoIds.get(normalizeText(text.substring(0, end)));
                 if (videoId != null) {
@@ -954,8 +1024,9 @@ public final class FeedVideoCardsPatch {
      * @return If the card is checked again later, such as while its video is not found yet.
      *         Must be called on the main thread.
      */
-    public static boolean isRetryPending(ComponentHost root) {
-        return pendingRetries.containsKey(root);
+    public static boolean isRetryPending(ComponentHost host) {
+        // The host can be a card inside the root host, see innerCards.
+        return pendingRetries.containsKey(findRootHost(host));
     }
 
     /**
@@ -1005,12 +1076,47 @@ public final class FeedVideoCardsPatch {
                     continue;
                 }
                 String videoId = findVideoId(root);
-                if (NOT_READY.equals(videoId)
-                        || (videoId == null && isVideoShaped(root) && !hasHorizontalList(root))
+                final boolean fullWidthCard = isVideoShaped(root);
+                boolean retry = NOT_READY.equals(videoId)
+                        || (videoId == null && fullWidthCard && !hasHorizontalList(root))
                         // A card that enters from the top of the list shows its texts before the
                         // duration of its thumbnail, so it looks like a mix until its top is shown.
-                        || (PLAYLIST.equals(videoId)
-                        && (!root.getLocalVisibleRect(visibleRect) || visibleRect.top > 0))) {
+                        || (PLAYLIST.equals(videoId) && fullWidthCard
+                        && (!root.getLocalVisibleRect(visibleRect) || visibleRect.top > 0));
+
+                // The like count of a card with the thumbnail beside the texts is drawn on the host of
+                // the thumbnail, and the like count of the cards of a row of a grid on each card. They are
+                // shaped like full width cards. The other features use the shape of a full width card,
+                // so they are given the root host as before.
+                List<ComponentHost> cards = new ArrayList<>();
+                List<String> cardIds = new ArrayList<>();
+                if (!fullWidthCard && !hasHorizontalList(root)) {
+                    ComponentHost sideThumbnail = findSideThumbnail(root);
+                    if (sideThumbnail != null) {
+                        cards.add(sideThumbnail);
+                        cardIds.add(videoId);
+                        // A thumbnail beside the texts can show its duration after the texts are shown.
+                        retry |= videoId == null || PLAYLIST.equals(videoId);
+                    } else {
+                        for (int i = 0, count = root.getChildCount(); i < count; i++) {
+                            if (root.getChildAt(i) instanceof ComponentHost child
+                                    && child.getVisibility() == View.VISIBLE && isVideoShaped(child)) {
+                                cards.add(child);
+                            }
+                        }
+                        if (cards.size() < 2) {
+                            cards.clear();
+                        }
+                        for (ComponentHost card : cards) {
+                            String cardId = findVideoId(card);
+                            cardIds.add(cardId);
+                            retry |= NOT_READY.equals(cardId) || cardId == null
+                                    || (PLAYLIST.equals(cardId)
+                                    && (!card.getLocalVisibleRect(visibleRect) || visibleRect.top > 0));
+                        }
+                    }
+                }
+                if (retry) {
                     scheduleRetry(root);
                 } else {
                     retries.remove(root);
@@ -1024,9 +1130,37 @@ public final class FeedVideoCardsPatch {
                     cardVideoIds.put(root, videoId);
                 }
                 final String cardVideoId = PLAYLIST.equals(videoId) ? null : videoId;
-                FeedEngagementCountsPatch.onCardLaidOut(root, cardVideoId);
-                FeedViewCountPatch.onCardLaidOut(root, cardVideoId);
-                FeedVideoActionsPatch.onCardLaidOut(root, cardVideoId);
+
+                List<ComponentHost> previousCards = cards.isEmpty()
+                        ? innerCards.remove(root)
+                        : innerCards.put(root, cards);
+                if (previousCards != null) {
+                    for (ComponentHost previous : previousCards) {
+                        // Litho reuses the hosts, so a previous card can be in another root host now,
+                        // which draws on it.
+                        if (!cards.contains(previous) && findRootHost(previous) == root) {
+                            cardVideoIds.remove(previous);
+                            FeedEngagementCountsPatch.onCardLaidOut(previous, null);
+                        }
+                    }
+                }
+                for (int i = 0; i < cards.size(); i++) {
+                    final ComponentHost card = cards.get(i);
+                    final String cardId = cardIds.get(i);
+                    if (NOT_READY.equals(cardId)) {
+                        continue;
+                    }
+                    if (cardId == null) {
+                        cardVideoIds.remove(card);
+                    } else {
+                        cardVideoIds.put(card, cardId);
+                    }
+                    FeedEngagementCountsPatch.onCardLaidOut(card, PLAYLIST.equals(cardId) ? null : cardId);
+                }
+                final String fullWidthCardVideoId = cards.isEmpty() ? cardVideoId : null;
+                FeedEngagementCountsPatch.onCardLaidOut(root, fullWidthCardVideoId);
+                FeedViewCountPatch.onCardLaidOut(root, fullWidthCardVideoId);
+                FeedVideoActionsPatch.onCardLaidOut(root, fullWidthCardVideoId);
                 PostImageDownloadPatch.onRootLaidOut(root);
                 PostTranslatePatch.onRootLaidOut(root);
             }
@@ -1058,7 +1192,9 @@ public final class FeedVideoCardsPatch {
      * Checks the root host once the layout pass is done, such as after it was attached again.
      * Must be called on the main thread.
      */
-    public static void requestUpdate(ComponentHost root) {
+    public static void requestUpdate(ComponentHost host) {
+        // The host can be a card inside the root host, see innerCards.
+        ComponentHost root = findRootHost(host);
         // A new layout can show another video, which is checked again as many times.
         retries.remove(root);
         scheduleUpdate(root);

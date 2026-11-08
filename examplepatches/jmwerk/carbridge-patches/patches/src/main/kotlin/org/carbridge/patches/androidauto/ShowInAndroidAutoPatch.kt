@@ -5,26 +5,13 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.document
 import app.morphe.patcher.patch.patch
 import app.morphe.patcher.patch.resourceFile
+import org.carbridge.core.AndroidAttr
+import org.carbridge.core.CarOptions
+import org.carbridge.core.CarPatch
+import org.carbridge.core.ManifestElement
+import org.carbridge.core.ManifestHost
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-
-private const val CAR_APP_META = "com.google.android.gms.car.application"
-private const val DESCRIPTOR_NAME = "carbridge_automotive_app_desc"
-
-private val CAR_PERMISSIONS = listOf(
-    "androidx.car.app.ACCESS_SURFACE",
-    "androidx.car.app.MAP_TEMPLATES",
-)
-private val CAR_CATEGORIES = listOf(
-    "android.intent.category.CAR_LAUNCHER",
-    "androidx.car.app.category.NAVIGATION",
-    "android.intent.category.APP_MAPS",
-)
-private val MEDIA_SERVICE_ACTIONS = setOf(
-    "android.media.browse.MediaBrowserService",
-    "androidx.media3.session.MediaLibraryService",
-)
-private const val CAR_APP_SERVICE_ACTION = "androidx.car.app.CarAppService"
 
 @Suppress("unused")
 val showInAndroidAutoPatch = patch(
@@ -41,104 +28,86 @@ val showInAndroidAutoPatch = patch(
         description = "Keep the app's media browser service, so music and podcast apps keep their " +
             "Android Auto audio player. Android Auto may then show that player instead of the full app.",
     )
+    val fillScreenOption = booleanOption(
+        key = "fillScreen",
+        default = true,
+        title = "Fill the car screen",
+        description = "Remove portrait-only locks, so screens that only work upright fill the wide car display.",
+    )
 
     execute {
         document("AndroidManifest.xml").use { doc ->
-            val manifest = doc.documentElement
-            val app = manifest.children("application").firstOrNull()
-                ?: throw PatchException("Manifest has no <application>")
-
-            addCarEntries(doc, manifest, app)
-            val stripped = if (keepMediaServicesOption.value == true) {
-                setOf(CAR_APP_SERVICE_ACTION)
-            } else {
-                MEDIA_SERVICE_ACTIONS + CAR_APP_SERVICE_ACTION
+            val options = CarOptions(
+                keepMediaServices = keepMediaServicesOption.value == true,
+                fillScreen = fillScreenOption.value != false,
+            )
+            try {
+                CarPatch.apply(DomHost(doc), options)
+            } catch (e: IllegalStateException) {
+                throw PatchException(e.message ?: "Show in Android Auto failed")
             }
-            stripTemplateServices(app, stripped)
         }
     }
 }
 
-private fun addCarEntries(doc: Document, manifest: Element, app: Element) {
-    app.setAttribute("android:appCategory", "game")
-    doc.ensureMeta(app, "distractionOptimized", "value", "true")
-    doc.ensureMeta(app, "androidx.car.app.minCarApiLevel", "value", "7")
-    if (app.findMeta(CAR_APP_META) == null) {
-        addAutomotiveDescriptor()
-        doc.ensureMeta(app, CAR_APP_META, "resource", "@xml/$DESCRIPTOR_NAME")
-    }
+/** Morphe's decoded manifest, where attributes are written as `android:<name>` text. */
+private class DomHost(private val doc: Document) : ManifestHost {
+    override val manifest = DomElement(doc.documentElement)
+    override val application = manifest.children("application").firstOrNull()
+        ?: throw PatchException("Manifest has no <application>")
 
-    val declared = manifest.children("uses-permission").mapNotNull { it.androidName }.toSet()
-    for (perm in CAR_PERMISSIONS - declared) {
-        // Permissions must come before <application> in the manifest
+    override fun hasPermission(name: String) =
+        manifest.children("uses-permission").any { it.getString(CarPatch.NAME) == name }
+
+    override fun addPermission(name: String) {
         val el = doc.createElement("uses-permission")
-        el.setAttribute("android:name", perm)
-        manifest.insertBefore(el, app)
+        el.setAttribute("android:name", name)
+        doc.documentElement.insertBefore(el, (application as DomElement).el)
     }
 
-    val patched = mutableListOf<String>()
-    for (activity in app.children("activity") + app.children("activity-alias")) {
-        for (filter in activity.children("intent-filter")) {
-            if (!filter.isLauncherFilter()) continue
-            val existing = filter.children("category").mapNotNull { it.androidName }.toSet()
-            for (cat in CAR_CATEGORIES - existing) {
-                val el = doc.createElement("category")
-                el.setAttribute("android:name", cat)
-                filter.appendChild(el)
-            }
-            doc.ensureMeta(activity, "distractionOptimized", "value", "true")
-            activity.setAttribute("android:resizeableActivity", "true")
-            activity.androidName?.let(patched::add)
+    override fun addAutomotiveDescriptor(name: String, uses: String) {
+        resourceFile("res/xml/$name.xml", false).apply {
+            parentFile.mkdirs()
+            writeText("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<automotiveApp>\n    <uses name=\"$uses\"/>\n</automotiveApp>\n")
         }
     }
-    if (patched.isEmpty()) throw PatchException("No launcher activity found")
+
+    // Morphe shows patch progress itself
+    override fun log(message: String) = Unit
 }
 
-/** Declares the app as a car app; Android Auto only lists apps that have this descriptor. */
-private fun addAutomotiveDescriptor() {
-    resourceFile("res/xml/$DESCRIPTOR_NAME.xml", false).apply {
-        parentFile.mkdirs()
-        writeText(
-            """
-            <?xml version="1.0" encoding="utf-8"?>
-            <automotiveApp>
-                <uses name="media"/>
-            </automotiveApp>
-            """.trimIndent() + "\n",
-        )
+private class DomElement(val el: Element) : ManifestElement {
+    override val tag: String get() = el.tagName
+
+    override fun children(tag: String): List<ManifestElement> {
+        val nodes = el.childNodes
+        return (0 until nodes.length).mapNotNull { nodes.item(it) as? Element }
+            .filter { it.tagName == tag }
+            .map(::DomElement)
     }
-}
 
-/** A media or car-template service makes Android Auto show its template UI instead of the app. */
-private fun stripTemplateServices(app: Element, strippedActions: Set<String>) {
-    for (service in app.children("service")) {
-        for (filter in service.children("intent-filter")) {
-            val actions = filter.children("action").mapNotNull { it.androidName }
-            if (actions.any { it in strippedActions }) service.removeChild(filter)
-        }
+    override fun getString(attr: AndroidAttr) = el.getAttribute(key(attr)).ifEmpty { null }
+
+    override fun getInt(attr: AndroidAttr): Int? {
+        val text = getString(attr) ?: return null
+        return text.toIntOrNull() ?: attr.enumValues[text]
     }
-}
 
-private fun Document.ensureMeta(parent: Element, name: String, valueAttr: String, value: String) {
-    if (parent.findMeta(name) != null) return
-    val meta = createElement("meta-data")
-    meta.setAttribute("android:name", name)
-    meta.setAttribute("android:$valueAttr", value)
-    parent.appendChild(meta)
-}
+    override fun setString(attr: AndroidAttr, value: String) = el.setAttribute(key(attr), value)
+    override fun setBoolean(attr: AndroidAttr, value: Boolean) = el.setAttribute(key(attr), value.toString())
+    override fun setInt(attr: AndroidAttr, value: Int) = el.setAttribute(key(attr), value.toString())
+    override fun setEnum(attr: AndroidAttr, value: String) = el.setAttribute(key(attr), value)
+    override fun setResource(attr: AndroidAttr, type: String, name: String) =
+        el.setAttribute(key(attr), "@$type/$name")
 
-private fun Element.findMeta(name: String) = children("meta-data").firstOrNull { it.androidName == name }
+    override fun remove(attr: AndroidAttr) = el.removeAttribute(key(attr))
 
-private fun Element.isLauncherFilter(): Boolean {
-    val actions = children("action").mapNotNull { it.androidName }
-    val cats = children("category").mapNotNull { it.androidName }
-    return "android.intent.action.MAIN" in actions && "android.intent.category.LAUNCHER" in cats
-}
+    override fun append(tag: String): ManifestElement =
+        DomElement(el.ownerDocument.createElement(tag).also(el::appendChild))
 
-private val Element.androidName: String?
-    get() = getAttribute("android:name").ifEmpty { null }
+    override fun removeChild(child: ManifestElement) {
+        el.removeChild((child as DomElement).el)
+    }
 
-private fun Element.children(tag: String): List<Element> {
-    val nodes = childNodes
-    return (0 until nodes.length).mapNotNull { nodes.item(it) as? Element }.filter { it.tagName == tag }
+    private fun key(attr: AndroidAttr) = "android:${attr.name}"
 }

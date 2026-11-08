@@ -42,6 +42,8 @@ public final class FeedItemsFilter {
     static final String FINAL_INSERT_SOURCE = "FinalInsert:";
 
     private static final AdsFilter ADS_FILTER = new AdsFilter();
+    private static final PreferredSubtitleFilter PREFERRED_SUBTITLE_FILTER = new PreferredSubtitleFilter();
+    private static final PreferredDubFilter PREFERRED_DUB_FILTER = new PreferredDubFilter();
     private static final LiveFilter LIVE_FILTER = new LiveFilter();
     private static final LocationBadgeFilter LOCATION_FILTER = new LocationBadgeFilter();
     private static final SeenVideoFilter SEEN_FILTER = new SeenVideoFilter();
@@ -73,7 +75,11 @@ public final class FeedItemsFilter {
         new RegionFilter(),
         new CaptionLanguageFilter(),
         new AdvancedFeedRules.PublicationAgeFilter(),
-        new AdvancedFeedRules.QualityFilter()
+        new AdvancedFeedRules.QualityFilter(),
+        // Last, so a video these hide has passed every other rule and can go back on a page they
+        // would otherwise empty.
+        PREFERRED_SUBTITLE_FILTER,
+        PREFERRED_DUB_FILTER
     );
     private static final AdvancedFeedRules.UnpersonalizedForYouFilter UNPERSONALIZED_FILTER =
         new AdvancedFeedRules.UnpersonalizedForYouFilter();
@@ -94,6 +100,8 @@ public final class FeedItemsFilter {
     private static final List<IFilter> FOR_YOU_FILTERS = forYouFilters();
     private static volatile List<IFilter> RANGE_FILTERS = createRangeFilters();
     private static final List<IFilter> AD_ONLY_FILTERS = List.of(ADS_FILTER);
+    private static final List<IFilter> DRAMA_FILTERS =
+        List.of(ADS_FILTER, PREFERRED_SUBTITLE_FILTER, PREFERRED_DUB_FILTER);
     /**
      * A profile's rules: ads, and the subscriber-only posts a creator's grid is where they
      * mostly sit (#219). The feed's other preferences stay off profiles (#35).
@@ -1018,19 +1026,39 @@ public final class FeedItemsFilter {
     /**
      * The drama tab's feed answer, as SeriesFeedResp's constructor finishes (#294). PineDrama's
      * own feed requests build it straight from the server's answer, so the list never passes
-     * {@link #filter(FeedItemList)} and its ads reached the page. Ads only: every item on that
-     * page is an episode, so the series and drama rules would empty it.
+     * {@link #filter(FeedItemList)} and its ads reached the page. Every item on that page is an
+     * episode, so the series and drama rules would empty it. Only ads and the two track rules
+     * run here, and the track rules leave one video so the page has something to move from.
      */
     @SuppressWarnings("rawtypes")
     public static List filterDramaFeed(List items) {
         try {
             HookStatus.bound("drama feed", "SeriesFeedResp.<init>");
-            return filterAdOnlyAwemeList("DramaFeed", items);
+            return keepOneVideo(items, filterAwemeList("DramaFeed", items, DRAMA_FILTERS));
         } catch (Throwable ex) {
             HookStatus.threw("drama feed", "SeriesFeedResp.<init>", ex);
             Logger.printException(() -> "Could not filter the drama feed", ex);
             return items;
         }
+    }
+
+    private static boolean isTrackRule(String reason) {
+        return "PreferredSubtitleFilter".equals(reason) || "PreferredDubFilter".equals(reason);
+    }
+
+    /** A page the rules emptied gets back its first video that isn't an ad. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static List keepOneVideo(List items, List kept) {
+        if (items == null || kept == null || !kept.isEmpty()) return kept;
+        List<IFilter> ads = getActiveFilters(AD_ONLY_FILTERS);
+        for (Object container : items) {
+            if (container instanceof Aweme && getFilterReason(ads, (Aweme) container) == null) {
+                List one = new ArrayList(1);
+                one.add(container);
+                return one;
+            }
+        }
+        return kept;
     }
 
     @SuppressWarnings("rawtypes")
@@ -1475,6 +1503,8 @@ public final class FeedItemsFilter {
         List snapshot = new ArrayList(list);
         List rangeKept = new ArrayList(snapshot.size());
         Object qualityFallback = null;
+        Object trackFallback = null;
+        String trackFallbackReason = null;
         double closestDistance = Double.POSITIVE_INFINITY;
         List unpersonalized = new ArrayList();
         OwnPosts own = new OwnPosts();
@@ -1518,6 +1548,11 @@ public final class FeedItemsFilter {
                         qualityFallback = container;
                         closestDistance = distance;
                     }
+                }
+                if (trackFallback == null && isTrackRule(contentReason)
+                        && getFilterReason(activeRangeFilters, item) == null) {
+                    trackFallback = container;
+                    trackFallbackReason = contentReason;
                 }
                 if (contentReason.equals(UNPERSONALIZED_REASON) && getFilterReason(activeRangeFilters, item) == null) {
                     unpersonalized.add(container);
@@ -1579,6 +1614,15 @@ public final class FeedItemsFilter {
                 capture.putBack(extractor.extract(qualityFallback), "QualityFilter", "closest-to-quality-rule");
             }
             rangeKept.add(qualityFallback);
+        }
+        // Same reasoning for the two track rules: most videos carry no tracks at all on some
+        // accounts, so a whole page without one is ordinary and the feed needs something to show.
+        if (rangeKept.isEmpty() && trackFallback != null && phase == FilterPhase.RESPONSE
+            && !(owner instanceof FollowFeedList)) {
+            if (capture != null) {
+                capture.putBack(extractor.extract(trackFallback), trackFallbackReason, "page-all-missing-tracks");
+            }
+            rangeKept.add(trackFallback);
         }
         List kept = rangeKept;
         int removed = initialSize - kept.size();
@@ -1818,7 +1862,9 @@ public final class FeedItemsFilter {
      */
     private static boolean drifts(IFilter filter) {
         return filter == SEEN_FILTER || filter instanceof AdvancedFeedRules.PublicationAgeFilter
-            || filter instanceof AdvancedFeedRules.QualityFilter;
+            || filter instanceof AdvancedFeedRules.QualityFilter
+            || filter instanceof PreferredSubtitleFilter
+            || filter instanceof PreferredDubFilter;
     }
 
     private static List<IFilter> withoutDrifting(List<IFilter> filters) {

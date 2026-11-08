@@ -92,7 +92,33 @@ This is the working guide for coding agents, including local models in LM Studio
 The app-specific sections below describe existing implementations; they are not
 instructions to expand their historical version support.
 
-For the latest NuvioTV **1.1.0-beta.10** (1073) port, read [NuvioBeta10.md](docs/NuvioBeta10.md). The active shared contract and `verifyNuvioLatest` target beta.10; historical fixtures remain unchanged.
+For the latest NuvioTV **1.1.0-beta.12** (1075) port, read [NuvioBeta12.md](docs/NuvioBeta12.md). The active shared contract and `verifyNuvioLatest` target beta.12; historical fixtures remain unchanged. Beta.12 uses local stores `dc/tc`, resume states `xb/yb/vb/wb`, binge group `gc.u3`, timers `of.J/L/k` and install action `data.local.ea`. The beta.10 findings below remain historical context.
+Next-episode preloads must use the native `bb.gc.r3` binge group; a null group
+warms a different cache entry. Warm the separate plugin-continuation autoplay mode
+only for groups recognized by the native parser. See
+[NuvioNextEpisodePreload.md](docs/NuvioNextEpisodePreload.md) and the group-aware
+runtime fixture; do not remove search mode or group from the native cache key.
+The user confirmed the beta.10 cache fix on the TV on 2026-11-05 after enabling
+the next-episode switch in the test profile. Check `enabled=true` and a completed
+delayed preload before interpreting a device's source-fetch indicator.
+
+Merged quick startup now shows saved CW first, then awaits native automatic
+provider refresh after Home presentation. Skip old bulk membership decoding
+before refresh; allow 120 seconds per startup provider (45 for explicit sync),
+preserve native rate limits/cancellation, and show stage-specific failures.
+The user-confirmed beta.10 run showed Home in 8.4 seconds and successful fresh
+snapshot publication in 37.8 seconds. See `docs/NuvioBeta10.md`; retain the cold
+refresh and stale-seed regressions in `verifyNuvioProviderRefreshRuntime`.
+
+Beta.10 local playback persistence resumes `bc.C/D/A/B` through
+`data.local.vb/wb/tb/ub`. Preserve those native states when wrappers re-enter
+with placeholder arguments; older names restart the suspended body and can
+prevent details/CW updates. `verifyNuvioBeta10` checks the runtime bindings
+against original DEX; `verifyNuvioPlaybackOverlayRuntime` exercises native
+re-entry and immediate completion publication. See `docs/NuvioBeta10.md`.
+The same suspended-C regression retains a 374,491ms partial position in merged
+progress/details without marking it watched; keep this check when changing
+local playback handling. Actual TV resume/seek confirmation is still pending.
 
 ### Scope and evidence
 
@@ -132,7 +158,7 @@ Paths below are relative to `E:\Morphe\santodan-patches` unless stated otherwise
 | `../backups/workspaces/` | Historical backup/staging workspaces; use the main repository for active work |
 | `../Apps/` | Patched app outputs; do not use as original patch inputs |
 
-At this guide update, relevant original inputs include NuvioTV `1.1.0-beta.10`,
+At this guide update, relevant original inputs include NuvioTV `1.1.0-beta.12`,
 Pillo `0.6.27`, Reddit `2026.37.0`, MEO Android TV `5.7.0`, and Peafowl
 `GMS_27.5.1`. These are discovery hints, not a permanent version allowlist.
 Rescan inputs for each task. Apps without existing patches need their own inspection.
@@ -423,6 +449,14 @@ authorities. No resulting authority or app-owned permission may equal one from t
 official installation. Device testing is still required for server-side behavior.
 
 ## Pillo 0.6.27
+
+The weight import footer must use the text-only `ButtonM-jB83MbM` overload.
+The prefix overload rejects null even with mask 57, closing the logging menu.
+Only modifier/fullWidth have defaults: pass actual theme colors from the native
+package-private `ButtonProps$2`/`$3` providers with accessible INSTANCE fields.
+Run `verifyPillo627Runtime` for full footer rendering/callback regression checks
+and `verifyPillo627Bundle` for original DEX and packaged contracts. See
+`docs/Pillo627.md`; device confirmation of the menu fix is pending.
 
 The premium patch must also normalize the premium argument in the independent
 `SubscriptionStateProvider._init_$lambda$0` profile listener. The raw billing

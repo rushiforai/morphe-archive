@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
+import dev.jason.gboardpatches.extension.core.input.GboardEditorActions;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -22,7 +23,7 @@ public final class GboardGlobeDragRuntime {
     }
 
     private static final String TAG = "GboardPatches";
-    private static final String LOG_PREFIX = "[gboard-globe-drag-18.0.3] ";
+    private static final String LOG_PREFIX = "[gboard-globe-drag-18.5.4] ";
     private static final String MARKER = "__gboard_patches_globe_drag__";
     private static final long RELEASE_EVENT_GRACE_MS = 2_000L;
     private static final int LOG_LIMIT = 40;
@@ -383,11 +384,11 @@ public final class GboardGlobeDragRuntime {
         if (shortcut == GboardEditingShortcutPolicy.Shortcut.REDO) {
             return sendControlChord(connection, KeyEvent.KEYCODE_Y);
         }
-        if (!GboardEditingShortcutDispatchGuard.shouldDispatchContextMenuAction(
-                connection, shortcut.contextMenuActionId)) {
-            return false;
-        }
-        return connection.performContextMenuAction(shortcut.contextMenuActionId);
+        boolean selectAllWhenUnselected = (shortcut == GboardEditingShortcutPolicy.Shortcut.COPY
+                || shortcut == GboardEditingShortcutPolicy.Shortcut.CUT)
+                && GboardLongPressQuickActionsRuntimeSettings.isSelectAllWhenUnselectedEnabled();
+        return GboardEditorActions.perform(service, shortcut.contextMenuActionId, selectAllWhenUnselected,
+                () -> serviceReference.get() == service);
     }
 
     private static boolean sendControlChord(InputConnection connection, int keyCode) {

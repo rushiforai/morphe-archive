@@ -4,7 +4,7 @@ Technical rules, thresholds, and fallback logic for the patches covered in the [
 
 ## Skipping
 
-Skip intros, recaps, and credits automatically (`Auto` mode) or display an on-screen Skip button (`Manual` mode). No API keys are required.
+Chapter-aware skip sources: skip intros, recaps, and credits automatically (`Auto` mode) or display an on-screen Skip button (`Manual` mode). Embedded chapters come first. No API keys are required.
 
 ### Skip settings
 
@@ -51,14 +51,14 @@ The patch drops incomplete or conflicting timestamps to avoid cutting into the s
 * **Open-ended credits:** Credits with a start time but no end time apply only after the file runtime loads, only if they begin in the last 40% of the file, and only if the source's file length matches yours.
 * **Long credits:** Online credits segments longer than 180 s always show the Skip button instead of auto-skipping, even in `Auto` mode (though a shorter window can still overlap an unmarked scene).
 * **Source overlap:** When two online sources closely agree on a segment, only their overlapping time range is skipped.
-* **Early credits:** An early credits entry on an episode with no intro is dropped so an early outro is not offered as `Skip intro`. The only exception is TheIntroDB, which sometimes mislabels a real opening as credits; those entries are treated as the intro.
+* **Early-outro guard:** An early credits entry on an episode with no intro is dropped so an early outro is not offered as `Skip intro`. The only exception is TheIntroDB, which sometimes mislabels a real opening as credits; those entries are treated as the intro.
 * **Conflicts at 0:00:** When sources disagree on a segment starting at `0:00`, the player shows the Skip button instead of auto-skipping.
 
 ### Local audio detection and fallbacks
 
-* **Work out missing skip times (off by default):** When `Prepare next episode` locates the next episode's file, an isolated background process compares the audio at the start and end of that file against other episodes of the show. Because the analyzer runs in its own process, a crash inside it never interrupts playback. At least 2 other episodes must match to report a segment. Results rank below all other sources, follow your `Auto` or `Manual` setting, and apply strictly to the exact file analyzed. If analysis finishes while you are already watching inside the detected segment, the player shows a Skip button and never jumps automatically. Quotas cap usage at 1 attempt per episode per day, 24 episodes per show per day, and 100 GB of data read per day.
-* **Borrow chapters from other releases (off by default):** Works independently of `Work out missing skip times`. Copies intro and credits chapter marks from another release of the same episode after an audio alignment check proves both files match. If alignment fails, nothing is copied. In an offline test of 40 file pairs, 44 of 45 copied segments landed within 1 s (median error 0.001 s, zero story cuts), and all 62 deliberately mismatched pairs were rejected.
-* **Anime theme-song backup:** Runs when `Work out missing skip times` is on and an anime with a Kitsu id still lacks an intro or credits. Matches the show's official opening and ending songs from AnimeThemes.moe against the episode audio. It requires only a single episode, so it can work where comparing episodes cannot. It fills only missing segment types, and does nothing if it cannot confirm the exact show. Tested standalone on a PC across 123 episodes, it found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and took Blood+ from 0 of 5 intros found to 5 of 5. The app matcher agreed with the PC build on all 99 compared episodes.
+* **Fingerprint Lookahead (`Work out missing skip times`, off by default):** Cross-episode audio fingerprinting. The settings row keeps the name `Work out missing skip times` until the next release renames it. When `Prepare next episode` locates the next episode's file, an isolated background process fingerprints the audio at the start and end of that file and matches it against other episodes of the show. Because the analyzer runs in its own process, a crash inside it never interrupts playback. At least 2 other episodes must match to report a segment. Results rank below all other sources, follow your `Auto` or `Manual` setting, and apply strictly to the exact file analyzed. If analysis finishes while you are already watching inside the detected segment, the player shows a Skip button and never jumps automatically. Quotas cap usage at 1 attempt per episode per day, 24 episodes per show per day, and 100 GB of data read per day.
+* **Borrowed chapters with audio-proof alignment (`Borrow chapters from other releases`, off by default):** Works independently of `Work out missing skip times`. Copies intro and credits chapter marks from another release of the same episode after an audio alignment check proves both files match. If alignment fails, nothing is copied. In an offline test of 40 file pairs, 44 of 45 copied segments landed within 1 s (median error 0.001 s, zero story cuts), and all 62 deliberately mismatched pairs were rejected.
+* **Anime theme-song matching:** Runs when `Work out missing skip times` is on and an anime with a Kitsu id still lacks an intro or credits. Matches the show's official opening and ending songs from AnimeThemes.moe against the episode audio. It requires only a single episode, so it can work where comparing episodes cannot. It fills only missing segment types, and does nothing if it cannot confirm the exact show. Tested standalone on a PC across 123 episodes, it found 82 of 114 intros and 80 of 105 credits with no real wrong skips, and took Blood+ from 0 of 5 intros found to 5 of 5. The app matcher agreed with the PC build on all 99 compared episodes.
 
 ## Streams
 
@@ -79,21 +79,21 @@ Remaining streams rank in this order:
 
 ### Preload and spoiler controls
 
-* **Prepare next episode:** Resolves the next episode's best stream in the background during playback so pressing Next, finishing the episode, or using Binge starts it immediately. Requires `Auto-pick` on, `Always show stream list` off, and `Prepare next episode` on. If the prepared stream fails to start within 25 s, the patch drops it.
-* **Hide spoilers:** Optional toggle that hides thumbnails and synopses of unwatched episodes and replaces their titles with `Episode N`.
+* **Next-episode prefetch (`Prepare next episode`):** Resolves the next episode's best stream in the background during playback so pressing Next, finishing the episode, or using Binge starts it immediately. Requires `Auto-pick` on, `Always show stream list` off, and `Prepare next episode` on. If the prepared stream fails to start within 25 s, the patch drops it.
+* **Spoiler shield (`Hide spoilers`):** Optional toggle that hides thumbnails and synopses of unwatched episodes and replaces their titles with `Episode N`.
 
 ## Tracks and subtitles
 
-Select an audio or subtitle language once, and future episodes of that show start with the same choice. Stremio's built-in player and Vimu share this saved preference across both IMDb and Kitsu ids.
+Per-show track memory: select an audio or subtitle language once, and future episodes of that show start with the same choice. Stremio's built-in player and Vimu share this saved preference across both IMDb and Kitsu ids.
 
 * **Track pre-selection:** On Stremio `1.6.12`, remembered languages are set as the player's preferred tracks before playback begins, preventing mid-stream track switches and rebuffering.
 * **Vimu language defaults:** Vimu checks your saved show preference before its own default rules. When no preference is saved for a show, Vimu prefers Japanese audio for anime, then your Stremio audio language, and finally English. For anime subtitles, it selects a full-dialogue track in your language over a Signs and Songs track.
-* **Avoid SDH subtitles:** Prefers standard dialogue tracks over hearing-impaired (SDH) tracks, and strips sound cues when an SDH track is the only option left. In Vimu, this also applies to subtitle tracks embedded inside the video file.
+* **SDH subtitle filter (`Avoid SDH subtitles`):** Prefers standard dialogue tracks over hearing-impaired (SDH) tracks, and strips sound cues when an SDH track is the only option left. In Vimu, this also applies to subtitle tracks embedded inside the video file.
 * **Vimu addon subtitles:** When launching Vimu, Stremio passes your chosen subtitle plus up to five fallback tracks (your language first, then English). If the video file has no suitable embedded track in your language, Vimu loads the best addon subtitle automatically and lists the remaining options in its subtitle menu. Press the `GREEN` or `GUIDE` remote key to cycle through addon subtitles, embedded subtitles, and subtitles off.
 
 ## External players
 
-Vimu, mpv, and Just Player are tested. MX Player and VLC use their public Android intent APIs and are untested.
+External player hand-off works with Vimu, mpv, and Just Player, which are tested. MX Player and VLC use their public Android intent APIs and are untested.
 
 If you have no default player set and Vimu is not installed, Android displays the system app chooser. Selecting MX Player in the chooser saves it as your remembered player until you select `Forget remembered player` in Mod settings.
 

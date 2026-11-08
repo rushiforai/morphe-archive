@@ -11,7 +11,7 @@ Maintained by [nikhilbadyal](https://github.com/nikhilbadyal). AI was used in th
 ## Patches
 
 <!-- PATCHES_START -->
-> **[v1.0.0](https://github.com/nikhilbadyal/nik-morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.0.2](https://github.com/nikhilbadyal/nik-morphe-patches/releases/tag/v1.0.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details>
 <summary>📦 Swift Backup&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>

@@ -4,17 +4,15 @@ import android.content.Context;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import dev.jason.gboardpatches.extension.backuprestore.GboardBackupRestoreSettingsFeature;
+import dev.jason.gboardpatches.extension.languagemodels.GboardLanguageModelSettingsFeature;
 import dev.jason.gboardpatches.extension.clipboard.GboardClipboardSettingsFeature;
-import dev.jason.gboardpatches.extension.developeroptions.GboardDeveloperOptionsSettingsFeature;
 import dev.jason.gboardpatches.extension.keyboard.GboardAiVoiceSettingsGroupFeature;
 import dev.jason.gboardpatches.extension.keyboard.GboardKeyboardLayoutSettingsGroupFeature;
 import dev.jason.gboardpatches.extension.keyboard.GboardKeyboardToolsSettingsGroupFeature;
-import dev.jason.gboardpatches.extension.lanftp.settings.GboardLanFtpSettingsFeature;
-import dev.jason.gboardpatches.extension.settingshomepage.GboardSettingsHomepageSettingsFeature;
 
 public final class GboardPatchesSettingsFeatureRegistry {
     private static final String TAG = "GboardPatches";
@@ -25,15 +23,21 @@ public final class GboardPatchesSettingsFeatureRegistry {
     public static List<GboardPatchesSettingsContract.Feature> features(Context context) {
         List<GboardPatchesSettingsContract.Feature> features =
                 new ArrayList<GboardPatchesSettingsContract.Feature>();
-        addIfAvailable(context, features, new GboardAiVoiceSettingsGroupFeature(context));
-        addIfAvailable(context, features, new GboardKeyboardToolsSettingsGroupFeature(context));
-        addIfAvailable(context, features, new GboardKeyboardLayoutSettingsGroupFeature(context));
-        addIfAvailable(context, features, new GboardClipboardSettingsFeature());
-        addIfAvailable(context, features, new GboardLanFtpSettingsFeature(context));
-        addIfAvailable(context, features, new GboardSettingsHomepageSettingsFeature());
-        addIfAvailable(context, features, new GboardBackupRestoreSettingsFeature(context));
-        addIfAvailable(context, features, new GboardDeveloperOptionsSettingsFeature(context));
+        for (GboardPatchesSettingsContract.Feature feature : allFeatures(context)) {
+            addIfAvailable(context, features, feature);
+        }
         return Collections.unmodifiableList(features);
+    }
+
+    /** Every home-page feature in display order, before availability filtering. */
+    public static List<GboardPatchesSettingsContract.Feature> allFeatures(Context context) {
+        return Collections.unmodifiableList(Arrays.asList(
+                new GboardAiVoiceSettingsGroupFeature(context),
+                new GboardLanguageModelSettingsFeature(context),
+                new GboardKeyboardToolsSettingsGroupFeature(context),
+                new GboardKeyboardLayoutSettingsGroupFeature(context),
+                new GboardClipboardSettingsFeature(),
+                new GboardMoreSettingsGroupFeature(context)));
     }
 
     private static void addIfAvailable(Context context,

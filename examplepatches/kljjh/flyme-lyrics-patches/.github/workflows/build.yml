@@ -1,0 +1,98 @@
+name: Build and release
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test notification behavior
+        run: python tests/run_tests.py
+      - name: Read compatibility pin
+        id: upstream
+        run: |
+          python - <<'PY'
+          import json, os
+          c = json.load(open('compatibility.json'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write('version=' + c['project_version'] + '\n')
+          PY
+      - name: Download unmodified official integration fixture
+        run: python scripts/download_official.py
+      - name: Ensure Android SDK 36
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" "build-tools;36.0.0"'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Compile Android patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew :patches:test :patches:buildAndroid --no-daemon --stacktrace
+      - name: Check instrumented official DEX with Android tools
+        run: '"$ANDROID_HOME/build-tools/36.0.0/dexdump" -f patches/build/test-results/official-lockscreen-patched.dex > /dev/null'
+      - name: Verify and package bundle
+        env:
+          REPOSITORY: ${{ github.repository }}
+          REF: ${{ github.ref }}
+          VERSION: ${{ steps.upstream.outputs.version }}
+        run: |
+          if [[ "$REF" == refs/tags/* && "$REF" != "refs/tags/v$VERSION" ]]; then
+            echo 'Release tag differs from compatibility.json project_version'; exit 1
+          fi
+          python scripts/package_release.py --repository "$REPOSITORY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flyme-lyrics-patches
+          path: dist/
+          retention-days: 7
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          name: flyme-lyrics-patches
+          path: dist
+      - name: Publish release and source
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          cat > release-notes.md <<'EOF'
+          Independent Flyme add-on: this source now contains only **Flyme status bar lyrics**.
+
+          In the same patching run, select **Third-party lyrics from the OFFICIAL Morphe source** and **Flyme status bar lyrics from this source**. Enable the official third-party lyrics setting and **Show mini-player lyrics**. The add-on reads the official mini-player text, so the official mini-player lyrics switch is required. Missing official hooks produce an explicit patch error; Morphe cannot auto-select dependencies across sources.
+
+          Validation: notification behavior tests, integration against the unmodified official v2.1.0 extension DEX, DEX round-trip and dexdump, full Android compilation, and checks that no official patches or extensions are bundled. Real Flyme device and full YT Music APK patch/install verification are still required.
+          EOF
+          gh release create "$TAG" dist/* --title "Flyme Lyrics Patches $TAG" --notes-file release-notes.md --verify-tag
+          cp dist/patches-bundle.json patches-bundle.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add patches-bundle.json
+          git commit -m "chore: publish source for $TAG [skip ci]"
+          git push origin main

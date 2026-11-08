@@ -1,0 +1,209 @@
+{
+  "air.com.vudu.air.DownloaderTablet": [
+    "a853c31d562d4e5e0ae4be2bea35735cfa0eb15abebb7087eb2cc284fac11eb2"
+  ],
+  "com.abc.abcnews": [
+    "84ffa7412f76777e76a22f5b51874e012bd81607110c1b2bda3e6008c4bc75be"
+  ],
+  "com.amazon.avod.thirdpartyclient": [
+    "2f19adeb284eb36f7f07786152b9a1d14b21653203ad0b04ebbf9c73ab6d7625"
+  ],
+  "com.amazon.mShop.android.shopping": [
+    "2f19adeb284eb36f7f07786152b9a1d14b21653203ad0b04ebbf9c73ab6d7625"
+  ],
+  "com.amcplus.amcfullepisodes": [
+    "7426edc418b877be30ef853ea9c209c8543d418b01be0139f55056b7ef276d48"
+  ],
+  "com.apple.atve.androidtv.appletv": [
+    "771d8674d3d9837c9edf11b11873443998f19105abcecab425ed9b8e6fefff9b"
+  ],
+  "com.att.myWireless": [
+    "c7f79aba69d3a75cfa4fa03599d08eebc5d1c0eeb1c390cf6ca87940d4f192ad"
+  ],
+  "com.bah.r1smobile": [
+    "96b3eab609470eb60906af8851e21a56be280338064b4e26287a9398bcd73ac1"
+  ],
+  "com.bamnetworks.mobile.android.gameday.atbat": [
+    "e3245bc416baef4c4745ce85d7ff7b5f4722b460e60388ce7f8e6fdeece9883b"
+  ],
+  "com.bestbuy.android": [
+    "83e0e906d7f06f4e2ed11f7fcf51962a72543d1af41899fead87f546afccce9b"
+  ],
+  "com.bydeluxe.d3.android.program.starz": [
+    "ad6fee5661fed3145fc6a383df1a79882317ad3a45abe0280f738c84606637d2"
+  ],
+  "com.cbs.app": [
+    "a7520085336e50053de6b8b92e5ab89b6f62b5c22653e5684870586d02fb014e"
+  ],
+  "com.cnn.mobile.android.phone": [
+    "c547eacb70460f12374e5a56b8e76598199105161a8d756bb5a8acb0fd13e6c0"
+  ],
+  "com.cvs.launchers.cvs": [
+    "37bff7c0ee776177f0fdcb98bca438901149533e4cb82fbcfc948222cbc11050"
+  ],
+  "com.dailywire.thedailywire": [
+    "98e73dc48e0b1fa4ec3da4d6064680814f1d3a513a689c881c77ae7082e5116e"
+  ],
+  "com.dealseekorg.dealseek": [
+    "900a9f5a31d565493a6e3114287a224c111d2c1f7a21c0d79d6152f380ea087d"
+  ],
+  "com.disney.disneyplus": [
+    "b4d251e979ea974d8f070feb5ab69fc4c2873f4e8add421ff63ad5f2789d63d4"
+  ],
+  "com.dramafever.docclub": [
+    "ea66141f2146ae746c5ca833842f0fb9d7908959fdd858bec470f1fb2f9da707"
+  ],
+  "com.dramafever.shudder": [
+    "d1be9525bc34acb208ca170fd2f7fdb65aa6652d3faa62030f49cc70ffb35fd4"
+  ],
+  "com.epix.epix.now": [
+    "9d00e22ea9e1f2f7010ff4667a813d27baa3770fd5bf648a19f358b4780b0230",
+    "9c0f10cecd2fbd854a05a79ba63d97c1d35a6b077c46c3cb7bdaaf2ef3e7098c"
+  ],
+  "com.espn.score_center": [
+    "14d237b8b932a435d0f5194749808f19be03358478ccfce2b685a6adaa8c7b7d"
+  ],
+  "com.fivemobile.thescore": [
+    "63a9d0d23a8c11b3828bbb9b208ccc893473385be13c1cd8b6d135c8cc0cb88e"
+  ],
+  "com.fox.foxone": [
+    "fa1f75b196ec5cde7ab895a335beaf95c1a005fcfc2d85fb6071b0801ff3fe0c"
+  ],
+  "com.fox.fts.android": [
+    "18a284e2a6122874116deb1ebf1d9610c15e45ce7479e2b7c6f82c2a89828a71"
+  ],
+  "com.foxnews.android": [
+    "56f4b0412df023323dcbe10740690a782faf1f8723b335afa57d4dd3e6c6ff01"
+  ],
+  "com.google.android.apps.youtube.unplugged": [
+    "052749e5121fe1bb941677299f41230e17a837da95765d53cb9eca43723efc30",
+    "07e37adddc17496c156b37bd6353adb13832c72dbadec11a012f230a19b45b88"
+  ],
+  "com.gotv.nflgamecenter.us.lite": [
+    "1d985b3aad0684cf25ea1725f8c73d7b70939ce294122cc18fd0be9be6118870"
+  ],
+  "com.hulu.plus": [
+    "cfbdf8dcd96469243dde618ad6a12fa37685ba98f5c6f4c778ba9fbf75a8b145"
+  ],
+  "com.justwatch.justwatch": [
+    "a24cb9ee497862eb734e97786a2715657b0010fbe7ea13a4ac2add6a703af9a4"
+  ],
+  "com.moviebase": [
+    "5c6a17a64d884f8bd810a6464ae4a19428d4b76b86455967e6d14777ee05a607"
+  ],
+  "com.nbaimd.gametime.nba2011": [
+    "2309209340875f6f8a008ea25dbd98d8a03e482704d43211933d2b9a91923aff"
+  ],
+  "com.nbcnews.msnbc.mobile": [
+    "2d072ce000030dfef5566a1eafdf651c134762fcb05bc05aeb40b73116eb326f"
+  ],
+  "com.nexstar.newsnation": [
+    "7f96e905b4bfed3a431194c364ea0a0c6e3d7c1291ec429cd0cf5bbf632563fd"
+  ],
+  "com.nytimes.android": [
+    "4ddc7c55449e05f2518961fcd5f219763a0160c4c04c6e443f9b864c10e2fb26"
+  ],
+  "com.particlenews.newsbreak": [
+    "80fc7e5afec3477a7a5679090506ae4a0926bfc0249df321dd5a3a731093808c"
+  ],
+  "com.pbs.video": [
+    "ebb7d1adfd72c9ce82278920689655030d0c0ae4785ae937b3df24dd43df564b",
+    "c72ca5a16e76aa41bbea60845d49bb88969f0f1eb9f4bd3d4951dcc578a7a62d"
+  ],
+  "com.peacocktv.peacockandroid": [
+    "e5efd56fa3246e480546ecac4d7928051422a26c5676190e459791fafa8c8093"
+  ],
+  "com.plexapp.android": [
+    "822cd1246884be960e0f2667eb8afc5f7df08920363c2f16742933bfeb5717c6"
+  ],
+  "com.substack.app": [
+    "9f6f3f65080de1ecef3e3961ad468ff3204bd9976d6c88cf95d9a34622653cf5"
+  ],
+  "com.target.ui": [
+    "c20f71d425625357f0c0523ae1c220c59e22e49a94bc9f266f9c97773689a09b"
+  ],
+  "com.thehomedepot": [
+    "18f52d1c50614cab099daf3503b4fd574aa35acf976c5767a23f7abb5cb2dea1"
+  ],
+  "com.tmobile.m1": [
+    "3d1a4bef6ee7af7d34d120e7b1aac0dd245585de6237cf100f68333afacff562"
+  ],
+  "com.tmobile.tuesdays": [
+    "3d1a4bef6ee7af7d34d120e7b1aac0dd245585de6237cf100f68333afacff562"
+  ],
+  "com.treemolabs.apps.cbsnews": [
+    "16fa52b26f079b07249b1edd7d9d05c4d5e9d72d57901c453836eb4b2006f2ce"
+  ],
+  "com.truthsocial.android.app": [
+    "aa76b99562402c60ede1b36dd2b6807fc9f280bf5884cbb167694c227d7171e7"
+  ],
+  "com.tubitv": [
+    "aac5ab52f6b789dc6f238910b6c530bea1bdbc36d6a7ede618a92329aa3a2fd0"
+  ],
+  "com.usablenet.mobile.walgreen": [
+    "37bff7c0ee776177f0fdcb98bca438901149533e4cb82fbcfc948222cbc11050"
+  ],
+  "com.usatoday.android.news": [
+    "564013538d8a8f0b2da4425a2b73e9f33a5e890f5184c71d19a4031df6f51d30"
+  ],
+  "com.uvnv.mintsim": [
+    "b1fcc01c13bf7cbf5169da2d4aa1828696dacd51d5d4c70a622f4cf1cf5f453c"
+  ],
+  "com.visiblemobile.flagship": [
+    "d8efe020e48aec0a21e67efc8fafc2e674a05c74970381d99175e23c084b7bf0"
+  ],
+  "com.vzw.hss.myverizon": [
+    "ae23a03436df07b0cd70fe881cda2ec1d21215d7b7b0cc68e67b67f5df89526a"
+  ],
+  "com.walmart.android": [
+    "f3cfe9b27cf77a414051734b6a07422ed8b8ed71de02e0d1e8a36994c15a17a2"
+  ],
+  "com.washingtonpost.android": [
+    "f2283600a2e11ecf30efb5c756ac8abb7445f274787b67e91be5535312b45e5d"
+  ],
+  "com.wbd.hbomax": [
+    "619cbb027b715560b843d15a5599f900485af1cd4294097811a77609bc8273a8"
+  ],
+  "com.wbd.stream": [
+    "619cbb027b715560b843d15a5599f900485af1cd4294097811a77609bc8273a8"
+  ],
+  "com.xfinity.digitalhome": [
+    "953f5a4c22e7fd16adc3f12eb038682aad377fef9a18b9d12c1abea78911c749"
+  ],
+  "com.xumo.xumo": [
+    "e15ba6a1defa71a45ff0f43e18af98d0ef5605f535214848c452449f67d175a4"
+  ],
+  "com.zumobi.msnbc": [
+    "42cc360992c161b46ae9474713f005522cff860ccc5fdafbdfd7471e911eedb2"
+  ],
+  "gov.dhs.tsa.mytsa": [
+    "7a15bf382b6d1d61908238b875f78c8a3ab9bf124b248cce494cda4ddccba2f8"
+  ],
+  "gov.fema.mobile.android": [
+    "34401ef3b8a11697ede6bc93cf705e53213f2dc1fd4131f9d5c9573b51c7ab16"
+  ],
+  "gov.nps.mobileapp": [
+    "42dc0c805c82139091c899fa098d3bbf3eb5e20ceb90c2dd64364929eccc66b4"
+  ],
+  "gov.usda.fs.nfg": [
+    "3e565daf643386e27aedaef390263acc9075ed02345a2f3f8d58ecbc0c8444a1"
+  ],
+  "gov.whitehouse.app": [
+    "79585185075e23a57ce51f7df537946692d92c31b2f002c9ecac204d4e9da03d"
+  ],
+  "mnn.Android": [
+    "a6df84568e029df799db7fd691d648eca9893a5ff40aa582bbd87843b35dae17"
+  ],
+  "org.cspan.app": [
+    "13de4bc662cbc3ee954941c038aec0b0b8bdf6ca46bffcc35eb78d0721d643bb"
+  ],
+  "org.npr.android.news": [
+    "54a9cfe972f113a855b41c658096d0c58eea2fd7971381eb5e43d81e01e74f40"
+  ],
+  "tv.pluto.android": [
+    "29946c49261522d69e4daf1110b400d9341736be25517700a81ccbfde130e96c"
+  ],
+  "wsj.reader_sp": [
+    "23bb0cd3b5fbc3fdd4f869b2c423ef79ea25ff7c54b06ea29ccd49472f66451f"
+  ]
+}

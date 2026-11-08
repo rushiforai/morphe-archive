@@ -1,12 +1,105 @@
 {
   "$schema": "gboard-port-product-catalog.schema.json",
   "format": "gboard-port-product-catalog.v1",
-  "catalog_version": "1.16.0",
+  "catalog_version": "1.21.1",
   "composition": {
     "selected_only_call_chain": true,
     "runtime_feature_mask": false
   },
   "binding_contracts": {
+    "ap_catalog_copy": "method",
+    "ap_controller_order_field": "field",
+    "ap_descriptor_action": "method",
+    "ap_descriptor_actions": "field",
+    "ap_descriptor_build": "method",
+    "ap_descriptor_factory": "method",
+    "ap_descriptor_icon": "method",
+    "ap_descriptor_label": "field",
+    "ap_descriptor_register": "method",
+    "ap_descriptor_token": "method",
+    "ap_master_catalog_set": "field",
+    "calculator_hidden": "method",
+    "calculator_input_start": "method",
+    "calculator_input_view": "field",
+    "calculator_selection": "method",
+    "clipboard_adapter_context": "field",
+    "clipboard_adapter_items": "field",
+    "clipboard_adapter_recycler": "field",
+    "clipboard_cleanup_cursor": "method",
+    "clipboard_clip_id": "field",
+    "clipboard_clip_model": "field",
+    "clipboard_clip_timestamp": "field",
+    "clipboard_columns": "method",
+    "clipboard_delete": "method",
+    "clipboard_grid_manager_constructor": "method",
+    "clipboard_holder_text": "field",
+    "clipboard_is_pinned": "method",
+    "clipboard_is_sensitive": "method",
+    "clipboard_is_special": "method",
+    "clipboard_item_bind": "method",
+    "clipboard_keyboard_adapter": "field",
+    "clipboard_keyboard_context": "field",
+    "clipboard_layout_built": "method",
+    "clipboard_loader": "method",
+    "clipboard_loader_context": "field",
+    "clipboard_loader_owner": "field",
+    "clipboard_model_sensitive": "field",
+    "clipboard_model_text": "field",
+    "clipboard_model_type": "field",
+    "clipboard_notify_removed": "method",
+    "clipboard_pinned_count": "field",
+    "clipboard_pinned_header": "field",
+    "clipboard_preferences": "method",
+    "clipboard_primary_timestamp": "method",
+    "clipboard_prune": "method",
+    "clipboard_prune_context": "field",
+    "clipboard_prune_count": "field",
+    "clipboard_prune_disabled": "field",
+    "clipboard_query": "method",
+    "clipboard_query_type": "method",
+    "clipboard_read_timestamp": "method",
+    "clipboard_recent_count": "field",
+    "clipboard_recent_header": "field",
+    "clipboard_recycler_manager": "field",
+    "clipboard_refresh": "method",
+    "clipboard_set_span": "method",
+    "clipboard_span_count": "field",
+    "clipboard_special_header": "field",
+    "clipboard_trim": "method",
+    "clipboard_uri": "method",
+    "clipboard_write_timestamp": "method",
+    "cursor_resource_preference": "method",
+    "cursor_string_preference": "method",
+    "custom_symbols_adapter_bind": "method",
+    "custom_symbols_adapter_constructor": "method",
+    "custom_symbols_adapter_create": "method",
+    "custom_symbols_adapter_view_type": "method",
+    "custom_symbols_body_ready": "method",
+    "custom_symbols_category_bind": "method",
+    "custom_symbols_category_change": "method",
+    "custom_symbols_category_name": "method",
+    "custom_symbols_corpus": "method",
+    "custom_symbols_corpus_item_extension": "field",
+    "custom_symbols_corpus_item_keyboard": "field",
+    "custom_symbols_footer_click": "method",
+    "custom_symbols_header_callback": "method",
+    "custom_symbols_header_guard": "method",
+    "custom_symbols_history_case": "field",
+    "custom_symbols_history_consumer": "method",
+    "custom_symbols_history_receiver": "field",
+    "custom_symbols_history_sink": "method",
+    "custom_symbols_identity_factory": "method",
+    "custom_symbols_keyboard_ready": "method",
+    "custom_symbols_m2_constructor": "method",
+    "custom_symbols_m2_history_field": "field",
+    "custom_symbols_metrics": "method",
+    "custom_symbols_navigation": "method",
+    "custom_symbols_provider_before": "method",
+    "custom_symbols_provider_created": "method",
+    "custom_symbols_provider_valid": "method",
+    "custom_symbols_recycler_attach": "method",
+    "custom_symbols_selected_index": "method",
+    "custom_symbols_view_transform": "method",
     "custom_theme_fragment_peer_field": "field",
     "custom_theme_launcher_launch": "method",
     "custom_theme_peer_context_field": "field",
@@ -15,23 +108,100 @@
     "custom_theme_plus_handler": "method",
     "custom_theme_result_handler": "method",
     "custom_theme_validator": "method",
+    "editing_access_points_ap_controller": "method",
+    "editing_access_points_ap_order_factory": "method",
+    "editing_ap_ondestroy": "method",
+    "editing_ap_onfinishinput": "method",
+    "editing_ap_onfinishinputview": "method",
+    "editing_ap_onstartinput": "method",
+    "editing_ap_onstartinputview": "method",
+    "editing_ap_onwindowhidden": "method",
     "flag_bool_getter": "method",
     "flag_name_field": "field",
+    "frosted_configure": "method",
+    "frosted_hidden": "method",
+    "frosted_nav_apply": "method",
+    "frosted_nav_body": "field",
+    "frosted_nav_color": "field",
+    "frosted_nav_divider": "field",
+    "frosted_nav_header": "field",
+    "frosted_nav_light": "field",
+    "frosted_nav_params_constructor": "method",
+    "frosted_shown": "method",
     "gesture_dispatch": "method",
     "gesture_dispatcher_type": "type",
     "gesture_stock_delegate_field": "field",
     "gesture_stock_dispatch": "method",
+    "incognito_dictation_flag": "field",
+    "incognito_mode_toggle_ap_controller": "method",
+    "incognito_mode_toggle_ap_order_factory": "method",
     "keyboard_completion_callback_type": "type",
     "keyboard_definition_type": "type",
     "keyboard_extension_manager": "method",
     "keyboard_provider_request": "method",
+    "language_models_baked_getter": "method",
+    "language_models_decoder_add_engine": "method",
+    "language_models_decoder_dump": "method",
+    "language_models_decoder_load": "method",
+    "language_models_decoder_remove_engine": "method",
+    "language_models_decoder_reset": "method",
+    "language_models_decoder_unload": "method",
+    "language_models_descriptor": "field",
+    "language_models_engine_model_file": "field",
+    "language_models_engine_model_version": "field",
+    "language_models_engine_models": "field",
+    "language_models_engine_type": "field",
+    "language_models_hmm_enroll": "method",
+    "language_models_hmm_pack": "field",
+    "language_models_hmm_provider": "field",
+    "language_models_hmm_version": "field",
+    "language_models_model_country": "field",
+    "language_models_model_file": "field",
+    "language_models_model_language": "field",
+    "language_models_model_type": "field",
+    "language_models_model_version": "field",
+    "language_models_nwp_manager_factory": "method",
+    "language_models_nwp_open": "method",
+    "language_models_pack_metadata": "method",
+    "language_models_pack_parent": "method",
+    "language_models_parent_version": "method",
+    "latin_globe_factory": "method",
+    "latin_globe_interval_field": "field",
     "long_press_quick_actions_input_event": "method",
+    "manual_incognito_clipboard": "method",
+    "manual_incognito_dictation": "method",
+    "manual_incognito_hide": "method",
+    "manual_incognito_predicate": "method",
+    "manual_incognito_start": "method",
+    "manual_incognito_start_view": "method",
+    "manual_incognito_voice": "method",
+    "menu_body_provider_select": "method",
+    "menu_controller_bind": "method",
+    "menu_controller_open": "method",
+    "menu_drag_inflate": "method",
+    "menu_drag_setup": "method",
+    "menu_native_view": "method",
+    "ocr_config_availability": "method",
+    "ocr_config_label": "method",
+    "ocr_config_language_hint": "method",
+    "ocr_config_logging_library": "method",
+    "ocr_config_module_id": "method",
+    "ocr_config_optional_module": "method",
+    "ocr_manager_request": "method",
+    "ocr_optional_request": "method",
+    "ocr_thin_init": "method",
     "pointer_cancel": "method",
     "pointer_finish": "method",
     "pointer_owner": "method",
     "pointer_owner_type": "type",
     "pointer_pre_reset": "method",
     "pointer_reset": "method",
+    "rambler_selector_create": "method",
+    "rambler_selector_default": "method",
+    "rambler_selector_layout": "method",
+    "rambler_selector_read": "method",
+    "rambler_selector_setup": "method",
+    "rambler_selector_write": "method",
     "rounded_keyboard_admission": "method",
     "rounded_keyboard_radii_constructor": "method",
     "rounded_keyboard_radii_type": "type",
@@ -43,10 +213,38 @@
     "rounded_keyboard_radii_wrapper_simple_constructor": "method",
     "rounded_keyboard_radii_wrapper_type": "type",
     "rounded_keyboard_style_resolver": "method",
+    "settings_homepage_mode": "field",
+    "settings_homepage_on_create": "method",
+    "settings_homepage_selector": "method",
+    "signature_check": "method",
     "soft_key_bind": "method",
     "soft_key_metadata_type": "type",
     "soft_key_view_type": "type",
-    "zhuyin_toggle_popup_action": "method"
+    "split_access_point_name": "field",
+    "split_device_eligibility": "method",
+    "split_eligibility": "method",
+    "split_mode_attach": "method",
+    "split_mode_current": "method",
+    "split_mode_manual": "method",
+    "split_mode_reload": "method",
+    "split_mode_restore": "method",
+    "split_mode_transition": "method",
+    "split_order": "method",
+    "split_state": "method",
+    "split_width_eligibility": "method",
+    "swipe_dismiss_header_dispatch": "method",
+    "symbol_footer_corpus": "method",
+    "voice_eligibility_constructor": "method",
+    "voice_formatter_constructor": "method",
+    "voice_mdd_constructor": "method",
+    "voice_native_readiness": "method",
+    "web_clipboard_create": "method",
+    "writing_official_preference": "method",
+    "zhuyin_toggle_popup_action": "method",
+    "zhuyin_toggle_popup_target": "method",
+    "zhuyin_toggle_preference_factory": "method",
+    "zhuyin_toggle_preference_write": "method",
+    "zhuyin_toggle_reset": "method"
   },
   "anchor_families": [
     "dedicated_bytecode",
@@ -100,6 +298,7 @@
       "consumer_files": [
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/accesspointsmenu/GboardAccessPointsMenuFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/accesspointsmenu/GboardAccessPointsMenuFlagValuePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/accesspointsmenu/GboardAccessPointsMenuPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/GboardFlagFamilyComposer.kt"
       ],
@@ -115,6 +314,30 @@
           ],
           "runtime_calls": [
             "ACCESS_POINTS_MENU_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE"
+          ]
+        },
+        {
+          "contribution_id": "access_points_menu_style.bytecode",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 100,
+          "required_bindings": [
+            "menu_body_provider_select",
+            "menu_controller_bind",
+            "menu_controller_open",
+            "menu_drag_inflate",
+            "menu_drag_setup",
+            "menu_native_view"
+          ],
+          "runtime_calls": [
+            "ACCESS_POINTS_MENU_RUNTIME_SELECT_BODY",
+            "ACCESS_POINTS_MENU_RUNTIME_SELECT_KEYBOARD_LAYOUT",
+            "ACCESS_POINTS_MENU_RUNTIME_WANTS_LEGACY",
+            "ACCESS_POINTS_MENU_RUNTIME_DRAG_SCALE",
+            "ACCESS_POINTS_MENU_RUNTIME_DRAG_MODE",
+            "ACCESS_POINTS_MENU_RUNTIME_PREPARE_DRAG",
+            "ACCESS_POINTS_MENU_RUNTIME_ROLLBACK_DRAG",
+            "ACCESS_POINTS_MENU_RUNTIME_COMPLETE_DRAG"
           ]
         }
       ]
@@ -137,7 +360,9 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 100,
-          "required_bindings": [],
+          "required_bindings": [
+            "signature_check"
+          ],
           "runtime_calls": []
         }
       ]
@@ -153,11 +378,11 @@
       ],
       "migration_scope": "version-sensitive",
       "consumer_files": [
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/advancedvoice/GboardAdvancedVoice1803ZhTwPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/advancedvoice/GboardAdvancedVoiceFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/advancedvoice/GboardAdvancedVoiceFlagValuePatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/advancedvoice/GboardAdvancedVoicePatchSupport.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/rambler/GboardRambler1803OfficialSelectorPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/advancedvoice/GboardAdvancedVoiceZhTwPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/rambler/GboardRamblerOfficialSelectorPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/GboardFlagFamilyComposer.kt"
       ],
@@ -180,18 +405,30 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 200,
-          "required_bindings": [],
+          "required_bindings": [
+            "rambler_selector_create",
+            "rambler_selector_default",
+            "rambler_selector_layout",
+            "rambler_selector_read",
+            "rambler_selector_setup",
+            "rambler_selector_write",
+            "voice_eligibility_constructor",
+            "voice_formatter_constructor",
+            "voice_mdd_constructor",
+            "voice_native_readiness"
+          ],
           "runtime_calls": [
-            "ADVANCED_VOICE_RUNTIME_AFTER_1803_NATIVE_SPLIT_READINESS",
-            "ADVANCED_VOICE_RUNTIME_AFTER_MDD_PROVIDER_CONSTRUCTED",
-            "ADVANCED_VOICE_RUNTIME_BEFORE_FORMATTER_CONSTRUCTED",
             "ADVANCED_VOICE_RUNTIME_INCLUDE_EXACT_ZH_TW_SUPPORTED_LOCALE",
             "ADVANCED_VOICE_RUNTIME_SEED_APPLICATION_CONTEXT",
             "RAMBLER_RUNTIME_ENTER_DEFAULT_SELECTION_SUPPRESSION",
             "RAMBLER_RUNTIME_ENTER_VOICE_SETTINGS_SCOPE",
             "RAMBLER_RUNTIME_EXIT_DEFAULT_SELECTION_SUPPRESSION",
             "RAMBLER_RUNTIME_EXIT_VOICE_SETTINGS_SCOPE",
-            "RAMBLER_RUNTIME_UPDATE_OFFICIAL_SELECTION"
+            "RAMBLER_RUNTIME_UPDATE_OFFICIAL_SELECTION",
+            "ADVANCED_VOICE_RUNTIME_SHOULD_CHECK_NATIVE",
+            "ADVANCED_VOICE_RUNTIME_CLAIM_MDD",
+            "ADVANCED_VOICE_RUNTIME_RESET_MDD",
+            "ADVANCED_VOICE_RUNTIME_FORMATTER_GATE"
           ]
         }
       ]
@@ -209,6 +446,7 @@
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/writingtools/GboardAiWritingToolsFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/writingtools/GboardAiWritingToolsFlagValuePatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/writingtools/GboardAiWritingToolsPatchConstants.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/writingtools/GboardAiWritingToolsPreferenceObserverPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/GboardFlagFamilyComposer.kt"
       ],
@@ -223,13 +461,19 @@
             "flag_name_field"
           ],
           "runtime_calls": [
-            "AI_WRITING_TOOLS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE",
-            "AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_GEN_AI_INIT_CLIENT_TYPE",
-            "AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_APPLY_SMART_EDIT_INIT_CLIENT_TYPE",
-            "AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_BEGIN_GEN_AI_REFRESH",
-            "AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_FINISH_GEN_AI_REFRESH",
-            "AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_OBSERVE_GEN_AI_REFRESH_CLIENT_TYPE",
-            "AI_WRITING_TOOLS_VOICE_COMMAND_RUNTIME_REMEMBER_GEN_AI_INIT_CALL"
+            "AI_WRITING_TOOLS_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE"
+          ]
+        },
+        {
+          "contribution_id": "ai_writing_tools.preference_observer",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 300,
+          "required_bindings": [
+            "writing_official_preference"
+          ],
+          "runtime_calls": [
+            "AI_WRITING_TOOLS_RUNTIME_NOTE_OFFICIAL_PREFERENCE"
           ]
         }
       ]
@@ -342,14 +586,63 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 600,
-          "required_bindings": [],
+          "required_bindings": [
+            "clipboard_adapter_context",
+            "clipboard_adapter_items",
+            "clipboard_adapter_recycler",
+            "clipboard_cleanup_cursor",
+            "clipboard_clip_id",
+            "clipboard_clip_model",
+            "clipboard_clip_timestamp",
+            "clipboard_columns",
+            "clipboard_delete",
+            "clipboard_grid_manager_constructor",
+            "clipboard_holder_text",
+            "clipboard_is_pinned",
+            "clipboard_is_sensitive",
+            "clipboard_is_special",
+            "clipboard_item_bind",
+            "clipboard_keyboard_adapter",
+            "clipboard_keyboard_context",
+            "clipboard_layout_built",
+            "clipboard_loader",
+            "clipboard_loader_context",
+            "clipboard_loader_owner",
+            "clipboard_model_sensitive",
+            "clipboard_model_text",
+            "clipboard_model_type",
+            "clipboard_notify_removed",
+            "clipboard_pinned_count",
+            "clipboard_pinned_header",
+            "clipboard_preferences",
+            "clipboard_primary_timestamp",
+            "clipboard_prune",
+            "clipboard_prune_context",
+            "clipboard_prune_count",
+            "clipboard_prune_disabled",
+            "clipboard_query",
+            "clipboard_query_type",
+            "clipboard_read_timestamp",
+            "clipboard_recent_count",
+            "clipboard_recent_header",
+            "clipboard_recycler_manager",
+            "clipboard_refresh",
+            "clipboard_set_span",
+            "clipboard_span_count",
+            "clipboard_special_header",
+            "clipboard_trim",
+            "clipboard_uri",
+            "clipboard_write_timestamp"
+          ],
           "runtime_calls": [
+            "CLIPBOARD_RUNTIME_ABORT_ITEM_BIND",
             "CLIPBOARD_RUNTIME_AFTER_ADAPTER_TRIM",
             "CLIPBOARD_RUNTIME_AFTER_ITEM_BIND",
+            "CLIPBOARD_RUNTIME_AFTER_LAYOUT",
             "CLIPBOARD_RUNTIME_BEFORE_ITEM_BIND",
             "CLIPBOARD_RUNTIME_HANDLE_CUSTOM_PRUNE",
             "CLIPBOARD_RUNTIME_MAYBE_BUILD_LOADER_RESULT",
-            "CLIPBOARD_RUNTIME_RESOLVE_COLUMN_COUNT_OVERRIDE"
+            "CLIPBOARD_RUNTIME_RESOLVE_COLUMN_COUNT"
           ]
         }
       ]
@@ -428,6 +721,36 @@
           "phase": "dedicated",
           "order": 700,
           "required_bindings": [
+            "custom_symbols_adapter_bind",
+            "custom_symbols_adapter_constructor",
+            "custom_symbols_adapter_create",
+            "custom_symbols_adapter_view_type",
+            "custom_symbols_body_ready",
+            "custom_symbols_category_bind",
+            "custom_symbols_category_change",
+            "custom_symbols_category_name",
+            "custom_symbols_corpus",
+            "custom_symbols_corpus_item_extension",
+            "custom_symbols_corpus_item_keyboard",
+            "custom_symbols_footer_click",
+            "custom_symbols_header_callback",
+            "custom_symbols_header_guard",
+            "custom_symbols_history_case",
+            "custom_symbols_history_consumer",
+            "custom_symbols_history_receiver",
+            "custom_symbols_history_sink",
+            "custom_symbols_identity_factory",
+            "custom_symbols_keyboard_ready",
+            "custom_symbols_m2_constructor",
+            "custom_symbols_m2_history_field",
+            "custom_symbols_metrics",
+            "custom_symbols_navigation",
+            "custom_symbols_provider_before",
+            "custom_symbols_provider_created",
+            "custom_symbols_provider_valid",
+            "custom_symbols_recycler_attach",
+            "custom_symbols_selected_index",
+            "custom_symbols_view_transform",
             "keyboard_completion_callback_type",
             "keyboard_definition_type",
             "keyboard_extension_manager",
@@ -535,10 +858,10 @@
       "consumer_files": [
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/duckemail/GboardDuckEmailLifecyclePatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/duckemail/GboardDuckEmailResourcePatch.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/editingaccesspoints/GboardEditingAccessPoints1803Targets.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/editingaccesspoints/GboardEditingAccessPointsTargets.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Patch.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Targets.kt"
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsTargets.kt"
       ],
       "contributions": [
         {
@@ -548,8 +871,8 @@
           "order": 1270,
           "required_bindings": [],
           "runtime_calls": [
-            "ACCESS_POINT_CONTRIBUTIONS_1803_AFTER_CONTROLLER_CREATED",
-            "ACCESS_POINT_CONTRIBUTIONS_1803_INCLUDE_ORDER_CATALOG",
+            "ACCESS_POINT_CONTRIBUTIONS_AFTER_CONTROLLER_CREATED",
+            "ACCESS_POINT_CONTRIBUTIONS_INCLUDE_ORDER_CATALOG",
             "DUCK_EMAIL_START",
             "DUCK_EMAIL_END"
           ]
@@ -566,12 +889,12 @@
       ],
       "migration_scope": "version-sensitive",
       "consumer_files": [
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/editingaccesspoints/GboardEditingAccessPoints1803Targets.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/editingaccesspoints/GboardEditingAccessPointsFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/editingaccesspoints/GboardEditingAccessPointsLifecyclePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/editingaccesspoints/GboardEditingAccessPointsTargets.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Patch.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Targets.kt"
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsTargets.kt"
       ],
       "contributions": [
         {
@@ -579,10 +902,30 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1260,
-          "required_bindings": [],
+          "required_bindings": [
+            "ap_catalog_copy",
+            "ap_controller_order_field",
+            "ap_descriptor_action",
+            "ap_descriptor_actions",
+            "ap_descriptor_build",
+            "ap_descriptor_factory",
+            "ap_descriptor_icon",
+            "ap_descriptor_label",
+            "ap_descriptor_register",
+            "ap_descriptor_token",
+            "ap_master_catalog_set",
+            "editing_access_points_ap_controller",
+            "editing_access_points_ap_order_factory",
+            "editing_ap_ondestroy",
+            "editing_ap_onfinishinput",
+            "editing_ap_onfinishinputview",
+            "editing_ap_onstartinput",
+            "editing_ap_onstartinputview",
+            "editing_ap_onwindowhidden"
+          ],
           "runtime_calls": [
-            "ACCESS_POINT_CONTRIBUTIONS_1803_AFTER_CONTROLLER_CREATED",
-            "ACCESS_POINT_CONTRIBUTIONS_1803_INCLUDE_ORDER_CATALOG",
+            "ACCESS_POINT_CONTRIBUTIONS_AFTER_CONTROLLER_CREATED",
+            "ACCESS_POINT_CONTRIBUTIONS_INCLUDE_ORDER_CATALOG",
             "EDITING_ACCESS_POINTS_START",
             "EDITING_ACCESS_POINTS_END"
           ]
@@ -608,7 +951,9 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 800,
-          "required_bindings": [],
+          "required_bindings": [
+            "symbol_footer_corpus"
+          ],
           "runtime_calls": [
             "SYMBOL_FOOTER_ORDER_RUNTIME_REORDER_EXPRESSION_CORPUS_LIST"
           ]
@@ -658,6 +1003,7 @@
       "consumer_files": [
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/cursortrackpad/GboardCursorTrackpadFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/cursortrackpad/GboardCursorTrackpadFlagValuePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/cursortrackpad/GboardCursorTrackpadPreferencePatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/GboardFlagFamilyComposer.kt"
       ],
@@ -673,6 +1019,20 @@
           ],
           "runtime_calls": [
             "CURSOR_TRACKPAD_RUNTIME_APPLY_OVERRIDDEN_FLAG_VALUE"
+          ]
+        },
+        {
+          "contribution_id": "enable_cursor_trackpad_mode.preferences",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 100,
+          "required_bindings": [
+            "cursor_resource_preference",
+            "cursor_string_preference"
+          ],
+          "runtime_calls": [
+            "CURSOR_TRACKPAD_RUNTIME_APPLY_BOOLEAN_PREFERENCE",
+            "CURSOR_TRACKPAD_RUNTIME_APPLY_RESOURCE_BOOLEAN_PREFERENCE"
           ]
         }
       ]
@@ -745,7 +1105,17 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1000,
-          "required_bindings": [],
+          "required_bindings": [
+            "ocr_config_availability",
+            "ocr_config_label",
+            "ocr_config_language_hint",
+            "ocr_config_logging_library",
+            "ocr_config_module_id",
+            "ocr_config_optional_module",
+            "ocr_manager_request",
+            "ocr_optional_request",
+            "ocr_thin_init"
+          ],
           "runtime_calls": [
             "OCR_RUNTIME_AFTER_THIN_INIT",
             "OCR_RUNTIME_APPLY_CONFIG_LABEL",
@@ -768,10 +1138,11 @@
       ],
       "migration_scope": "version-sensitive",
       "consumer_files": [
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/splitkeyboard/GboardSplitKeyboard1803Targets.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/splitkeyboard/GboardSplitKeyboardAccessPointPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/splitkeyboard/GboardSplitKeyboardEligibilityPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/splitkeyboard/GboardSplitKeyboardFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/splitkeyboard/GboardSplitKeyboardModePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/splitkeyboard/GboardSplitKeyboardTargets.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt"
       ],
       "contributions": [
@@ -780,10 +1151,25 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1100,
-          "required_bindings": [],
+          "required_bindings": [
+            "split_access_point_name",
+            "split_device_eligibility",
+            "split_eligibility",
+            "split_mode_attach",
+            "split_mode_current",
+            "split_mode_manual",
+            "split_mode_reload",
+            "split_mode_restore",
+            "split_mode_transition",
+            "split_order",
+            "split_state",
+            "split_width_eligibility"
+          ],
           "runtime_calls": [
             "SPLIT_KEYBOARD_RUNTIME_AFTER_MODE_ENVIRONMENT_CHANGED",
             "SPLIT_KEYBOARD_RUNTIME_APPLY_ACCESS_POINT_STATE",
+            "SPLIT_KEYBOARD_RUNTIME_APPLY_DEVICE_ELIGIBILITY",
+            "SPLIT_KEYBOARD_RUNTIME_APPLY_WIDTH_ELIGIBILITY",
             "SPLIT_KEYBOARD_RUNTIME_INCLUDE_ACCESS_POINT_IN_ORDER",
             "SPLIT_KEYBOARD_RUNTIME_INTERCEPT_SPLIT_ACTION"
           ]
@@ -858,8 +1244,8 @@
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/websearch/GboardFloatingWebSearchFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/websearch/GboardFloatingWebSearchManifestPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Patch.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Targets.kt"
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsTargets.kt"
       ],
       "contributions": [
         {
@@ -869,51 +1255,8 @@
           "order": 1250,
           "required_bindings": [],
           "runtime_calls": [
-            "ACCESS_POINT_CONTRIBUTIONS_1803_AFTER_CONTROLLER_CREATED",
-            "ACCESS_POINT_CONTRIBUTIONS_1803_INCLUDE_ORDER_CATALOG"
-          ]
-        }
-      ]
-    },
-    {
-      "feature_id": "flow_mode_animation",
-      "public_patch_name": "Hyperspeed Typing Animation",
-      "feature_marker": "dev.jason.gboardpatches.feature.flow_mode_animation",
-      "target_family_ids": [
-        "flag.reader",
-        "flowmode"
-      ],
-      "migration_scope": "version-sensitive",
-      "consumer_files": [
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/flowmode/GboardFlowModeFeatureMarkerPatch.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/flowmode/GboardFlowModeFlagValuePatch.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/flowmode/GboardFlowModeKeyEventPatch.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardContributionWiring.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/GboardFlagFamilyComposer.kt"
-      ],
-      "contributions": [
-        {
-          "contribution_id": "flow_mode_animation.flag",
-          "anchor_family_id": "flag_bool_getter",
-          "phase": "after_stock_result",
-          "order": 1100,
-          "required_bindings": [
-            "flag_bool_getter",
-            "flag_name_field"
-          ],
-          "runtime_calls": [
-            "FLOW_MODE_RUNTIME_APPLY_FLAG_VALUE"
-          ]
-        },
-        {
-          "contribution_id": "flow_mode_animation.key_event",
-          "anchor_family_id": "dedicated_bytecode",
-          "phase": "dedicated",
-          "order": 1700,
-          "required_bindings": [],
-          "runtime_calls": [
-            "FLOW_MODE_RUNTIME_MAP_KEY_CODE"
+            "ACCESS_POINT_CONTRIBUTIONS_AFTER_CONTROLLER_CREATED",
+            "ACCESS_POINT_CONTRIBUTIONS_INCLUDE_ORDER_CATALOG"
           ]
         }
       ]
@@ -937,11 +1280,24 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1950,
-          "required_bindings": [],
+          "required_bindings": [
+            "frosted_configure",
+            "frosted_hidden",
+            "frosted_nav_apply",
+            "frosted_nav_body",
+            "frosted_nav_color",
+            "frosted_nav_divider",
+            "frosted_nav_header",
+            "frosted_nav_light",
+            "frosted_nav_params_constructor",
+            "frosted_shown"
+          ],
           "runtime_calls": [
             "FROSTED_GLASS_RUNTIME_ON_INPUT_VIEW_STARTED",
             "FROSTED_GLASS_RUNTIME_AFTER_CONFIGURE_WINDOW",
-            "FROSTED_GLASS_RUNTIME_ON_INPUT_WINDOW_HIDDEN"
+            "FROSTED_GLASS_RUNTIME_ON_INPUT_WINDOW_HIDDEN",
+            "FROSTED_GLASS_RUNTIME_ON_APPLY_NAV_BAR_ENTRY",
+            "FROSTED_GLASS_RUNTIME_ON_APPLY_NAV_BAR_EXIT"
           ]
         }
       ]
@@ -1036,8 +1392,8 @@
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/manualincognito/GboardManualIncognitoPolicyPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/manualincognito/GboardManualIncognitoTargets.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Patch.kt",
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributions1803Targets.kt"
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsTargets.kt"
       ],
       "contributions": [
         {
@@ -1045,10 +1401,21 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1200,
-          "required_bindings": [],
+          "required_bindings": [
+            "incognito_dictation_flag",
+            "incognito_mode_toggle_ap_controller",
+            "incognito_mode_toggle_ap_order_factory",
+            "manual_incognito_clipboard",
+            "manual_incognito_dictation",
+            "manual_incognito_hide",
+            "manual_incognito_predicate",
+            "manual_incognito_start",
+            "manual_incognito_start_view",
+            "manual_incognito_voice"
+          ],
           "runtime_calls": [
-            "ACCESS_POINT_CONTRIBUTIONS_1803_AFTER_CONTROLLER_CREATED",
-            "ACCESS_POINT_CONTRIBUTIONS_1803_INCLUDE_ORDER_CATALOG",
+            "ACCESS_POINT_CONTRIBUTIONS_AFTER_CONTROLLER_CREATED",
+            "ACCESS_POINT_CONTRIBUTIONS_INCLUDE_ORDER_CATALOG",
             "MANUAL_INCOGNITO_RUNTIME_APPLY_CLIPBOARD_POLICY",
             "MANUAL_INCOGNITO_RUNTIME_APPLY_DICTATION_FLAG",
             "MANUAL_INCOGNITO_RUNTIME_APPLY_INCOGNITO_PREDICATE",
@@ -1125,6 +1492,36 @@
       ]
     },
     {
+      "feature_id": "keypress_haptics",
+      "public_patch_name": "Keypress Vibration Intensity Control",
+      "feature_marker": "dev.jason.gboardpatches.feature.keypress_haptics",
+      "target_family_ids": [
+        "flag.reader"
+      ],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/keypresshaptics/GboardKeypressHapticsFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/keypresshaptics/GboardKeypressHapticsFlagValuePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/GboardFlagFamilyComposer.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "keypress_haptics.flag",
+          "anchor_family_id": "flag_bool_getter",
+          "phase": "after_stock_result",
+          "order": 1400,
+          "required_bindings": [
+            "flag_bool_getter",
+            "flag_name_field"
+          ],
+          "runtime_calls": [
+            "KEYPRESS_HAPTICS_RUNTIME_APPLY_FLAG_VALUE"
+          ]
+        }
+      ]
+    },
+    {
       "feature_id": "lan_ftp_server",
       "public_patch_name": "FTP Server",
       "feature_marker": "dev.jason.gboardpatches.feature.lan_ftp_server",
@@ -1149,6 +1546,103 @@
       ]
     },
     {
+      "feature_id": "language_model_versions",
+      "public_patch_name": "Dictionaries & Predictions",
+      "feature_marker": "dev.jason.gboardpatches.feature.language_models",
+      "target_family_ids": [
+        "flag.reader",
+        "language.models"
+      ],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/languagemodels/GboardLanguageModelFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/languagemodels/GboardLanguageModelFlagValuePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/languagemodels/GboardLanguageModelNativePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/languagemodels/GboardLanguageModelResourcesPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/languagemodels/GboardLanguageModelTargets.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/GboardFlagFamilyComposer.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "language_model_versions.flag",
+          "anchor_family_id": "flag_bool_getter",
+          "phase": "after_stock_result",
+          "order": 5,
+          "required_bindings": [
+            "flag_bool_getter",
+            "flag_name_field",
+            "language_models_baked_getter"
+          ],
+          "runtime_calls": [
+            "LANGUAGE_MODELS_RUNTIME_APPLY_FLAG_VALUE"
+          ]
+        },
+        {
+          "contribution_id": "language_model_versions.cache",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1800,
+          "required_bindings": [
+            "language_models_nwp_manager_factory",
+            "language_models_nwp_open",
+            "language_models_pack_metadata",
+            "language_models_pack_parent",
+            "language_models_parent_version"
+          ],
+          "runtime_calls": [
+            "LANGUAGE_MODELS_RUNTIME_RESTRICT_NWP_CACHED_PACK"
+          ]
+        },
+        {
+          "contribution_id": "language_model_versions.hmm",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1801,
+          "required_bindings": [
+            "language_models_hmm_enroll",
+            "language_models_hmm_pack",
+            "language_models_hmm_provider",
+            "language_models_hmm_version"
+          ],
+          "runtime_calls": [
+            "LANGUAGE_MODELS_RUNTIME_AFTER_HMM_ENROLL"
+          ]
+        },
+        {
+          "contribution_id": "language_model_versions.decoder",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1802,
+          "required_bindings": [
+            "language_models_decoder_add_engine",
+            "language_models_decoder_dump",
+            "language_models_decoder_load",
+            "language_models_decoder_remove_engine",
+            "language_models_decoder_reset",
+            "language_models_decoder_unload",
+            "language_models_descriptor",
+            "language_models_engine_model_file",
+            "language_models_engine_model_version",
+            "language_models_engine_models",
+            "language_models_engine_type",
+            "language_models_model_country",
+            "language_models_model_file",
+            "language_models_model_language",
+            "language_models_model_type",
+            "language_models_model_version"
+          ],
+          "runtime_calls": [
+            "LANGUAGE_MODELS_RUNTIME_AFTER_LANGUAGE_MODEL_LOAD",
+            "LANGUAGE_MODELS_RUNTIME_AFTER_LANGUAGE_MODEL_UNLOAD",
+            "LANGUAGE_MODELS_RUNTIME_AFTER_ENGINE_ADDED",
+            "LANGUAGE_MODELS_RUNTIME_AFTER_ENGINE_REMOVED",
+            "LANGUAGE_MODELS_RUNTIME_BEFORE_DECODER_RESET"
+          ]
+        }
+      ]
+    },
+    {
       "feature_id": "latin_globe_key_ignore_interval",
       "public_patch_name": "Latin Globe Key Ignore Interval",
       "feature_marker": "dev.jason.gboardpatches.feature.latin_globe_key_ignore_interval",
@@ -1167,7 +1661,10 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1300,
-          "required_bindings": [],
+          "required_bindings": [
+            "latin_globe_factory",
+            "latin_globe_interval_field"
+          ],
           "runtime_calls": [
             "LATIN_GLOBE_KEY_IGNORE_INTERVAL_RUNTIME_APPLY_OVERRIDE"
           ]
@@ -1378,7 +1875,11 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1500,
-          "required_bindings": [],
+          "required_bindings": [
+            "settings_homepage_mode",
+            "settings_homepage_on_create",
+            "settings_homepage_selector"
+          ],
           "runtime_calls": [
             "SETTINGS_HOMEPAGE_RUNTIME_APPLY_SETTINGS_HOMEPAGE_POLICY"
           ]
@@ -1394,10 +1895,10 @@
       ],
       "migration_scope": "version-sensitive",
       "consumer_files": [
-        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/calculator/GboardCalculator1803Targets.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/calculator/GboardCalculatorExtensionPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/calculator/GboardCalculatorFeatureMarkerPatch.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/calculator/GboardCalculatorLifecyclePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/calculator/GboardCalculatorTargets.kt",
         "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt"
       ],
       "contributions": [
@@ -1406,11 +1907,44 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1900,
-          "required_bindings": [],
+          "required_bindings": [
+            "calculator_hidden",
+            "calculator_input_start",
+            "calculator_input_view",
+            "calculator_selection"
+          ],
           "runtime_calls": [
             "CALCULATOR_RUNTIME_ON_INPUT_VIEW_STARTED",
             "CALCULATOR_RUNTIME_ON_SELECTION_UPDATED",
             "CALCULATOR_RUNTIME_ON_INPUT_WINDOW_HIDDEN"
+          ]
+        }
+      ]
+    },
+    {
+      "feature_id": "swipe_down_to_dismiss_keyboard",
+      "public_patch_name": "Swipe Down to Dismiss Keyboard",
+      "feature_marker": "dev.jason.gboardpatches.feature.swipe_dismiss",
+      "target_family_ids": [
+        "swipedismiss"
+      ],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/swipedismiss/GboardSwipeDismissBytecodePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/swipedismiss/GboardSwipeDismissFeatureMarkerPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "swipe_down_to_dismiss_keyboard.dispatch",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1960,
+          "required_bindings": [
+            "swipe_dismiss_header_dispatch"
+          ],
+          "runtime_calls": [
+            "SWIPE_DISMISS_RUNTIME_ON_HEADER_TOUCH"
           ]
         }
       ]
@@ -1565,9 +2099,39 @@
           "anchor_family_id": "dedicated_bytecode",
           "phase": "dedicated",
           "order": 1600,
-          "required_bindings": [],
+          "required_bindings": [
+            "web_clipboard_create"
+          ],
           "runtime_calls": [
             "WEB_CLIPBOARD_CAPTURE_BOOTSTRAP_AFTER_LATIN_IME_ON_CREATE"
+          ]
+        }
+      ]
+    },
+    {
+      "feature_id": "wispr_flow",
+      "public_patch_name": "Wispr Flow",
+      "feature_marker": "dev.jason.gboardpatches.feature.wispr_flow",
+      "target_family_ids": [
+        "accesspoint.1803"
+      ],
+      "migration_scope": "version-sensitive",
+      "consumer_files": [
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/features/wisprflow/GboardWisprFlowResourcePatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/registry/GboardPatchRegistry.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsPatch.kt",
+        "patches/src/main/kotlin/dev/jason/gboardpatches/patches/gboard/shared/accesspoint/GboardAccessPointContributionsTargets.kt"
+      ],
+      "contributions": [
+        {
+          "contribution_id": "wispr_flow.runtime",
+          "anchor_family_id": "dedicated_bytecode",
+          "phase": "dedicated",
+          "order": 1280,
+          "required_bindings": [],
+          "runtime_calls": [
+            "ACCESS_POINT_CONTRIBUTIONS_AFTER_CONTROLLER_CREATED",
+            "ACCESS_POINT_CONTRIBUTIONS_INCLUDE_ORDER_CATALOG"
           ]
         }
       ]
@@ -1671,7 +2235,11 @@
           "phase": "dedicated",
           "order": 100,
           "required_bindings": [
-            "zhuyin_toggle_popup_action"
+            "zhuyin_toggle_popup_action",
+            "zhuyin_toggle_popup_target",
+            "zhuyin_toggle_preference_factory",
+            "zhuyin_toggle_preference_write",
+            "zhuyin_toggle_reset"
           ],
           "runtime_calls": [
             "ZHUYIN_TRADITIONAL_SIMPLIFIED_TOGGLE_RUNTIME_PATCH_POPUP_ACTION"

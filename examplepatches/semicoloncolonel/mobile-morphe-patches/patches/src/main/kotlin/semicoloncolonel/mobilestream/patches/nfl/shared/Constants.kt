@@ -1,8 +1,8 @@
 package semicoloncolonel.mobilestream.patches.nfl.shared
 
 import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -11,6 +11,6 @@ object Constants {
         description = "The phone app, not the Android TV app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x013369,
-        targets = listOf(AppTarget("61.0.18"))
+        targets = listOf(devTarget("61.0.19"))
     )
 }

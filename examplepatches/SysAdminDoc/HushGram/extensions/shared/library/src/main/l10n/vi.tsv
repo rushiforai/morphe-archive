@@ -187,6 +187,9 @@ For phones that play AV1 badly. A video Instagram has at full size only as AV1 i
 Never save AV1 video	Không bao giờ lưu video AV1
 Never save HDR video	Không bao giờ lưu video HDR
 For apps that show HDR with a yellow or green cast, such as Messenger. A video Instagram has at full size only in HDR is saved at its largest standard size instead.	Dành cho ứng dụng hiện HDR bị ám vàng hoặc xanh lục, như Messenger. Video mà Instagram chỉ có kích thước đầy đủ ở dạng HDR sẽ được lưu ở cỡ tiêu chuẩn lớn nhất.
+# context: Downloads settings: a switch that saves joined videos as Matroska (.mkv) files instead of .mp4 (#547)
+Save videos as MKV	Lưu video dạng MKV
+Saves videos as .mkv files instead of .mp4, for galleries that show no thumbnail for VP9 or AV1 videos. Nothing is re-encoded. A video Instagram sends as one file stays .mp4.	Lưu video thành tệp .mkv thay vì .mp4, dành cho thư viện không hiện ảnh thu nhỏ của video VP9 hoặc AV1. Không mã hóa lại gì cả. Video mà Instagram gửi thành một tệp vẫn giữ .mp4.
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes or in HDR stay smaller.	Lưu video để ứng dụng khác mở được, ở kích thước đầy đủ. Video mà Instagram chỉ có ở dạng VP9 hoặc AV1 sẽ được chuyển sang H.264 trên điện thoại thay vì lưu ở cỡ nhỏ hơn. Chậm hơn, và video dài trên 3 phút hoặc ở dạng HDR vẫn nhỏ hơn.
 Converting to H.264	Đang chuyển sang H.264
 Download quality	Chất lượng tải xuống
@@ -374,6 +377,8 @@ the raised version code	mã phiên bản đã tăng
 Sharing	Chia sẻ
 Hide group buttons	Ẩn nút nhóm
 Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.	Bỏ Nhóm mới khỏi bảng chia sẻ và nút gửi cho những người bạn chọn dưới dạng nhóm. Gửi riêng vẫn còn và bạn vẫn lập được nhóm từ tin nhắn.
+Hide the search bar	Ẩn thanh tìm kiếm
+Takes the search bar off the top of the share sheet. The people you can send to still show.	Bỏ thanh tìm kiếm ở đầu bảng chia sẻ. Những người bạn có thể gửi vẫn hiện.
 Story ring size	Kích thước vòng tin
 Draws the rings in the stories row at the top of Home at the size below, and the rings of stories you haven't watched in the color below. Restart Instagram to see a change.	Vẽ các vòng trong hàng tin ở đầu trang chủ theo kích thước bên dưới, và vòng của tin bạn chưa xem theo màu bên dưới. Hãy khởi động lại Instagram để thấy thay đổi.
 Ring size	Kích thước vòng
@@ -670,6 +675,9 @@ Hide story rewinds	Ẩn tin xem lại
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	Không có gì trong hàng tin ở đầu trang chủ được tải, kể cả tin của bạn, và tin nổi bật trên trang cá nhân cũng trống. Tiết kiệm dữ liệu. Vòng tin trên trang cá nhân hoặc trong cuộc trò chuyện vẫn mở tin.
 Expandable categories	Danh mục mở rộng được
 Tap a category to show or hide its settings on this page.	Nhấn vào một danh mục để hiện hoặc ẩn cài đặt của nó trên trang này.
+# context: Settings entry switch; with it on, tapping a settings category opens that category alone on its own page
+Categories on their own page	Danh mục trên trang riêng
+With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.	Khi bật Danh mục mở rộng được, nhấn vào một danh mục sẽ mở nó trên một trang riêng. Quay lại sẽ đưa bạn về danh sách.
 Descriptions behind an info button	Mô tả sau nút thông tin
 Shows each switch by its name alone. Tap the i next to a name to read what it does.	Chỉ hiện tên của từng công tắc. Nhấn chữ i cạnh tên để đọc công dụng.
 Expanded	Đã mở rộng
@@ -686,6 +694,9 @@ Stop loading stories and highlights	Ngừng tải tin và tin nổi bật
 Takes the Comment button and the comment count off the posts in your feed.	Gỡ nút Bình luận và số bình luận khỏi các bài viết trong bảng feed.
 Hide the emoji row	Ẩn hàng biểu tượng cảm xúc
 Takes the row of quick emoji off above the comment box. The box itself stays.	Gỡ hàng biểu tượng cảm xúc nhanh phía trên ô bình luận. Bản thân ô vẫn giữ.
+# context: Comments: the switch that takes GIFs and stickers out of a post's comments (#511). A comment that has words keeps its words and loses only the picture. A comment that's only a GIF disappears, and its replies with it. Comment box is the field where you type a comment.
+Hide GIFs in comments	Ẩn GIF trong bình luận
+Takes GIFs and stickers out of comments, and the GIF button off the comment box. A comment with words keeps them. One that's only a GIF goes, along with its replies.	Gỡ GIF và nhãn dán khỏi bình luận, và gỡ nút GIF khỏi ô bình luận. Bình luận có chữ vẫn giữ phần chữ. Bình luận chỉ có GIF sẽ biến mất cùng các câu trả lời.
 Open comments without the keyboard	Mở bình luận mà không bật bàn phím
 Comments open with the keyboard down. A tap in the comment box, or on Reply, still brings it up.	Bình luận mở với bàn phím thu xuống. Nhấn vào ô bình luận hoặc Trả lời vẫn gọi bàn phím lên.
 Hide Follow on posts	Ẩn Theo dõi trên bài viết
@@ -788,6 +799,8 @@ Turn on Show if a profile follows you to use this choice.	Hãy bật Hiện tran
 The Add comment bar under a reel you open from a profile's reposts. The comment button still opens the comments.	Thanh Thêm bình luận bên dưới reel bạn mở từ mục đăng lại của một trang cá nhân. Nút bình luận vẫn mở phần bình luận.
 Hide the comment bar on all reels	Ẩn thanh bình luận trên mọi reel
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	Thanh Thêm bình luận bên dưới mọi reel, kể cả trong tab Reels. Nút bình luận vẫn mở phần bình luận.
+Keep the comment bar's space	Giữ chỗ của thanh bình luận
+Leaves an empty band where a hidden comment bar was on reels you open from a post or a profile, so the reel, its buttons and the seek bar don't move down.	Để lại một dải trống ở chỗ thanh bình luận đã ẩn trên các reel bạn mở từ bài viết hoặc trang cá nhân, để reel, các nút và thanh tua không bị tụt xuống.
 Adds Copy username and Copy bio to the menu on someone's profile. Each copies the text exactly as the account has it.	Thêm Sao chép tên người dùng và Sao chép tiểu sử vào menu trên trang cá nhân của ai đó. Mỗi mục sao chép văn bản đúng như tài khoản đó có.
 Adds View profile picture to the menu on someone's profile. Opens their picture full screen at the largest size Instagram has, with pinch zoom and a Save button.	Thêm Xem ảnh đại diện vào menu trên trang cá nhân của ai đó. Mở ảnh toàn màn hình ở kích thước lớn nhất mà Instagram có, có thu phóng bằng hai ngón tay và nút Lưu.
 Bio	Tiểu sử
@@ -837,6 +850,8 @@ Icons in the accent color	Biểu tượng theo màu nhấn
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Biểu tượng của Instagram trên thanh trên cùng, thanh tab và dưới bài viết lấy màu bạn đã chọn. Văn bản giữ nguyên. Hãy khởi động lại Instagram để thấy thay đổi.
 Story rings in the accent color	Vòng tin theo màu nhấn
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Vòng tin lấy màu bạn đã chọn thay cho dải màu của Instagram. Một vài dải màu khác dùng chung các màu đó và đổi theo. Khởi động lại Instagram để thấy thay đổi.
+Solid story rings	Vòng tin một màu
+Story rings are one solid shade of the color you picked instead of running light to dark. Restart Instagram to see the change.	Vòng tin dùng một sắc độ duy nhất của màu bạn đã chọn thay vì chuyển từ sáng sang tối. Khởi động lại Instagram để thấy thay đổi.
 Backgrounds in the accent color	Nền theo màu nhấn
 Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Màn hình, bảng, thẻ và menu lấy tông tối hoặc sáng của màu bạn đã chọn. Trình xem tin và reel giữ nền riêng. Được ưu tiên hơn Pure black dark mode. Khởi động lại Instagram để thấy thay đổi.
 Color	Màu
@@ -857,6 +872,8 @@ Download button on feed posts	Nút tải xuống trên bài viết bảng feed
 Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	Đặt biểu tượng tải xuống ở hàng bên dưới bài viết, bên trái Lưu, để một lần nhấn là lưu mà không cần mở menu. Với ảnh nhiều trang, sẽ hỏi lưu trang này hay tất cả. Cần Tải video trên bảng feed hoặc ảnh.
 Download button on reels	Nút tải xuống trên reel
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	Đặt biểu tượng tải xuống dưới Lưu cạnh reel, để một lần nhấn là lưu như Tải xuống trong menu. Cần bật Tải xuống trên reel.
+Ask what to save	Hỏi lưu gì
+A tap on the download icon beside a reel lets you pick the reel, its cover or its sound, whichever it has.	Chạm vào biểu tượng tải xuống bên cạnh một thước phim để chọn thước phim, ảnh bìa hoặc âm thanh của nó, tùy theo những gì nó có.
 Nothing to download on this post	Bài viết này không có gì để tải
 Hold to download	Giữ để tải xuống
 Hold two fingers still on a feed post's picture or video, or on a reel, and it saves what's under them, the same as Download in the menu. Fingers below can make it three. Instagram's one-finger long press stays as it was. Needs Download feed videos or photos, and Download on reels for reels.	Giữ yên hai ngón tay trên ảnh hoặc video của bài viết bảng feed, hoặc trên reel, để lưu nội dung bên dưới, giống Tải xuống trong menu. Có thể đổi thành ba ngón ở Số ngón tay bên dưới. Nhấn giữ một ngón của Instagram vẫn như cũ. Cần Tải video trên bảng feed hoặc ảnh, và Tải xuống trên reel cho reel.
@@ -978,6 +995,8 @@ Instagram's default	Mặc định của Instagram
 A tap on a reel pauses it, and another tap plays it again.	Nhấn vào reel sẽ tạm dừng và nhấn lần nữa sẽ phát lại.
 A tap on a playing reel turns its sound off or on and keeps it playing. A reel that's paused still plays on a tap.	Nhấn vào reel đang phát sẽ bật hoặc tắt tiếng và reel vẫn phát. Reel đang tạm dừng vẫn phát khi nhấn.
 A tap on a reel does what Instagram does.	Nhấn vào reel làm đúng như Instagram làm.
+Keep playing	Tiếp tục phát
+A tap on a playing reel does nothing, so a stray touch doesn't stop it. A reel that's paused still plays on a tap.	Nhấn vào reel đang phát không làm gì cả, nên chạm nhầm cũng không dừng nó. Reel đang tạm dừng vẫn phát khi nhấn.
 Keep reels muted on the volume keys	Giữ reel tắt tiếng khi dùng phím âm lượng
 Volume up still raises the phone's volume, but a muted reel stays muted until you unmute it.	Tăng âm lượng vẫn tăng âm lượng điện thoại, nhưng reel đã tắt tiếng vẫn tắt cho đến khi bạn bật lại.
 Start stories with sound	Bắt đầu tin có tiếng
@@ -994,6 +1013,10 @@ Show categories as a grid	Hiện danh mục dạng lưới
 Show categories as rows	Hiện danh mục dạng hàng
 Show settings by category	Hiện cài đặt theo danh mục
 Tab bar height	Chiều cao thanh tab
+# context: Tab bar settings: a list that draws the tab bar's icons bigger, by a share of Instagram's size (#541)
+Tab icon size	Kích thước biểu tượng tab
+The icons on the tab bar are the size Instagram gives them.	Các biểu tượng trên thanh tab có kích thước do Instagram đặt.
+The icons on the tab bar are %1$s of the size Instagram gives them.	Các biểu tượng trên thanh tab có kích thước bằng %1$s kích thước do Instagram đặt.
 Standard	Tiêu chuẩn
 Blur strength	Độ mờ
 %1$d dp	%1$d dp
@@ -1390,6 +1413,8 @@ Only verified accounts	Chỉ tài khoản đã xác minh
 Only accounts that aren't verified	Chỉ tài khoản chưa xác minh
 Pinch to zoom	Chụm để thu phóng
 Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	Hai ngón tay phóng to reel đang phát, như cách ảnh phóng to. Nhấc ra thì trở lại. Hãy khởi động lại Instagram để thấy thay đổi.
+Double tap to skip	Nhấn đúp để tua
+A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.	Nhấn đúp vào bên trái reel để lùi 10 giây, và bên phải để tới 10 giây. Nhấn đúp ở giữa vẫn thích reel. Reel dưới 10 giây không tua.
 Mute notification types	Tắt tiếng loại thông báo
 Stops the notification types you tick, even ones Instagram's own notification settings can't turn off.	Chặn các loại thông báo bạn tích, kể cả loại mà cài đặt thông báo của chính Instagram không tắt được.
 %1$d notification type is muted.	Đã tắt tiếng %1$d loại thông báo.
@@ -1737,3 +1762,21 @@ Can slow down older phones.	Có thể làm chậm các điện thoại cũ.
 Blend post edges	Hòa viền bài đăng
 # context: what that switch does
 Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	Làm phần trên và dưới của ảnh hoặc video trong bài đăng hòa vào ánh sáng của nó, để viền không hiện thành một đường cứng.
+# context: a color in the Accent color list
+Dusk blue	Xanh hoàng hôn
+# context: a color in the Accent color list
+Pine	Thông
+# context: a color in the Accent color list
+Slate	Đá phiến
+# context: a color in the Accent color list, the one typed in the row below it
+Custom	Tùy chỉnh
+# context: a row under Accent color where a color is typed as hex
+Custom color	Màu tùy chỉnh
+# context: the Custom color dialog's message
+A color as six hex digits, like #4A6B82. HushGram makes it darker or lighter where text needs it. Restart Instagram to see it.	Một màu gồm sáu chữ số hex, như #4A6B82. HushGram làm nó tối hơn hoặc sáng hơn ở chỗ chữ cần. Khởi động lại Instagram để thấy.
+# context: the Custom color row's summary when nothing is typed yet
+None yet. Custom stays Instagram's blue until you type one.	Chưa có. Tùy chỉnh vẫn là xanh Instagram cho đến khi bạn nhập một màu.
+# context: shown under the Custom color field when what's typed isn't a color
+That isn't a color. Try #4A6B82.	Đó không phải là màu. Thử #4A6B82.
+Count on the heart	Số trên trái tim
+The heart at the top of Home shows how many notifications are waiting, like the number on Messages, in place of the red dot. Restart Instagram to see the change.	Trái tim ở đầu trang chủ hiện số thông báo đang chờ, giống con số trên Tin nhắn, thay cho chấm đỏ. Hãy khởi động lại Instagram để thấy thay đổi.

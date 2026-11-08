@@ -27,13 +27,11 @@ val cleanMePagePatch = bytecodePatch(
             bindingInfo.statusSaverBadgeField?.let(::add)
             add(legalField)
             add(bindingInfo.rowFieldsByLabel.getValue("Help"))
-            add(bindingInfo.rowFieldsByLabel.getValue("DataPrivacy"))
         }.distinctBy { "${it.name}:${it.type}" }
 
-        // Only collapse `legalField`'s parent card (`0x7f0b08ea`), which groups Legal, Help, and
-        // DataPrivacy. (`WhatsApp Status Saver` `E` is already a standalone card child of the root
-        // vertical LinearLayoutCompat, and `Custom Pop-up Play` `e` stays visible inside Settings card.)
-        val parentsToHide = listOf(legalField)
+        // Legal, Help and Data Privacy share a parent card. Keep that parent and the privacy
+        // row visible; hiding the parent would inadvertently remove access to Data Privacy.
+        val parentsToHide = emptyList<FieldReference>()
 
         // 1. Disarm the background WhatsApp status scanner coroutine so opening Me never wastes
         //    disk I/O scanning WhatsApp status folders or toggling the Status Saver badge, and

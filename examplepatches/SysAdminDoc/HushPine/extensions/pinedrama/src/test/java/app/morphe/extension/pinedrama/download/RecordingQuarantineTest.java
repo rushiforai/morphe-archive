@@ -324,9 +324,10 @@ public class RecordingQuarantineTest {
         }
         try {
             assertFalse(store.ids().contains(id));
+            // A link the system can follow is refused with an exception. Windows can refuse to
+            // follow one at all (error 448), and then it reads as no recording. Neither opens it.
             try {
-                store.open(id);
-                fail();
+                assertNull(store.open(id));
             } catch (IOException expected) {
             }
             assertArrayEquals(ORIGINAL, Files.readAllBytes(outside.toPath()));

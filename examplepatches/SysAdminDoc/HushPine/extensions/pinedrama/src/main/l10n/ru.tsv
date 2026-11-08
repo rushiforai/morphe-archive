@@ -1505,7 +1505,6 @@ Comment with live photos, the camera or audio	Комментарии с живы
 Save comments to Favorites	Сохранять комментарии в Избранное
 Comment sort and dislike styles	Сортировка комментариев и стили дизлайков
 Message bubble colors, Inbox archive and sharing to more chats	Цвета пузырей сообщений, архив Входящих и отправка в большее число чатов
-Manage topics	Управление темами
 Visual search	Визуальный поиск
 AI Self	AI Self
 Long-press menu on every post	Меню долгого нажатия на каждой публикации
@@ -1792,7 +1791,6 @@ Sign in without a passkey	Входить без ключа доступа
 PineDrama treats your phone as one without passkeys, so signing in asks for your password or a code by email or text instead. Password managers won't hand a passkey to a patched app. If PineDrama's 2-step check still wants only a passkey, add email or text as a way to verify on tiktok.com or another phone first.	PineDrama считает ваш телефон устройством без ключей доступа, поэтому при входе запрашивает пароль или код по электронной почте или SMS. Менеджеры паролей не передают ключ доступа пропатченному приложению. Если двухэтапная проверка PineDrama по-прежнему просит только ключ доступа, сначала добавьте электронную почту или SMS как способ подтверждения на tiktok.com или на другом телефоне.
 # context: opens the complete published changelog from the concise release summary dialog.
 Full changelog	Все изменения
-More hashtags per post	Больше хештегов в публикации
 New comment emoji	Новые эмодзи в комментариях
 Hide root	Скрывать root
 Hide root status and details about root tools from PineDrama.	Скрывать от PineDrama статус root и сведения об инструментах root.
@@ -1994,3 +1992,28 @@ Sticker added to Saved	Стикер добавлен в сохранённые
 Recently used	Недавние
 # context: A video's share sheet. Make sticker is a button HushPine adds after Save cover, and it turns the video's cover into one of your saved comment stickers. Keep it about as short as Save cover, since share sheet labels get two short lines under the icon
 Make sticker	Создать стикер
+Keep your place in History and Favorites	Сохранять место в истории и избранном
+Stops these lists jumping back to the top when you switch tabs or come back from a video. A list you haven't scrolled still updates.	Эти списки больше не прыгают наверх, когда вы переключаете вкладки или возвращаетесь из видео. Список, который вы не прокручивали, по-прежнему обновляется.
+Dramas	Дорамы
+Episodes in full screen	Серии в полноэкранном режиме
+Swipe up for the next episode and down for the previous one without leaving full screen. The next episode starts when one ends, instead of the same one looping.	Смахните вверх для следующей серии и вниз для предыдущей, не выходя из полноэкранного режима. Когда серия заканчивается, начинается следующая, а не повторяется та же.
+Subtitles	Субтитры
+Subtitle priority	Приоритет субтитров
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own subtitle. Used when a video starts playing.	Коды языков в нужном порядке через запятую, например en, original. original означает собственные субтитры видео. Применяется, когда видео начинает воспроизводиться.
+Force subtitle	Принудительные субтитры
+Always use the first subtitle on your list that a video has, even with captions off. A video with none of them plays as usual. Turning captions off yourself lasts until the app restarts.	Всегда использует первые субтитры из вашего списка, которые есть у видео, даже если субтитры выключены. Видео без них воспроизводится как обычно. Если выключить субтитры вручную, это действует до перезапуска приложения.
+Force original subtitle	Принудительно оригинальные субтитры
+Always use the video's own subtitle, never a translated one, even with captions off. A video without one plays as usual.	Всегда использует собственные субтитры видео, а не переведённые, даже если субтитры выключены. Видео без них воспроизводится как обычно.
+Dubs	Озвучка
+Dub priority	Приоритет озвучки
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own audio. Used when a video starts playing.	Коды языков в нужном порядке через запятую, например en, original. original означает собственный звук видео. Применяется, когда видео начинает воспроизводиться.
+Force dub	Принудительная озвучка
+Always use the first dub on your list that a video has, even with dubbing off. A video with none of them plays as usual.	Всегда использует первую озвучку из вашего списка, которая есть у видео, даже если озвучка выключена. Видео без неё воспроизводится как обычно.
+Force original dub	Принудительно оригинальный звук
+Always play the video's own audio, never an AI dub.	Всегда воспроизводит собственный звук видео, а не озвучку ИИ.
+Hide videos without a preferred subtitle	Скрывать видео без предпочитаемых субтитров
+Hides videos with no subtitle from Subtitle priority in Playback, and that includes videos with no subtitles at all. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Скрывает видео без субтитров из списка «Приоритет субтитров» в разделе «Воспроизведение», включая видео вообще без субтитров. Если скрылась бы вся страница, одно видео остаётся, чтобы лента продолжала загружаться. Пока список пуст, ничего не делает.
+Hide videos without a preferred dub	Скрывать видео без предпочитаемой озвучки
+Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Скрывает видео без озвучки из списка «Приоритет озвучки» в разделе «Воспроизведение». Если добавить в список original, останутся все видео, ведь у каждого есть собственный звук. Если скрылась бы вся страница, одно видео остаётся, чтобы лента продолжала загружаться. Пока список пуст, ничего не делает.
+Preferred subtitles	Предпочитаемые субтитры
+Preferred dubs	Предпочитаемая озвучка

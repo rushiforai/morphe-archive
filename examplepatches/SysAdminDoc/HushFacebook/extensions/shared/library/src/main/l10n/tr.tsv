@@ -364,7 +364,7 @@ People looking at a post don't see that you're writing a comment.	Bir gönderiye
 Hide read receipts	Okundu bilgisini gizle
 People you chat with in Facebook's own chats can't see that you've read their messages. The chat can stay unread on this phone.	Facebook'un kendi sohbetlerinde konuştuğunuz kişiler mesajlarını okuduğunuzu göremez. Sohbet bu telefonda okunmamış kalabilir.
 Facebook can't tell when you take a screenshot or record your screen, so it can't react.	Facebook ekran görüntüsü aldığınızı veya ekranı kaydettiğinizi fark etmez, bu yüzden tepki veremez.
-Stops sending Facebook your list of watched reels. It uses the list to rank your feed, so reels you've watched may come back.	Facebook'a izlediğiniz reellerin listesini göndermeyi bırakır. Facebook bu listeyi akışınızı sıralamak için kullanır, bu yüzden izlediğiniz reeller geri gelebilir.
+Stops sending Facebook your list of watched reels, and where you stopped in each video and how long you watched it. Facebook ranks your feed with these, so videos you've watched may come back.	Facebook'a izlediğiniz reellerin listesini, her videoda nerede kaldığınızı ve ne kadar izlediğinizi göndermeyi bırakır. Facebook bunlarla akışınızı sıralar, bu yüzden izlediğiniz videolar geri gelebilir.
 # context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
 Newest reels first	Önce en yeni reels
 # context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
@@ -1373,6 +1373,10 @@ Hide reposts	Yeniden paylaşılan gönderileri gizle
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Başka bir gönderiyi paylaşan gönderileri, açıklamalı ya da açıklamasız, gizler. Özgün gönderiler kalır. Varsayılan olarak kapalı, çünkü gerçek bir akışta henüz denenmedi.
 Hide posts from Pages	Sayfalardan gelen gönderileri gizle
 Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Sayfaların yazdığı gönderileri gizler, takip ettiğin sayfalar da dahil. Arkadaşlarının ve grupların gönderileri kalır, bir arkadaşının paylaştığı sayfa gönderisi de kalır.
+# context: switch title under News feed; the feed keeps only posts written by the user's Facebook friends
+Only friends' posts	Yalnızca arkadaş gönderileri
+# context: summary of that switch; %1$s is the name of the Following feed on Home switch, which puts the newest posts first
+Shows only posts your friends wrote and hides Pages, groups, ads, suggested posts and feed reels. A post whose author it can't tell stays. Turn on %1$s too for the newest posts first.	Yalnızca arkadaşlarının yazdığı gönderileri gösterir ve sayfaları, grupları, reklamları, önerilen gönderileri ve akıştaki reels videolarını gizler. Yazarı anlaşılamayan bir gönderi kalır. En yeni gönderileri önce görmek için %1$s seçeneğini de açın.
 Hide posts in other languages	Diğer dillerdeki gönderileri gizle
 Hides posts and Reels tab reels in a language you don't keep, going by the phone's own guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing leaves the phone.	Telefonun her gönderinin metni veya her reelin açıklaması için kendi tahminine göre, tutmadığın bir dilde yazılmış gönderileri ve Reels sekmesindeki reelleri gizler. Emin olmadıkları kalır ve hiçbir şey telefondan çıkmaz.
 Languages to keep	Tutulacak diller
@@ -1730,7 +1734,7 @@ On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also
 # context: switch title under Picture-in-picture on the Playback page: the small window opens only from the Picture-in-picture row this adds to a reel's three-dot More menu, not when you leave Facebook
 Only from a reel's More menu	Yalnızca bir reel'in menüsünden
 # context: summary of that switch; Picture-in-picture is the name of the row in the reel's menu, translated as the row is; the three dots are the reel's own menu button
-Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row shows on upright reels, not wide ones.	Facebook'tan çıkmak pencereyi açmaz. İstediğinde bir reel'in menüsünde (üç nokta) Pencere içinde pencere'ye dokun. Bu satır dikey reel'lerde çıkar, geniş olanlarda çıkmaz.
+Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one.	Facebook'tan çıkmak pencereyi açmaz. İstediğinde bir reel'in menüsünde (üç nokta) Pencere içinde pencere'ye dokun.
 # context: switch title under Picture-in-picture on the Playback page; the button floats over a reel or video and opens the small window when tapped
 Picture-in-picture button	Pencere içinde pencere düğmesi
 # context: summary of that switch; "the window" is the small picture-in-picture window
@@ -1934,6 +1938,10 @@ A video you tap in the feed opens full screen by itself, with no reels to swipe 
 Replay feed videos in place	Akıştaki videoları yerinde tekrar oynat
 # context: summary of that switch; Watch again is Facebook's own button shown when a feed video ends, so use Facebook's wording in your language if you know it
 Watch again at the end of a feed video plays it again right there, instead of opening it in Reels.	Akıştaki bir videonun sonundaki “Tekrar izle”, videoyu Reels'te açmak yerine olduğu yerde yeniden oynatır.
+# context: switch title under Reels and Watch; on, a video tapped in Facebook's Saved list plays in the regular video player instead of the Reels viewer
+Open saved videos in the video player	Kaydedilen videoları video oynatıcıda aç
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	Kaydedilenler'de dokunduğun bir video, sonraki kaydırmada önerilen bir reel gösteren Reels yerine video oynatıcıda oynar.
 Hide the new comments pop-up	Yeni yorumlar açılır bildirimini gizle
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Yorumları okurken “yeni yorumlar” baloncuğu artık çıkmaz. Yeni yorumlar listede görünmeye devam eder.
@@ -1955,6 +1963,10 @@ Skipping silent parts again	Sessiz kısımlar yeniden atlanıyor
 Hide posts from groups you're not in	Üyesi olmadığınız grupların gönderilerini gizle
 # context: summary of that switch; a group post a friend commented on or shared reaches the feed wrapped in the friend's activity, and the switch hides it too
 Hides posts from groups you haven't joined, like a friend's post in a public group, and a group post a friend commented on or shared. Posts from your groups stay.	Katılmadığınız grupların gönderilerini gizler, örneğin bir arkadaşınızın herkese açık bir gruptaki gönderisini ve bir arkadaşınızın yorum yaptığı ya da paylaştığı grup gönderilerini. Üyesi olduğunuz grupların gönderileri kalır.
+# context: switch title under News feed; hides every post that comes from a group, including groups the user is a member of
+Hide all group posts	Tüm grup gönderilerini gizle
+# context: summary of that switch; the Groups tab is Facebook's own tab of group posts, which this switch leaves alone
+Hides every post from a group in your feed, your own groups' too, and a group post a friend commented on or shared. The Groups tab keeps its feed.	Akışınızdaki tüm grup gönderilerini, üyesi olduğunuz grupların gönderileri dahil, ve bir arkadaşınızın yorum yaptığı ya da paylaştığı grup gönderilerini gizler. Gruplar sekmesi kendi akışını korur.
 # context: switch title under Search; For you is the section of searches Facebook suggests on the search screen before anything is typed, under a header that reads For you
 Hide For you in search	Aramada Sizin İçin bölümünü gizle
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
@@ -2543,6 +2555,7 @@ There's no Facebook link in what you shared.	Paylaştığın içerikte Facebook 
 Open in Facebook from the share menu	Paylaş menüsünde Open in Facebook
 Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Messenger'ın tarayıcısından ya da başka bir uygulamadan bir Facebook bağlantısı paylaşıp Open in Facebook'u seç, burada açılsın.
 GmsCore support	GmsCore desteği
+Clone install under another package name	Başka bir paket adıyla klon kurulumu
 Version %1$s for Facebook %2$s	Facebook %2$s için sürüm %1$s
 Show all settings as a list	Tüm ayarları liste olarak göster
 Show settings by category	Ayarları kategoriye göre göster

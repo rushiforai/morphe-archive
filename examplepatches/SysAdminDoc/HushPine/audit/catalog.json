@@ -3289,7 +3289,7 @@
   "checks": [
    {
     "id": "record-and-report",
-    "what": "A recording starts, PineDrama's gate reads during a few feed swipes are captured, and the report names the 47.5.3 target with at least one gate.",
+    "what": "A recording starts, PineDrama's gate reads during a few feed swipes are captured, and the report names the 47.6.3 target with at least one gate.",
     "steps": [
      {
       "open": "feed"
@@ -11271,5 +11271,164 @@
    }
   ],
   "notes": "Importing a .ttf/.otf (imported_font) needs a file chosen in the Android picker and is not exercised; the 'imported' bound name would appear then. The hook records on the first typeface request after the process starts, hence every phase restarts. How the text looks on screen is a visual review the hook status stands in for."
+ },
+ {
+  "name": "Keep list position",
+  "category": "Settings",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/pinedrama/interaction/favorites/KeepListPositionPatch.kt",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/favorites/ListPosition.java"
+  ],
+  "settings": [
+   {
+    "key": "keep_list_position",
+    "default": true,
+    "type": "bool",
+    "row": "Keep your place in History and Favorites",
+    "restart": true
+   }
+  ],
+  "surface": "profile",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.keepListPositionEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.pinedrama.settings.SettingsStatus",
+       "names": "keepListPositionEnabled"
+      },
+      "expect": "\bkeepListPositionEnabled=true\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #2. History and Favorites share one gate class that refreshes the list when the page comes back into view, and a refresh clears the list, so a deep position lands at the top. ListPosition answers that gate with no refresh while the list is scrolled away from its top. The natural check: scroll deep in History, switch to Favorites and back, and it stays put. A list at its top still refreshes, and favoriting something still updates Favorites."
+ },
+ {
+  "name": "Episodes in full screen",
+  "category": "Playback",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/pinedrama/interaction/looping/FullScreenEpisodesPatch.kt",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/interaction/LandscapeEpisodes.java"
+  ],
+  "settings": [
+   {
+    "key": "landscape_episodes",
+    "default": true,
+    "type": "bool",
+    "row": "Episodes in full screen"
+   }
+  ],
+  "surface": "feed",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.landscapeEpisodesEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.pinedrama.settings.SettingsStatus",
+       "names": "landscapeEpisodesEnabled"
+      },
+      "expect": "\blandscapeEpisodesEnabled=true\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #1. The Full screen pill opens the landscape viewer with a one-item list, so its pager has nowhere to go and the episode loops. LandscapeEpisodes hands it the series the portrait screen already holds and feeds its load-more from the series model. The natural check: open a drama, tap Full screen, swipe up and down, seek near the end and it moves to the next episode, then leave and portrait sits on the same episode. A feed video or profile keeps its one video."
+ },
+ {
+  "name": "Subtitle and dub preference",
+  "category": "Playback",
+  "default": true,
+  "kind": "runtime",
+  "source": [
+   "patches/src/main/kotlin/app/morphe/patches/pinedrama/interaction/captions/SubtitleDubPreferencePatch.kt",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/captions/TrackPreference.java",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/feedfilter/PreferredSubtitleFilter.java",
+   "extensions/pinedrama/src/main/java/app/morphe/extension/pinedrama/feedfilter/PreferredDubFilter.java"
+  ],
+  "settings": [
+   {
+    "key": "subtitle_priority",
+    "default": "",
+    "type": "string",
+    "row": "Subtitle priority"
+   },
+   {
+    "key": "force_subtitle",
+    "default": false,
+    "type": "bool",
+    "row": "Force subtitle"
+   },
+   {
+    "key": "force_original_subtitle",
+    "default": false,
+    "type": "bool",
+    "row": "Force original subtitle"
+   },
+   {
+    "key": "dub_priority",
+    "default": "",
+    "type": "string",
+    "row": "Dub priority"
+   },
+   {
+    "key": "force_dub",
+    "default": false,
+    "type": "bool",
+    "row": "Force dub"
+   },
+   {
+    "key": "force_original_dub",
+    "default": false,
+    "type": "bool",
+    "row": "Force original dub"
+   },
+   {
+    "key": "hide_no_preferred_subtitle",
+    "default": false,
+    "type": "bool",
+    "row": "Hide videos without a preferred subtitle"
+   },
+   {
+    "key": "hide_no_preferred_dub",
+    "default": false,
+    "type": "bool",
+    "row": "Hide videos without a preferred dub"
+   }
+  ],
+  "surface": "feed",
+  "checks": [
+   {
+    "id": "patch-applied",
+    "what": "SettingsStatus.subtitleDubPreferenceEnabled is true, so the patch is in this APK and the extension loaded it.",
+    "steps": [
+     {
+      "probe": "fields",
+      "extras": {
+       "class": "app.morphe.extension.pinedrama.settings.SettingsStatus",
+       "names": "subtitleDubPreferenceEnabled"
+      },
+      "expect": "\\bsubtitleDubPreferenceEnabled=true\\b",
+      "waitMs": 1500
+     }
+    ],
+    "auto": true
+   }
+  ],
+  "notes": "Issue #4. Caption and dub lists depend on the viewer's language: an English account gets empty lists on almost every video, so check with the app set to another language. Subtitles are picked where the two caption configs are built; dubs where the audio decision and the audio switch read their language. The Drama tab's feed takes its own route, so the two hide rules run on both routes."
  }
 ]

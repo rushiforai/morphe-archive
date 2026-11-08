@@ -136,8 +136,10 @@ import app.hushgram.extension.instagram.misc.GlassCorners;
 import app.hushgram.extension.instagram.misc.GlassHeight;
 import app.hushgram.extension.instagram.misc.GlassLift;
 import app.hushgram.extension.instagram.misc.GlassReelsHide;
+import app.hushgram.extension.instagram.misc.TabIconSize;
 import app.hushgram.extension.instagram.misc.AccentHue;
 import app.hushgram.extension.instagram.misc.AppProxy;
+import app.hushgram.extension.instagram.misc.CustomAccent;
 import app.hushgram.extension.instagram.misc.MaterialYou;
 import app.hushgram.extension.instagram.misc.AppIconChoice;
 import app.hushgram.extension.instagram.misc.EmojiChoice;
@@ -311,6 +313,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private final Set<String> expandedCategories = new java.util.LinkedHashSet<>();
     /** The last expanded section, used to return to it after a restart. */
     @Nullable private String lastCategory;
+    /** The category on its own page while Categories on their own page is on (#525), else null. */
+    @Nullable private String pageCategory;
+    /** Where the list of categories was when a page opened, for Back to put it there again. */
+    private int overviewPosition = -1;
+    private int overviewTop;
     /** The button at the top that switches between the list of categories and one long list. */
     @Nullable private Row viewToggle;
     /** Under it, while the categories are listed: switches them between rows and a grid of tiles (#494). */
@@ -453,7 +460,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             list.post(() -> {
                 if (list == listView()) list.setSelectionFromTop(position, top);
             });
-        } else if (list != null && categoryPages() && lastCategory != null) {
+        } else if (list != null && categoryPages() && lastCategory != null && shownPage() == null) {
             String category = lastCategory;
             list.post(() -> {
                 if (list != listView()) return;
@@ -742,6 +749,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || Settings.FEED_DOWNLOAD_BUTTON.key.equals(key) || Settings.FEED_DOWNLOAD_ALL_PAGES.key.equals(key)
                             || Settings.DOWNLOAD_CHOOSE_PAGES.key.equals(key));
                     belongs |= family == PatchFamily.REEL_DOWNLOAD && Settings.REEL_DOWNLOAD_BUTTON.key.equals(key);
+                    belongs |= family == PatchFamily.REEL_DOWNLOAD && Settings.REEL_DOWNLOAD_BUTTON_ASKS.key.equals(key);
                     belongs |= family == PatchFamily.REEL_DOWNLOAD && Settings.REEL_NOT_INTERESTED_BUTTON.key.equals(key);
                     belongs |= family == PatchFamily.REEL_DOWNLOAD && Settings.REEL_BLOCK_BUTTON.key.equals(key);
                     belongs |= family == PatchFamily.REEL_DOWNLOAD && Settings.TEXT_BUTTON_ON_REELS.key.equals(key);
@@ -751,7 +759,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             && Settings.FULL_SCREEN_BUTTON_ON_REELS.key.equals(key);
                     belongs |= family == PatchFamily.REEL_DOWNLOAD && (Settings.HIDE_SOUND_REELS.key.equals(key)
                             || HIDDEN_SOUNDS_ROW.equals(key));
-                    belongs |= family == PatchFamily.ACCENT_COLOR && Settings.ACCENT_HUE.key.equals(key);
+                    belongs |= family == PatchFamily.ACCENT_COLOR && (Settings.ACCENT_HUE.key.equals(key)
+                            || Settings.ACCENT_CUSTOM.key.equals(key));
                     belongs |= family == PatchFamily.FONT && Settings.FONT.key.equals(key);
                     belongs |= family == PatchFamily.EMOJI_STYLE && Settings.EMOJI_FONT.key.equals(key);
                     belongs |= family == PatchFamily.STORY_FONTS && STORY_FONTS_ROW.equals(key);
@@ -763,7 +772,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             || Settings.HIDDEN_OWN_PROFILE_TABS.key.equals(key));
                     belongs |= family == PatchFamily.MESSAGE_BOX && Settings.HIDDEN_MESSAGE_BOX_BUTTONS.key.equals(key);
                     belongs |= family == PatchFamily.REELS_TAB
-                            && (Settings.START_TAB.key.equals(key) || Settings.TAB_ORDER.key.equals(key));
+                            && (Settings.START_TAB.key.equals(key) || Settings.TAB_ORDER.key.equals(key)
+                            || Settings.TAB_ICON_SIZE.key.equals(key));
                     belongs |= family == PatchFamily.TAB_BAR_LAYOUT && Settings.TAB_BAR_LAYOUT.key.equals(key);
                     belongs |= family == PatchFamily.LIKE_ANIMATION && Settings.LIKE_ANIMATION.key.equals(key);
                     belongs |= family == PatchFamily.CAPTION_WORD_REELS && (Settings.REELS_BLOCKED_WORDS.key.equals(key)
@@ -829,7 +839,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         expandedCategories.retainAll(available);
         if (restoredCategory != null && available.contains(restoredCategory)) {
-            expandedCategories.add(restoredCategory);
+            // On their own pages, the category comes back as the page it was.
+            if (ownPages()) pageCategory = restoredCategory;
+            else expandedCategories.add(restoredCategory);
             lastCategory = restoredCategory;
         } else if (restoredCategory != null) restoredPosition = -1;
         restoredCategory = null;
@@ -845,9 +857,95 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return Settings.CATEGORY_PAGES.savedValue();
     }
 
+    /** Whether a tapped category opens on a page of its own (#525). */
+    private static boolean ownPages() {
+        return categoryPages() && Settings.CATEGORY_OWN_PAGE.savedValue();
+    }
+
+    /** The category showing on its own page, or null while the list (or a search) shows. */
+    @Nullable private PreferenceCategory shownPage() {
+        if (pageCategory == null || !ownPages()) return null;
+        for (PreferenceCategory group : searchableRows.keySet()) {
+            if (pageCategory.equals(group.getKey())) return group;
+        }
+        return null;
+    }
+
+    /** Opens [group] alone, remembering where the list was for Back. */
+    private void openPage(PreferenceCategory group) {
+        ListView list = listView();
+        View first = list == null ? null : list.getChildAt(0);
+        overviewPosition = list == null ? -1 : list.getFirstVisiblePosition();
+        overviewTop = first == null ? 0 : first.getTop() - list.getPaddingTop();
+        pageCategory = group.getKey();
+        lastCategory = pageCategory;
+        focusPage();
+        filterSettings();
+        if (list != null) list.post(() -> {
+            if (list == listView()) list.setSelection(0);
+        });
+    }
+
+    /** Back from a category's own page: the list again, where it was. False when no page shows. */
+    private boolean closePage() {
+        PreferenceCategory group = shownPage();
+        if (group == null) return false;
+        pageCategory = null;
+        if (group.getKey().equals(lastCategory)) lastCategory = null;
+        NewRowDots.left(group);
+        focusPage();
+        filterSettings();
+        if (categoryGrid != null) categoryGrid.refresh();
+        ListView list = listView();
+        int position = overviewPosition, top = overviewTop;
+        overviewPosition = -1;
+        if (list != null) list.post(() -> {
+            if (list != listView()) return;
+            if (position >= 0) {
+                list.setSelectionFromTop(position, top);
+                return;
+            }
+            for (int i = 0; i < list.getCount(); i++) {
+                if (list.getItemAtPosition(i) == group) {
+                    list.setSelectionFromTop(i, 0);
+                    return;
+                }
+            }
+        });
+        return true;
+    }
+
+    /**
+     * Categories on their own page was flipped from [entry], the Settings entry section. Turned on,
+     * that section becomes the page the switch is on. Turned off, it stays open where it was.
+     */
+    void ownPagesChanged(PreferenceCategory entry) {
+        boolean listing = categoryPages() && searchQuery.trim().isEmpty();
+        if (Settings.CATEGORY_OWN_PAGE.savedValue()) {
+            if (listing && expandedCategories.contains(entry.getKey())) {
+                pageCategory = entry.getKey();
+                lastCategory = pageCategory;
+            } else {
+                pageCategory = null;
+                lastCategory = null;
+            }
+            overviewPosition = -1;
+        } else if (pageCategory != null) {
+            expandedCategories.add(pageCategory);
+            lastCategory = pageCategory;
+            pageCategory = null;
+        }
+        filterSettings();
+        if (categoryGrid != null) categoryGrid.refresh();
+    }
+
     /** Expand in place. Keep the visible anchor instead of scrolling to the top of settings. */
     private void toggleCategory(PreferenceCategory group) {
         if (!categoryPages() || !searchQuery.trim().isEmpty()) return;
+        if (ownPages()) {
+            openPage(group);
+            return;
+        }
         ListView list = listView();
         int position = list == null ? -1 : list.getFirstVisiblePosition();
         Object anchor = list == null || position < 0 || position >= list.getCount()
@@ -913,6 +1011,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
      */
     private void openFromGrid(Heading section) {
         if (!categoryPages() || !Settings.CATEGORY_GRID.savedValue() || !searchQuery.trim().isEmpty()) return;
+        if (ownPages()) {
+            openPage(section);
+            return;
+        }
         String key = section.getKey();
         if (!expandedCategories.contains(key)) {
             for (PreferenceCategory other : searchableRows.keySet()) {
@@ -939,9 +1041,12 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         });
     }
 
-    /** Back clears a search first. Expanded sections do not add a navigation level. */
+    /**
+     * Back clears a search first, then leaves a category's own page. Expanded sections do not add a
+     * navigation level.
+     */
     boolean closeCategory() {
-        return endSearch();
+        return endSearch() || closePage();
     }
 
     /**
@@ -993,12 +1098,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         body.requestFocus();
     }
 
-    /** The bar's title: the search while there is one, else HushGram unless the header shows it. */
+    /**
+     * The bar's title: the search while there is one, a category's name on its own page, else
+     * HushGram unless the header shows it.
+     */
     private void showTitle() {
         if (!(getParentFragment() instanceof SettingsDialog)) return;
         boolean searching = !searchText(searchQuery).trim().isEmpty();
-        ((SettingsDialog) getParentFragment()).showTitle(
-                searching ? L10n.t("Search settings") : null, headerNameShown());
+        PreferenceCategory page = searching ? null : shownPage();
+        ((SettingsDialog) getParentFragment()).showTitle(searching ? L10n.t("Search settings")
+                : page != null ? page.getTitle() : null, headerNameShown());
     }
 
     /**
@@ -1432,6 +1541,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         rankForSearch(terms);
         // Search reveals matching rows without changing the sections the person expanded.
         boolean listing = pages && terms.length == 0;
+        // A category on its own page shows Search and its own rows, nothing of the home page (#525).
+        // A search from there keeps the home page's rows off too, so the field stays put as it starts.
+        PreferenceCategory under = pages ? shownPage() : null;
+        PreferenceCategory page = listing ? under : null;
+        boolean own = listing && ownPages();
         boolean black = Settings.SETTINGS_BLACK_LOOK.savedValue();
         for (Preference top : new Preference[]{header, statusCard, beforeSignIn, viewToggle, gridToggle, search}) {
             if (top == null) continue;
@@ -1439,8 +1553,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (top == beforeSignIn && Settings.SIGN_IN_NOTICE_HIDDEN.savedValue()) continue;
             // The header stays while searching. Taking a row off above the field moved the field's
             // place in the list mid-word, and a hardware keyboard's next key was dropped.
-            boolean hidden = top == statusCard ? !HushgramPause.isPaused()
-                    : top == gridToggle ? !listing : top == header && !black;
+            boolean hidden = under != null && top != search || (top == statusCard ? !HushgramPause.isPaused()
+                    : top == gridToggle ? !listing : top == header && !black);
             if (hidden) {
                 if (top.getParent() == screen) screen.removePreference(top);
             } else if (top.getParent() != screen) screen.addPreference(top);
@@ -1464,16 +1578,19 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             }
         }
         // Tiles stand in for the folded sections' headings, so those headings stay off the page.
-        boolean gridOn = listing && Settings.CATEGORY_GRID.savedValue();
+        boolean gridOn = listing && page == null && Settings.CATEGORY_GRID.savedValue();
         List<Heading> tiles = new ArrayList<>();
         int matches = 0;
         for (Map.Entry<PreferenceCategory, List<Preference>> section : searchableRows.entrySet()) {
             PreferenceCategory group = section.getKey();
             // Pause, the lock and an interrupted save stay in reach: their section opens and can't fold,
             // and stays open after, so unlocking doesn't fold the row just tapped.
-            boolean held = listing && group == recovery && recoveryHeldOpen();
+            boolean held = listing && page == null && group == recovery && recoveryHeldOpen();
             if (held) expandedCategories.add(group.getKey());
-            boolean expanded = !listing || expandedCategories.contains(group.getKey());
+            // On their own pages the list keeps every category folded, and the inline choices wait
+            // for the switch to go off again.
+            boolean expanded = page != null ? group == page
+                    : !listing || held || !own && expandedCategories.contains(group.getKey());
             boolean filled = false;
             for (Preference row : section.getValue()) {
                 String text = searchText(group.getTitle()) + " " + searchText(row.getTitle()) + " "
@@ -1499,10 +1616,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     else if (!expanded && lastCarouselSave.getParent() == group) group.removePreference(lastCarouselSave);
                 }
             }
-            if (group instanceof Heading) ((Heading) group).display(listing && !held, expanded, black);
+            if (group instanceof Heading) ((Heading) group).display(listing && !held && page == null, expanded, black);
             boolean tile = gridOn && filled && group instanceof Heading;
             if (tile) tiles.add((Heading) group);
-            if (filled && !(tile && !expanded)) {
+            if (filled && !(tile && !expanded) && (page == null || group == page)) {
                 if (group.getParent() != screen) screen.addPreference(group);
             } else if (group.getParent() == screen) screen.removePreference(group);
         }
@@ -1521,7 +1638,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             String text = searchText(row.getTitle()) + " " + searchText(row.getSummary()) + looseAliases[i];
             boolean match = true;
             for (String term : terms) if (!text.contains(term)) { match = false; break; }
-            boolean shown = match;
+            boolean shown = match && page == null;
             if (terms.length > 0 && match) matches++;
             if (shown) {
                 if (row.getParent() != screen) screen.addPreference(row);
@@ -3147,6 +3264,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** The last expanded section to reveal after restarting, or the top of the main list. */
     String currentPage() {
+        if (ownPages()) return shownPage() != null ? pageCategory : "";
         return categoryPages() && expandedCategories.contains(lastCategory) ? lastCategory : "";
     }
 
@@ -4643,6 +4761,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("Pause");
             case MUTE:
                 return L10n.t("Mute");
+            case KEEP_PLAYING:
+                return L10n.t("Keep playing");
             default:
                 return L10n.t("Instagram's default");
         }
@@ -4655,6 +4775,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("A tap on a reel pauses it, and another tap plays it again.");
             case MUTE:
                 return L10n.t("A tap on a playing reel turns its sound off or on and keeps it playing. "
+                        + "A reel that's paused still plays on a tap.");
+            case KEEP_PLAYING:
+                return L10n.t("A tap on a playing reel does nothing, so a stray touch doesn't stop it. "
                         + "A reel that's paused still plays on a tap.");
             default:
                 return L10n.t("A tap on a reel does what Instagram does.");
@@ -4917,6 +5040,38 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return row;
     }
 
+    /**
+     * The color typed for Custom (#520), saved as #RRGGBB. What isn't a color is refused under the
+     * field. Saving one picks Custom in the Color list too, so it takes one step.
+     */
+    static AccentCustomRow accentCustomRow(Context context) {
+        AccentCustomRow row = new AccentCustomRow(context);
+        row.setKey(Settings.ACCENT_CUSTOM.key);
+        row.setTitle(L10n.t("Custom color"));
+        row.setDialogTitle(L10n.t("Custom color"));
+        row.setDialogMessage(L10n.t("A color as six hex digits, like #4A6B82. HushGram makes it darker or "
+                + "lighter where text needs it. Restart Instagram to see it."));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        field.setSingleLine(true);
+        field.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
+        field.setTextDirection(View.TEXT_DIRECTION_LTR);
+        field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS | InputType.TYPE_TEXT_FLAG_CAP_CHARACTERS);
+        field.setHint("#4A6B82");
+        row.setText(Settings.ACCENT_CUSTOM.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String color = CustomAccent.normalize(typed == null ? "" : typed.toString());
+            if (color == null) return false;
+            Preference hue = preference.getPreferenceManager() == null ? null
+                    : preference.getPreferenceManager().findPreference(Settings.ACCENT_HUE.key);
+            if (hue instanceof AccentHueRow) ((AccentHueRow) hue).setValue(AccentHue.CUSTOM.name());
+            else Settings.ACCENT_HUE.save(AccentHue.CUSTOM);
+            return true;
+        });
+        return row;
+    }
+
     /** How tall the glass tab bar's pill is. Its summary is the step chosen. */
     static GlassHeightRow glassHeightRow(Context context) {
         GlassHeightRow row = new GlassHeightRow(context);
@@ -4955,6 +5110,39 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         row.setEntryValues(values);
         row.setValue(Settings.GLASS_TAB_BAR_CORNERS.savedValue().name());
         return row;
+    }
+
+    /** How big the tab bar's icons are drawn (#541). Its summary says what the choice does. */
+    static TabIconSizeRow tabIconSizeRow(Context context) {
+        TabIconSizeRow row = new TabIconSizeRow(context);
+        row.setKey(Settings.TAB_ICON_SIZE.key);
+        row.setTitle(L10n.t("Tab icon size"));
+        row.setDialogTitle(L10n.t("Tab icon size"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        TabIconSize[] sizes = TabIconSize.values();
+        CharSequence[] entries = new CharSequence[sizes.length];
+        CharSequence[] values = new CharSequence[sizes.length];
+        for (int i = 0; i < sizes.length; i++) {
+            entries[i] = tabIconSizeLabel(sizes[i]);
+            values[i] = sizes[i].name();
+        }
+        row.setEntries(entries);
+        row.setEntryValues(values);
+        row.setValue(Settings.TAB_ICON_SIZE.savedValue().name());
+        return row;
+    }
+
+    /** What the list calls [size]: its share in Instagram's language's percent format, or Instagram's size. */
+    static String tabIconSizeLabel(TabIconSize size) {
+        if (size == TabIconSize.INSTAGRAM) return L10n.t("Instagram's size");
+        return NumberFormat.getPercentInstance(L10n.locale()).format(size.percent() / 100.0);
+    }
+
+    /** What the icons look like at [size], for the row's summary. */
+    static String tabIconSizeSummary(TabIconSize size) {
+        if (size == TabIconSize.INSTAGRAM) return L10n.t("The icons on the tab bar are the size Instagram gives them.");
+        return L10n.f("The icons on the tab bar are %1$s of the size Instagram gives them.",
+                L10n.isolate(NumberFormat.getPercentInstance(L10n.locale()).format(size.percent() / 100.0)));
     }
 
     /** How much room a floating glass pill leaves under itself. Its summary is the step chosen. */
@@ -5018,6 +5206,13 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         return toggle(context, Settings.REEL_DOWNLOAD_BUTTON, L10n.t("Download button on reels"),
                 L10n.t("Puts a download icon under Save beside a reel, so one tap saves it the way Download in its "
                         + "menu does. Needs Download on reels."));
+    }
+
+    /** Whether a tap on that icon asks what to save first (#524), right under it. */
+    static SwitchPreference reelDownloadAsksRow(Context context) {
+        return toggle(context, Settings.REEL_DOWNLOAD_BUTTON_ASKS, L10n.t("Ask what to save"),
+                L10n.t("A tap on the download icon beside a reel lets you pick the reel, its cover or its sound, "
+                        + "whichever it has."));
     }
 
     /** How many fingers Hold to download waits for. Its summary is the count chosen. */
@@ -5641,8 +5836,16 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 return L10n.t("Green");
             case TEAL:
                 return L10n.t("Teal");
+            case DUSK:
+                return L10n.t("Dusk blue");
+            case PINE:
+                return L10n.t("Pine");
+            case SLATE:
+                return L10n.t("Slate");
             case WALLPAPER:
                 return L10n.t("Material You");
+            case CUSTOM:
+                return L10n.t("Custom");
             default:
                 return L10n.t("Instagram blue");
         }
@@ -7314,6 +7517,36 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
+    static final class AccentCustomRow extends ValidatedEditRow {
+        AccentCustomRow(Context context) {
+            super(context);
+        }
+
+        /** The summary is the color saved, or that none is yet. */
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            String color = CustomAccent.normalize(text);
+            setSummary(color == null ? L10n.t("None yet. Custom stays Instagram's blue until you type one.") : color);
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        @Override String validatedValue(String typed) {
+            return CustomAccent.normalize(typed);
+        }
+
+        @Override String validationError() {
+            return L10n.t("That isn't a color. Try #4A6B82.");
+        }
+    }
+
     static final class ProxyServerRow extends ValidatedEditRow {
         ProxyServerRow(Context context) {
             super(context);
@@ -8239,6 +8472,50 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 if (candidate.name().equals(value)) step = candidate;
             }
             setSummary(glassHeightLabel(step));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The tab icon size's row (#541). Like the ring size's, it answers its summary itself, since
+     * ListPreference runs a summary through String.format and a share such as "120%" is no format.
+     */
+    static final class TabIconSizeRow extends ListPreference {
+        @Nullable
+        private String summary;
+
+        TabIconSizeRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            TabIconSize size = TabIconSize.INSTAGRAM;
+            for (TabIconSize candidate : TabIconSize.values()) {
+                if (candidate.name().equals(value)) size = candidate;
+            }
+            summary = tabIconSizeSummary(size);
+            setSummary(summary);
+        }
+
+        @Override
+        public CharSequence getSummary() {
+            return summary != null ? summary : super.getSummary();
         }
 
         @Override

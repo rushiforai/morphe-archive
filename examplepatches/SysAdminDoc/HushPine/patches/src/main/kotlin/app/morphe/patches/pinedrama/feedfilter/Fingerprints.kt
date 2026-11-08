@@ -162,7 +162,7 @@ internal object FollowFeedFingerprint : Fingerprint(
     returnType = "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;",
     strings = listOf("feed"),
     custom = { method, _ ->
-        method.parameterTypes.size == 2 && method.implementation?.instructions?.any {
+        method.parameterTypes.size >= 2 && method.implementation?.instructions?.any {
             it.getReference<MethodReference>()?.let { reference ->
                 reference.definingClass == "Lcom/ss/android/ugc/aweme/follow/presenter/FollowFeedList;" &&
                     reference.name == "getItems"

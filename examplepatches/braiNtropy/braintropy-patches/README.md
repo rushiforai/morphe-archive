@@ -8,65 +8,22 @@ This repository contains patches maintained by [braiNtropy](https://github.com/b
 
 ## 🩹 Patches list
 
-<!-- PATCHES_START EXPANDED -->
-> **[v2.6.0](https://github.com/braiNtropy/braintropy-patches/releases/tag/v2.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
-<details open>
-<summary>📦 Waking Up&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
+<!-- PATCHES_START -->
+> **[v2.7.0](https://github.com/braiNtropy/braintropy-patches/releases/tag/v2.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
 
-**🎯 Supported versions:**
+| App | 💊&nbsp;Patch | Function | ✅&nbsp;Tested | 👤&nbsp;User-reported |
+|-----|--------|----------|---------|----------------|
+| 📦 Waking Up | Disable update prompt | Stops the forced "Update Required" dialog so older versions keep working. | 3.27.0 | 3.27.1 |
+|  | Unlock Premium | Unlocks all premium content and removes subscription banners. | 3.27.0 | 3.27.1 |
+| 📦 Hume | Unlock Premium | Unlocks Hume Plus. | 9.29.2 | — |
+| 📦 RP Hypertrophy | Unlock Premium | Unlocks all subscription features. | 1.9.0 | — |
 
-| 3.24.1 | 3.27.0 |
-| :---: | :---: |
+**🌐 Universal patches**
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable update prompt](#disable-update-prompt) | Suppresses the "Update Required" dialog shown on launch when the server reports a newer preferred build, and spoofs the app-version/app-build request headers so the server (which rejects outdated builds with a 404) keeps serving the app. Does not affect the version shown in the app. |  |
-| [Unlock Premium](#unlock-premium) | Unlocks all premium content and removes subscription banners. |  |
-
-</details>
-
-<details open>
-<summary>📦 Hume&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 9.29.2 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Unlocks Hume Plus by feeding fake Play Billing purchases to the purchase stream the app's Dart subscription repository listens to. |  |
-
-</details>
-
-<details open>
-<summary>📦 RP Hypertrophy&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.6.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium](#unlock-premium) | Enables app features locked behind the subscription paywall. |  |
-
-</details>
-
-<details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Disable Expo OTA updates](#disable-expo-ota-updates) | Disables expo-updates: the app no longer contacts the Expo update server (u.expo.dev) on launch and can never download or run over-the-air JavaScript updates published by the developer. Only applies to apps built with Expo. |  |
-| [Disable Pairip license check](#disable-pairip-license-check) | Disables the Google Play license check (Pairip) that redirects installs not purchased through the Play Store to the buy page. The check never runs, so this also works on degoogled devices without Play services. Does not bypass Play Integrity attestation. |  |
-
-</details>
-
+| 💊&nbsp;Patch | Function |
+|--------|----------|
+| Disable Expo OTA updates | Blocks over-the-air JavaScript updates in Expo apps. |
+| Disable Pairip license check | Disables Google's Play Store license check. Works on degoogled devices; does not bypass Play Integrity. |
 <!-- PATCHES_END -->
 
 #### How to use these patches

@@ -8,9 +8,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 private const val REPLY_CLASS = "Lcom/x/composer/minimal/b;"
-
-private const val REPLY_CONTENT_CALL =
-    "Lcom/x/composer/minimal/b;->e("
+private const val REPLY_CONTENT_CALL = "Lcom/x/composer/minimal/b;->e("
 
 @Suppress("unused")
 val removePostReplyContentKeepLayoutPatch = bytecodePatch(

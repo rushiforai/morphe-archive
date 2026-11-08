@@ -18,6 +18,7 @@ This bundle currently supports:
 | Universal Copy | 7.2.0 | Unlock Plus, remove ads/upgrade prompts and the Internet permission |
 | NetMonster | 4.0.5 | Unlock premium |
 | HTTP Sniffer | 2.5.2-ad_mob, 2.4.9-ad_mob | Unlock VIP |
+| VTVGo | 12.11.05 | Remove video/product ads, disable analytics, remove Ad ID permissions |
 
 Only the exact versions listed above are supported. Newer app releases usually need
 updated fingerprints before a patch can be applied.
@@ -25,7 +26,27 @@ updated fingerprints before a patch can be applied.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.0](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.6.0](https://github.com/toidicakhia/morphe-app-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
+<details open>
+<summary><img src=".github/assets/apps/vn.vtv.vtvgo.png" alt="" height="20"> VTVGo&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 12.11.05 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Block Product Ad Banners](#block-product-ad-banners) | Points the product-ad API endpoint at a non-existent path so in-app ad banners are not loaded. Best effort: ads embedded in content responses are not affected. |  |
+| [Disable Analytics / Telemetry](#disable-analytics-telemetry) | Disables Firebase Analytics, Crashlytics and Performance, stops Sentry uploads and turns off Facebook app events. The firebase_data_collection_default_enabled flag also prevents the SDKs from re-enabling collection. |  |
+| [Remove Ad ID Permissions](#remove-ad-id-permissions) | Removes the advertising ID, Privacy Sandbox ad-services and Play install-referrer permissions. Device identification used for device management is left untouched. |  |
+| [Remove Calendar Permissions](#remove-calendar-permissions) | Removes calendar read/write permissions. Programme reminders will no longer work. |  |
+| [Remove Video Ads](#remove-video-ads) | Removes VTVGo pre-roll, mid-roll, welcome TVC and other VAST/IMA ads by rejecting ad requests before playback starts. |  |
+| [Trust User Certificates](#trust-user-certificates) | Adds user-installed CA certificates to the network security config so native traffic can be inspected with a debugging proxy. Flutter's Dart HTTP stack keeps its own trust store. |  |
+
+</details>
+
 <details open>
 <summary><img src=".github/assets/apps/com.ezviz.png" alt="" height="20"> EZVIZ&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>

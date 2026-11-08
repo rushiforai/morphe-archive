@@ -311,7 +311,8 @@ object Constants {
         packageName = "mega.privacy.android.app",
         name = "MEGA",
         description = "MEGA: Cloud Storage & Chat by Mega Ltd",
-        appIconColor = 0xD9272E
+        appIconColor = 0xD9272E,
+        targets = listOf(AppTarget("16.14"))
     )
 
     val COMPATIBILITY_TERABOX = Compatibility(
@@ -707,7 +708,7 @@ object Constants {
         name = "Cryptomator",
         description = "Cryptomator: Client-side encryption for your cloud vaults",
         appIconColor = 0x247477,
-        targets = listOf(AppTarget("2.1.0", isExperimental = true))
+        targets = listOf(AppTarget("2.1.0"))
     )
 
     val COMPATIBILITY_CRYPTOMATOR_FREEMIUM = Compatibility(
@@ -715,7 +716,7 @@ object Constants {
         name = "Cryptomator (Freemium)",
         description = "Cryptomator: Client-side encryption for your cloud vaults (Google Play Freemium)",
         appIconColor = 0x247477,
-        targets = listOf(AppTarget("2.1.0", isExperimental = true))
+        targets = listOf(AppTarget("2.1.0"))
     )
 
     val COMPATIBILITY_LETTERBOXD = Compatibility(
@@ -886,13 +887,6 @@ object Constants {
         appIconColor = 0x00A859
     )
 
-    val COMPATIBILITY_MT_MANAGER = Compatibility(
-        packageName = "bin.mt.plus",
-        name = "MT Manager",
-        description = "MT Manager: Powerful APK editor & file manager by Lin Jin Bin",
-        appIconColor = 0xF57C00
-    )
-
     val COMPATIBILITY_VIRTUAL_MASTER = Compatibility(
         packageName = "com.clone.android.dual.space",
         name = "Virtual Master",
@@ -916,7 +910,10 @@ object Constants {
 
     val COMPATIBILITY_CAPCUT_ALT = Compatibility(
         packageName = "com.lemon.lv",
-        name = "CapCut (Alt)
+        name = "CapCut (Alt)",
+        description = "CapCut: Video Editor & Maker (Domestic / JianYing)",
+        appIconColor = 0x000000
+    )
 
     val COMPATIBILITY_THE_ATHLETIC = Compatibility(
         packageName = "com.theathletic",
@@ -930,10 +927,16 @@ object Constants {
         name = "FotMob",
         description = "FotMob: Soccer and Football Live Scores, Stats, and News by FotMob",
         appIconColor = 0x008000
-    )",
-        description = "CapCut: Video Editor & Maker (Domestic / JianYing)",
-        appIconColor = 0x000000
     )
+
+    val COMPATIBILITY_HOTSTAR = Compatibility(
+        packageName = "in.startv.hotstar",
+        name = "JioHotstar",
+        description = "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
+        appIconColor = 0x0C203B,
+        targets = listOf(AppTarget("26.10.26.0"))
+    )
+
 
     // Aliases
     val COMPATIBILITY_ANGRY_BIRDS_CLASSIC = COMPATIBILITY_ANGRY_BIRDS

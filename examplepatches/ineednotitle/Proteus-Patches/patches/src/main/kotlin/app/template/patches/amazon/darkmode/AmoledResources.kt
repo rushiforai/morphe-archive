@@ -18,10 +18,13 @@ import java.io.File
  *   1. Blackens `<color>` items whose value is a neutral dark surface gray
  *      (night files: dark-ish surface names; other files: surface-ish names
  *      containing "dark"), skipping text/icon/accent/border-ish names.
- *   2. Forces the dark/daynight `<style parent|name>` themes to pure black via
- *      android:windowBackground / colorSurface* / navigationBarColor /
- *      statusBarColor / colorBackgroundFloating (+ light status/nav bar flags
- *      off), creating the items when absent.
+ *   2. Forces the dark/daynight `<style parent|name>` themes to pure black
+ *      via android:windowBackground / navigationBarColor / statusBarColor /
+ *      colorBackground (+ light status/nav bar flags off). Restricted to
+ *      android: framework attributes only — Material attribute names cannot
+ *      be re-resolved by the resource encoder on some builds (mShop 32.19.0.300:
+ *      "Unknown attribute name: colorSurface") — Material surfaces go black
+ *      through pass 1 and the WebView CSS instead.
  */
 
 private const val AMOLED_BLACK = "#ff000000"
@@ -44,6 +47,12 @@ private val surfaceNameParts = listOf(
     "background", "surface", "container", "canvas", "panel", "sheet", "bar",
 )
 
+// Only android: framework attributes belong here. Material library attributes
+// (colorSurface*, colorBackgroundFloating, ...) cannot be re-resolved by the
+// reandroid resource encoder at encode time — it aborts the whole patch with
+// "Unknown attribute name: <item name=\"colorSurface\">#ff000000</item>" (observed
+// on Amazon mShop 32.19.0.300). The Material surfaces still go black via the
+// <color>-token pass + WebView CSS instead.
 private val amoledStyleItems = mapOf(
     "android:colorBackground" to AMOLED_BLACK,
     "android:navigationBarColor" to AMOLED_BLACK,
@@ -51,15 +60,6 @@ private val amoledStyleItems = mapOf(
     "android:windowBackground" to AMOLED_BLACK,
     "android:windowLightNavigationBar" to "false",
     "android:windowLightStatusBar" to "false",
-    "colorBackgroundFloating" to AMOLED_BLACK,
-    "colorSurface" to AMOLED_BLACK,
-    "colorSurfaceBright" to AMOLED_BLACK,
-    "colorSurfaceContainer" to AMOLED_BLACK,
-    "colorSurfaceContainerHigh" to AMOLED_BLACK,
-    "colorSurfaceContainerHighest" to AMOLED_BLACK,
-    "colorSurfaceContainerLow" to AMOLED_BLACK,
-    "colorSurfaceContainerLowest" to AMOLED_BLACK,
-    "colorSurfaceDim" to AMOLED_BLACK,
 )
 
 internal fun File.isValuesXml(): Boolean =
@@ -154,6 +154,10 @@ private fun Element.hasDarkThemeItem(): Boolean {
 }
 
 private fun Element.ensureStyleItem(document: Document, name: String, value: String): Boolean? {
+    // Hard guard: the reandroid encoder can only re-resolve android: framework
+    // attributes. Never create or rewrite a non-framework attribute item.
+    if (!name.startsWith("android:")) return null
+
     val children = childNodes
     for (i in 0 until children.length) {
         val item = children.item(i) as? Element ?: continue

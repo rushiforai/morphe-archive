@@ -50,7 +50,7 @@
     audit/run-audit.ps1 -Validate
 
 .EXAMPLE
-    audit/run-audit.ps1 -ApplyVerdicts C:\scratch\verdicts.json -Results audit\results\pinedrama-47.5.3.json -OutDir C:\scratch\evidence
+    audit/run-audit.ps1 -ApplyVerdicts C:\scratch\verdicts.json -Results audit\results\pinedrama-47.6.3.json -OutDir C:\scratch\evidence
 #>
 [CmdletBinding()]
 param(
@@ -218,7 +218,7 @@ if ($Validate) {
                         try { [void][regex]::new($pattern) } catch { & $bad "$field is not a valid regex: $pattern" }
                     }
                     # A PineDrama version a pattern spells out has to be a declared target. After a
-                    # retarget, a check still asking for the old one fails on every run: 47.5.3's
+                    # retarget, a check still asking for the old one fails on every run: 47.6.3's
                     # first audit had two still expecting 47.1.4 in the report.
                     foreach ($spelled in [regex]::Matches($pattern, '(?<![\d.])(\d{2})\\?\.(\d{1,2})\\?\.(\d{1,3})(?!\d)')) {
                         $version = '{0}.{1}.{2}' -f $spelled.Groups[1].Value, $spelled.Groups[2].Value, $spelled.Groups[3].Value

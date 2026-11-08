@@ -27,7 +27,7 @@
         -DesktopJar C:\path\to\morphe-desktop.jar -WorkDir C:\path\to\scratch
 
 .EXAMPLE
-    scripts/verify-all-patches.ps1 -Apk C:\fixtures\pinedrama-47.5.3.apk -Force `
+    scripts/verify-all-patches.ps1 -Apk C:\fixtures\pinedrama-47.6.3.apk -Force `
         -DesktopJar C:\path\to\morphe-desktop.jar -WorkDir C:\path\to\scratch
 #>
 [CmdletBinding()]

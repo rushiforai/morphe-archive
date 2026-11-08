@@ -33,8 +33,8 @@ import java.util.WeakHashMap;
  * every screen.
  *
  * The bottom navigation tabs carry their selected state, so the Home tab being selected
- * is a reliable and cheap signal. On PineDrama 47.5.3 the bottom navigation ids are hro Home,
- * hrp Inbox and hrq Profile.
+ * is a reliable and cheap signal. On PineDrama 47.6.3 the bottom navigation ids are hs7 Home,
+ * hs8 Inbox and hs9 Profile.
  *
  * <p>Selected is not enough on its own. A creator's profile opened from the feed by the name
  * or the avatar is a page of the same horizontal pager as the feed, and the pager scrolls the
@@ -43,12 +43,12 @@ import java.util.WeakHashMap;
  * {@link View#isShown} does not check: it reads visibility flags up the tree and nothing else.
  */
 public final class FeedVisibility {
-    private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.5.3:hro"};
+    private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.6.3:hs7"};
     /** Read off the live bottom bar (#156). */
-    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.5.3:hrp"};
-    private static final String[] PROFILE_TAB_RESOURCE_NAMES = {"47.5.3:hrq"};
-    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"47.5.3:ick"};
-    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"47.5.3:m5m"};
+    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.6.3:hs8"};
+    private static final String[] PROFILE_TAB_RESOURCE_NAMES = {"47.6.3:hs9"};
+    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"47.6.3:idd"};
+    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"47.6.3:m6k"};
     // Built once: the sheet check runs on every layout pass of the feed's window.
     private static final String COMMENT_SHEET_DIAGNOSTIC_NAME =
             "sheet (" + joinResourceNames(COMMENT_SHEET_RESOURCE_NAMES) + ")";
@@ -310,7 +310,7 @@ public final class FeedVisibility {
      * should be on the feed or absent, so this asks for the Home tab to exist, be on screen and
      * be selected, for nothing to be covering it, and for a video feed's pager to be on screen.
      *
-     * <p>That last one because the Home tab stays selected on every top tab. On 47.5.3 Shop and
+     * <p>That last one because the Home tab stays selected on every top tab. On 47.6.3 Shop and
      * the Nearby tab (named after the reader's town) are pages of the same sideways pager as For
      * You and Following, a grid and a store with search boxes where the feeds have a {@link
      * #FEED_PAGER}, and the filtered count sat over Shop's search box (S22, 2026-10-23).

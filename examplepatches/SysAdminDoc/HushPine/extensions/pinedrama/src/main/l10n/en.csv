@@ -178,8 +178,12 @@ Also hide videos whose text stickers match a blocked caption word. Text stickers
 "Also on a block list, so still hidden: %1$s","Also on a block list, so still hidden: %1$s"
 Also replaces the saved region and country code PineDrama sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.,Also replaces the saved region and country code PineDrama sends with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.
 Also turns on PineDrama's own Auto scroll for videos opened from search. Restart PineDrama to apply this.,Also turns on PineDrama's own Auto scroll for videos opened from search. Restart PineDrama to apply this.
+"Always play the video's own audio, never an AI dub.","Always play the video's own audio, never an AI dub."
 Always show publish date,Always show publish date
 Always show the publish date in video author information. Restart PineDrama to apply this.,Always show the publish date in video author information. Restart PineDrama to apply this.
+"Always use the first dub on your list that a video has, even with dubbing off. A video with none of them plays as usual.","Always use the first dub on your list that a video has, even with dubbing off. A video with none of them plays as usual."
+"Always use the first subtitle on your list that a video has, even with captions off. A video with none of them plays as usual. Turning captions off yourself lasts until the app restarts.","Always use the first subtitle on your list that a video has, even with captions off. A video with none of them plays as usual. Turning captions off yourself lasts until the app restarts."
+"Always use the video's own subtitle, never a translated one, even with captions off. A video without one plays as usual.","Always use the video's own subtitle, never a translated one, even with captions off. A video without one plays as usual."
 Amazon Appstore,Amazon Appstore
 "An exception names one creator, so a pattern can't be one: %1$s","An exception names one creator, so a pattern can't be one: %1$s"
 "An exception takes a handle or id, not a display name: %1$s","An exception takes a handle or id, not a display name: %1$s"
@@ -434,7 +438,10 @@ Download original photos,Download original photos
 Downloads,Downloads
 "Drag to move, release to place","Drag to move, release to place"
 Drama and Series,Drama and Series
+Dramas,Dramas
 "Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are.","Draw a larger handle and a slightly thicker line on the progress bar, so it's easier to see where you are."
+Dub priority,Dub priority
+Dubs,Dubs
 "Duet, Stitch and Add to Story","Duet, Stitch and Add to Story"
 Each area shows how many of the things HushPine looks for were found in this PineDrama and how many are missing.,Each area shows how many of the things HushPine looks for were found in this PineDrama and how many are missing.
 Earlier this session,Earlier this session
@@ -457,6 +464,7 @@ Enter up to %1$d comma-separated speeds from %2$s to %3$s,Enter up to %1$d comma
 Enter who to message below to start.,Enter who to message below to start.
 Entry %1$d has a field with the wrong data type.,Entry %1$d has a field with the wrong data type.
 Entry %1$d isn't an object.,Entry %1$d isn't an object.
+Episodes in full screen,Episodes in full screen
 Errors,Errors
 Expand activity list,Expand activity list
 Expanded,Expanded
@@ -508,6 +516,10 @@ For You,For You
 "For You, Following and the other feed tabs stay behind a calm panel and won't swipe. Messages, profiles and search work as usual, a link to one video still opens that video, and the app opens on Inbox instead of the feed.","For You, Following and the other feed tabs stay behind a calm panel and won't swipe. Messages, profiles and search work as usual, a link to one video still opens that video, and the app opens on Inbox instead of the feed."
 "For accounts PineDrama took translation away from. Brings back See translation under video descriptions and in captions, and the translation rows on the Language page in Settings and privacy. Restart PineDrama to see it on videos.","For accounts PineDrama took translation away from. Brings back See translation under video descriptions and in captions, and the translation rows on the Language page in Settings and privacy. Restart PineDrama to see it on videos."
 For accounts PineDrama took translation away from. Brings back See translation under video descriptions and in captions. Restart PineDrama to see the change.,For accounts PineDrama took translation away from. Brings back See translation under video descriptions and in captions. Restart PineDrama to see the change.
+Force dub,Force dub
+Force original dub,Force original dub
+Force original subtitle,Force original subtitle
+Force subtitle,Force subtitle
 Forced %1$d gates,Forced %1$d gates
 Forced %1$d of %2$d gates,Forced %1$d of %2$d gates
 Forced 1 gate,Forced 1 gate
@@ -665,7 +677,11 @@ Hide videos that use a sound named or listed below.,Hide videos that use a sound
 Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.,Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.
 "Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if everything the feed just sent would go.","Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if everything the feed just sent would go."
 Hide videos with blocked sounds,Hide videos with blocked sounds
+Hide videos without a preferred dub,Hide videos without a preferred dub
+Hide videos without a preferred subtitle,Hide videos without a preferred subtitle
 "Hides rooms in the LIVE feed you swipe through, using the rules below. Blocked creators, Creators hidden on this phone and Creator exceptions apply here too, and Blocked caption words are checked against each LIVE's title. The first room the LIVE button opens isn't filtered. If every room would be hidden, one gets through so the feed keeps loading.","Hides rooms in the LIVE feed you swipe through, using the rules below. Blocked creators, Creators hidden on this phone and Creator exceptions apply here too, and Blocked caption words are checked against each LIVE's title. The first room the LIVE button opens isn't filtered. If every room would be hidden, one gets through so the feed keeps loading."
+"Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.","Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty."
+"Hides videos with no subtitle from Subtitle priority in Playback, and that includes videos with no subtitles at all. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.","Hides videos with no subtitle from Subtitle priority in Playback, and that includes videos with no subtitles at all. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty."
 Hiding,Hiding
 Highest,Highest
 Historical,Historical
@@ -726,6 +742,7 @@ Keep this string to %1$s characters or fewer,Keep this string to %1$s characters
 Keep this structured value to %1$s KB or less,Keep this structured value to %1$s KB or less
 Keep videos out of Watch history,Keep videos out of Watch history
 "Keep what you search for out of the search history PineDrama saves on this phone. Searches already there stay until you delete them, and PineDrama's servers may still keep their own record.","Keep what you search for out of the search history PineDrama saves on this phone. Searches already there stay until you delete them, and PineDrama's servers may still keep their own record."
+Keep your place in History and Favorites,Keep your place in History and Favorites
 "Keeps logging until you turn it off, even after a restart. PineDrama can feel slower while it's on.","Keeps logging until you turn it off, even after a restart. PineDrama can feel slower while it's on."
 Kept an interrupted change. Restart PineDrama to apply.,Kept an interrupted change. Restart PineDrama to apply.
 "Kept to %1$s, the nearest value this row allows","Kept to %1$s, the nearest value this row allows"
@@ -744,6 +761,8 @@ Lab data reset,Lab data reset
 Lab data reset with no undo,Lab data reset with no undo
 Lab overrides reset,Lab overrides reset
 Lab settings put back,Lab settings put back
+"Language codes in the order you want them, separated by commas, like en, original. original means the video's own audio. Used when a video starts playing.","Language codes in the order you want them, separated by commas, like en, original. original means the video's own audio. Used when a video starts playing."
+"Language codes in the order you want them, separated by commas, like en, original. original means the video's own subtitle. Used when a video starts playing.","Language codes in the order you want them, separated by commas, like en, original. original means the video's own subtitle. Used when a video starts playing."
 Last change put back. Restart PineDrama to apply all changes.,Last change put back. Restart PineDrama to apply all changes.
 Last change put back. The Feature Gate Lab rules were for another PineDrama version and were left out. Restart PineDrama to apply all changes.,Last change put back. The Feature Gate Lab rules were for another PineDrama version and were left out. Restart PineDrama to apply all changes.
 Last original value,Last original value
@@ -804,7 +823,6 @@ Make sticker,Make sticker
 "Makes PineDrama see the country you pick as your SIM. Your IP address, account history and language don't change, and any one of them can make PineDrama keep your current region. Restart PineDrama to see the change.","Makes PineDrama see the country you pick as your SIM. Your IP address, account history and language don't change, and any one of them can make PineDrama keep your current region. Restart PineDrama to see the change."
 Making a video of the photos,Making a video of the photos
 Making your sticker,Making your sticker
-Manage topics,Manage topics
 Manager,Manager
 Mark saved videos,Mark saved videos
 Marked as not interested,Marked as not interested
@@ -827,7 +845,6 @@ Microphone in use,Microphone in use
 Mini dramas,Mini dramas
 Minimum,Minimum
 Minimum video length,Minimum video length
-More hashtags per post,More hashtags per post
 More options,More options
 "More than %1$d comments were loaded, so the rest aren't in the file.","More than %1$d comments were loaded, so the rest aren't in the file."
 Most liked first,Most liked first
@@ -1058,6 +1075,8 @@ Post age,Post age
 Post dates in the feed,Post dates in the feed
 Posting,Posting
 Prefer H.264 video,Prefer H.264 video
+Preferred dubs,Preferred dubs
+Preferred subtitles,Preferred subtitles
 Preset applied,Preset applied
 Preset doesn't match the gates. Nothing changed.,Preset doesn't match the gates. Nothing changed.
 Preset saved. Turn on overrides to use it.,Preset saved. Turn on overrides to use it.
@@ -1463,6 +1482,7 @@ Stopping after this file,Stopping after this file
 Stops PineDrama from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.,Stops PineDrama from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.
 "Stops PineDrama from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and your feed learns less. Likes, follows and searches are still seen.","Stops PineDrama from reporting the videos you watch, so they don't get added to Watch history in Activity center. Your views won't count and your feed learns less. Likes, follows and searches are still seen."
 "Stops PineDrama from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower.","Stops PineDrama from slowing your screen to match each video's frame rate. On a 90 or 120 Hz phone, that request makes the whole app, scrolling too, run slower."
+Stops these lists jumping back to the top when you switch tabs or come back from a video. A list you haven't scrolled still updates.,Stops these lists jumping back to the top when you switch tabs or come back from a video. A list you haven't scrolled still updates.
 "Stops websites you open from inside PineDrama from reaching back into the app. PineDrama's own pages, such as Activity center, Watch history, shop checkout and CAPTCHA, keep working.","Stops websites you open from inside PineDrama from reaching back into the app. PineDrama's own pages, such as Activity center, Watch history, shop checkout and CAPTCHA, keep working."
 Storage almost full. Recording saved to %1$s,Storage almost full. Recording saved to %1$s
 Store PineDrama thinks it came from,Store PineDrama thinks it came from
@@ -1474,8 +1494,11 @@ Story saved to %1$s,Story saved to %1$s
 Streak,Streak
 Structured value observed,Structured value observed
 Subscriber-only posts,Subscriber-only posts
+Subtitle priority,Subtitle priority
+Subtitles,Subtitles
 Support HushPine,Support HushPine
 Swap the website in shared links,Swap the website in shared links
+"Swipe up for the next episode and down for the previous one without leaving full screen. The next episode starts when one ends, instead of the same one looping.","Swipe up for the next episode and down for the previous one without leaving full screen. The next episode starts when one ends, instead of the same one looping."
 Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.,Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.
 System,System
 Tag saved videos with their details,Tag saved videos with their details

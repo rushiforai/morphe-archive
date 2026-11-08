@@ -21,6 +21,14 @@ internal var autoBase64Der: String? = null
 private var autoCertSource: String? = null
 private var autoCertPriority = 0
 
+internal fun resetCertState() {
+    autoSha256 = null
+    autoSha1 = null
+    autoBase64Der = null
+    autoCertSource = null
+    autoCertPriority = 0
+}
+
 private val log = Logger.getLogger("CertExtractor")
 private fun ByteArray.toHex() = joinToString("") { "%02X".format(it) }
 private fun certSourcePriority(source: String) = when (source) {
@@ -194,6 +202,8 @@ val extractApkCertificatePatch = rawResourcePatch(
             return@execute
         }
 
+        resetCertState()
+
         // Strategy 0a: packageMetadata.signingCertificates — Morphe parses the APK signing block
         // (v2/v3) from the input APK before any patch runs. Works for APK, APKS, APKM, XAPK —
         // Morphe extracts base.apk from split bundles before constructing the patch context.
@@ -247,7 +257,7 @@ val extractApkCertificatePatch = rawResourcePatch(
             return@execute
         }
 
-        // Strategy 1: installed app sourceDir
+        // Strategy 1: installed app (direct PackageManager signatures query, fallback to sourceDir)
         try {
             val manifestText = get("AndroidManifest.xml").readText()
             val pkgName = Regex("""package="([^"]+)"""").find(manifestText)?.groupValues?.get(1)
@@ -257,9 +267,52 @@ val extractApkCertificatePatch = rawResourcePatch(
                 .invoke(null) ?: throw Exception("null ctx")
             val pm = ctx.javaClass.getMethod("getPackageManager").invoke(ctx)
                 ?: throw Exception("null pm")
-            val pkgInfo = pm.javaClass
-                .getMethod("getPackageInfo", String::class.java, Int::class.java)
-                .invoke(pm, pkgName, 0) ?: throw Exception("null pkgInfo")
+
+            // Query with GET_SIGNING_CERTIFICATES (0x08000000) or GET_SIGNATURES (0x00000040)
+            val flags = 0x08000000 or 0x00000040
+            val pkgInfo = try {
+                pm.javaClass.getMethod("getPackageInfo", String::class.java, Int::class.java)
+                    .invoke(pm, pkgName, flags)
+            } catch (_: Exception) {
+                pm.javaClass.getMethod("getPackageInfo", String::class.java, Int::class.java)
+                    .invoke(pm, pkgName, 0)
+            } ?: throw Exception("null pkgInfo")
+
+            // 1a. Attempt direct in-memory signature extraction via signingInfo (API 28+)
+            try {
+                val signingInfo = pkgInfo.javaClass.getMethod("getSigningInfo").invoke(pkgInfo)
+                if (signingInfo != null) {
+                    val hasMultipleSigners = signingInfo.javaClass.getMethod("hasMultipleSigners").invoke(signingInfo) as? Boolean ?: false
+                    val signersMethod = if (hasMultipleSigners) "getApkContentsSigners" else "getSigningCertificateHistory"
+                    val signers = signingInfo.javaClass.getMethod(signersMethod).invoke(signingInfo) as? Array<*>
+                        ?: signingInfo.javaClass.getMethod("getApkContentsSigners").invoke(signingInfo) as? Array<*>
+                    val sig = signers?.firstOrNull()
+                    if (sig != null) {
+                        val certBytes = sig.javaClass.getMethod("toByteArray").invoke(sig) as? ByteArray
+                        if (certBytes != null) {
+                            populateFromEncoded(certBytes, "installed")
+                            log.info("Cert auto-extracted directly from installed app signingInfo")
+                            return@execute
+                        }
+                    }
+                }
+            } catch (_: Exception) {}
+
+            // 1b. Attempt direct extraction via legacy signatures field
+            try {
+                val signatures = pkgInfo.javaClass.getField("signatures").get(pkgInfo) as? Array<*>
+                val sig = signatures?.firstOrNull()
+                if (sig != null) {
+                    val certBytes = sig.javaClass.getMethod("toByteArray").invoke(sig) as? ByteArray
+                    if (certBytes != null) {
+                        populateFromEncoded(certBytes, "installed")
+                        log.info("Cert auto-extracted directly from installed app signatures array")
+                        return@execute
+                    }
+                }
+            } catch (_: Exception) {}
+
+            // 1c. Fallback to reading APK from sourceDir
             val appInfo = try {
                 pkgInfo.javaClass.getMethod("getApplicationInfo").invoke(pkgInfo)
             } catch (_: Exception) { pkgInfo.javaClass.getField("applicationInfo").get(pkgInfo) }
@@ -268,7 +321,7 @@ val extractApkCertificatePatch = rawResourcePatch(
                 appInfo.javaClass.getMethod("getSourceDir").invoke(appInfo)
             } catch (_: Exception) { appInfo.javaClass.getField("sourceDir").get(appInfo) }
                 as? String ?: throw Exception("null sourceDir")
-            log.info("Reading cert from installed app: $sourceDir")
+            log.info("Reading cert from installed app file: $sourceDir")
             if (extractFromFile(File(sourceDir), "installed")) return@execute
         } catch (e: Exception) {
             log.info("Installed app strategy failed: ${e.message}")

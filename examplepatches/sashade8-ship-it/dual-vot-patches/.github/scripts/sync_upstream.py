@@ -181,6 +181,12 @@ STABLE210_ARRAYS_CONFLICT_BLOBS = (
     "a3614bdfaf1b5e6acd2d9cac08dfe9403e9d635e",
     "154c3b6d4d6faae76b7d32ea05b960ee0e5619f0",
 )
+# Morphe 2.2.0-dev.1 appends custom seekbar thumb scaling choices.
+DEV220_ARRAYS_CONFLICT_BLOBS = (
+    "154c3b6d4d6faae76b7d32ea05b960ee0e5619f0",
+    "cd901a5428b7e09219fc62f3d4716cbb7efce1ca",
+    "4347822665301b6771b029049f8ca2376656289a",
+)
 
 # One-time, fail-closed merge of Morphe 1.48.0-dev.8 Series Tracker with
 # Dual VoT's Yandex settings. Any different source versions require review.
@@ -556,6 +562,7 @@ def resolve_dual_yandex_arrays_conflict() -> None:
         STABLE145_ARRAYS_CONFLICT_BLOBS,
         DEV210_ARRAYS_CONFLICT_BLOBS,
         STABLE210_ARRAYS_CONFLICT_BLOBS,
+        DEV220_ARRAYS_CONFLICT_BLOBS,
     ):
         return
     base, ours, theirs = (

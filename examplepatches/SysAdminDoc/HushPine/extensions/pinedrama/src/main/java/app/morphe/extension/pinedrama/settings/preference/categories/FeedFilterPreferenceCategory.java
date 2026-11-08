@@ -274,6 +274,20 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 Settings.CAPTION_LANGUAGES)
                 .withCheck(app.morphe.extension.pinedrama.feedfilter.CaptionLanguageFilter::languageProblem)
                 .withNameKeyboard());
+        if (SettingsStatus.subtitleDubPreferenceEnabled) {
+            addPreference(new TogglePreference(context, "Hide videos without a preferred subtitle",
+                    "Hides videos with no subtitle from Subtitle priority in Playback, and that "
+                            + "includes videos with no subtitles at all. If a whole page would "
+                            + "be hidden, one video stays so the feed keeps loading. Does "
+                            + "nothing while the list is empty.",
+                    Settings.HIDE_NO_PREFERRED_SUBTITLE));
+            addPreference(new TogglePreference(context, "Hide videos without a preferred dub",
+                    "Hides videos with no dub from Dub priority in Playback. Putting original "
+                            + "on that list keeps every video, since each has its own audio. "
+                            + "If a whole page would be hidden, one video stays so the feed "
+                            + "keeps loading. Does nothing while the list is empty.",
+                    Settings.HIDE_NO_PREFERRED_DUB));
+        }
     }
 
     /** The LIVE feed you swipe through, a page of rooms at a time (issue #57). */

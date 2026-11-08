@@ -1385,7 +1385,6 @@ Comment with live photos, the camera or audio	Mit Live-Fotos, der Kamera oder Au
 Save comments to Favorites	Kommentare in Favoriten speichern
 Comment sort and dislike styles	Kommentarsortierung und Dislike-Stile
 Message bubble colors, Inbox archive and sharing to more chats	Farben der Nachrichtenblasen, Posteingangsarchiv und Teilen an mehr Chats
-Manage topics	Themen verwalten
 Visual search	Visuelle Suche
 AI Self	AI Self
 Long-press menu on every post	Menü bei langem Drücken auf jedem Beitrag
@@ -1642,7 +1641,6 @@ Sign in without a passkey	Ohne Passkey anmelden
 PineDrama treats your phone as one without passkeys, so signing in asks for your password or a code by email or text instead. Password managers won't hand a passkey to a patched app. If PineDrama's 2-step check still wants only a passkey, add email or text as a way to verify on tiktok.com or another phone first.	PineDrama behandelt dein Handy wie eines ohne Passkeys, also fragt die Anmeldung stattdessen nach deinem Passwort oder einem Code per E-Mail oder SMS. Passwortmanager geben einer gepatchten App keinen Passkey. Wenn PineDramas Prüfung in zwei Schritten weiterhin nur einen Passkey will, füge zuerst auf tiktok.com oder einem anderen Handy E-Mail oder SMS als Weg zur Bestätigung hinzu.
 # context: opens the complete published changelog from the concise What's new dialog.
 Full changelog	Alle Änderungen
-More hashtags per post	Mehr Hashtags pro Beitrag
 New comment emoji	Neue Kommentar-Emojis
 Hide root	Root verbergen
 Hide root status and details about root tools from PineDrama.	Root-Status und Angaben zu Root-Werkzeugen vor PineDrama verbergen.
@@ -1835,3 +1833,28 @@ Sticker added to Saved	Zu deinen Stickern hinzugefügt
 Recently used	Zuletzt verwendet
 # context: A video's share sheet. Make sticker is a button HushPine adds after Save cover, and it turns the video's cover into one of your saved comment stickers. Keep it about as short as Save cover, since share sheet labels get two short lines under the icon
 Make sticker	Sticker erstellen
+Keep your place in History and Favorites	Position in Verlauf und Favoriten behalten
+Stops these lists jumping back to the top when you switch tabs or come back from a video. A list you haven't scrolled still updates.	Verhindert, dass diese Listen nach oben springen, wenn du den Tab wechselst oder von einem Video zurückkommst. Eine Liste, die du nicht gescrollt hast, wird weiterhin aktualisiert.
+Dramas	Dramen
+Episodes in full screen	Episoden im Vollbild
+Swipe up for the next episode and down for the previous one without leaving full screen. The next episode starts when one ends, instead of the same one looping.	Wische nach oben für die nächste Episode und nach unten für die vorherige, ohne den Vollbildmodus zu verlassen. Wenn eine Episode endet, startet die nächste, statt dieselbe zu wiederholen.
+Subtitles	Untertitel
+Subtitle priority	Untertitel-Reihenfolge
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own subtitle. Used when a video starts playing.	Sprachcodes in der gewünschten Reihenfolge, durch Kommas getrennt, zum Beispiel en, original. original steht für den eigenen Untertitel des Videos. Gilt, wenn ein Video startet.
+Force subtitle	Untertitel erzwingen
+Always use the first subtitle on your list that a video has, even with captions off. A video with none of them plays as usual. Turning captions off yourself lasts until the app restarts.	Verwendet immer den ersten Untertitel deiner Liste, den ein Video hat, auch wenn Untertitel aus sind. Ein Video ohne diese Untertitel läuft wie gewohnt. Wenn du Untertitel selbst ausschaltest, gilt das bis zum Neustart der App.
+Force original subtitle	Originaluntertitel erzwingen
+Always use the video's own subtitle, never a translated one, even with captions off. A video without one plays as usual.	Verwendet immer den eigenen Untertitel des Videos, nie einen übersetzten, auch wenn Untertitel aus sind. Ein Video ohne eigenen Untertitel läuft wie gewohnt.
+Dubs	Synchronfassungen
+Dub priority	Synchron-Reihenfolge
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own audio. Used when a video starts playing.	Sprachcodes in der gewünschten Reihenfolge, durch Kommas getrennt, zum Beispiel en, original. original steht für den eigenen Ton des Videos. Gilt, wenn ein Video startet.
+Force dub	Synchronfassung erzwingen
+Always use the first dub on your list that a video has, even with dubbing off. A video with none of them plays as usual.	Verwendet immer die erste Synchronfassung deiner Liste, die ein Video hat, auch wenn die Synchronisierung aus ist. Ein Video ohne diese Fassungen läuft wie gewohnt.
+Force original dub	Originalton erzwingen
+Always play the video's own audio, never an AI dub.	Spielt immer den eigenen Ton des Videos ab, nie eine KI-Synchronfassung.
+Hide videos without a preferred subtitle	Videos ohne bevorzugten Untertitel ausblenden
+Hides videos with no subtitle from Subtitle priority in Playback, and that includes videos with no subtitles at all. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Blendet Videos ohne einen Untertitel aus der Untertitel-Reihenfolge unter Wiedergabe aus, auch Videos ganz ohne Untertitel. Würde eine ganze Seite verschwinden, bleibt ein Video, damit der Feed weiterlädt. Tut nichts, solange die Liste leer ist.
+Hide videos without a preferred dub	Videos ohne bevorzugte Synchronfassung ausblenden
+Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Blendet Videos ohne eine Synchronfassung aus der Synchron-Reihenfolge unter Wiedergabe aus. Steht original auf der Liste, bleiben alle Videos, denn jedes hat seinen eigenen Ton. Würde eine ganze Seite verschwinden, bleibt ein Video, damit der Feed weiterlädt. Tut nichts, solange die Liste leer ist.
+Preferred subtitles	Bevorzugte Untertitel
+Preferred dubs	Bevorzugte Synchronfassungen

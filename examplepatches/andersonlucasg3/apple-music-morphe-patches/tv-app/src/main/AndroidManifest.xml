@@ -13,6 +13,10 @@
     <!-- Card artwork is served by the Apple Music browse tree as mzstatic URLs. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- In-app updater: hand the downloaded APK to PackageInstaller (the user still
+         confirms the install in the system dialog). -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- Needed to see/bind the Apple Music media browser service on API 30+. -->
     <queries>
         <package android:name="com.apple.android.music" />

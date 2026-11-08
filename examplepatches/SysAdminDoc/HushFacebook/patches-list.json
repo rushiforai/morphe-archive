@@ -433,7 +433,7 @@
     },
     {
       "name": "Clean up Reels",
-      "description": "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template buttons and Threads cards between reels, so more of the video shows, and can play each reel once instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, play a feed video again right there when you tap Watch again instead of opening Reels, take the UP NEXT bar off the bottom of a video you open from the feed, hide the Fullscreen button under a wide video, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. With Turn off HDR brightness patched too, it can show Reels in gray, video and all. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
+      "description": "Hides clutter on reels, such as the Follow button, comment previews, Remix and Use template buttons and Threads cards between reels, so more of the video shows, and can play each reel once instead of over and over, keep its original audio instead of a Meta AI dub, drop the search suggestions under the caption, over the comments and at the top of a profile's reels, or hide the like, comment and share counts, the Like, Comment, Share, Save or speaker button, or the line naming the reel's sound. It can also keep the Reels tab to accounts you follow, open a video you tap in the feed on its own, with no reels after it, play a feed video again right there when you tap Watch again instead of opening Reels, play a video you tap in Saved in the video player instead of Reels, take the UP NEXT bar off the bottom of a video you open from the feed, hide the Fullscreen button under a wide video, stop the \"This is taking a while\" message when a video is slow to load, and play whole reels in the feed's Reels row instead of the same second over and over, or keep the Comment button on reels with comments turned off so you can read them, and hide the one-tap Subscribe button some authors get instead of Follow, or Search and the button beside it at the top of a video you open and of the Reels tab, and show when a reel or video was posted. Its Burn-in guard can fade a reel's buttons, caption and bars when you leave them alone, so they don't burn into the screen. With Turn off HDR brightness patched too, it can show Reels in gray, video and all. Starts off. Turn on the parts you want in Hushfacebook settings > Reels and Watch.",
       "category": "Reels",
       "use": true,
       "dependencies": [
@@ -506,6 +506,65 @@
         }
       ],
       "options": []
+    },
+    {
+      "name": "Clone install under another package name",
+      "description": "Installs a second copy of Facebook beside the first under its own package name and app name, for a phone where Facebook came preinstalled and a patched one won't install over it. Hushfacebook settings open in the copy the same way. It isn't selected by default because push notifications may not reach the copy, and you only need it for a second Facebook. Turn on Expert mode in Manager to pick it. Works as soon as you patch it in, with no switch.",
+      "category": "Fixes",
+      "use": false,
+      "dependencies": [
+        "BytecodePatch",
+        "Hushfacebook settings",
+        "Install beside Meta's apps",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "585.0.0.47.54"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "585.0.0.47.54",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 476015655,
+                "ARMEABI_V7A": 476015543
+              }
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "clonePackageName",
+          "title": "Package name",
+          "description": "The copy's unique app ID, like com.facebook.katana.hush. Use words joined by dots, each starting with a letter. It can't match Facebook or another Meta app.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "com.facebook.katana.hush",
+          "values": null
+        },
+        {
+          "key": "cloneAppName",
+          "title": "App name",
+          "description": "The name shown under the copy's home screen icon. Up to 40 characters, starting with a letter or number.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "Facebook Clone",
+          "values": null
+        }
+      ]
     },
     {
       "name": "Comment sheet options",
@@ -737,7 +796,7 @@
     },
     {
       "name": "Don't send reel watch history",
-      "description": "Stops sending Facebook the list of reels you've watched, so it learns less about what you watch. Reels you've already seen may come back. Starts off. Turn it on in Hushfacebook settings > Reels and Watch.",
+      "description": "Stops sending Facebook the list of reels you've watched, and where you stopped in a video and how long you watched it, so it learns less about what you watch. Videos you've already seen may come back. Starts off. Turn it on in Hushfacebook settings > Reels and Watch.",
       "category": "Privacy",
       "use": true,
       "dependencies": [

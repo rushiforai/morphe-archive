@@ -1,3 +1,45 @@
+## [1.9.0](https://github.com/sqzass/patches/compare/v1.8.2...v1.9.0) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* **hermes:** throw PatchException instead of generic Exception in LibraryHermesPatch ([1aeeac4](https://github.com/sqzass/patches/commit/1aeeac4286fc3864a92a5da781af2cd0e3dfe0c3))
+* **hermes:** throw PatchException instead of generic Exception in LibraryHermesPatch ([fc9c36c](https://github.com/sqzass/patches/commit/fc9c36c61f74b5df713d573db2e273b186051063))
+* **pairip:** use firstOrNull guards in gutPairIpVm so missing PairIP classes don't crash patching ([e4b5cc6](https://github.com/sqzass/patches/commit/e4b5cc635c5ad617cda9ca488cb41741ea2fb292))
+* **pairip:** use firstOrNull guards in gutPairIpVm so missing PairIP classes don't crash patching ([7a58eb5](https://github.com/sqzass/patches/commit/7a58eb50809d643fccd499ab95cec656a4f80f8b))
+* **spoofing:** escape dollar signs in descriptors and make patched accumulator mutable ([10cef1c](https://github.com/sqzass/patches/commit/10cef1c4f0edd14c000f6cd76d2b441be1098f70))
+
+### ✨ New Features
+
+* **constants:** populate real app compatibility definitions ([c8675ce](https://github.com/sqzass/patches/commit/c8675cec8f6e3bd0d8aecde8cbb38b433206424a))
+* **constants:** populate real app compatibility definitions ([521de58](https://github.com/sqzass/patches/commit/521de58276b860a3d9579a4c5400cf888140a098))
+* **shared:** add bytecode and resource patching utilities ([ad9b273](https://github.com/sqzass/patches/commit/ad9b27375c9de78405c0c64e14f00fe3a649e8eb))
+* **shared:** add bytecode and resource patching utilities ([4fcd731](https://github.com/sqzass/patches/commit/4fcd731e24a8cc98f8ce720ebd24748dd830f5b1))
+* **shared:** add cert, drm, firebase, gms, installer, signature subpackages ([01a1eb8](https://github.com/sqzass/patches/commit/01a1eb8a18960a8ebeeb7f0534d744bb93779ad5))
+* **shared:** add cert, drm, firebase, gms, installer, signature subpackages ([4a8ca72](https://github.com/sqzass/patches/commit/4a8ca721ce5cc5b8877610902dcceeeaf2a6784b))
+* **spoofing:** add advertising ID, battery level, and MAC address spoof patches ([45194a5](https://github.com/sqzass/patches/commit/45194a5459ef32b0542c130c61a3093f8240cf12))
+* **spoofing:** add advertising ID, battery level, and MAC address spoof patches ([d89e45d](https://github.com/sqzass/patches/commit/d89e45de8e37d0f431ab6b95b723fe9ffa38ebff))
+
+## [1.9.0-dev.1](https://github.com/sqzass/patches/compare/v1.8.2...v1.9.0-dev.1) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* **hermes:** throw PatchException instead of generic Exception in LibraryHermesPatch ([1aeeac4](https://github.com/sqzass/patches/commit/1aeeac4286fc3864a92a5da781af2cd0e3dfe0c3))
+* **hermes:** throw PatchException instead of generic Exception in LibraryHermesPatch ([fc9c36c](https://github.com/sqzass/patches/commit/fc9c36c61f74b5df713d573db2e273b186051063))
+* **pairip:** use firstOrNull guards in gutPairIpVm so missing PairIP classes don't crash patching ([e4b5cc6](https://github.com/sqzass/patches/commit/e4b5cc635c5ad617cda9ca488cb41741ea2fb292))
+* **pairip:** use firstOrNull guards in gutPairIpVm so missing PairIP classes don't crash patching ([7a58eb5](https://github.com/sqzass/patches/commit/7a58eb50809d643fccd499ab95cec656a4f80f8b))
+* **spoofing:** escape dollar signs in descriptors and make patched accumulator mutable ([10cef1c](https://github.com/sqzass/patches/commit/10cef1c4f0edd14c000f6cd76d2b441be1098f70))
+
+### ✨ New Features
+
+* **constants:** populate real app compatibility definitions ([c8675ce](https://github.com/sqzass/patches/commit/c8675cec8f6e3bd0d8aecde8cbb38b433206424a))
+* **constants:** populate real app compatibility definitions ([521de58](https://github.com/sqzass/patches/commit/521de58276b860a3d9579a4c5400cf888140a098))
+* **shared:** add bytecode and resource patching utilities ([ad9b273](https://github.com/sqzass/patches/commit/ad9b27375c9de78405c0c64e14f00fe3a649e8eb))
+* **shared:** add bytecode and resource patching utilities ([4fcd731](https://github.com/sqzass/patches/commit/4fcd731e24a8cc98f8ce720ebd24748dd830f5b1))
+* **shared:** add cert, drm, firebase, gms, installer, signature subpackages ([01a1eb8](https://github.com/sqzass/patches/commit/01a1eb8a18960a8ebeeb7f0534d744bb93779ad5))
+* **shared:** add cert, drm, firebase, gms, installer, signature subpackages ([4a8ca72](https://github.com/sqzass/patches/commit/4a8ca721ce5cc5b8877610902dcceeeaf2a6784b))
+* **spoofing:** add advertising ID, battery level, and MAC address spoof patches ([45194a5](https://github.com/sqzass/patches/commit/45194a5459ef32b0542c130c61a3093f8240cf12))
+* **spoofing:** add advertising ID, battery level, and MAC address spoof patches ([d89e45d](https://github.com/sqzass/patches/commit/d89e45de8e37d0f431ab6b95b723fe9ffa38ebff))
+
 ## [1.8.2](https://github.com/sqzass/patches/compare/v1.8.1...v1.8.2) (2026-10-25)
 
 ### 🐛 Bug Fixes

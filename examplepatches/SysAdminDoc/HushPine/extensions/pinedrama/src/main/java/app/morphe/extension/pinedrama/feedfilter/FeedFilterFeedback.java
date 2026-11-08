@@ -337,6 +337,8 @@ final class FeedFilterFeedback {
         if ("UnpersonalizedForYouFilter".equals(reason)) return "Unpersonalized feed videos";
         if ("RegionFilter".equals(reason)) return "Country filters";
         if ("CaptionLanguageFilter".equals(reason)) return "Caption languages";
+        if ("PreferredSubtitleFilter".equals(reason)) return "Preferred subtitles";
+        if ("PreferredDubFilter".equals(reason)) return "Preferred dubs";
         if ("PublicationAgeFilter".equals(reason)) return "Post age";
         if ("QualityFilter".equals(reason)) return "Length and views per like";
         return OTHER_REASON;

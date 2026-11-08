@@ -1,13 +1,17 @@
 package app.morphe.extension.instants;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.widget.Toast;
 import android.util.Log;
@@ -15,7 +19,7 @@ import android.util.Log;
 import java.io.InputStream;
 
 /**
- * Headless fragment used only to launch the system gallery and receive its result.
+ * Headless fragment used only to launch the system picker (photos and videos) and receive its result.
  * A fragment is used instead of an Activity so the patched app's manifest does not
  * need a new component.
  */
@@ -34,13 +38,24 @@ public final class GalleryPickerFragment extends Fragment {
             return;
         }
         try {
-            Intent pick = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            pick.setType("image/*");
-            startActivityForResult(pick, REQUEST_PICK);
+            startActivityForResult(pickerIntent(), REQUEST_PICK);
         } catch (Throwable t) {
             Log.e(TAG, "Unable to start gallery picker", t);
             detach();
         }
+    }
+
+    // Photos and videos. Android 13+ has a system photo picker for both that needs no permission;
+    // older versions use the generic content picker restricted to image and video types.
+    private static Intent pickerIntent() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return new Intent(MediaStore.ACTION_PICK_IMAGES);
+        }
+        Intent pick = new Intent(Intent.ACTION_GET_CONTENT);
+        pick.setType("*/*");
+        pick.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{"image/*", "video/*"});
+        pick.addCategory(Intent.CATEGORY_OPENABLE);
+        return pick;
     }
 
     @Override
@@ -48,16 +63,42 @@ public final class GalleryPickerFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode != REQUEST_PICK) return;
 
-        android.app.Activity activity = getActivity();
-        Bitmap bitmap = null;
-        if (resultCode == android.app.Activity.RESULT_OK && data != null && data.getData() != null) {
-            bitmap = decode(data.getData());
+        final android.app.Activity activity = getActivity();
+        Uri uri = resultCode == android.app.Activity.RESULT_OK && data != null ? data.getData() : null;
+        if (uri == null || activity == null) {
+            detach();
+            return;
         }
+        String type = activity.getContentResolver().getType(uri);
+        if (type != null && type.startsWith("video/")) {
+            detach();
+            loadVideo(activity, uri);
+            return;
+        }
+        Bitmap bitmap = decode(uri);
         detach();
-        if (bitmap != null && activity != null) {
+        if (bitmap != null) {
             InstantsGalleryHelper.setPendingBitmap(bitmap);
-            Toast.makeText(activity, "Imagem selecionada. Toque no obturador para enviar.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, InstantsStrings.imageSelected(activity), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    // Copying and probing a video takes a moment: do it off the UI thread.
+    private static void loadVideo(final android.app.Activity activity, final Uri uri) {
+        final Context context = activity.getApplicationContext();
+        new Thread(() -> {
+            final GalleryVideoLoader.Result result = GalleryVideoLoader.load(context, uri);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                if (result.status == GalleryVideoLoader.OK) {
+                    InstantsGalleryHelper.setPendingVideo(result.file, result.thumbnail, result.width, result.height);
+                    Toast.makeText(context, InstantsStrings.videoSelected(context), Toast.LENGTH_SHORT).show();
+                } else if (result.status == GalleryVideoLoader.TOO_LONG) {
+                    Toast.makeText(context, InstantsStrings.videoTooLong(context), Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(context, InstantsStrings.videoFailed(context), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }, "InstantsGalleryVideo").start();
     }
 
     private void detach() {

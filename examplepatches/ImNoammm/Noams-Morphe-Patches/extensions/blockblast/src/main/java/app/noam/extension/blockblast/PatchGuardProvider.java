@@ -21,14 +21,19 @@ public final class PatchGuardProvider extends ContentProvider {
         Context context = getContext();
         if (context == null) return true;
         File files = context.getFilesDir();
-        File patch = new File(files, "patch");
-        deleteRecursively(new File(patch, "main.js"));
-        deleteRecursively(new File(patch, "project.manifest"));
-        deleteRecursively(new File(patch, "version.manifest"));
-        deleteRecursively(new File(patch, "src"));
-        deleteRecursively(new File(patch, "assets"));
-        deleteRecursively(new File(patch, "jsb-adapter"));
+        // Everything staged in patch/ goes, whatever its name (an update can ship files we have never
+        // seen, like the second boot script main2.js); only the native side's install markers stay:
+        // baseV and baseM, which the login checks, and baseTag, which the updater consumes to repair
+        // data after an app install.
+        File[] staged = new File(files, "patch").listFiles();
+        if (staged != null) {
+            for (File entry : staged) {
+                String name = entry.getName();
+                if (!name.equals("baseV") && !name.equals("baseM") && !name.equals("baseTag")) deleteRecursively(entry);
+            }
+        }
         deleteRecursively(new File(files, "patch_temp"));
+        deleteRecursively(new File(files, "patch_check"));
         File[] entries = files.listFiles();
         if (entries != null) {
             for (File entry : entries) {

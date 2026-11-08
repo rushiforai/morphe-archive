@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.6.0",
+  "version": "1.6.8",
   "patches": [
     {
       "name": "ADB server log",
@@ -26,6 +26,33 @@
             },
             {
               "version": "3.7.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Initialize ADB server Looper",
+      "description": "Neutralizes the redundant Looper.prepare() call from the ADB server main entry point.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "dev.vodik7.tvquickactions",
+          "name": "tvQuickActions Pro",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1565C0",
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.8.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -72,7 +99,7 @@
     },
     {
       "name": "Unlock native engine",
-      "description": "Patches the native engine libraries so that they run on a re-signed APK. The anti-tamper constructor of libd.so that destroys a global mutex is disabled, and the trap instructions the verification routine plants inside its own code - udf #0 (SIGILL) and stores of the markers 0xdead and 0xdeadbeef (SIGSEGV) - are replaced by no-ops, leaving the routine's work intact. This is what makes Web Widget Overlay and button emulation work. The only `system()` call of liba.so, which force-stops the app when the ADB speed-up server loads it, is turned into no-ops as well, which is what stops the app from killing itself in a loop.",
+      "description": "Patches the native engine libraries so that they run on a re-signed APK. The anti-tamper constructor of libd.so that destroys a global mutex is disabled, and the trap instructions the verification routine plants inside its own code - udf #0 (SIGILL) and stores of the markers 0xdead and 0xdeadbeef (SIGSEGV) - are replaced by no-ops, leaving the routine's work intact. This is what makes Web Widget Overlay and button emulation work. The server-only liba.so self-stop calls are also disabled for ARM32 and ARM64 so ADB speed-up does not terminate the app.",
       "default": true,
       "category": null,
       "compatiblePackages": [

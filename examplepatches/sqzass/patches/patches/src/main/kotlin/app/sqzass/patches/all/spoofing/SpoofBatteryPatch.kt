@@ -36,7 +36,7 @@ val spoofBatteryPatch = bytecodePatch(
     execute {
         val level = levelOption.value?.toIntOrNull() ?: 100
 
-        val patched = patchMatchingMethods(
+        var patched = patchMatchingMethods(
             isCandidate = { method ->
                 method.implementation?.instructions?.any { isBatteryPropertyRead(it) } == true
             },

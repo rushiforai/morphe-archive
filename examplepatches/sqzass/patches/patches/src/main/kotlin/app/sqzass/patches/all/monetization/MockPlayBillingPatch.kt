@@ -18,10 +18,6 @@ private const val BILLING_OK = 0
 
 private val CONSUME_METHODS = setOf("acknowledgePurchase", "consumeAsync", "endConnection")
 
-// ponytail: purchase query results (PurchasesResult, BillingResult objects)
-// cannot be fabricated through the patch API; only primitive client state is
-// mocked. Full purchase-result fabrication needs an .mpe extension. Firebase
-// Remote Config fetch returns a Task object and is uncovered for the same reason.
 private fun isBillingClientCall(instruction: Instruction, name: String, returnType: String): Boolean {
     val reference = methodReferenceOf(instruction) ?: return false
     return reference.definingClass == BILLING_CLIENT &&

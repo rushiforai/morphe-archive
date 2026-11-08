@@ -7,8 +7,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 
-private const val HAZE_GRADIENT_CLASS =
-    "Lcom/x/composer/minimal/n0;"
+private const val HAZE_GRADIENT_CLASS = "Lcom/x/composer/minimal/o0;"
 
 private const val ORIGINAL_DIVISOR_BITS = 0x40000000 // 2.0f
 private const val SHORTENED_DIVISOR_BITS = 0x40800000 // 4.0f

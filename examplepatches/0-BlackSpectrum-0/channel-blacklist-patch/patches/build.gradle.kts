@@ -100,6 +100,7 @@ tasks {
         mainClass.set("app.morphe.util.PatchListGeneratorKt")
     }
 
+
     register<JavaExec>("validatePlaylistQueue") {
         description = "Applies Native playlist queue to a stock APK and verifies it with Android SDK tools"
         group = "verification"

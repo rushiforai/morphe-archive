@@ -1382,7 +1382,6 @@ Comment with live photos, the camera or audio	Commenta con foto live, la fotocam
 Save comments to Favorites	Salva i commenti nei Preferiti
 Comment sort and dislike styles	Ordinamento dei commenti e stili di Non mi piace
 Message bubble colors, Inbox archive and sharing to more chats	Colori delle bolle dei messaggi, archivio della Posta in arrivo e condivisione con più chat
-Manage topics	Gestisci argomenti
 Visual search	Ricerca visiva
 AI Self	AI Self
 Long-press menu on every post	Menu a pressione prolungata su ogni post
@@ -1639,7 +1638,6 @@ Sign in without a passkey	Accedi senza passkey
 PineDrama treats your phone as one without passkeys, so signing in asks for your password or a code by email or text instead. Password managers won't hand a passkey to a patched app. If PineDrama's 2-step check still wants only a passkey, add email or text as a way to verify on tiktok.com or another phone first.	PineDrama tratta il tuo telefono come uno senza passkey, quindi per accedere chiede la password o un codice via email o SMS. I gestori di password non danno una passkey a un'app modificata. Se la verifica in due passaggi di PineDrama chiede ancora solo una passkey, aggiungi prima email o SMS come metodo di verifica su tiktok.com o su un altro telefono.
 # context: opens the complete published changelog from the concise release summary dialog.
 Full changelog	Tutte le modifiche
-More hashtags per post	Più hashtag per post
 New comment emoji	Nuove emoji nei commenti
 Hide root	Nascondi root
 Hide root status and details about root tools from PineDrama.	Nasconde a PineDrama lo stato di root e i dettagli degli strumenti di root.
@@ -1832,3 +1830,28 @@ Sticker added to Saved	Sticker aggiunto ai salvati
 Recently used	Usati di recente
 # context: A video's share sheet. Make sticker is a button HushPine adds after Save cover, and it turns the video's cover into one of your saved comment stickers. Keep it about as short as Save cover, since share sheet labels get two short lines under the icon
 Make sticker	Crea sticker
+Keep your place in History and Favorites	Mantieni la posizione in Cronologia e Preferiti
+Stops these lists jumping back to the top when you switch tabs or come back from a video. A list you haven't scrolled still updates.	Impedisce a questi elenchi di tornare in cima quando cambi scheda o torni da un video. Un elenco che non hai fatto scorrere si aggiorna comunque.
+Dramas	Drama
+Episodes in full screen	Episodi a schermo intero
+Swipe up for the next episode and down for the previous one without leaving full screen. The next episode starts when one ends, instead of the same one looping.	Scorri verso l'alto per l'episodio successivo e verso il basso per quello precedente senza uscire dallo schermo intero. Quando un episodio finisce parte il successivo invece di ripetere lo stesso.
+Subtitles	Sottotitoli
+Subtitle priority	Priorità dei sottotitoli
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own subtitle. Used when a video starts playing.	Codici lingua nell'ordine che preferisci, separati da virgole, come en, original. original indica il sottotitolo del video stesso. Si usa quando un video inizia.
+Force subtitle	Forza sottotitolo
+Always use the first subtitle on your list that a video has, even with captions off. A video with none of them plays as usual. Turning captions off yourself lasts until the app restarts.	Usa sempre il primo sottotitolo della tua lista presente nel video, anche con i sottotitoli disattivati. Un video senza nessuno di questi si riproduce come al solito. Se disattivi tu i sottotitoli, resta così fino al riavvio dell'app.
+Force original subtitle	Forza sottotitolo originale
+Always use the video's own subtitle, never a translated one, even with captions off. A video without one plays as usual.	Usa sempre il sottotitolo del video stesso, mai uno tradotto, anche con i sottotitoli disattivati. Un video che non ce l'ha si riproduce come al solito.
+Dubs	Doppiaggi
+Dub priority	Priorità del doppiaggio
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own audio. Used when a video starts playing.	Codici lingua nell'ordine che preferisci, separati da virgole, come en, original. original indica l'audio del video stesso. Si usa quando un video inizia.
+Force dub	Forza doppiaggio
+Always use the first dub on your list that a video has, even with dubbing off. A video with none of them plays as usual.	Usa sempre il primo doppiaggio della tua lista presente nel video, anche con il doppiaggio disattivato. Un video senza nessuno di questi si riproduce come al solito.
+Force original dub	Forza audio originale
+Always play the video's own audio, never an AI dub.	Riproduce sempre l'audio del video stesso, mai un doppiaggio IA.
+Hide videos without a preferred subtitle	Nascondi i video senza un sottotitolo preferito
+Hides videos with no subtitle from Subtitle priority in Playback, and that includes videos with no subtitles at all. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Nasconde i video senza un sottotitolo della Priorità dei sottotitoli in Riproduzione, compresi quelli senza alcun sottotitolo. Se si nasconderebbe un'intera pagina, resta un video perché il feed continui a caricarsi. Non fa nulla finché la lista è vuota.
+Hide videos without a preferred dub	Nascondi i video senza un doppiaggio preferito
+Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Nasconde i video senza un doppiaggio della Priorità del doppiaggio in Riproduzione. Con original nella lista restano tutti i video, perché ognuno ha il proprio audio. Se si nasconderebbe un'intera pagina, resta un video perché il feed continui a caricarsi. Non fa nulla finché la lista è vuota.
+Preferred subtitles	Sottotitoli preferiti
+Preferred dubs	Doppiaggi preferiti

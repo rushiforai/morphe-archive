@@ -412,11 +412,21 @@ final class LocalAnalysisFlow {
             int[] wT = new int[11];
             int[] bT = new int[11];
 
-            // Starting position (index 0)
+            Class<?>[] pmTypes = pmConstructor.getParameterTypes();
+
+            // Starting position (index 0): In official Chess.com game review, positions[0]
+            // represents the starting position before move 1. All move indices in GameReview
+            // (1..totalMoves) rely on positions having length totalMoves + 1 (preventing line 720
+            // IndexOutOfBoundsException). playedMove and classification MUST be null on position 0
+            // because no move was played (preventing line 198 MoveConverterKt.b failure). When j0.o
+            // is called for position 0, GameReviewV2V0JFingerprint intercepts it and returns a safe
+            // dummy book review item.
             Object startSuggestedMove = null;
             Object startBestMove = null;
             if (data.startBest != null) {
-                List<String> startPv = data.startLine.isEmpty() ? Collections.singletonList(data.startBest) : data.startLine;
+                List<String> startPv = !data.startLine.isEmpty()
+                    ? data.startLine
+                    : Collections.singletonList(data.startBest);
                 Object[] startSmArgs = new Object[]{
                     data.startScore,
                     data.startMate != 0 ? data.startMate : null,
@@ -431,6 +441,7 @@ final class LocalAnalysisFlow {
                 startSuggestedMove = smConstructor.newInstance(startSmArgs);
                 startBestMove = bmConstructor.newInstance(data.startBest);
             }
+
             positions.add(apConstructor.newInstance(
                 colorWhite, null, startSuggestedMove, startBestMove, null,
                 scConstructor.newInstance(false, false)
@@ -463,7 +474,6 @@ final class LocalAnalysisFlow {
                 pmArgs[4] = evalValue(evalConstructor, evalIntFirst, playedPv, pvCutoff(playedPv)); // eval
                 pmArgs[5] = new ArrayList<>();                                        // speech
                 pmArgs[6] = null;                                                     // coachEmotion
-                Class<?>[] pmTypes = pmConstructor.getParameterTypes();
                 for (int k = 0; k < pmArgs.length && k < pmTypes.length; k++) {
                     pmArgs[k] = coerce(pmTypes[k], pmArgs[k]);
                 }

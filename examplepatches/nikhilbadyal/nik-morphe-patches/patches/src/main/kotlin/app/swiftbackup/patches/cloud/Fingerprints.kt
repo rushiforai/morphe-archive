@@ -5,6 +5,40 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
+/** The 5.1.0 repository loads the blacklist on demand during onboarding. */
+object BlacklistFetchFingerprint : Fingerprint(
+    definingClass = "Lgs0;",
+    name = "b",
+    returnType = "Z",
+    parameters = listOf(),
+    filters = listOf(string("Fetching on demand"))
+)
+
+/** Signed-in edits otherwise replace the entire blacklist through the stock Firebase writer. */
+object BlacklistSaveFingerprint : Fingerprint(
+    definingClass = "Lgs0;",
+    name = "d",
+    returnType = "V",
+    parameters = listOf("Lorg/swiftapps/swiftbackup/blacklist/data/BlacklistData;", "Z"),
+    filters = listOf(string("blacklistApps"))
+)
+
+/** The single-app removal listener still has the actual removed app before constructing the list. */
+object BlacklistRemoveFingerprint : Fingerprint(
+    definingClass = "Lns0;",
+    name = "j",
+    returnType = "V",
+    parameters = listOf("Lorg/swiftapps/swiftbackup/blacklist/data/BlacklistApp;", "Ljava/util/ArrayList;")
+)
+
+/** Both manual settings import and cloud settings restore invoke the same native importer. */
+object BlacklistImportFingerprint : Fingerprint(
+    definingClass = "Lorg/swiftapps/swiftbackup/settings/SwiftBackupSettingsHelper\$SettingsData;",
+    name = "restore",
+    returnType = "V",
+    parameters = listOf()
+)
+
 /**
  * wz5.e(action, path, data, hash, callback): PersistentConnection.putInternal — the single outgoing
  * write (setValue "p", updateChildren "m", transaction compare-and-put all funnel through it).

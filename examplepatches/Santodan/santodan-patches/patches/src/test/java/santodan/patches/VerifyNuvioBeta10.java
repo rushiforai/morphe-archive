@@ -449,6 +449,19 @@ public final class VerifyNuvioBeta10 {
     }
 
     private static void verifyMergeHooks() {
+        for (String name : List.of("C", "D", "A", "B")) {
+            String expected = "L" + software.santodan.extension.nuviomerged.NuvioLocalWriteContinuation
+                .nativeState(name).replace('.', '/') + ";";
+            Method nativeMethod = owner("Lcom/nuvio/tv/data/local/bc;").getMethods().stream()
+                .filter(m -> m.getName().equals(name)).findFirst().orElseThrow();
+            boolean matched = false;
+            for (Instruction instruction : nativeMethod.getImplementation().getInstructions()) {
+                if (instruction.getOpcode() == com.android.tools.smali.dexlib2.Opcode.INSTANCE_OF &&
+                    instruction instanceof ReferenceInstruction &&
+                    ((ReferenceInstruction) instruction).getReference().toString().equals(expected)) matched = true;
+            }
+            if (!matched) throw new AssertionError("Local overlay resume binding differs from original beta.10: " + name);
+        }
         for (String name : List.of("C", "D", "A", "B"))
             verifyMergeHook("Lcom/nuvio/tv/data/local/bc;", NuvioMergedProgressPatch::hookLocalOverlay, name);
         for (String name : List.of("p", "q"))

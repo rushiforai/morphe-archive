@@ -1,0 +1,194 @@
+/*
+ * Copyright (C) 2026 sqzass
+ * SPDX-License-Identifier: GPL-3.0-only
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, version 3.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ *
+ * Additional term under GPLv3 Section 7(b): When conveying this material
+ * or modified versions, preserve this notice and credit sqzass for this
+ * material in any Appropriate Legal Notices displayed by works containing it.
+ */
+package app.sqzass.extension.proton;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.graphics.Color;
+import android.graphics.ColorSpace;
+import android.os.Build;
+import app.morphe.extension.shared.Utils;
+
+@SuppressWarnings("unused")
+public final class AccentColor {
+
+    public static final int STOCK_DARK_ACCENT = 0xFF9292F9;
+
+    static final String STOCK = "";
+    static final String SYSTEM = "system";
+    static final int STOCK_LIGHT_ACCENT = 0xFF6D4AFF;
+
+    private static final String PREFERENCE_KEY = "accent_color";
+
+    private static final long ARGB_MASK = 0xFFFFFFFFL;
+    static int resolvePresetColor(String preset) {
+        return (SYSTEM.equals(preset)) ? getSystemAccentColor() : parseColorOrZero(preset);
+    }
+
+    public static long transformBrandColor(long original) {
+        try {
+            final LabAdjustment adjustment = computeLabAdjustment(getPreset());
+            if (adjustment == null) {
+                return original;
+            }
+            return applyLabAdjustment((int) original, adjustment);
+        } catch (Throwable ex) {
+            return original;
+        }
+    }
+
+    static int computeLabAdjustment(String preset) {
+        return null;
+    }
+
+    private static int getSystemAccentColor() {
+        if (!isSystemAccentAvailable()) {
+            return 0;
+        }
+
+        final Context context = Utils.getContext();
+        return (context != null) ? context.getColor(android.R.color.system_accent1_500) : 0;
+    }
+
+    private static int parseColorOrZero(String color) {
+        try {
+            return Color.parseColor(color);
+        } catch (Throwable ex) {
+            return 0;
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private static int applyLabAdjustment(int argb, LabAdjustment adjustment) {
+        final float[] labComponents = argbToLab(argb);
+        final float lightness = (float) Math.max(0,
+                Math.min(MAX_LIGHTNESS, labComponents[0] * adjustment.lightnessScale));
+        final double sourceChroma = Math.hypot(labComponents[1], labComponents[2]);
+        final double boost = 1 + (adjustment.chromaScale - 1) * Math.min(1, sourceChroma / adjustment.stockChroma);
+        final double requested = sourceChroma * boost;
+        final double chroma = fitChromaToGamut(lightness, requested, adjustment.hueRadians, labComponents[3]);
+
+        return labToArgb(lightness, chroma, adjustment.hueRadians, labComponents[3]);
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private static double fitChromaToGamut(float lightness, double chroma, double hue, float alpha) {
+        if (isInGamut(lightness, chroma, hue, alpha)) {
+            return chroma;
+        }
+
+        double low = 0;
+        double high = chroma;
+        for (int step = 0; step < GAMUT_STEPS; step++) {
+            final double middle = (low + high) / 2;
+            if (isInGamut(lightness, middle, hue, alpha)) {
+                low = middle;
+            } else {
+                high = middle;
+            }
+        }
+
+        return low;
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private static boolean isInGamut(float lightness, double chroma, double hue, float alpha) {
+        final float[] roundTrip = argbToLab(labToArgb(lightness, chroma, hue, alpha));
+        return Math.abs(roundTrip[0] - lightness) <= GAMUT_TOLERANCE
+                && Math.hypot(roundTrip[1], roundTrip[2]) >= chroma - GAMUT_TOLERANCE;
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private static int labToArgb(float lightness, double chroma, double hue, float alpha) {
+        return Color
+            .valueOf(lightness, (float) (chroma * Math.cos(hue)), (float) (chroma * Math.sin(hue)), alpha,
+                    getLabColorSpace())
+            .convert(ColorSpace.get(ColorSpace.Named.SRGB))
+            .toArgb();
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private static float[] argbToLab(int argb) {
+        return Color.valueOf(argb).convert(getLabColorSpace()).getComponents();
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private static ColorSpace getLabColorSpace() {
+        return ColorSpace.get(ColorSpace.Named.CIE_LAB);
+    }
+
+    private static final class LabAdjustment {
+        final double hueRadians;
+        final double chromaScale;
+        final double lightnessScale;
+        final double stockChroma;
+
+        LabAdjustment(double hueRadians, double chromaScale, double lightnessScale, double stockChroma) {
+            this.hueRadians = hueRadians;
+            this.chromaScale = chromaScale;
+            this.lightnessScale = lightnessScale;
+            this.stockChroma = stockChroma;
+        }
+    }
+
+    private static final double MAX_CHROMA_SCALE = 2.5;
+    private static final double MIN_PRESET_CHROMA = 1;
+    private static final double MIN_LIGHTNESS_SCALE = 0.6;
+    private static final double MAX_LIGHTNESS_SCALE = 1.4;
+    private static final float MAX_LIGHTNESS = 100;
+    private static final double GAMUT_TOLERANCE = 2;
+    private static final int GAMUT_STEPS = 10;
+    private static final Map<Integer, Integer> TRANSFORMED_BRAND_COLORS = new ConcurrentHashMap<>();
+
+    private AccentColor() {
+    }
+
+    public static boolean isPatched() {
+        return false;
+    }
+
+    static boolean isSystemAccentAvailable() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
+    }
+
+    static String getPreset() {
+        return (isPatched()) ? PatchSettings.getString(PREFERENCE_KEY, STOCK) : STOCK;
+    }
+
+    static void setPreset(String preset) {
+        PatchSettings.setString(PREFERENCE_KEY, preset);
+        TRANSFORMED_BRAND_COLORS.clear();
+    }
+
+    public static int getAccentColor(boolean dark) {
+        return resolveAccentColor(getPreset(), dark);
+    }
+
+    static int resolveAccentColor(String preset, boolean dark) {
+        final int stockAccent = (dark) ? STOCK_DARK_ACCENT : STOCK_LIGHT_ACCENT;
+        final LabAdjustment adjustment = computeLabAdjustment(preset);
+        return (adjustment != null) ? applyLabAdjustment(stockAccent, adjustment) : stockAccent;
+    }
+}

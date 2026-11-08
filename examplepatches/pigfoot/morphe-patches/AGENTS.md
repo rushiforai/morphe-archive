@@ -130,3 +130,39 @@ APKs or APKS, private device logs, local workspace paths or personal context.
 Publish only intended project artifacts through the existing release workflow.
 Pointer: [build instructions](README.md#build), [.gitignore](.gitignore),
 [release workflow](.github/workflows/release.yml).
+
+### Visible required compatibility patches
+Trigger: adding or reusing a required startup/install compatibility capability.
+Guard: expose the app-scoped compatibility patch in the installer list with
+`REQUIRED` availability for qualified installers, and add explicit `dependsOn`
+from feature patches that require it. Keep only the implementation internal in
+shared/common; app adapters retain package/version/signer/content qualification.
+Do not silently bury a required compatibility edit in a feature patch, replace
+requiredness with default selection alone, or add a duplicate universal toggle.
+Pointer: [shared component practice](docs/shared-components.md#required-compatibility-patch-presentation),
+[RailsGo selection tests](patches/src/test/kotlin/app/pigfoot/patches/RailsGoSelectionTest.kt),
+[PikieWalker dependency tests](patches/src/test/kotlin/app/pigfoot/patches/PairipLicenseTest.kt).
+
+### User-facing patch names and descriptions
+Trigger: adding or editing installer-visible patch names, descriptions or options.
+Guard: name the user-visible purpose in plain language; descriptions explain the
+benefit, necessary limits and whether the patch is required. A short technical reference (for example, Pairip) may follow the plain-language
+benefit, but must not replace it or dominate the name/description. Keep detailed
+implementation explanations in developer docs.
+Do not include raw Android package IDs (for example, com.vendor.app) in
+installer-visible titles. Keep package IDs in compatibility metadata. App display
+names are not package IDs and may remain as readable context; do not remove them
+or change actual APK package identity based on this wording rule.
+For separately qualified distributions, use official labels (`Google Play`, not just `Play`; `Unlocked` for the official unlocked APK) in documentation. Prefer one visible feature patch when the purpose/options are the same: internally select exactly one independently qualified distribution policy from original content fingerprints before any mutation. Unknown, mixed or ambiguous inputs must fail closed; do not expose mutually exclusive patches merely because their APK checksums differ. Keep APK checksum inventories and distribution-specific identity/content guards; shared package/version/signer alone is insufficient. Selection UI metadata may not expose content checksums, so distinguish automatic implementation dispatch at patch time from Manager-side filtering.
+Use consistent wording for the same capability across apps. Explicitly document
+renames and update selection tests/references; never leave stale dependency names.
+Pointer: [required compatibility presentation](docs/shared-components.md#required-compatibility-patch-presentation).
+
+### Feature comparison and technical identity
+Trigger: comparing this repo with another patch repo, renaming patches, or claiming feature coverage.
+Guard: read/update the canonical capability mapping; preserve a short technical
+reference after user-facing descriptions and record implemented vs planned status,
+consumers, pinned upstream references and non-coverage. Similar UI labels do not
+prove equivalent mechanisms. Pairip licensing is not installer spoofing, native
+VM support or server attestation.
+Pointer: [feature-comparison identity map](docs/shared-components.md#feature-comparison-identity-map).

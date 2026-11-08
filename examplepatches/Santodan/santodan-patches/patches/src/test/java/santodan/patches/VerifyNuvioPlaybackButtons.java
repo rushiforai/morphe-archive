@@ -28,10 +28,10 @@ public final class VerifyNuvioPlaybackButtons {
                         check(classes.put(c.getType(), c) == null);
                 }
         }
-        ClassDef originalMain = classes.get("Lbb/ei;"), originalMore = classes.get("Lbb/ji;");
+        ClassDef originalMain = classes.get("Lbb/ji;"), originalMore = classes.get("Lbb/oi;");
         MutableClass main = new MutableClass(originalMain), more = new MutableClass(originalMore);
-        NuvioPlaybackButtonsPatch.validateRuntime(new MutableClass(classes.get("Lbb/mk;")),
-            new MutableClass(classes.get("Lv/b0;")), new MutableClass(classes.get("Lv/c0;")));
+        NuvioPlaybackButtonsPatch.validateRuntime(new MutableClass(classes.get("Lbb/qk;")),
+            new MutableClass(classes.get("Lv/a0;")), new MutableClass(classes.get("Lv/b0;")));
         NuvioPlaybackButtonsPatch.validate(main, more);
         for (String signature : NuvioPlaybackButtonsPatch.UI_CONTRACTS)
             NuvioPlaybackButtonsPatch.validateUiMethod(new MutableClass(classes.get(signature.substring(0, signature.indexOf("->")))), signature);

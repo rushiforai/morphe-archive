@@ -27,13 +27,13 @@ public final class NuvioApkUpdates {
     }
     static final List<Contract> CONTRACTS = List.of(
         new Contract("Llb/j0;", "a", "b160c7d497b0eb00a9de4ff8060fbae7acdb9e3fab8c7c43e0dc99553bc3fcc9", 0),
-        new Contract("Llb/q0;", "a", "ab0cf3fd8bbee957dfc41193cac668a89312cf1d89d34e525de65f42814d4d19", 1),
-        new Contract("Llb/q0;", "b", "12ac0ebcdc0b24735f741f7e59934bbdfefd356564823d30f5904c3333661bfa", 1),
-        new Contract("Llb/m0;", "invokeSuspend", "406b1df61629f98df12354c525382bd255e6fb86085db8ef31fdf1259300d39c", 1),
-        new Contract("Llb/k;", "a", "2df4c14ab4c66eb61641e99d1affa725f7a45b56927db60e7f723c5d37c1c6cb", 1),
-        new Contract("Llb/q;", "a", "5b16a372cd0a36c5b9ff5f1d8b9d974097dd787580dec20c828075476e905458", 1),
-        new Contract("Llb/q;", "d", "23d7b61c74f2a5c0833da8f5cdfa6e85b7fae3b10edb60ca30626f1b1c9f2ddf", 1),
-        new Contract(JOB, "a", "cdc67ddc37119a680dee497660a67cd8408af74460ad7e679060edb6b2ffb147", 1));
+        new Contract("Llb/q0;", "a", "0d05364ac7f38e385b56e97c40d382595fbe8a7c980a344c272a512fc05dfda4", 1),
+        new Contract("Llb/q0;", "b", "eb15160a3bc6340f7bd8581bfb4dea925e9ebb042e34c2fe81b0a0d2846966fe", 1),
+        new Contract("Llb/m0;", "invokeSuspend", "e701d1bd8b696b04773508d38656dea3735ec26687f0b46199bd5ed49c818a25", 1),
+        new Contract("Llb/k;", "a", "a51ab9e77200f2d9771de6347171456cc67b13e744b4ed710c1868018e69c19e", 1),
+        new Contract("Llb/q;", "a", "698e27dfa5a44d7fac6a639545316713bd8643b515fafd3219ecba68c6c7efa6", 1),
+        new Contract("Llb/q;", "d", "b48748b53656262871e9290b1e4d3434c69d423b4d5b2321de51e6f6256a3140", 1),
+        new Contract(JOB, "a", "593b1344d951c10de39e14e64ff970fbb288ec159fddb6f21e312dea0ef880ff", 1));
 
     public static boolean validVersion(String value) {
         return value.matches("(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})\\.(0|[1-9][0-9]{0,8})(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?");

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="Buzzcast icon">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF7043"/><stop offset="1" stop-color="#D81B60"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+<rect x="1" y="1" width="70" height="70" rx="19" fill="url(#g)"/><circle cx="16" cy="13" r="33" fill="url(#glow)"/><path d="M8 56c14-9 29-10 56-1" fill="none" stroke="#fff" stroke-opacity=".10" stroke-width="7"/>
+<path d="M28 20.5c0-2.1 2.3-3.4 4.1-2.3l22 13.4a2.8 2.8 0 0 1 0 4.8l-22 13.4c-1.8 1.1-4.1-.2-4.1-2.3z" fill="white"/><path d="M16 25a19 19 0 0 0 0 14M10 19a28 28 0 0 0 0 26" fill="none" stroke="white" stroke-width="3.5" stroke-linecap="round" opacity=".82"/>
+</svg>

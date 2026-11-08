@@ -1,3 +1,11 @@
+## [1.4.0](https://github.com/RikoDEV/morphed-pl/compare/v1.3.1...v1.4.0) (2026-11-07)
+
+### ✨ New Features
+
+* add InPost Mobile patches ([183eb82](https://github.com/RikoDEV/morphed-pl/commit/183eb82d239291eeef115d3a8f3000025ffe8611))
+* add Mój Orange patches ([23ccdbc](https://github.com/RikoDEV/morphed-pl/commit/23ccdbc90a4382cb581f3983bf86e304c162300e))
+* Add support for Mój Orange and InPost mobile patches ([f39aeea](https://github.com/RikoDEV/morphed-pl/commit/f39aeeac4a98ea5fe1a9bddf0d85b6fb43208a6d))
+
 ## [1.3.1](https://github.com/RikoDEV/morphed-pl/compare/v1.3.0...v1.3.1) (2026-11-04)
 
 ### 🚀 Updated App Support

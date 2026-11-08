@@ -11,8 +11,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val virtualMasterAdFreePatch = bytecodePatch(
-    name = "Ad-Free & Clean Environment - Virtual Master (Experimental)",
-    description = "⚠️ [Experimental / Untested] Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers.",
+    name = "Ad-Free & Clean Environment - Virtual Master",
+    description = "Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers.",
 ) {
     compatibleWith(COMPATIBILITY_VIRTUAL_MASTER, COMPATIBILITY_VIRTUAL_MASTER_ALT)
 

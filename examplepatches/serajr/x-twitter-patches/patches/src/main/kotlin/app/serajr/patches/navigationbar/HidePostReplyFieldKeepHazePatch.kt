@@ -11,16 +11,16 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 
 private const val REPLY_COMPOSER = "Lcom/x/composer/minimal/b;"
-private const val OUTER_SURFACE = "Landroidx/compose/foundation/p;->l("
-private const val INNER_CLICKABLE = "Landroidx/compose/foundation/e0;->c("
-private const val REPLY_HAZE = "Lcom/x/compose/core/m0;->e("
+private const val OUTER_SURFACE = "Landroidx/compose/foundation/p;->m("
+private const val INNER_CLICKABLE = "Landroidx/compose/foundation/g0;->c("
+private const val REPLY_HAZE = "Lcom/x/compose/core/o0;->f("
 
 private val RENDER_CALLS = mapOf(
-    "Lcom/x/ui/common/user/z;->l(" to 1,
+    "Lcom/x/ui/common/user/y;->m(" to 1,
     "Lcom/x/composer/minimal/b;->d(" to 1,
-    "Landroidx/compose/animation/g;->i(" to 2,
-    "Landroidx/compose/material3/x;->h(" to 1,
-    "Landroidx/compose/animation/g;->h(" to 1
+    "Landroidx/compose/animation/q;->i(" to 2,
+    "Landroidx/compose/material3/c0;->j(" to 1,
+    "Landroidx/compose/animation/q;->h(" to 1
 )
 
 @Suppress("unused")

@@ -299,6 +299,12 @@ shared-call Lapp/hushgram/extension/instagram/direct/ScreenshotReports;->hold()Z
 # or elsewhere, it isn't the hook.
 start-call Lapp/hushgram/extension/instagram/direct/BlendVisits;->quiet(I)Z in static (Lcom/instagram/common/session/UserSession;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)L*; pooled holding clips/get_blend_medias/
 once-call Lapp/hushgram/extension/instagram/direct/BlendVisits;->quiet(I)Z in static (Lcom/instagram/common/session/UserSession;Ljava/lang/Boolean;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)L*; pooled holding clips/get_blend_medias/
+# It also asks BlendVisits.skipsVisitTime() first in the method sending the time you last opened a
+# Blend (the one loading android_purge_26_q2_BlendRepository_updateBlendLastVisitedTime, 0420.A0Q on
+# 386014758) and returns on a yes (#474). Left out, the visit time still goes out; twice or
+# elsewhere, it isn't the hook.
+start-call Lapp/hushgram/extension/instagram/direct/BlendVisits;->skipsVisitTime()Z in instance (*)V pooled holding android_purge_26_q2_BlendRepository_updateBlendLastVisitedTime
+once-call Lapp/hushgram/extension/instagram/direct/BlendVisits;->skipsVisitTime()Z in instance (*)V pooled holding android_purge_26_q2_BlendRepository_updateBlendLastVisitedTime
 #
 # The patch fingerprint picks the method that puts a sponsored item into a feed by
 # "cross_surface_duplicate_ad" and "Is ad pod", a static method answering a boolean. "Is ad pod" has
@@ -824,6 +830,11 @@ once-call Lapp/hushgram/extension/instagram/direct/ChatMediaWalk;->pager(Ljava/l
 # The drag delegate asks holdDismiss before a swipe up or down starts a dismiss. Left out, a swipe up closes the
 # viewer instead of turning the page.
 once-call Lapp/hushgram/extension/instagram/direct/ChatMediaWalk;->holdDismiss()I in instance (LX/*;FFF)Z class-holding DirectMediaViewerDragControllerDelegate.onDrag\sscale\sis\sNaN
+# A tap on a shared post asks ChatMediaWalk.tap first thing in the chat's tap delegate (0OeO.F1x on 454's
+# 386014758, whose class opens a tapped photo with xma_collage and thread_view), before it hands the tap on
+# to the sparse viewer. Left out, a shared post opens on its own; twice or elsewhere, some other tap opens a walk.
+start-call Lapp/hushgram/extension/instagram/direct/ChatMediaWalk;->tap(Ljava/lang/Object;Ljava/lang/Object;Landroid/view/View;Ljava/lang/Object;)I in instance (Landroid/graphics/RectF;Landroid/view/View;Lcom/instagram/common/typedurl/ImageUrl;LX/*;Lcom/instagram/model/direct/messageid/MessageIdentifier;*)V class-holding xma_collage thread_view
+once-call Lapp/hushgram/extension/instagram/direct/ChatMediaWalk;->tap(Ljava/lang/Object;Ljava/lang/Object;Landroid/view/View;Ljava/lang/Object;)I in instance (Landroid/graphics/RectF;Landroid/view/View;Lcom/instagram/common/typedurl/ImageUrl;LX/*;Lcom/instagram/model/direct/messageid/MessageIdentifier;*)V class-holding xma_collage thread_view
 # Only received reels (#460) also asks ChatReels.received first in the method that registers one of a chat's
 # messages for the chain (02YM.A01 on 453's 385914557, handed the message wrapper 01RZ), which reads the
 # Boolean function fields, hands the message's media on and calls a Function3 with it. A message the viewer
@@ -1848,9 +1859,14 @@ once-call Lapp/hushgram/extension/instagram/misc/BottomSpace;->navigationBarHeig
 # PhoneLayout.foldable what hasSystemFeature answered in the big screen helper's hinge check
 # (01qi.A0A, the one Context check loading the hinge feature). Left out, a foldable or tablet keeps
 # the rail down the side with the switch on; twice or elsewhere, it isn't the hook the patch wrote.
-# PhoneLayoutHookTest checks both on every fixture build.
+# The same width hook goes first in the helper's own copy of that sorting (01vd.A06 on 454, the one
+# static int-to-boolean method loading 600 and 840), which the main activity and the rail ask (#515).
+# Builds 386014704 and 386014705 have no copy, their check calls the factory, and they aren't declared.
+# PhoneLayoutHookTest checks the hooks on every fixture build.
 start-call Lapp/hushgram/extension/instagram/misc/PhoneLayout;->width(I)I in static (I)LX/*; holding const:0x258 const:0x348
 once-call Lapp/hushgram/extension/instagram/misc/PhoneLayout;->width(I)I in static (I)LX/*; holding const:0x258 const:0x348
+start-call Lapp/hushgram/extension/instagram/misc/PhoneLayout;->width(I)I in static (I)Z holding const:0x258 const:0x348
+once-call Lapp/hushgram/extension/instagram/misc/PhoneLayout;->width(I)I in static (I)Z holding const:0x258 const:0x348
 once-call Lapp/hushgram/extension/instagram/misc/PhoneLayout;->foldable(I)Z in instance (Landroid/content/Context;)Z holding android.hardware.sensor.hinge_angle
 # Emoji style hands the replace strategy EmojiCompat's process was given to EmojiStyle.replaceStrategy
 # first thing in process (00Zx.A04 on 450, the one method holding both strings below) and keeps the
@@ -2619,6 +2635,10 @@ sole-call Lapp/hushgram/extension/instagram/misc/Heartbeat;->setUploadAlarm(Land
 # nothing; twice or elsewhere, it isn't the hook the patch wrote. ReelTapAndVolumeHookTest checks on all seven 450
 # builds that it lands once, there.
 once-call Lapp/hushgram/extension/instagram/reels/ReelTapAndVolume;->muteInsteadOfPause()Z in instance (Landroid/view/View;L*;L*;)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause
+# When the choice isn't mute or pause, the same path asks ReelTapAndVolume.keepPlaying next, and returns before the
+# pause when it says so (#554). Left out, Keep playing pauses like Instagram's own tap; twice or elsewhere, it isn't
+# the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/reels/ReelTapAndVolume;->keepPlaying()Z in instance (Landroid/view/View;L*;L*;)V holding android_purge_26_q3_PauseAndMuteNavigator_togglePause
 # The volume half asks ReelTapAndVolume.keepMuted in the Reels controller's volume runnable (the run()V that traces
 # ClipsVideoPlayerController_onVolumeAdjustedByUser), right after the marker call and past the stream adjustment, so
 # the key still does its work. Left out, the switch does nothing; twice or elsewhere, it isn't the hook the patch wrote.
@@ -2682,6 +2702,14 @@ shared-call Lapp/hushgram/extension/instagram/reels/ReelSound;->letsSoundOn(I)I 
 # on some and a lambda's invoke() on others (0TTI.invoke building 05C5 on 454's 386014758), so
 # the rule takes any parameters.
 once-call Lapp/hushgram/extension/instagram/reels/ReelZoom;->zoom(I)Z in (*)Ljava/lang/Object; sites 2 holding const:0x8105d100011b36 const:0x208105d100021b37
+# Double tap to skip on Reels hands the double tap to skip flag to ReelSkip.skip(int) where the Reels use case
+# reads it for each reel, the method tracing DoubleTapToSkipUseCase_getUiState (05KP.A0V on 454's 386014758), and
+# the skip's seconds it reads there, always as a double, to ReelSkip.secondsDouble (#554). Left out, the reel keeps
+# Instagram's answer. The gesture navigator reads the strip width and the seconds again, as floats on some 454 builds
+# and as doubles on others, so its hooks differ by build and get no rule here: DoubleTapSkipReelsHookTest checks on
+# every 454 build that each read there is answered once.
+once-call Lapp/hushgram/extension/instagram/reels/ReelSkip;->skip(I)Z holding android_purge_26_q3_DoubleTapToSkipUseCase_getUiState const:0x811254000164c9
+shared-call Lapp/hushgram/extension/instagram/reels/ReelSkip;->secondsDouble(D)D holding android_purge_26_q3_DoubleTapToSkipUseCase_getUiState const:0x84125400020474
 # Stop swipe up to reply asks StorySwipeReply.keepsSwipe() first thing in the reply composer's
 # swipe listener, the one instance ()Z method focusing a text box in the class that reads a Redex
 # class's EditText field and loads both strings below (0Cjy.GOV on 453's 385914283, 0CwQ.GOv on
@@ -2893,6 +2921,18 @@ first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->seekTo(Ljava/
 # patch wrote. HideCommentEmojiRowPatchTest checks the call, its register and the branch on all
 # the three 452 builds.
 once-call Lapp/hushgram/extension/instagram/feed/CommentEmojiRow;->hidesRow(I)Z holding replying_to_bar group_mention_banner
+# Hide GIFs in comments (#511) asks CommentGifs before the comment row builder does anything, the one
+# method loading both keys below (LX/0JCn.A00 on 454's 386014758): hiding, then dropsComment with the
+# raw comment's GIF, its media's GIF and its words, answering null for no row. keptGif takes the GIF the
+# builder reads on a comment that stays, and hidesMedia clears a sticker's media and string before the
+# row media's constructor. composerTypes takes the GIF kind from the set the comment box's state keeps.
+# Left out, GIFs stay with the switch on; twice or elsewhere, it isn't the call the patch wrote.
+# HideCommentGifsPatchTest checks each call, its registers and what follows it on every build.
+once-call Lapp/hushgram/extension/instagram/feed/CommentGifs;->hiding()Z holding photo_comment_child_missing_overlay_info \ssourceMediaId=
+once-call Lapp/hushgram/extension/instagram/feed/CommentGifs;->dropsComment(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z holding photo_comment_child_missing_overlay_info \ssourceMediaId=
+once-call Lapp/hushgram/extension/instagram/feed/CommentGifs;->keptGif(Ljava/lang/Object;)Ljava/lang/Object; holding photo_comment_child_missing_overlay_info \ssourceMediaId=
+once-call Lapp/hushgram/extension/instagram/feed/CommentGifs;->hidesMedia(Ljava/lang/Object;)Z holding photo_comment_child_missing_overlay_info \ssourceMediaId=
+first-call Lapp/hushgram/extension/instagram/feed/CommentGifs;->composerTypes(Ljava/util/Set;)Ljava/util/Set; outside Lapp/hushgram/extension/
 # Hide the audio icon on posts (#464) hands the value the feed post state's constructor stores in its
 # hide-the-audio-icon flag to FeedAudioIcon.hides, on the line before the store (LX/038z on 453). The
 # constructor loads no string, so the rule names the state's class by the label its toString prints

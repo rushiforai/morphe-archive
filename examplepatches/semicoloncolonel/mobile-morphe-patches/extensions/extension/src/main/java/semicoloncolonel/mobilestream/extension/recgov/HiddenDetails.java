@@ -72,20 +72,63 @@ public final class HiddenDetails {
         }
     }
 
+    /**
+     * Turns a booking window offset into a day and a time. The server counts the offset back
+     * from the end of the tour date (midnight after it), in the facility's local time: for a
+     * tour on Dec 2, "30 days, 14 hours" is Nov 2 at 10:00 AM and "1 day, -6 hours" is Dec 2 at
+     * 6:00 AM.
+     */
     private static String offset(Object days, Object hours) {
         int d = days instanceof Integer ? (Integer) days : 0;
         int h = hours instanceof Integer ? (Integer) hours : 0;
-        StringBuilder text = new StringBuilder();
-        if (d != 0) {
-            text.append(d).append(d == 1 ? " day" : " days");
+        int minutes = 24 * 60 - (d * 24 + h) * 60;
+        int day = Math.floorDiv(minutes, 24 * 60);
+        int minuteOfDay = Math.floorMod(minutes, 24 * 60);
+        String when;
+        if (day == 0) {
+            when = "on the tour date";
+        } else if (day == -1) {
+            when = "the day before the tour date";
+        } else if (day < 0) {
+            when = -day + " days before the tour date";
+        } else {
+            when = day + (day == 1 ? " day" : " days") + " after the tour date";
         }
-        if (h != 0) {
-            if (text.length() > 0) {
-                text.append(", ");
-            }
-            text.append(h).append(h == 1 ? " hour" : " hours");
+        int hour = minuteOfDay / 60;
+        String time = (hour % 12 == 0 ? 12 : hour % 12) + String.format(Locale.US, ":%02d", minuteOfDay % 60)
+                + (hour < 12 ? " AM" : " PM");
+        return when + " at " + time + " local time";
+    }
+
+    /**
+     * Calls the original text getter, which the patch keeps as {@code <name>$msp}. The patched
+     * getter calls the one-argument helpers below, which pass the original text on.
+     */
+    private static String original(Object target, String getter) {
+        try {
+            Method method = target.getClass().getDeclaredMethod(getter + "$msp");
+            method.setAccessible(true);
+            return (String) method.invoke(target);
+        } catch (Throwable t) {
+            Log.w(TAG, getter + ": " + t);
+            return null;
         }
-        return text.length() == 0 ? "at the start" : text + " before";
+    }
+
+    public static String lotteryResults(Object order) {
+        return lotteryResults(order, original(order, "resultsAvailableDescription"));
+    }
+
+    public static String bookingSection(Object facility) {
+        return bookingSection(facility, original(facility, "getBookingWindowsSection"));
+    }
+
+    public static String ticketSlot(Object slot) {
+        return ticketSlot(slot, original(slot, "availabilityDesc"));
+    }
+
+    public static String venueSlot(Object slot) {
+        return venueSlot(slot, original(slot, "toString"));
     }
 
     /** OrderLottery.resultsAvailableDescription(): adds the deadline to confirm a win. */
@@ -116,7 +159,7 @@ public final class HiddenDetails {
                         .append(offset(get(config, "getOpenDays"), get(config, "getOpenHours")))
                         .append(", closes ")
                         .append(offset(get(config, "getCloseDays"), get(config, "getCloseHours")))
-                        .append(" the tour.</p>");
+                        .append(".</p>");
             }
             return (text == null ? "" : text) + rules;
         } catch (Throwable t) {

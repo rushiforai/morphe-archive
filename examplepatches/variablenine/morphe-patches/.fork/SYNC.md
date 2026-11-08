@@ -9,8 +9,8 @@ it too.
 
 ## State markers (update on every sync)
 
-- **Upstream baseline:** stable tag `v2.0.0` (commit `6cb8e6b6ee42`)
-- **Last synced upstream release:** v2.0.0 (2026-10-30)
+- **Upstream baseline:** stable tag `v2.1.0` (commit `8fa2c7a1a832`)
+- **Last synced upstream release:** v2.1.0 (2026-11-06)
 
 ## What is fork-local
 
@@ -38,7 +38,7 @@ patch no longer applies cleanly):
 | `extensions/youtube/.../patches/catlock/CatLockOverlay.java` | **New file.** Full-window transparent overlay on the Activity decor view; consumes touches; unlock via `AlternatingTapUnlock`; keep-screen-on + fading hint. |
 | `extensions/youtube/.../videoplayer/CatLockButton.java` | **New file.** Top player-control button (mirrors `ExternalDownloadButton` — keep it mirroring whatever that file currently does); constructs `LegacyPlayerControlButton` passing `Settings.CAT_LOCK_BUTTON` itself (not `::get`), `onClick` calls `CatLockOverlay.engage(view)`. v1.48.0 moved `ExternalDownloadButton` onto the new `LegacyPlayerControlButton.PlayerControlButtonStatus` supplier (returning a `ButtonVisibility`) because its own button gained a third, forced state; the plain `BooleanSetting` constructor overload is still there and still means `ENABLED`/`DISABLED`, so the fork deliberately keeps passing the setting. Only follow `ExternalDownloadButton` onto the supplier if that overload is removed, or if the cat lock button ever needs `FORCE_SHOW`. Holds no button reference and exposes no visibility injection points. |
 | `extensions/youtube/src/test/.../catlock/AlternatingTapUnlockSelfTest.java` | **New file.** Plain-javac self-test; must print `11 passed, 0 failed`. |
-| `patches/.../youtube/interaction/catlock/CatLockPatch.kt` | **New file.** Mirrors `DownloadsPatch`: `SwitchPreference("morphe_cat_lock_button")`, `copyResources("catlock", ...)`, `addTopControl("catlock", ...)`, `initializeTopControl(CatLockButton)`. Only the initialize hook — the button derives its own visibility from the setting (upstream removed `injectVisibilityCheckCall` in v1.36.0). Keep the plain `copyResources` call: v1.45.0 moved upstream's own button patches to `copyPlayerButtonIcons(dir, baseName)`, which also registers the base name with the player-icon-style patch so it looks for `_fluent`/`_phosphor`/… variants — the fork ships only the plain and `_bold` cat icons, and `PlayerIcons.resolve` falls back to `_bold` for every style anyway. |
+| `patches/.../youtube/interaction/catlock/CatLockPatch.kt` | **New file.** Built with the unified `app.morphe.patcher.patch.patch` builder — patcher 2.3.0 (upstream v2.1.0) collapsed `resourcePatch`/`bytecodePatch` into one `patch {}`, and upstream converted all ~300 of its own patches; `resourcePatch` has zero remaining upstream callers, so the fork follows. Mirrors `DownloadsPatch`: `SwitchPreference("morphe_cat_lock_button")`, `copyResources("catlock", ...)`, `addTopControl("catlock", ...)`, `initializeTopControl(CatLockButton)`. Only the initialize hook — the button derives its own visibility from the setting (upstream removed `injectVisibilityCheckCall` in v1.36.0). Keep the plain `copyResources` call: v1.45.0 moved upstream's own button patches to `copyPlayerButtonIcons(dir, baseName)`, which also registers the base name with the player-icon-style patch so it looks for `_fluent`/`_phosphor`/… variants — the fork ships only the plain and `_bold` cat icons, and `PlayerIcons.resolve` falls back to `_bold` for every style anyway. |
 | `extensions/youtube/.../settings/Settings.java` | Add `CAT_LOCK_BUTTON = new BooleanSetting("morphe_cat_lock_button", FALSE, true)` among the overlay buttons. (Same file as brainrot above.) |
 | `patches/src/main/resources/catlock/host/layout/youtube_controls_layout.xml` | **New file.** Top-controls button, anchored `toStartOf @id/morphe_external_download_button`. |
 | `patches/src/main/resources/catlock/drawable/morphe_yt_cat_lock_button{,_bold}.xml` | **New files.** Cat-face vector icon. |
@@ -50,7 +50,7 @@ patch no longer applies cleanly):
 |---|---|
 | `extensions/reddit/.../patches/NsfwFeedModePatch.java` | **New file.** `filterHomeFeedResponse(Object)` injection point, and nothing else. Reads `Settings.NSFW_FEED_MODE` live (it is a mode, not a startup flag). Keeps **only** edges recognised as 18+ posts: the home feed ships 20+ non-post element types (four kinds of community recommendation carousel, chat channel units, topic pills, taxonomy rows, explore features), none of which carries a `t3_` id, and keeping them was what put SFW content in an 18+ feed. Fails open when **no** edge on a page carries a post id, so a model change leaves the feed unfiltered instead of empty, and holds one post back when a page would otherwise be left with nothing to draw - the only way an SFW post reaches the feed now. |
 | `patches/.../reddit/layout/nsfw/Fingerprints.kt` | **New file.** `NsfwHomeFeedPageFingerprint` (the home feed's page builder), `NsfwFeedViewModelFingerprint` (`RedditFeedViewModel.<init>`), and the two drawer fingerprints. **Two earlier feed hooks were removed and must not come back**: `Listing.<init>` is the cache path shared by every screen that reads a listing — subreddits, saved posts, search, profiles — and `RedditListingFeedElementMapper.getFeedElements` serves only the History feed. Neither reaches the home feed and both could empty an unrelated screen. |
-| `patches/.../reddit/layout/nsfw/NsfwFeedModePatch.kt` | **New file.** Inserts `filterHomeFeedResponse` at the head of the home page builder, `captureFeedViewModel` at the tail of the feed view model's constructor, and the two drawer hooks. Everything but the first is wrapped in `try`/`catch`. |
+| `patches/.../reddit/layout/nsfw/NsfwFeedModePatch.kt` | **New file.** Built with the unified `patch {}` builder (see `CatLockPatch.kt` above for why). `findFreeRegister` is imported from `app.morphe.patcher.util`, **not** `app.morphe.util`. Inserts `filterHomeFeedResponse` at the head of the home page builder, `captureFeedViewModel` at the tail of the feed view model's constructor, and the two drawer hooks. Everything but the first is wrapped in `try`/`catch`. |
 | `extensions/reddit/.../patches/NsfwFeedRefresher.java` | **New file.** Reloads the home feed when the mode is switched, so it takes effect where the user switched it. Holds captured view models **weakly**, picks the home one out by a field holding an enum constant named `HOME` on a `*FeedType`, and drives the pager through the field whose class declares a one-argument method taking a `*FeedRefreshType` — invoked with `PULL_TO_REFRESH` on the main thread. All by shape; failure is silent and costs a pull-down. |
 | `extensions/reddit/.../settings/Settings.java` | Add `NSFW_FEED_MODE = new BooleanSetting("morphe_nsfw_feed_mode", FALSE)` in its own `// NSFW mode` region. Two-arg constructor on purpose: no app restart needed. |
 | `extensions/reddit/.../preference/categories/NsfwPreferenceCategory.java` | **New file.** Mirrors `AdsPreferenceCategory`. |
@@ -122,7 +122,25 @@ Known limitation to preserve on sync: the hook is the `Listing` model, so it cov
 4. Apply the delta: `git apply -3 .fork/upstream-delta.patch`; on failure `git apply --reject` and repair
    the `.rej` hunks manually using the semantics table above (upstream may have refactored the touched
    files). **Regenerate `.fork/upstream-delta.patch`** against the new tree afterwards so the next sync
-   starts clean.
+   starts clean:
+
+   ```sh
+   git add -A
+   git diff --cached --binary FETCH_HEAD -- $(                       # FETCH_HEAD == the upstream tag
+       git diff --name-only --cached FETCH_HEAD | grep -vE \
+         '^(README\.md|CHANGELOG\.md|gradle\.properties|patches-list\.json|patches-bundle\.json|patches-bundle\.png|\.fork/|\.github/workflows/crowdin_)'
+   ) > .fork/upstream-delta.patch
+   ```
+
+   Then confirm it applies to a pristine checkout of the tag
+   (`git apply --check .fork/upstream-delta.patch` in the upstream clone).
+
+   **Before applying, check for fork fix-up commits made after the last sync** — the delta is a
+   snapshot, so anything landed on `dev` afterwards is missing from it and the overlay silently
+   reverts it. `git log <last sync commit>..HEAD` over the delta's own file list is enough. The
+   v2.1.0 sync hit exactly this: `fix: Point findFreeRegister import at app.morphe.patcher.util`
+   (127e60fc, after the v2.0.0 sync) was never folded into the patch, so the overlay reinstated the
+   broken `app.morphe.util.findFreeRegister` import and it had to be re-fixed by hand.
 6. Update the state markers in this file. Commit everything as
    `bump: Sync upstream Morphe patches vX.Y.Z` (the `bump:` type produces a patch release), push to `dev`.
    If the push to `dev` is rejected with 403 / a branch restriction, see **Automation (routine) setup**

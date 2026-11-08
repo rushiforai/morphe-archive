@@ -20,15 +20,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 /** Captures the notification cell's actual list, state and independently observed VM owners. */
 final class InboxQueryOwners {
     static final String FAMILY = "loaded Inbox query";
-    // PineDrama 47.5.3 names. InboxQueryOwnerFixturesTest reads these lines and checks each on the fixture.
-    static final String FRAGMENT_LIST = "lM";
-    static final String FRAGMENT_SPRING = "fM";
-    static final String FRAGMENT_CONTAINER = "LJLL";
-    static final String ADAPTER_PRIMARY_STUB = "LLILII";
-    static final String ADAPTER_DIFF = "LLII";
-    static final String ADAPTER_PAGER = "LJZI";
+    // PineDrama 47.6.3 names. InboxQueryOwnerFixturesTest reads these lines and checks each on the fixture.
+    static final String FRAGMENT_LIST = "JN";
+    static final String FRAGMENT_SPRING = "GN";
+    static final String FRAGMENT_CONTAINER = "LJLLI";
+    static final String ADAPTER_PRIMARY_STUB = "LLIIIILZ";
+    static final String ADAPTER_DIFF = "LLIIII";
+    static final String ADAPTER_PAGER = "LJZL";
     static final String STUB_STATE = "LJIILLIIL";
-    static final String STUB_ADAPTER = "LJLJL";
+    static final String STUB_ADAPTER = "LJLJLJ";
     private static final List<Owner> OWNERS = new CopyOnWriteArrayList<>();
     private static final List<Vm> VMS = new CopyOnWriteArrayList<>();
 

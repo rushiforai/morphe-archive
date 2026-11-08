@@ -5,6 +5,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
+import app.twrailway.patches.settings.PATCH_SETTINGS_CLASS
+import app.twrailway.patches.settings.markPatchApplied
+import app.twrailway.patches.settings.patchSettingsPatch
 import app.twrailway.patches.shared.Constants.COMPATIBILITY_TRAIN_SCHEDULE
 
 /**
@@ -17,7 +20,7 @@ import app.twrailway.patches.shared.Constants.COMPATIBILITY_TRAIN_SCHEDULE
  *
  * The patch hooks the embedding: a label that is an untranslated key (`word.word...`, ASCII
  * without spaces) is replaced with the app's own label, so the recent apps screen shows
- * "火車時刻表". Real titles are left as they are.
+ * "火車時刻表". Real titles are left as they are. It can be turned off in the patch settings.
  */
 @Suppress("unused")
 val fixRecentAppsTitlePatch = bytecodePatch(
@@ -27,7 +30,11 @@ val fixRecentAppsTitlePatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_TRAIN_SCHEDULE)
 
+    dependsOn(patchSettingsPatch)
+
     execute {
+        markPatchApplied("fix_recent_apps_title")
+
         SetApplicationSwitcherDescriptionFingerprint.method.apply {
             val pluginType = definingClass
             val descriptionType = parameterTypes[0].toString()
@@ -57,6 +64,9 @@ val fixRecentAppsTitlePatch = bytecodePatch(
             addInstructionsWithLabels(
                 0,
                 """
+                    invoke-static { }, $PATCH_SETTINGS_CLASS->fixRecentAppsTitle()Z
+                    move-result v0
+                    if-eqz v0, :original
                     iget-object v0, p1, $descriptionType->${labelField.name}:Ljava/lang/String;
                     if-eqz v0, :original
                     const-string v1, "^\\w+(\\.\\w+)+$"

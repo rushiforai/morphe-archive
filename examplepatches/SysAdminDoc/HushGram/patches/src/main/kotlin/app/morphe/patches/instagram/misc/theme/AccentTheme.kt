@@ -49,6 +49,9 @@ internal const val APPLY_THEME = "$ACCENT_THEME->apply(Landroid/content/Context;
  */
 internal const val ATTRIBUTES_STUB = "$ACCENT_THEME->attributes()Ljava/lang/String;"
 
+/** The extension's stub the patch writes the names of the colors it added for a typed color into (#520). */
+internal const val CUSTOM_COLORS_STUB = "$ACCENT_THEME->customColors()Ljava/lang/String;"
+
 /** The extension's answer to the color Home's newer header tints its heart and Create buttons with (#8). */
 internal const val HEADER_ICONS = "$ACCENT_THEME->headerIcons(Landroid/content/Context;I)I"
 
@@ -60,6 +63,9 @@ internal const val IG_FRAGMENT_ACTIVITY = "Lcom/instagram/base/activity/IgFragme
 
 /** Every theme attribute [accentThemePatch] gave a style of its own, space separated, once it has run. */
 internal var accentAttributes: String? = null
+
+/** The colors [accentThemePatch] added for a typed color, space separated, once it has run. */
+internal var accentCustomColors: String? = null
 
 private const val CONTEXT = "Landroid/content/Context;"
 private const val THEME = "Landroid/content/res/Resources\$Theme;"
@@ -105,7 +111,16 @@ internal class AccentPalette(val name: String, fill: Int, linkOnLight: Int, link
     }
 }
 
-/** Every color but Instagram's own blue, as AccentHue lists them. */
+/**
+ * The color typed in HushGram settings (#520), AccentHue.CUSTOM. The patch can't know it, so its colors
+ * hold Dusk blue's shades as stand-ins, and the extension's CustomAccent gives them the typed color's.
+ */
+internal const val CUSTOM = "CUSTOM"
+
+/**
+ * Every color but Instagram's own blue and Material You, as AccentHue lists them. Dusk blue, Pine and
+ * Slate are the calmer ones from #528.
+ */
 internal val ACCENT_PALETTES = listOf(
     AccentPalette("PURPLE", 0x7638fa, 0x5806e0, 0xa07cfd),
     AccentPalette("PINK", 0xd6005a, 0xc1014f, 0xff6fa2),
@@ -113,7 +128,18 @@ internal val ACCENT_PALETTES = listOf(
     AccentPalette("ORANGE", 0xd95700, 0xb54800, 0xff9a40),
     AccentPalette("GREEN", 0x118841, 0x0d7a39, 0x3ee581),
     AccentPalette("TEAL", 0x00838f, 0x00727c, 0x4dd0d9),
+    AccentPalette("DUSK", 0x4a6b82, 0x4a6b82, 0x6c879a),
+    AccentPalette("PINE", 0x2a6f68, 0x2a6f68, 0x639691),
+    AccentPalette("SLATE", 0x3a506b, 0x3a506b, 0x7e8d9e),
+    AccentPalette(CUSTOM, 0x4a6b82, 0x4a6b82, 0x6c879a),
 )
+
+/** What every color the patch adds for [CUSTOM] is named after, as CustomAccent.PREFIX has it. */
+internal const val CUSTOM_COLOR_PREFIX = "hushgram_accent_custom_"
+
+/** The names of the colors added for [CUSTOM], space separated, for [CUSTOM_COLORS_STUB]. */
+internal fun customColorNames(colors: Document): String =
+    colors.children("color").map { it.getAttribute("name") }.filter { it.startsWith(CUSTOM_COLOR_PREFIX) }.joinToString(" ")
 
 /**
  * Material You (#187, #264), AccentHue.WALLPAPER: the step of Android 12's first accent family each
@@ -162,8 +188,9 @@ internal fun paletteColor(palette: AccentPalette, shade: String): String =
 internal fun paletteStyle(palette: AccentPalette): String = "HushGramAccentPalette_${palette.name}"
 
 /**
- * The theme attribute Instagram's red badges read, the dots and counts on its icons (#315). The like
- * heart and the red delete buttons read others, so pointing this one at the picked color leaves them red.
+ * The theme attribute Instagram's red badges read, the dots and counts on its icons (#315). The red
+ * delete buttons read others and stay red. The feed's liked heart reads this one through the tint list
+ * its binder builds for `ufi_heart_icon`, so it takes the picked color too (#519).
  */
 internal const val BADGE_ATTRIBUTE = "igds_color_icon_badge"
 
@@ -228,8 +255,10 @@ internal fun iconStyle(palette: String, theme: IconTheme): String =
 
 /**
  * The gradient attributes Instagram's story rings read through `GradientPatternStyle`, with the shade
- * each takes (#187). Light to deep, as the gradient runs. The close friends ring has its own pair and
- * stays green. A few other things read these colors, `igds_color_brand_ig_pink` among them.
+ * each takes (#187). Light to deep, as the gradient runs. On 454 a story's default ring runs yellow,
+ * orange, pink and then lavender, so lavender takes the deep end with purple; without it the ring
+ * ended in Instagram's own lavender (#519). The close friends ring has its own pair and stays green.
+ * A few other things read these colors, `igds_color_brand_ig_pink` among them.
  */
 internal val RING_ATTRIBUTES: Map<String, AccentRole> = linkedMapOf(
     "igds_color_gradient_yellow" to AccentRole.LINK_ON_DARK,
@@ -237,12 +266,22 @@ internal val RING_ATTRIBUTES: Map<String, AccentRole> = linkedMapOf(
     "igds_color_gradient_red" to AccentRole.FILL,
     "igds_color_gradient_pink" to AccentRole.FILL,
     "igds_color_gradient_purple" to AccentRole.PRESSED,
+    "igds_color_gradient_lavender" to AccentRole.PRESSED,
 )
 
 internal fun ringColor(palette: String, role: AccentRole): String =
     "hushgram_accent_${palette.lowercase(Locale.ROOT)}_ring_${role.name.lowercase(Locale.ROOT)}"
 
 internal fun ringStyle(palette: String): String = "HushGramAccentRings_$palette"
+
+/** The shade every ring attribute takes in [solidRingStyle], for Solid story rings (#519). */
+internal val SOLID_RING_ROLE = AccentRole.FILL
+
+/** The style pointing every ring attribute at one shade, so a story's ring is a single color (#519). */
+internal fun solidRingStyle(palette: String): String = "HushGramAccentRingsSolid_$palette"
+
+/** The ring shades [rings] needs, the solid ring's included. */
+private fun ringRoles(rings: Map<String, AccentRole>): List<AccentRole> = (rings.values + SOLID_RING_ROLE).distinct()
 
 /**
  * How far a surface stands out from the screen under it, for the background styles (#187): how much of
@@ -396,7 +435,9 @@ internal fun accentUses(styles: List<Document>, colors: Map<String, Set<Int>>): 
  *   and a style setting the attribute, and each of [GLYPH_ATTRIBUTES] declared, to each,
  *   `HushGramAccentIcons_PURPLE_dark`, for Icons in the accent color (#8);
  * - when attrs.xml declares any of [RING_ATTRIBUTES], each color's ring shades and a style setting
- *   those attributes to them, `HushGramAccentRings_PURPLE`, for Story rings in the accent color (#187);
+ *   those attributes to them, `HushGramAccentRings_PURPLE`, for Story rings in the accent color (#187),
+ *   and a style setting all of them to [SOLID_RING_ROLE]'s, `HushGramAccentRingsSolid_PURPLE`, for
+ *   Solid story rings (#519);
  * - when attrs.xml declares [BACKGROUND_ATTRIBUTE], each color's background shades for a light and a
  *   dark theme and a style setting each declared one of [BACKGROUND_ATTRIBUTES] to them,
  *   `HushGramAccentBackgrounds_PURPLE_dark`, for Backgrounds in the accent color (#187).
@@ -415,7 +456,7 @@ internal fun addAccentResources(uses: Set<AccentUse>, attrs: Document, colors: D
     val iconAttributes = iconAttributes(attrs)
     val icons = iconAttributes.isNotEmpty()
     val rings = ringAttributes(attrs)
-    val ringRoles = rings.values.distinct()
+    val ringRoles = ringRoles(rings)
     val backgrounds = backgroundAttributes(attrs)
     val backgroundSteps = backgrounds.values.distinct()
     val adding = shades.map(::shadeAttribute) +
@@ -426,7 +467,7 @@ internal fun addAccentResources(uses: Set<AccentUse>, attrs: Document, colors: D
             IconTheme.entries.flatMap { listOf(iconColor(palette.name, it), iconStyle(palette.name, it)) }
         } else emptyList()) +
         (if (rings.isNotEmpty()) ACCENT_PALETTES.flatMap { palette ->
-            ringRoles.map { ringColor(palette.name, it) } + ringStyle(palette.name)
+            ringRoles.map { ringColor(palette.name, it) } + ringStyle(palette.name) + solidRingStyle(palette.name)
         } else emptyList()) +
         (if (backgrounds.isNotEmpty()) ACCENT_PALETTES.flatMap { palette ->
             IconTheme.entries.flatMap { theme ->
@@ -504,6 +545,9 @@ internal fun addAccentResources(uses: Set<AccentUse>, attrs: Document, colors: D
             styles.documentElement.appendChild(
                 styles.colorsStyle(ringStyle(palette.name), rings.mapValues { ringColor(palette.name, it.value) }),
             )
+            styles.documentElement.appendChild(
+                styles.colorsStyle(solidRingStyle(palette.name), rings.mapValues { ringColor(palette.name, SOLID_RING_ROLE) }),
+            )
         }
     }
     if (backgrounds.isNotEmpty()) {
@@ -532,7 +576,8 @@ internal fun addAccentResources(uses: Set<AccentUse>, attrs: Document, colors: D
  *   style pointing the attribute, and each of [GLYPH_ATTRIBUTES] declared, at each, for Icons in the
  *   accent color (#8);
  * - when attrs.xml declares any of [RING_ATTRIBUTES], ring colors at the matching accent steps and a
- *   style pointing those attributes at them, for Story rings in the accent color (#187);
+ *   style pointing those attributes at them, for Story rings in the accent color (#187), and one
+ *   pointing all of them at [SOLID_RING_ROLE]'s, for Solid story rings (#519);
  * - when attrs.xml declares [BACKGROUND_ATTRIBUTE], background colors at the wallpaper's neutral family
  *   for a light and a dark theme and a style pointing each declared one of [BACKGROUND_ATTRIBUTES] at
  *   them, for Backgrounds in the accent color (#187).
@@ -549,13 +594,13 @@ internal fun addWallpaperResources(uses: Set<AccentUse>, attrs: Document, colors
     val iconAttributes = iconAttributes(attrs)
     val icons = iconAttributes.isNotEmpty()
     val rings = ringAttributes(attrs)
-    val ringRoles = rings.values.distinct()
+    val ringRoles = ringRoles(rings)
     val backgrounds = backgroundAttributes(attrs)
     val backgroundSteps = backgrounds.values.distinct()
     val adding = opaque.map { wallpaperColor(it.shade) } + WALLPAPER_PALETTE_STYLE +
         (if (badges) listOf(WALLPAPER_BADGE_COLOR, WALLPAPER_BADGE_STYLE) else emptyList()) +
         (if (icons) IconTheme.entries.flatMap { listOf(iconColor(WALLPAPER, it), iconStyle(WALLPAPER, it)) } else emptyList()) +
-        (if (rings.isNotEmpty()) ringRoles.map { ringColor(WALLPAPER, it) } + ringStyle(WALLPAPER) else emptyList()) +
+        (if (rings.isNotEmpty()) ringRoles.map { ringColor(WALLPAPER, it) } + ringStyle(WALLPAPER) + solidRingStyle(WALLPAPER) else emptyList()) +
         (if (backgrounds.isNotEmpty()) IconTheme.entries.flatMap { theme ->
             backgroundSteps.map { backgroundColor(WALLPAPER, theme, it) } + backgroundStyle(WALLPAPER, theme)
         } else emptyList())
@@ -602,6 +647,7 @@ internal fun addWallpaperResources(uses: Set<AccentUse>, attrs: Document, colors
     if (rings.isNotEmpty()) {
         for (role in ringRoles) color(ringColor(WALLPAPER, role), role)
         styles.documentElement.appendChild(styles.colorsStyle(ringStyle(WALLPAPER), rings.mapValues { ringColor(WALLPAPER, it.value) }))
+        styles.documentElement.appendChild(styles.colorsStyle(solidRingStyle(WALLPAPER), rings.mapValues { ringColor(WALLPAPER, SOLID_RING_ROLE) }))
     }
     if (backgrounds.isNotEmpty()) {
         val fill = WALLPAPER_FALLBACK.getValue(AccentRole.FILL)
@@ -646,6 +692,7 @@ internal fun ResourcePatchContext.addAccentTheme(): String {
             document(COLORS_V31).use { colorsV31 ->
                 document("res/values/styles.xml").use { styles ->
                     addAccentResources(uses, attrs, colors, styles).also {
+                        accentCustomColors = customColorNames(colors)
                         addWallpaperResources(uses, attrs, colors, colorsV31, styles)
                     }
                 }
@@ -657,6 +704,7 @@ internal fun ResourcePatchContext.addAccentTheme(): String {
 internal val accentThemePatch = resourcePatch {
     execute {
         accentAttributes = null
+        accentCustomColors = null
         accentAttributes = addAccentTheme()
     }
 }
@@ -697,10 +745,12 @@ internal fun BytecodePatchContext.findThemeOverrides(): MutableMethod {
     val returns = overrides.code().indices.filter { overrides.code()[it].opcode == Opcode.RETURN_VOID }
     if (returns.isEmpty()) refuse("${overrides.where()} never returns")
     overrides.requireParameterIntact(PATCH, 0, returns)
-    for (needed in listOf(APPLY_THEME, ATTRIBUTES_STUB)) {
+    for (needed in listOf(APPLY_THEME, ATTRIBUTES_STUB, CUSTOM_COLORS_STUB)) {
         if (extensionMethod(needed) == null) refuse("the extension has no public static $needed")
     }
-    if ((extensionMethod(ATTRIBUTES_STUB)?.implementation?.registerCount ?: 0) < 1) refuse("$ATTRIBUTES_STUB has no register to write into")
+    for (stub in listOf(ATTRIBUTES_STUB, CUSTOM_COLORS_STUB)) {
+        if ((extensionMethod(stub)?.implementation?.registerCount ?: 0) < 1) refuse("$stub has no register to write into")
+    }
     return mutableClassDefBy(overrides.definingClass).methods.single {
         it.name == overrides.name && it.parameterTypes.map(Any::toString) == listOf(CONTEXT) && it.returnType == "V"
     }
@@ -734,15 +784,24 @@ internal fun BytecodePatchContext.findThemeUtil(): MutableMethod {
 }
 
 /**
- * Writes [attributes] into the extension's stub, then runs AccentTheme.apply with the context at each
- * return of the overrides, once Instagram's styles are all on an activity, and of the theme util, for
- * the contexts Instagram styles itself.
+ * Writes [attributes] into the extension's stub, and [customColors] into its own when there are any,
+ * then runs AccentTheme.apply with the context at each return of the overrides, once Instagram's styles
+ * are all on an activity, and of the theme util, for the contexts Instagram styles itself.
  */
-internal fun BytecodePatchContext.applyAccentTheme(attributes: String = requireAccentAttributes()) {
+internal fun BytecodePatchContext.applyAccentTheme(
+    attributes: String = requireAccentAttributes(),
+    customColors: String? = accentCustomColors,
+) {
     val overrides = findThemeOverrides()
     val util = findThemeUtil()
     val listed = requireAccentAttributes(attributes)
+    if (!customColors.isNullOrEmpty() && !customColors.all { it.isLetterOrDigit() || it in "_ " }) {
+        refuse("a custom color's name can't be written into the code: $customColors")
+    }
     mutableClassDefBy(ACCENT_THEME).methods.single { it.signature() == ATTRIBUTES_STUB }.returnEarly(listed)
+    if (!customColors.isNullOrEmpty()) {
+        mutableClassDefBy(ACCENT_THEME).methods.single { it.signature() == CUSTOM_COLORS_STUB }.returnEarly(customColors)
+    }
     for (method in listOf(overrides, util)) {
         val context = method.parameterRegisterNumber(0)
         val returns = method.code().indices.filter { method.code()[it].opcode == Opcode.RETURN_VOID }

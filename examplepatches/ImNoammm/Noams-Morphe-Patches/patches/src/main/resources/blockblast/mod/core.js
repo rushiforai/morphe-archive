@@ -16,10 +16,22 @@
             if (!fu) return;
             try {
                 var base = fu.getWritablePath();
-                ['patch/main.js', 'patch/project.manifest', 'patch/version.manifest'].forEach(function (f) {
-                    if (fu.isFileExist(base + f)) fu.removeFile(base + f);
-                });
-                ['patch/src/', 'patch/assets/', 'patch/jsb-adapter/', 'patch_temp/'].forEach(function (d) {
+                if (typeof fu.listFiles === 'function' && fu.isDirectoryExist(base + 'patch/')) {
+                    fu.listFiles(base + 'patch/').forEach(function (entry) {
+                        var name = entry.replace(/\/$/, '').split('/').pop();
+                        if (name === 'baseV' || name === 'baseM' || name === 'baseTag' || name === '.' || name === '..') return;
+                        if (fu.isDirectoryExist(entry)) fu.removeDirectory(entry);
+                        else if (fu.isFileExist(entry)) fu.removeFile(entry);
+                    });
+                } else {
+                    ['patch/main.js', 'patch/main2.js', 'patch/project.manifest', 'patch/version.manifest'].forEach(function (f) {
+                        if (fu.isFileExist(base + f)) fu.removeFile(base + f);
+                    });
+                    ['patch/src/', 'patch/assets/', 'patch/jsb-adapter/'].forEach(function (d) {
+                        if (fu.isDirectoryExist(base + d)) fu.removeDirectory(base + d);
+                    });
+                }
+                ['patch_temp/', 'patch_check/'].forEach(function (d) {
                     if (fu.isDirectoryExist(base + d)) fu.removeDirectory(base + d);
                 });
                 var paths = fu.getSearchPaths(), kept = [], dropped = false;
@@ -37,6 +49,23 @@
             if (window.bb && bb.log) bb.log('restart: staged update wiped');
             return original.apply(this, arguments);
         };
+        // The newer updater (MBHHotUpdate, driven by Multilink) runs the native AssetsManager in deferred
+        // mode and only restarts while the player is still on the loading screen; an update that finishes
+        // mid-game stays parked in patch_temp until a later launch commits it, possibly a relaunch inside
+        // the same process, where neither the provider nor this restart hook runs. Wiping when the app goes
+        // to the background, plus a slow watchdog for force-kills, keeps a staged update from ever reaching
+        // a launch.
+        if (cc.game.on && cc.game.EVENT_HIDE) cc.game.on(cc.game.EVENT_HIDE, wipe);
+        setInterval(function () {
+            try {
+                var base = fu && fu.getWritablePath();
+                if (base && (fu.isFileExist(base + 'patch/main.js') || fu.isFileExist(base + 'patch/project.manifest') ||
+                        fu.isDirectoryExist(base + 'patch_temp/') || fu.isDirectoryExist(base + 'patch_check/'))) {
+                    wipe();
+                    if (window.bb && bb.log) bb.log('watchdog: staged update wiped');
+                }
+            } catch (e) {}
+        }, 5000);
     })();
 
     var config = window.__bbmod || {};
@@ -214,6 +243,24 @@
         if (!exports.hotUpdate) return;
         bb.wrap(exports.hotUpdate, 'startUpdate', function () {
             return function () { bb.log('hot update blocked'); };
+        });
+    });
+
+    // The newer update pipeline: Multilink logs in through MBHHotUpdate (a boot plugin script, invisible
+    // to bb.on) and the server reply starts a scatter check (checkUpdate, which fetches the remote manifest
+    // into patch_temp before startUpdate downloads) or a zip download. Entering the game without updating
+    // is that flow's own no-network/no-disk path, so routing every entry point there is safe. Multilink is
+    // in the same bundle as every consumer, so the stub lands before any login runs.
+    bb.on('Multilink', function () {
+        var mbh = window.MBHHotUpdate;
+        var proto = mbh && mbh.LoginController && mbh.LoginController.prototype;
+        if (!proto) return;
+        ['checkUpdate', 'startUpdate', 'startZipUpdate'].forEach(function (name) {
+            if (typeof proto[name] !== 'function') return;
+            proto[name] = function () {
+                bb.log('mbh ' + name + ' blocked');
+                if (typeof this.enterGame === 'function') this.enterGame();
+            };
         });
     });
 

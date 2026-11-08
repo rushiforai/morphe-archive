@@ -1,7 +1,7 @@
 # 🦈 D-moniak Patches
 
 <p align="center">
-  <img src="assets/logo.jpg" alt="D-moniak Patches Logo" width="160" style="border-radius: 50%;">
+  <img src="assets/logo.png" alt="D-moniak Patches Logo" width="180">
 </p>
 
 <p align="center">
@@ -13,16 +13,16 @@
     <img src="https://img.shields.io/github/stars/SatanMerde/D-moniakPatches?style=for-the-badge&logo=github&color=EAC54F" alt="GitHub Stars">
   </a>
   <a href="#-patches-list">
-    <img src="https://img.shields.io/badge/Patches-490-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Total Patches">
+    <img src="https://img.shields.io/badge/Patches-496-8A2BE2?style=for-the-badge&logo=android&logoColor=white" alt="Total Patches">
   </a>
   <a href="#-tested--functional-patches">
-    <img src="https://img.shields.io/badge/Functional-10-00C853?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Functional Patches">
+    <img src="https://img.shields.io/badge/Functional-29-00C853?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Functional Patches">
   </a>
   <a href="#-experimental-patches-vibe-coded">
-    <img src="https://img.shields.io/badge/Experimental-480-FFA000?style=for-the-badge&logo=probot&logoColor=white" alt="Experimental Patches">
+    <img src="https://img.shields.io/badge/Experimental-467-FFA000?style=for-the-badge&logo=probot&logoColor=white" alt="Experimental Patches">
   </a>
   <a href="#-patches-list">
-    <img src="https://img.shields.io/badge/Supported_Apps-126-3388FF?style=for-the-badge&logo=googleplay&logoColor=white" alt="Supported Apps">
+    <img src="https://img.shields.io/badge/Supported_Apps-128-3388FF?style=for-the-badge&logo=googleplay&logoColor=white" alt="Supported Apps">
   </a>
   <a href="https://github.com/SatanMerde/D-moniakPatches/releases/latest">
     <img src="https://img.shields.io/github/v/release/SatanMerde/D-moniakPatches?style=for-the-badge&logo=github&color=blueviolet" alt="Latest Release">
@@ -40,13 +40,17 @@
   <a href="https://discord.gg/pw9wNbDzMx">
     <img src="https://img.shields.io/badge/Discord-Join_Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord Community">
   </a>
+  &nbsp;
+  <a href="https://ko-fi.com/satanmerde">
+    <img src="https://img.shields.io/badge/Ko--fi-Support_on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" alt="Support on Ko-fi">
+  </a>
 </p>
 
 ---
 
 ### 📖 Project Overview
 
-**D-moniak Patches** is a third-party patch library for the **[Morphe](https://github.com/morpheapp)** framework. This project brings together **496 patches** for **127 popular Android apps and games**, clearly separated into **tested & functional patches** (verified on real hardware / emulator: Hungry Shark World, Movix, Moises, FCTV33) and **experimental patches** (currently under development, vibe-coded).
+**D-moniak Patches** is a third-party patch library for the **[Morphe](https://github.com/morpheapp)** framework. This project brings together **496 patches** for **128 popular Android apps and games**, clearly separated into **tested & functional patches** (verified on real hardware / emulator: Hungry Shark World, MEGA, Movix, Moises, FCTV33) and **experimental patches** (currently under development, vibe-coded).
 
 ---
 
@@ -89,7 +93,7 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.62.1](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.62.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**490 total patches** (10 tested & functional • 480 experimental)
+> **[v1.68.0](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.68.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**496 total patches** (29 tested & functional • 467 experimental)
 
 ---
 
@@ -97,6 +101,40 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 
 > [!TIP]
 > These patches have been thoroughly tested and confirmed fully functional on real hardware.
+
+<details open>
+<summary>📦 Cryptomator&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.1.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Allow Screenshots & Screen Recording - Cryptomator](#allow-screenshots-screen-recording-cryptomator) | Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview. |
+| [Pure AMOLED Dark Theme - Cryptomator](#pure-amoled-dark-theme-cryptomator) | Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings. |
+| [Unlock Full Version & Permanent License - Cryptomator](#unlock-full-version-permanent-license-cryptomator) | Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants. |
+
+</details>
+
+<details open>
+<summary>📦 Cryptomator (Freemium)&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.1.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Allow Screenshots & Screen Recording - Cryptomator](#allow-screenshots-screen-recording-cryptomator) | Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview. |
+| [Pure AMOLED Dark Theme - Cryptomator](#pure-amoled-dark-theme-cryptomator) | Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings. |
+| [Unlock Full Version & Permanent License - Cryptomator](#unlock-full-version-permanent-license-cryptomator) | Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants. |
+
+</details>
 
 <details open>
 <summary>📦 FCTV33 (Mobile)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
@@ -143,6 +181,42 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 |----------|----------------|
 | [Bypass Rewarded Ads](#bypass-rewarded-ads) | Bypasses rewarded video ads in Hungry Shark World by emulating ad completion events. |
 | [Free Shopping](#free-shopping) | Unlocks shop items and in-app purchases in Hungry Shark World by cleanly replacing GoogleBillingService purchase methods and receipt validation. |
+
+</details>
+
+<details open>
+<summary>📦 JioHotstar&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.10.26.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Live Sports Ad-Block - JioHotstar](#ad-free-live-sports-ad-block-jiohotstar) | Strips pre-roll, mid-roll, and ad pods during live cricket and sports streams, and eliminates banner and sponsored recommendation cards in JioHotstar. |
+| [Bypass Root & VPN Detection - JioHotstar](#bypass-root-vpn-detection-jiohotstar) | Neutralizes RootBeer and native root detection (su binary, test-keys, Magisk) and disables VPN/Proxy network interface flags (isVpnActive, IsProxy), allowing seamless streaming through VPNs and AdGuard DNS. |
+| [Bypass Signature & Integrity Check - JioHotstar](#bypass-signature-integrity-check-jiohotstar) | Bypasses signature verification and anti-tamper telemetry (IsTampered, package signatures) in JioHotstar, preventing account flagging, session termination, and NET_201 security blocks. |
+| [Unlock Premium & Enhanced Playback - JioHotstar](#unlock-premium-enhanced-playback-jiohotstar) | Unlocks premium UI features, bypasses subscription gates for higher video resolution selections, allows screenshots/screen recording, and enables playback over HDMI and screen mirroring in JioHotstar. |
+
+</details>
+
+<details open>
+<summary>📦 MEGA&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 16.14 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Allow Screenshots & Screen Recording - MEGA](#allow-screenshots-screen-recording-mega) | Disables FLAG_SECURE window restrictions to allow taking screenshots and screen recordings of documents, media, and chat in MEGA, and bypasses local export restrictions. |
+| [Block Promos, Quota Popups & Declutter - MEGA](#block-promos-quota-popups-declutter-mega) | Strips Pro upgrade prompts, cloud storage and transfer quota warning banners, sync upsell bottom sheets, and promotional marketing cards across file explorer, media player, transfer queue, and account settings in MEGA. |
+| [Keep Screen Awake During Transfers & Media - MEGA](#keep-screen-awake-during-transfers-media-mega) | Keeps the device screen turned on during active file/folder upload and download transfers, camera auto-uploads, and audio/video playback in MEGA, preventing transfers from stalling when the device enters sleep mode. |
+| [Pure AMOLED Dark Theme - MEGA](#pure-amoled-dark-theme-mega) | Enforces pure pitch-black (#000000) across MEGA's Jetpack Compose theme system (BackgroundColor, ComponentsColor), navigation bar, status bar, and root Activity windows for maximum OLED battery savings. |
 
 </details>
 
@@ -207,6 +281,43 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 |----------|----------------|
 | [Block Pre-Roll Video Ads & Interstitials - FCTV33 & RBTV+](#block-pre-roll-video-ads-interstitials-fctv33-rbtv) | Completely strips pre-roll video ads, loading countdown shades, direct link popups, and banner ads before live stream playback on FCTV33 & RBTV+ (Mobile & TV). |
 | [Unlock Permanent VIP & Activation - FCTV33 & RBTV+](#unlock-permanent-vip-activation-fctv33-rbtv) | Bypasses activation lock codes, unlocks free VIP status, and lifts channel access restrictions on FCTV33 & RBTV+. |
+
+</details>
+
+<details open>
+<summary>📦 Undercover&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [AMOLED Dark Theme & Privacy - Undercover](#amoled-dark-theme-privacy-undercover) | Enforces dark mode and strips analytics telemetry (Firebase Analytics, App Measurement) in Undercover. |
+| [Block Ads & Commercials - Undercover](#block-ads-commercials-undercover) | Strips interstitial video ads between rounds, banner ads in lobby and voting screens, and rewarded video gates by neutralizing ad SDK calls. |
+| [Block Cookie & Consent Banner - Undercover](#block-cookie-consent-banner-undercover) | Blocks and removes the GDPR / Google UMP Cookie consent dialog on first launch by spoofing consent status as OBTAINED and neutralizing consent form presentation. |
+| [Unlock Advanced Game Settings - Undercover](#unlock-advanced-game-settings-undercover) | Unlocks advanced game configuration (custom player counts, exact role distribution sliders for Civilians, Undercover agents, and Mr. White, custom discussion timers, and voting rules). |
+| [Unlock All Word Packs & Premium - Undercover](#unlock-all-word-packs-premium-undercover) | Hooks in-app purchase verification, pack enums, and preference stores to unlock all premium word packs (Adult 18+, Pop Culture, Geek, Cinema, Science & History, 50+ languages) and remove all paywalls. |
+| [Unlock Custom Words Creator - Undercover](#unlock-custom-words-creator-undercover) | Unlocks the custom word pack creator allowing players to create, save, and edit unlimited secret word pairs and custom clue databases without subscription restrictions. |
+
+</details>
+
+<details open>
+<summary>📦 Virtual Master&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Environment - Virtual Master](#ad-free-clean-environment-virtual-master) | Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers. |
+| [Unlock Pro & Multi-Instance - Virtual Master](#unlock-pro-multi-instance-virtual-master) | Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing. |
+
+</details>
+
+<details open>
+<summary>📦 Virtual Master (Alt)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Ad-Free & Clean Environment - Virtual Master](#ad-free-clean-environment-virtual-master) | Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers. |
+| [Unlock Pro & Multi-Instance - Virtual Master](#unlock-pro-multi-instance-virtual-master) | Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing. |
 
 </details>
 
@@ -468,40 +579,6 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <details open>
-<summary>📦 Cryptomator&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;2.1.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Allow Screenshots & Screen Recording - Cryptomator (Experimental)](#allow-screenshots-screen-recording-cryptomator-experimental) | ⚠️ [Experimental / Untested] Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview. |
-| [Pure AMOLED Dark Theme - Cryptomator (Experimental)](#pure-amoled-dark-theme-cryptomator-experimental) | ⚠️ [Experimental / Untested] Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings. |
-| [Unlock Full Version & Permanent License - Cryptomator (Experimental)](#unlock-full-version-permanent-license-cryptomator-experimental) | ⚠️ [Experimental / Untested] Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants. |
-
-</details>
-
-<details open>
-<summary>📦 Cryptomator (Freemium)&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;2.1.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Allow Screenshots & Screen Recording - Cryptomator (Experimental)](#allow-screenshots-screen-recording-cryptomator-experimental) | ⚠️ [Experimental / Untested] Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview. |
-| [Pure AMOLED Dark Theme - Cryptomator (Experimental)](#pure-amoled-dark-theme-cryptomator-experimental) | ⚠️ [Experimental / Untested] Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings. |
-| [Unlock Full Version & Permanent License - Cryptomator (Experimental)](#unlock-full-version-permanent-license-cryptomator-experimental) | ⚠️ [Experimental / Untested] Unlocks full version capabilities, bypasses 30-day trial expiration, suppresses license check warnings, and unlocks full read/write vault management across all Cryptomator variants. |
-
-</details>
-
-<details open>
 <summary>📦 Cut the Rope&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
@@ -603,6 +680,16 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 |----------|----------------|
 | [Pure AMOLED Black Theme - Fossify Phone (Experimental)](#pure-amoled-black-theme-fossify-phone-experimental) | Applies a pure #000000 AMOLED dark theme across dialpad, in-call screen, contacts list, and call history for optimal OLED battery savings. |
 | [Silent & Unrestricted Call Recording - Fossify Phone (Experimental)](#silent-unrestricted-call-recording-fossify-phone-experimental) | Unlocks call recording across all regions/devices, suppresses carrier/recording warning beeps and disclosure alerts, and automatically enables two-way audio recording directly to local storage. |
+
+</details>
+
+<details open>
+<summary>📦 FotMob&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock FotMob+ & Ad-Free - FotMob (Experimental)](#unlock-fotmob-ad-free-fotmob-experimental) | Enables FotMob+ membership, removes banner and fullscreen advertisements, and unlocks live match notifications and priority updates in FotMob. |
 
 </details>
 
@@ -922,17 +1009,6 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <details open>
-<summary>📦 MEGA&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [AMOLED Dark Theme & Declutter - MEGA (Experimental)](#amoled-dark-theme-declutter-mega-experimental) | ⚠️ [Experimental / Untested] Injects pure OLED pitch black (#000000) into MEGA cloud file browser, transfer queue, and settings, and hides Pro upgrade promotion banners. |
-| [Allow Screenshots & Export - MEGA (Experimental)](#allow-screenshots-export-mega-experimental) | ⚠️ [Experimental / Untested] Disables FLAG_SECURE window restrictions to allow taking screenshots of documents and media in MEGA, and bypasses local export restrictions. |
-
-</details>
-
-<details open>
 <summary>📦 Memrise&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -969,17 +1045,6 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
 | [Ad-Free Transit & Clean Interface - Moovit (Experimental)](#ad-free-transit-clean-interface-moovit-experimental) | ⚠️ [Experimental / Untested] Neutralizes full-screen interstitial ads when viewing schedules, removes bottom banner ads, and declutters live transit map overlays in Moovit. |
-
-</details>
-
-<details open>
-<summary>📦 MT Manager&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Remove Ads & Update Prompts - MT Manager (Experimental)](#remove-ads-update-prompts-mt-manager-experimental) | ⚠️ [Experimental / Untested] Removes banner and interstitial advertisements, disables forced update dialogs and upgrade check nags in MT Manager. |
-| [Unlock VIP Features & Themes - MT Manager (Experimental)](#unlock-vip-features-themes-mt-manager-experimental) | ⚠️ [Experimental / Untested] Unlocks MT Manager VIP features (batch rename, DEX/Arsc editor++, syntax highlighting, XML/DEX search & replace, signature verification bypass, VIP theme customization) by hooking VIP privilege getters, expiration checks, and Google Play Billing. |
 
 </details>
 
@@ -1519,6 +1584,16 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <details open>
+<summary>📦 The Athletic&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+| 💊&nbsp;Patch | 📜&nbsp;Description |
+|----------|----------------|
+| [Unlock Premium & Ad-Free - The Athletic (Experimental)](#unlock-premium-ad-free-the-athletic-experimental) | Unlocks full access to all articles, exclusive sports stories, in-depth analytical reporting, and eliminates banner and sponsored ads in The Athletic. |
+
+</details>
+
+<details open>
 <summary>📦 Tidal&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -1601,21 +1676,6 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <details open>
-<summary>📦 Undercover&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [AMOLED Dark Theme & Privacy - Undercover (Experimental)](#amoled-dark-theme-privacy-undercover-experimental) | ⚠️ [Experimental / Untested] Enforces dark mode and strips analytics telemetry (Firebase Analytics, App Measurement) in Undercover. |
-| [Block Ads & Commercials - Undercover (Experimental)](#block-ads-commercials-undercover-experimental) | ⚠️ [Experimental / Untested] Strips interstitial video ads between rounds, banner ads in lobby and voting screens, and rewarded video gates by neutralizing ad SDK calls. |
-| [Block Cookie & Consent Banner - Undercover (Experimental)](#block-cookie-consent-banner-undercover-experimental) | ⚠️ [Experimental / Untested] Blocks and removes the GDPR / Google UMP Cookie consent dialog on first launch by spoofing consent status as OBTAINED and neutralizing consent form presentation. |
-| [Unlock Advanced Game Settings - Undercover (Experimental)](#unlock-advanced-game-settings-undercover-experimental) | ⚠️ [Experimental / Untested] Unlocks advanced game configuration (custom player counts, exact role distribution sliders for Civilians, Undercover agents, and Mr. White, custom discussion timers, and voting rules). |
-| [Unlock All Word Packs & Premium - Undercover (Experimental)](#unlock-all-word-packs-premium-undercover-experimental) | ⚠️ [Experimental / Untested] Hooks in-app purchase verification, pack enums, and preference stores to unlock all premium word packs (Adult 18+, Pop Culture, Geek, Cinema, Science & History, 50+ languages) and remove all paywalls. |
-| [Unlock Custom Words Creator - Undercover (Experimental)](#unlock-custom-words-creator-undercover-experimental) | ⚠️ [Experimental / Untested] Unlocks the custom word pack creator allowing players to create, save, and edit unlimited secret word pairs and custom clue databases without subscription restrictions. |
-
-</details>
-
-<details open>
 <summary>📦 Vector 2&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -1625,28 +1685,6 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 | [Free Shopping - Vector 2 (Experimental)](#free-shopping-vector-2-experimental) | ⚠️ [Experimental / Untested] Hooks Google Play Billing in Vector 2 to obtain upgrade chips, research tokens, and accelerator packs for free. (Experimental - Not yet tested on device). |
 | [Infinite Battery & Shields - Vector 2 (Experimental)](#infinite-battery-shields-vector-2-experimental) | ⚠️ [Experimental / Untested] Prevents armor kit battery and shield depletion in Vector 2, keeping protective shields active against lasers, floor mines, and electric hazards. (Experimental - Not yet tested on device). |
 | [Unlock Gear Matrix - Vector 2 (Experimental)](#unlock-gear-matrix-vector-2-experimental) | ⚠️ [Experimental / Untested] Unlocks experimental equipment slots, booster upgrades, and datacore matrices in Vector 2 without research token gating. (Experimental - Not yet tested on device). |
-
-</details>
-
-<details open>
-<summary>📦 Virtual Master&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Ad-Free & Clean Environment - Virtual Master (Experimental)](#ad-free-clean-environment-virtual-master-experimental) | ⚠️ [Experimental / Untested] Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers. |
-| [Unlock Pro & Multi-Instance - Virtual Master (Experimental)](#unlock-pro-multi-instance-virtual-master-experimental) | ⚠️ [Experimental / Untested] Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing. |
-
-</details>
-
-<details open>
-<summary>📦 Virtual Master (Alt)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description |
-|----------|----------------|
-| [Ad-Free & Clean Environment - Virtual Master (Experimental)](#ad-free-clean-environment-virtual-master-experimental) | ⚠️ [Experimental / Untested] Strips all boot interstitials, launcher advertisements, app clone promotion banners, and telemetry popups from Virtual Master by hooking internal AdMob wrappers and ad containers. |
-| [Unlock Pro & Multi-Instance - Virtual Master (Experimental)](#unlock-pro-multi-instance-virtual-master-experimental) | ⚠️ [Experimental / Untested] Unlocks Virtual Master Pro edition, allowing unlimited virtual Android instances, root permission toggles, customized device ID spoofing, and advanced backup/restore by hooking MemberStatusResponse, obfuscated BillingManager gatekeepers, and Google Play Billing. |
 
 </details>
 
@@ -1854,3 +1892,23 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 </details>
 
 <!-- PATCHES_END -->
+
+---
+
+<div align="center">
+
+### 💖 Support & Community
+
+If you enjoy **D-moniak Patches** and appreciate our open-source work, consider supporting development on **Ko-fi** or joining our community:
+
+<p align="center">
+  <a href="https://ko-fi.com/satanmerde">
+    <img src="https://img.shields.io/badge/Ko--fi-Support_on_Ko--fi-FF5E5B?style=for-the-badge&logo=kofi&logoColor=white" alt="Support on Ko-fi" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://discord.gg/pw9wNbDzMx">
+    <img src="https://img.shields.io/badge/Discord-Join_Community-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord Community" />
+  </a>
+</p>
+
+</div>

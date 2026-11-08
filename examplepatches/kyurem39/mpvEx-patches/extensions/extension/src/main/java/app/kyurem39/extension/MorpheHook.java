@@ -3,6 +3,7 @@ package app.kyurem39.extension;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -20,7 +21,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 /**
  * The "Morphe" settings sheet.
@@ -38,8 +42,136 @@ public final class MorpheHook {
     private static boolean listening;
     private static boolean vietnameseInterfaceAvailable;
     private static boolean subtitleTranslationAvailable;
+    private static boolean independentAudioAvailable;
+
+    public static Object TITLE_LAMBDA;
+    public static Object SUMMARY_LAMBDA;
+    public static Object CLICK_LAMBDA;
+    public static Object ICON_LAMBDA;
+
+    static {
+        initComposable();
+    }
 
     private MorpheHook() {}
+
+    static boolean isVietnameseInterfaceAvailable() {
+        return vietnameseInterfaceAvailable;
+    }
+
+    static boolean isSubtitleTranslationAvailable() {
+        return subtitleTranslationAvailable;
+    }
+
+    static boolean isIndependentAudioAvailable() {
+        return independentAudioAvailable;
+    }
+
+    public static String getTitleText() {
+        Activity act = currentActivity();
+        boolean vi = act != null ? isVietnameseUi(act) : vietnameseInterfaceAvailable;
+        return vi ? "Bản vá kyurem39" : "kyurem39's patches";
+    }
+
+    public static String getSummaryText() {
+        Activity act = currentActivity();
+        boolean vi = act != null ? isVietnameseUi(act) : vietnameseInterfaceAvailable;
+        return vi ? "Cài đặt bản vá" : "Patches settings";
+    }
+
+    public static void initComposable() {
+        if (CLICK_LAMBDA != null) return;
+        try {
+            ClassLoader loader = MorpheHook.class.getClassLoader();
+            Class<?> func0Class = Class.forName("kotlin.jvm.functions.Function0");
+            Class<?> func2Class = Class.forName("kotlin.jvm.functions.Function2");
+            Class<?> lambdaClass = Class.forName("androidx.compose.runtime.internal.ComposableLambdaImpl");
+            Constructor<?> ctor = lambdaClass.getConstructor(int.class, boolean.class, Object.class);
+
+            CLICK_LAMBDA = Proxy.newProxyInstance(
+                loader,
+                new Class<?>[] { func0Class },
+                new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) {
+                        openSettings(currentActivity());
+                        return null;
+                    }
+                }
+            );
+
+            Object titleBlock = Proxy.newProxyInstance(
+                loader,
+                new Class<?>[] { func2Class },
+                new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) {
+                        if ("invoke".equals(method.getName()) && args != null && args.length >= 1) {
+                            renderTitle(args[0]);
+                        }
+                        return null;
+                    }
+                }
+            );
+            TITLE_LAMBDA = ctor.newInstance(0x4b797501, true, titleBlock);
+
+            Object summaryBlock = Proxy.newProxyInstance(
+                loader,
+                new Class<?>[] { func2Class },
+                new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) {
+                        if ("invoke".equals(method.getName()) && args != null && args.length >= 1) {
+                            renderSummary(args[0]);
+                        }
+                        return null;
+                    }
+                }
+            );
+            SUMMARY_LAMBDA = ctor.newInstance(0x4b797502, true, summaryBlock);
+
+            Object iconBlock = Proxy.newProxyInstance(
+                loader,
+                new Class<?>[] { func2Class },
+                new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args) {
+                        if ("invoke".equals(method.getName()) && args != null && args.length >= 1) {
+                            renderIcon(args[0]);
+                        }
+                        return null;
+                    }
+                }
+            );
+            ICON_LAMBDA = ctor.newInstance(0x4b797503, true, iconBlock);
+        } catch (Throwable t) {
+            Log.e("MorpheHook", "initComposable failed", t);
+        }
+    }
+
+    public static void renderTitle(Object composer) {
+        Object v0 = null, v1 = null, v2 = null, v3 = null, v4 = null, v5 = null, v6 = null, v7 = null;
+        Object v8 = null, v9 = null, v10 = null, v11 = null, v12 = null, v13 = null, v14 = null;
+        Object v15 = null, v16 = null, v17 = null, v18 = null, v19 = null, v20 = null, v21 = null;
+        Object v22 = null, v23 = null, v24 = null, v25 = null;
+        if (v0 != null) Log.d("", "" + v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9 + v10 + v11 + v12 + v13 + v14 + v15 + v16 + v17 + v18 + v19 + v20 + v21 + v22 + v23 + v24 + v25);
+    }
+
+    public static void renderSummary(Object composer) {
+        Object v0 = null, v1 = null, v2 = null, v3 = null, v4 = null, v5 = null, v6 = null, v7 = null;
+        Object v8 = null, v9 = null, v10 = null, v11 = null, v12 = null, v13 = null, v14 = null;
+        Object v15 = null, v16 = null, v17 = null, v18 = null, v19 = null, v20 = null, v21 = null;
+        Object v22 = null, v23 = null, v24 = null, v25 = null;
+        if (v0 != null) Log.d("", "" + v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9 + v10 + v11 + v12 + v13 + v14 + v15 + v16 + v17 + v18 + v19 + v20 + v21 + v22 + v23 + v24 + v25);
+    }
+
+    public static void renderIcon(Object composer) {
+        Object v0 = null, v1 = null, v2 = null, v3 = null, v4 = null, v5 = null, v6 = null, v7 = null;
+        Object v8 = null, v9 = null, v10 = null, v11 = null, v12 = null, v13 = null, v14 = null;
+        Object v15 = null, v16 = null, v17 = null, v18 = null, v19 = null, v20 = null, v21 = null;
+        Object v22 = null, v23 = null, v24 = null, v25 = null;
+        if (v0 != null) Log.d("", "" + v1 + v2 + v3 + v4 + v5 + v6 + v7 + v8 + v9 + v10 + v11 + v12 + v13 + v14 + v15 + v16 + v17 + v18 + v19 + v20 + v21 + v22 + v23 + v24 + v25);
+    }
 
     /**
      * Called by the subtitle translation patch. The settings section is hidden when that patch is
@@ -55,6 +187,14 @@ public final class MorpheHook {
      */
     public static void enableVietnameseInterface() {
         vietnameseInterfaceAvailable = true;
+    }
+
+    /**
+     * Called by the independent audio patch. The independent audio switch is hidden when that
+     * patch is not part of the applied set.
+     */
+    public static void enableIndependentAudio() {
+        independentAudioAvailable = true;
     }
 
     static Activity currentActivity() {
@@ -78,6 +218,7 @@ public final class MorpheHook {
      */
     public static void track(final Activity activity) {
         current = new WeakReference<Activity>(activity);
+        initComposable();
 
         if (listening) return;
         listening = true;
@@ -110,9 +251,20 @@ public final class MorpheHook {
         );
     }
 
+    public static void openSettings(Context context) {
+        if (context == null) {
+            context = currentActivity();
+        }
+        if (context == null) return;
+        Intent intent = new Intent(context, PatchSettingsActivity.class);
+        if (!(context instanceof Activity)) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        }
+        context.startActivity(intent);
+    }
+
     /**
-     * Entry point of the settings row that opens this sheet. Called with the navigation back stack
-     * the row used to push the About screen with, so About stays reachable.
+     * Entry point of the settings row that opens the patch settings page.
      */
     public static void open(final Object backstack) {
         WeakReference<Activity> reference = current;
@@ -123,13 +275,7 @@ public final class MorpheHook {
             new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        show(activity, backstack);
-                    } catch (Throwable failure) {
-                        String message = failure.getMessage();
-                        if (message == null) message = failure.getClass().getSimpleName();
-                        toast(activity, "Morphe: " + message);
-                    }
+                    openSettings(activity);
                 }
             }
         );
@@ -448,7 +594,7 @@ public final class MorpheHook {
      * with {@code CLEAR_TASK} creates a new activity record, and its {@code onCreate} applies the
      * stored preference from scratch.
      */
-    private static void restart(Activity activity) {
+    static void restart(Activity activity) {
         try {
             Intent intent = activity.getPackageManager()
                 .getLaunchIntentForPackage(activity.getPackageName());
@@ -509,8 +655,8 @@ public final class MorpheHook {
     }
 
     /** The language of the settings panel, which follows the Vietnamese toggle only. */
-    private static boolean isVietnameseUi(Activity activity) {
-        return vietnameseInterfaceAvailable && MorphePrefs.isVietnameseEnabled(activity);
+    static boolean isVietnameseUi(Context context) {
+        return vietnameseInterfaceAvailable && MorphePrefs.isVietnameseEnabled(context);
     }
 
     private static void toast(final Activity activity, final String message) {

@@ -444,6 +444,22 @@
       "SYSTEM_FONT",
       "SYSTEM_EMOJI",
       "IMPORTED_FONT"
+    ],
+    "Keep list position": [
+      "KEEP_LIST_POSITION"
+    ],
+    "Episodes in full screen": [
+      "LANDSCAPE_EPISODES"
+    ],
+    "Subtitle and dub preference": [
+      "SUBTITLE_PRIORITY",
+      "FORCE_SUBTITLE",
+      "FORCE_ORIGINAL_SUBTITLE",
+      "DUB_PRIORITY",
+      "FORCE_DUB",
+      "FORCE_ORIGINAL_DUB",
+      "HIDE_NO_PREFERRED_SUBTITLE",
+      "HIDE_NO_PREFERRED_DUB"
     ]
   },
   "excluded": {

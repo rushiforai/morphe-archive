@@ -110,25 +110,12 @@ private val ARM32 = LibraryPatch(
 )
 
 /**
- * The second engine library, `liba.so`, which only the *server* process loads - the app process
- * loads `libd.so`.
- *
- * It is the one that stops the app: a tenth of a second after the server announces
- * `Calling main entry dev.vodik7.tvquickactions.server.Server`, a process forked from it calls
- * `ActivityManager.forceStopPackage` on the app, which the system logs as
- * `Force stopping dev.vodik7.tvquickactions ... from pid <server pid + ~18>`. The server then
- * dies with the app, gets restarted, and the cycle repeats - which is why enabling any ADB
- * speed-up mode (the only thing that starts the server) kills the app.
- *
- * The command is built inside the library, so nothing of it is visible in the dex, and the whole
- * 32-bit library contains exactly one call to `system()` - in its `INIT_ARRAY[8]` constructor,
- * which is where a load-time tamper check would run. That call is turned into two `nop`s. If it
- * turns out to be something else, nothing is lost: it is still the only `system()` call the
- * library makes.
- *
- * Only the 32-bit build is patched. Its `system()` call sites and `INIT_ARRAY` are laid out
- * differently from the 64-bit build's, which has eight of them, so the 64-bit build needs its own
- * investigation before it can be changed with the same confidence.
+ * The server-only engine library, `liba.so`, contains the shell path that can stop the app when
+ * the ADB speed-up server loads it. The ARM32 build has one call site; ARM64 has seven flattened
+ * direct call sites plus a small system() thunk. ARM64 command strings are assembled at runtime,
+ * so these exact 3.8.0 sites are neutralized while preserving call/return flow: direct calls receive
+ * a null command (the libc shell-availability probe), and the thunk returns success without running
+ * a command. Later builds must be inspected again rather than receiving broad byte replacements.
  */
 private val ARM32_SUPPORT = LibraryPatch(
     path = "lib/armeabi-v7a/liba.so",
@@ -139,6 +126,24 @@ private val ARM32_SUPPORT = LibraryPatch(
     rewrites = listOf(
         Rewrite(0x430178, 2, 0xF2E5L, NOP_16), // blx system -> nop
         Rewrite(0x43017A, 2, 0xE8F2L, NOP_16), // rest of the blx -> nop
+    ),
+)
+
+private val ARM64_SUPPORT = LibraryPatch(
+    path = "lib/arm64-v8a/liba.so",
+    machine = 0xB7,
+    guardAddress = 0x7AC368,
+    guardWidth = 4,
+    guardExpected = 0x940D1F8AL, // system@plt call identifies tvQuickActions 3.8.0 liba
+    rewrites = listOf(
+        Rewrite(0x7AC364, 4, 0x9A9B1500L, 0xAA1F03E0L), // x0 = NULL before system()
+        Rewrite(0x7AC3BC, 4, 0x9A9B1680L, 0xAA1F03E0L),
+        Rewrite(0x7B04CC, 4, 0x9A961680L, 0xAA1F03E0L),
+        Rewrite(0x7B5328, 4, 0x9A971520L, 0xAA1F03E0L),
+        Rewrite(0x7B5340, 4, 0x9A971680L, 0xAA1F03E0L),
+        Rewrite(0x7BD594, 4, 0x9A981500L, 0xAA1F03E0L),
+        Rewrite(0x7BD5D4, 4, 0x9A981680L, 0xAA1F03E0L),
+        Rewrite(0x84D620, 4, 0x940A9ADCL, 0x2A1F03E0L), // wrapper: return 0 without running system
     ),
 )
 
@@ -159,16 +164,15 @@ val nativeEnginePatch = resourcePatch(
             "trap instructions the verification routine plants inside its own code - udf #0 " +
             "(SIGILL) and stores of the markers 0xdead and 0xdeadbeef (SIGSEGV) - are replaced " +
             "by no-ops, leaving the routine's work intact. This is what makes Web Widget Overlay " +
-            "and button emulation work. The only `system()` call of liba.so, which force-stops " +
-            "the app when the ADB speed-up server loads it, is turned into no-ops as well, which " +
-            "is what stops the app from killing itself in a loop.",
+            "and button emulation work. The server-only liba.so self-stop calls are also disabled " +
+            "for ARM32 and ARM64 so ADB speed-up does not terminate the app.",
     default = true
 ) {
     compatibleWith(TVQUICKACTIONS_3_8)
     dependsOn(unlockPremiumPatch)
 
     execute {
-        val patched = listOf(ARM64, ARM32, ARM32_SUPPORT).filter { target ->
+        val patched = listOf(ARM64, ARM32, ARM32_SUPPORT, ARM64_SUPPORT).filter { target ->
             val lib = get(target.path)
 
             if (lib.isFile) {

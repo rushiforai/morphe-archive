@@ -14,18 +14,21 @@ the bottom; `screenOrientation="sensorLandscape"`.
 - Canvas `#0A0A0B` (player bar `#000000`), surfaces `#1C1C1E` / `#2C2C2E`, primary type
   `#FFFFFF`, secondary `#8E8E93`, single accent `#FA243C`.
 - Card and player corners 14–16 dp, page padding 24 dp, section gap 28 dp.
-- Type is **Inter 400/500/600/700**, bundled as static TTFs in `res/font` with the SIL
-  OFL license in `res/raw/inter_license.txt`. `AppleMusicCarTheme` provides it through
-  `LocalTextStyle`, so every `Text` uses it; the platform font is the fallback for
-  glyphs Inter does not cover.
-- Cards are square, full-bleed artwork with a bottom scrim and a short title/subtitle.
-  Press state is a colour wash plus a 0.97 scale — no animated shadow. Coil requests the
-  exact target size, never the full CDN image. Cards use `combinedClickable`, so touch and
-  long-press share the same surface without keyboard focus.
-- Top tabs use an accent underline; the account entry is a quiet icon + label. The action
-  sheet and the full player are plain Compose overlays (no dialog window), so closing one
-  restores the previous screen and never leaves a stuck overlay. Error panes show a 76 dp
-  accent icon, a bold headline and a legible explanation.
+- Type uses Inter, bundled as static TTFs in `res/font` with the SIL OFL license in
+  `res/raw/inter_license.txt`. `AppleMusicCarTheme` provides it through `LocalTextStyle`,
+  so every `Text` uses it; the platform font is the fallback for glyphs Inter does not
+  cover. Scale (same as `:tv-app`): display 32–36, section 26, card 15–16, caption 12–13,
+  with weights limited to 400/600/700.
+- Cards are square, full-bleed artwork with a 16 dp radius, a static 12 dp shadow and a
+  bottom scrim behind a short title/subtitle. Press state is a colour wash plus a 150 ms
+  0.97 scale — no animated shadow. Coil requests the exact target size, never the full CDN
+  image. Cards use `combinedClickable`, so touch and long-press share the same surface
+  without keyboard focus.
+- Top tabs use an accent underline; the account and update entries are quiet 13 sp labels.
+  The action sheet and the full player are plain Compose overlays (no dialog window), so
+  closing one restores the previous screen and never leaves a stuck overlay. The full
+  player fades/slides in over 180 ms (150 ms out); nothing animates continuously. Error
+  panes show a 76 dp accent icon, a bold headline and a legible explanation.
 
 ## Layout
 
@@ -45,16 +48,18 @@ the bottom; `screenOrientation="sensorLandscape"`.
 - **Detalhe** — one level only, with breadcrumb (e.g. `Biblioteca / Playlists`), back
   button and item count. Playable rows play; a browsable-only row at this level shows
   "Use o app do Apple Music para abrir mais níveis" instead of stacking a third level.
-- **Tocando agora** — a minimal fixed bottom bar over black: rounded cover, title/artist
-  and one white play/pause circle. Tapping anywhere else on the bar opens the
-  **full-screen player**; "Criar estação" is deliberately not in the mini bar.
-- **Full-screen player** — large rounded cover, title/artist/album, a 4 dp progress bar
-  with elapsed/total times and a 48 dp seek strip, circular previous / play-pause (white)
-  / next controls, an accent "Criar estação" action when the session publishes it, and an
-  "Ações" sheet listing the engine's `customActions` (Favorito, Aleatório, Repetir,
-  Reprodução Automática, Adicionar à Biblioteca, Criar Estação). Actions go through
-  `sendCustomAction` and show a feedback chip. Back closes the sheet first, then the
-  player.
+- **Tocando agora** — a minimal fixed bottom bar over black: 40 dp rounded cover,
+  truncated title/artist and one accent play/pause circle. Tapping anywhere else on the
+  bar opens the **full-screen player**; "Criar estação" is deliberately not in the mini
+  bar.
+- **Full-screen player** — backdrop is a dark gradient sampled from the cover (fallback:
+  accent-tinted), with a large 320 dp cover and a static shadow, title/artist/album, a 5 dp
+  progress bar with elapsed/total times and a 48 dp tap/drag strip, circular previous /
+  accent play-pause / next controls, a "Criar estação" pill on the right when the session
+  publishes it, and an "Ações" sheet listing the engine's `customActions` (Favorito,
+  Aleatório, Repetir, Reprodução Automática, Adicionar à Biblioteca, Criar Estação). The
+  sheet is a 760 dp centred panel. Actions go through `sendCustomAction` and show a
+  feedback chip. Back closes the sheet first, then the player.
 - **Long-press cards/rows** — Início/Biblioteca/Rádio cards and detail rows open the same
   session action sheet. Choosing an action on a playable item starts that item, waits for
   the engine to publish the action for the new current track, then sends it; "Criar
@@ -63,6 +68,12 @@ the bottom; `screenOrientation="sensorLandscape"`.
 - **Entrar na conta** — explicit intent to
   `com.apple.android.music/.common.MainActivity` (the engine is hidden from the
   launcher). Shown in the top bar and in the failure pane when the engine is installed.
+- **Busca** — the magnifier in the top bar opens the catalogue search (`:core`
+  `SearchClient`, same token/endpoint as `:tv-app`): text field with the system
+  keyboard, results grouped by Músicas / Álbuns / Artistas / Playlists with cover,
+  title and artist. "Limpar" clears the field, "App original" opens the engine's own
+  search screen, back closes the overlay. Tapping a song/album/playlist plays it through
+  `playFromMediaId`; an artist falls back to the engine's `MEDIA_SEARCH`.
 - Error states: "Apple Music não instalado neste dispositivo" and the core's
   "serviço indisponível" messages, each with icon, explanation and "Tentar de novo".
 
@@ -147,8 +158,11 @@ phone and on a 1080p TV at the head-unit resolution. Still to check there:
 
 ## Known limitations
 
-- No search: the Android Auto browse tree exposes no search surface (same as `:tv-app`).
+- Search needs the engine's developer token from its DataStore: after a clean engine
+  install (no signed-in account) the screen offers only "Abrir busca do app original".
 - Two levels by design; deeper nodes are not reachable from this UI.
+- Search playback is per item: a result starts the item (song / album / playlist); the
+  queue after it is whatever the engine builds from that id.
 - Some engine sessions publish `PLAYING` without `position`/`duration` (or stay
   `BUFFERING` with `speed=0.0`); the seek bar then has nothing to seek and
   `togglePlayPause` can only resume. Validated on the phone after the engine reported

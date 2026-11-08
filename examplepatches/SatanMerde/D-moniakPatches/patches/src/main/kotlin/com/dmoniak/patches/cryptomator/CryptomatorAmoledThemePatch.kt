@@ -9,8 +9,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val cryptomatorAmoledThemePatch = bytecodePatch(
-    name = "Pure AMOLED Dark Theme - Cryptomator (Experimental)",
-    description = "⚠️ [Experimental / Untested] Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings.",
+    name = "Pure AMOLED Dark Theme - Cryptomator",
+    description = "Enforces dark mode and pure pitch black #000000 surfaces across Cryptomator's vault explorer, settings, and dialogs for maximum OLED battery savings.",
 ) {
     compatibleWith(COMPATIBILITY_CRYPTOMATOR, COMPATIBILITY_CRYPTOMATOR_FREEMIUM)
 

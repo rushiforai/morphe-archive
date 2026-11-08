@@ -46,6 +46,9 @@ object NuvioMergeWork {
     }
     fun canPublishProviders(successful: Int, unavailable: Int, localSelected: Boolean): Boolean =
         successful > 0 || unavailable == 0 || localSelected
+    /** Cold startup may queue behind the provider's own serialized hydration/refresh. */
+    fun providerDeadline(startupReconciliation: Boolean): Long =
+        if (startupReconciliation) 120_000L else 45_000L
     /** Provider errors are isolated; navigation and user cancellation still stop the whole request. */
     suspend fun <T> providerResult(source: String, timeoutMs: Long = 45_000, work: suspend () -> T): Result<T> =
         try { Result.success(provider(source, timeoutMs, work)) }

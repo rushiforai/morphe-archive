@@ -11,12 +11,10 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import semicoloncolonel.mobilestream.patches.pluto.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.ads.ImaPauseAdDisplayFingerprint
@@ -56,35 +54,6 @@ val skipAdsPatch = bytecodePatch(
         // shows one.
         emptyListFieldOnConstruct(PauseAdsResponseToStringFingerprint, "PauseAdsResponse(ads=")
         ImaPauseAdDisplayFingerprint.methodOrNull?.addInstructions(0, "return-void")
-
-        // Hook 4 — resume fix. Hook 1 shortens the timeline, but Pluto saves
-        // "Continue Watching" positions in the original, ad-inclusive one. Map
-        // the start position just before startExoplayer seeks to it, so a
-        // resume does not land past the end and skip to the next episode.
-        AviaStartExoplayerFingerprint.method.apply {
-            val instructions = implementation!!.instructions.toList()
-            val positionRead = instructions.indexOfLast {
-                ((it as? ReferenceInstruction)?.reference as? MethodReference)?.let { ref ->
-                    ref.name == "getStartPosition" && ref.returnType == "J"
-                } == true
-            }
-            check(positionRead >= 0) { "Pluto Skip ads: no getStartPosition() in startExoplayer" }
-            val seekIndex = (positionRead + 1 until instructions.size).firstOrNull { index ->
-                val instruction = instructions[index]
-                (instruction.opcode == Opcode.INVOKE_VIRTUAL || instruction.opcode == Opcode.INVOKE_INTERFACE) &&
-                    ((instruction as ReferenceInstruction).reference as MethodReference).let { ref ->
-                        ref.returnType == "V" && ref.parameterTypes.map { it.toString() } == listOf("J")
-                    }
-            } ?: error("Pluto Skip ads: no seek(long) after getStartPosition() in startExoplayer")
-            val seek = instructions[seekIndex] as FiveRegisterInstruction
-            addInstructions(
-                seekIndex,
-                """
-                    invoke-static { v${seek.registerD}, v${seek.registerE} }, $MPD_FILTER->mapResumePosition(J)J
-                    move-result-wide v${seek.registerD}
-                """.trimIndent(),
-            )
-        }
     }
 }
 

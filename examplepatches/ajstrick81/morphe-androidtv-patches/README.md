@@ -34,7 +34,7 @@ That line is the reason this project exists. If you own the TV and pay for the s
 
 | App | What's removed | Tested version | Updated |
 |-----|----------------|----------------|---------|
-| 🟢 Disney+ | Ads (pre/mid-roll) + pause ads | `26.16.0+rc2-2026.09.08` | 9/14/26 |
+| 🟢 Disney+ | Ads (pre/mid-roll) · pause ads on `≤26.15.2` | `26.16.0+rc2-2026.09.08` · `26.20.0+rc3-2026.11.02` ⚠️ experimental | 11/7/26 |
 | 🟢 Prime Video | Movie + TV-show ads (native strip) · ⚠️ stay on `6.23.23` | `6.23.23+v15.5.0.70-armv7a` | 9/20/26 |
 | 🟢 Netflix | Pre/mid-roll + pause ads · installs as a clone | `13.0.1 build 25028` | 9/14/26 |
 | 🟢 HBO Max | All ads, incl. baked-in SSAI (ad-free stream) | `7.9.0.61` | 8/26/26 |
@@ -86,11 +86,22 @@ All patches follow the same general workflow using **Morphe Manager**:
 
 ### 🎬 Disney+
 
-1. Open the **[Disney+ (Android TV) 26.16.0+rc2-2026.09.08 release on APKMirror](https://www.apkmirror.com/apk/disney/disney-android-tv/disney-android-tv-26-16-0rc2-2026-09-08-release/)** (version **`26.16.0+rc2-2026.09.08`**)
-   > ⚠️ APKMirror also lists **`26.16.0+rc1`** — that is a different build. Use **rc2**.
+1. Open the **[Disney+ (Android TV) 26.20.0+rc3-2026.11.02 release on APKMirror](https://www.apkmirror.com/apk/disney/disney-android-tv/disney-android-tv-26-20-0rc3-2026-11-02-release/)** (version **`26.20.0+rc3-2026.11.02`**, marked **experimental**)
+   > ⚠️ APKMirror lists several release candidates per version. Match the **rc** exactly — `rc3` here — they are different builds.
+   >
+   > `26.20.0+rc3` is **experimental**: patched and tested on-device (no pre-roll, no
+   > mid-roll markers, no stutter), but it is a fresh build with less mileage than
+   > `26.16.0+rc2-2026.09.08`, which stays supported if you prefer the older one.
 2. Download the `.apkm` file
 3. Select it in Morphe Manager
 4. Apply the patch
+
+> ⚠️ **Always patch the newest listed version.** Disney enforces a minimum client
+> version server-side. An older build installs and launches normally, then
+> playback stops after about 20 seconds with *"There was a problem — go to our
+> Help Center"*. That is Disney refusing the client, not a broken patch, and no
+> patch can work around it. If you see it, re-patch the newest version above.
+> Do not patch whatever build happens to be installed on the TV already.
 
 ---
 
@@ -109,7 +120,7 @@ All patches follow the same general workflow using **Morphe Manager**:
 
 ### ▶️ Prime Video
 
-> **About this patch:** Native in-app ad strip for movies and TV shows — no DNS required. ⚠️ **Use `6.23.23` / engine `v15.5.x`; do NOT update to `6.24.x` (engine `v16`)** — v16 moved the ad pipeline into the native engine, so ads return there ([#120](https://github.com/ajstrick81/morphe-androidtv-patches/issues/120)). Keep **auto-updates disabled**. v1.37.4 hardens the strip for high-ad regions (India/EU). A rare, very large mid-roll break can still briefly freeze (spinner / "Something went wrong") — press **Back**, then **Resume**, to continue ad-free.
+> **About this patch:** Native in-app ad strip for movies and TV shows — no DNS required. ✅ **`6.23.23` / engine `v15.5.x` is the recommended build.** 🧪 `6.24.7+v16.0.0.332-allAbis` and `6.24.13+v16.0.1.93-allAbis` are supported as **experimental** targets — v16's lack of suppression turned out to be a pinned access-flag in our own fingerprint (the native hook was never loaded), now fixed, so the strip can run there. **Not yet confirmed on a device.** The hook now builds for both `armeabi-v7a` and `arm64-v8a`, so 64-bit v16 installs are covered too. Keep **auto-updates disabled**. v1.37.4 hardens the strip for high-ad regions (India/EU). A rare, very large mid-roll break can still briefly freeze (spinner / "Something went wrong") — press **Back**, then **Resume**, to continue ad-free.
 
 1. Open the **[Prime Video (Android TV) 6.23.23+v15.5.0.70-armv7a release on APKMirror](https://www.apkmirror.com/apk/amazon-mobile-llc/prime-video-android-tv-android-tv/prime-video-android-tv-6-23-23v15-5-0-70-armv7a-release/)** (version **`6.23.23+v15.5.0.70-armv7a`** — `armeabi-v7a` only, so **Optimize for device architecture must be OFF**)
 2. Download the `.apkm` file
@@ -121,11 +132,18 @@ All patches follow the same general workflow using **Morphe Manager**:
 > DNS blocklist, proxy, or root. Movie prerolls/mid-rolls and TV-show
 > prerolls/mid-rolls are all removed on the device before they play.
 >
-> ⚠️ **Stay on `6.23.23` (engine `v15.5.x`) — do NOT update to `6.24.x` (engine
-> `v16`).** In v16 Amazon moved the ad pipeline into the app's native engine, out
-> of reach of the current strip, so **ads return on 6.24.x** ([#120](https://github.com/ajstrick81/morphe-androidtv-patches/issues/120)).
-> Enable **Disable auto-updates** when patching (on by default) so Amazon can't
-> push you to v16. If you're already on 6.24.x, uninstall and reinstall `6.23.23`.
+> 🧪 **v16 (`6.24.x`) — experimental, unconfirmed.** `6.24.7+v16.0.0.332-allAbis`
+> and `6.24.13+v16.0.1.93-allAbis` are supported targets flagged *experimental*.
+> v16 removed the Java ad hooks, but the native strip hooks libignite's own
+> memory-copy calls, which v16 did not change. It simply never loaded there: the
+> loader fingerprint required `onCreate` to be exactly `public` and v16 made it
+> `public final`, so the match failed silently. That's fixed, so the strip can now
+> run on v16 — but **no device pass has confirmed it yet**.
+> The hook is now built for **both** `armeabi-v7a` and `arm64-v8a`, so a 64-bit
+> v16 install gets its own hook rather than silently running unstripped.
+> `6.23.23` is still the build to pick if you want the validated path. Enable
+> **Disable auto-updates** when patching (on by default) so your patched build
+> isn't replaced.
 >
 > TV-show ad removal is newly shipped (v1.16.0) and in wider testing. One known
 > edge case: very aggressive fast-forward + resume can occasionally nudge the

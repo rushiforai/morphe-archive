@@ -137,7 +137,13 @@ internal fun MessageToast(text: String) {
                 .background(SurfaceFocused)
                 .padding(horizontal = 22.dp, vertical = 10.dp),
         ) {
-            Text(text, color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+            Text(
+                text = text,
+                color = TextPrimary,
+                fontSize = 15.sp,
+                lineHeight = 19.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
         }
     }
 }
@@ -193,12 +199,19 @@ private fun SheetPanel(
                 },
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(title, color = TextPrimary, fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = title,
+                color = TextPrimary,
+                fontSize = 24.sp,
+                lineHeight = 30.sp,
+                fontWeight = FontWeight.Bold,
+            )
             if (subtitle.isNotBlank()) {
                 Text(
                     text = subtitle,
                     color = TextSecondary,
                     fontSize = 13.sp,
+                    lineHeight = 18.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
@@ -208,7 +221,8 @@ private fun SheetPanel(
                 Text(
                     text = emptyHint,
                     color = TextSecondary,
-                    fontSize = 14.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 21.sp,
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                 )
             }
@@ -230,7 +244,11 @@ private fun SheetRow(
     onFocused: () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.02f else 1f, label = "sheetRowScale")
+    val scale by animateFloatAsState(
+        if (focused) 1.01f else 1f,
+        animationSpec = FocusScaleSpec,
+        label = "sheetRowScale",
+    )
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -256,15 +274,27 @@ private fun SheetRow(
                 text = entry.title,
                 color = if (focused) TextPrimary else TextPrimary.copy(alpha = 0.92f),
                 fontSize = 16.sp,
+                lineHeight = 21.sp,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             if (entry.hint != null) {
-                Text(entry.hint, color = TextSecondary, fontSize = 12.sp, maxLines = 1)
+                Text(
+                    text = entry.hint,
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    maxLines = 1,
+                )
             }
         }
-        Text("ENTER", color = TextSecondary, fontSize = 11.sp)
+        Text(
+            text = "ENTER",
+            color = TextSecondary,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+        )
     }
 }
 

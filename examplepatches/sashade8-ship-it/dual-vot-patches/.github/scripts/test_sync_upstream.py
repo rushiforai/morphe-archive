@@ -19,6 +19,47 @@ SPEC.loader.exec_module(sync_upstream)
 
 
 class SyncUpstreamTests(unittest.TestCase):
+    def test_dev220_arrays_keep_seekbar_scaling_and_all_dual_choices(self):
+        names = ('target_language_entries', 'target_language_entry_values',
+                 'source_language_entries', 'source_language_entry_values',
+                 'timer_position_entries', 'timer_position_entry_values')
+        base = '<resources>\n    <string-array name="existing"><item>old</item></string-array>\n</resources>\n'
+        dual = ''.join(f'    <string-array name="dualvot_yandex_{name}"><item>{name}</item></string-array>\n'
+                       for name in names)
+        seekbar = (
+            '    <string-array name="morphe_custom_seekbar_thumb_scale_type_entries">\n'
+            '        <item>@string/morphe_custom_seekbar_thumb_scale_type_entry_fit_seekbar</item>\n'
+            '        <item>@string/morphe_custom_seekbar_thumb_scale_type_entry_original</item>\n'
+            '    </string-array>\n'
+            '    <string-array name="morphe_custom_seekbar_thumb_scale_type_entry_values" translatable="false">\n'
+            '        <item>FIT_SEEKBAR</item><item>ORIGINAL</item>\n'
+            '    </string-array>\n'
+        )
+        ours = base.replace('</resources>', dual + '</resources>')
+        theirs = base.replace('</resources>', seekbar + '</resources>')
+        expected = theirs.replace('</resources>', dual + '</resources>')
+        self.assertEqual(sync_upstream.merge_yandex_arrays_with_upstream_changes(base, ours, theirs), expected)
+        path = sync_upstream.DUAL_YANDEX_ARRAYS_PATH
+        destination = mock.Mock()
+        root = mock.Mock()
+        root.__truediv__ = mock.Mock(return_value=destination)
+        with (mock.patch.object(sync_upstream, 'ROOT', root),
+              mock.patch.object(sync_upstream, 'unresolved_paths', return_value=[path]),
+              mock.patch.object(sync_upstream, 'output_of', side_effect=sync_upstream.DEV220_ARRAYS_CONFLICT_BLOBS),
+              mock.patch.object(sync_upstream, 'run') as run):
+            run.side_effect = [mock.Mock(stdout=source) for source in (base, ours, theirs)] + [mock.Mock()]
+            sync_upstream.resolve_dual_yandex_arrays_conflict()
+            destination.write_text.assert_called_once_with(expected, encoding='utf-8', newline='')
+            self.assertEqual(run.call_args_list, [
+                mock.call('git', 'show', f':{stage}:{path}', capture=True) for stage in (1, 2, 3)
+            ] + [mock.call('git', 'add', '--', path)])
+        for invalid in (ours.replace('existing', 'changed'),
+                        ours.replace('timer_position_entry_values', 'unknown')):
+            with self.subTest(invalid=invalid), self.assertRaises(sync_upstream.SyncError):
+                sync_upstream.merge_yandex_arrays_with_upstream_changes(base, invalid, theirs)
+        with self.assertRaises(sync_upstream.SyncError):
+            sync_upstream.merge_yandex_arrays_with_upstream_changes(base, ours, ours)
+
     def test_stable210_dev_strings_keep_git_merge_and_reject_unknown_inputs(self):
         for path, (blobs, digest) in sync_upstream.STABLE210_DEV_STRING_CONFLICTS.items():
             locale = path.split("/")[-3]
@@ -306,6 +347,8 @@ class SyncUpstreamTests(unittest.TestCase):
 
     def test_dev210_unknown_inputs_remain_unresolved(self):
         cases = (
+            (sync_upstream.DEV220_ARRAYS_CONFLICT_BLOBS,
+             sync_upstream.DUAL_YANDEX_ARRAYS_PATH, sync_upstream.resolve_dual_yandex_arrays_conflict),
             (sync_upstream.STREAMING_DATA_REQUEST_STABLE210_CONFLICT_BLOBS,
              sync_upstream.STREAMING_DATA_REQUEST_PATH, sync_upstream.resolve_streaming_data_request_conflict),
             (sync_upstream.STABLE210_ARRAYS_CONFLICT_BLOBS,

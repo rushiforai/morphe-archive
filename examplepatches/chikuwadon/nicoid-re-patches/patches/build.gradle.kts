@@ -154,13 +154,16 @@ val mergeNicoidHelpersDex = tasks.register<JavaExec>("mergeNicoidHelpersDex") {
     mainClass.set("app.nicoid.patches.NicoidDexMerger")
     val generated = layout.buildDirectory.file("nicoid/helper-dex/classes.dex")
     val original = rootProject.file("patches/src/main/resources/nicoid/helpers.mpe")
+    val compatibility = rootProject.file("porting/compat/validated.zip")
+    inputs.file(compatibility)
     val output = layout.buildDirectory.file("nicoid/merged-helper-dex/classes.dex")
     doFirst {
         output.get().asFile.parentFile.mkdirs()
         output.get().asFile.delete()
     }
     args(generated.get().asFile.absolutePath, original.absolutePath,
-        layout.buildDirectory.file("nicoid/overrides.dex").get().asFile.absolutePath, output.get().asFile.absolutePath)
+        layout.buildDirectory.file("nicoid/overrides.dex").get().asFile.absolutePath,
+        compatibility.absolutePath, output.get().asFile.absolutePath)
 }
 val compileDialogVerification = tasks.register<JavaCompile>("compileDialogVerification") {
     source(rootProject.file("porting/tests/VerifyDialogArguments.java"), rootProject.file("porting/tests/VerifyListClickRouting.java"), rootProject.file("porting/tests/VerifyPopupCallbacks.java"))
@@ -279,7 +282,7 @@ val verifyHistorySort = tasks.register<JavaExec>("verifyHistorySort") {
 // v1.10.2 canonical release payload overlay: compile the source helper from
 // editable Java, disassemble it to smali and assemble it with a COPY of the
 // recovered v1.10.1 payload. No published source files are modified.
-val dev111Sources = rootProject.file("porting/revisions/v1.10.2/java")
+val dev111Sources = rootProject.file("porting/revisions/v1.10.4/java")
 val compileDev111 = tasks.register<JavaCompile>("compileDev111") {
     source(fileTree(dev111Sources) { include("**/*.java") })
     classpath = files(androidJar)
@@ -320,7 +323,7 @@ val dev111Smali = tasks.register<JavaExec>("dev111Smali") {
 }
 val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     dependsOn(dev111Smali)
-    val revision = rootProject.file("porting/revisions/v1.10.2")
+    val revision = rootProject.file("porting/revisions/v1.10.4")
     val payloads = rootProject.file("patches/src/main/resources/nicoid")
     val devSources = layout.buildDirectory.dir("nicoid/dev111/smali")
     inputs.dir(revision)

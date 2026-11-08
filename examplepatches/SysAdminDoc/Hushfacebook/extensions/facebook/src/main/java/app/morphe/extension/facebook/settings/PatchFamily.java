@@ -46,7 +46,8 @@ public enum PatchFamily {
             Settings.HIDE_SPONSORED_POSTS, Settings.HIDE_PROMOTED_POSTS),
     SUGGESTED_POSTS(FamilyNames.SUGGESTED_POSTS, "suggestedPosts", null,
             Settings.HIDE_SUGGESTED_POSTS, Settings.HIDE_SUGGESTED_FOR_YOU, Settings.HIDE_PEOPLE_YOU_MAY_KNOW,
-            Settings.HIDE_SUGGESTED_GROUPS, Settings.HIDE_GROUP_POSTS_NOT_JOINED, Settings.HIDE_STORIES_YOU_MIGHT_LIKE,
+            Settings.HIDE_SUGGESTED_GROUPS, Settings.HIDE_GROUP_POSTS_NOT_JOINED, Settings.HIDE_GROUP_POSTS,
+            Settings.HIDE_STORIES_YOU_MIGHT_LIKE,
             Settings.HIDE_FEED_MEMORIES, Settings.HIDE_FEED_FRIEND_REQUESTS, Settings.HIDE_FRIENDS_LOCATIONS,
             Settings.HIDE_NOTIFICATION_POST_FOOTER, Settings.HIDE_FIND_FRIENDS_CARD, Settings.HIDE_SEARCH_FOR_YOU,
             Settings.HIDE_SEARCH_PEOPLE_YOU_MAY_KNOW, Settings.HIDE_RELATED_POSTS),
@@ -64,7 +65,7 @@ public enum PatchFamily {
             Settings.HIDE_POSTS_WITH_WORDS, Settings.POST_WORDS_WHOLE_WORDS, Settings.HIDE_POSTS_FROM_SOURCES,
             Settings.HIDE_PHOTO_POSTS, Settings.HIDE_VIDEO_POSTS, Settings.HIDE_LINK_POSTS,
             Settings.HIDE_BACKGROUND_POSTS, Settings.HIDE_REPOSTS, Settings.HIDE_PAGE_POSTS,
-            Settings.HIDE_OTHER_LANGUAGES),
+            Settings.ONLY_FRIENDS_POSTS, Settings.HIDE_OTHER_LANGUAGES),
     POST_PROMPTS(FamilyNames.POST_PROMPTS, "postPrompts", null,
             Settings.HIDE_POST_PROMPTS, Settings.HIDE_POST_FOLLOW_LINK, Settings.HIDE_POST_JOIN_BUTTON, Settings.HIDE_POST_X,
             Settings.HIDE_POST_COUNTS, Settings.HIDE_POST_REACTIONS, Settings.HIDE_COMMENT_REACTIONS),
@@ -145,7 +146,8 @@ public enum PatchFamily {
             Settings.SHOW_REEL_POST_DATE,
             Settings.HIDE_REEL_SOUND_BUTTON, Settings.REEL_SPEAKER_ABOVE_MENU, Settings.HIDE_REEL_AUDIO_LINE,
             Settings.HIDE_SLOW_CONNECTION_MESSAGE, Settings.HIDE_UP_NEXT, Settings.HIDE_REEL_FULLSCREEN_PILL,
-            Settings.FEED_VIDEOS_ALONE, Settings.WATCH_AGAIN_IN_PLACE, Settings.PLAY_FEED_REELS_WHOLE),
+            Settings.FEED_VIDEOS_ALONE, Settings.WATCH_AGAIN_IN_PLACE, Settings.SAVED_VIDEOS_IN_PLAYER,
+            Settings.PLAY_FEED_REELS_WHOLE),
     REEL_PROMPTS(FamilyNames.REEL_PROMPTS, "reelPrompts", null,
             Settings.HIDE_REEL_PROMPTS),
     REEL_WATCH_HISTORY(FamilyNames.REEL_WATCH_HISTORY, "reelWatchHistory", null,
@@ -334,6 +336,8 @@ public enum PatchFamily {
     // The manifest and Facebook's own code name microG-RE in place of Play services, so push keeps
     // coming through it whether or not Hushfacebook is paused.
     GMS_CORE(FamilyNames.GMS_CORE, "gmsCore", FamilyNames.GMS_CORE),
+    // The package name is in the manifest, so the copy stays a copy whether or not Hushfacebook is paused.
+    CLONE_INSTALL(FamilyNames.CLONE_INSTALL, "cloneInstall", FamilyNames.CLONE_INSTALL),
     // The share target is declared in the manifest, so it stays in Android's share menu while paused (#111).
     OPEN_IN_FACEBOOK(FamilyNames.OPEN_IN_FACEBOOK, "openInFacebook", FamilyNames.OPEN_IN_FACEBOOK),
     // The settings entry's own way in, like the logo long press and the launcher shortcut, which
@@ -404,10 +408,12 @@ public enum PatchFamily {
      * patch with no switch to leave Facebook as it ships: the two themes rewrite dark mode's colours,
      * and Disable Play Store updates raises the version number, which a Root Mount install can't
      * take and every later build has to keep. GmsCore support stops Facebook asking Google Play
-     * services, so it's only for phones with microG-RE. Everything else is in the default selection,
-     * with any switch a patch brought in from this list starting off.
+     * services, so it's only for phones with microG-RE. Clone install makes a second Facebook under
+     * another package name, which only someone who wants two needs. Everything else is in the default
+     * selection, with any switch a patch brought in from this list starting off.
      */
-    private static final EnumSet<PatchFamily> OPT_IN = EnumSet.of(AMOLED_THEME, MATERIAL_YOU_THEME, PLAY_STORE_UPDATES, GMS_CORE);
+    private static final EnumSet<PatchFamily> OPT_IN =
+            EnumSet.of(AMOLED_THEME, MATERIAL_YOU_THEME, PLAY_STORE_UPDATES, GMS_CORE, CLONE_INSTALL);
 
     /**
      * The patches Morphe Manager selects by default. One of them left out is the usual answer to a
@@ -592,7 +598,7 @@ public enum PatchFamily {
                     || Settings.HIDE_PHOTO_POSTS.savedValue() || Settings.HIDE_VIDEO_POSTS.savedValue()
                     || Settings.HIDE_LINK_POSTS.savedValue() || Settings.HIDE_BACKGROUND_POSTS.savedValue()
                     || Settings.HIDE_REPOSTS.savedValue() || Settings.HIDE_PAGE_POSTS.savedValue()
-                    || Settings.HIDE_OTHER_LANGUAGES.savedValue();
+                    || Settings.ONLY_FRIENDS_POSTS.savedValue() || Settings.HIDE_OTHER_LANGUAGES.savedValue();
         }
         // The theme runs with its switches off and while paused: they only flatten the cards and draw the lines.
         if (this == AMOLED_THEME) {

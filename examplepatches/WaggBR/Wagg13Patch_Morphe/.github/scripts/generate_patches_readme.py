@@ -64,6 +64,12 @@ for patch in data["patches"]:
                 "patches": {},
                 "targets": pkg_entry.get("targets", []),
             }
+        # Keep every version any patch in this package supports.
+        known = {t.get("version") for t in by_pkg[pkg]["targets"]}
+        for t in pkg_entry.get("targets", []):
+            if t.get("version") not in known:
+                by_pkg[pkg]["targets"].append(t)
+                known.add(t.get("version"))
         # Deduplicate patches that appear across multiple packages
         if patch["name"] not in by_pkg[pkg]["patches"]:
             by_pkg[pkg]["patches"][patch["name"]] = patch

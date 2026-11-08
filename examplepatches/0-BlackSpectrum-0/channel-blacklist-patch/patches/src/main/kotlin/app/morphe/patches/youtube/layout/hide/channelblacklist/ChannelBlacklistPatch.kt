@@ -7,7 +7,7 @@
 
 package app.morphe.patches.youtube.layout.hide.channelblacklist
 
-import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.patch
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.litho.filter.addLithoFilter
 import app.morphe.patches.shared.misc.settings.preference.InputType
@@ -33,7 +33,7 @@ private const val CHANNEL_BLACKLIST_FILTER =
 private const val CHANNEL_BLACKLIST_FLYOUT_BUTTON =
     "Lapp/morphe/extension/youtube/patches/components/ChannelBlacklistFlyoutButton;"
 
-val channelBlacklistPatch = bytecodePatch(
+val channelBlacklistPatch = patch(
     name = "Channel blacklist",
     description = "Filter and hide videos from blacklisted channels across YouTube feeds, search results, subscriptions, and comments."
 ) {

@@ -364,7 +364,7 @@ People looking at a post don't see that you're writing a comment.	Người đang
 Hide read receipts	Ẩn trạng thái đã xem
 People you chat with in Facebook's own chats can't see that you've read their messages. The chat can stay unread on this phone.	Người bạn chat cùng trong phần chat của Facebook không thấy bạn đã đọc tin nhắn của họ. Đoạn chat có thể vẫn hiện là chưa đọc trên điện thoại này.
 Facebook can't tell when you take a screenshot or record your screen, so it can't react.	Facebook không biết khi bạn chụp hoặc quay màn hình nên không thể phản ứng.
-Stops sending Facebook your list of watched reels. It uses the list to rank your feed, so reels you've watched may come back.	Ngừng gửi cho Facebook danh sách reel bạn đã xem. Facebook dùng danh sách này để sắp xếp bảng tin, nên reel bạn đã xem có thể xuất hiện lại.
+Stops sending Facebook your list of watched reels, and where you stopped in each video and how long you watched it. Facebook ranks your feed with these, so videos you've watched may come back.	Ngừng gửi cho Facebook danh sách reel bạn đã xem, cùng vị trí bạn dừng ở mỗi video và thời gian bạn đã xem. Facebook dùng những thông tin này để sắp xếp bảng tin, nên video bạn đã xem có thể xuất hiện lại.
 # context: switch title under Reels and Watch; the Reels tab shows the most recently posted reels before older ones
 Newest reels first	Reel mới nhất trước
 # context: summary of that switch; "loaded" means the reels the app has already downloaded in the background, "placed" means reels already lined up as the next ones
@@ -1373,6 +1373,10 @@ Hide reposts	Ẩn bài viết được chia sẻ lại
 Hides posts that share another post, with or without a caption. Original posts stay. Off by default, since it hasn't been tried on a real feed yet.	Ẩn bài viết chia sẻ lại bài viết khác, dù có lời bình hay không. Bài viết gốc vẫn giữ nguyên. Mặc định tắt vì chưa được thử trên bảng tin thật.
 Hide posts from Pages	Ẩn bài viết từ Trang
 Hides posts written by Pages, the ones you follow too. Posts from friends and groups stay, and so does a friend's share of a Page's post.	Ẩn bài viết do Trang đăng, kể cả Trang bạn theo dõi. Bài viết của bạn bè và nhóm vẫn còn, bài viết của Trang do bạn bè chia sẻ cũng vậy.
+# context: switch title under News feed; the feed keeps only posts written by the user's Facebook friends
+Only friends' posts	Chỉ bài viết của bạn bè
+# context: summary of that switch; %1$s is the name of the Following feed on Home switch, which puts the newest posts first
+Shows only posts your friends wrote and hides Pages, groups, ads, suggested posts and feed reels. A post whose author it can't tell stays. Turn on %1$s too for the newest posts first.	Chỉ hiện bài viết do bạn bè của bạn đăng và ẩn Trang, nhóm, quảng cáo, bài viết được gợi ý và thước phim trong bảng tin. Bài viết không xác định được tác giả vẫn còn. Bật thêm %1$s để xem bài mới nhất trước.
 Hide posts in other languages	Ẩn bài viết bằng ngôn ngữ khác
 Hides posts and Reels tab reels in a language you don't keep, going by the phone's own guess at each post's words or reel's caption. Ones it isn't sure about stay, and nothing leaves the phone.	Ẩn bài viết và thước phim trên tab Reels bằng ngôn ngữ bạn không giữ lại, dựa trên phán đoán của chính điện thoại về chữ trong mỗi bài viết hoặc chú thích của mỗi thước phim. Những gì nó không chắc thì vẫn còn, và không có gì rời khỏi điện thoại.
 Languages to keep	Ngôn ngữ giữ lại
@@ -1730,7 +1734,7 @@ On carriers with Facebook Flex, hides the purple Free mode bar. That bar is also
 # context: switch title under Picture-in-picture on the Playback page: the small window opens only from the Picture-in-picture row this adds to a reel's three-dot More menu, not when you leave Facebook
 Only from a reel's More menu	Chỉ từ menu Thêm của reel
 # context: summary of that switch; Picture-in-picture is the name of the row in the reel's menu, translated as the row is; the three dots are the reel's own menu button
-Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one. That row shows on upright reels, not wide ones.	Rời khỏi Facebook sẽ không mở cửa sổ. Khi muốn, hãy nhấn Hình trong hình trong menu Thêm của reel (dấu ba chấm). Dòng đó có ở thước phim dọc, không có ở thước phim ngang.
+Leaving Facebook doesn't open the window. Tap Picture-in-picture in a reel's More menu (the three dots) when you want one.	Rời khỏi Facebook sẽ không mở cửa sổ. Khi muốn, hãy nhấn Hình trong hình trong menu Thêm của reel (dấu ba chấm).
 # context: switch title under Picture-in-picture on the Playback page; the button floats over a reel or video and opens the small window when tapped
 Picture-in-picture button	Nút hình trong hình
 # context: summary of that switch; "the window" is the small picture-in-picture window
@@ -1934,6 +1938,10 @@ A video you tap in the feed opens full screen by itself, with no reels to swipe 
 Replay feed videos in place	Phát lại video trong bảng tin ngay tại chỗ
 # context: summary of that switch; Watch again is Facebook's own button shown when a feed video ends, so use Facebook's wording in your language if you know it
 Watch again at the end of a feed video plays it again right there, instead of opening it in Reels.	"Xem lại" ở cuối video trong bảng tin sẽ phát lại video ngay tại đó, thay vì mở nó trong Reels.
+# context: switch title under Reels and Watch; on, a video tapped in Facebook's Saved list plays in the regular video player instead of the Reels viewer
+Open saved videos in the video player	Mở video đã lưu trong trình phát video
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	Video bạn nhấn trong mục Đã lưu sẽ phát trong trình phát video thay vì Reels, nơi lần vuốt tiếp theo là một thước phim được đề xuất.
 Hide the new comments pop-up	Ẩn bong bóng bình luận mới
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Bong bóng "bình luận mới" không còn bật lên khi bạn đọc bình luận. Bình luận mới vẫn hiện trong danh sách.
@@ -1955,6 +1963,10 @@ Skipping silent parts again	Lại bỏ qua đoạn im lặng
 Hide posts from groups you're not in	Ẩn bài viết từ nhóm bạn chưa tham gia
 # context: summary of that switch; a group post a friend commented on or shared reaches the feed wrapped in the friend's activity, and the switch hides it too
 Hides posts from groups you haven't joined, like a friend's post in a public group, and a group post a friend commented on or shared. Posts from your groups stay.	Ẩn bài viết từ các nhóm bạn chưa tham gia, như bài viết của bạn bè trong một nhóm công khai, và bài viết nhóm mà bạn bè đã bình luận hoặc chia sẻ. Bài viết từ nhóm của bạn vẫn giữ nguyên.
+# context: switch title under News feed; hides every post that comes from a group, including groups the user is a member of
+Hide all group posts	Ẩn tất cả bài viết nhóm
+# context: summary of that switch; the Groups tab is Facebook's own tab of group posts, which this switch leaves alone
+Hides every post from a group in your feed, your own groups' too, and a group post a friend commented on or shared. The Groups tab keeps its feed.	Ẩn mọi bài viết từ nhóm trong bảng tin của bạn, kể cả nhóm của bạn, và bài viết nhóm mà bạn bè đã bình luận hoặc chia sẻ. Tab Nhóm vẫn giữ bảng tin của nó.
 # context: switch title under Search; For you is the section of searches Facebook suggests on the search screen before anything is typed, under a header that reads For you
 Hide For you in search	Ẩn Dành cho bạn trong tìm kiếm
 # context: summary of that switch; recent searches are the user's own past searches, and the suggestions as you type are the ones under the search box while typing
@@ -2543,6 +2555,7 @@ There's no Facebook link in what you shared.	Nội dung bạn chia sẻ không c
 Open in Facebook from the share menu	Open in Facebook trong menu chia sẻ
 Share a Facebook link from Messenger's browser or any other app and pick Open in Facebook, and it opens here.	Chia sẻ một liên kết Facebook từ trình duyệt của Messenger hoặc ứng dụng khác rồi chọn Open in Facebook để mở tại đây.
 GmsCore support	Hỗ trợ GmsCore
+Clone install under another package name	Cài bản sao với tên gói khác
 Version %1$s for Facebook %2$s	Phiên bản %1$s cho Facebook %2$s
 Show all settings as a list	Hiện tất cả cài đặt dạng danh sách
 Show settings by category	Hiện cài đặt theo danh mục

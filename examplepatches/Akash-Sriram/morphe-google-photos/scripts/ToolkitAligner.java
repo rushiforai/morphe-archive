@@ -670,16 +670,16 @@ public class ToolkitAligner {
         sb.append("    // Service Locator (bzoq in 7.97, cbnw in 7.98)\n");
         sb.append("    public static final String SERVICE_LOCATOR_CLASS = \"").append(res.serviceLocatorClass).append("\";\n");
         sb.append("    public static final String SERVICE_LOCATOR_METHOD = \"").append(res.serviceLocatorMethod).append("\";\n");
-        sb.append("    public static final String[] SERVICE_LOCATOR_CLASSES = ").append(formatArray(res.serviceLocatorClass, "bzoq", "bxoe")).append(";\n\n");
+        sb.append("    public static final String[] SERVICE_LOCATOR_CLASSES = ").append(formatArray(res.serviceLocatorClass, "cbyf", "bzoq", "bxoe")).append(";\n\n");
 
         sb.append("    // Task Runner (Sync task execution via static helper)\n");
         sb.append("    public static final String TASK_RUNNER_CLASS = \"").append(res.taskRunnerClass).append("\";\n");
         sb.append("    public static final String TASK_RUNNER_SYNC_METHOD = \"").append(res.taskRunnerSyncMethod).append("\";\n");
-        sb.append("    public static final String[] TASK_RUNNER_CLASSES = ").append(formatArray(res.taskRunnerClass, "bztw", "cbsq", "cagl", "cant", "bxue")).append(";\n\n");
+        sb.append("    public static final String[] TASK_RUNNER_CLASSES = ").append(formatArray(res.taskRunnerClass, "bsyv", "bztw", "cbsq", "cagl", "cant", "bxue")).append(";\n\n");
 
         sb.append("    // Add Media To Album (Private Album creation builder)\n");
         sb.append("    public static final String ADD_MEDIA_TO_ALBUM_BUILDER_CLASS = \"").append(res.addMediaToAlbumBuilderClass).append("\";\n");
-        sb.append("    public static final String[] ADD_MEDIA_TO_ALBUM_BUILDER_CLASSES = ").append(formatArray(res.addMediaToAlbumBuilderClass, "otz", "orn", "ovo", "mtl", "mqw")).append(";\n\n");
+        sb.append("    public static final String[] ADD_MEDIA_TO_ALBUM_BUILDER_CLASSES = ").append(formatArray(res.addMediaToAlbumBuilderClass, "orw", "otz", "orn", "ovo", "mtl", "mqw")).append(";\n\n");
 
         sb.append("    // Add Media To Envelope (Shared Album addition builder)\n");
         sb.append("    public static final String ADD_MEDIA_TO_ENVELOPE_BUILDER_CLASS = \"").append(res.addMediaToEnvelopeBuilderClass).append("\";\n");
@@ -688,7 +688,7 @@ public class ToolkitAligner {
         sb.append("    // Remove Media From Private Album Task\n");
         sb.append("    public static final String PRIVATE_ALBUM_REMOVE_CLASS = \"").append(res.privateAlbumRemoveClass).append("\";\n");
         sb.append("    public static final String PRIVATE_ALBUM_REMOVE_METHOD = \"").append(res.privateAlbumRemoveMethod).append("\";\n");
-        sb.append("    public static final String[] PRIVATE_ALBUM_REMOVE_CLASSES = ").append(formatArray(res.privateAlbumRemoveClass, "osi", "iyo")).append(";\n\n");
+        sb.append("    public static final String[] PRIVATE_ALBUM_REMOVE_CLASSES = ").append(formatArray(res.privateAlbumRemoveClass, "oqm", "osi", "iyo")).append(";\n\n");
 
         sb.append("    // Mars Remove Task Config: {argClass, enumClass, enumField, builderClass, builderMethod}\n");
         sb.append("    public static final String[] MARS_REMOVE_CONFIG_CURRENT = {\"")
@@ -703,6 +703,7 @@ public class ToolkitAligner {
           .append(res.marsRemoveConfig[2]).append("\", \"")
           .append(res.marsRemoveConfig[3]).append("\", \"")
           .append(res.marsRemoveConfig[4]).append("\"}, // ").append(res.apkVersion).append("\n");
+        sb.append("        {\"oac\", \"bbuk\", \"ms\", \"ssk\", \"l\"}, // 7.99.0.1007655401\n");
         sb.append("        {\"odi\", \"bdft\", \"ms\", \"stk\", \"s\"}, // 7.97.0 arm64\n");
         sb.append("        {\"oax\", \"bbzi\", \"ms\", \"sgz\", \"n\"}, // 7.97.0 univ\n");
         sb.append("        {\"ofl\", \"bcdu\", \"ms\", \"tfb\", \"p\"}, // 7.97.0 univ\n");
@@ -755,12 +756,12 @@ public class ToolkitAligner {
 
         sb.append("    // Action Queue Flusher (flushes local action mutations)\n");
         sb.append("    public static final String ACTION_FLUSHER_CLASS = \"").append(res.actionFlusherClass).append("\";\n");
-        sb.append("    public static final String[] ACTION_FLUSHER_CLASSES = ").append(formatArray(res.actionFlusherClass, "aqgz", "aqgr", "aokq", "amwa")).append(";\n\n");
+        sb.append("    public static final String[] ACTION_FLUSHER_CLASSES = ").append(formatArray(res.actionFlusherClass, "aqmp", "aqgz", "aqgr", "aokq", "amwa")).append(";\n\n");
 
         sb.append("    // Archive Service & Actions\n");
         sb.append("    public static final String ARCHIVE_SERVICE_CLASS = \"").append(res.archiveServiceClass).append("\";\n");
         sb.append("    public static final String ARCHIVE_SERVICE_METHOD = \"").append(res.archiveServiceMethod).append("\";\n");
-        sb.append("    public static final String[] ARCHIVE_SERVICE_CLASSES = ").append(formatArray(res.archiveServiceClass, "rsr", "psu")).append(";\n\n");
+        sb.append("    public static final String[] ARCHIVE_SERVICE_CLASSES = ").append(formatArray(res.archiveServiceClass, "rvd", "rsr", "psu")).append(";\n\n");
 
         sb.append("    public static final String ARCHIVE_BUILDER_CLASS = \"").append(res.archiveBuilderClass).append("\";\n");
         sb.append("    public static final String ARCHIVE_ACTION_CLASS = \"").append(res.archiveActionClass).append("\";\n");
@@ -768,19 +769,20 @@ public class ToolkitAligner {
 
         sb.append("    // Move to Trash Action\n");
         sb.append("    public static final String MOVE_TO_TRASH_ACTION_CLASS = \"").append(res.moveToTrashActionClass).append("\";\n");
-        sb.append("    public static final String[] MOVE_TO_TRASH_ACTION_CLASSES = ").append(formatArray(res.moveToTrashActionClass, "bfjt", "bjir")).append(";\n\n");
+        sb.append("    public static final String[] MOVE_TO_TRASH_ACTION_CLASSES = ").append(formatArray(res.moveToTrashActionClass, "bfsn", "bfjt", "bjir")).append(";\n\n");
 
-        // Glide Singleton (mdm in 7.98)
+        sb.append("    // Glide Singleton (mdm in 7.98)\n");
         sb.append("    // Glide Singleton\n");
         sb.append("    public static final String GLIDE_SINGLETON_CLASS = \"").append(res.glideSingletonClass).append("\";\n");
-        sb.append("    public static final String[] GLIDE_SINGLETON_CLASSES = ").append(formatArray(res.glideSingletonClass, "mdm", "mil", "khc", "mgg", "mkp", "kjo")).append(";\n\n");
+        sb.append("    public static final String[] GLIDE_SINGLETON_CLASSES = ").append(formatArray(res.glideSingletonClass, "mez", "mdm", "mil", "khc", "mgg", "mkp", "kjo")).append(";\n\n");
 
-        // Remote Media Model & Options (amrp/amrq in 7.98)
+        sb.append("    // Remote Media Model & Options (amrp/amrq in 7.98)\n");
         sb.append("    // Remote Media Model & Options\n");
         sb.append("    public static final String REMOTE_MEDIA_MODEL_CLASS = \"").append(res.remoteMediaModelClass).append("\";\n");
         sb.append("    public static final String REMOTE_MEDIA_OPTIONS_CLASS = \"").append(res.remoteMediaOptionsClass).append("\";\n");
         sb.append("    public static final String[][] REMOTE_MEDIA_MODEL_PAIRS = {\n");
         sb.append("        {\"").append(res.remoteMediaModelClass).append("\", \"").append(res.remoteMediaOptionsClass).append("\"}, // ").append(res.apkVersion).append("\n");
+        sb.append("        {\"amwm\", \"amwn\"}, // 7.99.0.1007655401\n");
         sb.append("        {\"amsr\", \"amss\"}, // 7.97.0 arm64\n");
         sb.append("        {\"amri\", \"amrj\"}, // 7.97.0 univ\n");
         sb.append("        {\"amxw\", \"amxx\"}, // 7.97.0 univ\n");

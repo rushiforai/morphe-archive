@@ -1,0 +1,7 @@
+*.apkm
+*.apk
+analysis/
+tools/
+.gradle/
+**/build/
+__pycache__/

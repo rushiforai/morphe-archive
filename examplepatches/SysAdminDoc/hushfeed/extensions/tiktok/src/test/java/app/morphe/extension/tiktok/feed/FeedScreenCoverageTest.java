@@ -139,6 +139,11 @@ public class FeedScreenCoverageTest {
         put("show_exact_counts", YES, YES, UNCHECKED);
         put("hide_story_rings", YES, YES, UNCHECKED);
         put("hide_live_ring", YES, YES, UNCHECKED);
+        // Where the two ring switches reach (#351): the feed column and the comment sheet live in
+        // both feed windows, a LIVE room draws neither, and profiles are none of the three.
+        put("hide_rings_feed", YES, YES, NONE);
+        put("hide_rings_comments", YES, YES, NONE);
+        put("hide_rings_profiles", NONE, NONE, NONE);
         // The picture at the top of a creator's profile, which none of the three windows draws (#233).
         put("open_story_over_live", NONE, NONE, NONE);
 
@@ -167,6 +172,8 @@ public class FeedScreenCoverageTest {
         put("profile_grid_sort", NONE, NONE, NONE);
         put("liked_grid_sort", NONE, NONE, NONE);
         put("sound_grid_sort", NONE, NONE, NONE);
+        // Where the Liked grid's list starts, which neither window draws (#350).
+        put("liked_jump_to_date", NONE, NONE, NONE);
         put("show_author_region", YES, YES, NONE);
         // Only how the region label shows its code, so it reaches where the label does (#157).
         put("region_as_flag", YES, YES, NONE);
@@ -244,8 +251,14 @@ public class FeedScreenCoverageTest {
         put("keep_clear_display_seek_bar", YES, YES, NONE);
         put("fade_controls_opacity", YES, YES, NONE);
         put("fade_in_clear_display", YES, YES, NONE);
+        // The eye button sits on the main feed alone; an opened video keeps its controls (#374).
+        put("invisible_controls_button", YES, Reach.NO, NONE,
+                "Videos you open from a profile or search keep their controls.");
+        put("invisible_controls_keep_caption", YES, Reach.NO, NONE, "on the main feed");
         // The tab bar belongs to the main feed; an opened video has none (#145).
         put("see_through_bottom_bar", YES, NONE, NONE);
+        // How the video under that same bar is drawn (#232).
+        put("see_through_video_in_window", YES, NONE, NONE);
         // Only the look of that same bar (#124).
         put("floating_bottom_bar", YES, NONE, NONE);
         // And of that pill (#218).
@@ -254,6 +267,8 @@ public class FeedScreenCoverageTest {
         put("glass_tab_lens", YES, NONE, NONE);
         // And of the blur behind that pill (#231).
         put("glass_video_blur", YES, NONE, NONE);
+        // And of the bent edge of that blur (#231).
+        put("glass_refraction", YES, NONE, NONE);
         // The pill's height, corners, opacity and blur strength, and the lens's slide and ticks.
         put("glass_bar_height", YES, NONE, NONE);
         put("glass_corners", YES, NONE, NONE);
@@ -448,14 +463,14 @@ public class FeedScreenCoverageTest {
         int cellId = 0x7f0a1c01;
         Map<String, Integer> ids = new LinkedHashMap<>();
         ids.put("desc", 0x7f0a1c02);
-        ids.put("47.7.2:o93", 0x7f0a1c03);
-        ids.put("47.7.2:lkj", 0x7f0a1c04);
-        ids.put("47.7.2:f9j", 0x7f0a1c05);
+        ids.put("47.7.3:o93", 0x7f0a1c03);
+        ids.put("47.7.3:lkj", 0x7f0a1c04);
+        ids.put("47.7.3:f9j", 0x7f0a1c05);
         Map<BooleanSetting, String> switches = new LinkedHashMap<>();
         switches.put(Settings.HIDE_FEED_CAPTION, "desc");
-        switches.put(Settings.HIDE_FEED_MUSIC, "47.7.2:o93");
-        switches.put(Settings.HIDE_FEED_ACTION_BAR, "47.7.2:lkj");
-        switches.put(Settings.HIDE_FEED_SURVEYS, "47.7.2:f9j");
+        switches.put(Settings.HIDE_FEED_MUSIC, "47.7.3:o93");
+        switches.put(Settings.HIDE_FEED_ACTION_BAR, "47.7.3:lkj");
+        switches.put(Settings.HIDE_FEED_SURVEYS, "47.7.3:f9j");
         for (BooleanSetting setting : switches.keySet()) {
             Coverage coverage = TABLE.get(setting.key);
             assertNotNull(setting.key, coverage);

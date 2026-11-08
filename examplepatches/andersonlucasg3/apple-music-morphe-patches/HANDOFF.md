@@ -2,6 +2,19 @@
 
 Atualizado em **2026-11-07**. Documento de passagem de contexto; não é uma release.
 
+## Estado atual — 2026-11-07 (apps 1.7.0)
+
+- O produto é **APKs**, não bundle: releases `apps-<versão>` até **`apps-1.7.0`** com
+  `AppleMusic-engine-arm32/arm64`, `AppleMusic-TV`, `AppleMusic-Car`, `updates.json` e
+  `SHA256SUMS`. O `.mpp` é interno (só gera o engine) e não é publicado.
+- **Busca de catálogo** nos dois companions (amp-api com o developer token do engine, mesmo UID;
+  fallback para a busca do app original) e **auto-update** in-app lendo `updates.json`
+  (`versionCode`, SHA-256, `PackageInstaller`, engine antes do companion).
+- Validação desta rodada: **emulador Android TV x86** (`tv34`, 1920×1080) com engine x86 logado;
+  a **TV física está fora de alcance**. A instalação no head unit DiLink não foi refeita.
+- Estado por fase, decisão do APK único e métricas: [ROADMAP.md](ROADMAP.md). Instalação para
+  usuário: [README.md](README.md).
+
 ## Sessão 2026-11-07 — patches de TV removidos
 
 Os patches `TV: manifest`, `TV: D-pad focus` e `TV: player expand focus` (e o helper

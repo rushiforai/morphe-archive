@@ -10,7 +10,11 @@ import com.anderson.applemusic.core.BrowseItem
 import com.anderson.applemusic.core.CustomAction
 import com.anderson.applemusic.core.MediaBrowserClient
 import com.anderson.applemusic.core.PlaybackSnapshot
+import com.anderson.applemusic.core.SearchClient
+import com.anderson.applemusic.core.SearchOutcome
+import com.anderson.applemusic.core.SearchResult
 import com.anderson.applemusic.core.Section
+import com.anderson.applemusic.core.mediaIdCandidates
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +49,12 @@ data class TvUiState(
     val nowPlayingOpen: Boolean = false,
     val seekFeedback: SeekFeedback? = null,
     val searchOpen: Boolean = false,
+    /** Text currently typed in the search field. */
+    val searchQuery: String = "",
+    /** A catalogue request is in flight. */
+    val searchBusy: Boolean = false,
+    val searchResults: List<SearchResult> = emptyList(),
+    val searchError: String? = null,
     /** The session action list is open on top of the full player. */
     val actionsOpen: Boolean = false,
     /** The long-press context menu is open over the browse tree. */
@@ -56,6 +66,7 @@ data class TvUiState(
 class TvViewModel(application: Application) : AndroidViewModel(application) {
 
     private val client = MediaBrowserClient(application)
+    private val searchClient = SearchClient(application)
     private val _state = MutableStateFlow(TvUiState())
     val state: StateFlow<TvUiState> = _state.asStateFlow()
 
@@ -66,6 +77,7 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
 
     private var seekFeedbackJob: Job? = null
     private var messageJob: Job? = null
+    private var searchJob: Job? = null
 
     private val listener = object : MediaBrowserClient.Listener {
         override fun onConnected() {
@@ -186,7 +198,93 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun closeSearch() {
-        _state.update { it.copy(searchOpen = false) }
+        searchJob?.cancel()
+        _state.update { it.copy(searchOpen = false, searchBusy = false) }
+    }
+
+    /**
+     * Runs the catalogue search after a short debounce: the TV IME sends one event per
+     * key, and every request costs a network round trip.
+     */
+    fun setSearchQuery(text: String) {
+        _state.update {
+            it.copy(searchQuery = text, searchError = null)
+        }
+        searchJob?.cancel()
+        val term = text.trim()
+        if (term.length < MIN_QUERY_LENGTH) {
+            _state.update { it.copy(searchResults = emptyList(), searchBusy = false) }
+            return
+        }
+        searchJob = viewModelScope.launch {
+            delay(SEARCH_DEBOUNCE_MS)
+            _state.update { it.copy(searchBusy = true) }
+            when (val outcome = searchClient.search(term)) {
+                is SearchOutcome.Results -> _state.update {
+                    it.copy(searchBusy = false, searchResults = outcome.results, searchError = null)
+                }
+
+                SearchOutcome.TokenUnavailable -> _state.update {
+                    it.copy(
+                        searchBusy = false,
+                        searchResults = emptyList(),
+                        searchError = "Não foi possível ler o token do Apple Music",
+                    )
+                }
+
+                is SearchOutcome.Failure -> _state.update {
+                    it.copy(
+                        searchBusy = false,
+                        searchResults = emptyList(),
+                        searchError = outcome.message,
+                    )
+                }
+            }
+        }
+    }
+
+    fun retrySearch() {
+        setSearchQuery(_state.value.searchQuery)
+    }
+
+    /** Opens the engine's own search screen (token unreadable / result not playable). */
+    fun openEngineSearch() {
+        SearchClient.openEngineSearch(getApplication())
+    }
+
+    /**
+     * ENTER on a result: the catalogue id goes to `playFromMediaId`; if the engine does
+     * not load the item, its own search plays the top hit for "title artist".
+     */
+    fun playSearchResult(result: SearchResult) {
+        val before = _playback.value
+        showMessage("Tocando ${result.title}…")
+        viewModelScope.launch {
+            for (candidate in result.mediaIdCandidates()) {
+                client.play(candidate)
+                if (awaitNewTrack(before)) return@launch
+            }
+            SearchClient.playInEngine(getApplication(), "${result.title} ${result.artist}".trim())
+            showMessage("Buscando no app do Apple Music…")
+        }
+    }
+
+    /**
+     * The engine loaded something: a different track, or the same one restarted (the
+     * position jumps back), or playback resumed from a paused session. A result that
+     * merely keeps the current queue untouched looks like "no change" and falls through
+     * to the engine search.
+     */
+    private suspend fun awaitNewTrack(before: PlaybackSnapshot): Boolean {
+        val deadline = SystemClock.elapsedRealtime() + PLAY_WAIT_MS
+        while (SystemClock.elapsedRealtime() < deadline) {
+            val now = _playback.value
+            if (now.title.isNotBlank() && now.title != before.title) return true
+            if (now.playing && !before.playing) return true
+            if (now.title.isNotBlank() && now.positionMs + 1000L < before.positionMs) return true
+            delay(100L)
+        }
+        return false
     }
 
     /** Opens the session action sheet over the full player. */
@@ -395,6 +493,7 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         seekFeedbackJob?.cancel()
         messageJob?.cancel()
+        searchJob?.cancel()
         client.disconnect()
         super.onCleared()
     }
@@ -405,6 +504,9 @@ class TvViewModel(application: Application) : AndroidViewModel(application) {
         private const val SEEK_FEEDBACK_MS = 1500L
         private const val ITEM_ACTION_TIMEOUT_MS = 1500L
         private const val MESSAGE_MS = 2000L
+        private const val SEARCH_DEBOUNCE_MS = 400L
+        private const val MIN_QUERY_LENGTH = 2
+        private const val PLAY_WAIT_MS = 1500L
 
         // Session action ids published by the engine. The sheet is generic (it renders
         // whatever `PlaybackSnapshot.customActions` carries); these two also have a

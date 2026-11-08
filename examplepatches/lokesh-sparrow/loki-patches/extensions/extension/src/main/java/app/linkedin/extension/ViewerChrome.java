@@ -1,5 +1,8 @@
 package app.linkedin.extension;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.ContextWrapper;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.MotionEvent;
@@ -40,6 +43,8 @@ public final class ViewerChrome {
 
     private static final String CONTROLS_STATE = "showControlsBinding";
     private static final String CONTROLS_NAMESPACE = "MemoryNamespace";
+    /** The video viewer's own control state, keyed per media item: the play button's show/hide. */
+    private static final String VIDEO_CONTROLS_STATE = "showImmersiveViewerPlayButtonDisplayFor";
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final Set<Object> stateManagers = Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -58,12 +63,17 @@ public final class ViewerChrome {
     }
 
     /**
-     * Injection point, at the start of AndroidComposeView.dispatchTouchEvent. A single tap on the document (not a
-     * swipe, long press or double tap to zoom) shows or hides its top bar and bottom part.
+     * Injection point, at the start of AndroidComposeView.dispatchTouchEvent. A single tap in the viewers shows or
+     * hides the app's own controls. In the document viewer that is a state flip; in the photo and video viewers the
+     * app does that by itself, so the tap only toggles the download button, after the same wait for a second tap
+     * (the document zooms, the video seeks).
      */
     public static void onTouch(View view, MotionEvent event) {
         try {
-            if (!Settings.viewerTapToHide() || !SduiMediaDownload.resumedScreen().endsWith(".DocumentViewer")) return;
+            if (!Settings.viewerTapToHide()) return;
+            String screen = SduiMediaDownload.resumedScreen();
+            boolean document = screen.endsWith(".DocumentViewer");
+            if (!document && !screen.endsWith(".VideoViewer") && !screen.endsWith(".MediaUpdateDetail")) return;
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     downX = event.getRawX();
@@ -84,12 +94,19 @@ public final class ViewerChrome {
                     if (event.getEventTime() - downTime > ViewConfiguration.getLongPressTimeout()) return;
                     int slop = ViewConfiguration.get(view.getContext()).getScaledTouchSlop();
                     if (Math.hypot(event.getRawX() - downX, event.getRawY() - downY) > slop) return;
-                    if (controlsShown() && onControls(view, downX, downY)) return;
-                    // Waits out a second tap, which zooms the document.
+                    // Taps on the bars and buttons are theirs, not a request to hide anything — but any tap brings
+                    // a hidden button back, since that is also how the app shows its own controls again.
+                    if (onControls(view, downX, downY)) {
+                        boolean shown = document
+                                ? controlsShown()
+                                : SduiMediaDownload.buttonVisible(activityOf(view.getContext()));
+                        if (shown) return;
+                    }
+                    // Waits out a second tap, which zooms the document or seeks the video.
                     pendingToggle = () -> {
                         pendingToggle = null;
                         try {
-                            setControlsShown(!controlsShown());
+                            toggle(view, document);
                         } catch (Throwable t) {
                             Diagnostics.error("viewer controls toggle failed", t);
                         }
@@ -102,6 +119,31 @@ public final class ViewerChrome {
         } catch (Throwable t) {
             Diagnostics.error("viewer tap failed", t);
         }
+    }
+
+    /** Flips the app's controls in the document viewer, and the download button in every viewer. */
+    private static void toggle(View view, boolean document) throws ReflectiveOperationException {
+        Activity activity = activityOf(view.getContext());
+        boolean visible;
+        if (document) {
+            visible = !controlsShown();
+            setControlsShown(visible);
+        } else if (SduiMediaDownload.resumedScreen().endsWith(".VideoViewer")) {
+            // The video handles the tap itself, so read what it did rather than guessing from our own state.
+            visible = videoControlsShown();
+        } else {
+            visible = !SduiMediaDownload.buttonVisible(activity);
+        }
+        SduiMediaDownload.setButtonVisible(activity, visible);
+        Settings.debugLog("viewer tap: download button " + (visible ? "shown" : "hidden"));
+    }
+
+    private static Activity activityOf(Context context) {
+        while (context instanceof ContextWrapper) {
+            if (context instanceof Activity) return (Activity) context;
+            context = ((ContextWrapper) context).getBaseContext();
+        }
+        return context instanceof Activity ? (Activity) context : null;
     }
 
     /** Whether a tap is on the top bar, the bottom part or the reactions on the right, which have buttons. */
@@ -183,6 +225,50 @@ public final class ViewerChrome {
 
     private static boolean isControlsKey(Object key) throws ReflectiveOperationException {
         return CONTROLS_STATE.equals(field(key, "value")) && CONTROLS_NAMESPACE.equals(field(key, "namespace"));
+    }
+
+    private static boolean isVideoControlsKey(Object key) throws ReflectiveOperationException {
+        Object value = field(key, "value");
+        return value instanceof String && ((String) value).startsWith(VIDEO_CONTROLS_STATE)
+                && CONTROLS_NAMESPACE.equals(field(key, "namespace"));
+    }
+
+    /** The boolean the app stored for this kind of key, or null when it has not stored one yet. */
+    private static Boolean storedState(boolean video) throws ReflectiveOperationException {
+        for (Object manager : managers()) {
+            for (Map.Entry<?, ?> entry : states(manager).entrySet()) {
+                Object key = entry.getKey();
+                if (!(video ? isVideoControlsKey(key) : isControlsKey(key))) continue;
+                Object update = field(entry.getValue(), "stateUpdate");
+                if (update == null) continue;
+                Object value = update.getClass().getMethod("getValue").invoke(update);
+                return (Boolean) value.getClass().getMethod("getBooleanValue").invoke(value);
+            }
+        }
+        return null;
+    }
+
+    /** The video viewer opens immersive, so its controls count as hidden until the app says otherwise. */
+    private static boolean videoControlsShown() throws ReflectiveOperationException {
+        Boolean shown = storedState(true);
+        return shown != null && shown;
+    }
+
+    /**
+     * Whether the app's own controls of the viewer in front are showing. The download button is not an SDUI
+     * component, so it cannot follow them by itself: it reads the same state and matches, which also fixes the
+     * starting point of an immersive video instead of assuming the controls are up.
+     */
+    static boolean controlsVisible() {
+        try {
+            String screen = SduiMediaDownload.resumedScreen();
+            if (screen.endsWith(".DocumentViewer")) return controlsShown();
+            if (screen.endsWith(".VideoViewer")) return videoControlsShown();
+            return true;
+        } catch (Throwable t) {
+            Diagnostics.error("viewer controls state failed", t);
+            return true;
+        }
     }
 
     private static Object field(Object target, String name) throws ReflectiveOperationException {

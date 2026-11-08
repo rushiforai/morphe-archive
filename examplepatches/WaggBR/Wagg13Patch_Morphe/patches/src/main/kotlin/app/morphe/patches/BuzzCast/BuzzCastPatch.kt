@@ -32,6 +32,9 @@ package app.template.patches.buzzcast
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import com.android.tools.smali.dexlib2.Opcode
@@ -43,11 +46,18 @@ import org.w3c.dom.Element
 private const val PKG = "com.guochao.faceshow"
 private const val VERSION = "3.2.92"
 
+private val BUZZCAST_COMPATIBILITY = Compatibility(
+    name = "BuzzCast",
+    packageName = PKG,
+    apkFileType = ApkFileType.APK,
+    targets = listOf(AppTarget(version = VERSION)),
+)
+
 // Dependência do patch 1 (não aparece sozinha na lista).
 private val buzzCastStripAdManifestPatch = resourcePatch(
     description = "Removes ad permissions and manifest entries.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
 
     execute {
         document("AndroidManifest.xml").use { doc ->
@@ -98,7 +108,7 @@ private val buzzCastStripAdManifestPatch = resourcePatch(
 private val buzzCastBrandingPatch = bytecodePatch(
     description = "Settings screen: version row opens the Wagg13 Mods Telegram channel and the footer shows the mod credit.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
 
     execute {
         val settings = mutableClassDefBy("Lcom/guochao/faceshow/mine/view/SettingActivity;")
@@ -180,7 +190,7 @@ val buzzCastUnlockSvipPatch = bytecodePatch(
     name = "Unlock SVIP",
     description = "Unlocks SVIP features and removes ads and purchase pop-ups.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastStripAdManifestPatch, buzzCastBrandingPatch)
 
     execute {
@@ -252,7 +262,7 @@ val buzzCastHideLiveNoticePatch = bytecodePatch(
     name = "Hide live room notice",
     description = "Removes the \"healthy live streaming\" message shown in every live chat.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {
@@ -288,7 +298,7 @@ val buzzCastHideJoinFollowMessagesPatch = bytecodePatch(
     name = "Hide join and follow messages",
     description = "Hides the \"joined\" and \"followed\" messages in live chats and the join banner at the top.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {
@@ -352,7 +362,7 @@ val buzzCastHideCornerCardsPatch = bytecodePatch(
     name = "Hide live room cards",
     description = "Hides the rotating event and gift cards in the corner of live rooms.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {
@@ -383,7 +393,7 @@ val buzzCastHideHomeBannerPatch = bytecodePatch(
     name = "Hide home banner",
     description = "Hides the promotional banner in the middle of the home list.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {
@@ -410,7 +420,7 @@ val buzzCastHideHomeBannerPatch = bytecodePatch(
 private val buzzCastTrackerManifestPatch = resourcePatch(
     description = "Disables Firebase Analytics / advertising ID collection and removes ad-ID permissions.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
 
     execute {
         document("AndroidManifest.xml").use { doc ->
@@ -451,7 +461,7 @@ val buzzCastDisableTrackersPatch = bytecodePatch(
     name = "Disable trackers",
     description = "Stops the app from collecting your usage and advertising data.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastTrackerManifestPatch, buzzCastBrandingPatch)
 
     execute {
@@ -481,7 +491,7 @@ val buzzCastBlockAppReportsPatch = bytecodePatch(
     description = "Stops the app from telling BuzzCast every time you open it.",
     default = false,
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {
@@ -504,7 +514,7 @@ val buzzCastHideFirstRechargePopupPatch = bytecodePatch(
     name = "Hide first recharge popups",
     description = "Hides the first-recharge offer pop-ups.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {
@@ -529,7 +539,7 @@ val buzzCastHideSplashPromoPatch = bytecodePatch(
     name = "Hide splash promo",
     description = "Skips the full-screen promotion shown when the app opens.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {
@@ -557,7 +567,7 @@ val buzzCastHideUpdatePromptPatch = bytecodePatch(
     name = "Hide update prompt",
     description = "Stops the pop-up that asks you to update the app.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {
@@ -578,7 +588,7 @@ val buzzCastHideRatingPromptsPatch = bytecodePatch(
     name = "Hide rating prompts",
     description = "Stops the pop-ups that ask you to rate the app.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(BUZZCAST_COMPATIBILITY)
     dependsOn(buzzCastBrandingPatch)
 
     execute {

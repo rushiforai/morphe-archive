@@ -1,3 +1,51 @@
+## [1.6.8](https://github.com/6zev/morphe-patches/compare/v1.6.7...v1.6.8) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* replace Looper.prepare() with invoke-static myLooper to satisfy verifier type requirements ([3d6c794](https://github.com/6zev/morphe-patches/commit/3d6c7946dade822065ff26dcbf89b2160bc9a97a))
+
+## [1.6.7](https://github.com/6zev/morphe-patches/compare/v1.6.6...v1.6.7) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* ensure Looper prepare nop is properly compiled ([4e3ef72](https://github.com/6zev/morphe-patches/commit/4e3ef72e2ea15006044796ac4640107e9e978dc5))
+
+## [1.6.6](https://github.com/6zev/morphe-patches/compare/v1.6.5...v1.6.6) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* turn Looper.prepare into nop in Server.main to eliminate VerifyError ([fe6b950](https://github.com/6zev/morphe-patches/commit/fe6b95018c1e9aac81fcec0216961aa25785835c))
+
+## [1.6.5](https://github.com/6zev/morphe-patches/compare/v1.6.4...v1.6.5) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* use safe register for Looper guard to avoid VerifyError ([f5ef3ec](https://github.com/6zev/morphe-patches/commit/f5ef3ec68938f2875d25c84792a72bbfb0489a56))
+
+## [1.6.4](https://github.com/6zev/morphe-patches/compare/v1.6.3...v1.6.4) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* patch ARM64 server self-stop calls ([843251e](https://github.com/6zev/morphe-patches/commit/843251e372546d202226cb1c361ab600791651d9))
+
+## [1.6.3](https://github.com/6zev/morphe-patches/compare/v1.6.2...v1.6.3) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* reuse prepared Looper in ADB server ([c81126a](https://github.com/6zev/morphe-patches/commit/c81126a9f4d85e619405178f34bcd1e77d786eba))
+
+## [1.6.2](https://github.com/6zev/morphe-patches/compare/v1.6.1...v1.6.2) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* match case-insensitive DEX logger opcodes ([71a63c5](https://github.com/6zev/morphe-patches/commit/71a63c5358793546684601b9191fc3de51f2fa21))
+
+## [1.6.1](https://github.com/6zev/morphe-patches/compare/v1.6.0...v1.6.1) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* make ADB logger detection resilient ([ba7799a](https://github.com/6zev/morphe-patches/commit/ba7799a8221d0647715bd657c819ce74756b2cd7))
+
 ## [1.6.0](https://github.com/6zev/morphe-patches/compare/v1.5.1...v1.6.0) (2026-11-03)
 
 ### ✨ New Features

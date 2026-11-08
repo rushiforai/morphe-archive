@@ -4,6 +4,8 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.SharedPreferences;
+import android.os.UserManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +13,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import static org.junit.Assert.*;
+import static org.robolectric.Shadows.shadowOf;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
@@ -60,5 +63,29 @@ public class DuckEmailRuntimeTest {
         };
         assertFalse(DuckEmailRuntime.copyGeneratedAddress(unavailable, "new@duck.com"));
         assertEquals("keep this", clipboard.getPrimaryClip().getItemAt(0).getText().toString());
+    }
+
+    @Test public void lockedUserDoesNotOpenPrivateStorageAndUnlockRestoresSettings() {
+        store.copyGeneratedEmail(true);
+        int[] reads = {0};
+        Context guarded = new ContextWrapper(context) {
+            @Override public SharedPreferences getSharedPreferences(String name, int mode) {
+                reads[0]++;
+                return super.getSharedPreferences(name, mode);
+            }
+        };
+        var users = shadowOf(context.getSystemService(UserManager.class));
+        users.setUserUnlocked(false);
+        try {
+            assertFalse(DuckEmailRuntime.enabled(guarded));
+            assertFalse(DuckEmailRuntime.copyGeneratedAddress(guarded, "locked@duck.com"));
+            assertEquals(0, reads[0]);
+            assertEquals("keep this", clipboard.getPrimaryClip().getItemAt(0).getText().toString());
+        } finally {
+            users.setUserUnlocked(true);
+        }
+        assertTrue(DuckEmailRuntime.enabled(guarded));
+        assertTrue(DuckEmailRuntime.copyGeneratedAddress(guarded, "unlocked@duck.com"));
+        assertEquals("unlocked@duck.com", clipboard.getPrimaryClip().getItemAt(0).getText().toString());
     }
 }

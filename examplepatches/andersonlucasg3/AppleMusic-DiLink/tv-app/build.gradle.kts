@@ -7,6 +7,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose") version "2.4.21"
 }
 
+// The release workflow passes -PappVersionName=<version> -PappVersionCode=<code> so the
+// in-app updater can compare the installed build with updates.json.
+val appVersionName = providers.gradleProperty("appVersionName").orNull ?: "1.6.1"
+val appVersionCode = (providers.gradleProperty("appVersionCode").orNull ?: "10601").toInt()
+
 android {
     namespace = "com.anderson.applemusic.tv"
     compileSdk = 36
@@ -15,12 +20,15 @@ android {
         applicationId = "com.anderson.applemusic.tv"
         minSdk = 29
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = appVersionCode
+        versionName = appVersionName
+        buildConfigField("String", "APP_VERSION_NAME", "\"$appVersionName\"")
+        buildConfigField("int", "APP_VERSION_CODE", appVersionCode.toString())
     }
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     compileOptions {

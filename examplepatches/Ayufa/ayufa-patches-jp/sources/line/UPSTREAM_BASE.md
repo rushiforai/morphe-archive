@@ -6,9 +6,10 @@
 本家へは読み取り専用の一方向のみで、書き込みは一切しません。
 
 - repository: https://github.com/andrewliang25/morphe-patches
-- version: v3.10.0
-- commit: 55d6a600f33b286a403b077daaf570c87da56dc7
+- version: v3.11.0
+- commit: ac7ecae7c3df423c92d3495481f9ce647981531d
 - recorded: 2026-11-05
+- updated: 2026-11-08（日次同期で v3.10.0 → v3.11.0 を取り込み。LINE 側は「Restore biometric login」の既定をオンに変更のみで、説明・設定 UI 文字列の変更なし。残りは Facebook 側と文書）
 
 コピーは本家のツリー全体（Facebook 向けパッチや `util/` のリリース用ツールを含む）を
 そのまま保持します。ビルドへの注入時に LINE 分だけを取り出します:

@@ -43,9 +43,14 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * system color another alpha, so the patch gives it opaque shades only, and a blue with alpha is left
  * for the color hooks.
  *
+ * <p>A typed color's styles (#520) point at colors the patch added with stand-in values, which
+ * {@link CustomAccent} gives the typed color's shades before the styles go on. On Android 10 and
+ * older it can't, so the theme is left alone there.
+ *
  * <p>With {@link Settings#ACCENT_BADGES} on, the picked color's badge style goes on too (#315). It
  * points {@code igds_color_icon_badge}, the red of the dots and counts on Instagram's icons, at the
- * picked fill. The like heart and the red delete buttons read other attributes, so they stay red. The
+ * picked fill. The red delete buttons read other attributes, so they stay red. The feed's liked heart
+ * reads this one through the tint list its binder builds, so it takes the picked fill too (#519). The
  * tab bar's badges come from a theme wrapper Instagram builds off the main thread and styles with its
  * theme util, so they take the color through that hook rather than the activity's.
  *
@@ -56,12 +61,14 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * the same shade: {@code glyphColorPrimary} (the top bar's heart, the back and overflow buttons, the
  * post buttons), {@code glyphColorSecondaryActive} (the selected profile tab) and
  * {@code feedSaveActiveColor} (the saved bookmark). Text keeps its own color, the unselected tabs stay
- * gray and the liked heart stays red. The wordmark is tinted with the primary text color, so it stays
+ * gray and the liked heart keeps the badge color. The wordmark is tinted with the primary text color, so it stays
  * too.
  *
  * <p>With {@link Settings#ACCENT_RINGS} on, the picked color's ring style goes on (#187). It points the
  * {@code igds_color_gradient_*} attributes Instagram's story rings read at the picked shades. Other
  * things read those gradient colors too, a few pink highlights among them, and change with the rings.
+ * With {@link Settings#ACCENT_RINGS_SOLID} on too, the solid ring style goes on in its place, every
+ * stop at the picked fill, so a ring is one color (#519).
  *
  * <p>With {@link Settings#ACCENT_BACKGROUNDS} on, the picked color's background style goes on as well
  * (#187): the theme's screens, panels, cards and menus take a very dark or very light shade of it, for
@@ -83,6 +90,12 @@ public final class AccentTheme {
 
     /** What's counted when the patch's styles or its list of attributes aren't in the app, so the theme is left alone. */
     static final String MISSING = "themes left blue, the accent styles are missing";
+
+    /**
+     * What's counted when Custom is picked but its colors can't take the typed color here (Android 10
+     * and older, or the patch listed none), so the theme stays Instagram's and only the hooks recolor.
+     */
+    static final String CUSTOM_KEPT = "themes left blue, the custom color can't load";
 
     /** What's counted when a theme holds none of the blues the patch made styles for. */
     static final String NO_BLUE = "themes with no accent blue";
@@ -135,7 +148,7 @@ public final class AccentTheme {
      * Never throws.
      */
     public static void apply(Context context) {
-        apply(context, attributes());
+        apply(context, attributes(), customColors());
     }
 
     /**
@@ -148,8 +161,22 @@ public final class AccentTheme {
         return null;
     }
 
-    /** {@link #apply(Context)} with the attributes the patch listed. */
+    /**
+     * Filled in by the patch: the names of the colors it added for {@link AccentHue#CUSTOM}, space
+     * separated, or null. {@link CustomAccent} gives them the typed color's shades.
+     */
+    @Nullable
+    public static String customColors() {
+        return null;
+    }
+
+    /** {@link #apply(Context)} with the attributes the patch listed, and no custom colors. */
     static void apply(Context context, @Nullable String listed) {
+        apply(context, listed, null);
+    }
+
+    /** {@link #apply(Context)} with the attributes and the custom colors the patch listed. */
+    static void apply(Context context, @Nullable String listed, @Nullable String customNames) {
         try {
             AccentHue hue = AccentColor.picked();
             if (hue == null || context == null) return;
@@ -160,6 +187,12 @@ public final class AccentTheme {
             int palette = id(resources, paletteStyle(hue), "style", app);
             if (palette == 0 || listed == null || listed.isEmpty()) {
                 HookStatus.counted(FamilyNames.ACCENT_COLOR, MISSING);
+                return;
+            }
+            // The custom styles hold stand-ins until the typed color's table is in the assets, so
+            // without it (Android 10 and older, or no names) the theme stays and the hooks do the rest.
+            if (hue == AccentHue.CUSTOM && !CustomAccent.load(context, customNames)) {
+                HookStatus.counted(FamilyNames.ACCENT_COLOR, CUSTOM_KEPT);
                 return;
             }
             boolean wallpaper = hue == AccentHue.WALLPAPER;
@@ -208,7 +241,7 @@ public final class AccentTheme {
                 }
             }
             if (Settings.ACCENT_RINGS.get()) {
-                int rings = id(resources, ringStyle(hue), "style", app);
+                int rings = id(resources, Settings.ACCENT_RINGS_SOLID.get() ? solidRingStyle(hue) : ringStyle(hue), "style", app);
                 if (rings == 0) {
                     HookStatus.counted(FamilyNames.ACCENT_COLOR, RINGS_MISSING);
                 } else {
@@ -347,6 +380,11 @@ public final class AccentTheme {
     /** The style pointing the gradient Instagram's story rings read at [hue]'s shades (#187). */
     static String ringStyle(AccentHue hue) {
         return "HushGramAccentRings_" + hue.name();
+    }
+
+    /** The style pointing every stop of that gradient at [hue]'s fill, for Solid story rings (#519). */
+    static String solidRingStyle(AccentHue hue) {
+        return "HushGramAccentRingsSolid_" + hue.name();
     }
 
     /** The style pointing Instagram's background attributes at [hue]'s shades for a dark theme or a light one (#187). */

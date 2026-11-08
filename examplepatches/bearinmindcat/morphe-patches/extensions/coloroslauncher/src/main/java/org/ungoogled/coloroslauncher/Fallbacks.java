@@ -39,12 +39,37 @@ final class Fallbacks {
         return Process.myUserHandle().hashCode();
     }
 
+    /**
+     * A UserInfo for a profile of the app's own user: id, empty name, and only the work profile flag (0x20,
+     * FLAG_MANAGED_PROFILE, which makes isManagedProfile() true), from UserManager.isManagedProfile(int), which an
+     * app may ask about its own profiles. Other users: NONE (absent).
+     */
+    private static Object profileInfo(android.os.UserManager users, int id) {
+        boolean own = false;
+        for (UserHandle h : users.getUserProfiles()) own |= h.hashCode() == id;
+        if (!own) return NONE;
+        try {
+            boolean managed = (Boolean) android.os.UserManager.class.getMethod("isManagedProfile", int.class).invoke(users, id);
+            return Class.forName("android.content.pm.UserInfo").getConstructor(int.class, String.class, int.class)
+                    .newInstance(id, "", managed ? 0x20 : 0);
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            return NONE;
+        }
+    }
+
     private static int displayId(Context c) {
         android.view.Display d = Windows.getDisplay(c);
         return d == null ? android.view.Display.DEFAULT_DISPLAY : d.getDisplayId();
     }
 
     static Object call(Object receiver, String key, Object[] args) {
+        // Public calls newer than the phone (see Older).
+        try {
+            Object older = Older.call(receiver, key, args);
+            if (older != NONE) return older;
+        } catch (ClassCastException e) {
+            return NONE;
+        }
         // A configuration's window configuration (hidden; the launcher reads it through Configuration's hidden field,
         // which an app gets as null): the full-screen bounds and rotation of the default display (see Reflect).
         if (key.startsWith("Landroid/app/WindowConfiguration;->") && (args == null || args.length == 0)) {
@@ -67,6 +92,10 @@ final class Fallbacks {
                 case "Landroid/content/ContextWrapper;->getUserId()I":
                 case "Landroid/os/UserManager;->getProcessUserId()I":
                     return myUserId();
+                // Any user's details need QUERY_USERS: the launcher asks about each profile (work profile, private
+                // space) at start, to find the work profile. Profiles of the app's own user from public answers.
+                case "Landroid/os/UserManager;->getUserInfo(I)Landroid/content/pm/UserInfo;":
+                    return profileInfo((android.os.UserManager) receiver, (Integer) args[0]);
                 case "Landroid/content/Context;->getDisplayId()I":
                 case "Landroid/content/ContextWrapper;->getDisplayId()I":
                 case "Landroid/app/Activity;->getDisplayId()I":
@@ -147,7 +176,11 @@ final class Fallbacks {
                 // Geometry.
                 case "Landroid/graphics/Rect;->inset(Landroid/graphics/Rect;)V": {
                     Rect r = (Rect) args[0];
-                    ((Rect) receiver).inset(r.left, r.top, r.right, r.bottom);
+                    Rect target = (Rect) receiver; // inset(int, int, int, int) is Android 12's
+                    target.left += r.left;
+                    target.top += r.top;
+                    target.right -= r.right;
+                    target.bottom -= r.bottom;
                     return null;
                 }
                 case "Landroid/graphics/Rect;->intersectUnchecked(Landroid/graphics/Rect;)V": {
@@ -313,6 +346,8 @@ final class Fallbacks {
 
     /** Objects of classes an installed app may not construct, from their public equivalents. */
     static Object construct(String key, Object[] args) {
+        Object older = Older.construct(key, args);
+        if (older != NONE) return older;
         switch (key) {
             // A display's info (hidden constructor): the default display's own (its open mDisplayInfo field), which
             // the launcher then only reads (its getDisplayInfo fill-in is hidden too).
@@ -323,6 +358,8 @@ final class Fallbacks {
     }
 
     static Object get(Object receiver, String key) {
+        Object older = Older.get(receiver, key);
+        if (older != NONE) return older;
         switch (key) {
             // A view's scroll position (the hidden fields behind getScrollX/Y).
             case "Landroid/view/ViewGroup;->mScrollX:I":

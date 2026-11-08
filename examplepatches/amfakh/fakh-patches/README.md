@@ -1,5 +1,12 @@
 # Fakh Patches
 
+![Latest release](https://img.shields.io/github/v/release/amfakh/fakh-patches)
+![Downloads](https://img.shields.io/github/downloads/amfakh/fakh-patches/total)
+![Latest downloads](https://img.shields.io/github/downloads/amfakh/fakh-patches/latest/total)
+![Last commit](https://img.shields.io/github/last-commit/amfakh/fakh-patches)
+![Stars](https://img.shields.io/github/stars/amfakh/fakh-patches)
+![License](https://img.shields.io/github/license/amfakh/fakh-patches)
+
 Patches for use with [Morphe](https://github.com/MorpheApp). All apps ship in one patch bundle.
 Each app has its own README with the full patch list.
 

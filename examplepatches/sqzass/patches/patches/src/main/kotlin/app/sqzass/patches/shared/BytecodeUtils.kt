@@ -36,6 +36,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.literal
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -50,6 +51,8 @@ import app.sqzass.patches.shared.getResourceId
 import app.sqzass.patches.shared.resourceMappingPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderInstruction
+import java.util.logging.Logger
 import com.android.tools.smali.dexlib2.Opcode.MOVE_RESULT
 import com.android.tools.smali.dexlib2.Opcode.MOVE_RESULT_OBJECT
 import com.android.tools.smali.dexlib2.Opcode.MOVE_RESULT_WIDE
@@ -1796,4 +1799,67 @@ fun MutableMethod.returnBoxedBooleanEarly(value: Boolean) {
             sget-object v0, Ljava/lang/Boolean;->${if (value) "TRUE" else "FALSE" }:Ljava/lang/Boolean;
             return-object v0
         """.trimIndent())
+}
+
+private val bytecodeUtilLogger = Logger.getLogger("BytecodeUtils")
+
+/**
+ * Run [patchMethod] over every method of every class where [isCandidate] holds.
+ *
+ * The scan runs against immutable classes first; only classes with a match are
+ * copied to mutable form, so unrelated DEX entries are not marked as modified.
+ *
+ * @param isCandidate Whether a method contains instructions [patchMethod] would change.
+ * @param patchMethod Receives the mutable method and its instructions, returns the
+ *   number of instruction sites it changed.
+ * @return The total number of changed instruction sites.
+ */
+fun BytecodePatchContext.patchMatchingMethods(
+    isCandidate: (Method) -> Boolean,
+    patchMethod: MutableMethod.(List<BuilderInstruction>) -> Int,
+): Int {
+    val candidateTypes = mutableSetOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.methods.any(isCandidate)) candidateTypes += classDef.type
+    }
+
+    var patched = 0
+    for (type in candidateTypes) {
+        for (method in mutableClassDefBy(type).methods) {
+            val implementation = method.implementation ?: continue
+            try {
+                patched += method.patchMethod(implementation.instructions)
+            } catch (e: IndexOutOfBoundsException) {
+                bytecodeUtilLogger.warning("Skipping ${method.definingClass}->${method.name}: stale instruction index.")
+            }
+        }
+    }
+    return patched
+}
+
+private val MOVE_RESULT_OPCODES = setOf(
+    Opcode.MOVE_RESULT,
+    Opcode.MOVE_RESULT_WIDE,
+    Opcode.MOVE_RESULT_OBJECT,
+)
+
+/**
+ * Nop the invoke at [invokeIndex] and overwrite the move-result that immediately
+ * follows it with [smaliForResult], which receives the destination register.
+ *
+ * @return Whether a move-result followed the invoke and was replaced.
+ */
+fun MutableMethod.forceInvokeResult(
+    instructions: List<BuilderInstruction>,
+    invokeIndex: Int,
+    smaliForResult: (Int) -> String,
+): Boolean {
+    val invoke = instructions.getOrNull(invokeIndex) ?: return false
+    if (!invoke.opcode.name.startsWith("INVOKE")) return false
+    val next = instructions.getOrNull(invokeIndex + 1)
+    if (next?.opcode !in MOVE_RESULT_OPCODES) return false
+    replaceInstruction(invokeIndex, "nop")
+    val register = (next as OneRegisterInstruction).registerA
+    replaceInstruction(invokeIndex + 1, smaliForResult(register))
+    return true
 }

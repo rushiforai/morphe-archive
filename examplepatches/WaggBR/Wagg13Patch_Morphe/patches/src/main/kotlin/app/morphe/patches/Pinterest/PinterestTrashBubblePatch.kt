@@ -4,10 +4,24 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+
+private val PINTEREST_COMPATIBILITY = Compatibility(
+    name = "Pinterest",
+    packageName = "com.pinterest",
+    apkFileType = ApkFileType.APK,
+    targets = listOf(
+        AppTarget(version = "14.39.0"),
+        AppTarget(version = "14.40.0"),
+        AppTarget(version = "14.41.0"),
+    ),
+)
 
 private const val EXT = "Lapp/morphe/extension/pinterest/TrashBubble;"
 private const val ITEM_VIEW = "Lcom/pinterest/ui/menu/ContextMenuItemView;"
@@ -74,7 +88,7 @@ val pinterestTrashBubblePatch = bytecodePatch(
     description = "Replaces the WhatsApp button in the menu that opens when you press and hold " +
         "your saved pin with a trash button that deletes it.",
 ) {
-    compatibleWith("com.pinterest"("14.39.0", "14.40.0", "14.41.0"))
+    compatibleWith(PINTEREST_COMPATIBILITY)
 
     // OBRIGATÓRIO: leva a classe TrashBubble para o APK (use o mesmo caminho dos seus outros patches).
     extendWith("extensions/extension.mpe")

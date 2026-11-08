@@ -44,7 +44,7 @@ https://github.com/sjshb57/Pairip-Patches
 ## 🧩 包含的补丁
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.11.0](https://github.com/sjshb57/Pairip-Patches/releases/tag/v1.11.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.11.4](https://github.com/sjshb57/Pairip-Patches/releases/tag/v1.11.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -78,6 +78,7 @@ https://github.com/sjshb57/Pairip-Patches
 | **VMRunner 清空** | 把所有调用 `VMRunner` 的方法体替换为按返回类型的最小返回 |
 | **残留清理** | 删除引用 `Lcom/pairip/` 的 invoke / 字段访问指令,删除被清空后只剩 `return-void` 的空 `<clinit>` |
 | **类清除** | 真正删除 `com/pairip/` 类与字符串占位类 |
+| **Manifest 修复** | 把 `<application android:name>` 从 `com.pairip.application.Application` 还原为原 Application(取壳类父类;壳类已缺失时兜底查找唯一的 Application 子类),并删除 `com.pairip.licensecheck.LicenseActivity` 等指向已删类的组件,避免安装后启动闪退 |
 | **常量类删除** | 删除 pairip 注入的整数常量容器类(`super` 为 `Object`、无方法、无实例字段、仅 `static final int` 字段且全 app 零引用) |
 
 </details>

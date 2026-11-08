@@ -37,7 +37,6 @@ public final class PilloWeightImport627 {
     public static void footer(Object modifier, Object back, Object next, boolean showPrevious,
             boolean enabled, String label, Object composer, int flags, int defaults) throws Exception {
         Class<?> function0 = Class.forName("kotlin.jvm.functions.Function0");
-        Class<?> function2 = Class.forName("kotlin.jvm.functions.Function2");
         Class<?> function3 = Class.forName("kotlin.jvm.functions.Function3");
         Object click = Proxy.newProxyInstance(function0.getClassLoader(), new Class<?>[]{function0}, (proxy, method, args) -> {
             if (!method.getName().equals("invoke")) return proxyObject(proxy, method.getName(), args);
@@ -51,14 +50,27 @@ public final class PilloWeightImport627 {
         Object content = Proxy.newProxyInstance(function3.getClassLoader(), new Class<?>[]{function3}, (proxy, method, args) -> {
             if (!method.getName().equals("invoke")) return proxyObject(proxy, method.getName(), args);
             Object current = args[1];
-            method(Class.forName("xyz.rtrvr.pillo.ui.components.buttons.ButtonsKt"), "ButtonM-vRFhKjU", 10)
-                .invoke(null, null, true, "Import weights JSON", 0L, 0L, null, click, current, 0, 57);
+            // The prefix overload requires a non-null composable even if bit 32
+            // is set. Only modifier/fullWidth have defaults in this R8 build.
+            // Use the text-only overload and the native ButtonProps theme colors.
+            long background = buttonColor("2", current);
+            long foreground = buttonColor("3", current);
+            method(Class.forName("xyz.rtrvr.pillo.ui.components.buttons.ButtonsKt"), "ButtonM-jB83MbM", 9)
+                .invoke(null, null, true, "Import weights JSON", background, foreground, click, current, 0, 1);
             method(Class.forName("xyz.rtrvr.pillo.ui.tracker.common.components.LoggingBottomBarKt"), "LoggingBottomBar", 9)
-                .invoke(null, modifier, back, next, showPrevious, enabled, label, current, flags, defaults);
+                .invoke(null, modifier, back, next, showPrevious, enabled, label, current, 0, defaults);
             return unit();
         });
         method(Class.forName("xyz.rtrvr.pillo.ui.components.layout.SpacedColumnKt"), "SpacedColumn-DzVHIIc", 7)
             .invoke(null, null, 8f, null, content, composer, 0, 5);
+    }
+    private static long buttonColor(String provider, Object composer) throws Exception {
+        Class<?> color = Class.forName("xyz.rtrvr.pillo.ui.components.buttons.ButtonProps$" + provider);
+        // R8 keeps these singleton classes package-private.
+        java.lang.reflect.Field instance = color.getDeclaredField("INSTANCE");
+        instance.setAccessible(true);
+        return ((Number) method(color, "invoke-WaAFU9c", 2)
+            .invoke(instance.get(null), composer, 0)).longValue();
     }
     private static Object unit() throws Exception { return Class.forName("kotlin.Unit").getField("a").get(null); }
     private static Object proxyObject(Object proxy, String name, Object[] args) {

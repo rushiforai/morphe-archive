@@ -4,7 +4,7 @@ The reviewed app contract lives in
 [`contracts/nuvio/native.properties`](../contracts/nuvio/native.properties).
 It supplies the package/version, original APK/hash, native class names, shared
 field/method names, composed DEX references and exact body fingerprints.
-There is one active contract, currently beta.10. This does not add historical
+There is one active contract, currently beta.12. This does not add historical
 version adapters or automatically enable unverified app versions.
 
 ## What is generated
@@ -84,7 +84,7 @@ After confirming the new manifest/package/version and reviewing candidate DEX:
 5. Test native playback, remote focus, settings/profile persistence and launcher
    publication on the device. Host and DEX verification cannot establish device UI behavior.
 
-`verifyNuvioLatest` currently selects the dedicated beta.10 fixtures. When replacing the
+`verifyNuvioLatest` currently selects the dedicated beta.12 fixtures. When replacing the
 reviewed target, point it to that target's fixtures; preserve historical fixtures
 without extending them. Run Gradle invocations sequentially to avoid competing
 resource builds on Windows. Do not manually bump the patch-bundle release version.
@@ -156,6 +156,14 @@ provider `g3` and tracking coordinator `T3`. Player-state fields, timer methods,
 the native sync banner and date controls also changed. Resolve icon factory
 owners and method names together from their complete native references.
 
-The latest suite includes dedicated beta.10 movie-date and remaining-count
+The beta.10 suite includes dedicated beta.10 movie-date and remaining-count
 runtime fixtures. Preserve the historical fixtures when migrating the active
 contract.
+
+## Beta.12 migration
+
+See [NuvioBeta12.md](NuvioBeta12.md). Review exact local-save continuation names,
+the player's binge-group field and timer jobs, Home seed/split method names,
+Compose utility owners and the actual install-action FileProvider literal.
+The old install-action class still exists with unrelated behavior. The latest
+suite uses dedicated beta.12 fixtures and preserves historical fixtures.

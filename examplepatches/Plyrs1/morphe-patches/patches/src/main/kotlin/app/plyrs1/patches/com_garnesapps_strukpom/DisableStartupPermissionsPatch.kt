@@ -72,6 +72,7 @@ val disableStartupPermissionsPatch = bytecodePatch(
         // When MenuActivity.onCreate() later calls permissionLauncherMultiple.launch(...),
         // it invokes NoOpPermissionLauncher.launch(...) which suppresses the system dialog.
         MenuActivityInitFingerprint.method.addInstructions(
+            0,
             """
                 new-instance v0, Lapp/plyrs1/extension/NoOpPermissionLauncher;
                 invoke-direct {v0}, Lapp/plyrs1/extension/NoOpPermissionLauncher;-><init>()V

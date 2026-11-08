@@ -81,7 +81,7 @@ public final class NuvioFinaleDatesPatch {
         List<Instruction> ins = instructions(target);
         int matches = 0;
         for (int i = ins.size() - 1; i >= 0; i--) {
-            String hook = calls(ins.get(i), NuvioNative.LIBRARY_CONTENT_TYPE, "p") ? "libraryItem"
+            String hook = calls(ins.get(i), NuvioNative.LIBRARY_CONTENT_TYPE, NuvioNative.LIBRARY_CARD_METHOD) ? "libraryItem"
                 : calls(ins.get(i), NuvioNative.COLLECTION_ITEM_TYPE, "a") ? "collectionItem" : null;
             if (hook == null) continue;
             if (!(ins.get(i) instanceof RegisterRangeInstruction)) throw unsupported("Item card invocation changed");
@@ -132,7 +132,7 @@ public final class NuvioFinaleDatesPatch {
     static void hookCard(MutableClass owner, String extension) {
         boolean library = NuvioNative.LIBRARY_CARD_TYPE.equals(owner.getType());
         MutableMethod target = unique(owner, "invoke", 3);
-        if (target.getImplementation().getRegisterCount() != (library ? (36) : 57))
+        if (target.getImplementation().getRegisterCount() != (library ? 36 : 59))
             throw unsupported("Finale card register layout changed");
         List<Instruction> ins = instructions(target);
         List<Integer> images = new ArrayList<>();

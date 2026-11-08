@@ -9,8 +9,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val cryptomatorAllowScreenshotsPatch = bytecodePatch(
-    name = "Allow Screenshots & Screen Recording - Cryptomator (Experimental)",
-    description = "⚠️ [Experimental / Untested] Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview.",
+    name = "Allow Screenshots & Screen Recording - Cryptomator",
+    description = "Disables Android FLAG_SECURE window protection in Cryptomator, allowing screenshots, screen recordings, and vault previews in the recent tasks overview.",
 ) {
     compatibleWith(COMPATIBILITY_CRYPTOMATOR, COMPATIBILITY_CRYPTOMATOR_FREEMIUM)
 

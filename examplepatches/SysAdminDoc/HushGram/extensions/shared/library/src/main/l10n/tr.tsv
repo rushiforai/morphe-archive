@@ -189,6 +189,9 @@ Never save AV1 video	AV1 videoları asla kaydetme
 # context: Downloads settings: a switch that passes HDR pictures over for apps that show HDR with a yellow or green cast (#352)
 Never save HDR video	HDR videoları asla kaydetme
 For apps that show HDR with a yellow or green cast, such as Messenger. A video Instagram has at full size only in HDR is saved at its largest standard size instead.	HDR'yi sarı veya yeşil bir tonla gösteren uygulamalar için, Messenger gibi. Instagram'da tam boyutu yalnızca HDR olan bir video, en büyük standart boyutunda kaydedilir.
+# context: Downloads settings: a switch that saves joined videos as Matroska (.mkv) files instead of .mp4 (#547)
+Save videos as MKV	Videoları MKV olarak kaydet
+Saves videos as .mkv files instead of .mp4, for galleries that show no thumbnail for VP9 or AV1 videos. Nothing is re-encoded. A video Instagram sends as one file stays .mp4.	VP9 veya AV1 videolarda küçük resim göstermeyen galeriler için videoları .mp4 yerine .mkv dosyası olarak kaydeder. Hiçbir şey yeniden kodlanmaz. Instagram'ın tek dosya olarak gönderdiği bir video .mp4 olarak kalır.
 Saves videos other apps can open, at full size. A video Instagram only has as VP9 or AV1 is converted to H.264 on your phone instead of saved smaller. Slower, and videos over 3 minutes or in HDR stay smaller.	Videoları diğer uygulamaların açabileceği biçimde, tam boyutta kaydeder. Instagram'da yalnızca VP9 veya AV1 olarak bulunan bir video, daha küçük kaydedilmek yerine telefonunda H.264'e dönüştürülür. Daha yavaştır ve 3 dakikadan uzun ya da HDR videolar küçük kalır.
 Converting to H.264	H.264'e dönüştürülüyor
 Download quality	İndirme kalitesi
@@ -375,6 +378,8 @@ the raised version code	yükseltilmiş sürüm kodu
 Sharing	Paylaşım
 Hide group buttons	Grup düğmelerini gizle
 Leaves New group out of the share sheet, and the button that sends to the people you picked as a group. Send separately stays, and you can still start a group from your messages.	Paylaşım menüsünden Yeni grup düğmesini ve seçtiğin kişilere grup olarak gönderen düğmeyi kaldırır. Ayrı ayrı gönder kalır ve mesajlarından yine grup oluşturabilirsin.
+Hide the search bar	Arama çubuğunu gizle
+Takes the search bar off the top of the share sheet. The people you can send to still show.	Paylaşım menüsünün üstündeki arama çubuğunu kaldırır. Gönderebileceğin kişiler görünmeye devam eder.
 Story ring size	Hikâye halkası boyutu
 Draws the rings in the stories row at the top of Home at the size below, and the rings of stories you haven't watched in the color below. Restart Instagram to see a change.	Ana Sayfa'nın üstündeki hikâye satırındaki halkaları aşağıdaki boyutta, izlemediğin hikâyelerin halkalarını da aşağıdaki renkte çizer. Değişikliği görmek için Instagram'ı yeniden başlat.
 Ring size	Halka boyutu
@@ -673,6 +678,9 @@ Hide story rewinds	Hikaye geri sarmalarını gizle
 Nothing in the row of stories at the top of Home loads, your own story included, and highlights on profiles stay empty too. Saves data. A story ring on a profile or in a chat still opens its stories.	Ana Sayfa'nın üstündeki hikaye satırında, kendi hikayen dahil hiçbir şey yüklenmez ve profillerdeki öne çıkanlar da boş kalır. Veri tasarrufu sağlar. Bir profildeki veya sohbetteki hikaye halkası yine hikayelerini açar.
 Expandable categories	Genişletilebilir kategoriler
 Tap a category to show or hide its settings on this page.	Bir kategorinin ayarlarını bu sayfada göstermek veya gizlemek için kategoriye dokunun.
+# context: Settings entry switch; with it on, tapping a settings category opens that category alone on its own page
+Categories on their own page	Kategoriler kendi sayfasında
+With Expandable categories on, a tap opens a category on a page of its own. Back takes you to the list.	Genişletilebilir kategoriler açıkken bir kategoriye dokunmak onu kendi sayfasında açar. Geri, listeye döndürür.
 Descriptions behind an info button	Açıklamalar bilgi düğmesinin arkasında
 Shows each switch by its name alone. Tap the i next to a name to read what it does.	Her anahtarı yalnızca adıyla gösterir. Ne yaptığını okumak için adın yanındaki i'ye dokun.
 Expanded	Genişletildi
@@ -690,6 +698,9 @@ Takes the Comment button and the comment count off the posts in your feed.	Akı�
 # context: Comments: the switch that hides the row of quick emoji above the comment box (#248). Comment box is the field where you type a comment.
 Hide the emoji row	Emoji satırını gizle
 Takes the row of quick emoji off above the comment box. The box itself stays.	Yorum kutusunun üstündeki hızlı emoji satırını kaldırır. Kutunun kendisi kalır.
+# context: Comments: the switch that takes GIFs and stickers out of a post's comments (#511). A comment that has words keeps its words and loses only the picture. A comment that's only a GIF disappears, and its replies with it. Comment box is the field where you type a comment.
+Hide GIFs in comments	Yorumlardaki GIF'leri gizle
+Takes GIFs and stickers out of comments, and the GIF button off the comment box. A comment with words keeps them. One that's only a GIF goes, along with its replies.	Yorumlardan GIF'leri ve çıkartmaları, yorum kutusundan da GIF düğmesini kaldırır. Yazı içeren bir yorumun yazısı kalır. Yalnızca GIF içeren bir yorum, yanıtlarıyla birlikte kaybolur.
 Open comments without the keyboard	Yorumları klavyesiz aç
 Comments open with the keyboard down. A tap in the comment box, or on Reply, still brings it up.	Yorumlar klavye kapalıyken açılır. Yorum kutusuna ya da Yanıtla'ya dokunmak klavyeyi yine açar.
 # context: Feed: the switch that hides the Follow and Subscribe buttons beside the author's name on a post (#248). Follow and Subscribe are the labels Instagram uses on those buttons.
@@ -793,6 +804,8 @@ Turn on Show if a profile follows you to use this choice.	Bu seçimi kullanmak i
 The Add comment bar under a reel you open from a profile's reposts. The comment button still opens the comments.	Bir profilin yeniden paylaşımlarından açtığın reels'in altındaki Yorum ekle çubuğu. Yorum düğmesi yorumları açmaya devam eder.
 Hide the comment bar on all reels	Tüm reels'te yorum çubuğunu gizle
 The Add a comment bar under every reel, including the ones in the Reels tab. The comment button still opens the comments.	Reels sekmesindekiler dahil her reels'in altındaki Yorum ekle çubuğu. Yorum düğmesi yorumları açmaya devam eder.
+Keep the comment bar's space	Yorum çubuğunun yerini koru
+Leaves an empty band where a hidden comment bar was on reels you open from a post or a profile, so the reel, its buttons and the seek bar don't move down.	Bir gönderiden veya profilden açtığın reels'lerde gizlenen yorum çubuğunun yerinde boş bir şerit bırakır, böylece reels, düğmeleri ve ilerleme çubuğu aşağı kaymaz.
 Adds Copy username and Copy bio to the menu on someone's profile. Each copies the text exactly as the account has it.	Birinin profilindeki menüye Kullanıcı adını kopyala ve Biyografiyi kopyala seçeneklerini ekler. Her biri metni hesapta olduğu gibi kopyalar.
 Adds View profile picture to the menu on someone's profile. Opens their picture full screen at the largest size Instagram has, with pinch zoom and a Save button.	Birinin profilindeki menüye Profil fotoğrafını görüntüle seçeneğini ekler. Fotoğrafı Instagram'daki en büyük boyutta tam ekran açar, iki parmakla yakınlaştırılabilir ve bir Kaydet düğmesi vardır.
 Bio	Biyografi
@@ -844,6 +857,8 @@ Icons in the accent color	Simgeler vurgu renginde
 Instagram's icons on the top bar, the tab bar and under posts take the color you picked. Text stays as it is. Restart Instagram to see the change.	Instagram'ın üst çubuktaki, sekme çubuğundaki ve gönderilerin altındaki simgeleri seçtiğin rengi alır. Metin olduğu gibi kalır. Değişikliği görmek için Instagram'ı yeniden başlat.
 Story rings in the accent color	Hikaye halkaları vurgu renginde
 Story rings take the color you picked instead of Instagram's gradient. A few other gradients share those colors and change with them. Restart Instagram to see the change.	Hikaye halkaları Instagram'ın gradyanı yerine seçtiğin rengi alır. Aynı renkleri kullanan birkaç başka gradyan da onlarla değişir. Değişikliği görmek için Instagram'ı yeniden başlat.
+Solid story rings	Düz renk hikaye halkaları
+Story rings are one solid shade of the color you picked instead of running light to dark. Restart Instagram to see the change.	Hikaye halkaları açıktan koyuya geçmek yerine seçtiğin rengin tek bir tonunda olur. Değişikliği görmek için Instagram'ı yeniden başlat.
 Backgrounds in the accent color	Arka planlar vurgu renginde
 Screens, panels, cards and menus take a dark or light shade of the color you picked. Story and reel viewers keep their own background. Wins over Pure black dark mode. Restart Instagram to see the change.	Ekranlar, paneller, kartlar ve menüler seçtiğin rengin koyu veya açık bir tonunu alır. Hikaye ve Reels görüntüleyicileri kendi arka planını korur. Pure black dark mode'a göre önceliklidir. Değişikliği görmek için Instagram'ı yeniden başlat.
 # context: Layout list under Accent color; its choices are Instagram blue and the colors below
@@ -869,6 +884,8 @@ Download button on feed posts	Akış gönderilerinde indirme düğmesi
 Puts a download icon in the row under a post, left of Save, so one tap saves it without opening the menu. On a carousel it asks for this page or all of them. Needs Download feed videos or photos.	Bir gönderinin altındaki satıra, Kaydet'in soluna bir indirme simgesi koyar, böylece tek dokunuşla menüyü açmadan kaydedebilirsin. Karuselde yalnızca bu sayfayı mı yoksa hepsini mi istediğini sorar. Akıştaki videoları indir veya Akıştaki fotoğrafları indir açık olmalı.
 Download button on reels	Reels'te indirme düğmesi
 Puts a download icon under Save beside a reel, so one tap saves it the way Download in its menu does. Needs Download on reels.	Bir reel'in yanında Kaydet'in altına bir indirme simgesi koyar, böylece tek dokunuş onu menüsündeki İndir gibi kaydeder. Reels'te indir açık olmalı.
+Ask what to save	Neyin kaydedileceğini sor
+A tap on the download icon beside a reel lets you pick the reel, its cover or its sound, whichever it has.	Bir reel'in yanındaki indirme simgesine dokunmak, reel'de ne varsa reel'in kendisini, kapağını ya da sesini seçmeni sağlar.
 Nothing to download on this post	Bu gönderide indirilecek bir şey yok
 # context: Downloads switch; a hold with two or three fingers on a feed post or a reel saves it
 Hold to download	Basılı tutarak indir
@@ -996,6 +1013,8 @@ Instagram's default	Instagram'ın varsayılanı
 A tap on a reel pauses it, and another tap plays it again.	Bir reel'e dokunmak onu duraklatır, bir dokunuş daha tekrar oynatır.
 A tap on a playing reel turns its sound off or on and keeps it playing. A reel that's paused still plays on a tap.	Oynayan bir reel'e dokunmak sesini kapatır veya açar ve oynamaya devam ettirir. Duraklatılmış bir reel dokunuşla oynar.
 A tap on a reel does what Instagram does.	Bir reel'e dokunmak Instagram'ın yaptığını yapar.
+Keep playing	Oynamaya devam et
+A tap on a playing reel does nothing, so a stray touch doesn't stop it. A reel that's paused still plays on a tap.	Oynayan bir reel'e dokunmak hiçbir şey yapmaz, böylece yanlışlıkla bir dokunuş onu durdurmaz. Duraklatılmış bir reel dokunuşla oynar.
 Keep reels muted on the volume keys	Ses tuşlarında reel'leri sessiz tut
 Volume up still raises the phone's volume, but a muted reel stays muted until you unmute it.	Sesi artırmak telefonun sesini yine yükseltir, ancak sessize alınmış bir reel siz açana kadar sessiz kalır.
 Start stories with sound	Hikayeleri sesli başlat
@@ -1014,6 +1033,10 @@ Show categories as a grid	Kategorileri ızgara olarak göster
 Show categories as rows	Kategorileri satır olarak göster
 Show settings by category	Ayarları kategoriye göre göster
 Tab bar height	Sekme çubuğu yüksekliği
+# context: Tab bar settings: a list that draws the tab bar's icons bigger, by a share of Instagram's size (#541)
+Tab icon size	Sekme simgesi boyutu
+The icons on the tab bar are the size Instagram gives them.	Sekme çubuğundaki simgeler Instagram'ın verdiği boyuttadır.
+The icons on the tab bar are %1$s of the size Instagram gives them.	Sekme çubuğundaki simgeler, Instagram'ın verdiği boyutun %1$s oranındadır.
 Standard	Standart
 Blur strength	Bulanıklık gücü
 # context: the blur slider's value under its title; dp is Android's screen unit, keep it
@@ -1448,6 +1471,8 @@ Only verified accounts	Yalnızca doğrulanmış hesaplar
 Only accounts that aren't verified	Yalnızca doğrulanmamış hesaplar
 Pinch to zoom	İki parmakla yakınlaştır
 Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	Oynayan bir reel'i bir fotoğraf gibi iki parmakla yakınlaştırırsın. Parmaklarını kaldırınca eski haline döner. Değişikliği görmek için Instagram'ı yeniden başlat.
+Double tap to skip	Atlamak için çift dokun
+A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.	Bir reel'in sol tarafına çift dokunmak 10 saniye geri, sağ tarafına çift dokunmak 10 saniye ileri gider. Ortaya çift dokunmak yine beğenir. 10 saniyeden kısa reel'ler atlamaz.
 Mute notification types	Bildirim türlerini sessize al
 Stops the notification types you tick, even ones Instagram's own notification settings can't turn off.	İşaretlediğin bildirim türlerini durdurur, Instagram'ın kendi bildirim ayarlarının kapatamadıklarını da.
 %1$d notification type is muted.	%1$d bildirim türü sessizde.
@@ -1820,3 +1845,21 @@ Can slow down older phones.	Eski telefonları yavaşlatabilir.
 Blend post edges	Gönderi kenarlarını yumuşat
 # context: what that switch does
 Fades the top and bottom of a post's photo or video into its glow, so the edge doesn't show as a hard line.	Bir gönderinin fotoğrafının veya videosunun üstünü ve altını parıltısına karıştırır, böylece kenar sert bir çizgi gibi görünmez.
+# context: a color in the Accent color list
+Dusk blue	Alacakaranlık mavisi
+# context: a color in the Accent color list
+Pine	Çam
+# context: a color in the Accent color list
+Slate	Arduvaz
+# context: a color in the Accent color list, the one typed in the row below it
+Custom	Özel
+# context: a row under Accent color where a color is typed as hex
+Custom color	Özel renk
+# context: the Custom color dialog's message
+A color as six hex digits, like #4A6B82. HushGram makes it darker or lighter where text needs it. Restart Instagram to see it.	Altı onaltılık basamaklı bir renk, örneğin #4A6B82. HushGram, yazının gerektiği yerde onu koyulaştırır ya da açar. Görmek için Instagram'ı yeniden başlat.
+# context: the Custom color row's summary when nothing is typed yet
+None yet. Custom stays Instagram's blue until you type one.	Henüz yok. Bir renk yazana kadar Özel, Instagram mavisi olarak kalır.
+# context: shown under the Custom color field when what's typed isn't a color
+That isn't a color. Try #4A6B82.	Bu bir renk değil. #4A6B82 dene.
+Count on the heart	Kalpte sayı
+The heart at the top of Home shows how many notifications are waiting, like the number on Messages, in place of the red dot. Restart Instagram to see the change.	Ana sayfanın üstündeki kalp, kırmızı nokta yerine Mesajlar'daki sayı gibi bekleyen bildirim sayısını gösterir. Değişikliği görmek için Instagram'ı yeniden başlat.

@@ -6,9 +6,21 @@ Every HushGram release, newest first.
 
 ### Features
 
-* `Swipe through a chat's photos and posts` under Messages lets you open a photo or video from a chat and swipe up through the chat's other photos, videos and shared posts, in chat order. Asked for in #350.
+* `Swipe through a chat's photos and posts` under Messages lets you open a photo, video or shared post from a chat and swipe up through the chat's other photos, videos and shared posts, in chat order. Asked for in #350.
 * `Seek bar on photos with music` under Reels gives a reel that's a photo with a song the same seek bar and time as a video reel, following the song. Asked for in #10.
 * `Jump a profile's posts to a date` puts a calendar on a profile's top bar. Pick a day and the posts grid goes back to that day, with older posts as you scroll. Asked for in #498.
+* `Hide GIFs in comments` under Comments takes GIFs and stickers out of comments and the GIF button off the comment box. A comment with words keeps them. Asked for in #511.
+* `Solid story rings` sits under `Story rings in the accent color` and makes a story's ring one shade of your color instead of running light to dark. Asked for in #519.
+* `Ask what to save` sits under `Download button on reels`. With it on, a tap on the icon lets you pick the reel, its cover or its sound, whichever that reel has. A reel with nothing but itself to save still saves at once. Asked for in #524.
+* `Save videos as MKV` under Downloads saves a video as an .mkv file instead of an .mp4, for gallery apps that show a blank thumbnail for VP9 or AV1 videos. The picture and sound go in as they are, with nothing re-encoded, and the account, date and link still go in the file. A video Instagram sends as one file stays an .mp4. Asked for in #547.
+* `Hide the search bar` under Sharing takes the search bar off the top of the share sheet. Asked for in #545.
+* `Speed button on reels` has 2.5x in its list too, for talking videos that are still easy to follow past 2x. Asked for in #551.
+* New patch, `Double tap to skip on Reels`. Its switch under Reels turns on Instagram's own skip: a double tap on the left side of a reel goes back 10 seconds, and on the right side ahead 10. A double tap in the middle still likes it. `A tap on a reel` under Playback also has `Keep playing` now, so a stray tap doesn't stop the reel. Asked for in #554.
+* `Tab icon size` under Tab bar draws the icons on the bottom tab bar bigger, from 110% up to 150% of Instagram's size. It works on Instagram's bar and the glass one, and a change shows right away. Asked for in #541.
+* `Count on the heart` under Tab bar puts a number on the heart at the top of Home, like the one on Messages, instead of the red dot. It takes a restart. Asked for in #541.
+* `Accent color` has a `Custom` choice now, with a `Custom color` row under it where you type any color as hex, like #4A6B82. Where text would be hard to read on it, HushGram makes it a bit darker or lighter. On Android 10 and older the colors Instagram draws in code take it, and its themes stay blue. Asked for in #520.
+* `Accent color` also has three calmer colors: Dusk blue, Pine and Slate. Asked for in #528.
+* `Categories on their own page` under Settings entry opens a category you tap on a page of its own, with its name at the top, instead of under its row. Back takes you to the list where you left it. It needs `Expandable categories` on. Asked for in #525.
 
 ### Improvements
 
@@ -17,6 +29,31 @@ Every HushGram release, newest first.
 * **Tooling:** The release facts check reads the patch count and target build from the description's sentences, so a change's bullet that counts patches no longer stops a release.
 * **Tooling:** Morphe Desktop 2.1.1 now has its reviewed advisory exceptions, so the audit accepts it.
 * With `Keep a seek bar on Reels` on, Instagram's own track now glides between position updates too, and a round handle stays on the line's end. Reported in #10.
+* `Pure black dark mode` now turns the menu you get by holding a message, or a chat in your inbox, black too. Asked for in #543.
+* With `Full screen Reels` hiding the status bar, the Reels and Friends tabs and the buttons at the top of a reel now sit just below a punch hole camera instead of under it. Asked for in #525.
+* `Select text` opens a comment, caption or bio in HushGram's own dark window now, black with `Pure black dark mode`, instead of the phone's gray one. Asked for in #525.
+* The story mentions sheet you open from the top bar floats over the story as a pane of glass now, with the story blurred behind it on Android 12 and up. Phones that can't blur get a nearly solid tint so the names stay readable. Asked for in #525.
+* `Glass in chats` gives the back, call and video buttons real glass circles that match the liquid tab bar, with a lit rim and a sheen over the blurred header instead of flat grey. The thin line along the bottom of a chat's top bar is gone too, so the glass runs straight into the messages. Asked for in #537 and #542.
+
+### Bug Fixes
+
+* With `Rounded corners on Reels` on, opening the comments on a wide reel no longer cuts its video down to a thin strip. The rounded edge now moves up with the video. Reported in #522.
+* `Phone layout on big screens` now takes the rail down the side away too. It only changed Home's header on 454, since Instagram's main screen asks a second copy of the width check. Reported in #515.
+* `See-through top bar` now reaches up behind the clock again instead of stopping at the header's top edge. Reported in #513.
+* `See-through top bar` no longer draws an empty frosted band across Home when nothing in the header is showing. Only the strip behind the clock stays. Reported in #513.
+* `Start tab` now works when you open Instagram from its icon without a saved `Tab order`. On 454 Instagram picks the first tab before the tab bar is built, and that pick used to need a saved order. Reported in #534.
+* `Clean up Reels` no longer stops patching when the APK numbers the Friends tab's icon differently. It now also finds the tab by how Instagram builds it. Reported in #533.
+* Reels on the Reels tab fill the screen again when `Hide the tab bar on Reels` slides the bar away or `Run Reels behind the tab bar` is on. The room the bar left made a reel sit low with a black band above it. Reported in #544.
+* The follow lists switch under `Hide suggested people on profiles` now also clears Suggested subscriptions from your own Following list's Subscriptions tab and takes the Discover people button off your own lists. Reported in #539.
+* The color you pick in `Story ring size` reaches the rings in Home's stories row again. On 454 Instagram draws those rings through a second copy of its gradient code, which the patch now colors too. Reported in #518.
+* `Story rings in the accent color` no longer leaves a pink tail on a story's ring. On 454 the default ring ends in a lavender Instagram added, and that one now takes your color too. Reported in #519.
+* `Don't report Blend visits` now also keeps the time you last opened a Blend to yourself. Opening one sent that time in a request of its own, which the switch didn't cover. Reported in #474.
+* A 60 fps reel or story no longer saves at 30 fps when Instagram's own file is the same size as the smoother track. A tie on size now goes to the higher frame rate. Reported in #546.
+* With several of HushGram's icons on in the column beside a reel, the column no longer runs up past the top bar and cuts off Like. It gets drawn a little smaller instead, just enough to fit under the bar, and every icon still takes its own taps. Reported in #516.
+* With `Glass tab bar` on, a reel's seek bar is as easy to grab as it is with HushGram paused. Its touch area runs over the top of the bar again, and a drag that starts there moves through the reel instead of pressing a tab or sliding across the tabs. Reported in #526.
+* With `Page dots on a pill` on, a carousel's buttons sit right under the photo, the way they do on a single photo. Instagram kept an empty strip there for the dots the pill replaces. Reported in #527.
+* With `Pure black dark mode` on, a photo or GIF in a comment no longer has gray corners. Instagram's newer comments screen has a theme of its own with a dark gray background, and the corners were painted in it. That theme goes black now too. Reported in #538.
+* New `Keep the comment bar's space` switch under the comment bar switches in Reels. A reel you open from a post or a profile used to drop down into the room the hidden bar left, so the video, its buttons and the seek bar all moved. With this on, that room stays as an empty band and nothing moves. Reported in #523.
 
 ## 0.0.19 (2026-11-06)
 

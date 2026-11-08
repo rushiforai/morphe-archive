@@ -128,6 +128,12 @@ object Constants {
                 minSdk = 24,
                 description = "Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003551"
             ),
+            AppTarget(
+                version = "3.4.3",
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 2001003553, SupportedAbi.ARMEABI_V7A to 2001003553),
+                minSdk = 24,
+                description = "Standalone APK (arm64-v8a / armeabi-v7a, Android 7.0+), build 2001003553"
+            ),
         )
     )
 

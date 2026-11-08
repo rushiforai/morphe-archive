@@ -200,7 +200,9 @@ object GateCatalogGenerator {
             for (method in classDef.methods) scan.visit(dex, classDef, method)
         }
         check(scan.ab.isNotEmpty()) { "no ConfigItem registry in $apk" }
-        check(scan.live.isNotEmpty()) { "no Live SettingModel in $apk" }
+        // 47.6.3 defines no Live settings at all (nothing calls SettingModel's constructor), so its
+        // Live rows come from the reads alone.
+        check(scan.live.isNotEmpty() || scan.liveReads.isNotEmpty()) { "no Live SettingModel or read in $apk" }
         check(scan.ve.isNotEmpty()) { "no VEConfigCenter.addConfig in $apk" }
         checkNotNull(scan.playerOwner) { "no class registers the player setting $PLAYER_ANCHOR in $apk" }
         check(scan.player.isNotEmpty()) { "no player setting factory calls in ${scan.playerOwner}" }

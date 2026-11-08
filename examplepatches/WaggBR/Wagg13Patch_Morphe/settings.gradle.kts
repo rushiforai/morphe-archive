@@ -1,4 +1,4 @@
-rootProject.name = "morphe-patches-template"
+rootProject.name = "Wagg13Patch_Morphe"
 
 pluginManagement {
     repositories {
@@ -18,4 +18,14 @@ pluginManagement {
 
 plugins {
     id("app.morphe.patches") version "1.3.4"
+}
+
+settings {
+    extensions {
+        defaultNamespace = "app.morphe.extension"
+
+        // Must resolve to an absolute path (not relative),
+        // otherwise the extensions in subfolders will fail to find the proguard config.
+        proguardFiles(rootProject.projectDir.resolve("extensions/extension/proguard-rules.pro").toString())
+    }
 }

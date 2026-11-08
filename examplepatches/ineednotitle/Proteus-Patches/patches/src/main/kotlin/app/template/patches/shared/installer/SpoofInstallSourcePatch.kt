@@ -1,7 +1,6 @@
 package app.template.patches.shared.installer
 import app.template.patches.shared.logUniversal
 
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructionsOrNull
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
@@ -82,25 +81,17 @@ private fun Method.hasInstallSourceTarget() =
  *   - `PackageInstaller.SessionInfo.getInstaller/Initiating/OriginatingPackageName()` [API 21+/31+]
  *
  * **Layer 2 — Binder-level IPackageManager proxy** (ported from WhatsAppHelper extension):
- * Injects `InstallSourceHelper.init(installer)` into `Application.onCreate()` via the
- * extension. This installs a Java Proxy over `ActivityThread.sPackageManager` — the singleton
- * binder stub that backs *every* PackageManager call in the process — so even native code or
- * freshly-obtained PackageManager instances return the spoofed installer. Equivalent to what
- * CalyxOS/GrapheneOS do at the system_server level, but in userspace via reflection.
+ * Injects `InstallSourceHelper.init(installer)` into the app's Application.onCreate() via
+ * the extension. This installs a Java Proxy over `ActivityThread.sPackageManager` — the
+ * singleton binder stub that backs *every* PackageManager call in the process — so even
+ * native code or freshly-obtained PackageManager instances return the spoofed installer.
+ * Application candidates are resolved by walking each candidate class' superclass chain
+ * inside the merged DEX (handles androidx parents like androidx.lifecycle.LifecycleProcess,
+ * which the previous direct-superclass fingerprint silently missed — issue #5).
  *
- * If no Application.onCreate fingerprint is found, Layer 2 is silently skipped and Layer 1
+ * If no Application.onCreate is found, Layer 2 is skipped (with a log line) and Layer 1
  * still provides broad coverage.
  */
-
-private val ApplicationOnCreateFingerprint = Fingerprint(
-    accessFlags = listOf(AccessFlags.PUBLIC),
-    returnType = "V",
-    parameters = emptyList(),
-    custom = { method, classDef ->
-        method.name == "onCreate" &&
-            classDef.superclass == "Landroid/app/Application;"
-    },
-)
 
 @Suppress("unused")
 val spoofInstallSourcePatch = bytecodePatch(
@@ -169,55 +160,90 @@ val spoofInstallSourcePatch = bytecodePatch(
         }
 
         // Layer 2: Binder-level IPackageManager proxy via extension ─────────
-        // Find Application.onCreate() — present in every Android app.
-        val onCreateMethod = ApplicationOnCreateFingerprint.methodOrNull
-
-        // A call to a class that never made it into the DEX would leave an APK that
-        // dies with NoClassDefFoundError at startup, so verify the extension merged
-        // before wiring Layer 2 up.
+        // Find the app's Application.onCreate() — present in virtually every
+        // Android app, but NOT reliably fingerprintable as "direct subclass of
+        // android.app.Application": modern apps typically extend an androidx
+        // parent (e.g. androidx.lifecycle.LifecycleProcess extends Application),
+        // which is exactly the case the previous direct-superclass fingerprint
+        // silently missed (issue #5).  Resolve the application family by
+        // walking each candidate class' superclass chain inside the merged DEX
+        // instead (bounded hops, null-safe at every step).
         val extensionAvailable = try {
             classDefBy(EXTENSION_CLASS) != null
         } catch (_: Throwable) {
             false
         }
 
-        if (onCreateMethod != null && !extensionAvailable) {
+        var layer2Injected = false
+        if (!extensionAvailable) {
             logUniversal(
                 "Spoof install source: $EXTENSION_CLASS not found in the merged DEX — " +
                     "Layer 2 skipped (Layer 1 still applied).",
             )
-        } else if (onCreateMethod != null) {
-            // Use a scratch register instead of hardcoding v0: in a method with no
-            // locals v0 IS p0, so overwriting it would replace "this".
-            val implementation = onCreateMethod.implementation
-            val parameterRegisters = listOf((implementation?.registerCount ?: 1) - 1)
-            val scratchRegister = implementation?.let {
-                try {
-                    onCreateMethod
-                        .getFreeRegisterProvider(0, 1, parameterRegisters)
-                        .getFreeRegister()
-                } catch (_: IllegalArgumentException) {
-                    null
+        } else {
+            classDefForEach { classDef ->
+                if (layer2Injected) return@classDefForEach
+
+                // Application family? Walk the superclass chain (app dex only).
+                var current: String? = classDef.superclass
+                var hops = 0
+                var isAppFamily = false
+                while (current != null && hops++ < 8) {
+                    if (current == "Landroid/app/Application;") {
+                        isAppFamily = true
+                        break
+                    }
+                    current = try {
+                        classDefBy(current)?.superclass
+                    } catch (_: Throwable) {
+                        null
+                    }
                 }
-            }
-            if (scratchRegister == null) {
-                logUniversal(
-                    "Spoof install source: no free register in Application.onCreate() — " +
-                        "Layer 2 skipped (Layer 1 still applied).",
-                )
-            } else {
-                onCreateMethod.addInstructions(
+                if (!isAppFamily) return@classDefForEach
+
+                val onCreate = classDef.methods.find {
+                    it.name == "onCreate" &&
+                        it.parameterTypes.isEmpty() &&
+                        it.returnType == "V" &&
+                        AccessFlags.PUBLIC.isSet(it.accessFlags)
+                } ?: return@classDefForEach
+
+                val mutable = mutableClassDefBy(classDef).methods.find { m ->
+                    m.name == onCreate.name &&
+                        m.returnType == onCreate.returnType &&
+                        m.parameterTypes.toList() == onCreate.parameterTypes.toList()
+                } ?: return@classDefForEach
+
+                val implementation = mutable.implementation
+                val parameterRegisters = listOf((implementation?.registerCount ?: 1) - 1)
+                val scratchRegister = implementation?.let {
+                    try {
+                        mutable.getFreeRegisterProvider(0, 1, parameterRegisters).getFreeRegister()
+                    } catch (_: IllegalArgumentException) {
+                        null
+                    }
+                }
+                if (scratchRegister == null) {
+                    logUniversal(
+                        "Spoof install source: no free register in Application.onCreate (${classDef.type}) — " +
+                            "Layer 2 skipped (Layer 1 still applied).",
+                    )
+                    return@classDefForEach
+                }
+                mutable.addInstructions(
                     0,
                     "const-string v$scratchRegister, \"$targetInstaller\"\n" +
                         "invoke-static {v$scratchRegister}, $EXTENSION_CLASS->init(Ljava/lang/String;)V",
                 )
-                logUniversal("Spoof install source: binder proxy injected into Application.onCreate().")
+                logUniversal("Spoof install source: binder proxy injected into Application.onCreate (${classDef.type}).")
+                layer2Injected = true
             }
-        } else {
-            logUniversal("Spoof install source: Application.onCreate() not found — Layer 2 skipped.")
+        }
+        if (!layer2Injected && extensionAvailable) {
+            logUniversal("Spoof install source: Application.onCreate() not found — Layer 2 skipped (Layer 1 still applied).")
         }
 
-        if (patchedCount == 0 && onCreateMethod == null) {
+        if (patchedCount == 0 && !layer2Injected) {
             logUniversal("Spoof install source: no call sites and no Application.onCreate() — patch has no effect.")
         } else {
             logUniversal("Spoof install source: $patchedCount DEX call site(s) patched → \"$targetInstaller\".")

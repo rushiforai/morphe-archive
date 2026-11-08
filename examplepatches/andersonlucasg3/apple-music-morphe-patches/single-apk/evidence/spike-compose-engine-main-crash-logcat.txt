@@ -1,0 +1,19 @@
+11-07 09:28:19.329 D/nativeloader(17722): Configuring clns-5 for other apk . target_sdk_version=37, uses_libraries=, library_path=/data/app/~~4xDeQY4EB-77KVaL14GpSg==/com.google.android.gms-jVfc8dNLMcBpbhCpiphjGw==/lib/arm:/data/app/~~4xDeQY4EB-77KVaL14GpSg==/com.google.android.gms-jVfc8dNLMcBpbhCpiphjGw==/base.apk!/lib/armeabi-v7a, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+11-07 09:28:19.330 D/AndroidRuntime(17722): Shutting down VM
+--------- beginning of crash
+11-07 09:28:19.332 E/AndroidRuntime(17722): FATAL EXCEPTION: main
+11-07 09:28:19.332 E/AndroidRuntime(17722): Process: com.apple.android.music, PID: 17722
+11-07 09:28:19.332 E/AndroidRuntime(17722): java.lang.NoSuchFieldError: No field a of type Lkotlin/Unit; in class Lkotlin/Unit; or its superclasses (declaration of 'kotlin.Unit' appears in /data/app/~~nqg6Zr_TzlMjB_yHZ1HO9w==/com.apple.android.music-c9maFhb2J20M3wEKTNvo1g==/base.apk!classes5.dex)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at Oj.x0.x0(MusicApp:173)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at Oj.x0.n0(MusicApp:7)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at Oj.a.resumeWith(MusicApp:14)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at Oj.a.B0(MusicApp:135)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at Oj.g.b(MusicApp:24)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at Oj.g.c(MusicApp:13)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at ah.m.<init>(MusicApp:39)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at com.google.firebase.sessions.FirebaseSessionsRegistrar.getComponents$lambda$0(MusicApp:55)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at com.google.firebase.sessions.FirebaseSessionsRegistrar.f(MusicApp:1)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at J3.e.b(MusicApp:1)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at com.apple.android.music.collection.mediaapi.fragment.W.b(MusicApp:14)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at qg.f.get(MusicApp:15)
+11-07 09:28:19.332 E/AndroidRuntime(17722): 	at qg.o.get(MusicApp:14)

@@ -8,13 +8,15 @@ body:
       value: |
         Thank you for the suggestion. Only the request itself is required, but every other field helps.
 
-        Before you start, please check the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) for the same request.
+        Before you start, please check the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) for the same request, and the [Morphe patches site](https://morphe-patches.software/) for a patch that another source already offers. If that patch is out of date, please ask its author to update it first. I take over a patch only when its author no longer works on it.
   - type: checkboxes
     id: before
     attributes:
       label: Before you submit
       options:
         - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this request."
+          required: true
+        - label: "I searched the [Morphe patches site](https://morphe-patches.software/) and no other patch source already does this."
           required: true
   - type: dropdown
     id: kind

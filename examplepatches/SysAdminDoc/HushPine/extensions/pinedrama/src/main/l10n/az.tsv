@@ -1382,7 +1382,6 @@ Comment with live photos, the camera or audio	Canlı fotolar, kamera və ya səs
 Save comments to Favorites	Şərhləri Sevimlilərə saxlayın
 Comment sort and dislike styles	Şərh sıralaması və bəyənməmə üslubları
 Message bubble colors, Inbox archive and sharing to more chats	Mesaj balonu rəngləri, Gələnlər arxivi və daha çox söhbətə paylaşma
-Manage topics	Mövzuları idarə edin
 Visual search	Vizual axtarış
 AI Self	AI Self
 Long-press menu on every post	Hər paylaşımda uzun basma menyusu
@@ -1639,7 +1638,6 @@ Sign in without a passkey	Passkey olmadan daxil olun
 PineDrama treats your phone as one without passkeys, so signing in asks for your password or a code by email or text instead. Password managers won't hand a passkey to a patched app. If PineDrama's 2-step check still wants only a passkey, add email or text as a way to verify on tiktok.com or another phone first.	PineDrama telefonunuza passkey dəstəkləməyən telefon kimi baxır, ona görə də daxil olanda bunun əvəzinə parolunuzu və ya e-poçt ya da SMS ilə gələn kodu soruşur. Parol menecerləri yamaqlanmış tətbiqə passkey vermir. PineDrama-nın iki addımlı yoxlaması hələ də yalnız passkey istəyirsə, əvvəlcə tiktok.com-da və ya başqa telefonda təsdiq üsulu kimi e-poçt ya da SMS əlavə edin.
 # context: opens the complete published changelog from the concise What's new dialog.
 Full changelog	Bütün dəyişikliklər
-More hashtags per post	Hər paylaşımda daha çox həştəq
 New comment emoji	Yeni şərh emojiləri
 Hide root	Rootu gizlət
 Hide root status and details about root tools from PineDrama.	Root statusunu və root alətləri haqqında məlumatı PineDrama-dan gizlət.
@@ -1832,3 +1830,28 @@ Sticker added to Saved	Stiker saxlanılanlara əlavə edildi
 Recently used	Son istifadə olunanlar
 # context: A video's share sheet. Make sticker is a button HushPine adds after Save cover, and it turns the video's cover into one of your saved comment stickers. Keep it about as short as Save cover, since share sheet labels get two short lines under the icon
 Make sticker	Stiker yarat
+Keep your place in History and Favorites	Tarixçə və Sevimlilərdə yerinizi saxlayın
+Stops these lists jumping back to the top when you switch tabs or come back from a video. A list you haven't scrolled still updates.	Tabları dəyişəndə və ya videodan qayıdanda bu siyahıların yuxarı qayıtmasının qarşısını alır. Sürüşdürmədiyiniz siyahı yenə də yenilənir.
+Dramas	Dramlar
+Episodes in full screen	Tam ekranda epizodlar
+Swipe up for the next episode and down for the previous one without leaving full screen. The next episode starts when one ends, instead of the same one looping.	Tam ekrandan çıxmadan növbəti epizod üçün yuxarı, əvvəlki üçün aşağı sürüşdürün. Epizod bitəndə eyni epizod təkrarlanmaq əvəzinə növbəti başlayır.
+Subtitles	Altyazılar
+Subtitle priority	Altyazı üstünlüyü
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own subtitle. Used when a video starts playing.	İstədiyiniz sıra ilə dil kodları, vergüllə ayrılmış, məsələn en, original. original videonun öz altyazısı deməkdir. Video oynamağa başlayanda istifadə olunur.
+Force subtitle	Altyazını məcburi et
+Always use the first subtitle on your list that a video has, even with captions off. A video with none of them plays as usual. Turning captions off yourself lasts until the app restarts.	Altyazılar sönülü olsa belə, videoda olan siyahınızdakı ilk altyazını həmişə işlədir. Heç biri olmayan video adi qaydada oynayır. Altyazını özünüz söndürsəniz, bu tətbiq yenidən başlayana qədər qalır.
+Force original subtitle	Orijinal altyazını məcburi et
+Always use the video's own subtitle, never a translated one, even with captions off. A video without one plays as usual.	Altyazılar sönülü olsa belə, həmişə videonun öz altyazısını işlədir, heç vaxt tərcümə olunanı yox. Belə altyazısı olmayan video adi qaydada oynayır.
+Dubs	Dublajlar
+Dub priority	Dublaj üstünlüyü
+Language codes in the order you want them, separated by commas, like en, original. original means the video's own audio. Used when a video starts playing.	İstədiyiniz sıra ilə dil kodları, vergüllə ayrılmış, məsələn en, original. original videonun öz səsi deməkdir. Video oynamağa başlayanda istifadə olunur.
+Force dub	Dublajı məcburi et
+Always use the first dub on your list that a video has, even with dubbing off. A video with none of them plays as usual.	Dublaj sönülü olsa belə, videoda olan siyahınızdakı ilk dublajı həmişə işlədir. Heç biri olmayan video adi qaydada oynayır.
+Force original dub	Orijinal səsi məcburi et
+Always play the video's own audio, never an AI dub.	Həmişə videonun öz səsini oynadır, heç vaxt AI dublajını yox.
+Hide videos without a preferred subtitle	Üstün tutulan altyazısı olmayan videoları gizlət
+Hides videos with no subtitle from Subtitle priority in Playback, and that includes videos with no subtitles at all. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Oxutma bölməsindəki Altyazı üstünlüyü siyahısından altyazısı olmayan videoları, o cümlədən heç altyazısı olmayanları gizlədir. Bütün səhifə gizlənəcəksə, lentin yüklənməyə davam etməsi üçün bir video qalır. Siyahı boş olanda heç nə etmir.
+Hide videos without a preferred dub	Üstün tutulan dublajı olmayan videoları gizlət
+Hides videos with no dub from Dub priority in Playback. Putting original on that list keeps every video, since each has its own audio. If a whole page would be hidden, one video stays so the feed keeps loading. Does nothing while the list is empty.	Oxutma bölməsindəki Dublaj üstünlüyü siyahısından dublajı olmayan videoları gizlədir. Siyahıya original əlavə etsəniz, bütün videolar qalır, çünki hər birinin öz səsi var. Bütün səhifə gizlənəcəksə, lentin yüklənməyə davam etməsi üçün bir video qalır. Siyahı boş olanda heç nə etmir.
+Preferred subtitles	Üstün tutulan altyazılar
+Preferred dubs	Üstün tutulan dublajlar

@@ -19,9 +19,14 @@ val patchListGeneratorClasspath = configurations.create("patchListGeneratorClass
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
+    testImplementation(kotlin("test"))
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
     register<JavaExec>("generatePatchesList") {
         description = "Build patch with patch list"
 

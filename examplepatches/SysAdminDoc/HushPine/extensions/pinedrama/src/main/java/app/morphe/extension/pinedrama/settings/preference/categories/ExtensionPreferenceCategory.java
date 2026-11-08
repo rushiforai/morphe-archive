@@ -50,6 +50,7 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.hideSearchSuggestionsEnabled
                 || SettingsStatus.searchAutoplayEnabled
                 || SettingsStatus.keepFavoritesTabEnabled
+                || SettingsStatus.keepListPositionEnabled
                 || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.profileShortcutsEnabled
                 || SettingsStatus.profileBackgroundEnabled
@@ -175,9 +176,19 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.STOP_SEARCH_AUTOPLAY
             ));
         }
-        if (SettingsStatus.keepFavoritesTabEnabled || SettingsStatus.promotionalBannersEnabled
+        if (SettingsStatus.keepFavoritesTabEnabled || SettingsStatus.keepListPositionEnabled
+                || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.profileShortcutsEnabled || SettingsStatus.profileBackgroundEnabled) {
             addPreference(new SectionHeadingPreference(context, "Profile"));
+        }
+        if (SettingsStatus.keepListPositionEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Keep your place in History and Favorites",
+                    "Stops these lists jumping back to the top when you switch tabs or come back "
+                            + "from a video. A list you haven't scrolled still updates.",
+                    Settings.KEEP_LIST_POSITION
+            ));
         }
         if (SettingsStatus.keepFavoritesTabEnabled) {
             addPreference(new TogglePreference(

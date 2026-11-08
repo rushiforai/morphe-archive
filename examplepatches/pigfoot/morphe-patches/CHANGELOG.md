@@ -1,3 +1,9 @@
+## [0.6.0](https://github.com/pigfoot/morphe-patches/compare/v0.5.0...v0.6.0) (2026-11-08)
+
+### ✨ New Features
+
+* add PikieWalker rewards and GPS JoyStick Premium ([#11](https://github.com/pigfoot/morphe-patches/issues/11)) ([511b837](https://github.com/pigfoot/morphe-patches/commit/511b837742de3807ae4873e5a805d2216e82ffa6))
+
 ## [0.5.0](https://github.com/pigfoot/morphe-patches/compare/v0.4.1...v0.5.0) (2026-11-01)
 
 ### ✨ New Features

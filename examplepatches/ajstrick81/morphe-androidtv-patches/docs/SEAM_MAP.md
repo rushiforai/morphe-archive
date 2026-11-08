@@ -21,18 +21,18 @@ How each app delivers ads, where our patches cut in, and what proves it worked. 
 
 | App | Engine | Targets | Patches | Fingerprints | Patch evidence logged | Device signature known |
 |---|---|---|---:|---:|---|---|
-| [disney](#disney) | Proprietary native / JS ad engine | 26.6.0+rc5-2026.04.21, 26.8.0+rc6-2026.05.20, 26.9.2+rc1-2026.06.12, 26.12.1+rc1-2026.07.15, 26.16.0+rc2-2026.09.08 | 2 | 6 | **no** | **no** |
+| [disney](#disney) | Proprietary native / JS ad engine | 26.20.0+rc3-2026.11.02, 26.16.0+rc2-2026.09.08, 26.12.1+rc1-2026.07.15 | 2 | 6 | **no** | yes |
 | [espn](#espn) | Server-side stitching (SSAI) via manifest | 6.11.1 | 4 | 7 | yes (50 lines) | **no** |
 | [f1tv](#f1tv) | ? | 3.0.49.4-SP166.4.1-release-R54.2-tv | 1 | 5 | **no** | **no** |
 | [foxone](#foxone) | Google IMA / DAI client SDK | 1.9.2 | 1 | 8 | **no** | **no** |
 | [future](#future) | ? | 19.7, 20.1 | 2 | 5 | **no** | **no** |
-| [hbomax](#hbomax) | Server-side stitching (SSAI) via manifest | 7.9.0.61, 7.7.0.78, 7.5.0.73, 7.2.0.41 | 5 | 12 | yes (23 lines) | **no** |
+| [hbomax](#hbomax) | Server-side stitching (SSAI) via manifest | 7.14.0.69, 7.9.0.61, 7.7.0.78, 7.5.0.73, 7.2.0.41 | 5 | 12 | yes (23 lines) | **no** |
 | [mlbtv](#mlbtv) | Google IMA / DAI client SDK | 26.8.1.1 | 1 | 9 | yes (7 lines) | **no** |
 | [netflix](#netflix) | Proprietary native / JS ad engine | 13.0.1 build 25028, 13.2.1 build 27207, 13.2.2 build 27250 | 6 | 2 | **no** | **no** |
 | [paramount](#paramount) | Google IMA / DAI client SDK | 16.19.0, 16.17.0, 16.12.0, 16.8.0 | 1 | 3 | **no** | **no** |
 | [peacock](#peacock) | Server-side stitching (SSAI) via manifest | 7.5.102, 7.6.100, 7.8.100, 7.10.102 | 3 | 10 | yes (6 lines) | **no** |
-| [pluto](#pluto) | Server-side stitching (SSAI) via manifest | 5.66.0-leanback, 17.2.0 | 6 | 16 | yes (33 lines) | yes |
-| [primevideo](#primevideo) | Proprietary native / JS ad engine | 6.23.23+v15.5.0.70-armv7a | 7 | 5 | yes (42 lines) | yes |
+| [pluto](#pluto) | Server-side stitching (SSAI) via manifest | 5.66.0-leanback, 17.2.0 | 6 | 20 | yes (47 lines) | yes |
+| [primevideo](#primevideo) | Proprietary native / JS ad engine | 6.23.23+v15.5.0.70-armv7a, 6.24.7+v16.0.0.332-allAbis, 6.24.13+v16.0.1.93-allAbis | 7 | 5 | yes (42 lines) | yes |
 | [raiplay](#raiplay) | ? | 5.0.1, 5.0.0 | 3 | 3 | **no** | **no** |
 | [rte](#rte) | Google IMA / DAI client SDK | 3.160.3 | 1 | 3 | **no** | **no** |
 | [tubi](#tubi) | Google IMA / DAI client SDK | 10.40.5000 | 2 | 13 | yes (2 lines) | **no** |
@@ -42,19 +42,19 @@ How each app delivers ads, where our patches cut in, and what proves it worked. 
 
 ## disney
 
-**Package** `com.disney.disneyplus` · **Targets** `26.6.0+rc5-2026.04.21`, `26.8.0+rc6-2026.05.20`, `26.9.2+rc1-2026.06.12`, `26.12.1+rc1-2026.07.15`, `26.16.0+rc2-2026.09.08` · **Engine** Proprietary native / JS ad engine
+**Package** `com.disney.disneyplus` · **Targets** `26.20.0+rc3-2026.11.02`, `26.16.0+rc2-2026.09.08`, `26.12.1+rc1-2026.07.15` · **Engine** Proprietary native / JS ad engine
 
 | Layer | |
 |---|---|
 | Runtime | Disney media player (legacy DSS SDK and new com.disney.dmp). |
-| Delivery | SGAI (server-guided ad insertion): the player receives insertion points / ranges that say where ads go. |
-| Code seam | Insertion accessors `getPoints()` / `getRanges()` (legacy + DMP variants). |
-| Patch action | Return empty insertion points/ranges → no breaks scheduled. 26.16: obfuscated MEL pause layer → pause ad made optional. |
+| Delivery | VOD: SGAI/SSAI insertion points + ranges via `com.disney.dmp.internal.pbo.Insertion` (and the legacy DSS-SDK `Insertion`). LIVE is a SEPARATE channel: breaks arrive as HLS `#EXT-X-DATERANGE` interstitial tags (`CLASS=com.disney.media.break.v1` or `com.apple.hls.interstitial`) carrying START-DATE / END-DATE / PLANNED-DURATION / X-ASSET-LIST / X-COM-DISNEY-PAYLOAD, delivered to the player as `playlistRetrieved(DateTime, List<DateRange>)`. Live never travels through `Insertion`. |
+| Code seam | VOD: `Insertion` accessors `getPoints()` / `getRanges()` (legacy + DMP variants). LIVE: `playlistRetrieved(DateTime, List<DateRange>)` — R8-minified to `Lssc;->g(Lorg/joda/time/DateTime;Ljava/util/List;)V` on 26.20 (interface `Lnmh;`, logging decorator `Ljcl;->g`); parsed entirely in Java, so bytecode-reachable. Not patched: see docs/DISNEY_LIVE_AD_DELIVERY.md. |
+| Patch action | VOD: return empty insertion points/ranges -> no breaks scheduled. 26.16: obfuscated MEL pause layer -> pause ad made optional. LIVE: nothing shipped. Two gates (`cub.p:Li08`, `cub.j:Z`) choose client-side `scheduleLiveInterstitials` (removable by filtering the DateRange list) vs passthrough (nothing scheduled -> mask only, as ESPN does). The measured ESPN-in-Disney+ stream takes the passthrough branch. |
 | Patch evidence | _unknown_ |
-| Device signature | _unknown_ |
-| Drift history | Verified through 26.12.1; 26.16 pause-ad needed an optional patch (#167). |
+| Device signature | LIVE passthrough: one continuous decoder session over ~25 min — 0 `C2VdecComponent`/`CCodec` lines, 0 decoder `onStopDone`, 1 `WVCdm` op, `PLAYING(3)` throughout, strictly monotonic position. VOD baseline over a comparable span: 1,744 codec lines, 12 stops, 421 `WVCdm` ops. The app emits none of its own `p97.w` logging in release, so logcat shows zero ad vocabulary either way. |
+| Drift history | Verified through 26.20.0+rc3-2026.11.02; 26.16 pause-ad needed an optional patch (#167). Live seam names `Lssc;`/`g` are R8 and drift every version — re-anchor on the in-method strings `com.disney.media.break.v1`, `X-COM-DISNEY-PAYLOAD`, `X-ASSET-LIST`. |
 
-**Gaps:** Re-anchor the 26.16 pause-ad seam. · No runtime log line. · Device signature not captured.
+**Gaps:** Re-anchor the 26.16+ pause-ad seam. · No runtime log line. · LIVE: no user-flagged commercial-break timestamp yet, so passthrough is consistent-with, not proven. · LIVE: pcap a break to see whether an X-ASSET-LIST URI is fetched (decides client-side vs passthrough). · LIVE: resolve what sets the gates cub.p / cub.j.
 
 <details><summary>Patches and fingerprints (generated)</summary>
 
@@ -200,7 +200,7 @@ Runtime evidence (tags `MORPHE-ESPN-SLATE`; first 12 of 50):
 
 ## hbomax
 
-**Package** `com.wbd.hbomax` · **Targets** `7.9.0.61`, `7.7.0.78`, `7.5.0.73`, `7.2.0.41` · **Engine** Server-side stitching (SSAI) via manifest
+**Package** `com.wbd.hbomax` · **Targets** `7.14.0.69`, `7.9.0.61`, `7.7.0.78`, `7.5.0.73`, `7.2.0.41` · **Engine** Server-side stitching (SSAI) via manifest
 
 | Layer | |
 |---|---|
@@ -410,7 +410,7 @@ Runtime evidence (tags `MORPHE-PCK-WV`; first 12 of 6):
 
 | Patch | Fingerprint | Class / method | Returns | Strings | Action |
 |---|---|---|---|---|---|
-| Mask live ad breaks (black screen + mute) | `Id3ConsumeFingerprint` | `adsbeacontracker/ID3AdsBeaconTracker`.`consumeID3` | `V` |  | addInstructions `invoke-static { p1 }, Lajstrick81/morphe/extension/pluto/ads/PlutoLiveSlateHelper;` |
+| Mask live ad breaks (black screen + mute) | `Id3ConsumeFingerprint` | `adsbeacontracker/ID3AdsBeaconTracker`.`consumeID3` | `V` |  |  |
 | Mask live ad breaks (black screen + mute) | `LeanbackHostOnCreateFingerprint` | `main/LeanbackMainHostActivity`.`onCreate` | `V` |  | addInstructions `invoke-static { p0 }, Lajstrick81/morphe/extension/pluto/ads/PlutoLiveSlateHelper;` |
 | Mask live ad breaks (black screen + mute) | `LeanbackHostOnDestroyFingerprint` | `main/LeanbackMainHostActivity`.`onDestroy` | `V` |  | addInstructions `invoke-static { p0 }, Lajstrick81/morphe/extension/pluto/ads/PlutoLiveSlateHelper;` |
 | Mask live ad breaks (black screen + mute) | `AviaControllerInitFingerprint` | `avia/AviaPlaybackController`.`<init>` | `V` |  | addInstructions `invoke-static { p1 }, Lajstrick81/morphe/extension/pluto/ads/PlutoLiveSlateHelper;` |
@@ -431,15 +431,15 @@ Runtime evidence (tags `MORPHE-PCK-WV`; first 12 of 6):
 | Override certificate pinning _(opt-in)_ | — | — | — |  |  |
 | Disable auto-updates | — | — | — |  |  |
 
-Runtime evidence (tags `MORPHE-DASH-MF`, `MORPHE-PLUTO-SLATE`; first 12 of 33):
+Runtime evidence (tags `MORPHE-DASH-MF`, `MORPHE-PLUTO-SLATE`; first 12 of 47):
 
 - I `dynamic (live) manifest -> untouched, periods=` — PlutoDashManifestProbe.java:144
 - W `no content periods kept (of ` — PlutoDashManifestProbe.java:170
 - W `GUARD tripped: kept ` — PlutoDashManifestProbe.java:180
 - I `STRIPPED ` — PlutoDashManifestProbe.java:210
 - E `strip failed -> original manifest (playback unaffected): ` — PlutoDashManifestProbe.java:214
-- I `resume remap (#147): original=` — PlutoDashManifestProbe.java:275
-- E `resume remap failed -> original position (resume unaffected): ` — PlutoDashManifestProbe.java:279
+- I `resume remap (#147): original=` — PlutoDashManifestProbe.java:287
+- E `resume remap failed -> original position (resume unaffected): ` — PlutoDashManifestProbe.java:291
 - D `setAviaPlayer(…)` — PlutoLiveSlateHelper.kt:97
 - D `registerActivity(…)` — PlutoLiveSlateHelper.kt:108
 - D `live ad break -> mask ON (mode=…)` — PlutoLiveSlateHelper.kt:171
@@ -450,17 +450,17 @@ Runtime evidence (tags `MORPHE-DASH-MF`, `MORPHE-PLUTO-SLATE`; first 12 of 33):
 
 ## primevideo
 
-**Package** `com.amazon.amazonvideo.livingroom` · **Targets** `6.23.23+v15.5.0.70-armv7a` · **Engine** Proprietary native / JS ad engine
+**Package** `com.amazon.amazonvideo.livingroom` · **Targets** `6.23.23+v15.5.0.70-armv7a`, `6.24.7+v16.0.0.332-allAbis`, `6.24.13+v16.0.1.93-allAbis` · **Engine** Proprietary native / JS ad engine
 
 | Layer | |
 |---|---|
-| Runtime | libignite = WAMR AoT WASM runtime; player/timeline in QuickJS. v16 (6.24.x) moved the whole ad pipeline native (Java ad surface gone); the Megablast Rust ad client is a DOWNLOADED .so.br blob, updatable server-side. |
+| Runtime | libignite = WAMR AoT WASM runtime; player/timeline in QuickJS. v16 (6.24.x) removed the Java ad surface but left libignite's memcpy/memmove import slots unchanged, so the native GOT strip is still reachable there; it had never loaded on v16 because the loader fingerprint pinned accessFlags=[PUBLIC] against a `public final` onCreate (fixed 2026-11-07, device verification still pending). The Megablast Rust ad client is a DOWNLOADED .so.br blob, updatable server-side. |
 | Delivery | Client-stitched: the app fetches an ad schedule (regolith / SGAI `getVideoAds` response, intraTitlePlaylist) and stitches ad pods into playback itself. |
 | Code seam | The regolith ad-playlist response inside libignite — intercepted by a native GOT/PLT hook (memcpy) and emptied; intraTitlePlaylist PATH1 skipped. |
 | Patch action | Empty the ad playlist before the player sees it → the break is never scheduled. |
 | Patch evidence | `[rego] emptied playlist (~N ad(s), interior X bytes blanked)` + `PVKILL path=tv ads=N` at the moment each pod is fetched (2026-09-24 live: 1 pre-roll, 4 + 3 mid-roll ads emptied). |
 | Device signature | When an ad DOES play (6.24.7 capture): decoder reconfigure (`Discard frames from previous generation`, `VideoResolutionChange`) + crop switch (title-specific, e.g. letterbox 960 → ad 1080) + ~27 `I/f Successfully uploaded metrics` in ~2 s from the app process. With the patch working: none of these at the marker, 0 metrics uploads. |
-| Drift history | v16 loader never fired because onCreate became `public final` vs an exact accessFlags match (fix: drop accessFlags). 6.24.7 = minor bump, seam re-pointed (declared target still in progress). High-ad-region mid-roll truncation (#120) fixed in v1.37.4. |
+| Drift history | v16 loader never fired because onCreate became `public final` vs an exact accessFlags match; the recorded fix (drop accessFlags) sat unapplied for weeks while docs blamed the v16 native move instead, so APPLY recorded drift fixes, don't just record them. Applied 2026-11-07; 6.24.7 and 6.24.13 declared as experimental targets, device verification pending. High-ad-region mid-roll truncation (#120) fixed in v1.37.4. |
 
 **Gaps:** Timeline-action native symbols unresolved (Native_StartTimelineAction not in NativeSymbol table).
 

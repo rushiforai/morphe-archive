@@ -1,6 +1,6 @@
 package dev.jason.gboardpatches.patches.gboard.features.duckemail
 
-import dev.jason.gboardpatches.patches.gboard.features.editingaccesspoints.GboardEditingAccessPoints1803Targets
+import dev.jason.gboardpatches.patches.gboard.features.editingaccesspoints.GboardEditingAccessPointsTargets
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
@@ -20,11 +20,11 @@ internal val gboardDuckEmailLifecyclePatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_GBOARD)
     dependsOn(gboardPatchesExtensionCarrierPatch)
     execute {
-        GboardEditingAccessPoints1803Targets.validate(this)
-        GboardEditingAccessPoints1803Targets.resetMethods.forEach { target ->
+        GboardEditingAccessPointsTargets.validate(this)
+        GboardEditingAccessPointsTargets.resetMethods.forEach { target ->
             findMutableMethodOrThrow(target).applyDuckEmailSessionReset()
         }
-        findMutableMethodOrThrow(GboardEditingAccessPoints1803Targets.startView)
+        findMutableMethodOrThrow(GboardEditingAccessPointsTargets.startView)
             .applyVoidExitLifecycleDelegate(
                 RuntimeCallId.DUCK_EMAIL_START, "p0 .. p0",
             )

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="72" height="72" viewBox="0 0 72 72" role="img" aria-label="Car Scanner icon">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2DD4BF"/><stop offset="1" stop-color="#0F766E"/></linearGradient><radialGradient id="glow"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+<rect x="1" y="1" width="70" height="70" rx="19" fill="url(#g)"/><circle cx="16" cy="13" r="33" fill="url(#glow)"/><path d="M8 56c14-9 29-10 56-1" fill="none" stroke="#fff" stroke-opacity=".10" stroke-width="7"/>
+<path d="m17 43 4-13c1-4 4-6 8-6h19c4 0 7 2 9 6l4 13v11h-6v-5H23v5h-6zm10-13-3 10h33l-3-10c-.5-1.8-2-2.8-4-2.8H31c-2 0-3.5 1-4 2.8z" fill="white"/><circle cx="27" cy="45" r="3" fill="#0F766E"/><circle cx="51" cy="45" r="3" fill="#0F766E"/>
+</svg>

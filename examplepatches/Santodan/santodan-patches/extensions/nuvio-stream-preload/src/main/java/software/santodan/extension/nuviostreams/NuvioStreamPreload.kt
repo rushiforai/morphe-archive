@@ -82,7 +82,8 @@ object NuvioStreamPreload {
         Log.d(TAG, "Startup end: stage=streams.component elapsedMs=${(System.nanoTime() - started) / 1_000_000}")
     }
 
-    private suspend fun search(target: StreamPreloadQueue.Target, valid: () -> Boolean = { true }): Boolean {
+    private suspend fun search(target: StreamPreloadQueue.Target, priorityBingeGroup: String? = null,
+                               pluginOnly: Boolean = false, valid: () -> Boolean = { true }): Boolean {
         val current = repository ?: run {
             val owner = component ?: return false
             // Scoped Hilt provider: obtain the native singleton without opening the stream screen.
@@ -98,9 +99,10 @@ object NuvioStreamPreload {
             String::class.java, Boolean::class.javaPrimitiveType, Boolean::class.javaPrimitiveType, Int::class.javaPrimitiveType)
             .apply { isAccessible = true }
         check(Flow::class.java.isAssignableFrom(search.returnType)) { "Native stream search must return Flow" }
-        // Native default dispatcher: default force-refresh and both new search flags to false.
+        // Native autoplay passes both plugin flags together. Only force-refresh defaults off.
         val results = search.invoke(null, current,
-            target.type, target.videoId, target.season, target.episode, false, null, false, false, 208) as Flow<Any>
+            target.type, target.videoId, target.season, target.episode, false, priorityBingeGroup,
+            pluginOnly, pluginOnly, 16) as Flow<Any>
         var success = false
         var groups = 0
         var sources = 0
@@ -115,7 +117,7 @@ object NuvioStreamPreload {
                 sources = addons.sumOf { addon -> (get(addon!!, "getStreams") as List<*>).size }
             }
         }
-        Log.d(TAG, "Preload results ${targetLabel(target)} addonGroups=$groups sources=$sources")
+        Log.d(TAG, "Preload results ${targetLabel(target)} pluginOnly=$pluginOnly addonGroups=$groups sources=$sources")
         return success
     }
 
@@ -161,7 +163,8 @@ object NuvioStreamPreload {
             @Suppress("UNCHECKED_CAST")
             val flow = get(model, NuvioNative.PLAYER_STATE_METHOD) as StateFlow<Any>
             // Beta7 ub.q reads controller k8.T for the native request type.
-            val requestType = field(field(model, "Y")!!, "T") as? String
+            val controller = field(model, "Y")!!
+            val requestType = field(controller, "T") as? String
             synchronized(nextObservers) {
                 if (nextObservers.containsKey(model)) return
                 Log.d(TAG, "Next episode playback observer ready")
@@ -169,7 +172,8 @@ object NuvioStreamPreload {
                 nextObservers[model] = scope.launch {
                     var lastDiagnostic: String? = null
                     fun snapshot() = StreamTargets.player(flow.value, profile(), enabled(NEXT),
-                        normalizeType = true, requestType = requestType)
+                        normalizeType = true, requestType = requestType).copy(
+                            priorityBingeGroup = field(controller, "u3") as? String)
                     NextEpisodePreloader(::snapshot, { state ->
                         synchronized(nextPermits) {
                             nextPermits.value = if (state == null) nextPermits.value - token
@@ -180,10 +184,25 @@ object NuvioStreamPreload {
                         val target = StreamPreloadQueue.Target(NEXT, state.profile!!, media.type,
                             media.videoId, media.season, media.episode)
                         Log.d(TAG, "Preload started ${targetLabel(target)}")
-                        val result = search(target) {
+                        fun valid(): Boolean {
                             val current = snapshot()
-                            current.enabled && current.playing && current.profile == state.profile &&
-                                current.currentVideoId == state.currentVideoId && current.next == state.next
+                            return current.enabled && current.playing && current.profile == state.profile &&
+                                current.currentVideoId == state.currentVideoId && current.next == state.next &&
+                                current.priorityBingeGroup == state.priorityBingeGroup
+                        }
+                        // Autoplay tries continuePluginOnly for a local-plugin binge group before
+                        // falling back to the full list. Those are distinct native cache entries.
+                        val plugin = Class.forName("com.nuvio.tv.domain.model.PluginKt")
+                            .getDeclaredMethod("scraperIdFromPluginBingeGroup", String::class.java)
+                            .invoke(null, state.priorityBingeGroup) != null
+                        val result = coroutineScope {
+                            val full = async { search(target, state.priorityBingeGroup, valid = ::valid) }
+                            val preferred = if (plugin) async {
+                                search(target, state.priorityBingeGroup, pluginOnly = true, valid = ::valid)
+                            } else null
+                            val fullResult = full.await()
+                            val preferredResult = preferred?.await() ?: true
+                            fullResult && preferredResult
                         }
                         Log.d(TAG, "Preload ${if (result) "completed" else "empty-or-unavailable"} ${targetLabel(target)}")
                         result

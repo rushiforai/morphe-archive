@@ -37,8 +37,8 @@ import org.robolectric.shadows.ShadowToast;
 @Config(sdk = 28, qualifiers = "en")
 @LooperMode(LooperMode.Mode.PAUSED)
 public class InboxClearControlTest {
-    private static final String[] RESOURCE_NAMES = {"47.7.2:opg", "47.7.2:l8h", "47.7.2:q6c", "47.7.2:u7j", "47.7.2:fzw",
-            "47.7.2:wxb", "user_name", "47.7.2:v3k", "47.7.2:bss", "47.7.2:w79", "47.7.2:fi4", "47.7.2:kqd", "47.7.2:l8j"};
+    private static final String[] RESOURCE_NAMES = {"47.7.3:opg", "47.7.3:l8h", "47.7.3:q6c", "47.7.3:u7j", "47.7.3:fzw",
+            "47.7.3:wxb", "user_name", "47.7.3:v3k", "47.7.3:bss", "47.7.3:w79", "47.7.3:fi4", "47.7.3:kqd", "47.7.3:l8j"};
     private ActivityController<Activity> owner;
     private Activity activity;
     private LinearLayout rows;
@@ -85,7 +85,7 @@ public class InboxClearControlTest {
         for (String name : RESOURCE_NAMES) {
             InboxFilter.resolveForTests(packageName, name, id(name));
         }
-        FeedVisibility.resolveForTests(packageName, "47.7.2:opg", id("47.7.2:opg"));
+        FeedVisibility.resolveForTests(packageName, "47.7.3:opg", id("47.7.3:opg"));
         openInbox();
         ShadowToast.reset();
     }
@@ -140,6 +140,22 @@ public class InboxClearControlTest {
         assertTrue("Clear all was placed outside the header", clear.getRight() <= header.getWidth());
         assertTrue("Clear all overlapped the native title wrapper",
                 header.getChildAt(0).getRight() <= clear.getLeft());
+    }
+
+    /** #358: the heading's title and help icon sit level with Clear all, not above it. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void theTitleAndHelpIconLineUpWithClearAll() {
+        TextView clear = clearControl();
+        header.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(2316, View.MeasureSpec.AT_MOST));
+        header.layout(0, 0, header.getMeasuredWidth(), header.getMeasuredHeight());
+        View nativeTitle = header.getChildAt(0);
+        assertTrue("the fixture title is as tall as the action, so it proves nothing",
+                nativeTitle.getHeight() < clear.getHeight());
+        int titleMiddle = (nativeTitle.getTop() + nativeTitle.getBottom()) / 2;
+        int clearMiddle = (clear.getTop() + clear.getBottom()) / 2;
+        assertTrue("the title sits " + (clearMiddle - titleMiddle) + " px above Clear all",
+                Math.abs(titleMiddle - clearMiddle) <= 1);
     }
 
     @Test public void aReplacedControlKeepsTheNativeTitleWrapperAndItsReservedWidth() {
@@ -461,18 +477,18 @@ public class InboxClearControlTest {
         LinearLayout root = new LinearLayout(activity);
         root.setOrientation(LinearLayout.VERTICAL);
         View tab = new View(activity);
-        tab.setId(id("47.7.2:opg"));
+        tab.setId(id("47.7.3:opg"));
         tab.setSelected(true);
         root.addView(tab, new LinearLayout.LayoutParams(-1, 48));
         rows = new LinearLayout(activity);
-        rows.setId(id("47.7.2:l8h"));
+        rows.setId(id("47.7.3:l8h"));
         rows.setOrientation(LinearLayout.VERTICAL);
         root.addView(rows, new LinearLayout.LayoutParams(-1, -1));
         header = new RecordingHeader(activity);
-        header.setId(id("47.7.2:q6c"));
+        header.setId(id("47.7.3:q6c"));
         header.setOrientation(LinearLayout.HORIZONTAL);
         TextView title = new TextView(activity);
-        title.setId(id("47.7.2:u7j"));
+        title.setId(id("47.7.3:u7j"));
         title.setText("Suggested accounts");
         title.setTextColor(Color.WHITE);
         LinearLayout nativeTitle = new LinearLayout(activity);
@@ -490,7 +506,7 @@ public class InboxClearControlTest {
     private View addAccount(String account, boolean removeAfterClick) {
         LinearLayout row = new LinearLayout(activity);
         View button = new View(activity);
-        button.setId(id("47.7.2:fzw"));
+        button.setId(id("47.7.3:fzw"));
         button.setContentDescription(description(account));
         button.setOnClickListener(view -> {
             dismissed.add(account);

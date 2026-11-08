@@ -20,18 +20,12 @@ import dev.jason.gboardpatches.patches.gboard.shared.runtimeabi.RuntimeCallId
 private val COLUMN_RUNTIME_CALL = RuntimeCallId.CLIPBOARD_RUNTIME_RESOLVE_COLUMN_COUNT_OVERRIDE
 
 internal val gboardClipboardColumnCountPatch = bytecodePatch(
-    description = "移植 clipboard 欄數 override。"
+    description = "調整 clipboard 欄數 override。"
 ) {
     dependsOn(gboardPatchesExtensionCarrierPatch)
 
     execute {
-        val mutableMethod = findMutableMethodOrThrow(
-            classType = CLIPBOARD_KEYBOARD_CLASS,
-            name = "l",
-            returnType = "I",
-            parameterTypes = emptyList()
-        )
-        mutableMethod.applyClipboardColumnCountDelegate()
+        installClipboard1853GridAdapter(this)
     }
 }
 

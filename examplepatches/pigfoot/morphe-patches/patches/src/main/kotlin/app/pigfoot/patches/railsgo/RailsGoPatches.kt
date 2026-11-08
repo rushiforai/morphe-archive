@@ -3,6 +3,7 @@ package app.pigfoot.patches.railsgo
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.*
+import app.pigfoot.patches.shared.pairip.preparePairipLicenseSkip
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -98,8 +99,8 @@ val parallelInstallPatch = resourcePatch(
 }
 
 val startupCompatibilityPatch = bytecodePatch(
-    name = "RailsGo sideload startup compatibility",
-    description = "Required for supported re-signed standard or Shizuku installs, with or without package renaming. Bypasses the Java Play-license startup entry. Root mount is not qualified."
+    name = "RailsGo: Skip Google Play install check",
+    description = "Let the patched app open without asking you to install it from Google Play. This patch is required and included automatically. Technical reference: Pairip client-side license check."
 ) {
     compatibleWith(target)
     availability { installer, _ ->
@@ -107,11 +108,12 @@ val startupCompatibilityPatch = bytecodePatch(
     }
     execute {
         require(packageMetadata.versionName == "1.25.2" && packageMetadata.versionCode == "156")
-        requireClass(classDefBy("Lcom/pairip/licensecheck/LicenseClient;"), LICENSE_PIN)
-        val method = mutableClassDefBy("Lcom/pairip/licensecheck/LicenseClient;").methods.single {
-            it.name == "checkLicense" && it.parameterTypes == listOf("Landroid/content/Context;") && it.returnType == "V"
-        }
-        method.addInstructions(0, "return-void")
+        val replacement = preparePairipLicenseSkip(classDefBy("Lcom/pairip/licensecheck/LicenseClient;"), LICENSE_PIN, 37)
+        val owner = mutableClassDefBy("Lcom/pairip/licensecheck/LicenseClient;")
+        val method = owner.methods.single { it.name == replacement.name &&
+            it.parameterTypes == replacement.parameterTypes && it.returnType == replacement.returnType }
+        require(owner.methods.remove(method))
+        require(owner.methods.add(replacement))
     }
 }
 

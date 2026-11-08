@@ -103,6 +103,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_group_posts_not_joined", FALSE);
 
     /**
+     * Every post from a group, your own groups' too (#409), found the way
+     * {@link #HIDE_GROUP_POSTS_NOT_JOINED} finds a group, whatever its join state. A group post a
+     * friend commented on or shared goes too. The Groups tab keeps its own feed. Off until picked.
+     */
+    public static final BooleanSetting HIDE_GROUP_POSTS =
+            new BooleanSetting("hushfacebook_hide_group_posts", FALSE);
+
+    /**
      * The row of Stories from people you aren't connected to that Facebook puts between posts,
      * "Stories you might like", found by the flag Facebook's own Discover unit reads for it. A row
      * of your friends' Stories and the Stories tray stay.
@@ -321,6 +329,16 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_PAGE_POSTS =
             new BooleanSetting("hushfacebook_hide_page_posts", FALSE);
+
+    /**
+     * Only friends' posts (#406): the feed keeps a post when one of its own authors is a friend
+     * ({@link app.morphe.extension.facebook.feed.PostSources#friendKind}). It also turns on the ads,
+     * suggested posts, People you may know, suggested groups, group posts, Pages and feed reels
+     * switches while it's on, without saving them. A post whose authors can't be read stays. Off
+     * until picked.
+     */
+    public static final BooleanSetting ONLY_FRIENDS_POSTS =
+            new BooleanSetting("hushfacebook_only_friends_posts", FALSE);
 
     /**
      * Feed posts whose words the phone is sure are in a language not on {@link #KEPT_LANGUAGES}
@@ -954,6 +972,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting WATCH_AGAIN_IN_PLACE =
             new BooleanSetting("hushfacebook_watch_again_in_place", FALSE);
+
+    /**
+     * A video tapped in Saved plays in the video player instead of the Reels viewer, whose next
+     * swipe is a suggested reel ({@link app.morphe.extension.facebook.reels.SavedVideos}, #404).
+     * Off by default. A change shows on the next tap.
+     */
+    public static final BooleanSetting SAVED_VIDEOS_IN_PLAYER =
+            new BooleanSetting("hushfacebook_saved_videos_in_player", FALSE);
 
     /**
      * The batches of watched reels the Reels viewer sends as FbShortsSeenStateMutation: only their

@@ -1,18 +1,33 @@
 
-// Patched boot: hot updates are never applied (bbmod.js switches the updater off); any downloaded update
-// in <writable>/patch is removed, since the native side loads that folder first on the next launch. The
-// folder stays: the app writes its base-version markers (baseV, baseM) there and the login checks them.
+// Patched boot: hot updates are never applied (bbmod.js switches the updater off); anything staged in
+// <writable>/patch is removed whatever its name (an update can ship files we have never seen, like the
+// second boot script main2.js), since the native side loads that folder first on the next launch. Only
+// the folder itself and the native side's install markers stay: baseV and baseM, which the login
+// checks, and baseTag, which the updater consumes to repair data after an app install.
 (function () {
     if (typeof window.jsb !== 'object') return;
     var fileUtils = jsb.fileUtils;
     var root = fileUtils.getWritablePath() + 'patch';
     if (fileUtils.isDirectoryExist(root + '_temp/')) fileUtils.removeDirectory(root + '_temp/');
-    ['main.js', 'project.manifest', 'version.manifest'].forEach(function (name) {
-        if (fileUtils.isFileExist(root + '/' + name)) fileUtils.removeFile(root + '/' + name);
-    });
-    ['src/', 'assets/', 'jsb-adapter/'].forEach(function (name) {
-        if (fileUtils.isDirectoryExist(root + '/' + name)) fileUtils.removeDirectory(root + '/' + name);
-    });
+    if (fileUtils.isDirectoryExist(root + '_check/')) fileUtils.removeDirectory(root + '_check/');
+    var swept = false;
+    if (typeof fileUtils.listFiles === 'function' && fileUtils.isDirectoryExist(root + '/')) {
+        fileUtils.listFiles(root + '/').forEach(function (entry) {
+            var name = entry.replace(/\/$/, '').split('/').pop();
+            if (name === 'baseV' || name === 'baseM' || name === 'baseTag' || name === '.' || name === '..') return;
+            if (fileUtils.isDirectoryExist(entry)) fileUtils.removeDirectory(entry);
+            else if (fileUtils.isFileExist(entry)) fileUtils.removeFile(entry);
+        });
+        swept = true;
+    }
+    if (!swept) {
+        ['main.js', 'main2.js', 'project.manifest', 'version.manifest'].forEach(function (name) {
+            if (fileUtils.isFileExist(root + '/' + name)) fileUtils.removeFile(root + '/' + name);
+        });
+        ['src/', 'assets/', 'jsb-adapter/'].forEach(function (name) {
+            if (fileUtils.isDirectoryExist(root + '/' + name)) fileUtils.removeDirectory(root + '/' + name);
+        });
+    }
 })();
 //多链路兜底策略
 function muitiLinkFallbackStrategy()

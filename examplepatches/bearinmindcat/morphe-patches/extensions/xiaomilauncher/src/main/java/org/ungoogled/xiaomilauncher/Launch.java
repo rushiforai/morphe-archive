@@ -118,4 +118,70 @@ public final class Launch {
             android.util.Log.w("UA", "delete observer not told: " + e);
         }
     }
+
+    /** Xiaomi's own action namespaces, in which the launcher's screens open each other. */
+    private static final String[] MIUI_ACTIONS = {"com.miui.", "miui.", "com.mi.", "com.xiaomi."};
+
+    /**
+     * An implicit intent with one of Xiaomi's actions that the launcher answers itself stays in the launcher. POCO
+     * Launcher (com.mi.android.globallauncher, MIUI's launcher under another package) answers the same actions
+     * (com.miui.home.Setting, the settings sub-pages, ...), so on a POCO phone every settings page opened Android's
+     * chooser between the two. Intents the launcher does not answer (other Xiaomi apps') are left as they are.
+     */
+    static android.content.Intent own(android.content.Context c, android.content.Intent intent) {
+        if (c == null || intent == null || intent.getComponent() != null || intent.getPackage() != null) return intent;
+        String action = intent.getAction();
+        if (action == null) return intent;
+        boolean miui = false;
+        for (String prefix : MIUI_ACTIONS) miui |= action.startsWith(prefix);
+        if (!miui) return intent;
+        android.content.Intent mine = new android.content.Intent(intent).setPackage(c.getPackageName());
+        try {
+            if (c.getPackageManager().resolveActivity(mine, 0) == null) return intent;
+        } catch (RuntimeException e) {
+            return intent;
+        }
+        return mine;
+    }
+
+    public static void startActivity(android.content.Context c, android.content.Intent intent) {
+        c.startActivity(own(c, intent));
+    }
+
+    public static void startActivity(android.content.Context c, android.content.Intent intent, android.os.Bundle options) {
+        c.startActivity(own(c, intent), options);
+    }
+
+    public static void startActivityForResult(android.app.Activity a, android.content.Intent intent, int request) {
+        a.startActivityForResult(own(a, intent), request);
+    }
+
+    public static void startActivityForResult(android.app.Activity a, android.content.Intent intent, int request,
+            android.os.Bundle options) {
+        a.startActivityForResult(own(a, intent), request, options);
+    }
+
+    /**
+     * InputManager.injectInputEvent: injecting keys needs INJECT_EVENTS (signature), and the SecurityException killed the
+     * launcher (Settings > Home screen layout sends a HOME key to show the layout preview on the home screen). A HOME key
+     * starts the launcher's own home screen instead (on its release); any other key is not sent.
+     */
+    public static boolean injectInputEvent(Object inputManager, android.view.InputEvent event, int mode) {
+        if (!(event instanceof android.view.KeyEvent)) return false;
+        android.view.KeyEvent key = (android.view.KeyEvent) event;
+        if (key.getKeyCode() != android.view.KeyEvent.KEYCODE_HOME) return false;
+        if (key.getAction() != android.view.KeyEvent.ACTION_UP) return true;
+        android.content.Context c = App.context();
+        if (c == null) return false;
+        try {
+            c.startActivity(new android.content.Intent(android.content.Intent.ACTION_MAIN)
+                    .addCategory(android.content.Intent.CATEGORY_HOME)
+                    .setPackage(c.getPackageName())
+                    .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK));
+            return true;
+        } catch (RuntimeException e) {
+            android.util.Log.w("UA", "home not started: " + e);
+            return false;
+        }
+    }
 }

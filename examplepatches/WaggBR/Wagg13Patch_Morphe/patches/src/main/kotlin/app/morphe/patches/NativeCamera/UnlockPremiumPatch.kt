@@ -10,10 +10,7 @@ import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
 @Suppress("unused")
 val unlockNativeCameraPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Forces the premium entitlement in Native Camera. Premium status is stored " +
-                  "locally and controls features such as the sub-40-Mbps bitrate cap. " +
-                  "Also disables the PairIP license check when the app includes it. " +
-                  "Compatible with v1.4, v1.4.1 and v1.4.4.",
+    description = "Unlocks premium camera features and removes license verification.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_NATIVECAMERA)

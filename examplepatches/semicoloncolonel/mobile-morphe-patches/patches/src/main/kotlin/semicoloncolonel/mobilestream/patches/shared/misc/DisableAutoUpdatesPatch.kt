@@ -85,7 +85,7 @@ val disableAutoUpdatesPatch = resourcePatch(
         Hulu.COMPATIBILITY,
         Pluto.COMPATIBILITY,
         Paramount.COMPATIBILITY,
-        HboMax.COMPATIBILITY,
+        HboMax.COMPATIBILITY, HboMax.STREAM_COMPATIBILITY,
         Peacock.COMPATIBILITY,
         PrimeVideo.COMPATIBILITY,
         Mgm.COMPATIBILITY,

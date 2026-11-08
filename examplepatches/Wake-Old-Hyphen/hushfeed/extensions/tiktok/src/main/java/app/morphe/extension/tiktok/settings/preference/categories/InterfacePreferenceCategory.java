@@ -183,8 +183,28 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Remove the LIVE ring",
-                    "Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.",
+                    "Take the pulsing LIVE ring off profile pictures on the feed, in comments and on profiles. Tapping the picture of a creator who's live opens their profile instead of the LIVE.",
                     Settings.HIDE_LIVE_RING
+            ));
+            // #351: where the two switches above reach, one screen each. The Inbox, chats and
+            // search follow the two switches alone.
+            addPreference(new TogglePreference(
+                    context,
+                    "Remove rings on the feed",
+                    "Take the rings off the creator's picture in the feed's right column. Needs Remove story rings or Remove the LIVE ring.",
+                    Settings.HIDE_RINGS_FEED
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Remove rings in comments",
+                    "Take the rings off profile pictures in comments. Needs Remove story rings or Remove the LIVE ring.",
+                    Settings.HIDE_RINGS_COMMENTS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Remove rings on profiles",
+                    "Take the rings off the big picture at the top of a profile. Needs Remove story rings or Remove the LIVE ring.",
+                    Settings.HIDE_RINGS_PROFILES
             ));
         }
         if (SettingsStatus.storyOverLiveEnabled) {
@@ -339,6 +359,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                                     "Most liked first", "Least liked first"},
                             new String[]{"profile", "off", "newest", "oldest", "longest", "shortest", "most_viewed",
                                     "least_viewed", "most_liked", "least_liked"}));
+                }
+                if (SettingsStatus.likedJumpEnabled) {
+                    addPreference(new TogglePreference(
+                            context,
+                            "Jump to a date on Liked grids",
+                            "Adds a button to the Liked grid's top corner that starts your likes at a year or month you pick, so older ones load without scrolling past newer ones. Pick Newest likes there to go back.",
+                            Settings.LIKED_JUMP_TO_DATE
+                    ));
                 }
                 if (SettingsStatus.soundGridSortEnabled) {
                     addPreference(new ChoicePreference(context, "Sort loaded videos on sound pages",
@@ -762,7 +790,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Stop the blink under the bar",
-                    "If the video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.",
+                    "If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.",
                     Settings.SEE_THROUGH_VIDEO_IN_WINDOW
             ));
             addPreference(new TogglePreference(
@@ -824,7 +852,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Bend the video at the edges",
-                    "The glass pill's edges bend the blurred video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.",
+                    "The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.",
                     Settings.GLASS_REFRACTION
             ));
             addPreference(new TogglePreference(

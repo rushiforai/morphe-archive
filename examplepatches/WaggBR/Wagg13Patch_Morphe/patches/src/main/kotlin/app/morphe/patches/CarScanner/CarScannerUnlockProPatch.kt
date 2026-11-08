@@ -4,9 +4,6 @@ package app.template.patches.carscanner
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
-private const val PKG = "com.ovz.carscanner"
-private const val VERSION = "2.1.50"
-
 private const val FAKE_PRO = "Lapp/morphe/extension/carscanner/FakePro;"
 private const val LISTENER = "Lcrc64f0146600faa7a777/InternalPurchasesResponseListener;"
 private const val BILLING_RESULT = "Lcom/android/billingclient/api/BillingResult;"
@@ -14,9 +11,9 @@ private const val BILLING_RESULT = "Lcom/android/billingclient/api/BillingResult
 @Suppress("unused")
 val carScannerUnlockProPatch = bytecodePatch(
     name = "Unlock Pro",
-    description = "Makes Car Scanner believe the Pro version was purchased (Google Play Billing).",
+    description = "Unlocks Car Scanner Pro features.",
 ) {
-    compatibleWith(PKG(VERSION))
+    compatibleWith(CAR_SCANNER_COMPATIBILITY)
     extendWith("extensions/extension.mpe")
 
     execute {

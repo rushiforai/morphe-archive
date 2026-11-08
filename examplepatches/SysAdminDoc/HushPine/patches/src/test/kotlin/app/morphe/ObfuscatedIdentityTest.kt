@@ -55,7 +55,7 @@ class ObfuscatedIdentityTest {
         // Several for one group count the same as one.
         assertEquals(
             setOf("fh0", "d2v", "pfk"),
-            identitiesIn("""ADD_IDS = {"47.5.3:fh0", "47.5.3:d2v", "47.5.3:pfk"};""", extensionTree = true),
+            identitiesIn("""ADD_IDS = {"47.6.3:fh0", "47.6.3:d2v", "47.6.3:pfk"};""", extensionTree = true),
         )
     }
 
@@ -122,7 +122,10 @@ class ObfuscatedIdentityTest {
 
         val found = sortedSetOf<String>()
         for ((root, extensionTree) in listOf(patches to false, extension to true)) {
-            root.walkTopDown().filter { it.extension == "kt" || it.extension == "java" }.forEach { file ->
+            // The generated catalogs are data read off the build, with base64 that can look like a name.
+            root.walkTopDown().filter {
+                (it.extension == "kt" || it.extension == "java") && !it.name.startsWith("Generated")
+            }.forEach { file ->
                 val path = file.relativeTo(repo).invariantSeparatorsPath
                 file.readLines().forEach { raw ->
                     val line = raw.trim()

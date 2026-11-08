@@ -3,6 +3,7 @@ package app.swiftbackup.patches.cloud
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.getReference
@@ -14,10 +15,12 @@ import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val LOCAL_DB = "Lapp/morphe/extension/swiftbackup/LocalDb;"
+private const val BLACKLIST_SYNC = "Lapp/morphe/extension/swiftbackup/BlacklistSync;"
 private const val INIT_METHOD = "morpheLocalDbInit"
 
 // Looked up by name from LocalDb; keep in sync with the extension.
@@ -52,6 +55,52 @@ val swiftBackupLocalCloudMetadataPatch = bytecodePatch(
     extendWith("extensions/swiftbackup.mpe")
 
     execute {
+        // Use the journal directly for signed-in onboarding reads, even before the Firebase cache is seeded.
+        BlacklistFetchFingerprint.method.addInstructionsWithLabels(0, """
+            invoke-static {}, $BLACKLIST_SYNC->restore()Z
+            move-result v0
+            if-eqz v0, :stock
+            return v0
+            :stock
+            nop
+        """.trimIndent())
+
+        // Only user edits need a journal write. Native local-only writes also drive the restore observers.
+        BlacklistSaveFingerprint.method.addInstructionsWithLabels(0, """
+            if-eqz p2, :stock
+            invoke-static {p0, p1}, $BLACKLIST_SYNC->edit(Ljava/lang/Object;Ljava/lang/Object;)Z
+            move-result v0
+            if-eqz v0, :stock
+            return-void
+            :stock
+            nop
+        """.trimIndent())
+
+        // Both native callers pass the repository and list in the first two invoke registers.
+        fun MutableMethod.blacklistWriteIndex() = indexOfFirstInstructionOrThrow {
+            opcode == Opcode.INVOKE_VIRTUAL && getReference<MethodReference>()?.let {
+                it.definingClass == "Lgs0;" && it.name == "d" &&
+                    it.parameterTypes == listOf("Lorg/swiftapps/swiftbackup/blacklist/data/BlacklistData;", "Z")
+            } == true
+        }
+
+        // Keep the removed app in the free local v3 before the stock handler reuses p0 for its mode check.
+        val remove = BlacklistRemoveFingerprint.method
+        val blacklistRemoveIndex = remove.blacklistWriteIndex()
+        val blacklistRemove = remove.getInstruction<FiveRegisterInstruction>(blacklistRemoveIndex)
+        remove.replaceInstruction(blacklistRemoveIndex, """
+            invoke-static {v${blacklistRemove.registerC}, v${blacklistRemove.registerD}, v3}, $BLACKLIST_SYNC->removeApp(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+        """.trimIndent())
+        remove.addInstructions(0, "move-object v3, p0")
+
+        // Publish explicit imports to the account so the next install can recover the same list automatically.
+        val importer = BlacklistImportFingerprint.method
+        val blacklistImportIndex = importer.blacklistWriteIndex()
+        val blacklistImport = importer.getInstruction<FiveRegisterInstruction>(blacklistImportIndex)
+        importer.replaceInstruction(blacklistImportIndex, """
+            invoke-static {v${blacklistImport.registerC}, v${blacklistImport.registerD}}, $BLACKLIST_SYNC->importList(Ljava/lang/Object;Ljava/lang/Object;)V
+        """.trimIndent())
+
         // wz5.e: replace the network put/merge. 3 locals + p0..p5; p1 is reused once its value is consumed.
         PersistentConnectionPutFingerprint.method.addInstructionsWithLabels(0, """
             invoke-static {p1, p2, p3}, $LOCAL_DB->write(Ljava/lang/String;Ljava/util/List;Ljava/lang/Object;)Ljava/lang/Object;

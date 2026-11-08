@@ -62,6 +62,16 @@ public final class MereframeDiagHook {
         pw.println("time: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(new Date()));
         pw.println("device: " + Build.MANUFACTURER + " " + Build.MODEL + " (" + Build.DEVICE + ")");
         pw.println("android: " + Build.VERSION.RELEASE + " (API " + Build.VERSION.SDK_INT + ")");
+        if (app != null) {
+            try {
+                android.content.pm.PackageInfo info = app.getPackageManager()
+                        .getPackageInfo(app.getPackageName(), 0);
+                pw.println("app: " + info.packageName + " versionName=" + info.versionName
+                        + " versionCode=" + info.getLongVersionCode());
+            } catch (Throwable ignored) {
+                pw.println("app: unknown (package info unavailable)");
+            }
+        }
         pw.println("thread: " + (thread == null ? "?" : thread.getName()));
         pw.println();
         throwable.printStackTrace(pw);

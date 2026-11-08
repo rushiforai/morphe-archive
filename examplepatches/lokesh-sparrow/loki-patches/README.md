@@ -4,9 +4,9 @@
 
 <div align="center">
 
-[![Latest release](https://img.shields.io/github/v/release/lokesh-sparrow/loki-patches?style=for-the-badge&labelColor=0d1117&color=22d3ee&label=release)](https://github.com/lokesh-sparrow/loki-patches/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/lokesh-sparrow/loki-patches?sort=semver&style=for-the-badge&label=release&labelColor=0d1117&color=22d3ee)](https://github.com/lokesh-sparrow/loki-patches/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/lokesh-sparrow/loki-patches/total?style=for-the-badge&labelColor=0d1117&color=0ea5e9)](https://github.com/lokesh-sparrow/loki-patches/releases)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-4.1.1267-2563eb?style=for-the-badge&labelColor=0d1117)](#patches)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-4.1.1270-2563eb?style=for-the-badge&labelColor=0d1117)](#patches)
 [![Morphe](https://img.shields.io/badge/patches%20for-Morphe-06b6d4?style=for-the-badge&labelColor=0d1117)](https://morphe.software)
 [![License](https://img.shields.io/github/license/lokesh-sparrow/loki-patches?style=for-the-badge&labelColor=0d1117&color=6e7681)](LICENSE)
 
@@ -18,7 +18,7 @@
 
 <a href="https://morphe.software/add-source?github=lokesh-sparrow/loki-patches&name=Loki%20Patches"><img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="55"/></a>
 
-<sub>Stable releases. Made for LinkedIn <b>4.1.1267</b>. Turn off auto-update for LinkedIn in Play Store, or it replaces the patched app.</sub>
+<sub>Stable releases. Made for LinkedIn <b>4.1.1270</b>. Turn off auto-update for LinkedIn in Play Store, or it replaces the patched app.</sub>
 
 </div>
 
@@ -48,6 +48,17 @@
 | ⋯ **Post menu items** | Copy text, Download media and Save as PDF in a post's menu |
 | 🧭 **Hide bottom tabs** | Take My Network and Jobs out of the bottom bar |
 | 🔑 **Google sign-in** | "Continue with Google" through microG RE |
+
+### Anonymous profile viewing
+
+Visit a profile without it appearing in that member's "Who viewed your profile", or in company page visitor lists.
+
+1. Turn on **Anonymous profile viewing** in the Loki Patches settings, under **Privacy**. It is off by default and
+   marked experimental.
+2. Open profiles as usual. The app leaves out the analytics events that profile pages send, so the visit is not counted.
+
+It works by not sending those events, not by hiding the visit on the server. LinkedIn can change what a profile page
+sends in any update; if a visit still appears, please report it with the diagnostic log.
 
 ### Copy text
 
@@ -87,15 +98,15 @@ also search the options, back up and restore them, check for updates and pick th
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v1.2.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
+> **[v1.2.4](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v1.2.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details open>
 <summary><img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 4.1.1267 |
-| :---: |
+| 4.1.1267 | 4.1.1269 | 4.1.1270 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -134,7 +145,7 @@ Autoplay videos → Never**, and **Settings → Visibility → Manage active sta
 
 **Is anonymous profile viewing reliable?**
 It's experimental. It stops the app from sending the analytics events of profile pages, which is how LinkedIn
-counted visits in our tests on 4.1.1267. LinkedIn could change that in an update. If someone still sees you, please
+counted visits in our tests on 4.1.1270. LinkedIn could change that in an update. If someone still sees you, please
 report it.
 
 **I can't find the Loki Patches settings.**

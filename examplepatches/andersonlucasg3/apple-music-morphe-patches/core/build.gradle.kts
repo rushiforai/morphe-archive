@@ -31,4 +31,8 @@ dependencies {
     // :car-app), so the annotation is part of this module's public ABI. No Compose
     // UI dependency here.
     api("androidx.compose.runtime:runtime:1.11.4")
+
+    // UpdateController owns its scope/StateFlow; the check and the download run off the
+    // main thread. Same version as the apps already use.
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 }

@@ -1,8 +1,8 @@
 package semicoloncolonel.mobilestream.patches.att.shared
 
 import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
+import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -11,6 +11,6 @@ object Constants {
         description = "The myAT&T app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x009FDB,
-        targets = listOf(AppTarget("2026.10.1"))
+        targets = listOf(devTarget("2026.10.2"))
     )
 }

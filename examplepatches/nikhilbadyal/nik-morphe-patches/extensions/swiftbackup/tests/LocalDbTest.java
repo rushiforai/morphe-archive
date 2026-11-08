@@ -341,6 +341,46 @@ public final class LocalDbTest {
         check(new JSONObject(LocalDb.settingsBackup()).getJSONObject("settings").getJSONObject("settings").getString("theme").equals("dark"),
                 "fresh install retrieves the settings snapshot from cloud without applying it");
 
+        // On a fresh install, the user can edit before the saved account list arrives.
+        fresh();
+        Class<?>[] editTypes = {String.class, String.class, String.class};
+        String localBlacklist = "{\"dataMap\":{\"newapp\":{\"packageName\":\"new.app\",\"blackListType\":1}}}";
+        String accountTree = "{\"users\":{\"owner\":{\"blacklistApps\":{\"dataMap\":"
+                + "{\"oldapp\":{\"packageName\":\"old.app\",\"blackListType\":0}}}},"
+                + "\"other\":{\"blacklistApps\":" + localBlacklist + "}}}";
+        drive("editBlacklist", editTypes, "owner", "{}", localBlacklist);
+        restart();
+        Cloud.remote = remote(accountTree, 2);
+        sync();
+        Class<?>[] readTypes = {String.class};
+        JSONObject combined = new JSONObject((String) drive("accountBlacklist", readTypes, "owner")).getJSONObject("dataMap");
+        check(combined.has("oldapp") && combined.has("newapp"), "first pull recovers unseen blacklist entries alongside pending edits");
+        check(new JSONObject((String) drive("accountBlacklist", readTypes, "other")).getJSONObject("dataMap").length() == 1,
+                "blacklist recovery and edits stay scoped to the requested account");
+
+        // A stale dialog can save after recovery. Its omissions are not requests to delete other apps.
+        String staleEdit = localBlacklist.replace("\"blackListType\":1", "\"blackListType\":0");
+        drive("editBlacklist", editTypes, "owner", new JSONObject().put("dataMap", combined).toString(), staleEdit);
+        JSONObject edited = new JSONObject((String) drive("accountBlacklist", readTypes, "owner")).getJSONObject("dataMap");
+        check(edited.has("oldapp") && edited.getJSONObject("newapp").getInt("blackListType") == 0,
+                "saving a stale dialog preserves the downloaded entries it omitted");
+
+        // An explicit removal and a later whole-list import both survive journal reconciliation.
+        drive("removeBlacklistApp", editTypes, "owner", "oldapp", staleEdit);
+        sync();
+        restart();
+        check(new JSONObject((String) drive("accountBlacklist", readTypes, "owner")).getJSONObject("dataMap").length() == 1,
+                "an explicit blacklist removal survives upload and restart");
+        drive("importBlacklist", new Class<?>[]{String.class, String.class}, "owner", "{\"dataMap\":" + combined + "}");
+        sync();
+        check(new JSONObject(new String(Cloud.remote, "UTF-8")).getJSONObject("data").getJSONObject("users")
+                        .getJSONObject("owner").getJSONObject("blacklistApps").getJSONObject("dataMap").length() == 2,
+                "settings import uploads the full replacement to the account blacklist");
+        fresh();
+        drive("removeBlacklistApp", editTypes, "owner", "oldapp", localBlacklist);
+        check(new JSONObject((String) drive("accountBlacklist", readTypes, "owner")).getJSONObject("dataMap").has("newapp"),
+                "removing an app preserves survivors of a list previously kept only in preferences");
+
         // No request can leave this JVM: the factory rejects unexpected HTTP calls instead of reaching the network.
         URL.setURLStreamHandlerFactory(protocol -> "https".equals(protocol) ? new URLStreamHandler() {
             protected URLConnection openConnection(URL url) throws IOException {

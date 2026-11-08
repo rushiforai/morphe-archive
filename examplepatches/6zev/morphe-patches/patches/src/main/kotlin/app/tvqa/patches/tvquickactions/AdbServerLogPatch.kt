@@ -87,22 +87,37 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.lowerServerLogLevel() 
     val instructions = clinit.implementation?.instructions?.toList()
         ?: throw PatchException("$SERVER_LOG-><clinit> has no body")
 
-    // The first store of the level field, and the constant that feeds it.
-    val store = instructions.indexOfFirst { instruction ->
+    // Find all writes to the level field instead of assuming the first write's opcode
+    // representation is identical across dexlib/patcher versions.
+    val stores = instructions.withIndex().filter { (_, instruction) ->
         val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
-        instruction.opcode.name.startsWith("SPUT") && field?.definingClass == SERVER_LOG &&
-            field.name == "c"
+        instruction.opcode.name.startsWith("SPUT", ignoreCase = true) &&
+            field?.definingClass == SERVER_LOG && field.name == "c" && field.type == "I"
     }
-    if (store < 1) throw PatchException("Could not find where the log level is stored")
-
-    val level = instructions[store - 1]
-    val literal = (level as? NarrowLiteralInstruction)?.narrowLiteral
-    if (literal != SILENT_LEVEL) {
-        throw PatchException("Expected the log level to be $SILENT_LEVEL but found $literal")
+    if (stores.isEmpty()) {
+        throw PatchException("Could not find a static write to $SERVER_LOG->c in <clinit>")
     }
 
-    val register = (level as OneRegisterInstruction).registerA
-    clinit.replaceInstruction(store - 1, "const/4 v$register, 0x${DEBUG_LEVEL.toString(16)}")
+    // The current 3.8.0 APK emits const/4 immediately before each sput. Also tolerate a small
+    // instruction gap (e.g. a move) while still requiring the expected literal, so unrelated
+    // constants in the initializer cannot be changed accidentally.
+    val levelIndexAndInstruction = stores.firstNotNullOfOrNull { (storeIndex, _) ->
+        (maxOf(0, storeIndex - 3) until storeIndex).reversed().firstNotNullOfOrNull { index ->
+            val instruction = instructions[index]
+            val literal = (instruction as? NarrowLiteralInstruction)?.narrowLiteral
+            if (literal == SILENT_LEVEL) {
+                (instruction as? OneRegisterInstruction)?.let { index to it }
+            } else {
+                null
+            }
+        }
+    } ?: throw PatchException(
+        "Found writes to $SERVER_LOG->c but no nearby $SILENT_LEVEL log-level constant in <clinit>"
+    )
+
+    val (levelIndex, level) = levelIndexAndInstruction
+    val register = level.registerA
+    clinit.replaceInstruction(levelIndex, "const/4 v$register, 0x${DEBUG_LEVEL.toString(16)}")
 }
 
 /**

@@ -34,7 +34,7 @@ private const val RESPONSE =
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Enables app features locked behind the subscription paywall.",
+    description = "Unlocks all subscription features.",
     default = true
 ) {
     category("Unlock")
@@ -63,6 +63,7 @@ val unlockPremiumPatch = bytecodePatch(
         webClientClass.methods.add(interceptor)
 
         interceptor.addInstructions(
+            0,
             """
                 invoke-interface { p2 }, Landroid/webkit/WebResourceRequest;->getUrl()Landroid/net/Uri;
                 move-result-object v0

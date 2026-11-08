@@ -53,14 +53,24 @@ public final class GboardEditingAccessPointsSettingsFeature
                         getEntryTitle(),
                         "",
                         new GboardPatchesSettingsContract.PreviewImage(
-                                PREVIEW_IMAGE_ENABLED, ""))));
+                                PREVIEW_IMAGE_ENABLED, "")))
+                .setRestartRequired(GboardEditingAccessPointsSettings.ENABLED)
+                .setMasterToggle(true));
         for (EditorAction action : EditorAction.values()) {
             String key = GboardEditingAccessPointsSettings.key(action);
             rows.add(new GboardPatchesSettingsContract.ToggleRow(
                     text(label(action)), "", enabled,
                     GboardEditingAccessPointsSettings.read(preferences, key),
-                    value -> write(owner, key, value)));
+                    value -> write(owner, key, value))
+                    .setRestartRequired(key));
         }
+        rows.add(new GboardPatchesSettingsContract.SwitchRow(
+                text(R.string.gboard_edit_ap_select_all_unselected_title),
+                text(R.string.gboard_edit_ap_select_all_unselected_summary), enabled,
+                GboardEditingAccessPointsSettings.read(preferences,
+                        GboardEditingAccessPointsSettings.SELECT_ALL_WHEN_UNSELECTED),
+                value -> write(owner,
+                        GboardEditingAccessPointsSettings.SELECT_ALL_WHEN_UNSELECTED, value)));
         return new GboardPatchesSettingsContract.Screen(
                 getEntryTitle(), text(R.string.gboard_patches_header_badge), getEntryTitle(),
                 getEntrySummary(), List.of(),

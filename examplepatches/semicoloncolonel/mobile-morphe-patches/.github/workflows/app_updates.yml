@@ -1,0 +1,194 @@
+name: App updates
+
+# Checks every patched app for a newer public version each day, test-patches
+# it with the latest dev bundle, and keeps one "App update" issue per app.
+# APKPure downloads are used only when their signing certificate matches the
+# known-good one in .github/app-certs.json. Apps whose patches all apply are
+# then installed on an emulator (never a real device) to check they open.
+#
+# The bump job moves apps that passed every check onto dev and starts a dev
+# pre-release. It runs only when the repository variable AUTO_BUMP is "true"
+# (Settings > Secrets and variables > Actions > Variables).
+
+on:
+  schedule:
+    - cron: "23 13 * * *"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: Comma-separated package names, empty for every app
+        required: false
+
+permissions: {}
+
+concurrency:
+  group: app-updates
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Check app versions
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '26'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install tools
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$HOME/bin" tools
+          curl -sSfL -o "$HOME/bin/apkeep" https://github.com/EFForg/apkeep/releases/download/1.0.0/apkeep-x86_64-unknown-linux-gnu
+          chmod +x "$HOME/bin/apkeep"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          gh release download -R MorpheApp/morphe-cli -p '*-all.jar' -D tools
+          tag=$(gh release list -R "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')
+          gh release download "$tag" -R "$GITHUB_REPOSITORY" -p '*.mpp' -D tools
+          echo "AAPT2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)" >> "$GITHUB_ENV"
+          echo "APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)" >> "$GITHUB_ENV"
+
+      - name: Check versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ONLY: ${{ inputs.only }}
+        run: |
+          python .github/scripts/app_updates.py \
+            --cli tools/*-all.jar --mpp tools/*.mpp --aapt2 "$AAPT2" --apksigner "$APKSIGNER" \
+            --only "$ONLY" --out app-updates --issues
+
+      - name: Summary
+        if: always()
+        run: cat app-updates/app-updates.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-updates
+          path: app-updates
+
+  launch:
+    name: Launch check on an emulator
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download report
+        uses: actions/download-artifact@v4
+        with:
+          name: app-updates
+          path: app-updates
+
+      - name: Find patched apps
+        id: apps
+        run: |
+          if ls app-updates/patched/*.apk >/dev/null 2>&1; then echo "any=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Enable KVM
+        if: steps.apps.outputs.any == 'true'
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Launch each patched app
+        if: steps.apps.outputs.any == 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          GH_TOKEN: ${{ github.token }}
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: python3 .github/scripts/launch_check.py app-updates --issues
+
+      - name: Summary
+        if: steps.apps.outputs.any == 'true'
+        run: sed -n '/## Launch check/,$p' app-updates/app-updates.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload launch results
+        if: always() && steps.apps.outputs.any == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-results
+          path: app-updates/launch.json
+          if-no-files-found: ignore
+
+  bump:
+    name: Bump app versions on dev
+    needs: [check, launch]
+    if: ${{ always() && vars.AUTO_BUMP == 'true' && needs.check.result == 'success' && needs.launch.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: write
+      issues: write
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download report
+        uses: actions/download-artifact@v4
+        with:
+          name: app-updates
+          path: app-updates
+
+      - name: Download launch results
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: launch-results
+          path: app-updates
+
+      - name: Bump, commit, and release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python .github/scripts/auto_bump.py app-updates --repo .
+          if git diff --quiet; then
+            echo "Nothing to bump." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -a -F app-updates/bump-message.txt
+          # Start from the newest dev, including any pre-release published by hand.
+          for attempt in 1 2 3; do
+            git pull --rebase origin dev && git push origin HEAD:dev && break
+            sleep 15
+          done
+          # A push made with GITHUB_TOKEN does not start other workflows.
+          gh workflow run release.yml --ref dev
+          python .github/scripts/auto_bump.py app-updates --comment "$(git rev-parse HEAD)"
+          { echo "## Bumped on dev"; echo; head -1 app-updates/bump-message.txt; } >> "$GITHUB_STEP_SUMMARY"

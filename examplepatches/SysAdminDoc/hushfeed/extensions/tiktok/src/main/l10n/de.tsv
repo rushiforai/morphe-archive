@@ -631,7 +631,7 @@ Hide the rewards shortcut	Belohnungs-Schaltfläche ausblenden
 Hide the right column	Rechte Spalte ausblenden
 The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.	Die Reihe der Story-Avatare oben im Posteingang verschwindet. Stories laufen weiterhin im Feed und auf Profilen.
 Hide the save button in the right column. Ticking Save in the list above hides it too.	Den Speichern-Button in der rechten Spalte ausblenden. Ist Speichern in der Liste oben angehakt, ist er ebenfalls weg.
-Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.	Blende die Lupe oben rechts im Feed aus. Die Suche im Posteingang und die Vorschläge über Kommentaren bleiben unverändert.
+Hide the magnifying glass at the top right of the feed and the one over the video while comments are open. Search in Inbox and suggestions above comments stay unchanged.	Blende die Lupe oben rechts im Feed und die Lupe über dem Video bei geöffneten Kommentaren aus. Die Suche im Posteingang und die Vorschläge über Kommentaren bleiben unverändert.
 Hide the magnifying glass at the top of Inbox. Search on the feed and in comments is unchanged.	Die Lupe oben im Posteingang ausblenden. Die Suche im Feed und in Kommentaren bleibt unverändert.
 Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.	Blende empfohlene Suchen auf TikToks Suchseite aus, bevor du etwas eingibst. Dein Suchverlauf bleibt erhalten. Vorschläge über Kommentaren werden dadurch nicht ausgeblendet.
 Hide the share prompt after a like	Die Teilen-Aufforderung nach einem Like ausblenden
@@ -1109,7 +1109,17 @@ Stops TikTok from slowing your screen to match each video's frame rate. On a 90 
 Keep the screen's brightness in the camera	Bildschirmhelligkeit in der Kamera behalten
 Stops TikTok from turning your screen brighter while you film, edit or post a video. The front flash still turns the screen white, but at your own brightness.	Verhindert, dass TikTok deinen Bildschirm heller macht, während du ein Video filmst, bearbeitest oder postest. Der Frontblitz macht den Bildschirm weiterhin weiß, aber mit deiner eigenen Helligkeit.
 Report a newer phone to effects	Effekten ein neueres Telefon melden
-Effects ask TikTok's server whether your phone can run them, and some get turned down on older phones. This tells the effects server you have a Galaxy S24 Ultra instead. Sign-in and everything else still see your real phone. An effect your phone really can't run may still fail or look wrong.	Effekte fragen den Server von TikTok, ob dein Telefon sie ausführen kann, und manche werden auf älteren Telefonen abgelehnt. Das meldet dem Effekt-Server, dass du ein Galaxy S24 Ultra hast. Anmeldung und alles andere sehen weiterhin dein echtes Telefon. Ein Effekt, den dein Telefon wirklich nicht ausführen kann, kann trotzdem fehlschlagen oder falsch aussehen.
+Effects ask TikTok's server whether your phone can run them, and some get turned down on older phones. This tells the effects server you have a Galaxy S24 Ultra instead, or the phone you type below. Sign-in and everything else still see your real phone. An effect your phone really can't run may still fail or look wrong.	Effekte fragen den Server von TikTok, ob dein Telefon sie ausführen kann, und manche werden auf älteren Telefonen abgelehnt. Das meldet dem Effekt-Server, dass du ein Galaxy S24 Ultra hast, oder das Telefon, das du unten eingibst. Anmeldung und alles andere sehen weiterhin dein echtes Telefon. Ein Effekt, den dein Telefon wirklich nicht ausführen kann, kann trotzdem fehlschlagen oder falsch aussehen.
+# context: settings row under Report a newer phone to effects; the user types a phone model name there (#176)
+Phone model for effects	Telefonmodell für Effekte
+# context: summary of Phone model for effects; tapping the row lists phones to pick and its last row opens a box to type one; Galaxy S24 Ultra stays as it is (#176)
+Pick the phone the effects server is told about, or type any model. An effect turned down for one phone may open for another. Empty means the Galaxy S24 Ultra.	Wähle das Telefon, das dem Effekt-Server gemeldet wird, oder tippe ein beliebiges Modell ein. Ein Effekt, der für ein Telefon abgelehnt wird, kann sich für ein anderes öffnen. Leer heißt Galaxy S24 Ultra.
+# context: first row of the phone list under Phone model for effects; %1$s is a phone name like Galaxy S24 Ultra (SM-S928B) (#176)
+%1$s, the default	%1$s, Standard
+# context: last row of the phone list under Phone model for effects; opens a box to type a model name (#176)
+Type another model	Anderes Modell eintippen
+# context: shown when the typed phone model has other characters or is over 40 long (#176)
+Use up to 40 letters and numbers. Spaces, dots, dashes and brackets are fine too.	Bis zu 40 Buchstaben und Ziffern. Leerzeichen, Punkte, Bindestriche und Klammern gehen auch.
 Stops TikTok from reading your phone's motion and compass sensors. Apps can use them to recognize your phone.	Verhindert, dass TikTok die Bewegungs- und Kompasssensoren deines Telefons ausliest. Apps können dein Telefon daran wiedererkennen.
 Stop TikTok reading what you copied. Copying a link from TikTok still works.	Verhindert, dass TikTok liest, was du kopiert hast. Einen Link aus TikTok zu kopieren funktioniert weiterhin.
 Stop a long press on Like from opening TikTok's repost action.	Verhindern, dass langes Drücken auf Gefällt mir TikToks Reposten öffnet.
@@ -1355,7 +1365,7 @@ Filter location-tagged videos	Videos mit Ortsangaben filtern
 Hide feed videos with place badges, even when they aren't paid ads. To keep the video and hide only its badge, use Hide location labels in Feed screen.	Feed-Videos mit Ortsangaben ausblenden, auch wenn sie keine bezahlte Werbung sind. Wenn du das Video behalten und nur die Ortsangabe ausblenden möchtest, nutze Ortsangaben ausblenden unter Feed-Anzeige.
 Location-tagged videos	Videos mit Ortsangaben
 Makes the heart easier to tap by using the empty space around it. The icon and spacing look the same, and Reply and other buttons keep their own space.	Macht das Herz leichter antippbar, indem der freie Platz drumherum genutzt wird. Symbol und Abstände sehen gleich aus, und Antworten und andere Schaltflächen behalten ihren eigenen Platz.
-Hides the comment count, the sort and close buttons and the suggestions above them. Use Back or swipe down to close comments.	Blendet die Kommentarzahl, die Sortier- und Schließen-Schaltflächen und die Vorschläge darüber aus. Zum Schließen der Kommentare Zurück nutzen oder nach unten wischen.
+Hides the comment count, the sort, translate and close buttons and the suggestions above them. Use Back or swipe down to close comments.	Blendet die Kommentarzahl, die Sortier-, Übersetzen- und Schließen-Schaltflächen und die Vorschläge darüber aus. Zum Schließen der Kommentare Zurück nutzen oder nach unten wischen.
 Hide TikTok's "Search: ..." banner above the comment count. This doesn't hide the comments or Hushfeed's comment-search box.	Blende TikToks Banner „Suchen: ...“ über der Kommentaranzahl aus. Die Kommentare und das Hushfeed-Suchfeld für Kommentare bleiben sichtbar.
 Hide the Report button on videos	Melden-Schaltfläche auf Videos ausblenden
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.	Blendet die Flaggen-Schaltfläche aus, die TikTok in manchen Regionen über dem Bild des Creators zeigt. Melden kannst du ein Video weiterhin über das Teilen-Menü.
@@ -1410,6 +1420,10 @@ Takes TikTok's own Auto scroll action out of the video panel and the Auto scroll
 Hide the unread badges on the bottom tabs	Ungelesen-Abzeichen auf den unteren Tabs ausblenden
 Hide the red counts and dots on every bottom tab, Inbox and Profile included, and the bubble over Inbox that counts new likes, followers, comments and who's LIVE. The inbox itself still shows what came in.	Blendet die roten Zähler und Punkte auf allen unteren Tabs aus, Posteingang und Profil eingeschlossen, dazu die Blase über dem Posteingang, die neue Likes, Follower, Kommentare und laufende LIVEs zählt. Der Posteingang selbst zeigt weiterhin, was angekommen ist.
 Speed while you hold the video	Geschwindigkeit, solange du das Video gedrückt hältst
+# context: a typed speed for the hold gesture and its pull-down lock; %1$s and %2$s are the slowest and fastest speeds (#357)
+Custom hold speed	Eigene Haltegeschwindigkeit
+One speed from %1$s to %2$s, like 1.8, for the hold and its pull-down lock. It takes the place of the speed above. Leave empty to use that one.	Eine Geschwindigkeit von %1$s bis %2$s, etwa 1.8, für das Halten und die Sperre durch Herunterziehen. Sie ersetzt die Geschwindigkeit darüber. Leer lassen, um diese zu nutzen.
+Enter one speed from %1$s to %2$s	Gib eine Geschwindigkeit von %1$s bis %2$s ein
 Slide to change the hold speed	Haltegeschwindigkeit durch Wischen ändern
 Hold speed bubble style	Stil der Haltegeschwindigkeits-Blase
 Pill	Pille
@@ -1501,9 +1515,11 @@ Couldn't forget the saved videos. Try again.	Die gespeicherten Videos konnten ni
 Saved videos put back	Gespeicherte Videos zurückgeholt
 Couldn't put the saved videos back. Try again.	Die gespeicherten Videos konnten nicht zurückgeholt werden. Versuch es erneut.
 Too late to put the saved videos back	Zu spät, um die gespeicherten Videos zurückzuholen
-Remembers up to %1$s videos you saved here. If the file is still there, you get Open or Save again instead of a second copy.	Merkt sich bis zu %1$s Videos, die du hier gespeichert hast. Ist die Datei noch da, bekommst du „Öffnen“ oder „Erneut speichern“ statt einer zweiten Kopie.
+Remembers up to %1$s videos and sounds you saved here. If the file is still there, you get Open or Save again instead of a second copy.	Merkt sich bis zu %1$s Videos und Sounds, die du hier gespeichert hast. Ist die Datei noch da, bekommst du „Öffnen“ oder „Erneut speichern“ statt einer zweiten Kopie.
 Already saved. Open TikTok to save another copy.	Schon gespeichert. Weitere Kopie? Öffne TikTok.
 This video is already saved	Dieses Video ist bereits gespeichert
+# context: title of the choice that comes up when an original sound saved before is saved again; it offers Open or Save again (#356)
+This sound is already saved	Dieser Sound ist bereits gespeichert
 Save again	Erneut speichern
 The saved-video choice couldn't open. Try again.	Auswahl zum Video nicht geöffnet. Versuch es erneut.
 The saved-video choice is still open	Auswahl zum gespeicherten Video noch offen
@@ -1660,7 +1676,14 @@ HDR videos light the screen extra bright. This plays the standard (SDR) version 
 Remove story rings	Story-Ringe entfernen
 Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Den Story-Ring von Profilbildern im Feed, in Kommentaren und auf Profilen entfernen. Ein Tipp auf das Bild öffnet dann das Profil statt der Story.
 Remove the LIVE ring	LIVE-Ring entfernen
-Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Den pulsierenden LIVE-Ring von Profilbildern im Feed und in Kommentaren entfernen. Ein Tipp auf das Bild einer Person, die gerade live ist, öffnet ihr Profil statt des LIVE.
+Take the pulsing LIVE ring off profile pictures on the feed, in comments and on profiles. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Den pulsierenden LIVE-Ring von Profilbildern im Feed, in Kommentaren und auf Profilen entfernen. Ein Tipp auf das Bild einer Person, die gerade live ist, öffnet ihr Profil statt des LIVE.
+# context: three switches under Remove story rings and Remove the LIVE ring; each picks one screen the rings come off (#351)
+Remove rings on the feed	Ringe im Feed entfernen
+Take the rings off the creator's picture in the feed's right column. Needs Remove story rings or Remove the LIVE ring.	Die Ringe vom Bild der Person in der rechten Spalte des Feeds entfernen. Braucht „Story-Ringe entfernen“ oder „LIVE-Ring entfernen“.
+Remove rings in comments	Ringe in Kommentaren entfernen
+Take the rings off profile pictures in comments. Needs Remove story rings or Remove the LIVE ring.	Die Ringe von Profilbildern in Kommentaren entfernen. Braucht „Story-Ringe entfernen“ oder „LIVE-Ring entfernen“.
+Remove rings on profiles	Ringe auf Profilen entfernen
+Take the rings off the big picture at the top of a profile. Needs Remove story rings or Remove the LIVE ring.	Die Ringe vom großen Bild oben auf einem Profil entfernen. Braucht „Story-Ringe entfernen“ oder „LIVE-Ring entfernen“.
 Open the Story when a creator is LIVE	Story öffnen, wenn jemand LIVE ist
 When a creator who's LIVE also has a Story, tapping their picture on their profile or on your chat with them in the Inbox opens the Story. Tap the picture again to join the LIVE.	Hat jemand, der gerade LIVE ist, auch eine Story, öffnet ein Tipp auf das Bild im Profil oder in eurem Chat im Posteingang die Story. Tippe noch einmal auf das Bild, um dem LIVE beizutreten.
 Writing	Schreiben
@@ -1780,6 +1803,10 @@ Keep the LIVE quality after TikTok restarts	LIVE-Qualität nach einem Neustart v
 TikTok forgets the LIVE quality you picked when it closes. This starts rooms at that quality again after a restart. A room whose stream doesn't have it opens at TikTok's choice.	TikTok vergisst die gewählte LIVE-Qualität, wenn es geschlossen wird. Damit starten Räume nach einem Neustart wieder mit dieser Qualität. Ein Raum, dessen Stream sie nicht hat, öffnet mit der Qualität, die TikTok wählt.
 Offer clear screen in every LIVE room	Bildschirm leeren in jedem LIVE-Raum anbieten
 Clear screen hides a LIVE's chat, gifts and buttons so only the stream shows. TikTok puts it in the menu of only some rooms. This adds it to the others.	Bildschirm leeren blendet Chat, Geschenke und Schaltflächen einer LIVE aus, sodass nur der Stream zu sehen ist. TikTok zeigt das nur im Menü mancher Räume. Damit steht es auch in den anderen.
+# context: LIVE settings row next to Offer clear screen in every LIVE room; clear screen is TikTok's LIVE mode that hides chat, gifts and buttons (#354)
+Keep clear screen in the next LIVE	Bildschirm leeren in der nächsten LIVE behalten
+# context: summary of Keep clear screen in the next LIVE; a room is a LIVE stream page, swiping moves to the next one (#354)
+A LIVE you swipe to comes back with its chat, gifts and buttons showing. This keeps clear screen on from room to room until you turn it off.	Eine LIVE, zu der du wischst, zeigt Chat, Geschenke und Schaltflächen wieder. Damit bleibt der Bildschirm von Raum zu Raum leer, bis du es ausschaltest.
 Dark LIVE panels in dark mode	Dunkle LIVE-Fenster im Dunkelmodus
 With TikTok in dark mode, a LIVE room still opens its share menu, fan club and other panels in light colors. This opens them dark.	Auch im Dunkelmodus öffnet ein LIVE-Raum sein Teilen-Menü, den Fanclub und andere Fenster in hellen Farben. Damit öffnen sie sich dunkel.
 Keep watching in a small window	In einem kleinen Fenster weiterschauen
@@ -2543,9 +2570,54 @@ Close with Back or a tap outside	Mit Zurück oder Tippen daneben schließen
 Off, only its button closes it.	Aus: Nur die Schaltfläche schließt sie.
 # context: extra search words for the Startup message setting, not shown anywhere (#347)
 dialog popup greeting	Dialog Popup Begrüßung
+# context: the startup message's button that stops this message showing; a changed message shows again (#347)
+Don't show again	Nicht mehr anzeigen
 # context: a switch under See-through bottom bar; it stops the video blinking as it slides under the clear tab bar
 Stop the blink under the bar	Flackern unter der Leiste stoppen
-If the video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Wenn das Video beim Wischen mit Durchsichtige untere Leiste flackert, zeichnet dies es direkt in TikTok statt auf einer eigenen Ebene. Kann etwas mehr Akku brauchen. Braucht Durchsichtige untere Leiste.
+If the feed's video blinks as you swipe with See-through bottom bar on, this draws it inside TikTok instead of on a layer of its own. It can use a little more battery. Needs See-through bottom bar.	Wenn das Video beim Wischen mit Durchsichtige untere Leiste flackert, zeichnet dies es direkt in TikTok statt auf einer eigenen Ebene. Kann etwas mehr Akku brauchen. Braucht Durchsichtige untere Leiste.
 # context: a switch under Blur the video behind the bar; the glass tab bar's rim bends the blurred video like a lens edge
 Bend the video at the edges	Video an den Rändern brechen
-The glass pill's edges bend the blurred video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	Die Ränder der Glaskapsel brechen das unscharfe Video dahinter wie der Rand von echtem Glas, und die Farben wirken etwas satter. Braucht Video hinter der Leiste unscharf machen und Android 13 oder neuer.
+The glass pill's edges bend the blurred feed video behind them, like the rim of real glass, and its colors come through a little richer. Needs Blur the video behind the bar and Android 13 and up.	Die Ränder der Glaskapsel brechen das unscharfe Video dahinter wie der Rand von echtem Glas, und die Farben wirken etwas satter. Braucht Video hinter der Leiste unscharf machen und Android 13 oder neuer.
+# context: Inbox settings, the switch that hides the On this day memory TikTok puts first in the stories tray. On this day is TikTok's own name for it, kept in English like Footnotes.
+Hide On this day	On this day ausblenden
+The On this day memory at the front of the stories tray goes, and the stories after it move into its place. Nothing is deleted.	Die On this day-Erinnerung vorne in der Story-Leiste verschwindet, und die Storys danach rücken an ihre Stelle. Es wird nichts gelöscht.
+# context: Comments settings, next to Hide like counts on comments; the switch that takes the commenter's profile picture off each comment and reply so the name and text start at the left.
+Hide profile pictures in comments	Profilbilder bei Kommentaren ausblenden
+Hide the picture beside each comment and reply. The name and the comment move over to fill its place.	Blendet das Bild neben jedem Kommentar und jeder Antwort aus. Name und Kommentar rücken an seine Stelle.
+# context: a one-time toast over a TikTok puzzle while Hide CAPTCHA popups is off; names that switch, which would have skipped the puzzle
+Hide CAPTCHA popups in Hushfeed skips these	„CAPTCHA-Popups ausblenden“ überspringt so etwas
+# context: Region page row title; a list of countries the LIVE feed asks TikTok for rooms from
+LIVE feed countries	Länder für den LIVE-Feed
+# context: Region page row summary for LIVE feed countries; 'rooms' are LIVE rooms, 'switches above' are the SIM and region switches on the same page
+Separate country codes with commas, like BR, MX. Each page of the LIVE feed asks TikTok for rooms from one of them, taking turns. TikTok doesn't say which country a room is in, and your IP address and account still count, so rooms from elsewhere can still show up. This works without the switches above. Leave empty for TikTok's usual rooms.	Trenne Ländercodes mit Kommas, etwa BR, MX. Jede Seite des LIVE-Feeds fragt TikTok abwechselnd nach Räumen aus einem dieser Länder. TikTok sagt nicht, aus welchem Land ein Raum kommt, und deine IP-Adresse und dein Konto zählen weiterhin, daher können trotzdem Räume von anderswo erscheinen. Das funktioniert auch ohne die Schalter oben. Leer lassen für die üblichen Räume von TikTok.
+# context: Interface page row title in the publish date group; a switch that adds a button on TikTok's Liked tab grid to start the list at a chosen year or month
+Jump to a date on Liked grids	In Rastern mit „Gefällt mir“-Angaben zu einem Datum springen
+# context: Row summary for Jump to a date on Liked grids; 'Newest likes' is the first item of the button's menu, keep it the same as that string
+Adds a button to the Liked grid's top corner that starts your likes at a year or month you pick, so older ones load without scrolling past newer ones. Pick Newest likes there to go back.	Fügt oben in der Ecke des Rasters mit „Gefällt mir“-Angaben eine Schaltfläche hinzu, die deine Likes bei einem gewählten Jahr oder Monat beginnen lässt, damit ältere laden, ohne an neueren vorbeizuscrollen. Wähle dort Neueste Likes, um zurückzukehren.
+# context: Label and accessibility name of the button on the Liked grid, and the title of its year menu
+Jump to a date	Zu einem Datum springen
+# context: Button label on the Liked grid after a jump; %1$s is a short month and year like Mar 2022, or a year alone; the grid shows likes from up to that date
+Up to %1$s	Bis %1$s
+# context: First item of the Liked grid's jump menu; goes back to TikTok's usual newest-first list
+Newest likes	Neueste Likes
+# context: First item of the month menu; jumps to the end of the chosen year
+Whole year	Ganzes Jahr
+# context: Toast after picking a date when the grid couldn't reload by itself; pulling down to refresh loads the likes from that date; two lines of 28 characters at most, no full stop
+Pull down on the grid to load them	Zum Laden im Raster nach unten ziehen
+# context: Comments settings, Hiding section. Switch that hides TikTok's X (close) button at the top of the comment panel
+Hide the close button in comments	Schließen-Schaltfläche in Kommentaren ausblenden
+# context: Comments settings, Hiding section. Switch that hides TikTok's button that stretches the comment panel to full screen
+Hide the expand button in comments	Erweitern-Schaltfläche in Kommentaren ausblenden
+# context: Summary under the close button switch; Back is the phone's Back
+Hides the X at the top of the comments, and the buttons next to it move over to fill the gap. Use Back or swipe down to close comments.	Blendet das X oben in den Kommentaren aus, und die Schaltflächen daneben rücken in die Lücke. Zum Schließen der Kommentare Zurück nutzen oder nach unten wischen.
+# context: Summary under the expand button switch; Open the comments at full height is another switch's title
+Hides the button that stretches the comments over the whole screen. Turn on Open the comments at full height to have them open that way.	Blendet die Schaltfläche aus, die die Kommentare über den ganzen Bildschirm zieht. Schalte Kommentare in voller Höhe öffnen ein, damit sie gleich so aufgehen.
+# context: Switch title in the Clear display section; the button is a small eye drawn over the main feed
+Invisible controls button	Taste für unsichtbare Steuerelemente
+A small eye button at the top left of the main feed. Tap it and the buttons, caption and tabs go invisible but still take taps, which helps against burn-in on OLED screens. Tap it again to bring them back. They stay the way you left them across videos and restarts. Videos you open from a profile or search keep their controls.	Eine kleine Augen-Taste oben links im Haupt-Feed. Tippst du darauf, werden Tasten, Beschreibung und Tabs unsichtbar, reagieren aber weiter auf Berührungen. Das hilft gegen Einbrennen auf OLED-Bildschirmen. Tippst du erneut, kommen sie zurück. Sie bleiben über Videos und Neustarts hinweg so, wie du sie gelassen hast. Videos, die du über ein Profil oder die Suche öffnest, behalten ihre Steuerelemente.
+Keep the caption in sight	Beschreibung sichtbar lassen
+While the controls are invisible on the main feed, the creator's name, the caption and the music line stay in sight.	Solange die Steuerelemente im Haupt-Feed unsichtbar sind, bleiben der Name des Creators, die Beschreibung und die Musikzeile sichtbar.
+# context: Spoken label of that eye button while the controls show
+Make the controls invisible	Steuerelemente unsichtbar machen
+# context: Spoken label of that eye button while the controls are invisible
+Show the controls	Steuerelemente anzeigen

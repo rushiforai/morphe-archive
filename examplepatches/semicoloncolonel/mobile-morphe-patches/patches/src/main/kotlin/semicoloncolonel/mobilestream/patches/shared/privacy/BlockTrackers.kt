@@ -164,3 +164,49 @@ internal fun BytecodePatchContext.blockTrackers() {
         }
     }
 }
+
+private const val GET_ALL_BY_NAME = "Ljava/net/InetAddress;->getAllByName(Ljava/lang/String;)[Ljava/net/InetAddress;"
+
+private fun Instruction.isGetAllByName(): Boolean =
+    opcode == Opcode.INVOKE_STATIC &&
+        ((this as? ReferenceInstruction)?.reference as? MethodReference)?.let {
+            it.definingClass == "Ljava/net/InetAddress;" && it.name == "getAllByName" &&
+                it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;")
+        } == true
+
+/**
+ * Routes every InetAddress.getAllByName(String) in the app through the
+ * blocklist. For apps that rename OkHttp, where the interceptor above cannot
+ * attach: OkHttp's default DNS resolves each host this way, so blocked hosts
+ * fail before a connection is made.
+ */
+internal fun BytecodePatchContext.blockTrackersAtDns() {
+    val targets = mutableListOf<String>()
+    classDefForEach { classDef ->
+        if (!classDef.type.startsWith(EXTENSION_PACKAGE) &&
+            classDef.methods.any { method -> method.implementation?.instructions?.any { it.isGetAllByName() } == true }
+        ) {
+            targets += classDef.type
+        }
+    }
+    // No calls can be left when another patch source already replaced them
+    // (or the app stops using it), so skip the DNS layer instead of failing.
+    if (targets.isEmpty()) return
+
+    val replacement = "$TRACKER_BLOCKER->lookup(Ljava/lang/String;)[Ljava/net/InetAddress;"
+    targets.forEach { type ->
+        mutableClassDefBy(type).methods.forEach { method ->
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            instructions.forEachIndexed { index, instruction ->
+                if (!instruction.isGetAllByName()) return@forEachIndexed
+                val smali = when (instruction) {
+                    is FiveRegisterInstruction -> "invoke-static { v${instruction.registerC} }, $replacement"
+                    is RegisterRangeInstruction ->
+                        "invoke-static/range { v${instruction.startRegister} .. v${instruction.startRegister} }, $replacement"
+                    else -> return@forEachIndexed
+                }
+                method.replaceInstruction(index, smali)
+            }
+        }
+    }
+}

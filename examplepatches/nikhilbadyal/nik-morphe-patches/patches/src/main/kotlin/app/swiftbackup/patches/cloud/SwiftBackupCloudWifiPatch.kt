@@ -79,7 +79,7 @@ val swiftBackupCloudWifiPatch = bytecodePatch(
 
             invoke-interface {v0}, Ljava/util/List;->isEmpty()Z
             move-result v1
-            if-nez v1, :return_null
+            if-eqz v1, :return_null
 
             const/4 v1, 0x0
             invoke-interface {v0, v1}, Ljava/util/List;->get(I)Ljava/lang/Object;

@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.tinder.TinderCompatibility
 
 // ============================================================================
-// VERSÃO SUPORTADA: 17.37.3 (travada via TinderCompatibility)
+// VERSÃO SUPORTADA: 17.41.0 (travada via TinderCompatibility)
 //
 // Três alvos, todos do lado do app (nenhum depende de resposta do servidor).
 // Nomes confirmados por desmontagem desta versão; o R8 renomeia a cada build.
@@ -25,7 +25,7 @@ private object SponsoredMessageFingerprint : Fingerprint(
     definingClass = "Lcom/tinder/sponsoredmessage/lifecycle/observer/a;",
     name = "onCreate",
     returnType = "V",
-    parameters = listOf("Lpuh;"),
+    parameters = listOf("Lpch;"),
 )
 
 // ----------------------------------------------------------------------------
@@ -37,10 +37,10 @@ private object SponsoredMessageFingerprint : Fingerprint(
 // ----------------------------------------------------------------------------
 
 private object LikesYouUpsellModalFingerprint : Fingerprint(
-    definingClass = "Lcom/tinder/likesyoumodal/lifecycle/c;",
+    definingClass = "Lcom/tinder/likesyoumodal/lifecycle/a;",
     name = "onCreate",
     returnType = "V",
-    parameters = listOf("Lpuh;"),
+    parameters = listOf("Lpch;"),
 )
 
 // ----------------------------------------------------------------------------
@@ -99,8 +99,8 @@ val tinderRemoveUpsellsPatch = bytecodePatch(
  *    - userIsPlatinumOrGold (método "b" do Boost): não é gate de upsell.
  *
  * 3. VERSÃO TRAVADA
- *    "a", "c", "e" e o tipo "puh" são nomes do R8. Compatibilidade declarada
- *    em TinderCompatibility.TINDER (17.37.3). Para suportar outra versão,
+ *    "a", "e" e o tipo "pch" são nomes do R8. Compatibilidade declarada
+ *    em TinderCompatibility.TINDER (17.41.0). Para suportar outra versão,
  *    rastrear a classe real pelo this$0 das continuações (…$onCreate$1,
  *    TakeShouldShowBoostUpsellImpl$invoke$1) e atualizar as fingerprints.
  */

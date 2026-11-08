@@ -36,10 +36,8 @@ private object StopTrialFingerprint : Fingerprint(
 @Suppress("unused")
 val disableLicenseCheckPatch = bytecodePatch(
     name = "Disable Pairip license check",
-    description = "Disables the Google Play license check (Pairip) that redirects " +
-        "installs not purchased through the Play Store to the buy page. " +
-        "The check never runs, so this also works on degoogled devices without " +
-        "Play services. Does not bypass Play Integrity attestation.",
+    description = "Disables Google's Play Store license check. Works on degoogled devices; " +
+        "does not bypass Play Integrity.",
     default = false
 ) {
     category("License")

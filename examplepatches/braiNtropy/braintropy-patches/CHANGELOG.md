@@ -1,3 +1,29 @@
+## [2.7.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.6.0...v2.7.0) (2026-11-07)
+
+### ✨ New Features
+
+* **RP Hypertrophy:** mark v1.9.0 as supported ([996552c](https://github.com/braiNtropy/braintropy-patches/commit/996552ca68c35b2b092225b67ad24d5de6068567))
+* Shorten patch descriptions for readability ([582005a](https://github.com/braiNtropy/braintropy-patches/commit/582005a23fa79cdc832087e81056b8e7186fc980))
+* **Waking Up:** mark v3.27.1 as supported ([9d024d8](https://github.com/braiNtropy/braintropy-patches/commit/9d024d85a28b58fe23e0f9fc4edc820ae2308124))
+
+## [2.7.0-dev.3](https://github.com/braiNtropy/braintropy-patches/compare/v2.7.0-dev.2...v2.7.0-dev.3) (2026-11-07)
+
+### ✨ New Features
+
+* Shorten patch descriptions for readability ([582005a](https://github.com/braiNtropy/braintropy-patches/commit/582005a23fa79cdc832087e81056b8e7186fc980))
+
+## [2.7.0-dev.2](https://github.com/braiNtropy/braintropy-patches/compare/v2.7.0-dev.1...v2.7.0-dev.2) (2026-11-07)
+
+### ✨ New Features
+
+* **Waking Up:** mark v3.27.1 as supported ([9d024d8](https://github.com/braiNtropy/braintropy-patches/commit/9d024d85a28b58fe23e0f9fc4edc820ae2308124))
+
+## [2.7.0-dev.1](https://github.com/braiNtropy/braintropy-patches/compare/v2.6.0...v2.7.0-dev.1) (2026-11-07)
+
+### ✨ New Features
+
+* **RP Hypertrophy:** mark v1.9.0 as supported ([996552c](https://github.com/braiNtropy/braintropy-patches/commit/996552ca68c35b2b092225b67ad24d5de6068567))
+
 ## [2.6.0](https://github.com/braiNtropy/braintropy-patches/compare/v2.5.0...v2.6.0) (2026-11-05)
 
 ### ✨ New Features

@@ -15,11 +15,12 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+import java.security.MessageDigest
 
 private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
 
 /**
- * Ground-up native & manifest patch for MX Player 3.4.1 (2001003551) standalone APKs:
+ * Ground-up native & manifest patch for MX Player 3.4.1 and 3.4.3 standalone APKs:
  *
  * 1. Disarms `libmx-bh.so` across both `arm64-v8a` and `armeabi-v7a` while preserving genuine
  *    RSA/whitebox key initialization AND zero-CPU `waitForApkDetectInitialDone()` synchronization:
@@ -47,14 +48,44 @@ private const val ANDROID_NS = "http://schemas.android.com/apk/res/android"
  */
 internal val nativeAndManifestPatch = resourcePatch {
     execute {
-        // 1. Patch `lib/armeabi-v7a/libmx-bh.so` and `lib/arm64-v8a/libmx-bh.so` (MX Player 3.4.1).
+        // 1. Patch `lib/armeabi-v7a/libmx-bh.so` and `lib/arm64-v8a/libmx-bh.so` (MX Player 3.4.1 and 3.4.3).
         val libEntries = listApkEntries("lib/").toSet()
+        val nativeAbis = libEntries.mapNotNull { entry ->
+            val parts = entry.split('/')
+            if (parts.size == 3 && parts[0] == "lib" && parts[2].endsWith(".so")) parts[1] else null
+        }.toSet()
+        val supportedAbis = setOf("arm64-v8a", "armeabi-v7a")
+        if (nativeAbis.isEmpty()) {
+            throw PatchException("MX Player APK has no native libraries. Use a complete supported standalone APK.")
+        }
+        val unsupportedAbis = nativeAbis - supportedAbis
+        if (unsupportedAbis.isNotEmpty()) {
+            throw PatchException("Unsupported MX Player native ABI(s): ${unsupportedAbis.sorted().joinToString()}")
+        }
+        val missingBridges = nativeAbis.filter { "lib/$it/libmx-bh.so" !in libEntries }
+        if (missingBridges.isNotEmpty()) {
+            throw PatchException("Missing MX Player libmx-bh.so for ABI(s): ${missingBridges.sorted().joinToString()}")
+        }
+        // These APK-packaged dependencies are needed by the native bridge and playback chain.
+        // Reject incomplete represented ABIs before changing any native library. Android's
+        // system libraries (libc, liblog, etc.) are intentionally not listed here.
+        val requiredLibraries = setOf(
+            "libmx-bh.so", "libmxvp.so", "libffmpeg.mx.so", "libmxutil.so",
+            "libsmb2.so", "libmp3lame.so", "libc++_shared.so", "libloader.mx.so",
+        )
+        val missingCoreLibraries = nativeAbis.sorted().flatMap { abi ->
+            requiredLibraries.sorted().filter { "lib/$abi/$it" !in libEntries }.map { "$abi/$it" }
+        }
+        if (missingCoreLibraries.isNotEmpty()) {
+            throw PatchException("Incomplete MX Player native libraries: ${missingCoreLibraries.joinToString()}")
+        }
         var patchedAbis = 0
 
         val arm32Path = "lib/armeabi-v7a/libmx-bh.so"
         if (arm32Path in libEntries) {
             val file = get(arm32Path, true)
             val data = file.readBytes()
+            data.requireStockNativeHash(arm32Path, "56d94056d545204008b81e7cd5ed0ff0924e36b69161252694b7e0bd3fced759")
 
             // (a) ApkDetect thread entry (0x1ca38..0x1ca44): tail-call `b #0x1cc68` (`ApkDetect::run`)
             //     so returning from `ApkDetect::run` returns directly to `threadWrapper`
@@ -149,6 +180,7 @@ internal val nativeAndManifestPatch = resourcePatch {
         if (arm64Path in libEntries) {
             val file = get(arm64Path, true)
             val data = file.readBytes()
+            data.requireStockNativeHash(arm64Path, "596aec343b9d624a8cbca57faa4f06ed3e13754b52f696d162176cab6fbe7c07")
 
             // (a) ApkDetect thread entry (0x312dc..0x312e8): tail-call `b #0x31550` (`ApkDetect::run`)
             //     so returning from `ApkDetect::run` returns directly to `threadWrapper` (`0x2f794`
@@ -239,10 +271,7 @@ internal val nativeAndManifestPatch = resourcePatch {
         }
 
         if (patchedAbis == 0) {
-            throw PatchException(
-                "Neither arm64-v8a nor armeabi-v7a libmx-bh.so was found. " +
-                    "Ensure you are patching a standalone MX Player 3.4.1 (2001003551) APK.",
-            )
+            throw PatchException("No supported MX Player native integrity library was patched.")
         }
 
         // 2. Harden AndroidManifest.xml safely.
@@ -334,6 +363,14 @@ internal val nativeAndManifestPatch = resourcePatch {
         if ("assets/audience_network.dex" in assetsEntries) {
             delete("assets/audience_network.dex")
         }
+    }
+}
+
+private fun ByteArray.requireStockNativeHash(path: String, expected: String) {
+    val actual = MessageDigest.getInstance("SHA-256").digest(this)
+        .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    if (actual != expected) {
+        throw PatchException("Unsupported MX Player native library: $path (SHA-256 mismatch)")
     }
 }
 

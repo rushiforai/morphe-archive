@@ -37,6 +37,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +68,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -80,8 +80,12 @@ import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.anderson.applemusic.core.BrowseItem
+import com.anderson.applemusic.core.CustomAction
 import com.anderson.applemusic.core.PlaybackSnapshot
 import com.anderson.applemusic.core.Section
+import com.anderson.applemusic.core.update.UpdateChecker
+import com.anderson.applemusic.core.update.UpdateController
+import com.anderson.applemusic.core.update.UpdatePhase
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.StateFlow
@@ -98,6 +102,18 @@ private val CardHeight = 124.dp
 @Composable
 fun TvApp(viewModel: TvViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val updates = remember {
+        UpdateController(
+            context = context,
+            artifact = UpdateChecker.ARTIFACT_TV,
+            currentVersionCode = BuildConfig.APP_VERSION_CODE.toLong(),
+        )
+    }
+    val updateState by updates.state.collectAsStateWithLifecycle()
+    // Throttled check (24 h) on open; the header chip forces a check.
+    LaunchedEffect(updates) { updates.check(force = false) }
+    DisposableEffect(updates) { onDispose { updates.close() } }
     val firstTabFocus = remember { FocusRequester() }
     val playerFocus = remember { FocusRequester() }
     val actionsButtonFocus = remember { FocusRequester() }
@@ -107,11 +123,13 @@ fun TvApp(viewModel: TvViewModel = viewModel()) {
     var menuOriginFocus by remember { mutableStateOf<FocusRequester?>(null) }
 
     // TV apps start with nothing focused; put the D-pad on the tab bar and put it
-    // back there whenever the drill-down stack returns to a tab root.
-    LaunchedEffect(state.tabs.size, state.stack.size) {
+    // back there whenever the drill-down stack returns to a tab root. The update modal
+    // owns the focus while it is open.
+    LaunchedEffect(state.tabs.size, state.stack.size, updateState.phase) {
         if (
             state.tabs.isNotEmpty() && state.stack.isEmpty() && !state.nowPlayingOpen &&
-            !state.searchOpen && state.itemMenu == null && !state.actionsOpen
+            !state.searchOpen && state.itemMenu == null && !state.actionsOpen &&
+            updateState.phase == UpdatePhase.IDLE
         ) {
             withFrameNanos { }
             runCatching { firstTabFocus.requestFocus() }
@@ -168,6 +186,7 @@ fun TvApp(viewModel: TvViewModel = viewModel()) {
                     onNext = viewModel::next,
                     onSeekBy = viewModel::seekBy,
                     onOpenActions = viewModel::openActions,
+                    onAction = viewModel::runAction,
                 )
             } else {
                 Column(Modifier.fillMaxSize()) {
@@ -179,12 +198,22 @@ fun TvApp(viewModel: TvViewModel = viewModel()) {
                         onSelect = viewModel::selectTab,
                         onSearch = viewModel::openSearch,
                         onOpenPlayer = viewModel::openNowPlaying,
+                        onCheckUpdates = { updates.check(force = true) },
                         firstTabFocus = firstTabFocus,
                         playerFocus = playerFocus,
                     )
                     Box(Modifier.weight(1f).fillMaxWidth()) {
                         if (state.searchOpen) {
-                            SearchUnavailable()
+                            SearchScreen(
+                                query = state.searchQuery,
+                                busy = state.searchBusy,
+                                results = state.searchResults,
+                                error = state.searchError,
+                                onQueryChange = viewModel::setSearchQuery,
+                                onResult = viewModel::playSearchResult,
+                                onOpenEngineSearch = viewModel::openEngineSearch,
+                                onRetry = viewModel::retrySearch,
+                            )
                         } else {
                             when (state.phase) {
                                 ConnectionPhase.CONNECTING -> CenteredMessage("Conectando ao Apple Music…")
@@ -234,6 +263,13 @@ fun TvApp(viewModel: TvViewModel = viewModel()) {
                 )
             }
             state.message?.let { MessageToast(it) }
+            UpdateOverlay(
+                state = updateState,
+                currentVersionName = BuildConfig.APP_VERSION_NAME,
+                onInstall = updates::downloadAndInstall,
+                onCancel = updates::cancel,
+                onDismiss = updates::dismiss,
+            )
         }
     }
 }
@@ -247,6 +283,7 @@ private fun Header(
     onSelect: (Int) -> Unit,
     onSearch: () -> Unit,
     onOpenPlayer: () -> Unit,
+    onCheckUpdates: () -> Unit,
     firstTabFocus: FocusRequester,
     playerFocus: FocusRequester,
 ) {
@@ -278,6 +315,8 @@ private fun Header(
             onClick = onSearch,
         )
         Spacer(Modifier.weight(1f))
+        UpdatesChip(onClick = onCheckUpdates)
+        Spacer(Modifier.width(10.dp))
         PlayerChip(
             playback = playback,
             focusRequester = playerFocus,
@@ -294,7 +333,11 @@ private fun TabPill(
     onClick: () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "tabScale")
+    val scale by animateFloatAsState(
+        if (focused) 1.04f else 1f,
+        animationSpec = FocusScaleSpec,
+        label = "tabScale",
+    )
     Box(
         modifier = modifier
             .scale(scale)
@@ -318,6 +361,7 @@ private fun TabPill(
             text = title,
             color = TextPrimary,
             fontSize = 15.sp,
+            lineHeight = 20.sp,
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
         )
     }
@@ -331,7 +375,11 @@ private fun HeaderIconButton(
     onClick: () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "headerIconScale")
+    val scale by animateFloatAsState(
+        if (focused) 1.04f else 1f,
+        animationSpec = FocusScaleSpec,
+        label = "headerIconScale",
+    )
     Box(
         modifier = Modifier
             .size(34.dp)
@@ -364,7 +412,11 @@ private fun PlayerChip(
 ) {
     val hasTrack = playback.hasSession && playback.title.isNotBlank()
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "chipScale")
+    val scale by animateFloatAsState(
+        if (focused) 1.04f else 1f,
+        animationSpec = FocusScaleSpec,
+        label = "chipScale",
+    )
     Row(
         modifier = Modifier
             .focusRequester(focusRequester)
@@ -372,10 +424,13 @@ private fun PlayerChip(
             .clip(RoundedCornerShape(CardRadius))
             // Discrete chip: a soft surface gradient instead of a flat block.
             .background(
-                if (focused) {
-                    Brush.horizontalGradient(listOf(SurfaceFocused, SurfaceFocused))
-                } else {
-                    Brush.horizontalGradient(listOf(Color(0xFF232326), Color(0xFF151517)))
+                when {
+                    !hasTrack -> Brush.horizontalGradient(
+                        listOf(Surface.copy(alpha = 0.45f), Color(0xFF101012)),
+                    )
+
+                    focused -> Brush.horizontalGradient(listOf(SurfaceFocused, SurfaceFocused))
+                    else -> Brush.horizontalGradient(listOf(Color(0xFF232326), Color(0xFF151517)))
                 },
             )
             .border(
@@ -391,17 +446,22 @@ private fun PlayerChip(
                     Modifier
                 },
             )
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Artwork(playback, 36.dp)
+        if (hasTrack) {
+            Artwork(playback, 40.dp)
+        } else {
+            IdleArtwork(40.dp)
+        }
         Spacer(Modifier.width(10.dp))
-        Column(Modifier.widthIn(max = 200.dp)) {
+        Column(Modifier.widthIn(max = 210.dp)) {
             Text(
                 text = if (hasTrack) playback.title else "Nada tocando",
                 color = if (hasTrack) TextPrimary else TextSecondary,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -412,7 +472,8 @@ private fun PlayerChip(
                     "Apple Music"
                 },
                 color = TextSecondary,
-                fontSize = 10.sp,
+                fontSize = 12.sp,
+                lineHeight = 15.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -459,22 +520,34 @@ private fun SectionRow(
 ) {
     val rowState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = section.title,
                 color = TextPrimary,
-                fontSize = 19.sp,
+                fontSize = 26.sp,
+                lineHeight = 32.sp,
+                letterSpacing = (-0.3).sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 2.dp, vertical = 3.dp),
+                modifier = Modifier.padding(horizontal = 2.dp, vertical = 2.dp),
             )
             Spacer(Modifier.width(10.dp))
             if (!section.loading) {
-                Text("${section.items.size}", color = TextSecondary, fontSize = 12.sp)
+                Text(
+                    text = "${section.items.size}",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                )
             }
         }
         when {
-            section.loading -> Text("Carregando…", color = TextSecondary, fontSize = 13.sp)
+            section.loading -> Text(
+                text = "Carregando…",
+                color = TextSecondary,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+            )
             else -> LazyRow(
                 state = rowState,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -527,11 +600,22 @@ private fun LazyListState.needsScrollTo(index: Int): Boolean {
 private fun SeeAllCard(count: Int, onClick: () -> Unit) {
     FocusCard(onClick = onClick, width = 132.dp, height = CardHeight) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(12.dp),
+            modifier = Modifier.fillMaxSize().padding(14.dp),
             verticalArrangement = Arrangement.Center,
         ) {
-            Text("Ver tudo", color = TextPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-            Text("$count itens", color = TextSecondary, fontSize = 11.sp)
+            Text(
+                text = "Ver tudo",
+                color = TextPrimary,
+                fontSize = 15.sp,
+                lineHeight = 19.sp,
+                fontWeight = FontWeight.SemiBold,
+            )
+            Text(
+                text = "$count itens",
+                color = TextSecondary,
+                fontSize = 12.sp,
+                lineHeight = 16.sp,
+            )
         }
     }
 }
@@ -571,6 +655,7 @@ private fun LevelGrid(
             text = title,
             color = TextSecondary,
             fontSize = 13.sp,
+            lineHeight = 18.sp,
             modifier = Modifier.padding(start = 32.dp, top = 6.dp, bottom = 6.dp),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -631,7 +716,11 @@ private fun FocusCard(
     var longFired by remember { mutableStateOf(false) }
     var longPressJob by remember { mutableStateOf<Job?>(null) }
     val scope = rememberCoroutineScope()
-    val scale by animateFloatAsState(if (focused) 1.05f else 1f, label = "cardScale")
+    val scale by animateFloatAsState(
+        if (focused) 1.05f else 1f,
+        animationSpec = FocusScaleSpec,
+        label = "cardScale",
+    )
     Box(
         modifier = modifier
             .width(width)
@@ -765,8 +854,8 @@ private fun TvCard(
             Box(
                 Modifier.fillMaxSize().background(
                     Brush.verticalGradient(
-                        0.4f to Color.Transparent,
-                        1f to Color.Black.copy(alpha = 0.86f),
+                        0.45f to Color.Transparent,
+                        1f to Color.Black.copy(alpha = 0.88f),
                     ),
                 ),
             )
@@ -779,7 +868,8 @@ private fun TvCard(
                 Text(
                     text = item.title,
                     color = TextPrimary,
-                    fontSize = 14.sp,
+                    fontSize = 15.sp,
+                    lineHeight = 19.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -791,7 +881,8 @@ private fun TvCard(
                     Text(
                         text = secondary,
                         color = if (item.subtitle.isEmpty()) Accent else TextSecondary,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
+                        lineHeight = 16.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -823,6 +914,7 @@ private fun NowPlayingScreen(
     onNext: () -> Unit,
     onSeekBy: (Long) -> Unit,
     onOpenActions: () -> Unit,
+    onAction: (CustomAction) -> Unit,
 ) {
     val playback by playbackFlow.collectAsStateWithLifecycle()
     val playFocus = remember { FocusRequester() }
@@ -830,13 +922,16 @@ private fun NowPlayingScreen(
         withFrameNanos { }
         runCatching { playFocus.requestFocus() }
     }
+    // Dark gradient derived from the cover, so each track tints the whole screen.
+    val backgroundColors = remember(playback.artwork) { artworkBackground(playback.artwork) }
+    val stationAction = playback.customActions.firstOrNull {
+        it.action == TvViewModel.ACTION_CREATE_STATION
+    }
 
     Box(
         Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(listOf(Color(0xFF2A1014), Background)),
-            ),
+            .background(Brush.verticalGradient(backgroundColors)),
     ) {
         Row(
             modifier = Modifier.fillMaxSize().padding(horizontal = 48.dp, vertical = 32.dp),
@@ -852,35 +947,41 @@ private fun NowPlayingScreen(
                     text = "TOCANDO AGORA",
                     color = Accent,
                     fontSize = 12.sp,
+                    lineHeight = 16.sp,
+                    letterSpacing = 1.2.sp,
                     fontWeight = FontWeight.Bold,
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
                     text = playback.title.ifBlank { "Nada tocando" },
                     color = TextPrimary,
-                    fontSize = 38.sp,
+                    fontSize = 36.sp,
+                    lineHeight = 42.sp,
+                    letterSpacing = (-0.5).sp,
                     fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(10.dp))
                 Text(
                     text = playback.artist.ifBlank { "Apple Music" },
                     color = TextSecondary,
-                    fontSize = 21.sp,
+                    fontSize = 20.sp,
+                    lineHeight = 26.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
                 if (playback.album.isNotBlank()) {
                     Text(
                         text = playback.album,
-                        color = TextSecondary.copy(alpha = 0.75f),
-                        fontSize = 14.sp,
+                        color = TextSecondary.copy(alpha = 0.7f),
+                        fontSize = 13.sp,
+                        lineHeight = 18.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                Spacer(Modifier.height(44.dp))
+                Spacer(Modifier.height(40.dp))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(22.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -888,24 +989,41 @@ private fun NowPlayingScreen(
                     PlayerButton(
                         iconRes = R.drawable.ic_prev,
                         description = "Anterior",
+                        size = 60.dp,
                         onClick = onPrevious,
                     )
                     PlayerButton(
                         iconRes = if (playback.playing) R.drawable.ic_pause else R.drawable.ic_play,
                         description = if (playback.playing) "Pausar" else "Tocar",
                         modifier = Modifier.focusRequester(playFocus),
-                        size = 76.dp,
+                        size = 80.dp,
                         iconSize = 36.dp,
+                        accent = true,
                         onClick = onPlayPause,
                     )
                     PlayerButton(
                         iconRes = R.drawable.ic_next,
                         description = "Próxima",
+                        size = 60.dp,
                         onClick = onNext,
                     )
-                    Spacer(Modifier.width(6.dp))
-                    ActionsButton(
-                        focusRequester = actionsButtonFocus,
+                }
+                Spacer(Modifier.height(20.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (stationAction != null) {
+                        PlayerPill(
+                            label = stationAction.title.ifBlank { "Criar estação" },
+                            accent = true,
+                            onClick = { onAction(stationAction) },
+                        )
+                    }
+                    PlayerPill(
+                        label = "Ações",
+                        leading = "•••",
+                        modifier = Modifier.focusRequester(actionsButtonFocus),
                         onClick = onOpenActions,
                     )
                 }
@@ -922,6 +1040,7 @@ private fun NowPlayingScreen(
             text = "Pressione voltar para fechar",
             color = TextSecondary,
             fontSize = 12.sp,
+            lineHeight = 16.sp,
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
         )
     }
@@ -934,15 +1053,29 @@ private fun PlayerButton(
     modifier: Modifier = Modifier,
     size: Dp = 56.dp,
     iconSize: Dp = 26.dp,
+    accent: Boolean = false,
     onClick: () -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "playerButtonScale")
+    val scale by animateFloatAsState(
+        if (focused) 1.06f else 1f,
+        animationSpec = FocusScaleSpec,
+        label = "playerButtonScale",
+    )
     val background by animateColorAsState(
-        if (focused) Color.White else SurfaceFocused,
+        when {
+            accent -> Accent
+            focused -> Color.White
+            else -> SurfaceFocused
+        },
+        animationSpec = FocusColorSpec,
         label = "playerButtonBackground",
     )
-    val tint by animateColorAsState(if (focused) Color.Black else TextPrimary, label = "playerButtonTint")
+    val tint by animateColorAsState(
+        if (!accent && focused) Color.Black else TextPrimary,
+        animationSpec = FocusColorSpec,
+        label = "playerButtonTint",
+    )
     Box(
         modifier = modifier
             .size(size)
@@ -963,28 +1096,53 @@ private fun PlayerButton(
     }
 }
 
-/** Opens the session action sheet (Favorito, Criar Estação, …). */
+/**
+ * Pill action of the full player ("Criar estação", "Ações"). The accent variant keeps
+ * the Apple Music red while unfocused and turns white with a black label on focus.
+ */
 @Composable
-private fun ActionsButton(focusRequester: FocusRequester, onClick: () -> Unit) {
+private fun PlayerPill(
+    label: String,
+    modifier: Modifier = Modifier,
+    leading: String = "",
+    accent: Boolean = false,
+    onClick: () -> Unit,
+) {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.05f else 1f, label = "actionsScale")
+    val scale by animateFloatAsState(
+        if (focused) 1.04f else 1f,
+        animationSpec = FocusScaleSpec,
+        label = "playerPillScale",
+    )
     val background by animateColorAsState(
-        if (focused) Color.White else SurfaceFocused,
-        label = "actionsBackground",
+        when {
+            focused -> Color.White
+            accent -> Accent.copy(alpha = 0.18f)
+            else -> SurfaceFocused
+        },
+        animationSpec = FocusColorSpec,
+        label = "playerPillBackground",
     )
     val contentColor by animateColorAsState(
         if (focused) Color.Black else TextPrimary,
-        label = "actionsContent",
+        animationSpec = FocusColorSpec,
+        label = "playerPillContent",
     )
     Row(
-        modifier = Modifier
-            .focusRequester(focusRequester)
+        modifier = modifier
             .scale(scale)
-            .height(48.dp)
+            .height(44.dp)
             .clip(RoundedCornerShape(50))
             .background(background)
             .border(
-                BorderStroke(2.dp, if (focused) Color.White else Color.Transparent),
+                BorderStroke(
+                    2.dp,
+                    when {
+                        focused -> Color.White
+                        accent -> Accent.copy(alpha = 0.5f)
+                        else -> Color.Transparent
+                    },
+                ),
                 RoundedCornerShape(50),
             )
             .onFocusChanged { focused = it.isFocused }
@@ -993,9 +1151,23 @@ private fun ActionsButton(focusRequester: FocusRequester, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
-        Text("•••", color = contentColor, fontSize = 14.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.width(8.dp))
-        Text("Ações", color = contentColor, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+        if (leading.isNotEmpty()) {
+            Text(
+                text = leading,
+                color = contentColor,
+                fontSize = 14.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.width(8.dp))
+        }
+        Text(
+            text = label,
+            color = contentColor,
+            fontSize = 15.sp,
+            lineHeight = 19.sp,
+            fontWeight = FontWeight.SemiBold,
+        )
     }
 }
 
@@ -1008,13 +1180,17 @@ private fun SeekControl(
     onSeekBy: (Long) -> Unit,
 ) {
     var focused by remember { mutableStateOf(false) }
-    val scale by animateFloatAsState(if (focused) 1.06f else 1f, label = "seekScale")
+    val scale by animateFloatAsState(
+        if (focused) 1.02f else 1f,
+        animationSpec = FocusScaleSpec,
+        label = "seekScale",
+    )
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .scale(scale)
             .clip(RoundedCornerShape(12.dp))
-            .background(if (focused) SurfaceFocused else Color.Transparent)
+            .background(if (focused) SurfaceFocused.copy(alpha = 0.6f) else Color.Transparent)
             .border(
                 BorderStroke(2.dp, if (focused) Color.White else Color.Transparent),
                 RoundedCornerShape(12.dp),
@@ -1039,27 +1215,38 @@ private fun SeekControl(
             .focusable()
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(formatTime(positionMs), color = TextSecondary, fontSize = 13.sp)
-            Text(formatTime(durationMs), color = TextSecondary, fontSize = 13.sp)
-        }
-        Spacer(Modifier.height(8.dp))
         ProgressBar(
             positionMs = positionMs,
             durationMs = durationMs,
             modifier = Modifier.fillMaxWidth(),
         )
         Spacer(Modifier.height(6.dp))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text = formatTime(positionMs),
+                color = TextSecondary,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+            )
+            Text(
+                text = formatTime(durationMs),
+                color = TextSecondary,
+                fontSize = 13.sp,
+                lineHeight = 18.sp,
+            )
+        }
+        Spacer(Modifier.height(4.dp))
         Text(
             text = if (feedback != null) {
                 val arrow = if (feedback.deltaMs < 0L) "◀" else "▶"
                 val sign = if (feedback.deltaMs < 0L) "-" else "+"
                 "$arrow $sign${abs(feedback.deltaMs) / 1000}s • ${formatTime(feedback.positionMs)}"
             } else {
-                "◀ ▶ buscam 10s"
+                "◀ ▶ ±10 s"
             },
             color = if (feedback != null) Accent else TextSecondary,
             fontSize = 12.sp,
+            lineHeight = 16.sp,
         )
     }
 }
@@ -1096,11 +1283,25 @@ private fun Artwork(playback: PlaybackSnapshot, size: Dp = 56.dp) {
         Image(
             bitmap = bitmap.asImageBitmap(),
             contentDescription = null,
-            modifier = Modifier.size(size).clip(RoundedCornerShape(8.dp)),
+            modifier = Modifier.size(size).clip(RoundedCornerShape(10.dp)),
             contentScale = ContentScale.Crop,
         )
     } else {
         ArtworkPlaceholder(size)
+    }
+}
+
+/** Muted cover slot of the chip while the session has no track. */
+@Composable
+private fun IdleArtwork(size: Dp) {
+    Box(
+        modifier = Modifier
+            .size(size)
+            .clip(RoundedCornerShape(10.dp))
+            .background(SurfaceFocused),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text("♪", color = TextSecondary, fontSize = (size.value * 0.4f).sp)
     }
 }
 
@@ -1130,8 +1331,8 @@ private fun ProgressBar(positionMs: Long, durationMs: Long, modifier: Modifier =
     }
     Box(
         modifier = modifier
-            .height(4.dp)
-            .clip(RoundedCornerShape(2.dp))
+            .height(5.dp)
+            .clip(RoundedCornerShape(3.dp))
             .background(SeekTrack),
     ) {
         Box(
@@ -1143,35 +1344,53 @@ private fun ProgressBar(positionMs: Long, durationMs: Long, modifier: Modifier =
     }
 }
 
-@Composable
-private fun SearchUnavailable() {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(48.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            text = "Busca indisponível via engine",
-            color = TextPrimary,
-            fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Spacer(Modifier.height(10.dp))
-        Text(
-            text = "O catálogo Android Auto do Apple Music só expõe Início, Rádio e " +
-                "Biblioteca pelo MediaBrowser. Busca exigiria a API da Apple/UID compartilhado.",
-            color = TextSecondary,
-            fontSize = 15.sp,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.widthIn(max = 760.dp),
-        )
+/**
+ * Dark gradient derived from the cover (a coarse 8x8 sample, once per artwork). The
+ * sampled colour is capped at ~42 % brightness so white type keeps its contrast; black
+ * stays the bottom stop. No artwork keeps the red-tinted fallback.
+ */
+private fun artworkBackground(artwork: Bitmap?): List<Color> {
+    val fallback = listOf(Color(0xFF2A1014), Color(0xFF120709), Background)
+    if (artwork == null || artwork.isRecycled || artwork.width <= 0 || artwork.height <= 0) {
+        return fallback
     }
+    val stepX = (artwork.width / 8).coerceAtLeast(1)
+    val stepY = (artwork.height / 8).coerceAtLeast(1)
+    var red = 0.0
+    var green = 0.0
+    var blue = 0.0
+    var samples = 0
+    var x = 0
+    while (x < artwork.width) {
+        var y = 0
+        while (y < artwork.height) {
+            val pixel = artwork.getPixel(x, y)
+            if (android.graphics.Color.alpha(pixel) > 32) {
+                red += android.graphics.Color.red(pixel)
+                green += android.graphics.Color.green(pixel)
+                blue += android.graphics.Color.blue(pixel)
+                samples++
+            }
+            y += stepY
+        }
+        x += stepX
+    }
+    if (samples == 0) return fallback
+    val r = (red / samples / 255.0).toFloat()
+    val g = (green / samples / 255.0).toFloat()
+    val b = (blue / samples / 255.0).toFloat()
+    fun tone(multiplier: Float) = Color(
+        (r * multiplier).coerceIn(0.015f, 0.42f),
+        (g * multiplier).coerceIn(0.015f, 0.42f),
+        (b * multiplier).coerceIn(0.015f, 0.42f),
+    )
+    return listOf(tone(0.62f), tone(0.26f), Background)
 }
 
 @Composable
 private fun CenteredMessage(message: String) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(message, color = TextSecondary, fontSize = 18.sp)
+        Text(message, color = TextSecondary, fontSize = 16.sp, lineHeight = 22.sp)
     }
 }
 
@@ -1185,14 +1404,16 @@ private fun ErrorPane(message: String?, onRetry: () -> Unit) {
         Text(
             text = message ?: "Falha ao conectar ao Apple Music",
             color = TextPrimary,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 24.sp,
+            lineHeight = 30.sp,
+            fontWeight = FontWeight.Bold,
         )
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(10.dp))
         Text(
             text = "Verifique se o Apple Music está instalado e se a sessão de mídia está ativa.",
             color = TextSecondary,
-            fontSize = 14.sp,
+            fontSize = 15.sp,
+            lineHeight = 21.sp,
         )
         Spacer(Modifier.height(20.dp))
         var focused by remember { mutableStateOf(false) }
@@ -1208,7 +1429,7 @@ private fun ErrorPane(message: String?, onRetry: () -> Unit) {
                 .clickable { onRetry() }
                 .padding(horizontal = 24.dp, vertical = 12.dp),
         ) {
-            Text("Tentar de novo", color = TextPrimary, fontSize = 16.sp)
+            Text("Tentar de novo", color = TextPrimary, fontSize = 15.sp, lineHeight = 20.sp)
         }
     }
 }

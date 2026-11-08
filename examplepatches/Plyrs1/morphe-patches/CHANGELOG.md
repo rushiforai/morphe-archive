@@ -1,3 +1,9 @@
+## [1.5.0-dev.3](https://github.com/Plyrs1/morphe-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* **strukpom:** pass index to addInstructions for Patcher 2.3.0 API ([0a9a0c7](https://github.com/Plyrs1/morphe-patches/commit/0a9a0c7119fdd2b7e2ed122346e6ec083dc73968))
+
 ## [1.5.0-dev.2](https://github.com/Plyrs1/morphe-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-07)
 
 ### ✨ New Features

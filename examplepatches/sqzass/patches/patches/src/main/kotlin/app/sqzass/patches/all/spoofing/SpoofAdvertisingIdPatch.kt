@@ -14,8 +14,8 @@ import java.util.UUID
 
 private val logger = Logger.getLogger("SpoofAdvertisingIdPatch")
 
-private const val ADVERTISING_ID_INFO = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient$AdvertisingIdInfo;"
-private const val SETTINGS_SECURE = "Landroid/provider/Settings$Secure;"
+private const val ADVERTISING_ID_INFO = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$AdvertisingIdInfo;"
+private const val SETTINGS_SECURE = "Landroid/provider/Settings\$Secure;"
 
 private const val ANDROID_ID_KEY = "android_id"
 

@@ -91,6 +91,8 @@ public final class MorpheLocale {
         TRANSLATIONS.put("Advanced", "Nâng cao");
         TRANSLATIONS.put("Advanced & About", "Nâng cao & Giới thiệu");
         TRANSLATIONS.put("Advanced Search Filters", "Bộ lọc tìm kiếm nâng cao");
+        TRANSLATIONS.put("kyurem39's patches", "Bản vá kyurem39");
+        TRANSLATIONS.put("Patches settings", "Cài đặt bản vá");
         TRANSLATIONS.put("All", "Tất cả");
         TRANSLATIONS.put("All (Selective Filtering)", "Tất cả (Lọc có chọn lọc)");
         TRANSLATIONS.put("All available buttons are in use.", "Tất cả các nút khả dụng đang được sử dụng.");

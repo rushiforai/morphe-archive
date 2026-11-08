@@ -25,7 +25,10 @@ val skipAdsPatch = bytecodePatch(
     compatibleWith(Constants.COMPATIBILITY)
 
     execute {
-        HlsMediaItemsFingerprint.method.apply {
+        // The Android TV build shares the package name but not this code, and
+        // Morphe Manager can still select this patch for it.
+        val method = HlsMediaItemsFingerprint.methodOrNull ?: return@execute
+        method.apply {
             val instructions = implementation!!.instructions.toList()
             val adsIdIndex = instructions.indexOfFirst {
                 it.opcode == Opcode.CONST_STRING &&

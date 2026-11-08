@@ -278,16 +278,17 @@ val gameReviewPatch = bytecodePatch(
         // If the app is about to build an item of our own review from data it cannot replay (no
         // played move / unconvertible suggestion), return a neutral "book" item instead of
         // crashing. chess.com's own reviews build theirs as before.
+        // j0.o is static: param 0 (AnalyzedPosition) is p0, param 1 (history) is p1.
         GameReviewV2V0JFingerprint.method.addInstructions(
             0,
             """
-                move-object/from16 v0, p1
-                move-object/from16 v1, p2
+                move-object/from16 v0, p0
+                move-object/from16 v1, p1
                 invoke-static { v0, v1 }, $EXTENSION_CLASS->shouldUseDummyMove(Ljava/lang/Object;Ljava/lang/Object;)Z
                 move-result v0
                 if-eqz v0, :proceed
                 const-class v0, Lcom/chess/gamereview/api/d;
-                move-object/from16 v1, p2
+                move-object/from16 v1, p1
                 invoke-static { v0, v1 }, $EXTENSION_CLASS->buildDummyMoveResult(Ljava/lang/Class;Ljava/lang/Object;)Ljava/lang/Object;
                 move-result-object v0
                 if-eqz v0, :proceed

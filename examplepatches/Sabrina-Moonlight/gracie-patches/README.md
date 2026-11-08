@@ -22,7 +22,7 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 ## 🌷 Available patches
 
 <!-- PATCHES_START -->
-> **[v1.0.41](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.41)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
+> **[v1.0.72](https://github.com/Sabrina-Moonlight/gracie-patches/releases/tag/v1.0.72)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;16 patches total
 <details open>
 <summary>🌸 Orientation Control&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -114,19 +114,21 @@ https://github.com/Sabrina-Moonlight/gracie-patches
 </details>
 
 <details open>
-<summary>🌸 Sound Assistant&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>🌸 Themezy&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
-**Package name:** `com.samsung.android.soundassistant`
+**Package name:** `com.themezy.theme.iconwidgets`
 
 **🌻 Supported versions:**
 
-| 8.5.00.2 |
+| 1.0.9 |
 | :---: |
 
 | 🌷&nbsp;Patch | 💐&nbsp;Description | 🪻&nbsp;Options |
 |----------|----------------|-----------|
-| [Fix Multi Sound Restricted](#fix-multi-sound-restricted) | Disables force-update exit and forces multi-sound restricted checks to allow so ads no longer pause audio. |  |
+| [Disable Pairip](#disable-pairip) | Skips the local license check so the app can keep running offline. |  |
+| [Hide Ads](#hide-ads) | Turns off every ad gate and every show/preload path in Themezy. |  |
+| [Unlock Local](#unlock-local) | Marks icons, wallpapers and widgets as unlocked so only Add/Apply shows, never Unlock. |  |
 
 </details>
 

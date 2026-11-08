@@ -1,0 +1,25 @@
+11-07 09:29:43.849 I/C2VencComponent(  466): release handle resource!
+11-07 09:29:43.874 D/AndroidRuntime(19137): Shutting down VM
+--------- beginning of crash
+11-07 09:29:43.884 E/AndroidRuntime(19137): FATAL EXCEPTION: main
+11-07 09:29:43.884 E/AndroidRuntime(19137): Process: com.apple.android.music, PID: 19137
+11-07 09:29:43.884 E/AndroidRuntime(19137): java.lang.NoSuchFieldError: No static field INSTANCE of type Lkotlin/Unit; in class Lkotlin/Unit; or its superclasses (declaration of 'kotlin.Unit' appears in /data/app/~~_caRt5n34d1V2KXZ8EL7Bg==/com.apple.android.music-cG6FFtFgBeSU1y5GuvLs-g==/base.apk!classes6.dex)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at androidx.savedstate.SavedStateRegistryController$Companion.create$lambda$0(SavedStateRegistryController.android.kt:50)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at androidx.savedstate.SavedStateRegistryController$Companion$$ExternalSyntheticLambda0.invoke(D8$$SyntheticClass:0)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at androidx.savedstate.internal.SavedStateRegistryImpl.performAttach(SavedStateRegistryImpl.kt:94)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at androidx.savedstate.SavedStateRegistryController.performAttach(SavedStateRegistryController.android.kt:30)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at androidx.activity.ComponentActivity.<init>(ComponentActivity.kt:301)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at com.anderson.applemusic.probe.compose.ComposeProbeActivity.<init>(ComposeProbeActivity.kt:67)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at java.lang.Class.newInstance(Native Method)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.app.AppComponentFactory.instantiateActivity(AppComponentFactory.java:95)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at androidx.core.app.CoreComponentFactory.instantiateActivity(MusicApp:1)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.app.Instrumentation.newActivity(Instrumentation.java:1378)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.app.ActivityThread.performLaunchActivity(ActivityThread.java:3692)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.app.ActivityThread.handleLaunchActivity(ActivityThread.java:3938)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.app.servertransaction.LaunchActivityItem.execute(LaunchActivityItem.java:103)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.app.servertransaction.TransactionExecutor.executeCallbacks(TransactionExecutor.java:139)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:96)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2459)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.os.Handler.dispatchMessage(Handler.java:106)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.os.Looper.loopOnce(Looper.java:205)
+11-07 09:29:43.884 E/AndroidRuntime(19137): 	at android.os.Looper.loop(Looper.java:294)

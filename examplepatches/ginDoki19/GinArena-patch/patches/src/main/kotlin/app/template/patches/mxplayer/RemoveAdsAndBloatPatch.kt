@@ -52,9 +52,9 @@ val removeAdsAndBloatPatch = bytecodePatch(
             val isAdEnabledTargetName = isAdEnabledBridge.instructions
                 .filterIsInstance<ReferenceInstruction>()
                 .mapNotNull { it.reference as? MethodReference }
-                .firstOrNull { it.definingClass == sharedStateClass.type && it.parameterTypes.isEmpty() && it.returnType == "Z" }
+                .singleOrNull { it.definingClass == sharedStateClass.type && it.parameterTypes.isEmpty() && it.returnType == "Z" }
                 ?.name
-                ?: throw PatchException("Failed to resolve SharedStateManager->b()Z target on ${sharedStateClass.type}")
+                ?: throw PatchException("Failed to resolve a unique SharedStateManager->b()Z target on ${sharedStateClass.type}")
             sharedStateClass.returnBoolean(isAdEnabledBridge, false)
             sharedStateClass.returnBoolean(
                 sharedStateClass.requireMethod(isAdEnabledTargetName, "Z", emptyList()),
@@ -63,13 +63,13 @@ val removeAdsAndBloatPatch = bytecodePatch(
 
             // SharedStateManager's non-`m` `()V` method (`P` in 3.3.1, `O` in 3.4.0/3.4.1) is the
             // mediation SDK bootstrap method name shared with `AdManagerV2`.
-            val sdkBootstrapName = sharedStateClass.methods.firstOrNull {
+            val sdkBootstrapName = sharedStateClass.methods.singleOrNull {
                 it.parameterTypes.isEmpty() &&
                     it.returnType == "V" &&
                     it.name != "<init>" &&
                     it.name != "<clinit>" &&
                     it.name != "m"
-            }?.name ?: throw PatchException("Failed to locate mediation bootstrap method on ${sharedStateClass.type}")
+            }?.name ?: throw PatchException("Failed to locate a unique mediation bootstrap method on ${sharedStateClass.type}")
 
             val adManagerClass = AdManagerV2InitFingerprint.classDef
             adManagerClass.returnVoid(adManagerClass.requireMethod(sdkBootstrapName, "V", emptyList()))

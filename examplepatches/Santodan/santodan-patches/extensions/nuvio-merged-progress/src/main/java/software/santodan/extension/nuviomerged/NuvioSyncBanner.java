@@ -67,11 +67,11 @@ public final class NuvioSyncBanner {
         if(initialized)return;
         loader=state.getClass().getClassLoader();
         Class<?> callback=loader.loadClass("kotlin.jvm.functions.Function0");
-        nativeHost=loader.loadClass("na.k1").getDeclaredMethod("n",loader.loadClass("lb.k0"),callback,callback,
+        nativeHost=loader.loadClass("na.r1").getDeclaredMethod("n",loader.loadClass("lb.k0"),callback,callback,
             callback,callback,callback,callback,loader.loadClass("r1.s"),loader.loadClass("h1.n"),int.class);
         nativeString=loader.loadClass("u6.g").getDeclaredMethod("d0",int.class,loader.loadClass("h1.n"));
         nativeFormat=loader.loadClass("u6.g").getDeclaredMethod("e0",int.class,Object[].class,loader.loadClass("h1.n"));
-        nativeGroupText=loader.loadClass("m9.a5").getDeclaredMethod("i",loader.loadClass("h1.k0"),int.class,int.class,loader.loadClass("h1.k0"),boolean.class);
+        nativeGroupText=loader.loadClass("m9.v4").getDeclaredMethod("j",loader.loadClass("h1.k0"),int.class,int.class,loader.loadClass("h1.k0"),boolean.class);
         updateConstructor=loader.loadClass("mb.a").getDeclaredConstructor(String.class,String.class,String.class,
             String.class,String.class,String.class,Long.class);
         stateConstructor=loader.loadClass("lb.k0").getDeclaredConstructor(boolean.class,loader.loadClass("mb.a"),

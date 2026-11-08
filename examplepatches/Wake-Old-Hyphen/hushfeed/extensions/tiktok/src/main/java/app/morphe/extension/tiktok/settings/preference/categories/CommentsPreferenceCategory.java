@@ -264,9 +264,23 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Compact comment header",
-                    "Hides the comment count, the sort and close buttons and the suggestions "
-                            + "above them. Use Back or swipe down to close comments.",
+                    "Hides the comment count, the sort, translate and close buttons and the "
+                            + "suggestions above them. Use Back or swipe down to close comments.",
                     Settings.COMPACT_COMMENT_HEADER
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the close button in comments",
+                    "Hides the X at the top of the comments, and the buttons next to it move over "
+                            + "to fill the gap. Use Back or swipe down to close comments.",
+                    Settings.HIDE_COMMENT_CLOSE_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the expand button in comments",
+                    "Hides the button that stretches the comments over the whole screen. Turn on "
+                            + "Open the comments at full height to have them open that way.",
+                    Settings.HIDE_COMMENT_EXPAND_BUTTON
             ));
             addPreference(new TogglePreference(
                     context,
@@ -340,6 +354,13 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Hide the thumbs down beside the heart on each comment. It stays while "
                             + "Thumbs down blocks the commenter is on.",
                     Settings.HIDE_COMMENT_DISLIKE
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide profile pictures in comments",
+                    "Hide the picture beside each comment and reply. The name and the comment "
+                            + "move over to fill its place.",
+                    Settings.HIDE_COMMENT_AVATARS
             ));
             addPreference(new TogglePreference(
                     context,

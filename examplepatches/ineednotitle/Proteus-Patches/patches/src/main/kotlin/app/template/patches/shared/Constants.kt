@@ -2097,4 +2097,19 @@ val HINDUSTAN_TIMES_COMPATIBILITY = Compatibility(
             AppTarget(version = "4.9.16"),
         )
     )
+
+val MEESHO_COMPATIBILITY = Compatibility(
+        name = "Meesho",
+        packageName = "com.meesho.shopping",
+        apkFileType = ApkFileType.XAPK,
+        appIconColor = 0xF43397,
+        targets = listOf(
+            // store builds observed 2026-11-06/07 (APKMirror) — XAPK split bundles
+            AppTarget(version = "29.9"),
+            AppTarget(version = "29.8"),
+            AppTarget(version = "29.7", versionCode = 872),
+            AppTarget(version = "29.6", versionCode = 870),
+            AppTarget(version = "29.5", versionCode = 868),
+        )
+    )
 }

@@ -1431,7 +1431,7 @@ index 000000000..12943bbef
 +    }
 +}
 diff --git a/extensions/reddit/src/main/java/app/morphe/extension/reddit/settings/Settings.java b/extensions/reddit/src/main/java/app/morphe/extension/reddit/settings/Settings.java
-index 6998061de..488e7ae4c 100644
+index 68a6b0f22..ec9bbde7b 100644
 --- a/extensions/reddit/src/main/java/app/morphe/extension/reddit/settings/Settings.java
 +++ b/extensions/reddit/src/main/java/app/morphe/extension/reddit/settings/Settings.java
 @@ -54,6 +54,9 @@ public class Settings extends BaseSettings {
@@ -2620,18 +2620,18 @@ index 000000000..ede7d41a4
 +    }
 +}
 diff --git a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java b/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
-index a5ab558e2..40a2064b2 100644
+index b1c331e5d..69a301a01 100644
 --- a/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
 +++ b/extensions/youtube/src/main/java/app/morphe/extension/youtube/settings/Settings.java
-@@ -313,6 +313,7 @@ public class Settings extends SharedYouTubeSettings {
-     public static final BooleanSetting SHORTS_DOWNLOAD_FLYOUT_BUTTON = new BooleanSetting("morphe_shorts_download_flyout_button", TRUE, DOWNLOAD_MODE.availability(DownloadMode.EXTERNAL));
+@@ -334,6 +334,7 @@ public class Settings extends SharedYouTubeSettings {
+     public static final StringSetting EXPORT_DOWNLOAD_FOLDER = new StringSetting("morphe_export_download_folder", "", DOWNLOAD_MODE.availability(DownloadMode.DEFAULT, DownloadMode.IN_APP));
  
      // Overlay buttons
 +    public static final BooleanSetting CAT_LOCK_BUTTON = new BooleanSetting("morphe_cat_lock_button", FALSE, true);
      public static final BooleanSetting FULLSCREEN_VIDEO_SCALE_BUTTON = new BooleanSetting("morphe_fullscreen_video_scale_button", FALSE, true);
      public static final BooleanSetting FULLSCREEN_VIDEO_SCALE_BUTTON_FULLSCREEN_ONLY = new BooleanSetting("morphe_fullscreen_video_scale_button_fullscreen_only", FALSE, parent(FULLSCREEN_VIDEO_SCALE_BUTTON));
      public static final BooleanSetting COPY_VIDEO_LINK_BUTTON = new BooleanSetting("morphe_copy_video_link_button", FALSE, true);
-@@ -443,6 +444,7 @@ public class Settings extends SharedYouTubeSettings {
+@@ -489,6 +490,7 @@ public class Settings extends SharedYouTubeSettings {
      public static final BooleanSetting HIDE_COMMENTS_GIFT_ANIMATION_AND_CARDS = new BooleanSetting("morphe_hide_comments_gift_animation_and_cards", FALSE);
      public static final BooleanSetting HIDE_COMMENTS_GIFT_BUTTON = new BooleanSetting("morphe_hide_comments_gift_button", TRUE, true);
      public static final BooleanSetting HIDE_COMMENTS_INFO_BUTTON = new BooleanSetting("morphe_hide_comments_info_button", FALSE, true);
@@ -3055,23 +3055,22 @@ index 000000000..8f28fbf46
 +)
 diff --git a/patches/src/main/kotlin/app/morphe/patches/reddit/layout/nsfw/NsfwFeedModePatch.kt b/patches/src/main/kotlin/app/morphe/patches/reddit/layout/nsfw/NsfwFeedModePatch.kt
 new file mode 100644
-index 000000000..b346e51b5
+index 000000000..c16edfa55
 --- /dev/null
 +++ b/patches/src/main/kotlin/app/morphe/patches/reddit/layout/nsfw/NsfwFeedModePatch.kt
-@@ -0,0 +1,180 @@
+@@ -0,0 +1,179 @@
 +package app.morphe.patches.reddit.layout.nsfw
 +
 +import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 +import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 +import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-+import app.morphe.patcher.patch.bytecodePatch
-+import app.morphe.patcher.patch.resourcePatch
++import app.morphe.patcher.patch.patch
++import app.morphe.patcher.util.findFreeRegister
 +import app.morphe.patches.all.misc.resources.resourceMappingPatch
 +import app.morphe.patches.reddit.misc.settings.settingsPatch
 +import app.morphe.patches.reddit.shared.Constants.COMPATIBILITY_REDDIT
 +import app.morphe.util.ResourceGroup
 +import app.morphe.util.copyResources
-+import app.morphe.util.findFreeRegister
 +import app.morphe.util.setExtensionIsPatchIncluded
 +import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 +import java.util.logging.Logger
@@ -3088,7 +3087,7 @@ index 000000000..b346e51b5
 +private const val ICON_EXTENSION_CLASS =
 +    "Lapp/morphe/extension/reddit/patches/NsfwModeIcon;"
 +
-+private val nsfwFeedModeResourcePatch = resourcePatch {
++private val nsfwFeedModeResourcePatch = patch {
 +    execute {
 +        copyResources(
 +            "nsfwmode",
@@ -3101,7 +3100,7 @@ index 000000000..b346e51b5
 +}
 +
 +@Suppress("unused")
-+val nsfwFeedModePatch = bytecodePatch(
++val nsfwFeedModePatch = patch(
 +    name = "NSFW mode",
 +    description = "Adds an NSFW row to the navigation drawer that reduces the home feed to " +
 +            "its 18+ posts. Turned off until it is switched on. Reddit only sends 18+ posts to " +
@@ -3241,14 +3240,13 @@ index 000000000..b346e51b5
 +}
 diff --git a/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt b/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt
 new file mode 100644
-index 000000000..9810429fc
+index 000000000..a437945e1
 --- /dev/null
 +++ b/patches/src/main/kotlin/app/morphe/patches/youtube/interaction/catlock/CatLockPatch.kt
-@@ -0,0 +1,66 @@
+@@ -0,0 +1,65 @@
 +package app.morphe.patches.youtube.interaction.catlock
 +
-+import app.morphe.patcher.patch.bytecodePatch
-+import app.morphe.patcher.patch.resourcePatch
++import app.morphe.patcher.patch.patch
 +import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 +import app.morphe.patches.youtube.misc.playercontrols.addTopControl
 +import app.morphe.patches.youtube.misc.playercontrols.initializeTopControl
@@ -3259,7 +3257,7 @@ index 000000000..9810429fc
 +import app.morphe.util.ResourceGroup
 +import app.morphe.util.copyResources
 +
-+private val catLockResourcePatch = resourcePatch {
++private val catLockResourcePatch = patch {
 +    dependsOn(
 +        legacyPlayerControlsPatch,
 +        settingsPatch,
@@ -3292,7 +3290,7 @@ index 000000000..9810429fc
 +private const val EXTENSION_BUTTON = "Lapp/morphe/extension/youtube/videoplayer/CatLockButton;"
 +
 +@Suppress("unused")
-+val catLockPatch = bytecodePatch(
++val catLockPatch = patch(
 +    name = "Cat lock",
 +    description = "Adds a cat button to the video player that locks the screen so a pet can watch " +
 +        "without accidentally swiping the video away; unlock by quickly tapping alternating " +
@@ -3312,10 +3310,10 @@ index 000000000..9810429fc
 +    }
 +}
 diff --git a/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt b/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
-index 61deeae51..329d81491 100644
+index 3fa25dfbb..a5ecd83f7 100644
 --- a/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
 +++ b/patches/src/main/kotlin/app/morphe/patches/youtube/layout/hide/general/HideLayoutComponentsPatch.kt
-@@ -96,6 +96,8 @@ private const val EXPLORE_MENU_FILTER =
+@@ -94,6 +94,8 @@ private const val EXPLORE_MENU_FILTER =
      "Lapp/morphe/extension/youtube/patches/components/ExploreMenuFilter;"
  private const val COMMENTS_FILTER =
      "Lapp/morphe/extension/youtube/patches/components/CommentsFilter;"
@@ -3324,7 +3322,7 @@ index 61deeae51..329d81491 100644
  private const val CUSTOM_FILTER =
      "Lapp/morphe/extension/youtube/patches/components/CustomFilter;"
  private const val KEYWORD_FILTER =
-@@ -173,6 +175,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
+@@ -171,6 +173,7 @@ val hideLayoutComponentsPatch = patch(
                              inputType = InputType.TEXT_MULTI_LINE
                          )
                      ),
@@ -3332,7 +3330,7 @@ index 61deeae51..329d81491 100644
                      SwitchPreference("morphe_hide_comments_ai_chat_summary"),
                      SwitchPreference("morphe_hide_comments_channel_guidelines"),
                      SwitchPreference("morphe_hide_comments_by_members_header"),
-@@ -407,6 +410,7 @@ val hideLayoutComponentsPatch = bytecodePatch(
+@@ -419,6 +422,7 @@ val hideLayoutComponentsPatch = patch(
              addLithoFilter(EXPLORE_MENU_FILTER)
          }
          addLithoFilter(COMMENTS_FILTER)
@@ -3341,10 +3339,10 @@ index 61deeae51..329d81491 100644
          addLithoFilter(CUSTOM_FILTER)
          addSpanFilter(SANITIZE_VIDEO_SUBTITLE_FILTER)
 diff --git a/patches/src/main/resources/addresources/values/reddit/strings.xml b/patches/src/main/resources/addresources/values/reddit/strings.xml
-index 9d265c84b..3958f40dd 100644
+index 3a72b7763..08ecf1fe3 100644
 --- a/patches/src/main/resources/addresources/values/reddit/strings.xml
 +++ b/patches/src/main/resources/addresources/values/reddit/strings.xml
-@@ -22,6 +22,13 @@ Second \"item\" text"</string>
+@@ -29,6 +29,13 @@ To use an older version, you must &lt;b>uninstall&lt;/b> Reddit and then install
      <string name="morphe_hide_post_ads_title">Hide feed ads</string>
      <string name="morphe_hide_comment_ads_title">Hide comment ads</string>
  
@@ -3359,11 +3357,11 @@ index 9d265c84b..3958f40dd 100644
      <string name="morphe_hide_answers_button_title">Hide Answers button</string>
      <string name="morphe_hide_chat_button_title">Hide Chat button</string>
 diff --git a/patches/src/main/resources/addresources/values/youtube/strings.xml b/patches/src/main/resources/addresources/values/youtube/strings.xml
-index d73579670..a23c2145a 100644
+index 7909c20c1..eae961821 100644
 --- a/patches/src/main/resources/addresources/values/youtube/strings.xml
 +++ b/patches/src/main/resources/addresources/values/youtube/strings.xml
-@@ -276,6 +276,8 @@ Changes include:
- • If all carousel items are hidden, the entire comments section will also be hidden"</string>
+@@ -288,6 +288,8 @@ Changes include:
+ • Hiding all items hides the entire comments section"</string>
      <string name="morphe_hide_comments_carousel_filter_strings_title">Comments carousel filter</string>
      <string name="morphe_hide_comments_carousel_filter_strings_summary">Enter the comments carousel names to filter by, separated by new lines</string>
 +    <string name="morphe_hide_brainrot_comments_title">Hide brainrot comments</string>
@@ -3371,7 +3369,7 @@ index d73579670..a23c2145a 100644
      <string name="morphe_hide_comments_ai_chat_summary_title">Hide AI chat summary</string>
      <string name="morphe_hide_comments_channel_guidelines_title">Hide channel guidelines</string>
      <string name="morphe_hide_comments_contexts_title">Hide context messages</string>
-@@ -461,6 +463,8 @@ Reports are public and are reviewed before a channel is added to a list. Removal
+@@ -491,6 +493,8 @@ Reports are public and are reviewed before a channel is added to a list. Removal
      <!-- interaction.copyvideolink.copyVideoLinkButtonPatch -->
      <string name="morphe_share_copy_link_button_success">Link copied to clipboard</string>
      <string name="morphe_share_copy_link_with_timestamp_button_success">Link with timestamp copied to clipboard</string>

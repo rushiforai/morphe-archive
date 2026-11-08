@@ -67,6 +67,7 @@ import semicoloncolonel.mobilestream.patches.washingtonpost.shared.Constants as 
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants as AppleTv
 import semicoloncolonel.mobilestream.patches.nps.shared.Constants as Nps
 import semicoloncolonel.mobilestream.patches.fema.shared.Constants as Fema
+import semicoloncolonel.mobilestream.patches.truthsocial.shared.Constants as TruthSocial
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Hide device identifiers (OPT-IN, default OFF).
@@ -89,6 +90,10 @@ import semicoloncolonel.mobilestream.patches.fema.shared.Constants as Fema
 //      as on a device without Play Services. Google's own client keeps the
 //      real action, because layer 2 already zeroes what it returns.
 //
+//   4. Truth Social: the app sends Adjust's device ID to its own server
+//      (/api/v1/attribution/device). Its request body is given a random
+//      per-install ID from DeviceIdSpoofer.maskId instead.
+//
 // Not touched: the Widevine DRM device ID (faking it breaks playback) and IDs
 // an app generates and stores itself (clearing the app's data resets those).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -98,6 +103,7 @@ private const val EXTENSION_PACKAGE = "Lsemicoloncolonel/mobilestream/extension/
 private const val AD_ID_CLIENT_PACKAGE = "Lcom/google/android/gms/ads/identifier/"
 private const val AD_ID_SERVICE_ACTION = "com.google.android.gms.ads.identifier.service.START"
 private const val ZERO_AD_ID = "00000000-0000-0000-0000-000000000000"
+private const val TRUTH_ATTRIBUTION_BODY = "Lcom/truthsocial/app/data/api/service/attribution/AttributionDeviceBody;"
 
 internal object AdvertisingIdInfoGetIdFingerprint : Fingerprint(
     definingClass = "Lcom/google/android/gms/ads/identifier/AdvertisingIdClient\$Info;",
@@ -132,7 +138,7 @@ val hideDeviceIdentifiersPatch = bytecodePatch(
     description = "Gives the app a random Android ID and a zeroed advertising ID.",
     default = false,
 ) {
-    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Moviebase.COMPATIBILITY, TMobilePlay.COMPATIBILITY, TLife.COMPATIBILITY, JustWatch.COMPATIBILITY, Mint.COMPATIBILITY, Xfinity.COMPATIBILITY, Att.COMPATIBILITY, Verizon.COMPATIBILITY, Visible.COMPATIBILITY, WhiteHouse.COMPATIBILITY, Nps.COMPATIBILITY, Fema.COMPATIBILITY, RecGov.COMPATIBILITY, *SHOPPING_APPS, AppleTv.COMPATIBILITY, Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY, TheScore.COMPATIBILITY, Substack.COMPATIBILITY, Cspan.COMPATIBILITY, NewsNation.COMPATIBILITY, NewsNation.TV_COMPATIBILITY, DailyWire.COMPATIBILITY, UsaToday.COMPATIBILITY)
+    compatibleWith(Tubi.COMPATIBILITY, Disney.COMPATIBILITY, Hulu.COMPATIBILITY, Pluto.COMPATIBILITY, Paramount.COMPATIBILITY, HboMax.COMPATIBILITY, HboMax.STREAM_COMPATIBILITY, Peacock.COMPATIBILITY, PrimeVideo.COMPATIBILITY, Mgm.COMPATIBILITY, FoxOne.COMPATIBILITY, NyTimes.COMPATIBILITY, WashingtonPost.COMPATIBILITY, Wsj.COMPATIBILITY, Amc.COMPATIBILITY, Starz.COMPATIBILITY, Pbs.COMPATIBILITY, FoxNews.COMPATIBILITY, MsNow.COMPATIBILITY, Cnn.COMPATIBILITY, Espn.COMPATIBILITY, Nfl.COMPATIBILITY, Nba.COMPATIBILITY, Fandango.COMPATIBILITY, CbsNews.COMPATIBILITY, NbcNews.COMPATIBILITY, FoxLocal.COMPATIBILITY, AbcNews.COMPATIBILITY, Moviebase.COMPATIBILITY, TMobilePlay.COMPATIBILITY, TLife.COMPATIBILITY, JustWatch.COMPATIBILITY, Mint.COMPATIBILITY, Xfinity.COMPATIBILITY, Att.COMPATIBILITY, Verizon.COMPATIBILITY, Visible.COMPATIBILITY, WhiteHouse.COMPATIBILITY, Nps.COMPATIBILITY, Fema.COMPATIBILITY, RecGov.COMPATIBILITY, *SHOPPING_APPS, AppleTv.COMPATIBILITY, Xumo.COMPATIBILITY, Mlb.COMPATIBILITY, Npr.COMPATIBILITY, ApNews.COMPATIBILITY, NewsBreak.COMPATIBILITY, Shudder.COMPATIBILITY, SundanceNow.COMPATIBILITY, TheScore.COMPATIBILITY, Substack.COMPATIBILITY, Cspan.COMPATIBILITY, NewsNation.COMPATIBILITY, NewsNation.TV_COMPATIBILITY, DailyWire.COMPATIBILITY, UsaToday.COMPATIBILITY, TruthSocial.COMPATIBILITY)
 
     extendWith("extensions/extension.mpe")
 
@@ -201,6 +207,21 @@ val hideDeviceIdentifiersPatch = bytecodePatch(
                     )
                 }
             }
+        }
+
+        // Layer 4 (Truth Social). AttributionDeviceBody(String adjustDeviceId).
+        classDefByOrNull(TRUTH_ATTRIBUTION_BODY)?.let {
+            mutableClassDefBy(TRUTH_ATTRIBUTION_BODY).methods
+                .filter { it.name == "<init>" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") }
+                .forEach { constructor ->
+                    constructor.addInstructions(
+                        0,
+                        """
+                            invoke-static { p1 }, $SPOOFER->maskId(Ljava/lang/String;)Ljava/lang/String;
+                            move-result-object p1
+                        """.trimIndent(),
+                    )
+                }
         }
     }
 }

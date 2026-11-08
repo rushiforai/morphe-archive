@@ -61,8 +61,10 @@ track, and `enter` opens the full-screen `NowPlayingScreen`. `back` closes it an
 returns the D-pad focus to the chip. The old bottom bar was removed so the content
 area never competes with it for focus.
 
-The full screen shows large artwork, title, artist, album, elapsed/total time and a
-progress bar. Values come from `MediaController.getPlaybackState()` /
+The full screen shows large artwork (360 dp), title, artist, album, elapsed/total time and a
+progress bar. The backdrop is a dark gradient derived from the cover (coarse 8×8 sample,
+brightness capped so white type keeps contrast); without artwork it falls back to the
+red-tinted gradient. Values come from `MediaController.getPlaybackState()` /
 `getMetadata()` in a dedicated `TvViewModel.playback` `StateFlow`, collected with
 `collectAsStateWithLifecycle` inside `NowPlayingScreen` / `Header` (not in `TvApp`,
 so a playback update never invalidates the browse tree). `MediaController.Callback`
@@ -71,16 +73,19 @@ so a playback update never invalidates the browse tree). `MediaController.Callba
 position only — `getMetadata()` (which marshals the album art bitmap over binder) is
 called exclusively from the callbacks.
 
-D-pad order: initial focus is play/pause, `LEFT` = previous, `RIGHT` = next, then the
-`Ações` pill, `DOWN` = seek bar. On the seek bar `LEFT`/`RIGHT` call `TransportControls.seekTo` for −10 s /
-+10 s and show "▶ +10s • 1:56" feedback for 1.5 s. `back` returns to the previous
-screen (tab root or drill-down grid) with focus on the chip.
+D-pad order: initial focus is play/pause, `LEFT` = previous, `RIGHT` = next, then
+`DOWN` = the `Criar estação` / `Ações` pills, `DOWN` again = seek bar. On the seek bar
+`LEFT`/`RIGHT` call `TransportControls.seekTo` for −10 s / +10 s and show "▶ +10s • 1:56"
+feedback for 1.5 s. `back` returns to the previous screen (tab root or drill-down grid)
+with focus on the chip.
 
 ## Session actions
 
 The action list is generic over `PlaybackSnapshot.customActions`: the `Ações` pill on
 the full player opens a sheet that renders every action the engine announces for the
 current track (icon resolved from the engine package resources, title as published).
+When the session publishes `Criar Estação`, the full player also shows it as its own
+accent pill next to `Ações`; it sends the action directly, without opening the sheet.
 `enter` calls `MediaBrowserClient.sendCustomAction(action.action)`, closes the sheet and
 shows a transient hint ("Favorito aplicado", "Criando estação…", or
 "<título> aplicado"). Focus enters the first row and `back` returns it to the pill; the
@@ -96,9 +101,13 @@ the action for the now-loaded track; if it does not, the hint is
 
 `TvTheme.kt` holds the palette used by every screen: black background (`#000000`),
 surface `#1C1C1E`, focused surface `#2C2C2E`, primary text `#FFFFFF`, secondary
-`#8E8E93`, accent `#FA243C`, card corner 14 dp, overlay corner 16 dp and 32 dp page
+`#8E8E93`, accent `#FA243C`, card corner 16 dp, overlay corner 16 dp and 32 dp page
 padding. Cards are artwork-first with a bottom scrim; focus is a slight
 `graphicsLayer` scale plus a colour/brightness change, never an animated shadow.
+
+The type scale is 36/42 display, 26/32 section titles, 15/19 card titles, 12–13/16–18
+captions and 15/21 body; titles are 600–700, body and captions 400. Focus transitions
+use a 160 ms tween and nothing animates continuously.
 
 Typography is **Inter** (SIL OFL — SF Pro cannot be redistributed), bundled as static
 TTFs in `res/font` (400/500/600/700) with the licence in `res/raw/inter_license.txt`.
@@ -119,10 +128,23 @@ Player artwork comes from the session's `METADATA_KEY_ALBUM_ART` bitmap.
 
 ## Search
 
-The magnifier opens a "Busca indisponível via engine" screen. The legacy MediaBrowser
-tree only exposes the Android Auto sections and has no search surface. Implementing it
-later needs either the Apple Music media API directly or an extension inside the
-shared-UID engine (like the existing Morphe patches). Not attempted in this phase.
+The magnifier opens the catalogue search (`:core` `SearchClient`): the companion reads
+the engine's developer token (same UID), calls
+`GET https://amp-api.music.apple.com/v1/catalog/{storefront}/search` and lists the hits
+grouped by Músicas / Álbuns / Artistas / Playlists with cover, title and artist.
+Storefront comes from `Locale` (fallback `us`); the token is cached in memory only and
+re-read when the API answers 401. See `analysis/search-feasibility.md`.
+
+D-pad: the field requests focus and raises the system IME on focus; it swallows DOWN
+(hands the D-pad to the button row, then to the results) and ENTER (raises the IME
+again), while LEFT/RIGHT still move the caret. `Teclado` / `Limpar` /
+`Abrir busca do app original` sit under the field; `back` closes the search.
+
+ENTER on a result calls `playFromMediaId` with the catalogue id — that is the id the
+engine's store provider accepts (see `SearchResult.mediaIdCandidates`). An artist has
+nothing to play, so it goes straight to the engine's own `MEDIA_SEARCH`. When the token
+cannot be read or decrypted the screen says so and offers "Abrir busca do app original"
+(`VIEW https://music.apple.com/search`).
 
 ## Notes
 
@@ -199,6 +221,14 @@ frames over 3 reps** (4 per leg, equal to round 2) with `heavyP50` **149.6 ms** 
 frame stayed inside the round-2 range. The box was shared with other work during this
 run, so the gfxinfo percentiles (DOWN p50 61/65/97 ms) are only indicative; raw dumps are
 `perf2/revamp-*.txt` and `perf2/revamp.csv`.
+
+### Final polish (typography + player)
+
+Same isolated leg on the release APK after the final visual pass: DOWN x12 = 8 heavy
+frames over 3 reps (before: 11) with `heavyP50` **142.8 ms** (before: 144.0 ms; revamp
+round: 149.6 ms); RIGHT x16 = 0 heavy frames, `compP50` 6.6/7.1/7.2 ms (before:
+7.4/8.4/9.7). The larger card/type scale therefore did not add composition cost. Raw
+dumps: `perf2/final_before-*.txt` and `perf2/final_after-*.txt`.
 
 ### Where the DOWN cost actually is (framestats)
 

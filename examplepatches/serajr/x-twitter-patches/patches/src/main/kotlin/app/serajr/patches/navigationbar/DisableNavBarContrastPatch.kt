@@ -8,7 +8,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
 private const val MAIN_ACTIVITY = "Lcom/x/android/main/MainActivity;"
-private const val ON_START_SUPER = "Landroidx/appcompat/app/n;->onStart()V"
+private const val ON_START_SUPER = "Landroidx/appcompat/app/p;->onStart()V"
 
 @Suppress("unused")
 val disableNavBarContrastPatch = bytecodePatch(

@@ -43,12 +43,12 @@ fun main(args: Array<String>) {
             public static String d0(int id,h1.n c){return "native-text";}
             public static String e0(int id,Object[] args,h1.n c){return "native-format";}
         }""",
-        "m9.a5" to """package m9; public class a5 {public static int groups;
-            public static String i(h1.k0 first,int key,int id,h1.k0 second,boolean end){groups++;return "native-group";}
+        "m9.v4" to """package m9; public class v4 {public static int groups;
+            public static String j(h1.k0 first,int key,int id,h1.k0 second,boolean end){groups++;return "native-group";}
         }""",
-        "na.k1" to """package na; import kotlin.jvm.functions.Function0; public class k1 {
+        "na.r1" to """package na; import kotlin.jvm.functions.Function0; import r1.s; public class r1 {
             public static lb.k0 state;public static Object dismiss,content;public static int flags,calls;
-            public static void n(lb.k0 s,Function0 a,Function0 b,Function0 c,Function0 d,Function0 e,Function0 f,r1.s x,h1.n n,int at){
+            public static void n(lb.k0 s,Function0 a,Function0 b,Function0 c,Function0 d,Function0 e,Function0 f,s x,h1.n n,int at){
                 state=s;dismiss=a;content=x;flags=at;calls++;
             }
         }""",
@@ -62,16 +62,16 @@ fun main(args: Array<String>) {
                     lb.k0 original=new lb.k0(false,null,false,false,null,null,false,false,null,null,true,lb.l.STABLE,true,true,true,null);
                     Function0 action=()->"original";r1.s content=new r1.s();h1.k0 composer=new h1.k0();
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(na.k1.state==original&&na.k1.dismiss==action&&na.k1.flags==123&&na.k1.content==content);
+                    check(na.r1.state==original&&na.r1.dismiss==action&&na.r1.flags==123&&na.r1.content==content);
                     int[] cancelled={0};
                     NuvioSyncBanner.update(new android.app.Activity(),"Fetching progress",1,3,true,false,()->cancelled[0]++);
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    lb.k0 sync=na.k1.state;
+                    lb.k0 sync=na.r1.state;
                     check(sync!=original&&sync.d&&sync.g&&sync.e>0.33f&&sync.e<0.34f);
                     check(sync.b.a.equals("Sync Progress  1/3")&&sync.b.d.equals("santodan-sync-progress"));
-                    check(na.k1.dismiss!=action&&((Function0)na.k1.dismiss).invoke()==kotlin.Unit.INSTANCE);
+                    check(na.r1.dismiss!=action&&((Function0)na.r1.dismiss).invoke()==kotlin.Unit.INSTANCE);
                     check(cancelled[0]==1);
-                    Object oldCancel=na.k1.dismiss;
+                    Object oldCancel=na.r1.dismiss;
                     check(original.b==null&&!original.g&&original.k&&original.m);
                     NuvioSyncBanner.begin(sync);
                     check(!NuvioSyncBanner.hideClose(true));
@@ -79,7 +79,7 @@ fun main(args: Array<String>) {
                     check(NuvioSyncBanner.closeText(0,composer).equals("Cancel sync"));
                     check(NuvioSyncBanner.installed(false));
                     check(NuvioSyncBanner.groupText(composer,0,0x7f110d18,composer,false).equals("Fetching progress"));
-                    check(m9.a5.groups==1); // Original grouped lookup still executes; Compose groups stay balanced.
+                    check(m9.v4.groups==1); // Original grouped lookup still executes; Compose groups stay balanced.
                     check(NuvioSyncBanner.formatted(0x7f110d12,new Object[]{33},composer).equals("Fetching progress"));
                     NuvioSyncBanner.end();
                     NuvioSyncBanner.begin(original);
@@ -93,21 +93,21 @@ fun main(args: Array<String>) {
                     NuvioSyncBanner.end();
                     original.b=new mb.a("v1","real update","notes","app.apk","url","",null);original.g=true;
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(na.k1.state==original&&na.k1.dismiss==action&&na.k1.flags==123);
+                    check(na.r1.state==original&&na.r1.dismiss==action&&na.r1.flags==123);
                     original.g=false;original.b=null;original.h=true;
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(na.k1.state==original); // Native permission dialog has priority.
+                    check(na.r1.state==original); // Native permission dialog has priority.
                     original.h=false;
                     NuvioSyncBanner.update(new android.app.Activity(),"Provider failed",2,3,false,true);
                     ((Function0)oldCancel).invoke();check(cancelled[0]==1);
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(na.k1.state.i.equals("Provider failed"));
-                    NuvioSyncBanner.begin(na.k1.state);
+                    check(na.r1.state.i.equals("Provider failed"));
+                    NuvioSyncBanner.begin(na.r1.state);
                     check(NuvioSyncBanner.closeText(0,composer).equals("Close"));
                     NuvioSyncBanner.end();
                     NuvioSyncBanner.hide();
                     NuvioSyncBanner.host(original,action,action,action,action,action,action,content,composer,123);
-                    check(na.k1.state==original&&na.k1.content==content);
+                    check(na.r1.state==original&&na.r1.content==content);
                 }
             }"""
     )

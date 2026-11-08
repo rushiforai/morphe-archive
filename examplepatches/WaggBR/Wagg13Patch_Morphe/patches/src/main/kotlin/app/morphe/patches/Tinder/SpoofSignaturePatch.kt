@@ -8,8 +8,7 @@ private const val HOOK_CLASS = "Lapp/morphe/extension/tinder/patches/SpoofSignat
 @Suppress("unused")
 val spoofSignaturePatch = bytecodePatch(
     name = "Spoof signature",
-    description = "Spoofs the Tinder package signature to fix push notifications " +
-        "(Firebase rejects registration when the signature does not match the original).",
+    description = "Fixes push notifications on the patched app by spoofing the original signature.",
     default = true,
 ) {
     compatibleWith(TinderCompatibility.TINDER)

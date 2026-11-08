@@ -1,3 +1,41 @@
+## [1.0.16](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.15...v1.0.16) (2026-11-08)
+
+
+### Bug Fixes
+
+* let YouTube TV's GmsCore support patch apply to 10.45.0, where Google moved the Android ID lookup ([5e21acc](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/5e21accfcf41e7c134fb1bb413aa9a87b7483794))
+
+## [1.0.15](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.14...v1.0.15) (2026-11-08)
+
+
+### Bug Fixes
+
+* block ads in NFL article clips without tripping the app's ad-blocker check ([3f2463f](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/3f2463f4fad9e6075bdda480e66e7d52d10105c0))
+* build with Morphe patcher 2.3.0 ([3457197](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/345719765abbee0f7a7cadc5e06ca287e3427638))
+* hide myAT&T's Andi button and Ask Andi card when Disable AI is on ([804397c](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/804397ce1b1ce54c09fe61931071e17093578b1d))
+* label phone and TV builds in Morphe Manager, and keep pins on public app versions ([42e7bd2](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/42e7bd22c0affd29bfbaafd2c745c93feb13b1a8))
+* let Pluto TV's Block analytics patch apply when the app has no DNS lookups to block ([868464e](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/868464e82af6bc499320e44d642e596582666376))
+* mark app versions from the dev branch as experimental, and skip HBO Max's social sign-in patch on the TV build ([dc84ef4](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/dc84ef4ef58cc6de0bc27bd60c5a9fb8787243f4))
+* mark NewsNation's Android TV build as a TV app ([994d017](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/994d01704492bc3caea6aeac18a2b398329a0810))
+* show Recreation.gov's hidden ticket and booking details, and write booking windows as a day and time ([3751952](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/3751952e501cb8acc130ad6680b50a5eb28c7d08))
+* support the latest versions of 16 apps, and HBO Max on Android TV ([4abceb4](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/4abceb49a98da8c39107f1522a1cb87455771923))
+
+
+### Features
+
+* add a Highest quality patch for Tubi ([e025cb1](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/e025cb10f72a1ad94516ed52f4931938325f31a0))
+* add Truth Social ([a59fc13](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/a59fc135ef84f86f9da88617582c849473e42ae9))
+* support Apple TV on Android TV, with auto-skip for promos, recaps, and intros, and a hidden review prompt ([cf27426](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/cf2742673401b5c6bbba21ef597c8b4a5b9b9064))
+* support HBO Max as the Play Store installs it (com.wbd.stream) ([d8c0d22](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/d8c0d22ff0bfa83b67f4b7b94e47fadb63731563))
+
+## [1.0.14](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.13...v1.0.14) (2026-11-07)
+
+
+### Bug Fixes
+
+* let Pluto TV's Block analytics patch apply when the app has no DNS lookups to block ([842166d](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/842166dfc1b79935f941de5db328265c54b035e6))
+* resume Pluto TV at the right spot, and add a blocking level to its Block analytics patch ([3794c91](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/3794c9155842fcc4a4b64d7bed29c0128d937d06))
+
 ## [1.0.13](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.12...v1.0.13) (2026-11-07)
 
 

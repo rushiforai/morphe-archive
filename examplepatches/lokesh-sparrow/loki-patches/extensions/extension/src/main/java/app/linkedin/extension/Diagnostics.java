@@ -28,7 +28,10 @@ import java.util.regex.Pattern;
  * The report removes links, IDs, and e-mail addresses.
  */
 final class Diagnostics {
-    private static final String FILE_NAME = "michii_log.txt";
+    private static final String FILE_NAME = "loki_log.txt";
+    /** The name this file had before the rename; deleted once on first use. */
+    private static final String LEGACY_FILE_NAME = "michii_log.txt";
+    private static boolean legacyChecked;
     /** The file is cut to the newest half when it grows past this size. */
     private static final int MAX_BYTES = 300 * 1024;
     private static final int REPORT_LINES = 200;
@@ -162,7 +165,16 @@ final class Diagnostics {
 
     private static File file() {
         Context context = Settings.app();
-        return context == null ? null : new File(context.getFilesDir(), FILE_NAME);
+        if (context == null) return null;
+        File dir = context.getFilesDir();
+        if (!legacyChecked) {
+            legacyChecked = true;
+            // The file was called michii_log.txt before the rename. Delete it once so it does not linger in the
+            // app's private storage forever; nothing reads it any more.
+            File legacy = new File(dir, LEGACY_FILE_NAME);
+            if (legacy.isFile()) legacy.delete();
+        }
+        return new File(dir, FILE_NAME);
     }
 
     private static String stackTrace(Throwable t) {

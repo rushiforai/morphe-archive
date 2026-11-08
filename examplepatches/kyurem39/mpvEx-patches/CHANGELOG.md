@@ -1,3 +1,51 @@
+## [1.6.0](https://github.com/kyurem39/mpvEx-patches/compare/v1.5.0...v1.6.0) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* Correct inverted independent audio toggle ([d73e9b5](https://github.com/kyurem39/mpvEx-patches/commit/d73e9b50a359b79b0e9683055c95b362f47d1321))
+
+### ✨ New Features
+
+* Add independent audio patch ([027b104](https://github.com/kyurem39/mpvEx-patches/commit/027b10469a5a8199519b0adef847d6e5238a4401))
+* Add independent audio patch with panel toggle ([1cc01f2](https://github.com/kyurem39/mpvEx-patches/commit/1cc01f2a6df4a8781c22552924b95e98dc1898da))
+
+## [1.6.0-dev.1](https://github.com/kyurem39/mpvEx-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* Correct inverted independent audio toggle ([d73e9b5](https://github.com/kyurem39/mpvEx-patches/commit/d73e9b50a359b79b0e9683055c95b362f47d1321))
+
+### ✨ New Features
+
+* Add independent audio patch ([027b104](https://github.com/kyurem39/mpvEx-patches/commit/027b10469a5a8199519b0adef847d6e5238a4401))
+* Add independent audio patch with panel toggle ([1cc01f2](https://github.com/kyurem39/mpvEx-patches/commit/1cc01f2a6df4a8781c22552924b95e98dc1898da))
+
+## [1.5.0](https://github.com/kyurem39/mpvEx-patches/compare/v1.4.0...v1.5.0) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* Match section header spacing in the patch settings panel ([bf0964e](https://github.com/kyurem39/mpvEx-patches/commit/bf0964e8055cb7b4c67df7ac8ed8cd221e523892))
+* Restore header top spacing and match bottom gap in the patch settings panel ([4cf3f00](https://github.com/kyurem39/mpvEx-patches/commit/4cf3f005551df9635282cefce72535ef40f57fd4))
+* Use a fixed monochrome Material palette in the patch settings panel ([6da8964](https://github.com/kyurem39/mpvEx-patches/commit/6da8964800382aaa8856c99c17acc96fa71f8b4e))
+* Use the native supporting-text color for the patch settings entry ([e01ae07](https://github.com/kyurem39/mpvEx-patches/commit/e01ae07f3a5f9ddcc6715e364333368305480f27))
+
+### ✨ New Features
+
+* Add dedicated patch settings activity and preference entry ([f58cbcb](https://github.com/kyurem39/mpvEx-patches/commit/f58cbcb59924fa64e927cb9830b9247b5c361f72))
+
+## [1.5.0-dev.1](https://github.com/kyurem39/mpvEx-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* Match section header spacing in the patch settings panel ([bf0964e](https://github.com/kyurem39/mpvEx-patches/commit/bf0964e8055cb7b4c67df7ac8ed8cd221e523892))
+* Restore header top spacing and match bottom gap in the patch settings panel ([4cf3f00](https://github.com/kyurem39/mpvEx-patches/commit/4cf3f005551df9635282cefce72535ef40f57fd4))
+* Use a fixed monochrome Material palette in the patch settings panel ([6da8964](https://github.com/kyurem39/mpvEx-patches/commit/6da8964800382aaa8856c99c17acc96fa71f8b4e))
+* Use the native supporting-text color for the patch settings entry ([e01ae07](https://github.com/kyurem39/mpvEx-patches/commit/e01ae07f3a5f9ddcc6715e364333368305480f27))
+
+### ✨ New Features
+
+* Add dedicated patch settings activity and preference entry ([f58cbcb](https://github.com/kyurem39/mpvEx-patches/commit/f58cbcb59924fa64e927cb9830b9247b5c361f72))
+
 ## [1.4.0](https://github.com/kyurem39/mpvEx-patches/compare/v1.3.0...v1.4.0) (2026-11-06)
 
 ### ✨ New Features

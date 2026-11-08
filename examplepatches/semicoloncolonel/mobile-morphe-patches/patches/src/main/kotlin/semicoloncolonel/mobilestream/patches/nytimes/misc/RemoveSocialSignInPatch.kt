@@ -13,19 +13,27 @@ import semicoloncolonel.mobilestream.patches.nytimes.shared.Constants
 
 private const val WEB_SSO_LABEL = ", webSSOEnabled="
 
-// The New York Times 11.98.0 shows "Continue with Google" and "Continue with
+// The New York Times 11.98.0 and 11.99.0 show "Continue with Google" and "Continue with
 // Facebook" on its sign-in screen. Both buttons, the "OR" divider between
 // them and email sign-in, and both sign-in flows are gated by one flag,
-// webSSOEnabled, on the sign-in config (SubauthConfig, R8-renamed to pzl).
+// webSSOEnabled, on the sign-in config (SubauthConfig, R8-renamed).
 //
 // The config's toString names each field, so the patch finds the flag's
-// field from the literal before it, then turns off the getter that returns
-// that field. Email, one-time code, registration and the paywall are
-// unchanged.
+// field from the literal before it. In 11.99.0 the compiler joins the label
+// with the constant fields before it, so the literal ends with the label.
+// Its getter (11.98.0) returns false, and the config's constructor
+// (11.99.0, where the getter is gone) stores false in that field. Email, one-time
+// code, registration and the paywall are unchanged.
 internal object SubauthConfigToStringFingerprint : Fingerprint(
     name = "toString",
     returnType = "Ljava/lang/String;",
-    strings = listOf("SubauthConfig(resources=", WEB_SSO_LABEL),
+    custom = { method, _ ->
+        val strings = method.implementation?.instructions
+            ?.filter { it.opcode == Opcode.CONST_STRING }
+            ?.map { ((it as ReferenceInstruction).reference as StringReference).string }
+            .orEmpty()
+        "SubauthConfig(resources=" in strings && strings.any { it.endsWith(WEB_SSO_LABEL) }
+    },
 )
 
 @Suppress("unused")
@@ -40,7 +48,7 @@ val removeSocialSignInPatch = bytecodePatch(
         val instructions = toString.implementation!!.instructions.toList()
         val labelIndex = instructions.indexOfFirst {
             it.opcode == Opcode.CONST_STRING &&
-                ((it as ReferenceInstruction).reference as StringReference).string == WEB_SSO_LABEL
+                ((it as ReferenceInstruction).reference as StringReference).string.endsWith(WEB_SSO_LABEL)
         }
         // toString loads every field up front and copies it through other
         // registers before appending it after its label (iget-boolean v15,
@@ -60,6 +68,8 @@ val removeSocialSignInPatch = bytecodePatch(
         }
         val field = (instructions[index] as ReferenceInstruction).reference as FieldReference
 
+        // 11.98.0 reads the flag through a getter: make it return false.
+        var changes = 0
         SubauthConfigToStringFingerprint.classDef.methods
             .filter { method ->
                 method.returnType == "Z" && method.parameterTypes.isEmpty() &&
@@ -68,7 +78,30 @@ val removeSocialSignInPatch = bytecodePatch(
                             ((it as ReferenceInstruction).reference as FieldReference).name == field.name
                     } == true
             }
-            .ifEmpty { throw PatchException("webSSOEnabled getter not found") }
-            .forEach { it.addInstructions(0, "const/4 v0, 0x0\nreturn v0") }
+            .forEach {
+                it.addInstructions(0, "const/4 v0, 0x0\nreturn v0")
+                changes++
+            }
+
+        // 11.99.0 reads the field directly (the getter is gone): store false
+        // wherever the config is built, so every reader sees the flag off.
+        SubauthConfigToStringFingerprint.classDef.methods
+            .filter { it.name == "<init>" }
+            .forEach { constructor ->
+                val code = constructor.implementation?.instructions?.toList() ?: return@forEach
+                code.indices.reversed()
+                    .filter { index ->
+                        code[index].opcode == Opcode.IPUT_BOOLEAN &&
+                            ((code[index] as ReferenceInstruction).reference as FieldReference).let {
+                                it.definingClass == field.definingClass && it.name == field.name
+                            }
+                    }
+                    .forEach { index ->
+                        val source = (code[index] as TwoRegisterInstruction).registerA
+                        constructor.addInstructions(index, "const/16 v$source, 0x0")
+                        changes++
+                    }
+            }
+        if (changes == 0) throw PatchException("webSSOEnabled getter or field write not found")
     }
 }
