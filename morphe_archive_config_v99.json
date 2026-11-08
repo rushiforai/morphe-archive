@@ -4697,6 +4697,62 @@
                 "sortOrder": 650,
                 "createdAt": 1794028166547,
                 "updatedAt": 1794028166547
+            },
+            {
+                "name": "shikify",
+                "source": "https://raw.githubusercontent.com/0xRJDev/shikify/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 651,
+                "createdAt": 1794113551683,
+                "updatedAt": 1794113551683
+            },
+            {
+                "name": "flyme-lyrics-patches",
+                "source": "https://raw.githubusercontent.com/kljjh/flyme-lyrics-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 652,
+                "createdAt": 1794113568897,
+                "updatedAt": 1794113568897
+            },
+            {
+                "name": "Vogelkop-MorphePatches",
+                "source": "https://raw.githubusercontent.com/maniesh-NR/Vogelkop-MorphePatches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 653,
+                "createdAt": 1794113571025,
+                "updatedAt": 1794113571025
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/pardhu23/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 654,
+                "createdAt": 1794113574191,
+                "updatedAt": 1794113574191
+            },
+            {
+                "name": "morphe-bilibili-danmaku",
+                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 655,
+                "createdAt": 1794113575620,
+                "updatedAt": 1794113575620
+            },
+            {
+                "name": "sync-patches",
+                "source": "https://raw.githubusercontent.com/sazap10/sync-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 656,
+                "createdAt": 1794113577024,
+                "updatedAt": 1794113577024
+            },
+            {
+                "name": "GoogleMap-Morphe",
+                "source": "https://raw.githubusercontent.com/shuili1013/GoogleMap-Morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 657,
+                "createdAt": 1794113577626,
+                "updatedAt": 1794113577626
             }
         ]
     }

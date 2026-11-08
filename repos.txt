@@ -2,6 +2,7 @@
 0-BlackSpectrum-0/MAL-Patches
 020krJ/morpheArc
 0x0day-0wl/morphe-patches
+0xRJDev/shikify
 0xtalos/365score-patches
 0xtalos/vibe-patches
 2eno/2eno-patches
@@ -342,6 +343,7 @@ Kero309x/anghamiplus-patches
 kim20598/hakim-morphe-patches
 kiraio-moe/Lain-Patches
 Kirkland-Pickles/Gboard-offline-morphe
+kljjh/flyme-lyrics-patches
 kolaron/morphe-patches
 kondratjev/morphe-patches
 kontsevoye/emorphe-patches
@@ -390,6 +392,7 @@ madushas/pdb_patch
 madushas/tele_web_patch
 mahirsn/mahirsn-patches
 MangoTornado/morphe-patches-suchi
+maniesh-NR/Vogelkop-MorphePatches
 Manishrdy/honista-patches
 Manishrdy/piko
 MarcaDian/morphe-patches-yavot
@@ -454,6 +457,7 @@ oviron/VK-IM
 ozeroztas/Morphe-Patch
 Pa-kon/morphe-screenshot-patches
 pablobaro/pablobaro-morphe-patches
+pardhu23/morphe-patches
 Paresh-Maheshwari/patch-explorer
 PawiX25/pepper-morphe-patches
 pengusto/penguin-patches
@@ -512,8 +516,8 @@ Rosaldivo/rosaldivo-morphe-patches
 RoundSalmon4/morphe-patches-template
 rubenaaroncalahorra/gospel-library-patches
 rufusin/revanced-patches
-rushiranpise/RI-Vanced-Universal-Morphe-Patches
 rushiranpise/Ri-Vanced-Universal-Morphe-Patches
+rushiranpise/RI-Vanced-Universal-Morphe-Patches
 ryuya0124/gemini-microg-patches
 ryykitty/twitch-patched
 sabbirexist/kodex-patches
@@ -531,6 +535,7 @@ sashade8-ship-it/dual-vot-patches
 SatanMerde/D-moniakPatches
 Satwik-Miyyapuram/morphe-patches
 Saurabh825/morphe-patches
+sazap10/sync-patches
 semicoloncolonel/mobile-morphe-patches
 Seobject/Seobject-patches
 serajr/x-twitter-patches
@@ -542,6 +547,7 @@ shaun-the-sheep-patches/morphe-patches
 shini-cell/shini-morphe
 ShubhamJ010/gboard-clipboard-history
 ShuhaibNC/morphe-patches
+shuili1013/GoogleMap-Morphe
 sillyredsoup/reddit-morphe-patches
 sjshb57/Pairip-Patches
 sk1nnnny/morphe-patche
