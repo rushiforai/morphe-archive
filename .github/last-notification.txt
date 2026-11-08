@@ -1,5 +1,6 @@
-# Repos reported by the last notification (4)
-Ayufa/ayufa-youtube-patches
-GahahaWang/TWRailway-patch
-andersonlucasg3/apple-music-android-freedom
-salmanbappi/Quwis-Patches
+# Repos reported by the last notification (5)
+0xRJDev/shikify
+RizkLee/morphe-bilibili-danmaku
+maniesh-NR/Vogelkop-MorphePatches
+pardhu23/morphe-patches
+sazap10/sync-patches
