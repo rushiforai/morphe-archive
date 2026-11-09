@@ -133,6 +133,9 @@ private val DARK_SURFACES_V31 = mapOf(
  */
 private val LIGHT_DIFF = mapOf("lineBackgroundGray" to "#ffffffff", "lineNumberBackgroundGray" to "#ffeff0f5")
 
+/** [LIGHT_DIFF] for dark mode: the round qualifier outranks night, so the dark grays have to be set here too. */
+private val DARK_DIFF = mapOf("lineBackgroundGray" to "#ff17181c", "lineNumberBackgroundGray" to "#ff1f1f24")
+
 /**
  * Dividers between list rows, a translucent gray in GitHub's palette. A resource can't add alpha to a system
  * color, so they become the opaque neutral tone of the same lightness: neutral1, the least tinted palette.
@@ -157,7 +160,7 @@ private val materialYouResourcePatch = resourcePatch {
     execute {
         writeColors("values-round-v31", LIGHT_ACCENTS + LIGHT_SURFACES_V31 + LIGHT_DIVIDERS + LIGHT_DIFF)
         writeColors("values-round-v34", LIGHT_SURFACES_V34)
-        writeColors("values-round-night-v31", DARK_ACCENTS + DARK_SURFACES_V31 + DARK_DIVIDERS)
+        writeColors("values-round-night-v31", DARK_ACCENTS + DARK_SURFACES_V31 + DARK_DIVIDERS + DARK_DIFF)
         writeColors("values-round-night-v34", DARK_SURFACES_V34)
         writeColors("values-notlong-night-v31", AMOLED_SURFACES.associateWith { "black" })
     }

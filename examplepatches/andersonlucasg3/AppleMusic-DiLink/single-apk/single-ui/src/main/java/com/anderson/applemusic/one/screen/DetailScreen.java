@@ -1,6 +1,7 @@
 package com.anderson.applemusic.one.screen;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.view.View;
@@ -23,6 +24,7 @@ import com.anderson.applemusic.one.widget.EmptyState;
 import com.anderson.applemusic.one.widget.Focus;
 import com.anderson.applemusic.one.widget.Icons;
 import com.anderson.applemusic.one.widget.Pill;
+import com.anderson.applemusic.one.widget.ScrollMemory;
 import com.anderson.applemusic.one.widget.SectionHeader;
 import com.anderson.applemusic.one.widget.Skeleton;
 import com.anderson.applemusic.one.widget.TrackRow;
@@ -89,6 +91,10 @@ public final class DetailScreen {
     private boolean exitOnRootBack;
     /** Guards amp-api callbacks against a level the user already left. */
     private int generation;
+    /** Scroll position being restored after a rotation (fraction of the range). */
+    private float pendingScroll;
+    /** A restored level must keep the saved offset instead of scrolling to its focus track. */
+    private boolean suppressFocusScroll;
 
     public DetailScreen(Context context, ScreenHost host, ArtworkLoader artwork,
                         CatalogSearch catalog) {
@@ -112,6 +118,7 @@ public final class DetailScreen {
 
         back = new CircleButton(context, Icons.CHEVRON_LEFT, 44f, Tokens.SURFACE,
                 Tokens.TEXT, 22f);
+        back.setContentDescription("Voltar");
         LinearLayout.LayoutParams backParams =
                 new LinearLayout.LayoutParams(Tokens.dp(44), Tokens.dp(44));
         backParams.rightMargin = Tokens.dp(14);
@@ -196,6 +203,7 @@ public final class DetailScreen {
     private void clear(int kind, String id, String title, String subtitle, String artworkUrl) {
         stack.clear();
         generation++;
+        suppressFocusScroll = false;
         push(new Node(kind, id, title, subtitle, artworkUrl));
     }
 
@@ -203,7 +211,69 @@ public final class DetailScreen {
         return stack.isEmpty() ? null : stack.get(stack.size() - 1);
     }
 
+    /**
+     * Breadcrumb + scroll, kept across a rotation: every level stores what it needs to be
+     * named again (kind/id/title), and only the top one is fetched from the catalogue.
+     */
+    public void saveState(Bundle out) {
+        int count = stack.size();
+        String[] ids = new String[count];
+        String[] titles = new String[count];
+        String[] subtitles = new String[count];
+        String[] artworks = new String[count];
+        String[] focusTracks = new String[count];
+        int[] kinds = new int[count];
+        for (int i = 0; i < count; i++) {
+            Node node = stack.get(i);
+            ids[i] = node.id;
+            titles[i] = node.title;
+            subtitles[i] = node.subtitle;
+            artworks[i] = node.artworkUrl;
+            focusTracks[i] = node.focusTrackId;
+            kinds[i] = node.kind;
+        }
+        out.putInt("one.detail.count", count);
+        out.putStringArray("one.detail.ids", ids);
+        out.putStringArray("one.detail.titles", titles);
+        out.putStringArray("one.detail.subtitles", subtitles);
+        out.putStringArray("one.detail.artworks", artworks);
+        out.putStringArray("one.detail.focus", focusTracks);
+        out.putIntArray("one.detail.kinds", kinds);
+        ScrollMemory.save(out, "one.detail.scroll", scroll);
+    }
+
+    /** Rebuilds the saved stack and renders only the top level; false when nothing to do. */
+    public boolean restoreState(Bundle in) {
+        if (in == null) return false;
+        int count = in.getInt("one.detail.count", 0);
+        String[] ids = in.getStringArray("one.detail.ids");
+        String[] titles = in.getStringArray("one.detail.titles");
+        String[] subtitles = in.getStringArray("one.detail.subtitles");
+        String[] artworks = in.getStringArray("one.detail.artworks");
+        String[] focusTracks = in.getStringArray("one.detail.focus");
+        int[] kinds = in.getIntArray("one.detail.kinds");
+        if (count <= 0 || ids == null || titles == null || subtitles == null
+                || artworks == null || focusTracks == null || kinds == null
+                || ids.length < count || titles.length < count || subtitles.length < count
+                || artworks.length < count || focusTracks.length < count
+                || kinds.length < count) {
+            return false;
+        }
+        stack.clear();
+        generation++;
+        for (int i = 0; i < count; i++) {
+            Node node = new Node(kinds[i], ids[i], titles[i], subtitles[i], artworks[i]);
+            node.focusTrackId = focusTracks[i];
+            stack.add(node);
+        }
+        pendingScroll = in.getFloat("one.detail.scroll", 0f);
+        suppressFocusScroll = true;
+        render();
+        return true;
+    }
+
     private void push(Node node) {
+        suppressFocusScroll = false;
         stack.add(node);
         render();
     }
@@ -417,6 +487,7 @@ public final class DetailScreen {
         } else {
             addTracks(artist.topSongs, node, null, true);
         }
+        applyPendingScroll();
     }
 
     private void addAlbumGrid(List<CatalogSearch.Result> albums) {
@@ -499,6 +570,7 @@ public final class DetailScreen {
             return;
         }
         addTracks(album.tracks, node, album.id, false);
+        applyPendingScroll();
     }
 
     private String meta(CatalogSearch.AlbumDetail album) {
@@ -554,6 +626,7 @@ public final class DetailScreen {
             return;
         }
         addTracks(playlist.tracks, node, playlist.id, false);
+        applyPendingScroll();
     }
 
     // --- song ----------------------------------------------------------------------
@@ -597,6 +670,15 @@ public final class DetailScreen {
             block.addView(Inter.text(context, "Álbum: " + album, Tokens.BODY, Inter.SEMIBOLD,
                     Tokens.TEXT_DIM), linkParams());
         }
+        applyPendingScroll();
+    }
+
+    /** Puts the scroll back where it was before the rotation, once the level is in. */
+    private void applyPendingScroll() {
+        suppressFocusScroll = false;
+        if (pendingScroll <= 0f) return;
+        ScrollMemory.restore(scroll, pendingScroll);
+        pendingScroll = 0f;
     }
 
     // --- shared views --------------------------------------------------------------
@@ -609,6 +691,7 @@ public final class DetailScreen {
         ImageView cover = new ImageView(context);
         cover.setScaleType(ImageView.ScaleType.CENTER_CROP);
         cover.setBackgroundColor(Tokens.SURFACE_HOVER);
+        cover.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         Shapes.clip(cover, Tokens.RADIUS_CARD);
         LinearLayout.LayoutParams coverParams = new LinearLayout.LayoutParams(size, size);
         coverParams.rightMargin = Tokens.dp(18);
@@ -709,7 +792,7 @@ public final class DetailScreen {
             column.addView(row, params);
         }
         final TrackRow target = scrollTarget;
-        if (target != null) {
+        if (target != null && !suppressFocusScroll) {
             scroll.post(new Runnable() {
                 @Override
                 public void run() {

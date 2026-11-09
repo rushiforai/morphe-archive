@@ -5,7 +5,8 @@
 # requests"). Two projects hold scenarios, each under its Scenarios/: tests/BaconReader.E2E (the app, on the phone)
 # and tests/BaconReader.VsCodeExtension.E2E (the VS Code extension, tools/vscode-extension, in VS Code for the web).
 #   tools/e2e/record.sh [all | <domain folder> | <TestClass> ...] [--changed-since <git ref>] [--action-gap <seconds>]
-#                       [--out <dir>] [--no-bundle] [--no-video]
+#                       [--out <dir>] [--no-bundle] [--no-video | --raw-only]
+#   tools/e2e/record.sh --gifs-only [--out <dir>]
 # A domain folder is a folder under a project's Scenarios/ (Startup, LoggedIn/Comments); a class is a scenario class
 # (SpoofClientTests). Nothing named, and no --changed-since: all of them.
 # --changed-since <ref>: the scenario classes added or changed since the branch left <ref> (working tree included):
@@ -27,6 +28,10 @@
 # Exits non-zero when a scenario failed (its GIF is still written).
 # --no-video: the same scenarios, unrecorded and unpaced: the fast run while developing. It prints each run's result and
 # time and leaves the last recording in <out> as it is.
+# --raw-only: records, but stops at each run's raw video and record (<out>/.raw, with <out>/.results and
+# <out>/.selection.tsv) and prints each run's result, as --no-video does. --gifs-only then turns <out>/.raw into the
+# GIFs, the MP4s and scenarios.json, without playing anything: the NAS's runner plays, and a GitHub-hosted job, with
+# more CPU and memory to spare, makes the GIFs (tools/e2e/nas/README.md).
 # Right before a push that adds or changes scenarios (never between pushes): tools/e2e/record.sh --changed-since
 # origin/dev, then tools/e2e/push-gifs.sh right after the push.
 set -euo pipefail
@@ -37,6 +42,8 @@ changed_since=""
 action_gap=0.4
 bundle=1
 video=1
+raw_only=0
+gifs_only=0
 chosen=()
 
 while [ $# -gt 0 ]; do
@@ -46,13 +53,75 @@ while [ $# -gt 0 ]; do
     --out) out="$2"; shift 2 ;;
     --no-bundle) bundle=0; shift ;;
     --no-video) video=0; shift ;;
-    -h|--help) sed -n '4,31p' "$0"; exit 0 ;;
+    --raw-only) raw_only=1; shift ;;
+    --gifs-only) gifs_only=1; shift ;;
+    -h|--help) sed -n '4,36p' "$0"; exit 0 ;;
     *) chosen+=("$1"); shift ;;
   esac
 done
+if [ $raw_only -eq 1 ] && [ $video -eq 0 ]; then echo "--raw-only records: it doesn't go with --no-video." >&2; exit 2; fi
+if [ $gifs_only -eq 1 ] && { [ $raw_only -eq 1 ] || [ $video -eq 0 ] || [ ${#chosen[@]} -gt 0 ] || [ -n "$changed_since" ]; }; then
+  echo "--gifs-only plays nothing: it takes only --out." >&2
+  exit 2
+fi
 mkdir -p "$out"
 out="$(cd "$out" && pwd)"
 cd "$repo"
+raw="$out/.raw"
+results="$out/.results"
+selection="$out/.selection.tsv"
+
+# screenrecord writes a frame only when the screen changes: fps= gives the GIF and the MP4 a steady rate.
+hold_end="tpad=stop_mode=clone:stop_duration=3"
+gif_filter="fps=15,$hold_end,scale=360:-1:flags=lanczos"
+# A browser run (the extension's scenarios): from when VS Code's workbench showed, 20 fps, 800 px wide.
+browser_gif_filter="$hold_end,fps=20,scale=800:-1:flags=lanczos"
+# A GIF in two passes: its palette from the whole video first, then the frames with it. In one pass (split, palettegen,
+# paletteuse) ffmpeg holds every frame until the video ends: 13.8 GB for a 29 min recording, which the cloud session's
+# memory limit killed (2026-11-04). Two passes keep it flat and give the same GIF.
+# gif <input options and file …> <filter> <gif>
+gif() {
+  local filter="${*: -2:1}" target="${*: -1}" palette
+  local input=("${@:1:$#-2}")
+  palette="$(mktemp --suffix .png)"
+  ffmpeg -nostdin -loglevel error -y "${input[@]}" -vf "$filter,palettegen=max_colors=128:stats_mode=diff" -update 1 "$palette"
+  ffmpeg -nostdin -loglevel error -y "${input[@]}" -i "$palette" \
+    -lavfi "$filter[frames];[frames][1:v]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle" "$target"
+  rm -f "$palette"
+}
+# Each raw run in <out>/.raw becomes its GIF and MP4, and <out>/scenarios.json lists them. Exits 1 when a run failed.
+write_videos() {
+  local failed=0 records=() record domain name offset
+  while IFS= read -r record; do
+    domain="$(dirname "${record#"$raw"/}")"
+    name="$(basename "$record" .json)"
+    mkdir -p "$out/$domain"
+    if [ -f "${record%.json}.mp4" ]; then
+      gif -i "${record%.json}.mp4" "$gif_filter" "$out/$domain/$name.gif"
+      ffmpeg -nostdin -loglevel error -y -i "${record%.json}.mp4" -vf "fps=30,$hold_end" -an \
+        -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -movflags +faststart "$out/$domain/$name.mp4"
+    elif [ -f "${record%.json}.webm" ]; then
+      read -r _ _ _ offset < <(e2e_tool find-home "$record") || offset=0
+      gif -ss "${offset:-0}" -i "${record%.json}.webm" "$browser_gif_filter" "$out/$domain/$name.gif"
+      ffmpeg -nostdin -loglevel error -y -ss "${offset:-0}" -i "${record%.json}.webm" -vf "$hold_end" -an \
+        -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart "$out/$domain/$name.mp4"
+    else
+      echo "No video for $domain/$name: its post says \"No recording\"."
+    fi
+    records+=("$record")
+  done < <(find "$raw" -path "$raw/.raw" -prune -o -name '*.json' -print 2> /dev/null | sort)
+
+  e2e_tool write-scenarios "$out" "$selection" "${records[@]}"
+  if grep -q '"passed": false' "$out/scenarios.json"; then failed=1; fi
+  return $failed
+}
+e2e_tool() { dotnet "$repo/tools/e2e/BaconReader.E2ETools/bin/Release/net10.0/BaconReader.E2ETools.dll" "$@"; }
+
+if [ $gifs_only -eq 1 ]; then
+  [ -d "$raw" ] && [ -f "$selection" ] || { echo "No raw runs in $out: run tools/e2e/record.sh --raw-only first." >&2; exit 2; }
+  dotnet build tools/e2e/BaconReader.E2ETools -c Release --nologo -v q > /dev/null
+  write_videos && exit 0 || exit 1
+fi
 
 mapfile -t projects < <(find tests -mindepth 2 -maxdepth 2 -name '*.E2E.csproj' | sort)
 app_project=tests/BaconReader.E2E/BaconReader.E2E.csproj
@@ -91,7 +160,6 @@ declare -A filters=()
 add_filter() {
   filters[$1]="${filters[$1]:+${filters[$1]}|}$2"
 }
-selection="$out/.selection.tsv"
 : > "$selection"
 if [ -n "$changed_since" ]; then
   list_changed_classes "$changed_since" | sort -u > "$selection"
@@ -145,7 +213,6 @@ if [ -n "${filters[$app_project]:-}" ]; then
 fi
 
 dotnet build tools/e2e/BaconReader.E2ETools -c Release --nologo -v q > /dev/null
-e2e_tool() { dotnet "$repo/tools/e2e/BaconReader.E2ETools/bin/Release/net10.0/BaconReader.E2ETools.dll" "$@"; }
 
 # VS Code for the web with the extension under development, opened on the extension's project's Workspace/, for its
 # scenarios (E2E_VSCODE_URL).
@@ -176,8 +243,6 @@ if [ -n "${filters[$vscode_project]:-}" ]; then
   vscode_url="http://localhost:$port/"
 fi
 
-raw="$out/.raw"
-results="$out/.results"
 rm -rf "$raw" "$results"
 failed=0
 for project in "${!filters[@]}"; do
@@ -191,49 +256,10 @@ for project in "${!filters[@]}"; do
   fi
 done
 
-if [ $video -eq 0 ]; then
+if [ $video -eq 0 ] || [ $raw_only -eq 1 ]; then
   e2e_tool report-runs "$results"/*.trx || failed=1
   exit $failed
 fi
 
-# screenrecord writes a frame only when the screen changes: fps= gives the GIF and the MP4 a steady rate.
-hold_end="tpad=stop_mode=clone:stop_duration=3"
-gif_filter="fps=15,$hold_end,scale=360:-1:flags=lanczos"
-# A browser run (the extension's scenarios): from when VS Code's workbench showed, 20 fps, 800 px wide.
-browser_gif_filter="$hold_end,fps=20,scale=800:-1:flags=lanczos"
-# A GIF in two passes: its palette from the whole video first, then the frames with it. In one pass (split, palettegen,
-# paletteuse) ffmpeg holds every frame until the video ends: 13.8 GB for a 29 min recording, which the cloud session's
-# memory limit killed (2026-11-04). Two passes keep it flat and give the same GIF.
-# gif <input options and file …> <filter> <gif>
-gif() {
-  local filter="${*: -2:1}" target="${*: -1}" palette
-  local input=("${@:1:$#-2}")
-  palette="$(mktemp --suffix .png)"
-  ffmpeg -nostdin -loglevel error -y "${input[@]}" -vf "$filter,palettegen=max_colors=128:stats_mode=diff" -update 1 "$palette"
-  ffmpeg -nostdin -loglevel error -y "${input[@]}" -i "$palette" \
-    -lavfi "$filter[frames];[frames][1:v]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle" "$target"
-  rm -f "$palette"
-}
-records=()
-while IFS= read -r record; do
-  domain="$(dirname "${record#"$raw"/}")"
-  name="$(basename "$record" .json)"
-  mkdir -p "$out/$domain"
-  if [ -f "${record%.json}.mp4" ]; then
-    gif -i "${record%.json}.mp4" "$gif_filter" "$out/$domain/$name.gif"
-    ffmpeg -nostdin -loglevel error -y -i "${record%.json}.mp4" -vf "fps=30,$hold_end" -an \
-      -c:v libx264 -preset veryfast -crf 20 -pix_fmt yuv420p -movflags +faststart "$out/$domain/$name.mp4"
-  elif [ -f "${record%.json}.webm" ]; then
-    read -r _ _ _ offset < <(e2e_tool find-home "$record") || offset=0
-    gif -ss "${offset:-0}" -i "${record%.json}.webm" "$browser_gif_filter" "$out/$domain/$name.gif"
-    ffmpeg -nostdin -loglevel error -y -ss "${offset:-0}" -i "${record%.json}.webm" -vf "$hold_end" -an \
-      -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart "$out/$domain/$name.mp4"
-  else
-    echo "No video for $domain/$name: its post says \"No recording\"."
-  fi
-  records+=("$record")
-done < <(find "$raw" -path "$raw/.raw" -prune -o -name '*.json' -print 2> /dev/null | sort)
-
-e2e_tool write-scenarios "$out" "$selection" "${records[@]}"
-if grep -q '"passed": false' "$out/scenarios.json"; then failed=1; fi
+write_videos || failed=1
 exit $failed

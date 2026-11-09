@@ -1,0 +1,174 @@
+name: E2E on the phone
+
+# Plays end-to-end scenarios on the phone from the NAS's runner, which sits next to it (tools/e2e/nas/README.md):
+# each Appium command takes milliseconds there, instead of a round trip over the cloud sessions' slow link. Started by
+# hand, or by a session through the workflow dispatch API, never by a push or a pull request: the runner runs this
+# repository's code on the NAS.
+# - bundle (GitHub-hosted): builds both .mpp files and downloads the latest Morphe Desktop, so the NAS needs no Android
+#   SDK or Gradle.
+# - phone (the NAS): waits for the phone's lease and takes it (tools/e2e/lease.sh), plays the scenarios with record.sh,
+#   releases the lease, and uploads out/ and the run's log as the "e2e-results" artifact. The job summary lists each
+#   run's result. With video, it stops at the raw recordings (record.sh --raw-only).
+# - post (GitHub-hosted, with video and a PR): makes the GIFs and MP4s (record.sh --gifs-only) and posts them on the PR
+#   like the "E2E videos" workflow, with the e2e tool's post. It runs on GitHub's machine so the NAS keeps its CPU and
+#   memory, and so no write permission reaches the NAS.
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenarios:
+        description: "What to play: record.sh's arguments (LoggedIn, Startup/Account, SpoofClientTests, all, --changed-since origin/dev)"
+        required: true
+        default: LoggedIn
+      video:
+        description: Record the scenarios
+        type: boolean
+        default: false
+      pr:
+        description: "With video: the PR to post the GIFs on (this branch's)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+# One run at a time in this repository; the lease keeps it from the other repository's runs and the cloud sessions.
+concurrency:
+  group: e2e-phone
+  cancel-in-progress: false
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Build the patches
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon
+
+      - name: Download Morphe Desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release download --repo MorpheApp/morphe-desktop --pattern '*.jar' --dir morphe-desktop
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bundles
+          path: |
+            patches/build/libs/patches-*.mpp
+            e2e-patches/build/libs/e2e-patches-*.mpp
+            morphe-desktop/*.jar
+          if-no-files-found: error
+          retention-days: 1
+
+  phone:
+    needs: bundle
+    runs-on: [self-hosted, baconreader-phone]
+    timeout-minutes: 150
+    steps:
+      # Every branch, so --changed-since finds origin/main. The checkout empties the workspace's ignored files too
+      # (out/, build/): each run starts clean.
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Back where record.sh and the scenarios look for them (the paths' common folder is the repository's root).
+      - uses: actions/download-artifact@v8
+        with:
+          name: bundles
+          path: .
+
+      # At one path in the runner's cache: Morphe Desktop keeps its signing key (morphe.keystore) next to its jar, so each
+      # run's APK installs over the last.
+      - name: Install Morphe Desktop
+        run: |
+          mkdir -p "$HOME/state/cache/morphe-desktop"
+          jar=(morphe-desktop/*.jar)
+          cp "${jar[0]}" "$HOME/state/cache/morphe-desktop/morphe-desktop.jar"
+          rm -rf morphe-desktop
+          echo "E2E_MORPHE_DESKTOP=$HOME/state/cache/morphe-desktop/morphe-desktop.jar" >> "$GITHUB_ENV"
+
+      - name: Play the scenarios
+        env:
+          SCENARIOS: ${{ inputs.scenarios }}
+          VIDEO: ${{ inputs.video }}
+        run: |
+          if [ "$VIDEO" = true ]; then mode=--raw-only; else mode=--no-video; fi
+          # Split on spaces only: the arguments are record.sh's, never a shell command.
+          read -ra arguments <<< "$SCENARIOS"
+          tools/e2e/nas/run.sh "$mode" "${arguments[@]}" 2>&1 | tee run.log
+          exit "${PIPESTATUS[0]}"
+
+      - name: List the runs in the job summary
+        if: always()
+        run: |
+          shopt -s nullglob
+          trx=(out/.results/*.trx)
+          [ ${#trx[@]} -gt 0 ] || { echo "No run finished: see the log of \"Play the scenarios\"." >> "$GITHUB_STEP_SUMMARY"; exit 0; }
+          { echo '```text'; dotnet tools/e2e/BaconReader.E2ETools/bin/Release/net10.0/BaconReader.E2ETools.dll report-runs "${trx[@]}"; echo '```'; } >> "$GITHUB_STEP_SUMMARY" || true
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: e2e-results
+          path: |
+            out/
+            run.log
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+
+  post:
+    needs: phone
+    if: always() && inputs.video && inputs.pr != '' && (needs.phone.result == 'success' || needs.phone.result == 'failure')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ inputs.pr }}
+      BRANCH: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # As the "E2E videos" workflow checks a push of GIFs: the PR is open, from this repository, and this run played a
+      # commit of it.
+      - name: Check the PR
+        run: |
+          [[ $PR =~ ^[0-9]+$ ]] || { echo "::error::The PR is a number, not '$PR'."; exit 1; }
+          pr=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR" --jq '"\(.state) \(.head.repo.full_name) \(.head.ref) \(.head.sha)"') ||
+            { echo "::error::There is no PR #$PR."; exit 1; }
+          read -r state head_repo head_ref head_sha <<< "$pr"
+          [ "$state" = open ] || { echo "::error::PR #$PR is $state."; exit 1; }
+          [ "$head_repo" = "$GITHUB_REPOSITORY" ] || { echo "::error::PR #$PR comes from $head_repo, a fork."; exit 1; }
+          [ "$head_ref" = "$BRANCH" ] || { echo "::error::PR #$PR is $head_ref's, and this run played $BRANCH."; exit 1; }
+          relation=$(gh api "repos/$GITHUB_REPOSITORY/compare/$GITHUB_SHA...$head_sha" --jq .status)
+          [ "$relation" = identical ] || [ "$relation" = ahead ] ||
+            { echo "::error::$GITHUB_SHA isn't in the history of PR #$PR."; exit 1; }
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      - name: Install ffmpeg
+        run: command -v ffmpeg > /dev/null || { sudo apt-get update -q && sudo apt-get install -yq ffmpeg; }
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: e2e-results
+          path: .
+
+      - name: Make the GIFs and MP4s
+        # A failed scenario still gets its GIF, marked ❌ in the post.
+        run: tools/e2e/record.sh --gifs-only || true
+
+      - name: Upload the GIFs and MP4s and post them on the pull request
+        run: dotnet run --project tools/e2e/BaconReader.E2ETools -c Release -- post --pr "$PR" --commit "$GITHUB_SHA" --out out

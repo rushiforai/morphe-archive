@@ -27,7 +27,11 @@ HOOKS = [
     ("Lcom/hbwares/wordfeud/ui/main/MainActivity;", "onCreate", "(Landroid/os/Bundle;)V",
      "ui/OverlayPatch.kt: starts the overlay"),
     ("Lio/flutter/embedding/engine/FlutterJNI;", "handlePlatformMessage", "(Ljava/lang/String;Ljava/nio/ByteBuffer;IJ)V",
-     "platform/PlatformTapPatch.kt: routes, theme, banner"),
+     "platform/PlatformTapPatch.kt: routes, theme, banner; ads/RemoveAdsPatch.kt: answers the ad calls"),
+    ("Lio/flutter/embedding/engine/FlutterJNI;", "invokePlatformMessageResponseCallback", "(ILjava/nio/ByteBuffer;I)V",
+     "extension ads/AdBlock (called by reflection): the reply to a blocked ad call"),
+    ("Lio/flutter/embedding/engine/FlutterJNI;", "cleanupMessageData", "(J)V",
+     "extension ads/AdBlock (called by reflection): frees a blocked ad call"),
     ("Lio/flutter/embedding/engine/FlutterJNI;", "dispatchPlatformMessage", "(Ljava/lang/String;Ljava/nio/ByteBuffer;II)V",
      "extension play/JniDispatch (called by reflection): refresh after a move"),
     ("Lorg/chromium/net/CronetEngine$Builder;", "setUserAgent", None,
@@ -56,6 +60,13 @@ DART_STRINGS = [
     ("illegal_words", "play/MoveSubmitter: words the server rejected (V6)"),
     (".domains", "play/SessionReader: the session cookie file <filesDir>/.cookies/<store>/.domains"),
     ("package:cookie_jar/src/jar/persist.dart", "play/SessionReader: cookies kept by the cookie_jar package"),
+] + [
+    # Keep in sync with AdBlock.BLOCKED. A missing name means Wordfeud renamed that ad call: patching still works,
+    # but that kind of ad may come back.
+    ("dev.flutter.pigeon.wordfeud.AdApi." + m, "ads/AdBlock: blocked ad call")
+    for m in ("setBannerAdUnitId", "setInterstitialAdUnitId", "setAutoLoadInterstitial", "setInterstitialInterval",
+              "setInterstitialPreloading", "showInterstitial", "setLeaderboardAdUnitId", "setLeaderboardVisible",
+              "setMrecAdUnitId", "setMrecVisible", "showConsentFormIfNeeded")
 ]
 
 

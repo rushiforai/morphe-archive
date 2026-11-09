@@ -18,12 +18,16 @@ import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
+import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.WindowInsets;
 
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -51,7 +55,11 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>The selected tab gets a spot behind its icon, a smaller pill in Facebook's blue, or the colour
  * Accent color or the Material You theme gives that blue, or the picked Selected tab color (#383).
  * It's a layer over that tab's own background, so Facebook's press ripple stays, and it moves to
- * the next tab Facebook marks selected.
+ * the next tab Facebook marks selected. Every tab in the row gets the layers once and keeps them
+ * while the bar is a pill, so moving the spot never swaps a background under a tap (#412).
+ *
+ * <p>Tab bar width sets the scale, evenly in both directions so the icons keep their shape, and
+ * Tab bar height trims the outline above and below the icons (#425). Both are asked each frame.
  *
  * <p>Nothing is laid out again: the scale and the clip are drawing properties, so Facebook's pages
  * keep their padding, scroll-away keeps sliding the bar, and a tap goes to the tab drawn under the
@@ -64,10 +72,25 @@ public final class RoundedTabBar {
     /** Counted each time the switch going off or a pause gives a bar its own shape back. */
     static final String GIVEN_BACK = "Tab bar given its shape back";
 
-    /** How much of its size the pill keeps. */
+    /** How much of its size the pill keeps with no Tab bar width picked. */
     static final float SCALE = 0.9f;
-    /** How far above the bottom of the row of tabs the pill's bottom sits, in dp. */
+    /** How far above the bottom of the row of tabs the pill's bottom sits at {@link #SCALE}, in dp. */
     static final float LIFT_DP = 8f;
+
+    /**
+     * Tab bar width (#425): the pill's width as a percent of the row's, the screen's. The whole pill
+     * is scaled to it, icons too, so nothing gets squashed. Blank is {@link #SCALE}.
+     */
+    public static final int DEFAULT_WIDTH = Math.round(SCALE * 100);
+    public static final int MIN_WIDTH = 70;
+    public static final int MAX_WIDTH = 100;
+    /**
+     * Tab bar height (#425): how much of its height the pill keeps, in percent, trimmed evenly
+     * above and below the icons, which keep their size. Blank keeps all of it.
+     */
+    public static final int DEFAULT_HEIGHT = 100;
+    public static final int MIN_HEIGHT = 60;
+    public static final int MAX_HEIGHT = 100;
 
     /** The selected tab's spot: Facebook's blue, faint enough that the tab's own blue icon reads on it. */
     static final int SPOT_COLOR = 0x330866FF;
@@ -137,12 +160,47 @@ public final class RoundedTabBar {
         return out.height() / 2f;
     }
 
+    /** The Tab bar width [saved] picks, in percent, held to its range: {@link #DEFAULT_WIDTH} when blank. */
+    public static int widthPercent(@Nullable String saved) {
+        return TranslucentBars.percent(saved, MIN_WIDTH, MAX_WIDTH, DEFAULT_WIDTH);
+    }
+
+    /** The Tab bar height [saved] picks, in percent, held to its range: {@link #DEFAULT_HEIGHT} when blank. */
+    public static int heightPercent(@Nullable String saved) {
+        return TranslucentBars.percent(saved, MIN_HEIGHT, MAX_HEIGHT, DEFAULT_HEIGHT);
+    }
+
+    /** How much of its size the pill keeps now, from the Tab bar width picked. */
+    static float scale() {
+        return widthPercent(Settings.TAB_BAR_WIDTH.get()) / 100f;
+    }
+
+    /**
+     * How far the pill at [scale] sits above the row's bottom, in pixels at [density]:
+     * {@link #LIFT_DP} up to {@link #SCALE}, then less, to nothing at full width, so a wider pill's
+     * top never rises further over the feed than the stock one's does.
+     */
+    static float lift(float scale, float density) {
+        float share = Math.min(1f, Math.max(0f, (1f - scale) / (1f - SCALE)));
+        return LIFT_DP * density * share;
+    }
+
     /**
      * The point [bar] is scaled about, so the pill around [row], in the bar's coordinates, keeps its
-     * middle and has its bottom [lift] pixels above the row's bottom: y maps to p + SCALE * (y - p).
+     * middle and has its bottom [lift] pixels above the row's bottom: y maps to p + [scale] * (y - p).
+     * At full size nothing is scaled, so the bottom stays where it is.
      */
-    static float pivotY(Rect row, float lift) {
-        return row.bottom - lift / (1f - SCALE);
+    static float pivotY(Rect row, float lift, float scale) {
+        if (scale >= 1f) return row.bottom;
+        return row.bottom - lift / (1f - scale);
+    }
+
+    /** Trims [row] evenly at its top and bottom to [percent] of its height. */
+    static void trim(Rect row, int percent) {
+        if (percent >= 100 || row.isEmpty()) return;
+        int cut = Math.round(row.height() * (100 - percent) / 200f);
+        row.top += cut;
+        row.bottom -= cut;
     }
 
     /** [anchor]'s box in [bar]'s coordinates, into [out]. */
@@ -197,17 +255,21 @@ public final class RoundedTabBar {
         Rect row = shape.scratch;
         rowIn(bar, anchor, row);
         aboveNavigation(bar, row, floor, shape.at);
-        if (!row.equals(shape.pill.row)) {
-            shape.pill.row.set(row);
+        Rect pill = shape.trimmed;
+        pill.set(row);
+        trim(pill, heightPercent(Settings.TAB_BAR_HEIGHT.get()));
+        if (!pill.equals(shape.pill.row)) {
+            shape.pill.row.set(pill);
             bar.invalidateOutline();
         }
-        float lift = LIFT_DP * bar.getResources().getDisplayMetrics().density;
+        float scale = scale();
+        float lift = lift(scale, bar.getResources().getDisplayMetrics().density);
         float pivotX = row.exactCenterX();
-        float pivotY = pivotY(row, lift);
+        float pivotY = pivotY(row, lift, scale);
         if (bar.getPivotX() != pivotX) bar.setPivotX(pivotX);
         if (bar.getPivotY() != pivotY) bar.setPivotY(pivotY);
-        if (bar.getScaleX() != SCALE) bar.setScaleX(SCALE);
-        if (bar.getScaleY() != SCALE) bar.setScaleY(SCALE);
+        if (bar.getScaleX() != scale) bar.setScaleX(scale);
+        if (bar.getScaleY() != scale) bar.setScaleY(scale);
         fadeLine(bar, row, shape);
         return fresh;
     }
@@ -263,23 +325,71 @@ public final class RoundedTabBar {
     }
 
     /**
-     * Gives [tab] the spot, or brings it up to date: inside the part of the tab the pill around
-     * [row], in [bar]'s coordinates, shows. A background Facebook set since is the one kept.
+     * Puts the layers on every tab in [tab]'s row, the views beside it at most half as wide as the
+     * [rowWidth] row, that doesn't wear them yet, and empties the spot of each but [tab]. Every tab
+     * keeps its layers until the pill goes, so a tap never swaps a background: swapped as the tap
+     * selected it, a tab's press highlight was left behind, a grey square on each tab visited
+     * (#412). [wrapped] collects the tabs given layers.
      */
-    static void spot(View bar, View tab, Rect row) {
-        Spotted spotted = SPOTTED.get(tab);
-        if (spotted == null || tab.getBackground() != spotted.layers) {
-            spotted = new Spotted(tab.getBackground());
-            SPOTTED.put(tab, spotted);
-            tab.setBackground(spotted.layers);
-            // The view lets go of the background it replaces, which is the one now inside the layers:
-            // it drops its callback and, when attached, hides it. Unhooked, Facebook's press ripple
-            // can't redraw the tab and freezes as a grey square (#412).
-            if (spotted.facebooks != null && spotted.layers instanceof LayerDrawable) {
-                spotted.facebooks.setCallback((LayerDrawable) spotted.layers);
-                spotted.facebooks.setVisible(spotted.layers.isVisible(), false);
+    static void wrapRow(View tab, int rowWidth, List<WeakReference<View>> wrapped) {
+        ViewParent parent = tab.getParent();
+        if (!(parent instanceof ViewGroup)) {
+            if (wrap(tab)) wrapped.add(new WeakReference<>(tab));
+            return;
+        }
+        ViewGroup row = (ViewGroup) parent;
+        StringBuilder backgrounds = null;
+        for (int i = 0; i < row.getChildCount(); i++) {
+            View each = row.getChildAt(i);
+            if (each != tab && (each.getWidth() <= 0 || each.getWidth() * 2 > rowWidth)) continue;
+            Drawable facebooks = each.getBackground();
+            if (wrap(each)) {
+                wrapped.add(new WeakReference<>(each));
+                if (backgrounds == null) backgrounds = new StringBuilder();
+                backgrounds.append(' ').append(facebooks == null ? "none" : facebooks.getClass().getSimpleName());
+            }
+            if (each == tab) continue;
+            Spotted spotted = SPOTTED.get(each);
+            if (spotted != null && !spotted.spot.area.isEmpty()) {
+                spotted.spot.area.setEmpty();
+                spotted.spot.invalidateSelf();
             }
         }
+        if (backgrounds != null) {
+            String said = backgrounds.toString();
+            Logger.printDebug(() -> "Rounded tab bar: tabs given the spot's layers over" + said);
+        }
+    }
+
+    /**
+     * Puts the layers on [tab] unless it wears them already. A background Facebook set since is
+     * the one kept. True when it got them now.
+     */
+    static boolean wrap(View tab) {
+        Spotted spotted = SPOTTED.get(tab);
+        if (spotted != null && tab.getBackground() == spotted.layers) return false;
+        spotted = new Spotted(tab.getBackground());
+        SPOTTED.put(tab, spotted);
+        tab.setBackground(spotted.layers);
+        // The view lets go of the background it replaces, which is the one now inside the layers:
+        // it drops its callback and, when attached, hides it. Unhooked, Facebook's press ripple
+        // can't redraw the tab and freezes as a grey square (#412).
+        if (spotted.facebooks != null && spotted.layers instanceof LayerDrawable) {
+            spotted.facebooks.setCallback((LayerDrawable) spotted.layers);
+            spotted.facebooks.setVisible(spotted.layers.isVisible(), false);
+        }
+        spotted.layers.jumpToCurrentState();
+        return true;
+    }
+
+    /**
+     * Gives [tab] the spot, or brings it up to date: inside the part of the tab the pill around
+     * [row], in [bar]'s coordinates, shows.
+     */
+    static void spot(View bar, View tab, Rect row) {
+        wrap(tab);
+        Spotted spotted = SPOTTED.get(tab);
+        if (spotted == null) return;
         Rect box = spotted.scratch;
         box.set(0, 0, tab.getWidth(), tab.getHeight());
         if (bar != tab && bar instanceof ViewGroup) ((ViewGroup) bar).offsetDescendantRectToMyCoords(tab, box);
@@ -287,7 +397,8 @@ public final class RoundedTabBar {
         int bottom = Math.min(tab.getHeight(), row.bottom - box.top);
         float density = tab.getResources().getDisplayMetrics().density;
         int across = Math.round(SPOT_ACROSS_DP * density);
-        int down = Math.round(SPOT_DOWN_DP * density);
+        // A pill trimmed short by Tab bar height keeps a spot half its height (#425).
+        int down = Math.min(Math.round(SPOT_DOWN_DP * density), Math.max(0, (bottom - top) / 4));
         box.set(across, top + down, tab.getWidth() - across, bottom - down);
         if (!box.equals(spotted.spot.area)) {
             spotted.spot.area.set(box);
@@ -298,7 +409,9 @@ public final class RoundedTabBar {
     /** Gives [tab] back the background it had before the spot. */
     static void unspot(View tab) {
         Spotted spotted = SPOTTED.remove(tab);
-        if (spotted != null && tab.getBackground() == spotted.layers) tab.setBackground(spotted.facebooks);
+        if (spotted == null || tab.getBackground() != spotted.layers) return;
+        tab.setBackground(spotted.facebooks);
+        if (spotted.facebooks != null) spotted.facebooks.jumpToCurrentState();
     }
 
     /** Gives [bar] back what it had before it was made a pill. True when it was one. */
@@ -321,6 +434,8 @@ public final class RoundedTabBar {
         final float pivotY;
         final Pill pill = new Pill();
         final Rect scratch = new Rect();
+        /** The row trimmed to the Tab bar height picked, the pill's outline before it's kept. */
+        final Rect trimmed = new Rect();
         final int[] at = new int[2];
         /** Facebook's line over the top of the pill, faded, and the alpha it had. Weak: it's the bar's child. */
         WeakReference<View> line = new WeakReference<>(null);
@@ -445,7 +560,8 @@ public final class RoundedTabBar {
         private final String tabBar;
         private WeakReference<View> anchor = new WeakReference<>(null);
         private WeakReference<View> shaped = new WeakReference<>(null);
-        private WeakReference<View> spotted = new WeakReference<>(null);
+        /** Every tab wearing the spot's layers, kept until the pill goes. */
+        private final List<WeakReference<View>> wrapped = new ArrayList<>();
         private final int[] at = new int[2];
         private long nextLook;
         private boolean stopped;
@@ -516,21 +632,42 @@ public final class RoundedTabBar {
                         + rowWidth + "x" + rowHeight + " row");
             }
             View tab = selectedTab(anchor, anchor.getWidth());
-            View lastTab = spotted.get();
-            if (lastTab != null && lastTab != tab) unspot(lastTab);
-            spotted = new WeakReference<>(tab);
             Shape shape = SHAPED.get(bar);
             if (tab != null && shape != null) {
                 HookStatus.bound(FAMILY, "selected tab");
+                letGoOutside(tab.getParent());
+                wrapRow(tab, anchor.getWidth(), wrapped);
                 spot(bar, tab, shape.pill.row);
+            } else {
+                // No tab selected, no spot: the tabs keep their layers, empty.
+                for (WeakReference<View> each : wrapped) {
+                    View wearing = each.get();
+                    Spotted spotted = wearing == null ? null : SPOTTED.get(wearing);
+                    if (spotted != null && !spotted.spot.area.isEmpty()) {
+                        spotted.spot.area.setEmpty();
+                        spotted.spot.invalidateSelf();
+                    }
+                }
             }
         }
 
-        /** Gives the bar this shaper made a pill its own shape back, and the selected tab its background. */
+        /** Gives back the background of each wrapped tab no longer in [row], a row Facebook replaced. */
+        private void letGoOutside(@Nullable ViewParent row) {
+            for (Iterator<WeakReference<View>> it = wrapped.iterator(); it.hasNext(); ) {
+                View tab = it.next().get();
+                if (tab != null && tab.getParent() == row) continue;
+                it.remove();
+                if (tab != null) unspot(tab);
+            }
+        }
+
+        /** Gives the bar this shaper made a pill its own shape back, and every tab its background. */
         private void letGo() {
-            View tab = spotted.get();
-            spotted = new WeakReference<>(null);
-            if (tab != null) unspot(tab);
+            for (WeakReference<View> each : wrapped) {
+                View tab = each.get();
+                if (tab != null) unspot(tab);
+            }
+            wrapped.clear();
             View bar = shaped.get();
             shaped = new WeakReference<>(null);
             if (bar != null && giveBack(bar)) HookStatus.counted(FAMILY, GIVEN_BACK);

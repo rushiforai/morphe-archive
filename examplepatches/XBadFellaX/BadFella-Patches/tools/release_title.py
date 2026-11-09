@@ -14,6 +14,7 @@ APP_NAMES = {
     'remoteatv': 'Remote for Android TV',
     'remote-atv': 'Remote for Android TV',
     'wanderlog': 'Wanderlog',
+    'linkedin': 'LinkedIn',
 }
 DISPLAY_NAMES = {
     'Remote ATV': APP_NAMES['remoteatv'],

@@ -966,6 +966,15 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_feed_videos_alone", FALSE);
 
     /**
+     * A reel opened from a link in another app or from a chat plays on its own, with no reels to
+     * swipe to after it, the way {@link #FEED_VIDEOS_ALONE} keeps a feed video
+     * ({@link app.morphe.extension.facebook.reels.FeedVideoAlone}, #421). Off by default. A change
+     * shows from the next reel opened.
+     */
+    public static final BooleanSetting SHARED_REELS_ALONE =
+            new BooleanSetting("hushfacebook_shared_reels_alone", FALSE);
+
+    /**
      * Watch again at the end of a feed video plays it again where it is instead of opening it in
      * the Reels viewer ({@link app.morphe.extension.facebook.reels.WatchAgain}, #403). Off by
      * default. A change shows on the next tap.
@@ -980,6 +989,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SAVED_VIDEOS_IN_PLAYER =
             new BooleanSetting("hushfacebook_saved_videos_in_player", FALSE);
+
+    /**
+     * A reel opened from Saved goes on to the next one in Saved when it ends or is swiped past,
+     * instead of a suggested reel ({@link app.morphe.extension.facebook.reels.SavedChain}, #404).
+     * Off by default. A change shows on the next video opened from Saved.
+     */
+    public static final BooleanSetting SAVED_VIDEOS_IN_ORDER =
+            new BooleanSetting("hushfacebook_saved_videos_in_order", FALSE);
+
+    /**
+     * Reels and videos go on to the next one without Facebook holding it back to ask "Are you still
+     * watching?" ({@link app.morphe.extension.facebook.reels.StillWatching}, #427). Off by default.
+     * Asked before each next video, so a change shows from the next one.
+     */
+    public static final BooleanSetting SKIP_STILL_WATCHING =
+            new BooleanSetting("hushfacebook_skip_still_watching", FALSE);
 
     /**
      * The batches of watched reels the Reels viewer sends as FbShortsSeenStateMutation: only their
@@ -1455,6 +1480,16 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting TAP_REELS_ABOVE_COMMENTS =
             new BooleanSetting("hushfacebook_tap_reels_above_comments", FALSE);
+
+    /**
+     * A magnifier at the top of a comment sheet's list opens a search box that finds the comments
+     * with your words and steps through them
+     * ({@link app.morphe.extension.facebook.comments.CommentSearch}, #420). Needs Open comments at
+     * full height's sheet hook, and works whatever that switch says. Off by default. A change shows
+     * on the next sheet opened.
+     */
+    public static final BooleanSetting SEARCH_COMMENTS =
+            new BooleanSetting("hushfacebook_search_comments", FALSE);
 
     /**
      * Facebook's text boxes (posts, comments, captions, a story's text) look people up to tag only
@@ -2660,12 +2695,36 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_translucent_bars", FALSE);
 
     /**
+     * How much of their own color See-through bars keep, a percent, digits only, blank for the
+     * stock amount (#425, {@link app.morphe.extension.facebook.navigation.TranslucentBars#opacityPercent}).
+     * Not a switch. Asked as each frame of the main screen draws.
+     */
+    public static final StringSetting SEE_THROUGH_OPACITY =
+            new StringSetting("hushfacebook_see_through_opacity", "");
+
+    /**
      * The tab bar at the bottom is drawn as a pill with round ends, a little smaller than the bar and
      * a few dp above the bottom of the screen (#344, {@link app.morphe.extension.facebook.navigation.RoundedTabBar}).
      * Asked as each frame of the main screen draws, so a change shows right away.
      */
     public static final BooleanSetting ROUNDED_TAB_BAR =
             new BooleanSetting("hushfacebook_rounded_tab_bar", FALSE);
+
+    /**
+     * The rounded tab bar's width as a percent of the screen's, digits only, blank for the stock
+     * size (#425, {@link app.morphe.extension.facebook.navigation.RoundedTabBar#widthPercent}). Not
+     * a switch. Asked as each frame of the main screen draws.
+     */
+    public static final StringSetting TAB_BAR_WIDTH =
+            new StringSetting("hushfacebook_tab_bar_width", "");
+
+    /**
+     * How much of its height the rounded tab bar keeps, a percent, digits only, blank for all of it
+     * (#425, {@link app.morphe.extension.facebook.navigation.RoundedTabBar#heightPercent}). Not a
+     * switch. Asked as each frame of the main screen draws.
+     */
+    public static final StringSetting TAB_BAR_HEIGHT =
+            new StringSetting("hushfacebook_tab_bar_height", "");
 
     /**
      * Android's status bar goes from Facebook's main screen, a swipe down from the top edge showing
@@ -2675,6 +2734,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_STATUS_BAR =
             new BooleanSetting("hushfacebook_hide_status_bar", FALSE);
+
+    /**
+     * In light mode the Reels tab keeps the light status bar, top bar and tab bar the other tabs
+     * have, where Facebook turns them dark (#423,
+     * {@link app.morphe.extension.facebook.navigation.LightReelsTabBars}). Asked each time the tab
+     * is shown, so a change shows on the next visit to the Reels tab.
+     */
+    public static final BooleanSetting LIGHT_REELS_TAB_BARS =
+            new BooleanSetting("hushfacebook_light_reels_tab_bars", FALSE);
 
     /**
      * The home top bar loses its Messenger button and the buttons beside it close up (#181,
@@ -2913,6 +2981,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_FULL_REEL_CAPTIONS =
             new ReelCaptionSetting("hushfacebook_show_full_reel_captions");
+
+    /**
+     * An open reel caption sits on a dark rounded box, like subtitles (#419,
+     * {@link app.morphe.extension.facebook.feed.CaptionBackdrop}). A change shows on the captions
+     * drawn after it.
+     */
+    public static final BooleanSetting DIM_OPEN_REEL_CAPTIONS =
+            new BooleanSetting("hushfacebook_dim_open_reel_captions", FALSE);
 
     /**
      * A post in another language gets a Translate line under its text, and a tap sends the text to

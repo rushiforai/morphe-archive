@@ -512,13 +512,25 @@ public final class SettingsNavigationChecks extends Instrumentation {
         return snapshot;
     }
     private String accounts() throws Exception {
-        Class<?> users = loader.loadClass("org.telegram.messenger.UserConfig");
-        int count = users.getField("MAX_ACCOUNT_COUNT").getInt(null);
-        StringBuilder state = new StringBuilder().append(users.getField("selectedAccount").getInt(null));
+        // Telegram 13.2 ships UserConfig under R8's names, which the script passes in from the build's name table.
+        Class<?> users = loader.loadClass(arguments.getString("userConfig", "org.telegram.messenger.UserConfig"));
+        // R8 folds MAX_ACCOUNT_COUNT into its uses, so the count is the length of the static instance array.
+        int count = -1;
+        for (Field candidate : users.getDeclaredFields()) {
+            if (!java.lang.reflect.Modifier.isStatic(candidate.getModifiers()) || candidate.getType().getComponentType() != users) continue;
+            require(count < 0, "More than one UserConfig instance array");
+            candidate.setAccessible(true);
+            count = java.lang.reflect.Array.getLength(candidate.get(null));
+        }
+        require(count > 0, "No UserConfig instance array observed");
+        StringBuilder state = new StringBuilder().append(field(users, arguments.getString("selectedAccount", "selectedAccount")).getInt(null));
+        java.lang.reflect.Method instance = users.getMethod(arguments.getString("getInstance", "getInstance"), int.class);
+        java.lang.reflect.Method activated = users.getMethod(arguments.getString("isClientActivated", "isClientActivated"));
+        java.lang.reflect.Method clientId = users.getMethod(arguments.getString("getClientUserId", "getClientUserId"));
         for (int i = 0; i < count; i++) {
-            Object user = users.getMethod("getInstance", int.class).invoke(null, i);
-            state.append('/').append(users.getMethod("isClientActivated").invoke(user));
-            state.append('/').append(users.getMethod("getClientUserId").invoke(user));
+            Object user = instance.invoke(null, i);
+            state.append('/').append(activated.invoke(user));
+            state.append('/').append(clientId.invoke(user));
         }
         return state.toString(); // Compared in memory only. No account identifiers enter output.
     }

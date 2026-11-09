@@ -26,6 +26,8 @@ import android.util.LruCache;
 import android.view.View;
 import android.widget.TextView;
 
+import com.onelouder.baconreader.adapters.DrawerAdapter;
+
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
@@ -202,6 +204,37 @@ public final class UserAvatarsPatch {
             }
         } catch (Exception ex) {
             Logger.printInfo(() -> "Could not add the avatar to the inbox", ex);
+        }
+    }
+
+    /** DrawerItem.type of the drawer's header, the row with the active account's name. */
+    private static final int DRAWER_HEADER = 1;
+    /** DrawerItem.tagString of the header when an account is logged in. */
+    private static final String DRAWER_HEADER_ACCOUNT = "account";
+    /** DrawerItem.type of the rows of the expanded accounts list. */
+    private static final int DRAWER_ACCOUNT = 2;
+    /** DrawerItem.tag of an account's row, not of "Log out" (100) or "Add account" (101). */
+    private static final int DRAWER_ACCOUNT_TAG = 110;
+
+    /**
+     * Injected after the drawer's adapter shows a row (DrawerAdapter.getView, after Holder.updateView sets its
+     * text): puts the account's avatar before its name, in the header with the active account and in each account
+     * of the expanded accounts list. Not "Logged out", "Log out" or "Add account". Always on: a user's own accounts,
+     * unlike authors, don't depend on the "Show user avatars" setting. Avatar size and Avatar background still apply.
+     */
+    public static void drawerAvatar(DrawerAdapter.DrawerItem item, TextView textView) {
+        try {
+            if (item == null || textView == null) return;
+            String name = null;
+            if (item.type == DRAWER_HEADER && DRAWER_HEADER_ACCOUNT.equals(item.tagString)) {
+                name = item.text;
+            } else if (item.type == DRAWER_ACCOUNT && item.tag == DRAWER_ACCOUNT_TAG) {
+                name = item.tagString;
+            }
+            if (TextUtils.isEmpty(name) || !name.equals(textView.getText().toString())) return;
+            insertAvatar(textView, 0, name, null);
+        } catch (Exception ex) {
+            Logger.printInfo(() -> "Could not add the avatar to the drawer", ex);
         }
     }
 

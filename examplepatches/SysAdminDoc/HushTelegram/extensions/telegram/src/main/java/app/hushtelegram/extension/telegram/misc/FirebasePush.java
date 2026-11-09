@@ -334,8 +334,8 @@ public final class FirebasePush {
      */
     private static long owner(Object controller) {
         try {
-            Object config = controller.getClass().getMethod("getUserConfig").invoke(controller);
-            long user = ((Number) config.getClass().getMethod("getClientUserId").invoke(config)).longValue();
+            Object config = HostNames.method(controller.getClass(), "getUserConfig").invoke(controller);
+            long user = ((Number) HostNames.method(config.getClass(), "getClientUserId").invoke(config)).longValue();
             return user < 0 ? -1 : user;
         } catch (Throwable unreadable) {
             // Native exception messages can contain private data. Unknown is the only result.
@@ -421,11 +421,11 @@ public final class FirebasePush {
         String name = "unreadable";
         String code = "";
         try {
-            Object text = error.getClass().getField("text").get(error);
+            Object text = HostNames.field(error.getClass(), "text").get(error);
             if (text instanceof String && ERROR_NAME.matcher((String) text).matches()) name = (String) text;
         } catch (Throwable unreadable) { }
         try {
-            code = " " + error.getClass().getField("code").getInt(error);
+            code = " " + HostNames.field(error.getClass(), "code").getInt(error);
         } catch (Throwable unreadable) { }
         return name + code;
     }

@@ -14,4 +14,14 @@ object Constants {
             AppTarget(version = "26.10.12.2")
         )
     )
+
+    val COMPATIBILITY_JIOHOTSTAR_TOPBAR = Compatibility(
+        name = "JioHotstar",
+        packageName = "in.startv.hotstar",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x1A237E,
+        targets = listOf(
+            AppTarget(version = "26.10.12.2")
+        )
+    )
 }

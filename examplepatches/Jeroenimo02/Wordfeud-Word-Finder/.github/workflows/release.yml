@@ -70,6 +70,41 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:buildAndroid --no-daemon
 
+      # semantic-release pushes the release commit and tag before it creates the GitHub release and the tag's git
+      # note (refs/notes/semantic-release-<tag>, which says the channel). When a later push fails (v1.5.0-dev.4: the
+      # note push failed), the tag exists without a release, so patches-bundle.json points Morphe Manager to a
+      # missing .mpp. semantic-release also ignores a tag without a note: the next run computes the same version
+      # again and fails at "git tag", every time. This step repairs both, also after a failed semantic-release step:
+      # it builds the tag's own commit, creates the release with the tag's CHANGELOG.md section and adds the note.
+      - name: Repair a tag without a GitHub release
+        if: always() && steps.release.outputs.new_release_published != 'true' && (github.ref_name == 'main' || github.ref_name == 'dev')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git fetch --force --tags origin "+refs/heads/${GITHUB_REF_NAME}:refs/remotes/origin/${GITHUB_REF_NAME}"
+          TAG=$(git describe --tags --abbrev=0 --match 'v*' "origin/${GITHUB_REF_NAME}")
+          if [ "$GITHUB_REF_NAME" = "dev" ]; then CHANNEL='"dev"'; else CHANNEL='null'; fi
+          if ! git ls-remote --exit-code origin "refs/notes/semantic-release-${TAG}" > /dev/null; then
+            echo "$TAG has no semantic-release note: adding it."
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              notes --ref "semantic-release-${TAG}" add -f -m "{\"channels\":[${CHANNEL}]}" "$TAG"
+            git push origin "refs/notes/semantic-release-${TAG}"
+          fi
+          if gh release view "$TAG" > /dev/null 2>&1; then
+            echo "$TAG already has a GitHub release."
+            exit 0
+          fi
+          echo "$TAG has no GitHub release: building and publishing it."
+          git checkout --force --detach "$TAG"
+          ./gradlew :patches:buildAndroid --no-daemon
+          VERSION="${TAG#v}"
+          awk -v v="[$VERSION]" '/^#+ \[/ { if (on) exit; if (index($0, v)) { on = 1; next } } on { print }' CHANGELOG.md > release-notes.md
+          PRERELEASE=""
+          case "$TAG" in *-*) PRERELEASE="--prerelease" ;; esac
+          gh release create "$TAG" "patches/build/libs/patches-${VERSION}.mpp" --verify-tag --title "$TAG" \
+            --notes-file release-notes.md $PRERELEASE
+
       # Makes the patches of any branch downloadable from the workflow run.
       - name: Upload patches
         if: steps.release.outputs.new_release_published != 'true'

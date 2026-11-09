@@ -59,7 +59,7 @@ final class ButtonsUi {
                 try {
                     focus = NuvioPlaybackButtons.method(nested.getClass(), "R", 0).invoke(nested);
                     java.lang.reflect.Field empty = loader.loadClass(NuvioNative.COMPOSE_EMPTY_NAME).getDeclaredField("a"); empty.setAccessible(true);
-                    // h1.j.f is only the initializer: it writes the last-read slot itself.
+                    // g1.j.f is only the initializer: it writes the last-read slot itself.
                     // Calling it without R(), or when already remembered, corrupts adjacent slots.
                     if (focus == empty.get(null)) focus = NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.FOCUS_INITIALIZER_NAME), NuvioNative.FOCUS_INITIALIZER_METHOD, 1).invoke(null, nested);
                 } finally { NuvioPlaybackButtons.method(nested.getClass(), "p", 1).invoke(nested, false); }
@@ -101,10 +101,14 @@ final class ButtonsUi {
                 Object modifier = loader.loadClass(NuvioNative.EMPTY_MODIFIER_NAME).getField("b").get(null);
                 modifier = NuvioPlaybackButtons.method(loader.loadClass("androidx.compose.foundation.layout.b"), "i", 4)
                     .invoke(null, modifier, 0f, 360f, 1);
-                Object padding = loader.loadClass("e0.o1").getDeclaredConstructor(float.class, float.class, float.class, float.class)
+                Object padding = loader.loadClass("d0.o1").getDeclaredConstructor(float.class, float.class, float.class, float.class)
                     .newInstance(0f, 4f, 0f, 4f);
-                Object spacing = NuvioPlaybackButtons.method(loader.loadClass("e0.i"), "g", 1).invoke(null, 8f);
-                NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.LAZY_LIST_NAME), NuvioNative.LAZY_LIST_METHOD, 12).invoke(null,
+                Object spacing = NuvioPlaybackButtons.method(loader.loadClass("d0.i"), "g", 1).invoke(null, 8f);
+                String listReference = NuvioNative.REF_LAZY_LIST_I;
+                int arrow = listReference.indexOf("->");
+                String listOwner = listReference.substring(1, arrow - 1).replace('/', '.');
+                String listMethod = listReference.substring(arrow + 2, listReference.indexOf('(', arrow));
+                NuvioPlaybackButtons.method(loader.loadClass(listOwner), listMethod, 12).invoke(null,
                     modifier, state, padding, spacing, null, null, true, null, items, nested, 0, 488);
                 return unit(loader);
             }), true);

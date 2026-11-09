@@ -22,14 +22,21 @@ public static class Waiting
         }
     }
 
-    /// <summary>Waits up to <paramref name="timeout"/> until <paramref name="condition"/> holds on the screen.</summary>
+    // A wait gives up only after this many looks too: one look can take longer than the whole wait (a page source while
+    // the screen changed took 11 s, 2026-11-07), and a wait for a view to stop moving needs 2 looks once it has.
+    private const int FewestLooks = 3;
+
+    /// <summary>
+    /// Waits up to <paramref name="timeout"/>, and at least <see cref="FewestLooks"/> looks, until
+    /// <paramref name="condition"/> holds on the screen.
+    /// </summary>
     public static async Task UntilAsync(Func<bool> condition, TimeSpan timeout, string what)
     {
         var took = Stopwatch.StartNew();
         var stale = 0;
-        while (!await Task.Run(() => Holds(condition, ref stale)))
+        for (var looks = 1; !await Task.Run(() => Holds(condition, ref stale)); looks++)
         {
-            if (took.Elapsed >= timeout)
+            if (took.Elapsed >= timeout && looks >= FewestLooks)
             {
                 Note(what, took.Elapsed, timeout, seen: false, stale);
                 throw new TimeoutException($"{what} didn't happen within {timeout.TotalSeconds:0} s.");
@@ -54,6 +61,7 @@ public static class Waiting
             var found = await Task.Run(() => FindShown(driver, shown, ref stale));
             if (found is not null)
             {
+                OnScreen.HandOver(driver, shown, found);
                 Note(what, took.Elapsed, timeout, seen: true, stale);
                 return found;
             }

@@ -1,8 +1,8 @@
 {
-  "created_at": "2026-11-08T03:16:12",
-  "description": "Experimental, for Google Maps 26.44.06.1006895251 only. (1) Always use two-wheeler routing on Android Auto. (2) Skip Maps' private Android Auto car connection, which Android Auto rejects for re-signed apps and which otherwise crashes Maps on the head unit. Use with the fixed Dutch App Patches bundle (native navigation adapter). See findings.md for scope and limits.",
-  "download_url": "https://github.com/shuili1013/GoogleMap-Morphe/releases/download/v0.3.0/patches-0.3.0.mpp",
+  "created_at": "2026-11-08T07:00:49",
+  "description": "Google Maps 26.44.06.1006895251: native Android Auto navigation with two-wheeler routes. Includes the required Dutch App Patches (JohninNL, GPLv3) Maps patches. Requires this project's MicroG-RE build. See README.",
+  "download_url": "https://github.com/shuili1013/Maps-AA-AnyMode-Morphe/releases/download/v1.0.1/patches-1.0.1.mpp",
   "public_key": null,
-  "page_url": "https://github.com/shuili1013/GoogleMap-Morphe",
-  "version": "0.3.0"
+  "page_url": "https://github.com/shuili1013/Maps-AA-AnyMode-Morphe",
+  "version": "1.0.1"
 }

@@ -6,6 +6,7 @@ pluginManagement {
         // MorpheApp/morphe-patches-gradle-plugin to the local Maven repository first.
         mavenLocal()
         maven("https://maven.aliyun.com/repository/public")
+        maven("https://maven.aliyun.com/repository/google")
         maven {
             name = "GitHubPackages"
             url = uri("https://maven.pkg.github.com/MorpheApp/registry")
@@ -14,8 +15,8 @@ pluginManagement {
                 password = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
             }
         }
-        gradlePluginPortal()
         google()
+        gradlePluginPortal()
         maven { url = uri("https://jitpack.io") }
     }
 }

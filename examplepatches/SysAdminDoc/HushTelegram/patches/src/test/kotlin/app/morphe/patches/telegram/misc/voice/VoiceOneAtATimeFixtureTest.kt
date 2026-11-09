@@ -18,6 +18,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** MediaController's voice queue and the runtime. The locked phone guard has its own test. */
 class VoiceOneAtATimeFixtureTest {
@@ -37,11 +40,11 @@ class VoiceOneAtATimeFixtureTest {
             assertEquals(QUEUE, after[0].controlRef())
             assertEquals("$name: the queue parameter", listOf(listOf(playlist), listOf(playlist)), after.take(2).map { it.namedRegisters() })
             for (i in before.indices) {
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + 2].opcode, after[i + 2].namedRegisters(), (after[i + 2] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + 2].opcode, after[i + 2].namedRegisters(), after[i + 2].origRef()))
             }
             for (flag in listOf("voiceOneAtATime", "lockedVoice")) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }

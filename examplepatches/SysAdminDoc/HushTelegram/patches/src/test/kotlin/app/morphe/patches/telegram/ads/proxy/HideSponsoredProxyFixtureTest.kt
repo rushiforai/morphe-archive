@@ -8,7 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -35,6 +36,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Two presentation decisions on official fixtures. Shared requests and cached host objects stay stock. */
 class HideSponsoredProxyFixtureTest {
@@ -105,7 +110,7 @@ class HideSponsoredProxyFixtureTest {
                 })
             }
 
-            val scope = context.mutableClassDefBy(PROXY_PROMOTIONS).methods.single { it.name == "isSponsoredProxyDialog" }
+            val scope = context.tgMutableClassDefBy(PROXY_PROMOTIONS).methods.single { it.origName == "isSponsoredProxyDialog" }
             val scopeBody = scope.instructions()
             assertEquals(6, scope.implementation!!.registerCount)
             assertEquals("${build.name}: scope contains only the read-only predicate", 27, scopeBody.size)
@@ -114,7 +119,10 @@ class HideSponsoredProxyFixtureTest {
             assertEquals(MESSAGES_CONTROLLER, scopeBody[0].reference())
             assertEquals(PROXY_DIALOG, scopeBody[2].reference())
             assertEquals("$MESSAGES_CONTROLLER->promoDialogType:I", scopeBody[6].reference())
-            assertEquals("$MESSAGES_CONTROLLER->PROMO_TYPE_PROXY:I", scopeBody[7].reference())
+            // 13.2 folded PROMO_TYPE_PROXY (0) into its uses, so the scope loads the value itself.
+            assertEquals(Opcode.CONST_4, scopeBody[7].opcode)
+            assertEquals(listOf(1), scopeBody[7].namedRegisters())
+            assertEquals(0L, (scopeBody[7] as WideLiteralInstruction).wideLiteral)
             assertEquals(Opcode.IF_NE, scopeBody[8].opcode)
             assertEquals("$PROXY_DIALOG->id:J", scopeBody[9].reference())
             assertEquals(Opcode.IF_GEZ, scopeBody[12].opcode)
@@ -133,28 +141,28 @@ class HideSponsoredProxyFixtureTest {
             for (guard in listOf(1, 3, 8, 12, 16, 22)) {
                 assertEquals("${build.name}: scope guard $guard fails open", listOf(25, guard + 1), scopeFlow.normal[guard])
             }
-            for (index in listOf(6, 7, 9, 23)) {
+            for (index in listOf(6, 9, 23)) {
                 val field = (scopeBody[index] as ReferenceInstruction).reference as FieldReference
-                val definition = hosts.single { it.type == field.definingClass }.fields.single { it.name == field.name && it.type == field.type }
+                val definition = hosts.single { it.origType == field.origDefiningClass }.fields.single { it.origName == field.origName && it.origType == field.origType }
                 assertTrue("${build.name}: bridge uses public ${field.name}", AccessFlags.PUBLIC.isSet(definition.accessFlags))
             }
             for (flag in FLAGS) assertEquals("${build.name}: $flag enabled only after insertion", 1L,
-                (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.instructions()[0] as WideLiteralInstruction).wideLiteral)
+                (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.instructions()[0] as WideLiteralInstruction).wideLiteral)
 
-            val controller = hosts.single { it.type == MESSAGES_CONTROLLER }
+            val controller = hosts.single { it.origType == MESSAGES_CONTROLLER }
             val sharedRequest = controller.methods.single { method -> method.instructions().any {
                 it.opcode == Opcode.NEW_INSTANCE && it.reference() == SHARED_PROMO_REQUEST
             } }
             assertTrue(sharedRequest.instructions().any { it.reference() == "proxy_enabled" })
             for (host in hosts) for (method in host.methods) {
-                if (host.type == MESSAGES_CONTROLLER && method.signature() == original.signature()) continue
-                val current = context.mutableClassDefBy(host.type).methods.single { it.signature() == method.signature() }
+                if (host.origType == MESSAGES_CONTROLLER && method.signature() == original.signature()) continue
+                val current = context.tgMutableClassDefBy(host.type).methods.single { it.signature() == method.signature() }
                 assertEquals("${build.name}: unchanged $method", method.instructions().map(::operation), current.instructions().map(::operation))
             }
-            val protocol = hosts.single { it.type == SHARED_PROMO_REQUEST }
+            val protocol = hosts.single { it.origType == SHARED_PROMO_REQUEST }
             assertTrue("${build.name}: request has no sponsor-only parameter", protocol.fields.all { AccessFlags.STATIC.isSet(it.accessFlags) })
             assertEquals(listOf(Opcode.CONST, Opcode.INVOKE_INTERFACE, Opcode.RETURN_VOID),
-                protocol.methods.single { it.name == "serializeToStream" }.instructions().map { it.opcode })
+                protocol.methods.single { it.origName == "serializeToStream" }.instructions().map { it.opcode })
         }
     }
 
@@ -188,46 +196,54 @@ class HideSponsoredProxyFixtureTest {
     @Test
     fun `ambiguous sorting anchor refuses before any presentation decision changes`() = refusal { context, plan ->
         val method = plan.hooks.first().method
-        context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.add(ImmutableMethod(method.definingClass,
+        context.tgMutableClassDefBy(MESSAGES_CONTROLLER).methods.add(ImmutableMethod(method.definingClass,
             "ambiguousSortingFixture", method.parameters, method.returnType, method.accessFlags,
             method.annotations, method.hiddenApiRestrictions, method.implementation).toMutable())
     }
 
     @Test
     fun `missing native scope stub refuses before any host hook or build fact changes`() = refusal { context, plan ->
-        context.mutableClassDefBy(PROXY_PROMOTIONS).methods.removeAll { it.name == "isSponsoredProxyDialog" }
+        context.tgMutableClassDefBy(PROXY_PROMOTIONS).methods.removeAll { it.origName == "isSponsoredProxyDialog" }
     }
 
     @Test
     fun `each missing runtime guard refuses before either hook or scope changes`() {
         for (name in listOf("hideCachedProxyDialog", "showSelectedDialog")) refusal { context, plan ->
-            context.mutableClassDefBy(PROXY_PROMOTIONS).methods.removeAll { it.name == name }
+            context.tgMutableClassDefBy(PROXY_PROMOTIONS).methods.removeAll { it.origName == name }
         }
     }
 
     @Test
     fun `each missing build fact refuses before any host or native scope changes`() {
         for (flag in FLAGS) refusal { context, plan ->
-            context.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == flag }
+            context.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == flag }
         }
     }
 
     @Test
     fun `static promo type refuses before any host scope or build flag changes`() = refusal { context, _ ->
-        val field = context.mutableClassDefBy(MESSAGES_CONTROLLER).fields.single { it.name == "promoDialogType" }
+        val field = context.tgMutableClassDefBy(MESSAGES_CONTROLLER).fields.single { it.origName == "promoDialogType" }
         field.accessFlags = field.accessFlags or AccessFlags.STATIC.value
     }
 
     @Test
+    fun `a promo check that no longer compares the proxy type refuses before any host scope changes`() = refusal { context, _ ->
+        val controller = context.tgMutableClassDefBy(MESSAGES_CONTROLLER)
+        val check = controller.methods.single { method -> method.instructions().any { it.reference() == "proxy_secret" } }
+        val read = check.instructions().indexOfFirst { it.reference() == "$MESSAGES_CONTROLLER->promoDialogType:I" }
+        check.replaceInstruction(read + 1, "nop")
+    }
+
+    @Test
     fun `inaccessible runtime class refuses before any host scope or build flag changes`() = refusal { context, _ ->
-        val runtime = context.mutableClassDefBy(PROXY_PROMOTIONS)
+        val runtime = context.tgMutableClassDefBy(PROXY_PROMOTIONS)
         runtime.accessFlags = runtime.accessFlags and AccessFlags.PUBLIC.value.inv()
     }
 
     @Test
     fun `each instance status method refuses before any host scope or build flag changes`() {
         for (name in FLAGS) refusal { context, _ ->
-            val method = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }
+            val method = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }
             method.accessFlags = method.accessFlags and AccessFlags.STATIC.value.inv()
         }
     }
@@ -236,7 +252,7 @@ class HideSponsoredProxyFixtureTest {
     fun `all remaining instance fields refuse static reads before any mutation`() {
         for ((type, name) in listOf(MESSAGES_CONTROLLER to "promoDialog", MESSAGES_CONTROLLER to "isLeftPromoChannel",
             MESSAGES_CONTROLLER to "allDialogs", PROXY_DIALOG to "id", PROXY_CHAT to "left")) refusal { context, _ ->
-            val field = context.mutableClassDefBy(type).fields.single { it.name == name }
+            val field = context.tgMutableClassDefBy(type).fields.single { it.origName == name }
             field.accessFlags = field.accessFlags or AccessFlags.STATIC.value
         }
     }
@@ -246,7 +262,7 @@ class HideSponsoredProxyFixtureTest {
         for (name in listOf("hideCachedProxyDialog", "showSelectedDialog", "isSponsoredProxyDialog")) {
             for (flag in listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.ABSTRACT, AccessFlags.NATIVE)) {
                 refusal { context, _ ->
-                    val method = context.mutableClassDefBy(PROXY_PROMOTIONS).methods.single { it.name == name }
+                    val method = context.tgMutableClassDefBy(PROXY_PROMOTIONS).methods.single { it.origName == name }
                     method.accessFlags = if (flag in listOf(AccessFlags.PUBLIC, AccessFlags.STATIC))
                         method.accessFlags and flag.value.inv() else method.accessFlags or flag.value
                 }
@@ -286,12 +302,12 @@ class HideSponsoredProxyFixtureTest {
     @Test
     fun `inaccessible status class and uncallable build flags refuse before any mutation`() {
         refusal { context, _ ->
-            val status = context.mutableClassDefBy(SETTINGS_STATUS)
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS)
             status.accessFlags = status.accessFlags and AccessFlags.PUBLIC.value.inv()
         }
         for (name in FLAGS) for (flag in listOf(AccessFlags.PUBLIC, AccessFlags.ABSTRACT, AccessFlags.NATIVE)) {
             refusal { context, _ ->
-                val method = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }
+                val method = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }
                 method.accessFlags = if (flag == AccessFlags.PUBLIC) method.accessFlags and flag.value.inv()
                     else method.accessFlags or flag.value
             }
@@ -301,8 +317,8 @@ class HideSponsoredProxyFixtureTest {
     @Test
     fun `empty build facts refuse before any host scope or build flag changes`() {
         for (name in FLAGS) refusal { context, _ ->
-            val owner = context.mutableClassDefBy(SETTINGS_STATUS)
-            val method = owner.methods.single { it.name == name }
+            val owner = context.tgMutableClassDefBy(SETTINGS_STATUS)
+            val method = owner.methods.single { it.origName == name }
             owner.methods.remove(method)
             owner.methods.add(ImmutableMethod(method.definingClass, method.name, emptyList(), method.returnType,
                 method.accessFlags, method.annotations, method.hiddenApiRestrictions,
@@ -311,8 +327,8 @@ class HideSponsoredProxyFixtureTest {
     }
 
     private fun runtimeRefusal(name: String, registers: Int? = null, body: List<Instruction>? = null) = refusal { context, _ ->
-        val owner = context.mutableClassDefBy(PROXY_PROMOTIONS)
-        val method = owner.methods.single { it.name == name }
+        val owner = context.tgMutableClassDefBy(PROXY_PROMOTIONS)
+        val method = owner.methods.single { it.origName == name }
         val implementation = method.implementation!!
         assertEquals("$name: exact one-word parameter budget", RUNTIME_WORDS.getValue(name), method.parameterTypes.size)
         assertTrue("$name: stock budget is valid", implementation.registerCount >= RUNTIME_WORDS.getValue(name))
@@ -331,10 +347,10 @@ class HideSponsoredProxyFixtureTest {
             val plan = context.resolveProxyHooks()
             change(context, plan)
             val types = hosts.map { it.type } + listOf(PROXY_PROMOTIONS, SETTINGS_STATUS)
-            val before = types.associateWith { type -> context.mutableClassDefBy(type).methods.associate {
+            val before = types.associateWith { type -> context.tgMutableClassDefBy(type).methods.associate {
                 it.signature() to it.state()
             } }
-            val classBefore = types.associateWith { context.mutableClassDefBy(it).state() }
+            val classBefore = types.associateWith { context.tgMutableClassDefBy(it).state() }
             try {
                 hideSponsoredProxyPatch.execute(context)
                 fail("${build.name}: incompatible shape accepted")
@@ -342,11 +358,11 @@ class HideSponsoredProxyFixtureTest {
                 assertTrue(expected.message.orEmpty().isNotBlank())
             }
             for (type in types) assertEquals("${build.name}: no partial edit to $type", before.getValue(type),
-                context.mutableClassDefBy(type).methods.associate { it.signature() to it.state() })
+                context.tgMutableClassDefBy(type).methods.associate { it.signature() to it.state() })
             assertEquals("${build.name}: no class, field, method or scope mutation", classBefore,
-                types.associateWith { context.mutableClassDefBy(it).state() })
+                types.associateWith { context.tgMutableClassDefBy(it).state() })
             for (flag in FLAGS) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.singleOrNull { it.name == flag } ?: continue
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.singleOrNull { it.origName == flag } ?: continue
                 val instructions = status.instructions()
                 if (instructions.isEmpty()) {
                     assertEquals("${build.name}: invalid empty $flag remains empty", emptyList<Instruction>(), instructions)
@@ -375,7 +391,7 @@ class HideSponsoredProxyFixtureTest {
     private fun ClassDef.state() = listOf(accessFlags,
         fields.map { listOf(it.name, it.type, it.accessFlags, it.initialValue) },
         methods.map { it.signature() to it.state() })
-    private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.reference() = origRef()
     private fun operation(instruction: Instruction) = listOf(instruction.opcode, instruction.namedRegisters(),
         instruction.reference(), (instruction as? WideLiteralInstruction)?.wideLiteral)
     private companion object {

@@ -7,12 +7,12 @@ import app.morphe.patcher.patch.rawResourcePatch
 /** Compiled with the shared implementation but packaged only in the compact bundle. */
 @Suppress("unused")
 val finampCompletePatch = rawResourcePatch(
-    name = "Finamp complete: all eight fixes",
-    description = "Apply all eight Penguin Finamp fixes together, including song artist order and album/track information. " +
+    name = "Finamp Complete",
+    description = "Apply all available Penguin Finamp fixes together. " +
         "Requires the original official Finamp 1.0.1 APK; produces ARM64-only output.",
     default = true,
 ) {
     compatibleWith(Compatibility(name = "Finamp", packageName = "com.unicornsonlsd.finamp",
         targets = listOf(AppTarget(version = "1.0.1"))))
-    execute { applyFinampComposition(255) }
+    execute { applyFinampComposition(FINAMP_COMPLETE_MASK) }
 }

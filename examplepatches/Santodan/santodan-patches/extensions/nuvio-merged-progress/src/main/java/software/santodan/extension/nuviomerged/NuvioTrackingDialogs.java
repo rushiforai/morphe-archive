@@ -91,10 +91,10 @@ public final class NuvioTrackingDialogs {
         int fillKey = 31 * Float.floatToIntBits(fraction) + Long.hashCode(accent);
         method(composer.getClass(), "d0", 1).invoke(composer, fillKey);
         try {
-            method(loader.loadClass("e0.b"), "a", 6).invoke(null, modifier, null,
+            method(loader.loadClass("d0.b"), "a", 6).invoke(null, modifier, null,
                 content(loader, 0x534d4742, nested -> {
                     if (fraction <= 0f) return;
-                    try { method(loader.loadClass("e0.q"), "a", 3).invoke(null, bar(loader, fraction, accent), nested, 0); }
+                    try { method(loader.loadClass("d0.q"), "a", 3).invoke(null, bar(loader, fraction, accent), nested, 0); }
                     catch (Exception error) { throw new IllegalStateException("Native progress fill failed", error); }
                 }), composer, 0, 2);
         } finally {
@@ -106,8 +106,8 @@ public final class NuvioTrackingDialogs {
         Class<?> size = loader.loadClass("androidx.compose.foundation.layout.b");
         Object modifier = method(size, "f", 2).invoke(null, value(loader, NuvioNative.EMPTY_MODIFIER_NAME, "b"), fraction);
         modifier = method(size, "h", 2).invoke(null, modifier, 6f);
-        Object shape = method(loader.loadClass("l0.g"), "b", 1).invoke(null, 3f);
-        return method(loader.loadClass("y.m"), "g", 3).invoke(null, modifier, color, shape);
+        Object shape = method(loader.loadClass("k0.g"), "b", 1).invoke(null, 3f);
+        return method(loader.loadClass("x.m"), "g", 3).invoke(null, modifier, color, shape);
     }
 
     private static Object content(ClassLoader loader, int key, Consumer<Object> render) throws Exception {

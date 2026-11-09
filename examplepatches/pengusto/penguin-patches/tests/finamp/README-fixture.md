@@ -7,6 +7,31 @@ other than the generated `fixture` user. Keep generated APKs, private state, key
 `.scratch`. Reviewed synthetic screenshots and redacted reports may be copied
 to the versioned evidence directory when publication is part of the task.
 
+## Phone display checks
+
+The dedicated `FinampPhone` Android 15 ARM64 AVD uses the existing Pixel 6
+profile (1080 × 2400 at 420 dpi, approximately 411 × 914 dp). It is separate
+from other AVDs. Start it on an unused even port; verify the AVD name with
+`adb -s SERIAL emu avd name` before changing anything. Install the official
+1.0.1 APK into that disposable AVD and use the synthetic server described below.
+Do not use a personal account.
+
+Record `adb -s SERIAL shell wm size`, `wm density`, and
+`settings get system font_scale` with each capture; PNG dimensions alone do
+not identify Android's effective density. The 2026-10-29 banner captures recorded
+1080 × 1920, physical 420 dpi and an override of 320 dpi (540 × 960 dp).
+That AVD was removed, and its earlier font scale was not recorded.
+
+On the dedicated AVD, a smaller test viewport is 945 × 2048 at 420 dpi
+(360 × 780 dp); set it with `adb -s SERIAL shell wm size 945x2048` and test
+larger text with `adb -s SERIAL shell settings put system font_scale 1.3`.
+Check visible UI as well as Flutter logs, including scrollable and deliberately
+ellipsized text. Restore with `adb -s SERIAL shell wm size reset` and
+`adb -s SERIAL shell settings put system font_scale 1.0`. Use these commands
+only after confirming the dedicated AVD; never reset another user's device.
+Actual screens, languages, content, font settings and accessibility features
+need their own acceptance checks.
+
 ## Pure checks (no Android or SDK required)
 
 Run from the repository root with Python 3.9 or newer:

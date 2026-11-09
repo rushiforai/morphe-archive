@@ -33,7 +33,7 @@ private val NATIVE_FOLDERS = mapOf(PROFILE_347215273 to "LX/205;", PROFILE_34721
  * The thread check cut down from 586: Other, Spam and Restricted end it, a muted chat ends it, and only Inbox gets a
  * notification (the null at the end). The resumed path lands on the folder read itself.
  */
-private val GATE_BODY = """
+internal val THREAD_CHECK_BODY = """
     iget-object v2, p0, $THREAD_LEVEL_RESULT->L${'$'}3:Ljava/lang/Object;
     check-cast v2, $THREAD_SUMMARY
     if-nez p1, :summary
@@ -59,6 +59,7 @@ private val GATE_BODY = """
     const-string v0, "muted"
     return-object v0
     :inbox
+    iget-object v1, p0, $THREAD_LEVEL_RESULT->A01:$THREAD_KEY_TYPE
     sget-object v0, $FOLDER->A0K:$FOLDER
     if-eq v5, v0, :notify
     const-string v0, "not inbox"
@@ -82,13 +83,13 @@ private fun constant(name: String, ordinal: Int, field: String) = """
 private val FOLDER_INIT = listOf(constant("OTHER", 0, "A0V"), constant("INBOX", 1, "A0K"), constant("SPAM", 2, "A0c"),
     constant("RESTRICTED", 3, "A0b"), "return-void").joinToString("\n")
 
-private fun gate(body: String = GATE_BODY, owner: String = THREAD_LEVEL_RESULT) =
+internal fun threadCheck(body: String = THREAD_CHECK_BODY, owner: String = THREAD_LEVEL_RESULT) =
     fixtureMethod("$owner->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;", body, registers = 8, flags = 0x11)
 
 private fun folders(init: String = FOLDER_INIT, superclass: String = "Ljava/lang/Enum;") =
     fixtureClass(FOLDER, listOf(fixtureMethod("$FOLDER-><clinit>()V", init, registers = 6, flags = 0x10008)), superclass = superclass)
 
-internal fun restrictedNotifyFixture(method: MutableMethod = gate(), folderClass: MutableClass? = folders()): List<MutableClass> =
+internal fun restrictedNotifyFixture(method: MutableMethod = threadCheck(), folderClass: MutableClass? = folders()): List<MutableClass> =
     listOfNotNull(fixtureClass(method.definingClass, listOf(method)), folderClass)
 
 private fun Method.code() = implementation!!.instructions.toList()
@@ -113,9 +114,9 @@ class RestrictedNotifyTest {
     // A check that can't be shown to compare this one folder with Restricted and Inbox could turn a chat's folder into
     // the inbox somewhere it shouldn't, or miss a path, so the switch gets no hook at all.
     @Test fun aCheckOfAnotherShapeIsNotTaken() {
-        fun changed(vararg edits: Pair<String, String>) = restrictedNotifyFixture(gate(edited(GATE_BODY, *edits)))
+        fun changed(vararg edits: Pair<String, String>) = restrictedNotifyFixture(threadCheck(edited(THREAD_CHECK_BODY, *edits)))
         val cases = mapOf(
-            "another class" to restrictedNotifyFixture(gate(owner = "LX/Zt1;")),
+            "another class" to restrictedNotifyFixture(threadCheck(owner = "LX/Zt1;")),
             "no folder class" to restrictedNotifyFixture(folderClass = null),
             "a folder class that isn't an enum" to restrictedNotifyFixture(folderClass = folders(superclass = "Ljava/lang/Object;")),
             "an enum with no Restricted constant" to restrictedNotifyFixture(folderClass = folders(edited(FOLDER_INIT, "\"RESTRICTED\"" to "\"LIMITED\""))),
@@ -136,7 +137,7 @@ class RestrictedNotifyTest {
     }
 
     @Test fun theFolderGoesThroughTheSwitchRightAfterItsRead() {
-        val method = gate()
+        val method = threadCheck()
         val before = method.code()
         val read = before.indexOfFirst { it.opcode == Opcode.IGET_OBJECT && (it as ReferenceInstruction).reference.toString().endsWith(":$FOLDER") }
         val resumed = before.indexOfFirst { it.opcode == Opcode.IF_NEZ }
@@ -158,7 +159,7 @@ class RestrictedNotifyTest {
     }
 
     @Test fun anUnusableMethodRefusesTheSwitchBeforeAnyEdit() {
-        val bad = gate(edited(GATE_BODY, ":inbox\n" to ":inbox\nconst/4 v5, 0x0\n"))
+        val bad = threadCheck(edited(THREAD_CHECK_BODY, ":inbox\n" to ":inbox\nconst/4 v5, 0x0\n"))
         val badBefore = bad.code()
         assertFailsWith<PatchException> { injectControl(RESTRICTED_NOTIFY, mapOf(RESTRICTED_NOTIFY to listOf(bad))) }
         assertEquals(badBefore, bad.code())

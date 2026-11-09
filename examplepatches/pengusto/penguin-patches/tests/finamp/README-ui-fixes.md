@@ -1,5 +1,7 @@
 # Finamp #1355 / #1756 acceptance
 
+> Historical acceptance for earlier releases; bit 64 is retired in the development bundle. Use the scripts and payloads from the relevant release to reproduce these results.
+
 Both fixes target the official **Finamp 1.0.1 universal APK**, SHA-256
 `0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581`.
 Output is **ARM64 only**. The existing five patch bits and payloads are retained.

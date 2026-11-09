@@ -1,3 +1,46 @@
+## [2.10.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.10.0...v2.10.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **cricfy:** improve search and playback patch details ([4853980](https://github.com/ginDoki19/GinArena-patch/commit/485398033e916b9267e3f17734021eea6137cc56))
+
+## [2.10.1-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.10.0...v2.10.1-dev.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **cricfy:** improve search and playback patch details ([4853980](https://github.com/ginDoki19/GinArena-patch/commit/485398033e916b9267e3f17734021eea6137cc56))
+
+## [2.10.0](https://github.com/ginDoki19/GinArena-patch/compare/v2.9.1...v2.10.0) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **player:** improve CricFy and PlayFy TV seekbar focus ([8267a2d](https://github.com/ginDoki19/GinArena-patch/commit/8267a2dfb1f0c35390bc1bc89d944526e5c726bc))
+* provide bytecode context for TV controls ([b0482d4](https://github.com/ginDoki19/GinArena-patch/commit/b0482d4820165a043f9cab5661723777d658cf7a))
+* restore Android TV player controls ([332d6f8](https://github.com/ginDoki19/GinArena-patch/commit/332d6f85050503978fcad406d99c2fd90537dc22))
+
+### ✨ New Features
+
+* **daylio:** add experimental Daylio 1.71.1 support ([899ee03](https://github.com/ginDoki19/GinArena-patch/commit/899ee038c7a38cee1543fcfa70c395a3a94a5ac4))
+
+## [2.10.0-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.9.2-dev.2...v2.10.0-dev.1) (2026-11-08)
+
+### ✨ New Features
+
+* **daylio:** add experimental Daylio 1.71.1 support ([899ee03](https://github.com/ginDoki19/GinArena-patch/commit/899ee038c7a38cee1543fcfa70c395a3a94a5ac4))
+
+## [2.9.2-dev.2](https://github.com/ginDoki19/GinArena-patch/compare/v2.9.2-dev.1...v2.9.2-dev.2) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **player:** improve CricFy and PlayFy TV seekbar focus ([8267a2d](https://github.com/ginDoki19/GinArena-patch/commit/8267a2dfb1f0c35390bc1bc89d944526e5c726bc))
+
+## [2.9.2-dev.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.9.1...v2.9.2-dev.1) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* provide bytecode context for TV controls ([b0482d4](https://github.com/ginDoki19/GinArena-patch/commit/b0482d4820165a043f9cab5661723777d658cf7a))
+* restore Android TV player controls ([332d6f8](https://github.com/ginDoki19/GinArena-patch/commit/332d6f85050503978fcad406d99c2fd90537dc22))
+
 ## [2.9.1](https://github.com/ginDoki19/GinArena-patch/compare/v2.9.0...v2.9.1) (2026-11-07)
 
 ### 🚀 Updated App Support

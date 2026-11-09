@@ -2,6 +2,8 @@ package com.openbubbles.wear.patches
 
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
@@ -23,6 +25,25 @@ private const val APPLICATION = "Lcom/localob/messaging/app/LocalObApplication;"
 private const val NOTIFICATIONS = "Lcom/localob/messaging/app/notifications/ChatNotifications;"
 private const val NOTIFICATION_MANAGER = "Landroidx/core/app/NotificationManagerCompat;"
 private const val EMBEDDED_HOOKS = "Lcom/openbubbles/wear/patch/EmbeddedHooks;"
+
+internal fun BytecodePatchContext.skipBackendInRestartProcess() {
+    val restart = "Lcom/openbubbles/wear/patch/RestartOpenBubblesActivity;"
+    requireExactMethods(restart, listOf("isRestartProcess()Z"), classDefBy(restart).methods.map(::signature).toSet())
+    val onCreate = mutableClassDefBy(APPLICATION).methods.single { signature(it) == "onCreate()V" }
+    val implementation = onCreate.implementation ?: throw PatchException("LocalObApplication.onCreate() has no bytecode")
+    val instructions = implementation.instructions
+    val superCall = instructions.firstOrNull() as? ReferenceInstruction
+    val end = instructions.last()
+    if (implementation.registerCount <= 1 || superCall?.opcode != Opcode.INVOKE_SUPER ||
+        superCall.reference.toString() != "Landroid/app/Application;->onCreate()V" || end.opcode != Opcode.RETURN_VOID) {
+        throw PatchException("Unexpected native application startup")
+    }
+    onCreate.addInstructionsWithLabels(1, """
+        invoke-static {}, $restart->isRestartProcess()Z
+        move-result v0
+        if-nez v0, :skip_backend
+    """.trimIndent(), ExternalLabel("skip_backend", end))
+}
 
 private val startHook = ImmutableMethodReference(
     EMBEDDED_HOOKS, "start", listOf("Landroid/content/Context;"), "V",

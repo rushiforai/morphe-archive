@@ -48,6 +48,7 @@ import app.morphe.extension.hushthreads.misc.LinkCleaner;
 import app.morphe.extension.hushthreads.misc.ScreenshotDetection;
 import app.morphe.extension.hushthreads.profile.GhostPostBubbles;
 import app.morphe.extension.hushthreads.profile.InstagramButton;
+import app.morphe.extension.hushthreads.profile.ProfilePictureForTests;
 import app.morphe.extension.hushthreads.profile.ProfileSuggestions;
 import app.morphe.extension.hushthreads.search.SearchSuggestions;
 import app.morphe.extension.hushthreads.theme.PureBlack;
@@ -182,6 +183,8 @@ public class PausedHooksTest {
         // A ghost post bubble Threads would show, on a profile or in the feed's row, isn't shown.
         probes.put(PatchFamily.HIDE_GHOST_POST_BUBBLES, Arrays.asList(
                 () -> !GhostPostBubbles.showOnProfile(true), () -> !GhostPostBubbles.showTray(true)));
+        // A profile picture Threads would enlarge into its circle opens full size in the viewer instead.
+        probes.put(PatchFamily.FULL_SIZE_PROFILE_PICTURES, Collections.singletonList(ProfilePictureForTests::opensFullSize));
         // A post header's time is written out in full instead of left to Threads.
         probes.put(PatchFamily.EXACT_POST_TIMES, Collections.singletonList(
                 () -> PostTime.exact(RuntimeEnvironment.getApplication(), 1_700_000_000d) != null));

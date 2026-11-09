@@ -5,6 +5,7 @@
 package app.morphe.patches.telegram.misc.paste
 
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -20,6 +21,9 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val NORMAL_PASTE = "$EXTENSION_PACKAGE/misc/NormalPaste;"
 private const val HTML = "Landroid/content/ClipData\$Item;->getHtmlText()Ljava/lang/String;"
@@ -28,16 +32,29 @@ private const val HTML = "Landroid/content/ClipData\$Item;->getHtmlText()Ljava/l
 val useNormalPastePatch = bytecodePatch(
     name = "Use normal paste",
     description = "Pastes text exactly as you copied it, without Telegram adding formatting, tables or code styling. " +
-        "Starts off. Turn it on in HushTelegram settings > Conversations.",
+        "A second switch, Mention by ID, turns @ and a user ID typed in the message box into a real mention of " +
+        "people the app has already seen. Both start off. Turn them on in HushTelegram settings > Conversations.",
     default = true,
 ) {
     category("Conversations")
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {
+        requireStatusMethod("mentionById")
         val sites = resolveNormalPaste()
+        // Mentions come second: a build without them keeps the plain paste.
+        val mentions = try {
+            resolveMentionById()
+        } catch (unfit: PatchException) {
+            patchLog.warning("Use normal paste: ${unfit.message}. Mention by ID is left out.")
+            null
+        }
         sites.forEach { it.insert(MutableMethod(ImmutableMethod.of(it.method))) }
         sites.forEach { it.insert(it.method) }
+        mentions?.let {
+            it.insert()
+            enableCapability("mentionById")
+        }
         enableCapability("composePlainPaste")
         enableCapability("captionPlainPaste")
         enableStatus("normalPaste")
@@ -54,15 +71,15 @@ internal fun BytecodePatchContext.resolveNormalPaste(): List<NormalPasteSite> {
     controlHook(NORMAL_PASTE, "contextMenuAction", listOf("Landroid/view/View;", "I"), "I")
     val found = mutableListOf<Method>()
     forEachClassMentioning(Mention.reference(HTML)) { cls -> cls.methods.filterTo(found) { method ->
-        method.name == "onTextContextMenuItem" && method.controlBody().any { it.controlRef() == HTML }
+        method.origName == "onTextContextMenuItem" && method.controlBody().any { it.controlRef() == HTML }
     } }
     controlShape(found.size == 2, "plain paste editor census changed")
     val compose = found.filter { it.controlBody().any { instruction -> instruction.call()?.let {
-        it.definingClass == "Lorg/telegram/messenger/MessagesController;" && it.name == "richEditorAvailable"
+        it.origDefiningClass == "Lorg/telegram/messenger/MessagesController;" && it.origName == "richEditorAvailable"
     } == true } }.controlSingle("compose HTML editor")
     val caption = found.filter { it != compose }.controlSingle("caption HTML editor")
     val sites = listOf(compose to "composePlainPaste", caption to "captionPlainPaste").map { (foundMethod, capability) ->
-        val method = mutableClassDefBy(foundMethod.definingClass).methods.filter { it.toString() == foundMethod.toString() }.controlSingle(capability)
+        val method = tgMutableClassDefBy(foundMethod.definingClass).methods.filter { it.toString() == foundMethod.toString() }.controlSingle(capability)
         controlShape(method.controlShape(listOf("I"), "Z") && method.controlCallable(false), "$capability editor changed")
         controlShape("Lorg/telegram/ui/Components/EditTextBoldCursor;" in superclassChain(method.definingClass).toList(), "$capability is no longer a Telegram editor")
         val body = method.controlBody()
@@ -75,7 +92,7 @@ internal fun BytecodePatchContext.resolveNormalPaste(): List<NormalPasteSite> {
         controlShape(literal == if (capability == "composePlainPaste") 0 else 1, "$capability paste question moved")
         controlShape(body[branch].opcode == Opcode.IF_NE && body[branch].namedRegisters() == listOf(action, body[literal].namedRegisters().single()), "$capability paste question changed")
         val fallback = body.indices.filter { body[it].opcode == Opcode.INVOKE_SUPER && body[it].call()?.let {
-            it.name == "onTextContextMenuItem" && it.controlShape(listOf("I"), "Z")
+            it.origName == "onTextContextMenuItem" && it.controlShape(listOf("I"), "Z")
         } == true }.controlSingle("$capability stock clipboard fallback")
         val flow = ControlFlow.of(method)
         controlShape(fallback == body.size - 3 && (capability != "composePlainPaste" || fallback in flow.normal[branch]) &&

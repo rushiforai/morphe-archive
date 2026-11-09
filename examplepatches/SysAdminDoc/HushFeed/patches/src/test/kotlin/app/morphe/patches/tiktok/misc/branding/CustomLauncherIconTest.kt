@@ -487,7 +487,7 @@ class CustomLauncherIconTest {
         fun file(name: String, bytes: ByteArray) = folder.newFile(name).apply { writeBytes(bytes) }.path
 
         assertTrue(refusal(folder.root.resolve("gone.png").path).contains("there's no file at"))
-        assertTrue(refusal(folder.root.path).contains("there's no file at"))
+        assertTrue(refusal(folder.root.path).contains("there's no PNG in the folder"))
         assertTrue(refusal(file("photo.png", "not a png".toByteArray())).contains("isn't a PNG"))
         val blank = SIGNATURE + ihdr(432, 432, 8, 6) + chunk("IDAT", deflate(ByteArray(0))) + chunk("IEND", ByteArray(0))
         assertTrue(refusal(file("blank.png", blank)).contains("isn't a PNG, or it's damaged or cut short"))
@@ -506,6 +506,67 @@ class CustomLauncherIconTest {
             assertEquals(side, picture.side)
             assertArrayEquals(bytes, picture.bytes)
         }
+    }
+
+    @Test
+    fun `a folder from Manager's picker gives its only PNG, or icon png among several`() {
+        fun refusal(path: String): String = assertThrows(PatchException::class.java) { launcherPicture(path) }.message!!
+
+        val one = folder.newFolder("one")
+        val only = png(512, 512)
+        one.resolve("my picture.PNG").writeBytes(only)
+        one.resolve("notes.txt").writeText("not a picture")
+        assertArrayEquals(only, launcherPicture(one.path)!!.bytes)
+
+        val several = folder.newFolder("several")
+        val chosen = png(600, 600)
+        several.resolve("a.png").writeBytes(png(432, 432))
+        several.resolve("Icon.png").writeBytes(chosen)
+        several.resolve("z.png").writeBytes(png(1024, 1024))
+        val picked = launcherPicture(several.path)!!
+        assertEquals(600, picked.side)
+        assertArrayEquals(chosen, picked.bytes)
+
+        val unnamed = folder.newFolder("unnamed")
+        for (index in 1..10) unnamed.resolve("photo$index.png").writeBytes(png(432, 432))
+        val message = refusal(unnamed.path)
+        assertTrue(message, message.contains("holds 10 PNGs (photo1.png, photo10.png, photo2.png"))
+        assertTrue(message, message.contains("photo7.png and 2 more). Name the one to use icon.png"))
+        assertTrue(message, message.endsWith(" Nothing was changed."))
+
+        assertTrue(refusal(folder.newFolder("empty").path).contains("there's no PNG in the folder"))
+        assertArrayEquals(only, launcherPicture(one.resolve("my picture.PNG").path)!!.bytes)
+    }
+
+    @Test
+    fun `a Mac's hidden copy beside the picture doesn't count as a second PNG`() {
+        val copied = folder.newFolder("copied")
+        val picture = png(512, 512)
+        copied.resolve("logo.png").writeBytes(picture)
+        copied.resolve("._logo.png").writeBytes(byteArrayOf(0, 5, 22, 7))
+        copied.resolve(".hidden.png").writeBytes(png(432, 432))
+        assertArrayEquals(picture, launcherPicture(copied.path)!!.bytes)
+
+        val onlyHidden = folder.newFolder("only-hidden")
+        onlyHidden.resolve("._logo.png").writeBytes(byteArrayOf(0, 5, 22, 7))
+        val message = assertThrows(PatchException::class.java) { launcherPicture(onlyHidden.path) }.message!!
+        assertTrue(message, message.contains("there's no PNG in the folder"))
+    }
+
+    @Test
+    fun `a folder that can't be read says so instead of claiming it has no PNG`() {
+        val locked = folder.newFolder("locked")
+        locked.resolve("icon.png").writeBytes(png(512, 512))
+        val unreadable = object : File(locked.path) {
+            override fun listFiles(): Array<File>? = null
+        }
+        val message = assertThrows(IllegalStateException::class.java) {
+            pictureInFolder(unreadable) { throw IllegalStateException(it) }
+        }.message!!
+        assertEquals(
+            "the folder \"${locked.path}\" couldn't be read. Give Icon picture the file's full path instead.",
+            message,
+        )
     }
 
     private fun png(width: Int, height: Int): ByteArray = ByteArrayOutputStream().also {

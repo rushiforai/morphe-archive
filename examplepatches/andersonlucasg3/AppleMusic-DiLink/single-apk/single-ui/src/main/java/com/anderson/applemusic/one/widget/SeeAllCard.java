@@ -48,5 +48,6 @@ public final class SeeAllCard extends FrameLayout {
         Focus.attach(this, Tokens.RADIUS_CARD, Tokens.SURFACE, Tokens.SURFACE_HOVER, null);
         Focus.rippleOnTop(this, Tokens.RADIUS_CARD);
         setLayoutParams(new LinearLayout.LayoutParams(sizePx, sizePx));
+        setContentDescription(itemCount > 0 ? "Ver tudo, " + itemCount + " itens" : "Ver tudo");
     }
 }

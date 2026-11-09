@@ -121,6 +121,9 @@ public final class TodoistTheme {
         return resource(id == TodoistIdentities.LATTE ? "ThemeOverlay.Catppuccin.Latte" : "ThemeOverlay.Catppuccin.Macchiato", "style");
     }
     public static void selectedTheme(Object theme) { customActive = TodoistIdentities.themeId(theme) != 0; refreshIfNeeded(); }
+    public static int todayNumberColor(int original, int selectionFill) {
+        return customActive ? selectionFill : original;
+    }
     public static int navigationIcon(int original) {
         if (!customActive) return original;
         String name = app.getResources().getResourceEntryName(original);

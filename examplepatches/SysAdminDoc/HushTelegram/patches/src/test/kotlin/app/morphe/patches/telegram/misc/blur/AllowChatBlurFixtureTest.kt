@@ -21,13 +21,17 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Telegram's chat blur rating and the runtime. */
 class AllowChatBlurFixtureTest {
     @Test fun `the extension answers first and a no runs Telegram's own rating`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
-            val hosts = FixtureDex.classesWhere(build, { true }) { it.definingClass == SHARED_CONFIG }.map(ImmutableClassDef::of)
+            val hosts = FixtureDex.classesWhere(build, { true }) { it.origDefiningClass == SHARED_CONFIG }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val rating = context.resolveAllowChatBlur()
             val old = ImmutableMethod.of(rating)
@@ -43,10 +47,10 @@ class AllowChatBlurFixtureTest {
             val flow = ControlFlow.of(rating)
             assertEquals("$name: a no runs the stock rating", listOf(3, 4), flow.normal[2].sorted())
             for (i in before.indices) {
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + 4].opcode, after[i + 4].namedRegisters(), (after[i + 4] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + 4].opcode, after[i + 4].namedRegisters(), after[i + 4].origRef()))
             }
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "allowChatBlur" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "allowChatBlur" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

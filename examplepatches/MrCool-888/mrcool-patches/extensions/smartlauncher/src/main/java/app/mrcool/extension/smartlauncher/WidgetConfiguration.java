@@ -16,7 +16,7 @@ import android.os.Bundle;
 import android.os.Process;
 
 public final class WidgetConfiguration {
-    private static final String BUDS_PACKAGE = "com.samsung.accessory.paranmgr";
+    static final String BUDS_PACKAGE = "com.samsung.accessory.paranmgr";
     private static final String SETTINGS_PACKAGE =
             "com.samsung.accessory.hearablemgr.core.appwidget.base.";
 

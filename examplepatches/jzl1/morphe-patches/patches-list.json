@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "patches": [
     {
       "name": "Bundle QuickTest configuration",
@@ -84,6 +84,32 @@
           "targets": [
             {
               "version": "4.8.8",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide Pro row",
+      "description": "Removes the Yamby Pro row from Settings. Pro features remain unlocked by the Unlock Pro patch.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.hush.yamby",
+          "name": "Yamby",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1A73E8",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.1.0.11",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -244,6 +270,110 @@
             },
             {
               "version": "2026.10.98554",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro",
+      "description": "Unlocks JuiceSSH Pro features without a Play purchase by forcing the client-side entitlement and signature checks. Online features (CloudSync, TeamShare, EC2 Link, plugin repository, purchase/restore) will not work because api.sonelli.com is offline.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.sonelli.juicessh",
+          "name": "JuiceSSH",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#2E7D32",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.2.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro",
+      "description": "Unlocks Pro and Pro Plus features by forcing the two client-side BillingEntitlements predicates to true. Also disables Google PairIP App Licensing so the repackaged build can start.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "net.simplyadvanced.ltediscovery",
+          "name": "LTE Discovery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1A73E8",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.6.33",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro",
+      "description": "Unlocks all Yamby Pro features by seeding a local licence code, making the client-side HMAC comparator accept it, and forcing the cached list-animation entitlement flag. No Play purchase is required.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.hush.yamby",
+          "name": "Yamby",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1A73E8",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "2.1.0.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Pro Plus / Donate",
+      "description": "Marks the Pro Plus / Donate (e6) tier as owned. It does not add any feature beyond Pro Plus - the only visible effect is the 'Pro Plus / Donate' label and the supporter badge. Requires Unlock Pro.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "net.simplyadvanced.ltediscovery",
+          "name": "LTE Discovery",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#1A73E8",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "7.6.33",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

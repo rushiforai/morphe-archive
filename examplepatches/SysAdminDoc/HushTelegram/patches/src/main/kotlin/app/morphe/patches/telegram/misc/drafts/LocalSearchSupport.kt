@@ -4,6 +4,9 @@
  */
 package app.morphe.patches.telegram.misc.drafts
 
+import app.morphe.util.names.origString
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.loadsInt
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -28,6 +31,14 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import java.util.BitSet
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origSuperclass
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Disable draft link previews"
 internal const val LOCAL_SEARCH = "$EXTENSION_PACKAGE/misc/LocalSearch;"
@@ -167,13 +178,13 @@ internal fun BytecodePatchContext.resolveChatSearch(hooks: ChatSearchHooks, look
     requireSearchRuntime(hooks, lookups)
     val builders = mutableListOf<Method>()
     classDefForEach { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@classDefForEach
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@classDefForEach
         classDef.methods.filterTo(builders) { it.constructs(GET_SPONSORED_PEERS) }
     }
-    val adapter = mutableClassDefBy(builders.one("chat search", hooks::refuse).definingClass)
+    val adapter = tgMutableClassDefBy(builders.one("chat search", hooks::refuse).definingClass)
     fun own(request: String, what: String): MutableMethod {
         val method = adapter.methods.filter { it.constructs(request) }.one(what, hooks::refuse)
-        hooks.shape(method.params() == QUERY && method.returnType == "V" && !AccessFlags.STATIC.isSet(method.accessFlags),
+        hooks.shape(method.params() == QUERY && method.origReturnType == "V" && !AccessFlags.STATIC.isSet(method.accessFlags),
             "$what no longer takes the search's number and the text")
         return method
     }
@@ -223,7 +234,7 @@ private fun sponsoredEdit(hooks: ChatSearchHooks, search: MutableMethod): Search
         "sponsored search no longer carries the text")
     val text = body[store!!].namedRegisters()[0]
     val send = (store until body.size).firstOrNull { body[it].call()?.let { call ->
-        call.definingClass == CONNECTIONS && call.name == "sendRequest" } == true }
+        call.origDefiningClass == CONNECTIONS && call.origName == "sendRequest" } == true }
     val guard = (request - 1 downTo 0).firstOrNull { body[it].opcode == Opcode.IF_EQZ && body[it].namedRegisters().single() == text }
     hooks.shape(send != null && guard != null && (guard + 1 until store).none { text in body[it].writes() },
         "sponsored search no longer checks the text it sends")
@@ -240,11 +251,11 @@ private fun sponsoredEdit(hooks: ChatSearchHooks, search: MutableMethod): Search
 private fun BytecodePatchContext.postsEdit(hooks: ChatSearchHooks, search: MutableMethod): SearchEdit {
     val body = search.instructions()
     val created = body.indices.filter { at -> body[at].opcode == Opcode.NEW_INSTANCE && body[at].reference()?.let { type ->
-        classDefByOrNull(type)?.methods?.any { it.name == "run" && it.parameterTypes.isEmpty() && it.constructs(PUBLIC_POSTS) } } == true }
+        tgClassDefByOrNull(type)?.methods?.any { it.origName == "run" && it.parameterTypes.isEmpty() && it.constructs(PUBLIC_POSTS) } } == true }
         .one("public posts runnable", hooks::refuse)
     val type = body[created].reference()
     val built = (created + 1..minOf(created + 3, body.lastIndex)).firstOrNull { body[it].call()?.let { call ->
-        call.definingClass == type && call.name == "<init>" } == true }
+        call.origDefiningClass == type && call.origName == "<init>" } == true }
     val guard = (created - 1 downTo 0).firstOrNull { body[it].opcode == Opcode.IF_EQZ }
     hooks.shape(built != null && guard != null, "public posts runnable is built another way")
     val tag = body[guard!!].namedRegisters().single()
@@ -272,10 +283,10 @@ private fun messagesEdit(hooks: ChatSearchHooks, search: Method, messages: Mutab
         "global message search lost the way past its request")
     val waiting = body[settle].field()
     val started = search.instructions().filter { it.opcode == Opcode.IPUT }.mapNotNull { it.field() }
-    hooks.shape(body[settle].opcode == Opcode.IGET && waiting != null && waiting.definingClass == messages.definingClass &&
-        waiting.type == "I" && waiting in started && (settle until request).any { body[it].opcode in LOWERS } &&
+    hooks.shape(body[settle].opcode == Opcode.IGET && waiting != null && waiting.origDefiningClass == messages.origDefiningClass &&
+        waiting.origType == "I" && waiting in started && (settle until request).any { body[it].opcode in LOWERS } &&
         (settle until request).any { body[it].opcode == Opcode.IPUT && body[it].field() == waiting } &&
-        (settle until request).none { body[it].call()?.name == "sendRequest" },
+        (settle until request).none { body[it].call()?.origName == "sendRequest" },
         "the way past the global message search no longer lowers the waiting count")
     val answer = messages.freeLocalsAt(hooks.patch, request, 1, targets = listOf(settle), highest = 255).single()
     return SearchEdit(SearchLookup.MESSAGES, messages, request, hooks.gate(answer), settle)
@@ -304,7 +315,7 @@ private fun clearsAndReturns(body: List<Instruction>, flow: ControlFlow, at: Int
     val on = flow.normal[at].filter { it != at + 1 }.singleOrNull() ?: return false
     val end = (at + 1 until body.size).firstOrNull { body[it].opcode == Opcode.RETURN_VOID } ?: return false
     return on == end + 1 && on <= request && (at + 1 until end).all { flow.normal[it] == listOf(it + 1) } &&
-        (at + 1 until end).any { body[it].call()?.let { call -> call.definingClass == ARRAY_LIST && call.name == "clear" } == true }
+        (at + 1 until end).any { body[it].call()?.let { call -> call.origDefiningClass == ARRAY_LIST && call.origName == "clear" } == true }
 }
 
 /**
@@ -328,18 +339,18 @@ private fun BytecodePatchContext.usernameCall(
 ): HelperCall {
     val steps = mutableListOf<Method>()
     classDefForEach { classDef ->
-        if (classDef.type == adapter || classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@classDefForEach
+        if (classDef.origType == adapter || classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@classDefForEach
         classDef.methods.filterTo(steps) { method -> method.instructions().let { body ->
             body.any { it.runs(adapter, messages) } && body.any { it.runs(adapter, forum) } } }
     }
     val found = steps.one("chat search's second step", hooks::refuse)
-    val step = mutableClassDefBy(found.definingClass).methods.single { it.sameSignature(found) }
+    val step = tgMutableClassDefBy(found.definingClass).methods.single { it.sameSignature(found) }
     val body = step.instructions()
-    val call = body.indices.filter { body[it].call()?.let { lookup -> lookup.params() == HELPER && lookup.returnType == "V" } == true }
+    val call = body.indices.filter { body[it].call()?.let { lookup -> lookup.params() == HELPER && lookup.origReturnType == "V" } == true }
         .one("username lookup", hooks::refuse)
     val helper = body[call].call()!!
-    hooks.shape(classDefByOrNull(helper.definingClass)?.methods?.any {
-        it.name == helper.name && it.params() == HELPER && it.constructs(USERNAMES) } == true,
+    hooks.shape(tgClassDefByOrNull(helper.definingClass)?.methods?.any {
+        it.origName == helper.origName && it.params() == HELPER && it.constructs(USERNAMES) } == true,
         "the username helper no longer builds its own request")
     val own = search.instructions()
     hooks.shape(own.indices.any { at -> own[at].call() == helper && own[at].namedRegisters().getOrNull(1)?.let { text ->
@@ -356,7 +367,7 @@ private fun BytecodePatchContext.usernameCall(
     val flow = ControlFlow.of(step)
     // Read from the runnable's own String field and passed straight on, and nothing reads the register afterwards.
     hooks.shape(text != null && text <= 15 && loaded != null && body[loaded].opcode == Opcode.IGET_OBJECT &&
-        body[loaded].field()?.type == STRING && (loaded + 1..call).all { flow.into(it) == listOf(it - 1) } &&
+        body[loaded].field()?.origType == STRING && (loaded + 1..call).all { flow.into(it) == listOf(it - 1) } &&
         text !in RegisterLiveness.of(step).liveInto(call + 1), "the username lookup's text can't be swapped where it's passed")
     return HelperCall(step, call, helper, text!!, loaded!!, body[loaded].namedRegisters()[1], body[loaded].field()!!)
 }
@@ -380,8 +391,8 @@ private fun BytecodePatchContext.phonesEdit(hooks: ChatSearchHooks, found: Helpe
     val after = found.call + 1
     val passed = body[found.call].namedRegisters()
     val first = passed.firstOrNull() ?: hooks.refuse("the username lookup passes nothing")
-    val owner = classDefByOrNull(found.helper.definingClass)
-    val lookup = owner?.methods?.singleOrNull { it.name == found.helper.name && it.params() == HELPER && it.returnType == "V" }
+    val owner = tgClassDefByOrNull(found.helper.definingClass)
+    val lookup = owner?.methods?.singleOrNull { it.origName == found.helper.origName && it.params() == HELPER && it.origReturnType == "V" }
     // The runtime's lookUp stub calls it from another package.
     hooks.shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags) && !AccessFlags.INTERFACE.isSet(owner.accessFlags) &&
         lookup != null && AccessFlags.PUBLIC.isSet(lookup.accessFlags) && !AccessFlags.STATIC.isSet(lookup.accessFlags),
@@ -394,9 +405,9 @@ private fun BytecodePatchContext.phonesEdit(hooks: ChatSearchHooks, found: Helpe
         found.owner <= 15 && found.owner != found.text && (found.loaded + 1..found.call).none { found.owner in body[it].writes() },
         "the username lookup's text can't be read back after it")
     // The text came from the step's own field, and the step holds chat search beside it.
-    val held = classDefByOrNull(step.definingClass)?.fields
-        ?.filter { it.type == adapter && !AccessFlags.STATIC.isSet(it.accessFlags) }.orEmpty()
-    hooks.shape(found.field.definingClass == step.definingClass && held.size == 1,
+    val held = tgClassDefByOrNull(step.definingClass)?.fields
+        ?.filter { it.origType == adapter && !AccessFlags.STATIC.isSet(it.accessFlags) }.orEmpty()
+    hooks.shape(found.field.origDefiningClass == step.origDefiningClass && held.size == 1,
         "the username lookup's step no longer holds chat search")
     val shown = listChanged(hooks, adapter)
     return SearchEdit(SearchLookup.PHONES, step, after, listOf(
@@ -420,49 +431,49 @@ private fun BytecodePatchContext.listChanged(hooks: ChatSearchHooks, adapter: St
     var type = adapter
     val seen = mutableSetOf<String>()
     while (seen.add(type)) {
-        val superclass = classDefByOrNull(type)?.superclass ?: hooks.refuse("chat search's list adapter is missing")
+        val superclass = tgClassDefByOrNull(type)?.superclass ?: hooks.refuse("chat search's list adapter is missing")
         if (superclass == OBJECT) break
         type = superclass
     }
-    val top = classDefByOrNull(type)
+    val top = tgClassDefByOrNull(type)
     hooks.shape(top != null && type != adapter && AccessFlags.PUBLIC.isSet(top.accessFlags), "chat search's list adapter is missing")
-    val observable = top!!.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && classDefByOrNull(it.type)?.superclass == OBSERVABLE }
+    val observable = top!!.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && tgClassDefByOrNull(it.type)?.origSuperclass == OBSERVABLE }
         .one("the list adapter's observable", hooks::refuse)
-    val notify = top.methods.filter { it.name != "<init>" && it.parameterTypes.isEmpty() && it.returnType == "V" &&
+    val notify = top.methods.filter { it.origName != "<init>" && it.parameterTypes.isEmpty() && it.origReturnType == "V" &&
         !AccessFlags.STATIC.isSet(it.accessFlags) }.one("the list adapter's redraw", hooks::refuse)
     val body = notify.instructions()
     val told = body.getOrNull(1)?.call()
     hooks.shape(AccessFlags.PUBLIC.isSet(notify.accessFlags) && body.size == 3 && body[0].opcode == Opcode.IGET_OBJECT &&
-        body[0].field()?.let { it.definingClass == top.type && it.name == observable.name && it.type == observable.type } == true &&
-        body[1].opcode == Opcode.INVOKE_VIRTUAL && told?.definingClass == observable.type && told.parameterTypes.isEmpty() &&
-        told.returnType == "V" && body[2].opcode == Opcode.RETURN_VOID,
+        body[0].field()?.let { it.origDefiningClass == top.origType && it.origName == observable.origName && it.origType == observable.origType } == true &&
+        body[1].opcode == Opcode.INVOKE_VIRTUAL && told?.origDefiningClass == observable.origType && told.parameterTypes.isEmpty() &&
+        told.origReturnType == "V" && body[2].opcode == Opcode.RETURN_VOID,
         "the list adapter's redraw no longer just tells its observable")
-    return "${top.type}->${notify.name}()V"
+    return "${top.origType}->${notify.origName}()V"
 }
 
 /** The pager starts each tab's search for the page on screen, the Chats tab's chat search among them, and sets the line under "No results". */
 private fun BytecodePatchContext.searchPager(hooks: ChatSearchHooks, adapter: String, search: Method): MutableMethod {
     val pagers = mutableListOf<Method>()
     classDefForEach { classDef ->
-        if (classDef.type == adapter || classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@classDefForEach
+        if (classDef.origType == adapter || classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@classDefForEach
         classDef.methods.filterTo(pagers) { method -> method.instructions().let { body ->
-            body.any { it.runs(adapter, search) } && body.any { it.opcode == Opcode.SGET && it.reference() == NO_RESULT_LINE } } }
+            body.any { it.runs(adapter, search) } && body.any { it.loadsInt() && it.reference() == NO_RESULT_LINE } } }
     }
     val found = pagers.one("search pager", hooks::refuse)
-    return mutableClassDefBy(found.definingClass).methods.single { it.sameSignature(found) }
+    return tgMutableClassDefBy(found.definingClass).methods.single { it.sameSignature(found) }
 }
 
 /** The pager formats the line under "No results" and sets it; the hook rewrites it in between. */
 private fun emptyLineEdit(hooks: ChatSearchHooks, pager: MutableMethod): SearchEdit {
     val body = pager.instructions()
-    val line = body.indices.filter { body[it].opcode == Opcode.SGET && body[it].reference() == NO_RESULT_LINE }
+    val line = body.indices.filter { body[it].loadsInt() && body[it].reference() == NO_RESULT_LINE }
         .one("no results line", hooks::refuse)
     val format = (line + 1..minOf(line + 4, body.lastIndex)).firstOrNull { body[it].call()?.let { call ->
-        call.definingClass == LOCALE && call.name == "formatString" && call.returnType == STRING } == true }
+        call.origDefiningClass == LOCALE && call.origName == "formatString" && call.origReturnType == STRING } == true }
     hooks.shape(format != null && body.getOrNull(format + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT, "the no results line is formatted another way")
     val text = body[format!! + 1].namedRegisters().single()
     val set = format + 2
-    hooks.shape(body.getOrNull(set)?.call()?.let { it.name == "setText" && it.params() == listOf(CHAR_SEQUENCE) } == true &&
+    hooks.shape(body.getOrNull(set)?.call()?.let { it.origName == "setText" && it.params() == listOf(CHAR_SEQUENCE) } == true &&
         body[set].namedRegisters().getOrNull(1) == text && text <= 15 && ControlFlow.of(pager).into(set) == listOf(set - 1) &&
         text !in RegisterLiveness.of(pager).liveInto(set + 1), "the no results line is set another way")
     return SearchEdit(SearchLookup.EMPTY_LINE, pager, set, "invoke-static {v$text}, ${hooks.emptyText}\nmove-result-object v$text")
@@ -486,14 +497,14 @@ private fun BytecodePatchContext.tabEdit(hooks: ChatSearchHooks, pager: MutableM
     val empty = branch + 1
     val on = flow.normal[branch].filter { it != empty }.one("$what's way to its search", hooks::refuse)
     val post = (on until body.size).firstOrNull { body[it].call()?.let { call ->
-        call.definingClass == UTILITIES && call.name == "runOnUIThread" && call.params() == listOf(RUNNABLE, "J") } == true }
+        call.origDefiningClass == UTILITIES && call.origName == "runOnUIThread" && call.params() == listOf(RUNNABLE, "J") } == true }
     hooks.shape(on > empty && flow.into(on) == listOf(branch) && post != null && !reaches(pager, post, on),
         "$what posts its search another way")
     // Telegram's empty box path: it clears the tab and marks it as having nothing to load, and starts nothing.
-    hooks.shape((empty until on).none { body[it].call()?.let { call -> call.definingClass == UTILITIES ||
-        call.definingClass == CONNECTIONS } == true } &&
-        (empty until on).any { body[it].opcode == Opcode.IPUT_BOOLEAN && body[it].field()?.definingClass == tab } &&
-        (empty until on).any { body[it].call()?.let { call -> call.definingClass == ARRAY_LIST && call.name == "clear" } == true },
+    hooks.shape((empty until on).none { body[it].call()?.let { call -> call.origDefiningClass == UTILITIES ||
+        call.origDefiningClass == CONNECTIONS } == true } &&
+        (empty until on).any { body[it].opcode == Opcode.IPUT_BOOLEAN && body[it].field()?.origDefiningClass == tab } &&
+        (empty until on).any { body[it].call()?.let { call -> call.origDefiningClass == ARRAY_LIST && call.origName == "clear" } == true },
         "$what lost its empty box path")
     val answer = pager.freeLocalsAt(hooks.patch, on, 1, targets = listOf(empty), highest = 255).single()
     return SearchEdit(lookup, pager, on, hooks.gate(answer), empty)
@@ -503,19 +514,19 @@ private fun BytecodePatchContext.tabEdit(hooks: ChatSearchHooks, pager: MutableM
 private fun emptyCheck(body: List<Instruction>, at: Int): FieldReference? {
     if (at < 3 || body[at].opcode != Opcode.IF_EQZ) return null
     val (load, test, result) = Triple(body[at - 3], body[at - 2], body[at - 1])
-    val field = load.field()?.takeIf { load.opcode == Opcode.IGET_OBJECT && it.type == STRING } ?: return null
+    val field = load.field()?.takeIf { load.opcode == Opcode.IGET_OBJECT && it.origType == STRING } ?: return null
     val read = load.namedRegisters()[0]
     return field.takeIf { test.opcode == Opcode.INVOKE_STATIC && test.namedRegisters() == listOf(read) &&
-        test.call()?.let { call -> call.definingClass == TEXT_UTILS && call.name == "isEmpty" } == true &&
+        test.call()?.let { call -> call.origDefiningClass == TEXT_UTILS && call.origName == "isEmpty" } == true &&
         result.opcode == Opcode.MOVE_RESULT && result.namedRegisters() == body[at].namedRegisters() }
 }
 
 /** Whether [field]'s class has a search that puts it in a global message search and a [flag] account search. */
 private fun BytecodePatchContext.searches(field: FieldReference, flag: String): Boolean =
-    classDefByOrNull(field.definingClass)?.methods?.any { method -> method.instructions().let { body ->
+    tgClassDefByOrNull(field.definingClass)?.methods?.any { method -> method.instructions().let { body ->
         fun carries(target: String) = body.indices.any { at -> body[at].opcode == Opcode.IPUT_OBJECT && body[at].reference() == target &&
             (at - 1 downTo 0).firstOrNull { body[at].namedRegisters()[0] in body[it].writes() }?.let { load ->
-                body[load].opcode == Opcode.IGET_OBJECT && body[load].reference() == field.toString() } == true }
+                body[load].opcode == Opcode.IGET_OBJECT && body[load].reference() == field.origString() } == true }
         body.any { it.opcode == Opcode.IPUT_BOOLEAN && it.reference() == "$USERNAMES->$flag:Z" } &&
             carries("$GLOBAL_MESSAGES->q:$STRING") && carries("$USERNAMES->q:$STRING")
     } } == true
@@ -528,22 +539,22 @@ private fun BytecodePatchContext.searches(field: FieldReference, flag: String): 
  */
 private fun BytecodePatchContext.filteredEdit(hooks: ChatSearchHooks, pager: MutableMethod, lookup: SearchLookup): SearchEdit {
     val body = pager.instructions()
-    val calls = body.indices.filter { at -> body[at].call()?.let { call -> call.returnType == "V" && call.params().let { taken ->
+    val calls = body.indices.filter { at -> body[at].call()?.let { call -> call.origReturnType == "V" && call.params().let { taken ->
         taken.size == 8 && taken.take(4).all { it == "J" } && taken.drop(5) == listOf("Z", STRING, "Z") } } == true }
     hooks.shape(calls.size == 2 && calls.map { body[it].call().toString() }.distinct().size == 1,
         "the pager no longer starts the filtered search twice")
     val filtered = body[calls.first()].call()!!
-    val search = classDefByOrNull(filtered.definingClass)?.methods?.singleOrNull { it.name == filtered.name &&
-        it.params() == filtered.params() && it.returnType == "V" }
+    val search = tgClassDefByOrNull(filtered.definingClass)?.methods?.singleOrNull { it.origName == filtered.origName &&
+        it.params() == filtered.params() && it.origReturnType == "V" }
     hooks.shape(search != null && search.instructions().let { own -> own.indices.any { at -> own[at].opcode == Opcode.NEW_INSTANCE &&
-        own[at].reference()?.let { type -> classDefByOrNull(type)?.methods?.any { it.name == "run" && it.parameterTypes.isEmpty() &&
+        own[at].reference()?.let { type -> tgClassDefByOrNull(type)?.methods?.any { it.origName == "run" && it.parameterTypes.isEmpty() &&
             it.constructs(GLOBAL_MESSAGES) } } == true && own.drop(at + 1).any { post -> post.call()?.let { call ->
-                call.definingClass == UTILITIES && call.name == "runOnUIThread" } == true } } },
+                call.origDefiningClass == UTILITIES && call.origName == "runOnUIThread" } == true } } },
         "the filtered search no longer posts a message search")
     val kind = if (lookup == SearchLookup.CHAT_FILTERS) Opcode.IGET_OBJECT else Opcode.CHECK_CAST
     val call = calls.filter { at -> body[at].namedRegisters().firstOrNull()?.let { view ->
         (at - 1 downTo 0).firstOrNull { view in body[it].writes() }?.let { body[it].opcode == kind &&
-            (body[it].field()?.type ?: body[it].reference()) == filtered.definingClass } } == true }
+            (body[it].field()?.type ?: body[it].reference()) == filtered.origDefiningClass } } == true }
         .one("${lookup.name.lowercase()} filtered search", hooks::refuse)
     val passed = body[call].namedRegisters()
     val text = passed.getOrNull(1 + filtered.params().take(FILTERED_TEXT).sumOf { if (it == "J" || it == "D") 2 else 1 })
@@ -557,7 +568,7 @@ private fun BytecodePatchContext.filteredEdit(hooks: ChatSearchHooks, pager: Mut
 
 /** The runtime's calls [lookups] need: keep() for every skip, sent() for usernames, emptyText() for the empty line, keepsText() for filtered searches and phones() with its lookUp stub for the phone match. */
 private fun BytecodePatchContext.requireSearchRuntime(hooks: ChatSearchHooks, lookups: Set<SearchLookup>) {
-    val owner = classDefByOrNull(hooks.runtime)
+    val owner = tgClassDefByOrNull(hooks.runtime)
     hooks.shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public search runtime")
     val needed = listOfNotNull(
         Triple("keep", emptyList<String>(), "Z").takeIf { lookups.any { it in SKIPS } },
@@ -568,13 +579,13 @@ private fun BytecodePatchContext.requireSearchRuntime(hooks: ChatSearchHooks, lo
         Triple("lookUp", PHONE_MATCH, "V").takeIf { SearchLookup.PHONES in lookups },
     )
     for ((name, parameters, result) in needed) {
-        hooks.shape(owner!!.methods.count { it.name == name && it.params() == parameters && it.returnType == result &&
+        hooks.shape(owner!!.methods.count { it.origName == name && it.params() == parameters && it.origReturnType == result &&
             AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
             !AccessFlags.NATIVE.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags) && it.implementation != null } == 1,
             "no callable public static runtime $name")
     }
     // The stub is written over by name, so no other method may share it.
-    hooks.shape(SearchLookup.PHONES !in lookups || owner!!.methods.count { it.name == "lookUp" } == 1, "the runtime's lookUp stub is overloaded")
+    hooks.shape(SearchLookup.PHONES !in lookups || owner!!.methods.count { it.origName == "lookUp" } == 1, "the runtime's lookUp stub is overloaded")
 }
 
 /** Whether [target] can be reached from the method's start, thrown or not, without running [avoiding]. */
@@ -596,18 +607,18 @@ private fun reaches(method: Method, target: Int, avoiding: Int): Boolean {
 /** Every instruction that can run right before [index], by a fall-through, a branch or a throw. */
 private fun ControlFlow.into(index: Int): List<Int> = instructions.indices.filter { index in normal[it] || index in exceptional[it] }
 
-private fun Method.params(): List<String> = parameterTypes.map { it.toString() }
-private fun MethodReference.params(): List<String> = parameterTypes.map { it.toString() }
+private fun Method.params(): List<String> = origParameterTypes
+private fun MethodReference.params(): List<String> = origParameterTypes
 private fun Method.sameSignature(other: Method) = name == other.name && returnType == other.returnType && params() == other.params()
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 private fun Method.constructs(type: String) = instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == type }
-private fun Instruction.reference(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.reference(): String? = origRef()
 private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
 /** A static extension call that takes the String in [text] alone and answers a String. */
 private fun Instruction.swaps(text: Int) = opcode == Opcode.INVOKE_STATIC && namedRegisters() == listOf(text) &&
-    call()?.let { it.definingClass.startsWith("Lapp/hushtelegram/extension/") && it.params() == listOf(STRING) && it.returnType == STRING } == true
+    call()?.let { it.origDefiningClass.startsWith("Lapp/hushtelegram/extension/") && it.params() == listOf(STRING) && it.origReturnType == STRING } == true
 private fun Instruction.runs(adapter: String, method: Method) =
-    call()?.let { it.definingClass == adapter && it.name == method.name && it.params() == method.params() } == true
+    call()?.let { it.origDefiningClass == adapter && it.origName == method.origName && it.params() == method.params() } == true
 /** The registers an instruction sets: the first named one for writes, both halves for a wide one. */
 private fun Instruction.writes(): Set<Int> {
     if (!opcode.setsRegister()) return emptySet()

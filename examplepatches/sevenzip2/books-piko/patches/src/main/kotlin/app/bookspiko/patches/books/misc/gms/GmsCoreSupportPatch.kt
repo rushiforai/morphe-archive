@@ -10,6 +10,7 @@ import app.bookspiko.patches.books.shared.methodArgument
 import app.bookspiko.patches.books.shared.registersUsed
 import app.bookspiko.patches.books.shared.replaceStringLiteral
 import app.bookspiko.patches.books.shared.stringEquals
+import app.bookspiko.patches.books.shared.stringLiteral
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
@@ -20,6 +21,7 @@ import app.morphe.patcher.patch.stringOption
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import java.util.logging.Logger
 
@@ -27,6 +29,10 @@ internal const val GOOGLE_ACCOUNT_TYPE = "com.google"
 private const val HAS_CAPABILITIES_REQUEST = "Lcom/google/android/gms/auth/HasCapabilitiesRequest;"
 private const val GOOGLE_PLAY_SERVICES_PACKAGE = "com.google.android.gms"
 private const val GOOGLE_ACCOUNTS_AUTHORITY = "com.google.android.gms.auth.accounts"
+private val ACCOUNT_PICKER_ACTIONS = setOf(
+    "com.google.android.gms.common.account.CHOOSE_ACCOUNT",
+    "com.google.android.gms.common.account.CHOOSE_ACCOUNT_USERTILE",
+)
 
 /**
  * Signature Google's OAuth backend has registered for the Play Books client.
@@ -123,13 +129,40 @@ val gmsCoreSupportPatch = bytecodePatch(
 
         // region Account picker and account types used by the app itself.
 
-        // Open GmsCore's AccountPickerActivity, which handles the same CHOOSE_ACCOUNT action,
-        // instead of the Play services one that rejects the re-signed caller.
-        AccountPickerIntentFingerprint.method.replaceStringLiteral(
-            GOOGLE_PLAY_SERVICES_PACKAGE,
-            gmsCorePackage,
-            methodArgument("Landroid/content/Intent;", "setPackage", 1),
+        // Open GmsCore's AccountPickerActivity instead of the Play services one that rejects the
+        // re-signed caller. ReVanced GmsCore handles Google's CHOOSE_ACCOUNT action, MicroG RE only
+        // its own ("<gmsCorePackage>.common.account.CHOOSE_ACCOUNT"): the extension picks the one
+        // the installed GmsCore handles.
+        mutableClassDefBy(GMS_EXTENSION_CLASS).methods.single { it.name == "gmsCorePackage" }.addInstructions(
+            0,
+            """
+                const-string v0, "$gmsCorePackage"
+                return-object v0
+            """,
         )
+        AccountPickerIntentFingerprint.method.apply {
+            replaceStringLiteral(
+                GOOGLE_PLAY_SERVICES_PACKAGE,
+                gmsCorePackage,
+                methodArgument("Landroid/content/Intent;", "setPackage", 1),
+            )
+            val actions = instructions.withIndex().filter { (_, instruction) ->
+                instruction.stringLiteral in ACCOUNT_PICKER_ACTIONS
+            }.map { it.index }
+            if (actions.size != ACCOUNT_PICKER_ACTIONS.size) {
+                throw PatchException("Expected ${ACCOUNT_PICKER_ACTIONS.size} account picker actions in $definingClass->$name, found ${actions.size}")
+            }
+            actions.reversed().forEach { index ->
+                val register = getInstruction<OneRegisterInstruction>(index).registerA
+                addInstructions(
+                    index + 1,
+                    """
+                        invoke-static/range { v$register .. v$register }, $GMS_EXTENSION_CLASS->accountPickerAction(Ljava/lang/String;)Ljava/lang/String;
+                        move-result-object v$register
+                    """,
+                )
+            }
+        }
 
         AccountsUpdateListenerFingerprint.method.replaceStringLiteral(
             GOOGLE_ACCOUNT_TYPE,

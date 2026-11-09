@@ -8,6 +8,10 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -24,8 +28,8 @@ class SendCopyFixtureTest {
             assertNotNull("${build.name}: the sends", sends)
             val (text, photo, document) = sends!!
             for ((send, name) in listOf(text to "prepareSendingText", photo to "prepareSendingPhoto", document to "prepareSendingDocument")) {
-                assertEquals("${build.name}: $name", name, send.method.name)
-                val types = send.method.parameterTypes.map { it.toString() }
+                assertEquals("${build.name}: $name", name, send.method.origName)
+                val types = send.method.origParameterTypes
                 // A dialog is a long, a flag a boolean, and a stub register only feeds a type it can hold.
                 for ((index, register) in send.sources) {
                     val type = types[index]
@@ -37,7 +41,9 @@ class SendCopyFixtureTest {
                 for ((index, _) in send.literals) assertTrue("${build.name}: $name literal $index", types[index] == "Z")
             }
             assertEquals(mapOf(1 to "p3", 2 to "p1"), text.sources)
-            assertEquals("p4", photo.sources[7])
+            // The caption: 13.2's photo send is the full one, where it comes after the media flags.
+            val caption = photo.method.origParameterTypes.indexOf("Ljava/lang/CharSequence;")
+            assertEquals("p4", photo.sources[caption])
             assertEquals("p5", document.sources[4])
             assertEquals("p4", document.sources[5])
 
@@ -45,11 +51,12 @@ class SendCopyFixtureTest {
             val locals = document.method.parameterTypes.sumOf { if (it.toString() == "J") 2 else 1 }.toInt()
             assertEquals("${build.name}: registers", locals + 6, registers)
             val method = document.method
+            val params = method.origParameterTypes
             assertTrue(
                 "${build.name}: the call",
-                smali.contains("invoke-static/range {v0 .. v${locals - 1}}, ${method.definingClass}->prepareSendingDocument(${method.parameterTypes.joinToString("")})${method.returnType}"),
+                smali.contains("invoke-static/range {v0 .. v${locals - 1}}, ${method.origDefiningClass}->prepareSendingDocument(${params.joinToString("")})${method.origReturnType}"),
             )
-            assertTrue(smali.startsWith("invoke-static/range {p0 .. p0}, ${method.parameterTypes[0]}->getInstance(I)${method.parameterTypes[0]}"))
+            assertTrue(smali.startsWith("invoke-static/range {p0 .. p0}, ${params[0]}->getInstance(I)${params[0]}"))
         }
     }
 }

@@ -41,7 +41,7 @@ public final class NuvioPreferredAddonPatch {
                 builder.execute(context -> {
                     if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                         !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                        throw new IllegalStateException("Preferred add-on requires NuvioTV 1.1.0-beta.12");
+                        throw new IllegalStateException("Preferred add-on requires NuvioTV 1.1.0-beta.13");
                     validateContracts(type -> new MutableClass(context.classDefBy(type)));
                     MutableClass snapshot = context.mutableClassDefBy(NuvioNative.ADDON_SNAPSHOT_TYPE);
                     MutableClass selector = context.mutableClassDefBy(NuvioNative.ADDON_SELECTOR_TYPE);
@@ -82,7 +82,7 @@ public final class NuvioPreferredAddonPatch {
         contract(classes, NuvioNative.ADDON_SELECTOR_TYPE, "b", List.of(STREAM), "Z", true);
         for (String owner : List.of(STREAM, "Lcom/nuvio/tv/domain/model/AddonStreams;"))
             contract(classes, owner, "getAddonName", List.of(), "Ljava/lang/String;", false);
-        contract(classes, NuvioNative.SETTINGS_PICKER_TYPE, "<init>", List.of("Ljava/lang/Object;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Lm3/m;", "I"), "V", false);
+        contract(classes, NuvioNative.SETTINGS_PICKER_TYPE, "<init>", List.of("Ljava/lang/Object;", "Ljava/lang/String;", "Ljava/lang/String;", "Ljava/lang/String;", "Ll3/l;", "I"), "V", false);
         NuvioPlaybackButtonsPatch.validateUiMethod(classes.get(NuvioNative.SETTINGS_ROWS_TYPE),
             NuvioNative.REF_SETTINGS_ROWS_M);
         NuvioPlaybackButtonsPatch.validateUiMethod(classes.get(NuvioNative.SETTINGS_ROWS_TYPE),

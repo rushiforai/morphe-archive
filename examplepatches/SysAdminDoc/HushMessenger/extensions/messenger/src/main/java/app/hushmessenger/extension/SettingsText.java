@@ -98,6 +98,7 @@ final class SettingsText {
         ENGLISH.put("settings", "HushMessenger settings");
         ENGLISH.put("preview_title", "HushMessenger UI preview");
         ENGLISH.put("preview_notice", "UI preview. These controls don't change Messenger.");
+        ENGLISH.put("mounted_build_mismatch", "This was patched from Messenger %1$d, but Android has %2$d installed. Patch %2$d for Root Mount, or chat heads and other screens can crash.");
         ENGLISH.put("open", "Open");
         ENGLISH.put("open_messenger", "Open Messenger");
         ENGLISH.put("back", "Back");
@@ -209,6 +210,7 @@ final class SettingsText {
         ENGLISH.put("message_actions_got", "Messages you got");
         ENGLISH.put("message_actions_empty_sent", "Press and hold a message you sent, and its actions show up here.");
         ENGLISH.put("message_actions_empty_got", "Press and hold a message you got, and its actions show up here.");
+        ENGLISH.put("chat_menu_items_empty", "Press and hold a chat in your chat list, and its menu's items show up here.");
         ENGLISH.put("message_actions_hidden_label", "%1$s (hidden)");
         ENGLISH.put("message_actions_move_up", "Move %1$s up");
         ENGLISH.put("message_actions_move_down", "Move %1$s down");
@@ -268,6 +270,7 @@ final class SettingsText {
         ENGLISH.put("tab_badges_keep_menu", "Keep the Menu badge");
         ENGLISH.put("tab_badges_keep_facebook", "Keep the Facebook button's badge");
         ENGLISH.put("experimental", "Experimental");
+        ENGLISH.put("new_setting", "New");
         ENGLISH.put("choice_on", "%s is on");
         ENGLISH.put("choice_off", "%s is off");
         ENGLISH.put("appearance", "Appearance");
@@ -275,6 +278,19 @@ final class SettingsText {
         ENGLISH.put("material_you_black_help", "Uses pure black with Material You in Messenger. Light mode stays unchanged.");
         ENGLISH.put("material_you_light", "Light mode accent");
         ENGLISH.put("material_you_light_help", "Gives Messenger's blues in light mode your accent color too. Grays and white stay as they are.");
+        ENGLISH.put("material_you_light_grays", "Light mode grays");
+        ENGLISH.put("material_you_light_grays_help", "Gives Messenger's grays in light mode a tint of your palette too. White and black stay as they are.");
+        ENGLISH.put("material_you_style", "Palette style");
+        ENGLISH.put("material_you_style_help", "How much color Material You uses, like the styles in Android's wallpaper settings. Default keeps your wallpaper's palette or your theme as it is.");
+        ENGLISH.put("material_you_style_default", "Default");
+        ENGLISH.put("material_you_style_tonal_spot", "Tonal spot");
+        ENGLISH.put("material_you_style_neutral", "Neutral");
+        ENGLISH.put("material_you_style_vibrant", "Vibrant");
+        ENGLISH.put("material_you_style_expressive", "Expressive");
+        ENGLISH.put("material_you_style_rainbow", "Rainbow");
+        ENGLISH.put("material_you_style_fruit_salad", "Fruit salad");
+        ENGLISH.put("material_you_style_monochrome", "Monochrome");
+        ENGLISH.put("material_you_style_changed", "%s style saved");
         ENGLISH.put("light", "Light theme");
         ENGLISH.put("light_help", "Makes these settings light. Messenger itself stays unchanged.");
         ENGLISH.put("theme_help", "Dark by default. Your choice stays saved.");
@@ -480,6 +496,8 @@ final class SettingsText {
         ENGLISH.put("message_log_restore_failed", "Couldn't put the log back");
         ENGLISH.put("message_log_now", "Just now");
         ENGLISH.put("message_log_ago", "%s ago");
+        ENGLISH.put("message_log_quiet_chats", "Log chats that don't notify");
+        ENGLISH.put("message_log_quiet_chats_help", "Also logs messages from muted chats and from chats you restricted, with no notification. Restricted encrypted chats send your phone nothing, so those still only show up when you search for the person.");
         ENGLISH.put("message_log_save_expiring", "Save messages before they're removed");
         ENGLISH.put("message_log_save_expiring_help", "Right before the log removes a message, it's added to a text file in Download/Messenger, one file a month. That file isn't encrypted, so apps that can read your files can read it.");
         ENGLISH.put("message_log_search", "Search messages and names");

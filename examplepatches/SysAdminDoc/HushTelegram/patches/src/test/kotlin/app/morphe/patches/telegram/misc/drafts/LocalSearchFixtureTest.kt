@@ -7,9 +7,11 @@ package app.morphe.patches.telegram.misc.drafts
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
+import app.morphe.hostsOf
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patches.telegram.ads.GET_SPONSORED_PEERS
 import app.morphe.patches.telegram.ads.hideAdsPatch
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -33,6 +35,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val CONTROLLER = "Lorg/telegram/messenger/MessagesController;"
 private const val VIDEO_ADS = "Lorg/telegram/messenger/video/VideoAds;"
@@ -157,7 +166,7 @@ class LocalSearchFixtureTest {
                         continue
                     }
                     val jump = edit.jump
-                    val request = requestOf(edit, before) { type -> context.classDefByOrNull(type) }
+                    val request = requestOf(edit, before) { type -> context.tgClassDefByOrNull(type) }
                     val answer = after[at + 1].namedRegisters().single()
                     if (edit.lookup in FILTERS) assertEquals("$what hands the runtime the text",
                         listOf(Opcode.INVOKE_STATIC_RANGE, listOf(before[edit.index].namedRegisters()[11]), SEARCH_KEEPS_TEXT), searchOperands(after[at]))
@@ -186,7 +195,7 @@ class LocalSearchFixtureTest {
                             assertTrue("$what lowers it", way.any { it.opcode in LOWERS } &&
                                 way.any { it.opcode == Opcode.IPUT && (it as ReferenceInstruction).reference == count })
                             assertTrue("$what tells the tab", way.any { it.call()?.let { call ->
-                                call.parameterTypes.map(CharSequence::toString) == listOf("Z", "Z") && call.returnType == "V" } == true })
+                                call.parameterTypes.map(CharSequence::toString) == listOf("Z", "Z") && call.origReturnType == "V" } == true })
                             assertEquals("$what returns", Opcode.RETURN_VOID, way.last().opcode)
                         }
                         // An empty box drops what an earlier forum search found.
@@ -203,12 +212,12 @@ class LocalSearchFixtureTest {
                                 before.subList(check - 3, check + 1).map { it.opcode })
                             assertEquals("$what's check sends a typed text to the hook", setOf(jump, edit.index), oldFlow.normal[check].toSet())
                             assertTrue("$what's tab asks for ${TABS.getValue(edit.lookup)} accounts",
-                                context.classDefByOrNull(field.definingClass)!!.methods.any { method -> method.body().any {
+                                context.tgClassDefByOrNull(field.definingClass)!!.methods.any { method -> method.body().any {
                                     it.opcode == Opcode.IPUT_BOOLEAN && it.ref() == "$USERNAMES->${TABS.getValue(edit.lookup)}:Z" } })
                             val way = before.subList(jump, edit.index)
                             assertTrue("$what clears the tab", way.any { it.ref() == "Ljava/util/ArrayList;->clear()V" })
                             assertTrue("$what leaves nothing loading or to load", way.count { it.opcode == Opcode.IPUT_BOOLEAN &&
-                                (it as ReferenceInstruction).reference.let { ref -> (ref as FieldReference).definingClass == field.definingClass } } >= 3)
+                                (it as ReferenceInstruction).reference.let { ref -> (ref as FieldReference).origDefiningClass == field.origDefiningClass } } >= 3)
                             assertTrue("$what posts nothing", way.none { it.ref() == POST })
                         }
                         // The pager's own filtered view for a filtered Chats tab, the page itself for a media tab.
@@ -251,7 +260,7 @@ class LocalSearchFixtureTest {
                 assertFalse("$where: the request is behind local search", request in reach(flow, 0, keeps.first()))
                 assertFalse("$where: and behind Hide ads", request in reach(flow, 0, skip))
                 for (flag in listOf("hideAds", "searchAds")) {
-                    val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.body()
+                    val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.body()
                     assertEquals("$where: $flag", 1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
                 }
             }
@@ -259,21 +268,23 @@ class LocalSearchFixtureTest {
     }
 
     @Test fun `the census has one chat search, one second step and one pager, and a helper other screens share`() {
-        for (build in Fixtures.declaredBuilds()) {
+        for (build in Fixtures.declaredBuilds()) FixtureDex.namedBy(build) {
             val name = build.name
             val search = FixtureDex.methodsWhere(build, { true }) { it.builds(GET_SPONSORED_PEERS) }.single()
             val adapter = search.definingClass
-            val messages = FixtureDex.methodsWhere(build, { true }) { it.definingClass == adapter && it.builds(GLOBAL_MESSAGES) }.single()
-            val forum = FixtureDex.methodsWhere(build, { true }) { it.definingClass == adapter && it.builds(CHAT_MESSAGES) }.single()
-            val steps = FixtureDex.methodsWhere(build, { true }) { it.definingClass != adapter && it.runs(adapter, messages) && it.runs(adapter, forum) }
+            val messages = FixtureDex.methodsWhere(build, { true }) { it.origDefiningClass == adapter && it.builds(GLOBAL_MESSAGES) }.single()
+            val forum = FixtureDex.methodsWhere(build, { true }) { it.origDefiningClass == adapter && it.builds(CHAT_MESSAGES) }.single()
+            val steps = FixtureDex.methodsWhere(build, { true }) { it.origDefiningClass != adapter && it.runs(adapter, messages) && it.runs(adapter, forum) }
             assertEquals("$name: only a runnable outside chat search starts both message searches", listOf("run"), steps.map { it.name })
             val helper = steps.single().body().mapNotNull { it.call() }.single { it.parameterTypes.size == 12 }
             // One pass over the app for the three things left to count.
             val wide = FixtureDex.methodsWhere(build, { true }) { method -> method.body().any {
                 it.ref() == NO_RESULT_LINE || it.call() == helper || (it.opcode == Opcode.NEW_INSTANCE && it.ref() == PUBLIC_POSTS) } }
-            val pagers = wide.filter { method -> method.body().any { it.ref() == NO_RESULT_LINE } }
-            assertEquals("$name: one method writes the no results line", 1, pagers.size)
-            assertTrue("$name: and it's the one that starts chat search", pagers.single().runs(adapter, search))
+            val writers = wide.filter { method -> method.body().any { it.ref() == NO_RESULT_LINE } }
+            // 13.2 also writes the line from one list redraw R8 merged for other screens' searches, which never starts chat search.
+            val pagers = writers.filter { it.runs(adapter, search) }
+            assertEquals("$name: one method that starts chat search writes the no results line", 1, pagers.size)
+            assertTrue("$name: past the pager, at most the one shared redraw writes it: ${writers.map { it.definingClass }}", writers.size <= 2)
             // The filtered search view searches for other screens too, so only the pager's two calls are hooked.
             val filtered = pagers.single().body().mapNotNull { it.call() }.filter { call ->
                 call.parameterTypes.map(CharSequence::toString).filterIndexed { at, _ -> at != 4 } == FILTERED }
@@ -284,11 +295,11 @@ class LocalSearchFixtureTest {
             // Contact pickers and other screens look usernames up through the same helper, so only chat search's call is hooked.
             val callers = wide.filter { method -> method.body().any { it.call() == helper } }
             assertTrue("$name: the helper is shared: ${callers.map { it.definingClass }}", callers.map { it.definingClass }.toSet().size > 2)
-            assertEquals("$name: chat search calls it once itself, with no text", 1, callers.count { it.definingClass == adapter && it.name == search.name })
+            assertEquals("$name: chat search calls it once itself, with no text", 1, callers.count { it.origDefiningClass == adapter && it.origName == search.origName })
             // Public posts under a hashtag are asked for by the runnable chat search posts, and by other screens of their own.
             val posters = wide.filter { it.builds(PUBLIC_POSTS) }
             val made = search.body().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.ref() }
-            assertEquals("$name: one runnable of chat search's asks for public posts", 1, posters.count { it.name == "run" && it.definingClass in made })
+            assertEquals("$name: one runnable of chat search's asks for public posts", 1, posters.count { it.origName == "run" && it.origDefiningClass in made })
         }
     }
 }
@@ -376,21 +387,21 @@ private val HOSTS = ConcurrentHashMap<String, List<ClassDef>>()
  * classes whose text it reads (the Channels and Apps tabs among them), the filtered search view and
  * the runnables that view's search posts.
  */
-internal fun localSearchHosts(build: File): List<ClassDef> = HOSTS.getOrPut(build.path) {
+internal fun localSearchHosts(build: File): List<ClassDef> = HOSTS.getOrPut(build.path) { FixtureDex.namedBy(build) {
     val adapter = FixtureDex.classesWhere(build, { true }) { it.builds(GET_SPONSORED_PEERS) }.single()
     val search = adapter.methods.single { it.builds(GET_SPONSORED_PEERS) }
     val messages = adapter.methods.single { it.builds(GLOBAL_MESSAGES) }
     val forum = adapter.methods.single { it.builds(CHAT_MESSAGES) }
-    val users = FixtureDex.classesWhere(build, { true }) { method -> method.definingClass != adapter.type &&
+    val users = FixtureDex.classesWhere(build, { true }) { method -> method.origDefiningClass != adapter.origType &&
         ((method.runs(adapter.type, messages) && method.runs(adapter.type, forum)) ||
             (method.runs(adapter.type, search) && method.body().any { it.ref() == NO_RESULT_LINE })) }
     val pager = users.flatMap { it.methods }.single { method -> method.body().any { it.ref() == NO_RESULT_LINE } }
     val texts = pager.body().filter { it.opcode == Opcode.IGET_OBJECT }
-        .mapNotNull { ((it as ReferenceInstruction).reference as FieldReference).takeIf { field -> field.type == "Ljava/lang/String;" } }
+        .mapNotNull { ((it as ReferenceInstruction).reference as FieldReference).takeIf { field -> field.origType == "Ljava/lang/String;" } }
         .map { it.definingClass }
     val filtered = pager.body().mapNotNull { it.call() }.filter { it.parameterTypes.size == 8 }
     val views = FixtureDex.classes(build, filtered.map { it.definingClass }.toSet()).values
-    val posted = views.flatMap { it.methods }.filter { method -> filtered.any { it.name == method.name &&
+    val posted = views.flatMap { it.methods }.filter { method -> filtered.any { it.origName == method.origName &&
         it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString) } }
         .flatMap { it.body() }.filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.ref() }
     val named = search.body().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.ref() } +
@@ -407,7 +418,7 @@ internal fun localSearchHosts(build: File): List<ClassDef> = HOSTS.getOrPut(buil
     val observed = FixtureDex.classes(build, supers.lastOrNull()?.fields?.map { it.type }?.toSet().orEmpty()).values
     (listOf(adapter) + users + views + supers + observed + FixtureDex.classes(build, named.toSet()).values)
         .distinctBy { it.type }.map(ImmutableClassDef::of)
-}
+} }
 
 /**
  * Where [edit]'s request is built or started in its method's stock [body]: a request a Chats tab
@@ -422,7 +433,7 @@ private fun requestOf(edit: SearchEdit, body: List<Instruction>, classOf: (Strin
             SearchLookup.SPONSORED -> body[at].ref() == GET_SPONSORED_PEERS
             SearchLookup.MESSAGES -> body[at].ref() == GLOBAL_MESSAGES
             SearchLookup.FORUM -> body[at].ref() == CHAT_MESSAGES
-            SearchLookup.POSTS -> classOf(body[at].ref()!!)?.methods?.any { it.name == "run" && it.builds(PUBLIC_POSTS) } == true
+            SearchLookup.POSTS -> classOf(body[at].ref()!!)?.methods?.any { it.origName == "run" && it.builds(PUBLIC_POSTS) } == true
             else -> error("${edit.lookup} has no request")
         }
     }
@@ -443,11 +454,11 @@ private fun reach(flow: ControlFlow, from: Int, blocked: Int): Set<Int> {
 }
 
 private fun Method.body(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-private fun Instruction.ref(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.ref(): String? = origRef()
 private fun Instruction.call(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
 private fun Method.builds(type: String) = body().any { it.opcode == Opcode.NEW_INSTANCE && it.ref() == type }
-private fun Method.runs(owner: String, method: Method) = body().any { it.call()?.let { call -> call.definingClass == owner &&
-    call.name == method.name && call.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString) } == true }
+private fun Method.runs(owner: String, method: Method) = body().any { it.call()?.let { call -> call.origDefiningClass == owner &&
+    call.origName == method.origName && call.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString) } == true }
 /** An instruction's opcode, registers and reference; a goto that grew to reach past a hook still counts as that goto. */
 private fun searchOperands(instruction: Instruction): List<Any?> =
     listOf(if (instruction.opcode in GOTOS) Opcode.GOTO else instruction.opcode, instruction.namedRegisters(), instruction.ref())
@@ -458,5 +469,5 @@ private fun redrawOverrides(build: File, adapter: String, name: String): List<Me
     FixtureDex.forEach(build) { dex -> for (c in dex.classes) parents[c.type] = c.superclass }
     val below = parents.keys.filter { type -> generateSequence(parents[type]) { parents[it] }.any { it == adapter } }
     return FixtureDex.classes(build, below.toSet()).values.flatMap { it.methods }
-        .filter { it.name == name && it.parameterTypes.isEmpty() && it.returnType == "V" && it.implementation != null }
+        .filter { it.origName == name && it.parameterTypes.isEmpty() && it.origReturnType == "V" && it.implementation != null }
 }

@@ -5,21 +5,21 @@
 </picture>
 </p>
 
-Patch Stremio and Vimu to skip intros, recaps, and credits, auto-pick streams, filter out SDH subtitles (subtitles for the deaf and hard of hearing), and sync playback and language choices with external players. Built for Android TV, with phone support added in 1.7. You apply the patches to your own APK using the Morphe app patcher.
+Skip intros, recaps, and credits in Stremio and Vimu, including on episodes no database has timed. The patches add on-device skip detection, automatic stream selection, per-show audio and subtitle memory, an SDH subtitle filter (SDH: subtitles for the deaf and hard of hearing), and external player hand-off. Built for Android TV, with phone support since 1.7. Apply them to your own APK with the Morphe app patcher.
 
 ## At a glance
 
-| Feature | What it does | Where you turn it on |
+| Feature | What you get | Where you turn it on |
 |---|---|---|
-| [Fingerprint Lookahead](#fingerprint-lookahead) | Works out skip times no online source has, by fingerprinting the next episode's audio and matching it against other episodes of the show. | Mod settings, `Work out missing skip times` (off by default) |
-| [Chapter-aware skip sources](#chapter-aware-skip-sources) | Skips intros, recaps, and credits from the file's own chapters first, then this project's timings and four online sources. | `Intro Skip` patch |
-| [Borrowed chapters](#borrowed-chapters-with-audio-proof-alignment) | Copies intro and credits marks from another release of the same episode after audio alignment verifies both files match. | Mod settings, `Borrow chapters from other releases` (off by default) |
-| [Anime theme-song matching](#anime-theme-song-matching) | Matches a show's official theme songs against episode audio to fill a missing intro or credits. | Runs with `Work out missing skip times` |
-| [Early-outro guard](#early-outro-guard) | Keeps an early outro from being offered as "Skip intro". | Always on |
-| [Auto-pick best stream](#auto-pick-best-stream) | Launches the top-ranked stream immediately and skips the selection list. | `Auto-pick best stream` patch (on by default) |
-| [Per-show track memory](#per-show-track-memory) | Saves your audio and subtitle languages per show, in Stremio's player and in Vimu. | `Remember tracks per show` patch |
-| [External player hand-off](#external-player-hand-off) | Passes the episode, start position, and subtitles to your external player, records progress, and starts the next episode in the same player. | `External player progress` and `Binge with external players` patches |
-| [Spoiler shield](#spoiler-shield) | Hides thumbnails, titles, and synopses of unwatched episodes. | `Hide spoilers` patch |
+| [Fingerprint Lookahead](#fingerprint-lookahead) | Skip times for episodes no online source covers, worked out from the season's audio while you watch the previous episode. | Mod settings, `Work out missing skip times` (off by default) |
+| [Chapter-aware skip sources](#chapter-aware-skip-sources) | Intros, recaps, and credits skipped from the file's chapters first, then this project's timings and four online sources. | `Intro Skip` patch |
+| [Borrowed chapters](#borrowed-chapters-with-audio-proof-alignment) | Intro and credits marks for a release that has none, copied from another release once audio proves the files match. | Mod settings, `Borrow chapters from other releases` (off by default) |
+| [Anime theme-song matching](#anime-theme-song-matching) | Anime intros and credits found from the show's official theme songs, in a single episode. | Runs with `Work out missing skip times` |
+| [Early-outro guard](#early-outro-guard) | An early outro is never offered as "Skip intro". | Always on |
+| [Auto-pick best stream](#auto-pick-best-stream) | Press play and the best stream starts. No selection list. | `Auto-pick best stream` patch (on by default) |
+| [Per-show track memory](#per-show-track-memory) | Choose audio and subtitle languages once. Every later episode of the show starts with them. | `Remember tracks per show` patch |
+| [External player hand-off](#external-player-hand-off) | Your external player gets the episode, position, and subtitles. Progress comes back, and the next episode starts there. | `External player progress` and `Binge with external players` patches |
+| [Spoiler shield](#spoiler-shield) | Browse a series without seeing what happens next. | `Hide spoilers` patch |
 
 ## Install
 
@@ -60,9 +60,35 @@ On every Stremio version except 1.6.12, skips snap to keyframes (landing 1-2 s e
 </picture>
 </p>
 
-Cross-episode audio fingerprinting for episodes the online sources do not cover. Online sources are checked first and are always on. While you watch an episode, the app fingerprints the audio at the start and end of the next episode in the background, matches it against other episodes of the same show, and skips what at least 2 other episodes agree on. Detected timestamps have the lowest priority and follow your Auto or Manual setting.
+A Skip button on episodes no database has timed: new releases, niche shows, and files the online sources never indexed. The next episode is analysed in the background while you watch, so its intro and credits are ready when it starts.
 
-In Mod settings the row is still labelled `Work out missing skip times` (off by default). The next release renames it to Fingerprint Lookahead.
+Fingerprint Lookahead is the only on-device skip detection for Stremio on Android TV that we have found. Nuvio reads container chapters and three online databases, with no detection of its own. Jellyfin Intro Skipper detects on a media server, not in the player.
+
+An isolated background process fingerprints the audio at the start and end of the next episode, matches it against other episodes of the show, and reports a segment when at least 2 other episodes agree. Detected times rank below every other source and follow your Auto or Manual setting. The Mod settings row is labelled `Work out missing skip times`; the next release renames it to Fingerprint Lookahead.
+
+**Against Jellyfin Intro Skipper.** The shipped v1.8.0 detector and Intro Skipper v12.0.6.0 at default settings ran on the same 150 episodes (intros and credits), with the same hand-checked truth and scorer. A wrong skip is an edge more than 1 s inside the story. Cells read Fingerprint Lookahead vs Intro Skipper.
+
+| Test set | Story skipped (s) | Wrong skips | Segments found |
+|---|---:|---:|---:|
+| Western series, 72 episodes | 45.6 vs 2,052.2 | 6 vs 46 | 50 vs 55 |
+| Western holdout, 18 episodes | 0.0 vs 21.4 | 0 vs 8 | 17 vs 16 |
+| Korean drama set 1, 36 episodes | 124.8 vs 1,567.0 | 18 vs 42 | 16 vs 8 |
+| Korean drama set 2, 18 episodes | 104.6 vs 1,269.3 | 8 vs 29 | 4 vs 0 |
+| Korean drama set 3, 6 episodes | 42.8 vs 70.0 | 5 vs 5 | 0 vs 6 |
+
+Intro Skipper finds more segments on two sets (55 vs 50, 6 vs 0), at the cost of the wrong skips shown.
+
+**Against Skiptro 1.4.0, intros only.** This is the current detector under test, a development build that is not in v1.8.0. Same audio and scorer: 183 intros across 32 shows, 6 episodes per season, each analysed against the other 5.
+
+| Measure | Fingerprint Lookahead (development build) | Skiptro 1.4.0 |
+|---|---:|---:|
+| Story skipped | 0 s | 331 s |
+| Wrong skips | 0 | 37 |
+| Intros found | 125 | 113 |
+| Skips where the episode has no intro | 0 | 7 |
+| Intros left unmarked | 58 | 33 |
+
+With 3 reference episodes (mean over runs), the development build finds 112.2 with 3.8 wrong and 64.5 s skipped; Skiptro finds 111.8 with 30.0 wrong and 271.8 s. Plex was not tested.
 
 | Streamer hardware test (real streams) | Time per episode | Debrid data read | Result |
 |---|---:|---:|---|
@@ -70,7 +96,7 @@ In Mod settings the row is still labelled `Work out missing skip times` (off by 
 | 1080p, one comparison episode to fetch | about 19 minutes | about 0.9 GB | Intro and credits found, frame-accurate |
 | 4K remux, nothing cached locally | about 40 minutes | about 5 GB | Analysis finished, no matches on that show |
 
-Results apply only to the exact file analyzed, with a limit of one attempt per episode per day. If analysis finishes after you start the next episode, the intro skip may not be ready in time.
+Results apply only to the exact file analyzed, with one attempt per episode per day. If analysis finishes while you are inside the detected segment, the player shows a Skip button and never jumps.
 
 ### Chapter-aware skip sources
 
@@ -81,7 +107,7 @@ Results apply only to the exact file analyzed, with a limit of one attempt per e
 </picture>
 </p>
 
-Skip segments automatically or show an on-screen Skip button in Manual mode. Movies and post-credit scenes never skip: skipping credits seeks to the end of the credits, not the end of the file. No API keys are needed.
+Intros, recaps, and credits skip automatically, or on a button press in Manual mode, from seven sources in a fixed priority order. No API keys are needed. Community timestamps drift between releases, so every online time is verified against your file first. Movies and post-credit scenes never skip: credits skip to the end of the credits, not the end of the file.
 
 | Order | Source | Notes |
 |---:|---|---|
@@ -104,7 +130,7 @@ Online timestamps apply only when your file's duration matches the source's meas
 </picture>
 </p>
 
-Copies intro and credits marks from another release of the same episode after audio alignment verifies both files match. If alignment fails, nothing is copied. `Borrow chapters from other releases` is off by default and works independently of `Work out missing skip times`.
+A release with no chapters gets the intro and credits marks of another release of the same episode. Release cuts differ, so a copied timestamp is safe only once audio proves the offset. Both files are aligned and the match is verified before any mark is copied; if alignment fails, nothing is. `Borrow chapters from other releases` is off by default and works independently of `Work out missing skip times`.
 
 | Offline test, 40 file pairs | Result |
 |---|---:|
@@ -122,7 +148,7 @@ Copies intro and credits marks from another release of the same episode after au
 </picture>
 </p>
 
-Matches a show's official opening and ending songs from AnimeThemes.moe against episode audio. It runs with `Work out missing skip times`, needs only one episode, requires a Kitsu id, and never overrides another source.
+Intro and credits for anime episodes no source has timed, found from the show's own theme songs. It needs a single episode, so it works where comparing episodes cannot. It matches the official opening and ending songs from AnimeThemes.moe against the episode audio, runs with `Work out missing skip times`, requires a Kitsu id, fills only missing segment types, and never overrides another source.
 
 | Standalone PC test, 123 episodes | Result |
 |---|---:|
@@ -141,7 +167,7 @@ Matches a show's official opening and ending songs from AnimeThemes.moe against 
 </picture>
 </p>
 
-Drops early credits entries on episodes without an intro, so an early outro is not offered as "Skip intro". Keeps openings that TheIntroDB mislabels as credits. Verified by self-tests in both Stremio's player and Vimu.
+"Skip intro" never appears on an outro. On episodes with no intro, an online credits entry near the start would be offered as one. The guard drops that entry and keeps openings that TheIntroDB mislabels as credits. Self-tests cover it in Stremio's player and Vimu.
 
 ### Auto-pick best stream
 
@@ -152,7 +178,7 @@ Drops early credits entries on episodes without an intro, so an early outro is n
 </picture>
 </p>
 
-Launches the top-ranked stream immediately and skips the selection list. Filters out CAM, telesync, and screener copies, wrong season or episode numbers, addon warning cards, and external web links. If every stream fails the filter, the stream list stays on screen.
+Press play and the best stream starts. Addon results mix in CAM copies, wrong episodes, and warning cards, so the filter removes CAM, telesync, and screener copies, wrong season or episode numbers, addon warning cards, and external web links before ranking the rest. If every stream fails, the list stays on screen.
 
 | Rank | Rule |
 |---:|---|
@@ -172,7 +198,7 @@ Next-episode prefetch (`Prepare next episode`) resolves the next episode's best 
 </picture>
 </p>
 
-Stremio's player and Vimu save your audio and subtitle languages per show. The SDH subtitle filter (`Avoid SDH subtitles`) selects standard dialogue tracks over hearing-impaired subtitles.
+Choose Japanese audio and English subtitles once, and every later episode of that show starts with them, in Stremio's player and Vimu. The SDH subtitle filter (`Avoid SDH subtitles`) selects standard dialogue tracks over hearing-impaired subtitles.
 
 ### External player hand-off
 
@@ -183,7 +209,7 @@ Stremio's player and Vimu save your audio and subtitle languages per show. The S
 </picture>
 </p>
 
-Passes the show title, episode, start position, and subtitles to your external player, records playback progress, and starts the next episode automatically in the same player. Vimu writes its position every 10 s, so progress survives a crash. Pressing Back, Home, or stopping early never launches the next episode. Vimu, mpv, and Just Player are tested.
+Watch in your own player and keep Stremio's progress and your binge. The title, episode, start position, and subtitles go to the player, progress is recorded, and the next episode starts in the same player. Vimu writes its position every 10 s, so progress survives a crash. Pressing Back, Home, or stopping early never launches the next episode. Vimu, mpv, and Just Player are tested.
 
 ### Spoiler shield
 
@@ -194,22 +220,21 @@ Passes the show title, episode, start position, and subtitles to your external p
 </picture>
 </p>
 
-`Hide spoilers` hides thumbnails and synopses of unwatched episodes and replaces their titles with `Episode N`.
+`Hide spoilers` hides thumbnails and synopses of unwatched episodes and replaces their titles with `Episode N`. Each episode is revealed once you watch it.
 
 ### Also included
 
 | Feature | What it does |
 |---|---|
 | Smoother playback | Frame-rate matching in Stremio's own player: `Seamless only`, `Always`, or `Off`. |
-| Larger playback buffer | Buffers 50-120 s ahead (up to 256 MB), on by default, to reduce stalls on high-bitrate streams. |
+| Larger playback buffer | Buffers 50-120 s ahead (up to 256 MB), on by default, to cut stalls on high-bitrate streams. |
 | Mod settings | One screen with every patch option. |
 | Side-by-side install | Installs the patched app as Stremio Morphe next to the original. Off by default. |
 
 ## Known limits
 
-* **Embedded chapters:** Read only from Matroska and WebM files streamed over `http(s)`.
-* **Unindexed releases:** Brand-new episodes without online timestamps cannot skip unless `Work out missing skip times` is on.
-* **Unmarked scenes:** Online credits timestamps can occasionally skip over an unmarked mid-credits or post-credits scene.
+* **Embedded chapters:** Read from Matroska and WebM files streamed over `http(s)`.
+* **Unmarked scenes:** Online credits timestamps can skip over an unmarked mid-credits or post-credits scene.
 * **Required settings:** `Remember tracks` requires Stremio's built-in "auto select" option on builds newer than 1.6.12. `Auto-pick` requires `Always show stream list` to be turned off.
 
 ## Network connections

@@ -15,6 +15,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 import org.robolectric.shadows.ShadowToast;
 import static org.junit.Assert.*;
 
@@ -280,5 +281,91 @@ public class SettingsNavigationTest {
             root.findViewWithTag("tab_app").performClick();
             assertEquals(View.VISIBLE, root.findViewWithTag("app_page").getVisibility());
         }
+    }
+
+    // #157: on a 411 dp phone at a 1.15 font scale, Put gallery picks in the chat left its badge a sliver and
+    // Experimental wrapped two letters per line into a tall empty bar beside the title.
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void experimentalBadgesStayOneWholeLineBesideOrUnderTheirTitles() {
+        RuntimeEnvironment.setQualifiers("w411dp-h891dp-xxhdpi");
+        RuntimeEnvironment.setFontScale(1.15f);
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            root.measure(View.MeasureSpec.makeMeasureSpec(411 * 3, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(891 * 3, View.MeasureSpec.EXACTLY));
+            root.layout(0, 0, 411 * 3, 891 * 3);
+            int checked = 0, stacked = 0;
+            for (String key : SettingsActivity.EXPERIMENTAL) {
+                TextView badge = root.findViewWithTag("badge_" + key);
+                if (badge == null || badge.getWidth() == 0) continue;
+                SettingsUi.TitleLine line = root.findViewWithTag("title_line_" + key);
+                stacked += badgeSitsWhole(key, line, badge) ? 0 : 1;
+                checked++;
+            }
+            assertTrue(checked + " rows", checked >= 10);
+            assertTrue(root.<View>findViewWithTag("badge_gallery_to_chat").getWidth() > 0);
+            assertTrue("no long title moved its badge under it", stacked > 0);
+            assertTrue("every badge moved under its title", stacked < checked);
+        }
+    }
+
+    @Test @Config(sdk = 36) @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aBadgeGoesUnderItsTitleOnlyWhenTheTwoDontFitSideBySide() {
+        // Under 360 dp the page uses its large-text layout, so a phone-sized screen.
+        RuntimeEnvironment.setQualifiers("w411dp-h891dp-xxhdpi");
+        SettingsUi ui = new SettingsUi(RuntimeEnvironment.getApplication(), false);
+        SettingsUi.TitleLine line = ui.titleLine();
+        line.addView(ui.text("Put gallery picks in the chat", 16, ui.text, true), new android.widget.LinearLayout.LayoutParams(-2, -2));
+        TextView badge = ui.text("Experimental", 11, ui.warning, false);
+        line.badge(badge);
+        boolean wasBeside = false;
+        for (int width = 120; width <= 480; width += 20) {
+            line.measure(View.MeasureSpec.makeMeasureSpec(ui.dp(width), View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            line.layout(0, 0, line.getMeasuredWidth(), line.getMeasuredHeight());
+            boolean beside = badgeSitsWhole(width + " dp", line, badge);
+            // A narrow 120 dp line stacks them, a wide 480 dp one has room for both, and widening never stacks them again.
+            if (width == 120) assertFalse(beside);
+            if (width == 480) assertTrue(beside);
+            assertFalse(width + " dp stacked again", wasBeside && !beside);
+            wasBeside = beside;
+        }
+        // Narrowing it again puts the badge back under the title at the line's start, not indented by the old gap.
+        line.measure(View.MeasureSpec.makeMeasureSpec(ui.dp(120), View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        line.layout(0, 0, line.getMeasuredWidth(), line.getMeasuredHeight());
+        assertFalse(badgeSitsWhole("120 dp again", line, badge));
+        assertEquals(0, badge.getLeft());
+        // Large text keeps its own layout: the badge always under the title, at the line's start.
+        RuntimeEnvironment.setFontScale(1.5f);
+        SettingsUi large = new SettingsUi(RuntimeEnvironment.getApplication(), false);
+        SettingsUi.TitleLine stacked = large.titleLine();
+        stacked.addView(large.text("Landscape", 16, large.text, true), new android.widget.LinearLayout.LayoutParams(-2, -2));
+        TextView stackedBadge = large.text("Experimental", 11, large.warning, false);
+        stacked.badge(stackedBadge);
+        stacked.measure(View.MeasureSpec.makeMeasureSpec(large.dp(480), View.MeasureSpec.EXACTLY),
+            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        stacked.layout(0, 0, stacked.getMeasuredWidth(), stacked.getMeasuredHeight());
+        assertFalse(badgeSitsWhole("large text", stacked, stackedBadge));
+        assertEquals(0, stackedBadge.getLeft());
+    }
+
+    /** Asserts the badge reads as one whole line, beside a one-line title or under the title; true when beside. */
+    private static boolean badgeSitsWhole(String what, SettingsUi.TitleLine line, TextView badge) {
+        TextView title = (TextView) line.getChildAt(0);
+        assertEquals(what, 1, badge.getLayout().getLineCount());
+        assertTrue(what + " badge cut to " + badge.getWidth() + " px",
+            badge.getWidth() >= badge.getPaddingLeft() + badge.getPaddingRight() + badge.getLayout().getLineWidth(0));
+        assertTrue(what + " badge spills past its line", badge.getRight() <= line.getWidth());
+        if (line.sideBySide()) {
+            assertEquals(what, 1, title.getLayout().getLineCount());
+            // Beside it, the badge keeps an 8 dp gap from the title, even on a line that was stacked before.
+            int gap = (int) (8 * line.getResources().getDisplayMetrics().density);
+            assertTrue(what + " badge " + (badge.getLeft() - title.getRight()) + " px from its title",
+                badge.getLeft() - title.getRight() >= gap);
+            return true;
+        }
+        assertTrue(what, badge.getTop() >= title.getBottom());
+        return false;
     }
 }

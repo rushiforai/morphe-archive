@@ -10,8 +10,8 @@
  */
 package app.morphe.patches.telegram.misc.extension
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.RegisterLiveness

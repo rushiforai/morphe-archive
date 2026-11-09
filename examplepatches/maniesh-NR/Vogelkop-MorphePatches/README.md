@@ -34,10 +34,11 @@ APKs, including the full decompressed partner whitelists.
 
 | App | Patch | What it does |
 |---|---|---|
-| All three apps | **Disable analytics & tracking** | Rewrites the tracker endpoint constants embedded in the dex to a dead host: 81 constants on stable/beta (Firebase Analytics `app-measurement.com`, Google Ads/Doubleclick/IMA, `pagead2.googlesyndication.com`, and Leanplum's `Constants.API_HOST_NAME` static field) and 8 on GX. Firebase infrastructure that features depend on (push notifications, feature flags, GX's internal filter list) is deliberately untouched. |
+| All three apps | **Disable analytics & tracking** | Rewrites the tracker endpoint constants embedded in the dex to a dead host: 93 constants on stable/beta (Firebase Analytics `app-measurement.com`, Google Ads/Doubleclick/IMA, `pagead2.googlesyndication.com`, Leanplum's `Constants.API_HOST_NAME` static field, and — extended in v1.2.5 from a cross-analysis of community modded builds — the Pangle/TikTok pipeline (`*.pangle.io`, `*.tiktokpangle*`, `*.pglstatp*`, `analytics.tiktok.com`), the Liftoff/Vungle pipeline (`*.ads.vungle.com`), AppsFlyer incl. its Privacy-Sandbox trigger, and Google's crash telemetry on GX: 12 constants there). Firebase infrastructure that features depend on (push notifications, feature flags, GX's internal filter list) is deliberately untouched. |
 | Opera & Opera Beta | **Disable ad modules** | Rewrites the reflective class-name lookups (`com.opera.android.ads.{pangle,mintegral,liftoff}.*ModuleImpl`) to a non-existent class so no third-party ad SDK module is ever instantiated. Safe by construction: the module availability probe (`Lk8;->a0()Z`) wraps the class lookup in try/catch and falls back to a no-op ads provider, exactly like an uninstalled Pangle split. |
+| All three apps | **Remove ad & tracking permissions** | New in v1.2.5, from the modded-APK cross-analysis: removes ad-profiling and tracking permissions from AndroidManifest.xml — Google Privacy Sandbox (`ACCESS_ADSERVICES_AD_ID` / `_ATTRIBUTION` / `_TOPICS`), the Google Advertising ID (`AD_ID`), Play install-referrer attribution (`BIND_GET_INSTALL_REFERRER_SERVICE`), `READ_BASIC_PHONE_STATE` and the Huawei AppGallery telemetry shim (remove-if-present; 5 on stable/beta, 4 on GX). Apps must already tolerate denied runtime permissions, so nothing user-visible breaks. |
 | Opera & Opera Beta | **Ignore browser boot failures** | The Chromium engine ships inside the APK (an 84 MB 32-bit `libopera.so`, kept byte-identical by patching). If its load or start still fails (e.g. x86 hardware without ARM translation), Opera's MainLibraryBoot coordinator announces the failure to the welcome flow, which previously called the now-hidden *broken installation* dialog and then waited forever — the "stuck on the purple splash, black screen after restart" symptom. This patch converts those failure announcements into success notifications so startup always continues. The coordinator and its callback interface are located fully structurally (stable `"MainLibraryBoot: "` log tag). |
-| Opera, Opera Beta & GX | **Spoof app signature** | Presents Opera's original "Opera Software" signing certificate to the app instead of the Morphe key, using a `PackageInfo.CREATOR` parcel proxy installed by a tiny extension (see `extensions/`, ApkSignatureKillerEx lineage). Opera's code reads its own signature in several places (preinstall partner checks, the MoMi SDK, metrics); with the spoof those reads keep their vendor-build behavior. The official certificate (SHA-256 `5d6afbf8…b8`) is bundled; an optional `signature` option accepts a custom Base64 DER. |
+| Opera, Opera Beta & GX | **Spoof app signature** | Presents Opera's original "Opera Software" signing certificate to the app instead of the Morphe key. Since v1.2.3 this works in two independent layers: (1) every signature-reading call site in the app (`PackageManager.getPackageInfo`, `hasSigningCertificate`, `SigningInfo.getApkContentsSigners/…`) is redirected to a bundled extension helper that swaps the certificate in the result — deterministic and reflection-free (ported from the Morphe universal "Spoof signature" pattern, kveld9/MorpheApp lineage); (2) a `PackageInfo.CREATOR` parcel proxy installed from a re-parented Application subclass covers reads that bypass those call sites. The official certificate (SHA-256 `5d6afbf8…b8`) is bundled; an optional `signature` option accepts a custom Base64 DER. Nothing can escape the hook's initializer, and any failure inside the parcel proxy falls back to the untouched parcel. |
 | Opera & Opera Beta | **Hide broken installation dialog** | Neutralizes the modal *"Your app installation appears to be broken. Try to uninstall and reinstall … again."* This dialog is Opera's **crash-recovery nag**, not a signature check — it also appears on unmodified installs after a crash, inside app-cloning tools (dual-space), or on ARM/x86 mismatches. Because a patched build cannot be "fixed" by reinstalling, the patch turns the dialog builder into a no-op and forces the `OperaApplication` broken-installation flag to `false` so startup continues normally. See [`evidence/ANALYSIS.md`](evidence/ANALYSIS.md) §"Broken installation dialog" for the full chain. |
 | Opera & Opera Beta | **Remove sponsored Speed Dial** | Appends `WHERE 0` to the suggested-sites database queries (`SELECT * FROM partner_data`, `… FROM partner_tree LIMIT 1`, `… FROM domain_data`), so no sponsored/partner tiles are ever shown. Schema and regular Speed Dial are untouched. |
 | Opera & Opera Beta | **Disable Acceptable Ads whitelist** | Scans `assets/abp_files/op/`, detects lists that consist *only* of allow directives (`DOCUMENT`/`WHITE.PLAIN`/`WHITE.GLOB` and no `BLACK` section) and replaces them with an empty compiled list under the same file name. Neutralizes the Google/Yandex measurement whitelist and the Taboola/gambling/affiliate whitelist — and any future pure-whitelist list Opera adds. |
@@ -94,7 +95,7 @@ release pipeline does before publishing):
 The driver reports per-patch success/failure and the peak RSS of the patching
 process. Pass `-PtestPackage=<package>` to only run patches that declare
 compatibility with that app (as Morphe Manager does). On Opera Beta
-104.0.5262.91143 and Opera stable 103.3.5234.91185 `base.apk` all six
+104.0.5262.91143 and Opera stable 103.3.5234.91185 `base.apk` all seven
 Opera/Beta patches succeed; on Opera GX 3.3.18 the two GX-compatible patches
 succeed.
 
@@ -131,6 +132,47 @@ APK patch cannot embed uBlock Origin itself. What these patches do instead:
 3. GX users: the same list picker exists (**Settings → Ad blocking → Manage
    lists**) with 52 lists incl. uBO/AdGuard — GX's config is downloaded at
    runtime (`adblocker_v2` JSON) and cannot be modified by a static patch.
+
+## Do Brave Shields or uBlock Origin replace the built-in ad blocker?
+
+Short answer for the three **Android** apps this repo patches: **the engines
+can't be installed, but their filter lists are already inside Opera — turn
+them on.** The built-in blocker stays; these patches remove what no filter
+list can reach.
+
+- **Brave Shields** is compiled into Brave's own native code; it cannot be
+  installed into Opera. Brave's blocking is powered by the community lists
+  it maintains and consumes — EasyList, EasyPrivacy, the uBlock Origin
+  filter lists, plus Brave's own additions
+  ([brave/adblock-lists](https://github.com/brave/adblock-lists)).
+- **uBlock Origin (the extension) is not installable on Opera for Android,
+  Opera Beta or Opera GX** — the Android builds have no extension support
+  (unlike desktop Opera, where uBO works and can replace the built-in
+  blocker).
+- **But the lists are**: since Opera for Android 86 (December 2024), the
+  built-in ad blocker ships an overhauled engine compatible with uBlock and
+  AdGuard-style lists, with three modes — *Balanced*, *Enhanced* (adds
+  uBlock Origin + AdGuard levels of blocking) and *Custom* (six curated
+  lists: EasyList, uBlock, AdGuard, Malware blocks, NoCoin, Adblock Mobile
+  Ads, plus regional lists). On all three patched apps, open
+  **Settings → Ad blocking → Ad Blocking Mode** and pick **Enhanced** — or
+  **Custom** and select the uBlock/AdGuard lists yourself.
+- **What filter lists cannot do** — and these patches do:
+  - the news feed's native ad SDKs (Pangle/Mintegral/Liftoff) — not web
+    content, no filter syntax applies (→ *Disable ad modules*);
+  - sponsored Speed Dial / GX partner tiles — browser UI, not page content
+    (→ *Remove sponsored Speed Dial*);
+  - the hidden partner whitelists that silently un-block paying partners
+    inside Opera's own blocker (→ *Disable Acceptable Ads whitelist*);
+  - app-level analytics endpoints, which are killed in the dex regardless
+    of any list (→ *Disable analytics & tracking*).
+- Conversely, Brave-only extras like per-site fingerprint randomization have
+  no Opera equivalent; if you need those, use Brave.
+
+Bottom line: patched Opera with the built-in blocker on **Enhanced** mode
+gets you uBlock/AdGuard-grade web ad blocking, plus everything the patches
+remove — a combination neither stock Opera nor uBO-on-desktop alone
+delivers.
 
 ## Which APK to patch
 
@@ -198,6 +240,33 @@ patches/src/main/kotlin/app/template/patches/opera/…
 Copy the `opera/` package into `patches/src/main/kotlin/app/template/patches/`
 and register the four `Compatibility` blocks from `OperaCompat.kt` wherever
 your bundle declares its app targets.
+
+## If a patched build crashes on launch (v1.2.4+)
+
+Since v1.2.4 the *Startup diagnostics* patch (default on) makes every patched
+build report its own crashes — no `adb logcat`, no root, no PC needed:
+
+1. Install the patched APK and open it (it may crash — that is fine).
+2. Open any file manager and go to
+   `Android/data/<package>/files/vogelkop-diag.log`
+   (e.g. `Android/data/com.opera.browser/files/vogelkop-diag.log` for Opera,
+   `com.opera.browser.beta` for Beta, `com.opera.gx` for GX). On some devices
+   the path is under the internal storage root's `Android/data/…` folder.
+3. Share the file. It contains:
+   - a **breadcrumb trail** of how far startup got
+     (`attach-base-context` → `app-onCreate entered` → `app-onCreate completed`);
+   - the **full stack trace of every uncaught crash**, with thread, process
+     and timestamp;
+   - device model, Android version, app version;
+   - `apk-signature-sha256` (the certificate the APK actually carries), the
+     `signature-spoof state` (`ok(creator-proxy)` / `ok(no-creator-proxy)` /
+     `failed:<throwable>` / `absent`) and the certificate the spoof presents —
+     together these prove whether *Spoof app signature* engaged at runtime.
+
+The diagnostics never alter app behavior and never throw; the crash handler
+chains to Opera's own breakpad handler, so Opera's crash reporting keeps
+working. On the next successful launch the log simply shows the breadcrumb
+trail.
 
 ## Limitations & honest notes
 
@@ -270,6 +339,12 @@ evidence/
   and whose `shared/signature` patches (GPL-3.0, from jkennethcarino/adobo,
   originally [ApkSignatureKillerEx](https://github.com/L-JINBIN/ApkSignatureKillerEx))
   were ported to Kotlin for the *Spoof app signature* extension used here.
+- **[kveld9/kveld-morphe-patches](https://github.com/kveld9/kveld-morphe-patches)** —
+  the v1.2.3 call-site redirect engine in `SpoofAppSignaturePatch.kt` is a
+  port of their universal *Spoof signature* patch (GPLv3 with Morphe
+  Section 7 terms, MorpheApp/morphe-patches PR #2470 lineage). Their
+  offset-validated native host blocking and "fail loudly on drift" patch
+  discipline also informed the code review for this release.
 - **Tooling**: [Apktool](https://apktool.org/) (resources/smali),
   [JADX](https://github.com/skylot/jadx) (decompilation), dexlib2/smali
   (bytecode rewriting), plus Opera's own filter-list format (OFA compiled lists).

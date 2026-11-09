@@ -4,9 +4,12 @@
  */
 package app.morphe.patches.telegram.misc.spoilers
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origDescriptor
+import app.morphe.util.names.origString
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -34,6 +37,12 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val SPOILERS = "$EXTENSION_PACKAGE/misc/Spoilers;"
 internal const val MESSAGE_OBJECT = "Lorg/telegram/messenger/MessageObject;"
@@ -168,37 +177,37 @@ internal fun BytecodePatchContext.resolveRevealSpoilers(): RevealSpoilersSite {
     controlHook(SPOILERS, "keptCovered", listOf("Ljava/lang/Object;"), "Z")
 
     // Text.
-    val blocks = mutableClassDefByOrNull(TEXT_BLOCKS)
+    val blocks = tgMutableClassDefByOrNull(TEXT_BLOCKS)
     controlShape(blocks != null, "MessageObject.TextLayoutBlocks is missing")
-    val layout = blocks!!.methods.filter { it.name == "<init>" && it.parameterTypes.firstOrNull()?.toString() == MESSAGE_OBJECT }
+    val layout = blocks!!.methods.filter { it.origName == "<init>" && it.origParameterTypes.firstOrNull() == MESSAGE_OBJECT }
         .controlSingle("text layout constructor").controlBody()
     val revealed = layout.indexOfFirst { it.controlRef() == SPOILERS_REVEALED }
     controlShape(revealed >= 0, "the text layout no longer checks whether spoilers are revealed")
     val add = layout.drop(revealed).mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
-        .firstOrNull { it.parameterTypes.map(CharSequence::toString) == ADD && it.returnType == "V" }
+        .firstOrNull { it.origParameterTypes == ADD && it.origReturnType == "V" }
     controlShape(add != null, "the text layout no longer covers spoilers after checking")
-    val effect = mutableClassDefByOrNull(add!!.definingClass)
+    val effect = tgMutableClassDefByOrNull(add!!.definingClass)
     controlShape(effect != null && AccessFlags.PUBLIC.isSet(effect.accessFlags), "SpoilerEffect ${add.definingClass} is missing")
-    val textCovers = effect!!.methods.filter { it.parameterTypes.map(CharSequence::toString) == ADD_CORE && it.returnType == "V" }
+    val textCovers = effect!!.methods.filter { it.origParameterTypes == ADD_CORE && it.origReturnType == "V" }
         .controlSingle("SpoilerEffect's text cover")
     controlShape(AccessFlags.STATIC.isSet(textCovers.accessFlags), "SpoilerEffect's text cover is no longer static")
     val covers = textCovers.controlBody()
     val spanType = covers.mapNotNull { (it as? ReferenceInstruction)?.takeIf { i -> i.opcode == Opcode.CONST_CLASS }?.reference as? TypeReference }
         .controlSingle("span type the text cover looks for").type
     val span = covers.filter { it.opcode == Opcode.INVOKE_VIRTUAL }.mapNotNull { (it as ReferenceInstruction).reference as? MethodReference }
-        .filter { it.definingClass == spanType }.controlSingle("spoiler check the text cover makes")
-    controlShape(span.parameterTypes.isEmpty() && span.returnType == "Z", "the text cover's span check isn't a yes or no")
-    val spanClass = mutableClassDefByOrNull(spanType)
-    val spanMethod = spanClass?.methods?.singleOrNull { it.name == span.name && it.parameterTypes.isEmpty() && it.returnType == "Z" }
+        .filter { it.origDefiningClass == spanType }.controlSingle("spoiler check the text cover makes")
+    controlShape(span.parameterTypes.isEmpty() && span.origReturnType == "Z", "the text cover's span check isn't a yes or no")
+    val spanClass = tgMutableClassDefByOrNull(spanType)
+    val spanMethod = spanClass?.methods?.singleOrNull { it.origName == span.origName && it.parameterTypes.isEmpty() && it.origReturnType == "Z" }
     controlShape(spanClass != null && AccessFlags.PUBLIC.isSet(spanClass.accessFlags) && spanMethod != null &&
         AccessFlags.PUBLIC.isSet(spanMethod.accessFlags) && !AccessFlags.STATIC.isSet(spanMethod.accessFlags),
         "the spoiler span check isn't public")
-    val handsOver = effect.methods.singleOrNull { key(it) == add.toString() }
+    val handsOver = effect.methods.singleOrNull { key(it) == add.origString() }
     controlShape(handsOver != null && handsOver.controlBody().any { it.controlRef() == key(textCovers) },
         "SpoilerEffect's spoiler cover no longer does its work in one place")
 
     // Media.
-    val message = mutableClassDefByOrNull(MESSAGE_OBJECT)
+    val message = tgMutableClassDefByOrNull(MESSAGE_OBJECT)
     controlShape(message != null, "MessageObject is missing")
     val check = message!!.methods.filter { key(it) == HAS_MEDIA_SPOILERS }.controlSingle("media spoiler check")
     controlShape(AccessFlags.PUBLIC.isSet(check.accessFlags) && !AccessFlags.STATIC.isSet(check.accessFlags), "the media spoiler check isn't public")
@@ -212,8 +221,8 @@ internal fun BytecodePatchContext.resolveRevealSpoilers(): RevealSpoilersSite {
 
     val found = mutableListOf<Triple<String, String, Int>>()
     forEachClassMentioning(Mention.reference(SEND_SPOILER) or Mention.reference(HAS_MEDIA_SPOILERS)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/") || cls.type == MESSAGE_OBJECT) return@forEachClassMentioning
-        val outgoing = cls.type in ASKS_TELEGRAM || cls.type == SEND_PARAMS
+        if (cls.origType.startsWith("Lapp/hushtelegram/") || cls.origType == MESSAGE_OBJECT) return@forEachClassMentioning
+        val outgoing = cls.origType in ASKS_TELEGRAM || cls.origType == SEND_PARAMS
         cls.methods.forEach { method ->
             method.controlBody().forEachIndexed { index, instruction ->
                 val ref = instruction.controlRef()
@@ -226,7 +235,7 @@ internal fun BytecodePatchContext.resolveRevealSpoilers(): RevealSpoilersSite {
     }
     controlShape(found.isNotEmpty(), "nothing draws media spoilers any more")
     val media = found.map { (type, signature, index) ->
-        val method = mutableClassDefBy(type).methods.single { signature(it) == signature }
+        val method = tgMutableClassDefBy(type).methods.single { signature(it) == signature }
         val body = method.controlBody()
         controlShape(body[index].opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) && body.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT,
             "$type no longer reads the media spoiler answer in ${method.name}")
@@ -235,5 +244,5 @@ internal fun BytecodePatchContext.resolveRevealSpoilers(): RevealSpoilersSite {
     return RevealSpoilersSite(textCovers, span, media)
 }
 
-private fun signature(method: Method) = "${method.name}${method.parameterTypes.joinToString("", "(", ")")}${method.returnType}"
-private fun key(method: Method) = "${method.definingClass}->${signature(method)}"
+private fun signature(method: Method) = "${method.origName}${method.origDescriptor}"
+private fun key(method: Method) = "${method.origDefiningClass}->${signature(method)}"

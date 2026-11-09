@@ -145,4 +145,20 @@ public class ProblemReportTest {
         assertTrue(capped, capped.endsWith("111_low 2, and 8 more"));
         assertFalse(ProblemReport.body(facts(List.of())).contains("Notifications:"));
     }
+
+    @Test public void messenger586sChannelIdsAreReadPastTheirUuid() {
+        // The channel list as Android 17 hands it to a patched 586 (S25, 2026-11-08), ids only.
+        List<String[]> channels = List.of(
+            new String[] {"messenger_orca_050_messaging@1704fb3d-6537-415c-a1bd-3ed1d6a7018b", "4"},
+            new String[] {"messenger_orca_050_messaging@cc400433-d473-40a9-b4da-5246252cc340", "3"},
+            new String[] {"messenger_orca_900_chathead_active@50213163-1eb6-4371-8429-4cd3450efac8", "2"},
+            new String[] {"messenger_orca_250_calls@A8D4BFE3-77F2-420E-ADA9-4EAEDD4EFA79", "4"},
+            new String[] {"placeholder_calls", "2"},
+            // A chat's own channel that slipped past the conversation check still names nothing.
+            new String[] {"messenger_orca_050_messaging@1704fb3d-6537-415c-a1bd-3ed1d6a7018b : thread_shortcut_ONE_TO_ONE:410775001", "4"},
+            new String[] {"messenger_orca_050_messaging@not-a-uuid", "4"});
+        assertEquals("Notifications: on, chat bubbles stock, draw over apps yes, full-screen yes, 2 channels can pop up, "
+            + "under high: 050_messaging 3, 900_chathead_active 2, placeholder_calls 2, 2 not listed",
+            ProblemReport.notificationsLine(true, "stock", true, true, channels));
+    }
 }

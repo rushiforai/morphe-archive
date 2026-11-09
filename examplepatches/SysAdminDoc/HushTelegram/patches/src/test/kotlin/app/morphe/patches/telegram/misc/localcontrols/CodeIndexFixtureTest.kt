@@ -7,7 +7,7 @@ package app.morphe.patches.telegram.misc.localcontrols
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.commerce.PREMIUM_BLOCKED
 import app.morphe.patches.telegram.misc.commerce.PREMIUM_DOCUMENT
@@ -30,6 +30,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.util.IdentityHashMap
+import app.morphe.util.names.origString
+import app.morphe.util.names.tgClassDefBy
+import app.morphe.util.names.tgMutableClassDefBy
 
 /**
  * The index has to hand every search each method a walk over the whole app would find, on the
@@ -59,7 +62,7 @@ class CodeIndexFixtureTest {
         for (instruction in method.implementation?.instructions ?: emptyList()) {
             if (instruction is WideLiteralInstruction) literals += instruction.wideLiteral
             val reference = (instruction as? ReferenceInstruction)?.reference ?: continue
-            references += reference.toString()
+            references += reference.origString()
             when (reference) {
                 is StringReference -> strings += reference.string
                 is TypeReference -> types += reference.type
@@ -198,9 +201,9 @@ class CodeIndexFixtureTest {
             val target = context.walk().first { classDef ->
                 before.none { it === classDef } && classDef.methods.any { (it.implementation?.registerCount ?: 0) >= 1 }
             }
-            val method = context.mutableClassDefBy(target.type).methods.first { (it.implementation?.registerCount ?: 0) >= 1 }
+            val method = context.tgMutableClassDefBy(target.type).methods.first { (it.implementation?.registerCount ?: 0) >= 1 }
             method.addInstructions(0, "const-string v0, \"$wanted\"")
-            val edited = context.classDefBy(target.type)
+            val edited = context.tgClassDefBy(target.type)
             assertTrue("${build.name}: the edited class is a candidate",
                 context.classDefsMentioning(Mention.string(wanted)).any { it === edited })
             assertSameMethods(build, context, listOf(Probe("edited string", Mention.string(wanted)) { wanted in it.strings }))

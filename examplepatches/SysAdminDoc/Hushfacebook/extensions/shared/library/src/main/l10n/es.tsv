@@ -1003,6 +1003,10 @@ Left alone: %s	No se traducen: %s
 Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold it back. Reel captions have their own switch under Reels and Watch.	Las publicaciones del feed muestran todo su texto, así que no hay que tocar Ver más. Toca el texto para volver a contraerlo. Las descripciones de los reels tienen su propio interruptor en Reels y Watch.
 Show full reel captions	Mostrar las descripciones completas de los reels
 Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	Las descripciones largas de los reels muestran todo su texto desde el principio. Toca la descripción para volver a contraerla. El cambio se aplica desde el siguiente reel.
+# context: switch title under Reels and Watch, below Show full reel captions; once a reel's caption is opened, a dark see-through box sits behind its text, like movie subtitles
+Dark box behind open captions	Fondo oscuro detrás de las descripciones abiertas
+# context: summary of that switch
+An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Una descripción de reel abierta aparece sobre un recuadro oscuro, como los subtítulos, para que se lea bien sobre un video claro. El cambio se aplica desde el siguiente reel.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Ver quién compartió
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Añade Ver quién compartió al menú de una publicación. Abre la lista de Facebook de las personas que la compartieron.
@@ -1942,6 +1946,14 @@ Watch again at the end of a feed video plays it again right there, instead of op
 Open saved videos in the video player	Abrir los videos guardados en el reproductor de video
 # context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
 A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	Un video que tocas en Guardado se reproduce en el reproductor de video en lugar de Reels, donde al deslizar aparece un reel sugerido.
+# context: switch title under Reels and Watch; on, a reel opened from Facebook's Saved list goes on to the next saved video when it ends or is swiped past, instead of Facebook's suggested reels
+Play saved videos in a row	Reproducir los videos guardados uno tras otro
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel.	Un video que abres desde Guardado pasa al siguiente de Guardado cuando termina o cuando deslizas hacia arriba, en lugar de a un reel sugerido.
+# context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
+Skip "Are you still watching?"	Omitir «¿Sigues viendo?»
+# context: summary of that switch; reels and videos go on to the next one by themselves
+Reels and videos keep going to the next one without pausing to ask if you're still watching.	Los reels y videos siguen pasando al siguiente sin detenerse a preguntar si sigues viendo.
 Hide the new comments pop-up	Ocultar el aviso de comentarios nuevos
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	La burbuja de “comentarios nuevos” ya no aparece mientras lees los comentarios. Los comentarios nuevos siguen saliendo en la lista.
@@ -2596,3 +2608,25 @@ Hide profile pictures on posts	Ocultar las fotos de perfil en las publicaciones
 Hide profile pictures in comments	Ocultar las fotos de perfil en los comentarios
 Takes the profile picture off the top of posts, so the name starts where the picture was. A change shows on the posts drawn after it.	Quita la foto de perfil de la parte superior de las publicaciones, así el nombre empieza donde estaba la foto. Un cambio se ve en las publicaciones que se muestren después.
 Takes the profile picture off comments, so the name and text start where the picture was. A change shows on the comments drawn after it.	Quita la foto de perfil de los comentarios, así el nombre y el texto empiezan donde estaba la foto. Un cambio se ve en los comentarios que se muestren después.
+Search comments	Buscar comentarios
+Previous match	Coincidencia anterior
+Next match	Siguiente coincidencia
+Close search	Cerrar búsqueda
+No matches	Sin coincidencias
+No more matches	No hay más coincidencias
+Not found yet	Aún no encontrado
+A magnifier at the top of the comments opens a search box that finds the comments with your words.	Una lupa en la parte superior de los comentarios abre un cuadro de búsqueda que encuentra los comentarios con tus palabras.
+Open shared reels on their own	Abrir reels compartidos solos
+A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Un reel que abres desde un enlace en otra app o desde un chat se reproduce solo, sin más reels para deslizar después.
+Light bars on the Reels tab	Barras claras en la pestaña Reels
+In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	En el modo claro, la pestaña Reels mantiene la misma barra de estado, barra superior y barra de pestañas claras que las demás pestañas, en lugar de oscurecerlas.
+Bar opacity	Opacidad de las barras
+How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	Cuánto de su color conservan las barras transparentes, en porcentaje, de %1$s a %2$s. Un valor menor deja ver más el feed y su difuminado. Déjalo en blanco para usar %3$s, o %4$s sobre el difuminado.
+The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	Las barras conservan el %1$s por ciento de su color, o el %2$s por ciento sobre el difuminado. Escribe un número para cambiarlo.
+The see-through bars keep %1$s percent of their color.	Las barras transparentes conservan el %1$s por ciento de su color.
+Tab bar width	Ancho de la barra de pestañas
+Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Porcentaje del ancho de la pantalla, de %1$s a %2$s. Los iconos crecen y se encogen con ella. Déjalo en blanco para usar %3$s.
+The rounded tab bar is %1$s percent of the screen wide.	La barra de pestañas redondeada ocupa el %1$s por ciento del ancho de la pantalla.
+Tab bar height	Alto de la barra de pestañas
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Porcentaje de su altura completa que conserva la barra de pestañas redondeada, de %1$s a %2$s, recortada por encima y por debajo de los iconos. Déjalo en blanco para usar %3$s.
+The rounded tab bar keeps %1$s percent of its height.	La barra de pestañas redondeada conserva el %1$s por ciento de su altura.

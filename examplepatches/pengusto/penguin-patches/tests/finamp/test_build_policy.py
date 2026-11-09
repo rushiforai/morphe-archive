@@ -7,7 +7,7 @@ from copy import deepcopy
 from pfd import make_delta
 from build_native_payloads import sha, verify_receipts, source_test_receipt
 
-from build_native_payloads import PRODUCTION, payload_output
+from build_native_payloads import PRODUCTION, MASKS, payload_output
 
 
 class OutputPolicyTests(unittest.TestCase):
@@ -48,8 +48,15 @@ class OutputPolicyTests(unittest.TestCase):
         self.assertEqual(set(matrix['asyncvalue_review']['updated_masks']),
                          {mask for mask in range(128) if mask & 4})
 
+    def test_supported_masks_exclude_retired_banner_bit(self):
+        self.assertEqual(len(MASKS), 127)
+        self.assertEqual(max(MASKS), 191)
+        self.assertTrue(all(mask & 64 == 0 for mask in MASKS))
+        self.assertNotIn(64, MASKS)
+        self.assertNotIn(255, MASKS)
+
     def test_complete_matrix_can_replace_production(self):
-        self.assertEqual(payload_output(range(1, 256), None, Path('/tmp/finamp-test')),
+        self.assertEqual(payload_output(MASKS, None, Path('/tmp/finamp-test')),
                          PRODUCTION.resolve())
 
 

@@ -61,6 +61,14 @@ SPOOFED_HELP = (
     'another patch set with "Spoof package version" on. See "INSTALL_FAILED_VERSION_DOWNGRADE" '
     """under "If something doesn't work" in the README for data-preserving options."""
 )
+# Android keeps a copy uninstalled with its data kept (or archived) as the bar for the next install: a lower
+# version code fails with INSTALL_FAILED_VERSION_DOWNGRADE, and another signing key fails with
+# INSTALL_FAILED_UPDATE_INCOMPATIBLE even at a higher code. A Meta-signed leftover never takes a patched copy.
+LEFTOVER_HELP = (
+    " Android refuses anything lower, and only that copy's signing key can go over it, even at a higher "
+    "version code. Select Clone install under another package name to install next to it, or uninstall "
+    "that copy in Settings > Apps if you don't need the data it kept."
+)
 
 
 @dataclass(frozen=True)
@@ -320,7 +328,7 @@ def conflicts(
             + (
                 SPOOFED_HELP
                 if leftover == SPOOFED_VERSION_CODE
-                else " Android refuses anything lower. Preserve the retained data and signing key. An in-place update needs an equal or higher version code."
+                else LEFTOVER_HELP
             )
         )
     for permission in sorted(candidate.permissions):
@@ -580,8 +588,9 @@ def check(args: argparse.Namespace) -> int:
         if leftover is not None:
             print(
                 f"NOTE: {candidate.package} was uninstalled with its data kept (version code {leftover}). "
-                "This check can't read that copy's signing key, and Android may refuse a different key "
-                "on install. Preserve the retained data and signing key while resolving that conflict."
+                "This check can't read that copy's signing key, and Android refuses a different key on "
+                "install even at a higher version code. Clone install under another package name leaves "
+                "that copy and its data alone."
             )
     required = {owners[name] for name in candidate.permissions if name in owners}
     required.update(packages.keys() & {candidate.package, "com.facebook.katana"})

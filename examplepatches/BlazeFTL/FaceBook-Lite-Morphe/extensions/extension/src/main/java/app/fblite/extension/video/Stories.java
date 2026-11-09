@@ -282,7 +282,7 @@ final class Stories {
     }
 
     /**
-     * Texts of one view: a TextView's text, texts of text components the view holds (method AIW) and plain string
+     * Texts of one view: a TextView's text, texts of text components the view holds (method AHV) and plain string
      * fields of the view and the app objects below it. Component parents are not followed, or the whole screen's
      * texts would be reached.
      */
@@ -314,8 +314,8 @@ final class Stories {
                     continue;
                 }
                 for (Field f : fields) {
-                    // A18 is the parent link of the app's components.
-                    if (Modifier.isStatic(f.getModifiers()) || f.getType().isPrimitive() || f.getName().equals("A18")) continue;
+                    // A19 is the parent link of the app's components.
+                    if (Modifier.isStatic(f.getModifiers()) || f.getType().isPrimitive() || f.getName().equals("A19")) continue;
                     Object value;
                     try {
                         f.setAccessible(true);

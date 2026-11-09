@@ -28,7 +28,8 @@ tasks.named<JavaCompile>("compileTestJava") {
     options.release.set(11)
     source(project(":extensions:extension").file("src/main/java/app/voidhack/extension/applemusic/GlassSpring.java"))
     source(project(":extensions:extension").fileTree("src/main/java/app/voidhack/extension/applemusic/library") {
-        include("LibraryBackup.java", "LibraryImportPlan.java", "LibraryFailure.java")
+        include("LibraryBackup.java", "LibraryImportPlan.java", "LibraryFailure.java", "DaapCodec.java",
+            "LibraryDaap.java", "MusicReflection.java", "MusicLibrary.java", "MetadataField.java", "MetadataCatalog.java", "LibraryMetadata.java")
     })
 }
 

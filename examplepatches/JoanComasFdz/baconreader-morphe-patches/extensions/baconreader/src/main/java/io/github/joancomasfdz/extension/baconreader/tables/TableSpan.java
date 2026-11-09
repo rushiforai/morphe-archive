@@ -771,6 +771,26 @@ public final class TableSpan extends ReplacementSpan {
         return isExpanded() ? str("revanced_tables_fit_to_screen") : str("revanced_tables_expand");
     }
 
+    /**
+     * The table as text, one line a row, its cells separated by " | ". "Select text" shows it instead of the grid,
+     * which copies as the one character it's drawn over.
+     */
+    @Override
+    public String toString() {
+        List<List<CharSequence>> lines = new ArrayList<>();
+        if (!table.header.isEmpty()) lines.add(table.header);
+        lines.addAll(table.rows);
+        StringBuilder text = new StringBuilder();
+        for (List<CharSequence> row : lines) {
+            if (text.length() > 0) text.append('\n');
+            for (int i = 0; i < row.size(); i++) {
+                if (i > 0) text.append(" | ");
+                text.append(row.get(i));
+            }
+        }
+        return text.toString();
+    }
+
     int dp(int value) {
         return Math.round(value * density);
     }

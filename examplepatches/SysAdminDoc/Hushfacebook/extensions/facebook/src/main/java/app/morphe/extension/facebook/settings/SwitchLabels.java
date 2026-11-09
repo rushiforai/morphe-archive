@@ -66,6 +66,7 @@ final class SwitchLabels {
         if (setting == Settings.KEEP_POST_DATES) return L10n.t("Keep post dates");
         if (setting == Settings.SHOW_FULL_POST_TEXT) return L10n.t("Show full post text");
         if (setting == Settings.SHOW_FULL_REEL_CAPTIONS) return L10n.t("Show full reel captions");
+        if (setting == Settings.DIM_OPEN_REEL_CAPTIONS) return L10n.t("Dark box behind open captions");
         if (setting == Settings.TRANSLATE_POST_LINK) return L10n.t("Add a Translate link to posts");
         if (setting == Settings.TRANSLATE_POSTS_BY_THEMSELVES) return L10n.t("Translate posts by themselves");
         if (setting == Settings.SEE_WHO_SHARED) return L10n.t("See who shared");
@@ -145,6 +146,7 @@ final class SwitchLabels {
         if (setting == Settings.OPEN_COMMENTS_FULL_HEIGHT) return L10n.t("Open comments at full height");
         if (setting == Settings.PAUSE_REELS_UNDER_COMMENTS) return L10n.t("Pause reels while comments are open");
         if (setting == Settings.TAP_REELS_ABOVE_COMMENTS) return L10n.t("Tap a reel above its comments");
+        if (setting == Settings.SEARCH_COMMENTS) return L10n.t("Search comments");
         if (setting == Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT) return L10n.t("Tag suggestions only after @");
         if (setting == Settings.HIDE_REELS_TAB) return L10n.t("Hide the Reels tab");
         if (setting == Settings.HIDE_REELS_TAB_DOT) return L10n.t("Hide the Reels tab dot");
@@ -203,8 +205,11 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_UP_NEXT) return L10n.t("Hide Up next on videos");
         if (setting == Settings.HIDE_REEL_FULLSCREEN_PILL) return L10n.t("Hide the Fullscreen button");
         if (setting == Settings.FEED_VIDEOS_ALONE) return L10n.t("Open feed videos on their own");
+        if (setting == Settings.SHARED_REELS_ALONE) return L10n.t("Open shared reels on their own");
         if (setting == Settings.WATCH_AGAIN_IN_PLACE) return L10n.t("Replay feed videos in place");
         if (setting == Settings.SAVED_VIDEOS_IN_PLAYER) return L10n.t("Open saved videos in the video player");
+        if (setting == Settings.SAVED_VIDEOS_IN_ORDER) return L10n.t("Play saved videos in a row");
+        if (setting == Settings.SKIP_STILL_WATCHING) return L10n.t("Skip \"Are you still watching?\"");
         if (setting == Settings.PLAY_FEED_REELS_WHOLE) return L10n.t("Play whole reels in the feed's Reels row");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
         if (setting == Settings.NEWEST_REELS_FIRST) return L10n.t("Sort loaded reels");
@@ -364,6 +369,7 @@ final class SwitchLabels {
         if (setting == Settings.TRANSLUCENT_BARS) return L10n.t("See-through bars");
         if (setting == Settings.ROUNDED_TAB_BAR) return L10n.t("Rounded tab bar");
         if (setting == Settings.HIDE_STATUS_BAR) return L10n.t("Hide the status bar");
+        if (setting == Settings.LIGHT_REELS_TAB_BARS) return L10n.t("Light bars on the Reels tab");
         if (setting == Settings.HIDE_MESSENGER_BUTTON) return L10n.t("Hide the Messenger button");
         if (setting == Settings.HIDE_MESSENGER_COUNT) return L10n.t("Hide the Messenger count");
         if (setting == Settings.HIDE_FACEBOOK_LOGO) return L10n.t("Hide the Facebook logo");

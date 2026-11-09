@@ -859,6 +859,15 @@ public final class ChatTypeFolders {
     /** {@code messages.updateDialogFiltersOrder} with every folder id in {@code dialogFilters}, answered through {@code reply}. */
     public static void sendFolderOrder(int account, Object reply) {}
 
+    /**
+     * Called by {@link #sendFolderOrder} with the request, right before it goes out. The local list can
+     * hold All Chats somewhere other than first, so with Hide folder tab counters in the build the
+     * request goes the way Telegram's own order sends do there: All Chats first, its place kept here.
+     */
+    public static void outgoingOrder(Object request) {
+        if (PatchFamily.HIDE_FOLDER_COUNTERS.inBuild()) AllChatsPlace.serverOrder(request);
+    }
+
     /** {@code messages.getDialogFilters}, answered through {@code reply}. */
     public static void fetchFolders(int account, Object reply) {}
 

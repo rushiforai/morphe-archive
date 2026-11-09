@@ -39,6 +39,9 @@ final class ProblemReport {
     /** Every Messenger channel id starts with this, so the report leaves it off. */
     static final String CHANNEL_PREFIX = "messenger_orca_";
     private static final Pattern CHANNEL_ID = Pattern.compile("[A-Za-z0-9_.-]{1,48}");
+    /** 586 ends each channel id with "@" and a UUID, "messenger_orca_050_messaging@1704fb3d-6537-415c-a1bd-3ed1d6a7018b". */
+    private static final Pattern CHANNEL_UUID =
+        Pattern.compile("@[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$");
 
     private ProblemReport() { }
 
@@ -130,6 +133,7 @@ final class ProblemReport {
         for (String[] channel : channels == null ? Collections.<String[]>emptyList() : channels) {
             String id = channel[0] == null ? "" : channel[0];
             if (id.startsWith(CHANNEL_PREFIX)) id = id.substring(CHANNEL_PREFIX.length());
+            id = CHANNEL_UUID.matcher(id).replaceFirst("");
             int importance;
             try {
                 importance = Integer.parseInt(channel[1]);

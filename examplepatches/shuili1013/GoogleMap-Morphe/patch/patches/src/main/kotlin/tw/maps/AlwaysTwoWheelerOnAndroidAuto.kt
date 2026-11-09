@@ -1,11 +1,8 @@
 package tw.maps
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.SupportedAbi
+import org.ungoogled.patches.shared.Constants.COMPATIBILITY_MAPS
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -29,25 +26,12 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 @Suppress("unused")
 val alwaysTwoWheelerOnAndroidAuto = bytecodePatch(
     name = "Always two-wheeler on Android Auto",
-    description = "26.44.06.1006895251 only. Android Auto uses two-wheeler (motorcycle) routing: accepts two-wheeler " +
-        "navigation started on the phone and plans two-wheeler routes searched on the head unit. Driving navigation " +
-        "is refused on Android Auto. Do not combine with \"Experimental projected CAR two-wheeler routing\".",
+    description = "26.44.06.1006895251 only. Android Auto treats two-wheeler (motorcycle) as its supported mode, so " +
+        "destinations searched on the head unit default to two-wheeler routes. Use with " +
+        "\"Allow any travel mode on Android Auto\" so driving routes are still accepted.",
     default = true,
 ) {
-    compatibleWith(
-        Compatibility(
-            name = "Google Maps",
-            packageName = "com.google.android.apps.maps",
-            apkFileType = ApkFileType.APKM,
-            targets = listOf(
-                AppTarget(
-                    version = "26.44.06.1006895251",
-                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1068856906),
-                    isExperimental = true,
-                ),
-            ),
-        ),
-    )
+    compatibleWith(COMPATIBILITY_MAPS)
     execute {
         val method = mutableClassDefBy("Lbtxk;").methods.singleOrNull {
             it.name == "h" && it.parameterTypes.isEmpty() && it.returnType == "Lckbl;"

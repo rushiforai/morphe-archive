@@ -344,10 +344,18 @@ try {
                 Assert-True ((Get-FileHash -LiteralPath $privateReport).Hash -ceq $reportHash) `
                     'A directory alias changed the private report.'
             }
+            # Windows can refuse to traverse a junction an ordinary user made (error 448, "untrusted
+            # mount point"). Then nothing can be read through the alias, and the export has to refuse.
+            $traversable = Test-Path -LiteralPath (Join-Path $alias (Split-Path -Leaf $privateReport)) -PathType Leaf
             $export = Invoke-Export -ReportPath (Join-Path $alias (Split-Path -Leaf $privateReport)) `
                 -SummaryPath (Join-Path $alias 'separate-summary.json')
-            Assert-True $export.Written 'A separate public summary through a directory alias was refused.'
-            Assert-Summary (Get-Content -LiteralPath (Join-Path $caseRoot 'separate-summary.json') -Raw | ConvertFrom-Json)
+            if ($traversable) {
+                Assert-True $export.Written 'A separate public summary through a directory alias was refused.'
+                Assert-Summary (Get-Content -LiteralPath (Join-Path $caseRoot 'separate-summary.json') -Raw | ConvertFrom-Json)
+            } else {
+                Assert-True (-not $export.Written) 'An export through a directory alias that cannot be traversed reported a write.'
+                Write-Host '[summary] the directory alias is not traversable here (untrusted mount point), so the separate export through it was checked as refused'
+            }
             Assert-True ((Get-FileHash -LiteralPath $privateReport).Hash -ceq $reportHash) `
                 'A separate alias export changed its private report.'
         }

@@ -3,6 +3,7 @@ package app.hushmessenger.patches.controls
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
@@ -11,6 +12,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -73,6 +75,43 @@ internal fun shareStoryFixture(
     sections: MutableMethod = section(),
     row: MutableClass = rowClass(),
 ): List<MutableClass> = listOf(row, fixtureClass(HOISTED_SHARE_LOADER, listOf(loader)), fixtureClass(SECTIONS, listOf(sections)))
+
+private const val CHAT_LIST = "LX/Sr8;"
+internal const val SYNTHETIC_STORY_TARGET = "$CHAT_LIST->onActivityCreated(Landroid/os/Bundle;)V"
+private const val TOGGLE = "$CHAT_LIST->A0S(Landroid/content/Context;Ljava/lang/String;Z)V"
+private const val TARGET = "$SETTINGS->storyShareTarget(I)Z"
+private const val CHATS_ACTIVITY = "com.facebook.messenger.intents.ShareIntentHandler"
+
+/** The chat list's onActivityCreated as 586 writes it, cut down: Messenger's answer, then the toggle on Your story, then on Chats. */
+private const val CHAT_LIST_BODY = """invoke-virtual {p0}, Landroidx/fragment/app/Fragment;->requireContext()Landroid/content/Context;
+move-result-object v2
+iget-boolean v0, p0, $CHAT_LIST->A1m:Z
+const/4 v1, 0x1
+if-nez v0, :story
+const/4 v1, 0x0
+:story
+const-string v0, "$STORY_SHARE_ACTIVITY"
+invoke-static {v2, v0, v1}, $TOGGLE
+const-string v0, "$CHATS_ACTIVITY"
+invoke-static {v2, v0, v1}, $TOGGLE
+return-void"""
+
+/** The toggle as 586 writes it, cut down: the component named in this package, set on. */
+private const val TOGGLE_BODY = """invoke-virtual {p0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+move-result-object v0
+new-instance v1, Landroid/content/ComponentName;
+invoke-direct {v1, p0, p1}, Landroid/content/ComponentName;-><init>(Landroid/content/Context;Ljava/lang/String;)V
+const/4 v2, 0x1
+invoke-virtual {v0, v1, v2, v2}, Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V
+return-void"""
+
+private fun chatList(body: String = CHAT_LIST_BODY) = fixtureMethod(SYNTHETIC_STORY_TARGET, body, 5)
+private fun toggle(body: String = TOGGLE_BODY) =
+    fixtureMethod(TOGGLE, body, 6, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value)
+
+/** The chat list fragment that turns the Your story share target on or off, with its toggle. */
+internal fun shareTargetFixture(list: MutableMethod = chatList(), toggle: MutableMethod = toggle()): List<MutableClass> =
+    listOf(fixtureClass(CHAT_LIST, listOf(list, toggle)))
 
 private fun Method.code() = implementation!!.instructions.toList()
 
@@ -176,7 +215,81 @@ class ShareStoryTest {
         }
     }
 
-    @Test fun everySupportedBuildGatesTheSameTwoLoaders() {
+    private fun target(classes: List<MutableClass>) = mirroredControls(classes).getValue(SHARE_STORY_TARGET).map { it.hookId() }.toSet()
+
+    @Test fun theChatListsYourStoryShareTargetToggleIsFound() {
+        assertEquals(setOf(SYNTHETIC_STORY_TARGET), target(shareTargetFixture()))
+        validateControls(mirroredControls(shareTargetFixture()), setOf(SHARE_STORY_TARGET))
+        assertEquals(setOf("LX/7TG;->onActivityCreated(Landroid/os/Bundle;)V"), PROFILE_347215348.hooks.getValue(SHARE_STORY_TARGET))
+        assertEquals(setOf("LX/7UA;->onActivityCreated(Landroid/os/Bundle;)V"), PROFILE_347215341.hooks.getValue(SHARE_STORY_TARGET))
+        assertEquals(setOf("LX/7QY;->onActivityCreated(Landroid/os/Bundle;)V"), PROFILE_347215273.hooks.getValue(SHARE_STORY_TARGET))
+    }
+
+    // Only Messenger's own answer for Your story may change. A call we can't tie to that activity and to a toggle that
+    // sets a component's state gets no hook, and the switch stays unapplied.
+    @Test fun anyOtherShareTargetShapeLeavesTheSwitchUnapplied() {
+        fun list(from: String, to: String) = shareTargetFixture(list = chatList(CHAT_LIST_BODY.replace(from, to).also { check(it != CHAT_LIST_BODY) }))
+        val story = "const-string v0, \"$STORY_SHARE_ACTIVITY\""
+        val cases = mapOf(
+            "only the Chats target" to list(story, "const-string v0, \"$CHATS_ACTIVITY\""),
+            "the story target named twice" to list("return-void", "$story\nreturn-void"),
+            "a toggle of another class" to list("invoke-static {v2, v0, v1}, $TOGGLE\nconst-string v0, \"$CHATS_ACTIVITY\"",
+                "invoke-static {v2, v0, v1}, LX/Sr9;->A0S(Landroid/content/Context;Ljava/lang/String;Z)V\nconst-string v0, \"$CHATS_ACTIVITY\""),
+            "the name handed on as something else" to list("$story\ninvoke-static {v2, v0, v1}", "$story\ninvoke-static {v0, v2, v1}"),
+            "the answer in the context's place" to list("$story\ninvoke-static {v2, v0, v1}", "$story\ninvoke-static {v1, v0, v1}"),
+            "something else between the name and the toggle" to list("$story\n", "$story\nconst/4 v1, 0x1\n"),
+            "a branch straight onto the toggle" to list("if-nez v0, :story\nconst/4 v1, 0x0\n:story\n$story\n",
+                "if-nez v0, :toggle\nconst/4 v1, 0x0\n$story\n:toggle\n"),
+            "another lifecycle method" to listOf(fixtureClass(CHAT_LIST, listOf(
+                fixtureMethod("$CHAT_LIST->onCreate(Landroid/os/Bundle;)V", CHAT_LIST_BODY, 5), toggle()))),
+            "a toggle that doesn't set a component" to shareTargetFixture(toggle = toggle(TOGGLE_BODY.replace(
+                "Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V",
+                "Landroid/content/pm/PackageManager;->setApplicationEnabledSetting(Ljava/lang/String;II)V").replace("{v0, v1, v2, v2}", "{v0, p1, v2, v2}"))),
+            "a toggle that isn't static" to shareTargetFixture(toggle = fixtureMethod(TOGGLE, TOGGLE_BODY, 7)),
+            "two chat lists" to shareTargetFixture() + fixtureClass("LX/Sr9;", listOf(
+                fixtureMethod("LX/Sr9;->onActivityCreated(Landroid/os/Bundle;)V", CHAT_LIST_BODY.replace(CHAT_LIST, "LX/Sr9;"), 5),
+                fixtureMethod("LX/Sr9;->A0S(Landroid/content/Context;Ljava/lang/String;Z)V", TOGGLE_BODY, 6,
+                    AccessFlags.PUBLIC.value or AccessFlags.STATIC.value))),
+        )
+        for ((case, classes) in cases) {
+            assertTrue(target(classes).isEmpty(), case)
+            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), setOf(SHARE_STORY_TARGET)) }
+        }
+    }
+
+    @Test fun theChatListHandsItsYourStoryAnswerThroughTheSwitch() {
+        val method = chatList()
+        val before = method.code()
+        val call = before.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == STORY_SHARE_ACTIVITY } + 1
+        val choice = before.indexOfFirst { it.opcode == Opcode.IF_NEZ }
+        injectControl(SHARE_STORY_TARGET, mapOf(SHARE_STORY_TARGET to listOf(method)))
+        val code = method.code()
+        assertEquals(before.take(call), code.take(call))
+        assertEquals(TARGET, (code[call] as ReferenceInstruction).reference.toString())
+        assertEquals(listOf(1), (code[call] as FiveRegisterInstruction).let { listOf(it.registerC) })
+        assertEquals(Opcode.MOVE_RESULT, code[call + 1].opcode)
+        assertEquals(1, (code[call + 1] as OneRegisterInstruction).registerA)
+        assertEquals(TOGGLE, (code[call + 2] as ReferenceInstruction).reference.toString())
+        // Both of Messenger's answers reach the guard: the branch still lands on the name, right before it.
+        assertEquals(call - 1, code.branchTarget(choice))
+        assertEquals(before.drop(call).map { it.opcode }, code.drop(call + 2).map { it.opcode })
+        // The Chats target keeps Messenger's own answer.
+        assertEquals(1, code.count { (it as? ReferenceInstruction)?.reference?.toString() == TARGET })
+    }
+
+    @Test fun aMethodThatIsntTheChatListRefusesTheShareTargetHookBeforeAnyEdit() {
+        val cases = mapOf(
+            "the toggle itself" to toggle(),
+            "a chat list naming only Chats" to chatList(CHAT_LIST_BODY.replace("\"$STORY_SHARE_ACTIVITY\"", "\"$CHATS_ACTIVITY\"")),
+        )
+        for ((case, bad) in cases) {
+            val badBefore = bad.code()
+            assertFailsWith<PatchException>(case) { injectControl(SHARE_STORY_TARGET, mapOf(SHARE_STORY_TARGET to listOf(bad))) }
+            assertEquals(badBefore, bad.code(), case)
+        }
+    }
+
+    @Test fun everySupportedBuildGatesTheSameTwoLoadersAndTheShareTarget() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
@@ -200,6 +313,20 @@ class ShareStoryTest {
                 assertEquals(before.map { it.opcode }.filter { it != Opcode.NOP },
                     (after.take(gate.index) + after.drop(gate.index + 2)).map { it.opcode }.filter { it != Opcode.NOP }, code)
             }
+            // The chat list's Your story share target goes through the switch too, in its own fragment on each build.
+            val targets = findShareStoryTarget(classes)
+            assertEquals(activeProfile.hooks.getValue(SHARE_STORY_TARGET), targets.map { it.hookId() }.toSet(), code)
+            validateControls(mapOf(SHARE_STORY_TARGET to targets), setOf(SHARE_STORY_TARGET))
+            val method = MutableMethod(targets.single())
+            val before = method.code()
+            val call = method.validateShareStoryTarget()
+            method.injectShareStoryTarget()
+            val after = method.code()
+            assertEquals(TARGET, (after[call.index] as ReferenceInstruction).reference.toString(), code)
+            assertEquals(call.flag, (after[call.index] as FiveRegisterInstruction).registerC, code)
+            assertEquals(call.flag, (after[call.index + 1] as OneRegisterInstruction).registerA, code)
+            assertEquals(before.map { it.opcode }.filter { it != Opcode.NOP },
+                (after.take(call.index) + after.drop(call.index + 2)).map { it.opcode }.filter { it != Opcode.NOP }, code)
         }
     }
 }

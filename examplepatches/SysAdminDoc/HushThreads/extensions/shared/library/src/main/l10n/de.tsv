@@ -197,6 +197,10 @@ Hide the Instagram button	Instagram-Button ausblenden
 Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	Entfernt den Instagram-Button oben in Profilen, in deinem und in denen anderer. Starte Threads neu, damit die Änderung greift.
 Hide ghost post bubbles	Ghost-Post-Blasen ausblenden
 Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. Restart Threads to see the change.	Entfernt die Ghost-Post-Blasen von Profilbildern, in Profilen und in der Reihe oben in deinem Feed. Starte Threads neu, damit die Änderung greift.
+Full size profile pictures	Profilbilder in voller Größe
+A profile picture you open on a profile shows full size, where you can zoom in and save it, instead of the small circle.	Ein Profilbild, das du in einem Profil öffnest, erscheint in voller Größe statt im kleinen Kreis, sodass du hineinzoomen und es speichern kannst.
+Close	Schließen
+Couldn't load the picture. Try again in a moment.	Das Bild konnte nicht geladen werden. Versuch es gleich noch einmal.
 Turn features on or off	Funktionen ein- oder ausschalten
 # Fotos und Videos speichern
 %1$d saved in lower quality than on Threads.	%1$d in niedrigerer Qualität als auf Threads gespeichert.
@@ -270,6 +274,12 @@ the removed share sheet entry	der entfernte Eintrag im Teilen-Menü
 User certificates trusted	Eigenen Zertifikaten wird vertraut
 Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads akzeptiert Sicherheitszertifikate, die du auf deinem Handy hinzugefügt hast. Die eigenen Prüfungen der Meta-Zertifikate bleiben unverändert, deshalb kann ein Proxy den Großteil des Datenverkehrs weiterhin nicht lesen.
 the user certificate trust	das Vertrauen in eigene Zertifikate
+Own package name	Eigener Paketname
+This copy installs beside Threads as an app of its own, with its own sign-in.	Diese Kopie wird neben Threads als eigene App installiert, mit eigener Anmeldung.
+the new package name	der neue Paketname
+Own app name	Eigener App-Name
+The name under the app's icon.	Der Name unter dem App-Symbol.
+the new app name	der neue App-Name
 Hide screenshots from Threads	Screenshots vor Threads verbergen
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads erfährt nicht, wenn du einen Screenshot machst, und kann ihn daher weder protokollieren noch darauf reagieren.
 Full size photos	Fotos in voller Größe

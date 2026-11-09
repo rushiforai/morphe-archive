@@ -8,10 +8,10 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
@@ -28,13 +28,23 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.util.names.origString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val MESSAGE = "Lorg/telegram/messenger/MessageObject;"
 
@@ -47,7 +57,9 @@ class LockedVoiceFixtureTest {
             val guard = context.resolveLockedVoiceGuard()
             assertNull("$name: ${guard.missing}", guard.missing)
             val play = guard.play!!
-            assertEquals("$name: the play method", PLAY_MESSAGE, "${play.definingClass}->${play.name}(${play.parameterTypes.joinToString("")})${play.returnType}")
+            // 13.2 folded the overload with the silent flag into the plain one.
+            val silent = context.tgMutableClassDefBy(MEDIA_CONTROLLER).methods.any { it.origString() == PLAY_MESSAGE }
+            assertEquals("$name: the play method", if (silent) PLAY_MESSAGE else PLAY_MESSAGE_PLAIN, play.origString())
             val before = ImmutableMethod.of(play).controlBody().map(::operands)
             guard.rehearse()
             assertEquals("$name: the rehearsal leaves the play method alone", before, play.controlBody().map(::operands))
@@ -73,11 +85,11 @@ class LockedVoiceFixtureTest {
             assertEquals("$name: a refusal returns", emptyList<Int>(), ControlFlow.of(play).normal[8])
             assertEquals("$name: Telegram's own code follows unchanged", before, after.drop(9).map(::operands))
 
-            val stub = context.mutableClassDefBy(LOCKED_VOICE).methods.single { it.name == "voiceOrRound" }.controlBody()
+            val stub = context.tgMutableClassDefBy(LOCKED_VOICE).methods.single { it.origName == "voiceOrRound" }.controlBody()
             assertEquals("$name: the stub asks Telegram's own checks", listOf("$MESSAGE->isVoice()Z", "$MESSAGE->isRoundVideo()Z"),
                 stub.filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
             for (flag in listOf("voiceOneAtATime", "lockedVoice")) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
@@ -86,25 +98,41 @@ class LockedVoiceFixtureTest {
     @Test fun `every caller of the plain play method and the resume reaches the hook`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
-            val controller = lockedVoiceHosts(build).single { it.type == MEDIA_CONTROLLER }
-            val plain = controller.methods.single { it.name == "playMessage" && it.parameterTypes.size == 1 }.controlBody()
-            assertEquals("$name: the plain play method hands over", listOf(PLAY_MESSAGE), plain.mapNotNull { it.controlRef() })
+            val controller = lockedVoiceHosts(build).single { it.origType == MEDIA_CONTROLLER }
+            val plays = controller.methods.filter { it.origName == "playMessage" }
+            val plain = plays.single { it.parameterTypes.size == 1 }
+            if (plays.size == 1) {
+                // 13.2: the plain play method is the only one and plays itself.
+                assertEquals("$name: the only play method", PLAY_MESSAGE_PLAIN, plain.origString())
+            } else {
+                assertEquals("$name: the plain play method hands over", listOf(PLAY_MESSAGE), plain.controlBody().mapNotNull { it.controlRef() })
+            }
             // Only the play method resumes, so a paused voice message can't start again around the hook.
             val resumers = controller.methods.filter { method -> method.controlBody().any { it.controlRef()?.contains("->resumeAudio(") == true } }
-            assertEquals("$name: one resume caller", listOf("playMessage"), resumers.map { it.name })
+            assertEquals("$name: one resume caller", listOf("playMessage"), resumers.map { it.origName })
+            assertEquals("$name: the resume caller", (plays - plain).ifEmpty { listOf(plain) }, resumers)
         }
     }
 
     @Test fun `a changed player keeps the queue switch and logs why the guard is missing`() {
         val cases = listOf<Triple<String, String, (BytecodePatchContext, MutableMethod) -> Unit>>(
             Triple("resume elsewhere", "a paused message can be resumed around the play method") { context, _ ->
-                val other = context.mutableClassDefBy(MEDIA_CONTROLLER).methods.single { it.name == "playMessageAtIndex" }
+                val other = context.tgMutableClassDefBy(MEDIA_CONTROLLER).methods.single { it.origName == "playMessageAtIndex" }
                 other.addInstructions(0, "invoke-direct {p0, v0}, $MEDIA_CONTROLLER->resumeAudio($MESSAGE)Z")
             },
-            Triple("plain play goes elsewhere", "the play method without a silent flag no longer hands over to it") { context, _ ->
-                val plain = context.mutableClassDefBy(MEDIA_CONTROLLER).methods.single { it.name == "playMessage" && it.parameterTypes.size == 1 }
+            Triple("plain play goes elsewhere", "the play method without a silent flag no longer hands over to it") { context, play ->
+                val controller = context.tgMutableClassDefBy(MEDIA_CONTROLLER)
+                val plain = controller.methods.single { it.origName == "playMessage" && it.parameterTypes.size == 1 }
                 val call = plain.controlBody().indexOfFirst { it.controlRef() == PLAY_MESSAGE }
-                plain.replaceInstruction(call, "invoke-virtual {p0, p1}, $MEDIA_CONTROLLER->pauseMessage($MESSAGE)Z")
+                if (call >= 0) {
+                    plain.replaceInstruction(call, "invoke-virtual {p0, p1}, $MEDIA_CONTROLLER->pauseMessage($MESSAGE)Z")
+                } else {
+                    // 13.2 has no overload with the silent flag: one comes back that the plain one doesn't hand over to.
+                    controller.methods.add(ImmutableMethod(controller.type, "playMessage", listOf(
+                        ImmutableMethodParameter(play.parameterTypes[0].toString(), null, null), ImmutableMethodParameter("Z", null, null)),
+                        "Z", AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, ImmutableMethodImplementation(3,
+                            listOf(ImmutableInstruction11n(Opcode.CONST_4, 0, 0), ImmutableInstruction11x(Opcode.RETURN, 0)), null, null)).toMutable())
+                }
             },
             Triple("loop to the start", "something jumps back to the start of the play method") { _, play ->
                 play.addInstructionsWithLabels(1, "goto :hush_start", ExternalLabel("hush_start", play.getInstruction(0)))
@@ -130,10 +158,10 @@ class LockedVoiceFixtureTest {
                 assertEquals(what, listOf("Play voice messages one at a time: $reason. The patch goes on without the locked phone guard."),
                     PatchLogCapture.warnings { voiceOneAtATimePatch.execute(context) })
                 assertEquals("$what: the play method stays as it was", before, play.controlBody().map(::operands))
-                assertTrue("$what: the stub was never written", context.mutableClassDefBy(LOCKED_VOICE).methods
-                    .single { it.name == "voiceOrRound" }.controlBody().none { it.opcode == Opcode.INVOKE_VIRTUAL })
+                assertTrue("$what: the stub was never written", context.tgMutableClassDefBy(LOCKED_VOICE).methods
+                    .single { it.origName == "voiceOrRound" }.controlBody().none { it.opcode == Opcode.INVOKE_VIRTUAL })
                 for ((flag, value) in listOf("voiceOneAtATime" to 1L, "lockedVoice" to 0L)) {
-                    val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                    val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                     assertEquals("$what: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
                 }
             }

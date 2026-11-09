@@ -4,7 +4,9 @@
  */
 package app.morphe.patches.telegram.misc.maintabs
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origString
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -46,6 +48,12 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Hide Contacts tab"
 internal const val MAIN_TABS = "$EXTENSION_PACKAGE/misc/MainTabs;"
@@ -213,7 +221,7 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     // The main screen: the one view that labels the Contacts and Calls tabs and reads the Calls choice.
     val screens = mutableListOf<String>()
     forEachClassMentioning(Mention.allReferences(listOf(CONTACTS_LABEL, CALLS_LABEL, SHOW_CALLS_TAB))) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         if (cls.methods.any { m -> isBuild(m) && m.controlBody().let { body ->
                 listOf(CONTACTS_LABEL, CALLS_LABEL, SHOW_CALLS_TAB).all { ref -> body.any { it.controlRef() == ref } } } }) {
             screens += cls.type
@@ -221,7 +229,7 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     }
     shape(screens.size == 1, "the main screen is missing or ambiguous (${screens.size})")
     val screenType = screens.single()
-    val screen = mutableClassDefBy(screenType)
+    val screen = tgMutableClassDefBy(screenType)
     val build = screen.methods.single(::isBuild)
     val body = build.controlBody()
     val flow = ControlFlow.of(build)
@@ -231,8 +239,8 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
         val array = body[i]
         val store = body.getOrNull(i + 1) ?: return@mapNotNull null
         val field = store.controlField()
-        if (array.opcode == Opcode.NEW_ARRAY && store.opcode == Opcode.IPUT_OBJECT && field?.definingClass == screenType &&
-            field.type == array.controlRef() && store.namedRegisters()[0] == array.namedRegisters()[0]) field.toString() else null
+        if (array.opcode == Opcode.NEW_ARRAY && store.opcode == Opcode.IPUT_OBJECT && field?.origDefiningClass == screenType &&
+            field.origType == array.controlRef() && store.namedRegisters()[0] == array.namedRegisters()[0]) field.toString() else null
     }.distinct()
     shape(kept.size == 1, "the main screen no longer keeps one array of tabs (${kept.size})")
     val tabs = kept.single()
@@ -264,7 +272,7 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
         val choice = body[read].namedRegisters()[0]
         (read + 1 until minOf(body.size, read + 4)).filter { at ->
             body[at].opcode == Opcode.INVOKE_VIRTUAL && body[at].call()?.let { c ->
-                c.definingClass == screenType && c.parameterTypes.map(CharSequence::toString) == listOf("Z", "Z") && c.returnType == "V"
+                c.origDefiningClass == screenType && c.origParameterTypes == listOf("Z", "Z") && c.origReturnType == "V"
             } == true && body[at].namedRegisters().getOrNull(1) == choice
         }.map { body[it].controlRef()!! }
     }.distinct()
@@ -281,7 +289,7 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     // In it, the bar shows or hides each of the two tabs, a tab view taken from the kept array.
     val toggles = shownBody.indices.filter { at ->
         shownBody[at].opcode == Opcode.INVOKE_VIRTUAL && shownBody[at].call()?.let { c ->
-            c.parameterTypes.map(CharSequence::toString) == listOf(VIEW, "Z", "Z") && c.returnType == "V"
+            c.origParameterTypes == listOf(VIEW, "Z", "Z") && c.origReturnType == "V"
         } == true
     }
     shape(toggles.size == 2 && toggles.map { shownBody[it].controlRef() }.distinct().size == 1,
@@ -296,7 +304,7 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
         shape(arrayRead != null && shownBody[arrayRead].opcode == Opcode.IGET_OBJECT && shownBody[arrayRead].controlRef() == tabs,
             "the Calls or Settings tab no longer comes from the kept tabs")
         val barRead = defined(shownFlow, at, receiver) ?: throw shapeError("the tabs are no longer shown by one bar")
-        shape(shownBody[barRead].opcode == Opcode.IGET_OBJECT && shownBody[barRead].controlField()?.definingClass == screenType,
+        shape(shownBody[barRead].opcode == Opcode.IGET_OBJECT && shownBody[barRead].controlField()?.origDefiningClass == screenType,
             "the tabs are no longer shown by the screen's own bar")
         shownBody[barRead].controlRef()!!
     }.distinct()
@@ -312,9 +320,9 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
 
     // The pager: the superclass's one field whose type answers the two swipe questions for this screen.
     val superType = screen.superclass ?: throw shapeError("the main screen has no superclass")
-    val holder = classDefByOrNull(superType) ?: throw shapeError("the main screen's superclass is missing")
-    val pagers = holder.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type.startsWith("L") }.mapNotNull { field ->
-        val type = classDefByOrNull(field.type) ?: return@mapNotNull null
+    val holder = tgClassDefByOrNull(superType) ?: throw shapeError("the main screen's superclass is missing")
+    val pagers = holder.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.origType.startsWith("L") }.mapNotNull { field ->
+        val type = tgClassDefByOrNull(field.type) ?: return@mapNotNull null
         val base = type.superclass?.let(::classDefByOrNull) ?: return@mapNotNull null
         val turn = swipeTurn(base) ?: return@mapNotNull null
         val own = listOf(turn.forward, turn.backward).map { name -> type.methods.singleOrNull { gateShape(it, name) } }
@@ -326,7 +334,7 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     val pagerChain = superclassChain(pagerClass.type).toList()
 
     val gates = listOf(true to turn.forward, false to turn.backward).map { (forward, name) ->
-        val method = mutableClassDefBy(pagerClass.type).methods.single { gateShape(it, name) }
+        val method = tgMutableClassDefBy(pagerClass.type).methods.single { gateShape(it, name) }
         val what = "the pager's ${if (forward) "forward" else "backward"} swipe question"
         // Only the main screen's pages answer it, which makes it the main screen's pager alone.
         shape(method.controlBody().any { it.opcode == Opcode.CHECK_CAST && it.controlRef() == screenType },
@@ -341,8 +349,8 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     // Telegram's own way off a page it hides: right after the Calls switch, a slide to the first
     // page and the mark on its tab, both with the same page.
     val notified = screen.methods.filter { m ->
-        m.name == "didReceivedNotification" && !AccessFlags.STATIC.isSet(m.accessFlags) &&
-            m.parameterTypes.map(CharSequence::toString) == listOf("I", "I", "[Ljava/lang/Object;")
+        m.origName == "didReceivedNotification" && !AccessFlags.STATIC.isSet(m.accessFlags) &&
+            m.origParameterTypes == listOf("I", "I", "[Ljava/lang/Object;")
     }
     shape(notified.size == 1, "the main screen no longer hears Telegram's notifications")
     val heard = notified.single().controlBody()
@@ -350,12 +358,12 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
         val window = switched + 1 until minOf(heard.size, switched + LEAVE_WITHIN)
         val slideAt = window.firstOrNull { at ->
             heard[at].opcode == Opcode.INVOKE_VIRTUAL && heard[at].call()?.let { c ->
-                c.definingClass in pagerChain && c.parameterTypes.map(CharSequence::toString) == listOf("I") && c.returnType == "Z"
+                c.origDefiningClass in pagerChain && c.origParameterTypes == listOf("I") && c.origReturnType == "Z"
             } == true
         } ?: return@mapNotNull null
         val markAt = (slideAt + 1 until window.last + 1).firstOrNull { at ->
             heard[at].opcode == Opcode.INVOKE_VIRTUAL && heard[at].call()?.let { c ->
-                c.definingClass == screenType && c.parameterTypes.map(CharSequence::toString) == listOf("I", "Z") && c.returnType == "V"
+                c.origDefiningClass == screenType && c.origParameterTypes == listOf("I", "Z") && c.origReturnType == "V"
             } == true
         } ?: return@mapNotNull null
         if (heard[slideAt].namedRegisters()[1] != heard[markAt].namedRegisters()[1]) return@mapNotNull null
@@ -370,10 +378,10 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     val holderBody = holderBuild.single().controlBody()
     val sets = holderBody.indices.filter { at ->
         val c = holderBody[at].call()
-        holderBody[at].opcode == Opcode.INVOKE_VIRTUAL && c != null && c.definingClass in pagerChain &&
-            c.parameterTypes.map(CharSequence::toString) == listOf("I") && c.returnType == "V" &&
+        holderBody[at].opcode == Opcode.INVOKE_VIRTUAL && c != null && c.origDefiningClass in pagerChain &&
+            c.origParameterTypes == listOf("I") && c.origReturnType == "V" &&
             holderBody.getOrNull(at - 1)?.let { read ->
-                read.opcode == Opcode.IGET && read.controlField()?.let { it.definingClass == superType && it.type == "I" } == true &&
+                read.opcode == Opcode.IGET && read.controlField()?.let { it.origDefiningClass == superType && it.origType == "I" } == true &&
                     read.namedRegisters()[0] == holderBody[at].namedRegisters()[1]
             } == true
     }.map { holderBody[it].controlRef()!! }.distinct()
@@ -383,7 +391,7 @@ internal fun BytecodePatchContext.resolveMainTabs(): MainTabsPlan {
     // Everything the extension's stubs name has to be reachable from it.
     listOf(tabs, bar, pager, turn.position).forEach { requireReachable(it, static = false) }
     listOf(setTab, slide, set, mark).forEach { requireReachable(it, static = false) }
-    shape(classDefByOrNull(tabType)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true, "the tab views are inaccessible")
+    shape(tgClassDefByOrNull(tabType)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true, "the tab views are inaccessible")
 
     return MainTabsPlan(screenType, tabs, bar, setTab, shown, shownReturn, pager, turn.position, slide, set, mark, gates, turn.start)
 }
@@ -449,8 +457,8 @@ internal class SwipeTurn(val forward: String, val backward: String, val position
  */
 private fun swipeTurn(base: ClassDef): SwipeTurn? {
     val starts = base.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "Z" &&
-            m.parameterTypes.map(CharSequence::toString) == listOf(MOTION_EVENT, "Z") && m.controlBody().isNotEmpty()
+        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "Z" &&
+            m.origParameterTypes == listOf(MOTION_EVENT, "Z") && m.controlBody().isNotEmpty()
     }
     val found = starts.mapNotNull { start ->
         val body = start.controlBody()
@@ -458,7 +466,7 @@ private fun swipeTurn(base: ClassDef): SwipeTurn? {
         fun asked(test: Opcode) = body.indices.filter { at ->
             at > 0 && body[at - 1].opcode == test && body[at - 1].namedRegisters() == listOf(way) &&
                 body[at].opcode == Opcode.INVOKE_VIRTUAL && body[at].call()?.let { c ->
-                    c.definingClass == base.type && c.parameterTypes.map(CharSequence::toString) == listOf(MOTION_EVENT) && c.returnType == "Z"
+                    c.origDefiningClass == base.origType && c.origParameterTypes == listOf(MOTION_EVENT) && c.origReturnType == "Z"
                 } == true
         }
         val forward = asked(Opcode.IF_EQZ).singleOrNull() ?: return@mapNotNull null
@@ -474,7 +482,7 @@ private fun swipeTurn(base: ClassDef): SwipeTurn? {
                 Opcode.ADD_INT_LIT8, Opcode.ADD_INT_LIT16 -> (less as NarrowLiteralInstruction).narrowLiteral == -1
                 else -> false
             }
-            if (read?.opcode == Opcode.IGET && field?.definingClass == base.type && field.type == "I" && lessOne) field.toString() else null
+            if (read?.opcode == Opcode.IGET && field?.origDefiningClass == base.origType && field.origType == "I" && lessOne) field.toString() else null
         }.distinct()
         val position = positions.singleOrNull() ?: return@mapNotNull null
         SwipeTurn(body[forward].call()!!.name, body[backward].call()!!.name, position, signature(start))
@@ -483,8 +491,8 @@ private fun swipeTurn(base: ClassDef): SwipeTurn? {
 }
 
 /** A swipe question as a subclass answers it: an instance method of [name] taking the event and answering a boolean. */
-private fun gateShape(m: Method, name: String) = m.name == name && !AccessFlags.STATIC.isSet(m.accessFlags) &&
-    m.returnType == "Z" && m.parameterTypes.map(CharSequence::toString) == listOf(MOTION_EVENT) && m.controlBody().isNotEmpty()
+private fun gateShape(m: Method, name: String) = m.origName == name && !AccessFlags.STATIC.isSet(m.accessFlags) &&
+    m.origReturnType == "Z" && m.origParameterTypes == listOf(MOTION_EVENT) && m.controlBody().isNotEmpty()
 
 /** The number of the page the screen builds Contacts for. */
 private fun contactsPage(screen: ClassDef): Int? = pageBuilt(screen, CONTACTS_SCREEN)
@@ -495,8 +503,8 @@ private fun contactsPage(screen: ClassDef): Int? = pageBuilt(screen, CONTACTS_SC
  */
 internal fun pageBuilt(screen: ClassDef, type: String): Int? {
     val builders = screen.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.parameterTypes.map(CharSequence::toString) == listOf("I") &&
-            m.returnType.startsWith("L") && m.controlBody().any { it.opcode == Opcode.NEW_INSTANCE && it.controlRef() == CONTACTS_SCREEN }
+        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origParameterTypes == listOf("I") &&
+            m.origReturnType.startsWith("L") && m.controlBody().any { it.opcode == Opcode.NEW_INSTANCE && it.controlRef() == CONTACTS_SCREEN }
     }
     if (builders.size != 1) return null
     val builder = builders.single()
@@ -519,8 +527,8 @@ internal fun pageBuilt(screen: ClassDef, type: String): Int? {
 }
 
 /** Whether [m] is a view's build: an instance `createView` taking a context. */
-internal fun isBuild(m: Method) = m.name == "createView" && !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == VIEW &&
-    m.parameterTypes.map(CharSequence::toString) == listOf(CONTEXT) && m.controlBody().isNotEmpty()
+internal fun isBuild(m: Method) = m.origName == "createView" && !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == VIEW &&
+    m.origParameterTypes == listOf(CONTEXT) && m.controlBody().isNotEmpty()
 
 /** The one instruction before [use] whose write of [register] reaches it on every path, or null. */
 internal fun defined(flow: ControlFlow, use: Int, register: Int): Int? = (use - 1 downTo 0).firstOrNull { at ->
@@ -535,7 +543,7 @@ internal fun constant(body: List<Instruction>, flow: ControlFlow, use: Int, regi
     return if (body[at].opcode in CONSTANTS) (body[at] as NarrowLiteralInstruction).narrowLiteral else null
 }
 
-private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
+private fun signature(m: Method) = m.origString()
 
 private fun shapeError(what: String) = PatchException("$PATCH: $what (before editing)")
 

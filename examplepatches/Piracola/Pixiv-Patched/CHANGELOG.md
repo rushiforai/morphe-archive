@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/Piracola/Pixiv-Patched/compare/v1.3.0...v1.4.0) (2026-11-08)
+
+### ✨ New Features
+
+* **novelcopy:** unlock text selection and full-text download for novels ([4164303](https://github.com/Piracola/Pixiv-Patched/commit/4164303f5dd6b47e9b63b9dfc3d0edc1daba5185))
+
 ## [1.3.0](https://github.com/Piracola/Pixiv-Patched/compare/v1.2.0...v1.3.0) (2026-11-03)
 
 ### ✨ New Features

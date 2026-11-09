@@ -20,6 +20,7 @@ final class GlassController implements View.OnAttachStateChangeListener,
     final GlassDrawable material;
     final GlassLensDrawable lens;
     final GlassTouch touch;
+    final GlassSurfaceMotion surfaceMotion;
     final GlassSpring position = new GlassSpring(520f, 0.78f, 0.15f);
     final GlassSpring width = new GlassSpring(520f, 0.85f, 0.15f);
     final GlassSpring pressure = new GlassSpring(400f, 0.72f, 0.001f);
@@ -37,8 +38,10 @@ final class GlassController implements View.OnAttachStateChangeListener,
     GlassController(ViewGroup navigation, LiquidGlass.Backdrop backdrop) {
         this.navigation = navigation;
         material = new GlassDrawable(navigation, backdrop);
+        surfaceMotion = new GlassSurfaceMotion(navigation, material);
         lens = new GlassLensDrawable(this);
         touch = new GlassTouch(this);
+        navigation.setOnTouchListener(touch);
     }
 
     void attach() {
@@ -64,6 +67,7 @@ final class GlassController implements View.OnAttachStateChangeListener,
         previousFrame = 0;
         touch.cancel();
         pressure.snap(0f);
+        surfaceMotion.stop();
         shape.snap(0f);
         publishMotion();
         if (material.backdrop != null) material.backdrop.release();
@@ -82,16 +86,21 @@ final class GlassController implements View.OnAttachStateChangeListener,
         if (navigation.getChildCount() == 0 || !(navigation.getChildAt(0) instanceof ViewGroup)) return true;
         ViewGroup currentMenu = (ViewGroup) navigation.getChildAt(0);
         if (menu != currentMenu) {
+            boundItems.clear();
             menu = currentMenu;
             menu.setMotionEventSplittingEnabled(false);
+            menu.setOnTouchListener(touch);
         }
         TextView inactiveLabel = null;
+        boolean hovering = navigation.isHovered() || menu.isHovered();
         for (int i = 0; i < menu.getChildCount(); i++) {
             View item = menu.getChildAt(i);
             if (item.getVisibility() != View.VISIBLE) continue;
+            hovering |= item.isHovered();
             if (boundItems.add(item)) item.setOnTouchListener(touch);
             if (!item.isSelected() && inactiveLabel == null) inactiveLabel = visibleLabel(item);
         }
+        surfaceMotion.hover(hovering);
         View selected = selectedItem();
         if (selected != null) {
             boolean dark = inactiveLabel == null ? material.dark
@@ -188,6 +197,7 @@ final class GlassController implements View.OnAttachStateChangeListener,
 
     void release(float speed) {
         pressure.target = 0f;
+        surfaceMotion.release();
         shape.target = 0f;
         shape.velocity -= Math.min(2.8f, Math.abs(speed) / (material.density * 1500f));
         selectedCenter = Float.NaN;

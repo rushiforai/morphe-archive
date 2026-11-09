@@ -4,6 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.apps
 
+import app.morphe.util.names.origString
+import app.morphe.util.names.origParameterTypes
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
@@ -25,9 +27,16 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Hide popular apps"
 
@@ -172,23 +181,57 @@ private fun chatsFit(ok: Boolean, why: String) {
 }
 
 private fun BytecodePatchContext.requireChatChecks() {
-    val chats = classDefByOrNull(CHAT_OBJECT)
+    val chats = tgClassDefByOrNull(CHAT_OBJECT)
     chatsFit(chats != null && AccessFlags.PUBLIC.isSet(chats.accessFlags) && listOf(IS_NOT_IN_CHAT, IS_MONO_FORUM).all { wanted ->
-        chats.methods.any { it.toString() == wanted && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
+        chats.methods.any { it.origString() == wanted && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
     }, "ChatObject no longer tells a chat you aren't in or a channel's direct messages apart")
 }
 
-private fun Method.isFragmentCreate() = name == FRAGMENT_CREATE && parameterTypes.isEmpty() && returnType == "Z" &&
+private fun Method.isFragmentCreate() = origName == FRAGMENT_CREATE && parameterTypes.isEmpty() && origReturnType == "Z" &&
     !AccessFlags.STATIC.isSet(accessFlags) && implementation != null
 
-private fun Instruction.poll(): List<String>? = call()?.takeIf { it.definingClass == MESSAGES_CONTROLLER &&
-    it.name == START_SHORT_POLL && it.returnType == "V" }?.parameterTypes?.map(CharSequence::toString)
+private fun Instruction.poll(): List<String>? = call()?.takeIf { it.origDefiningClass == MESSAGES_CONTROLLER &&
+    it.origName == START_SHORT_POLL && it.origReturnType == "V" }?.origParameterTypes
+
+/** A call to loadFullChat, with its id, account and flag in any order: 13.2 hands over the account first. */
+private fun Instruction.loadsFullChat() = call()?.let { it.origDefiningClass == MESSAGES_CONTROLLER && it.origName == "loadFullChat" &&
+    it.origReturnType == "V" && it.origParameterTypes.sorted() == listOf("I", "J", "Z") } == true
+
+private fun Instruction.isFullPoll() = poll()?.let { it.size == 4 && it.take(3) == listOf(TL_CHAT, "I", "Z") } == true
+
+/**
+ * The watch on a chat you're in, at [at] in [body]: the short form, or where the build inlined that
+ * (13.2), the full form handed no callback.
+ */
+private fun List<Instruction>.isPlainPoll(flow: ControlFlow, at: Int): Boolean {
+    if (this[at].poll() == listOf(TL_CHAT, "I", "Z")) return true
+    if (!this[at].isFullPoll()) return false
+    val callback = flow.lastWrite(at, this[at].namedRegisters().last())?.let { this[it] }
+    return callback?.opcode == Opcode.CONST_4 && (callback as NarrowLiteralInstruction).narrowLiteral == 0
+}
 
 /** The watch Telegram keeps on a chat you aren't in, which also hears back when it changes. */
-private fun Instruction.isVisitorPoll() = poll()?.let { it.size == 4 && it.take(3) == listOf(TL_CHAT, "I", "Z") } == true
+private fun List<Instruction>.isVisitorPoll(flow: ControlFlow, at: Int) = this[at].isFullPoll() && !isPlainPoll(flow, at)
 
-/** The watch on a chat you're in. */
-private fun Instruction.isPlainPoll() = poll() == listOf(TL_CHAT, "I", "Z")
+/** The one write of [register] that reaches [use] on every path in, or null when none or several do. */
+private fun ControlFlow.lastWrite(use: Int, register: Int): Int? {
+    val predecessors = Array(instructions.size) { mutableListOf<Int>() }
+    for (index in instructions.indices) for (next in normal[index] + exceptional[index]) predecessors[next] += index
+    val pending = ArrayDeque(predecessors[use])
+    val visited = mutableSetOf<Int>()
+    val found = mutableSetOf<Int>()
+    while (pending.isNotEmpty()) {
+        val index = pending.removeFirst()
+        if (!visited.add(index)) continue
+        val instruction = instructions[index]
+        val destination = instruction.namedRegisters().firstOrNull()
+        if (instruction.opcode.setsRegister() &&
+            (destination == register || instruction.opcode.setsWideRegister() && destination?.plus(1) == register)) found += index
+        else if (predecessors[index].isEmpty()) return null
+        else pending.addAll(predecessors[index])
+    }
+    return found.singleOrNull()
+}
 
 private fun flowOf(method: Method, what: String): ControlFlow = try {
     ControlFlow.of(method)
@@ -205,13 +248,14 @@ private fun flowOf(method: Method, what: String): ControlFlow = try {
 private fun BytecodePatchContext.chatScreenSite(): NewChatOpenSite {
     val found = mutableListOf<Method>()
     forEachClassMentioning(Mention.reference(IS_NOT_IN_CHAT) and Mention.member(MESSAGES_CONTROLLER, START_SHORT_POLL)) { classDef ->
-        if (classDef.type.startsWith(EXTENSION_TYPES)) return@forEachClassMentioning
+        if (classDef.origType.startsWith(EXTENSION_TYPES)) return@forEachClassMentioning
         classDef.methods.filterTo(found) { method -> method.isFragmentCreate() && method.controlBody().let { body ->
-            body.any { it.controlRef() == IS_NOT_IN_CHAT } && body.any { it.isVisitorPoll() }
+            body.any { it.controlRef() == IS_NOT_IN_CHAT } && body.any { it.isFullPoll() } &&
+                flowOf(method, "a screen that watches a chat").let { flow -> body.indices.any { body.isVisitorPoll(flow, it) } }
         } }
     }
     chatsFit(found.size == 1, "${found.size} chat screens watch a channel you aren't in, not one")
-    val method = mutableClassDefBy(found.single().definingClass).methods.single { it.isFragmentCreate() }
+    val method = tgMutableClassDefBy(found.single().definingClass).methods.single { it.isFragmentCreate() }
     val body = method.controlBody()
     val checks = body.indices.filter { body[it].controlRef() == IS_NOT_IN_CHAT }
     chatsFit(checks.size == 1, "the chat screen asks ${checks.size} times whether you're in the chat, not once")
@@ -226,7 +270,7 @@ private fun BytecodePatchContext.chatScreenSite(): NewChatOpenSite {
         ?: throw ChatsUnfit("the chat screen no longer branches on whether you're in the chat")
     // Only the watch between the test and a member's way counts: Play's build also watches a
     // channel's linked discussion group the visitor's way, much later in the method.
-    val polls = (check + 3 until member).filter { body[it].isVisitorPoll() }
+    val polls = (check + 3 until member).filter { body.isVisitorPoll(flow, it) }
     chatsFit(polls.size == 1, "the chat screen watches a chat you aren't in ${polls.size} times on its way there, not once")
     val poll = polls.single()
     var entry = check + 3
@@ -240,7 +284,7 @@ private fun BytecodePatchContext.chatScreenSite(): NewChatOpenSite {
         "something else jumps to where the chat screen sets up a chat you aren't in")
     // A member's way watches the chat the plain way, so the branch is still the one it was.
     val straight = (member until body.size).firstOrNull { flow.normal[it] != listOf(it + 1) } ?: (body.size - 1)
-    chatsFit((member..straight).any { body[it].isPlainPoll() }, "a member's way through the chat screen no longer watches the chat")
+    chatsFit((member..straight).any { body.isPlainPoll(flow, it) }, "a member's way through the chat screen no longer watches the chat")
     return NewChatOpenSite(method, entry, CHAT_OPEN_CHECK_SIZE) { chatOpenCheck(it.freeLocalsAt(PATCH, entry, 1, highest = 255).single()) }
 }
 
@@ -253,30 +297,35 @@ private fun BytecodePatchContext.topicsScreenSite(chatScreen: String): NewChatOp
     val found = mutableListOf<Method>()
     val query = Mention.reference(TOPICS_LOADED) and Mention.reference(LOAD_FULL_CHAT) and Mention.member(MESSAGES_CONTROLLER, START_SHORT_POLL)
     forEachClassMentioning(query) { classDef ->
-        if (classDef.type == chatScreen || classDef.type.startsWith(EXTENSION_TYPES)) return@forEachClassMentioning
+        if (classDef.origType == chatScreen || classDef.origType.startsWith(EXTENSION_TYPES)) return@forEachClassMentioning
         classDef.methods.filterTo(found) { method -> method.isFragmentCreate() && method.controlBody().let { body ->
             body.any { it.opcode == Opcode.SGET && it.controlRef() == TOPICS_LOADED } &&
-                body.any { it.controlRef() == LOAD_FULL_CHAT } && body.any { it.isPlainPoll() }
+                body.any { it.loadsFullChat() } && body.any { it.poll() != null } &&
+                flowOf(method, "a screen that watches a chat").let { flow -> body.indices.any { body.isPlainPoll(flow, it) } }
         } }
     }
     chatsFit(found.size == 1, "${found.size} topic lists load a forum by its id, not one")
-    val method = mutableClassDefBy(found.single().definingClass).methods.single { it.isFragmentCreate() }
+    val method = tgMutableClassDefBy(found.single().definingClass).methods.single { it.isFragmentCreate() }
     val body = method.controlBody()
     // The check writes v0 to v3 and reads this, the last register; nothing is live at the start.
     chatsFit(method.localRegisterCount() >= 4, "the topic list has no room for its check")
     val self = method.implementation!!.registerCount - 1
-    val load = body.indexOfFirst { it.controlRef() == LOAD_FULL_CHAT }
-    val id = body[load].namedRegisters().getOrNull(1) ?: throw ChatsUnfit("the topic list no longer loads its forum by id")
+    val load = body.indexOfFirst { it.loadsFullChat() }
+    // The id is the call's one long, wherever the build put it: 13.2 hands it over second.
+    val types = body[load].call()!!.parameterTypes.map(CharSequence::toString)
+    val id = body[load].namedRegisters().getOrNull(1 + types.take(types.indexOf("J")).sumOf { if (it == "J" || it == "D") 2L else 1L }.toInt())
+        ?: throw ChatsUnfit("the topic list no longer loads its forum by id")
     val read = (0 until load).lastOrNull { body[it].opcode == Opcode.IGET_WIDE }
     val field = read?.let { (body[it] as ReferenceInstruction).reference as? FieldReference }
     chatsFit(read != null && field != null && body[read].namedRegisters() == listOf(id, self) &&
-        field.definingClass == method.definingClass && field.type == "J" &&
-        (read + 1 until load).none { body[it].namedRegisters().firstOrNull().let { written -> written == id || written == id + 1 } },
+        field.origDefiningClass == method.origDefiningClass && field.origType == "J" &&
+        (read + 1 until load).none { at -> body[at].namedRegisters().firstOrNull().let { written ->
+            written == id || written == id + 1 || written == id - 1 && body[at].opcode.setsWideRegister() } },
         "the topic list no longer loads its forum by the id it keeps")
     chatsFit(body.any { it.controlRef() == GET_CHAT_BY_ID }, "the topic list no longer reads its forum by id")
     val controller = body.firstOrNull { instruction -> instruction.opcode == Opcode.INVOKE_VIRTUAL &&
         instruction.namedRegisters() == listOf(self) && instruction.call()?.let {
-            it.name == "getMessagesController" && it.parameterTypes.isEmpty() && it.returnType == MESSAGES_CONTROLLER
+            it.origName == "getMessagesController" && it.parameterTypes.isEmpty() && it.origReturnType == MESSAGES_CONTROLLER
         } == true }?.controlRef() ?: throw ChatsUnfit("the topic list no longer reaches its MessagesController")
     val flow = flowOf(method, "the topic list")
     chatsFit(flow.normal.none { 0 in it } && flow.exceptional.none { 0 in it }, "something jumps back to the start of the topic list")

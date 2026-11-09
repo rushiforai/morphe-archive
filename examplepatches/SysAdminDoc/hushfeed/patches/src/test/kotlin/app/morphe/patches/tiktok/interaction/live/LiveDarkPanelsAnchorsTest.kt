@@ -575,6 +575,93 @@ class LiveDarkPanelsAnchorsTest {
         }
     }
 
+    private fun appliesStyle(instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction): Boolean {
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+        return call.definingClass == "Landroid/content/res/Resources\$Theme;" && call.name == "applyStyle"
+    }
+
+    /**
+     * #362, S22 2026-11-08: the room's light copy missed the styles TikTok gives the room after the
+     * room hook (the color scheme in setTheme, the room base's onCreate style, TikTok's LIVE color
+     * theme), so the gift guide bubble inflated over a copy without them and threw on its text.
+     * Each of those calls goes to the extension in place, with its own registers.
+     */
+    @Test
+    fun `each declared build sends the styles a room gets after its light copy through the extension`() {
+        Fixtures.forEachDeclared { apk ->
+            val classes = classes(apk)
+            val room = classes.getValue(LIVE_PLAY_ACTIVITY)
+            val setTheme = room.methods.single { LivePlayActivityThemeFingerprint.takes(it, room) }
+            val create = classes.getValue(room.superclass!!).methods.single {
+                it.name == "onCreate" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/os/Bundle;")
+            }
+            val fragment = classes.getValue(LIVE_THEMED_FRAGMENT)
+            val fragmentCreate = fragment.methods.filter { LiveThemedFragmentCreateFingerprint.takes(it, fragment) }
+            assertEquals("${apk.name}: LIVE's fragment onCreate", 1, fragmentCreate.size)
+            val colorThemeCall = liveColorTheme(fragmentCreate.single())
+            assertNotNull("${apk.name}: TikTok's LIVE color theme", colorThemeCall)
+            val colorTheme = classes.getValue(colorThemeCall!!.definingClass).methods.single {
+                it.name == colorThemeCall.name && it.parameterTypes.map(CharSequence::toString) ==
+                    colorThemeCall.parameterTypes.map(CharSequence::toString)
+            }
+
+            for ((what, method) in listOf("setTheme" to setTheme, "the base's onCreate" to create, "the color theme" to colorTheme)) {
+                val stock = method.implementation!!.instructions.filter { it.opcode != Opcode.NOP }
+                val calls = stock.indices.filter { appliesStyle(stock[it]) }
+                assertTrue("${apk.name}: $what applies no style", calls.isNotEmpty())
+                val hooked = MutableMethod(method)
+                assertEquals("${apk.name}: $what", calls.size, hookRoomStyles(hooked))
+                val code = hooked.implementation!!.instructions.filter { it.opcode != Opcode.NOP }
+                assertEquals("${apk.name}: $what keeps its length", stock.size, code.size)
+                assertTrue("${apk.name}: $what keeps no applyStyle", code.none { appliesStyle(it) })
+                for (at in stock.indices) {
+                    if (at !in calls) {
+                        assertEquals("${apk.name}: $what at $at", stock[at].opcode, code[at].opcode)
+                        continue
+                    }
+                    val call = code[at] as FiveRegisterInstruction
+                    val reference = (call as ReferenceInstruction).reference as MethodReference
+                    assertEquals("${apk.name}: $what at $at", Opcode.INVOKE_STATIC, code[at].opcode)
+                    assertEquals("${apk.name}: $what at $at", listOf("roomStyle", "Lapp/morphe/extension/tiktok/live/LivePanelTheme;"),
+                        listOf(reference.name, reference.definingClass))
+                    assertEquals(listOf("Landroid/content/res/Resources\$Theme;", "I", "I"), reference.parameterTypes.map(CharSequence::toString))
+                    val old = stock[at] as FiveRegisterInstruction
+                    assertEquals("${apk.name}: $what at $at keeps its registers",
+                        listOf(3, old.registerC, old.registerD, old.registerE),
+                        listOf(call.registerCount, call.registerC, call.registerD, call.registerE))
+                }
+                assertEquals("${apk.name}: $what", emptyList<BridgeTypeFlow.Problem>(), BridgeTypeFlow.check(hooked))
+
+                // #372: AMOLED dark mode may have swapped these calls for its stand-in first, the
+                // way InvokeSite.staticCall writes it. The room hook takes the stand-in the same way.
+                val amoledFirst = MutableMethod(method)
+                val whole = method.implementation!!.instructions.toList()
+                for (at in whole.indices.filter { appliesStyle(whole[it]) }) {
+                    val old = whole[at] as FiveRegisterInstruction
+                    amoledFirst.replaceInstruction(at, "invoke-static { v${old.registerC}, v${old.registerD}, v${old.registerE} }, " +
+                        "Lapp/morphe/extension/tiktok/theme/AmoledTheme;->applyStyle(Landroid/content/res/Resources\$Theme;II)V")
+                }
+                assertEquals("${apk.name}: $what after AMOLED", calls.size, hookRoomStyles(amoledFirst))
+                val both = amoledFirst.implementation!!.instructions.filter { it.opcode != Opcode.NOP }
+                assertEquals("${apk.name}: $what after AMOLED", code.map { it.opcode }, both.map { it.opcode })
+                for (at in calls) {
+                    val reference = (both[at] as ReferenceInstruction).reference as MethodReference
+                    assertEquals("${apk.name}: $what at $at after AMOLED", "roomStyle", reference.name)
+                    val old = stock[at] as FiveRegisterInstruction
+                    val now = both[at] as FiveRegisterInstruction
+                    assertEquals(listOf(old.registerC, old.registerD, old.registerE), listOf(now.registerC, now.registerD, now.registerE))
+                }
+            }
+            if ("47.7.3" in apk.name) {
+                // X.0JgL.LIZ: style/v_ and style/vb set attr/car, which the bubble's text reads
+                // (aapt2 dump, 2026-11-08); the room's setTheme applies six color scheme styles.
+                val literals = colorTheme.implementation!!.instructions.mapNotNull { (it as? NarrowLiteralInstruction)?.narrowLiteral }
+                assertTrue("${apk.name}: v_ and vb", literals.containsAll(listOf(0x7f120304, 0x7f120306)))
+                assertEquals("${apk.name}: setTheme's styles", 6, setTheme.implementation!!.instructions.count { appliesStyle(it) })
+            }
+        }
+    }
+
     /** A badge bind that reads its tile from [owner]'s lazy field and casts it to [cast], then runs [after]. */
     private fun badgeBind(
         after: String,

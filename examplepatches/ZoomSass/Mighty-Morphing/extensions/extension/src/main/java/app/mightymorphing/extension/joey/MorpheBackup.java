@@ -24,9 +24,12 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,7 +59,7 @@ public final class MorpheBackup {
             group("drawer", "Left drawer", "Appearance", false, "left_drawer_prefs"),
             group("posts", "Multi column", "Appearance", false, "settings"),
             group("animations", "Animations", "Appearance", false, "animation_prefs"),
-            group("morphe", "Morphe Settings", "Content", false, "mighty_morphing"),
+            group("morphe", "Morphe settings", "Splash, theme, comments, show and hide", false, "mighty_morphing"),
             group("posts", "Awards", "Content", false, "settings"),
             group("labels", "Account stats", "Content", false, "USER_TAG_PREF"),
             group("posts", "Posts", "Content", false, "settings"),
@@ -88,7 +91,7 @@ public final class MorpheBackup {
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("application/json");
-            intent.putExtra(Intent.EXTRA_TITLE, "joey-morphe-backup.json");
+            intent.putExtra(Intent.EXTRA_TITLE, backupFileName(account));
             activity.startActivityForResult(intent, REQUEST_SAVE);
         });
     }
@@ -467,6 +470,14 @@ public final class MorpheBackup {
         }
         activity.finishAffinity();
         android.os.Process.killProcess(android.os.Process.myPid());
+    }
+
+    /** Suggested save name: username, then the date, then "settings backup". */
+    private static String backupFileName(String username) {
+        String date = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+        String who = username == null ? "" : username.replaceAll("[\\\\/:*?\"<>|]", "").trim();
+        if (who.isEmpty()) return date + " settings backup.json";
+        return who + " " + date + " settings backup.json";
     }
 
     private static String signedInUsername(Context context) {

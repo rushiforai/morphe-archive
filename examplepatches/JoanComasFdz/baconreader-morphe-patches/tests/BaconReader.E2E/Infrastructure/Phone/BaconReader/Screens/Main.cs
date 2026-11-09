@@ -8,8 +8,9 @@ namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
 /// <summary>BaconReader's main screen (MainActivity): a feed of posts under its toolbar, and the left menu.</summary>
 public sealed class Main(AndroidDriver driver, Action noteShown)
 {
-    private static readonly OpenQA.Selenium.By PostsList = Locate.AppId("rv_links");
-    private static readonly OpenQA.Selenium.By Menu = Locate.AppId("drawerView");
+    private const string PostsListId = "rv_links";
+    private const string MenuId = "drawerView";
+    private static readonly OpenQA.Selenium.By PostsList = Locate.AppId(PostsListId);
 
     /// <summary>The bar at the top: the feed's name, Refresh, Search and More options.</summary>
     public Toolbar Toolbar { get; } = new(driver);
@@ -34,16 +35,13 @@ public sealed class Main(AndroidDriver driver, Action noteShown)
 
     /// <summary>
     /// Whether the main screen shows its posts, the left menu closed, within 3 s: a screen closing with Back takes a
-    /// moment.
+    /// moment. Each look is one <see cref="ScreenSnapshot"/>.
     /// </summary>
     internal async Task<bool> ShowsThePostsAsync()
     {
         try
         {
-            await Waiting.UntilAsync(
-                () => driver.FindElements(PostsList).Any(list => list.Displayed) && !driver.FindElements(Menu).Any(menu => menu.Displayed),
-                TimeSpan.FromSeconds(3),
-                "The main screen's posts");
+            await Waiting.UntilAsync(() => ShowsThePosts(ScreenSnapshot.Take(driver)), TimeSpan.FromSeconds(3), "The main screen's posts");
             return true;
         }
         catch (TimeoutException)
@@ -51,6 +49,12 @@ public sealed class Main(AndroidDriver driver, Action noteShown)
             return false;
         }
     }
+
+    /// <summary>Whether the main screen shows its posts, the left menu closed, at this moment: one look, no wait.</summary>
+    internal Task<bool> ShowsThePostsNowAsync() => Task.Run(() => ShowsThePosts(ScreenSnapshot.Take(driver)));
+
+    private static bool ShowsThePosts(ScreenSnapshot screen) =>
+        screen.WithAppId(PostsListId).Any(list => list.Displayed) && !screen.WithAppId(MenuId).Any(menu => menu.Displayed);
 
     /// <summary>Waits until the main screen is shown: its toolbar and the list its posts load into.</summary>
     public async Task WaitUntilShownAsync()

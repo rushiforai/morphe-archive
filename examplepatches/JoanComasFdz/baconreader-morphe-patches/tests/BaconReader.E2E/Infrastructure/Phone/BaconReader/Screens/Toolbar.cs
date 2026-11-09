@@ -81,6 +81,9 @@ public sealed class Toolbar(AndroidDriver driver)
     public Task WaitUntilFeedShownAsync(Feed feed) =>
         Waiting.UntilShownAsync(driver, Locate.AppIdWithText("toolbarTitle", feed.ToShownText()), TimeSpan.FromSeconds(10), $"The toolbar naming the \"{feed.ToShownText()}\" feed");
 
+    /// <summary>Whether the toolbar shows "Account colors"' line along its bottom.</summary>
+    public Task<ToolbarLineSnapshot> ReadLineAsync() => ToolbarLine.ReadAsync(driver);
+
     /// <summary>What the toolbar shows: the feed it names, and its buttons.</summary>
     public Task<ToolbarSnapshot> ReadAsync() =>
         OnScreen.ReadAsync(driver, () => new ToolbarSnapshot(FeedShowing.ReadFeed(driver.FindElement(Title).Text.Trim()))

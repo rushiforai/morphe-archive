@@ -20,6 +20,10 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val BAR_PADDING = "$MAIN_TABS->barPadding(F)F"
 internal const val BAR_CORNER = "$MAIN_TABS->barCorner(F)F"
@@ -93,7 +97,7 @@ internal fun BytecodePatchContext.resolveCompactBar(plan: MainTabsPlan): Compact
     controlHook(MAIN_TABS, "barMinWidth", listOf("F"), "F")
     fun missing(why: String) = CompactBar(emptyList(), why)
 
-    val build = mutableClassDefBy(plan.screen).methods.single(::isBuild)
+    val build = tgMutableClassDefBy(plan.screen).methods.single(::isBuild)
     val body = build.controlBody()
     val flow = ControlFlow.of(build)
     fun fromBar(use: Int, register: Int) = defined(flow, use, register)?.let { read ->
@@ -115,11 +119,11 @@ internal fun BytecodePatchContext.resolveCompactBar(plan: MainTabsPlan): Compact
     if (backs.size != 1) return missing("the main screen no longer gives its bar one background (${backs.size})")
     val back = backs.single()
     val glass = defined(flow, back, body[back].namedRegisters()[1])?.let { read ->
-        body[read].controlField()?.takeIf { body[read].opcode == Opcode.IGET_OBJECT && it.definingClass == plan.screen }?.type
+        body[read].controlField()?.takeIf { body[read].opcode == Opcode.IGET_OBJECT && it.origDefiningClass == plan.screen }?.type
     } ?: return missing("the bar's background no longer comes from the main screen")
     fun glassCalls(parameter: String) = body.indices.filter { at ->
         body[at].opcode == Opcode.INVOKE_VIRTUAL && body[at].call()?.let { c ->
-            c.definingClass == glass && c.parameterTypes.map(CharSequence::toString) == listOf(parameter) && c.returnType == "V"
+            c.origDefiningClass == glass && c.parameterTypes.map(CharSequence::toString) == listOf(parameter) && c.origReturnType == "V"
         } == true
     }
     val corners = glassCalls("F").mapNotNull { at ->
@@ -142,7 +146,7 @@ internal fun BytecodePatchContext.resolveCompactBar(plan: MainTabsPlan): Compact
         ?.takeIf { it > 0 && body[it].opcode == Opcode.MOVE_RESULT_OBJECT }?.minus(1)
         ?.takeIf { at ->
             body[at].opcode == Opcode.INVOKE_STATIC && body[at].call()?.let { c ->
-                c.parameterTypes.map(CharSequence::toString) == listOf("I", "I", "I") && c.returnType == FRAME_PARAMS
+                c.parameterTypes.map(CharSequence::toString) == listOf("I", "I", "I") && c.origReturnType == FRAME_PARAMS
             } == true
         } ?: return missing("the bar's layout no longer comes from a width, a height and a gravity")
     val (_, high, gravity) = body[frame].namedRegisters()
@@ -152,12 +156,12 @@ internal fun BytecodePatchContext.resolveCompactBar(plan: MainTabsPlan): Compact
 
     // The width: each time the bar measures, its tabs stretch to the lesser of dp() of one constant
     // and the room there is. The tabs get the bar's height less its padding.
-    val measures = mutableClassDefBy(plan.bar.substringAfter(":")).methods.filter(::isMeasure)
+    val measures = tgMutableClassDefBy(plan.bar.substringAfter(":")).methods.filter(::isMeasure)
     if (measures.size != 1) return missing("the bar no longer measures itself (${measures.size})")
     val measure = measures.single()
     val measured = measure.controlBody()
     val measuredFlow = ControlFlow.of(measure)
-    if (listOf("getPaddingTop", "getPaddingBottom").any { side -> measured.none { it.call()?.name == side } }) {
+    if (listOf("getPaddingTop", "getPaddingBottom").any { side -> measured.none { it.call()?.origName == side } }) {
         return missing("the bar no longer fits its tabs inside its padding")
     }
     val widths = measured.indices.filter { measured[it].opcode == Opcode.INVOKE_STATIC && measured[it].controlRef() == MIN }
@@ -175,12 +179,12 @@ internal fun BytecodePatchContext.resolveCompactBar(plan: MainTabsPlan): Compact
 }
 
 /** An instance `onMeasure(int, int)` with code. */
-private fun isMeasure(m: Method) = m.name == "onMeasure" && !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" &&
+private fun isMeasure(m: Method) = m.origName == "onMeasure" && !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" &&
     m.parameterTypes.map(CharSequence::toString) == listOf("I", "I") && m.controlBody().isNotEmpty()
 
 /** A virtual call of a void [name] taking [parameters]. */
 private fun Instruction.calls(name: String, parameters: List<String>) = opcode == Opcode.INVOKE_VIRTUAL && call()?.let { c ->
-    c.name == name && c.parameterTypes.map(CharSequence::toString) == parameters && c.returnType == "V"
+    c.origName == name && c.parameterTypes.map(CharSequence::toString) == parameters && c.origReturnType == "V"
 } == true
 
 /**

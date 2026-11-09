@@ -197,6 +197,10 @@ Hide the Instagram button	Instagram düğmesini gizle
 Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	Kendi profilinin ve başkalarının profillerinin üstündeki Instagram düğmesini kaldırır. Değişikliği görmek için Threads'i yeniden başlat.
 Hide ghost post bubbles	Hayalet gönderi balonlarını gizle
 Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. Restart Threads to see the change.	Profil fotoğraflarındaki hayalet gönderi balonlarını kaldırır, profillerde ve akışının üstündeki sırada. Değişikliği görmek için Threads'i yeniden başlat.
+Full size profile pictures	Tam boyutlu profil fotoğrafları
+A profile picture you open on a profile shows full size, where you can zoom in and save it, instead of the small circle.	Bir profilde açtığın profil fotoğrafı küçük daire yerine tam boyutta açılır, yakınlaştırıp kaydedebilirsin.
+Close	Kapat
+Couldn't load the picture. Try again in a moment.	Fotoğraf yüklenemedi. Biraz sonra tekrar dene.
 Turn features on or off	Özellikleri aç veya kapat
 # Fotoğrafları ve videoları kaydetme
 %1$d saved in lower quality than on Threads.	%1$d öğe Threads'tekinden daha düşük kalitede kaydedildi.
@@ -270,6 +274,12 @@ the removed share sheet entry	kaldırılan paylaşım menüsü girişi
 User certificates trusted	Kullanıcı sertifikalarına güveniliyor
 Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads, telefonuna eklediğin güvenlik sertifikalarını kabul eder. Meta sertifikalarına yaptığı kendi kontroller değişmez, bu yüzden bir proxy trafiğinin çoğunu yine okuyamaz.
 the user certificate trust	kullanıcı sertifikalarına duyulan güven
+Own package name	Kendi paket adı
+This copy installs beside Threads as an app of its own, with its own sign-in.	Bu kopya, Threads'in yanına kendi oturum açma bilgisiyle ayrı bir uygulama olarak kurulur.
+the new package name	yeni paket adı
+Own app name	Kendi uygulama adı
+The name under the app's icon.	Uygulama simgesinin altındaki ad.
+the new app name	yeni uygulama adı
 Hide screenshots from Threads	Ekran görüntülerini Threads'ten gizle
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	Ekran görüntüsü aldığında Threads'e haber verilmez, bu yüzden onu kaydedemez ya da ona tepki veremez.
 Full size photos	Tam boyutlu fotoğraflar

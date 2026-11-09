@@ -9,7 +9,7 @@ import zipfile
 
 import android_acceptance as base
 from artist_review_acceptance import download_file_hashes
-from build_native_payloads import ENGINE_SHA, LIBRARY_SHA
+from build_native_payloads import ENGINE_SHA, LIBRARY_SHA, MASKS
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
     parser.add_argument('--adb', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--native-report', type=Path, required=True)
-    parser.add_argument('--mask', type=int, choices=range(256), required=True)
+    parser.add_argument('--mask', type=int, choices=(0, *MASKS), required=True)
     parser.add_argument('--baseline-downloads', type=Path, required=True)
     parser.add_argument('--seed-metadata', action='store_true', help='Explicit one-time UI seed; never used during retention inspection')
     parser.add_argument('--expect-metadata', action='store_true')

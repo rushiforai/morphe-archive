@@ -14,7 +14,7 @@
 
 > [!WARNING]
 > - **No affiliation.** This is an independent community project. It is not affiliated with, endorsed by any app developer, or the Morphe project.
-> - **Trademarks.** Yanosik, Orange, InPost, Android Auto and all other product names, logos and brands belong to their respective owners. They are used here only to say which apps the patches work with.
+> - **Trademarks.** Yanosik, Orange, InPost, Żabka, Android Auto and all other product names, logos and brands belong to their respective owners. They are used here only to say which apps the patches work with.
 > - **No app files.** This repository contains only patch code. It **does not** host or distribute any original or modified APKs. You need to get the app yourself from an official source.
 > - **Your responsibility.** Modifying an app may break its terms of service, and some patches, change how paid features are offered. You are responsible for making sure your use follows the app's terms. If you find the app useful, consider supporting its developer.
 > - **Road safety.** Patched apps may behave differently from the original, including alerts and Android Auto behaviour. Don't rely on them alone, follow traffic rules, and don't handle your phone while driving.
@@ -33,11 +33,12 @@
 | Yanosik | `pl.neptis.yanosik.mobi.android` |
 | Mój Orange | `pl.orange.mojeorange` |
 | InPost Mobile | `pl.inpost.inmobile` |
+| Żappka | `pl.zabka.apb2c` |
 
 All patches are enabled by default.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.6.1](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
 <summary>📦 Yanosik&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -55,6 +56,22 @@ All patches are enabled by default.
 | [Remove Yanosik ads](#remove-yanosik-ads) | Removes banner ads, splash/start adverts, voice adverts, advert-based navigation POIs and selects the ad-free map style. |  |
 | [Remove Yanosik radio](#remove-yanosik-radio) | Removes the built-in Radio Yanosik from the main screen and the map button. |  |
 | [Unlock Yanosik PRO](#unlock-yanosik-pro) | Reports an active premium entitlement and unlocks the PRO-only settings (view after launch, floating icon). |  |
+
+</details>
+
+<details open>
+<summary>📦 eduVULCAN&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.08.00 (G) |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Block eduVULCAN telemetry](#block-eduvulcan-telemetry) | Blocks Firebase Analytics, Crashlytics, Performance and Sessions, plus the built-in Mnemos usage tracker. Push notifications and Firebase Remote Config keep working. |  |
+| [Unlock premium](#unlock-premium) | Reports an active Premium capability on every student account and removes the premium lock overlays. Billing and the store stay available. |  |
 
 </details>
 
@@ -90,6 +107,22 @@ All patches are enabled by default.
 | [Hide notification prompt](#hide-notification-prompt) | Stops the popup asking to turn on notifications. |  |
 | [Hide offer carousels](#hide-offer-carousels) | Removes the offer carousels from the home screen. |  |
 | [Hide stories](#hide-stories) | Removes the Instagram-style stories row at the top of the home screen. |  |
+
+</details>
+
+<details open>
+<summary>📦 Żappka&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.50.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Block telemetry](#block-telemetry) | Blocks the Żabka CDP event pipeline (device, root, network and carrier data attached to every event), Sentry, AppsFlyer, Synerise event tracking, Firebase Analytics, Facebook app events and Google datatransport uploads. |  |
+| [Spoof signing certificate](#spoof-signing-certificate) | Reports Żabka's original signing certificate to Firebase, so login works after the app is re-signed by patching. |  |
 
 </details>
 

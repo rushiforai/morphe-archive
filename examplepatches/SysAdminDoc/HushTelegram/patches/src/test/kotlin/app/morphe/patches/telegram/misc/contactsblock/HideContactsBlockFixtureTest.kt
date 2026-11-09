@@ -8,11 +8,12 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -42,6 +43,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.lang.ref.SoftReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The chat-list adapter, every reader of its contacts fields, and the runtime are the whole context. */
 class HideContactsBlockFixtureTest {
@@ -89,7 +94,7 @@ class HideContactsBlockFixtureTest {
             }
             assertEquals("$name: the copy, its sort, the sync gate and every other host method", untouched,
                 hostState(build, context, methods.map { key(it.method) }.toSet()))
-            val flag = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideContactsBlock" }.controlBody()
+            val flag = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideContactsBlock" }.controlBody()
             assertEquals(1L, (flag.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -119,7 +124,7 @@ class HideContactsBlockFixtureTest {
                     b.replaceInstruction(at, "nop") },
                 "sort removed" to { c, m -> val sorter = sorter(c, m); sorter.replaceInstruction(sorter.controlBody().indexOfFirst { it.controlRef()?.startsWith("Ljava/util/Collections;->sort") == true }, "nop") },
                 "extra presentation reader" to { c, m -> val reader = m.first { it.method != builder(m) && it.reads.any { r -> r.rows } }.method
-                    c.mutableClassDefBy(reader.definingClass).methods.add(ImmutableMethod(reader.definingClass, reader.name + "Copy", reader.parameters, reader.returnType,
+                    c.tgMutableClassDefBy(reader.definingClass).methods.add(ImmutableMethod(reader.definingClass, reader.name + "Copy", reader.parameters, reader.returnType,
                         reader.accessFlags, reader.annotations, reader.hiddenApiRestrictions, reader.implementation).toMutable()) },
                 "loading rows reader removed" to { _, m -> val reader = m.first { it.method != builder(m) && it.reads.any { r -> !r.rows } }
                     reader.method.replaceInstruction(reader.reads.first { !it.rows }.index, "nop") },
@@ -136,13 +141,13 @@ class HideContactsBlockFixtureTest {
                     method.removeInstruction(test)
                     method.addInstructionsWithLabels(test, "if-eqz v$value, :hush_leak", ExternalLabel("hush_leak", leak)) },
                 "second builder" to { c, m -> val b = builder(m)
-                    c.mutableClassDefBy(b.definingClass).methods.add(ImmutableMethod(b.definingClass, b.name + "Copy", b.parameters, b.returnType,
+                    c.tgMutableClassDefBy(b.definingClass).methods.add(ImmutableMethod(b.definingClass, b.name + "Copy", b.parameters, b.returnType,
                         b.accessFlags, b.annotations, b.hiddenApiRestrictions, b.implementation).toMutable()) },
-                "missing build flag" to { c, _ -> c.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "hideContactsBlock" } },
-                "private rows hook" to { c, _ -> val h = c.mutableClassDefBy(CONTACTS_BLOCK).methods.single { it.name == "rows" }
+                "missing build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "hideContactsBlock" } },
+                "private rows hook" to { c, _ -> val h = c.tgMutableClassDefBy(CONTACTS_BLOCK).methods.single { it.origName == "rows" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing placeholder hook" to { c, _ -> c.mutableClassDefBy(CONTACTS_BLOCK).methods.removeAll { it.name == "placeholder" } },
-                "empty rows hook" to { c, _ -> val owner = c.mutableClassDefBy(CONTACTS_BLOCK); val h = owner.methods.single { it.name == "rows" }
+                "missing placeholder hook" to { c, _ -> c.tgMutableClassDefBy(CONTACTS_BLOCK).methods.removeAll { it.origName == "placeholder" } },
+                "empty rows hook" to { c, _ -> val owner = c.tgMutableClassDefBy(CONTACTS_BLOCK); val h = owner.methods.single { it.origName == "rows" }
                     owner.methods.remove(h)
                     owner.methods.add(ImmutableMethod(h.definingClass, h.name, h.parameters, h.returnType, h.accessFlags, h.annotations,
                         h.hiddenApiRestrictions, ImmutableMethodImplementation(1, emptyList(), emptyList(), emptyList())).toMutable()) },
@@ -163,16 +168,16 @@ class HideContactsBlockFixtureTest {
         val body = builder(methods).controlBody()
         val rows = body[body.indices.single { it > 0 && body[it].opcode == Opcode.IPUT_OBJECT &&
             body[it - 1].controlRef() == "Ljava/util/ArrayList;-><init>(Ljava/util/Collection;)V" }].controlRef()
-        return c.mutableClassDefBy(builder(methods).definingClass).methods.single { m -> m.controlBody().let { b ->
+        return c.tgMutableClassDefBy(builder(methods).definingClass).methods.single { m -> m.controlBody().let { b ->
             b.any { it.controlRef() == "Ljava/util/Collections;->sort(Ljava/util/List;Ljava/util/Comparator;)V" } && b.any { it.controlRef() == rows } } }
     }
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(CONTACTS_BLOCK, SETTINGS_STATUS))
-        .filter { c.classDefByOrNull(it) != null }.associateWith { type -> c.mutableClassDefBy(type).let { cls ->
+        .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
-        .flatMap { c.mutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
+        .flatMap { c.tgMutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
 
     private fun hosts(build: File): List<ClassDef> {
         val identity = FixtureDex.inputIdentity(build)
@@ -192,7 +197,7 @@ class HideContactsBlockFixtureTest {
                 body.any { it.controlRef() == TELEGRAM_CONTACTS } } }
         val body = method.controlBody()
         val fields = body.filter { it.opcode == Opcode.IPUT_OBJECT || it.opcode == Opcode.IGET_BOOLEAN }
-            .mapNotNull { it.controlField() }.filter { it.definingClass == method.definingClass }.map { it.toString() }.toSet()
+            .mapNotNull { it.controlField() }.filter { it.origDefiningClass == method.origDefiningClass }.map { it.toString() }.toSet()
         val readers = FixtureDex.classesWhere(build, { true }) { m -> m.controlBody().any { it.controlRef() in fields } }
         return (builders + readers).associateBy { it.type }.values.map(ImmutableClassDef::of)
     }
@@ -202,7 +207,7 @@ class HideContactsBlockFixtureTest {
         return listOf(accessFlags, implementation?.registerCount, body.map { it.operand() }, body.map { listOf(it.codeUnits, (it as? OffsetInstruction)?.codeOffset) },
             flow?.normal?.toList(), flow?.exceptional?.toList())
     }
-    private fun Instruction.operand() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString(),
+    private fun Instruction.operand() = listOf(opcode, namedRegisters(), origRef(),
         (this as? WideLiteralInstruction)?.wideLiteral)
     private fun key(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 

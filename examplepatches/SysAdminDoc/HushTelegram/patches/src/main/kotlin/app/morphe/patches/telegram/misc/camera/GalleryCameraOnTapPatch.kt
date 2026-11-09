@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.camera
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -38,6 +38,13 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origSuperclass
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Gallery camera on tap"
 internal const val PHOTO_LAYOUT = "Lorg/telegram/ui/Components/ChatAttachAlertPhotoLayout;"
@@ -101,12 +108,12 @@ internal class PermissionAsk(val method: MutableMethod, val index: Int, val layo
 
 internal fun BytecodePatchContext.resolveGalleryCameraSites(): GalleryCameraSites {
     requireRuntimeHooks()
-    val layout = mutableClassDefBy(PHOTO_LAYOUT)
+    val layout = tgMutableClassDefBy(PHOTO_LAYOUT)
     val methods = layout.methods.toList()
 
     val check = methods.filter { !it.isStatic() && it.hasShape(listOf("Z"), "V") && it.instructions().let { body ->
-        body.any { instruction -> instruction.field()?.let { it.definingClass == SHARED_CONFIG && it.name == "inappCamera" } == true } &&
-            body.any { instruction -> instruction.call()?.let { it.definingClass == CAMERA_CONTROLLER && it.name == "initCamera" } == true } &&
+        body.any { instruction -> instruction.field()?.let { it.origDefiningClass == SHARED_CONFIG && it.origName == "inappCamera" } == true } &&
+            body.any { instruction -> instruction.call()?.let { it.origDefiningClass == CAMERA_CONTROLLER && it.origName == "initCamera" } == true } &&
             body.any { instruction -> instruction.string() == CAMERA_PERMISSION } } }.one("checkCamera", ::refuse)
     val checkBody = check.instructions()
     val checkExit = checkBody.indices.filter { checkBody[it].opcode.let { op -> op == Opcode.RETURN_VOID || op == Opcode.THROW } }
@@ -114,13 +121,13 @@ internal fun BytecodePatchContext.resolveGalleryCameraSites(): GalleryCameraSite
     shape(checkBody[checkExit].opcode == Opcode.RETURN_VOID, "checkCamera no longer returns in one place")
 
     // checkCamera ends by building the live tile.
-    val showCall = checkBody.indices.filter { checkBody[it].call()?.let { call -> call.definingClass == PHOTO_LAYOUT &&
+    val showCall = checkBody.indices.filter { checkBody[it].call()?.let { call -> call.origDefiningClass == PHOTO_LAYOUT &&
         call.hasShape(emptyList(), "V") } == true }.one("showCamera call", ::refuse)
     shape(showCall == checkExit - 1, "showCamera is no longer checkCamera's last step")
-    val show = methods.filter { it.name == checkBody[showCall].call()!!.name && it.hasShape(emptyList(), "V") && !it.isStatic() }.one("showCamera", ::refuse)
+    val show = methods.filter { it.origName == checkBody[showCall].call()!!.name && it.hasShape(emptyList(), "V") && !it.isStatic() }.one("showCamera", ::refuse)
     val showBody = show.instructions()
     val cameraView = showBody.mapNotNull { instruction -> instruction.takeIf { it.opcode == Opcode.IPUT_OBJECT }?.field() }
-        .filter { it.definingClass == PHOTO_LAYOUT && classDefByOrNull(it.type)?.superclass == CAMERA_VIEW }.distinct().one("camera view field", ::refuse)
+        .filter { it.origDefiningClass == PHOTO_LAYOUT && tgClassDefByOrNull(it.type)?.origSuperclass == CAMERA_VIEW }.distinct().one("camera view field", ::refuse)
     val showExit = showBody.indices.filter { showBody[it].opcode.let { op -> op == Opcode.RETURN_VOID || op == Opcode.THROW } }
         .one("showCamera exit", ::refuse)
     shape(showBody[showExit].opcode == Opcode.RETURN_VOID, "showCamera no longer returns in one place")
@@ -132,9 +139,9 @@ internal fun BytecodePatchContext.resolveGalleryCameraSites(): GalleryCameraSite
 
     // The camera tile: in-app camera on, open it; off, hand the tap to the system camera.
     val tap = methods.filter { !it.isStatic() && it.hasShape(emptyList(), "V") && it.instructions().let { body ->
-        body.size > 5 && body[0].opcode == Opcode.SGET_BOOLEAN && body[0].field()?.let { it.definingClass == SHARED_CONFIG && it.name == "inappCamera" } == true &&
+        body.size > 5 && body[0].opcode == Opcode.SGET_BOOLEAN && body[0].field()?.let { it.origDefiningClass == SHARED_CONFIG && it.origName == "inappCamera" } == true &&
             body[1].opcode == Opcode.IF_EQZ && body[2].opcode == Opcode.CONST_4 && (body[2] as NarrowLiteralInstruction).narrowLiteral == 1 &&
-            body[3].call()?.let { call -> call.definingClass == PHOTO_LAYOUT && call.name == open.name && call.hasShape(listOf("Z"), "V") } == true &&
+            body[3].call()?.let { call -> call.origDefiningClass == PHOTO_LAYOUT && call.origName == open.origName && call.hasShape(listOf("Z"), "V") } == true &&
             body[3].namedRegisters() == listOf(it.localRegisterCount(), body[2].namedRegisters()[0]) && body[4].opcode == Opcode.RETURN_VOID } }
         .one("camera tile tap", ::refuse)
     tap.requireThisIntact(PATCH, listOf(2))
@@ -146,16 +153,16 @@ internal fun BytecodePatchContext.resolveGalleryCameraSites(): GalleryCameraSite
     // The gallery's own open animation only ends when it's the tab the menu opened on.
     val menus = mutableListOf<String>()
     forEachClassMentioning(Mention.type(PHOTO_LAYOUT)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
-        if (classDef.methods.any { method -> method.name == "<init>" &&
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.methods.any { method -> method.origName == "<init>" &&
                 method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.type() == PHOTO_LAYOUT } }) menus += classDef.type
     }
-    val menu = mutableClassDefBy(menus.one("attach menu that builds the gallery", ::refuse))
-    val menuGallery = menu.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == PHOTO_LAYOUT }.one("attach menu's gallery field", ::refuse)
+    val menu = tgMutableClassDefBy(menus.one("attach menu that builds the gallery", ::refuse))
+    val menuGallery = menu.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.origType == PHOTO_LAYOUT }.one("attach menu's gallery field", ::refuse)
         .let { ImmutableFieldReference(it.definingClass, it.name, it.type) }
-    val menuShow = menu.methods.filter { it.name == "show" && !it.isStatic() && it.hasShape(emptyList(), "V") }.one("attach menu show", ::refuse)
+    val menuShow = menu.methods.filter { it.origName == "show" && !it.isStatic() && it.hasShape(emptyList(), "V") }.one("attach menu show", ::refuse)
     val showStart = menuShow.instructions().firstOrNull()
-    shape(showStart?.opcode == Opcode.INVOKE_SUPER && showStart.call()?.let { it.name == "show" && it.hasShape(emptyList(), "V") } == true,
+    shape(showStart?.opcode == Opcode.INVOKE_SUPER && showStart.call()?.let { it.origName == "show" && it.hasShape(emptyList(), "V") } == true,
         "the attach menu's show no longer starts by showing the dialog")
     shape(menuShow.localRegisterCount() >= 1 && menuShow.localRegisterCount() <= 15, "the attach menu's show has no room for the sleep")
 
@@ -174,9 +181,9 @@ private fun BytecodePatchContext.permissionAsks(check: Method, tap: Method): Lis
     // checkCamera stores whether the permission is missing right after asking the system, through
     // Activity or, since Telegram 13.0, Context, which declares checkSelfPermission.
     val missingStore = checkBody.indices.filter { checkBody[it].opcode == Opcode.IPUT_BOOLEAN &&
-        checkBody[it].field()?.definingClass == PHOTO_LAYOUT &&
+        checkBody[it].field()?.origDefiningClass == PHOTO_LAYOUT &&
         (maxOf(0, it - 6) until it).any { at -> checkBody[at].call()?.let { call ->
-            call.definingClass in setOf(ACTIVITY, CONTEXT) && call.name == "checkSelfPermission" } == true } }
+            call.origDefiningClass in setOf(ACTIVITY, CONTEXT) && call.origName == "checkSelfPermission" } == true } }
         .one("missing camera permission store", ::refuse)
     val missing = checkBody[missingStore].field()!!
 
@@ -186,17 +193,17 @@ private fun BytecodePatchContext.permissionAsks(check: Method, tap: Method): Lis
     // camera button).
     val found = mutableListOf<Pair<String, Method>>()
     forEachClassMentioning(Mention.member(ACTIVITY, "requestPermissions") and Mention.string(CAMERA_PERMISSION)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         for (method in classDef.methods) {
             val body = method.instructions()
-            if (body.none { it.call()?.name == "requestPermissions" } || method.cameraOnlyRequests().isEmpty()) continue
+            if (body.none { it.call()?.origName == "requestPermissions" } || method.cameraOnlyRequests().isEmpty()) continue
             if (body.any { it.field() == missing } || body.any { it.leadsTo(tap) }) found += classDef.type to method
         }
     }
     shape(found.size == 2, "found ${found.size} camera permission requests, expected the tile's and the camera button's")
     return found.map { (type, stock) ->
-        val method = mutableClassDefBy(type).methods.filter { it.name == stock.name && it.params() == stock.params() &&
-            it.returnType == stock.returnType }.one("${stock.name} camera request", ::refuse)
+        val method = tgMutableClassDefBy(type).methods.filter { it.origName == stock.origName && it.params() == stock.params() &&
+            it.origReturnType == stock.origReturnType }.one("${stock.name} camera request", ::refuse)
         val body = method.instructions()
         val reads = body.indices.filter { body[it].opcode == Opcode.IGET_BOOLEAN && body[it].field() == missing }
         val request = method.cameraOnlyRequests().one("${stock.name} camera request", ::refuse)
@@ -206,7 +213,7 @@ private fun BytecodePatchContext.permissionAsks(check: Method, tap: Method): Lis
             shape(body.count { it.leadsTo(tap) } == 1, "camera button no longer leads to the tile's tap")
             shape(!method.isStatic(), "camera button is no longer a lambda that holds its gallery")
             val galleries = method.instructions().mapNotNull { instruction -> instruction.takeIf { it.opcode == Opcode.IGET_OBJECT }
-                ?.field()?.takeIf { it.definingClass == method.definingClass && it.type == PHOTO_LAYOUT } }.distinct()
+                ?.field()?.takeIf { it.origDefiningClass == method.origDefiningClass && it.origType == PHOTO_LAYOUT } }.distinct()
             val gallery = galleries.one("camera button's gallery field", ::refuse)
             val self = method.localRegisterCount()
             shape(self <= 15, "camera button keeps this past v15")
@@ -232,7 +239,7 @@ private fun BytecodePatchContext.permissionAsks(check: Method, tap: Method): Lis
 
 /** Whether this calls the camera tile's tap. */
 private fun Instruction.leadsTo(tap: Method) =
-    call()?.let { it.definingClass == PHOTO_LAYOUT && it.name == tap.name && it.hasShape(emptyList(), "V") } == true
+    call()?.let { it.origDefiningClass == PHOTO_LAYOUT && it.origName == tap.origName && it.hasShape(emptyList(), "V") } == true
 
 private fun GalleryCameraSites.apply() {
     // The exit goes in first, so the gate's jump can land on the return after it.
@@ -291,7 +298,7 @@ private fun gate(method: MutableMethod, exit: Int) {
 }
 
 private fun BytecodePatchContext.requireRuntimeHooks() {
-    val owner = classDefByOrNull(GALLERY_CAMERA)
+    val owner = tgClassDefByOrNull(GALLERY_CAMERA)
     shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public gallery camera runtime")
     for ((name, parameters, returns) in listOf(
         Triple("keepCameraOff", listOf(OBJECT), "Z"),
@@ -300,7 +307,7 @@ private fun BytecodePatchContext.requireRuntimeHooks() {
         Triple("wakeForPermission", listOf(OBJECT), "V"),
         Triple("sleep", listOf(OBJECT), "V"),
     )) {
-        shape(owner!!.methods.count { it.name == name && it.hasShape(parameters, returns) && it.isStatic() &&
+        shape(owner!!.methods.count { it.origName == name && it.hasShape(parameters, returns) && it.isStatic() &&
             AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.NATIVE.isSet(it.accessFlags) &&
             !AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
             it.implementation?.instructions?.any { instruction -> !instruction.opcode.format.isPayloadFormat } == true } == 1,
@@ -315,7 +322,7 @@ private fun BytecodePatchContext.requireRuntimeHooks() {
 private fun Method.cameraOnlyRequests(): List<Int> {
     val body = instructions()
     return body.indices.filter { at ->
-        body[at].call()?.let { it.definingClass == ACTIVITY && it.name == "requestPermissions" } == true &&
+        body[at].call()?.let { it.origDefiningClass == ACTIVITY && it.origName == "requestPermissions" } == true &&
             (maxOf(0, at - 6) until at).any { array -> body[array].opcode == Opcode.FILLED_NEW_ARRAY &&
                 body[array].namedRegisters().size == 1 && body[array].namedRegisters()[0].let { element ->
                     (array - 1 downTo 0).firstOrNull { element in body[it].writes() }?.let { body[it].string() } == CAMERA_PERMISSION } }

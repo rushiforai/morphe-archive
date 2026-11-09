@@ -1,11 +1,8 @@
 package tw.maps
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.patch.ApkFileType
-import app.morphe.patcher.patch.AppTarget
-import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.PatchException
-import app.morphe.patcher.patch.SupportedAbi
+import org.ungoogled.patches.shared.Constants.COMPATIBILITY_MAPS
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -31,20 +28,7 @@ val skipPrivateCarConnection = bytecodePatch(
         "rejects its private car-service call (\"Wrong signature\"). Needed for native navigation on Android Auto.",
     default = true,
 ) {
-    compatibleWith(
-        Compatibility(
-            name = "Google Maps",
-            packageName = "com.google.android.apps.maps",
-            apkFileType = ApkFileType.APKM,
-            targets = listOf(
-                AppTarget(
-                    version = "26.44.06.1006895251",
-                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1068856906),
-                    isExperimental = true,
-                ),
-            ),
-        ),
-    )
+    compatibleWith(COMPATIBILITY_MAPS)
     execute {
         val method = mutableClassDefBy("Lpxt;").methods.singleOrNull {
             it.name == "b" && it.parameterTypes.isEmpty() && it.returnType == "V"

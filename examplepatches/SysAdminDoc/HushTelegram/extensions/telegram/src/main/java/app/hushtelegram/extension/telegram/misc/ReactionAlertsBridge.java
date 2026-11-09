@@ -42,7 +42,8 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         if (controller == null) throw new IllegalArgumentException("no message controller");
         Object storage = call(controller, "getMessagesStorage");
         if (storage == null) throw new IllegalStateException("no message storage");
-        int account = ((Number) call(call(controller, "getAccountInstance"), "getCurrentAccount")).intValue();
+        int account = Accounts.indexOf(controller);
+        if (account < 0) throw new IllegalStateException("the controller's account can't be read");
         return new ReactionAlertsBridge(controller, storage, account);
     }
 
@@ -58,23 +59,23 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         Method peerId = method(Class.forName("org.telegram.messenger.MessageObject", true, loader), "getPeerId",
                 Class.forName("org.telegram.tgnet.TLRPC$Peer", true, loader));
         if (type.getName().endsWith("$TL_updateEditMessage")) {
-            Object message = type.getField("message").get(update);
+            Object message = HostNames.field(type, "message").get(update);
             if (message == null) return Collections.emptyList();
             Class<?> kind = message.getClass();
-            if (!kind.getField("out").getBoolean(message)) return Collections.emptyList();
-            Object peer = kind.getField("peer_id").get(message);
+            if (!HostNames.field(kind, "out").getBoolean(message)) return Collections.emptyList();
+            Object peer = HostNames.field(kind, "peer_id").get(message);
             long dialog = peer == null ? 0 : ((Number) peerId.invoke(null, peer)).longValue();
             if (dialog <= 0) return Collections.emptyList();
-            return listed(kind.getField("reactions").get(message), peerId, dialog, kind.getField("id").getInt(message), 0);
+            return listed(HostNames.field(kind, "reactions").get(message), peerId, dialog, HostNames.field(kind, "id").getInt(message), 0);
         }
-        long dialog = ((Number) peerId.invoke(null, type.getField("peer").get(update))).longValue();
-        return listed(type.getField("reactions").get(update), peerId, dialog, type.getField("msg_id").getInt(update),
-                type.getField("top_msg_id").getInt(update));
+        long dialog = ((Number) peerId.invoke(null, HostNames.field(type, "peer").get(update))).longValue();
+        return listed(HostNames.field(type, "reactions").get(update), peerId, dialog, HostNames.field(type, "msg_id").getInt(update),
+                HostNames.field(type, "top_msg_id").getInt(update));
     }
 
     private static List<ReactionAlerts.Reaction> listed(Object reactions, Method peerId, long dialog, int id, int topic) throws Exception {
         if (reactions == null) return Collections.emptyList();
-        Object recent = reactions.getClass().getField("recent_reactions").get(reactions);
+        Object recent = HostNames.field(reactions.getClass(), "recent_reactions").get(reactions);
         if (!(recent instanceof List) || ((List<?>) recent).isEmpty()) return Collections.emptyList();
         ClassLoader loader = reactions.getClass().getClassLoader();
         Class<?> emoji = Class.forName("org.telegram.tgnet.TLRPC$TL_reactionEmoji", true, loader);
@@ -83,14 +84,14 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         for (Object item : new ArrayList<Object>((List<?>) recent)) {
             if (item == null) continue;
             Class<?> kind = item.getClass();
-            Object peer = kind.getField("peer_id").get(item);
-            Object reaction = kind.getField("reaction").get(item);
-            String text = emoji.isInstance(reaction) ? (String) emoji.getField("emoticon").get(reaction) : null;
-            long document = custom.isInstance(reaction) ? custom.getField("document_id").getLong(reaction) : 0;
+            Object peer = HostNames.field(kind, "peer_id").get(item);
+            Object reaction = HostNames.field(kind, "reaction").get(item);
+            String text = emoji.isInstance(reaction) ? (String) HostNames.field(emoji, "emoticon").get(reaction) : null;
+            long document = custom.isInstance(reaction) ? HostNames.field(custom, "document_id").getLong(reaction) : 0;
             long from = peer == null ? 0 : ((Number) peerId.invoke(null, peer)).longValue();
-            boolean mine = (kind.getField("flags").getInt(item) & MY) != 0;
-            found.add(new ReactionAlerts.Reaction(dialog, id, topic, from, text, kind.getField("date").getInt(item),
-                    kind.getField("unread").getBoolean(item), mine, document));
+            boolean mine = (HostNames.field(kind, "flags").getInt(item) & MY) != 0;
+            found.add(new ReactionAlerts.Reaction(dialog, id, topic, from, text, HostNames.field(kind, "date").getInt(item),
+                    HostNames.field(kind, "unread").getBoolean(item), mine, document));
         }
         return found;
     }
@@ -118,8 +119,8 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
             if (!Boolean.TRUE.equals(method(type, "next").invoke(cursor))) return null;
             boolean mine = (Integer) method(type, "intValue", int.class).invoke(cursor, 0) != 0;
             Object message = KeepDeletedBridge.readMessage(cursor, 1);
-            String text = message == null ? null : (String) message.getClass().getField("message").get(message);
-            return new ReactionAlerts.Stored(text, mine || (message != null && message.getClass().getField("out").getBoolean(message)));
+            String text = message == null ? null : (String) HostNames.field(message.getClass(), "message").get(message);
+            return new ReactionAlerts.Stored(text, mine || (message != null && HostNames.field(message.getClass(), "out").getBoolean(message)));
         } finally {
             method(cursor.getClass(), "dispose").invoke(cursor);
         }
@@ -137,7 +138,7 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         boolean group = reaction.dialog < 0;
         Object chat = group ? method(controller.getClass(), "getChat", Long.class).invoke(controller, Long.valueOf(-reaction.dialog)) : null;
         if (group && chat == null) return;
-        String title = group ? (String) chat.getClass().getField("title").get(chat) : null;
+        String title = group ? (String) HostNames.field(chat.getClass(), "title").get(chat) : null;
         boolean channel = group && Boolean.TRUE.equals(method(Class.forName("org.telegram.messenger.ChatObject", true, loader), "isChannel",
                 Class.forName("org.telegram.tgnet.TLRPC$Chat", true, loader)).invoke(null, chat));
         String quoted = quote(text);
@@ -150,7 +151,7 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
             key = quoted.isEmpty() ? "PushReactNoText" : "PushReactText";
             args = quoted.isEmpty() ? new Object[] {who, reaction.emoji} : new Object[] {who, reaction.emoji, quoted};
         }
-        int string = Class.forName("org.telegram.messenger.R$string", true, loader).getField(key).getInt(null);
+        int string = HostNames.resource(loader, "string", key);
         String line = (String) method(Class.forName("org.telegram.messenger.LocaleController", true, loader), "formatString",
                 int.class, Object[].class).invoke(null, string, args);
 
@@ -159,14 +160,14 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         Object peer = !group ? peer(loader, "TL_peerUser", "user_id", reaction.dialog)
                 : channel ? peer(loader, "TL_peerChannel", "channel_id", -reaction.dialog)
                 : peer(loader, "TL_peerChat", "chat_id", -reaction.dialog);
-        messages.getField("id").setInt(message, reaction.id);
-        messages.getField("message").set(message, line);
-        messages.getField("date").setInt(message, reaction.date);
-        messages.getField("dialog_id").setLong(message, reaction.dialog);
-        messages.getField("peer_id").set(message, peer);
-        int flags = messages.getField("flags").getInt(message) | FROM_ID;
-        messages.getField("flags").setInt(message, channel ? flags | SUPERGROUP : flags);
-        messages.getField("from_id").set(message, !group ? peer : reaction.from > 0
+        HostNames.field(messages, "id").setInt(message, reaction.id);
+        HostNames.field(messages, "message").set(message, line);
+        HostNames.field(messages, "date").setInt(message, reaction.date);
+        HostNames.field(messages, "dialog_id").setLong(message, reaction.dialog);
+        HostNames.field(messages, "peer_id").set(message, peer);
+        int flags = HostNames.field(messages, "flags").getInt(message) | FROM_ID;
+        HostNames.field(messages, "flags").setInt(message, channel ? flags | SUPERGROUP : flags);
+        HostNames.field(messages, "from_id").set(message, !group ? peer : reaction.from > 0
                 ? peer(loader, "TL_peerUser", "user_id", reaction.from) : peer(loader, "TL_peerChannel", "channel_id", -reaction.from));
 
         Class<?> objects = Class.forName("org.telegram.messenger.MessageObject", true, loader);
@@ -175,11 +176,11 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
                 .newInstance(account, message, line, group ? title : who, group ? who : null, false, false, channel, false);
         if (reaction.topic != 0) {
             Object reply = Class.forName("org.telegram.tgnet.TLRPC$TL_messageReplyHeader", true, loader).getConstructor().newInstance();
-            reply.getClass().getField("forum_topic").setBoolean(reply, true);
-            reply.getClass().getField("reply_to_top_id").setInt(reply, reaction.topic);
-            messages.getField("reply_to").set(message, reply);
+            HostNames.field(reply.getClass(), "forum_topic").setBoolean(reply, true);
+            HostNames.field(reply.getClass(), "reply_to_top_id").setInt(reply, reaction.topic);
+            HostNames.field(messages, "reply_to").set(message, reply);
         }
-        objects.getField("isReactionPush").setBoolean(shown, true);
+        HostNames.field(objects, "isReactionPush").setBoolean(shown, true);
         ArrayList<Object> list = new ArrayList<>();
         list.add(shown);
         Object notifications = call(controller, "getNotificationsController");
@@ -193,8 +194,10 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         Object loaded = ReactionAlerts.emojiDocument(account, document);
         if (loaded == null) return null;
         ClassLoader loader = controller.getClass().getClassLoader();
+        // 13.2 inlined the two-argument overload into its callers, which pass a null account to this one.
         return (String) method(Class.forName("org.telegram.messenger.MessageObject", true, loader), "findAnimatedEmojiEmoticon",
-                Class.forName("org.telegram.tgnet.TLRPC$Document", true, loader), String.class).invoke(null, loaded, null);
+                Class.forName("org.telegram.tgnet.TLRPC$Document", true, loader), String.class, Integer.class)
+                .invoke(null, loaded, null, null);
     }
 
     /** The reactor's name the way Telegram writes it in a notification, or null when it isn't known. */
@@ -207,7 +210,7 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
                     Class.forName("org.telegram.tgnet.TLRPC$User", true, loader)).invoke(null, user);
         }
         Object chat = method(controller.getClass(), "getChat", Long.class).invoke(controller, Long.valueOf(-from));
-        return chat == null ? null : (String) chat.getClass().getField("title").get(chat);
+        return chat == null ? null : (String) HostNames.field(chat.getClass(), "title").get(chat);
     }
 
     /** The message's text on one line, cut to {@link #QUOTED} characters, or empty for a message without any. */
@@ -222,7 +225,7 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
 
     private static Object peer(ClassLoader loader, String type, String field, long id) throws Exception {
         Object peer = Class.forName("org.telegram.tgnet.TLRPC$" + type, true, loader).getConstructor().newInstance();
-        peer.getClass().getField(field).setLong(peer, id);
+        HostNames.field(peer.getClass(), field).setLong(peer, id);
         return peer;
     }
 
@@ -235,7 +238,7 @@ final class ReactionAlertsBridge implements ReactionAlerts.Source {
         for (Class<?> parameter : parameters) key.append(',').append(parameter.getName());
         Method found = METHODS.get(key.toString());
         if (found == null) {
-            found = owner.getMethod(name, parameters);
+            found = HostNames.method(owner, name, parameters);
             METHODS.put(key.toString(), found);
         }
         return found;

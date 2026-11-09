@@ -9,6 +9,7 @@ import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.telegram.misc.extension.patchLog
 import app.morphe.patches.telegram.misc.maps.ANDROID_NAMESPACE
 import app.morphe.patches.telegram.misc.maps.readResourceXml
 import org.w3c.dom.Document
@@ -33,12 +34,18 @@ private const val BUNDLED = "/hushtelegram/icon"
 
 /**
  * How the adaptive icon looks. The plain styles draw the H and plane alone in [glyph] over
- * [background]; launchers older than Android 8 show the badge whichever is picked.
+ * [background]; launchers older than Android 8 show the badge whichever is picked. [TELEGRAM]
+ * draws nothing and leaves Telegram's own icon in place, for someone who only wants a new name.
  */
-internal enum class IconStyle(val key: String, val label: String, val background: String, val glyph: String?) {
+internal enum class IconStyle(val key: String, val label: String, val background: String?, val glyph: String?) {
     HUSHTELEGRAM("hushtelegram", "HushTelegram colors", ICON_BACKGROUND, null),
     WHITE_ON_BLACK("white-on-black", "White on black", "#FF000000", "#FFFFFFFF"),
     BLACK_ON_WHITE("black-on-white", "Black on white", "#FFFFFFFF", "#FF000000"),
+    TELEGRAM("telegram", "Telegram's own icon", null, null),
+    ;
+
+    /** Whether the style adds HushTelegram's pictures and points the launcher at them. */
+    val drawsIcon get() = background != null
 }
 
 /**
@@ -47,6 +54,7 @@ internal enum class IconStyle(val key: String, val label: String, val background
  * which older versions skip.
  */
 internal fun adaptiveIcon(style: IconStyle): String {
+    val background = requireNotNull(style.background) { "${style.label} keeps Telegram's icon and draws none" }
     // A bitmap's tint keeps only the picture's shape (SRC_IN), so the themed picture becomes the glyph.
     val foreground = when (val glyph = style.glyph) {
         null -> """<foreground android:drawable="@mipmap/${ICON}_foreground" />"""
@@ -56,7 +64,7 @@ internal fun adaptiveIcon(style: IconStyle): String {
         <?xml version="1.0" encoding="utf-8"?>
         <adaptive-icon xmlns:android="$ANDROID_NAMESPACE">
             <background>
-                <color android:color="${style.background}" />
+                <color android:color="$background" />
             </background>
             $foreground
             <monochrome android:drawable="@mipmap/${ICON}_monochrome" />
@@ -68,7 +76,8 @@ internal fun adaptiveIcon(style: IconStyle): String {
 val hushTelegramIconPatch = resourcePatch(
     name = PATCH,
     description = "Gives your patched Telegram HushTelegram's own home screen icon, with a themed version on Android 13 " +
-        "and up, and can change the name under it. An alternate icon picked in Telegram's settings keeps its own " +
+        "and up, and can change the name under it. Pick Telegram's own icon as the icon style to keep Telegram's icon " +
+        "and change only the name. An alternate icon picked in Telegram's settings keeps its own " +
         "look. It isn't selected by default. Turn on Expert mode in Morphe Manager to pick it and name the app. " +
         "Only patching again without it puts Telegram's icon back.",
     default = false,
@@ -84,7 +93,8 @@ val hushTelegramIconPatch = resourcePatch(
         key = "iconStyle", default = IconStyle.HUSHTELEGRAM.key, title = "Icon style",
         values = IconStyle.entries.associate { it.label to it.key },
         description = "HushTelegram colors is the blue badge. The plain styles draw just the H and plane, white on " +
-            "black or black on white, on Android 8 and up. Every style keeps the themed icon on Android 13.",
+            "black or black on white, on Android 8 and up. Every style keeps the themed icon on Android 13. " +
+            "Telegram's own icon leaves Telegram's icon as it is, so only the app name changes.",
         required = true,
     )
     execute { applyHushTelegramIcon(appName, iconStyle) }
@@ -142,13 +152,17 @@ private object HushTelegramIconFiles
 internal fun ResourcePatchContext.applyHushTelegramIcon(rawName: String?, rawStyle: String? = null) {
     val style = checkedIconStyle(rawStyle)
     val name = checkedAppName(rawName)
-    val pictures = bundledIconPictures()
+    if (!style.drawsIcon && name == null) {
+        patchLog.warning("$PATCH: ${style.label} with no app name leaves the icon and name as Telegram has them.")
+        return
+    }
+    val pictures = if (style.drawsIcon) bundledIconPictures() else emptyMap()
     // Checked on a read-only copy first, so a refusal leaves the manifest's bytes alone.
     resolveLaunchers(readResourceXml(this["AndroidManifest.xml"], PATCH))
     // Patcher 2.0 decodes only the files a patch asks for, and an undecoded file doesn't exist yet,
     // so each path is asked for before the check that Telegram has nothing there.
-    addIconFiles(get("res", false), pictures, style) { decode("res/$it") }
-    document("AndroidManifest.xml").use { showIcon(it, name) }
+    if (style.drawsIcon) addIconFiles(get("res", false), pictures, style) { decode("res/$it") }
+    document("AndroidManifest.xml").use { showIcon(it, name, style.drawsIcon) }
 }
 
 /**
@@ -174,15 +188,18 @@ internal fun addIconFiles(
 }
 
 /**
- * Points the application at the icon, and at [name] when there is one. The default launcher entry
- * shows the application's icon and name unless it names its own, and then it gets the new ones too.
+ * Points the application at the icon when [icon] is set, and at [name] when there is one. The
+ * default launcher entry shows the application's icon and name unless it names its own, and then
+ * it gets the new ones too.
  */
-internal fun showIcon(manifest: Document, name: String?) {
+internal fun showIcon(manifest: Document, name: String?, icon: Boolean = true) {
     val (application, defaultIcon) = resolveLaunchers(manifest)
-    application.setAttribute("android:icon", ICON_REFERENCE)
-    application.setAttribute("android:roundIcon", ICON_REFERENCE)
-    for (attribute in listOf("android:icon", "android:roundIcon")) {
-        if (defaultIcon.hasAttribute(attribute)) defaultIcon.setAttribute(attribute, ICON_REFERENCE)
+    if (icon) {
+        application.setAttribute("android:icon", ICON_REFERENCE)
+        application.setAttribute("android:roundIcon", ICON_REFERENCE)
+        for (attribute in listOf("android:icon", "android:roundIcon")) {
+            if (defaultIcon.hasAttribute(attribute)) defaultIcon.setAttribute(attribute, ICON_REFERENCE)
+        }
     }
     if (name != null) {
         application.setAttribute("android:label", name)

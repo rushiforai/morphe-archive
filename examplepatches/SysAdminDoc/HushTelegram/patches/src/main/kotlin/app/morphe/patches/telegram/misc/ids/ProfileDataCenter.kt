@@ -10,6 +10,10 @@ import app.morphe.patches.telegram.misc.extension.writeStub
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.controlShape
 import com.android.tools.smali.dexlib2.AccessFlags
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
 
 internal const val PROFILE_DC = "$EXTENSION_PACKAGE/misc/ProfileDc;"
 internal const val DC_ACCOUNTS = "Lorg/telegram/messenger/UserConfig;"
@@ -30,13 +34,13 @@ internal val PROFILE_DC_TYPES = setOf(DC_ACCOUNTS, DC_PEERS, DC_USER, DC_CHAT, D
 internal fun BytecodePatchContext.resolveProfileDc() {
     controlHook(PROFILE_DC, "userPhotoDc", listOf("J"), "I")
     controlHook(PROFILE_DC, "chatPhotoDc", listOf("J"), "I")
-    controlShape(PROFILE_DC_TYPES.all { type -> classDefByOrNull(type)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true },
+    controlShape(PROFILE_DC_TYPES.all { type -> tgClassDefByOrNull(type)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true },
         "a class the data center row reads is missing or inaccessible")
-    fun field(owner: String, name: String, type: String, static: Boolean) = classDefByOrNull(owner)!!.fields.any {
-        it.name == name && it.type == type && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) == static
+    fun field(owner: String, name: String, type: String, static: Boolean) = tgClassDefByOrNull(owner)!!.fields.any {
+        it.origName == name && it.origType == type && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) == static
     }
-    fun lookup(name: String, parameter: String, result: String, static: Boolean) = classDefByOrNull(DC_PEERS)!!.methods.any {
-        it.name == name && it.parameterTypes.joinToString("") == parameter && it.returnType == result &&
+    fun lookup(name: String, parameter: String, result: String, static: Boolean) = tgClassDefByOrNull(DC_PEERS)!!.methods.any {
+        it.origName == name && it.parameterTypes.joinToString("") == parameter && it.origReturnType == result &&
             AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) == static
     }
     controlShape(field(DC_ACCOUNTS, "selectedAccount", "I", true), "Telegram's selected account changed")

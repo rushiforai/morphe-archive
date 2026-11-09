@@ -1,3 +1,45 @@
+## [1.27.4](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.3...v1.27.4) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** suppress business sign notice ([bb49def](https://github.com/durgesh0505/chiggi_morphe_patches/commit/bb49defacc9e03df808ab73b7ad30fb3a9dd5822))
+
+## [1.27.3](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.2...v1.27.3) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** override runtime security schema ([0c2460b](https://github.com/durgesh0505/chiggi_morphe_patches/commit/0c2460bab9a0000f25d0077b3a02abf7cde8eaae))
+
+## [1.27.2](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.1...v1.27.2) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** enable template API redirect ([3218b93](https://github.com/durgesh0505/chiggi_morphe_patches/commit/3218b933e9386ee7a335d78b0b6c0c1e4af0b4b9))
+
+## [1.27.1](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.0...v1.27.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** mark Ultra expiry as long ([7a0a770](https://github.com/durgesh0505/chiggi_morphe_patches/commit/7a0a770c7deb908919ce7185ef5b8b4ff71e6277))
+
+## [1.27.0](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.26.1...v1.27.0) (2026-11-09)
+
+### ✨ New Features
+
+* **capcut:** add non-expiring Ultra state ([a08e2b1](https://github.com/durgesh0505/chiggi_morphe_patches/commit/a08e2b1f5ae185a1e6ad9ad5e6b63da45cb09a17))
+
+## [1.26.1](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.26.0...v1.26.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** suppress server cracking notice ([2154889](https://github.com/durgesh0505/chiggi_morphe_patches/commit/215488979697b7a7aebc9be3ceb1eb45db6669e3))
+
+## [1.26.0](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.25.0...v1.26.0) (2026-11-09)
+
+### ✨ New Features
+
+* **capcut:** add CapCut 20.0.0 patches ([1c1901b](https://github.com/durgesh0505/chiggi_morphe_patches/commit/1c1901bf95b6ce045ef44da39ee2773687f19f5e))
+
 ## [1.25.0](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.24.0...v1.25.0) (2026-10-18)
 
 ### ✨ New Features

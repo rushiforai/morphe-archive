@@ -39,4 +39,8 @@ public final class IncludedPatches {
     public static boolean redditChat() {
         return false;
     }
+
+    public static boolean accountColors() {
+        return false;
+    }
 }

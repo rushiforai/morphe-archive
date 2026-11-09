@@ -5,6 +5,7 @@
 package app.morphe.patches.telegram.misc.downloadspeed
 
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -22,12 +23,16 @@ import app.morphe.patches.telegram.misc.localcontrols.controlSingle
 import app.morphe.patches.telegram.misc.settings.settingsPatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
+import app.morphe.util.definitionReaches
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val DOWNLOAD_SPEED = "$EXTENSION_PACKAGE/misc/DownloadSpeed;"
 internal const val LOAD_OPERATION = "Lorg/telegram/messenger/FileLoadOperation;"
@@ -45,8 +50,9 @@ val fasterDownloadsPatch = bytecodePatch(
     description = "Downloads files in 512 KB pieces, 8 at a time, the way Telegram already does for accounts its servers " +
         "pick, instead of 128 KB pieces 4 at a time. If a big piece fails, Telegram still drops back to small ones. " +
         "A second switch, Hold automatic downloads on Data Saver, keeps Telegram from downloading media on its own " +
-        "while Android's Data Saver is on and the network is metered. Both start off. Turn them on in HushTelegram " +
-        "settings > Playback.",
+        "while Android's Data Saver is on and the network is metered. A third, Faster uploads, keeps four times as many " +
+        "upload pieces in flight. A fourth, Download manager, runs downloads one at a time in the order you asked and " +
+        "adds a Downloads row to the side menu. All four start off. Turn them on in HushTelegram settings > Playback.",
     default = true,
 ) {
     category("Playback")
@@ -56,9 +62,20 @@ val fasterDownloadsPatch = bytecodePatch(
         val plan = resolveFasterDownloads()
         requireDataSaverRuntime()
         val saver = resolveDataSaverDownloads()
+        // Uploads come second: a build without them keeps faster downloads.
+        requireStatusMethod("fasterUploads")
+        val uploads = try {
+            resolveFasterUploads().also { it.rehearse() }
+        } catch (unfit: PatchException) {
+            patchLog.warning("Faster downloads: ${unfit.message}. Uploads are left as they are.")
+            null
+        }
+        requireDownloadManagerRuntime()
+        val manager = resolveDownloadManager()
         // Assembled on copies first, so a refusal leaves the app untouched.
         insertDownloadSpeedGate(MutableMethod(ImmutableMethod.of(plan.method)), plan)
         if (saver.missing == null) saver.rehearse()
+        if (manager.missing == null) manager.rehearse()
         insertDownloadSpeedGate(plan.method, plan)
         if (saver.missing == null) {
             saver.apply()
@@ -66,6 +83,16 @@ val fasterDownloadsPatch = bytecodePatch(
             enableCapability("dataSaverDownloads")
         } else {
             patchLog.warning("Faster downloads: ${saver.missing}. The patch goes on without holding automatic downloads on Data Saver.")
+        }
+        uploads?.let {
+            it.insert()
+            enableCapability("fasterUploads")
+        }
+        if (manager.missing == null) {
+            manager.apply()
+            enableCapability("downloadManager")
+        } else {
+            patchLog.warning("Faster downloads: ${manager.missing}. The patch goes on without the download manager.")
         }
         enableStatus("fasterDownloads")
     }
@@ -91,20 +118,20 @@ internal fun insertDownloadSpeedGate(target: MutableMethod, plan: FasterDownload
 internal fun BytecodePatchContext.resolveFasterDownloads(): FasterDownloadsPlan {
     requireStatusMethod("fasterDownloads")
     controlHook(DOWNLOAD_SPEED, "fast", listOf("Z"), "Z")
-    val owner = mutableClassDefByOrNull(LOAD_OPERATION)
+    val owner = tgMutableClassDefByOrNull(LOAD_OPERATION)
     controlShape(owner != null, "Telegram's file downloader is missing")
-    val method = owner!!.methods.filter { it.name == "updateParams" && it.parameterTypes.isEmpty() && it.returnType == "V" && it.implementation != null }
+    val method = owner!!.methods.filter { it.origName == "updateParams" && it.parameterTypes.isEmpty() && it.origReturnType == "V" && it.implementation != null }
         .controlSingle("the download piece size choice")
     val body = method.controlBody()
     val read = body.indices.filter { body[it].opcode == Opcode.IGET_BOOLEAN && body[it].controlRef() == EXPERIMENTAL_PARAMS }
         .controlSingle("the server's big-piece flag")
     val register = (body[read] as TwoRegisterInstruction).registerA
-    val small = body.indices.filter { body[it].piece(SMALL_PIECE) && body.getOrNull(it + 1)?.controlRef() == CHUNK_SIZE }
-        .controlSingle("the small-piece tier")
     val flow = ControlFlow.of(method)
     val branch = body.getOrNull(read + 1)
-    controlShape(branch?.opcode == Opcode.IF_EQZ && branch.namedRegisters() == listOf(register) &&
+    val small = flow.normal.getOrNull(read + 1).orEmpty().filter { it != read + 2 }.singleOrNull()
+    controlShape(branch?.opcode == Opcode.IF_EQZ && branch.namedRegisters() == listOf(register) && small != null &&
         flow.normal[read + 1].toSet() == setOf(read + 2, small), "the server's flag no longer picks the piece size")
+    controlShape(smallTier(body, flow, small!!), "the small-piece tier is missing or ambiguous")
     controlShape(flow.normal.indices.none { it != read && (read + 1) in flow.normal[it] },
         "something else jumps to the server's flag check")
     val fallback = body.getOrNull(read + 3)
@@ -119,3 +146,18 @@ internal fun BytecodePatchContext.resolveFasterDownloads(): FasterDownloadsPlan 
 }
 
 private fun Instruction.piece(size: Long) = (this as? WideLiteralInstruction)?.wideLiteral == size
+
+/**
+ * The tier the flag's no goes to starts by storing 128 KB as the piece size: loaded right there, or
+ * (13.2's R8 hoists it) from a register that holds that size on every path into the store. 13.2
+ * writes the register again further on, with a wide conversion of the size, after the store.
+ */
+internal fun smallTier(body: List<Instruction>, flow: ControlFlow, at: Int): Boolean {
+    if (body[at].piece(SMALL_PIECE) && body.getOrNull(at + 1)?.controlRef() == CHUNK_SIZE) return true
+    val store = body[at] as? TwoRegisterInstruction ?: return false
+    if (store.opcode != Opcode.IPUT || store.controlRef() != CHUNK_SIZE) return false
+    return body.indices.any { load ->
+        body[load].piece(SMALL_PIECE) && !body[load].opcode.setsWideRegister() &&
+            body[load].namedRegisters().firstOrNull() == store.registerA && flow.definitionReaches(load, at, store.registerA)
+    }
+}

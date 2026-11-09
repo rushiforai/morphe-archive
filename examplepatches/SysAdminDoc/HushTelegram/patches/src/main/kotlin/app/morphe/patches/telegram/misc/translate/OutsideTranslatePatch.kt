@@ -4,8 +4,11 @@
  */
 package app.morphe.patches.telegram.misc.translate
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origDescriptor
+import app.morphe.util.names.origString
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -45,6 +48,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val OUTSIDE_TRANSLATE = "$EXTENSION_PACKAGE/misc/OutsideTranslate;"
 private const val SHOW = "$OUTSIDE_TRANSLATE->show(Ljava/lang/Object;)Z"
@@ -70,7 +80,7 @@ private const val OBJECT = "Ljava/lang/Object;"
 private const val NAME = "Translate with an outside service"
 
 /** The extension's option numbers, which Telegram's own may never use. */
-internal val TRANSLATE_NUMBERS = listOf(0x48545405, 0x48545406)
+internal val TRANSLATE_NUMBERS = listOf(0x48545405, 0x48545406, 0x48545407)
 
 @Suppress("unused")
 val outsideTranslatePatch = bytecodePatch(
@@ -189,9 +199,9 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
     controlHook(OUTSIDE_TRANSLATE, "chatOf", listOf(OBJECT), OBJECT)
 
     // The message's own decision.
-    val messageClass = mutableClassDefByOrNull(MESSAGE_OBJECT)
+    val messageClass = tgMutableClassDefByOrNull(MESSAGE_OBJECT)
     controlShape(messageClass != null && AccessFlags.PUBLIC.isSet(messageClass.accessFlags), "MessageObject is missing")
-    val update = messageClass!!.methods.filter { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == UPDATE }.controlSingle("updateTranslation")
+    val update = messageClass!!.methods.filter { "${it.origName}${it.origDescriptor}" == UPDATE }.controlSingle("updateTranslation")
     controlShape(AccessFlags.PUBLIC.isSet(update.accessFlags) && !AccessFlags.STATIC.isSet(update.accessFlags) &&
         update.implementation!!.registerCount >= 3 && update.controlBody().any { it.controlRef() == TRANSLATING },
         "updateTranslation no longer asks whether the dialog is being translated")
@@ -202,18 +212,18 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
     val (chat, chatClass, fill, built) = messageMenuBuilder(messageMenuBuilders(), NAME)
 
     // The selected message, as the builder reads it.
-    val selected = built.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.definingClass == chat && f.type == MESSAGE_OBJECT } == true }?.controlField()
+    val selected = built.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.origDefiningClass == chat && f.origType == MESSAGE_OBJECT } == true }?.controlField()
     controlShape(selected != null, "the message menu builder no longer reads the selected message")
-    val selectedField = chatClass.fields.filter { it.name == selected!!.name && it.type == selected.type }.controlSingle("${selected!!.name} field")
+    val selectedField = chatClass.fields.filter { it.origName == selected!!.origName && it.origType == selected.origType }.controlSingle("${selected!!.name} field")
     controlShape(AccessFlags.PUBLIC.isSet(selectedField.accessFlags) && !AccessFlags.STATIC.isSet(selectedField.accessFlags), "${selected.name} is inaccessible")
 
     // The choice handler: a switch on the number that starts from the selected message.
     val choose = chatClass.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.origParameterTypes == listOf("I") &&
             m.controlBody().let { body -> body.any { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH } && body.any { it.controlString() == "hasInvoice" } }
     }.controlSingle("message menu choice")
     val chosen = choose.controlBody()
-    controlShape(chosen.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.type == MESSAGE_OBJECT }?.controlField().toString() == selected.toString(),
+    controlShape(chosen.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.origType == MESSAGE_OBJECT }?.controlField().toString() == selected.toString(),
         "the menu choice no longer starts from the selected message")
     val cases = chosen.filterIsInstance<SwitchPayload>().flatMap { it.switchElements.map { e -> e.key } }
     controlShape(cases.none { it in TRANSLATE_NUMBERS } && built.none { (it as? com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction)?.narrowLiteral in TRANSLATE_NUMBERS },
@@ -224,21 +234,21 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
     // may already have swapped the updater's hidden-bar read for its own, with the same registers.
     val asksHidden = { ref: String? -> ref == BAR_HIDDEN || ref == BAR_HIDDEN_HOOK }
     val visibility = chatClass.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.parameterTypes.isEmpty() &&
+        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.parameterTypes.isEmpty() &&
             m.controlBody().map { it.controlRef() }.let { refs -> refs.any(asksHidden) && DIALOG_TRANSLATABLE in refs }
     }.controlSingle("translate item updater")
     val shown = visibility.controlBody()
-    val translateItem = shown.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.definingClass == chat }?.controlField()
+    val translateItem = shown.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.origDefiningClass == chat }?.controlField()
     controlShape(translateItem != null, "the translate item updater no longer reads the chat's translate item")
-    val itemDeclared = chatClass.fields.filter { it.name == translateItem!!.name && it.type == translateItem.type }.controlSingle("${translateItem!!.name} field")
+    val itemDeclared = chatClass.fields.filter { it.origName == translateItem!!.origName && it.origType == translateItem.origType }.controlSingle("${translateItem!!.name} field")
     controlShape(!AccessFlags.STATIC.isSet(itemDeclared.accessFlags), "${translateItem.name} is static")
     val askAt = shown.indexOfFirst { asksHidden(it.controlRef()) }
     val getter = shown.getOrNull(askAt - 2)?.call()
     controlShape(askAt >= 2 && shown[askAt - 1].opcode == Opcode.MOVE_RESULT_WIDE && shown[askAt - 2].opcode == Opcode.INVOKE_VIRTUAL &&
-        getter != null && getter.parameterTypes.isEmpty() && getter.returnType == "J", "the chat's ID getter changed")
-    val getterOwner = classDefByOrNull(getter!!.definingClass)
+        getter != null && getter.parameterTypes.isEmpty() && getter.origReturnType == "J", "the chat's ID getter changed")
+    val getterOwner = tgClassDefByOrNull(getter!!.definingClass)
     controlShape(getterOwner != null && AccessFlags.PUBLIC.isSet(getterOwner.accessFlags) && getterOwner.methods.any {
-        signature(it) == getter.toString() && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
+        signature(it) == getter.origString() && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
     }, "the chat's ID getter is inaccessible")
     controlShape(visibility.implementation!!.registerCount >= 1 && ControlFlow.of(visibility).normal.none { 0 in it },
         "something jumps back to the start of the translate item updater")
@@ -253,67 +263,67 @@ internal fun BytecodePatchContext.resolveOutsideTranslate(): OutsideTranslateSit
     val made = creator.controlBody()
     val lazyCall = made.getOrNull(put - 2)?.call()
     controlShape(put >= 3 && made[put - 1].opcode == Opcode.MOVE_RESULT_OBJECT && made[put - 2].opcode == Opcode.INVOKE_VIRTUAL && lazyCall != null &&
-        lazyCall.returnType == translateItem.type && lazyCall.parameterTypes.map(CharSequence::toString).let {
+        lazyCall.origReturnType == translateItem.origType && lazyCall.origParameterTypes.let {
             it.size == 3 && it[0] == "I" && it[1] == "I" && it[2] in setOf("Ljava/lang/String;", "Ljava/lang/CharSequence;")
         },
         "the translate item is no longer added with an ID, an icon and a label")
     val receiver = made[put - 2].namedRegisters().first()
     val sourceAt = (put - 3 downTo 0).firstOrNull { i -> made[i].opcode.setsRegister() && (made[i] as? OneRegisterInstruction)?.registerA == receiver }
     val header = sourceAt?.let { made[it].controlField() }
-    controlShape(sourceAt != null && made[sourceAt].opcode == Opcode.IGET_OBJECT && header != null && header.definingClass == chat &&
-        header.type == lazyCall!!.definingClass && (sourceAt + 1 until put - 2).none { branches(made[it].opcode) },
+    controlShape(sourceAt != null && made[sourceAt].opcode == Opcode.IGET_OBJECT && header != null && header.origDefiningClass == chat &&
+        header.origType == lazyCall!!.origDefiningClass && (sourceAt + 1 until put - 2).none { branches(made[it].opcode) },
         "the header menu is no longer read right before the translate item is added")
-    val headerDeclared = chatClass.fields.filter { it.name == header!!.name && it.type == header.type }.controlSingle("${header!!.name} field")
+    val headerDeclared = chatClass.fields.filter { it.origName == header!!.origName && it.origType == header.origType }.controlSingle("${header!!.name} field")
     controlShape(!AccessFlags.STATIC.isSet(headerDeclared.accessFlags), "${header.name} is static")
-    val lazyOwner = classDefByOrNull(lazyCall!!.definingClass)
+    val lazyOwner = tgClassDefByOrNull(lazyCall!!.definingClass)
     controlShape(lazyOwner != null && AccessFlags.PUBLIC.isSet(lazyOwner.accessFlags) && lazyOwner.methods.any {
-        signature(it) == lazyCall.toString() && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
+        signature(it) == lazyCall.origString() && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
     }, "the header menu's item adder is inaccessible")
-    val itemOwner = classDefByOrNull(lazyCall.returnType)
+    val itemOwner = tgClassDefByOrNull(lazyCall.returnType)
     controlShape(itemOwner != null && AccessFlags.PUBLIC.isSet(itemOwner.accessFlags), "the header item's class is inaccessible")
     // R8 renames Item.setText, unlike the submenu view's TextView override. Bind the wrapper's
     // label setter by its argument and field write, then require it to update the visible text.
     val setHeaderText = itemOwner!!.methods.filter {
-        it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/CharSequence;") && it.returnType == "V" &&
+        it.origParameterTypes == listOf("Ljava/lang/CharSequence;") && it.origReturnType == "V" &&
             it.controlBody().any { instruction -> instruction.opcode == Opcode.IPUT_OBJECT && instruction.controlField()?.let { field ->
-                field.definingClass == itemOwner.type && field.type == "Ljava/lang/CharSequence;"
+                field.origDefiningClass == itemOwner.origType && field.origType == "Ljava/lang/CharSequence;"
             } == true }
     }.controlSingle("the header item's text setter in ${itemOwner.type}")
     controlShape(AccessFlags.PUBLIC.isSet(setHeaderText.accessFlags) && !AccessFlags.STATIC.isSet(setHeaderText.accessFlags) &&
         !AccessFlags.ABSTRACT.isSet(setHeaderText.accessFlags) && !AccessFlags.NATIVE.isSet(setHeaderText.accessFlags),
         "the header item's text setter is inaccessible")
     controlShape(setHeaderText.controlBody().any { instruction -> instruction.call()?.let { method ->
-        method.name == "setText" && method.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/CharSequence;") && method.returnType == "V"
+        method.origName == "setText" && method.origParameterTypes == listOf("Ljava/lang/CharSequence;") && method.origReturnType == "V"
     } == true }, "the header item's text setter no longer updates its view")
 
     // The header's click delegate, the one that calls Telegram's own translate toggle.
     val delegates = mutableListOf<Pair<String, String>>()
     forEachClassMentioning(Mention.reference(TOGGLE)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/") || cls.type == TRANSLATE_CONTROLLER) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/") || cls.origType == TRANSLATE_CONTROLLER) return@forEachClassMentioning
         cls.methods.forEach { m ->
-            if (!AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+            if (!AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.origParameterTypes == listOf("I") &&
                 m.controlBody().any { it.controlRef() == TOGGLE }) delegates += cls.type to signature(m)
         }
     }
     val (delegateType, delegateSignature) = delegates.controlSingle("header click delegate")
-    val delegateClass = mutableClassDefBy(delegateType)
+    val delegateClass = tgMutableClassDefBy(delegateType)
     controlShape(AccessFlags.PUBLIC.isSet(delegateClass.accessFlags), "the header click delegate is inaccessible")
     val delegate = delegateClass.methods.single { signature(it) == delegateSignature }
     controlShape(delegate.implementation!!.registerCount >= 3 && ControlFlow.of(delegate).normal.none { 0 in it },
         "something jumps back to the start of the header click delegate")
     delegate.requireThisIntact(NAME, listOf(0))
     delegate.requireParameterIntact(NAME, 0, listOf(0))
-    val outer = delegateClass.fields.filter { it.type == chat && !AccessFlags.STATIC.isSet(it.accessFlags) }.controlSingle("the delegate's chat field")
+    val outer = delegateClass.fields.filter { it.origType == chat && !AccessFlags.STATIC.isSet(it.accessFlags) }.controlSingle("the delegate's chat field")
     controlShape(AccessFlags.PUBLIC.isSet(outer.accessFlags), "the delegate's chat field is inaccessible")
 
     // The account the chat screen is in, from the public getter on Telegram's base screen class,
     // which R8 renames per build (s2 on the web build) but leaves this name on.
-    val accountGetter = superclassChain(chat).mapNotNull { classDefByOrNull(it) }
+    val accountGetter = superclassChain(chat).mapNotNull { tgClassDefByOrNull(it) }
         .flatMap { it.methods.asSequence() }
-        .firstOrNull { it.name == "getCurrentAccount" && it.parameterTypes.isEmpty() && it.returnType == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) }
+        .firstOrNull { it.origName == "getCurrentAccount" && it.parameterTypes.isEmpty() && it.origReturnType == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) }
     controlShape(accountGetter != null && AccessFlags.PUBLIC.isSet(accountGetter.accessFlags) &&
-        classDefByOrNull(accountGetter.definingClass)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true &&
-        accountGetter.controlBody().any { it.opcode == Opcode.IGET && it.controlField()?.let { f -> f.name == "currentAccount" && f.type == "I" } == true },
+        tgClassDefByOrNull(accountGetter.definingClass)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } == true &&
+        accountGetter.controlBody().any { it.opcode == Opcode.IGET && it.controlField()?.let { f -> f.origName == "currentAccount" && f.origType == "I" } == true },
         "the chat screen no longer says which account it's in")
 
     requireTranslateHostMembers()
@@ -340,8 +350,8 @@ private fun BytecodePatchContext.requireTranslateHostMembers() {
     controlMembers(LOCALES, "static getInstance()$LOCALES", "getCurrentLocale()Ljava/util/Locale;")
     controlMembers(DRAWABLES, "static msg_translate:I")
     // An empty list to start with, which the stub relies on for entities the text doesn't have.
-    val text = classDefByOrNull(TL_TEXT)!!
-    controlShape(text.methods.single { it.name == "<init>" && it.parameterTypes.isEmpty() }.controlBody().any { it.controlRef() == "Ljava/util/ArrayList;-><init>()V" },
+    val text = tgClassDefByOrNull(TL_TEXT)!!
+    controlShape(text.methods.single { it.origName == "<init>" && it.parameterTypes.isEmpty() }.controlBody().any { it.controlRef() == "Ljava/util/ArrayList;-><init>()V" },
         "$TL_TEXT no longer starts with an empty entity list")
 }
 
@@ -514,4 +524,4 @@ internal fun BytecodePatchContext.writeOutsideTranslateStubs(site: OutsideTransl
     """)
 }
 
-private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
+private fun signature(m: Method) = m.origString()

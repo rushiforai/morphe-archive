@@ -889,6 +889,10 @@ Left alone: %s	Não traduzidos: %s
 Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold it back. Reel captions have their own switch under Reels and Watch.	As publicações do feed mostram todo o texto, então não precisa tocar em Ver mais. Toque no texto para recolhê-lo de novo. As legendas dos reels têm um botão próprio em Reels e Watch.
 Show full reel captions	Mostrar a legenda completa dos reels
 Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	Legendas longas dos reels mostram todo o texto logo de cara. Toque na legenda para recolhê-la de novo. A mudança vale a partir do próximo reel.
+# context: switch title under Reels and Watch, below Show full reel captions; once a reel's caption is opened, a dark see-through box sits behind its text, like movie subtitles
+Dark box behind open captions	Fundo escuro atrás das legendas abertas
+# context: summary of that switch
+An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Uma legenda de reel aberta fica sobre uma caixa escura, como as legendas de filme, para ser fácil de ler sobre um vídeo claro. A mudança vale a partir do próximo reel.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Ver quem compartilhou
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Adiciona Ver quem compartilhou ao menu de uma publicação. Abre a lista do Facebook com as pessoas que a compartilharam.
@@ -1828,6 +1832,14 @@ Watch again at the end of a feed video plays it again right there, instead of op
 Open saved videos in the video player	Abrir vídeos salvos no player de vídeo
 # context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
 A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	Um vídeo que você toca em Salvos é reproduzido no player de vídeo em vez do Reels, onde o próximo deslize traz um reel sugerido.
+# context: switch title under Reels and Watch; on, a reel opened from Facebook's Saved list goes on to the next saved video when it ends or is swiped past, instead of Facebook's suggested reels
+Play saved videos in a row	Reproduzir vídeos salvos em sequência
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel.	Um vídeo que você abre em Salvos passa para o próximo de Salvos quando termina ou quando você desliza para cima, em vez de um reel sugerido.
+# context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
+Skip "Are you still watching?"	Pular "Você ainda está assistindo?"
+# context: summary of that switch; reels and videos go on to the next one by themselves
+Reels and videos keep going to the next one without pausing to ask if you're still watching.	Reels e vídeos continuam passando para o próximo sem parar para perguntar se você ainda está assistindo.
 Hide the new comments pop-up	Ocultar o aviso de novos comentários
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	A bolha de “novos comentários” não aparece mais enquanto você lê os comentários. Os novos comentários continuam aparecendo na lista.
@@ -2482,3 +2494,25 @@ Hide profile pictures on posts	Ocultar fotos de perfil nas publicações
 Hide profile pictures in comments	Ocultar fotos de perfil nos comentários
 Takes the profile picture off the top of posts, so the name starts where the picture was. A change shows on the posts drawn after it.	Tira a foto de perfil do topo das publicações, então o nome começa onde a foto estava. Uma mudança aparece nas publicações que aparecerem depois dela.
 Takes the profile picture off comments, so the name and text start where the picture was. A change shows on the comments drawn after it.	Tira a foto de perfil dos comentários, então o nome e o texto começam onde a foto estava. Uma mudança aparece nos comentários que aparecerem depois dela.
+Search comments	Pesquisar comentários
+Previous match	Resultado anterior
+Next match	Próximo resultado
+Close search	Fechar pesquisa
+No matches	Nenhum resultado
+No more matches	Não há mais resultados
+Not found yet	Ainda não encontrado
+A magnifier at the top of the comments opens a search box that finds the comments with your words.	Uma lupa no topo dos comentários abre uma caixa de pesquisa que encontra os comentários com as suas palavras.
+Open shared reels on their own	Abrir reels compartilhados sozinhos
+A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Um reel que você abre por um link em outro app ou em uma conversa toca sozinho, sem outros reels para deslizar depois.
+Light bars on the Reels tab	Barras claras na aba Reels
+In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	No modo claro, a aba Reels mantém a mesma barra de status, barra superior e barra de abas claras das outras abas, em vez de deixá-las escuras.
+Bar opacity	Opacidade das barras
+How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	Quanto da cor as barras transparentes mantêm, em porcentagem, de %1$s a %2$s. Um valor menor deixa aparecer mais do feed e do desfoque. Deixe em branco para usar %3$s, ou %4$s sobre o desfoque.
+The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	As barras mantêm %1$s por cento da cor, ou %2$s por cento sobre o desfoque. Digite um número para mudar.
+The see-through bars keep %1$s percent of their color.	As barras transparentes mantêm %1$s por cento da cor.
+Tab bar width	Largura da barra de abas
+Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Porcentagem da largura da tela, de %1$s a %2$s. Os ícones crescem e encolhem junto. Deixe em branco para usar %3$s.
+The rounded tab bar is %1$s percent of the screen wide.	A barra de abas arredondada ocupa %1$s por cento da largura da tela.
+Tab bar height	Altura da barra de abas
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Porcentagem da altura total que a barra de abas arredondada mantém, de %1$s a %2$s, cortada acima e abaixo dos ícones. Deixe em branco para usar %3$s.
+The rounded tab bar keeps %1$s percent of its height.	A barra de abas arredondada mantém %1$s por cento da altura.

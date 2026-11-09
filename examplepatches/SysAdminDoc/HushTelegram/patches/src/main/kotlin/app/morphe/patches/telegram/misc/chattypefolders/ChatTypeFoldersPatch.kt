@@ -4,6 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.chattypefolders
 
+import app.morphe.util.names.origString
+import app.morphe.util.names.origDescriptor
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -23,7 +25,22 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.value.IntEncodedValue
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefByOrNull
+import app.morphe.util.namedRegisters
+import app.morphe.patches.telegram.misc.localcontrols.Mention
+import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 internal const val CHAT_TYPE_FOLDERS = "$EXTENSION_PACKAGE/misc/ChatTypeFolders;"
 private const val STRING = "Ljava/lang/String;"
@@ -111,6 +128,115 @@ internal val TYPE_FLAGS = listOf(
     "$MESSAGES_CONTROLLER->DIALOG_FILTER_FLAG_CHANNELS:I" to 8,
     "$MESSAGES_CONTROLLER->DIALOG_FILTER_FLAG_BOTS:I" to 16,
 )
+/** Every chat type bit at once, the one of these constants 13.2 still keeps as a field. */
+internal const val ALL_CHATS_FLAG = "$MESSAGES_CONTROLLER->DIALOG_FILTER_FLAG_ALL_CHATS:I"
+internal const val STORAGE_QUEUE = "$STORAGE->storageQueue:Lorg/telegram/messenger/DispatchQueue;"
+
+/**
+ * 13.2 inlines saveDialogFilter and deleteDialogFilter into their callers, which read the storage queue
+ * and post one of R8's merged lambdas there, its case [key] running the internal save or delete. A stub
+ * posts the same lambda with the same case. [roles] says what each constructor parameter gets:
+ * "storage", "filter", "flag" (false, as the stubs save) or "key". Every reference is the build's own,
+ * as read: the queue's class has no name of its own in every table.
+ */
+internal data class PostedFolderStorage(val queue: String, val lambda: String, val init: String, val post: String,
+    val key: Int, val roles: List<String>) {
+    /** The post, with the storage and folder in [storage] and [filter], false in [zero], and three free registers from [free]. */
+    fun smali(storage: Int, filter: Int, zero: Int, free: Int): String {
+        val passed = roles.map { when (it) { "storage" -> storage; "filter" -> filter; "flag" -> zero; else -> free + 2 } }
+        val load = if (key in Short.MIN_VALUE..Short.MAX_VALUE) "const/16" else "const"
+        return """
+            iget-object v$free, v$storage, $queue
+            new-instance v${free + 1}, $lambda
+            $load v${free + 2}, $key
+            invoke-direct {v${free + 1}, ${passed.joinToString { "v$it" }}}, $init
+            invoke-virtual {v$free, v${free + 1}}, $post
+        """
+    }
+}
+
+/** How the stubs save and delete a folder: Telegram's own storage methods where [save] and [delete] are null. */
+internal class ChatTypeFoldersSite(val post: String, val save: PostedFolderStorage?, val delete: PostedFolderStorage?)
+
+/** A read of MessagesStorage's storage queue, whatever the queue's class is called. */
+internal fun Instruction.readsStorageQueue() = opcode == Opcode.IGET_OBJECT &&
+    ((this as ReferenceInstruction).reference as FieldReference).let { it.origDefiningClass == STORAGE && it.origName == "storageQueue" }
+
+/**
+ * Where [key]'s case of the first switch in [body] starts, or null. A key the table doesn't list runs
+ * on from the switch, which is where R8 puts one of a merged lambda's cases (Play's 13.2 folder delete).
+ */
+internal fun switchCaseStart(body: List<Instruction>, key: Int): Int? {
+    val at = IntArray(body.size + 1).also { a -> body.forEachIndexed { i, instruction -> a[i + 1] = a[i] + instruction.codeUnits } }
+    val switch = body.indexOfFirst { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH }
+    if (switch < 0) return null
+    val payload = body.getOrNull(at.indexOf(at[switch] + (body[switch] as OffsetInstruction).codeOffset)) as? SwitchPayload ?: return null
+    val offset = payload.switchElements.singleOrNull { it.key == key }?.offset ?: return (switch + 1).takeIf { it in body.indices }
+    return at.indexOf(at[switch] + offset).takeIf { it in body.indices }
+}
+
+/**
+ * Null where MessagesStorage keeps [method]; else the one lambda Telegram posts on the storage queue in
+ * its place, whose case calls the storage's internal [what] with [internal] as its parameters.
+ */
+private fun BytecodePatchContext.postedFolderStorage(method: String, what: String, internal: List<String>): PostedFolderStorage? {
+    if (tgClassDefByOrNull(STORAGE)?.methods?.any { it.origString() == method } != false) return null
+    val found = mutableSetOf<PostedFolderStorage>()
+    forEachClassMentioning(Mention.reference(STORAGE_QUEUE) and Mention.type(LOCAL_FILTER)) { cls ->
+        cls.methods.forEach { m ->
+            val body = m.controlBody()
+            for (i in body.indices) {
+                if (!body[i].readsStorageQueue()) continue
+                val (queue, storage) = (body[i] as TwoRegisterInstruction).let { it.registerA to it.registerB }
+                val made = body.getOrNull(i + 1)?.takeIf { it.opcode == Opcode.NEW_INSTANCE } ?: continue
+                val lambda = ((made as ReferenceInstruction).reference as TypeReference).type
+                val build = (i + 2..minOf(i + 4, body.lastIndex)).firstOrNull { body[it].opcode == Opcode.INVOKE_DIRECT } ?: continue
+                val init = body[build].call() ?: continue
+                val passed = body[build].namedRegisters()
+                val lambdaRegister = (made as OneRegisterInstruction).registerA
+                if (init.definingClass != lambda || init.name != "<init>" || passed.firstOrNull() != lambdaRegister) continue
+                val posted = body.getOrNull(build + 1) ?: continue
+                if (posted.opcode != Opcode.INVOKE_VIRTUAL || posted.namedRegisters() != listOf(queue, lambdaRegister) ||
+                    posted.call()?.parameterTypes?.map { it.toString() } != listOf("Ljava/lang/Runnable;")) continue
+                val constants = (i + 2 until build).mapNotNull { at ->
+                    (body[at] as? NarrowLiteralInstruction)?.let { (body[at] as OneRegisterInstruction).registerA to it.narrowLiteral }
+                }.toMap()
+                val roles = init.parameterTypes.mapIndexed { n, type ->
+                    val register = passed.getOrNull(n + 1)
+                    when {
+                        type.toString() == "I" && register in constants -> "key"
+                        type.toString() == "Z" -> "flag"
+                        !type.startsWith("L") -> "?"
+                        register == storage -> "storage"
+                        else -> "filter"
+                    }
+                }
+                if (listOf("storage", "filter", "key").any { role -> roles.count { it == role } != 1 } || roles.count { it == "flag" } > 1 || "?" in roles) continue
+                val key = constants.getValue(passed[roles.indexOf("key") + 1])
+                // The case for that key calls the storage's internal save or delete, itself or, on Play's 13.2,
+                // through a method of the lambda's own that the case calls alone.
+                val lambdaClass = tgClassDefByOrNull(lambda) ?: continue
+                val run = lambdaClass.methods.singleOrNull { it.name == "run" && it.parameterTypes.isEmpty() }?.controlBody().orEmpty()
+                val start = switchCaseStart(run, key) ?: continue
+                var case = run.drop(start).take(12).takeWhile { it.opcode != Opcode.RETURN_VOID && it.opcode != Opcode.GOTO }
+                case.singleOrNull()?.takeIf { it.opcode == Opcode.INVOKE_DIRECT }?.call()
+                    ?.takeIf { it.definingClass == lambda && it.parameterTypes.isEmpty() }?.let { own ->
+                        case = lambdaClass.methods.singleOrNull { it.name == own.name && it.parameterTypes.isEmpty() }?.controlBody().orEmpty().take(12)
+                    }
+                if (case.none { c -> c.opcode == Opcode.INVOKE_VIRTUAL && c.call()?.let { call ->
+                        call.origDefiningClass == STORAGE && call.origParameterTypes == internal && call.returnType == "V" } == true }) continue
+                found += PostedFolderStorage((body[i] as ReferenceInstruction).reference.toString(), lambda, init.toString(),
+                    posted.call().toString(), key, roles)
+            }
+        }
+    }
+    controlShape(found.size == 1, "Telegram's folder $what is missing or ambiguous (${found.size} posts)")
+    val site = found.single()
+    requireReachable(site.queue, false)
+    requireReachable(site.init, false)
+    requireReachable(site.post, false)
+    return site
+}
 
 @Suppress("unused")
 val chatTypeFoldersPatch = bytecodePatch(
@@ -124,8 +250,7 @@ val chatTypeFoldersPatch = bytecodePatch(
     dependsOn(settingsPatch, telegramExtensionPatch)
     compatibleWith(*AppCompatibilities.telegram())
     execute {
-        val post = resolveChatTypeFolders()
-        writeChatTypeFolderStubs(post)
+        writeChatTypeFolderStubs(resolveChatTypeFolders())
         enableStatus("chatTypeFolders")
     }
 }
@@ -140,7 +265,12 @@ private const val FOLDER_AT = """
     check-cast v0, $LOCAL_FILTER
 """
 
-private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
+/** A save of the folder in [filter] with storage in [storage], false in [zero] and three registers free from [free]. */
+private fun ChatTypeFoldersSite.saveFolder(storage: Int, filter: Int, zero: Int, free: Int) =
+    save?.smali(storage, filter, zero, free) ?: "const/4 v$free, 0x1\ninvoke-virtual {v$storage, v$filter, v$zero, v$free}, $SAVE_FILTER"
+
+private fun BytecodePatchContext.writeChatTypeFolderStubs(site: ChatTypeFoldersSite) {
+    val post = site.post
     writeStub(CHAT_TYPE_FOLDERS, "selectedAccount", 1, """
         sget v0, $SELECTED_ACCOUNT
         return v0
@@ -299,7 +429,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
     """)
     // What Telegram's folder screen does with a new folder, called here once the server has it: into
     // the list at the end and the database, with its unread count to be worked out, then the tabs redrawn.
-    writeStub(CHAT_TYPE_FOLDERS, "addFolder", 8, """
+    writeStub(CHAT_TYPE_FOLDERS, "addFolder", 10, """
         new-instance v0, $LOCAL_FILTER
         invoke-direct {v0}, $LOCAL_INIT
         iput p1, v0, $LOCAL_ID
@@ -315,8 +445,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
         invoke-virtual {v1, v0, v2}, $ADD_FILTER
         invoke-static {p0}, $STORAGE_INSTANCE
         move-result-object v1
-        const/4 v3, 0x1
-        invoke-virtual {v1, v0, v2, v3}, $SAVE_FILTER
+        ${site.saveFolder(1, 0, 2, 3)}
         invoke-static {p0}, $NOTIFICATIONS_INSTANCE
         move-result-object v1
         sget v2, $FILTERS_UPDATED
@@ -337,7 +466,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
         invoke-virtual {v1, v0, p2}, $SEND_REQUEST
         return-void
     """)
-    writeStub(CHAT_TYPE_FOLDERS, "dropFolder", 4, """
+    writeStub(CHAT_TYPE_FOLDERS, "dropFolder", 7, """
         invoke-static {p0}, $CONTROLLER_INSTANCE
         move-result-object v0
         iget-object v1, v0, $FILTERS_BY_ID
@@ -348,7 +477,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
         invoke-virtual {v0, v1}, $REMOVE_FILTER
         invoke-static {p0}, $STORAGE_INSTANCE
         move-result-object v0
-        invoke-virtual {v0, v1}, $DELETE_FILTER
+        ${site.delete?.smali(0, 1, 0, 2) ?: "invoke-virtual {v0, v1}, $DELETE_FILTER"}
         :hush_gone
         return-void
     """)
@@ -375,6 +504,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
         add-int/lit8 v4, v4, 0x1
         goto :hush_next
         :hush_send
+        invoke-static {v0}, $CHAT_TYPE_FOLDERS->outgoingOrder(Ljava/lang/Object;)V
         invoke-static {p0}, $CONNECTIONS_INSTANCE
         move-result-object v2
         check-cast p1, $REQUEST_DELEGATE
@@ -393,7 +523,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
     """)
     // What loading the server's list does to a folder's color: set, saved as Telegram's folder screen saves
     // an edit, and the tabs redrawn.
-    writeStub(CHAT_TYPE_FOLDERS, "setFolderColor", 7, """
+    writeStub(CHAT_TYPE_FOLDERS, "setFolderColor", 9, """
         invoke-static {p0}, $CONTROLLER_INSTANCE
         move-result-object v0
         iget-object v0, v0, $FILTERS_BY_ID
@@ -405,8 +535,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
         invoke-static {p0}, $STORAGE_INSTANCE
         move-result-object v1
         const/4 v2, 0x0
-        const/4 v3, 0x1
-        invoke-virtual {v1, v0, v2, v3}, $SAVE_FILTER
+        ${site.saveFolder(1, 0, 2, 3)}
         invoke-static {p0}, $NOTIFICATIONS_INSTANCE
         move-result-object v1
         sget v2, $FILTERS_UPDATED
@@ -427,7 +556,7 @@ private fun BytecodePatchContext.writeChatTypeFolderStubs(post: String) {
  *
  * @return the post method's reference
  */
-internal fun BytecodePatchContext.resolveChatTypeFolders(): String {
+internal fun BytecodePatchContext.resolveChatTypeFolders(): ChatTypeFoldersSite {
     requireStatusMethod("chatTypeFolders")
     controlHook(CHAT_TYPE_FOLDERS, "selectedAccount", emptyList(), "I")
     controlHook(CHAT_TYPE_FOLDERS, "signedIn", listOf("I"), "Z")
@@ -448,26 +577,27 @@ internal fun BytecodePatchContext.resolveChatTypeFolders(): String {
     controlHook(CHAT_TYPE_FOLDERS, "deleteFolder", listOf("I", "I", OBJECT), "V")
     controlHook(CHAT_TYPE_FOLDERS, "dropFolder", listOf("I", "I"), "V")
     controlHook(CHAT_TYPE_FOLDERS, "sendFolderOrder", listOf("I", OBJECT), "V")
+    controlHook(CHAT_TYPE_FOLDERS, "outgoingOrder", listOf(OBJECT), "V")
     controlHook(CHAT_TYPE_FOLDERS, "fetchFolders", listOf("I", OBJECT), "V")
     controlHook(CHAT_TYPE_FOLDERS, "setFolderColor", listOf("I", "I", "I"), "V")
 
     // Telegram calls a request's callback through RequestDelegate's one method, and the extension answers
     // it with a Proxy that knows only that method, so the interface has to be exactly that.
-    val delegate = mutableClassDefByOrNull(REQUEST_DELEGATE)
+    val delegate = tgMutableClassDefByOrNull(REQUEST_DELEGATE)
     controlShape(delegate != null && AccessFlags.PUBLIC.isSet(delegate.accessFlags) &&
         AccessFlags.INTERFACE.isSet(delegate.accessFlags) &&
-        delegate.methods.map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" } == listOf(DELEGATE_RUN),
+        delegate.methods.map { "${it.origName}${it.origDescriptor}" } == listOf(DELEGATE_RUN),
         "Telegram's request callback changed")
 
-    val controller = mutableClassDefByOrNull(MESSAGES_CONTROLLER)
+    val controller = tgMutableClassDefByOrNull(MESSAGES_CONTROLLER)
     controlShape(controller != null, "MessagesController is missing")
     // A starting value the compiler moved into the class's static values, or failing that, the last
     // constant the register held when the static initializer puts it, straight through.
     val stored = mutableMapOf<String, Int?>()
     for (field in controller!!.staticFields) {
-        (field.initialValue as? IntEncodedValue)?.let { stored["$MESSAGES_CONTROLLER->${field.name}:${field.type}"] = it.value }
+        (field.initialValue as? IntEncodedValue)?.let { stored[field.origString()] = it.value }
     }
-    val init = controller.methods.singleOrNull { it.name == "<clinit>" }?.controlBody().orEmpty()
+    val init = controller.methods.singleOrNull { it.origName == "<clinit>" }?.controlBody().orEmpty()
     val constants = mutableMapOf<Int, Int>()
     for (instruction in init) {
         val register = (instruction as? OneRegisterInstruction)?.registerA ?: continue
@@ -475,22 +605,34 @@ internal fun BytecodePatchContext.resolveChatTypeFolders(): String {
             instruction.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) ->
                 constants[register] = (instruction as NarrowLiteralInstruction).narrowLiteral
             instruction.opcode == Opcode.SPUT -> instruction.controlRef()?.let { stored[it] = constants[register] }
+            // 13.2 builds ALL_CHATS by or-ing its bits together.
+            instruction.opcode in setOf(Opcode.OR_INT_LIT8, Opcode.OR_INT_LIT16) -> {
+                val from = constants[(instruction as TwoRegisterInstruction).registerB]
+                if (from == null) constants.remove(register) else constants[register] = from or (instruction as NarrowLiteralInstruction).narrowLiteral
+            }
+            instruction.opcode == Opcode.OR_INT_2ADDR -> {
+                val (a, b) = constants[register] to constants[(instruction as TwoRegisterInstruction).registerB]
+                if (a == null || b == null) constants.remove(register) else constants[register] = a or b
+            }
             else -> constants.remove(register)
         }
     }
-    controlShape(TYPE_FLAGS.all { (field, bit) -> stored[field] == bit }, "Telegram's folder chat type flags changed")
+    // 13.2 folds the five chat type constants into their uses and keeps only ALL_CHATS, their union.
+    val typeFields = TYPE_FLAGS.map { it.first }
+    controlShape(if (controller.staticFields.any { it.origString() in typeFields }) TYPE_FLAGS.all { (field, bit) -> stored[field] == bit }
+        else stored[ALL_CHATS_FLAG] == TYPE_FLAGS.sumOf { it.second }, "Telegram's folder chat type flags changed")
 
     // removeFilter reads dialogFiltersUpdated and hands it straight to NotificationCenter's post.
-    val remove = controller.methods.singleOrNull { it.toString() == REMOVE_FILTER }?.controlBody().orEmpty()
+    val remove = controller.methods.singleOrNull { it.origString() == REMOVE_FILTER }?.controlBody().orEmpty()
     val read = remove.indexOfFirst { it.opcode == Opcode.SGET && it.controlRef() == FILTERS_UPDATED }
     val post = if (read < 0) null else remove.drop(read + 1).firstOrNull { it.opcode == Opcode.INVOKE_VIRTUAL }?.call()
-    controlShape(post != null && post.definingClass == NOTIFICATIONS &&
+    controlShape(post != null && post.origDefiningClass == NOTIFICATIONS &&
         post.controlShape(listOf("I", "[Ljava/lang/Object;"), "V"), "Telegram's folder list update changed")
 
     for ((reference, static) in listOf(SELECTED_ACCOUNT to true, USER_CONFIG_INSTANCE to true, CLIENT_ACTIVATED to false,
         CLIENT_USER_ID to false, IS_PREMIUM to false, CONTROLLER_INSTANCE to true, FILTERS to false, FILTERS_LOADED to false,
         LIMIT_DEFAULT to false, LIMIT_PREMIUM to false, FILTERS_BY_ID to false, ADD_FILTER to false, REMOVE_FILTER to false,
-        STORAGE_INSTANCE to true, SAVE_FILTER to false, DELETE_FILTER to false, NOTIFICATIONS_INSTANCE to true,
+        STORAGE_INSTANCE to true, NOTIFICATIONS_INSTANCE to true,
         FILTERS_UPDATED to true, post.toString() to false, LOCAL_INIT to false, LOCAL_ID to false, LOCAL_FLAGS to false,
         LOCAL_NAME to false, LOCAL_COLOR to false, LOCAL_UNREAD to false, LOCAL_PENDING_UNREAD to false,
         LOCAL_ALWAYS to false, LOCAL_NEVER to false, LOCAL_ENTITIES to false, LOCAL_PINNED to false, PINS_SIZE to false,
@@ -502,5 +644,9 @@ internal fun BytecodePatchContext.resolveChatTypeFolders(): String {
         SERVER_FILTERS_LIST to false, FILTER_FLAGS to false, FILTER_COLOR to false)) {
         requireReachable(reference, static)
     }
-    return post.toString()
+    val save = postedFolderStorage(SAVE_FILTER, "save", listOf(LOCAL_FILTER, "Z"))
+    if (save == null) requireReachable(SAVE_FILTER, false)
+    val delete = postedFolderStorage(DELETE_FILTER, "delete", listOf(LOCAL_FILTER))
+    if (delete == null) requireReachable(DELETE_FILTER, false)
+    return ChatTypeFoldersSite(post.toString(), save, delete)
 }

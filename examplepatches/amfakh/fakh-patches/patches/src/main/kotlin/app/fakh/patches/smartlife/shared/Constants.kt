@@ -10,7 +10,7 @@ object Constants {
         packageName = "com.tuya.smartlife",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0xFF5A1F,
-        targets = listOf(AppTarget(version = "7.12.3", versionCode = 877)),
+        targets = listOf(AppTarget(version = "7.12.3", versionCode = 877), AppTarget(version = "7.12.6", versionCode = 880)),
     )
 
     val COMPATIBILITY_TUYA_SMART = Compatibility(

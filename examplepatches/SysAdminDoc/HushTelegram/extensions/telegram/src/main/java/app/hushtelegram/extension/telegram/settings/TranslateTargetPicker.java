@@ -32,9 +32,10 @@ import app.hushtelegram.extension.telegram.misc.TranslateTarget;
 /**
  * The language the outside translate writes in (#35): Telegram's language, or any language
  * Google's web translate knows, found by typing its name in any of the languages the list shows.
- * A pick is saved off the main thread, and the list closes once it has landed.
+ * A pick is saved off the main thread, and the list closes once it has landed. The same list opens
+ * from a chat's menu, so the language can change without a trip to the settings.
  */
-final class TranslateTargetPicker {
+public final class TranslateTargetPicker {
     static final String KEY = "action_translate_target";
     /** The search field's and the list's tags, for the tests. */
     static final String SEARCH = "hushtelegram_translate_target_search";
@@ -91,6 +92,18 @@ final class TranslateTargetPicker {
 
     /** Opens the list over the settings page, with the saved language checked. The row's summary follows what's saved. */
     static AlertDialog open(Activity activity, Preference row) {
+        return show(activity, () -> row.setSummary(summary(Settings.TRANSLATE_TARGET.savedValue())));
+    }
+
+    /**
+     * Opens the list over a chat. [saved] runs on the main thread once a pick has landed, just
+     * before the list closes; nothing runs when the list is closed without one.
+     */
+    public static AlertDialog openInChat(Activity activity, Runnable saved) {
+        return show(activity, saved);
+    }
+
+    private static AlertDialog show(Activity activity, Runnable landedThen) {
         Context context = HushTelegramPreferenceFragment.themed(activity);
         List<String> all = choices();
         List<String> shown = new ArrayList<>(all);
@@ -160,7 +173,7 @@ final class TranslateTargetPicker {
             list.setEnabled(false);
             boolean started = HushTelegramPreferenceFragment.save(dialog, () -> Settings.TRANSLATE_TARGET.saveCommitted(code), landed -> {
                 if (landed) {
-                    row.setSummary(summary(Settings.TRANSLATE_TARGET.savedValue()));
+                    landedThen.run();
                     dialog.dismiss();
                 } else {
                     list.setEnabled(true);

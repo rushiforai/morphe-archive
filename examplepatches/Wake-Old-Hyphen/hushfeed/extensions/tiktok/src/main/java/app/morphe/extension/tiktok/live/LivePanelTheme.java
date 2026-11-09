@@ -6,6 +6,8 @@ package app.morphe.extension.tiktok.live;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.theme.AmoledTheme;
+import app.morphe.extension.tiktok.theme.AmoledThemeWrapper;
 
 import android.app.Activity;
 import android.content.Context;
@@ -109,8 +111,27 @@ public final class LivePanelTheme {
     static final int DARK_TAB = 0x14FFFFFF;
     /** A fill is only swapped when it's at least this opaque, so the card's translucent tiles stay. */
     private static final int MIN_FILL_ALPHA = 0x80;
-    /** Class name pieces of the panels whose own fixed light fills get swapped, the profile card and the fan club. */
-    private static final String[] FILL_PANELS = {".fansclub.", ".superfan.", ".livesdk.profile."};
+    /**
+     * The older Video quality picker, the one Share > Video quality opens in some rooms. Its rows
+     * read the theme, but its card is a fixed white shape and its title a fixed #161823, so the
+     * dark overlay alone left light rows on a white card (#168, 47.7.3).
+     */
+    static final String QUALITY_PICKER = "com.bytedance.android.livesdk.definition.LiveDefinitionSelectionDialog";
+    /**
+     * The Video quality picker Share opens (S22, 47.7.3). Its sheet goes dark, but its list sits on
+     * a rounded card filled from a theme color TikTok's dark LIVE palette also sets to white, so its
+     * dark rows read on a white card (#168).
+     */
+    static final String TALENT_QUALITY_PICKER =
+            "com.bytedance.android.livesdk.definition.talent.LiveTalentDefinitionSelectionDialog";
+    /** What the older quality picker's white card becomes: the black sheet the newer one draws (S22, 2026-11-08). */
+    static final int SHEET_FILL = 0xFF000000;
+    /**
+     * Class name pieces of the panels whose own fixed light fills get swapped: the profile card,
+     * the fan club and both quality pickers.
+     */
+    private static final String[] FILL_PANELS =
+            {".fansclub.", ".superfan.", ".livesdk.profile.", QUALITY_PICKER, TALENT_QUALITY_PICKER};
     private static final int LIGHT_NAVIGATION_BAR_FLAG = 0x10;
     private static final int SETTLE_TRIES = 5;
     private static final long SETTLE_DELAY_MS = 100;
@@ -146,6 +167,7 @@ public final class LivePanelTheme {
     private static volatile boolean viewContextFailureLogged;
     private static volatile boolean sparkFailureLogged;
     private static volatile boolean bubbleFailureLogged;
+    private static volatile boolean roomStyleFailureLogged;
 
     private LivePanelTheme() {
     }
@@ -189,7 +211,8 @@ public final class LivePanelTheme {
                 return inflater;
             }
             settle(panel);
-            Context dark = new ContextThemeWrapper(context, overlay);
+            // The panel's dark overlay keeps TikTok's grays while AMOLED dark mode is off (#372).
+            Context dark = new AmoledThemeWrapper(context, overlay);
             DARK_PANELS.put(panel, dark);
             panelSeen = true;
             return inflater.cloneInContext(dark);
@@ -240,12 +263,12 @@ public final class LivePanelTheme {
             List<View> ink = new ArrayList<>();
             ViewTreeObserver observer = watched.getViewTreeObserver();
             if (fills) {
-                darkFills(watched, ink);
+                darkFills(watched, sheet(panel), ink);
                 observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                     @Override
                     public void onGlobalLayout() {
                         try {
-                            darkFills(watched, ink);
+                            darkFills(watched, sheet(panel), ink);
                         } catch (Throwable failure) {
                             Logger.printException(() -> "Could not darken a LIVE panel's fills", failure);
                         }
@@ -374,8 +397,17 @@ public final class LivePanelTheme {
      * earlier pass, are gathered into the ink list and turned light.
      */
     static void darkFills(View root, List<View> ink) {
+        darkFills(root, null, ink);
+    }
+
+    /**
+     * The same, with the panel's own sheet, whose light fill becomes the dark sheet color instead
+     * of the tiles' dark fill, and whose ink is lit even when its fill was dark already (the
+     * newer quality picker's close X, #168); null when the panel has no such sheet.
+     */
+    static void darkFills(View root, View sheet, List<View> ink) {
         List<View> filled = new ArrayList<>();
-        darkFills(root, filled, 0);
+        darkFills(root, sheet, filled, 0);
         ink.clear();
         for (View view : filled) {
             gatherInk(view, ink);
@@ -385,22 +417,45 @@ public final class LivePanelTheme {
         }
     }
 
-    private static void darkFills(View view, List<View> filled, int depth) {
+    private static void darkFills(View view, View sheet, List<View> filled, int depth) {
         if (view == null || KEEP_LIGHT.containsKey(view) || depth > MAX_TREE_DEPTH) {
             return;
         }
-        boolean dark = fillHolder(view) && darkBackground(view);
+        boolean dark = fillHolder(view) && darkBackground(view, view == sheet ? SHEET_FILL : DARK_FILL);
         dark |= darkCard(view);
         dark |= darkPaints(view);
-        if (dark) {
+        if (dark || view == sheet) {
             filled.add(view);
         }
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) {
-                darkFills(group.getChildAt(i), filled, depth + 1);
+                darkFills(group.getChildAt(i), sheet, filled, depth + 1);
             }
         }
+    }
+
+    /**
+     * The panel's own view when the panel is a quality picker (#168): the older one's root is its
+     * card, the newer one's is a dark sheet with its close X drawn in a dark gray. Null otherwise
+     * or before the views exist.
+     */
+    static View sheet(Object panel) {
+        if (!hasClassName(panel.getClass(), QUALITY_PICKER)
+                && !hasClassName(panel.getClass(), TALENT_QUALITY_PICKER)) {
+            return null;
+        }
+        Object view = Reflect.invoke(panel, "getView");
+        return view instanceof View ? (View) view : null;
+    }
+
+    private static boolean hasClassName(Class<?> type, String name) {
+        for (Class<?> current = type; current != null; current = current.getSuperclass()) {
+            if (name.equals(current.getName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -417,10 +472,10 @@ public final class LivePanelTheme {
     }
 
     /**
-     * Swaps a light solid or gradient background, or such layers of a layered one; true when the
-     * view's background is, or holds, the dark fill.
+     * Swaps a light solid or gradient background, or such layers of a layered one, for the given
+     * dark fill; true when the view's background is, or holds, that fill.
      */
-    private static boolean darkBackground(View view) {
+    private static boolean darkBackground(View view, int fill) {
         Drawable background = view.getBackground();
         if (background instanceof LayerDrawable && !(background instanceof RippleDrawable)) {
             LayerDrawable layers = (LayerDrawable) background;
@@ -432,19 +487,19 @@ public final class LivePanelTheme {
                     int color = ((ColorDrawable) layer).getColor();
                     if (lightFill(color)) {
                         layer.mutate();
-                        ((ColorDrawable) layer).setColor(DARK_FILL);
+                        ((ColorDrawable) layer).setColor(fill);
                         changed = true;
                     }
-                    dark |= ((ColorDrawable) layer).getColor() == DARK_FILL;
+                    dark |= ((ColorDrawable) layer).getColor() == fill;
                 } else if (layer instanceof GradientDrawable && Build.VERSION.SDK_INT >= 24) {
                     ColorStateList colors = ((GradientDrawable) layer).getColor();
                     if (colors != null && lightFill(colors.getDefaultColor())) {
                         layer.mutate();
-                        ((GradientDrawable) layer).setColor(DARK_FILL);
+                        ((GradientDrawable) layer).setColor(fill);
                         changed = true;
                     }
                     colors = ((GradientDrawable) layer).getColor();
-                    dark |= colors != null && colors.getDefaultColor() == DARK_FILL;
+                    dark |= colors != null && colors.getDefaultColor() == fill;
                 }
             }
             if (changed) {
@@ -455,19 +510,19 @@ public final class LivePanelTheme {
         if (background instanceof ColorDrawable) {
             int color = ((ColorDrawable) background).getColor();
             if (lightFill(color)) {
-                view.setBackground(new ColorDrawable(DARK_FILL));
+                view.setBackground(new ColorDrawable(fill));
                 return true;
             }
-            return color == DARK_FILL;
+            return color == fill;
         }
         if (background instanceof GradientDrawable && Build.VERSION.SDK_INT >= 24) {
             ColorStateList colors = ((GradientDrawable) background).getColor();
             if (colors != null && lightFill(colors.getDefaultColor())) {
                 ((GradientDrawable) background).mutate();
-                ((GradientDrawable) background).setColor(DARK_FILL);
+                ((GradientDrawable) background).setColor(fill);
                 return true;
             }
-            return colors != null && colors.getDefaultColor() == DARK_FILL;
+            return colors != null && colors.getDefaultColor() == fill;
         }
         return false;
     }
@@ -888,8 +943,9 @@ public final class LivePanelTheme {
      * bubble white, and its text takes the color the room's theme gives text by default, which over
      * a room the room hook darkened is the dark app theme's white, so the text was white on white
      * (#362). While Dark LIVE panels is on in dark mode, the bubble inflates over the room's theme as
-     * it was before the dark app theme went on, as TikTok shows it in light mode. A room the hook
-     * never darkened, and anything that fails, keeps TikTok's context.
+     * it was before the dark app theme went on, as TikTok shows it in light mode, with every style
+     * TikTok gave the room since ({@link #roomStyle}). A room the hook never darkened, and anything
+     * that fails, keeps TikTok's context.
      */
     public static Context lightRoomView(Context context) {
         try {
@@ -946,8 +1002,45 @@ public final class LivePanelTheme {
                 }
             }
             room.getTheme().applyStyle(theme, true);
+            AmoledTheme.restore(room.getTheme());
         } catch (Throwable failure) {
             Logger.printException(() -> "Could not darken a LIVE room", failure);
+        }
+    }
+
+    /**
+     * Called in place of each style TikTok applies to a LIVE room's theme after the room hook has
+     * taken its light copy: the room's color scheme styles in its setTheme, the style its base
+     * applies in onCreate, and TikTok's LIVE color theme, which the room's LIVE fragments apply
+     * when they're created. Applies the style as TikTok asked, then to the room's light copy too,
+     * so the copy has every attribute the room has. The LIVE color theme defines attributes the
+     * room's views look up, and a gift guide bubble inflated over a copy without them threw on
+     * its text (#362, S22, 2026-11-08). [force] is non-zero for TikTok's force.
+     *
+     * Both themes take the style through AMOLED dark mode's stand-in for applyStyle, which is a plain
+     * applyStyle unless that switch is off (#372). The AMOLED patch swaps every applyStyle call in
+     * TikTok's code for that stand-in, and the LIVE hook takes these calls in either form, so the
+     * room gets TikTok's grays back whichever patch ran first.
+     */
+    public static void roomStyle(Resources.Theme theme, int style, int force) {
+        AmoledTheme.applyStyle(theme, style, force);
+        try {
+            if (LIGHT_ROOMS.isEmpty()) {
+                return;
+            }
+            synchronized (LIGHT_ROOMS) {
+                for (Map.Entry<Activity, Resources.Theme> kept : LIGHT_ROOMS.entrySet()) {
+                    Activity room = kept.getKey();
+                    if (room != null && room.getTheme() == theme) {
+                        AmoledTheme.applyStyle(kept.getValue(), style, force);
+                    }
+                }
+            }
+        } catch (Throwable failure) {
+            if (!roomStyleFailureLogged) {
+                roomStyleFailureLogged = true;
+                Logger.printException(() -> "Could not give a LIVE room's light copy its style", failure);
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package com.dmoniak.patches.shared
 
+import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 
@@ -933,8 +934,12 @@ object Constants {
         packageName = "in.startv.hotstar",
         name = "JioHotstar",
         description = "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
+        apkFileType = ApkFileType.APKM,
         appIconColor = 0x0C203B,
-        targets = listOf(AppTarget("26.10.26.0"))
+        targets = listOf(
+            AppTarget("26.04.27.10"),
+            AppTarget("26.10.26.0")
+        )
     )
 
 

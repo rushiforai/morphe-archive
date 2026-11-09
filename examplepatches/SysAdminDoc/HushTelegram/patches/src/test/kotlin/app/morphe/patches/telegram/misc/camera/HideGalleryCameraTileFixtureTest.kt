@@ -23,13 +23,17 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The attachment gallery's constructor, the camera choice it keeps and the runtime. */
 class HideGalleryCameraTileFixtureTest {
     @Test fun `the extension answers the camera choice before the gallery keeps it`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
-            val hosts = FixtureDex.classesWhere(build, { true }) { m -> m.definingClass == PHOTO_LAYOUT }.map(ImmutableClassDef::of)
+            val hosts = FixtureDex.classesWhere(build, { true }) { m -> m.origDefiningClass == PHOTO_LAYOUT }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val site = context.resolveHideGalleryCameraTile()
             val old = ImmutableMethod.of(site.init)
@@ -44,10 +48,10 @@ class HideGalleryCameraTileFixtureTest {
             assertEquals("$name: the camera choice in and out", listOf(listOf(wanted), listOf(wanted)), after.take(2).map { it.namedRegisters() })
             assertTrue("$name: the gallery keeps a camera choice field", after.any { it.opcode == Opcode.IPUT_BOOLEAN && it.controlField() == site.needCamera })
             for (i in before.indices) {
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + 2].opcode, after[i + 2].namedRegisters(), (after[i + 2] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + 2].opcode, after[i + 2].namedRegisters(), after[i + 2].origRef()))
             }
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideGalleryCameraTile" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideGalleryCameraTile" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

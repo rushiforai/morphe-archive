@@ -23,7 +23,7 @@ public final class NuvioUpdateFlowPatch {
         MutableMethod download = NuvioUpdateInstaller.unique(repository, "b");
         if (!download.toString().equals("Llb/q;->b(Lmb/a;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/jvm/internal/ContinuationImpl;)Ljava/lang/Object;") ||
             (download.getAccessFlags() & 8) != 0) throw new IllegalStateException("Download signature changed");
-        hash(download, "2d72019dcd3b4d337d907947982657ee4520c624bec8b862e285b239b2bbfe3d");
+        hash(download, "5ec2fa0b9f90656f50f26e7da3a7d8b60ede359ebdb66bad31c738aa8ca26443");
         MutableMethod stream = NuvioUpdateInstaller.unique(downloader, "a");
         if (!stream.toString().equals("Llb/b;->a(Ljava/lang/String;Ljava/io/File;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;") ||
             (stream.getAccessFlags() & 8) != 0) throw new IllegalStateException("Transfer signature changed");
@@ -32,18 +32,18 @@ public final class NuvioUpdateFlowPatch {
         MutableMethod plain = new MutableMethod(session);
         if (!NuvioUpdateInstaller.isZero(plain.getImplementation().getInstructions().get(0), 15)) throw new IllegalStateException("Metadata suppression missing");
         plain.getImplementation().removeInstruction(0);
-        hash(plain, "cbe2d1dfb7628f7a44724177e93183d4bd68f6aae60be34ae6db10ccba964d40");
+        hash(plain, "7d40ed67d709182b487a6422037abae563644563c9b53afc78cedc665e0d3e18");
         MutableMethod uri = NuvioUpdateInstaller.unique(bridge, "contentUri");
         if (!uri.toString().equals(INSTALL_UI + "->contentUri(Landroid/content/Context;Ljava/lang/String;Ljava/io/File;)Landroid/net/Uri;") ||
             (uri.getAccessFlags() & 8) == 0 || uri.getImplementation().getRegisterCount() != 3 ||
             uri.getImplementation().getInstructions().size() != 2) throw new IllegalStateException("URI bridge stub changed");
         var factory = NuvioUpdateInstaller.unique(provider, "c");
         var toUri = NuvioUpdateInstaller.unique(strategy, "c");
-        if (!factory.toString().equals("Landroidx/core/content/FileProvider;->c(Landroid/content/Context;Ljava/lang/String;)Lb4/a;") ||
-            (factory.getAccessFlags() & 9) != 9 || !toUri.toString().equals("Lb4/a;->c(Ljava/io/File;)Landroid/net/Uri;") ||
+        if (!factory.toString().equals("Landroidx/core/content/FileProvider;->c(Landroid/content/Context;Ljava/lang/String;)La4/b;") ||
+            (factory.getAccessFlags() & 9) != 9 || !toUri.toString().equals("La4/b;->c(Ljava/io/File;)Landroid/net/Uri;") ||
             (toUri.getAccessFlags() & 9) != 1) throw new IllegalStateException("Native FileProvider API changed");
-        hash(factory, "ec136f37c7e0af5a168841a59df4d9ac1753e0c1ef86eaa14418dc54a72b8288");
-        hash(toUri, "f74ab269b4c73fd5203808f6b5e65f1dc4ca028920096e66bc1afe4729393fde");
+        hash(factory, "57bff3bb26e55db532fb81fe503fb6691cc16d2ff81e4bfb685bde0b5708a3fa");
+        hash(toUri, "9220ef5bbba3904c3320d1e7bab305621c970c891963403df99149951ad5985b");
         for (String field : List.of("f", "g")) {
             String type = field.equals("f") ? "Ljava/lang/String;" : "Ljava/lang/Long;";
             if (update.getFields().stream().filter(f -> f.getName().equals(field) && f.getType().equals(type) && (f.getAccessFlags() & 9) == 1).count() != 1)
@@ -66,10 +66,10 @@ public final class NuvioUpdateFlowPatch {
         var uriCode = uri.getImplementation();
         uriCode.removeInstruction(1); uriCode.removeInstruction(0);
         uriCode.addInstruction(new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2, 0, 1, 0, 0, 0,
-            new ImmutableMethodReference("Landroidx/core/content/FileProvider;", "c", List.of(CONTEXT, "Ljava/lang/String;"), "Lb4/a;")));
+            new ImmutableMethodReference("Landroidx/core/content/FileProvider;", "c", List.of(CONTEXT, "Ljava/lang/String;"), "La4/b;")));
         uriCode.addInstruction(new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
         uriCode.addInstruction(new BuilderInstruction35c(Opcode.INVOKE_VIRTUAL, 2, 0, 2, 0, 0, 0,
-            new ImmutableMethodReference("Lb4/a;", "c", List.of(FILE), "Landroid/net/Uri;")));
+            new ImmutableMethodReference("La4/b;", "c", List.of(FILE), "Landroid/net/Uri;")));
         uriCode.addInstruction(new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
         uriCode.addInstruction(new BuilderInstruction11x(Opcode.RETURN_OBJECT, 0));
     }

@@ -18,6 +18,7 @@ import org.json.JSONObject;
  * intro "Skip Intro". A chosen button is focused and pressed through the
  * app's own accessibility provider, the same way a screen reader would press
  * it. Each button gets a new id, so back-to-back promos are each skipped once.
+ * A recap or intro is skipped once per title, so rewinding into one plays it.
  */
 @SuppressWarnings("unused")
 public final class AutoSkipper {
@@ -28,6 +29,13 @@ public final class AutoSkipper {
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static volatile int lastPressed = -1;
+    // Recap and intro buttons already pressed for the title playing now, so
+    // rewinding into a skipped recap or intro plays it. Cleared when another
+    // title starts (onMetadata). Promos are left out: back-to-back promos each
+    // show a "Skip" button and each is pressed.
+    private static final java.util.Set<String> pressedForTitle =
+            java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+    private static volatile String currentTitle;
 
     private AutoSkipper() {
     }
@@ -76,9 +84,15 @@ public final class AutoSkipper {
     public static void onTree(Object provider, String json) {
         try {
             if (json == null || !json.contains("\"Skip")) return;
-            int id = findSkip(new JSONObject(json).optJSONObject("tree"));
+            JSONObject button = findSkip(new JSONObject(json).optJSONObject("tree"));
+            if (button == null) return;
+            int id = button.optInt("id", -1);
+            String label = button.optString("label");
             if (id < 0 || id == lastPressed) return;
+            boolean once = !"Skip".equals(label);
+            if (once && pressedForTitle.contains(label)) return;
             lastPressed = id;
+            if (once) pressedForTitle.add(label);
             final AccessibilityNodeProvider p = (AccessibilityNodeProvider) provider;
             MAIN.postDelayed(() -> {
                 try {
@@ -94,18 +108,35 @@ public final class AutoSkipper {
         }
     }
 
-    private static int findSkip(JSONObject node) {
-        if (node == null) return -1;
+    private static JSONObject findSkip(JSONObject node) {
+        if (node == null) return null;
         if (chosen(node.optString("label")) && isButton(node)) {
-            return node.optInt("id", -1);
+            return node;
         }
         JSONArray children = node.optJSONArray("children");
-        if (children == null) return -1;
+        if (children == null) return null;
         for (int i = 0; i < children.length(); i++) {
-            int id = findSkip(children.optJSONObject(i));
-            if (id >= 0) return id;
+            JSONObject found = findSkip(children.optJSONObject(i));
+            if (found != null) return found;
         }
-        return -1;
+        return null;
+    }
+
+    /**
+     * Called at the top of the app's LunaMediaMetaDataInterface
+     * .updateMediaMetaData(json), which the engine calls with the title
+     * that is playing. A new title clears the recaps and intros pressed.
+     */
+    public static void onMetadata(String json) {
+        try {
+            String title = new JSONObject(json).optString("title", "");
+            if (!title.equals(currentTitle)) {
+                currentTitle = title;
+                pressedForTitle.clear();
+            }
+        } catch (Throwable t) {
+            // Not JSON; leave the memory as it is.
+        }
     }
 
     private static boolean isButton(JSONObject node) {

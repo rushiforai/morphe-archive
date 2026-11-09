@@ -1,0 +1,29 @@
+Maps-AA-AnyMode-Morphe
+Copyright (C) 2026 shuili1013
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version. See LICENSE.
+
+Third-party code included in this repository
+--------------------------------------------
+
+Dutch App Patches  (https://codeberg.org/JohninNL/nl-morphe-patches)
+Copyright (C) JohninNL and contributors. Licensed under GPLv3.
+Included from release v1.53.9:
+  - patch/patches/src/main/kotlin/dutch/googlemaps/  (13 Google Maps patch files)
+  - patch/extensions/maps/                           (from extensions/extension)
+  - patch/extensions/maps-gearslip/                  (from extensions/maps-gearslip)
+  - patch/support/navigation-startup/, patch/support/navigation-alerts/
+Modified by shuili1013 (2026-11-08) for Google Maps 26.44.06.1006895251:
+  - extensions/maps-gearslip: NativeCarNavigationSession.java (provider binder lur -> lvp),
+    NativeCarService.java (optional NativeGuidance), ProjectionRenderer.java
+    (surface holder controller.k.h -> .j, new-intent B(Intent) -> C(Intent)).
+    The same changes are recorded as patches in third_party/dutch-app-patches/.
+  - extensions/maps/build.gradle.kts: stub project path.
+The Dutch App Patches Maps features are themselves based on bearinmind patches
+(https://github.com/bearinmindcat/morphe-patches).
+
+Morphe  (https://github.com/MorpheApp) - patcher and patches template.
+
+This project does not distribute any Google APK.

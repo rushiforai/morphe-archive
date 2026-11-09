@@ -258,6 +258,32 @@ public class MarkReadButtonTest {
         DetailsButton() { super("settings_button"); }
     }
 
+    /** 586's top bar buttons share an abstract base class. */
+    abstract static class Base { }
+
+    /** A 586 button itself, the class the details button and the wrapped call buttons are: its test tag and a listener. */
+    static final class Inner extends Base {
+        final Object listener = new Object();
+        final String testKey;
+
+        Inner(String testKey) { this.testKey = testKey; }
+    }
+
+    /** The impression logger 586's call button wrapper holds, an interface with more than one method. */
+    interface Logger {
+        void seen(Object view, String tag, int index);
+
+        void gone();
+    }
+
+    /** How 586 hands over its audio and video call buttons: the button inside, typed as the base, and a logger. */
+    static final class Wrapper extends Base {
+        final Logger logger = null;
+        final Base inner;
+
+        Wrapper(Base inner) { this.inner = inner; }
+    }
+
     /** Messenger's Meta AI chat button: its own class, with a label, the tag and its tap handlers. */
     static final class MetaAiButton {
         final int icon = 1;

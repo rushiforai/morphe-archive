@@ -61,6 +61,42 @@ offline Stockfish analysis on the phone, Lichess reviews and offline Lichess puz
 no daily Play Coach limit, Premium content, no ads or rating prompts — all switched on and off under
 **More → Quwi's Patches**.
 
+## Fair play
+
+This bundle is for analysing games that are already over: Game Review, the analysis boards, the game explorer and
+finished games. It adds no engine help during a live game. The Stockfish features are gated to those screens, and a
+fair-play gate stops the analysis flow while a game against a person is on screen. The engine itself stays on your
+phone or on your computer - no position is sent to a third-party analysis service.
+
+The GPL-3.0 licence lets anyone fork this code. That does not mean I support what a fork does with it. I do not
+support, endorse or help with forks and derivatives that add in-game engine hints, best-move arrows during live
+games, or any other form of engine assistance, whether on chess.com or anywhere else. A fork like that is its
+author's work, not this project, and I will not merge such changes here.
+
+A reminder for anyone tempted: chess.com's fair-play detection is well trained against cheaters. It does not look
+for a patched APK - it looks at the moves, the timing and the history of an account, and it has years of data on
+engine-assisted play. Accounts get closed, ratings and titles get removed, and a patched app does not hide that.
+Engine help in a rated or live game is cheating, and it is against chess.com's rules.
+
+## Signing in after patching
+
+**Sign in with Google** does not work in a patched app, and neither do Log In With Facebook or Sign in with
+Apple. A patched app is signed with a different certificate, and Google uses the package name and the SHA-1 of
+that certificate to check that the sign-in comes from chess.com's own app. The check runs on Google's side,
+against chess.com's project, so nothing on the phone can fix it: a different Google account, Google Play services
+and MicroG all end at the same refusal (a normally installed MicroG cannot serve Sign in with Google at all -
+only a system install gets that far - and even then the certificate would not match). **Clone Chess.com** adds
+one more mismatch, because it changes the package name as well.
+
+To get in, add a password to the account once and then use it in the app:
+
+1. open [chess.com](https://www.chess.com) in a browser and sign in the way you always do
+   (Google, Facebook or Apple);
+2. go to **Settings → All Settings → Account** and add an email and a password for future sign-ins;
+3. in the patched app, log in with that email (or username) and password.
+
+If the account already has a password, the usual **Forgot password?** email works as well.
+
 ## Stockfish on your computer
 
 The computer runs `sf-bridge`, which starts a Stockfish per connection and passes UCI through a plain TCP socket:

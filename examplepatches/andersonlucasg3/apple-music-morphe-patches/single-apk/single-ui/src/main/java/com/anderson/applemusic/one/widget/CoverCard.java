@@ -36,6 +36,7 @@ public final class CoverCard extends FrameLayout {
         cover = new ImageView(context);
         cover.setScaleType(ImageView.ScaleType.CENTER_CROP);
         cover.setBackgroundColor(Tokens.SURFACE_HOVER);
+        cover.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         addView(cover, new FrameLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
         artwork.load(item.artworkUri, cover);
@@ -86,6 +87,8 @@ public final class CoverCard extends FrameLayout {
         Focus.attach(this, Tokens.RADIUS_CARD, Tokens.SURFACE, Tokens.SURFACE_HOVER, outline);
         Focus.rippleOnTop(this, Tokens.RADIUS_CARD);
         setLayoutParams(new LinearLayout.LayoutParams(sizePx, sizePx));
+        setContentDescription(item.subtitle == null || item.subtitle.length() == 0
+                ? item.title : item.title + ", " + item.subtitle);
     }
 
     public int cardSize() {

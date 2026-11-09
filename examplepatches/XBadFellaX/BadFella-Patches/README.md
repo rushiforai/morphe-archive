@@ -25,7 +25,50 @@ Manual import: download the `.mpp` from [Releases](https://github.com/XBadFellaX
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.2.0](https://github.com/XBadFellaX/BadFella-Patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;37 patches total
+<details open>
+<summary>📦 LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;28 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.1.1267 | 4.1.1271 |
+| :---: | :---: |
+|  | Version 4.1.1271, build 217900. | Any version (experimental). Every patch verifies its own anchors. |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Anonymous profile viewing](#anonymous-profile-viewing) | Adds an option (off by default, experimental) to visit profiles without being listed in "Who viewed your profile": the analytics events of profile pages are not sent. |  |
+| [Block tracking](#block-tracking) | Adds an option (off by default) to stop sending most LinkedIn analytics events. |  |
+| [Copy text](#copy-text) | Long press a post, comment or any other text to select and copy it in place, like on Reddit. |  |
+| [Customize navigation bar](#customize-navigation-bar) | Takes the bottom navigation buttons you pick off the bar, such as My Network, Post, Notifications, Jobs, Video or News. Each page still opens from the Menu and from links. Restart LinkedIn after changing the selection. | • Hide My Network<br>• Hide Post<br>• Hide Notifications<br>• Hide Jobs<br>• Hide Video<br>• Hide News |
+| [Disable double-tap like](#disable-double-tap-like) | Stops double tapping a post or photo from liking it. |  |
+| [Download media](#download-media) | Adds a download button to the full screen photo, video and document viewer. Documents (PDFs and carousels) are saved as one PDF. |  |
+| [Expand posts](#expand-posts) | Adds an option (off by default, turned on in BadFella Patches) to show posts expanded by default. Tapping the text collapses them. |  |
+| [Feed filters](#feed-filters) | Adds optional filters (off by default, turned on in BadFella Patches): focus mode, celebrations, job cards, reposts, posts from others' activity, "Recommended for you", video posts, games, the "New posts" pill and "See translation". |  |
+| [Glass navigation bar](#glass-navigation-bar) | Draws the navigation bar as a floating, translucent capsule. |  |
+| [GmsCore support](#gmscore-support) | Makes "Continue with Google" work in patched LinkedIn by signing in through microG RE (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |  |
+| [Hide Premium upsells](#hide-premium-upsells) | Removes Premium and AI upsell cards and banners, including on profiles and the Me panel. |  |
+| [Hide ads](#hide-ads) | Removes promoted, boosted and sponsored posts from the feed. |  |
+| [Hide bottom tabs](#hide-bottom-tabs) | Adds switches to take My Network and Jobs out of the bottom bar. |  |
+| [Hide promoted jobs](#hide-promoted-jobs) | Removes promoted job listings from the Jobs tab and job search. |  |
+| [Hide suggested posts](#hide-suggested-posts) | Removes "Suggested" posts from outside your network from the feed. |  |
+| [Keep feed on reopen](#keep-feed-on-reopen) | Keeps your place in the feed when you come back to LinkedIn, instead of reloading it. Pull down or tap the "New posts" button to load new posts. |  |
+| [Material You](#material-you) | Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers may keep their own colors. |  |
+| [Messaging](#messaging) | Hides sponsored messages, and adds an optional ghost mode that does not send typing indicators or read status. |  |
+| [More tab](#more-tab) | Lets you hide items of the More tab (Puzzle games, Groups, Events, Newsletters), or list them at the bottom of the profile menu. |  |
+| [Navigation bar](#navigation-bar) | Adds options (turned on in BadFella Patches) to hide the More, Jobs, Network and Notifications tabs of the navigation bar, its count badges and its labels. |  |
+| [Open links directly](#open-links-directly) | Opens external links without LinkedIn's safety/go warning page. |  |
+| [Pitch black](#pitch-black) | Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter black, across the entire app. Takes effect when the system is in dark mode. Works with or without Material You. |  |
+| [Post menu items](#post-menu-items) | Adds Copy text, Download photos and videos, and Save document as PDF to the ⋯ menu of posts. |  |
+| [Remove gaps and dividers](#remove-gaps-and-dividers) | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |  |
+| [Sanitize share links](#sanitize-share-links) | Removes tracking parameters from LinkedIn links when they are copied or shared. |  |
+| [Swipe between feeds](#swipe-between-feeds) | Swipe left and right on the home feed to switch between For you and Network, like on X. |  |
+| [Swipe between tabs](#swipe-between-tabs) | Swipe sideways to go to the next or previous tab of the navigation bar. |  |
+| [Tap to hide in viewers](#tap-to-hide-in-viewers) | Tap a video or document in full screen to hide the caption and buttons, like photos. |  |
+
+</details>
+
 <details open>
 <summary>📦 TickTick&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>

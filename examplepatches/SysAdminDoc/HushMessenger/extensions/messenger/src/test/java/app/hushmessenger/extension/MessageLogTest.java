@@ -377,6 +377,30 @@ public class MessageLogTest {
         assertEquals("Ana", MessageLog.entries().get(0).sender);
     }
 
+    /** A quiet chat's message never gets a notification, so the drop hands the log its sender instead. */
+    @Test public void aQuietChatsMessageIsNamedFromTheDrop() throws Exception {
+        Settings.preferences.edit().putBoolean(QuietChats.KEY, true).commit();
+        QuietChats.forget();
+        try {
+            assertTrue(Settings.quietChat("ONE_TO_ONE:1:2"));
+            assertTrue(Settings.dropQuiet("ONE_TO_ONE:1:2", "mid.1", "Ana"));
+            MessageLog.storeNow("hello", "ONE_TO_ONE:1:2", "mid.1");
+            // No name to hand over still drops the notification, and the entry keeps no sender.
+            assertTrue(Settings.dropQuiet("ONE_TO_ONE:1:2", "mid.2", null));
+            MessageLog.storeNow("again", "ONE_TO_ONE:1:2", "mid.2");
+            java.util.Map<String, String> senders = new java.util.HashMap<>();
+            for (MessageLog.Entry entry : MessageLog.entries()) senders.put(entry.text, entry.sender);
+            assertEquals("Ana", senders.get("hello"));
+            assertEquals("", senders.get("again"));
+            assertFalse("A chat that notifies keeps its notification", Settings.dropQuiet("ONE_TO_ONE:1:3", "mid.3", "Bo"));
+            synchronized (MessageLog.NOTED) {
+                assertTrue(MessageLog.NOTED.isEmpty());
+            }
+        } finally {
+            QuietChats.forget();
+        }
+    }
+
     @Test public void namesAreNotNotedForAMessageWithoutAnId() throws Exception {
         android.app.Notification answered = new android.app.Notification.Builder(Settings.appContext, "chats")
             .setSmallIcon(android.R.drawable.sym_def_app_icon).setContentTitle("Ana").build();

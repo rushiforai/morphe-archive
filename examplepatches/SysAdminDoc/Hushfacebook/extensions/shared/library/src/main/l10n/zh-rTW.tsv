@@ -1007,6 +1007,10 @@ Left alone: %s	不翻譯：%s
 Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold it back. Reel captions have their own switch under Reels and Watch.	動態中的貼文會顯示全部文字，不用再點「顯示更多」。輕觸文字即可重新收合。連續短片的說明在 Reels 與 Watch 裡有獨立的開關。
 Show full reel captions	顯示完整連續短片說明
 Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	連續短片的長說明會直接顯示全部文字。輕觸說明即可重新收合。變更從下一部連續短片開始生效。
+# context: switch title under Reels and Watch, below Show full reel captions; once a reel's caption is opened, a dark see-through box sits behind its text, like movie subtitles
+Dark box behind open captions	展開的說明加上深色底框
+# context: summary of that switch
+An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	展開的連續短片說明會顯示在深色底框上，像字幕一樣，在明亮的影片上也容易看清楚。變更從下一部連續短片開始生效。
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	查看誰分享了
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	在貼文選單中加入「查看誰分享了」，開啟 Facebook 上分享這則貼文的使用者清單。
@@ -1944,6 +1948,14 @@ Watch again at the end of a feed video plays it again right there, instead of op
 Open saved videos in the video player	在影片播放器中開啟珍藏的影片
 # context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
 A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	在「我的珍藏」中點按的影片會在影片播放器中播放，而不是在 Reels 中開啟，因為 Reels 中下一次滑動是推薦的影片。
+# context: switch title under Reels and Watch; on, a reel opened from Facebook's Saved list goes on to the next saved video when it ends or is swiped past, instead of Facebook's suggested reels
+Play saved videos in a row	連續播放珍藏的影片
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel.	從「我的珍藏」開啟的影片播完或向上滑動時，會接著播放「我的珍藏」中的下一部，而不是推薦的影片。
+# context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
+Skip "Are you still watching?"	略過「你還在看嗎？」
+# context: summary of that switch; reels and videos go on to the next one by themselves
+Reels and videos keep going to the next one without pausing to ask if you're still watching.	Reels 和影片會繼續播放下一部，不再停下來詢問你是否還在觀看。
 Hide the new comments pop-up	隱藏新留言彈出提示
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	閱讀留言時不再彈出「新留言」泡泡。新留言仍會顯示在清單中。
@@ -2600,3 +2612,25 @@ Hide profile pictures on posts	隱藏貼文上的大頭貼照
 Hide profile pictures in comments	隱藏留言中的大頭貼照
 Takes the profile picture off the top of posts, so the name starts where the picture was. A change shows on the posts drawn after it.	移除貼文頂端的大頭貼照，名字從大頭貼照原本的位置開始。變更對之後顯示的貼文生效。
 Takes the profile picture off comments, so the name and text start where the picture was. A change shows on the comments drawn after it.	移除留言中的大頭貼照，名字和內容從大頭貼照原本的位置開始。變更對之後顯示的留言生效。
+Search comments	搜尋留言
+Previous match	上一個相符項目
+Next match	下一個相符項目
+Close search	關閉搜尋
+No matches	沒有相符項目
+No more matches	沒有更多相符項目
+Not found yet	尚未找到
+A magnifier at the top of the comments opens a search box that finds the comments with your words.	留言頂端的放大鏡會開啟搜尋框，找出包含你輸入的文字的留言。
+Open shared reels on their own	單獨開啟分享的 Reels
+A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	從其他應用程式的連結或聊天中開啟的 Reels 會單獨播放，之後沒有可以繼續滑動的 Reels.
+Light bars on the Reels tab	Reels 分頁使用淺色列
+In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	在淺色模式下，Reels 分頁保持與其他分頁相同的淺色狀態列、頂端列和分頁列，而不是把它們變暗.
+Bar opacity	列的不透明度
+How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	透明列保留自身顏色的百分比，範圍 %1$s 到 %2$s。數值越低，越能透出動態消息及其模糊效果。留空則使用 %3$s，模糊時使用 %4$s.
+The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	這些列保留百分之 %1$s 的顏色，模糊時保留百分之 %2$s。輸入數字即可變更.
+The see-through bars keep %1$s percent of their color.	透明列保留百分之 %1$s 的顏色.
+Tab bar width	分頁列寬度
+Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	佔螢幕寬度的百分比，範圍 %1$s 到 %2$s。圖示會隨之放大或縮小。留空則使用 %3$s.
+The rounded tab bar is %1$s percent of the screen wide.	圓角分頁列的寬度為螢幕的百分之 %1$s.
+Tab bar height	分頁列高度
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	圓角分頁列保留其完整高度的百分比，範圍 %1$s 到 %2$s，在圖示上方和下方裁切。留空則使用 %3$s.
+The rounded tab bar keeps %1$s percent of its height.	圓角分頁列保留其高度的百分之 %1$s.

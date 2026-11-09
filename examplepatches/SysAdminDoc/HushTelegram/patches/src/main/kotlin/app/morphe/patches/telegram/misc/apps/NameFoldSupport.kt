@@ -4,7 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.apps
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
@@ -17,6 +18,9 @@ import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val NAME_FOLD = "$EXTENSION_PACKAGE/misc/NameFold;"
 internal const val LOCALE_CONTROLLER = "Lorg/telegram/messenger/LocaleController;"
@@ -81,11 +85,11 @@ internal fun BytecodePatchContext.resolveNameFold(): NameFoldPlan = try {
 }
 
 private fun BytecodePatchContext.translit(): MutableMethod {
-    val owner = mutableClassDefByOrNull(LOCALE_CONTROLLER)
+    val owner = tgMutableClassDefByOrNull(LOCALE_CONTROLLER)
     fits(owner != null, "LocaleController is missing")
-    val named = owner!!.methods.filter { it.name == TRANSLIT }
-    val full = named.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == STRING &&
-        it.parameterTypes.map(CharSequence::toString) == listOf(STRING, "Z", "Z") }
+    val named = owner!!.methods.filter { it.origName == TRANSLIT }
+    val full = named.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.origReturnType == STRING &&
+        it.origParameterTypes == listOf(STRING, "Z", "Z") }
     fits(full.size == 1, "the transliteration is missing or ambiguous")
     val method = full.single()
     val others = named.filter { it !== method }

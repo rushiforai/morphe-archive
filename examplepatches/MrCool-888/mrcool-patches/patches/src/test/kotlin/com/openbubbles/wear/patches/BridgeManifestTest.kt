@@ -37,6 +37,10 @@ class BridgeManifestTest {
         assertEquals("1", evaluate("count($settings)"))
         assertEquals("false", evaluate("string($settings/@*[local-name()='exported'])"))
         assertEquals("0", evaluate("count($settings/intent-filter)"))
+        val restart = "/manifest/application/activity[@*[local-name()='name']='$RESTART_ACTIVITY']"
+        assertEquals("false", evaluate("string($restart/@*[local-name()='exported'])"))
+        assertEquals(":morphe_restart", evaluate("string($restart/@*[local-name()='process'])"))
+        assertEquals("0", evaluate("count($restart/intent-filter)"))
         val bridge = "/manifest/application/service[@*[local-name()='name']='$SERVICE_NAME']"
         assertEquals("true", evaluate("string($bridge/@*[local-name()='exported'])"))
         assertEquals("com.google.android.gms.wearable.MESSAGE_RECEIVED", evaluate("string($bridge/intent-filter/action/@*[local-name()='name'])"))
@@ -62,11 +66,11 @@ class BridgeManifestTest {
     @Test fun `notification settings add no bridge components and coexist with bridge`() {
         val document = manifest()
         addSettingsToManifest(document)
-        assertEquals(1, document.getElementsByTagName("activity").length)
+        assertEquals(2, document.getElementsByTagName("activity").length)
         assertEquals(1, document.getElementsByTagName("service").length)
         assertEquals(0, document.getElementsByTagName("provider").length)
         addBridgeToManifest(document)
-        assertEquals(2, document.getElementsByTagName("activity").length)
+        assertEquals(3, document.getElementsByTagName("activity").length)
         assertEquals(2, document.getElementsByTagName("service").length)
         assertEquals(1, document.getElementsByTagName("provider").length)
         assertFailsWith<PatchException> { addSettingsToManifest(document) }

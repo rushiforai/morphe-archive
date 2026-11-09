@@ -12,7 +12,7 @@ private const val BACKUP = "Lapp/mightymorphing/extension/joey/MorpheBackup;"
 @Suppress("unused")
 val backupRestorePatch = bytecodePatch(
     name = "Backup and restore",
-    description = "Save various Joey settings to a file and restore them later. Encouraged to login to reddit account and then restore. Access via Joey - Settings - Morphe Settings.",
+    description = "[v1.3: Morphe settings covers splash, theme, comments, and show and hide] Save Joey settings to a file and restore them later. Log in to the same Reddit account before restoring subscriptions. Access via Joey Settings - Morphe Settings.",
 ) {
     compatibleWith(JOEY)
 

@@ -9,7 +9,7 @@ object Constants {
         packageName = "com.kiloo.subwaysurf",
         appIconColor = 0xF9A825,
         targets = listOf(
-            AppTarget(version = "3.70.0"),
+            AppTarget(version = "3.71.0"),
         )
     )
 }

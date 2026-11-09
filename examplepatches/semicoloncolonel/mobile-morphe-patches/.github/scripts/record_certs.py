@@ -43,8 +43,9 @@ def main():
             package = re.search(r"package: name='([^']+)'", badging)
             out = subprocess.run([args.apksigner, "verify", "--print-certs", str(base)],
                                  capture_output=True, text=True).stdout
-            # Apps that rotated their key list a signer per Android version range.
-            digests = re.findall(r"^Signer[^:\n]*certificate SHA-256 digest: ([0-9a-f]{64})", out, re.M)
+            # Every signer's digest, whatever apksigner's wording, except Google Play's
+            # source stamp. Apps that rotated their key list a signer per Android version range.
+            digests = re.findall(r"^(?!Source Stamp)[^\n]*certificate SHA-256 digest: ([0-9a-f]{64})", out, re.M)
             if not package or not digests:
                 print(f"{path}: could not read the package or certificate")
                 continue

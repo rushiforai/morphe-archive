@@ -29,7 +29,9 @@ import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -69,7 +71,8 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * on, lets view-once and self-destructing photos, videos, voice and round videos through (#9).
  * Telegram keeps those encrypted, so their copy is decrypted on the way, see {@link #open}. No
  * switch lets anything out of a secret chat. On Android 9 and 10 with storage access, Telegram's
- * folder is already shared, so there's nothing to copy.
+ * folder is already shared, so there's nothing to copy. What to copy narrows all of it to the kinds
+ * ticked there, read from the copy's name (#57), see {@link #kind}.
  *
  * <p>Each document is copied once. A private list notes which Downloads entry holds it, under the
  * downloader's name for it (data center and document ID), so another file that only shares its
@@ -259,11 +262,80 @@ public final class SaveDownloads {
 
     /** Whether a background download of this message type could be copied. */
     private static boolean queuedWanted(int type) {
-        if (type == FILE_TYPE || type == SONG_TYPE) return true;
+        // A file can be any kind; its name says which once its message is read.
+        if (type == FILE_TYPE || type == SONG_TYPE) {
+            return on(Kind.DOCUMENTS) || on(Kind.MUSIC) || on(Kind.PHOTOS) || on(Kind.VIDEOS);
+        }
+        Kind kind = type == PHOTO_TYPE ? Kind.PHOTOS : type == VOICE_TYPE ? Kind.VOICE : Kind.VIDEOS;
+        if (!on(kind)) return false;
         boolean photoOrVideo = type == PHOTO_TYPE || type == VIDEO_TYPE;
         if (photoOrVideo && Settings.SAVE_RESTRICTED_DOWNLOADS.get()) return true;
         // Telegram auto-downloads view-once and timed media too.
         return (photoOrVideo || type == VOICE_TYPE || type == ROUND_TYPE) && Settings.SAVE_TIMED_MEDIA.get();
+    }
+
+    /** What a copy counts as in the What to copy list (#57), in the list's order. */
+    public enum Kind { DOCUMENTS, MUSIC, PHOTOS, VIDEOS, VOICE }
+
+    static final String KIND_LEFT_OUT = "kind of file not ticked in What to copy, kept in Telegram";
+
+    // Not Set.of, which Android 9 and 10 don't have.
+    private static final Set<String> IMAGES = new HashSet<>(Arrays.asList("jpg", "jpeg", "png", "gif", "webp", "heic", "heif",
+            "bmp", "tif", "tiff", "avif", "svg", "dng", "raw"));
+    private static final Set<String> VIDEOS = new HashSet<>(Arrays.asList("mp4", "m4v", "mkv", "webm", "mov", "avi", "3gp", "3g2",
+            "wmv", "flv", "ts", "mts", "m2ts", "mpg", "mpeg", "vob", "ogv"));
+    private static final Set<String> AUDIO = new HashSet<>(Arrays.asList("mp3", "m4a", "aac", "flac", "ogg", "oga", "opus", "wav",
+            "wma", "amr", "aiff", "aif", "ape", "mka", "alac", "mid", "midi"));
+
+    /**
+     * The kind a copy counts as, by its name's extension: a picture is a photo, a video a video and
+     * sound music, except on view-once and timed media, where sound is a voice message. The rest,
+     * and a name with no extension, is a document.
+     */
+    static Kind kind(String name, boolean timed) {
+        String ext = extension(name).toLowerCase(Locale.ROOT);
+        if (IMAGES.contains(ext)) return Kind.PHOTOS;
+        if (VIDEOS.contains(ext)) return Kind.VIDEOS;
+        if (AUDIO.contains(ext)) return timed ? Kind.VOICE : Kind.MUSIC;
+        return Kind.DOCUMENTS;
+    }
+
+    /** Whether the kind is ticked in What to copy. Every kind starts ticked. */
+    public static boolean on(Kind kind) {
+        return !leftOut(Settings.SAVE_KINDS_LEFT_OUT.get()).contains(kind);
+    }
+
+    /** The kinds a saved What to copy value leaves in Telegram. A name this build doesn't know is skipped. */
+    public static EnumSet<Kind> leftOut(String value) {
+        EnumSet<Kind> kinds = EnumSet.noneOf(Kind.class);
+        for (String name : value.split(",")) {
+            for (Kind kind : Kind.values()) if (kind.name().equals(name.trim())) kinds.add(kind);
+        }
+        return kinds;
+    }
+
+    /** The value What to copy saves for the kinds it leaves in Telegram, in the list's order. */
+    public static String leftOutValue(Set<Kind> kinds) {
+        StringBuilder value = new StringBuilder();
+        for (Kind kind : Kind.values()) {
+            if (!kinds.contains(kind)) continue;
+            if (value.length() > 0) value.append(',');
+            value.append(kind.name());
+        }
+        return value.toString();
+    }
+
+    /** Whether a What to copy value is one the list would save: known kinds in order, with at least one still copied. */
+    public static boolean allowedLeftOut(String value) {
+        EnumSet<Kind> kinds = leftOut(value);
+        return kinds.size() < Kind.values().length && leftOutValue(kinds).equals(value);
+    }
+
+    /** Whether the kind is ticked, counting the copy as left out when it isn't. */
+    private static boolean ticked(Kind kind) {
+        if (on(kind)) return true;
+        HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KIND_LEFT_OUT);
+        return false;
     }
 
     static final String KEPT = "file kept in Telegram, saving not allowed";
@@ -332,9 +404,11 @@ public final class SaveDownloads {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KEPT);
             return null;
         }
-        if (restricted) HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, RESTRICTED);
         String display = displayName(telegram.documentName(document), file.getName());
-        return () -> save(file, display, name, restricted);
+        Kind kind = kind(display, false);
+        if (!ticked(kind)) return null;
+        if (restricted) HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, RESTRICTED);
+        return () -> save(file, display, name, restricted, false, kind);
     }
 
     /**
@@ -354,9 +428,12 @@ public final class SaveDownloads {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KEPT);
             return null;
         }
-        HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, RESTRICTED_MEDIA);
         String display = displayName(document == null ? null : telegram.documentName(document), file.getName());
-        return () -> save(file, display, name, true);
+        // A photo has no document, only the size the chat shows.
+        Kind kind = document == null ? Kind.PHOTOS : kind(display, false);
+        if (!ticked(kind)) return null;
+        HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, RESTRICTED_MEDIA);
+        return () -> save(file, display, name, true, false, kind);
     }
 
     /**
@@ -378,9 +455,11 @@ public final class SaveDownloads {
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, KEPT);
             return null;
         }
-        HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, TIMED);
         String display = displayName(document == null ? null : telegram.documentName(document), plain(file.getName()));
-        return () -> save(file, display, name, restricted, true, false);
+        Kind kind = document == null ? Kind.PHOTOS : kind(display, true);
+        if (!ticked(kind)) return null;
+        HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, TIMED);
+        return () -> save(file, display, name, restricted, true, kind);
     }
 
     /** What Telegram adds to the name of a file it keeps encrypted. */
@@ -448,28 +527,26 @@ public final class SaveDownloads {
             + MediaStore.MediaColumns.DATE_ADDED + "<?";
 
     /**
-     * @param name     the name the copy shows in Downloads
-     * @param document   the downloader's name for the document, which no other document has
-     * @param restricted whether its chat doesn't allow saving, so the second switch has to stay on too
+     * The "Save to Downloads" menu item: copies the one file the user picked, whatever the
+     * automatic switches and What to copy say. Only the item's own switch is asked, before and after
+     * the write. Returns what happened ({@link #SAVED}, {@link #ALREADY_SAVED}) or null when nothing was copied.
      */
-    static void save(File file, String name, String document, boolean restricted) {
-        save(file, name, document, restricted, false, false);
+    static String saveByHand(File file, String name, String document) {
+        return save(file, name, document, true, false, null);
     }
 
     /**
-     * The "Save to Downloads" menu item: copies the one file the user picked, whatever the two
-     * automatic switches say. Only the item's own switch is asked, before and after the write.
-     * Returns what happened ({@link #SAVED}, {@link #ALREADY_SAVED}) or null when nothing was copied.
+     * @param name       the name the copy shows in Downloads
+     * @param document   the downloader's name for the document, which no other document has
+     * @param restricted whether its chat doesn't allow saving, so the second switch has to stay on too
+     * @param timed      whether it's view-once or timed media, so the third switch has to stay on too
+     * @param kind       what it counts as in What to copy, which has to stay ticked; null for Save to Downloads
      */
-    static String saveByHand(File file, String name, String document) {
-        return save(file, name, document, true, false, true);
-    }
-
-    /** @param timed whether it's view-once or timed media, so the third switch has to stay on too */
-    private static String save(File file, String name, String document, boolean restricted, boolean timed, boolean manual) {
+    private static String save(File file, String name, String document, boolean restricted, boolean timed, Kind kind) {
+        boolean manual = kind == null;
         try {
             // Turned off or paused while it waited behind other copies.
-            if (!wanted(restricted, timed, manual)) {
+            if (!wanted(restricted, timed, kind)) {
                 HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, DROPPED);
                 return null;
             }
@@ -483,7 +560,7 @@ public final class SaveDownloads {
                 HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, "file already in shared storage");
                 return manual ? ALREADY_SAVED : null;
             }
-            String result = copy(context, file, name, document, restricted, timed, manual);
+            String result = copy(context, file, name, document, restricted, timed, kind);
             HookStatus.counted(FamilyNames.SAVE_DOWNLOADS, result);
             return result;
         } catch (Throwable failure) {
@@ -492,9 +569,10 @@ public final class SaveDownloads {
         }
     }
 
-    private static boolean wanted(boolean restricted, boolean timed, boolean manual) {
-        if (manual) return Utils.settingsReady() && Settings.MESSAGE_MENU_SAVE_PROTECTED.get();
-        return Utils.settingsReady() && Settings.SAVE_DOWNLOADS.get()
+    /** @param kind null for Save to Downloads, which only its own switch decides */
+    private static boolean wanted(boolean restricted, boolean timed, Kind kind) {
+        if (kind == null) return Utils.settingsReady() && Settings.MESSAGE_MENU_SAVE_PROTECTED.get();
+        return Utils.settingsReady() && Settings.SAVE_DOWNLOADS.get() && on(kind)
                 && (!restricted || Settings.SAVE_RESTRICTED_DOWNLOADS.get())
                 && (!timed || Settings.SAVE_TIMED_MEDIA.get());
     }
@@ -523,7 +601,7 @@ public final class SaveDownloads {
      */
     @RequiresApi(Build.VERSION_CODES.Q)
     private static String copy(Context context, File file, String name, String document, boolean restricted, boolean timed,
-            boolean manual) throws IOException {
+            Kind kind) throws IOException {
         ContentResolver resolver = context.getContentResolver();
         Uri downloads = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
         SharedPreferences receipts = context.getSharedPreferences(RECEIPTS, Context.MODE_PRIVATE);
@@ -554,7 +632,7 @@ public final class SaveDownloads {
                 for (int read; (read = in.read(buffer)) != -1; ) out.write(buffer, 0, read);
             }
             // Turned off or paused while it was written: the hidden entry goes and nothing shows up.
-            if (!wanted(restricted, timed, manual)) {
+            if (!wanted(restricted, timed, kind)) {
                 resolver.delete(pending, null, null);
                 return DROPPED;
             }

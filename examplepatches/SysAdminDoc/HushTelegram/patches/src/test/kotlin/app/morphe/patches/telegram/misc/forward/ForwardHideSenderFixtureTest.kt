@@ -22,6 +22,10 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The forward preview's update, the Premium gate's article number, the stubs and the runtime. */
 class ForwardHideSenderFixtureTest {
@@ -29,7 +33,7 @@ class ForwardHideSenderFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = FixtureDex.classesWhere(build, { true }) { m ->
-                m.definingClass == PREVIEW_PARAMS || m.definingClass == MESSAGE_OBJECT || m.definingClass == "Lorg/telegram/messenger/UserConfig;" ||
+                m.origDefiningClass == PREVIEW_PARAMS || m.origDefiningClass == MESSAGE_OBJECT || m.origDefiningClass == "Lorg/telegram/messenger/UserConfig;" ||
                     m.controlBody().map { it.controlRef() }.let { IS_PREMIUM in it && FORWARDS in it && NAME_HIDE in it }
             }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
@@ -46,17 +50,17 @@ class ForwardHideSenderFixtureTest {
             assertEquals(STARTS, after[0].controlRef())
             assertEquals("$name: the preview and the messages", listOf(params, params + 1), after[0].namedRegisters())
             for (i in before.indices) {
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + 1].opcode, after[i + 1].namedRegisters(), (after[i + 1] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + 1].opcode, after[i + 1].namedRegisters(), after[i + 1].origRef()))
             }
 
-            val stub = { n: String -> context.mutableClassDefBy(FORWARD_SENDER).methods.single { it.name == n }.controlBody() }
+            val stub = { n: String -> context.tgMutableClassDefBy(FORWARD_SENDER).methods.single { it.origName == n }.controlBody() }
             assertTrue("$name: a new forward has no messages yet", FORWARDS in stub("fresh").map { it.controlRef() })
             assertTrue("$name: the account's Premium", IS_PREMIUM in stub("premium").map { it.controlRef() })
             assertTrue("$name: the message's type", MESSAGE_TYPE in stub("type").map { it.controlRef() })
             assertEquals("$name: the article number", 36, (stub("article").first() as NarrowLiteralInstruction).narrowLiteral)
             assertTrue("$name: the flag the send reads", stub("hide").any { it.opcode == Opcode.IPUT_BOOLEAN && it.controlRef() == HIDE_SENDERS })
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "forwardHideSender" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "forwardHideSender" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

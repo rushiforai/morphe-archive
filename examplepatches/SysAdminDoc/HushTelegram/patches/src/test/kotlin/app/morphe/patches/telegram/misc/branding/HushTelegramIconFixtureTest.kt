@@ -58,7 +58,8 @@ class HushTelegramIconFixtureTest {
 
     @Test
     fun `a plain style tints the themed picture over one color`() {
-        for (style in IconStyle.entries) {
+        assertEquals("only Telegram's own icon draws nothing", listOf(IconStyle.TELEGRAM), IconStyle.entries.filterNot { it.drawsIcon })
+        for (style in IconStyle.entries.filter { it.drawsIcon }) {
             val res = temporary.newFolder()
             addIconFiles(res, bundledIconPictures(), style)
             val icon = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(res.resolve("mipmap-anydpi-v26/$ICON.xml")).documentElement
@@ -135,6 +136,45 @@ class HushTelegramIconFixtureTest {
             val (application, _) = resolveLaunchers(manifest)
             assertEquals("Telegram", application.getAttribute("android:label"))
             assertEquals(ICON_REFERENCE, application.getAttribute("android:icon"))
+        }
+    }
+
+    /** Telegram's own icon, picked to rename the app only: the patch writes no picture and leaves every icon attribute. */
+    @Test
+    fun `Telegram's own icon changes only the name`() {
+        withManifest(manifest(alias = "android:icon=\"@mipmap/ic_launcher\" android:label=\"@string/AppName\"")) { context, manifest ->
+            val res = manifest.parentFile.resolve("res")
+            val files = resourceTree(res)
+            val original = document(manifest.readText())
+            hushTelegramIconPatch.options["appName"] = "  Chats  "
+            hushTelegramIconPatch.options["iconStyle"] = IconStyle.TELEGRAM.label
+            try {
+                hushTelegramIconPatch.execute(context)
+            } finally {
+                hushTelegramIconPatch.options.values.forEach { it.reset() }
+            }
+            assertResourceTreeUnchanged(files, res)
+            val result = document(manifest.readText())
+            val (application, defaultIcon) = resolveLaunchers(result)
+            for (element in listOf(application, defaultIcon)) {
+                assertEquals("Chats", element.getAttribute("android:label"))
+                assertEquals("@mipmap/ic_launcher", element.getAttribute("android:icon"))
+            }
+            assertEquals("@mipmap/ic_launcher_round", application.getAttribute("android:roundIcon"))
+            for (element in listOf(application, defaultIcon)) element.setAttribute("android:label", "")
+            for (element in resolveLaunchers(original).toList()) element.setAttribute("android:label", "")
+            assertEquals("nothing else changes", state(original.documentElement), state(result.documentElement))
+        }
+        // With no name either, the patch has nothing to do and leaves the manifest's bytes alone.
+        withManifest(manifest()) { context, manifest ->
+            val before = resourceTree(manifest.parentFile)
+            hushTelegramIconPatch.options["iconStyle"] = IconStyle.TELEGRAM.key
+            try {
+                hushTelegramIconPatch.execute(context)
+            } finally {
+                hushTelegramIconPatch.options.values.forEach { it.reset() }
+            }
+            assertResourceTreeUnchanged(before, manifest.parentFile)
         }
     }
 

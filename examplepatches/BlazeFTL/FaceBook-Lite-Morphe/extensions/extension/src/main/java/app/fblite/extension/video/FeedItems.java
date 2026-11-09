@@ -13,9 +13,9 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Reads the app's lists (X.0zb) and the component trees that hold what is on screen: which post or reel a
+ * Reads the app's lists (X.12u) and the component trees that hold what is on screen: which post or reel a
  * video belongs to, and who posted it, for the name of a downloaded file. Names are for Facebook Lite
- * 530.0.0.8.106, the same ones the hide-ads extension uses. Everything here returns null or an empty result
+ * 536.0.0.11.107, the same ones the hide-ads extension uses. Everything here returns null or an empty result
  * when something does not match, and never throws.
  */
 final class FeedItems {
@@ -39,9 +39,9 @@ final class FeedItems {
         // lookup then failed once and stayed failed for the whole run.
         ClassLoader loader = FeedItems.class.getClassLoader();
         try {
-            pagerClass = Class.forName("X.0zb", false, loader);
-            childList = Class.forName("X.0gn", false, loader).getMethod("AF0");
-            horizontal = pagerClass.getMethod("AQS");
+            pagerClass = Class.forName("X.12u", false, loader);
+            childList = Class.forName("X.0hc", false, loader).getMethod("ADt");
+            horizontal = pagerClass.getMethod("APY");
             resolved = true;
         } catch (Throwable t) {
             broken = true;
@@ -88,7 +88,7 @@ final class FeedItems {
     /** True when the list pages one item at a time (Reels): its snap handler's mode is not 0. */
     static boolean isSnapping(View pager) {
         try {
-            Object snap = read(pager, "A07");
+            Object snap = read(pager, "A08");
             return snap != null && ((Integer) read(snap, "A02")) != 0;
         } catch (Throwable t) {
             return false;
@@ -103,7 +103,7 @@ final class FeedItems {
         }
     }
 
-    /** The list's items (X.0z8), copied. */
+    /** The list's items (X.12L), copied. */
     static Object[] items(View pager) {
         try {
             Object layout = read(pager, "A05");
@@ -125,8 +125,8 @@ final class FeedItems {
     /** The component tree an item holds, or null. */
     static Object treeOf(Object item) {
         try {
-            Object wrapper = read(item, "A0B");
-            return wrapper == null ? null : read(wrapper, "A03");
+            Object wrapper = read(item, "A0C");
+            return wrapper == null ? null : read(wrapper, "A04");
         } catch (Throwable t) {
             return null;
         }
@@ -156,7 +156,7 @@ final class FeedItems {
         }
     }
 
-    /** The text of a text component (method AIW), as the app stores it with markup, or null. */
+    /** The text of a text component (method AHV), as the app stores it with markup, or null. */
     private static String rawText(Object node) {
         Class<?> c = node.getClass();
         Method m;
@@ -164,7 +164,7 @@ final class FeedItems {
             m = TEXT.get(c);
         } else {
             try {
-                m = c.getMethod("AIW");
+                m = c.getMethod("AHV");
             } catch (NoSuchMethodException e) {
                 m = null;
             }
@@ -245,7 +245,7 @@ final class FeedItems {
         return start + 1 < raw.length() && raw.charAt(start) == '\\' && raw.charAt(start + 1) == '\u0001';
     }
 
-    /** The cleaned text of a text component (method AIW), or null when the object is not one. */
+    /** The cleaned text of a text component (method AHV), or null when the object is not one. */
     static String textOf(Object node) {
         String raw = node == null ? null : rawText(node);
         if (raw == null) return null;
@@ -253,7 +253,7 @@ final class FeedItems {
         return text.isEmpty() ? null : text;
     }
 
-    /** Every list (X.0zb) in the window below the view, for screens where the video's own list is not an ancestor. */
+    /** Every list (X.12u) in the window below the view, for screens where the video's own list is not an ancestor. */
     static List<View> pagersIn(View root) {
         List<View> out = new ArrayList<>();
         if (root != null && resolve(null)) collectPagers(root, out, 0);

@@ -4,7 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.channelbar
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.TelegramNames
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels as rawAddInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
@@ -19,6 +20,10 @@ import app.morphe.util.refusedByVerifier
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val CHANNEL_SHARE = "$EXTENSION_PACKAGE/misc/ChannelShare;"
 internal const val SHARE_ON = "$CHANNEL_SHARE->on()Z"
@@ -48,12 +53,14 @@ internal val SHARE_FACTS = listOf(
 )
 
 /**
- * Asks Telegram's own answer first and stops at a no. On a yes, with the switch on, hands the
+ * After Telegram's own answer, kept as [STOCK_SHARE] on [owner] (named as the build names it, since the
+ * name table only knows members the app ships), stops at a no. On a yes, with the switch on, hands the
  * extension whether a person sent the message, whether it's forwarded from a channel and whether
  * it's in Saved Messages: flagged as such, or in the chat whose id is the account's own.
  */
+private fun wrapper(owner: String) = "invoke-direct {p0}, $owner->$STOCK_SHARE()Z\n" + TelegramNames.tg(WRAPPER)
+
 private val WRAPPER = """
-    invoke-direct {p0}, $SHARE_MESSAGE->$STOCK_SHARE()Z
     move-result v0
     if-eqz v0, :answer
     invoke-static {}, $SHARE_ON
@@ -122,24 +129,29 @@ internal fun BytecodePatchContext.resolveChannelShare(): ChannelShareButton {
     requireStatusMethod("hideChannelShare")
     fun missing(why: String) = ChannelShareButton(null, null, null, null, why)
 
-    val owner = mutableClassDefByOrNull(SHARE_MESSAGE) ?: return missing("the app has no message class to ask")
-    val decision = owner.methods.singleOrNull { it.name == SHARE_DECISION && it.parameterTypes.isEmpty() && it.returnType == "Z" }
+    val owner = tgMutableClassDefByOrNull(SHARE_MESSAGE) ?: return missing("the app has no message class to ask")
+    val decision = owner.methods.singleOrNull { it.origName == SHARE_DECISION && it.parameterTypes.isEmpty() && it.origReturnType == "Z" }
         ?: return missing("messages no longer decide their share button in one place")
     if (AccessFlags.STATIC.isSet(decision.accessFlags) || AccessFlags.ABSTRACT.isSet(decision.accessFlags) ||
         decision.implementation == null) {
         return missing("the share button decision is no longer a method of the message itself")
     }
-    if (owner.methods.any { it.name == STOCK_SHARE }) return missing("the share button decision is already wrapped")
-    val reads = decision.controlBody().mapNotNull { it.controlRef() }.toSet()
+    if (owner.methods.any { it.origName == STOCK_SHARE }) return missing("the share button decision is already wrapped")
+    val reads = decision.controlBody().mapNotNull { it.controlRef() }.toMutableSet()
+    // 13.2 inlines getDialogId() there as the static getDialogId(messageOwner) it returns; the wrapper's call still reaches it.
+    if ("$SHARE_MESSAGE->getDialogId(${TLRPC}Message;)J" in reads && owner.methods.any {
+            it.origName == "getDialogId" && it.parameterTypes.isEmpty() && it.origReturnType == "J" &&
+                !AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null
+        }) reads += "$SHARE_MESSAGE->getDialogId()J"
     SHARE_FACTS.firstOrNull { it !in reads }?.let { return missing("the share button decision no longer reads $it") }
 
-    val stock = MutableMethod(ImmutableMethod(SHARE_MESSAGE, STOCK_SHARE, emptyList(), "Z",
+    val stock = MutableMethod(ImmutableMethod(owner.type, STOCK_SHARE, emptyList(), "Z",
         AccessFlags.PRIVATE.value or AccessFlags.FINAL.value, null, null, decision.implementation))
-    val wrapper = ImmutableMethod(SHARE_MESSAGE, decision.name, decision.parameters, decision.returnType, decision.accessFlags,
+    val wrapper = ImmutableMethod(owner.type, decision.name, decision.parameters, decision.returnType, decision.accessFlags,
         decision.annotations, decision.hiddenApiRestrictions, MutableMethodImplementation(9))
-        .toMutable().apply { addInstructionsWithLabels(0, WRAPPER) }
-    val refusals = refusedByVerifier(wrapper, { classDefByOrNull(it)?.superclass },
-        { classDefByOrNull(it)?.let { found -> AccessFlags.INTERFACE.isSet(found.accessFlags) } })
+        .toMutable().apply { rawAddInstructionsWithLabels(0, wrapper(owner.type)) }
+    val refusals = refusedByVerifier(wrapper, { tgClassDefByOrNull(it)?.superclass },
+        { tgClassDefByOrNull(it)?.let { found -> AccessFlags.INTERFACE.isSet(found.accessFlags) } })
     if (refusals.isNotEmpty()) throw PatchException("$SHARE_MESSAGE->$SHARE_DECISION would fail Android's verifier: ${refusals.joinToString("; ")}")
     return ChannelShareButton(owner, decision, stock, wrapper, null)
 }

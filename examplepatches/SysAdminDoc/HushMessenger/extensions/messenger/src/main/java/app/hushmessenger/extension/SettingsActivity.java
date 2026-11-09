@@ -67,6 +67,7 @@ public final class SettingsActivity extends Activity {
     private final FontFileRow fontFile = new FontFileRow(this);
     private final HomeHeaderRow homeHeader = new HomeHeaderRow(this);
     private final MessageActionsRow messageActions = new MessageActionsRow(this);
+    private final ChatMenuItemsRow chatMenuItems = new ChatMenuItemsRow(this);
     private final SharedPreferences.OnSharedPreferenceChangeListener preferenceListener = (preferences, key) -> {
         if (key == null || "paused".equals(key) || Settings.SUB_SWITCHES.containsKey(key) || Settings.installed.contains(key))
             backup.choicesChanged();
@@ -83,6 +84,8 @@ public final class SettingsActivity extends Activity {
     private final List<String[]> installedControls = new ArrayList<>();
     private final List<LinearLayout> groups = new ArrayList<>();
     private final List<Button> tabs = new ArrayList<>();
+    /** The dots on switches added since settings were last opened (#149), or null when its store can't be read. */
+    private NewRowDots dots;
     /**
      * HushFacebook's accordion: every section starts closed, and the ones a person opens stay open, a restart included.
      * Kept in a store of its own, so opening one isn't a settings change and never reaches a backup.
@@ -135,7 +138,7 @@ public final class SettingsActivity extends Activity {
     /** Switches whose effect hasn't been confirmed on a phone. Each shows the Experimental badge. */
     /** The switches that take a way into these settings away, each with a reason when it can't turn on. */
     static final Set<String> WAYS_IN = Set.of("hide_menu_row", Settings.HIDE_ICON_SHORTCUTS, Settings.HIDE_LOGO_PRESS);
-    static final Set<String> EXPERIMENTAL = Set.of("pinned_chats", "hidden_chats", "nearby_scans", "phone_id_sync", "mark_read_button", "story_hold", "chat_preview", "quiet_calls", "save_voice", "gallery_to_chat", "call_recording", "inbox_search_bar", "landscape", "restricted_notify");
+    static final Set<String> EXPERIMENTAL = Set.of("pinned_chats", "hidden_chats", "nearby_scans", "phone_id_sync", "mark_read_button", "story_hold", "chat_preview", "chat_preview_size", "chat_menu_items", "quiet_calls", "save_voice", "gallery_to_chat", "call_recording", "inbox_search_bar", "landscape", "restricted_notify", "tab_bar_scroll_away", "floating_tab_bar");
     static final String[][] CONTROLS = {
         {"people", "Hide People You May Know", "Hides suggested people in chats, search and stories, and on the People and Notifications tabs. Good if you only want people you know.", "inbox"},
         {"friend_requests", "Hide friend request cards", "Hides friend request cards in your chat list. It doesn't accept or decline anyone.", "inbox"},
@@ -147,9 +150,11 @@ public final class SettingsActivity extends Activity {
         {"subtabs", "Hide inbox tabs", "Hides the All, Unread and Groups tabs above your chats.", "inbox"},
         {"inbox_search_bar", "Keep the search bar", "Brings back the search bar at the top of your chat list when Messenger has swapped it for a search icon. Restart Messenger to see the change. Nothing changes if you never got the icon.", "inbox"},
         {"chat_preview", "Preview chats on long press", "Press and hold a chat to peek at it in Messenger's own preview, with the chat's menu under it, without opening the chat.", "inbox"},
+        {"chat_preview_size", "Bigger chat preview", "Gives the chat more room in the preview you get when you press and hold a chat, and lets you scroll back through it there. The menu under it keeps a set height and scrolls when it has more items.", "inbox"},
         {"mark_read_action", "Hide Mark as read", "Hides Mark as read in the menu you get when you press and hold a chat in your chat list, so you can't mark a chat read by accident. Mark as unread stays.", "inbox"},
         {"pinned_chats", "Pin more chats", "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices.", "inbox"},
         {"hidden_chats", "Hide chosen chats", "Adds Hide from chat list to the menu you get when you press and hold a chat. A hidden chat stays off your chat list when new messages come in, and search still finds it. Hiding stays on this phone, and you can unhide chats in HushMessenger settings. It doesn't stop notifications, so mute the chat in Messenger for that.", "inbox"},
+        {"chat_menu_items", "Hide chat menu items", "Hides the items you pick from the menu you get when you press and hold a chat in your chat list. Press and hold any chat once, and that menu's items show up under this switch for you to pick.", "inbox"},
         {"facebook", "Hide Facebook shortcuts", "Hides Facebook buttons, profile and sharing shortcuts, and the Also from Meta and Subscriptions sections in the Menu tab. Handy if you only use Messenger.", "navigation"},
         {"meta_ai", "Hide Meta AI", "Hides the Meta AI floating button, toolbar button, tab and menu entries, AI in search and in @ suggestions, and the offer to summarize a chat's unread messages. Restart Messenger to see the tab go.", "navigation"},
         {"moments", "Hide Chat Moments", "Hides Chat Moments in the menu.", "navigation"},
@@ -158,6 +163,8 @@ public final class SettingsActivity extends Activity {
         {"tab_people_show", "Show People tab", "Puts the People tab back in the bar at the bottom, right after Chats, on accounts where Messenger took it away. Hide People tab wins if both are on. Restart Messenger to see the tab.", "navigation"},
         {"tab_badges", "Hide tab badges", "Hides the red dots and counts on the tabs at the bottom and on the Facebook button at the top. Turn on Keep for any you still want. Restart Messenger to see the change.", "navigation"},
         {"tab_notifications", "Hide Notifications tab", "Hides the Notifications tab in the bar at the bottom. Restart Messenger to see the tab go.", "navigation"},
+        {"tab_bar_scroll_away", "Hide the tab bar while scrolling", "Slides the tab bar at the bottom out of the way as you scroll down your chats and brings it back when you scroll up. Restart Messenger to see the change.", "navigation"},
+        {"floating_tab_bar", "Floating tab bar", "Switches the tab bar at the bottom to the floating style Messenger is trying out, which sits over your chats instead of below them. Messenger may keep its usual bar on some screens. Restart Messenger to see the change.", "navigation"},
         {"chat_animation", "Slide chats in and out", "Slides a chat in from the side when you open it and out when you go back. Chat heads and bubbles aren't affected.", "navigation"},
         {"story_hold", "Hold stories at the end", "Keeps a story on screen when it ends instead of moving on to the next one, so you go on with a tap or a swipe. Photos and videos both wait, and the last story stays open until you close it.", "navigation"},
         {"ai_stickers", "Hide AI sticker tools", "Hides the Generate and Generate AI sticker buttons, the AI sticker tab and AI sticker suggestions. Custom and music stickers in the Generate menu go with it.", "stickers"},
@@ -189,7 +196,7 @@ public final class SettingsActivity extends Activity {
         {"recent_media", "Hide the recent photo card", "Opening a chat right after you take a screenshot, photo or video no longer shows a card above the message box offering to send it. You can still pick it from the gallery.", "photos_videos"},
         {"save_voice", "Save voice messages you play", "Each voice message you play is also saved to Recordings/Messenger on your phone (Music/Messenger on Android 10 and 11), where a file manager or another player can open it. Playing it again doesn't save another copy.", "photos_videos"},
         {"save_voice_menu", "Save button for voice messages", "Hold a voice message and tap More: Save voice message is the top row there, for saving just that one. It goes in the same folder as Save voice messages you play, and that switch can stay off.", "photos_videos"},
-        {"share_story", "Hide Your story when sharing", "When you share a photo, video or link into Messenger from another app, the Send to list no longer offers Your story, so a tap on Add can't post it by mistake. Your chats and groups are still there.", "photos_videos"},
+        {"share_story", "Hide Your story when sharing", "When you share a photo, video or link into Messenger from another app, your phone's share menu no longer offers Messenger's Your story, so it goes straight to Chats. The Send to list drops Your story too, so a tap on Add can't post it by mistake. Your chats and groups are still there.", "photos_videos"},
         {"system_camera", "Use the phone's camera app", "The camera button in a chat opens your phone's camera app. The photo opens in Messenger's editor, ready to send. Photos only.", "photos_videos"},
         {"external_gallery", "Open your gallery app", "The gallery button in a chat opens your phone's own gallery app. One photo or video opens in Messenger's editor for that chat, ready to send. Pick several and Messenger's Send to sheet opens with all of them and that chat at the top.", "photos_videos"},
         {"gallery_to_chat", "Put gallery picks in the chat", "With Open your gallery app on, what you pick goes into the chat's message box like Messenger's own gallery, instead of the editor or the Send to sheet. Nothing sends until you tap Send. A chat that was already open needs opening again.", "photos_videos"},
@@ -253,6 +260,7 @@ public final class SettingsActivity extends Activity {
         super.onCreate(state);
         text = new SettingsText(this);
         ui = new SettingsUi(this, light);
+        dots = NewRowDots.create(this);
         setTitle(text.get(Settings.preview ? "preview_title" : "settings"));
         // Hosted in a stock Messenger screen, recents would otherwise label this task "Messenger".
         if (HostScreens.hosted(this)) setTaskDescription(new android.app.ActivityManager.TaskDescription(getTitle().toString()));
@@ -352,6 +360,7 @@ public final class SettingsActivity extends Activity {
         appScroll = scrollPage(appPage);
         appContent = pageContent(appScroll);
         buildApp(appContent);
+        paintNewSections();
         search.setText(state == null ? "" : state.getString("query", ""));
         if (state != null) {
             int length = search.length();
@@ -393,6 +402,7 @@ public final class SettingsActivity extends Activity {
         if (hiddenChats != null) fillHiddenChats();
         if (quietCallers != null) fillQuietCallers();
         messageActions.fill(null);
+        chatMenuItems.fill(null);
         updates.syncUpdateChoice(false);
     }
 
@@ -400,6 +410,11 @@ public final class SettingsActivity extends Activity {
         // Coming back from an Android screen measures the list again, and a focused search then pulls it back up to its
         // cursor. One scrolled out of sight lets go, so the list stays where it was.
         if (search != null && search.hasFocus() && !inList(search)) search.clearFocus();
+        // Before the window hides: what's on show now has been seen.
+        if (dots != null) {
+            dots.markShown();
+            dots.save();
+        }
         super.onPause();
     }
 
@@ -520,6 +535,7 @@ public final class SettingsActivity extends Activity {
                 refreshStatus(control);
             }
             for (RadioButton mode : bubbleModes) mode.setChecked(mode.getTag().equals("bubble_" + Settings.selectedBubbleMode()));
+            themeColors.showStyle();
         } finally { binding = false; }
         // Coming back from Android's battery prompt or app info shows what was chosen there.
         if (batteryUse != null) {
@@ -663,10 +679,14 @@ public final class SettingsActivity extends Activity {
         title.setAutoSizeTextTypeUniformWithConfiguration(14, 20, 1, TypedValue.COMPLEX_UNIT_SP);
         ui.add(wordmarkColumn, title, 0);
         wordmark = title;
-        // Only a preview build says anything under the name, since that's a warning.
+        // Only a preview build or a Root Mount over the wrong build says anything under the name, since those are warnings.
         if (Settings.preview) {
             TextView notice = ui.text(text.get("preview_notice"), 13, ui.warning, false);
             notice.setTag("preview_notice");
+            ui.add(wordmarkColumn, notice, 4);
+        } else if (MountedBuild.find(this) != null) {
+            TextView notice = ui.text(MountedBuild.notice(text), 13, ui.warning, false);
+            notice.setTag("mounted_build_mismatch");
             ui.add(wordmarkColumn, notice, 4);
         }
         bar.addView(wordmarkColumn, new LinearLayout.LayoutParams(0, -2, 1));
@@ -950,6 +970,7 @@ public final class SettingsActivity extends Activity {
             }
             refreshChoices();
             feedback(text.get(paused ? "safe_mode_cleared" : "changes_resumed"), Toast.LENGTH_SHORT);
+            Settings.syncStoryShareTarget(this);
         });
         ui.add(setup, safeModeAction, 8);
         ui.rule(setup, 8);
@@ -977,7 +998,7 @@ public final class SettingsActivity extends Activity {
             if ("bubbles".equals(spec[0]) || "facebook".equals(spec[0]) || Settings.TAB_BADGES.equals(spec[0]) || OwnFont.KEY.equals(spec[0])
                     || MessageLog.KEY.equals(spec[0]) || AutoReply.KEY.equals(spec[0]) || Settings.AVATAR_SHAPE.equals(spec[0])
                     || QuietCalls.KEY.equals(spec[0]) || HomeHeader.KEY.equals(spec[0]) || ChatHiding.KEY.equals(spec[0])
-                    || MessageActions.KEY.equals(spec[0])) {
+                    || MessageActions.KEY.equals(spec[0]) || ChatMenuItems.KEY.equals(spec[0])) {
                 // Below the row, where TalkBack reaches them: the row's label column hides its descendants.
                 LinearLayout wrapper = ui.column();
                 ui.add(wrapper, row, 0);
@@ -994,12 +1015,14 @@ public final class SettingsActivity extends Activity {
                 else if (OwnFont.KEY.equals(spec[0])) fontFile.addTo(wrapper);
                 else if (HomeHeader.KEY.equals(spec[0])) homeHeader.addTo(wrapper);
                 else if (MessageActions.KEY.equals(spec[0])) messageActions.addTo(wrapper);
+                else if (ChatMenuItems.KEY.equals(spec[0])) chatMenuItems.addTo(wrapper);
                 else if (AutoReply.KEY.equals(spec[0])) autoReplies.addAutoReplyActions(wrapper);
                 else {
                     messageLog.addMessageLogActions(wrapper);
                     ui.add(wrapper, controlRow(MessageLogButton.KEY, text.format(MessageLogButton.KEY), text.format("message_log_button_help"), false), 8);
                     if (Settings.installed.contains("menu_row")) ui.add(wrapper, controlRow(MessageLogButton.MENU_KEY,
                         text.format(MessageLogButton.MENU_KEY), text.format("message_log_menu_row_help"), false), 8);
+                    ui.add(wrapper, controlRow(QuietChats.KEY, text.format(QuietChats.KEY), text.format("message_log_quiet_chats_help"), false), 8);
                     if (Build.VERSION.SDK_INT >= 29) ui.add(wrapper, controlRow(MessageLog.SAVE_EXPIRING,
                         text.format(MessageLog.SAVE_EXPIRING), text.format("message_log_save_expiring_help"), false), 8);
                 }
@@ -1222,25 +1245,26 @@ public final class SettingsActivity extends Activity {
         LinearLayout row = ui.row();
         LinearLayout labels = ui.column();
         labels.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
-        LinearLayout titleLine = ui.row();
+        SettingsUi.TitleLine titleLine = ui.titleLine();
+        titleLine.setTag("title_line_" + key);
         LinearLayout.LayoutParams titleSpace = new LinearLayout.LayoutParams(-1, -2);
         // A margin, since relative padding set before the row is attached stays on the right in a mirrored layout.
         if (overlay) titleSpace.setMarginEnd(ui.dp(60));
         // As tall as the switch track beside it, so the description starts under the track.
         if (overlay) titleLine.setMinimumHeight(ui.dp(24));
-        if (ui.largeText) titleLine.setOrientation(LinearLayout.VERTICAL);
         // HushGram's row type: a 16 sp medium title over a 13 sp summary, both wrapping, an unusable row's dimmed.
         TextView titleView = ui.text(text.display(title), 16, ui.text, true);
         titleView.setLineSpacing(0, 1);
         if (!available) titleView.setAlpha(0.38f);
+        boolean fresh = dots != null && dots.fresh(key);
+        if (fresh) dots.mark(titleView, key, ui.accent);
         titleLine.addView(titleView, new LinearLayout.LayoutParams(-2, -2));
         if (EXPERIMENTAL.contains(key)) {
             TextView badge = ui.text(text.get("experimental"), 11, ui.warning, false);
             badge.setBackground(ui.shape(ui.warningSurface, 0, 4));
             badge.setPadding(ui.dp(6), ui.dp(3), ui.dp(6), ui.dp(3));
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, -2);
-            params.setMarginStart(ui.dp(ui.largeText ? 0 : 8));
-            titleLine.addView(badge, params);
+            badge.setTag("badge_" + key);
+            titleLine.badge(badge);
         }
         labels.addView(titleLine, titleSpace);
         if (!description.isEmpty()) {
@@ -1270,7 +1294,8 @@ public final class SettingsActivity extends Activity {
         // The row's icon sits in this 38 dp: 24 dp of icon and 14 dp before the title.
         labelSpace.setMarginStart(ui.dp(38));
         row.addView(labels, labelSpace);
-        Switch control = ui.toggle(key, text.display(title), text.display((EXPERIMENTAL.contains(key) ? text.format("experimental") + ". " : "") + description), Settings.preferences.getBoolean(key, false));
+        Switch control = ui.toggle(key, text.display(title), text.display((fresh ? text.format("new_setting") + ". " : "")
+            + (EXPERIMENTAL.contains(key) ? text.format("experimental") + ". " : "") + description), Settings.preferences.getBoolean(key, false));
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(ui.dp(48), -2);
         // Normal-size App descriptions span the panel. Large text reserves a separate switch column.
         switchParams.setMarginStart(ui.dp(overlay ? -48 : 12));
@@ -1298,6 +1323,8 @@ public final class SettingsActivity extends Activity {
             feedback("paused".equals(key) ? text.get(checked ? "changes_paused" : "changes_resumed")
                 : text.get(checked ? "choice_on" : "choice_off", title), Toast.LENGTH_SHORT);
             if ("hide_drawer_icon".equals(key)) applyDrawerIcon(this, checked);
+            // Another app's share sheet reads the Your story target as it opens, so it follows the switch and Pause now.
+            if (Settings.SHARE_STORY.equals(key) || "paused".equals(key)) Settings.syncStoryShareTarget(this);
             // The icon shortcuts follow their switch now, and stand in when another way in goes while they're hidden.
             if (Settings.HIDE_ICON_SHORTCUTS.equals(key) || (Settings.HIDE_LOGO_PRESS.equals(key) || "hide_drawer_icon".equals(key))
                     && Settings.preferences.getBoolean(Settings.HIDE_ICON_SHORTCUTS, false)) HostScreens.refreshShortcuts(this, () -> runOnUiThread(() -> {
@@ -1348,14 +1375,15 @@ public final class SettingsActivity extends Activity {
     /** A row's icon: one its key's words call for, else its section's. Fixed per key, since some rows are rebuilt later. */
     private static String rowIcon(String key) {
         if (WAYS_IN.contains(key) || "hide_drawer_icon".equals(key)) return SettingsIcons.forKey(key, sectionIcon("quick_access"));
-        if ("light".equals(key) || "material_you_black".equals(key) || MaterialYouTheme.LIGHT_KEY.equals(key))
+        if ("light".equals(key) || "material_you_black".equals(key) || MaterialYouTheme.LIGHT_KEY.equals(key) || MaterialYouTheme.LIGHT_GRAYS_KEY.equals(key))
             return SettingsIcons.forKey(key, sectionIcon("appearance"));
         if ("check_updates".equals(key)) return SettingsIcons.forKey(key, sectionIcon("about"));
         // A switch under another one takes that one's section.
         String parent = Settings.KEEP_FACEBOOK_PROFILE.equals(key) ? "facebook"
             : Settings.AVATAR_ROUNDED.equals(key) ? Settings.AVATAR_SHAPE
             : Settings.KEEP_BADGES.containsValue(key) ? Settings.TAB_BADGES
-            : MessageLogButton.KEY.equals(key) || MessageLogButton.MENU_KEY.equals(key) || MessageLog.SAVE_EXPIRING.equals(key) ? MessageLog.KEY
+            : MessageLogButton.KEY.equals(key) || MessageLogButton.MENU_KEY.equals(key) || MessageLog.SAVE_EXPIRING.equals(key)
+                || QuietChats.KEY.equals(key) ? MessageLog.KEY
             : QuietCalls.CHOSEN_ONLY.equals(key) || key.startsWith(QuietCalls.CHAT_PREFIX) ? QuietCalls.KEY : key;
         String section = "";
         for (String[] spec : CONTROLS) if (spec[0].equals(parent)) { section = spec[3]; break; }
@@ -1485,6 +1513,9 @@ public final class SettingsActivity extends Activity {
             ui.add(appearance, controlRow("material_you_black", text.format("material_you_black"), text.format("material_you_black_help"), false), 12);
             ui.rule(appearance, 10);
             ui.add(appearance, controlRow(MaterialYouTheme.LIGHT_KEY, text.format(MaterialYouTheme.LIGHT_KEY), text.format("material_you_light_help"), false), 12);
+            ui.rule(appearance, 10);
+            ui.add(appearance, controlRow(MaterialYouTheme.LIGHT_GRAYS_KEY, text.format(MaterialYouTheme.LIGHT_GRAYS_KEY),
+                text.format("material_you_light_grays_help"), false), 12);
             ui.rule(appearance, 10);
             themeColors.addTo(appearance);
         }
@@ -1822,7 +1853,8 @@ public final class SettingsActivity extends Activity {
                 info.setHeading(true);
                 // A label of its own: read from the children, TalkBack said "Collapsed, Button" before the section's name.
                 CharSequence tally = count.getContentDescription();
-                info.setContentDescription(tally == null ? text.get(id) : text.get(id) + ". " + tally);
+                String name = NewRowDots.dotted(title) ? text.get(id) + ". " + text.get("new_setting") : text.get(id);
+                info.setContentDescription(tally == null ? name : name + ". " + tally);
                 info.addAction(sectionShown(id) ? android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_COLLAPSE
                     : android.view.accessibility.AccessibilityNodeInfo.AccessibilityAction.ACTION_EXPAND);
             }
@@ -1854,6 +1886,7 @@ public final class SettingsActivity extends Activity {
     }
 
     private void toggleSection(String id) {
+        if (dots != null) dots.markShown();
         LinearLayout[] parts = sections.get(id);
         if (searching && parts != null && groups.contains(parts[0])) {
             if (!searchClosed.remove(id)) searchClosed.add(id);
@@ -1881,6 +1914,7 @@ public final class SettingsActivity extends Activity {
 
     /** The list switch's tap: every Controls section opens, or they all fold. During a search only the search's view changes. */
     private void flipSectionView() {
+        if (dots != null) dots.markShown();
         boolean list = !listView();
         for (LinearLayout group : groups) {
             String id = (String) group.getTag();
@@ -1911,6 +1945,25 @@ public final class SettingsActivity extends Activity {
         ((android.graphics.drawable.LayerDrawable) viewToggle.getBackground()).setDrawable(1, icon);
     }
 
+    /** A section with a new switch in it gets a dot after its heading, and so does the tab of its page (#149). */
+    private void paintNewSections() {
+        if (dots == null) return;
+        // A first open stores every switch it built as seen.
+        dots.save();
+        android.content.res.ColorStateList accent = android.content.res.ColorStateList.valueOf(ui.accent);
+        for (LinearLayout[] parts : sections.values()) {
+            if (NewRowDots.anyDot(parts[0].getChildAt(1))) NewRowDots.paint((TextView) parts[1].getChildAt(0), accent);
+        }
+        // The selected tab is filled with the accent, so its dot takes the tab's text color.
+        android.content.res.ColorStateList tabDot = new android.content.res.ColorStateList(
+            new int[][] {{android.R.attr.state_selected}, {}}, new int[] {ui.selectedText, ui.accent});
+        for (Button tab : tabs) {
+            if (!NewRowDots.anyDot("tab_app".equals(tab.getTag()) ? appPage : controlsPage)) continue;
+            NewRowDots.paint(tab, tabDot);
+            tab.setContentDescription(tab.getText() + ". " + text.get("new_setting"));
+        }
+    }
+
     private void bindSection(String id) {
         LinearLayout[] parts = sections.get(id);
         if (parts == null) return;
@@ -1924,6 +1977,7 @@ public final class SettingsActivity extends Activity {
     }
 
     private void showPage(String name) {
+        if (dots != null) dots.markShown();
         if ("app".equals(name) && search.hasFocus()) {
             search.clearFocus();
             ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(search.getWindowToken(), 0);
@@ -1969,6 +2023,7 @@ public final class SettingsActivity extends Activity {
     }
 
     private void filterControls(String query) {
+        if (dots != null) dots.markShown();
         // Every word typed, in any order, with accents and case ignored (SettingsSearch).
         List<String> terms = SettingsSearch.terms(query);
         clearQuery.setVisibility(query.isEmpty() ? View.GONE : View.VISIBLE);
@@ -1995,6 +2050,7 @@ public final class SettingsActivity extends Activity {
                 inside += " " + text.get(MessageLogButton.KEY) + " " + text.get("message_log_button_help");
                 if (Settings.installed.contains("menu_row"))
                     inside += " " + text.get(MessageLogButton.MENU_KEY) + " " + text.get("message_log_menu_row_help");
+                inside += " " + text.get(QuietChats.KEY) + " " + text.get("message_log_quiet_chats_help");
                 if (Build.VERSION.SDK_INT >= 29) inside += " " + text.get(MessageLog.SAVE_EXPIRING) + " " + text.get("message_log_save_expiring_help");
             }
             boolean match = SettingsSearch.matches(terms, spec[1], spec[2],

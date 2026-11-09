@@ -53,6 +53,11 @@ final class ReelsCategory {
                     L10n.t("Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. "
                             + "Ads have their own switch.")));
         }
+        if (build.contains(PatchFamily.LIVE_REELS)) {
+            reels.add(toggle(context, Settings.HIDE_LIVE_REELS, L10n.t("Hide lives in Reels"),
+                    L10n.t("Leaves out the live broadcasts Instagram puts between reels in the Reels tab and when "
+                            + "you swipe through reels from Explore.")));
+        }
         if (build.contains(PatchFamily.AI_LABELED_REELS)) {
             reels.add(toggle(context, Settings.HIDE_AI_LABELED_REELS, L10n.t("Hide AI-labeled reels"),
                     L10n.t("Leaves out reels that carry Instagram's own AI label. A reel without that label stays, "
@@ -258,6 +263,10 @@ final class ReelsCategory {
                     L10n.t("A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes "
                             + "ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.")));
         }
+        if (build.contains(PatchFamily.HIDE_REEL_2X_POPUP)) {
+            reels.add(toggle(context, Settings.HIDE_REEL_2X_POPUP, L10n.t("Hide the 2x popup"),
+                    L10n.t("Takes the 2x label off a reel while you hold it to play faster. The speed-up still works.")));
+        }
         if (build.contains(PatchFamily.REEL_BLUR_BARS)) {
             reels.add(toggle(context, Settings.BLUR_REEL_BARS, L10n.t("Blur the bars around a reel"),
                     slowsOlderPhones(L10n.t("A reel that doesn't fill the screen shows a blurred copy of itself above and below it "
@@ -332,6 +341,11 @@ final class ReelsCategory {
                 reels.add(toggle(context, Settings.FULL_SCREEN_BUTTON_ON_REELS, L10n.t("Full screen button on reels"),
                         L10n.t("Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu "
                                 + "does. Start every reel in clear mode opens every reel that way.")));
+            }
+            if (build.contains(PatchFamily.KEEP_REEL_SPEED)) {
+                reels.add(toggle(context, Settings.SPEED_IN_REEL_MENU, L10n.t("Speed in the reel menu"),
+                        L10n.t("Adds Playback speed to the menu a reel's three dots open. Pick a speed there from "
+                                + "0.5x to 3x. With Keep the reel speed on, the next reels play at it too.")));
             }
         }
         if (!reels.isEmpty()) {

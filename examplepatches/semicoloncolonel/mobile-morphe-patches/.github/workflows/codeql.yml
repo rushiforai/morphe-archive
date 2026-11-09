@@ -45,6 +45,13 @@ jobs:
 
       # Autobuild cannot fetch the Morphe Gradle plugin, which is on GitHub
       # Packages and needs a token even though it is public.
+      - name: Prefetch Gradle
+        # Fetches the wrapper's Gradle through GitHub's API when it is not cached,
+        # because direct GitHub release links can fail while the API works.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/prefetch_gradle.sh
+
       - name: Build
         if: matrix.language == 'java-kotlin'
         env:

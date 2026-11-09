@@ -12,7 +12,7 @@
 # a way it doesn't list. A line nothing produces any more fails the receipt as well, so this
 # cannot quietly outlive the change it approved.
 #
-# Four changes are approved.
+# Five changes are approved.
 #
 # HushTelegram settings adds an alias of Telegram's launcher activity that answers
 # android.intent.action.APPLICATION_PREFERENCES, so Android's App info page for Telegram shows
@@ -32,10 +32,19 @@
 # grants nothing: Android gives it only after the person turns on All files access for Telegram in
 # its settings page, and the folder stays in Android/data until then or while the switch is off.
 #
+# Repair Firebase push registration gives Telegram's Keep-Alive Service the remote messaging
+# foreground type next to its data sync, since data sync alone stops after six hours a day on
+# Android 15, and Android 14 and newer only start a foreground service of a type whose
+# FOREGROUND_SERVICE_REMOTE_MESSAGING permission the app declares. telegram.org's build already
+# declares it, so only the Google Play build's manifest changes. It's a normal permission Android
+# grants at install without asking, and it only lets Telegram's own service run in front as a
+# messaging service. Nothing new is reachable from other apps.
+#
 # Nothing else is approved. A patch that asks for any permission, drops one, or changes what other
 # apps can reach still stops the release until somebody says why.
 
 exported-added activity-alias:app.hushtelegram.extension.telegram.settings.OpenSettings
 exported-added receiver:app.hushtelegram.extension.telegram.misc.UnifiedPushReceiver
 exported-added service:app.hushtelegram.extension.telegram.misc.UnifiedPushRaise
+permission-added android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING
 permission-added android.permission.MANAGE_EXTERNAL_STORAGE

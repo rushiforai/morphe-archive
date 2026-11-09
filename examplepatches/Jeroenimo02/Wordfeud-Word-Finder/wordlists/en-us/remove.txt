@@ -1,4 +1,10 @@
-# Woorden die uit de lijst gehaald worden (een per regel). Een # begint commentaar.
-# Wordt toegepast door tools/wordlists/build.py.
+# Words removed from the list (one per line). A # starts a comment.
+# Applied by tools/wordlists/build.py.
 REIM
 RIEM
+ST
+DEARN
+DA
+UR
+DI
+NATIS

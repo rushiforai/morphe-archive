@@ -57,14 +57,14 @@ jobs:
           grep -q '^Name: E2E fake Reddit$' e2e.txt
 
       - name: Upload patches
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: patches
           path: patches/build/libs/patches-*.mpp
           if-no-files-found: error
 
       - name: Upload Morphe Desktop
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: morphe-desktop
           path: morphe-desktop/*.jar

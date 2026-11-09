@@ -23,6 +23,12 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.tgMutableClassDefBy
 
 /**
  * Disable analytics on each declared build: the channel view's read metrics sender is there, found
@@ -37,7 +43,7 @@ class DisableAnalyticsFixtureTest {
     fun `the old storage report is gone from each declared build`() {
         for (build in Fixtures.declaredBuilds()) {
             val controller = FixtureDex.classes(build, setOf(MESSAGES_CONTROLLER)).getValue(MESSAGES_CONTROLLER)
-            assertTrue("${build.name}: logDeviceStats is back", controller.methods.none { it.name == "logDeviceStats" })
+            assertTrue("${build.name}: logDeviceStats is back", controller.methods.none { it.origName == "logDeviceStats" })
             val senders = FixtureDex.classesWhere(build, { true }) { method ->
                 method.instructions().any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == "android_sdcard_exists" }
             }
@@ -54,7 +60,7 @@ class DisableAnalyticsFixtureTest {
 
             val appLogClasses = FixtureDex.classesWhere(build, { true }) { method ->
                 method.instructions().any { it.opcode == Opcode.NEW_INSTANCE &&
-                    (it as? ReferenceInstruction)?.reference?.toString() == SAVE_APP_LOG }
+                    it.origRef() == SAVE_APP_LOG }
             }
             val context = PatchContexts.of(ExtensionDex.classes() + (appLogClasses + metricsClass + ghostModeHosts(build)).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
@@ -62,26 +68,28 @@ class DisableAnalyticsFixtureTest {
 
             assertReadMetricsHooked(
                 "$where: read metrics", metrics,
-                context.mutableClassDefBy(metricsClass.type).methods.single { it.sameSignatureAs(metrics) },
+                context.tgMutableClassDefBy(metricsClass.type).methods.single { it.sameSignatureAs(metrics) },
             )
 
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods
-                .single { it.name == "disableAnalytics" }.instructions()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods
+                .single { it.origName == "disableAnalytics" }.instructions()
             assertEquals("$where: SettingsStatus.disableAnalytics() answers true first", Opcode.CONST_4, status[0].opcode)
             assertEquals(1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(Opcode.RETURN, status[1].opcode)
             // A family flag alone can't prove the target was inserted.
-            val capability = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "readMetrics" }.instructions()
+            val capability = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "readMetrics" }.instructions()
             assertEquals("$where: readMetrics is an injected build fact", Opcode.CONST_4, capability[0].opcode)
             assertEquals("$where: missing readMetrics coverage", 1, (capability[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(Opcode.RETURN, capability[1].opcode)
 
             val connections = ghostModeHosts(build).single()
-            GhostModeFixtureTest.assertGhostGate(
-                "$where: request send", connections.methods.single { it.name == SEND_REQUEST_INTERNAL },
-                context.mutableClassDefBy(CONNECTIONS_MANAGER).methods.single { it.name == SEND_REQUEST_INTERNAL },
+            // The per-account guard stacks its gate ahead of Ghost mode's on the same send.
+            GhostModeFixtureTest.assertGates(
+                "$where: request send", connections.methods.single { it.origName == SEND_REQUEST_INTERNAL },
+                context.tgMutableClassDefBy(CONNECTIONS_MANAGER).methods.single { it.origName == SEND_REQUEST_INTERNAL },
+                ACCOUNT_GUARD_DROP, GHOST_MODE_DROP,
             )
-            val ghost = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "ghostMode" }.instructions()
+            val ghost = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "ghostMode" }.instructions()
             assertEquals("$where: ghostMode is an injected build fact", 1, (ghost[0] as NarrowLiteralInstruction).narrowLiteral)
         }
     }
@@ -95,16 +103,16 @@ class DisableAnalyticsFixtureTest {
         val after = patched.instructions()
         assertEquals("$where: instructions added", before.size + 5, after.size)
         val hook = after.indexOfFirst {
-            it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.toString() == "$analytics->skipReadMetrics(Ljava/util/List;)Z"
+            it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.origString() == "$analytics->skipReadMetrics(Ljava/util/List;)Z"
         }
         assertTrue("$where: asks the extension", hook > 0)
         assertEquals(
             listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID, Opcode.NOP, Opcode.NEW_INSTANCE),
             after.subList(hook + 1, hook + 6).map { it.opcode },
         )
-        assertEquals(REPORT_READ_METRICS, (after[hook + 5] as ReferenceInstruction).reference.toString())
+        assertEquals(REPORT_READ_METRICS, (after[hook + 5] as ReferenceInstruction).reference.origString())
         val check = after.subList(0, hook).indexOfLast {
-            it.opcode == Opcode.INVOKE_VIRTUAL && (it as ReferenceInstruction).reference.toString() == "Ljava/util/ArrayList;->isEmpty()Z"
+            it.opcode == Opcode.INVOKE_VIRTUAL && (it as ReferenceInstruction).reference.origString() == "Ljava/util/ArrayList;->isEmpty()Z"
         }
         assertTrue("$where: the batch was checked just before", check in hook - 3 until hook)
         assertEquals(
@@ -114,8 +122,8 @@ class DisableAnalyticsFixtureTest {
         assertEquals("$where: nothing else moved", before.map { it.opcode }, (after.subList(0, hook) + after.subList(hook + 5, after.size)).map { it.opcode })
     }
 
-    private fun sendsReadMetrics(method: Method) = method.parameterTypes.isEmpty() && method.returnType == "V" &&
-        method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.toString() == REPORT_READ_METRICS }
+    private fun sendsReadMetrics(method: Method) = method.parameterTypes.isEmpty() && method.origReturnType == "V" &&
+        method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.origString() == REPORT_READ_METRICS }
 
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 

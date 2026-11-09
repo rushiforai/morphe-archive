@@ -61,7 +61,7 @@ if os.environ.get('CATPPUCCIN_ANKI_TEST') == '1':
 
 MORPHE_VERSION = '1.18.0'
 KOTLIN_VERSION = '2.3.21'
-BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.11.0')
+BUNDLE_VERSION = os.environ.get('CATPPUCCIN_VERSION', '0.11.2')
 
 
 def fetch(name, url):

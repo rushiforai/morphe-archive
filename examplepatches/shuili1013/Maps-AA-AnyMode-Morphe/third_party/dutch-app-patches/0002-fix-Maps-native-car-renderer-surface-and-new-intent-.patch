@@ -1,0 +1,63 @@
+From edef6841c45b599368edcec98944e5fafcce51f4 Mon Sep 17 00:00:00 2001
+From: shuili <99980772+shuili1013@users.noreply.github.com>
+Date: Sun, 8 Nov 2026 11:07:51 +0800
+Subject: [PATCH 2/2] fix(Maps): native car renderer surface and new-intent on
+ 26.44
+
+ProjectionRenderer read the VirtualDisplay holder as controller.k.h, but on
+26.44 betg is an interface implemented by bete, whose `h` is now a Context
+(GmmCarProjectionService) and whose Lbesz; holder moved to `j`. Use `j`, which
+fixes "NoSuchMethodException: GmmCarProjectionService.f(Surface)".
+
+New navigation intents called controller.J.B(Intent); 26.44 renamed that
+onNewIntent dispatch (beno/benz) to C(Intent).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01LD8fYP3NW7C5wsdBmsdLG2
+---
+ .../java/patches/maps/gearslip/ProjectionRenderer.java    | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/extensions/maps-gearslip/src/main/java/patches/maps/gearslip/ProjectionRenderer.java b/extensions/maps-gearslip/src/main/java/patches/maps/gearslip/ProjectionRenderer.java
+index 78ae4a5..85156e3 100644
+--- a/extensions/maps-gearslip/src/main/java/patches/maps/gearslip/ProjectionRenderer.java
++++ b/extensions/maps-gearslip/src/main/java/patches/maps/gearslip/ProjectionRenderer.java
+@@ -171,7 +171,7 @@ public final class ProjectionRenderer {
+     public void newIntent(Intent value) {
+         guard(() -> {
+             intent = nativeIntent(value);
+-            if (created) call(field(controller, "J"), "B", new Class<?>[]{Intent.class}, intent);
++            if (created) call(field(controller, "J"), "C", new Class<?>[]{Intent.class}, intent);
+         });
+     }
+     public void configurationChanged(Configuration value) {
+@@ -236,7 +236,7 @@ public final class ProjectionRenderer {
+ 
+     private void resizeCanvas(int w,int h,int density) throws Exception {
+         finishTouch();
+-        Object holder=field(field(controller,"k"),"h");
++        Object holder=field(field(controller,"k"),"j");
+         Object target=field(holder,"b");
+         if(!(target instanceof VirtualDisplay))throw new IllegalStateException("Maps virtual display ABI changed");
+         // Resize the existing display/window, including while a host keyboard is
+@@ -331,7 +331,7 @@ public final class ProjectionRenderer {
+     private void showSurface() throws Exception {
+         if (controller == null || surface == null || !surface.isValid() || intent == null) return;
+         if (created) {
+-            Object holder = field(field(controller, "k"), "h");
++            Object holder = field(field(controller,"k"),"j");
+             call(holder, "f", new Class<?>[]{Surface.class}, surface);
+             controller.getClass().getField("C").set(controller, drawing(nativeWidth, nativeHeight, nativeDpi));
+             applyAreas();
+@@ -370,7 +370,7 @@ public final class ProjectionRenderer {
+         if (controller != null && created) {
+             // Maps' original VirtualDisplay holder can change its output without destroying
+             // the Presentation/window. Destroying it here invalidates IProxyInputConnection.
+-            Object holder = field(field(controller, "k"), "h");
++            Object holder = field(field(controller,"k"),"j");
+             call(holder, "f", new Class<?>[]{Surface.class}, new Object[]{null});
+         }
+         if (surface != null) surface.release();
+-- 
+2.55.0.windows.3
+

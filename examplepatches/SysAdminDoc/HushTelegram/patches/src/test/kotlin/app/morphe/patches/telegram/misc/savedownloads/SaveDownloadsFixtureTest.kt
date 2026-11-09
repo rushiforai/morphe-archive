@@ -8,7 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.downloadspeed.LOAD_OPERATION
@@ -17,12 +17,19 @@ import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.localcontrols.controlString
+import app.morphe.patches.telegram.misc.extension.localRegisterCount
+import app.morphe.util.call
 import app.morphe.util.namedRegisters
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origString
+import app.morphe.util.names.TelegramNames
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -31,22 +38,43 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
-/** ImageLoader's finished-download callback on both declared builds, and the checks the stubs borrow. */
+private const val FILE_LOADER_OPERATIONS = "Lorg/telegram/messenger/FileLoader\$2;"
+private val downloadExtras = HashMap<String, Set<String>>()
+
+/**
+ * The classes the save-downloads resolvers read on [build] besides the named hosts: FileLoader's
+ * operation callback, where the build inlines the delegate's call; the delegate, an anonymous class
+ * ImageLoader names where it hands FileLoader its delegate; and the classes MediaController creates,
+ * where the build moves Save to Gallery's lambdas.
+ */
+internal fun downloadHosts(build: File): Set<String> = synchronized(downloadExtras) {
+    downloadExtras.getOrPut(build.path) {
+        val named = FixtureDex.classes(build, setOf(IMAGE_LOADER, GALLERY_MEDIA_CONTROLLER))
+        FixtureDex.namedBy(build) {
+            setOf(FILE_LOADER_OPERATIONS) + named.getValue(IMAGE_LOADER).delegateCandidates() +
+                named.getValue(GALLERY_MEDIA_CONTROLLER).createdTypes()
+        }
+    }
+}
+
+/** FileLoader's finished-download callback on both declared builds, and the checks the stubs borrow. */
 class SaveDownloadsFixtureTest {
     private val hosts = setOf(IMAGE_LOADER, FILE_LOADER, MESSAGE_OBJECT, TL_MESSAGE, DOCUMENT, DIALOG_OBJECT, MESSAGES_CONTROLLER,
         MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES, LOAD_OPERATION)
 
     private fun context(build: File): BytecodePatchContext {
-        // The callback is an anonymous class; ImageLoader names it where it hands FileLoader its delegate.
-        val images = FixtureDex.classes(build, setOf(IMAGE_LOADER)).values.single()
-        val host = FixtureDex.classes(build, hosts + images.delegateCandidates()).values.map(ImmutableClassDef::of)
-        assertTrue("${build.name}: Telegram's download classes", host.map { it.type }.containsAll(hosts))
+        val host = FixtureDex.classes(build, hosts + downloadHosts(build)).values.map(ImmutableClassDef::of)
+        assertTrue("${build.name}: Telegram's download classes", host.map { it.origType }.containsAll(hosts))
         return PatchContexts.of(ExtensionDex.classes() + host)
     }
 
-    private fun ClassDef.method(name: String) = methods.single { it.name == name }
-    private fun BytecodePatchContext.stub(name: String) = mutableClassDefBy(SAVE_DOWNLOADS).method(name).controlBody()
+    private fun ClassDef.method(name: String) = methods.single { it.origName == name }
+    private fun BytecodePatchContext.stub(name: String) = tgMutableClassDefBy(SAVE_DOWNLOADS).method(name).controlBody()
     private fun List<Instruction>.refs() = mapNotNull { it.controlRef() }
 
     @Test fun `every finished download goes past the extension first, and the stubs reach Telegram's own checks`() {
@@ -54,42 +82,62 @@ class SaveDownloadsFixtureTest {
             val name = build.name
             val context = context(build)
             val callback = context.resolveSaveDownloads()
-            assertTrue("$name: ${callback.definingClass}", callback.definingClass.startsWith("Lorg/telegram/messenger/ImageLoader$"))
-            val old = ImmutableMethod.of(callback)
+            val method = callback.method
+            assertTrue("$name: ${method.definingClass}", method.origDefiningClass.startsWith("Lorg/telegram/messenger/FileLoader$"))
+            val old = ImmutableMethod.of(method)
             val finishing = context.resolveFoundFiles()
-            assertEquals("$name: ${finishing.definingClass}", LOAD_OPERATION, finishing.definingClass)
+            assertEquals("$name: ${finishing.definingClass}", LOAD_OPERATION, finishing.origDefiningClass)
             val oldFinishing = ImmutableMethod.of(finishing)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
 
             // Ahead of the state check, the three fields that say whether the finished file was downloaded.
             val finish = finishing.controlBody()
-            val operation = finishing.implementation!!.registerCount - 4
+            val operation = finishing.localRegisterCount()
             assertTrue("$name: three locals below p0", operation >= 3)
             assertEquals(listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.IGET_OBJECT, Opcode.INVOKE_STATIC),
                 finish.take(5).map { it.opcode })
-            assertEquals(listOf(PATH_SAVE_DATA, CACHE_FILE_TEMP, STORAGE_CACHE_FINAL,
-                "$SAVE_DOWNLOADS->finishing(Ljava/lang/Object;Ljava/io/File;Ljava/io/File;)V"), finish.take(5).refs())
+            // 13.2 merges FilePathDatabase.PathData into another class, so that field's type keeps the build's name.
+            val pathData = TelegramNames.of(context).field(LOAD_OPERATION, "pathSaveData", PATH_SAVE_DATA.substringAfter(':'))
+            val saved = (finish[1] as ReferenceInstruction).reference as FieldReference
+            assertTrue("$name: ${finish[1].controlRef()}", finish[1].controlRef() == PATH_SAVE_DATA ||
+                listOf(saved.definingClass, saved.name, saved.type) == listOf(pathData.owner, pathData.name, pathData.descriptor))
+            assertEquals(listOf(CACHE_FILE_TEMP, STORAGE_CACHE_FINAL,
+                "$SAVE_DOWNLOADS->finishing(Ljava/lang/Object;Ljava/io/File;Ljava/io/File;)V"), finish.take(5).drop(2).refs())
             assertEquals(listOf(listOf(2, operation), listOf(0, 2), listOf(1, 2), listOf(2, 2), listOf(0, 1, 2)),
                 finish.take(5).map { it.namedRegisters() })
             val stockFinish = oldFinishing.controlBody().filter { it.opcode != Opcode.NOP }
             assertEquals("$name: onFinishLoadingFile's own code", stockFinish.map { it.opcode to it.controlRef() },
                 finish.drop(5).filter { it.opcode != Opcode.NOP }.map { it.opcode to it.controlRef() })
 
+            // The build inlines the delegate's fileDidLoaded: it builds the delegate's runnable, then posts it to the UI.
             val before = old.controlBody()
-            val after = callback.controlBody()
-            assertEquals("$name: two instructions in front", before.size + 2, after.size)
-            // The delegate's own account, read into the first local.
-            val self = callback.implementation!!.registerCount - 5
-            assertEquals(Opcode.IGET, after[0].opcode)
-            assertEquals("${callback.definingClass}->val\$currentAccount:I", after[0].controlRef())
-            assertEquals(listOf(0, self), after[0].namedRegisters())
-            assertEquals(Opcode.INVOKE_STATIC, after[1].opcode)
-            assertEquals("$SAVE_DOWNLOADS->fileLoaded(ILjava/lang/String;Ljava/io/File;Ljava/lang/Object;)V", after[1].controlRef())
-            // The account, then the name, the file and the parent: the three parameters after this.
-            assertEquals(listOf(0, self + 1, self + 2, self + 3), after[1].namedRegisters())
+            val after = method.controlBody()
+            val at = callback.at
+            assertEquals("$name: one instruction in front of the post", before.size + 1, after.size)
+            val runnable = before[at - 1]
+            assertTrue("$name: ${runnable.opcode}", runnable.opcode == Opcode.INVOKE_DIRECT || runnable.opcode == Opcode.INVOKE_DIRECT_RANGE)
+            assertEquals("$name: the delegate's runnable", listOf("Lorg/telegram/messenger/ImageLoader\$5;", "Ljava/io/File;",
+                "Ljava/lang/String;", "I", "Ljava/lang/Object;", "I"), runnable.call()!!.origParameterTypes)
+            val args = runnable.namedRegisters()
+            assertEquals(RUN_ON_UI_THREAD, before[at].controlRef())
+            assertEquals(listOf(args[0]), before[at].namedRegisters())
+            // The delegate's own account, read off the delegate past its null check.
+            val delegate = args[1]
+            val account = (at - 2 downTo 0).first { before[it].opcode.setsRegister() && before[it].namedRegisters().first() == args[4] }
+            assertEquals(Opcode.IGET, before[account].opcode)
+            assertEquals("Lorg/telegram/messenger/ImageLoader\$5;->val\$currentAccount:I", before[account].controlRef())
+            assertEquals(listOf(args[4], delegate), before[account].namedRegisters())
+            val read = (account - 1 downTo 0).first { before[it].opcode.setsRegister() && before[it].namedRegisters().first() == delegate }
+            assertEquals(Opcode.IGET_OBJECT, before[read].opcode)
+            assertTrue("$name: ${before[read].controlRef()}", before[read].controlRef()!!.startsWith("$FILE_LOADER->delegate:"))
+            assertEquals(Opcode.INVOKE_STATIC, after[at].opcode)
+            assertEquals("$SAVE_DOWNLOADS->fileLoaded(ILjava/lang/String;Ljava/io/File;Ljava/lang/Object;)V", after[at].controlRef())
+            // The account, then the name, the file and the parent the runnable carries.
+            assertEquals(listOf(args[4], args[3], args[2], args[5]), after[at].namedRegisters())
             for (i in before.indices) {
+                val j = if (i < at) i else i + 1
                 assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].controlRef()),
-                    listOf(after[i + 2].opcode, after[i + 2].namedRegisters(), after[i + 2].controlRef()))
+                    listOf(after[j].opcode, after[j].namedRegisters(), after[j].controlRef()))
             }
 
             // A background download's message, read back the way MessagesStorage wraps one.
@@ -106,15 +154,23 @@ class SaveDownloadsFixtureTest {
             assertEquals(listOf(DOCUMENT, DOCUMENT_NAME), context.stub("documentName").refs())
             assertEquals(listOf(MESSAGE_OBJECT, IS_SECRET_MEDIA, IS_GIF, IS_ROUND_VIDEO, IS_PHOTO, IS_VIDEO),
                 context.stub("photoOrVideo").refs())
-            assertEquals(listOf(MESSAGE_OBJECT, PHOTO_THUMBS, PHOTO_SIZE, CLOSEST_PHOTO_SIZE), context.stub("photo").refs())
+            val photo = context.stub("photo")
+            assertEquals(listOf(MESSAGE_OBJECT, PHOTO_THUMBS, PHOTO_SIZE, context.closestPhotoSize()), photo.refs())
+            if (context.closestPhotoSize() == CLOSEST_PHOTO_SIZE_FULL) {
+                // Where the two-argument form is inlined, the full one gets its defaults: false, null, false.
+                val call = photo.indexOfFirst { it.controlRef() == CLOSEST_PHOTO_SIZE_FULL }
+                val zero = photo[call - 1]
+                assertEquals("$name: the defaults", listOf(Opcode.CONST_4, 0L), listOf(zero.opcode, (zero as WideLiteralInstruction).wideLiteral))
+                assertEquals("$name: the defaults' registers", List(3) { zero.namedRegisters().single() }, photo[call].namedRegisters().drop(2))
+            }
             // View-once and timed media in any chat; the extension turns a secret chat's away (#9).
             assertEquals(listOf(MESSAGE_OBJECT, IS_SECRET_MEDIA), context.stub("timedMedia").refs())
             for (stub in listOf("messageDocument", "fileOrSong", "savingForbidden", "secretChat", "attachName", "documentName",
                 "storedMessage", "photoOrVideo", "photo", "timedMedia")) {
-                val method = context.mutableClassDefBy(SAVE_DOWNLOADS).method(stub)
+                val method = context.tgMutableClassDefBy(SAVE_DOWNLOADS).method(stub)
                 assertTrue("$name: $stub", AccessFlags.PUBLIC.isSet(method.accessFlags) && AccessFlags.STATIC.isSet(method.accessFlags))
             }
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).method("saveDownloads").controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).method("saveDownloads").controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -123,36 +179,39 @@ class SaveDownloadsFixtureTest {
         val build = Fixtures.declaredBuilds().first()
         val shapes = listOf<Pair<String, (BytecodePatchContext) -> Unit>>(
             "ImageLoader's download callback is missing or ambiguous" to { context ->
-                val images = context.mutableClassDefBy(IMAGE_LOADER)
-                val handOver = images.methods.single { method -> method.controlBody().any { it.controlRef() == SET_DELEGATE } }
-                val at = handOver.controlBody().indexOfFirst { it.controlRef() == SET_DELEGATE }
+                // Where ImageLoader hands FileLoader its delegate: setDelegate, or the field write the build inlines it to.
+                fun Instruction.handsOver() = controlRef() == "$FILE_LOADER->setDelegate(Lorg/telegram/messenger/FileLoader\$FileLoaderDelegate;)V" ||
+                    opcode == Opcode.IPUT_OBJECT && controlRef()!!.startsWith("$FILE_LOADER->delegate:")
+                val images = context.tgMutableClassDefBy(IMAGE_LOADER)
+                val handOver = images.methods.single { method -> method.controlBody().any { it.handsOver() } }
+                val at = handOver.controlBody().indexOfFirst { it.handsOver() }
                 handOver.replaceInstruction(at, "nop")
             },
             "Telegram's rules for saving a file outside the app changed" to { context ->
-                val loader = context.mutableClassDefBy(FILE_LOADER)
+                val loader = context.tgMutableClassDefBy(FILE_LOADER)
                 val rules = loader.methods.single { method -> method.controlBody().refs().containsAll(listOf(PEER_NO_FORWARDS, NO_FORWARDS)) }
                 val at = rules.controlBody().indexOfFirst { it.controlRef() == NO_FORWARDS }
                 rules.replaceInstruction(at, "nop")
             },
             "$PEER_NO_FORWARDS isn't reachable from the extension" to { context ->
-                val controller = context.mutableClassDefBy(MESSAGES_CONTROLLER)
-                val check = controller.methods.single { it.toString() == PEER_NO_FORWARDS }
+                val controller = context.tgMutableClassDefBy(MESSAGES_CONTROLLER)
+                val check = controller.methods.single { it.origString() == PEER_NO_FORWARDS }
                 check.accessFlags = check.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
             },
             "the background download key changed" to { context ->
-                val loader = context.mutableClassDefBy(FILE_LOADER)
+                val loader = context.tgMutableClassDefBy(FILE_LOADER)
                 val parser = loader.methods.single { method -> method.controlBody().any { it.controlString() == SENT_KEY } }
                 val at = parser.controlBody().indexOfFirst { it.controlString() == SENT_KEY }
                 val register = (parser.controlBody()[at] as OneRegisterInstruction).registerA
                 parser.replaceInstruction(at, "const-string v$register, \"sent_.*_([0-9]+)_([0-9]+)_([0-9]+)\"")
             },
             "$STORED_MESSAGE isn't reachable from the extension" to { context ->
-                val storage = context.mutableClassDefBy(MESSAGES_STORAGE)
-                val read = storage.methods.single { it.toString() == STORED_MESSAGE }
+                val storage = context.tgMutableClassDefBy(MESSAGES_STORAGE)
+                val read = storage.methods.single { it.origString() == STORED_MESSAGE }
                 read.accessFlags = read.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
             },
             "FileLoadOperation's download file isn't set in start alone" to { context ->
-                val operation = context.mutableClassDefBy(LOAD_OPERATION)
+                val operation = context.tgMutableClassDefBy(LOAD_OPERATION)
                 val start = operation.methods.single { method ->
                     method.controlBody().any { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == CACHE_FILE_TEMP }
                 }
@@ -162,7 +221,7 @@ class SaveDownloadsFixtureTest {
         )
         for ((why, change) in shapes) {
             val context = context(build)
-            val callback = context.resolveSaveDownloads()
+            val callback = context.resolveSaveDownloads().method
             val untouched = callback.controlBody().map { it.opcode to it.namedRegisters() }
             val finishing = context.resolveFoundFiles()
             val finishUntouched = finishing.controlBody().map { it.opcode to it.namedRegisters() }
@@ -177,7 +236,7 @@ class SaveDownloadsFixtureTest {
             assertEquals(why, untouched, callback.controlBody().map { it.opcode to it.namedRegisters() })
             assertEquals(why, finishUntouched, finishing.controlBody().map { it.opcode to it.namedRegisters() })
             assertEquals(why, stub, context.stub("attachName").map { it.opcode })
-            assertEquals(why, 0L, (context.mutableClassDefBy(SETTINGS_STATUS).method("saveDownloads").controlBody().first()
+            assertEquals(why, 0L, (context.tgMutableClassDefBy(SETTINGS_STATUS).method("saveDownloads").controlBody().first()
                 as WideLiteralInstruction).wideLiteral)
         }
     }

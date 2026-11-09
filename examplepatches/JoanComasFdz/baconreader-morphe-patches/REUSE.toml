@@ -43,3 +43,10 @@ path = [
 ]
 SPDX-FileCopyrightText = "2015-2024 the original authors"
 SPDX-License-Identifier = "Apache-2.0"
+
+# ── The NAS runner's seccomp profile: Docker's default profile (moby v27.1.2), with one rule added
+
+[[annotations]]
+path = ["tools/e2e/nas/seccomp.json"]
+SPDX-FileCopyrightText = ["2012-2024 Docker, Inc.", "2026 JoanComasFdz"]
+SPDX-License-Identifier = "Apache-2.0"

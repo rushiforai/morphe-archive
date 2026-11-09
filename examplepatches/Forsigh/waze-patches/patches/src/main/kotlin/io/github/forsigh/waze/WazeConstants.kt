@@ -63,8 +63,13 @@ object WazeConstants {
             // main_screen.g.b.e, and 80 of the 81 config keys survive (the AAP update-rate switch
             // is dropped by Waze and skipped by the override emitter).
             AppTarget(version = "5.27.0.1"),
-            // Experimental: attempt on any version / any architecture.
-            AppTarget(version = null, isExperimental = true),
+            // Ninth target (versionCode 1030749, beta pulled 2026-11-08). Checked the same way as the
+            // others: every row applies with zero failures and the anchors that moved were re-bound.
+            AppTarget(version = "5.27.4.900"),
+            // No catch-all target on purpose. A version-less AppTarget makes the Manager treat the
+            // patches as fitting ANY build ("Any version" in its list and no filter in
+            // AppVersionCatalog.patchableAt), so users on builds we never tested are offered rows
+            // that then fail on them. The list above is the whole support claim.
         ),
     )
 }

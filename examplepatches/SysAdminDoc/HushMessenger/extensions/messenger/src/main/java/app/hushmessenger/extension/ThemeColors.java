@@ -12,13 +12,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * The Appearance section's theme colors: the saved theme's name, accent colors one tap away, and the buttons that
- * paste a theme from the clipboard, copy the one in use and go back to wallpaper colors. Shown only where Material
- * You applied. One per settings page.
+ * The Appearance section's theme colors: the saved theme's name, accent colors one tap away, the palette styles, and
+ * the buttons that paste a theme from the clipboard, copy the one in use and go back to wallpaper colors. Shown only
+ * where Material You applied. One per settings page.
  */
 final class ThemeColors {
     /** The accents a tap saves (#132), each with its name for screen readers. Messenger's own blue first. */
@@ -33,6 +35,8 @@ final class ThemeColors {
     private Button themeClear;
     private final View[] swatches = new View[ACCENTS.length];
     private HorizontalScrollView accents;
+    /** The palette style choices (#155), one per TonePalette.STYLES, or null until addTo. */
+    private RadioButton[] styles;
 
     ThemeColors(SettingsActivity page) {
         this.page = page;
@@ -62,6 +66,20 @@ final class ThemeColors {
         accents.addView(row);
         ui.add(appearance, accents, 2);
         ((LinearLayout.LayoutParams) accents.getLayoutParams()).setMarginStart(-ui.dp(DOT_INSET));
+        ui.add(appearance, ui.text(text.get(MaterialYouTheme.STYLE_KEY), 14, ui.text, true), 12);
+        ui.add(appearance, ui.text(text.get("material_you_style_help"), 13, ui.muted, false), 4);
+        RadioGroup group = new RadioGroup(page);
+        group.setOrientation(LinearLayout.VERTICAL);
+        styles = new RadioButton[TonePalette.STYLES.length];
+        for (int i = 0; i < styles.length; i++) {
+            String style = TonePalette.STYLES[i];
+            RadioButton choice = page.radio("material_you_style_" + style, text.get("material_you_style_" + style));
+            choice.setOnClickListener(view -> pickStyle(style));
+            group.addView(choice, new RadioGroup.LayoutParams(-1, -2));
+            styles[i] = choice;
+        }
+        ui.add(appearance, group, 4);
+        showStyle();
         Button paste = ui.button(text.get("theme_paste"));
         paste.setTag("theme_paste");
         paste.setOnClickListener(view -> pasteTheme());
@@ -96,6 +114,24 @@ final class ThemeColors {
             swatches[i].setBackground(new InsetDrawable(new RippleDrawable(ColorStateList.valueOf(ui.ripple), dot, null), ui.dp(DOT_INSET)));
             swatches[i].setSelected(picked);
         }
+    }
+
+    /** Checks the style in use. One this version doesn't know is used as Default, so Default shows. */
+    void showStyle() {
+        if (styles == null) return;
+        int chosen = java.util.Arrays.asList(TonePalette.STYLES).indexOf(MaterialYouTheme.style());
+        for (int i = 0; i < styles.length; i++) styles[i].setChecked(i == Math.max(0, chosen));
+    }
+
+    /** Saves the style. Default is no saved style, so a later version's default reaches it. */
+    private void pickStyle(String style) {
+        if (style.equals(MaterialYouTheme.style())) return;
+        SharedPreferences.Editor edit = Settings.preferences.edit();
+        if (TonePalette.STYLES[0].equals(style)) edit.remove(MaterialYouTheme.STYLE_KEY);
+        else edit.putString(MaterialYouTheme.STYLE_KEY, style);
+        edit.apply();
+        showStyle();
+        page.feedback(page.text.get("material_you_style_changed", page.text.get("material_you_style_" + style)), Toast.LENGTH_SHORT);
     }
 
     /**

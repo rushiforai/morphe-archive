@@ -341,7 +341,7 @@ function Step-index {
     $apps = @($state.walks.Values | ForEach-Object { $_.app }) -join ' and '
     $devices = @($state.walks.Values | ForEach-Object { $_.device } | Select-Object -Unique) -join ' and '
     Invoke-ReleaseText index --version $Version --created $created --readme-summary (Write-Text 'readme.txt' $text.README) `
-        --bundle-summary (Write-Text 'bundle.txt' $text.Manager) --device-line "This bundle ran through a whole-app walk of $apps on $devices with no crash."
+        --bundle-summary (Write-Text 'bundle.txt' $text.Manager) --device-line "This bundle ran through a whole-app walk of $apps on $devices with no crash." "--fixture-dirs=$((@((Get-RepoEnv 'FIXTURE_DIR')) + @((Get-MachineConfig).fixtureDirs) | Where-Object { $_ }) -join ';')"
     Invoke-Git add -A
     if (git.exe -C $work status --porcelain) { Invoke-Git commit -q -m "chore(release): point Manager to the verified $Version bundle" }
     Push-Main

@@ -22,7 +22,8 @@ import app.morphe.extension.shared.settings.preference.QuickSetups;
  *
  * <p>Quiet and Privacy only turn switches on, and only switches whose effect is plain from their
  * name and takes nothing away that someone would miss. Left out on purpose: Hide the Instagram
- * button and Hide ghost post bubbles, which some people tap; Tap to play videos and Keep feed
+ * button and Hide ghost post bubbles, which some people tap; Full size profile pictures, which
+ * changes what tapping a profile picture does; Tap to play videos and Keep feed
  * position on return, which change how the feed behaves rather than what's in it; Show the date
  * and time, which changes how every post's time reads; and Open links in your browser, which
  * changes how every link opens. Back to defaults puts every switch a

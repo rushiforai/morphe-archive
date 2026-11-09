@@ -65,6 +65,8 @@ public enum PatchFamily {
             Settings.HIDE_INSTAGRAM_BUTTON),
     HIDE_GHOST_POST_BUBBLES(FamilyNames.HIDE_GHOST_POST_BUBBLES, "hideGhostPostBubbles", null,
             Settings.HIDE_GHOST_POST_BUBBLES),
+    FULL_SIZE_PROFILE_PICTURES(FamilyNames.FULL_SIZE_PROFILE_PICTURES, "fullSizeProfilePictures", null,
+            Settings.FULL_SIZE_PROFILE_PICTURES),
     EXACT_POST_TIMES(FamilyNames.EXACT_POST_TIMES, "exactPostTimes", null,
             Settings.EXACT_POST_TIMES),
     FILTER_COMMENTS(FamilyNames.FILTER_COMMENTS, "filterComments", null,
@@ -75,7 +77,10 @@ public enum PatchFamily {
     RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix"),
     VERSION_CODE(FamilyNames.VERSION_CODE, "versionCode", "the raised version code"),
     REMOVE_SHARE_TARGETS(FamilyNames.REMOVE_SHARE_TARGETS, "removeShareTargets", "the removed share sheet entry"),
-    TRUST_USER_CERTIFICATES(FamilyNames.TRUST_USER_CERTIFICATES, "trustUserCertificates", "the user certificate trust");
+    TRUST_USER_CERTIFICATES(FamilyNames.TRUST_USER_CERTIFICATES, "trustUserCertificates", "the user certificate trust"),
+    // Both are in the manifest, which Pause can't change either.
+    CHANGE_PACKAGE_NAME(FamilyNames.CHANGE_PACKAGE_NAME, "changePackageName", "the new package name"),
+    CHANGE_APP_NAME(FamilyNames.CHANGE_APP_NAME, "changeAppName", "the new app name");
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -111,13 +116,14 @@ public enum PatchFamily {
     /**
      * The patches Morphe Manager leaves out of its default selection. Each one goes in when you
      * patch with no switch to leave Threads as it ships: Change version code raises the version
-     * every later build has to keep, Remove share targets takes entries out of the manifest, and
-     * Trust user-added certificates lets your own certificates past Android's checks. Everything
-     * else is in the default selection, with any switch a patch brought in from this list starting
-     * off.
+     * every later build has to keep, Remove share targets takes entries out of the manifest, Trust
+     * user-added certificates lets your own certificates past Android's checks, and Change package
+     * name and Change app name make a second app beside Threads instead of an update to it.
+     * Everything else is in the default selection, with any switch a patch brought in from this list
+     * starting off.
      */
     private static final EnumSet<PatchFamily> OPT_IN =
-            EnumSet.of(VERSION_CODE, REMOVE_SHARE_TARGETS, TRUST_USER_CERTIFICATES);
+            EnumSet.of(VERSION_CODE, REMOVE_SHARE_TARGETS, TRUST_USER_CERTIFICATES, CHANGE_PACKAGE_NAME, CHANGE_APP_NAME);
 
     /**
      * Manager's defaults, held to patches-list.json by PatchFamilyTest (Hushfacebook 814acd23), so a

@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.settings
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -15,6 +15,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import app.morphe.util.names.origString
 
 /** The application's onCreate hook goes in front of every return, branched to or fallen into. */
 class BeforeEveryReturnTest {
@@ -38,7 +39,7 @@ class BeforeEveryReturnTest {
         val target = addresses.indexOf((instructions.first() as OffsetInstruction).codeOffset)
         // A plain insert leaves the label on the return, and the branch would skip the hook.
         assertEquals("the branch runs the hook before its return", 4, target)
-        assertEquals("Lcom/example/Probe;->hit()V", (instructions[target] as ReferenceInstruction).reference.toString())
+        assertEquals("Lcom/example/Probe;->hit()V", (instructions[target] as ReferenceInstruction).reference.origString())
     }
 
     @Test

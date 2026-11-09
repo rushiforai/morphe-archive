@@ -43,6 +43,7 @@ public final class UpdatesScreen {
         root.setBackgroundColor(0xD9000000);
         root.setVisibility(View.GONE);
         root.setClickable(true);
+        root.setContentDescription("Fechar");
         root.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -54,7 +55,13 @@ public final class UpdatesScreen {
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setPadding(Tokens.dp(24), Tokens.dp(22), Tokens.dp(24), Tokens.dp(18));
         panel.setBackground(Shapes.rounded(Tokens.SURFACE, Tokens.RADIUS_SHEET));
-        panel.setClickable(true);
+        // Consume taps inside the panel without adding a clickable a11y node.
+        panel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                return true;
+            }
+        });
         Shapes.clip(panel, Tokens.RADIUS_SHEET);
 
         LinearLayout titleRow = new LinearLayout(context);
@@ -66,6 +73,7 @@ public final class UpdatesScreen {
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         CircleButton close = new CircleButton(context, Icons.CLOSE, 40f,
                 0x00000000, Tokens.TEXT_DIM, 18f);
+        close.setContentDescription("Fechar");
         close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

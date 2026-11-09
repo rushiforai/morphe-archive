@@ -35,6 +35,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefBy
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Quiet contacts nag"
 internal const val CONTACTS_NAG = "$EXTENSION_PACKAGE/misc/ContactsNag;"
@@ -88,20 +96,20 @@ internal fun BytecodePatchContext.resolveContactsNagSites(): ContactsNagSites {
     // The badge: the one method that reads the Contacts tab's prompt flag back.
     val readers = mutableListOf<Method>()
     forEachClassMentioning(Mention.string(ASKED_IN_CONTACTS)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         classDef.methods.filterTo(readers) { method -> method.instructions().let { body ->
             body.any { it.string() == ASKED_IN_CONTACTS } && body.any { it.isGetBoolean() }
         } }
     }
     val reader = readers.one("reader of the Contacts tab's prompt flag", ::refuse)
-    val badge = mutableClassDefBy(reader.definingClass).methods.single { it.sameAs(reader) }
+    val badge = tgMutableClassDefBy(reader.definingClass).methods.single { it.sameAs(reader) }
     val badgeBody = badge.instructions()
     val read = badgeBody.indices.filter { badgeBody[it].isGetBoolean() }.one("prompt flag read in the badge", ::refuse)
     val (prefsRegister, keyRegister) = badgeBody[read].namedRegisters()
     shape(read >= 2 && badgeBody[read - 2].opcode == Opcode.INVOKE_STATIC && badgeBody[read - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
         badgeBody[read - 1].namedRegisters() == listOf(prefsRegister), "the badge no longer reads the flag from a settings getter")
     val prefs = badgeBody[read - 2].call()!!
-    shape(prefs.parameterTypes.isEmpty() && prefs.returnType == PREFS, "the badge's settings getter no longer returns plain settings")
+    shape(prefs.parameterTypes.isEmpty() && prefs.origReturnType == PREFS, "the badge's settings getter no longer returns plain settings")
     shape(keyRegister.writtenLastBy(badgeBody, read)?.string() == ASKED_IN_CONTACTS, "the badge no longer reads the Contacts tab's flag")
     shape(badgeBody.getOrNull(read + 1)?.opcode == Opcode.MOVE_RESULT && badgeBody.getOrNull(read + 2)?.opcode == Opcode.IF_EQZ &&
         badgeBody[read + 2].namedRegisters() == badgeBody[read + 1].namedRegisters(), "the badge no longer acts on the flag")
@@ -111,8 +119,8 @@ internal fun BytecodePatchContext.resolveContactsNagSites(): ContactsNagSites {
     val mark = (badgeGate until badgeClear).filter { badgeBody[it].string() == "!" }.one("badge mark", ::refuse)
     val setMark = badgeBody.getOrNull(mark + 1)
     val setter = setMark?.call()
-    shape(setter != null && setMark.opcode == Opcode.INVOKE_VIRTUAL && setter.parameterTypes.map(CharSequence::toString) ==
-        listOf("Ljava/lang/String;", "Z", "Z") && setter.returnType == "V" &&
+    shape(setter != null && setMark.opcode == Opcode.INVOKE_VIRTUAL && setter.origParameterTypes ==
+        listOf("Ljava/lang/String;", "Z", "Z") && setter.origReturnType == "V" &&
         setMark.namedRegisters()[1] == badgeBody[mark].namedRegisters()[0] && badgeBody.getOrNull(mark + 2)?.opcode == Opcode.RETURN_VOID,
         "the badge no longer sets \"!\" and returns")
     shape((badgeGate until mark).none { badgeBody[it] is OffsetInstruction || badgeBody[it].call() != null },
@@ -126,16 +134,16 @@ internal fun BytecodePatchContext.resolveContactsNagSites(): ContactsNagSites {
     // that writes both prompt flags.
     val visibles = mutableListOf<Method>()
     forEachClassMentioning(Mention.string(ASKED_ANYWHERE) and Mention.string(ASKED_IN_CONTACTS) and Mention.string(READ_CONTACTS)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         val strings = classDef.methods.flatMap { it.instructions() }.mapNotNullTo(mutableSetOf()) { it.string() }
         if (ASKED_ANYWHERE !in strings || ASKED_IN_CONTACTS !in strings) return@forEachClassMentioning
-        classDef.methods.filterTo(visibles) { method -> method.name == "onBecomeFullyVisible" && method.parameterTypes.isEmpty() &&
+        classDef.methods.filterTo(visibles) { method -> method.origName == "onBecomeFullyVisible" && method.parameterTypes.isEmpty() &&
             method.instructions().any { it.string() == READ_CONTACTS } }
     }
     val visible = visibles.one("Contacts tab check", ::refuse)
-    val ask = mutableClassDefBy(visible.definingClass).methods.single { it.sameAs(visible) }
+    val ask = tgMutableClassDefBy(visible.definingClass).methods.single { it.sameAs(visible) }
     val askBody = ask.instructions()
-    val check = askBody.indices.filter { askBody[it].call()?.let { call -> call.name == "checkSelfPermission" && call.definingClass in setOf(ACTIVITY, CONTEXT) } == true }
+    val check = askBody.indices.filter { askBody[it].call()?.let { call -> call.origName == "checkSelfPermission" && call.origDefiningClass in setOf(ACTIVITY, CONTEXT) } == true }
         .one("permission check in the Contacts tab", ::refuse)
     shape(askBody[check].namedRegisters()[1].writtenLastBy(askBody, check)?.string() == READ_CONTACTS,
         "the Contacts tab no longer checks contacts permission")
@@ -149,18 +157,18 @@ internal fun BytecodePatchContext.resolveContactsNagSites(): ContactsNagSites {
     val region = reach(flow, askGate)
     shape(region.all { it >= askGate } && region.all { flow.normal[it].isNotEmpty() || askBody[it].opcode == Opcode.RETURN_VOID },
         "the Contacts tab's prompt no longer stands alone at the end of the check")
-    shape(askBody[askGate].call()?.name == "shouldShowRequestPermissionRationale", "the prompt no longer starts with Android's rationale check")
+    shape(askBody[askGate].call()?.origName == "shouldShowRequestPermissionRationale", "the prompt no longer starts with Android's rationale check")
     val calls = region.sorted().mapNotNull { askBody[it].call() }
-    val request = calls.filter { it.definingClass == ask.definingClass && it.parameterTypes.map(CharSequence::toString) == listOf("Z") }
+    val request = calls.filter { it.origDefiningClass == ask.origDefiningClass && it.origParameterTypes == listOf("Z") }
         .one("Contacts tab's own request", ::refuse)
-    shape(calls.count { it.name == "showDialog" } == 1, "the prompt no longer shows one dialog")
-    shape(calls.all { it.name in setOf("shouldShowRequestPermissionRationale", "<init>", "showDialog") || it == request ||
-        it.returnType.endsWith("AlertDialog\$Builder;") }, "the prompt does more than ask for contacts")
+    shape(calls.count { it.origName == "showDialog" } == 1, "the prompt no longer shows one dialog")
+    shape(calls.all { it.origName in setOf("shouldShowRequestPermissionRationale", "<init>", "showDialog") || it == request ||
+        it.origReturnType.endsWith("AlertDialog\$Builder;") }, "the prompt does more than ask for contacts")
     shape(region.none { askBody[it].opcode.isFieldWrite() && askBody[it].opcode != Opcode.IPUT_OBJECT },
         "the prompt writes more than its dialog")
-    val requester = classDefBy(ask.definingClass).methods.single { it.name == request.name &&
-        it.parameterTypes.map(CharSequence::toString) == listOf("Z") && it.returnType == request.returnType }
-    shape(requester.instructions().let { body -> body.any { it.string() == READ_CONTACTS } && body.any { it.call()?.name == "requestPermissions" } },
+    val requester = tgClassDefBy(ask.definingClass).methods.single { it.origName == request.origName &&
+        it.origParameterTypes == listOf("Z") && it.origReturnType == request.origReturnType }
+    shape(requester.instructions().let { body -> body.any { it.string() == READ_CONTACTS } && body.any { it.call()?.origName == "requestPermissions" } },
         "the Contacts tab's own request no longer asks Android for contacts")
 
     return ContactsNagSites(ask, askGate, askDone, badge, badgeGate, badgeClear, prefs)
@@ -187,10 +195,10 @@ private fun ContactsNagSites.apply() {
 }
 
 private fun BytecodePatchContext.requireRuntimeHooks() {
-    val owner = classDefByOrNull(CONTACTS_NAG)
+    val owner = tgClassDefByOrNull(CONTACTS_NAG)
     shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public contacts nag runtime")
     for (name in listOf("skipAsk", "hideBadge")) {
-        shape(owner!!.methods.count { it.name == name && it.parameterTypes.map(CharSequence::toString) == listOf(PREFS) && it.returnType == "Z" &&
+        shape(owner!!.methods.count { it.origName == name && it.origParameterTypes == listOf(PREFS) && it.origReturnType == "Z" &&
             AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
             !AccessFlags.NATIVE.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
             it.implementation?.instructions?.any { instruction -> !instruction.opcode.format.isPayloadFormat } == true } == 1,
@@ -220,11 +228,11 @@ private val FIELD_WRITES = setOf(Opcode.IPUT, Opcode.IPUT_WIDE, Opcode.IPUT_OBJE
     Opcode.SPUT_BYTE, Opcode.SPUT_CHAR, Opcode.SPUT_SHORT)
 private fun Opcode.isFieldWrite() = this in FIELD_WRITES
 private fun Instruction.isGetBoolean() =
-    opcode == Opcode.INVOKE_INTERFACE && call()?.let { it.definingClass == PREFS && it.name == "getBoolean" } == true
+    opcode == Opcode.INVOKE_INTERFACE && call()?.let { it.origDefiningClass == PREFS && it.origName == "getBoolean" } == true
 private fun Instruction.isZero(register: Int) = (opcode == Opcode.CONST_4 || opcode == Opcode.CONST_16) &&
     namedRegisters().firstOrNull() == register && (this as NarrowLiteralInstruction).narrowLiteral == 0
 private fun Method.sameAs(other: Method) = name == other.name && returnType == other.returnType &&
-    parameterTypes.map(CharSequence::toString) == other.parameterTypes.map(CharSequence::toString)
+    origParameterTypes == other.origParameterTypes
 private fun refuse(reason: String): Nothing =
     throw PatchException("$PATCH: $reason; refuses changed contacts prompt geometry before editing")
 private fun shape(valid: Boolean, reason: String) {

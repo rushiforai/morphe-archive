@@ -89,7 +89,8 @@ jobs:
               git checkout -q -B "$B" "origin/$BASE"
             fi
           }
-          if [ "$TYPE" = "add" ]; then what="toegevoegd (gespeeld, ontbrak in de lijst)"; else what="verwijderd (geweigerd door de server)"; fi
+          # Commit messages end up in CHANGELOG.md and the release notes Morphe shows: keep them in English.
+          if [ "$TYPE" = "add" ]; then verb="added"; why="played, missing from the list"; else verb="removed"; why="rejected by the server"; fi
           for attempt in 1 2 3 4 5; do
             switch_branch
             out=$(python3 -I tools/wordlists/report.py --type "$TYPE" --ruleset "$RULESET" --words "$WORDS")
@@ -98,7 +99,7 @@ jobs:
             if [ -z "$added" ]; then echo "added=" >> "$GITHUB_OUTPUT"; exit 0; fi
             python3 -I tools/wordlists/build.py --only "$CODE"
             git add wordlists
-            git commit -q -m "fix(wordlists): $CODE: $added $what"
+            git commit -q -m "fix(wordlists): $CODE: $verb $added ($why)"
             if git push origin "$B"; then echo "added=$added" >> "$GITHUB_OUTPUT"; exit 0; fi
             echo "Push failed (attempt $attempt); retrying on the latest branch"
             sleep $((attempt * 10))
@@ -121,8 +122,8 @@ jobs:
             if open=$(gh pr list --head "$B" --base "$BASE" --state open --json number --jq '.[0].number'); then
               if [ -n "$open" ]; then echo "pull request #$open is open"; exit 0; fi
               if gh pr create --head "$B" --base "$BASE" \
-                  --title "Woordenlijst $CODE: gemelde woorden" \
-                  --body "Automatisch gemeld door de patch: woorden die de Wordfeud-server weigerde (\`wordlists/$CODE/remove.txt\`) en woorden die in een potje gespeeld zijn maar in onze lijst ontbraken (\`wordlists/$CODE/add.txt\`). Elke melding voegt een commit toe aan deze branch. Controleer de woorden en merge wanneer je wilt: de merge maakt een nieuwe release met de bijgewerkte lijst."; then
+                  --title "Word list $CODE: reported words" \
+                  --body "Reported automatically by the patch: words the Wordfeud server rejected (\`wordlists/$CODE/remove.txt\`) and words that were played in a game but are missing from our list (\`wordlists/$CODE/add.txt\`). Every report adds a commit to this branch. Check the words and merge whenever you like: the merge makes a new release with the updated list."; then
                 exit 0
               fi
             fi

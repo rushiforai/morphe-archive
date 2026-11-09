@@ -23,6 +23,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The reaction effect overlay's entry and the runtime. */
 class ReactionEffectsOffFixtureTest {
@@ -45,10 +48,10 @@ class ReactionEffectsOffFixtureTest {
             assertEquals(listOf(0), after[1].namedRegisters())
             assertEquals("$name: a no runs the stock overlay", listOf(3, 4), ControlFlow.of(show).normal[2].sorted())
             for (i in before.indices) {
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + 4].opcode, after[i + 4].namedRegisters(), (after[i + 4] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + 4].opcode, after[i + 4].namedRegisters(), after[i + 4].origRef()))
             }
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "reactionEffectsOff" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "reactionEffectsOff" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

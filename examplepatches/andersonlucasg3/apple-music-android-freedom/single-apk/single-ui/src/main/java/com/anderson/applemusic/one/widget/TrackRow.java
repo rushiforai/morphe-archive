@@ -65,6 +65,19 @@ public final class TrackRow extends LinearLayout {
         Focus.attach(this, Tokens.RADIUS_CONTROL, 0x00000000, Tokens.SURFACE_HOVER, null);
         setLayoutParams(new LinearLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+        bind(position, title, subtitle);
+    }
+
+    /** Rebinds a recycled row (ListView {@code convertView}) to another track. */
+    public void bind(int position, String title, String subtitle) {
+        number.setText(String.valueOf(position));
+        this.title.setText(title);
+        this.subtitle.setText(subtitle == null ? "" : subtitle);
+        this.subtitle.setVisibility(subtitle == null || subtitle.length() == 0
+                ? View.GONE : View.VISIBLE);
+        setContentDescription(position + ". " + title
+                + (subtitle == null || subtitle.length() == 0 ? "" : ", " + subtitle));
+        setPlaying(false);
     }
 
     /** Marks the track the session is playing: accent glyph and title, number hidden. */

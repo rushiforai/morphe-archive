@@ -4,6 +4,7 @@
  */
 package app.morphe
 
+import app.morphe.patcher.PatcherProgress
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
@@ -24,7 +25,7 @@ import javax.xml.transform.stream.StreamResult
  * comes back as a DOM parsed like the patcher's, with `android:` attributes as plain names.
  *
  * The coder is internal to the patcher, so it's reached by its JVM names, pinned to morphe-patcher
- * 2.1.0 as [PatchContexts] is: a bump that renames one fails here, naming it. Patcher 2.x decodes on
+ * 2.3.0 as [PatchContexts] is: a bump that renames one fails here, naming it. Patcher 2.x decodes on
  * request, as Manager does, so a file is decoded the first time a test asks for it (getFile's last
  * argument, as a patch's own get passes it).
  */
@@ -58,8 +59,10 @@ internal class FixtureResources private constructor(private val work: File, priv
                     zip.getInputStream(base).use { input -> out.outputStream().use { input.copyTo(it) } }
                 }
             }
-            val coder = CODER.getConstructor(File::class.java, File::class.java, Set::class.java, Boolean::class.javaPrimitiveType)
-                .newInstance(File(work, "decoded"), apk, emptySet<Any>(), false) as Closeable
+            // Patcher 2.3.0 hands the coder a PatcherProgress after the encode flag; tests report none.
+            val coder = CODER.getConstructor(
+                File::class.java, File::class.java, Set::class.java, Boolean::class.javaPrimitiveType, PatcherProgress::class.java,
+            ).newInstance(File(work, "decoded"), apk, emptySet<Any>(), false, null) as Closeable
             CODER.getMethod("decodeResources", Boolean::class.javaPrimitiveType).invoke(coder, true)
             return FixtureResources(work, coder)
         }

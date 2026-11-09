@@ -22,6 +22,11 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The message bubble's time drawer, Telegram's message model and the runtime. */
 class HideStickerTimeFixtureTest {
@@ -29,9 +34,10 @@ class HideStickerTimeFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = FixtureDex.classesWhere(build, { true }) { m ->
-                m.returnType == "V" && m.parameterTypes.size == 3 && m.controlBody().any { it.controlRef() == MESSAGE_TYPE } &&
+                m.origReturnType == "V" && m.parameterTypes.size == 3 && m.controlBody().any { it.controlRef() == MESSAGE_TYPE } &&
                     m.parameterTypes.any { it.toString() == "Landroid/graphics/Canvas;" }
-            }.map(ImmutableClassDef::of) + FixtureDex.classesWhere(build, { true }) { m -> "${m.definingClass}->${m.name}()${m.returnType}" == ANY_STICKER }
+            }.map(ImmutableClassDef::of) + FixtureDex.classesWhere(build, { true }) { m ->
+                m.parameterTypes.isEmpty() && "${m.origDefiningClass}->${m.origName}()${m.origReturnType}" == ANY_STICKER }
                 .map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts.distinctBy { it.type })
             val (drawTime, message) = context.resolveHideStickerTime()
@@ -48,12 +54,12 @@ class HideStickerTimeFixtureTest {
             assertEquals("$STICKER_TIME->hidden(Ljava/lang/Object;)Z", after[2].controlRef())
             assertEquals("$name: a no draws the stock time", listOf(5, 6), ControlFlow.of(drawTime).normal[4].sorted())
             for (i in before.indices) {
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + 6].opcode, after[i + 6].namedRegisters(), (after[i + 6] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + 6].opcode, after[i + 6].namedRegisters(), after[i + 6].origRef()))
             }
-            val stub = context.mutableClassDefBy(STICKER_TIME).methods.single { it.name == "isSticker" }.controlBody()
+            val stub = context.tgMutableClassDefBy(STICKER_TIME).methods.single { it.origName == "isSticker" }.controlBody()
             assertTrue("$name: the stub asks Telegram", stub.any { it.controlRef() == ANY_STICKER })
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideStickerTime" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideStickerTime" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

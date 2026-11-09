@@ -8,8 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -33,6 +33,8 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The add contact screen's share box on the pinned builds: where it's ticked, and what saving reads. */
 class ContactShareFixtureTest {
@@ -91,7 +93,7 @@ class ContactShareFixtureTest {
                 created(context, site).addInstructions(0, "const/4 v0, 0x1\niput-boolean v0, p0, ${site.box}")
             },
             Triple("starts ticked", "doesn't start with the share box clear") { context, site ->
-                val constructor = context.mutableClassDefBy(site.box.substringBefore("->")).methods.first { it.name == "<init>" }
+                val constructor = context.tgMutableClassDefBy(site.box.substringBefore("->")).methods.first { it.origName == "<init>" }
                 val body = constructor.controlBody()
                 val store = body.indices.first { body[it].controlField().toString() == site.box }
                 val value = body[store].namedRegisters().first()
@@ -108,9 +110,9 @@ class ContactShareFixtureTest {
             Triple("save reads the box alone", "add contact save that reads the share box is missing or ambiguous") { context, site ->
                 // The offer's check goes, so the box alone decides what's shared.
                 val save = saveOf(context, site.box)
-                val call = save.controlBody().indexOfFirst { it.controlRef() == ADD_CONTACT }
-                assertEquals(Opcode.IF_EQZ, save.controlBody()[call - 6].opcode)
-                save.replaceInstruction(call - 6, "nop")
+                val offer = save.controlBody().indexOfFirst { it.opcode == Opcode.IGET_BOOLEAN && it.controlField().toString() == site.offer }
+                assertEquals(Opcode.IF_EQZ, save.controlBody()[offer + 1].opcode)
+                save.replaceInstruction(offer + 1, "nop")
             },
         )
         for (build in Fixtures.declaredBuilds()) {
@@ -123,7 +125,7 @@ class ContactShareFixtureTest {
                 assertTrue("${build.name}: $name refused for its own reason: ${refused.message}", refused.message.orEmpty().contains(reason))
                 assertEquals("${build.name}: $name leaves every host as it was", before, snapshot(context, hosts))
                 for (flag in listOf("hidePhoneNumber", "shareNumberUnticked")) {
-                    val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                    val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                     assertEquals("${build.name}: $name leaves $flag off", 0L, (status.first() as WideLiteralInstruction).wideLiteral)
                 }
             }
@@ -131,27 +133,30 @@ class ContactShareFixtureTest {
     }
 
     private fun created(context: BytecodePatchContext, site: ContactShareSite) =
-        context.mutableClassDefBy(site.box.substringBefore("->")).methods.single { it.name == "onFragmentCreate" }
+        context.tgMutableClassDefBy(site.box.substringBefore("->")).methods.single { it.origName == "onFragmentCreate" }
 
     private fun snapshot(context: BytecodePatchContext, hosts: List<ClassDef>) = hosts.map { it.type }
         .filter { !it.startsWith("Lapp/hushtelegram/") }
-        .associateWith { type -> context.mutableClassDefBy(type).methods.map { it.toString() to it.controlBody().map(::operands) } }
+        .associateWith { type -> context.tgMutableClassDefBy(type).methods.map { it.toString() to it.controlBody().map(::operands) } }
 }
 
-/** The one method that hands Telegram's addContact the screen's share box. */
+/** The one method that hands Telegram's addContact (or, inlined, its request) the screen's share box. */
 internal fun saveOf(context: BytecodePatchContext, box: String): MutableMethod {
     val found = mutableListOf<Method>()
     context.classDefForEach { cls ->
-        cls.methods.filterTo(found) { m -> m.controlBody().let { body -> body.any { it.controlRef() == ADD_CONTACT } && body.any { it.controlRef() == box } } }
+        cls.methods.filterTo(found) { m -> m.controlBody().let { body -> body.any { it.controlRef() in SAVES } && body.any { it.controlRef() == box } } }
     }
     val save = found.single()
-    return context.mutableClassDefBy(save.definingClass).methods.single { it.toString() == save.toString() }
+    return context.tgMutableClassDefBy(save.definingClass).methods.single { it.toString() == save.toString() }
 }
+
+/** addContact, or the request field its share boolean lands in where 13.2 inlines it. */
+private val SAVES = setOf(ADD_CONTACT, PRIVACY_EXCEPTION)
 
 /** The classes that save a contact and every screen whose flags they read. */
 internal fun contactShareHosts(build: File): List<ClassDef> {
-    val savers = FixtureDex.classesWhere(build, { true }) { m -> m.controlBody().any { it.controlRef() == ADD_CONTACT } }
-    val screens = savers.flatMap { it.methods }.filter { m -> m.controlBody().any { it.controlRef() == ADD_CONTACT } }
+    val savers = FixtureDex.classesWhere(build, { true }) { m -> m.controlBody().any { it.controlRef() in SAVES } }
+    val screens = savers.flatMap { it.methods }.filter { m -> m.controlBody().any { it.controlRef() in SAVES } }
         .flatMap { m -> m.controlBody().filter { it.opcode == Opcode.IGET_BOOLEAN }.mapNotNull { it.controlField()?.definingClass } }
         .filter { it.startsWith("Lorg/telegram/") }.toSet()
     return (savers + FixtureDex.classes(build, screens).values.map(ImmutableClassDef::of)).distinctBy { it.type }

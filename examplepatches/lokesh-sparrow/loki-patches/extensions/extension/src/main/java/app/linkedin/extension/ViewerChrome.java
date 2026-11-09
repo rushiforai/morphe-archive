@@ -45,6 +45,11 @@ public final class ViewerChrome {
     private static final String CONTROLS_NAMESPACE = "MemoryNamespace";
     /** The video viewer's own control state, keyed per media item: the play button's show/hide. */
     private static final String VIDEO_CONTROLS_STATE = "showImmersiveViewerPlayButtonDisplayFor";
+    /**
+     * The full key of the video in front, captured from its play button. The store keeps one key per media item,
+     * so a prefix match alone reads a previous video's value once a second video has been opened.
+     */
+    private static volatile String currentVideoState = "";
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final Set<Object> stateManagers = Collections.newSetFromMap(new WeakHashMap<>());
 
@@ -129,8 +134,11 @@ public final class ViewerChrome {
             visible = !controlsShown();
             setControlsShown(visible);
         } else if (SduiMediaDownload.resumedScreen().endsWith(".VideoViewer")) {
-            // The video handles the tap itself, so read what it did rather than guessing from our own state.
-            visible = videoControlsShown();
+            // The video handles the tap itself, so read what it did rather than guessing from our own state. When the
+            // store has no value for this media yet, flip our own instead of leaving the button hidden.
+            Boolean shown = storedState(true);
+            visible = shown != null ? shown : !SduiMediaDownload.buttonVisible(activity);
+            if (shown == null) Settings.debugLog("viewer tap: no stored state for this video, flipped the button");
         } else {
             visible = !SduiMediaDownload.buttonVisible(activity);
         }
@@ -229,8 +237,32 @@ public final class ViewerChrome {
 
     private static boolean isVideoControlsKey(Object key) throws ReflectiveOperationException {
         Object value = field(key, "value");
-        return value instanceof String && ((String) value).startsWith(VIDEO_CONTROLS_STATE)
-                && CONTROLS_NAMESPACE.equals(field(key, "namespace"));
+        if (!(value instanceof String) || !CONTROLS_NAMESPACE.equals(field(key, "namespace"))) return false;
+        String name = (String) value;
+        // Only the media in front counts: with several videos opened, the others' keys are stale.
+        return currentVideoState.isEmpty() ? name.startsWith(VIDEO_CONTROLS_STATE) : currentVideoState.equals(name);
+    }
+
+    /** The state key inside a component's d field, such as showImmersiveViewerPlayButtonDisplayFor-&lt;hash&gt;. */
+    static String stateKey(byte[] data) {
+        if (data == null) return "";
+        byte[] prefix = VIDEO_CONTROLS_STATE.getBytes(java.nio.charset.StandardCharsets.US_ASCII);
+        int start = indexOf(data, prefix);
+        if (start < 0) return "";
+        int end = start;
+        while (end < data.length && data[end] >= 0x20 && data[end] < 0x7f) end++;
+        return new String(data, start, end - start, java.nio.charset.StandardCharsets.US_ASCII);
+    }
+
+    private static int indexOf(byte[] data, byte[] needle) {
+        outer:
+        for (int i = 0; i + needle.length <= data.length; i++) {
+            for (int j = 0; j < needle.length; j++) {
+                if (data[i + j] != needle[j]) continue outer;
+            }
+            return i;
+        }
+        return -1;
     }
 
     /** The boolean the app stored for this kind of key, or null when it has not stored one yet. */
@@ -308,7 +340,14 @@ public final class ViewerChrome {
     static byte[] video(byte[] container) {
         byte[] playButton = null;
         for (byte[] child : children(container)) {
-            if ("media-video-play-pause".equals(viewName(child))) playButton = field(child, DISPLAYED_FIELD);
+            if ("media-video-play-pause".equals(viewName(child))) {
+                playButton = field(child, DISPLAYED_FIELD);
+                String key = stateKey(playButton);
+                if (!key.isEmpty() && !key.equals(currentVideoState)) {
+                    currentVideoState = key;
+                    Settings.debugLog("viewer tap to hide: video state " + key);
+                }
+            }
         }
         if (playButton == null) return null;
         final byte[] displayed = playButton;

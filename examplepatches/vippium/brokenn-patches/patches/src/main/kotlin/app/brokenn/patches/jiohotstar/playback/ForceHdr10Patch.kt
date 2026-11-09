@@ -12,7 +12,6 @@ val forceHdr10Patch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JIOHOTSTAR)
 
     execute {
-        // Force Dolby Vision / HDR support to true — bypasses blacklist check
         IsDolbyVisionSupportedFingerprint.method.addInstructions(0, """
             const/4 v0, 0x1
             return v0

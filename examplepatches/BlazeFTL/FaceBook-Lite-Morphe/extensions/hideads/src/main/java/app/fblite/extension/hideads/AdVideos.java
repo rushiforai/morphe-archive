@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * in a list that pages (Reels) the item counts as sponsored for {@link SponsoredReels}; in any other list (feed,
  * Marketplace) the card is hidden, the way sponsored feed posts are: flagged hidden and given height 0. The card is the
  * highest part of the item that is at most 65% of the item's width (one card of a grid), else the whole item.
- * Names are for 530.0.0.8.106.
+ * Names are for 536.0.0.11.107.
  */
 final class AdVideos {
     private static final String TAG = "ads";
@@ -349,10 +349,10 @@ final class AdVideos {
         videoClass = Class.forName("com.facebook.lite.widget.video.FbVideoView", false, loader);
         propsField = videoClass.getDeclaredField("A0F");
         propsField.setAccessible(true);
-        component = Class.forName("X.0gp", false, loader);
-        fWidth = component.getDeclaredField("A29");
-        fHeight = component.getDeclaredField("A0i");
-        fHidden = component.getDeclaredField("A2c");
+        component = Class.forName("X.0hd", false, loader);
+        fWidth = component.getDeclaredField("A2A");
+        fHeight = component.getDeclaredField("A0j");
+        fHidden = component.getDeclaredField("A2e");
         fWidth.setAccessible(true);
         fHeight.setAccessible(true);
         fHidden.setAccessible(true);
@@ -368,7 +368,7 @@ final class AdVideos {
 
     private static boolean isSnapping(View pager) {
         try {
-            Object snap = read(pager, "A07");
+            Object snap = read(pager, "A08");
             return snap != null && ((Integer) read(snap, "A02")) != 0;
         } catch (Throwable t) {
             return false;
@@ -377,8 +377,8 @@ final class AdVideos {
 
     private static Object treeOf(Object item) {
         try {
-            Object wrapper = read(item, "A0B");
-            return wrapper == null ? null : read(wrapper, "A03");
+            Object wrapper = read(item, "A0C");
+            return wrapper == null ? null : read(wrapper, "A04");
         } catch (Throwable t) {
             return null;
         }

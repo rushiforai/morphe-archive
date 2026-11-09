@@ -16,48 +16,40 @@ namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
 /// </summary>
 internal static class Tables
 {
-    public static readonly By Cell = Locate.AppId("baconreader_patches_table_cell");
-    public static readonly By Button = Locate.AppId("baconreader_patches_table_button");
+    private const string Cell = "baconreader_patches_table_cell";
+    private const string Button = "baconreader_patches_table_button";
 
     /// <summary>What the tables of <paramref name="text"/>, a comment's or a post's text, show.</summary>
-    public static TableSnapshot Read(IWebElement text) =>
+    public static TableSnapshot Read(ScreenNode text) =>
         new(
             [.. Rows(Cells(text)).Select(row => row.Select(cell => cell.Text).ToImmutableArray())],
-            Within(text, Button).Select(button => TableButtonShowing.ReadTableButton(button.Text)).ToImmutableArray());
+            Buttons(text).Select(button => TableButtonShowing.ReadTableButton(button.Text)).ToImmutableArray());
 
     /// <summary>Where the cells of the tables of <paramref name="text"/> show, and the text and the screen.</summary>
-    public static TableLayoutSnapshot ReadLayout(IWebElement text, int screenWidth) =>
-        new([.. Cells(text)], Bounds(text), screenWidth);
+    public static TableLayoutSnapshot ReadLayout(ScreenNode text, int screenWidth) =>
+        new([.. Cells(text)], text.Bounds, screenWidth);
 
     /// <summary>The cell of the tables of <paramref name="text"/> that shows exactly <paramref name="cell"/>, or null.</summary>
-    public static IWebElement? FindCell(IWebElement text, string cell) =>
-        Within(text, Cell).FirstOrDefault(found => found.Text == cell);
+    public static ScreenNode? FindCell(ScreenNode text, string cell) =>
+        text.WithAppId(Cell).FirstOrDefault(found => found.Text == cell);
 
     /// <summary>The buttons under the tables of <paramref name="text"/>.</summary>
-    public static IReadOnlyList<IWebElement> Buttons(IWebElement text) => Within(text, Button);
+    public static IReadOnlyList<ScreenNode> Buttons(ScreenNode text) => [.. text.WithAppId(Button)];
 
     /// <summary>The top left cell <paramref name="text"/> shows of its tables, or null.</summary>
-    public static IWebElement? FirstCell(IWebElement text) =>
-        Within(text, Cell).OrderBy(cell => cell.Location.Y).ThenBy(cell => cell.Location.X).FirstOrDefault();
+    public static ScreenNode? FirstCell(ScreenNode text) =>
+        text.WithAppId(Cell).OrderBy(cell => cell.Bounds.Y).ThenBy(cell => cell.Bounds.X).FirstOrDefault();
 
     /// <summary>Whether <paramref name="text"/> shows a table's cells.</summary>
-    public static bool HasCells(IWebElement text) => Within(text, Cell).Count > 0;
+    public static bool HasCells(ScreenNode text) => text.WithAppId(Cell).Any();
 
-    // UiAutomator2 doesn't keep a search under a text to the parts of its own tables: they're the ones inside its bounds.
-    private static List<IWebElement> Within(IWebElement text, By part)
-    {
-        var bounds = Bounds(text);
-        return [.. text.FindElements(part).Where(found => Bounds(found) is var inside && inside.Top >= bounds.Top && inside.Bottom <= bounds.Bottom)];
-    }
-
-    private static List<TableCell> Cells(IWebElement text) =>
-        [.. Within(text, Cell).Select(cell => new TableCell(cell.Text, Bounds(cell))).OrderBy(cell => cell.Bounds.Top).ThenBy(cell => cell.Bounds.Left)];
+    // The cells are views of the text, so they are inside its node of a ScreenSnapshot.
+    private static List<TableCell> Cells(ScreenNode text) =>
+        [.. text.WithAppId(Cell).Select(cell => new TableCell(cell.Text, cell.Bounds)).OrderBy(cell => cell.Bounds.Top).ThenBy(cell => cell.Bounds.Left)];
 
     // A row's cells start their text at the same height.
     private static IEnumerable<List<TableCell>> Rows(List<TableCell> cells) =>
         cells.GroupBy(cell => cell.Bounds.Top).Select(row => row.OrderBy(cell => cell.Bounds.Left).ToList());
-
-    private static Rectangle Bounds(IWebElement element) => new(element.Location, element.Size);
 }
 
 /// <summary>What a text's tables show: their rows, top to bottom, each its cells' texts, and their buttons.</summary>

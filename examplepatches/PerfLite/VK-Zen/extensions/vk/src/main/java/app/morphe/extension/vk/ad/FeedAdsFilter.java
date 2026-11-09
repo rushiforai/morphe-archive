@@ -113,16 +113,7 @@ public class FeedAdsFilter {
                     } catch (Throwable ignored) {}
                 }
 
-                // 2. Check easyPromote block
-                if (postEasyPromoteField != null) {
-                    try {
-                        if (postEasyPromoteField.get(item) != null) {
-                            return true;
-                        }
-                    } catch (Throwable ignored) {}
-                }
-
-                // 3. Check adMarker text (field H in 8.201)
+                // 2. Check adMarker text (field H in 8.201)
                 if (postAdMarkerField != null) {
                     try {
                         Object marker = postAdMarkerField.get(item);

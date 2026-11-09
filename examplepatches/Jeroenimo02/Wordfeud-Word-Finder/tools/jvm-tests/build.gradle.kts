@@ -32,6 +32,7 @@ val androidOnly = listOf(
     "app/wordfeudwordfinder/extension/ui/DownloadProgress.java",
     "app/wordfeudwordfinder/extension/ui/ScreenSampler.java",
     "app/wordfeudwordfinder/extension/play/FlutterBridge.java",
+    "app/wordfeudwordfinder/extension/ads/MainThread.java",
 )
 
 sourceSets {

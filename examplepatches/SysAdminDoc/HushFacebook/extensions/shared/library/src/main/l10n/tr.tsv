@@ -1003,6 +1003,10 @@ Left alone: %s	Çevrilmeyecek: %s
 Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold it back. Reel captions have their own switch under Reels and Watch.	Akıştaki gönderiler metninin tamamını gösterir, Devamını gör'e dokunman gerekmez. Metne dokunarak onu yeniden daraltabilirsin. Reels açıklamalarının Reels ve Watch altında kendi anahtarı var.
 Show full reel captions	Reels açıklamasının tamamını göster
 Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	Reels'teki uzun açıklamalar metnin tamamını hemen gösterir. Açıklamaya dokunarak onu yeniden daraltabilirsin. Değişiklik bir sonraki reel'den itibaren geçerli olur.
+# context: switch title under Reels and Watch, below Show full reel captions; once a reel's caption is opened, a dark see-through box sits behind its text, like movie subtitles
+Dark box behind open captions	Açılan açıklamaların arkasına koyu kutu
+# context: summary of that switch
+An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Açılan bir reel açıklaması, altyazılar gibi koyu bir kutunun üstünde durur, böylece parlak bir videonun üzerinde kolayca okunur. Değişiklik bir sonraki reel'den itibaren geçerli olur.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Kimlerin paylaştığını gör
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Bir gönderinin menüsüne Kimlerin paylaştığını gör ekler. Facebook'un gönderiyi paylaşan kişiler listesini açar.
@@ -1942,6 +1946,14 @@ Watch again at the end of a feed video plays it again right there, instead of op
 Open saved videos in the video player	Kaydedilen videoları video oynatıcıda aç
 # context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
 A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	Kaydedilenler'de dokunduğun bir video, sonraki kaydırmada önerilen bir reel gösteren Reels yerine video oynatıcıda oynar.
+# context: switch title under Reels and Watch; on, a reel opened from Facebook's Saved list goes on to the next saved video when it ends or is swiped past, instead of Facebook's suggested reels
+Play saved videos in a row	Kaydedilen videoları art arda oynat
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel.	Kaydedilenler'den açtığın bir video bittiğinde veya yukarı kaydırdığında, önerilen bir reel yerine Kaydedilenler'deki bir sonrakine geçer.
+# context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
+Skip "Are you still watching?"	"Hâlâ izliyor musun?" sorusunu atla
+# context: summary of that switch; reels and videos go on to the next one by themselves
+Reels and videos keep going to the next one without pausing to ask if you're still watching.	Reels ve videolar, hâlâ izleyip izlemediğinizi sormak için durmadan bir sonrakine geçmeye devam eder.
 Hide the new comments pop-up	Yeni yorumlar açılır bildirimini gizle
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Yorumları okurken “yeni yorumlar” baloncuğu artık çıkmaz. Yeni yorumlar listede görünmeye devam eder.
@@ -2596,3 +2608,25 @@ Hide profile pictures on posts	Gönderilerdeki profil resimlerini gizle
 Hide profile pictures in comments	Yorumlardaki profil resimlerini gizle
 Takes the profile picture off the top of posts, so the name starts where the picture was. A change shows on the posts drawn after it.	Gönderilerin üstündeki profil resmini kaldırır, böylece ad resmin olduğu yerden başlar. Değişiklik, sonrasında gösterilen gönderilerde görünür.
 Takes the profile picture off comments, so the name and text start where the picture was. A change shows on the comments drawn after it.	Yorumlardaki profil resmini kaldırır, böylece ad ve metin resmin olduğu yerden başlar. Değişiklik, sonrasında gösterilen yorumlarda görünür.
+Search comments	Yorumlarda ara
+Previous match	Önceki eşleşme
+Next match	Sonraki eşleşme
+Close search	Aramayı kapat
+No matches	Eşleşme yok
+No more matches	Başka eşleşme yok
+Not found yet	Henüz bulunamadı
+A magnifier at the top of the comments opens a search box that finds the comments with your words.	Yorumların üstündeki büyüteç, kelimelerinizi içeren yorumları bulan bir arama kutusu açar.
+Open shared reels on their own	Paylaşılan reel'leri tek başına aç
+A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Başka bir uygulamadaki bir bağlantıdan ya da bir sohbetten açtığın reel tek başına oynar, ardından kaydırılacak başka reel olmaz.
+Light bars on the Reels tab	Reels sekmesinde açık çubuklar
+In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	Açık modda Reels sekmesi, durum çubuğunu, üst çubuğu ve sekme çubuğunu karartmak yerine diğer sekmelerdeki gibi açık tutar.
+Bar opacity	Çubuk opaklığı
+How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	Saydam çubukların rengini yüzde kaç koruduğu, %1$s ile %2$s arası. Daha düşük değer akışın ve bulanıklığın daha çok görünmesini sağlar. %3$s için ya da bulanıklığın üzerinde %4$s için boş bırakın.
+The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	Çubuklar renginin yüzde %1$s kadarını, bulanıklığın üzerinde yüzde %2$s kadarını korur. Değiştirmek için bir sayı yazın.
+The see-through bars keep %1$s percent of their color.	Saydam çubuklar renginin yüzde %1$s kadarını korur.
+Tab bar width	Sekme çubuğu genişliği
+Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Ekran genişliğinin yüzdesi, %1$s ile %2$s arası. Simgeler onunla birlikte büyür ve küçülür. %3$s için boş bırakın.
+The rounded tab bar is %1$s percent of the screen wide.	Yuvarlak sekme çubuğu ekran genişliğinin yüzde %1$s kadarı.
+Tab bar height	Sekme çubuğu yüksekliği
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Yuvarlak sekme çubuğunun tam yüksekliğinin yüzde kaçını koruduğu, %1$s ile %2$s arası, simgelerin üstünden ve altından kırpılır. %3$s için boş bırakın.
+The rounded tab bar keeps %1$s percent of its height.	Yuvarlak sekme çubuğu yüksekliğinin yüzde %1$s kadarını korur.

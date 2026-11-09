@@ -41,10 +41,13 @@ private val settingsManifestPatch = resourcePatch {
     }
 }
 
-private val sharedSettingsPatch = bytecodePatch {
+internal val sharedSettingsPatch = bytecodePatch {
     dependsOn(settingsManifestPatch)
     extendWith("openbubbles-wear.mpe")
-    execute { addSettingsMenu() }
+    execute {
+        skipBackendInRestartProcess()
+        addSettingsMenu()
+    }
 }
 
 private val bridgeManifestPatch = resourcePatch {

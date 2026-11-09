@@ -330,6 +330,29 @@ function Get-NavigationInstalledApk {
     [void](Invoke-NavigationAdb $Session @('pull', $base[0].Substring(8), $Destination))
 }
 
+function Get-NavigationAccountNames {
+    # Telegram 13.2 ships org.telegram.messenger under R8's names. The checker reads UserConfig by the
+    # names of the installed build, taken from the per-build table the patches use; a build with no
+    # table keeps the source names.
+    param([string]$VersionCode)
+    $accountNames = [ordered]@{ 'userConfig' = 'org.telegram.messenger.UserConfig'; 'selectedAccount' = 'selectedAccount'
+        'getInstance' = 'getInstance'; 'isClientActivated' = 'isClientActivated'; 'getClientUserId' = 'getClientUserId' }
+    if ($VersionCode -notmatch '^\d+$') { throw 'The installed target has no version code.' }
+    $table = Join-Path (Split-Path -Parent $PSScriptRoot) "patches/src/main/resources/hushtelegram/names/$VersionCode.txt"
+    if (-not (Test-Path -LiteralPath $table -PathType Leaf)) { return $accountNames }
+    $owner = 'Lorg/telegram/messenger/UserConfig;'
+    $found = 0
+    foreach ($row in [IO.File]::ReadAllLines($table)) {
+        $cols = $row -split ' '
+        if ($cols.Count -lt 3 -or $cols[1] -cne $owner) { continue }
+        if ($cols[0] -ceq 'c') { $accountNames['userConfig'] = $cols[2].Substring(1, $cols[2].Length - 2).Replace('/', '.'); $found++ }
+        elseif ($cols[0] -ceq 'm' -and $cols[2] -cin @('getInstance', 'isClientActivated', 'getClientUserId')) { $accountNames[$cols[2]] = $cols[5]; $found++ }
+        elseif ($cols[0] -ceq 'f' -and $cols[2] -ceq 'selectedAccount') { $accountNames['selectedAccount'] = $cols[5]; $found++ }
+    }
+    if ($found -ne 5) { throw "The $VersionCode name table names $found of UserConfig's 5 entries the checker reads." }
+    return $accountNames
+}
+
 function Read-NavigationResult {
     param([string[]]$Output, [string]$RunId, [int]$Api, [string]$Mode, [string]$Locale, [string]$Scale)
     $answers = @($Output | Where-Object { $_ -match 'NAV_RESULT:' } | ForEach-Object { $_.Substring($_.IndexOf('NAV_RESULT:') + 11) })
@@ -425,7 +448,10 @@ if ($MyInvocation.InvocationName -ne '.') {
     $runs = [Collections.Generic.List[object]]::new()
     try {
         Get-NavigationInstalledApk $session $PackageName $target
-        if ((Get-ApkManifestFacts -Apk $target -Aapt2 $Aapt2).package -cne $PackageName) { throw 'Installed target APK has another package identity.' }
+        $targetFacts = Get-ApkManifestFacts -Apk $target -Aapt2 $Aapt2
+        if ($targetFacts.package -cne $PackageName) { throw 'Installed target APK has another package identity.' }
+        $accountNames = Get-NavigationAccountNames ([string]$targetFacts.versionCode)
+        [string[]]$accountArguments = @($accountNames.Keys | ForEach-Object { '-e'; $_; $accountNames[$_] })
         $targetSigners = @(Get-VendorSignerDigests -Apk $target -Aapt2 $Aapt2)
         if (($targetSigners -join ',') -cne ($probeSigners -join ',')) { throw 'Use the retained target signer for instrumentation. No key replacement is permitted.' }
         Get-NavigationInstalledApk $session 'app.hushtelegram.navigationprobe' $installedProbe
@@ -456,11 +482,12 @@ if ($MyInvocation.InvocationName -ne '.') {
                     Assert-NavigationLease $session
                     if ($session.Expires -lt [DateTimeOffset]::UtcNow.AddMinutes(3)) { throw 'Renew the whole-device lease before this bounded instrumentation run.' }
                     $session.InstrumentationUnfinished = $true
-                    $output = @(Invoke-NavigationAdb $session @('shell', 'am', 'instrument', '-w', '-r', '-e', 'mode', $mode,
+                    [string[]]$instrumentArguments = @('shell', 'am', 'instrument', '-w', '-r', '-e', 'mode', $mode,
                         '-e', 'locale', $language, '-e', 'fontScale', $scale, '-e', 'package', $PackageName,
                         '-e', 'activity', $Activity, '-e', 'runId', $runId, '-e', 'leaseExpiry', ([string]$session.Expires.ToUnixTimeMilliseconds()),
-                        '-e', 'leaseSocket', $leaseServer.Socket, '-e', 'leaseCapability', $leaseServer.Capability,
-                        'app.hushtelegram.navigationprobe/app.hushtelegram.navigationprobe.SettingsNavigationChecks'))
+                        '-e', 'leaseSocket', $leaseServer.Socket, '-e', 'leaseCapability', $leaseServer.Capability) + $accountArguments +
+                        @('app.hushtelegram.navigationprobe/app.hushtelegram.navigationprobe.SettingsNavigationChecks')
+                    $output = @(Invoke-NavigationAdb $session $instrumentArguments)
                     if (@($output | Where-Object { $_ -match '^INSTRUMENTATION_CODE: -?\d+$' }).Count -eq 1) { $session.InstrumentationUnfinished = $false }
                     $runs.Add((Read-NavigationResult $output $runId $ExpectedApi $mode $language $scale))
                 }

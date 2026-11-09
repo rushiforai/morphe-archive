@@ -21,7 +21,7 @@
 
 | Файл | Описание | Ссылка |
 |---|---|---|
-| `patches-1.2.1.mpp` | Бандл патчей Morphe для ВКонтакте | [Скачать](https://github.com/PerfLite/VK-Zen/releases/latest/download/patches-1.2.1.mpp) |
+| `patches-1.2.2.mpp` | Бандл патчей Morphe для ВКонтакте | [Скачать](https://github.com/PerfLite/VK-Zen/releases/latest/download/patches-1.2.2.mpp) |
 
 > Старые версии и список изменений: [Релизы](https://github.com/PerfLite/VK-Zen/releases)
 
@@ -48,7 +48,7 @@ https://github.com/PerfLite/VK-Zen
 ```
 
 Либо вручную:
-1. Скачайте `patches-1.2.1.mpp` со страницы [Релизы](https://github.com/PerfLite/VK-Zen/releases/latest).
+1. Скачайте `patches-1.2.2.mpp` со страницы [Релизы](https://github.com/PerfLite/VK-Zen/releases/latest).
 2. Импортируйте файл бандла в Morphe Manager.
 3. Выберите исходный APK ВКонтакте (рекомендуется версия 8.195) и запустите сборку.
 

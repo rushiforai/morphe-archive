@@ -17,7 +17,9 @@ import java.util.List;
 /**
  * Apps bar: the Apple Music wordmark, the browse tabs (Início/Rádio/Biblioteca) and the
  * shortcuts to Buscar, Conta and Atualizações. It collapses to two rows on a phone
- * (brand + icon shortcuts, tabs underneath) and stays on one row on TV/head unit.
+ * (brand + icon shortcuts, tabs underneath) and stays on one row on TV/head unit; a wide
+ * window that is not wide enough for the labelled shortcuts (rotated phone) keeps one row
+ * with the icon shortcuts.
  */
 public final class TopBar extends LinearLayout {
 
@@ -57,7 +59,10 @@ public final class TopBar extends LinearLayout {
             row.addView(tabsRow, tabsParams);
             row.addView(grow(context));
             actionsRow = row(context);
-            buildActions(context, true);
+            // A wide-but-short window (a rotated phone is ~780 dp wide) has no room for
+            // the three labelled shortcuts next to the brand and the tabs, so it falls
+            // back to the icon shortcuts instead of clipping "Atualizações".
+            buildActions(context, Tokens.screenWidthDp() >= 900f);
             row.addView(actionsRow);
         } else {
             LinearLayout head = row(context);

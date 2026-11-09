@@ -132,8 +132,12 @@ internal fun findRestrictedNotify(classes: Iterable<ClassDef>): List<Method> {
     return if (restricted in read.compared && inbox in read.compared) listOf(gate) else emptyList()
 }
 
-internal fun MutableMethod.validateRestrictedNotify(): FolderRead = folderRead()
-    ?: throw PatchException("Messenger controls: the notification check's folder read changed in ${hookId()}")
+/** Log chats that don't notify puts the same guard in, so either control finds it already there. */
+internal fun MutableMethod.validateRestrictedNotify() {
+    if (!folderRouted() && folderRead() == null) {
+        throw PatchException("Messenger controls: the notification check's folder read changed in ${hookId()}")
+    }
+}
 
 /**
  * Right after the read, the folder goes through the extension and comes back as the same enum. While the switch is on a
@@ -141,7 +145,9 @@ internal fun MutableMethod.validateRestrictedNotify(): FolderRead = folderRead()
  * quiet and the other checks still run. Every other folder, and Off, Pause and safe mode, keep Messenger's own.
  */
 internal fun MutableMethod.injectRestrictedNotify() {
-    val site = validateRestrictedNotify()
+    validateRestrictedNotify()
+    if (folderRouted()) return
+    val site = folderRead()!!
     val folder = "v${site.register}"
     addInstructions(site.index, """
         invoke-static/range {$folder .. $folder}, $SETTINGS->notificationFolder(Ljava/lang/Object;)Ljava/lang/Object;

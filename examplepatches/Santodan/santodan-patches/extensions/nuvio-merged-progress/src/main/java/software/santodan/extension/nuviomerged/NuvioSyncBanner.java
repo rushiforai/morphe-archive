@@ -1,5 +1,7 @@
 package software.santodan.extension.nuviomerged;
 
+import software.santodan.nuvio.NuvioNative;
+
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
@@ -67,11 +69,11 @@ public final class NuvioSyncBanner {
         if(initialized)return;
         loader=state.getClass().getClassLoader();
         Class<?> callback=loader.loadClass("kotlin.jvm.functions.Function0");
-        nativeHost=loader.loadClass("na.r1").getDeclaredMethod("n",loader.loadClass("lb.k0"),callback,callback,
-            callback,callback,callback,callback,loader.loadClass("r1.s"),loader.loadClass("h1.n"),int.class);
-        nativeString=loader.loadClass("u6.g").getDeclaredMethod("d0",int.class,loader.loadClass("h1.n"));
-        nativeFormat=loader.loadClass("u6.g").getDeclaredMethod("e0",int.class,Object[].class,loader.loadClass("h1.n"));
-        nativeGroupText=loader.loadClass("m9.v4").getDeclaredMethod("j",loader.loadClass("h1.k0"),int.class,int.class,loader.loadClass("h1.k0"),boolean.class);
+        nativeHost=loader.loadClass(NuvioNative.UPDATE_HOST_NAME).getDeclaredMethod(NuvioNative.UPDATE_HOST_METHOD,loader.loadClass("lb.k0"),callback,callback,
+            callback,callback,callback,callback,loader.loadClass("q1.t"),loader.loadClass("g1.n"),int.class);
+        nativeString=loader.loadClass("a.a").getDeclaredMethod("T",int.class,loader.loadClass("g1.n"));
+        nativeFormat=loader.loadClass("a.a").getDeclaredMethod("U",int.class,Object[].class,loader.loadClass("g1.n"));
+        nativeGroupText=loader.loadClass("m9.a5").getDeclaredMethod("i",loader.loadClass("g1.k0"),int.class,int.class,loader.loadClass("g1.k0"),boolean.class);
         updateConstructor=loader.loadClass("mb.a").getDeclaredConstructor(String.class,String.class,String.class,
             String.class,String.class,String.class,Long.class);
         stateConstructor=loader.loadClass("lb.k0").getDeclaredConstructor(boolean.class,loader.loadClass("mb.a"),
@@ -84,7 +86,7 @@ public final class NuvioSyncBanner {
                 if(method.getName().equals("equals"))return proxy==args[0];
                 return "SantodanSyncAction";
             });
-        revision=loader.loadClass("h1.h").getDeclaredMethod(software.santodan.nuvio.NuvioNative.STATE_FACTORY_METHOD,Object.class).invoke(null,0);
+        revision=loader.loadClass("g1.h").getDeclaredMethod(software.santodan.nuvio.NuvioNative.STATE_FACTORY_METHOD,Object.class).invoke(null,0);
         initialized=true;
     }
 

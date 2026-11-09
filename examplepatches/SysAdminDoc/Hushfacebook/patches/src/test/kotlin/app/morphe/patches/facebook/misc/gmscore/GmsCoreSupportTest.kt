@@ -4,16 +4,20 @@
  */
 package app.morphe.patches.facebook.misc.gmscore
 
+import app.morphe.ExtensionDex
 import app.morphe.PatchContexts
 import app.morphe.patcher.patch.PatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -65,14 +69,15 @@ class GmsCoreSupportTest {
         ImmutableClassDef(type, AccessFlags.PUBLIC.value, "Ljava/lang/Object;", null, null, null, fields, methods)
 
     /** 585's availability check cut down to the three texts it's found by. */
-    private fun availability(owner: String = availabilityOwner, version: String = "MetadataValueReader") = classDef(owner, listOf(
-        method(owner, "A04", listOf("Landroid/content/Context;", "I"), "I", AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, 4,
+    private fun availability(owner: String = availabilityOwner, version: String = "MetadataValueReader",
+                             flags: Int = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, registers: Int = 4) = classDef(owner, listOf(
+        method(owner, "A04", listOf("Landroid/content/Context;", "I"), "I", flags, registers,
             load(0, "com.google.android.gms"), load(0, version), load(0, "This should never happen."),
             ImmutableInstruction11n(Opcode.CONST_4, 0, 1), ImmutableInstruction11x(Opcode.RETURN, 0))))
 
     /** androidx's framework provider, which holds Android's CredentialManager. */
-    private fun provider(owner: String = providerOwner) = classDef(owner,
-        listOf(method(owner, "isAvailableOnDevice", emptyList(), "Z", AccessFlags.PUBLIC.value, 2,
+    private fun provider(owner: String = providerOwner, registers: Int = 2) = classDef(owner,
+        listOf(method(owner, "isAvailableOnDevice", emptyList(), "Z", AccessFlags.PUBLIC.value, registers,
             ImmutableInstruction11n(Opcode.CONST_4, 0, 1), ImmutableInstruction11x(Opcode.RETURN, 0))),
         listOf(ImmutableField(owner, "A00", credentialManager, AccessFlags.PRIVATE.value or AccessFlags.FINAL.value, null, null, null)))
 
@@ -127,16 +132,62 @@ class GmsCoreSupportTest {
         assertEquals("the jumbo load stays jumbo, in its register", Opcode.CONST_STRING_JUMBO to 17,
             loads[1].opcode to (loads[1] as OneRegisterInstruction).registerA)
         assertEquals("app.revanced.android.gms", (registered.staticFields.single().initialValue as StringEncodedValue).value)
-        for (owner in listOf(availabilityOwner, providerOwner)) {
-            val answered = context.mutableClassDefBy(owner).methods.single().instructions()
-            // returnEarly loads an int with const and a boolean with const/4: either way a 0 the return hands back.
-            assertTrue(owner, answered[0].opcode in setOf(Opcode.CONST_4, Opcode.CONST))
-            assertEquals(owner, 0, (answered[0] as NarrowLiteralInstruction).narrowLiteral)
-            assertEquals(owner, Opcode.RETURN, answered[1].opcode)
-            assertEquals(owner, (answered[0] as OneRegisterInstruction).registerA, (answered[1] as OneRegisterInstruction).registerA)
+        val checked = context.mutableClassDefBy(availabilityOwner).methods.single().instructions()
+        // A static check of four registers holds its Context in v2 (p0).
+        assertAsksTheExtension(checked, contextRegister = 2)
+        // The provider asks the extension first, in its local v0: with microG-RE it hands back 0, without it
+        // the branch lands on its own first instruction and its own answer stands.
+        val provider = context.mutableClassDefBy(providerOwner).methods.single().instructions()
+        assertEquals(Opcode.INVOKE_STATIC, provider[0].opcode)
+        val asked = (provider[0] as ReferenceInstruction).reference as MethodReference
+        assertEquals(GMS_CORE_SIGNS_IN_THROUGH_MICROG,
+            "${asked.definingClass}->${asked.name}(${asked.parameterTypes.joinToString("")})${asked.returnType}")
+        assertEquals(Opcode.MOVE_RESULT to 0, provider[1].opcode to (provider[1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ to 0, provider[2].opcode to (provider[2] as OneRegisterInstruction).registerA)
+        assertEquals("the branch skips to the provider's own body", 5, (provider[2] as BuilderOffsetInstruction).target.location.index)
+        assertEquals(Opcode.CONST_4 to 0, provider[3].opcode to (provider[3] as OneRegisterInstruction).registerA)
+        assertEquals(0, (provider[3] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.RETURN to 0, provider[4].opcode to (provider[4] as OneRegisterInstruction).registerA)
+        assertEquals("the provider's own answer is still there", 1, (provider[5] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.RETURN, provider[6].opcode)
+        assertEquals(7, provider.size)
+        assertEquals("the check's own texts move too", "app.revanced.android.gms", checked[3].text())
+    }
+
+    @Test
+    fun anInstanceCheckHandsTheExtensionItsContextNotItself() {
+        val classes = listOf(availability(flags = AccessFlags.PUBLIC.value, registers = 5), provider(), registration())
+        val context = PatchContexts.of(classes)
+        context.applyGmsCore(planGmsCore(classes))
+        // Five registers with this, a Context and an int as parameters: this is v2 (p0) and the Context v3 (p1).
+        assertAsksTheExtension(context.mutableClassDefBy(availabilityOwner).methods.single().instructions(), contextRegister = 3)
+    }
+
+    @Test
+    fun theExtensionCarriesTheMethodsTheChecksCall() {
+        for (reference in listOf(GMS_CORE_AVAILABILITY, GMS_CORE_SIGNS_IN_THROUGH_MICROG)) {
+            val owner = reference.substringBefore("->")
+            val name = reference.substringAfter("->").substringBefore("(")
+            val answering = ExtensionDex.classDef(owner).methods.filter { it.name == name }
+            assertEquals("one $name method in $owner", 1, answering.size)
+            val method = answering.single()
+            assertEquals(reference,
+                "${method.definingClass}->${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}")
+            assertTrue("$name is public static, so any class can call it", AccessFlags.PUBLIC.isSet(method.accessFlags) &&
+                AccessFlags.STATIC.isSet(method.accessFlags))
         }
-        assertEquals("the check's own texts move too", "app.revanced.android.gms",
-            context.mutableClassDefBy(availabilityOwner).methods.single().instructions()[2].text())
+    }
+
+    /** The check opens by asking the extension about microG-RE with its Context and returning that answer. */
+    private fun assertAsksTheExtension(answered: List<Instruction>, contextRegister: Int) {
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, answered[0].opcode)
+        val call = answered[0] as RegisterRangeInstruction
+        assertEquals("the call takes the Context register alone", contextRegister to 1, call.startRegister to call.registerCount)
+        val called = (answered[0] as ReferenceInstruction).reference as MethodReference
+        assertEquals(GMS_CORE_AVAILABILITY,
+            "${called.definingClass}->${called.name}(${called.parameterTypes.joinToString("")})${called.returnType}")
+        assertEquals(Opcode.MOVE_RESULT to contextRegister, answered[1].opcode to (answered[1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.RETURN to contextRegister, answered[2].opcode to (answered[2] as OneRegisterInstruction).registerA)
     }
 
     @Test
@@ -160,6 +211,9 @@ class GmsCoreSupportTest {
             .contains("availability check has 0 matches"))
         assertTrue(failure(listOf(availability(), registration())).contains("framework provider has 0 matches"))
         assertTrue(failure(supported() + provider("LX/0yJP;")).contains("framework provider has 2 matches"))
+        // A provider whose one register is this has no local to answer in.
+        assertTrue(failure(listOf(availability(), provider(registers = 1), registration()))
+            .contains("framework provider has no local register"))
     }
 
     @Test

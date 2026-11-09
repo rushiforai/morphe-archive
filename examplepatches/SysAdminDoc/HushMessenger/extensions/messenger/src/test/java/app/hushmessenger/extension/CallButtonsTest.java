@@ -2,7 +2,10 @@ package app.hushmessenger.extension;
 
 import android.content.Context;
 import app.hushmessenger.extension.MarkReadButtonTest.Button;
+import app.hushmessenger.extension.MarkReadButtonTest.Base;
 import app.hushmessenger.extension.MarkReadButtonTest.DetailsButton;
+import app.hushmessenger.extension.MarkReadButtonTest.Inner;
+import app.hushmessenger.extension.MarkReadButtonTest.Wrapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -67,6 +70,32 @@ public class CallButtonsTest {
         assertTrue(CallButtons.without(all).isEmpty());
         CallButtons.blank(all);
         assertEquals(Collections.nCopies(MarkReadButton.CALL_TAGS.length, null), all);
+    }
+
+    @Test public void callButtonsWrappedThe586WayGoFromEitherBar() throws Exception {
+        on(true);
+        Wrapper audio586 = new Wrapper(new Inner("audio_call_button"));
+        Wrapper video586 = new Wrapper(new Inner("video_call_button"));
+        Inner details586 = new Inner("settings_button");
+        assertTrue(MarkReadButton.isCall(audio586));
+        assertFalse(MarkReadButton.isDetails(audio586));
+        List<Object> newer = Collections.unmodifiableList(Arrays.asList(audio586, video586, details586));
+        assertEquals(Collections.singletonList(details586), MarkReadButton.addTo(newer, new Object(), new Object(), new Object()));
+        List<Object> older = new ArrayList<>(Arrays.asList(audio586, video586, details586, null));
+        MarkReadButton.add(older, new Object());
+        assertEquals(Arrays.asList(null, null, details586, null), older);
+    }
+
+    @Test public void aWrapperAroundAnythingElseStays() throws Exception {
+        on(true);
+        Wrapper friend = new Wrapper(new Inner("friendship_status_button"));
+        Wrapper empty = new Wrapper(null);
+        // A wrapper of a wrapper is looked into as far as MOST_LAYERS, and no further.
+        Base deep = new Inner("audio_call_button");
+        for (int i = 0; i < MarkReadButton.MOST_LAYERS; i++) deep = new Wrapper(deep);
+        List<Object> others = Collections.unmodifiableList(Arrays.asList(friend, empty, deep));
+        assertSame(others, CallButtons.without(others));
+        assertTrue(MarkReadButton.isCall(new Wrapper(new Wrapper(new Inner("video_call_button")))));
     }
 
     @Test public void buttonsThatDontStartACallStay() {

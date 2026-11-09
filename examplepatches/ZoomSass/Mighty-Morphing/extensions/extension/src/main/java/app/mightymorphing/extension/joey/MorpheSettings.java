@@ -10,11 +10,13 @@ import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import java.lang.reflect.Proxy;
@@ -43,6 +45,7 @@ public final class MorpheSettings {
     private static boolean mediaControls;
     private static boolean backupControls;
     private static boolean showHideControls;
+    private static boolean modernUiControls;
 
     private MorpheSettings() {
     }
@@ -59,6 +62,11 @@ public final class MorpheSettings {
         showHideControls = true;
     }
 
+    public static void enableModernUi() {
+        modernUiControls = true;
+        ModernUi.enableControls();
+    }
+
     public static boolean pictureControls() {
         return mediaControls;
     }
@@ -71,8 +79,32 @@ public final class MorpheSettings {
         return showHideControls;
     }
 
+    public static boolean modernUiControls() {
+        return modernUiControls;
+    }
+
     public static void attach(Activity activity) {
-        if (!mediaControls && !backupControls && !showHideControls) return;
+        if (modernUiControls && ModernUi.isModernUiEnabled(activity)) {
+            try {
+                int themeSettingId = activity.getResources().getIdentifier(
+                        "setting_item_theme_clickable", "id", activity.getPackageName());
+                if (themeSettingId != 0) {
+                    View themeSetting = activity.findViewById(themeSettingId);
+                    if (themeSetting != null) {
+                        themeSetting.setVisibility(View.GONE);
+                    }
+                }
+                int postTypeId = activity.getResources().getIdentifier(
+                        "post_type_clickable", "id", activity.getPackageName());
+                if (postTypeId != 0) {
+                    View postType = activity.findViewById(postTypeId);
+                    if (postType != null) postType.setVisibility(View.GONE);
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
+        if (!mediaControls && !backupControls && !showHideControls && !modernUiControls) return;
         try {
             int id = activity.getResources().getIdentifier(
                     "setting_item_comments_clickable", "id", activity.getPackageName());
@@ -266,12 +298,30 @@ public final class MorpheSettings {
         }
     }
 
+    static void repaint(Activity activity) {
+        if (openPage == null || openPage.done || openPage.activity != activity) return;
+        int scroll = currentScroll(openPage.content);
+        openPage.content.removeAllViews();
+        View page = MorpheSettingsActivity.create(activity, openPage);
+        openPage.content.addView(page, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        restoreScroll(page, scroll);
+    }
+
+    private static PageCloser openPage;
+
+    /** The home screen sitting behind settings, so a preview can reuse its banner. */
+    static View hiddenHome() {
+        return openPage == null || openPage.done ? null : openPage.existing;
+    }
+
     private static void open(Activity activity) {
         ViewGroup content = activity.findViewById(android.R.id.content);
         if (content == null || content.getChildCount() == 0) return;
         View existing = content.getChildAt(0);
         content.removeView(existing);
         PageCloser restore = new PageCloser(activity, content, existing);
+        openPage = restore;
         View page = MorpheSettingsActivity.create(activity, restore);
         content.addView(page, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -321,12 +371,19 @@ public final class MorpheSettings {
         public void run() {
             if (done) return;
             done = true;
+            if (openPage == this) openPage = null;
             if (previous != null) activity.getWindow().setCallback(previous);
             if (callback != null && Build.VERSION.SDK_INT >= 33) {
                 activity.getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(callback);
             }
             content.removeAllViews();
             content.addView(existing);
+            ModernUi.paintSystemBars(activity);
+            if (ModernUi.consumeThemeReload()) {
+                content.post(() -> {
+                    if (!activity.isFinishing()) activity.recreate();
+                });
+            }
         }
     }
 
@@ -355,5 +412,40 @@ public final class MorpheSettings {
 
     private static SharedPreferences prefs(Context context) {
         return context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    private static int currentScroll(View root) {
+        ScrollView scroll = findScroll(root);
+        return scroll == null ? 0 : scroll.getScrollY();
+    }
+
+    private static void restoreScroll(View page, int y) {
+        if (y <= 0) return;
+        ScrollView scroll = findScroll(page);
+        if (scroll == null) return;
+        scroll.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            private int tries;
+
+            @Override
+            public void onGlobalLayout() {
+                scroll.scrollTo(0, y);
+                tries++;
+                if (scroll.getScrollY() > 0 || tries > 3) {
+                    ViewTreeObserver observer = scroll.getViewTreeObserver();
+                    if (observer.isAlive()) observer.removeOnGlobalLayoutListener(this);
+                }
+            }
+        });
+    }
+
+    private static ScrollView findScroll(View view) {
+        if (view instanceof ScrollView) return (ScrollView) view;
+        if (!(view instanceof ViewGroup)) return null;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            ScrollView found = findScroll(group.getChildAt(i));
+            if (found != null) return found;
+        }
+        return null;
     }
 }

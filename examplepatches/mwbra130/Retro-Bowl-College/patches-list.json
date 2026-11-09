@@ -1,7 +1,33 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.64.0",
+  "version": "1.67.3",
   "patches": [
+    {
+      "name": "Bypass PairIP license check",
+      "description": "Required for re-signed builds: PairIP asks Google Play to license the app at startup and sends unlicensed installs to a Play Store block page. Disables that check, its verdict handler and both block-page launchers so the patched app can open.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.jamworks.alwaysondisplay",
+          "name": "aodNotify",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#03A9F4",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "6.10",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "Change installer source",
       "description": "Spoofs the installer source so the app appears to be installed from an app store. Required for Enable Pro to take effect — keep it on.",
@@ -179,7 +205,7 @@
     },
     {
       "name": "Disable PairIP protection",
-      "description": "Lets the patched app run: replaces PairIP's VM startup with harvested vault/handle data and removes the signature check and license dialog. Requires 'Disable PairIP protection (runtime files)'. DroidCam 9.0 only.",
+      "description": "Lets the patched app run: replaces PairIP's VM startup with harvested vault/handle data, removes the signature check and license dialog, installs the decrypted native libraries and runtime classes, and fixes camera streaming. DroidCam 10.0 only.",
       "default": true,
       "dependencies": [
         "ResourcePatch"
@@ -194,33 +220,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "9.0",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
-      "name": "Disable PairIP protection (runtime files)",
-      "description": "Swaps the VM-encrypted native libraries (libmjpg, libmdns) for decrypted builds that 'Disable PairIP protection' needs. Enable both together. DroidCam 9.0 only.",
-      "default": true,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "com.dev47apps.obsdroidcam",
-          "name": "DroidCam",
-          "description": null,
-          "apkFileType": "XAPK",
-          "appIconColor": "#03A9F4",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "9.0",
+              "version": "10.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -448,6 +448,32 @@
     },
     {
       "name": "Enable Pro",
+      "description": "Turns on the app's Pro state (no promo ads, premium light effects, custom app and contact colors, every setting) with the permanence of the one-time purchase.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.jamworks.alwaysondisplay",
+          "name": "aodNotify",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#03A9F4",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "6.10",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enable Pro",
       "description": "Unlocks Echo Pro (the lifetime tier: Auto EQ, limiter, compressor and all other Pro features). Use with Change installer source.",
       "default": true,
       "dependencies": [],
@@ -516,6 +542,32 @@
           "targets": [
             {
               "version": "7.14.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "OLED black mode",
+      "description": "Turns the dark theme true black (#000000) for OLED screens: backgrounds and surfaces go pure black, raised containers (cards, bubbles, sheets) become near-black steps so they stay visible. Dark theme only — light mode is untouched. Needs the stock APK of the target version (messages.android_20261020_00_RC01.phone_dynamic, the universal APK — not a BUNDLE — from APKMirror: https://www.apkmirror.com/apk/google-inc/messenger-google-inc/); Morphe Manager also suggests that exact version when you don't have the file. A few settings screens on Android 12+ take surfaces from the system palette and stay dark grey.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.google.android.apps.messaging",
+          "name": "Google Messages",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1A73E8",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "messages.android_20261020_00_RC01.phone_dynamic",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -754,9 +806,11 @@
     },
     {
       "name": "Unlock Pro",
-      "description": "Unlocks DroidCam Pro (HD/4K, no watermark, all options): the license verdict is forced to Pro and renews itself at every silent re-check. Requires 'Disable PairIP protection'. DroidCam 9.0 only.",
+      "description": "Unlocks DroidCam Pro (HD/4K, no watermark, all options): the license verdict is forced to Pro and renews itself at every silent re-check. Requires 'Disable PairIP protection'. DroidCam 10.0 only.",
       "default": true,
-      "dependencies": [],
+      "dependencies": [
+        "BytecodePatch"
+      ],
       "compatiblePackages": [
         {
           "packageName": "com.dev47apps.obsdroidcam",
@@ -767,7 +821,7 @@
           "signatures": null,
           "targets": [
             {
-              "version": "9.0",
+              "version": "10.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

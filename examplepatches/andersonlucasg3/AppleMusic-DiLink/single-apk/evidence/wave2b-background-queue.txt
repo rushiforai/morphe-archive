@@ -1,0 +1,19 @@
+=== activity state (HOME) ===
+    mLastPausedActivity: ActivityRecord{152269857 u0 com.apple.android.music/com.anderson.applemusic.one.OneActivity t186}
+    * Hist  #0: ActivityRecord{152269857 u0 com.apple.android.music/com.anderson.applemusic.one.OneActivity t186}
+      Intent { flg=0x10000000 xflg=0x5 cmp=com.apple.android.music/com.anderson.applemusic.one.OneActivity }
+      mActivityComponent=com.apple.android.music/com.anderson.applemusic.one.OneActivity
+=== cpuinfo sample 1 ===
+  29% 13078/com.apple.android.music: 25% user + 4.4% kernel / faults: 6734 minor 1 major
+=== cpuinfo sample 2 (12 s later, background) ===
+  29% 13078/com.apple.android.music: 25% user + 4.4% kernel / faults: 6734 minor 1 major
+=== logcat after MEDIA_NEXT in background ===
+--------- beginning of main
+11-08 05:30:40.099 13078 13078 I AppleMusicOne: queue changed: 53
+11-08 05:30:40.103 13078 13078 I AppleMusicOne: queue size=53 active=0
+11-08 05:30:40.103 13078 13078 I AppleMusicOne: queue[0] id=0 media=1817609507 title=So Easy (To Fall In Love)
+11-08 05:30:40.103 13078 13078 I AppleMusicOne: queue[1] id=1 media=1870984036 title=American Girls
+11-08 05:30:40.103 13078 13078 I AppleMusicOne: queue[2] id=2 media=6766750846 title=Hit the Wall
+11-08 05:30:40.175 13078 13078 I AppleMusicOne: queue changed: 53
+11-08 05:30:40.184 13078 13078 I AppleMusicOne: queue changed: 53
+11-08 05:30:40.227 13078 13078 I AppleMusicOne: queue changed: 53

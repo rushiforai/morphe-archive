@@ -1,3 +1,129 @@
+## [1.8.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0...v1.8.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **e2e:** scroll Patches until "JavaScript in link posts" shows with "Allowed sites", in Improve post media loading ([90bfdc7](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/90bfdc7597df3c7777247937c83136169e4018aa))
+
+## [1.8.1-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0...v1.8.1-dev.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **e2e:** scroll Patches until "JavaScript in link posts" shows with "Allowed sites", in Improve post media loading ([90bfdc7](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/90bfdc7597df3c7777247937c83136169e4018aa))
+
+## [1.8.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.7.0...v1.8.0) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** show spoilers in Select text's dialog as plain text, without their black box ([93ebe6d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/93ebe6da7dbfc0b7caee30803e47d4fb87e00bb2))
+* **baconreader:** size a video's box from its playlist where images load on tap ([30218f8](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/30218f8c117c5e9037a27ebf3d99ac49155d4f48))
+* **e2e:** build and run the NAS's runner on QNAP's kernel (fchmodat2), and raise the runner to 2.338.2 ([93a2c14](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/93a2c14a0be57b4db3b8fb3d7f03b8e4fb460063))
+* **e2e:** give the comments' end a few seconds to start loading before the scroll to the end stops ([d22ed28](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/d22ed28730f91f969cfabd1f7e21919a90b744fa))
+* **e2e:** hand a wait's view over only to a step with the same locator ([75afb19](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/75afb19b7b42296c08f4223ba1ab7075815fc802))
+* **e2e:** sign the NAS's runners out of GitHub when their container stops ([8830c0f](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8830c0f7523f12f63e8c34870bd4a162ff9cae20))
+* **e2e:** stop lease.sh keep's sleep with it, so the NAS job's step ends when its run does ([0e17512](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/0e17512c77bebcb3c330ffb6556f129d96cce0c6))
+* **e2e:** tap "Create new folder" again when the folder picker ignored the first tap ([9c7994e](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/9c7994e375e2fffa4cbc2a9d3b532019839e1d09))
+
+### ✨ New Features
+
+* add "Remove Log out" patch ([aa79890](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/aa798908551d73041a9e0da185147d168ace8be9))
+* **baconreader:** add Account colors, which shows each account's color in the menu and under the toolbars ([a899ab0](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/a899ab0b12f79e4c7aa6cb50de37d3ac537fcd0e))
+* **baconreader:** add Load images only when tapped to Embed comment images ([c65dd9f](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c65dd9fd15f14dcb387b8ec028b573cc33344afd))
+* **baconreader:** add preview while loading to improve post media loading, which can turn off the still preview ([0468d9d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/0468d9d5579c52fe2413a93c8fca4ac3518d8a17))
+* **baconreader:** add Select text, which shows a post's or comment's text in a dialog to select and copy any part of it ([af4f255](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/af4f255aa0d9563a7c2521734624141ed958fe48))
+* **baconreader:** Show user avatars puts each account's avatar before its name in the drawer ([36a2234](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/36a2234fad991ae5f71c8f78f47ba61f500be622))
+
+### 🔧 Improvements
+
+* **e2e:** check the Appium session by its screen orientation ([bbbef1a](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/bbbef1addcaba219a538e8df976da36c185585c5))
+* **e2e:** draw the taps' rings with an overlay a lane instead of one a tap ([5211d0b](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/5211d0b831fa6cbfababbd947652dc50547d59d0))
+* **e2e:** flick the comments to their end instead of flinging them ([bcced5c](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/bcced5cc78f36b43c7c59073ba9312f7ff7d7c0c))
+* **e2e:** play the scenarios on one Appium session ([a411e5e](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/a411e5eb4f7607c3eb44977ca4c7b464d086fba5))
+* **e2e:** read comments from one screen snapshot, and look once before going back to the posts ([cf1905d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/cf1905d211c40d8bbf5e7943ff70455ee35b496c))
+* **e2e:** read the left menu, the post list and tables from screen snapshots ([d4da524](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/d4da5249d4db5c4f4fde5b2e7f83361da3b7777d))
+* **e2e:** start LoggedIn scenarios logged in, without the login screens ([899f6fb](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/899f6fb4d487b8916346271aa9eeb68aec50e1e2))
+* **e2e:** tap the view a wait just found without finding it again ([fbb5457](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/fbb54573804a318b3d563b383f5d79c5e1831a7d))
+
+## [1.8.0-dev.10](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.9...v1.8.0-dev.10) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **e2e:** sign the NAS's runners out of GitHub when their container stops ([8830c0f](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/8830c0f7523f12f63e8c34870bd4a162ff9cae20))
+
+## [1.8.0-dev.9](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.8...v1.8.0-dev.9) (2026-11-08)
+
+### 🔧 Improvements
+
+* **e2e:** draw the taps' rings with an overlay a lane instead of one a tap ([5211d0b](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/5211d0b831fa6cbfababbd947652dc50547d59d0))
+
+## [1.8.0-dev.8](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.7...v1.8.0-dev.8) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **e2e:** build and run the NAS's runner on QNAP's kernel (fchmodat2), and raise the runner to 2.338.2 ([93a2c14](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/93a2c14a0be57b4db3b8fb3d7f03b8e4fb460063))
+* **e2e:** give the comments' end a few seconds to start loading before the scroll to the end stops ([d22ed28](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/d22ed28730f91f969cfabd1f7e21919a90b744fa))
+* **e2e:** stop lease.sh keep's sleep with it, so the NAS job's step ends when its run does ([0e17512](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/0e17512c77bebcb3c330ffb6556f129d96cce0c6))
+* **e2e:** tap "Create new folder" again when the folder picker ignored the first tap ([9c7994e](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/9c7994e375e2fffa4cbc2a9d3b532019839e1d09))
+
+## [1.8.0-dev.7](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.6...v1.8.0-dev.7) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **e2e:** hand a wait's view over only to a step with the same locator ([75afb19](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/75afb19b7b42296c08f4223ba1ab7075815fc802))
+
+### 🔧 Improvements
+
+* **e2e:** check the Appium session by its screen orientation ([bbbef1a](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/bbbef1addcaba219a538e8df976da36c185585c5))
+* **e2e:** flick the comments to their end instead of flinging them ([bcced5c](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/bcced5cc78f36b43c7c59073ba9312f7ff7d7c0c))
+* **e2e:** play the scenarios on one Appium session ([a411e5e](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/a411e5eb4f7607c3eb44977ca4c7b464d086fba5))
+* **e2e:** read comments from one screen snapshot, and look once before going back to the posts ([cf1905d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/cf1905d211c40d8bbf5e7943ff70455ee35b496c))
+* **e2e:** read the left menu, the post list and tables from screen snapshots ([d4da524](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/d4da5249d4db5c4f4fde5b2e7f83361da3b7777d))
+* **e2e:** start LoggedIn scenarios logged in, without the login screens ([899f6fb](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/899f6fb4d487b8916346271aa9eeb68aec50e1e2))
+* **e2e:** tap the view a wait just found without finding it again ([fbb5457](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/fbb54573804a318b3d563b383f5d79c5e1831a7d))
+
+## [1.8.0-dev.6](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.5...v1.8.0-dev.6) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** show spoilers in Select text's dialog as plain text, without their black box ([93ebe6d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/93ebe6da7dbfc0b7caee30803e47d4fb87e00bb2))
+
+### ✨ New Features
+
+* **baconreader:** add Select text, which shows a post's or comment's text in a dialog to select and copy any part of it ([af4f255](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/af4f255aa0d9563a7c2521734624141ed958fe48))
+
+## [1.8.0-dev.5](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.4...v1.8.0-dev.5) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** size a video's box from its playlist where images load on tap ([30218f8](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/30218f8c117c5e9037a27ebf3d99ac49155d4f48))
+
+### ✨ New Features
+
+* **baconreader:** add Load images only when tapped to Embed comment images ([c65dd9f](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/c65dd9fd15f14dcb387b8ec028b573cc33344afd))
+
+## [1.8.0-dev.4](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.3...v1.8.0-dev.4) (2026-11-06)
+
+### ✨ New Features
+
+* **baconreader:** add preview while loading to improve post media loading, which can turn off the still preview ([0468d9d](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/0468d9d5579c52fe2413a93c8fca4ac3518d8a17))
+
+## [1.8.0-dev.3](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.2...v1.8.0-dev.3) (2026-11-06)
+
+### ✨ New Features
+
+* **baconreader:** Show user avatars puts each account's avatar before its name in the drawer ([36a2234](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/36a2234fad991ae5f71c8f78f47ba61f500be622))
+
+## [1.8.0-dev.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0-dev.1...v1.8.0-dev.2) (2026-11-06)
+
+### ✨ New Features
+
+* **baconreader:** add Account colors, which shows each account's color in the menu and under the toolbars ([a899ab0](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/a899ab0b12f79e4c7aa6cb50de37d3ac537fcd0e))
+
+## [1.8.0-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.7.0...v1.8.0-dev.1) (2026-11-06)
+
+### ✨ New Features
+
+* add "Remove Log out" patch ([aa79890](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/aa798908551d73041a9e0da185147d168ace8be9))
+
 ## [1.7.0](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.6.0...v1.7.0) (2026-11-06)
 
 ### 🐛 Bug Fixes

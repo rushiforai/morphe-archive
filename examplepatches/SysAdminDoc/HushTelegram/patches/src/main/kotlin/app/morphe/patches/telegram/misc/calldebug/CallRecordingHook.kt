@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.calldebug
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -28,6 +28,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origInterfaces
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val CALL_RECORDER = "$EXTENSION_PACKAGE/misc/CallRecorder;"
 /** The static helper added to each engine's recorder, which reads its private fields for the hook. */
@@ -109,18 +117,18 @@ internal fun BytecodePatchContext.resolveCallAudio(): CallAudioPlan {
 /** Adds each engine's helper and both taps. Every tap was already assembled on a copy. */
 internal fun BytecodePatchContext.applyCallAudio(plan: CallAudioPlan) {
     for (tap in plan.taps) {
-        mutableClassDefBy(tap.engine.record).methods.add(tap.helper)
+        tgMutableClassDefBy(tap.engine.record).methods.add(tap.helper)
         tap.recordMethod.addInstructions(tap.recordIndex, tap.recordCode)
         tap.playMethod.addInstructions(tap.playIndex, tap.playCode)
     }
 }
 
 private fun BytecodePatchContext.callAudioTap(engine: CallAudioEngine): CallAudioTap {
-    val record = mutableClassDefByOrNull(engine.record) ?: missingCallAudio("the ${engine.label} engine's recorder is gone")
+    val record = tgMutableClassDefByOrNull(engine.record) ?: missingCallAudio("the ${engine.label} engine's recorder is gone")
     val sites = record.methods.flatMap { method ->
         val body = method.body()
         body.indices.filter { body[it].call()?.let { call ->
-            call.definingClass == record.type && call.name == RECORDED_NATIVE
+            call.origDefiningClass == record.origType && call.origName == RECORDED_NATIVE
         } == true }.map { method to it }
     }
     if (sites.size != 1) missingCallAudio("the ${engine.label} engine hands recorded audio to WebRTC from ${sites.size} places")
@@ -139,13 +147,13 @@ private fun BytecodePatchContext.callAudioTap(engine: CallAudioEngine): CallAudi
     if (recordMethod.jumpedOnto(recordIndex)) missingCallAudio("a branch now lands on the ${engine.label} engine's recorded audio")
 
     for ((name, type) in listOf("audioRecord" to AUDIO_RECORD, "byteBuffer" to BYTE_BUFFER)) {
-        val found = record.fields.filter { it.name == name && it.type == type && !AccessFlags.STATIC.isSet(it.accessFlags) }
+        val found = record.fields.filter { it.origName == name && it.origType == type && !AccessFlags.STATIC.isSet(it.accessFlags) }
         if (found.size != 1) missingCallAudio("the ${engine.label} engine's recorder has no $name")
     }
-    if (record.methods.any { it.name == CALL_AUDIO_HELPER }) missingCallAudio("the ${engine.label} engine's recorder is already tapped")
+    if (record.methods.any { it.origName == CALL_AUDIO_HELPER }) missingCallAudio("the ${engine.label} engine's recorder is already tapped")
     val helper = recordHelper(engine)
 
-    val thread = mutableClassDefByOrNull(engine.playout) ?: missingCallAudio("the ${engine.label} engine's speaker thread is gone")
+    val thread = tgMutableClassDefByOrNull(engine.playout) ?: missingCallAudio("the ${engine.label} engine's speaker thread is gone")
     val writes = thread.methods.flatMap { method ->
         val body = method.body()
         body.indices.filter { body[it].trackWrite() }.map { method to it }
@@ -198,8 +206,8 @@ private fun BytecodePatchContext.recordHelper(engine: CallAudioEngine): MutableM
     }
     // ART verifies the whole class when it loads, and a refused helper would take WebRTC's recorder down with it.
     val refusals = try {
-        refusedByVerifier(helper, { classDefByOrNull(it)?.superclass },
-            { classDefByOrNull(it)?.let { found -> AccessFlags.INTERFACE.isSet(found.accessFlags) } })
+        refusedByVerifier(helper, { tgClassDefByOrNull(it)?.superclass },
+            { tgClassDefByOrNull(it)?.let { found -> AccessFlags.INTERFACE.isSet(found.accessFlags) } })
     } catch (unreadable: IllegalArgumentException) {
         listOf("its body can't be checked: ${unreadable.message}")
     }
@@ -234,10 +242,10 @@ internal fun applyCallRecordButton(plan: CallRecordButtonPlan): Boolean {
 
 private fun BytecodePatchContext.callRecordButtonHook(): CallRecordButtonHook {
     val screens = classDefsMentioning(Mention.string(CALL_SCREEN_STRING)).filter { classDef ->
-        CALL_STATE_LISTENER in classDef.interfaces && classDef.methods.any { it.showsCallScreen() }
+        CALL_STATE_LISTENER in classDef.origInterfaces && classDef.methods.any { it.showsCallScreen() }
     }
     if (screens.size != 1) missingCallAudio("the call screen is ${screens.size} classes")
-    val show = mutableClassDefBy(screens.single()).methods.singleOrNull { it.showsCallScreen() }
+    val show = tgMutableClassDefBy(screens.single()).methods.singleOrNull { it.showsCallScreen() }
         ?: missingCallAudio("the call screen is shown from more than one place")
     val body = show.body()
     val video = body.indices.lastOrNull { body[it].readsVideoFlag() } ?: missingCallAudio("the call screen no longer checks for a video call")
@@ -260,18 +268,18 @@ private fun Method.showsCallScreen() = AccessFlags.STATIC.isSet(accessFlags) && 
 
 private fun Instruction.readsVideoFlag() = opcode == Opcode.IGET_BOOLEAN &&
     ((this as ReferenceInstruction).reference as? FieldReference)?.let { field ->
-        field.definingClass == PHONE_CALL && field.name == "video" && field.type == "Z"
+        field.origDefiningClass == PHONE_CALL && field.origName == "video" && field.origType == "Z"
     } == true
 
 private fun Instruction.addsOneView() = opcode == Opcode.INVOKE_VIRTUAL && call()?.let { call ->
-    call.definingClass == "Landroid/view/ViewGroup;" && call.name == "addView" && call.returnType == "V" &&
+    call.origDefiningClass == "Landroid/view/ViewGroup;" && call.origName == "addView" && call.origReturnType == "V" &&
         call.parameterTypes.map { it.toString() } == listOf(VIEW)
 } == true
 
 private fun Method.body(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 
 private fun Instruction.trackWrite() = opcode in TRACK_WRITE_CALLS && call()?.let { call ->
-    call.definingClass == AUDIO_TRACK && call.name == "write" && call.returnType == "I" &&
+    call.origDefiningClass == AUDIO_TRACK && call.origName == "write" && call.origReturnType == "I" &&
         call.parameterTypes.map { it.toString() } == listOf(BYTE_BUFFER, "I", "I")
 } == true
 

@@ -1,0 +1,44 @@
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="340" height="64"
+     viewBox="0 0 340 64"
+     role="img" aria-labelledby="title">
+
+  <title id="title">Buy a Fish for My Cat</title>
+  <rect width="340" height="64" rx="12" fill="#FFDD00"/>
+
+  <g transform="translate(32 1)"
+     stroke="#171717" stroke-width="2.5"
+     stroke-linecap="round" stroke-linejoin="round">
+
+    <path d="M7 24 Q5 10 12 5 Q17 2 27 17
+             Q36 13 45 17 Q55 2 60 5
+             Q67 10 65 24 Q72 43 56 52
+             Q46 59 36 59 Q25 59 15 52
+             Q0 43 7 24Z" fill="#FFDD00"/>
+
+    <path d="M13 13 Q16 17 20 23 M59 13 Q56 17 52 23"
+          fill="none" opacity=".5"/>
+
+    <path d="M19 32 Q22 28 26 32 M46 32 Q50 28 53 32"
+          fill="none"/>
+
+    <path d="M33 37 Q36 35 39 37 Q36 41 33 37Z"
+          fill="#171717"/>
+
+    <path d="M36 40 Q33 45 29 42 M36 40 Q39 45 43 42"
+          fill="none"/>
+
+    <path d="M5 37 L19 39 M4 43 L18 43
+             M53 39 L67 37 M54 43 L68 43"
+          fill="none"/>
+  </g>
+
+  <text x="110" y="32"
+        dominant-baseline="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18" font-weight="700"
+        letter-spacing="-.5" fill="#171717">
+    Buy a Fish for My Cat
+  </text>
+</svg>

@@ -102,7 +102,8 @@ final class CommentVideo {
      * A box with the first frame of the video and a play button. Tapping it plays the video in place.
      *
      * @param fullWidth   If the video is as wide as the comment, else at most {@code boxSize} wide and high.
-     * @param loadPreview If the first frame and size can be loaded now (not on metered data with "Wi-Fi only").
+     * @param loadPreview If the first frame can be loaded now (not where images load on tap: there the box still takes
+     *                    the video's size and duration from its playlist).
      */
     static View createSlot(final TextView textView, final String id, boolean fullWidth, int boxSize,
                            int maxHeight, boolean loadPreview) {
@@ -157,9 +158,9 @@ final class CommentVideo {
         box.addView(duration, durationParams);
 
         if (loadPreview) loadInfo(slot, box, preview, duration, id);
+        else loadSize(box, preview, duration, id);
 
         box.setOnClickListener(v -> {
-            if (!loadPreview) loadInfo(slot, box, preview, duration, id);
             startPlayer(box, id);
             play.setVisibility(View.GONE);
             duration.setVisibility(View.GONE);
@@ -196,6 +197,32 @@ final class CommentVideo {
         if (player == null) return;
         box.setTag(null);
         releasePlayer(player);
+    }
+
+    /**
+     * Size and duration from the video's DASH playlist, a small text, without the first frame, where images load on
+     * tap: the box has the video's shape before the tap, so it doesn't change size while the video plays. A video file
+     * has no playlist: the player fits it in the box.
+     */
+    private static void loadSize(final AspectRatioFrameLayout box, final ImageView preview, final TextView duration,
+                                 final String id) {
+        Info cached = INFOS.get(id);
+        if (cached != null) {
+            showInfo(cached, box, preview, duration);
+            return;
+        }
+        if (isFile(id)) return;
+
+        LOADER.execute(() -> {
+            try {
+                Playlist playlist = Playlist.parse(fetchTextWithRetry(videoUrl(id) + "/DASHPlaylist.mpd"));
+                final Info info = new Info(playlist.size, playlist.seconds);
+                INFOS.put(id, info);
+                MAIN.post(() -> showInfo(info, box, preview, duration));
+            } catch (Exception ex) {
+                Logger.printInfo(() -> "Could not load the video size of " + id, ex);
+            }
+        });
     }
 
     /**
@@ -361,15 +388,17 @@ final class CommentVideo {
     }
 
     /**
-     * What a Reddit video's DASH playlist says: its smallest video file and its duration.
+     * What a Reddit video's DASH playlist says: its smallest video file, its duration and its size.
      */
     static final class Playlist {
         final String smallest;
         final long seconds;
+        final int[] size;
 
-        private Playlist(String smallest, long seconds) {
+        private Playlist(String smallest, long seconds, int[] size) {
             this.smallest = smallest;
             this.seconds = seconds;
+            this.size = size;
         }
 
         static Playlist parse(String mpd) throws Exception {
@@ -379,6 +408,7 @@ final class CommentVideo {
             String smallest = null;
             long smallestBandwidth = Long.MAX_VALUE;
             long bandwidth = Long.MAX_VALUE;
+            int[] size = null;
             boolean video = false;
             for (int event = parser.getEventType(); event != XmlPullParser.END_DOCUMENT; event = parser.next()) {
                 if (event != XmlPullParser.START_TAG) continue;
@@ -389,6 +419,10 @@ final class CommentVideo {
                     case "Representation":
                         // Audio renditions have no height.
                         video = parser.getAttributeValue(null, "height") != null;
+                        // Every rendition has the same ratio: the first video one's size.
+                        int width = parseInt(parser.getAttributeValue(null, "width"));
+                        int height = parseInt(parser.getAttributeValue(null, "height"));
+                        if (size == null && width > 0 && height > 0) size = new int[]{width, height};
                         String value = parser.getAttributeValue(null, "bandwidth");
                         bandwidth = value == null ? Long.MAX_VALUE : Long.parseLong(value);
                         break;
@@ -401,7 +435,7 @@ final class CommentVideo {
                 }
             }
             if (smallest == null) throw new IllegalStateException("No video in the playlist");
-            return new Playlist(smallest, seconds);
+            return new Playlist(smallest, seconds, size);
         }
 
         /** Seconds of an ISO 8601 duration such as "PT1M2.5S", or -1. */

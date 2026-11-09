@@ -1,0 +1,65 @@
+name: 🐞 Bug report
+description: Report a problem with a Chefkoch patch.
+title: "bug: "
+labels: ["Bug report"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Chefkoch Patches – Bug report
+
+        Before submitting:
+        - Check whether this issue has already been reported.
+        - Make sure you are using the latest available patches.
+        - Only report issues related to this patch collection.
+
+  - type: input
+    id: chefkoch-version
+    attributes:
+      label: Chefkoch app version
+      description: Which version of the Chefkoch Android app are you using?
+      placeholder: "e.g. 6.20.0"
+    validations:
+      required: true
+
+  - type: input
+    id: morphe-version
+    attributes:
+      label: Morphe version
+      description: Which version of Morphe are you using?
+    validations:
+      required: true
+
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Bug description
+      description: |
+        Describe the problem and provide steps to reproduce it.
+        Screenshots or videos are welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error logs
+      description: Include relevant Android logcat output if available.
+      render: shell
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Any other information that might help us investigate.
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I have checked existing issues for duplicates.
+          required: true
+        - label: This issue concerns the Chefkoch patches.
+          required: true

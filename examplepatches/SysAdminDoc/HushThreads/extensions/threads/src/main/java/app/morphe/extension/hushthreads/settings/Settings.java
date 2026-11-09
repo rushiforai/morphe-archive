@@ -132,6 +132,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushthreads_hide_ghost_post_bubbles", FALSE, true);
 
     /**
+     * A profile picture opened on a profile shows full size in a viewer that zooms and saves,
+     * instead of Threads' bigger circle ({@link app.morphe.extension.hushthreads.profile.ProfilePicture}).
+     * Read each time a picture opens, so a change needs no restart.
+     */
+    public static final BooleanSetting FULL_SIZE_PROFILE_PICTURES =
+            new BooleanSetting("hushthreads_full_size_profile_pictures", FALSE);
+
+    /**
      * A post's menu gets a row that saves its photos and videos to the phone, every page of a
      * post with several in order, from the addresses Threads already holds
      * ({@link app.morphe.extension.hushthreads.download.PostSave}).

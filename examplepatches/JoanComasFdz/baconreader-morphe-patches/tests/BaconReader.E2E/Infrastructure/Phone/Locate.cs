@@ -92,6 +92,10 @@ public static class Locate
     public static By WebFieldIn(string id) =>
         UiSelector($"resourceId({Quote(id)}).childSelector(new UiSelector().className(\"android.widget.EditText\"))");
 
+    /// <summary>The text field of <see cref="WebFieldIn"/>, while it has the focus.</summary>
+    public static By FocusedWebFieldIn(string id) =>
+        UiSelector($"resourceId({Quote(id)}).childSelector(new UiSelector().className(\"android.widget.EditText\").focused(true))");
+
     private static By UiSelector(string selector) => MobileBy.AndroidUIAutomator($"new UiSelector().{selector}");
 
     private static string Quote(string text) => $"\"{text.Replace("\\", "\\\\").Replace("\"", "\\\"")}\"";

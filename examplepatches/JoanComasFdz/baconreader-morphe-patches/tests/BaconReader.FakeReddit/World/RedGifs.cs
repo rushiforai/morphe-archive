@@ -9,20 +9,21 @@ namespace BaconReader.FakeReddit.World;
 /// RedGIFs, as "Fix Redgifs API", "Fix list thumbnails" and "Improve post media loading" reach it through "E2E fake
 /// Reddit": its API under <c>&lt;base&gt;/_redgifs/</c> (<c>https://api.redgifs.com/</c>) and its videos and images
 /// under <c>&lt;base&gt;/_media/media.redgifs.com/</c>, where its API's answers point. It holds the videos, which posts
-/// link at RedGIFs' own address (<see cref="RedGif.Link"/>), the temporary tokens it gave, and what the app asked.
+/// link at RedGIFs' own address (<see cref="RedGif.Link"/>), the tokens it gave, and what the app asked.
 /// </summary>
 public sealed class RedGifs
 {
     private readonly RedditWorld world;
     private readonly List<RedGif> gifs = [];
     private readonly Dictionary<string, string> tokens = new(StringComparer.Ordinal);
+    private readonly HashSet<string> clientTokens = new(StringComparer.Ordinal);
     private readonly List<RedGifsRequest> requests = [];
     private int nextToken;
     private int nextId;
 
     internal RedGifs(RedditWorld world) => this.world = world;
 
-    /// <summary>The temporary tokens the app asked for and the gif lookups it made, oldest first.</summary>
+    /// <summary>The tokens the app asked for and the gif lookups it made, oldest first.</summary>
     public ImmutableArray<RedGifsRequest> Requests
     {
         get
@@ -75,6 +76,7 @@ public sealed class RedGifs
     {
         gifs.Clear();
         tokens.Clear();
+        clientTokens.Clear();
         requests.Clear();
         nextToken = 0;
         nextId = 0;
@@ -88,6 +90,20 @@ public sealed class RedGifs
         requests.Add(new RedGifsRequest(RedGifsRequestKind.TemporaryToken, null, userAgent, null, 200));
         return token;
     }
+
+    /// <summary>
+    /// Gives BaconReader's own OAuth client a token, as RedGIFs did on 2026-11-08. It isn't tied to a User-Agent.
+    /// </summary>
+    internal string IssueClientToken()
+    {
+        var token = $"e2e-redgifs-client-token-{++nextToken}";
+        clientTokens.Add(token);
+        requests.Add(new RedGifsRequest(RedGifsRequestKind.ClientToken, null, "", null, 200));
+        return token;
+    }
+
+    /// <summary>Whether <paramref name="token"/> is one <see cref="IssueClientToken"/> gave.</summary>
+    internal bool IsClientToken(string token) => clientTokens.Contains(token);
 
     /// <summary>The User-Agent <paramref name="token"/> was given to, or null for a token RedGIFs never gave.</summary>
     internal string? UserAgentOf(string token) => tokens.GetValueOrDefault(token);
@@ -136,6 +152,7 @@ public sealed record RedGif(string Id, RedGifState State, string Hd, string Sd, 
 public enum RedGifsRequestKind
 {
     TemporaryToken,
+    ClientToken,
     Gif,
 }
 

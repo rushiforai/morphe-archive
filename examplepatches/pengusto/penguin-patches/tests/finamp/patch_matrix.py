@@ -14,7 +14,6 @@ from build_native_payloads import APK_SHA, LIBRARY_SHA, MASKS
 NAMES = {1: 'Fix section title validation', 2: 'Song artist order', 4: 'Load artist pages faster',
          8: 'Fix offline artist tracks', 16: 'Fix track alphabet navigation'}
 NAMES[32] = 'Keep player output controls accessible'
-NAMES[64] = 'Fix quick settings banner contrast'
 NAMES[128] = 'Show album and track information'
 
 

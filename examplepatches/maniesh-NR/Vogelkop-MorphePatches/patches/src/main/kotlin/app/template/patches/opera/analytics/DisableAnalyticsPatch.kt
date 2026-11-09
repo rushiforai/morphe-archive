@@ -30,11 +30,25 @@ import app.morphe.patcher.util.proxy.mutableTypes.encodedValue.MutableStringEnco
  * Endpoints verified present in the dex constant pools of Opera
  * 103.3.5234.91185 / Beta 104.0.5262.91143: `app-measurement.com` (Firebase
  * Analytics collector), `googleadservices.com`, `doubleclick.net`,
- * `pagead2.googlesyndication.com`, `imasdk.googleapis.com` (Google IMA) and
- * `api.leanplum.com`. Opera GX carries `app-measurement.com`,
- * `googleadservices.com` and `pagead2.googlesyndication.com`. Additional
- * well-known tracker hosts (GA legacy, GTM, Adjust, AppsFlyer, Kochava) are
- * kept in the list so future Opera builds that embed them are covered too.
+ * `pagead2.googlesyndication.com`, `imasdk.googleapis.com` (Google IMA),
+ * `api.leanplum.com`, the Pangle/TikTok ad pipeline (`*.pangle.io`,
+ * `api16-access-ttp-b.tiktokpangle-b.us`, `lf-static.tiktokpangle-cdn-us.com`,
+ * `sf16-static.i18n-pglstatp.com`, `analytics.tiktok.com/i18n/pixel`), the
+ * Liftoff/Vungle pipeline (`logs./events./adx./config.ads.vungle.com`) and
+ * AppsFlyer's Privacy-Sandbox trigger (`privacy-sandbox.appsflyersdk.com`).
+ * Opera GX carries `app-measurement.com`, `googleadservices.com`,
+ * `pagead2.googlesyndication.com`, bare `google-analytics.com` and
+ * `firebase-settings.crashlytics.com`. Additional well-known tracker hosts
+ * (GTM, Adjust, Kochava) are kept in the list so future Opera builds that
+ * embed them are covered too.
+ *
+ * Endpoint list v1.2.5: the Pangle/TikTok/Vungle/AppsFlyer families were
+ * confirmed present by a cross-analysis of two community modded builds
+ * (vadj's Opera 103.3.5234.91185 mod deletes the whole Pangle SDK incl.
+ * its IAB OMOID consent stack; the string diff of that build enumerated
+ * the exact hosts the SDKs contacted). Crashlytics is Google's own crash
+ * telemetry — upload failures are a designed no-op for the SDK, so
+ * rewriting the host is safe.
  *
  * Deliberately NOT touched (breaking these breaks functionality):
  * `firebaseinstallations.googleapis.com` / `firebaseremoteconfig`
@@ -86,17 +100,24 @@ val operaDisableAnalyticsPatch = patch(
             "imasdk.googleapis.com",
             // Leanplum (present: stable, beta)
             "api.leanplum.com",
-            // Legacy Google Analytics (kept for future builds)
-            "www.google-analytics.com",
-            "ssl.google-analytics.com",
+            // Legacy Google Analytics — bare domain covers www./ssl. and paths
+            "google-analytics.com",
             "googletagmanager.com",
-            // Attribution trackers (kept for future builds; not present today)
-            "app.adjust.com",
-            "app.appsflyer.com",
-            "api2.appsflyer.com",
-            "register.appsflyer.com",
-            "control.kochava.com",
-            "kvinit-prod.api.kochava.com",
+            // Pangle / ByteDance ad pipeline (present: stable, beta)
+            "pangle.io",
+            "tiktokpangle",
+            "pglstatp",
+            "analytics.tiktok.com",
+            // Liftoff / Vungle ad pipeline (present: stable, beta)
+            "ads.vungle.com",
+            // AppsFlyer attribution incl. the Privacy-Sandbox trigger
+            "appsflyer.com",
+            "appsflyersdk.com",
+            // Firebase crash telemetry (present: GX)
+            "crashlytics.com",
+            // Attribution trackers (kept for future builds)
+            "adjust.com",
+            "kochava.com",
         )
 
         val rewrittenPerEndpoint = mutableMapOf<String, Int>()

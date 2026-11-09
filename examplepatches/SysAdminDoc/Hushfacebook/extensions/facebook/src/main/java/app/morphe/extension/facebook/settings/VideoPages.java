@@ -36,6 +36,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Set;
 
+import app.morphe.extension.facebook.feed.CaptionBackdrop;
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -48,6 +49,15 @@ import app.morphe.extension.shared.settings.BooleanSetting;
 @SuppressWarnings("deprecation")
 final class VideoPages {
     private VideoPages() {
+    }
+
+    /**
+     * Whether this build carries the dark box behind open reel captions (#419). A test that names the
+     * families in its build counts it in with Show full post text.
+     */
+    static boolean captionBackdropInBuild() {
+        Set<PatchFamily> forced = PatchFamily.inBuildForTests;
+        return forced != null ? forced.contains(PatchFamily.FULL_POST_TEXT) : CaptionBackdrop.inBuild();
     }
 
     /** Reels and Watch, in every build, with the map of the four places Reels show up. */
@@ -229,6 +239,10 @@ final class VideoPages {
                     L10n.t("A video you tap in the feed opens full screen by itself, with no reels to swipe to after it. "
                             + "The Reels tab keeps scrolling. Off by default, since it hasn't been tried on a real "
                             + "account yet.")));
+            // Asked as a shared reel's viewer opens and asks for more, so a change shows from the next one (#421).
+            reels.addPreference(toggle(context, Settings.SHARED_REELS_ALONE,
+                    L10n.t("A reel you open from a link in another app or from a chat plays by itself, with no "
+                            + "reels to swipe to after it.")));
             // Asked as Watch again is tapped, so a change shows on the next tap (#403).
             reels.addPreference(toggle(context, Settings.WATCH_AGAIN_IN_PLACE,
                     L10n.t("Watch again at the end of a feed video plays it again right there, instead of "
@@ -237,6 +251,14 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SAVED_VIDEOS_IN_PLAYER,
                     L10n.t("A video you tap in Saved plays in the video player instead of Reels, where the next "
                             + "swipe is a suggested reel.")));
+            // Asked as a reel opened from Saved ends or is swiped past (#404).
+            reels.addPreference(toggle(context, Settings.SAVED_VIDEOS_IN_ORDER,
+                    L10n.t("A video you open from Saved goes on to the next one in Saved when it ends or when you "
+                            + "swipe up, instead of a suggested reel.")));
+            // Asked before each next video, so a change shows from the next one (#427).
+            reels.addPreference(toggle(context, Settings.SKIP_STILL_WATCHING,
+                    L10n.t("Reels and videos keep going to the next one without pausing to ask if you're still "
+                            + "watching.")));
             // Asked as each tile of the feed's Reels row is drawn, so a change shows on the next tiles.
             reels.addPreference(toggle(context, Settings.PLAY_FEED_REELS_WHOLE,
                     L10n.t("The reels in your feed's Reels row play from the start and keep going, instead of "
@@ -247,6 +269,12 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.SHOW_FULL_REEL_CAPTIONS,
                     L10n.t("Long captions on reels show all of their text right away. Tap the caption to fold it back. "
                             + "A change shows from the next reel.")));
+            // Asked as each reel caption is built, so a change shows on the next caption (#419).
+            if (captionBackdropInBuild()) {
+                reels.addPreference(toggle(context, Settings.DIM_OPEN_REEL_CAPTIONS,
+                        L10n.t("An open reel caption sits on a dark box, like subtitles, so it's easy to read over a "
+                                + "bright video. A change shows from the next reel.")));
+            }
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
             reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,

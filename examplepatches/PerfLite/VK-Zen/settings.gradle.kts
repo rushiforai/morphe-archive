@@ -1,19 +1,23 @@
 rootProject.name = "morphe-patches-vk"
 
 pluginManagement {
+    val gprUser = providers.gradleProperty("gpr.user").orNull ?: System.getenv("GITHUB_ACTOR")
+    val gprKey = providers.gradleProperty("gpr.key").orNull ?: System.getenv("GITHUB_TOKEN")
     repositories {
         mavenLocal()
         gradlePluginPortal()
         google()
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/MorpheApp/registry")
-            credentials {
-                username = providers.gradleProperty("gpr.user").getOrElse(System.getenv("GITHUB_ACTOR"))
-                password = providers.gradleProperty("gpr.key").getOrElse(System.getenv("GITHUB_TOKEN"))
+        maven { url = uri("https://jitpack.io") }
+        if (gprUser != null && gprKey != null) {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/MorpheApp/registry")
+                credentials {
+                    username = gprUser
+                    password = gprKey
+                }
             }
         }
-        maven { url = uri("https://jitpack.io") }
     }
 }
 

@@ -9,6 +9,9 @@
     expected model (physical devices) or AVD name (emulators). A signer conflict is refused;
     apps, accounts and installed signing keys are preserved. -Replace is no longer supported.
 
+    Change package name and Change app name stay out unless -AsCopy is given, so a build updates
+    the patched Threads on the device. With it, the build is a copy that installs beside Threads.
+
     The store password comes from HUSHTHREADS_SIDELOAD_KEYSTORE_PASSWORD. When it is unset, the
     local test keystore's documented password, sideload, is used. An explicitly empty value
     selects an unprotected store (PowerShell 7). HUSHTHREADS_SIDELOAD_KEY_PASSWORD supplies a
@@ -37,6 +40,10 @@ param(
     # that is off by default, so a check of what Threads does without one of them needs a build
     # that leaves it out.
     [string[]]$Exclude = @(),
+    # Build a copy that installs beside the Threads on the device: Change package name and Change
+    # app name go in with their defaults. Without it they're left out, so the build updates the
+    # patched Threads already there.
+    [switch]$AsCopy,
     # Patch with the release bundle even when a source file is newer than it, for replaying
     # an earlier build on purpose. Without it a stale bundle stops the run.
     [switch]$AllowStaleBundle,
@@ -139,11 +146,16 @@ if (-not $AllowStaleBundle) {
             '(or pass -AllowStaleBundle to patch with it as it is).')
     }
 }
-$names = @($catalog.patches | ForEach-Object { $_.name } | Where-Object { $_ -notin $Exclude })
+# The patches that give a build an identity of its own, which only -AsCopy asks for.
+$copyPatches = @('Change package name', 'Change app name')
+$names = @($catalog.patches | ForEach-Object { $_.name } |
+    Where-Object { $_ -notin $Exclude -and ($AsCopy -or $_ -notin $copyPatches) })
 foreach ($excluded in $Exclude) {
     if ($excluded -notin ($catalog.patches | ForEach-Object { $_.name })) { throw "No patch named '$excluded' to exclude." }
 }
 if ($Exclude.Count -gt 0) { Write-Host "[device] leaving out: $($Exclude -join ', ')" }
+$copyLeftOut = @($catalog.patches | ForEach-Object { $_.name } | Where-Object { -not $AsCopy -and $_ -in $copyPatches })
+if ($copyLeftOut.Count -gt 0) { Write-Host "[device] leaving out $($copyLeftOut -join ' and '); -AsCopy builds a copy beside Threads" }
 $dependencyNames = @(Get-PatchDependencyNames -PatchList $catalog -RequestedNames $names)
 
 New-Item -ItemType Directory -Force $OutDir | Out-Null
@@ -265,6 +277,10 @@ if (-not $provenance.Valid) { throw "Patched APK provenance failed: $($provenanc
 [IO.File]::WriteAllText($patchReceiptPath, (ConvertTo-Json -InputObject $patchReceipt -Depth 8) + "`n")
 Write-Host "[device] provenance $patchReceiptPath"
 Write-Host "[device] applied $(@($report.appliedPatches).Count), failed $(@($report.failedPatches).Count), target $($report.packageName) $($report.packageVersion)"
+# The CLI reports the package it was given. A copy installs under its own.
+$installedPackage = [string]$signedManifest.package
+if (-not $installedPackage) { $installedPackage = $target.PackageName }
+if ($installedPackage -ne $target.PackageName) { Write-Host "[device] a copy, installed as $installedPackage" }
 Write-Host "[device] $out"
 
 if (-not $Serial) { return }
@@ -284,6 +300,6 @@ if ($install.ExitCode -ne 0) {
     }
     throw "adb install failed on $Serial. The output above says why."
 }
-$installed = Invoke-HushThreadsAdbCommand -Adb $adb -RequireLease -Arguments @('-s', $Serial, 'shell', 'dumpsys', 'package', $target.PackageName)
+$installed = Invoke-HushThreadsAdbCommand -Adb $adb -RequireLease -Arguments @('-s', $Serial, 'shell', 'dumpsys', 'package', $installedPackage)
 if ($installed.ExitCode -ne 0) { throw "Could not read the installed package on $Serial." }
 $installed.Output | Select-String 'versionName' | Out-Host

@@ -236,7 +236,7 @@ private fun continuationsAndTriggers() {
             .single().ep == episode.ep) { "Suspended native write did not update CW immediately" }
     }
     check(publications == 4)
-    println("PASS: beta.12 suspended store re-entry preserves original state and publishes four episode completions to details/CW without sync")
+    println("PASS: beta.13 suspended store re-entry preserves original state and publishes four episode completions to details/CW without sync")
 
     var receipts = 0
     var completion: Result<Any?>? = null

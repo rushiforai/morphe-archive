@@ -13,6 +13,7 @@ import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.FloatSetting;
 import app.morphe.extension.shared.settings.IntegerSetting;
+import app.morphe.extension.shared.settings.LongSetting;
 import app.morphe.extension.shared.settings.Setting;
 
 import app.morphe.extension.tiktok.offline.CustomOfflineVideosLimitPatch;
@@ -127,6 +128,9 @@ public class Settings extends BaseSettings {
     // Use system font's hook draws TikTok's text in the imported font file while this is on and
     // the file loads; it wins over SYSTEM_FONT. The file itself lives in TikTok's files, not here.
     public static final BooleanSetting IMPORTED_FONT = new BooleanSetting("imported_font", FALSE, true);
+    // On by default: AMOLED dark theme is in a build only when it was picked, so black is the ask.
+    // Off puts TikTok's own dark grays back at the next start (#372).
+    public static final BooleanSetting AMOLED_DARK_MODE = new BooleanSetting("amoled_dark_mode", TRUE, true);
     // Off by default: both patches are in the default selection, so the switch is the ask.
     public static final BooleanSetting TURN_OFF_HAPTICS = new BooleanSetting("turn_off_haptics", FALSE);
     public static final BooleanSetting TURN_OFF_SCREEN_TRANSITIONS =
@@ -384,6 +388,17 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting STARTUP_MESSAGE_HIDDEN = new StringSetting(
             "startup_message_hidden", "", false, false);
+    /**
+     * Asks GitHub, once a day when TikTok opens, whether a newer Hushfeed release is out, and shows
+     * a card when it is (#377). The only request Hushfeed makes for itself, so it starts off.
+     */
+    public static final BooleanSetting CHECK_FOR_UPDATES = new BooleanSetting("check_for_updates", FALSE);
+    /** When the last update check went out, kept before it does. Not in backups. */
+    public static final LongSetting UPDATE_CHECKED_AT = new LongSetting(
+            "update_checked_at", 0L, false, false);
+    /** The release whose update card Dismiss was pressed on. Not in backups. */
+    public static final StringSetting UPDATE_DISMISSED = new StringSetting(
+            "update_dismissed", "", false, false);
     /**
      * On by default: the setup runs before anyone can reach this switch, so picking the patch is
      * the choice. Off brings the screens back the next time TikTok runs its setup.
@@ -774,6 +789,12 @@ public class Settings extends BaseSettings {
      * chip's once-a-second check, so no restart.
      */
     public static final BooleanSetting RECORD_LIVE = new BooleanSetting("record_live", FALSE);
+    /**
+     * Starts a stream recording once per visit to a visible LIVE room. Off by default; never
+     * requests screen capture automatically. Read by the LIVE room watcher, so no restart.
+     */
+    public static final BooleanSetting AUTO_RECORD_LIVE = new BooleanSetting(
+            "auto_record_live", FALSE, false, Setting.parent(RECORD_LIVE));
     /**
      * Which of a room's streams a LIVE recording takes (#203): "room" for the quality being
      * watched, "highest" or "lowest". Read as each recording starts, so no restart.
@@ -1566,6 +1587,8 @@ public class Settings extends BaseSettings {
     // Share sheet tools.
     public static final BooleanSetting HIDE_SHARE_CONTACTS = new BooleanSetting("hide_share_contacts", FALSE);
     public static final BooleanSetting SHARE_TAP_COPIES_LINK = new BooleanSetting("share_tap_copies_link", FALSE);
+    /** The Send to new group button that shows once two people are picked (#375). */
+    public static final BooleanSetting HIDE_SHARE_NEW_GROUP = new BooleanSetting("hide_share_new_group", FALSE);
     public static final StringSetting SHARE_HIDDEN_ITEMS = new StringSetting("share_hidden_items", "");
     // The profile and LIVE sheets keep lists of their own. Until one is saved it holds this
     // marker and follows SHARE_HIDDEN_ITEMS, so a list chosen before the split keeps working on

@@ -4766,6 +4766,7 @@
         "Hide Follow on stories",
         "Hide GIFs in comments",
         "Hide Instants",
+        "Hide Made with Edits",
         "Hide Meta AI",
         "Hide Notes on profile pictures",
         "Hide Reels in the feed",
@@ -4773,6 +4774,7 @@
         "Hide comments",
         "Hide group buttons on the share sheet",
         "Hide highlights",
+        "Hide lives in Reels",
         "Hide paid partnership Reels",
         "Hide profile tabs",
         "Hide reels by caption words",
@@ -4814,6 +4816,7 @@
         "Rounded post corners",
         "Sanitize sharing links",
         "Save comment photo",
+        "Save in the post menu",
         "Save profile picture",
         "Saved on your profile",
         "See who a story mentions",
@@ -4847,7 +4850,8 @@
         "Use the system photo picker",
         "View DM photos and videos anonymously",
         "View live anonymously",
-        "View stories anonymously"
+        "View stories anonymously",
+        "Watch again in the feed"
       ],
       "branches": [
         {

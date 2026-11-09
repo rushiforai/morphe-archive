@@ -26,11 +26,11 @@ import java.util.WeakHashMap;
  * the trees of the snapping list's items), so no other list (feed, Marketplace) is ever touched.
  *
  * A reel counts as sponsored by the same rule as {@link SponsoredReels}: at least two text components with
- * flag X.0gp.A32. It is re-evaluated on every decode event of the reel, and undone when the reel is not
+ * flag X.0hd.A34. It is re-evaluated on every decode event of the reel, and undone when the reel is not
  * sponsored (any more). A detection next to another detection, or in a list where far too many reels
  * look sponsored, is treated as false. Any error only turns this off; the pager scan stays as the fallback.
  *
- * Names are for Facebook Lite 530.0.0.8.106.
+ * Names are for Facebook Lite 536.0.0.11.107.
  */
 public final class ReelAds {
     private static final int MAX_CLIMB = 12;
@@ -302,14 +302,14 @@ public final class ReelAds {
     private static void resolve() throws Exception {
         if (!AdTrace.ensure()) throw new IllegalStateException("The app's component classes were not found");
         ClassLoader app = ReelAds.class.getClassLoader();
-        Class<?> component = Class.forName("X.0gp", false, app);
-        textClass = Class.forName("X.0hW", false, app);
-        fId = component.getDeclaredField("A1b");
-        fParent = component.getDeclaredField("A18");
-        fHeight = component.getDeclaredField("A0i");
-        fHidden = component.getDeclaredField("A2c");
-        fStops = component.getDeclaredField("A2z");
-        fFlag = component.getDeclaredField("A32");
+        Class<?> component = Class.forName("X.0hd", false, app);
+        textClass = Class.forName("X.0i5", false, app);
+        fId = component.getDeclaredField("A1c");
+        fParent = component.getDeclaredField("A19");
+        fHeight = component.getDeclaredField("A0j");
+        fHidden = component.getDeclaredField("A2e");
+        fStops = component.getDeclaredField("A31");
+        fFlag = component.getDeclaredField("A34");
         fId.setAccessible(true);
         fParent.setAccessible(true);
         fHeight.setAccessible(true);

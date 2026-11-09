@@ -223,6 +223,7 @@ channel Gift button	botón de regalo de los canales
 attach menu Wallet button	botón de Billetera del menú de adjuntos
 chat list menu Wallet item	opción de Billetera del menú de la lista de chats
 profile menu Send Gram item	opción Enviar Gram del menú del perfil
+profile menu Send a Gift item	opción Enviar un regalo del menú del perfil
 TON link Send Gram item	opción Enviar Gram de los enlaces TON
 Gram transfer Send Gram item	opción Enviar Gram de las transferencias de Gram
 Premium stickers in the keyboard and packs	stickers Premium del teclado y los paquetes
@@ -545,6 +546,14 @@ Pulling up at the bottom of a forum topic only scrolls. Open the next topic from
 # context: Read-only local notification facts, independent of repair and Pause.
 Notification status on this phone	Estado de las notificaciones en este teléfono
 local notification status	estado local de notificaciones
+# context: A switch on the Notifications page and its summary, then the ongoing notification it shows and that notification's channel name. Keep-Alive Service is Telegram's own switch: use exactly the label Telegram shows in this language (translations.telegram.org key NotificationsService), and the same Settings > Notifications, under Other path as the notification status lines.
+Keep the Keep-Alive Service running	Mantener activo el Servicio keep-alive
+Android stops Telegram's Keep-Alive Service soon after you leave the app, so messages wait until you open it again. With this on, the service shows a quiet notification and keeps running. It only does something while Keep-Alive Service is on in Telegram's own Settings > Notifications, under Other.	Android detiene el Servicio keep-alive de Telegram poco después de salir de la app, y los mensajes esperan hasta que vuelves a abrirla. Con esto activado, el servicio muestra una notificación silenciosa y sigue funcionando. Solo hace algo mientras el Servicio keep-alive está activado en los propios Ajustes de Telegram > Notificaciones, en Otros.
+Keeping Telegram connected	Telegram sigue conectado
+So messages arrive on time. Tap to hide this notification.	Para que los mensajes lleguen a tiempo. Toca para ocultar esta notificación.
+Keep-Alive Service	Servicio keep-alive
+# context: Noun phrase naming the part of Repair Firebase push registration that starts the Keep-Alive Service, listed in coverage lines with "local notification status".
+Keep-Alive Service start	inicio del Servicio keep-alive
 Notification permission: %1$s	Permiso de notificaciones: %1$s
 Notification ID saved on this phone: %1$s	ID de notificaciones guardado en este teléfono: %1$s
 Signed-in accounts: %1$s	Cuentas con sesión iniciada: %1$s
@@ -782,6 +791,8 @@ Telegram kept some folders. Turn this off again to retry.	Telegram conservó alg
 Telegram didn't remove the folders. Try again in a moment.	Telegram no quitó las carpetas. Inténtalo de nuevo en un momento.
 # context: a short toast (two lines at most) when the folder switch is flipped while Telegram still hasn't answered the last flip.
 Telegram is still answering. Try again in a moment.	Telegram todavía está respondiendo. Inténtalo de nuevo en un momento.
+# context: Toast on Telegram's login email screen when the Google button fails, pointing at the email box above it (#19). The login still works with a typed email.
+Google sign-in failed. Type your email above.	Google falló. Escribe tu correo arriba.
 Telegram refused this app's ID	Telegram rechazó el ID de esta app
 Telegram turned down the API ID this app signs in with, so no login code was sent. Patch HushTelegram again with Use registered Telegram API credentials and your own ID from my.telegram.org/apps. The guide walks you through it.	Telegram rechazó el ID de API con el que inicia sesión esta app, así que no se envió ningún código. Vuelve a parchear HushTelegram con Use registered Telegram API credentials y tu propio ID de my.telegram.org/apps. La guía te explica cómo.
 Telegram didn't accept the API ID and hash this app was patched with, so no login code was sent. Copy both again from my.telegram.org/apps and patch once more.	Telegram no aceptó el ID de API y el hash con los que se parcheó esta app, así que no se envió ningún código. Cópialos de nuevo desde my.telegram.org/apps y vuelve a parchear.
@@ -979,10 +990,16 @@ Couldn't read your folders.	No se pudieron leer tus carpetas.
 which folder the chat list opens on	carpeta en la que se abre la lista de chats
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides the All Chats tab. All Chats is Telegram's name for the first folder tab (FilterAllChats): use the same name as the Hide All Chats switch
 the All Chats tab	la pestaña Todos los chats
+# context: Switch title under the folder tabs settings. It lets an account without Premium drag the All Chats tab. Uses the same name for All Chats as the Hide All Chats row.
+Move All Chats	Mover Todos los chats
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the place of the All Chats tab among the folder tabs.
+where All Chats sits	el lugar de Todos los chats
+# context: Summary under the Move All Chats switch. Uses the same names for All Chats and Hide All Chats as those rows.
+Lets you drag All Chats to another place among your folder tabs, as Premium does. The place is saved on this phone for this account, and your other devices keep All Chats first. Has no effect while Hide All Chats is on.	Te deja arrastrar Todos los chats a otro lugar entre tus pestañas de carpetas, como con Premium. El lugar se guarda en este teléfono para esta cuenta, y tus otros dispositivos dejan Todos los chats primero. No tiene efecto mientras Ocultar Todos los chats esté activado.
 # context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
 Hide picked chats	Ocultar chats elegidos
 # context: Summary of Hide picked chats, followed by one of the next two sentences. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations
-The chats you pick below leave All Chats, your folders and archived chats. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list.	Los chats que elijas abajo salen de Todos los chats, de tus carpetas y de Chats archivados. Conservan sus mensajes y notificaciones, la búsqueda los sigue encontrando y nada cambia en tus otros dispositivos. Cada cuenta tiene su propia lista.
+The chats you pick below leave All Chats, your folders, archived chats and the forward and share lists. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list.	Los chats que elijas abajo salen de Todos los chats, de tus carpetas, de Chats archivados y de las listas para reenviar y compartir. Conservan sus mensajes y notificaciones, la búsqueda los sigue encontrando y nada cambia en tus otros dispositivos. Cada cuenta tiene su propia lista.
 # context: Ends the summary of Hide picked chats when this build's folder tab counts leave the hidden chats out. The app badge is the unread count on the app's icon
 Folder tab counts leave them out, but the app badge still counts their unread messages.	Los contadores de las pestañas de carpetas los dejan fuera, pero la insignia de la app sigue contando sus mensajes no leídos.
 # context: Ends the summary of Hide picked chats when this build's folder tab counts still count the hidden chats. The app badge is the unread count on the app's icon
@@ -1039,8 +1056,20 @@ Couldn't save the language. Try again in a moment.	No se pudo guardar el idioma.
 The translation language will change.	Cambiará el idioma de traducción.
 # context: Switch title under Save downloaded files. It moves the folder Telegram keeps its own downloads in from Android/data to the phone's main storage.
 Keep Telegram's files in internal storage	Guardar los archivos de Telegram en el almacenamiento interno
-# context: Summary under that switch. Internal storage/Telegram and Android/data are folder paths: translate Internal storage as Android's Files app does, keep Telegram and Android/data as they are. All files access is Android's name for the special app access page.
-New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data, and Telegram still opens them from there. Needs All files access and a restart.	Las fotos, los videos y los archivos nuevos que descarga Telegram van a Almacenamiento interno/Telegram, donde los administradores de archivos y otras apps pueden abrirlos, en lugar de Android/data. Los archivos descargados antes se quedan en Android/data y Telegram los sigue abriendo desde ahí. Necesita Acceso a todos los archivos y reiniciar.
+# context: Summary under that switch. Internal storage and Android/data are folder places: translate Internal storage as Android's Files app does, keep Android/data as it is. All files access is Android's name for the special app access page.
+New photos, videos and files Telegram downloads go to the folder below in Internal storage, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay where they are, and Telegram still opens them from there. Needs All files access and a restart.	Las fotos, los videos y los archivos nuevos que descarga Telegram van a la carpeta de abajo en Almacenamiento interno, donde los administradores de archivos y otras apps pueden abrirlos, en lugar de Android/data. Los archivos descargados antes se quedan donde están y Telegram los sigue abriendo desde ahí. Necesita Acceso a todos los archivos y reiniciar.
+# context: Row under the switch that names the folder Telegram's files go in. A folder inside the phone's Internal storage.
+Folder in internal storage	Carpeta en el almacenamiento interno
+# context: The row's summary, a folder path. Translate Internal storage as Android's Files app does and keep %1$s, the folder's name.
+Internal storage/%1$s	Almacenamiento interno/%1$s
+# context: Hint in the box where the folder's name is typed.
+Folder name	Nombre de la carpeta
+# context: Text above that box. Telegram here is the default folder's name and the app's, both stay as they are.
+Telegram's files go in this folder in Internal storage, and it's made if it isn't there. Leave it empty for Telegram, and restart Telegram after a change.	Los archivos de Telegram van a esta carpeta en Almacenamiento interno, y se crea si no existe. Déjalo vacío para Telegram y reinicia Telegram después de un cambio.
+# context: Toast when the typed folder name can't be used.
+That name won't work. Try letters and numbers.	Ese nombre no sirve. Prueba con letras y números.
+# context: A line of the settings file import preview, the folder Telegram's files move to.
+The folder for Telegram's files will change.	Cambiará la carpeta de los archivos de Telegram.
 # context: Second line of that summary when Android has given Telegram All files access.
 All files access is on.	El acceso a todos los archivos está activado.
 # context: Second line of that summary when Android hasn't given Telegram All files access. Android/data is a folder path, keep it as it is.
@@ -1059,10 +1088,14 @@ reaction notifications without push	las notificaciones de reacciones sin push
 Hide reactions under messages	Ocultar reacciones bajo los mensajes
 The row of reactions under each message isn't drawn. Nothing is removed, so turn it off and they're back. Tags in Saved Messages stay.	La fila de reacciones bajo cada mensaje no se dibuja. No se borra nada: desactívalo y vuelven. Las etiquetas de Mensajes guardados se mantienen.
 Hide the reaction picker	Ocultar el selector de reacciones
-The row of reactions at the top of the long-press menu and the panel it opens are gone. The rest of the menu works as before.	La fila de reacciones de la parte superior del menú de pulsación larga y el panel que abre desaparecen. El resto del menú funciona igual que antes.
+The row of reactions at the top of the long-press menu, the panel it opens and the reaction bubble over a selected message are gone. The rest of the menu works as before.	La fila de reacciones en la parte superior del menú de pulsación larga, el panel que abre y la burbuja de reacciones sobre un mensaje seleccionado desaparecen. El resto del menú funciona como antes.
+Hide the emoji pack line	Ocultar la línea del paquete de emojis
+The line at the bottom of the long-press menu that names a message's emoji pack is gone. The rest of the menu works as before.	La línea al final del menú de pulsación larga que indica el paquete de emojis de un mensaje desaparece. El resto del menú funciona como antes.
 # context: Coverage labels for the reaction row and reaction picker hooks.
 reaction rows under messages	filas de reacciones bajo los mensajes
 the reaction picker in the message menu	el selector de reacciones del menú del mensaje
+the reaction bubble on selected messages	la burbuja de reacciones sobre los mensajes seleccionados
+the emoji pack line in the message menu	la línea del paquete de emojis del menú del mensaje
 # context: Switch on the Conversations page for copying text in a chat or message that doesn't allow saving (#43), its toast, and the label for the text selection part.
 Copy text from chats that don't allow saving	Copiar texto de chats que no permiten guardar
 Puts Copy back in the menu of a message in a chat that doesn't allow saving, and lets you copy selected text there. Secret chats stay as they are.	Devuelve Copiar al menú de un mensaje en un chat que no permite guardar y te deja copiar el texto seleccionado allí. Los chats secretos no cambian.
@@ -1122,3 +1155,359 @@ Recording stopped	Grabación detenida
 Record call	Grabar llamada
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the record button on the call screen.
 call record button	el botón de grabar en llamadas
+# context: Switch on the Conversations page that adds Telegram's Save to Gallery to a story's three-dot menu (#52). The label is Telegram's applied translation of SaveToGallery.
+Add Save to Gallery to stories	Añadir «Guardar en la galería» a las historias
+Puts Save to Gallery in a story's three-dot menu without Premium, stories that don't allow saving included. It saves only the ones you pick.	Pone «Guardar en la galería» en el menú de tres puntos de una historia sin Premium, incluso en historias que no permiten guardar. Solo guarda las que elijas.
+Save to Gallery in stories	«Guardar en la galería» en historias
+# context: Switch on the Conversations page (Discussion #34). Turned on, screenshots and screen recording work in chats, channels, their photos, profiles and stories whose owner turned on Telegram's content protection. Secret chats, view-once media and the passcode lock stay protected.
+Allow screenshots in chats that don't allow saving	Permitir capturas de pantalla en chats que no permiten guardar
+Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats, view-once media and the passcode screen stay blocked.	Las capturas y la grabación de pantalla funcionan en esos chats, sus fotos, perfiles e historias. Telegram no avisa a nadie. Los chats secretos, los medios de una sola vista y la pantalla del código de acceso siguen bloqueados.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the switch that allows screenshots in chats that don't allow saving.
+screenshots in chats that don't allow saving	las capturas de pantalla en chats que no permiten guardar
+# context: Switch for Fast forward in the message menu (#53), its item, choices and picker.
+Add Fast forward to the message menu	Añadir Reenvío rápido al menú del mensaje
+Adds Fast forward to a message you can forward. Pick without the sender's name, without the caption, or both, then pick a chat.	Añade Reenvío rápido a un mensaje que puedes reenviar. Elige sin el nombre del remitente, sin el pie de foto o ambos, y luego un chat.
+Fast forward	Reenvío rápido
+Without sender name	Sin nombre del remitente
+Without caption	Sin pie de foto
+Without sender name or caption	Sin nombre del remitente ni pie de foto
+# context: Switch for Forward to Saved Messages in the message menu (#53), its item and choices.
+Add Forward to Saved Messages to the message menu	Añadir Reenviar a Mensajes guardados al menú del mensaje
+Adds Forward to Saved Messages to a message you can forward. Pick as is, without the sender's name, without the caption, or both, and it lands in your Saved Messages at once.	Añade Reenviar a Mensajes guardados a un mensaje que puedes reenviar. Elige tal cual, sin el nombre del remitente, sin el pie de foto o ambos, y llega al instante a tus Mensajes guardados.
+Forward to Saved Messages	Reenviar a Mensajes guardados
+Forward as is	Reenviar tal cual
+# context: Switch for Save video cover in the message menu (#53), its item and toasts.
+Add Save video cover to the message menu	Añadir Guardar portada del vídeo al menú del mensaje
+Adds Save video cover to a video message. The biggest cover or thumbnail Telegram has goes to Pictures, fetched first if it is not on the phone yet.	Añade Guardar portada del vídeo a un mensaje de vídeo. La portada o miniatura más grande de Telegram va a Imágenes, y se descarga antes si aún no está en el teléfono.
+Save video cover	Guardar portada del vídeo
+Cover saved to Pictures	Portada guardada en Imágenes
+No cover to save	No hay portada que guardar
+Cover isn't available yet	La portada aún no está disponible
+Couldn't save the picture	No se pudo guardar la imagen
+# context: Switch for Save album art in the message menu (#53), its item and toasts.
+Add Save album art to the message menu	Añadir Guardar carátula del álbum al menú del mensaje
+Adds Save album art to a song that has art, inside the file or on Telegram. The picture goes to Pictures.	Añade Guardar carátula del álbum a una canción que tiene carátula, en el archivo o en Telegram. La imagen va a Imágenes.
+Save album art	Guardar carátula del álbum
+Album art saved to Pictures	Carátula guardada en Imágenes
+Album art isn't available yet	La carátula aún no está disponible
+No album art to save	No hay carátula que guardar
+# context: Switch for Clear from cache in the message menu (#53), its item and toasts.
+Add Clear from cache to the message menu	Añadir Borrar de la caché al menú del mensaje
+Adds Clear from cache to a video or file message. It stops a running download, deletes what Telegram kept of it and brings the download arrow back. Saved copies in Downloads or Pictures stay.	Añade Borrar de la caché a un mensaje de vídeo o archivo. Detiene una descarga en curso, borra lo que Telegram guardó y devuelve la flecha de descarga. Las copias guardadas en Descargas o Imágenes se quedan.
+Clear from cache	Borrar de la caché
+Cleared %1$s	Se borraron %1$s
+Nothing to clear	No hay nada que borrar
+Couldn't clear that. Try again.	No se pudo borrar. Inténtalo de nuevo.
+# context: Switch under Links for cleaning a link when it is copied or pasted into the message box (#53).
+Clean links when you copy or paste	Limpiar enlaces al copiar o pegar
+A link you copy in Telegram, or paste into the message box, loses the same tracking tags. Only text that is one link and nothing else is changed.	Un enlace que copias en Telegram o pegas en el cuadro de mensaje pierde las mismas etiquetas de seguimiento. Solo cambia el texto que es un enlace y nada más.
+copied links	enlaces copiados
+pasted links	enlaces pegados
+# context: Third switch under Faster downloads on the Playback page (#53). An upload is sending a file to Telegram; pieces are the chunks it is cut into.
+Faster uploads	Subidas más rápidas
+Uploads keep four times as many pieces on their way at once. Telegram's servers still decide how fast an account can send. The next upload picks this up.	Las subidas mantienen cuatro veces más partes en camino a la vez. Los servidores de Telegram siguen decidiendo la velocidad de envío de una cuenta. La próxima subida lo aplica.
+uploads	subidas
+# context: Switch on the Ads page, under Block new channels and groups (#53). A secret chat is Telegram's end-to-end encrypted one-to-one chat; use Telegram's own word for it.
+Disable secret chats	Desactivar chats secretos
+When someone asks for a secret chat, this phone ignores it. Nothing is saved or shown, and nothing is sent back, so they just see it waiting. Secret chats you already have keep working.	Cuando alguien pide un chat secreto, este teléfono lo ignora. No se guarda ni se muestra nada y no se envía nada de vuelta, así que la otra persona solo ve que está esperando. Los chats secretos que ya tienes siguen funcionando.
+secret chat requests	solicitudes de chat secreto
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. With it on, the chat list orders the unpinned chats by the date of their last message
+Sort chats by date	Ordenar chats por fecha
+# context: Summary of Sort chats by date. Pinned chats stay at the top and the archive row stays where it is; only this phone's view changes
+Orders your unpinned chats by the date of their last message. Pinned chats and the archive row keep their places. It only changes how this phone shows the list, and nothing is sent to Telegram.	Ordena tus chats sin fijar por la fecha de su último mensaje. Los chats fijados y la fila del archivo se quedan donde están. Solo cambia cómo este teléfono muestra la lista y no se envía nada a Telegram.
+# context: Switch title under Sort chats by date. With it on, the chat with the oldest last message comes first
+Oldest chats first	Chats más antiguos primero
+# context: Summary of Oldest chats first. Sort chats by date is the title of the switch above it
+With Sort chats by date on, the chat with the oldest last message comes first instead of the newest.	Con Ordenar chats por fecha activado, va primero el chat con el último mensaje más antiguo en lugar del más reciente.
+# context: Switch title under Hide picked chats on the Chat list page, off by default. With it on, the hidden chats ask for the Telegram app passcode
+Passcode for hidden chats	Código para chats ocultos
+# context: Summary of Passcode for hidden chats. Says plainly it only guards this settings page and that search still finds the chats
+Opening the list of hidden chats, and turning off Hide picked chats or this switch, asks for your Telegram passcode first. It uses the passcode you already set in Telegram, and it only guards this settings page. Anyone who can open Telegram can still find the hidden chats through search.	Abrir la lista de chats ocultos, o desactivar Ocultar chats elegidos o este interruptor, pide primero tu código de Telegram. Usa el código que ya pusiste en Telegram y solo protege esta página de ajustes. Quien pueda abrir Telegram aún puede encontrar los chats ocultos con la búsqueda.
+# context: Toast when Passcode for hidden chats is switched on but the Telegram app has no passcode yet
+Set a Telegram passcode first.	Primero pon un código en Telegram.
+# context: Dialog title when the Telegram passcode is asked for before the hidden chats open or their switch turns off
+Passcode needed	Hace falta el código
+# context: Row summary of Chats to hide while Passcode for hidden chats is on; the names stay out of sight
+Locked with your Telegram passcode.	Bloqueado con tu código de Telegram.
+# context: Hint in the passcode box that asks for the Telegram app passcode
+Telegram passcode	Código de Telegram
+# context: Instruction above the passcode box that asks for the Telegram app passcode
+Type the passcode you use to unlock Telegram.	Escribe el código con el que desbloqueas Telegram.
+# context: Button on the passcode dialog that checks the typed passcode
+Unlock	Desbloquear
+# context: Shown under the passcode box after a wrong passcode
+That's not your passcode.	Ese no es tu código.
+# context: Shown under the passcode box after five wrong passcodes in a row; %1$s is the number of seconds to wait
+Too many tries. Wait %1$s seconds and try again.	Demasiados intentos. Espera %1$s segundos e inténtalo de nuevo.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line such as 'the patch could not find %1$s'. It names the chat list's order by date
+chat list ordered by date	el orden de la lista de chats por fecha
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line such as 'the patch could not find %1$s'. It names the passcode check that guards the hidden chats
+the app passcode for hidden chats	el código de la app para los chats ocultos
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. With it on, the side menu gets an Administrators row
+Administrators row in the side menu	Fila Administradores en el menú lateral
+# context: Summary of the Administrators row switch. The side menu is the menu Hush brings back on the left of the chat list; Administrators is the row's name
+Adds an Administrators row to the side menu, so one tap lists only the groups and channels you own or manage and another brings every chat back. It needs the side menu switch on, only changes how this phone lists chats, and starts off again when Telegram restarts.	Añade una fila Administradores al menú lateral: un toque muestra solo los grupos y canales que posees o administras y otro devuelve todos los chats. Necesita el interruptor del menú lateral activado, solo cambia cómo este teléfono lista los chats y vuelve a estar apagado al reiniciar Telegram.
+# context: Side menu row name, and the Hide folder tab counters switch's name for it. Groups and channels the user owns or administers
+Administrators	Administradores
+# context: Side menu row name while the Administrators filter is on; a tap brings every chat back
+Show all chats	Mostrar todos los chats
+# context: Toast after the Administrators row is tapped and the chat list shows only the chats the user owns or manages
+Showing chats you manage.	Mostrando chats que administras.
+# context: Toast after the Administrators row is tapped again and every chat is back
+Showing all chats.	Mostrando todos los chats.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the Administrators filter in the side menu
+the Administrators filter	el filtro de administradores
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It hides signed-in accounts from Telegram's account lists
+Hide accounts	Ocultar cuentas
+# context: Summary of the Hide accounts switch. It must say plainly that this only hides accounts from the account lists: they stay signed in and notifications follow Telegram's own settings. Nothing is signed out or deleted
+The accounts you pick below leave Telegram's account lists, but only there. Each one stays signed in, keeps syncing, and its notifications follow Telegram's own settings. Nothing is signed out or deleted, and the account you're using always shows.	Las cuentas que elijas abajo salen de las listas de cuentas de Telegram, pero solo de ahí. Cada una sigue con la sesión iniciada, sigue sincronizando y sus notificaciones siguen los ajustes propios de Telegram. No se cierra ni se borra nada, y la cuenta que estás usando siempre aparece.
+# context: Settings row title and the title of its list. The list shows every signed-in account with a tick box; ticked accounts are left out of Telegram's account lists
+Accounts to hide	Cuentas que ocultar
+# context: Switch title under Hide accounts. With it on, the hidden accounts list and the switches need Telegram's own app passcode
+Passcode for hidden accounts	Código para las cuentas ocultas
+# context: Summary of the passcode switch for hidden accounts. The passcode is the app passcode set in Telegram's own settings
+Opening the list of hidden accounts, and turning off Hide accounts or this switch, asks for your Telegram passcode first. It uses the passcode you already set in Telegram, and it only guards this settings page.	Abrir la lista de cuentas ocultas y desactivar Ocultar cuentas o este ajuste pide antes tu código de Telegram. Usa el código que ya configuraste en Telegram y solo protege esta página de ajustes.
+# context: Sentence shown beside the Accounts to hide row when no account is hidden
+No accounts hidden yet.	Aún no hay cuentas ocultas.
+# context: Toast when the signed-in accounts could not be read from Telegram
+Couldn't read your accounts.	No se pudieron leer tus cuentas.
+# context: Toast when the Accounts to hide row is tapped with only one account signed in
+Sign in to a second account first.	Inicia sesión primero en una segunda cuenta.
+# context: Toast when every signed-in account is ticked in Accounts to hide; one account must always stay in the account lists
+Keep at least one account showing.	Deja al menos una cuenta visible.
+# context: Toast when the ticked accounts could not be written to storage
+Couldn't save the accounts. Try again in a moment.	No se pudieron guardar las cuentas. Inténtalo de nuevo en un momento.
+# context: Name of an account that has no name Telegram can give yet, with its position among the signed-in accounts. %1$s is the number
+Account %1$s	Cuenta %1$s
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that hides accounts from Telegram's account lists
+the hidden accounts	las cuentas ocultas
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It shrinks the folder tabs above the chat list until all of them fit on the screen
+Fit all folder tabs	Ajustar todas las pestañas de carpetas
+# context: Summary of the Fit all folder tabs switch. The folder tabs shrink so none of them scrolls out of sight; with few folders nothing changes
+Shrinks the folder tabs above the chat list until all of them fit on the screen, so you never scroll sideways to find one. With only a few folders nothing changes.	Reduce las pestañas de carpetas sobre la lista de chats hasta que todas caben en la pantalla, así no tienes que desplazarte de lado para encontrar una. Con pocas carpetas no cambia nada.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that shrinks the folder tabs to fit the screen
+the fitted folder tabs	las pestañas de carpetas ajustadas
+# context: Switch under Privacy for Receive only mode, per account (#53).
+Receive only mode	Modo solo recepción
+The accounts you pick below can read but not write. Messages, reactions, drafts and typing stay on this phone and show an error. Reading, files and read receipts work. Works with this switch on.	Las cuentas que elijas abajo pueden leer pero no escribir. Los mensajes, reacciones, borradores y el aviso de escritura se quedan en este teléfono y muestran un error. Leer, los archivos y las confirmaciones de lectura funcionan. Actúa con este interruptor activado.
+# context: Switch under Privacy for Power off accounts, per account (#53).
+Power off accounts	Apagar cuentas
+The accounts you pick below send nothing. Telegram's connection can still stay open in the background, so it may still receive messages and notifications. Works with this switch on.	Las cuentas que elijas abajo no envían nada. La conexión de Telegram puede seguir abierta en segundo plano, así que aún pueden llegar mensajes y notificaciones. Actúa con este interruptor activado.
+# context: Summary under a per-account switch in Power off accounts (#53).
+Powered off	Apagada
+# context: Summary under a per-account switch in Receive only mode (#53).
+Receive only	Solo recibir
+# context: Short tag in front of an account name in the side menu: powered off (#53).
+(Off)	(Apagada)
+# context: Short tag in front of an account name in the side menu: receive only (#53).
+(Read only)	(Solo lectura)
+# context: Toast when a powered-off account tries to send (#53). Two lines of 28 characters at most.
+This account is powered off.	Esta cuenta está apagada.
+# context: Toast when a receive-only account tries to write (#53). Two lines of 28 characters at most.
+Receive only mode is on.	El modo solo recepción está activo.
+# context: Switch under Conversations: typed @ and a user ID becomes a real mention (#53).
+Mention by ID	Mencionar por ID
+Typing @ and a user ID, or tg://user?id= and the ID, turns into a real mention. It only works for people this app has already seen, such as in a chat or group. Anyone else is sent as typed.	Si escribes @ y un ID de usuario, o tg://user?id= y el ID, se convierte en una mención real. Solo funciona con personas que esta app ya ha visto, por ejemplo en un chat o grupo. Las demás se envían tal como las escribiste.
+# context: Toast when a typed @ and ID names someone this app has not seen (#53). Two lines of 28 characters at most.
+I haven't seen that person.	No he visto a esa persona.
+# context: Names of optional parts in the patch status list (#53).
+mentions by ID	menciones por ID
+powering off accounts	apagar cuentas
+receive only mode	modo solo recepción
+# context: Switch on the Playback page for remembering where videos, voice messages and music stopped (#53). Telegram only does this for long ones.
+Remember where playback stopped	Recordar dónde se detuvo la reproducción
+# context: Summary of the switch Remember where playback stopped. Telegram itself only remembers the position of long videos, voice messages and songs.
+Videos, voice messages and music pick up where you left off, even short ones. Telegram only does that for long ones.	Los vídeos, los mensajes de voz y la música siguen donde los dejaste, incluso los cortos. Telegram solo lo hace con los largos.
+# context: Title of a switch under Add Repeat to the message menu (#53), and the label of the button it adds to the bar that shows while messages are selected. Tapping the button selects every message between the first and last one already selected.
+Select between	Seleccionar intermedios
+# context: Summary of the Select between switch. The bar is the one that appears at the top of a chat while messages are selected.
+Adds a Select between button to the bar that shows while you pick messages. It selects everything between the first and last one you picked. Pick one past the end and the gap fills in.	Añade un botón Seleccionar intermedios a la barra que aparece al elegir mensajes. Selecciona todo lo que hay entre el primer y el último mensaje elegidos. Elige uno más allá del final y el hueco se rellena.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select between button.
+selecting everything between two messages	seleccionar todo entre dos mensajes
+# context: Toast after tapping Select between with fewer than two messages selected.
+Select two messages first	Elige primero dos mensajes
+# context: Toast from Select between when a selected message has scrolled out of what the chat has loaded, so the range can't be known.
+Those messages aren't all loaded	No todos están cargados
+# context: Toast from Select between when the selected messages are next to each other or the ones between can't be selected.
+Nothing in between to select	No hay nada en medio
+# context: Toast from Select between when Telegram's limit of 100 selected messages is reached.
+Stopped at 100 messages	Detenido en 100 mensajes
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Remember where playback stopped switch.
+remembering where playback stopped	recordar dónde se detuvo la reproducción
+# context: Settings row for the icon pack drawn beside folder names, and the title of its list.
+Folder icons	Iconos de carpetas
+# context: Folder icon pack choice: the thin-line style.
+Regular	Normales
+# context: Folder icon pack choice: the heavy-line style.
+Bold	Gruesos
+# context: Folder icon pack choice: the solid, filled style.
+Filled	Rellenos
+# context: Folder icon pack choice: draw no icons.
+None	Ninguno
+# context: Toast when the folder icon choice couldn't be saved.
+Couldn't save the choice. Try again in a moment.	No se pudo guardar la opción. Vuelve a intentarlo en un momento.
+# context: Summary of the Folder icons row. %1$s is the chosen pack (Regular, Bold, Filled or None).
+%1$s. Icons show beside folder names in HushTelegram's own lists. Telegram's folder tabs stay as they are.	%1$s. Los iconos aparecen junto a los nombres de carpeta en las listas propias de HushTelegram. Las pestañas de carpetas de Telegram no cambian.
+# context: Settings row that makes downloads run one at a time. Its list is in the side menu.
+Download manager	Gestor de descargas
+# context: Summary of the Download manager row.
+Files download one at a time, in the order you asked for them. Adds a Downloads row to the side menu, which needs Side menu on too.	Los archivos se descargan de uno en uno, en el orden en que los pediste. Añade una fila Descargas al menú lateral, que también debe estar activado.
+# context: Side menu row and title of the list of running, waiting and finished downloads.
+Downloads	Descargas
+# context: State of the download running now, in the Downloads list. A size may follow after a comma.
+Downloading	Descargando
+# context: State of a download waiting its turn, in the Downloads list. A size may follow after a comma.
+Waiting	En espera
+# context: State of a finished download, in the Downloads list. A size may follow after a comma.
+Finished	Terminada
+# context: Shown in the Downloads list when nothing has been downloaded.
+No downloads yet	Aún no hay descargas
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Download manager part of Faster downloads: running downloads one at a time with a list in the side menu
+download manager	el gestor de descargas
+# context: Title of the Save downloads row and list that pick which kinds of files get copied to Download/Telegram
+What to copy	Qué copiar
+# context: Kind of file in the What to copy list: any file that isn't a picture, video or sound file
+Documents	Documentos
+# context: Kind of file in the What to copy list: songs and other sound files
+Music	Música
+# context: Kind of file in the What to copy list
+Photos	Fotos
+# context: Kind of file in the What to copy list
+Videos	Vídeos
+# context: Kind of file in the What to copy list: view-once and timed voice messages
+Voice messages	Mensajes de voz
+# context: What to copy row summary when every kind is ticked
+Every kind of file.	Todo tipo de archivos.
+# context: What to copy row summary; %1$s is the ticked kinds joined into a list, like "Documents and Music"
+Only %1$s. The rest stay in Telegram.	Solo %1$s. El resto se queda en Telegram.
+# context: Toast when Save is tapped in What to copy with nothing ticked
+Tick at least one kind of file.	Marca al menos un tipo de archivo.
+# context: Toast when the ticked kinds couldn't be written to the phone's storage
+Couldn't save the kinds. Try again in a moment.	No se pudieron guardar los tipos. Inténtalo de nuevo en un momento.
+# context: In the settings import preview, What to copy leaving no kind of file out, as in "What to copy: Every kind to Documents and Photos"
+Every kind	Todos los tipos
+# context: a switch under Keep videos muted on volume keys (#61). With it on, a video opened in Telegram's video viewer plays with no sound until a volume key is pressed.
+Start videos without sound	Iniciar los videos sin sonido
+# context: that switch's summary. A round video is Telegram's circular video message, which plays in the chat and keeps its sound.
+A video you open plays muted until you press a volume key. Round videos keep their sound.	Un video que abres se reproduce sin sonido hasta que pulsas una tecla de volumen. Los videos redondos conservan su sonido.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that starts opened videos without sound.
+videos starting without sound	iniciar los videos sin sonido
+# context: a switch under Ghost mode (#62). With it on, a ghost button sits at the top of the chat list, among Telegram's own buttons there.
+Ghost mode button	Botón del Modo fantasma
+# context: that switch's summary. Filled means the ghost icon is drawn solid rather than as an outline.
+A ghost at the top of the chat list turns Ghost mode on and off with a tap. It's filled while Ghost mode is on.	Un fantasma arriba en la lista de chats activa y desactiva el Modo fantasma con un toque. Se ve relleno mientras el Modo fantasma está activado.
+# context: short message shown after a tap on the chat list's ghost button turned Ghost mode on.
+Ghost mode on	Modo fantasma activado
+# context: short message shown after a tap on the chat list's ghost button turned Ghost mode off.
+Ghost mode off	Modo fantasma desactivado
+# context: a switch on the Chat list page (#59). It lets Telegram's sign-in screen offer its own test servers, which Telegram keeps for developers and which hold separate test accounts.
+Test server sign-in	Inicio de sesión en servidores de prueba
+# context: that switch's summary. "Test Backend" is the checkbox under the phone number field on Telegram's sign-in screen, written with Telegram's applied label for this language (key DebugTestBackend on translations.telegram.org; Bulgarian has none applied, so Telegram shows the English "Test Backend" there).
+Signing in or adding an account shows Telegram's Test Backend box on the phone number screen. Tick it to sign that account in on Telegram's test servers, kept apart from your other accounts.	Al iniciar sesión o añadir una cuenta, la pantalla del número de teléfono muestra la casilla Test Backend de Telegram. Márcala para iniciar sesión con esa cuenta en los servidores de prueba de Telegram, separada de tus otras cuentas.
+# context: a switch on the Look and feel page under Show user and chat IDs (#53). With it on, a person's profile menu offers Track this user, and the people tracked get a history.
+Special contacts	Contactos especiales
+# context: that switch's summary. Track this user is the profile menu row it adds, translated the same as that row.
+A person's profile menu gets Track this user. For anyone you track, a history builds up from what Telegram already shows you: coming online and going offline, typing, and changes to their name, username, phone number, photo or contacts. Nothing extra is asked of Telegram, and the history stays on this phone.	El menú del perfil de una persona incluye Rastrear a este usuario. Para cada persona que rastrees se va formando un historial con lo que Telegram ya te muestra: cuándo se conecta y se desconecta, cuándo escribe y los cambios en su nombre, nombre de usuario, número de teléfono, foto o contactos. No se le pide nada extra a Telegram y el historial se queda en este teléfono.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Special contacts part of Show user and chat IDs.
+special contacts	contactos especiales
+# context: a row in a person's profile menu (the three dots on their profile) with Special contacts on. A tap starts keeping a history of that person.
+Track this user	Rastrear a este usuario
+# context: the same profile menu row for someone already tracked, and the button in that person's history that stops tracking them
+Stop tracking	Dejar de rastrear
+# context: short message after Stop tracking
+Stopped tracking	Ya no se rastrea
+# context: short message after Track this user
+Tracking this user	Rastreando a este usuario
+# context: short message when Track this user is tapped with 50 people already tracked on this account
+You can track up to 50 people	Puedes rastrear hasta 50 personas
+# context: short message when Track this user couldn't write to the phone's storage
+Couldn't start tracking	No se pudo empezar a rastrear
+# context: summary of the Tracked people row when nobody is tracked on the account shown
+Nobody yet. Track someone from their profile's menu.	Nadie todavía. Rastrea a alguien desde el menú de su perfil.
+# context: summary of the Tracked people row; %1$d is how many people are tracked on the account shown
+%1$d person tracked	%1$d persona rastreada
+%1$d people tracked	%1$d personas rastreadas
+# context: the Tracked people row on the Look and feel page, and the title of the list it opens
+Tracked people	Personas rastreadas
+# context: short message when the tracked people couldn't be read from the phone's storage
+Couldn't read the list.	No se pudo leer la lista.
+# context: short message when Tracked people is tapped with nobody tracked
+Nobody tracked yet	Aún no rastreas a nadie
+# context: button in a tracked person's history that empties it and keeps tracking them
+Clear history	Borrar historial
+# context: short message after Clear history
+History cleared	Historial borrado
+# context: a tracked person's history with nothing in it
+No history yet	Aún no hay historial
+# context: history line, after a date and time: tracking this person began
+Started tracking	Empezó el rastreo
+# context: history line, after a date and time: the tracked person came online. Every history line has the person as its unspoken subject.
+Came online	Se conectó
+# context: history line: the person went offline; %1$s is the date and time Telegram gives as their last seen
+Went offline, last seen %1$s	Se desconectó, última conexión %1$s
+# context: history line: the person went offline, with no last seen time to show
+Went offline	Se desconectó
+# context: history line: Telegram now shows the person's last seen only as recently, the way it does when they hide the exact time
+Last seen recently	Última conexión: recientemente
+# context: history line: Telegram now shows the person's last seen as within a week
+Last seen within a week	Última conexión: en la última semana
+# context: history line: Telegram now shows the person's last seen as within a month
+Last seen within a month	Última conexión: en el último mes
+# context: history line: Telegram now shows the person's last seen as a long time ago
+Last seen a long time ago	Última conexión: hace mucho tiempo
+# context: history line: the person was typing in your chat with them
+Typing	Escribiendo
+# context: history line: the person was typing in a group or channel; %1$s is its name
+Typing in %1$s	Escribiendo en %1$s
+# context: history line; %1$s is the old name and %2$s the new one (or the word none)
+Changed name from %1$s to %2$s	Cambió el nombre de %1$s a %2$s
+# context: history line; %1$s is the old @username and %2$s the new one (or the word none)
+Changed username from %1$s to %2$s	Cambió el nombre de usuario de %1$s a %2$s
+# context: history line; %1$s is the old phone number and %2$s the new one
+Changed phone number from %1$s to %2$s	Cambió el número de teléfono de %1$s a %2$s
+# context: history line: the person set a profile photo where they had none
+Added a profile photo	Añadió una foto de perfil
+# context: history line
+Removed their profile photo	Quitó su foto de perfil
+# context: history line
+Changed their profile photo	Cambió su foto de perfil
+# context: history line: you (the phone's owner) saved the tracked person as a contact
+You saved them to your contacts	Guardaste a esta persona en tus contactos
+# context: history line: you removed the tracked person from your contacts
+You removed them from your contacts	Quitaste a esta persona de tus contactos
+# context: history line: the tracked person saved you as a contact (Telegram shows this as a mutual contact)
+Added you to their contacts	Te añadió a sus contactos
+# context: history line
+Removed you from their contacts	Te quitó de sus contactos
+# context: history line. Telegram never says who blocked you, so this is a guess from the profile photo and last seen both disappearing at once.
+May have blocked you. A guess: their photo and last seen went away together.	Puede que te haya bloqueado. Es una suposición: su foto y su última conexión desaparecieron a la vez.
+# context: history line after a May have blocked you line, when the photo or last seen shows again
+May have unblocked you. A guess: their photo or last seen came back.	Puede que te haya desbloqueado. Es una suposición: su foto o su última conexión volvieron.
+# context: history line: Telegram now shows the person as Deleted Account
+Deleted their account	Eliminó su cuenta
+# context: a switch on the Chat list page (#53). It adds a button to Telegram's phone number screen that signs the account in as a bot made with @BotFather, using the bot's token instead of a phone number.
+Bot token sign-in	Inicio de sesión con token de bot
+# context: that switch's summary. "Sign in with a bot token" is the button it adds, written here the way that button's own row translates it.
+Signing in or adding an account shows a Sign in with a bot token button on the phone number screen. Paste the token from @BotFather to use that account as your bot. A chat shows up once someone messages the bot, without older history, and a bot has no contacts, stickers or folders. A bot with a webhook set, or one another program is reading, may not get its messages here. Turning this off only hides the button.	Al iniciar sesión o añadir una cuenta, la pantalla del número de teléfono muestra el botón Iniciar sesión con token de bot. Pega el token de @BotFather para usar esa cuenta como tu bot. Un chat aparece cuando alguien escribe al bot, sin el historial anterior, y un bot no tiene contactos, stickers ni carpetas. Un bot con un webhook configurado, o que otro programa está leyendo, puede no recibir aquí sus mensajes. Desactivarlo solo oculta el botón.
+# context: the button the switch adds under the phone number on Telegram's sign-in screen, and the title of the box it opens.
+Sign in with a bot token	Iniciar sesión con token de bot
+# context: the box's button that sends the bot token to Telegram.
+Sign in	Iniciar sesión
+# context: the hint inside the box's text field, where the bot token is pasted.
+Bot token	Token del bot
+# context: the line above that field. @BotFather is the Telegram bot that makes bots and hands out their tokens.
+Paste the token @BotFather gave your bot. It goes only to Telegram, which keeps it with the account like any sign-in.	Pega el token que @BotFather le dio a tu bot. Solo va a Telegram, que lo guarda con la cuenta como cualquier inicio de sesión.
+# context: shown under the field after Sign in, until Telegram answers.
+Waiting for Telegram.	Esperando a Telegram.
+# context: short message when Telegram gave no sign-in for the bot token, or the request couldn't go out.
+Telegram didn't sign the bot in.	Telegram no inició sesión con el bot.
+# context: short message when what was typed doesn't have a bot token's shape (digits, a colon, then 35 letters and digits).
+That isn't a bot token.	Eso no es un token de bot.
+# context: short message when Telegram says the bot token is wrong.
+That bot token isn't valid.	Ese token de bot no es válido.
+# context: short message when Telegram says the bot token was revoked in @BotFather.
+That bot token was revoked.	Ese token de bot fue revocado.
+# context: short message when Telegram asks to wait before trying again. %1$s is a number of seconds.
+Wait %1$s seconds, then try again.	Espera %1$s segundos y vuelve a intentarlo.
+# context: short message when Telegram refuses the sign-in with an error code of its own. %1$s is that code, in capitals, as Telegram sends it.
+Telegram refused it: %1$s	Telegram lo rechazó: %1$s

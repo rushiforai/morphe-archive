@@ -1,3 +1,58 @@
+## [1.67.3](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.67.2...v1.67.3) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **droidcam:** restore decrypted .data in arm64 native libs, fixing crash on Stop ([37ee498](https://github.com/mwbra130/Retro-Bowl-College/commit/37ee4984c4fa195f91807fb33ad2b19241c4b5b2))
+
+## [1.67.2](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.67.1...v1.67.2) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **droidcam:** restore decrypted .data in native libs, fixing crash on Stop ([a155c60](https://github.com/mwbra130/Retro-Bowl-College/commit/a155c6039d212f64d2fbabf8fb35cbd11bd7641b))
+
+## [1.67.1](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.67.0...v1.67.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **droidcam:** fold runtime files and camera fix into Disable PairIP so only two patches are selectable ([8f567ab](https://github.com/mwbra130/Retro-Bowl-College/commit/8f567aba9668376744ca98b2011b314e07c04e6f))
+
+## [1.67.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.66.1...v1.67.0) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **droidcam:** silence PairIP license check entry point on 10.0 ([0b1eec5](https://github.com/mwbra130/Retro-Bowl-College/commit/0b1eec5e4a4c21311e31c865f26fa73bb4ba57c9))
+
+### ✨ New Features
+
+* **droidcam:** port PairIP bypass and Pro unlock to DroidCam 10.0 ([93b4261](https://github.com/mwbra130/Retro-Bowl-College/commit/93b426103e01a763c933ee7faf7e4d8fcab87b52))
+
+## [1.66.1](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.66.0...v1.66.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **aodnotify:** mark 6.10 targets as stable after on-device confirmation ([2d30712](https://github.com/mwbra130/Retro-Bowl-College/commit/2d30712599b428b2b5af6cdf6138f105e4601985))
+
+## [1.66.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.65.1...v1.66.0) (2026-11-08)
+
+### ✨ New Features
+
+* **aodnotify:** add aodNotify 6.10 compatibility ([94a454a](https://github.com/mwbra130/Retro-Bowl-College/commit/94a454a3c21098caa55531f94d9307065db53b72))
+* **aodnotify:** add aodNotify 6.10 fingerprints (Pro sync writer + PairIP license funnel) ([121281a](https://github.com/mwbra130/Retro-Bowl-College/commit/121281a2b57b69d82586799f3f3f8f6bb78940dc))
+* **aodnotify:** add Bypass PairIP license check patch for aodNotify 6.10 ([078e306](https://github.com/mwbra130/Retro-Bowl-College/commit/078e306d0e0cc38b8ca8a589621b6e0d52cb3210))
+* **aodnotify:** add Enable Pro patch for aodNotify 6.10 ([415ac71](https://github.com/mwbra130/Retro-Bowl-College/commit/415ac718b1633b4bd70a62c126a748ac31a3c37b))
+
+## [1.65.1](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.65.0...v1.65.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **googlemessages:** trim OLED black mode to core schemes after launch crash ([20455d9](https://github.com/mwbra130/Retro-Bowl-College/commit/20455d9085f82b5028eb876d5cf57c4cf979365e))
+
+## [1.65.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.64.0...v1.65.0) (2026-11-08)
+
+### ✨ New Features
+
+* **googlemessages:** add OLED black mode patch for Google Messages ([532ac1a](https://github.com/mwbra130/Retro-Bowl-College/commit/532ac1a2c9afdb11e834b703751d242017367355))
+
 ## [1.64.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.63.0...v1.64.0) (2026-11-06)
 
 ### ✨ New Features

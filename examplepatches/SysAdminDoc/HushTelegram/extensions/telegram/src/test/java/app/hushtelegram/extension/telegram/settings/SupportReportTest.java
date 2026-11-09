@@ -161,7 +161,7 @@ public class SupportReportTest {
                 assertTrue(report, report.contains("\nHide ads coverage: channel ads, search ads; missing: video ads\n"));
                 assertTrue(report, report.contains("\nDisable analytics coverage: channel read metrics; missing: "
                         + "Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, "
-                        + "read receipts and story views\n"));
+                        + "read receipts and story views, receive only mode, powering off accounts\n"));
                 assertTrue(report, report.contains("\ndebug_logging: off\n"));
                 assertFalse(report, report.contains("[SELECTED EVENTS]"));
             }

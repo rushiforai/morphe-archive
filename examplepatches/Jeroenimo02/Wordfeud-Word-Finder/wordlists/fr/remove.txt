@@ -1,5 +1,5 @@
-# Woorden die uit de lijst gehaald worden (een per regel). Een # begint commentaar.
-# Wordt toegepast door tools/wordlists/build.py.
+# Words removed from the list (one per line). A # starts a comment.
+# Applied by tools/wordlists/build.py.
 NF
 FV
 PBQ
@@ -12,3 +12,6 @@ PHZ
 PC
 ZM
 AV
+NEW
+FR
+REF

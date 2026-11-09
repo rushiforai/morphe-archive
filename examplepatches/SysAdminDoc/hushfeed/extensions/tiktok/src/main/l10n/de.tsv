@@ -2191,7 +2191,6 @@ Picked %1$s. Save, then tap Pick all for more.	%1$s gewählt. Speichern, mehr mi
 All loaded items are picked or saved. Scroll for more.	Alles ist gewählt oder gespeichert. Scroll weiter.
 
 Record LIVEs you watch	LIVEs aufnehmen, die du schaust
-Adds a Record button to LIVE rooms. A recording starts when you tap it and ends when you tap Stop or leave the room. Nothing before that is saved.	Fügt LIVE-Räumen eine Aufnahme-Taste hinzu. Die Aufnahme beginnt, wenn du sie antippst, und endet bei Stopp oder wenn du den Raum verlässt. Was davor lief, wird nicht gespeichert.
 Record	Aufnehmen
 Stop	Stopp
 Stop recording this LIVE	Aufnahme dieses LIVE beenden
@@ -2621,3 +2620,28 @@ While the controls are invisible on the main feed, the creator's name, the capti
 Make the controls invisible	Steuerelemente unsichtbar machen
 # context: Spoken label of that eye button while the controls are invisible
 Show the controls	Steuerelemente anzeigen
+# context: Share sheet settings row; hides TikTok's gray Send to new group button that shows beside Send separately once two or more people are picked (#375)
+Hide Send to new group	„An neue Gruppe senden“ ausblenden
+# context: summary of Hide Send to new group; Send separately is TikTok's red button that stays (#375)
+Hides the button that turns the people you picked into a new group chat. Send separately stays.	Blendet die Taste aus, die aus den ausgewählten Personen einen neuen Gruppenchat macht. „Einzeln senden“ bleibt.
+# context: Switch in Hushfeed settings > App > Appearance (#372)
+AMOLED dark mode	AMOLED-Dunkelmodus
+# context: Summary under the AMOLED dark mode switch
+Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	Füllt den Dunkelmodus mit der beim Patchen gewählten Farbe, reines Schwarz, sofern keine andere gewählt wurde. Schalte es aus, um TikToks eigene dunkle Grautöne zu bekommen. Der helle Modus ändert sich nicht. Starte TikTok neu, um die Änderung zu sehen.
+# context: Switch in Hushfeed settings > App, under the startup message rows (#377)
+Check for Hushfeed updates	Nach Hushfeed-Updates suchen
+# context: Summary under the Check for Hushfeed updates switch
+Once a day when TikTok opens, ask GitHub if a newer Hushfeed is out and show a card when it is. The request carries your Hushfeed version and nothing else.	Fragt einmal am Tag beim Öffnen von TikTok bei GitHub nach, ob ein neueres Hushfeed erschienen ist, und zeigt dann eine Karte. Die Anfrage enthält nur deine Hushfeed-Version.
+# context: Title of the card shown when a newer release is out; %1$s is its version, like v0.82.0
+Hushfeed %1$s is out	Hushfeed %1$s ist da
+# context: Text of that card; %1$s is the installed version. Morphe Manager is an app name
+You have %1$s. Update the patches in Morphe Manager, then patch TikTok again.	Du hast %1$s. Aktualisiere die Patches im Morphe Manager und patche TikTok dann neu.
+# context: Button on that card that opens Morphe Manager
+Update	Aktualisieren
+# context: Button on that card that hides it for this release
+Dismiss	Verwerfen
+# context: Last line of the update card when the release notes have more bullets than it lists; %1$s is how many
+%1$s more in the release notes	%1$s weitere in den Versionshinweisen
+Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.	Fügt LIVE-Räumen eine Aufnahmetaste hinzu. Tippe darauf, um die Aufnahme zu starten oder zu stoppen. Beim Verlassen des Raums endet sie ebenfalls.
+Automatically record LIVEs you enter	LIVEs beim Betreten automatisch aufnehmen
+Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.	Beginnt mit der Aufnahme des LIVE-Streams, wenn du den Raum betrittst. Nach Stop startet sie erst wieder, wenn du den Raum verlässt und erneut betrittst. Bildschirmaufnahmen brauchen weiterhin einen Tipp und die Berechtigung von Android.

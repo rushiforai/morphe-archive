@@ -10,7 +10,7 @@
  */
 package app.morphe.patches.telegram.misc.settings
 
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
@@ -20,6 +20,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val SHORTCUT_MANAGER = "Landroid/content/pm/ShortcutManager;"
 
@@ -47,9 +51,9 @@ internal val SHORTCUT_CALLS = mapOf(
 internal fun Instruction.shortcutCall(): MethodReference? {
     if (opcode != Opcode.INVOKE_VIRTUAL && opcode != Opcode.INVOKE_VIRTUAL_RANGE) return null
     val call = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return null
-    if (call.definingClass != SHORTCUT_MANAGER) return null
+    if (call.origDefiningClass != SHORTCUT_MANAGER) return null
     val shape = SHORTCUT_CALLS[call.name] ?: return null
-    return call.takeIf { it.parameterTypes.joinToString("", "(", ")") + it.returnType == shape }
+    return call.takeIf { it.parameterTypes.joinToString("", "(", ")") + it.origReturnType == shape }
 }
 
 /** The SettingsEntry method that stands in for [call]: static, the manager first, the same answer. */
@@ -105,8 +109,8 @@ private fun Method.makesShortcutCall(): Boolean =
 internal fun BytecodePatchContext.rerouteShortcutCalls(): Int {
     val callers = mutableListOf<String>()
     classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        if (classDef.origType.startsWith(EXTENSION_ROOT)) return@classDefForEach
         if (classDef.methods.any { it.makesShortcutCall() }) callers += classDef.type
     }
-    return callers.sumOf { type -> mutableClassDefBy(type).methods.sumOf { it.rerouteShortcutCalls() } }
+    return callers.sumOf { type -> tgMutableClassDefBy(type).methods.sumOf { it.rerouteShortcutCalls() } }
 }

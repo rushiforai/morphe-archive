@@ -892,10 +892,12 @@ dependencies {
     // Reads the signing certificate of every retained fixture. The patcher already brings this
     // exact version at run time; this puts it on the test compile classpath as well.
     testImplementation("com.android.tools.build:apksig:9.1.1")
-    // Reads the resource tables of the fixtures, for the Material You theme's colour table. The
-    // patcher already brings this exact version at run time; this puts it on the test compile
-    // classpath as well.
-    testImplementation("com.github.REAndroid:arsclib:a28c6fb2a7")
+    // Reads the resource tables of the fixtures, for the Material You theme's colour table. This is
+    // the module and commit patcher 2.3.0 brings at run time; it puts that copy on the test compile
+    // classpath as well. REAndroid's own arsclib is a different module sharing most of its
+    // com.reandroid classes, so it sat beside the patcher's copy and won: 2.3.0's resource coder
+    // then failed on ApkModule.setTableReadProgress, which only 675bed2de3 has.
+    testImplementation("com.github.MorpheApp:ARSCLib:675bed2de3")
 }
 
 // The patch tests run in two parts. fixtureTest takes the ones that read the Threads fixtures,

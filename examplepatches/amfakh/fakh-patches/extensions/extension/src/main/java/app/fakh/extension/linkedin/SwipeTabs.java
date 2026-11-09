@@ -42,19 +42,30 @@ final class SwipeTabs {
     /** The edge where the app's own side menu opens, in dp: a swipe that starts there is the menu's. */
     private static final float MENU_EDGE_DP = 28;
 
-    private static final WeakHashMap<Activity, Boolean> wrapped = new WeakHashMap<>();
+    private static final WeakHashMap<Activity, Gesture> gestures = new WeakHashMap<>();
 
     private SwipeTabs() {
     }
 
-    /** Starts watching the touches of the bar's activity. Does nothing a second time for the same activity. */
+    /**
+     * Starts watching the touches of the bar's activity. The window callback is wrapped once per activity, but the
+     * app builds its bar again when a screen opened over it is closed, so every call points the watch at the bar in
+     * use.
+     */
     static void install(View bar, ViewGroup tabs) {
         Activity activity = activity(bar.getContext());
-        if (activity == null || wrapped.put(activity, true) != null) return;
+        if (activity == null) return;
+        Gesture existing = gestures.get(activity);
+        if (existing != null) {
+            existing.bind(bar, tabs);
+            return;
+        }
         Window window = activity.getWindow();
         Window.Callback original = window.getCallback();
         if (original == null) return;
-        Gesture gesture = new Gesture(new WeakReference<>(bar), new WeakReference<>(tabs), original);
+        Gesture gesture = new Gesture(original);
+        gesture.bind(bar, tabs);
+        gestures.put(activity, gesture);
         window.setCallback((Window.Callback) Proxy.newProxyInstance(Window.Callback.class.getClassLoader(),
                 new Class<?>[]{Window.Callback.class}, (proxy, method, args) -> {
                     if (method.getName().equals("dispatchTouchEvent") && args != null && args.length == 1
@@ -79,8 +90,8 @@ final class SwipeTabs {
 
     /** The state of the touch being watched. */
     private static final class Gesture {
-        private final WeakReference<View> bar;
-        private final WeakReference<ViewGroup> tabs;
+        private WeakReference<View> bar = new WeakReference<>(null);
+        private WeakReference<ViewGroup> tabs = new WeakReference<>(null);
         private final Window.Callback original;
         private float downX;
         private float downY;
@@ -91,10 +102,14 @@ final class SwipeTabs {
         /** Whether something under the finger at the start can scroll sideways, by direction: [back, forward]. */
         private boolean[] scrollable;
 
-        Gesture(WeakReference<View> bar, WeakReference<ViewGroup> tabs, Window.Callback original) {
-            this.bar = bar;
-            this.tabs = tabs;
+        Gesture(Window.Callback original) {
             this.original = original;
+        }
+
+        /** Points the watch at the bar that is on screen. */
+        void bind(View bar, ViewGroup tabs) {
+            this.bar = new WeakReference<>(bar);
+            this.tabs = new WeakReference<>(tabs);
         }
 
         /** Returns whether the touch was handled; when it was not ours it goes to the app as before. */

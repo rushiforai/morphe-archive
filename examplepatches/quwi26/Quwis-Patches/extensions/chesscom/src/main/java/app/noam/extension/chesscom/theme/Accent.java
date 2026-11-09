@@ -36,6 +36,13 @@ public final class Accent {
         0xFF5D9948, 0xFF45753C, 0xFF305730, 0xFF204227, 0xFF1C3724, 0xFF162921,
     };
 
+    /**
+     * The Puzzles path background: green700 as a Compose colour. The path pairs it with a
+     * hardcoded 10%-darker copy that the accent cannot shift, so the pair must not follow the
+     * accent at all; the patch reads this field instead of the accent-shifted palette field.
+     */
+    public static final long PATH_GREEN = ((long) GREENS[8]) << 32;
+
     private static final String COLOR = "accent_color";
 
     private Accent() {}

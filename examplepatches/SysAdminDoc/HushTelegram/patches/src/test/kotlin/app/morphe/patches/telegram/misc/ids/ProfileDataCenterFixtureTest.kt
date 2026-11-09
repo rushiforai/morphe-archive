@@ -15,6 +15,8 @@ import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The data center row's two lookups, against each build's own cached users, chats and photos. */
 class ProfileDataCenterFixtureTest {
@@ -27,7 +29,7 @@ class ProfileDataCenterFixtureTest {
             context.resolveProfileDc()
             context.writeProfileDc()
             for ((stub, peer, photo) in listOf(Triple("userPhotoDc", DC_USER, DC_USER_PHOTO), Triple("chatPhotoDc", DC_CHAT, DC_CHAT_PHOTO))) {
-                val method = context.mutableClassDefBy(PROFILE_DC).methods.single { it.name == stub }
+                val method = context.tgMutableClassDefBy(PROFILE_DC).methods.single { it.origName == stub }
                 assertEquals("$name: $stub registers", 4, method.implementation!!.registerCount)
                 val body = method.controlBody()
                 assertEquals("$name: $stub", listOf(Opcode.SGET, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_STATIC,

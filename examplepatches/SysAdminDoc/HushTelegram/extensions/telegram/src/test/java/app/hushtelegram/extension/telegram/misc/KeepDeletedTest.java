@@ -33,6 +33,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
 import org.robolectric.shadows.ShadowToast;
+import org.telegram.messenger.ImageLocation;
 import org.telegram.tgnet.TLRPC;
 
 @RunWith(RobolectricTestRunner.class)
@@ -324,6 +325,81 @@ public class KeepDeletedTest {
         assertTrue(telegram.stock.isEmpty());
         assertTrue(HookStatus.missing(FamilyNames.KEEP_DELETED_MESSAGES).toString(),
                 HookStatus.missing(FamilyNames.KEEP_DELETED_MESSAGES).toString().contains("redraw"));
+    }
+
+    /** #2: a kept message's photo or file starts downloading as it's kept, while its file reference still works. */
+    @Test public void aKeptMessagesMediaStartsDownloadingTheMomentItsKept() {
+        Settings.KEEP_DELETED_MESSAGES.save(true);
+        TLRPC.Message photo = message(1, new TLRPC.TL_messageMediaPhoto());
+        TLRPC.Message mine = message(2, new TLRPC.TL_messageMediaPhoto());
+        Fake telegram = new Fake(new KeepDeleted.Row(10, 1, false, false, false, photo), new KeepDeleted.Row(10, 2, true, false, false, mine),
+                new KeepDeleted.Row(10, 3, false, false, false));
+        KeepDeleted.decide(telegram, 0, ids(1, 2, 3), 0);
+        assertTrue(KeepDeleted.isKept(SELF, 10, 3));
+        assertEquals("only the kept ones, and only a message that could be read", Arrays.asList(photo), telegram.saved);
+        assertTrue(String.join("\n", HookStatus.report()).contains("kept media downloaded"));
+
+        // A download that can't start leaves the message kept, label and all.
+        Fake failing = new Fake(new KeepDeleted.Row(10, 4, false, false, false, message(4, new TLRPC.TL_messageMediaPhoto())));
+        failing.failSave = true;
+        KeepDeleted.decide(failing, 0, ids(4), 0);
+        assertTrue(KeepDeleted.isKept(SELF, 10, 4));
+        assertTrue(failing.stock.isEmpty());
+        assertTrue(HookStatus.missing(FamilyNames.KEEP_DELETED_MESSAGES).toString().contains("kept media download"));
+
+        // A list that can't be saved keeps nothing, so nothing downloads either.
+        memory.failWrites = true;
+        Fake unsaved = new Fake(new KeepDeleted.Row(10, 5, false, false, false, message(5, new TLRPC.TL_messageMediaPhoto())));
+        KeepDeleted.decide(unsaved, 0, ids(5), 0);
+        memory.failWrites = false;
+        assertTrue(unsaved.saved.isEmpty());
+        assertEquals(Arrays.asList("0:[5]:0"), unsaved.stock);
+    }
+
+    /**
+     * Every size of a kept photo, so the bubble and the full-screen viewer each find theirs; a
+     * document's previews; and the document itself up to the limit. Each the way Telegram's own
+     * download asks: low priority, the regular cache, a photo size as jpg, the message as the parent.
+     */
+    @Test public void theBridgeDownloadsEveryPhotoSizeAndFilesUpToTheLimit() throws Exception {
+        TelegramController controller = new TelegramController();
+        TLRPC.Message photo = message(1, new TLRPC.TL_messageMediaPhoto());
+        photo.media.photo = new TLRPC.Photo();
+        photo.media.photo.sizes.addAll(Arrays.asList(size(new TLRPC.TL_photoStrippedSize(), "i"), size(new TLRPC.TL_photoSize(), "s"),
+                size(new TLRPC.TL_photoSize(), "m"), size(new TLRPC.TL_photoSizeProgressive(), "y"), size(new TLRPC.TL_photoPathSize(), "j"),
+                size(new TLRPC.TL_photoCachedSize(), "c"), size(new TLRPC.TL_photoSizeEmpty(), ""), null));
+        TLRPC.Message video = message(2, new TLRPC.TL_messageMediaDocument());
+        video.media.document = document(KeepDeletedBridge.MEDIA_LIMIT);
+        TLRPC.Message movie = message(3, new TLRPC.TL_messageMediaDocument());
+        movie.media.document = document(KeepDeletedBridge.MEDIA_LIMIT + 1);
+        TLRPC.Message text = message(4, null);
+        TLRPC.Message empty = message(5, new TLRPC.TL_messageMediaPhoto());
+
+        int asked = KeepDeletedBridge.of(controller).saveMedia(Arrays.asList(photo, video, movie, text, empty));
+        assertEquals(Arrays.asList(
+                "1: photo s.jpg priority 0 cache 0", "1: photo m.jpg priority 0 cache 0", "1: photo y.jpg priority 0 cache 0",
+                "2: preview m.jpg priority 0 cache 0", "2: document of " + KeepDeletedBridge.MEDIA_LIMIT + " bytes priority 0 cache 0",
+                "3: preview m.jpg priority 0 cache 0"), controller.loader.loads);
+        assertEquals(6, asked);
+    }
+
+    private static TLRPC.Message message(int id, TLRPC.MessageMedia media) {
+        TLRPC.Message message = new TLRPC.Message();
+        message.id = id;
+        message.media = media;
+        return message;
+    }
+
+    private static TLRPC.PhotoSize size(TLRPC.PhotoSize size, String type) {
+        size.type = type;
+        return size;
+    }
+
+    private static TLRPC.Document document(long length) {
+        TLRPC.Document document = new TLRPC.Document();
+        document.size = length;
+        document.thumbs.addAll(Arrays.asList(size(new TLRPC.TL_photoStrippedSize(), "i"), size(new TLRPC.TL_photoSize(), "m")));
+        return document;
     }
 
     @Test public void theBridgeMarksEachMessageAndPostsTheReplacementOnTheMainThread() throws Exception {
@@ -659,15 +735,31 @@ public class KeepDeletedTest {
         final Notifications notifications = new Notifications();
         final Center center = new Center();
         final Storage storage = new Storage();
+        final Loader loader = new Loader();
         final Map<Long, TLRPC.Chat> chats = new HashMap<>();
 
         public Storage getMessagesStorage() { return storage; }
+
+        public Loader getFileLoader() { return loader; }
 
         public Notifications getNotificationsController() { return notifications; }
 
         public Center getNotificationCenter() { return center; }
 
         public TLRPC.Chat getChat(Long id) { return chats.get(id); }
+    }
+
+    /** Telegram's FileLoader: the photo-size download and the document download. */
+    public static final class Loader {
+        final List<String> loads = new ArrayList<>();
+
+        public void loadFile(ImageLocation location, Object parent, String ext, int priority, int cacheType) {
+            loads.add(((TLRPC.Message) parent).id + ": " + location + "." + ext + " priority " + priority + " cache " + cacheType);
+        }
+
+        public void loadFile(TLRPC.Document document, Object parent, int priority, int cacheType) {
+            loads.add(((TLRPC.Message) parent).id + ": document of " + document.size + " bytes priority " + priority + " cache " + cacheType);
+        }
     }
 
     public static final class Storage {
@@ -748,6 +840,7 @@ public class KeepDeletedTest {
         final List<String> stock = new ArrayList<>();
         final List<String> cleared = new ArrayList<>();
         final List<String> redrawn = new ArrayList<>();
+        final List<Object> saved = new ArrayList<>();
         final List<Long> asked = new ArrayList<>();
         final Map<Long, Long> channels = new HashMap<>();
         long self = SELF;
@@ -758,6 +851,7 @@ public class KeepDeletedTest {
         boolean failClear;
         boolean failChannel;
         boolean failRedraw;
+        boolean failSave;
         /** Run after each deletion Telegram is asked for, to change things between two chats. */
         Runnable afterStock;
 
@@ -799,6 +893,12 @@ public class KeepDeletedTest {
         @Override public void redraw(long dialogId, ArrayList<Object> messages) {
             if (failRedraw) throw new IllegalStateException("no chat screen");
             redrawn.add(dialogId + ":" + messages);
+        }
+
+        @Override public int saveMedia(List<Object> messages) {
+            if (failSave) throw new IllegalStateException("no file loader");
+            saved.addAll(messages);
+            return messages.size();
         }
     }
 }

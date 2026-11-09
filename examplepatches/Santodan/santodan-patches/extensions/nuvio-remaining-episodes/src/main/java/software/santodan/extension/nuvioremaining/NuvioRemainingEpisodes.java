@@ -285,15 +285,15 @@ public final class NuvioRemainingEpisodes {
 
         Class<?> modifierOwner = Class.forName(NuvioNative.EMPTY_MODIFIER_NAME, false, loader);
         Object modifier = staticField(modifierOwner, "b").get(null);
-        modifier = findStatic(Class.forName("e0.b", false, loader), "u", 2)
+        modifier = findStatic(Class.forName("d0.b", false, loader), "u", 2)
             .invoke(null, modifier, Float.valueOf(horizontal));
         Object shape = staticField(Class.forName(NuvioNative.WIDE_CARD_NAME, false, loader), "a").get(null);
-        modifier = findStatic(Class.forName("b2.j", false, loader), "b", 2)
+        modifier = findStatic(Class.forName("a2.j", false, loader), "b", 2)
             .invoke(null, modifier, shape);
-        Object rectangle = staticField(Class.forName("e2.i0", false, loader), "b").get(null);
-        modifier = findStatic(Class.forName("y.m", false, loader), "g", 3)
+        Object rectangle = staticField(Class.forName("d2.i0", false, loader), "b").get(null);
+        modifier = findStatic(Class.forName("x.m", false, loader), "g", 3)
             .invoke(null, modifier, Long.valueOf(background), rectangle);
-        modifier = findStatic(Class.forName("e0.b", false, loader), "v", 3)
+        modifier = findStatic(Class.forName("d0.b", false, loader), "v", 3)
             .invoke(null, modifier, Float.valueOf(horizontal), Float.valueOf(vertical));
         return new Object[]{modifier, Long.valueOf(content), textStyle};
     }

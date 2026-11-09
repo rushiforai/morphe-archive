@@ -21,6 +21,10 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The chat list's folder tab counter and the runtime. */
 class HideFolderCountersFixtureTest {
@@ -28,10 +32,10 @@ class HideFolderCountersFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = FixtureDex.classesWhere(build, { true }) { m ->
-                m.returnType == "I" && m.controlBody().map { it.controlRef() }.let { MAIN_UNREAD in it && FILTER_UNREAD in it }
+                m.origReturnType == "I" && m.controlBody().map { it.controlRef() }.let { it.any(::isMainUnread) && FILTER_UNREAD in it }
             }.map(ImmutableClassDef::of)
             // The chat list too: the patch's folder at launch switch goes in with the counters, and warns without it.
-            val context = PatchContexts.of((ExtensionDex.classes() + hosts + menuHosts(build)).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + hosts + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build)).distinctBy { it.type })
             val counter = context.resolveHideFolderCounters()
             val old = ImmutableMethod.of(counter)
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
@@ -44,11 +48,11 @@ class HideFolderCountersFixtureTest {
             assertEquals(listOf(0), after[1].namedRegisters())
             assertEquals("$name: a no runs the stock count", listOf(3, 5), ControlFlow.of(counter).normal[2].sorted())
             for (i in before.indices) {
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + 5].opcode, after[i + 5].namedRegisters(), (after[i + 5] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + 5].opcode, after[i + 5].namedRegisters(), after[i + 5].origRef()))
             }
-            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "hiddenUnread")) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+            for (flag in listOf("hideFolderCounters", "launchFolder", "hideAllChats", "hiddenChats", "sortByDate", "hiddenPasscode", "adminChats", "fitTabs", "hiddenAccounts", "hiddenUnread")) {
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }

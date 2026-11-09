@@ -93,7 +93,7 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.68.0](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.68.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**496 total patches** (29 tested & functional • 467 experimental)
+> **[v1.68.2](https://github.com/SatanMerde/D-moniakPatches/releases/tag/v1.68.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;**496 total patches** (29 tested & functional • 467 experimental)
 
 ---
 
@@ -190,15 +190,15 @@ Experiencing an issue, want an experimental patch to work, or tested an experime
 
 **🎯 Supported versions:**
 
-| 26.10.26.0 |
-| :---: |
+| 26.04.27.10 | 26.10.26.0 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description |
 |----------|----------------|
-| [Ad-Free & Live Sports Ad-Block - JioHotstar](#ad-free-live-sports-ad-block-jiohotstar) | Strips pre-roll, mid-roll, and ad pods during live cricket and sports streams, and eliminates banner and sponsored recommendation cards in JioHotstar. |
+| [Ad-Free & Live Sports Ad-Block - JioHotstar](#ad-free-live-sports-ad-block-jiohotstar) | Strips pre-roll, mid-roll, and live cricket match video ads (SSAI), and eliminates feed banners and sponsored cards in JioHotstar. |
 | [Bypass Root & VPN Detection - JioHotstar](#bypass-root-vpn-detection-jiohotstar) | Neutralizes RootBeer and native root detection (su binary, test-keys, Magisk) and disables VPN/Proxy network interface flags (isVpnActive, IsProxy), allowing seamless streaming through VPNs and AdGuard DNS. |
-| [Bypass Signature & Integrity Check - JioHotstar](#bypass-signature-integrity-check-jiohotstar) | Bypasses signature verification and anti-tamper telemetry (IsTampered, package signatures) in JioHotstar, preventing account flagging, session termination, and NET_201 security blocks. |
-| [Unlock Premium & Enhanced Playback - JioHotstar](#unlock-premium-enhanced-playback-jiohotstar) | Unlocks premium UI features, bypasses subscription gates for higher video resolution selections, allows screenshots/screen recording, and enables playback over HDMI and screen mirroring in JioHotstar. |
+| [Bypass Signature Check & Anti-Tamper - JioHotstar](#bypass-signature-check-anti-tamper-jiohotstar) | Bypasses certificate MD5 verification and internal telemetry tamper detection to prevent API blocks, stream degradation, and account flagging in JioHotstar. |
+| [Unlock Premium, Screenshots & Enhanced Playback - JioHotstar](#unlock-premium-screenshots-enhanced-playback-jiohotstar) | Unlocks premium UI features, downloads, 4K/HDR10 codecs, removes screenshot & screen recording blocks, and allows HDMI/screen mirroring in JioHotstar. |
 
 </details>
 

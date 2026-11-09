@@ -75,6 +75,7 @@ hook call_recording LX/D2L;->run()V
 hook call_recording Lcom/facebook/rsys/overlayconfigmanager/OverlayConfigManagerHolder;-><init>(Ljava/util/ArrayList;)V
 hook call_recording Lorg/webrtc/voiceengine/WebRtcAudioTrack;->startPlayout()Z
 hook call_recording Lorg/webrtc/voiceengine/WebRtcAudioTrack;->stopPlayout()Z
+hook car_extension_gate LX/A7i;->A00(Landroid/graphics/Bitmap;)V
 hook car_messages LX/0Qt;->AiU(LX/0MB;)V
 hook chat_animation Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)Landroid/view/animation/Animation;
 hook chat_channel_keep LX/1tC;->A09(Landroid/app/NotificationChannel;Lcom/facebook/auth/usersession/FbUserSession;LX/1tC;Ljava/lang/String;IZ)Ljava/lang/String;
@@ -83,7 +84,9 @@ hook chat_fragment LX/1qk;-><init>()V
 hook chat_inbox LX/1pO;-><init>()V
 hook chat_jump LX/1qk;->onViewCreated(Landroid/view/View;Landroid/os/Bundle;)V
 hook chat_legacy LX/1qh;->onCreateAnimation(IZI)Landroid/view/animation/Animation;
+hook chat_menu_items LX/Hlt;->Bt2()Ljava/util/ArrayList;
 hook chat_preview Lcom/facebook/messaging/threadlist/plugins/core/clickhandler/DefaultThreadListClickHandler;->A02()V
+hook chat_preview_size Lcom/facebook/messaging/threadlist/threaditemmenu/preview/InboxThreadPreviewDialogFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;
 hook chat_promotions LX/Hk2;->A0E()Z
 hook chat_promotions LX/Hk2;->A0F()Z
 hook community_inbox LX/28c;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
@@ -129,6 +132,7 @@ hook facebook_profile LX/Jov;->A06()Z
 hook facebook_profile LX/Jow;->A06()Z
 hook facebook_profile LX/Jox;->A06()Z
 hook facebook_profile_header LX/Amz;->A0s(LX/1Vl;)LX/1Gk;
+hook floating_tab_bar LX/1uO;->A01(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;Z)LX/1uo;
 hook font_by_name LX/QHX;->A00(Landroid/content/Context;Ljava/lang/String;I)Landroid/graphics/Typeface;
 hook font_input LX/5SU;->A07(Landroid/content/res/ColorStateList;Landroid/content/res/ColorStateList;Landroid/graphics/Typeface;Landroid/graphics/drawable/Drawable;Landroid/text/TextUtils$TruncateAt;Landroid/text/method/MovementMethod;Landroid/widget/EditText;LX/535;Ljava/lang/CharSequence;Ljava/lang/CharSequence;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;[Ljava/lang/String;IIIIIIIIIIIZZZZ)V
 hook font_input LX/6Qj;->A01(Landroid/content/res/ColorStateList;Landroid/content/res/ColorStateList;Landroid/graphics/Typeface;Landroid/graphics/drawable/Drawable;Landroid/text/TextUtils$TruncateAt;Landroid/text/method/MovementMethod;Landroid/widget/EditText;Ljava/lang/CharSequence;Ljava/lang/CharSequence;Ljava/lang/Integer;Ljava/lang/String;Ljava/util/List;LX/5Fr;[Ljava/lang/String;FFFIIIIIIIIIIIZZZZZ)V
@@ -211,6 +215,8 @@ hook pinned_chats LX/STf;->onCompletion(Ljava/lang/Object;)V
 hook pinned_chats Lcom/facebook/messaging/modularsync/networkfetcher/MessengerMsysDbNetworkFetcher;->A0M(LX/8Z2;LX/204;LX/5VR;)Ljava/lang/Object;
 hook quiet_call_notification Lcom/facebook/rtc/notification/RtcNotificationForegroundService;->A00(Landroid/app/Notification;Landroid/content/Context;LX/BZK;LX/BnO;LX/BF1;Lcom/facebook/rtc/notification/RtcNotificationForegroundService;LX/NFV;Ljava/lang/Integer;Ljava/lang/String;IZZZ)V
 hook quiet_call_ring LX/BDT;->run()V
+hook quiet_log_check Lcom/facebook/messaging/msys/pushnotifications/protobufparsing/MsysNotificationParser$getThreadLevelResult$2;->invokeSuspend(Ljava/lang/Object;)Ljava/lang/Object;
+hook quiet_log_drop Lcom/facebook/messaging/notify/client/MessagesNotificationManager;->A0H(Lcom/facebook/auth/usersession/FbUserSession;Lcom/facebook/messaging/notify/type/NewMessageNotification;)V
 hook recent_media LX/Akd;->A01(LX/5Xx;Lkotlin/jvm/functions/Function0;)V
 hook reels_badge LX/4UE;->A09(LX/4UE;)Z
 hook reply_read LX/AKs;->A01(Lcom/facebook/auth/usersession/FbUserSession;LX/5BO;LX/4up;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;LX/DB7;LX/5Et;LX/5BN;LX/D92;LX/5vd;LX/5Xx;LX/5QS;Lcom/facebook/xapp/messaging/composer/send/event/SendMessageEvent;Lcom/facebook/xapp/messaging/map/HeterogeneousMap;LX/4uw;Ljava/lang/String;)V
@@ -226,6 +232,7 @@ hook screenshot_viewers Lcom/facebook/messaging/media/ephemeralmedia/viewer/Ephe
 hook screenshot_viewers Lcom/facebook/messaging/quicksnap/consumption/viewer/MsgrQuicksnapViewerFragment;->onCreateView(Landroid/view/LayoutInflater;Landroid/view/ViewGroup;Landroid/os/Bundle;)Landroid/view/View;
 hook share_story LX/PQ0;->A8Y()V
 hook share_story Lcom/facebook/messaging/sharing/broadcastflow/mutation/loader/plugins/sections/morewaystoshare/hoisted/BroadcastFlowHoistedMoreWaysToShareSectionsLoader;->A01()V
+hook share_story_target LX/7TG;->onActivityCreated(Landroid/os/Bundle;)V
 hook stories LX/1zy;->A00()Z
 hook story_hold LX/NRP;->DpM()V
 hook story_ring LX/2oZ;->onCreateMountContent(Landroid/content/Context;)Ljava/lang/Object;
@@ -241,6 +248,8 @@ hook system_camera LX/5pM;->A00(Landroid/content/Context;Landroid/os/Bundle;Land
 hook system_camera LX/5yA;->DSR(Landroid/os/Bundle;LX/5Xx;)Z
 hook system_camera LX/7W3;->FC3(Lcom/facebook/messaging/montage/composer/model/MontageComposerFragmentParams;Lcom/facebook/messaging/send/trigger/NavigationTrigger;)V
 hook tab_badges LX/1qu;->A00(Ljava/lang/String;)LX/37y;
+hook tab_bar_overlay LX/1uO;->A01(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;Z)LX/1uo;
+hook tab_bar_scroll_away LX/1yu;->F7L()Z
 hook tab_config LX/1sS;->A02(Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;)LX/1sh;
 hook tab_notifications LX/1qt;->A09(LX/1qt;)Z
 hook tab_people LX/1qt;->A0E(LX/1qt;)Z

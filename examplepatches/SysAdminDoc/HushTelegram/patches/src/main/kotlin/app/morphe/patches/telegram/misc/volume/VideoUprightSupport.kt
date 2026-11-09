@@ -5,7 +5,7 @@
 package app.morphe.patches.telegram.misc.volume
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
@@ -19,7 +19,11 @@ import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val VIDEO_UPRIGHT = "$EXTENSION_PACKAGE/misc/VideoUpright;"
 internal const val LISTENER_ON_HOOK = "$VIDEO_UPRIGHT->listenerOn(Landroid/view/OrientationEventListener;)V"
@@ -50,7 +54,7 @@ internal class UprightHooks(val edits: List<Edit>, val missing: String?) {
     }
 
     private fun grouped(context: BytecodePatchContext) = edits.groupBy { it.type to it.signature }.map { (key, calls) ->
-        context.mutableClassDefBy(key.first).methods.single { it.toString() == key.second } to calls
+        context.tgMutableClassDefBy(key.first).methods.single { it.toString() == key.second } to calls
     }
 
     /** Each call keeps its registers: the activity, the listener or the side, and any result goes where it did. */
@@ -84,14 +88,12 @@ internal fun BytecodePatchContext.resolveVideoUpright(turn: FullScreenTurn): Upr
     val turnSignature = turn.method.toString()
     val turned = turn.calls.toSet()
     val edits = mutableListOf<UprightHooks.Edit>()
-    val listenerTypes = mutableSetOf<String>()
-    val switches = mutableListOf<Pair<UprightHooks.Edit, String?>>()
+    val switches = mutableListOf<Pair<UprightHooks.Edit, FieldReference?>>()
     var activityFields = 0
     val wanted = listOf(SET_ORIENTATION, GET_ORIENTATION, LISTENER_ON, LISTENER_OFF)
     forEachClassMentioning(Mention.type(PHOTO_VIEWER) and Mention.anyReference(wanted)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
-        if (cls.type == PHOTO_VIEWER) activityFields += cls.fields.count { it.type == ACTIVITY }
-        if (cls.superclass == LISTENER && cls.fields.count { it.type == PHOTO_VIEWER } == 1) listenerTypes += cls.type
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType == PHOTO_VIEWER) activityFields += cls.fields.count { it.origType == ACTIVITY }
         for (m in cls.methods) {
             val body = m.controlBody()
             if (body.none { it.controlRef()?.startsWith("$PHOTO_VIEWER->") == true }) continue
@@ -108,7 +110,8 @@ internal fun BytecodePatchContext.resolveVideoUpright(turn: FullScreenTurn): Upr
                 if (registers != expected) return missing("the video viewer no longer calls ${body[i].controlRef()} with a plain call")
                 val edit = UprightHooks.Edit(cls.type, m.toString(), i, hook)
                 if (hook == LISTENER_ON_HOOK || hook == LISTENER_OFF_HOOK) {
-                    // Another player in the app has a sensor listener of its own, so a switch counts only when the listener is the viewer's.
+                    // Another player in the app has a sensor listener of its own (13.2 builds both from one merged
+                    // class), so a switch counts only when the listener comes from the viewer's own field.
                     switches += edit to listenerRead(body, i)
                 } else {
                     edits += edit
@@ -116,8 +119,9 @@ internal fun BytecodePatchContext.resolveVideoUpright(turn: FullScreenTurn): Upr
             }
         }
     }
-    val listeners = listenerTypes.size
-    edits += switches.filter { it.second in listenerTypes }.map { it.first }
+    val viewers = switches.filter { it.second?.origDefiningClass == PHOTO_VIEWER }
+    val listeners = viewers.map { "${it.second!!.name}:${it.second!!.type}" }.distinct().size
+    edits += viewers.map { it.first }
     fun count(hook: String) = edits.count { it.hook == hook }
     if (count(LISTENER_ON_HOOK) != 1) return missing("the video viewer no longer starts its sensor listener in one place (${count(LISTENER_ON_HOOK)})")
     if (count(LISTENER_OFF_HOOK) == 0) return missing("the video viewer no longer stops its sensor listener")
@@ -128,15 +132,15 @@ internal fun BytecodePatchContext.resolveVideoUpright(turn: FullScreenTurn): Upr
 }
 
 /**
- * The type of the field a listener switch at [at] got its listener from, or null. The viewer's
+ * The field a listener switch at [at] got its listener from, or null. The viewer's
  * release checks the listener for null between the read and the switch, so null checks on the
  * listener's register are passed over.
  */
-private fun listenerRead(body: List<Instruction>, at: Int): String? {
+private fun listenerRead(body: List<Instruction>, at: Int): FieldReference? {
     val listener = body[at].namedRegisters().firstOrNull() ?: return null
     var read = at - 1
     while (read >= 0 && body[read].opcode in NULL_CHECKS && body[read].namedRegisters() == listOf(listener)) read--
-    return body.getOrNull(read)?.takeIf { it.opcode == Opcode.IGET_OBJECT && it.namedRegisters().first() == listener }?.controlField()?.type
+    return body.getOrNull(read)?.takeIf { it.opcode == Opcode.IGET_OBJECT && it.namedRegisters().first() == listener }?.controlField()
 }
 
 private val NULL_CHECKS = setOf(Opcode.IF_EQZ, Opcode.IF_NEZ)

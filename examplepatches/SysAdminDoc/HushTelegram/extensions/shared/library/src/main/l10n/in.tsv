@@ -223,6 +223,7 @@ channel Gift button	tombol Hadiah pada kanal
 attach menu Wallet button	tombol Dompet di menu lampiran
 chat list menu Wallet item	item Dompet di menu daftar chat
 profile menu Send Gram item	item Kirim Gram di menu profil
+profile menu Send a Gift item	item Kirim Hadiah di menu profil
 TON link Send Gram item	item Kirim Gram di tautan TON
 Gram transfer Send Gram item	item Kirim Gram di transfer Gram
 Premium stickers in the keyboard and packs	stiker Premium di keyboard dan paket
@@ -545,6 +546,14 @@ Pulling up at the bottom of a forum topic only scrolls. Open the next topic from
 # context: Read-only local notification facts, independent of repair and Pause.
 Notification status on this phone	Status notifikasi di ponsel ini
 local notification status	status notifikasi lokal
+# context: A switch on the Notifications page and its summary, then the ongoing notification it shows and that notification's channel name. Keep-Alive Service is Telegram's own switch: use exactly the label Telegram shows in this language (translations.telegram.org key NotificationsService), and the same Settings > Notifications, under Other path as the notification status lines.
+Keep the Keep-Alive Service running	Jaga Biarkan Layanan Tetap Menyala terus berjalan
+Android stops Telegram's Keep-Alive Service soon after you leave the app, so messages wait until you open it again. With this on, the service shows a quiet notification and keeps running. It only does something while Keep-Alive Service is on in Telegram's own Settings > Notifications, under Other.	Android menghentikan Biarkan Layanan Tetap Menyala milik Telegram tak lama setelah Anda keluar dari aplikasi, jadi pesan baru masuk saat Anda membukanya lagi. Jika ini aktif, layanan itu menampilkan notifikasi senyap dan terus berjalan. Ini hanya bekerja selama Biarkan Layanan Tetap Menyala aktif di Pengaturan Telegram sendiri > Notifikasi, di bagian Lainnya.
+Keeping Telegram connected	Menjaga Telegram tetap terhubung
+So messages arrive on time. Tap to hide this notification.	Agar pesan masuk tepat waktu. Ketuk untuk menyembunyikan notifikasi ini.
+Keep-Alive Service	Biarkan Layanan Tetap Menyala
+# context: Noun phrase naming the part of Repair Firebase push registration that starts the Keep-Alive Service, listed in coverage lines with "local notification status".
+Keep-Alive Service start	mulai Biarkan Layanan Tetap Menyala
 Notification permission: %1$s	Izin notifikasi: %1$s
 Notification ID saved on this phone: %1$s	ID notifikasi tersimpan di ponsel ini: %1$s
 Signed-in accounts: %1$s	Akun yang masuk: %1$s
@@ -782,6 +791,8 @@ Telegram kept some folders. Turn this off again to retry.	Telegram menyimpan seb
 Telegram didn't remove the folders. Try again in a moment.	Telegram tidak menghapus folder itu. Coba lagi sebentar lagi.
 # context: a short toast (two lines at most) when the folder switch is flipped while Telegram still hasn't answered the last flip.
 Telegram is still answering. Try again in a moment.	Telegram masih menjawab. Coba lagi sebentar lagi.
+# context: Toast on Telegram's login email screen when the Google button fails, pointing at the email box above it (#19). The login still works with a typed email.
+Google sign-in failed. Type your email above.	Masuk Google gagal. Ketik email Anda di atas.
 Telegram refused this app's ID	Telegram menolak ID aplikasi ini
 Telegram turned down the API ID this app signs in with, so no login code was sent. Patch HushTelegram again with Use registered Telegram API credentials and your own ID from my.telegram.org/apps. The guide walks you through it.	Telegram menolak ID API yang dipakai aplikasi ini untuk masuk, jadi kode login tidak dikirim. Tambal ulang HushTelegram dengan Use registered Telegram API credentials dan ID Anda sendiri dari my.telegram.org/apps. Panduannya menjelaskan caranya.
 Telegram didn't accept the API ID and hash this app was patched with, so no login code was sent. Copy both again from my.telegram.org/apps and patch once more.	Telegram tidak menerima ID API dan hash yang dipakai saat menambal aplikasi ini, jadi kode login tidak dikirim. Salin keduanya lagi dari my.telegram.org/apps lalu tambal ulang.
@@ -979,10 +990,16 @@ Couldn't read your folders.	Folder Anda tidak dapat dibaca.
 which folder the chat list opens on	folder tempat daftar obrolan terbuka
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides the All Chats tab. All Chats is Telegram's name for the first folder tab (FilterAllChats): use the same name as the Hide All Chats switch
 the All Chats tab	tab Semua Obrolan
+# context: Switch title under the folder tabs settings. It lets an account without Premium drag the All Chats tab. Uses the same name for All Chats as the Hide All Chats row.
+Move All Chats	Pindahkan Semua Obrolan
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the place of the All Chats tab among the folder tabs.
+where All Chats sits	posisi Semua Obrolan
+# context: Summary under the Move All Chats switch. Uses the same names for All Chats and Hide All Chats as those rows.
+Lets you drag All Chats to another place among your folder tabs, as Premium does. The place is saved on this phone for this account, and your other devices keep All Chats first. Has no effect while Hide All Chats is on.	Anda bisa menyeret Semua Obrolan ke tempat lain di antara tab folder, seperti dengan Premium. Tempatnya disimpan di ponsel ini untuk akun ini, dan perangkat Anda yang lain tetap menaruh Semua Obrolan di depan. Tidak berpengaruh selama Sembunyikan Semua Obrolan aktif.
 # context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
 Hide picked chats	Sembunyikan obrolan pilihan
 # context: Summary of Hide picked chats, followed by one of the next two sentences. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations
-The chats you pick below leave All Chats, your folders and archived chats. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list.	Obrolan yang Anda pilih di bawah tidak muncul lagi di Semua Obrolan, folder Anda, dan Obrolan yang diarsipkan. Pesan dan notifikasinya tetap ada, pencarian tetap menemukannya, dan tidak ada yang berubah di perangkat Anda yang lain. Setiap akun punya daftarnya sendiri.
+The chats you pick below leave All Chats, your folders, archived chats and the forward and share lists. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list.	Obrolan yang Anda pilih di bawah tidak muncul lagi di Semua Obrolan, folder Anda, Obrolan yang diarsipkan, dan daftar untuk meneruskan dan membagikan. Pesan dan notifikasinya tetap ada, pencarian tetap menemukannya, dan tidak ada yang berubah di perangkat Anda yang lain. Setiap akun punya daftarnya sendiri.
 # context: Ends the summary of Hide picked chats when this build's folder tab counts leave the hidden chats out. The app badge is the unread count on the app's icon
 Folder tab counts leave them out, but the app badge still counts their unread messages.	Jumlah di tab folder tidak menghitungnya, tetapi lencana aplikasi tetap menghitung pesan yang belum dibaca.
 # context: Ends the summary of Hide picked chats when this build's folder tab counts still count the hidden chats. The app badge is the unread count on the app's icon
@@ -1039,8 +1056,20 @@ Couldn't save the language. Try again in a moment.	Bahasa tidak dapat disimpan. 
 The translation language will change.	Bahasa terjemahan akan berubah.
 # context: Switch title under Save downloaded files. It moves the folder Telegram keeps its own downloads in from Android/data to the phone's main storage.
 Keep Telegram's files in internal storage	Simpan file Telegram di penyimpanan internal
-# context: Summary under that switch. Internal storage/Telegram and Android/data are folder paths: translate Internal storage as Android's Files app does, keep Telegram and Android/data as they are. All files access is Android's name for the special app access page.
-New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data, and Telegram still opens them from there. Needs All files access and a restart.	Foto, video, dan file baru yang diunduh Telegram masuk ke Penyimpanan internal/Telegram, tempat pengelola file dan aplikasi lain bisa membukanya, bukan ke Android/data. File yang diunduh sebelumnya tetap di Android/data, dan Telegram tetap membukanya dari sana. Perlu Akses semua file dan mulai ulang.
+# context: Summary under that switch. Internal storage and Android/data are folder places: translate Internal storage as Android's Files app does, keep Android/data as it is. All files access is Android's name for the special app access page.
+New photos, videos and files Telegram downloads go to the folder below in Internal storage, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay where they are, and Telegram still opens them from there. Needs All files access and a restart.	Foto, video, dan file baru yang diunduh Telegram masuk ke folder di bawah ini di Penyimpanan internal, tempat pengelola file dan aplikasi lain bisa membukanya, bukan ke Android/data. File yang diunduh sebelumnya tetap di tempatnya, dan Telegram tetap membukanya dari sana. Perlu Akses semua file dan mulai ulang.
+# context: Row under the switch that names the folder Telegram's files go in. A folder inside the phone's Internal storage.
+Folder in internal storage	Folder di penyimpanan internal
+# context: The row's summary, a folder path. Translate Internal storage as Android's Files app does and keep %1$s, the folder's name.
+Internal storage/%1$s	Penyimpanan internal/%1$s
+# context: Hint in the box where the folder's name is typed.
+Folder name	Nama folder
+# context: Text above that box. Telegram here is the default folder's name and the app's, both stay as they are.
+Telegram's files go in this folder in Internal storage, and it's made if it isn't there. Leave it empty for Telegram, and restart Telegram after a change.	File Telegram masuk ke folder ini di Penyimpanan internal, dan folder dibuat kalau belum ada. Kosongkan untuk Telegram, lalu mulai ulang Telegram setelah mengubahnya.
+# context: Toast when the typed folder name can't be used.
+That name won't work. Try letters and numbers.	Nama itu tidak bisa dipakai. Coba huruf dan angka.
+# context: A line of the settings file import preview, the folder Telegram's files move to.
+The folder for Telegram's files will change.	Folder untuk file Telegram akan berubah.
 # context: Second line of that summary when Android has given Telegram All files access.
 All files access is on.	Akses semua file aktif.
 # context: Second line of that summary when Android hasn't given Telegram All files access. Android/data is a folder path, keep it as it is.
@@ -1059,10 +1088,14 @@ reaction notifications without push	notifikasi reaksi tanpa push
 Hide reactions under messages	Sembunyikan reaksi di bawah pesan
 The row of reactions under each message isn't drawn. Nothing is removed, so turn it off and they're back. Tags in Saved Messages stay.	Baris reaksi di bawah setiap pesan tidak ditampilkan. Tidak ada yang dihapus, jadi matikan saja dan reaksinya kembali. Tag di Pesan Tersimpan tetap ada.
 Hide the reaction picker	Sembunyikan pemilih reaksi
-The row of reactions at the top of the long-press menu and the panel it opens are gone. The rest of the menu works as before.	Baris reaksi di bagian atas menu tekan lama dan panel yang dibukanya dihilangkan. Menu lainnya berfungsi seperti biasa.
+The row of reactions at the top of the long-press menu, the panel it opens and the reaction bubble over a selected message are gone. The rest of the menu works as before.	Baris reaksi di bagian atas menu tekan lama, panel yang dibukanya, dan gelembung reaksi di atas pesan yang dipilih hilang. Bagian menu lainnya berfungsi seperti biasa.
+Hide the emoji pack line	Sembunyikan baris paket emoji
+The line at the bottom of the long-press menu that names a message's emoji pack is gone. The rest of the menu works as before.	Baris di bagian bawah menu tekan lama yang menyebutkan paket emoji pesan hilang. Bagian menu lainnya berfungsi seperti biasa.
 # context: Coverage labels for the reaction row and reaction picker hooks.
 reaction rows under messages	baris reaksi di bawah pesan
 the reaction picker in the message menu	pemilih reaksi di menu pesan
+the reaction bubble on selected messages	gelembung reaksi di atas pesan yang dipilih
+the emoji pack line in the message menu	baris paket emoji di menu pesan
 # context: Switch on the Conversations page for copying text in a chat or message that doesn't allow saving (#43), its toast, and the label for the text selection part.
 Copy text from chats that don't allow saving	Salin teks dari chat yang tidak mengizinkan penyimpanan
 Puts Copy back in the menu of a message in a chat that doesn't allow saving, and lets you copy selected text there. Secret chats stay as they are.	Mengembalikan Salin ke menu pesan di chat yang tidak mengizinkan penyimpanan, dan membuat teks yang dipilih di sana bisa disalin. Chat rahasia tidak berubah.
@@ -1122,3 +1155,359 @@ Recording stopped	Perekaman dihentikan
 Record call	Rekam panggilan
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the record button on the call screen.
 call record button	tombol rekam panggilan
+# context: Switch on the Conversations page that adds Telegram's Save to Gallery to a story's three-dot menu (#52). The label is Telegram's applied translation of SaveToGallery.
+Add Save to Gallery to stories	Tambahkan Simpan ke Galeri ke Cerita
+Puts Save to Gallery in a story's three-dot menu without Premium, stories that don't allow saving included. It saves only the ones you pick.	Menaruh Simpan ke Galeri di menu tiga titik cerita tanpa Premium, termasuk cerita yang tidak mengizinkan penyimpanan. Hanya yang kamu pilih yang disimpan.
+Save to Gallery in stories	Simpan ke Galeri di Cerita
+# context: Switch on the Conversations page (Discussion #34). Turned on, screenshots and screen recording work in chats, channels, their photos, profiles and stories whose owner turned on Telegram's content protection. Secret chats, view-once media and the passcode lock stay protected.
+Allow screenshots in chats that don't allow saving	Izinkan tangkapan layar di obrolan yang tidak mengizinkan penyimpanan
+Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats, view-once media and the passcode screen stay blocked.	Tangkapan layar dan rekaman layar berfungsi di obrolan tersebut, beserta foto, profil, dan ceritanya. Telegram tidak memberi tahu siapa pun. Obrolan rahasia, media sekali lihat, dan layar kode sandi tetap diblokir.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the switch that allows screenshots in chats that don't allow saving.
+screenshots in chats that don't allow saving	tangkapan layar di obrolan yang tidak mengizinkan penyimpanan
+# context: Switch for Fast forward in the message menu (#53), its item, choices and picker.
+Add Fast forward to the message menu	Tambahkan Teruskan cepat ke menu pesan
+Adds Fast forward to a message you can forward. Pick without the sender's name, without the caption, or both, then pick a chat.	Menambahkan Teruskan cepat ke pesan yang bisa kamu teruskan. Pilih tanpa nama pengirim, tanpa keterangan, atau keduanya, lalu pilih obrolan.
+Fast forward	Teruskan cepat
+Without sender name	Tanpa nama pengirim
+Without caption	Tanpa keterangan
+Without sender name or caption	Tanpa nama pengirim dan keterangan
+# context: Switch for Forward to Saved Messages in the message menu (#53), its item and choices.
+Add Forward to Saved Messages to the message menu	Tambahkan Teruskan ke Pesan Tersimpan ke menu pesan
+Adds Forward to Saved Messages to a message you can forward. Pick as is, without the sender's name, without the caption, or both, and it lands in your Saved Messages at once.	Menambahkan Teruskan ke Pesan Tersimpan ke pesan yang bisa kamu teruskan. Pilih apa adanya, tanpa nama pengirim, tanpa keterangan, atau keduanya, dan pesan langsung masuk ke Pesan Tersimpan.
+Forward to Saved Messages	Teruskan ke Pesan Tersimpan
+Forward as is	Teruskan apa adanya
+# context: Switch for Save video cover in the message menu (#53), its item and toasts.
+Add Save video cover to the message menu	Tambahkan Simpan sampul video ke menu pesan
+Adds Save video cover to a video message. The biggest cover or thumbnail Telegram has goes to Pictures, fetched first if it is not on the phone yet.	Menambahkan Simpan sampul video ke pesan video. Sampul atau gambar mini terbesar dari Telegram masuk ke Gambar, diunduh dulu jika belum ada di ponsel.
+Save video cover	Simpan sampul video
+Cover saved to Pictures	Sampul disimpan ke Gambar
+No cover to save	Tidak ada sampul untuk disimpan
+Cover isn't available yet	Sampul belum tersedia
+Couldn't save the picture	Gambar tidak bisa disimpan
+# context: Switch for Save album art in the message menu (#53), its item and toasts.
+Add Save album art to the message menu	Tambahkan Simpan sampul album ke menu pesan
+Adds Save album art to a song that has art, inside the file or on Telegram. The picture goes to Pictures.	Menambahkan Simpan sampul album ke lagu yang punya sampul, di dalam berkas atau di Telegram. Gambar masuk ke Gambar.
+Save album art	Simpan sampul album
+Album art saved to Pictures	Sampul album disimpan ke Gambar
+Album art isn't available yet	Sampul album belum tersedia
+No album art to save	Tidak ada sampul album untuk disimpan
+# context: Switch for Clear from cache in the message menu (#53), its item and toasts.
+Add Clear from cache to the message menu	Tambahkan Hapus dari cache ke menu pesan
+Adds Clear from cache to a video or file message. It stops a running download, deletes what Telegram kept of it and brings the download arrow back. Saved copies in Downloads or Pictures stay.	Menambahkan Hapus dari cache ke pesan video atau berkas. Unduhan yang berjalan dihentikan, yang disimpan Telegram dihapus, dan panah unduh kembali. Salinan tersimpan di Unduhan atau Gambar tetap ada.
+Clear from cache	Hapus dari cache
+Cleared %1$s	%1$s dibersihkan
+Nothing to clear	Tidak ada yang dihapus
+Couldn't clear that. Try again.	Tidak bisa dihapus. Coba lagi.
+# context: Switch under Links for cleaning a link when it is copied or pasted into the message box (#53).
+Clean links when you copy or paste	Bersihkan tautan saat disalin atau ditempel
+A link you copy in Telegram, or paste into the message box, loses the same tracking tags. Only text that is one link and nothing else is changed.	Tautan yang Anda salin di Telegram atau tempel ke kotak pesan kehilangan tag pelacakan yang sama. Hanya teks yang berupa satu tautan saja yang diubah.
+copied links	tautan yang disalin
+pasted links	tautan yang ditempel
+# context: Third switch under Faster downloads on the Playback page (#53). An upload is sending a file to Telegram; pieces are the chunks it is cut into.
+Faster uploads	Unggahan lebih cepat
+Uploads keep four times as many pieces on their way at once. Telegram's servers still decide how fast an account can send. The next upload picks this up.	Unggahan menjaga empat kali lebih banyak bagian dalam perjalanan sekaligus. Server Telegram tetap menentukan seberapa cepat akun dapat mengirim. Unggahan berikutnya akan memakainya.
+uploads	unggahan
+# context: Switch on the Ads page, under Block new channels and groups (#53). A secret chat is Telegram's end-to-end encrypted one-to-one chat; use Telegram's own word for it.
+Disable secret chats	Nonaktifkan obrolan rahasia
+When someone asks for a secret chat, this phone ignores it. Nothing is saved or shown, and nothing is sent back, so they just see it waiting. Secret chats you already have keep working.	Saat seseorang meminta obrolan rahasia, ponsel ini mengabaikannya. Tidak ada yang disimpan atau ditampilkan dan tidak ada yang dikirim balik, jadi mereka hanya melihatnya menunggu. Obrolan rahasia yang sudah Anda miliki tetap berfungsi.
+secret chat requests	permintaan obrolan rahasia
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. With it on, the chat list orders the unpinned chats by the date of their last message
+Sort chats by date	Urutkan chat menurut tanggal
+# context: Summary of Sort chats by date. Pinned chats stay at the top and the archive row stays where it is; only this phone's view changes
+Orders your unpinned chats by the date of their last message. Pinned chats and the archive row keep their places. It only changes how this phone shows the list, and nothing is sent to Telegram.	Mengurutkan chat yang tidak disematkan menurut tanggal pesan terakhirnya. Chat yang disematkan dan baris arsip tetap di tempatnya. Ini hanya mengubah tampilan daftar di ponsel ini, dan tidak ada yang dikirim ke Telegram.
+# context: Switch title under Sort chats by date. With it on, the chat with the oldest last message comes first
+Oldest chats first	Chat terlama dulu
+# context: Summary of Oldest chats first. Sort chats by date is the title of the switch above it
+With Sort chats by date on, the chat with the oldest last message comes first instead of the newest.	Saat Urutkan chat menurut tanggal aktif, chat dengan pesan terakhir paling lama muncul lebih dulu, bukan yang terbaru.
+# context: Switch title under Hide picked chats on the Chat list page, off by default. With it on, the hidden chats ask for the Telegram app passcode
+Passcode for hidden chats	Kode sandi untuk chat tersembunyi
+# context: Summary of Passcode for hidden chats. Says plainly it only guards this settings page and that search still finds the chats
+Opening the list of hidden chats, and turning off Hide picked chats or this switch, asks for your Telegram passcode first. It uses the passcode you already set in Telegram, and it only guards this settings page. Anyone who can open Telegram can still find the hidden chats through search.	Membuka daftar chat tersembunyi, atau mematikan Sembunyikan obrolan pilihan atau sakelar ini, meminta kode sandi Telegram-mu dulu. Ini memakai kode sandi yang sudah kamu atur di Telegram, dan hanya menjaga halaman pengaturan ini. Siapa pun yang bisa membuka Telegram tetap bisa menemukan chat tersembunyi lewat pencarian.
+# context: Toast when Passcode for hidden chats is switched on but the Telegram app has no passcode yet
+Set a Telegram passcode first.	Atur kode sandi Telegram dulu.
+# context: Dialog title when the Telegram passcode is asked for before the hidden chats open or their switch turns off
+Passcode needed	Perlu kode sandi
+# context: Row summary of Chats to hide while Passcode for hidden chats is on; the names stay out of sight
+Locked with your Telegram passcode.	Dikunci dengan kode sandi Telegram-mu.
+# context: Hint in the passcode box that asks for the Telegram app passcode
+Telegram passcode	Kode sandi Telegram
+# context: Instruction above the passcode box that asks for the Telegram app passcode
+Type the passcode you use to unlock Telegram.	Ketik kode sandi yang kamu pakai untuk membuka Telegram.
+# context: Button on the passcode dialog that checks the typed passcode
+Unlock	Buka kunci
+# context: Shown under the passcode box after a wrong passcode
+That's not your passcode.	Itu bukan kode sandimu.
+# context: Shown under the passcode box after five wrong passcodes in a row; %1$s is the number of seconds to wait
+Too many tries. Wait %1$s seconds and try again.	Terlalu banyak percobaan. Tunggu %1$s detik lalu coba lagi.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line such as 'the patch could not find %1$s'. It names the chat list's order by date
+chat list ordered by date	urutan daftar chat menurut tanggal
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line such as 'the patch could not find %1$s'. It names the passcode check that guards the hidden chats
+the app passcode for hidden chats	kode sandi aplikasi untuk chat tersembunyi
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. With it on, the side menu gets an Administrators row
+Administrators row in the side menu	Baris Administrator di menu samping
+# context: Summary of the Administrators row switch. The side menu is the menu Hush brings back on the left of the chat list; Administrators is the row's name
+Adds an Administrators row to the side menu, so one tap lists only the groups and channels you own or manage and another brings every chat back. It needs the side menu switch on, only changes how this phone lists chats, and starts off again when Telegram restarts.	Menambahkan baris Administrator ke menu samping. Satu ketukan hanya menampilkan grup dan kanal yang kamu miliki atau kelola, dan ketukan lagi mengembalikan semua chat. Sakelar menu samping harus aktif, ini hanya mengubah cara ponsel ini menampilkan chat, dan mati lagi saat Telegram dimulai ulang.
+# context: Side menu row name, and the Hide folder tab counters switch's name for it. Groups and channels the user owns or administers
+Administrators	Administrator
+# context: Side menu row name while the Administrators filter is on; a tap brings every chat back
+Show all chats	Tampilkan semua chat
+# context: Toast after the Administrators row is tapped and the chat list shows only the chats the user owns or manages
+Showing chats you manage.	Menampilkan chat yang kamu kelola.
+# context: Toast after the Administrators row is tapped again and every chat is back
+Showing all chats.	Menampilkan semua chat.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the Administrators filter in the side menu
+the Administrators filter	filter Administrator
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It hides signed-in accounts from Telegram's account lists
+Hide accounts	Sembunyikan akun
+# context: Summary of the Hide accounts switch. It must say plainly that this only hides accounts from the account lists: they stay signed in and notifications follow Telegram's own settings. Nothing is signed out or deleted
+The accounts you pick below leave Telegram's account lists, but only there. Each one stays signed in, keeps syncing, and its notifications follow Telegram's own settings. Nothing is signed out or deleted, and the account you're using always shows.	Akun yang kamu pilih di bawah hilang dari daftar akun Telegram, tetapi hanya di situ. Setiap akun tetap masuk, tetap sinkron, dan notifikasinya mengikuti pengaturan Telegram sendiri. Tidak ada yang dikeluarkan atau dihapus, dan akun yang sedang kamu pakai selalu tampil.
+# context: Settings row title and the title of its list. The list shows every signed-in account with a tick box; ticked accounts are left out of Telegram's account lists
+Accounts to hide	Akun yang disembunyikan
+# context: Switch title under Hide accounts. With it on, the hidden accounts list and the switches need Telegram's own app passcode
+Passcode for hidden accounts	Kode sandi untuk akun tersembunyi
+# context: Summary of the passcode switch for hidden accounts. The passcode is the app passcode set in Telegram's own settings
+Opening the list of hidden accounts, and turning off Hide accounts or this switch, asks for your Telegram passcode first. It uses the passcode you already set in Telegram, and it only guards this settings page.	Membuka daftar akun tersembunyi, serta mematikan Sembunyikan akun atau pengaturan ini, meminta kode sandi Telegram-mu lebih dulu. Yang dipakai adalah kode sandi yang sudah kamu atur di Telegram, dan hanya melindungi halaman pengaturan ini.
+# context: Sentence shown beside the Accounts to hide row when no account is hidden
+No accounts hidden yet.	Belum ada akun yang disembunyikan.
+# context: Toast when the signed-in accounts could not be read from Telegram
+Couldn't read your accounts.	Akunmu tidak bisa dibaca.
+# context: Toast when the Accounts to hide row is tapped with only one account signed in
+Sign in to a second account first.	Masuk dulu ke akun kedua.
+# context: Toast when every signed-in account is ticked in Accounts to hide; one account must always stay in the account lists
+Keep at least one account showing.	Sisakan minimal satu akun yang tampil.
+# context: Toast when the ticked accounts could not be written to storage
+Couldn't save the accounts. Try again in a moment.	Akun tidak bisa disimpan. Coba lagi sebentar lagi.
+# context: Name of an account that has no name Telegram can give yet, with its position among the signed-in accounts. %1$s is the number
+Account %1$s	Akun %1$s
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that hides accounts from Telegram's account lists
+the hidden accounts	akun tersembunyi
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It shrinks the folder tabs above the chat list until all of them fit on the screen
+Fit all folder tabs	Muat semua tab folder
+# context: Summary of the Fit all folder tabs switch. The folder tabs shrink so none of them scrolls out of sight; with few folders nothing changes
+Shrinks the folder tabs above the chat list until all of them fit on the screen, so you never scroll sideways to find one. With only a few folders nothing changes.	Memperkecil tab folder di atas daftar obrolan sampai semuanya muat di layar, jadi kamu tidak perlu menggeser ke samping untuk mencari satu. Kalau foldernya sedikit, tidak ada yang berubah.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that shrinks the folder tabs to fit the screen
+the fitted folder tabs	tab folder yang dimuatkan
+# context: Switch under Privacy for Receive only mode, per account (#53).
+Receive only mode	Mode hanya terima
+The accounts you pick below can read but not write. Messages, reactions, drafts and typing stay on this phone and show an error. Reading, files and read receipts work. Works with this switch on.	Akun yang Anda pilih di bawah bisa membaca tetapi tidak menulis. Pesan, reaksi, draf, dan status mengetik tetap di ponsel ini dan menampilkan kesalahan. Membaca, berkas, dan tanda dibaca tetap berfungsi. Berlaku saat sakelar ini aktif.
+# context: Switch under Privacy for Power off accounts, per account (#53).
+Power off accounts	Matikan akun
+The accounts you pick below send nothing. Telegram's connection can still stay open in the background, so it may still receive messages and notifications. Works with this switch on.	Akun yang Anda pilih di bawah tidak mengirim apa pun. Koneksi Telegram masih bisa tetap terbuka di latar belakang, jadi pesan dan notifikasi mungkin tetap masuk. Berlaku saat sakelar ini aktif.
+# context: Summary under a per-account switch in Power off accounts (#53).
+Powered off	Dimatikan
+# context: Summary under a per-account switch in Receive only mode (#53).
+Receive only	Hanya terima
+# context: Short tag in front of an account name in the side menu: powered off (#53).
+(Off)	(Mati)
+# context: Short tag in front of an account name in the side menu: receive only (#53).
+(Read only)	(Hanya baca)
+# context: Toast when a powered-off account tries to send (#53). Two lines of 28 characters at most.
+This account is powered off.	Akun ini sedang mati.
+# context: Toast when a receive-only account tries to write (#53). Two lines of 28 characters at most.
+Receive only mode is on.	Mode hanya terima aktif.
+# context: Switch under Conversations: typed @ and a user ID becomes a real mention (#53).
+Mention by ID	Sebut lewat ID
+Typing @ and a user ID, or tg://user?id= and the ID, turns into a real mention. It only works for people this app has already seen, such as in a chat or group. Anyone else is sent as typed.	Mengetik @ dan ID pengguna, atau tg://user?id= dan ID-nya, berubah menjadi sebutan sungguhan. Ini hanya berlaku untuk orang yang sudah pernah terlihat aplikasi ini, misalnya di obrolan atau grup. Selain itu dikirim apa adanya.
+# context: Toast when a typed @ and ID names someone this app has not seen (#53). Two lines of 28 characters at most.
+I haven't seen that person.	Orang itu belum terlihat.
+# context: Names of optional parts in the patch status list (#53).
+mentions by ID	sebutan berdasarkan ID
+powering off accounts	mematikan akun
+receive only mode	mode hanya menerima
+# context: Switch on the Playback page for remembering where videos, voice messages and music stopped (#53). Telegram only does this for long ones.
+Remember where playback stopped	Ingat di mana pemutaran berhenti
+# context: Summary of the switch Remember where playback stopped. Telegram itself only remembers the position of long videos, voice messages and songs.
+Videos, voice messages and music pick up where you left off, even short ones. Telegram only does that for long ones.	Video, pesan suara, dan musik dilanjutkan dari tempat Anda berhenti, bahkan yang pendek. Telegram hanya melakukannya untuk yang panjang.
+# context: Title of a switch under Add Repeat to the message menu (#53), and the label of the button it adds to the bar that shows while messages are selected. Tapping the button selects every message between the first and last one already selected.
+Select between	Pilih di antaranya
+# context: Summary of the Select between switch. The bar is the one that appears at the top of a chat while messages are selected.
+Adds a Select between button to the bar that shows while you pick messages. It selects everything between the first and last one you picked. Pick one past the end and the gap fills in.	Menambahkan tombol Pilih di antaranya ke bilah yang muncul saat kamu memilih pesan. Tombol ini memilih semua pesan di antara yang pertama dan terakhir kamu pilih. Pilih satu di luar ujung dan celahnya terisi.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select between button.
+selecting everything between two messages	memilih semua pesan di antara dua pesan
+# context: Toast after tapping Select between with fewer than two messages selected.
+Select two messages first	Pilih dua pesan dulu
+# context: Toast from Select between when a selected message has scrolled out of what the chat has loaded, so the range can't be known.
+Those messages aren't all loaded	Belum semua termuat
+# context: Toast from Select between when the selected messages are next to each other or the ones between can't be selected.
+Nothing in between to select	Tidak ada di antaranya
+# context: Toast from Select between when Telegram's limit of 100 selected messages is reached.
+Stopped at 100 messages	Berhenti di 100 pesan
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Remember where playback stopped switch.
+remembering where playback stopped	mengingat posisi putar terakhir
+# context: Settings row for the icon pack drawn beside folder names, and the title of its list.
+Folder icons	Ikon folder
+# context: Folder icon pack choice: the thin-line style.
+Regular	Reguler
+# context: Folder icon pack choice: the heavy-line style.
+Bold	Tebal
+# context: Folder icon pack choice: the solid, filled style.
+Filled	Terisi
+# context: Folder icon pack choice: draw no icons.
+None	Tidak ada
+# context: Toast when the folder icon choice couldn't be saved.
+Couldn't save the choice. Try again in a moment.	Pilihan tidak tersimpan. Coba lagi sebentar lagi.
+# context: Summary of the Folder icons row. %1$s is the chosen pack (Regular, Bold, Filled or None).
+%1$s. Icons show beside folder names in HushTelegram's own lists. Telegram's folder tabs stay as they are.	%1$s. Ikon muncul di samping nama folder pada daftar HushTelegram sendiri. Tab folder Telegram tetap seperti semula.
+# context: Settings row that makes downloads run one at a time. Its list is in the side menu.
+Download manager	Pengelola unduhan
+# context: Summary of the Download manager row.
+Files download one at a time, in the order you asked for them. Adds a Downloads row to the side menu, which needs Side menu on too.	File diunduh satu per satu, sesuai urutan yang kamu minta. Menambahkan baris Unduhan ke menu samping, yang juga harus diaktifkan.
+# context: Side menu row and title of the list of running, waiting and finished downloads.
+Downloads	Unduhan
+# context: State of the download running now, in the Downloads list. A size may follow after a comma.
+Downloading	Mengunduh
+# context: State of a download waiting its turn, in the Downloads list. A size may follow after a comma.
+Waiting	Menunggu
+# context: State of a finished download, in the Downloads list. A size may follow after a comma.
+Finished	Selesai
+# context: Shown in the Downloads list when nothing has been downloaded.
+No downloads yet	Belum ada unduhan
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Download manager part of Faster downloads: running downloads one at a time with a list in the side menu
+download manager	pengelola unduhan
+# context: Title of the Save downloads row and list that pick which kinds of files get copied to Download/Telegram
+What to copy	Yang disalin
+# context: Kind of file in the What to copy list: any file that isn't a picture, video or sound file
+Documents	Dokumen
+# context: Kind of file in the What to copy list: songs and other sound files
+Music	Musik
+# context: Kind of file in the What to copy list
+Photos	Foto
+# context: Kind of file in the What to copy list
+Videos	Video
+# context: Kind of file in the What to copy list: view-once and timed voice messages
+Voice messages	Pesan suara
+# context: What to copy row summary when every kind is ticked
+Every kind of file.	Semua jenis file.
+# context: What to copy row summary; %1$s is the ticked kinds joined into a list, like "Documents and Music"
+Only %1$s. The rest stay in Telegram.	Hanya %1$s. Sisanya tetap di Telegram.
+# context: Toast when Save is tapped in What to copy with nothing ticked
+Tick at least one kind of file.	Centang minimal satu jenis file.
+# context: Toast when the ticked kinds couldn't be written to the phone's storage
+Couldn't save the kinds. Try again in a moment.	Jenis file tidak dapat disimpan. Coba lagi sebentar lagi.
+# context: In the settings import preview, What to copy leaving no kind of file out, as in "What to copy: Every kind to Documents and Photos"
+Every kind	Semua jenis
+# context: a switch under Keep videos muted on volume keys (#61). With it on, a video opened in Telegram's video viewer plays with no sound until a volume key is pressed.
+Start videos without sound	Mulai video tanpa suara
+# context: that switch's summary. A round video is Telegram's circular video message, which plays in the chat and keeps its sound.
+A video you open plays muted until you press a volume key. Round videos keep their sound.	Video yang kamu buka diputar tanpa suara sampai kamu menekan tombol volume. Video bulat tetap bersuara.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that starts opened videos without sound.
+videos starting without sound	memulai video tanpa suara
+# context: a switch under Ghost mode (#62). With it on, a ghost button sits at the top of the chat list, among Telegram's own buttons there.
+Ghost mode button	Tombol Mode hantu
+# context: that switch's summary. Filled means the ghost icon is drawn solid rather than as an outline.
+A ghost at the top of the chat list turns Ghost mode on and off with a tap. It's filled while Ghost mode is on.	Hantu di bagian atas daftar obrolan menyalakan dan mematikan Mode hantu dengan sekali ketuk. Hantunya terisi penuh saat Mode hantu aktif.
+# context: short message shown after a tap on the chat list's ghost button turned Ghost mode on.
+Ghost mode on	Mode hantu aktif
+# context: short message shown after a tap on the chat list's ghost button turned Ghost mode off.
+Ghost mode off	Mode hantu nonaktif
+# context: a switch on the Chat list page (#59). It lets Telegram's sign-in screen offer its own test servers, which Telegram keeps for developers and which hold separate test accounts.
+Test server sign-in	Masuk ke server uji
+# context: that switch's summary. "Test Backend" is the checkbox under the phone number field on Telegram's sign-in screen, written with Telegram's applied label for this language (key DebugTestBackend on translations.telegram.org; Bulgarian has none applied, so Telegram shows the English "Test Backend" there).
+Signing in or adding an account shows Telegram's Test Backend box on the phone number screen. Tick it to sign that account in on Telegram's test servers, kept apart from your other accounts.	Saat masuk atau menambahkan akun, layar nomor telepon menampilkan kotak Uji Backend milik Telegram. Centang kotak itu untuk memasukkan akun tersebut ke server uji Telegram, terpisah dari akun Anda yang lain.
+# context: a switch on the Look and feel page under Show user and chat IDs (#53). With it on, a person's profile menu offers Track this user, and the people tracked get a history.
+Special contacts	Kontak khusus
+# context: that switch's summary. Track this user is the profile menu row it adds, translated the same as that row.
+A person's profile menu gets Track this user. For anyone you track, a history builds up from what Telegram already shows you: coming online and going offline, typing, and changes to their name, username, phone number, photo or contacts. Nothing extra is asked of Telegram, and the history stays on this phone.	Menu profil seseorang mendapat Lacak pengguna ini. Untuk setiap orang yang Anda lacak, riwayat terbentuk dari apa yang sudah ditampilkan Telegram: saat online dan offline, saat mengetik, serta perubahan nama, nama pengguna, nomor telepon, foto, atau kontaknya. Tidak ada permintaan tambahan ke Telegram, dan riwayatnya tetap di ponsel ini.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Special contacts part of Show user and chat IDs.
+special contacts	kontak khusus
+# context: a row in a person's profile menu (the three dots on their profile) with Special contacts on. A tap starts keeping a history of that person.
+Track this user	Lacak pengguna ini
+# context: the same profile menu row for someone already tracked, and the button in that person's history that stops tracking them
+Stop tracking	Berhenti melacak
+# context: short message after Stop tracking
+Stopped tracking	Tidak dilacak lagi
+# context: short message after Track this user
+Tracking this user	Pengguna ini dilacak
+# context: short message when Track this user is tapped with 50 people already tracked on this account
+You can track up to 50 people	Anda bisa melacak hingga 50 orang
+# context: short message when Track this user couldn't write to the phone's storage
+Couldn't start tracking	Tidak bisa mulai melacak
+# context: summary of the Tracked people row when nobody is tracked on the account shown
+Nobody yet. Track someone from their profile's menu.	Belum ada. Lacak seseorang dari menu profilnya.
+# context: summary of the Tracked people row; %1$d is how many people are tracked on the account shown
+%1$d person tracked	%1$d orang dilacak
+%1$d people tracked	%1$d orang dilacak
+# context: the Tracked people row on the Look and feel page, and the title of the list it opens
+Tracked people	Orang yang dilacak
+# context: short message when the tracked people couldn't be read from the phone's storage
+Couldn't read the list.	Daftar tidak bisa dibaca.
+# context: short message when Tracked people is tapped with nobody tracked
+Nobody tracked yet	Belum ada yang dilacak
+# context: button in a tracked person's history that empties it and keeps tracking them
+Clear history	Hapus riwayat
+# context: short message after Clear history
+History cleared	Riwayat dihapus
+# context: a tracked person's history with nothing in it
+No history yet	Belum ada riwayat
+# context: history line, after a date and time: tracking this person began
+Started tracking	Mulai dilacak
+# context: history line, after a date and time: the tracked person came online. Every history line has the person as its unspoken subject.
+Came online	Menjadi online
+# context: history line: the person went offline; %1$s is the date and time Telegram gives as their last seen
+Went offline, last seen %1$s	Menjadi offline, terakhir dilihat %1$s
+# context: history line: the person went offline, with no last seen time to show
+Went offline	Menjadi offline
+# context: history line: Telegram now shows the person's last seen only as recently, the way it does when they hide the exact time
+Last seen recently	Terakhir dilihat baru-baru ini
+# context: history line: Telegram now shows the person's last seen as within a week
+Last seen within a week	Terakhir dilihat dalam seminggu
+# context: history line: Telegram now shows the person's last seen as within a month
+Last seen within a month	Terakhir dilihat dalam sebulan
+# context: history line: Telegram now shows the person's last seen as a long time ago
+Last seen a long time ago	Terakhir dilihat sudah lama
+# context: history line: the person was typing in your chat with them
+Typing	Mengetik
+# context: history line: the person was typing in a group or channel; %1$s is its name
+Typing in %1$s	Mengetik di %1$s
+# context: history line; %1$s is the old name and %2$s the new one (or the word none)
+Changed name from %1$s to %2$s	Mengubah nama dari %1$s menjadi %2$s
+# context: history line; %1$s is the old @username and %2$s the new one (or the word none)
+Changed username from %1$s to %2$s	Mengubah nama pengguna dari %1$s menjadi %2$s
+# context: history line; %1$s is the old phone number and %2$s the new one
+Changed phone number from %1$s to %2$s	Mengubah nomor telepon dari %1$s menjadi %2$s
+# context: history line: the person set a profile photo where they had none
+Added a profile photo	Menambahkan foto profil
+# context: history line
+Removed their profile photo	Menghapus foto profilnya
+# context: history line
+Changed their profile photo	Mengganti foto profilnya
+# context: history line: you (the phone's owner) saved the tracked person as a contact
+You saved them to your contacts	Anda menyimpannya ke kontak Anda
+# context: history line: you removed the tracked person from your contacts
+You removed them from your contacts	Anda menghapusnya dari kontak Anda
+# context: history line: the tracked person saved you as a contact (Telegram shows this as a mutual contact)
+Added you to their contacts	Menambahkan Anda ke kontaknya
+# context: history line
+Removed you from their contacts	Menghapus Anda dari kontaknya
+# context: history line. Telegram never says who blocked you, so this is a guess from the profile photo and last seen both disappearing at once.
+May have blocked you. A guess: their photo and last seen went away together.	Mungkin memblokir Anda. Hanya dugaan: foto dan status terakhir dilihat hilang bersamaan.
+# context: history line after a May have blocked you line, when the photo or last seen shows again
+May have unblocked you. A guess: their photo or last seen came back.	Mungkin membuka blokir Anda. Hanya dugaan: foto atau status terakhir dilihat muncul lagi.
+# context: history line: Telegram now shows the person as Deleted Account
+Deleted their account	Menghapus akunnya
+# context: a switch on the Chat list page (#53). It adds a button to Telegram's phone number screen that signs the account in as a bot made with @BotFather, using the bot's token instead of a phone number.
+Bot token sign-in	Masuk via token bot
+# context: that switch's summary. "Sign in with a bot token" is the button it adds, written here the way that button's own row translates it.
+Signing in or adding an account shows a Sign in with a bot token button on the phone number screen. Paste the token from @BotFather to use that account as your bot. A chat shows up once someone messages the bot, without older history, and a bot has no contacts, stickers or folders. A bot with a webhook set, or one another program is reading, may not get its messages here. Turning this off only hides the button.	Saat masuk atau menambahkan akun, layar nomor telepon menampilkan tombol Masuk dengan token bot. Tempel token dari @BotFather untuk memakai akun itu sebagai bot Anda. Obrolan muncul setelah seseorang mengirim pesan ke bot, tanpa riwayat lama, dan bot tidak punya kontak, stiker, atau folder. Bot yang memakai webhook, atau yang sedang dibaca program lain, mungkin tidak menerima pesannya di sini. Mematikan ini hanya menyembunyikan tombolnya.
+# context: the button the switch adds under the phone number on Telegram's sign-in screen, and the title of the box it opens.
+Sign in with a bot token	Masuk dengan token bot
+# context: the box's button that sends the bot token to Telegram.
+Sign in	Masuk
+# context: the hint inside the box's text field, where the bot token is pasted.
+Bot token	Token bot
+# context: the line above that field. @BotFather is the Telegram bot that makes bots and hands out their tokens.
+Paste the token @BotFather gave your bot. It goes only to Telegram, which keeps it with the account like any sign-in.	Tempel token yang diberikan @BotFather untuk bot Anda. Token hanya dikirim ke Telegram, yang menyimpannya bersama akun seperti proses masuk lainnya.
+# context: shown under the field after Sign in, until Telegram answers.
+Waiting for Telegram.	Menunggu Telegram.
+# context: short message when Telegram gave no sign-in for the bot token, or the request couldn't go out.
+Telegram didn't sign the bot in.	Bot gagal masuk ke Telegram.
+# context: short message when what was typed doesn't have a bot token's shape (digits, a colon, then 35 letters and digits).
+That isn't a bot token.	Itu bukan token bot.
+# context: short message when Telegram says the bot token is wrong.
+That bot token isn't valid.	Token bot itu tidak valid.
+# context: short message when Telegram says the bot token was revoked in @BotFather.
+That bot token was revoked.	Token bot itu sudah dicabut.
+# context: short message when Telegram asks to wait before trying again. %1$s is a number of seconds.
+Wait %1$s seconds, then try again.	Tunggu %1$s detik, lalu coba lagi.
+# context: short message when Telegram refuses the sign-in with an error code of its own. %1$s is that code, in capitals, as Telegram sends it.
+Telegram refused it: %1$s	Telegram menolaknya: %1$s

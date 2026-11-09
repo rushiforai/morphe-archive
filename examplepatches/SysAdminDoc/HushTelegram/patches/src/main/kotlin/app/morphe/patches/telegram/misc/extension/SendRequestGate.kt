@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.extension
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -16,6 +16,10 @@ import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val CONNECTIONS_MANAGER = "Lorg/telegram/tgnet/ConnectionsManager;"
 internal const val SEND_REQUEST_INTERNAL = "sendRequestInternal"
@@ -31,10 +35,11 @@ internal const val SEND_REQUEST_GATE_SIZE = 4
 
 /**
  * The gate for [hook], a static that answers true to drop the request: `(Ljava/lang/Object;)Z` is
- * handed the request, `(Ljava/lang/Object;Ljava/lang/Object;)Z` the request and its callback (p2).
+ * handed the request, `(Ljava/lang/Object;Ljava/lang/Object;)Z` the request and its callback (p2), and
+ * `(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z` the connection manager (p0) first.
  */
 internal fun sendRequestGateCode(hook: String) = """
-    invoke-static/range {p1 .. ${if (hook.endsWith("(Ljava/lang/Object;Ljava/lang/Object;)Z")) "p2" else "p1"}}, $hook
+    invoke-static/range {${if (hook.contains("(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z")) "p0" else "p1"} .. ${if (hook.contains("(Ljava/lang/Object;Ljava/lang/Object;")) "p2" else "p1"}}, $hook
     move-result v0
     if-eqz v0, :hush_send
     return-void
@@ -76,10 +81,10 @@ internal class SendRequestGate(val method: MutableMethod?, val missing: String?)
 internal fun BytecodePatchContext.resolveSendRequestGate(hook: String): SendRequestGate {
     fun missing(why: String) = SendRequestGate(null, why)
 
-    val owner = mutableClassDefByOrNull(CONNECTIONS_MANAGER) ?: return missing("ConnectionsManager is missing")
-    val sends = owner.methods.filter { it.name == SEND_REQUEST_INTERNAL }
+    val owner = tgMutableClassDefByOrNull(CONNECTIONS_MANAGER) ?: return missing("ConnectionsManager is missing")
+    val sends = owner.methods.filter { it.origName == SEND_REQUEST_INTERNAL }
     val method = sends.singleOrNull() ?: return missing("ConnectionsManager has ${sends.size} request sends, not one")
-    if (AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "V" ||
+    if (AccessFlags.STATIC.isSet(method.accessFlags) || method.origReturnType != "V" ||
         method.parameterTypes.map { it.toString() } != SEND_REQUEST_INTERNAL_PARAMETERS || method.implementation == null
     ) return missing("ConnectionsManager's request send changed shape")
     // The gate's answer goes in v0, which holds nothing yet at the start; the request is p1, its callback p2.
@@ -98,7 +103,7 @@ internal fun BytecodePatchContext.resolveSendRequestGate(hook: String): SendRequ
     }
     val others = classDefsMentioning(Mention.reference(NATIVE_SEND_REQUEST)).flatMap { classDef ->
         classDef.methods.filter { other -> other.controlBody().any { it.controlRef() == NATIVE_SEND_REQUEST } }
-    }.filter { it.definingClass != CONNECTIONS_MANAGER || it.name != SEND_REQUEST_INTERNAL }
+    }.filter { it.origDefiningClass != CONNECTIONS_MANAGER || it.origName != SEND_REQUEST_INTERNAL }
     others.firstOrNull()?.let { return missing("${it.definingClass}->${it.name} sends requests past the gate") }
     val gate = SendRequestGate(method, null)
     return gate.rehearse(hook)?.let(::missing) ?: gate

@@ -31,7 +31,7 @@ public final class NuvioPlaybackButtonsPatch {
             builder.execute(context -> {
                 if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                     !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                    throw new IllegalStateException("Playback buttons require NuvioTV 1.1.0-beta.12");
+                    throw new IllegalStateException("Playback buttons require NuvioTV 1.1.0-beta.13");
                 MutableClass main = context.mutableClassDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE), more = context.mutableClassDefBy(NuvioNative.PLAYER_MORE_ROW_TYPE);
                 validateRuntime(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLS_TYPE)),
                     new MutableClass(context.classDefBy(NuvioNative.ANIMATED_VISIBILITY_TYPE)), new MutableClass(context.classDefBy(NuvioNative.ANIMATED_SCOPE_TYPE)));
@@ -40,7 +40,7 @@ public final class NuvioPlaybackButtonsPatch {
                 NuvioIntroDbPatch.staticFields(new MutableClass(context.classDefBy(NuvioNative.COLOR_TYPE)), "b:J");
                 NuvioIntroDbPatch.fields(new MutableClass(context.classDefBy("Lio/sentry/d2;")), "b:Ljava/util/ArrayList;");
                 NuvioIntroDbPatch.fields(new MutableClass(context.classDefBy(NuvioNative.KEY_EVENT_TYPE)), "a:Landroid/view/KeyEvent;");
-                NuvioIntroDbPatch.staticFields(new MutableClass(context.classDefBy(NuvioNative.COMPOSE_EMPTY_TYPE)), "a:Lh1/d;");
+                NuvioIntroDbPatch.staticFields(new MutableClass(context.classDefBy(NuvioNative.COMPOSE_EMPTY_TYPE)), "a:Lg1/d;");
                 for (String field : List.of(NuvioNative.REF_ICON_PARTY_D, NuvioNative.REF_ICON_EXTERNAL_A, NuvioNative.REF_ICON_ASPECT_A, NuvioNative.REF_ICON_CHAPTERS_C)) {
                     int arrow = field.indexOf("->");
                     NuvioIntroDbPatch.staticFields(new MutableClass(context.classDefBy(field.substring(0, arrow))), field.substring(arrow + 2));
@@ -58,7 +58,7 @@ public final class NuvioPlaybackButtonsPatch {
         NuvioNative.REF_LAZY_LIST_SCOPE_Q,
         NuvioNative.REF_LAZY_LIST_I,
         NuvioNative.REF_NATIVE_I,
-        "Le0/o1;-><init>(FFFF)V", "Le0/i;->g(F)Le0/f;",
+        "Ld0/o1;-><init>(FFFF)V", "Ld0/i;->g(F)Ld0/f;",
         NuvioNative.REF_KEY_MODIFIERS_E,
         NuvioNative.REF_FOCUS_MODIFIERS_D, NuvioNative.REF_FOCUS_INITIALIZER_G,
         NuvioNative.REF_FOCUS_EFFECT_INIT,
@@ -68,7 +68,7 @@ public final class NuvioPlaybackButtonsPatch {
         NuvioNative.REF_ICON_MEDIA_Q, NuvioNative.REF_ICON_NEXT_R, NuvioNative.REF_ICON_AUDIO_L, NuvioNative.REF_RESOURCE_HELPER_U,
         NuvioNative.REF_ICON_PARTY_Q, NuvioNative.REF_ICON_SPEED_M, NuvioNative.REF_ICON_EXTERNAL_F, NuvioNative.REF_ICON_MEDIA_P, NuvioNative.REF_ICON_PARTY_O,
         NuvioNative.REF_VECTOR_BUILDER_INIT, NuvioNative.REF_VECTOR_BUILDER_A, NuvioNative.REF_VECTOR_BUILDER_B,
-        "Le2/a1;-><init>(J)V", "Lio/sentry/d2;-><init>(I)V", "Lio/sentry/d2;->o(FF)V", "Lio/sentry/d2;->m(FF)V", "Lio/sentry/d2;->e()V",
+        "Ld2/a1;-><init>(J)V", "Lio/sentry/d2;-><init>(I)V", "Lio/sentry/d2;->o(FF)V", "Lio/sentry/d2;->m(FF)V", "Lio/sentry/d2;->e()V",
         NuvioNative.REF_SETTINGS_ROWS_D,
         NuvioNative.REF_SETTINGS_ROWS_E,
         NuvioNative.REF_SETTINGS_ROWS_J,
@@ -97,7 +97,7 @@ public final class NuvioPlaybackButtonsPatch {
     }
     static void validateRuntime(MutableClass buttons, MutableClass animation, MutableClass scope) {
         for (String signature : List.of(BUTTON, REPORT, ANIMATION)) {
-            MutableClass owner = signature.startsWith("Lv/") ? animation : buttons;
+            MutableClass owner = signature.equals(ANIMATION) ? animation : buttons;
             if (owner.getMethods().stream().filter(m -> m.toString().equals(signature) && (m.getAccessFlags() & 8) != 0).count() != 1)
                 throw new IllegalStateException("Native playback method changed: " + signature);
         }

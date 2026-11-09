@@ -1,0 +1,23 @@
+Lyrics endpoint probe — engine 7.0.0 (1614), build 1.9.13 (10913)
+Device: RXCX100BZ5J (arm64, API 36), logado, storefront br / pt-BR
+Token: developer token read by CatalogSearch from
+       files/datastore/encrypted_tokens.preferences_pb (key_api_token_musicAndroid)
+
+Song: 1411628233 (Imagine Dragons — Believer, Evolve)
+Song detail: GET /v1/catalog/br/songs/1411628233?l=pt-BR -> HTTP 200
+             attributes.hasLyrics=true, attributes.hasTimeSyncedLyrics=true
+
+GET /v1/catalog/br/songs/1411628233/lyrics?l=pt-BR -> HTTP 404
+body: {"errors":[{"id":"FR2N3737K3WHMHRNPT343QUS2U","title":"No related resources",
+      "detail":"No related resources found for lyrics","status":"404","code":"40403"}]}
+
+Variants, all HTTP 404 with the same body:
+  /v1/catalog/br/songs/1411628233/lyrics?l=pt-BR&extend=ttmlLocalizations
+  /v1/catalog/br/songs/1411628233/lyrics
+  /v1/catalog/us/songs/1411628233/lyrics
+
+Token store contains only key_api_token_musicAndroid (developer token);
+there is no music-user-token key in that DataStore.
+
+Conclusion: the response has no data[]/attributes, so there is no ttml/lyrics
+shape to parse. No lyrics UI was added (see README-one.md, Onda 3a).

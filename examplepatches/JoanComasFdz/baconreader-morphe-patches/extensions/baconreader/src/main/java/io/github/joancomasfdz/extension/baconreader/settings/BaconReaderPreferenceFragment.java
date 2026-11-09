@@ -52,12 +52,16 @@ public class BaconReaderPreferenceFragment extends PreferenceFragment {
                 images.addPreference(switchPreference(context, Settings.IMAGES_FULL_WIDTH));
                 images.addPreference(switchPreference(context, Settings.IMAGES_LONG_PRESS_DOWNLOAD));
                 images.addPreference(switchPreference(context, Settings.IMAGES_WIFI_ONLY));
+                images.addPreference(switchPreference(context, Settings.IMAGES_TAP_TO_LOAD));
                 images.addPreference(switchPreference(context, Settings.SHOW_VIDEOS));
                 images.addPreference(textPreference(context, "revanced_baconreader_images_gestures"));
             }
 
             if (IncludedPatches.videoAutoplayInDetailView()) {
                 images.addPreference(switchPreference(context, Settings.AUTOPLAY_VIDEOS_IN_DETAIL_VIEW));
+            }
+            if (IncludedPatches.improvePostMediaLoading()) {
+                images.addPreference(switchPreference(context, Settings.LOADING_PREVIEW));
             }
 
             PreferenceCategory links = category(screen, "revanced_settings_baconreader_screen_2_links_title");
@@ -94,6 +98,11 @@ public class BaconReaderPreferenceFragment extends PreferenceFragment {
                 chat.addPreference(switchPreference(context, Settings.CHECK_CHAT_MESSAGES));
             }
 
+            PreferenceCategory accountColors = category(screen, "revanced_settings_baconreader_screen_5_account_colors_title");
+            if (IncludedPatches.accountColors()) {
+                accountColors.addPreference(switchPreference(context, Settings.ACCOUNT_COLORS));
+            }
+
             PreferenceCategory about = category(screen, "revanced_settings_baconreader_screen_0_about_title");
             Preference version = new Preference(context);
             version.setTitle("BaconReader Patches");
@@ -102,7 +111,7 @@ public class BaconReaderPreferenceFragment extends PreferenceFragment {
             about.addPreference(version);
 
             // Sections without settings, because their patches were not applied.
-            for (PreferenceCategory category : new PreferenceCategory[]{images, links, comments, chat}) {
+            for (PreferenceCategory category : new PreferenceCategory[]{images, links, comments, chat, accountColors}) {
                 if (category.getPreferenceCount() == 0) screen.removePreference(category);
             }
 

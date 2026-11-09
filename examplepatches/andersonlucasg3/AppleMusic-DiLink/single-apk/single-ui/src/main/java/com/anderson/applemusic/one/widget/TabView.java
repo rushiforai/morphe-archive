@@ -47,6 +47,7 @@ public final class TabView extends LinearLayout {
         addView(indicator, indicatorParams);
 
         Focus.attach(this, 10f, 0x00000000, Tokens.SURFACE, null);
+        setContentDescription(text);
     }
 
     public void setSelected(boolean selected) {

@@ -56,6 +56,7 @@ val noRecentDestinationsPatch = bytecodePatch(
                 AppTarget(version = "5.26.5.0"),
                 AppTarget(version = "5.26.90.901"),
                 AppTarget(version = "5.27.0.1"),
+                AppTarget(version = "5.27.4.900"),
             ),
         ),
     )

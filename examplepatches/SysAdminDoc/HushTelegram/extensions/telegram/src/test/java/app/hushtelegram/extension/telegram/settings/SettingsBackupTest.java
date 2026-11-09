@@ -202,25 +202,33 @@ public class SettingsBackupTest {
         List<String> notSwitches = new ArrayList<>();
         for (Setting<?> setting : declaredSettings(Settings.class)) {
             if (!(setting instanceof BooleanSetting) && !SettingsBackup.FILTER_LISTS.contains(setting)
-                    && !SettingsBackup.NUMBERS.contains(setting) && !SettingsBackup.TEXTS.contains(setting)) notSwitches.add(setting.key);
+                    && !SettingsBackup.NUMBERS.contains(setting) && !SettingsBackup.TEXTS.contains(setting)
+                    && setting != Settings.RECEIVE_ONLY_ACCOUNTS && setting != Settings.POWERED_OFF_ACCOUNTS) notSwitches.add(setting.key);
         }
         assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.MESSAGE_FILTERS_GROUPS, Settings.MESSAGE_FILTERS_CHANNELS), SettingsBackup.FILTER_LISTS);
         assertEquals(Collections.singletonList(Settings.STICKER_SIZE), SettingsBackup.NUMBERS);
-        assertEquals(Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET), SettingsBackup.TEXTS);
-        assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_STORIES,
-                        Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_KEYBOARD_FEATURED, Settings.HIDE_COMMERCE, Settings.HIDE_EMOJI_STATUS,
-                        Settings.UNLOCK_PREMIUM_ICONS, Settings.LOCAL_EMOJI_STATUS, Settings.HIDE_PROMOTIONAL_BANNERS,
-                        Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.SEARCH_ONLY_MY_CHATS, Settings.SEARCH_STYLED_NAMES, Settings.BLOCK_NEW_CHATS, Settings.HIDE_CONTACTS_BLOCK, Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL,
-                        Settings.NORMAL_PASTE, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER, Settings.DISABLE_DOUBLE_TAP_REACTIONS, Settings.HIDE_REACTION_ROWS, Settings.HIDE_REACTION_PICKER,
-                        Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK, Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.SWIPE_BACK_ON_PROFILES, Settings.HIDE_PHONE_NUMBER, Settings.SHARE_NUMBER_UNTICKED, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.LOCKED_VOICE_GUARD, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF, Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.SILENCE_NON_CONTACTS, Settings.REACTION_ALERTS, Settings.REACTION_SOUND, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.CHANGE_STICKER_SIZE, Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY, Settings.KEEP_TIMED_MEDIA, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_CHANNEL_SHARE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB, Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, SettingsRoutes.SETTINGS_ROW, SettingsRoutes.TITLE_PRESS, SettingsRoutes.SIDE_MENU_ROW, SettingsRoutes.SHORTCUT, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.SAVE_DOWNLOADS, Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA, Settings.STORAGE_FOLDER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY,
-                        Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE,
-                        Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON, Settings.DISABLE_DRAFT_PREVIEWS,
-                        Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH, Settings.GALLERY_CAMERA_ON_TAP,
-                        Settings.OPEN_EXTERNAL_LINKS, Settings.MINI_APP_LOCATION_OFF, Settings.STRIP_LINK_TRACKING,
-                        Settings.SKIP_AUTOLOGIN, Settings.DISABLE_UPDATE_CHECKS,
-                        Settings.REPAIR_FIREBASE_PUSH),
+        assertEquals(Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET, Settings.FOLDER_ICON_PACK, Settings.STORAGE_FOLDER_NAME,
+                Settings.SAVE_KINDS_LEFT_OUT), SettingsBackup.TEXTS);
+        assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_STORIES, Settings.HIDE_RECOMMENDATIONS, Settings.HIDE_KEYBOARD_FEATURED, Settings.HIDE_COMMERCE, Settings.HIDE_EMOJI_STATUS, Settings.UNLOCK_PREMIUM_ICONS, Settings.LOCAL_EMOJI_STATUS,
+                        Settings.HIDE_PROMOTIONAL_BANNERS, Settings.HIDE_SPONSORED_PROXY, Settings.HIDE_POPULAR_APPS, Settings.SEARCH_ONLY_MY_CHATS, Settings.SEARCH_STYLED_NAMES, Settings.BLOCK_NEW_CHATS, Settings.DISABLE_SECRET_CHATS, Settings.HIDE_CONTACTS_BLOCK,
+                        Settings.HIDE_GREETING_STICKERS, Settings.DISABLE_CHAT_SWIPE, Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL, Settings.NORMAL_PASTE, Settings.MENTION_BY_ID, Settings.SHOW_LOCAL_IDS, Settings.PROFILE_DATA_CENTER,
+                        Settings.SPECIAL_CONTACTS, Settings.DISABLE_DOUBLE_TAP_REACTIONS, Settings.HIDE_REACTION_ROWS, Settings.HIDE_REACTION_PICKER, Settings.HIDE_EMOJI_PACK_NOTE, Settings.QUIET_CONTACTS_NAG, Settings.HOLIDAY_LOOK, Settings.USE_SYSTEM_FONT, Settings.AMOLED_BLACK,
+                        Settings.HIDE_TRANSLATE_BAR, Settings.EXACT_NUMBERS, Settings.REVEAL_SPOILERS, Settings.HIDE_KEYBOARD_ON_SCROLL, Settings.KEEP_VIDEOS_MUTED, Settings.VIDEO_EITHER_LANDSCAPE, Settings.VIDEO_ONLY_FROM_BUTTON, Settings.VIDEO_STARTS_SILENT, Settings.SWIPE_BACK_ON_PROFILES,
+                        Settings.HIDE_PHONE_NUMBER, Settings.SHARE_NUMBER_UNTICKED, Settings.MESSAGE_SECONDS, Settings.ALLOW_CHAT_BLUR, Settings.VOICE_ONE_AT_A_TIME, Settings.LOCKED_VOICE_GUARD, Settings.NO_HAPTICS, Settings.REACTION_EFFECTS_OFF,
+                        Settings.HIDE_FOLDER_COUNTERS, Settings.LAUNCH_FOLDER, Settings.HIDE_ALL_CHATS, Settings.MOVE_ALL_CHATS, Settings.HIDDEN_CHATS, Settings.SORT_BY_DATE, Settings.SORT_OLDEST_FIRST, Settings.HIDDEN_CHATS_PASSCODE,
+                        Settings.ADMIN_CHATS, Settings.HIDE_ACCOUNTS, Settings.HIDDEN_ACCOUNTS_LOCK, Settings.FIT_ALL_TABS, Settings.FORWARD_HIDE_SENDER, Settings.VOICE_MUSIC_PLAYER, Settings.PLAYBACK_POSITION, Settings.SELECT_BETWEEN,
+                        Settings.SILENCE_NON_CONTACTS, Settings.REACTION_ALERTS, Settings.REACTION_SOUND, Settings.DISABLE_ARCHIVE_PULL, Settings.REAR_CAMERA_FIRST, Settings.HIDE_GALLERY_CAMERA_TILE, Settings.HIDE_STICKER_TIME, Settings.CHANGE_STICKER_SIZE,
+                        Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY,
+                        Settings.KEEP_TIMED_MEDIA, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_CHANNEL_SHARE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB,
+                        Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, Settings.TEST_SERVER_SIGN_IN, Settings.BOT_TOKEN_SIGN_IN,
+                        SettingsRoutes.SETTINGS_ROW, SettingsRoutes.TITLE_PRESS, SettingsRoutes.SIDE_MENU_ROW, SettingsRoutes.SHORTCUT, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.FASTER_UPLOADS, Settings.DOWNLOAD_MANAGER, Settings.SAVE_DOWNLOADS,
+                        Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA, Settings.STORAGE_FOLDER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS,
+                        Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER,
+                        Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON,
+                        Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS, Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON, Settings.DISABLE_DRAFT_PREVIEWS, Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH,
+                        Settings.GALLERY_CAMERA_ON_TAP, Settings.OPEN_EXTERNAL_LINKS, Settings.MINI_APP_LOCATION_OFF, Settings.STRIP_LINK_TRACKING, Settings.SKIP_AUTOLOGIN, Settings.STRIP_LINK_COPY_PASTE, Settings.DISABLE_UPDATE_CHECKS, Settings.REPAIR_FIREBASE_PUSH, Settings.KEEP_ALIVE_RUNNING),
                 SettingsBackup.ALLOWLIST);
     }
 
@@ -596,9 +604,10 @@ public class SettingsBackupTest {
     public void aFilterListThatIsNotAShortListOfShortLinesIsRefused() throws Exception {
         List<String> tooMany = new ArrayList<>();
         for (int i = 0; i <= app.hushtelegram.extension.telegram.misc.MessageFilters.MAX_FILTERS; i++) tooMany.add("word" + i);
-        // As many lines as a list holds, each as long as a line may be, but three bytes a character.
+        // Half as many lines as a list holds, each as long as a line may be, but three bytes a
+        // character: past a list's limit with room left in the file, whose other settings keep growing.
         List<String> tooBig = new ArrayList<>();
-        for (int i = 0; i < app.hushtelegram.extension.telegram.misc.MessageFilters.MAX_FILTERS; i++) {
+        for (int i = 0; i < app.hushtelegram.extension.telegram.misc.MessageFilters.MAX_FILTERS / 2; i++) {
             tooBig.add(repeat('字', app.hushtelegram.extension.telegram.misc.MessageFilters.MAX_FILTER_CHARS));
         }
         for (Object bad : new Object[]{"spam", true, 1, JSONObject.NULL, new JSONObject(),
@@ -713,13 +722,57 @@ public class SettingsBackupTest {
         assertEquals("", SettingsBackup.parse(cleared.toString()).texts.get(Settings.TITLE_EMOJI));
 
         // A saved state is read back as strictly: text the title can't show is left out, and only
-        // the file's other texts, the gallery folder and the translation language, come back.
+        // the file's other texts, the gallery folder, the translation language and the storage folder, come back.
         Bundle state = snapshot.toBundle();
         state.getBundle("texts").putString(Settings.TITLE_EMOJI.key, tooLong.toString());
-        Set<StringSetting> others = new java.util.HashSet<>(Arrays.asList(Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET));
+        Set<StringSetting> others = new java.util.HashSet<>(Arrays.asList(Settings.GALLERY_FOLDER, Settings.TRANSLATE_TARGET, Settings.STORAGE_FOLDER_NAME, Settings.FOLDER_ICON_PACK,
+                Settings.SAVE_KINDS_LEFT_OUT));
         assertEquals(others, SettingsBackup.Snapshot.fromBundle(state).texts.keySet());
         state.getBundle("texts").putInt(Settings.TITLE_EMOJI.key, 1);
         assertEquals(others, SettingsBackup.Snapshot.fromBundle(state).texts.keySet());
+    }
+
+    /** Telegram's folder name goes out as typed and only comes back as one the row would save (#7). */
+    @Test
+    public void theStorageFolderNameRoundTripsOnlyAsAFolderUnderInternalStorage() throws Exception {
+        try {
+            Settings.STORAGE_FOLDER_NAME.save("Plus");
+            JSONObject file = new JSONObject(SettingsBackup.create());
+            assertEquals("Plus", file.getJSONObject("settings").get(Settings.STORAGE_FOLDER_NAME.key));
+
+            Settings.STORAGE_FOLDER_NAME.resetToDefault();
+            assertEquals("Plus", SettingsBackup.parse(file.toString()).texts.get(Settings.STORAGE_FOLDER_NAME));
+
+            for (String bad : new String[] {"../../data", "Android/data", "a/../b", "a:b"}) {
+                file.getJSONObject("settings").put(Settings.STORAGE_FOLDER_NAME.key, bad);
+                assertEquals(bad, SettingsBackup.Reason.VALUE, reasonFor(file.toString()));
+            }
+
+            file.getJSONObject("settings").put(Settings.STORAGE_FOLDER_NAME.key, "Plus");
+            assertTrue("a file that only moves the folder says so", SettingsBackup.parse(file.toString()).storageFolderNameChanges());
+        } finally {
+            Settings.STORAGE_FOLDER_NAME.resetToDefault();
+        }
+    }
+
+    /** What to copy goes out as the kinds left out and only comes back as a list the row could save (#57). */
+    @Test
+    public void whatToCopyRoundTripsOnlyAsAListTheRowWouldSave() throws Exception {
+        try {
+            Settings.SAVE_KINDS_LEFT_OUT.save("MUSIC,VOICE");
+            JSONObject file = new JSONObject(SettingsBackup.create());
+            assertEquals("MUSIC,VOICE", file.getJSONObject("settings").get(Settings.SAVE_KINDS_LEFT_OUT.key));
+
+            Settings.SAVE_KINDS_LEFT_OUT.resetToDefault();
+            assertEquals("MUSIC,VOICE", SettingsBackup.parse(file.toString()).texts.get(Settings.SAVE_KINDS_LEFT_OUT));
+
+            for (String bad : new String[] {"ALL", "VOICE,MUSIC", "DOCUMENTS,MUSIC,PHOTOS,VIDEOS,VOICE", "../x", "MUSIC,"}) {
+                file.getJSONObject("settings").put(Settings.SAVE_KINDS_LEFT_OUT.key, bad);
+                assertEquals(bad, SettingsBackup.Reason.VALUE, reasonFor(file.toString()));
+            }
+        } finally {
+            Settings.SAVE_KINDS_LEFT_OUT.resetToDefault();
+        }
     }
 
     /** The gallery folder goes out as its choice and comes back only as one, never as a path (#30). */
@@ -1202,6 +1255,51 @@ public class SettingsBackupTest {
                     HushTelegramPreferenceFragment.GALLERY_FOLDER_ROW).getSummary()).contains("DCIM/Telegram/Photos"));
             // Each save reads the choice, so nothing waits for a restart.
             assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        }
+    }
+
+    @Test
+    public void aFileThatChangesOnlyWhatToCopySaysSoAndImportsIt() throws Exception {
+        Settings.SAVE_KINDS_LEFT_OUT.save("MUSIC,VIDEOS,VOICE");
+        String file = SettingsBackup.create();
+        Settings.SAVE_KINDS_LEFT_OUT.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertEquals("What to copy: Every kind to Documents and Photos", String.valueOf(shadowOf(preview).getMessage()));
+            assertEquals("Import", String.valueOf(preview.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Settings imported.", ShadowToast.getTextOfLatestToast());
+            assertEquals("MUSIC,VIDEOS,VOICE", Settings.SAVE_KINDS_LEFT_OUT.savedValue());
+            assertEquals("the row shows the imported kinds", "Only Documents and Photos. The rest stay in Telegram.",
+                    String.valueOf(page.findPreference(HushTelegramPreferenceFragment.SAVE_KINDS_ROW).getSummary()));
+            assertTrue(AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.SAVE_KINDS_LEFT_OUT.resetToDefault();
+        }
+    }
+
+    /** A file that only picks other folder icons used to say nothing would change and offer no import. */
+    @Test
+    public void aFileThatChangesOnlyTheFolderIconsOffersTheImport() throws Exception {
+        Settings.FOLDER_ICON_PACK.save(app.hushtelegram.extension.telegram.misc.FolderIcons.BOLD);
+        String file = SettingsBackup.create();
+        Settings.FOLDER_ICON_PACK.resetToDefault();
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            HushTelegramPreferenceFragment page = SettingsL10nTest.pageOf(SettingsL10nTest.show(activity));
+            deliver(activity, tap(activity, page, IMPORT_ROW), file);
+            AlertDialog preview = shownPreview();
+            assertTrue(String.valueOf(shadowOf(preview).getMessage()), String.valueOf(shadowOf(preview).getMessage()).startsWith("Folder icons: "));
+            assertEquals("Import", String.valueOf(preview.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+            preview.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals(app.hushtelegram.extension.telegram.misc.FolderIcons.BOLD, Settings.FOLDER_ICON_PACK.savedValue());
+        } finally {
+            Settings.FOLDER_ICON_PACK.resetToDefault();
         }
     }
 

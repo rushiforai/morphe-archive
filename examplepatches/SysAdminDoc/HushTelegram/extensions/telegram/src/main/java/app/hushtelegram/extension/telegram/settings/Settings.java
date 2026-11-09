@@ -107,6 +107,7 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting BLOCK_NEW_CHATS =
             new BooleanSetting("hushtelegram_block_new_chats", FALSE);
+/** An incoming secret chat request is ignored on this phone: not saved, not shown, not answered. */    public static final BooleanSetting DISABLE_SECRET_CHATS =            new BooleanSetting("hushtelegram_disable_encrypted_chats", FALSE);
 
     /**
      * The chat list's Your contacts on Telegram heading, rows and loading rows only; chats, folders,
@@ -116,8 +117,9 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_hide_contacts_block", FALSE);
 
     /**
-     * The sticker an empty private chat offers to send as a greeting only; the empty chat's text,
-     * business introductions, Premium and paid-message notices and the sticker picker stay stock.
+     * The sticker an empty private chat offers to send as a greeting only, a business
+     * introduction's included; the empty chat's text, the introduction editor's preview, Premium
+     * and paid-message notices and the sticker picker stay stock.
      */
     public static final BooleanSetting HIDE_GREETING_STICKERS =
             new BooleanSetting("hushtelegram_hide_greeting_stickers", FALSE);
@@ -137,12 +139,23 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting NORMAL_PASTE =
             new BooleanSetting("hushtelegram_normal_paste", FALSE);
 
+    /**
+     * Typing {@code @123456789} or {@code tg://user?id=123456789} in the message box sends a real
+     * mention of that person, when the app has seen them (#53). Off by default.
+     */
+    public static final BooleanSetting MENTION_BY_ID =
+            new BooleanSetting("hushtelegram_mention_by_id", FALSE);
+
     public static final BooleanSetting SHOW_LOCAL_IDS =
             new BooleanSetting("hushtelegram_show_local_ids", FALSE);
 
     /** The profile menu also shows the data center of the profile photo Telegram already caches. */
     public static final BooleanSetting PROFILE_DATA_CENTER =
             new BooleanSetting("hushtelegram_profile_data_center", FALSE);
+
+    /** A profile menu offers Track this user, and the people tracked get a history of what Telegram shows of them. */
+    public static final BooleanSetting SPECIAL_CONTACTS =
+            new BooleanSetting("hushtelegram_special_contacts", FALSE);
 
     public static final BooleanSetting DISABLE_DOUBLE_TAP_REACTIONS =
             new BooleanSetting("hushtelegram_disable_double_tap_reactions", FALSE);
@@ -154,6 +167,8 @@ public class Settings extends BaseSettings {
     /** The reaction strip at the top of the long-press menu, and the panel it expands into, never open. */
     public static final BooleanSetting HIDE_REACTION_PICKER =
             new BooleanSetting("hushtelegram_hide_reaction_picker", FALSE);
+    public static final BooleanSetting HIDE_EMOJI_PACK_NOTE =
+            new BooleanSetting("hushtelegram_hide_emoji_pack_note", FALSE);
 
     /**
      * The Contacts tab's automatic prompt and its "!" badge once a contacts prompt was declined;
@@ -235,6 +250,12 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_video_only_from_button", FALSE);
 
     /**
+     * Videos open in the viewer without sound until a volume key gives that video its sound (#61).
+     */
+    public static final BooleanSetting VIDEO_STARTS_SILENT =
+            new BooleanSetting("hushtelegram_video_starts_silent", FALSE);
+
+    /**
      * A swipe to the right on a profile's photos or media tabs goes back instead of to the previous
      * photo or tab.
      */
@@ -313,6 +334,8 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_ALL_CHATS =
             new BooleanSetting("hushtelegram_hide_all_chats", FALSE, true);
+    public static final BooleanSetting MOVE_ALL_CHATS =
+            new BooleanSetting("hushtelegram_move_all_chats", FALSE, true);
 
     /**
      * The chats picked for each account leave the chat list, its folders and the archive
@@ -321,6 +344,47 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDDEN_CHATS =
             new BooleanSetting("hushtelegram_hidden_chats", FALSE);
+
+    /**
+     * The chat list orders its unpinned chats by the date of their last message
+     * ({@link app.hushtelegram.extension.telegram.misc.ChatSort}). Pinned chats stay where they are.
+     */
+    public static final BooleanSetting SORT_BY_DATE =
+            new BooleanSetting("hushtelegram_sort_by_date", FALSE);
+
+    /**
+     * The list of hidden chats and the switch that hides them ask for Telegram's app passcode first
+     * ({@link app.hushtelegram.extension.telegram.misc.AppPasscode}).
+     */
+    public static final BooleanSetting HIDDEN_CHATS_PASSCODE =
+            new BooleanSetting("hushtelegram_hidden_chats_lock", FALSE);
+
+    /** The side menu gets an Administrators row that limits the chat list to the chats you manage. */
+    public static final BooleanSetting ADMIN_CHATS =
+            new BooleanSetting("hushtelegram_admin_chats", FALSE);
+
+    /**
+     * Accounts picked in the settings stay out of Telegram's account lists
+     * ({@link app.hushtelegram.extension.telegram.misc.HiddenAccounts}). They stay signed in and keep
+     * their notifications. The picks themselves stay on this phone, outside the settings.
+     */
+    public static final BooleanSetting HIDE_ACCOUNTS =
+            new BooleanSetting("hushtelegram_hide_accounts", FALSE);
+
+    /**
+     * The folder tabs above the chat list shrink to fit the screen, so none of them scrolls out of
+     * sight ({@link app.hushtelegram.extension.telegram.misc.TabFit}).
+     */
+    public static final BooleanSetting FIT_ALL_TABS =
+            new BooleanSetting("hushtelegram_fit_all_tabs", FALSE);
+
+    /** The list of hidden accounts and the switch that hides them ask for Telegram's app passcode first. */
+    public static final BooleanSetting HIDDEN_ACCOUNTS_LOCK =
+            new BooleanSetting("hushtelegram_hidden_accounts_lock", FALSE);
+
+    /** With the date order on, the chat with the oldest last message comes first instead of the newest. */
+    public static final BooleanSetting SORT_OLDEST_FIRST =
+            new BooleanSetting("hushtelegram_sort_oldest_first", FALSE);
 
     /**
      * Forwards start with Telegram's Hide sender's name option turned on.
@@ -333,6 +397,20 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting VOICE_MUSIC_PLAYER =
             new BooleanSetting("hushtelegram_voice_music_player", FALSE);
+
+    /**
+     * Videos, voice messages and music remember where they stopped, however short they are, and
+     * pick up from there the next time they play (#53).
+     */
+    /**
+     * A button in a chat's selection bar that selects every message between the first and last
+     * one selected, and a range that grows when a message past it is picked (#53).
+     */
+    public static final BooleanSetting SELECT_BETWEEN =
+            new BooleanSetting("hushtelegram_select_between", FALSE);
+
+    public static final BooleanSetting PLAYBACK_POSITION =
+            new BooleanSetting("hushtelegram_playback_position", FALSE);
 
     /**
      * A private message from someone outside your contacts notifies without sound or vibration.
@@ -511,9 +589,17 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting FASTER_DOWNLOADS =
             new BooleanSetting("hushtelegram_faster_downloads", FALSE);
 
+    /** An upload keeps four times as many pieces in flight. */
+    public static final BooleanSetting FASTER_UPLOADS =
+            new BooleanSetting("hushtelegram_faster_uploads", FALSE);
+
     /** Automatic media downloads wait while Android's Data Saver restricts Telegram on a metered network. */
     public static final BooleanSetting DATA_SAVER_DOWNLOADS =
             new BooleanSetting("hushtelegram_data_saver_downloads", FALSE);
+
+    /** Downloads run one at a time in the order asked, and the side menu lists them. */
+    public static final BooleanSetting DOWNLOAD_MANAGER =
+            new BooleanSetting("hushtelegram_download_manager", FALSE);
 
     /** A file or song that finishes downloading gets a copy in Download/Telegram, unless saving it isn't allowed. */
     public static final BooleanSetting SAVE_DOWNLOADS =
@@ -537,6 +623,16 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_save_timed_media", FALSE);
 
     /**
+     * What to copy: with {@link #SAVE_DOWNLOADS} on, the kinds of files left in Telegram, as
+     * comma-separated {@link app.hushtelegram.extension.telegram.misc.SaveDownloads.Kind} names
+     * (#57). Empty copies every kind, so a kind added later starts ticked. Documents are whatever
+     * isn't a picture, video or sound file. Photos, videos and voice messages only come through the
+     * switches above, and Save to Downloads in the message menu copies any kind.
+     */
+    public static final StringSetting SAVE_KINDS_LEFT_OUT =
+            new StringSetting("hushtelegram_save_kinds_left_out", "");
+
+    /**
      * On Android 11 and up with All files access, Telegram's own Telegram Images, Video, Documents
      * and the rest live in Internal storage/Telegram instead of Android/data (#7). Read once when
      * Telegram sets up its folders, so it needs a restart.
@@ -545,12 +641,27 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_storage_folder", FALSE, true);
 
     /**
+     * The folder under Internal storage that {@link #STORAGE_FOLDER} moves Telegram's files to, one
+     * {@link app.hushtelegram.extension.telegram.misc.StorageFolder#allowedName} takes. Empty is
+     * Internal storage/Telegram (#7). Read once with the folder, so it needs a restart too.
+     */
+    public static final StringSetting STORAGE_FOLDER_NAME =
+            new StringSetting("hushtelegram_storage_folder_name", "", true);
+
+    /**
      * Which folders Telegram's Save to gallery puts photos and videos in, one of
      * {@link app.hushtelegram.extension.telegram.misc.GalleryFolder#CHOICES}. Empty keeps Telegram's
      * Pictures/Telegram and Movies/Telegram (#30).
      */
     public static final StringSetting GALLERY_FOLDER =
             new StringSetting("hushtelegram_gallery_folder", "");
+
+    /**
+     * The icon pack HushTelegram draws beside folder names in its own lists, one of
+     * {@link app.hushtelegram.extension.telegram.misc.FolderIcons#CHOICES}. Empty draws none (#53).
+     */
+    public static final StringSetting FOLDER_ICON_PACK =
+            new StringSetting("hushtelegram_folder_icon_pack", "");
 
     /** Turned on, makes Private, Groups, Channels and Bots folders; turned off, removes the untouched ones it made. */
     public static final BooleanSetting CHAT_TYPE_FOLDERS =
@@ -587,9 +698,35 @@ public class Settings extends BaseSettings {
     /** A downloaded file in a chat that doesn't allow saving gets Save to Downloads in its long-press menu (#29). */
     public static final BooleanSetting MESSAGE_MENU_SAVE_PROTECTED =
             new BooleanSetting("hushtelegram_message_menu_save_protected", FALSE);
+    /** A story's three-dot menu gets Save to Gallery without Premium, on stories that don't allow saving too (#52). */
+    public static final BooleanSetting STORY_SAVE_BUTTON =
+            new BooleanSetting("hushtelegram_story_save_button", FALSE);
+    /** Screenshots and screen recording work in chats, profiles, photos and stories that don't allow saving (Discussion #34). */
+    public static final BooleanSetting ALLOW_SCREENSHOTS =
+            new BooleanSetting("hushtelegram_allow_screenshots", FALSE);
     /** A message in a chat that doesn't allow forwarding gets Forward as copy in its long-press menu (#46, #47). */
     public static final BooleanSetting MESSAGE_MENU_FORWARD_COPY =
             new BooleanSetting("hushtelegram_message_menu_forward_copy", FALSE);
+
+    /** Fast forward in the message menu (#53): forward with the sender's name or the captions left off, then pick a chat. */
+    public static final BooleanSetting MESSAGE_MENU_FAST_FORWARD =
+            new BooleanSetting("hushtelegram_message_menu_fast_forward", FALSE);
+
+    /** Forward to Saved Messages in the message menu (#53): one tap to your own chat, with a choice of what to leave off. */
+    public static final BooleanSetting MESSAGE_MENU_FORWARD_SAVED =
+            new BooleanSetting("hushtelegram_message_menu_forward_saved", FALSE);
+
+    /** Save video cover in the message menu (#53): the biggest cover or thumbnail of a video goes to Pictures. */
+    public static final BooleanSetting MESSAGE_MENU_SAVE_COVER =
+            new BooleanSetting("hushtelegram_message_menu_save_cover", FALSE);
+
+    /** Save album art in the message menu (#53): a song's embedded or server album art goes to Pictures. */
+    public static final BooleanSetting MESSAGE_MENU_SAVE_ART =
+            new BooleanSetting("hushtelegram_message_menu_save_art", FALSE);
+
+    /** Clear from cache in the message menu (#53): drops what Telegram kept of one video or file and puts the download arrow back. */
+    public static final BooleanSetting MESSAGE_MENU_CLEAR_CACHE =
+            new BooleanSetting("hushtelegram_message_menu_clear_cache", FALSE);
 
     /**
      * A channel's read metrics (how long each post stayed on screen), Premium screen interaction
@@ -623,6 +760,36 @@ public class Settings extends BaseSettings {
     /** Ghost mode's online status: going online isn't sent, going offline is. Read only while Ghost mode is on. */
     public static final BooleanSetting GHOST_ONLINE =
             new BooleanSetting("hushtelegram_ghost_online", FALSE);
+
+    /**
+     * A ghost on the chat list's top bar that turns {@link #GHOST_MODE} on and off with a tap
+     * ({@link app.hushtelegram.extension.telegram.misc.GhostButton}). The chat list follows it as
+     * soon as it's back on screen.
+     */
+    public static final BooleanSetting GHOST_BUTTON =
+            new BooleanSetting("hushtelegram_ghost_button", FALSE);
+
+    /**
+     * Receive only mode: the accounts on {@link #RECEIVE_ONLY_ACCOUNTS} send nothing that writes.
+     * With it off every account sends as in stock Telegram.
+     */
+    public static final BooleanSetting RECEIVE_ONLY =
+            new BooleanSetting("hushtelegram_receive_only", FALSE);
+
+    /** The accounts (their positions in Telegram's list, comma separated) that are receive only. Read only while Receive only mode is on. */
+    public static final StringSetting RECEIVE_ONLY_ACCOUNTS =
+            new StringSetting("hushtelegram_receive_only_accounts", "", false, false);
+
+    /**
+     * Power off accounts: the accounts on {@link #POWERED_OFF_ACCOUNTS} send nothing at all. With it
+     * off every account is connected as in stock Telegram.
+     */
+    public static final BooleanSetting POWER_OFF_ACCOUNTS =
+            new BooleanSetting("hushtelegram_power_off_accounts", FALSE);
+
+    /** The accounts (their positions in Telegram's list, comma separated) that are powered off. Read only while Power off accounts is on. */
+    public static final StringSetting POWERED_OFF_ACCOUNTS =
+            new StringSetting("hushtelegram_powered_off_accounts", "", false, false);
 
     /** Automatic call diagnostics only; the call itself and its cleanup stay stock. */
     public static final BooleanSetting DISABLE_CALL_DEBUG =
@@ -689,6 +856,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushtelegram_skip_autologin", FALSE);
 
     /**
+     * A link copied from Telegram, and one pasted into the message box, loses the same tracking tags the
+     * opened and shared ones do (#53). Only a text that is one link and nothing else is changed.
+     */
+    public static final BooleanSetting STRIP_LINK_COPY_PASTE =
+            new BooleanSetting("hushtelegram_strip_link_copy_paste", FALSE);
+
+    /**
      * telegram.org's build stops checking for its own updates, which can't install over a re-signed
      * build anyway ({@link app.hushtelegram.extension.telegram.misc.UpdateChecks}).
      */
@@ -701,6 +875,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting REPAIR_FIREBASE_PUSH =
             new BooleanSetting("hushtelegram_repair_firebase_push", TRUE, true);
+
+    /**
+     * Telegram's Keep-Alive Service runs in front with a quiet notification, so Android stops
+     * freezing it in the background (#50, #54). Only matters while Telegram's own Keep-Alive Service
+     * switch is on.
+     */
+    public static final BooleanSetting KEEP_ALIVE_RUNNING =
+            new BooleanSetting("hushtelegram_keep_alive_running", TRUE);
 
     /** Telegram signs up a UnifiedPush app's address for its wake-ups instead of Firebase's token. */
     public static final BooleanSetting UNIFIED_PUSH =
@@ -719,6 +901,22 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting REACTION_SOUND =
             new BooleanSetting("hushtelegram_reaction_sound", FALSE);
+
+    /**
+     * Telegram's Test Backend checkbox shows on the sign-in phone screen for every account being
+     * added, not only one already on the test servers. Ticking it signs that account in on
+     * Telegram's test servers, apart from the accounts already signed in. Off by default.
+     */
+    public static final BooleanSetting TEST_SERVER_SIGN_IN =
+            new BooleanSetting("hushtelegram_test_server_sign_in", FALSE);
+
+    /**
+     * Whether Telegram's phone number screen offers Sign in with a bot token, for first sign-in and
+     * Add account alike, so an account can be a bot made with @BotFather. Turning it off hides the
+     * button and leaves a bot account that's already signed in working. Off by default.
+     */
+    public static final BooleanSetting BOT_TOKEN_SIGN_IN =
+            new BooleanSetting("hushtelegram_bot_sign_in", FALSE);
 
     /**
      * Once a day, when Telegram starts, ask api.github.com whether a newer HushTelegram release is

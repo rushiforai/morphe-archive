@@ -59,14 +59,14 @@ private object LibraryComposeMenuState : Fingerprint(
     returnType = "V",
 )
 
-private object LibrarySettingsCreated : Fingerprint(
+internal object LibrarySettingsCreated : Fingerprint(
     definingClass = "Lcom/apple/android/music/settings2/fragment/SettingsFragment;",
     name = "onCreate",
     parameters = listOf("Landroid/os/Bundle;"),
     returnType = "V",
 )
 
-private object LibrarySettingsItems : Fingerprint(
+internal object LibrarySettingsItems : Fingerprint(
     definingClass = "Lcom/apple/android/music/settings2/model/SettingsViewModel;",
     name = "getPreferenceItems",
     returnType = "Ljava/util/List;",

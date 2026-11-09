@@ -49,6 +49,7 @@ public final class HiddenChatsForTests {
     /** One folder tab's own list. */
     public static final class Filter {
         public final ArrayList<Object> dialogs = new ArrayList<>();
+        public final ArrayList<Object> forward = new ArrayList<>();
     }
 
     /** Telegram for one account slot at a time: the sort's lists, each account's chats, and every refresh. */
@@ -56,6 +57,7 @@ public final class HiddenChatsForTests {
         public long controllerUser = 1000;
         public final SparseArray<ArrayList<Object>> folders = new SparseArray<>();
         public Object[] filters = new Object[0];
+        public final ArrayList<Object> forward = new ArrayList<>();
         public int selected = 0;
         public int slots = 4;
         public final Map<Integer, Long> users = new HashMap<>();
@@ -84,9 +86,15 @@ public final class HiddenChatsForTests {
         @Override public SparseArray<?> folders(Object controller) { return folders; }
         @Override public Object[] selectedFilters(Object controller) { return filters; }
         @Override public List<?> filterDialogs(Object filter) { return ((Filter) filter).dialogs; }
+        @Override public List<?> forwardList(Object controller) { return forward; }
+        @Override public List<?> filterForward(Object filter) { return ((Filter) filter).forward; }
         @Override public long dialogId(Object dialog) { return ((Dialog) dialog).id; }
         @Override public boolean pinned(Object dialog) { return ((Dialog) dialog).pinned; }
         @Override public int pinnedNum(Object dialog) { return ((Dialog) dialog).pinnedNum; }
+        @Override public void unpin(Object dialog) {
+            ((Dialog) dialog).pinned = false;
+            ((Dialog) dialog).pinnedNum = 0;
+        }
 
         @Override public int selectedAccount() {
             if (broken) throw new IllegalStateException("Telegram changed");
@@ -134,6 +142,9 @@ public final class HiddenChatsForTests {
 
     /** Back to the stubs, with nothing hidden. */
     public static void restore() {
+        synchronized (HiddenChats.AWAY) {
+            HiddenChats.AWAY.clear();
+        }
         if (saved != null) HiddenChats.telegram = saved;
         saved = null;
         HiddenChats.store.apply(RuntimeEnvironment.getApplication()).edit().clear().commit();

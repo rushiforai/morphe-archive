@@ -44,13 +44,14 @@ final class GlassTouch implements View.OnTouchListener {
     }
 
     private View itemAt(float rawX) {
+        controller.navigation.getLocationOnScreen(location);
+        float localX = (rawX - location[0]) / controller.navigation.getScaleX();
         View nearest = null;
         float distance = Float.MAX_VALUE;
         for (int i = 0; i < controller.menu.getChildCount(); i++) {
             View item = controller.menu.getChildAt(i);
             if (item.getVisibility() != View.VISIBLE || !item.isEnabled()) continue;
-            item.getLocationOnScreen(location);
-            float delta = Math.abs(rawX - location[0] - item.getWidth() / 2f);
+            float delta = Math.abs(localX - controller.menu.getLeft() - item.getLeft() - item.getWidth() / 2f);
             if (delta < distance) { distance = delta; nearest = item; }
         }
         return nearest;
@@ -63,13 +64,15 @@ final class GlassTouch implements View.OnTouchListener {
         switch (event.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
                 cancel();
-                heldItem = view;
+                heldItem = view == controller.navigation || view == controller.menu ? itemAt(event.getRawX()) : view;
+                if (heldItem == null) return false;
                 tracker = VelocityTracker.obtain();
                 tracker.addMovement(event);
                 downX = event.getRawX();
                 downY = event.getRawY();
-                view.getParent().requestDisallowInterceptTouchEvent(true);
-                controller.press(view);
+                heldItem.getParent().requestDisallowInterceptTouchEvent(true);
+                controller.press(heldItem);
+                controller.surfaceMotion.press(downX);
                 return true;
             case MotionEvent.ACTION_MOVE:
                 if (heldItem == null) return true;
@@ -83,13 +86,14 @@ final class GlassTouch implements View.OnTouchListener {
                     view.getParent().requestDisallowInterceptTouchEvent(false);
                 }
                 if (cancelled) return true;
+                controller.surfaceMotion.move(event.getRawX());
                 if (!dragging && Math.abs(dx) > slop && Math.abs(dx) > Math.abs(dy)) {
                     dragging = true;
                     view.setPressed(false);
                 }
                 if (dragging) {
                     controller.navigation.getLocationOnScreen(location);
-                    controller.drag(event.getRawX() - location[0], speed());
+                    controller.drag((event.getRawX() - location[0]) / controller.navigation.getScaleX(), speed());
                 }
                 return true;
             case MotionEvent.ACTION_UP:
@@ -97,9 +101,9 @@ final class GlassTouch implements View.OnTouchListener {
                 tracker.addMovement(event);
                 controller.navigation.getLocationOnScreen(location);
                 boolean inside = event.getRawX() >= location[0] - slop
-                        && event.getRawX() <= location[0] + controller.navigation.getWidth() + slop
+                        && event.getRawX() <= location[0] + controller.navigation.getWidth() * controller.navigation.getScaleX() + slop
                         && event.getRawY() >= location[1] - slop
-                        && event.getRawY() <= location[1] + controller.navigation.getHeight() + slop;
+                        && event.getRawY() <= location[1] + controller.navigation.getHeight() * controller.navigation.getScaleY() + slop;
                 float releaseDx = event.getRawX() - downX;
                 float releaseDy = event.getRawY() - downY;
                 dragging |= Math.abs(releaseDx) > slop && Math.abs(releaseDx) > Math.abs(releaseDy);

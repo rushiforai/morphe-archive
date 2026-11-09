@@ -233,7 +233,8 @@ public class PausedHooksTest {
             app.hushtelegram.extension.telegram.misc.LocalIds.addToProfile(menu, 42, 0);
             return menu.getChildCount() == 1;
         }, () -> app.hushtelegram.extension.telegram.misc.ProfileDcForTests.row(
-                new android.widget.FrameLayout(RuntimeEnvironment.getApplication()))));
+                new android.widget.FrameLayout(RuntimeEnvironment.getApplication())),
+                app.hushtelegram.extension.telegram.misc.SpecialContactsForTests::records));
         probes.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, Arrays.asList(
                 app.hushtelegram.extension.telegram.misc.DoubleTapReactions::stopReaction,
                 () -> app.hushtelegram.extension.telegram.misc.DoubleTapReactions.rows(new Object(), false, false) == null,
@@ -244,7 +245,7 @@ public class PausedHooksTest {
                 () -> !app.hushtelegram.extension.telegram.misc.ContactsBlock.placeholder(true)));
         probes.put(PatchFamily.HIDE_GREETING_STICKERS, Collections.singletonList(() -> {
             android.widget.FrameLayout stickers = new android.widget.FrameLayout(RuntimeEnvironment.getApplication());
-            app.hushtelegram.extension.telegram.misc.GreetingStickers.measure(stickers, false);
+            app.hushtelegram.extension.telegram.misc.GreetingStickers.measure(stickers, new Object());
             return stickers.getVisibility() == android.view.View.GONE;
         }));
         // After a "Not now", the Contacts tab neither asks again nor marks its icon.
@@ -444,7 +445,21 @@ public class PausedHooksTest {
         // A Firebase sign-up signs up the UnifiedPush address instead.
         probes.put(PatchFamily.UNIFIED_PUSH, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.UnifiedPushForTests.swapsFirebase()));
+        // The sign-in screen offers Test Backend on an account that isn't on the test servers, and
+        // takes the 999 code of a test number.
+        probes.put(PatchFamily.TEST_SERVER_SIGN_IN, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.TestServers.shown(0),
+                () -> app.hushtelegram.extension.telegram.misc.TestServers.countryState(2, testNumberCode()) == 0));
+        // The phone number screen offers a bot token sign-in.
+        probes.put(PatchFamily.BOT_TOKEN_SIGN_IN, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.BotSignIn.offered(0)));
         return probes;
+    }
+
+    private static android.widget.TextView testNumberCode() {
+        android.widget.TextView field = new android.widget.TextView(org.robolectric.RuntimeEnvironment.getApplication());
+        field.setText("999");
+        return field;
     }
 
     private static boolean firebaseHeaderChanged() {

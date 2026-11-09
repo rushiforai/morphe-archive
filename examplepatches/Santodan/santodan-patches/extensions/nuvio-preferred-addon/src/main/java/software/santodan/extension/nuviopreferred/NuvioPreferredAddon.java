@@ -181,7 +181,7 @@ public final class NuvioPreferredAddon {
             prefs.getBoolean("autoplay", false), toggle, null, noop, false, null, 0L, false, composer, 0, 1008);
         if (!(Boolean) get(dialog)) return;
         List<Object> options = new ArrayList<>();
-        Constructor<?> option = loader.loadClass(NuvioNative.SETTINGS_PICKER_NAME).getDeclaredConstructor(Object.class, String.class, String.class, String.class, loader.loadClass("m3.m"), int.class);
+        Constructor<?> option = loader.loadClass(NuvioNative.SETTINGS_PICKER_NAME).getDeclaredConstructor(Object.class, String.class, String.class, String.class, loader.loadClass("l3.l"), int.class);
         options.add(option.newInstance("", "None", null, null, null, 28));
         Set<String> allowed = new HashSet<>(); allowed.add("");
         for (Object addon : installed) {

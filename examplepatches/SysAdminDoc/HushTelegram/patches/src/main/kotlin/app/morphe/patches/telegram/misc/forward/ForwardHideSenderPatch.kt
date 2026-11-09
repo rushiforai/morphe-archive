@@ -4,7 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.forward
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.origString
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -27,6 +28,12 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val FORWARD_SENDER = "$EXTENSION_PACKAGE/misc/ForwardSender;"
 internal const val STARTS = "$FORWARD_SENDER->starts(Ljava/lang/Object;Ljava/util/ArrayList;)V"
@@ -120,23 +127,23 @@ internal fun BytecodePatchContext.resolveForwardHideSender(): ForwardHideSenderS
     controlHook(FORWARD_SENDER, "article", listOf(), "I")
     controlHook(FORWARD_SENDER, "hide", listOf("Ljava/lang/Object;"), "V")
 
-    val params = mutableClassDefByOrNull(PREVIEW_PARAMS)
+    val params = tgMutableClassDefByOrNull(PREVIEW_PARAMS)
     controlShape(params != null, "MessagePreviewParams is missing")
-    controlShape(params!!.fields.any { "${it.definingClass}->${it.name}:${it.type}" == FORWARDS && !AccessFlags.STATIC.isSet(it.accessFlags) },
+    controlShape(params!!.fields.any { it.origString() == FORWARDS && !AccessFlags.STATIC.isSet(it.accessFlags) },
         "the forward preview no longer holds its messages")
-    controlShape(params.fields.any { "${it.definingClass}->${it.name}:${it.type}" == HIDE_SENDERS && !AccessFlags.STATIC.isSet(it.accessFlags) },
+    controlShape(params.fields.any { it.origString() == HIDE_SENDERS && !AccessFlags.STATIC.isSet(it.accessFlags) },
         "the forward preview no longer has a Hide sender's name flag")
-    val update = params.methods.filter { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == UPDATE_FORWARD &&
+    val update = params.methods.filter { it.origString() == UPDATE_FORWARD &&
         !AccessFlags.STATIC.isSet(it.accessFlags) }.controlSingle("forward preview update")
     controlShape(update.controlBody().any { it.controlRef() == FORWARDS }, "the forward preview update no longer stores the messages")
     controlShape(ControlFlow.of(update).normal.none { 0 in it }, "something jumps back to the start of the forward preview update")
 
-    val message = classDefByOrNull(MESSAGE_OBJECT)
-    controlShape(message != null && listOf("type", "currentAccount").all { name -> message.fields.any { it.name == name && it.type == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) } },
+    val message = tgClassDefByOrNull(MESSAGE_OBJECT)
+    controlShape(message != null && listOf("type", "currentAccount").all { name -> message.fields.any { it.origName == name && it.origType == "I" && !AccessFlags.STATIC.isSet(it.accessFlags) } },
         "a message no longer has its type and account")
-    val config = classDefByOrNull(USER_CONFIG)
+    val config = tgClassDefByOrNull(USER_CONFIG)
     controlShape(config != null && listOf("getInstance(I)$USER_CONFIG", "isPremium()Z").all { wanted ->
-        config.methods.any { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == wanted && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+        config.methods.any { "${it.origName}(${it.origParameterTypes.joinToString("")})${it.origReturnType}" == wanted && AccessFlags.PUBLIC.isSet(it.accessFlags) }
     }, "Telegram's Premium check changed")
 
     val article = premiumHideSenderTypes().toList().controlSingle("the Premium gate on hiding an article's sender")
@@ -151,7 +158,7 @@ internal fun BytecodePatchContext.resolveForwardHideSender(): ForwardHideSenderS
 internal fun BytecodePatchContext.premiumHideSenderTypes(): Set<Int> {
     val articles = mutableSetOf<Int>()
     forEachClassMentioning(Mention.reference(IS_PREMIUM) and Mention.reference(FORWARDS) and Mention.reference(NAME_HIDE)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { m ->
             val body = m.controlBody()
             val premium = body.indexOfFirst { it.controlRef() == IS_PREMIUM }

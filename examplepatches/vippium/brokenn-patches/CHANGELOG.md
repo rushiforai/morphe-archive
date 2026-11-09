@@ -1,3 +1,22 @@
+## [1.1.0-dev.3](https://github.com/vippium/brokenn-patches/compare/v1.1.0-dev.2...v1.1.0-dev.3) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* compile error against Morphe patcher 2.3.0 ([d9e6b4a](https://github.com/vippium/brokenn-patches/commit/d9e6b4a9db8b1cb5b4240c29b66cc6e1a778e581))
+
+## [1.1.0-dev.2](https://github.com/vippium/brokenn-patches/compare/v1.1.0-dev.1...v1.1.0-dev.2) (2026-11-04)
+
+### 🐛 Bug Fixes
+
+* locate mid-feed show arm by (true,false) call pair ([56f4413](https://github.com/vippium/brokenn-patches/commit/56f44134e769bc40d123c0d1401e501bc2ec0711))
+
+## [1.1.0-dev.1](https://github.com/vippium/brokenn-patches/compare/v1.0.1...v1.1.0-dev.1) (2026-11-04)
+
+### ✨ New Features
+
+* make top bar switcher patch universal across JioHotstar versions ([035ed07](https://github.com/vippium/brokenn-patches/commit/035ed071ed3962be83ffa656bb4563b811d70f0a))
+* universal top bar switcher removal ([7655fcd](https://github.com/vippium/brokenn-patches/commit/7655fcdd405a53ce406a9e4bdf3325e7b2a9ac06))
+
 ## [1.0.1](https://github.com/vippium/brokenn-patches/compare/v1.0.0...v1.0.1) (2026-11-04)
 
 ### 🐛 Bug Fixes

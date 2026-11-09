@@ -115,6 +115,7 @@
     public static *;
 }
 -keep class semicoloncolonel.mobilestream.extension.justwatch.SponsoredFilter { public static *; }
+-keep class semicoloncolonel.mobilestream.extension.justwatch.WatchlistFilter { public static *; }
 -keep class semicoloncolonel.mobilestream.extension.whitehouse.FeedFilter { *; }
 -keep class semicoloncolonel.mobilestream.extension.shared.privacy.ProxyRouter { *; }
 -keep class semicoloncolonel.mobilestream.extension.whitehouse.PromoHider { *; }
@@ -237,6 +238,9 @@
 # Apple TV (Android TV) — "Auto-skip". Called only from injected smali, and its
 # skipPromos / skipRecaps / skipIntros answers are overwritten by the patch.
 -keep class semicoloncolonel.mobilestream.extension.appletv.AutoSkipper { public static *; }
+-keep class semicoloncolonel.mobilestream.extension.appletv.PhoneAutoSkipper { public static *; }
+-keep class semicoloncolonel.mobilestream.extension.appletv.ReleaseTimes { public static *; }
+-keep class semicoloncolonel.mobilestream.extension.appletv.PlayerInfo { public static *; }
 
 # NFL — "Skip ads" web view layer. Called only from injected smali.
 -keep class semicoloncolonel.mobilestream.extension.nfl.NflWebAds { public static *; }

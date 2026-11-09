@@ -1,5 +1,6 @@
 package com.dmoniak.patches.hotstar
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -11,7 +12,7 @@ import java.util.logging.Logger
 @Suppress("unused")
 val hotstarAdFreePatch = bytecodePatch(
     name = "Ad-Free & Live Sports Ad-Block - JioHotstar",
-    description = "Strips pre-roll, mid-roll, and ad pods during live cricket and sports streams, and eliminates banner and sponsored recommendation cards in JioHotstar.",
+    description = "Strips pre-roll, mid-roll, and live cricket match video ads (SSAI), and eliminates feed banners and sponsored cards in JioHotstar.",
 ) {
     compatibleWith(COMPATIBILITY_HOTSTAR)
 
@@ -22,21 +23,97 @@ val hotstarAdFreePatch = bytecodePatch(
 }
 
 fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
-    logger.info("Executing Ad-Free & Live Sports Ad-Block patch for JioHotstar (in.startv.hotstar)...")
+    logger.info("Executing battle-tested Ad-Free & Live Sports Ad-Block patch for JioHotstar (in.startv.hotstar)...")
+
+    // 1. Battle-tested SSAI & AdMetadata constructor hook
+    // Force: disablePreRoll=true(p1), disableMidRoll=true(p2),
+    //        hasPreRoll=false(p3), hasPlayablePreRoll=false(p4), enableMidRollLoad=false(p5)
+    // Clear ssaiTag (p6) to completely eliminate live match SSAI (Server-Side Ad Insertion) ads
+    try {
+        AdMetadataConstructorFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 p1, 0x1
+            const/4 p2, 0x1
+            const/4 p3, 0x0
+            const/4 p4, 0x0
+            const/4 p5, 0x0
+            const-string p6, ""
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Hooked AdMetadata constructor (pre-roll=0, mid-roll=0, ssaiTag='')")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] AdMetadataConstructorFingerprint failed: ${e.message}")
+    }
+
+    // 2. Neuter WatchLiveAdsViewModel session initializer
+    try {
+        WatchLiveAdsInitFingerprint.method.addInstructions(
+            0,
+            """
+            return-void
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutered WatchLiveAdsViewModel live ad session initializer")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] WatchLiveAdsInitFingerprint failed: ${e.message}")
+    }
+
+    // 3. Hide home feed banner / display ads composable
+    try {
+        DisplayAdComposableFingerprint.method.addInstructions(
+            0,
+            """
+            return-void
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutered DisplayAd composable")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] DisplayAdComposableFingerprint failed: ${e.message}")
+    }
+
+    // 4. Block SGAI (Server-Guided Ad Insertion) prefetcher — return empty list
+    try {
+        SgaiPrefetcherGetAdFingerprint.method.addInstructions(
+            0,
+            """
+            invoke-static {}, Ljava/util/Collections;->emptyList()Ljava/util/List;
+            move-result-object v0
+            return-object v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Blocked SGAI prefetcher live ad cache")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] SgaiPrefetcherGetAdFingerprint failed: ${e.message}")
+    }
+
+    // 5. Block LiveAdsManager ad processing loop
+    try {
+        LiveAdsManagerProcessFingerprint.method.addInstructions(
+            0,
+            """
+            sget-object v0, Lkotlin/Unit;->a:Lkotlin/Unit;
+            return-object v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Blocked LiveAdsManager processing loop")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] LiveAdsManagerProcessFingerprint failed: ${e.message}")
+    }
+
+    // 6. Comprehensive Google IMA SDK & FreeWheel suppression
     var hookedPoints = executeComprehensiveAdBlock(logger, "JioHotstar")
 
+    // 7. Generic heuristics for any remaining ad widgets & state getters
     classDefForEach { classDef ->
         val type = classDef.type
         val tl = type.lowercase()
         if (tl.startsWith("landroidx/") || tl.startsWith("lkotlin/") || tl.startsWith("ljava/")) return@classDefForEach
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
-
-        // Target Hotstar video ad controllers, live match ad insertion, and interstitial pods
         val isAdRelated = tl.contains("ad") || tl.contains("ads") || tl.contains("preroll") ||
                 tl.contains("midroll") || tl.contains("adpod") || tl.contains("freewheel") ||
-                tl.contains("ima") || tl.contains("sponsored") || tl.contains("videoplayer") ||
-                tl.contains("contentmetadata") || tl.contains("feedwidget")
+                tl.contains("interactivemedia") || tl.contains("sponsored") || tl.contains("videoplayer")
 
         if (isAdRelated) {
             for (method in classDef.methods.toList()) {
@@ -44,23 +121,42 @@ fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
                 val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
                 val mName = method.name.lowercase()
                 val retType = method.returnType
-                val pTypes = method.parameterTypes
 
-                // 1. Intercept ad status checks -> return false
+                val isAdFreeCheck = !isStatic && (
+                    mName == "isadfree" ||
+                    mName == "isadfreeuser" ||
+                    mName == "hasadfreeexperience" ||
+                    mName == "hasadfreesubscription"
+                ) && retType == "Z"
+
+                if (isAdFreeCheck) {
+                    try {
+                        mutableClass.replaceMethod(
+                            method,
+                            registerCount = 2,
+                            smaliCode = """
+                                const/4 v0, 0x1
+                                return v0
+                            """.trimIndent()
+                        )
+                        hookedPoints++
+                    } catch (_: Exception) {}
+                }
+
                 val isAdStatusCheck = !isStatic && (
                     mName == "isad" ||
                     mName == "isadplaying" ||
                     mName == "isadshowing" ||
                     mName == "isliveadplaying" ||
+                    mName == "isadbreakplaying" ||
                     mName == "shouldshowads" ||
                     mName == "shouldplayad" ||
                     mName == "canplayad" ||
                     mName == "hasad" ||
                     mName == "hasadpod" ||
-                    mName == "isprerollad" ||
-                    mName == "ismidrollad" ||
-                    mName == "islinearad"
-                ) && retType == "Z" && pTypes.isEmpty()
+                    mName == "hasadbreak" ||
+                    mName == "isadsupported"
+                ) && retType == "Z"
 
                 if (isAdStatusCheck) {
                     try {
@@ -73,20 +169,19 @@ fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
                             """.trimIndent()
                         )
                         hookedPoints++
-                        logger.fine("[Hotstar AdBlock] Hooked ad check: ${type}->${method.name} -> false")
-                    } catch (e: Exception) {
-                        logger.fine("[Hotstar AdBlock] Skip status check hook: ${e.message}")
-                    }
+                    } catch (_: Exception) {}
                 }
 
-                // 2. Intercept ad trigger / load / show methods -> return-void
                 val isAdTrigger = !isStatic && (
                     mName == "loadad" ||
                     mName == "showad" ||
                     mName == "playad" ||
                     mName == "schedulead" ||
                     mName == "requestadpod" ||
-                    mName == "startadplayback"
+                    mName == "requestads" ||
+                    mName == "submitrequest" ||
+                    mName == "startadplayback" ||
+                    mName == "onadbreakstarted"
                 ) && retType == "V"
 
                 if (isAdTrigger) {
@@ -97,15 +192,11 @@ fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
                             smaliCode = "return-void"
                         )
                         hookedPoints++
-                        logger.fine("[Hotstar AdBlock] Neutralized ad presentation: ${type}->${method.name}")
-                    } catch (e: Exception) {
-                        logger.fine("[Hotstar AdBlock] Skip trigger hook: ${e.message}")
-                    }
+                    } catch (_: Exception) {}
                 }
             }
         }
     }
 
-    logger.info("[JioHotstar AdBlock] Total ad hooks applied: $hookedPoints")
+    logger.info("[Hotstar AdBlock] Patch completed with $hookedPoints supplemental hooks.")
 }
-

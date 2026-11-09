@@ -37,6 +37,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origSuperclass
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Hide Stories"
 internal const val STORIES = "$EXTENSION_PACKAGE/misc/Stories;"
@@ -45,7 +53,8 @@ internal const val STORY_CAMERA_ICON = "Lorg/telegram/messenger/R\$drawable;->ou
 internal const val CHAT_PREVIEW_ACTION = "Lorg/telegram/messenger/R\$id;->acc_action_chat_preview:I"
 private const val CANVAS = "Landroid/graphics/Canvas;"
 private const val IMAGE = "Lorg/telegram/messenger/ImageReceiver;"
-private val TOUCH_PARAMETERS = listOf("Landroid/view/MotionEvent;", "Landroid/view/View;")
+/** The avatar's touch check takes the event and the cell; 13.2 takes the cell first. */
+private val TOUCH_PARAMETERS = listOf("Landroid/view/MotionEvent;", "Landroid/view/View;").let { setOf(it, it.reversed()) }
 private val COMMUNITY_PARAMETERS = listOf("Lorg/telegram/tgnet/TLRPC\$Chat;", "Lorg/telegram/tgnet/TLRPC\$User;")
 private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_16)
@@ -105,8 +114,8 @@ internal data class StoryPlan(val hooks: Map<StoryTarget, StoryHook>, val scope:
 /** Finds kept protocol/resource anchors, then follows the fixture's own field and method references. */
 internal fun BytecodePatchContext.resolveStoryHooks(): StoryPlan {
     val classes = mutableMapOf<String, ClassDef>()
-    classDefForEach { if (!it.type.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
-    fun mutable(method: Method) = mutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
+    classDefForEach { if (!it.origType.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
+    fun mutable(method: Method) = tgMutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
     fun body(call: MethodReference): Method = classes[call.definingClass]?.methods?.singleOrNull { it.sameSignature(call) }
         ?: throw PatchException("$PATCH: no body for discovered $call")
     // Each search below only reads the classes as they were above, among those naming its anchor.
@@ -119,7 +128,7 @@ internal fun BytecodePatchContext.resolveStoryHooks(): StoryPlan {
     }.unique("story list request")
     if (request != null) {
         shape(request.instructions().any { it.field()?.let { field ->
-            field.definingClass == GET_ALL_STORIES && field.name == "include_hidden" && field.type == "Z"
+            field.origDefiningClass == GET_ALL_STORIES && field.origName == "include_hidden" && field.origType == "Z"
         } == true }, "story list request lacks include_hidden")
         val method = mutable(request)
         method.requireLocals(PATCH, 1)
@@ -127,37 +136,37 @@ internal fun BytecodePatchContext.resolveStoryHooks(): StoryPlan {
     }
 
     val dialogs = mentioning(STORY_CAMERA_ICON).filter { classDef -> classDef.methods.any {
-        it.name == "createView" && it.hasShape(listOf("Landroid/content/Context;"), "Landroid/view/View;") &&
+        it.origName == "createView" && it.hasShape(listOf("Landroid/content/Context;"), "Landroid/view/View;") &&
             it.instructions().any { instruction -> instruction.reference() == STORY_CAMERA_ICON }
     } }.unique("chat list with the Post Story camera")
     if (dialogs != null) {
-        val create = dialogs.methods.single { it.name == "createView" && it.instructions().any { i -> i.reference() == STORY_CAMERA_ICON } }
+        val create = dialogs.methods.single { it.origName == "createView" && it.instructions().any { i -> i.reference() == STORY_CAMERA_ICON } }
         val creation = create.instructions()
         val icon = creation.indexOfFirst { it.reference() == STORY_CAMERA_ICON }
         val cameraRead = creation.getOrNull(icon - 1)
         val camera = cameraRead?.field()
-        shape(cameraRead?.opcode == Opcode.IGET_OBJECT && camera?.definingClass == dialogs.type &&
-            creation.getOrNull(icon + 1)?.call()?.name == "setImageResource" &&
+        shape(cameraRead?.opcode == Opcode.IGET_OBJECT && camera?.origDefiningClass == dialogs.origType &&
+            creation.getOrNull(icon + 1)?.call()?.origName == "setImageResource" &&
             creation[icon + 1].namedRegisters() == listOf(cameraRead.namedRegisters()[0], creation[icon].namedRegisters()[0]),
             "Post Story icon has no distinct camera field")
         hooks[StoryTarget.CAMERA] = cameraHook(mutable(dialogs.methods.filter { method ->
             method.hasShape(listOf("Z"), "V") && method.instructions().any { it.opcode == Opcode.IGET_OBJECT && it.field() == camera }
         }.unique("camera visibility update") ?: throw PatchException("$PATCH: no camera visibility update")), camera!!)
         val bar = dialogs.methods.filter { method ->
-            method.hasShape(listOf("Z"), "V") && method.instructions().any { it.call()?.name == "getLastStoryViewer" } &&
-                method.instructions().any { it.call()?.let { call -> call.definingClass == "Landroid/animation/ValueAnimator;" && call.name == "ofFloat" } == true }
+            method.hasShape(listOf("Z"), "V") && method.instructions().any { it.call()?.origName == "getLastStoryViewer" } &&
+                method.instructions().any { it.call()?.let { call -> call.origDefiningClass == "Landroid/animation/ValueAnimator;" && call.origName == "ofFloat" } == true }
         }.unique("cached story bar update")
         if (bar != null) hooks[StoryTarget.BAR] = barHook(mutable(bar))
     }
 
     val cell = mentioning(CHAT_PREVIEW_ACTION).filter { classDef ->
-        classDef.methods.any { it.name == "getDialogId" && it.hasShape(emptyList(), "J") } &&
-            classDef.methods.any { it.name == "getCurrentDialogFolderId" && it.hasShape(emptyList(), "I") } &&
+        classDef.methods.any { it.origName == "getDialogId" && it.hasShape(emptyList(), "J") } &&
+            classDef.methods.any { it.origName == "getCurrentDialogFolderId" && it.hasShape(emptyList(), "I") } &&
             classDef.methods.any { it.instructions().any { i -> i.reference() == CHAT_PREVIEW_ACTION } }
     }.unique("dialog avatar cell") ?: return StoryPlan(hooks, null)
-    val intercept = cell.methods.single { it.name == "onInterceptTouchEvent" && it.hasShape(listOf("Landroid/view/MotionEvent;"), "Z") }
+    val intercept = cell.methods.single { it.origName == "onInterceptTouchEvent" && it.hasShape(listOf("Landroid/view/MotionEvent;"), "Z") }
     val intercepted = intercept.instructions()
-    val touchAt = intercepted.indices.filter { intercepted[it].call()?.hasShape(TOUCH_PARAMETERS, "Z") == true }
+    val touchAt = intercepted.indices.filter { at -> intercepted[at].call()?.let { call -> TOUCH_PARAMETERS.any { call.hasShape(it, "Z") } } == true }
         .unique("dialog avatar touch call") ?: throw PatchException("$PATCH: no dialog avatar touch call")
     val touchCall = intercepted[touchAt].call()!!
     val paramsRead = intercepted.getOrNull(touchAt - 1)
@@ -165,17 +174,17 @@ internal fun BytecodePatchContext.resolveStoryHooks(): StoryPlan {
     val shareRead = intercepted.getOrNull(touchAt - 3)
     val share = shareRead?.field()
     val interceptFlow = ControlFlow.of(intercept)
-    shape(paramsRead?.opcode == Opcode.IGET_OBJECT && paramsField?.definingClass == cell.type &&
+    shape(paramsRead?.opcode == Opcode.IGET_OBJECT && paramsField?.origDefiningClass == cell.origType &&
         paramsRead.namedRegisters()[0] == intercepted[touchAt].namedRegisters()[0] &&
-        shareRead?.opcode == Opcode.IGET_BOOLEAN && share?.definingClass == cell.type &&
+        shareRead?.opcode == Opcode.IGET_BOOLEAN && share?.origDefiningClass == cell.origType &&
         intercepted[touchAt - 2].opcode == Opcode.IF_NEZ &&
         intercepted[touchAt - 2].namedRegisters()[0] == shareRead.namedRegisters()[0] &&
         interceptFlow.normal[touchAt - 2].any { it > touchAt }, "dialog avatar has no Share to Story exclusion")
     val params = classes[paramsField!!.type] ?: throw PatchException("$PATCH: no dialog avatar params class")
-    shape(params.superclass == touchCall.definingClass, "dialog avatar touch does not use its params base")
-    val owner = params.fields.filter { it.type == cell.type }.unique("dialog params owner")
+    shape(params.origSuperclass == touchCall.origDefiningClass, "dialog avatar touch does not use its params base")
+    val owner = params.fields.filter { it.origType == cell.origType }.unique("dialog params owner")
         ?: throw PatchException("$PATCH: no dialog params owner")
-    val shareMember = cell.fields.single { it.name == share!!.name && it.type == share.type }
+    val shareMember = cell.fields.single { it.origName == share!!.origName && it.origType == share.origType }
     shape(listOf(params.accessFlags, cell.accessFlags, owner.accessFlags, shareMember.accessFlags)
         .all { AccessFlags.PUBLIC.isSet(it) }, "avatar scope cannot access the discovered classes or fields")
     val scope = """
@@ -191,17 +200,17 @@ internal fun BytecodePatchContext.resolveStoryHooks(): StoryPlan {
         const/4 v0, 0x0
         return v0
     """
-    shape(mutableClassDefBy(STORIES).methods.count { it.name == "isDialogAvatar" &&
+    shape(tgMutableClassDefBy(STORIES).methods.count { it.origName == "isDialogAvatar" &&
         AccessFlags.STATIC.isSet(it.accessFlags) && it.hasShape(listOf("Ljava/lang/Object;"), "Z") } == 1,
         "extension has no Object avatar scope stub")
 
-    val draw = cell.methods.single { it.name == "onDraw" && it.hasShape(listOf(CANVAS), "V") }
+    val draw = cell.methods.single { it.origName == "onDraw" && it.hasShape(listOf(CANVAS), "V") }
     val drawing = draw.instructions()
     val wrapperAt = drawing.indices.filter { drawing[it].call()?.hasShape(listOf("J", CANVAS, IMAGE, params.superclass!!), "V") == true }
         .unique("dialog story renderer") ?: throw PatchException("$PATCH: no dialog story renderer")
     val paramsRegister = drawing[wrapperAt].namedRegisters().last()
     val savedAt = (0 until wrapperAt).lastOrNull { drawing[it].opcode == Opcode.IGET &&
-        drawing[it].field()?.definingClass == params.superclass && drawing[it].namedRegisters()[1] == paramsRegister }
+        drawing[it].field()?.origDefiningClass == params.origSuperclass && drawing[it].namedRegisters()[1] == paramsRegister }
         ?: throw PatchException("$PATCH: dialog renderer does not save force state")
     val force = drawing[savedAt].field()!!
     shape(drawing.drop(wrapperAt + 1).any { it.opcode == Opcode.IPUT && it.field() == force &&
@@ -213,10 +222,10 @@ internal fun BytecodePatchContext.resolveStoryHooks(): StoryPlan {
     val renderCall = wrapper.instructions().mapNotNull { it.call() }.filter {
         it.hasShape(listOf("J", CANVAS, IMAGE, "Z", params.superclass!!), "V")
     }.unique("avatar state renderer") ?: throw PatchException("$PATCH: no avatar state renderer")
-    shape(wrapper.instructions().any { it.call()?.name == "getStoriesController" }, "avatar wrapper is not the story renderer")
+    shape(wrapper.instructions().any { it.call()?.origName == "getStoriesController" }, "avatar wrapper is not the story renderer")
     hooks[StoryTarget.AVATARS] = avatarHook(mutable(body(renderCall)), force)
     val community = params.methods.filter { it.hasShape(COMMUNITY_PARAMETERS, "Z") &&
-        it.instructions().mapNotNull { i -> i.field() }.count { field -> field.name == "linked_community_id" } == 2
+        it.instructions().mapNotNull { i -> i.field() }.count { field -> field.origName == "linked_community_id" } == 2
     }.unique("dialog community avatar predicate") ?: throw PatchException("$PATCH: no community avatar predicate")
     hooks[StoryTarget.TOUCHES] = touchHook(mutable(body(touchCall)), community.name, params.superclass!!)
     return StoryPlan(hooks, scope)
@@ -242,7 +251,7 @@ private fun cameraHook(method: MutableMethod, camera: FieldReference): StoryHook
 /** Both cached peer stories and the self-story branch feed Telegram's existing layout update. */
 private fun barHook(method: MutableMethod): StoryHook {
     val instructions = method.instructions()
-    val stores = instructions.indices.filter { instructions[it].opcode == Opcode.IPUT_BOOLEAN && instructions[it].field()?.definingClass == method.definingClass }
+    val stores = instructions.indices.filter { instructions[it].opcode == Opcode.IPUT_BOOLEAN && instructions[it].field()?.origDefiningClass == method.origDefiningClass }
     shape(stores.size == 4 && stores.map { instructions[it].field() }.distinct().size == 4 &&
         stores.map { instructions[it].namedRegisters()[1] }.distinct().size == 1, "cached story bar has changed state fields")
     val self = instructions[stores[0]].namedRegisters()[0]
@@ -335,7 +344,7 @@ private fun avatarHook(method: MutableMethod, force: FieldReference): StoryHook 
     val unread = instructions[branch + 2].namedRegisters()[0]
     shape(at == branch + 3 && instructions[branch + 1].namedRegisters()[1] == forced &&
         instructions[branch + 2].namedRegisters()[1] == state && instructions[at].opcode == Opcode.IGET &&
-        instructions[at].field()?.definingClass == force.definingClass && instructions[at].namedRegisters()[1] == params,
+        instructions[at].field()?.origDefiningClass == force.origDefiningClass && instructions[at].namedRegisters()[1] == params,
         "avatar state comparison is not after the force-state override")
     val current = instructions[at].field()
     val immediate = instructions.indices.mapNotNull { index ->
@@ -343,7 +352,7 @@ private fun avatarHook(method: MutableMethod, force: FieldReference): StoryHook 
         val target = flow.normal[index].singleOrNull { it != index + 1 } ?: return@mapNotNull null
         if (instructions[target].opcode == Opcode.IPUT && instructions[target].field() == current &&
             instructions[target].namedRegisters() == listOf(state, params) && instructions.getOrNull(target + 1)?.opcode == Opcode.IPUT &&
-            instructions[target + 1].field()?.type == "F" && instructions[target + 1].namedRegisters()[1] == params) index to target else null
+            instructions[target + 1].field()?.origType == "F" && instructions[target + 1].namedRegisters()[1] == params) index to target else null
     }.unique("avatar nonanimated state update") ?: throw PatchException("$PATCH: no avatar nonanimated state update")
     val animated = instructions[immediate.first].namedRegisters()[0]
     val progress = instructions[immediate.second + 1].field()!!
@@ -370,8 +379,8 @@ private fun avatarHook(method: MutableMethod, force: FieldReference): StoryHook 
 private fun touchHook(method: MutableMethod, communityName: String, paramsType: String): StoryHook {
     val instructions = method.instructions()
     val flow = ControlFlow.of(method)
-    val call = instructions.indices.filter { instructions[it].call()?.let { it.definingClass == paramsType &&
-        it.name == communityName && it.hasShape(COMMUNITY_PARAMETERS, "Z") } == true }
+    val call = instructions.indices.filter { instructions[it].call()?.let { it.origDefiningClass == paramsType &&
+        it.origName == communityName && it.hasShape(COMMUNITY_PARAMETERS, "Z") } == true }
         .unique("community-first avatar touch branch") ?: throw PatchException("$PATCH: no community avatar touch branch")
     val result = call + 1
     val branch = result + 1
@@ -385,8 +394,8 @@ private fun touchHook(method: MutableMethod, communityName: String, paramsType: 
     val clickable = instructions[branch + 1].namedRegisters()[0]
     val params = instructions[call].namedRegisters()[0]
     shape(at == branch + 3 && merge > at && instructions[at].opcode == Opcode.IGET_BOOLEAN &&
-        instructions[at].field()?.definingClass == paramsType && instructions[merge].opcode == Opcode.IGET_WIDE &&
-        instructions[merge].field()?.definingClass == paramsType && clickable <= 255,
+        instructions[at].field()?.origDefiningClass == paramsType && instructions[merge].opcode == Opcode.IGET_WIDE &&
+        instructions[merge].field()?.origDefiningClass == paramsType && clickable <= 255,
         "community and story touch paths have changed their merge")
     val answer = method.freeLocalsAt(PATCH, at, 1, targets = listOf(merge), highest = 255).single()
     return StoryHook(method, at, """
@@ -408,11 +417,11 @@ private fun <T> List<T>.unique(what: String): T? {
     return singleOrNull()
 }
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-private fun Instruction.reference(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.reference(): String? = origRef()
 private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
-private fun MethodReference.hasShape(parameters: List<String>, returns: String) = returnType == returns && parameterTypes.map { it.toString() } == parameters
+private fun MethodReference.hasShape(parameters: List<String>, returns: String) = origReturnType == returns && origParameterTypes == parameters
 private fun MethodReference.sameSignature(other: MethodReference) = name == other.name && returnType == other.returnType &&
-    parameterTypes.map { it.toString() } == other.parameterTypes.map { it.toString() }
+    origParameterTypes == other.origParameterTypes
 
 private fun predecessors(flow: ControlFlow, size: Int): Array<MutableList<Int>> {
     val predecessors = Array(size) { mutableListOf<Int>() }

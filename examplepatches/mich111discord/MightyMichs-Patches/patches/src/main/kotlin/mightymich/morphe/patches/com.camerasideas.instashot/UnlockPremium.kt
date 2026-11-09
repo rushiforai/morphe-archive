@@ -16,7 +16,8 @@ val unlockPremiumPatch = bytecodePatch(
         "refuse a re-signed package.",
     default = true
 ) {
-    dependsOn(patchVideoEngineKillPatch)
+    // Optional companion: "Fix video engine on re-sign" for re-signed builds.
+    // Not a hard dependency — Pro unlock still works when the native pattern drifts.
 
     compatibleWith(InShotCompatibility.INSHOT)
 

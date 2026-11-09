@@ -26,7 +26,29 @@ Or
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.13.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.13.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
+> **[v1.14.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.14.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;73 patches total
+<details open>
+<summary>📦 WhatsApp&nbsp;&nbsp;•&nbsp;&nbsp;8 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.26.43.75 | 🧪&nbsp;2.26.43.74 | 🧪&nbsp;2.26.43.72 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [App icon](#app-icon) | Choose a classic or premium-style launcher icon. | • Style |
+| [Keep deleted messages](#keep-deleted-messages) | Show messages that were deleted for everyone. May need a fingerprint update after WhatsApp upgrades. | • Highlight deleted messages |
+| [Mods settings entry](#mods-settings-entry) | Reserves a MightyMich row in Settings. Full dialog wiring needs the settings-list fingerprint for this WhatsApp build. |  |
+| [Mods settings resources](#mods-settings-resources) | Adds English strings for the MightyMich section in WhatsApp Settings. |  |
+| [Read receipts](#read-receipts) | If enabled, you won't send read receipts (blue ticks). | • Always off |
+| [Typing indicator](#typing-indicator) | If enabled, others won't see when you are typing. |  |
+| [Usage data](#usage-data) | Limit diagnostic and analytics data WhatsApp sends. |  |
+| [View once media](#view-once-media) | Allow reopening and saving view once photos and videos. |  |
+
+</details>
+
 <details open>
 <summary>📦 SofaScore&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -62,6 +84,22 @@ Or
 </details>
 
 <details open>
+<summary>📦 Finch&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 3.73.235 | 🧪&nbsp;3.73.0 | 🧪&nbsp;3.72.0 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable telemetry](#disable-telemetry) | Reduces Adjust / analytics style callbacks where possible. Flutter Sentry/Amplitude may still run partially. |  |
+| [Unlock Plus](#unlock-plus) | Forces RevenueCat Plus entitlement checks so Finch treats the account as Finch Plus (cosmetics, full activity libraries, shop perks). |  |
+
+</details>
+
+<details open>
 <summary>📦 ESET Mobile Security&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -87,7 +125,7 @@ Or
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Fix video engine on re-sign](#fix-video-engine-on-re-sign) | Stops the bundled video engine library from terminating the process when the APK is re-signed. Covers arm64-v8a and armeabi-v7a copies of libisvideoengine.so so the editor can load after a custom signature. |  |
+| [Fix video engine on re-sign](#fix-video-engine-on-re-sign) | Stops libisvideoengine.so from terminating the process after the APK is re-signed. Supports arm64-v8a / armeabi-v7a; patterns cover 2.214.x and newer builds that still issue kill(pid, 9). |  |
 | [Unlock Premium](#unlock-premium) | Enables InShot Pro entitlements offline: export without watermark, no interstitial ads, and access to paid effects, transitions, stickers and HD. Built-in AI features that validate the store signature in native code may still refuse a re-signed package. |  |
 
 </details>
@@ -135,8 +173,8 @@ Or
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlimited Energy](#unlimited-energy) | Bypasses energy limits so lessons can be started freely (bonus QoL). |  |
-| [Unlock Premium](#unlock-premium) | Unlocks SideMe Super / Premium subscription features. |  |
+| [Unlimited Energy](#unlimited-energy) | Optional: tries to bypass lesson energy limits. Off by default (aggressive matching previously caused startup crashes). |  |
+| [Unlock Premium](#unlock-premium) | Unlocks SideMe Super / Premium by forcing UserSubscription.isActive to true. |  |
 
 </details>
 
@@ -202,6 +240,21 @@ Or
 </details>
 
 <details open>
+<summary>📦 Adobe Premiere&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.5.0 | 🧪&nbsp;26.4.1 | 🧪&nbsp;26.3.0 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premiere Premium](#unlock-premiere-premium) | Forces local Adobe Premiere entitlement checks (CC services / isPremium gates). Core editing is already free; cloud AI credits remain server-side. |  |
+
+</details>
+
+<details open>
 <summary>📦 Call Filter&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -217,6 +270,51 @@ Or
 </details>
 
 <details open>
+<summary>📦 My Drama&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.81.0 | 🧪&nbsp;1.82.0 | 🧪&nbsp;1.86.0 | 🧪&nbsp;1.87.0 |
+| :---: | :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Forces Adapty access levels and subscriptions to active/lifetime so My Drama treats the account as premium. |  |
+
+</details>
+
+<details open>
+<summary>📦 DramaWave&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.0.70 | 🧪&nbsp;2.0.61 | 🧪&nbsp;2.0.51 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Forces local VIP / VIP Pro checks for DramaWave playback and benefits. |  |
+
+</details>
+
+<details open>
+<summary>📦 iDrama&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.36.5 | 🧪&nbsp;1.36.4 | 🧪&nbsp;1.36.3 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Forces local VIP checks so locked episodes and VIP benefits open (client-side; some titles may still need a server unlock). |  |
+
+</details>
+
+<details open>
 <summary>📦 VivaCut&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -228,6 +326,21 @@ Or
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Unlocks VivaCut Pro by forcing IapService.F()Z to return true. WARNING: May cause crashes. |  |
+
+</details>
+
+<details open>
+<summary>📦 DramaBox&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 7.0.0 | 🧪&nbsp;6.9.3 | 🧪&nbsp;6.4.0 |
+| :---: | :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Forces DramaBox VIP checks (UserInfo / LoginService / isVip helpers) so premium content unlocks on the client. |  |
 
 </details>
 
@@ -319,8 +432,8 @@ Or
 
 **🎯 Supported versions:**
 
-| 2.01.64.0916 |
-| :---: |
+| 2.01.64.0916 | 2.01.65.1014 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -334,8 +447,8 @@ Or
 
 **🎯 Supported versions:**
 
-| 2.07.34.0918 |
-| :---: |
+| 2.07.34.0918 | 2.07.37.1026 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -364,7 +477,7 @@ Or
 
 **🎯 Supported versions:**
 
-| 4.2.20 | 🧪&nbsp;4.2.00 |
+| 4.2.20 | 4.2.00 |
 | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -379,12 +492,12 @@ Or
 
 **🎯 Supported versions:**
 
-| 7.5.00112 | v7.5.00112 | 7.3.10123 | v7.3.10123 |
-| :---: | :---: | :---: | :---: |
+| 7.5.00112 | v7.5.00112 | 7.3.10123 | v7.3.10123 | 7.3.00961 | v7.3.00961 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium Features](#unlock-premium-features) | Unlocks Screen Translate Premium. |  |
+| [Unlock Premium Features](#unlock-premium-features) | Unlocks Screen Translate Premium features and disables premium-only gates. |  |
 
 </details>
 
@@ -424,8 +537,8 @@ Or
 
 **🎯 Supported versions:**
 
-| 1.04.16.0813 | 1.04.17.0918 |
-| :---: | :---: |
+| 1.04.16.0813 | 1.04.17.0918 | 1.04.19.1027 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -439,8 +552,8 @@ Or
 
 **🎯 Supported versions:**
 
-| 1.02.165.0923 |
-| :---: |
+| 1.02.165.0923 | 1.02.170.1026 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -469,8 +582,8 @@ Or
 
 **🎯 Supported versions:**
 
-| 1.02.94.0925 | 1.03.38.0924 |
-| :---: | :---: |
+| 1.02.94.0925 | 1.03.38.0924 | 1.03.41.1022 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -484,8 +597,8 @@ Or
 
 **🎯 Supported versions:**
 
-| 1.02.111.0915 |
-| :---: |
+| 1.02.111.0915 | 1.02.112.1013 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

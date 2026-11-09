@@ -21,6 +21,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The attachment gallery's camera constructor and the runtime. */
 class RearCameraFirstFixtureTest {
@@ -28,7 +31,7 @@ class RearCameraFirstFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = FixtureDex.classesWhere(build, { true }) { m ->
-                m.name == "<init>" && m.parameterTypes.map(CharSequence::toString) == ATTACH_CAMERA_PARAMETERS
+                m.origName == "<init>" && m.parameterTypes.map(CharSequence::toString) == ATTACH_CAMERA_PARAMETERS
             }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val camera = context.resolveRearCameraFirst()
@@ -44,10 +47,10 @@ class RearCameraFirstFixtureTest {
             assertEquals("$name: the lens choice in and out", listOf(listOf(front), listOf(front)), after.take(2).map { it.namedRegisters() })
             assertEquals("$name: CameraView gets the answer", front, after.first { it.controlRef() == ATTACH_CAMERA_INIT }.namedRegisters()[2])
             for (i in before.indices) {
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + 2].opcode, after[i + 2].namedRegisters(), (after[i + 2] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + 2].opcode, after[i + 2].namedRegisters(), after[i + 2].origRef()))
             }
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "rearCameraFirst" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "rearCameraFirst" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

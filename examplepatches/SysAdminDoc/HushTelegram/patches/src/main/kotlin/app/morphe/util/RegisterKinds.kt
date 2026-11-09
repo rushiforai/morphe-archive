@@ -14,6 +14,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
 
 /**
  * What a register holds at an instruction, as far as ART's verifier is concerned. [Tag.UNUSABLE]
@@ -177,7 +179,7 @@ fun Method.registerReads(instruction: Instruction): List<Pair<Int, RegisterUse>>
             val called = (instruction as ReferenceInstruction).reference as MethodReference
             val slots = mutableListOf<RegisterUse?>()
             if (!name.startsWith("invoke-static")) {
-                slots += if (name.startsWith("invoke-direct") && called.name == "<init>") RegisterUse.RECEIVER else RegisterUse.REF
+                slots += if (name.startsWith("invoke-direct") && called.origName == "<init>") RegisterUse.RECEIVER else RegisterUse.REF
             }
             called.parameterTypes.forEach { type ->
                 slots += typed(type.toString())
@@ -220,10 +222,10 @@ class RegisterKinds private constructor(private val entry: Array<Array<RegisterK
             }
 
             val start = Array(count) { RegisterKind.UNUSABLE }
-            var parameter = count - method.parameters.sumOf { if (it.type == "J" || it.type == "D") 2 else 1 } -
+            var parameter = count - method.parameters.sumOf { if (it.origType == "J" || it.origType == "D") 2 else 1 } -
                 if (method.isStatic()) 0 else 1
             if (!method.isStatic()) {
-                start[parameter++] = if (method.name == "<init>") RegisterKind(RegisterKind.Tag.UNINIT, method.definingClass, -1)
+                start[parameter++] = if (method.origName == "<init>") RegisterKind(RegisterKind.Tag.UNINIT, method.definingClass, -1)
                     else RegisterKind.ref(method.definingClass)
             }
             method.parameters.forEach { type ->
@@ -296,7 +298,7 @@ class RegisterKinds private constructor(private val entry: Array<Array<RegisterK
                 val called = (instruction as ReferenceInstruction).reference as MethodReference
                 val receiver = instruction.namedRegisters().firstOrNull()
                 val made = receiver?.let { state[it] }
-                if (called.name == "<init>" && made?.tag == RegisterKind.Tag.UNINIT) {
+                if (called.origName == "<init>" && made?.tag == RegisterKind.Tag.UNINIT) {
                     for (register in state.indices) if (state[register] == made) state[register] = RegisterKind.ref(made.type)
                 }
                 return
@@ -441,7 +443,7 @@ private fun classedReads(method: Method, instruction: Instruction): List<Pair<In
             if (!name.startsWith("invoke-static")) {
                 // A constructor's receiver is unconstructed, which the kind check covers, and an
                 // interface call's receiver is checked when it runs.
-                slots += if (called.name == "<init>" || name.startsWith("invoke-interface")) null else called.definingClass
+                slots += if (called.origName == "<init>" || name.startsWith("invoke-interface")) null else called.definingClass
             }
             called.parameterTypes.forEach { type ->
                 slots += type.toString().takeIf(::isReference)

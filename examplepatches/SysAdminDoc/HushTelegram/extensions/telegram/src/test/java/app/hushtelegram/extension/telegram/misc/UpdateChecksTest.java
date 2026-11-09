@@ -58,6 +58,21 @@ public class UpdateChecksTest {
                 HookStatus.report());
     }
 
+    /** An update found while paused kept its bar up after the switch came back (#60). */
+    @Test
+    public void aWaitingUpdateIsHiddenWhileTheSwitchIsOnAndShowsWhileOffOrPaused() {
+        Settings.DISABLE_UPDATE_CHECKS.save(true);
+        assertTrue(UpdateChecks.hideWaitingUpdate());
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        assertFalse(UpdateChecks.hideWaitingUpdate());
+        PauseForTests.resume();
+        Settings.DISABLE_UPDATE_CHECKS.save(false);
+        assertFalse(UpdateChecks.hideWaitingUpdate());
+        assertEquals(Arrays.asList(
+                        "Disable update checks: invoked 3, 0 found, 0 missing. Counted: waiting update hidden 1"),
+                HookStatus.report());
+    }
+
     @Test
     public void theUpdateCheckRunsWithTheSwitchOff() {
         Settings.DISABLE_UPDATE_CHECKS.save(false);

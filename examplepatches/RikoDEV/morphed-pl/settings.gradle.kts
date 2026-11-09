@@ -2,6 +2,8 @@ rootProject.name = "morphed-pl"
 
 pluginManagement {
     repositories {
+        // Allows offline builds against locally published Morphe plugin/patcher artifacts.
+        mavenLocal()
         gradlePluginPortal()
         google()
         maven {

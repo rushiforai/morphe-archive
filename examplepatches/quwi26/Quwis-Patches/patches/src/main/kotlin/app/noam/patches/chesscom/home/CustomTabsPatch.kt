@@ -17,6 +17,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val HOME_TABS = "${Constants.EXTENSION_PACKAGE}/home/HomeTabs;"
+private const val NAV_TAB = "Lcom/chess/navigationinterface/NavigationFragmentHomeTab;"
+private const val TRAIN_TAB = "Lcom/chess/navigationinterface/NavigationFragmentHomeTab\$Train;"
 
 /** toString() of the bottom bar's state. */
 internal object NavigationBarStateToStringFingerprint : Fingerprint(
@@ -117,6 +119,44 @@ val customTabsPatch = bytecodePatch(
                 }
             }
             if (tabListHooks == 0) throw PatchException("The bottom bar tab list was not found")
+
+            // 4.10.23 sends the Train tab to Watch for accounts outside chess.com's experiment.
+            // The patch puts Train in the bar itself, so a tap must keep the route it was given.
+            val normalizers = mutableListOf<Pair<String, Method>>()
+            classDefForEach { classDef ->
+                classDef.methods.forEach { method ->
+                    val returnsTab = method.returnType == NAV_TAB &&
+                        method.parameterTypes.map(CharSequence::toString) == listOf(NAV_TAB)
+                    val touchesTrain = method.implementation?.instructions?.any { instruction ->
+                        ((instruction as? ReferenceInstruction)?.reference as? FieldReference)
+                            ?.definingClass == TRAIN_TAB
+                    } == true
+                    if (returnsTab && touchesTrain) normalizers += classDef.type to method
+                }
+            }
+            if (normalizers.size != 1) {
+                throw PatchException("Found ${normalizers.size} bottom bar tab normalizers")
+            }
+            val (normalizerType, normalizer) = normalizers.single()
+            mutableClassDefBy(normalizerType).methods.first {
+                it.name == normalizer.name && it.parameterTypes == normalizer.parameterTypes &&
+                    it.returnType == normalizer.returnType
+            }.apply {
+                if (implementation!!.registerCount - parameterTypes.size < 1) {
+                    throw PatchException("Too few registers in the bottom bar tab normalizer")
+                }
+                addInstructions(
+                    0,
+                    """
+                        invoke-static { p1 }, $HOME_TABS->keepsRoute(Ljava/lang/Object;)Z
+                        move-result v0
+                        if-eqz v0, :morphe_keep_route
+                        return-object p1
+                        :morphe_keep_route
+                        nop
+                    """,
+                )
+            }
         }
     }
 }

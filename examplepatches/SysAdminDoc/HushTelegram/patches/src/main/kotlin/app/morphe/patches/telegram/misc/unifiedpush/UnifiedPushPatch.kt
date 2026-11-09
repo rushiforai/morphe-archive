@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.unifiedpush
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -35,6 +35,11 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.w3c.dom.Element
+import app.morphe.util.names.TelegramNames
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val UNIFIED_PUSH = "$EXTENSION_PACKAGE/misc/UnifiedPush;"
 internal const val UNIFIED_PUSH_RECEIVER = "app.hushtelegram.extension.telegram.misc.UnifiedPushReceiver"
@@ -251,12 +256,13 @@ internal fun BytecodePatchContext.resolveUnifiedPush(): UnifiedPushPlan {
     requireStatusMethod("reactionSound")
     controlHook(REACTION_ALERTS, "emojiDocument", listOf("I", "J"), "Ljava/lang/Object;")
 
-    val controller = mutableClassDefByOrNull(PUSH_CONTROLLER)
+    val controller = tgMutableClassDefByOrNull(PUSH_CONTROLLER)
     controlShape(controller != null && AccessFlags.PUBLIC.isSet(controller.accessFlags), "PushListenerController is missing")
     val signUp = controller!!.methods.filter { it.toString() == SEND_REGISTRATION }.controlSingle("Telegram's push sign-up")
     controlShape(signUp.controlCallable(true), "Telegram's push sign-up isn't public")
     val signUpRefs = signUp.controlBody().mapNotNull { it.controlRef() }
-    controlShape(STAGE_QUEUE in signUpRefs && POST_RUNNABLE in signUpRefs, "Telegram's push sign-up no longer runs on its stage queue")
+    controlShape(STAGE_QUEUE in signUpRefs && TelegramNames.of(this).asRead(POST_RUNNABLE) in signUpRefs,
+        "Telegram's push sign-up no longer runs on its stage queue")
     controlShape(controller.methods.any { method ->
         val body = method.controlBody()
         body.any { it.opcode == Opcode.SPUT_OBJECT && it.controlRef() == PUSH_STRING } &&
@@ -264,14 +270,15 @@ internal fun BytecodePatchContext.resolveUnifiedPush(): UnifiedPushPlan {
     }, "Telegram no longer saves the push token with its type")
 
     // The type reaches the server as token_type, straight from registerForPush's first parameter.
-    val messages = mutableClassDefByOrNull(MESSAGES_CONTROLLER)
-    val registerForPush = messages?.methods?.singleOrNull { it.toString() == REGISTER_FOR_PUSH }
+    val messages = tgMutableClassDefByOrNull(MESSAGES_CONTROLLER)
+    // 13.2 renamed it (W3 on the web build, Z3 on Play), so the source name is the one to compare.
+    val registerForPush = messages?.methods?.singleOrNull { it.origString() == REGISTER_FOR_PUSH }
     controlShape(registerForPush != null && registerForPush.controlBody().any {
         it.opcode == Opcode.IPUT && it.controlRef() == TOKEN_TYPE &&
             (it as TwoRegisterInstruction).registerA == registerForPush.parameterRegisterNumber(0)
     }, "Telegram's device sign-up no longer sends the push type as its token type")
 
-    val wake = controller.methods.filter { it.name == "onDecryptError" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+    val wake = controller.methods.filter { it.origName == "onDecryptError" && it.parameterTypes.isEmpty() && it.origReturnType == "V" }
         .controlSingle("Telegram's wake-up for every account")
     val body = wake.controlBody()
     val refs = body.mapNotNull { it.controlRef() }

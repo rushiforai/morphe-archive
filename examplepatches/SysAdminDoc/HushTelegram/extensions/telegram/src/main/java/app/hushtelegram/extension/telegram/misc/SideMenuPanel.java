@@ -73,6 +73,12 @@ final class SideMenuPanel extends FrameLayout {
     static final long SETTLE_MS = 220;
     /** How dark the screen behind gets with the menu all the way open. */
     static final float SCRIM = 0.5f;
+    /**
+     * Telegram's drawable for each {@link SideMenu.Row}, in order. New Message takes the outline pencil:
+     * Telegram 13 draws its msg_message as an eye.
+     */
+    static final String[] ICONS = {"msg_openprofile", "msg_edit", "msg_contacts", "msg_calls", "msg_saved",
+            "msg_settings_old", "msg_archive", "msg_admins", "msg_settings", "msg_download"};
 
     Object screen;
     final View scrim;
@@ -82,9 +88,12 @@ final class SideMenuPanel extends FrameLayout {
     TextView archive;
     private int archiveAt;
     private String archiveLabel;
+    /** The Administrators row once it's added, and what it said last. */
+    TextView admins;
     /** The HushTelegram row and the line above it, which the way's switch shows or hides each time the menu opens. */
     View hushRow;
     View hushDivider;
+    View downloadsRow;
     private final int touchSlop;
     private final int flingSpeed;
     private float progress;
@@ -144,20 +153,21 @@ final class SideMenuPanel extends FrameLayout {
         menu.addView(accounts);
         menu.addView(divider());
         String[] labels = SideMenu.rowLabels();
-        String[] icons = {"msg_openprofile", "msg_message", "msg_contacts", "msg_calls", "msg_saved", "msg_settings_old", "msg_archive", "msg_settings"};
         for (SideMenu.Row each : SideMenu.Row.values()) {
             if (each == SideMenu.Row.HUSH) {
                 hushDivider = divider();
                 menu.addView(hushDivider);
             }
+            if (each == SideMenu.Row.ADMINS) continue;
             if (each == SideMenu.Row.ARCHIVE) {
                 // Added the first time the menu opens with All Chats hidden, which a later build can bring.
                 archiveAt = menu.getChildCount();
                 archiveLabel = labels[each.ordinal()];
                 continue;
             }
-            TextView added = row(labels[each.ordinal()], icons[each.ordinal()], each);
+            TextView added = row(labels[each.ordinal()], ICONS[each.ordinal()], each);
             if (each == SideMenu.Row.HUSH) hushRow = added;
+            if (each == SideMenu.Row.DOWNLOADS) downloadsRow = added;
             menu.addView(added);
         }
     }
@@ -173,6 +183,26 @@ final class SideMenuPanel extends FrameLayout {
         }
         if (hushRow != null) hushRow.setVisibility(shown ? VISIBLE : GONE);
         if (hushDivider != null) hushDivider.setVisibility(shown ? VISIBLE : GONE);
+        if (downloadsRow != null) downloadsRow.setVisibility(DownloadManager.rowShown() ? VISIBLE : GONE);
+    }
+
+    /** Shows the Administrators row while its switch is on, adding it the first time, and says what a tap does next. */
+    void showAdminsForTests() {
+        showAdmins();
+    }
+
+    private void showAdmins() {
+        boolean shown = AdminChats.available();
+        if (shown && admins == null) {
+            admins = row(AdminChats.rowLabel(), "msg_admins", SideMenu.Row.ADMINS);
+            // After the archive row when there is one, and before the line above HushTelegram.
+            int at = archive != null ? menu.indexOfChild(archive) + 1 : archiveAt;
+            menu.addView(admins, at);
+        }
+        if (admins != null) {
+            admins.setText(AdminChats.rowLabel());
+            admins.setVisibility(shown ? VISIBLE : GONE);
+        }
     }
 
     /** Shows the Archived Chats row while a chat list is built without All Chats, adding it the first time. */
@@ -244,9 +274,11 @@ final class SideMenuPanel extends FrameLayout {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.HIDE_CONTACTS_TAB, "side menu name", failure);
         }
+        if (self != null && !self.isEmpty()) self = AccountGuard.mark(SideMenu.selfId(screen)) + self;
         name.setText(self == null ? "" : self);
         name.setVisibility(self == null || self.isEmpty() ? GONE : VISIBLE);
         showArchive();
+        showAdmins();
         showHush();
         paint(colorsFor(activity, (View) getParent()));
         View parent = (View) getParent();

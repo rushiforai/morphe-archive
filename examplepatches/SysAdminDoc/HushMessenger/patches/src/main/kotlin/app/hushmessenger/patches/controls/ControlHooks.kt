@@ -122,30 +122,166 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     community?.let { found.getValue(COMMUNITY_INBOX).add(it.render) }
     found.getValue("ai_sticker_cell").addAll(findAiStickerCells(classes))
     found.getValue("ai_sticker_grid").addAll(findAiStickerGrids(classes))
-    // Static fields stored by any class initializer that mentions the Notifications tab's "hide suggestions" preference
-    // key. validatePeopleSection checks the exact key before anything is edited.
-    val peopleJewelKeys = classes.flatMap { cls ->
+    val peopleJewelKeys = findPeopleJewelKeys(classes)
+    val storyCardKeys = findStoryCardKeys(classes)
+    resolveMessageGetterNames(classes)
+    val appIconManagers = findAppIconManagers(classes)
+    val stringTables = redexStringTables(classes)
+    activeStringTables = stringTables
+    val scan = ControlScan(found, peopleJewelKeys, storyCardKeys, appIconManagers, stringTables)
+    for (cls in classes) {
+        val original = cls.fields.firstOrNull { it.name == "__redex_internal_original_name" }
+            ?.initialValue.let { (it as? StringEncodedValue)?.value }
+        for (method in cls.methods) scan.visit(cls, original, method)
+    }
+    val searchFieldRender = scan.searchFieldRender
+    val changedViewer = scan.changedViewer
+    val gridBinderType = found["menu_settings"].orEmpty()
+        .firstOrNull { it.returnType == "V" && it.parameterTypes.size == 2 && it.parameterTypes[1] == "I" }
+        ?.definingClass
+    if (gridBinderType != null) {
+        for (cls in classes) {
+            val instantiates = cls.methods.any { m ->
+                m.implementation?.instructions?.any { insn ->
+                    insn.opcode == Opcode.NEW_INSTANCE &&
+                        ((insn as? ReferenceInstruction)?.reference as? TypeReference)?.type == gridBinderType
+                } == true
+            }
+            if (!instantiates) continue
+            cls.methods.singleOrNull {
+                it.returnType == "V" && it.parameterTypes == listOf("Ljava/util/List;") &&
+                    !AccessFlags.STATIC.isSet(it.accessFlags)
+            }?.let { found.getValue("menu_settings").add(it) }
+            break
+        }
+    }
+    // The search field creates the Ask Meta AI chip before any other component, and only for a typed query.
+    searchFieldRender?.let { field ->
+        val chip = field.implementation!!.instructions.asSequence()
+            .filter { it.opcode == Opcode.NEW_INSTANCE }
+            .map { ((it as ReferenceInstruction).reference as TypeReference).type }
+            .mapNotNull { type -> classes.firstOrNull { it.type == type } }
+            .firstOrNull { cls -> cls.methods.any { it.name == "render" } }
+        chip?.methods?.singleOrNull { it.name == "render" && it.returnType == field.returnType }
+            ?.let { found.getValue("ai_search_chip").add(it) }
+    }
+    if (changedViewer) found.getValue("screenshot_viewers").clear() else screenshotViewerRefusal = null
+    found.getValue(EMOJI_DRAWER).addAll(connectEmojiDrawer(scan.drawerReaders, scan.drawerAnchors, scan.drawerInterfaces))
+    found.getValue(INBOX_SEARCH_BAR).addAll(connectSearchBar(scan.searchIconReaders, scan.searchIconAnchors))
+    found.getValue(EMOJI_SEARCH).addAll(findEmojiSearch(classes))
+    found.getValue(TAB_BADGES).addAll(findTabBadges(classes))
+    found.getValue(FACEBOOK_BADGE).addAll(findFacebookBadge(classes))
+    found.getValue(FACEBOOK_PROFILE_HEADER).addAll(findProfileHeader(classes))
+    found.getValue(TAB_CONFIG).addAll(findTabConfig(classes))
+    found.getValue(AI_MENTIONS).addAll(findAiMentions(classes))
+    found.getValue(AI_COMMANDS).addAll(findAiCommands(classes))
+    val searchBars = findAiSearchHint(classes)
+    found.getValue(AI_SEARCH_HINT).addAll(searchBars)
+    found.getValue(AI_SEARCH_SCREEN_HINT).addAll(findAiSearchScreenHint(classes, searchBars))
+    found.getValue(AI_MENTION_ROWS).addAll(findAiMentionRows(classes))
+    found.getValue(AI_SUMMARY).addAll(findAiSummary(classes))
+    found.getValue(XHE_AUDIO).addAll(findXheAudio(classes))
+    found.getValue(DISAPPEARING_SWIPE).addAll(findDisappearingSwipe(classes))
+    found.getValue(RECENT_MEDIA).addAll(findRecentMedia(classes))
+    found.getValue(INSTANTS_BUTTON).addAll(findInstantsButton(classes))
+    found.getValue(SAVE_VOICE).addAll(findSaveVoice(classes))
+    found.getValue(SAVE_VOICE_MENU).addAll(findSaveVoiceMenu(classes))
+    found.getValue(MESSAGE_ACTIONS).addAll(findMessageActions(classes))
+    found.getValue(MESSAGE_ACTIONS_MORE).addAll(findMessageActionsMore(classes))
+    found.getValue(ANALYTICS_UPLOADS).addAll(findAnalyticsUploads(classes) + findBoundUploadTasks(classes) +
+        findXAnalyticsUploadTimers(classes) + findInProcessUploadStarts(classes))
+    found.getValue(ATTRIBUTION_UPLOADS).addAll(findAttributionUploads(classes))
+    found.getValue(AD_EVENTS).addAll(findAdEvents(classes))
+    found.getValue(MQTT_TELEMETRY).addAll(findMqttTelemetry(classes))
+    findPinnedChats(classes).forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
+    val hiddenChats = findHiddenChats(classes)
+    hiddenChats.forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
+    found.getValue(CHAT_MENU_ITEMS).addAll(chatMenuRows(hiddenChats))
+    found.getValue(NEARBY_SCANS).addAll(patchStage("Find nearby scans") { findNearbyScans(classes) })
+    found.getValue(WIFI_IDENTITY).addAll(patchStage("Find Wi-Fi identity reads") { findWifiIdentityReads(classes) })
+    found.getValue(PHONE_ID_SYNC).addAll(findPhoneIdSync(classes))
+    found.getValue(STORY_HOLD).addAll(findStoryHold(classes))
+    found.getValue(CHAT_PREVIEW).addAll(findChatPreview(classes))
+    found.getValue(CHAT_PREVIEW_SIZE).addAll(findChatPreviewSize(classes))
+    found.getValue(LANDSCAPE_LOCK).addAll(findPortraitLock(classes))
+    found.getValue(LANDSCAPE_MEDIA).addAll(findMediaOrientation(classes))
+    found.getValue(BLOCKED_LIST_PICTURES).addAll(findBlockedListPictures(classes))
+    found.getValue(RESTRICTED_NOTIFY).addAll(findRestrictedNotify(classes))
+    found.getValue(SHARE_STORY).addAll(findShareStory(classes))
+    found.getValue(SHARE_STORY_TARGET).addAll(findShareStoryTarget(classes))
+    found.getValue(FLOATING_TAB_BAR).addAll(findFloatingTabBar(classes))
+    found.getValue(TAB_BAR_OVERLAY).addAll(findTabBarOverlay(classes))
+    found.getValue(TAB_BAR_SCROLL_AWAY).addAll(findTabBarScrollAway(classes))
+    found.getValue(AVATAR_SHAPE).addAll(findAvatarShape(classes))
+    found.getValue(STORY_RING).addAll(findStoryRing(classes))
+    found.getValue(QUIET_CALL_RING).addAll(findQuietCallRing(classes))
+    found.getValue(QUIET_CALL_NOTIFICATION).addAll(findQuietCallNotification(classes))
+    found.getValue(CAR_MESSAGES).addAll(findCarMessages(classes))
+    found.getValue(CAR_EXTENSION_GATE).addAll(findCarExtensionGate(classes))
+    found.getValue(LOCAL_CHAT_SEARCH).addAll(findLocalChatSearch(classes))
+    found.getValue(CALL_RECORDING).addAll(findCallRecording(classes))
+    found.getValue(HOME_HEADER).addAll(findHomeHeader(classes))
+    found.getValue(TEXT_STYLE).addAll(findTextStyleField(classes))
+    found.getValue(MESSAGE_LOG).addAll(findMessageLogHook(classes))
+    found.getValue(AUTO_REPLY).addAll(findMessageLogHook(classes))
+    found.getValue(UNSENT_RECALL).addAll(findUnsentRecall(classes))
+    found.getValue(UNSENT_CLEAR).addAll(findUnsentClear(classes))
+    found.getValue(QUIET_LOG_CHECK).addAll(findQuietLogCheck(classes))
+    found.getValue(QUIET_LOG_DROP).addAll(findQuietLogDrop(classes))
+    found.getValue(CHAT_CHANNEL_KEEP).addAll(findChatChannelKeep(classes))
+    found.getValue(CHAT_CHANNEL_RAISE).addAll(findChatChannelRaise(classes))
+    autoReplyPictureRecipe = resolveAutoReplyPictureRecipe(classes)
+    messageLogContract = resolveMessageLogContract(classes)
+    quietChatContract = resolveQuietChatContract(classes, messageLogContract)
+    readReceiptThreadFields = resolveReadReceiptThreadFields(classes)
+    val (markReadBar, markReadClick) = findMarkReadButton(classes)
+    found.getValue(MARK_READ_BAR).addAll(markReadBar)
+    found.getValue(HIDE_CALL_BAR).addAll(markReadBar)
+    found.getValue(MARK_READ_CLICK).addAll(markReadClick)
+    val (logBar, logClick) = findMessageLogButton(classes)
+    found.getValue(MESSAGE_LOG_BUTTON).addAll(logBar)
+    found.getValue(MESSAGE_LOG_CLICK).addAll(logClick)
+    found.getValue(APP_THEME_PICK).addAll(findAppThemePick(classes))
+    found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
+    found.getValue(EXTERNAL_GALLERY).addAll(findExternalGallery(classes))
+    found.getValue(GALLERY_TEMP_FILE).addAll(findGalleryTempFile(classes))
+    found.getValue(GALLERY_TO_CHAT).addAll(findGalleryToChat(classes))
+    for ((hook, methods) in findCustomFont(classes)) found.getValue(hook).addAll(methods)
+    return found
+}
+
+/**
+ * Static fields stored by any class initializer that mentions the Notifications tab's "hide suggestions" preference
+ * key. validatePeopleSection checks the exact key before anything is edited.
+ */
+private fun findPeopleJewelKeys(classes: Iterable<ClassDef>): Set<String> = classes.flatMap { cls ->
         val code = cls.methods.singleOrNull { it.name == "<clinit>" }?.implementation?.instructions?.toList().orEmpty()
         if (code.none { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == PEOPLE_JEWEL_KEY }) emptyList()
         else code.filter { it.opcode == Opcode.SPUT_OBJECT }.map { (it as ReferenceInstruction).reference.toString() }
-    }.toSet()
-    // The static field each class initializer stores the story card's last-shown date key in.
-    val storyCardKeys = classes.flatMap { cls ->
+}.toSet()
+
+/** The static field each class initializer stores the story card's last-shown date key in. */
+private fun findStoryCardKeys(classes: Iterable<ClassDef>): Set<String> = classes.flatMap { cls ->
         val code = cls.methods.singleOrNull { it.name == "<clinit>" }?.implementation?.instructions?.toList().orEmpty()
         code.indices.filter { ((code[it] as? ReferenceInstruction)?.reference as? StringReference)?.string == STORY_CARD_DATE_KEY }
             .mapNotNull { at -> code.drop(at + 1).firstOrNull { it.opcode == Opcode.SPUT_OBJECT } }
             .map { (it as ReferenceInstruction).reference.toString() }
-    }.toSet()
+}.toSet()
+
+/** The getters the unsent hooks call on a message row, named by the row's debug string and the wrapper that serves it. */
+private fun resolveMessageGetterNames(classes: Iterable<ClassDef>) {
     messageTextGetterName = ""
     messageIdGetterName = ""
     messageIsUnsentGetterName = ""
     var rawText = ""
     var rawId = ""
     var rawUnsent = ""
+    val debugText = StringMatch("text=")
     for (cls in classes) {
         if (rawText.isNotEmpty()) break
         for (m in cls.methods) {
             val debugCode = m.implementation?.instructions?.toList() ?: continue
+            if (debugCode.none { debugText.matches((it as? ReferenceInstruction)?.reference) }) continue
             val debugStrs = debugCode.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
             if ("text=" !in debugStrs || "message_id=" !in debugStrs || "is_unsent=" !in debugStrs) continue
             var lastRef: DexMethodReference? = null
@@ -186,9 +322,39 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             break
         }
     }
-    val appIconManagers = findAppIconManagers(classes)
-    val stringTables = redexStringTables(classes)
-    activeStringTables = stringTables
+}
+
+/** One method findControls looks at, with what its checks read taken out once. */
+private class ScannedMethod(
+    val found: Map<String, MutableList<Method>>,
+    val cls: ClassDef,
+    val original: String?,
+    val method: Method,
+    val instructions: List<Instruction>,
+) {
+    val refs = instructions.mapNotNull { (it as? ReferenceInstruction)?.reference }
+    /** Decoded only for a method whose shape passes a cheaper check first (#148, #150). */
+    val strings by lazy(LazyThreadSafetyMode.NONE) { refs.filterIsInstance<StringReference>().map { it.string }.toSet() }
+    // Read once: a dex-backed method decodes its return and parameter types again on every ask.
+    val ret: String = method.returnType
+    val params: List<CharSequence> = method.parameterTypes.toList()
+    val gate = ret == "Z" && params.isEmpty()
+
+    fun add(key: String) { found.getValue(key).add(method) }
+}
+
+/**
+ * The checks findControls runs on every method in the app, split over a few functions. Held in findControls itself they
+ * made it over 8000 bytes of bytecode, which the JVM never compiles (ART skips methods that size too), so the whole
+ * scan ran in the interpreter and took many minutes on a phone (#148, #150).
+ */
+private class ControlScan(
+    val found: Map<String, MutableList<Method>>,
+    val peopleJewelKeys: Set<String>,
+    val storyCardKeys: Set<String>,
+    val appIconManagers: Set<String>,
+    val stringTables: Map<String, Map<Int, String>>,
+) {
     var searchFieldRender: Method? = null
     var changedViewer = false
     val drawerReaders = mutableListOf<Method>()
@@ -196,262 +362,175 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
     val drawerInterfaces = mutableMapOf<String, List<String>>()
     val searchIconReaders = mutableListOf<Method>()
     val searchIconAnchors = mutableListOf<Method>()
-    for (cls in classes) {
-        val original = cls.fields.firstOrNull { it.name == "__redex_internal_original_name" }
-            ?.initialValue.let { (it as? StringEncodedValue)?.value }
-        for (method in cls.methods) {
-            fun add(key: String) { found.getValue(key).add(method) }
-            if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
-                (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
-                try {
-                    method.screenshotViewerSites()
-                    add("screenshot_viewers")
-                } catch (refusal: PatchException) {
-                    // The reason would be lost behind the generic "hooks differ", so validateControls repeats it.
-                    changedViewer = true
-                    screenshotViewerRefusal = refusal.message
-                }
+    // The checks every method meets ask for one string each, so they go by table index instead of decoding the method's
+    // strings, which only the shapes that pass a cheaper check get to (#148, #150).
+    val drawerAnchor = StringMatch(EMOJI_DRAWER_ANCHOR)
+    val searchAnchor = StringMatch(SEARCH_ICON_ANCHOR)
+    val aiFab = StringMatch("AiFabComponent")
+    val peopleSearch = StringMatch(PEOPLE_SEARCH_SOURCE)
+    val drawerRefresh = StringMatch(DRAWER_REFRESH)
+    val notesTip = StringMatch(NOTES_TIP_SHEET)
+
+    fun visit(cls: ClassDef, original: String?, method: Method) {
+        if ((cls.type == EPHEMERAL_VIEWER && (method.name in EPHEMERAL_DIALOGS || method.name == "onResume")) ||
+            (cls.type == QUICKSNAP_VIEWER && method.name == "onCreateView")) {
+            try {
+                method.screenshotViewerSites()
+                found.getValue("screenshot_viewers").add(method)
+            } catch (refusal: PatchException) {
+                // The reason would be lost behind the generic "hooks differ", so validateControls repeats it.
+                changedViewer = true
+                screenshotViewerRefusal = refusal.message
             }
-            val instructions = method.implementation?.instructions?.toList() ?: continue
-            val refs = instructions.mapNotNull { (it as? ReferenceInstruction)?.reference }
-            val strings = refs.filterIsInstance<StringReference>().map { it.string }.toSet()
-            val gate = method.returnType == "Z" && method.parameterTypes.isEmpty()
-            if (instructions.any { it.isEmojiDrawerFlag() }) {
-                drawerReaders.add(method)
-                drawerInterfaces[cls.type] = cls.interfaces.toList()
-            }
-            if (EMOJI_DRAWER_ANCHOR in strings) drawerAnchors.add(method)
-            if (instructions.any { it.isSearchIconFlag() }) searchIconReaders.add(method)
-            if (SEARCH_ICON_ANCHOR in strings) searchIconAnchors.add(method)
-            if (method.returnType == "Z" && (method.parameterTypes.isEmpty() ||
-                (AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes == listOf(cls.type)))) {
-                val anchors = strings + method.tableStrings(stringTables)
-                for ((key, spec) in pluginGates) if (anchors.any { it in spec.anchors }) add(key)
-            }
-            if (gate && "com.facebook.messaging.friendsinboxunit.plugins.inboxunit.FriendsInboxUnitKillSwitch" in strings) add("stories")
-            if (cls.type in appIconManagers && method.isAppIconGate()) add(APP_ICONS)
-            if (method.isAppThemeGate()) add(APP_THEMES)
-            if (gate) {
-                val shortcuts = instructions.filter { it.opcode == Opcode.NEW_INSTANCE }
-                    .mapNotNull { ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type }
-                    .filter { it in facebookPlugins }.toSet()
-                // A gate that builds only the chat details Profile button gets its own key, so Keep the Profile button can spare it.
-                if (shortcuts == setOf(FACEBOOK_PROFILE_BUTTON)) add(FACEBOOK_PROFILE)
-                else if (shortcuts.isNotEmpty()) add("facebook")
-            }
-            if (gate && strings.any {
-                it == "com.facebook.messaging.navigation.plugins.aicreationfolder.folderitem.AiCreationFolderItem" ||
-                    it == "com.facebook.messaging.navigation.plugins.aihomefolder.folderitem.AiHomeFolderItem"
-            }) add("ai_menu")
-            if ("AiFabComponent" in strings && instructions.any { it.opcode == Opcode.RETURN_OBJECT }) add("ai_fab")
-            if (method.name == "run" && method.returnType == "V" && method.parameterTypes.isEmpty()) {
-                if (original == "InboxSubtabsItemSupplierImplementation\$onSubscribe\$1") add("subtabs")
-                if (original == "ConversationTypingContext\$sendActiveStateRunnable\$1") add("typing")
-                if (original == "SecureWindowUtils\$1") add("allow_screenshot")
-            }
-            if (gate && refs.any { it.toString() == "Landroid/os/Build\$VERSION;->SDK_INT:I" } &&
-                refs.any { it.toString() == "Landroid/app/ActivityManager;->isLowRamDevice()Z" }) add("bubbles")
-            if (!AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" &&
-                method.parameterTypes == listOf(BUBBLE_SESSION) && instructions.any {
-                    it.opcode == Opcode.CONST_WIDE && (it as? WideLiteralInstruction)?.wideLiteral == BUBBLE_ROLLOUT
-                }) add("bubble_mode")
-            // The external-browser check is the launcher's own (Uri, session) instance check; it logs no skip reason.
-            if (method.returnType == "Z" && cls.type == MESSENGER_BROWSER_LAUNCHER && !AccessFlags.STATIC.isSet(method.accessFlags) &&
-                method.parameterTypes == listOf("Landroid/net/Uri;", BUBBLE_SESSION)) add("browser")
-            if (method.returnType == "Z" && AccessFlags.STATIC.isSet(method.accessFlags) && method.isPeopleSectionShape() &&
-                refs.any { it.toString() in peopleJewelKeys } && refs.any { it.toString() == activeProfile.preferenceGetter }) add("people_jewel")
-            if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes == listOf(cls.type) &&
-                refs.any { (it as? DexMethodReference)?.publishesSuggestions() == true } &&
-                cls.methods.any { other ->
-                    other.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type == PEOPLE_TAB_FETCH } == true
-                }) add("people_tab")
-            if (!AccessFlags.STATIC.isSet(method.accessFlags) &&
-                strings.containsAll(setOf(PEOPLE_SEARCH_SOURCE, "Failed to load people you may know"))) add("people_search")
-            if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes == listOf(cls.type) &&
-                STORY_SUGGESTIONS_QUERY in strings + method.tableStrings(stringTables)) add("people_story")
-            // The chat list supplier's items read, which first traces under its own name.
-            if (cls.type == INBOX_SUPPLIER && !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == IMMUTABLE_LIST &&
-                method.parameterTypes.isEmpty() && INBOX_ITEMS_TRACE in strings) { add(INBOX_REFRESH_HOOK); add(PIN_LIST); add(HIDDEN_CHAT_LIST) }
-            if (cls.type == "Lcom/facebook/screenshot/ScreenshotContentObserver;" && method.name == "onChange" &&
-                method.returnType == "V") add("allow_screenshot")
-            // Android 14 and newer report a screenshot here, and Messenger turns it into the in-chat notice.
-            if (method.name == "onScreenCaptured" && method.returnType == "V" && method.parameterTypes.isEmpty() &&
-                SCREEN_CAPTURE_CALLBACK in cls.interfaces) add("allow_screenshot")
-            // Photo and media viewers in protected chats lock their window through this one helper.
-            if (method.returnType == "V" && method.parameterTypes == listOf("Landroid/view/Window;") &&
-                !AccessFlags.STATIC.isSet(method.accessFlags) &&
-                instructions.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == FLAG_SECURE } &&
-                refs.any { it.toString() == "Landroid/view/Window;->addFlags(I)V" }) add("allow_screenshot")
-            if (cls.type == MEDIA_TRANSCODER && method.hookId() in ORIGINAL_PHOTO_HOOKS) add("original_photo")
-            if (method.isVideoTranscode(strings)) {
-                add(ORIGINAL_VIDEO)
-                if (method.parsesTranscodeSource()) add(XHE_TRANSCODE)
-            }
-            if (method.returnType == "V" && method.isKeepUnsentShape() && strings.any { "ACTION_REVOKE_MESSAGE" in it }) add("keep_unsent")
-            // Both unsent hooks call the wrapper's own message id getter, so the wrapper that holds them has to have one.
-            if (messageTextGetterName.isNotEmpty() && method.name == messageTextGetterName &&
-                method.returnType == "Ljava/lang/String;" && method.parameterTypes == listOf("I") &&
-                cls.isRowWrapper() && cls.hasMessageIdGetter()) add("unsent_indicator")
-            if (messageIsUnsentGetterName.isNotEmpty() && method.name == messageIsUnsentGetterName &&
-                method.returnType == "Z" && method.parameterTypes == listOf("I") &&
-                cls.isRowWrapper() && cls.hasMessageIdGetter()) add("delta_unsent")
-            // The gates are private instance methods with no parameter.
-            if (method.returnType == "Z" && method.parameterTypes.isEmpty() && !AccessFlags.STATIC.isSet(method.accessFlags) &&
-                strings.any { "SearchAiagentImplementationsKillSwitch" in it }) add("ai_search")
-            if (method.returnType == "Landroid/graphics/Typeface;" && method.parameterTypes.isEmpty() &&
-                !AccessFlags.STATIC.isSet(method.accessFlags) &&
-                "FacebookEmojiTypefaceProviderImpl" in strings) add("emoji_typeface")
-            if (method.returnType == "Ljava/util/ArrayList;" && method.parameterTypes.size == 1 &&
-                !AccessFlags.STATIC.isSet(method.accessFlags) &&
-                strings.any { "settingsfolder.folderitem.SettingsFolderItem" in it }) add("menu_settings")
-            if (method.returnType == "V" && method.parameterTypes.size == 2 &&
-                method.parameterTypes[1] == "I" && !AccessFlags.STATIC.isSet(method.accessFlags) &&
-                strings.contains("Unknown ViewHolder")) add("menu_settings")
-            if (method.name == "onClick" && method.returnType == "V" &&
-                method.parameterTypes == listOf("Landroid/view/View;") &&
-                DRAWER_FOLDER_SELECTED in strings) add("menu_settings")
-            if (method.returnType == "V" && method.parameterTypes.isEmpty() &&
-                !AccessFlags.STATIC.isSet(method.accessFlags) && DRAWER_REFRESH in strings) add("menu_settings")
-            // The sticker keyboard's tab list is filled inline in a composer factory method that reads the avatar
-            // tab's activate event and returns the built list.
-            if (method.returnType == IMMUTABLE_LIST && cls.type == COMPOSER_FACTORY &&
-                refs.any { it.toString().startsWith("$AVATAR_TAB_EVENT->") } &&
-                refs.any { it.toString().startsWith("$IMMUTABLE_LIST->builder()") }) add("avatar_tabs")
-            if (method.name == "render" && SEARCH_CLEAR_TAG in strings) searchFieldRender = method
-            // Encrypted chats send typing through this msys mailbox call (thread id, typing).
-            if (method.parameterTypes == listOf("Ljava/lang/String;", "Z") && TYPING_MAILBOX_CALL in strings) add("typing_mailbox")
-            // An open chat marks itself read, which also sends Seen, only through the job its seen handler schedules here.
-            if (method.isChatSeenBroadcast()) add(HIDE_READ_RECEIPTS)
-            if (method.isReplyReadDispatch()) add(REPLY_READ)
-            // Opening a story card sends its seen state through the handler Messenger tags with this name.
-            if (method.returnType == "V" && method.parameterTypes == listOf(MONTAGE_CARD, "Z") &&
-                !AccessFlags.STATIC.isSet(method.accessFlags) && STORY_MARK_READ_TAG in strings) add("anonymous_stories")
-            // Every story preview is built here, so a card opened anonymously can start out seen in the chat list.
-            if (cls.type == MONTAGE_BUCKET_PREVIEW && method.name == "<init>" &&
-                method.parameterTypes.any { it.toString() == MONTAGE_CARD }) add("anonymous_stories")
-            // The story viewer's More options button builds its menu here, your own story's Save item included.
-            if (method.name == "onClick" && method.returnType == "V" && method.parameterTypes == listOf("Landroid/view/View;") &&
-                STORY_MENU_TAG in strings) add("save_stories")
-            // Notes open every tip sheet through this one suspend call, which returns whether it showed one.
-            if (!AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Ljava/lang/Object;" &&
-                strings.containsAll(setOf(NOTES_TIP_SHEET, NOTES_TIP_TYPE_ARG))) add("growth_notes")
-            // The story viewer adds its Share your own story card only while this daily cap check passes.
-            if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.parameterTypes == listOf(cls.type) &&
-                refs.any { it.toString() in storyCardKeys }) add("growth_story_card")
-            if (cls.type == ANDROIDX_FRAGMENT && method.hookId() == FRAGMENT_ANIMATION) add("chat_animation")
-            // The chat and the inbox under it inherit that answer. androidx needs each fragment's no-argument
-            // constructor, so it names the class the animation hook tells apart.
-            if (method.name == "<init>" && method.parameterTypes.isEmpty()) {
-                if (original == CHAT_FRAGMENT_NAME) add("chat_fragment")
-                if (original == "M4TabNavigationFragment") add("chat_inbox")
-            }
-            if (original == CHAT_FRAGMENT_NAME && method.isChatJumpView()) add(CHAT_JUMP)
-            // Chats on Messenger's older route open in this fragment, which loads its own animation.
-            if (original == "ThreadViewFragment" && method.name == "onCreateAnimation" &&
-                method.hookId() == "${cls.type}->onCreateAnimation(IZI)$ANIMATION") add("chat_legacy")
         }
+        val instructions = method.implementation?.instructions?.toList() ?: return
+        val scanned = ScannedMethod(found, cls, original, method, instructions)
+        flagsAndGates(scanned)
+        privacyAndMenus(scanned)
+        storiesAndChats(scanned)
     }
-    val gridBinderType = found["menu_settings"].orEmpty()
-        .firstOrNull { it.returnType == "V" && it.parameterTypes.size == 2 && it.parameterTypes[1] == "I" }
-        ?.definingClass
-    if (gridBinderType != null) {
-        for (cls in classes) {
-            val instantiates = cls.methods.any { m ->
-                m.implementation?.instructions?.any { insn ->
-                    insn.opcode == Opcode.NEW_INSTANCE &&
-                        ((insn as? ReferenceInstruction)?.reference as? TypeReference)?.type == gridBinderType
-                } == true
-            }
-            if (!instantiates) continue
-            cls.methods.singleOrNull {
-                it.returnType == "V" && it.parameterTypes == listOf("Ljava/util/List;") &&
-                    !AccessFlags.STATIC.isSet(it.accessFlags)
-            }?.let { found.getValue("menu_settings").add(it) }
-            break
+
+    private fun flagsAndGates(scanned: ScannedMethod): Unit = with(scanned) {
+        if (instructions.any { it.isEmojiDrawerFlag() }) {
+            drawerReaders.add(method)
+            drawerInterfaces[cls.type] = cls.interfaces.toList()
         }
+        if (refs.any { drawerAnchor.matches(it) }) drawerAnchors.add(method)
+        if (instructions.any { it.isSearchIconFlag() }) searchIconReaders.add(method)
+        if (refs.any { searchAnchor.matches(it) }) searchIconAnchors.add(method)
+        if (ret == "Z" && (params.isEmpty() ||
+            (AccessFlags.STATIC.isSet(method.accessFlags) && params == listOf(cls.type)))) {
+            val anchors = strings + method.tableStrings(stringTables)
+            for ((key, spec) in pluginGates) if (anchors.any { it in spec.anchors }) add(key)
+        }
+        if (gate && "com.facebook.messaging.friendsinboxunit.plugins.inboxunit.FriendsInboxUnitKillSwitch" in strings) add("stories")
+        if (cls.type in appIconManagers && method.isAppIconGate()) add(APP_ICONS)
+        if (method.isAppThemeGate()) add(APP_THEMES)
+        if (gate) {
+            val shortcuts = instructions.filter { it.opcode == Opcode.NEW_INSTANCE }
+                .mapNotNull { ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type }
+                .filter { it in facebookPlugins }.toSet()
+            // A gate that builds only the chat details Profile button gets its own key, so Keep the Profile button can spare it.
+            if (shortcuts == setOf(FACEBOOK_PROFILE_BUTTON)) add(FACEBOOK_PROFILE)
+            else if (shortcuts.isNotEmpty()) add("facebook")
+        }
+        if (gate && strings.any {
+            it == "com.facebook.messaging.navigation.plugins.aicreationfolder.folderitem.AiCreationFolderItem" ||
+                it == "com.facebook.messaging.navigation.plugins.aihomefolder.folderitem.AiHomeFolderItem"
+        }) add("ai_menu")
+        if (refs.any { aiFab.matches(it) } && instructions.any { it.opcode == Opcode.RETURN_OBJECT }) add("ai_fab")
+        if (method.name == "run" && ret == "V" && params.isEmpty()) {
+            if (original == "InboxSubtabsItemSupplierImplementation\$onSubscribe\$1") add("subtabs")
+            if (original == "ConversationTypingContext\$sendActiveStateRunnable\$1") add("typing")
+            if (original == "SecureWindowUtils\$1") add("allow_screenshot")
+        }
+        if (gate && refs.any { it.toString() == "Landroid/os/Build\$VERSION;->SDK_INT:I" } &&
+            refs.any { it.toString() == "Landroid/app/ActivityManager;->isLowRamDevice()Z" }) add("bubbles")
+        if (!AccessFlags.STATIC.isSet(method.accessFlags) && ret == "Z" &&
+            params == listOf(BUBBLE_SESSION) && instructions.any {
+                it.opcode == Opcode.CONST_WIDE && (it as? WideLiteralInstruction)?.wideLiteral == BUBBLE_ROLLOUT
+            }) add("bubble_mode")
     }
-    // The search field creates the Ask Meta AI chip before any other component, and only for a typed query.
-    searchFieldRender?.let { field ->
-        val chip = field.implementation!!.instructions.asSequence()
-            .filter { it.opcode == Opcode.NEW_INSTANCE }
-            .map { ((it as ReferenceInstruction).reference as TypeReference).type }
-            .mapNotNull { type -> classes.firstOrNull { it.type == type } }
-            .firstOrNull { cls -> cls.methods.any { it.name == "render" } }
-        chip?.methods?.singleOrNull { it.name == "render" && it.returnType == field.returnType }
-            ?.let { found.getValue("ai_search_chip").add(it) }
+
+    private fun privacyAndMenus(scanned: ScannedMethod): Unit = with(scanned) {
+        // The external-browser check is the launcher's own (Uri, session) instance check; it logs no skip reason.
+        if (ret == "Z" && cls.type == MESSENGER_BROWSER_LAUNCHER && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            params == listOf("Landroid/net/Uri;", BUBBLE_SESSION)) add("browser")
+        if (ret == "Z" && AccessFlags.STATIC.isSet(method.accessFlags) && method.isPeopleSectionShape() &&
+            refs.any { it.toString() in peopleJewelKeys } && refs.any { it.toString() == activeProfile.preferenceGetter }) add("people_jewel")
+        if (AccessFlags.STATIC.isSet(method.accessFlags) && ret == "V" && params == listOf(cls.type) &&
+            refs.any { (it as? DexMethodReference)?.publishesSuggestions() == true } &&
+            cls.methods.any { other ->
+                other.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type == PEOPLE_TAB_FETCH } == true
+            }) add("people_tab")
+        if (!AccessFlags.STATIC.isSet(method.accessFlags) && refs.any { peopleSearch.matches(it) } &&
+            strings.containsAll(setOf(PEOPLE_SEARCH_SOURCE, "Failed to load people you may know"))) add("people_search")
+        if (AccessFlags.STATIC.isSet(method.accessFlags) && ret == "V" && params == listOf(cls.type) &&
+            STORY_SUGGESTIONS_QUERY in strings + method.tableStrings(stringTables)) add("people_story")
+        // The chat list supplier's items read, which first traces under its own name.
+        if (cls.type == INBOX_SUPPLIER && !AccessFlags.STATIC.isSet(method.accessFlags) && ret == IMMUTABLE_LIST &&
+            params.isEmpty() && INBOX_ITEMS_TRACE in strings) { add(INBOX_REFRESH_HOOK); add(PIN_LIST); add(HIDDEN_CHAT_LIST) }
+        if (cls.type == "Lcom/facebook/screenshot/ScreenshotContentObserver;" && method.name == "onChange" &&
+            ret == "V") add("allow_screenshot")
+        // Android 14 and newer report a screenshot here, and Messenger turns it into the in-chat notice.
+        if (method.name == "onScreenCaptured" && ret == "V" && params.isEmpty() &&
+            SCREEN_CAPTURE_CALLBACK in cls.interfaces) add("allow_screenshot")
+        // Photo and media viewers in protected chats lock their window through this one helper.
+        if (ret == "V" && params == listOf("Landroid/view/Window;") &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            instructions.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == FLAG_SECURE } &&
+            refs.any { it.toString() == "Landroid/view/Window;->addFlags(I)V" }) add("allow_screenshot")
+        if (cls.type == MEDIA_TRANSCODER && method.hookId() in ORIGINAL_PHOTO_HOOKS) add("original_photo")
+        if (cls.type == MEDIA_TRANSCODER && method.isVideoTranscode(strings)) {
+            add(ORIGINAL_VIDEO)
+            if (method.parsesTranscodeSource()) add(XHE_TRANSCODE)
+        }
+        if (ret == "V" && method.isKeepUnsentShape() && strings.any { "ACTION_REVOKE_MESSAGE" in it }) add("keep_unsent")
+        // Both unsent hooks call the wrapper's own message id getter, so the wrapper that holds them has to have one.
+        if (messageTextGetterName.isNotEmpty() && method.name == messageTextGetterName &&
+            ret == "Ljava/lang/String;" && params == listOf("I") &&
+            cls.isRowWrapper() && cls.hasMessageIdGetter()) add("unsent_indicator")
+        if (messageIsUnsentGetterName.isNotEmpty() && method.name == messageIsUnsentGetterName &&
+            ret == "Z" && params == listOf("I") &&
+            cls.isRowWrapper() && cls.hasMessageIdGetter()) add("delta_unsent")
+        // The gates are private instance methods with no parameter.
+        if (ret == "Z" && params.isEmpty() && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            strings.any { "SearchAiagentImplementationsKillSwitch" in it }) add("ai_search")
+        if (ret == "Landroid/graphics/Typeface;" && params.isEmpty() &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            "FacebookEmojiTypefaceProviderImpl" in strings) add("emoji_typeface")
+        if (ret == "Ljava/util/ArrayList;" && params.size == 1 &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            strings.any { "settingsfolder.folderitem.SettingsFolderItem" in it }) add("menu_settings")
+        if (ret == "V" && params.size == 2 &&
+            params[1] == "I" && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            strings.contains("Unknown ViewHolder")) add("menu_settings")
+        if (method.name == "onClick" && ret == "V" &&
+            params == listOf("Landroid/view/View;") &&
+            DRAWER_FOLDER_SELECTED in strings) add("menu_settings")
+        if (ret == "V" && params.isEmpty() &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) && refs.any { drawerRefresh.matches(it) }) add("menu_settings")
     }
-    if (changedViewer) found.getValue("screenshot_viewers").clear() else screenshotViewerRefusal = null
-    found.getValue(EMOJI_DRAWER).addAll(connectEmojiDrawer(drawerReaders, drawerAnchors, drawerInterfaces))
-    found.getValue(INBOX_SEARCH_BAR).addAll(connectSearchBar(searchIconReaders, searchIconAnchors))
-    found.getValue(EMOJI_SEARCH).addAll(findEmojiSearch(classes))
-    found.getValue(TAB_BADGES).addAll(findTabBadges(classes))
-    found.getValue(FACEBOOK_BADGE).addAll(findFacebookBadge(classes))
-    found.getValue(FACEBOOK_PROFILE_HEADER).addAll(findProfileHeader(classes))
-    found.getValue(TAB_CONFIG).addAll(findTabConfig(classes))
-    found.getValue(AI_MENTIONS).addAll(findAiMentions(classes))
-    found.getValue(AI_COMMANDS).addAll(findAiCommands(classes))
-    val searchBars = findAiSearchHint(classes)
-    found.getValue(AI_SEARCH_HINT).addAll(searchBars)
-    found.getValue(AI_SEARCH_SCREEN_HINT).addAll(findAiSearchScreenHint(classes, searchBars))
-    found.getValue(AI_MENTION_ROWS).addAll(findAiMentionRows(classes))
-    found.getValue(AI_SUMMARY).addAll(findAiSummary(classes))
-    found.getValue(XHE_AUDIO).addAll(findXheAudio(classes))
-    found.getValue(DISAPPEARING_SWIPE).addAll(findDisappearingSwipe(classes))
-    found.getValue(RECENT_MEDIA).addAll(findRecentMedia(classes))
-    found.getValue(INSTANTS_BUTTON).addAll(findInstantsButton(classes))
-    found.getValue(SAVE_VOICE).addAll(findSaveVoice(classes))
-    found.getValue(SAVE_VOICE_MENU).addAll(findSaveVoiceMenu(classes))
-    found.getValue(MESSAGE_ACTIONS).addAll(findMessageActions(classes))
-    found.getValue(MESSAGE_ACTIONS_MORE).addAll(findMessageActionsMore(classes))
-    found.getValue(ANALYTICS_UPLOADS).addAll(findAnalyticsUploads(classes) + findBoundUploadTasks(classes) +
-        findXAnalyticsUploadTimers(classes) + findInProcessUploadStarts(classes))
-    found.getValue(ATTRIBUTION_UPLOADS).addAll(findAttributionUploads(classes))
-    found.getValue(AD_EVENTS).addAll(findAdEvents(classes))
-    found.getValue(MQTT_TELEMETRY).addAll(findMqttTelemetry(classes))
-    findPinnedChats(classes).forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
-    findHiddenChats(classes).forEach { (hook, methods) -> found.getValue(hook).addAll(methods) }
-    found.getValue(NEARBY_SCANS).addAll(patchStage("Find nearby scans") { findNearbyScans(classes) })
-    found.getValue(WIFI_IDENTITY).addAll(patchStage("Find Wi-Fi identity reads") { findWifiIdentityReads(classes) })
-    found.getValue(PHONE_ID_SYNC).addAll(findPhoneIdSync(classes))
-    found.getValue(STORY_HOLD).addAll(findStoryHold(classes))
-    found.getValue(CHAT_PREVIEW).addAll(findChatPreview(classes))
-    found.getValue(LANDSCAPE_LOCK).addAll(findPortraitLock(classes))
-    found.getValue(LANDSCAPE_MEDIA).addAll(findMediaOrientation(classes))
-    found.getValue(BLOCKED_LIST_PICTURES).addAll(findBlockedListPictures(classes))
-    found.getValue(RESTRICTED_NOTIFY).addAll(findRestrictedNotify(classes))
-    found.getValue(SHARE_STORY).addAll(findShareStory(classes))
-    found.getValue(AVATAR_SHAPE).addAll(findAvatarShape(classes))
-    found.getValue(STORY_RING).addAll(findStoryRing(classes))
-    found.getValue(QUIET_CALL_RING).addAll(findQuietCallRing(classes))
-    found.getValue(QUIET_CALL_NOTIFICATION).addAll(findQuietCallNotification(classes))
-    found.getValue(CAR_MESSAGES).addAll(findCarMessages(classes))
-    found.getValue(LOCAL_CHAT_SEARCH).addAll(findLocalChatSearch(classes))
-    found.getValue(CALL_RECORDING).addAll(findCallRecording(classes))
-    found.getValue(HOME_HEADER).addAll(findHomeHeader(classes))
-    found.getValue(TEXT_STYLE).addAll(findTextStyleField(classes))
-    found.getValue(MESSAGE_LOG).addAll(findMessageLogHook(classes))
-    found.getValue(AUTO_REPLY).addAll(findMessageLogHook(classes))
-    found.getValue(UNSENT_RECALL).addAll(findUnsentRecall(classes))
-    found.getValue(UNSENT_CLEAR).addAll(findUnsentClear(classes))
-    found.getValue(CHAT_CHANNEL_KEEP).addAll(findChatChannelKeep(classes))
-    found.getValue(CHAT_CHANNEL_RAISE).addAll(findChatChannelRaise(classes))
-    autoReplyPictureRecipe = resolveAutoReplyPictureRecipe(classes)
-    messageLogContract = resolveMessageLogContract(classes)
-    readReceiptThreadFields = resolveReadReceiptThreadFields(classes)
-    val (markReadBar, markReadClick) = findMarkReadButton(classes)
-    found.getValue(MARK_READ_BAR).addAll(markReadBar)
-    found.getValue(HIDE_CALL_BAR).addAll(markReadBar)
-    found.getValue(MARK_READ_CLICK).addAll(markReadClick)
-    val (logBar, logClick) = findMessageLogButton(classes)
-    found.getValue(MESSAGE_LOG_BUTTON).addAll(logBar)
-    found.getValue(MESSAGE_LOG_CLICK).addAll(logClick)
-    found.getValue(APP_THEME_PICK).addAll(findAppThemePick(classes))
-    found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
-    found.getValue(EXTERNAL_GALLERY).addAll(findExternalGallery(classes))
-    found.getValue(GALLERY_TEMP_FILE).addAll(findGalleryTempFile(classes))
-    found.getValue(GALLERY_TO_CHAT).addAll(findGalleryToChat(classes))
-    for ((hook, methods) in findCustomFont(classes)) found.getValue(hook).addAll(methods)
-    return found
+
+    private fun storiesAndChats(scanned: ScannedMethod): Unit = with(scanned) {
+        // The sticker keyboard's tab list is filled inline in a composer factory method that reads the avatar
+        // tab's activate event and returns the built list.
+        if (ret == IMMUTABLE_LIST && cls.type == COMPOSER_FACTORY &&
+            refs.any { it.toString().startsWith("$AVATAR_TAB_EVENT->") } &&
+            refs.any { it.toString().startsWith("$IMMUTABLE_LIST->builder()") }) add("avatar_tabs")
+        if (method.name == "render" && SEARCH_CLEAR_TAG in strings) searchFieldRender = method
+        // Encrypted chats send typing through this msys mailbox call (thread id, typing).
+        if (params == listOf("Ljava/lang/String;", "Z") && TYPING_MAILBOX_CALL in strings) add("typing_mailbox")
+        // An open chat marks itself read, which also sends Seen, only through the job its seen handler schedules here.
+        if (method.isChatSeenBroadcast()) add(HIDE_READ_RECEIPTS)
+        if (method.isReplyReadDispatch()) add(REPLY_READ)
+        // Opening a story card sends its seen state through the handler Messenger tags with this name.
+        if (ret == "V" && params == listOf(MONTAGE_CARD, "Z") &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) && STORY_MARK_READ_TAG in strings) add("anonymous_stories")
+        // Every story preview is built here, so a card opened anonymously can start out seen in the chat list.
+        if (cls.type == MONTAGE_BUCKET_PREVIEW && method.name == "<init>" &&
+            params.any { it.toString() == MONTAGE_CARD }) add("anonymous_stories")
+        // The story viewer's More options button builds its menu here, your own story's Save item included.
+        if (method.name == "onClick" && ret == "V" && params == listOf("Landroid/view/View;") &&
+            STORY_MENU_TAG in strings) add("save_stories")
+        // Notes open every tip sheet through this one suspend call, which returns whether it showed one.
+        if (!AccessFlags.STATIC.isSet(method.accessFlags) && ret == "Ljava/lang/Object;" && refs.any { notesTip.matches(it) } &&
+            strings.containsAll(setOf(NOTES_TIP_SHEET, NOTES_TIP_TYPE_ARG))) add("growth_notes")
+        // The story viewer adds its Share your own story card only while this daily cap check passes.
+        if (AccessFlags.STATIC.isSet(method.accessFlags) && ret == "Z" && params == listOf(cls.type) &&
+            refs.any { it.toString() in storyCardKeys }) add("growth_story_card")
+        if (cls.type == ANDROIDX_FRAGMENT && method.hookId() == FRAGMENT_ANIMATION) add("chat_animation")
+        // The chat and the inbox under it inherit that answer. androidx needs each fragment's no-argument
+        // constructor, so it names the class the animation hook tells apart.
+        if (method.name == "<init>" && params.isEmpty()) {
+            if (original == CHAT_FRAGMENT_NAME) add("chat_fragment")
+            if (original == "M4TabNavigationFragment") add("chat_inbox")
+        }
+        if (original == CHAT_FRAGMENT_NAME && method.isChatJumpView()) add(CHAT_JUMP)
+        // Chats on Messenger's older route open in this fragment, which loads its own animation.
+        if (original == "ThreadViewFragment" && method.name == "onCreateAnimation" &&
+            method.hookId() == "${cls.type}->onCreateAnimation(IZI)$ANIMATION") add("chat_legacy")
+    }
 }
 
 internal fun validateControls(

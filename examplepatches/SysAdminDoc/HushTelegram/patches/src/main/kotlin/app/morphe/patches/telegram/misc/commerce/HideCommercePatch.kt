@@ -5,7 +5,8 @@
 package app.morphe.patches.telegram.misc.commerce
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -36,7 +37,15 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Hide Premium, gifts and Stars"
 internal const val COMMERCE = "$EXTENSION_PACKAGE/misc/Commerce;"
@@ -53,6 +62,9 @@ internal val SETTINGS_SALES = listOf("TelegramPremium", "TelegramStars", "GramEa
 internal const val WALLET_LABEL = "Lorg/telegram/messenger/R\$string;->WalletAttachMoney:I"
 internal const val WALLET_AVAILABLE = "Lorg/telegram/messenger/AppGlobalConfig;->walletAvailable:Lorg/telegram/messenger/AppGlobalConfig\$ConfigBoolean;"
 private const val CONFIG_GET = "Lorg/telegram/messenger/AppGlobalConfig\$ConfigBoolean;->get()Z"
+// 13.2 inlines get(): the flag's handler, cast to its Internal, and that handler's value.
+private const val CONFIG_BOOLEAN_INTERNAL = "Lorg/telegram/messenger/AppGlobalConfig\$ConfigBoolean\$Internal;"
+private const val CONFIG_BOOLEAN_VALUE = "$CONFIG_BOOLEAN_INTERNAL->value:Z"
 private const val WALLET_ROW = 25
 // The chat list's menu, found by the entries Telegram adds before Wallet with the same add.
 internal val MENU_NEIGHBORS = listOf("NewGroup", "SavedMessages").map { "Lorg/telegram/messenger/R\$string;->$it:I" }
@@ -64,6 +76,19 @@ internal const val SEND_GRAM = "Lorg/telegram/messenger/R\$string;->WalletSendMo
 internal const val COPY_ADDRESS = "Lorg/telegram/messenger/R\$string;->WalletCopyAddress:I"
 internal const val GRAM_TRANSFER = "Lorg/telegram/tgnet/TLRPC\$TL_messageActionGramTransfer;"
 private const val PROFILE_ACTIVITY = "Lorg/telegram/ui/ProfileActivity;"
+// A profile's menu adds Send a Gift for a person and for a channel, each behind Telegram's purchase check.
+internal val PROFILE_GIFT_ITEMS = listOf("ProfileSendAGift", "ProfileSendAGiftToChannel")
+    .map { "Lorg/telegram/messenger/R\$string;->$it:I" }
+internal const val PROFILE_GIFT_GATE = "Lorg/telegram/messenger/MessagesController;->premiumPurchaseBlocked()Z"
+/** The field premiumPurchaseBlocked() returned, which 13.2's R8 reads in its place. */
+internal const val PROFILE_GIFT_FIELD = "Lorg/telegram/messenger/MessagesController;->premiumLocked:Z"
+
+/** Where the purchase check at [check] leaves its answer: the call's result, or 13.2's inlined field read. */
+internal fun profileGiftAnswer(body: List<Instruction>, check: Int): Int? = when {
+    body[check].origRef() == PROFILE_GIFT_GATE -> (check + 1).takeIf { body.getOrNull(it)?.opcode == Opcode.MOVE_RESULT }
+    body[check].opcode == Opcode.IGET_BOOLEAN && body[check].origRef() == PROFILE_GIFT_FIELD -> check
+    else -> null
+}
 private const val MESSAGE_OBJECT = "Lorg/telegram/messenger/MessageObject;"
 private const val LINK_STYLE = "Landroid/text/style/CharacterStyle;"
 private const val STRINGS = "Lorg/telegram/messenger/R\$string;->"
@@ -72,7 +97,8 @@ private const val ARRAY_LIST = "Ljava/util/ArrayList;"
 private const val APPEND = "$ARRAY_LIST->add(Ljava/lang/Object;)Z"
 private const val INSERT = "$ARRAY_LIST->add(ILjava/lang/Object;)V"
 private const val PAIR = "Landroid/util/Pair;-><init>(Ljava/lang/Object;Ljava/lang/Object;)V"
-private const val STRING = "Lorg/telegram/messenger/LocaleController;->getString(I)Ljava/lang/String;"
+private const val LOCALE = "Lorg/telegram/messenger/LocaleController;"
+private const val STRING = "$LOCALE->getString(I)Ljava/lang/String;"
 private const val BOX_INT = "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;"
 private val SALES_FACTORY = List(4) { "I" } + List(3) { "Ljava/lang/CharSequence;" }
 private val FOOTER_LABELS = listOf("ProfileActionsGift", "ChannelOpenDirect", "Search", "BroadcastGroupInfo")
@@ -114,7 +140,9 @@ val hideCommercePatch = bytecodePatch(
         stickers.stubs.forEach { (stub, smali) -> writeStub(COMMERCE, stub, 2, smali) }
         // One list, so the patch refuses only when the build has none of them at all.
         handleTargets(PATCH, "sales presentation targets", CommerceTarget.entries + PremiumStickerTarget.entries) { target ->
-            val edits = if (target is CommerceTarget) plan.hooks[target] else stickers[target as PremiumStickerTarget]
+            // The profile's Send a Gift shares its method with Send Gram, which goes in just before it.
+            val edits = if (target == CommerceTarget.PROFILE_GIFT_MENU) plan.hooks[target]?.let { profileGiftMenuEdits(it.first().method) }
+                else if (target is CommerceTarget) plan.hooks[target] else stickers[target as PremiumStickerTarget]
             val capability = if (target is CommerceTarget) target.capability else (target as PremiumStickerTarget).capability
             val changed = (target as? PremiumStickerTarget)?.let { stickers.leftOut[it] }
             if (changed != null) "$capability left out, $changed"
@@ -138,6 +166,7 @@ val hideCommercePatch = bytecodePatch(
                     CommerceTarget.PROFILE_SEND_GRAM -> enableCapability("commerceProfileSendGram")
                     CommerceTarget.ADDRESS_SEND_GRAM -> enableCapability("commerceAddressSendGram")
                     CommerceTarget.TRANSFER_SEND_GRAM -> enableCapability("commerceTransferSendGram")
+                    CommerceTarget.PROFILE_GIFT_MENU -> enableCapability("commerceProfileGiftMenu")
                     PremiumStickerTarget.STICKERS -> enableCapability("commercePremiumStickers")
                     PremiumStickerTarget.EFFECTS -> enableCapability("commercePremiumEffects")
                     PremiumStickerTarget.EMOJI_PACKS -> enableCapability("commercePremiumEmojiPacks")
@@ -171,7 +200,7 @@ internal enum class CommerceTarget(val capability: String) {
     SETTINGS("commerceSettingsRows"), PROFILE_GIFTS("commerceProfileGifts"), CHANNEL_GIFT("commerceChannelGift"),
     ATTACH_WALLET("commerceAttachWallet"), MENU_WALLET("commerceMenuWallet"),
     PROFILE_SEND_GRAM("commerceProfileSendGram"), ADDRESS_SEND_GRAM("commerceAddressSendGram"),
-    TRANSFER_SEND_GRAM("commerceTransferSendGram"),
+    TRANSFER_SEND_GRAM("commerceTransferSendGram"), PROFILE_GIFT_MENU("commerceProfileGiftMenu"),
 }
 
 /**
@@ -180,11 +209,12 @@ internal enum class CommerceTarget(val capability: String) {
  */
 private class SendGramSite(val where: String, val hook: String, val title: Int, val add: (MethodReference) -> Boolean)
 
+// 13.2's R8 folded addSubItem(int, int, String) into the CharSequence overload on the menu item's base.
 private val PROFILE_GRAM = SendGramSite("profile menu", "showProfileSendGram", 3) { call ->
-    call.parameterTypes.map { it.toString() } == listOf("I", "I", "Ljava/lang/String;")
+    call.parameterTypes.map { it.toString() }.let { it == listOf("I", "I", "Ljava/lang/String;") || it == listOf("I", "I", "Ljava/lang/CharSequence;") }
 }
 private val ADDRESS_GRAM = SendGramSite("TON address popup", "showAddressSendGram", 2) { call ->
-    call.returnType == "V" && call.parameterTypes.map { it.toString() } == MENU_ADD
+    call.origReturnType == "V" && call.parameterTypes.map { it.toString() } == MENU_ADD
 }
 private val TRANSFER_GRAM = SendGramSite("Gram transfer menu", "showTransferSendGram", 2) { call -> call.toString() == INSERT }
 
@@ -204,26 +234,27 @@ internal data class CommercePlan(
 /** Kept resources and TL types identify the surfaces; all renamed classes and members come from their bodies. */
 internal fun BytecodePatchContext.resolveCommerceHooks(): CommercePlan {
     val classes = mutableMapOf<String, ClassDef>()
-    classDefForEach { if (!it.type.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
+    classDefForEach { if (!it.origType.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
     // Each search below reads only the methods of classes that might mention what it looks for,
     // still in the app's order and still checked in full.
     fun methods(mentioning: Mention) = classDefsMentioning(mentioning).mapNotNull { classes[it.type] }.flatMap { it.methods.toList() }
-    fun mutable(method: Method) = mutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
+    fun mutable(method: Method) = tgMutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
     for (stub in listOf("giftTabId", "giftButtonIndex")) {
-        shape(mutableClassDefBy(COMMERCE).methods.count { it.name == stub && it.hasShape(emptyList(), "I") &&
+        shape(tgMutableClassDefBy(COMMERCE).methods.count { it.origName == stub && it.hasShape(emptyList(), "I") &&
             AccessFlags.STATIC.isSet(it.accessFlags) } == 1, "extension has no single integer $stub stub")
     }
     val hooks = mutableMapOf<CommerceTarget, List<CommerceEdit>>()
+    val titles = titleCall()
 
-    val settings = methods(Mention.anyReference(SETTINGS_SALES)).filter { method ->
-        method.returnType == "V" && AccessFlags.STATIC.isSet(method.accessFlags) &&
+    val settings =methods(Mention.anyReference(SETTINGS_SALES)).filter { method ->
+        method.origReturnType == "V" && AccessFlags.STATIC.isSet(method.accessFlags) &&
             method.parameterTypes.map { it.toString() } == listOf(method.definingClass, ARRAY_LIST) &&
             SETTINGS_SALES.any { resource -> method.instructions().any { it.reference() == resource } }
     }.unique("Settings sales row builder")
     if (settings != null) {
         shape(SETTINGS_SALES.all { resource -> settings.instructions().any { it.reference() == resource } },
             "partially changed Settings sales labels")
-        hooks[CommerceTarget.SETTINGS] = settingsEdits(mutable(settings))
+        hooks[CommerceTarget.SETTINGS] = settingsEdits(mutable(settings), titles)
     }
 
     var giftTabId: Int? = null
@@ -255,7 +286,7 @@ internal fun BytecodePatchContext.resolveCommerceHooks(): CommercePlan {
         }.unique("profile tab strip rebuild") ?: throw PatchException("$PATCH: no profile tab strip rebuild (before editing)")
         shape(clear.instructions().any { it.reference() == "Landroid/util/SparseIntArray;->clear()V" },
             "profile rebuild no longer clears cached tab identities")
-        hooks[CommerceTarget.PROFILE_GIFTS] = profileEdits(mutable(profile), giftTabId, hasTab.toString(), clear.toString())
+        hooks[CommerceTarget.PROFILE_GIFTS] = profileEdits(mutable(profile), giftTabId, hasTab.toString(), clear.toString(), titles)
     }
 
     var giftButtonIndex: Int? = null
@@ -276,7 +307,7 @@ internal fun BytecodePatchContext.resolveCommerceHooks(): CommercePlan {
 
     // Telegram 13.0's attach menu: the button binder is the one bound by position that labels a
     // button Wallet.
-    val binder = methods(Mention.reference(WALLET_LABEL)).filter { method -> method.returnType == "V" && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+    val binder = methods(Mention.reference(WALLET_LABEL)).filter { method -> method.origReturnType == "V" && !AccessFlags.STATIC.isSet(method.accessFlags) &&
         method.parameterTypes.size == 2 && method.parameterTypes[1].toString() == "I" &&
         method.instructions().any { it.reference() == WALLET_LABEL }
     }.unique("attach menu button binder")
@@ -288,25 +319,30 @@ internal fun BytecodePatchContext.resolveCommerceHooks(): CommercePlan {
         method.instructions().let { body -> body.any { it.reference() == WALLET_LABEL } &&
             MENU_NEIGHBORS.all { label -> body.any { it.reference() == label } } }
     }.unique("chat list menu with Wallet")
-    if (menu != null) hooks[CommerceTarget.MENU_WALLET] = listOf(menuWalletEdit(mutable(menu)))
+    if (menu != null) hooks[CommerceTarget.MENU_WALLET] = listOf(menuWalletEdit(mutable(menu), titles))
 
     // Send Gram, found by the kept types around it: the profile's menu builder, the static popup a
     // TON address link's style opens, and the message menu builder that fills three lists.
     val sendGram = methods(Mention.reference(SEND_GRAM)).filter { method -> method.instructions().any { it.reference() == SEND_GRAM } }
-    val profileGram = sendGram.filter { it.definingClass == PROFILE_ACTIVITY && it.hasShape(listOf("Z"), "V") }
+    val profileGram = sendGram.filter { it.origDefiningClass == PROFILE_ACTIVITY && it.hasShape(listOf("Z"), "V") }
         .unique("profile menu with Send Gram")
-    if (profileGram != null) hooks[CommerceTarget.PROFILE_SEND_GRAM] = listOf(sendGramEdit(mutable(profileGram), PROFILE_GRAM))
+    if (profileGram != null) hooks[CommerceTarget.PROFILE_SEND_GRAM] = listOf(sendGramEdit(mutable(profileGram), PROFILE_GRAM, titles))
+    val giftMenu = methods(Mention.allReferences(PROFILE_GIFT_ITEMS)).filter { method ->
+        method.origDefiningClass == PROFILE_ACTIVITY && method.hasShape(listOf("Z"), "V") &&
+            method.instructions().let { body -> PROFILE_GIFT_ITEMS.all { label -> body.any { it.reference() == label } } }
+    }.unique("profile menu with Send a Gift")
+    if (giftMenu != null) hooks[CommerceTarget.PROFILE_GIFT_MENU] = profileGiftMenuEdits(mutable(giftMenu))
     val addressGram = sendGram.filter { AccessFlags.STATIC.isSet(it.accessFlags) && it.parameterTypes.lastOrNull()?.toString() == LINK_STYLE }
         .unique("TON address popup with Send Gram")
     if (addressGram != null) {
         // The popup's own items stay: Copy address is the one every TON address gets.
         shape(addressGram.instructions().any { it.reference() == COPY_ADDRESS }, "TON address popup no longer offers Copy address")
-        hooks[CommerceTarget.ADDRESS_SEND_GRAM] = listOf(sendGramEdit(mutable(addressGram), ADDRESS_GRAM))
+        hooks[CommerceTarget.ADDRESS_SEND_GRAM] = listOf(sendGramEdit(mutable(addressGram), ADDRESS_GRAM, titles))
     }
     val transferGram = sendGram.filter { !AccessFlags.STATIC.isSet(it.accessFlags) &&
         it.hasShape(listOf(MESSAGE_OBJECT, ARRAY_LIST, ARRAY_LIST, ARRAY_LIST), "V") }.unique("message menu with Send Gram")
     if (transferGram != null) {
-        val edit = sendGramEdit(mutable(transferGram), TRANSFER_GRAM)
+        val edit = sendGramEdit(mutable(transferGram), TRANSFER_GRAM, titles)
         val body = edit.method.instructions()
         val skip = ControlFlow.of(edit.method).normal[edit.index].single { it != edit.index + 1 }
         shape((edit.index + 1 until skip).any { body[it].opcode == Opcode.INSTANCE_OF && body[it].reference() == GRAM_TRANSFER },
@@ -317,6 +353,31 @@ internal fun BytecodePatchContext.resolveCommerceHooks(): CommercePlan {
 }
 
 /**
+ * Telegram adds Send a Gift to a profile's menu only while premiumPurchaseBlocked() reads false, on
+ * the person path and on the channel path. The hook answers that check, so the menu comes out as an
+ * account with blocked purchases gets it. The menu's later setSubItemShown calls find no item with
+ * that tag and do nothing.
+ */
+internal fun profileGiftMenuEdits(method: MutableMethod): List<CommerceEdit> {
+    val body = method.instructions()
+    val flow = ControlFlow.of(method)
+    return PROFILE_GIFT_ITEMS.map { label ->
+        val at = body.indices.filter { body[it].reference() == label }.unique("$label in the profile menu")
+            ?: throw PatchException("$PATCH: missing $label (before editing)")
+        val check = (at - 1 downTo 0).firstOrNull { body[it].reference() == PROFILE_GIFT_GATE || body[it].reference() == PROFILE_GIFT_FIELD }
+            ?: throw PatchException("$PATCH: no purchase check before $label (before editing)")
+        val answer = profileGiftAnswer(body, check)
+        val branch = (answer ?: check) + 1
+        shape(answer != null && body.getOrNull(branch)?.opcode == Opcode.IF_NEZ &&
+            body[branch].namedRegisters() == body[answer].namedRegisters().take(1), "$label has no purchase check branch")
+        val skip = flow.normal[branch].single { it != branch + 1 }
+        shape(at in branch + 1 until skip, "the purchase check does not skip $label")
+        val blocked = body[branch].namedRegisters().single()
+        CommerceEdit(method, branch, "invoke-static/range {v$blocked .. v$blocked}, $COMMERCE->profileGiftMenuBlocked(I)Z\nmove-result v$blocked")
+    }
+}
+
+/**
  * Telegram 13.0 offers Send Gram from a profile's menu, the popup for a tapped TON address and a
  * Gram transfer's message menu, each only while the server's walletAvailable flag reads true. In
  * each of them the flag's branch adds Send Gram and nothing else, and its skip is where the menu
@@ -324,11 +385,11 @@ internal fun BytecodePatchContext.resolveCommerceHooks(): CommercePlan {
  * so a hidden item leaves the menu exactly as that account gets it. Receiving, viewing and
  * claiming Gram never pass through these branches.
  */
-private fun sendGramEdit(method: MutableMethod, site: SendGramSite): CommerceEdit {
+private fun sendGramEdit(method: MutableMethod, site: SendGramSite, titles: TitleCall): CommerceEdit {
     val where = site.where
     val body = method.instructions()
     val flow = ControlFlow.of(method)
-    val reads = body.indices.filter { body[it].reference() == WALLET_AVAILABLE }
+    val reads = body.indices.filter { body[it].readsWalletAvailable() }
     val labels = body.indices.filter { body[it].reference() == SEND_GRAM }
     shape(reads.size == 1 && labels.size == 1, "$where no longer reads walletAvailable and Send Gram once")
     val gate = gateAfter(body, reads.single(), where)
@@ -339,12 +400,13 @@ private fun sendGramEdit(method: MutableMethod, site: SendGramSite): CommerceEdi
         body.indices.none { at -> at !in branch && at != gate && (flow.normal[at] + flow.exceptional[at]).any { it in branch } },
         "$where Send Gram has another way in or out")
     val label = labels.single()
-    shape(label in branch && body.getOrNull(label + 1)?.reference() == STRING &&
-        body.getOrNull(label + 2)?.opcode == Opcode.MOVE_RESULT_OBJECT, "$where Send Gram has no title")
-    val title = body[label + 2].namedRegisters().single()
-    val add = (label + 3 until skip).firstOrNull { body[it].call() != null && title in body[it].namedRegisters() }
+    val read = titles.call(body, flow, label)
+    shape(label in branch && read != null &&
+        body.getOrNull(read + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT, "$where Send Gram has no title")
+    val title = body[read!! + 1].namedRegisters().single()
+    val add = (read + 2 until skip).firstOrNull { body[it].call() != null && title in body[it].namedRegisters() }
     shape(add != null && site.add(body[add].call()!!) && body[add].namedRegisters().getOrNull(site.title) == title &&
-        (label + 3 until add).none { body[it].writes(title) }, "$where no longer adds Send Gram as an item")
+        (read + 2 until add).none { body[it].writes(title) }, "$where no longer adds Send Gram as an item")
     // Nothing else waits behind the flag: no other label, and nothing stored beyond the item.
     shape(branch.none { at -> at != label && body[at].reference()?.startsWith(STRINGS) == true } &&
         branch.none { body[it].opcode in STORES },
@@ -384,12 +446,12 @@ private fun attachWalletEdits(binder: MutableMethod, methods: (Mention) -> List<
     shape(touching.sumOf { method -> method.instructions().count { it.opcode == Opcode.IGET && it.reference() == field } } == 1,
         "attach menu Wallet number is read outside its binder")
     val writers = touching.filter { method -> method.instructions().any { it.opcode == Opcode.IPUT && it.reference() == field } }
-    shape(writers.size == 1 && writers.single().definingClass == binder.definingClass &&
+    shape(writers.size == 1 && writers.single().origDefiningClass == binder.origDefiningClass &&
         writers.single().hasShape(emptyList(), "V"), "attach menu Wallet number has no single numbering pass")
     val rows = mutable(writers.single())
     val body = rows.instructions()
     val flow = ControlFlow.of(rows)
-    val reads = body.indices.filter { body[it].reference() == WALLET_AVAILABLE }
+    val reads = body.indices.filter { body[it].readsWalletAvailable() }
     shape(reads.size == 1, "attach menu numbering no longer reads walletAvailable once")
     val gate = gateAfter(body, reads.single(), "attach menu")
     val skip = flow.normal[gate].singleOrNull { it != gate + 1 }
@@ -418,10 +480,10 @@ private fun attachWalletEdits(binder: MutableMethod, methods: (Mention) -> List<
  * stock paths meet once their entries are in, leaving the menu as a Wallet account has it, minus
  * Wallet.
  */
-private fun menuWalletEdit(method: MutableMethod): CommerceEdit {
+private fun menuWalletEdit(method: MutableMethod, titles: TitleCall): CommerceEdit {
     val body = method.instructions()
     val flow = ControlFlow.of(method)
-    val reads = body.indices.filter { body[it].reference() == WALLET_AVAILABLE }
+    val reads = body.indices.filter { body[it].readsWalletAvailable() }
     val labels = body.indices.filter { body[it].reference() == WALLET_LABEL }
     shape(reads.size == 1 && labels.size == 1, "chat list menu no longer reads walletAvailable and Wallet once")
     val gate = gateAfter(body, reads.single(), "chat list menu")
@@ -429,14 +491,15 @@ private fun menuWalletEdit(method: MutableMethod): CommerceEdit {
     val skip = flow.normal[gate].singleOrNull { it != gate + 1 }
     shape(skip != null && skip > gate + 1 && flow.normal[gate].size == 2, "chat list menu Wallet availability no longer skips forward")
     val label = labels.single()
-    shape(label in gate + 1 until skip!! && body.getOrNull(label + 1)?.reference() == STRING &&
-        body.getOrNull(label + 2)?.opcode == Opcode.MOVE_RESULT_OBJECT, "chat list menu Wallet entry has no title")
-    val title = body[label + 2].namedRegisters().single()
-    val add = (label + 3 until skip).firstOrNull { body[it].opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) }
+    val read = titles.call(body, flow, label)
+    shape(label in gate + 1 until skip!! && read != null &&
+        body.getOrNull(read + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT, "chat list menu Wallet entry has no title")
+    val title = body[read!! + 1].namedRegisters().single()
+    val add = (read + 2 until skip).firstOrNull { body[it].opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) }
         ?: throw PatchException("$PATCH: chat list menu no longer adds Wallet as an entry (before editing)")
     val call = body[add].call()
-    shape(call != null && call.returnType == "V" && call.parameterTypes.map { it.toString() } == MENU_ADD &&
-        body[add].namedRegisters().getOrNull(2) == title && (label + 3 until add).none { body[it].writes(title) },
+    shape(call != null && call.origReturnType == "V" && call.parameterTypes.map { it.toString() } == MENU_ADD &&
+        body[add].namedRegisters().getOrNull(2) == title && (read + 2 until add).none { body[it].writes(title) },
         "chat list menu no longer adds Wallet as an entry")
     val saved = body.indexOfFirst { it.reference() == MENU_NEIGHBORS.last() }
     shape(saved in 0 until reads.single() && (saved until reads.single()).any { body[it].reference() == body[add].reference() },
@@ -457,17 +520,78 @@ private fun menuWalletEdit(method: MutableMethod): CommerceEdit {
 }
 
 /** The if-eqz right after walletAvailable's read, which decides on its answer alone. */
-private fun gateAfter(body: List<Instruction>, read: Int, where: String): Int {
-    val flag = body[read].namedRegisters().firstOrNull()
-    val gate = read + 3
-    shape(body[read].opcode == Opcode.IGET_OBJECT && body.getOrNull(read + 1)?.reference() == CONFIG_GET &&
-        body[read + 1].namedRegisters() == listOf(flag) && body.getOrNull(read + 2)?.opcode == Opcode.MOVE_RESULT &&
-        body.getOrNull(gate)?.opcode == Opcode.IF_EQZ && body[gate].namedRegisters() == body[read + 2].namedRegisters(),
-        "$where Wallet availability no longer decides its branch at once")
-    return gate
+private fun gateAfter(body: List<Instruction>, read: Int, where: String): Int =
+    walletGate(body, read) ?: throw PatchException("$PATCH: $where Wallet availability no longer decides its branch at once (before editing)")
+
+/**
+ * walletAvailable, known by its owner and name: 13.2 merges ConfigBoolean into a class that other
+ * source classes share, so the field's type no longer reads as ConfigBoolean.
+ */
+internal fun Instruction.readsWalletAvailable(): Boolean = field()?.let {
+    it.origDefiningClass == WALLET_AVAILABLE.substringBefore("->") && it.origName == "walletAvailable"
+} == true
+
+/**
+ * Whether [getter], called on a flag of the build's [flagType], is 13.2's get(): R8 merged
+ * ConfigBoolean into a class other sources share, so get() is known by its body, the same handler,
+ * cast and value the inlined sites read, and nothing else.
+ */
+private fun mergedConfigGet(getter: MethodReference, flagType: String): Boolean {
+    if (getter.definingClass != flagType || getter.parameterTypes.isNotEmpty() || getter.returnType != "Z") return false
+    val method = tgClassDefByOrNull(flagType)?.methods?.singleOrNull { it.name == getter.name && it.parameterTypes.isEmpty() && it.returnType == "Z" }
+    val implementation = method?.implementation ?: return false
+    val body = implementation.instructions.toList()
+    val self = implementation.registerCount - 1
+    val handler = body.getOrNull(0)?.field()
+    return !AccessFlags.STATIC.isSet(method.accessFlags) && implementation.tryBlocks.isEmpty() &&
+        body.map { it.opcode } == listOf(Opcode.IGET_OBJECT, Opcode.CHECK_CAST, Opcode.IGET_BOOLEAN, Opcode.RETURN) &&
+        handler?.definingClass == flagType && handler.type == "Ljava/lang/Object;" && body[0].namedRegisters() == listOf(0, self) &&
+        body[1].reference() == CONFIG_BOOLEAN_INTERNAL && body[1].namedRegisters() == listOf(0) &&
+        body[2].reference() == CONFIG_BOOLEAN_VALUE && body[2].namedRegisters() == listOf(0, 0) && body[3].namedRegisters() == listOf(0)
 }
 
-private fun settingsEdits(method: MutableMethod): List<CommerceEdit> {
+/**
+ * The if-eqz that decides on the walletAvailable value read at [read], with nothing else in
+ * between: through ConfigBoolean.get() (13.2's merged one included) and its result, or, where 13.2
+ * inlines get(), through the flag's handler cast to its Internal and that handler's value. Null for
+ * any other shape.
+ */
+internal fun walletGate(body: List<Instruction>, read: Int): Int? {
+    val flag = body[read].namedRegisters().firstOrNull()
+    if (body[read].opcode != Opcode.IGET_OBJECT || !body[read].readsWalletAvailable() || flag == null) return null
+    val called = read + 3
+    val getter = body.getOrNull(read + 1)?.takeIf { it.opcode == Opcode.INVOKE_VIRTUAL }?.call()
+    if ((body.getOrNull(read + 1)?.reference() == CONFIG_GET || (getter != null && mergedConfigGet(getter, body[read].field()!!.type))) &&
+        body[read + 1].namedRegisters() == listOf(flag) &&
+        body.getOrNull(read + 2)?.opcode == Opcode.MOVE_RESULT &&
+        body.getOrNull(called)?.opcode == Opcode.IF_EQZ && body[called].namedRegisters() == body[read + 2].namedRegisters()
+    ) return called
+    val inlined = read + 4
+    val handler = body.getOrNull(read + 1)
+    val cast = body.getOrNull(read + 2)
+    val value = body.getOrNull(read + 3)
+    val answer = value?.namedRegisters()?.firstOrNull()
+    return inlined.takeIf {
+        handler?.opcode == Opcode.IGET_OBJECT && handler.namedRegisters() == listOf(flag, flag) &&
+            handler.field()?.let { it.definingClass == body[read].field()!!.type && it.type == "Ljava/lang/Object;" } == true &&
+            cast?.opcode == Opcode.CHECK_CAST && cast.namedRegisters() == listOf(flag) && cast.reference() == CONFIG_BOOLEAN_INTERNAL &&
+            value?.opcode == Opcode.IGET_BOOLEAN && value.reference() == CONFIG_BOOLEAN_VALUE && value.namedRegisters().getOrNull(1) == flag &&
+            body.getOrNull(inlined)?.opcode == Opcode.IF_EQZ && body[inlined].namedRegisters() == listOf(answer)
+    }
+}
+
+/**
+ * Where [body] reads the Wallet title's resource: each instruction that reads a WalletAttachMoney
+ * load's register while that load is the only value it can hold. 13.1 loaded the resource inside
+ * each Wallet branch; 13.2 loads it once ahead of both and reads it in each.
+ */
+internal fun walletLabelReads(body: List<Instruction>, flow: ControlFlow): List<Int> =
+    body.indices.filter { body[it].reference() == WALLET_LABEL }.flatMap { load ->
+        val register = body[load].namedRegisters().first()
+        body.indices.filter { at -> at != load && register in body[at].namedRegisters() && flow.preservesValue(load, at, register) }
+    }
+
+private fun settingsEdits(method: MutableMethod, titles: TitleCall): List<CommerceEdit> {
     val body = method.instructions()
     val flow = ControlFlow.of(method)
     val factories = mutableSetOf<String>()
@@ -475,15 +599,16 @@ private fun settingsEdits(method: MutableMethod): List<CommerceEdit> {
     val edits = SETTINGS_SALES.map { resource ->
         val at = body.indices.filter { body[it].reference() == resource }.unique("$resource Settings label")
             ?: throw PatchException("$PATCH: missing $resource Settings label (before editing)")
-        shape(body.getOrNull(at + 1)?.reference() == STRING && body.getOrNull(at + 2)?.opcode == Opcode.MOVE_RESULT_OBJECT,
+        val read = titles.call(body, flow, at)
+        shape(read != null && body.getOrNull(read + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT,
             "$resource does not produce a row title")
-        val title = body[at + 2].namedRegisters().single()
-        val factory = (at + 3 until minOf(body.size, at + 64)).firstOrNull { index ->
+        val title = body[read!! + 1].namedRegisters().single()
+        val factory = (read + 2 until minOf(body.size, at + 64)).firstOrNull { index ->
             body[index].call()?.parameterTypes?.map { it.toString() } == SALES_FACTORY &&
                 body[index].opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE)
         } ?: throw PatchException("$PATCH: no $resource Settings row factory (before editing)")
         shape(body[factory].namedRegisters().getOrNull(4) == title &&
-            (at + 3 until factory).none { body[it].writes(title) }, "$resource Settings title is not intact")
+            (read + 2 until factory).none { body[it].writes(title) }, "$resource Settings title is not intact")
         factories += body[factory].reference()!!
         val row = body.getOrNull(factory + 1)
         val append = factory + 2
@@ -510,23 +635,22 @@ private fun settingsEdits(method: MutableMethod): List<CommerceEdit> {
 private fun walletEdits(method: MutableMethod, factory: String, rows: Int): List<CommerceEdit> {
     val body = method.instructions()
     val flow = ControlFlow.of(method)
-    val labels = body.indices.filter { body[it].reference() == WALLET_LABEL }
-    val reads = body.indices.filter { body[it].reference() == WALLET_AVAILABLE }
+    val labels = walletLabelReads(body, flow)
+    val reads = body.indices.filter { body[it].readsWalletAvailable() }
     shape(labels.size == reads.size, "Wallet labels and availability reads no longer pair up")
     return reads.map { read ->
-        val flag = body[read].namedRegisters().firstOrNull()
-        val gate = read + 3
-        shape(body[read].opcode == Opcode.IGET_OBJECT && body.getOrNull(read + 1)?.reference() == CONFIG_GET &&
-            body[read + 1].namedRegisters() == listOf(flag) && body.getOrNull(read + 2)?.opcode == Opcode.MOVE_RESULT &&
-            body.getOrNull(gate)?.opcode == Opcode.IF_EQZ && body[gate].namedRegisters() == body[read + 2].namedRegisters(),
-            "Wallet availability no longer decides its branch at once")
+        val gate = walletGate(body, read)
+            ?: throw PatchException("$PATCH: Wallet availability no longer decides its branch at once (before editing)")
         val available = body[gate].namedRegisters().single()
         val skip = flow.normal[gate].singleOrNull { it != gate + 1 }
         shape(skip != null && skip > gate + 1 && flow.normal[gate].size == 2, "Wallet availability no longer skips forward")
         val block = gate + 1 until skip!!
-        shape(block.all { at -> flow.normal[at].all { it in block || it == skip } } &&
+        val rejoin = walletRejoin(body, flow, block)
+        shape(rejoin != null && block.all { at -> flow.normal[at].all { it in block || it == rejoin } } &&
             body.indices.none { it !in block && it != gate && flow.normal[it].any { target -> target in block } },
             "Wallet row has another way in or out")
+        // The divider closes the block, ahead of the jump back when the block ends with one.
+        val end = if (rejoin == skip) block.last else block.last - 1
         val label = labels.filter { it in block }.singleOrNull()
         val made = block.filter { body[it].reference() == factory }
         val appends = block.filter { body[it].reference() == APPEND }
@@ -536,14 +660,40 @@ private fun walletEdits(method: MutableMethod, factory: String, rows: Int): List
             body.getOrNull(row + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT && appends.firstOrNull() == row + 2 &&
             body[row + 2].namedRegisters() == listOf(rows, body[row + 1].namedRegisters().single()),
             "Wallet branch no longer adds row $WALLET_ROW to the Settings list")
-        shape(appends.size == 2 && appends.last() == skip - 1 && body[skip - 1].namedRegisters().first() == rows,
+        shape(appends.size == 2 && appends.last() == end && body[end].namedRegisters().first() == rows,
             "Wallet branch no longer ends with the row's divider")
         CommerceEdit(method, gate,
             "invoke-static/range {v$available .. v$available}, $COMMERCE->showWalletRow(Z)Z\nmove-result v$available")
     }
 }
 
-private fun profileEdits(method: MutableMethod, gifts: Int, hasTab: String, clear: String): List<CommerceEdit> {
+/**
+ * Where a Wallet [block] rejoins the builder: the skip right after it, where it falls through.
+ * 13.2's R8 ends the first placement with a jump past constants the skipping path loads at its own
+ * start, as the block already holds each of them in the same register; it lands just after them.
+ * Null for any other way out.
+ */
+private fun walletRejoin(body: List<Instruction>, flow: ControlFlow, block: IntRange): Int? {
+    val skip = block.last + 1
+    val last = block.last
+    if (body[last].opcode !in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)) return skip
+    val target = flow.normal[last].singleOrNull() ?: return null
+    if (target == skip) return skip
+    if (target < skip) return null
+    val shared = (skip until target).all { at ->
+        val load = body[at] as? NarrowLiteralInstruction
+        val register = body[at].namedRegisters().firstOrNull()
+        body[at].opcode in CONSTANTS && load != null && register != null && flow.normal[at] == listOf(at + 1) &&
+            block.any { held ->
+                body[held].opcode in CONSTANTS && body[held].namedRegisters().firstOrNull() == register &&
+                    (body[held] as? NarrowLiteralInstruction)?.narrowLiteral == load.narrowLiteral &&
+                    flow.preservesValue(held, last, register)
+            }
+    }
+    return target.takeIf { shared }
+}
+
+private fun profileEdits(method: MutableMethod, gifts: Int, hasTab: String, clear: String, titles: TitleCall): List<CommerceEdit> {
     val body = method.instructions()
     val flow = ControlFlow.of(method)
     val resources = body.indices.filter { body[it].reference() == PROFILE_GIFTS }
@@ -551,7 +701,10 @@ private fun profileEdits(method: MutableMethod, gifts: Int, hasTab: String, clea
         body.count { it.reference() in listOf("Lorg/telegram/tgnet/TLRPC\$UserFull;->stargifts_count:I",
             "Lorg/telegram/tgnet/TLRPC\$ChatFull;->stargifts_count:I") } == 2,
         "profile Gifts lacks fresh, cached edit and stock rebuild paths")
-    val allocation = resources.first() - 3
+    // The fresh candidate is `if-eqz visible`, `new Pair`, `Integer.valueOf(id)`. 13.1 loads the title
+    // after it; 13.2's R8 hoists that load above the branch.
+    val hoisted = body.getOrNull(resources.first() + 1)?.opcode == Opcode.IF_EQZ
+    val allocation = if (hoisted) resources.first() + 2 else resources.first() - 3
     shape(body.getOrNull(allocation)?.opcode == Opcode.NEW_INSTANCE &&
         body[allocation].reference() == "Landroid/util/Pair;", "fresh Gifts candidate lacks its Pair allocation")
     val receiver = body[allocation].namedRegisters().single()
@@ -563,17 +716,21 @@ private fun profileEdits(method: MutableMethod, gifts: Int, hasTab: String, clea
     val label = resources.last()
     // The title may go through a copy on its way to the jump (12.10) or straight from the string
     // lookup (13.0).
-    val copied = body.getOrNull(label + 3)?.opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
-    val jump = if (copied) label + 4 else label + 3
-    shape(body.getOrNull(label + 1)?.reference() == STRING &&
-        body.getOrNull(label + 2)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
+    val read = titles.call(body, flow, label) ?: label
+    val copied = body.getOrNull(read + 2)?.opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
+    val settled = if (copied) read + 3 else read + 2
+    // 13.2 also sets up constants the shared code reads before it jumps.
+    val jump = (settled until body.size).firstOrNull { body[it].opcode !in CONSTANTS } ?: settled
+    shape(read != label &&
+        body.getOrNull(read + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
         body.getOrNull(jump)?.opcode in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32),
         "cached Gifts label no longer jumps to its shared Pair constructor")
     val cachedPair = flow.normal[jump].single()
-    val title = body[label + 2].namedRegisters().single()
+    val title = body[read + 1].namedRegisters().single()
     shape(body[cachedPair].reference() == PAIR &&
-        (!copied || title == body[label + 3].namedRegisters()[1]) &&
-        (if (copied) body[label + 3].namedRegisters()[0] else title) == body[cachedPair].namedRegisters()[2],
+        (!copied || title == body[read + 2].namedRegisters()[1]) &&
+        (if (copied) body[read + 2].namedRegisters()[0] else title) == body[cachedPair].namedRegisters()[2] &&
+        (settled until jump).none { body[it].writes(body[cachedPair].namedRegisters()[2]) },
         "cached Gifts label no longer supplies the Pair title")
     val appends = listOf(freshPair, cachedPair).map { pair ->
         val append = pair + 1
@@ -582,7 +739,7 @@ private fun profileEdits(method: MutableMethod, gifts: Int, hasTab: String, clea
         append
     }
     shape(appends.map { body[it].namedRegisters().first() }.distinct().size == 1, "Gifts candidates use different tab lists")
-    val freshBox = resources.first() - 2
+    val freshBox = allocation + 1
     shape(body.getOrNull(freshBox)?.reference() == BOX_INT &&
         constantBefore(body, freshBox, body[freshBox].namedRegisters().single()) == gifts &&
         body.getOrNull(freshBox + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT &&
@@ -619,7 +776,7 @@ private fun profileEdits(method: MutableMethod, gifts: Int, hasTab: String, clea
     val operands = body[cached + 2].namedRegisters()
     shape(operands.size == 2 && operands.count { it == exists } == 1, "cached Gifts comparison aliases its operands")
     val visible = operands.single { it != exists }
-    val fresh = resources.first() - 4
+    val fresh = allocation - 1
     shape(body.getOrNull(fresh)?.opcode == Opcode.IF_EQZ && ControlFlow.of(method).normal[fresh].any { it > appends.first() },
         "fresh Gifts candidate has no stock way past it")
     val freshVisible = body[fresh].namedRegisters().single()
@@ -641,7 +798,7 @@ private fun footerGiftIndex(classDef: ClassDef, method: Method): Int {
     val gift = constantBefore(body, label - 1, operands.single { it != button })
         ?: throw PatchException("$PATCH: no footer Gift index (before editing)")
     shape(gift in 0..32767, "footer Gift index does not fit the extension fact")
-    val init = classDef.methods.singleOrNull { it.name == "<clinit>" }
+    val init = classDef.methods.singleOrNull { it.origName == "<clinit>" }
         ?: throw PatchException("$PATCH: no footer icon table (before editing)")
     val icons = init.instructions()
     val icon = icons.indices.singleOrNull { icons[it].reference() == GIFT_ICON }
@@ -678,6 +835,73 @@ private fun constantBefore(body: List<Instruction>, before: Int, register: Int, 
         in MOVES -> if (copies == 0) null else constantBefore(body, write, body[write].namedRegisters()[1], copies - 1)
         else -> null
     }
+}
+
+/**
+ * How the build reads an item's title from its string resource. Telegram calls
+ * LocaleController.getString(int), a wrapper that passes the id on with a null beside it, and 13.2's
+ * R8 inlined that wrapper into its callers, which now make the forwarded call themselves.
+ */
+private class TitleCall(private val forward: String?, private val id: Int) {
+    /**
+     * The index of the call that reads the text of the resource loaded at [load]: the next
+     * instruction, or the one after when the null the forwarded call takes is set up in between.
+     */
+    fun call(body: List<Instruction>, flow: ControlFlow, load: Int): Int? {
+        if (body.getOrNull(load + 1)?.reference() == STRING) return load + 1
+        val resource = body.getOrNull(load)?.namedRegisters()?.firstOrNull() ?: return null
+        return (load + 1..load + 2).firstOrNull { at ->
+            val made = body.getOrNull(at) ?: return@firstOrNull false
+            val operands = made.namedRegisters()
+            forward != null && made.opcode == Opcode.INVOKE_STATIC && made.call()?.toString() == forward &&
+                operands.size == 2 && operands[id] == resource &&
+                (load + 1 until at).all { body[it].opcode in CONSTANTS && body[it].writes(operands[1 - id]) } &&
+                flow.onlyZeroReaches(at, operands[1 - id])
+        }
+    }
+}
+
+/** What getString(int) forwards to, when it's the plain wrapper; without one only getString(int) itself counts. */
+private fun BytecodePatchContext.titleCall(): TitleCall {
+    val wrapper = tgClassDefByOrNull(LOCALE)?.methods?.filter { it.origName == "getString" &&
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.origParameterTypes == listOf("I") && it.origReturnType == "Ljava/lang/String;"
+    }?.singleOrNull() ?: return TitleCall(null, 0)
+    val body = wrapper.instructions()
+    val absent = body.firstOrNull()?.namedRegisters()?.singleOrNull()
+    val operands = body.getOrNull(1)?.namedRegisters().orEmpty()
+    val id = wrapper.parameterRegisterNumber(0)
+    val plain = body.size == 4 && body[0].opcode == Opcode.CONST_4 && (body[0] as NarrowLiteralInstruction).narrowLiteral == 0 &&
+        body[1].opcode == Opcode.INVOKE_STATIC && operands.size == 2 && operands.toSet() == setOf(absent, id) && absent != id &&
+        body[2].opcode == Opcode.MOVE_RESULT_OBJECT && body[3].opcode == Opcode.RETURN_OBJECT &&
+        body[2].namedRegisters() == body[3].namedRegisters()
+    return if (plain) TitleCall(body[1].call().toString(), operands.indexOf(id)) else TitleCall(null, 0)
+}
+
+/** Every value [register] can hold at [use] is the constant 0, a null for an object. */
+private fun ControlFlow.onlyZeroReaches(use: Int, register: Int): Boolean {
+    val predecessors = Array(instructions.size) { mutableListOf<Pair<Int, Boolean>>() }
+    instructions.indices.forEach { at ->
+        normal[at].forEach { predecessors[it] += at to false }
+        exceptional[at].forEach { predecessors[it] += at to true }
+    }
+    if (predecessors[use].isEmpty()) return false
+    val seen = mutableSetOf<Pair<Int, Boolean>>()
+    val pending = ArrayDeque(predecessors[use])
+    while (pending.isNotEmpty()) {
+        val step = pending.removeFirst()
+        if (!seen.add(step)) continue
+        val (at, thrown) = step
+        val instruction = instructions[at]
+        if (instruction.writes(register)) {
+            if (instruction.opcode !in CONSTANTS || (instruction as? NarrowLiteralInstruction)?.narrowLiteral != 0) return false
+            // An instruction that throws never writes, so its handler also sees what came before.
+            if (!thrown) continue
+        }
+        // Reaching the entry means the value comes from the caller or was never set.
+        if (at == 0) return false
+        pending.addAll(predecessors[at])
+    }
+    return true
 }
 
 /** Bound provenance by its source definition, including handlers and paths that jump backward. */
@@ -720,10 +944,11 @@ private fun Instruction.writes(register: Int): Boolean {
     val destination = namedRegisters().firstOrNull() ?: return false
     return destination == register || opcode.setsWideRegister() && destination + 1 == register
 }
-private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.reference() = origRef()
+private fun Instruction.field() = (this as? ReferenceInstruction)?.reference as? FieldReference
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 private fun MethodReference.hasShape(parameters: List<String>, result: String) =
-    parameterTypes.map { it.toString() } == parameters && returnType == result
+    origParameterTypes == parameters && origReturnType == result
 private fun MethodReference.sameSignature(other: MethodReference) = name == other.name &&
     returnType == other.returnType && parameterTypes.map { it.toString() } == other.parameterTypes.map { it.toString() }
 private fun <T> List<T>.unique(what: String): T? {

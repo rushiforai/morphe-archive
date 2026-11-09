@@ -8,7 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.util.names.addInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.holiday.HOLIDAY_LOOK
@@ -22,13 +22,14 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origName
+import app.morphe.util.names.origRef
 
 /**
  * A long press on the "Telegram" title at the top of the chat list opens HushTelegram settings. The
@@ -131,10 +132,17 @@ class ChatListTitlePressFixtureTest {
         assertEquals("${build.name}: the holiday check", 1, check.size)
         val loader = check.single().methods.single { method -> method.body().any { it.reference() == NEW_YEAR_HAT } }
         val snow = loader.body().first { it.opcode == Opcode.SPUT_BOOLEAN }.reference()
-        val readers = FixtureDex.classesWhere(build, READER_CENSUS, { true }) { method -> method.name == "getTextStartX" ||
+        val readers = FixtureDex.classesWhere(build, READER_CENSUS, { true }) { method -> method.origName == "getTextStartX" ||
             method.body().any { (it.opcode == Opcode.SGET_BOOLEAN && it.reference() == snow) ||
-                (method.name == "createView" && it.reference() == LOGO) } }
-        return (check + readers).distinctBy { it.type }
+                (method.origName == "createView" && it.reference() == LOGO) } }
+        // 13.2 loads the logo through a static helper right after its id, and the holiday look reads that helper's body.
+        val loaders = readers.flatMap { it.methods }.filter { it.origName == "createView" }.mapNotNull { method ->
+            val body = method.body()
+            val logo = body.indexOfFirst { it.reference() == LOGO }
+            body.getOrNull(logo + 1)?.takeIf { logo >= 0 && it.opcode == Opcode.INVOKE_STATIC }
+                ?.let { ((it as ReferenceInstruction).reference as MethodReference).definingClass }
+        }.toSet()
+        return (check + readers + FixtureDex.classes(build, loaders).values).distinctBy { it.type }
     }
 
     private fun contextFor(build: File): BytecodePatchContext = PatchContexts.of(ExtensionDex.classes() + owners(build))
@@ -146,8 +154,8 @@ class ChatListTitlePressFixtureTest {
     }
 
     private fun Method.body(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-    private fun Instruction.reference(): String? = ((this as? ReferenceInstruction)?.reference as? Any)?.let {
-        if (it is FieldReference) "${it.definingClass}->${it.name}:${it.type}" else it.toString() }
+    // Source names, with R8's inlined resource ids read back as their R fields.
+    private fun Instruction.reference(): String? = origRef()
     private fun Instruction.callName(): String? = reference()?.takeIf {
         (this as? ReferenceInstruction)?.reference is MethodReference
     }

@@ -9,7 +9,9 @@ public final class TLRPC {
     private TLRPC() { }
 
     /** A group, as Telegram keeps a basic one. */
-    public static class Chat { }
+    public static class Chat {
+        public String title;
+    }
 
     /** A channel or supergroup. */
     public static class TL_channel extends Chat { }
@@ -76,6 +78,42 @@ public final class TLRPC {
         public boolean out;
         public Peer peer_id;
         public TL_messageReactions reactions;
+        public MessageMedia media;
+    }
+
+    /** A message's attachment: a photo or a document, each null for the other kind. */
+    public static class MessageMedia {
+        public Photo photo;
+        public Document document;
+    }
+
+    public static class TL_messageMediaPhoto extends MessageMedia { }
+
+    public static class TL_messageMediaDocument extends MessageMedia { }
+
+    public static class Photo {
+        public java.util.ArrayList<PhotoSize> sizes = new java.util.ArrayList<>();
+    }
+
+    public static class PhotoSize {
+        public String type;
+    }
+
+    public static class TL_photoSize extends PhotoSize { }
+
+    public static class TL_photoSizeProgressive extends PhotoSize { }
+
+    public static class TL_photoStrippedSize extends PhotoSize { }
+
+    public static class TL_photoCachedSize extends PhotoSize { }
+
+    public static class TL_photoPathSize extends PhotoSize { }
+
+    public static class TL_photoSizeEmpty extends PhotoSize { }
+
+    public static class Document {
+        public long size;
+        public java.util.ArrayList<PhotoSize> thumbs = new java.util.ArrayList<>();
     }
 
     /** The typing, recording or uploading status shown in a chat. */
@@ -83,6 +121,121 @@ public final class TLRPC {
 
     /** The same status in a secret chat. */
     public static class TL_messages_setEncryptedTyping { }
+
+    /** A person, with the fields Special contacts compares. */
+    public static class User {
+        public long id;
+        public String first_name;
+        public String last_name;
+        public String username;
+        public java.util.ArrayList<TL_username> usernames = new java.util.ArrayList<>();
+        public String phone;
+        public UserProfilePhoto photo;
+        public UserStatus status;
+        public boolean self;
+        public boolean contact;
+        public boolean mutual_contact;
+        public boolean deleted;
+        public boolean bot;
+        public boolean min;
+    }
+
+    public static class TL_user extends User { }
+
+    public static class TL_userEmpty extends User { }
+
+    public static class TL_username {
+        public boolean editable;
+        public boolean active;
+        public String username;
+    }
+
+    /** Telegram keeps the last seen time of an offline status in expires too. */
+    public static class UserStatus {
+        public int expires;
+    }
+
+    public static class TL_userStatusOnline extends UserStatus { }
+
+    public static class TL_userStatusOffline extends UserStatus { }
+
+    public static class TL_userStatusRecently extends UserStatus { }
+
+    public static class TL_userStatusLastWeek extends UserStatus { }
+
+    public static class TL_userStatusLastMonth extends UserStatus { }
+
+    public static class TL_userStatusEmpty extends UserStatus { }
+
+    public static class UserProfilePhoto {
+        public long photo_id;
+        public boolean personal;
+        public int dc_id;
+    }
+
+    public static class TL_userProfilePhoto extends UserProfilePhoto { }
+
+    public static class TL_userProfilePhotoEmpty extends UserProfilePhoto { }
+
+    /** What a chat's typing line says someone is doing. */
+    public static class SendMessageAction { }
+
+    public static class TL_sendMessageTypingAction extends SendMessageAction { }
+
+    public static class TL_sendMessageCancelAction extends SendMessageAction { }
+
+    public static class TL_sendMessageRecordAudioAction extends SendMessageAction { }
+
+    /** A sign-in's answer, which a bot token sign-in hands to the login screen. */
+    public static class TL_auth_authorization { }
+
+    /** Requests a bot can't make, and the empty answers a bot account gets for them on the phone. */
+    public static class TL_messages_getDialogs { }
+
+    public static class TL_messages_getHistory { }
+
+    public static class TL_contacts_getContacts { }
+
+    public static class TL_messages_getAllStickers { }
+
+    public static class TL_messages_getMaskStickers { }
+
+    public static class TL_messages_getEmojiStickers { }
+
+    public static class TL_messages_getFeaturedStickers { }
+
+    public static class TL_messages_getFeaturedEmojiStickers { }
+
+    /** Telegram fills some lists where it declares them and leaves others for the reader. */
+    public static class TL_messages_dialogs {
+        public java.util.ArrayList<Object> dialogs = new java.util.ArrayList<>();
+        public java.util.ArrayList<Object> messages;
+        public java.util.ArrayList<Object> chats;
+        public java.util.ArrayList<Object> users;
+        public int count;
+    }
+
+    public static class TL_messages_messages {
+        public java.util.ArrayList<Object> messages;
+        public java.util.ArrayList<Object> chats;
+        public java.util.ArrayList<Object> users;
+    }
+
+    public static class TL_contacts_contacts {
+        public java.util.ArrayList<Object> contacts;
+        public java.util.ArrayList<Object> users;
+        public int saved_count;
+    }
+
+    public static class TL_messages_allStickers {
+        public long hash;
+        public java.util.ArrayList<Object> sets;
+    }
+
+    public static class TL_messages_featuredStickers {
+        public java.util.ArrayList<Object> sets;
+        public java.util.ArrayList<Object> unread;
+    }
 
     public static class TL_error {
         public int code;

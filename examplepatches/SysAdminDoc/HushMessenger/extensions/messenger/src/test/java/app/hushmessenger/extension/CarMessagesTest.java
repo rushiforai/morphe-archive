@@ -104,6 +104,26 @@ public class CarMessagesTest {
         }
     }
 
+    @Test public void theSwitchBuildsTheCarBundleEvenWhenTheServerFlagIsOff() {
+        assertFalse(CarMessages.carExtension(false));
+        assertTrue(CarMessages.carExtension(true));
+        on();
+        assertTrue(CarMessages.carExtension(false));
+        assertTrue(CarMessages.carExtension(true));
+        assertTrue(Settings.lastActive("car_messages") > 0);
+        for (String state : new String[] {"paused", "safe", "missing"}) {
+            Settings.initialize(RuntimeEnvironment.getApplication());
+            Settings.preferences.edit().clear().putBoolean("car_messages", true)
+                .putBoolean("paused", state.equals("paused")).putBoolean("safe_mode", state.equals("safe")).commit();
+            CrashGuard.resetForTests();
+            CrashGuard.onProcessStart(RuntimeEnvironment.getApplication());
+            if (state.equals("missing")) Settings.installed = Collections.emptySet();
+            // Messenger's own answer goes through untouched.
+            assertFalse(state, CarMessages.carExtension(false));
+            assertTrue(state, CarMessages.carExtension(true));
+        }
+    }
+
     @Test public void theSwitchSitsUnderConversationsAndStartsOff() {
         String[] spec = null;
         for (String[] control : SettingsActivity.CONTROLS) if (control[0].equals("car_messages")) spec = control;

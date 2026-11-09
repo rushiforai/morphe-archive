@@ -208,6 +208,106 @@ generated  = build_content(expanded=expanded)
 readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")
 readme = readme.replace("https://github.com/xyz-user/xyz-patches", f"https://github.com/{repo_full}")
 
+# Stamp the hand-maintained "current bundle" lines with this release's
+# version so they never lag a release behind. The version comes from
+# patches-list.json (.version is set by the jq step in .releaserc's
+# prepareCmd just before this script runs). Patterns tolerate an
+# optional prerelease suffix (dev branch versions like 1.68.0-dev.1).
+_VER = r"v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?"
+readme = re.sub(
+    rf"(current bundle: \[){_VER}(\]\([^)]*/tag/){_VER}(\))",
+    rf"\g<1>v{ver}\g<2>v{ver}\g<3>",
+    readme,
+)
+readme = re.sub(
+    rf"(Reflects bundle ){_VER}(\.)",
+    rf"\g<1>v{ver}\g<2>",
+    readme,
+)
+
+# Keep the header app/patch counts in step with patches-list.json.
+readme = re.sub(
+    r"\*\*\d+ apps · \d+ patches\*\*",
+    f"**{len(by_pkg)} apps · {total} patches**",
+    readme,
+    count=1,
+)
+
+# ---------- App icon grid ----------
+# The grid between <!-- GRID_START --> / <!-- GRID_END --> is regenerated
+# from patches-list.json on every release: app name, patch count and the
+# experimental marker come from the JSON, and the picture is the app's
+# Play Store icon. Icons already in the README are reused, so a picture
+# is only fetched for a genuinely new app. A failed fetch never fails
+# the release — the cell falls back to a placeholder and a warning is
+# printed so the owner can spot it in the release commit.
+GRID_EXCLUDE_PACKAGES = {
+    "com.google.android.apps.messaging",  # Google Messages: patch does not work, owner keeps it out of the grid
+}
+
+
+def fetch_play_icon(pkg):
+    """Best-effort Play Store icon URL (og:image), sized =w128-h128."""
+    try:
+        import urllib.request
+        url = f"https://play.google.com/store/apps/details?id={pkg}&hl=en_US"
+        req = urllib.request.Request(url, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+        })
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            page = resp.read().decode("utf-8", "ignore")
+        m = re.search(r'property="og:image" content="([^"]+)"', page) or \
+            re.search(r'content="([^"]+)" property="og:image"', page)
+        if not m:
+            return None
+        return re.sub(r"=[^=]*$", "", m.group(1)) + "=w128-h128"
+    except Exception:
+        return None
+
+
+def build_grid(readme_text):
+    known_icons = {}
+    for m in re.finditer(r'<img src="([^"]+)"[^>]*>\s*<br><b>(.*?)</b>', readme_text):
+        known_icons[m.group(2)] = m.group(1)
+    apps = []
+    for pkg, entry in by_pkg.items():
+        if pkg in GRID_EXCLUDE_PACKAGES:
+            continue
+        name = entry["name"]
+        count = len(entry["patches"])
+        sub = f"{count} patch" if count == 1 else f"{count} patches"
+        targets = entry.get("targets", [])
+        if targets and all(t.get("isExperimental") for t in targets):
+            sub += " · 🧪 experimental"
+        icon = known_icons.get(name) or fetch_play_icon(pkg)
+        if icon is None:
+            sys.stderr.write(f"WARNING: could not fetch Play Store icon for {name} ({pkg}); using placeholder\n")
+            icon = "https://placehold.co/128x128/png?text=" + name[0]
+        apps.append((name, icon, sub))
+    apps.sort(key=lambda a: a[0].casefold())
+    cells = [
+        f'<td align="center" width="20%">\n'
+        f'<img src="{icon}" width="72" height="72" alt="{name} icon">\n'
+        f"<br><b>{name}</b>\n"
+        f"<br><sub>{sub}</sub>\n"
+        f"</td>"
+        for name, icon, sub in apps
+    ]
+    rows = ["<tr>\n" + "\n".join(cells[i:i + 5]) + "\n</tr>" for i in range(0, len(cells), 5)]
+    return "<table>\n" + "\n".join(rows) + "\n</table>"
+
+
+if "<!-- GRID_START -->" in readme and "<!-- GRID_END -->" in readme:
+    grid = build_grid(readme)
+    readme = re.sub(
+        r"<!-- GRID_START -->.*?<!-- GRID_END -->",
+        lambda _: f"<!-- GRID_START -->\n{grid}\n<!-- GRID_END -->",
+        readme,
+        flags=re.DOTALL,
+    )
+else:
+    sys.stderr.write("WARNING: GRID_START / GRID_END markers not found; icon grid left unchanged\n")
+
 new_readme = re.sub(
     rf"{START_PATTERN}.*?{re.escape(END_MARKER)}",
     f"{actual_start}\n{generated}\n{END_MARKER}",

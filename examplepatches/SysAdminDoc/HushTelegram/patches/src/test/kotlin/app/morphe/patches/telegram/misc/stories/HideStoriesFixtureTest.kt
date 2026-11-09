@@ -8,10 +8,11 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstruction
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -37,6 +38,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Exercises the real declared fixture's state merges, including cached rings and community taps. */
 class HideStoriesFixtureTest {
@@ -52,7 +60,7 @@ class HideStoriesFixtureTest {
             val originalMethods = plan.hooks.mapValues { (_, hook) -> ImmutableMethod.of(hook.method) }
             val original = originalMethods.mapValues { (_, method) -> method.instructions() }
             val unchanged = hosts.flatMap { it.methods.toList() }.filter { method ->
-                plan.hooks.values.none { it.method.sameSignature(method) && it.method.definingClass == method.definingClass }
+                plan.hooks.values.none { it.method.sameSignature(method) && it.method.origDefiningClass == method.origDefiningClass }
             }
             val warnings = PatchLogCapture.warnings { hideStoriesPatch.execute(context) }
             assertEquals("${build.name}: no missing target", emptyList<String>(), warnings)
@@ -139,7 +147,7 @@ class HideStoriesFixtureTest {
             assertEquals("${build.name}: community true branch bypasses the story suppression", touches.index - 1, originalCommunityGoto)
             assertEquals(0, (touchBody[touches.index + 3] as NarrowLiteralInstruction).narrowLiteral)
 
-            val scope = context.mutableClassDefBy(STORIES).methods.single { it.name == "isDialogAvatar" }.instructions()
+            val scope = context.tgMutableClassDefBy(STORIES).methods.single { it.origName == "isDialogAvatar" }.instructions()
             assertEquals(Opcode.INSTANCE_OF, scope[0].opcode)
             assertEquals(Opcode.CHECK_CAST, scope[2].opcode)
             assertEquals(Opcode.IGET_OBJECT, scope[3].opcode)
@@ -147,24 +155,24 @@ class HideStoriesFixtureTest {
             assertEquals(Opcode.IF_NEZ, scope[5].opcode)
             assertEquals(1, (scope[6] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(0, (scope[8] as NarrowLiteralInstruction).narrowLiteral)
-            val scopedParams = hosts.single { it.type == (scope[0] as ReferenceInstruction).reference.toString() }
+            val scopedParams = hosts.single { it.origType == (scope[0] as ReferenceInstruction).reference.origString() }
             val scopeOwner = (scope[3] as ReferenceInstruction).reference as FieldReference
             val scopeShare = (scope[4] as ReferenceInstruction).reference as FieldReference
-            val scopedCell = hosts.single { it.type == scopeShare.definingClass }
+            val scopedCell = hosts.single { it.origType == scopeShare.origDefiningClass }
             assertTrue("${build.name}: extension can access the avatar params class", AccessFlags.PUBLIC.isSet(scopedParams.accessFlags))
             assertTrue("${build.name}: extension can access the cell class", AccessFlags.PUBLIC.isSet(scopedCell.accessFlags))
             assertTrue("${build.name}: extension can read the params owner", AccessFlags.PUBLIC.isSet(
-                scopedParams.fields.single { it.name == scopeOwner.name && it.type == scopeOwner.type }.accessFlags))
+                scopedParams.fields.single { it.origName == scopeOwner.origName && it.origType == scopeOwner.origType }.accessFlags))
             assertTrue("${build.name}: extension can read Share to Story state", AccessFlags.PUBLIC.isSet(
-                scopedCell.fields.single { it.name == scopeShare.name && it.type == scopeShare.type }.accessFlags))
+                scopedCell.fields.single { it.origName == scopeShare.origName && it.origType == scopeShare.origType }.accessFlags))
             for (flag in listOf("hideStories") + StoryTarget.entries.map { it.capability }) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.instructions()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.instructions()
                 assertEquals("${build.name}: $flag is a build fact", 1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
                 assertEquals(Opcode.RETURN, status[1].opcode)
             }
             // Kept peer/archive request constructors are included in the small fixture context.
             for (method in unchanged) {
-                val after = context.mutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
+                val after = context.tgMutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
                 assertEquals("${build.name}: keeps $method", method.instructions().map(::operation), after.instructions().map(::operation))
             }
             assertTrue("${build.name}: peer story fetch is retained", unchanged.any { it.constructs(PEER_STORIES) })
@@ -179,7 +187,7 @@ class HideStoriesFixtureTest {
             val plan = context.resolveStoryHooks()
             val bar = plan.hooks.getValue(StoryTarget.BAR).method
             val changed = bar.instructions().indexOfFirst { it.opcode == Opcode.IPUT_BOOLEAN &&
-                ((it as ReferenceInstruction).reference as FieldReference).definingClass == bar.definingClass }
+                ((it as ReferenceInstruction).reference as FieldReference).origDefiningClass == bar.origDefiningClass }
             bar.replaceInstruction(changed, "nop")
             val before = plan.hooks.mapValues { it.value.method.instructions().map(::operation) }
             try {
@@ -192,7 +200,7 @@ class HideStoriesFixtureTest {
                 assertEquals("${build.name}: no partial $target mutation", before.getValue(target), hook.method.instructions().map(::operation))
             }
             for (flag in listOf("hideStories") + StoryTarget.entries.map { it.capability }) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.instructions()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.instructions()
                 assertEquals("${build.name}: $flag remains false", 0, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             }
         }
@@ -206,7 +214,7 @@ class HideStoriesFixtureTest {
             val bar = plan.hooks.getValue(StoryTarget.BAR).method
             val instructions = bar.instructions()
             val stores = instructions.indices.filter { instructions[it].opcode == Opcode.IPUT_BOOLEAN &&
-                ((instructions[it] as ReferenceInstruction).reference as FieldReference).definingClass == bar.definingClass }
+                ((instructions[it] as ReferenceInstruction).reference as FieldReference).origDefiningClass == bar.origDefiningClass }
             val self = instructions[stores[0]].namedRegisters()[0]
             val visible = instructions[stores[2]].namedRegisters()[0]
             when (mutation) {
@@ -247,7 +255,7 @@ class HideStoriesFixtureTest {
                     hook.method.instructions().map(::operation))
             }
             for (flag in listOf("hideStories") + StoryTarget.entries.map { it.capability }) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.instructions()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.instructions()
                 assertEquals("${build.name}: $mutation leaves $flag false", 0, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             }
         }
@@ -257,10 +265,13 @@ class HideStoriesFixtureTest {
     fun `ambiguous chat list anchor refuses before any target is changed`() {
         for (build in Fixtures.declaredBuilds()) {
             val hosts = hosts(build)
-            val dialogs = hosts.single { it.methods.any { method -> method.instructions().any { instruction ->
-                instruction.reference() == STORY_CAMERA_ICON
-            } } }
-            val create = dialogs.methods.single { it.name == "createView" }
+            // 13.2 loads the camera icon as a literal, which names its R field only by this build's table.
+            val (dialogs, create) = FixtureDex.namedBy(build) {
+                val dialogs = hosts.single { it.methods.any { method -> method.instructions().any { instruction ->
+                    instruction.reference() == STORY_CAMERA_ICON
+                } } }
+                dialogs to dialogs.methods.single { it.origName == "createView" }
+            }
             val duplicateType = "Lorg/telegram/ui/StoryAmbiguityFixture;"
             val duplicate = ImmutableMethod(duplicateType, create.name, create.parameters, create.returnType,
                 create.accessFlags, create.annotations, create.hiddenApiRestrictions, create.implementation)
@@ -274,12 +285,12 @@ class HideStoriesFixtureTest {
                 assertTrue(expected.message.orEmpty().contains("ambiguous chat list"))
             }
             for (classDef in hosts) for (method in classDef.methods) {
-                val after = context.mutableClassDefBy(classDef.type).methods.single { it.sameSignature(method) }
+                val after = context.tgMutableClassDefBy(classDef.type).methods.single { it.sameSignature(method) }
                 assertEquals("${build.name}: ambiguity leaves $method intact", method.instructions().map(::operation),
                     after.instructions().map(::operation))
             }
             for (flag in listOf("hideStories") + StoryTarget.entries.map { it.capability }) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.instructions()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.instructions()
                 assertEquals("${build.name}: ambiguity leaves $flag false", 0, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             }
         }
@@ -291,22 +302,23 @@ class HideStoriesFixtureTest {
             method.constructs(GET_ALL_STORIES) || method.constructs(PEER_STORIES) || method.constructs(STORIES_ARCHIVE) ||
                 method.instructions().any { it.reference() == STORY_CAMERA_ICON || it.reference() == CHAT_PREVIEW_ACTION }
         }
-        val cell = anchors.single { classDef -> classDef.methods.any { it.name == "getCurrentDialogFolderId" } }
-        val touch = cell.methods.single { it.name == "onInterceptTouchEvent" }.instructions()
+        val cell = anchors.single { classDef -> classDef.methods.any { it.origName == "getCurrentDialogFolderId" } }
+        val touch = cell.methods.single { it.origName == "onInterceptTouchEvent" }.instructions()
         val callAt = touch.indexOfFirst { (it as? ReferenceInstruction)?.reference.let { ref -> ref is MethodReference &&
-            ref.parameterTypes.map { it.toString() } == listOf("Landroid/view/MotionEvent;", "Landroid/view/View;") } }
+            // 13.2 takes the cell before the event.
+            ref.parameterTypes.map { it.toString() }.sorted() == listOf("Landroid/view/MotionEvent;", "Landroid/view/View;") } }
         val base = ((touch[callAt] as ReferenceInstruction).reference as MethodReference).definingClass
         val params = ((touch[callAt - 1] as ReferenceInstruction).reference as FieldReference).type
-        val utilities = cell.methods.single { it.name == "onDraw" }.instructions().mapNotNull {
+        val utilities = cell.methods.single { it.origName == "onDraw" }.instructions().mapNotNull {
             (it as? ReferenceInstruction)?.reference as? MethodReference
-        }.single { it.parameterTypes.map { type -> type.toString() } == listOf("J", "Landroid/graphics/Canvas;",
+        }.single { it.origParameterTypes == listOf("J", "Landroid/graphics/Canvas;",
             "Lorg/telegram/messenger/ImageReceiver;", base) }.definingClass
         return (anchors + FixtureDex.classes(build, setOf(base, params, utilities)).values).distinctBy { it.type }
     }
 
     private fun Method.constructs(type: String) = instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == type }
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-    private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.reference() = origRef()
     private fun operation(instruction: Instruction) = instruction.opcode to instruction.reference()
     private fun Method.sameSignature(other: Method) = name == other.name && returnType == other.returnType &&
         parameterTypes.map { it.toString() } == other.parameterTypes.map { it.toString() }

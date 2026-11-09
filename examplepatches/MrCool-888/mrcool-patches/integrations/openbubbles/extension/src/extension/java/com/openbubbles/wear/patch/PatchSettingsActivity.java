@@ -3,6 +3,7 @@ package com.openbubbles.wear.patch;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.view.View;
 import android.view.WindowInsets;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -39,6 +40,54 @@ public final class PatchSettingsActivity extends Activity {
         title.setTextSize(26);
         title.setPadding(0, padding, 0, padding);
         content.addView(title);
+        Button restart = new Button(this);
+        restart.setText("Restart OpenBubbles");
+        restart.setOnClickListener(view -> RestartOpenBubblesActivity.restart(this));
+        content.addView(restart);
+        if (PatchSettings.hasClassicReplyMenu(this)) {
+            Switch classicMenu = new Switch(this);
+            classicMenu.setText("Classic reply menu");
+            classicMenu.setTextSize(18);
+            classicMenu.setMinHeight(Math.round(56 * getResources().getDisplayMetrics().density));
+            boolean classicActive = PatchSettings.isClassicReplyMenuActive(this);
+            classicMenu.setChecked(PatchSettings.isClassicReplyMenuEnabled(this));
+            content.addView(classicMenu);
+
+            TextView classicDetail = new TextView(this);
+            classicDetail.setText("Reply in the main chat and open the keyboard when you tap Reply or swipe a message.");
+            classicDetail.setTextSize(14);
+            content.addView(classicDetail);
+
+            Switch reverseSwipe = new Switch(this);
+            reverseSwipe.setText("Reverse swipe-to-reply");
+            reverseSwipe.setTextSize(18);
+            reverseSwipe.setMinHeight(Math.round(56 * getResources().getDisplayMetrics().density));
+            boolean reverseActive = PatchSettings.isReverseSwipeToReplyActive(this);
+            reverseSwipe.setChecked(PatchSettings.isReverseSwipeToReplyEnabled(this));
+            content.addView(reverseSwipe);
+
+            TextView swipeDetail = new TextView(this);
+            swipeDetail.setText("Swipe incoming messages left and outgoing messages right. Turn off to use the original directions.");
+            swipeDetail.setTextSize(14);
+            content.addView(swipeDetail);
+
+            TextView restartNotice = new TextView(this);
+            restartNotice.setText("Restart OpenBubbles to apply this change.");
+            restartNotice.setTextSize(14);
+            Runnable updateNotice = () -> restartNotice.setVisibility(
+                    classicMenu.isChecked() == classicActive && reverseSwipe.isChecked() == reverseActive
+                            ? View.GONE : View.VISIBLE);
+            updateNotice.run();
+            content.addView(restartNotice);
+            classicMenu.setOnCheckedChangeListener((button, enabled) -> {
+                PatchSettings.setClassicReplyMenuEnabled(this, enabled);
+                updateNotice.run();
+            });
+            reverseSwipe.setOnCheckedChangeListener((button, enabled) -> {
+                PatchSettings.setReverseSwipeToReplyEnabled(this, enabled);
+                updateNotice.run();
+            });
+        }
         boolean hasBridge;
         try {
             getPackageManager().getServiceInfo(new android.content.ComponentName(this,

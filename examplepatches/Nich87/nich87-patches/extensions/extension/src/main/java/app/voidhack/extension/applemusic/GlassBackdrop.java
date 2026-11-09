@@ -38,6 +38,7 @@ final class GlassBackdrop implements LiquidGlass.Backdrop {
     private final int[] targetLocation = new int[2];
     private final int[] navigationLocation = new int[2];
     private final float density;
+    private float parallaxOffset;
 
     GlassBackdrop(RenderNode source, View target, View navigation) {
         this.source = source;
@@ -46,8 +47,9 @@ final class GlassBackdrop implements LiquidGlass.Backdrop {
         density = navigation.getResources().getDisplayMetrics().density;
     }
 
-    @Override public void draw(Canvas canvas, RectF bounds, boolean dark) {
+    @Override public void draw(Canvas canvas, RectF bounds, boolean dark, float parallax) {
         if (!canvas.isHardwareAccelerated() || !source.hasDisplayList()) return;
+        parallaxOffset = parallax * 8f * density;
         int padding = (int) Math.ceil(SAMPLE_PADDING_DP * density);
         recordBackdrop(bounds, dark, padding);
         int save = canvas.save();
@@ -64,7 +66,7 @@ final class GlassBackdrop implements LiquidGlass.Backdrop {
         surface.setPosition(0, 0, width, height);
         RecordingCanvas recording = surface.beginRecording();
         recording.drawColor(dark ? Color.BLACK : Color.WHITE);
-        recording.translate(padding - bounds.left - navigationLocation[0] + targetLocation[0],
+        recording.translate(padding - bounds.left - navigationLocation[0] + targetLocation[0] + parallaxOffset,
                 padding - bounds.top - navigationLocation[1] + targetLocation[1]);
         recording.drawRenderNode(source);
         surface.endRecording();
@@ -74,6 +76,7 @@ final class GlassBackdrop implements LiquidGlass.Backdrop {
         surfaceOptics.setFloatUniform("zoom", 1f);
         surfaceOptics.setFloatUniform("dispersion", 0.015f);
         surfaceOptics.setFloatUniform("glare", 0.12f);
+        surfaceOptics.setFloatUniform("tilt", parallaxOffset / (8f * density));
         RenderEffect blur = RenderEffect.createBlurEffect(BLUR_DP * density, BLUR_DP * density, Shader.TileMode.CLAMP);
         surface.setRenderEffect(RenderEffect.createChainEffect(
                 RenderEffect.createRuntimeShaderEffect(surfaceOptics, "scene"), blur));
@@ -139,7 +142,7 @@ final class GlassBackdrop implements LiquidGlass.Backdrop {
     private static final String SURFACE_OPTICS =
             "uniform shader scene;\n"
             + "uniform float2 extent; uniform float margin; uniform float depthPx;\n"
-            + "uniform float zoom; uniform float dispersion; uniform float glare;\n"
+            + "uniform float zoom; uniform float dispersion; uniform float glare; uniform float tilt;\n"
             + "float2 rayOffset(float3 normal, float index) {\n"
             + "  float3 ray = refract(float3(0.0, 0.0, -1.0), normal, 1.0 / index);\n"
             + "  return ray.xy * depthPx / max(-ray.z, 0.15);\n"
@@ -157,8 +160,8 @@ final class GlassBackdrop implements LiquidGlass.Backdrop {
             + "  half green = scene.eval(sampleAt + rayOffset(normal, 1.50)).g;\n"
             + "  half blue = scene.eval(sampleAt + rayOffset(normal, 1.50 + dispersion)).b;\n"
             + "  float fresnel = pow(1.0 - dome, 5.0);\n"
-            + "  float light = pow(max(dot(normal, normalize(float3(-0.35, -0.65, 0.68))), 0.0), 18.0);\n"
-            + "  float haze = pow(max(dot(normal, normalize(float3(-0.25, -0.7, 0.67))), 0.0), 4.0);\n"
+            + "  float light = pow(max(dot(normal, normalize(float3(-0.35 + tilt * 0.45, -0.65, 0.68))), 0.0), 18.0);\n"
+            + "  float haze = pow(max(dot(normal, normalize(float3(-0.25 + tilt * 0.35, -0.7, 0.67))), 0.0), 4.0);\n"
             + "  half3 transmission = half3(red, green, blue) * half(1.0 - fresnel * 0.10);\n"
             + "  return half4(transmission + half3(glare * (light + 0.35 * haze) + fresnel * 0.06), 1.0);\n"
             + "}\n";

@@ -60,6 +60,12 @@ jobs:
           yes | "$SDKMANAGER" --licenses > /dev/null
           "$SDKMANAGER" "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
+      # Testes JVM da UI (parsers da amp-api, normalização de nomes e mapa de ABI do
+      # updater). Rodam no runner, sem device e sem entrar no dex: o org.json só existe no
+      # classpath de teste. Falha aqui derruba a release antes de qualquer build.
+      - name: Run single-ui JVM tests
+        run: pwsh -NoProfile -File single-apk/test-single-ui.ps1
+
       - name: Resolve version
         env:
           INPUT_VERSION: ${{ inputs.version }}
@@ -126,6 +132,21 @@ jobs:
       #
       # The companions link four dex files; mergeExtDex OOMs on the runner's default
       # heap (~2 GB), so the build runs with 4 GB heap and 1 GB metaspace.
+      - name: Warm the Gradle distribution
+        run: |
+          set -euo pipefail
+          chmod +x gradlew
+          for attempt in 1 2 3 4 5; do
+            if ./gradlew --version >/dev/null 2>&1; then
+              echo "gradle distribution ready (attempt $attempt)"
+              exit 0
+            fi
+            echo "gradle wrapper download failed (attempt $attempt), retrying in 15s"
+            sleep 15
+          done
+          echo "::error::could not download the Gradle distribution"
+          exit 1
+
       - name: Build patches bundle and companions
         env:
           GITHUB_ACTOR: ${{ secrets.GPR_USER != '' && secrets.GPR_USER || github.actor }}
@@ -322,6 +343,12 @@ jobs:
           DEX="one/dex/classes.dex"
           rm -rf one
           mkdir -p one/classes one/dex one/generated/com/anderson/applemusic/one
+          # Depois de injetar a versão da UI no manifest, o 7.0.0 do engine não aparece
+          # mais no pacote; guarda o valor do APK de entrada para o painel de Atualizações.
+          ENGINE_BADGING="$("$BUILD_TOOLS/aapt2" dump badging dist/AppleMusic-engine-arm64.apk | grep '^package:')"
+          ENGINE_NAME="$(sed -n "s/^package: .*versionCode='[0-9]*' versionName='\([^']*\)'.*/\1/p" <<< "$ENGINE_BADGING")"
+          ENGINE_CODE="$(sed -n "s/^package: .*versionCode='\([0-9]*\)' versionName='[^']*'.*/\1/p" <<< "$ENGINE_BADGING")"
+          ENGINE_VERSION="$ENGINE_NAME ($ENGINE_CODE)"
           cat > one/generated/com/anderson/applemusic/one/Version.java <<EOF
           package com.anderson.applemusic.one;
 
@@ -329,6 +356,7 @@ jobs:
           final class Version {
               static final String NAME = "$VERSION";
               static final int CODE = $VERSION_CODE;
+              static final String ENGINE = "$ENGINE_VERSION";
 
               private Version() {
               }
@@ -359,7 +387,8 @@ jobs:
             python3 single-apk/tools/axml_inject.py --in "$work/manifest.bin" \
               --out "$work/manifest-patched.bin" \
               --activity com.anderson.applemusic.one.OneActivity --theme 0x0103022e \
-              --permission android.permission.REQUEST_INSTALL_PACKAGES
+              --permission android.permission.REQUEST_INSTALL_PACKAGES \
+              --version-name "$VERSION" --version-code "$VERSION_CODE"
             python3 single-apk/tools/pack_single_apk.py --engine "$engine" --dex "$DEX" \
               --manifest "$work/manifest-patched.bin" --out "$work/unsigned.apk"
             "$BUILD_TOOLS/zipalign" -f -p 4 "$work/unsigned.apk" "$work/aligned.apk"
@@ -394,6 +423,14 @@ jobs:
               exit 1
             fi
             badging="$("$BUILD_TOOLS/aapt2" dump badging "$apk")"
+            if ! grep -qF "versionName='$VERSION'" <<< "$badging"; then
+              echo "::error::$apk sem versionName=$VERSION (manifest não injetado)"
+              exit 1
+            fi
+            if ! grep -qF "versionCode='$VERSION_CODE'" <<< "$badging"; then
+              echo "::error::$apk sem versionCode=$VERSION_CODE (manifest não injetado)"
+              exit 1
+            fi
             if ! grep -q "launchable-activity: name='com.anderson.applemusic.one.OneActivity'" <<< "$badging"; then
               echo "::error::$apk sem OneActivity como LAUNCHER"
               exit 1
@@ -407,7 +444,7 @@ jobs:
               echo "::error::$apk sem REQUEST_INSTALL_PACKAGES (updater não instala)"
               exit 1
             fi
-            echo "$apk: CN=Morphe / OneActivity / $arch / REQUEST_INSTALL_PACKAGES"
+            echo "$apk: CN=Morphe / OneActivity / $arch / REQUEST_INSTALL_PACKAGES / $VERSION ($VERSION_CODE)"
           }
           verify_one arm32 armeabi-v7a
           verify_one arm64 arm64-v8a
@@ -476,8 +513,8 @@ jobs:
                   "versionCode": int(match.group(1)),
               }
 
-          # O APK único carrega a versão da UI (Version.CODE), não o versionCode do engine:
-          # é essa que o updater do APK único compara com a instalada.
+          # O APK único carrega a versão da UI no manifest (versionName/versionCode) e no
+          # Version.CODE; é esse o valor que o updater compara com o pacote instalado.
           for key, filename in (
               ("one-arm32", "AppleMusic-one-arm32.apk"),
               ("one-arm64", "AppleMusic-one-arm64.apk"),

@@ -19,6 +19,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.tgMutableClassDefBy
 
 /**
  * Hide ads on each declared build: the messages controller's `getSponsoredMessages(long)`,
@@ -39,10 +45,10 @@ class HideAdsFixtureTest {
             val searchClass = FixtureDex.classesWhere(build, { true }, ::asksForSponsoredPeers).single()
 
             val sponsored = classes.getValue(MESSAGES_CONTROLLER).methods.single { method ->
-                method.returnType == "Lorg/telegram/messenger/MessagesController\$SponsoredMessagesInfo;" &&
-                    method.parameterTypes == listOf("J")
+                method.origReturnType == "Lorg/telegram/messenger/MessagesController\$SponsoredMessagesInfo;" &&
+                    method.origParameterTypes == listOf("J")
             }
-            val video = classes.getValue(videoAds).methods.single { it.name == "load" && it.parameterTypes.isEmpty() }
+            val video = classes.getValue(videoAds).methods.single { it.origName == "load" && it.parameterTypes.isEmpty() }
             val search = searchClass.methods.single(::asksForSponsoredPeers)
 
             val context = PatchContexts.of(ExtensionDex.classes() + classes.values + searchClass)
@@ -51,27 +57,27 @@ class HideAdsFixtureTest {
 
             assertSearchHooked(
                 "$where: search", search,
-                context.mutableClassDefBy(searchClass.type).methods.single { it.sameSignatureAs(search) },
+                context.tgMutableClassDefBy(searchClass.type).methods.single { it.sameSignatureAs(search) },
             )
 
             assertHooked(
                 "$where: getSponsoredMessages", sponsored,
-                context.mutableClassDefBy(MESSAGES_CONTROLLER).methods.single { it.sameSignatureAs(sponsored) },
+                context.tgMutableClassDefBy(MESSAGES_CONTROLLER).methods.single { it.sameSignatureAs(sponsored) },
                 "$ads->skipSponsoredMessages()Z", listOf(Opcode.CONST_4, Opcode.RETURN_OBJECT),
             )
             assertHooked(
                 "$where: VideoAds.load", video,
-                context.mutableClassDefBy(videoAds).methods.single { it.sameSignatureAs(video) },
+                context.tgMutableClassDefBy(videoAds).methods.single { it.sameSignatureAs(video) },
                 "$ads->skipVideoAds()Z", listOf(Opcode.RETURN_VOID),
             )
 
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideAds" }.instructions()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideAds" }.instructions()
             assertEquals("$where: SettingsStatus.hideAds() answers true first", Opcode.CONST_4, status[0].opcode)
             assertEquals(1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(Opcode.RETURN, status[1].opcode)
             // A family flag alone can't prove all three independent targets were inserted.
             for (target in listOf("channelAds", "videoAds", "searchAds")) {
-                val capability = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == target }.instructions()
+                val capability = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == target }.instructions()
                 assertEquals("$where: $target is an injected build fact", Opcode.CONST_4, capability[0].opcode)
                 assertEquals("$where: missing $target coverage", 1, (capability[0] as NarrowLiteralInstruction).narrowLiteral)
                 assertEquals(Opcode.RETURN, capability[1].opcode)
@@ -90,7 +96,7 @@ class HideAdsFixtureTest {
         val head = earlyReturn.size + 3
         assertEquals("$where: instructions added", before.size + head, after.size)
         assertEquals("$where: asks the extension first", Opcode.INVOKE_STATIC, after[0].opcode)
-        assertEquals(hook, (after[0] as ReferenceInstruction).reference.toString())
+        assertEquals(hook, (after[0] as ReferenceInstruction).reference.origString())
         assertEquals(Opcode.MOVE_RESULT, after[1].opcode)
         assertEquals(Opcode.IF_EQZ, after[2].opcode)
         assertEquals("$where: the early return", earlyReturn, after.subList(3, head).map { it.opcode })
@@ -107,15 +113,15 @@ class HideAdsFixtureTest {
         val before = original.instructions()
         val after = patched.instructions()
         assertEquals("$where: instructions added", before.size + 3, after.size)
-        val hook = after.indexOfFirst { it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.toString() == "$ads->skipSearchAds()Z" }
+        val hook = after.indexOfFirst { it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.origString() == "$ads->skipSearchAds()Z" }
         assertTrue("$where: asks the extension", hook > 0)
         assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.NEW_INSTANCE), after.subList(hook + 1, hook + 4).map { it.opcode })
-        assertEquals(GET_SPONSORED_PEERS, (after[hook + 3] as ReferenceInstruction).reference.toString())
+        assertEquals(GET_SPONSORED_PEERS, (after[hook + 3] as ReferenceInstruction).reference.origString())
         assertEquals("$where: the skip is Telegram's own goto", Opcode.GOTO, after[hook - 1].opcode)
 
         val targets = branchTargets(patched)
         assertEquals("$where: true jumps to that goto", hook - 1, targets.getValue(hook + 2))
-        val sendIndex = after.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString()?.contains("ConnectionsManager;->sendRequest(") == true }
+        val sendIndex = after.indexOfFirst { it.origRef()?.contains("ConnectionsManager;->sendRequest(") == true }
         assertTrue("$where: the goto lands past the send", targets.getValue(hook - 1) > sendIndex)
         assertTrue("$where: no branch reaches the request without asking", targets.values.none { it == hook + 3 })
         assertEquals("$where: the branches that led to the request lead to the question", branchTargets(original).values.count { it == hook }, targets.values.count { it == hook })
@@ -133,7 +139,7 @@ class HideAdsFixtureTest {
     }
 
     private fun asksForSponsoredPeers(method: Method) = method.parameterTypes.map { it.toString() } == listOf("I", "Ljava/lang/String;") &&
-        method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.toString() == GET_SPONSORED_PEERS }
+        method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.origString() == GET_SPONSORED_PEERS }
 
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 

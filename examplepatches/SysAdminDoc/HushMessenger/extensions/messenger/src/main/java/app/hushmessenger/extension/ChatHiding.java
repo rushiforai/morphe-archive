@@ -357,7 +357,7 @@ public final class ChatHiding {
             return new IllegalStateException("The hidden chat route has the wrong shape");
         }
 
-        private static Field field(String reference, ClassLoader loader) throws ReflectiveOperationException {
+        static Field field(String reference, ClassLoader loader) throws ReflectiveOperationException {
             int arrow = reference.indexOf(";->");
             int colon = reference.indexOf(':', arrow);
             if (!reference.startsWith("L") || arrow < 0 || colon < 0) throw shape();
@@ -367,7 +367,7 @@ public final class ChatHiding {
             return field;
         }
 
-        private static Method method(String reference, ClassLoader loader) throws ReflectiveOperationException {
+        static Method method(String reference, ClassLoader loader) throws ReflectiveOperationException {
             int arrow = reference.indexOf(";->");
             int open = reference.indexOf('(', arrow);
             int close = reference.indexOf(')', open);

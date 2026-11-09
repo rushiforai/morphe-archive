@@ -2,16 +2,32 @@ package app.template.patches.lockmeout
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
-import app.template.patches.shared.Constants.LOCKMEOUT_COMPATIBILITY // 1. ADD THIS IMPORT
+import app.morphe.patcher.patch.resourcePatch
+import app.template.patches.shared.Constants.LOCKMEOUT_COMPATIBILITY
+import org.w3c.dom.Element
+
+private val makeDebuggablePatch = resourcePatch(
+    description = "Sets android:debuggable=\"true\" in AndroidManifest.xml."
+) {
+    execute {
+        document("AndroidManifest.xml").use { document ->
+            val applicationNode = document
+                .getElementsByTagName("application")
+                .item(0) as Element
+
+            applicationNode.setAttribute("android:debuggable", "true")
+        }
+    }
+}
 
 @Suppress("unused")
 val lockMeOutPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Dynamically injects a return-early bypass into the main license gate.",
+    description = "Dynamically injects a return-early bypass into the main license gate and enables debugging.",
     default = true
 ) {
-    // 2. ADD THIS PROPERTY BLOCK: Hooks the patch to your app definition properties
     compatibleWith(LOCKMEOUT_COMPATIBILITY)
+    dependsOn(makeDebuggablePatch)
 
     execute {
         IsPremiumLicenseCheckFingerprint.method.addInstructions(

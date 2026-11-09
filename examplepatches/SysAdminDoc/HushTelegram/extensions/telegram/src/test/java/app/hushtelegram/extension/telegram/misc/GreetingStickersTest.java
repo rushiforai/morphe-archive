@@ -40,51 +40,55 @@ public class GreetingStickersTest {
         HookStatus.clear();
     }
 
+    /** A chat's listener, which it sets on the greeting for Telegram's sticker and a business introduction's alike. */
+    private static final Object CHAT = new Object();
+
     @Test public void offByDefaultLeavesTheStickerFrameShowing() {
         assertFalse(Settings.HIDE_GREETING_STICKERS.get());
         Greeting greeting = new Greeting();
-        greeting.measure(false);
+        greeting.measure(CHAT);
         assertEquals(View.VISIBLE, greeting.stickers.getVisibility());
     }
 
-    @Test public void onHidesOnlyThePlainGreetingStickerAndKeepsItsText() {
+    @Test public void onHidesOnlyTheGreetingStickerAndKeepsItsText() {
         Settings.HIDE_GREETING_STICKERS.save(true);
         Greeting greeting = new Greeting();
-        greeting.measure(false);
+        greeting.measure(CHAT);
         assertEquals(View.GONE, greeting.stickers.getVisibility());
         assertEquals(View.VISIBLE, greeting.title.getVisibility());
         assertEquals(View.VISIBLE, greeting.description.getVisibility());
         assertTrue(String.join("\n", HookStatus.report()).contains("greeting sticker hidden 1"));
     }
 
-    @Test public void businessIntroductionsAndPreviewsKeepTheirSticker() {
+    @Test public void theIntroductionEditorsOwnPreviewKeepsItsSticker() {
         Settings.HIDE_GREETING_STICKERS.save(true);
-        Greeting greeting = new Greeting();
-        greeting.measure(true);
-        assertEquals(View.VISIBLE, greeting.stickers.getVisibility());
+        Greeting preview = new Greeting();
+        preview.measure(null);
+        assertEquals(View.VISIBLE, preview.stickers.getVisibility());
+        assertFalse(String.join("\n", HookStatus.report()).contains("greeting sticker hidden"));
     }
 
     @Test public void switchingOffOrPausingShowsTheStickerAgainOnTheNextMeasure() {
         Settings.HIDE_GREETING_STICKERS.save(true);
         Greeting greeting = new Greeting();
-        greeting.measure(false);
+        greeting.measure(CHAT);
         assertEquals(View.GONE, greeting.stickers.getVisibility());
         for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
             if (reason == HushTelegramPause.Reason.NONE) continue;
             PauseForTests.pause(reason);
-            greeting.measure(false);
+            greeting.measure(CHAT);
             assertEquals(View.VISIBLE, greeting.stickers.getVisibility());
             assertTrue(Settings.HIDE_GREETING_STICKERS.savedValue());
             PauseForTests.resume();
-            greeting.measure(false);
+            greeting.measure(CHAT);
             assertEquals(View.GONE, greeting.stickers.getVisibility());
         }
         Settings.HIDE_GREETING_STICKERS.save(false);
-        greeting.measure(false);
+        greeting.measure(CHAT);
         assertEquals(View.VISIBLE, greeting.stickers.getVisibility());
         Settings.HIDE_GREETING_STICKERS.save(true);
         SettingsContextRule.withoutContext(() -> {
-            greeting.measure(false);
+            greeting.measure(CHAT);
             assertEquals(View.VISIBLE, greeting.stickers.getVisibility());
         });
     }
@@ -92,16 +96,16 @@ public class GreetingStickersTest {
     @Test public void unreadableSwitchShowsTheStickerAndReportsIt() {
         Settings.HIDE_GREETING_STICKERS.save(true);
         Greeting greeting = new Greeting();
-        greeting.measure(false);
+        greeting.measure(CHAT);
         SettingReadsForTests.breakReads(Settings.HIDE_GREETING_STICKERS);
-        greeting.measure(false);
+        greeting.measure(CHAT);
         assertEquals(View.VISIBLE, greeting.stickers.getVisibility());
         assertFalse(HookStatus.missing(FamilyNames.HIDE_GREETING_STICKERS).isEmpty());
     }
 
     @Test public void aMissingFrameIsLeftAlone() {
         Settings.HIDE_GREETING_STICKERS.save(true);
-        GreetingStickers.measure(null, false);
+        GreetingStickers.measure(null, CHAT);
         assertFalse(String.join("\n", HookStatus.report()).contains("greeting sticker hidden"));
     }
 
@@ -120,8 +124,8 @@ public class GreetingStickersTest {
             root.addView(stickers);
         }
 
-        void measure(boolean introduction) {
-            GreetingStickers.measure(stickers, introduction);
+        void measure(Object sends) {
+            GreetingStickers.measure(stickers, sends);
             root.measure(View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.AT_MOST),
                     View.MeasureSpec.makeMeasureSpec(1920, View.MeasureSpec.AT_MOST));
         }

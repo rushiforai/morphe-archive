@@ -1,5 +1,7 @@
 package santodan.patches;
 
+import software.santodan.nuvio.NuvioNative;
+
 import app.morphe.patcher.patch.BytecodePatchContext;
 import app.morphe.patcher.util.proxy.mutableTypes.*;
 import com.android.tools.smali.dexlib2.Opcode;
@@ -8,10 +10,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.*;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
 import java.util.List;
 
-/** Reuse beta.12's native updater host and banner without replacing its drawing code. */
+/** Reuse beta.13's native updater host and banner without replacing its drawing code. */
 final class NuvioNativeSyncBanner {
     static final String EXT = "Lsoftware/santodan/extension/nuviomerged/NuvioSyncBanner;";
-    static final String HOST = "Lna/r1;->n(Llb/k0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;Lr1/s;Lh1/n;I)V";
+    static final String HOST = NuvioNative.REF_UPDATE_HOST;
     static void hook(BytecodePatchContext context) {
         hookRoot(context.mutableClassDefBy("Lq8/l;"));
         hookBanner(context.mutableClassDefBy("Lnb/a;"));
@@ -21,7 +23,7 @@ final class NuvioNativeSyncBanner {
     }
     static void hookRoot(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"invoke",3);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("892869bed97523e9fc6c4f0afae64d24071d7e319341260d8d3b04ba832faea1"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("067c51daad6b9be1c39b9f08a1618b91df759a9debc686650da72b34bdd3f8d3"))
             throw new IllegalStateException("Native updater root changed or already patched");
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);
         int anchor=-1;
@@ -38,7 +40,7 @@ final class NuvioNativeSyncBanner {
     }
     static void hookBanner(MutableClass owner) {
         MutableMethod method=NuvioRemainingEpisodesPatch.unique(owner,"b",10);
-        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("dd74962f128ebe88dd76c76708f34008bb45aa6a8cd9ceb3613b180017fe967c"))
+        if(!NuvioPlaybackButtonsPatch.fingerprint(method).equals("e73ef84116c9f89341ea6c910c686a086a6fc99b72b8c5ef33019824421e79e3"))
             throw new IllegalStateException("Native updater banner changed or already patched");
         var code=method.getImplementation();
         var instructions=NuvioRemainingEpisodesPatch.instructions(method);
@@ -58,24 +60,24 @@ final class NuvioNativeSyncBanner {
                 code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,installed));
                 timerGuards++;
             }
-            // Original beta.12 b(): instruction 731, v34 cached isDownloading, directly
+            // Original beta.13 b(): instruction 731, v34 cached isDownloading, directly
             // after the primary action group closes. Its branch hides only the Close control.
             if(i==731){
                 if(instruction.getOpcode()!=Opcode.IF_NEZ || ((OneRegisterInstruction)instruction).getRegisterA()!=34 ||
-                    !NuvioPlaybackButtonsPatch.reference(instructions.get(i-1)).equals("Lh1/k0;->p(Z)V"))
+                    !NuvioPlaybackButtonsPatch.reference(instructions.get(i-1)).equals("Lg1/k0;->p(Z)V"))
                     throw new IllegalStateException("Native banner close guard changed");
                 code.addInstruction(i,new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,34,1,ref("hideClose",List.of("Z"),"Z")));
                 code.addInstruction(i+1,new BuilderInstruction11x(Opcode.MOVE_RESULT,34));
                 closeGuards++;
             }
             if(i==761){
-                if(!target.equals("Lu6/g;->d0(ILh1/n;)Ljava/lang/String;"))
+                if(!target.equals("La/a;->T(ILg1/n;)Ljava/lang/String;"))
                     throw new IllegalStateException("Native banner close label changed");
                 name="closeText";args=List.of("I","Ljava/lang/Object;");closeLabels++;
             }
-            if(target.equals("Lm9/v4;->j(Lh1/k0;IILh1/k0;Z)Ljava/lang/String;")){
+            if(target.equals("Lm9/a5;->i(Lg1/k0;IILg1/k0;Z)Ljava/lang/String;")){
                 name="groupText";args=List.of("Ljava/lang/Object;","I","I","Ljava/lang/Object;","Z");
-            } else if(target.equals("Lu6/g;->e0(I[Ljava/lang/Object;Lh1/n;)Ljava/lang/String;")){
+            } else if(target.equals("La/a;->U(I[Ljava/lang/Object;Lg1/n;)Ljava/lang/String;")){
                 name="formatted";args=List.of("I","[Ljava/lang/Object;","Ljava/lang/Object;");
             }
             if(name!=null){
@@ -89,7 +91,7 @@ final class NuvioNativeSyncBanner {
                 }
                 lookups++;
             }
-            if(target.equals("Lh1/k0;->u()Lh1/d2;")){
+            if(target.equals("Lg1/k0;->u()Lg1/d2;")){
                 if(instructions.get(i+1).getOpcode()!=Opcode.MOVE_RESULT_OBJECT || instructions.get(i+2).getOpcode()!=Opcode.IF_EQZ)
                     throw new IllegalStateException("Native banner restart-scope tail changed");
                 // Clear before the null-restart-scope branch, which jumps directly to return.

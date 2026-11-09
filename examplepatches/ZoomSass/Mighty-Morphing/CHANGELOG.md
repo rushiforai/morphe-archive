@@ -1,3 +1,33 @@
+## [1.3.4](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.3...v1.3.4) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* Fix the subreddit header scrolling away ([4e4b79b](https://github.com/ZoomSass/Mighty-Morphing/commit/4e4b79b8f24d78542e73ae5ce8facc5f733b8dac))
+
+## [1.3.3](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.2...v1.3.3) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* Media viewer fixes ([5ffece0](https://github.com/ZoomSass/Mighty-Morphing/commit/5ffece0a339170e9ac26c69b8254486187846f3c))
+
+## [1.3.2](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.1...v1.3.2) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* Move the vote buttons back beside the score ([d24fef6](https://github.com/ZoomSass/Mighty-Morphing/commit/d24fef612867ba572709216656f12e68e86be960))
+
+## [1.3.1](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.0...v1.3.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* Add a slight theme-coloured line between posts ([4e2944e](https://github.com/ZoomSass/Mighty-Morphing/commit/4e2944e2cc3e4d7af0e6aaef9cdb1f6b6a4ad1ad))
+
+## [1.3.0](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.2.2...v1.3.0) (2026-11-09)
+
+### ✨ New Features
+
+* Add Modern UI, Splash Screen, and updates to comments, show and hide, and backup ([ba410e3](https://github.com/ZoomSass/Mighty-Morphing/commit/ba410e304a98e72c5e33339da44ed514e73da5ce))
+
 ## [1.2.2](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.2.1...v1.2.2) (2026-10-29)
 
 ### 🐛 Bug Fixes

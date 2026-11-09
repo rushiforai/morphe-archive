@@ -24,6 +24,7 @@ import io.github.joancomasfdz.extension.baconreader.DownloadProgress;
 import io.github.joancomasfdz.extension.baconreader.GlideUtils;
 import io.github.joancomasfdz.extension.baconreader.ImageDownloader;
 import io.github.joancomasfdz.extension.baconreader.errors.ErrorDialog;
+import io.github.joancomasfdz.extension.baconreader.settings.Settings;
 
 /**
  * Reddit galleries.
@@ -32,7 +33,7 @@ import io.github.joancomasfdz.extension.baconreader.errors.ErrorDialog;
  * ("preview.redd.it" to "i.redd.it", as the previews' "&amp;" are not unescaped), so every
  * thumbnail downloads a full image, often a big GIF, and the image shown waits for them.
  * The strip now uses the previews, and the image shown is downloaded with a progress bar,
- * with its preview shown until it is loaded.
+ * with its preview shown until it is loaded unless "Preview while loading" is off.
  */
 @SuppressWarnings("unused")
 public final class RedditGalleryPatch {
@@ -94,7 +95,7 @@ public final class RedditGalleryPatch {
             final ImageView imageView = (ImageView) field(viewer, "imageView");
             final View flipper = (View) field(viewer, "viewFlipper");
             Context context = imageView.getContext();
-            final String preview = thumbnail(redditImage);
+            final String preview = Settings.LOADING_PREVIEW.get() ? thumbnail(redditImage) : null;
             final DownloadProgress progress = progress(viewer, flipper);
             SHOWN.put(viewer, url);
 

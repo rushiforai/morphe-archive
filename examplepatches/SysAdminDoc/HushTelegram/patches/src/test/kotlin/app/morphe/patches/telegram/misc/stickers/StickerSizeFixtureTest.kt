@@ -22,6 +22,11 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.loadsInt
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The message bubble's content setter, Telegram's message model and the runtime. */
 class StickerSizeFixtureTest {
@@ -31,8 +36,9 @@ class StickerSizeFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = FixtureDex.classesWhere(build, { true }) { m ->
-                m.definingClass == MESSAGE_OBJECT ||
-                    m.controlBody().any { it.opcode == Opcode.SGET && it.controlRef() == contentLabel }
+                m.origDefiningClass == MESSAGE_OBJECT ||
+                    // 13.2 loads the label's id as a number, without the R field.
+                    m.controlBody().any { it.loadsInt() && it.controlRef() == contentLabel }
             }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val plan = context.resolveStickerSize()
@@ -53,18 +59,18 @@ class StickerSizeFixtureTest {
             assertEquals(plan.size, after[at + 3].namedRegisters().last())
             for (i in before.indices) {
                 val shift = if (i > at) 2 else 0
-                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                    listOf(after[i + shift].opcode, after[i + shift].namedRegisters(), (after[i + shift] as? ReferenceInstruction)?.reference?.toString()))
+                assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                    listOf(after[i + shift].opcode, after[i + shift].namedRegisters(), after[i + shift].origRef()))
             }
             // The phone's share falls into the multiply and the tablet's jumps to it, so both reach the hook.
             val flow = ControlFlow.of(plan.method)
             assertEquals("$name: the phone and the tablet", 2, flow.normal.indices.count { at in flow.normal[it] })
             assertEquals("$name: only the multiply reaches the hook", listOf(at), flow.normal.indices.filter { at + 1 in flow.normal[it] })
 
-            val stub = context.mutableClassDefBy(STICKER_SIZE).methods.single { it.name == "emoji" }.controlBody().map { it.controlRef() }
+            val stub = context.tgMutableClassDefBy(STICKER_SIZE).methods.single { it.origName == "emoji" }.controlBody().map { it.controlRef() }
             assertTrue("$name: the stub asks about animated emoji", "$MESSAGE_OBJECT->isAnimatedEmoji()Z" in stub)
             assertTrue("$name: and about dice", "$MESSAGE_OBJECT->isDice()Z" in stub)
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "stickerSize" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "stickerSize" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

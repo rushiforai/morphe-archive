@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.voice
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -16,22 +16,33 @@ import app.morphe.patches.telegram.misc.extension.writeStub
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlHook
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.localcontrols.Mention
+import app.morphe.patches.telegram.misc.localcontrols.classDefsMentioning
 import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val LOCKED_VOICE = "$EXTENSION_PACKAGE/misc/LockedVoice;"
 internal const val LOCKED_REFUSE = "$LOCKED_VOICE->refuse(Ljava/lang/Object;Ljava/lang/Object;Z)Z"
 private const val MESSAGE = "Lorg/telegram/messenger/MessageObject;"
-/** Telegram's one play method: the message and whether to play it without sound. */
+/** Telegram's play method where it has one with a silent flag: the message and whether to play it without sound. */
 internal const val PLAY_MESSAGE = "$MEDIA_CONTROLLER->playMessage(${MESSAGE}Z)Z"
-/** The overload every other caller uses, which hands over to [PLAY_MESSAGE]. */
-private const val PLAY_MESSAGE_PLAIN = "$MEDIA_CONTROLLER->playMessage($MESSAGE)Z"
-/** The player's resume, which only [PLAY_MESSAGE] may reach. */
-private const val RESUME_AUDIO = "$MEDIA_CONTROLLER->resumeAudio($MESSAGE)Z"
+/** The overload every other caller uses. It hands over to [PLAY_MESSAGE], or since 13.2 plays itself. */
+internal const val PLAY_MESSAGE_PLAIN = "$MEDIA_CONTROLLER->playMessage($MESSAGE)Z"
 internal const val PLAYING_MESSAGE = "$MEDIA_CONTROLLER->playingMessageObject:$MESSAGE"
 internal const val PLAYER_PAUSED = "$MEDIA_CONTROLLER->isPaused:Z"
 private val INVOKES = setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE, Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)
@@ -89,8 +100,8 @@ internal fun BytecodePatchContext.writeLockedVoiceStub() {
 /**
  * MediaController plays a message through one method, which both a tap and every outside control
  * reach: the notification, the lock screen, a headset or a car, all through the media session
- * Telegram's music service keeps. The overload without the silent flag hands over to it, and the
- * player's resume is private to it. It reads the message the player holds and whether that's
+ * Telegram's music service keeps. The overload without the silent flag hands over to it (13.2 has
+ * only that one, which plays itself), and nothing else reaches the player's resume. It reads the message the player holds and whether that's
  * paused, which the hook passes on, so the runtime can let what's already playing carry on.
  *
  * A build whose player changed keeps Play voice messages one at a time and gets no guard.
@@ -98,32 +109,34 @@ internal fun BytecodePatchContext.writeLockedVoiceStub() {
 internal fun BytecodePatchContext.resolveLockedVoiceGuard(): LockedVoiceGuard {
     controlHook(LOCKED_VOICE, "refuse", listOf("Ljava/lang/Object;", "Ljava/lang/Object;", "Z"), "Z")
     controlHook(LOCKED_VOICE, "voiceOrRound", listOf("Ljava/lang/Object;"), "Z")
-    val controller = classDefByOrNull(MEDIA_CONTROLLER) ?: return LockedVoiceGuard.missing("MediaController is missing")
-    val message = classDefByOrNull(MESSAGE)
+    val controller = tgClassDefByOrNull(MEDIA_CONTROLLER) ?: return LockedVoiceGuard.missing("MediaController is missing")
+    val message = tgClassDefByOrNull(MESSAGE)
     if (message == null || listOf("isVoice", "isRoundVideo").any { name -> message.methods.none {
-            it.name == name && it.parameterTypes.isEmpty() && it.returnType == "Z" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+            it.origName == name && it.parameterTypes.isEmpty() && it.origReturnType == "Z" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
                 !AccessFlags.STATIC.isSet(it.accessFlags) } }) {
         return LockedVoiceGuard.missing("a message no longer says whether it's voice or a round video")
     }
     if (!controller.hasField("playingMessageObject", MESSAGE) || !controller.hasField("isPaused", "Z")) {
         return LockedVoiceGuard.missing("the player no longer keeps its message and paused flag")
     }
-    val plays = controller.methods.filter { signature(it) == PLAY_MESSAGE && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    // 13.2 folded the overload with the silent flag into the plain one, which then plays itself.
+    val silent = controller.methods.filter { it.origString() == PLAY_MESSAGE && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    val plain = controller.methods.filter { it.origString() == PLAY_MESSAGE_PLAIN && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    val plays = silent.ifEmpty { plain }
     if (plays.size != 1 || plays.single().implementation == null) {
         return LockedVoiceGuard.missing("the player no longer has one play method (${plays.size})")
     }
     val found = plays.single()
-    val plain = controller.methods.filter { signature(it) == PLAY_MESSAGE_PLAIN }
-    if (plain.size != 1 || plain.single().controlBody().none { it.opcode in INVOKES && it.controlRef() == PLAY_MESSAGE }) {
+    if (silent.isNotEmpty() && (plain.size != 1 || plain.single().controlBody().none { it.opcode in INVOKES && it.controlRef() == PLAY_MESSAGE })) {
         return LockedVoiceGuard.missing("the play method without a silent flag no longer hands over to it")
     }
     val body = found.controlBody()
-    if (body.none { it.opcode in INVOKES && it.controlRef() == RESUME_AUDIO }) {
+    if (body.none { it.opcode in INVOKES && it.callsResume() }) {
         return LockedVoiceGuard.missing("the play method no longer resumes a paused message itself")
     }
-    val resumers = controller.methods.filter { method -> method.controlBody().any { it.opcode in INVOKES && it.controlRef() == RESUME_AUDIO } }
-    val resume = controller.methods.filter { signature(it) == RESUME_AUDIO }
-    if (resumers.map(::signature) != listOf(PLAY_MESSAGE) || resume.size != 1 || !AccessFlags.PRIVATE.isSet(resume.single().accessFlags)) {
+    val resumers = controller.methods.filter { method -> method.controlBody().any { it.opcode in INVOKES && it.callsResume() } }
+    val resume = controller.methods.filter { it.isResume() }
+    if (resumers != listOf(found) || resume.size != 1 || !privateToPlayer(resume.single(), controller)) {
         return LockedVoiceGuard.missing("a paused message can be resumed around the play method")
     }
     if (body.none { it.opcode == Opcode.IGET_OBJECT && it.controlRef() == PLAYING_MESSAGE } ||
@@ -137,10 +150,26 @@ internal fun BytecodePatchContext.resolveLockedVoiceGuard(): LockedVoiceGuard {
     if (found.localRegisterCount() < 3) {
         return LockedVoiceGuard.missing("the play method has no three registers the hook can borrow")
     }
-    return LockedVoiceGuard(mutableClassDefBy(MEDIA_CONTROLLER).methods.single { signature(it) == PLAY_MESSAGE }, null)
+    val key = signature(found)
+    return LockedVoiceGuard(tgMutableClassDefBy(MEDIA_CONTROLLER).methods.single { signature(it) == key }, null)
 }
 
 private fun ClassDef.hasField(name: String, type: String) =
-    fields.any { it.name == name && it.type == type && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    fields.any { it.origName == name && it.origType == type && !AccessFlags.STATIC.isSet(it.accessFlags) }
 
-private fun signature(method: Method) = "${method.definingClass}->${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}"
+/** Build-to-build: the same method in the class read and its mutable copy. */
+private fun signature(method: Method) = method.origString()
+
+/** The player's resume. 13.2 made it public and void. */
+private fun MethodReference.isResume() = origDefiningClass == MEDIA_CONTROLLER && origName == "resumeAudio" &&
+    origParameterTypes == listOf(MESSAGE) && returnType in setOf("Z", "V")
+
+private fun Instruction.callsResume() = ((this as? ReferenceInstruction)?.reference as? MethodReference)?.isResume() == true
+
+/** Private, or (since 13.2 made it public) called by nothing outside the player. */
+private fun BytecodePatchContext.privateToPlayer(resume: Method, controller: ClassDef): Boolean {
+    if (AccessFlags.PRIVATE.isSet(resume.accessFlags)) return true
+    return classDefsMentioning(Mention.member(MEDIA_CONTROLLER, "resumeAudio")).none { other ->
+        other.type != controller.type && other.methods.any { m -> m.controlBody().any { it.callsResume() } }
+    }
+}

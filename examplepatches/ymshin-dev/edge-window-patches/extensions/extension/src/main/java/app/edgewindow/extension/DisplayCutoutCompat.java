@@ -1,5 +1,7 @@
 package app.edgewindow.extension;
 
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.graphics.Insets;
 import android.os.Build;
@@ -82,6 +84,7 @@ public final class DisplayCutoutCompat {
         }
     }
 
+    @SuppressLint("WrongConstant")
     private static void applyToWindow(Activity activity) {
         Window window = activity.getWindow();
         if (window == null) return;
@@ -240,9 +243,6 @@ public final class DisplayCutoutCompat {
     @SuppressWarnings("deprecation")
     private static void applyLegacyFullscreen(Window window) {
         window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        if (Build.VERSION.SDK_INT < 16) {
-            return;
-        }
 
         View decorView = window.getDecorView();
         if (decorView == null) return;
@@ -298,6 +298,7 @@ public final class DisplayCutoutCompat {
     }
 
     /** API 30 references are isolated so older Android releases can load this helper. */
+    @TargetApi(30)
     private static final class Api30 {
         private Api30() {
         }

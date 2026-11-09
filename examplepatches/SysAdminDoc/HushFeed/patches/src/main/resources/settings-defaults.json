@@ -1,5 +1,8 @@
 {
   "patches": {
+    "AMOLED dark theme": [
+      "amoled_dark_mode"
+    ],
     "Advanced downloads": [
       "download_button",
       "download_button_position",
@@ -676,7 +679,8 @@
       "startup_message",
       "startup_message_title",
       "startup_message_text",
-      "startup_message_dismissible"
+      "startup_message_dismissible",
+      "check_for_updates"
     ],
     "Share sheet tools": [
       "hide_share_channels",
@@ -684,6 +688,7 @@
       "share_block_author",
       "hide_share_contacts",
       "share_tap_copies_link",
+      "hide_share_new_group",
       "share_hidden_items",
       "share_hidden_items_profile",
       "share_hidden_items_live",
@@ -844,6 +849,12 @@
       "key": "always_upload_hd",
       "type": "boolean",
       "default": false
+    },
+    "amoled_dark_mode": {
+      "field": "AMOLED_DARK_MODE",
+      "key": "amoled_dark_mode",
+      "type": "boolean",
+      "default": true
     },
     "app_lock": {
       "field": "APP_LOCK",
@@ -1182,6 +1193,12 @@
       "default": 0,
       "minimum": 0,
       "maximum": 48
+    },
+    "check_for_updates": {
+      "field": "CHECK_FOR_UPDATES",
+      "key": "check_for_updates",
+      "type": "boolean",
+      "default": false
     },
     "check_saved_videos": {
       "field": "CHECK_SAVED_VIDEOS",
@@ -2626,6 +2643,12 @@
     "hide_share_guide": {
       "field": "HIDE_SHARE_GUIDE",
       "key": "hide_share_guide",
+      "type": "boolean",
+      "default": false
+    },
+    "hide_share_new_group": {
+      "field": "HIDE_SHARE_NEW_GROUP",
+      "key": "hide_share_new_group",
       "type": "boolean",
       "default": false
     },

@@ -75,7 +75,7 @@ public sealed class PostMediaTests(FakeRedditFixture fixture) : FakeRedditTest(f
     }
 
     [Fact]
-    public async Task A_GIF_post_has_a_still_as_thumbnail_and_preview_and_the_GIF_in_its_preview_variants()
+    public async Task A_GIF_post_has_a_still_as_preview_another_as_thumbnail_and_the_GIF_in_its_preview_variants()
     {
         var post = World.AddPost("e2e", "Dancing", build => build.WithGif());
 
@@ -83,8 +83,9 @@ public sealed class PostMediaTests(FakeRedditFixture fixture) : FakeRedditTest(f
 
         var image = data.GetProperty("preview").GetProperty("images")[0];
         Assert.Equal(post.Url, image.GetProperty("variants").GetProperty("gif").GetProperty("source").GetProperty("url").GetString());
-        Assert.Equal(data.GetProperty("thumbnail").GetString(), image.GetProperty("source").GetProperty("url").GetString());
+        Assert.NotEqual(data.GetProperty("thumbnail").GetString(), image.GetProperty("source").GetProperty("url").GetString());
         await AssertServesAsync(image.GetProperty("source").GetProperty("url").GetString()!, "image/jpeg", MediaAsset.Jpeg.Bytes);
+        await AssertServesAsync(data.GetProperty("thumbnail").GetString()!, "image/jpeg", MediaAsset.Jpeg.Bytes);
         await AssertServesAsync(post.Url!, "image/gif", MediaAsset.LargeGif.Bytes);
     }
 

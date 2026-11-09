@@ -23,6 +23,9 @@ public sealed class PostMenu(AndroidDriver driver)
             TimeSpan.FromSeconds(10),
             "The menu of the post's or the comment's ⋮");
 
+    /// <summary>Taps <paramref name="entry"/>.</summary>
+    public Task ClickAsync(PostMenuEntry entry) => OnScreen.PressAsync(driver, Locate.AppIdWithText("title", entry.ToShownText()));
+
     /// <summary>What the menu offers: its entries, top to bottom.</summary>
     public Task<PostMenuSnapshot> ReadAsync() =>
         OnScreen.ReadAsync(driver, () => new PostMenuSnapshot(

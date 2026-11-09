@@ -8,7 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -27,6 +28,10 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The swipe controller's class and the runtime are the whole context. */
 class DisableChatSwipeFixtureTest {
@@ -67,11 +72,11 @@ class DisableChatSwipeFixtureTest {
             // The drag that reorders pinned chats returns its flags without passing the hook.
             val flags = old[site.sliding + 1].call()!!
             val drag = old.indices.single { it != site.sliding + 1 && old[it].call()?.let { call ->
-                call.definingClass == flags.definingClass && call.name == flags.name } == true }
+                call.origDefiningClass == flags.origDefiningClass && call.origName == flags.origName } == true }
             assertTrue("$name: reorder drag doesn't pass the hook", moved(drag) in reachable(newFlow, 0, entry))
             assertTrue("$name: drag comes before the swipe branch", drag < entry)
 
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "disableChatSwipe" }.instructions()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "disableChatSwipe" }.instructions()
             assertEquals("$name: build fact", 1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
         }
     }
@@ -87,9 +92,10 @@ class DisableChatSwipeFixtureTest {
             assertTrue("${build.name}: Telegram resets its swipe state in the branch", writes.isNotEmpty())
             for (write in writes) {
                 assertEquals("${build.name}: write at $write", Opcode.IPUT_BOOLEAN, body[write].opcode)
-                assertEquals("${build.name}: write at $write is the controller's", self, body[write].namedRegisters()[1])
+                assertTrue("${build.name}: write at $write is the controller's",
+                    holdsThis(site.method, self, body[write].namedRegisters()[1], write))
                 assertTrue("${build.name}: write at $write is the controller's field",
-                    body[write].reference()!!.startsWith(site.method.definingClass + "->"))
+                    body[write].reference()!!.startsWith(site.method.origDefiningClass + "->"))
             }
         }
     }
@@ -123,7 +129,7 @@ class DisableChatSwipeFixtureTest {
     private fun assertRefusedUntouched(file: java.io.File, case: String, context: BytecodePatchContext) {
         val build = file.name
         val owners = FixtureDex.classesWhere(file, { true }) { it.swipes() }.map { it.type }
-        val before = owners.associateWith { type -> context.mutableClassDefBy(type).methods.map { it.instructions().map(::operation) } }
+        val before = owners.associateWith { type -> context.tgMutableClassDefBy(type).methods.map { it.instructions().map(::operation) } }
         try {
             disableChatSwipePatch.execute(context)
             fail("$build: $case was accepted")
@@ -131,20 +137,20 @@ class DisableChatSwipeFixtureTest {
             assertTrue("$build: $case: ${expected.message}", expected.message.orEmpty().contains("before editing"))
         }
         assertEquals("$build: $case doesn't partly mutate the controller", before,
-            owners.associateWith { type -> context.mutableClassDefBy(type).methods.map { it.instructions().map(::operation) } })
-        val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "disableChatSwipe" }.instructions()
+            owners.associateWith { type -> context.tgMutableClassDefBy(type).methods.map { it.instructions().map(::operation) } })
+        val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "disableChatSwipe" }.instructions()
         assertEquals("$build: $case leaves the build fact false", 0, (status[0] as NarrowLiteralInstruction).narrowLiteral)
     }
 
     private fun contextFor(build: java.io.File, runtime: Boolean = true): BytecodePatchContext {
         val owners = FixtureDex.classesWhere(build, { true }) { it.swipes() }
         assertEquals("${build.name}: one class holds the chat list's swipe controller", 1, owners.size)
-        val extension = ExtensionDex.classes().filter { runtime || it.type != CHAT_SWIPE }
+        val extension = ExtensionDex.classes().filter { runtime || it.origType != CHAT_SWIPE }
         return PatchContexts.of(extension + owners)
     }
 
-    private fun Method.swipes() = instructions().any { it.call()?.name == "getChatSwipeAction" } &&
-        instructions().any { it.call()?.name == "setSliding" }
+    private fun Method.swipes() = instructions().any { it.call()?.origName == "getChatSwipeAction" } &&
+        instructions().any { it.call()?.origName == "setSliding" }
 
     private fun reachable(flow: ControlFlow, from: Int, blocked: Int): Set<Int> {
         val found = mutableSetOf<Int>()
@@ -159,8 +165,37 @@ class DisableChatSwipeFixtureTest {
         return found
     }
 
+    /**
+     * Whether [register] holds `this` at [at]: `this`'s own register [self], never rewritten, or a
+     * copy of it on every path that reaches [at] (13.2 moves `this` into a low local first).
+     */
+    private fun holdsThis(method: Method, self: Int, register: Int, at: Int): Boolean {
+        val body = method.instructions()
+        fun writesTo(index: Int, target: Int) = body[index].opcode.setsRegister() && body[index].namedRegisters().firstOrNull()
+            ?.let { first -> first == target || body[index].opcode.setsWideRegister() && first + 1 == target } == true
+        if (body.indices.any { writesTo(it, self) }) return false
+        if (register == self) return true
+        val flow = ControlFlow.of(method)
+        val predecessors = Array(body.size) { mutableSetOf<Int>() }
+        for (index in body.indices) for (next in flow.normal[index] + flow.exceptional[index]) predecessors[next] += index
+        val pending = ArrayDeque(predecessors[at])
+        val visited = mutableSetOf<Int>()
+        var copies = 0
+        if (pending.isEmpty()) return false
+        while (pending.isNotEmpty()) {
+            val index = pending.removeFirst()
+            if (!visited.add(index)) continue
+            if (writesTo(index, register)) {
+                val copy = body[index].opcode in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16) &&
+                    body[index].namedRegisters() == listOf(register, self)
+                if (!copy) return false
+                copies++
+            } else if (predecessors[index].isEmpty()) return false else pending.addAll(predecessors[index])
+        }
+        return copies > 0
+    }
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-    private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.reference() = origRef()
     private fun Instruction.call(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
     private fun operation(instruction: Instruction) = instruction.opcode to instruction.reference()
 }

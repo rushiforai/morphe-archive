@@ -10,7 +10,7 @@ import kotlin.coroutines.jvm.internal.ContinuationImpl;
 import kotlin.jvm.functions.Function1;
 import software.santodan.extension.nuviomerged.NuvioLocalWriteContinuation;
 
-/** Mirrors beta.12's native suspended store re-entry, including its exact state class names. */
+/** Mirrors beta.13's native suspended store re-entry, including its exact state class names. */
 public final class NativeLocalWriteFixture {
     public static void run(String method, Function1<Continuation<Object>, Object> saved, Throwable failure) {
         Object[] completed = new Object[1];
@@ -21,10 +21,10 @@ public final class NativeLocalWriteFixture {
         Continuation<Object> observed = NuvioLocalWriteContinuation.observe(method, receiver, saved);
         ResumeState state;
         switch (method) {
-            case "C": state = new xb(observed, method); break;
-            case "D": state = new yb(observed, method); break;
-            case "A": state = new vb(observed, method); break;
-            case "B": state = new wb(observed, method); break;
+            case "C": state = new wb(observed, method); break;
+            case "D": state = new xb(observed, method); break;
+            case "A": state = new ub(observed, method); break;
+            case "B": state = new vb(observed, method); break;
             default: throw new AssertionError(method);
         }
         ((NuvioLocalWriteContinuation) observed).inlineResult(IntrinsicsKt.getCOROUTINE_SUSPENDED());
@@ -48,7 +48,7 @@ abstract class ResumeState extends ContinuationImpl {
         return Unit.INSTANCE;
     }
 }
-final class xb extends ResumeState { xb(Continuation<Object> c, String m) { super(c, m); } }
-final class yb extends ResumeState { yb(Continuation<Object> c, String m) { super(c, m); } }
-final class vb extends ResumeState { vb(Continuation<Object> c, String m) { super(c, m); } }
 final class wb extends ResumeState { wb(Continuation<Object> c, String m) { super(c, m); } }
+final class xb extends ResumeState { xb(Continuation<Object> c, String m) { super(c, m); } }
+final class ub extends ResumeState { ub(Continuation<Object> c, String m) { super(c, m); } }
+final class vb extends ResumeState { vb(Continuation<Object> c, String m) { super(c, m); } }

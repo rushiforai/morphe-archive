@@ -1,7 +1,9 @@
 package com.anderson.applemusic.one.screen;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +22,9 @@ import com.anderson.applemusic.one.widget.CoverCard;
 import com.anderson.applemusic.one.widget.EmptyState;
 import com.anderson.applemusic.one.widget.Focus;
 import com.anderson.applemusic.one.widget.Icons;
+import com.anderson.applemusic.one.widget.Perf;
 import com.anderson.applemusic.one.widget.Pill;
+import com.anderson.applemusic.one.widget.ScrollMemory;
 import com.anderson.applemusic.one.widget.SeeAllCard;
 import com.anderson.applemusic.one.widget.ShelfView;
 import com.anderson.applemusic.one.widget.Skeleton;
@@ -34,16 +38,33 @@ import java.util.Map;
  * Início: a hero card for the first shelf, then the engine's shelves as horizontal rows of
  * cover cards with a trailing "Ver tudo" card. While a shelf loads it keeps its exact
  * card footprint (static blocks), so the page does not jump when the covers arrive.
+ *
+ * <p>Only the first {@link #INITIAL_SHELVES} shelves subscribe on open; the rest are added
+ * in batches of {@link #SHELF_BATCH} when the page nears the bottom (or by "Carregar
+ * mais"), so the account's ~16-20 shelves no longer fire ~225 cover requests at once. The
+ * "Atualizar" pill re-subscribes the root and the materialized shelves and keeps the
+ * scroll fraction.
  */
 public final class HomeScreen implements ChildSink {
+
+    /** Shelves subscribed on the first load; the acceptance criterion for the 1.9.9 Home. */
+    private static final int INITIAL_SHELVES = 6;
+    /** Shelves added per "Carregar mais"/scroll batch. */
+    private static final int SHELF_BATCH = 6;
+    /** Distance from the bottom that triggers the next batch. */
+    private static final int LOAD_MORE_MARGIN_DP = 480;
 
     private final Context context;
     private final ScreenHost host;
     private final ArtworkLoader artwork;
     private final FrameLayout root;
+    private final ScrollView scroll;
     private final LinearLayout column;
     private final Map<String, ShelfView> shelves = new HashMap<String, ShelfView>();
     private final Map<String, String> shelfTitles = new HashMap<String, String>();
+    /** Root children split by kind; browsable ones are the paged shelves. */
+    private final List<MediaClient.Item> browsable = new ArrayList<MediaClient.Item>();
+    private final List<MediaClient.Item> playables = new ArrayList<MediaClient.Item>();
 
     private MediaClient.Item tab;
     private String tabId;
@@ -51,6 +72,18 @@ public final class HomeScreen implements ChildSink {
     private String firstShelfTitle;
     private Skeleton skeleton;
     private int downFocusId = View.NO_ID;
+    /** Scroll position being restored after a rotation (fraction of the range). */
+    private float pendingScroll;
+    /** Shelves to materialize on the next root build (rotation/refresh); 6 on a cold open. */
+    private int requestedShelves = INITIAL_SHELVES;
+    /** How many browsable shelves are currently in the page. */
+    private int shelfCursor;
+    private boolean restored;
+    private boolean refreshing;
+    private boolean building;
+    private View loadMoreRow;
+    private Pill refreshPill;
+    private ShelfView playNowShelf;
 
     private FrameLayout hero;
     private ImageView heroCover;
@@ -65,7 +98,7 @@ public final class HomeScreen implements ChildSink {
 
         root = new FrameLayout(context);
         root.setBackgroundColor(Tokens.BG);
-        ScrollView scroll = new ScrollView(context);
+        scroll = new ScrollView(context);
         scroll.setFillViewport(true);
         column = new LinearLayout(context);
         column.setOrientation(LinearLayout.VERTICAL);
@@ -74,6 +107,20 @@ public final class HomeScreen implements ChildSink {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         root.addView(scroll, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        scroll.setOnScrollChangeListener(new View.OnScrollChangeListener() {
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldX, int oldY) {
+                // Load the next batch before the "Carregar mais" pill is the only thing left,
+                // so a plain scroll also pages the shelves (the pill remains for D-pad/TV).
+                if (building || refreshing || shelfCursor >= browsable.size()) return;
+                View content = scroll.getChildAt(0);
+                if (content == null) return;
+                if (scrollY + scroll.getHeight()
+                        >= content.getHeight() - Tokens.dp(LOAD_MORE_MARGIN_DP)) {
+                    loadMore();
+                }
+            }
+        });
     }
 
     public View view() {
@@ -82,21 +129,57 @@ public final class HomeScreen implements ChildSink {
 
     public void setDownFocusId(int id) {
         downFocusId = id;
-        for (ShelfView shelf : shelves.values()) shelf.linkFocus(downFocusId);
+        linkFocus();
+    }
+
+    /** Position of the shelves + how many were expanded, kept across a rotation. */
+    public void saveState(Bundle out) {
+        ScrollMemory.save(out, "one.home.scroll", scroll);
+        out.putInt("one.home.shelves", shelfCursor);
+    }
+
+    public void restoreState(Bundle in) {
+        pendingScroll = in == null ? 0f : in.getFloat("one.home.scroll", 0f);
+        int saved = in == null ? INITIAL_SHELVES : in.getInt("one.home.shelves", INITIAL_SHELVES);
+        requestedShelves = Math.max(INITIAL_SHELVES, saved);
+        restored = true;
     }
 
     public void bind(MediaClient.Item tab) {
         this.tab = tab;
         this.tabId = tab.id;
+        if (!restored) requestedShelves = INITIAL_SHELVES;
+        restored = false;
         heroItem = null;
         firstShelfId = null;
+        shelfCursor = 0;
         shelves.clear();
         shelfTitles.clear();
+        browsable.clear();
+        playables.clear();
+        loadMoreRow = null;
+        playNowShelf = null;
+        refreshPill = null;
+        refreshing = false;
         column.removeAllViews();
         skeleton = Skeleton.home(context);
         column.addView(skeleton, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         host.loadChildren(tabId, this);
+    }
+
+    /**
+     * Explicit refresh: re-subscribes the root and the shelves already on screen, keeping
+     * both the scroll fraction and the number of expanded shelves.
+     */
+    public void refresh() {
+        if (tab == null || refreshing) return;
+        refreshing = true;
+        requestedShelves = Math.max(INITIAL_SHELVES, shelfCursor);
+        pendingScroll = ScrollMemory.fraction(scroll);
+        if (refreshPill != null) refreshPill.setEnabled(false);
+        host.status("Atualizando o Início…");
+        host.refreshChildren(tabId, this);
     }
 
     @Override
@@ -112,6 +195,7 @@ public final class HomeScreen implements ChildSink {
     @Override
     public void onFailed(String parentId) {
         if (tabId != null && tabId.equals(parentId)) {
+            refreshing = false;
             stopSkeleton();
             column.removeAllViews();
             EmptyState failure = new EmptyState(context, Icons.CLOSE,
@@ -134,18 +218,23 @@ public final class HomeScreen implements ChildSink {
     }
 
     private void buildRoot(List<MediaClient.Item> children) {
+        building = true;
         stopSkeleton();
         column.removeAllViews();
         shelves.clear();
         shelfTitles.clear();
-
-        List<MediaClient.Item> browsable = new ArrayList<MediaClient.Item>();
-        List<MediaClient.Item> playables = new ArrayList<MediaClient.Item>();
+        browsable.clear();
+        playables.clear();
+        playNowShelf = null;
+        refreshPill = null;
+        loadMoreRow = null;
         for (MediaClient.Item item : children) {
             if (item.browsable) browsable.add(item);
             else if (item.playable) playables.add(item);
         }
         if (browsable.isEmpty() && playables.isEmpty()) {
+            refreshing = false;
+            building = false;
             column.addView(new EmptyState(context, Icons.NOTE, "Nada para mostrar",
                     "O Apple Music não expôs prateleiras para esta conta."),
                     new LinearLayout.LayoutParams(
@@ -156,6 +245,11 @@ public final class HomeScreen implements ChildSink {
 
         column.addView(buildHero(), new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, heroHeight()));
+        // Below the hero, so DOWN from the tab bar keeps landing on the hero.
+        LinearLayout.LayoutParams refreshParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        refreshParams.topMargin = Tokens.dp(12);
+        column.addView(buildRefreshRow(), refreshParams);
 
         if (!browsable.isEmpty()) {
             firstShelfId = browsable.get(0).id;
@@ -163,20 +257,105 @@ public final class HomeScreen implements ChildSink {
             heroTitle.setText(firstShelfTitle);
             heroSubtitle.setText("Destaque");
         }
-        for (MediaClient.Item shelfItem : browsable) {
+        shelfCursor = 0;
+        int target = Math.max(INITIAL_SHELVES, Math.min(requestedShelves, browsable.size()));
+        addShelves(target);
+        updateLoadMore();
+        addPlayNowIfReady();
+        linkFocus();
+        host.status("");
+        applyPendingScroll();
+        refreshing = false;
+        building = false;
+        Log.i("AppleMusicOne", "perf home shelves=" + shelfCursor + "/" + browsable.size()
+                + " requested=" + requestedShelves + " views=" + Perf.views(scroll));
+    }
+
+    /** Materializes up to {@code count} more browsable shelves and subscribes each node. */
+    private void addShelves(int count) {
+        int end = Math.min(browsable.size(), shelfCursor + count);
+        for (; shelfCursor < end; shelfCursor++) {
+            MediaClient.Item shelfItem = browsable.get(shelfCursor);
             ShelfView shelf = addShelf(shelfItem.title);
             shelves.put(shelfItem.id, shelf);
             shelfTitles.put(shelfItem.id, shelfItem.title);
             addPlaceholders(shelf);
-            host.loadChildren(shelfItem.id, this);
+            if (refreshing) host.refreshChildren(shelfItem.id, this);
+            else host.loadChildren(shelfItem.id, this);
         }
-        if (!playables.isEmpty()) {
-            ShelfView shelf = addShelf("Tocar agora");
-            shelves.put("__play_now__", shelf);
-            populateShelf(shelf, playables);
+    }
+
+    private void loadMore() {
+        if (shelfCursor >= browsable.size()) return;
+        addShelves(SHELF_BATCH);
+        updateLoadMore();
+        addPlayNowIfReady();
+        linkFocus();
+    }
+
+    private void addPlayNowIfReady() {
+        if (playables.isEmpty() || playNowShelf != null) return;
+        if (shelfCursor < browsable.size()) return;
+        playNowShelf = addShelf("Tocar agora");
+        shelves.put("__play_now__", playNowShelf);
+        populateShelf(playNowShelf, playables);
+        linkFocus();
+    }
+
+    /** Rebuilds the "Carregar mais" pill after the expanded shelf block. */
+    private void updateLoadMore() {
+        if (loadMoreRow != null) {
+            column.removeView(loadMoreRow);
+            loadMoreRow = null;
         }
+        if (shelfCursor >= browsable.size()) return;
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER);
+        Pill more = Pill.surface(context, Icons.PLUS, "Carregar mais");
+        more.setContentDescription("Carregar mais prateleiras");
+        more.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                loadMore();
+            }
+        });
+        row.addView(more, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.topMargin = Tokens.dp(22);
+        params.bottomMargin = Tokens.dp(8);
+        column.addView(row, params);
+        loadMoreRow = row;
+    }
+
+    private View buildRefreshRow() {
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.END);
+        refreshPill = Pill.surface(context, Icons.REFRESH, "Atualizar");
+        refreshPill.setContentDescription("Atualizar o Início");
+        refreshPill.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                refresh();
+            }
+        });
+        row.addView(refreshPill, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return row;
+    }
+
+    /** Puts the scroll back where it was before the rotation/refresh, once the shelves are in. */
+    private void applyPendingScroll() {
+        if (pendingScroll <= 0f) return;
+        ScrollMemory.restore(scroll, pendingScroll);
+        pendingScroll = 0f;
+    }
+
+    private void linkFocus() {
         for (ShelfView shelf : shelves.values()) shelf.linkFocus(downFocusId);
-        host.status("");
     }
 
     private ShelfView addShelf(String title) {
@@ -246,6 +425,8 @@ public final class HomeScreen implements ChildSink {
             shelf.addCard(card);
         }
         shelf.linkFocus(downFocusId);
+        Log.i("AppleMusicOne", "perf home shelf=" + shelfKey(shelf) + " shelves="
+                + shelfCursor + "/" + browsable.size() + " views=" + Perf.views(scroll));
 
         if (firstShelfId != null && firstShelfId.equals(shelfKey(shelf)) && heroItem == null) {
             setHero(items.get(0));
@@ -266,6 +447,7 @@ public final class HomeScreen implements ChildSink {
         heroCover = new ImageView(context);
         heroCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
         heroCover.setBackgroundColor(Tokens.SURFACE_HOVER);
+        heroCover.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
         hero.addView(heroCover, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
@@ -330,6 +512,7 @@ public final class HomeScreen implements ChildSink {
                 }
             }
         });
+        hero.setContentDescription("Destaque");
 
         return hero;
     }
@@ -338,6 +521,8 @@ public final class HomeScreen implements ChildSink {
         heroItem = item;
         heroTitle.setText(item.title);
         heroSubtitle.setText(item.subtitle.length() > 0 ? item.subtitle : "Apple Music");
+        hero.setContentDescription("Destaque: " + item.title
+                + (item.subtitle.length() > 0 ? ", " + item.subtitle : ""));
         artwork.load(item.artworkUri, heroCover);
     }
 
@@ -369,7 +554,7 @@ public final class HomeScreen implements ChildSink {
         } else if (item.playable) {
             host.play(item);
         } else {
-            host.status("Item não reproduzível");
+            host.status("Item não reprodutível");
         }
     }
 
@@ -390,5 +575,7 @@ public final class HomeScreen implements ChildSink {
         host.forgetChildren(this);
         stopSkeleton();
         shelves.clear();
+        browsable.clear();
+        playables.clear();
     }
 }

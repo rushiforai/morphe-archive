@@ -19,6 +19,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.content.pm.SigningInfo;
+import android.os.Looper;
+import app.hushtelegram.extension.shared.Utils;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import org.junit.After;
@@ -32,6 +34,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowDialog;
 import org.robolectric.shadows.ShadowSigningInfo;
+import org.robolectric.shadows.ShadowToast;
 import org.telegram.tgnet.TLRPC;
 
 @RunWith(RobolectricTestRunner.class)
@@ -48,6 +51,31 @@ public class SignInHelpTest {
         public Activity getParentActivity() {
             return activity;
         }
+    }
+
+    @Test
+    public void aFailedGoogleSignInSaysToTypeTheEmail() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        // DEVELOPER_ERROR, what a copy signed with another key gets, and a network failure.
+        for (String message : new String[] {"10: ", "7: A network error occurred.", "no status at all"}) {
+            ShadowToast.reset();
+            SignInHelp.googleFailed(new Exception(message));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(message, "Google sign-in failed. Type your email above.", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    @Test
+    public void backingOutOfGooglesPickerSaysNothing() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        ShadowToast.reset();
+        SignInHelp.googleFailed(new Exception("12501: "));
+        SignInHelp.googleFailed(new Exception("16: Canceled"));
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertNull(ShadowToast.getTextOfLatestToast());
+        assertFalse(SignInHelp.googleBackedOut(new Exception("160: ")));
+        assertFalse(SignInHelp.googleBackedOut(new Exception((String) null)));
+        assertFalse(SignInHelp.googleBackedOut(null));
     }
 
     @Test

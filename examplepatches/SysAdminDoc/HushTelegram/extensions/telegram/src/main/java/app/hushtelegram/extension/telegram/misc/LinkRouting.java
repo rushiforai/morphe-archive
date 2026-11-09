@@ -12,6 +12,9 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.text.Editable;
+import android.view.View;
+import android.widget.EditText;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -80,6 +83,71 @@ public final class LinkRouting {
             HookStatus.threw(FamilyNames.STRIP_LINK_TRACKING, "shared URL", failure);
             return intent;
         }
+    }
+
+    /**
+     * The text Telegram is about to put on the clipboard. Only a plain String that is one link and
+     * nothing else is rewritten; styled text, a message with words around a link and every other
+     * copy come back as the same object.
+     */
+    public static CharSequence cleanCopiedLink(CharSequence text) {
+        if (!enabled(Settings.STRIP_LINK_COPY_PASTE, FamilyNames.STRIP_LINK_TRACKING)) return text;
+        try {
+            if (!(text instanceof String)) return text;
+            String cleaned = cleanLinkText((String) text);
+            if (cleaned == null) return text;
+            HookStatus.counted(FamilyNames.STRIP_LINK_TRACKING, "copied URLs cleaned");
+            return cleaned;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STRIP_LINK_TRACKING, "copied URL", failure);
+            return text;
+        }
+    }
+
+    /**
+     * Asked first by the message box's context menu action. A paste is let through as Telegram does it,
+     * and once it has landed (the next pass of the main thread) a pasted piece that is one link and
+     * nothing else is swapped for its cleaned form. The clipboard itself is never changed.
+     */
+    public static void watchPaste(View view, int action) {
+        if (action != android.R.id.paste && action != android.R.id.pasteAsPlainText) return;
+        if (!(view instanceof EditText) || !enabled(Settings.STRIP_LINK_COPY_PASTE, FamilyNames.STRIP_LINK_TRACKING)) return;
+        try {
+            EditText editor = (EditText) view;
+            int from = Math.max(0, Math.min(editor.getSelectionStart(), editor.getSelectionEnd()));
+            int to = Math.max(0, Math.max(editor.getSelectionStart(), editor.getSelectionEnd()));
+            int kept = editor.getText().length() - (to - from);
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> cleanPasted(editor, from, kept));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STRIP_LINK_TRACKING, "pasted URL", failure);
+        }
+    }
+
+    private static void cleanPasted(EditText editor, int from, int kept) {
+        try {
+            Editable text = editor.getText();
+            int length = text.length() - kept;
+            if (length <= 0 || from + length > text.length()) return;
+            String pasted = text.subSequence(from, from + length).toString();
+            String cleaned = cleanLinkText(pasted);
+            if (cleaned == null) return;
+            boolean atEnd = editor.getSelectionStart() == from + length && editor.getSelectionEnd() == from + length;
+            text.replace(from, from + length, cleaned);
+            if (atEnd) editor.setSelection(from + cleaned.length());
+            HookStatus.counted(FamilyNames.STRIP_LINK_TRACKING, "pasted URLs cleaned");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STRIP_LINK_TRACKING, "pasted URL", failure);
+        }
+    }
+
+    /** The cleaned form of a text that is a single link (spaces around it kept), or null when there's nothing to change. */
+    static String cleanLinkText(String text) throws Exception {
+        String link = text.trim();
+        if (link.isEmpty()) return null;
+        String cleaned = clean(Uri.parse(link));
+        if (cleaned == null) return null;
+        int start = text.indexOf(link);
+        return text.substring(0, start) + cleaned + text.substring(start + link.length());
     }
 
     /**

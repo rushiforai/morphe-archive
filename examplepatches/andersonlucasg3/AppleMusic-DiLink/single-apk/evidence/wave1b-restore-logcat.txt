@@ -1,0 +1,7 @@
+11-08 04:16:03.004  7579  7579 I AppleMusicOne: root arrived, tab=0
+11-08 04:16:23.774  7579  7579 I AppleMusicOne: queue sheet restored (34 tracks)
+11-08 04:16:23.801  7579  7579 I AppleMusicOne: root arrived, tab=0 (restored)
+11-08 04:16:23.802  7579  7579 I AppleMusicOne: overlays restored: collection=false detail=false player=true queue=true actions=false
+11-08 04:16:34.906  7579  7579 I AppleMusicOne: queue sheet restored (34 tracks)
+11-08 04:16:34.926  7579  7579 I AppleMusicOne: root arrived, tab=0 (restored)
+11-08 04:16:34.927  7579  7579 I AppleMusicOne: overlays restored: collection=false detail=false player=true queue=true actions=false

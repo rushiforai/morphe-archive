@@ -58,6 +58,9 @@
     "Always upload in HD": [
       "ALWAYS_UPLOAD_HD"
     ],
+    "AMOLED dark theme": [
+      "AMOLED_DARK_MODE"
+    ],
     "App lock": [
       "APP_LOCK",
       "APP_LOCK_TIMEOUT"
@@ -431,6 +434,9 @@
       "KEEP_CLEAR_DISPLAY_SEEK_BAR",
       "FADE_CONTROLS_OPACITY",
       "FADE_IN_CLEAR_DISPLAY",
+      "INVISIBLE_CONTROLS_BUTTON",
+      "INVISIBLE_CONTROLS_ON",
+      "INVISIBLE_CONTROLS_KEEP_CAPTION",
       "SEE_THROUGH_BOTTOM_BAR",
       "SEE_THROUGH_VIDEO_IN_WINDOW",
       "FLOATING_BOTTOM_BAR",
@@ -663,7 +669,8 @@
       "STARTUP_MESSAGE",
       "STARTUP_MESSAGE_TITLE",
       "STARTUP_MESSAGE_TEXT",
-      "STARTUP_MESSAGE_DISMISSIBLE"
+      "STARTUP_MESSAGE_DISMISSIBLE",
+      "CHECK_FOR_UPDATES"
     ],
     "Share sheet tools": [
       "HIDE_SHARE_CHANNELS",
@@ -671,6 +678,7 @@
       "SHARE_BLOCK_AUTHOR",
       "HIDE_SHARE_CONTACTS",
       "SHARE_TAP_COPIES_LINK",
+      "HIDE_SHARE_NEW_GROUP",
       "SHARE_HIDDEN_ITEMS",
       "SHARE_HIDDEN_ITEMS_PROFILE",
       "SHARE_HIDDEN_ITEMS_LIVE",
@@ -829,6 +837,8 @@
     "EXPERIMENTAL_APP_CONFIRMED": "Runtime state or legacy migration data; not a configurable feature default.",
     "PAUSED": "Runtime state or legacy migration data; not a configurable feature default.",
     "SAFE_MODE": "Runtime state or legacy migration data; not a configurable feature default.",
-    "STARTUP_MESSAGE_HIDDEN": "Runtime state or legacy migration data; not a configurable feature default."
+    "STARTUP_MESSAGE_HIDDEN": "Runtime state or legacy migration data; not a configurable feature default.",
+    "UPDATE_CHECKED_AT": "Runtime state or legacy migration data; not a configurable feature default.",
+    "UPDATE_DISMISSED": "Runtime state or legacy migration data; not a configurable feature default."
   }
 }

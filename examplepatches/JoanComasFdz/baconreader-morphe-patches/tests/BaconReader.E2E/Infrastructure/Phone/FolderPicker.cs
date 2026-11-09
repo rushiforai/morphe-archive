@@ -19,6 +19,7 @@ public sealed class FolderPicker(AndroidDriver driver)
     private static readonly OpenQA.Selenium.By Allow = Locate.AndroidIdWithText("button1", "Allow");
     private static readonly OpenQA.Selenium.By NewFolderName = Locate.AndroidId("text1");
     private static readonly OpenQA.Selenium.By Ok = Locate.AndroidIdWithText("button1", "OK");
+    private static readonly OpenQA.Selenium.By CreateNewFolder = Locate.ButtonWithText("Create new folder");
 
     /// <summary>Waits until the picker shows "Use this folder".</summary>
     public Task WaitUntilShownAsync() =>
@@ -38,8 +39,7 @@ public sealed class FolderPicker(AndroidDriver driver)
         }
         else
         {
-            await OnScreen.PressAsync(driver, Locate.ButtonWithText("Create new folder"));
-            await Waiting.UntilShownAsync(driver, NewFolderName, TimeSpan.FromSeconds(10), "The picker's \"New folder\" dialog");
+            await CreateNewFolderAsync();
             await OnScreen.ActAsync(driver, NewFolderName, field => field.SendKeys(BaconReaderFolder));
             await OnScreen.PressAsync(driver, Ok);
         }
@@ -49,5 +49,29 @@ public sealed class FolderPicker(AndroidDriver driver)
         await Waiting.UntilShownAsync(driver, Allow, TimeSpan.FromSeconds(10), "\"Allow BaconReader Premium to access folder?\"");
         await OnScreen.PressAsync(driver, Allow);
         await Waiting.UntilAsync(() => driver.FindElements(Allow).Count == 0, TimeSpan.FromSeconds(10), "The folder picker closing");
+    }
+
+    // Taps "Create new folder" until the picker shows its "New folder" dialog. Next to the phone (the NAS's runner, ~0.1 s
+    // a command, unpaced) the picker ignored the tap made right after the Download folder showed, and no dialog came in
+    // 10 s, twice (2026-11-08); from a cloud session, or paced for a recording, the first tap always opened it.
+    private async Task CreateNewFolderAsync()
+    {
+        const int Attempts = 3;
+        for (var attempt = 1; ; attempt++)
+        {
+            await OnScreen.PressAsync(driver, CreateNewFolder);
+            if (attempt == Attempts)
+            {
+                await Waiting.UntilShownAsync(driver, NewFolderName, TimeSpan.FromSeconds(10), "The picker's \"New folder\" dialog");
+                return;
+            }
+
+            if (await Waiting.FindWithinAsync(driver, NewFolderName, TimeSpan.FromSeconds(3), "The picker's \"New folder\" dialog") is not null)
+            {
+                return;
+            }
+
+            RunLog.RetryFired("FolderPicker.CreateNewFolderAsync", attempt + 1, "the picker's \"New folder\" dialog didn't show");
+        }
     }
 }

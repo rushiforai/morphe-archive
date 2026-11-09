@@ -1,5 +1,12 @@
 # Finamp 1.0.1: selectable Penguin patches
 
+> **Banner-backport removal:** builds containing this change remove the banner
+> backport from individual and Complete bundles. Release 1.9.1
+> still contains it. Removing it also removes that correction when patching the
+> original 1.0.1 APK; upgrading Finamp itself is a separate choice.
+> The remaining seven features use their existing bit assignments and payloads.
+> The compact selection is renamed, so review saved selections after an update.
+
 These patches apply directly to the **original official Finamp APK** through
 Morphe. They are separate from the earlier rebuilt `Finamp Debug` preview and
 from the upstream source PRs.
@@ -20,13 +27,13 @@ not have declared compatibility. Repatch the original APK with all desired
 selections together; an already patched snapshot is deliberately rejected.
 
 Releases containing **Finamp Complete** update the existing Finamp and combined
-sources to one default-selected patch applying all eight fixes below together.
+sources to one default-selected patch applying the seven fixes below together in builds containing this change.
 A separate, larger Finamp individual source retains independent selection.
 Use one Finamp source per patching run: Complete includes the artist-order
 behavior as well as the fixes. Review saved selections after a source update.
 See [source setup and migration](SETUP.md#add-the-source-and-patch).
 
-## Eight independent selections
+## Seven independent selections
 
 | Patch name in Morphe | Behavior | Upstream contribution |
 | --- | --- | --- |
@@ -36,10 +43,9 @@ See [source setup and migration](SETUP.md#add-the-source-and-patch).
 | **Fix offline artist tracks** | Excludes unrelated tracks from downloaded shared albums when browsing a performing artist | [PR #1834](https://github.com/finamp-app/finamp/pull/1834) merged into `redesign` on 2026-10-31; [issue #1689](https://github.com/finamp-app/finamp/issues/1689) |
 | **Fix track alphabet navigation** | Uses consistent case when comparing Tracks titles with a selected alphabet letter; preserves existing paging | [PR #1835](https://github.com/finamp-app/finamp/pull/1835), [issue #1790](https://github.com/finamp-app/finamp/issues/1790) |
 | **Keep player output controls accessible** | Adds Output, Queue and Lyrics at the bottom of the player menu when bottom actions are hidden; respects the gesture setting and avoids duplicate actions | [PR #1836](https://github.com/finamp-app/finamp/pull/1836) merged into `redesign` on 2026-10-31; [issue #1355](https://github.com/finamp-app/finamp/issues/1355) |
-| **Fix quick settings banner contrast** | Uses the matching foreground color for banner text with custom accents | Existing [`hotfix-1.0.2` fix](https://github.com/finamp-app/finamp/commit/124edc8b94ea8fcba637a1dba31e7bd266644aa8); duplicate [PR #1837](https://github.com/finamp-app/finamp/pull/1837) **closed on 2026-10-29**; [issue #1756](https://github.com/finamp-app/finamp/issues/1756) |
 | **Show album and track information** | Opens available Jellyfin descriptions for albums and tracks; normal downloads retain descriptions for offline use | [PR #1853](https://github.com/finamp-app/finamp/pull/1853), [issue #1852](https://github.com/finamp-app/finamp/issues/1852) |
 
-In the individual source, all eight are optional (`default=false`); choose any
+In the individual source, all seven are optional (`default=false`); choose any
 subset in one Morphe run. The artist-order default promotes only album artists also
 credited on the song, then alphabetizes remaining credits. With no matching
 album artist, it retains song metadata order. It does not rewrite music tags or
@@ -47,8 +53,8 @@ server metadata, or create a per-song lead role that Jellyfin does not provide.
 
 **Upstream status checked 2026-10-31:** the title, offline-artist and player fixes
 are merged into `redesign`. The latest official release is
-[1.0.2](https://github.com/finamp-app/finamp/releases/tag/1.0.2). **The seven
-previously shipped selections remain available for the original 1.0.1 APK only.** An upstream merge
+[1.0.2](https://github.com/finamp-app/finamp/releases/tag/1.0.2). The seven
+selections listed above target the original 1.0.1 APK only. An upstream merge
 does not update that APK or establish compatibility with 1.0.2.
 [Exact upstream refs and release status](FINAMP.md#upstream-status-2026-10-31).
 
@@ -86,9 +92,10 @@ Same-key update/removal tests are distinct from changing signing certificates.
 ## Native implementation and source
 
 Flutter compiles this Dart logic into `libapp.so`. A shared raw-resource patch
-collects eight selection bits (1 title, 2 artists, 4 loading, 8 offline artist
-filtering, 16 Tracks alphabet, 32 player output, 64 banner contrast, 128 album
-and track information) and applies one precomposed delta for masks 1–255. The original APK's native and engine hashes are
+collects seven selection bits (1 title, 2 artists, 4 loading, 8 offline artist
+filtering, 16 Tracks alphabet, 32 player output and 128 album and track
+information). Bit 64 is retired. It applies one of 127 existing precomposed
+deltas without that bit. The original APK's native and engine hashes are
 checked before the snapshot is replaced; the selected output is checked against
 its own SHA-256 and size. Unsupported input fails before an APK is published.
 
@@ -107,7 +114,7 @@ version hash and feature flags also match. SDK-required dependency locks are
 recorded in every source tree; other app features are not pulled from later
 `redesign` commits.
 
-Real Morphe Desktop 1.18.1 runs for all 255 combinations verify that every retained APK entry
+Historical Morphe Desktop 1.18.1 runs for all 255 combinations verified that every retained APK entry
 except ARM64 `libapp.so` matches the original: DEX, manifest, engine, resources
 and Flutter assets remain byte-identical. Other CPU architectures are removed
 so they cannot silently run an unpatched snapshot. Snapshot files remain exactly
@@ -124,7 +131,7 @@ This differs from the earlier source/debug preview's field-161/adapter-128
 implementation, which lives in a different package. Native compatibility tests
 read saved settings with the frozen original adapter **without adapter 128**.
 
-## Current verification
+## Historical verification
 
 ### Reviewed Artist counts
 
@@ -238,3 +245,23 @@ acceptance. Source, the MPL-2.0 license, Flutter's BSD license and original
 third-party notices accompany the native resources. Kotlin patch logic remains
 under Penguin's GPL-3.0 license. This is an independent Penguin contribution;
 it is not an upstream-signed Finamp release.
+
+## Maintaining the patch source
+
+For a patch change, update the corresponding `FinampNativePatch.kt` declaration,
+the source matrix and verified native payloads, the feature table above, and its
+before/after evidence. The catalogue check derives the feature names and valid
+combinations from those declarations and checks `FINAMP_COMPLETE_MASK` in
+`FinampComposition.kt`. Keep that mask equal to the OR of all active feature bits.
+The split bundles, Complete verification and README previews use this same data.
+Existing payloads can be reused only for combinations whose verified source and
+output are unchanged. Run `python3 -B .github/scripts/finamp_catalogue.py` and
+`python3 -B -m unittest discover -s .github/scripts -p 'test_*.py' -q` for an
+early check. The manual release workflow performs the full bundle, input and
+source verification before updating the public source; a merged PR alone does
+not publish a new patch bundle.
+
+The next release renames the compact patch to **Finamp Complete** so its name
+does not change when the number of fixes changes. Manager selection migration
+has not been established for this rename: review the selection in Expert mode
+after refreshing the source before patching.

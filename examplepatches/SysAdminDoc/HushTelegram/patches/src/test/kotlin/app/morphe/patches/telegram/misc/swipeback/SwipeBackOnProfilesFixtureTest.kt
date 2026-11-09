@@ -8,9 +8,10 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -37,6 +38,9 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.io.File
 import java.lang.ref.SoftReference
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The profile's swipe check, every other screen's swipe check, and the runtime. */
 class SwipeBackOnProfilesFixtureTest {
@@ -82,7 +86,7 @@ class SwipeBackOnProfilesFixtureTest {
                 }
             }
             assertEquals("$name: every other screen's swipe check", untouched, hostState(build, context, setOf(key(site.method))))
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "swipeBackOnProfiles" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "swipeBackOnProfiles" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -98,10 +102,10 @@ class SwipeBackOnProfilesFixtureTest {
                 "no first tab" to { _, s -> swap(s.method, at(s.method) { it.endsWith("->getFirstTabId()I") }, "Landroid/view/View;->getId()I") },
                 "a jump past the photo answer" to { _, s -> val m = s.method
                     m.addInstructionsWithLabels(0, "if-eqz p1, :hush_past", ExternalLabel("hush_past", m.getInstruction(s.results.first() + 1))) },
-                "missing build flag" to { c, _ -> c.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "swipeBackOnProfiles" } },
-                "private swipe hook" to { c, _ -> val h = c.mutableClassDefBy(SWIPE_BACK).methods.single { it.name == "touchBlocks" }
+                "missing build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "swipeBackOnProfiles" } },
+                "private swipe hook" to { c, _ -> val h = c.tgMutableClassDefBy(SWIPE_BACK).methods.single { it.origName == "touchBlocks" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing swipe hook" to { c, _ -> c.mutableClassDefBy(SWIPE_BACK).methods.removeAll { it.name == "touchBlocks" } },
+                "missing swipe hook" to { c, _ -> c.tgMutableClassDefBy(SWIPE_BACK).methods.removeAll { it.origName == "touchBlocks" } },
             )
             for ((case, change) in mutations) {
                 val c = context(build)
@@ -115,10 +119,10 @@ class SwipeBackOnProfilesFixtureTest {
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(SWIPE_BACK, SETTINGS_STATUS))
-        .filter { c.classDefByOrNull(it) != null }.associateWith { type -> c.mutableClassDefBy(type).let { cls ->
+        .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
-        .flatMap { c.mutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
+        .flatMap { c.tgMutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
 
     private fun hosts(build: File): List<ClassDef> {
         val identity = FixtureDex.inputIdentity(build)
@@ -130,14 +134,14 @@ class SwipeBackOnProfilesFixtureTest {
 
     /** Every screen with its own swipe check, the profile among them. */
     private fun loadHosts(build: File): List<ClassDef> =
-        FixtureDex.classesWhere(build, { true }) { method -> method.name == "isSwipeBackEnabled" }.map(ImmutableClassDef::of)
+        FixtureDex.classesWhere(build, { true }) { method -> method.origName == "isSwipeBackEnabled" }.map(ImmutableClassDef::of)
 
     private fun Method.state(): List<Any?> {
         val body = controlBody(); val flow = if (body.isEmpty()) null else ControlFlow.of(this)
         return listOf(accessFlags, implementation?.registerCount, body.map { it.operand() }, body.map { listOf(it.codeUnits, (it as? OffsetInstruction)?.codeOffset) },
             flow?.normal?.toList(), flow?.exceptional?.toList())
     }
-    private fun Instruction.operand() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString(),
+    private fun Instruction.operand() = listOf(opcode, namedRegisters(), origRef(),
         (this as? WideLiteralInstruction)?.wideLiteral)
     private fun key(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 

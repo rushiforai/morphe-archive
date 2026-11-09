@@ -3,7 +3,7 @@ group = "app.edgewindow"
 patches {
     about {
         name = "Edge Window Patches"
-        description = "Android display compatibility and Balatro Korean translation patches"
+        description = "Display cutout, app font scale, and Balatro Korean translation patches"
         source = "https://github.com/ymshin-dev/edge-window-patches"
         author = "ymshin-dev"
         contact = "https://github.com/ymshin-dev"

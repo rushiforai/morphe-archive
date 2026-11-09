@@ -16,6 +16,11 @@
 | `<queries>`에 `app.revanced.android.gms` 패키지와 `…auth.accounts` provider 추가 | 패키지 가시성 |
 | `app.revanced.android.gms.SPOOFED_PACKAGE_NAME` / `…SIGNATURE` meta-data | GmsCore가 원래 앱으로 위장해 OAuth 수행 |
 
+### MicroG RE 계정 선택 화면
+
+ReVanced GmsCore의 계정 선택 화면은 Google 액션(`com.google.android.gms.common.account.CHOOSE_ACCOUNT`)을 받습니다. MicroG RE는 자기 패키지 접두사 액션(`app.revanced.android.gms.common.account.CHOOSE_ACCOUNT`)만 받습니다.
+계정 선택 인텐트를 만드는 코드의 두 액션 문자열 뒤에 `GmsCoreSupport.accountPickerAction`을 넣습니다. 이 메서드는 설치된 GmsCore가 처리하는 액션으로 바꿉니다. 원래 액션을 처리하면 그대로 두고, 아니면 GmsCore 접두사 액션을 씁니다.
+
 ### 동기화 어댑터 (`res/xml/syncadapter.xml`)
 
 라이브러리 동기화(`SyncService`)는 `accountType="com.google"`인 동기화 어댑터로 선언되어 있습니다.

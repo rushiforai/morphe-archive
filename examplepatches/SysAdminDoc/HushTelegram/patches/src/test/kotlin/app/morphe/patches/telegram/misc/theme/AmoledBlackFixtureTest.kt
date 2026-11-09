@@ -8,7 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -40,6 +41,12 @@ import org.junit.Test
 import java.io.File
 import java.lang.ref.SoftReference
 import java.util.zip.ZipFile
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The classes that parse theme files, Telegram's key lookup, and the runtime. */
 class AmoledBlackFixtureTest {
@@ -103,18 +110,18 @@ class AmoledBlackFixtureTest {
             assertEquals("$name: stock body", stock.map { it.operand() }, shown.drop(6).map { it.operand() })
 
             // The stub asks Telegram's own lookup, the one the reader uses for every key.
-            val stub = context.mutableClassDefBy(BLACK_THEME).methods.single { it.name == "keyId" }.controlBody()
+            val stub = context.tgMutableClassDefBy(BLACK_THEME).methods.single { it.origName == "keyId" }.controlBody()
             assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.RETURN), stub.map { it.opcode })
             assertEquals(site.keyLookup.toString(), stub[0].controlRef())
             assertTrue("$name: the lookup is the one before the color put", before.indices.any { i ->
                 before[i].controlRef() == SPARSE_PUT && before.subList(maxOf(0, i - 4), i).any { it.call()?.toString() == site.keyLookup.toString() } })
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "amoledBlack" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "amoledBlack" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
 
     @Test fun `Night and Dark carry every surface and the light themes stay light`() {
-        val surfaces = ExtensionDex.classes().single { it.type == BLACK_THEME }.methods.single { it.name == "<clinit>" }
+        val surfaces = ExtensionDex.classes().single { it.origType == BLACK_THEME }.methods.single { it.origName == "<clinit>" }
             .controlBody().mapNotNull { it.controlString() }.toSet()
         assertEquals(16, surfaces.size)
         // The runtime's own test pins this one first, as the surface that decides.
@@ -134,9 +141,9 @@ class AmoledBlackFixtureTest {
             }
             // Bubbles stay the theme's own, so they still stand out on black.
             assertNotEquals(0xFF000000.toInt(), themes.getValue("night").getValue("chat_inBubble"))
-            val reader = hosts(build).flatMap { it.methods }.single { it.returnType == SPARSE_INT_ARRAY &&
+            val reader = hosts(build).flatMap { it.methods }.single { it.origReturnType == SPARSE_INT_ARRAY &&
                 it.parameterTypes.map { p -> p.toString() } == THEME_FILE_PARAMETERS && it.controlBody().any { i -> i.controlString() == "WLS=" } }
-            val named = hosts(build).single { it.type == reader.definingClass }.methods.flatMap { m -> m.controlBody().mapNotNull { it.controlString() } }
+            val named = hosts(build).single { it.origType == reader.origDefiningClass }.methods.flatMap { m -> m.controlBody().mapNotNull { it.controlString() } }
             assertTrue("${build.name}: Telegram's theme class names both dark assets", "night.attheme" in named && "darkblue.attheme" in named)
         }
     }
@@ -146,20 +153,20 @@ class AmoledBlackFixtureTest {
             val mutations: List<Pair<String, (BytecodePatchContext, BlackThemeSite) -> Unit>> = listOf(
                 "reader no longer static" to { _, s -> s.method.accessFlags = s.method.accessFlags and AccessFlags.STATIC.value.inv() },
                 "asset no longer opened" to { _, s -> s.method.replaceInstruction(s.method.controlBody().indexOfFirst { i ->
-                    i.call()?.let { it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") && it.returnType == "Ljava/io/File;" } == true }, "nop") },
+                    i.call()?.let { it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") && it.origReturnType == "Ljava/io/File;" } == true }, "nop") },
                 "keys go in without the lookup" to { _, s -> s.method.replaceInstruction(s.method.controlBody().indexOfFirst {
                     it.call()?.toString() == s.keyLookup.toString() }, "nop") },
                 "reader returns another set" to { _, s -> s.method.replaceInstruction(s.returns.single(), "return-object v${(s.colors + 1) % 16}") },
                 "set swapped on the way out" to { _, s -> s.method.replaceInstruction(close(s), "move-object v${s.colors}, v${(s.colors + 1) % 16}") },
                 "asset parameter overwritten" to { _, s -> s.method.replaceInstruction(close(s),
                     "move-object/from16 v${s.method.implementation!!.registerCount - 2}, v${s.colors}") },
-                "lookup no longer public" to { c, s -> val m = c.mutableClassDefBy(s.keyLookup.definingClass).methods.single {
-                    it.name == s.keyLookup.name && it.returnType == "I" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") }
+                "lookup no longer public" to { c, s -> val m = c.tgMutableClassDefBy(s.keyLookup.definingClass).methods.single {
+                    it.origName == s.keyLookup.origName && it.origReturnType == "I" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") }
                     m.accessFlags = m.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing build flag" to { c, _ -> c.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "amoledBlack" } },
-                "private loaded hook" to { c, _ -> val h = c.mutableClassDefBy(BLACK_THEME).methods.single { it.name == "loaded" }
+                "missing build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "amoledBlack" } },
+                "private loaded hook" to { c, _ -> val h = c.tgMutableClassDefBy(BLACK_THEME).methods.single { it.origName == "loaded" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing keyId stub" to { c, _ -> c.mutableClassDefBy(BLACK_THEME).methods.removeAll { it.name == "keyId" } },
+                "missing keyId stub" to { c, _ -> c.tgMutableClassDefBy(BLACK_THEME).methods.removeAll { it.origName == "keyId" } },
             )
             for ((case, change) in mutations) {
                 val c = context(build)
@@ -181,10 +188,10 @@ class AmoledBlackFixtureTest {
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(BLACK_THEME, SETTINGS_STATUS))
-        .filter { c.classDefByOrNull(it) != null }.associateWith { type -> c.mutableClassDefBy(type).let { cls ->
+        .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
-        .flatMap { c.mutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
+        .flatMap { c.tgMutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
 
     private fun hosts(build: File): List<ClassDef> {
         val identity = FixtureDex.inputIdentity(build)
@@ -197,8 +204,8 @@ class AmoledBlackFixtureTest {
     /** Every class with a method that parses theme text, and the owner of each String-to-int lookup the reader calls. */
     private fun loadHosts(build: File): List<ClassDef> {
         val parsers = FixtureDex.classesWhere(build, { true }) { method -> method.controlBody().any { it.controlString() == "WLS=" } }
-        val lookups = parsers.flatMap { it.methods }.filter { it.returnType == SPARSE_INT_ARRAY }.flatMap { it.controlBody() }
-            .mapNotNull { it.call() }.filter { it.returnType == "I" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") }
+        val lookups = parsers.flatMap { it.methods }.filter { it.origReturnType == SPARSE_INT_ARRAY }.flatMap { it.controlBody() }
+            .mapNotNull { it.call() }.filter { it.origReturnType == "I" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;") }
             .map { it.definingClass }.filter { it.startsWith("Lorg/telegram/") }.toSet()
         return (parsers + FixtureDex.classes(build, lookups).values).associateBy { it.type }.values.map(ImmutableClassDef::of)
     }
@@ -208,7 +215,7 @@ class AmoledBlackFixtureTest {
         return listOf(accessFlags, implementation?.registerCount, body.map { it.operand() }, body.map { listOf(it.codeUnits, (it as? OffsetInstruction)?.codeOffset) },
             flow?.normal?.toList(), flow?.exceptional?.toList())
     }
-    private fun Instruction.operand() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString(),
+    private fun Instruction.operand() = listOf(opcode, namedRegisters(), origRef(),
         (this as? WideLiteralInstruction)?.wideLiteral)
     private fun key(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 

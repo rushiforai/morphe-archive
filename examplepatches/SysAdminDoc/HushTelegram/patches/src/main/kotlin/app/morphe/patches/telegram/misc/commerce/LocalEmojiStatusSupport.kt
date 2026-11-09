@@ -4,8 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.commerce
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -24,6 +24,9 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val LOCAL_STATUS = "$EXTENSION_PACKAGE/misc/LocalEmojiStatus;"
 internal const val LOCAL_STATUS_ID = "$LOCAL_STATUS->documentId(Ljava/lang/Long;Ljava/lang/Object;)Ljava/lang/Long;"
@@ -35,7 +38,8 @@ internal const val IS_PREMIUM_USER = "$STICKER_CONTROLLER->isPremiumUser($STATUS
 /** The star Telegram draws by a Premium account's name when it has no status: the chat list title's way into the picker. */
 internal const val LIST_STAR = "Lorg/telegram/messenger/R\$drawable;->msg_premium_liststar:I"
 internal const val SEND_STATUS_NAME = "updateEmojiStatus"
-internal val SEND_STATUS_PARAMETERS = listOf(EMOJI_STATUS_TYPE, "Lorg/telegram/tgnet/tl/TL_stars\$StarGift;")
+/** The gift the send takes beside the status; 13.2's R8 narrowed it to the unique gift every caller passes. */
+private val SEND_STATUS_GIFTS = setOf("Lorg/telegram/tgnet/tl/TL_stars\$StarGift;", "Lorg/telegram/tgnet/tl/TL_stars\$TL_starGiftUnique;")
 private const val STATUS_BASE_CONTROLLER = "Lorg/telegram/messenger/BaseController;"
 private const val STATUS_USER_CONFIG = "Lorg/telegram/messenger/UserConfig;"
 private const val STATUS_NOTIFICATIONS = "Lorg/telegram/messenger/NotificationCenter;"
@@ -97,7 +101,7 @@ internal fun BytecodePatchContext.resolveLocalEmojiStatus(): LocalEmojiStatusPla
 
     val titles = classDefsMentioning(Mention.reference(LIST_STAR)).filter { classDef ->
         classDef.methods.any { it.drawsTitleStatus() }
-    }.flatMap { classDef -> mutableClassDefBy(classDef).methods.filter { it.drawsTitleStatus() } }
+    }.flatMap { classDef -> tgMutableClassDefBy(classDef).methods.filter { it.drawsTitleStatus() } }
     val title = titles.singleOrNull() ?: return missing(
         if (titles.isEmpty()) "the chat list title no longer draws the emoji status" else "the chat list title's status has ${titles.size} places to draw it")
     val reads = title.statusReads()
@@ -118,9 +122,7 @@ internal fun BytecodePatchContext.resolveLocalEmojiStatus(): LocalEmojiStatusPla
         }
     }
 
-    val sends = mutableClassDefBy(STICKER_CONTROLLER).methods.filter {
-        it.name == SEND_STATUS_NAME && it.returnType == "V" && it.parameterTypes.map(CharSequence::toString) == SEND_STATUS_PARAMETERS
-    }
+    val sends = tgMutableClassDefBy(STICKER_CONTROLLER).methods.filter { it.sendsOwnStatus() }
     val send = sends.singleOrNull() ?: return missing("MessagesController no longer sends the account's own status in one place")
     if (send.localRegisterCount() < 1) return missing("the account's status send has no spare register")
     return LocalEmojiStatusPlan(title, send, null)
@@ -181,6 +183,10 @@ private fun BytecodePatchContext.writeStatusStubs() {
     """)
 }
 
+/** MessagesController's send of the account's own new status: a status and its gift, nothing back. */
+internal fun Method.sendsOwnStatus(): Boolean = origName == SEND_STATUS_NAME && origReturnType == "V" &&
+    parameterTypes.map(CharSequence::toString).let { it.size == 2 && it[0] == EMOJI_STATUS_TYPE && it[1] in SEND_STATUS_GIFTS }
+
 /** Takes a user and an animated flag, and both reads the user's status and asks about Premium. */
 private fun Method.drawsTitleStatus(): Boolean {
     if (returnType != "V" || parameterTypes.map(CharSequence::toString) != listOf(STATUS_USER, "Z")) return false
@@ -196,10 +202,13 @@ private fun Method.statusReads(): List<Int> = controlBody().let { body ->
     }
 }
 
-/** Each isPremiumUser call whose answer comes straight back in a move-result. */
+/**
+ * Each isPremiumUser call whose answer comes straight back in a move-result. 13.2's R8 made the
+ * method static, since it never reads its controller.
+ */
 private fun Method.premiumReads(): List<Int> = controlBody().let { body ->
     body.indices.filter { index ->
-        body[index].opcode == Opcode.INVOKE_VIRTUAL && body[index].controlRef() == IS_PREMIUM_USER &&
+        body[index].opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_STATIC) && body[index].controlRef() == IS_PREMIUM_USER &&
             body.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT
     }
 }

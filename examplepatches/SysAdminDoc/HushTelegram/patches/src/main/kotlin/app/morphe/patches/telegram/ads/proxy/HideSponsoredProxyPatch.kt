@@ -25,6 +25,7 @@ import app.morphe.util.call
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -32,6 +33,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Hide sponsored proxy channel"
 internal const val PROXY_PROMOTIONS = "$EXTENSION_PACKAGE/ads/ProxyPromotions;"
@@ -82,29 +90,28 @@ internal data class ProxyPlan(val hooks: List<ProxyHook>, val scope: String)
 
 /** Kept controller/protocol members identify the two stock decisions, never a renamed class literal. */
 internal fun BytecodePatchContext.resolveProxyHooks(): ProxyPlan {
-    val controller = mutableClassDefBy(MESSAGES_CONTROLLER)
-    fun member(name: String, type: String) = controller.fields.filter { it.name == name && it.type == type }
+    val controller = tgMutableClassDefBy(MESSAGES_CONTROLLER)
+    fun member(name: String, type: String) = controller.fields.filter { it.origName == name && it.origType == type }
         .unique("controller field $name")
     val promo = member("promoDialog", PROXY_DIALOG)
     val left = member("isLeftPromoChannel", "Z")
     val allDialogs = member("allDialogs", ARRAY_LIST)
     val promoType = member("promoDialogType", "I")
-    val proxyType = member("PROMO_TYPE_PROXY", "I")
     shape(listOf(promo, left, allDialogs, promoType).none { AccessFlags.STATIC.isSet(it.accessFlags) },
         "cached proxy fields no longer match instance reads")
-    shape(AccessFlags.PUBLIC.isSet(controller.accessFlags) && AccessFlags.PUBLIC.isSet(promoType.accessFlags) &&
-        AccessFlags.PUBLIC.isSet(proxyType.accessFlags) && AccessFlags.STATIC.isSet(proxyType.accessFlags),
+    shape(AccessFlags.PUBLIC.isSet(controller.accessFlags) && AccessFlags.PUBLIC.isSet(promoType.accessFlags),
         "proxy type scope is inaccessible")
+    val proxyType = proxyTypeLoad(controller, promoType)
     val sort = controller.methods.filter { method ->
-        method.returnType == "V" && method.parameterTypes.size == 1 && method.parameterTypes[0].startsWith("L") &&
+        method.origReturnType == "V" && method.parameterTypes.size == 1 && method.parameterTypes[0].startsWith("L") &&
             method.instructions().any { it.field() == promo } && method.instructions().any { it.field() == left } &&
-            method.instructions().any { it.call()?.let { call -> call.definingClass == ARRAY_LIST &&
-                call.name == "add" && call.hasShape(listOf("I", "Ljava/lang/Object;"), "V") } == true }
+            method.instructions().any { it.call()?.let { call -> call.origDefiningClass == ARRAY_LIST &&
+                call.origName == "add" && call.hasShape(listOf("I", "Ljava/lang/Object;"), "V") } == true }
     }.unique("cached proxy sorting method")
     val instructions = sort.instructions()
     val flow = ControlFlow.of(sort)
     val add = instructions.indices.filter { index ->
-        instructions[index].call()?.let { call -> call.definingClass == ARRAY_LIST && call.name == "add" &&
+        instructions[index].call()?.let { call -> call.origDefiningClass == ARRAY_LIST && call.origName == "add" &&
             call.hasShape(listOf("I", "Ljava/lang/Object;"), "V") } == true &&
             instructions.getOrNull(index - 6)?.field() == promo
     }.unique("left promo reinsertion")
@@ -129,8 +136,8 @@ internal fun BytecodePatchContext.resolveProxyHooks(): ProxyPlan {
         instructions[add - 1].literal() == 0 && instructions[add].namedRegisters() == listOf(list, indexRegister, cachedDialog) &&
         instructions[add + 1].literal() == -2 && instructions[add + 2].opcode == Opcode.IGET_OBJECT &&
         instructions[add + 2].field() == promo && instructions[add + 2].namedRegisters().getOrNull(1) == owner &&
-        instructions[add + 3].call()?.let { call -> call.definingClass == MESSAGES_CONTROLLER &&
-            call.name == "addDialogToItsFolder" && call.hasShape(listOf("I", PROXY_DIALOG), "V") } == true &&
+        instructions[add + 3].call()?.let { call -> call.origDefiningClass == MESSAGES_CONTROLLER &&
+            call.origName == "addDialogToItsFolder" && call.hasShape(listOf("I", PROXY_DIALOG), "V") } == true &&
         instructions[add + 3].namedRegisters() == listOf(owner, instructions[add + 1].namedRegisters().firstOrNull(),
             instructions[add + 2].namedRegisters().firstOrNull()), "cached insertion lost its null/left exclusions or folder merge")
     noBypass(sort, cachedAt, add + 3)
@@ -146,26 +153,26 @@ internal fun BytecodePatchContext.resolveProxyHooks(): ProxyPlan {
         }, "presentation owner is not the intact sorting controller")
 
     val include = instructions.indices.filter { index -> instructions[index].call()?.let { call ->
-        call.definingClass == MESSAGES_CONTROLLER.dropLast(1) + "\$DialogFilter;" && call.name == "includesDialog" &&
+        call.origDefiningClass == MESSAGES_CONTROLLER.dropLast(1) + "\$DialogFilter;" && call.origName == "includesDialog" &&
             call.hasShape(listOf("Lorg/telegram/messenger/AccountInstance;", "J", PROXY_DIALOG), "Z")
     } == true }.unique("selected folder inclusion")
     shape(include >= 2 && include + 8 < instructions.size, "selected folder inclusion has incomplete surroundings")
     val filterAt = include + 2
     val visible = instructions[include + 1].namedRegisters().firstOrNull()
     val candidate = instructions[include].namedRegisters().lastOrNull()
-    shape(instructions[include - 2].call()?.let { call -> call.name == "getAccountInstance" &&
-        call.definingClass == "Lorg/telegram/messenger/BaseController;" && call.hasShape(emptyList(),
+    shape(instructions[include - 2].call()?.let { call -> call.origName == "getAccountInstance" &&
+        call.origDefiningClass == "Lorg/telegram/messenger/BaseController;" && call.hasShape(emptyList(),
             "Lorg/telegram/messenger/AccountInstance;") } == true &&
         instructions[include - 2].namedRegisters() == listOf(owner) &&
         instructions[include - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
         instructions[include].namedRegisters().getOrNull(1) == instructions[include - 1].namedRegisters().firstOrNull() &&
         instructions[include + 1].opcode == Opcode.MOVE_RESULT && instructions[filterAt].opcode == Opcode.IF_EQZ &&
         instructions[filterAt].namedRegisters() == listOf(visible) &&
-        instructions[filterAt + 1].call()?.let { call -> call.definingClass == MESSAGES_CONTROLLER &&
-            call.name == "canAddToForward" && call.hasShape(listOf(PROXY_DIALOG), "Z") } == true &&
+        instructions[filterAt + 1].call()?.let { call -> call.origDefiningClass == MESSAGES_CONTROLLER &&
+            call.origName == "canAddToForward" && call.hasShape(listOf(PROXY_DIALOG), "Z") } == true &&
         instructions[filterAt + 1].namedRegisters() == listOf(owner, candidate) &&
-        instructions[filterAt + 4].call()?.let { call -> call.definingClass == ARRAY_LIST &&
-            call.name == "add" && call.hasShape(listOf("Ljava/lang/Object;"), "Z") } == true &&
+        instructions[filterAt + 4].call()?.let { call -> call.origDefiningClass == ARRAY_LIST &&
+            call.origName == "add" && call.hasShape(listOf("Ljava/lang/Object;"), "Z") } == true &&
         instructions[filterAt + 5].call() == instructions[filterAt + 4].call() &&
         instructions[filterAt + 4].namedRegisters().lastOrNull() == candidate &&
         instructions[filterAt + 5].namedRegisters().lastOrNull() == candidate &&
@@ -174,26 +181,26 @@ internal fun BytecodePatchContext.resolveProxyHooks(): ProxyPlan {
         "selected folder inclusion lost its candidate or stock false branch")
     noBypass(sort, filterAt, filterAt + 5)
 
-    val dialog = mutableClassDefBy(PROXY_DIALOG)
-    val chat = mutableClassDefBy(PROXY_CHAT)
-    val dialogId = dialog.fields.filter { it.name == "id" && it.type == "J" }.unique("dialog id")
-    val chatLeft = chat.fields.filter { it.name == "left" && it.type == "Z" }.unique("chat membership")
-    val isPromo = controller.methods.filter { it.name == "isPromoDialog" && it.hasShape(listOf("J", "Z"), "Z") }
+    val dialog = tgMutableClassDefBy(PROXY_DIALOG)
+    val chat = tgMutableClassDefBy(PROXY_CHAT)
+    val dialogId = dialog.fields.filter { it.origName == "id" && it.origType == "J" }.unique("dialog id")
+    val chatLeft = chat.fields.filter { it.origName == "left" && it.origType == "Z" }.unique("chat membership")
+    val isPromo = controller.methods.filter { it.origName == "isPromoDialog" && it.hasShape(listOf("J", "Z"), "Z") }
         .unique("promo identity predicate")
-    val getChat = controller.methods.filter { it.name == "getChat" && it.hasShape(listOf("Ljava/lang/Long;"), PROXY_CHAT) }
+    val getChat = controller.methods.filter { it.origName == "getChat" && it.hasShape(listOf("Ljava/lang/Long;"), PROXY_CHAT) }
         .unique("cached chat lookup")
     shape(listOf(dialog.accessFlags, chat.accessFlags, dialogId.accessFlags, chatLeft.accessFlags,
         isPromo.accessFlags, getChat.accessFlags).all { AccessFlags.PUBLIC.isSet(it) } &&
         listOf(dialogId.accessFlags, chatLeft.accessFlags, isPromo.accessFlags, getChat.accessFlags)
             .none { AccessFlags.STATIC.isSet(it) },
         "folder proxy scope cannot access kept host members")
-    val runtime = mutableClassDefBy(PROXY_PROMOTIONS)
+    val runtime = tgMutableClassDefBy(PROXY_PROMOTIONS)
     shape(AccessFlags.PUBLIC.isSet(runtime.accessFlags), "extension presentation class is inaccessible")
     for ((name, parameters) in listOf(
         "hideCachedProxyDialog" to listOf("Ljava/lang/Object;", "Ljava/lang/Object;"),
         "showSelectedDialog" to listOf("Z", "Ljava/lang/Object;", "Ljava/lang/Object;"),
         "isSponsoredProxyDialog" to listOf("Ljava/lang/Object;", "Ljava/lang/Object;"),
-    )) shape(runtime.methods.count { it.name == name && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+    )) shape(runtime.methods.count { it.origName == name && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
         AccessFlags.STATIC.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
         !AccessFlags.NATIVE.isSet(it.accessFlags) && it.hasShape(parameters, "Z") && it.implementation?.let { body ->
             body.registerCount >= parameters.sumOf { type -> if (type == "J" || type == "D") 2 else 1 } &&
@@ -208,7 +215,7 @@ internal fun BytecodePatchContext.resolveProxyHooks(): ProxyPlan {
         check-cast p0, $MESSAGES_CONTROLLER
         check-cast p1, $PROXY_DIALOG
         iget v0, p0, $promoType
-        sget v1, $proxyType
+        $proxyType
         if-ne v0, v1, :hush_other
         iget-wide v0, p1, $dialogId
         const-wide/16 v2, 0x0
@@ -243,6 +250,38 @@ internal fun BytecodePatchContext.resolveProxyHooks(): ProxyPlan {
     ), scope)
 }
 
+/**
+ * The instruction that puts PROMO_TYPE_PROXY in v1. 13.1.1 kept it as a public static field; 13.2 folded it
+ * into every use, so the value comes from checkPromoInfoInternal, which compares promoDialogType with it
+ * right before it reads the proxy's address.
+ */
+private fun proxyTypeLoad(controller: ClassDef, promoType: FieldReference): String {
+    val fields = controller.fields.filter { it.origName == "PROMO_TYPE_PROXY" && it.origType == "I" }
+    if (fields.isNotEmpty()) {
+        val field = fields.unique("controller field PROMO_TYPE_PROXY")
+        shape(AccessFlags.PUBLIC.isSet(field.accessFlags) && AccessFlags.STATIC.isSet(field.accessFlags),
+            "proxy type scope is inaccessible")
+        return "sget v1, $field"
+    }
+    val check = controller.methods.filter { method -> method.instructions().let { body ->
+        body.any { it.string() == "proxy_secret" } && body.count { it.field() == promoType } == 1
+    } }.unique("proxy promo check")
+    val body = check.instructions()
+    val read = body.indexOfFirst { it.field() == promoType }
+    val type = body[read].namedRegisters().firstOrNull()
+    val next = body.getOrNull(read + 1)
+    val folded = next != null && next.opcode == Opcode.IF_NEZ && next.namedRegisters() == listOf(type)
+    val literal = next?.takeIf { it.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) }?.literal()
+    val compared = next != null && literal != null && body.getOrNull(read + 2)?.let { branch -> branch.opcode == Opcode.IF_NE &&
+        branch.namedRegisters().toSet() == setOf(type, next.namedRegisters().firstOrNull()) } == true
+    val address = body.getOrNull(read + if (folded) 2 else 3)
+    shape(body[read].opcode == Opcode.IGET && (folded || compared) && address?.opcode == Opcode.IGET_OBJECT &&
+        address.field()?.let { it.origDefiningClass == MESSAGES_CONTROLLER && it.origType == "Ljava/lang/String;" } == true,
+        "proxy type comparison changed")
+    val value = if (folded) 0 else literal!!
+    return if (value in -8..7) "const/4 v1, $value" else "const v1, $value"
+}
+
 private fun noBypass(method: Method, first: Int, last: Int) {
     val flow = ControlFlow.of(method)
     shape(flow.normal.indices.none { source -> source !in first..last &&
@@ -258,5 +297,6 @@ private fun <T> List<T>.unique(what: String): T {
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
 private fun Instruction.literal(): Int? = (this as? NarrowLiteralInstruction)?.narrowLiteral
-private fun MethodReference.hasShape(parameters: List<String>, returns: String) = returnType == returns &&
-    parameterTypes.map { it.toString() } == parameters
+private fun Instruction.string(): String? = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+private fun MethodReference.hasShape(parameters: List<String>, returns: String) = origReturnType == returns &&
+    origParameterTypes == parameters

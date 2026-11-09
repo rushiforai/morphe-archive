@@ -43,17 +43,31 @@ final class OriginalClass {
         return null;
     }
 
+    /** The app's class loader class, its static instance field and its dex file array field, */
+    private static final String[][] APP_LOADERS = {
+            {"X.09V", "A08", "A01"},
+    };
+
     /** Secondary dex files the app has loaded, then any others in its dex directory. */
     private static Set<String> candidates(ClassLoader app) {
         Set<String> paths = new LinkedHashSet<>();
         try {
-            // X.09K is the app's class loader. A0A is its instance, A02 its dex files (null slots included).
-            Class<?> loaderClass = Class.forName("X.09K", false, app);
-            Object loader = loaderClass.getField("A0A").get(null);
-            if (loader != null) {
-                for (DexFile dex : (DexFile[]) loaderClass.getField("A02").get(loader)) {
+            // The app's class loader, its static instance and its dex files (null slots included), by version:
+            // 536.0.0.11.107: X.09V, A08, A01.
+            for (String[] names : APP_LOADERS) {
+                Class<?> loaderClass;
+                try {
+                    loaderClass = Class.forName(names[0], false, app);
+                } catch (ClassNotFoundException e) {
+                    continue;
+                }
+                if (!ClassLoader.class.isAssignableFrom(loaderClass)) continue;
+                Object loader = loaderClass.getField(names[1]).get(null);
+                if (loader == null) break;
+                for (DexFile dex : (DexFile[]) loaderClass.getField(names[2]).get(loader)) {
                     if (dex != null && !dex.getName().endsWith(".apk")) paths.add(dex.getName());
                 }
+                break;
             }
         } catch (Throwable t) {
             Log.e(TAG, "Could not read the app's dex files", t);

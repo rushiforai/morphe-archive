@@ -78,7 +78,51 @@ support is not declared. The patches can be selected independently.
 Android 13+ provides live refraction. Older versions retain the native blur;
 that fallback has not been verified on a device.
 
-Build the bundle and run the spring tests with:
+### Library metadata repair
+
+`Repair Japanese library metadata` is a separate Apple Music 7.0.0 patch.
+It adds a settings entry that scans existing cloud library items, compares
+their exact catalog IDs with Japanese catalog data, and previews metadata
+changes before selected or bulk repair. Playlist-only items are excluded.
+The default view shows suspected romanization in titles, artists or albums;
+disabling its filter also shows candidates with differences in other fields.
+Candidates start unselected, and search includes current and proposed values.
+
+The repair updates existing cloud items through the app's authenticated DAAP
+transport. It does not remove or add library items. Before writing, it checks
+the account/library identity and the reviewed values; after writing, it reads
+the server values again. A stopped batch finishes verification of its current
+request and leaves subsequent items unprocessed. No credentials are extracted
+or stored by the extension.
+
+After cloud verification, the selected catalog item is refreshed in the native
+local library with cloud-library addition disabled. This keeps the Android
+library view consistent after metadata imports. On the tested sample, the
+existing persistent ID, added date and play count were preserved. A local
+refresh failure is reported separately from a verified cloud save.
+
+The field registry covers titles, artists, albums, album artists, composers,
+genres, their sort names, works, movements, grouping, comments, release year,
+track/disc numbers and counts, BPM, and movement numbers/counts. A field is
+offered only when the exact catalog item supplies a nonempty replacement.
+Rich catalog fields are used only when their names agree with the forced
+Japanese lookup. Missing data is not invented or used to clear existing
+values. Play counts, ratings, favorites, membership and asset identifiers are
+outside the writable registry. The transport uses private app APIs, so a new
+Apple Music version requires fresh compatibility and server verification.
+
+UI brief: review possible name changes, select songs, then verify the cloud
+save. Layout: a full-screen native page with fixed toolbar, search/filter and
+repair action; the candidate ListView owns the remaining vertical area.
+Expanded details stay inside that list; the confirmation page has one
+ScrollView. It reuses the app's SF fonts, native icons and semantic color
+resources in both themes. The normal scrollbar sits outside row controls;
+fast scrolling is disabled so its touch area cannot cover disclosure buttons.
+Text controls use small software layers to avoid disappearing cached text
+after list invalidations on the tested Android renderer; the list remains
+hardware accelerated.
+
+Build the bundle and run the tests with:
 
 ```sh
 ./scripts/gradle.sh :patches:test buildAndroid

@@ -30,6 +30,14 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Element
 import java.util.BitSet
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Android 11+ filters browser queries unless the host declares the intents it resolves. */
 internal val browserVisibilityPatch = resourcePatch {
@@ -84,8 +92,8 @@ internal data class LinkPlan(
 /** Every host shape and extension signature is checked before either patch writes bytecode. */
 internal fun BytecodePatchContext.resolveLinkHooks(): LinkPlan {
     val classes = linkedMapOf<String, ClassDef>()
-    classDefForEach { if (!it.type.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
-    fun mutable(method: Method) = mutableClassDefBy(method.definingClass).methods.single { it.same(method) }
+    classDefForEach { if (!it.origType.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
+    fun mutable(method: Method) = tgMutableClassDefBy(method.definingClass).methods.single { it.same(method) }
     // Each search reads only the methods of classes that might mention its anchors, in the app's
     // order, and checks them in full.
     fun methods(mentioning: Mention) = classDefsMentioning(mentioning).mapNotNull { classes[it.type] }.flatMap { it.methods.toList() }
@@ -93,9 +101,10 @@ internal fun BytecodePatchContext.resolveLinkHooks(): LinkPlan {
     val candidates = methods(Mention.allOf(anchors.map { Mention.string(it) }) and
         Mention.reference("$MC->isWebBrowserOpenInApp(Ljava/lang/String;)Z")).filter { method ->
         val parameters = method.parameterTypes.map { it.toString() }
-        AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && parameters.size == 10 &&
+        // 13.2 added a fourth trailing flag, which skips its own cleanup of the link's query.
+        AccessFlags.STATIC.isSet(method.accessFlags) && method.origReturnType == "V" && parameters.size in 10..11 &&
             parameters.take(5) == listOf(CONTEXT, URI, "Z", "Z", "Z") && parameters[5].startsWith("L") &&
-            parameters.drop(6) == listOf("Ljava/lang/String;", "Z", "Z", "Z") &&
+            parameters.drop(6) == listOf("Ljava/lang/String;") + List(parameters.size - 7) { "Z" } &&
             anchors.all { anchor -> method.instructions().any { it.string() == anchor } } &&
             method.instructions().any { it.ref() == "$MC->isWebBrowserOpenInApp(Ljava/lang/String;)Z" }
     }
@@ -103,7 +112,7 @@ internal fun BytecodePatchContext.resolveLinkHooks(): LinkPlan {
     val browser = mutable(candidates.single())
     val code = browser.instructions()
     val classification = code.indices.singleOrNull { index -> code[index].call()?.let {
-        it.definingClass == browser.definingClass && it.parameterTypes.map(CharSequence::toString) == listOf(URI, "Z", "[Z") && it.returnType == "Z"
+        it.origDefiningClass == browser.origDefiningClass && it.parameterTypes.map(CharSequence::toString) == listOf(URI, "Z", "[Z") && it.origReturnType == "Z"
     } == true } ?: fail("no unique native (Uri,boolean,boolean[]) classifier")
     val classifier = code[classification].call()!!
     val classifierBody = classes[classifier.definingClass]?.methods?.singleOrNull { it.same(classifier) }
@@ -117,35 +126,56 @@ internal fun BytecodePatchContext.resolveLinkHooks(): LinkPlan {
     val uriAlias = operands[0]
     val flags = operands[2]
     val internal = code[classification + 1].namedRegisters().single()
-    checkShape(listOf(uriAlias, flags, internal).all { it <= 15 }, "classification operands exceed invoke registers")
+    checkShape(listOf(uriAlias, flags).all { it <= 15 }, "classification operands exceed invoke registers")
+    // 13.2 keeps the classification's answer above v15, out of an invoke's reach, so each hook copies
+    // it into a free local first.
+    val carried = internal > 15
     val cleanAt = classification + 2
     val uriParameter = browser.parameterRegisterNumber(1)
     browser.requireParameterIntact("link URI", 1, listOf(classification))
-    checkShape(reachingWrites(browser, uriAlias, classification).singleOrNull()?.let { index ->
-        code[index].opcode in OBJECT_MOVES && code[index].namedRegisters() == listOf(uriAlias, uriParameter)
-    } == true, "classified URI isn't the original Uri parameter")
+    checkShape(holdsLinkUri(browser, uriAlias, classification, uriParameter), "classified URI isn't the original Uri parameter")
 
     val append = autologinAppend(code) ?: fail("autologin augmentation no longer has its unique builder call")
+    val built = code[append + 3].namedRegisters().singleOrNull()
+    // 13.2 copies the signed-in link back to the link's own register and falls through to the merge.
+    val copied = code[append + 4].opcode in OBJECT_MOVES && code[append + 4].namedRegisters()[1] == built
     checkShape(code[append + 2].ref() == "$URI_BUILDER->build()$URI" && code[append + 3].opcode == Opcode.MOVE_RESULT_OBJECT &&
-        code[append + 4].opcode in GOTOS, "autologin builder has no guarded merge")
+        (code[append + 4].opcode in GOTOS || copied), "autologin builder has no guarded merge")
     var routingAt = ControlFlow.of(browser).normal[append + 4].single()
+    // Web 13.2.0 jumps from that copy to the merge rather than falling through to it.
+    if (copied && code[routingAt].opcode in GOTOS) routingAt = ControlFlow.of(browser).normal[routingAt].single()
     // The other independently selectable patch may already have moved the merge label to its hook.
-    if (code.getOrNull(routingAt + 1)?.ref() == "$LINKS->tryOpenExternal($CONTEXT$URI" + "Z[ZLjava/lang/String;)Z") routingAt += 6
-    val routingUri = code[append + 3].namedRegisters().single()
+    val routingLength = if (carried) 7 else 6
+    if (code.getOrNull(routingAt + routingLength - 5)?.ref() == "$LINKS->tryOpenExternal($CONTEXT$URI" + "Z[ZLjava/lang/String;)Z") {
+        routingAt += routingLength
+    }
+    val routingUri = if (copied) code[append + 4].namedRegisters()[0] else built!!
     checkShape(routingAt > classification && code[routingAt].opcode == Opcode.IF_EQZ && routingUri <= 15,
         "browser-choice merge changed")
     checkShape(reachingWrites(browser, internal, routingAt) == setOf(classification + 1), "native classification was overwritten")
     val flagsWrite = reachingWrites(browser, flags, classification).singleOrNull() ?: fail("native flag array isn't uniquely initialized")
-    checkShape(code[flagsWrite].opcode == Opcode.NEW_ARRAY && code[flagsWrite].ref() == "[Z" &&
-        reachingWrites(browser, flags, routingAt) == setOf(flagsWrite), "native routing flags were overwritten")
+    // The array reaches the merge in its own register, or (web 13.2.0) in the one copy of it made on
+    // every path before its register is reused.
+    val routingFlags = (listOf(flags) + code.indices.filter { code[it].opcode in OBJECT_MOVES && code[it].namedRegisters()[1] == flags }
+        .map { code[it].namedRegisters()[0] }).distinct().filter { register ->
+        reachingWrites(browser, register, routingAt, required = false).let { writes ->
+            writes.isNotEmpty() && writes.all { write ->
+                if (register == flags) write == flagsWrite
+                else code[write].opcode in OBJECT_MOVES && code[write].namedRegisters() == listOf(register, flags) &&
+                    reachingWrites(browser, flags, write) == setOf(flagsWrite)
+            }
+        }
+    }.singleOrNull() ?: fail("native routing flags were overwritten")
+    checkShape(code[flagsWrite].opcode == Opcode.NEW_ARRAY && code[flagsWrite].ref() == "[Z" && routingFlags <= 15,
+        "native routing flags were overwritten")
     checkShape(reachingWrites(browser, code[flagsWrite].namedRegisters()[1], flagsWrite).all {
         (code[it] as? NarrowLiteralInstruction)?.narrowLiteral == 1
     } && reachingWrites(browser, operands[1], classification).all {
         (code[it] as? NarrowLiteralInstruction)?.narrowLiteral == 0
     }, "native classifier doesn't receive a one-element array and its stock false argument")
     val external = code.indices.singleOrNull { code[it].call()?.let { call ->
-        call.definingClass == browser.definingClass && call.parameterTypes.map(CharSequence::toString) ==
-            listOf(CONTEXT, "Ljava/lang/String;", "Z", "Ljava/lang/String;") && call.returnType == "Z"
+        call.origDefiningClass == browser.origDefiningClass && call.parameterTypes.map(CharSequence::toString) ==
+            listOf(CONTEXT, "Ljava/lang/String;", "Z", "Ljava/lang/String;") && call.origReturnType == "Z"
     } == true } ?: fail("no unique stock external-browser helper")
     val externalArgs = code[external].namedRegisters()
     val context = externalArgs[0]
@@ -156,17 +186,21 @@ internal fun BytecodePatchContext.resolveLinkHooks(): LinkPlan {
     checkShape(reachingWrites(browser, context, routingAt).singleOrNull()?.let { index ->
         code[index].opcode in OBJECT_MOVES && code[index].namedRegisters() == listOf(context, browser.parameterRegisterNumber(0))
     } == true, "browser context alias changed")
-    val scratch = browser.freeLocalsAt("external browser", routingAt, 1).single()
-    val routingCode = """
+    val routingLocals = browser.freeLocalsAt("external browser", routingAt, if (carried) 2 else 1)
+    val scratch = routingLocals[0]
+    val routingInternal = if (carried) routingLocals[1] else internal
+    val routingCode = (if (carried) "move/from16 v$routingInternal, v$internal\n" else "") + """
         move-object/from16 v$scratch, v$chosenPackage
-        invoke-static {v$context, v$routingUri, v$internal, v$flags, v$scratch}, $LINKS->tryOpenExternal($CONTEXT$URI""" + "Z[ZLjava/lang/String;)Z\n" + """
+        invoke-static {v$context, v$routingUri, v$routingInternal, v$routingFlags, v$scratch}, $LINKS->tryOpenExternal($CONTEXT$URI""" + "Z[ZLjava/lang/String;)Z\n" + """
         move-result v$scratch
         if-eqz v$scratch, :hush_stock_browser
         return-void
         :hush_stock_browser
         nop
     """
-    val cleanCode = "invoke-static {v$uriAlias, v$internal, v$flags}, $LINKS->cleanOpenedUri($URI" +
+    val cleanInternal = if (carried) browser.freeLocalsAt("opened-link cleaner", cleanAt, 1).single() else internal
+    val cleanCode = (if (carried) "move/from16 v$cleanInternal, v$internal\n" else "") +
+        "invoke-static {v$uriAlias, v$cleanInternal, v$flags}, $LINKS->cleanOpenedUri($URI" +
         "Z[Z)$URI\nmove-result-object v$uriAlias\nmove-object/16 v$uriParameter, v$uriAlias\nnop"
 
     val shares = methods(Mention.reference(TITLE) and Mention.string("android.intent.action.SEND")).filter { method ->
@@ -194,8 +228,8 @@ internal fun BytecodePatchContext.resolveLinkHooks(): LinkPlan {
             ShareSite(mutable(method), chooser, register)
         }
     }
-    checkShape(shares.any { it.method.definingClass == "Lorg/telegram/messenger/ShareBroadcastReceiver;" && it.method.name == "onReceive" &&
-        it.method.parameterTypes == listOf(CONTEXT, INTENT) }, "the kept Share Link broadcast receiver has no verified outgoing chooser")
+    checkShape(shares.any { it.method.origDefiningClass == "Lorg/telegram/messenger/ShareBroadcastReceiver;" && it.method.origName == "onReceive" &&
+        it.method.origParameterTypes == listOf(CONTEXT, INTENT) }, "the kept Share Link broadcast receiver has no verified outgoing chooser")
     return LinkPlan(browser, classifier, cleanAt, cleanCode, routingAt, routingCode, shares)
 }
 
@@ -225,7 +259,10 @@ internal fun resolveAutologinGate(plan: LinkPlan): AutologinGate {
     val flow = ControlFlow.of(browser)
     val skip = flow.normal[gate].filter { it != gate + 1 }.singleOrNull() ?: fail("autologin skip has no single target")
     val append = autologinAppend(code) ?: fail("autologin augmentation no longer has its unique builder call")
-    checkShape(append > gate && flow.normal[append + 4].singleOrNull() == skip, "autologin token doesn't rejoin where it's skipped")
+    // 13.2 copies the signed-in link back first, and web 13.2.0 then jumps to where the skip lands.
+    var rejoin = flow.normal.getOrNull(append + 4)?.singleOrNull()
+    if (rejoin != null && code[append + 4].opcode in OBJECT_MOVES && code[rejoin].opcode in GOTOS) rejoin = flow.normal[rejoin].singleOrNull()
+    checkShape(append > gate && rejoin == skip, "autologin token doesn't rejoin where it's skipped")
     val reads = code.indices.filter { code[it].ref() == "$MC->autologinToken:Ljava/lang/String;" }
     checkShape(reads.size == 1 && reads.single() in gate + 1 until append, "autologin token is read outside its branch")
     // Nothing reaches the append, or the token read, without passing the check.
@@ -248,11 +285,11 @@ private fun autologinAppend(code: List<Instruction>): Int? = code.indices.single
 }
 
 internal fun BytecodePatchContext.requireRuntime(name: String, parameters: List<String>, result: String) {
-    val owner = mutableClassDefBy(LINKS)
+    val owner = tgMutableClassDefBy(LINKS)
     // A static method's frame has to hold its parameters, and a body of only payloads never runs.
     val parameterWords = parameters.sumOf { if (it == "J" || it == "D") 2 else 1 }
     checkShape(AccessFlags.PUBLIC.isSet(owner.accessFlags) && owner.methods.count {
-        it.name == name && it.parameterTypes.map(CharSequence::toString) == parameters && it.returnType == result &&
+        it.origName == name && it.parameterTypes.map(CharSequence::toString) == parameters && it.origReturnType == result &&
             AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
             !AccessFlags.NATIVE.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
             it.implementation?.let { body -> body.registerCount >= parameterWords &&
@@ -261,16 +298,16 @@ internal fun BytecodePatchContext.requireRuntime(name: String, parameters: List<
 }
 
 internal fun BytecodePatchContext.writeProtection(plan: LinkPlan) {
-    val stub = mutableClassDefBy(LINKS).methods.singleOrNull { it.name == "protectedByTelegram" &&
-        it.parameterTypes == listOf(URI) && it.returnType == "Z" && AccessFlags.STATIC.isSet(it.accessFlags) }
+    val stub = tgMutableClassDefBy(LINKS).methods.singleOrNull { it.origName == "protectedByTelegram" &&
+        it.origParameterTypes == listOf(URI) && it.origReturnType == "Z" && AccessFlags.STATIC.isSet(it.accessFlags) }
     checkShape(stub != null, "no native-protection stub")
     for ((owner, name, type) in listOf(Triple(MC, "authDomains", "Ljava/util/Set;"),
         Triple(MC, "autologinDomains", "Ljava/util/Set;"), Triple(UC, "selectedAccount", "I"))) {
-        val field = classDefByOrNull(owner)?.fields?.singleOrNull { it.name == name && it.type == type }
+        val field = tgClassDefByOrNull(owner)?.fields?.singleOrNull { it.origName == name && it.origType == type }
         checkShape(field != null && AccessFlags.PUBLIC.isSet(field.accessFlags) &&
             AccessFlags.STATIC.isSet(field.accessFlags) == (owner == UC), "kept protection field $owner->$name is inaccessible")
     }
-    val getter = classDefByOrNull(MC)?.methods?.singleOrNull { it.name == "getInstance" && it.parameterTypes == listOf("I") && it.returnType == MC }
+    val getter = tgClassDefByOrNull(MC)?.methods?.singleOrNull { it.origName == "getInstance" && it.origParameterTypes == listOf("I") && it.origReturnType == MC }
     checkShape(getter != null && AccessFlags.PUBLIC.isSet(getter.accessFlags) && AccessFlags.STATIC.isSet(getter.accessFlags), "account controller getter changed")
     writeStub(LINKS, "protectedByTelegram", 7, """
         const/4 v0, 0x1
@@ -304,8 +341,11 @@ internal fun BytecodePatchContext.writeProtection(plan: LinkPlan) {
     """)
 }
 
-/** Definitions reaching a read, including branch and handler predecessors, before a write kills them. */
-private fun reachingWrites(method: Method, register: Int, at: Int): Set<Int> {
+/**
+ * Definitions reaching a read, including branch and handler predecessors, before a write kills them.
+ * Unless [required], a register nothing defines answers no definitions rather than refusing.
+ */
+private fun reachingWrites(method: Method, register: Int, at: Int, required: Boolean = true): Set<Int> {
     val flow = ControlFlow.of(method)
     val predecessors = Array(flow.instructions.size) { mutableSetOf<Int>() }
     for (index in flow.instructions.indices) for (next in flow.normal[index] + flow.exceptional[index]) predecessors[next] += index
@@ -320,14 +360,42 @@ private fun reachingWrites(method: Method, register: Int, at: Int): Set<Int> {
         if (instruction.opcode.setsRegister() && (instruction as? OneRegisterInstruction)?.registerA == register) writes += index
         else pending.addAll(predecessors[index])
     }
-    checkShape(writes.isNotEmpty(), "v$register has no provable definition before instruction $at")
+    checkShape(!required || writes.isNotEmpty(), "v$register has no provable definition before instruction $at")
     return writes
+}
+
+/**
+ * Whether [register] holds the link at [at] on every path: a copy of [parameter], or (since 13.2)
+ * Telegram's own rebuild of it through [parameter]'s buildUpon(), which drops tracking from the
+ * query and fragment. The parameter is checked intact up to the classification, which every read
+ * here reaches.
+ */
+private fun holdsLinkUri(method: Method, register: Int, at: Int, parameter: Int, depth: Int = 0): Boolean {
+    if (depth > 4) return false
+    val code = method.instructions()
+    val firstParameter = method.parameterRegisterNumber(0)
+    return reachingWrites(method, register, at).all { write ->
+        val instruction = code[write]
+        val source = instruction.namedRegisters().getOrNull(1)
+        when {
+            instruction.opcode in OBJECT_MOVES && source != null ->
+                if (source >= firstParameter) source == parameter else holdsLinkUri(method, source, write, parameter, depth + 1)
+            instruction.opcode == Opcode.MOVE_RESULT_OBJECT && write > 0 && code[write - 1].ref() == "$URI_BUILDER->build()$URI" -> {
+                val builder = code[write - 1].namedRegisters().single()
+                builder < firstParameter && reachingWrites(method, builder, write - 1).all { start ->
+                    code[start].opcode == Opcode.MOVE_RESULT_OBJECT && start > 0 &&
+                        code[start - 1].ref() == "$URI->buildUpon()$URI_BUILDER" && code[start - 1].namedRegisters() == listOf(parameter)
+                }
+            }
+            else -> false
+        }
+    }
 }
 
 private val OBJECT_MOVES = setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)
 private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-private fun Instruction.ref() = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.ref() = origRef()
 private fun Instruction.string() = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
 private fun Method.same(other: MethodReference) = name == other.name && parameterTypes == other.parameterTypes && returnType == other.returnType
 internal fun checkShape(ok: Boolean, reason: String) { if (!ok) fail(reason) }

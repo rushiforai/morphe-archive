@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.commerce
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
@@ -20,6 +20,10 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import app.morphe.util.names.origName
+import app.morphe.util.names.origSuperclass
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val APP_ICONS = "$EXTENSION_PACKAGE/misc/AppIcons;"
 internal const val ICON_PREMIUM = "$APP_ICONS->premium(I)Z"
@@ -63,17 +67,17 @@ internal fun BytecodePatchContext.resolvePremiumIcons(): PremiumIconsPlan {
     fun missing(why: String) = PremiumIconsPlan("", emptyList(), why)
 
     val icons = classDefsMentioning(Mention.string(ICON_KEYS.first())).filter { classDef ->
-        classDef.superclass == "Ljava/lang/Enum;" && classDef.methods.any { method ->
-            method.name == "<clinit>" && ICON_KEYS.all { key -> method.controlBody().any { it.controlString() == key } }
+        classDef.origSuperclass == "Ljava/lang/Enum;" && classDef.methods.any { method ->
+            method.origName == "<clinit>" && ICON_KEYS.all { key -> method.controlBody().any { it.controlString() == key } }
         }
     }.singleOrNull() ?: return missing("the App Icon list's icons are no longer one enum")
-    val premium = icons.fields.singleOrNull { it.type == "Z" && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    val premium = icons.fields.singleOrNull { it.origType == "Z" && !AccessFlags.STATIC.isSet(it.accessFlags) }
         ?: return missing("the App Icon list's icons no longer carry one Premium flag")
     val flag = "${icons.type}->${premium.name}:Z"
 
     val readers = classDefsMentioning(Mention.reference(flag)).filter { classDef ->
         classDef.methods.any { it.weighsPremium(flag) }
-    }.flatMap { classDef -> mutableClassDefBy(classDef).methods.filter { it.weighsPremium(flag) } }
+    }.flatMap { classDef -> tgMutableClassDefBy(classDef).methods.filter { it.weighsPremium(flag) } }
     if (readers.none { method -> method.controlBody().any { it.controlRef() == PREMIUM_ON_ACCOUNTS } }) {
         return missing("the App Icon list no longer checks for Premium")
     }

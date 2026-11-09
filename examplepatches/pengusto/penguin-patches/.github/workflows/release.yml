@@ -142,6 +142,6 @@ jobs:
           ./gradlew :patches:generatePatchesListFromBundle --no-daemon \
             -PpatchListBundle="patches/build/libs/patches-combined-$version.mpp" \
             -PpatchListOutput="$RUNNER_TEMP/compact-patches-list.json"
-          jq -e '[.patches[] | select(any(.compatiblePackages[]?; .packageName == "com.unicornsonlsd.finamp"))] | length == 1 and .[0].name == "Finamp complete: all eight fixes"' "$RUNNER_TEMP/compact-patches-list.json" > /dev/null
+          python3 -B .github/scripts/finamp_catalogue.py --metadata "$RUNNER_TEMP/compact-patches-list.json"
           python3 -B -m unittest discover -s .github/scripts -p 'test_*.py' -q
           python3 -B -m unittest discover -s tests/mihon -p 'test_*.py' -q

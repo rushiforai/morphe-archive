@@ -1,15 +1,18 @@
 # 🐈‍⬛ Shuhaib's Patches
 [![build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com)
 [![License](https://img.shields.io/badge/License-GPL_v3-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
-[![GitHub All Releases](https://img.shields.io/github/downloads/shuhaibnc/morphe-patches/total)](https://github.com/mich111discordMightyMichs-Patches/releases)
+[![GitHub All Releases](https://img.shields.io/github/downloads/shuhaibnc/morphe-patches/total)](https://github.com/shuhaibnc/morphe-patches/releases)
 
-<b>Patches for apps I like.</b>
+<a href="https://www.buymeacoffee.com/shuhaibnc">
+    <img src=".github/assets/donate.svg" alt="Buy a fish for my cat" height="48">
+</a>
+
+<b>Patches for apps you like.</b>
 
 ## Add Patch to Morphe Manager
-
-Click here to add these patches to Morphe:<br><br>
-<a href="https://morphe.software/add-source?github=ShuhaibNC/morphe-patches">
-<img src="button.svg" alt="Add Patch Button" width="120"/></a>
+   <a href="https://morphe.software/add-source?github=ShuhaibNC/morphe-patches">
+     <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe Manager" height="48">
+   </a>
 
 ## Request Patches
 
@@ -32,7 +35,7 @@ A collection of patches that I think would be useful to add, based on features, 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.17.0](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.17.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;32 patches total
+> **[v1.17.1](https://github.com/ShuhaibNC/morphe-patches/releases/tag/v1.17.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;32 patches total
 
 <details open>
 <summary>📦 Where is my Train&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>

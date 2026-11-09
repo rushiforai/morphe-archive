@@ -1,0 +1,39 @@
+# SPDX-FileCopyrightText: 2026 JoanComasFdz
+# SPDX-License-Identifier: GPL-3.0-only
+# The NAS's e2e runner (README.md here). Same file in both BaconReader repos. Its settings come from .env next to this
+# file, which is never committed (.env.example).
+name: baconreader-e2e-runner
+
+services:
+  runner:
+    build: .
+    image: baconreader-e2e-runner
+    init: true
+    restart: unless-stopped
+    # Time for each runner to sign out of GitHub on docker stop (runner.sh), instead of Docker's 10 s.
+    stop_grace_period: 60s
+    mem_limit: ${E2E_RUNNER_MEMORY:-3g}
+    cap_drop: [ALL]
+    # Docker's default seccomp profile, plus fchmodat2 answering ENOSYS: the NAS's kernel answers it with EFAULT, which
+    # breaks tar (the runner's self-update) in this image (README.md).
+    security_opt: ["no-new-privileges:true", "seccomp=./seccomp.json"]
+    environment:
+      # The phone stack's container that holds the phone's USB: adb on :7555, the waker on :8080.
+      E2E_PHONE_LAN: android-phone
+      E2E_ADB_KEY_FILE: /run/e2e/adb-key/E2E_ADB_KEY.b64
+      E2E_ARTIFACTS_DIR: /run/e2e/artifacts
+    volumes:
+      - state:/home/runner/state
+      # The adb key the phone approved for the cloud sessions, and the clean APK the device host serves as /files/.
+      - ${PHONE_STACK:?set PHONE_STACK in .env}/phone/cloud-key:/run/e2e/adb-key:ro
+      - ${PHONE_ARTIFACTS:?set PHONE_ARTIFACTS in .env}:/run/e2e/artifacts:ro
+    # default: the internet (GitHub, package downloads); phone: the phone stack's network, to reach android-phone.
+    networks: [default, phone]
+
+volumes:
+  state:
+
+networks:
+  phone:
+    external: true
+    name: ${PHONE_NETWORK:-android-emulator_default}

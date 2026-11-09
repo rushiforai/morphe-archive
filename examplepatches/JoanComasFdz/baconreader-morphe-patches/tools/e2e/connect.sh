@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2026 JoanComasFdz
 # SPDX-License-Identifier: GPL-3.0-only
 # Per-session connection to the test device from a Claude Code cloud session (patcher-specific-build.md, "Cloud
-# sessions"): a phone on the device host's USB.
+# sessions"), or from the NAS's runner (tools/e2e/nas/README.md): a phone on the device host's USB.
 #   source tools/e2e/connect.sh -> joins the tailnet, fetches and verifies the clean base APK into .e2e/, wakes Android,
 #                                  forwards ADB, starts Appium here in the session (the session-start hook installs
 #                                  it; the device host runs none), takes the device lease, exports
@@ -12,6 +12,11 @@
 # the tailnet), E2E_APK_CHECKSUM (the sha256 of the clean BaconReader Premium 6.1.4 APK the device host serves) and
 # E2E_ADB_KEY: the phone answers only adb keys it approved, and this is the one private key it approved for every cloud
 # session (base64 of the adbkey file), used instead of the session's own.
+# On the NAS's local network (E2E_PHONE_LAN set: the name of the container that holds the phone's USB, android-phone)
+# it joins no tailnet and downloads nothing: adb connects to E2E_PHONE_LAN:7555, the wake and status calls go to
+# http://E2E_PHONE_LAN:8080, the clean APK is the one in E2E_ARTIFACTS_DIR (the folder the device host serves, mounted),
+# checked against its SHA256SUMS, and only E2E_ADB_KEY is needed. E2E_LEASE_ID names the lease's holder instead of the
+# session's random id. It returns 3 when another session holds the lease, 1 on any other failure.
 # Local ports 15555 (ADB, forwarded to the device host) and 14723 (the session's Appium): 5555 would make adb's
 # emulator auto-scan show a phantom emulator-5554. Uses the tailnet name, never a 100.x IP: NO_PROXY contains
 # 100.64.0.0/10, so curl would bypass the tailnet. `tailscale nc` exits 0 even when nothing answers: check for bytes
@@ -19,18 +24,20 @@
 SOCK=/tmp/ts.sock
 TS="tailscale --socket=$SOCK"
 CURL="curl -fsS --noproxy '' -x http://127.0.0.1:1055 -m 30"
-SERIAL=127.0.0.1:15555
+LAN=${E2E_PHONE_LAN:-}
+if [ -n "$LAN" ]; then SERIAL=$LAN:7555; else SERIAL=127.0.0.1:15555; fi
 LEASE_MINUTES=${LEASE_MINUTES:-30}
 # Lease holder: one random id per session ($HOSTNAME is "vm" in every cloud container).
 ID_FILE=/tmp/e2e-session-id
 [ -s "$ID_FILE" ] || head -c 6 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$ID_FILE"
-SESSION_ID=$(cat "$ID_FILE")
+SESSION_ID=${E2E_LEASE_ID:-$(cat "$ID_FILE")}
 # The repository's root, whatever folder this is sourced from.
 REPO=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/../.." && pwd)
+LEASE="$REPO/tools/e2e/lease.sh"
 
 if [ "${1:-}" = "--down" ]; then
   # only our own lease; say what happened, the lease can't be checked once adb is disconnected
-  case "$(adb -s "$SERIAL" shell "if grep -q '^$SESSION_ID ' /data/local/tmp/e2e-lease 2>/dev/null; then rm -f /data/local/tmp/e2e-lease && echo released; elif [ -s /data/local/tmp/e2e-lease ]; then echo other; else echo none; fi" 2>/dev/null | tr -d '\r')" in
+  case "$("$LEASE" release "$SERIAL" "$SESSION_ID" 2>/dev/null)" in
     released) echo "lease released" ;;
     other)    echo "lease belongs to another session, left in place" ;;
     none)     echo "no lease on the device" ;;
@@ -39,6 +46,11 @@ if [ "${1:-}" = "--down" ]; then
   adb disconnect "$SERIAL" >/dev/null 2>&1
   adb kill-server >/dev/null 2>&1
   pkill -f "^socat TCP-LISTEN:15555" ; pkill -f "appium/node_modules/.bin/appium --address 127.0.0.1 --port 14723"
+  if [ -n "$LAN" ]; then
+    for _ in $(seq 1 20); do pgrep -f "appium --address 127.0.0.1 --port 14723" >/dev/null || break; sleep 0.5; done
+    if pgrep -f "appium --address 127.0.0.1 --port 14723" >/dev/null; then echo "disconnected, but still running: appium"; else echo "disconnected"; fi
+    return 0 2>/dev/null || exit 0
+  fi
   if $TS logout >/dev/null 2>&1; then echo "logged out of the tailnet"; else echo "not logged in to the tailnet"; fi
   pkill -x tailscaled
   # wait (max 10 s) until they are gone, so a check right after --down sees nothing left
@@ -60,13 +72,26 @@ elif [ "${BASH_SUBSHELL:-0}" -gt 0 ]; then
 fi
 
 H=${E2E_DEVICE_HOST:-}
-[ -n "$H" ] || { echo "E2E_DEVICE_HOST is not set (the device host's name on the tailnet): add it to the environment's variables"; return 1 2>/dev/null || exit 1; }
+[ -n "$H$LAN" ] || { echo "E2E_DEVICE_HOST is not set (the device host's name on the tailnet): add it to the environment's variables"; return 1 2>/dev/null || exit 1; }
 [ -n "${E2E_ADB_KEY:-}" ] || { echo "E2E_ADB_KEY is not set (the adb key the phone approved): add it to the environment's variables"; return 1 2>/dev/null || exit 1; }
 SUM=${E2E_APK_CHECKSUM:-}
+if [ -z "$LAN" ]; then
 [ -n "$SUM" ] || { echo "E2E_APK_CHECKSUM is not set (the sha256 of the clean base APK): add it to the environment's variables"; return 1 2>/dev/null || exit 1; }
 [ -n "${TS_AUTHKEY_CLOUD:-}" ] || { echo "TS_AUTHKEY_CLOUD is not set: add it to the environment's variables"; return 1 2>/dev/null || exit 1; }
+fi
 
-if ! $TS status >/dev/null 2>&1; then
+if [ -n "$LAN" ]; then
+  # The device host's folder, mounted: its one clean APK, checked against the SHA256SUMS next to it.
+  ARTIFACTS=${E2E_ARTIFACTS_DIR:-}
+  apks=$(find "$ARTIFACTS" -maxdepth 1 -name 'com.onelouder.baconreader.premium-6.1.4-clean-base-*.apk' 2>/dev/null)
+  if [ -z "$ARTIFACTS" ] || [ "$(grep -c . <<< "$apks")" -ne 1 ]; then
+    echo "E2E_ARTIFACTS_DIR must be a folder with one clean base APK: ${ARTIFACTS:-not set}"; return 1 2>/dev/null || exit 1
+  fi
+  (cd "$ARTIFACTS" && grep -F " $(basename "$apks")" SHA256SUMS | sha256sum -c --quiet --status) ||
+    { echo "base APK $(basename "$apks"): sha256 check against $ARTIFACTS/SHA256SUMS failed"; return 1 2>/dev/null || exit 1; }
+  CURL="curl -fsS --noproxy '*' -m 30"
+  WAKER=http://$LAN:8080
+elif ! $TS status >/dev/null 2>&1; then
   setsid -f tailscaled --tun=userspace-networking --state=mem: --socket=$SOCK \
     --outbound-http-proxy-listen=127.0.0.1:1055 </dev/null >/tmp/tailscaled.log 2>&1
   sleep 1
@@ -75,6 +100,8 @@ fi
 
 # The clean base APK from the emulator host's read-only /files/, verified against E2E_APK_CHECKSUM, kept for the
 # session. Its file name ends with the checksum's first 8 characters.
+if [ -z "$LAN" ]; then
+WAKER=https://$H
 ARTIFACTS=$REPO/.e2e
 APK=com.onelouder.baconreader.premium-6.1.4-clean-base-${SUM:0:8}.apk
 mkdir -p "$ARTIFACTS"
@@ -83,10 +110,11 @@ if ! { [ -f "$ARTIFACTS/$APK" ] && echo "$SUM  $ARTIFACTS/$APK" | sha256sum -c -
     echo "$SUM  $ARTIFACTS/$APK.part" | sha256sum -c --quiet && mv "$ARTIFACTS/$APK.part" "$ARTIFACTS/$APK" ||
     { rm -f "$ARTIFACTS/$APK.part"; echo "base APK $APK: download or sha256 check failed"; }
 fi
+fi
 
-echo "wake: $(eval $CURL -m 120 https://$H/wake)"   # answers at once; 120 s is a safety margin
+echo "wake: $(eval $CURL -m 120 $WAKER/wake)"   # answers at once; 120 s is a safety margin
 for i in $(seq 1 60); do
-  st=$(eval $CURL https://$H/status)
+  st=$(eval $CURL $WAKER/status)
   case "$st" in ready) break ;; failed*) echo "$st"; return 1 2>/dev/null || exit 1 ;; esac
   sleep 5
 done
@@ -94,7 +122,7 @@ echo "android: $st"
 
 # setsid -f: fully detached daemons, no shell job holding the caller's stdout. With `cmd || socat … &`
 # bash backgrounds the whole list as a subshell that keeps the pipe of `source connect.sh | tee` open.
-pgrep -f "^socat TCP-LISTEN:15555" >/dev/null ||
+[ -n "$LAN" ] || pgrep -f "^socat TCP-LISTEN:15555" >/dev/null ||
   setsid -f socat TCP-LISTEN:15555,bind=127.0.0.1,fork,reuseaddr EXEC:"$TS nc $H 5555" </dev/null >/dev/null 2>&1
 sleep 1
 # The cloud sessions' one adb key, before adb's server reads it: a server already running with another key starts again.
@@ -116,13 +144,14 @@ if [ "$state" != device ]; then
   return 1 2>/dev/null || exit 1
 fi
 
-holder=$(adb -s "$SERIAL" shell cat /data/local/tmp/e2e-lease 2>/dev/null)
-if [ -n "$holder" ] && [ "${holder##* }" -gt "$(date +%s)" ] && [ "${holder%% *}" != "$SESSION_ID" ]; then
-  echo "device leased by another session: $holder"
-  echo "(tunnel and forwards stay up; wait and re-run, or clean up with: tools/e2e/connect.sh --down)"
-  return 1 2>/dev/null || exit 1
-fi
-adb -s "$SERIAL" shell "echo $SESSION_ID $(( $(date +%s) + LEASE_MINUTES * 60 )) > /data/local/tmp/e2e-lease"
+leased=$("$LEASE" take "$SERIAL" "$SESSION_ID" "$LEASE_MINUTES")
+case $? in
+  0) ;;
+  3) echo "device $leased"
+     echo "(tunnel and forwards stay up; wait and re-run, or clean up with: tools/e2e/connect.sh --down)"
+     return 3 2>/dev/null || exit 3 ;;
+  *) echo "$leased"; return 1 2>/dev/null || exit 1 ;;
+esac
 
 # Appium runs here, in the session, and drives the device over adb (its UiAutomator2 server on the device is reached
 # through an adb forward). It finds adb in $ANDROID_HOME/platform-tools (the hook links it there).

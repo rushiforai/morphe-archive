@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.contactsblock
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -30,6 +30,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val CONTACTS_BLOCK = "$EXTENSION_PACKAGE/misc/ContactsBlock;"
 internal const val TELEGRAM_CONTACTS = "Lorg/telegram/messenger/ContactsController;->contacts:Ljava/util/ArrayList;"
@@ -86,7 +90,7 @@ internal fun BytecodePatchContext.resolveContactsBlock(): List<ContactsBlockMeth
 
     val builders = mutableListOf<Method>()
     forEachClassMentioning(Mention.reference(FOLDERS_DIALOG_COUNT) and Mention.reference(TELEGRAM_CONTACTS)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.filterTo(builders) { method -> method.controlBody().let { body ->
             body.any { it.controlRef() == FOLDERS_DIALOG_COUNT } && body.any { it.controlRef() == TELEGRAM_CONTACTS }
         } }
@@ -100,8 +104,8 @@ internal fun BytecodePatchContext.resolveContactsBlock(): List<ContactsBlockMeth
         .controlSingle("contacts copy")
     val store = body.getOrNull(copy + 1)
     val rowsField = store?.controlField()
-    controlShape(store?.opcode == Opcode.IPUT_OBJECT && rowsField != null && rowsField.definingClass == adapter &&
-        rowsField.type == "Ljava/util/ArrayList;" && body[copy].namedRegisters().let { args ->
+    controlShape(store?.opcode == Opcode.IPUT_OBJECT && rowsField != null && rowsField.origDefiningClass == adapter &&
+        rowsField.origType == "Ljava/util/ArrayList;" && body[copy].namedRegisters().let { args ->
             args.size == 2 && args[1] == (body[copy - 1] as OneRegisterInstruction).registerA && args[0] == store.namedRegisters().first()
         }, "the contacts copy no longer goes straight into the adapter")
 
@@ -109,8 +113,8 @@ internal fun BytecodePatchContext.resolveContactsBlock(): List<ContactsBlockMeth
     val count = body.indices.filter { body[it].controlRef() == FOLDERS_DIALOG_COUNT }.controlSingle("folder dialog count")
     val gate = body.getOrNull(count - 2)
     val updatingField = gate?.controlField()
-    controlShape(gate?.opcode == Opcode.IGET_BOOLEAN && updatingField != null && updatingField.definingClass == adapter &&
-        updatingField.type == "Z" && body[count - 1].opcode == Opcode.IF_NEZ &&
+    controlShape(gate?.opcode == Opcode.IGET_BOOLEAN && updatingField != null && updatingField.origDefiningClass == adapter &&
+        updatingField.origType == "Z" && body[count - 1].opcode == Opcode.IF_NEZ &&
         body[count - 1].namedRegisters() == listOf((gate as OneRegisterInstruction).registerA),
         "the contacts sync gate changed")
 
@@ -120,7 +124,7 @@ internal fun BytecodePatchContext.resolveContactsBlock(): List<ContactsBlockMeth
     // Sorting is the one other method that may test the copy: it leaves presentation alone.
     val sorters = rowReads.keys.filter { method -> method.controlBody().any { it.controlRef() == LIST_SORT } }
     val sorter = sorters.controlSingle("contacts sort")
-    controlShape(sorter.definingClass == adapter && sorter.returnType == "V", "the contacts sort moved")
+    controlShape(sorter.origDefiningClass == adapter && sorter.origReturnType == "V", "the contacts sort moved")
 
     val presentation = mutableMapOf<Method, MutableList<ContactsBlockRead>>()
     for ((method, reads) in rowReads) {
@@ -154,7 +158,7 @@ internal fun BytecodePatchContext.resolveContactsBlock(): List<ContactsBlockMeth
     controlShape(placeholders == 3, "contacts loading rows readers changed ($placeholders found)")
 
     return presentation.map { (method, reads) ->
-        val mutable = mutableClassDefBy(method.definingClass).methods.filter { it.toString() == method.toString() }
+        val mutable = tgMutableClassDefBy(method.definingClass).methods.filter { it.toString() == method.toString() }
             .controlSingle("contacts reader ${method.name}")
         val flow = ControlFlow.of(mutable)
         reads.forEach { read ->
@@ -169,7 +173,7 @@ private fun BytecodePatchContext.fieldReads(field: FieldReference, opcode: Opcod
     val found = linkedMapOf<Method, List<Int>>()
     val key = field.toString()
     forEachClassMentioning(Mention.reference(key)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { method ->
             val body = method.controlBody()
             val reads = body.indices.filter { body[it].controlRef() == key && body[it].opcode in FIELD_READS }

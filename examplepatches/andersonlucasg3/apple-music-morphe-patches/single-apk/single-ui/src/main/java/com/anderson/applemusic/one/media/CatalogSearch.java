@@ -508,7 +508,7 @@ public final class CatalogSearch {
         return entry == null ? "" : entry.optString("id");
     }
 
-    private ArtistDetail artistDetail(String body, String fallbackId) throws Exception {
+    static ArtistDetail artistDetail(String body, String fallbackId) throws Exception {
         JSONObject item = firstData(body);
         if (item == null) return null;
         JSONObject attributes = attributes(item);
@@ -534,7 +534,7 @@ public final class CatalogSearch {
                 genres, albums);
     }
 
-    private AlbumDetail albumDetail(String body, String fallbackId) throws Exception {
+    static AlbumDetail albumDetail(String body, String fallbackId) throws Exception {
         JSONObject item = firstData(body);
         if (item == null) return null;
         JSONObject attributes = attributes(item);
@@ -556,7 +556,7 @@ public final class CatalogSearch {
                 trackCount, strings(attributes.optJSONArray("genreNames")), tracks);
     }
 
-    private SongDetail songDetail(String body, String fallbackId) throws Exception {
+    static SongDetail songDetail(String body, String fallbackId) throws Exception {
         JSONObject item = firstData(body);
         if (item == null) return null;
         JSONObject attributes = attributes(item);
@@ -573,7 +573,7 @@ public final class CatalogSearch {
                 attributes.optLong("durationInMillis"));
     }
 
-    private PlaylistDetail playlistDetail(String body, String fallbackId) throws Exception {
+    static PlaylistDetail playlistDetail(String body, String fallbackId) throws Exception {
         JSONObject item = firstData(body);
         if (item == null) return null;
         JSONObject attributes = attributes(item);
@@ -647,21 +647,21 @@ public final class CatalogSearch {
      * {@code 6-<persistentId>}): the best catalogue artist with that exact name.
      */
     public void findArtist(final String name, final MatchCallback callback) {
-        match("artists", clean(name), name, "", "Artista não encontrado no catálogo",
-                callback);
+        match("artists", CatalogResolver.clean(name), name, "",
+                "Artista não encontrado no catálogo", callback);
     }
 
     /** Resolves the catalogue album id for a library album title+artist. */
     public void findAlbumMatch(final String title, final String artist,
                                final MatchCallback callback) {
-        match("albums", clean(title + " " + artist), title, artist,
+        match("albums", CatalogResolver.clean(title + " " + artist), title, artist,
                 "Álbum não encontrado no catálogo", callback);
     }
 
     /** Resolves the catalogue playlist id for a library playlist title+curator. */
     public void findPlaylistMatch(final String title, final String curator,
                                   final MatchCallback callback) {
-        match("playlists", clean(title + " " + curator), title, curator,
+        match("playlists", CatalogResolver.clean(title + " " + curator), title, curator,
                 "Playlist não encontrada no catálogo", callback);
     }
 
@@ -706,13 +706,19 @@ public final class CatalogSearch {
                 new JsonParser<List<Result>>() {
                     @Override
                     public List<Result> parse(String body) {
-                        return CatalogSearch.this.parse(body);
+                        return CatalogSearch.parse(body);
                     }
                 }, new Waiter<List<Result>>() {
                     @Override
                     public void deliver(List<Result> results) {
-                        Result match = pick(results, title, artist);
+                        Result match = CatalogResolver.pick(results, title, artist);
                         if (match == null) {
+                            Log.w(TAG, "no catalogue match for \"" + title + "\" / \""
+                                    + artist + "\" among " + results.size() + " result(s)");
+                            for (int i = 0; i < Math.min(5, results.size()); i++) {
+                                Log.w(TAG, "  candidate \"" + results.get(i).title + "\" / \""
+                                        + results.get(i).artist + "\"");
+                            }
                             callback.onFailure(miss);
                             return;
                         }
@@ -768,7 +774,7 @@ public final class CatalogSearch {
         return result;
     }
 
-    private List<Result> parse(String body) {
+    static List<Result> parse(String body) {
         List<Result> found = new ArrayList<Result>();
         JSONObject results;
         try {
@@ -907,7 +913,7 @@ public final class CatalogSearch {
     }
 
     /** Reads {@code data[0].relationships.<relationship>.data} into a {@link Collection}. */
-    private Collection collection(String body, String relationship, String fallbackId)
+    static Collection collection(String body, String relationship, String fallbackId)
             throws Exception {
         JSONObject root = new JSONObject(body);
         JSONArray data = root.optJSONArray("data");
@@ -940,75 +946,6 @@ public final class CatalogSearch {
         }
         return new Collection(id, attributes.optString("name"),
                 attributes.optString("artistName"), items);
-    }
-
-    /**
-     * Best catalogue match for a browse item: same title (case/spacing insensitive) and,
-     * when the browse item carries an artist, the same artist. Library titles often add a
-     * " - Single"/" - EP" suffix or a "(Deluxe Version)"/"(Remastered)" qualifier the
-     * catalogue name does not carry, so those are compared base-to-base before giving up.
-     * Returns null instead of guessing, so the UI degrades to "play the whole collection"
-     * rather than showing the tracks of a different album.
-     */
-    private static Result pick(List<Result> items, String title, String artist) {
-        String want = normalize(title);
-        String wantBase = stripQualifiers(want);
-        String who = clean(artist).toLowerCase(Locale.ROOT);
-        Result base = null;
-        for (Result item : items) {
-            String itemTitle = normalize(item.title);
-            boolean sameArtist = who.length() == 0
-                    || clean(item.artist).toLowerCase(Locale.ROOT).equals(who);
-            if (itemTitle.equals(want) && sameArtist) return item;
-            if (base == null && sameArtist
-                    && stripQualifiers(itemTitle).equals(wantBase)) {
-                base = item;
-            }
-        }
-        if (base != null) return base;
-        for (Result item : items) {
-            if (normalize(item.title).equals(want)) return item;
-        }
-        for (Result item : items) {
-            if (stripQualifiers(normalize(item.title)).equals(wantBase)) return item;
-        }
-        Log.w(TAG, "no catalogue match for \"" + title + "\" / \"" + artist + "\" among "
-                + items.size() + " result(s)");
-        for (int i = 0; i < Math.min(5, items.size()); i++) {
-            Log.w(TAG, "  candidate \"" + items.get(i).title + "\" / \"" + items.get(i).artist
-                    + "\"");
-        }
-        return null;
-    }
-
-    private static String clean(String value) {
-        return value == null ? "" : value.replaceAll("\\s+", " ").trim();
-    }
-
-    /**
-     * The library titles singles/EPs with a " - Single"/" - EP" suffix the catalogue name
-     * does not carry; strip it before comparing so "A Capella - Single" matches "A Capella".
-     */
-    private static String normalize(String value) {
-        String text = clean(value).toLowerCase(Locale.ROOT);
-        if (text.endsWith(" - single")) {
-            text = text.substring(0, text.length() - " - single".length()).trim();
-        } else if (text.endsWith(" - ep")) {
-            text = text.substring(0, text.length() - " - ep".length()).trim();
-        }
-        return text;
-    }
-
-    /** Drops trailing "(Deluxe Version)"/"[Remastered]"-style qualifiers. */
-    private static String stripQualifiers(String value) {
-        String text = value == null ? "" : value.trim();
-        while (true) {
-            int end = -1;
-            if (text.endsWith(")")) end = text.lastIndexOf('(');
-            else if (text.endsWith("]")) end = text.lastIndexOf('[');
-            if (end <= 0) return text;
-            text = text.substring(0, end).trim();
-        }
     }
 
     // --- engine token ------------------------------------------------------------

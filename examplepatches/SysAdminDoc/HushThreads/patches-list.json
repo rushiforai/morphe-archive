@@ -40,6 +40,98 @@
       "options": []
     },
     {
+      "name": "Change app name",
+      "description": "Changes the name under the app's icon, so a copy you install beside Threads with Change package name is easy to tell apart. It isn't selected by default. Works as soon as you patch it in, with no switch.",
+      "category": "Interface",
+      "use": false,
+      "dependencies": [
+        "BytecodePatch",
+        "HushThreads settings",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.instagram.barcelona": [
+          "454.0.0.54.79"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Threads",
+          "packageName": "com.instagram.barcelona",
+          "description": null,
+          "appIconColor": 0,
+          "signatures": [
+            "5367570bad488d8da6a0fab78d9766a1a4c23c3c70fac0ad2e91c8f0bd58b432",
+            "8f38da6b4dc34b1900353bde4630043198cbe3ef7214151f86679cd000c90500"
+          ],
+          "targets": [
+            {
+              "version": "454.0.0.54.79",
+              "experimental": false,
+              "versionCodes": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "appName",
+          "title": "App name",
+          "description": "The name under the app's icon, up to 30 characters.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "HushThreads",
+          "values": null
+        }
+      ]
+    },
+    {
+      "name": "Change package name",
+      "description": "Gives the patched Threads its own package name, so it installs beside the Threads you already have instead of over it. It's a separate app with its own sign-in. It isn't selected by default. Works as soon as you patch it in, with no switch.",
+      "category": "Fixes",
+      "use": false,
+      "dependencies": [
+        "BytecodePatch",
+        "HushThreads settings",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": {
+        "com.instagram.barcelona": [
+          "454.0.0.54.79"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Threads",
+          "packageName": "com.instagram.barcelona",
+          "description": null,
+          "appIconColor": 0,
+          "signatures": [
+            "5367570bad488d8da6a0fab78d9766a1a4c23c3c70fac0ad2e91c8f0bd58b432",
+            "8f38da6b4dc34b1900353bde4630043198cbe3ef7214151f86679cd000c90500"
+          ],
+          "targets": [
+            {
+              "version": "454.0.0.54.79",
+              "experimental": false,
+              "versionCodes": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "packageName",
+          "title": "Package name",
+          "description": "The copy's package name. Each copy needs its own.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "com.instagram.barcelona.hushthreads",
+          "values": null
+        }
+      ]
+    },
+    {
       "name": "Change version code",
       "description": "Raises the version number as high as Android allows, so Google Play won't offer Meta's updates over it. Going back to stock Threads means uninstalling, which deletes its data. It isn't selected by default. Works as soon as you patch it in, with no switch.",
       "category": "Updates",
@@ -218,6 +310,41 @@
       "name": "Filter comments",
       "description": "Leaves out the replies to a post that match words or domains you list, such as the shop link a spam reply ends with, before Threads shows them. A second switch under it also hides any reply with a web link. The replies that stay keep their order. Starts off. Turn it on and add your list in HushThreads settings > Comments.",
       "category": "Feed",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushThreads settings"
+      ],
+      "compatiblePackages": {
+        "com.instagram.barcelona": [
+          "454.0.0.54.79"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Threads",
+          "packageName": "com.instagram.barcelona",
+          "description": null,
+          "appIconColor": 0,
+          "signatures": [
+            "5367570bad488d8da6a0fab78d9766a1a4c23c3c70fac0ad2e91c8f0bd58b432",
+            "8f38da6b4dc34b1900353bde4630043198cbe3ef7214151f86679cd000c90500"
+          ],
+          "targets": [
+            {
+              "version": "454.0.0.54.79",
+              "experimental": false,
+              "versionCodes": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Full size profile pictures",
+      "description": "Opens a profile picture full size when you tap it on a profile, so you can zoom in and save it, instead of Threads' small circle. Starts off. Turn it on in HushThreads settings > Appearance.",
+      "category": "Interface",
       "use": true,
       "dependencies": [
         "BytecodePatch",

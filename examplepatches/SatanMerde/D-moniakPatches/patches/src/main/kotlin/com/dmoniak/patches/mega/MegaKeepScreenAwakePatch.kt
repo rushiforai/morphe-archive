@@ -83,3 +83,4 @@ fun BytecodePatchContext.executeMegaKeepScreenAwakeLogic(logger: Logger) {
 
     logger.info("[MEGA Keep Screen Awake] Total activities configured: $hookedActivities")
 }
+

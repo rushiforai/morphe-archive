@@ -100,3 +100,4 @@ fun BytecodePatchContext.executeMegaBlockPromosLogic(logger: Logger) {
 
     logger.info("[MEGA Block Promos & Declutter] Total promo hooks applied: $hookedPoints")
 }
+

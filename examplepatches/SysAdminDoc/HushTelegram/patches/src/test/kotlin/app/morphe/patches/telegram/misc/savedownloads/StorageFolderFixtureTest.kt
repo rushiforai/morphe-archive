@@ -9,9 +9,9 @@ import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.PatcherConfig
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.ResourcePatchContext
@@ -22,12 +22,13 @@ import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.util.call
 import app.morphe.util.namedRegisters
+import app.morphe.util.names.origParameterTypes
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
-import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.reandroid.apk.ApkModule
 import com.reandroid.arsc.chunk.xml.AndroidManifestBlock
@@ -41,6 +42,9 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** ImageLoader's Android 11 folder for Telegram's own files on both declared builds, where the storage folder switch reaches it (#7). */
 class StorageFolderFixtureTest {
@@ -50,26 +54,30 @@ class StorageFolderFixtureTest {
         MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES, LOAD_OPERATION)
 
     private fun context(build: File): BytecodePatchContext {
-        val images = FixtureDex.classes(build, setOf(IMAGE_LOADER)).values.single()
-        val host = FixtureDex.classes(build, hosts + images.delegateCandidates()).values.map(ImmutableClassDef::of)
-        assertTrue("${build.name}: Telegram's download and folder classes", host.map { it.type }.containsAll(hosts))
-        return PatchContexts.of(ExtensionDex.classes() + host)
+        // Keyed by source names, and kept as read, so the context takes this build's name table.
+        val host = FixtureDex.classes(build, hosts + downloadHosts(build))
+        assertTrue("${build.name}: Telegram's download and folder classes", host.keys.containsAll(hosts))
+        return PatchContexts.of(ExtensionDex.classes() + host.values)
     }
 
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), controlRef())
 
-    private fun BytecodePatchContext.flag(name: String) = (mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }
+    private fun BytecodePatchContext.flag(name: String) = (tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }
         .controlBody().first() as WideLiteralInstruction).wideLiteral
 
-    private fun BytecodePatchContext.mediaPaths() = mutableClassDefBy(IMAGE_LOADER).methods.single { it.name == "createMediaPaths" }
+    private fun BytecodePatchContext.mediaPaths() = tgMutableClassDefBy(IMAGE_LOADER).methods.single { it.origName == "createMediaPaths" }
 
-    private fun BytecodePatchContext.attachPaths() = mutableClassDefBy(FILE_LOADER).methods.filter { it.name == "getPathToAttach" }
+    private fun BytecodePatchContext.attachPaths() = tgMutableClassDefBy(FILE_LOADER).methods.filter { it.origName == "getPathToAttach" }
 
-    private fun BytecodePatchContext.attachPath() = attachPaths().single { it.parameterTypes.size == 5 }
+    // (object, ext, ext, boolean, boolean), or (object, ext, boolean, boolean) where the build drops the unused ext.
+    private fun BytecodePatchContext.attachPath() = attachPaths().single { it.parameterTypes.size >= 4 }
 
-    private fun BytecodePatchContext.loadStart() = mutableClassDefBy(LOAD_OPERATION).methods.single { it.name == "start" && it.parameterTypes.size == 3 }
+    // The start that keeps cacheFileFinal: start(stream, offset, priority), or the plain start() the build merges it into.
+    private fun BytecodePatchContext.loadStart() = tgMutableClassDefBy(LOAD_OPERATION).methods.single { method ->
+        method.origName == "start" && method.controlBody().any { it.opcode == Opcode.IPUT_OBJECT && it.controlRef() == STORAGE_CACHE_FINAL }
+    }
 
-    private fun BytecodePatchContext.olderLoads() = mutableClassDefBy(LOAD_OPERATION).methods.sumOf { m ->
+    private fun BytecodePatchContext.olderLoads() = tgMutableClassDefBy(LOAD_OPERATION).methods.sumOf { m ->
         m.controlBody().count { it.controlRef() == STORAGE_OLDER_FILE }
     }
 
@@ -105,7 +113,7 @@ class StorageFolderFixtureTest {
             assertEquals(name, Opcode.RETURN_OBJECT, path[k + 2].opcode)
             assertEquals(name, GALLERY_FILE_IN, path[k - 1].controlRef())
             assertEquals(name, file, path[k - 1].namedRegisters().first())
-            assertEquals(name, STORAGE_ATTACH_NAME, path[k - 3].controlRef())
+            assertTrue(name, path[k - 3].callsAttachName())
             assertEquals(name, stockPath.filter { it[0] != Opcode.NOP },
                 path.filterIndexed { i, _ -> i != k && i != k + 1 }.map { it.shape() }.filter { it[0] != Opcode.NOP })
 
@@ -171,18 +179,18 @@ class StorageFolderFixtureTest {
                 method.addInstructionsWithLabels(0, "goto :hush_keep", ExternalLabel("hush_keep", keep))
             },
             "ImageLoader.createMediaPaths changed" to { context ->
-                context.mutableClassDefBy(IMAGE_LOADER).methods.removeAll { it.name == "createMediaPaths" }
+                context.tgMutableClassDefBy(IMAGE_LOADER).methods.removeAll { it.origName == "createMediaPaths" }
             },
         )
         for ((why, change) in shapes) {
             val context = context(build)
             change(context)
-            val untouched = context.mutableClassDefBy(IMAGE_LOADER).methods.filter { it.name == "createMediaPaths" }
+            val untouched = context.tgMutableClassDefBy(IMAGE_LOADER).methods.filter { it.origName == "createMediaPaths" }
                 .map { m -> m.controlBody().map { it.shape() } }
             val warnings = PatchLogCapture.warnings { saveDownloadsPatch.execute(context) }
             assertEquals(why, 1, warnings.size)
             assertEquals(why, "Save downloaded files: $why. The patch goes on without the storage folder.", warnings.single())
-            assertEquals(why, untouched, context.mutableClassDefBy(IMAGE_LOADER).methods.filter { it.name == "createMediaPaths" }
+            assertEquals(why, untouched, context.tgMutableClassDefBy(IMAGE_LOADER).methods.filter { it.origName == "createMediaPaths" }
                 .map { m -> m.controlBody().map { it.shape() } })
             assertEquals(why, 0L, context.flag("storageFolder"))
             assertEquals(why, 1L, context.flag("galleryFolder"))
@@ -195,16 +203,17 @@ class StorageFolderFixtureTest {
 
     @Test fun `a changed download path keeps the moved folder and older files download again`() {
         val build = Fixtures.declaredBuilds().first()
-        fun BytecodePatchContext.nameCall() = attachPath().controlBody().indexOfFirst { it.controlRef() == STORAGE_ATTACH_NAME }
         val shapes = listOf<Pair<String, (BytecodePatchContext) -> Unit>>(
             "Telegram's download path changed (0 places)" to { context ->
                 val method = context.attachPath()
-                val at = context.nameCall()
-                val attached = method.getInstruction(at).namedRegisters().first()
+                val at = context.resolveOlderFiles().at - 3
+                // The object's register, wherever the build puts it among the call's two.
+                val call = method.getInstruction(at)
+                val attached = call.namedRegisters()[call.call()!!.origParameterTypes.indexOf(TL_OBJECT)]
                 method.replaceInstruction(at, "invoke-static/range {v$attached .. v$attached}, $ATTACH_NAME")
             },
             "FileLoader.getPathToAttach changed" to { context ->
-                context.mutableClassDefBy(FILE_LOADER).methods.removeAll { it.name == "getPathToAttach" && it.parameterTypes.size == 5 }
+                context.tgMutableClassDefBy(FILE_LOADER).methods.removeAll { it.origName == "getPathToAttach" && it.parameterTypes.size >= 4 }
             },
         )
         for ((why, change) in shapes) {
@@ -234,13 +243,14 @@ class StorageFolderFixtureTest {
             // Still the one place the download file is set, so the found-file hook goes in.
             "FileLoadOperation.start changed" to { context ->
                 val start = context.loadStart()
-                val methods = context.mutableClassDefBy(LOAD_OPERATION).methods
+                val methods = context.tgMutableClassDefBy(LOAD_OPERATION).methods
                 methods.remove(start)
-                methods.add(MutableMethod(ImmutableMethod(start.definingClass, start.name, start.parameters, "V", start.accessFlags,
-                    null, null, start.implementation)))
+                // Its result flipped (the build's start() returns nothing), under the source name so it's still start.
+                methods.add(MutableMethod(ImmutableMethod(start.definingClass, "start", start.parameters,
+                    if (start.returnType == "V") "Z" else "V", start.accessFlags, null, null, start.implementation)))
             },
         )
-        fun BytecodePatchContext.loader() = mutableClassDefBy(LOAD_OPERATION).methods.filter { it.name != "onFinishLoadingFile" }
+        fun BytecodePatchContext.loader() = tgMutableClassDefBy(LOAD_OPERATION).methods.filter { it.origName != "onFinishLoadingFile" }
             .map { m -> m.controlBody().map { it.shape() } }
         for ((why, change) in shapes) {
             val context = context(build)
@@ -249,7 +259,7 @@ class StorageFolderFixtureTest {
             val warnings = PatchLogCapture.warnings { saveDownloadsPatch.execute(context) }
             assertEquals(why, listOf("Save downloaded files: $why. Photos and videos from before the storage folder moved download again."), warnings)
             assertEquals(why, untouched, context.loader())
-            val finishing = context.mutableClassDefBy(LOAD_OPERATION).methods.single { it.name == "onFinishLoadingFile" }
+            val finishing = context.tgMutableClassDefBy(LOAD_OPERATION).methods.single { it.origName == "onFinishLoadingFile" }
             assertEquals(why, 1, finishing.controlBody().count { it.controlRef() == "$SAVE_DOWNLOADS->finishing(Ljava/lang/Object;Ljava/io/File;Ljava/io/File;)V" })
             assertEquals(why, 1, context.mediaPaths().controlBody().count { it.controlRef() == STORAGE_TELEGRAM_FOLDER })
             assertEquals(why, 1, context.attachPath().controlBody().count { it.controlRef() == STORAGE_OLDER_FILE })
@@ -280,13 +290,13 @@ class StorageFolderFixtureTest {
         val shapes = listOf<Pair<String, (BytecodePatchContext) -> Unit>>(
             // The extension ships with the patch, so a mismatch there is a build bug, not a Telegram change.
             "telegramFolder runtime hook is missing or ambiguous" to { context ->
-                context.mutableClassDefBy(STORAGE_FOLDER).methods.removeAll { it.name == "telegramFolder" }
+                context.tgMutableClassDefBy(STORAGE_FOLDER).methods.removeAll { it.origName == "telegramFolder" }
             },
             "olderFile runtime hook is missing or ambiguous" to { context ->
-                context.mutableClassDefBy(STORAGE_FOLDER).methods.removeAll { it.name == "olderFile" }
+                context.tgMutableClassDefBy(STORAGE_FOLDER).methods.removeAll { it.origName == "olderFile" }
             },
             "SettingsStatus has no boolean method storageFolder()" to { context ->
-                context.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "storageFolder" }
+                context.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "storageFolder" }
             },
         )
         for ((why, change) in shapes) {

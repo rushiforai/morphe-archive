@@ -84,7 +84,7 @@ public final class VerifyNuvioUpdateInstaller {
                             check(NuvioUpdateInstaller.isZero(after.getImplementation().getInstructions().get(result + 1), register));
                             after.getImplementation().removeInstruction(result + 1);
                         }
-                        if (clone && (owner.getType().equals(NuvioUpdateInstaller.RECEIVER) && after.getName().equals("onReceive") ||
+                        if (clone && (owner.getType().equals(NuvioUpdateInstaller.RECEIVER) && after.getName().equals("a") ||
                             owner.getType().equals(NuvioUpdateInstaller.INSTALL_ACTION) && after.getName().equals("invokeSuspend"))) {
                             int index = NuvioUpdateInstaller.authority(after);
                             var instruction = after.getImplementation().getInstructions().get(index);
@@ -105,6 +105,14 @@ public final class VerifyNuvioUpdateInstaller {
         var missing = copy(originals);
         missing.get(NuvioUpdateInstaller.INSTALLER).getMethods().removeIf(m -> m.getName().equals("b"));
         rejected(() -> NuvioUpdateInstaller.disableMetadata(missing.get(NuvioUpdateInstaller.INSTALLER), missing.get(NuvioUpdateInstaller.RECEIVER)));
+        var missingFallback = copy(originals);
+        missingFallback.get(NuvioUpdateInstaller.RECEIVER).getMethods().removeIf(m -> m.getName().equals("a"));
+        String unchangedInstaller = NuvioPlaybackButtonsPatch.fingerprint(NuvioUpdateInstaller.unique(missingFallback.get(NuvioUpdateInstaller.INSTALLER), "b"));
+        rejected(() -> NuvioUpdateInstaller.disableMetadata(missingFallback.get(NuvioUpdateInstaller.INSTALLER), missingFallback.get(NuvioUpdateInstaller.RECEIVER)));
+        check(unchangedInstaller.equals(NuvioPlaybackButtonsPatch.fingerprint(NuvioUpdateInstaller.unique(missingFallback.get(NuvioUpdateInstaller.INSTALLER), "b"))));
+        var changedFallback = copy(originals);
+        NuvioUpdateInstaller.unique(changedFallback.get(NuvioUpdateInstaller.RECEIVER), "a").getImplementation().replaceInstruction(0, new BuilderInstruction10x(Opcode.NOP));
+        rejected(() -> NuvioUpdateInstaller.renameProviders(changedFallback.get(NuvioUpdateInstaller.INSTALL_ACTION), changedFallback.get(NuvioUpdateInstaller.RECEIVER), AUTHORITY));
         System.out.println("PASS: original beta.8 installer flags, no receiver copy retry, clone providers, both patch orders, duplicate/changed/missing rejection, DEX/try-region roundtrip");
     }
 }

@@ -22,6 +22,11 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Every screen's call to the phone formatter, the classes that keep the real number, and the runtime. */
 class HidePhoneNumberFixtureTest {
@@ -34,7 +39,7 @@ class HidePhoneNumberFixtureTest {
             val share = context.resolveContactShare()
             val before = site.calls.associate { (m, indices) -> key(m) to indices.map { m.controlBody()[it].namedRegisters() } }
             assertTrue("$name: the side menu and Settings among ${site.calls.size} callers", site.calls.size >= 15)
-            val kept = KEPT.filter { context.classDefByOrNull(it) != null }
+            val kept = KEPT.filter { context.tgClassDefByOrNull(it) != null }
             assertTrue("$name: an exported card or link keeps the number", kept.isNotEmpty())
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hidePhoneNumberPatch.execute(context) })
 
@@ -45,17 +50,21 @@ class HidePhoneNumberFixtureTest {
                 indices.forEach { assertEquals("$name: ${method.definingClass} asks the extension", SHOWN, body[it].controlRef()) }
             }
             val left = hosts.map { it.type }.filter { !it.startsWith("Lapp/hushtelegram/") }.flatMap { type ->
-                context.mutableClassDefBy(type).methods.filter { m -> m.controlBody().any { it.controlRef() == site.format } }.map { "$type->${it.name}" }
+                val cls = context.tgMutableClassDefBy(type)
+                cls.methods.filter { m -> m.controlBody().any { it.controlRef() == site.format } }.map { "${cls.origType}->${it.name}" }
             }
             assertEquals("$name: only the kept classes still format directly", kept.toSet(), left.map { it.substringBefore("->") }.toSet())
 
-            val stub = { n: String -> context.mutableClassDefBy(HIDE_PHONE).methods.single { it.name == n }.controlBody().mapNotNull { it.controlRef() } }
+            val stub = { n: String -> context.tgMutableClassDefBy(HIDE_PHONE).methods.single { it.origName == n }.controlBody().mapNotNull { it.controlRef() } }
             assertTrue("$name: Telegram's formatting", site.format in stub("stockFormat"))
             assertTrue("$name: the account's number", "$TL_USER->phone:Ljava/lang/String;" in stub("ownPhone"))
-            assertTrue("$name: every account", "$USER_CONFIG->getMaxAccountCount()I" in stub("accounts"))
+            // 13.2 inlines getMaxAccountCount, so the stub counts every slot of the per-account table.
+            assertTrue("$name: every account", "$USER_CONFIG->Instance:[$USER_CONFIG" in stub("accounts"))
+            assertTrue("$name: every account", context.tgMutableClassDefBy(HIDE_PHONE).methods.single { it.origName == "accounts" }
+                .controlBody().any { it.opcode == Opcode.ARRAY_LENGTH })
             assertEquals("$name: the share box asks the runtime once", 1, share.view.controlBody().count { it.controlRef() == STARTS_TICKED })
             for (flag in listOf("hidePhoneNumber", "shareNumberUnticked")) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
@@ -67,10 +76,10 @@ class HidePhoneNumberFixtureTest {
 /** The formatter, everything that calls it, the account classes the runtime reads, and the add contact screen. */
 internal fun hidePhoneHosts(build: java.io.File): List<ClassDef> {
     val formatter = FixtureDex.classesWhere(build, { true }) { m ->
-        m.name == "<init>" && m.controlBody().any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == PHONE_FORMATS }
+        m.origName == "<init>" && m.controlBody().any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == PHONE_FORMATS }
     }.single().type
     return (FixtureDex.classesWhere(build, { true }) { m ->
-        m.definingClass == formatter || m.definingClass == USER_CONFIG || m.definingClass == TL_USER ||
+        m.origDefiningClass == formatter || m.origDefiningClass == USER_CONFIG || m.origDefiningClass == TL_USER ||
             m.controlBody().any { it.opcode != Opcode.NOP && it.controlRef()?.startsWith("$formatter->") == true }
     }.map(ImmutableClassDef::of) + contactShareHosts(build)).distinctBy { it.type }
 }

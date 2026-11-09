@@ -110,6 +110,7 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         logoLongPressSites = emptyList()
         menuTitleLongPressSites = emptyList()
         messageLogContract = null
+        quietChatContract = null
         readReceiptThreadFields = emptyMap()
         markReadRecipe = null
         messageLogButtonRecipe = null
@@ -204,16 +205,23 @@ internal fun MutableMethod.validateHook(hook: String) {
         PHONE_ID_SYNC -> validatePhoneIdSync()
         STORY_HOLD -> validateStoryHold()
         CHAT_PREVIEW -> validateChatPreview()
+        CHAT_PREVIEW_SIZE -> validateChatPreviewSize()
+        CHAT_MENU_ITEMS -> validateChatMenuItems()
         LANDSCAPE_LOCK -> validatePortraitLock()
         LANDSCAPE_MEDIA -> validateMediaOrientation()
         BLOCKED_LIST_PICTURES -> validateBlockedListPictures()
         RESTRICTED_NOTIFY -> validateRestrictedNotify()
         SHARE_STORY -> validateShareStory()
+        SHARE_STORY_TARGET -> validateShareStoryTarget()
+        FLOATING_TAB_BAR -> validateFloatingTabBar()
+        TAB_BAR_OVERLAY -> validateTabBarOverlay()
+        TAB_BAR_SCROLL_AWAY -> validateTabBarScrollAway()
         AVATAR_SHAPE -> validateAvatarShape()
         STORY_RING -> validateStoryRing()
         QUIET_CALL_RING -> validateQuietCallRing()
         QUIET_CALL_NOTIFICATION -> validateQuietCallNotification()
         CAR_MESSAGES -> validateCarMessages()
+        CAR_EXTENSION_GATE -> validateCarExtensionGate()
         LOCAL_CHAT_SEARCH -> validateLocalChatSearch()
         CHAT_JUMP -> validateChatJump()
         CALL_RECORDING -> validateCallRecording()
@@ -224,6 +232,8 @@ internal fun MutableMethod.validateHook(hook: String) {
         MESSAGE_LOG_CLICK -> validateMessageLogClick()
         UNSENT_RECALL -> validateUnsentRecall()
         UNSENT_CLEAR -> validateUnsentClear()
+        QUIET_LOG_CHECK -> validateQuietLogCheck()
+        QUIET_LOG_DROP -> validateQuietLogDrop()
         "original_photo" -> validateOriginalPhoto()
         ORIGINAL_VIDEO -> validateOriginalVideo()
         SYSTEM_CAMERA -> validateSystemCamera()
@@ -315,21 +325,28 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             HIDDEN_CHAT_LIST -> method.injectHiddenChatList()
             HIDDEN_CHAT_ROW -> method.injectHiddenChatRow()
             HIDDEN_CHAT_TAP -> method.injectHiddenChatTap()
+            CHAT_MENU_ITEMS -> method.injectChatMenuItems()
             NEARBY_SCANS -> method.injectNearbyScans()
             WIFI_IDENTITY -> method.injectWifiIdentity()
             PHONE_ID_SYNC -> method.injectPhoneIdSync()
             STORY_HOLD -> method.injectStoryHold()
             CHAT_PREVIEW -> method.injectChatPreview()
+            CHAT_PREVIEW_SIZE -> method.injectChatPreviewSize()
             LANDSCAPE_LOCK -> method.injectPortraitLock()
             LANDSCAPE_MEDIA -> method.injectMediaOrientation()
             BLOCKED_LIST_PICTURES -> method.injectBlockedListPictures()
             RESTRICTED_NOTIFY -> method.injectRestrictedNotify()
             SHARE_STORY -> method.injectShareStory()
+            SHARE_STORY_TARGET -> method.injectShareStoryTarget()
+            FLOATING_TAB_BAR -> method.injectFloatingTabBar()
+            TAB_BAR_OVERLAY -> method.injectTabBarOverlay()
+            TAB_BAR_SCROLL_AWAY -> method.injectTabBarScrollAway()
             AVATAR_SHAPE -> method.injectAvatarShape()
             STORY_RING -> method.injectStoryRing()
             QUIET_CALL_RING -> method.injectQuietCallRing()
             QUIET_CALL_NOTIFICATION -> method.injectQuietCallNotification()
             CAR_MESSAGES -> method.injectCarMessages()
+            CAR_EXTENSION_GATE -> method.injectCarExtensionGate()
             LOCAL_CHAT_SEARCH -> method.injectLocalChatSearch()
             CHAT_JUMP -> method.injectChatJump()
             CALL_RECORDING -> method.injectCallRecording()
@@ -340,6 +357,8 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             MESSAGE_LOG_CLICK -> method.injectMessageLogClick()
             UNSENT_RECALL -> method.injectUnsentRecall()
             UNSENT_CLEAR -> method.injectUnsentClear()
+            QUIET_LOG_CHECK -> method.injectQuietLogCheck()
+            QUIET_LOG_DROP -> method.injectQuietLogDrop()
             AUTO_REPLY -> method.injectAutoReply()
             "original_photo" -> method.injectOriginalPhoto()
             ORIGINAL_VIDEO -> method.injectOriginalVideo()
@@ -561,9 +580,15 @@ val hideMarkReadPatch = controlPatch("mark_read_action", "Hide Mark as read", "H
 val previewChatsPatch = controlPatch("chat_preview", "Preview chats on long press",
     "Pressing and holding a chat opens Messenger's own preview of it, with the chat's menu underneath, so you can peek at a chat without opening it.", "Inbox")
 @Suppress("unused")
+val biggerChatPreviewPatch = controlPatch("chat_preview_size", "Bigger chat preview",
+    "Gives the chat more room in the preview you get when you press and hold a chat, and lets you scroll back through it there. The menu under it keeps a set height and scrolls when it has more items.", "Inbox")
+@Suppress("unused")
 val pinMoreChatsPatch = controlPatch("pinned_chats", "Pin more chats", "Lets you pin chats past Messenger's limit and puts Pin back on chats that don't offer it. Pins past the limit stay on this phone, so they won't show on your other devices.", "Inbox", PINNED_CHATS, PIN_ROWS, PIN_ASK, PIN_DROP, PIN_FULL, PIN_LIST)
 @Suppress("unused")
 val hideChosenChatsPatch = controlPatch("hidden_chats", "Hide chosen chats", "Adds Hide from chat list to the menu you get when you press and hold a chat. A hidden chat stays off your chat list when new messages come in, and search still finds it. Hiding stays on this phone, and you can unhide chats in HushMessenger settings. It doesn't stop notifications, so mute the chat in Messenger for that.", "Inbox", HIDDEN_CHAT_LIST, HIDDEN_CHAT_ROW, HIDDEN_CHAT_TAP)
+@Suppress("unused")
+val hideChatMenuItemsPatch = controlPatch("chat_menu_items", "Hide chat menu items",
+    "Hides the items you pick from the menu you get when you press and hold a chat in your chat list. Press and hold any chat once, and that menu's items show up under this switch for you to pick.", "Inbox")
 @Suppress("unused")
 val hideFacebookPatch = controlPatch("facebook", "Hide Facebook shortcuts", "Hides Facebook buttons, profile and sharing shortcuts, and the Also from Meta and Subscriptions sections in the Menu tab. Handy if you only use Messenger.", "Navigation", "facebook", FACEBOOK_PROFILE, FACEBOOK_PROFILE_HEADER)
 @Suppress("unused")
@@ -581,6 +606,12 @@ val hideNotificationsTabPatch = controlPatch("tab_notifications", "Hide Notifica
 @Suppress("unused")
 val hideTabBadgesPatch = controlPatch("tab_badges", "Hide tab badges", "Hides the red dots and counts on the tabs at the bottom and on the Facebook button at the top. Turn on Keep for any you still want. Restart Messenger to see the change.",
     "Navigation", TAB_BADGES, FACEBOOK_BADGE)
+@Suppress("unused")
+val tabBarScrollAwayPatch = controlPatch("tab_bar_scroll_away", "Hide the tab bar while scrolling", "Slides the tab bar at the bottom out of the way as you scroll down your chats and brings it back when you scroll up. Restart Messenger to see the change.",
+    "Navigation", TAB_BAR_SCROLL_AWAY, TAB_BAR_OVERLAY)
+@Suppress("unused")
+val floatingTabBarPatch = controlPatch("floating_tab_bar", "Floating tab bar", "Switches the tab bar at the bottom to the floating style Messenger is trying out, which sits over your chats instead of below them. Messenger may keep its usual bar on some screens. Restart Messenger to see the change.",
+    "Navigation", FLOATING_TAB_BAR)
 @Suppress("unused")
 val holdStoriesPatch = controlPatch("story_hold", "Hold stories at the end", "Keeps a story on screen when it ends instead of moving on to the next one, so you go on with a tap or a swipe. Photos and videos both wait, and the last story stays open until you close it.", "Navigation")
 @Suppress("unused")
@@ -638,11 +669,12 @@ val saveVoiceMenuPatch = controlPatch("save_voice_menu", "Save button for voice 
     "Adds Save voice message to the menu you get by holding a voice message, for saving just that one. It goes in the same folder as Save voice messages you play, and that switch can stay off.", "Photos and videos")
 @Suppress("unused")
 val hideShareStoryPatch = controlPatch("share_story", "Hide Your story when sharing",
-    "When you share a photo, video or link into Messenger from another app, the Send to list no longer offers Your story, so a tap on Add can't post it by mistake. Your chats and groups are still there.", "Photos and videos")
+    "When you share a photo, video or link into Messenger from another app, your phone's share menu no longer offers Messenger's Your story, so it goes straight to Chats. The Send to list drops Your story too, so a tap on Add can't post it by mistake. Your chats and groups are still there.", "Photos and videos",
+    SHARE_STORY, SHARE_STORY_TARGET)
 @Suppress("unused")
 val keepMessageLogPatch = controlPatch("message_log", "Keep a message log",
-    "Saves each message when its notification arrives, so you can still read it if it's unsent, and marks the ones that were. Works in end-to-end encrypted chats too. Stays on your phone. A clock next to the new message button in Chats can open the log too.", "Privacy",
-    MESSAGE_LOG, UNSENT_RECALL, UNSENT_CLEAR, MESSAGE_LOG_BUTTON, MESSAGE_LOG_CLICK)
+    "Saves each message when its notification arrives, so you can still read it if it's unsent, and marks the ones that were. Works in end-to-end encrypted chats too. Stays on your phone. A clock next to the new message button in Chats can open the log too. Log chats that don't notify, under it, adds muted and restricted chats without notifying you.", "Privacy",
+    MESSAGE_LOG, UNSENT_RECALL, UNSENT_CLEAR, MESSAGE_LOG_BUTTON, MESSAGE_LOG_CLICK, QUIET_LOG_CHECK, QUIET_LOG_DROP)
 @Suppress("unused")
 val autoReplyPatch = controlPatch("auto_reply", "Auto reply",
     "Answers messages with replies you write in HushMessenger settings, when they have words you pick or any message at all. Replies go out through Messenger's own notification reply, encrypted chats too, at most once every five minutes per chat.", "Conversations")
@@ -652,7 +684,8 @@ val quietIncomingCallsPatch = controlPatch("quiet_calls", "Quiet incoming calls"
     QUIET_CALL_RING, QUIET_CALL_NOTIFICATION)
 @Suppress("unused")
 val carMessagesPatch = controlPatch("car_messages", "Android Auto messages",
-    "Lets Android Auto read your Messenger messages out loud and send the replies you speak, through its own messaging screen. Android Auto only shows apps installed from the Play Store. Unknown sources in its developer settings opens that up on a desktop head unit, and a real car can still leave Messenger out. Playing a message aloud marks the chat read and shows Seen, even with Hide read receipts on.", "Conversations")
+    "Lets Android Auto read your Messenger messages out loud and send the replies you speak, through its own messaging screen. Android Auto only shows apps installed from the Play Store. Unknown sources in its developer settings opens that up on a desktop head unit, and a real car can still leave Messenger out. Playing a message aloud marks the chat read and shows Seen, even with Hide read receipts on.", "Conversations",
+    CAR_MESSAGES, CAR_EXTENSION_GATE)
 @Suppress("unused")
 val localChatSearchPatch = controlPatch("local_chat_search", "Search saved messages",
     "Adds a button to a chat's search results that searches the messages saved on this phone, for old chats Messenger's own search finds nothing in. It works in chats that aren't end-to-end encrypted, and it can only find what the phone has loaded.", "Conversations",

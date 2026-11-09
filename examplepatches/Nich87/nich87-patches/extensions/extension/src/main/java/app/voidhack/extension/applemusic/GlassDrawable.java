@@ -28,6 +28,8 @@ final class GlassDrawable extends Drawable {
     float center;
     float selectionWidth;
     float press;
+    float engagement;
+    float parallax;
     float deformation;
     boolean dark;
     private int opacity = 255;
@@ -47,12 +49,17 @@ final class GlassDrawable extends Drawable {
         clip.addRoundRect(capsule, radius, radius, Path.Direction.CW);
         int save = canvas.save();
         canvas.clipPath(clip);
-        if (backdrop != null) backdrop.draw(canvas, capsule, dark);
+        if (backdrop != null) backdrop.draw(canvas, capsule, dark, parallax);
         paint.setStyle(Paint.Style.FILL);
         paint.setShader(null);
         paint.setColor(dark ? SURFACE_DARK : SURFACE_LIGHT);
         paint.setAlpha(MATERIAL_ALPHA * opacity / 255);
         canvas.drawRoundRect(capsule, radius, radius, paint);
+        if (engagement > 0f) {
+            paint.setColor(dark ? Color.WHITE : Color.BLACK);
+            paint.setAlpha((int) (opacity * (dark ? 0.07f : 0.035f) * engagement));
+            canvas.drawRoundRect(capsule, radius, radius, paint);
+        }
         if (selectionWidth > 0f) {
             float inset = INSET_DP * density;
             float width = Math.min(capsule.width() - inset * 2, selectionWidth);

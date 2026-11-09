@@ -48,6 +48,10 @@ import app.hushtelegram.extension.shared.SettingsContextRule;
 public class PatchStatusWiringTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
+    /** A patch held in a val, so a named patch can depend on it. */
+    private static final Pattern PART = Pattern.compile("\\bval\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*=\\s*(?:bytecodePatch|resourcePatch|rawResourcePatch)\\b");
+    private static final Pattern DEPENDS_ON = Pattern.compile("\\bdependsOn\\s*\\(");
+
     /** A patch declaration's opening, up to the bracket its arguments start at. */
     private static final Pattern DECLARATION = Pattern.compile("\\b(?:bytecodePatch|resourcePatch|rawResourcePatch)\\s*\\(");
     /** The name argument, as a literal or as a constant of the same file. */
@@ -108,21 +112,61 @@ public class PatchStatusWiringTest {
         assertTrue("fewer patch sources under " + sources + " than families: " + files,
                 files.size() >= PatchFamily.values().length);
 
+        Map<String, String> namedTexts = new HashMap<>();
+        Map<Path, String> parts = new HashMap<>();
         for (Path file : files) {
             String text = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
             List<String> names = declaredNames(text);
             assertTrue(file + " declares " + names.size() + " named patches, so its switches can't be told apart",
                     names.size() <= 1);
-            if (names.isEmpty()) continue;
-            String name = names.get(0);
-            List<String> statuses = new ArrayList<>();
-            Matcher status = flag.matcher(text);
-            while (status.find()) {
-                if (!statuses.contains(status.group(1))) statuses.add(status.group(1));
+            if (names.isEmpty()) {
+                parts.put(file, text);
+                continue;
             }
-            if (!statuses.isEmpty()) result.put(name, statuses);
+            namedTexts.put(names.get(0), text);
+            record(result, names.get(0), flags(flag, text));
+        }
+        // A part with no name of its own, like the Keep-Alive Service's start, records its flags for
+        // the one named patch that depends on it.
+        for (Map.Entry<Path, String> part : parts.entrySet()) {
+            List<String> flags = flags(flag, part.getValue());
+            if (flags.isEmpty()) continue;
+            TreeSet<String> owners = new TreeSet<>();
+            Matcher val = PART.matcher(part.getValue());
+            while (val.find()) {
+                for (Map.Entry<String, String> named : namedTexts.entrySet()) {
+                    if (dependsOn(named.getValue(), val.group(1))) owners.add(named.getKey());
+                }
+            }
+            assertEquals(part.getKey() + " records " + flags + " for no single named patch: " + owners, 1, owners.size());
+            record(result, owners.first(), flags);
         }
         return result;
+    }
+
+    private static List<String> flags(Pattern flag, String text) {
+        List<String> found = new ArrayList<>();
+        Matcher status = flag.matcher(text);
+        while (status.find()) {
+            if (!found.contains(status.group(1))) found.add(status.group(1));
+        }
+        return found;
+    }
+
+    private static void record(Map<String, List<String>> result, String name, List<String> flags) {
+        if (flags.isEmpty()) return;
+        List<String> known = result.computeIfAbsent(name, ignored -> new ArrayList<>());
+        for (String flag : flags) if (!known.contains(flag)) known.add(flag);
+    }
+
+    /** Whether one of {@code text}'s dependsOn calls names the val {@code part}. */
+    private static boolean dependsOn(String text, String part) {
+        Matcher call = DEPENDS_ON.matcher(text);
+        Pattern named = Pattern.compile("\\b" + Pattern.quote(part) + "\\b");
+        while (call.find()) {
+            if (named.matcher(bracketed(text, call.end() - 1)).find()) return true;
+        }
+        return false;
     }
 
     /**

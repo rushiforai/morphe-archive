@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/rahul9999xda/morphe-patches/stargazers"><img src="https://img.shields.io/github/stars/rahul9999xda/morphe-patches?label=STARS&style=flat-square&color=D4A72C" alt="Stars"></a>
-  <img src="https://img.shields.io/badge/PATCHES-16-D05A9B?style=flat-square" alt="Patches">
+  <img src="https://img.shields.io/badge/PATCHES-17-D05A9B?style=flat-square" alt="Patches">
 </p>
 
 <p align="center">
@@ -47,11 +47,11 @@ Releases and test builds are produced through the repository's configured build 
 <!-- PATCHES_START -->
 ## 🩹 Patches list
 
-> [v1.17.0](https://github.com/rahul9999xda/morphe-patches/releases/tag/v1.17.0) · `main` · **16 patches total**
+> [v1.18.0](https://github.com/rahul9999xda/morphe-patches/releases/tag/v1.18.0) · `main` · **17 patches total**
 
 
 <details>
-<summary><strong>Telegram</strong> · 16 patches</summary>
+<summary><strong>Telegram</strong> · 17 patches</summary>
 
 🎯 **Supported versions:**
 
@@ -73,6 +73,7 @@ Releases and test builds are produced through the repository's configured build 
 | **Download speed boost** | Increases download chunk size to 1 MB and max concurrent requests to 12. |
 | **Hide Stories read status** | Prevents the client from processing and sending Stories read receipts. |
 | **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.1.1 and Plus 13.1.1.0 builds. |
+| **Morphe Settings** | Adds Morphe Settings to Telegram Android and Telegram Web and initializes forwarding at startup. |
 | **Remove ads** | Removes sponsored messages and video ads. On Telegram Plus also blocks current and legacy Plus ad-loader entry points. |
 | **Unlock Premium** | Unlocks Telegram Premium features for the current account. |
 | **Use normal paste for Rich HTML clipboard content** | Bypasses Telegram's custom Rich HTML clipboard handling and delegates paste to the normal superclass implementation. |
@@ -111,7 +112,7 @@ Releases and test builds are produced through the repository's configured build 
 </details>
 
 <details>
-<summary><strong>Telegram Web</strong> · 16 patches</summary>
+<summary><strong>Telegram Web</strong> · 17 patches</summary>
 
 🎯 **Supported versions:**
 
@@ -133,6 +134,7 @@ Releases and test builds are produced through the repository's configured build 
 | **Download speed boost** | Increases download chunk size to 1 MB and max concurrent requests to 12. |
 | **Hide Stories read status** | Prevents the client from processing and sending Stories read receipts. |
 | **Hide typing indicator** | Blocks Telegram's controller-level sendTyping dispatch on audited Telegram/Web 13.1.1 and Plus 13.1.1.0 builds. |
+| **Morphe Settings** | Adds Morphe Settings to Telegram Android and Telegram Web and initializes forwarding at startup. |
 | **Remove ads** | Removes sponsored messages and video ads. On Telegram Plus also blocks current and legacy Plus ad-loader entry points. |
 | **Unlock Premium** | Unlocks Telegram Premium features for the current account. |
 | **Use normal paste for Rich HTML clipboard content** | Bypasses Telegram's custom Rich HTML clipboard handling and delegates paste to the normal superclass implementation. |

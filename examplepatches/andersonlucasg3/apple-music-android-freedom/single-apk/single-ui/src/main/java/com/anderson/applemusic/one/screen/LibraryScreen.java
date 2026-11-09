@@ -1,20 +1,27 @@
 package com.anderson.applemusic.one.screen;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.anderson.applemusic.one.media.ArtworkLoader;
+import com.anderson.applemusic.one.media.CatalogResolver;
 import com.anderson.applemusic.one.media.CatalogSearch;
 import com.anderson.applemusic.one.media.MediaClient;
 import com.anderson.applemusic.one.theme.Inter;
@@ -27,7 +34,9 @@ import com.anderson.applemusic.one.widget.Focus;
 import com.anderson.applemusic.one.widget.IconView;
 import com.anderson.applemusic.one.widget.Icons;
 import com.anderson.applemusic.one.widget.ListRow;
+import com.anderson.applemusic.one.widget.Perf;
 import com.anderson.applemusic.one.widget.Pill;
+import com.anderson.applemusic.one.widget.ScrollMemory;
 import com.anderson.applemusic.one.widget.SectionHeader;
 import com.anderson.applemusic.one.widget.SeeAllCard;
 import com.anderson.applemusic.one.widget.ShelfView;
@@ -35,6 +44,8 @@ import com.anderson.applemusic.one.widget.Skeleton;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -58,6 +69,12 @@ public final class LibraryScreen implements ChildSink {
 
     /** Cards per shelf; "Ver tudo" opens the complete node and the local filter finds any of them. */
     private static final int MAX_CARDS = 20;
+
+    /** Persisted section order: engine/library order (recent) or A–Z, applied locally. */
+    private static final String PREFS = "one-library";
+    private static final String KEY_SORT = "sort";
+    private static final String SORT_RECENT = "recent";
+    private static final String SORT_AZ = "az";
 
     /** One library category: the browse node, its loaded items and its shelf. */
     private static final class Category {
@@ -89,15 +106,24 @@ public final class LibraryScreen implements ChildSink {
     private final EditText input;
     private final CircleButton clear;
     private final ScrollView scroll;
+    private final FrameLayout contentHost;
     private final LinearLayout body;
+    private final LinearLayout sortRow;
+    private final SharedPreferences prefs;
     private final List<Category> categories = new ArrayList<Category>();
+    private String sort;
 
     private LinearLayout page;
-    private LinearLayout results;
+    /** Recycled list of filter results; the section shelves stay in {@link #scroll}. */
+    private ListView resultsList;
+    private ResultAdapter resultAdapter;
     private Skeleton skeleton;
     private String rootId;
     private String rootTitle = "Biblioteca";
     private int downFocusId = View.NO_ID;
+    /** Filter and scroll being restored after a rotation; consumed by {@link #bind}. */
+    private String pendingFilter;
+    private float pendingScroll;
 
     public LibraryScreen(Context context, ScreenHost host, ArtworkLoader artwork,
                          CatalogSearch catalog) {
@@ -105,6 +131,8 @@ public final class LibraryScreen implements ChildSink {
         this.host = host;
         this.artwork = artwork;
         this.catalog = catalog;
+        this.prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        this.sort = prefs.getString(KEY_SORT, SORT_RECENT);
 
         root = new FrameLayout(context);
         root.setBackgroundColor(Tokens.BG);
@@ -135,6 +163,14 @@ public final class LibraryScreen implements ChildSink {
         outer.addView(header, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
+        sortRow = new LinearLayout(context);
+        sortRow.setOrientation(LinearLayout.HORIZONTAL);
+        sortRow.setGravity(Gravity.CENTER_VERTICAL);
+        sortRow.setPadding(Tokens.dp(16), 0, Tokens.dp(16), Tokens.dp(6));
+        outer.addView(sortRow, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        renderSortRow();
+
         LinearLayout searchRow = new LinearLayout(context);
         searchRow.setOrientation(LinearLayout.HORIZONTAL);
         searchRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -155,6 +191,7 @@ public final class LibraryScreen implements ChildSink {
 
         input = new EditText(context);
         input.setHint("Filtrar artistas, álbuns e playlists");
+        input.setContentDescription("Filtrar a biblioteca");
         input.setTextColor(Tokens.TEXT);
         input.setSingleLine(true);
         input.setBackground(null);
@@ -180,6 +217,7 @@ public final class LibraryScreen implements ChildSink {
                 ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         clear = new CircleButton(context, Icons.CLOSE, 36f, 0x00000000, Tokens.TEXT_DIM, 16f);
+        clear.setContentDescription("Limpar filtro");
         clear.setVisibility(View.GONE);
         clear.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -194,7 +232,7 @@ public final class LibraryScreen implements ChildSink {
         outer.addView(searchRow, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        FrameLayout contentHost = new FrameLayout(context);
+        contentHost = new FrameLayout(context);
         scroll = new ScrollView(context);
         scroll.setFillViewport(true);
         body = new LinearLayout(context);
@@ -255,10 +293,27 @@ public final class LibraryScreen implements ChildSink {
         titleView.setText(rootTitle);
         categories.clear();
         page = null;
-        results = null;
-        input.setText("");
+        resultAdapter = null;
+        if (resultsList != null) resultsList.setVisibility(View.GONE);
+        // The local filter is part of the state: restore it (and its results) after a
+        // rotation instead of showing the unfiltered sections again.
+        String filter = pendingFilter;
+        pendingFilter = null;
+        input.setText(filter == null ? "" : filter);
         showSkeleton();
         host.loadChildren(parentId, this);
+    }
+
+    /** Local filter + scroll position, kept across a rotation. */
+    public void saveState(Bundle out) {
+        out.putString("one.library.filter", input.getText().toString());
+        ScrollMemory.save(out, "one.library.scroll", scroll);
+    }
+
+    public void restoreState(Bundle in) {
+        if (in == null) return;
+        pendingFilter = in.getString("one.library.filter", "");
+        pendingScroll = in.getFloat("one.library.scroll", 0f);
     }
 
     // --- loading -------------------------------------------------------------------
@@ -334,12 +389,7 @@ public final class LibraryScreen implements ChildSink {
 
         page = new LinearLayout(context);
         page.setOrientation(LinearLayout.VERTICAL);
-        results = new LinearLayout(context);
-        results.setOrientation(LinearLayout.VERTICAL);
-        results.setVisibility(View.GONE);
         body.addView(page, new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        body.addView(results, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
 
         List<MediaClient.Item> random = new ArrayList<MediaClient.Item>();
@@ -384,6 +434,7 @@ public final class LibraryScreen implements ChildSink {
         updateSummary();
         if (input.getText().length() > 0) onFilterChanged(input.getText().toString());
         host.status("");
+        applyPendingScroll();
     }
 
     private void addPlaceholders(ShelfView shelf) {
@@ -400,17 +451,23 @@ public final class LibraryScreen implements ChildSink {
         category.items.clear();
         category.items.addAll(children);
         category.loaded = true;
+        renderShelf(category);
+        if (input.getText().length() > 0) buildResults(input.getText().toString().trim());
+    }
+
+    /** Paints one section in the persisted order; also called when the order changes. */
+    private void renderShelf(final Category category) {
         ShelfView shelf = category.shelf;
         if (shelf == null) return;
         shelf.cards().removeAllViews();
-        shelf.setItemCount(children.size());
-        if (children.isEmpty()) {
+        shelf.setItemCount(category.items.size());
+        if (category.items.isEmpty()) {
             shelf.setVisibility(View.GONE);
             updateSummary();
             return;
         }
         shelf.setVisibility(View.VISIBLE);
-        SeeAllCard seeAll = new SeeAllCard(context, children.size(), cardSize());
+        SeeAllCard seeAll = new SeeAllCard(context, category.items.size(), cardSize());
         seeAll.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -418,13 +475,73 @@ public final class LibraryScreen implements ChildSink {
             }
         });
         shelf.addCard(seeAll);
-        int limit = Math.min(children.size(), MAX_CARDS);
+        List<MediaClient.Item> ordered = ordered(category);
+        int limit = Math.min(ordered.size(), MAX_CARDS);
         for (int i = 0; i < limit; i++) {
-            shelf.addCard(card(category, children.get(i)));
+            shelf.addCard(card(category, ordered.get(i)));
         }
         linkFocus();
         updateSummary();
-        if (input.getText().length() > 0) buildResults(input.getText().toString().trim());
+    }
+
+    /** A–Z is local; "recentes" keeps the order the engine delivered for that library node. */
+    private List<MediaClient.Item> ordered(Category category) {
+        if (!SORT_AZ.equals(sort) || category.kind == KIND_RECENT
+                || category.kind == KIND_RANDOM) {
+            return category.items;
+        }
+        List<MediaClient.Item> sorted = new ArrayList<MediaClient.Item>(category.items);
+        Collections.sort(sorted, new Comparator<MediaClient.Item>() {
+            @Override
+            public int compare(MediaClient.Item left, MediaClient.Item right) {
+                int byTitle = normalize(left.title).compareTo(normalize(right.title));
+                return byTitle != 0 ? byTitle : left.title.compareToIgnoreCase(right.title);
+            }
+        });
+        return sorted;
+    }
+
+    private void renderSortRow() {
+        sortRow.removeAllViews();
+        sortRow.addView(sortPill("A–Z", SORT_AZ), sortPillParams());
+        sortRow.addView(sortPill("Recentes", SORT_RECENT), sortPillParams());
+    }
+
+    private View sortPill(String label, final String value) {
+        boolean active = value.equals(sort);
+        Pill pill = active
+                ? Pill.accent(context, 0, label)
+                : Pill.surface(context, 0, label);
+        pill.setContentDescription(label + (active ? ", selecionado" : ""));
+        pill.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                setSort(value);
+            }
+        });
+        return pill;
+    }
+
+    private LinearLayout.LayoutParams sortPillParams() {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.rightMargin = Tokens.dp(8);
+        return params;
+    }
+
+    private void setSort(String value) {
+        if (value.equals(sort)) return;
+        sort = value;
+        prefs.edit().putString(KEY_SORT, sort).apply();
+        renderSortRow();
+        for (Category category : categories) {
+            if (category.loaded && !category.failed) renderShelf(category);
+        }
+        if (input.getText().length() > 0) {
+            buildResults(input.getText().toString().trim());
+        } else {
+            updateSummary();
+        }
     }
 
     private int cardSize() {
@@ -471,6 +588,7 @@ public final class LibraryScreen implements ChildSink {
         if (item.artworkUri != null && item.artworkUri.length() > 0) {
             ImageView cover = new ImageView(context);
             cover.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            cover.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             avatar.addView(cover, new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
             artwork.load(item.artworkUri, cover);
@@ -498,6 +616,7 @@ public final class LibraryScreen implements ChildSink {
         Focus.attach(card, Tokens.RADIUS_CARD, Tokens.SURFACE, Tokens.SURFACE_HOVER, null);
         Focus.rippleOnTop(card, Tokens.RADIUS_CARD);
         card.setLayoutParams(new LinearLayout.LayoutParams(size, size));
+        card.setContentDescription(item.title + ", artista");
         card.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -552,12 +671,14 @@ public final class LibraryScreen implements ChildSink {
     private void onFilterChanged(String value) {
         String term = value == null ? "" : value.trim();
         clear.setVisibility(term.length() > 0 ? View.VISIBLE : View.GONE);
-        if (page == null || results == null) return;
+        if (page == null) return;
         boolean filtered = term.length() > 0;
-        page.setVisibility(filtered ? View.GONE : View.VISIBLE);
-        results.setVisibility(filtered ? View.VISIBLE : View.GONE);
+        scroll.setVisibility(filtered ? View.GONE : View.VISIBLE);
+        if (resultsList != null) {
+            resultsList.setVisibility(filtered ? View.VISIBLE : View.GONE);
+        }
         if (!filtered) {
-            results.removeAllViews();
+            resultAdapter = null;
             updateSummary();
             scrollToTop();
             return;
@@ -566,60 +687,162 @@ public final class LibraryScreen implements ChildSink {
     }
 
     private void buildResults(String term) {
-        if (results == null) return;
-        results.removeAllViews();
         String needle = normalize(term);
+        List<Object> entries = new ArrayList<Object>();
         int total = 0;
         for (Category category : categories) {
             List<MediaClient.Item> matches = new ArrayList<MediaClient.Item>();
-            for (MediaClient.Item item : category.items) {
+            for (MediaClient.Item item : ordered(category)) {
                 if (matches(item, needle)) matches.add(item);
             }
             if (matches.isEmpty()) continue;
-            SectionHeader header = new SectionHeader(context, category.title, category.icon);
-            header.setCount(matches.size());
-            LinearLayout.LayoutParams headerParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            headerParams.topMargin = Tokens.dp(16);
-            headerParams.bottomMargin = Tokens.dp(6);
-            results.addView(header, headerParams);
-            for (MediaClient.Item item : matches) addResultRow(item, category);
+            entries.add(new ResultHeader(category.title, category.icon, matches.size()));
+            for (MediaClient.Item item : matches) {
+                entries.add(new ResultEntry(item, category.kind));
+            }
             total += matches.size();
         }
-        if (total == 0) {
-            results.addView(new EmptyState(context, Icons.SEARCH,
-                            "Nada encontrado na biblioteca",
-                            "Nenhum artista, álbum ou playlist carregado corresponde a \""
-                                    + term + "\"."),
-                    new LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.WRAP_CONTENT));
+        if (total == 0) entries.add(new ResultEmpty(term));
+        if (resultsList == null) {
+            resultsList = new ListView(context);
+            resultsList.setDivider(new ColorDrawable(0x00000000));
+            resultsList.setDividerHeight(Tokens.dp(8));
+            resultsList.setSelector(android.R.color.transparent);
+            resultsList.setItemsCanFocus(true);
+            resultsList.setFocusable(true);
+            resultsList.setClipToPadding(false);
+            resultsList.setPadding(Tokens.dp(16), Tokens.dp(4), Tokens.dp(16), Tokens.dp(24));
+            contentHost.addView(resultsList, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         }
+        resultAdapter = new ResultAdapter(entries);
+        resultsList.setAdapter(resultAdapter);
+        resultsList.setVisibility(View.VISIBLE);
+        resultsList.setSelection(0);
         subtitleView.setText(total + (total == 1 ? " resultado" : " resultados"));
         scrollToTop();
+        applyPendingScroll();
+        final int found = total;
+        resultsList.post(new Runnable() {
+            @Override
+            public void run() {
+                Log.i("AppleMusicOne", "perf library results=" + found
+                        + " rows=" + resultsList.getChildCount()
+                        + " views=" + Perf.views(resultsList));
+            }
+        });
     }
 
-    private void addResultRow(final MediaClient.Item item, Category category) {
-        String subtitle = item.subtitle.length() > 0 ? item.subtitle : label(category.kind);
-        ListRow row = new ListRow(context, artwork, item.title, subtitle,
-                item.artworkUri, true);
-        row.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                open(item);
+    /** Section header inside the filter list (never recycled: only a handful per query). */
+    private static final class ResultHeader {
+        final String title;
+        final int icon;
+        final int count;
+
+        ResultHeader(String title, int icon, int count) {
+            this.title = title;
+            this.icon = icon;
+            this.count = count;
+        }
+    }
+
+    /** One matching library item; keeps the category so the subtitle can fall back to its label. */
+    private static final class ResultEntry {
+        final MediaClient.Item item;
+        final int kind;
+
+        ResultEntry(MediaClient.Item item, int kind) {
+            this.item = item;
+            this.kind = kind;
+        }
+    }
+
+    private static final class ResultEmpty {
+        final String term;
+
+        ResultEmpty(String term) {
+            this.term = term;
+        }
+    }
+
+    private final class ResultAdapter extends BaseAdapter {
+
+        private final List<Object> entries;
+
+        ResultAdapter(List<Object> entries) {
+            this.entries = entries;
+        }
+
+        @Override
+        public int getCount() {
+            return entries.size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return entries.get(position);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return position;
+        }
+
+        @Override
+        public int getViewTypeCount() {
+            return 3;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            Object entry = entries.get(position);
+            return entry instanceof ResultHeader ? 0 : entry instanceof ResultEmpty ? 2 : 1;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            Object entry = entries.get(position);
+            if (entry instanceof ResultHeader) {
+                ResultHeader header = (ResultHeader) entry;
+                SectionHeader view = new SectionHeader(context, header.title, header.icon);
+                view.setCount(header.count);
+                view.setPadding(0, Tokens.dp(16), 0, Tokens.dp(6));
+                return view;
             }
-        });
-        row.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                host.itemActions(item);
-                return true;
+            if (entry instanceof ResultEmpty) {
+                return new EmptyState(context, Icons.SEARCH, "Nada encontrado na biblioteca",
+                        "Nenhum artista, álbum ou playlist carregado corresponde a \""
+                                + ((ResultEmpty) entry).term + "\".");
             }
-        });
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.bottomMargin = Tokens.dp(8);
-        results.addView(row, params);
+            final ResultEntry result = (ResultEntry) entry;
+            final MediaClient.Item item = result.item;
+            ListRow row = convertView instanceof ListRow
+                    ? (ListRow) convertView
+                    : new ListRow(context, artwork, "", "", null, true);
+            String subtitle = item.subtitle.length() > 0 ? item.subtitle : label(result.kind);
+            row.bind(artwork, item.title, subtitle, item.artworkUri, true);
+            row.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    open(item);
+                }
+            });
+            row.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    host.itemActions(item);
+                    return true;
+                }
+            });
+            return row;
+        }
+    }
+
+    /** Puts the scroll back where it was before the rotation, once the content is in. */
+    private void applyPendingScroll() {
+        if (pendingScroll <= 0f) return;
+        ScrollMemory.restore(scroll, pendingScroll);
+        pendingScroll = 0f;
     }
 
     private void scrollToTop() {
@@ -633,85 +856,9 @@ public final class LibraryScreen implements ChildSink {
 
     // --- navigation ----------------------------------------------------------------
 
-    /**
-     * Library rows carry only the persistent id (no catalogue id), so the rich screen is
-     * reached by resolving the name; a miss keeps the previous browse behaviour instead of
-     * dead-ending the tap.
-     */
+    /** Same resolution the search's local scope uses (library ids have no catalogue id). */
     private void open(final MediaClient.Item item) {
-        String last = lastSegment(item.id).toLowerCase(Locale.ROOT);
-        if (last.startsWith("6-")) {
-            resolveArtist(item);
-            return;
-        }
-        if (last.startsWith("3-")) {
-            resolveAlbum(item);
-            return;
-        }
-        if (last.startsWith("4-")) {
-            resolvePlaylist(item);
-            return;
-        }
-        if (item.playable) {
-            host.play(item);
-            return;
-        }
-        host.status("Item não reproduzível");
-    }
-
-    private void resolveArtist(final MediaClient.Item item) {
-        host.status("Abrindo " + item.title + "…");
-        catalog.findArtist(item.title, new CatalogSearch.MatchCallback() {
-            @Override
-            public void onMatch(CatalogSearch.Result match) {
-                host.openArtist(match.id, item.title,
-                        match.artworkUrl != null ? match.artworkUrl : item.artworkUri);
-            }
-
-            @Override
-            public void onFailure(String message) {
-                host.status("Artista sem catálogo · abrindo os álbuns da biblioteca");
-                host.openCollection(item.title, item.id, false);
-            }
-        });
-    }
-
-    private void resolveAlbum(final MediaClient.Item item) {
-        host.status("Abrindo " + item.title + "…");
-        catalog.findAlbumMatch(item.title, item.subtitle, new CatalogSearch.MatchCallback() {
-            @Override
-            public void onMatch(CatalogSearch.Result match) {
-                host.openAlbum(match.id, item.title, item.subtitle,
-                        match.artworkUrl != null ? match.artworkUrl : item.artworkUri);
-            }
-
-            @Override
-            public void onFailure(String message) {
-                host.status("Álbum sem catálogo · abrindo a lista de faixas");
-                host.openLibraryCollection(CollectionScreen.ALBUM, item.title, item.subtitle,
-                        item.id);
-            }
-        });
-    }
-
-    private void resolvePlaylist(final MediaClient.Item item) {
-        host.status("Abrindo " + item.title + "…");
-        catalog.findPlaylistMatch(item.title, item.subtitle,
-                new CatalogSearch.MatchCallback() {
-                    @Override
-                    public void onMatch(CatalogSearch.Result match) {
-                        host.openPlaylist(match.id, item.title, item.subtitle,
-                                match.artworkUrl != null ? match.artworkUrl
-                                        : item.artworkUri);
-                    }
-
-                    @Override
-                    public void onFailure(String message) {
-                        host.status("Playlist sem catálogo · abrindo a lista de faixas");
-                        host.openLibraryCollection(CollectionScreen.PLAYLIST, item.title,
-                                item.subtitle, item.id);
-                    }
-                });
+        LibraryOpener.open(host, catalog, item);
     }
 
     /** BACK first clears the local filter, then leaves the tab. */
@@ -741,14 +888,8 @@ public final class LibraryScreen implements ChildSink {
         return null;
     }
 
-    private static String lastSegment(String id) {
-        if (id == null) return "";
-        int slash = id.lastIndexOf('/');
-        return slash < 0 ? id : id.substring(slash + 1);
-    }
-
     private static int kindOf(String id) {
-        String last = lastSegment(id).toLowerCase(Locale.ROOT);
+        String last = CatalogResolver.lastSegment(id).toLowerCase(Locale.ROOT);
         if (last.equals("songs") || last.equals("random")) return KIND_RANDOM;
         if (last.equals("recently_added")) return KIND_RECENT;
         if (last.equals("playlists")) return KIND_PLAYLISTS;

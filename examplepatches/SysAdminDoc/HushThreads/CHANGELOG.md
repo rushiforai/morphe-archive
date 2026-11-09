@@ -4,7 +4,10 @@ Changes in the source build, then released versions.
 
 ## Unreleased
 
+* New `Full size profile pictures` patch. When you open someone's profile picture on their profile, it shows full size in a viewer of its own instead of Threads' small circle. You can pinch to zoom, and with Save media on there's a Save button too. It's in Manager's default selection, but its switch under Appearance in HushThreads settings starts off. Asked for in #22.
+* The bundle is built on Morphe patcher 2.3.0 now, the one that comes with Morphe Manager 2.5.0 and Morphe Desktop 2.1.0. Update Manager to 2.5.0 or newer before you add the next release, since older Manager builds can't load it.
 * With `Show exact post times` on and a large font, a post's time stays in one piece. Under a long name it used to break after the month or the day, with "Nov" on one line and "5, 2:30 AM" on the next. Now the whole time moves under the name when it doesn't fit beside it.
+* New `Change package name` and `Change app name` patches, for keeping your regular Threads and installing HushThreads next to it as a second app with its own sign-in. The copy opens without crashing now. It used to take itself for Instagram, so the feed and profiles crashed as they loaded. Neither patch is in Manager's default selection, and HushThreads settings show the copy's package name and app name under Set when you patched. Asked for in #23.
 
 ## 0.0.17 (2026-11-05)
 

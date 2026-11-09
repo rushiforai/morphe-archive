@@ -1,0 +1,48 @@
+--------- beginning of main
+11-08 08:28:40.171  8850  8850 I AppleMusicOne: Inter loaded: regular=true semibold=true
+11-08 08:28:40.209  8850  8850 I AppleMusicOne: TEST connect failure, remaining=2
+11-08 08:28:40.209  8850  8850 I AppleMusicOne: update auto-check throttled
+11-08 08:28:40.588  8850  8850 W AppleMusicOne: disconnected: TEST: serviço indisponível
+11-08 08:28:40.588  8850  8850 I AppleMusicOne: status: Reconectando ao Apple Music…
+11-08 08:28:40.588  8850  8850 I AppleMusicOne: reconnect in 500 ms
+11-08 08:28:41.089  8850  8850 I AppleMusicOne: reconnecting to the engine
+11-08 08:28:41.089  8850  8850 I AppleMusicOne: TEST connect failure, remaining=1
+11-08 08:28:41.090  8850  8850 W AppleMusicOne: disconnected: TEST: serviço indisponível
+11-08 08:28:41.090  8850  8850 I AppleMusicOne: status: Reconectando ao Apple Music…
+11-08 08:28:41.090  8850  8850 I AppleMusicOne: reconnect in 1000 ms
+11-08 08:28:42.091  8850  8850 I AppleMusicOne: reconnecting to the engine
+11-08 08:28:42.091  8850  8850 I AppleMusicOne: TEST connect failure, remaining=0
+11-08 08:28:42.091  8850  8850 W AppleMusicOne: disconnected: TEST: serviço indisponível
+11-08 08:28:42.091  8850  8850 I AppleMusicOne: status: Reconectando ao Apple Music…
+11-08 08:28:42.091  8850  8850 I AppleMusicOne: reconnect in 2000 ms
+11-08 08:28:44.093  8850  8850 I AppleMusicOne: reconnecting to the engine
+11-08 08:28:44.602  8850  8850 I AppleMusicOne: MediaBrowser connected, root=ROOT_MEDIA_ITEM
+11-08 08:28:44.603  8850  8850 I AppleMusicOne: connected
+11-08 08:28:44.605  8850  8850 I AppleMusicOne: status: Conectado ao Apple Music
+11-08 08:28:44.606  8850  8850 I AppleMusicOne: queue size=0
+11-08 08:28:44.615  8850  8850 I AppleMusicOne: queue changed: 27
+11-08 08:28:44.616  8850  8850 I AppleMusicOne: queue size=27 active=0
+11-08 08:28:44.616  8850  8850 I AppleMusicOne: queue[0] id=0 media=1410114672 title=Rulers of the Mind
+11-08 08:28:44.616  8850  8850 I AppleMusicOne: queue[1] id=1 media=1425822129 title=A Touch of Blessing
+11-08 08:28:44.616  8850  8850 I AppleMusicOne: queue[2] id=2 media=1520350734 title=Frozen
+11-08 08:28:44.663  8850  8850 I AppleMusicOne: queue changed: 27
+11-08 08:28:44.682  8850  8850 I AppleMusicOne: children parent=__AUTO_ROOT__ count=3 art=3
+11-08 08:28:44.683  8850  8850 I AppleMusicOne: queue changed: 27
+11-08 08:28:44.688  8850  8850 I AppleMusicOne: root arrived, tab=0
+11-08 08:28:44.691  8850  8850 I AppleMusicOne: status: Carregando Início…
+11-08 08:28:44.770  8850  8850 I AppleMusicOne: queue changed: 27
+11-08 08:28:46.477  8850  8850 I AppleMusicOne: children parent=__AUTO_ROOT__/home count=16 art=0
+11-08 08:28:46.499  8850  8850 I AppleMusicOne: status: 
+11-08 08:28:46.499  8850  8850 I AppleMusicOne: perf home shelves=6/16 requested=6 views=87
+11-08 08:28:46.564  8850  8850 I AppleMusicOne: children parent=__AUTO_ROOT__/home/top_picks_for_you count=9 art=9
+11-08 08:28:46.564  8850  8850 I AppleMusicOne: children parent=__AUTO_ROOT__/home/stations_for_you count=12 art=12
+11-08 08:28:46.564  8850  8850 I AppleMusicOne: children parent=__AUTO_ROOT__/home/more_like_hail_to_the_king_(deluxe_edition) count=12 art=12
+11-08 08:28:46.564  8850  8850 I AppleMusicOne: children parent=__AUTO_ROOT__/home/new_baile_funk_releases count=10 art=10
+11-08 08:28:46.564  8850  8850 I AppleMusicOne: children parent=__AUTO_ROOT__/home/replay:_your_top_music count=13 art=13
+11-08 08:28:46.579  8850  8850 I AppleMusicOne: perf home shelf=__AUTO_ROOT__/home/top_picks_for_you shelves=6/16 views=150
+11-08 08:28:46.581  8850  8850 I AppleMusicOne: perf home shelf=__AUTO_ROOT__/home/stations_for_you shelves=6/16 views=234
+11-08 08:28:46.583  8850  8850 I AppleMusicOne: perf home shelf=__AUTO_ROOT__/home/more_like_hail_to_the_king_(deluxe_edition) shelves=6/16 views=318
+11-08 08:28:46.584  8850  8850 I AppleMusicOne: perf home shelf=__AUTO_ROOT__/home/new_baile_funk_releases shelves=6/16 views=388
+11-08 08:28:46.585  8850  8850 I AppleMusicOne: perf home shelf=__AUTO_ROOT__/home/replay:_your_top_music shelves=6/16 views=479
+11-08 08:28:47.416  8850  8850 I AppleMusicOne: children parent=__AUTO_ROOT__/home/recently_played count=12 art=12
+11-08 08:28:47.421  8850  8850 I AppleMusicOne: perf home shelf=__AUTO_ROOT__/home/recently_played shelves=6/16 views=563

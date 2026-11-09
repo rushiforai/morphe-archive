@@ -1,11 +1,20 @@
 # NuvioTV playback buttons
 
-Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
+Current target: **NuvioTV 1.1.0-beta.13 (1076)**. See [beta.13 contracts and verification](NuvioBeta13.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.13 contract and `verifyNuvioLatest` for the current release.
 
 
-**NuvioTV - Customize playback buttons** targets `com.nuvio.tv` `1.1.0-beta.9`
-(1072). It is independently selectable and uses the shared, unnamed settings-menu
+**NuvioTV - Customize playback buttons** targets `com.nuvio.tv` `1.1.0-beta.13`
+(1076). It is independently selectable and uses the shared, unnamed settings-menu
 dependency. No other optional Nuvio patch is required.
+
+The 2026-11-08 beta.13 editor-crash fix resolves the list renderer from the same
+full native reference that patch validation checks: static `d7.a.H` with twelve
+arguments. The former separate method-name setting still specified `G`, whose
+beta.13 overload is the unrelated `G(int):long`, causing `NoSuchMethodException`
+as soon as the editor opened. The duplicate setting was removed. Runtime fixtures
+now model the real H/G distinction, and the rebuilt-APK audit rejects a stale
+editor implementation. Use the `editor-fix-unsigned.apk` output documented in
+[NuvioBeta13.md](NuvioBeta13.md).
 
 Open **Settings → Layout → Santodan-Patches → Playback**. Enable customization,
 then choose **Edit playback buttons**. The whole button list scrolls continuously,

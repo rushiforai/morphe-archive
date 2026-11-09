@@ -47,7 +47,9 @@ class ReleaseReadmeTests(unittest.TestCase):
         for guide in re.findall(r"\]\((docs/[^)#]+)", result):
             self.assertTrue((ROOT / guide).is_file(), guide)
         self.assertTrue("[Song artist order](docs/FINAMP_NATIVE.md)" in result or
-                        "[Finamp complete: all eight fixes](docs/FINAMP_NATIVE.md)" in result)
+                        "[Finamp complete: all eight fixes](docs/FINAMP_NATIVE.md)" in result or
+                        "[Finamp complete: all seven fixes](docs/FINAMP_NATIVE.md)" in result or
+                        "[Finamp Complete](docs/FINAMP_NATIVE.md)" in result)
         self.assertIn("[Separate all-day reminder defaults](docs/CALENDAR_REMINDERS.md)", result)
         self.assertIn('id="prefer-each-track-s-embedded-cover"', result)
         self.assertIn('id="prefer-each-tracks-embedded-cover"', result)
@@ -176,18 +178,29 @@ class ReleaseReadmeTests(unittest.TestCase):
         self.assertIn('src="tests/finamp/evidence/2026-11-05-notes/track-before.png"', result)
         self.assertIn('src="tests/finamp/evidence/2026-11-05-notes/track-after.png"', result)
 
+    def test_seven_fix_compact_excludes_retired_banner_preview(self):
+        data = {"version": "2.0.0", "patches": [{
+            "name": "Finamp complete: all seven fixes", "description": "Seven Finamp fixes",
+            "compatiblePackages": [{"packageName": "com.unicornsonlsd.finamp", "name": "Finamp",
+                                    "targets": [{"version": "1.0.1"}]}]}]}
+        result = self.render(data)
+        self.check_gallery(data, result)
+        self.assertIn("Finamp Complete combines the fixes", result)
+        self.assertIn("#preview-finamp-complete-all-seven-fixes", result)
+        self.assertNotIn("#preview-fix-quick-settings-banner-contrast", result)
+
     def test_compact_default_keeps_individual_previews_without_duplicate_anchor(self):
         data = {"version": "2.0.0", "patches": [{
-            "name": "Finamp complete: all eight fixes", "description": "All eight Finamp fixes",
+            "name": "Finamp Complete", "description": "All Finamp fixes",
             "compatiblePackages": [{"packageName": "com.unicornsonlsd.finamp", "name": "Finamp",
                                     "targets": [{"version": "1.0.1"}]}]}]}
         result = self.render(data)
         self.assertIn("1 patch · 1 app", result)
-        self.assertEqual(result.count('id="preview-finamp-complete-all-eight-fixes"'), 1)
+        self.assertEqual(result.count('id="preview-finamp-complete"'), 1)
         self.assertIn('id="preview-show-album-and-track-information"', result)
         self.assertIn('id="preview-song-artist-order"', result)
         previews = result.split("<!-- PATCHES_PREVIEWS_START -->")[1].split("<!-- PATCHES_PREVIEWS_END -->")[0]
-        self.assertEqual(previews.count("<summary>"), 9)
+        self.assertEqual(previews.count("<summary>"), 8)
 
     def test_mihon_preview_embeds_real_pair_and_guide(self):
         data = {"version": "1.5.0", "patches": [{
@@ -209,13 +222,17 @@ class ReleaseReadmeTests(unittest.TestCase):
         # The alternate Finamp source has its own previews without affecting
         # the released default bundle's metadata count.
         names = {p["name"] for p in data["patches"]}
-        extra = 8 if "Finamp complete: all eight fixes" in names else 1
+        from finamp_catalogue import catalogue
+        extra = len(catalogue()[1]) if "Finamp complete: all seven fixes" in names or "Finamp Complete" in names else 1
         self.assertEqual(previews.count("<summary>"), len(data["patches"]) + extra)
         self.assertEqual(len(re.findall(r"^### ", previews, re.MULTILINE)), app_count(data))
         self.assertGreaterEqual(len(re.findall(r'<img [^>]*alt="(?:Before|After):', previews)), 2 * len(data["patches"]))
         self.assertNotIn("## About these comparisons", previews)
         sections = dict(re.findall(r'<a id="preview-([^"]+)"></a>(.*?)(?=\n<a id=|\Z)', previews, re.DOTALL))
-        compact = sections["finamp-complete-all-eight-fixes"]
+        compact_slug = ("finamp-complete-all-seven-fixes"
+                        if "Finamp complete: all seven fixes" in names
+                        else "finamp-complete")
+        compact = sections[compact_slug]
         self.assertIn("captures do not depict the compact bundle", compact)
         self.assertEqual(len(re.findall(r'<img [^>]*alt="(?:Before|After):', compact)), 2)
         for patch in data["patches"]:

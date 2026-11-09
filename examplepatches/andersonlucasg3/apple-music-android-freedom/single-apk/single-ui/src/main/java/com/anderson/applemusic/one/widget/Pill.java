@@ -37,10 +37,13 @@ public final class Pill extends LinearLayout {
         label.setSingleLine(true);
         addView(label);
         Focus.attach(this, Tokens.RADIUS_PILL, fill, focusFill, null);
+        // The pill is the clickable node; its label must be reachable by TalkBack too.
+        setContentDescription(text);
     }
 
     public void setText(String text) {
         label.setText(text);
+        setContentDescription(text);
     }
 
     public void setIcon(int iconId) {

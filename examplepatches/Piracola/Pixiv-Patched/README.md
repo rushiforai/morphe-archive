@@ -1,7 +1,7 @@
 # 🎨 PixivPatched
 
 面向 Pixiv 安卓版（`jp.pxv.android`）的 [Morphe](https://morphe.software) 补丁合集，可逐条开关：
-AI 作品标记、去广告、原图下载、客户端会员功能、本地浏览记录、热度搜索、OLED 纯黑主题、全屏查看器加速。
+AI 作品标记、去广告、原图下载、客户端会员功能、本地浏览记录、热度搜索、OLED 纯黑主题、全屏查看器加速、小说文本复制。
 
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Target App](https://img.shields.io/badge/目标版本-Pixiv%20v6.202.1-0096FA.svg)](https://play.google.com/store/apps/details?id=jp.pxv.android)
@@ -33,6 +33,7 @@ AI 作品标记、去广告、原图下载、客户端会员功能、本地浏�
 | 🔥 **Popular Search Unlock** | 无需订阅、也没有试用倒计时，直接解锁「按热度排序」（`popular_desc`）搜索标签页。 |
 | 🌑 **OLED Dark Theme** | 把暗色主题的表面/背景色改写为纯黑。 |
 | 🖼️ **Enhanced Viewer & Instant Zoom** | 全屏查看器先用该页的标准分辨率图（或详情页当前位图）做即时占位，原图加载期间就能缩放拖动，加载完成后无缝换成原图。 |
+| 📋 **Novel Text Copy** | 解锁小说里的文字：正文可以长按选中复制，简介和系列说明也能选；阅读器右上角菜单多了「复制标题」「复制作者」「下载全文」，全文存成 `下载/作品ID_标题.txt`（标题、简介、链接、正文）。 |
 
 所有补丁互相独立，可自由开关。想保留原来的试用流程，把 **Popular Search Unlock** 关掉即可。
 
@@ -41,9 +42,9 @@ AI 作品标记、去广告、原图下载、客户端会员功能、本地浏�
 ## 🩹 补丁列表
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.0](https://github.com/Piracola/Pixiv-Patched/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.4.0](https://github.com/Piracola/Pixiv-Patched/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
-<summary>📦 Pixiv&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<summary>📦 Pixiv&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
 
 **Package name:** `jp.pxv.android`
@@ -60,6 +61,7 @@ AI 作品标记、去广告、原图下载、客户端会员功能、本地浏�
 | [Pixiv Browsing History](#pixiv-browsing-history) | Records the illustrations, manga and novels opened in the app into an on-device browsing history, and shows it in the app's own history screen (manga and novels apart) instead of Pixiv's server-side list. |  |
 | [Pixiv Downloader](#pixiv-downloader) | Adds a button to the illustration and manga detail view to download original full-quality artwork directly to your Photos library with clean metadata filenames. |  |
 | [Pixiv Enhanced Viewer & Instant Zoom](#pixiv-enhanced-viewer-instant-zoom) | Displays the standard-resolution artwork as an instant placeholder while the full-resolution image loads, allows immediate pinch-to-zoom/pan preserving zoom coordinates upon high-res load, and shows a discreet loading indicator. |  |
+| [Pixiv Novel Text Copy](#pixiv-novel-text-copy) | Re-enables text handling on the novel reader: long-press selection in the body, caption and series description, and a reader menu with copy title, copy author and download-full-text (title, caption, link and body saved as a .txt in Downloads). |  |
 | [Pixiv OLED Dark Theme](#pixiv-oled-dark-theme) | Overrides dark gray surface and background colors with pure pitch black (#ff000000) for OLED battery savings and true high-contrast dark mode. |  |
 | [Pixiv Popular Search Unlock](#pixiv-popular-search-unlock) | Unlocks sorting search results by popularity (popular_desc) without a premium subscription or trial countdown. |  |
 | [Pixiv Premium Features](#pixiv-premium-features) | Emulates client-side Pixiv Premium membership status and removes the mute list limits. |  |
@@ -90,6 +92,10 @@ AI 作品标记、去广告、原图下载、客户端会员功能、本地浏�
 - **广告只是界面层隐藏。** 广告 SDK 仍在运行，也仍可能发出请求。
 - **浏览历史**分插画/漫画和小说两个列表，各自回退到本地缓存的最近 100 条（在 App 内打开过的作品），不是 Pixiv 的服务端历史；只有在开启 **Premium Features** 时才会记录和回填。
 - **AI 标记**依赖 Pixiv 自己的 `illustAiType` 元数据，只有上传时勾选了 AI 的作品才有这个值；所以另外提供了标签黑名单作为兜底。
+- **小说正文是网页**（WebView 里跑 Pixiv 自己的页面），能选中靠的是载入后注入样式；Pixiv 改版可能失效，那时「下载全文」仍然可用。
+- **「下载全文」要 Android 10 及以上**（写系统下载目录走 MediaStore），8/9 会直接提示不支持。
+- **由 Compose 绘制、暂时无法选中的文字**：作者个人页、评论正文、小说底栏那排操作。标题和作者名可以从阅读器菜单复制。
+- **小说简介里的可点链接会让位给选择**：原生 TextView 的「可选中」和「链接可点」只能二选一，这里优先复制；插画页的简介不受影响，标签栏也照常可点。
 
 ---
 

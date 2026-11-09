@@ -64,6 +64,7 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
             val starved = list.map { it.withMethods(swap) }
             val saved = listOf(messageTextGetterName, messageIdGetterName, messageIsUnsentGetterName)
             val savedLog = messageLogContract
+            val savedQuiet = quietChatContract
             val savedThreads = readReceiptThreadFields
             val savedRecipe = markReadRecipe
             val savedLogButton = messageLogButtonRecipe
@@ -86,6 +87,7 @@ private fun mirrored(classes: Iterable<ClassDef>, skip: Set<String>, find: (List
                 messageIdGetterName = saved[1]
                 messageIsUnsentGetterName = saved[2]
                 messageLogContract = savedLog
+                quietChatContract = savedQuiet
                 readReceiptThreadFields = savedThreads
                 markReadRecipe = savedRecipe
                 messageLogButtonRecipe = savedLogButton

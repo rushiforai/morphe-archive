@@ -4,7 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.maintabs
 
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.loadsInt
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -25,6 +26,12 @@ import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val NEW_MESSAGE_BUTTON = "$MAIN_TABS->newMessageButton(Ljava/lang/Object;)V"
 internal const val NEW_MESSAGE_DONE = "$MAIN_TABS->newMessageDone(Ljava/lang/Object;)V"
@@ -85,11 +92,11 @@ internal fun BytecodePatchContext.resolveNewMessageButton(): NewMessageButton {
 
     val found = mutableListOf<Pair<MutableMethod, Int>>()
     forEachClassMentioning(Mention.allReferences(listOf(COMPOSE_ICON, NEW_MESSAGE_TITLE))) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
-        mutableClassDefBy(cls.type).methods.forEach { m ->
-            if (AccessFlags.STATIC.isSet(m.accessFlags) || m.returnType != "V" || m.parameterTypes.isNotEmpty()) return@forEach
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        tgMutableClassDefBy(cls.type).methods.forEach { m ->
+            if (AccessFlags.STATIC.isSet(m.accessFlags) || m.origReturnType != "V" || m.parameterTypes.isNotEmpty()) return@forEach
             val body = m.controlBody()
-            val icons = body.indices.filter { body[it].opcode == Opcode.SGET && body[it].controlRef() == COMPOSE_ICON }
+            val icons = body.indices.filter { body[it].loadsInt() && body[it].controlRef() == COMPOSE_ICON }
             if (icons.size == 1 && body.any { it.controlRef() == NEW_MESSAGE_TITLE }) found += m to icons.single()
         }
     }
@@ -98,7 +105,7 @@ internal fun BytecodePatchContext.resolveNewMessageButton(): NewMessageButton {
     val body = method.controlBody()
     val set = body.getOrNull(icon + 1)
     val call = set?.call()
-    if (set?.opcode != Opcode.INVOKE_VIRTUAL || call?.name != "setImageResource" || call.parameterTypes.map(CharSequence::toString) != listOf("I")) {
+    if (set?.opcode != Opcode.INVOKE_VIRTUAL || call?.origName != "setImageResource" || call.parameterTypes.map(CharSequence::toString) != listOf("I")) {
         return missing("the new message button's picture is no longer set right after the icon loads")
     }
     val button = set.namedRegisters().first()
@@ -109,13 +116,13 @@ internal fun BytecodePatchContext.resolveNewMessageButton(): NewMessageButton {
         val read = reachingWrite(flow, at, register) ?: return null
         val field = body[read].controlField() ?: return null
         return field.toString().takeIf {
-            body[read].opcode == Opcode.IGET_OBJECT && field.definingClass == method.definingClass &&
-                field.type == call.definingClass && body[read].namedRegisters()[1] == method.localRegisterCount()
+            body[read].opcode == Opcode.IGET_OBJECT && field.origDefiningClass == method.origDefiningClass &&
+                field.origType == call.origDefiningClass && body[read].namedRegisters()[1] == method.localRegisterCount()
         }
     }
     val field = buttonField(icon, button)
         ?: return missing("the compose icon no longer belongs to the chat list's own button")
-    val done = body.indices.filter { body[it].opcode == Opcode.SGET && body[it].controlRef() == DONE_ICON }.singleOrNull()
+    val done = body.indices.filter { body[it].loadsInt() && body[it].controlRef() == DONE_ICON }.singleOrNull()
         ?: return missing("the chat list no longer sets one Done button role")
     val doneSet = body.getOrNull(done + 1)
     val doneView = doneSet?.namedRegisters()?.firstOrNull()
@@ -124,10 +131,10 @@ internal fun BytecodePatchContext.resolveNewMessageButton(): NewMessageButton {
         return missing("the Done role no longer belongs to the compose button")
     }
 
-    if (classDefByOrNull(call.definingClass) == null) return missing("the compose button's class is missing")
-    val buttonClass = mutableClassDefBy(call.definingClass)
+    if (tgClassDefByOrNull(call.definingClass) == null) return missing("the compose button's class is missing")
+    val buttonClass = tgMutableClassDefBy(call.definingClass)
     val animations = buttonClass.methods.filter { m ->
-        if (!AccessFlags.STATIC.isSet(m.accessFlags) || m.returnType != "V" ||
+        if (!AccessFlags.STATIC.isSet(m.accessFlags) || m.origReturnType != "V" ||
             m.parameterTypes.map(CharSequence::toString) != listOf("Landroid/view/View;", "F")) return@filter false
         val instructions = m.controlBody()
         if (instructions.isEmpty()) return@filter false
@@ -141,10 +148,10 @@ internal fun BytecodePatchContext.resolveNewMessageButton(): NewMessageButton {
     }
     val animation = animations.singleOrNull()
         ?: return missing("the compose button no longer has one native visibility animator (${animations.size})")
-    val animationRef = "${animation.definingClass}->${animation.name}(Landroid/view/View;F)V"
+    val animationRef = "${animation.origDefiningClass}->${animation.origName}(Landroid/view/View;F)V"
     val callbacks = buttonClass.methods.filter { m ->
         val parameters = m.parameterTypes.map(CharSequence::toString)
-        if (AccessFlags.STATIC.isSet(m.accessFlags) || m.returnType != "V" || parameters.size != 4 ||
+        if (AccessFlags.STATIC.isSet(m.accessFlags) || m.origReturnType != "V" || parameters.size != 4 ||
             parameters.take(3) != listOf("I", "F", "F") || !parameters[3].startsWith("L")) return@filter false
         val instructions = m.controlBody()
         if (instructions.isEmpty()) return@filter false

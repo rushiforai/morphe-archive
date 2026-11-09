@@ -1,3 +1,19 @@
+## [1.8.1](https://github.com/callMeBeyonder/morphe-patches/compare/v1.8.0...v1.8.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **crossrope:** force Standard membership tier to unlock premium surfaces ([675aa7a](https://github.com/callMeBeyonder/morphe-patches/commit/675aa7a2a67cf27e11b78e84b86f716a2490339a))
+
+## [1.8.0](https://github.com/callMeBeyonder/morphe-patches/compare/v1.7.1...v1.8.0) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **carbon:** force all five isSubscribed readers in v2.77.6010 ([5b0dc33](https://github.com/callMeBeyonder/morphe-patches/commit/5b0dc338a4f8a666b167af3f1417d8acf07a6d64))
+
+### ✨ New Features
+
+* **carbon:** stub RevenueCat entitlement readers to canned active yearly ([c1f6693](https://github.com/callMeBeyonder/morphe-patches/commit/c1f669344cc0867d83c95668e2811b8ba999a3c7))
+
 ## [1.7.1](https://github.com/callMeBeyonder/morphe-patches/compare/v1.7.0...v1.7.1) (2026-11-06)
 
 ### 🐛 Bug Fixes

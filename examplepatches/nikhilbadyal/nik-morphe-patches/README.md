@@ -63,6 +63,11 @@ Keep changes focused on Swift Backup. Patch implementations live in `patches/src
 
 Open pull requests against `dev`. Use Conventional Commits (`feat:`, `fix:`, or `bump:`) so the release workflow can choose the next version. Merging `dev` into `main` publishes a stable release and regenerates the changelog, catalog, and patch table.
 
+<!-- Upstream attribution acknowledging source material and inspiration as required by GPLv3 -->
+## Acknowledgments
+
+Special thanks to [byehi98](https://github.com/byehi98) and the [okish-morphe-patches](https://github.com/byehi98/okish-morphe-patches) repository for inspiration and the original foundation of several Swift Backup patches under the GNU General Public License v3.0.
+
 ## License
 
-Distributed under [GPLv3](LICENSE). See [NOTICE](NOTICE) for the accompanying project-name restrictions. This project is provided for educational purposes.
+Distributed under [GPLv3](LICENSE). See [NOTICE](NOTICE) for the accompanying project-name restrictions and upstream license attributions. This project is provided for educational purposes.

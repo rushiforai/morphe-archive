@@ -11,7 +11,8 @@ object CalendarCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xA53FE6,
         targets = listOf(
-            AppTarget(version = "2.07.34.0918")
+            AppTarget(version = "2.07.34.0918"),
+            AppTarget(version = "2.07.37.1026"),
         )
     )
 }

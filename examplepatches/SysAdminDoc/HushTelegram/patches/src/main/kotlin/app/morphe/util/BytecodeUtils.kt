@@ -48,9 +48,9 @@
 package app.morphe.util
 
 import app.morphe.patcher.InstructionFilter
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstruction
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
@@ -76,6 +76,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.Reference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
 
 /**
  * Inserts instructions at a given index, using the existing control flow label at that index.
@@ -134,15 +136,33 @@ internal fun MutableMethod.insertAtControlFlowLabel(
     instructions: String,
     vararg externalLabels: ExternalLabel
 ) {
+    // A label on the original instruction means that instruction, which ends up after the patch code.
+    // The duplicate below is the same object, and a label goes to an instruction's first place, which
+    // hands its labels to the patch code's start: a jump there would loop. Such a label is held by a
+    // stand-in nop at the code's end instead, and removing the nop hands it on to the original.
+    val original = getInstruction(insertIndex)
+    val names = Regex(""":(\w+)""").findAll(instructions).map { it.groupValues[1] }.toSet()
+    val onOriginal = names.filter { name -> externalLabels.any { it == ExternalLabel(name, original) } }
+    val others = externalLabels.filter { label -> onOriginal.none { label == ExternalLabel(it, original) } }
+    val code = if (onOriginal.isEmpty()) instructions else instructions + onOriginal.joinToString("") { "\n:$it" } + "\nnop"
+
     // Duplicate original instruction and add to +1 index.
-    addInstruction(insertIndex + 1, getInstruction(insertIndex))
+    addInstruction(insertIndex + 1, original)
 
     // Add patch code at same index as duplicated instruction,
     // so it uses the original instruction control flow label.
-    addInstructionsWithLabels(insertIndex + 1, instructions, *externalLabels)
+    addInstructionsWithLabels(insertIndex + 1, code, *others.toTypedArray())
 
     // Remove original non duplicated instruction.
     removeInstruction(insertIndex)
+
+    if (onOriginal.isNotEmpty()) {
+        val standIn = implementation!!.instructions.indexOfFirst { it === original } - 1
+        if (getInstruction(standIn).opcode != Opcode.NOP) {
+            throw PatchException("$definingClass->$name: the code at instruction $insertIndex lost its stand-in for the jump to instruction $insertIndex")
+        }
+        removeInstruction(standIn)
+    }
 
     // Original instruction is now after the inserted patch instructions,
     // and the original control flow label is on the first instruction of the patch code.
@@ -284,7 +304,7 @@ fun BytecodePatchContext.superclassChain(type: String, maxDepth: Int = 20): Sequ
     var depth = 0
     while (at != null && depth++ < maxDepth && seen.add(at)) {
         yield(at)
-        at = classDefByOrNull(at)?.superclass
+        at = tgClassDefByOrNull(at)?.superclass
     }
 }
 
@@ -607,7 +627,7 @@ val Method.numberOfParameterRegisters: Int
         }
 
         for (param in parameters) {
-            count += when (param.type) {
+            count += when (param.origType) {
                 "J", "D" -> 2   // wide
                 else -> 1       // normal
             }

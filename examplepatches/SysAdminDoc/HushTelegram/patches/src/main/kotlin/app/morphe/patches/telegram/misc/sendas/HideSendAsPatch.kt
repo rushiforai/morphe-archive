@@ -27,6 +27,11 @@ import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origSuperclass
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 private const val PATCH = "Hide Send as button"
 internal const val SEND_AS = "$EXTENSION_PACKAGE/misc/SendAs;"
@@ -70,13 +75,13 @@ internal fun BytecodePatchContext.resolveSendAsGate(): SendAsGate {
     requireStatusMethod("hideSendAs")
     controlHook(SEND_AS, "show", listOf("Ljava/lang/Object;", "Z"), "Z")
     controlHook(SEND_AS, "isUser", listOf("Ljava/lang/Object;"), "Z")
-    val user = classDefByOrNull(PEER_USER)
-    shape(user != null && user.superclass == PEER && !AccessFlags.ABSTRACT.isSet(user.accessFlags),
+    val user = tgClassDefByOrNull(PEER_USER)
+    shape(user != null && user.origSuperclass == PEER && !AccessFlags.ABSTRACT.isSet(user.accessFlags),
         "Telegram's person peer is no longer a kind of peer")
 
-    val owner = mutableClassDefByOrNull(ENTER_VIEW) ?: throw PatchException("$PATCH: no message box (before editing)")
+    val owner = tgMutableClassDefByOrNull(ENTER_VIEW) ?: throw PatchException("$PATCH: no message box (before editing)")
     val updaters = owner.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.parameterTypes.map { it.toString() } == listOf("Z", "Z") &&
+        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.parameterTypes.map { it.toString() } == listOf("Z", "Z") &&
             m.controlBody().let { body -> body.any { it.controlRef() == SEND_AS_PEERS } && body.any { it.controlRef() == SEND_AS_LABEL } }
     }
     shape(updaters.size == 1, "the message box's Send as updater is missing or ambiguous (${updaters.size})")
@@ -98,7 +103,7 @@ internal fun BytecodePatchContext.resolveSendAsGate(): SendAsGate {
     val self = method.localRegisterCount()
     shape(body[gate].opcode == Opcode.IF_EQZ && flow.normal[gate].sorted() == listOf(gate + 1, check) &&
         build.opcode == Opcode.INVOKE_VIRTUAL && build.namedRegisters() == listOf(self) &&
-        build.call()?.let { it.definingClass == ENTER_VIEW && it.parameterTypes.isEmpty() && it.returnType == "V" } == true &&
+        build.call()?.let { it.origDefiningClass == ENTER_VIEW && it.parameterTypes.isEmpty() && it.origReturnType == "V" } == true &&
         flow.normal[gate + 1] == listOf(check), "the Send as button is no longer built only when it shows")
     method.requireThisIntact(PATCH, listOf(gate + 1))
     val shown = body[gate].namedRegisters().single()

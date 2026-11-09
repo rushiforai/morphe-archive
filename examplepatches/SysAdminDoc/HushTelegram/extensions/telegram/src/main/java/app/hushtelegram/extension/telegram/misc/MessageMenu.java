@@ -93,7 +93,8 @@ public final class MessageMenu {
         boolean text = on(Settings.MESSAGE_MENU_COPY_PROTECTED);
         boolean save = on(Settings.MESSAGE_MENU_SAVE_PROTECTED);
         boolean again = on(Settings.MESSAGE_MENU_FORWARD_COPY) && sending();
-        if (!repeat && !copy && !details && !quick && !history && !text && !save && !again || icons == null || items == null || options == null) return;
+        boolean tools = MessageMenuTools.any();
+        if (!repeat && !copy && !details && !quick && !history && !text && !save && !again && !tools || icons == null || items == null || options == null) return;
         try {
             Object message = selected(chat);
             if (message == null) return;
@@ -107,6 +108,7 @@ public final class MessageMenu {
             save = save && restricted(message) && downloaded(message) != null;
             again = again && restricted(message) && (!copyable(chat, message).isEmpty() || media(message));
             offer(icons, items, options, repeat, copy, details, quick, text, save, again, forwardOption());
+            if (tools) MessageMenuTools.offer(chat, message, icons, items, options, forwardable);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "message menu", failure);
         }
@@ -114,7 +116,7 @@ public final class MessageMenu {
 
     /** Asked first when an option is chosen. Telegram's own numbers pass by untouched. */
     public static void chosen(Object chat, int option) {
-        if (option != REPEAT && option != DETAILS && option != COPY_PHOTO && option != QUICK_FORWARD && option != COPY_TEXT && option != SAVE_DOWNLOAD && option != FORWARD_COPY) return;
+        if (option != REPEAT && option != DETAILS && option != COPY_PHOTO && option != QUICK_FORWARD && option != COPY_TEXT && option != SAVE_DOWNLOAD && option != FORWARD_COPY && !MessageMenuTools.owns(option)) return;
         Context context = null;
         try {
             if (!Utils.settingsReady()) return;
@@ -123,7 +125,8 @@ public final class MessageMenu {
                     : option == COPY_PHOTO ? Settings.MESSAGE_MENU_COPY_PHOTO
                     : option == COPY_TEXT ? Settings.MESSAGE_MENU_COPY_PROTECTED
                     : option == SAVE_DOWNLOAD ? Settings.MESSAGE_MENU_SAVE_PROTECTED
-                    : option == FORWARD_COPY ? Settings.MESSAGE_MENU_FORWARD_COPY : Settings.MESSAGE_MENU_QUICK_FORWARD;
+                    : option == FORWARD_COPY ? Settings.MESSAGE_MENU_FORWARD_COPY
+                    : MessageMenuTools.owns(option) ? MessageMenuTools.setting(option) : Settings.MESSAGE_MENU_QUICK_FORWARD;
             if (!on(setting) && !(option == DETAILS && KeepEdits.on())) return;
             context = Utils.getContext();
             Context host = activity(chat);
@@ -153,6 +156,8 @@ public final class MessageMenu {
                 saveToDownloads(context, message);
             } else if (option == FORWARD_COPY) {
                 forwardAsCopy(context, chat, message);
+            } else if (MessageMenuTools.owns(option)) {
+                MessageMenuTools.choose(context, chat, message, option);
             } else if (option == COPY_PHOTO) {
                 File file = downloaded(message);
                 if (file == null) {
@@ -174,12 +179,12 @@ public final class MessageMenu {
 
     private static String failureMessage(Context context, int option) {
         return option == COPY_PHOTO || option == COPY_TEXT ? L10n.t(context, "Couldn't copy that. Try again.")
-                : option == SAVE_DOWNLOAD ? L10n.t(context, "Couldn't save that. Try again.")
-                : option == QUICK_FORWARD || option == FORWARD_COPY ? L10n.t(context, "Can't forward there")
+                : option == SAVE_DOWNLOAD || option == MessageMenuTools.SAVE_COVER ? L10n.t(context, "Couldn't save that. Try again.")
+                : option == QUICK_FORWARD || option == FORWARD_COPY || option == MessageMenuTools.FAST_FORWARD || option == MessageMenuTools.FORWARD_SAVED ? L10n.t(context, "Can't forward there")
                 : L10n.t(context, "Couldn't complete that action. Try again.");
     }
 
-    private static void feedback(Context context, String message) {
+    static void feedback(Context context, String message) {
         if (context == null) return;
         Utils.runOnMainThreadNowOrLater(() ->
                 Toast.makeText(context, message, Toast.LENGTH_SHORT).show());
@@ -478,7 +483,7 @@ public final class MessageMenu {
     }
 
     /** The list of chats to forward to, a row each. */
-    private static void chooseChat(Context context, int account, long from, String title, BooleanSetting guard, Consumer<Destination> pick) {
+    static void chooseChat(Context context, int account, long from, String title, BooleanSetting guard, Consumer<Destination> pick) {
         if (!on(guard)) return;
         try {
             List<Destination> where = destinations(account, from);
@@ -486,15 +491,29 @@ public final class MessageMenu {
                 Toast.makeText(context, L10n.t(context, "No chat to forward to"), Toast.LENGTH_SHORT).show();
                 return;
             }
+            List<String> names = new ArrayList<>();
+            for (Destination destination : where) names.add(destination.title);
+            chooseRow(context, title, names, guard, index -> pick.accept(where.get(index)));
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "chat list", failure);
+            feedback(context, L10n.t(context, "Can't forward there"));
+        }
+    }
+
+    /** A dialog with a button row for each label. The click closes it and hands over the row's position. */
+    static void chooseRow(Context context, String title, List<String> labels, BooleanSetting guard, Consumer<Integer> pick) {
+        if (!on(guard)) return;
+        try {
             LinearLayout rows = new LinearLayout(context);
             rows.setOrientation(LinearLayout.VERTICAL);
             Pair<Dialog, LinearLayout> dialog = CustomDialog.createWithContent(context,
                     title, rows, () -> {});
             Context themed = dialog.second.getContext();
             int pad = Math.round(16 * themed.getResources().getDisplayMetrics().density);
-            for (Destination destination : where) {
+            for (int index = 0; index < labels.size(); index++) {
+                int position = index;
                 Button row = new Button(themed, null, 0);
-                row.setText(destination.title);
+                row.setText(labels.get(index));
                 row.setAllCaps(false);
                 row.setTextSize(16f);
                 row.setTextColor(Utils.getAppForegroundColor());
@@ -512,7 +531,7 @@ public final class MessageMenu {
                 row.setBackground(destinationBackground(themed));
                 row.setOnClickListener((View view) -> {
                     dialog.first.dismiss();
-                    pick.accept(destination);
+                    pick.accept(position);
                 });
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -521,7 +540,7 @@ public final class MessageMenu {
             }
             dialog.first.show();
         } catch (Throwable failure) {
-            HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "chat list", failure);
+            HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "choice list", failure);
             feedback(context, L10n.t(context, "Can't forward there"));
         }
     }

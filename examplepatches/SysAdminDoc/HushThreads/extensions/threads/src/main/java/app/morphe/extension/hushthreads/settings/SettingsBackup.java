@@ -88,6 +88,7 @@ public final class SettingsBackup {
             Settings.PURE_BLACK,
             Settings.HIDE_INSTAGRAM_BUTTON,
             Settings.HIDE_GHOST_POST_BUBBLES,
+            Settings.FULL_SIZE_PROFILE_PICTURES,
             Settings.EXACT_POST_TIMES,
             Settings.FILTER_COMMENTS,
             Settings.HIDE_COMMENT_LINKS,

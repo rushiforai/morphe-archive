@@ -11,13 +11,14 @@
 package app.morphe.patches.shared.misc.extension
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.util.names.addInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.iface.Method
 import java.net.URLDecoder
 import java.util.jar.JarFile
+import app.morphe.util.names.tgClassDefBy
 
 internal const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/hushtelegram/extension/shared/Utils;"
 
@@ -52,7 +53,7 @@ fun sharedExtensionPatch(
 
     execute {
         // Verify the extension class exists.
-        classDefBy(EXTENSION_CLASS_DESCRIPTOR)
+        tgClassDefBy(EXTENSION_CLASS_DESCRIPTOR)
     }
 
     finalize {

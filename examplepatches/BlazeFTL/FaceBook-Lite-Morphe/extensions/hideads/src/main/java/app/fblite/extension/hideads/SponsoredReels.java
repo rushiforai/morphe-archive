@@ -16,13 +16,13 @@ import java.util.List;
 import java.util.WeakHashMap;
 
 /**
- * Skips sponsored reels. The Reels tab is a vertical, snapping FbLiteRecyclerView (X.0zb) in
- * MainActivity whose items (X.0z8) each hold a reel's component tree (item.A0B.A03).
+ * Skips sponsored reels. The Reels tab is a vertical, snapping FbLiteRecyclerView (X.12u) in
+ * MainActivity whose items (X.12L) each hold a reel's component tree (item.A0C.A04).
  *
- * A sponsored reel has at least two text components (X.0hW) with flag X.0gp.A32 set; organic reels
+ * A sponsored reel has at least two text components (X.0i5) with flag X.0hd.A34 set; organic reels
  * have at most one, whatever the language of the "Sponsored" label. Like the feed, the list is updated
- * by index, so items are not removed: they are made unsnappable (X.0z8.A0N, from X.0gp.A2z), which the
- * pager's snap target search (X.0yb.A00) skips, and the pager moves on when one is current.
+ * by index, so items are not removed: they are made unsnappable (X.12L.A0O, from X.0hd.A31), which the
+ * pager's snap target search (X.11l.A00) skips, and the pager moves on when one is current.
  *
  * Guards against skipping organic reels: the unsnappable flags are undone when an item turns out organic
  * (items are rebound by the server's index updates), a run of two or more neighbouring detections or a
@@ -35,7 +35,7 @@ import java.util.WeakHashMap;
  * got through unsnappable, and only when a sponsored reel is on screen and nothing has moved for a while moves the
  * pager on. With Debug logging on, every decision is logged.
  *
- * Names are for Facebook Lite 530.0.0.8.106. Any reflection error turns this off.
+ * Names are for Facebook Lite 536.0.0.11.107. Any reflection error turns this off.
  */
 public final class SponsoredReels {
     private static final long SCAN_INTERVAL_MS = 500;
@@ -202,9 +202,9 @@ public final class SponsoredReels {
 
     private static void skipSponsored(View pager) throws Exception {
         // Reels: vertical and snapping. The feed's lists do not snap.
-        if ((Boolean) pagerClass.getMethod("AQS").invoke(pager)) return;
-        Object snap = field(pager, pagerClass, "A07");
-        Object handler = field(pager, pagerClass, "A08");
+        if ((Boolean) pagerClass.getMethod("APY").invoke(pager)) return;
+        Object snap = field(pager, pagerClass, "A08");
+        Object handler = field(pager, pagerClass, "A09");
         Object layout = field(pager, pagerClass, "A05");
         if (snap == null || handler == null || layout == null) return;
         if ((Integer) field(snap, snap.getClass(), "A02") == 0) return;
@@ -267,7 +267,7 @@ public final class SponsoredReels {
 
         // Move by exactly one reel, in the direction the user came from. Sponsored reels are never next to each
         // other here (neighbouring detections are dropped), so the reel beside this one is an organic one. The
-        // snap search (X.0yb.A00) is not used: its result is in the snap handler's list, and a mismatch with this
+        // snap search (X.11l.A00) is not used: its result is in the snap handler's list, and a mismatch with this
         // list moved the pager over real reels.
         int direction = previousCurrent >= 0 && previousCurrent > current ? -1 : 1;
         int target = current + direction;
@@ -279,7 +279,7 @@ public final class SponsoredReels {
             AdLog.log("reels", "SKIP refused: reel " + target + " is sponsored too (current " + current + ")");
             return;
         }
-        Field snappable = items.get(target).getClass().getDeclaredField("A0N");
+        Field snappable = items.get(target).getClass().getDeclaredField("A0O");
         snappable.setAccessible(true);
         if (!snappable.getBoolean(items.get(target))) {
             AdLog.log("reels", "SKIP refused: reel " + target + " is not snappable itself (current " + current + ")");
@@ -289,7 +289,7 @@ public final class SponsoredReels {
         int appNext = -1;
         if (AdLog.enabled()) {
             try {
-                Method nextSnap = snap.getClass().getMethod("A00", pager.getClass().getClassLoader().loadClass("X.0yV"), int.class, int.class);
+                Method nextSnap = snap.getClass().getMethod("A00", pager.getClass().getClassLoader().loadClass("X.11f"), int.class, int.class);
                 appNext = (Integer) nextSnap.invoke(null, snapItems, current + 1, 1);
             } catch (Throwable ignored) {
             }
@@ -331,8 +331,8 @@ public final class SponsoredReels {
 
     private static Object treeAt(List<?> items, int index) throws Exception {
         Object item = items.get(index);
-        Object wrapper = field(item, item.getClass(), "A0B");
-        return wrapper == null ? null : field(wrapper, wrapper.getClass(), "A03");
+        Object wrapper = field(item, item.getClass(), "A0C");
+        return wrapper == null ? null : field(wrapper, wrapper.getClass(), "A04");
     }
 
     /** RecyclerView.getScrollState: 0 idle, 1 dragging, 2 settling. Unknown counts as idle. */
@@ -368,8 +368,8 @@ public final class SponsoredReels {
         int detectedCount = 0;
         for (int i = 0; i < count; i++) {
             Object item = items.get(i);
-            Object wrapper = field(item, item.getClass(), "A0B");
-            trees[i] = wrapper == null ? null : field(wrapper, wrapper.getClass(), "A03");
+            Object wrapper = field(item, item.getClass(), "A0C");
+            trees[i] = wrapper == null ? null : field(wrapper, wrapper.getClass(), "A04");
             certain[i] = AdVideos.isAdTree(trees[i]);
             detected[i] = certain[i] || (trees[i] != null && isSponsored(trees[i], i));
             if (detected[i]) detectedCount++;
@@ -392,7 +392,7 @@ public final class SponsoredReels {
             }
             Object item = items.get(i);
             if (sponsored) {
-                Field snappable = item.getClass().getDeclaredField("A0N");
+                Field snappable = item.getClass().getDeclaredField("A0O");
                 snappable.setAccessible(true);
                 if (!ORIGINAL_SNAPPABLE.containsKey(item)) ORIGINAL_SNAPPABLE.put(item, snappable.getBoolean(item));
                 if (!ORIGINAL_STOPS.containsKey(trees[i])) ORIGINAL_STOPS.put(trees[i], ReelAds.stopsBefore(trees[i], a2z.getBoolean(trees[i])));
@@ -421,8 +421,8 @@ public final class SponsoredReels {
             lastLoggedCurrent = current;
             lastLoggedCurrentTime = now;
             if (current >= 0 && current < items.size()) {
-                Object wrapper = field(items.get(current), items.get(current).getClass(), "A0B");
-                Object tree = wrapper == null ? null : field(wrapper, wrapper.getClass(), "A03");
+                Object wrapper = field(items.get(current), items.get(current).getClass(), "A0C");
+                Object tree = wrapper == null ? null : field(wrapper, wrapper.getClass(), "A04");
                 if (tree != null) AdLog.log("reels", "  ON SCREEN " + current + " sponsored=" + marking.sponsored[current] + " | " + AdTrace.describe(tree));
             }
         } else if (!detectedNow.equals(lastDetected)) {
@@ -435,7 +435,7 @@ public final class SponsoredReels {
     private static void restore(Object item, Object tree) throws Exception {
         Boolean snappable = ORIGINAL_SNAPPABLE.remove(item);
         if (snappable != null) {
-            Field field = item.getClass().getDeclaredField("A0N");
+            Field field = item.getClass().getDeclaredField("A0O");
             field.setAccessible(true);
             field.setBoolean(item, snappable);
         }
@@ -476,14 +476,14 @@ public final class SponsoredReels {
     }
 
     private static void resolve(ClassLoader app) throws Exception {
-        pagerClass = Class.forName("X.0zb", false, app);
-        component = Class.forName("X.0gp", false, app);
-        textClass = Class.forName("X.0hW", false, app);
-        a32 = component.getDeclaredField("A32");
+        pagerClass = Class.forName("X.12u", false, app);
+        component = Class.forName("X.0hd", false, app);
+        textClass = Class.forName("X.0i5", false, app);
+        a32 = component.getDeclaredField("A34");
         a32.setAccessible(true);
-        a2z = component.getDeclaredField("A2z");
+        a2z = component.getDeclaredField("A31");
         a2z.setAccessible(true);
-        childList = Class.forName("X.0gn", false, app).getMethod("AF0");
+        childList = Class.forName("X.0hc", false, app).getMethod("ADt");
     }
 
     private static Object field(Object target, Class<?> declaring, String name) throws Exception {

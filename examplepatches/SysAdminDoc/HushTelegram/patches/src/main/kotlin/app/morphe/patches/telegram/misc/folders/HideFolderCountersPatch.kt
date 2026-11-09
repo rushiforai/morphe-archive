@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.folders
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -29,9 +29,15 @@ import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val FOLDER_TABS = "$EXTENSION_PACKAGE/misc/FolderTabs;"
 internal const val MAIN_UNREAD = "Lorg/telegram/messenger/MessagesStorage;->getMainUnreadCount()I"
+/** The field 13.2's R8 reads in place of the getMainUnreadCount() it inlined. */
+internal const val MAIN_UNREAD_FIELD = "Lorg/telegram/messenger/MessagesStorage;->mainUnreadCount:I"
+internal fun isMainUnread(ref: String?) = ref == MAIN_UNREAD || ref == MAIN_UNREAD_FIELD
 internal const val FILTER_UNREAD = "Lorg/telegram/messenger/MessagesController\$DialogFilter;->unreadCount:I"
 private const val FILTERS = "Lorg/telegram/messenger/MessagesController;->getDialogFilters()Ljava/util/ArrayList;"
 
@@ -102,6 +108,40 @@ val hideFolderCountersPatch = bytecodePatch(
                 "the unread counts' stub doesn't build (${failed.javaClass.simpleName}: ${failed.message})"
             }
         }
+        // The date order rides on the same sort hook, and a build that can't give it its stubs leaves only it out.
+        val noSort = if (unhidden == null) try {
+            requireChatSortRuntime()
+            writeChatSortStubs()
+            null
+        } catch (failed: Exception) {
+            "the date order's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
+        } else null
+        // So does the passcode that hidden chats can ask for, which reads Telegram's own passcode state.
+        val noPasscode = if (unhidden == null) try {
+            requireAppPasscodeRuntime()
+            writeAppPasscodeStubs()
+            null
+        } catch (failed: Exception) {
+            "the app passcode's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
+        } else null
+        // And the Administrators row, which asks Telegram whether a chat is one you manage.
+        val noAdmins = if (unhidden == null) try {
+            requireAdminChatsRuntime()
+            writeAdminChatsStubs()
+            null
+        } catch (failed: Exception) {
+            "the Administrators filter's stub doesn't build (${failed.javaClass.simpleName}: ${failed.message})"
+        } else null
+        // And the account hider, which turns each account list's signed-in questions over to the extension.
+        val accounts = if (unhidden == null) resolveHiddenAccounts() else null
+        val noAccounts = accounts?.let {
+            it.missing ?: try {
+                writeHiddenAccountsStubs()
+                null
+            } catch (failed: Exception) {
+                "the account hider's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
+            }
+        }
         insertCounterAnswer(counter)
         enableStatus("hideFolderCounters")
         if (missing == null) {
@@ -114,6 +154,7 @@ val hideFolderCountersPatch = bytecodePatch(
             }
             launch.apply()
             enableCapability("launchFolder")
+            if (launch.refs!!.range != null) enableCapability("fitTabs")
             if (launch.refs!!.scrollTo == null) {
                 patchLog.warning("Hide folder tab counters: the folder tabs can't be scrolled. A picked folder past the screen's edge opens out of view.")
             }
@@ -123,6 +164,31 @@ val hideFolderCountersPatch = bytecodePatch(
         if (unhidden == null) {
             hidden.apply()
             enableCapability("hiddenChats")
+            hidden.pinGaps.forEach { patchLog.warning("Hide folder tab counters: $it. Hidden chats go on, with that pin gap left open.") }
+            val pickers = resolveHiddenPickers()
+            pickers.apply()
+            pickers.gaps.forEach { patchLog.warning("Hide folder tab counters: $it. Hidden chats go on, listed in that picker.") }
+            if (noPasscode == null) {
+                enableCapability("hiddenPasscode")
+            } else {
+                patchLog.warning("Hide folder tab counters: $noPasscode. Hidden chats go on without the passcode switch.")
+            }
+            if (noAdmins == null) {
+                enableCapability("adminChats")
+            } else {
+                patchLog.warning("Hide folder tab counters: $noAdmins. Hidden chats go on without the Administrators row.")
+            }
+            if (noAccounts == null) {
+                accounts?.plan?.let { applyHiddenAccounts(it) }
+                if (accounts != null) enableCapability("hiddenAccounts")
+            } else {
+                patchLog.warning("Hide folder tab counters: $noAccounts. Hidden chats go on without Hide accounts.")
+            }
+            if (noSort == null) {
+                enableCapability("sortByDate")
+            } else {
+                patchLog.warning("Hide folder tab counters: $noSort. Hidden chats go on without Sort chats by date.")
+            }
             if (noMenu == null) {
                 menu!!.apply()
             } else {
@@ -136,6 +202,20 @@ val hideFolderCountersPatch = bytecodePatch(
             }
         } else {
             patchLog.warning("Hide folder tab counters: $unhidden. The patch goes on without hiding chats.")
+        }
+        // Moving All Chats goes last, since Hide All Chats hooks one of the same methods and would move the indices.
+        val place = resolveAllChatsPlace()
+        val unplaced = place.missing ?: try {
+            writeAllChatsPlaceStubs()
+            null
+        } catch (failed: Exception) {
+            "the All Chats place's stubs don't build (${failed.javaClass.simpleName}: ${failed.message})"
+        }
+        if (unplaced == null) {
+            place.apply()
+            enableCapability("allChatsPlace")
+        } else {
+            patchLog.warning("Hide folder tab counters: $unplaced. The patch goes on with All Chats first.")
         }
     }
 }
@@ -159,15 +239,16 @@ internal fun BytecodePatchContext.resolveHideFolderCounters(): MutableMethod {
     requireStatusMethod("hideFolderCounters")
     controlHook(FOLDER_TABS, "countersHidden", listOf(), "Z")
     val found = mutableListOf<Pair<String, String>>()
-    forEachClassMentioning(Mention.allReferences(listOf(MAIN_UNREAD, FILTERS, FILTER_UNREAD))) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+    val mainUnread = Mention.reference(MAIN_UNREAD) or Mention.reference(MAIN_UNREAD_FIELD)
+    forEachClassMentioning(Mention.allReferences(listOf(FILTERS, FILTER_UNREAD)) and mainUnread) { cls ->
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.filter { m ->
-            !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "I" && m.parameterTypes.map(CharSequence::toString) == listOf("I") &&
-                m.controlBody().map { it.controlRef() }.let { refs -> MAIN_UNREAD in refs && FILTERS in refs && FILTER_UNREAD in refs }
+            !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "I" && m.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+                m.controlBody().map { it.controlRef() }.let { refs -> refs.any(::isMainUnread) && FILTERS in refs && FILTER_UNREAD in refs }
         }.forEach { found += cls.type to ref(it) }
     }
     val (type, wanted) = found.controlSingle("folder tab counter")
-    val counter = mutableClassDefBy(type).methods.single { ref(it) == wanted }
+    val counter = tgMutableClassDefBy(type).methods.single { ref(it) == wanted }
     controlShape(counter.implementation!!.registerCount >= 3, "the folder tab counter has no register to answer in")
     controlShape(ControlFlow.of(counter).normal.none { 0 in it }, "something jumps back to the start of the folder tab counter")
     return counter

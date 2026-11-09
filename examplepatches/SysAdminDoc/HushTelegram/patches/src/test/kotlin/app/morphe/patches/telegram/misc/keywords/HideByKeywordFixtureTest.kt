@@ -20,6 +20,7 @@ import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.notifications.NOTIFICATIONS
+import app.morphe.patches.telegram.misc.notifications.runsNotificationsLambda
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
@@ -29,6 +30,9 @@ import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The open chat's three type tests, shared with Hide blocked users, the stubs and the runtime. */
 class HideByKeywordFixtureTest {
@@ -62,12 +66,12 @@ class HideByKeywordFixtureTest {
                 }
             }
 
-            val stub = { n: String -> context.mutableClassDefBy(MESSAGE_FILTERS).methods.single { it.name == n }.controlBody().map { it.controlRef() } }
+            val stub = { n: String -> context.tgMutableClassDefBy(MESSAGE_FILTERS).methods.single { it.origName == n }.controlBody().map { it.controlRef() } }
             assertTrue("$MESSAGE_OBJECT->getDialogId()J" in stub("chat"))
             assertTrue("$MESSAGE_OBJECT->isOut()Z" in stub("out"))
             assertTrue(POST in stub("post"))
             assertTrue(TEXT in stub("text"))
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideByKeyword" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideByKeyword" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -104,6 +108,6 @@ class HideByKeywordFixtureTest {
 
     /** MessageObject, the controller, the blocked list, a message's own fields and the chat screen. */
     private fun hosts(build: File) = FixtureDex.classesWhere(build, { true }) { m ->
-        m.definingClass in hostTypes || m.controlBody().any { it.opcode == Opcode.INSTANCE_OF && it.controlRef() == MIGRATE_TO }
+        m.origDefiningClass in hostTypes || m.runsNotificationsLambda() || m.controlBody().any { it.opcode == Opcode.INSTANCE_OF && it.controlRef() == MIGRATE_TO }
     }.map(ImmutableClassDef::of)
 }

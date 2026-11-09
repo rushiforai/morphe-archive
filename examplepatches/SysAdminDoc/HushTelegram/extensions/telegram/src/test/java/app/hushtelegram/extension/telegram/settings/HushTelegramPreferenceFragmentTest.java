@@ -56,6 +56,9 @@ import app.hushtelegram.extension.shared.settings.Setting;
 import app.hushtelegram.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.hushtelegram.extension.shared.settings.preference.ImmediateAction;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
+import app.hushtelegram.extension.telegram.misc.AppPasscodeForTests;
+import app.hushtelegram.extension.telegram.misc.HiddenAccounts;
+import app.hushtelegram.extension.telegram.misc.HiddenAccountsForTests;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests;
 import app.hushtelegram.extension.telegram.misc.HiddenChats;
@@ -65,6 +68,7 @@ import app.hushtelegram.extension.telegram.misc.LaunchFolderForTests;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslateForTests;
+import app.hushtelegram.extension.telegram.misc.SpecialContactsForTests;
 
 import org.json.JSONObject;
 import org.junit.After;
@@ -186,6 +190,8 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.DISABLE_UPDATE_CHECKS, "Turn off Telegram's update checks");
         ROW_TITLES.put(PatchFamily.REPAIR_FIREBASE_PUSH, "Repair Firebase push registration");
         ROW_TITLES.put(PatchFamily.UNIFIED_PUSH, "UnifiedPush notifications");
+        ROW_TITLES.put(PatchFamily.TEST_SERVER_SIGN_IN, "Test server sign-in");
+        ROW_TITLES.put(PatchFamily.BOT_TOKEN_SIGN_IN, "Bot token sign-in");
     }
 
     /** The sections every build has, in the order they're drawn. */
@@ -351,6 +357,11 @@ public class HushTelegramPreferenceFragmentTest {
                     + "Works with Ghost mode on.", String.valueOf(page.findPreference(Settings.GHOST_ONLINE.key).getSummary()));
             assertFalse(Settings.GHOST_TYPING.key, ((SwitchPreference) page.findPreference(Settings.GHOST_TYPING.key)).isChecked());
             assertFalse(Settings.GHOST_ONLINE.key, ((SwitchPreference) page.findPreference(Settings.GHOST_ONLINE.key)).isChecked());
+            assertEquals("Ghost mode button", String.valueOf(page.findPreference(Settings.GHOST_BUTTON.key).getTitle()));
+            assertEquals("A ghost at the top of the chat list turns Ghost mode on and off with a tap. It's filled while "
+                    + "Ghost mode is on.", String.valueOf(page.findPreference(Settings.GHOST_BUTTON.key).getSummary()));
+            // The chat list's top bar stays as Telegram made it until the button is asked for.
+            assertFalse(Settings.GHOST_BUTTON.key, ((SwitchPreference) page.findPreference(Settings.GHOST_BUTTON.key)).isChecked());
             // Receipts go out as usual until Ghost mode itself is turned on; its two parts start on under it.
             assertFalse(Settings.GHOST_MODE.key, ((SwitchPreference) page.findPreference(Settings.GHOST_MODE.key)).isChecked());
             assertTrue(Settings.GHOST_READS.key, ((SwitchPreference) page.findPreference(Settings.GHOST_READS.key)).isChecked());
@@ -381,7 +392,13 @@ public class HushTelegramPreferenceFragmentTest {
                     + "notification service, using Telegram's original certificate. Notification permission and "
                     + "battery settings still apply. A change here applies after Telegram restarts.",
                     String.valueOf(page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key).getSummary()));
-            assertEquals("UnifiedPush notifications", String.valueOf(page.findPreference(Settings.UNIFIED_PUSH.key).getTitle()));
+            assertEquals("Keep the Keep-Alive Service running", String.valueOf(page.findPreference(Settings.KEEP_ALIVE_RUNNING.key).getTitle()));
+            assertEquals("Android stops Telegram's Keep-Alive Service soon after you leave the app, so messages wait "
+                    + "until you open it again. With this on, the service shows a quiet notification and keeps running. "
+                    + "It only does something while Keep-Alive Service is on in Telegram's own Settings > Notifications, "
+                    + "under Other.",
+                    String.valueOf(page.findPreference(Settings.KEEP_ALIVE_RUNNING.key).getSummary()));
+            assertEquals("UnifiedPush notifications",String.valueOf(page.findPreference(Settings.UNIFIED_PUSH.key).getTitle()));
             assertEquals("For phones where Firebase notifications don't arrive. Telegram signs up an address from a "
                     + "UnifiedPush app like ntfy, and Telegram's servers call it to wake Telegram when something "
                     + "arrives. The messages still come from Telegram itself. It also turns on Telegram's own Keep-Alive "
@@ -407,7 +424,7 @@ public class HushTelegramPreferenceFragmentTest {
             for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.DISABLE_ANALYTICS,
                     Settings.DISABLE_UPDATE_CHECKS, Settings.HIDE_PROMOTIONAL_BANNERS, Settings.HIDE_SPONSORED_PROXY,
                     Settings.HIDE_POPULAR_APPS, Settings.OPEN_EXTERNAL_LINKS, Settings.DISABLE_CHANNEL_PULL,
-                    Settings.REPAIR_FIREBASE_PUSH)) {
+                    Settings.REPAIR_FIREBASE_PUSH, Settings.KEEP_ALIVE_RUNNING)) {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             assertFalse(Settings.STRIP_LINK_TRACKING.key,
@@ -563,6 +580,13 @@ public class HushTelegramPreferenceFragmentTest {
             // The chat gets volume keys until the switch is turned on.
             assertFalse(Settings.KEEP_VIDEOS_MUTED.key,
                     ((SwitchPreference) page.findPreference(Settings.KEEP_VIDEOS_MUTED.key)).isChecked());
+            assertEquals("Start videos without sound",
+                    String.valueOf(page.findPreference(Settings.VIDEO_STARTS_SILENT.key).getTitle()));
+            assertEquals("A video you open plays muted until you press a volume key. Round videos keep their sound.",
+                    String.valueOf(page.findPreference(Settings.VIDEO_STARTS_SILENT.key).getSummary()));
+            // Opened videos play with sound until the switch is turned on.
+            assertFalse(Settings.VIDEO_STARTS_SILENT.key,
+                    ((SwitchPreference) page.findPreference(Settings.VIDEO_STARTS_SILENT.key)).isChecked());
             assertEquals("Full screen videos turn either way",
                     String.valueOf(page.findPreference(Settings.VIDEO_EITHER_LANDSCAPE.key).getTitle()));
             assertEquals("After you tap full screen, a video follows your phone to either landscape side, even with "
@@ -666,7 +690,7 @@ public class HushTelegramPreferenceFragmentTest {
             assertFalse(Settings.HIDE_ALL_CHATS.key,
                     ((SwitchPreference) page.findPreference(Settings.HIDE_ALL_CHATS.key)).isChecked());
             assertEquals("Hide picked chats", String.valueOf(page.findPreference(Settings.HIDDEN_CHATS.key).getTitle()));
-            assertEquals("The chats you pick below leave All Chats, your folders and archived chats. They keep their messages "
+            assertEquals("The chats you pick below leave All Chats, your folders, archived chats and the forward and share lists. They keep their messages "
                     + "and notifications, search still finds them, and nothing changes on your other devices. Each account "
                     + "keeps its own list. Folder tab counts leave them out, but the app badge still counts their "
                     + "unread messages.",
@@ -697,6 +721,10 @@ public class HushTelegramPreferenceFragmentTest {
             // A voice message keeps jumping to the chat until the switch is turned on.
             assertFalse(Settings.VOICE_MUSIC_PLAYER.key,
                     ((SwitchPreference) page.findPreference(Settings.VOICE_MUSIC_PLAYER.key)).isChecked());
+            assertEquals("Remember where playback stopped", String.valueOf(page.findPreference(Settings.PLAYBACK_POSITION.key).getTitle()));
+            assertEquals("Videos, voice messages and music pick up where you left off, even short ones. Telegram only does that for long ones.",
+                    String.valueOf(page.findPreference(Settings.PLAYBACK_POSITION.key).getSummary()));
+            assertFalse(Settings.PLAYBACK_POSITION.key, ((SwitchPreference) page.findPreference(Settings.PLAYBACK_POSITION.key)).isChecked());
             assertEquals("Faster downloads", String.valueOf(page.findPreference(Settings.FASTER_DOWNLOADS.key).getTitle()));
             assertEquals("Files download in 512 KB pieces, 8 at a time, instead of 128 KB pieces 4 at a time. If a big "
                     + "piece fails, Telegram goes back to small ones. The next download picks this up.",
@@ -923,6 +951,21 @@ public class HushTelegramPreferenceFragmentTest {
                     String.valueOf(page.findPreference(Settings.HIDE_NEW_MESSAGE.key).getSummary()));
             // The pencil button stays until the switch is turned on.
             assertFalse(((SwitchPreference) page.findPreference(Settings.HIDE_NEW_MESSAGE.key)).isChecked());
+            assertEquals("Test server sign-in", String.valueOf(page.findPreference(Settings.TEST_SERVER_SIGN_IN.key).getTitle()));
+            assertEquals("Signing in or adding an account shows Telegram's Test Backend box on the phone number screen. "
+                            + "Tick it to sign that account in on Telegram's test servers, kept apart from your other accounts.",
+                    String.valueOf(page.findPreference(Settings.TEST_SERVER_SIGN_IN.key).getSummary()));
+            // The sign-in screen offers Test Backend only to test accounts until the switch is turned on.
+            assertFalse(((SwitchPreference) page.findPreference(Settings.TEST_SERVER_SIGN_IN.key)).isChecked());
+            assertEquals("Bot token sign-in", String.valueOf(page.findPreference(Settings.BOT_TOKEN_SIGN_IN.key).getTitle()));
+            assertEquals("Signing in or adding an account shows a Sign in with a bot token button on the phone number screen. "
+                            + "Paste the token from @BotFather to use that account as your bot. A chat shows up once someone "
+                            + "messages the bot, without older history, and a bot has no contacts, stickers or folders. A bot "
+                            + "with a webhook set, or one another program is reading, may not get its messages here. Turning "
+                            + "this off only hides the button.",
+                    String.valueOf(page.findPreference(Settings.BOT_TOKEN_SIGN_IN.key).getSummary()));
+            // The phone number screen has no bot token button until the switch is turned on.
+            assertFalse(((SwitchPreference) page.findPreference(Settings.BOT_TOKEN_SIGN_IN.key)).isChecked());
             assertEquals("Ask before sending a GIF", String.valueOf(page.findPreference(Settings.ASK_BEFORE_GIF.key).getTitle()));
             assertEquals("Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it. Scheduled GIFs "
                     + "go out without asking.",
@@ -1344,6 +1387,99 @@ public class HushTelegramPreferenceFragmentTest {
     }
 
     /**
+     * Save downloaded files brings What to copy right under its switch (#57). Every kind starts
+     * ticked; unticking some and saving keeps the rest, the summary names what is still copied,
+     * and Save with nothing ticked says so and keeps the list open.
+     */
+    @Test
+    public void theWhatToCopyRowTicksTheKindsAndSavesThePick() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SAVE_DOWNLOADS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            List<Preference> rows = new ArrayList<>();
+            collect(pageOf(controller).getPreferenceScreen(), rows);
+            Preference kinds = rows.get(indexOfKey(rows, Settings.SAVE_DOWNLOADS.key) + 1);
+            assertEquals(HushTelegramPreferenceFragment.SAVE_KINDS_ROW, kinds.getKey());
+            assertFalse("it stores nothing itself", kinds.isPersistent());
+            assertEquals("What to copy", String.valueOf(kinds.getTitle()));
+            assertEquals("Every kind of file.", String.valueOf(kinds.getSummary()));
+
+            AlertDialog list = dialogOf(kinds);
+            assertTrue(list.isShowing());
+            assertEquals("What to copy", String.valueOf(shadowOf(list).getTitle()));
+            ListView choices = list.getListView();
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < choices.getCount(); i++) {
+                labels.add(String.valueOf(choices.getAdapter().getItem(i)));
+                assertTrue("every kind starts ticked", choices.isItemChecked(i));
+            }
+            assertEquals(Arrays.asList("Documents", "Music", "Photos", "Videos", "Voice messages"), labels);
+
+            shadowOf(list).clickOnItem(1);
+            shadowOf(list).clickOnItem(3);
+            shadowOf(list).clickOnItem(4);
+            assertEquals("a tick alone saves nothing", "", Settings.SAVE_KINDS_LEFT_OUT.savedValue());
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals("MUSIC,VIDEOS,VOICE", Settings.SAVE_KINDS_LEFT_OUT.savedValue());
+            assertEquals("Only Documents and Photos. The rest stay in Telegram.", String.valueOf(kinds.getSummary()));
+            assertFalse("ticking kinds leaves the switch alone", Settings.SAVE_DOWNLOADS.savedValue());
+            assertTrue("and owes no restart", AbstractPreferenceFragment.restartPending.isEmpty());
+
+            list = dialogOf(kinds);
+            assertTrue("the saved kinds come back ticked", list.getListView().isItemChecked(0) && list.getListView().isItemChecked(2));
+            assertFalse(list.getListView().isItemChecked(1));
+            shadowOf(list).clickOnItem(0);
+            shadowOf(list).clickOnItem(2);
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertEquals("Tick at least one kind of file.", ShadowToast.getTextOfLatestToast());
+            assertTrue("nothing ticked keeps the list open", list.isShowing());
+            assertEquals("and saves nothing", "MUSIC,VIDEOS,VOICE", Settings.SAVE_KINDS_LEFT_OUT.savedValue());
+        } finally {
+            Settings.SAVE_KINDS_LEFT_OUT.resetToDefault();
+        }
+    }
+
+    /**
+     * The Folder icons row sits with the folder tab rows, says what is picked, lists None and the
+     * three packs with the saved one checked, and a pick saves at once and closes the list (#53).
+     */
+    @Test
+    public void theFolderIconsRowListsThePacksAndSavesThePick() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        PatchFamily.capabilitiesForTests = EnumSet.noneOf(PatchFamily.Capability.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            Preference icons = page.findPreference(HushTelegramPreferenceFragment.FOLDER_ICON_ROW);
+            assertNotNull(icons);
+            assertFalse("it stores nothing itself", icons.isPersistent());
+            assertEquals("Folder icons", String.valueOf(icons.getTitle()));
+            assertTrue(String.valueOf(icons.getSummary()).startsWith("None. Icons show beside folder names"));
+
+            assertTrue(icons.getOnPreferenceClickListener().onPreferenceClick(icons));
+            ShadowLooper.idleMainLooper();
+            AlertDialog list = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertTrue(list.isShowing());
+            assertEquals("Folder icons", String.valueOf(shadowOf(list).getTitle()));
+            ListView choices = list.getListView();
+            List<String> labels = new ArrayList<>();
+            for (int i = 0; i < choices.getCount(); i++) labels.add(String.valueOf(choices.getAdapter().getItem(i)));
+            assertEquals(Arrays.asList("None", "Regular", "Bold", "Filled"), labels);
+            assertEquals("None is checked", 0, choices.getCheckedItemPosition());
+
+            shadowOf(list).clickOnItem(2);
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(app.hushtelegram.extension.telegram.misc.FolderIcons.BOLD, Settings.FOLDER_ICON_PACK.savedValue());
+            assertTrue(String.valueOf(icons.getSummary()).startsWith("Bold. Icons show beside folder names"));
+            assertTrue("and owes no restart", AbstractPreferenceFragment.restartPending.isEmpty());
+        } finally {
+            Settings.FOLDER_ICON_PACK.resetToDefault();
+        }
+    }
+
+    /**
      * Save downloaded files brings the storage folder switch under the gallery folder row when its
      * target went in (#7). Its summary says whether Android gives Telegram All files access, and
      * turning it on without that opens Android's page for it.
@@ -1365,10 +1501,15 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Playback", String.valueOf(storage.getParent().getTitle()));
             assertEquals("Keep Telegram's files in internal storage", String.valueOf(storage.getTitle()));
             assertFalse(storage.isChecked());
-            assertEquals("New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers"
-                    + " and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data,"
+            assertEquals("New photos, videos and files Telegram downloads go to the folder below in Internal storage, where file"
+                    + " managers and other apps can open them, instead of Android/data. Files downloaded before stay where they are,"
                     + " and Telegram still opens them from there. Needs All files access and a restart.\nAll files access is off, so Telegram's files stay in Android/data."
                     + " Turning this on opens the setting.", String.valueOf(storage.getSummary()));
+
+            Preference name = rows.get(rows.indexOf(storage) + 1);
+            assertEquals(StorageFolderEditor.KEY, name.getKey());
+            assertEquals("Folder in internal storage", String.valueOf(name.getTitle()));
+            assertEquals("Internal storage/Telegram", String.valueOf(name.getSummary()).replaceAll("[^\\p{ASCII}]", ""));
 
             assertTrue(storage.getOnPreferenceChangeListener().onPreferenceChange(storage, true));
             android.content.Intent opened = shadowOf(controller.get()).getNextStartedActivity();
@@ -1479,11 +1620,214 @@ public class HushTelegramPreferenceFragmentTest {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
-            assertEquals("The chats you pick below leave All Chats, your folders and archived chats. They keep their messages "
+            assertEquals("The chats you pick below leave All Chats, your folders, archived chats and the forward and share lists. They keep their messages "
                     + "and notifications, search still finds them, and nothing changes on your other devices. Each account "
                     + "keeps its own list. Folder tab counts and the app badge still count their unread messages.",
                     String.valueOf(pageOf(controller).findPreference(Settings.HIDDEN_CHATS.key).getSummary()));
         } finally {
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /**
+     * With the passcode switch on, the chats row, Hide picked chats and the passcode switch each ask for
+     * Telegram's passcode before they give way, and a wrong one changes nothing.
+     */
+    @Test
+    public void thePasscodeGuardsTheHiddenChatsPage() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.HIDDEN_PASSCODE);
+        AppPasscodeForTests.use("2468");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            SwitchPreference passcode = (SwitchPreference) page.findPreference(Settings.HIDDEN_CHATS_PASSCODE.key);
+            assertEquals("Passcode for hidden chats", String.valueOf(passcode.getTitle()));
+            assertFalse("off until turned on", passcode.isChecked());
+            assertTrue(String.valueOf(passcode.getSummary()).contains("guards this settings page"));
+
+            assertTrue("turning it on needs a passcode to exist", passcode.getOnPreferenceChangeListener().onPreferenceChange(passcode, true));
+            Settings.HIDDEN_CHATS_PASSCODE.save(true);
+            Settings.HIDDEN_CHATS.save(true);
+            Preference row = page.findPreference(HushTelegramPreferenceFragment.HIDDEN_CHATS_ROW);
+            Preference hide = page.findPreference(Settings.HIDDEN_CHATS.key);
+
+            assertFalse("showing the chats again asks first", hide.getOnPreferenceChangeListener().onPreferenceChange(hide, false));
+            AlertDialog prompt = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertTrue(prompt.isShowing());
+            assertEquals("Passcode needed", String.valueOf(shadowOf(prompt).getTitle()));
+            ((android.widget.EditText) prompt.findViewById(android.R.id.edit)).setText("1111");
+            prompt.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            assertTrue("a wrong passcode keeps the prompt", prompt.isShowing());
+            assertTrue("and the switch on", Settings.HIDDEN_CHATS.get());
+            ((android.widget.EditText) prompt.findViewById(android.R.id.edit)).setText("2468");
+            prompt.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            assertFalse("the right one closes it", prompt.isShowing());
+            assertFalse("and turns the switch off", ((SwitchPreference) hide).isChecked());
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            AlertDialog second = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertEquals("the list sits behind the passcode too", "Passcode needed", String.valueOf(shadowOf(second).getTitle()));
+            assertEquals("Locked with your Telegram passcode.", String.valueOf(row.getSummary()));
+        } finally {
+            AppPasscodeForTests.restore();
+            Settings.HIDDEN_CHATS_PASSCODE.resetToDefault();
+            Settings.HIDDEN_CHATS.resetToDefault();
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /** Without a Telegram passcode the switch refuses to turn on, and says why. */
+    @Test
+    public void thePasscodeSwitchNeedsAPasscodeToExist() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_CHATS, PatchFamily.Capability.HIDDEN_PASSCODE);
+        AppPasscodeForTests.use(null);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Preference passcode = pageOf(controller).findPreference(Settings.HIDDEN_CHATS_PASSCODE.key);
+            assertFalse(passcode.getOnPreferenceChangeListener().onPreferenceChange(passcode, true));
+        } finally {
+            AppPasscodeForTests.restore();
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /**
+     * Hide accounts lists the signed-in accounts to tick, says what it does and doesn't do, refuses
+     * to hide every account, and asks for the passcode once the lock is on.
+     */
+    @Test
+    public void hideAccountsPicksAccountsAndKeepsOneShowing() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_FOLDER_COUNTERS);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.HIDDEN_ACCOUNTS, PatchFamily.Capability.HIDDEN_PASSCODE);
+        HiddenAccountsForTests.signedIn(0, "Work", "Home");
+        AppPasscodeForTests.use("2468");
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            Preference hide = page.findPreference(Settings.HIDE_ACCOUNTS.key);
+            assertEquals("Hide accounts", String.valueOf(hide.getTitle()));
+            String summary = String.valueOf(hide.getSummary());
+            assertTrue(summary, summary.contains("stays signed in"));
+            assertTrue(summary, summary.contains("notifications follow Telegram's own settings"));
+            Preference row = page.findPreference(HushTelegramPreferenceFragment.HIDDEN_ACCOUNTS_ROW);
+            assertEquals("No accounts hidden yet.", String.valueOf(row.getSummary()));
+
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            AlertDialog list = (AlertDialog) ShadowAlertDialog.getLatestDialog();
+            assertEquals("Accounts to hide", String.valueOf(shadowOf(list).getTitle()));
+            assertEquals(2, list.getListView().getCount());
+            shadowOf(list).clickOnItem(0);
+            shadowOf(list).clickOnItem(1);
+            ShadowToast.reset();
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertTrue("every account can't go", list.isShowing());
+            assertEquals("Keep at least one account showing.", ShadowToast.getTextOfLatestToast());
+            assertTrue(HiddenAccounts.hidden().isEmpty());
+
+            shadowOf(list).clickOnItem(1);
+            list.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            settle();
+            assertFalse(list.isShowing());
+            assertEquals(java.util.Collections.singleton(1000L), HiddenAccounts.hidden());
+            assertEquals("Work", String.valueOf(row.getSummary()));
+
+            Settings.HIDDEN_ACCOUNTS_LOCK.save(true);
+            Settings.HIDE_ACCOUNTS.save(true);
+            assertFalse("showing the accounts again asks first", hide.getOnPreferenceChangeListener().onPreferenceChange(hide, false));
+            assertEquals("Passcode needed", String.valueOf(shadowOf((AlertDialog) ShadowAlertDialog.getLatestDialog()).getTitle()));
+            ShadowAlertDialog.reset();
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            ShadowLooper.idleMainLooper();
+            assertEquals("the list sits behind the passcode too", "Passcode needed",
+                    String.valueOf(shadowOf((AlertDialog) ShadowAlertDialog.getLatestDialog()).getTitle()));
+        } finally {
+            AppPasscodeForTests.restore();
+            HiddenAccountsForTests.restore();
+            Settings.HIDDEN_ACCOUNTS_LOCK.resetToDefault();
+            Settings.HIDE_ACCOUNTS.resetToDefault();
+            PatchFamily.capabilitiesForTests = null;
+        }
+    }
+
+    /**
+     * Special contacts sits under Show user and chat IDs when the build has its hooks: a switch, and
+     * a Tracked people row that lists the account's people. A person's history clears or stops
+     * tracking at once and says so.
+     */
+    @Test
+    public void trackedPeopleListsEveryoneAndOpensTheirHistory() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.SHOW_LOCAL_IDS);
+        SpecialContactsForTests.fresh();
+        try {
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                assertNotNull(page.findPreference(Settings.PROFILE_DATA_CENTER.key));
+                assertNull("a build without the hooks has no switch", page.findPreference(Settings.SPECIAL_CONTACTS.key));
+                assertNull("and no list", page.findPreference(HushTelegramPreferenceFragment.SPECIAL_CONTACTS_ROW));
+            }
+
+            PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.PROFILE_LOCAL_IDS, PatchFamily.Capability.SPECIAL_CONTACTS);
+            try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+                HushTelegramPreferenceFragment page = pageOf(controller);
+                SwitchPreference toggle = (SwitchPreference) page.findPreference(Settings.SPECIAL_CONTACTS.key);
+                assertEquals("Special contacts", String.valueOf(toggle.getTitle()));
+                assertFalse("off until turned on", toggle.isChecked());
+                String summary = String.valueOf(toggle.getSummary());
+                assertTrue(summary, summary.contains("Track this user") && summary.contains("stays on this phone"));
+                Preference row = page.findPreference(HushTelegramPreferenceFragment.SPECIAL_CONTACTS_ROW);
+                assertEquals("Tracked people", String.valueOf(row.getTitle()));
+                assertEquals("Nobody yet. Track someone from their profile's menu.", String.valueOf(row.getSummary()));
+
+                ShadowAlertDialog.reset();
+                ShadowToast.reset();
+                assertNull("nobody to list", dialogOf(row));
+                assertEquals("Nobody tracked yet", ShadowToast.getTextOfLatestToast());
+
+                // Tracked from a profile while the page waited behind it: back on the page, the row counts them.
+                SpecialContactsForTests.track(42, "Ann Lee", "@ann");
+                SpecialContactsForTests.track(43, null, null);
+                controller.pause().resume();
+                assertEquals("2 people tracked", String.valueOf(row.getSummary()));
+                AlertDialog list = dialogOf(row);
+                assertEquals("Tracked people", String.valueOf(shadowOf(list).getTitle()));
+                assertEquals("Close", String.valueOf(list.getButton(AlertDialog.BUTTON_NEGATIVE).getText()));
+                ListView choices = list.getListView();
+                assertEquals(2, choices.getCount());
+                assertEquals("Ann Lee\n@ann · User ID 42", String.valueOf(choices.getAdapter().getItem(0)));
+                assertEquals("User ID 43", String.valueOf(choices.getAdapter().getItem(1)));
+
+                shadowOf(list).clickOnItem(0);
+                ShadowLooper.idleMainLooper();
+                AlertDialog history = ShadowAlertDialog.getLatestAlertDialog();
+                assertEquals("Ann Lee", String.valueOf(shadowOf(history).getTitle()));
+                String lines = String.valueOf(shadowOf(history).getMessage());
+                assertTrue(lines, lines.endsWith("  Started tracking"));
+                assertEquals("Close", String.valueOf(history.getButton(AlertDialog.BUTTON_POSITIVE).getText()));
+                assertEquals("Clear history", String.valueOf(history.getButton(AlertDialog.BUTTON_NEUTRAL).getText()));
+                assertEquals("Stop tracking", String.valueOf(history.getButton(AlertDialog.BUTTON_NEGATIVE).getText()));
+                history.getButton(AlertDialog.BUTTON_NEUTRAL).performClick();
+                ShadowLooper.idleMainLooper();
+                assertEquals("History cleared", ShadowToast.getTextOfLatestToast());
+                assertEquals(0, SpecialContactsForTests.events(42));
+                assertTrue("still tracked", SpecialContactsForTests.tracked(42));
+
+                shadowOf(dialogOf(row)).clickOnItem(0);
+                ShadowLooper.idleMainLooper();
+                history = ShadowAlertDialog.getLatestAlertDialog();
+                assertEquals("No history yet", String.valueOf(shadowOf(history).getMessage()));
+                history.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+                ShadowLooper.idleMainLooper();
+                assertEquals("Stopped tracking", ShadowToast.getTextOfLatestToast());
+                assertFalse(SpecialContactsForTests.tracked(42));
+                assertEquals("1 person tracked", String.valueOf(row.getSummary()));
+                assertEquals(1, dialogOf(row).getListView().getCount());
+            }
+        } finally {
+            SpecialContactsForTests.restore();
+            Settings.SPECIAL_CONTACTS.resetToDefault();
             PatchFamily.capabilitiesForTests = null;
         }
     }
@@ -1688,6 +2032,31 @@ public class HushTelegramPreferenceFragmentTest {
                 assertEquals(state[1], ShadowToast.getTextOfLatestToast());
             }
             assertEquals("No chats hidden yet.", HushTelegramPreferenceFragment.hiddenChatsSummary(null));
+        } finally {
+            HiddenChatsForTests.restore();
+        }
+    }
+
+    /**
+     * The proxy's channel goes in or stays out while Telegram sorts the chats, so flipping Hide
+     * sponsored proxy channel sorts every signed-in account's chats again instead of waiting for
+     * the next update to arrive.
+     */
+    @Test
+    public void hideSponsoredProxySortsEveryAccountsChatsAgainAtOnce() throws Exception {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.HIDE_SPONSORED_PROXY);
+        HiddenChatsForTests.Fake telegram = HiddenChatsForTests.use(new HiddenChatsForTests.Fake());
+        telegram.users.put(0, 1000L);
+        telegram.users.put(2, 3000L);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Preference proxy = pageOf(controller).findPreference(Settings.HIDE_SPONSORED_PROXY.key);
+            for (Boolean value : new Boolean[]{Boolean.TRUE, Boolean.FALSE}) {
+                telegram.resorted.clear();
+                assertTrue(proxy.getOnPreferenceChangeListener().onPreferenceChange(proxy, value));
+                assertTrue("not before the switch is saved", telegram.resorted.isEmpty());
+                ShadowLooper.idleMainLooper();
+                assertEquals(value + " sorts each signed-in account's chats again", Arrays.asList(0, 2), telegram.resorted);
+            }
         } finally {
             HiddenChatsForTests.restore();
         }
@@ -2026,7 +2395,24 @@ public class HushTelegramPreferenceFragmentTest {
             HushTelegramPreferenceFragment page = pageOf(controller);
             assertEquals(null, page.findPreference("local_notification_status"));
             assertEquals(null, page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key));
+            assertEquals(null, page.findPreference(Settings.KEEP_ALIVE_RUNNING.key));
             assertFalse(sections(page).contains("Notifications"));
+        }
+    }
+
+    @Test
+    public void theKeepAliveSwitchShowsOnlyWhenItsStartWasPatchedIn() {
+        PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.REPAIR_FIREBASE_PUSH);
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.FIREBASE_CERTIFICATE_HEADER,
+                PatchFamily.Capability.FIREBASE_LOCAL_STATUS);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            HushTelegramPreferenceFragment page = pageOf(controller);
+            assertNotNull(page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key));
+            assertEquals(null, page.findPreference(Settings.KEEP_ALIVE_RUNNING.key));
+        }
+        PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.KEEP_ALIVE_RUNNING);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            assertNotNull(pageOf(controller).findPreference(Settings.KEEP_ALIVE_RUNNING.key));
         }
     }
 

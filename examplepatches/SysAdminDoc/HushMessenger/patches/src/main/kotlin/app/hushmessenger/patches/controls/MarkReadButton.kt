@@ -258,11 +258,7 @@ internal fun ReadFlow.narrowConstantAt(target: Int, register: Int, depth: Int = 
 /** Reads the recipe from the one builder that names the QR scanner plugin and reads it from the socket, or null. */
 internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe? {
     val byType = classes.associateBy { it.type }
-    val bar = classes.flatMap { it.methods }.filter { m ->
-        val code = m.markCode()
-        code.any { (it.markRef() as? StringReference)?.string == QR_BUTTON_NAME } &&
-            code.any { it.opcode == Opcode.IGET_OBJECT && (it.markRef() as? FieldReference)?.type == QR_BUTTON }
-    }.singleOrNull() ?: return null
+    val bar = markReadBar(classes) ?: return null
     val c = bar.markCode()
     val name = c.indices.singleOrNull { (c[it].markRef() as? StringReference)?.string == QR_BUTTON_NAME } ?: return null
     val plugin = (name until c.size).firstOrNull { c[it].opcode == Opcode.IGET_OBJECT && (c[it].markRef() as? FieldReference)?.type == QR_BUTTON } ?: return null
@@ -278,73 +274,14 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
         (insn.markRef() as? MethodReference)?.takeIf { insn.opcode == Opcode.INVOKE_DIRECT && it.name == "<init>" && it.params() == listOf("Ljava/lang/String;") }?.definingClass
     }.distinct().singleOrNull() ?: return null
     val flow = try { ReadFlow(bar) } catch (_: PatchException) { return null }
-    var mig: String? = null
-    var builderScheme: String? = null
-    var tagField: String? = null
-    var listenerField: String? = null
-    var iconProvider: String? = null
-    var iconRead: FieldReference? = null
-    var listener: String? = null
-    var listenerCase: Int? = null
-    var spec: String? = null
-    val strings = mutableMapOf<Int, String>()
-    var listenerRegister = -1
-    for ((i, insn) in block) {
-        val ref = insn.markRef()
-        when {
-            ref is StringReference && insn is OneRegisterInstruction -> strings[insn.registerA] = ref.string
-            insn.opcode == Opcode.IGET_OBJECT && ref is FieldReference -> {
-                if (ref.definingClass == THREAD_SCHEME && ref.type == MIG_SCHEME) mig = ref.id()
-                if (ref.definingClass == QR_BUTTON && ref.type != THREAD_SCHEME && ref.type != CONTEXT) iconRead = ref
-            }
-            insn.opcode == Opcode.INVOKE_STATIC && ref is MethodReference && ref.params().size == 1 && iconRead != null &&
-                ref.params() == listOf(iconRead!!.type) && ref.returnType.startsWith("L") && iconProvider == null -> {
-                // The provider takes the register the icon field was just read into.
-                val read = c[i - 1] as? TwoRegisterInstruction
-                if (c[i - 1].opcode == Opcode.IGET_OBJECT && read?.registerA == insn.markArgs().first()) iconProvider = ref.toString()
-            }
-            insn.opcode == Opcode.IPUT_OBJECT && ref is FieldReference && ref.definingClass == builder -> {
-                val value = (insn as TwoRegisterInstruction).registerA
-                when {
-                    ref.type == MIG_SCHEME -> builderScheme = ref.id()
-                    ref.type == "Ljava/lang/String;" && strings[value] == QR_BUTTON_TAG -> tagField = ref.id()
-                    value == listenerRegister -> listenerField = ref.id()
-                }
-            }
-            insn.opcode == Opcode.INVOKE_DIRECT && ref is MethodReference && ref.name == "<init>" -> {
-                val args = insn.markArgs()
-                if (ref.params() == listOf("Ljava/lang/Object;", "I") && args.getOrNull(1) == pluginRead.registerA) {
-                    listener = ref.definingClass
-                    // The case is a constant set wherever the method keeps it, so follow any plain move to the call.
-                    listenerCase = flow.narrowConstantAt(i, args[2])
-                    listenerRegister = args[0]
-                } else if (ref.params() == listOf(builder)) spec = ref.definingClass
-            }
-        }
-    }
-    val iconField = iconRead ?: return null
+    val scan = MarkBlockScan(c, block, builder, flow, pluginRead)
+    val iconField = scan.iconRead ?: return null
     // The plugin keeps more than one lazy of the icon's type, so the field is the one the block reads, by name.
     if (qr.fields.none { it.name == iconField.name && it.type == iconField.type && !AccessFlags.STATIC.isSet(it.accessFlags) }) return null
-    // The QR plugin's constructor fills its icon field from a no-argument static call, which the button calls itself.
-    val iconSource = qr.methods.filter { it.name == "<init>" }.flatMap { ctor ->
-        val ic = ctor.markCode()
-        (2 until ic.size).mapNotNull { k ->
-            val store = ic[k].markRef() as? FieldReference
-            val source = ic[k - 2].markRef() as? MethodReference
-            if (ic[k].opcode == Opcode.IPUT_OBJECT && store?.name == iconField.name && ic[k - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
-                ic[k - 2].opcode == Opcode.INVOKE_STATIC && source != null && source.parameterTypes.isEmpty() && source.returnType == iconField.type) source.toString() else null
-        }
-    }.distinct().singleOrNull() ?: return null
-    val provider = iconProvider ?: return null
+    val iconSource = markIconSource(qr, iconField) ?: return null
+    val provider = scan.iconProvider ?: return null
     val providerType = provider.substringAfter(')')
-    // The builder keeps its icon in an int field, which a public static helper fills from the provider's result. A build
-    // can carry copies of that helper on other public classes; every copy must do the same steps, and the first is used.
-    val setters = classes.filter { it.isPublic() }.flatMap { it.methods }.filter { m ->
-        AccessFlags.STATIC.isSet(m.accessFlags) && AccessFlags.PUBLIC.isSet(m.accessFlags) && m.returnType == "V" && m.implementation != null &&
-            m.parameterTypes.map(CharSequence::toString).let { it.size == 3 && it[1] == providerType && it[2] == builder }
-    }.map { it to it.iconSetterSteps() }
-    if (setters.isEmpty() || setters.any { it.second == null } || setters.map { it.second }.distinct().size != 1) return null
-    val setterMethod = setters.minBy { it.first.hookId() }.first
+    val setterMethod = markIconSetter(classes, providerType, builder) ?: return null
     val setter = setterMethod.hookId()
     val iconType = setterMethod.parameterTypes[0].toString()
     val setterCode = setterMethod.markCode()
@@ -355,49 +292,162 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
     // The QR block does the same two steps inline, so the helper is the button's own way of setting an icon.
     if (block.none { it.second.markRef()?.toString() == resolve.toString() } ||
         block.none { it.second.opcode == Opcode.IPUT && it.second.markRef()?.toString() == store.toString() }) return null
-    // Messenger's Mark as read icon, by its enum name.
-    val icon = byType[iconType]?.methods?.singleOrNull { it.name == "<clinit>" }?.markCode()?.let { ic ->
-        ic.indices.filter { (ic[it].markRef() as? StringReference)?.string == MARK_READ_ICON }.flatMap { k ->
-            (k + 1 until minOf(ic.size, k + 8)).mapNotNull { j ->
-                (ic[j].markRef() as? FieldReference)?.takeIf { ic[j].opcode == Opcode.SPUT_OBJECT && it.type == iconType && it.definingClass == iconType }?.id()
-            }.take(1)
-        }.distinct().singleOrNull()
-    } ?: return null
+    val icon = markIconName(byType, iconType) ?: return null
     val socketClass = byType[socketType] ?: return null
     fun socketField(type: String) = socketClass.fields.filter { it.type == type && !AccessFlags.STATIC.isSet(it.accessFlags) }
         .singleOrNull()?.takeIf { AccessFlags.FINAL.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }?.let { "$socketType->${it.name}:${it.type}" }
     val session = socketField(FB_USER_SESSION) ?: return null
     val thread = socketField(THREAD_KEY_TYPE) ?: return null
     val scheme = socketField(THREAD_SCHEME) ?: return null
-    val listenerType = listener ?: return null
+    val listenerType = scan.listener ?: return null
     val listenerClass = byType[listenerType] ?: return null
-    // The listener keeps its Object argument in one field, which the tap hook reads back.
-    val target = listenerClass.methods.singleOrNull { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;", "I") }?.let { ctor ->
-        val p1 = ctor.parameterRegister(1)
-        ctor.markCode().filter { it.opcode == Opcode.IPUT_OBJECT && (it as TwoRegisterInstruction).registerA == p1 }
-            .mapNotNull { (it.markRef() as? FieldReference)?.takeIf { f -> f.definingClass == listenerType && f.type == "Ljava/lang/Object;" }?.id() }.singleOrNull()
-    } ?: return null
+    val target = markListenerTarget(listenerClass, listenerType) ?: return null
     val click = listenerClass.methods.singleOrNull { it.name == "onClick" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/View;") && it.returnType == "V" }
         ?: return null
     // The tap hook writes v0 and v1 ahead of the stock body, so a listener without them gets neither hook.
     if (click.implementation == null || AccessFlags.STATIC.isSet(click.accessFlags) || click.parameterRegister(0) < 2) return null
     val builderClass = byType[builder] ?: return null
-    val specType = spec ?: return null
+    val specType = scan.spec ?: return null
     val specClass = byType[specType] ?: return null
     if (builderClass.methods.none { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;") }) return null
     // Every class the generated button names is public, since it lives in the extension's package.
     if (listOf(socketClass, builderClass, specClass, listenerClass).any { !it.isPublic() }) return null
-    if (listOf(iconSource, provider, setter).any { ref ->
-            val owner = byType[ref.substringBefore("->")] ?: return null
-            val method = owner.methods.singleOrNull { it.hookId() == ref } ?: return null
-            !owner.isPublic() || !AccessFlags.PUBLIC.isSet(method.accessFlags) || !AccessFlags.STATIC.isSet(method.accessFlags)
-        }) return null
+    if (markPublicStatics(byType, listOf(iconSource, provider, setter)) != true) return null
     val site = bar.markReadSite(list, pluginRead.registerB, socketType) ?: return null
     if (!bar.markReadCapMatches()) return null
-    val tag = tagField ?: return null
+    val tag = scan.tagField ?: return null
     // The extension leaves a full bar's call buttons in place by these tags.
     if (MARK_READ_CALL_TAGS.any { name -> c.none { (it.markRef() as? StringReference)?.string == name } }) return null
-    // The chat details button's builder: the bar's one call that takes the chat colors last and returns a button.
+    val detailsRef = markDetailsRef(byType, c, specType, tag) ?: return null
+    val titleBar = markTitleBar(classes, detailsRef, bar.hookId()) ?: return null
+    val titleBarSite = titleBar.markReadFactorySite(detailsRef) { it.isListBuildHelper(byType) } ?: return null
+    // Its list goes back through ImmutableList.copyOf, since the bar casts what the factory returns.
+    if (byType[IMMUTABLE_LIST]?.methods?.none { it.hookId() == LIST_COPY && AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) } != false) return null
+    return MarkReadRecipe(bar, click, socketType, session, thread, scheme, scan.mig ?: return null, builder, scan.builderScheme ?: return null,
+        tag, scan.listenerField ?: return null, iconSource, provider, setter, icon, listenerType,
+        scan.listenerCase ?: return null, target, specType, site, list, pluginRead.registerB, titleBar, titleBarSite, detailsRef)
+}
+
+// resolveMarkReadRecipe's scans and lookups live in the functions below. Inlined into it they made it over 8000 bytes
+// of bytecode, which the JVM never compiles (ART skips methods that size too), so it ran interpreted (#148, #150).
+
+/** The one method that names the QR scanner plugin's button and reads the plugin. */
+private fun markReadBar(classes: Iterable<ClassDef>): Method? {
+    val qrName = StringMatch(QR_BUTTON_NAME)
+    return classes.flatMap { it.methods }.filter { m ->
+        val code = m.markCode()
+        code.any { qrName.matches(it.markRef()) } &&
+            code.any { it.opcode == Opcode.IGET_OBJECT && (it.markRef() as? FieldReference)?.type == QR_BUTTON }
+    }.singleOrNull()
+}
+
+/** What the QR button's block reads and stores on its builder, in one pass over the block. */
+private class MarkBlockScan(c: List<Instruction>, block: List<Pair<Int, Instruction>>, builder: String, flow: ReadFlow,
+    pluginRead: TwoRegisterInstruction) {
+    var mig: String? = null
+    var builderScheme: String? = null
+    var tagField: String? = null
+    var listenerField: String? = null
+    var iconProvider: String? = null
+    var iconRead: FieldReference? = null
+    var listener: String? = null
+    var listenerCase: Int? = null
+    var spec: String? = null
+
+    init {
+        val strings = mutableMapOf<Int, String>()
+        var listenerRegister = -1
+        for ((i, insn) in block) {
+            val ref = insn.markRef()
+            when {
+                ref is StringReference && insn is OneRegisterInstruction -> strings[insn.registerA] = ref.string
+                insn.opcode == Opcode.IGET_OBJECT && ref is FieldReference -> {
+                    if (ref.definingClass == THREAD_SCHEME && ref.type == MIG_SCHEME) mig = ref.id()
+                    if (ref.definingClass == QR_BUTTON && ref.type != THREAD_SCHEME && ref.type != CONTEXT) iconRead = ref
+                }
+                insn.opcode == Opcode.INVOKE_STATIC && ref is MethodReference && ref.params().size == 1 && iconRead != null &&
+                    ref.params() == listOf(iconRead!!.type) && ref.returnType.startsWith("L") && iconProvider == null -> {
+                    // The provider takes the register the icon field was just read into.
+                    val read = c[i - 1] as? TwoRegisterInstruction
+                    if (c[i - 1].opcode == Opcode.IGET_OBJECT && read?.registerA == insn.markArgs().first()) iconProvider = ref.toString()
+                }
+                insn.opcode == Opcode.IPUT_OBJECT && ref is FieldReference && ref.definingClass == builder -> {
+                    val value = (insn as TwoRegisterInstruction).registerA
+                    when {
+                        ref.type == MIG_SCHEME -> builderScheme = ref.id()
+                        ref.type == "Ljava/lang/String;" && strings[value] == QR_BUTTON_TAG -> tagField = ref.id()
+                        value == listenerRegister -> listenerField = ref.id()
+                    }
+                }
+                insn.opcode == Opcode.INVOKE_DIRECT && ref is MethodReference && ref.name == "<init>" -> {
+                    val args = insn.markArgs()
+                    if (ref.params() == listOf("Ljava/lang/Object;", "I") && args.getOrNull(1) == pluginRead.registerA) {
+                        listener = ref.definingClass
+                        // The case is a constant set wherever the method keeps it, so follow any plain move to the call.
+                        listenerCase = flow.narrowConstantAt(i, args[2])
+                        listenerRegister = args[0]
+                    } else if (ref.params() == listOf(builder)) spec = ref.definingClass
+                }
+            }
+        }
+    }
+}
+
+/** The QR plugin's constructor fills its icon field from a no-argument static call, which the button calls itself. */
+private fun markIconSource(qr: ClassDef, iconField: FieldReference): String? =
+    qr.methods.filter { it.name == "<init>" }.flatMap { ctor ->
+        val ic = ctor.markCode()
+        (2 until ic.size).mapNotNull { k ->
+            val store = ic[k].markRef() as? FieldReference
+            val source = ic[k - 2].markRef() as? MethodReference
+            if (ic[k].opcode == Opcode.IPUT_OBJECT && store?.name == iconField.name && ic[k - 1].opcode == Opcode.MOVE_RESULT_OBJECT &&
+                ic[k - 2].opcode == Opcode.INVOKE_STATIC && source != null && source.parameterTypes.isEmpty() && source.returnType == iconField.type) source.toString() else null
+        }
+    }.distinct().singleOrNull()
+
+/**
+ * The builder keeps its icon in an int field, which a public static helper fills from the provider's result. A build
+ * can carry copies of that helper on other public classes; every copy must do the same steps, and the first is used.
+ */
+private fun markIconSetter(classes: Iterable<ClassDef>, providerType: String, builder: String): Method? {
+    val setters = classes.filter { it.isPublic() }.flatMap { it.methods }.filter { m ->
+        AccessFlags.STATIC.isSet(m.accessFlags) && AccessFlags.PUBLIC.isSet(m.accessFlags) && m.returnType == "V" && m.implementation != null &&
+            m.parameterTypes.map(CharSequence::toString).let { it.size == 3 && it[1] == providerType && it[2] == builder }
+    }.map { it to it.iconSetterSteps() }
+    if (setters.isEmpty() || setters.any { it.second == null } || setters.map { it.second }.distinct().size != 1) return null
+    return setters.minBy { it.first.hookId() }.first
+}
+
+/** Messenger's Mark as read icon, by its enum name. */
+private fun markIconName(byType: Map<String, ClassDef>, iconType: String): String? =
+    byType[iconType]?.methods?.singleOrNull { it.name == "<clinit>" }?.markCode()?.let { ic ->
+        ic.indices.filter { (ic[it].markRef() as? StringReference)?.string == MARK_READ_ICON }.flatMap { k ->
+            (k + 1 until minOf(ic.size, k + 8)).mapNotNull { j ->
+                (ic[j].markRef() as? FieldReference)?.takeIf { ic[j].opcode == Opcode.SPUT_OBJECT && it.type == iconType && it.definingClass == iconType }?.id()
+            }.take(1)
+        }.distinct().singleOrNull()
+    }
+
+/** The listener keeps its Object argument in one field, which the tap hook reads back. */
+private fun markListenerTarget(listenerClass: ClassDef, listenerType: String): String? =
+    listenerClass.methods.singleOrNull { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;", "I") }?.let { ctor ->
+        val p1 = ctor.parameterRegister(1)
+        ctor.markCode().filter { it.opcode == Opcode.IPUT_OBJECT && (it as TwoRegisterInstruction).registerA == p1 }
+            .mapNotNull { (it.markRef() as? FieldReference)?.takeIf { f -> f.definingClass == listenerType && f.type == "Ljava/lang/Object;" }?.id() }.singleOrNull()
+    }
+
+/** Null when a reference names no one method, else whether each is a public static method of a public class. */
+private fun markPublicStatics(byType: Map<String, ClassDef>, refs: List<String>): Boolean? {
+    for (ref in refs) {
+        val owner = byType[ref.substringBefore("->")] ?: return null
+        val method = owner.methods.singleOrNull { it.hookId() == ref } ?: return null
+        if (!owner.isPublic() || !AccessFlags.PUBLIC.isSet(method.accessFlags) || !AccessFlags.STATIC.isSet(method.accessFlags)) return false
+    }
+    return true
+}
+
+/** The chat details button's builder: the bar's one call that takes the chat colors last and returns a button. */
+private fun markDetailsRef(byType: Map<String, ClassDef>, c: List<Instruction>, specType: String, tag: String): String? {
     val detailsRef = c.mapNotNull { insn ->
         (insn.markRef() as? MethodReference)?.takeIf { insn.opcode == Opcode.INVOKE_VIRTUAL && it.returnType == specType && it.params().lastOrNull() == MIG_SCHEME }
     }.map { it.toString() }.distinct().singleOrNull() ?: return null
@@ -409,15 +459,14 @@ internal fun resolveMarkReadRecipe(classes: Iterable<ClassDef>): MarkReadRecipe?
             dc[k].opcode == Opcode.IPUT_OBJECT && (dc[k].markRef() as? FieldReference)?.id() == tag &&
                 (k - 1 downTo 0).firstOrNull { dc[it].markWrites(put!!.registerA) }?.let { (dc[it].markRef() as? StringReference)?.string } == MARK_READ_DETAILS_TAG
         }) return null
-    // The newer bar is the one other method that makes the details button.
-    val titleBar = classes.flatMap { it.methods }.filter { m -> m.hookId() != bar.hookId() && m.markCode().any { it.markRef()?.toString() == detailsRef } }
-        .singleOrNull() ?: return null
-    val titleBarSite = titleBar.markReadFactorySite(detailsRef) { it.isListBuildHelper(byType) } ?: return null
-    // Its list goes back through ImmutableList.copyOf, since the bar casts what the factory returns.
-    if (byType[IMMUTABLE_LIST]?.methods?.none { it.hookId() == LIST_COPY && AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) } != false) return null
-    return MarkReadRecipe(bar, click, socketType, session, thread, scheme, mig ?: return null, builder, builderScheme ?: return null,
-        tag, listenerField ?: return null, iconSource, provider, setter, icon, listenerType,
-        listenerCase ?: return null, target, specType, site, list, pluginRead.registerB, titleBar, titleBarSite, detailsRef)
+    return detailsRef
+}
+
+/** The newer bar is the one other method that makes the details button. */
+private fun markTitleBar(classes: Iterable<ClassDef>, detailsRef: String, barId: String): Method? {
+    val detailsCall = MemberMatch(detailsRef)
+    return classes.flatMap { it.methods }.filter { m -> m.markCode().any { detailsCall.matches(it.markRef()) } && m.hookId() != barId }
+        .singleOrNull()
 }
 
 /**

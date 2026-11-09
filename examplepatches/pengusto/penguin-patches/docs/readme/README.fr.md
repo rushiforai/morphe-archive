@@ -40,7 +40,7 @@ Exemple : dans Finamp, le correctif place l’artiste de l’album avant les aut
 - [Choisir le délai de notification des alarmes](../../README.md#preview-choose-upcoming-alarm-notification-time)
 - [Configurer son client OAuth pour Infinity+](../../README.md#preview-configure-custom-oauth-for-infinity)
 - [Retirer la notification après marquage comme lu](../../README.md#preview-dismiss-notifications-when-marking-conversations-read)
-- [Finamp Complete : les huit améliorations](../../README.md#preview-finamp-complete-all-eight-fixes)
+- [Finamp Complete : les sept améliorations](../../README.md#preview-finamp-complete-all-seven-fixes)
 - [Importer les flux OPML imbriqués](../../README.md#preview-import-nested-opml-feeds)
 - [Garder non lues les conversations en arrière-plan](../../README.md#preview-keep-background-conversations-unread)
 - [Conserver les favoris après renommage ou suppression de dossiers](../../README.md#preview-keep-favorites-consistent-after-folder-rename-or-removal)

@@ -38,20 +38,20 @@ fun BytecodePatchContext.executeMegaAmoledDeclutterLogic(logger: Logger) {
         val mutableClass by lazy { mutableClassDefBy(classDef) }
 
         // 1. Compose Design Tokens: Hook BackgroundColor and ComponentsColor to return pure black (0xFF000000)
-        if (type == "Lmega/android/core/ui/theme/values/BackgroundColor;" ||
-            type == "Lmega/android/core/ui/theme/values/ComponentsColor;"
+        if (type.startsWith("Lmega/android/core/ui/theme/values/") &&
+            (type.contains("BackgroundColor;") || type.contains("ComponentsColor;") || type.contains("SurfaceColor;"))
         ) {
             for (method in classDef.methods.toList()) {
                 val mName = method.name
                 val retType = method.returnType
-                // getBackgroundColor-vNxB06k(...) -> J and getComponentsColor-vNxB06k(...) -> J
-                if (retType == "J" && (mName.startsWith("getBackground") || mName.startsWith("getComponents"))) {
+                // getBackgroundColor-vNxB06k(...) -> J, getComponentsColor-vNxB06k(...) -> J, getSurfaceColor-vNxB06k(...) -> J
+                if (retType == "J" && (mName.startsWith("getBackground") || mName.startsWith("getComponents") || mName.startsWith("getSurface"))) {
                     try {
                         mutableClass.replaceMethod(
                             method,
                             registerCount = 2,
                             smaliCode = """
-                                const-wide/high16 v0, -0x100
+                                const-wide v0, -0x1000000000000000L
                                 return-wide v0
                             """.trimIndent()
                         )
@@ -90,7 +90,7 @@ fun BytecodePatchContext.executeMegaAmoledDeclutterLogic(logger: Logger) {
             }
         }
 
-        // 3. Compose AppTheme root: Inject darkTheme = true (const/4 p0, 0x1) into ThemeKt.a
+        // 3. Compose AppTheme root: Inject darkTheme = true (const/16 p0, 0x1) into ThemeKt.a
         if (type == "Lmega/android/core/ui/theme/ThemeKt;") {
             for (method in classDef.methods.toList()) {
                 if (method.name == "a" && method.returnType == "V" && method.parameterTypes.size >= 3) {
@@ -99,7 +99,7 @@ fun BytecodePatchContext.executeMegaAmoledDeclutterLogic(logger: Logger) {
                         cloned.addInstructions(
                             0,
                             """
-                            const/4 p0, 0x1
+                            const/16 p0, 0x1
                             """.trimIndent()
                         )
                         hookedMethods++
@@ -123,7 +123,12 @@ fun BytecodePatchContext.executeMegaAmoledDeclutterLogic(logger: Logger) {
                 val mName = method.name
                 val pTypes = method.parameterTypes
 
-                if (!isStatic && mName == "onResume" && pTypes.isEmpty()) {
+                val isLifecycle = !isStatic && (
+                    (mName == "onResume" && pTypes.isEmpty()) ||
+                    (mName == "onCreate" && pTypes.size == 1 && pTypes[0] == "Landroid/os/Bundle;")
+                )
+
+                if (isLifecycle) {
                     try {
                         val cloned = cloneMethodWithAdditionalRegisters(method, 3)
                         cloned.addInstructions(

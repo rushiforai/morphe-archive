@@ -8,12 +8,15 @@ import subprocess
 import tempfile
 import zipfile
 
+from finamp_catalogue import catalogue
+
 FINAMP_CLASSES = "io/github/pengusto/patches/finamp/"
 FINAMP_RESOURCES = "finamp/"
 COMPACT_ENTRY = FINAMP_CLASSES + "FinampCompactPatchKt"
 INDIVIDUAL_ENTRY = FINAMP_CLASSES + "FinampNativePatchKt"
-ALL_FIXES_DELTA = "finamp/1.0.1/arm64-v8a/255.pfd"
-EXPECTED_DELTAS = {f"finamp/1.0.1/arm64-v8a/{mask}.pfd" for mask in range(1, 256)}
+_, _, COMPLETE_MASK, EXPECTED_MASKS = catalogue()
+ALL_FIXES_DELTA = f"finamp/1.0.1/arm64-v8a/{COMPLETE_MASK}.pfd"
+EXPECTED_DELTAS = {f"finamp/1.0.1/arm64-v8a/{mask}.pfd" for mask in EXPECTED_MASKS}
 
 
 def make_bundle(source, destination, kind, d8, android_jar, classpath, compact_classes=None):
@@ -112,7 +115,7 @@ def main():
         split_metadata = dict(metadata)
         split_metadata["download_url"] = metadata["download_url"][:-len(expected_suffix)] + f"/patches-{kind}-{args.version}.mpp"
         descriptions = {"finamp-individual": "Finamp patches with individual selection.",
-                        "finamp": "Finamp: all eight fixes in one compact patch.",
+                        "finamp": "Finamp: all available fixes in one compact patch.",
                         "standard": "Infinity+ and all supported apps except Finamp."}
         split_metadata["description"] = descriptions[kind] + "\n\n" + metadata["description"]
         target = args.metadata_dir / kind / "patches-bundle.json"

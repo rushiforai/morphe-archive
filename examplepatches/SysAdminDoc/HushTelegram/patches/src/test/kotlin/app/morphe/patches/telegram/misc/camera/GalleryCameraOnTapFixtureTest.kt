@@ -8,8 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -30,6 +31,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The photo layout, the classes of its fields (so the camera view's superclass resolves) and the runtime. */
 class GalleryCameraOnTapFixtureTest {
@@ -103,8 +108,8 @@ class GalleryCameraOnTapFixtureTest {
                     assertEquals("$name: the button's field is a gallery", PHOTO_LAYOUT, ask.load.type)
                 }
                 assertTrue("$name: ${ask.method.name} asks right after the wake",
-                    body[ask.index + size].call()?.name == "requestPermissions" || ask.load == null &&
-                        body.drop(ask.index + size).take(8).any { it.call()?.name == "requestPermissions" })
+                    body[ask.index + size].call()?.origName == "requestPermissions" || ask.load == null &&
+                        body.drop(ask.index + size).take(8).any { it.call()?.origName == "requestPermissions" })
             }
 
             // Each open of the attach menu, on any tab, starts with its gallery asleep, before the dialog shows.
@@ -116,7 +121,7 @@ class GalleryCameraOnTapFixtureTest {
             assertEquals("$name: show keeps its stock code", menuShow.instructions().map(::operation), showAfter.drop(2).map(::operation))
             assertEquals("$name: then shows the dialog", Opcode.INVOKE_SUPER, showAfter[2].opcode)
             // Nothing in the gallery puts it back to sleep, so a tap made while the menu opens holds.
-            assertEquals("$name: the menu's show is the only sleep", emptyList<String>(), context.mutableClassDefBy(PHOTO_LAYOUT).methods
+            assertEquals("$name: the menu's show is the only sleep", emptyList<String>(), context.tgMutableClassDefBy(PHOTO_LAYOUT).methods
                 .filter { method -> method.instructions().any { it.reference()?.contains("->sleep(") == true } }.map { it.name })
 
             assertEquals("$name: build fact", 1, statusFlag(context))
@@ -128,14 +133,14 @@ class GalleryCameraOnTapFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = contextFor(build)
             val sites = context.resolveGalleryCameraSites()
-            val layout = context.mutableClassDefBy(PHOTO_LAYOUT).methods.toList()
+            val layout = context.tgMutableClassDefBy(PHOTO_LAYOUT).methods.toList()
             assertEquals("${build.name}: CameraController is started from checkCamera alone", listOf(sites.check.name), layout.filter { method ->
-                method.instructions().any { it.call()?.let { call -> call.definingClass == CAMERA_CONTROLLER && call.name == "initCamera" } == true }
+                method.instructions().any { it.call()?.let { call -> call.origDefiningClass == CAMERA_CONTROLLER && call.origName == "initCamera" } == true }
             }.map { it.name })
             assertEquals("${build.name}: the camera view is built in showCamera alone", listOf(sites.show.name), layout.filter { method ->
-                method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == sites.cameraView.type } }.map { it.name })
+                method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == sites.cameraView.origType } }.map { it.name })
             val builders = FixtureDex.methodsWhere(build, { true }) { method ->
-                method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == sites.cameraView.type } }
+                method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == sites.cameraView.origType } }
             assertEquals("${build.name}: nothing outside the gallery builds its camera view", listOf("$PHOTO_LAYOUT->${sites.show.name}"),
                 builders.map { "${it.definingClass}->${it.name}" })
         }
@@ -169,7 +174,7 @@ class GalleryCameraOnTapFixtureTest {
                 },
                 "camera button no longer leads to the tap" to { sites ->
                     val ask = sites.asks.single { it.load != null }
-                    val tap = ask.method.instructions().indexOfFirst { it.call()?.name == sites.tap.name }
+                    val tap = ask.method.instructions().indexOfFirst { it.call()?.origName == sites.tap.origName }
                     ask.method.replaceInstruction(tap, "nop")
                 },
                 "menu show no longer shows first" to { sites -> sites.menuShow.addInstructions(0, "invoke-static {}, Ljava/lang/System;->gc()V") },
@@ -186,7 +191,7 @@ class GalleryCameraOnTapFixtureTest {
 
     private fun assertRefusedUntouched(build: String, case: String, context: BytecodePatchContext, menu: String) {
         val owners = listOf(PHOTO_LAYOUT, menu) + requesters.getValue(build)
-        val before = owners.associateWith { type -> context.mutableClassDefBy(type).methods.associate { signature(it) to it.instructions().map(::operation) } }
+        val before = owners.associateWith { type -> context.tgMutableClassDefBy(type).methods.associate { signature(it) to it.instructions().map(::operation) } }
         try {
             galleryCameraOnTapPatch.execute(context)
             fail("$build: $case was accepted")
@@ -194,7 +199,7 @@ class GalleryCameraOnTapFixtureTest {
             assertTrue("$build: $case: ${expected.message}", expected.message.orEmpty().contains("before editing"))
         }
         assertEquals("$build: $case doesn't partly mutate the gallery or the menu", before,
-            owners.associateWith { type -> context.mutableClassDefBy(type).methods.associate { signature(it) to it.instructions().map(::operation) } })
+            owners.associateWith { type -> context.tgMutableClassDefBy(type).methods.associate { signature(it) to it.instructions().map(::operation) } })
         assertEquals("$build: $case leaves the build fact false", 0, statusFlag(context))
     }
 
@@ -239,7 +244,7 @@ class GalleryCameraOnTapFixtureTest {
         val layout = FixtureDex.classes(build, setOf(PHOTO_LAYOUT)).values.single()
         val fieldTypes = layout.fields.map { it.type }.filter { it.startsWith("L") && it != PHOTO_LAYOUT }.toSet() + menuType(build) +
             requesters.getOrPut(build.name) { requesterTypes(build) }
-        val extension = ExtensionDex.classes().filter { runtime || it.type != GALLERY_CAMERA }
+        val extension = ExtensionDex.classes().filter { runtime || it.origType != GALLERY_CAMERA }
         return PatchContexts.of(extension + layout + FixtureDex.classes(build, fieldTypes).values)
     }
 
@@ -249,21 +254,21 @@ class GalleryCameraOnTapFixtureTest {
      * into classes they share with other code.
      */
     private fun requesterTypes(build: java.io.File) = FixtureDex.classesWhere(build, { true }) { method ->
-        method.instructions().any { it.call()?.name == "requestPermissions" } &&
+        method.instructions().any { it.call()?.origName == "requestPermissions" } &&
             method.instructions().any { it.reference()?.contains(PHOTO_LAYOUT) == true } }
         .map { it.type }.filter { it != PHOTO_LAYOUT }.toSet()
 
     /** The attach menu: the one class whose constructor builds the gallery. */
-    private fun menuType(build: java.io.File) = FixtureDex.classesWhere(build, { true }) { method -> method.name == "<init>" &&
+    private fun menuType(build: java.io.File) = FixtureDex.classesWhere(build, { true }) { method -> method.origName == "<init>" &&
         method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == PHOTO_LAYOUT } }.single().type
 
-    private fun statusFlag(context: BytecodePatchContext) = (context.mutableClassDefBy(SETTINGS_STATUS).methods
-        .single { it.name == "galleryCameraOnTap" }.instructions()[0] as NarrowLiteralInstruction).narrowLiteral
+    private fun statusFlag(context: BytecodePatchContext) = (context.tgMutableClassDefBy(SETTINGS_STATUS).methods
+        .single { it.origName == "galleryCameraOnTap" }.instructions()[0] as NarrowLiteralInstruction).narrowLiteral
 
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
     private fun List<Instruction>.isPadding(index: Int) = this[index].opcode == Opcode.NOP && getOrNull(index + 1)?.opcode in
         setOf(Opcode.PACKED_SWITCH_PAYLOAD, Opcode.SPARSE_SWITCH_PAYLOAD, Opcode.ARRAY_PAYLOAD)
-    private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.reference() = origRef()
     private fun Instruction.call(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
     private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
     private fun operation(instruction: Instruction) = instruction.opcode to instruction.reference()

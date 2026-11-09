@@ -43,18 +43,23 @@ final class CallConfirm {
         }
     }
 
-    /** Wraps each tap listener [button] holds, and returns how many were wrapped. One already wrapped stays as it is. */
+    /**
+     * Wraps each tap listener [button] holds, or a button it wraps holds (586 keeps them on the inner one), and returns
+     * how many were wrapped. One already wrapped stays as it is.
+     */
     static int guard(Object button, boolean video) throws IllegalAccessException {
         int wrapped = 0;
-        for (Class<?> type = button.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
-            for (Field field : type.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers()) || !isTapListener(field.getType())) continue;
-                field.setAccessible(true);
-                Object listener = field.get(button);
-                if (listener == null || asking(listener) != null) continue;
-                field.set(button, Proxy.newProxyInstance(field.getType().getClassLoader(), new Class<?>[]{field.getType()},
-                    new Asking(listener, video)));
-                wrapped++;
+        for (Object layer : MarkReadButton.layers(button)) {
+            for (Class<?> type = layer.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+                for (Field field : type.getDeclaredFields()) {
+                    if (Modifier.isStatic(field.getModifiers()) || !isTapListener(field.getType())) continue;
+                    field.setAccessible(true);
+                    Object listener = field.get(layer);
+                    if (listener == null || asking(listener) != null) continue;
+                    field.set(layer, Proxy.newProxyInstance(field.getType().getClassLoader(), new Class<?>[]{field.getType()},
+                        new Asking(listener, video)));
+                    wrapped++;
+                }
             }
         }
         return wrapped;

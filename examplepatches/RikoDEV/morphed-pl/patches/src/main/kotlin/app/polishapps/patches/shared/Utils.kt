@@ -7,6 +7,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11n
@@ -47,6 +48,15 @@ internal fun <T> BytecodePatchContext.targetsFor(targetsByVersion: Map<String, T
     val version = packageMetadata.versionName
     return targetsByVersion[version] ?: throw PatchException(
         "Yanosik $version is not supported. Supported versions: ${targetsByVersion.keys.joinToString()}",
+    )
+}
+
+/** The same selection for resource patches, which modify native libraries instead of DEX files. */
+internal fun <T> ResourcePatchContext.targetsFor(targetsByVersion: Map<String, T>): T {
+    val version = packageMetadata.versionName
+    return targetsByVersion[version] ?: throw PatchException(
+        "${packageMetadata.packageName} $version is not supported. " +
+            "Supported versions: ${targetsByVersion.keys.joinToString()}",
     )
 }
 

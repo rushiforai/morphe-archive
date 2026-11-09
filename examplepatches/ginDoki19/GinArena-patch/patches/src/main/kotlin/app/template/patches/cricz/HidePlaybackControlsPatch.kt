@@ -51,7 +51,7 @@ private object MainPlayerHide : Fingerprint(
 @Suppress("unused")
 val hidePlaybackControlsPatch = bytecodePatch(
     name = "Hide playback controls at stream open",
-    description = "Hides playback controls when a stream opens or switches fullscreen. Tap the video to show them.",
+    description = "Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CRICZ_TV)

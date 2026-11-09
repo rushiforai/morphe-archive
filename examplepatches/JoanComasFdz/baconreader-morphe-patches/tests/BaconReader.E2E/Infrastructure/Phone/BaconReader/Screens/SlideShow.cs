@@ -24,6 +24,10 @@ public sealed class SlideShow(AndroidDriver driver)
     /// <summary>Taps "Slide Show View" in the post's toolbar, which shows the post's media over the whole screen.</summary>
     public Task ClickSlideShowViewAsync() => OnScreen.PressAsync(driver, SlideShowViewButton);
 
+    /// <summary>Waits until the toolbar offers "Detail View": the post's screen shows its slide show.</summary>
+    public Task WaitUntilSlideShowShownAsync() =>
+        Waiting.UntilShownAsync(driver, DetailViewButton, TimeSpan.FromSeconds(10), "The post's slide show");
+
     /// <summary>Waits until a link post shows "Tap to open link".</summary>
     public Task WaitUntilTapToOpenLinkShownAsync() =>
         Waiting.UntilShownAsync(driver, TapToOpenLink, TimeSpan.FromSeconds(10), "\"Tap to open link\"");

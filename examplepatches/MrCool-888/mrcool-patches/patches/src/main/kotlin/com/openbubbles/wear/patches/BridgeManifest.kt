@@ -9,6 +9,7 @@ internal const val SERVICE_NAME = "com.openbubbles.wear.bridge.WearBridgeService
 internal const val MEDIA_PROVIDER_NAME = "com.openbubbles.wear.patch.CompanionMediaProvider"
 internal const val MEDIA_AUTHORITY = "com.openbubbles.messaging.wear.media"
 internal const val SETTINGS_ACTIVITY = "com.openbubbles.wear.patch.PatchSettingsActivity"
+internal const val RESTART_ACTIVITY = "com.openbubbles.wear.patch.RestartOpenBubblesActivity"
 internal const val NOTIFICATION_RECEIVER = "com.openbubbles.wear.patch.PhoneNotificationReceiver"
 internal const val NOTIFICATION_OPEN_ACTIVITY = "com.openbubbles.wear.patch.PhoneNotificationReceiver\$OpenActivity"
 
@@ -21,13 +22,21 @@ internal fun addSettingsToManifest(document: Document) {
     val application = applications.item(0) as Element
     val activities = application.getElementsByTagName("activity")
     for (index in 0 until activities.length) {
-        if ((activities.item(index) as Element).getAttributeNS(ANDROID_NS, "name") == SETTINGS_ACTIVITY)
+        if ((activities.item(index) as Element).getAttributeNS(ANDROID_NS, "name") in setOf(SETTINGS_ACTIVITY, RESTART_ACTIVITY))
             throw PatchException("The patch settings activity is already declared")
     }
     application.appendChild(document.createElement("activity").apply {
         setAttributeNS(ANDROID_NS, "android:name", SETTINGS_ACTIVITY)
         setAttributeNS(ANDROID_NS, "android:exported", "false")
         setAttributeNS(ANDROID_NS, "android:label", "Morphe patches")
+    })
+    application.appendChild(document.createElement("activity").apply {
+        setAttributeNS(ANDROID_NS, "android:name", RESTART_ACTIVITY)
+        setAttributeNS(ANDROID_NS, "android:exported", "false")
+        setAttributeNS(ANDROID_NS, "android:process", ":morphe_restart")
+        setAttributeNS(ANDROID_NS, "android:taskAffinity", "")
+        setAttributeNS(ANDROID_NS, "android:excludeFromRecents", "true")
+        setAttributeNS(ANDROID_NS, "android:theme", "@android:style/Theme.Translucent.NoTitleBar")
     })
 }
 

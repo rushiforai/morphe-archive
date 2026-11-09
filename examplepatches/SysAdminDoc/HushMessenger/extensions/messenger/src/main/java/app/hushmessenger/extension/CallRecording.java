@@ -111,12 +111,22 @@ public final class CallRecording {
         store = new SharedAudio();
     }
 
-    /** Messenger hands native its call settings here as layers of numbers. With the switch on, ours goes last so its word stands. */
+    /**
+     * Messenger hands native its call settings here as layers of numbers. With the switch on, ours goes last so its word
+     * stands. It takes its length from Messenger's own layer, so a list without one gets nothing added.
+     */
     public static void addLayer(ArrayList<Object> layers) {
         try {
             Boolean held = playoutHeld;
             if (held == null) playoutHeld = held = Settings.enabled(KEY) && Settings.available(KEY);
-            if (held && layers != null) layers.add(new JavaAudioLayer());
+            if (!held || layers == null) return;
+            for (Object layer : layers) {
+                if (layer instanceof OverlayConfigLayerInterface) {
+                    layers.add(new JavaAudioLayer((OverlayConfigLayerInterface) layer));
+                    return;
+                }
+            }
+            Settings.hookFailedPrivately(KEY, "Couldn't choose the call's audio", new IllegalStateException("no config layer of Messenger's own"));
         } catch (Throwable error) {
             Settings.hookFailedPrivately(KEY, "Couldn't choose the call's audio", error);
         }
@@ -124,33 +134,51 @@ public final class CallRecording {
 
     /** Says no to Messenger's own native audio and yes to WebRTC's Java audio. Everything else stays unset. */
     static final class JavaAudioLayer implements OverlayConfigLayerInterface {
-        /** The ids and the length belong to Messenger's generated config, so a new Messenger version has to be checked against them. */
-        static final int VALUES = 0x18bb;
+        /** Ids in Messenger's generated config. Native 586 still reads 6 as audio_device_module_override and 0xb1d as the Oboe switch. */
         static final int OBOE_ON = 0xb1d;
         static final int OBOE_RECORD = 0xb1c;
         static final int MODULE = 6;
         static final int MODULE_JAVA = 1;
-        private static final int UNSET = -1;
+        static final int UNSET = -1;
         private static final int SOURCE = 0x17;
+
+        /**
+         * Messenger's own layer. Native reads every layer at the length its build was made with (0x18bb on 585, 0x18d6 on
+         * 586), and a layer of another length crashed the call as it started, so ours copies the length from this one.
+         */
+        private final OverlayConfigLayerInterface own;
+        private int[] values;
+
+        JavaAudioLayer(OverlayConfigLayerInterface own) {
+            this.own = own;
+        }
 
         @Override
         public int getLayerSource() {
             return SOURCE;
         }
 
+        /** Ours never change, so an update is the same numbers. */
         @Override
         public int[] getUpdatedValues() {
-            return new int[0];
+            return getValues();
         }
 
         @Override
-        public int[] getValues() {
-            int[] values = new int[VALUES];
-            Arrays.fill(values, UNSET);
-            values[OBOE_ON] = 0;
-            values[OBOE_RECORD] = 0;
-            values[MODULE] = MODULE_JAVA;
-            return values;
+        public synchronized int[] getValues() {
+            if (values == null) values = build(own.getValues().length);
+            return values.clone();
+        }
+
+        /** All unset but the three audio ids, or all unset when the build's config is too short to hold them. */
+        static int[] build(int length) {
+            int[] built = new int[length];
+            Arrays.fill(built, UNSET);
+            if (length <= Math.max(OBOE_ON, Math.max(OBOE_RECORD, MODULE))) return built;
+            built[OBOE_ON] = 0;
+            built[OBOE_RECORD] = 0;
+            built[MODULE] = MODULE_JAVA;
+            return built;
         }
 
         @Override

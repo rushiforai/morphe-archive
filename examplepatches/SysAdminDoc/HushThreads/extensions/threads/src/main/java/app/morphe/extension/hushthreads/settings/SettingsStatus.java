@@ -82,6 +82,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean fullSizeProfilePictures() {
+        return false;
+    }
+
     public static boolean exactPostTimes() {
         return false;
     }
@@ -107,6 +111,14 @@ public final class SettingsStatus {
     }
 
     public static boolean filterComments() {
+        return false;
+    }
+
+    public static boolean changePackageName() {
+        return false;
+    }
+
+    public static boolean changeAppName() {
         return false;
     }
 }

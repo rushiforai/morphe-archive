@@ -22,7 +22,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $Java = Resolve-Java -Explicit $Java
 if (-not $FixtureDir) { $FixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR }
 if (-not $FixtureDir) { $FixtureDir = Join-Path $Root 'fixtures' }
-$fixtures = @('telegram-web-13.1.1-72379.apk', 'telegram-play-13.1.1-72371.apk') |
+$fixtures = @('telegram-web-13.2.0-72809.apk', 'telegram-play-13.2.1-72911.apk') |
     ForEach-Object { Join-Path $FixtureDir $_ }
 foreach ($fixturePath in $fixtures) {
     if (-not (Test-Path -LiteralPath $fixturePath -PathType Leaf)) { throw "Missing read-only native fixture: $fixturePath" }
@@ -391,18 +391,26 @@ try {
     [IO.File]::WriteAllText($notZip, 'not a ZIP archive')
     Assert-Refusal (Invoke-Check -Stock $notZip -Patched $notZip -Name 'not-an-apk') 'cannot read ZIP archive' 'Invalid APK bytes passed.'
 
+    # Both builds carry libtmessages and liblanguage_id_l2c_jni for four ABIs. The Play build adds
+    # libdatastore_shared_counter to each, so it has three libraries per ABI where the web build has two.
+    $pinned = @{
+        'telegram-web-13.2.0-72809' = @{ Entries = 8; Aligned16Kb = 4; Relros64 = 4; MidPage = 2 }
+        'telegram-play-13.2.1-72911' = @{ Entries = 12; Aligned16Kb = 6; Relros64 = 6; MidPage = 4 }
+    }
     foreach ($fixturePath in $fixtures) {
         $before = (Get-FileHash -LiteralPath $fixturePath -Algorithm SHA256).Hash
         $name = [IO.Path]::GetFileNameWithoutExtension($fixturePath)
+        $expected = $pinned[$name]
+        if (-not $expected) { throw "No pinned native facts for fixture $name." }
         $actual = Invoke-Check -Stock $fixturePath -Patched $fixturePath -Name $name
-        Assert-True ($actual.ExitCode -eq 0 -and $actual.Facts.stock.nativeEntryCount -eq 8 -and
-            $actual.Facts.patched.nativeEntryCount -eq 8 -and
+        Assert-True ($actual.ExitCode -eq 0 -and $actual.Facts.stock.nativeEntryCount -eq $expected.Entries -and
+            $actual.Facts.patched.nativeEntryCount -eq $expected.Entries -and
             @($actual.Facts.stock.entries | Where-Object { $_.compression -cne 'DEFLATE' }).Count -eq 0 -and
-            @($actual.Facts.stock.entries | Where-Object { $_.elf.requiredLoadAlignmentBytes -eq 16384 }).Count -eq 4) "Pinned native fixture failed: $name`n$($actual.Text)"
-        # Each 64-bit library has one RELRO. Two end mid-page with no other LOAD memory there, and still pass.
+            @($actual.Facts.stock.entries | Where-Object { $_.elf.requiredLoadAlignmentBytes -eq 16384 }).Count -eq $expected.Aligned16Kb) "Pinned native fixture failed: $name`n$($actual.Text)"
+        # Each 64-bit library has one RELRO. Some end mid-page with no other LOAD memory there, and still pass.
         $relros64 = @($actual.Facts.stock.entries | Where-Object { $_.abi -cin @('arm64-v8a', 'x86_64') } |
             ForEach-Object { $_.elf.relroSegments })
-        Assert-True ($relros64.Count -eq 4 -and @($relros64 | Where-Object { -not $_.endsOn16KbBoundary }).Count -eq 2) "Pinned native fixture RELRO facts changed: $name`n$($actual.Text)"
+        Assert-True ($relros64.Count -eq $expected.Relros64 -and @($relros64 | Where-Object { -not $_.endsOn16KbBoundary }).Count -eq $expected.MidPage) "Pinned native fixture RELRO facts changed: $name`n$($actual.Text)"
         Assert-True ((Get-FileHash -LiteralPath $fixturePath -Algorithm SHA256).Hash -ceq $before) "The read-only fixture changed: $name"
     }
 } finally {

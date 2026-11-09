@@ -2016,23 +2016,27 @@ public class GlassTabBarTest {
         holder.addView(pager);
         holder.addView(other);
 
-        GlassTabBar.screensAboveTheBar(content, 0x7f0b0001, 126, 0);
+        // The count is what the debug line reports (#509), so a pass that moves nothing writes nothing.
+        assertEquals("the content's screen and the pager moved", 2,
+                GlassTabBar.screensAboveTheBar(content, 0x7f0b0001, 126, 0));
 
         assertEquals("the content's screen", 0, margin(screen));
         assertEquals("a screen Instagram already let run down", 0, margin(hiddenBar));
         assertEquals("Home's swipe pager", 0, margin(pager));
         assertEquals("another sibling", 126, margin(other));
+        assertEquals("the same pass again moves nothing", 0,
+                GlassTabBar.screensAboveTheBar(content, 0x7f0b0001, 126, 0));
 
         View tallerPager = withMargin(new View(context), 126);
         tallerPager.setId(0x7f0b0003);
         holder.addView(tallerPager);
-        GlassTabBar.screensAboveTheBar(content, 0x7f0b0003, 126, 150);
+        assertEquals("only the new pager moved", 1, GlassTabBar.screensAboveTheBar(content, 0x7f0b0003, 126, 150));
         assertEquals("not floating, the pager stops at a taller pill's top", 150, margin(tallerPager));
         assertEquals("a margin already changed stays", 0, margin(pager));
 
         View noPager = withMargin(new View(context), 126);
         holder.addView(noPager);
-        GlassTabBar.screensAboveTheBar(content, 0, 126, 0);
+        assertEquals(0, GlassTabBar.screensAboveTheBar(content, 0, 126, 0));
         assertEquals("no pager id, no sibling touched", 126, margin(noPager));
     }
 
@@ -2588,19 +2592,42 @@ public class GlassTabBarTest {
 
     /**
      * #372: with the switch on, the viewer fills the screen behind the pill and its caption, buttons and
-     * seek bar are raised by the slot; off, today's layout. A slot not kept (bar hidden) changes nothing.
+     * seek bar are raised by the slot; off, today's layout. A slot not kept (bar hidden) has the viewer
+     * run to the window's bottom, so only the navigation bar's height is cleared (#450).
      */
     @Test
     public void reelsBehindThePillRaiseTheControlsInsteadOfStoppingTheViewer() {
         assertFalse("off by default", Settings.GLASS_TAB_BAR_REELS_BEHIND.defaultValue);
         assertEquals(126, GlassTabBar.reelsViewerMargin(true, false, 126));
-        assertEquals(0, GlassTabBar.reelsBandLift(true, false, 126));
+        assertEquals(0, GlassTabBar.reelsBandLift(true, false, 126, 48));
         assertEquals(0, GlassTabBar.reelsViewerMargin(true, true, 126));
-        assertEquals(126, GlassTabBar.reelsBandLift(true, true, 126));
-        assertEquals("no slot kept, nothing raised", 0, GlassTabBar.reelsBandLift(false, true, 126));
+        assertEquals(126, GlassTabBar.reelsBandLift(true, true, 126, 48));
+        assertEquals("no slot kept, only the navigation bar cleared", 48, GlassTabBar.reelsBandLift(false, true, 126, 48));
+        assertEquals(48, GlassTabBar.reelsBandLift(false, false, 126, 48));
+        assertEquals("Instagram pads for the navigation bar itself", 0, GlassTabBar.reelsBandLift(false, false, 126, 0));
         assertEquals(0, GlassTabBar.reelsViewerMargin(false, true, 126));
         assertEquals(0, GlassTabBar.reelsViewerMargin(false, false, 126));
-        assertEquals(0, GlassTabBar.reelsBandLift(true, true, -5));
+        assertEquals(0, GlassTabBar.reelsBandLift(true, true, -5, 48));
+        assertEquals(0, GlassTabBar.reelsBandLift(false, true, 126, -5));
+    }
+
+    /**
+     * #450: a reel opened from a feed post on a 1600 pixel window with a 48 pixel navigation bar. Run down
+     * to the window's foot, as with Instagram answered 0 or Full screen Reels hiding the bar, it reaches all
+     * 48 into the bar; stopped above the bar, as where Instagram pads for it, not at all; part way, only
+     * that part. Nothing past the bar's own height, and nothing without a bar.
+     */
+    @Test
+    public void aReelOverTheNavigationBarClearsOnlyThePartInsideIt() {
+        assertEquals("runs to the foot", 48, GlassTabBar.intoTheNavigationBar(1600, 1600, 48));
+        assertEquals("stops above the bar", 0, GlassTabBar.intoTheNavigationBar(1552, 1600, 48));
+        assertEquals("well above it", 0, GlassTabBar.intoTheNavigationBar(1400, 1600, 48));
+        assertEquals("part way in", 20, GlassTabBar.intoTheNavigationBar(1572, 1600, 48));
+        assertEquals("past the foot counts the bar only", 48, GlassTabBar.intoTheNavigationBar(1700, 1600, 48));
+        assertEquals("no bar", 0, GlassTabBar.intoTheNavigationBar(1600, 1600, 0));
+        assertEquals("no window yet", 0, GlassTabBar.intoTheNavigationBar(1600, 0, 48));
+        assertEquals(48, GlassTabBar.reelsBandLift(false, false, 126, GlassTabBar.intoTheNavigationBar(1600, 1600, 48)));
+        assertEquals(0, GlassTabBar.reelsBandLift(false, false, 126, GlassTabBar.intoTheNavigationBar(1552, 1600, 48)));
     }
 
     /**

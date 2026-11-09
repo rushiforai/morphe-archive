@@ -22,6 +22,8 @@ import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
 import app.hushtelegram.extension.shared.settings.PauseForTests;
 import app.hushtelegram.extension.shared.settings.SettingReadsForTests;
+import app.hushtelegram.extension.telegram.settings.PatchFamily;
+import app.hushtelegram.extension.telegram.settings.PatchFamilyForTests;
 import app.hushtelegram.extension.telegram.settings.Settings;
 import app.hushtelegram.extension.telegram.settings.SettingsEntry;
 import app.hushtelegram.extension.telegram.settings.SettingsRoutes;
@@ -221,6 +223,39 @@ public class SideMenuTest {
         assertEquals(SettingsEntry.nativeSettingsTitle(), words[SideMenu.Row.HUSH.ordinal()]);
     }
 
+    @Test public void theAdministratorsRowFollowsItsSwitchAndATapTogglesTheFilter() {
+        Activity activity = activity();
+        FrameLayout parent = new FrameLayout(activity);
+        activity.setContentView(parent);
+        PatchFamilyForTests.inBuild(PatchFamily.HIDE_FOLDER_COUNTERS);
+        PatchFamilyForTests.installed(PatchFamily.Capability.ADMIN_CHATS);
+        AdminChats.forget();
+        HiddenChatsForTests.use(new HiddenChatsForTests.Fake());
+        SideMenuPanel panel = SideMenuPanel.in(parent, new Object());
+        try {
+            assertNull("no row until the switch is on", panel.admins);
+            Settings.ADMIN_CHATS.save(true);
+            panel.showAdminsForTests();
+            assertEquals(View.VISIBLE, panel.admins.getVisibility());
+            assertEquals("Administrators", String.valueOf(panel.admins.getText()));
+            panel.admins.performClick();
+            assertTrue(AdminChats.showing());
+            panel.showAdminsForTests();
+            assertEquals("Show all chats", String.valueOf(panel.admins.getText()));
+            panel.admins.performClick();
+            assertFalse(AdminChats.showing());
+            Settings.ADMIN_CHATS.save(false);
+            panel.showAdminsForTests();
+            assertEquals(View.GONE, panel.admins.getVisibility());
+        } finally {
+            AdminChats.forget();
+            HiddenChatsForTests.restore();
+            Settings.ADMIN_CHATS.resetToDefault();
+            PatchFamilyForTests.reset();
+            PatchFamilyForTests.resetCapabilities();
+        }
+    }
+
     @Test public void theHushRowFollowsItsWayInSwitch() {
         Activity activity = activity();
         FrameLayout parent = new FrameLayout(activity);
@@ -260,6 +295,7 @@ public class SideMenuTest {
         for (int i = 0; i < SideMenu.FALLBACK.length; i++) expected.add(SideMenu.FALLBACK[i]);
         expected.add("line");
         expected.add(SettingsEntry.nativeSettingsTitle());
+        expected.add("Downloads");
         assertEquals(expected, rows);
         panel.menu.getChildAt(1).performClick();
         panel.menu.getChildAt(4).performClick();
@@ -377,6 +413,15 @@ public class SideMenuTest {
         panel.menu.getChildAt(4).performClick();
         // The report names the first of the two.
         assertTrue(report(), report().contains("2 missing. First missing: a working 'side menu accounts' hook"));
+    }
+
+    @Test public void newMessageRowShowsAPencilNotTheEye() {
+        // Telegram 13.2 draws msg_message as an eye; the S22 showed it beside New Message.
+        assertEquals(SideMenu.Row.values().length, SideMenuPanel.ICONS.length);
+        assertEquals("msg_edit", SideMenuPanel.ICONS[SideMenu.Row.NEW_MESSAGE.ordinal()]);
+        assertEquals("msg_openprofile", SideMenuPanel.ICONS[SideMenu.Row.PROFILE.ordinal()]);
+        assertEquals("msg_admins", SideMenuPanel.ICONS[SideMenu.Row.ADMINS.ordinal()]);
+        assertFalse(java.util.Arrays.asList(SideMenuPanel.ICONS).contains("msg_message"));
     }
 
     @Test public void textIsDarkOnALightMenuAndLightOnADarkOne() {

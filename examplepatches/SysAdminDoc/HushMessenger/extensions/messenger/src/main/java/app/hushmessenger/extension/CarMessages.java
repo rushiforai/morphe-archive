@@ -8,7 +8,8 @@ import android.os.Parcelable;
  * Android Auto messages (#75). Messenger's message notifications carry only AndroidX's old car bundle: the chat, its
  * messages, and a reply and mark-as-read intent for a car. Android Auto reads a notification through its MessagingStyle
  * path, the one with readout, replies and the messaging screen, only when one of its actions is a mark-as-read action.
- * Messenger has none, so Auto falls back to the old bundle. AndroidX's car extender hands its bundle here once it's in
+ * Messenger has none, so Auto falls back to the old bundle. Messenger also builds that bundle only when a server flag is
+ * on for the account, so the switch turns the flag's answer on first. AndroidX's car extender hands its bundle here once it's in
  * the notification's extras, and this adds Messenger's own car mark-as-read intent as an invisible mark-as-read action,
  * written exactly the way NotificationCompat writes invisible actions. The phone shows nothing new. Messenger's visible
  * Reply already has the reply semantics Auto wants.
@@ -31,6 +32,14 @@ public final class CarMessages {
     static final int MARK_AS_READ = 2;
 
     private CarMessages() {}
+
+    /**
+     * Messenger's answer to its server flag for building the car extender at all. Some accounts get it off, and then no
+     * notification carries a car bundle for {@link #markRead} to finish. While the switch is on the extender is built.
+     */
+    public static boolean carExtension(boolean flag) {
+        return flag || Settings.enabled(KEY);
+    }
 
     /** Called by the car extender right after it stores [car] in the notification's extras. */
     public static void markRead(Bundle car) {

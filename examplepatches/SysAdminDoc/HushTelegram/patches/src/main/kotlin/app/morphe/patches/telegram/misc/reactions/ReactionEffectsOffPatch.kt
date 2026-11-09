@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.reactions
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -28,6 +28,9 @@ import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val REACTION_EFFECTS = "$EXTENSION_PACKAGE/misc/ReactionEffects;"
 internal const val ANIMATIONS_KEY = "view_animations"
@@ -71,16 +74,16 @@ internal fun BytecodePatchContext.resolveReactionEffectsOff(): MutableMethod {
     controlHook(REACTION_EFFECTS, "skipped", listOf(), "Z")
     val found = mutableListOf<Pair<String, String>>()
     forEachClassMentioning(Mention.string(ANIMATIONS_KEY)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.filter { m ->
             val p = m.parameterTypes.map(CharSequence::toString)
-            AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && p.size == 9 &&
+            AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && p.size == 9 &&
                 p[2] == "Landroid/view/View;" && p[3] == "Landroid/view/View;" && p[4] == "F" && p[5] == "F" && p[7] == "I" && p[8] == "I" &&
                 m.controlBody().let { body -> body.any { it.controlString() == ANIMATIONS_KEY } && body.any { it.controlRef() == ref(m) } }
         }.forEach { found += cls.type to ref(it) }
     }
     val (type, wanted) = found.controlSingle("reaction effect overlay")
-    val show = mutableClassDefBy(type).methods.single { ref(it) == wanted }
+    val show = tgMutableClassDefBy(type).methods.single { ref(it) == wanted }
     controlShape(show.implementation!!.registerCount > 9, "the reaction effect overlay has no register to answer in")
     controlShape(ControlFlow.of(show).normal.none { 0 in it }, "something jumps back to the start of the reaction effect overlay")
     return show

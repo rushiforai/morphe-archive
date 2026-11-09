@@ -42,7 +42,7 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
         ClassLoader loader = KeepDeletedBridge.class.getClassLoader();
         Class<?> configs = Class.forName("org.telegram.messenger.UserConfig", true, loader);
         Class<?> controllers = Class.forName("org.telegram.messenger.MessagesController", true, loader);
-        int slots = configs.getField("MAX_ACCOUNT_COUNT").getInt(null);
+        int slots = Accounts.slots(loader);
         Method config = method(configs, "getInstance", int.class);
         Method controller = method(controllers, "getInstance", int.class);
         ArrayList<KeepDeleted.Source> accounts = new ArrayList<>();
@@ -55,17 +55,17 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
 
     /** The message IDs a deletion update carries. */
     static ArrayList<?> messages(Object update) throws Exception {
-        return (ArrayList<?>) update.getClass().getField("messages").get(update);
+        return (ArrayList<?>) HostNames.field(update.getClass(), "messages").get(update);
     }
 
     /** The channel a channel deletion update is about. */
     static long channel(Object update) throws Exception {
-        return update.getClass().getField("channel_id").getLong(update);
+        return HostNames.field(update.getClass(), "channel_id").getLong(update);
     }
 
     /** The account, chat and ID of a message the bubble is measuring. */
     static long[] keyOf(Object message) throws Exception {
-        int account = message.getClass().getField("currentAccount").getInt(message);
+        int account = HostNames.field(message.getClass(), "currentAccount").getInt(message);
         Class<?> configs = Class.forName("org.telegram.messenger.UserConfig", true, message.getClass().getClassLoader());
         Object config = method(configs, "getInstance", int.class).invoke(null, account);
         return new long[] {
@@ -83,7 +83,7 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
         Class<?> messages = Class.forName("org.telegram.tgnet.TLRPC$Message", true, loader);
         Class<?> objects = Class.forName("org.telegram.messenger.MessageObject", true, loader);
         // getDialogId fills in dialog_id, and the update loop still reads it as the server sent it.
-        Field dialogId = type.getField("dialog_id");
+        Field dialogId = HostNames.field(type, "dialog_id");
         long sent = dialogId.getLong(message);
         long dialog;
         try {
@@ -93,9 +93,9 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
         }
         return new Object[] {
             dialog,
-            type.getField("id").getInt(message),
-            (String) type.getField("message").get(message),
-            type.getField("edit_date").getInt(message),
+            HostNames.field(type, "id").getInt(message),
+            (String) HostNames.field(type, "message").get(message),
+            HostNames.field(type, "edit_date").getInt(message),
         };
     }
 
@@ -112,7 +112,7 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
             Object message = readMessage(cursor, 2);
             if (message == null) return null;
             boolean[] flags = flags(message);
-            String text = (String) message.getClass().getField("message").get(message);
+            String text = (String) HostNames.field(message.getClass(), "message").get(message);
             return new KeepEdits.Stored(text, mine || flags[0], timed || flags[1], flags[2] || chatIsProtected(dialogId));
         } finally {
             method(cursor.getClass(), "dispose").invoke(cursor);
@@ -151,10 +151,11 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
                 int id = (Integer) intValue.invoke(cursor, 1);
                 boolean mine = (Integer) intValue.invoke(cursor, 2) != 0;
                 boolean timed = (Integer) intValue.invoke(cursor, 3) != 0;
-                boolean[] data = readData(cursor, 4);
+                Object message = readMessage(cursor, 4);
+                boolean[] data = message == null ? null : flags(message);
                 // A message that can't be read is left to Telegram.
                 rows.add(new KeepDeleted.Row(dialog, id, mine || (data != null && data[0]), timed || data == null || data[1],
-                        data == null || data[2] || chatIsProtected(dialog)));
+                        data == null || data[2] || chatIsProtected(dialog), message));
             }
         } finally {
             method(cursor.getClass(), "dispose").invoke(cursor);
@@ -163,10 +164,19 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
     }
 
     @Override public void stock(long dialogId, ArrayList<Integer> ids, long channelId) throws Exception {
-        Method delete = method(controller.getClass(), "deleteMessagesByPush", long.class, ArrayList.class, long.class);
+        Method delete;
+        boolean idsLast = false;
+        try {
+            delete = method(controller.getClass(), "deleteMessagesByPush", long.class, ArrayList.class, long.class);
+        } catch (NoSuchMethodException reordered) {
+            // R8 moved the IDs to the end in 13.2.
+            delete = method(controller.getClass(), "deleteMessagesByPush", long.class, long.class, ArrayList.class);
+            idsLast = true;
+        }
         KeepDeleted.STOCK.set(Boolean.TRUE);
         try {
-            delete.invoke(controller, dialogId, ids, channelId);
+            if (idsLast) delete.invoke(controller, dialogId, channelId, ids);
+            else delete.invoke(controller, dialogId, ids, channelId);
         } finally {
             KeepDeleted.STOCK.remove();
         }
@@ -204,10 +214,10 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
      */
     @Override public void redraw(long dialogId, ArrayList<Object> messages) throws Exception {
         Object center = call(controller, "getNotificationCenter");
-        int replaced = center.getClass().getField("replaceMessagesObjects").getInt(null);
+        int replaced = HostNames.field(center.getClass(), "replaceMessagesObjects").getInt(null);
         Method post = method(center.getClass(), "postNotificationName", int.class, Object[].class);
         ArrayList<Field> marks = new ArrayList<>(messages.size());
-        for (Object message : messages) marks.add(message.getClass().getField("forceUpdate"));
+        for (Object message : messages) marks.add(HostNames.field(message.getClass(), "forceUpdate"));
         // Telegram's chat screens read the event and their messages on the main thread only.
         Utils.runOnMainThread(() -> {
             try {
@@ -217,6 +227,88 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
                 HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "redraw", failure);
             }
         });
+    }
+
+    /**
+     * Every size of a kept photo, so the bubble and the full-screen viewer each find theirs, and a
+     * document's previews plus the document itself up to {@link #MEDIA_LIMIT}. Each goes through the
+     * account's FileLoader the way Telegram's own download asks for it, so it lands under the name
+     * and in the folder the bubble looks in, with the message as its parent.
+     */
+    @Override public int saveMedia(List<Object> messages) throws Exception {
+        Object loader = call(controller, "getFileLoader");
+        ClassLoader classes = loader.getClass().getClassLoader();
+        Class<?> locations = Class.forName("org.telegram.messenger.ImageLocation", true, classes);
+        Class<?> sizes = Class.forName("org.telegram.tgnet.TLRPC$PhotoSize", true, classes);
+        Class<?> photos = Class.forName("org.telegram.tgnet.TLRPC$Photo", true, classes);
+        Class<?> documents = Class.forName("org.telegram.tgnet.TLRPC$Document", true, classes);
+        Method forPhoto = method(locations, "getForPhoto", sizes, photos);
+        Method forDocument = method(locations, "getForDocument", sizes, documents);
+        Method loadImage = method(loader.getClass(), "loadFile", locations, Object.class, String.class, int.class, int.class);
+        Method loadDocument = method(loader.getClass(), "loadFile", documents, Object.class, int.class, int.class);
+        List<Class<?>> previews = previews(classes);
+        int asked = 0;
+        for (Object message : messages) {
+            Object media = HostNames.field(message.getClass(), "media").get(message);
+            if (media == null) continue;
+            Object photo = HostNames.field(media.getClass(), "photo").get(media);
+            if (photo != null) {
+                for (Object size : list(photo, "sizes")) {
+                    Object location = downloadable(size, previews) ? forPhoto.invoke(null, size, photo) : null;
+                    if (location == null) continue;
+                    loadImage.invoke(loader, location, message, "jpg", PRIORITY_LOW, 0);
+                    asked++;
+                }
+            }
+            Object document = HostNames.field(media.getClass(), "document").get(media);
+            if (document == null) continue;
+            for (Object thumb : list(document, "thumbs")) {
+                Object location = downloadable(thumb, previews) ? forDocument.invoke(null, thumb, document) : null;
+                if (location == null) continue;
+                loadImage.invoke(loader, location, message, "jpg", PRIORITY_LOW, 0);
+                asked++;
+            }
+            long length = HostNames.field(document.getClass(), "size").getLong(document);
+            if (length <= 0 || length > MEDIA_LIMIT) continue;
+            loadDocument.invoke(loader, document, message, PRIORITY_LOW, 0);
+            asked++;
+        }
+        return asked;
+    }
+
+    /** A video or file bigger than this keeps only its preview, so a deleted movie doesn't eat the data plan. */
+    static final long MEDIA_LIMIT = 20L * 1024 * 1024;
+
+    /** FileLoader's lowest priority, the one its own auto-download uses, so a chat being opened loads first. */
+    private static final int PRIORITY_LOW = 0;
+
+    /** The sizes with nothing to download: an empty one, an outline, and the tiny previews a message carries inside itself. */
+    private static final String[] PREVIEWS = {
+        "org.telegram.tgnet.TLRPC$TL_photoSizeEmpty", "org.telegram.tgnet.TLRPC$TL_photoPathSize",
+        "org.telegram.tgnet.TLRPC$TL_photoStrippedSize", "org.telegram.tgnet.TLRPC$TL_photoCachedSize",
+    };
+
+    private static List<Class<?>> previews(ClassLoader classes) {
+        List<Class<?>> out = new ArrayList<>();
+        for (String name : PREVIEWS) {
+            try {
+                out.add(Class.forName(name, true, classes));
+            } catch (ClassNotFoundException absent) {
+                // A build without the type has no size of that kind to skip.
+            }
+        }
+        return out;
+    }
+
+    private static boolean downloadable(Object size, List<Class<?>> previews) {
+        if (size == null) return false;
+        for (Class<?> preview : previews) if (preview.isInstance(size)) return false;
+        return true;
+    }
+
+    private static List<?> list(Object owner, String name) throws Exception {
+        Object value = HostNames.field(owner.getClass(), name).get(owner);
+        return value == null ? new ArrayList<>() : (List<?>) value;
     }
 
     /**
@@ -232,7 +324,7 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
         clear = null;
         for (Method candidate : notifications.getMethods()) {
             Class<?>[] parameters = candidate.getParameterTypes();
-            if (!candidate.getName().equals("removeDeletedMessagesFromNotifications") || parameters.length != 2
+            if (!HostNames.named(candidate, "removeDeletedMessagesFromNotifications") || parameters.length != 2
                     || parameters[1] != boolean.class) continue;
             if (clear != null) throw new IllegalStateException("two notification cleanups");
             clear = candidate;
@@ -250,12 +342,6 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
         METHODS.put(key, clear);
         METHODS.put(key + "#put", put);
         return new Method[] {clear, put};
-    }
-
-    /** Whether the message is sent by me, disappears on a timer, or can't be saved. Null when it can't be read. */
-    private boolean[] readData(Object cursor, int column) throws Exception {
-        Object message = readMessage(cursor, column);
-        return message == null ? null : flags(message);
     }
 
     /** The stored message in [column], or null when there's none. Reaction notifications read it too. */
@@ -276,11 +362,11 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
     /** Whether [message] is sent by me, disappears on a timer, or can't be saved. */
     private static boolean[] flags(Object message) throws Exception {
         Class<?> type = message.getClass();
-        boolean mine = type.getField("out").getBoolean(message);
-        boolean timed = type.getField("ttl_period").getInt(message) != 0;
-        Object media = type.getField("media").get(message);
-        if (media != null && media.getClass().getField("ttl_seconds").getInt(media) != 0) timed = true;
-        boolean noForwards = type.getField("noforwards").getBoolean(message);
+        boolean mine = HostNames.field(type, "out").getBoolean(message);
+        boolean timed = HostNames.field(type, "ttl_period").getInt(message) != 0;
+        Object media = HostNames.field(type, "media").get(message);
+        if (media != null && HostNames.field(media.getClass(), "ttl_seconds").getInt(media) != 0) timed = true;
+        boolean noForwards = HostNames.field(type, "noforwards").getBoolean(message);
         return new boolean[] {mine, timed, noForwards};
     }
 
@@ -289,7 +375,7 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
         if (dialog >= 0) return false;
         Object chat = method(controller.getClass(), "getChat", Long.class).invoke(controller, Long.valueOf(-dialog));
         if (chat == null) return false;
-        Field flag = chat.getClass().getField("noforwards");
+        Field flag = HostNames.field(chat.getClass(), "noforwards");
         return flag.getBoolean(chat);
     }
 
@@ -302,7 +388,7 @@ final class KeepDeletedBridge implements KeepDeleted.Source, KeepEdits.Source {
         for (Class<?> parameter : parameters) key.append(',').append(parameter.getName());
         Method found = METHODS.get(key.toString());
         if (found == null) {
-            found = owner.getMethod(name, parameters);
+            found = HostNames.method(owner, name, parameters);
             METHODS.put(key.toString(), found);
         }
         return found;

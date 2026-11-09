@@ -8,7 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
@@ -30,6 +31,14 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origInterfaces
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The five places the questions stand, the call sites that move, the stubs that run the stock work again, and the runtime. */
 class SendConfirmFixtureTest {
@@ -44,23 +53,23 @@ class SendConfirmFixtureTest {
 
     private val WIDE_GOTOS = setOf(Opcode.GOTO_16, Opcode.GOTO_32)
 
-    private fun Instruction.shape() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString())
+    private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
     private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
     /** A method that starts a call, or one of the places that could stand in front of a send: the classes the resolver reads. */
     private fun wanted(m: Method): Boolean {
-        val params = m.parameterTypes.map(CharSequence::toString)
+        val params = m.origParameterTypes
         val instance = !com.android.tools.smali.dexlib2.AccessFlags.STATIC.isSet(m.accessFlags)
-        if (!instance && m.returnType == "V" && params == callParameters) return true
-        if (instance && m.returnType == "V" && params == listOf(
+        if (!instance && m.origReturnType == "V" && params == callParameters) return true
+        if (instance && m.origReturnType == "V" && params == listOf(
                 "Landroid/view/View;", "Ljava/lang/Object;", "Ljava/lang/String;", "Ljava/lang/Object;", "Z", "I", "I",
                 "Lorg/telegram/messenger/MediaController\$PhotoEntry;", "Z",
             )) return true
         val body = m.controlBody()
         if (body.isEmpty()) return false
-        if (instance && m.returnType == "V" && VideoShape.values().any { it.target == params } && body.any { it.controlRef() == CAMERA_ALLOWED }) return true
-        if (body.any { it.call()?.let { c -> c.definingClass == SEND_HELPER && c.name == "sendSticker" } == true }) return true
-        return body.any { it.call()?.let { c -> c.returnType == "V" && c.parameterTypes.map(CharSequence::toString) == callParameters } == true }
+        if (instance && m.origReturnType == "V" && VideoShape.values().any { it.target == params } && body.any { it.controlRef() == CAMERA_ALLOWED }) return true
+        if (body.any { it.call()?.let { c -> c.origDefiningClass == SEND_HELPER && c.origName == "sendSticker" } == true }) return true
+        return body.any { it.call()?.let { c -> c.origReturnType == "V" && c.origParameterTypes == callParameters } == true }
     }
 
     @Test fun `each question stands in front of its method and each call goes through the extension`() {
@@ -72,7 +81,9 @@ class SendConfirmFixtureTest {
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val site = context.resolveSendConfirm()
             assertEquals("$name: the chat bar's sticker send", "Lorg/telegram/ui/Components/ChatActivityEnterView;", site.sticker.definingClass)
-            assertEquals("$name: Telegram's end of a recording", "stopRecording", site.voice.name)
+            assertEquals("$name: Telegram's end of a recording", "stopRecording", site.voice.origName)
+            // 13.2 drops the stars from it and puts its ints first.
+            val reordered = site.voice.origParameterTypes == VOICE_TARGET_R8
             assertEquals("$name: the round video recorder's order of arguments",
                 VideoShape.SOUND_SECOND, site.shape)
             val before = mapOf(
@@ -94,14 +105,25 @@ class SendConfirmFixtureTest {
                 val stock = before.getValue(key).controlBody().filter { it.opcode != Opcode.NOP }
                 val gated = method.controlBody().filter { it.opcode != Opcode.NOP }
                 val top = method.implementation!!.registerCount
-                assertEquals("$name $key: four instructions", stock.size + 4, gated.size)
-                assertEquals(Opcode.INVOKE_STATIC_RANGE, gated[0].opcode)
-                assertTrue("$name $key: the extension's $hook", gated[0].controlRef()!!.startsWith("Lapp/hushtelegram/extension/telegram/misc/SendConfirm;->$hook("))
-                assertTrue("$name $key: the answer comes back as a boolean", gated[0].controlRef()!!.endsWith(")Z"))
-                assertEquals("$name $key: this and every parameter", (top - words until top).toList(), gated[0].namedRegisters())
-                assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN_VOID), gated.subList(1, 4).map { it.opcode })
-                assertEquals("$name $key: the answer lands in a local", listOf(0), gated[1].namedRegisters())
-                for (i in stock.indices) assertEquals("$name $key: stock $i", stock[i].shape(), gated[i + 4].shape())
+                // The reordered end first puts this, send, notify, scheduleDate, once and no stars in v0 to v6.
+                val lead = if (key == "voice" && reordered) 6 else 0
+                if (lead > 0) {
+                    val p = top - 5
+                    assertEquals("$name $key: 13.1.1's order", listOf(Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_FROM16, Opcode.MOVE_FROM16,
+                        Opcode.MOVE_FROM16, Opcode.MOVE_FROM16, Opcode.CONST_WIDE_16), gated.take(6).map { it.opcode })
+                    assertEquals("$name $key: this, send, notify, scheduleDate and once", listOf(listOf(0, p), listOf(1, p + 1),
+                        listOf(2, p + 3), listOf(3, p + 2), listOf(4, p + 4)), gated.take(5).map { it.namedRegisters() })
+                    assertEquals("$name $key: no stars", 5 to 0L, gated[5].namedRegisters().first() to (gated[5] as WideLiteralInstruction).wideLiteral)
+                }
+                assertEquals("$name $key: four instructions", stock.size + 4 + lead, gated.size)
+                assertEquals(Opcode.INVOKE_STATIC_RANGE, gated[lead].opcode)
+                assertTrue("$name $key: the extension's $hook", gated[lead].controlRef()!!.startsWith("Lapp/hushtelegram/extension/telegram/misc/SendConfirm;->$hook("))
+                assertTrue("$name $key: the answer comes back as a boolean", gated[lead].controlRef()!!.endsWith(")Z"))
+                assertEquals("$name $key: this and every parameter", if (lead > 0) (0 until words).toList() else (top - words until top).toList(),
+                    gated[lead].namedRegisters())
+                assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN_VOID), gated.subList(lead + 1, lead + 4).map { it.opcode })
+                assertEquals("$name $key: the answer lands in a local", listOf(0), gated[lead + 1].namedRegisters())
+                for (i in stock.indices) assertEquals("$name $key: stock $i", stock[i].shape(), gated[i + 4 + lead].shape())
             }
 
             // The strip: the question at the send itself, the rest of the callback as it was.
@@ -121,7 +143,7 @@ class SendConfirmFixtureTest {
                 assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN_VOID, Opcode.NOP), gated.subList(at + 1, at + 5).map { it.opcode })
                 assertEquals("$name $key: the answer lands in a free local", listOf(strip.answer), gated[at + 1].namedRegisters())
                 assertEquals("$name $key: Send goes on to the send", setOf(at + 3, at + 4), ControlFlow.of(strip.method).normal[at + 2].toSet())
-                assertEquals("$name $key: the send", "sendSticker", gated[at + 5].call()?.name)
+                assertEquals("$name $key: the send", "sendSticker", gated[at + 5].call()?.origName)
                 assertEquals("$name $key: everything before", kept(stock.subList(0, at)), kept(gated.subList(0, at)))
                 assertEquals("$name $key: everything after", kept(stock.subList(at, stock.size)), kept(gated.subList(at + 5, gated.size)))
             }
@@ -132,10 +154,17 @@ class SendConfirmFixtureTest {
             val barGated = site.barSendMethod.controlBody()
             val barTop = site.barSendMethod.implementation!!.registerCount
             val barFlow = ControlFlow.of(site.barSendMethod)
+            val r8Send = site.barSend.endsWith("(ZIIJZ)Z")
             val asks = listOf(site.voicePreview to site.voiceClip, site.videoPreview to site.videoClip).map { (preview, field) ->
                 val key = "$name ${preview.hook}"
-                val at = barGated.indexOfFirst { it.controlRef() == "$SEND_CONFIRM->${preview.hook}(Ljava/lang/Object;IIIIJ)Z" }
+                val at = barGated.indexOfFirst { it.controlRef() == preview.ref }
                 assertTrue("$key: in the chat bar's send", at > 0)
+                // The range passes the send's own registers, so a long has to meet a long: 13.2 moved
+                // the stars ahead of the question, and a narrow parameter there fails verification.
+                val wide = { types: List<String> -> types.map { it == "J" || it == "D" } }
+                assertEquals("$key: each register in a parameter of its width", wide(site.barSendMethod.origParameterTypes.map { it.toString() }),
+                    wide(preview.params.drop(1)))
+                assertEquals("$key: the hook for this build's order", if (r8Send) "Reordered" else "", preview.hook.removePrefix("previewVoice").removePrefix("previewVideo"))
                 assertEquals("$key: this and every parameter", (barTop - 7 until barTop).toList(), barGated[at].namedRegisters())
                 assertEquals(listOf(Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.RETURN), barGated.subList(at + 1, at + 4).map { it.opcode })
                 assertEquals("$key: the answer in a free local, and returned as the send returns", List(3) { listOf(preview.answer) },
@@ -171,24 +200,32 @@ class SendConfirmFixtureTest {
             assertEquals("$name: the header call is the only start of a call in its method", 1,
                 before.getValue("header").controlBody().count { it.controlRef() == site.startCall })
 
-            val stub = { n: String -> context.mutableClassDefBy(SEND_CONFIRM).methods.single { it.name == n }.controlBody() }
+            val stub = { n: String -> context.tgMutableClassDefBy(SEND_CONFIRM).methods.single { it.origName == n }.controlBody() }
             val again = { n: String, target: Method, words: Int ->
                 val call = stub(n).single { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }
-                assertEquals("$name $n: Telegram's own method again", signature(target), call.controlRef())
+                assertEquals("$name $n: Telegram's own method again", signature(target), (call as ReferenceInstruction).reference.toString())
                 assertEquals("$name $n: its arguments, as the extension holds them", (0 until words).toList(), call.namedRegisters())
             }
             again("resumeSticker", site.sticker, 9)
             again("resumeGif", site.gif, 10)
-            again("resumeVoice", site.voice, 7)
+            if (reordered) {
+                val call = stub("resumeVoice").single { it.opcode == Opcode.INVOKE_VIRTUAL }
+                assertEquals("$name resumeVoice: Telegram's own method again", signature(site.voice), (call as ReferenceInstruction).reference.toString())
+                assertEquals("$name resumeVoice: back in its order, send, scheduleDate, notify and once", listOf(0, 1, 3, 2, 4), call.namedRegisters())
+            } else {
+                again("resumeVoice", site.voice, 7)
+            }
             again(site.shape.resume, site.video, 9)
 
             // Send in front of a paused recording: the chat bar's own send, the one its send button
             // runs, from the bar that holds the clip in its preview.
             val enterView = "Lorg/telegram/ui/Components/ChatActivityEnterView;"
-            val bar = context.mutableClassDefBy(enterView)
-            assertTrue("$name: the chat bar's send", site.barSend.startsWith("$enterView->") && site.barSend.endsWith("(IZIZJ)Z"))
+            val bar = context.tgMutableClassDefBy(enterView)
+            // 13.2 orders the same five as sound, date, flag, stars and the question.
+            val r8 = site.barSend.endsWith("(ZIIJZ)Z")
+            assertTrue("$name: the chat bar's send", site.barSend.startsWith("$enterView->") && (r8 || site.barSend.endsWith("(IZIZJ)Z")))
             assertTrue("$name: the send button runs it", bar.methods.any { m ->
-                m.parameterTypes.isEmpty() && m.returnType == "Z" && m.implementation != null && m.controlBody().any { it.controlRef() == site.barSend }
+                m.parameterTypes.isEmpty() && m.origReturnType == "Z" && m.implementation != null && m.controlBody().any { it.controlRef() == site.barSend }
             })
             val fromBar = stub("sendFromBar")
             val send = fromBar.single { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }
@@ -197,7 +234,7 @@ class SendConfirmFixtureTest {
             assertEquals("$name sendFromBar: the bar it was handed", listOf(Opcode.MOVE_OBJECT, listOf(0, 7)),
                 fromBar.single { it.opcode == Opcode.MOVE_OBJECT }.let { listOf(it.opcode, it.namedRegisters()) })
             assertEquals("$name sendFromBar: now, with sound, no flag, its paid-message question free to ask, no stars",
-                listOf(1 to 0L, 2 to 1L, 3 to 0L, 4 to 1L, 5 to 0L),
+                if (r8) listOf(1 to 1L, 2 to 0L, 3 to 0L, 4 to 0L, 6 to 1L) else listOf(1 to 0L, 2 to 1L, 3 to 0L, 4 to 1L, 5 to 0L),
                 fromBar.filterIsInstance<WideLiteralInstruction>().map { (it as Instruction).namedRegisters().first() to it.wideLiteral })
             val isBar = stub("chatBar")
             assertEquals("$name chatBar", listOf(Opcode.INSTANCE_OF, Opcode.RETURN), isBar.map { it.opcode })
@@ -209,9 +246,9 @@ class SendConfirmFixtureTest {
                 val read = stub(n)
                 assertEquals("$name $n", listOf(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT), read.map { it.opcode })
                 assertEquals("$name $n: the bar's own field", listOf(field, listOf(0, 1)), listOf(read[1].controlRef(), read[1].namedRegisters()))
-                val declared = bar.fields.single { "${it.definingClass}->${it.name}:${it.type}" == field }
+                val declared = bar.fields.single { it.origString() == field }
                 assertEquals("$name $n: the one $type, open to the stub", listOf(type, true, false, false),
-                    listOf(declared.type, AccessFlags.PUBLIC.isSet(declared.accessFlags), AccessFlags.PRIVATE.isSet(declared.accessFlags),
+                    listOf(declared.origType, AccessFlags.PUBLIC.isSet(declared.accessFlags), AccessFlags.PRIVATE.isSet(declared.accessFlags),
                         AccessFlags.STATIC.isSet(declared.accessFlags)))
             }
 
@@ -225,8 +262,8 @@ class SendConfirmFixtureTest {
                 assertEquals("$name $n", ref, call.controlRef())
                 assertEquals("$name $n: the controller and its view-once flag", registers, call.namedRegisters())
             }
-            val chat = context.mutableClassDefBy(site.video.definingClass)
-            assertTrue("$name: the chat implements the recorder", site.recorder in chat.interfaces)
+            val chat = context.tgMutableClassDefBy(site.video.definingClass)
+            assertTrue("$name: the chat implements the recorder", site.recorder in chat.origInterfaces)
             assertTrue("$name: a paused check and a pause", site.videoPaused.endsWith("()Z") && site.pauseVideo.endsWith("()V"))
             for ((n, ref, registers) in listOf(Triple("videoPaused", site.videoPaused, listOf(1)), Triple("pauseVideo", site.pauseVideo, listOf(0)))) {
                 val body = stub(n)
@@ -243,7 +280,7 @@ class SendConfirmFixtureTest {
             assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_INTERFACE, Opcode.RETURN_VOID), resume.map { it.opcode })
             assertEquals("$name: the strip's callback again", "$CALLBACK->run(Ljava/lang/Object;)V", resume[1].controlRef())
             assertEquals(listOf(0, 1), resume[1].namedRegisters())
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "askBeforeSending" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "askBeforeSending" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

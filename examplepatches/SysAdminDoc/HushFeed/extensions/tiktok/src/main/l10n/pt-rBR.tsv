@@ -2188,7 +2188,6 @@ Picked %1$s. Save, then tap Pick all for more.	Escolhidos %1$s. Salve e toque em
 All loaded items are picked or saved. Scroll for more.	Tudo carregado foi escolhido ou salvo. Role para mais.
 
 Record LIVEs you watch	Gravar as LIVEs que você assiste
-Adds a Record button to LIVE rooms. A recording starts when you tap it and ends when you tap Stop or leave the room. Nothing before that is saved.	Adiciona um botão Gravar às salas de LIVE. A gravação começa quando você toca nele e termina quando você toca em Parar ou sai da sala. O que veio antes não é salvo.
 Record	Gravar
 Stop	Parar
 Stop recording this LIVE	Parar de gravar esta LIVE
@@ -2618,3 +2617,28 @@ While the controls are invisible on the main feed, the creator's name, the capti
 Make the controls invisible	Deixar os controles invisíveis
 # context: Spoken label of that eye button while the controls are invisible
 Show the controls	Mostrar os controles
+# context: Share sheet settings row; hides TikTok's gray Send to new group button that shows beside Send separately once two or more people are picked (#375)
+Hide Send to new group	Esconder Enviar para novo grupo
+# context: summary of Hide Send to new group; Send separately is TikTok's red button that stays (#375)
+Hides the button that turns the people you picked into a new group chat. Send separately stays.	Esconde o botão que transforma as pessoas que você escolheu em um novo chat em grupo. Enviar separadamente continua.
+# context: Switch in Hushfeed settings > App > Appearance (#372)
+AMOLED dark mode	Modo escuro AMOLED
+# context: Summary under the AMOLED dark mode switch
+Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	Preenche o modo escuro com a cor escolhida ao aplicar o patch, preto puro a menos que outra tenha sido escolhida. Desative para ter os cinzas escuros do próprio TikTok. O modo claro não muda. Reinicie o TikTok para ver a mudança.
+# context: Switch in Hushfeed settings > App, under the startup message rows (#377)
+Check for Hushfeed updates	Verificar atualizações do Hushfeed
+# context: Summary under the Check for Hushfeed updates switch
+Once a day when TikTok opens, ask GitHub if a newer Hushfeed is out and show a card when it is. The request carries your Hushfeed version and nothing else.	Uma vez por dia, ao abrir o TikTok, pergunta ao GitHub se saiu um Hushfeed mais novo e mostra um cartão quando sair. A solicitação leva só a sua versão do Hushfeed.
+# context: Title of the card shown when a newer release is out; %1$s is its version, like v0.82.0
+Hushfeed %1$s is out	Saiu o Hushfeed %1$s
+# context: Text of that card; %1$s is the installed version. Morphe Manager is an app name
+You have %1$s. Update the patches in Morphe Manager, then patch TikTok again.	Você tem a %1$s. Atualize os patches no Morphe Manager e depois aplique o patch no TikTok de novo.
+# context: Button on that card that opens Morphe Manager
+Update	Atualizar
+# context: Button on that card that hides it for this release
+Dismiss	Dispensar
+# context: Last line of the update card when the release notes have more bullets than it lists; %1$s is how many
+%1$s more in the release notes	Mais %1$s nas notas da versão
+Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.	Adiciona um botão Gravar às salas de LIVE. Toque nele para iniciar ou parar uma gravação. Sair da sala também encerra a gravação.
+Automatically record LIVEs you enter	Gravar LIVEs automaticamente ao entrar
+Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.	Começa a gravar a transmissão de uma LIVE quando você entra na sala. Depois de parar, não volta a gravar até você sair e entrar novamente. A gravação de tela ainda exige um toque e a permissão do Android.

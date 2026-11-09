@@ -38,6 +38,9 @@ public sealed class ScreenRecording
     // screen starts changing.
     private const double RingAfterTap = 0.5;
 
+    // Where a lane's ring waits while it shows no tap: off the video.
+    private const int OffVideo = -1000;
+
     private readonly double deviceAheadSeconds;
     private readonly int screenWidth;
     private readonly int screenHeight;
@@ -229,25 +232,48 @@ public sealed class ScreenRecording
     }
 
     // screenrecord writes a frame only when the screen changes: fps= gives every ring frames to be drawn on.
+    // With an overlay filter for each tap, every frame went through all of them: a 25-minute scenario with ~100 taps took
+    // ~24 minutes to draw. Here the rings go in lanes, a new lane only when a ring would show while the lane's last one
+    // still does, and each lane is one overlay that moves to its ring showing, or off the video. Same frames, in 18 s
+    // instead of 170 s for 3 minutes of a recording with 100 rings.
     private static Task DrawRingsAsync(string video, List<(Tap Tap, double From, double To)> drawn, string target)
     {
+        var lanes = new List<List<(Tap Tap, double From, double To)>>();
+        foreach (var ring in drawn.OrderBy(ring => ring.From))
+        {
+            var lane = lanes.FirstOrDefault(lane => lane[^1].To < ring.From);
+            if (lane is null)
+            {
+                lanes.Add(lane = []);
+            }
+
+            lane.Add(ring);
+        }
+
         var graph = new List<string>
         {
             "[0:v]fps=30[v0]",
-            $"color=c=black@0:s={RingSize}x{RingSize},format=rgba,{Ring},split={drawn.Count}"
-                + string.Concat(Enumerable.Range(0, drawn.Count).Select(ring => $"[r{ring}]")),
+            $"color=c=black@0:s={RingSize}x{RingSize},format=rgba,{Ring},split={lanes.Count}"
+                + string.Concat(Enumerable.Range(0, lanes.Count).Select(lane => $"[r{lane}]")),
         };
-        for (var ring = 0; ring < drawn.Count; ring++)
+        for (var lane = 0; lane < lanes.Count; lane++)
         {
-            var (tap, from, to) = drawn[ring];
-            graph.Add(FormattableString.Invariant(
-                $"[v{ring}][r{ring}]overlay=x=W*{tap.X:0.####}-w/2:y=H*{tap.Y:0.####}-h/2:shortest=1:enable='between(t,{from:0.###},{to:0.###})'[v{ring + 1}]"));
+            graph.Add(
+                $"[v{lane}][r{lane}]overlay=eval=frame:shortest=1:x='{Position(lanes[lane], "W", ring => ring.Tap.X)}'"
+                + $":y='{Position(lanes[lane], "H", ring => ring.Tap.Y)}'[v{lane + 1}]");
         }
 
         return Commands.RunOrFailAsync(
-            "ffmpeg", "-v", "error", "-y", "-i", video, "-filter_complex", string.Join(';', graph), "-map", $"[v{drawn.Count}]",
+            "ffmpeg", "-v", "error", "-y", "-i", video, "-filter_complex", string.Join(';', graph), "-map", $"[v{lanes.Count}]",
             "-c:v", "libx264", "-preset", "veryfast", "-crf", "18", "-pix_fmt", "yuv420p", target);
     }
+
+    // Where a lane's ring is on one axis of the video (W or H) at each frame: centered on the tap it shows, else far off
+    // the video. A sum rather than nested ifs, which a scenario's hundreds of taps would nest as deep: a lane's rings
+    // never show at once, so at most one term is on.
+    private static string Position(List<(Tap Tap, double From, double To)> lane, string size, Func<(Tap Tap, double From, double To), double> at) =>
+        $"{OffVideo}" + string.Concat(lane.Select(ring => FormattableString.Invariant(
+            $"+between(t,{ring.From:0.###},{ring.To:0.###})*({size}*{at(ring):0.####}-{char.ToLowerInvariant(size[0])}/2-({OffVideo}))")));
 
     private double ToDeviceUptime(long timestamp) => Seconds(timestamp) + deviceAheadSeconds;
 

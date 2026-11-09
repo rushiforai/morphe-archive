@@ -521,22 +521,22 @@ object NuvioMergedProgress {
                 if (resourceId == 0) return
                 val modifierType = loader.loadClass(NuvioNative.MODIFIER_NAME)
                 var modifier = fieldStatic(loader.loadClass(NuvioNative.EMPTY_MODIFIER_NAME), "b")
-                val scope = fieldStatic(loader.loadClass("e0.v"), "a")
+                val scope = fieldStatic(loader.loadClass("d0.v"), "a")
                 modifier = findMethod(scope.javaClass, "a", 2).invoke(scope, modifier,
                     fieldStatic(loader.loadClass(NuvioNative.ALIGNMENTS_NAME), "i"))
                 val layer = loader.loadClass(NuvioNative.GRAPHICS_MODIFIER_NAME).getDeclaredConstructor(Float::class.javaPrimitiveType)
                     .apply { isAccessible = true }.newInstance(10f)
                 modifier = modifierType.getMethod("d", modifierType).invoke(modifier, layer)
-                modifier = findMethod(loader.loadClass("e0.b"), "u", 2).invoke(null, modifier, 6f)
-                modifier = findMethod(loader.loadClass("y.m"), "g", 3).invoke(null, modifier,
-                    0xcc10101000000000UL.toLong(), fieldStatic(loader.loadClass("e2.i0"), "b"))
-                modifier = findMethod(loader.loadClass("e0.b"), "u", 2).invoke(null, modifier, 4f)
+                modifier = findMethod(loader.loadClass("d0.b"), "u", 2).invoke(null, modifier, 6f)
+                modifier = findMethod(loader.loadClass("x.m"), "g", 3).invoke(null, modifier,
+                    0xcc10101000000000UL.toLong(), fieldStatic(loader.loadClass("d2.i0"), "b"))
+                modifier = findMethod(loader.loadClass("d0.b"), "u", 2).invoke(null, modifier, 4f)
                 modifier = findMethod(loader.loadClass("androidx.compose.foundation.layout.b"), "n", 2)
                     .invoke(null, modifier, 24f)
                 findMethod(loader.loadClass(NuvioNative.POSTER_IMAGE_NAME), "b", 15).invoke(null,
                     "android.resource://${app.packageName}/$resourceId", "Progress from $source", modifier,
                     null, null, null, null, null, fieldStatic(loader.loadClass(NuvioNative.ALIGNMENTS_NAME), "e"),
-                    fieldStatic(loader.loadClass("v2.l"), "b"), 1f, composer, 0, 0, 2552)
+                    fieldStatic(loader.loadClass("u2.l"), "b"), 1f, composer, 0, 0, 2552)
             } finally { findMethod(composer.javaClass, "p", 1).invoke(composer, false) }
         } catch (error: Throwable) { Log.e(TAG, "Provider badge rendering failed", error) }
     }
@@ -1270,7 +1270,7 @@ object NuvioMergedProgress {
                 val seeds = (findMethod(provider.javaClass, "f", 0).invoke(provider) as Flow<Any>).first() as? Collection<Any>
                 if (deferred()) return@providerResult
                 if (providerId(provider) == "TRAKT") {
-                    // beta.8 ba.oc.a -> ba.ib; T is set only after f() installs
+                    // beta.8 ba.uc.a -> ba.mb; T is set only after f() installs
                     // watched episode maps and the canonical watched-show seeds.
                     val service = field(provider, "a").get(provider)
                     if (!field(service, "T").getBoolean(service)) {

@@ -12,13 +12,11 @@ val enableAllCodecsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JIOHOTSTAR)
 
     execute {
-        // Force 4K support to true
         Is4kSupportedFingerprint.method.addInstructions(0, """
             const/4 v0, 0x1
             return v0
         """)
 
-        // Force all codec support checks to true
         IsCodecSupportedFingerprint.method.addInstructions(0, """
             const/4 v0, 0x1
             return v0

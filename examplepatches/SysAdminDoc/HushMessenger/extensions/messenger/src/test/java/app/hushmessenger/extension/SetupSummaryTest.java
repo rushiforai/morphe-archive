@@ -70,7 +70,7 @@ public class SetupSummaryTest {
             assertTrue(text.contains("\nAndroid API: " + Build.VERSION.SDK_INT + "\nPaused: false\nSafe mode: false\n"));
             assertTrue(text.contains("people: installed=true, selected=true, active=true,"));
             assertTrue(text.contains("stories: installed=false, selected=true, active=false,"));
-            assertTrue(text.matches("(?s).*\nLate start: (not needed|\\d+ ms on [^\n]+)\nAnalytics stores: none\nFacebook caller checks: trusted=\\d+, signer_differs=\\d+, meta_signed_build=\\d+, not_family=\\d+, error=\\d+\n"));
+            assertTrue(text.matches("(?s).*\nLate start: (not needed|\\d+ ms on [^\n]+)\nMounted build: matches\nAnalytics stores: none\nFacebook caller checks: trusted=\\d+, signer_differs=\\d+, meta_signed_build=\\d+, not_family=\\d+, error=\\d+\n"));
             assertEquals(ExpectedTotals.SETUP_LINES, text.split("\n").length);
             assertFalse(text.contains("private-"));
             assertFalse(text.contains("account-secret"));

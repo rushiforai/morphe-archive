@@ -8,10 +8,11 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -38,6 +39,11 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origInterfaces
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Both pinned builds' bot location manager, web view prompt and its dialog, gated where the switch can answer. */
 class MiniAppLocationFixtureTest {
@@ -96,10 +102,10 @@ class MiniAppLocationFixtureTest {
                 hosts.removeAll { cls -> cls.methods.any { "botlocation_" in it.strings() } }
             }),
             Case("no dialog", "the geolocation dialog's answer is missing or ambiguous", hosts = { hosts ->
-                hosts.removeAll { cls -> cls.methods.any { it.name == "accept" && it.calls(GEO_INVOKE) } }
+                hosts.removeAll { cls -> cls.methods.any { it.origName == "accept" && it.calls(GEO_INVOKE) } }
             }),
             Case("no listener", "the bot location manager's listener for later fixes is missing", hosts = { hosts ->
-                hosts.removeAll { LISTENER in it.interfaces }
+                hosts.removeAll { LISTENER in it.origInterfaces }
             }),
             // The answer folded into the listener, as R8 could do: a later fix would go round the gate.
             Case("listener reads coordinates", "reads coordinates outside the bot location manager's answer", context = { context ->
@@ -113,7 +119,7 @@ class MiniAppLocationFixtureTest {
             }),
             // A parent class runs on the same fix through a super call, so its reads count as the listener's.
             Case("listener's parent reads coordinates", "reads coordinates outside the bot location manager's answer", hosts = { hosts ->
-                val listener = hosts.single { LISTENER in it.interfaces }
+                val listener = hosts.single { LISTENER in it.origInterfaces }
                 hosts[hosts.indexOf(listener)] = listener.reparented(superclass = PARENT)
                 hosts += syntheticClass(PARENT, AccessFlags.PUBLIC.value, null,
                     syntheticMethod(PARENT, "peek", "invoke-virtual {p1}, Landroid/location/Location;->getLongitude()D\nreturn-void"))
@@ -128,7 +134,7 @@ class MiniAppLocationFixtureTest {
             // move-result-object can't reach the answer's parameter past register 255.
             Case("answer past register 255", "keeps its parameter past register 255", context = { context ->
                 val answer = context.resolveMiniAppLocation().gates.getValue(LocationGate.ANSWER)
-                val owner = context.mutableClassDefBy(answer.definingClass)
+                val owner = context.tgMutableClassDefBy(answer.definingClass)
                 owner.methods.remove(answer)
                 owner.methods.add(padded(answer, 256))
             }),
@@ -147,12 +153,12 @@ class MiniAppLocationFixtureTest {
             case.hosts(hosts)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             case.context(context)
-            val present = locationTypes.filter { type -> hosts.any { it.type == type } }
-            val before = present.associateWith { context.mutableClassDefBy(it).state() }
+            val present = locationTypes.filter { type -> hosts.any { it.origType == type } }
+            val before = present.associateWith { context.tgMutableClassDefBy(it).state() }
             val warnings = PatchLogCapture.warnings { openExternalLinksPatch.execute(context) }
             assertEquals(where, 1, warnings.size)
             assertTrue("$where: ${warnings.single()}", warnings.single().contains(reason))
-            assertEquals("$where: no location host is touched", before, present.associateWith { context.mutableClassDefBy(it).state() })
+            assertEquals("$where: no location host is touched", before, present.associateWith { context.tgMutableClassDefBy(it).state() })
             assertFlag(context, "miniAppLocation", false)
             assertFlag(context, "openExternalLinks", true)
             assertFlag(context, "externalBrowserRouting", true)
@@ -192,14 +198,14 @@ class MiniAppLocationFixtureTest {
     @Test fun `a listener behind a parent interface is still found`() {
         for (build in Fixtures.declaredBuilds()) {
             val hosts = hostClasses(build).toMutableList()
-            val listener = hosts.single { LISTENER in it.interfaces }
+            val listener = hosts.single { LISTENER in it.origInterfaces }
             hosts[hosts.indexOf(listener)] = listener.reparented(interfaces = listOf(MIDDLE))
             hosts += syntheticClass(MIDDLE, AccessFlags.PUBLIC.value or AccessFlags.INTERFACE.value or AccessFlags.ABSTRACT.value,
                 listOf(LISTENER))
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             assertNull(build.name, context.resolveMiniAppLocation().missing)
             // And with it skipping the answer, the indirection doesn't hide that.
-            val changed = context.mutableClassDefBy(listener.type).methods.single { it.name == "onLocationChanged" }
+            val changed = context.tgMutableClassDefBy(listener.type).methods.single { it.origName == "onLocationChanged" }
             val call = changed.instructions().indexOfFirst { it.ref()?.endsWith("(Landroid/location/Location;)Lorg/json/JSONObject;") == true }
             val registers = changed.instructions()[call].namedRegisters().joinToString { "v$it" }
             changed.replaceInstruction(call, "invoke-static {$registers}, Lhush/Elsewhere;->h(Landroid/location/Location;)Lorg/json/JSONObject;")
@@ -215,7 +221,7 @@ class MiniAppLocationFixtureTest {
             val plan = context.resolveMiniAppLocation()
             val before = plan.gates.mapValues { it.value.state() }
             val owner = if (missing == "miniAppLocation") SETTINGS_STATUS else MINI_APP_LOCATION
-            context.mutableClassDefBy(owner).methods.removeAll { it.name == missing }
+            context.tgMutableClassDefBy(owner).methods.removeAll { it.origName == missing }
             assertThrows(where, PatchException::class.java) { openExternalLinksPatch.execute(context) }
             assertEquals("$where: every gate is as it was", before, plan.gates.mapValues { it.value.state() })
             if (missing != "miniAppLocation") {
@@ -227,7 +233,7 @@ class MiniAppLocationFixtureTest {
     /** The link patch's own hosts, so it runs whole, and the three classes the location switch gates. */
     private fun hostClasses(build: File): List<ClassDef> {
         val hosts = FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method ->
-            (method.returnType == "V" && method.parameterTypes.size == 10 &&
+            (method.origReturnType == "V" && method.parameterTypes.size in 10..11 &&
                 method.parameterTypes.take(2) == listOf("Landroid/content/Context;", "Landroid/net/Uri;") &&
                 method.instructions().any { it.ref() == "autologin_token" }) ||
                 (method.instructions().any { it.ref() == "Lorg/telegram/messenger/R\$string;->ShareLink:I" } &&
@@ -237,15 +243,15 @@ class MiniAppLocationFixtureTest {
         val kept = FixtureDex.classes(build, setOf(MC, UC))
         assertEquals("account protection definitions", setOf(MC, UC), kept.keys)
         assertEquals("${build.name}: the manager, the prompt and its dialog", 3, hosts.count { cls -> cls.methods.any(::isLocationHost) })
-        assertEquals("${build.name}: the listener for later fixes", 1, hosts.count { cls -> LISTENER in cls.interfaces })
+        assertEquals("${build.name}: the listener for later fixes", 1, hosts.count { cls -> LISTENER in cls.origInterfaces })
         return hosts + kept.values
     }
 
-    private fun isLocationHost(method: Method) = "botlocation_" in method.strings() || method.name == SHOW_PROMPT ||
-        (method.name == "accept" && method.calls(GEO_INVOKE))
+    private fun isLocationHost(method: Method) = "botlocation_" in method.strings() || method.origName == SHOW_PROMPT ||
+        (method.origName == "accept" && method.calls(GEO_INVOKE))
 
     /** The bot location manager's listener, which hands a later fix to the Mini App through the manager's answer. */
-    private fun isLaterFixListener(method: Method) = method.name == "onLocationChanged" &&
+    private fun isLaterFixListener(method: Method) = method.origName == "onLocationChanged" &&
         method.instructions().any { it.ref()?.endsWith("(Landroid/location/Location;)Lorg/json/JSONObject;") == true }
 
     private fun operands(instruction: Instruction): List<Any?> = listOf(
@@ -253,7 +259,7 @@ class MiniAppLocationFixtureTest {
     )
 
     private fun assertFlag(context: BytecodePatchContext, name: String, enabled: Boolean) {
-        val body = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.instructions()
+        val body = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.instructions()
         assertEquals(Opcode.CONST_4, body[0].opcode)
         assertEquals(name, if (enabled) 1 else 0, (body[0] as NarrowLiteralInstruction).narrowLiteral)
     }
@@ -261,8 +267,8 @@ class MiniAppLocationFixtureTest {
     /** The listener's onLocationChanged, where a later fix comes in. */
     private fun BytecodePatchContext.changed(): MutableMethod {
         val listeners = mutableListOf<String>()
-        classDefForEach { cls -> if (LISTENER in cls.interfaces && !cls.type.startsWith("Lapp/hushtelegram/")) listeners += cls.type }
-        return mutableClassDefBy(listeners.single()).methods.single { it.name == "onLocationChanged" }
+        classDefForEach { cls -> if (LISTENER in cls.origInterfaces && !cls.origType.startsWith("Lapp/hushtelegram/")) listeners += cls.type }
+        return tgMutableClassDefBy(listeners.single()).methods.single { it.origName == "onLocationChanged" }
     }
 
     /** [method] with [extra] more registers, so its parameters sit that much higher. */
@@ -295,7 +301,7 @@ class MiniAppLocationFixtureTest {
     private fun Method.strings() = instructions().filter { it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO }
         .mapNotNull { it.ref() }.toSet()
     private fun Method.calls(reference: String) = instructions().any { it.ref() == reference }
-    private fun Instruction.ref() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.ref() = origRef()
 
     private companion object {
         val HOST_CENSUS = FixtureDex.ClassCensus()

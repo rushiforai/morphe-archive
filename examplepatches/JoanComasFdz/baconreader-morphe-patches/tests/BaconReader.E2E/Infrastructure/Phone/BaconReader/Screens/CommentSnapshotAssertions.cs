@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 using BaconReader.E2E.Infrastructure.Reddit;
+using BaconReader.E2E.Infrastructure.Vocabulary;
 using JoanComasFdz.AssertingThat;
 
 namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
@@ -36,6 +37,16 @@ public static class CommentSnapshotAssertions
         Assert.True(
             comment.Images == 0 && comment.Gifs == 0,
             $"The comment {comment.Name} shows {Media(comment)}, but no image was expected.");
+        return that;
+    }
+
+    /// <summary>The comment's media show <paramref name="prompt"/>: they wait for a tap to load.</summary>
+    public static AssertingThat<CommentSnapshot> ShowsTheMediaPrompt(this AssertingThat<CommentSnapshot> that, MediaPrompt prompt)
+    {
+        var comment = that.InstanceToAssert;
+        Assert.True(
+            comment.Prompts.Contains(prompt),
+            $"The comment {comment.Name} shows {(comment.Prompts.IsEmpty ? "no prompt" : string.Join(", ", comment.Prompts.Select(shown => $"\"{shown.ToShownText()}\"")))}, but \"{prompt.ToShownText()}\" was expected.");
         return that;
     }
 

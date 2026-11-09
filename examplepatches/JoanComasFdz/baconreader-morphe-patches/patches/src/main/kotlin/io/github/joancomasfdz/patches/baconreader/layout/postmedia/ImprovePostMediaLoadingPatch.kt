@@ -31,8 +31,8 @@ private val GIF_FALLBACK_FAILURES = listOf(2, 3, 4)
 @Suppress("unused")
 val improvePostMediaLoadingPatch = bytecodePatch(
     name = "Improve post media loading",
-    description = "Shows a still preview with a progress bar and the downloaded size while post media " +
-        "and gallery images load, uses small previews for the thumbnails of galleries, " +
+    description = "Shows a progress bar, the downloaded size and, by a setting, a still preview " +
+        "while post media and gallery images load, uses small previews for the thumbnails of galleries, " +
         "shows a message instead of a broken page when a RedGIFs video was deleted, " +
         "and adds options for which link post pages run JavaScript.",
 ) {

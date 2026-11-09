@@ -19,6 +19,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The message bubble's time, the formatter, and the runtime. */
 class MessageSecondsFixtureTest {
@@ -26,7 +29,7 @@ class MessageSecondsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = FixtureDex.classesWhere(build, { true }) { m ->
-                m.definingClass == FAST_DATE_FORMAT || m.controlBody().any { it.controlRef() == EDITED_MESSAGE }
+                m.origDefiningClass == FAST_DATE_FORMAT || m.controlBody().any { it.controlRef() == EDITED_MESSAGE }
             }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val (method, indices) = context.resolveMessageTime()
@@ -43,13 +46,13 @@ class MessageSecondsFixtureTest {
             assertEquals(before, indices.map { body[it].namedRegisters() })
             indices.forEach { assertEquals("$name: $it", MESSAGE_TIME_SHOWN, body[it].controlRef()) }
             assertTrue("$name: no time is formatted around the extension", body.none { it.controlRef() == TIME_FORMAT })
-            val stub = context.mutableClassDefBy(MESSAGE_TIME).methods.single { it.name == "stockFormat" }.controlBody()
+            val stub = context.tgMutableClassDefBy(MESSAGE_TIME).methods.single { it.origName == "stockFormat" }.controlBody()
             assertTrue(stub.any { it.controlRef() == TIME_FORMAT })
             assertEquals(1L, secondsStatus(context))
         }
     }
 
     private fun secondsStatus(context: BytecodePatchContext) =
-        (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "messageSeconds" }.controlBody().first()
+        (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "messageSeconds" }.controlBody().first()
             as WideLiteralInstruction).wideLiteral
 }

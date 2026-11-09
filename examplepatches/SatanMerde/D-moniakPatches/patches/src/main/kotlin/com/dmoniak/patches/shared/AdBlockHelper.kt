@@ -39,6 +39,8 @@ object AdBlockHelper {
 
             // Identify whether this class belongs to a known ad network/mediation SDK
             val isGoogleMobileAds = tl.contains("com/google/android/gms/ads") || tl.contains("com/google/unity/ads")
+            val isGoogleIMA = tl.contains("google/ads/interactivemedia")
+            val isFreeWheel = tl.contains("com/freewheel") || tl.contains("/freewheel/")
             val isUnityAds = tl.contains("com/unity3d/ads") || tl.contains("com/unity3d/services/ads")
             val isAppLovin = tl.contains("com/applovin")
             val isIronSource = tl.contains("com/ironsource")
@@ -47,7 +49,7 @@ object AdBlockHelper {
             val isMintegral = tl.contains("com/mbridge/msdk") || tl.contains("com/mintegral")
             val isGenericAdSdk = tl.contains("/ads/") || tl.contains("/admob/") || tl.contains("admanager")
 
-            val isAdSdkClass = isGoogleMobileAds || isUnityAds || isAppLovin || isIronSource ||
+            val isAdSdkClass = isGoogleMobileAds || isGoogleIMA || isFreeWheel || isUnityAds || isAppLovin || isIronSource ||
                     isFacebookAds || isInMobi || isMintegral || isGenericAdSdk
 
             if (!isAdSdkClass) return@classDefForEach
@@ -71,7 +73,11 @@ object AdBlockHelper {
                     mNameLower == "loadad" ||
                     mNameLower == "loadnextad" ||
                     mNameLower == "loadinterstitial" ||
-                    mNameLower == "showappopenad"
+                    mNameLower == "showappopenad" ||
+                    mNameLower == "requestads" ||
+                    mNameLower == "submitrequest" ||
+                    mNameLower == "initad" ||
+                    mNameLower == "startad"
                 ) && retType == "V"
 
                 if (isShowOrLoadMethod) {

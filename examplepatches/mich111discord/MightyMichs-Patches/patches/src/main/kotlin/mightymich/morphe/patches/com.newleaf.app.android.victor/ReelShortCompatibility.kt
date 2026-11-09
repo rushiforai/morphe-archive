@@ -12,7 +12,7 @@ object ReelShortCompatibility {
         appIconColor = 0xE50914,
         targets = listOf(
             AppTarget(version = "4.2.20"),
-            AppTarget(version = "4.2.00", isExperimental = true),
+            AppTarget(version = "4.2.00"),
         ),
     )
 }

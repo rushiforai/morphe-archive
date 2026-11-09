@@ -40,6 +40,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /**
  * Telegram's shortcut calls go through SettingsEntry, which puts the HushTelegram shortcut back in
@@ -83,13 +90,13 @@ class ShortcutCallsTest {
         assertEquals(
             "Lapp/hushtelegram/extension/telegram/settings/SettingsEntry;->pushDynamicShortcut(" +
                 "Landroid/content/pm/ShortcutManager;Landroid/content/pm/ShortcutInfo;)V",
-            (push as ReferenceInstruction).reference.toString(),
+            (push as ReferenceInstruction).reference.origString(),
         )
         assertEquals(listOf(1, 2), (push as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
         assertEquals(
             "Lapp/hushtelegram/extension/telegram/settings/SettingsEntry;->updateShortcuts(" +
                 "Landroid/content/pm/ShortcutManager;Ljava/util/List;)Z",
-            (update as ReferenceInstruction).reference.toString(),
+            (update as ReferenceInstruction).reference.origString(),
         )
         assertEquals(listOf(1, 0), (update as FiveRegisterInstruction).let { listOf(it.registerC, it.registerD) })
         assertEquals("the answer is read where it was", Opcode.MOVE_RESULT, result.opcode)
@@ -118,7 +125,7 @@ class ShortcutCallsTest {
         assertEquals(
             "Lapp/hushtelegram/extension/telegram/settings/SettingsEntry;->removeAllDynamicShortcuts(" +
                 "Landroid/content/pm/ShortcutManager;)V",
-            (instructions[2] as ReferenceInstruction).reference.toString(),
+            (instructions[2] as ReferenceInstruction).reference.origString(),
         )
     }
 
@@ -206,10 +213,10 @@ class ShortcutCallsTest {
 
         settingsPatch.execute(context)
 
-        val sent = context.mutableClassDefBy(threads).methods.single().instructions()
+        val sent = context.tgMutableClassDefBy(threads).methods.single().instructions()
         assertEquals("framework calls left in Telegram's code", emptyList<String>(), sent.mapNotNull { it.frameworkCall() })
         assertEquals("stand-ins in Telegram's code", SHORTCUT_CALLS.keys.sorted(), sent.mapNotNull { it.standInCall() }.sorted())
-        val kept = context.mutableClassDefBy(ENTRY).methods.single { it.name == "publish" }.instructions()
+        val kept = context.tgMutableClassDefBy(ENTRY).methods.single { it.origName == "publish" }.instructions()
         assertEquals("the extension's own calls", SHORTCUT_CALLS.keys.sorted(), kept.mapNotNull { it.frameworkCall() }.sorted())
         assertEquals("stand-ins in the extension", emptyList<String>(), kept.mapNotNull { it.standInCall() })
     }
@@ -230,7 +237,7 @@ class ShortcutCallsTest {
         for (bundle in builds) {
                 val callers = mutableListOf<ClassDef>()
                 FixtureDex.forEach(bundle) { dex ->
-                    if (dex.methodSection.none { it.definingClass == SHORTCUT_MANAGER && it.name in SHORTCUT_CALLS }) {
+                    if (dex.methodSection.none { it.origDefiningClass == SHORTCUT_MANAGER && it.origName in SHORTCUT_CALLS }) {
                         return@forEach
                     }
                     for (classDef in dex.classes) {
@@ -252,7 +259,7 @@ class ShortcutCallsTest {
                 val hosts = SettingsPatchHosts.all()
                 assertTrue(
                     "${bundle.name}: a class making the calls is one the test stands in for",
-                    callers.none { caller -> hosts.any { it.type == caller.type } },
+                    callers.none { caller -> hosts.any { it.origType == caller.origType } },
                 )
 
                 val context = PatchContexts.of(ExtensionDex.classes() + hosts + callers)
@@ -260,7 +267,7 @@ class ShortcutCallsTest {
 
                 val sent = mutableMapOf<String, Int>()
                 for (before in callers) {
-                    val after = context.mutableClassDefBy(before.type).methods
+                    val after = context.tgMutableClassDefBy(before.type).methods
                     for (original in before.methods) {
                         val was = original.instructions()
                         if (was.none { it.frameworkCall() != null }) continue
@@ -274,7 +281,7 @@ class ShortcutCallsTest {
                             assertEquals(
                                 "$where at $index",
                                 standIn(framework),
-                                (replacement as ReferenceInstruction).reference.toString(),
+                                (replacement as ReferenceInstruction).reference.origString(),
                             )
                             assertEquals(
                                 "$where at $index: the static form of ${instruction.opcode}",
@@ -301,14 +308,14 @@ class ShortcutCallsTest {
     /** The [SHORTCUT_CALLS] name this instruction calls on ShortcutManager, by name alone, or null. */
     private fun Instruction.frameworkCall(): String? {
         val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return null
-        return reference.name.takeIf { reference.definingClass == SHORTCUT_MANAGER && it in SHORTCUT_CALLS }
+        return reference.name.takeIf { reference.origDefiningClass == SHORTCUT_MANAGER && it in SHORTCUT_CALLS }
     }
 
     /** The [SHORTCUT_CALLS] name of the SettingsEntry stand-in this instruction calls statically, or null. */
     private fun Instruction.standInCall(): String? {
         if (opcode != Opcode.INVOKE_STATIC && opcode != Opcode.INVOKE_STATIC_RANGE) return null
         val reference = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return null
-        return reference.name.takeIf { reference.definingClass == ENTRY && it in SHORTCUT_CALLS }
+        return reference.name.takeIf { reference.origDefiningClass == ENTRY && it in SHORTCUT_CALLS }
     }
 
     private fun Instruction.registers(): List<Int> = when (this) {

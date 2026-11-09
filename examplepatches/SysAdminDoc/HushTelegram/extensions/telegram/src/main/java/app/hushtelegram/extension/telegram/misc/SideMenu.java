@@ -10,6 +10,7 @@ import android.net.Uri;
 import android.view.MotionEvent;
 import android.view.View;
 
+import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.Logger;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
@@ -43,9 +44,10 @@ public final class SideMenu {
 
     /**
      * The rows under the name, in the order {@link #labels()} gives Telegram's words for the first six.
-     * Archived Chats only shows while Hide All Chats has taken the archive's usual way in.
+     * Archived Chats only shows while Hide All Chats has taken the archive's usual way in, and
+     * Administrators while its switch is on.
      */
-    enum Row { PROFILE, NEW_MESSAGE, CONTACTS, CALLS, SAVED, SETTINGS, ARCHIVE, HUSH }
+    enum Row { PROFILE, NEW_MESSAGE, CONTACTS, CALLS, SAVED, SETTINGS, ARCHIVE, ADMINS, HUSH, DOWNLOADS }
 
     /** English for the rows when Telegram's words aren't there, which is only outside a patched app. */
     static final String[] FALLBACK = {"My Profile", "New Message", "Contacts", "Calls", "Saved Messages", "Settings"};
@@ -59,6 +61,8 @@ public final class SideMenu {
         default void accounts(Object screen, View anchor) { SideMenu.accounts(screen, anchor); }
 
         default void hushSettings(Activity activity) { SettingsEntry.openFromNative(activity); }
+
+        default void downloads(Activity activity) { DownloadManager.show(activity); }
     }
 
     static volatile Opener opener = Activity::startActivity;
@@ -158,7 +162,9 @@ public final class SideMenu {
             words[i] = own == null || own.isEmpty() ? FALLBACK[i] : own;
         }
         words[Row.ARCHIVE.ordinal()] = LaunchFolder.archiveTitle();
+        words[Row.ADMINS.ordinal()] = AdminChats.rowLabel();
         words[Row.HUSH.ordinal()] = SettingsEntry.nativeSettingsTitle();
+        words[Row.DOWNLOADS.ordinal()] = L10n.t("Downloads");
         return words;
     }
 
@@ -190,8 +196,14 @@ public final class SideMenu {
             case ARCHIVE:
                 if (!LaunchFolder.openArchive()) return;
                 break;
+            case ADMINS:
+                AdminChats.toggle();
+                break;
             case HUSH:
                 opener.hushSettings(activity);
+                break;
+            case DOWNLOADS:
+                opener.downloads(activity);
                 break;
         }
         HookStatus.counted(FamilyNames.HIDE_CONTACTS_TAB, "side menu opened " + row.name().toLowerCase(java.util.Locale.ROOT).replace('_', ' '));

@@ -425,7 +425,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         }
 
         if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)
-                || build.contains(PatchFamily.HIDE_GHOST_POST_BUBBLES)) {
+                || build.contains(PatchFamily.HIDE_GHOST_POST_BUBBLES)
+                || build.contains(PatchFamily.FULL_SIZE_PROFILE_PICTURES)) {
             PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
             if (build.contains(PatchFamily.PURE_BLACK)) {
                 appearance.addPreference(toggle(context, Settings.PURE_BLACK, L10n.t("Pure black dark mode"),
@@ -441,6 +442,13 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 appearance.addPreference(toggle(context, Settings.HIDE_GHOST_POST_BUBBLES, L10n.t("Hide ghost post bubbles"),
                         L10n.t("Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top "
                             + "of your feed. Restart Threads to see the change.")));
+            }
+            if (build.contains(PatchFamily.FULL_SIZE_PROFILE_PICTURES)) {
+                // Read each time a picture opens, so no restart line.
+                appearance.addPreference(toggle(context, Settings.FULL_SIZE_PROFILE_PICTURES,
+                        L10n.t("Full size profile pictures"),
+                        L10n.t("A profile picture you open on a profile shows full size, where you can zoom in "
+                            + "and save it, instead of the small circle.")));
             }
         }
 
@@ -481,8 +489,22 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
 
         if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)
                 || build.contains(PatchFamily.VERSION_CODE) || build.contains(PatchFamily.REMOVE_SHARE_TARGETS)
-                || build.contains(PatchFamily.TRUST_USER_CERTIFICATES)) {
+                || build.contains(PatchFamily.TRUST_USER_CERTIFICATES)
+                || build.contains(PatchFamily.CHANGE_PACKAGE_NAME) || build.contains(PatchFamily.CHANGE_APP_NAME)) {
             PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
+            // Each shows its value as Android has it, which is what the patch set, isolated so it
+            // reads the same way round in a right-to-left sentence.
+            if (build.contains(PatchFamily.CHANGE_PACKAGE_NAME)) {
+                patched.addPreference(mark(info(context, L10n.t("Own package name"),
+                        L10n.t("This copy installs beside Threads as an app of its own, with its own sign-in.") + "\n"
+                                + L10n.isolate(context.getPackageName())), SettingsIcons.BUILD));
+            }
+            if (build.contains(PatchFamily.CHANGE_APP_NAME)) {
+                patched.addPreference(mark(info(context, L10n.t("Own app name"),
+                        L10n.t("The name under the app's icon.") + "\n"
+                                + L10n.isolate(context.getApplicationInfo().loadLabel(context.getPackageManager()))),
+                        SettingsIcons.BUILD));
+            }
             if (build.contains(PatchFamily.REMOVE_AD_ID)) {
                 patched.addPreference(mark(info(context, L10n.t("Advertising ID removed"),
                         L10n.t("Threads can't read your phone's advertising ID. The permission for it is gone from this "
@@ -1125,6 +1147,7 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         else if (setting == Settings.PURE_BLACK) icon = SettingsIcons.MOON;
         else if (setting == Settings.HIDE_INSTAGRAM_BUTTON) icon = SettingsIcons.CAMERA;
         else if (setting == Settings.HIDE_GHOST_POST_BUBBLES) icon = SettingsIcons.CHAT;
+        else if (setting == Settings.FULL_SIZE_PROFILE_PICTURES) icon = SettingsIcons.PERSON;
         else if (setting == Settings.COPY_TEXT) icon = SettingsIcons.CHAT;
         else if (setting == Settings.EXACT_POST_TIMES) icon = SettingsIcons.CALENDAR;
         else if (setting == Settings.CHECK_FOR_RELEASES) icon = SettingsIcons.UPDATES;

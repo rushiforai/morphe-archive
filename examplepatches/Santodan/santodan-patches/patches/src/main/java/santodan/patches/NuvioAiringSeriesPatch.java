@@ -116,7 +116,7 @@ public final class NuvioAiringSeriesPatch {
             if (imageCall >= 0) throw unsupported("Multiple Continue Watching image anchors found");
             imageCall = i;
         }
-        if (imageCall < 0 || target.getImplementation().getRegisterCount() != (62))
+        if (imageCall < 0 || target.getImplementation().getRegisterCount() != 65)
             throw unsupported("Continue Watching card layout changed");
         Instruction image = ins.get(imageCall);
         if (!(image instanceof RegisterRangeInstruction))

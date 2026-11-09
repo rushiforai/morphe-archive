@@ -1,6 +1,6 @@
 name: App updates
 
-# Checks every patched app for a newer public version each day, test-patches
+# Checks every patched app for a newer public version four times a day, test-patches
 # it with the latest dev bundle, and keeps one "App update" issue per app.
 # APKPure downloads are used only when their signing certificate matches the
 # known-good one in .github/app-certs.json. Apps whose patches all apply are
@@ -12,7 +12,13 @@ name: App updates
 
 on:
   schedule:
-    - cron: "23 13 * * *"
+    # 00:30, 06:30, 12:30, and 18:30 Pacific time. GitHub's schedules run in
+    # UTC with no daylight saving time, so the PDT slots and the PST slots are
+    # two separate lines, and the schedule job runs only the line that matches
+    # Pacific time today. The line keeps working when GitHub starts a run
+    # hours late, which a check of the clock does not.
+    - cron: "30 1,7,13,19 * * *"
+    - cron: "30 2,8,14,20 * * *"
   workflow_dispatch:
     inputs:
       only:
@@ -26,8 +32,36 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  schedule:
+    name: Match Pacific time
+    runs-on: ubuntu-latest
+    permissions: {}
+    outputs:
+      run: ${{ steps.slot.outputs.run }}
+    steps:
+      - name: Check the slot
+        id: slot
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          if [ "$EVENT" != "schedule" ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # GitHub can start a scheduled run hours late, so the slot comes from
+          # the cron line that fired, not from the clock.
+          zone=$(TZ=America/Los_Angeles date +%Z)
+          if [ "$zone" = "PDT" ]; then line="30 1,7,13,19 * * *"; else line="30 2,8,14,20 * * *"; fi
+          run=false
+          [ "$SCHEDULE" = "$line" ] && run=true
+          echo "Cron line \"$SCHEDULE\", Pacific $zone, run=$run"
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
   check:
     name: Check app versions
+    needs: schedule
+    if: needs.schedule.outputs.run == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 120
     permissions:
@@ -40,7 +74,9 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          # Zulu downloads from Azul's CDN, so a GitHub release-download outage
+          # cannot stop the check, as it did with Temurin on 2026-11-08.
+          distribution: 'zulu'
           java-version: '26'
 
       - name: Setup Python
@@ -53,7 +89,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p "$HOME/bin" tools
-          curl -sSfL -o "$HOME/bin/apkeep" https://github.com/EFForg/apkeep/releases/download/1.0.0/apkeep-x86_64-unknown-linux-gnu
+          # gh downloads through the API, which keeps working when direct release links do not.
+          gh release download 1.0.0 -R EFForg/apkeep -p apkeep-x86_64-unknown-linux-gnu -O "$HOME/bin/apkeep"
           chmod +x "$HOME/bin/apkeep"
           echo "$HOME/bin" >> "$GITHUB_PATH"
           gh release download -R MorpheApp/morphe-cli -p '*-all.jar' -D tools
@@ -66,6 +103,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ONLY: ${{ inputs.only }}
+          # A throwaway Google account, not in any beta program, for reading the
+          # version Google Play serves to an ordinary phone.
+          PLAY_EMAIL: ${{ secrets.PLAY_EMAIL }}
+          PLAY_AAS_TOKEN: ${{ secrets.PLAY_AAS_TOKEN }}
         run: |
           python .github/scripts/app_updates.py \
             --cli tools/*-all.jar --mpp tools/*.mpp --aapt2 "$AAPT2" --apksigner "$APKSIGNER" \

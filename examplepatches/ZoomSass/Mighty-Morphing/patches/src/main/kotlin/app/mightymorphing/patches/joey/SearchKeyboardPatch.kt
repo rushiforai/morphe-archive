@@ -11,7 +11,7 @@ private const val KEYBOARD = "Lapp/mightymorphing/extension/joey/SearchKeyboard;
 @Suppress("unused")
 val searchKeyboardPatch = bytecodePatch(
     name = "Search auto open keyboard",
-    description = "[v1.2: Enter/Search key triggers search] Opens the keyboard automatically for homepage search and comment search.",
+    description = "Opens the keyboard automatically for homepage search and comment search. The Enter and Search keys start the search.",
 ) {
     compatibleWith(JOEY)
 

@@ -8,7 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -34,6 +35,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.lang.ref.SoftReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origString
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** TranslateController, MessageObject, the chat screen, and the runtime. */
 class HideTranslateBarFixtureTest {
@@ -65,15 +71,15 @@ class HideTranslateBarFixtureTest {
             // Message translation and the controller itself keep Telegram's answer.
             assertEquals("$name: every other method, MessageObject's included", untouched, hostState(build, context, changed))
             val readers = hosts(build).flatMap { it.methods }.filter { m -> m.controlBody().any { it.controlRef() == BAR_HIDDEN } }
-                .map { it.definingClass }.toSet()
+                .map { it.origDefiningClass }.toSet()
             assertTrue("$name: message translation still asks", MESSAGE_OBJECT in readers && TRANSLATE_CONTROLLER in readers)
 
             for ((stub, target) in listOf("stockHidden" to BAR_HIDDEN, "translating" to TRANSLATING)) {
-                val body = context.mutableClassDefBy(TRANSLATE_BAR).methods.single { it.name == stub }.controlBody()
+                val body = context.tgMutableClassDefBy(TRANSLATE_BAR).methods.single { it.origName == stub }.controlBody()
                 assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN), body.map { it.opcode })
                 assertEquals(target, body[1].controlRef())
             }
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideTranslateBar" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideTranslateBar" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -83,12 +89,12 @@ class HideTranslateBarFixtureTest {
             val mutations: List<Pair<String, (BytecodePatchContext, List<TranslateBarSite>) -> Unit>> = listOf(
                 "the answer isn't read" to { _, s -> s.first().method.replaceInstruction(s.first().index + 1, "nop") },
                 "no read left" to { _, s -> s.forEach { it.method.replaceInstruction(it.index, "nop") } },
-                "translating check private" to { c, _ -> val m = c.mutableClassDefBy(TRANSLATE_CONTROLLER).methods.single { it.toString() == TRANSLATING }
+                "translating check private" to { c, _ -> val m = c.tgMutableClassDefBy(TRANSLATE_CONTROLLER).methods.single { it.origString() == TRANSLATING }
                     m.accessFlags = m.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing build flag" to { c, _ -> c.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "hideTranslateBar" } },
-                "private hidden hook" to { c, _ -> val h = c.mutableClassDefBy(TRANSLATE_BAR).methods.single { it.name == "hidden" }
+                "missing build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "hideTranslateBar" } },
+                "private hidden hook" to { c, _ -> val h = c.tgMutableClassDefBy(TRANSLATE_BAR).methods.single { it.origName == "hidden" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing stock stub" to { c, _ -> c.mutableClassDefBy(TRANSLATE_BAR).methods.removeAll { it.name == "stockHidden" } },
+                "missing stock stub" to { c, _ -> c.tgMutableClassDefBy(TRANSLATE_BAR).methods.removeAll { it.origName == "stockHidden" } },
             )
             for ((case, change) in mutations) {
                 val c = context(build)
@@ -102,10 +108,10 @@ class HideTranslateBarFixtureTest {
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(TRANSLATE_BAR, SETTINGS_STATUS))
-        .filter { c.classDefByOrNull(it) != null }.associateWith { type -> c.mutableClassDefBy(type).let { cls ->
+        .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
-        .flatMap { c.mutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
+        .flatMap { c.tgMutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
 
     private fun hosts(build: File): List<ClassDef> {
         val identity = FixtureDex.inputIdentity(build)
@@ -127,7 +133,7 @@ class HideTranslateBarFixtureTest {
         return listOf(accessFlags, implementation?.registerCount, body.map { it.operand() }, body.map { listOf(it.codeUnits, (it as? OffsetInstruction)?.codeOffset) },
             flow?.normal?.toList(), flow?.exceptional?.toList())
     }
-    private fun Instruction.operand() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString(),
+    private fun Instruction.operand() = listOf(opcode, namedRegisters(), origRef(),
         (this as? WideLiteralInstruction)?.wideLiteral)
     private fun key(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 

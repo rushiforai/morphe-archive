@@ -2,7 +2,7 @@ package app.fblite.patches.video
 
 import app.fblite.patches.font.AttachBaseContextFingerprint
 import app.fblite.patches.settings.morpheSettingsPatch
-import app.fblite.patches.shared.Constants.COMPATIBILITY_FACEBOOK_LITE_530
+import app.fblite.patches.shared.Constants.COMPATIBILITY_FACEBOOK_LITE
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 
@@ -21,7 +21,7 @@ val videoToolsPatch = bytecodePatch(
         "the next reel when one ends. These are switched in the Morphe settings screen.",
     default = true
 ) {
-    compatibleWith(COMPATIBILITY_FACEBOOK_LITE_530)
+    compatibleWith(COMPATIBILITY_FACEBOOK_LITE)
 
     dependsOn(morpheSettingsPatch)
 

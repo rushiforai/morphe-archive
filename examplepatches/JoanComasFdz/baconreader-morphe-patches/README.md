@@ -6,7 +6,7 @@
 
 [![Morphe](https://img.shields.io/badge/Morphe-patches-ff4500?style=flat-square)](https://morphe.software)
 [![BaconReader](https://img.shields.io/badge/BaconReader-6.1.4-f57c00?style=flat-square)](#-install)
-[![Patches](https://img.shields.io/badge/patches-31-2ea44f?style=flat-square)](#-whats-inside)
+[![Patches](https://img.shields.io/badge/patches-34-2ea44f?style=flat-square)](#-whats-inside)
 [![License](https://img.shields.io/badge/license-GPL--3.0-blue?style=flat-square)](LICENSE)
 
 [**➕ Add to Morphe Manager**](https://morphe.software/add-source?github=JoanComasFdz/baconreader-morphe-patches)
@@ -76,6 +76,8 @@ Settings live in BaconReader → **Settings → Patches**.
 | Text post icon | A page icon instead of a play button on text posts |
 | Prompt to open Reddit links | Reddit links open in BaconReader |
 | Video autoplay in detail view | A setting to show a preview with a play button instead of autoplaying videos |
+| Account colors | A color for each account, shown under the toolbars |
+| Select text | Select and copy any part of a post or comment |
 
 **🧹 Cleanups**
 
@@ -83,6 +85,7 @@ Settings live in BaconReader → **Settings → Patches**.
 |---|---|
 | Remove awards | No more dead award icons and buttons |
 | Remove Random feeds | Drops Random and My Random, which no longer load |
+| Remove Log out | No "Log out" of every account at once; each account's ✕ stays |
 | Disable unavailable sidebar | Greys out "View Sidebar" where there's none |
 | Disable feedback popup | No feedback nag |
 | Disable final release announcement | No goodbye popup |

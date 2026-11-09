@@ -23,13 +23,13 @@ Penguin Patches is an independent collection of fixes for selected Android apps.
 In Morphe Manager, copy a source URL and add it as a **remote JSON source**:
 
 - **Standard:** Infinity+, Fossify and the other supported apps except Finamp. [Standard source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/standard/patches-bundle.json)
-- **Finamp:** One small, default-selected patch applies all eight fixes together, including the artist-order change. The [existing Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp/patches-bundle.json) switches to the compact bundle with the release containing this change.
-- **Finamp individual:** Choose any subset of the eight patches; this optional source downloads the large native selection matrix. The [individual Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp-individual/patches-bundle.json) becomes available with that release.
+- **Finamp:** One small, default-selected patch applies all seven fixes together, including the artist-order change. The [existing Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp/patches-bundle.json) switches to the compact bundle with the release containing this change.
+- **Finamp individual:** Choose any subset of the seven patches; this optional source downloads the large native selection matrix. The [individual Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp-individual/patches-bundle.json) becomes available with that release.
 
-The [original combined source](https://morphe.software/add-source?github=pengusto/penguin-patches) also switches to the compact Finamp patch. Existing installations and signing keys are unaffected. After the source update, Morphe can immediately start patching Finamp with all eight fixes selected; enable Expert mode to review the selection first. Choose either Finamp Complete or individual patches for a patching run, not both. [Setup and migration details →](docs/SETUP.md#add-the-source-and-patch)
+The [original combined source](https://morphe.software/add-source?github=pengusto/penguin-patches) also switches to the compact Finamp patch. Existing installations and signing keys are unaffected. After the source update, Morphe can immediately start patching Finamp with all seven fixes selected; enable Expert mode to review the selection first. Choose either Finamp Complete or individual patches for a patching run, not both. [Setup and migration details →](docs/SETUP.md#add-the-source-and-patch)
 
 <!-- PATCHES_SUMMARY_START -->
-**17 patches · 14 apps · [v1.9.1](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.1)**
+**17 patches · 14 apps · [v1.9.2](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.2)**
 <!-- PATCHES_SUMMARY_END -->
 
 [Before & after](#patch-previews) · [Supported apps](#generated-patch-catalogue) · [Setup & signing](#patch-an-app) · [Latest release](https://github.com/pengusto/penguin-patches/releases/latest)
@@ -88,7 +88,7 @@ Choose how song credits appear, keep Output reachable with hidden player buttons
 
 **Upstream status · 2026-10-29:** the [title fix is merged](https://github.com/finamp-app/finamp/pull/1830), and the [banner fix already exists on `hotfix-1.0.2`](https://github.com/finamp-app/finamp/tree/hotfix-1.0.2). Both are included in Finamp Complete and remain individually selectable in the separate source for the original **Finamp 1.0.1 APK**. [Status & release details](docs/FINAMP.md#upstream-status-2026-10-29).
 
-[Player output](#preview-keep-player-output-controls-accessible) · [Banner contrast](#preview-fix-quick-settings-banner-contrast) · [Title validation](#preview-fix-section-title-validation) · [Artist-page loading](#preview-load-artist-pages-faster) · [Offline artists](#preview-fix-offline-artist-tracks) · [Alphabet jumps](#preview-fix-track-alphabet-navigation)
+[Player output](#preview-keep-player-output-controls-accessible) · [Title validation](#preview-fix-section-title-validation) · [Artist-page loading](#preview-load-artist-pages-faster) · [Offline artists](#preview-fix-offline-artist-tracks) · [Alphabet jumps](#preview-fix-track-alphabet-navigation)
 
 | Feeder | Infinity+ |
 | :--- | :--- |
@@ -542,18 +542,18 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 
 ### <img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="24" height="24"> Finamp · 1 patch
 
-Finamp Complete combines the eight fixes shown below; individual selection is available separately.
+Finamp Complete combines the seven fixes shown below; individual selection is available separately.
 
-<a id="preview-finamp-complete-all-eight-fixes"></a>
+<a id="preview-finamp-complete-all-seven-fixes"></a>
 
 <details>
-<summary><strong>Finamp complete: all eight fixes</strong> · Before / after</summary>
+<summary><strong>Finamp complete: all seven fixes</strong> · Before / after</summary>
 <br>
 
 **Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
 
-The compact patch applies the eight individual fixes together. This pair
-illustrates one included change: the track-information action. See the eight
+The compact patch applies the seven individual fixes together. This pair
+illustrates one included change: the track-information action. See the seven
 individual comparisons for the other changes.
 
 **Installed Android APK captures.** The before image is the original APK and
@@ -708,29 +708,6 @@ Morphe Manager export, installed through Manager’s Install action with the sam
 
 </details>
 
-<a id="preview-fix-quick-settings-banner-contrast"></a>
-
-<details>
-<summary><strong>Fix quick settings banner contrast</strong> · Before / after</summary>
-<br>
-
-**Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
-
-Keep the quick-settings banner readable with a custom accent. Its text uses the matching `onPrimaryContainer` color, like its existing icons.
-
-**Upstream status · 2026-10-29:** the fix already exists on [`hotfix-1.0.2`](https://github.com/finamp-app/finamp/tree/hotfix-1.0.2) ([`124edc8`](https://github.com/finamp-app/finamp/commit/124edc8b94ea8fcba637a1dba31e7bd266644aa8)). Duplicate [PR #1837](https://github.com/finamp-app/finamp/pull/1837) is closed; this Penguin backport remains selectable for the original Finamp 1.0.1 APK.
-
-**Android APK captures.** Same Home screen, synthetic music, Light theme, accent **#152E85**, viewport and clock. The before retains the official native code; the after is the installed Manager export with only this patch selected.
-
-| Before | After |
-| :---: | :---: |
-| **Dark text is hard to read on the blue banner** | **Matching foreground keeps the banner readable** |
-| <img src="tests/finamp/evidence/2026-10-29-ui/banner-before.png" width="300" alt="Before: Dark text is hard to read on the blue banner"> | <img src="tests/finamp/evidence/2026-10-29-ui/banner-after.png" width="300" alt="After: Matching foreground keeps the banner readable"> |
-
-[Raw captures, provenance & Manager checks](tests/finamp/evidence/2026-10-29-ui/README.md) · [Closed duplicate PR #1837](https://github.com/finamp-app/finamp/pull/1837) · [Back to patch index](#patch-previews)
-
-</details>
-
 <a id="preview-show-album-and-track-information"></a>
 
 <details>
@@ -763,7 +740,7 @@ full locally built bundle. See the evidence for the scope of that test.
 <details>
 <summary><strong>All 14 apps and supported versions</strong></summary>
 
-> **[v1.9.1](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v1.9.2](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details>
 <summary><img src="https://raw.githubusercontent.com/Docile-Alligator/Infinity-For-Reddit/cc2845af8c4bb9375ee56b93944c5a0fa3ad70e0/fastlane/metadata/android/en-US/images/icon.png" alt="Infinity+ app icon" width="24" height="24"> Infinity+&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -973,7 +950,7 @@ full locally built bundle. See the evidence for the scope of that test.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| <a id="finamp-complete-all-eight-fixes"></a>[Finamp complete: all eight fixes](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-finamp-complete-all-eight-fixes) | Apply all eight Penguin Finamp fixes together, including song artist order and album/track information. Requires the original official Finamp 1.0.1 APK; produces ARM64-only output. |  |
+| <a id="finamp-complete-all-seven-fixes"></a>[Finamp complete: all seven fixes](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-finamp-complete-all-seven-fixes) | Apply all seven Penguin Finamp fixes together, including song artist order and album/track information. Requires the original official Finamp 1.0.1 APK; produces ARM64-only output. |  |
 
 </details>
 

@@ -150,6 +150,22 @@ final class TextSelectionOverlay {
         return active != null;
     }
 
+    /**
+     * Whether an overlay is really on screen. One hidden while the feed scrolls (suspended) is not, and neither is one
+     * whose window went away: that one is closed here. A hidden overlay must not block other gestures, or a swipe made
+     * after a scroll is ignored for as long as the selection stays parked.
+     */
+    static boolean isShowing() {
+        Active a = active;
+        if (a == null) return false;
+        if (a.root == null || !a.root.isAttachedToWindow()) {
+            if (a.dismiss != null) a.dismiss.run();
+            if (active == a) active = null;
+            return false;
+        }
+        return !a.suspended && a.root.getVisibility() == View.VISIBLE;
+    }
+
     static void dismissActive() {
         Active a = active;
         if (a != null) a.dismiss.run();

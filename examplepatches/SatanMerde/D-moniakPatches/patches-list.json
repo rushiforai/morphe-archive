@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.68.0",
+  "version": "1.68.2",
   "patches": [
     {
       "name": "120 FPS High Refresh Rate & Low Latency - Subway Surfers (Experimental)",
@@ -919,7 +919,7 @@
     },
     {
       "name": "Ad-Free & Live Sports Ad-Block - JioHotstar",
-      "description": "Strips pre-roll, mid-roll, and ad pods during live cricket and sports streams, and eliminates banner and sponsored recommendation cards in JioHotstar.",
+      "description": "Strips pre-roll, mid-roll, and live cricket match video ads (SSAI), and eliminates feed banners and sponsored cards in JioHotstar.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -928,10 +928,17 @@
           "packageName": "in.startv.hotstar",
           "name": "JioHotstar",
           "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
-          "apkFileType": null,
+          "apkFileType": "APKM",
           "appIconColor": "#0C203B",
           "signatures": null,
           "targets": [
+            {
+              "version": "26.04.27.10",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "26.10.26.0",
               "versionCodes": null,
@@ -3546,10 +3553,17 @@
           "packageName": "in.startv.hotstar",
           "name": "JioHotstar",
           "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
-          "apkFileType": null,
+          "apkFileType": "APKM",
           "appIconColor": "#0C203B",
           "signatures": null,
           "targets": [
+            {
+              "version": "26.04.27.10",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "26.10.26.0",
               "versionCodes": null,
@@ -3563,8 +3577,8 @@
       "options": []
     },
     {
-      "name": "Bypass Signature & Integrity Check - JioHotstar",
-      "description": "Bypasses signature verification and anti-tamper telemetry (IsTampered, package signatures) in JioHotstar, preventing account flagging, session termination, and NET_201 security blocks.",
+      "name": "Bypass Signature Check & Anti-Tamper - JioHotstar",
+      "description": "Bypasses certificate MD5 verification and internal telemetry tamper detection to prevent API blocks, stream degradation, and account flagging in JioHotstar.",
       "default": true,
       "category": null,
       "dependencies": [],
@@ -3573,10 +3587,17 @@
           "packageName": "in.startv.hotstar",
           "name": "JioHotstar",
           "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
-          "apkFileType": null,
+          "apkFileType": "APKM",
           "appIconColor": "#0C203B",
           "signatures": null,
           "targets": [
+            {
+              "version": "26.04.27.10",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
             {
               "version": "26.10.26.0",
               "versionCodes": null,
@@ -12237,33 +12258,6 @@
       "options": []
     },
     {
-      "name": "Unlock Premium & Enhanced Playback - JioHotstar",
-      "description": "Unlocks premium UI features, bypasses subscription gates for higher video resolution selections, allows screenshots/screen recording, and enables playback over HDMI and screen mirroring in JioHotstar.",
-      "default": true,
-      "category": null,
-      "dependencies": [],
-      "compatiblePackages": [
-        {
-          "packageName": "in.startv.hotstar",
-          "name": "JioHotstar",
-          "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
-          "apkFileType": null,
-          "appIconColor": "#0C203B",
-          "signatures": null,
-          "targets": [
-            {
-              "version": "26.10.26.0",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        }
-      ],
-      "options": []
-    },
-    {
       "name": "Unlock Premium & Gold Features - Truecaller (Experimental)",
       "description": "⚠️ [Experimental / Untested] Hooks Google Play Billing to bypass in-app purchase verification for Truecaller Premium and Gold caller ID themes and spam filtering features.",
       "default": true,
@@ -12660,6 +12654,40 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium, Screenshots & Enhanced Playback - JioHotstar",
+      "description": "Unlocks premium UI features, downloads, 4K/HDR10 codecs, removes screenshot & screen recording blocks, and allows HDMI/screen mirroring in JioHotstar.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "in.startv.hotstar",
+          "name": "JioHotstar",
+          "description": "JioHotstar: Live Cricket, Movies, TV Shows, and Originals by Novi Digital Entertainment",
+          "apkFileType": "APKM",
+          "appIconColor": "#0C203B",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "26.04.27.10",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "26.10.26.0",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

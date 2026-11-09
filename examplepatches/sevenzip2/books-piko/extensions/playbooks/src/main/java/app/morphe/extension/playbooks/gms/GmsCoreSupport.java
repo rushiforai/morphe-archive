@@ -5,6 +5,8 @@ import static app.morphe.extension.playbooks.shared.Text.t;
 import android.Manifest;
 import android.accounts.Account;
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -13,9 +15,11 @@ import android.widget.Toast;
 public final class GmsCoreSupport {
     private static final String TAG = "BooksPiko";
     private static final String GOOGLE_ACCOUNT_TYPE = "com.google";
+    private static final String GOOGLE_PLAY_SERVICES_PACKAGE = "com.google.android.gms";
     private static final int REQUEST_GET_ACCOUNTS = 0x5b0c;
 
     private static volatile boolean requestedThisProcess;
+    private static volatile Context appContext;
 
     private GmsCoreSupport() {
     }
@@ -42,6 +46,55 @@ public final class GmsCoreSupport {
         return new Account[0];
     }
 
+    /** Package of the GmsCore the app was patched for. Replaced by the patch. */
+    static String gmsCorePackage() {
+        return "app.revanced.android.gms";
+    }
+
+    /**
+     * Injected where the account picker intent is built, for its CHOOSE_ACCOUNT actions.
+     * ReVanced GmsCore handles Google's action; MicroG RE handles it only under its own package
+     * ("app.revanced.android.gms.common.account.CHOOSE_ACCOUNT"). Use whichever GmsCore handles.
+     */
+    public static String accountPickerAction(String action) {
+        try {
+            Context context = context();
+            if (context == null || action == null || !action.startsWith(GOOGLE_PLAY_SERVICES_PACKAGE + ".")) {
+                return action;
+            }
+            String gmsCore = gmsCorePackage();
+            if (handles(context, gmsCore, action)) return action;
+            String vendorAction = gmsCore + action.substring(GOOGLE_PLAY_SERVICES_PACKAGE.length());
+            if (handles(context, gmsCore, vendorAction)) {
+                Log.i(TAG, "Account picker action: " + vendorAction);
+                return vendorAction;
+            }
+        } catch (Throwable throwable) {
+            Log.e(TAG, "Account picker action lookup failed", throwable);
+        }
+        return action;
+    }
+
+    /** The application context, also before the first activity resumed. */
+    private static Context context() {
+        Context context = appContext;
+        if (context != null) return context;
+        try {
+            Object application = Class.forName("android.app.ActivityThread")
+                    .getMethod("currentApplication").invoke(null);
+            if (application instanceof Context) appContext = (Context) application;
+        } catch (Throwable throwable) {
+            Log.w(TAG, "Application context not available", throwable);
+        }
+        return appContext;
+    }
+
+    private static boolean handles(Context context, String packageName, String action) {
+        Intent intent = new Intent(action).setPackage(packageName);
+        return !context.getPackageManager()
+                .queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).isEmpty();
+    }
+
     /**
      * Injected after super.onResume() of the base activity.
      * GmsCore only lists accounts to apps holding GET_ACCOUNTS, a runtime permission.
@@ -54,6 +107,7 @@ public final class GmsCoreSupport {
      */
     public static boolean onActivityResumed(Activity activity) {
         try {
+            if (appContext == null) appContext = activity.getApplicationContext();
             if (activity.checkSelfPermission(Manifest.permission.GET_ACCOUNTS)
                     == PackageManager.PERMISSION_GRANTED) {
                 return false;

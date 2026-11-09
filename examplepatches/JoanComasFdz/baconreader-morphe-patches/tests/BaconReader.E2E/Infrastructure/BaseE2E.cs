@@ -9,6 +9,7 @@ using BaconReader.E2E.Infrastructure.Phone;
 using BaconReader.E2E.Infrastructure.Reddit;
 using BaconReader.E2E.Infrastructure.Vocabulary;
 using BaconReader.FakeReddit;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Appium;
 using OpenQA.Selenium.Appium.Android;
 using Xunit.v3;
@@ -30,9 +31,12 @@ namespace BaconReader.E2E.Infrastructure;
 ///   <see cref="ScenarioOrder"/> runs the scenarios of one set together);
 /// - a fresh app per scenario: stopped and its data cleared, as just installed but with its notifications denied (so
 ///   Android doesn't ask, on any device), and Downloads/BaconReader emptied, so scenarios share nothing (no login, no setting, no cache, no
-///   saved image);
+///   saved image); a LoggedIn scenario's app starts logged in with the test account, as the fake hands it the login at
+///   its start (<see cref="FakeReddit.World.RedditWorld.LogInAtStart"/>);
 /// - an Appium session on the phone (<see cref="Screen.Phone"/>, the scenario's <c>[PlayOnPhone]</c>) that leaves the
-///   app alone until the scenario opens it;
+///   app alone until the scenario opens it: one for the run, which the next scenario plays on too (opening one took
+///   ~10 s and closing it ~2 s, 6 min of a 59 min run of the LoggedIn scenarios, 2026-11-07); a new one when it is gone
+///   or after a scenario that failed, which may have left it broken;
 /// - when the run records (<c>E2E_VIDEO_DIR</c>): records the screen from before the app opens to the end
 ///   (<see cref="ScreenRecording"/>), with a ring drawn where each tap lands, before it (<see cref="OnScreen"/>), and
 ///   saves the video, also when the scenario fails,
@@ -46,12 +50,14 @@ public abstract class BaseE2E : IAsyncLifetime
     private const string DownloadsFolder = Infrastructure.Phone.Downloads.Folder;
     private static readonly SemaphoreSlim StartingFakeReddit = new(1, 1);
     private static FakeRedditServer? fakeReddit;
+    private static AndroidDriver? session;
 
     private AndroidDriver? driver;
     private ScreenRecording? recording;
     private PatchSet patches = new PatchSet.Only([]);
     private Screen screen;
     private readonly Stopwatch sinceRecording = new();
+    private readonly Stopwatch playing = new();
     private double? appShownAt;
 
     /// <summary>The phone as the user holds it: Android's screens and BaconReader on it.</summary>
@@ -78,6 +84,8 @@ public abstract class BaseE2E : IAsyncLifetime
         Assert.SkipWhen(
             E2EDevice.AppiumUrl is null,
             "E2E_APPIUM_URL isn't set: end-to-end tests need the phone (README, \"The phone\").");
+        RunLog.Started();
+        playing.Start();
 
         var fake = await StartFakeRedditAsync();
         fake.World.Reset();
@@ -86,12 +94,18 @@ public abstract class BaseE2E : IAsyncLifetime
 
         screen = ReadScreen();
         patches = ReadPatches();
+        if (patches is PatchSet.Every)
+        {
+            // A LoggedIn scenario's Given ends with "the test account is logged in": its app starts logged in, as the
+            // fake hands it the login ("E2E fake Reddit"). Logging in through the screens took ~11 s of each scenario.
+            fake.World.LogInAtStart(TestAccount.UserName);
+        }
         var apk = await PatchedApps.PatchAsync(patches);
         await PatchedApps.InstallAsync(apk);
         await FakeRedditLink.EnsureAsync();
         await PatchedApps.ResetAsync();
         await Commands.ShellAsync($"rm -rf {DownloadsFolder}");
-        driver = await Task.Run(OpenDriver);
+        driver = await Task.Run(OpenOrReuseSession);
         Phone = new Phone.Phone(driver, patches, NoteAppShown);
 
         if (E2EDevice.VideoDirectory is not null)
@@ -114,7 +128,12 @@ public abstract class BaseE2E : IAsyncLifetime
     public async ValueTask DisposeAsync()
     {
         var unhandled = fakeReddit is null ? [] : UnhandledRequests.Of(fakeReddit.World);
-        await CloseAsync(TestContext.Current.TestState?.Result == TestResult.Passed && unhandled.IsEmpty);
+        var passed = TestContext.Current.TestState?.Result == TestResult.Passed && unhandled.IsEmpty;
+        await CloseAsync(passed);
+        if (playing.IsRunning)
+        {
+            RunLog.Ended(passed, playing.Elapsed);
+        }
         GC.SuppressFinalize(this);
         if (!unhandled.IsEmpty)
         {
@@ -136,7 +155,7 @@ public abstract class BaseE2E : IAsyncLifetime
         }
     }
 
-    // Ends the recording and the Appium session (once), and saves the video with the scenario's record.
+    // Ends the recording and the scenario on the Appium session (once), and saves the video with the scenario's record.
     private async Task CloseAsync(bool passed)
     {
         var closing = driver;
@@ -153,7 +172,56 @@ public abstract class BaseE2E : IAsyncLifetime
             // Stopped over adb, not with Appium's TerminateApp: after a recording of minutes, the "dumpsys activity
             // processes" it runs first timed out at Appium's 20 s over the slow link, and failed a scenario that passed.
             await Commands.ShellAsync($"am force-stop {E2EDevice.Package}");
-            await Task.Run(closing.Quit);
+            OnScreen.ForgetScenarioOn(closing);
+            if (!passed)
+            {
+                session = null;
+                await Task.Run(() => Quit(closing));
+            }
+        }
+    }
+
+    // The run's session, if it still answers, or a new one. Scenarios play one after another (xunit.runner.json), so
+    // one session at a time. Asking the screen's orientation is one round trip to UiAutomator2 on the phone (~0.19 s);
+    // asking whether the keyboard shows ran a system query there and took ~4.4 s (2026-11-08).
+    private static AndroidDriver OpenOrReuseSession()
+    {
+        if (session is not null)
+        {
+            try
+            {
+                _ = session.Orientation;
+                return session;
+            }
+            catch (WebDriverException)
+            {
+                Quit(session);
+            }
+        }
+
+        session = OpenDriver();
+        AppDomain.CurrentDomain.ProcessExit -= QuitSession;
+        AppDomain.CurrentDomain.ProcessExit += QuitSession;
+        return session;
+    }
+
+    private static void QuitSession(object? sender, EventArgs e)
+    {
+        if (session is not null)
+        {
+            Quit(session);
+        }
+    }
+
+    private static void Quit(AndroidDriver ending)
+    {
+        try
+        {
+            ending.Quit();
+        }
+        catch (WebDriverException)
+        {
+            // Gone already: Appium ends a session it hasn't heard from in newCommandTimeout.
         }
     }
 

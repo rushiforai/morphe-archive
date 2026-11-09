@@ -44,8 +44,8 @@ import io.github.joancomasfdz.extension.baconreader.settings.Settings;
 
 /**
  * Improves loading of post media (BaconReader's PostMediaHandler):
- * - while media loads, an overlay on the media area shows a dimmed still preview, a
- *   progress bar and, once a size is known, a label ("GIF · 80.6 MB", or "12.3 / 80.6 MB");
+ * - while media loads, an overlay on the media area shows a dimmed still preview (unless
+ *   "Preview while loading" is off), a progress bar and, once a size is known, a label ("GIF · 80.6 MB", or "12.3 / 80.6 MB");
  * - GIFs load through the app's own cache loader, which reports download progress.
  *
  * The overlay is drawn with the media ViewFlipper's ViewOverlay, so it floats above whichever
@@ -85,7 +85,7 @@ public final class PostMediaPatch {
                 overlay = new LoadingOverlay(handler, flipper);
                 OVERLAYS.put(handler, overlay);
             }
-            overlay.show(stillPreviewUrl(link));
+            overlay.show(Settings.LOADING_PREVIEW.get() ? stillPreviewUrl(link) : null);
 
             String gif = gifUrl(link);
             // Reddit videos (DASH) have no single file size: the bar alone shows they are loading.

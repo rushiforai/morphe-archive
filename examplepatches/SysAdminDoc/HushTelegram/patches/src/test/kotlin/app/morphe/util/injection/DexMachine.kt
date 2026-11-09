@@ -13,6 +13,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.formats.PackedSwitchPayload
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
 
 /** Something the verifier would refuse, or a read of a register the hook borrowed. */
 internal class Broken(message: String) : Exception(message)
@@ -162,8 +164,8 @@ internal class DexMachine(
                     Opcode.INVOKE_STATIC -> {
                         val call = instruction as FiveRegisterInstruction
                         val method = (instruction as ReferenceInstruction).reference as MethodReference
-                        if (method.definingClass != PROBE) throw Broken("instruction $index calls ${method.definingClass}")
-                        when (method.name) {
+                        if (method.origDefiningClass != PROBE) throw Broken("instruction $index calls ${method.definingClass}")
+                        when (method.origName) {
                             "note" -> {
                                 val value = int(call.registerC, index)
                                 trace += "note:$value"

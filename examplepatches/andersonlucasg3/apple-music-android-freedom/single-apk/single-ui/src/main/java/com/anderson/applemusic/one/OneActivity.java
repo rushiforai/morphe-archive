@@ -2,10 +2,11 @@ package com.anderson.applemusic.one;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -68,23 +69,56 @@ public final class OneActivity extends Activity
     /** Auth type we ask the engine for: always show the Apple ID page. */
     private static final String AUTH_TYPE_CLASS =
             "com.apple.mediaservices.amskit.authentication.AuthenticateRequest$Type";
+    /** Validated engine deep link: ACTION_VIEW + MainActivity opens its Account screen. */
+    private static final String ACCOUNT_SUMMARY_URL =
+            "https://itunes.apple.com/accountSummary";
+    /** R8-renamed navigation helper used by the engine to reach its settings fragment. */
+    private static final String SETTINGS_NAV_CLASS = "M9.p";
+    private static final String SETTINGS_DESTINATION = "action_settings";
     /** Time for the host activity to build its window/ComposeView before we drive it. */
     private static final long SIGN_IN_SETTLE_MS = 400L;
     /** How often the sign-in sheet state is checked while the engine host is on top. */
     private static final long AUTH_POLL_MS = 250L;
-    /** Time to wait before reconnecting the MediaBrowser to the restarted engine service. */
-    private static final long RECONNECT_DELAY_MS = 700L;
-    private static final int MAX_RECONNECT_ATTEMPTS = 4;
+    /** MediaBrowser reconnection backoff: 0.5 s, 1 s, 2 s, 4 s, 8 s, ... capped at 30 s. */
+    private static final long RECONNECT_INITIAL_MS = 500L;
+    private static final long RECONNECT_MAX_MS = 30000L;
 
     private static final long TICK_MS = 500L;
     private static final long ACTION_TIMEOUT_MS = 2500L;
     private static final String ACTION_CREATE_STATION = "CREATE_STATION";
+    private static final String ACTION_SHUFFLE = "SHUFFLE";
+    private static final String ACTION_REPEAT = "REPEAT";
     private static final String ACTION_FAVORITE = "FAVORITE";
     private static final String ACTION_ADD_TO_LIBRARY = "ADD_TO_LIBRARY";
 
     private static final int KIND_HOME = 0;
     private static final int KIND_RADIO = 1;
     private static final int KIND_LIBRARY = 2;
+
+    /** Stable library tab node; the cache is keyed by it even before the tabs arrive. */
+    private static final String LIBRARY_ROOT = "__AUTO_ROOT__/library";
+
+    /** Saved state keys: the screen the user was on, not just the tab. */
+    private static final String KEY_TAB = "one.tab";
+    private static final String KEY_TAB_ID = "one.tab.id";
+    private static final String KEY_REFRESH = "one.refreshOnResume";
+    private static final String KEY_ACCOUNT = "one.account.open";
+    private static final String KEY_UPDATES = "one.updates.open";
+    private static final String KEY_PLAYER = "one.player.open";
+    private static final String KEY_QUEUE = "one.player.queue";
+    private static final String KEY_ACTIONS = "one.actions.open";
+    private static final String KEY_ACTIONS_HEADING = "one.actions.heading";
+    private static final String KEY_ACTIONS_SUBTITLE = "one.actions.subtitle";
+    private static final String KEY_ACTIONS_ITEM = "one.actions.hasItem";
+    private static final String KEY_ACTIONS_ID = "one.actions.id";
+    private static final String KEY_ACTIONS_TITLE = "one.actions.title";
+    private static final String KEY_ACTIONS_DETAIL = "one.actions.detail";
+    private static final String KEY_ACTIONS_ART = "one.actions.art";
+    private static final String KEY_ACTIONS_BROWSABLE = "one.actions.browsable";
+    private static final String KEY_ACTIONS_PLAYABLE = "one.actions.playable";
+    private static final String KEY_COLLECTION_GRID = "one.collection.grid";
+    private static final String PREFIX_COLLECTION = "one.collection";
+    private static final String PREFIX_RADIO = "one.radio";
 
     private final Handler main = new Handler(Looper.getMainLooper());
     private final ExecutorService loader = Executors.newSingleThreadExecutor();
@@ -98,9 +132,17 @@ public final class OneActivity extends Activity
     private boolean refreshOnResume;
     /** A reconnect to the engine service is wanted (it may still be restarting). */
     private boolean reconnecting;
+    /** A reconnect is pending while the activity is stopped; it restarts in onStart. */
+    private boolean reconnectPending;
+    /** Current backoff step; reset when the MediaBrowser connects. */
+    private long reconnectDelay = RECONNECT_INITIAL_MS;
+    private boolean started;
+    private boolean tickerRunning;
+    private boolean destroyed;
     private boolean refreshingCatalog;
-    private int refreshAttempts;
     private Runnable authPoll;
+    private Application.ActivityLifecycleCallbacks accountWatcher;
+    private Runnable accountWatcherTimeout;
     private final Runnable reconnect = new Runnable() {
         @Override
         public void run() {
@@ -133,8 +175,24 @@ public final class OneActivity extends Activity
     private AccountScreen accountScreen;
 
     private final List<MediaClient.Item> tabs = new ArrayList<MediaClient.Item>();
-    private final Map<String, ChildSink> pending = new HashMap<String, ChildSink>();
+    /** Library sections kept in memory so a rotation does not lose the local search scope. */
+    private static List<LibrarySection> librarySnapshot;
+    /** Browse subscriptions waiting for children; more than one screen can want a node. */
+    private final Map<String, List<ChildSink>> pending =
+            new HashMap<String, List<ChildSink>>();
     private int selectedTab = -1;
+
+    /** State of the activity that was destroyed by a rotation, until the tree arrives. */
+    private Bundle restoreState;
+    private int restoreTabIndex = -1;
+    private String restoreTabId;
+    private boolean restorePlayer;
+    private boolean restoreQueue;
+    private boolean restoreActions;
+    private String actionsHeading = "Ações";
+    private String actionsSubtitle;
+    private MediaClient.Item actionsItem;
+    private boolean overlayGrid;
 
     private MediaClient.Snapshot latest = new MediaClient.Snapshot();
     private boolean rootReceived;
@@ -145,11 +203,45 @@ public final class OneActivity extends Activity
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         // Same style the injected android:theme points at; belt and braces if the binary
-        // manifest keeps the engine's own theme.
-        setTheme(android.R.style.Theme_Material_NoActionBar);
+        // manifest keeps the engine's own theme. On API < 30 the compile-time framework id
+        // may not exist, so the engine theme wins and its windowLayoutInDisplayCutoutMode=3
+        // crashes PhoneWindow.generateLayout; resolve the style by name at runtime.
+        int themeId;
+        if (Build.VERSION.SDK_INT < 30) {
+            themeId = getResources().getIdentifier("Theme_Material_NoActionBar", "style", "android");
+            if (themeId == 0) {
+                themeId = getResources().getIdentifier("Theme.Material.NoActionBar", "style", "android");
+            }
+        } else {
+            themeId = android.R.style.Theme_Material_NoActionBar;
+        }
+        if (themeId != 0) {
+            setTheme(themeId);
+        }
+        // The engine's application theme is compiled against API 36 and carries
+        // windowLayoutInDisplayCutoutMode=3, which API 29 rejects while installing the
+        // window decor. Replace the theme contents with a clean framework theme so the
+        // attribute never reaches PhoneWindow.generateLayout.
+        if (Build.VERSION.SDK_INT < 30) {
+            android.content.res.Resources.Theme clean =
+                    android.content.res.Resources.getSystem().newTheme();
+            getTheme().setTo(clean);
+            try {
+                getTheme().applyStyle(android.R.style.Theme_Material_NoActionBar, true);
+            } catch (Throwable ignored) {
+                // An id that this ROM does not know is fine: the clean theme is enough.
+            }
+        }
+        android.util.Log.i("OneTheme", "cutout themeId=" + themeId + " sdk=" + Build.VERSION.SDK_INT);
         Tokens.init(this);
         Inter.load(this);
         hasTouch = Tokens.touch();
+        restoreState = state;
+        if (state != null) {
+            restoreTabIndex = state.getInt(KEY_TAB, -1);
+            restoreTabId = state.getString(KEY_TAB_ID);
+            refreshOnResume = state.getBoolean(KEY_REFRESH, false);
+        }
         client = new MediaClient(this);
         artwork = new ArtworkLoader(this);
         catalog = new CatalogSearch(this);
@@ -160,6 +252,67 @@ public final class OneActivity extends Activity
         client.connect();
         handleInstallStatus(getIntent());
         updater.autoCheck();
+        restoreShell(state);
+    }
+
+    /**
+     * Resumes the position ticker and any reconnection that was paused while the activity
+     * was stopped. Nothing polls the engine in the background.
+     */
+    @Override
+    protected void onStart() {
+        super.onStart();
+        started = true;
+        if (!tickerRunning) {
+            tickerRunning = true;
+            main.removeCallbacks(ticker);
+            main.postDelayed(ticker, TICK_MS);
+        }
+        if (reconnectPending) {
+            reconnectPending = false;
+            scheduleReconnect();
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        started = false;
+        tickerRunning = false;
+        main.removeCallbacks(ticker);
+        main.removeCallbacks(reconnect);
+        reconnectPending = reconnecting;
+        super.onStop();
+    }
+
+    /**
+     * Overlays that do not depend on the browse tree (account, updates, the catalogue
+     * search) are reopened right away; the tab and the browse/detail overlays wait for
+     * {@code __AUTO_ROOT__} so they subscribe to a connected {@link MediaClient}.
+     */
+    private void restoreShell(Bundle state) {
+        if (state == null) return;
+        if (state.getBoolean(KEY_ACCOUNT, false)) accountScreen.open();
+        if (state.getBoolean(KEY_UPDATES, false)) updatesScreen.open();
+        if (state.getBoolean("one.search.open", false)) {
+            searchScreen.restoreState(state);
+            searchScreen.openRestored();
+        }
+        restorePlayer = state.getBoolean(KEY_PLAYER, false);
+        restoreQueue = state.getBoolean(KEY_QUEUE, false);
+        restoreActions = state.getBoolean(KEY_ACTIONS, false);
+        if (restoreActions) {
+            actionsHeading = state.getString(KEY_ACTIONS_HEADING, "Ações");
+            actionsSubtitle = state.getString(KEY_ACTIONS_SUBTITLE, "");
+            if (state.getBoolean(KEY_ACTIONS_ITEM, false)) {
+                actionsItem = new MediaClient.Item(state.getString(KEY_ACTIONS_ID),
+                        state.getString(KEY_ACTIONS_TITLE),
+                        state.getString(KEY_ACTIONS_DETAIL),
+                        state.getString(KEY_ACTIONS_ART),
+                        state.getBoolean(KEY_ACTIONS_BROWSABLE, false),
+                        state.getBoolean(KEY_ACTIONS_PLAYABLE, false));
+            }
+        }
+        refreshAccessibility();
     }
 
     /**
@@ -182,11 +335,31 @@ public final class OneActivity extends Activity
         resetBrowse();
         refreshingCatalog = true;
         reconnecting = true;
-        refreshAttempts = 0;
+        reconnectDelay = RECONNECT_INITIAL_MS;
         setStatus("Atualizando o Apple Music…");
         client.disconnect();
+        scheduleReconnect();
+    }
+
+    /**
+     * Retries the MediaBrowser connection with exponential backoff (0.5 s doubling to
+     * 30 s) while the activity is started. A failed/suspended service, a destroyed
+     * session or an empty catalogue all land here, so a restarted engine is picked up
+     * without the user reopening the app.
+     */
+    private void scheduleReconnect() {
+        if (client == null || destroyed) return;
+        reconnecting = true;
         main.removeCallbacks(reconnect);
-        main.postDelayed(reconnect, RECONNECT_DELAY_MS);
+        if (!started) {
+            // No polling in the background: resume the attempt in onStart().
+            reconnectPending = true;
+            return;
+        }
+        reconnectPending = false;
+        Log.i(TAG, "reconnect in " + reconnectDelay + " ms");
+        main.postDelayed(reconnect, reconnectDelay);
+        reconnectDelay = Math.min(reconnectDelay * 2L, RECONNECT_MAX_MS);
     }
 
     /** Drops the previous account's tabs, shelves, drill-down and covers. */
@@ -195,6 +368,7 @@ public final class OneActivity extends Activity
         disposeTabScreen();
         pending.clear();
         tabs.clear();
+        librarySnapshot = null;
         topBar.setTabs(new String[0], -1);
         selectedTab = -1;
         closeCollectionOverlay();
@@ -213,8 +387,34 @@ public final class OneActivity extends Activity
             @Override
             public android.view.WindowInsets onApplyWindowInsets(View v,
                                                                  android.view.WindowInsets insets) {
-                v.setPadding(0, insets.getSystemWindowInsetTop(), 0,
-                        insets.getSystemWindowInsetBottom());
+                // All four sides: in landscape the (3-button) navigation bar sits on the
+                // right and used to cover "Atualizações" and the mini player's play button.
+                int left;
+                int top;
+                int right;
+                int bottom;
+                if (Build.VERSION.SDK_INT >= 30) {
+                    android.graphics.Insets bars = insets.getInsets(
+                            android.view.WindowInsets.Type.systemBars()
+                                    | android.view.WindowInsets.Type.displayCutout());
+                    left = bars.left;
+                    top = bars.top;
+                    right = bars.right;
+                    bottom = bars.bottom;
+                } else {
+                    left = insets.getSystemWindowInsetLeft();
+                    top = insets.getSystemWindowInsetTop();
+                    right = insets.getSystemWindowInsetRight();
+                    bottom = insets.getSystemWindowInsetBottom();
+                    android.view.DisplayCutout cutout = insets.getDisplayCutout();
+                    if (cutout != null) {
+                        left = Math.max(left, cutout.getSafeInsetLeft());
+                        top = Math.max(top, cutout.getSafeInsetTop());
+                        right = Math.max(right, cutout.getSafeInsetRight());
+                        bottom = Math.max(bottom, cutout.getSafeInsetBottom());
+                    }
+                }
+                v.setPadding(left, top, right, bottom);
                 return insets;
             }
         });
@@ -239,6 +439,7 @@ public final class OneActivity extends Activity
             @Override
             public void onAccount() {
                 accountScreen.open();
+                refreshAccessibility();
             }
 
             @Override
@@ -327,7 +528,35 @@ public final class OneActivity extends Activity
 
         setContentView(rootFrame);
         registerBackHandler();
-        main.postDelayed(ticker, TICK_MS);
+        refreshAccessibility();
+    }
+
+    /**
+     * Keeps only the active layer in the accessibility tree. Every visible overlay makes
+     * the layers underneath {@code IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS}, so
+     * TalkBack and {@code uiautomator} do not walk into covered screens (the player used
+     * to expose the whole Início tree behind it). The mini player floats above the
+     * collection/search/detail overlays but is covered by the player and the sheets.
+     */
+    private void refreshAccessibility() {
+        View[] layers = {collectionHost, searchScreen.view(), detailHost,
+                playerScreen.view(), actionSheet, updatesScreen.view(), accountScreen.view()};
+        int active = -1;
+        for (int i = 0; i < layers.length; i++) {
+            if (layers[i] != null && layers[i].getVisibility() == View.VISIBLE) active = i;
+        }
+        for (int i = 0; i < layers.length; i++) {
+            if (layers[i] == null) continue;
+            layers[i].setImportantForAccessibility(i < active
+                    ? View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                    : View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
+        }
+        base.setImportantForAccessibility(active < 0
+                ? View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+                : View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
+        miniPlayer.setImportantForAccessibility(active < 3
+                ? View.IMPORTANT_FOR_ACCESSIBILITY_AUTO
+                : View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS);
     }
 
     private static View firstFocusable(View root) {
@@ -349,6 +578,11 @@ public final class OneActivity extends Activity
     public void onConnected() {
         Log.i(TAG, "connected");
         reconnecting = false;
+        reconnectPending = false;
+        main.removeCallbacks(reconnect);
+        // During a post-login rebuild the catalogue is still coming; only reset the
+        // backoff once a plain service restart has reconnected.
+        if (!refreshingCatalog) reconnectDelay = RECONNECT_INITIAL_MS;
         setStatus("Conectado ao Apple Music");
         loadAsync(MediaClient.AUTO_ROOT);
     }
@@ -356,26 +590,19 @@ public final class OneActivity extends Activity
     @Override
     public void onDisconnected(String message) {
         Log.w(TAG, "disconnected: " + message);
-        if ((reconnecting || refreshingCatalog) && refreshAttempts < MAX_RECONNECT_ATTEMPTS) {
-            refreshAttempts++;
-            reconnecting = true;
-            setStatus("Reconectando ao Apple Music…");
-            main.removeCallbacks(reconnect);
-            main.postDelayed(reconnect, RECONNECT_DELAY_MS);
-            return;
-        }
-        reconnecting = false;
-        refreshingCatalog = false;
-        setStatus(message);
+        setStatus("Reconectando ao Apple Music…");
+        scheduleReconnect();
     }
 
     @Override
     public void onChildrenFailed(String parentId) {
         Log.w(TAG, "children failed: " + parentId);
         if (MediaClient.AUTO_ROOT.equals(parentId) && retryCatalog()) return;
-        ChildSink sink = pending.get(parentId);
-        if (sink != null) {
-            sink.onFailed(parentId);
+        List<ChildSink> sinks = pending.get(parentId);
+        if (sinks != null && !sinks.isEmpty()) {
+            for (ChildSink sink : new ArrayList<ChildSink>(sinks)) {
+                sink.onFailed(parentId);
+            }
         } else {
             setStatus("Não foi possível carregar " + parentId);
         }
@@ -387,9 +614,11 @@ public final class OneActivity extends Activity
             onRoot(children);
             return;
         }
-        ChildSink sink = pending.get(parentId);
-        if (sink != null) {
-            sink.onChildren(parentId, children);
+        List<ChildSink> sinks = pending.get(parentId);
+        if (sinks != null && !sinks.isEmpty()) {
+            for (ChildSink sink : new ArrayList<ChildSink>(sinks)) {
+                sink.onChildren(parentId, children);
+            }
             return;
         }
         Log.w(TAG, "unhandled children for " + parentId);
@@ -408,13 +637,18 @@ public final class OneActivity extends Activity
         }
         rootReceived = true;
         refreshingCatalog = false;
-        refreshAttempts = 0;
+        reconnectDelay = RECONNECT_INITIAL_MS;
         tabs.clear();
         tabs.addAll(found);
         String[] labels = new String[tabs.size()];
         for (int i = 0; i < tabs.size(); i++) labels[i] = label(tabs.get(i));
-        topBar.setTabs(labels, 0);
-        selectTab(0);
+        final Bundle saved = restoreState;
+        restoreState = null;
+        int index = saved == null ? 0 : restoredTab();
+        Log.i(TAG, "root arrived, tab=" + index + (saved == null ? "" : " (restored)"));
+        topBar.setTabs(labels, index);
+        selectTab(index, saved);
+        if (saved != null) restoreOverlays(saved);
         // TV has no touch: start the D-pad on the selected tab, not on the top bar.
         if (!hasTouch) {
             main.post(new Runnable() {
@@ -426,17 +660,65 @@ public final class OneActivity extends Activity
         }
     }
 
+    /** Index of the tab that was selected before the rotation, by id with index fallback. */
+    private int restoredTab() {
+        if (restoreTabId != null) {
+            for (int i = 0; i < tabs.size(); i++) {
+                if (restoreTabId.equals(tabs.get(i).id)) return i;
+            }
+        }
+        if (restoreTabIndex >= 0 && restoreTabIndex < tabs.size()) return restoreTabIndex;
+        return 0;
+    }
+
     /**
-     * The engine service may still be restarting after sign-in; keep the browse session
-     * reconnecting until the catalogue arrives or the attempts run out.
+     * Puts the overlays back on top of the restored tab. Collection and detail reload only
+     * their top level (the breadcrumb keeps the path); the player/queue/actions wait for
+     * the session snapshot in {@link #applyPlayback()}.
+     */
+    private void restoreOverlays(Bundle saved) {
+        int collectionCount = saved.getInt(PREFIX_COLLECTION + ".count", 0);
+        if (collectionCount > 0) {
+            closeCollectionOverlay();
+            int mode = saved.getBoolean(KEY_COLLECTION_GRID, false)
+                    ? CollectionScreen.GRID : CollectionScreen.LIST;
+            overlayGrid = mode == CollectionScreen.GRID;
+            overlayCollection = new CollectionScreen(this, this, artwork, catalog, mode,
+                    Icons.NOTE);
+            collectionHost.removeAllViews();
+            collectionHost.addView(overlayCollection.view(), new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            overlayCollection.setExitOnRootBack(true);
+            collectionHost.setVisibility(View.VISIBLE);
+            overlayCollection.restoreState(saved, PREFIX_COLLECTION);
+        }
+        if (saved.getInt("one.detail.count", 0) > 0) {
+            closeDetailOverlay();
+            detailScreen = new DetailScreen(this, this, artwork, catalog);
+            detailHost.removeAllViews();
+            detailHost.addView(detailScreen.view(), new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            detailScreen.setExitOnRootBack(true);
+            detailHost.setVisibility(View.VISIBLE);
+            setDetailFocus(true);
+            detailScreen.restoreState(saved);
+        }
+        Log.i(TAG, "overlays restored: collection=" + (collectionCount > 0)
+                + " detail=" + (saved.getInt("one.detail.count", 0) > 0)
+                + " player=" + saved.getBoolean(KEY_PLAYER, false)
+                + " queue=" + saved.getBoolean(KEY_QUEUE, false)
+                + " actions=" + saved.getBoolean(KEY_ACTIONS, false));
+        refreshAccessibility();
+    }
+
+    /**
+     * The engine service may still be restarting after sign-in; keep retrying (with the
+     * same backoff) until the catalogue arrives.
      */
     private boolean retryCatalog() {
-        if (!refreshingCatalog || refreshAttempts >= MAX_RECONNECT_ATTEMPTS) return false;
-        refreshAttempts++;
-        reconnecting = true;
+        if (!refreshingCatalog) return false;
         setStatus("Aguardando o catálogo do Apple Music…");
-        main.removeCallbacks(reconnect);
-        main.postDelayed(reconnect, RECONNECT_DELAY_MS);
+        scheduleReconnect();
         return true;
     }
 
@@ -469,6 +751,10 @@ public final class OneActivity extends Activity
     }
 
     private void selectTab(int index) {
+        selectTab(index, null);
+    }
+
+    private void selectTab(int index, Bundle saved) {
         if (index < 0 || index >= tabs.size()) return;
         disposeTabScreen();
         selectedTab = index;
@@ -482,19 +768,23 @@ public final class OneActivity extends Activity
             view = homeScreen.view();
             screenHost.addView(view, new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            if (saved != null) homeScreen.restoreState(saved);
             homeScreen.bind(tab);
         } else if (kind == KIND_RADIO) {
             tabCollection = new RadioScreen(this, this, artwork, catalog);
             view = tabCollection.view();
             screenHost.addView(view, new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-            tabCollection.bind(tab.id, label(tab));
+            boolean restored = saved != null
+                    && tabCollection.restoreState(saved, PREFIX_RADIO);
+            if (!restored) tabCollection.bind(tab.id, label(tab));
         } else {
             libraryScreen = new LibraryScreen(this, this, artwork, catalog);
             libraryScreen.setDownFocusId(miniPlayer.getId());
             view = libraryScreen.view();
             screenHost.addView(view, new FrameLayout.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            if (saved != null) libraryScreen.restoreState(saved);
             libraryScreen.bind(tab.id, label(tab));
         }
         setStatus("Carregando " + label(tab) + "…");
@@ -520,15 +810,93 @@ public final class OneActivity extends Activity
 
     @Override
     public void loadChildren(String parentId, ChildSink sink) {
-        pending.put(parentId, sink);
+        // Two screens can be restored on top of each other (a tab and its "Ver tudo"
+        // overlay); a node that is already in the client's cache is answered straight
+        // away instead of issuing a second subscription.
+        List<MediaClient.Item> cached = client.cachedChildren(parentId);
+        if (cached != null) {
+            sink.onChildren(parentId, cached);
+            return;
+        }
+        List<ChildSink> sinks = pending.get(parentId);
+        if (sinks == null) {
+            sinks = new ArrayList<ChildSink>();
+            pending.put(parentId, sinks);
+        }
+        sinks.add(sink);
         loadAsync(parentId);
+    }
+
+    @Override
+    public List<LibrarySection> librarySections() {
+        List<LibrarySection> built = buildLibrarySections();
+        if (built != null) {
+            librarySnapshot = built;
+            return built;
+        }
+        // New activity (rotation) has a fresh client cache; the snapshot survives it.
+        return librarySnapshot;
+    }
+
+    /** Reads the library sections from the browse cache; null when the tab never loaded. */
+    private List<LibrarySection> buildLibrarySections() {
+        String rootId = null;
+        for (MediaClient.Item tab : tabs) {
+            if (kindOf(tab) == KIND_LIBRARY) {
+                rootId = tab.id;
+                break;
+            }
+        }
+        if (rootId == null) rootId = LIBRARY_ROOT;
+        List<MediaClient.Item> categories = client.cachedChildren(rootId);
+        if (categories == null) return null;
+        List<LibrarySection> sections = new ArrayList<LibrarySection>();
+        for (MediaClient.Item category : categories) {
+            List<MediaClient.Item> items = client.cachedChildren(category.id);
+            if (items == null || items.isEmpty()) continue;
+            sections.add(new LibrarySection(category.title, items));
+        }
+        return sections;
+    }
+
+    @Override
+    public void openLibrary() {
+        if (searchScreen.isOpen()) closeSearch();
+        for (int i = 0; i < tabs.size(); i++) {
+            if (kindOf(tabs.get(i)) == KIND_LIBRARY) {
+                selectTab(i);
+                refreshAccessibility();
+                return;
+            }
+        }
+        setStatus("Biblioteca indisponível");
+    }
+
+    @Override
+    public void refreshChildren(final String parentId, ChildSink sink) {
+        // Explicit refresh: replace the subscribers of this node and ask the engine again
+        // instead of answering from the cache.
+        List<ChildSink> sinks = new ArrayList<ChildSink>();
+        sinks.add(sink);
+        pending.put(parentId, sinks);
+        loader.execute(new Runnable() {
+            @Override
+            public void run() {
+                client.invalidate(parentId);
+                client.subscribe(parentId);
+            }
+        });
     }
 
     @Override
     public void forgetChildren(ChildSink sink) {
         List<String> drop = new ArrayList<String>();
-        for (Map.Entry<String, ChildSink> entry : pending.entrySet()) {
-            if (entry.getValue() == sink) drop.add(entry.getKey());
+        for (Map.Entry<String, List<ChildSink>> entry : pending.entrySet()) {
+            List<ChildSink> sinks = entry.getValue();
+            while (sinks.remove(sink)) {
+                // Remove every occurrence (loadChildren never adds the same sink twice).
+            }
+            if (sinks.isEmpty()) drop.add(entry.getKey());
         }
         for (String key : drop) pending.remove(key);
     }
@@ -608,12 +976,14 @@ public final class OneActivity extends Activity
     @Override
     public void openSearch() {
         searchScreen.open();
+        refreshAccessibility();
     }
 
     @Override
     public void openUpdates() {
         updatesScreen.open();
         updater.check();
+        refreshAccessibility();
     }
 
     @Override
@@ -625,11 +995,13 @@ public final class OneActivity extends Activity
         playerScreen.update(latest);
         playerScreen.view().setVisibility(View.VISIBLE);
         playerScreen.focus();
+        refreshAccessibility();
     }
 
     @Override
     public void openCollection(String title, String parentId, boolean grid) {
         closeCollectionOverlay();
+        overlayGrid = grid;
         overlayCollection = new CollectionScreen(this, this, artwork, catalog,
                 grid ? CollectionScreen.GRID : CollectionScreen.LIST, Icons.NOTE);
         collectionHost.removeAllViews();
@@ -639,12 +1011,14 @@ public final class OneActivity extends Activity
         collectionHost.setVisibility(View.VISIBLE);
         overlayCollection.bind(parentId, title);
         setStatus("");
+        refreshAccessibility();
     }
 
     @Override
     public void openLibraryCollection(int kind, String title, String subtitle,
                                       String libraryId) {
         closeCollectionOverlay();
+        overlayGrid = false;
         overlayCollection = new CollectionScreen(this, this, artwork, catalog,
                 CollectionScreen.LIST, Icons.NOTE);
         collectionHost.removeAllViews();
@@ -654,6 +1028,7 @@ public final class OneActivity extends Activity
         collectionHost.setVisibility(View.VISIBLE);
         overlayCollection.bindCollection(kind, title, subtitle, libraryId);
         setStatus("");
+        refreshAccessibility();
     }
 
     @Override
@@ -705,6 +1080,7 @@ public final class OneActivity extends Activity
                 break;
         }
         setStatus("");
+        refreshAccessibility();
     }
 
     @Override
@@ -723,6 +1099,7 @@ public final class OneActivity extends Activity
             detailHost.setVisibility(View.GONE);
         }
         setDetailFocus(false);
+        refreshAccessibility();
     }
 
     /**
@@ -762,33 +1139,63 @@ public final class OneActivity extends Activity
         setStatus("Criando estação…");
     }
 
+    /**
+     * Player toggles (aleatório/repetir/favorito) are sent straight from the player; the
+     * engine does not publish the resulting shuffle/repeat state, so the confirmation says
+     * the action was toggled instead of claiming a new state.
+     */
+    @Override
+    public String sessionAction(String actionId) {
+        client.sendCustomAction(actionId);
+        String feedback = feedback(actionId);
+        setStatus(feedback);
+        return feedback;
+    }
+
+    /** Session actions minus the three that now live as player buttons. */
+    private static List<MediaClient.Action> itemActionsOf(List<MediaClient.Action> actions) {
+        List<MediaClient.Action> remaining = new ArrayList<MediaClient.Action>();
+        for (MediaClient.Action action : actions) {
+            if (action.action.endsWith(ACTION_SHUFFLE)
+                    || action.action.endsWith(ACTION_REPEAT)
+                    || action.action.endsWith(ACTION_FAVORITE)) continue;
+            remaining.add(action);
+        }
+        return remaining;
+    }
+
     @Override
     public void closePlayer() {
         playerScreen.close();
+        refreshAccessibility();
         if (!hasTouch) focusSelectedTab();
     }
 
     @Override
     public void closeSearch() {
         searchScreen.close();
+        refreshAccessibility();
         if (!hasTouch) focusSelectedTab();
     }
 
     @Override
     public void closeActions() {
         actionSheet.hide();
+        refreshAccessibility();
         if (!hasTouch) focusSelectedTab();
     }
 
     @Override
     public void closeUpdates() {
         updatesScreen.close();
+        refreshAccessibility();
         if (!hasTouch) focusSelectedTab();
     }
 
     @Override
     public void closeAccount() {
         accountScreen.close();
+        refreshAccessibility();
         if (!hasTouch) focusSelectedTab();
     }
 
@@ -805,6 +1212,7 @@ public final class OneActivity extends Activity
         }
         collectionHost.removeAllViews();
         collectionHost.setVisibility(View.GONE);
+        refreshAccessibility();
     }
 
     @Override
@@ -827,6 +1235,18 @@ public final class OneActivity extends Activity
 
     private void applyPlayback() {
         MediaClient.Snapshot snapshot = latest;
+        if (restorePlayer && snapshot.hasSession) {
+            restorePlayer = false;
+            openPlayer();
+            if (restoreQueue) {
+                restoreQueue = false;
+                playerScreen.openQueueRestored();
+            }
+        }
+        if (restoreActions && snapshot.hasSession) {
+            restoreActions = false;
+            showActions(actionsHeading, actionsSubtitle, actionsItem);
+        }
         boolean visible = snapshot.hasSession
                 && (snapshot.title.length() > 0 || snapshot.playing);
         miniPlayer.setVisibility(visible ? View.VISIBLE : View.GONE);
@@ -834,6 +1254,7 @@ public final class OneActivity extends Activity
         if (visible != miniVisible) {
             miniVisible = visible;
             base.setPadding(0, 0, 0, visible ? Tokens.dp(84) : 0);
+            refreshAccessibility();
         }
         if (playerScreen.view().getVisibility() == View.VISIBLE) {
             playerScreen.update(snapshot);
@@ -844,6 +1265,7 @@ public final class OneActivity extends Activity
         if (detailScreen != null) detailScreen.updatePlayback(snapshot);
     }
 
+    /** Advances the position only; metadata and queue arrive through the callbacks. */
     private final Runnable ticker = new Runnable() {
         @Override
         public void run() {
@@ -855,11 +1277,16 @@ public final class OneActivity extends Activity
     // --- actions ------------------------------------------------------------------
 
     private void showActions(String heading, String subtitle, final MediaClient.Item item) {
-        final List<MediaClient.Action> actions = latest.actions;
+        final List<MediaClient.Action> actions = itemActionsOf(latest.actions);
         if (actions.isEmpty()) {
-            setStatus("Nenhuma ação disponível nesta sessão");
+            setStatus(latest.actions.isEmpty()
+                    ? "Nenhuma ação disponível nesta sessão"
+                    : "As ações desta sessão já estão nos botões do player");
             return;
         }
+        actionsHeading = heading;
+        actionsSubtitle = subtitle;
+        actionsItem = item;
         actionSheet.show(heading, subtitle, actions, new ActionSheet.Listener() {
             @Override
             public void onAction(MediaClient.Action action) {
@@ -878,6 +1305,7 @@ public final class OneActivity extends Activity
                 closeActions();
             }
         });
+        refreshAccessibility();
     }
 
     private void runItemAction(final MediaClient.Item item, final MediaClient.Action action) {
@@ -926,7 +1354,9 @@ public final class OneActivity extends Activity
 
     private static String feedback(String actionId) {
         if (actionId.endsWith(ACTION_CREATE_STATION)) return "Criando estação…";
-        if (actionId.endsWith(ACTION_FAVORITE)) return "Favorito aplicado";
+        if (actionId.endsWith(ACTION_SHUFFLE)) return "Aleatório alternado";
+        if (actionId.endsWith(ACTION_REPEAT)) return "Repetir alternado";
+        if (actionId.endsWith(ACTION_FAVORITE)) return "Favorito alternado";
         if (actionId.endsWith(ACTION_ADD_TO_LIBRARY)) return "Adicionado à Biblioteca";
         return "Ação enviada";
     }
@@ -1039,6 +1469,262 @@ public final class OneActivity extends Activity
         }
     }
 
+    /**
+     * Account/subscription management lives in the engine. The validated path is
+     * {@code ACTION_VIEW https://itunes.apple.com/accountSummary} on the engine's
+     * {@code MainActivity}. The engine is {@code singleTask}, so an existing instance is
+     * reused and only resumes; the watcher therefore hooks the resume too. Once the
+     * engine screen is up, its BACK is redirected here: the account page is a nav
+     * destination inside the engine's activity, so otherwise BACK would pop to the
+     * engine home instead of returning to this UI.
+     *
+     * <p>The account action is registered from the activity, so it disappears with it.
+     * If the component or the deep link is gone, fall back to the plain engine activity
+     * instead of dead-ending the tap.
+     */
+    @Override
+    public void openAccountSummary() {
+        final Application app = getApplication();
+        clearAccountWatcher(app);
+        final ActivityWatcher watcher = new ActivityWatcher(MediaClient.ACCOUNT_ACTIVITY) {
+            @Override
+            void onTarget(final Activity activity) {
+                clearAccountWatcher(app);
+                // The engine installs its own navigator callback while the Compose screen
+                // settles: hook after it so clearing its callbacks actually removes it.
+                main.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (activity.isFinishing() || activity.isDestroyed()) return;
+                        interceptAccountBack(activity);
+                    }
+                }, 1200L);
+            }
+        };
+        accountWatcher = watcher;
+        app.registerActivityLifecycleCallbacks(watcher);
+        accountWatcherTimeout = new Runnable() {
+            @Override
+            public void run() {
+                Log.w(TAG, "the account screen did not come up");
+                clearAccountWatcher(app);
+            }
+        };
+        main.postDelayed(accountWatcherTimeout, 5000L);
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse(ACCOUNT_SUMMARY_URL));
+            intent.setClassName(MediaClient.PACKAGE, MediaClient.ACCOUNT_ACTIVITY);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Throwable t) {
+            clearAccountWatcher(app);
+            Log.w(TAG, "account deep link unavailable, opening the engine home", t);
+            openEngine();
+        }
+    }
+
+    // --- engine settings ----------------------------------------------------------
+
+    @Override
+    public boolean engineSettingsAvailable() {
+        return engineSettingsId() != 0
+                && hasEngineClass(SETTINGS_NAV_CLASS)
+                && hasEngineClass(MediaClient.ACCOUNT_ACTIVITY);
+    }
+
+    /**
+     * The engine has no settings activity: {@code SettingsFragment} is a navigation
+     * destination inside {@code MainActivity}, reached through its R8-renamed helper
+     * {@code M9.p.a(Context, R.id.action_settings)}. Start the engine activity, wait for
+     * its NavHost, navigate, and leave BACK finishing the engine so the user lands here.
+     */
+    @Override
+    public void openEngineSettings() {
+        final Application app = getApplication();
+        clearAccountWatcher(app);
+        final ActivityWatcher watcher = new ActivityWatcher(MediaClient.ACCOUNT_ACTIVITY) {
+            @Override
+            void onTarget(final Activity activity) {
+                clearAccountWatcher(app);
+                main.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        navigateToEngineSettings(activity, engineSettingsId(), 0);
+                    }
+                }, 700L);
+            }
+        };
+        accountWatcher = watcher;
+        app.registerActivityLifecycleCallbacks(watcher);
+        accountWatcherTimeout = new Runnable() {
+            @Override
+            public void run() {
+                Log.w(TAG, "the engine settings host did not come up");
+                clearAccountWatcher(app);
+                setStatus("Não foi possível abrir os Ajustes do Apple Music");
+            }
+        };
+        main.postDelayed(accountWatcherTimeout, 5000L);
+        try {
+            Intent intent = new Intent();
+            intent.setClassName(MediaClient.PACKAGE, MediaClient.ACCOUNT_ACTIVITY);
+            startActivity(intent);
+        } catch (Throwable t) {
+            clearAccountWatcher(app);
+            Log.e(TAG, "cannot open the engine settings host", t);
+            setStatus("Não foi possível abrir os Ajustes do Apple Music");
+        }
+    }
+
+    private int engineSettingsId() {
+        try {
+            return getResources().getIdentifier(SETTINGS_DESTINATION, "id", MediaClient.PACKAGE);
+        } catch (Throwable t) {
+            return 0;
+        }
+    }
+
+    private static boolean hasEngineClass(String name) {
+        try {
+            Class.forName(name, false, OneActivity.class.getClassLoader());
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
+     * Waits for the engine's NavHost (it is added after the host activity resumes) before
+     * calling the navigation helper; the helper throws when the host is not ready, so a
+     * bounded retry runs instead of showing the engine home.
+     */
+    private void navigateToEngineSettings(final Activity host, final int id, final int attempt) {
+        if (host.isFinishing() || host.isDestroyed()) return;
+        if (attempt > 20) {
+            Log.w(TAG, "cannot navigate to the engine settings after " + attempt + " tries");
+            setStatus("Não foi possível abrir os Ajustes do Apple Music");
+            host.finish();
+            return;
+        }
+        boolean retry;
+        try {
+            Class<?> nav = Class.forName(SETTINGS_NAV_CLASS);
+            Object navHost = nav.getMethod("g", Context.class).invoke(null, host);
+            if (navHost == null) {
+                retry = true;
+            } else {
+                nav.getMethod("a", Context.class, int.class).invoke(null, host, id);
+                Log.i(TAG, "engine settings opened id=0x" + Integer.toHexString(id));
+                main.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        interceptAccountBack(host);
+                    }
+                }, 1000L);
+                retry = false;
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "engine settings navigation attempt " + attempt + ": " + t);
+            retry = true;
+        }
+        if (retry) {
+            main.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    navigateToEngineSettings(host, id, attempt + 1);
+                }
+            }, 250L);
+        }
+    }
+
+    /** One BACK on the engine's account screen returns to this UI, not to the engine home. */
+    private void interceptAccountBack(final Activity host) {
+        boolean hooked = hookEngineBackDispatcher(host);
+        if (Build.VERSION.SDK_INT >= 33) {
+            // Predictive back: an overlay callback wins over the engine's navigator even
+            // when the dispatcher hook above did not run in time.
+            registerAccountBack(host, OnBackInvokedDispatcher.PRIORITY_OVERLAY);
+        } else if (!hooked) {
+            Log.w(TAG, "account BACK redirection needs API 33+");
+        }
+    }
+
+    /**
+     * The account page is a navigation destination inside the engine's own activity, so
+     * its BACK pops to the engine home. The activity's AndroidX back dispatcher is the
+     * only hook that covers both the legacy BACK key (TV/API 34) and predictive back:
+     * replace its fallback with {@code finish()} and clear the engine's callbacks, so any
+     * BACK leaves the account screen instead of navigating inside the engine.
+     *
+     * <p>The dispatcher accessor is the engine's R8-renamed
+     * {@code ComponentActivity.getOnBackPressedDispatcher()} and the field types are
+     * discovered at runtime; if the engine build changes, this returns false and the
+     * OnBackInvoked fallback below takes over.
+     */
+    private boolean hookEngineBackDispatcher(final Activity host) {
+        try {
+            Object dispatcher = host.getClass().getMethod("m0").invoke(host);
+            if (dispatcher == null) return false;
+            boolean hookedFallback = false;
+            boolean clearedCallbacks = false;
+            for (java.lang.reflect.Field field : dispatcher.getClass().getDeclaredFields()) {
+                if (java.lang.reflect.Modifier.isStatic(field.getModifiers())) continue;
+                field.setAccessible(true);
+                Object value = field.get(dispatcher);
+                if (value instanceof Runnable && !hookedFallback) {
+                    field.set(dispatcher, new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i(TAG, "account screen BACK, returning to the UI");
+                            host.finish();
+                        }
+                    });
+                    hookedFallback = true;
+                } else if (value instanceof java.util.Collection) {
+                    ((java.util.Collection<?>) value).clear();
+                    clearedCallbacks = true;
+                }
+            }
+            if (hookedFallback && clearedCallbacks) {
+                Log.i(TAG, "account BACK hooked on the engine back dispatcher");
+                return true;
+            }
+            Log.w(TAG, "engine back dispatcher has an unexpected shape");
+        } catch (Throwable t) {
+            Log.w(TAG, "cannot hook the engine back dispatcher", t);
+        }
+        return false;
+    }
+
+    private void registerAccountBack(final Activity host, int priority) {
+        try {
+            host.getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                    priority,
+                    new OnBackInvokedCallback() {
+                        @Override
+                        public void onBackInvoked() {
+                            Log.i(TAG, "account screen BACK, returning to the UI");
+                            host.finish();
+                        }
+                    });
+            Log.i(TAG, "account BACK registered priority=" + priority + " on " + host);
+        } catch (Throwable t) {
+            Log.w(TAG, "cannot take over the account screen BACK (priority " + priority + ")", t);
+        }
+    }
+
+    private void clearAccountWatcher(Application app) {
+        if (accountWatcherTimeout != null) {
+            main.removeCallbacks(accountWatcherTimeout);
+            accountWatcherTimeout = null;
+        }
+        if (accountWatcher != null) {
+            app.unregisterActivityLifecycleCallbacks(accountWatcher);
+            accountWatcher = null;
+        }
+    }
+
     /** Detects the engine activity we just started so it can be driven by reflection. */
     private abstract static class ActivityWatcher implements Application.ActivityLifecycleCallbacks {
         private final String target;
@@ -1060,6 +1746,8 @@ public final class OneActivity extends Activity
 
         @Override
         public void onActivityResumed(Activity activity) {
+            // The engine activities are singleTask: a reused instance only resumes.
+            if (target.equals(activity.getClass().getName())) onTarget(activity);
         }
 
         @Override
@@ -1093,12 +1781,7 @@ public final class OneActivity extends Activity
     }
 
     private String engineVersion() {
-        try {
-            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
-            return info.versionName + " (" + info.versionCode + ")";
-        } catch (Throwable t) {
-            return "?";
-        }
+        return Version.ENGINE;
     }
 
     /**
@@ -1142,6 +1825,55 @@ public final class OneActivity extends Activity
         super.onNewIntent(intent);
         setIntent(intent);
         handleInstallStatus(intent);
+    }
+
+    /**
+     * A rotation recreates the activity, so the screen itself is state: the selected tab,
+     * the overlay stack (collection/detail with their ids and breadcrumb, search term,
+     * player/queue/actions/account/updates), the Biblioteca filter and the scroll offsets.
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle out) {
+        super.onSaveInstanceState(out);
+        if (restoreState != null && !rootReceived) {
+            // Rotated again before the browse tree arrived: carry the pending restore over.
+            out.putAll(restoreState);
+            return;
+        }
+        out.putInt(KEY_TAB, selectedTab);
+        if (selectedTab >= 0 && selectedTab < tabs.size()) {
+            out.putString(KEY_TAB_ID, tabs.get(selectedTab).id);
+        }
+        out.putBoolean(KEY_REFRESH, refreshOnResume);
+        if (homeScreen != null) homeScreen.saveState(out);
+        if (libraryScreen != null) libraryScreen.saveState(out);
+        if (tabCollection != null) tabCollection.saveState(out, PREFIX_RADIO);
+        if (overlayCollection != null) {
+            overlayCollection.saveState(out, PREFIX_COLLECTION);
+            out.putBoolean(KEY_COLLECTION_GRID, overlayGrid);
+        }
+        if (detailScreen != null) detailScreen.saveState(out);
+        if (searchScreen != null) searchScreen.saveState(out);
+        if (playerScreen != null) {
+            out.putBoolean(KEY_PLAYER, playerScreen.isOpen());
+            out.putBoolean(KEY_QUEUE, playerScreen.isQueueOpen());
+        }
+        if (actionSheet != null && actionSheet.isOpen()) {
+            out.putBoolean(KEY_ACTIONS, true);
+            out.putString(KEY_ACTIONS_HEADING, actionsHeading);
+            out.putString(KEY_ACTIONS_SUBTITLE, actionsSubtitle);
+            out.putBoolean(KEY_ACTIONS_ITEM, actionsItem != null);
+            if (actionsItem != null) {
+                out.putString(KEY_ACTIONS_ID, actionsItem.id);
+                out.putString(KEY_ACTIONS_TITLE, actionsItem.title);
+                out.putString(KEY_ACTIONS_DETAIL, actionsItem.subtitle);
+                out.putString(KEY_ACTIONS_ART, actionsItem.artworkUri);
+                out.putBoolean(KEY_ACTIONS_BROWSABLE, actionsItem.browsable);
+                out.putBoolean(KEY_ACTIONS_PLAYABLE, actionsItem.playable);
+            }
+        }
+        if (updatesScreen != null) out.putBoolean(KEY_UPDATES, updatesScreen.isOpen());
+        if (accountScreen != null) out.putBoolean(KEY_ACCOUNT, accountScreen.isOpen());
     }
 
     // --- misc ----------------------------------------------------------------------
@@ -1219,9 +1951,14 @@ public final class OneActivity extends Activity
 
     @Override
     protected void onDestroy() {
+        started = false;
+        tickerRunning = false;
+        reconnectPending = false;
+        destroyed = true;
         main.removeCallbacks(ticker);
         main.removeCallbacks(reconnect);
         if (authPoll != null) main.removeCallbacks(authPoll);
+        clearAccountWatcher(getApplication());
         disposeTabScreen();
         if (overlayCollection != null) overlayCollection.dispose();
         if (detailScreen != null) detailScreen.dispose();

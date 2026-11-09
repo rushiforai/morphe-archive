@@ -74,6 +74,9 @@ public sealed class RedditWorld
     /// <summary>How the login page looks.</summary>
     public LoginPageOptions LoginPage { get; private set; } = new();
 
+    // The account "E2E fake Reddit" hands the app at its next start (LogInAtStart), until the app asks.
+    private Account? loginAtStart;
+
     /// <summary>
     /// Refuses Reddit's API to a logged-out app, as Reddit does to BaconReader: <c>403 Blocked</c>, whatever its
     /// client (on by default). The login, BaconReader's own server and media still answer.
@@ -138,6 +141,7 @@ public sealed class RedditWorld
             Imgflip.Reset();
             Chat.Reset();
             LoginPage = new LoginPageOptions();
+            loginAtStart = null;
             BlocksLoggedOut = true;
             BlocksMoreChildren = false;
             // Reddit's ids are base 36; starting at 36^4 makes them five characters, like an old post's.
@@ -163,6 +167,27 @@ public sealed class RedditWorld
             accounts.Add(account);
             return account;
         }
+    }
+
+    /// <summary>
+    /// Hands the app a login of the account <paramref name="name"/> at its next start, as if it had logged in through the
+    /// login screens: "E2E fake Reddit" asks at the app's start (<c>GET /_e2e/login</c>), and the app starts logged in,
+    /// with a token and a refresh token of the account. Once: the start after that is the app's own.
+    /// </summary>
+    public void LogInAtStart(string name)
+    {
+        lock (Sync)
+        {
+            loginAtStart = FindAccount(name) ?? throw new InvalidOperationException($"The fake Reddit has no account \"{name}\".");
+        }
+    }
+
+    // The account to hand the app at its start, if any, once.
+    internal Account? TakeLoginAtStart()
+    {
+        var account = loginAtStart;
+        loginAtStart = null;
+        return account;
     }
 
     /// <summary>The subreddit named <paramref name="name"/> (without "r/"), made as a default subreddit if it's new.</summary>

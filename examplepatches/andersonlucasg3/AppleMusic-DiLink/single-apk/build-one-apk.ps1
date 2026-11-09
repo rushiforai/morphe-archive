@@ -12,7 +12,8 @@
 
     For every ABI:
       1. extract the engine's binary AndroidManifest.xml;
-      2. inject <activity android:name=... android:theme=...> with MAIN/LAUNCHER
+      2. inject <activity android:name=... android:theme=...> with MAIN/LAUNCHER and
+         rewrite the manifest's versionName/versionCode to the UI version
          (single-apk/tools/axml_inject.py);
       3. pack the patched manifest + classesN.dex into a copy of the engine
          (single-apk/tools/pack_single_apk.py);
@@ -97,6 +98,18 @@ $names = @{
     x86   = "AppleMusic-one-x86.apk"
 }
 
+# The manifest carries the UI version, so the engine's own 7.0.0 no longer shows up in
+# the package; capture it from the input APK for the "Atualizações" panel.
+$engineProbe = @($Abi | ForEach-Object { $engines[$_] } |
+    Where-Object { Test-Path $_ } | Select-Object -First 1)
+$engineVersion = "?"
+if ($engineProbe.Count -gt 0) {
+    $enginePackage = & $aapt2 dump badging $engineProbe[0] | Select-String -Pattern "^package:"
+    if ("$enginePackage" -match "versionCode='(\d+)' versionName='([^']+)'") {
+        $engineVersion = "$($Matches[2]) ($($Matches[1]))"
+    }
+}
+
 New-Item -ItemType Directory -Force $outDir | Out-Null
 Write-Host "build-tools: $($buildTools.Name)  platform: $($platform.Name)"
 
@@ -125,6 +138,7 @@ package com.anderson.applemusic.one;
 final class Version {
     static final String NAME = "$PoneVersion";
     static final int CODE = $PoneVersionCode;
+    static final String ENGINE = "$engineVersion";
 
     private Version() {
     }
@@ -191,10 +205,11 @@ foreach ($abiName in $Abi) {
         $zip.Dispose()
     }
 
-    Write-Host "manifest : injecting $Activity (theme $Theme) + REQUEST_INSTALL_PACKAGES"
+    Write-Host "manifest : injecting $Activity (theme $Theme) + REQUEST_INSTALL_PACKAGES + version $PoneVersion ($PoneVersionCode)"
     Invoke-Tool "python" @((Join-Path $tools "axml_inject.py"), "--in", $manifestBin,
         "--out", $patchedBin, "--activity", $Activity, "--theme", $Theme,
-        "--permission", "android.permission.REQUEST_INSTALL_PACKAGES")
+        "--permission", "android.permission.REQUEST_INSTALL_PACKAGES",
+        "--version-name", $PoneVersion, "--version-code", "$PoneVersionCode")
 
     $packed = Join-Path $abiDir "one-unsigned.apk"
     Write-Host "pack     : engine + single-ui dex + assets/one + patched manifest"
@@ -215,6 +230,13 @@ foreach ($abiName in $Abi) {
     Invoke-Tool $apksigner @("verify", "--print-certs", $signed)
     $badging = & $aapt2 dump badging $signed
     $badging | Select-String -Pattern "package:|launchable-activity|sdkVersion"
+    $packageLine = "$($badging | Select-String -Pattern '^package:' | Select-Object -First 1)"
+    if ($packageLine -notmatch "versionName='$([regex]::Escape($PoneVersion))'") {
+        throw "versionName in $signed is not $PoneVersion ($packageLine)"
+    }
+    if ($packageLine -notmatch "versionCode='$PoneVersionCode'") {
+        throw "versionCode in $signed is not $PoneVersionCode ($packageLine)"
+    }
     if (-not ($badging | Select-String -Pattern "launchable-activity: name='$Activity'")) {
         throw "injected activity is not the launcher in $signed"
     }

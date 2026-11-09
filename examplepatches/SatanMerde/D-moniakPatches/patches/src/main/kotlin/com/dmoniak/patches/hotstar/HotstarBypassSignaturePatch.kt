@@ -1,19 +1,19 @@
 package com.dmoniak.patches.hotstar
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
-import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
-import com.android.tools.smali.dexlib2.iface.reference.FieldReference
-import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_HOTSTAR
 import com.dmoniak.patches.shared.cloneMethodWithAdditionalRegisters
 import java.util.logging.Logger
 
 @Suppress("unused")
 val hotstarBypassSignaturePatch = bytecodePatch(
-    name = "Bypass Signature & Integrity Check - JioHotstar",
-    description = "Bypasses signature verification and anti-tamper telemetry (IsTampered, package signatures) in JioHotstar, preventing account flagging, session termination, and NET_201 security blocks.",
+    name = "Bypass Signature Check & Anti-Tamper - JioHotstar",
+    description = "Bypasses certificate MD5 verification and internal telemetry tamper detection to prevent API blocks, stream degradation, and account flagging in JioHotstar.",
 ) {
     compatibleWith(COMPATIBILITY_HOTSTAR)
 
@@ -24,91 +24,72 @@ val hotstarBypassSignaturePatch = bytecodePatch(
 }
 
 fun BytecodePatchContext.executeHotstarBypassSignatureLogic(logger: Logger) {
-    logger.info("Executing Bypass Signature & Integrity Check patch for JioHotstar...")
-    var hookedTamperPoints = 0
+    logger.info("Executing Bypass Signature & Anti-Tamper patch for JioHotstar (in.startv.hotstar)...")
 
+    // 1. Battle-tested certificate MD5 hash bypass
+    // Overwrites the computed MD5+Base64 hash with the genuine original signature hash ("GnwgdTsKCP54v02ZSST5iA")
+    // from libnative-lib.so so signature comparison always succeeds on modified/re-signed builds.
+    try {
+        val method = SignatureCheckFingerprint.method
+        val matches = SignatureCheckFingerprint.instructionMatches
+        if (matches.size > 1) {
+            val encodeIndex = matches[1].index
+            val moveResultIndex = encodeIndex + 1
+            val reg = method.getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
+
+            method.addInstructions(
+                moveResultIndex + 1,
+                """
+                const-string v$reg, "GnwgdTsKCP54v02ZSST5iA"
+                """.trimIndent()
+            )
+            logger.info("[Hotstar Signature] Successfully patched certificate MD5 hash verification to genuine cert")
+        }
+    } catch (e: Exception) {
+        logger.warning("[Hotstar Signature] SignatureCheckFingerprint bypass failed: ${e.message}")
+    }
+
+    // 2. Telemetry and AppSuiteInfo IsTampered spoofing
+    var hookedTamper = 0
     classDefForEach { classDef ->
         val type = classDef.type
         val tl = type.lowercase()
         if (tl.startsWith("landroidx/") || tl.startsWith("lkotlin/") || tl.startsWith("ljava/")) return@classDefForEach
 
-        // Find AppSuiteInfo model (or any class computing IsTampered)
-        var referencesIsTampered = false
-        var isTamperedFieldName: String? = null
+        val isTamperTelemetry = (tl.contains("appsuiteinfo") || tl.contains("deviceinfo") || tl.contains("telemetry") || tl.contains("tamper")) &&
+                !tl.startsWith("lcom/google/")
 
-        for (method in classDef.methods) {
-            val impl = method.implementation ?: continue
-            var prevWasTamperedString = false
-            for (insn in impl.instructions) {
-                if (insn is ReferenceInstruction) {
-                    val ref = insn.reference
-                    if (ref is StringReference) {
-                        val s = ref.string
-                        if (s == "IsTampered" || s == "\"IsTampered\":\"" || s == ", IsTampered=") {
-                            referencesIsTampered = true
-                            prevWasTamperedString = true
-                            continue
-                        }
-                    } else if (prevWasTamperedString && ref is FieldReference) {
-                        if (ref.definingClass == type && ref.type == "Ljava/lang/String;") {
-                            isTamperedFieldName = ref.name
-                            prevWasTamperedString = false
-                        }
-                    }
-                }
-            }
-        }
-
-        if (referencesIsTampered) {
-            val fieldToNullify = isTamperedFieldName ?: "A"
-            logger.info("[Hotstar Signature] Found IsTampered in $type (field: $fieldToNullify)")
-
+        if (isTamperTelemetry) {
             for (method in classDef.methods.toList()) {
                 if (method.implementation == null) continue
-                val mName = method.name
+                val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
+                val mName = method.name.lowercase()
+                val retType = method.returnType
 
-                // Hook constructor: override field to "false"
-                if (mName == "<init>") {
-                    try {
-                        val cloned = cloneMethodWithAdditionalRegisters(method, 1)
-                        val returnVoidIdx = cloned.implementation!!.instructions.indexOfLast { 
-                            it.opcode.name == "return-void" 
-                        }
-                        val insertIdx = if (returnVoidIdx >= 0) returnVoidIdx else 0
-                        cloned.addInstructions(
-                            insertIdx,
-                            """
-                            const-string v0, "false"
-                            iput-object v0, p0, $type->$fieldToNullify:Ljava/lang/String;
-                            """.trimIndent()
-                        )
-                        hookedTamperPoints++
-                        logger.fine("[Hotstar Signature] Injected false IsTampered override in $type-><init>")
-                    } catch (e: Exception) {
-                        logger.warning("[Hotstar Signature] Failed to hook $type constructor: ${e.message}")
-                    }
-                }
+                val isTamperedGetter = !isStatic && (
+                    mName == "istampered" ||
+                    mName == "isapptampered" ||
+                    mName == "isapkmodified" ||
+                    mName == "isrootedortampered"
+                ) && retType == "Z"
 
-                // If serializer method a() exists, also hook it
-                if (mName == "a" && method.returnType == "Ljava/lang/String;" && method.parameterTypes.isEmpty()) {
+                if (isTamperedGetter) {
                     try {
-                        val cloned = cloneMethodWithAdditionalRegisters(method, 1)
+                        val cloned = cloneMethodWithAdditionalRegisters(method, 2)
                         cloned.addInstructions(
                             0,
                             """
-                            const-string v0, "false"
-                            iput-object v0, p0, $type->$fieldToNullify:Ljava/lang/String;
+                            const/4 v0, 0x0
+                            return v0
                             """.trimIndent()
                         )
-                        hookedTamperPoints++
-                        logger.fine("[Hotstar Signature] Injected false IsTampered override in $type->a")
-                    } catch (e: Exception) {
-                        logger.warning("[Hotstar Signature] Failed to hook $type->a: ${e.message}")
-                    }
+                        hookedTamper++
+                        logger.fine("[Hotstar Signature] Enforced IsTampered=false on ${type}->${method.name}")
+                    } catch (_: Exception) {}
                 }
             }
         }
     }
 
-    logger.info("[Hotstar Signature] Completed: $hookedTamperPoints tamper points hooked.")
+    logger.info("[Hotstar Signature] Supplemental tamper telemetry points hooked: $hookedTamper")
 }

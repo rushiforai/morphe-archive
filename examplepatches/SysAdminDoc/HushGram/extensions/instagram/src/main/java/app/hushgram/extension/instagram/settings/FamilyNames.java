@@ -17,6 +17,7 @@ package app.hushgram.extension.instagram.settings;
  */
 public final class FamilyNames {
     public static final String HIDE_ADS = "Hide ads";
+    public static final String HIDE_PLUS_UPSELL = "Hide Instagram Plus prompts";
     public static final String SANITIZE_SHARING_LINKS = "Sanitize sharing links";
     public static final String EXTERNAL_BROWSER = "Open links in external browser";
     public static final String BUILD_EXPIRED_POPUP = "Remove build expired popup";
@@ -42,6 +43,7 @@ public final class FamilyNames {
     public static final String STORY_UPLOAD_QUALITY = "Upload stories at full quality";
     public static final String FEED_SOUND = "Start feed videos with sound";
     public static final String FEED_TAP_PAUSE = "Tap a feed video to pause it";
+    public static final String FEED_HOLD_FAST = "Hold for 2x on feed videos";
     public static final String FEED_SEEK_BAR = "Seek bar on feed videos";
     public static final String LONG_PRESS_ZOOM = "Long press to zoom";
     public static final String ROUNDED_POST_CORNERS = "Rounded post corners";
@@ -77,6 +79,7 @@ public final class FamilyNames {
     public static final String ALL_RECENT_SEARCHES = "Show all recent searches";
     public static final String EXPLORE_MENU = "Explore without personalization";
     public static final String NOTES_ROW = "Hide the notes row";
+    public static final String SPLIT_NOTES_ROW = "Split the notes row";
     public static final String INBOX_SEARCH = "Hide the search bar in Messages";
     public static final String INBOX_SUGGESTIONS = "Hide suggested accounts in DMs";
     public static final String INSTANTS = "Hide Instants";
@@ -118,7 +121,11 @@ public final class FamilyNames {
     public static final String COMMENT_EMOJI_ROW = "Hide the comment emoji row";
     public static final String COMMENT_KEYBOARD = "Open comments without the keyboard";
     public static final String COMMENT_GIFS = "Hide GIFs in comments";
+    public static final String COMMENT_SEARCH = "Search comments";
     public static final String FEED_FOLLOW = "Hide Follow on feed posts";
+    public static final String EDITS_LABEL = "Hide Made with Edits";
+    public static final String FEED_SAVE = "Save in the post menu";
+    public static final String WATCH_AGAIN = "Watch again in the feed";
     public static final String ACTIVITY_BUBBLES = "Hide activity bubbles";
     public static final String HIDE_CAPTIONS = "Hide captions";
     public static final String FEED_AUDIO_ICON = "Hide the audio icon on posts";
@@ -131,6 +138,7 @@ public final class FamilyNames {
     public static final String REELS_TAB = "Hide the Reels tab";
     public static final String REELS_SUGGESTIONS = "Hide suggested accounts in Reels";
     public static final String PAID_PARTNERSHIP_REELS = "Hide paid partnership Reels";
+    public static final String LIVE_REELS = "Hide lives in Reels";
     public static final String AI_LABELED_REELS = "Hide AI-labeled reels";
     public static final String CAPTION_WORD_REELS = "Hide reels by caption words";
     public static final String LOW_VIEW_REELS = "Hide reels with few views";
@@ -142,6 +150,7 @@ public final class FamilyNames {
     public static final String REEL_SOUND = "Start reels with sound";
     public static final String REEL_ZOOM = "Pinch to zoom on Reels";
     public static final String REEL_DOUBLE_TAP_SKIP = "Double tap to skip on Reels";
+    public static final String HIDE_REEL_2X_POPUP = "Hide the 2x popup on Reels";
     public static final String REEL_AUTO_SCROLL = "Keep Reels auto scroll on";
     public static final String REEL_SCROLLING = "Stop Reels scrolling";
     public static final String SWIPE_TO_PROFILE = "Swipe left to open the profile";

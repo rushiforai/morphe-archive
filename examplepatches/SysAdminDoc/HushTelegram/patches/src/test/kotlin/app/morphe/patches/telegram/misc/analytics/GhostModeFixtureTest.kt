@@ -7,10 +7,12 @@ package app.morphe.patches.telegram.misc.analytics
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
+import app.morphe.hostsOf
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -45,6 +47,10 @@ import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import app.morphe.util.names.origName
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 private val GHOST_MODE_HOST_CACHE = ConcurrentHashMap<String, List<ClassDef>>()
 
@@ -53,7 +59,7 @@ private val GHOST_MODE_HOST_CACHE = ConcurrentHashMap<String, List<ClassDef>>()
  * analytics over a build's classes and expects nothing to warn about adds these, or the patch says it
  * goes on without Ghost mode.
  */
-internal fun ghostModeHosts(build: File): List<ClassDef> = GHOST_MODE_HOST_CACHE.getOrPut(build.path) {
+internal fun ghostModeHosts(build: File): List<ClassDef> = GHOST_MODE_HOST_CACHE.hostsOf(build.path) {
     FixtureDex.classes(build, setOf(CONNECTIONS_MANAGER)).values.toList()
 }
 
@@ -66,7 +72,7 @@ internal fun ghostModeHosts(build: File): List<ClassDef> = GHOST_MODE_HOST_CACHE
 class GhostModeFixtureTest {
     @Test
     fun `every request Ghost mode keeps back is a class each declared build still has under that name`() {
-        val named = ExtensionDex.classes().single { it.type == GHOST_MODE }.methods.flatMap { it.instructions() }
+        val named = ExtensionDex.classes().single { it.origType == GHOST_MODE }.methods.flatMap { it.instructions() }
             .mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
             .filter { it.startsWith("org.telegram.tgnet.") }
             .map { "L" + it.replace('.', '/') + ";" }.toSet()
@@ -82,8 +88,8 @@ class GhostModeFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val request = FixtureDex.classes(build, setOf(status)).getValue(status)
             assertEquals("${build.name}: offline", listOf("offline:Z"),
-                request.fields.filter { it.name == "offline" }.map { "${it.name}:${it.type}" })
-            assertTrue("${build.name}: public", AccessFlags.PUBLIC.isSet(request.fields.single { it.name == "offline" }.accessFlags))
+                request.fields.filter { it.origName == "offline" }.map { "${it.name}:${it.type}" })
+            assertTrue("${build.name}: public", AccessFlags.PUBLIC.isSet(request.fields.single { it.origName == "offline" }.accessFlags))
             // The typing requests are TLRPC classes under the names the extension holds back.
             assertEquals(setOf("Lorg/telegram/tgnet/TLRPC\$TL_messages_setTyping;", "Lorg/telegram/tgnet/TLRPC\$TL_messages_setEncryptedTyping;"),
                 FixtureDex.classes(build, setOf("Lorg/telegram/tgnet/TLRPC\$TL_messages_setTyping;",
@@ -114,13 +120,15 @@ class GhostModeFixtureTest {
     fun `the whole patch gates the send and claims Ghost mode`() {
         for (build in Fixtures.declaredBuilds()) {
             val metricsClass = FixtureDex.classesWhere(build, { true }) { method ->
-                method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.toString() == REPORT_READ_METRICS }
+                method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.origString() == REPORT_READ_METRICS }
             }
             val context = PatchContexts.of(ExtensionDex.classes() + metricsClass + ghostModeHosts(build))
             val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
             // This slice leaves the Premium reports out, so those say so; Ghost mode doesn't.
             assertTrue(warnings.toString(), warnings.none { "Ghost mode" in it })
-            assertGhostGate(build.name, send(ghostModeHosts(build)), send(context))
+            assertGates(build.name, send(ghostModeHosts(build)), send(context), ACCOUNT_GUARD_DROP, GHOST_MODE_DROP)
+            assertFlag(context, "receiveOnly", true)
+            assertFlag(context, "powerOff", true)
             assertFlag(context, "ghostMode", true)
             assertFlag(context, "disableAnalytics", true)
         }
@@ -150,16 +158,16 @@ class GhostModeFixtureTest {
                 "ConnectionsManager has 2 request sends, not one" -> listOf(withMethods(manager, manager.methods +
                     copy(stock, parameters = stock.parameters.drop(1))))
                 "ConnectionsManager's request send changed shape" -> listOf(withMethods(manager, manager.methods.map {
-                    if (it.name == SEND_REQUEST_INTERNAL) copy(it, accessFlags = it.accessFlags or AccessFlags.STATIC.value) else it
+                    if (it.origName == SEND_REQUEST_INTERNAL) copy(it, accessFlags = it.accessFlags or AccessFlags.STATIC.value) else it
                 }))
                 "Lfixture/Bypass;->sendRaw sends requests past the gate" -> listOf(manager, bypass)
                 else -> listOf(manager)
             }
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             change(context)
-            val before = context.mutableClassDefBy(CONNECTIONS_MANAGER).methods.map { it.operations() }
+            val before = context.tgMutableClassDefBy(CONNECTIONS_MANAGER).methods.map { it.operations() }
             assertEquals(why, why, context.resolveSendRequestGate(GHOST_MODE_DROP).missing)
-            assertEquals("$why: nothing edited", before, context.mutableClassDefBy(CONNECTIONS_MANAGER).methods.map { it.operations() })
+            assertEquals("$why: nothing edited", before, context.tgMutableClassDefBy(CONNECTIONS_MANAGER).methods.map { it.operations() })
         }
         assertEquals("ConnectionsManager is missing",
             PatchContexts.of(ExtensionDex.classes()).resolveSendRequestGate(GHOST_MODE_DROP).missing)
@@ -169,7 +177,7 @@ class GhostModeFixtureTest {
     fun `no Ghost mode runtime or status stub refuses before the send is touched`() {
         for (build in Fixtures.declaredBuilds()) {
             val stock = send(ghostModeHosts(build))
-            val withoutRuntime = PatchContexts.of(ExtensionDex.classes().filter { it.type != GHOST_MODE } + ghostModeHosts(build))
+            val withoutRuntime = PatchContexts.of(ExtensionDex.classes().filter { it.origType != GHOST_MODE } + ghostModeHosts(build))
             val runtime = refusal(withoutRuntime)
             assertTrue(runtime, runtime.contains("GhostMode") && runtime.contains("before editing"))
             assertEquals(stock.operations(), send(withoutRuntime).operations())
@@ -177,7 +185,7 @@ class GhostModeFixtureTest {
             assertFlag(withoutRuntime, "disableAnalytics", false)
 
             val withoutStub = PatchContexts.of(ExtensionDex.classes() + ghostModeHosts(build))
-            withoutStub.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "ghostMode" }
+            withoutStub.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "ghostMode" }
             val stub = refusal(withoutStub)
             assertTrue(stub, stub.contains("no boolean method ghostMode()"))
             assertEquals(stock.operations(), send(withoutStub).operations())
@@ -193,7 +201,7 @@ class GhostModeFixtureTest {
     }
 
     private fun assertFlag(context: BytecodePatchContext, name: String, expected: Boolean) {
-        val body = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.instructions()
+        val body = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.instructions()
         assertEquals(name, if (expected) 1 else 0, (body[0] as NarrowLiteralInstruction).narrowLiteral)
         assertEquals(Opcode.RETURN, body[1].opcode)
     }
@@ -207,9 +215,9 @@ class GhostModeFixtureTest {
     }
 
     private fun send(classes: List<ClassDef>): Method =
-        classes.single { it.type == CONNECTIONS_MANAGER }.methods.single { it.name == SEND_REQUEST_INTERNAL }
+        classes.single { it.origType == CONNECTIONS_MANAGER }.methods.single { it.origName == SEND_REQUEST_INTERNAL }
     private fun send(context: BytecodePatchContext): MutableMethod =
-        context.mutableClassDefBy(CONNECTIONS_MANAGER).methods.single { it.name == SEND_REQUEST_INTERNAL }
+        context.tgMutableClassDefBy(CONNECTIONS_MANAGER).methods.single { it.origName == SEND_REQUEST_INTERNAL }
     private fun copy(method: Method, parameters: List<com.android.tools.smali.dexlib2.iface.MethodParameter> = method.parameters,
                      accessFlags: Int = method.accessFlags) = ImmutableMethod(method.definingClass, method.name, parameters,
         method.returnType, accessFlags, method.annotations, method.hiddenApiRestrictions, method.implementation)
@@ -218,7 +226,7 @@ class GhostModeFixtureTest {
     private fun Method.calls(reference: String) = instructions().any { it.reference() == reference }
     private fun Method.operations() = instructions().filter { it.opcode != Opcode.NOP }.map(::operation)
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-    private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.reference() = origRef()
     private fun operation(instruction: Instruction) = listOf(instruction.opcode, instruction.reference(), instruction.namedRegisters(),
         (instruction as? WideLiteralInstruction)?.wideLiteral)
 
@@ -228,27 +236,36 @@ class GhostModeFixtureTest {
          * falls to the stock first instruction and a true one returns. Below it the stock body is
          * whole, nothing branches back into the gate, and no register was added.
          */
-        fun assertGhostGate(where: String, original: Method, patched: Method) {
+        fun assertGhostGate(where: String, original: Method, patched: Method) = assertGates(where, original, patched, GHOST_MODE_DROP)
+
+        /** The gates for [hooks] in the order they ask: each hands over what its shape takes, and a false answer falls to the next. */
+        fun assertGates(where: String, original: Method, patched: Method, vararg hooks: String) {
             val before = original.implementation!!.instructions.toList()
             val after = patched.implementation!!.instructions.toList()
-            val call = after[0]
-            assertEquals("$where: asks first", Opcode.INVOKE_STATIC_RANGE, call.opcode)
-            assertEquals("$where: asks Ghost mode", GHOST_MODE_DROP, (call as ReferenceInstruction).reference.toString())
-            val p1 = patched.implementation!!.registerCount - patched.numberOfParameterRegisters + 1
-            assertEquals("$where: hands it the request and its callback", listOf(p1, 2),
-                listOf((call as RegisterRangeInstruction).startRegister, call.registerCount))
-            assertEquals("$where: the gate", listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID), after.subList(1, 4).map { it.opcode })
-            assertEquals("$where: answer and test share v0", listOf(listOf(0), listOf(0)), after.subList(1, 3).map { it.namedRegisters() })
+            val size = hooks.size * SEND_REQUEST_GATE_SIZE
+            val p0 = patched.implementation!!.registerCount - patched.numberOfParameterRegisters
             val flow = ControlFlow.of(patched)
-            assertEquals("$where: false sends, true returns", setOf(3, SEND_REQUEST_GATE_SIZE), flow.normal[2].toSet())
-            for (index in SEND_REQUEST_GATE_SIZE until after.size) {
-                assertTrue("$where: $index branches into the gate",
-                    (flow.normal[index] + flow.exceptional[index]).none { it < SEND_REQUEST_GATE_SIZE })
+            hooks.forEachIndexed { number, hook ->
+                val at = number * SEND_REQUEST_GATE_SIZE
+                val call = after[at]
+                assertEquals("$where: gate $number asks first", Opcode.INVOKE_STATIC_RANGE, call.opcode)
+                assertEquals("$where: asks $hook", hook, (call as ReferenceInstruction).reference.origString())
+                val three = hook.contains("Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;")
+                assertEquals("$where: hands it what it takes", listOf(if (three) p0 else p0 + 1, if (three) 3 else 2),
+                    listOf((call as RegisterRangeInstruction).startRegister, call.registerCount))
+                assertEquals("$where: the gate", listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+                    after.subList(at + 1, at + 4).map { it.opcode })
+                assertEquals("$where: answer and test share v0", listOf(listOf(0), listOf(0)), after.subList(at + 1, at + 3).map { it.namedRegisters() })
+                assertEquals("$where: false goes on, true returns", setOf(at + 3, at + SEND_REQUEST_GATE_SIZE), flow.normal[at + 2].toSet())
+            }
+            for (index in size until after.size) {
+                assertTrue("$where: $index branches into the gates",
+                    (flow.normal[index] + flow.exceptional[index]).none { it < size })
             }
             fun stock(list: List<Instruction>) = list.filter { it.opcode != Opcode.NOP }.map { instruction ->
-                listOf(instruction.opcode, (instruction as? ReferenceInstruction)?.reference?.toString(), instruction.namedRegisters())
+                listOf(instruction.opcode, instruction.origRef(), instruction.namedRegisters())
             }
-            assertEquals("$where: the stock send is whole", stock(before), stock(after.drop(SEND_REQUEST_GATE_SIZE)))
+            assertEquals("$where: the stock send is whole", stock(before), stock(after.drop(size)))
             assertEquals("$where: no register added", original.implementation!!.registerCount, patched.implementation!!.registerCount)
         }
     }

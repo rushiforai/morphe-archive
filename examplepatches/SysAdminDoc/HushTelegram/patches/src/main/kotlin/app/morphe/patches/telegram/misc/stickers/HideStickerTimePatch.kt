@@ -4,7 +4,10 @@
  */
 package app.morphe.patches.telegram.misc.stickers
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origName
+import app.morphe.util.names.origString
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -30,6 +33,10 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val STICKER_TIME = "$EXTENSION_PACKAGE/misc/StickerTime;"
 internal const val MESSAGE_OBJECT = "Lorg/telegram/messenger/MessageObject;"
@@ -87,19 +94,19 @@ internal fun BytecodePatchContext.resolveHideStickerTime(): Pair<MutableMethod, 
     requireStatusMethod("hideStickerTime")
     controlHook(STICKER_TIME, "hidden", listOf("Ljava/lang/Object;"), "Z")
     controlHook(STICKER_TIME, "isSticker", listOf("Ljava/lang/Object;"), "Z")
-    controlShape(classDefByOrNull(MESSAGE_OBJECT)?.methods?.any { "$MESSAGE_OBJECT->${it.name}()${it.returnType}" == ANY_STICKER &&
+    controlShape(tgClassDefByOrNull(MESSAGE_OBJECT)?.methods?.any { "$MESSAGE_OBJECT->${it.origName}()${it.origReturnType}" == ANY_STICKER &&
         it.parameterTypes.isEmpty() && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) } == true,
         "Telegram's sticker check changed")
 
     val found = mutableListOf<Pair<String, String>>()
     forEachClassMentioning(Mention.reference(MESSAGE_TYPE) and Mention.literal(TYPE_JOINED_CHANNEL)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
-        val drawers = cls.methods.filter { m -> m.returnType == "V" && m.parameterTypes.map(CharSequence::toString).let { CANVAS in it && STATIC_LAYOUT in it } }
-            .map { "${cls.type}->${it.name}(${it.parameterTypes.joinToString("")})V" }.toSet()
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        val drawers = cls.methods.filter { m -> m.origReturnType == "V" && m.origParameterTypes.let { CANVAS in it && STATIC_LAYOUT in it } }
+            .map { it.origString() }.toSet()
         if (drawers.isEmpty()) return@forEachClassMentioning
         cls.methods.filter { m ->
-            !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" &&
-                m.parameterTypes.map(CharSequence::toString).sorted() == listOf("F", CANVAS, "Z").sorted() &&
+            !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" &&
+                m.origParameterTypes.sorted() == listOf("F", CANVAS, "Z").sorted() &&
                 m.controlBody().let { body ->
                     body.any { it.controlRef() == MESSAGE_TYPE } && body.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == TYPE_JOINED_CHANNEL } &&
                         body.any { it.controlRef() in drawers }
@@ -107,7 +114,7 @@ internal fun BytecodePatchContext.resolveHideStickerTime(): Pair<MutableMethod, 
         }.forEach { found += cls.type to ref(it) }
     }
     val (type, wanted) = found.controlSingle("message time drawing")
-    val drawTime = mutableClassDefBy(type).methods.single { ref(it) == wanted }
+    val drawTime = tgMutableClassDefBy(type).methods.single { ref(it) == wanted }
     val messages = drawTime.controlBody().filter { it.opcode == Opcode.IGET_OBJECT && it.controlRef()?.let { r -> r.startsWith("$type->") && r.endsWith(":$MESSAGE_OBJECT") } == true }
         .mapNotNull { it.controlRef() }.distinct()
     val message = messages.controlSingle("message bubble's message field")
@@ -116,4 +123,4 @@ internal fun BytecodePatchContext.resolveHideStickerTime(): Pair<MutableMethod, 
     return drawTime to message
 }
 
-private fun ref(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
+private fun ref(m: Method) = m.origString()

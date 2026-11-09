@@ -4,7 +4,11 @@
  */
 package app.morphe.patches.telegram.misc.channelbar
 
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origDescriptor
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -32,6 +36,9 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Hide channel bar buttons"
 internal const val CHANNEL_BUTTONS = "$EXTENSION_PACKAGE/misc/ChannelButtons;"
@@ -113,30 +120,30 @@ internal fun BytecodePatchContext.resolveChannelBarButtons(): ChannelBarPlan {
 
     val placers = mutableListOf<Method>()
     forEachClassMentioning(Mention.allReferences(SIDE_LABELS + GIFT_LABEL)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.filterTo(placers) { m ->
-            !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" &&
-                m.parameterTypes.map { it.toString() } == listOf("I", "Z", "Z") &&
+            !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" &&
+                m.origParameterTypes == listOf("I", "Z", "Z") &&
                 m.controlBody().let { body -> (SIDE_LABELS + GIFT_LABEL).all { label -> body.any { it.controlRef() == label } } }
         }
     }
     shape(placers.size == 1, "the channel bar's button placer is missing or ambiguous (${placers.size})")
     val placer = placers.single()
-    val place = "${placer.definingClass}->${placer.name}(IZZ)V"
+    val place = "${placer.origDefiningClass}->${placer.origName}(IZZ)V"
     val numbers = SIDE_LABELS.map { label -> buttonNumber(placer, label) }
     shape(numbers.distinct().size == numbers.size && numbers.all { it in 0..14 } &&
         buttonNumber(placer, GIFT_LABEL) !in numbers, "the channel bar's side buttons no longer have numbers of their own")
 
     val updates = mutableListOf<Pair<String, Method>>()
     forEachClassMentioning(Mention.reference(MUTE_LABEL) and Mention.reference(place)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.filter { m ->
             m.controlBody().let { body -> body.any { it.controlRef() == MUTE_LABEL } && body.any { it.controlRef() == place } }
         }.forEach { updates += cls.type to it }
     }
     shape(updates.size == 1, "the chat screen's channel bar update is missing or ambiguous (${updates.size})")
     val (type, found) = updates.single()
-    val update = mutableClassDefBy(type).methods.single { signature(it) == signature(found) }
+    val update = tgMutableClassDefBy(type).methods.single { signature(it) == signature(found) }
     val body = update.controlBody()
     val calls = body.indices.filter { body[it].controlRef() == place }
     shape(calls.all { body[it].opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) && body[it].namedRegisters().size == 4 },
@@ -179,7 +186,7 @@ private fun constantBefore(body: List<Instruction>, before: Int, register: Int, 
     }
 }
 
-private fun signature(m: Method) = "${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
+private fun signature(m: Method) = "${m.origName}${m.origDescriptor}"
 
 internal fun Instruction.writes(register: Int): Boolean {
     if (!opcode.setsRegister()) return false

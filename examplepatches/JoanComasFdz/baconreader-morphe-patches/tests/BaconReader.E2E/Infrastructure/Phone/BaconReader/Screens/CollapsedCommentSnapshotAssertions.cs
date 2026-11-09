@@ -14,7 +14,15 @@ public static class CollapsedCommentSnapshotAssertions
         var comment = that.InstanceToAssert;
         Assert.True(
             comment.Hidden == hidden,
-            $"The comment \"{comment.Text}\" shows {(comment.Hidden is null ? "nothing" : $"\"{comment.Hidden}\"")} under it, but \"{hidden}\" was expected.");
+            $"The comment {comment.Name} shows {(comment.Hidden is null ? "nothing" : $"\"{comment.Hidden}\"")} under it, but \"{hidden}\" was expected.");
+        return that;
+    }
+
+    /// <summary>The comment hides no comment: it shows no "1 hidden comment" under it.</summary>
+    public static AssertingThat<CollapsedCommentSnapshot> HidesNoComment(this AssertingThat<CollapsedCommentSnapshot> that)
+    {
+        var comment = that.InstanceToAssert;
+        Assert.True(comment.Hidden is null, $"The comment {comment.Name} shows \"{comment.Hidden}\" under it, but no hidden comment was expected.");
         return that;
     }
 }

@@ -266,6 +266,53 @@ public class ThemeFileTest {
         }
     }
 
+    /** #155: a palette style is one saved choice, Default saves none, and the palette in use follows, a saved accent's too. */
+    @Test public void settingsPaletteStylesRecolorTheWallpapersPaletteAndASavedAccent() {
+        MaterialYouTheme.bind();
+        try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {
+            View root = screen.get().getWindow().getDecorView();
+            CompoundButton standard = root.findViewWithTag("material_you_style_default");
+            CompoundButton mono = root.findViewWithTag("material_you_style_monochrome");
+            assertEquals(TonePalette.STYLES.length, ((android.view.ViewGroup) standard.getParent()).getChildCount());
+            assertTrue(standard.isChecked());
+            assertFalse(mono.isChecked());
+            assertTrue(root.findViewWithTag(MaterialYouTheme.LIGHT_GRAYS_KEY) instanceof CompoundButton);
+            int wallpaper = MaterialYouTheme.palette().tone(TonePalette.ACCENT, 40);
+
+            mono.performClick();
+            idle();
+            assertEquals("Monochrome style saved", ShadowToast.getTextOfLatestToast());
+            assertEquals("monochrome", Settings.preferences.getString(MaterialYouTheme.STYLE_KEY, null));
+            assertTrue(mono.isChecked());
+            assertFalse(standard.isChecked());
+            int grey = MaterialYouTheme.palette().tone(TonePalette.ACCENT, 40);
+            int r = (grey >> 16) & 0xFF, g = (grey >> 8) & 0xFF, b = grey & 0xFF;
+            assertTrue(Integer.toHexString(grey), Math.max(r, Math.max(g, b)) - Math.min(r, Math.min(g, b)) <= 1);
+            assertEquals(TonePalette.fallback().styled("monochrome").sameLightness(TonePalette.NEUTRAL, 0xFF333334), MaterialYouTheme.DARK_333334);
+
+            // A saved accent takes the style too.
+            root.findViewWithTag("theme_accent_E1306C").performClick();
+            idle();
+            assertTrue(mono.isChecked());
+            assertEquals(TonePalette.fromAccent(0xFFE1306C).styled("monochrome").tone(TonePalette.ACCENT, 40),
+                MaterialYouTheme.palette().tone(TonePalette.ACCENT, 40));
+            root.findViewWithTag("material_you_style_vibrant").performClick();
+            idle();
+            assertEquals(TonePalette.fromAccent(0xFFE1306C).styled("vibrant").tone(TonePalette.ACCENT, 40),
+                MaterialYouTheme.palette().tone(TonePalette.ACCENT, 40));
+
+            // Default saves no style and puts the theme's own palette back.
+            standard.performClick();
+            idle();
+            assertFalse(Settings.preferences.contains(MaterialYouTheme.STYLE_KEY));
+            assertTrue(standard.isChecked());
+            assertEquals(TonePalette.fromAccent(0xFFE1306C).tone(TonePalette.ACCENT, 40), MaterialYouTheme.palette().tone(TonePalette.ACCENT, 40));
+            root.findViewWithTag("theme_clear").performClick();
+            idle();
+            assertEquals(wallpaper, MaterialYouTheme.palette().tone(TonePalette.ACCENT, 40));
+        }
+    }
+
     @Test public void everyThemeChangeCanBeUndoneAndASwatchShowsItsPress() {
         MaterialYouTheme.bind();
         try (var screen = Robolectric.buildActivity(SettingsActivity.class).setup()) {

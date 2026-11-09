@@ -12,6 +12,9 @@ public partial record MenuEntry
     /// <summary>The menu's first entry while no account is logged in; once one is, its user name takes its place.</summary>
     public partial record AddAccount;
 
+    /// <summary>The accounts' "Log out", which logs out of every account at once; "Remove Log out" removes it.</summary>
+    public partial record LogOut;
+
     /// <summary>The account's inbox: its messages.</summary>
     public partial record Inbox;
 
@@ -31,12 +34,13 @@ public partial record MenuEntry
 /// <summary>What the app shows for each <see cref="MenuEntry"/>: the only place those strings live.</summary>
 public static partial class MenuEntryShowing
 {
-    private static readonly MenuEntry[] Listed = [new MenuEntry.AddAccount(), new MenuEntry.Inbox(), new MenuEntry.Settings(), new MenuEntry.SubmitPost()];
+    private static readonly MenuEntry[] Listed = [new MenuEntry.AddAccount(), new MenuEntry.LogOut(), new MenuEntry.Inbox(), new MenuEntry.Settings(), new MenuEntry.SubmitPost()];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
     public static string ToShownText(this MenuEntry value) =>
         value.Match(
             addAccount => "Add account",
+            logOut => "Log out",
             inbox => "Inbox",
             chat => chat.Unread > 0 ? $"Chat ({chat.Unread})" : "Chat",
             settings => "Settings",

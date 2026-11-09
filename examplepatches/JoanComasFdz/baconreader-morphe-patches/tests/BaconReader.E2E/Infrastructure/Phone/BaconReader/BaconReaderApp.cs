@@ -45,8 +45,14 @@ public sealed class BaconReaderApp(
     /// <summary>The menu a post's or a comment's ⋮ opens.</summary>
     public PostMenu PostMenu { get; } = new(driver);
 
+    /// <summary>The dialog "Select text" opens from a post's or a comment's menu.</summary>
+    public SelectTextDialog SelectText { get; } = new(driver);
+
     /// <summary>"Show posts with flair", which the button of "Flair filter" in the sort bar opens.</summary>
     public FlairFilter FlairFilter { get; } = new(driver);
+
+    /// <summary>"Color for &lt;user name&gt;", which an account's circle in the left menu opens ("Account colors").</summary>
+    public AccountColorPicker AccountColorPicker { get; } = new(driver);
 
     /// <summary>The menu a message of the inbox opens when tapped.</summary>
     public MessageMenu MessageMenu { get; } = new(driver);
@@ -115,35 +121,21 @@ public sealed class BaconReaderApp(
     }
 
     /// <summary>
-    /// Logs the test account in from the main screen, as a scenario's "Given the test account is logged in" says: "Add
-    /// account" in the left menu, Reddit's "Log In" with the test account, "Accept", then closes the left menu BaconReader
-    /// comes back with, and waits until the feed shows its posts.
+    /// Waits until the test account is logged in, as a scenario's "Given the test account is logged in" says: a LoggedIn
+    /// scenario's app starts logged in, as the fake Reddit hands it the login at its start (BaseE2E, "E2E fake Reddit"),
+    /// what logging in through "Add account" and Reddit's "Log In" leaves: the session and the user name. Logging in
+    /// through those screens took ~11 s of each scenario (2026-11-07); Spoof client's Startup scenario still does.
+    /// It waits until the feed shows its posts.
     /// <para>
-    /// Right after the login BaconReader loads the Front Page and, as the test account has no subscriptions, subscribes it
-    /// to every default subreddit, both at once. A Front Page loaded after the first subscription and before the one of the
-    /// scenario's subreddit shows "No data": Reddit shows an account with subscriptions only theirs. On the Pixel 6 Pro
-    /// that happened in 3 runs of 31 of Markdown editor's (2026-11-05), and every subscription was answered within 0.4 s
-    /// of the Front Page's request, 2 s before the left menu closes. So on "No data" it taps "Refresh", as the user would,
-    /// and the Front Page loads with every subscription.
+    /// Logged in at its start, BaconReader loads the Front Page and, as the test account has no subscriptions, subscribes
+    /// it to every default subreddit, both at once. A Front Page loaded after the first subscription and before the one of
+    /// the scenario's subreddit shows "No data": Reddit shows an account with subscriptions only theirs. On the Pixel 6 Pro
+    /// that happened in 3 runs of 31 of Markdown editor's (2026-11-05), after a login through the screens. So on "No data"
+    /// it taps "Refresh", as the user would, and the Front Page loads with every subscription.
     /// </para>
-    /// On the emulator the login screen at times closed by
-    /// itself while its fields were filled in, and it started again from "Add account"; on the Pixel 6 Pro it never did
-    /// in 4 runs of every scenario (2026-10-31), so it logs in once.
     /// </summary>
     public async Task LogInWithTheTestAccountAsync()
     {
-        await Main.LeftMenu.OpenAsync();
-        await Main.LeftMenu.WaitUntilShownAsync();
-        await Main.LeftMenu.ClickAsync(new MenuEntry.AddAccount());
-        await LogIn.WaitUntilShownAsync();
-        await LogIn.TypeTheTestAccountsUserNameAsync();
-        await LogIn.TypeTheTestAccountsPasswordAsync();
-        await LogIn.ClickLogInAsync();
-        await LogIn.WaitUntilConnectShownAsync();
-        await LogIn.ClickAcceptAsync();
-        await Main.WaitUntilShownAsync();
-        await Main.LeftMenu.WaitUntilShownAsync();
-        await Main.LeftMenu.CloseAsync();
         if (!await Main.Posts.WaitUntilPostsOrNoDataShownAsync())
         {
             RunLog.RetryFired("Log in: \"Refresh\" on the Front Page", 1, "it loaded while BaconReader subscribed the test account to the default subreddits, and shows \"No data\"");
@@ -173,15 +165,21 @@ public sealed class BaconReaderApp(
 
     /// <summary>
     /// Goes back to the main screen's posts with Android's Back, as many times as it takes (from a post, from the
-    /// settings and the left menu they were opened from), and waits until they show.
+    /// settings and the left menu they were opened from), and waits until they show. It looks once before the first
+    /// Back, without waiting: on a post's comments, waiting there for the posts only ran out its 3 s, 63 times in a run
+    /// of Embed comment images. From a patches' settings page it takes 5 Backs (the patches' settings, BaconReader's
+    /// settings with its "Restart to apply changes?" dialog, the dialog, the main screen with the left menu open, the
+    /// menu), and the phone can let a Back go by while a screen changes: once, 8 Backs didn't get there (2026-11-07).
+    /// It looks before each Back, so the Backs it has to spare never go past the posts.
     /// </summary>
     public async Task GoBackToThePostsAsync()
     {
-        for (var backs = 0; !await Main.ShowsThePostsAsync(); backs++)
+        const int MostBacks = 12;
+        for (var backs = 0; !(backs == 0 ? await Main.ShowsThePostsNowAsync() : await Main.ShowsThePostsAsync()); backs++)
         {
-            if (backs == 8)
+            if (backs == MostBacks)
             {
-                throw new InvalidOperationException("The main screen's posts didn't show after going back 8 times.");
+                throw new InvalidOperationException($"The main screen's posts didn't show after going back {MostBacks} times.");
             }
 
             await OnScreen.DoAsync(driver, () => driver.PressKeyCode(AndroidKeyCode.Back));

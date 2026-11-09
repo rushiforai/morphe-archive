@@ -1,8 +1,27 @@
+## [1.15.4](https://github.com/amfakh/fakh-patches/compare/v1.15.3...v1.15.4) (2026-11-09)
+
+### Updated App Support
+
+* **Smart Life:** add support for `7.12.6`, next to `7.12.3` ([7c54ade](https://github.com/amfakh/fakh-patches/commit/7c54ade4def91916090cc68033f4b5da26e60986))
+
+## [1.15.3](https://github.com/amfakh/fakh-patches/compare/v1.15.2...v1.15.3) (2026-11-08)
+
+### Bug Fixes
+
+* **LinkedIn:** swiping between tabs keeps working after you come back from another screen, such as messages or a profile ([538edd4](https://github.com/amfakh/fakh-patches/commit/538edd4c416f240d0f8d96a9a045d515021eb8ff))
+
+## [1.15.2](https://github.com/amfakh/fakh-patches/compare/v1.15.1...v1.15.2) (2026-11-08)
+
+### Bug Fixes
+
+* **GitHub:** keep buttons pinned to the bottom of a screen, such as Comment and Finish your review, above the glass navigation bar instead of behind it ([1485679](https://github.com/amfakh/fakh-patches/commit/14856799a8b116b3328147ff2d4b4eed60c34a6b))
+* **GitHub:** keep the neutral lines and line numbers of a diff dark in dark mode with Material You, instead of white ([1485679](https://github.com/amfakh/fakh-patches/commit/14856799a8b116b3328147ff2d4b4eed60c34a6b))
+
 ## [1.15.1](https://github.com/amfakh/fakh-patches/compare/v1.15.0...v1.15.1) (2026-11-07)
 
 ### New Features
 
-* **LinkedIn:** complete the French translation of the settings ([019b79e](https://github.com/amfakh/fakh-patches/commit/019b79eda4a0c5c5fb531a72b230300c5610d421))
+* **LinkedIn:** complete the French translation of the settings, by [foXaCe](https://github.com/foXaCe) ([019b79e](https://github.com/amfakh/fakh-patches/commit/019b79eda4a0c5c5fb531a72b230300c5610d421))
 
 ## [1.15.0](https://github.com/amfakh/fakh-patches/compare/v1.14.2...v1.15.0) (2026-11-07)
 

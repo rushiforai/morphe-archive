@@ -198,6 +198,10 @@ Hide the Instagram button	Instagram 버튼 숨기기
 Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	내 프로필과 다른 사람의 프로필 상단에서 Instagram 버튼을 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
 Hide ghost post bubbles	고스트 게시물 말풍선 숨기기
 Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. Restart Threads to see the change.	프로필과 피드 상단 줄의 프로필 사진에서 고스트 게시물 말풍선을 제거합니다. 변경 사항을 보려면 Threads를 다시 시작하세요.
+Full size profile pictures	프로필 사진 원본 크기로 보기
+A profile picture you open on a profile shows full size, where you can zoom in and save it, instead of the small circle.	프로필에서 연 프로필 사진이 작은 원 대신 원본 크기로 표시되어 확대하고 저장할 수 있습니다.
+Close	닫기
+Couldn't load the picture. Try again in a moment.	사진을 불러오지 못했습니다. 잠시 후 다시 시도하세요.
 Turn features on or off	기능 켜기 또는 끄기
 # Fotos und Videos speichern
 %1$d saved in lower quality than on Threads.	%1$d개가 Threads보다 낮은 화질로 저장되었습니다.
@@ -271,6 +275,12 @@ the removed share sheet entry	제거된 공유 시트 항목
 User certificates trusted	사용자 인증서 신뢰됨
 Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads가 휴대전화에 추가한 보안 인증서를 허용합니다. Meta 인증서에 대한 자체 검사는 그대로이므로 프록시는 여전히 대부분의 트래픽을 읽을 수 없습니다.
 the user certificate trust	사용자 인증서 신뢰
+Own package name	별도 패키지 이름
+This copy installs beside Threads as an app of its own, with its own sign-in.	이 사본은 Threads 옆에 별도 앱으로 설치되며 로그인도 따로 합니다.
+the new package name	새 패키지 이름
+Own app name	별도 앱 이름
+The name under the app's icon.	앱 아이콘 아래에 표시되는 이름입니다.
+the new app name	새 앱 이름
 Hide screenshots from Threads	Threads에 스크린샷 숨기기
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	스크린샷을 찍어도 Threads에 알려지지 않으므로 기록하거나 반응할 수 없습니다.
 Full size photos	원본 크기 사진

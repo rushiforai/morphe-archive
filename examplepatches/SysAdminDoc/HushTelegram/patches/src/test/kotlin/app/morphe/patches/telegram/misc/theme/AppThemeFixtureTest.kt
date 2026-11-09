@@ -16,6 +16,8 @@ import com.android.tools.smali.dexlib2.Opcode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /**
  * The dialogs' theme on each declared build: exactly one method is ThemeInfo.isDark, exactly one is
@@ -37,7 +39,7 @@ class AppThemeFixtureTest {
             val context = PatchContexts.of(ExtensionDex.classes() + ExtensionDex.sharedClasses() +
                 (infos + themes).distinctBy { it.type })
             assertEquals("$name: no warning", emptyList<String>(), PatchLogCapture.warnings { appThemePatch.execute(context) })
-            val stub = context.mutableClassDefBy(EXTENSION_CLASS_DESCRIPTOR).methods.single { it.name == APP_THEME_DARK }
+            val stub = context.tgMutableClassDefBy(EXTENSION_CLASS_DESCRIPTOR).methods.single { it.origName == APP_THEME_DARK }
             assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.RETURN), stub.controlBody().map { it.opcode })
             assertEquals("$name: the stub calls the theme check", "${check.definingClass}->${check.name}()Z",
                 stub.controlBody()[0].controlRef())
@@ -50,7 +52,7 @@ class AppThemeFixtureTest {
         val warnings = PatchLogCapture.warnings { appThemePatch.execute(context) }
         assertEquals(1, warnings.size)
         assertTrue(warnings.single(), warnings.single().startsWith("Dialogs:"))
-        val stub = context.mutableClassDefBy(EXTENSION_CLASS_DESCRIPTOR).methods.single { it.name == APP_THEME_DARK }
+        val stub = context.tgMutableClassDefBy(EXTENSION_CLASS_DESCRIPTOR).methods.single { it.origName == APP_THEME_DARK }
         assertEquals("the stub still answers unknown", listOf(Opcode.CONST_4, Opcode.RETURN), stub.controlBody().map { it.opcode })
     }
 }

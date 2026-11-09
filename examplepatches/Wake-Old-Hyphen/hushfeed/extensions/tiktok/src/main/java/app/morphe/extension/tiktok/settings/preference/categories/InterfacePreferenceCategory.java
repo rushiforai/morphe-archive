@@ -464,7 +464,7 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(
                     context,
                     "Hide the search button on the feed",
-                    "Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.",
+                    "Hide the magnifying glass at the top right of the feed and the one over the video while comments are open. Search in Inbox and suggestions above comments stay unchanged.",
                     Settings.HIDE_FEED_SEARCH_BUTTON
             ));
             // The overlay hider's layout pass takes the box away, so the row needs that patch too.
@@ -780,6 +780,19 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Keep faded controls in Clear display",
                     "With the fade below 100, the buttons and caption stay on screen at that level in Clear display, and taps go through them to the video. Off, Clear display hides them the way it does at 100.",
                     Settings.FADE_IN_CLEAR_DISPLAY
+            ));
+            // #374: the fade at 0 on a tap, with every control still where it was.
+            addPreference(new TogglePreference(
+                    context,
+                    "Invisible controls button",
+                    "A small eye button at the top left of the main feed. Tap it and the buttons, caption and tabs go invisible but still take taps, which helps against burn-in on OLED screens. Tap it again to bring them back. They stay the way you left them across videos and restarts. Videos you open from a profile or search keep their controls.",
+                    Settings.INVISIBLE_CONTROLS_BUTTON
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Keep the caption in sight",
+                    "While the controls are invisible on the main feed, the creator's name, the caption and the music line stay in sight.",
+                    Settings.INVISIBLE_CONTROLS_KEEP_CAPTION
             ));
             addPreference(new TogglePreference(
                     context,

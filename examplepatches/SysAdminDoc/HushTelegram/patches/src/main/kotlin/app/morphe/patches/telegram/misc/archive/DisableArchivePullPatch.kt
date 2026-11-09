@@ -4,7 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.archive
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -37,11 +38,23 @@ import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.TelegramNames
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 private const val PATCH = "Disable pull to archive"
 internal const val ARCHIVE_PULL = "$EXTENSION_PACKAGE/misc/ArchivePull;"
@@ -80,11 +93,13 @@ val disableArchivePullPatch = bytecodePatch(
     execute {
         val sites = resolveDisableArchivePull()
         // Assembled on copies first, so a refusal leaves the app untouched.
-        insertArchiveAnswer(MutableMethod(ImmutableMethod.of(sites.hidden)))
+        sites.hidden?.let { insertArchiveAnswer(MutableMethod(ImmutableMethod.of(it))) }
+        sites.inlined.forEach { (method, at) -> insertInlinedAnswer(MutableMethod(ImmutableMethod.of(method)), at) }
         insertFolderGate(MutableMethod(ImmutableMethod.of(sites.folder)))
         insertArchiveMenu(MutableMethod(ImmutableMethod.of(sites.menu)), sites.menuIndex, sites.options)
         writeArchiveStubs(sites)
-        insertArchiveAnswer(sites.hidden)
+        sites.hidden?.let(::insertArchiveAnswer)
+        sites.inlined.forEach { (method, at) -> insertInlinedAnswer(method, at) }
         insertFolderGate(sites.folder)
         insertArchiveMenu(sites.menu, sites.menuIndex, sites.options)
         enableStatus("disableArchivePull")
@@ -92,13 +107,14 @@ val disableArchivePullPatch = bytecodePatch(
 }
 
 /**
- * [hidden] is MessagesController.hasHiddenArchive(), [folder] its addDialogToItsFolder(I, Dialog)
- * and [menu] the chat list's menu, where Telegram's own entries end at [menuIndex] with the menu in
- * [options]. The rest is what the stubs need: the chat list's type, the menu's add, the chat
- * list's presentFragment, and the dialog map and lookup hasHiddenArchive reads.
+ * [hidden] is MessagesController.hasHiddenArchive(), or null where the build inlines it into the
+ * callers in [inlined] (each with the index of its hidden flag read), [folder] its
+ * addDialogToItsFolder(I, Dialog) and [menu] the chat list's menu, where Telegram's own entries end
+ * at [menuIndex] with the menu in [options]. The rest is what the stubs need: the chat list's type,
+ * the menu's add, the chat list's presentFragment, and the dialog map and lookup hasHiddenArchive reads.
  */
 internal class ArchivePullSites(
-    val hidden: MutableMethod,
+    val hidden: MutableMethod?,
     val folder: MutableMethod,
     val menu: MutableMethod,
     val menuIndex: Int,
@@ -108,6 +124,7 @@ internal class ArchivePullSites(
     val present: MethodReference,
     val dialogs: FieldReference,
     val lookup: MethodReference,
+    val inlined: List<Pair<MutableMethod, Int>>,
 )
 
 /** A yes from the extension answers no hidden archive, so the chat list sets up no pull for it. */
@@ -119,6 +136,17 @@ internal fun insertArchiveAnswer(target: MutableMethod) {
         const/4 v0, 0x0
         return v0
     """, ExternalLabel("hush_stock", target.getInstruction(0)))
+}
+
+/** Where hasHiddenArchive is inlined, a set hidden flag reads clear when the extension keeps the archive out. */
+internal fun insertInlinedAnswer(target: MutableMethod, at: Int) {
+    val flag = target.getInstruction<OneRegisterInstruction>(at).registerA
+    target.addInstructionsWithLabels(at + 1, """
+        if-eqz v$flag, :hush_stock
+        invoke-static {}, $KEEPS_OUT
+        move-result v$flag
+        xor-int/lit8 v$flag, v$flag, 0x1
+    """, ExternalLabel("hush_stock", target.getInstruction(at + 1)))
 }
 
 /** Only the archive's own row asks, so the extension stays out of the sort for every other chat. */
@@ -143,6 +171,26 @@ internal fun insertArchiveMenu(target: MutableMethod, index: Int, options: Int) 
         invoke-static {v$menu, v$chats}, $ARCHIVE_MENU
     """.trimIndent())
 }
+
+private fun Instruction.callsAppMenu() = call()?.let { c -> c.origDefiningClass == APPLICATION_LOADER && c.origName == "addItemOptions" } == true
+
+/**
+ * Where 13.2 inlines the app build's addItemOptions (an empty one on Play, which leaves only the
+ * loader read), the read of the loader that starts the app build's entries, right after the chat
+ * list adds its last entry past Saved Messages, and the register holding the menu. Null for any other body.
+ */
+private fun inlinedAppMenu(body: List<Instruction>): Pair<Int, Int>? {
+    val saved = body.indexOfFirst { it.controlRef() == SAVED_MESSAGES }
+    if (saved < 0) return null
+    val at = (saved + 1 until body.size).firstOrNull { body[it].opcode == Opcode.SGET_OBJECT && body[it].controlRef() == LOADER_INSTANCE } ?: return null
+    val added = body[at - 1].call()
+    if (body[at - 1].opcode != Opcode.INVOKE_VIRTUAL || added == null || added.origReturnType != "V" ||
+        added.origParameterTypes.sorted() !in listOf(listOf("I", CHAR_SEQUENCE, RUNNABLE).sorted(), listOf("I", CHAR_SEQUENCE, RUNNABLE, "Z").sorted())) return null
+    return at to body[at - 1].namedRegisters()[0]
+}
+
+/** Whether this is the chat list's menu as either build shape has it: a call to the app build's entries, or 13.2's inlined copy. */
+internal fun Method.handsMenuToAppBuild() = controlBody().let { body -> body.any { it.callsAppMenu() } || inlinedAppMenu(body) != null }
 
 private fun BytecodePatchContext.writeArchiveStubs(sites: ArchivePullSites) {
     writeStub(ARCHIVE_PULL, "hidden", 1, """
@@ -209,7 +257,7 @@ internal fun BytecodePatchContext.resolveDisableArchivePull(): ArchivePullSites 
     controlHook(ARCHIVE_PULL, "add", listOf("Ljava/lang/Object;", RUNNABLE), "V")
     controlHook(ARCHIVE_PULL, "open", listOf("Ljava/lang/Object;"), "V")
 
-    val controller = mutableClassDefByOrNull(MESSAGES_CONTROLLER)
+    val controller = tgMutableClassDefByOrNull(MESSAGES_CONTROLLER)
     controlShape(controller != null, "MessagesController is missing")
     controlShape(staticField(ARCHIVE_HIDDEN), "SharedConfig no longer keeps whether the archive is hidden")
     controlShape(staticField(SELECTED_ACCOUNT), "UserConfig no longer keeps the selected account")
@@ -218,24 +266,50 @@ internal fun BytecodePatchContext.resolveDisableArchivePull(): ArchivePullSites 
         AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }, "MessagesController.getInstance changed")
 
     // hasHiddenArchive(): the archive is hidden and the account's dialog map holds the archive folder.
-    val hidden = controller.methods.filter { it.ref() == HAS_HIDDEN_ARCHIVE && !AccessFlags.STATIC.isSet(it.accessFlags) }
-        .controlSingle("hasHiddenArchive")
-    val hiddenBody = hidden.controlBody()
-    controlShape(hiddenBody.any { it.controlRef() == ARCHIVE_HIDDEN } && hiddenBody.any { it.controlRef() == FOLDER_DIALOG_ID },
-        "hasHiddenArchive no longer checks the hidden flag and the archive folder")
-    val dialogs = hiddenBody.mapNotNull { instruction -> instruction.takeIf { it.opcode == Opcode.IGET_OBJECT }?.controlField() }
-        .filter { it.definingClass == MESSAGES_CONTROLLER && it.name == "dialogs_dict" }.distinct().controlSingle("the account's dialog map")
-    val lookup = hiddenBody.mapNotNull { it.takeIf { i -> i.opcode in INVOKES }?.call() }
-        .filter { it.definingClass == dialogs.type && it.parameterTypes.map(CharSequence::toString) == listOf("J") && it.returnType == "Ljava/lang/Object;" }
-        .distinct().controlSingle("the dialog map's lookup")
-    hidden.requireEntryRoom("hasHiddenArchive")
+    val hiddenMethods = controller.methods.filter { it.ref() == HAS_HIDDEN_ARCHIVE && !AccessFlags.STATIC.isSet(it.accessFlags) }
+    val hidden: MutableMethod?
+    val inlined: List<Pair<MutableMethod, Int>>
+    val dialogs: FieldReference
+    val lookup: MethodReference
+    if (hiddenMethods.isNotEmpty()) {
+        hidden = hiddenMethods.controlSingle("hasHiddenArchive")
+        inlined = emptyList()
+        val hiddenBody = hidden.controlBody()
+        controlShape(hiddenBody.any { it.controlRef() == ARCHIVE_HIDDEN } && hiddenBody.any { it.controlRef() == FOLDER_DIALOG_ID },
+            "hasHiddenArchive no longer checks the hidden flag and the archive folder")
+        dialogs = hiddenBody.mapNotNull { instruction -> instruction.takeIf { it.opcode == Opcode.IGET_OBJECT }?.controlField() }
+            .filter { it.origDefiningClass == MESSAGES_CONTROLLER && it.origName == "dialogs_dict" }.distinct().controlSingle("the account's dialog map")
+        lookup = hiddenBody.mapNotNull { it.takeIf { i -> i.opcode in INVOKES }?.call() }
+            .filter { it.origDefiningClass == dialogs.origType && it.origParameterTypes == listOf("J") && it.origReturnType == "Ljava/lang/Object;" }
+            .distinct().controlSingle("the dialog map's lookup")
+        hidden.requireEntryRoom("hasHiddenArchive")
+    } else {
+        // 13.2 inlines it into each caller: the hidden flag's test, then the archive folder's lookup in the dialog map.
+        hidden = null
+        val found = mutableListOf<Triple<Pair<String, String>, Int, Pair<FieldReference, MethodReference>>>()
+        forEachClassMentioning(Mention.reference(ARCHIVE_HIDDEN)) { cls ->
+            if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+            for (method in cls.methods) {
+                val body = method.controlBody()
+                body.indices.forEach { at -> inlinedHiddenArchive(method, body, at)?.let { found += Triple(cls.type to method.toString(), at, it) } }
+            }
+        }
+        controlShape(found.isNotEmpty(), "hasHiddenArchive is missing and no caller checks the hidden archive in its place")
+        dialogs = found.map { it.third.first }.distinctBy { it.toString() }.controlSingle("the account's dialog map")
+        lookup = found.map { it.third.second }.distinctBy { it.toString() }.controlSingle("the dialog map's lookup")
+        controlShape(dialogs.origDefiningClass == MESSAGES_CONTROLLER && dialogs.origName == "dialogs_dict", "the hidden archive no longer reads the account's dialog map")
+        // Later sites first, so each index still names its flag read when it's hooked.
+        inlined = found.sortedByDescending { it.second }.map { (owner, at, _) ->
+            tgMutableClassDefBy(owner.first).methods.single { it.toString() == owner.second } to at
+        }
+    }
 
     // addDialogToItsFolder(I, Dialog): the archive's own row always goes to the main list.
     val folder = controller.methods.filter { it.ref() == ADD_TO_FOLDER && !AccessFlags.STATIC.isSet(it.accessFlags) }
         .controlSingle("addDialogToItsFolder")
     val folderBody = folder.controlBody()
-    controlShape(folderBody.any { it.opcode == Opcode.INSTANCE_OF && (it as ReferenceInstruction).reference.toString() == DIALOG_FOLDER } &&
-        folderBody.any { it.controlField()?.let { f -> f.definingClass == MESSAGES_CONTROLLER && f.name == "dialogsByFolder" } == true },
+    controlShape(folderBody.any { it.opcode == Opcode.INSTANCE_OF && (it as ReferenceInstruction).reference.origString() == DIALOG_FOLDER } &&
+        folderBody.any { it.controlField()?.let { f -> f.origDefiningClass == MESSAGES_CONTROLLER && f.origName == "dialogsByFolder" } == true },
         "addDialogToItsFolder no longer files the archive's row by its type")
     controlShape(folder.parameterRegisterNumber(1) <= 15, "addDialogToItsFolder's dialog is out of an instance-of's reach")
     folder.requireEntryRoom("addDialogToItsFolder")
@@ -243,38 +317,52 @@ internal fun BytecodePatchContext.resolveDisableArchivePull(): ArchivePullSites 
     // The chat list's menu hands itself to the app build's own entries after New Group and Saved Messages.
     val menus = mutableListOf<Pair<String, String>>()
     forEachClassMentioning(Mention.member(APPLICATION_LOADER, "addItemOptions")) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
-        cls.methods.filter { m -> m.controlBody().any { it.call()?.let { c -> c.definingClass == APPLICATION_LOADER && c.name == "addItemOptions" } == true } }
-            .forEach { menus += cls.type to it.ref() }
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        cls.methods.filter { m -> m.controlBody().any { it.callsAppMenu() } }.forEach { menus += cls.type to it.ref() }
+    }
+    // 13.2 inlines the app build's override, so the menu is the one that reads the loader right after Saved Messages.
+    if (menus.isEmpty()) forEachClassMentioning(Mention.reference(LOADER_INSTANCE) and Mention.reference(SAVED_MESSAGES)) { cls ->
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        cls.methods.filter { inlinedAppMenu(it.controlBody()) != null }.forEach { menus += cls.type to it.ref() }
     }
     val (chats, menuRef) = menus.controlSingle("the chat list's menu")
-    val chatList = mutableClassDefBy(chats)
+    val chatList = tgMutableClassDefBy(chats)
     val menu = chatList.methods.single { it.ref() == menuRef }
     controlShape(!AccessFlags.STATIC.isSet(menu.accessFlags), "the chat list's menu is static")
     val body = menu.controlBody()
-    val call = body.indices.filter { body[it].call()?.let { c -> c.definingClass == APPLICATION_LOADER && c.name == "addItemOptions" } == true }
-        .controlSingle("the app build's menu entries")
-    val itemOptions = body[call].call()!!.parameterTypes.singleOrNull()?.toString()
-    controlShape(itemOptions != null && body[call].opcode == Opcode.INVOKE_VIRTUAL && body[call].namedRegisters().size == 2,
-        "the app build no longer takes the chat list's menu")
-    val options = body[call].namedRegisters()[1]
-    val index = call - 2
-    controlShape(index > 0 && body[index].opcode == Opcode.SGET_OBJECT && body[index].controlRef() == LOADER_INSTANCE &&
-        body[index + 1].opcode == Opcode.IF_EQZ && body[index + 1].namedRegisters() == listOf(body[index].namedRegisters()[0]) &&
-        body[index].namedRegisters()[0] != options, "the app build's menu entries are no longer behind one null check")
+    val index: Int
+    val options: Int
+    val itemOptions: String?
+    if (body.none { it.callsAppMenu() }) {
+        val (at, menuRegister) = inlinedAppMenu(body)!!
+        index = at
+        options = menuRegister
+        itemOptions = body[at - 1].call()!!.origDefiningClass
+        controlShape(body[at].namedRegisters()[0] != options, "the app build's menu entries no longer follow the chat list's own")
+    } else {
+        val call = body.indices.filter { body[it].callsAppMenu() }.controlSingle("the app build's menu entries")
+        itemOptions = body[call].call()!!.parameterTypes.singleOrNull()?.toString()
+        controlShape(itemOptions != null && body[call].opcode == Opcode.INVOKE_VIRTUAL && body[call].namedRegisters().size == 2,
+            "the app build no longer takes the chat list's menu")
+        options = body[call].namedRegisters()[1]
+        index = call - 2
+        controlShape(index > 0 && body[index].opcode == Opcode.SGET_OBJECT && body[index].controlRef() == LOADER_INSTANCE &&
+            body[index + 1].opcode == Opcode.IF_EQZ && body[index + 1].namedRegisters() == listOf(body[index].namedRegisters()[0]) &&
+            body[index].namedRegisters()[0] != options, "the app build's menu entries are no longer behind one null check")
+    }
     menu.requireThisIntact(PATCH, listOf(index))
 
     // Saved Messages is added with the same add the archive entry uses.
     val saved = body.indexOfFirst { it.controlRef() == SAVED_MESSAGES }
     controlShape(saved in 0 until index, "the chat list's menu no longer has Saved Messages before the app build's entries")
     val add = (saved until index).mapNotNull { at -> body[at].takeIf { it.opcode in INVOKES }?.call() }
-        .firstOrNull { it.definingClass == itemOptions }
+        .firstOrNull { it.origDefiningClass == itemOptions }
     val addParameters = add?.parameterTypes?.map(CharSequence::toString).orEmpty()
     controlShape(add != null && addParameters.sorted() in listOf(listOf("I", CHAR_SEQUENCE, RUNNABLE).sorted(), listOf("I", CHAR_SEQUENCE, RUNNABLE, "Z").sorted()),
         "the chat list's menu no longer adds an entry from an icon, a text and a click")
 
     // Tapping the archive's row opens a new chat list for its folder with presentFragment.
-    controlShape(chatList.methods.any { it.name == "<init>" && it.parameterTypes.map(CharSequence::toString) == listOf(BUNDLE) },
+    controlShape(chatList.methods.any { it.origName == "<init>" && it.origParameterTypes == listOf(BUNDLE) },
         "the chat list can no longer be opened for a folder")
     val presents = mutableSetOf<String>()
     var present: MethodReference? = null
@@ -283,11 +371,11 @@ internal fun BytecodePatchContext.resolveDisableArchivePull(): ArchivePullSites 
         for (at in code.indices) {
             if (code[at].controlRef() != "$DIALOG_FOLDER->folder:Lorg/telegram/tgnet/TLRPC\$TL_folder;") continue
             val made = (at until minOf(code.size, at + 8)).firstOrNull { code[it].opcode == Opcode.NEW_INSTANCE &&
-                ((code[it] as ReferenceInstruction).reference as TypeReference).type == chats } ?: continue
+                ((code[it] as ReferenceInstruction).reference as TypeReference).origType == chats } ?: continue
             val fragment = code[made].namedRegisters()[0]
             if (code.getOrNull(made + 1)?.controlRef() != "$chats-><init>($BUNDLE)V" || code[made + 1].namedRegisters().firstOrNull() != fragment) continue
             val shown = code.getOrNull(made + 2)?.takeIf { it.opcode == Opcode.INVOKE_VIRTUAL && it.namedRegisters().getOrNull(1) == fragment }?.call() ?: continue
-            if (shown.returnType == "Z" && shown.parameterTypes.map(CharSequence::toString) == listOf(chatList.superclass) &&
+            if (shown.origReturnType == "Z" && shown.parameterTypes.map(CharSequence::toString) == listOf(chatList.superclass) &&
                 (code.subList(at, made).any { it.controlString() == "folderId" })) {
                 presents += shown.ref()
                 present = shown
@@ -295,13 +383,42 @@ internal fun BytecodePatchContext.resolveDisableArchivePull(): ArchivePullSites 
         }
     }
     controlShape(presents.size == 1, "opening the archive's folder is missing or ambiguous")
-    return ArchivePullSites(hidden, folder, menu, index, options, chats, add!!, present!!, dialogs, lookup)
+    return ArchivePullSites(hidden, folder, menu, index, options, chats, add!!, present!!, dialogs, lookup, inlined)
+}
+
+private const val FOLDER_FLAG = 0x2000000000000000L
+
+/**
+ * The dialog map and its lookup when hasHiddenArchive is inlined at [at]: the hidden flag's read
+ * and zero test, then straight-line code looking the archive folder's dialog up in the account's
+ * dialog map, its ID made from the folder flag. The test is where the hook goes, so nothing else
+ * may jump to it. Null for any other read of the flag.
+ */
+private fun inlinedHiddenArchive(method: Method, body: List<Instruction>, at: Int): Pair<FieldReference, MethodReference>? {
+    if (body[at].opcode != Opcode.SGET_BOOLEAN || body[at].controlRef() != ARCHIVE_HIDDEN) return null
+    val flag = body[at].namedRegisters().single()
+    if (body.getOrNull(at + 1)?.opcode != Opcode.IF_EQZ || body[at + 1].namedRegisters() != listOf(flag)) return null
+    val call = (at + 2..minOf(at + 9, body.size - 1)).firstOrNull { body[it].opcode in INVOKES } ?: return null
+    val between = body.subList(at + 2, call)
+    val map = between.firstOrNull { it.opcode == Opcode.IGET_OBJECT }?.controlField() ?: return null
+    if (map.origDefiningClass != MESSAGES_CONTROLLER || map.origName != "dialogs_dict") return null
+    if (between.none { it.opcode == Opcode.CONST_WIDE_HIGH16 && (it as WideLiteralInstruction).wideLiteral == FOLDER_FLAG } ||
+        between.none { it.opcode == Opcode.OR_LONG || it.opcode == Opcode.OR_LONG_2ADDR }) return null
+    val lookup = body[call].call() ?: return null
+    if (lookup.origDefiningClass != map.origType || lookup.origParameterTypes != listOf("J") || lookup.origReturnType != "Ljava/lang/Object;") return null
+    if (body.getOrNull(call + 1)?.opcode != Opcode.MOVE_RESULT_OBJECT || body.getOrNull(call + 2)?.opcode != Opcode.IF_EQZ) return null
+    val flow = ControlFlow.of(method)
+    if ((at + 2 until call).any { flow.normal[it] != listOf(it + 1) }) return null
+    if (flow.normal.indices.any { it != at && at + 1 in flow.normal[it] } || flow.exceptional.any { at + 1 in it }) return null
+    return map to lookup
 }
 
 /** A public static field the stubs read, given as `Lowner;->name:type`. */
 private fun BytecodePatchContext.staticField(field: String): Boolean {
+    // A resource id 13.2 inlined has no field left; the stub's read of it becomes that number.
+    if (TelegramNames.current().resourceOf(field) != null) return true
     val owner = field.substringBefore("->")
-    return classDefByOrNull(owner)?.fields?.any { "${it.definingClass}->${it.name}:${it.type}" == field &&
+    return tgClassDefByOrNull(owner)?.fields?.any { it.origString() == field &&
         AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) } == true
 }
 
@@ -311,5 +428,5 @@ private fun MutableMethod.requireEntryRoom(what: String) {
     controlShape(ControlFlow.of(this).normal.none { 0 in it }, "something jumps back to the start of $what")
 }
 
-private fun Method.ref() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
-private fun MethodReference.ref() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+private fun Method.ref() = origString()
+private fun MethodReference.ref() = origString()

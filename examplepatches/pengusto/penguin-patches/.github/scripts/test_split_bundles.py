@@ -32,7 +32,7 @@ class SplitBundlesTest(unittest.TestCase):
                 z.writestr("io/github/pengusto/patches/finamp/FinampNativePatchKt.class", b"individual")
                 z.writestr("io/github/pengusto/patches/finamp/FinampCompositionKt.class", b"shared")
                 z.writestr("io/github/pengusto/patches/calendar/Calendar.class", b"calendar")
-                for mask in range(1, 256):
+                for mask in sorted(split.EXPECTED_MASKS):
                     z.writestr(f"finamp/1.0.1/arm64-v8a/{mask}.pfd", str(mask).encode())
                 z.writestr("extensions/calendar.mpe", b"extension")
                 z.writestr("classes.dex", b"dex\nold")
@@ -50,7 +50,7 @@ class SplitBundlesTest(unittest.TestCase):
                 with zipfile.ZipFile(output) as z:
                     names = set(z.namelist())
                     self.assertEqual("finamp/1.0.1/arm64-v8a/1.pfd" in names, kind == "finamp-individual")
-                    self.assertEqual("finamp/1.0.1/arm64-v8a/255.pfd" in names, kind != "standard")
+                    self.assertEqual(split.ALL_FIXES_DELTA in names, kind != "standard")
                     self.assertEqual("io/github/pengusto/patches/finamp/FinampNativePatchKt.class" in names, kind == "finamp-individual")
                     self.assertEqual("io/github/pengusto/patches/finamp/FinampCompactPatchKt.class" in names, kind in ("finamp", "combined"))
                     self.assertEqual("extensions/calendar.mpe" in names, kind in ("standard", "combined"))
@@ -88,7 +88,7 @@ class SplitBundlesTest(unittest.TestCase):
                 z.writestr("io/github/pengusto/patches/finamp/FinampNativePatchKt.class", b"individual")
                 z.writestr("io/github/pengusto/patches/finamp/FinampCompositionKt.class", b"shared")
                 z.writestr("io/github/pengusto/patches/calendar/Calendar.class", b"calendar")
-                for mask in range(1, 256):
+                for mask in sorted(split.EXPECTED_MASKS):
                     z.writestr(f"finamp/1.0.1/arm64-v8a/{mask}.pfd", str(mask).encode())
                 z.writestr("classes.dex", b"dex\nfull")
             compact = root / "compiled"
@@ -124,7 +124,7 @@ class SplitBundlesTest(unittest.TestCase):
             full = root / "full.mpp"
             with zipfile.ZipFile(full, "w") as z:
                 z.writestr("io/github/pengusto/patches/finamp/FinampCompositionKt.class", b"shared")
-                z.writestr("finamp/1.0.1/arm64-v8a/255.pfd", b"all")
+                z.writestr(split.ALL_FIXES_DELTA, b"all")
             compact = root / "compiled"
             entry = compact / "io/github/pengusto/patches/finamp/FinampCompactPatchKt.class"
             entry.parent.mkdir(parents=True)

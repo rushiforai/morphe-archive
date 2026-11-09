@@ -1,3 +1,14 @@
+## [0.17.0](https://github.com/Santodan/santodan-patches/compare/v0.16.5...v0.17.0) (2026-11-08)
+
+### ✨ New Features
+
+* **nuviotv:** add custom date label colors and live previews ([eb37d52](https://github.com/Santodan/santodan-patches/commit/eb37d52299a1ea59c8c19489b92a369d98450283))
+* **nuviotv:** add settings backup and native restart [skip ci] ([6d1d3e8](https://github.com/Santodan/santodan-patches/commit/6d1d3e8047b5a20ff565cbb6ffdb2b051dbdb8ec))
+
+### 🚀 Updated App Support
+
+* **nuviotv:** support 1.1.0-beta.13 and fix playback editor [skip ci] ([658b2a2](https://github.com/Santodan/santodan-patches/commit/658b2a248b6e6d4007d8d27a905bd1c7f752670f))
+
 ## [0.16.5](https://github.com/Santodan/santodan-patches/compare/v0.16.4...v0.16.5) (2026-11-07)
 
 ### 🐛 Bug Fixes

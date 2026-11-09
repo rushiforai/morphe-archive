@@ -15,7 +15,7 @@ import time
 
 import android_acceptance as base
 from patch_matrix import NAMES, check_contents
-from build_native_payloads import APK_SHA
+from build_native_payloads import APK_SHA, MASKS
 from manager_selection import configure_selection
 
 
@@ -66,13 +66,13 @@ def pull_verified_export(ui, remote, destination, apksigner):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--adb', type=Path, required=True)
-    parser.add_argument('--mask', type=int, choices=range(1, 256), required=True)
+    parser.add_argument('--mask', type=int, choices=MASKS, required=True)
     parser.add_argument('--out-root', type=Path, default=base.REPO_ROOT / '.scratch/finamp/manager-2.2.0')
     parser.add_argument('--remote-prefix', default='', help='Fresh alphanumeric filename prefix for shared-storage exports')
     parser.add_argument('--export-directory', choices=('/sdcard/Download', '/sdcard/Download/finamp-manager-test'),
                         default='/sdcard/Download/finamp-manager-test', help='Actual directory selected in Android Save; searching for a source can reset it to Downloads')
     parser.add_argument('--runtime', choices=('jvm', 'art'), required=True)
-    parser.add_argument('--available-mask', type=int, choices=(31, 63, 127, 255), default=sum(NAMES),
+    parser.add_argument('--available-mask', type=int, choices=(31, 63, 191), default=sum(NAMES),
                         help='Explicit historical/candidate source mask; the current full source is the default')
     parser.add_argument('--from-result', action='store_true')
     parser.add_argument('--recovery', action='store_true', help='Fresh export proving recovery after a rejected input')

@@ -5,11 +5,14 @@ import hashlib
 from pathlib import Path
 import zipfile
 
+from finamp_catalogue import catalogue
+
 FINAMP_CLASSES = "io/github/pengusto/patches/finamp/"
 FINAMP_RESOURCES = "finamp/"
 INDIVIDUAL_ENTRY = FINAMP_CLASSES + "FinampNativePatchKt"
 COMPACT_ENTRY = FINAMP_CLASSES + "FinampCompactPatchKt"
-ALL_FIXES_DELTA = "finamp/1.0.1/arm64-v8a/255.pfd"
+_, _, COMPLETE_MASK, EXPECTED_MASKS = catalogue()
+ALL_FIXES_DELTA = f"finamp/1.0.1/arm64-v8a/{COMPLETE_MASK}.pfd"
 
 
 def entries(archive):

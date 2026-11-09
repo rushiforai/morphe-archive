@@ -10,7 +10,7 @@ import time
 import zipfile
 
 import android_acceptance as base
-from build_native_payloads import ENGINE_SHA
+from build_native_payloads import ENGINE_SHA, MASKS
 
 
 def download_file_hashes(ui):
@@ -52,7 +52,7 @@ def main():
     parser.add_argument('--adb', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--native-report', type=Path, required=True)
-    parser.add_argument('--mask', type=int, choices=[i for i in range(256) if i & 4], required=True)
+    parser.add_argument('--mask', type=int, choices=[i for i in MASKS if i & 4], required=True)
     parser.add_argument('--probe', choices=('count-states', 'performance', 'guest-warning'), default='count-states')
     args = parser.parse_args()
     ui = base.Android(out=args.out, adb=args.adb)

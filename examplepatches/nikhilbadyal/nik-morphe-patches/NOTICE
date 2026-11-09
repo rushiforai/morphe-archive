@@ -19,3 +19,10 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+Attributions & Acknowledgments
+------------------------------
+
+Portions of this project are based on, derived from, or inspired by patches from:
+- okish-morphe-patches by byehi98 (https://github.com/byehi98/okish-morphe-patches)
+  Licensed under the GNU General Public License v3.0 (GPL-3.0-or-later).

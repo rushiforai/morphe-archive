@@ -5,7 +5,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Threads-454.0.0.54.79-000000" alt="Threads 454.0.0.54.79">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.4.0%2B-8A2BE2" alt="For Morphe Manager 2.4.0 or newer">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.5.0%2B-8A2BE2" alt="For Morphe Manager 2.5.0 or newer">
 </p>
 
 <p align="center">
@@ -32,13 +32,13 @@ HushThreads only comes from this repo, github.com/SysAdminDoc/HushThreads, and y
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.4.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.5.0 or newer.
 2. Add HushThreads as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads
 3. Get Threads 454.0.0.54.79 (`com.instagram.barcelona`) for any architecture and screen density in the [table below](#supported-threads-build), on Android 9 or newer. If you're on an older Threads, update it to 454 before you patch.
-4. Uninstall the stock Threads. A patched Threads can't install over Meta's signed copy.
-5. In Morphe Manager, pick that file and patch. The default selection has every patch except the three the [Patches](#patches) section names, so you don't need Expert mode.
+4. Uninstall the stock Threads. A patched Threads can't install over Meta's signed copy. If you'd rather keep it, add `Change package name` (and `Change app name`, so you can tell them apart) and the patched one installs beside it as a second app with its own sign-in.
+5. In Morphe Manager, pick that file and patch. The default selection has every patch except the five the [Patches](#patches) section names, so you don't need Expert mode.
 
-To add one of those three, turn on **Settings → Advanced → Expert mode** in Manager before you pick the file. If you saved your own selection in Expert mode before, Manager may keep using it, so look over the list once.
+To add one of those five, turn on **Settings → Advanced → Expert mode** in Manager before you pick the file. If you saved your own selection in Expert mode before, Manager may keep using it, so look over the list once.
 
 HushThreads patches Threads 454 only. Each release moves to the newest stable Threads and drops the one before, so v0.0.15 is the last release for 451.0.0.51.80 and v0.0.16 is the last release for 452.0.0.50.64. If a patch can't find what it needs in your build, patching stops with a message naming it, so you don't end up with an app where that patch does nothing.
 
@@ -80,17 +80,20 @@ On a new phone, import the key before you patch anything. Reinstalling Manager o
 
 ## Patches
 
-HushThreads has 22 patches. Morphe Manager's default selection has all but three: `Change version code`, `Remove share targets` and `Trust user-added certificates`. Those three change Threads when you patch and have no switch to undo them. Most of the others have a switch in HushThreads settings, and each row below says where it is and how it starts.
+HushThreads has 25 patches. Morphe Manager's default selection has all but five: `Change app name`, `Change package name`, `Change version code`, `Remove share targets` and `Trust user-added certificates`. Those five change Threads when you patch and have no switch to undo them. The first two make a second app you install beside Threads, with its own sign-in. Most of the others have a switch in HushThreads settings, and each row below says where it is and how it starts.
 
 | Patch | What it does |
 |---|---|
 | `Block background-return feed refresh` | Keeps your place in your feed when you leave Threads and come back within ten minutes. Pulling down to refresh still loads new posts. Good if you hate losing the post you were reading. Starts off. Turn it on in HushThreads settings > Feed. |
+| `Change app name` | Changes the name under the app's icon, so a copy you install beside Threads with Change package name is easy to tell apart. It isn't selected by default. Works as soon as you patch it in, with no switch. |
+| `Change package name` | Gives the patched Threads its own package name, so it installs beside the Threads you already have instead of over it. It's a separate app with its own sign-in. It isn't selected by default. Works as soon as you patch it in, with no switch. |
 | `Change version code` | Raises the version number as high as Android allows, so Google Play won't offer Meta's updates over it. Going back to stock Threads means uninstalling, which deletes its data. It isn't selected by default. Works as soon as you patch it in, with no switch. |
 | `Disable analytics` | Stops Threads from sending most of its usage reports to Meta. A few may still get through. Good if you'd rather share less about how you use the app. On by default. Turn it off in HushThreads settings > Privacy. |
 | `Disable screenshot detection` | Threads isn't told when you take a screenshot. It stops watching your photos for new screenshots. Good if you want to screenshot without Threads noticing. Starts off. Turn it on in HushThreads settings > Privacy. |
 | `Disable swipe to Search` | Stops a sideways swipe on your feed from sliding into Search. The Search button still opens Search. Threads only has the swipe on some accounts. Good if you keep landing in Search while you scroll. Starts off. Turn it on in HushThreads settings > Feed. |
 | `Disable video autoplay` | Videos in your feed wait for a tap instead of playing as you scroll. Good for a calmer feed and less data use. Starts off. Turn it on in HushThreads settings > Feed. |
 | `Filter comments` | Leaves out the replies to a post that match words or domains you list, such as the shop link a spam reply ends with, before Threads shows them. A second switch under it also hides any reply with a web link. The replies that stay keep their order. Starts off. Turn it on and add your list in HushThreads settings > Comments. |
+| `Full size profile pictures` | Opens a profile picture full size when you tap it on a profile, so you can zoom in and save it, instead of Threads' small circle. Starts off. Turn it on in HushThreads settings > Appearance. |
 | `Hide ads` | Removes sponsored posts from your feed and from under the posts you open before Threads shows them, so they leave no gap. On by default. Turn it off in HushThreads settings > Feed. |
 | `Hide ghost post bubbles` | Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. The pictures and the ghost posts themselves stay. Good for a calmer look. Starts off. Turn it on in HushThreads settings > Appearance. |
 | `Hide suggested users` | Removes the cards that suggest accounts to follow, in your feed and on profiles, and the Follow suggestions row in Search. Normal posts and reposts stay, and so does the rest of a profile or Search. Good if you only want posts in your feed. On by default. Its two switches are in HushThreads settings > Feed. |

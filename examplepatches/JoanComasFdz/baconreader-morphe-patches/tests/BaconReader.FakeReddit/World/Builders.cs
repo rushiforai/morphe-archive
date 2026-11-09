@@ -57,8 +57,9 @@ public sealed class PostBuilder
     }
 
     /// <summary>
-    /// A GIF post, uploaded to i.redd.it, as Reddit sends one: a still of it as thumbnail and preview, and the GIF in the
-    /// preview's <c>variants.gif</c>. <see cref="MediaAsset.LargeGif"/> unless <paramref name="gif"/> says otherwise.
+    /// A GIF post, uploaded to i.redd.it, as Reddit sends one: a still of it as preview, another as thumbnail on
+    /// b.thumbs.redditmedia.com, and the GIF in the preview's <c>variants.gif</c>. <see cref="MediaAsset.LargeGif"/>
+    /// unless <paramref name="gif"/> says otherwise.
     /// </summary>
     public PostBuilder WithGif(MediaAsset? gif = null)
     {
@@ -66,7 +67,7 @@ public sealed class PostBuilder
         var url = world.AddMedia($"i.redd.it/{id}.gif", "image/gif", (gif ?? MediaAsset.LargeGif).Bytes);
         LinkingTo(url);
         var still = world.AddMedia($"preview.redd.it/{id}e2estill.jpg", MediaAsset.Jpeg.ContentType, MediaAsset.Jpeg.Bytes);
-        Post.Thumbnail = still;
+        Post.Thumbnail = world.AddMedia($"b.thumbs.redditmedia.com/{id}e2ethumbnail.jpg", MediaAsset.Jpeg.ContentType, MediaAsset.Jpeg.Bytes);
         Post.PreviewImages.Add(still);
         Post.PreviewGif = url;
         return this;

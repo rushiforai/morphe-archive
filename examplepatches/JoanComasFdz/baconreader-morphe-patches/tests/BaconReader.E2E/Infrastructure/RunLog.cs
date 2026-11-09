@@ -6,10 +6,11 @@ using System.Globalization;
 namespace BaconReader.E2E.Infrastructure;
 
 /// <summary>
-/// What a run tells about its installs, retries and waits, so it shows how many APKs it sent to the phone, which retries
-/// fired and how long each wait took. An install and a retry that fires write a line to xunit's diagnostic messages
-/// (printed with the run, xunit.runner.json) and to the scenario's output; a wait writes its time only to the scenario's
-/// output, in the run's .trx (record.sh writes it in out/.results/).
+/// What a run tells about its scenarios, installs, retries and waits, so it shows which scenario plays, how many APKs it
+/// sent to the phone, which retries fired and how long each wait took. A scenario's start and end, an install and a
+/// retry that fires write a line to xunit's diagnostic messages (printed with the run, as it goes, xunit.runner.json);
+/// an install and a retry to the scenario's output too; a wait writes its time only to the scenario's output, in the
+/// run's .trx (record.sh writes it in out/.results/).
 /// </summary>
 public static class RunLog
 {
@@ -28,6 +29,16 @@ public static class RunLog
         TestContext.Current.SendDiagnosticMessage($"{TestContext.Current.TestMethod?.MethodName}: {line}");
         TestContext.Current.TestOutputHelper?.WriteLine(line);
     }
+
+    /// <summary>Notes that the scenario started, so a long run's log shows which one plays.</summary>
+    public static void Started() =>
+        TestContext.Current.SendDiagnosticMessage($"{TestContext.Current.TestMethod?.MethodName}: started");
+
+    /// <summary>Notes how the scenario ended, <paramref name="passed"/> or not, <paramref name="took"/> after it started.</summary>
+    public static void Ended(bool passed, TimeSpan took) =>
+        TestContext.Current.SendDiagnosticMessage(string.Create(
+            CultureInfo.InvariantCulture,
+            $"{TestContext.Current.TestMethod?.MethodName}: {(passed ? "passed" : "FAILED")} in {took.TotalSeconds:0} s"));
 
     /// <summary>Notes how long the wait for <paramref name="what"/> took, of its <paramref name="limit"/>, and whether it saw it.</summary>
     public static void WaitTook(string what, TimeSpan took, TimeSpan limit, bool seen) =>

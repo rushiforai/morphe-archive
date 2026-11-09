@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.camera
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -26,6 +26,9 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origSuperclass
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val REAR_CAMERA = "$EXTENSION_PACKAGE/misc/RearCamera;"
 internal const val REAR_CAMERA_FRONT = "$REAR_CAMERA->front(Z)Z"
@@ -71,10 +74,10 @@ internal fun BytecodePatchContext.resolveRearCameraFirst(): MutableMethod {
     controlHook(REAR_CAMERA, "front", listOf("Z"), "Z")
     val found = mutableListOf<String>()
     classDefForEach { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/") || cls.superclass != ATTACH_CAMERA_SUPER) return@classDefForEach
+        if (cls.origType.startsWith("Lapp/hushtelegram/") || cls.origSuperclass != ATTACH_CAMERA_SUPER) return@classDefForEach
         if (cls.methods.any { it.isAttachCameraInit() }) found += cls.type
     }
-    val camera = mutableClassDefBy(found.controlSingle("attachment camera")).methods.filter { it.isAttachCameraInit() }
+    val camera = tgMutableClassDefBy(found.controlSingle("attachment camera")).methods.filter { it.isAttachCameraInit() }
         .controlSingle("attachment camera constructor")
     val body = camera.controlBody()
     val call = body.indices.filter { body[it].controlRef() == ATTACH_CAMERA_INIT &&

@@ -4,10 +4,12 @@
  */
 package app.morphe.patches.telegram.misc.messagemenu
 
+import app.morphe.util.names.origParameterTypes
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patches.telegram.misc.channelbar.commerceReads
 import app.morphe.patches.telegram.misc.commerce.COMMERCE
 import app.morphe.patches.telegram.misc.commerce.hideCommercePatch
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -17,6 +19,7 @@ import app.morphe.patches.telegram.misc.forward.IS_PREMIUM
 import app.morphe.patches.telegram.misc.forward.NAME_HIDE
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
+import app.morphe.patches.telegram.misc.localcontrols.controlString
 import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -26,6 +29,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -33,6 +37,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The menu builder's return, the choice handler's entry, the forward the stubs send with, and the runtime. */
 class MessageMenuFixtureTest {
@@ -47,17 +55,22 @@ class MessageMenuFixtureTest {
         "Lorg/telegram/messenger/FileLoader;", "Lorg/telegram/messenger/ApplicationLoader;", "Landroidx/core/content/FileProvider;",
         "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/messenger/AccountInstance;", "Lorg/telegram/tgnet/TLRPC\$Dialog;", "Lorg/telegram/tgnet/TLRPC\$Chat;",
         "Lorg/telegram/messenger/LocaleController;", "Lorg/telegram/messenger/R\$string;",
+        "Lorg/telegram/tgnet/TLObject;", "Lorg/telegram/messenger/ImageLocation;", "Lorg/telegram/messenger/NotificationCenter;",
     )
 
-    private fun Instruction.shape() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString())
+    private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())
     private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
-    private fun hosts(build: File): List<ClassDef> {
+    internal fun hosts(build: File): List<ClassDef> = baseHosts(build).let { it + selectBetweenHosts(build, it) }
+
+    private fun baseHosts(build: File): List<ClassDef> {
         val found = FixtureDex.classesWhere(build, { true }) { m ->
-            val params = m.parameterTypes.map(CharSequence::toString)
+            val params = m.origParameterTypes
             params == listOf("Lorg/telegram/messenger/MessageObject;", list, list, list) && m.controlBody().any { it.controlRef() == FORWARD_LABEL } ||
-                AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", "I", list, list) && m.returnType == "V" ||
-                m.name == "getParentActivity" && params.isEmpty() || m.isSelectionCanCopy() ||
+                AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", "I", list, list) && m.origReturnType == "V" ||
+                // 13.2's label helper also takes the icon and returns it boxed.
+                AccessFlags.STATIC.isSet(m.accessFlags) && params == listOf("I", list, "I", list, "I") && m.origReturnType == "Ljava/lang/Integer;" ||
+                m.origName == "getParentActivity" && params.isEmpty() || m.isSelectionCanCopy() || m.isStorySaveMenu() || m.isScreenshotSlice() ||
                 m.controlBody().map { it.controlRef() }.let { IS_PREMIUM in it && FORWARDS in it && NAME_HIDE in it }
         }
         return (FixtureDex.classes(build, fixed).values + found).distinctBy { it.type }.map(ImmutableClassDef::of)
@@ -102,9 +115,10 @@ class MessageMenuFixtureTest {
             assertEquals("$name: the chat and the number", listOf(chooseTop - 2, chooseTop - 1), chosen[0].namedRegisters())
             for (i in stock.indices) assertEquals("$name: stock choice $i", stock[i].shape(), chosen[i + 1].shape())
 
-            val stub = { n: String -> context.mutableClassDefBy(MESSAGE_MENU).methods.single { it.name == n }.controlBody() }
-            assertTrue("$name: the selected message", stub("selected").any { it.controlRef() == site.selected.toString() })
-            assertTrue("$name: the selected album", stub("grouped").any { it.controlRef() == site.group.toString() })
+            val stub = { n: String -> context.tgMutableClassDefBy(MESSAGE_MENU).methods.single { it.origName == n }.controlBody() }
+            // Build names on both sides: the site holds the build's own field references.
+            assertTrue("$name: the selected message", stub("selected").any { (it as? ReferenceInstruction)?.reference?.toString() == site.selected.toString() })
+            assertTrue("$name: the selected album", stub("grouped").any { (it as? ReferenceInstruction)?.reference?.toString() == site.group.toString() })
             val send = stub("send").single { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }
             assertEquals("$name: Telegram's forward into the open chat", signature(site.forward), send.controlRef())
             assertEquals((0..7).toList(), send.namedRegisters())
@@ -119,14 +133,44 @@ class MessageMenuFixtureTest {
             assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_forward:I", stub("quickIcon").first().controlRef())
 
             // Quick forward: the chat list, a chat's rights and name, and Telegram's own forward with the sender left shown.
-            val sendHelper = "Lorg/telegram/messenger/SendMessagesHelper;->sendMessage(Ljava/util/ArrayList;JZZZIJ)I"
+            // 13.2 has no short overload, so the full one gets what the short one passed it.
+            val sendHelper = FORWARD_SEND
             val forwardTo = stub("forwardTo")
             val quick = forwardTo.single { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }
             assertEquals("$name: Telegram's own forward into a chat", sendHelper, quick.controlRef())
-            assertEquals((0..9).toList(), quick.namedRegisters())
-            assertEquals("$name: notify on, no schedule, no stars", listOf(0L, 1L, 0L, 0L),
+            assertEquals((0..15).toList(), quick.namedRegisters())
+            assertEquals("$name: caption kept, notify on, no schedule, repeat, topic or suggestion, no video start, no stars or monoforum",
+                listOf(0L, 1L, 0L, 0L, 0L, -1L, 0L, 0L, 0L),
                 forwardTo.filter { it.opcode == Opcode.CONST_4 || it.opcode == Opcode.CONST_WIDE_16 }.map { (it as WideLiteralInstruction).wideLiteral })
-            assertTrue("$name: Telegram's chat list", stub("dialogs").any { it.controlRef()?.endsWith("->getAllDialogs()Ljava/util/ArrayList;") == true })
+            // Fast forward: the same send with both flags read from the stub's own arguments (sender p4, caption p5).
+            val tools = context.tgMutableClassDefBy(MESSAGE_MENU_TOOLS).methods.single { it.origName == "forwardWith" }
+            val toolsBody = tools.controlBody()
+            val fast = toolsBody.single { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }
+            assertEquals("$name: Telegram's own forward with both flags", sendHelper, fast.controlRef())
+            assertEquals((0..15).toList(), fast.namedRegisters())
+            assertEquals("$name: twenty-two registers, the last argument in the last", 22, tools.implementation!!.registerCount)
+            val flags = toolsBody.filter { it.opcode == Opcode.MOVE_FROM16 }.map { it as TwoRegisterInstruction }.map { it.registerA to it.registerB }
+            assertEquals("$name: sender into the forward-from-my-name slot, caption into the hide-caption slot", listOf(4 to 20, 5 to 21), flags)
+            assertEquals("$name: the full forward's defaults", listOf(1L, 0L, 0L, 0L, -1L, 0L, 0L, 0L),
+                toolsBody.filter { it.opcode == Opcode.CONST_4 || it.opcode == Opcode.CONST_WIDE_16 }.map { (it as WideLiteralInstruction).wideLiteral })
+            // Save video cover, Save album art and Clear from cache: Telegram's own calls, nothing else.
+            fun tool(method: String) = context.tgMutableClassDefBy(MESSAGE_MENU_TOOLS).methods.single { it.origName == method }.controlBody().mapNotNull { it.controlRef() }
+            val fileLoader = "Lorg/telegram/messenger/FileLoader;"
+            assertTrue("$name: video test", tool("video").contains("Lorg/telegram/messenger/MessageObject;->isVideo()Z"))
+            assertTrue("$name: music test", tool("music").contains("Lorg/telegram/messenger/MessageObject;->isMusic()Z"))
+            assertTrue("$name: the cover's sizes", tool("thumbs").contains("Lorg/telegram/tgnet/TLRPC\$MessageMedia;->video_cover:Lorg/telegram/tgnet/TLRPC\$Photo;"))
+            assertTrue("$name: the video's thumbnails", tool("thumbs").contains("Lorg/telegram/tgnet/TLRPC\$Document;->thumbs:Ljava/util/ArrayList;"))
+            assertTrue("$name: Telegram's file for a size", tool("thumbFile").contains("$fileLoader->getPathToAttach(Lorg/telegram/tgnet/TLObject;Z)Ljava/io/File;"))
+            assertTrue("$name: Telegram's own fetch", tool("thumbLoad").contains("$fileLoader->loadFile(Lorg/telegram/messenger/ImageLocation;Ljava/lang/Object;Ljava/lang/String;II)V"))
+            assertTrue("$name: Telegram's file name", tool("attachName").contains("$fileLoader->getAttachFileName(Lorg/telegram/tgnet/TLObject;)Ljava/lang/String;"))
+            assertTrue("$name: Telegram's own cancel", tool("cancelLoad").contains("$fileLoader->cancelLoadFile(Lorg/telegram/tgnet/TLRPC\$Document;)V"))
+            assertTrue("$name: Telegram's folders", tool("directory").contains("$fileLoader->getDirectory(I)Ljava/io/File;"))
+            assertTrue("$name: the cell is told", tool("refreshMedia").contains("Lorg/telegram/messenger/MessageObject;->checkMediaExistance()V"))
+            assertTrue("$name: Save icon", tool("saveIcon").contains("Lorg/telegram/messenger/R\$drawable;->msg_download:I"))
+            assertTrue("$name: Delete icon", tool("deleteIcon").contains("Lorg/telegram/messenger/R\$drawable;->msg_delete:I"))
+            // Play's 13.2 inlined the getter, so there the stub reads its field.
+            assertTrue("$name: Telegram's chat list", stub("dialogs").any { it.controlRef()?.endsWith("->getAllDialogs()Ljava/util/ArrayList;") == true ||
+                it.opcode == Opcode.IGET_OBJECT && it.controlRef() == "Lorg/telegram/messenger/MessagesController;->allDialogs:Ljava/util/ArrayList;" })
             assertTrue("$name: a chat list entry's ID", stub("dialogId").any { it.controlRef() == "Lorg/telegram/tgnet/TLRPC\$Dialog;->id:J" })
             assertTrue("$name: your own ID", stub("selfId").any { it.controlRef()?.endsWith("->getClientUserId()J") == true })
             assertTrue("$name: secret chats refused", stub("secret").any { it.controlRef() == "Lorg/telegram/messenger/DialogObject;->isEncryptedDialog(J)Z" })
@@ -134,13 +178,20 @@ class MessageMenuFixtureTest {
             assertTrue("$name: the chat's own send rights", stub("reachable").any { it.controlRef()?.endsWith("->canSendMessages(Lorg/telegram/tgnet/TLRPC\$Chat;)Z") == true })
             assertTrue("$name: Saved Messages named by Telegram", stub("title").any { it.controlRef() == "Lorg/telegram/messenger/R\$string;->SavedMessages:I" })
             assertEquals("$name: the file provider Share uses", "Landroidx/core/content/FileProvider;", site.provider.substringBefore("->"))
-            assertEquals(listOf(APPLICATION_ID, site.provider), stub("uri").filter { it.opcode == Opcode.INVOKE_STATIC }.map { it.controlRef() })
+            // 13.2 loads the joined authority as one string, which the stub passes the same way.
+            val joined = site.authority == null
+            assertEquals(if (joined) listOf(APPLICATION_ID, site.provider) else listOf(site.provider), stub("uri").filter { it.opcode == Opcode.INVOKE_STATIC }.map { it.controlRef() })
+            if (!joined) {
+                val share = site.choose.controlBody()
+                assertTrue("$name: Telegram's Share loads ${site.authority}", share.any { it.controlString() == site.authority })
+                assertEquals("$name: the stub's authority", site.authority, stub("uri").first().controlString())
+            }
             assertTrue("$name: Telegram's downloaded copy", stub("photoFile").any { it.controlRef() == "Lorg/telegram/messenger/FileLoader;->getPathToMessage(Lorg/telegram/tgnet/TLRPC\$Message;)Ljava/io/File;" })
             assertTrue("$name: no photo behind the age filter", stub("photo").any { it.controlRef() == "Lorg/telegram/messenger/MessageObject;->isHiddenSensitive()Z" })
             assertTrue("$name: secret chats refused", stub("canSend").any { it.controlRef() == "Lorg/telegram/messenger/DialogObject;->isEncryptedDialog(J)Z" })
             assertTrue("$name: the chat's own send rights", stub("canSend").any { it.controlRef()?.endsWith("->canSendMessages(Lorg/telegram/tgnet/TLRPC\$Chat;)Z") == true })
             assertTrue("$name: paid media refused", stub("blocked").any { it.controlRef() == "Lorg/telegram/tgnet/TLRPC\$TL_messageMediaPaidMedia;" })
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "messageMenuRepeat" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "messageMenuRepeat" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -148,7 +199,7 @@ class MessageMenuFixtureTest {
     /** Hide Premium, gifts and Stars asks before the Gram transfer's Send Gram, in the same builder. */
     @Test fun `the message menu and the Gram transfer Send Gram hook share the builder in either order`() {
         for (build in Fixtures.declaredBuilds()) for (commerceFirst in listOf(true, false)) {
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+            val context = PatchContexts.of(ExtensionDex.classes() + commerceReads(build, hosts(build)))
             val fill = context.resolveMessageMenu().fill
             val stock = ImmutableMethod.of(fill).controlBody()
             for (patch in if (commerceFirst) listOf(hideCommercePatch, messageMenuPatch) else listOf(messageMenuPatch, hideCommercePatch)) {
@@ -163,7 +214,7 @@ class MessageMenuFixtureTest {
             assertEquals("${build.name}: the menu's call still comes last", FILL, after[after.size - 2].controlRef())
             assertEquals(Opcode.RETURN_VOID, after.last().opcode)
             for (flag in listOf("messageMenuRepeat", "commerceTransferSendGram")) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("${build.name}: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }

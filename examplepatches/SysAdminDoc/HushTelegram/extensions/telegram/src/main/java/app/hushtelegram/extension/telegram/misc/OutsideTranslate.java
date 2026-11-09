@@ -4,6 +4,7 @@
  */
 package app.hushtelegram.extension.telegram.misc;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import java.lang.ref.WeakReference;
@@ -28,6 +29,8 @@ import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
+import app.hushtelegram.extension.telegram.settings.SettingsEntry;
+import app.hushtelegram.extension.telegram.settings.TranslateTargetPicker;
 
 /**
  * A translator that sits beside Telegram's own, which is Premium for a whole chat and whose
@@ -68,6 +71,8 @@ public final class OutsideTranslate {
     /** Option numbers past Telegram's own, and past the message menu family's. */
     static final int MENU_OPTION = 0x48545405;
     static final int HEADER_ITEM = 0x48545406;
+    /** The chat menu's Translate into item, which opens the language list over the chat (#35). */
+    static final int HEADER_LANGUAGE = 0x48545407;
     /** Telegram's own Translate in the message menu, which ours goes after. */
     static final int TELEGRAM_TRANSLATE = 29;
 
@@ -965,6 +970,7 @@ public final class OutsideTranslate {
                 if (!HEADERS.containsKey(chat)) {
                     Object item = addHeaderItem(chat, HEADER_ITEM, translateIcon(), headerText(owner, dialog));
                     HEADERS.put(chat, new WeakReference<>(item));
+                    addLanguageItem(chat);
                 } else {
                     updateHeaderText(chat, owner, dialog);
                 }
@@ -972,6 +978,23 @@ public final class OutsideTranslate {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.OUTSIDE_TRANSLATE, "header menu", failure);
         }
+    }
+
+    /** Translate into, under the chat's own item. Its label never changes, so nothing keeps it. */
+    private static void addLanguageItem(Object chat) {
+        try {
+            addHeaderItem(chat, HEADER_LANGUAGE, languageIcon(), L10n.t("Translate into"));
+        } catch (Throwable failure) {
+            // The chat's own item is in already, and stays useful without this one.
+            HookStatus.threw(FamilyNames.OUTSIDE_TRANSLATE, "header language item", failure);
+        }
+    }
+
+    /** Telegram's globe icon, the one on its Language row, or the translate icon where it has none. */
+    static int languageIcon() {
+        Context context = Utils.getContext();
+        int globe = context == null ? 0 : context.getResources().getIdentifier("msg_language", "drawable", context.getPackageName());
+        return globe != 0 ? globe : translateIcon();
     }
 
     private static String headerText(long owner, long dialog) {
@@ -994,6 +1017,7 @@ public final class OutsideTranslate {
      * @return true when the choice was ours, so Telegram's own handling is skipped
      */
     public static boolean headerClick(Object delegate, int id) {
+        if (id == HEADER_LANGUAGE) return languageClick(delegate);
         if (id != HEADER_ITEM) return false;
         try {
             // An item left in an open menu after the switch went off is still ours, and does nothing.
@@ -1015,6 +1039,29 @@ public final class OutsideTranslate {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.OUTSIDE_TRANSLATE, "header menu choice", failure);
             return false;
+        }
+    }
+
+    /** Translate into: the language list over the chat, and the chat written again in the new pick. */
+    private static boolean languageClick(Object delegate) {
+        try {
+            // Like the chat's own item, one left in an open menu after the switch went off does nothing.
+            if (!active()) return true;
+            Object chat = chatOf(delegate);
+            if (chat == null) return false;
+            long dialog = chatDialog(chat);
+            // Utils.getActivity() is always null in Telegram, so the list goes over the resumed screen.
+            Activity window = SettingsEntry.inFront();
+            if (window == null) {
+                HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, "no window for the language list");
+                return true;
+            }
+            TranslateTargetPicker.openInChat(window, () -> notifyDialog(dialog));
+            HookStatus.counted(FamilyNames.OUTSIDE_TRANSLATE, "chat language list opened");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.OUTSIDE_TRANSLATE, "header language choice", failure);
+            return true;
         }
     }
 

@@ -16,9 +16,9 @@ import app.fblite.extension.settings.MorpheSettings;
 
 /**
  * Moves to the next reel when one ends. Reels loop in the app: when a video ends, FbVideoView tells its
- * observers (X.1cF.AYK, through the list X.1zU in FbVideoView.A0I) and starts it again. A Proxy joins
+ * observers (X.1q0.AVm, through the list X.20I in FbVideoView.A0I) and starts it again. A Proxy joins
  * those observers, and on completion of a reel the Reels pager is moved on with the call a swipe makes:
- * X.10M.A04(index) on the snap handler of the vertical FbLiteRecyclerView (X.0zb).
+ * X.13f.A04(index) on the snap handler of the vertical FbLiteRecyclerView (X.12u).
  */
 final class AutoNextReel {
     private static final long DEBOUNCE_MS = 1500;
@@ -34,7 +34,7 @@ final class AutoNextReel {
         Object observers = VideoFeatures.field(video, VideoFeatures.videoViewClass(), "A0I");
         if (observers == null || OBSERVED.containsKey(observers)) return;
         ClassLoader app = video.getClass().getClassLoader();
-        Class<?> listener = Class.forName("X.1cF", false, app);
+        Class<?> listener = Class.forName("X.1q0", false, app);
         final WeakReference<View> ref = new WeakReference<>(video);
         Object proxy = Proxy.newProxyInstance(app, new Class<?>[] {listener}, new InvocationHandler() {
             @Override
@@ -49,8 +49,8 @@ final class AutoNextReel {
                             return "MorpheAutoNextReel";
                     }
                 }
-                // AYK: the video played to the end (before the app loops it).
-                if (method.getName().equals("AYK")) {
+                // AVm: the video played to the end (before the app loops it).
+                if (method.getName().equals("AVm")) {
                     final View v = ref.get();
                     if (v != null) VideoFeatures.MAIN.post(() -> onCompleted(v));
                 }
@@ -70,7 +70,7 @@ final class AutoNextReel {
 
             View pager = null;
             for (Object p = video.getParent(); p instanceof View; p = ((View) p).getParent()) {
-                if (p.getClass().getName().equals("X.0zb")) {
+                if (p.getClass().getName().equals("X.12u")) {
                     pager = (View) p;
                     break;
                 }
@@ -78,9 +78,9 @@ final class AutoNextReel {
             if (pager == null) return;
             Class<?> pagerClass = pager.getClass();
             // Reels: a vertical, snapping list whose items fill it. The feed is not snapping.
-            if ((Boolean) pagerClass.getMethod("AQS").invoke(pager)) return;
-            Object snap = VideoFeatures.field(pager, pagerClass, "A07");
-            Object handler = VideoFeatures.field(pager, pagerClass, "A08");
+            if ((Boolean) pagerClass.getMethod("APY").invoke(pager)) return;
+            Object snap = VideoFeatures.field(pager, pagerClass, "A08");
+            Object handler = VideoFeatures.field(pager, pagerClass, "A09");
             Object layout = VideoFeatures.field(pager, pagerClass, "A05");
             if (snap == null || handler == null || layout == null) return;
             if ((Integer) VideoFeatures.field(snap, snap.getClass(), "A02") == 0) return;
@@ -104,7 +104,7 @@ final class AutoNextReel {
             }
             Object items = VideoFeatures.field(snap, snap.getClass(), "A04");
             Method nextSnap = snap.getClass().getMethod("A00", items.getClass().getClassLoader()
-                    .loadClass("X.0yV"), int.class, int.class);
+                    .loadClass("X.11f"), int.class, int.class);
             int next = (Integer) nextSnap.invoke(null, items, current + 1, 1);
             VideoFeatures.log("Reel ended at index " + current + ", next " + next + ", visible " + visible.height() + " of " + pager.getHeight(), null);
             if (next <= current) return;

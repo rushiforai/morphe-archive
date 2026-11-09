@@ -177,6 +177,16 @@ public final class SendConfirm {
         return preview(VOICE, bar, scheduleDate, notify, repeat, stars, () -> sendFromBar(bar));
     }
 
+    /** {@link #previewVideo} for the build whose send takes the sound flag first and the stars before the question. */
+    public static boolean previewVideoReordered(Object bar, int notify, int scheduleDate, int repeat, long stars, int confirm) {
+        return previewVideo(bar, scheduleDate, notify, repeat, confirm, stars);
+    }
+
+    /** {@link #previewVoice} in that build's order. */
+    public static boolean previewVoiceReordered(Object bar, int notify, int scheduleDate, int repeat, long stars, int confirm) {
+        return previewVoice(bar, scheduleDate, notify, repeat, confirm, stars);
+    }
+
     /**
      * Asks about the clip waiting in [bar]'s preview; Send runs [send], the bar's send again. A tap
      * while a question is up keeps the preview and asks nothing more.

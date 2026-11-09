@@ -15,6 +15,7 @@ import app.morphe.patches.telegram.misc.savedownloads.NO_FORWARDS
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val SELECTION_COPY = "$MESSAGE_MENU->selectionCopy()Z"
 private const val SPECIAL_CHAT = 0x77628L
@@ -39,7 +40,7 @@ internal fun BytecodePatchContext.resolveSelectionCopy(): SelectionCopy {
     }
     val match = found.singleOrNull() ?: return SelectionCopy(
         "the chat's text selection no longer has one copy check (found ${found.size})", null)
-    val method = mutableClassDefBy(match.definingClass).methods.single { it.toString() == match.toString() }
+    val method = tgMutableClassDefBy(match.definingClass).methods.single { it.toString() == match.toString() }
     return SelectionCopy(null, method)
 }
 

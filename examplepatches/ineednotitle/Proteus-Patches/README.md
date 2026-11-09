@@ -12,8 +12,6 @@ ads, annoyances and risky defaults from popular Android apps — plus a set of
 **universal patches** that apply to any app.
 
 - **[v2.2.9](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.9)** — pre-release (not the latest; re-cut #3 — `invoke-static/range` fix for the patch-time crash in the Mereframe bypass; re-cut #2 superseded): Reddit save-flow stability hardening. "Remove ads" Layer 3 (comment-banner ad loader kill) rewritten as a constant `return-void` entry — zero registers used; Layer 5 (AdPostSection Compose-render no-op) kept ON by explicit decision, see [docs/REDDIT-STABILITY.md](docs/REDDIT-STABILITY.md); new "Reddit: Diagnostic crash log" patch (default off) writes `Downloads/reddit-crash-*.txt`. Also resolves all open issues: **#22** (Amazon India patching error) — AMOLED resource pass now writes android:-framework attributes only with a hard guard; the Google Photos AMOLED patch carried the same defect and got the identical fix; **#21** (Amazon India video ads) — NEW "Amazon: Stop feed video autoplay" patch (default off) + [docs/AMAZON.md](docs/AMAZON.md) with enable steps and reach limits; **#5** (Mereframe 0.8.4) — "Bypass native integrity checks" rewritten to call the native session JNI inside a real JVM try/catch in the extension, instead of inline smali whose `.catch` was silently dropped; "Spoof install source" Layer 2 now walks the superclass chain (androidx parents like LifecycleProcess); "Spoof app signature" SignatureHookApp presence is now enforced by the bundle verifier. See [docs/MEREFRAME.md](docs/MEREFRAME.md). Unverified on device; 2026.42.0 remains the verified Reddit build; Latest stays v2.2.4
-- **[v2.2.8](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.8)** — pre-release: v2.2.7 contents (six experimental, off-by-default Brave patches adapted from kveld9/kveld-morphe-patches, Reddit AutoMod/show-deleted-comments fixes, Amazon AMOLED dark, listing performance fix) plus: a broader universal "Block analytics & tracking SDKs" marker list (WebEngage, CleverTap, Flurry, Branch, Kochava); a new universal "Disable video autoplay (ExoPlayer/Media3)" heuristic; and Mint/Hindustan Times app-scoped entries for both of those plus "Prefer external browser over Custom Tabs" (same heuristics, off by default, unverified on device), and a Mint & Hindustan Times analysis. No APK was decompiled; no binary-specific Mint/HT patches exist yet. See [the Brave doc](docs/BRAVE.md), [the Reddit doc](docs/REDDIT-DELETED-COMMENTS.md) and [docs/HT-NEWS-APPS.md](docs/HT-NEWS-APPS.md). Re-cut fixes the Amazon AMOLED resource-encoder build failure (`Unknown attribute name` for `colorSurface` on mShop 32.19.0.300) and adds app-version data + a patch-application log for Mereframe crash reports (see [docs/MEREFRAME.md](docs/MEREFRAME.md)); also adds Meesho (`com.meesho.shopping`) scoped entries — Block analytics & tracking SDKs, Disable video autoplay (ExoPlayer), Prefer external browser over Custom Tabs — with [docs/MEESHO.md](docs/MEESHO.md). No binary-specific Meesho patches yet (needs the APK)
-- Built and verified with the Morphe Manager v2.3.0 patcher (`patches-list.json` regenerated, zip integrity checked)
 
 [![Add to Morphe](https://img.shields.io/badge/Add_to-Morphe-1f6feb?style=for-the-badge)](https://morphe.software/add-source?github=ineednotitle/Proteus-Patches)
 
@@ -44,24 +42,6 @@ For configuration advice, limitations, and permission-patch examples, see the
 3. Or download the latest bundle from **[Releases](https://github.com/ineednotitle/Proteus-Patches/releases)**
    (`patches-2.2.6.mpp`) and use **Settings → Patches → Import patches** in the Manager.
 4. Pick the apps you patch, choose your patches, and patch.
-
-> If you installed the withdrawn v2.2.2 bundle, refresh the source in Morphe
-> Manager after the replacement release is published. If it still fails, remove
-> and re-add the remote source or import the replacement bundle from Releases.
-
-> ⚠️ **Installing patched Brave?** If patching succeeds but Android refuses to
-> install with `INSTALL_FAILED_NO_MATCHING_ABIS … Failed to extract native
-> libraries (res=-113)` — most visible on 16 KB page-size devices (e.g. Android 16
-> / realme RMX5110) — the bundle used didn't carry the extraction fix. Re-patch
-> with **v2.2.6 or newer** (every Brave patch in it sets `extractNativeLibs=true`,
-> so the libraries are extracted to disk at install time) using the standalone
-> ARM64 `BraveMonoarm64.apk`, and install that APK. The Brave patches remain
-> experimental; on-device startup is still unverified. See
-> [docs/BRAVE.md](docs/BRAVE.md#install-troubleshooting) for details.
-
-> ⚠️ v2.0.0 is a **breaking, curated** release — patches for apps outside the
-> list below were removed from this bundle. Use `patches-1.19.0.mpp` (or earlier)
-> if you need the full app set.
 
 <!-- PATCHES_START EXPANDED -->
 > **[v2.2.9](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;174 patches total

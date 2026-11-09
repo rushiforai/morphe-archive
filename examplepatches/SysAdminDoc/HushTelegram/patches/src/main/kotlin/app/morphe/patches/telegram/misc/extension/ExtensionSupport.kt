@@ -12,7 +12,7 @@
  */
 package app.morphe.patches.telegram.misc.extension
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -29,6 +29,10 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import java.util.BitSet
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The package of the Telegram extension, as a smali descriptor prefix. */
 internal const val EXTENSION_PACKAGE = "Lapp/hushtelegram/extension/telegram"
@@ -65,9 +69,9 @@ internal fun BytecodePatchContext.requireStatusMethod(name: String) {
 }
 
 private fun BytecodePatchContext.statusMethod(name: String): MutableMethod {
-    val owner = mutableClassDefBy(SETTINGS_STATUS)
+    val owner = tgMutableClassDefBy(SETTINGS_STATUS)
     val method = owner.methods.singleOrNull {
-        it.name == name && it.returnType == "Z" && it.parameterTypes.isEmpty()
+        it.origName == name && it.origReturnType == "Z" && it.parameterTypes.isEmpty()
     } ?: throw PatchException("SettingsStatus has no boolean method $name()")
     if (!AccessFlags.PUBLIC.isSet(owner.accessFlags) || !AccessFlags.PUBLIC.isSet(method.accessFlags) ||
         !AccessFlags.STATIC.isSet(method.accessFlags) || AccessFlags.ABSTRACT.isSet(method.accessFlags) ||
@@ -85,8 +89,8 @@ private fun BytecodePatchContext.statusMethod(name: String): MutableMethod {
  * its name, signature and access, so the extension's calls to it run [smali] from then on.
  */
 internal fun BytecodePatchContext.writeStub(type: String, name: String, registers: Int, smali: String) {
-    val classDef = mutableClassDefBy(type)
-    val stub = classDef.methods.singleOrNull { it.name == name && AccessFlags.STATIC.isSet(it.accessFlags) }
+    val classDef = tgMutableClassDefBy(type)
+    val stub = classDef.methods.singleOrNull { it.origName == name && AccessFlags.STATIC.isSet(it.accessFlags) }
         ?: throw PatchException("$type has no single static stub named $name")
     val needed = stub.parameterTypes.sumOf { it.width() }
     if (registers < needed) throw PatchException("$type->$name takes $needed parameter register(s), more than $registers")
@@ -103,7 +107,7 @@ internal fun BytecodePatchContext.writeStub(type: String, name: String, register
     // ART verifies the whole class when it loads, so one stub it refuses takes every method of
     // the extension class down with it, on whatever screen first calls into that class.
     val refusals = try {
-        refusedByVerifier(body, { classDefByOrNull(it)?.superclass }, { classDefByOrNull(it)?.let { found -> AccessFlags.INTERFACE.isSet(found.accessFlags) } })
+        refusedByVerifier(body, { tgClassDefByOrNull(it)?.superclass }, { tgClassDefByOrNull(it)?.let { found -> AccessFlags.INTERFACE.isSet(found.accessFlags) } })
     } catch (unreadable: IllegalArgumentException) {
         listOf("its body can't be checked: ${unreadable.message}")
     }

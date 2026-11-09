@@ -91,4 +91,15 @@ object Strings {
 
     fun aiBlockedCount(count: Int): String =
         pick("已屏蔽作者：$count", "ブロック中の作者：$count", "Blocked Artists: $count")
+
+    val novelCopyTitle: String get() = pick("复制标题", "タイトルをコピー", "Copy title")
+    val novelCopyAuthor: String get() = pick("复制作者", "作者名をコピー", "Copy author")
+    val novelDownloadText: String get() = pick("下载全文", "本文をダウンロード", "Download full text")
+    val novelCopied: String get() = pick("已复制", "コピーしました", "Copied")
+    val novelCopyFailed: String get() = pick("操作失败", "操作に失敗しました", "That did not work")
+    val novelNothingToCopy: String get() = pick("没有可复制的文字", "コピーできる文字がありません", "Nothing to copy")
+    val novelDownloadDone: String get() = pick("已保存到下载目录", "ダウンロードフォルダに保存しました", "Saved to Downloads")
+    val novelDownloadFailed: String get() = pick("保存失败", "保存に失敗しました", "Could not save the file")
+    val novelDownloadUnsupported: String get() =
+        pick("需要 Android 10 以上才能写入下载目录", "Android 10 以降で利用できます", "Saving to Downloads needs Android 10 or newer")
 }

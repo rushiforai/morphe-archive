@@ -55,6 +55,7 @@ public class LinkRoutingTest {
         Settings.OPEN_EXTERNAL_LINKS.resetToDefault();
         Settings.STRIP_LINK_TRACKING.resetToDefault();
         Settings.SKIP_AUTOLOGIN.resetToDefault();
+        Settings.STRIP_LINK_COPY_PASTE.resetToDefault();
         HookStatus.clear();
         while (shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity() != null) { }
     }
@@ -68,6 +69,7 @@ public class LinkRoutingTest {
         Settings.STRIP_LINK_TRACKING.resetToDefault();
         Settings.SKIP_AUTOLOGIN.resetToDefault();
         HookStatus.clear();
+        Settings.STRIP_LINK_COPY_PASTE.resetToDefault();
     }
 
     @Test public void signInTokensStayAsTelegramAddsThemUntilTheSwitchIsOn() {
@@ -101,6 +103,67 @@ public class LinkRoutingTest {
         SettingReadsForTests.breakReads(Settings.SKIP_AUTOLOGIN);
         assertTrue(LinkRouting.addAutologinToken(true));
         assertNoCount();
+    }
+
+    @Test public void copiedLinksKeepTheirTagsUntilTheSwitchIsOn() {
+        String link = "https://example.com/a?utm_source=x&fbclid=z";
+        assertFalse(Settings.STRIP_LINK_COPY_PASTE.get());
+        assertSame(link, LinkRouting.cleanCopiedLink(link));
+        assertNoCount();
+        Settings.STRIP_LINK_COPY_PASTE.save(true);
+        assertEquals("https://example.com/a", LinkRouting.cleanCopiedLink(link).toString());
+        String mixed = "https://example.com/a?utm_source=x&id=7";
+        assertSame("a link with another parameter stays as it is", mixed, LinkRouting.cleanCopiedLink(mixed));
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains("copied URLs cleaned 1"));
+    }
+
+    @Test public void onlyATextThatIsOneLinkIsRewrittenOnCopy() {
+        Settings.STRIP_LINK_COPY_PASTE.save(true);
+        String words = "see https://example.com/a?utm_source=x now";
+        assertSame(words, LinkRouting.cleanCopiedLink(words));
+        String clean = "https://example.com/a?id=7";
+        assertSame(clean, LinkRouting.cleanCopiedLink(clean));
+        android.text.SpannableString styled = new android.text.SpannableString("https://example.com/a?utm_source=x");
+        assertSame("styled text is left to Telegram", styled, LinkRouting.cleanCopiedLink(styled));
+        assertEquals(null, LinkRouting.cleanCopiedLink(null));
+        assertEquals("", LinkRouting.cleanCopiedLink(""));
+        assertEquals(" https://example.com/a ", LinkRouting.cleanCopiedLink(" https://example.com/a?gclid=q "));
+    }
+
+    @Test public void pastedLinkIsCleanedAfterItLandsAndWordsAroundItStay() {
+        Settings.STRIP_LINK_COPY_PASTE.save(true);
+        android.widget.EditText editor = new android.widget.EditText(context);
+        editor.setText("hi ");
+        editor.setSelection(3);
+        LinkRouting.watchPaste(editor, android.R.id.paste);
+        editor.getText().insert(3, "https://example.com/a?utm_source=x&gclid=7");
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        assertEquals("hi https://example.com/a", editor.getText().toString());
+        assertEquals(editor.getText().length(), editor.getSelectionStart());
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains("pasted URLs cleaned 1"));
+    }
+
+    @Test public void pasteWatchIgnoresOtherActionsOffSwitchAndPlainText() {
+        android.widget.EditText editor = new android.widget.EditText(context);
+        editor.setText("");
+        LinkRouting.watchPaste(editor, android.R.id.paste);
+        editor.getText().insert(0, "https://example.com/a?utm_source=x");
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        assertEquals("off by default", "https://example.com/a?utm_source=x", editor.getText().toString());
+
+        Settings.STRIP_LINK_COPY_PASTE.save(true);
+        editor.setText("");
+        LinkRouting.watchPaste(editor, android.R.id.copy);
+        editor.getText().insert(0, "https://example.com/a?utm_source=x");
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        assertEquals("only paste actions are watched", "https://example.com/a?utm_source=x", editor.getText().toString());
+
+        editor.setText("");
+        LinkRouting.watchPaste(editor, android.R.id.paste);
+        editor.getText().insert(0, "just some words utm_source=x");
+        org.robolectric.shadows.ShadowLooper.idleMainLooper();
+        assertEquals("just some words utm_source=x", editor.getText().toString());
+        LinkRouting.watchPaste(new android.view.View(context), android.R.id.paste);
     }
 
     @Test public void cleaningDefaultsOffAndRoutingDefaultsOn() {

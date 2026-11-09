@@ -45,7 +45,10 @@ import app.hushtelegram.extension.shared.settings.Setting;
 import app.hushtelegram.extension.shared.settings.SettingsJson;
 import app.hushtelegram.extension.shared.settings.StringSetting;
 import app.hushtelegram.extension.telegram.misc.DataSaverDownloads;
+import app.hushtelegram.extension.telegram.misc.FolderIcons;
 import app.hushtelegram.extension.telegram.misc.GalleryFolder;
+import app.hushtelegram.extension.telegram.misc.SaveDownloads;
+import app.hushtelegram.extension.telegram.misc.StorageFolder;
 import app.hushtelegram.extension.telegram.misc.MessageFilters;
 import app.hushtelegram.extension.telegram.misc.OutsideTranslate;
 import app.hushtelegram.extension.telegram.misc.StickerSize;
@@ -107,17 +110,21 @@ public final class SettingsBackup {
             Settings.SEARCH_ONLY_MY_CHATS,
             Settings.SEARCH_STYLED_NAMES,
             Settings.BLOCK_NEW_CHATS,
+            Settings.DISABLE_SECRET_CHATS,
             Settings.HIDE_CONTACTS_BLOCK,
             Settings.HIDE_GREETING_STICKERS,
             Settings.DISABLE_CHAT_SWIPE,
             Settings.DISABLE_CHANNEL_PULL,
             Settings.DISABLE_TOPIC_PULL,
             Settings.NORMAL_PASTE,
+            Settings.MENTION_BY_ID,
             Settings.SHOW_LOCAL_IDS,
             Settings.PROFILE_DATA_CENTER,
+            Settings.SPECIAL_CONTACTS,
             Settings.DISABLE_DOUBLE_TAP_REACTIONS,
             Settings.HIDE_REACTION_ROWS,
             Settings.HIDE_REACTION_PICKER,
+            Settings.HIDE_EMOJI_PACK_NOTE,
             Settings.QUIET_CONTACTS_NAG,
             Settings.HOLIDAY_LOOK,
             Settings.USE_SYSTEM_FONT,
@@ -129,6 +136,7 @@ public final class SettingsBackup {
             Settings.KEEP_VIDEOS_MUTED,
             Settings.VIDEO_EITHER_LANDSCAPE,
             Settings.VIDEO_ONLY_FROM_BUTTON,
+            Settings.VIDEO_STARTS_SILENT,
             Settings.SWIPE_BACK_ON_PROFILES,
             Settings.HIDE_PHONE_NUMBER,
             Settings.SHARE_NUMBER_UNTICKED,
@@ -141,9 +149,19 @@ public final class SettingsBackup {
             Settings.HIDE_FOLDER_COUNTERS,
             Settings.LAUNCH_FOLDER,
             Settings.HIDE_ALL_CHATS,
+            Settings.MOVE_ALL_CHATS,
             Settings.HIDDEN_CHATS,
+            Settings.SORT_BY_DATE,
+            Settings.SORT_OLDEST_FIRST,
+            Settings.HIDDEN_CHATS_PASSCODE,
+            Settings.ADMIN_CHATS,
+            Settings.HIDE_ACCOUNTS,
+            Settings.HIDDEN_ACCOUNTS_LOCK,
+            Settings.FIT_ALL_TABS,
             Settings.FORWARD_HIDE_SENDER,
             Settings.VOICE_MUSIC_PLAYER,
+            Settings.PLAYBACK_POSITION,
+            Settings.SELECT_BETWEEN,
             Settings.SILENCE_NON_CONTACTS,
             Settings.REACTION_ALERTS,
             Settings.REACTION_SOUND,
@@ -171,12 +189,16 @@ public final class SettingsBackup {
             Settings.COMPACT_TAB_BAR,
             Settings.SIDE_MENU,
             Settings.HIDE_NEW_MESSAGE,
+            Settings.TEST_SERVER_SIGN_IN,
+            Settings.BOT_TOKEN_SIGN_IN,
             SettingsRoutes.SETTINGS_ROW,
             SettingsRoutes.TITLE_PRESS,
             SettingsRoutes.SIDE_MENU_ROW,
             SettingsRoutes.SHORTCUT,
             Settings.FASTER_DOWNLOADS,
             Settings.DATA_SAVER_DOWNLOADS,
+            Settings.FASTER_UPLOADS,
+            Settings.DOWNLOAD_MANAGER,
             Settings.SAVE_DOWNLOADS,
             Settings.SAVE_RESTRICTED_DOWNLOADS,
             Settings.SAVE_TIMED_MEDIA,
@@ -190,12 +212,22 @@ public final class SettingsBackup {
             Settings.MESSAGE_MENU_COPY_PROTECTED,
             Settings.MESSAGE_MENU_SAVE_PROTECTED,
             Settings.MESSAGE_MENU_FORWARD_COPY,
+            Settings.STORY_SAVE_BUTTON,
+            Settings.ALLOW_SCREENSHOTS,
+            Settings.MESSAGE_MENU_FAST_FORWARD,
+            Settings.MESSAGE_MENU_FORWARD_SAVED,
+            Settings.MESSAGE_MENU_SAVE_COVER,
+            Settings.MESSAGE_MENU_SAVE_ART,
+            Settings.MESSAGE_MENU_CLEAR_CACHE,
             Settings.DISABLE_ANALYTICS,
             Settings.GHOST_MODE,
             Settings.GHOST_READS,
             Settings.GHOST_STORIES,
             Settings.GHOST_TYPING,
             Settings.GHOST_ONLINE,
+            Settings.GHOST_BUTTON,
+            Settings.RECEIVE_ONLY,
+            Settings.POWER_OFF_ACCOUNTS,
             Settings.DISABLE_CALL_DEBUG,
             Settings.RECORD_CALLS,
             Settings.RECORD_CALL_BUTTON,
@@ -207,8 +239,10 @@ public final class SettingsBackup {
             Settings.MINI_APP_LOCATION_OFF,
             Settings.STRIP_LINK_TRACKING,
             Settings.SKIP_AUTOLOGIN,
+            Settings.STRIP_LINK_COPY_PASTE,
             Settings.DISABLE_UPDATE_CHECKS,
-            Settings.REPAIR_FIREBASE_PUSH));
+            Settings.REPAIR_FIREBASE_PUSH,
+            Settings.KEEP_ALIVE_RUNNING));
 
     /**
      * The text a file carries besides the switches: the message filters, each list as a JSON array
@@ -226,11 +260,12 @@ public final class SettingsBackup {
 
     /**
      * The short texts a file carries as they're saved: the emoji beside the chat list's title, the
-     * gallery folder choice and the translation language. A build from before them counts the name
-     * as unknown and leaves it out.
+     * gallery folder choice, the translation language, the folder icon pack, the name of Telegram's
+     * own folder and the kinds What to copy leaves out. A build from before them counts the name as
+     * unknown and leaves it out.
      */
     static final List<StringSetting> TEXTS = Arrays.asList(Settings.TITLE_EMOJI, Settings.GALLERY_FOLDER,
-            Settings.TRANSLATE_TARGET);
+            Settings.TRANSLATE_TARGET, Settings.FOLDER_ICON_PACK, Settings.STORAGE_FOLDER_NAME, Settings.SAVE_KINDS_LEFT_OUT);
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be
@@ -390,6 +425,11 @@ public final class SettingsBackup {
         /** Whether this file changes where Save to gallery puts photos and videos. */
         boolean galleryFolderChanges() {
             return changes().containsKey(Settings.GALLERY_FOLDER);
+        }
+
+        /** Whether this file changes the folder Telegram's own files move to. */
+        boolean storageFolderNameChanges() {
+            return changes().containsKey(Settings.STORAGE_FOLDER_NAME);
         }
 
         /** Whether this file changes the language the outside translate writes in. */
@@ -654,6 +694,9 @@ public final class SettingsBackup {
     static boolean allowed(StringSetting setting, String value) {
         if (setting == Settings.GALLERY_FOLDER) return GalleryFolder.allowed(value);
         if (setting == Settings.TRANSLATE_TARGET) return TranslateTarget.allowed(value);
+        if (setting == Settings.STORAGE_FOLDER_NAME) return StorageFolder.allowedName(value);
+        if (setting == Settings.FOLDER_ICON_PACK) return FolderIcons.allowed(value);
+        if (setting == Settings.SAVE_KINDS_LEFT_OUT) return SaveDownloads.allowedLeftOut(value);
         return setting == Settings.TITLE_EMOJI && TitleEmoji.allowed(value);
     }
 

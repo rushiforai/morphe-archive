@@ -1,3 +1,15 @@
+# [0.11.2](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.11.2) (2026-11-08)
+
+### Updates
+
+* **Todoist:** Draw today’s number in mauve in the date picker. Keep the filled mauve circle and contrasting text for the selected day.
+
+# [0.11.1](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.11.1) (2026-11-08)
+
+### Fixes
+
+* **AnkiDroid:** Fix the Deck Options crash when tapping a widget with no cards due.
+
 # [0.11.0](https://github.com/titandrive/morphe-catppuccin/releases/tag/catppuccin-v0.11.0) (2026-11-06)
 
 ### Updates

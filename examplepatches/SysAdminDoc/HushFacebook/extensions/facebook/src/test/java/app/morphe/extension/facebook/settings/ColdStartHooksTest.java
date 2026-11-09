@@ -70,6 +70,7 @@ import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.font.OwnFont;
 import app.morphe.extension.facebook.comments.DefaultCommentOrderForTests;
+import app.morphe.extension.facebook.comments.CommentSearchForTests;
 import app.morphe.extension.facebook.comments.CommentSheetOptions;
 import app.morphe.extension.facebook.comments.FullHeightComments;
 import app.morphe.extension.facebook.comments.MetaAiSummaries;
@@ -122,6 +123,7 @@ import app.morphe.extension.facebook.reels.NewestReelsForTests;
 import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.SavedVideos;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
+import app.morphe.extension.facebook.reels.StillWatching;
 import app.morphe.extension.facebook.reels.TapShowsControls;
 import app.morphe.extension.facebook.reels.WatchAgain;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
@@ -292,6 +294,7 @@ public class ColdStartHooksTest {
         assertFalse("a reel made before the context started in Clean mode", ReelCleanMode.startClean(false));
         assertTrue("a Watch again tap before the context came off replayed in place", WatchAgain.opensElsewhere(true));
         assertFalse("a saved video tapped before the context stayed in the player", SavedVideos.staysInPlayer("vod_watchfeed_saved"));
+        assertTrue("an idle answer before the context was dropped", StillWatching.idle(1));
         assertFalse("a batch of watched reels sent before the context was held back", SeenStateSendForTests.heldBack());
         assertFalse("a Reels rerank before the context put the newest first", NewestReelsForTests.putsTheNewestFirst());
         assertFalse("a double-tap skip test read before the context was turned on", DoubleTapSkip.flag(false));
@@ -448,6 +451,8 @@ public class ColdStartHooksTest {
         FullHeightComments.watchHeader(earlySheet, 0x7f0a0612, true);
         assertFalse("a comment sheet set up before the context lost the video above its comments",
                 earlyHeader.getVisibility() == android.view.View.GONE);
+        assertFalse("a comment sheet set up before the context got a search",
+                CommentSearchForTests.watching(earlySheet));
         assertFalse("a word typed before the context lost its tag suggestions", TagSuggestionsForTests.skipsAPlainWord());
         assertFalse("a list of people open before the context was closed", TagSuggestionsForTests.closesAListLeftOpen());
         assertFalse("a Chats list built before the context lost the Get Messenger card",

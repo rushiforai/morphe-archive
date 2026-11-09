@@ -17,6 +17,17 @@ public static class PostMenuSnapshotAssertions
         return that;
     }
 
+    /// <summary>The menu offers <paramref name="entry"/> right after <paramref name="previous"/>.</summary>
+    public static AssertingThat<PostMenuSnapshot> OffersRightAfter(this AssertingThat<PostMenuSnapshot> that, PostMenuEntry entry, PostMenuEntry previous)
+    {
+        var shown = that.InstanceToAssert.Entries;
+        var at = shown.IndexOf(previous);
+        Assert.True(
+            at >= 0 && at + 1 < shown.Length && shown[at + 1] == entry,
+            $"The menu offers {Listed(shown)}, but \"{entry.ToShownText()}\" was expected right after \"{previous.ToShownText()}\".");
+        return that;
+    }
+
     /// <summary>The menu offers none of <paramref name="entries"/>.</summary>
     public static AssertingThat<PostMenuSnapshot> DoesntOffer(this AssertingThat<PostMenuSnapshot> that, params PostMenuEntry[] entries)
     {

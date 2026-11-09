@@ -5,7 +5,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.ComponentName
+import android.content.pm.PackageManager
+import android.os.Bundle
 import android.provider.Settings
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Button
@@ -72,6 +76,51 @@ class PatchSettingsTest {
         assertFalse(PatchSettings.isEnabled(context))
         PatchSettings.setEnabled(context, true)
         assertTrue(PatchSettings.isEnabled(context))
+    }
+
+    @Test fun classicReplyMenuIsIndependentAndPersistsWhenInstalled() {
+        val packageManager = shadowOf(context.packageManager)
+        packageManager.removeService(bridgeService)
+        val info = context.packageManager.getPackageInfo(context.packageName, PackageManager.GET_META_DATA)
+        info.applicationInfo!!.metaData = Bundle().apply {
+            putBoolean("com.openbubbles.wear.patch.CLASSIC_REPLY_MENU", true)
+        }
+        packageManager.installPackage(info)
+
+        val controller = Robolectric.buildActivity(PatchSettingsActivity::class.java).setup()
+        fun toggle(label: String) = switches(controller.get().findViewById(android.R.id.content))
+            .single { it.text == label }
+        fun classicToggle() = toggle("Classic reply menu")
+        fun reverseToggle() = toggle("Reverse swipe-to-reply")
+        fun belowToggle(toggle: Switch, offset: Int): TextView {
+            val parent = toggle.parent as ViewGroup
+            return parent.getChildAt(parent.indexOfChild(toggle) + offset) as TextView
+        }
+        fun notice() = belowToggle(reverseToggle(), 2)
+        assertTrue(classicToggle().isChecked)
+        assertTrue(reverseToggle().isChecked)
+        assertTrue(belowToggle(reverseToggle(), 1).text.contains("Swipe incoming messages left and outgoing messages right"))
+        assertEquals("Restart OpenBubbles to apply this change.", notice().text)
+        assertEquals(View.GONE, notice().visibility)
+        classicToggle().performClick()
+        assertFalse(PatchSettings.isClassicReplyMenuEnabled(context))
+        assertTrue(PatchSettings.isClassicReplyMenuActive(context))
+        assertTrue(reverseToggle().isChecked)
+        assertEquals(View.VISIBLE, notice().visibility)
+        reverseToggle().performClick()
+        assertFalse(PatchSettings.isReverseSwipeToReplyEnabled(context))
+        assertTrue(PatchSettings.isReverseSwipeToReplyActive(context))
+        controller.recreate()
+        assertFalse(classicToggle().isChecked)
+        assertFalse(reverseToggle().isChecked)
+        assertEquals(View.VISIBLE, notice().visibility)
+        classicToggle().performClick()
+        assertTrue(PatchSettings.isClassicReplyMenuEnabled(context))
+        assertEquals(View.VISIBLE, notice().visibility)
+        reverseToggle().performClick()
+        assertTrue(PatchSettings.isReverseSwipeToReplyEnabled(context))
+        assertEquals(View.GONE, notice().visibility)
+        controller.pause().stop().destroy()
     }
 
     @Test fun notificationVisibilityAndBridgeToggleAreIndependent() {

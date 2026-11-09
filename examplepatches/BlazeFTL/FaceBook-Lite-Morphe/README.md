@@ -9,7 +9,7 @@
 [![Release badge](https://img.shields.io/github/v/release/BlazeFTL/FaceBook-Lite-Morphe?include_prereleases&style=for-the-badge&label=Release&color=FF5E5B&logo=github&logoColor=white)](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/releases/latest)
 [![Stars badge](https://img.shields.io/github/stars/BlazeFTL/FaceBook-Lite-Morphe?style=for-the-badge&label=Stars&color=1877F2&logo=github&logoColor=white)](https://github.com/BlazeFTL/FaceBook-Lite-Morphe/stargazers)
 
-[![Facebook Lite badge](https://img.shields.io/badge/Facebook%20Lite-530.0.0.8.106-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](#-patches-list)
+[![Facebook Lite badge](https://img.shields.io/badge/Facebook%20Lite-536.0.0.11.107-1877F2?style=for-the-badge&logo=facebook&logoColor=white)](#-patches-list)
 [![License badge](https://img.shields.io/badge/License-GPLv3-FF5E5B?style=for-the-badge)](LICENSE)
 
 <a href="https://morphe.software/add-source?github=BlazeFTL/FaceBook-Lite-Morphe" title="Add this source to Morphe">
@@ -37,7 +37,7 @@
 Click **[Add To Morphe↗️](https://morphe.software/add-source?github=BlazeFTL/FaceBook-Lite-Morphe)** with Morphe installed, or add `https://github.com/BlazeFTL/FaceBook-Lite-Morphe` as a patch source in Morphe. Pick Facebook Lite, select patches, patch.
 
 > [!NOTE]
-> Tested on Facebook Lite `530.0.0.8.106` (arm64-v8a, APKMirror APK). Use an untouched APK, not someone else's mod.
+> Supports Facebook Lite `536.0.0.11.107` only. Use an untouched APK, not someone else's mod.
 
 ## 🐉 Patches list
 
@@ -50,8 +50,8 @@ Click **[Add To Morphe↗️](https://morphe.software/add-source?github=BlazeFTL
 
 **🎯 Supported versions:**
 
-| 530.0.0.8.106 | 🧪&nbsp;Any version |
-| :---: | :---: |
+| 536.0.0.11.107 | 530.0.0.8.106 | 🧪&nbsp;Any version |
+| :---: | :---: | :---: |
 
 <sub>🧪 Experimental: other versions may work, untested.</sub>
 
@@ -101,7 +101,7 @@ If Facebook adds a new font file name, add it to `FONT_FILES` in [UseSystemFontP
 
 The feed does not use Android fonts at all. The server sends each glyph as vector outlines (a Roboto lookalike), and the app rasterizes them into an atlas with `X.0eF`, a class in the secondary dex. The extension adds a class with the same name that fills the same glyph boxes with the system font, so line layout does not change. Icons and characters the system font lacks still go to the app's own rasterizer.
 
-The obfuscated class names are hard-coded, so this patch supports only `530.0.0.8.106`. Findings and details are in [docs/HANDOFF.md](docs/HANDOFF.md) (Vietnamese).
+The obfuscated class names are hard-coded, so this patch supports only `536.0.0.11.107`. Findings and details are in [docs/HANDOFF.md](docs/HANDOFF.md) (Vietnamese).
 
 </details>
 
@@ -111,7 +111,7 @@ The obfuscated class names are hard-coded, so this patch supports only `530.0.0.
 
 Sponsored posts are inserted by the server into the feed's component tree. The extension replaces the app's props decoder (`X.1DY`) with a class that delegates to the original, then hides each sponsored post: it is marked hidden and gets height 0, so no gap is left, and nothing is removed from the tree the server updates by index. Sponsored reels are made unsnappable, so swiping skips them. Ad videos (feed, Marketplace, Reels) are also recognized by the `adid` in the tracking data of the video itself.
 
-All of these are recognized by structure or data, not by the "Sponsored" label, so it works in any language. Supports `530.0.0.8.106` only.
+All of these are recognized by structure or data, not by the "Sponsored" label, so it works in any language. Supports `536.0.0.11.107` only.
 
 </details>
 

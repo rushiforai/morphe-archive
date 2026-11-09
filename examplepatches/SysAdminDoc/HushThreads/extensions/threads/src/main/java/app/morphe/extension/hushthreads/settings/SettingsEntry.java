@@ -579,6 +579,12 @@ public final class SettingsEntry {
         openOverFront("a long press on the Threads logo");
     }
 
+    /** The Threads screen in front right now, or null when none is resumed. */
+    public static Activity frontActivity() {
+        WeakReference<Activity> front = OpenWhenResumed.resumed;
+        return front == null ? null : front.get();
+    }
+
     /** Asks for the screen and shows it over the Threads screen in front, once that has settled. */
     private static void openOverFront(String from) {
         request(from);

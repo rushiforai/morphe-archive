@@ -4,7 +4,6 @@ import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.FormFactor
-import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 // NewsNation ships two different apps under one package name: the phone app
 // (React Native, 510.x) and the Android TV app (a Haystack TV build, 4.x).
@@ -26,7 +25,7 @@ object Constants {
         description = "The Android TV app, not the phone app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x13284B,
-        targets = listOf(devTarget("4.94", versionCode = 8335, description = "Android TV build")),
+        targets = listOf(AppTarget(version = "4.94", versionCode = 8335, description = "Android TV build")),
         formFactor = FormFactor.TV,
     )
 }

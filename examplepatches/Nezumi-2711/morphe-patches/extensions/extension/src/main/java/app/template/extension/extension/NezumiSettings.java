@@ -36,6 +36,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.WeakHashMap;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public final class NezumiSettings {
     private static final String PREFS = "nezumi_settings";
@@ -44,6 +47,7 @@ public final class NezumiSettings {
     private static final String HIDE_READ_RECEIPTS = "hide_read_receipts";
     private static final String HIDE_DELIVERY_RECEIPTS = "hide_delivery_receipts";
     private static final String HIDE_MEDIA_BOX = "hide_media_box";
+    private static final String KEEP_RECALLED_MESSAGES = "keep_recalled_messages";
     private static final String HIDE_ONLINE_STATUS = "hide_online_status";
     private static final String HIDE_DISCOVERY = "hide_discovery";
     private static final String SAVED_ONLINE_SHARING = "saved_online_sharing";
@@ -57,11 +61,16 @@ public final class NezumiSettings {
     private static final int FEATURE_READ_RECEIPTS = 1 << 2;
     private static final int FEATURE_DELIVERY_RECEIPTS = 1 << 3;
     private static final int FEATURE_MEDIA_BOX = 1 << 4;
+    private static final int FEATURE_RECALLED_MESSAGES = 1 << 8;
     private static final int FEATURE_ONLINE_STATUS = 1 << 5;
     private static final int FEATURE_CUSTOM_FONT = 1 << 6;
     private static final int FEATURE_DISCOVERY = 1 << 7;
     private static final Object ONLINE_LOCK = new Object();
     private static final Set<String> ONLINE_USERS = new HashSet<>();
+    private static final Object RECALL_LOCK = new Object();
+    private static final WeakHashMap<View, Boolean> RECALL_ROWS = new WeakHashMap<>();
+    private static String recallAccount;
+    private static Set<String> recalledMessages = new HashSet<>();
     private static final WeakHashMap<TextView, ChatPresence> CHAT_SUBTITLES = new WeakHashMap<>();
     private static final WeakHashMap<Object, String> CHAT_TARGETS = new WeakHashMap<>();
     private static final ThreadLocal<Boolean> CHAT_REFRESH = new ThreadLocal<>();
@@ -103,6 +112,148 @@ public final class NezumiSettings {
     public static boolean isMediaBoxHidden(Context context) {
         return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(HIDE_MEDIA_BOX, false);
+    }
+
+    public static boolean isRecalledMessagesKept(Context context) {
+        return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getBoolean(KEEP_RECALLED_MESSAGES, false);
+    }
+
+    public static boolean shouldKeepIncomingRecall(String senderId, int eventType) {
+        boolean enabled = isRecalledMessagesKept(onlineContext());
+        String account = currentOnlineAccount();
+        boolean incoming = account != null && !account.isEmpty()
+            && senderId != null && !senderId.isEmpty() && !account.equals(senderId);
+        boolean keep = enabled && incoming;
+        android.util.Log.i("NezumiRecall", "event=" + eventType + " enabled=" + enabled
+            + " incoming=" + incoming + " kept=" + keep);
+        return keep;
+    }
+
+    private static String recallDigest(String value) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            return Base64.encodeToString(digest, Base64.NO_WRAP | Base64.URL_SAFE);
+        } catch (NoSuchAlgorithmException failure) {
+            throw new IllegalStateException(failure);
+        }
+    }
+
+    private static Set<String> recallKeys(Object messageId) {
+        Set<String> keys = new HashSet<>();
+        if (messageId == null) return keys;
+        try {
+            String clientId = (String) messageId.getClass().getField("a").get(messageId);
+            String globalId = (String) messageId.getClass().getField("b").get(messageId);
+            String ownerId = (String) messageId.getClass().getField("c").get(messageId);
+            if (ownerId == null || ownerId.isEmpty()) return keys;
+            if (clientId != null && !clientId.isEmpty() && !"0".equals(clientId)) {
+                keys.add(recallDigest(new org.json.JSONArray().put(ownerId).put("client").put(clientId).toString()));
+            }
+            if (globalId != null && !globalId.isEmpty() && !"0".equals(globalId)) {
+                keys.add(recallDigest(new org.json.JSONArray().put(ownerId).put("global").put(globalId).toString()));
+            }
+            return keys;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return keys;
+        }
+    }
+
+    private static String loadRecallAccount(Context context) {
+        String account = currentOnlineAccount();
+        if (account == null || account.isEmpty()) return null;
+        String key = "recalled_ids_" + recallDigest(account);
+        if (!key.equals(recallAccount)) {
+            recalledMessages = new HashSet<>(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getStringSet(key, java.util.Collections.emptySet()));
+            recallAccount = key;
+        }
+        return key;
+    }
+
+    public static void markIncomingRecall(Object messageId) {
+        Context context = onlineContext();
+        Set<String> keys = recallKeys(messageId);
+        if (context == null || keys.isEmpty()) return;
+        ArrayList<View> rows;
+        synchronized (RECALL_LOCK) {
+            String accountKey = loadRecallAccount(context);
+            if (accountKey == null || !recalledMessages.addAll(keys)) return;
+            context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putStringSet(accountKey, new HashSet<>(recalledMessages)).apply();
+            rows = new ArrayList<>(RECALL_ROWS.keySet());
+        }
+        for (View row : rows) {
+            row.post(() -> refreshRecallRow(row));
+        }
+        android.util.Log.i("NezumiRecall", "target marked");
+    }
+
+    public static boolean isIncomingRecall(Object message) {
+        Context context = onlineContext();
+        if (context == null || message == null) {
+            android.util.Log.i("NezumiRecall", "lookup miss no-context-or-message");
+            return false;
+        }
+        try {
+            Set<String> keys = recallKeys(message.getClass().getField("b").get(message));
+            synchronized (RECALL_LOCK) {
+                boolean hit = !keys.isEmpty() && loadRecallAccount(context) != null
+                    && keys.stream().anyMatch(recalledMessages::contains);
+                android.util.Log.i("NezumiRecall", "lookup " + (hit ? "hit" : "miss"));
+                return hit;
+            }
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            android.util.Log.i("NezumiRecall", "lookup miss reflection");
+            return false;
+        }
+    }
+
+    public static boolean hasRecallLabel(Object row) {
+        try {
+            return row != null && isIncomingRecall(row.getClass().getMethod("getMessage").invoke(row));
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return false;
+        }
+    }
+
+    public static String formatRecallTime(View row, String original) {
+        if (!hasRecallLabel(row)) {
+            android.util.Log.i("NezumiRecall", "footer miss");
+            return original;
+        }
+        android.util.Log.i("NezumiRecall", "footer hit");
+        String label = recalledLabel(row.getContext());
+        return original == null || original.isEmpty() ? label : original + " - " + label;
+    }
+
+    public static void trackRecallRow(View row) {
+        if (row == null) return;
+        synchronized (RECALL_LOCK) {
+            RECALL_ROWS.put(row, Boolean.TRUE);
+        }
+        android.util.Log.i("NezumiRecall", "row tracked");
+    }
+
+    private static void refreshRecallRow(View row) {
+        if (!row.isAttachedToWindow() || !hasRecallLabel(row)) return;
+        try {
+            Class<?> base = Class.forName("com.zing.zalo.ui.chat.chatrow.ChatRow");
+            Object message = base.getMethod("getMessage").invoke(row);
+            Object binding = base.getField("j").get(row);
+            if (message == null || binding == null) return;
+            base.getMethod("p2", Class.forName("j20.q"), Class.forName("zg1.a"))
+                .invoke(row, message, binding);
+            base.getField("j1").setBoolean(row, false);
+            row.requestLayout();
+            row.invalidate();
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            android.util.Log.w("NezumiRecall", "row refresh unavailable");
+        }
+    }
+
+    public static String recalledLabel(Context context) {
+        return isVietnamese(context) ? "Đã thu hồi" : "Recalled";
     }
 
     public static boolean shouldFetchOnlineStatus() {
@@ -428,6 +579,10 @@ public final class NezumiSettings {
         attach(root, anchor, FEATURE_MEDIA_BOX);
     }
 
+    public static void attachRecalledMessages(View root, View anchor) {
+        attach(root, anchor, FEATURE_RECALLED_MESSAGES);
+    }
+
     public static void attachOnlineStatus(View root, View anchor) {
         attach(root, anchor, FEATURE_ONLINE_STATUS);
     }
@@ -665,12 +820,15 @@ public final class NezumiSettings {
         boolean vietnamese = isVietnamese(context);
         int features = state.features;
         boolean hasChatFeatures = (features & (FEATURE_ONLINE_STATUS | FEATURE_REACTION |
-            FEATURE_TYPING | FEATURE_READ_RECEIPTS | FEATURE_DELIVERY_RECEIPTS)) != 0;
+            FEATURE_TYPING | FEATURE_READ_RECEIPTS | FEATURE_DELIVERY_RECEIPTS |
+            FEATURE_RECALLED_MESSAGES)) != 0;
         String reactionLabel = vietnamese ? "Mở khóa biểu tượng cảm xúc" : "Unlock reaction icons";
         String typingLabel = vietnamese ? "Ẩn trạng thái đang nhập" : "Hide typing status";
         String readLabel = vietnamese ? "Ẩn trạng thái đã xem" : "Hide read receipts";
         String deliveryLabel = vietnamese ? "Ẩn trạng thái đã nhận" : "Hide delivery receipts";
         String mediaBoxLabel = vietnamese ? "Ẩn Media Box" : "Hide Media Box";
+        String recalledMessagesLabel = vietnamese ? "Giữ tin nhắn đã thu hồi" :
+            "Keep recalled messages";
         String onlineLabel = vietnamese ? "Ẩn trạng thái hoạt động" : "Hide activity status";
         String discoveryLabel = vietnamese ? "Ẩn tab Khám phá" : "Hide Discovery tab";
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
@@ -800,6 +958,28 @@ public final class NezumiSettings {
         deliveryItem.addView(deliveryToggle);
         deliveryItem.setOnClickListener(view -> deliveryToggle.setChecked(!deliveryToggle.isChecked()));
         list.addView(deliveryItem, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
+        }
+        if ((features & FEATURE_RECALLED_MESSAGES) != 0) {
+        LinearLayout recalledMessagesItem = new LinearLayout(context);
+        recalledMessagesItem.setGravity(Gravity.CENTER_VERTICAL);
+        recalledMessagesItem.setBackgroundColor(surfaceColor(context, darkMode));
+        recalledMessagesItem.setPadding(dp(context, 16), 0, dp(context, 16), 0);
+        recalledMessagesItem.addView(label(context, recalledMessagesLabel, darkMode),
+            new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        Switch recalledMessagesToggle = new Switch(context);
+        recalledMessagesToggle.setContentDescription(recalledMessagesLabel);
+        recalledMessagesToggle.setThumbTintList(ColorStateList.valueOf(0xFFFFFFFF));
+        recalledMessagesToggle.setTrackTintList(new ColorStateList(
+            new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
+            new int[] { BLUE, 0xFFBDBDBD }));
+        recalledMessagesToggle.setChecked(prefs.getBoolean(KEEP_RECALLED_MESSAGES, false));
+        recalledMessagesToggle.setOnCheckedChangeListener((button, checked) ->
+            prefs.edit().putBoolean(KEEP_RECALLED_MESSAGES, checked).apply());
+        recalledMessagesItem.addView(recalledMessagesToggle);
+        recalledMessagesItem.setOnClickListener(view ->
+            recalledMessagesToggle.setChecked(!recalledMessagesToggle.isChecked()));
+        list.addView(recalledMessagesItem, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
         }
         if ((features & FEATURE_DISCOVERY) != 0) {
         addGroup(list, context, vietnamese ? "Điều hướng" : "Navigation", darkMode);

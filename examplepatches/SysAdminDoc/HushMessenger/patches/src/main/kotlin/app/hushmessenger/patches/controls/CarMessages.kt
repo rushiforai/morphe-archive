@@ -11,6 +11,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
@@ -83,4 +84,67 @@ internal fun MutableMethod.validateCarMessages(): CarExtend = carExtend() ?: car
 internal fun MutableMethod.injectCarMessages() {
     val extend = validateCarMessages()
     addInstructions(extend.index, "invoke-static/range {v${extend.car} .. v${extend.car}}, $CAR_MESSAGES_CALL")
+}
+
+/**
+ * The message notification builds its car extender only when a server flag says so, right before it logs
+ * add_android_auto_extension. Accounts with the flag off never get a car bundle, so the extender's hook above never runs
+ * for them and Android Auto shows nothing (#75 again on 586).
+ */
+internal const val CAR_EXTENSION_GATE = "car_extension_gate"
+internal const val CAR_EXTENSION_FLAG = 0x0081027700011858L
+internal const val CAR_EXTENSION_STEP = "add_android_auto_extension"
+internal const val CAR_EXTENSION_CALL = "Lapp/hushmessenger/extension/CarMessages;->carExtension(Z)Z"
+
+private const val CAR_MOBILE_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
+
+/** Where the flag's answer lands: the move-result right before the branch that skips the car extender, and its register. */
+internal class CarGate(val index: Int, val flag: Int)
+
+/**
+ * const-wide the flag's id, check-cast the config, invoke-interface its (J)Z getter, move-result, then if-eqz on that
+ * result straight over the add_android_auto_extension step. Nothing may jump to the branch, since the answer is
+ * rewritten between the move-result and it. Null when the method isn't the gate or the shape changed.
+ */
+internal fun Method.carExtensionGate(): CarGate? {
+    val code = implementation?.instructions?.toList() ?: return null
+    val carExtensionStep = StringMatch(CAR_EXTENSION_STEP)
+    val step = code.indices.filter { carExtensionStep.matches((code[it] as? ReferenceInstruction)?.reference) }.singleOrNull()
+    if (step == null || step < 5) return null
+    val branch = code[step - 1] as? OneRegisterInstruction ?: return null
+    val result = code[step - 2] as? OneRegisterInstruction ?: return null
+    val read = code[step - 3] as? FiveRegisterInstruction ?: return null
+    val id = code[step - 5]
+    if (code[step - 1].opcode != Opcode.IF_EQZ || code[step - 2].opcode != Opcode.MOVE_RESULT || branch.registerA != result.registerA) return null
+    val getter = (read as ReferenceInstruction).reference as? MethodReference ?: return null
+    if (code[step - 3].opcode != Opcode.INVOKE_INTERFACE || read.registerCount != 3 || getter.definingClass != CAR_MOBILE_CONFIG ||
+        getter.parameterTypes.map { it.toString() } != listOf("J") || getter.returnType != "Z") return null
+    if (code[step - 4].opcode != Opcode.CHECK_CAST || id.opcode != Opcode.CONST_WIDE ||
+        (id as WideLiteralInstruction).wideLiteral != CAR_EXTENSION_FLAG || (id as OneRegisterInstruction).registerA != read.registerD) return null
+    if (step - 1 in jumpTargets() || result.registerA > 0xff) return null
+    return CarGate(step - 2, result.registerA)
+}
+
+/** The app's only method that logs add_android_auto_extension, when its flag check has that shape. */
+internal fun findCarExtensionGate(classes: Iterable<ClassDef>): List<Method> {
+    val carExtensionStep = StringMatch(CAR_EXTENSION_STEP)
+    val steps = classes.flatMap { cls ->
+        cls.methods.filter { method ->
+            method.implementation?.instructions?.any { carExtensionStep.matches((it as? ReferenceInstruction)?.reference) } == true
+        }
+    }
+    val gate = steps.singleOrNull() ?: return emptyList()
+    return if (gate.carExtensionGate() != null) listOf(gate) else emptyList()
+}
+
+internal fun MutableMethod.validateCarExtensionGate(): CarGate =
+    carExtensionGate() ?: carMessagesChanged("no Android Auto flag check in ${hookId()}")
+
+/** The flag's answer goes through the extension, which says yes while the switch is on and passes it along otherwise. */
+internal fun MutableMethod.injectCarExtensionGate() {
+    val gate = validateCarExtensionGate()
+    addInstructions(gate.index + 1, """
+        invoke-static/range {v${gate.flag} .. v${gate.flag}}, $CAR_EXTENSION_CALL
+        move-result v${gate.flag}
+    """.trimIndent())
 }

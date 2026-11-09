@@ -35,6 +35,11 @@ the scenarios joins the phone, starts Appium in the session and exports what the
 | `E2E_ACTION_GAP` | `0.4` | least seconds between two recorded steps |
 | `E2E_APPIUM_INSTALL_HELPERS` | unset | `1`: let Appium install its helper apps (a phone just reset) |
 
+The NAS the phone is plugged into has a GitHub Actions runner that plays the scenarios next to it, where each Appium
+command takes milliseconds: the "E2E on the phone" workflow, which plays and records a PR's scenarios ([tools/e2e/nas](../../tools/e2e/nas/README.md)).
+It connects with the same script over the phone stack's network (`E2E_PHONE_LAN`), and shares the phone's lease with
+the cloud sessions.
+
 Appium's helper apps (`io.appium.uiautomator2.server`, `.server.test`, `io.appium.settings`) stay installed on the
 phone, so a session starts without reinstalling them; a reset phone needs one run with
 `E2E_APPIUM_INSTALL_HELPERS=1` (the connection script sets it when they're missing).
@@ -164,12 +169,14 @@ the test process.
 
 ## Run and record
 
-In the shell that sourced the phone's connection script:
+A PR's scenarios play and record on the NAS: the "E2E on the phone" workflow with `--changed-since origin/dev`, `video`
+and the PR ([AGENTS.md](../../AGENTS.md), "End-to-end tests"). From a session, in the shell that sourced the phone's
+connection script, only to look into a failure, or to record when the NAS is down:
 
 ```bash
 tools/e2e/record.sh --no-video SpoofClientTests            # while developing: unrecorded, unpaced
 tools/e2e/record.sh --no-video --no-bundle LoggedIn        # a group or a domain folder (Startup/Account), reusing the last bundle
-tools/e2e/record.sh --changed-since origin/dev            # right before the push: this branch's scenarios, recorded
+tools/e2e/record.sh --changed-since origin/dev            # the NAS down: this branch's scenarios, recorded, before the push
 tools/e2e/push-gifs.sh                                     # right after the push: posted on the branch's PR
 ```
 
@@ -251,6 +258,7 @@ arguments: a Markdown table is `Scores\n\n¦ Player ¦ Score ¦\n¦---¦---¦\n�
 | `crosspost: <subreddit> \| <title> \| <shared post title>` | a crosspost of that post |
 | `link post to video: <subreddit> \| <title> \| <video post title>` | a link post to that post's video, on v.redd.it |
 | `avatar: <user>` | the user's avatar, for "Show user avatars" |
+| `second account: <name>` | an account besides the test account, which logs in with `SecondAccount.PasswordOf(<name>)` |
 | `late media: <post title> \| <seconds>` | the post's image or GIF answered that late |
 | `fail media: <post title> \| <status>` | the post's image or GIF answered with that status |
 | `fail thumbnail: <post title> \| <status> \| <times>` | the post's thumbnail answered with that status the first times |

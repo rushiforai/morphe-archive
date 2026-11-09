@@ -49,6 +49,27 @@ internal object InboxHolderUpdateViewFingerprint : Fingerprint(
     filters = setTextOfField("labelView"),
 )
 
+/** DrawerAdapter's view holder, whose textView shows a drawer row's name. */
+internal const val DRAWER_HOLDER_CLASS_DESCRIPTOR = "Lcom/onelouder/baconreader/adapters/DrawerAdapter\$Holder;"
+
+/**
+ * Shows a drawer row (the header with the active account, the accounts list, the menu): holder.updateView(item), which
+ * sets its text, then return-object.
+ */
+internal object DrawerAdapterGetViewFingerprint : Fingerprint(
+    definingClass = "Lcom/onelouder/baconreader/adapters/DrawerAdapter;",
+    name = "getView",
+    returnType = "Landroid/view/View;",
+    filters = listOf(
+        methodCall(
+            definingClass = DRAWER_HOLDER_CLASS_DESCRIPTOR,
+            name = "updateView",
+            opcode = Opcode.INVOKE_VIRTUAL,
+        ),
+        opcode(Opcode.RETURN_OBJECT, location = InstructionLocation.MatchAfterImmediately()),
+    ),
+)
+
 /** The TextView read from the field [fieldName], then its setText(CharSequence). */
 private fun setTextOfField(fieldName: String) = listOf(
     fieldAccess(name = fieldName, opcode = Opcode.IGET_OBJECT),

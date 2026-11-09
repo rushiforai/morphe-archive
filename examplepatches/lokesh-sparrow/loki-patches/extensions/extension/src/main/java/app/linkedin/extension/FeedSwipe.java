@@ -38,6 +38,16 @@ public final class FeedSwipe {
     /** The touch already handled: nested Compose views each see it. */
     private static long handledDownTime = -1;
     private static long lastSwitch;
+    private static float lastMoveX;
+    private static float lastMoveY;
+    /** The touch already reported as ignored: nested Compose views each see it. */
+    private static long ignoredDownTime = -1;
+
+    private static void ignored(String why) {
+        if (ignoredDownTime == downTime) return;
+        ignoredDownTime = downTime;
+        Settings.debugLog("feed swipe: ignored, " + why);
+    }
     /**
      * The last rect a tab was found at, per screen and tab. The My Network header stops exposing the inactive tab
      * to accessibility as soon as one is selected, but its position does not move, so the rect can be reused.
@@ -57,23 +67,50 @@ public final class FeedSwipe {
                     downY = event.getRawY();
                     downTime = event.getEventTime();
                     multiTouch = false;
+                    lastMoveX = downX;
+                    lastMoveY = downY;
                     break;
                 case MotionEvent.ACTION_POINTER_DOWN:
                     multiTouch = true;
                     break;
                 case MotionEvent.ACTION_UP:
-                    if (multiTouch || TextSelectionOverlay.isActive() || handledDownTime == downTime) return;
+                    if (handledDownTime == downTime) return;
                     float dx = event.getRawX() - downX;
                     float dy = event.getRawY() - downY;
-                    if (event.getEventTime() - downTime > MAX_DURATION) return;
-                    if (Math.abs(dx) < view.getRootView().getWidth() * 0.25f || Math.abs(dx) < Math.abs(dy) * 2.5f) {
+                    boolean sideways = Math.abs(dx) >= view.getRootView().getWidth() * 0.25f
+                            && Math.abs(dx) >= Math.abs(dy) * 2.5f;
+                    if (!sideways) return;
+                    // A real sideways swipe from here on: say why one is not taken, so a report names the cause.
+                    if (multiTouch) {
+                        ignored("two fingers");
+                        return;
+                    }
+                    if (TextSelectionOverlay.isShowing()) {
+                        ignored("a Copy text selection is open");
+                        return;
+                    }
+                    if (event.getEventTime() - downTime > MAX_DURATION) {
+                        ignored("too slow (" + (event.getEventTime() - downTime) + " ms)");
                         return;
                     }
                     handledDownTime = downTime;
                     // Swiping left goes to the tab on the right, like turning a page.
                     if (switchTo(view, dx < 0 ? 1 : 0, (int) downX, (int) downY)) {
+                        // A selection parked while the feed scrolled belongs to the tab being left.
+                        if (TextSelectionOverlay.isActive()) TextSelectionOverlay.dismissActive();
                         // Photos and videos take a swipe that ends on them for a tap and open.
                         event.setAction(MotionEvent.ACTION_CANCEL);
+                    }
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    lastMoveX = event.getRawX();
+                    lastMoveY = event.getRawY();
+                    break;
+                case MotionEvent.ACTION_CANCEL:
+                    // Only reported: a parent that takes a sideways drag never lets the swipe reach ACTION_UP here.
+                    if (handledDownTime != downTime && Math.abs(lastMoveX - downX) > view.getRootView().getWidth() * 0.1f
+                            && Math.abs(lastMoveX - downX) >= Math.abs(lastMoveY - downY) * 2.5f) {
+                        ignored("the app took the gesture (cancelled after " + (int) Math.abs(lastMoveX - downX) + " px)");
                     }
                     break;
                 default:

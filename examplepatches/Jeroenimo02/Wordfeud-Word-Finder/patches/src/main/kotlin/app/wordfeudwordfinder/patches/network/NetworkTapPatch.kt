@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.bytecodePatch
 private const val NETWORK_TAP = "Lapp/wordfeudwordfinder/extension/hooks/NetworkTap;"
 
 // Internal patch (no name): not shown in Morphe Manager or the CLI patch list. It is only applied through
-// overlayPatch's dependsOn, which also supplies compatibleWith and the extension.
+// overlayPatch's dependsOn, which also supplies compatibleWith and the extension (extensionPatch).
 // Observes Wordfeud game responses so the word finder knows the current game.
 val networkTapPatch = bytecodePatch {
     execute {

@@ -19,6 +19,9 @@
     <string name="revanced_baconreader_images_wifi_only_title">Load images only on Wi-Fi</string>
     <string name="revanced_baconreader_images_wifi_only_summary_on">On mobile data, images and video previews load when tapped</string>
     <string name="revanced_baconreader_images_wifi_only_summary_off">Images load on any network</string>
+    <string name="revanced_baconreader_images_tap_to_load_title">Load images only when tapped</string>
+    <string name="revanced_baconreader_images_tap_to_load_summary_on">Images and video previews load when tapped, on Wi-Fi and on mobile data</string>
+    <string name="revanced_baconreader_images_tap_to_load_summary_off">Images load without a tap, except on mobile data with Load images only on Wi-Fi</string>
     <string name="revanced_baconreader_show_videos_title">Play videos in comments</string>
     <string name="revanced_baconreader_show_videos_summary_on">Videos uploaded in comments and video links are played in the comment</string>
     <string name="revanced_baconreader_show_videos_summary_off">Videos uploaded in comments and video links are shown as links</string>
@@ -53,6 +56,9 @@
     <string name="revanced_post_media_loading">Loading media</string>
     <string name="revanced_post_media_loading_failed">Media failed to load</string>
     <string name="revanced_thumbnail_blurred">Blurred thumbnail</string>
+    <string name="revanced_baconreader_loading_preview_title">Preview while loading</string>
+    <string name="revanced_baconreader_loading_preview_summary_on">A still preview of post media and gallery images shows behind the progress bar until they load</string>
+    <string name="revanced_baconreader_loading_preview_summary_off">Only the progress bar shows until post media and gallery images load</string>
     <string name="revanced_baconreader_link_preview_javascript_title">JavaScript in link posts</string>
     <string name="revanced_baconreader_link_preview_javascript_summary_on">All sites run JavaScript, except the blocked ones</string>
     <string name="revanced_baconreader_link_preview_javascript_summary_off">Only the allowed sites run JavaScript</string>
@@ -137,6 +143,8 @@
     <string name="revanced_comment_search_close">Close search</string>
     <string name="revanced_comment_search_loading">LOADING…</string>
     <string name="revanced_comment_search_error">Could not load all comments: %s</string>
+    <string name="revanced_select_text">Select text</string>
+    <string name="revanced_select_text_close">Close</string>
     <string name="revanced_meme_template_loading">Loading template…</string>
     <string name="revanced_meme_template_error">Could not load the full template</string>
     <string name="revanced_settings_baconreader_screen_4_chat_title">Chat</string>
@@ -151,4 +159,24 @@
     <string name="revanced_baconreader_chat_notification_many">%s new chat messages</string>
     <string name="revanced_baconreader_chat_notification_text">Tap to open Reddit chat</string>
     <string name="revanced_baconreader_chat_notification_channel">Reddit chat</string>
+    <!-- Account colors -->
+    <string name="revanced_settings_baconreader_screen_5_account_colors_title">Account colors</string>
+    <string name="revanced_baconreader_account_colors_title">Account colors</string>
+    <string name="revanced_baconreader_account_colors_summary_on">Shows a circle next to each account in the menu, which picks a color for it, and the color of the account in use as a line under the toolbars</string>
+    <string name="revanced_baconreader_account_colors_summary_off">No color circles in the menu and no line under the toolbars</string>
+    <string name="revanced_baconreader_account_color_title">Color for %s</string>
+    <string name="revanced_baconreader_account_color_none">No color</string>
+    <string name="revanced_baconreader_account_color_red">Red</string>
+    <string name="revanced_baconreader_account_color_pink">Pink</string>
+    <string name="revanced_baconreader_account_color_purple">Purple</string>
+    <string name="revanced_baconreader_account_color_indigo">Indigo</string>
+    <string name="revanced_baconreader_account_color_blue">Blue</string>
+    <string name="revanced_baconreader_account_color_cyan">Cyan</string>
+    <string name="revanced_baconreader_account_color_teal">Teal</string>
+    <string name="revanced_baconreader_account_color_green">Green</string>
+    <string name="revanced_baconreader_account_color_lime">Lime</string>
+    <string name="revanced_baconreader_account_color_yellow">Yellow</string>
+    <string name="revanced_baconreader_account_color_orange">Orange</string>
+    <string name="revanced_baconreader_account_color_brown">Brown</string>
+    <string name="revanced_baconreader_account_color_description">Color of %s</string>
 </resources>

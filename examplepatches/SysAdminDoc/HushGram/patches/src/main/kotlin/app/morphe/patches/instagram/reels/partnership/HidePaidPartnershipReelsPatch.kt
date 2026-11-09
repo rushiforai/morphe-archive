@@ -87,7 +87,7 @@ val hidePaidPartnershipReelsPatch = bytecodePatch(
     description = "Leaves out reels with a Paid partnership label, and reels Instagram marks as boosted. Ads have " +
         "their own switch. Starts off. Turn it on in HushGram settings > Reels.",
 ) {
-    category("Reels")
+    category("Ads")
     dependsOn(settingsPatch, instagramExtensionPatch)
     compatibleWith(*AppCompatibilities.instagram())
 
@@ -352,10 +352,20 @@ internal fun BytecodePatchContext.hidePaidPartnershipReels(sites: PaidPartnershi
     filterReelsPage(sites, PARTNERSHIP_PAGE_FILTER)
 }
 
-/** Replaces the body of [extension]'s static [name](Object) answering [returns] with [body], in [registers] registers. */
-internal fun BytecodePatchContext.fillStub(extension: String, name: String, returns: String, registers: Int, body: String) {
+/**
+ * Replaces the body of [extension]'s static [name] taking [parameters] (one Object unless given)
+ * and answering [returns] with [body], in [registers] registers.
+ */
+internal fun BytecodePatchContext.fillStub(
+    extension: String,
+    name: String,
+    returns: String,
+    registers: Int,
+    body: String,
+    parameters: List<String> = listOf(OBJECT),
+) {
     val methods = mutableClassDefBy(extension).methods
-    val stub = methods.single { it.isStaticStub(name, listOf(OBJECT), returns) }
+    val stub = methods.single { it.isStaticStub(name, parameters, returns) }
     methods.remove(stub)
     methods.add(replaced(stub, registers, body))
 }

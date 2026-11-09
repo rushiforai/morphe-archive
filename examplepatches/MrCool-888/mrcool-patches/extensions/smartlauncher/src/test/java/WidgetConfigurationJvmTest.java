@@ -6,11 +6,17 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Process;
 import android.os.SystemProperties;
 import android.os.UserHandle;
+import android.util.SizeF;
 import app.mrcool.extension.smartlauncher.WidgetConfiguration;
+import app.mrcool.extension.smartlauncher.WidgetSizing;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public final class WidgetConfigurationJvmTest {
     private static final String BUDS = "com.samsung.accessory.paranmgr";
@@ -37,6 +43,8 @@ public final class WidgetConfigurationJvmTest {
         fallback("ActivityNotFoundException", f -> f.activity.failure = new ActivityNotFoundException("gone"));
         fallback("SecurityException", f -> f.activity.failure = new SecurityException("denied"));
         hostExceptionPropagates();
+        sizingReplacesHistoryAndPreservesCurrentSize();
+        sizingUsesStockPathForOtherWidgets();
         System.out.println("PASS " + passed + " JVM behavior scenarios");
     }
 
@@ -83,6 +91,60 @@ public final class WidgetConfigurationJvmTest {
         }
         check(f.host.calls == 1, "host called before exception");
         cleanActivity(f.activity);
+        passed++;
+    }
+
+    private static void sizingReplacesHistoryAndPreservesCurrentSize() {
+        AppWidgetManager manager = new AppWidgetManager();
+        manager.info = new AppWidgetProviderInfo();
+        manager.info.provider = new ComponentName(BUDS, "BudsProvider");
+        SizeF wide = new SizeF(316.33334f, 62);
+        SizeF compact = new SizeF(60, 62);
+        manager.options.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES,
+                new ArrayList<>(List.of(compact, wide)));
+        manager.options.put("appearance", "preserved");
+
+        check(WidgetSizing.updateBudsSize(manager, ID, wide.width(), wide.height()), "Buds sizing handled");
+        check(manager.options.getParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES)
+                .equals(List.of(wide)), "wide size replaces stale history");
+        check(manager.options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH) == 316
+                && manager.options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH) == 316
+                && manager.options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT) == 62
+                && manager.options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT) == 62,
+                "legacy bounds match current size");
+        check("preserved".equals(manager.options.get("appearance")), "unrelated options preserved");
+
+        Bundle invalidate = new Bundle();
+        invalidate.putParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES, new ArrayList<>());
+        WidgetSizing.invalidateWidgetSize(manager, ID, invalidate);
+        WidgetSizing.updateBudsSize(manager, ID, 0, 62);
+        WidgetSizing.updateBudsSize(manager, ID, 316.33334f, Float.NaN);
+        WidgetSizing.updateBudsSize(manager, ID, wide.width(), wide.height());
+        check(manager.optionUpdates == 1, "clears, invalid measurements and repeats don't overwrite the size");
+
+        WidgetSizing.updateBudsSize(manager, ID, compact.width(), compact.height());
+        check(manager.options.getParcelableArrayList(AppWidgetManager.OPTION_APPWIDGET_SIZES)
+                .equals(List.of(compact)), "an intentional compact resize is supported");
+        passed++;
+    }
+
+    private static void sizingUsesStockPathForOtherWidgets() {
+        AppWidgetManager manager = new AppWidgetManager();
+        manager.info = new AppWidgetProviderInfo();
+        manager.info.provider = new ComponentName("other.package", "Provider");
+        check(!WidgetSizing.updateBudsSize(manager, ID, 316, 62), "other provider uses stock sizing");
+        manager.info = null;
+        check(!WidgetSizing.updateBudsSize(manager, ID, 316, 62), "missing provider uses stock sizing");
+        manager.info = new AppWidgetProviderInfo();
+        manager.info.provider = new ComponentName(BUDS, "BudsProvider");
+        Build.VERSION.SDK_INT = 30;
+        try {
+            check(!WidgetSizing.updateBudsSize(manager, ID, 316, 62), "legacy Android uses stock sizing");
+            WidgetSizing.invalidateWidgetSize(manager, ID, new Bundle());
+            check(manager.optionUpdates == 1, "legacy Android forwards size invalidation");
+        } finally {
+            Build.VERSION.SDK_INT = 36;
+        }
         passed++;
     }
 

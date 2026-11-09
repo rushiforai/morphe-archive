@@ -42,7 +42,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 2.4.0
+      placeholder: Morphe Manager 2.5.0
     validations:
       required: true
   - type: dropdown
@@ -73,12 +73,15 @@ body:
       multiple: true
       options:
         - Block background-return feed refresh
+        - Change app name
+        - Change package name
         - Change version code
         - Disable analytics
         - Disable screenshot detection
         - Disable swipe to Search
         - Disable video autoplay
         - Filter comments
+        - Full size profile pictures
         - Hide ads
         - Hide ghost post bubbles
         - Hide suggested users

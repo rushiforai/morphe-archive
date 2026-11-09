@@ -7,8 +7,9 @@
  *
  * In the Mig dark scheme every grey and blue is recoloured. In the FDS resolvers a token is
  * recoloured only when it carries Messenger's dark-theme colour for that token. The server-colour
- * and literal routes use a known set of dark surface values. Light mode is left alone unless the
- * light mode switch is on (#132), and then only its blues take the accent: greys and whites stay.
+ * and literal routes use a known set of dark surface values. Light mode is left alone unless its
+ * switches are on: the light mode switch gives its blues the accent (#132), and the light mode greys
+ * switch its greys the neutral (#155). The palette can take one of Material's styles (#155).
  */
 package app.hushmessenger.extension;
 
@@ -31,6 +32,10 @@ public final class MaterialYouTheme {
     static final String BLACK_KEY = "material_you_black";
     /** Runtime switch: with Material You on, light mode's blues take the accent too (#132). Off by default. */
     static final String LIGHT_KEY = "material_you_light";
+    /** Runtime switch: with Material You on, light mode's greys take the palette's neutral too (#155). Off by default. */
+    static final String LIGHT_GRAYS_KEY = "material_you_light_grays";
+    /** Runtime choice: the Material style the palette takes, one of TonePalette.STYLES (#155). Absent means "default". */
+    static final String STYLE_KEY = "material_you_style";
 
     // --- Dark mode detection ---
 
@@ -109,7 +114,7 @@ public final class MaterialYouTheme {
     // SharedPreferences keeps weak listener references, so retain this for the lifetime of the process.
     private static final SharedPreferences.OnSharedPreferenceChangeListener CHOICES = (preferences, key) -> {
         // A null key is a clear, which can take a saved theme with it.
-        if (key == null || ThemeFile.KEY.equals(key)) reload(Settings.appContext);
+        if (key == null || ThemeFile.KEY.equals(key) || STYLE_KEY.equals(key)) reload(Settings.appContext);
         else if (KEY.equals(key) || BLACK_KEY.equals(key) || "paused".equals(key) || "safe_mode".equals(key)) publish();
     };
 
@@ -129,23 +134,27 @@ public final class MaterialYouTheme {
         return (color >>> 24) == 0xFF && isDarkMode() ? dark(color) : color;
     }
 
-    /** The colour the Mig light scheme resolves for a token. Its blues take the accent while the light mode switch is on. */
+    /**
+     * The colour the Mig light scheme resolves for a token. Its blues take the accent while the light mode switch is on,
+     * and its greys the neutral while the light mode greys switch is.
+     */
     public static int migLight(int color) {
         if (!Settings.enabled(KEY)) return color;
-        return (color >>> 24) == 0xFF && lightOn() ? light(color) : color;
+        return (color >>> 24) == 0xFF ? light(color) : color;
     }
 
     // --- Route 1: FDS colours ---
 
     /**
      * The colour an FDS resolver returns. In dark mode, greys and blues are recoloured to the
-     * palette at the same lightness. In light mode only blues are, and only with the light mode switch on.
+     * palette at the same lightness. In light mode blues are with the light mode switch on, and greys with the light
+     * mode greys switch on.
      */
     public static int fds(int color) {
         if (!Settings.enabled(KEY)) return color;
         if ((color >>> 24) != 0xFF) return color;
         if (isDarkMode()) return dark(color);
-        return lightOn() ? light(color) : color;
+        return light(color);
     }
 
     // --- Route 4: server colours and resource reads ---
@@ -192,15 +201,27 @@ public final class MaterialYouTheme {
         return prefs != null && prefs.getBoolean(BLACK_KEY, false);
     }
 
-    /** Whether the light mode switch is on. Only read after the Material You switch has been checked. */
-    private static boolean lightOn() {
+    /** Whether the switch is on. Only read after the Material You switch has been checked. */
+    private static boolean switchOn(String key) {
         SharedPreferences prefs = Settings.preferences;
-        return prefs != null && prefs.getBoolean(LIGHT_KEY, false);
+        return prefs != null && prefs.getBoolean(key, false);
     }
 
-    /** A light mode colour: one of Messenger's blues becomes the accent at the same lightness, anything else stays. */
+    /**
+     * A light mode colour: one of Messenger's blues becomes the accent at the same lightness with the light mode switch
+     * on, a grey the neutral with the light mode greys switch on (white and black keep their lightness, so they stay),
+     * and anything else stays.
+     */
     static int light(int color) {
-        return isMessengerBlue(color) ? palette().sameLightness(TonePalette.ACCENT, color) : color;
+        if (isMessengerBlue(color)) return switchOn(LIGHT_KEY) ? palette().sameLightness(TonePalette.ACCENT, color) : color;
+        return isNeutral(color) && switchOn(LIGHT_GRAYS_KEY) ? palette().sameLightness(TonePalette.NEUTRAL, color) : color;
+    }
+
+    /** The palette style chosen, "default" until one is. */
+    static String style() {
+        SharedPreferences prefs = Settings.preferences;
+        String style = prefs == null ? null : prefs.getString(STYLE_KEY, null);
+        return style == null ? TonePalette.STYLES[0] : style;
     }
 
     /** Messenger's darkest backgrounds: 0xFF080809 and any grey no brighter than 0x0F. */
@@ -279,10 +300,11 @@ public final class MaterialYouTheme {
         }
     }
 
-    /** A pasted theme's palette when one is saved (#115), the wallpaper's otherwise. */
+    /** A pasted theme's palette when one is saved (#115), the wallpaper's otherwise, in the style chosen (#155). */
     static void reload(Context context) {
         ThemeFile theme = ThemeFile.saved();
-        palette = theme != null ? theme.palette() : context != null ? TonePalette.of(context) : TonePalette.fallback();
+        TonePalette base = theme != null ? theme.palette() : context != null ? TonePalette.of(context) : TonePalette.fallback();
+        palette = base.styled(style());
         publish();
     }
 

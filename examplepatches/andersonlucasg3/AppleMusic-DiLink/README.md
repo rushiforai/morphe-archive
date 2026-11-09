@@ -2,8 +2,10 @@
 
 Apps próprios que usam o **Apple Music 7.0.0** (`com.apple.android.music`, versionCode 1614,
 APKM de 4 ABIs) apenas como **backend**: conta, DRM e playback. O Apple Music é patcheado no
-build e vira o **engine** (sem ícone no launcher); a UI é dos companions `AppleMusic-TV` e
-`AppleMusic-Car`, que falam com o engine pelo `MediaBrowserService` do framework.
+build e vira o **engine** (sem ícone no launcher). A UI própria vive no **APK único**
+([`single-apk/single-ui`](single-apk/single-ui), Java puro + views do framework), publicado
+como `AppleMusic-one-<abi>.apk`; os companions `AppleMusic-TV` e `AppleMusic-Car` continuam
+disponíveis para quem instala engine + companion separados.
 
 A distribuição é por **APKs** nas releases `apps-<versão>`
 ([releases](https://github.com/andersonlucasg3/apple-music-android-freedom/releases)): engine por
@@ -11,18 +13,21 @@ ABI + companions, todos assinados com o mesmo certificado. O bundle `.mpp` do Mo
 gerado por `:patches:buildAndroid`, mas é **interno**: só serve para montar o engine e não é
 publicado.
 
-> **Estado atual — `apps-1.7.0` (2026-11-07):** engine `arm32`/`arm64`, `AppleMusic-TV`,
-> `AppleMusic-Car`, `updates.json` e `SHA256SUMS` publicados juntos. Os companions têm busca de
-> catálogo e atualização in-app. O **APK único** (engine + UI framework-only) é viável e passa a
-> ser publicado a partir da 1.8.0 — ver [APK único](#apk-único-applemusic-one-abiak) e
-> [ROADMAP](ROADMAP.md#decisão-apk-único-por-device-viável-com-ui-framework-only).
+> **Estado atual — UI do APK único 1.9.8 (2026-11-08):** a UI nova está em
+> [`single-apk/single-ui`](single-apk/single-ui) e é empacotada com o engine em
+> `AppleMusic-one-arm32/arm64.apk` (sem companion). A última release só de companions é
+> `apps-1.7.0`; o `one-*` é gerado por
+> [`single-apk/build-one-apk.ps1`](single-apk/build-one-apk.ps1) e ainda não tem release
+> publicada. Guia, versão e matriz de artefatos:
+> [`single-apk/README-one.md`](single-apk/README-one.md).
 
 ## Instalação (usuário)
 
 ### 1. Baixe a release certa
 
-Abra a release mais recente `apps-<versão>` (ex.: `apps-1.7.0`) e baixe os arquivos para o
-device. Instale **engine e companion da mesma release**.
+Abra a release mais recente `apps-<versão>` (ex.: `apps-1.7.0`) e baixe os arquivos do caminho
+escolhido: **engine + companion** da mesma release, ou o **APK único** `AppleMusic-one-<abi>.apk`
+(quando publicado).
 
 | Asset | Para |
 |---|---|
@@ -30,10 +35,22 @@ device. Instale **engine e companion da mesma release**.
 | `AppleMusic-engine-arm64.apk` | Engine de devices 64-bit (carro, celular, TV `arm64-v8a`) |
 | `AppleMusic-TV.apk` | Companion de Android TV (D-pad) |
 | `AppleMusic-Car.apk` | Companion de toque (head unit/celular) |
+| `AppleMusic-one-arm32.apk` | **APK único** em devices 32-bit (TV box `armeabi-v7a`) |
+| `AppleMusic-one-arm64.apk` | **APK único** em celular/carro/head unit `arm64-v8a` |
 | `updates.json` / `SHA256SUMS` | Metadados do updater e checksums dos downloads |
 
-Confira a ABI do device com `adb shell getprop ro.product.cpu.abi` antes de escolher o engine.
-Os APKs são grandes (engine ~100 MB, companions ~22–26 MB) e o engine não tem ícone no launcher.
+Matriz device × artefato do **APK único** (engine + UI no mesmo pacote, sem companion):
+
+| Device | ABI primária | Artefato |
+|---|---|---|
+| TV box 32-bit (`armeabi-v7a`) | `armeabi-v7a` | `AppleMusic-one-arm32.apk` |
+| Celular `arm64-v8a` | `arm64-v8a` | `AppleMusic-one-arm64.apk` |
+| Head unit/carro DiLink `arm64-v8a` | `arm64-v8a` | `AppleMusic-one-arm64.apk` |
+| Emulador x86 (build local) | `x86` | `AppleMusic-one-x86.apk` |
+
+Confira a ABI do device com `adb shell getprop ro.product.cpu.abi` antes de escolher o
+engine/APK único. Os APKs são grandes (engine ~98–102 MB, companions ~22–26 MB) e o engine
+não tem ícone no launcher.
 
 ### 2. Desinstale o Apple Music oficial
 
@@ -47,15 +64,20 @@ adb uninstall com.apple.android.music
 Isso apaga os dados locais do app (a conta continua no servidor da Apple). Só depois instale o
 engine.
 
-### 3. Instale o engine e depois o companion
+### 3. Instale o engine + companion **ou** o APK único
 
 ```powershell
+# Caminho companion (engine + UI separados)
 adb install -r AppleMusic-engine-arm32.apk   # ou -arm64.apk
 adb install -r AppleMusic-TV.apk              # ou AppleMusic-Car.apk
+
+# Caminho APK único (engine + UI no mesmo pacote)
+adb install -r AppleMusic-one-arm64.apk       # ou -arm32.apk
 ```
 
-Também funciona por gerenciador de arquivos/instalador do device. **A ordem importa** e os dois
-APKs precisam ser da mesma release.
+Também funciona por gerenciador de arquivos/instalador do device. **A ordem importa** no
+caminho companion e os dois APKs precisam ser da mesma release. No APK único, instalar por
+cima do engine existente (`install -r`) preserva conta e dados.
 
 ### 4. Entre na conta
 
@@ -128,13 +150,15 @@ os dados do engine).
 
 ## APK único (`AppleMusic-one-<abi>.apk`)
 
-A partir da 1.8.0 o CI também publica um APK por ABI com o **engine + a UI no mesmo pacote**
-(`AppleMusic-one-arm32.apk`, `AppleMusic-one-arm64.apk`): não precisa do companion. A UI
-([`single-apk/single-ui`](single-apk/single-ui)) é Java puro com views do framework, compilada no
-runner com `javac`+`d8` e injetada como `classesN.dex` no APK do engine já assinado; a
+O build [`single-apk/build-one-apk.ps1`](single-apk/build-one-apk.ps1) gera um APK por ABI com
+o **engine + a UI no mesmo pacote** (`AppleMusic-one-arm32.apk`, `AppleMusic-one-arm64.apk`; o
+`one-x86` sai no build local para o emulador): não precisa do companion. A UI
+([`single-apk/single-ui`](single-apk/single-ui)) é Java puro com views do framework, compilada
+com `javac`+`d8` e injetada como `classesN.dex` no APK do engine já assinado; a
 `common.MainActivity` do engine continua no pacote e abre pelo botão **Conta**. Compose/AndroidX
 não entram porque o engine foi minerado pelo R8 e as classes colidiriam (ver
-[ROADMAP](ROADMAP.md#decisão-apk-único-por-device-viável-com-ui-framework-only)).
+[ROADMAP](ROADMAP.md#decisão-apk-único-por-device-viável-com-ui-framework-only)). O CI ainda
+publica só engine + companions; o `one-*` é gerado localmente/CI à parte.
 
 **Instalação:**
 
@@ -149,14 +173,19 @@ baixa o `updates.json` do último release, compara `one-<abi>.versionCode` com a
 injetada no build (`Version.NAME`/`Version.CODE`, gerada por `-PoneVersion`/`-PoneVersionCode`),
 baixa o `AppleMusic-one-<abi>.apk` com progresso, confere o **SHA-256** e instala pela
 `PackageInstaller` (diálogo do sistema; autorize "instalar apps desconhecidos" para o app). A ABI
-é detectada em runtime por `Build.SUPPORTED_ABIS` (arm64-v8a→`one-arm64`, armeabi-v7a→`one-arm32`,
-x86/x86_64→`one-x86`). A instalação substitui o próprio pacote: mesmo cert, dados preservados.
+é detectada em runtime pela **ABI primária** de `Build.SUPPORTED_ABIS` (arm64-v8a→`one-arm64`,
+armeabi-v7a/armeabi→`one-arm32`, x86/x86_64→`one-x86`); se a chave não existir no
+`updates.json`, o app mostra **“Sem atualização para esta ABI”** em vez de oferecer outro APK.
+A instalação substitui o próprio pacote: mesmo cert, dados preservados.
 Estados no diálogo: sem atualização, disponível (versão/tamanho), baixando (%), verificando,
 instalando, erro — com **Cancelar** durante o download.
 
-**Ainda falta (paridade com os companions):** telas próprias de Biblioteca/Rádio, polimento
-visual, estados de erro/offline e `one-x86` publicado (hoje o CI publica arm32/arm64; o build
-local `single-apk/build-one-apk.ps1` gera o x86 para o emulador).
+**Pendências do APK único (1.9.8):** letras, download/offline, Ajustes/EQ e ações de conta além
+de leitura; `one-x86` continua só no build local (`single-apk/build-one-apk.ps1`) e o `one-*`
+ainda não é publicado pelo CI. A UI já tem Biblioteca/Rádio próprias, fila,
+aleatório/repetir/favorito, rotação com estado, acessibilidade nas duas camadas (1.9.8) e
+updater por ABI primária — detalhes em
+[`single-apk/README-one.md`](single-apk/README-one.md).
 
 ## Arquitetura
 
@@ -178,7 +207,10 @@ search-spike/    # spike histórico: leitura do token e chamada à amp-api
 Fluxo: o companion conecta no `MediaBrowserService` do engine, lista a árvore `__AUTO_ROOT__`
 (`Início`/`Rádio`/`Biblioteca`), toca por `playFromMediaId` e envia ações de sessão por
 `sendCustomAction`. Player, metadados e `customActions` vêm de `MediaController`. O `core/` não
-usa Compose nem recursos, então os dois companions reutilizam o mesmo cliente.
+usa Compose nem recursos, então os dois companions reutilizam o mesmo cliente. A
+[`single-ui`](single-apk/single-ui) usa o mesmo `MediaBrowser`/`MediaController` direto no
+processo do engine (mesmo APK/UID): as telas, o player e a fila são views do framework, sem
+`core/` e sem resources.
 
 `patches/` não é produto: gera o `.mpp` que o CI aplica ao APK do Apple Music para produzir o
 engine (`DiLink: support`/`manifest`/`TLS trust`/`web assets` + `DiLink: hide engine launcher`).
@@ -343,8 +375,9 @@ O APK único tem o seu próprio updater (framework-only, sem `core/`):
   um engine x86 montado localmente abre e loga no emulador, mas a reprodução não roda lá — valide
   playback em device arm.
 - **APK único por device**: viável com UI framework-only (sem Compose/AndroidX, que colidiriam
-  com o dex minerado pelo R8); publicado como `AppleMusic-one-arm32/arm64.apk`. Falta paridade
-  visual/funcional com os companions e o `one-x86` no CI — ver
+  com o dex minerado pelo R8); na **1.9.8** tem Biblioteca/Rádio próprias, fila,
+  aleatório/repetir/favorito, rotação com estado e acessibilidade. Faltam letras,
+  download/offline, Ajustes/EQ e publicar o `one-x86` (hoje só no build local) — ver
   [`single-apk/README-one.md`](single-apk/README-one.md).
 - **Assinatura**: perder o cert `MORPHE_*` quebra o UID compartilhado e obriga reinstalar tudo.
 - **Dois níveis** no carro: nós mais profundos da biblioteca não são navegáveis no companion; use
@@ -366,11 +399,16 @@ O APK único tem o seu próprio updater (framework-only, sem `core/`):
   toque do carro (mini player, player cheio, long-press).
 - **1.6.2–1.6.3**: updater in-app (`updates.json`) e polimento visual final.
 - **1.7.0**: busca de catálogo nos dois companions.
+- **1.8.0+ / 1.9.x**: UI própria no **APK único** (`AppleMusic-one-<abi>`): Início/Biblioteca/
+  Rádio, detalhe de catálogo, player com shuffle/repeat/favorito, fila, rotação com estado,
+  a11y em camadas (1.9.8) e updater por ABI primária; build atual **1.9.8**.
 
 ## Documentação relacionada
 
+- [`single-apk/README-one.md`](single-apk/README-one.md) — APK único: build, acessibilidade,
+  updater por ABI, matriz de instalação e validação.
 - [ROADMAP.md](ROADMAP.md) — fases, decisão do APK único, riscos e métricas.
-- [HANDOFF.md](HANDOFF.md) — histórico de sessões e diagnósticos.
+- [HANDOFF.md](HANDOFF.md) — estado atual, histórico de sessões e diagnósticos.
 - [`core/README.md`](core/README.md), [`tv-app/README.md`](tv-app/README.md),
   [`car-app/README.md`](car-app/README.md) — detalhes de cada módulo.
 

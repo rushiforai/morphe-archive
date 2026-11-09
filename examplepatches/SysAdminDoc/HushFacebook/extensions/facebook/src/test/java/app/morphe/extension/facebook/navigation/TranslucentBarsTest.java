@@ -10,6 +10,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Context;
@@ -25,6 +26,8 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.junit.After;
 import org.junit.Before;
@@ -62,7 +65,7 @@ import app.morphe.extension.shared.settings.PauseForTests;
 public class TranslucentBarsTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    private static final int SEE_THROUGH = TranslucentBars.seeThrough(255, false);
+    private static final int SEE_THROUGH = TranslucentBars.seeThrough(255, TranslucentBars.PLAIN_ALPHA);
 
     @Before
     public void start() {
@@ -75,6 +78,7 @@ public class TranslucentBarsTest {
         PauseForTests.resume();
         Settings.TRANSLUCENT_BARS.resetToDefault();
         Settings.ROUNDED_TAB_BAR.resetToDefault();
+        Settings.SEE_THROUGH_OPACITY.resetToDefault();
         HookStatus.clear();
     }
 
@@ -202,6 +206,42 @@ public class TranslucentBarsTest {
         assertEquals(1440, market.getBottom());
     }
 
+    /**
+     * #412: Marketplace lays out its gap inside the stretch's one-second wait and then draws nothing
+     * more, so the black strip stayed around the pill until a touch, five seconds or more on a
+     * phone. A frame that comes too soon books one more for when the wait ends, that frame
+     * stretches the page, and it books none of its own.
+     */
+    @Test
+    @Config(qualifiers = "w720dp-h1800dp")
+    public void aGapLaidOutDuringTheWaitIsTakenWithoutATouch() {
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        FrameLayout holder = new FrameLayout(screen.activity);
+        View market = new View(screen.activity);
+        holder.addView(market, new FrameLayout.LayoutParams(720, FrameLayout.LayoutParams.MATCH_PARENT));
+        screen.page.addView(holder, new FrameLayout.LayoutParams(720, 1600));
+        screen.layOut();
+        screen.bars.update();
+        assertEquals("nothing stops at the tab bar yet", 1600, market.getBottom());
+
+        ShadowLooper.idleMainLooper(300, TimeUnit.MILLISECONDS);
+        holder.setPadding(0, 0, 0, 160);
+        screen.layOut();
+        screen.bars.update();
+        assertEquals("that frame came too soon to stretch", 1440, market.getBottom());
+
+        shadowOf(screen.window).clearWasInvalidated();
+        ShadowLooper.idleMainLooper(TranslucentBars.RESCAN_MS, TimeUnit.MILLISECONDS);
+        assertTrue("a frame is booked for when the wait ends", shadowOf(screen.window).wasInvalidated());
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("under the tab bar", 1600, market.getBottom());
+
+        shadowOf(screen.window).clearWasInvalidated();
+        ShadowLooper.idleMainLooper(3 * TranslucentBars.RESCAN_MS, TimeUnit.MILLISECONDS);
+        assertFalse("the booked frame books none", shadowOf(screen.window).wasInvalidated());
+    }
+
     /** A page held off the tab bar by its own bottom margin, which Facebook keeps putting back, is left alone. */
     @Test
     @Config(qualifiers = "w720dp-h1800dp")
@@ -225,6 +265,222 @@ public class TranslucentBarsTest {
         screen.layOut();
         assertEquals("Facebook's gap kept", 1440, market.getBottom());
         assertTrue(statusLine(), statusLine().contains(TranslucentBars.LEFT_SHORT + " 1"));
+    }
+
+    /** A FrameLayout as tall as the screen whose bottom padding stops [page] at the tab bar. */
+    private static FrameLayout holding(TranslucentBarsForTests screen, View page) {
+        FrameLayout holder = new FrameLayout(screen.activity);
+        holder.setPadding(0, 0, 0, 160);
+        holder.addView(page, new FrameLayout.LayoutParams(720, FrameLayout.LayoutParams.MATCH_PARENT));
+        screen.page.addView(holder, new FrameLayout.LayoutParams(720, 1600));
+        return holder;
+    }
+
+    private static void nextLook(TranslucentBarsForTests screen) {
+        ShadowLooper.idleMainLooper(TranslucentBars.RESCAN_MS + 1, TimeUnit.MILLISECONDS);
+        screen.bars.update();
+        screen.layOut();
+    }
+
+    /**
+     * #412: a tab's page waiting beside the screen stops at the tab bar too. Every page found runs
+     * under it, and one Facebook keeps putting its gap back on doesn't keep the next from running
+     * under it: Marketplace kept a black strip after a trip to Home and back.
+     */
+    @Test
+    @Config(qualifiers = "w720dp-h1800dp")
+    public void everyPageAtTheTabBarRunsUnderItEvenPastOneLeftAlone() {
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        View waiting = new View(screen.activity);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(720, FrameLayout.LayoutParams.MATCH_PARENT);
+        params.bottomMargin = 160;
+        screen.page.addView(waiting, params);
+        View market = new View(screen.activity);
+        holding(screen, market);
+        screen.layOut();
+
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("the first page under the bar", 1600, waiting.getBottom());
+        assertEquals("and the second, in the same look", 1600, market.getBottom());
+
+        // Facebook puts the first page's gap back each time until it's left alone.
+        for (int stretch = 2; stretch <= TranslucentBars.MAX_PUT_BACKS + 1; stretch++) {
+            params.bottomMargin = 160;
+            waiting.setLayoutParams(params);
+            screen.layOut();
+            nextLook(screen);
+        }
+        assertEquals("Facebook's gap kept on the first", 1440, waiting.getBottom());
+        assertTrue(statusLine(), statusLine().contains(TranslucentBars.LEFT_SHORT + " 1"));
+
+        // Marketplace comes back with its gap, behind the page left alone.
+        View back = new View(screen.activity);
+        holding(screen, back);
+        screen.layOut();
+        assertEquals(1440, back.getBottom());
+        nextLook(screen);
+        assertEquals("the page past the one left alone runs under the bar", 1600, back.getBottom());
+        assertEquals("the first still left alone", 1440, waiting.getBottom());
+    }
+
+    /** A list of [count] rows [tall] pixels each, the first row 1 pixel tall when [header]. */
+    private static RecyclerView listOf(TranslucentBarsForTests screen, int count, int tall, boolean header) {
+        RecyclerView list = new RecyclerView(screen.activity, true);
+        for (int i = 0; i < count; i++) {
+            list.addView(new View(screen.activity), new FrameLayout.LayoutParams(720, header && i == 0 ? 1 : tall));
+        }
+        return list;
+    }
+
+    /**
+     * #412: the Reels viewer is a list that pages, each reel as tall as the list. Stretched, its
+     * reels kept their height and the next one showed under the tab bar, and Facebook's gap showed
+     * the window's grey before that. It keeps its gap with black under it, and gets neither once
+     * both switches are off.
+     */
+    @Test
+    @Config(qualifiers = "w720dp-h1800dp")
+    public void aListThatPagesKeepsItsGapWithBlackUnderIt() {
+        Settings.TRANSLUCENT_BARS.save(false);
+        Settings.ROUNDED_TAB_BAR.save(true);
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        RecyclerView reels = listOf(screen, 3, 1440, true);
+        FrameLayout holder = holding(screen, reels);
+        screen.layOut();
+
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("the list keeps Facebook's gap", 1440, reels.getBottom());
+        assertEquals(160, holder.getPaddingBottom());
+        assertFalse(statusLine(), statusLine().contains(TranslucentBars.STRETCHED));
+        assertTrue(statusLine(), statusLine().contains(TranslucentBars.BACKED + " 1"));
+        TranslucentBars.Backdrop backdrop = screen.bars.backdrops.get(reels);
+        assertNotNull(backdrop);
+        assertNotNull("it's in the holder's overlay", backdrop.getCallback());
+        Rect black = new Rect();
+        assertTrue(backdrop.paints(black));
+        assertEquals("black from the list's bottom to the holder's", new Rect(0, 1440, 720, 1600), black);
+        assertEquals(new Rect(0, 0, 720, 1600), backdrop.getBounds());
+
+        nextLook(screen);
+        assertTrue("given once", statusLine().contains(TranslucentBars.BACKED + " 1"));
+
+        Settings.ROUNDED_TAB_BAR.save(false);
+        screen.bars.update();
+        assertTrue(screen.bars.backdrops.isEmpty());
+        assertNull("out of the overlay", backdrop.getCallback());
+        assertEquals(1440, reels.getBottom());
+    }
+
+    /**
+     * #412: a feed's rows are shorter than the list, so it still runs under the bar. A list with
+     * no rows yet waits for them, and one stretched before its rows showed it pages gets its gap
+     * back and the black instead.
+     */
+    @Test
+    @Config(qualifiers = "w720dp-h1800dp")
+    public void aFeedListRunsUnderTheBarAndAListFoundToPageLaterGetsItsGapBack() {
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        RecyclerView feed = listOf(screen, 4, 300, false);
+        holding(screen, feed);
+        RecyclerView empty = new RecyclerView(screen.activity, true);
+        FrameLayout emptyHolder = holding(screen, empty);
+        screen.layOut();
+
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("the feed runs under the bar", 1600, feed.getBottom());
+        assertEquals("a list with no rows waits", 1440, empty.getBottom());
+        assertTrue(screen.bars.backdrops.isEmpty());
+
+        // The empty list gets one short row and is stretched, then its rows turn out to be pages.
+        View first = new View(screen.activity);
+        empty.addView(first, new FrameLayout.LayoutParams(720, 300));
+        screen.layOut();
+        nextLook(screen);
+        assertEquals("stretched", 1600, empty.getBottom());
+        first.setLayoutParams(new FrameLayout.LayoutParams(720, 1440));
+        empty.addView(new View(screen.activity), new FrameLayout.LayoutParams(720, 1440));
+        screen.layOut();
+        nextLook(screen);
+        assertEquals("its gap back", 160, emptyHolder.getPaddingBottom());
+        assertEquals(1440, empty.getBottom());
+        nextLook(screen);
+        assertNotNull("and black under it", screen.bars.backdrops.get(empty));
+        assertEquals("the feed stays under the bar", 1600, feed.getBottom());
+    }
+
+    /**
+     * #412: Facebook keeps every tab's page in one holder, which stops at the tab bar, so it's
+     * stretched on Home and the Reels viewer inside it grows with it. Its reels keep their height
+     * and the next one showed under the pill. The holder stays stretched for the other tabs, and
+     * the viewer gets black over the part its reel doesn't fill, only while its reels page short.
+     */
+    @Test
+    @Config(qualifiers = "w720dp-h1800dp")
+    public void aListThatPagesInsideAStretchedPageGetsBlackUnderItsReel() {
+        Settings.TRANSLUCENT_BARS.save(false);
+        Settings.ROUNDED_TAB_BAR.save(true);
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        FrameLayout tabs = new FrameLayout(screen.activity);
+        FrameLayout reelsPage = new FrameLayout(screen.activity);
+        RecyclerView reels = listOf(screen, 3, 1440, false);
+        reelsPage.addView(reels, new FrameLayout.LayoutParams(720, FrameLayout.LayoutParams.MATCH_PARENT));
+        tabs.addView(reelsPage, new FrameLayout.LayoutParams(720, FrameLayout.LayoutParams.MATCH_PARENT));
+        FrameLayout holder = holding(screen, tabs);
+        screen.layOut();
+
+        screen.bars.update();
+        screen.layOut();
+        assertEquals("the tabs' holder runs under the bar", 0, holder.getPaddingBottom());
+        assertEquals("and the viewer with it", 1600, reels.getBottom());
+        assertTrue(statusLine(), statusLine().contains(TranslucentBars.STRETCHED + " 1"));
+
+        nextLook(screen);
+        TranslucentBars.Backdrop backdrop = screen.bars.backdrops.get(reels);
+        assertNotNull("black under the reel", backdrop);
+        assertNotNull("in the viewer's holder's overlay", backdrop.getCallback());
+        Rect black = new Rect();
+        assertTrue(backdrop.paints(black));
+        assertEquals("over the next reel, the gap the stretch took", new Rect(0, 1440, 720, 1600), black);
+        assertEquals("the holder stays stretched for the other tabs", 0, holder.getPaddingBottom());
+
+        nextLook(screen);
+        assertTrue("given once", statusLine().contains(TranslucentBars.BACKED + " 1"));
+
+        // Reels sized to the taller viewer leave nothing of the next one showing, so no black.
+        for (int i = 0; i < reels.getChildCount(); i++) {
+            reels.getChildAt(i).setLayoutParams(new FrameLayout.LayoutParams(720, 1600));
+        }
+        screen.layOut();
+        assertFalse("reels that fill the viewer", backdrop.paints(black));
+
+        Settings.ROUNDED_TAB_BAR.save(false);
+        screen.bars.update();
+        screen.layOut();
+        assertTrue(screen.bars.backdrops.isEmpty());
+        assertNull("out of the overlay", backdrop.getCallback());
+        assertEquals("the gap back", 160, holder.getPaddingBottom());
+    }
+
+    /** #412: a feed inside a stretched page scrolls rows shorter than itself, so it gets no black. */
+    @Test
+    @Config(qualifiers = "w720dp-h1800dp")
+    public void aFeedInsideAStretchedPageGetsNoBlack() {
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        FrameLayout tabs = new FrameLayout(screen.activity);
+        RecyclerView feed = listOf(screen, 4, 300, false);
+        tabs.addView(feed, new FrameLayout.LayoutParams(720, FrameLayout.LayoutParams.MATCH_PARENT));
+        holding(screen, tabs);
+        screen.layOut();
+
+        screen.bars.update();
+        screen.layOut();
+        nextLook(screen);
+        assertEquals("the feed runs under the bar", 1600, feed.getBottom());
+        assertTrue(screen.bars.backdrops.isEmpty());
+        assertFalse(statusLine(), statusLine().contains(TranslucentBars.BACKED));
     }
 
     @Test
@@ -665,5 +921,43 @@ public class TranslucentBarsTest {
         assertEquals(0xA6, TranslucentBars.seeThrough(255, true));
         assertEquals(0, TranslucentBars.seeThrough(0, true));
         assertTrue("frost lets more through", TranslucentBars.seeThrough(255, true) < TranslucentBars.seeThrough(255, false));
+    }
+
+    /** #425: Bar opacity picks how much of the bars' color stays, frost or not, and a new pick shows on the next frame. */
+    @Test
+    public void barOpacityPicksWhatStaysAndANewPickShowsOnTheNextFrame() {
+        assertEquals("blank is the stock amount", 0xC0, TranslucentBars.keptAlpha(false));
+        assertEquals(0xA6, TranslucentBars.keptAlpha(true));
+        assertEquals(75, TranslucentBars.PLAIN_PERCENT);
+        assertEquals(65, TranslucentBars.FROSTED_PERCENT);
+
+        Settings.SEE_THROUGH_OPACITY.save("30");
+        assertEquals(77, TranslucentBars.keptAlpha(false));
+        assertEquals("the same over frost", 77, TranslucentBars.keptAlpha(true));
+        assertEquals(77, TranslucentBars.seeThrough(255, true));
+        Settings.SEE_THROUGH_OPACITY.save("0");
+        assertEquals("nothing of the color", 0, TranslucentBars.keptAlpha(true));
+        Settings.SEE_THROUGH_OPACITY.save("100");
+        assertEquals("as solid as Facebook draws it", 255, TranslucentBars.keptAlpha(true));
+        assertEquals(100, TranslucentBars.opacityPercent("250"));
+        assertEquals(-1, TranslucentBars.opacityPercent("abc"));
+        assertEquals(-1, TranslucentBars.opacityPercent(" "));
+        assertEquals(-1, TranslucentBars.opacityPercent(null));
+
+        TranslucentBarsForTests screen = new TranslucentBarsForTests();
+        GradientDrawable header = new GradientDrawable();
+        header.setColor(0xFF1877F2);
+        screen.topHolder.setBackground(header);
+        Settings.SEE_THROUGH_OPACITY.save("");
+        screen.bars.update();
+        assertEquals(0xC0, header.getAlpha());
+
+        Settings.SEE_THROUGH_OPACITY.save("40");
+        screen.bars.update();
+        assertEquals("a new pick shows on the next frame", 102, header.getAlpha());
+
+        Settings.TRANSLUCENT_BARS.save(false);
+        screen.bars.update();
+        assertEquals("Facebook's own alpha comes back", 255, header.getAlpha());
     }
 }

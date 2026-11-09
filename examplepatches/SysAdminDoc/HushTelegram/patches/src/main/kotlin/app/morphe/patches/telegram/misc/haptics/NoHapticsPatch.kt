@@ -5,7 +5,7 @@
 package app.morphe.patches.telegram.misc.haptics
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -25,6 +25,8 @@ import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val HAPTICS = "$EXTENSION_PACKAGE/misc/Haptics;"
 internal const val VOIP = "Lorg/telegram/messenger/voip/"
@@ -91,7 +93,7 @@ internal fun BytecodePatchContext.resolveNoHaptics(): NoHapticsSite {
 
     val found = mutableListOf<Triple<String, String, List<Int>>>()
     forEachClassMentioning(Mention.anyReference(HAPTIC_CALLS.keys)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/") || cls.type.startsWith(VOIP)) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/") || cls.origType.startsWith(VOIP)) return@forEachClassMentioning
         cls.methods.forEach { method ->
             val body = method.controlBody()
             // A super call inside an override stays, since the override itself is what gets asked.
@@ -100,7 +102,7 @@ internal fun BytecodePatchContext.resolveNoHaptics(): NoHapticsSite {
         }
     }
     controlShape(found.sumOf { it.third.size } >= 100, "Telegram no longer asks for haptic feedback the usual way")
-    return NoHapticsSite(found.map { (type, wanted, indices) -> mutableClassDefBy(type).methods.single { signature(it) == wanted } to indices })
+    return NoHapticsSite(found.map { (type, wanted, indices) -> tgMutableClassDefBy(type).methods.single { signature(it) == wanted } to indices })
 }
 
 private fun signature(method: Method) = "${method.name}${method.parameterTypes.joinToString("", "(", ")")}${method.returnType}"

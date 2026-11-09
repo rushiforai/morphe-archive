@@ -80,6 +80,17 @@ final class MusicLibrary {
         return new MusicReflection.Handle(invoke(NATIVE + "query.SVItemInfo$SVItemInfoNative", "create", type, idType, id));
     }
 
+    void refreshCatalogItem(String catalogId) throws ReflectiveOperationException, IOException {
+        try (MusicReflection.Handle item = itemInfo(0, 3, Long.parseLong(catalogId));
+             MusicReflection.Handle vector = new MusicReflection.Handle(create(NATIVE + "query.ItemInfoVector$ItemInfoVectorNative"))) {
+            call(vector.value, "pushBack", item.value);
+            // The native metadata-refresh path explicitly disables cloud-library addition.
+            try (MusicReflection.Handle result = new MusicReflection.Handle(call(nativeLibrary, "addStoreItemToLibrary", vector.value, false))) {
+                checkError(result.value);
+            }
+        }
+    }
+
     void addLibraryTracks(List<LibraryBackup.Track> tracks) throws ReflectiveOperationException, IOException {
         for (int start = 0; start < tracks.size(); start += 100) {
             checkCancelled();

@@ -9,6 +9,9 @@ import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
 import app.hushtelegram.extension.telegram.settings.Settings;
 
+import java.util.Collections;
+import java.util.List;
+
 /** Only chat double taps and Telegram's reaction-settings preview ask this hook. */
 public final class DoubleTapReactions {
     private DoubleTapReactions() {}
@@ -51,7 +54,7 @@ public final class DoubleTapReactions {
         HookStatus.invoked(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS);
         try {
             if (reactions == null || !Utils.settingsReady() || !Settings.HIDE_REACTION_ROWS.get()) return reactions;
-            if (reactions.getClass().getField("reactions_as_tags").getBoolean(reactions)) return reactions;
+            if (HostNames.field(reactions.getClass(), "reactions_as_tags").getBoolean(reactions)) return reactions;
             HookStatus.counted(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "reactions left out of TalkBack");
             return null;
         } catch (Throwable failure) {
@@ -70,6 +73,39 @@ public final class DoubleTapReactions {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "reaction picker switch", failure);
             return available;
+        }
+    }
+
+    /**
+     * Called with the messages the selection bubble is about to offer reactions for. Telegram shows
+     * no bubble for an empty list, and the real selection lives elsewhere, so reply, copy and forward
+     * still see every selected message.
+     */
+    public static List<?> selection(List<?> messages) {
+        HookStatus.invoked(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS);
+        try {
+            if (messages == null || messages.isEmpty() || !Utils.settingsReady() || !Settings.HIDE_REACTION_PICKER.get()) return messages;
+            HookStatus.counted(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "selection bubble hidden");
+            return Collections.emptyList();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "selection bubble switch", failure);
+            return messages;
+        }
+    }
+
+    /**
+     * Called with Telegram's "premium features are blocked" answer right where it decides to add the
+     * emoji pack line to the long-press menu. True is the path that skips the line and its divider.
+     */
+    public static boolean packNote(int blocked) {
+        HookStatus.invoked(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS);
+        try {
+            if (blocked != 0 || !Utils.settingsReady() || !Settings.HIDE_EMOJI_PACK_NOTE.get()) return blocked != 0;
+            HookStatus.counted(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "emoji pack line hidden");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "emoji pack line switch", failure);
+            return blocked != 0;
         }
     }
 }

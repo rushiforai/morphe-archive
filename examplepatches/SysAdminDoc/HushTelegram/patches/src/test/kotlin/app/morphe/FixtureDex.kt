@@ -10,6 +10,8 @@
  */
 package app.morphe
 
+import app.morphe.patcher.PatcherContext
+import app.morphe.util.names.TelegramNames
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -22,6 +24,18 @@ import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
+
+/**
+ * [getOrPut] for one build's slice of fixture classes. A cached slice comes back without its dex
+ * being read again, which is what points the ambient names at a build, so they're pointed at the
+ * slice's build here: a test reading source names off it before it makes a context would otherwise
+ * read them through whichever build an earlier test or loop left behind.
+ */
+internal inline fun <K> MutableMap<K, List<ClassDef>>.hostsOf(key: K, read: () -> List<ClassDef>): List<ClassDef> =
+    getOrPut(key, read).also { slice ->
+        slice.firstNotNullOfOrNull { (it as? FixtureDex.FixtureClassDef)?.versionCode }
+            ?.let(TelegramNames::forVersionCode)?.let { TelegramNames.ambient = it }
+    }
 
 /**
  * Reads the classes a fixture test needs out of a Telegram build, one dex at a time, so no APK lands
@@ -53,11 +67,49 @@ internal object FixtureDex {
     /** The base APK's entry in a bundle: base.apk in an .apkm, the package's name in an .xapk. */
     private val BASE_NAMES = listOf("base.apk", "com.instagram.barcelona.apk")
 
+    /**
+     * A class read from a fixture, carrying the build's version code so a patch context made from it
+     * picks that build's name table (see [PatchContexts]).
+     */
+    class FixtureClassDef(val versionCode: String, c: ImmutableClassDef) : ImmutableClassDef(
+        c.type, c.accessFlags, c.superclass, c.interfaces, c.sourceFile, c.annotations, c.fields, c.methods,
+    )
+
+    private fun copy(classDef: ClassDef, table: TelegramNames.Table): ClassDef =
+        if (table.isIdentity) ImmutableClassDef.of(classDef) else FixtureClassDef(table.build, ImmutableClassDef.of(classDef))
+
     private fun forEachDex(build: File, visit: (DexBackedDexFile) -> Unit) {
+        // A resource id 13.2 inlined into a const names its R field through the current context's
+        // table, which a context made earlier for another build would answer. The scan puts that
+        // context aside, so what it reads goes by this build's table, and restores it after.
+        val current = PatcherContext::class.java.getDeclaredField("current").apply { isAccessible = true }
+        val before = TelegramNames.currentContext()?.let(TelegramNames::of)
+        val patcher = current.get(null)
+        current.set(null, null)
+        var read: TelegramNames.Table? = null
+        try {
+            readDex(build) { dex ->
+                if (read == null || read!!.isIdentity) read = TelegramNames.forDex(dex)
+                visit(dex)
+            }
+        } finally {
+            // A context for the other build is one an earlier test or loop left behind. Kept, it would
+            // name the R fields of the consts read here after the scan, so it goes until the next
+            // context is made, and the names go by this build's table meanwhile.
+            if (before == null || read == null || before == read) current.set(null, patcher)
+        }
+    }
+
+    private fun readDex(build: File, visit: (DexBackedDexFile) -> Unit) {
+        // Names read off the copies made here, which no longer know their dex, come from this build.
+        val named: (DexBackedDexFile) -> Unit = { dex ->
+            TelegramNames.ambient = TelegramNames.forDex(dex)
+            visit(dex)
+        }
         fun read(apk: InputStream) = ZipInputStream(apk.buffered()).use { entries ->
             while (true) {
                 val entry = entries.nextEntry ?: break
-                if (DEX.matches(entry.name)) visit(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(entries.readBytes())))
+                if (DEX.matches(entry.name)) named(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(entries.readBytes())))
             }
         }
         if (build.extension == "apk") return ZipFile(build).use { zip ->
@@ -65,7 +117,7 @@ internal object FixtureDex {
             // while ZipInputStream advances to the next entry.
             for (entry in zip.entries()) if (DEX.matches(entry.name)) {
                 val bytes = zip.getInputStream(entry).use { it.readBytes() }
-                visit(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(bytes)))
+                named(DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(bytes)))
             }
         }
         ZipFile(build).use { zip ->
@@ -81,12 +133,32 @@ internal object FixtureDex {
      */
     fun forEach(build: File, visit: (DexBackedDexFile) -> Unit) = forEachDex(build, visit)
 
-    /** The classes of [types] the build carries, by type. */
+    /**
+     * Runs [block] with [build]'s names. A helper that reads a resource id 13.2 inlined into a const
+     * off copies it kept, outside any scan, would otherwise name it through whichever context a test
+     * made last, which may be the other build's.
+     */
+    fun <T> namedBy(build: File, block: () -> T): T {
+        val current = PatcherContext::class.java.getDeclaredField("current").apply { isAccessible = true }
+        val patcher = current.get(null)
+        current.set(null, null)
+        TelegramNames.forVersionCode(build.nameWithoutExtension.substringAfterLast('-'))?.let { TelegramNames.ambient = it }
+        try {
+            return block()
+        } finally {
+            current.set(null, patcher)
+        }
+    }
+
+    /** The classes of [types] (source names) the build carries, keyed by those names. */
     fun classes(build: File, types: Set<String>): Map<String, ClassDef> {
         val found = mutableMapOf<String, ClassDef>()
         forEachDex(build) { dex ->
+            val table = TelegramNames.forDex(dex)
+            val wanted = types.associateBy(table::type)
             for (classDef in dex.classes) {
-                if (classDef.type in types && classDef.type !in found) found[classDef.type] = ImmutableClassDef.of(classDef)
+                val source = wanted[classDef.type] ?: continue
+                if (source !in found) found[source] = copy(classDef, table)
             }
         }
         return found
@@ -102,8 +174,9 @@ internal object FixtureDex {
         val found = mutableListOf<ClassDef>()
         forEachDex(build) { dex ->
             if (!dexFilter(dex)) return@forEachDex
+            val table = TelegramNames.forDex(dex)
             for (classDef in dex.classes) {
-                if (classDef.methods.any(wanted)) found += ImmutableClassDef.of(classDef)
+                if (classDef.methods.any(wanted)) found += copy(classDef, table)
             }
         }
         return found
@@ -120,12 +193,13 @@ internal object FixtureDex {
         var nextDex = 0
         forEachDex(build) { dex ->
             val dexIndex = nextDex++
+            val table = TelegramNames.forDex(dex)
             if (retained != null) {
-                for (index in byDex[dexIndex].orEmpty()) found += ImmutableClassDef.of(dex.classSection[index])
+                for (index in byDex[dexIndex].orEmpty()) found += copy(dex.classSection[index], table)
             } else if (dexFilter(dex)) {
                 for ((index, classDef) in dex.classSection.withIndex()) if (classDef.methods.any(wanted)) {
                     locations += dexIndex to index
-                    found += ImmutableClassDef.of(classDef)
+                    found += copy(classDef, table)
                 }
             }
         }
@@ -135,6 +209,9 @@ internal object FixtureDex {
     }
 
     fun inputIdentity(build: File): String {
+        // Tests key their kept copies of a build's classes by this identity and then read names off
+        // them without reading the fixture again, so the names have to come from this build's table.
+        TelegramNames.forVersionCode(build.nameWithoutExtension.substringAfterLast('-'))?.let { TelegramNames.ambient = it }
         val digest = MessageDigest.getInstance("SHA-256")
         build.inputStream().use { input ->
             val buffer = ByteArray(256 * 1024)

@@ -1,0 +1,1354 @@
+package app.badfella.extension.linkedin;
+
+import android.app.ActionBar;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.res.ColorStateList;
+import android.content.res.Configuration;
+import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
+import android.os.Bundle;
+import android.os.Process;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.Switch;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * BadFella Patches settings screen, styled like the settings of other Morphe patches: a list of categories with icons,
+ * one sub screen per category, search across all settings, and an "About" card.
+ * Declared in the manifest by the settings patch; built in code so it needs no resources.
+ */
+@SuppressWarnings("unused")
+public final class SettingsActivity extends Activity {
+    static final String AUTHOR = "Lokesh Sparrow";
+    static final String BRAND = "BadFella Patches";
+    static final int ACCENT_DARK = 0xFF2DBCB1;
+    static final int ACCENT_LIGHT = 0xFF00897B;
+    private static final String MORPHE_WEBSITE = "https://morphe.software";
+
+    // region Settings model
+
+    private static final class Item {
+        final String key;
+        final boolean def;
+        final String title;
+        final String summary;
+        final Runnable onChange;
+        /** Non-null for rows that open a picker instead of a switch. */
+        final ValueRow value;
+
+        Item(String key, boolean def, String title, String summary, Runnable onChange, ValueRow value) {
+            this.key = key;
+            this.def = def;
+            this.title = title;
+            this.summary = summary;
+            this.onChange = onChange;
+            this.value = value;
+        }
+    }
+
+    private interface ValueRow {
+        String currentValue();
+
+        /** Null for a read only row. */
+        Runnable onClick();
+
+        boolean enabled();
+    }
+
+    private static final class Category {
+        final String title;
+        final String icon;
+        final List<Item> items = new ArrayList<>();
+
+        Category(String title, String icon) {
+            this.title = title;
+            this.icon = icon;
+        }
+
+        Category toggle(String key, boolean def, String title, String summary) {
+            return toggle(key, def, title, summary, null);
+        }
+
+        Category toggle(String key, boolean def, String title, String summary, Runnable onChange) {
+            items.add(new Item(key, def, title, summary, onChange, null));
+            return this;
+        }
+
+        Category value(String title, ValueRow value) {
+            items.add(new Item(null, false, title, null, null, value));
+            return this;
+        }
+
+        /** A row that runs an action when tapped, with a fixed description. */
+        Category action(String title, String summary, Runnable onClick) {
+            return value(title, new ValueRow() {
+                public String currentValue() {
+                    return summary;
+                }
+
+                public Runnable onClick() {
+                    return onClick;
+                }
+
+                public boolean enabled() {
+                    return true;
+                }
+            });
+        }
+    }
+
+    private List<Category> buildCategories() {
+        List<Category> categories = new ArrayList<>();
+
+        if (Settings.isHideAdsIncluded() || Settings.isHidePromotedJobsIncluded()
+                || Settings.isHideSuggestedIncluded() || Settings.isHidePremiumIncluded()) {
+            Category ads = new Category("Ads & promotions", IconDrawable.BLOCK);
+            if (Settings.isHideAdsIncluded()) {
+                ads.toggle(Settings.HIDE_ADS, true, "Hide ads", "\"Promoted\" posts in the feed.");
+            }
+            if (Settings.isHidePromotedJobsIncluded()) {
+                ads.toggle(Settings.HIDE_PROMOTED_JOBS, true, "Hide promoted jobs",
+                        "\"Promoted\" jobs in the Jobs tab and search.");
+            }
+            if (Settings.isHideSuggestedIncluded()) {
+                ads.toggle(Settings.HIDE_SUGGESTED, true, "Hide suggested posts",
+                        "\"Suggested\" posts from outside your network.");
+            }
+            if (Settings.isHidePremiumIncluded()) {
+                ads.toggle(Settings.HIDE_PREMIUM, true, "Hide Premium promotions",
+                        "Premium and AI cards in the feed, profiles, Jobs, and the Me panel.");
+            }
+            categories.add(ads);
+        }
+
+        if (Settings.isFeedFiltersIncluded() || Settings.isDisableDoubleTapLikeIncluded()
+                || Settings.isExpandPostsIncluded() || Settings.isSwipeTabsIncluded()
+                || Settings.isCopyTextIncluded() || Settings.isKeepFeedIncluded()
+                || Settings.isPostMenuIncluded() || Settings.isViewerTapToHideIncluded()
+                || Settings.isSwipeFeedsIncluded() || Settings.isHideTabsIncluded()) {
+            Category feed = new Category("Feed", IconDrawable.FEED);
+            if (Settings.isDisableDoubleTapLikeIncluded()) {
+                feed.toggle(Settings.DISABLE_DOUBLE_TAP_LIKE, true, "Disable double-tap like",
+                        "Double tapping a post or photo no longer likes it.");
+            }
+            if (Settings.isExpandPostsIncluded()) {
+                feed.toggle(Settings.EXPAND_POSTS, false, "Expand posts by default",
+                        "Posts start expanded. Tap the text to collapse.");
+            }
+            if (Settings.isSwipeTabsIncluded()) {
+                feed.toggle(Settings.SWIPE_TABS, true, "Swipe between tabs",
+                        "Swipe sideways to go to the next or previous tab of the navigation bar.");
+            }
+            if (Settings.isCopyTextIncluded()) {
+                feed.toggle(Settings.COPY_TEXT, true, "Copy text",
+                        "Long press a post, comment, or any text to select and copy it, like on Reddit.");
+                feed.toggle(Settings.COPY_TEXT_LONG_SHEET, true, "Long posts in a sheet",
+                        "Long posts open in a scrollable sheet with the whole text. Off: selected in place like short text.");
+            }
+            if (Settings.isPostMenuIncluded()) {
+                feed.toggle(Settings.POST_MENU, true, "Post menu items",
+                        "Copy text, Download photos and videos, and Save document as PDF in the ⋯ menu of posts.");
+            }
+            if (Settings.isSwipeFeedsIncluded()) {
+                feed.toggle(Settings.SWIPE_FEEDS, true, "Swipe between feeds",
+                        "Swipe left for Network and right for For you, when the tabs are on screen.");
+            }
+            if (Settings.isHideTabsIncluded()) {
+                feed.toggle(Settings.HIDE_TAB_NETWORK, false, "Hide the My Network tab",
+                        "Takes My Network out of the bottom bar. Restart LinkedIn after changing it.");
+                feed.toggle(Settings.HIDE_TAB_JOBS, false, "Hide the Jobs tab",
+                        "Takes Jobs out of the bottom bar. Restart LinkedIn after changing it.");
+            }
+            if (Settings.isViewerTapToHideIncluded()) {
+                feed.toggle(Settings.VIEWER_TAP_TO_HIDE, true, "Tap to hide in viewers",
+                        "Tap a video or document in full screen to hide the caption and buttons, like photos.");
+            }
+            if (Settings.isKeepFeedIncluded()) {
+                feed.toggle(Settings.KEEP_FEED, true, "Keep feed on reopen",
+                        "Stay where you were when you come back. Pull down or tap \"New posts\" for new posts.");
+            }
+            if (Settings.isFeedFiltersIncluded()) {
+                feed.toggle(Settings.FOCUS_MODE, false, "Focus mode", "Hide like, comment, and repost counts.")
+                        .toggle(Settings.HIDE_CELEBRATIONS, false, "Hide celebration posts",
+                                "Work anniversaries, new positions, and the like.")
+                        .toggle(Settings.HIDE_FEED_JOBS, false, "Hide jobs in the feed",
+                                "Job cards in the home feed.")
+                        .toggle(Settings.HIDE_REPOSTS, false, "Hide reposts",
+                                "Posts that reshare someone else's post.")
+                        .toggle(Settings.HIDE_ACTIVITY_POSTS, false, "Hide posts from others' activity",
+                                "Posts shown because someone liked, commented on, or reacted to them.")
+                        .toggle(Settings.HIDE_RECOMMENDATIONS, false, "Hide \"Recommended for you\"",
+                                "Suggestions of people and pages to follow in the feed.")
+                        .toggle(Settings.HIDE_VIDEO_POSTS, false, "Hide video posts", "Posts that contain a video.")
+                        .toggle(Settings.HIDE_GAMES, false, "Hide games",
+                                "LinkedIn's puzzle games in the Me panel, search, and feed.")
+                        .toggle(Settings.HIDE_NEW_POSTS_PILL, false, "Hide the \"New posts\" button",
+                                "The pill that appears at the top of the feed.")
+                        .toggle(Settings.HIDE_TRANSLATION, false, "Hide \"See translation\"",
+                                "The translate button below posts in other languages.")
+                        .toggle(Settings.HIDE_AI, false, "Hide AI suggestions",
+                                "AI prompts, suggestions, and assistant cards. Experimental.")
+                        .value("Muted words", new ValueRow() {
+                            public String currentValue() {
+                                String words = Settings.mutedWords().trim();
+                                return words.isEmpty() ? I18n.tr("Posts with these words or phrases are hidden.")
+                                        : words.replace("\n", ", ");
+                            }
+
+                            public Runnable onClick() {
+                                return SettingsActivity.this::editMutedWords;
+                            }
+
+                            public boolean enabled() {
+                                return true;
+                            }
+                        });
+            }
+            categories.add(feed);
+        }
+
+        if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()) {
+            Category navigation = new Category("Navigation bar", IconDrawable.MORE);
+            if (Settings.isGlassNavigationBarIncluded()) {
+                navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Glass navigation bar",
+                        "A floating, translucent navigation bar.");
+            }
+            if (Settings.isNavigationBarIncluded()) {
+                navigation.toggle(Settings.HIDE_TAB_LABELS, false, "Hide tab labels",
+                                "Text under the navigation bar icons.")
+                        .toggle(Settings.HIDE_TAB_BADGES, false, "Hide notification badges",
+                                "The count on the navigation bar tabs.")
+                        .toggle(Settings.SHOW_TAB_JOBS, true, "Show Jobs",
+                                "Jobs in the bottom bar. Restart LinkedIn after changing it.")
+                        .toggle(Settings.SHOW_TAB_NETWORK, true, "Show My Network",
+                                "My Network in the bottom bar. Restart LinkedIn after changing it.")
+                        .toggle(Settings.SHOW_TAB_NOTIFICATIONS, true, "Show Notifications",
+                                "Notifications in the bottom bar. Restart LinkedIn after changing it.")
+                        .toggle(Settings.SHOW_TAB_MORE, Settings.showMoreTab(), "Show More",
+                                "More in the bottom bar. Restart LinkedIn after changing it.");
+            }
+            categories.add(navigation);
+        }
+
+        if (Settings.isMoreMenuIncluded()) {
+            Category more = new Category("More tab", IconDrawable.APPS)
+                    .toggle(Settings.MOVE_MORE_ITEMS, Settings.moveMoreItems(), "Show in the profile menu",
+                            "Also list the items of the More tab in the profile menu.");
+            for (MoreMenu.Item item : MoreMenu.items()) {
+                more.toggle(item.key(), true, item.label, "Show this item in the More tab.");
+            }
+            categories.add(more);
+        }
+
+        if (Settings.isRemoveGapsAndDividersIncluded() || Settings.isMaterialYouIncluded()
+                || Settings.isAmoledBlackIncluded()) {
+            Category appearance = new Category("Appearance", IconDrawable.PALETTE);
+            if (Settings.isRemoveGapsAndDividersIncluded()) {
+                appearance.toggle(Settings.REMOVE_GAPS_AND_DIVIDERS, true, "Remove gaps and dividers",
+                        "No gaps between posts and no dividers between list items. Restart LinkedIn to apply.");
+            }
+            if (Settings.isMaterialYouIncluded()) {
+                appearance.toggle(Settings.MATERIAL_YOU, true, "Material You",
+                        "Your wallpaper's colors for accents, backgrounds, cards and borders. Restart LinkedIn to "
+                                + "apply. Older screens keep the colors chosen when patching.");
+            }
+            if (Settings.isAmoledBlackIncluded()) {
+                appearance.toggle(Settings.PITCH_BLACK, true, "Pitch black",
+                        "Replaces the gray backgrounds of dark mode with black, and cards with a slightly darker "
+                                + "black, across the entire app. Restart LinkedIn to apply.");
+            }
+            categories.add(appearance);
+        }
+
+        if (Settings.isDownloadMediaIncluded()) {
+            categories.add(new Category("Download", IconDrawable.DOWNLOAD)
+                    .toggle(Settings.DOWNLOAD_MEDIA, true, "Download button",
+                            "On photo, video, profile photo, and banner screens. Long press the button to open "
+                                    + "this page.")
+                    .value("Save location", new ValueRow() {
+                        public String currentValue() {
+                            return Settings.downloadSplitByType()
+                                    ? I18n.f("Photos: %1$s\nVideos: %2$s", Downloads.location(false),
+                                            Downloads.location(true))
+                                    : Downloads.location(false);
+                        }
+
+                        public Runnable onClick() {
+                            return null;
+                        }
+
+                        public boolean enabled() {
+                            return true;
+                        }
+                    })
+                    .value("Main folder", new ValueRow() {
+                        public String currentValue() {
+                            return Settings.downloadSplitByType()
+                                    ? "Set automatically (Split photos & videos is on)" : Settings.downloadBaseDir();
+                        }
+
+                        public Runnable onClick() {
+                            return SettingsActivity.this::chooseBaseDir;
+                        }
+
+                        public boolean enabled() {
+                            return !Settings.downloadSplitByType();
+                        }
+                    })
+                    .value("Subfolder name", new ValueRow() {
+                        public String currentValue() {
+                            String folder = Settings.downloadFolder();
+                            return folder.isEmpty() ? "(directly in the main folder)" : folder;
+                        }
+
+                        public Runnable onClick() {
+                            return SettingsActivity.this::editFolder;
+                        }
+
+                        public boolean enabled() {
+                            return true;
+                        }
+                    })
+                    .toggle(Settings.DOWNLOAD_SPLIT_BY_TYPE, false, "Split photos & videos",
+                            "Photos go to Pictures, videos to Movies.", this::refresh));
+        }
+
+        if (Settings.isMessagingIncluded()) {
+            categories.add(new Category("Chat", IconDrawable.CHAT)
+                    .toggle(Settings.HIDE_SPONSORED_MESSAGES, true, "Hide sponsored messages",
+                            "Sponsored InMail and ad messages in the chat list.")
+                    .toggle(Settings.GHOST_MODE, false, "Ghost mode",
+                            "Doesn't send \"typing\" or automatic \"seen\" status. Mark chats as read by hand from "
+                                    + "the chat list when you want to."));
+        }
+
+        if (Settings.isOpenLinksDirectlyIncluded() || Settings.isBlockTrackingIncluded()
+                || Settings.isSanitizeShareLinksIncluded() || Settings.isAnonymousProfileViewingIncluded()) {
+            Category privacy = new Category("Privacy", IconDrawable.SHIELD);
+            if (Settings.isOpenLinksDirectlyIncluded()) {
+                privacy.toggle(Settings.OPEN_LINKS_DIRECTLY, true, "Open links directly",
+                        "Skip LinkedIn's warning page in posts and chats.");
+                privacy.toggle(Settings.RESOLVE_SHORT_LINKS, true, "Open lnkd.in short links directly",
+                        "The real address of lnkd.in links in the feed is looked up in the background, then opened directly.");
+            }
+            if (Settings.isSanitizeShareLinksIncluded()) {
+                privacy.toggle(Settings.SANITIZE_SHARE_LINKS, true, "Clean share links",
+                        "Remove tracking parameters (utm, trk, rcm, ...) when copying or sharing LinkedIn links.");
+            }
+            if (Settings.isAnonymousProfileViewingIncluded()) {
+                privacy.toggle(Settings.ANONYMOUS_PROFILE_VIEWING, false, "Anonymous profile viewing",
+                        "Doesn't send the analytics events of profile pages, so your visits aren't listed in other people's viewers. Experimental.");
+            }
+            if (Settings.isBlockTrackingIncluded()) {
+                privacy.toggle(Settings.BLOCK_TRACKING, false, "Block tracking",
+                        "Doesn't send most analytics events. Turn off if something behaves oddly.");
+            }
+            categories.add(privacy);
+        }
+
+        categories.add(new Category("Other", IconDrawable.MORE)
+                .value("Language", new ValueRow() {
+                    public String currentValue() {
+                        return languageNames()[languageIndex()];
+                    }
+
+                    public Runnable onClick() {
+                        return SettingsActivity.this::chooseLanguage;
+                    }
+
+                    public boolean enabled() {
+                        return true;
+                    }
+                })
+                .action("Export settings", "Copy all settings to the clipboard as a backup.", this::exportSettings)
+                .action("Import settings", "Paste a settings backup from the clipboard.", this::importSettings)
+                .action("Reset to defaults", "Reset all BadFella Patches settings.", this::resetSettings)
+                .toggle(Settings.DEBUG_LOGGING, false, "Diagnostic logging",
+                        "Adds more details to the diagnostic report. Turn it on, repeat the problem, then copy "
+                                + "the report.")
+                .action("Copy diagnostic report", "App, device, and patch details with the recent log, for a bug "
+                        + "report. Links and IDs are removed.", this::copyDiagnosticReport)
+                .action("Clear diagnostic log", "Deletes the saved log.", this::clearDiagnosticLog));
+        return categories;
+    }
+
+    // endregion
+
+    private boolean dark;
+    private int background;
+    private int surface;
+    private int divider;
+    private int textPrimary;
+    private int textSecondary;
+    private int accent;
+
+    private List<Category> categories;
+    /** Null on the main list. */
+    private Category openCategory;
+    private boolean searching;
+    private String query = "";
+
+    private TextView titleView;
+    private EditText searchField;
+    private ImageButton searchButton;
+    private LinearLayout content;
+    private ScrollView scroll;
+    private View restartBanner;
+
+    /**
+     * Colors the buttons of a dialog shown over LinkedIn's own screens, whose theme makes button text transparent.
+     */
+    static void tintButtons(AlertDialog dialog, Context context) {
+        boolean dark = hasLightText(dialog.getContext(), (context.getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES);
+        int color = MaterialYou.settingsAccent(dark, dark ? ACCENT_DARK : ACCENT_LIGHT);
+        // Some phone makers draw dialog buttons as filled pills in their own accent color, which hides accent
+        // colored text. The dialog gets a background of its own and the buttons become plain text buttons, so
+        // they are readable on every phone.
+        if (dialog.getWindow() != null) {
+            GradientDrawable panel = new GradientDrawable();
+            panel.setColor(dark ? 0xFF1E1F22 : 0xFFFFFFFF);
+            panel.setCornerRadius(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24,
+                    context.getResources().getDisplayMetrics()));
+            dialog.getWindow().setBackgroundDrawable(panel);
+        }
+        for (int which : new int[]{AlertDialog.BUTTON_POSITIVE, AlertDialog.BUTTON_NEGATIVE, AlertDialog.BUTTON_NEUTRAL}) {
+            android.widget.Button button = dialog.getButton(which);
+            if (button == null) continue;
+            button.setBackgroundColor(0x00000000);
+            button.setTextColor(color);
+            button.setAllCaps(false);
+            button.setTypeface(Typeface.DEFAULT_BOLD);
+        }
+    }
+
+    /**
+     * Whether the dialog's theme draws light text, so it needs a dark panel. LinkedIn's screens can be light while
+     * the phone is in dark mode, so the panel follows the text color of the theme rather than the phone's mode.
+     */
+    private static boolean hasLightText(Context context, boolean fallback) {
+        TypedValue value = new TypedValue();
+        if (!context.getTheme().resolveAttribute(android.R.attr.textColorPrimary, value, true)) return fallback;
+        int color;
+        if (value.resourceId != 0) {
+            android.content.res.ColorStateList list = context.getColorStateList(value.resourceId);
+            color = list.getDefaultColor();
+        } else if (value.type >= TypedValue.TYPE_FIRST_COLOR_INT && value.type <= TypedValue.TYPE_LAST_COLOR_INT) {
+            color = value.data;
+        } else {
+            return fallback;
+        }
+        double luminance = (0.299 * ((color >> 16) & 0xFF) + 0.587 * ((color >> 8) & 0xFF) + 0.114 * (color & 0xFF)) / 255;
+        return luminance > 0.5;
+    }
+
+    private AlertDialog tint(AlertDialog dialog) {
+        tintButtons(dialog, this);
+        return dialog;
+    }
+
+    static void open(Context context) {
+        Intent intent = new Intent(context, SettingsActivity.class);
+        if (!(context instanceof Activity)) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ActionBar actionBar = getActionBar();
+        if (actionBar != null) actionBar.hide();
+
+        dark = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                == Configuration.UI_MODE_NIGHT_YES;
+        background = dark ? 0xFF000000 : 0xFFFFFFFF;
+        surface = dark ? 0xFF161616 : 0xFFF2F4F5;
+        divider = dark ? 0xFF2A2A2A : 0xFFE3E5E8;
+        textPrimary = dark ? 0xFFFFFFFF : 0xFF141414;
+        textSecondary = dark ? 0xFFA6A6A6 : 0xFF5F6368;
+        accent = dark ? ACCENT_DARK : ACCENT_LIGHT;
+        int[] materialYou = MaterialYou.settingsColors(dark);
+        if (materialYou != null) {
+            background = materialYou[0];
+            surface = materialYou[1];
+            divider = materialYou[2];
+            accent = materialYou[3];
+        }
+        if (dark && Settings.pitchBlack()) {
+            // Pitch black wins over the wallpaper's tinted dark surface.
+            background = 0xFF000000;
+            surface = 0xFF0D0D0D;
+        }
+
+        Window window = getWindow();
+        window.setStatusBarColor(background);
+        window.setNavigationBarColor(background);
+        if (!dark) {
+            window.getDecorView().setSystemUiVisibility(
+                    View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR | View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        }
+
+        categories = buildCategories();
+
+        content = new LinearLayout(this);
+        content.setOrientation(LinearLayout.VERTICAL);
+        content.setPadding(0, 0, 0, dp(96));
+        scroll = new ScrollView(this);
+        scroll.addView(content);
+
+        LinearLayout column = new LinearLayout(this);
+        column.setOrientation(LinearLayout.VERTICAL);
+        column.addView(topBar());
+        column.addView(scroll, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(background);
+        root.setFitsSystemWindows(true);
+        root.addView(column);
+        restartBanner = restartBanner();
+        root.addView(restartBanner);
+        setContentView(root);
+
+        render();
+    }
+
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onBackPressed() {
+        if (searching) {
+            setSearching(false);
+        } else if (openCategory != null) {
+            openCategory = null;
+            render();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    // region Screens
+
+    private void render() {
+        content.removeAllViews();
+        if (searching) {
+            titleView.setVisibility(View.GONE);
+            searchField.setVisibility(View.VISIBLE);
+            renderSearch();
+        } else {
+            titleView.setVisibility(View.VISIBLE);
+            searchField.setVisibility(View.GONE);
+            titleView.setText(openCategory == null ? BRAND : I18n.tr(openCategory.title));
+            if (openCategory == null) renderMain();
+            else renderItems(openCategory.items, null);
+        }
+        scroll.scrollTo(0, 0);
+    }
+
+    /** Re-render in place, keeping the scroll position (after a value changes). */
+    private void refresh() {
+        int y = scroll.getScrollY();
+        content.removeAllViews();
+        if (searching) renderSearch();
+        else if (openCategory == null) renderMain();
+        else renderItems(openCategory.items, null);
+        scroll.post(() -> scroll.scrollTo(0, y));
+    }
+
+    private void renderMain() {
+        content.addView(navRow(IconDrawable.INFO, "About", v -> showAbout()));
+        for (Category category : categories) {
+            content.addView(navRow(category.icon, category.title, v -> {
+                openCategory = category;
+                render();
+            }));
+        }
+    }
+
+    private void renderItems(List<Item> items, List<String> categoryNames) {
+        for (int i = 0; i < items.size(); i++) {
+            Item item = items.get(i);
+            String prefix = categoryNames == null ? null : categoryNames.get(i);
+            content.addView(item.value == null ? toggleRow(item, prefix) : valueRow(item, prefix));
+        }
+    }
+
+    private void renderSearch() {
+        String q = query.trim().toLowerCase(Locale.ROOT);
+        List<Item> found = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        for (Category category : categories) {
+            for (Item item : category.items) {
+                String haystack = (I18n.tr(item.title) + " " + (item.summary == null ? "" : I18n.tr(item.summary)) + " "
+                        + I18n.tr(category.title)).toLowerCase(Locale.ROOT);
+                if (q.isEmpty() || haystack.contains(q)) {
+                    found.add(item);
+                    names.add(category.title);
+                }
+            }
+        }
+        if (found.isEmpty()) {
+            TextView empty = text("No matching settings.", 15, textSecondary, false);
+            empty.setGravity(Gravity.CENTER);
+            empty.setPadding(dp(24), dp(48), dp(24), 0);
+            content.addView(empty);
+        } else {
+            renderItems(found, names);
+        }
+    }
+
+    // endregion
+
+    // region Rows
+
+    private View topBar() {
+        LinearLayout bar = new LinearLayout(this);
+        bar.setOrientation(LinearLayout.HORIZONTAL);
+        bar.setGravity(Gravity.CENTER_VERTICAL);
+        bar.setPadding(dp(4), dp(6), dp(4), dp(6));
+
+        ImageButton back = iconButton(IconDrawable.ARROW_BACK, "Back");
+        back.setOnClickListener(v -> onBackPressed());
+        bar.addView(back);
+
+        titleView = text(BRAND, 22, textPrimary, true);
+        titleView.setPadding(dp(12), 0, 0, 0);
+        bar.addView(titleView, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        searchField = new EditText(this);
+        searchField.setHint(I18n.tr("Search settings"));
+        searchField.setSingleLine(true);
+        searchField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        searchField.setTextColor(textPrimary);
+        searchField.setHintTextColor(textSecondary);
+        searchField.setBackground(null);
+        searchField.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        searchField.setVisibility(View.GONE);
+        searchField.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
+
+            public void afterTextChanged(Editable s) {
+                query = s.toString();
+                if (searching) {
+                    content.removeAllViews();
+                    renderSearch();
+                }
+            }
+        });
+        bar.addView(searchField, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        searchButton = iconButton(IconDrawable.SEARCH, "Search");
+        searchButton.setOnClickListener(v -> setSearching(!searching));
+        bar.addView(searchButton);
+        return bar;
+    }
+
+    private void setSearching(boolean on) {
+        searching = on;
+        searchButton.setImageDrawable(new IconDrawable(on ? IconDrawable.CLOSE : IconDrawable.SEARCH, textPrimary));
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        if (on) {
+            query = "";
+            searchField.setText("");
+            render();
+            searchField.requestFocus();
+            imm.showSoftInput(searchField, InputMethodManager.SHOW_IMPLICIT);
+        } else {
+            imm.hideSoftInputFromWindow(searchField.getWindowToken(), 0);
+            render();
+        }
+    }
+
+    /** Main list entry: icon + title, like the category list of other Morphe patches. */
+    private View navRow(String icon, String title, View.OnClickListener onClick) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(24), dp(20), dp(24), dp(20));
+        row.setBackground(ripple(false));
+        row.setOnClickListener(onClick);
+
+        ImageView iconView = new ImageView(this);
+        iconView.setImageDrawable(new IconDrawable(icon, textPrimary));
+        row.addView(iconView, new LinearLayout.LayoutParams(dp(26), dp(26)));
+
+        TextView titleText = text(title, 18, textPrimary, false);
+        titleText.setPadding(dp(28), 0, 0, 0);
+        row.addView(titleText);
+        return row;
+    }
+
+    private View toggleRow(Item item, String categoryName) {
+        LinearLayout row = settingRow();
+        row.addView(texts(item.title, item.summary, categoryName),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        Switch toggle = new Switch(this);
+        toggle.setChecked(Settings.get(item.key, item.def));
+        int[][] states = {{android.R.attr.state_checked}, {}};
+        toggle.setThumbTintList(new ColorStateList(states, new int[]{accent, dark ? 0xFFB0B0B0 : 0xFFFFFFFF}));
+        toggle.setTrackTintList(new ColorStateList(states, new int[]{(accent & 0x00FFFFFF) | 0x80000000,
+                dark ? 0xFF474747 : 0xFFBDBDBD}));
+        toggle.setOnCheckedChangeListener((button, checked) -> {
+            Settings.set(item.key, checked);
+            showRestartBanner();
+            if (item.onChange != null) item.onChange.run();
+        });
+        row.addView(toggle);
+        row.setOnClickListener(v -> toggle.toggle());
+        return row;
+    }
+
+    private View valueRow(Item item, String categoryName) {
+        LinearLayout row = settingRow();
+        LinearLayout texts = texts(item.title, item.value.currentValue(), categoryName);
+        row.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        Runnable onClick = item.value.onClick();
+        if (onClick == null) {
+            ((TextView) texts.getChildAt(texts.getChildCount() - 1)).setTextColor(accent);
+            row.setBackground(null);
+        } else {
+            ImageView chevron = new ImageView(this);
+            chevron.setImageDrawable(new IconDrawable(IconDrawable.CHEVRON_RIGHT, textSecondary));
+            row.addView(chevron, new LinearLayout.LayoutParams(dp(24), dp(24)));
+            boolean enabled = item.value.enabled();
+            row.setEnabled(enabled);
+            row.setAlpha(enabled ? 1f : 0.45f);
+            row.setOnClickListener(v -> onClick.run());
+        }
+        return row;
+    }
+
+    private LinearLayout settingRow() {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(24), dp(16), dp(20), dp(16));
+        row.setBackground(ripple(false));
+        return row;
+    }
+
+    private LinearLayout texts(String title, String summary, String categoryName) {
+        LinearLayout texts = new LinearLayout(this);
+        texts.setOrientation(LinearLayout.VERTICAL);
+        if (categoryName != null) {
+            TextView category = text(I18n.tr(categoryName).toUpperCase(Locale.ROOT), 11, accent, true);
+            category.setLetterSpacing(0.06f);
+            texts.addView(category);
+        }
+        texts.addView(text(title, 17, textPrimary, false));
+        if (summary != null) {
+            TextView summaryView = text(summary, 14, textSecondary, false);
+            summaryView.setPadding(0, dp(3), dp(12), 0);
+            texts.addView(summaryView);
+        }
+        return texts;
+    }
+
+    // endregion
+
+    // region About
+
+    private void showAbout() {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER_HORIZONTAL);
+        box.setPadding(dp(24), dp(28), dp(24), dp(24));
+        box.setBackground(rounded(MaterialYou.settingsColors(dark) != null ? background : dark ? 0xFF0B0B0B : 0xFFFFFFFF, 28));
+
+        ImageView icon = new ImageView(this);
+        icon.setImageDrawable(getApplicationInfo().loadIcon(getPackageManager()));
+        box.addView(icon, new LinearLayout.LayoutParams(dp(88), dp(88)));
+
+        TextView name = text(BRAND, 26, textPrimary, true);
+        name.setGravity(Gravity.CENTER);
+        name.setPadding(0, dp(16), 0, dp(4));
+        box.addView(name);
+        TextView tagline = text("Patches for LinkedIn  •  for use with Morphe", 14, textSecondary, false);
+        tagline.setGravity(Gravity.CENTER);
+        tagline.setPadding(0, 0, 0, dp(20));
+        box.addView(tagline);
+
+        // Update status, filled in when the GitHub check returns.
+        LinearLayout update = new LinearLayout(this);
+        update.setOrientation(LinearLayout.VERTICAL);
+        update.setGravity(Gravity.CENTER_HORIZONTAL);
+        update.setPadding(dp(20), dp(16), dp(20), dp(16));
+        update.setBackground(outlined());
+        TextView updateTitle = text("Checking for updates…", 17, accent, true);
+        updateTitle.setGravity(Gravity.CENTER);
+        update.addView(updateTitle);
+        TextView updateBody = text(I18n.f("You are using %1$s version %2$s", BRAND, Settings.patchesVersion()), 15,
+                textSecondary, false);
+        updateBody.setGravity(Gravity.CENTER);
+        updateBody.setPadding(0, dp(6), 0, 0);
+        update.addView(updateBody);
+        box.addView(update, matchWidth());
+        String installed = BRAND + " " + Settings.patchesVersion() + "  •  LinkedIn " + appVersion()
+                + "\n" + I18n.f("Made by %1$s", AUTHOR);
+        UpdateChecker.check((status, latest) -> {
+            switch (status) {
+                case UPDATE_AVAILABLE:
+                    updateTitle.setText(I18n.tr("Update available"));
+                    updateBody.setText(I18n.f("You are using version %1$s.\n\nUpdate available: %2$s\n\n"
+                            + "To update, patch LinkedIn again with Morphe Manager.", Settings.patchesVersion(), latest));
+                    break;
+                case UP_TO_DATE:
+                    updateTitle.setText(I18n.tr("Up to date"));
+                    updateBody.setText(installed);
+                    break;
+                case NO_RELEASE:
+                    updateTitle.setText(I18n.tr("No stable release yet"));
+                    updateBody.setText(installed + "\n\n"
+                            + I18n.tr("There is no stable release on GitHub to compare with yet."));
+                    break;
+                default:
+                    updateTitle.setText(I18n.tr("Can't connect"));
+                    updateBody.setText(installed + "\n\n"
+                            + I18n.tr("Check your internet connection, then open this page again."));
+                    break;
+            }
+        });
+
+        box.addView(sectionTitle("Official links"));
+        LinearLayout links = new LinearLayout(this);
+        links.setOrientation(LinearLayout.VERTICAL);
+        links.setBackground(outlined());
+        String repo = "https://github.com/" + UpdateChecker.REPO;
+        addLink(links, IconDrawable.CODE, "GitHub", v -> openUrl(repo));
+        addLink(links, IconDrawable.HISTORY, "Changelog", v -> openUrl(repo + "/releases"));
+        addLink(links, IconDrawable.BUG, "Report a bug", v -> openUrl(repo + "/issues/new/choose"));
+        addLink(links, IconDrawable.CHECKLIST, "Patch status", v -> showPatchStatus());
+        addLink(links, IconDrawable.PEOPLE, "Credits", v -> showCredits());
+        box.addView(links, matchWidth());
+
+        TextView disclaimer = text(I18n.f("Not an official LinkedIn app. %1$s is not part of the Morphe project.",
+                BRAND), 12, textSecondary, false);
+        disclaimer.setGravity(Gravity.CENTER);
+        disclaimer.setPadding(0, dp(16), 0, 0);
+        box.addView(disclaimer);
+
+        showCard(box);
+    }
+
+    /** Which patches were applied when this LinkedIn was patched. */
+    /** {patch name, applied} for every patch, as named in Morphe Manager. */
+    static Object[][] patches() {
+        return new Object[][]{
+                {"Hide ads", Settings.isHideAdsIncluded()},
+                {"Hide promoted jobs", Settings.isHidePromotedJobsIncluded()},
+                {"Hide suggested posts", Settings.isHideSuggestedIncluded()},
+                {"Hide Premium upsells", Settings.isHidePremiumIncluded()},
+                {"Feed filters", Settings.isFeedFiltersIncluded()},
+                {"Expand posts", Settings.isExpandPostsIncluded()},
+                {"Disable double-tap like", Settings.isDisableDoubleTapLikeIncluded()},
+                {"Copy text", Settings.isCopyTextIncluded()},
+                {"Keep feed on reopen", Settings.isKeepFeedIncluded()},
+                {"Post menu items", Settings.isPostMenuIncluded()},
+                {"Tap to hide in viewers", Settings.isViewerTapToHideIncluded()},
+                {"Swipe between feeds", Settings.isSwipeFeedsIncluded()},
+                {"Hide the My Network tab", Settings.isHideTabsIncluded()},
+                {"Hide the Jobs tab", Settings.isHideTabsIncluded()},
+                {"Navigation bar", Settings.isNavigationBarIncluded()},
+                {"Customize navigation bar", Settings.isCustomizeNavigationIncluded()},
+                {"Swipe between tabs", Settings.isSwipeTabsIncluded()},
+                {"Glass navigation bar", Settings.isGlassNavigationBarIncluded()},
+                {"More tab", Settings.isMoreMenuIncluded()},
+                {"Anonymous profile viewing", Settings.isAnonymousProfileViewingIncluded()},
+                {"Download media", Settings.isDownloadMediaIncluded()},
+                {"Messaging", Settings.isMessagingIncluded()},
+                {"Open links directly", Settings.isOpenLinksDirectlyIncluded()},
+                {"Sanitize share links", Settings.isSanitizeShareLinksIncluded()},
+                {"Block tracking", Settings.isBlockTrackingIncluded()},
+                {"Remove gaps and dividers", Settings.isRemoveGapsAndDividersIncluded()},
+                {"Material You", Settings.isMaterialYouIncluded()},
+                {"Pitch black", Settings.isAmoledBlackIncluded()},
+                {"GmsCore support", Settings.isGmsCoreSupportIncluded()},
+        };
+    }
+
+    private void showPatchStatus() {
+        LinearLayout box = cardBox("Patch status", "Patches applied when this LinkedIn was patched.");
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        list.setBackground(outlined());
+
+        Object[][] patches = patches();
+        for (int i = 0; i < patches.length; i++) {
+            if (i > 0) list.addView(linkDivider());
+            boolean included = (Boolean) patches[i][1];
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(dp(18), dp(14), dp(18), dp(14));
+            row.addView(text((String) patches[i][0], 16, textPrimary, false),
+                    new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            TextView state = text(included ? "Applied" : "Not applied", 14,
+                    included ? accent : textSecondary, true);
+            row.addView(state);
+            list.addView(row);
+        }
+        box.addView(list, matchWidth());
+        showCard(box);
+    }
+
+    private void showCredits() {
+        LinearLayout box = cardBox("Credits", I18n.f("The people and projects behind %1$s.", BRAND));
+        box.addView(creditCard(IconDrawable.PEOPLE, AUTHOR, I18n.f("Creator of %1$s", BRAND),
+                "github.com/lokesh-sparrow", "https://github.com/lokesh-sparrow"));
+        box.addView(creditCard(IconDrawable.CODE, "Morphe", "Patcher, Morphe Manager, and the patch template",
+                "morphe.software", MORPHE_WEBSITE));
+        box.addView(creditCard(IconDrawable.INFO, "LinkedIn",
+                I18n.f("The original app. %1$s is not affiliated with LinkedIn.", BRAND), null, null));
+        showCard(box);
+    }
+
+    private View creditCard(String icon, String title, String role, String linkLabel, String url) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setPadding(dp(18), dp(16), dp(14), dp(16));
+        card.setBackground(outlined());
+
+        ImageView iconView = new ImageView(this);
+        iconView.setImageDrawable(new IconDrawable(icon, accent));
+        card.addView(iconView, new LinearLayout.LayoutParams(dp(28), dp(28)));
+
+        LinearLayout texts = new LinearLayout(this);
+        texts.setOrientation(LinearLayout.VERTICAL);
+        texts.setPadding(dp(18), 0, dp(8), 0);
+        texts.addView(text(title, 17, textPrimary, true));
+        TextView roleView = text(role, 14, textSecondary, false);
+        roleView.setPadding(0, dp(2), 0, 0);
+        texts.addView(roleView);
+        if (linkLabel != null) {
+            TextView link = text(linkLabel, 13, accent, false);
+            link.setPadding(0, dp(4), 0, 0);
+            texts.addView(link);
+        }
+        card.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        if (url != null) {
+            ImageView chevron = new ImageView(this);
+            chevron.setImageDrawable(new IconDrawable(IconDrawable.CHEVRON_RIGHT, accent));
+            card.addView(chevron, new LinearLayout.LayoutParams(dp(24), dp(24)));
+            card.setOnClickListener(v -> openUrl(url));
+            card.setForeground(ripple(false));
+        }
+
+        LinearLayout.LayoutParams params = matchWidth();
+        params.topMargin = dp(10);
+        card.setLayoutParams(params);
+        return card;
+    }
+
+    /** A dialog card with a title and subtitle, like the About card. */
+    private LinearLayout cardBox(String title, String subtitle) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(24), dp(24), dp(24), dp(24));
+        box.setBackground(rounded(MaterialYou.settingsColors(dark) != null ? background : dark ? 0xFF0B0B0B : 0xFFFFFFFF, 28));
+        TextView titleView = text(title, 24, textPrimary, true);
+        titleView.setGravity(Gravity.CENTER);
+        box.addView(titleView, matchWidth());
+        TextView subtitleView = text(subtitle, 14, textSecondary, false);
+        subtitleView.setGravity(Gravity.CENTER);
+        subtitleView.setPadding(0, dp(4), 0, dp(16));
+        box.addView(subtitleView, matchWidth());
+        return box;
+    }
+
+    private void showCard(LinearLayout box) {
+        ScrollView wrapper = new ScrollView(this);
+        wrapper.addView(box);
+        AlertDialog dialog = new AlertDialog.Builder(this, dialogTheme()).setView(wrapper).create();
+        dialog.show();
+        if (dialog.getWindow() != null) dialog.getWindow().setBackgroundDrawable(new ColorDrawable(0));
+    }
+
+    private TextView sectionTitle(String title) {
+        TextView view = text(title, 18, textPrimary, true);
+        view.setGravity(Gravity.CENTER);
+        view.setPadding(0, dp(24), 0, dp(12));
+        return view;
+    }
+
+    private void addLink(LinearLayout links, String icon, String title, View.OnClickListener onClick) {
+        if (links.getChildCount() > 0) links.addView(linkDivider());
+        links.addView(linkRow(icon, title, onClick));
+    }
+
+    private View linkRow(String icon, String title, View.OnClickListener onClick) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(dp(18), dp(18), dp(14), dp(18));
+        row.setBackground(ripple(false));
+        row.setOnClickListener(onClick);
+
+        ImageView iconView = new ImageView(this);
+        iconView.setImageDrawable(new IconDrawable(icon, accent));
+        row.addView(iconView, new LinearLayout.LayoutParams(dp(26), dp(26)));
+
+        TextView label = text(title, 18, textPrimary, true);
+        label.setPadding(dp(20), 0, 0, 0);
+        row.addView(label, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        ImageView chevron = new ImageView(this);
+        chevron.setImageDrawable(new IconDrawable(IconDrawable.CHEVRON_RIGHT, accent));
+        row.addView(chevron, new LinearLayout.LayoutParams(dp(24), dp(24)));
+        return row;
+    }
+
+    private View linkDivider() {
+        View line = new View(this);
+        line.setBackgroundColor(divider);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1);
+        params.setMargins(dp(18), 0, dp(18), 0);
+        line.setLayoutParams(params);
+        return line;
+    }
+
+    private void openUrl(String url) {
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
+        } catch (Exception e) {
+            Downloads.toast(this, "Can't open the link");
+        }
+    }
+
+    // endregion
+
+    // region Language
+
+    /** "auto" followed by every language that has a translation file. */
+    private static String[] languageCodes() {
+        List<String> codes = new ArrayList<>();
+        codes.add(I18n.LANGUAGE_AUTO);
+        codes.addAll(Translations.LANGUAGES.keySet());
+        return codes.toArray(new String[0]);
+    }
+
+    /** Language names are shown in their own language; only the automatic entry is translated. */
+    private static String[] languageNames() {
+        String[] codes = languageCodes();
+        String[] names = new String[codes.length];
+        names[0] = I18n.tr("Automatic (device language)");
+        for (int i = 1; i < codes.length; i++) names[i] = Translations.LANGUAGES.get(codes[i]);
+        return names;
+    }
+
+    private int languageIndex() {
+        String current = Settings.language();
+        String[] codes = languageCodes();
+        for (int i = 0; i < codes.length; i++) if (codes[i].equals(current)) return i;
+        return 0;
+    }
+
+    private void chooseLanguage() {
+        String[] codes = languageCodes();
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Language"))
+                .setSingleChoiceItems(languageNames(), languageIndex(), (dialog, which) -> {
+                    Settings.setString(Settings.LANGUAGE, codes[which]);
+                    dialog.dismiss();
+                    // Rebuild the screen so every text uses the new language.
+                    recreate();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show());
+    }
+
+    // endregion
+
+    // region Backup
+
+    private void copyDiagnosticReport() {
+        try {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            clipboard.setPrimaryClip(ClipData.newPlainText(BRAND, Diagnostics.report(this)));
+            Downloads.toast(this, "Diagnostic report copied. Paste it into your bug report.");
+        } catch (Exception e) {
+            Downloads.toast(this, I18n.f("Export failed: %1$s", e.getMessage()));
+        }
+    }
+
+    private void clearDiagnosticLog() {
+        Diagnostics.clear();
+        Downloads.toast(this, "Diagnostic log cleared");
+    }
+
+    private void exportSettings() {
+        try {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            clipboard.setPrimaryClip(ClipData.newPlainText(BRAND, Settings.exportJson()));
+            Downloads.toast(this, "Settings copied to the clipboard");
+        } catch (Exception e) {
+            Downloads.toast(this, I18n.f("Export failed: %1$s", e.getMessage()));
+        }
+    }
+
+    private void editMutedWords() {
+        EditText input = new EditText(this);
+        input.setHint(I18n.tr("One word or phrase per line, for example:\nthrilled to announce\nhiring"));
+        input.setMinLines(4);
+        input.setGravity(Gravity.TOP);
+        input.setText(Settings.mutedWords());
+        LinearLayout box = new LinearLayout(this);
+        box.setPadding(dp(24), dp(8), dp(24), 0);
+        box.addView(input, matchWidth());
+
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Muted words"))
+                .setMessage(I18n.tr("Posts containing any of these, as whole words, are hidden from your feed. "
+                        + "Upper and lower case don't matter."))
+                .setView(box)
+                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                    Settings.setMutedWords(input.getText().toString().trim());
+                    refresh();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show());
+    }
+
+    private void importSettings() {
+        EditText input = new EditText(this);
+        input.setHint(I18n.tr("Paste a settings backup here"));
+        input.setMinLines(4);
+        input.setGravity(Gravity.TOP);
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipData clip = clipboard.getPrimaryClip();
+        if (clip != null && clip.getItemCount() > 0 && clip.getItemAt(0).getText() != null) {
+            input.setText(clip.getItemAt(0).getText());
+        }
+        LinearLayout box = new LinearLayout(this);
+        box.setPadding(dp(24), dp(8), dp(24), 0);
+        box.addView(input, matchWidth());
+
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Import settings"))
+                .setView(box)
+                .setPositiveButton(I18n.tr("Import"), (dialog, which) -> {
+                    try {
+                        int count = Settings.importJson(input.getText().toString());
+                        Downloads.toast(this, I18n.f("%1$s settings imported", count));
+                        refresh();
+                        showRestartBanner();
+                    } catch (Exception e) {
+                        Downloads.toast(this, "Invalid backup");
+                    }
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show());
+    }
+
+    private void resetSettings() {
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Reset to defaults?"))
+                .setMessage(I18n.f("All %1$s settings will be reset, including the download location.", BRAND))
+                .setPositiveButton(I18n.tr("Reset"), (dialog, which) -> {
+                    Settings.resetAll();
+                    Downloads.toast(this, "Settings reset to defaults");
+                    refresh();
+                    showRestartBanner();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show());
+    }
+
+    // endregion
+
+    // region Download location
+
+    private void chooseBaseDir() {
+        String[] dirs = Settings.DOWNLOAD_BASE_DIRS;
+        String current = Settings.downloadBaseDir();
+        int checked = 0;
+        for (int i = 0; i < dirs.length; i++) if (dirs[i].equals(current)) checked = i;
+
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Main folder"))
+                .setSingleChoiceItems(dirs, checked, (dialog, which) -> {
+                    Settings.setString(Settings.DOWNLOAD_BASE_DIR, dirs[which]);
+                    refresh();
+                    dialog.dismiss();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show());
+    }
+
+    private void editFolder() {
+        EditText input = new EditText(this);
+        input.setSingleLine(true);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        input.setText(Settings.downloadFolder());
+        input.setHint(Settings.DEFAULT_DOWNLOAD_FOLDER);
+        input.setSelection(input.getText().length());
+
+        TextView help = text("Use \"/\" for nested folders, for example LinkedIn/Media. "
+                + "Leave empty to save directly in the main folder.", 13, textSecondary, false);
+        help.setPadding(0, dp(8), 0, 0);
+
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(dp(24), dp(8), dp(24), 0);
+        box.addView(input);
+        box.addView(help);
+
+        tint(new AlertDialog.Builder(this, dialogTheme())
+                .setTitle(I18n.tr("Subfolder name"))
+                .setView(box)
+                .setPositiveButton(I18n.tr("Save"), (dialog, which) -> {
+                    Settings.setString(Settings.DOWNLOAD_FOLDER, Settings.sanitizeFolder(input.getText().toString()));
+                    refresh();
+                })
+                .setNeutralButton(I18n.tr("Default"), (dialog, which) -> {
+                    Settings.setString(Settings.DOWNLOAD_FOLDER, Settings.DEFAULT_DOWNLOAD_FOLDER);
+                    refresh();
+                })
+                .setNegativeButton(I18n.tr("Cancel"), null)
+                .show());
+    }
+
+    // endregion
+
+    // region Helpers
+
+    private View restartBanner() {
+        LinearLayout banner = new LinearLayout(this);
+        banner.setOrientation(LinearLayout.HORIZONTAL);
+        banner.setGravity(Gravity.CENTER_VERTICAL);
+        banner.setPadding(dp(18), dp(10), dp(10), dp(10));
+        banner.setBackground(rounded(dark ? 0xFF262626 : 0xFF202124, 16));
+        banner.setElevation(dp(8));
+
+        TextView message = text("Restart LinkedIn to apply all changes.", 14, 0xFFFFFFFF, false);
+        banner.addView(message, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+
+        TextView action = text("RESTART", 14, MaterialYou.settingsAccent(true, 0xFF2DBCB1), true);
+        action.setPadding(dp(12), dp(10), dp(12), dp(10));
+        action.setBackground(ripple(false));
+        action.setOnClickListener(v -> restartApp());
+        banner.addView(action);
+
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
+        params.setMargins(dp(16), 0, dp(16), dp(16));
+        banner.setLayoutParams(params);
+        banner.setVisibility(View.GONE);
+        return banner;
+    }
+
+    private void showRestartBanner() {
+        if (restartBanner.getVisibility() == View.VISIBLE) return;
+        restartBanner.setVisibility(View.VISIBLE);
+        restartBanner.setAlpha(0f);
+        restartBanner.setTranslationY(dp(24));
+        restartBanner.animate().alpha(1f).translationY(0f).setDuration(200).start();
+    }
+
+    private ImageButton iconButton(String icon, String description) {
+        ImageButton button = new ImageButton(this);
+        button.setImageDrawable(new IconDrawable(icon, textPrimary));
+        button.setBackground(ripple(true));
+        button.setContentDescription(I18n.tr(description));
+        int pad = dp(13);
+        button.setPadding(pad, pad, pad, pad);
+        button.setLayoutParams(new LinearLayout.LayoutParams(dp(50), dp(50)));
+        return button;
+    }
+
+    private TextView text(String value, int sp, int color, boolean bold) {
+        TextView view = new TextView(this);
+        view.setText(I18n.tr(value));
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp);
+        view.setTextColor(color);
+        if (bold) view.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        return view;
+    }
+
+    private GradientDrawable rounded(int color, int radiusDp) {
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(color);
+        drawable.setCornerRadius(dp(radiusDp));
+        return drawable;
+    }
+
+    private GradientDrawable outlined() {
+        GradientDrawable drawable = rounded(surface, 20);
+        drawable.setStroke(dp(1), divider);
+        return drawable;
+    }
+
+    private LinearLayout.LayoutParams matchWidth() {
+        return new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+    }
+
+    private Drawable ripple(boolean borderless) {
+        TypedValue value = new TypedValue();
+        getTheme().resolveAttribute(borderless
+                ? android.R.attr.selectableItemBackgroundBorderless
+                : android.R.attr.selectableItemBackground, value, true);
+        return getDrawable(value.resourceId);
+    }
+
+    private int dialogTheme() {
+        return dark ? android.R.style.Theme_DeviceDefault_Dialog_Alert
+                : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert;
+    }
+
+    private String appVersion() {
+        try {
+            PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
+            return info.versionName;
+        } catch (Exception e) {
+            return "?";
+        }
+    }
+
+    private void restartApp() {
+        Intent launch = getPackageManager().getLaunchIntentForPackage(getPackageName());
+        if (launch != null) {
+            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(launch);
+        }
+        finishAffinity();
+        Process.killProcess(Process.myPid());
+    }
+
+    private int dp(int value) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
+    }
+
+    // endregion
+}

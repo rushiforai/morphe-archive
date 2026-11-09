@@ -8,9 +8,10 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -40,6 +41,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.lang.ref.SoftReference
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** AndroidUtilities, every class that names a bundled font file, and the runtime. */
 class UseSystemFontFixtureTest {
@@ -85,7 +90,7 @@ class UseSystemFontFixtureTest {
             assertTrue("$name: nothing jumps into the hook", (0 until b.normal.size).filter { it != 0 && it != 1 && it != 2 }
                 .none { from -> b.normal[from].any { it in 1..3 } })
             assertEquals("$name: every caller and every other host method", untouched, hostState(build, context, setOf(loader) + builders))
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "useSystemFont" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "useSystemFont" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -105,7 +110,7 @@ class UseSystemFontFixtureTest {
             assertEquals("${build.name}: Wallet's three builds", 3, built.size)
             assertEquals("${build.name}: one build per method", 3, built.map { key(it.method) }.toSet().size)
             // bold() is the medium face most of Telegram draws with.
-            val bold = hosts(build).single { it.type == ANDROID_UTILITIES }.methods.single { it.name == "bold" && it.parameterTypes.isEmpty() }.controlBody()
+            val bold = hosts(build).single { it.origType == ANDROID_UTILITIES }.methods.single { it.origName == "bold" && it.parameterTypes.isEmpty() }.controlBody()
             assertTrue("${build.name}: bold() loads the medium file through the loader", bold.any { it.controlString() == "fonts/rmedium.ttf" } &&
                 bold.any { it.controlRef() == GET_TYPEFACE })
         }
@@ -120,16 +125,16 @@ class UseSystemFontFixtureTest {
                 "loader opens another file" to { _, s -> val at = index(s, BUILDER_FROM_ASSET); val r = s.method.controlBody()[at].namedRegisters()
                     s.method.replaceInstruction(at, "invoke-direct {v${r[0]}, v${r[1]}, v0}, $BUILDER_FROM_ASSET") },
                 "loader no longer static" to { _, s -> s.method.accessFlags = s.method.accessFlags and AccessFlags.STATIC.value.inv() },
-                "bold() loads its file elsewhere" to { c, _ -> val bold = c.mutableClassDefBy(ANDROID_UTILITIES).methods.single { it.name == "bold" && it.parameterTypes.isEmpty() }
+                "bold() loads its file elsewhere" to { c, _ -> val bold = c.tgMutableClassDefBy(ANDROID_UTILITIES).methods.single { it.origName == "bold" && it.parameterTypes.isEmpty() }
                     bold.replaceInstruction(bold.controlBody().indexOfFirst { it.controlRef() == GET_TYPEFACE }, "nop") },
-                "missing build flag" to { c, _ -> c.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "useSystemFont" } },
-                "private typeface hook" to { c, _ -> val h = c.mutableClassDefBy(SYSTEM_FONT).methods.single { it.name == "typeface" }
+                "missing build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "useSystemFont" } },
+                "private typeface hook" to { c, _ -> val h = c.tgMutableClassDefBy(SYSTEM_FONT).methods.single { it.origName == "typeface" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "empty typeface hook" to { c, _ -> val owner = c.mutableClassDefBy(SYSTEM_FONT); val h = owner.methods.single { it.name == "typeface" }
+                "empty typeface hook" to { c, _ -> val owner = c.tgMutableClassDefBy(SYSTEM_FONT); val h = owner.methods.single { it.origName == "typeface" }
                     owner.methods.remove(h)
                     owner.methods.add(ImmutableMethod(h.definingClass, h.name, h.parameters, h.returnType, h.accessFlags, h.annotations,
                         h.hiddenApiRestrictions, ImmutableMethodImplementation(1, emptyList(), emptyList(), emptyList())).toMutable()) },
-                "missing built hook" to { c, _ -> c.mutableClassDefBy(SYSTEM_FONT).methods.removeAll { it.name == "built" } },
+                "missing built hook" to { c, _ -> c.tgMutableClassDefBy(SYSTEM_FONT).methods.removeAll { it.origName == "built" } },
                 "Wallet font built elsewhere" to { _, s -> val b = s.built.first()
                     b.method.replaceInstruction(b.method.controlBody().indexOfFirst { it.controlRef() == BUILDER_FROM_ASSET }, "nop") },
                 "Wallet builder runs other code" to { _, s -> val b = s.built.first()
@@ -190,10 +195,10 @@ class UseSystemFontFixtureTest {
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(SYSTEM_FONT, SETTINGS_STATUS))
-        .filter { c.classDefByOrNull(it) != null }.associateWith { type -> c.mutableClassDefBy(type).let { cls ->
+        .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
-        .flatMap { c.mutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
+        .flatMap { c.tgMutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
 
     private fun hosts(build: File): List<ClassDef> {
         val identity = FixtureDex.inputIdentity(build)
@@ -215,7 +220,7 @@ class UseSystemFontFixtureTest {
         return listOf(accessFlags, implementation?.registerCount, body.map { it.operand() }, body.map { listOf(it.codeUnits, (it as? OffsetInstruction)?.codeOffset) },
             flow?.normal?.toList(), flow?.exceptional?.toList())
     }
-    private fun Instruction.operand() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString(),
+    private fun Instruction.operand() = listOf(opcode, namedRegisters(), origRef(),
         (this as? WideLiteralInstruction)?.wideLiteral)
     private fun key(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 

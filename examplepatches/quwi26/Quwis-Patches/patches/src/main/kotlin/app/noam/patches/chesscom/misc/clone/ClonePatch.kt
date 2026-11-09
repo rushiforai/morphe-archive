@@ -8,23 +8,49 @@
 package app.noam.patches.chesscom.misc.clone
 
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.stringOption
 import app.noam.patches.chesscom.shared.Constants
 import org.w3c.dom.Element
 
-private const val SUFFIX = "noam"
+private const val DEFAULT_SUFFIX = "quwi"
+
+private val SUFFIX_PATTERN = Regex("[A-Za-z][A-Za-z0-9_]*")
+
+/**
+ * Accepts "quwi", ".quwi" or the full "com.chess.quwi" and returns the last package segment.
+ * An empty value falls back to the default suffix.
+ */
+private fun normalizeSuffix(raw: String?): String {
+    var value = raw?.trim().orEmpty()
+    if (value.startsWith("com.chess.", ignoreCase = true)) {
+        value = value.substring("com.chess.".length)
+    }
+    value = value.trim('.')
+    return value.ifEmpty { DEFAULT_SUFFIX }
+}
 
 @Suppress("unused")
 val clonePatch = resourcePatch(
     name = "Clone Chess.com",
-    description = "Renames the app to com.chess.$SUFFIX so it installs next to the real Chess.com app " +
-        "instead of over it. Leave it off to keep updating your current install.",
+    description = "Renames the app package so it installs next to the real Chess.com app " +
+        "instead of over it. The default package is com.chess.$DEFAULT_SUFFIX; the last part " +
+        "can be changed in the patch options. Leave it off to keep updating your current install.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 
+    val suffixOption = stringOption(
+        key = "cloneSuffix",
+        default = DEFAULT_SUFFIX,
+        title = "Package name suffix",
+        description = "The last part of the package name, after com.chess. Default: $DEFAULT_SUFFIX.",
+        validator = { value -> normalizeSuffix(value).matches(SUFFIX_PATTERN) },
+    )
+
     finalize {
+        val suffix = normalizeSuffix(suffixOption.value)
         val packageName = packageMetadata.packageName
-        val newPackageName = "$packageName.$SUFFIX"
+        val newPackageName = "$packageName.$suffix"
         val providerStrings = mutableSetOf<String>()
 
         document("AndroidManifest.xml").use { document ->

@@ -19,6 +19,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Every haptic and vibrator call outside calls, the ringing that stays, and the runtime. */
 class NoHapticsFixtureTest {
@@ -41,13 +44,13 @@ class NoHapticsFixtureTest {
                     indices.map { body[it].controlRef() to body[it].namedRegisters() })
                 assertTrue(indices.all { body[it].opcode == Opcode.INVOKE_STATIC || body[it].opcode == Opcode.INVOKE_STATIC_RANGE })
             }
-            val left = hosts.filter { !it.type.startsWith("Lapp/hushtelegram/") }.flatMap { cls ->
-                context.mutableClassDefBy(cls.type).methods.filter { m ->
+            val left = hosts.filter { !it.origType.startsWith("Lapp/hushtelegram/") }.flatMap { cls ->
+                context.tgMutableClassDefBy(cls.type).methods.filter { m ->
                     m.controlBody().any { (it.opcode == Opcode.INVOKE_VIRTUAL || it.opcode == Opcode.INVOKE_VIRTUAL_RANGE) && it.controlRef() in HAPTIC_CALLS }
                 }.map { cls.type }
             }.toSet()
             assertTrue("$name: only calls still vibrate directly, not $left", left.isNotEmpty() && left.all { it.startsWith(VOIP) })
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "noHaptics" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "noHaptics" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

@@ -19,13 +19,16 @@ import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 // (LunaAccessibilityNodeProvider.updateAXTree), but only while it believes a
 // screen reader is on. Every Native.onScreenReaderStatusChanged call is routed
 // through AutoSkipper, which always reports one, and each screen update is
-// passed to AutoSkipper, which presses the buttons the options chose.
+// passed to AutoSkipper, which presses the buttons the options chose. The
+// title that is playing (updateMediaMetaData) is passed too, so a recap or
+// intro is skipped once per title, and rewinding into one plays it.
 //
 // The phone app shares the package name but not this code. Morphe Manager can
 // still select this patch for it, so it does nothing there.
 
 private const val PROVIDER = "Lcom/apple/atve/generic/LunaAccessibilityNodeProvider;"
 private const val NATIVE = "Lcom/apple/atve/luna/Native;"
+private const val METADATA = "Lcom/apple/atve/luna/LunaMediaMetaDataInterface;"
 private const val SKIPPER = "Lsemicoloncolonel/mobilestream/extension/appletv/AutoSkipper;"
 
 private fun ReferenceInstruction.isScreenReaderReport() =
@@ -110,5 +113,17 @@ val autoSkipPatch = bytecodePatch(
             0,
             "invoke-static/range { p0 .. p1 }, $SKIPPER->onTree(Ljava/lang/Object;Ljava/lang/String;)V",
         )
+
+        // The title that is playing, so a recap or intro is skipped once per
+        // title: the app's LunaMediaMetaDataInterface.updateMediaMetaData(json).
+        classDefForEach { classDef ->
+            if (METADATA !in classDef.interfaces) return@classDefForEach
+            mutableClassDefBy(classDef.type).methods.firstOrNull {
+                it.name == "updateMediaMetaData" && it.parameterTypes.map { p -> p.toString() } == listOf("Ljava/lang/String;")
+            }?.addInstructions(
+                0,
+                "invoke-static/range { p1 .. p1 }, $SKIPPER->onMetadata(Ljava/lang/String;)V",
+            )
+        }
     }
 }

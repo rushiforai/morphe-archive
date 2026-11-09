@@ -4,7 +4,7 @@
  */
 package app.morphe
 
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
@@ -25,6 +25,10 @@ import java.io.File
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 class FixtureDexCensusTest {
     @get:Rule val temporary = TemporaryFolder()
@@ -35,12 +39,12 @@ class FixtureDexCensusTest {
         apk(file, listOf(listOf(owner("Lfixture/Owner;")), listOf(owner("Lfixture/Owner;"), owner("Lfixture/Other;"))))
         val census = FixtureDex.ClassCensus()
         var inspected = 0
-        fun read() = FixtureDex.classesWhere(file, census, { true }) { inspected++; it.name == "probe" }
+        fun read() = FixtureDex.classesWhere(file, census, { true }) { inspected++; it.origName == "probe" }
         val first = read()
         assertEquals(3, inspected)
         assertEquals(listOf("Lfixture/Owner;", "Lfixture/Other;", "Lfixture/Owner;"), first.map { it.type })
         val context = PatchContexts.of(listOf(first.first()))
-        context.mutableClassDefBy(first.first().type).methods.single().replaceInstruction(0, "nop")
+        context.tgMutableClassDefBy(first.first().type).methods.single().replaceInstruction(0, "nop")
         val second = read()
         assertEquals("the warm inspection does not repeat the full method census", 3, inspected)
         assertEquals(first.map { it.type }, second.map { it.type })
@@ -78,9 +82,9 @@ class FixtureDexCensusTest {
         var inspected = 0
         repeat(2) {
             assertEquals("Lfixture/First;", FixtureDex.classesWhere(file, first,
-                { dex -> dex.typeReferences.any { it.type == "Lfixture/First;" } }) { inspected++; true }.single().type)
+                { dex -> dex.typeReferences.any { it.origType == "Lfixture/First;" } }) { inspected++; true }.single().type)
             assertEquals("Lfixture/Later;", FixtureDex.classesWhere(file, later, { true }) {
-                inspected++; it.definingClass == "Lfixture/Later;"
+                inspected++; it.origDefiningClass == "Lfixture/Later;"
             }.single().type)
         }
         assertEquals(3, inspected)

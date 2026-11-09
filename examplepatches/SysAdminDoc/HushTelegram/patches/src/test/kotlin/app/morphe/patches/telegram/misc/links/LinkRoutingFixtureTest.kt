@@ -8,13 +8,17 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
+import app.morphe.patches.telegram.misc.localcontrols.controlBody
+import app.morphe.patches.telegram.misc.paste.NORMAL_PASTE
+import app.morphe.patches.telegram.misc.paste.useNormalPastePatch
 import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -36,6 +40,10 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Real pinned host methods prove sink scope, both patch orders and untouched stock control flow. */
 class LinkRoutingFixtureTest {
@@ -50,7 +58,7 @@ class LinkRoutingFixtureTest {
                 val plan = context.resolveLinkHooks()
                 assertEquals("${build.name}: the three verified Share Link chooser sinks", 3, plan.shares.size)
                 assertTrue("${build.name}: the kept custom-tab share receiver is covered", plan.shares.any {
-                    it.method.definingClass == "Lorg/telegram/messenger/ShareBroadcastReceiver;" && it.method.name == "onReceive"
+                    it.method.origDefiningClass == "Lorg/telegram/messenger/ShareBroadcastReceiver;" && it.method.origName == "onReceive"
                 })
                 val methods = (listOf(plan.browser) + plan.shares.map { it.method }).distinct()
                 val original = methods.associate { key(it) to ImmutableMethod.of(it) }
@@ -63,7 +71,7 @@ class LinkRoutingFixtureTest {
                 }
                 for (method in methods) assertStock(build.name, original.getValue(key(method)), method)
                 for (flag in trackingFlags + externalFlags) assertFlag(context, flag, true)
-                val protection = context.mutableClassDefBy(LINKS).methods.single { it.name == "protectedByTelegram" }
+                val protection = context.tgMutableClassDefBy(LINKS).methods.single { it.origName == "protectedByTelegram" }
                 val calls = protection.instructions().mapNotNull { it.ref() }
                 assertTrue("the exact discovered native classifier is called", plan.classifier.toString() in calls)
                 assertTrue("auth domains keep stock routing", "$MC->authDomains:Ljava/util/Set;" in calls)
@@ -74,6 +82,28 @@ class LinkRoutingFixtureTest {
                 assertAutologinGated(build.name, plan.browser)
                 for (share in plan.shares) assertEquals("only the chooser target is passed to cleaning", 1,
                     share.method.instructions().count { it.ref()?.startsWith("$LINKS->cleanShareIntent(") == true })
+            }
+        }
+    }
+
+    @Test fun `Use normal paste still applies after Strip link tracking, and both reach the paste editors`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val context = PatchContexts.of(ExtensionDex.classes() + (hostClasses(build) + copyPasteHosts(build)).distinctBy { it.type })
+            val editors = context.resolveCopyPaste().pastes
+            assertEquals("${build.name}: the message box and caption editors", 2, editors.size)
+            val stock = editors.map { editor -> editor.controlBody().filter { it.opcode != Opcode.NOP }.map { it.opcode to it.ref() } }
+            // The patcher's order: Strip link tracking runs, then Use normal paste, then the patches' finalize blocks.
+            stripLinkTrackingPatch.execute(context)
+            useNormalPastePatch.execute(context)
+            stripLinkTrackingPatch.finalize(context)
+            assertFlag(context, "pastedLinkTracking", true)
+            editors.forEachIndexed { at, editor ->
+                val after = editor.controlBody().filter { it.opcode != Opcode.NOP }.map { it.opcode to it.ref() }
+                assertEquals("${build.name}: editor $at watches the paste first", Opcode.INVOKE_STATIC to WATCH_PASTE, after[0])
+                assertEquals("${build.name}: editor $at then asks Use normal paste", Opcode.INVOKE_STATIC to
+                    "$NORMAL_PASTE->contextMenuAction(Landroid/view/View;I)I", after[1])
+                assertEquals(Opcode.MOVE_RESULT, after[2].first)
+                assertEquals("${build.name}: editor $at keeps its stock body", stock[at], after.drop(3))
             }
         }
     }
@@ -116,11 +146,11 @@ class LinkRoutingFixtureTest {
             mutate(plan.browser)
             val methods = listOf(plan.browser) + plan.shares.map { it.method }
             val before = methods.map { it.instructions().map(::operands) }
-            val stub = context.mutableClassDefBy(LINKS).methods.single { it.name == "protectedByTelegram" }.instructions().map(::operands)
+            val stub = context.tgMutableClassDefBy(LINKS).methods.single { it.origName == "protectedByTelegram" }.instructions().map(::operands)
             val refused = assertThrows("${build.name}: $name", PatchException::class.java) { stripLinkTrackingPatch.execute(context) }
             assertTrue("${build.name}: $name refused for its own reason: ${refused.message}", refused.message.orEmpty().contains(reason))
             assertEquals("${build.name}: $name leaves every host as it was", before, methods.map { it.instructions().map(::operands) })
-            assertEquals(stub, context.mutableClassDefBy(LINKS).methods.single { it.name == "protectedByTelegram" }.instructions().map(::operands))
+            assertEquals(stub, context.tgMutableClassDefBy(LINKS).methods.single { it.origName == "protectedByTelegram" }.instructions().map(::operands))
             (trackingFlags + externalFlags).forEach { assertFlag(context, it, false) }
         }
     }
@@ -133,14 +163,14 @@ class LinkRoutingFixtureTest {
                 val plan = context.resolveLinkHooks()
                 val methods = listOf(plan.browser) + plan.shares.map { it.method }
                 val before = methods.map { it.instructions().map(::operands) }
-                val stub = context.mutableClassDefBy(LINKS).methods.single { it.name == "protectedByTelegram" }
+                val stub = context.tgMutableClassDefBy(LINKS).methods.single { it.origName == "protectedByTelegram" }
                 val stubBefore = stub.instructions().map(::operands)
-                context.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == missing }
+                context.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == missing }
                 assertThrows(PatchException::class.java) {
                     if (missing in externalFlags) openExternalLinksPatch.execute(context) else stripLinkTrackingPatch.execute(context)
                 }
                 assertEquals(before, methods.map { it.instructions().map(::operands) })
-                assertEquals(stubBefore, context.mutableClassDefBy(LINKS).methods.single { it.name == "protectedByTelegram" }.instructions().map(::operands))
+                assertEquals(stubBefore, context.tgMutableClassDefBy(LINKS).methods.single { it.origName == "protectedByTelegram" }.instructions().map(::operands))
             }
         }
     }
@@ -158,7 +188,7 @@ class LinkRoutingFixtureTest {
                 val count = (0 until array).last { instructions[it].opcode == Opcode.CONST_4 && instructions[it].namedRegisters()[0] == countRegister }
                 plan.browser.replaceInstruction(count, "const/4 v$countRegister, 0x2")
             } else {
-                val receiver = plan.shares.single { it.method.definingClass == "Lorg/telegram/messenger/ShareBroadcastReceiver;" }.method
+                val receiver = plan.shares.single { it.method.origDefiningClass == "Lorg/telegram/messenger/ShareBroadcastReceiver;" }.method
                 val action = receiver.instructions().indexOfFirst { it.ref() == "android.intent.action.SEND" }
                 val register = receiver.instructions()[action].namedRegisters().single()
                 receiver.replaceInstruction(action, "const-string v$register, \"android.intent.action.VIEW\"")
@@ -177,8 +207,8 @@ class LinkRoutingFixtureTest {
             for (mutation in 0..4) {
                 val context = PatchContexts.of(ExtensionDex.classes() + hostClasses(build))
                 val plan = context.resolveLinkHooks()
-                val owner = context.mutableClassDefBy(LINKS)
-                val method = owner.methods.single { it.name == name }
+                val owner = context.tgMutableClassDefBy(LINKS)
+                val method = owner.methods.single { it.origName == name }
                 when (mutation) {
                     0 -> owner.accessFlags = owner.accessFlags and AccessFlags.PUBLIC.value.inv()
                     1 -> method.accessFlags = method.accessFlags and AccessFlags.PUBLIC.value.inv()
@@ -224,8 +254,8 @@ class LinkRoutingFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of(ExtensionDex.classes() + hostClasses(build))
             val plan = context.resolveLinkHooks()
-            val owner = context.mutableClassDefBy(LINKS)
-            val method = owner.methods.single { it.name == name }
+            val owner = context.tgMutableClassDefBy(LINKS)
+            val method = owner.methods.single { it.origName == name }
             val implementation = method.implementation!!
             assertEquals("$name: one register per parameter", RUNTIME_WORDS.getValue(name), method.parameterTypes.size)
             assertTrue("$name: the stock body is executable within its parameter budget",
@@ -239,20 +269,20 @@ class LinkRoutingFixtureTest {
                     if (body == null) implementation.debugItems else emptyList())).toMutable())
             val hosts = listOf(plan.browser) + plan.shares.map { it.method }
             val hostsBefore = hosts.map { key(it) to it.state() }
-            val classesBefore = listOf(LINKS, SETTINGS_STATUS).associateWith { context.mutableClassDefBy(it).state() }
+            val classesBefore = listOf(LINKS, SETTINGS_STATUS).associateWith { context.tgMutableClassDefBy(it).state() }
             assertThrows("${build.name}: $name", PatchException::class.java) {
                 (if (name == "tryOpenExternal") openExternalLinksPatch else stripLinkTrackingPatch).execute(context)
             }
             assertEquals("${build.name}: $name leaves every host method as it was", hostsBefore, hosts.map { key(it) to it.state() })
             assertEquals("${build.name}: $name leaves the runtime and status classes as they were", classesBefore,
-                listOf(LINKS, SETTINGS_STATUS).associateWith { context.mutableClassDefBy(it).state() })
+                listOf(LINKS, SETTINGS_STATUS).associateWith { context.tgMutableClassDefBy(it).state() })
             (trackingFlags + externalFlags).forEach { assertFlag(context, it, false) }
         }
     }
 
     private fun hostClasses(build: File): List<ClassDef> {
         val sinks = FixtureDex.classesWhere(build, HOST_CENSUS, { true }) { method ->
-            (method.returnType == "V" && method.parameterTypes.size == 10 &&
+            (method.origReturnType == "V" && method.parameterTypes.size in 10..11 &&
                 method.parameterTypes.take(2) == listOf("Landroid/content/Context;", "Landroid/net/Uri;") &&
                 method.instructions().any { it.ref() == "autologin_token" }) ||
                 (method.instructions().any { it.ref() == "Lorg/telegram/messenger/R\$string;->ShareLink:I" } &&
@@ -267,10 +297,16 @@ class LinkRoutingFixtureTest {
         val before = original.instructions()
         val after = patched.instructions()
         val injected = mutableListOf<IntRange>()
+        // 13.2 keeps the classification's answer above v15, so a hook first copies it into a local.
+        fun carried(at: Int, call: Int, operand: Int) = after.getOrNull(at)?.let {
+            it.opcode == Opcode.MOVE_FROM16 && it.namedRegisters()[0] == after[call].namedRegisters()[operand]
+        } == true
         for (index in after.indices) {
             when {
-                after[index].ref()?.startsWith("$LINKS->tryOpenExternal(") == true -> injected += index - 1..index + 4
-                after[index].ref()?.startsWith("$LINKS->cleanOpenedUri(") == true -> injected += index..index + 3
+                after[index].ref()?.startsWith("$LINKS->tryOpenExternal(") == true ->
+                    injected += (if (carried(index - 2, index, 2)) index - 2 else index - 1)..index + 4
+                after[index].ref()?.startsWith("$LINKS->cleanOpenedUri(") == true ->
+                    injected += (if (carried(index - 1, index, 1)) index - 1 else index)..index + 3
                 after[index].ref()?.startsWith("$LINKS->cleanShareIntent(") == true -> injected += index..index + 1
                 after[index].ref() == AUTOLOGIN_GATE -> injected += index..index + 1
             }
@@ -290,11 +326,10 @@ class LinkRoutingFixtureTest {
             assertEquals("$where: stock exception handler $index", oldFlow.exceptional[index].toSet(), newFlow.exceptional[stock[index]].map(::oldTarget).toSet())
         }
         for (site in injected) {
-            if (after[site.first + 1].ref()?.startsWith("$LINKS->tryOpenExternal(") == true) {
-                assertEquals(Opcode.IF_EQZ, after[site.first + 3].opcode)
-                assertEquals(Opcode.RETURN_VOID, after[site.first + 4].opcode)
-                assertEquals("success returns; false resumes stock", setOf(site.first + 4, site.last), newFlow.normal[site.first + 3].toSet())
-            }
+            val call = site.firstOrNull { after[it].ref()?.startsWith("$LINKS->tryOpenExternal(") == true } ?: continue
+            assertEquals(Opcode.IF_EQZ, after[call + 2].opcode)
+            assertEquals(Opcode.RETURN_VOID, after[call + 3].opcode)
+            assertEquals("success returns; false resumes stock", setOf(call + 3, site.last), newFlow.normal[call + 2].toSet())
         }
     }
 
@@ -319,7 +354,11 @@ class LinkRoutingFixtureTest {
         val append = code.indices.single { code[it].ref()?.endsWith("->appendQueryParameter(Ljava/lang/String;Ljava/lang/String;)Landroid/net/Uri\$Builder;") == true &&
             code.subList(it - 2, it).any { instruction -> instruction.ref() == "autologin_token" } }
         val skip = flow.normal[gate + 2].single { it != gate + 3 }
-        assertEquals("$where: with the token or without, routing picks up in one place", listOf(skip), flow.normal[append + 4])
+        // 13.2 copies the signed-in link back first, and web 13.2.0 then jumps to the merge.
+        val copied = code[append + 4].opcode == Opcode.MOVE_OBJECT || code[append + 4].opcode == Opcode.MOVE_OBJECT_FROM16
+        val after = flow.normal[append + 4].single()
+        val rejoin = if (copied && code[after].opcode in setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)) flow.normal[after] else listOf(after)
+        assertEquals("$where: with the token or without, routing picks up in one place", listOf(skip), if (copied) rejoin else flow.normal[append + 4])
     }
 
     private fun operands(instruction: Instruction): List<Any?> = listOf(
@@ -330,7 +369,7 @@ class LinkRoutingFixtureTest {
     )
 
     private fun assertFlag(context: BytecodePatchContext, name: String, enabled: Boolean) {
-        val body = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.instructions()
+        val body = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.instructions()
         assertEquals(Opcode.CONST_4, body[0].opcode)
         assertEquals(name, if (enabled) 1 else 0, (body[0] as NarrowLiteralInstruction).narrowLiteral)
         assertEquals(Opcode.RETURN, body[1].opcode)
@@ -351,7 +390,7 @@ class LinkRoutingFixtureTest {
 
     private fun key(method: Method) ="${method.definingClass}->${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}"
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-    private fun Instruction.ref() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.ref() = origRef()
     private companion object {
         val HOST_CENSUS = FixtureDex.ClassCensus()
         const val MC = "Lorg/telegram/messenger/MessagesController;"

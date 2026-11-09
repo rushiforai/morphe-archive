@@ -21,6 +21,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The message box's Send as updater, Telegram's peer types and the runtime. */
 class HideSendAsFixtureTest {
@@ -53,10 +55,10 @@ class HideSendAsFixtureTest {
                     listOf(after[j].opcode, after[j].namedRegisters(), after[j].controlRef()))
             }
 
-            val stub = context.mutableClassDefBy(SEND_AS).methods.single { it.name == "isUser" }.controlBody()
+            val stub = context.tgMutableClassDefBy(SEND_AS).methods.single { it.origName == "isUser" }.controlBody()
             assertEquals(listOf(Opcode.INSTANCE_OF, Opcode.RETURN), stub.map { it.opcode })
             assertEquals(PEER_USER, stub[0].controlRef())
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideSendAs" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideSendAs" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

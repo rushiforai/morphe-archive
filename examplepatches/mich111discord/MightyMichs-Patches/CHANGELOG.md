@@ -1,3 +1,21 @@
+## [1.14.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.13.0...v1.14.0) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* fixed Inshot Patch ([55f3247](https://github.com/mich111discord/MightyMichs-Patches/commit/55f3247a798a08b550c664f26832a7180385dee5))
+* fixed sideme patches ([fb997c5](https://github.com/mich111discord/MightyMichs-Patches/commit/fb997c539c2e821e24a1c3c1272d17e6cc902c5c))
+* screen translate fix ([272b3d6](https://github.com/mich111discord/MightyMichs-Patches/commit/272b3d60a658dbdadb50bfb0ff0cb8379fd1c4b2))
+
+### ✨ New Features
+
+* added Adobe Premier Premium patch ([ab765b1](https://github.com/mich111discord/MightyMichs-Patches/commit/ab765b145ffd80e783dd5fa144b7039e4c726db7))
+* Added DramaBox unlock premium ([d066acc](https://github.com/mich111discord/MightyMichs-Patches/commit/d066acc22a70d7f32222cf4d306bd0e60b20177d))
+* Added DramaWave unlock premium ([1b6dc3d](https://github.com/mich111discord/MightyMichs-Patches/commit/1b6dc3db25f65fc1de995217050c0152de808390))
+* Added finch unlock plus patch ([07adccd](https://github.com/mich111discord/MightyMichs-Patches/commit/07adccd8e4ff4e7cc29f2f86f2529c83343c7046))
+* Added IDrama unlock premium ([0b100bc](https://github.com/mich111discord/MightyMichs-Patches/commit/0b100bc567c570f966d9f6e0301a17fbb51b9889))
+* Added MyDrama unlock premium ([831416e](https://github.com/mich111discord/MightyMichs-Patches/commit/831416e10f2ec67c6caeef61c579332842d99480))
+* Added Whatsapp patches + mod settings ([3297496](https://github.com/mich111discord/MightyMichs-Patches/commit/32974963a2bbbb3bef90991e69be512078690ce8))
+
 ## [1.13.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.12.0...v1.13.0) (2026-11-02)
 
 ### 🐛 Bug Fixes

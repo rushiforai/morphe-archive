@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.theme
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -38,6 +38,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val BLACK_THEME = "$EXTENSION_PACKAGE/misc/BlackTheme;"
 internal const val SPARSE_INT_ARRAY = "Landroid/util/SparseIntArray;"
@@ -129,12 +135,12 @@ internal fun BytecodePatchContext.resolveBlackTheme(): BlackThemeSite {
 
     val readers = mutableListOf<MutableMethod>()
     forEachClassMentioning(Mention.string("WLS=") and Mention.string("WPS")) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { method ->
-            if (method.returnType == SPARSE_INT_ARRAY && method.parameterTypes.map { it.toString() } == THEME_FILE_PARAMETERS) {
+            if (method.origReturnType == SPARSE_INT_ARRAY && method.parameterTypes.map { it.toString() } == THEME_FILE_PARAMETERS) {
                 val strings = method.controlBody().mapNotNull { it.controlString() }
-                if ("WLS=" in strings && "WPS" in strings) readers += mutableClassDefBy(cls.type).methods.single { it.name == method.name &&
-                    it.returnType == method.returnType && it.parameterTypes.map { p -> p.toString() } == THEME_FILE_PARAMETERS }
+                if ("WLS=" in strings && "WPS" in strings) readers += tgMutableClassDefBy(cls.type).methods.single { it.origName == method.origName &&
+                    it.origReturnType == method.origReturnType && it.parameterTypes.map { p -> p.toString() } == THEME_FILE_PARAMETERS }
             }
         }
     }
@@ -169,19 +175,19 @@ internal fun BytecodePatchContext.resolveBlackTheme(): BlackThemeSite {
         written?.takeIf { body[it].opcode == Opcode.MOVE_RESULT && body[it - 1].isStaticCall(listOf(STRING), "I") }?.let { body[it - 1].call() }
     }
     val keyLookup = lookups.distinctBy { it.toString() }.controlSingle("theme key lookup")
-    val lookupOwner = mutableClassDefByOrNull(keyLookup.definingClass)
-    val lookup = lookupOwner?.methods?.singleOrNull { it.name == keyLookup.name && it.parameterTypes.map { p -> p.toString() } == listOf(STRING) && it.returnType == "I" }
+    val lookupOwner = tgMutableClassDefByOrNull(keyLookup.definingClass)
+    val lookup = lookupOwner?.methods?.singleOrNull { it.origName == keyLookup.origName && it.parameterTypes.map { p -> p.toString() } == listOf(STRING) && it.origReturnType == "I" }
     controlShape(lookupOwner != null && lookup != null && AccessFlags.PUBLIC.isSet(lookupOwner.accessFlags) &&
         AccessFlags.PUBLIC.isSet(lookup.accessFlags) && AccessFlags.STATIC.isSet(lookup.accessFlags),
         "the theme key lookup can't be called from outside Telegram's theme code")
 
     // The chat background builder sits beside the reader and takes the pattern's strength as a parameter.
     controlHook(BLACK_THEME, "patternIntensity", listOf(SPARSE_INT_ARRAY, "Ljava/lang/Object;", "I"), "I")
-    val wallpaper = mutableClassDefBy(reader.definingClass).methods.filter { m ->
+    val wallpaper = tgMutableClassDefBy(reader.definingClass).methods.filter { m ->
         AccessFlags.STATIC.isSet(m.accessFlags) && m.parameterTypes.size == WALLPAPER_SHAPE.size &&
-            WALLPAPER_SHAPE.indices.all { WALLPAPER_SHAPE[it] == null || WALLPAPER_SHAPE[it] == m.parameterTypes[it].toString() }
+            WALLPAPER_SHAPE.indices.all { WALLPAPER_SHAPE[it] == null || WALLPAPER_SHAPE[it] == m.origParameterTypes[it].toString() }
     }.controlSingle("chat background builder")
-    controlShape(wallpaper.parameterTypes[WALLPAPER_PICKED].toString().let { it.startsWith("Lorg/telegram/") && it != wallpaper.parameterTypes[0].toString() },
+    controlShape(wallpaper.parameterTypes[WALLPAPER_PICKED].toString().let { it.startsWith("Lorg/telegram/") && it != wallpaper.origParameterTypes[0].toString() },
         "the chat background builder no longer takes a picked wallpaper")
     controlShape(wallpaper.implementation!!.registerCount <= 256, "the chat background builder has too many registers to copy its parameters")
     controlShape(ControlFlow.of(wallpaper).normal.none { 0 in it }, "something jumps back to the start of the chat background builder")
@@ -194,7 +200,7 @@ internal fun BytecodePatchContext.resolveBlackTheme(): BlackThemeSite {
 
 private fun Instruction.isStaticCall(parameters: List<String>, result: String) =
     (opcode == Opcode.INVOKE_STATIC || opcode == Opcode.INVOKE_STATIC_RANGE) &&
-        call()?.let { it.parameterTypes.map { p -> p.toString() } == parameters && it.returnType == result } == true
+        call()?.let { it.parameterTypes.map { p -> p.toString() } == parameters && it.origReturnType == result } == true
 
 /** The writes of [register] that can reach instruction [at], along branches and handlers. */
 private fun reachingWrites(method: Method, register: Int, at: Int): Set<Int> {

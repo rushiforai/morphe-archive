@@ -157,6 +157,8 @@ public final class MediaClient {
     private PlaybackState lastState;
     private MediaMetadata lastMetadata;
     private int lastQueueSize = -1;
+    /** Last queue read; refreshed by the controller callbacks, not by the position tick. */
+    private List<QueueEntry> lastQueue = Collections.emptyList();
 
     /** "Play this collection, then jump to track N" request waiting for the new queue. */
     private int pendingSkipIndex = -1;
@@ -200,6 +202,7 @@ public final class MediaClient {
         lastState = null;
         lastMetadata = null;
         lastQueueSize = -1;
+        lastQueue = Collections.emptyList();
         pendingSkipIndex = -1;
         main.removeCallbacks(skipWhenReady);
         if (browser != null) {
@@ -219,7 +222,7 @@ public final class MediaClient {
                     Log.i(TAG, "MediaBrowser connected, root=" + browser.getRoot());
                     attachController();
                     if (listener != null) listener.onConnected();
-                    emitPlayback();
+                    emitPlayback(true);
                 }
 
                 @Override
@@ -252,13 +255,20 @@ public final class MediaClient {
             @Override
             public void onPlaybackStateChanged(PlaybackState state) {
                 lastState = state;
-                emitPlayback();
+                emitPlayback(true);
             }
 
             @Override
             public void onMetadataChanged(MediaMetadata metadata) {
                 lastMetadata = metadata;
-                emitPlayback();
+                emitPlayback(true);
+            }
+
+            @Override
+            public void onQueueChanged(List<MediaSession.QueueItem> queue) {
+                Log.i(TAG, "queue changed: "
+                        + (queue == null ? "empty" : String.valueOf(queue.size())));
+                emitPlayback(true);
             }
 
             @Override
@@ -271,6 +281,8 @@ public final class MediaClient {
         controllerCallback = callback;
         lastState = created.getPlaybackState();
         lastMetadata = created.getMetadata();
+        lastQueue = Collections.emptyList();
+        lastQueueSize = -1;
     }
 
     private void notifyDisconnected(final String message) {
@@ -331,6 +343,31 @@ public final class MediaClient {
             Log.e(TAG, "subscribe threw for " + parentId, t);
             callbacks.remove(parentId);
             notifyChildrenFailed(parentId);
+        }
+    }
+
+    /**
+     * Children already delivered for {@code parentId}, or null when the node was never
+     * loaded. Lets the host answer a second screen for the same node without re-subscribing
+     * (two screens can be restored on top of each other after a rotation).
+     */
+    public synchronized List<Item> cachedChildren(String parentId) {
+        return cache.get(parentId);
+    }
+
+    /**
+     * Drops the cached children and the live subscription of {@code parentId}, so the next
+     * {@link #subscribe} asks the engine again (explicit "Atualizar" on Início).
+     */
+    public synchronized void invalidate(String parentId) {
+        cache.remove(parentId);
+        MediaBrowser.SubscriptionCallback old = callbacks.remove(parentId);
+        if (old != null && browser != null) {
+            try {
+                browser.unsubscribe(parentId);
+            } catch (Throwable ignored) {
+                // The browser/service may already be gone; the new subscribe re-registers.
+            }
         }
     }
 
@@ -505,16 +542,19 @@ public final class MediaClient {
         }
     }
 
-    /** Re-reads the session position only; metadata is read from the callbacks. */
+    /**
+     * Re-reads the session position only; metadata and queue are read from the controller
+     * callbacks, so the 500 ms tick no longer hits {@code getQueue()} on the binder.
+     */
     public void refreshPlayback() {
         MediaController current = controller;
         if (current == null) return;
         PlaybackState state = current.getPlaybackState();
         if (state != null) lastState = state;
-        emitPlayback();
+        emitPlayback(false);
     }
 
-    private void emitPlayback() {
+    private void emitPlayback(boolean refreshQueue) {
         final Snapshot snapshot = new Snapshot();
         PlaybackState state = lastState;
         MediaMetadata metadata = lastMetadata;
@@ -543,7 +583,8 @@ public final class MediaClient {
             }
         }
         snapshot.activeQueueId = state != null ? state.getActiveQueueItemId() : -1L;
-        snapshot.queue = readQueue(snapshot.activeQueueId);
+        if (refreshQueue) lastQueue = readQueue(snapshot.activeQueueId);
+        snapshot.queue = lastQueue;
         List<Action> actions = new ArrayList<Action>();
         if (state != null) {
             List<PlaybackState.CustomAction> custom = state.getCustomActions();

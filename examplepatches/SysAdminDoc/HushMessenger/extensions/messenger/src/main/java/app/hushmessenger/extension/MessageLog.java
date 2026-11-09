@@ -326,8 +326,20 @@ public final class MessageLog {
      */
     static void noteNames(String thread, String id, String text, android.app.Notification notification) {
         if (thread == null || id == null || id.isEmpty() || text == null || notification == null || !Settings.wouldUse(KEY)) return;
-        String sender = ChatNotifications.sender(notification, text, thread);
-        String chat = ChatNotifications.conversation(notification);
+        note(thread, id, ChatNotifications.sender(notification, text, thread), ChatNotifications.conversation(notification));
+    }
+
+    /**
+     * A chat that doesn't notify ({@link QuietChats}) has no notification to read the sender off later, so the
+     * notification manager hands over the name from the message itself as it drops the notification. The message
+     * doesn't carry a group's own name, so a group shows as any group the log couldn't name.
+     */
+    static void noteSender(String thread, String id, String sender) {
+        if (thread == null || id == null || id.isEmpty() || sender == null || sender.isEmpty() || !Settings.wouldUse(KEY)) return;
+        note(thread, id, sender, null);
+    }
+
+    private static void note(String thread, String id, String sender, String chat) {
         if (sender == null && chat == null) return;
         String key = clip(thread, MAX_THREAD_CHARS) + '\u0000' + clip(id, MAX_ID_CHARS);
         synchronized (NOTED) {

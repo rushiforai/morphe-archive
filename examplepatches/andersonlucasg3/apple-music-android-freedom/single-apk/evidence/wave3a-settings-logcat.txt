@@ -1,0 +1,14 @@
+=== RXCX100BZ5J ===
+
+11-08 07:02:11.517 29941 29941 I AppleMusicOne: engine settings opened id=0x7f0a008c
+11-08 07:02:12.520 29941 29941 I AppleMusicOne: account BACK hooked on the engine back dispatcher
+11-08 07:02:12.522 29941 29941 I AppleMusicOne: account BACK registered priority=1000000 on com.apple.android.music.common.MainActivity@6bd29ca
+11-08 07:02:19.269 29941 29941 I AppleMusicOne: account screen BACK, returning to the UI
+
+=== emulator-5554 ===
+
+11-08 10:02:53.339 24299 24299 I AppleMusicOne: engine settings opened id=0x7f0a008c
+11-08 10:02:54.345 24299 24299 I AppleMusicOne: account BACK hooked on the engine back dispatcher
+11-08 10:02:54.345 24299 24299 I AppleMusicOne: account BACK registered priority=1000000 on com.apple.android.music.common.MainActivity@ac06239
+11-08 10:03:02.584 24299 24299 I AppleMusicOne: account screen BACK, returning to the UI
+

@@ -8,8 +8,11 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origString
+import app.morphe.util.names.addInstruction
+import app.morphe.util.names.replaceInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction as rawReplaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -36,6 +39,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.lang.ref.SoftReference
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val TEXT_BLOCKS = "Lorg/telegram/messenger/MessageObject\$TextLayoutBlocks;"
 private const val SEND_PARAMS = "Lorg/telegram/messenger/SendMessagesHelper\$SendMessageParams;"
@@ -92,14 +99,14 @@ class RevealSpoilersFixtureTest {
                 assertEquals("$name: same paths", ControlFlow.of(stock).normal.toList(), ControlFlow.of(method).normal.toList())
                 assertEquals("$name: same handlers", ControlFlow.of(stock).exceptional.toList(), ControlFlow.of(method).exceptional.toList())
             }
-            assertTrue("$name: no drawn media asks Telegram directly", hosts(build).filter { it.type !in ASKS_TELEGRAM }
-                .flatMap { context.mutableClassDefBy(it.type).methods }.none { m -> m.controlBody().any { it.controlRef() == HAS_MEDIA_SPOILERS } })
-            val asking = ASKS_TELEGRAM.filter { type -> context.mutableClassDefBy(type).methods.any { m -> m.controlBody().any { it.controlRef() == HAS_MEDIA_SPOILERS } } }
+            assertTrue("$name: no drawn media asks Telegram directly", hosts(build).filter { it.origType !in ASKS_TELEGRAM }
+                .flatMap { context.tgMutableClassDefBy(it.type).methods }.none { m -> m.controlBody().any { it.controlRef() == HAS_MEDIA_SPOILERS } })
+            val asking = ASKS_TELEGRAM.filter { type -> context.tgMutableClassDefBy(type).methods.any { m -> m.controlBody().any { it.controlRef() == HAS_MEDIA_SPOILERS } } }
             assertEquals("$name: sending, retrying and notifications still ask Telegram", ASKS_TELEGRAM, asking.toSet())
             assertEquals("$name: every other method", untouched, hostState(build, context, changed))
 
-            val stubs = context.mutableClassDefBy(SPOILERS).methods
-            fun stub(name: String) = stubs.single { it.name == name }.controlBody()
+            val stubs = context.tgMutableClassDefBy(SPOILERS).methods
+            fun stub(name: String) = stubs.single { it.origName == name }.controlBody()
             assertEquals(listOf(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.MOVE_RESULT, Opcode.RETURN),
                 stub("spoilerSpan").map { it.opcode })
             assertEquals(site.span.toString(), stub("spoilerSpan")[3].controlRef())
@@ -107,7 +114,7 @@ class RevealSpoilersFixtureTest {
             assertEquals(HAS_MEDIA_SPOILERS, stub("stockMediaCovered")[1].controlRef())
             assertEquals(listOf("$MESSAGE_OBJECT->needDrawBluredPreview()Z", "$MESSAGE_OBJECT->isHiddenSensitive()Z"),
                 stub("keptCovered").filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "revealSpoilers" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "revealSpoilers" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -117,10 +124,12 @@ class RevealSpoilersFixtureTest {
         // and the photo strip draw media; sending, retrying and notifications ask Telegram. Text is
         // covered in messages, the chat list, replies, quotes, Instant View and the composer, which
         // keeps its cover. A new caller fails here so it gets the same review.
+        // Reviewed 2026-11-07 for 13.2: two helpers built around a chat bubble (each takes the
+        // ChatMessageCell it draws for) now draw part of its media, and the bubble keeps 13 of its 14.
         for (build in Fixtures.declaredBuilds()) {
             val methods = hosts(build).flatMap { it.methods }
             val checks = methods.filter { m -> m.controlBody().any { it.controlRef() == HAS_MEDIA_SPOILERS } }
-            assertEquals("${build.name}: media checks ${checks.map { key(it) }}", 28, checks.size)
+            assertEquals("${build.name}: media checks ${checks.map { key(it) }}", 29, checks.size)
             val covers = FixtureDex.classesWhere(build, { true }) { m -> m.controlBody().any { it.controlRef()?.endsWith(CORE) == true } }
                 .flatMap { it.methods }.count { m -> m.controlBody().any { it.controlRef()?.endsWith(CORE) == true } }
             assertEquals("${build.name}: text covers", 7, covers)
@@ -130,21 +139,22 @@ class RevealSpoilersFixtureTest {
     @Test fun `a changed check or runtime refuses before any method changes`() {
         for (build in Fixtures.declaredBuilds()) {
             val mutations: List<Pair<String, (BytecodePatchContext, RevealSpoilersSite) -> Unit>> = listOf(
-                "the media check reads something new" to { c, _ -> c.mutableClassDefBy(MESSAGE_OBJECT).methods.single { it.toString() == HAS_MEDIA_SPOILERS }
-                    .replaceInstruction(0, "iget-boolean v0, v1, $MESSAGE_OBJECT->hushNew:Z") },
+                // In the build's own names: 13.2's table refuses a member the class doesn't have, and this one is made up.
+                "the media check reads something new" to { c, _ -> c.tgMutableClassDefBy(MESSAGE_OBJECT).methods.single { it.origString() == HAS_MEDIA_SPOILERS }
+                    .let { m -> m.rawReplaceInstruction(0, "iget-boolean v0, v1, ${m.definingClass}->hushNew:Z") } },
                 "a drawing class sends a spoiler" to { _, s -> s.media.first().method.addInstruction(0, "iput-boolean v0, v0, $SEND_PARAMS->hasMediaSpoilers:Z") },
                 "the answer isn't read" to { _, s -> s.media.first().let { it.method.replaceInstruction(it.index + 1, "nop") } },
-                "no reveal check" to { c, _ -> c.mutableClassDefBy(TEXT_BLOCKS).methods.forEach { m ->
+                "no reveal check" to { c, _ -> c.tgMutableClassDefBy(TEXT_BLOCKS).methods.forEach { m ->
                     m.controlBody().withIndex().filter { it.value.controlRef() == "$MESSAGE_OBJECT->isSpoilersRevealed:Z" }.forEach { m.replaceInstruction(it.index, "nop") } } },
                 "text cover not static" to { _, s -> s.textCovers.accessFlags = s.textCovers.accessFlags and AccessFlags.STATIC.value.inv() },
-                "span check private" to { c, s -> val m = c.mutableClassDefBy(s.span.definingClass).methods.single { it.name == s.span.name && it.parameterTypes.isEmpty() }
+                "span check private" to { c, s -> val m = c.tgMutableClassDefBy(s.span.definingClass).methods.single { it.origName == s.span.origName && it.parameterTypes.isEmpty() }
                     m.accessFlags = m.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "view-once check private" to { c, _ -> val m = c.mutableClassDefBy(MESSAGE_OBJECT).methods.single { it.toString() == "$MESSAGE_OBJECT->needDrawBluredPreview()Z" }
+                "view-once check private" to { c, _ -> val m = c.tgMutableClassDefBy(MESSAGE_OBJECT).methods.single { it.origString() == "$MESSAGE_OBJECT->needDrawBluredPreview()Z" }
                     m.accessFlags = m.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing build flag" to { c, _ -> c.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "revealSpoilers" } },
-                "private media hook" to { c, _ -> val h = c.mutableClassDefBy(SPOILERS).methods.single { it.name == "mediaCovered" }
+                "missing build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "revealSpoilers" } },
+                "private media hook" to { c, _ -> val h = c.tgMutableClassDefBy(SPOILERS).methods.single { it.origName == "mediaCovered" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing kept stub" to { c, _ -> c.mutableClassDefBy(SPOILERS).methods.removeAll { it.name == "keptCovered" } },
+                "missing kept stub" to { c, _ -> c.tgMutableClassDefBy(SPOILERS).methods.removeAll { it.origName == "keptCovered" } },
             )
             for ((case, change) in mutations) {
                 val c = context(build)
@@ -158,10 +168,10 @@ class RevealSpoilersFixtureTest {
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(SPOILERS, SETTINGS_STATUS))
-        .filter { c.classDefByOrNull(it) != null }.associateWith { type -> c.mutableClassDefBy(type).let { cls ->
+        .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
-        .flatMap { c.mutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
+        .flatMap { c.tgMutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
 
     private fun hosts(build: File): List<ClassDef> {
         val identity = FixtureDex.inputIdentity(build)
@@ -189,7 +199,7 @@ class RevealSpoilersFixtureTest {
         return listOf(accessFlags, implementation?.registerCount, body.map { it.operand() }, body.map { listOf(it.codeUnits, (it as? OffsetInstruction)?.codeOffset) },
             flow?.normal?.toList(), flow?.exceptional?.toList())
     }
-    private fun Instruction.operand() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString(),
+    private fun Instruction.operand() = listOf(opcode, namedRegisters(), origRef(),
         (this as? WideLiteralInstruction)?.wideLiteral)
     private fun key(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 

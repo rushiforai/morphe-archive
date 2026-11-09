@@ -132,3 +132,9 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+
+### Local workspace scratch (not part of the repo)
+_reference/
+morphe-data/
+captures/
+*.apk

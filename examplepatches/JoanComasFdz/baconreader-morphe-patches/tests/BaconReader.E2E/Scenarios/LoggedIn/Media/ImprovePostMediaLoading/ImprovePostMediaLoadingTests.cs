@@ -11,7 +11,8 @@ namespace BaconReader.E2E.Scenarios.LoggedIn.Media;
 
 /// <summary>
 /// "Improve post media loading": while a post's GIF downloads, a loading bar shows with its size, which the patch tells
-/// UiAutomator in the media view's description ("Loading media, GIF · 0.4 MB"); a gallery's thumbnail strip loads small
+/// UiAutomator in the media view's description ("Loading media, GIF · 0.4 MB"), over the post's preview unless "Preview
+/// while loading" is off; a gallery's thumbnail strip loads small
 /// previews, not the full images; and "JavaScript in link posts", "Blocked sites" and "Allowed sites" decide whether a
 /// link post's page runs its script, in the post's slide show (BaconReader's own browser always runs it); and when an
 /// image fails to load, the bar turns red, which the media view's description tells ("Media failed to load"); and a
@@ -26,6 +27,8 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         Scenario: Improve post media loading shows the download of post media and runs JavaScript in link posts by its settings
           Given Reddit has a GIF post "Slow GIF" in r/e2e
           And Reddit answers the media of "Slow GIF" 8 seconds late
+          And Reddit has a GIF post "Another slow GIF" in r/e2e
+          And Reddit answers the media of "Another slow GIF" 8 seconds late
           And Reddit has a gallery post "Album" in r/e2e of 3 images
           And Reddit has an image post "Broken image" in r/e2e
           And Reddit answers the image of "Broken image" with an error
@@ -43,6 +46,8 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
           Then the media shows its loading bar with "GIF · 0.4 MB"
           When I wait for the GIF to arrive
           Then the media shows no loading bar
+          # "Preview while loading" is on. Not on the screen: the fake Reddit records what BaconReader asked for.
+          And Reddit served the preview of "Slow GIF"
           When I go back to the posts
           And I tap the thumbnail of "Album"
           # Not on the screen: the fake Reddit records what BaconReader asked for.
@@ -107,12 +112,27 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
           And I tap "Slide Show View" in the toolbar
           And I tap "Tap to open link"
           Then the page of "Link with a preview" ran its script
+          When I tap "Detail View" in the toolbar
+          And I go back to the posts
+          And I open the left menu
+          And I tap "Settings"
+          And I tap "Patches"
+          And I scroll to "Preview while loading"
+          And I tap "Preview while loading"
+          And I go back to the posts
+          And I tap the thumbnail of "Another slow GIF"
+          Then the media shows its loading bar with "GIF · 0.4 MB"
+          When I wait for the GIF to arrive
+          Then the media shows no loading bar
+          And Reddit didn't serve the preview of "Another slow GIF"
         """)]
     public async Task ImprovePostMediaLoadingShowsTheDownloadOfPostMediaAndRunsJavaScriptInLinkPostsByItsSettings(Screen screen)
     {
         // Given
         Reddit.HasAGifPost("Slow GIF", "e2e");
         Reddit.AnswersTheMediaOfThePostLate("Slow GIF", 8);
+        Reddit.HasAGifPost("Another slow GIF", "e2e");
+        Reddit.AnswersTheMediaOfThePostLate("Another slow GIF", 8);
         Reddit.HasAGalleryPostOf("Album", "e2e", 3);
         Reddit.HasAnImagePost("Broken image", "e2e");
         Reddit.AnswersTheImageOfThePostWithAnError("Broken image");
@@ -144,6 +164,9 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         // Then
         var loaded = await Phone.BaconReader.MediaViewer.ReadAsync();
         Asserting.That(loaded).ShowsNoLoadingBar();
+        // "Preview while loading" is on. Not on the screen: the fake Reddit records what BaconReader asked for.
+        var preview = Reddit.ReadRequestsForThePreviewOf("Slow GIF");
+        Asserting.That(preview).Served();
 
         // When
         await Phone.BaconReader.GoBackToThePostsAsync();
@@ -210,7 +233,7 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         await Phone.BaconReader.Settings.WaitUntilShownAsync(new SettingsSection.Patches());
         await Phone.BaconReader.Settings.ClickAsync(new SettingsSection.Patches());
         await Phone.BaconReader.PatchesSettings.WaitUntilShownAsync();
-        await Phone.BaconReader.PatchesSettings.ScrollToAsync(new PatchSetting.AllowedSites());
+        await Phone.BaconReader.PatchesSettings.ScrollToAsync(new PatchSetting.JavaScriptInLinkPosts(), new PatchSetting.AllowedSites());
 
         // Then
         var settings = await Phone.BaconReader.PatchesSettings.ReadAsync();
@@ -246,7 +269,7 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         await Phone.BaconReader.Settings.WaitUntilShownAsync(new SettingsSection.Patches());
         await Phone.BaconReader.Settings.ClickAsync(new SettingsSection.Patches());
         await Phone.BaconReader.PatchesSettings.WaitUntilShownAsync();
-        await Phone.BaconReader.PatchesSettings.ScrollToAsync(new PatchSetting.AllowedSites());
+        await Phone.BaconReader.PatchesSettings.ScrollToAsync(new PatchSetting.JavaScriptInLinkPosts(), new PatchSetting.AllowedSites());
         await Phone.BaconReader.PatchesSettings.TickAsync(new PatchSetting.JavaScriptInLinkPosts());
         await Phone.BaconReader.GoBackToThePostsAsync();
         await Phone.BaconReader.Main.Posts.ClickPostAsync("Link with a preview");
@@ -290,5 +313,34 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         // Then
         var allowed = Reddit.ReadTheScriptRunsOfThePage("Link with a preview");
         Asserting.That(allowed).RanItsScript();
+
+        // When
+        await Phone.BaconReader.SlideShow.ClickDetailViewAsync();
+        await Phone.BaconReader.SlideShow.WaitUntilDetailViewShownAsync();
+        await Phone.BaconReader.GoBackToThePostsAsync();
+        await Phone.BaconReader.Main.LeftMenu.OpenAsync();
+        await Phone.BaconReader.Main.LeftMenu.WaitUntilShownAsync();
+        await Phone.BaconReader.Main.LeftMenu.ClickAsync(new MenuEntry.Settings());
+        await Phone.BaconReader.Settings.WaitUntilShownAsync(new SettingsSection.Patches());
+        await Phone.BaconReader.Settings.ClickAsync(new SettingsSection.Patches());
+        await Phone.BaconReader.PatchesSettings.WaitUntilShownAsync();
+        await Phone.BaconReader.PatchesSettings.ScrollToAsync(new PatchSetting.PreviewWhileLoading());
+        await Phone.BaconReader.PatchesSettings.TickAsync(new PatchSetting.PreviewWhileLoading());
+        await Phone.BaconReader.GoBackToThePostsAsync();
+        await Phone.BaconReader.Main.Posts.ClickThumbnailAsync("Another slow GIF");
+        await Phone.BaconReader.MediaViewer.WaitUntilLoadingWithSizeShownAsync();
+
+        // Then
+        var withoutPreview = await Phone.BaconReader.MediaViewer.ReadAsync();
+        Asserting.That(withoutPreview).ShowsItsLoadingBarWith("GIF · 0.4 MB");
+
+        // When
+        await Phone.BaconReader.MediaViewer.WaitUntilLoadedAsync();
+
+        // Then
+        var loadedWithoutPreview = await Phone.BaconReader.MediaViewer.ReadAsync();
+        var noPreview = Reddit.ReadRequestsForThePreviewOf("Another slow GIF");
+        Asserting.That(loadedWithoutPreview).ShowsNoLoadingBar();
+        Asserting.That(noPreview).DidntServe();
     }
 }

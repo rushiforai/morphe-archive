@@ -4,11 +4,16 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.PorterDuff;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -25,8 +30,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Hides and reorders optional left-drawer sections.
- * Account, My profile, Settings and the subreddit list are never hideable.
+ * Hides and reorders optional left-drawer sections, and restyles the drawer
+ * while Modern UI is on. Account, My profile, Settings and the subreddit list
+ * are never hideable.
  */
 public final class Sidebar {
     private static final String PREFS = "mighty_morphing";
@@ -52,16 +58,17 @@ public final class Sidebar {
 
     public static void refresh(Activity activity) {
         try {
+            int id = activity.getResources().getIdentifier(
+                    "home_left_drawer_recycler_view", "id", activity.getPackageName());
+            View view = activity.findViewById(id);
+            if (view == null || !view.getClass().getName().contains("RecyclerView")) return;
+            if (ModernUi.isModernUiEnabled(activity)) paintChrome(activity, view);
             List<String> names = new ArrayList<>(hidden(activity));
             Collections.sort(names);
             String now = names.toString() + getOrder(activity).toString();
             if (now.equals(shown)) return;
             Object service = Class.forName("ua.b").getMethod("A").invoke(null);
             List<?> list = (List<?>) service.getClass().getMethod("z").invoke(service);
-            int id = activity.getResources().getIdentifier(
-                    "home_left_drawer_recycler_view", "id", activity.getPackageName());
-            View view = activity.findViewById(id);
-            if (view == null || !view.getClass().getName().contains("RecyclerView")) return;
             Object adapter = view.getClass().getMethod("getAdapter").invoke(view);
             if (adapter == null) return;
             adapter.getClass().getMethod("T1", List.class).invoke(adapter, list);
@@ -72,12 +79,124 @@ public final class Sidebar {
         }
     }
 
+    private static void paintChrome(Activity activity, View recycler) {
+        chrome(recycler, activity);
+        recycler.post(() -> {
+            if (!(recycler instanceof ViewGroup)) return;
+            ViewGroup group = (ViewGroup) recycler;
+            for (int i = 0; i < group.getChildCount(); i++) paint(group.getChildAt(i));
+        });
+    }
+
+    private static void chromeFrom(View item) {
+        View node = item;
+        int recyclerId = id(item, "home_left_drawer_recycler_view");
+        while (node != null && recyclerId != 0 && node.getId() != recyclerId) {
+            node = node.getParent() instanceof View ? (View) node.getParent() : null;
+        }
+        if (node == null) node = item;
+        chrome(node, activityOf(item.getContext()));
+    }
+
+    private static void chrome(View recycler, Activity activity) {
+        if (recycler == null) return;
+        Context context = recycler.getContext();
+        if (!ModernUi.isModernUiEnabled(context)) return;
+        ModernUi.Palette palette = ModernUi.getPalette(context);
+        paintSurface(recycler, palette.canvas);
+        View parent = recycler.getParent() instanceof View ? (View) recycler.getParent() : null;
+        if (parent != null) {
+            paintSurface(parent, palette.canvas);
+            if (parent instanceof ViewGroup) hideDrawerFab((ViewGroup) parent);
+        }
+        if (activity != null) {
+            View fab = activity.findViewById(activity.getResources().getIdentifier(
+                    "navigation_fab", "id", activity.getPackageName()));
+            if (fab != null) keepGone(fab);
+        }
+    }
+
+    private static void hideDrawerFab(ViewGroup parent) {
+        int fabId = id(parent, "navigation_fab");
+        for (int i = 0; i < parent.getChildCount(); i++) {
+            View child = parent.getChildAt(i);
+            if (child.getClass().getName().contains("FloatingActionButton")
+                    || (fabId != 0 && child.getId() == fabId)) {
+                keepGone(child);
+            }
+        }
+    }
+
+    private static void keepGone(View fab) {
+        fab.setVisibility(View.GONE);
+        fab.setClickable(false);
+        int key = fab.getId();
+        if (key == 0) return;
+        if (fab.getTag(key) instanceof Boolean) return;
+        fab.setTag(key, Boolean.TRUE);
+        fab.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
+            if (v.getVisibility() != View.GONE) v.setVisibility(View.GONE);
+        });
+    }
+
+    private static void paintSurface(View view, int color) {
+        if (view == null) return;
+        view.setBackgroundColor(color);
+        view.setElevation(0f);
+        useCanvasToken(view);
+    }
+
+    private static void useCanvasToken(View view) {
+        try {
+            Field field = view.getClass().getDeclaredField("b");
+            field.setAccessible(true);
+            Object attr = field.get(view);
+            if (attr == null) return;
+            Field token = attr.getClass().getDeclaredField("a");
+            token.setAccessible(true);
+            if (token.getInt(attr) == 11) token.setInt(attr, 12);
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static Activity activityOf(Context context) {
+        while (context instanceof android.content.ContextWrapper) {
+            if (context instanceof Activity) return (Activity) context;
+            context = ((android.content.ContextWrapper) context).getBaseContext();
+        }
+        return null;
+    }
+
+    /** Joey's bind entry for every left-drawer row. */
+    public static void schedule(Object holder) {
+        try {
+            View item = (View) holder.getClass().getField("itemView").get(holder);
+            if (item == null || !ModernUi.isModernUiEnabled(item.getContext())) return;
+            item.post(() -> {
+                try {
+                    paint(item);
+                } catch (Throwable t) {
+                    Log.w("Sidebar", "paint", t);
+                }
+            });
+        } catch (Throwable ignored) {
+        }
+    }
+
     public static void apply(List<?> items) {
         if (items == null || items.isEmpty()) return;
         try {
             Context ctx = context();
             Set<String> hidden = hidden(ctx);
             List<String> order = getOrder(ctx);
+
+            if (ctx != null && ModernUi.isModernUiEnabled(ctx)) {
+                Iterator<?> dividers = items.iterator();
+                while (dividers.hasNext()) {
+                    Object item = dividers.next();
+                    if (item != null && "va.a".equals(item.getClass().getName())) dividers.remove();
+                }
+            }
 
             // Filter hidden items
             if (!hidden.isEmpty()) {
@@ -123,9 +242,242 @@ public final class Sidebar {
         }
     }
 
+    private static void paint(View item) {
+        if (item == null) return;
+        Context context = item.getContext();
+        if (!ModernUi.isModernUiEnabled(context)) return;
+        ModernUi.Palette palette = ModernUi.getPalette(context);
+        fill(item, palette.canvas);
+        chromeFrom(item);
+
+        View divider = id(item, "divider_item_view") == item.getId() ? item : find(item, "divider_item_view");
+        if (divider != null) {
+            divider.setVisibility(View.GONE);
+            ViewGroup.LayoutParams lp = divider.getLayoutParams();
+            if (lp != null) {
+                lp.height = 0;
+                divider.setLayoutParams(lp);
+            }
+            return;
+        }
+
+        if (find(item, "drawer_top") != null || id(item, "drawer_top") == item.getId()) {
+            paintAccount(item, palette);
+            return;
+        }
+
+        View search = find(item, "subreddit_entry_editText");
+        if (search != null) {
+            paintSearch(item, palette);
+            return;
+        }
+
+        paintRow(item, palette);
+    }
+
+    private static void paintAccount(View item, ModernUi.Palette palette) {
+        float density = item.getResources().getDisplayMetrics().density;
+        View top = id(item, "drawer_top") == item.getId() ? item : find(item, "drawer_top");
+        if (top == null) top = item;
+        hide(find(item, "drawer_image"));
+        View bubble = find(item, "give_food_container");
+        hide(bubble);
+        if (bubble != null && bubble.getParent() instanceof View) hide((View) bubble.getParent());
+        hide(find(item, "top_heading"));
+
+        int height = Math.round(56 * density);
+        fill(top, palette.canvas);
+        top.setMinimumHeight(0);
+        ViewGroup.LayoutParams topLp = top.getLayoutParams();
+        if (topLp != null) {
+            topLp.height = height;
+            top.setLayoutParams(topLp);
+        }
+        top.setPadding(Math.round(16 * density), 0, Math.round(12 * density), 0);
+        if (top.getParent() instanceof View) {
+            View parent = (View) top.getParent();
+            ViewGroup.LayoutParams parentLp = parent.getLayoutParams();
+            if (parentLp != null && parentLp.height > height) {
+                parentLp.height = height;
+                parent.setLayoutParams(parentLp);
+            }
+        }
+
+        View nameView = find(item, "currentusername");
+        if (!(nameView instanceof TextView)) return;
+        TextView name = (TextView) nameView;
+        name.setTextSize(18);
+        name.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        name.setTextColor(palette.onSurface);
+        name.setShadowLayer(0, 0, 0, 0);
+        name.setPadding(0, 0, Math.round(8 * density), 0);
+        CharSequence raw = name.getText();
+        String label = raw == null ? "" : raw.toString().trim();
+        if (label.isEmpty()) label = "Account";
+
+        if (name.getParent() instanceof ViewGroup) {
+            ViewGroup row = (ViewGroup) name.getParent();
+            ViewGroup.LayoutParams rowLp = row.getLayoutParams();
+            if (rowLp != null) {
+                rowLp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+                rowLp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                if (rowLp instanceof FrameLayout.LayoutParams) {
+                    FrameLayout.LayoutParams fl = (FrameLayout.LayoutParams) rowLp;
+                    fl.gravity = Gravity.CENTER_VERTICAL;
+                    fl.setMargins(0, 0, 0, 0);
+                }
+                row.setLayoutParams(rowLp);
+            }
+            row.setPadding(0, 0, 0, 0);
+            paintMark(row, name, label, palette, density);
+        }
+
+        View arrow = find(item, "drawer_top_drop_down_arrow");
+        if (arrow != null) {
+            int chip = Math.round(32 * density);
+            ViewGroup.LayoutParams arrowLp = arrow.getLayoutParams();
+            if (arrowLp != null) {
+                arrowLp.width = chip;
+                arrowLp.height = chip;
+                if (arrowLp instanceof ViewGroup.MarginLayoutParams) {
+                    ((ViewGroup.MarginLayoutParams) arrowLp).setMargins(0, 0, 0, 0);
+                }
+                arrow.setLayoutParams(arrowLp);
+            }
+            GradientDrawable pill = new GradientDrawable();
+            pill.setColor(palette.containerHigh);
+            pill.setCornerRadius(chip / 2f);
+            arrow.setBackground(pill);
+            int inset = Math.round(6 * density);
+            arrow.setPadding(inset, inset, inset, inset);
+            if (arrow instanceof ImageView) {
+                ((ImageView) arrow).setColorFilter(palette.accent, PorterDuff.Mode.SRC_IN);
+            }
+            arrow.setContentDescription("Switch account");
+        }
+    }
+
+    private static void paintMark(ViewGroup row, TextView name, String label,
+                                 ModernUi.Palette palette, float density) {
+        TextView mark = (TextView) row.findViewWithTag("morphe_user_mark");
+        if (mark == null) {
+            mark = new TextView(name.getContext());
+            mark.setTag("morphe_user_mark");
+            mark.setGravity(Gravity.CENTER);
+            mark.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+            mark.setTextSize(16);
+            int size = Math.round(40 * density);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
+            lp.rightMargin = Math.round(12 * density);
+            lp.gravity = Gravity.CENTER_VERTICAL;
+            int at = 0;
+            for (int i = 0; i < row.getChildCount(); i++) {
+                if (row.getChildAt(i) == name) {
+                    at = i;
+                    break;
+                }
+            }
+            row.addView(mark, at, lp);
+        }
+        GradientDrawable circle = new GradientDrawable();
+        circle.setShape(GradientDrawable.OVAL);
+        circle.setColor(palette.containerHigh);
+        mark.setBackground(circle);
+        mark.setTextColor(palette.accent);
+        mark.setText(label.isEmpty() ? "A" : label.substring(0, 1).toUpperCase());
+    }
+
+    private static void paintSearch(View item, ModernUi.Palette palette) {
+        float density = item.getResources().getDisplayMetrics().density;
+        fill(item, palette.canvas);
+        View field = find(item, "subreddits");
+        if (field == null) field = item;
+        fill(field, palette.canvas);
+        field.setPadding(0, 0, 0, 0);
+        ViewGroup.LayoutParams lp = field.getLayoutParams();
+        if (lp instanceof ViewGroup.MarginLayoutParams) {
+            ((ViewGroup.MarginLayoutParams) lp).setMargins(0, 0, 0, 0);
+            field.setLayoutParams(lp);
+        }
+        View input = find(item, "subreddit_entry_editText");
+        if (input instanceof TextView) {
+            TextView edit = (TextView) input;
+            edit.setTextSize(14);
+            edit.setTextColor(palette.onSurface);
+            edit.setHintTextColor(palette.onSurfaceVariant);
+            int start = Math.round(16 * density);
+            edit.setPadding(start, 0, Math.round(8 * density), 0);
+            edit.setBackground(null);
+        }
+        tint(find(item, "subreddit_edit_drawer"), palette.onSurfaceVariant);
+        tint(find(item, "subreddit_entry_clear"), palette.onSurfaceVariant);
+    }
+
+    private static void fill(View view, int color) {
+        if (view == null) return;
+        view.setBackgroundColor(color);
+        view.setElevation(0f);
+        if (!(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof TextView || child instanceof ImageView) continue;
+            if ("morphe_user_mark".equals(child.getTag())) continue;
+            String type = child.getClass().getName();
+            if (type.contains("ConfigViews") || type.contains("CRecyler") || child instanceof ViewGroup) {
+                fill(child, color);
+            }
+        }
+    }
+
+    private static void hide(View view) {
+        if (view == null) return;
+        view.setVisibility(View.GONE);
+        ViewGroup.LayoutParams lp = view.getLayoutParams();
+        if (lp instanceof ViewGroup.MarginLayoutParams) {
+            ((ViewGroup.MarginLayoutParams) lp).setMargins(0, 0, 0, 0);
+        }
+        if (lp != null) {
+            lp.width = 0;
+            lp.height = 0;
+            view.setLayoutParams(lp);
+        }
+    }
+
+    private static void paintRow(View item, ModernUi.Palette palette) {
+        fill(item, palette.canvas);
+        tint(find(item, "left_drawer_item_icon"), palette.onSurfaceVariant);
+        tint(find(item, "left_drawer_expandible_item_icon"), palette.onSurfaceVariant);
+        tint(find(item, "left_drawer_expandible_item_arrow"), palette.onSurfaceVariant);
+        View label = find(item, "left_drawer_item_textview");
+        if (label instanceof TextView) ((TextView) label).setTextColor(palette.onSurface);
+        label = find(item, "left_drawer_expandible_item_label");
+        if (label instanceof TextView) ((TextView) label).setTextColor(palette.onSurface);
+        label = find(item, "left_drawer_subitem_textview");
+        if (label instanceof TextView) ((TextView) label).setTextColor(palette.onSurfaceVariant);
+        label = find(item, "accountname");
+        if (label instanceof TextView) ((TextView) label).setTextColor(palette.onSurface);
+        tint(find(item, "remove"), palette.onSurfaceVariant);
+    }
+
+    private static void tint(View view, int color) {
+        if (view instanceof ImageView && !view.getClass().getName().contains("RoundedImageView")) {
+            ((ImageView) view).setColorFilter(color, PorterDuff.Mode.SRC_IN);
+        }
+    }
+
+    private static View find(View item, String name) {
+        int found = id(item, name);
+        return found == 0 ? null : item.findViewById(found);
+    }
+
+    private static int id(View view, String name) {
+        return view.getResources().getIdentifier(name, "id", view.getContext().getPackageName());
+    }
+
     static void show(Activity activity) {
         LinearLayout page = MorpheDialog.page(activity, "Sidebar",
-                "Untick an entry to hide it, or use arrows to change order. Go to includes bookmarks. Apply and restart for changes to take effect. Account, My profile, Settings and subreddit list remain untouched.");
+                "Untick an entry to hide it, or drag the handle to change the order. Go to includes bookmarks. Apply and restart for changes to take effect. Account, My profile, Settings and subreddit list remain untouched.");
 
         Set<String> hidden = new HashSet<>(hidden(activity));
         List<String> order = new ArrayList<>(getOrder(activity));
@@ -156,26 +508,11 @@ public final class Sidebar {
                 });
                 line.addView(box, new LinearLayout.LayoutParams(
                         0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-
-                TextView upBtn = arrowButton(activity, "▲", index > 0);
-                if (index > 0) {
-                    upBtn.setOnClickListener(v -> {
-                        Collections.swap(order, index, index - 1);
-                        saveOrder(activity, order);
-                        rebuildRef[0].run();
-                    });
-                }
-                line.addView(upBtn);
-
-                TextView downBtn = arrowButton(activity, "▼", index < order.size() - 1);
-                if (index < order.size() - 1) {
-                    downBtn.setOnClickListener(v -> {
-                        Collections.swap(order, index, index + 1);
-                        saveOrder(activity, order);
-                        rebuildRef[0].run();
-                    });
-                }
-                line.addView(downBtn);
+                line.addView(DragOrder.handle(activity, rowsContainer, (from, to) -> {
+                    Collections.swap(order, from, to);
+                    saveOrder(activity, order);
+                    return true;
+                }));
 
                 rowsContainer.addView(line);
             }
@@ -301,6 +638,15 @@ public final class Sidebar {
 
     private static SharedPreferences prefs(Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    public static List<String> optionalRailKeys(Context context) {
+        List<String> keys = new ArrayList<>();
+        Set<String> hidden = hidden(context);
+        for (String id : getOrder(context)) {
+            if (!hidden.contains(id)) keys.add(id);
+        }
+        return keys;
     }
 
     private static Set<String> hidden(Context context) {

@@ -4,10 +4,11 @@
  */
 package app.morphe.patches.telegram.misc.folders
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.loadsInt
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -42,6 +43,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val LAUNCH_FOLDER = "$EXTENSION_PACKAGE/misc/LaunchFolder;"
 private const val OBJECT = "Ljava/lang/Object;"
@@ -73,6 +81,8 @@ private const val GET_STRING = "Lorg/telegram/messenger/LocaleController;->getSt
 /** The folder id Telegram's archive row opens a chat list with. */
 private const val ARCHIVE_FOLDER = 1
 private const val RECYCLER_VIEW = "Landroidx/recyclerview/widget/RecyclerView;"
+private const val TABS_RANGE = "$RECYCLER_VIEW->computeHorizontalScrollRange()I"
+internal const val TAB_FIT = "$EXTENSION_PACKAGE/misc/TabFit;"
 /** What RecyclerView.scrollToPosition logs without a layout manager, which finds it under any name. */
 private const val NO_LAYOUT_TO_SCROLL = "Cannot scroll to position a LayoutManager set. Call setLayoutManager with a non-null argument."
 
@@ -110,6 +120,8 @@ internal class LaunchRefs(
     val tabList: String? = null,
     /** RecyclerView.scrollToPosition(int), null with [tabList]. */
     val scrollTo: String? = null,
+    /** RecyclerView.computeHorizontalScrollRange(), which says how wide all the tabs are. Null with [tabList] when it isn't reachable. */
+    val range: String? = null,
 )
 
 /**
@@ -152,6 +164,10 @@ internal fun BytecodePatchContext.requireLaunchFolderRuntime() {
         controlHook(LAUNCH_FOLDER, name, listOf("I", "I"), result)
     }
     controlHook(LAUNCH_FOLDER, "scrollStrip", listOf(OBJECT, "I"), "Z")
+    requireStatusMethod("fitTabs")
+    controlHook(TAB_FIT, "update", listOf(OBJECT), "V")
+    controlHook(TAB_FIT, "tabStrip", listOf(OBJECT), OBJECT)
+    controlHook(TAB_FIT, "tabsRange", listOf(OBJECT), "I")
 }
 
 /** Why this build's chat list can't take a picked folder. */
@@ -183,9 +199,9 @@ internal fun BytecodePatchContext.resolveLaunchFolder(): LaunchFolderPlan = try 
 internal fun BytecodePatchContext.folderTabBuilds(): List<MutableMethod> {
     val owners = mutableListOf<String>()
     forEachClassMentioning(Mention.allReferences(listOf(FILTER_ALL_CHATS, DIALOG_FILTERS))) { cls ->
-        if (!cls.type.startsWith("Lapp/hushtelegram/") && cls.methods.any { it.isTabBuild() }) owners += cls.type
+        if (!cls.origType.startsWith("Lapp/hushtelegram/") && cls.methods.any { it.isTabBuild() }) owners += cls.type
     }
-    return owners.flatMap { owner -> mutableClassDefBy(owner).methods.filter { it.isTabBuild() } }
+    return owners.flatMap { owner -> tgMutableClassDefBy(owner).methods.filter { it.isTabBuild() } }
 }
 
 private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
@@ -203,8 +219,8 @@ private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
     val stripField = body[empty - 2].controlField()
     val tabsField = body[empty - 1].controlField()
     fits(readStrip != null && readTabs != null && stripField != null && tabsField != null &&
-        body[empty - 2].opcode == Opcode.IGET_OBJECT && stripField.definingClass == list &&
-        body[empty - 1].opcode == Opcode.IGET_OBJECT && tabsField.type == LIST && readTabs.registerB == readStrip.registerA &&
+        body[empty - 2].opcode == Opcode.IGET_OBJECT && stripField.origDefiningClass == list &&
+        body[empty - 1].opcode == Opcode.IGET_OBJECT && tabsField.origType == LIST && readTabs.registerB == readStrip.registerA &&
         body[empty].namedRegisters() == listOf(readTabs.registerA) && body[empty + 1].opcode == Opcode.MOVE_RESULT,
         "the folder tabs' first build changed")
     val strip = tabsField!!.definingClass
@@ -222,11 +238,11 @@ private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
         "something jumps into the folder tabs' first build")
 
     // getCurrentTabId() hands back the selected id the first tab added takes while it's -1.
-    val current = classDefByOrNull(strip)?.methods?.filter {
-        it.name == "getCurrentTabId" && it.parameterTypes.isEmpty() && it.returnType == "I" && !AccessFlags.STATIC.isSet(it.accessFlags)
+    val current = tgClassDefByOrNull(strip)?.methods?.filter {
+        it.origName == "getCurrentTabId" && it.parameterTypes.isEmpty() && it.origReturnType == "I" && !AccessFlags.STATIC.isSet(it.accessFlags)
     }.orEmpty()
     val reads = current.singleOrNull()?.controlBody().orEmpty()
-    fits(reads.size == 2 && reads[0].opcode == Opcode.IGET && reads[0].controlField()?.let { it.definingClass == strip && it.type == "I" } == true &&
+    fits(reads.size == 2 && reads[0].opcode == Opcode.IGET && reads[0].controlField()?.let { it.origDefiningClass == strip && it.origType == "I" } == true &&
         reads[1].opcode == Opcode.RETURN, "the tab strip's selected tab changed")
     val selected = reads[0].controlRef()!!
 
@@ -234,7 +250,7 @@ private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
     val lookedUp = body.indices.mapNotNull { index ->
         val read = body[index]
         val field = read.controlField()
-        if (read.opcode != Opcode.IGET || field?.type != "I") return@mapNotNull null
+        if (read.opcode != Opcode.IGET || field?.origType != "I") return@mapNotNull null
         val value = (read as TwoRegisterInstruction).registerA
         val used = body.drop(index + 1).take(3).any {
             it.opcode == Opcode.INVOKE_VIRTUAL && it.controlRef() == STABLE_ID_LOOKUP && it.namedRegisters().getOrNull(1) == value
@@ -244,7 +260,7 @@ private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
     fits(lookedUp.size == 1, "the chat list's page selection changed")
     val selectedType = lookedUp.single()
     val page = selectedType.substringBefore("->")
-    val pages = body.filter { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.definingClass == list && f.type == "[$page" } == true }
+    val pages = body.filter { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.origDefiningClass == list && f.origType == "[$page" } == true }
         .mapNotNull { it.controlRef() }.distinct()
     fits(pages.size == 1 && body.any { it.opcode == Opcode.IPUT && it.controlRef() == selectedType }, "the chat list's page selection changed")
 
@@ -263,8 +279,15 @@ private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
         }
     }
     val scroll = stripScroll(strip)
+    // How wide the tabs are together, for Fit all folder tabs. Without it only that switch is left out.
+    val range = if (scroll == null) null else try {
+        requireReachable(TABS_RANGE, false)
+        TABS_RANGE
+    } catch (failed: PatchException) {
+        null
+    }
     val refs = LaunchRefs(list, stripField.toString(), tabsField.toString(), selected, pages.single(), selectedType, arguments, account,
-        scroll?.first, scroll?.second)
+        scroll?.first, scroll?.second, range)
     return LaunchFolderPlan(method, at, self, refs, null)
 }
 
@@ -274,15 +297,15 @@ private fun BytecodePatchContext.firstTabs(): LaunchFolderPlan {
  * doesn't have them that way, and the pick then opens with the strip where Telegram leaves it.
  */
 private fun BytecodePatchContext.stripScroll(strip: String): Pair<String, String>? {
-    val views = classDefByOrNull(strip)?.fields?.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && extends(it.type, RECYCLER_VIEW) }.orEmpty()
-    val scrolls = classDefByOrNull(RECYCLER_VIEW)?.methods?.filter { method ->
-        method.parameterTypes.map(CharSequence::toString) == listOf("I") && method.returnType == "V" &&
+    val views = tgClassDefByOrNull(strip)?.fields?.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && extends(it.type, RECYCLER_VIEW) }.orEmpty()
+    val scrolls = tgClassDefByOrNull(RECYCLER_VIEW)?.methods?.filter { method ->
+        method.parameterTypes.map(CharSequence::toString) == listOf("I") && method.origReturnType == "V" &&
             !AccessFlags.STATIC.isSet(method.accessFlags) &&
             method.controlBody().any { it.controlString() == NO_LAYOUT_TO_SCROLL }
     }.orEmpty()
     if (views.size != 1 || scrolls.size != 1) return null
     val view = views.single()
-    if (classDefByOrNull(view.type)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } != true) return null
+    if (tgClassDefByOrNull(view.type)?.let { AccessFlags.PUBLIC.isSet(it.accessFlags) } != true) return null
     val scroll = "$RECYCLER_VIEW->${scrolls.single().name}(I)V"
     val tabList = "${view.definingClass}->${view.name}:${view.type}"
     return try {
@@ -411,7 +434,7 @@ private fun BytecodePatchContext.allChats(launch: LaunchFolderPlan): AllChatsPla
     fun calls(index: Int, owner: String, takes: String) = body[index].controlRef()?.let { it.startsWith("$owner->") && it.endsWith(takes) } == true
 
     // All Chats is the tab added right after its label is read, ahead of the other folders' call.
-    val label = body.indexOfFirst { it.opcode == Opcode.SGET && it.controlRef() == FILTER_ALL_CHATS }
+    val label = body.indexOfFirst { it.loadsInt() && it.controlRef() == FILTER_ALL_CHATS }
     val adds = body.indices.filter { body[it].opcode == Opcode.INVOKE_VIRTUAL_RANGE && calls(it, strip, ADD_TAB_TAKES) }
     fits(label > launch.at && adds.size == 2 && adds[0] > label && body[adds[0]].controlRef() == body[adds[1]].controlRef() &&
         (body[adds[0]] as RegisterRangeInstruction).registerCount == 8, "the All Chats tab's call changed")
@@ -470,9 +493,9 @@ private fun BytecodePatchContext.allChats(launch: LaunchFolderPlan): AllChatsPla
 
 /** [reference], an instance method on [owner] taking one boolean, that nothing jumps back to the start of. */
 private fun BytecodePatchContext.startsHook(owner: String, reference: String, what: String): MutableMethod {
-    val method = mutableClassDefByOrNull(owner)?.methods?.singleOrNull { it.toString() == reference }
+    val method = tgMutableClassDefByOrNull(owner)?.methods?.singleOrNull { it.toString() == reference }
     fits(method != null && !AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null &&
-        method.parameterTypes.map(CharSequence::toString) == listOf("Z") && method.returnType == "V", "$what changed")
+        method.parameterTypes.map(CharSequence::toString) == listOf("Z") && method.origReturnType == "V", "$what changed")
     val flow = ControlFlow.of(method!!)
     fits(flow.normal.none { 0 in it } && flow.exceptional.none { 0 in it }, "something jumps back to the start of $what")
     return method
@@ -489,7 +512,7 @@ private fun BytecodePatchContext.extends(type: String, base: String): Boolean {
     var at: String? = type
     repeat(12) {
         if (at == base) return true
-        at = at?.let { classDefByOrNull(it)?.superclass } ?: return false
+        at = at?.let { tgClassDefByOrNull(it)?.superclass } ?: return false
     }
     return false
 }
@@ -498,7 +521,7 @@ private fun BytecodePatchContext.extends(type: String, base: String): Boolean {
 private fun BytecodePatchContext.inherited(type: String, member: String): String? {
     var at: String? = type
     repeat(12) {
-        val cls = at?.let { classDefByOrNull(it) } ?: return null
+        val cls = at?.let { tgClassDefByOrNull(it) } ?: return null
         val found = cls.methods.any {
             "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == member &&
                 AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags)
@@ -634,6 +657,26 @@ internal fun BytecodePatchContext.writeLaunchFolderStubs(refs: LaunchRefs) {
             if-eqz p0, :hush_none
             invoke-virtual {p0, p1}, ${refs.scrollTo}
             const/4 v0, 0x1
+            :hush_none
+            return v0
+        """)
+    }
+    // Fit all folder tabs: the strip, and how wide its tabs are together.
+    if (refs.tabList != null && refs.range != null) {
+        writeStub(TAB_FIT, "tabStrip", 1, """
+            check-cast p0, ${refs.list}
+            iget-object p0, p0, ${refs.strip}
+            return-object p0
+        """)
+        writeStub(TAB_FIT, "tabsRange", 2, """
+            check-cast p0, ${refs.list}
+            const/4 v0, 0x0
+            iget-object p0, p0, ${refs.strip}
+            if-eqz p0, :hush_none
+            iget-object p0, p0, ${refs.tabList}
+            if-eqz p0, :hush_none
+            invoke-virtual {p0}, ${refs.range}
+            move-result v0
             :hush_none
             return v0
         """)

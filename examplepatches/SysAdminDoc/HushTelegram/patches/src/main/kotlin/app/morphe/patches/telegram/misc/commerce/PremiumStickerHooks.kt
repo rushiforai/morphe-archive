@@ -20,6 +20,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Hide Premium, gifts and Stars"
 internal const val STICKER_CONTROLLER = "Lorg/telegram/messenger/MessagesController;"
@@ -111,12 +119,12 @@ internal val PREMIUM_STUBS = mapOf(
  */
 internal fun BytecodePatchContext.resolvePremiumStickerHooks(): PremiumStickerPlan {
     val classes = mutableMapOf<String, ClassDef>()
-    classDefForEach { if (!it.type.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
+    classDefForEach { if (!it.origType.startsWith("Lapp/hushtelegram/extension/")) classes[it.type] = it }
     // Each search reads only the methods of classes that might mention what it looks for, in the
     // app's order, and checks them in full. A method's own class is the only one that holds it.
     fun methods(mentioning: Mention) = classDefsMentioning(mentioning).mapNotNull { classes[it.type] }.flatMap { it.methods.toList() }
     fun methodsOf(type: String) = classes[type]?.methods?.toList().orEmpty()
-    fun mutable(method: Method) = mutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
+    fun mutable(method: Method) = tgMutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
     val hooks = mutableMapOf<PremiumStickerTarget, List<CommerceEdit>>()
     val stubs = mutableMapOf<String, String>()
     val leftOut = mutableMapOf<PremiumStickerTarget, String>()
@@ -146,12 +154,14 @@ internal fun BytecodePatchContext.resolvePremiumStickerHooks(): PremiumStickerPl
         listOf(edit)
     }
 
-    val blocked = methodsOf(STICKER_CONTROLLER).singleOrNull { it.definingClass == STICKER_CONTROLLER && it.name == "premiumFeaturesBlocked" }
+    // The map holds the build's class names, which 13.2 renamed.
+    val controller = tgClassDefByOrNull(STICKER_CONTROLLER)?.type ?: STICKER_CONTROLLER
+    val blocked = methodsOf(controller).singleOrNull { it.origDefiningClass == STICKER_CONTROLLER && it.origName == "premiumFeaturesBlocked" }
     // The stubs read the account the same way Telegram's own answer does.
     val answer = blocked?.instructions()?.mapNotNull { it.reference() }.orEmpty()
     if (blocked == null || ACCOUNT_CONFIG !in answer || IS_PREMIUM !in answer) return PremiumStickerPlan(hooks, stubs, leftOut)
 
-    val filters = methodsOf(STICKER_CONTROLLER).filter { it.definingClass == STICKER_CONTROLLER && it.name == FILTER }
+    val filters = methodsOf(controller).filter { it.origDefiningClass == STICKER_CONTROLLER && it.origName == FILTER }
     val keyboard = methods(Mention.reference(PREMIUM_BLOCKED) and Mention.reference(PREMIUM_DOCUMENT)).filter { method ->
         !AccessFlags.STATIC.isSet(method.accessFlags) && method.hasShape(listOf("Z"), "V") &&
             method.instructions().let { body ->
@@ -169,7 +179,7 @@ internal fun BytecodePatchContext.resolvePremiumStickerHooks(): PremiumStickerPl
     }.unique("Premium sticker tooltip")
     if (tooltip != null) {
         val player = methodsOf(tooltip.definingClass).filter { method ->
-            method.definingClass == tooltip.definingClass && method.returnType == "V" && !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.origDefiningClass == tooltip.origDefiningClass && method.origReturnType == "V" && !AccessFlags.STATIC.isSet(method.accessFlags) &&
                 method.parameterTypes.size == 3 && method.parameterTypes[2].toString() == "Z" &&
                 method.instructions().let { body -> body.any { it.reference() == PREMIUM_MESSAGE } && body.any { it.reference() == TAP_HINT } }
         }.unique("sticker effect player")
@@ -270,7 +280,8 @@ private fun emojiEdit(method: MutableMethod): Pair<CommerceEdit, Map<String, Str
 
     // A featured pack is free when none of its emoji needs Premium (the one xor in the pass); an
     // installed pack that isn't a Premium pack gets the same flag set first after the question.
-    val xor = body.indices.filter { body[it].opcode == Opcode.XOR_INT_2ADDR }.singleOrNull()
+    // 13.2's R8 folds the flip's constant into xor-int/lit8.
+    val xor = body.indices.filter { body[it].opcode in setOf(Opcode.XOR_INT_2ADDR, Opcode.XOR_INT_LIT8) }.singleOrNull()
     val free = xor?.let { body.getOrNull(it + 1) }
     val ask = body.indexOfFirst { it.reference() == PREMIUM_EMOJI_PACK }
     drift(free?.opcode == Opcode.IPUT_BOOLEAN &&
@@ -304,7 +315,7 @@ private fun emojiEdit(method: MutableMethod): Pair<CommerceEdit, Map<String, Str
     """) to reads
 }
 
-private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.reference() = origRef()
 private fun Instruction.owner() = reference()?.substringBefore("->")
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 private fun Method.hasShape(parameters: List<String>, result: String) =

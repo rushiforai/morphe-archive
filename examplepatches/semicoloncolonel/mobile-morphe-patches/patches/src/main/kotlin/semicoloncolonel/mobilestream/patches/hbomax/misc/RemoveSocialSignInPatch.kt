@@ -23,7 +23,7 @@ val removeSocialSignInPatch = bytecodePatch(
     name = "Remove social sign-in (phone)",
     description = "Keeps Sign in with Google turned off. The Android TV app has no such option, so this does nothing there.",
 ) {
-    compatibleWith(Constants.PHONE_COMPATIBILITY, Constants.STREAM_COMPATIBILITY)
+    compatibleWith(Constants.PHONE_COMPATIBILITY, Constants.STREAM_PHONE_COMPATIBILITY)
 
     execute {
         // Morphe Manager offers this patch for every HBO Max build, including

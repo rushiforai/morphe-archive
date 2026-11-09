@@ -26,6 +26,10 @@ import app.morphe.util.indexOfFirstInstruction
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origString
+import app.morphe.util.names.tgFingerprint
 
 private const val PATCH = "Hide ads"
 
@@ -41,12 +45,14 @@ internal const val MESSAGES_CONTROLLER = "Lorg/telegram/messenger/MessagesContro
  * messages, and asks the server for them when it has none. Found by what it builds and answers,
  * both kept names, rather than by its own name.
  */
-internal object GetSponsoredMessagesFingerprint : Fingerprint(
-    definingClass = MESSAGES_CONTROLLER,
-    returnType = "Lorg/telegram/messenger/MessagesController\$SponsoredMessagesInfo;",
-    parameters = listOf("J"),
-    filters = listOf(newInstance(GET_SPONSORED_MESSAGES)),
-)
+internal val GetSponsoredMessagesFingerprint by tgFingerprint {
+    Fingerprint(
+        definingClass = type(MESSAGES_CONTROLLER),
+        returnType = type("Lorg/telegram/messenger/MessagesController\$SponsoredMessagesInfo;"),
+        parameters = listOf("J"),
+        filters = listOf(newInstance(GET_SPONSORED_MESSAGES)),
+    )
+}
 
 /** `VideoAds.load()`: the video player's own sponsored messages request. */
 internal object VideoAdsLoadFingerprint : Fingerprint(
@@ -149,13 +155,13 @@ private enum class AdRequest { CHANNEL, VIDEO, SEARCH }
  */
 private fun MutableMethod.skipSearchAdsWhen(hook: String): String? {
     val request = indexOfFirstInstruction {
-        opcode == Opcode.NEW_INSTANCE && (this as ReferenceInstruction).reference.toString() == GET_SPONSORED_PEERS
+        opcode == Opcode.NEW_INSTANCE && (this as ReferenceInstruction).reference.origString() == GET_SPONSORED_PEERS
     }
     if (request < 1) return "search builds $GET_SPONSORED_PEERS first thing, with no way past it"
     val send = indexOfFirstInstruction(request) {
         opcode == Opcode.INVOKE_VIRTUAL &&
             ((this as ReferenceInstruction).reference as? MethodReference)?.let {
-                it.definingClass == "Lorg/telegram/tgnet/ConnectionsManager;" && it.name == "sendRequest"
+                it.origDefiningClass == "Lorg/telegram/tgnet/ConnectionsManager;" && it.origName == "sendRequest"
             } == true
     }
     val skip = request - 1

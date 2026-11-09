@@ -16,6 +16,9 @@ scenario's code.
   full-screen in the player page below). A cloud session reaches the phone at ~1–4 Mbit/s, so the screen is recorded
   small (576 px wide, ~1 Mbit/s). An extension scenario's run is VS Code for the web on the desktop (1280×800, a GIF 800 px
   wide), from when its workbench showed.
+- **Or the NAS:** the "E2E on the phone" workflow (`.github/workflows/e2e-phone.yml`) plays the scenarios on the NAS's
+  runner, next to the phone, and, with `video` and a PR, makes the GIFs on GitHub's machine and posts them the same way,
+  with the e2e tool's `post`, without a branch ([tools/e2e/nas/README.md](../tools/e2e/nas/README.md)).
 - **Who records:** the session, once, right before each push that adds or changes scenarios:
   `tools/e2e/record.sh --changed-since origin/dev` ([tools/e2e/README.md](../tools/e2e/README.md)), i.e. every
   scenario the branch adds or changes from where it left `dev`, not only those the push touched. `out/scenarios.json`

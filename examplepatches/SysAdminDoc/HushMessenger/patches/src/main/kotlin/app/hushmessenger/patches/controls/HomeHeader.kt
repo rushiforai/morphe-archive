@@ -54,11 +54,11 @@ internal class HeaderSite(val index: Int, val drawable: Int)
  * The wordmark's site in the component's render: one memoed Drawable cast, both FIT_START and FIT_END, a color scheme
  * call and a static image call that takes (Drawable, ScaleType, modifier, boolean). Null when this isn't that method.
  */
-internal fun Method.homeHeaderSite(): HeaderSite? {
+internal fun Method.homeHeaderSite(fitStart: MemberMatch = MemberMatch(FIT_START), fitEnd: MemberMatch = MemberMatch(FIT_END)): HeaderSite? {
     if (AccessFlags.STATIC.isSet(accessFlags) || parameterTypes.size != 1) return null
     val code = implementation?.instructions?.toList() ?: return null
-    val refs = code.mapNotNull { it.headerRef() }
-    if (FIT_START !in refs || FIT_END !in refs) return null
+    val refs = code.mapNotNull { (it as? ReferenceInstruction)?.reference }
+    if (refs.none { fitStart.matches(it) } || refs.none { fitEnd.matches(it) }) return null
     if (code.none { it.opcode == Opcode.INVOKE_INTERFACE && it.headerRef()?.startsWith("$MIG_COLORS->") == true }) return null
     if (code.none { instruction ->
             val call = instruction.headerCall()
@@ -71,8 +71,11 @@ internal fun Method.homeHeaderSite(): HeaderSite? {
 }
 
 /** The one method in the app with the wordmark's shape, or nothing when there are none or two. */
-internal fun findHomeHeader(classes: Iterable<ClassDef>): List<Method> =
-    listOfNotNull(classes.flatMap { it.methods }.filter { it.homeHeaderSite() != null }.singleOrNull())
+internal fun findHomeHeader(classes: Iterable<ClassDef>): List<Method> {
+    val fitStart = MemberMatch(FIT_START)
+    val fitEnd = MemberMatch(FIT_END)
+    return listOfNotNull(classes.flatMap { it.methods }.filter { it.homeHeaderSite(fitStart, fitEnd) != null }.singleOrNull())
+}
 
 internal fun MutableMethod.validateHomeHeader(): HeaderSite {
     val site = homeHeaderSite() ?: homeHeaderChanged("no wordmark in ${hookId()}")

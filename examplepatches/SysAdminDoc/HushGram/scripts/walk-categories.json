@@ -14,6 +14,7 @@
             "op": "any",
             "patches": [
               "Hide ads",
+              "Hide Instagram Plus prompts",
               "Sanitize sharing links",
               "Open links in external browser",
               "Spoof location",
@@ -90,6 +91,7 @@
           "Keep your place in Home",
           "Start feed videos with sound",
           "Tap a feed video to pause it",
+          "Hold for 2x on feed videos",
           "Seek bar on feed videos",
           "Long press to zoom",
           "Rounded post corners",
@@ -100,7 +102,10 @@
           "Hide captions",
           "Hide the audio icon on posts",
           "Keep Home's top bar",
-          "Hide activity bubbles"
+          "Hide activity bubbles",
+          "Hide Made with Edits",
+          "Save in the post menu",
+          "Watch again in the feed"
         ]
       },
       "anchors": [
@@ -227,6 +232,7 @@
         "op": "any",
         "patches": [
           "Hide the notes row",
+          "Split the notes row",
           "Hide the search bar in Messages",
           "Hide suggested accounts in DMs",
           "Hide Instants",
@@ -284,6 +290,7 @@
           "Hide Reels in the feed",
           "Hide suggested accounts in Reels",
           "Hide paid partnership Reels",
+          "Hide lives in Reels",
           "Hide AI-labeled reels",
           "Hide reels by caption words",
           "Hide reels with few views",
@@ -299,6 +306,7 @@
           "Keep a seek bar on Reels",
           "Pinch to zoom on Reels",
           "Double tap to skip on Reels",
+          "Hide the 2x popup on Reels",
           "Blur the bars around Reels",
           "Keep Reels auto scroll on",
           "Stop Reels scrolling",
@@ -466,7 +474,8 @@
           "Hide comments",
           "Hide the comment emoji row",
           "Open comments without the keyboard",
-          "Hide GIFs in comments"
+          "Hide GIFs in comments",
+          "Search comments"
         ]
       },
       "anchors": [
@@ -720,6 +729,32 @@
         },
         {
           "title": "Save videos other apps can open",
+          "when": {
+            "op": "unconditional"
+          }
+        }
+      ]
+    },
+    {
+      "id": "settings-viewing-history",
+      "title": "Viewing history",
+      "builder": "ViewingHistoryCategory",
+      "page": true,
+      "when": {
+        "op": "any",
+        "patches": [
+          "Download any video"
+        ]
+      },
+      "anchors": [
+        {
+          "title": "Keep a viewing history",
+          "when": {
+            "op": "unconditional"
+          }
+        },
+        {
+          "title": "Clear viewing history",
           "when": {
             "op": "unconditional"
           }

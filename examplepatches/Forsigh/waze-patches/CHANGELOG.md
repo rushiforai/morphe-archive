@@ -1,3 +1,13 @@
+## [0.30.53](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.53) (2026-11-08)
+
+### Added
+
+* Support for Waze 5.27.4.900
+
+### Fixed
+
+* patches for Waze now name the builds they support instead of claiming every version, so an untested Waze shows nothing to patch instead of failing halfway
+
 ## [0.30.51](https://github.com/Forsigh/waze-patches/releases/tag/v0.30.51) (2026-11-04)
 
 ### Added

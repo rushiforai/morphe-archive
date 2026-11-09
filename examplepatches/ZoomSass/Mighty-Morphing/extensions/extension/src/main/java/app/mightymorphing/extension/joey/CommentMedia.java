@@ -1071,8 +1071,17 @@ public final class CommentMedia {
                 if (MorpheSettings.resizeEnabled(view.getContext())) {
                     int slop = ViewConfiguration.get(view.getContext()).getScaledTouchSlop();
                     if (!resizing) {
-                        if (Math.abs(event.getX() - pressedX) <= slop && Math.abs(event.getY() - pressedY) <= slop) {
-                            return Boolean.TRUE;
+                        float dx = Math.abs(event.getX() - pressedX);
+                        float dy = Math.abs(event.getY() - pressedY);
+                        if (dx <= slop && dy <= slop) return Boolean.TRUE;
+                        // Only a straight up or down drag is the comment list. Any sideways drag resizes.
+                        if (dx <= slop && dy > slop) {
+                            pressedSpan = null;
+                            view.setLongClickable(true);
+                            if (view.getParent() != null) {
+                                view.getParent().requestDisallowInterceptTouchEvent(false);
+                            }
+                            return null;
                         }
                         resizing = true;
                         pressedSpan.beginResize(pressedX);

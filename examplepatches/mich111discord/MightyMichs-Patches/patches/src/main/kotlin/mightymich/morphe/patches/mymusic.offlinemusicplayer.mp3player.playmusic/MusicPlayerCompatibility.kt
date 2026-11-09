@@ -11,7 +11,8 @@ object MusicPlayerCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF9800,
         targets = listOf(
-            AppTarget(version = "1.02.165.0923")
+            AppTarget(version = "1.02.165.0923"),
+            AppTarget(version = "1.02.170.1026"),
         )
     )
 }

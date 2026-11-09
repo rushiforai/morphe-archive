@@ -1,0 +1,20 @@
+name: Patch preflight
+
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check patch catalogue and release scripts
+        run: |
+          python3 -B .github/scripts/finamp_catalogue.py
+          python3 -B -m unittest discover -s .github/scripts -p 'test_*.py' -q

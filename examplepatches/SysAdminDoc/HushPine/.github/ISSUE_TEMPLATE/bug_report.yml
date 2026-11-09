@@ -17,7 +17,7 @@ body:
     attributes:
       label: HushPine and PineDrama versions
       description: In HushPine settings, tap the status beside the title to show the full status card. Copy the version line here.
-      placeholder: Version 0.1.0 for PineDrama 47.6.3
+      placeholder: Version 0.1.1 for PineDrama 47.6.3
     validations:
       required: true
   - type: dropdown

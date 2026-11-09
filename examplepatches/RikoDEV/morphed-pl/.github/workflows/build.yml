@@ -32,6 +32,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+
       # Building resolves the `app.morphe.patches` Gradle plugin from the Morphe
       # registry (maven.pkg.github.com/MorpheApp/registry), which needs a token.
       - name: Build .mpp

@@ -11,7 +11,8 @@ import android.graphics.drawable.Drawable;
 
 /**
  * Hand-drawn icon set (play, pause, prev, next, search, account, chevrons, close,
- * check, refresh, plus, home, radio, library, note, more, download) built with
+ * check, refresh, plus, home, radio, library, note, more, download, queue, shuffle,
+ * repeat, favorite) built with
  * {@link Path} on a 24x24 grid. Nothing from {@code android.R.drawable}: the framework
  * set is generic and would break the Apple Music identity.
  */
@@ -36,6 +37,9 @@ public final class Icons {
     public static final int MORE = 17;
     public static final int DOWNLOAD = 18;
     public static final int QUEUE = 19;
+    public static final int SHUFFLE = 20;
+    public static final int REPEAT = 21;
+    public static final int FAVORITE = 22;
 
     private static final float GRID = 24f;
 
@@ -178,6 +182,46 @@ public final class Icons {
                 path.moveTo(16.4f, 8.6f);
                 path.lineTo(20.4f, 12f);
                 path.lineTo(16.4f, 15.4f);
+                path.close();
+                break;
+            case SHUFFLE:
+                path.moveTo(3.4f, 7.4f);
+                path.lineTo(7f, 7.4f);
+                path.cubicTo(10.4f, 7.4f, 10.4f, 16.6f, 13.8f, 16.6f);
+                path.lineTo(20.4f, 16.6f);
+                path.moveTo(18f, 14.2f);
+                path.lineTo(20.4f, 16.6f);
+                path.lineTo(18f, 19f);
+                path.moveTo(3.4f, 16.6f);
+                path.lineTo(7f, 16.6f);
+                path.cubicTo(10.4f, 16.6f, 10.4f, 7.4f, 13.8f, 7.4f);
+                path.lineTo(20.4f, 7.4f);
+                path.moveTo(18f, 5f);
+                path.lineTo(20.4f, 7.4f);
+                path.lineTo(18f, 9.8f);
+                break;
+            case REPEAT:
+                path.moveTo(17f, 2.6f);
+                path.lineTo(20.4f, 6f);
+                path.lineTo(17f, 9.4f);
+                path.moveTo(3.6f, 11.4f);
+                path.lineTo(3.6f, 9.4f);
+                path.cubicTo(3.6f, 7.5f, 5.1f, 6f, 7f, 6f);
+                path.lineTo(20.4f, 6f);
+                path.moveTo(7f, 21.4f);
+                path.lineTo(3.6f, 18f);
+                path.lineTo(7f, 14.6f);
+                path.moveTo(20.4f, 12.6f);
+                path.lineTo(20.4f, 14.6f);
+                path.cubicTo(20.4f, 16.5f, 18.9f, 18f, 17f, 18f);
+                path.lineTo(3.6f, 18f);
+                break;
+            case FAVORITE:
+                path.moveTo(12f, 19.8f);
+                path.cubicTo(5.4f, 15.2f, 4.2f, 11.4f, 6f, 8.5f);
+                path.cubicTo(7.7f, 6f, 10.9f, 6.3f, 12f, 8.7f);
+                path.cubicTo(13.1f, 6.3f, 16.3f, 6f, 18f, 8.5f);
+                path.cubicTo(19.8f, 11.4f, 18.6f, 15.2f, 12f, 19.8f);
                 path.close();
                 break;
             default:

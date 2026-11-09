@@ -7,16 +7,19 @@ package app.morphe.patches.telegram.misc.folders
 import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
+import app.morphe.hostsOf
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.telegram.misc.chattypefolders.LOCAL_FILTER
 import app.morphe.patches.telegram.misc.chattypefolders.MESSAGES_CONTROLLER
+import app.morphe.patches.telegram.misc.chattypefolders.STORAGE
 import app.morphe.patches.telegram.misc.chattypefolders.USER_CONFIG
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
@@ -38,6 +41,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 /** Both pinned builds' chat list, whose first folder tab build asks the extension which tab to start on. */
 class LaunchFolderFixtureTest {
@@ -79,18 +88,20 @@ class LaunchFolderFixtureTest {
             assertTrue("$name: ${refs.tabList}", refs.tabList?.startsWith(refs.tabs.substringBefore("->") + "->") == true)
             assertTrue("$name: ${refs.scrollTo}", refs.scrollTo?.startsWith("$TAB_LIST_BASE->") == true)
             assertTrue("$name: ${refs.scrollTo}", refs.scrollTo?.endsWith("(I)V") == true)
+            // And how wide the tabs are together, for Fit all folder tabs.
+            assertEquals("$name: the tabs' width", "$TAB_LIST_BASE->computeHorizontalScrollRange()I", refs.range)
         }
     }
 
     @Test fun `the whole patch fills every stub and turns the switch on`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
-            val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build) + menuHosts(build)).distinctBy { it.type })
+            val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build) + menuHosts(build) + allChatsPlaceHosts(build) + accountListHosts(build)).distinctBy { it.type })
             val launch = context.resolveLaunchFolder()
             val refs = launch.refs!!
             val all = context.resolveAllChats(launch).refs!!
             assertEquals(name, emptyList<String>(), PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) })
-            val stubs = context.mutableClassDefBy(LAUNCH_FOLDER).methods.associateBy { it.name }
+            val stubs = context.tgMutableClassDefBy(LAUNCH_FOLDER).methods.associateBy { it.name }
             // Each one whole: smali drops what it can't build, and the count shows it.
             val expected = mapOf(
                 "tabsEmpty" to (9 to listOf(refs.strip, refs.tabs, "Ljava/util/ArrayList;->isEmpty()Z")),
@@ -116,6 +127,18 @@ class LaunchFolderFixtureTest {
                     "Lorg/telegram/messenger/LocaleController;->getString(I)Ljava/lang/String;")),
                 "scrollStrip" to (9 to listOf(refs.strip, refs.tabList!!, refs.scrollTo!!)),
             )
+            // Fit all folder tabs: the strip, and the width of its tabs through the same list.
+            val fit = context.tgMutableClassDefBy(TAB_FIT).methods.associateBy { it.name }
+            assertEquals("$name: the strip", listOf(Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT),
+                fit.getValue("tabStrip").body().filter { it.opcode != Opcode.NOP }.map { it.opcode })
+            val range = fit.getValue("tabsRange").body()
+            assertEquals("$name: the width", 9, range.size)
+            for (reference in listOf(refs.strip, refs.tabList!!, refs.range!!)) {
+                assertTrue("$name: tabsRange reaches $reference", reference in range.mapNotNull { it.ref() })
+            }
+            assertEquals(1, statusOf(context, "fitTabs"))
+            val buildTabs = context.tabBuild(launchFolderList(build)).body()
+            assertEquals("$name: the strip is watched at every tab build", 1, buildTabs.count { it.ref() == "$LAUNCH_FOLDER->firstTabs(Ljava/lang/Object;)V" })
             for ((stub, want) in expected) {
                 val body = stubs.getValue(stub).body()
                 assertEquals("$name: $stub", want.first, body.size)
@@ -211,7 +234,7 @@ class LaunchFolderFixtureTest {
                    val context: (BytecodePatchContext) -> Unit = { })
         val cases = listOf(
             Case("no archive title", "isn't reachable from the extension", hosts = { hosts ->
-                hosts.filter { it.type != "Lorg/telegram/messenger/LocaleController;" }
+                hosts.filter { it.origType != "Lorg/telegram/messenger/LocaleController;" }
             }),
             Case("a jump to the Done button's start", "something jumps back to the start of the chat list's Done button", context = { context ->
                 val done = context.resolveAllChats(context.resolveLaunchFolder()).done!!
@@ -260,13 +283,13 @@ class LaunchFolderFixtureTest {
                 method.addInstructionsWithLabels(method.body().size, "goto/16 :hush_in", ExternalLabel("hush_in", method.getInstruction(at)))
             }),
             Case("the selected tab computed", "the tab strip's selected tab changed", context = { context, list ->
-                val current = context.tabStrip(list).methods.single { it.name == "getCurrentTabId" }
+                val current = context.tabStrip(list).methods.single { it.origName == "getCurrentTabId" }
                 current.replaceInstruction(0, "const/4 v0, 0x0")
             }),
             Case("no BaseFragment", "the chat list's account or arguments can't be read", hosts = { hosts ->
-                hosts.filter { host -> host.methods.none { it.name == "getArguments" && it.returnType == "Landroid/os/Bundle;" } }
+                hosts.filter { host -> host.methods.none { it.origName == "getArguments" && it.origReturnType == "Landroid/os/Bundle;" } }
             }),
-            Case("no local folders", "isn't reachable from the extension", hosts = { hosts -> hosts.filter { it.type != LOCAL_FILTER } }),
+            Case("no local folders", "isn't reachable from the extension", hosts = { hosts -> hosts.filter { it.origType != LOCAL_FILTER } }),
         )
         for (build in Fixtures.declaredBuilds()) for (case in cases) {
             val where = "${build.name} ${case.name}"
@@ -304,20 +327,20 @@ class LaunchFolderFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val context = PatchContexts.of((ExtensionDex.classes() + folderCounterHosts(build)).distinctBy { it.type })
             val warnings = PatchLogCapture.warnings { hideFolderCountersPatch.execute(context) }
-            // Without Telegram's MessagesController the hidden chats are left out too, with their own warning.
-            assertEquals(build.name, 2, warnings.size)
+            // Without Telegram's MessagesController the hidden chats and the All Chats place are left out too, each with its own warning.
+            assertEquals(build.name, 3, warnings.size)
             val launch = warnings.single { it.contains("without opening a folder at launch") }
             assertTrue(launch, launch.contains("the folder tabs' build is missing or ambiguous"))
             assertTrue(warnings.toString(), warnings.any { it.contains("without hiding chats") })
             assertEquals(1, statusOf(context, "hideFolderCounters"))
             assertEquals(0, statusOf(context, "launchFolder"))
             assertEquals(0, statusOf(context, "hideAllChats"))
-            assertTrue(context.mutableClassDefBy(LAUNCH_FOLDER).methods.single { it.name == "select" }.body().none { it.opcode == Opcode.IPUT })
+            assertTrue(context.tgMutableClassDefBy(LAUNCH_FOLDER).methods.single { it.origName == "select" }.body().none { it.opcode == Opcode.IPUT })
         }
     }
 
     private fun statusOf(context: BytecodePatchContext, flag: String) =
-        (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.body()[0] as NarrowLiteralInstruction).narrowLiteral
+        (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.body()[0] as NarrowLiteralInstruction).narrowLiteral
 
     private fun operands(instruction: Instruction): List<Any?> = listOf(instruction.opcode, instruction.namedRegisters(), instruction.ref())
 }
@@ -342,7 +365,7 @@ internal fun launchFolderList(build: File): String = LAUNCH_FOLDER_LISTS.getOrPu
  * DialogsActivity and the classes its first tab build reads, each with its parents, and the
  * account and folder classes the stubs call.
  */
-internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOSTS.getOrPut(build.path) {
+internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOSTS.hostsOf(build.path) {
     val list = launchFolderList(build)
     val first = FixtureDex.classes(build, setOf(list)).getValue(list)
     val tabs = first.methods.single { it.isTabBuildLike() }
@@ -350,11 +373,11 @@ internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOST
     // storage and its queue for their unread counts, and the strings and locale for Hide All Chats' archive title.
     val wanted = mutableSetOf(list, MESSAGES_CONTROLLER, LOCAL_FILTER, USER_CONFIG, "Lorg/telegram/tgnet/TLRPC\$Dialog;",
         "Lorg/telegram/messenger/NotificationCenter;", "Lorg/telegram/messenger/MessagesStorage;",
-        "Lorg/telegram/messenger/DispatchQueue;",
+        "Lorg/telegram/messenger/DispatchQueue;", ARCHIVE_ROW, SHARED_CONFIG, TL_CHAT,
         "Lorg/telegram/messenger/R\$string;", "Lorg/telegram/messenger/LocaleController;")
     for (instruction in tabs.body()) {
         val field = (instruction as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.FieldReference ?: continue
-        if (field.definingClass == list || field.definingClass.startsWith("Lorg/telegram/ui/")) {
+        if (field.origDefiningClass == list || field.origDefiningClass.startsWith("Lorg/telegram/ui/")) {
             wanted += field.definingClass
             field.type.trimStart('[').takeIf { it.startsWith("Lorg/telegram/ui/") }?.let { wanted += it }
         }
@@ -382,23 +405,34 @@ internal fun launchFolderHosts(build: File): List<ClassDef> = LAUNCH_FOLDER_HOST
         wanted += parents
         loaded = FixtureDex.classes(build, wanted)
     }
-    loaded.values.toList()
+    // The share sheet and quick share, for the hidden chats' pickers (13.2 reads allDialogs in place of its getter), and
+    // the storage task 13.2 unpins the server's old pins in.
+    val found = FixtureDex.classesWhere(build, { true }) { m ->
+        m.body().mapNotNull { it.ref() }.let { refs -> (GET_ALL_DIALOGS in refs || ALL_DIALOGS_FIELD in refs) && (DIALOGS_FORWARD in refs || TOP_PEERS in refs) ||
+            UNPIN_QUERY in refs }
+    }
+    // The answer to loadPinnedDialogs that builds that task. Only its own constructor counts: R8 merged many
+    // lambdas built from the storage, a list and a case, and one of Play's is the chat list's click handler.
+    val unpin = found.filter { c -> c.methods.any { m -> m.body().any { it.ref() == UNPIN_QUERY } } }
+        .map { "${it.origType}-><init>(${STORAGE}Ljava/util/ArrayList;I)V" }.toSet()
+    val builders = if (unpin.isEmpty()) emptyList() else FixtureDex.classesWhere(build, { true }) { m -> m.body().any { it.ref() in unpin } }
+    (loaded.values + found + builders).distinctBy { it.type }
 }
 
 /** The class with the folder tab counter. */
 internal fun folderCounterHosts(build: File): List<ClassDef> = FixtureDex.classesWhere(build, { true }) { m ->
-    m.returnType == "I" && m.body().map { it.ref() }.let { MAIN_UNREAD in it && FILTER_UNREAD in it }
+    m.origReturnType == "I" && m.body().map { it.ref() }.let { it.any(::isMainUnread) && FILTER_UNREAD in it }
 }
 
 private fun BytecodePatchContext.tabBuildOrNull(list: String): MutableMethod? =
-    mutableClassDefByOrNull(list)?.methods?.singleOrNull { it.isTabBuildLike() }
+    tgMutableClassDefByOrNull(list)?.methods?.singleOrNull { it.isTabBuildLike() }
 
 private fun BytecodePatchContext.tabBuild(list: String): MutableMethod = tabBuildOrNull(list)!!
 
 /** The tab strip class whose tab list the first build reads. */
-private fun BytecodePatchContext.tabStrip(list: String) = mutableClassDefBy(
+private fun BytecodePatchContext.tabStrip(list: String) = tgMutableClassDefBy(
     tabBuild(list).body().first { it.ref()?.endsWith(":Ljava/util/ArrayList;") == true && it.opcode == Opcode.IGET_OBJECT &&
         it.ref()!!.substringBefore("->") != list }.ref()!!.substringBefore("->"))
 
 private fun Method.body(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-private fun Instruction.ref() = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.ref() = origRef()

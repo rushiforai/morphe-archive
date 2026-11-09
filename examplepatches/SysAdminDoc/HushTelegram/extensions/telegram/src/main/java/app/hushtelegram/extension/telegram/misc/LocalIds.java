@@ -32,6 +32,8 @@ public final class LocalIds {
         }
         // The data center row has its own switch and goes under the ID row.
         ProfileDc.addToProfile(menu, userId, chatId);
+        // So does the track row, which only a user's profile gets.
+        SpecialContacts.addToProfile(menu, userId, chatId);
     }
 
     static boolean valid(long userId, long chatId) {

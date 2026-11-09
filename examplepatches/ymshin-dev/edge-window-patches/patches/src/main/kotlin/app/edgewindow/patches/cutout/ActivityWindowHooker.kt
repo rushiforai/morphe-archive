@@ -1,5 +1,6 @@
 package app.edgewindow.patches.cutout
 
+import app.edgewindow.patches.util.isActivityClass
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -10,17 +11,6 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
-internal const val ANDROID_ACTIVITY = "Landroid/app/Activity;"
-internal val platformActivityBases = setOf(
-    ANDROID_ACTIVITY,
-    "Landroid/app/ActivityGroup;",
-    "Landroid/app/ExpandableListActivity;",
-    "Landroid/app/LauncherActivity;",
-    "Landroid/app/ListActivity;",
-    "Landroid/app/NativeActivity;",
-    "Landroid/app/TabActivity;",
-    "Landroid/preference/PreferenceActivity;",
-)
 private const val CUTOUT_HELPER = "Lapp/edgewindow/extension/DisplayCutoutCompat;"
 private const val APPLY_CUTOUT_METHOD =
     "invoke-static/range { p0 .. p0 }, $CUTOUT_HELPER->apply(Landroid/app/Activity;)V"
@@ -169,16 +159,4 @@ internal fun BytecodePatchContext.applyPolicyToAllActivities() {
     if (hookedActivities == 0) {
         throw PatchException("No Activity onResume entry points could be patched")
     }
-}
-
-private fun ClassDef.isActivityClass(classesByType: Map<String, ClassDef>): Boolean {
-    val visited = mutableSetOf<String>()
-    var currentType: String? = type
-
-    while (currentType != null && visited.add(currentType)) {
-        if (currentType in platformActivityBases) return true
-        currentType = classesByType[currentType]?.superclass
-    }
-
-    return false
 }

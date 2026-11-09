@@ -1,3 +1,13 @@
+## 1.2.5 (2026-11-08)
+
+### Fixes
+- Post menu: Copy text, Download and Save now have their own icons instead of all showing the bookmark.
+- Copy text: the menu copies the post itself instead of a random base64 value.
+- Download media: the button in the video viewer shows for every video again.
+- Swipe between feeds: a hidden text selection no longer blocks the swipe.
+
+**22 patches in total.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#patches).
+
 ## 1.2.4 (2026-11-07)
 
 ### Fixes

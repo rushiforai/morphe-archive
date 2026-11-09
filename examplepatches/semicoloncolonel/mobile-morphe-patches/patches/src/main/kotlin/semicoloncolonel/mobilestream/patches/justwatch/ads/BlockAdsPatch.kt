@@ -5,11 +5,13 @@ import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.justwatch.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
 
-// JustWatch is a React Native app. On the phone build (26.43.10), every
+// JustWatch is a React Native app. On the phone build (26.44.2), every
 // display ad goes through the react-native-google-mobile-ads module (Google
 // Ad Manager, with AppLovin, ironSource, Chartboost, Unity, and Meta as
 // mediation partners):
-//   initialize: answers the app at once, so no ad network is started.
+//   initialize: never answers, so no ad network is started. The app's
+//   banner slots wait for this answer before they reserve space, so the
+//   slots and their "Remove Ads" links stay collapsed.
 //   native ads: every request is refused, as when no ad is available.
 //   banners: never requested, and the banner view is hidden.
 //   interstitial, rewarded, and app-open ads: never requested.
@@ -80,14 +82,9 @@ val blockAdsPatch = bytecodePatch(
         // Display ads (phone build only). Where the module exists, every hook
         // must match, so a renamed one fails the patch instead of leaving ads.
         val phone = AdsInitializeFingerprint.methodOrNull != null
-        if (phone) AdsInitializeFingerprint.method.returnEarly(
-            """
-                invoke-static {}, Lcom/facebook/react/bridge/Arguments;->createArray()Lcom/facebook/react/bridge/WritableArray;
-                move-result-object v0
-                invoke-interface { p1, v0 }, $PROMISE->resolve(Ljava/lang/Object;)V
-                return-void
-            """.trimIndent(),
-        )
+        // The promise is left pending on purpose: only the banner component
+        // waits on it, and it renders nothing until it resolves.
+        if (phone) AdsInitializeFingerprint.method.returnEarly("return-void")
 
         // load(adUnitId, requestOptions, promise)
         if (phone) NativeAdLoadFingerprint.method.returnEarly(

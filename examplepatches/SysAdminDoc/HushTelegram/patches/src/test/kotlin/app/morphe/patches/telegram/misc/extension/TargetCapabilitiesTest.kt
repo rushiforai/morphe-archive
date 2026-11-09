@@ -6,7 +6,7 @@ package app.morphe.patches.telegram.misc.extension
 
 import app.morphe.ExtensionDex
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -31,6 +31,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origName
+import app.morphe.util.names.origString
+import app.morphe.util.names.tgMutableClassDefBy
 
 /**
  * Synthetic hosts cover every target subset, including a fingerprint match with an unsafe shape.
@@ -72,7 +75,7 @@ class TargetCapabilitiesTest {
                 } else execute(context)
             }
             // These synthetic builds have no ConnectionsManager, so Ghost mode stays out and says so.
-            val ghost = if (family == "disableAnalytics" && present.isNotEmpty()) 1 else 0
+            val ghost = if (family == "disableAnalytics" && present.isNotEmpty()) 2 else 0
             assertEquals("$family subset $present warnings", if (present.isEmpty()) 0 else targetCount - present.size + ghost, warnings.size)
             for (premium in premiumTargets) {
                 assertFlag(context, premium.capability, false)
@@ -80,15 +83,17 @@ class TargetCapabilitiesTest {
             }
             if (family == "disableAnalytics") {
                 assertFlag(context, "ghostMode", false)
+                assertFlag(context, "receiveOnly", false)
+                assertFlag(context, "powerOff", false)
                 if (present.isNotEmpty()) assertTrue(warnings.toString(), warnings.any { "without Ghost mode" in it })
             }
             assertFlag(context, family, present.isNotEmpty())
             for (target in Target.entries) assertFlag(context, target.status, target in present)
             for ((target, original) in originals) {
                 val before = original.methods.single()
-                val patched = context.mutableClassDefBy(original.type).methods.single { it.name == before.name }
+                val patched = context.tgMutableClassDefBy(original.type).methods.single { it.origName == before.origName }
                 assertTrue("$family subset $present lost ${target.hook}", patched.instructions().any {
-                    it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.toString() == target.hook
+                    it.opcode == Opcode.INVOKE_STATIC && (it as ReferenceInstruction).reference.origString() == target.hook
                 })
             }
         }
@@ -130,7 +135,7 @@ class TargetCapabilitiesTest {
             val targets = if (target in adTargets) adTargets else reportTargets
             val hosts = targets.map { host(it) }
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
-            context.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == target.status }
+            context.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == target.status }
             val failure = assertThrows(PatchException::class.java) {
                 if (target in adTargets) hideAdsPatch.execute(context) else disableAnalyticsPatch.execute(context)
             }
@@ -142,7 +147,7 @@ class TargetCapabilitiesTest {
     }
 
     private fun assertFlag(context: BytecodePatchContext, name: String, expected: Boolean) {
-        val instructions = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.instructions()
+        val instructions = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.instructions()
         assertEquals("$name is a constant build fact", Opcode.CONST_4, instructions[0].opcode)
         assertEquals("$name coverage", if (expected) 1 else 0, (instructions[0] as NarrowLiteralInstruction).narrowLiteral)
         assertEquals("$name returns the constant without reading a preference", Opcode.RETURN, instructions[1].opcode)
@@ -150,10 +155,10 @@ class TargetCapabilitiesTest {
 
     private fun assertUnchanged(context: BytecodePatchContext, original: ClassDef) {
         val method = original.methods.single()
-        val patched = context.mutableClassDefBy(original.type).methods.single { it.name == method.name }
+        val patched = context.tgMutableClassDefBy(original.type).methods.single { it.origName == method.origName }
         assertEquals(method.instructions().map { it.opcode }, patched.instructions().map { it.opcode })
-        assertEquals(method.instructions().filterIsInstance<ReferenceInstruction>().map { it.reference.toString() },
-            patched.instructions().filterIsInstance<ReferenceInstruction>().map { it.reference.toString() })
+        assertEquals(method.instructions().filterIsInstance<ReferenceInstruction>().map { it.reference.origString() },
+            patched.instructions().filterIsInstance<ReferenceInstruction>().map { it.reference.origString() })
     }
 
     private fun host(target: Target, supportedShape: Boolean = true): ClassDef {

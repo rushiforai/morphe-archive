@@ -15,6 +15,7 @@ import zipfile
 import android_acceptance as base
 from build_native_payloads import APK_SHA
 from patch_matrix import NAMES
+from build_native_payloads import MASKS
 from manager_selection import configure_selection
 
 CACHE = '/data/user/0/app.morphe.manager/app_original-apks/com.unicornsonlsd.finamp_1.0.1_original.apk'
@@ -48,7 +49,7 @@ def verify_mutant(original, mutant):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--adb', type=Path, required=True)
-    parser.add_argument('--mask', type=int, choices=range(1, 256), default=31)
+    parser.add_argument('--mask', type=int, choices=MASKS, default=31)
     parser.add_argument('--out-root', type=Path, default=base.REPO_ROOT / '.scratch/finamp/manager-2.2.0')
     parser.add_argument('--mutant-apk', type=Path, required=True)
     parser.add_argument('--original-apk', type=Path, required=True)

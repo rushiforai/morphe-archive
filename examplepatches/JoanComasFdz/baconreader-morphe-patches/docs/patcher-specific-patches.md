@@ -14,7 +14,7 @@ Ported from [ReVanced Patches](https://gitlab.com/ReVanced/revanced-patches)' Ba
 Patches with settings add them to one screen. Open it from BaconReader's settings → Patches, the last entry of the menu.
 
 - The screen is built in Java by the extension (`BaconReaderPreferenceFragment`) and shown in BaconReader's `GoogleApiActivity`, in BaconReader's theme (light, dark or black).
-- Its sections are Images and videos, Links, Comments and Chat. A section shows only when a selected patch has settings in it. An About section at the end shows "BaconReader Patches" and the patches' version.
+- Its sections are Images and videos, Links, Comments, Chat and Account colors. A section shows only when a selected patch has settings in it. An About section at the end shows "BaconReader Patches" and the patches' version.
 - A setting that needs another is greyed out while that one is off.
 - Settings are stored in Morphe's `morphe_prefs` preferences. The screen has no export or import.
 - The entry, the screen and the drawer's version footer come with `settingsPatch`, an internal patch without a name. Every patch with settings depends on it, so they show whenever one of those patches is selected, and never otherwise.
@@ -30,6 +30,7 @@ Errors of the patches show in a dialog over the current screen, with the details
 | Images and videos | Full width by default | `revanced_baconreader_images_full_width` | Off. Needs Show images. Comments only: images in posts always start at full width |
 | Images and videos | Long press to download | `revanced_baconreader_images_long_press_download` | On. Needs Show images |
 | Images and videos | Load images only on Wi-Fi | `revanced_baconreader_images_wifi_only` | Off. Needs Show images |
+| Images and videos | Load images only when tapped | `revanced_baconreader_images_tap_to_load` | Off. Needs Show images |
 | Images and videos | Play videos in comments | `revanced_baconreader_show_videos` | On |
 | Images and videos | Gestures: text only | None | |
 | Links | Show YouTube video titles | `revanced_baconreader_youtube_titles` | On |
@@ -38,6 +39,12 @@ Errors of the patches show in a dialog over the current screen, with the details
 | Links | Show Bluesky posts | `revanced_baconreader_bluesky_posts` | On |
 
 ### Improve post media loading settings
+
+In the Images and videos section:
+
+| Setting | Key | Default |
+|---|---|---|
+| Preview while loading | `revanced_baconreader_loading_preview` | On: post media shows a dimmed still preview (Reddit's largest preview resolution), and a gallery image its preview, behind the progress bar until it loads. Off: only the progress bar and the size, over BaconReader's loading page |
 
 In the Links section:
 
@@ -77,6 +84,8 @@ In the Comments section:
 | Avatar size: Normal, Medium, Large or Extra large | `revanced_baconreader_user_avatar_size` | Normal (`0`). Needs Show user avatars |
 | Avatar background | `revanced_baconreader_user_avatar_background` | On. Needs Show user avatars |
 
+The avatars of the drawer's accounts show whether Show user avatars is on or off; Avatar size and Avatar background apply to them too, though the settings screen greys them out while Show user avatars is off. The drawer has no setting of its own.
+
 ### Video autoplay in detail view settings
 
 In the Images and videos section:
@@ -95,6 +104,16 @@ In the Chat section:
 |---|---|---|
 | Chat messages apart from the inbox | `revanced_baconreader_check_chat_messages` | On |
 
+### Account colors settings
+
+In the Account colors section:
+
+| Setting | Key | Default |
+|---|---|---|
+| Account colors | `revanced_baconreader_account_colors` | On |
+
+The accounts' colors aren't settings: they're kept in the app's `baconreader_patches` preferences, as `account_colors.color.<user name in lower case>`.
+
 ## Differences from ReVanced
 
 The ports follow ReVanced's BaconReader merge requests !6989 and !6998 closely: the same settings keys, the settings screen in `GoogleApiActivity`, the same edits (removed instructions, `nop`s, a method rebuilt without its try block) and the same reflection in the extension. The differences:
@@ -111,8 +130,10 @@ The ports follow ReVanced's BaconReader merge requests !6989 and !6998 closely: 
 - **Links in spoilers.** In ReVanced, a tap on a link in a hidden spoiler opens the link without showing the spoiler: the app's touch handler takes the link first. Here the link waits until the spoiler shows.
 - **Hidden spoilers and accessibility.** ReVanced only paints a hidden spoiler over, so TalkBack reads it aloud. Here, while a spoiler is hidden, the text's description reads it as "spoiler".
 - **Comment search buttons.** ReVanced's find bar names only its text field and its filter button. Here its arrows and its close button are named too: "Previous match", "Next match" and "Close search".
+- **Load images only when tapped.** ReVanced's Embed comment images loads images and video previews on its own, or waits for a tap only on mobile data with "Load images only on Wi-Fi". This port adds a setting that makes them wait for a tap on every network, for users who don't want media to load until they ask for it.
 - **Not from ReVanced:**
   - Reddit chat, ported from baconreader-reseam-patches;
   - Video autoplay in detail view, ported from baconreader-reseam-patches;
   - Disable final release announcement;
+  - Remove Log out;
   - the drawer's version footer.

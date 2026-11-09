@@ -87,13 +87,17 @@ echo "== compile extension against the real framework (kotlinc) =="
 # KSTDLIB is needed to RESOLVE built-in types; the -Xno-*-assertions flags
 # plus the no-stdlib-API code discipline keep the OUTPUT bytecode free of
 # stdlib code references (verified below).
+# v1.2.4: both extension sources compile in one shot; D8 splits them into two
+# dexes below (signature-spoof hook vs. startup diagnostics - the two .mpe
+# files must stay disjoint so each patch merges exactly its own classes).
 java -Xmx1500m -cp "$KC:$KSTDLIB:$CORO${ANN:+:$ANN}" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler \
     -no-reflect \
     -jvm-target 1.8 \
     -Xno-param-assertions -Xno-call-assertions -Xno-receiver-assertions \
     -cp "$KSTDLIB:$CACHE/android-all.jar" \
     -d "$WORK/extclasses" \
-    extensions/extension/src/main/java/app/template/extension/extension/SignatureHookApp.kt
+    extensions/extension/src/main/java/app/template/extension/extension/SignatureHookApp.kt \
+    extensions/extension/src/main/java/app/template/extension/diag/StartupDiag.kt
 
 echo "== verify no kotlin-stdlib CODE references leaked into extension bytecode =="
 if find "$WORK/extclasses/app" -name "*.class" | xargs strings 2>/dev/null | grep -q "kotlin/jvm/internal/Intrinsics\|kotlin/jvm/functions\|kotlin/collections\|kotlin/sequences\|kotlin/jvm/internal/lambda"; then
@@ -109,13 +113,22 @@ if find "$WORK/extclasses" -path "*android/*" -name "*.class" | grep -q .; then
 fi
 echo "   clean (framework used as library only)"
 
-echo "== dex with D8 (extension classes only, real framework as library) =="
-mkdir -p "$WORK/dexout"
+echo "== dex with D8 (two disjoint dexes: spoof hook + diagnostics) =="
+mkdir -p "$WORK/dexout-hook" "$WORK/dexout-diag"
+HOOK_CLASSES=$(find "$WORK/extclasses/app/template/extension/extension" -name "*.class")
+DIAG_CLASSES=$(find "$WORK/extclasses/app/template/extension/diag" -name "*.class")
+[ -n "$HOOK_CLASSES" ] || { echo "ERROR: no hook classes compiled" >&2; exit 1; }
+[ -n "$DIAG_CLASSES" ] || { echo "ERROR: no diagnostics classes compiled" >&2; exit 1; }
 java -Xmx1500m -cp "$R8_JAR:$GUAVA" com.android.tools.r8.D8 \
     --release --min-api 26 --lib "$CACHE/android-all.jar" \
-    --output "$WORK/dexout" \
-    $(find "$WORK/extclasses/app" -name "*.class")
-[ -f "$WORK/dexout/classes.dex" ]
+    --output "$WORK/dexout-hook" \
+    $HOOK_CLASSES
+java -Xmx1500m -cp "$R8_JAR:$GUAVA" com.android.tools.r8.D8 \
+    --release --min-api 26 --lib "$CACHE/android-all.jar" \
+    --output "$WORK/dexout-diag" \
+    $DIAG_CLASSES
+[ -f "$WORK/dexout-hook/classes.dex" ]
+[ -f "$WORK/dexout-diag/classes.dex" ]
 
 echo "== audit: every android/* reference must resolve on the real framework =="
 mkdir -p "$WORK/auditcls"
@@ -125,16 +138,23 @@ else
     fetch_cached "https://repo1.maven.org/maven2/org/eclipse/jdt/ecj/3.36.0/ecj-3.36.0.jar" "$CACHE/ecj.jar"
     java -jar "$CACHE/ecj.jar" -source 11 -target 11 -nowarn -cp "$DEXLIB2_JAR" -d "$WORK/auditcls" tools/AuditExtDex.java
 fi
-java -cp "$WORK/auditcls:$DEXLIB2_JAR:$GUAVA:$CACHE/android-all.jar" AuditExtDex "$WORK/dexout/classes.dex"
+java -cp "$WORK/auditcls:$DEXLIB2_JAR:$GUAVA:$CACHE/android-all.jar" AuditExtDex "$WORK/dexout-hook/classes.dex"
+java -cp "$WORK/auditcls:$DEXLIB2_JAR:$GUAVA:$CACHE/android-all.jar" AuditExtDex "$WORK/dexout-diag/classes.dex"
 
-echo "== sanity: placeholders present, hook class present =="
-strings "$WORK/dexout/classes.dex" | grep -q "app/template/extension/extension/SignatureHookApp"
-strings "$WORK/dexout/classes.dex" | grep -q "<package-name>"
-strings "$WORK/dexout/classes.dex" | grep -q "<signature>"
+echo "== sanity: placeholders present, hook class present, diag class present =="
+strings "$WORK/dexout-hook/classes.dex" | grep -q "app/template/extension/extension/SignatureHookApp"
+strings "$WORK/dexout-hook/classes.dex" | grep -q "<package-name>"
+strings "$WORK/dexout-hook/classes.dex" | grep -q "<signature>"
+strings "$WORK/dexout-diag/classes.dex" | grep -q "app/template/extension/diag/StartupDiag"
+strings "$WORK/dexout-diag/classes.dex" | grep -q "vogelkop-diag.log"
 
-echo "== package .mpe (raw dex image) =="
-mkdir -p "$(dirname "$OUT_MPE")" "$(dirname "$OUT_MPE_RESOURCE")"
-cp "$WORK/dexout/classes.dex" "$OUT_MPE"
-cp "$WORK/dexout/classes.dex" "$OUT_MPE_RESOURCE"
-ls -la "$OUT_MPE" "$OUT_MPE_RESOURCE"
-echo "extension built + audited: $OUT_MPE"
+OUT_DIAG="extensions/diag.mpe"
+OUT_DIAG_RESOURCE="patches/src/main/resources/extensions/diag.mpe"
+echo "== package .mpe files (raw dex images) =="
+mkdir -p "$(dirname "$OUT_MPE")" "$(dirname "$OUT_MPE_RESOURCE")" "$(dirname "$OUT_DIAG")" "$(dirname "$OUT_DIAG_RESOURCE")"
+cp "$WORK/dexout-hook/classes.dex" "$OUT_MPE"
+cp "$WORK/dexout-hook/classes.dex" "$OUT_MPE_RESOURCE"
+cp "$WORK/dexout-diag/classes.dex" "$OUT_DIAG"
+cp "$WORK/dexout-diag/classes.dex" "$OUT_DIAG_RESOURCE"
+ls -la "$OUT_MPE" "$OUT_MPE_RESOURCE" "$OUT_DIAG" "$OUT_DIAG_RESOURCE"
+echo "extensions built + audited: $OUT_MPE $OUT_DIAG"

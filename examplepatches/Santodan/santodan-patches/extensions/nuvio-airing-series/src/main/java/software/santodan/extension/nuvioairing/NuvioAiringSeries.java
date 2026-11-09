@@ -163,7 +163,7 @@ public final class NuvioAiringSeries {
             if (badge == null) return;
             Class<?> text = Class.forName(NuvioNative.TEXT_RENDERER_NAME, false, loader);
             Method method = findStatic(text, "b", 19);
-            Object boxScope = staticField(Class.forName("e0.v", false, loader), "a").get(null);
+            Object boxScope = staticField(Class.forName("d0.v", false, loader), "a").get(null);
             Object[] style = badgeStyle(loader, boxScope, composer);
             // Compose packs sp as a unit tag followed by the float's bits.
             long fontSize = ((Number) style[2]).longValue();

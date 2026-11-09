@@ -1,0 +1,1 @@
+11-08 03:47:49.976 16420 17966 I AppleMusicOne: amp-api HTTP 200 bytes=26711 path=/br/search?term=daft&types=songs,albums,artists,playlists&limit=8&l=pt-BR

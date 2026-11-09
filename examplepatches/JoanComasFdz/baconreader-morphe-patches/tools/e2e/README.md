@@ -4,7 +4,14 @@ The scripts that record the e2e scenarios (the app's on the phone, the VS Code e
 and post them on a PR ([docs/hosting.md](../../docs/hosting.md), "E2E videos on pull requests").
 
 - `record.sh`: plays and records the scenarios a PR added or changed and writes `out/<domain folder>/<gif name>.gif` and
-  `.mp4` and `out/scenarios.json`, with the e2e tool's `write-scenarios` (below).
+  `.mp4` and `out/scenarios.json`, with the e2e tool's `write-scenarios` (below). `--raw-only` stops at the raw
+  recordings (`out/.raw`), and `--gifs-only` makes the GIFs, the MP4s and `scenarios.json` from them later: the NAS's
+  runner plays, and GitHub's machine converts ([nas/README.md](nas/README.md)).
+- `connect.sh`: the phone's connection, from a cloud session over the tailnet, or from the NAS's runner over the phone
+  stack's network (`E2E_PHONE_LAN`) ([patcher-specific-build.md](../../patcher-specific-build.md), "The phone").
+- `lease.sh`: takes, keeps and releases the phone's lease, for `connect.sh` and `nas/run.sh`.
+- `nas/`: the NAS's runner, which plays scenarios next to the phone for `.github/workflows/e2e-phone.yml`
+  ([nas/README.md](nas/README.md)).
 - `push-gifs.sh`: pushes those recordings to a throwaway `e2e-gifs/pr-<n>-<sha>` branch, which
   `.github/workflows/e2e-videos.yml` posts on the PR with the e2e tool:
 

@@ -218,6 +218,12 @@ public sealed partial class Reddit(RedditWorld world)
             .Select(id => messages.FirstOrDefault(message => message.FullName == id)?.Subject ?? id)]);
     }
 
+    /// <summary>
+    /// "Reddit has a second account "&lt;name&gt;"": an account besides the test account, which logs in with
+    /// <see cref="SecondAccount.PasswordOf"/>.
+    /// </summary>
+    public void HasASecondAccount(string name) => world.AddAccount(name, SecondAccount.PasswordOf(name));
+
     /// <summary>"the test account is subscribed to r/&lt;subreddit&gt;".</summary>
     public void TheTestAccountIsSubscribedTo(string subreddit) =>
         world.Subscribe(world.Accounts.Single(account => account.Name == TestAccount.UserName), subreddit);
@@ -475,6 +481,11 @@ public sealed class RedditPost(RedditWorld world, Post post)
     public RedditComment TheComment(string text) =>
         new(world, Flatten(post.Comments).SingleOrDefault(comment => comment.Body == text)
             ?? throw new InvalidOperationException($"The post \"{post.Title}\" has no comment \"{text}\": a Given line makes it first."));
+
+    /// <summary>"… the comment by u/&lt;author&gt; …": a comment of this post a Given line made, by its author.</summary>
+    public RedditComment TheCommentBy(string author) =>
+        new(world, Flatten(post.Comments).SingleOrDefault(comment => comment.Author == author)
+            ?? throw new InvalidOperationException($"The post \"{post.Title}\" has no comment by u/{author}: a Given line makes it first."));
 
     private static IEnumerable<Comment> Flatten(IEnumerable<Comment> comments) =>
         comments.SelectMany(comment => Flatten(comment.Replies).Prepend(comment));

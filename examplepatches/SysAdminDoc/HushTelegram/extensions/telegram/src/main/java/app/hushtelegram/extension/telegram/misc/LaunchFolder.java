@@ -160,6 +160,7 @@ public final class LaunchFolder {
      */
     public static void firstTabs(Object list) {
         HookStatus.invoked(FamilyNames.HIDE_FOLDER_COUNTERS);
+        TabFit.update(list);
         try {
             boolean empty = telegram.tabsEmpty(list);
             Build build = built.get(list);

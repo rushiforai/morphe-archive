@@ -8,8 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -35,6 +36,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -46,6 +48,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The real fixture proves the presentation sites and the code the patch must retain. */
 class HideCommerceFixtureTest {
@@ -62,12 +71,14 @@ class HideCommerceFixtureTest {
             val wallet = settings.filter { !it.replace }
             assertEquals("${build.name}: both Wallet placements", 2, wallet.size)
             val builder = settings.first().method.instructions()
+            // 13.2 loads the Wallet label once ahead of both placements, so each block reads it.
+            val labelReads = walletLabelReads(builder, ControlFlow.of(settings.first().method))
             for (gate in wallet) {
-                assertEquals("${build.name}: Wallet gate reads walletAvailable", WALLET_AVAILABLE, builder[gate.index - 3].reference())
+                assertWalletGate("${build.name}: Wallet", builder, gate.index)
                 assertEquals(Opcode.IF_EQZ, builder[gate.index].opcode)
                 val skip = ControlFlow.of(settings.first().method).normal[gate.index].single { it != gate.index + 1 }
-                assertEquals("${build.name}: the skipped block holds one Wallet label", 1,
-                    (gate.index + 1 until skip).count { builder[it].reference() == WALLET_LABEL })
+                assertEquals("${build.name}: the skipped block reads one Wallet label", 1,
+                    (gate.index + 1 until skip).count { it in labelReads })
             }
             val profile = plan.hooks.getValue(CommerceTarget.PROFILE_GIFTS)
             assertEquals("${build.name}: fresh and cached edit candidates", 2, profile.count { it.replace })
@@ -78,12 +89,26 @@ class HideCommerceFixtureTest {
             assertEquals(1, channel.size)
             assertEquals("${build.name}: footer visibility guard is before stock UI work", 0, channel.single().index)
 
+            // A profile's menu adds Send a Gift twice, each behind its own purchase check.
+            val gift = plan.hooks.getValue(CommerceTarget.PROFILE_GIFT_MENU)
+            assertEquals("${build.name}: person and channel Send a Gift", 2, gift.size)
+            gift.forEach { edit ->
+                val menu = edit.method.instructions()
+                assertEquals(Opcode.IF_NEZ, menu[edit.index].opcode)
+                // 13.2 reads premiumPurchaseBlocked()'s field in place of the call.
+                assertTrue("${build.name}: the branch tests the purchase check's answer",
+                    giftCheckAnswers(menu, edit.index - 1))
+                val skip = ControlFlow.of(edit.method).normal[edit.index].single { it != edit.index + 1 }
+                assertEquals("${build.name}: the check skips one Send a Gift", 1,
+                    (edit.index + 1 until skip).count { menu[it].reference() in PROFILE_GIFT_ITEMS })
+            }
+
             // 13.0's attach menu gives Wallet's button its number only past the gate. Gallery and
             // File get theirs outside it, so their buttons don't depend on the answer.
             val attach = plan.hooks.getValue(CommerceTarget.ATTACH_WALLET).single()
             assertFalse(attach.replace)
             val numbering = attach.method.instructions()
-            assertEquals("${build.name}: attach gate reads walletAvailable", WALLET_AVAILABLE, numbering[attach.index - 3].reference())
+            assertWalletGate("${build.name}: attach", numbering, attach.index)
             assertEquals(Opcode.IF_EQZ, numbering[attach.index].opcode)
             val skipped = attach.index + 1 until ControlFlow.of(attach.method).normal[attach.index].single { it != attach.index + 1 }
             val bound = binder(context, attach.method.definingClass).instructions()
@@ -106,7 +131,7 @@ class HideCommerceFixtureTest {
             // on after it, a path that never reaches the side menu mini apps.
             val menu = plan.hooks.getValue(CommerceTarget.MENU_WALLET).single()
             val entries = menu.method.instructions()
-            assertEquals("${build.name}: menu gate reads walletAvailable", WALLET_AVAILABLE, entries[menu.index - 4].reference())
+            assertWalletGate("${build.name}: menu", entries, menu.index - 1)
             assertEquals(Opcode.IF_EQZ, entries[menu.index - 1].opcode)
             val menuExit = labelTarget(menu)
             assertEquals("${build.name}: the entry holds one Wallet label", 1, (menu.index until menuExit).count { entries[it].reference() == WALLET_LABEL })
@@ -126,7 +151,7 @@ class HideCommerceFixtureTest {
                 assertFalse(gate.replace)
                 val body = gate.method.instructions()
                 val flow = ControlFlow.of(gate.method)
-                assertEquals("${build.name}: $target gate reads walletAvailable", WALLET_AVAILABLE, body[gate.index - 3].reference())
+                assertWalletGate("${build.name}: $target", body, gate.index)
                 assertEquals(Opcode.IF_EQZ, body[gate.index].opcode)
                 val skip = flow.normal[gate.index].single { it != gate.index + 1 }
                 val branch = gate.index + 1 until skip
@@ -151,15 +176,15 @@ class HideCommerceFixtureTest {
                 stickers.values.flatten().map { it.method.definingClass to it.method.name }
             // Hide emoji statuses swaps the two getters and points the status readers that must stay
             // real at Telegram's own chat getter.
-            val getters = hosts.filter { it.type == EMOJI_USERS || it.type == EMOJI_DIALOGS }.flatMap { it.methods.toList() }
-                .filter { it.name == EMOJI_GETTER && it.parameterTypes.map { type -> type.toString() } == listOf(EMOJI_STATUS_TYPE) }
+            val getters = hosts.filter { it.origType == EMOJI_USERS || it.origType == EMOJI_DIALOGS }.flatMap { it.methods.toList() }
+                .filter { it.origName == EMOJI_GETTER && it.parameterTypes.map { type -> type.toString() } == listOf(EMOJI_STATUS_TYPE) }
             assertEquals("${build.name}: one status getter each for people and chats", setOf(EMOJI_USERS, EMOJI_DIALOGS),
-                getters.map { it.definingClass }.toSet())
+                getters.map { it.origDefiningClass }.toSet())
             assertEquals(2, getters.size)
             val keepers = statusKeepers(hosts)
-            assertTrue("${build.name}: the changed check keeps the real status", keepers.any { it.name == "emojiStatusesEqual" })
-            assertTrue("${build.name}: the appearance editor keeps the real status", keepers.any { it.definingClass !in setOf(EMOJI_DIALOGS, MESSAGE_OBJECT) })
-            assertTrue("${build.name}: the admin log keeps the real status", keepers.any { it.definingClass == MESSAGE_OBJECT })
+            assertTrue("${build.name}: the changed check keeps the real status", keepers.any { it.origName == "emojiStatusesEqual" })
+            assertTrue("${build.name}: the appearance editor keeps the real status", keepers.any { it.origDefiningClass !in setOf(EMOJI_DIALOGS, MESSAGE_OBJECT) })
+            assertTrue("${build.name}: the admin log keeps the real status", keepers.any { it.origDefiningClass == MESSAGE_OBJECT })
             val swapped = (getters + keepers).map { it.key() }.toSet()
             val originalBodies = (getters + keepers).associate { it.key() to it.instructions().map(::operation) }
             // Unlock Premium app icons asks after the flag read in the icon list's tap, lock and
@@ -183,21 +208,27 @@ class HideCommerceFixtureTest {
             assertTrue("${build.name}: includes the ordinary channel footer controls", untouched.any { method ->
                 method.instructions().any { it.reference() == JOIN } && method.instructions().any { it.reference() == UNMUTE }
             })
+            val declared = hosts.flatMap { it.methods.toList() }.filter { it.origDefiningClass == CONTROLLER }.map { it.origName }.toSet()
             for (gate in listOf("premiumFeaturesBlocked", "premiumPurchaseBlocked", "starsPurchaseAvailable")) {
-                assertTrue("${build.name}: includes stock $gate", untouched.any { it.definingClass == CONTROLLER && it.name == gate })
+                // 13.2's R8 inlined premiumPurchaseBlocked() into its callers as a premiumLocked read.
+                if (gate == "premiumPurchaseBlocked" && gate !in declared) continue
+                assertTrue("${build.name}: includes stock $gate", untouched.any { it.origDefiningClass == CONTROLLER && it.origName == gate })
             }
             assertTrue("${build.name}: includes stock Premium entitlement", untouched.any {
-                it.definingClass == USER_CONFIG && it.name == "isPremium"
+                it.origDefiningClass == USER_CONFIG && it.origName == "isPremium"
             })
             val warnings = PatchLogCapture.warnings { hideCommercePatch.execute(context) }
             assertEquals("${build.name}: no missing surface", emptyList<String>(), warnings)
 
             for ((target, edits) in plan.hooks) {
                 if (target == CommerceTarget.MENU_WALLET) assertMenuEdit("${build.name}: $target", originals.getValue(target), edits.single(), menuExit)
-                else assertEdits("${build.name}: $target", originals.getValue(target), edits)
+                // Send a Gift and Send Gram edit the same builder, so they're counted together.
+                else if (target == CommerceTarget.PROFILE_SEND_GRAM) assertEdits("${build.name}: $target", originals.getValue(target),
+                    edits + plan.hooks.getValue(CommerceTarget.PROFILE_GIFT_MENU))
+                else if (target != CommerceTarget.PROFILE_GIFT_MENU) assertEdits("${build.name}: $target", originals.getValue(target), edits)
             }
             for (method in untouched) {
-                val after = context.mutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
+                val after = context.tgMutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }
                 assertEquals("${build.name}: retains $method", method.instructions().map(::operation), after.instructions().map(::operation))
             }
             assertFact(context, "hideCommerce", 1)
@@ -207,10 +238,10 @@ class HideCommerceFixtureTest {
             assertFact(context, "commercePremiumIcons", 1)
             assertFact(context, "commerceLocalEmojiStatus", 1)
             assertLocalTitle(build.name, localBodies.getValue(title.key()),
-                context.mutableClassDefBy(title.definingClass).methods.single { it.key() == title.key() })
-            assertLocalSend(build.name, send, context.mutableClassDefBy(CONTROLLER).methods.single { it.key() == send.key() })
+                context.tgMutableClassDefBy(title.definingClass).methods.single { it.key() == title.key() })
+            assertLocalSend(build.name, send, context.tgMutableClassDefBy(CONTROLLER).methods.single { it.key() == send.key() })
             for ((key, before) in iconBodies) {
-                val after = context.mutableClassDefBy(key.substringBefore("->")).methods.single { it.key() == key }
+                val after = context.tgMutableClassDefBy(key.substringBefore("->")).methods.single { it.key() == key }
                     .instructions().filter { it.opcode != Opcode.NOP }
                 val read = after.indices.single { after[it].opcode == Opcode.IGET_BOOLEAN && after[it].reference() == premiumFlag }
                 val register = (after[read] as TwoRegisterInstruction).registerA
@@ -224,9 +255,9 @@ class HideCommerceFixtureTest {
                     after.filterIndexed { index, _ -> index != read + 1 && index != read + 2 }.map(::stockOperation))
             }
             for (getter in getters) {
-                val owner = context.mutableClassDefBy(getter.definingClass)
-                val stockName = if (getter.definingClass == EMOJI_USERS) STOCK_USER_STATUS else STOCK_DIALOG_STATUS
-                val stock = owner.methods.single { it.name == stockName }
+                val owner = context.tgMutableClassDefBy(getter.definingClass)
+                val stockName = if (getter.origDefiningClass == EMOJI_USERS) STOCK_USER_STATUS else STOCK_DIALOG_STATUS
+                val stock = owner.methods.single { it.origName == stockName }
                 assertEquals("${build.name}: $stockName is Telegram's getter whole", originalBodies.getValue(getter.key()),
                     stock.instructions().map(::operation))
                 assertTrue("${build.name}: $stockName is static", AccessFlags.STATIC.isSet(stock.accessFlags))
@@ -235,17 +266,17 @@ class HideCommerceFixtureTest {
                 val body = wrapper.instructions()
                 assertEquals("${build.name}: the wrapper asks the switch first", EMOJI_HIDE, body.first().reference())
                 assertEquals("${build.name}: and otherwise answers Telegram's own", 1,
-                    body.count { it.reference() == "${getter.definingClass}->$stockName($EMOJI_STATUS_TYPE)${getter.returnType}" })
+                    body.count { it.reference() == "${getter.origDefiningClass}->$stockName($EMOJI_STATUS_TYPE)${getter.origReturnType}" })
             }
             for (keeper in keepers) {
-                val after = context.mutableClassDefBy(keeper.definingClass).methods.single { it.sameSignature(keeper) }
+                val after = context.tgMutableClassDefBy(keeper.definingClass).methods.single { it.sameSignature(keeper) }
                 assertEquals("${build.name}: $keeper reads the real status and is otherwise stock",
                     originalBodies.getValue(keeper.key()).map { op -> op.map { if (it == DIALOG_STATUS_ID) STOCK_DIALOG_STATUS_ID else it } },
                     after.instructions().map(::operation))
             }
             for ((stub, identity) in mapOf("giftTabId" to plan.giftTabId, "giftButtonIndex" to plan.giftButtonIndex)) {
                 assertTrue("${build.name}: discovered $stub", identity != null && identity >= 0)
-                val body = context.mutableClassDefBy(COMMERCE).methods.single { it.name == stub }.instructions()
+                val body = context.tgMutableClassDefBy(COMMERCE).methods.single { it.origName == stub }.instructions()
                 assertEquals("${build.name}: writes the discovered $stub", identity, (body[0] as NarrowLiteralInstruction).narrowLiteral)
                 assertEquals(Opcode.RETURN, body[1].opcode)
             }
@@ -280,11 +311,15 @@ class HideCommerceFixtureTest {
             val body = method.instructions()
             val labels = body.indices.filter { body[it].reference() == PROFILE_GIFTS }
             val cachedPair = edits.filter { it.replace }.maxOf { it.index } - 1
+            // 13.2 loads the fresh title above the fresh branch and allocation, and reads the cached
+            // title through a forwarded call that takes a null set up first.
+            val allocation = if (body[labels.first() + 1].opcode == Opcode.IF_EQZ) labels.first() + 2 else labels.first() - 3
+            val cachedTitle = (labels.last() + 1..labels.last() + 3).first { body[it].opcode == Opcode.MOVE_RESULT_OBJECT }
             when (change) {
-                "allocation" -> method.replaceInstruction(labels.first() - 3, "nop")
+                "allocation" -> method.replaceInstruction(allocation, "nop")
                 "cached title" -> {
-                    val title = body[labels.last() + 2].namedRegisters().single()
-                    method.replaceInstruction(labels.last() + 2, "move-result-object v${if (title == 8) 9 else 8}")
+                    val title = body[cachedTitle].namedRegisters().single()
+                    method.replaceInstruction(cachedTitle, "move-result-object v${if (title == 8) 9 else 8}")
                 }
                 "cached ID" -> {
                     val branch = body.indices.single { body[it].opcode == Opcode.IF_EQ &&
@@ -312,7 +347,7 @@ class HideCommerceFixtureTest {
                     }
                 }
                 "visibility" -> {
-                    val guard = labels.first() - 4
+                    val guard = allocation - 1
                     val visible = body[guard].namedRegisters().single()
                     method.addInstructionsAtControlFlowLabel(guard, "const-wide/16 v${visible - 1}, 0x0")
                 }
@@ -341,7 +376,7 @@ class HideCommerceFixtureTest {
             }
             val host = plan.hooks.getValue(target).first().method
             val method = if (anchor == GIFT_ICON) {
-                context.mutableClassDefBy(host.definingClass).methods.single { it.name == "<clinit>" }
+                context.tgMutableClassDefBy(host.definingClass).methods.single { it.origName == "<clinit>" }
             } else host
             val at = method.instructions().indices.first { method.instructions()[it].reference() == anchor }
             val register = method.instructions()[at].namedRegisters().single()
@@ -375,7 +410,9 @@ class HideCommerceFixtureTest {
                     val id = (gate + 1 until row).single { (body[it] as? NarrowLiteralInstruction)?.narrowLiteral == 25 }
                     method.replaceInstruction(id, "const/16 v${body[id].namedRegisters().single()}, 0x18")
                 }
-                "divider" -> method.replaceInstruction(skip - 1, "nop")
+                // 13.2's Play build ends the first block with a jump after its divider.
+                "divider" -> method.replaceInstruction((gate + 1 until skip).last {
+                    body[it].reference() == "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z" }, "nop")
                 "availability read" -> method.replaceInstruction(gate - 2, "nop")
                 // A jump from before the gate straight to the row skips Telegram's own answer. The
                 // jumped-over registers would fail ART's verifier, and the patch must still turn it
@@ -548,15 +585,15 @@ class HideCommerceFixtureTest {
             val hosts = hosts(build)
             val initial = PatchContexts.of(ExtensionDex.classes() + hosts)
             val method = initial.resolveCommerceHooks().hooks.getValue(CommerceTarget.SETTINGS).first().method
-            val original = hosts.single { it.type == method.definingClass }
+            val original = hosts.single { it.origType == method.origDefiningClass }
             val duplicate = ImmutableMethod(method.definingClass, "salesBuilderAmbiguity", method.parameters,
                 method.returnType, method.accessFlags, method.annotations, method.hiddenApiRestrictions, method.implementation)
             val altered = ImmutableClassDef(original.type, original.accessFlags, original.superclass, original.interfaces,
                 original.sourceFile, original.annotations, original.fields, original.methods.toList() + duplicate)
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.type != original.type } + altered)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.origType != original.origType } + altered)
             assertRefuses("ambiguous Settings") { hideCommercePatch.execute(context) }
             for (classDef in hosts) for (stock in classDef.methods) {
-                val after = context.mutableClassDefBy(classDef.type).methods.single { it.sameSignature(stock) }
+                val after = context.tgMutableClassDefBy(classDef.type).methods.single { it.sameSignature(stock) }
                 assertEquals("${build.name}: ambiguity retains $stock", stock.instructions().map(::operation), after.instructions().map(::operation))
             }
             assertFact(context, "hideCommerce", 0)
@@ -571,7 +608,7 @@ class HideCommerceFixtureTest {
             val hosts = hosts(build)
             val initial = PatchContexts.of(ExtensionDex.classes() + hosts)
             val footer = initial.resolveCommerceHooks().hooks.getValue(CommerceTarget.CHANNEL_GIFT).single().method.definingClass
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.type != footer })
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.origType != footer })
             val warnings = PatchLogCapture.warnings { hideCommercePatch.execute(context) }
             assertEquals("${build.name}: one missing footer warning", 1, warnings.size)
             assertTrue(warnings.single(), warnings.single().contains("commerceChannelGift"))
@@ -582,9 +619,19 @@ class HideCommerceFixtureTest {
             assertFact(context, "commerceAttachWallet", 1)
             assertFact(context, "commerceMenuWallet", 1)
             assertFact(context, "commerceProfileSendGram", 1)
+            assertFact(context, "commerceProfileGiftMenu", 1)
+            val builder = context.tgMutableClassDefBy("Lorg/telegram/ui/ProfileActivity;").methods
+                .single { method -> method.instructions().any { it.reference() == PROFILE_GIFT_ITEMS.first() } }.instructions()
+            val answers = builder.indices.filter { builder[it].reference()?.endsWith("->profileGiftMenuBlocked(I)Z") == true }
+            assertEquals("${build.name}: both Send a Gift checks answered after Send Gram went in", 2, answers.size)
+            answers.forEach { answer ->
+                assertTrue("${build.name}: the hook reads the purchase check's answer", giftCheckAnswers(builder, answer - 1))
+                assertEquals(Opcode.MOVE_RESULT, builder[answer + 1].opcode)
+                assertEquals(Opcode.IF_NEZ, builder[answer + 2].opcode)
+            }
             assertFact(context, "commerceAddressSendGram", 1)
             assertFact(context, "commerceTransferSendGram", 1)
-            val stub = context.mutableClassDefBy(COMMERCE).methods.single { it.name == "giftButtonIndex" }.instructions()
+            val stub = context.tgMutableClassDefBy(COMMERCE).methods.single { it.origName == "giftButtonIndex" }.instructions()
             assertEquals("${build.name}: no invented footer identity", -1, (stub[0] as NarrowLiteralInstruction).narrowLiteral)
         }
     }
@@ -593,14 +640,14 @@ class HideCommerceFixtureTest {
     fun `a build without the emoji status check keeps every status and the rest of the patch`() {
         for (build in Fixtures.declaredBuilds()) {
             val hosts = hosts(build)
-            val dialogs = hosts.single { it.type == EMOJI_DIALOGS }
+            val dialogs = hosts.single { it.origType == EMOJI_DIALOGS }
             // With both sides of that check hidden, a new status picked for a channel would read as no
             // change and the editor wouldn't save it, so a build without it leaves every getter alone.
             val altered = ImmutableClassDef(dialogs.type, dialogs.accessFlags, dialogs.superclass, dialogs.interfaces,
-                dialogs.sourceFile, dialogs.annotations, dialogs.fields, dialogs.methods.filter { it.name != "emojiStatusesEqual" })
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.type != EMOJI_DIALOGS } + altered)
-            val readers = (hosts.filter { it.type != EMOJI_DIALOGS } + altered).flatMap { it.methods.toList() }.filter { method ->
-                method.name == EMOJI_GETTER || method.instructions().any { it.reference() == DIALOG_STATUS_ID }
+                dialogs.sourceFile, dialogs.annotations, dialogs.fields, dialogs.methods.filter { it.origName != "emojiStatusesEqual" })
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.origType != EMOJI_DIALOGS } + altered)
+            val readers = (hosts.filter { it.origType != EMOJI_DIALOGS } + altered).flatMap { it.methods.toList() }.filter { method ->
+                method.origName == EMOJI_GETTER || method.instructions().any { it.reference() == DIALOG_STATUS_ID }
             }.associate { it.key() to it.instructions().map(::operation) }
             assertTrue("${build.name}: the fixture still reads statuses", readers.size > 2)
             val warnings = PatchLogCapture.warnings { hideCommercePatch.execute(context) }
@@ -610,12 +657,12 @@ class HideCommerceFixtureTest {
             assertFact(context, "commerceEmojiStatus", 0)
             CommerceTarget.entries.forEach { assertFact(context, it.capability, 1) }
             for (type in listOf(EMOJI_USERS, EMOJI_DIALOGS)) {
-                assertFalse("${build.name}: no stock copy in $type", context.mutableClassDefBy(type).methods.any {
-                    it.name == STOCK_USER_STATUS || it.name == STOCK_DIALOG_STATUS })
+                assertFalse("${build.name}: no stock copy in $type", context.tgMutableClassDefBy(type).methods.any {
+                    it.origName == STOCK_USER_STATUS || it.origName == STOCK_DIALOG_STATUS })
             }
             for ((key, before) in readers) {
                 val type = key.substringBefore("->")
-                val after = context.mutableClassDefBy(type).methods.single { it.key() == key }
+                val after = context.tgMutableClassDefBy(type).methods.single { it.key() == key }
                 assertEquals("${build.name}: $key is stock", before, after.instructions().map(::operation))
             }
         }
@@ -628,7 +675,7 @@ class HideCommerceFixtureTest {
             val icons = iconFlag(hosts).substringBefore("->")
             val readers = iconReaders(hosts).associate { it.key() to it.instructions().map(::operation) }
             assertEquals("${build.name}: the fixture still weighs icons against Premium", 3, readers.size)
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.type != icons })
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.origType != icons })
             val warnings = PatchLogCapture.warnings { hideCommercePatch.execute(context) }
             assertEquals("${build.name}: one Premium app icon warning", 1, warnings.size)
             assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the Premium app icon switch."))
@@ -637,7 +684,7 @@ class HideCommerceFixtureTest {
             assertFact(context, "commerceEmojiStatus", 1)
             CommerceTarget.entries.forEach { assertFact(context, it.capability, 1) }
             for ((key, before) in readers) {
-                val after = context.mutableClassDefBy(key.substringBefore("->")).methods.single { it.key() == key }
+                val after = context.tgMutableClassDefBy(key.substringBefore("->")).methods.single { it.key() == key }
                 assertEquals("${build.name}: $key is stock", before, after.instructions().map(::operation))
             }
         }
@@ -649,10 +696,10 @@ class HideCommerceFixtureTest {
             val hosts = hosts(build)
             val title = titleStatus(hosts)
             val send = statusSend(hosts)
-            val owner = hosts.single { it.type == title.definingClass }
+            val owner = hosts.single { it.origType == title.origDefiningClass }
             val altered = ImmutableClassDef(owner.type, owner.accessFlags, owner.superclass, owner.interfaces,
                 owner.sourceFile, owner.annotations, owner.fields, owner.methods.filter { it.key() != title.key() })
-            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.type != owner.type } + altered)
+            val context = PatchContexts.of(ExtensionDex.classes() + hosts.filter { it.origType != owner.origType } + altered)
             val warnings = PatchLogCapture.warnings { hideCommercePatch.execute(context) }
             assertEquals("${build.name}: one local emoji status warning", 1, warnings.size)
             assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the local emoji status switch."))
@@ -661,9 +708,9 @@ class HideCommerceFixtureTest {
             assertFact(context, "commerceEmojiStatus", 1)
             assertFact(context, "commercePremiumIcons", 1)
             CommerceTarget.entries.forEach { assertFact(context, it.capability, 1) }
-            val after = context.mutableClassDefBy(CONTROLLER).methods.single { it.key() == send.key() }
+            val after = context.tgMutableClassDefBy(CONTROLLER).methods.single { it.key() == send.key() }
             assertEquals("${build.name}: the status send is stock", send.instructions().map(::operation), after.instructions().map(::operation))
-            val stub = context.mutableClassDefBy(LOCAL_STATUS).methods.single { it.name == "statusDocument" }.instructions()
+            val stub = context.tgMutableClassDefBy(LOCAL_STATUS).methods.single { it.origName == "statusDocument" }.instructions()
             assertFalse("${build.name}: the stubs stay empty", stub.any { it.reference() != null })
         }
     }
@@ -754,8 +801,8 @@ class HideCommerceFixtureTest {
             })
         }
         assertEquals("$where: no server, purchase or entitlement call was removed",
-            before.filterIsInstance<ReferenceInstruction>().map { it.reference.toString() }.filterNot { it == "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z" },
-            after.filterIsInstance<ReferenceInstruction>().map { it.reference.toString() }.filterNot {
+            before.filterIsInstance<ReferenceInstruction>().map { it.reference.origString() }.filterNot { it == "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z" },
+            after.filterIsInstance<ReferenceInstruction>().map { it.reference.origString() }.filterNot {
                 it == "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z" || it.startsWith(COMMERCE)
             })
     }
@@ -795,7 +842,7 @@ class HideCommerceFixtureTest {
     }
 
     /** The binder that labels an attach menu button Wallet, from the context so a test can change it. */
-    private fun binder(context: BytecodePatchContext, type: String) = context.mutableClassDefBy(type).methods.single { method ->
+    private fun binder(context: BytecodePatchContext, type: String) = context.tgMutableClassDefBy(type).methods.single { method ->
         method.parameterTypes.size == 2 && method.instructions().any { it.reference() == WALLET_LABEL }
     }
 
@@ -819,7 +866,7 @@ class HideCommerceFixtureTest {
 
     private fun hosts(build: File): List<ClassDef> {
         val icons = FixtureDex.classesWhere(build, { true }) { method ->
-            method.name == "<clinit>" && method.instructions().any { it.reference() == "VintageIcon" }
+            method.origName == "<clinit>" && method.instructions().any { it.reference() == "VintageIcon" }
         }
         val flag = iconFlag(icons)
         val anchors = FixtureDex.classesWhere(build, { true }) { method ->
@@ -837,28 +884,32 @@ class HideCommerceFixtureTest {
         val title = FixtureDex.classesWhere(build, { true }) { method ->
             method.parameterTypes.map { it.toString() } == listOf(USER, "Z") && method.instructions().any { it.reference() == LIST_STAR }
         }
-        val kept = FixtureDex.classes(build, setOf(TABS, CONTROLLER, USER_CONFIG, EMOJI_USERS, EMOJI_DIALOGS, MESSAGE_OBJECT)).values
+        // 13.2 merges the walletAvailable flag's class into one other sources share, and the Gram
+        // transfer menu still calls its get() there, so the patch reads that getter's body.
+        val flags = anchors.flatMap { it.methods }.flatMap { it.instructions() }.filter { it.readsWalletAvailable() }
+            .map { ((it as ReferenceInstruction).reference as FieldReference).type }.toSet()
+        // LocaleController holds the getString(int) wrapper whose forwarded call 13.2 inlined into the title sites.
+        val kept = FixtureDex.classes(build, setOf(TABS, CONTROLLER, USER_CONFIG, EMOJI_USERS, EMOJI_DIALOGS, MESSAGE_OBJECT,
+            "Lorg/telegram/messenger/LocaleController;") + flags).values
         return (icons + anchors + title + kept).distinctBy { it.type }
     }
 
     /** The chat list title's one method that draws the account's status or the Premium star. */
     private fun titleStatus(hosts: List<ClassDef>) = hosts.flatMap { it.methods.toList() }.single { method ->
         val refs = method.instructions().mapNotNull { it.reference() }
-        method.returnType == "V" && method.parameterTypes.map { it.toString() } == listOf(USER, "Z") &&
+        method.origReturnType == "V" && method.parameterTypes.map { it.toString() } == listOf(USER, "Z") &&
             LIST_STAR in refs && USER_STATUS_ID in refs && IS_PREMIUM_USER in refs
     }
 
     /** MessagesController's send of the account's own new status. */
-    private fun statusSend(hosts: List<ClassDef>) = hosts.single { it.type == CONTROLLER }.methods.single { method ->
-        method.name == SEND_STATUS_NAME && method.parameterTypes.map { it.toString() } == SEND_STATUS_PARAMETERS
-    }
+    private fun statusSend(hosts: List<ClassDef>) = hosts.single { it.origType == CONTROLLER }.methods.single { it.sendsOwnStatus() }
 
     /** The App Icon list's Premium flag: the one instance boolean of the enum naming the launcher aliases. */
     private fun iconFlag(hosts: List<ClassDef>): String {
         val icons = hosts.single { classDef ->
-            classDef.methods.any { method -> method.name == "<clinit>" && method.instructions().any { it.reference() == "VintageIcon" } }
+            classDef.methods.any { method -> method.origName == "<clinit>" && method.instructions().any { it.reference() == "VintageIcon" } }
         }
-        return "${icons.type}->${icons.fields.single { it.type == "Z" && !AccessFlags.STATIC.isSet(it.accessFlags) }.name}:Z"
+        return "${icons.type}->${icons.fields.single { it.origType == "Z" && !AccessFlags.STATIC.isSet(it.accessFlags) }.name}:Z"
     }
 
     /** The methods that weigh the icon's Premium flag against Premium, which the switch answers for. */
@@ -876,25 +927,25 @@ class HideCommerceFixtureTest {
      * appearance editor that calls it, and the admin log's line for a status change.
      */
     private fun statusKeepers(hosts: List<ClassDef>): List<Method> {
-        val editors = hosts.filter { classDef -> classDef.type != EMOJI_DIALOGS &&
+        val editors = hosts.filter { classDef -> classDef.origType != EMOJI_DIALOGS &&
             classDef.methods.any { method -> method.instructions().any { it.reference() == STATUSES_EQUAL } } }.map { it.type }.toSet()
         return hosts.flatMap { it.methods.toList() }.filter { method ->
-            method.instructions().any { it.reference() == DIALOG_STATUS_ID } && (method.definingClass in editors ||
-                method.definingClass == EMOJI_DIALOGS && method.name == "emojiStatusesEqual" ||
-                method.definingClass == MESSAGE_OBJECT && method.name == "<init>" &&
+            method.instructions().any { it.reference() == DIALOG_STATUS_ID } && (method.origDefiningClass in editors ||
+                method.origDefiningClass == EMOJI_DIALOGS && method.origName == "emojiStatusesEqual" ||
+                method.origDefiningClass == MESSAGE_OBJECT && method.origName == "<init>" &&
                 method.parameterTypes.any { it.toString() == ADMIN_LOG_EVENT })
         }
     }
 
     private fun assertFact(context: BytecodePatchContext, name: String, value: Int) {
-        val body = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.instructions()
+        val body = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.instructions()
         assertEquals("$name is a build fact", value, (body[0] as NarrowLiteralInstruction).narrowLiteral)
         assertEquals(Opcode.RETURN, body[1].opcode)
     }
 
     private fun assertUnwrittenIdentities(context: BytecodePatchContext) {
         for (name in listOf("giftTabId", "giftButtonIndex")) {
-            val body = context.mutableClassDefBy(COMMERCE).methods.single { it.name == name }.instructions()
+            val body = context.tgMutableClassDefBy(COMMERCE).methods.single { it.origName == name }.instructions()
             assertEquals("$name was not written before validation", -1, (body[0] as NarrowLiteralInstruction).narrowLiteral)
         }
     }
@@ -913,7 +964,22 @@ class HideCommerceFixtureTest {
     private fun stockOperation(instruction: Instruction) = operation(instruction).let {
         if (instruction.opcode == Opcode.GOTO_16 || instruction.opcode == Opcode.GOTO_32) listOf(Opcode.GOTO) + it.drop(1) else it
     }
-    private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.reference() = origRef()
+
+    /** Whether [answer] holds a Send a Gift purchase check's result: the call's move-result, or 13.2's field read. */
+    private fun giftCheckAnswers(body: List<Instruction>, answer: Int) =
+        (answer - 1..answer).any { it >= 0 && profileGiftAnswer(body, it) == answer }
+
+    /**
+     * [gate] decides on a walletAvailable read alone: three instructions back through
+     * ConfigBoolean.get() and its result, or four where 13.2 inlines get() as the flag's handler,
+     * its cast and its value.
+     */
+    private fun assertWalletGate(where: String, body: List<Instruction>, gate: Int) {
+        val read = gate - if (body[gate - 1].opcode == Opcode.IGET_BOOLEAN) 4 else 3
+        assertTrue("$where gate reads walletAvailable", body[read].readsWalletAvailable())
+        assertEquals("$where gate decides on that read alone", gate, walletGate(body, read))
+    }
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
     private fun Method.sameSignature(other: Method) = name == other.name && returnType == other.returnType &&
         parameterTypes.map { it.toString() } == other.parameterTypes.map { it.toString() }

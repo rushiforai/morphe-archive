@@ -1,3 +1,11 @@
+## [1.9.2](https://github.com/pengusto/penguin-patches/compare/v1.9.1...v1.9.2) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **release:** preserve compact bundles during Gradle publish ([#68](https://github.com/pengusto/penguin-patches/issues/68)) ([b7c0ec6](https://github.com/pengusto/penguin-patches/commit/b7c0ec68b2ac2b575e0ff522266b7834dbd4d659))
+* **release:** publish Finamp without retired banner fix ([1bff73f](https://github.com/pengusto/penguin-patches/commit/1bff73fd1d87955af891c6e49a0b7af63081a693))
+* **release:** verify hashed individual bundle ordering ([#70](https://github.com/pengusto/penguin-patches/issues/70)) ([8ea3497](https://github.com/pengusto/penguin-patches/commit/8ea349709b640826c36ba2af933015e892984f29))
+
 ## [1.9.1](https://github.com/pengusto/penguin-patches/compare/v1.9.0...v1.9.1) (2026-11-06)
 
 ### 🐛 Bug Fixes

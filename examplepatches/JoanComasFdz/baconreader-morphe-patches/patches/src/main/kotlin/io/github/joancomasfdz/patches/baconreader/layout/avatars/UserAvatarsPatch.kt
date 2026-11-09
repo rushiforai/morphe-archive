@@ -25,7 +25,8 @@ private const val EXTENSION_CLASS_DESCRIPTOR = "$EXTENSION_PACKAGE/avatars/UserA
 @Suppress("unused")
 val userAvatarsPatch = bytecodePatch(
     name = "Show user avatars",
-    description = "Adds an option to show the author's avatar before the name in comments, as on Reddit's website.",
+    description = "Adds an option to show the author's avatar before the name in comments, as on Reddit's website, " +
+        "and always shows each account's avatar before its name in the drawer.",
 ) {
     compatibleWith(COMPATIBILITY_BACONREADER, COMPATIBILITY_BACONREADER_PREMIUM)
 
@@ -100,6 +101,23 @@ val userAvatarsPatch = bytecodePatch(
                 addInstruction(
                     setTextIndex + 1,
                     "invoke-static { p0, v$viewRegister }, $EXTENSION_CLASS_DESCRIPTOR->inboxAvatar(Ljava/lang/Object;Landroid/widget/TextView;)V",
+                )
+            }
+        }
+
+        // The avatar of each account in the drawer, after holder.updateView(item) sets the row's text. Before the
+        // return, which no branch jumps to; the holder's register is free there, so it takes its textView.
+        DrawerAdapterGetViewFingerprint.let { fingerprint ->
+            fingerprint.method.apply {
+                val updateView = getInstruction<FiveRegisterInstruction>(fingerprint.instructionMatches[0].index)
+                val holderRegister = updateView.registerC
+                val itemRegister = updateView.registerD
+                addInstructions(
+                    fingerprint.instructionMatches[1].index,
+                    """
+                        iget-object v$holderRegister, v$holderRegister, $DRAWER_HOLDER_CLASS_DESCRIPTOR->textView:Landroid/widget/TextView;
+                        invoke-static { v$itemRegister, v$holderRegister }, $EXTENSION_CLASS_DESCRIPTOR->drawerAvatar(Lcom/onelouder/baconreader/adapters/DrawerAdapter${'$'}DrawerItem;Landroid/widget/TextView;)V
+                    """,
                 )
             }
         }

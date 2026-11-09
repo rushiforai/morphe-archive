@@ -1,8 +1,8 @@
 package semicoloncolonel.mobilestream.patches.recgov.shared
 
 import app.morphe.patcher.patch.ApkFileType
+import app.morphe.patcher.patch.AppTarget
 import app.morphe.patcher.patch.Compatibility
-import semicoloncolonel.mobilestream.patches.shared.misc.devTarget
 
 object Constants {
     val COMPATIBILITY = Compatibility(
@@ -11,6 +11,6 @@ object Constants {
         description = "The Recreation.gov app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x325D5A,
-        targets = listOf(devTarget("2.2.67.1"))
+        targets = listOf(AppTarget(version = "2.2.67.1"))
     )
 }

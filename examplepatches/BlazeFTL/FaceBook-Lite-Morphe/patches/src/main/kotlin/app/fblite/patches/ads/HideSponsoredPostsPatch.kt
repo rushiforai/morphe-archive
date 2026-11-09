@@ -2,7 +2,7 @@ package app.fblite.patches.ads
 
 import app.fblite.patches.font.AttachBaseContextFingerprint
 import app.fblite.patches.settings.morpheSettingsPatch
-import app.fblite.patches.shared.Constants.COMPATIBILITY_FACEBOOK_LITE_530
+import app.fblite.patches.shared.Constants.COMPATIBILITY_FACEBOOK_LITE
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
@@ -10,7 +10,7 @@ private const val EXTENSION_CLASS = "Lapp/fblite/extension/hideads/HideSponsored
 
 /**
  * Sponsored posts are inserted by the server into the feed's component tree, which is decoded by
- * X.1DY in the secondary dex. The extension adds a class with the same name that delegates to the
+ * X.1E8 in the secondary dex. The extension adds a class with the same name that delegates to the
  * original and hides sponsored posts afterwards. This loads it at startup, before the secondary dex
  * exists, so it takes precedence.
  */
@@ -20,7 +20,7 @@ val hideSponsoredPostsPatch = bytecodePatch(
     description = "Hides sponsored posts in the news feed and removes sponsored reels as they load.",
     default = true
 ) {
-    compatibleWith(COMPATIBILITY_FACEBOOK_LITE_530)
+    compatibleWith(COMPATIBILITY_FACEBOOK_LITE)
 
     // The settings screen holds the debug log switch and the "Hide sponsored reels" switch this patch reads.
     dependsOn(morpheSettingsPatch)

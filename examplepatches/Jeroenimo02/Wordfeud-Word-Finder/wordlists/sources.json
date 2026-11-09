@@ -1,5 +1,5 @@
 {
-  "_comment": "Bronnen van de woordenlijsten per taal. Alleen openbare licenties. Wordt gelezen door tools/wordlists/build.py; zie wordlists/README.md.",
+  "_comment": "Sources of the word lists per language. Open licences only. Read by tools/wordlists/build.py; see wordlists/README.md.",
   "languages": {
     "nb": {
       "name": "Norsk bokmål",

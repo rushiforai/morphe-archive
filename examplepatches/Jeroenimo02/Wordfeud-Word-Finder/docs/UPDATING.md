@@ -1,95 +1,101 @@
-# Een nieuwe Wordfeud-versie ondersteunen
+# Supporting a new Wordfeud version
 
-Wordfeud is een Flutter-app. De patch leunt op twee soorten dingen in de app:
+Wordfeud is a Flutter app. The patch relies on two kinds of things in the app:
 
-1. **Java-methodes waarin de patches code injecteren.** Bestaat zo'n methode niet meer (andere naam of andere
-   parameters), dan **faalt het patchen** in Morphe.
-2. **Afspraken aan de Dart-kant**: routes, platformberichten, de API en het uiterlijk van het spelscherm. Verandert
-   daar iets, dan **lukt het patchen wel**, maar werkt een onderdeel niet meer. De foutcode en "Kopieer details" in de
-   overlay wijzen dan meestal de plek aan.
+1. **Java methods the patches inject code into.** If such a method is gone (renamed or different parameters),
+   **patching fails** in Morphe.
+2. **Contracts on the Dart side**: routes, platform messages, the API and the look of the game screen. If one of
+   these changes, **patching still works** but a feature stops working. The error code and "Copy details" in the
+   overlay usually point to the place.
 
-## Stap 1: controleren (2 minuten)
+## Step 1: check (2 minutes)
 
-1. Download de nieuwe versie als XAPK van APKPure (dezelfde bron als gebruikers).
-2. Draai het controlescript (alleen Python 3 nodig):
+1. Download the new version as XAPK from APKPure (the same source users use).
+2. Run the check script (only Python 3 needed):
 
    ```sh
    python3 tools/check-apk/check_apk.py Wordfeud_5.9.0_APKPure.xapk
    ```
 
-   Het script toont de versie en per afhankelijkheid `OK` of `MISSING`, met erachter welk deel van de patch het
-   gebruikt.
+   It prints the version and `OK` or `MISSING` for every dependency, with the part of the patch that uses it.
 
-3. **Alles OK?** Ga naar stap 2. **Iets MISSING?** Zie stap 3.
+3. **All OK?** Go to step 2. **Something MISSING?** See step 3.
 
-## Stap 2: versie toevoegen en testen
+## Step 2: add the version and test
 
-1. Voeg de versie toe in `patches/src/main/kotlin/app/wordfeudwordfinder/patches/shared/Constants.kt`
-   (`AppTarget(version = "5.9.0")`). Zonder deze regel kunnen gebruikers de versie alleen als "experimenteel" patchen.
-2. Pas de tabel "Compatibiliteit" in deze handleiding aan (onderaan).
-3. Maak een branch, PR naar `dev`, wacht op de groene CI en installeer de dev-release via Morphe Manager.
-4. Test op een toestel (lijst hieronder). Werkt alles: PR van `dev` naar `main`.
+1. Add the version in `patches/src/main/kotlin/app/wordfeudwordfinder/patches/shared/Constants.kt`
+   (`AppTarget(version = "5.9.0")`). Without it, users can only patch the version as "experimental".
+2. Update the "Compatibility" table at the end of this guide.
+3. Create a branch, open a pull request to `dev`, wait for green CI and install the dev release with Morphe Manager.
+4. Test on a device (list below). If everything works: pull request `dev` → `main`.
 
-**Testlijst op het toestel**
+**Device test list**
 
-| Test | Wat je ziet als het misgaat | Waar zoeken |
+| Test | What you see when it fails | Where to look |
 |---|---|---|
-| Boekje-knopje verschijnt op het spelscherm, niet in chat of zetgeschiedenis | Knopje ontbreekt of staat overal | Route (`hooks/PlatformMessages`), kleuren (`ui/ScreenShade`) |
-| Knopje wordt afgesneden onder het "⋮"-menu, licht en donker thema | Knopje zweeft over menu's | `ui/ScreenShade` (scrim, paginakleuren) |
-| Overlay opent met zetten en een voorbeeldbord in de juiste kleuren | GS-DATA of GS-EVENT-… | `game/GameReplay`, `game/ResponseParser` |
-| Spelen met de Play-knop, bord ververst daarna | MV-…-fout, bord ververst niet | `play/MoveRequest`, `play/Refresher` |
-| Een woord dat de server weigert: melding in de overlay, PR "Woordenlijst …" op GitHub | Geen melding | `play/MoveSubmitter`, Worker |
-| Een potje in een andere taal opent zonder fout | WL-…-fout | `words/WordListManager` |
+| The book button appears on the game screen, not in chat or move history | Button missing, or shown everywhere | Route (`hooks/PlatformMessages`), colours (`ui/ScreenShade`) |
+| The button is cut off under the "⋮" menu, light and dark theme | Button floats over menus | `ui/ScreenShade` (scrim, page colours) |
+| The overlay opens with moves and a preview board in the right colours | GS-DATA or GS-EVENT-… | `game/GameReplay`, `game/ResponseParser` |
+| Playing with the Play button, the board refreshes afterwards | MV-… error, board does not refresh | `play/MoveRequest`, `play/Refresher` |
+| A word the server rejects: message in the overlay, pull request "Word list …" on GitHub | No message | `play/MoveSubmitter`, report worker |
+| A game in another language opens without an error | WL-… error | `words/WordListManager` |
+| Remove ads: the app starts, no banner, no full-screen ad after a game, no consent popup on a fresh install | Crash at start, or ads or the popup appear | `ads/AdBlock` (`BLOCKED`), the AdApi lines of the check script |
+| Remove ads: with the app closed, a push notification arrives when the opponent plays | No notification | `patches/.../ads/AdManifestPatch.kt` (it must never touch `NOTIFICATION_COMPONENTS`) |
 
-## Stap 3: als het controlescript iets mist
+## Step 3: when the check script reports MISSING
 
-### Een Java-haakpunt ontbreekt (patchen faalt)
+### A Java hook is missing (patching fails)
 
-| Haakpunt | Waar het vandaan komt | Waar aanpassen |
+| Hook | Where it comes from | Where to change |
 |---|---|---|
-| `MainActivity.onCreate` | De eigen activity van Wordfeud (staat in `AndroidManifest.xml`) | `patches/.../ui/OverlayPatch.kt` |
-| `FlutterJNI.handlePlatformMessage` en `dispatchPlatformMessage` | De Flutter-engine (verandert alleen bij een grote Flutter-update) | `patches/.../platform/PlatformTapPatch.kt`, `extension/.../play/JniDispatch.java` |
-| `CronetEngine$Builder.setUserAgent`, `UrlResponseInfo.getUrl` | Chromium Cronet (stabiele, openbare API) | `patches/.../platform/UserAgentPatch.kt`, `extension/.../hooks/NetworkTap.java` |
-| `UrlRequestCallbackProxy.on…` | Het Flutter-plugin `cronet_http` (open source) | `patches/.../network/Fingerprints.kt` |
+| `MainActivity.onCreate` | Wordfeud's own activity (listed in `AndroidManifest.xml`) | `patches/.../ui/OverlayPatch.kt` |
+| `FlutterJNI.handlePlatformMessage` and `dispatchPlatformMessage` | The Flutter engine (changes only with a major Flutter update) | `patches/.../platform/PlatformTapPatch.kt`, `patches/.../ads/RemoveAdsPatch.kt`, `extension/.../play/JniDispatch.java` |
+| `FlutterJNI.invokePlatformMessageResponseCallback` and `cleanupMessageData` | The Flutter engine | `extension/.../ads/AdBlock.java` (reflection; when missing, ads come back but nothing breaks) |
+| `CronetEngine$Builder.setUserAgent`, `UrlResponseInfo.getUrl` | Chromium Cronet (stable public API) | `patches/.../platform/UserAgentPatch.kt`, `extension/.../hooks/NetworkTap.java` |
+| `UrlRequestCallbackProxy.on…` | The `cronet_http` Flutter plugin (open source) | `patches/.../network/Fingerprints.kt` |
 
-Zo vind je de nieuwe naam:
+To find the new name:
 
-1. Open de basis-APK (in de XAPK: `com.hbwares.wordfeud.free.apk`) in [jadx](https://github.com/skylot/jadx) (gratis,
-   grafisch) en zoek op de oude klasse- of methodenaam.
-2. Is de klasse hernoemd of versleuteld (obfuscatie), zoek dan op iets wat niet verandert: een tekst die erin staat,
-   de parameters, of de plek waar de methode aangeroepen wordt. Het `cronet_http`-plugin en de Flutter-engine zijn
-   open source, dus vergelijken met de broncode helpt.
-3. Pas de `Fingerprint` in het Kotlin-bestand aan, en de lijst `HOOKS` in `tools/check-apk/check_apk.py`.
-4. Let bij een gewijzigde parameterlijst op de registers in de geïnjecteerde instructie (`p0` = `this`, `p1` = eerste
-   parameter, …). Het commentaar boven elke injectie legt uit welke registers gebruikt worden.
+1. Open the base APK (inside the XAPK: `com.hbwares.wordfeud.free.apk`) in [jadx](https://github.com/skylot/jadx)
+   (free, graphical) and search for the old class or method name.
+2. If the class was renamed or obfuscated, search for something that does not change: a string inside it, the
+   parameters, or the place where the method is called. The `cronet_http` plugin and the Flutter engine are open
+   source, so comparing with their source helps.
+3. Update the `Fingerprint` in the Kotlin file, and the `HOOKS` list in `tools/check-apk/check_apk.py`.
+4. If the parameter list changed, check the registers in the injected instruction (`p0` = `this`, `p1` = first
+   parameter, …). The comment above each injection explains which registers it uses.
 
-### Een Dart-tekst ontbreekt (patchen lukt, een functie niet)
+### A Dart string is missing (patching works, a feature does not)
 
-Elke regel in het script noemt de klasse in de extensie die de tekst gebruikt. Zoek in de app naar de nieuwe vorm:
+Every line of the script names the extension class that uses the string. Look for its new form in the app:
 
 ```sh
 unzip -p Wordfeud.xapk config.arm64_v8a.apk > /tmp/split.apk
 unzip -p /tmp/split.apk lib/arm64-v8a/libapp.so | strings | grep -i "game/"
 ```
 
-Gebruik daarna "Kopieer details" in de overlay op het toestel. De regels `route=`, `store=` en `server=` tonen wat de
-app werkelijk stuurt, en de foutcode noemt het veld of het soort gebeurtenis dat onbekend was.
+Then use "Copy details" in the overlay on a device: the `route=`, `store=` and `server=` lines show what the app
+really sends, and the error code names the unknown field or event type.
 
-## Dingen die het script niet kan controleren
+## What the script cannot check
 
-| Aanname | Wat er gebeurt als het verandert | Oplossen |
+"Remove ads" also edits `AndroidManifest.xml` by component name (`ads/AdManifestPatch.kt`). Components a new version
+no longer has are skipped; new ad SDK start-up components are not removed until they are added to its lists.
+
+| Assumption | What happens when it changes | Fix |
 |---|---|---|
-| Kleuren van het spelscherm: pagina `#D0D5DB` / `#343B45`, rektegels crème | Knopje verdwijnt op het spelscherm, of verschijnt op andere pagina's | Meet de nieuwe kleuren op screenshots en pas `ui/ScreenShade.java` en `ui/Theme.java` aan |
-| Positie van het rek: 10 dp onder het knopje, tegels 40 dp onder het knopje | Idem | `ui/FabPlacement.java`, `ui/ScreenSampler.java` (`RACK_BELOW_DP`) |
-| Velden van `game_log`-gebeurtenissen (strikte controle) | Foutcode GS-DATA met het onbekende veld | Voeg het veld toe aan de veldsets in `game/GameReplay.java` |
-| Soorten gebeurtenissen (start, packed_move, swap, pass, resign, timeout) | GS-EVENT-&lt;soort&gt; | Nieuwe soort afhandelen in `game/GameReplay.java` |
-| Thema via `statusBarIconBrightness` | Verkeerde kleuren in de overlay | `hooks/PlatformMessages.java` |
-| Verversen na een zet via `flutter/lifecycle` (LifecycleBounce) | Bord ververst pas na ±20 s | `play/Refresher.java` (andere strategieën staan klaar) |
-| Formaat van de zet `[x,y,"L"]`, blanco `"*L"`, dubbelletter `"CH"` | MV-SERVER-protocol | `play/MoveRequest.java` |
+| Game screen colours: page `#D0D5DB` / `#343B45`, cream rack tiles | The button disappears on the game screen, or shows on other pages | Measure the new colours on screenshots and update `ui/ScreenShade.java` and `ui/Theme.java` |
+| Rack position: 10 dp below the button, tiles 40 dp below the button | Same | `ui/FabPlacement.java`, `ui/ScreenSampler.java` (`RACK_BELOW_DP`) |
+| Fields of `game_log` events (strict check) | Error GS-DATA naming the unknown field | Add the field to the field sets in `game/GameReplay.java` |
+| Event types (start, packed_move, swap, pass, resign, timeout) | GS-EVENT-&lt;type&gt; | Handle the new type in `game/GameReplay.java` |
+| Theme from `statusBarIconBrightness` | Wrong colours in the overlay | `hooks/PlatformMessages.java` |
+| Refresh after a move through `flutter/lifecycle` (`LifecycleBounce`) | The board refreshes only after about 20 s | `play/Refresher.java` (other strategies are ready, see `docs/DEV.md`) |
+| Move format `[x,y,"L"]`, blank `"*L"`, digraph `"CH"` | MV-SERVER-protocol | `play/MoveRequest.java` |
+| The blocked ad calls (`AdBlock.BLOCKED`) return nothing (void) | An error or a stuck screen right after an ad call | In jadx, search for the channel name (`dev.flutter.pigeon.wordfeud.AdApi.showInterstitial`, …): the handler of a void call replies with a list holding only `null`. Remove a call that returns a value from `BLOCKED` |
 
-## Compatibiliteit
+## Compatibility
 
-| Wordfeud | Controlescript | Op toestel getest | Opmerkingen |
+| Wordfeud | Check script | Tested on a device | Notes |
 |---|---|---|---|
-| 5.7.1 | – | 2026-11-02 | Eerste versie |
-| 5.8.0 | Alles OK (2026-11-06) | 2026-11-06 | Geen aanpassingen nodig |
+| 5.7.1 | – | 2026-11-02 | First version |
+| 5.8.0 | All OK (2026-11-06) | 2026-11-06 | No changes needed |

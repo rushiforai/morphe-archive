@@ -223,6 +223,7 @@ channel Gift button	kanal Hediye düğmesi
 attach menu Wallet button	ek menüsündeki Cüzdan düğmesi
 chat list menu Wallet item	sohbet listesi menüsündeki Cüzdan öğesi
 profile menu Send Gram item	profil menüsündeki Gram Gönder öğesi
+profile menu Send a Gift item	profil menüsündeki Hediye Gönder öğesi
 TON link Send Gram item	TON bağlantısındaki Gram Gönder öğesi
 Gram transfer Send Gram item	Gram transferindeki Gram Gönder öğesi
 Premium stickers in the keyboard and packs	klavye ve paketlerdeki Premium çıkartmalar
@@ -545,6 +546,14 @@ Pulling up at the bottom of a forum topic only scrolls. Open the next topic from
 # context: Read-only local notification facts, independent of repair and Pause.
 Notification status on this phone	Bu telefondaki bildirim durumu
 local notification status	yerel bildirim durumu
+# context: A switch on the Notifications page and its summary, then the ongoing notification it shows and that notification's channel name. Keep-Alive Service is Telegram's own switch: use exactly the label Telegram shows in this language (translations.telegram.org key NotificationsService), and the same Settings > Notifications, under Other path as the notification status lines.
+Keep the Keep-Alive Service running	Canlı Tutma Hizmeti çalışmaya devam etsin
+Android stops Telegram's Keep-Alive Service soon after you leave the app, so messages wait until you open it again. With this on, the service shows a quiet notification and keeps running. It only does something while Keep-Alive Service is on in Telegram's own Settings > Notifications, under Other.	Android, uygulamadan çıktıktan kısa süre sonra Telegram'ın Canlı Tutma Hizmeti'ni durdurur ve mesajlar uygulamayı yeniden açana kadar bekler. Bu açıkken hizmet sessiz bir bildirim gösterir ve çalışmaya devam eder. Yalnızca Canlı Tutma Hizmeti, Telegram'ın kendi Ayarlar > Bildirimler sayfasında, Diğer bölümünde açıkken işe yarar.
+Keeping Telegram connected	Telegram bağlı tutuluyor
+So messages arrive on time. Tap to hide this notification.	Mesajlar zamanında gelsin diye. Bu bildirimi gizlemek için dokunun.
+Keep-Alive Service	Canlı Tutma Hizmeti
+# context: Noun phrase naming the part of Repair Firebase push registration that starts the Keep-Alive Service, listed in coverage lines with "local notification status".
+Keep-Alive Service start	Canlı Tutma Hizmeti başlatma
 Notification permission: %1$s	Bildirim izni: %1$s
 Notification ID saved on this phone: %1$s	Bu telefonda kayıtlı bildirim kimliği: %1$s
 Signed-in accounts: %1$s	Oturum açmış hesaplar: %1$s
@@ -782,6 +791,8 @@ Telegram kept some folders. Turn this off again to retry.	Telegram bazı klasör
 Telegram didn't remove the folders. Try again in a moment.	Telegram klasörleri kaldırmadı. Birazdan tekrar dene.
 # context: a short toast (two lines at most) when the folder switch is flipped while Telegram still hasn't answered the last flip.
 Telegram is still answering. Try again in a moment.	Telegram hâlâ yanıt veriyor. Birazdan tekrar dene.
+# context: Toast on Telegram's login email screen when the Google button fails, pointing at the email box above it (#19). The login still works with a typed email.
+Google sign-in failed. Type your email above.	Google girişi başarısız. E-postanı yukarıya yaz.
 Telegram refused this app's ID	Telegram bu uygulamanın kimliğini reddetti
 Telegram turned down the API ID this app signs in with, so no login code was sent. Patch HushTelegram again with Use registered Telegram API credentials and your own ID from my.telegram.org/apps. The guide walks you through it.	Telegram bu uygulamanın giriş için kullandığı API kimliğini reddetti, bu yüzden giriş kodu gönderilmedi. HushTelegram'ı Use registered Telegram API credentials ve my.telegram.org/apps adresinden aldığınız kendi kimliğinizle yeniden yamalayın. Rehber adım adım anlatıyor.
 Telegram didn't accept the API ID and hash this app was patched with, so no login code was sent. Copy both again from my.telegram.org/apps and patch once more.	Telegram bu uygulamanın yamalandığı API kimliğini ve hash değerini kabul etmedi, bu yüzden giriş kodu gönderilmedi. İkisini my.telegram.org/apps adresinden yeniden kopyalayın ve tekrar yamalayın.
@@ -979,10 +990,16 @@ Couldn't read your folders.	Klasörleriniz okunamadı.
 which folder the chat list opens on	sohbet listesinin açıldığı klasör
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Hide folder tab counters that hides the All Chats tab. All Chats is Telegram's name for the first folder tab (FilterAllChats): use the same name as the Hide All Chats switch
 the All Chats tab	Tüm Sohbetler sekmesi
+# context: Switch title under the folder tabs settings. It lets an account without Premium drag the All Chats tab. Uses the same name for All Chats as the Hide All Chats row.
+Move All Chats	Tüm Sohbetler'i taşı
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the place of the All Chats tab among the folder tabs.
+where All Chats sits	Tüm Sohbetler'in yeri
+# context: Summary under the Move All Chats switch. Uses the same names for All Chats and Hide All Chats as those rows.
+Lets you drag All Chats to another place among your folder tabs, as Premium does. The place is saved on this phone for this account, and your other devices keep All Chats first. Has no effect while Hide All Chats is on.	Tüm Sohbetler'i Premium'daki gibi klasör sekmeleriniz arasında başka bir yere sürüklemenizi sağlar. Yer bu telefonda bu hesap için saklanır, diğer cihazlarınızda Tüm Sohbetler başta kalır. Tüm Sohbetler'i gizle açıkken etkisi yoktur.
 # context: Switch on the Chat list page under Hide folder tab counters, off by default. With it on, the chats the user ticks in Chats to hide stop showing in the chat list
 Hide picked chats	Seçilen sohbetleri gizle
 # context: Summary of Hide picked chats, followed by one of the next two sentences. All Chats is Telegram's own name for the first folder tab and Archived Chats Telegram's name for the archive (ArchivedChats): use Telegram's translations
-The chats you pick below leave All Chats, your folders and archived chats. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list.	Aşağıda seçtiğiniz sohbetler Tüm Sohbetler'den, klasörlerinizden ve Arşivlenmiş sohbetler'den çıkar. Mesajları ve bildirimleri kalır, arama onları yine bulur ve diğer cihazlarınızda hiçbir şey değişmez. Her hesabın kendi listesi olur.
+The chats you pick below leave All Chats, your folders, archived chats and the forward and share lists. They keep their messages and notifications, search still finds them, and nothing changes on your other devices. Each account keeps its own list.	Aşağıda seçtiğiniz sohbetler Tüm Sohbetler'den, klasörlerinizden, Arşivlenmiş sohbetler'den ve iletme ile paylaşma listelerinden çıkar. Mesajları ve bildirimleri kalır, arama onları yine bulur ve diğer cihazlarınızda hiçbir şey değişmez. Her hesabın kendi listesi olur.
 # context: Ends the summary of Hide picked chats when this build's folder tab counts leave the hidden chats out. The app badge is the unread count on the app's icon
 Folder tab counts leave them out, but the app badge still counts their unread messages.	Klasör sekmelerindeki sayılar onları saymaz, ancak uygulama rozeti okunmamış mesajlarını saymaya devam eder.
 # context: Ends the summary of Hide picked chats when this build's folder tab counts still count the hidden chats. The app badge is the unread count on the app's icon
@@ -1039,8 +1056,20 @@ Couldn't save the language. Try again in a moment.	Dil kaydedilemedi. Birazdan t
 The translation language will change.	Çeviri dili değişecek.
 # context: Switch title under Save downloaded files. It moves the folder Telegram keeps its own downloads in from Android/data to the phone's main storage.
 Keep Telegram's files in internal storage	Telegram dosyalarını dahili depolamada tut
-# context: Summary under that switch. Internal storage/Telegram and Android/data are folder paths: translate Internal storage as Android's Files app does, keep Telegram and Android/data as they are. All files access is Android's name for the special app access page.
-New photos, videos and files Telegram downloads go to Internal storage/Telegram, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay in Android/data, and Telegram still opens them from there. Needs All files access and a restart.	Telegram'ın indirdiği yeni fotoğraf, video ve dosyalar Android/data yerine dosya yöneticilerinin ve diğer uygulamaların açabildiği Dahili depolama/Telegram klasörüne gider. Önceden indirilen dosyalar Android/data'da kalır ve Telegram onları oradan açmaya devam eder. Tüm dosyalara erişim ve yeniden başlatma gerekir.
+# context: Summary under that switch. Internal storage and Android/data are folder places: translate Internal storage as Android's Files app does, keep Android/data as it is. All files access is Android's name for the special app access page.
+New photos, videos and files Telegram downloads go to the folder below in Internal storage, where file managers and other apps can open them, instead of Android/data. Files downloaded before stay where they are, and Telegram still opens them from there. Needs All files access and a restart.	Telegram'ın indirdiği yeni fotoğraf, video ve dosyalar Android/data yerine, dosya yöneticilerinin ve diğer uygulamaların açabildiği Dahili depolama içindeki aşağıdaki klasöre gider. Önceden indirilen dosyalar olduğu yerde kalır ve Telegram onları oradan açmaya devam eder. Tüm dosyalara erişim ve yeniden başlatma gerekir.
+# context: Row under the switch that names the folder Telegram's files go in. A folder inside the phone's Internal storage.
+Folder in internal storage	Dahili depolamadaki klasör
+# context: The row's summary, a folder path. Translate Internal storage as Android's Files app does and keep %1$s, the folder's name.
+Internal storage/%1$s	Dahili depolama/%1$s
+# context: Hint in the box where the folder's name is typed.
+Folder name	Klasör adı
+# context: Text above that box. Telegram here is the default folder's name and the app's, both stay as they are.
+Telegram's files go in this folder in Internal storage, and it's made if it isn't there. Leave it empty for Telegram, and restart Telegram after a change.	Telegram'ın dosyaları Dahili depolama içindeki bu klasöre gider, klasör yoksa oluşturulur. Telegram için boş bırakın ve değişiklikten sonra Telegram'ı yeniden başlatın.
+# context: Toast when the typed folder name can't be used.
+That name won't work. Try letters and numbers.	Bu ad olmuyor. Harf ve rakam deneyin.
+# context: A line of the settings file import preview, the folder Telegram's files move to.
+The folder for Telegram's files will change.	Telegram dosyalarının klasörü değişecek.
 # context: Second line of that summary when Android has given Telegram All files access.
 All files access is on.	Tüm dosyalara erişim açık.
 # context: Second line of that summary when Android hasn't given Telegram All files access. Android/data is a folder path, keep it as it is.
@@ -1059,10 +1088,14 @@ reaction notifications without push	push olmadan tepki bildirimlerini
 Hide reactions under messages	Mesajların altındaki tepkileri gizle
 The row of reactions under each message isn't drawn. Nothing is removed, so turn it off and they're back. Tags in Saved Messages stay.	Her mesajın altındaki tepki satırı çizilmez. Hiçbir şey silinmez, kapatırsan geri gelirler. Kayıtlı Mesajlar'daki etiketler kalır.
 Hide the reaction picker	Tepki seçiciyi gizle
-The row of reactions at the top of the long-press menu and the panel it opens are gone. The rest of the menu works as before.	Uzun basma menüsünün üstündeki tepki satırı ve açtığı panel kaldırılır. Menünün geri kalanı eskisi gibi çalışır.
+The row of reactions at the top of the long-press menu, the panel it opens and the reaction bubble over a selected message are gone. The rest of the menu works as before.	Uzun basma menüsünün üstündeki tepki satırı, açtığı panel ve seçili iletinin üzerindeki tepki balonu kaldırılır. Menünün geri kalanı eskisi gibi çalışır.
+Hide the emoji pack line	Emoji paketi satırını gizle
+The line at the bottom of the long-press menu that names a message's emoji pack is gone. The rest of the menu works as before.	Uzun basma menüsünün altında iletinin emoji paketini belirten satır kaldırılır. Menünün geri kalanı eskisi gibi çalışır.
 # context: Coverage labels for the reaction row and reaction picker hooks.
 reaction rows under messages	mesajların altındaki tepki satırları
 the reaction picker in the message menu	mesaj menüsündeki tepki seçici
+the reaction bubble on selected messages	seçili mesajların üzerindeki tepki balonu
+the emoji pack line in the message menu	mesaj menüsündeki emoji paketi satırı
 # context: Switch on the Conversations page for copying text in a chat or message that doesn't allow saving (#43), its toast, and the label for the text selection part.
 Copy text from chats that don't allow saving	Kaydetmeye izin vermeyen sohbetlerden metin kopyala
 Puts Copy back in the menu of a message in a chat that doesn't allow saving, and lets you copy selected text there. Secret chats stay as they are.	Kaydetmeye izin vermeyen bir sohbetteki mesajın menüsüne Kopyala'yı geri getirir ve orada seçtiğin metni kopyalamana izin verir. Gizli sohbetler olduğu gibi kalır.
@@ -1122,3 +1155,359 @@ Recording stopped	Kayıt durduruldu
 Record call	Aramayı kaydet
 # context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the record button on the call screen.
 call record button	arama kayıt düğmesi
+# context: Switch on the Conversations page that adds Telegram's Save to Gallery to a story's three-dot menu (#52). The label is Telegram's applied translation of SaveToGallery.
+Add Save to Gallery to stories	Hikâyelere Galeriye Kaydet'i ekle
+Puts Save to Gallery in a story's three-dot menu without Premium, stories that don't allow saving included. It saves only the ones you pick.	Galeriye Kaydet'i Premium olmadan hikâyenin üç nokta menüsüne koyar, kaydetmeye izin vermeyen hikâyeler dahil. Yalnızca seçtiklerini kaydeder.
+Save to Gallery in stories	Hikâyelerde Galeriye Kaydet
+# context: Switch on the Conversations page (Discussion #34). Turned on, screenshots and screen recording work in chats, channels, their photos, profiles and stories whose owner turned on Telegram's content protection. Secret chats, view-once media and the passcode lock stay protected.
+Allow screenshots in chats that don't allow saving	Kaydetmeye izin vermeyen sohbetlerde ekran görüntüsüne izin ver
+Screenshots and screen recording work in those chats, their photos, profiles and stories. Telegram doesn't tell anyone. Secret chats, view-once media and the passcode screen stay blocked.	Ekran görüntüsü ve ekran kaydı bu sohbetlerde, fotoğraflarında, profillerinde ve hikâyelerinde çalışır. Telegram kimseye haber vermez. Gizli sohbetler, tek görüntülemelik medya ve Şifre Kilidi ekranı engelli kalır.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the switch that allows screenshots in chats that don't allow saving.
+screenshots in chats that don't allow saving	kaydetmeye izin vermeyen sohbetlerdeki ekran görüntülerini
+# context: Switch for Fast forward in the message menu (#53), its item, choices and picker.
+Add Fast forward to the message menu	Mesaj menüsüne Hızlı ilet ekle
+Adds Fast forward to a message you can forward. Pick without the sender's name, without the caption, or both, then pick a chat.	İletebileceğin bir mesaja Hızlı ilet ekler. Gönderen adı olmadan, açıklama olmadan veya ikisi de olmadan seç, sonra bir sohbet seç.
+Fast forward	Hızlı ilet
+Without sender name	Gönderen adı olmadan
+Without caption	Açıklama olmadan
+Without sender name or caption	Gönderen adı ve açıklama olmadan
+# context: Switch for Forward to Saved Messages in the message menu (#53), its item and choices.
+Add Forward to Saved Messages to the message menu	Mesaj menüsüne Kayıtlı Mesajlar'a ilet ekle
+Adds Forward to Saved Messages to a message you can forward. Pick as is, without the sender's name, without the caption, or both, and it lands in your Saved Messages at once.	İletebileceğin bir mesaja Kayıtlı Mesajlar'a ilet ekler. Olduğu gibi, gönderen adı olmadan, açıklama olmadan veya ikisi de olmadan seç, anında Kayıtlı Mesajlar'a düşer.
+Forward to Saved Messages	Kayıtlı Mesajlar'a ilet
+Forward as is	Olduğu gibi ilet
+# context: Switch for Save video cover in the message menu (#53), its item and toasts.
+Add Save video cover to the message menu	Mesaj menüsüne Video kapağını kaydet ekle
+Adds Save video cover to a video message. The biggest cover or thumbnail Telegram has goes to Pictures, fetched first if it is not on the phone yet.	Video mesajına Video kapağını kaydet ekler. Telegram'daki en büyük kapak veya küçük resim Resimler'e gider, telefonda yoksa önce indirilir.
+Save video cover	Video kapağını kaydet
+Cover saved to Pictures	Kapak Resimler'e kaydedildi
+No cover to save	Kaydedilecek kapak yok
+Cover isn't available yet	Kapak henüz hazır değil
+Couldn't save the picture	Resim kaydedilemedi
+# context: Switch for Save album art in the message menu (#53), its item and toasts.
+Add Save album art to the message menu	Mesaj menüsüne Albüm kapağını kaydet ekle
+Adds Save album art to a song that has art, inside the file or on Telegram. The picture goes to Pictures.	Kapağı olan bir şarkıya, dosyada veya Telegram'da, Albüm kapağını kaydet ekler. Resim Resimler'e gider.
+Save album art	Albüm kapağını kaydet
+Album art saved to Pictures	Albüm kapağı Resimler'e kaydedildi
+Album art isn't available yet	Albüm kapağı henüz hazır değil
+No album art to save	Kaydedilecek albüm kapağı yok
+# context: Switch for Clear from cache in the message menu (#53), its item and toasts.
+Add Clear from cache to the message menu	Mesaj menüsüne Önbellekten temizle ekle
+Adds Clear from cache to a video or file message. It stops a running download, deletes what Telegram kept of it and brings the download arrow back. Saved copies in Downloads or Pictures stay.	Video veya dosya mesajına Önbellekten temizle ekler. Süren indirmeyi durdurur, Telegram'ın sakladığını siler ve indirme okunu geri getirir. İndirilenler veya Resimler'e kaydedilen kopyalar kalır.
+Clear from cache	Önbellekten temizle
+Cleared %1$s	%1$s temizlendi
+Nothing to clear	Temizlenecek bir şey yok
+Couldn't clear that. Try again.	Temizlenemedi. Tekrar dene.
+# context: Switch under Links for cleaning a link when it is copied or pasted into the message box (#53).
+Clean links when you copy or paste	Kopyalarken veya yapıştırırken bağlantıları temizle
+A link you copy in Telegram, or paste into the message box, loses the same tracking tags. Only text that is one link and nothing else is changed.	Telegram'da kopyaladığınız ya da mesaj kutusuna yapıştırdığınız bağlantı aynı izleme etiketlerini kaybeder. Yalnızca tek bir bağlantıdan oluşan metin değişir.
+copied links	kopyalanan bağlantılar
+pasted links	yapıştırılan bağlantılar
+# context: Third switch under Faster downloads on the Playback page (#53). An upload is sending a file to Telegram; pieces are the chunks it is cut into.
+Faster uploads	Daha hızlı yüklemeler
+Uploads keep four times as many pieces on their way at once. Telegram's servers still decide how fast an account can send. The next upload picks this up.	Yüklemeler aynı anda dört kat daha fazla parçayı yolda tutar. Bir hesabın ne kadar hızlı gönderebileceğine yine Telegram'ın sunucuları karar verir. Sonraki yükleme bunu kullanır.
+uploads	yüklemeler
+# context: Switch on the Ads page, under Block new channels and groups (#53). A secret chat is Telegram's end-to-end encrypted one-to-one chat; use Telegram's own word for it.
+Disable secret chats	Gizli sohbetleri devre dışı bırak
+When someone asks for a secret chat, this phone ignores it. Nothing is saved or shown, and nothing is sent back, so they just see it waiting. Secret chats you already have keep working.	Biri gizli sohbet istediğinde bu telefon isteği yok sayar. Hiçbir şey kaydedilmez ya da gösterilmez ve geri hiçbir şey gönderilmez, karşı taraf yalnızca bekliyor görür. Zaten sahip olduğunuz gizli sohbetler çalışmaya devam eder.
+secret chat requests	gizli sohbet istekleri
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. With it on, the chat list orders the unpinned chats by the date of their last message
+Sort chats by date	Sohbetleri tarihe göre sırala
+# context: Summary of Sort chats by date. Pinned chats stay at the top and the archive row stays where it is; only this phone's view changes
+Orders your unpinned chats by the date of their last message. Pinned chats and the archive row keep their places. It only changes how this phone shows the list, and nothing is sent to Telegram.	Sabitlenmemiş sohbetlerini son mesajlarının tarihine göre sıralar. Sabitlenmiş sohbetler ve arşiv satırı yerinde kalır. Yalnızca bu telefonun listeyi nasıl gösterdiği değişir ve Telegram'a hiçbir şey gönderilmez.
+# context: Switch title under Sort chats by date. With it on, the chat with the oldest last message comes first
+Oldest chats first	Önce en eski sohbetler
+# context: Summary of Oldest chats first. Sort chats by date is the title of the switch above it
+With Sort chats by date on, the chat with the oldest last message comes first instead of the newest.	Sohbetleri tarihe göre sırala açıkken, en yeni yerine son mesajı en eski olan sohbet başa gelir.
+# context: Switch title under Hide picked chats on the Chat list page, off by default. With it on, the hidden chats ask for the Telegram app passcode
+Passcode for hidden chats	Gizli sohbetler için parola
+# context: Summary of Passcode for hidden chats. Says plainly it only guards this settings page and that search still finds the chats
+Opening the list of hidden chats, and turning off Hide picked chats or this switch, asks for your Telegram passcode first. It uses the passcode you already set in Telegram, and it only guards this settings page. Anyone who can open Telegram can still find the hidden chats through search.	Gizli sohbetlerin listesini açmak veya Seçilen sohbetleri gizle ya da bu anahtarı kapatmak önce Telegram parolanı ister. Telegram'da zaten belirlediğin parolayı kullanır ve yalnızca bu ayarlar sayfasını korur. Telegram'ı açabilen biri gizli sohbetleri yine de aramayla bulabilir.
+# context: Toast when Passcode for hidden chats is switched on but the Telegram app has no passcode yet
+Set a Telegram passcode first.	Önce Telegram'da bir parola belirle.
+# context: Dialog title when the Telegram passcode is asked for before the hidden chats open or their switch turns off
+Passcode needed	Parola gerekli
+# context: Row summary of Chats to hide while Passcode for hidden chats is on; the names stay out of sight
+Locked with your Telegram passcode.	Telegram parolanla kilitli.
+# context: Hint in the passcode box that asks for the Telegram app passcode
+Telegram passcode	Telegram parolası
+# context: Instruction above the passcode box that asks for the Telegram app passcode
+Type the passcode you use to unlock Telegram.	Telegram'ın kilidini açmak için kullandığın parolayı yaz.
+# context: Button on the passcode dialog that checks the typed passcode
+Unlock	Kilidi aç
+# context: Shown under the passcode box after a wrong passcode
+That's not your passcode.	Bu senin parolan değil.
+# context: Shown under the passcode box after five wrong passcodes in a row; %1$s is the number of seconds to wait
+Too many tries. Wait %1$s seconds and try again.	Çok fazla deneme. %1$s saniye bekle ve tekrar dene.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line such as 'the patch could not find %1$s'. It names the chat list's order by date
+chat list ordered by date	sohbet listesinin tarihe göre sıralanması
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line such as 'the patch could not find %1$s'. It names the passcode check that guards the hidden chats
+the app passcode for hidden chats	gizli sohbetler için uygulama parolası
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. With it on, the side menu gets an Administrators row
+Administrators row in the side menu	Yan menüde Yöneticiler satırı
+# context: Summary of the Administrators row switch. The side menu is the menu Hush brings back on the left of the chat list; Administrators is the row's name
+Adds an Administrators row to the side menu, so one tap lists only the groups and channels you own or manage and another brings every chat back. It needs the side menu switch on, only changes how this phone lists chats, and starts off again when Telegram restarts.	Yan menüye bir Yöneticiler satırı ekler. Bir dokunuş yalnızca sahibi olduğun veya yönettiğin grupları ve kanalları listeler, bir dokunuş daha tüm sohbetleri geri getirir. Yan menü anahtarının açık olması gerekir, yalnızca bu telefonun sohbetleri nasıl listelediğini değiştirir ve Telegram yeniden başlayınca yine kapanır.
+# context: Side menu row name, and the Hide folder tab counters switch's name for it. Groups and channels the user owns or administers
+Administrators	Yöneticiler
+# context: Side menu row name while the Administrators filter is on; a tap brings every chat back
+Show all chats	Tüm sohbetleri göster
+# context: Toast after the Administrators row is tapped and the chat list shows only the chats the user owns or manages
+Showing chats you manage.	Yönettiğin sohbetler gösteriliyor.
+# context: Toast after the Administrators row is tapped again and every chat is back
+Showing all chats.	Tüm sohbetler gösteriliyor.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the Administrators filter in the side menu
+the Administrators filter	Yöneticiler filtresi
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It hides signed-in accounts from Telegram's account lists
+Hide accounts	Hesapları gizle
+# context: Summary of the Hide accounts switch. It must say plainly that this only hides accounts from the account lists: they stay signed in and notifications follow Telegram's own settings. Nothing is signed out or deleted
+The accounts you pick below leave Telegram's account lists, but only there. Each one stays signed in, keeps syncing, and its notifications follow Telegram's own settings. Nothing is signed out or deleted, and the account you're using always shows.	Aşağıda seçtiğin hesaplar Telegram'ın hesap listelerinden çıkar, ama yalnızca oralardan. Her biri oturum açık kalır, eşitlenmeye devam eder ve bildirimleri Telegram'ın kendi ayarlarını izler. Hiçbir şeyden çıkış yapılmaz ya da silinmez, kullandığın hesap da her zaman görünür.
+# context: Settings row title and the title of its list. The list shows every signed-in account with a tick box; ticked accounts are left out of Telegram's account lists
+Accounts to hide	Gizlenecek hesaplar
+# context: Switch title under Hide accounts. With it on, the hidden accounts list and the switches need Telegram's own app passcode
+Passcode for hidden accounts	Gizli hesaplar için parola
+# context: Summary of the passcode switch for hidden accounts. The passcode is the app passcode set in Telegram's own settings
+Opening the list of hidden accounts, and turning off Hide accounts or this switch, asks for your Telegram passcode first. It uses the passcode you already set in Telegram, and it only guards this settings page.	Gizli hesaplar listesini açmak ve Hesapları gizle ya da bu anahtarı kapatmak önce Telegram parolanı ister. Telegram'da zaten belirlediğin parola kullanılır ve yalnızca bu ayar sayfasını korur.
+# context: Sentence shown beside the Accounts to hide row when no account is hidden
+No accounts hidden yet.	Henüz gizlenen hesap yok.
+# context: Toast when the signed-in accounts could not be read from Telegram
+Couldn't read your accounts.	Hesapların okunamadı.
+# context: Toast when the Accounts to hide row is tapped with only one account signed in
+Sign in to a second account first.	Önce ikinci bir hesapla oturum aç.
+# context: Toast when every signed-in account is ticked in Accounts to hide; one account must always stay in the account lists
+Keep at least one account showing.	En az bir hesap görünür kalsın.
+# context: Toast when the ticked accounts could not be written to storage
+Couldn't save the accounts. Try again in a moment.	Hesaplar kaydedilemedi. Birazdan tekrar dene.
+# context: Name of an account that has no name Telegram can give yet, with its position among the signed-in accounts. %1$s is the number
+Account %1$s	Hesap %1$s
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that hides accounts from Telegram's account lists
+the hidden accounts	gizli hesaplar
+# context: Switch title on the Chat list page under Hide folder tab counters, off by default. It shrinks the folder tabs above the chat list until all of them fit on the screen
+Fit all folder tabs	Tüm klasör sekmelerini sığdır
+# context: Summary of the Fit all folder tabs switch. The folder tabs shrink so none of them scrolls out of sight; with few folders nothing changes
+Shrinks the folder tabs above the chat list until all of them fit on the screen, so you never scroll sideways to find one. With only a few folders nothing changes.	Sohbet listesinin üstündeki klasör sekmelerini hepsi ekrana sığana kadar küçültür, böylece birini bulmak için yana kaydırman gerekmez. Klasör azsa hiçbir şey değişmez.
+# context: Lowercase noun phrase naming a part of Hide folder tab counters in a diagnostic line. It names the switch that shrinks the folder tabs to fit the screen
+the fitted folder tabs	sığdırılmış klasör sekmeleri
+# context: Switch under Privacy for Receive only mode, per account (#53).
+Receive only mode	Yalnızca alma modu
+The accounts you pick below can read but not write. Messages, reactions, drafts and typing stay on this phone and show an error. Reading, files and read receipts work. Works with this switch on.	Aşağıda seçtiğiniz hesaplar okuyabilir ama yazamaz. Mesajlar, tepkiler, taslaklar ve yazıyor bilgisi bu telefonda kalır ve hata gösterir. Okuma, dosyalar ve okundu bilgisi çalışır. Bu anahtar açıkken geçerlidir.
+# context: Switch under Privacy for Power off accounts, per account (#53).
+Power off accounts	Hesapları kapat
+The accounts you pick below send nothing. Telegram's connection can still stay open in the background, so it may still receive messages and notifications. Works with this switch on.	Aşağıda seçtiğiniz hesaplar hiçbir şey göndermez. Telegram'ın bağlantısı arka planda açık kalabilir, bu yüzden mesaj ve bildirimler yine de gelebilir. Bu anahtar açıkken geçerlidir.
+# context: Summary under a per-account switch in Power off accounts (#53).
+Powered off	Kapalı
+# context: Summary under a per-account switch in Receive only mode (#53).
+Receive only	Yalnızca alma
+# context: Short tag in front of an account name in the side menu: powered off (#53).
+(Off)	(Kapalı)
+# context: Short tag in front of an account name in the side menu: receive only (#53).
+(Read only)	(Salt okunur)
+# context: Toast when a powered-off account tries to send (#53). Two lines of 28 characters at most.
+This account is powered off.	Bu hesap kapalı.
+# context: Toast when a receive-only account tries to write (#53). Two lines of 28 characters at most.
+Receive only mode is on.	Yalnızca alma modu açık.
+# context: Switch under Conversations: typed @ and a user ID becomes a real mention (#53).
+Mention by ID	Kimlikle bahset
+Typing @ and a user ID, or tg://user?id= and the ID, turns into a real mention. It only works for people this app has already seen, such as in a chat or group. Anyone else is sent as typed.	@ ve bir kullanıcı kimliği ya da tg://user?id= ve kimliği yazarsanız gerçek bir bahsetmeye dönüşür. Yalnızca bu uygulamanın daha önce gördüğü kişilerde, örneğin bir sohbette veya grupta çalışır. Diğerleri yazdığınız gibi gönderilir.
+# context: Toast when a typed @ and ID names someone this app has not seen (#53). Two lines of 28 characters at most.
+I haven't seen that person.	Bu kişiyi görmedim.
+# context: Names of optional parts in the patch status list (#53).
+mentions by ID	ID ile bahsetmeler
+powering off accounts	hesapları kapatma
+receive only mode	yalnızca alma modu
+# context: Switch on the Playback page for remembering where videos, voice messages and music stopped (#53). Telegram only does this for long ones.
+Remember where playback stopped	Oynatmanın nerede durduğunu hatırla
+# context: Summary of the switch Remember where playback stopped. Telegram itself only remembers the position of long videos, voice messages and songs.
+Videos, voice messages and music pick up where you left off, even short ones. Telegram only does that for long ones.	Videolar, sesli mesajlar ve müzik, kısa olsalar bile kaldığınız yerden devam eder. Telegram bunu yalnızca uzun olanlar için yapar.
+# context: Title of a switch under Add Repeat to the message menu (#53), and the label of the button it adds to the bar that shows while messages are selected. Tapping the button selects every message between the first and last one already selected.
+Select between	Arasını seç
+# context: Summary of the Select between switch. The bar is the one that appears at the top of a chat while messages are selected.
+Adds a Select between button to the bar that shows while you pick messages. It selects everything between the first and last one you picked. Pick one past the end and the gap fills in.	Mesaj seçerken beliren çubuğa Arasını seç düğmesi ekler. Seçtiğin ilk ve son mesajın arasındakilerin hepsini seçer. Ucun ötesinde bir mesaj seç, aradaki boşluk dolar.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Select between button.
+selecting everything between two messages	iki mesajın arasındakileri seçme
+# context: Toast after tapping Select between with fewer than two messages selected.
+Select two messages first	Önce iki mesaj seç
+# context: Toast from Select between when a selected message has scrolled out of what the chat has loaded, so the range can't be known.
+Those messages aren't all loaded	Hepsi yüklenmedi
+# context: Toast from Select between when the selected messages are next to each other or the ones between can't be selected.
+Nothing in between to select	Arada bir şey yok
+# context: Toast from Select between when Telegram's limit of 100 selected messages is reached.
+Stopped at 100 messages	100 mesajda durdu
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Remember where playback stopped switch.
+remembering where playback stopped	oynatmanın kaldığı yeri hatırlama
+# context: Settings row for the icon pack drawn beside folder names, and the title of its list.
+Folder icons	Klasör simgeleri
+# context: Folder icon pack choice: the thin-line style.
+Regular	Normal
+# context: Folder icon pack choice: the heavy-line style.
+Bold	Kalın
+# context: Folder icon pack choice: the solid, filled style.
+Filled	Dolu
+# context: Folder icon pack choice: draw no icons.
+None	Yok
+# context: Toast when the folder icon choice couldn't be saved.
+Couldn't save the choice. Try again in a moment.	Seçim kaydedilemedi. Birazdan tekrar dene.
+# context: Summary of the Folder icons row. %1$s is the chosen pack (Regular, Bold, Filled or None).
+%1$s. Icons show beside folder names in HushTelegram's own lists. Telegram's folder tabs stay as they are.	%1$s. Simgeler, HushTelegram'ın kendi listelerinde klasör adlarının yanında görünür. Telegram'ın klasör sekmeleri olduğu gibi kalır.
+# context: Settings row that makes downloads run one at a time. Its list is in the side menu.
+Download manager	İndirme yöneticisi
+# context: Summary of the Download manager row.
+Files download one at a time, in the order you asked for them. Adds a Downloads row to the side menu, which needs Side menu on too.	Dosyalar istediğin sırayla tek tek iner. Yan menüye bir İndirilenler satırı ekler, bunun için Yan menü de açık olmalı.
+# context: Side menu row and title of the list of running, waiting and finished downloads.
+Downloads	İndirilenler
+# context: State of the download running now, in the Downloads list. A size may follow after a comma.
+Downloading	İndiriliyor
+# context: State of a download waiting its turn, in the Downloads list. A size may follow after a comma.
+Waiting	Bekliyor
+# context: State of a finished download, in the Downloads list. A size may follow after a comma.
+Finished	Bitti
+# context: Shown in the Downloads list when nothing has been downloaded.
+No downloads yet	Henüz indirme yok
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Download manager part of Faster downloads: running downloads one at a time with a list in the side menu
+download manager	indirme yöneticisi
+# context: Title of the Save downloads row and list that pick which kinds of files get copied to Download/Telegram
+What to copy	Neler kopyalanacak
+# context: Kind of file in the What to copy list: any file that isn't a picture, video or sound file
+Documents	Belgeler
+# context: Kind of file in the What to copy list: songs and other sound files
+Music	Müzik
+# context: Kind of file in the What to copy list
+Photos	Fotoğraflar
+# context: Kind of file in the What to copy list
+Videos	Videolar
+# context: Kind of file in the What to copy list: view-once and timed voice messages
+Voice messages	Sesli mesajlar
+# context: What to copy row summary when every kind is ticked
+Every kind of file.	Her tür dosya.
+# context: What to copy row summary; %1$s is the ticked kinds joined into a list, like "Documents and Music"
+Only %1$s. The rest stay in Telegram.	Yalnızca %1$s. Gerisi Telegram'da kalır.
+# context: Toast when Save is tapped in What to copy with nothing ticked
+Tick at least one kind of file.	En az bir dosya türü işaretleyin.
+# context: Toast when the ticked kinds couldn't be written to the phone's storage
+Couldn't save the kinds. Try again in a moment.	Türler kaydedilemedi. Birazdan tekrar deneyin.
+# context: In the settings import preview, What to copy leaving no kind of file out, as in "What to copy: Every kind to Documents and Photos"
+Every kind	Tüm türler
+# context: a switch under Keep videos muted on volume keys (#61). With it on, a video opened in Telegram's video viewer plays with no sound until a volume key is pressed.
+Start videos without sound	Videoları sessiz başlat
+# context: that switch's summary. A round video is Telegram's circular video message, which plays in the chat and keeps its sound.
+A video you open plays muted until you press a volume key. Round videos keep their sound.	Açtığın bir video, bir ses tuşuna basana kadar sessiz oynar. Yuvarlak videolar seslerini korur.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the part of Keep videos muted on volume keys that starts opened videos without sound.
+videos starting without sound	videoları sessiz başlatma
+# context: a switch under Ghost mode (#62). With it on, a ghost button sits at the top of the chat list, among Telegram's own buttons there.
+Ghost mode button	Hayalet modu düğmesi
+# context: that switch's summary. Filled means the ghost icon is drawn solid rather than as an outline.
+A ghost at the top of the chat list turns Ghost mode on and off with a tap. It's filled while Ghost mode is on.	Sohbet listesinin üstündeki hayalet, Hayalet modunu tek dokunuşla açıp kapatır. Hayalet modu açıkken içi dolu görünür.
+# context: short message shown after a tap on the chat list's ghost button turned Ghost mode on.
+Ghost mode on	Hayalet modu açık
+# context: short message shown after a tap on the chat list's ghost button turned Ghost mode off.
+Ghost mode off	Hayalet modu kapalı
+# context: a switch on the Chat list page (#59). It lets Telegram's sign-in screen offer its own test servers, which Telegram keeps for developers and which hold separate test accounts.
+Test server sign-in	Test sunucusunda oturum açma
+# context: that switch's summary. "Test Backend" is the checkbox under the phone number field on Telegram's sign-in screen, written with Telegram's applied label for this language (key DebugTestBackend on translations.telegram.org; Bulgarian has none applied, so Telegram shows the English "Test Backend" there).
+Signing in or adding an account shows Telegram's Test Backend box on the phone number screen. Tick it to sign that account in on Telegram's test servers, kept apart from your other accounts.	Oturum açarken veya hesap eklerken telefon numarası ekranında Telegram'ın Backend'i Test Et kutusu görünür. Bu hesapla Telegram'ın test sunucularında, diğer hesaplarınızdan ayrı olarak oturum açmak için kutuyu işaretleyin.
+# context: a switch on the Look and feel page under Show user and chat IDs (#53). With it on, a person's profile menu offers Track this user, and the people tracked get a history.
+Special contacts	Özel kişiler
+# context: that switch's summary. Track this user is the profile menu row it adds, translated the same as that row.
+A person's profile menu gets Track this user. For anyone you track, a history builds up from what Telegram already shows you: coming online and going offline, typing, and changes to their name, username, phone number, photo or contacts. Nothing extra is asked of Telegram, and the history stays on this phone.	Bir kişinin profil menüsüne Bu kullanıcıyı izle eklenir. İzlediğin her kişi için Telegram'ın sana zaten gösterdiklerinden bir geçmiş oluşur: çevrimiçi ve çevrimdışı olması, yazması ve adında, kullanıcı adında, telefon numarasında, fotoğrafında veya kişilerinde yapılan değişiklikler. Telegram'dan fazladan bir şey istenmez ve geçmiş bu telefonda kalır.
+# context: Lowercase noun phrase filling %1$s or %2$s in "This patched app changes %1$s but not %2$s." It names the Special contacts part of Show user and chat IDs.
+special contacts	özel kişiler
+# context: a row in a person's profile menu (the three dots on their profile) with Special contacts on. A tap starts keeping a history of that person.
+Track this user	Bu kullanıcıyı izle
+# context: the same profile menu row for someone already tracked, and the button in that person's history that stops tracking them
+Stop tracking	İzlemeyi bırak
+# context: short message after Stop tracking
+Stopped tracking	İzleme bırakıldı
+# context: short message after Track this user
+Tracking this user	Bu kullanıcı izleniyor
+# context: short message when Track this user is tapped with 50 people already tracked on this account
+You can track up to 50 people	En fazla 50 kişiyi izleyebilirsin
+# context: short message when Track this user couldn't write to the phone's storage
+Couldn't start tracking	İzleme başlatılamadı
+# context: summary of the Tracked people row when nobody is tracked on the account shown
+Nobody yet. Track someone from their profile's menu.	Henüz kimse yok. Birini profil menüsünden izle.
+# context: summary of the Tracked people row; %1$d is how many people are tracked on the account shown
+%1$d person tracked	%1$d kişi izleniyor
+%1$d people tracked	%1$d kişi izleniyor
+# context: the Tracked people row on the Look and feel page, and the title of the list it opens
+Tracked people	İzlenen kişiler
+# context: short message when the tracked people couldn't be read from the phone's storage
+Couldn't read the list.	Liste okunamadı.
+# context: short message when Tracked people is tapped with nobody tracked
+Nobody tracked yet	Henüz kimse izlenmiyor
+# context: button in a tracked person's history that empties it and keeps tracking them
+Clear history	Geçmişi temizle
+# context: short message after Clear history
+History cleared	Geçmiş temizlendi
+# context: a tracked person's history with nothing in it
+No history yet	Henüz geçmiş yok
+# context: history line, after a date and time: tracking this person began
+Started tracking	İzleme başladı
+# context: history line, after a date and time: the tracked person came online. Every history line has the person as its unspoken subject.
+Came online	Çevrimiçi oldu
+# context: history line: the person went offline; %1$s is the date and time Telegram gives as their last seen
+Went offline, last seen %1$s	Çevrimdışı oldu, son görülme %1$s
+# context: history line: the person went offline, with no last seen time to show
+Went offline	Çevrimdışı oldu
+# context: history line: Telegram now shows the person's last seen only as recently, the way it does when they hide the exact time
+Last seen recently	Son görülme yakın zamanda
+# context: history line: Telegram now shows the person's last seen as within a week
+Last seen within a week	Son görülme bir hafta içinde
+# context: history line: Telegram now shows the person's last seen as within a month
+Last seen within a month	Son görülme bir ay içinde
+# context: history line: Telegram now shows the person's last seen as a long time ago
+Last seen a long time ago	Son görülme uzun zaman önce
+# context: history line: the person was typing in your chat with them
+Typing	Yazıyor
+# context: history line: the person was typing in a group or channel; %1$s is its name
+Typing in %1$s	%1$s içinde yazıyor
+# context: history line; %1$s is the old name and %2$s the new one (or the word none)
+Changed name from %1$s to %2$s	Adını %1$s yerine %2$s olarak değiştirdi
+# context: history line; %1$s is the old @username and %2$s the new one (or the word none)
+Changed username from %1$s to %2$s	Kullanıcı adını %1$s yerine %2$s olarak değiştirdi
+# context: history line; %1$s is the old phone number and %2$s the new one
+Changed phone number from %1$s to %2$s	Telefon numarasını %1$s yerine %2$s olarak değiştirdi
+# context: history line: the person set a profile photo where they had none
+Added a profile photo	Profil fotoğrafı ekledi
+# context: history line
+Removed their profile photo	Profil fotoğrafını kaldırdı
+# context: history line
+Changed their profile photo	Profil fotoğrafını değiştirdi
+# context: history line: you (the phone's owner) saved the tracked person as a contact
+You saved them to your contacts	Kişiyi rehberine kaydettin
+# context: history line: you removed the tracked person from your contacts
+You removed them from your contacts	Kişiyi rehberinden sildin
+# context: history line: the tracked person saved you as a contact (Telegram shows this as a mutual contact)
+Added you to their contacts	Seni rehberine ekledi
+# context: history line
+Removed you from their contacts	Seni rehberinden çıkardı
+# context: history line. Telegram never says who blocked you, so this is a guess from the profile photo and last seen both disappearing at once.
+May have blocked you. A guess: their photo and last seen went away together.	Seni engellemiş olabilir. Bir tahmin: fotoğrafı ve son görülmesi aynı anda kayboldu.
+# context: history line after a May have blocked you line, when the photo or last seen shows again
+May have unblocked you. A guess: their photo or last seen came back.	Engelini kaldırmış olabilir. Bir tahmin: fotoğrafı veya son görülmesi geri geldi.
+# context: history line: Telegram now shows the person as Deleted Account
+Deleted their account	Hesabını sildi
+# context: a switch on the Chat list page (#53). It adds a button to Telegram's phone number screen that signs the account in as a bot made with @BotFather, using the bot's token instead of a phone number.
+Bot token sign-in	Bot jetonuyla oturum açma
+# context: that switch's summary. "Sign in with a bot token" is the button it adds, written here the way that button's own row translates it.
+Signing in or adding an account shows a Sign in with a bot token button on the phone number screen. Paste the token from @BotFather to use that account as your bot. A chat shows up once someone messages the bot, without older history, and a bot has no contacts, stickers or folders. A bot with a webhook set, or one another program is reading, may not get its messages here. Turning this off only hides the button.	Oturum açarken veya hesap eklerken telefon numarası ekranında Bot jetonuyla oturum aç düğmesi görünür. Bu hesabı botunuz olarak kullanmak için @BotFather'dan aldığınız jetonu yapıştırın. Biri bota yazınca bir sohbet görünür, eski geçmişi olmadan, ve botun kişileri, çıkartmaları veya klasörleri olmaz. Webhook ayarlı bir bot veya başka bir programın okuduğu bir bot mesajlarını burada almayabilir. Bunu kapatmak yalnızca düğmeyi gizler.
+# context: the button the switch adds under the phone number on Telegram's sign-in screen, and the title of the box it opens.
+Sign in with a bot token	Bot jetonuyla oturum aç
+# context: the box's button that sends the bot token to Telegram.
+Sign in	Oturum aç
+# context: the hint inside the box's text field, where the bot token is pasted.
+Bot token	Bot jetonu
+# context: the line above that field. @BotFather is the Telegram bot that makes bots and hands out their tokens.
+Paste the token @BotFather gave your bot. It goes only to Telegram, which keeps it with the account like any sign-in.	@BotFather'ın botunuza verdiği jetonu yapıştırın. Jeton yalnızca Telegram'a gider ve Telegram onu her oturum açmada olduğu gibi hesapla birlikte saklar.
+# context: shown under the field after Sign in, until Telegram answers.
+Waiting for Telegram.	Telegram bekleniyor.
+# context: short message when Telegram gave no sign-in for the bot token, or the request couldn't go out.
+Telegram didn't sign the bot in.	Telegram botla oturum açmadı.
+# context: short message when what was typed doesn't have a bot token's shape (digits, a colon, then 35 letters and digits).
+That isn't a bot token.	Bu bir bot jetonu değil.
+# context: short message when Telegram says the bot token is wrong.
+That bot token isn't valid.	Bu bot jetonu geçerli değil.
+# context: short message when Telegram says the bot token was revoked in @BotFather.
+That bot token was revoked.	Bu bot jetonu iptal edilmiş.
+# context: short message when Telegram asks to wait before trying again. %1$s is a number of seconds.
+Wait %1$s seconds, then try again.	%1$s saniye bekleyin, sonra tekrar deneyin.
+# context: short message when Telegram refuses the sign-in with an error code of its own. %1$s is that code, in capitals, as Telegram sends it.
+Telegram refused it: %1$s	Telegram reddetti: %1$s

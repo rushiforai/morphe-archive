@@ -634,7 +634,7 @@ Hide the floating promotional badge over the feed.	Akışın üzerindeki yüzen 
 Hide the follow button on the feed	Akıştaki takip et düğmesini gizle
 Hide the friend recommendation card and the other cards TikTok slots between videos.	Arkadaş öneri kartını ve TikTok'un videoların arasına yerleştirdiği diğer kartları gizle.
 Hide the launcher shortcuts	Başlatıcı kısayollarını gizle
-Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.	Akışın sağ üstündeki büyüteci gizle. Gelen Kutusu'ndaki arama ve yorumların üzerindeki öneriler değişmez.
+Hide the magnifying glass at the top right of the feed and the one over the video while comments are open. Search in Inbox and suggestions above comments stay unchanged.	Akışın sağ üstündeki büyüteci ve yorumlar açıkken videonun üstündeki büyüteci gizle. Gelen Kutusu'ndaki arama ve yorumların üzerindeki öneriler değişmez.
 Hide the music line	Müzik satırını gizle
 Hide the playlist bar	Oynatma listesi çubuğunu gizle
 Hide the playlist bar along the bottom of videos that belong to a series.	Bir seriye ait videoların alt kısmındaki oynatma listesi çubuğunu gizle.
@@ -2188,7 +2188,6 @@ Picked %1$s. Save, then tap Pick all for more.	%1$s seçildi. Kaydet, sonra Tüm
 All loaded items are picked or saved. Scroll for more.	Yüklenenlerin hepsi seçildi ya da kaydedildi. Kaydır.
 
 Record LIVEs you watch	İzlediğin LIVE'ları kaydet
-Adds a Record button to LIVE rooms. A recording starts when you tap it and ends when you tap Stop or leave the room. Nothing before that is saved.	LIVE odalarına bir Kaydet düğmesi ekler. Kayıt ona dokunduğunda başlar, Durdur'a dokunduğunda veya odadan çıktığında biter. Öncesinde olanlar kaydedilmez.
 Record	Kaydet
 Stop	Durdur
 Stop recording this LIVE	Bu LIVE'ın kaydını durdur
@@ -2609,3 +2608,37 @@ Hide the expand button in comments	Yorumlarda genişletme düğmesini gizle
 Hides the X at the top of the comments, and the buttons next to it move over to fill the gap. Use Back or swipe down to close comments.	Yorumların üstündeki X'i gizler, yanındaki düğmeler boşluğu doldurmak için kayar. Yorumları kapatmak için Geri'yi kullan veya aşağı kaydır.
 # context: Summary under the expand button switch; Open the comments at full height is another switch's title
 Hides the button that stretches the comments over the whole screen. Turn on Open the comments at full height to have them open that way.	Yorumları tüm ekrana yayan düğmeyi gizler. Yorumların hep böyle açılması için Yorumları tam yükseklikte aç'ı aç.
+# context: Switch title in the Clear display section; the button is a small eye drawn over the main feed
+Invisible controls button	Görünmez kontroller düğmesi
+A small eye button at the top left of the main feed. Tap it and the buttons, caption and tabs go invisible but still take taps, which helps against burn-in on OLED screens. Tap it again to bring them back. They stay the way you left them across videos and restarts. Videos you open from a profile or search keep their controls.	Ana akışın sol üstünde küçük bir göz düğmesi. Dokununca düğmeler, açıklama ve sekmeler görünmez olur ama dokunuşları almaya devam eder, bu da OLED ekranlarda ekran yanmasına karşı yardımcı olur. Geri getirmek için tekrar dokun. Videolar ve yeniden başlatmalar boyunca bıraktığın gibi kalırlar. Bir profilden veya aramadan açtığın videolar kontrollerini korur.
+Keep the caption in sight	Açıklamayı görünür tut
+While the controls are invisible on the main feed, the creator's name, the caption and the music line stay in sight.	Ana akışta kontroller görünmezken içerik üreticisinin adı, açıklama ve müzik satırı görünür kalır.
+# context: Spoken label of that eye button while the controls show
+Make the controls invisible	Kontrolleri görünmez yap
+# context: Spoken label of that eye button while the controls are invisible
+Show the controls	Kontrolleri göster
+# context: Share sheet settings row; hides TikTok's gray Send to new group button that shows beside Send separately once two or more people are picked (#375)
+Hide Send to new group	Yeni gruba gönder düğmesini gizle
+# context: summary of Hide Send to new group; Send separately is TikTok's red button that stays (#375)
+Hides the button that turns the people you picked into a new group chat. Send separately stays.	Seçtiğin kişilerden yeni bir grup sohbeti oluşturan düğmeyi gizler. Ayrı ayrı gönder kalır.
+# context: Switch in Hushfeed settings > App > Appearance (#372)
+AMOLED dark mode	AMOLED karanlık mod
+# context: Summary under the AMOLED dark mode switch
+Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	Karanlık modu yama sırasında seçilen renkle doldurur, başka bir renk seçilmediyse tam siyah. TikTok'un kendi koyu grileri için kapat. Aydınlık mod değişmez. Değişikliği görmek için TikTok'u yeniden başlat.
+# context: Switch in Hushfeed settings > App, under the startup message rows (#377)
+Check for Hushfeed updates	Hushfeed güncellemelerini denetle
+# context: Summary under the Check for Hushfeed updates switch
+Once a day when TikTok opens, ask GitHub if a newer Hushfeed is out and show a card when it is. The request carries your Hushfeed version and nothing else.	Günde bir kez, TikTok açıldığında GitHub'a daha yeni bir Hushfeed çıkıp çıkmadığını sorar ve çıktıysa bir kart gösterir. İstek yalnızca Hushfeed sürümünü içerir.
+# context: Title of the card shown when a newer release is out; %1$s is its version, like v0.82.0
+Hushfeed %1$s is out	Hushfeed %1$s çıktı
+# context: Text of that card; %1$s is the installed version. Morphe Manager is an app name
+You have %1$s. Update the patches in Morphe Manager, then patch TikTok again.	Sende %1$s var. Morphe Manager'da yamaları güncelle, sonra TikTok'u yeniden yamala.
+# context: Button on that card that opens Morphe Manager
+Update	Güncelle
+# context: Button on that card that hides it for this release
+Dismiss	Yoksay
+# context: Last line of the update card when the release notes have more bullets than it lists; %1$s is how many
+%1$s more in the release notes	Sürüm notlarında %1$s tane daha
+Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.	LIVE odalarına Kaydet düğmesi ekler. Kaydı başlatmak veya durdurmak için dokun. Odadan çıkınca kayıt da durur.
+Automatically record LIVEs you enter	Girdiğin LIVE yayınlarını otomatik kaydet
+Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.	Bir LIVE odasına girdiğinde yayını kaydetmeye başlar. Durdurduktan sonra odadan çıkıp yeniden girene kadar kayıt başlamaz. Ekran kaydı için yine dokunman ve Android izni gerekir.

@@ -1,5 +1,47 @@
 # Google Maps Android Auto 機車路線研究
 
+更新：2026-11-08（第三階段）。狀態：**已在實機（Galaxy S25 + headunit 模擬車機，USB）驗證：Android Auto 車機上以 Maps 原生介面導航，路線為機車路線（例：板橋→高雄約 8 小時、不上國道），可連續導航多個目的地。**第一、二階段紀錄保留於下方作為研究基線。
+
+## 第三階段：實機可用組合（2026-11-08）
+
+### 安裝組合
+
+Morphe Manager（Expert mode），Google Maps 26.44.06.1006895251 APKM：
+
+| Source | Patch |
+|---|---|
+| Dutch App Patches v1.53.9，**本地修正版** `patches-1.53.9-aa-fix2.mpp`（Local source） | 「Enable recommended patches」預設組合 + `Add microG-RE support` |
+| Maps two-wheeler experiment v0.5.0（本 repo） | `Allow any travel mode on Android Auto`、`Always two-wheeler on Android Auto`、`Skip private Android Auto car connection`；**不選** `Two-wheeler instead of driving`（選配：汽車也改機車）與 `Experimental projected CAR two-wheeler routing`（同改 `btxk.h`） |
+
+另需：MicroG-RE 自建版（fork `shuili1013/MicroG-RE`），Android Auto 開發人員設定「不明來源」。原廠 Maps 保留不動（Android Auto 無法隱藏它）。v0.5.0 實測（2026-11-08）：Ungoogled Maps 在車機上選機車走機車路線、選汽車走汽車路線，不再出現「switch to ... directions」，可連續導航。
+
+### 依序解決的問題（皆有 logcat 證據）
+
+1. **MicroG 不信任 Maps**：`GmsAuthProvider: Not granting extended access`。MicroG-RE `PackageUtils.KNOWN_GOOGLE_PACKAGES` 缺 `com.google.android.apps.maps`；加入後再修正大小寫（Doom 的 cert patch 注入大寫 hex，`String.equals` 區分大小寫）。
+2. **定位無法使用**：`Unable to start service ... com.google.android.location.internal.GoogleLocationManagerService.START ... not found`。MicroG-RE 該服務只註冊 `${basePackageName}`（`app.revanced`）前綴的 action；加註原始 `com.google` action。
+3. **Dutch microG + Change package name 組合在 26.44 失敗**（`rewrote only 0 Play services names`）時，改用 Dutch 預設組合；`Bypass Play Services checks` → `RestoreMapDataPatch` 以 Google 原 package／憑證 header 讓重簽 Maps 取得地圖資料。
+4. **車機錯誤 `Maps navigation provider is not local`**：Dutch 轉接器寫死 26.43 的 binder class `lur`；26.44 `CarNavigationProviderService`（`lvt.onBind`）回傳 `lvt.b:Llvp;`，`y(int,Parcel,Parcel)` 不變。改 `lvp`；`NativeGuidance`（反射 `rI`/`rJ`/`bR`、`blkt`/`blku`，26.44 已改名）改為失敗即略過。
+5. **閃退 `SecurityException: Wrong signature - go/gearhead-retail-device`**：`pxt.b`（`CarConnectionHandler.onCarConnected`）經 `Lbeop;` token 呼叫 Android Auto 私有服務 `ltf.x(5)`，重簽 App 一律被拒且未捕捉。本 repo patch 讓其直接 return。
+6. **`NoSuchMethodException: GmmCarProjectionService.f(Surface)`**：`controller.k` 於 26.44 為 `bete`（實作介面 `betg`），`h` 變成 `Context`，Surface 接收者 `Lbesz;` 移到 `j`。另 `controller.J.B(Intent)`（onNewIntent）改名為 `C(Intent)`。
+7. **車機一律汽車路線／「switch to driving directions」**：讀車種的 `onCarConnected` 被略過，`btxk.h()`（投影支援模式）永遠為 DRIVE。改為恆回傳 `ckbl.f`（TWO_WHEELER）。
+8. **只有第一個目的地可導航**：後續請求仍以 DRIVE 建立，被 `trq.h`（`PROJECTED_ONLY_*`）與 `siy.d`（`SessionAwareNavigationModeTracker.onNewSession`，結束車機導航並 Toast）拒絕。`trq.h` 恆 false、`siy.d` 視為模式一致（`Allow any travel mode on Android Auto`）；`yff.p`（唯一寫入請求交通模式處）DRIVE→TWO_WHEELER 另拆為選配 patch。
+
+另：Git Bash 會改寫 `adb push /sdcard/...` 路徑，需 `MSYS_NO_PATHCONV=1`。
+
+### 修正所在
+
+- 本 repo `patch/patches/src/main/kotlin/tw/maps/`：`SkipPrivateCarConnection.kt`、`AlwaysTwoWheelerOnAndroidAuto.kt`、`AllowAnyModeOnAndroidAuto.kt`、`TwoWheelerInsteadOfDriving.kt`；發布 `v0.2.0`～`v0.5.0`。
+- Dutch App Patches 擴充 `extensions/maps-gearslip`：本機 clone commit `2703a1f`、`edef684`（基於 v1.53.9）。整包重建需其私有 `SHARED_MAPS_API_KEY`，故以官方 v1.53.9 `.mpp` 替換 `extensions/maps-gearslip.mpe` 並移除失效簽章（`patches-1.53.9-aa-fix2.mpp`）。**尚未推上 GitHub／回報上游。**
+- MicroG-RE：fork `shuili1013/MicroG-RE`（`PackageUtils.java`、`play-services-location/core/src/main/AndroidManifest.xml`）。
+
+### 已知限制
+
+- 主機端行程資訊（AA 側欄下一個轉彎）未提供：`NativeGuidance` 的 Dagger 反射路徑在 26.44 未重新對應。車機畫面上的地圖與轉彎卡片由 Maps 原生 renderer 繪製，不受影響。
+- 只驗證 headunit 模擬（USB）；實際 Pernis/Polaroid MS700CL、無線 AA、偏航重算與長程路況未實測。機車路線合法性仍須依現地標誌判斷。
+- 所有 patch 釘死 26.44.06.1006895251；Maps 更新後混淆名稱會變，需重新對應。
+
+---
+
 更新：2026-11-07（第二階段）。狀態：已實作並編譯兩處 bytecode 修改核心、完成離線測試及 DEX 重寫；Morphe Kotlin 接口已建立，但建置缺外掛而失敗。**尚無可安裝 patch／`.mpp`，未在手機或 DHU 實測**。
 
 ## 第二階段：已實作的離線原型

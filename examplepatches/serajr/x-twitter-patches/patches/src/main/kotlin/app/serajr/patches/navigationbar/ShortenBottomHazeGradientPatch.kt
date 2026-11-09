@@ -10,7 +10,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 private const val HAZE_GRADIENT_CLASS = "Lcom/x/composer/minimal/o0;"
 
 private const val ORIGINAL_DIVISOR_BITS = 0x40000000 // 2.0f
-private const val SHORTENED_DIVISOR_BITS = 0x40800000 // 4.0f
+// private const val SHORTENED_DIVISOR_BITS = 0x40800000 // 4.0f (0x40800000)
+private const val SHORTENED_DIVISOR_BITS = 0x3F800000 // 1.0f (0x3f800000)
 
 @Suppress("unused")
 val shortenBottomHazeGradientPatch = bytecodePatch(
@@ -76,7 +77,7 @@ val shortenBottomHazeGradientPatch = bytecodePatch(
         // No additional registers or control-flow changes.
         method.replaceInstruction(
             matches.single(),
-            "const/high16 p0, 0x40800000"
+            "const/high16 p0, 0x3f800000"
         )
     }
 }

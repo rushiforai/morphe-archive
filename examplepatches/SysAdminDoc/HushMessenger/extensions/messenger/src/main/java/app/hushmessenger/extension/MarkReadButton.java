@@ -151,12 +151,46 @@ public final class MarkReadButton {
      */
     static boolean givesWay(Object button) throws IllegalAccessException {
         if (hasTag(button, META_AI_TAG)) return true;
-        for (Class<?> type = button.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
-            for (Field field : type.getDeclaredFields()) {
-                if (!Modifier.isStatic(field.getModifiers()) && GROUP_HOME.equals(field.getType().getSimpleName())) return true;
+        for (Object layer : layers(button)) {
+            for (Class<?> type = layer.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+                for (Field field : type.getDeclaredFields()) {
+                    if (!Modifier.isStatic(field.getModifiers()) && GROUP_HOME.equals(field.getType().getSimpleName())) return true;
+                }
             }
         }
         return false;
+    }
+
+    /** How many wrappers deep a button is looked into. 586 wraps its call buttons once. */
+    static final int MOST_LAYERS = 3;
+
+    /**
+     * The button and each button it wraps, outermost first. Since 586 the bar gets its audio and video call buttons
+     * inside a wrapper of the same base class, which keeps the real button in a field typed as that base and adds an
+     * impression logger. The test tag and the tap listeners stay on the button inside.
+     */
+    static List<Object> layers(Object button) throws IllegalAccessException {
+        List<Object> layers = new ArrayList<>(2);
+        for (Object layer = button; layer != null && layers.size() < MOST_LAYERS && !layers.contains(layer); layer = wrapped(layer)) {
+            layers.add(layer);
+        }
+        return layers;
+    }
+
+    /** The button [button] wraps, by a field typed as one of its own base classes, or null when it wraps none. */
+    static Object wrapped(Object button) throws IllegalAccessException {
+        Class<?> own = button.getClass();
+        for (Class<?> type = own; type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                Class<?> held = field.getType();
+                if (Modifier.isStatic(field.getModifiers()) || held == Object.class || held == own || held.isInterface()
+                    || !held.isAssignableFrom(own)) continue;
+                field.setAccessible(true);
+                Object inner = field.get(button);
+                if (inner != null && inner != button) return inner;
+            }
+        }
+        return null;
     }
 
     /** Whether a top bar button starts a call, by the test tag the button keeps. */
@@ -167,12 +201,15 @@ public final class MarkReadButton {
         return false;
     }
 
+    /** Whether [button], or a button it wraps, keeps [tag] as its test tag. */
     static boolean hasTag(Object button, String tag) throws IllegalAccessException {
-        for (Class<?> type = button.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
-            for (Field field : type.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers()) || field.getType() != String.class) continue;
-                field.setAccessible(true);
-                if (tag.equals(field.get(button))) return true;
+        for (Object layer : layers(button)) {
+            for (Class<?> type = layer.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+                for (Field field : type.getDeclaredFields()) {
+                    if (Modifier.isStatic(field.getModifiers()) || field.getType() != String.class) continue;
+                    field.setAccessible(true);
+                    if (tag.equals(field.get(layer))) return true;
+                }
             }
         }
         return false;

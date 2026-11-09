@@ -37,15 +37,17 @@ public final class ActionSheet extends FrameLayout {
     private final TextView title;
     private final TextView subtitle;
     private final TextView feedback;
+    private Listener listener;
 
     public ActionSheet(Context context) {
         super(context);
         setBackgroundColor(0xD9000000);
         setClickable(true);
+        setContentDescription("Fechar");
         setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                hide();
+                dismiss();
             }
         });
 
@@ -53,7 +55,13 @@ public final class ActionSheet extends FrameLayout {
         panel.setOrientation(LinearLayout.VERTICAL);
         panel.setPadding(Tokens.dp(24), Tokens.dp(10), Tokens.dp(24), Tokens.dp(18));
         panel.setBackground(Shapes.rounded(Tokens.SURFACE, Tokens.RADIUS_SHEET));
-        panel.setClickable(true);
+        // Consume taps inside the sheet without becoming another clickable a11y node.
+        panel.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, android.view.MotionEvent event) {
+                return true;
+            }
+        });
         Shapes.clip(panel, Tokens.RADIUS_SHEET);
 
         View grabber = new View(context);
@@ -101,7 +109,7 @@ public final class ActionSheet extends FrameLayout {
         close.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                hide();
+                dismiss();
             }
         });
         LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(
@@ -120,6 +128,7 @@ public final class ActionSheet extends FrameLayout {
 
     public void show(String heading, String detail, List<MediaClient.Action> actions,
                      final Listener listener) {
+        this.listener = listener;
         title.setText(heading);
         subtitle.setText(detail == null ? "" : detail);
         feedback.setText("");
@@ -143,18 +152,6 @@ public final class ActionSheet extends FrameLayout {
         animate().alpha(1f).setDuration(140L).start();
         View first = rows.getChildAt(0);
         if (first != null) first.requestFocus();
-        setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                listener.onClose();
-            }
-        });
-        panel.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Consume: taps inside the sheet must not close it.
-            }
-        });
     }
 
     private View actionRow(final MediaClient.Action action, final Listener listener) {
@@ -185,6 +182,7 @@ public final class ActionSheet extends FrameLayout {
         row.addView(check, new LinearLayout.LayoutParams(Tokens.dp(18), Tokens.dp(18)));
 
         Focus.attach(row, 12f, 0x00000000, Tokens.SURFACE_HOVER, null);
+        row.setContentDescription(action.title.length() > 0 ? action.title : action.action);
         row.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -202,6 +200,12 @@ public final class ActionSheet extends FrameLayout {
 
     public void hide() {
         setVisibility(GONE);
+    }
+
+    /** Closes the sheet and lets the host restore the layer underneath. */
+    private void dismiss() {
+        hide();
+        if (listener != null) listener.onClose();
     }
 
     public boolean isOpen() {

@@ -40,7 +40,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git add wordlists
-            git commit -m "fix(wordlists): lijsten opnieuw gebouwd"
+            git commit -m "fix(wordlists): rebuilt the word lists"
             git push
           fi
       - name: Check

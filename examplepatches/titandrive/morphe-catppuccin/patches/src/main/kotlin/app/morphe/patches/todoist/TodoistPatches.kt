@@ -9,6 +9,7 @@ import app.morphe.patches.shared.fonts.readTrueType
 import org.w3c.dom.Element
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -202,6 +203,29 @@ val catppuccinTodoistPatch = bytecodePatch(
             if (instruction.opcode == com.android.tools.smali.dexlib2.Opcode.RETURN_OBJECT) index to (instruction as OneRegisterInstruction).registerA else null
         }
         returns.reversed().forEach { (index, register) -> current.addInstructions(index, "invoke-static/range {v$register .. v$register}, $ext->selectedTheme(Ljava/lang/Object;)V") }
+        val monthView = "Lcom/todoist/widget/MonthView;"
+        val drawMonth = mutableClassDefBy(monthView).methods.single {
+            it.name == "onDraw" && it.parameterTypes == listOf("Landroid/graphics/Canvas;")
+        }
+        val dayTextColor = drawMonth.implementation!!.instructions.withIndex().single { (_, instruction) ->
+            val call = instruction as? FiveRegisterInstruction
+            val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            ref?.definingClass == "Landroid/graphics/Paint;" && ref.name == "setColor" &&
+                call?.registerC == 6 && call.registerD == 4
+        }.index
+        // v8 is the day cell, H is the selection, I is today, and v23 is the selection fill.
+        // v2 is overwritten by the following native instruction, so it is safe scratch space.
+        drawMonth.replaceInstruction(dayTextColor, "iget v2, v0, $monthView->I:I")
+        drawMonth.addInstructionsWithLabels(dayTextColor + 1, """
+            if-ne v8, v2, :day_text_color
+            iget v2, v0, $monthView->H:I
+            if-eq v8, v2, :day_text_color
+            move/from16 v2, v23
+            invoke-static {v4, v2}, $ext->todayNumberColor(II)I
+            move-result v4
+            :day_text_color
+            invoke-virtual {v6, v4}, Landroid/graphics/Paint;->setColor(I)V
+        """.trimIndent())
         val icons = setOf("ic_views_fill_tiles", "ic_inbox_fill_production", "ic_notifications_fill_default", "ic_calendar_plain_fill", "ic_calendar_month_fill", "ic_workspace_fill", "ic_filter_fill", "ic_label_fill")
         val navigation = mutableClassDefBy("Lk62;").methods.single { it.name == "b" }
         val selectedIcons = navigation.implementation!!.instructions.mapIndexedNotNull { index, instruction ->

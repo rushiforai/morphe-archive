@@ -8,7 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.commerce.COMMERCE
 import app.morphe.patches.telegram.misc.commerce.hideCommercePatch
@@ -30,6 +30,10 @@ import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** A channel's bottom bar, the chat screen that fills it, the Recent actions log that reuses it, and the runtime. */
 class HideChannelBarButtonsFixtureTest {
@@ -77,8 +81,8 @@ class HideChannelBarButtonsFixtureTest {
             }
             val visible = mutableListOf<Method>()
             context.classDefForEach { cls ->
-                if (cls.type.startsWith("Lapp/hushtelegram/")) return@classDefForEach
-                cls.methods.filterTo(visible) { m -> m.name == "setVisibility" && m.controlBody().firstOrNull()?.controlRef() == MUTE_VISIBILITY }
+                if (cls.origType.startsWith("Lapp/hushtelegram/")) return@classDefForEach
+                cls.methods.filterTo(visible) { m -> m.origName == "setVisibility" && m.controlBody().firstOrNull()?.controlRef() == MUTE_VISIBILITY }
             }
             assertEquals("$name: one bar setVisibility hooked", 1, visible.size)
             val visibility = visible.single().controlBody()
@@ -87,7 +91,7 @@ class HideChannelBarButtonsFixtureTest {
             // The bubble behind the bar asks too: its flag goes through the extension between its read and its test.
             val drawn = mutableListOf<Method>()
             context.classDefForEach { cls ->
-                if (cls.type.startsWith("Lapp/hushtelegram/")) return@classDefForEach
+                if (cls.origType.startsWith("Lapp/hushtelegram/")) return@classDefForEach
                 cls.methods.filterTo(drawn) { m -> m.controlBody().any { it.controlRef() == MUTE_BUBBLE } }
             }
             assertEquals("$name: one bubble draw hooked", listOf("dispatchDraw"), drawn.map { it.name })
@@ -99,18 +103,20 @@ class HideChannelBarButtonsFixtureTest {
             assertEquals("$name: the holder and its flag", listOf(self, flag), draw[asked].namedRegisters())
             assertEquals("$name: the answer replaces the flag", listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ), draw.subList(asked + 1, asked + 3).map { it.opcode })
             assertEquals("$name: the guard tests the answer", listOf(flag, flag), listOf(draw[asked + 1], draw[asked + 2]).map { it.namedRegisters().single() })
-            assertEquals("$name: the guard keeps the bubble's draw", "Landroid/graphics/drawable/Drawable;->draw(Landroid/graphics/Canvas;)V", draw[asked + 4].controlRef())
-            val muteStatus = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelMute" }.controlBody()
+            // 13.2 calls draw on the bubble field's own class rather than on Drawable.
+            assertEquals("$name: the guard reads the bubble", Opcode.IGET_OBJECT, draw[asked + 3].opcode)
+            assertTrue("$name: the guard keeps the bubble's draw", drawsBubble(draw[asked + 4], draw[asked + 3].controlField()!!))
+            val muteStatus = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideChannelMute" }.controlBody()
             assertEquals("$name: the Mute capability", 1L, (muteStatus.first() as WideLiteralInstruction).wideLiteral)
             // The share button's decision asks Telegram's own answer, kept whole and private, before the switch and the extension.
             val asks = shareDecision(context).controlBody().mapNotNull { it.controlRef() }
             assertEquals("$name: the share decision's order", listOf("$SHARE_MESSAGE->$STOCK_SHARE()Z", SHARE_ON, SHARE_SHOWN),
                 asks.filter { it == "$SHARE_MESSAGE->$STOCK_SHARE()Z" || it.startsWith(CHANNEL_SHARE) })
             assertEquals("$name: asked first", "$SHARE_MESSAGE->$STOCK_SHARE()Z", asks.first())
-            val kept = context.mutableClassDefBy(SHARE_MESSAGE).methods.single { it.name == STOCK_SHARE }
+            val kept = context.tgMutableClassDefBy(SHARE_MESSAGE).methods.single { it.origName == STOCK_SHARE }
             assertTrue("$name: the copy is private", AccessFlags.PRIVATE.isSet(kept.accessFlags))
             assertEquals("$name: the copy keeps Telegram's code", shape(stockShare), shape(kept.controlBody()))
-            val shareStatus = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelShare" }.controlBody()
+            val shareStatus = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideChannelShare" }.controlBody()
             assertEquals("$name: the share capability", 1L, (shareStatus.first() as WideLiteralInstruction).wideLiteral)
             assertEquals("$name: Recent actions untouched", elsewhere, placeCallers(context, plan.place) - signature(plan.update))
 
@@ -120,7 +126,7 @@ class HideChannelBarButtonsFixtureTest {
             assertEquals(listOf(Opcode.CHECK_CAST, Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID), place.map { it.opcode })
             assertEquals(plan.bar, place[0].controlRef())
             assertEquals(plan.place, place[1].controlRef())
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelButtons" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideChannelButtons" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -140,9 +146,9 @@ class HideChannelBarButtonsFixtureTest {
             val after = plan.update.controlBody()
             assertEquals(4, after.count { it.controlRef() == SET_BUTTON })
             assertTrue(after.none { it.controlRef() in setOf(MUTE_BEGIN, MUTE_LABELLED, MUTE_FINISH) })
-            val side = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelButtons" }.controlBody()
+            val side = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideChannelButtons" }.controlBody()
             assertEquals(1L, (side.first() as WideLiteralInstruction).wideLiteral)
-            val mute = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelMute" }.controlBody()
+            val mute = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideChannelMute" }.controlBody()
             assertEquals(0L, (mute.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -160,10 +166,10 @@ class HideChannelBarButtonsFixtureTest {
             assertEquals("${build.name}: $warnings", 1, warnings.size)
             assertTrue(warnings.single(), warnings.single().endsWith("The patch goes on without the share button switch."))
             assertTrue(shareDecision(context).controlBody().none { it.controlRef()?.startsWith(CHANNEL_SHARE) == true })
-            assertTrue(context.mutableClassDefBy(SHARE_MESSAGE).methods.none { it.name == STOCK_SHARE })
-            val share = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelShare" }.controlBody()
+            assertTrue(context.tgMutableClassDefBy(SHARE_MESSAGE).methods.none { it.origName == STOCK_SHARE })
+            val share = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideChannelShare" }.controlBody()
             assertEquals(0L, (share.first() as WideLiteralInstruction).wideLiteral)
-            val mute = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideChannelMute" }.controlBody()
+            val mute = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideChannelMute" }.controlBody()
             assertEquals(1L, (mute.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -172,12 +178,12 @@ class HideChannelBarButtonsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             for (commerceFirst in listOf(true, false)) {
                 val name = "${build.name} commerce first=$commerceFirst"
-                val context = PatchContexts.of(ExtensionDex.classes() + hosts(build))
+                val context = PatchContexts.of(ExtensionDex.classes() + commerceReads(build, hosts(build)))
                 val plan = context.resolveChannelBarButtons()
                 if (commerceFirst) PatchLogCapture.warnings { hideCommercePatch.execute(context) }
                 assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideChannelBarButtonsPatch.execute(context) })
                 if (!commerceFirst) PatchLogCapture.warnings { hideCommercePatch.execute(context) }
-                val placer = context.mutableClassDefBy(plan.bar).methods.single { "${it.definingClass}->${it.name}(IZZ)V" == plan.place }
+                val placer = context.tgMutableClassDefBy(plan.bar).methods.single { "${it.definingClass}->${it.name}(IZZ)V" == plan.place }
                 assertTrue("$name: Gift guard", placer.controlBody().take(2).any { it.controlRef() == "$COMMERCE->showChannelGiftButton(IZ)Z" })
                 assertEquals("$name: bar calls", 4, plan.update.controlBody().count { it.controlRef() == SET_BUTTON })
             }
@@ -194,16 +200,16 @@ class HideChannelBarButtonsFixtureTest {
         val users = FixtureDex.classesWhere(build, { true }) { m -> m.controlBody().any { it.controlRef() in places } }
         // The chat screen's bar is a field of one of those users, and its class has a setVisibility of its own.
         val fieldTypes = users.flatMap { it.methods }.flatMap { it.controlBody() }.mapNotNull { it.controlField()?.type }.toSet()
-        val views = FixtureDex.classesWhere(build, { true }) { m -> m.name == "setVisibility" && m.definingClass in fieldTypes }
+        val views = FixtureDex.classesWhere(build, { true }) { m -> m.origName == "setVisibility" && m.origDefiningClass in fieldTypes }
         // The view holding the bar draws the bubble behind it.
-        val holder = FixtureDex.classesWhere(build, { true }) { m -> m.name == "getInputIslandBubbleContainer" }
+        val holder = FixtureDex.classesWhere(build, { true }) { m -> m.origName == "getInputIslandBubbleContainer" }
         // A message decides whether it gets the round share button.
-        val message = FixtureDex.classesWhere(build, { true }) { m -> m.definingClass == SHARE_MESSAGE && m.name == SHARE_DECISION }
+        val message = FixtureDex.classesWhere(build, { true }) { m -> m.origDefiningClass == SHARE_MESSAGE && m.origName == SHARE_DECISION }
         return (bars + users + views + holder + message).distinctBy { it.type }
     }
 
     private fun shareDecision(context: BytecodePatchContext) =
-        context.mutableClassDefBy(SHARE_MESSAGE).methods.single { it.name == SHARE_DECISION }
+        context.tgMutableClassDefBy(SHARE_MESSAGE).methods.single { it.origName == SHARE_DECISION }
 
     /** Each instruction's opcode, registers and reference, padding nops left out. */
     private fun shape(body: List<Instruction>) =
@@ -212,7 +218,7 @@ class HideChannelBarButtonsFixtureTest {
     private fun placeCallers(context: BytecodePatchContext, place: String): Set<String> {
         val found = mutableSetOf<String>()
         context.classDefForEach { cls ->
-            if (cls.type.startsWith("Lapp/hushtelegram/")) return@classDefForEach
+            if (cls.origType.startsWith("Lapp/hushtelegram/")) return@classDefForEach
             cls.methods.filter { m -> m.controlBody().any { it.controlRef() == place } }.forEach { found += signature(it) }
         }
         return found
@@ -221,5 +227,17 @@ class HideChannelBarButtonsFixtureTest {
     private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 
     private fun stub(context: BytecodePatchContext, name: String) =
-        context.mutableClassDefBy(CHANNEL_BUTTONS).methods.single { it.name == name }.controlBody()
+        context.tgMutableClassDefBy(CHANNEL_BUTTONS).methods.single { it.origName == name }.controlBody()
+}
+
+/**
+ * What Hide Premium, gifts and Stars reads beside a slice on 13.2: LocaleController, whose getString wrapper
+ * 13.2 inlined into the title sites, and the class 13.2 merges the slice's walletAvailable flag into.
+ */
+internal fun commerceReads(build: File, slice: List<ClassDef>): List<ClassDef> {
+    val flags = slice.flatMap { it.methods }.flatMap { it.controlBody() }.mapNotNull { it.controlField() }
+        .filter { it.origDefiningClass == "Lorg/telegram/messenger/AppGlobalConfig;" && it.origName == "walletAvailable" }
+        .map { it.type }.toSet()
+    val found = FixtureDex.classes(build, setOf("Lorg/telegram/messenger/LocaleController;") + flags).values
+    return (slice + found).distinctBy { it.type }
 }

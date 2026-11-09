@@ -16,8 +16,8 @@ import dalvik.system.PathClassLoader;
 /**
  * The app's own glyph rasterizer, used for icons and characters the system font cannot draw.
  *
- * The replacement takes the name X.0eF, so the original is loaded again from the app's secondary dex,
- * in a PathClassLoader whose parent hides only X.0eF. Every other class it uses resolves through the
+ * The replacement takes the name X.0ei, so the original is loaded again from the app's secondary dex,
+ * in a PathClassLoader whose parent hides only X.0ei. Every other class it uses resolves through the
  * app's class loader, so it shares the atlas classes with the rest of the app.
  *
  * The secondary dex is unpacked either as one prog-hash.dex per dex (first launch) or as a z-sha.zip,
@@ -26,7 +26,7 @@ import dalvik.system.PathClassLoader;
  */
 public final class OriginalRasterizer {
     private static final String TAG = "FbLiteFeedFont";
-    private static final String RASTERIZER = "X.0eF";
+    private static final String RASTERIZER = "X.0ei";
     private static final long RETRY_INTERVAL_MS = 2000;
     private static final int MAX_ATTEMPTS = 30;
 
@@ -58,7 +58,7 @@ public final class OriginalRasterizer {
         }
     }
 
-    /** Returns the X.1In the original A03 returns, or null. */
+    /** Returns the X.1HK the original A03 returns, or null. */
     public Object rasterize(byte[] data, char c) {
         try {
             return rasterize.invoke(instance, data, c);
@@ -88,7 +88,7 @@ public final class OriginalRasterizer {
         for (String path : candidates(app)) {
             try {
                 Class<?> original = new PathClassLoader(path, hideReplacement).loadClass(RASTERIZER);
-                Class<?> atlasHolder = Class.forName("X.0e1", false, app);
+                Class<?> atlasHolder = Class.forName("X.0eT", false, app);
                 Class<?> windowManager = Class.forName("com.moblica.common.xmob.ui.WindowManager", false, app);
                 Constructor<?> ctor = original.getConstructor(atlasHolder, windowManager, int.class, int.class,
                         int.class, int.class, boolean.class, boolean.class, boolean.class);
@@ -106,17 +106,31 @@ public final class OriginalRasterizer {
         return false;
     }
 
+    /** The app's class loader class, its static instance field and its dex file array field, */
+    private static final String[][] APP_LOADERS = {
+            {"X.09V", "A08", "A01"},
+    };
+
     /** Secondary dex files the app has loaded, then any others in its dex directory. */
     private static Set<String> candidates(ClassLoader app) {
         Set<String> paths = new LinkedHashSet<>();
         try {
-            // X.09K is the app's class loader. A0A is its instance, A02 its dex files (null slots included).
-            Class<?> loaderClass = Class.forName("X.09K", false, app);
-            Object loader = loaderClass.getField("A0A").get(null);
-            if (loader != null) {
-                for (DexFile dex : (DexFile[]) loaderClass.getField("A02").get(loader)) {
+            // The app's class loader, its static instance and its dex files (null slots included), by version:
+            // 536.0.0.11.107: X.09V, A08, A01.
+            for (String[] names : APP_LOADERS) {
+                Class<?> loaderClass;
+                try {
+                    loaderClass = Class.forName(names[0], false, app);
+                } catch (ClassNotFoundException e) {
+                    continue;
+                }
+                if (!ClassLoader.class.isAssignableFrom(loaderClass)) continue;
+                Object loader = loaderClass.getField(names[1]).get(null);
+                if (loader == null) break;
+                for (DexFile dex : (DexFile[]) loaderClass.getField(names[2]).get(loader)) {
                     if (dex != null && !dex.getName().endsWith(".apk")) paths.add(dex.getName());
                 }
+                break;
             }
         } catch (Throwable t) {
             log("Could not read the app's dex files", t);

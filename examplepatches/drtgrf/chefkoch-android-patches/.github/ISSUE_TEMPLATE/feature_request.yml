@@ -1,0 +1,48 @@
+name: ⭐ Feature request
+description: Suggest a new patch or improvement.
+title: "feat: "
+labels: ["Feature request"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # Chefkoch Patches – Feature request
+
+        Before submitting:
+        - Check whether this feature has already been requested.
+        - Make sure the suggestion is related to the Chefkoch Android app.
+        - Please describe the intended behaviour as clearly as possible.
+
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature description
+      description: |
+        Describe the feature or patch you would like to see.
+        Include examples, screenshots, links or references if possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation and use case
+      description: |
+        Why would this feature be useful?
+
+        - What problem does it solve?
+        - What is the intended use case?
+        - What benefits would it provide?
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I have checked existing feature requests for duplicates.
+          required: true
+        - label: This request relates to the Chefkoch Android app.
+          required: true

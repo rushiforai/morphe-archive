@@ -8,10 +8,10 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstruction
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -24,6 +24,7 @@ import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.localcontrols.controlString
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -33,6 +34,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** MediaController's Save to Gallery writes on both declared builds, where the gallery folder is chosen. */
 class GalleryFolderFixtureTest {
@@ -40,23 +45,36 @@ class GalleryFolderFixtureTest {
         MESSAGES_STORAGE, GALLERY_MEDIA_CONTROLLER, ANDROID_UTILITIES, LOAD_OPERATION)
 
     private fun context(build: File): BytecodePatchContext {
-        val images = FixtureDex.classes(build, setOf(IMAGE_LOADER)).values.single()
-        val host = FixtureDex.classes(build, hosts + images.delegateCandidates()).values.map(ImmutableClassDef::of)
-        assertTrue("${build.name}: Telegram's download and gallery classes", host.map { it.type }.containsAll(hosts))
+        val host = FixtureDex.classes(build, hosts + downloadHosts(build)).values.map(ImmutableClassDef::of)
+        assertTrue("${build.name}: Telegram's download and gallery classes", host.map { it.origType }.containsAll(hosts))
         return PatchContexts.of(ExtensionDex.classes() + host)
     }
 
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), controlRef())
 
-    private fun BytecodePatchContext.flag(name: String) = (mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }
+    private fun BytecodePatchContext.flag(name: String) = (tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }
         .controlBody().first() as WideLiteralInstruction).wideLiteral
 
-    /** Every MediaController method body, as opcodes, registers and references. */
-    private fun BytecodePatchContext.media() = mutableClassDefBy(GALLERY_MEDIA_CONTROLLER).methods.filter { it.implementation != null }
-        .associate { m -> "${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}" to m.controlBody().map { it.shape() } }
+    /** MediaController's methods and those of the lambda classes it creates that save into a public folder. */
+    private fun BytecodePatchContext.pool() = galleryMethods(tgMutableClassDefBy(GALLERY_MEDIA_CONTROLLER))
+
+    private fun Method.key() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+    /** Every such method body, as opcodes, registers and references. */
+    private fun BytecodePatchContext.media() = pool().filter { it.implementation != null }
+        .associate { m -> m.key() to m.controlBody().map { it.shape() } }
+
+    /**
+     * One of saveFile's lambdas: a MediaController method where the build keeps them there, or the run of the
+     * lambda class the build moves it into.
+     */
+    private fun Method.saveFileLambda() = origName.startsWith("lambda\$saveFile\$") && origDefiningClass == GALLERY_MEDIA_CONTROLLER ||
+        origName == "run" && parameterTypes.isEmpty() && origDefiningClass != GALLERY_MEDIA_CONTROLLER
+
+    private fun Method.where() = "${origDefiningClass.substringAfterLast('/').removeSuffix(";")}.$origName"
 
     private fun BytecodePatchContext.saveFileInternal() =
-        mutableClassDefBy(GALLERY_MEDIA_CONTROLLER).methods.single { it.name == "saveFileInternal" }
+        tgMutableClassDefBy(GALLERY_MEDIA_CONTROLLER).methods.single { it.origName == "saveFileInternal" }
 
     @Test fun `every string Save to Gallery puts goes past the extension and nothing else in MediaController changes`() {
         for (build in Fixtures.declaredBuilds()) {
@@ -64,34 +82,35 @@ class GalleryFolderFixtureTest {
             val context = context(build)
             val plan = context.resolveGalleryFolder()
             assertEquals("$name: nothing missing", null, plan.missing)
-            val saves = plan.saves.associate { (method, puts) -> method.name to puts }
+            val saves = plan.saves.associate { (method, puts) -> method.key() to puts }
             assertEquals(name, 2, saves.size)
-            val live = saves.keys.single { it != "saveFileInternal" }
-            assertTrue("$name: $live", live.startsWith("lambda\$saveFile\$"))
+            val internal = context.saveFileInternal().key()
+            val live = plan.saves.map { it.first }.single { it.key() != internal }
+            assertTrue("$name: ${live.where()}", live.saveFileLambda())
             // Ten puts in the ordinary save, four in the live photo's, all of them plain three-register calls.
-            assertEquals(name, 10, saves.getValue("saveFileInternal").size)
-            assertEquals(name, 4, saves.getValue(live).size)
+            assertEquals(name, 10, saves.getValue(internal).size)
+            assertEquals(name, 4, saves.getValue(live.key()).size)
             // Before Android 10: the photo and the video folder in saveFile's thread, and the live photo's one.
             assertEquals("$name: nothing missing on Android 9", null, plan.olderMissing)
-            val older = plan.older.associate { (method, folders) -> method.name to folders }
-            val thread = older.keys.single { it != live }
-            assertTrue("$name: $thread", thread.startsWith("lambda\$saveFile\$"))
-            assertEquals(name, 2, older.getValue(thread).size)
-            assertEquals(name, 1, older.getValue(live).size)
-            val edited = plan.saves.map { it.first } + plan.older.map { it.first }.filter { it.name !in saves.keys }
-            val stock = edited.associate { method -> method.name to ImmutableMethod.of(method).controlBody() }
-            val others = context.media().filterKeys { key -> stock.keys.none { key.startsWith("$it(") } }
+            val older = plan.older.associate { (method, folders) -> method.key() to folders }
+            val thread = plan.older.map { it.first }.single { it.key() != live.key() }
+            assertTrue("$name: ${thread.where()}", thread.saveFileLambda())
+            assertEquals(name, 2, older.getValue(thread.key()).size)
+            assertEquals(name, 1, older.getValue(live.key()).size)
+            val edited = plan.saves.map { it.first } + plan.older.map { it.first }.filter { it.key() !in saves.keys }
+            val stock = edited.associate { method -> method.key() to ImmutableMethod.of(method).controlBody() }
+            val others = context.media().filterKeys { it !in stock.keys }
 
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { saveDownloadsPatch.execute(context) })
 
             for (method in edited) {
-                val where = "$name: ${method.name}"
-                val puts = saves[method.name].orEmpty()
-                val before = stock.getValue(method.name)
+                val where = "$name: ${method.where()}"
+                val puts = saves[method.key()].orEmpty()
+                val before = stock.getValue(method.key())
                 val edits = method.controlBody()
                 // Each Android 9 folder goes past the extension right after it's made, ahead of Telegram's mkdirs.
                 val calls = edits.indices.filter { edits[it].controlRef() == GALLERY_OLDER }
-                assertEquals(where, older[method.name].orEmpty().size, calls.size)
+                assertEquals(where, older[method.key()].orEmpty().size, calls.size)
                 for (j in calls) {
                     assertEquals("$where: $j", GALLERY_FILE_IN, edits[j - 1].controlRef())
                     val folder = listOf(edits[j - 1].namedRegisters().first())
@@ -128,8 +147,7 @@ class GalleryFolderFixtureTest {
         val build = Fixtures.declaredBuilds().first()
         val shapes = listOf<Pair<String, (BytecodePatchContext) -> Unit>>(
             "Telegram's gallery saves changed (saveFileInternal)" to { context ->
-                val media = context.mutableClassDefBy(GALLERY_MEDIA_CONTROLLER)
-                val live = media.methods.single { it.name.startsWith("lambda\$saveFile\$") &&
+                val live = context.pool().single { it.saveFileLambda() &&
                     it.controlBody().any { i -> i.controlString() == GALLERY_RELATIVE_PATH } }
                 val body = live.controlBody()
                 val at = body.indexOfFirst { it.controlString() == GALLERY_RELATIVE_PATH }
@@ -137,7 +155,7 @@ class GalleryFolderFixtureTest {
             },
             // A third writer would save somewhere the choice doesn't reach.
             "Telegram's gallery saves changed" to { context ->
-                val media = context.mutableClassDefBy(GALLERY_MEDIA_CONTROLLER)
+                val media = context.tgMutableClassDefBy(GALLERY_MEDIA_CONTROLLER)
                 val save = context.saveFileInternal()
                 media.methods.add(ImmutableMethod(save.definingClass, "saveFileInternalAgain", save.parameters, save.returnType,
                     save.accessFlags, save.annotations, save.hiddenApiRestrictions, ImmutableMethod.of(save).implementation).toMutable())
@@ -157,7 +175,7 @@ class GalleryFolderFixtureTest {
             assertTrue("$why: $warnings", warnings.single().endsWith(". The patch goes on without the gallery folder choice."))
             assertEquals(why, untouched, context.media())
             assertEquals(why, "$SAVE_DOWNLOADS->fileLoaded(ILjava/lang/String;Ljava/io/File;Ljava/lang/Object;)V",
-                callback.controlBody()[1].controlRef())
+                callback.method.controlBody()[callback.at].controlRef())
             assertEquals(why, 1L, context.flag("saveDownloads"))
             assertEquals(why, 0L, context.flag("galleryFolder"))
         }
@@ -165,8 +183,8 @@ class GalleryFolderFixtureTest {
 
     @Test fun `changed Android 9 saves keep Telegram's folders there and the Android 10 choice goes on`() {
         val build = Fixtures.declaredBuilds().first()
-        fun BytecodePatchContext.thread() = mutableClassDefBy(GALLERY_MEDIA_CONTROLLER).methods.single { method ->
-            method.name.startsWith("lambda\$saveFile\$") && method.controlBody().none { it.controlString() == GALLERY_RELATIVE_PATH } &&
+        fun BytecodePatchContext.thread() = pool().single { method ->
+            method.saveFileLambda() && method.controlBody().none { it.controlString() == GALLERY_RELATIVE_PATH } &&
                 method.controlBody().any { it.controlRef() == GALLERY_MOVIES }
         }
         val shapes = listOf<Pair<String, (BytecodePatchContext) -> Unit>>(
@@ -205,17 +223,17 @@ class GalleryFolderFixtureTest {
         val shapes = listOf<Pair<String, (BytecodePatchContext) -> Unit>>(
             // The extension ships with the patch, so a mismatch there is a build bug, not a Telegram change.
             "put runtime hook is missing or ambiguous" to { context ->
-                context.mutableClassDefBy(GALLERY_FOLDER).methods.removeAll { it.name == "put" }
+                context.tgMutableClassDefBy(GALLERY_FOLDER).methods.removeAll { it.origName == "put" }
             },
             "SettingsStatus has no boolean method galleryFolder()" to { context ->
-                context.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "galleryFolder" }
+                context.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "galleryFolder" }
             },
         )
         for ((why, change) in shapes) {
             val context = context(build)
             change(context)
             val untouched = context.media()
-            val callback = context.resolveSaveDownloads()
+            val callback = context.resolveSaveDownloads().method
             val stock = callback.controlBody().map { it.shape() }
             try {
                 saveDownloadsPatch.execute(context)

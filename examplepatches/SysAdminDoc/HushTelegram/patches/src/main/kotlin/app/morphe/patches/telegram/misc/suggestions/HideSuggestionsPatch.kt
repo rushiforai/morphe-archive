@@ -5,7 +5,8 @@
 package app.morphe.patches.telegram.misc.suggestions
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -24,6 +25,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import app.morphe.util.names.origDefiningClass
 
 private const val PATCH = "Hide promotional banners"
 private const val SUGGESTIONS = "$EXTENSION_PACKAGE/misc/Suggestions;"
@@ -31,18 +33,21 @@ internal const val PENDING_SUGGESTIONS = "Lorg/telegram/messenger/MessagesContro
 internal const val DISMISSED_SUGGESTIONS = "Lorg/telegram/messenger/MessagesController;->dismissedSuggestions:Ljava/util/Set;"
 private const val SET_CONTAINS = "Ljava/util/Set;->contains(Ljava/lang/Object;)Z"
 private const val SET_ITERATOR = "Ljava/util/Set;->iterator()Ljava/util/Iterator;"
-internal const val SUGGESTION_FILL = "Lorg/telegram/messenger/ApplicationLoader;->onSuggestionFill(Ljava/lang/String;[Ljava/lang/CharSequence;[Z)Z"
+internal val BIRTHDAY_KEYS = setOf("BIRTHDAY_SETUP", "BIRTHDAY_CONTACTS_TODAY")
 
 /**
- * DialogsActivity's suggestion renderer. The UI class and method are renamed, but its call to
- * ApplicationLoader.onSuggestionFill is kept. No other no-argument UI method calls it in 12.10.6.
+ * DialogsActivity's suggestion renderer. The UI class and method are renamed, but it is the one
+ * no-argument UI method that names a birthday suggestion (each build through 13.2). It used to be
+ * found by its ApplicationLoader.onSuggestionFill call, which the Play build of 13.2 drops since
+ * it always answers no there. Either key is enough, so one missing target still leaves the other.
  */
 internal object ChatListSuggestionsFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf(),
     custom = { method, _ ->
-        method.definingClass.startsWith("Lorg/telegram/ui/") &&
-            method.implementation?.instructions?.any { it.reference() == SUGGESTION_FILL } == true
+        method.origDefiningClass.startsWith("Lorg/telegram/ui/") && method.implementation?.instructions?.any {
+            (it as? ReferenceInstruction)?.reference.let { it as? StringReference }?.string in BIRTHDAY_KEYS
+        } == true
     },
 )
 
@@ -68,7 +73,7 @@ val hideSuggestionsPatch = bytecodePatch(
         requireStatusMethod("birthdayGiftBanner")
         val renderer = ChatListSuggestionsFingerprint.methodOrNull
         handleTargets(PATCH, "chat-list banner targets", BannerTarget.entries) { target ->
-            if (renderer == null) "no chat-list renderer calls $SUGGESTION_FILL"
+            if (renderer == null) "no chat-list renderer names a birthday suggestion (${BIRTHDAY_KEYS.joinToString()})"
             else when (target) {
                 BannerTarget.PENDING -> renderer.filterPresentationReads().also {
                     if (it == null) enableCapability("promotionalSuggestions")
@@ -156,7 +161,7 @@ private fun MutableMethod.guardBirthdayGiftBanner(): String? {
     return null
 }
 
-private fun Instruction.reference(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.reference(): String? = origRef()
 
 /** Track Set/Iterator aliases through their complete normal and exceptional lifetimes. */
 private fun ControlFlow.keepsPresentationLocal(source: Int): Boolean {

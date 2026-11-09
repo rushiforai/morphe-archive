@@ -11,7 +11,7 @@ group = "app.GinArena.onedm"
 patches {
     about {
         name = "GinArena Patch"
-        description = "Privacy, ad-removal, and quality-of-life patches for 1DM, CRICFy TV, CricZ TV, CrexiFy TV, PlayZ TV, MX Player, SK Tech TV, Playfy TV, and APK Decompiler."
+        description = "Privacy, ad-removal, and quality-of-life patches for 1DM, CRICFy TV, CricZ TV, CrexiFy TV, PlayZ TV, MX Player, SK Tech TV, Playfy TV, APK Decompiler, and Daylio."
         source = "https://github.com/ginDoki19/GinArena-patch"
         author = "ginDoki19"
         contact = "https://github.com/ginDoki19/GinArena-patch/issues"

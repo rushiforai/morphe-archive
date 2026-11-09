@@ -5,14 +5,12 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 
-// ABConfig.getUseSecureView() — stable non-obfuscated class
 object UseSecureViewFingerprint : Fingerprint(
     definingClass = "Lcom/hotstar/player/models/config/ABConfig;",
     name = "getUseSecureView",
     returnType = "Z"
 )
 
-// Compose FLAG_SECURE — adds FLAG_SECURE (0x2000) to Activity window
 object ComposeFlagSecureFingerprint : Fingerprint(
     returnType = "V",
     filters = listOf(

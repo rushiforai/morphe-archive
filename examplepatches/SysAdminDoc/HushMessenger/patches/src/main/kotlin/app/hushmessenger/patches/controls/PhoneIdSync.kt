@@ -56,10 +56,12 @@ internal fun findPhoneIdSync(classes: Iterable<ClassDef>): List<Method> {
     val all = classes.toList()
     val requesters = mutableSetOf<ClassDef>()
     val senders = mutableListOf<Method>()
+    val provider = StringMatch(PHONE_ID_PROVIDER)
+    val getPhoneId = StringMatch(GET_PHONE_ID)
     for (cls in all) for (method in cls.methods) {
-        val strings = method.strings()
-        if (PHONE_ID_PROVIDER in strings) requesters.add(cls)
-        if (GET_PHONE_ID in strings) senders.add(method)
+        val refs = method.implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference }.orEmpty()
+        if (refs.any { provider.matches(it) }) requesters.add(cls)
+        if (refs.any { getPhoneId.matches(it) }) senders.add(method)
     }
     val requester = requesters.singleOrNull() ?: return emptyList()
     val list = requester.methods.singleOrNull { it.isPhoneIdAppList() } ?: return emptyList()
@@ -68,10 +70,15 @@ internal fun findPhoneIdSync(classes: Iterable<ClassDef>): List<Method> {
     if (sync.calls().none { it.toString() == listId }) return emptyList()
     if (senders.singleOrNull()?.hookId() != sync.hookId()) return emptyList()
     val queries = requester.methods.filter { PHONE_ID_PROVIDER in it.strings() }.map { it.hookId() }.toSet()
+    val queryCalls = queries.map(::MemberMatch)
+    val listCall = MemberMatch(listId)
+    val syncId = sync.hookId()
     for (cls in all) for (method in cls.methods) {
-        val called = method.calls().map { it.toString() }
-        if (method.hookId() in queries || called.none { it in queries }) continue
-        if (method.hookId() != sync.hookId() && listId !in called) return emptyList()
+        val called = method.calls()
+        if (called.none { ref -> queryCalls.any { it.matches(ref) } }) continue
+        val id = method.hookId()
+        if (id in queries) continue
+        if (id != syncId && called.none { listCall.matches(it) }) return emptyList()
     }
     return listOf(list, sync)
 }

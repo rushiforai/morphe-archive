@@ -507,3 +507,51 @@ object BaseActivityPrepareMenuFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf("Landroid/view/Menu;"),
 )
+object HomeActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lo/o/joey/Activities/HomeActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
+
+object ThemeColorFingerprint : Fingerprint(
+    definingClass = "Lec/e;",
+    name = "l",
+    returnType = "Ljava/lang/Integer;",
+    parameters = listOf("I", "Landroid/view/View;"),
+)
+
+object CardViewInitFingerprint : Fingerprint(
+    definingClass = "Lo/o/joey/ConfigViews/CCardView;",
+    name = "a",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+object PostViewFactoryFingerprint : Fingerprint(
+    definingClass = "Ljc/k;",
+    name = "a",
+    returnType = "Landroid/view/View;",
+    parameters = listOf("Landroid/view/ViewGroup;", "Ljc/k\$c;", "Ljc/l;"),
+)
+
+object TypefaceFingerprint : Fingerprint(
+    definingClass = "Lzd/o1;",
+    name = "a",
+    returnType = "Landroid/graphics/Typeface;",
+    parameters = listOf("I"),
+)
+
+object PhotoViewerFingerprint : Fingerprint(
+    definingClass = "Lo/o/joey/Activities/PhotoViewer;",
+    name = "A3",
+    returnType = "V",
+    parameters = emptyList(),
+)
+
+object VActivityFingerprint : Fingerprint(
+    definingClass = "Lo/o/joey/Activities/VActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)

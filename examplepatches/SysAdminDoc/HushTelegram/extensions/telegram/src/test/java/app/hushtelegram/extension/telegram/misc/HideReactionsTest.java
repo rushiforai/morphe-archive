@@ -32,8 +32,10 @@ public class HideReactionsTest {
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.HIDE_REACTION_ROWS);
         SettingReadsForTests.mend(Settings.HIDE_REACTION_PICKER);
+        SettingReadsForTests.mend(Settings.HIDE_EMOJI_PACK_NOTE);
         Settings.HIDE_REACTION_ROWS.resetToDefault();
         Settings.HIDE_REACTION_PICKER.resetToDefault();
+        Settings.HIDE_EMOJI_PACK_NOTE.resetToDefault();
         HookStatus.clear();
     }
 
@@ -86,6 +88,35 @@ public class HideReactionsTest {
         assertFalse(DoubleTapReactions.picker(false));
         Object message = new Object();
         assertSame("the rows are their own switch", message, DoubleTapReactions.rows(message, false, false));
+    }
+
+    @Test public void selectionBubbleFollowsThePickerSwitch() {
+        java.util.List<Object> selected = java.util.Collections.singletonList(new Object());
+        assertSame("off keeps the bubble", selected, DoubleTapReactions.selection(selected));
+        Settings.HIDE_REACTION_ROWS.save(true);
+        assertSame("the rows are their own switch", selected, DoubleTapReactions.selection(selected));
+        Settings.HIDE_REACTION_PICKER.save(true);
+        assertTrue("an empty list is what makes Telegram drop the bubble", DoubleTapReactions.selection(selected).isEmpty());
+        assertNull(DoubleTapReactions.selection(null));
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        assertSame(selected, DoubleTapReactions.selection(selected));
+        PauseForTests.resume();
+        SettingReadsForTests.breakReads(Settings.HIDE_REACTION_PICKER);
+        assertSame(selected, DoubleTapReactions.selection(selected));
+    }
+
+    @Test public void emojiPackLineHasItsOwnSwitchAndKeepsABlockedAnswer() {
+        assertFalse("off follows Telegram", DoubleTapReactions.packNote(0));
+        assertTrue("blocked stays blocked", DoubleTapReactions.packNote(1));
+        Settings.HIDE_REACTION_PICKER.save(true);
+        assertFalse("the picker is its own switch", DoubleTapReactions.packNote(0));
+        Settings.HIDE_EMOJI_PACK_NOTE.save(true);
+        assertTrue(DoubleTapReactions.packNote(0));
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        assertFalse(DoubleTapReactions.packNote(0));
+        PauseForTests.resume();
+        SettingReadsForTests.breakReads(Settings.HIDE_EMOJI_PACK_NOTE);
+        assertFalse(DoubleTapReactions.packNote(0));
     }
 
     @Test public void pausedAndBrokenReadsFallBackToStock() {

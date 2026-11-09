@@ -27,6 +27,13 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Disable chat swipe actions"
 internal const val CHAT_SWIPE = "$EXTENSION_PACKAGE/misc/ChatSwipe;"
@@ -67,35 +74,35 @@ internal fun BytecodePatchContext.resolveChatSwipeSite(): ChatSwipeSite {
     requireRuntimeHook()
     val candidates = mutableListOf<Method>()
     forEachClassMentioning(Mention.member(SHARED_CONFIG, "getChatSwipeAction") and Mention.member("setSliding")) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         classDef.methods.filterTo(candidates) { method ->
-            !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "I" &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) && method.origReturnType == "I" &&
                 method.parameterTypes.size == 2 && method.parameterTypes[0].toString() == RECYCLER_VIEW &&
                 method.instructions().let { body ->
-                    body.any { it.call()?.let { call -> call.definingClass == SHARED_CONFIG && call.name == "getChatSwipeAction" } == true } &&
-                        body.any { it.call()?.let { call -> call.name == "setSliding" && call.returnType == "V" &&
+                    body.any { it.call()?.let { call -> call.origDefiningClass == SHARED_CONFIG && call.origName == "getChatSwipeAction" } == true } &&
+                        body.any { it.call()?.let { call -> call.origName == "setSliding" && call.origReturnType == "V" &&
                             call.parameterTypes.map(CharSequence::toString) == listOf("Z") } == true }
                 }
         }
     }
     val found = candidates.one("chat list getMovementFlags", ::refuse)
-    val method = mutableClassDefBy(found.definingClass).methods.single {
-        it.name == found.name && it.parameterTypes.map(CharSequence::toString) == found.parameterTypes.map(CharSequence::toString) &&
-            it.returnType == found.returnType
+    val method = tgMutableClassDefBy(found.definingClass).methods.single {
+        it.origName == found.origName && it.parameterTypes.map(CharSequence::toString) == found.parameterTypes.map(CharSequence::toString) &&
+            it.origReturnType == found.origReturnType
     }
     val body = method.instructions()
 
     // The swipe: the row is marked sliding, then the method returns makeMovementFlags(0, LEFT).
-    val sliding = body.indices.filter { body[it].call()?.name == "setSliding" }.one("setSliding call", ::refuse)
+    val sliding = body.indices.filter { body[it].call()?.origName == "setSliding" }.one("setSliding call", ::refuse)
     val flags = body.getOrNull(sliding + 1)?.call()
-    shape(body.getOrNull(sliding + 1)?.opcode == Opcode.INVOKE_STATIC && flags != null && flags.returnType == "I" &&
+    shape(body.getOrNull(sliding + 1)?.opcode == Opcode.INVOKE_STATIC && flags != null && flags.origReturnType == "I" &&
         flags.parameterTypes.map(CharSequence::toString) == listOf("I", "I") &&
         body.getOrNull(sliding + 2)?.opcode == Opcode.MOVE_RESULT && body.getOrNull(sliding + 3)?.opcode == Opcode.RETURN &&
         body[sliding + 2].namedRegisters() == body[sliding + 3].namedRegisters(),
         "the row marked sliding no longer returns its movement flags")
     val swipeReturn = sliding + 3
     // The reorder drag of a pinned chat returns the same kind of flags on its own path.
-    shape(body.count { instruction -> instruction.call()?.let { it.definingClass == flags!!.definingClass && it.name == flags.name } == true } == 2,
+    shape(body.count { instruction -> instruction.call()?.let { it.origDefiningClass == flags!!.origDefiningClass && it.origName == flags.origName } == true } == 2,
         "getMovementFlags no longer has exactly a drag and a swipe")
 
     val entry = swipeBranchEntry(method, swipeReturn)
@@ -165,9 +172,9 @@ private fun ChatSwipeSite.apply() {
 }
 
 private fun BytecodePatchContext.requireRuntimeHook() {
-    val owner = classDefByOrNull(CHAT_SWIPE)
+    val owner = tgClassDefByOrNull(CHAT_SWIPE)
     shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public chat swipe runtime")
-    shape(owner!!.methods.count { it.name == "keepRowStill" && it.parameterTypes.isEmpty() && it.returnType == "Z" &&
+    shape(owner!!.methods.count { it.origName == "keepRowStill" && it.parameterTypes.isEmpty() && it.origReturnType == "Z" &&
         AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
         !AccessFlags.NATIVE.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
         it.implementation?.instructions?.any { instruction -> !instruction.opcode.format.isPayloadFormat } == true } == 1,

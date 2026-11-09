@@ -30,24 +30,24 @@
       "attribution": "ENABLE2K via dolph/dictionary; Wordnik open word list; lorenbrichter/Words en.txt (Letterpress)",
       "file": "wordlists/en-intl/words.txt.gz",
       "license": "Public domain (ENABLE), MIT (Wordnik, Copyright (c) 2020 Wordnik), CC0 1.0 (Letterpress, as published)",
-      "removed": 0,
-      "sha256": "5f187bd2f0b0a8592a515981dff42df58f40c595560ad33f56bf4a57d3725326",
-      "size": 713730,
+      "removed": 1,
+      "sha256": "5bf36288a6ae710a2fbfb47c393cb3e6acae61cd80a6ad50a9c0d075bb0f5fb3",
+      "size": 713728,
       "source_words": 275412,
-      "version": 2,
-      "words": 275412
+      "version": 3,
+      "words": 275411
     },
     "en-us": {
       "added": 0,
       "attribution": "ENABLE2K word list via dolph/dictionary; Wordnik open word list (wordnik/wordlist)",
       "file": "wordlists/en-us/words.txt.gz",
       "license": "Public domain (ENABLE) and MIT (Wordnik, Copyright (c) 2020 Wordnik)",
-      "removed": 2,
-      "sha256": "7f585cd780e98ead005b552669d776dd09ef83cffcbe4710b742de83a1bb1448",
-      "size": 502712,
+      "removed": 8,
+      "sha256": "e27ffbd4d85c879d404961a179d8d0ceb7d54103196f9ab340c00d3dbe8b79eb",
+      "size": 502702,
       "source_words": 194220,
-      "version": 4,
-      "words": 194218
+      "version": 8,
+      "words": 194212
     },
     "es": {
       "added": 0,
@@ -78,12 +78,12 @@
       "attribution": "Lexique des formes fléchies du français, Grammalecte v7.7 (Olivier R.)",
       "file": "wordlists/fr/words.txt.gz",
       "license": "MPL 2.0",
-      "removed": 12,
-      "sha256": "3eeafbe904658181632059ff3c5607e7ff5c9d230212bb6a4daa889a2d04ea76",
-      "size": 970523,
+      "removed": 15,
+      "sha256": "45065e52b3948663de0b227092ee270649142dc1e45212cccbeb2e7e505b71c4",
+      "size": 970515,
       "source_words": 407899,
-      "version": 3,
-      "words": 407898
+      "version": 6,
+      "words": 407895
     },
     "nb": {
       "added": 0,
@@ -98,40 +98,40 @@
       "words": 126426
     },
     "nl": {
-      "added": 4,
+      "added": 8,
       "attribution": "OpenTaal word list, via jensanjo/wordfeud-wordlists",
       "file": "wordlists/nl/words.txt.gz",
       "license": "Revised BSD and/or CC BY 3.0 (OpenTaal)",
-      "removed": 5,
-      "sha256": "4e5ce7ef8f7eb149a65b6f8f462cbd15b33f5da6e79835e8a4e9c6a6641bc41f",
-      "size": 1018308,
+      "removed": 7,
+      "sha256": "ab0850a32f42ccb87f1fa6d74f29cf7daa5e51a04748b1e6474dcd5b1b527ed6",
+      "size": 1018313,
       "source_words": 340672,
-      "version": 9,
-      "words": 340671
+      "version": 13,
+      "words": 340673
     },
     "nn": {
-      "added": 9,
+      "added": 12,
       "attribution": "Norsk ordbank (nynorsk 2012), Språkbanken / Språkrådet, via Ondkloss/norwegian-wordlist",
       "file": "wordlists/nn/words.txt.gz",
       "license": "CC BY 4.0",
-      "removed": 5,
-      "sha256": "ff9c6ff378b2fb7a331e22141fa1cdee62d62c6f8a8a25b8a6957750cdaa20c5",
-      "size": 326590,
+      "removed": 8,
+      "sha256": "3159eb7ca7bac7dcb402dad3cbb7235484e234316cf5924606211909436e8f12",
+      "size": 326591,
       "source_words": 98470,
-      "version": 12,
+      "version": 18,
       "words": 98474
     },
     "pt": {
-      "added": 0,
+      "added": 2,
       "attribution": "jfoclpf/words-pt (European Portuguese, from the Natura word lists of Universidade do Minho)",
       "file": "wordlists/pt/words.txt.gz",
       "license": "GPL-3.0",
       "removed": 0,
-      "sha256": "dad7700e5747e399b773acb5efa8de0fbacff1a4ea6dd693e579430d3900e8fa",
-      "size": 856655,
+      "sha256": "8ade4309b18b2d3d65641a7b80f7b27c6b75693dadf54f83153dc1aa529951ed",
+      "size": 856659,
       "source_words": 372377,
-      "version": 1,
-      "words": 372377
+      "version": 3,
+      "words": 372379
     },
     "sv": {
       "added": 0,
@@ -146,16 +146,16 @@
       "words": 370672
     },
     "sv-strict": {
-      "added": 0,
+      "added": 1,
       "attribution": "hising/svenska-ord.txt (about 120,000 headwords from SAOL)",
       "file": "wordlists/sv-strict/words.txt.gz",
       "license": "Unlicense (as published; the headwords come from SAOL)",
       "removed": 0,
-      "sha256": "3642c79d19cd837afc0062e9493b699ddf0a5bbb4dd26ac41c2431a9376ff340",
-      "size": 386059,
+      "sha256": "f4e040ef204d73b9362d2c2218ead535ea7ad6db9fdde8d6ce3a72caa8452998",
+      "size": 386061,
       "source_words": 108839,
-      "version": 1,
-      "words": 108839
+      "version": 2,
+      "words": 108840
     }
   },
   "rulesets": {

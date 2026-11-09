@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.swipeback
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -23,6 +23,7 @@ import app.morphe.util.ControlFlow
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val SWIPE_BACK = "$EXTENSION_PACKAGE/misc/SwipeBack;"
 internal const val PROFILE_ACTIVITY = "Lorg/telegram/ui/ProfileActivity;"
@@ -73,7 +74,7 @@ internal fun BytecodePatchContext.resolveSwipeBackOnProfiles(): SwipeBackSite {
     requireStatusMethod("swipeBackOnProfiles")
     controlHook(SWIPE_BACK, "touchBlocks", listOf("Z"), "Z")
 
-    val profile = mutableClassDefByOrNull(PROFILE_ACTIVITY)
+    val profile = tgMutableClassDefByOrNull(PROFILE_ACTIVITY)
     controlShape(profile != null, "ProfileActivity is missing")
     val method = profile!!.methods.filter { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == PROFILE_SWIPE }
         .controlSingle("profile swipe check")

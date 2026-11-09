@@ -8,6 +8,8 @@ import java.io.InputStream
 import java.nio.file.Files
 import java.util.Properties
 
+internal const val FINAMP_COMPLETE_MASK = 191
+
 private const val FINAMP_PACKAGE = "com.unicornsonlsd.finamp"
 private const val FINAMP_VERSION = "1.0.1"
 private const val FINAMP_ABI = "arm64-v8a"
@@ -26,7 +28,7 @@ private object FinampBundle {
 }
 
 internal fun ResourcePatchContext.applyFinampComposition(mask: Int) {
-    nativeCheck(mask in 1..255, "invalid selection mask $mask")
+    nativeCheck(mask > 0 && (mask and FINAMP_COMPLETE_MASK.inv()) == 0, "invalid selection mask $mask")
     nativeCheck(packageMetadata.packageName == FINAMP_PACKAGE && packageMetadata.versionName == FINAMP_VERSION,
         "unsupported app; use the original official Finamp 1.0.1 APK")
 

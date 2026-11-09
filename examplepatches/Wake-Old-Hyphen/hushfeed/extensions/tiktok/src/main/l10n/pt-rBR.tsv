@@ -628,7 +628,7 @@ Hide the rewards shortcut	Ocultar o atalho de recompensas
 Hide the right column	Esconder a coluna da direita
 The row of story avatars across the top of the Inbox goes. Stories still play from the feed and from profiles.	A linha de fotos de stories no topo da caixa de entrada some. Os stories continuam abrindo no feed e nos perfis.
 Hide the save button in the right column. Ticking Save in the list above hides it too.	Esconder o botão de salvar da coluna direita. Marcar Salvar na lista acima também o esconde.
-Hide the magnifying glass at the top right of the feed. Search in Inbox and suggestions above comments stay unchanged.	Oculte a lupa no canto superior direito do feed. A pesquisa na Caixa de entrada e as sugestões acima dos comentários não mudam.
+Hide the magnifying glass at the top right of the feed and the one over the video while comments are open. Search in Inbox and suggestions above comments stay unchanged.	Oculte a lupa no canto superior direito do feed e a que aparece sobre o vídeo com os comentários abertos. A pesquisa na Caixa de entrada e as sugestões acima dos comentários não mudam.
 Hide the magnifying glass at the top of Inbox. Search on the feed and in comments is unchanged.	Esconder a lupa na parte superior da caixa de entrada. A pesquisa no feed e nos comentários não muda.
 Hide recommended searches before you type on TikTok's search page. Your search history stays. This doesn't hide suggestions above comments.	Oculte as pesquisas recomendadas antes de digitar na página de pesquisa do TikTok. Seu histórico de pesquisa é mantido. Isso não oculta as sugestões acima dos comentários.
 Hide the share prompt after a like	Ocultar o pedido de compartilhar depois de curtir
@@ -2188,7 +2188,6 @@ Picked %1$s. Save, then tap Pick all for more.	Escolhidos %1$s. Salve e toque em
 All loaded items are picked or saved. Scroll for more.	Tudo carregado foi escolhido ou salvo. Role para mais.
 
 Record LIVEs you watch	Gravar as LIVEs que você assiste
-Adds a Record button to LIVE rooms. A recording starts when you tap it and ends when you tap Stop or leave the room. Nothing before that is saved.	Adiciona um botão Gravar às salas de LIVE. A gravação começa quando você toca nele e termina quando você toca em Parar ou sai da sala. O que veio antes não é salvo.
 Record	Gravar
 Stop	Parar
 Stop recording this LIVE	Parar de gravar esta LIVE
@@ -2609,3 +2608,37 @@ Hide the expand button in comments	Esconder o botão de expandir nos comentário
 Hides the X at the top of the comments, and the buttons next to it move over to fill the gap. Use Back or swipe down to close comments.	Esconde o X no topo dos comentários, e os botões ao lado se movem para ocupar o espaço. Use Voltar ou deslize para baixo para fechar os comentários.
 # context: Summary under the expand button switch; Open the comments at full height is another switch's title
 Hides the button that stretches the comments over the whole screen. Turn on Open the comments at full height to have them open that way.	Esconde o botão que estica os comentários pela tela inteira. Ative Abrir os comentários na altura total para que eles já abram assim.
+# context: Switch title in the Clear display section; the button is a small eye drawn over the main feed
+Invisible controls button	Botão de controles invisíveis
+A small eye button at the top left of the main feed. Tap it and the buttons, caption and tabs go invisible but still take taps, which helps against burn-in on OLED screens. Tap it again to bring them back. They stay the way you left them across videos and restarts. Videos you open from a profile or search keep their controls.	Um pequeno botão de olho no canto superior esquerdo do feed principal. Toque nele e os botões, a legenda e as abas ficam invisíveis, mas continuam recebendo toques, o que ajuda contra burn-in em telas OLED. Toque de novo para trazê-los de volta. Eles ficam como você deixou entre vídeos e reinícios. Vídeos que você abre por um perfil ou pela pesquisa mantêm seus controles.
+Keep the caption in sight	Manter a legenda à vista
+While the controls are invisible on the main feed, the creator's name, the caption and the music line stay in sight.	Enquanto os controles estão invisíveis no feed principal, o nome do criador, a legenda e a linha da música continuam à vista.
+# context: Spoken label of that eye button while the controls show
+Make the controls invisible	Deixar os controles invisíveis
+# context: Spoken label of that eye button while the controls are invisible
+Show the controls	Mostrar os controles
+# context: Share sheet settings row; hides TikTok's gray Send to new group button that shows beside Send separately once two or more people are picked (#375)
+Hide Send to new group	Esconder Enviar para novo grupo
+# context: summary of Hide Send to new group; Send separately is TikTok's red button that stays (#375)
+Hides the button that turns the people you picked into a new group chat. Send separately stays.	Esconde o botão que transforma as pessoas que você escolheu em um novo chat em grupo. Enviar separadamente continua.
+# context: Switch in Hushfeed settings > App > Appearance (#372)
+AMOLED dark mode	Modo escuro AMOLED
+# context: Summary under the AMOLED dark mode switch
+Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	Preenche o modo escuro com a cor escolhida ao aplicar o patch, preto puro a menos que outra tenha sido escolhida. Desative para ter os cinzas escuros do próprio TikTok. O modo claro não muda. Reinicie o TikTok para ver a mudança.
+# context: Switch in Hushfeed settings > App, under the startup message rows (#377)
+Check for Hushfeed updates	Verificar atualizações do Hushfeed
+# context: Summary under the Check for Hushfeed updates switch
+Once a day when TikTok opens, ask GitHub if a newer Hushfeed is out and show a card when it is. The request carries your Hushfeed version and nothing else.	Uma vez por dia, ao abrir o TikTok, pergunta ao GitHub se saiu um Hushfeed mais novo e mostra um cartão quando sair. A solicitação leva só a sua versão do Hushfeed.
+# context: Title of the card shown when a newer release is out; %1$s is its version, like v0.82.0
+Hushfeed %1$s is out	Saiu o Hushfeed %1$s
+# context: Text of that card; %1$s is the installed version. Morphe Manager is an app name
+You have %1$s. Update the patches in Morphe Manager, then patch TikTok again.	Você tem a %1$s. Atualize os patches no Morphe Manager e depois aplique o patch no TikTok de novo.
+# context: Button on that card that opens Morphe Manager
+Update	Atualizar
+# context: Button on that card that hides it for this release
+Dismiss	Dispensar
+# context: Last line of the update card when the release notes have more bullets than it lists; %1$s is how many
+%1$s more in the release notes	Mais %1$s nas notas da versão
+Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.	Adiciona um botão Gravar às salas de LIVE. Toque nele para iniciar ou parar uma gravação. Sair da sala também encerra a gravação.
+Automatically record LIVEs you enter	Gravar LIVEs automaticamente ao entrar
+Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.	Começa a gravar a transmissão de uma LIVE quando você entra na sala. Depois de parar, não volta a gravar até você sair e entrar novamente. A gravação de tela ainda exige um toque e a permissão do Android.

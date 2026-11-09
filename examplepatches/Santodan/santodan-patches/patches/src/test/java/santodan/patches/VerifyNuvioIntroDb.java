@@ -27,10 +27,14 @@ public final class VerifyNuvioIntroDb {
                     for (ClassDef c : DexBackedDexFile.fromInputStream(null, input).getClasses()) check(classes.put(c.getType(), c) == null);
                 }
         }
-        ClassDef originalMain = classes.get("Lbb/ji;"), originalMore = classes.get("Lbb/oi;"), originalActivity = classes.get("Lcom/nuvio/tv/MainActivity;");
+        ClassDef originalMain = classes.get("Lbb/oi;"), originalMore = classes.get("Lbb/ti;"), originalActivity = classes.get("Lcom/nuvio/tv/MainActivity;");
         MutableClass main = new MutableClass(originalMain), activity = new MutableClass(originalActivity);
-        NuvioIntroDbPatch.validateState(new MutableClass(classes.get("Lbb/nl;")));
-        MutableClass timers = new MutableClass(classes.get("Lbb/of;"));
+        MutableClass focus = new MutableClass(classes.get(software.santodan.nuvio.NuvioNative.INPUT_FOCUS_TYPE));
+        NuvioIntroDbPatch.validateInputFocus(focus, Integer.parseInt(software.santodan.nuvio.NuvioNative.INPUT_FOCUS_BRANCH));
+        rejected(() -> NuvioIntroDbPatch.validateInputFocus(focus, 2));
+        rejected(() -> NuvioIntroDbPatch.validateInputFocus(focus, 999));
+        NuvioIntroDbPatch.validateState(new MutableClass(classes.get("Lbb/sl;")));
+        MutableClass timers = new MutableClass(classes.get("Lbb/tf;"));
         var nativeTimer = NuvioIntroDbPatch.require(timers, software.santodan.nuvio.NuvioNative.REF_PLAYER_TIMERS_F);
         NuvioIntroDbPatch.validateTimer(nativeTimer);
         check(NuvioPlaybackButtonsPatch.fingerprint(NuvioIntroDbPatch.require(timers, NuvioIntroDbPatch.CANCEL_PAUSE))
@@ -72,7 +76,7 @@ public final class VerifyNuvioIntroDb {
             List.of(new ImmutableMethodParameter("Ljava/lang/String;", Set.of(), null), nativeInvoke.getParameters().get(1)),
             nativeInvoke.getReturnType(), nativeInvoke.getAccessFlags(), nativeInvoke.getAnnotations(), nativeInvoke.getHiddenApiRestrictions(), nativeInvoke.getImplementation())));
         rejected(() -> NuvioIntroDbPatch.hook(ambiguous, new MutableClass(originalActivity)));
-        MutableClass badState = new MutableClass(classes.get("Lbb/nl;"));
+        MutableClass badState = new MutableClass(classes.get("Lbb/sl;"));
         badState.getFields().removeIf(f -> f.getName().equals("D0"));
         rejected(() -> NuvioIntroDbPatch.validateState(badState));
         NuvioIntroDbPatch.hook(main, activity);
@@ -83,7 +87,7 @@ public final class VerifyNuvioIntroDb {
             if (first) NuvioIntroDbPatch.hook(combined, a);
             NuvioPlaybackButtonsPatch.hook(combined, more);
             if (!first) NuvioIntroDbPatch.hook(combined, a);
-            check(NuvioPlaybackButtonsPatch.fingerprint(NuvioIntroDbPatch.originalMain(NuvioPlaybackButtonsPatch.invoke(combined, 2))).equals("ed55eb2afcdad3fc22d9b5a628522957d02ce5d5f745dcb8623a1d0385344210"));
+            check(NuvioPlaybackButtonsPatch.fingerprint(NuvioIntroDbPatch.originalMain(NuvioPlaybackButtonsPatch.invoke(combined, 2))).equals("e900f87de44b2cb0a733ccf0ece6ef67df3aecd4499b067bf60df61a2f017d94"));
             var instructions = NuvioAiringSeriesPatch.instructions(NuvioPlaybackButtonsPatch.invoke(combined, 2));
             int introAt = -1, finishAt = -1;
             for (int i = 0; i < instructions.size(); i++) {
@@ -111,7 +115,7 @@ public final class VerifyNuvioIntroDb {
                     check(NuvioPlaybackButtonsPatch.fingerprint(restored).equals(m.getName().equals("J") ? NuvioIntroDbPatch.TIMER_HASH : NuvioIntroDbPatch.PAUSE_TIMER_HASH));
                     check(restored.getImplementation().getTryBlocks().isEmpty());
                 }
-                if (c.getType().equals("Lbb/of;") && !guardedTimer) {
+                if (c.getType().equals("Lbb/tf;") && !guardedTimer) {
                     Method original = java.util.stream.StreamSupport.stream(classes.get(c.getType()).getMethods().spliterator(), false)
                         .filter(candidate -> candidate.toString().equals(m.toString())).findFirst().orElseThrow();
                     if (m.getImplementation() != null) check(NuvioPlaybackButtonsPatch.fingerprint(new MutableMethod(m))

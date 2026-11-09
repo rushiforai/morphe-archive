@@ -19,22 +19,24 @@ namespace BaconReader.E2E.Infrastructure.Phone.BaconReader.Screens;
 /// </summary>
 public sealed class PostList(AndroidDriver driver)
 {
-    private static readonly OpenQA.Selenium.By List = Locate.AppId("rv_links");
-    private static readonly OpenQA.Selenium.By Title = Locate.AppId("title");
-    private static readonly OpenQA.Selenium.By Message = Locate.AppId("errorText");
+    private const string ListId = "rv_links";
+    private static readonly OpenQA.Selenium.By List = Locate.AppId(ListId);
+    private const string TitleId = "title";
+    private static readonly OpenQA.Selenium.By Title = Locate.AppId(TitleId);
+    private const string Message = "errorText";
     private static readonly OpenQA.Selenium.By NoData = Locate.AppIdWithText("text", "No data");
-    private static readonly OpenQA.Selenium.By Card = Locate.AppId("card");
-    private static readonly OpenQA.Selenium.By Row = Locate.AppId("post");
-    private static readonly OpenQA.Selenium.By Points = Locate.AppId("points");
-    private static readonly OpenQA.Selenium.By MoreButton = Locate.AppId("more_button");
-    private static readonly OpenQA.Selenium.By TextButton = Locate.AppId("next");
-    private static readonly OpenQA.Selenium.By Text = Locate.AppId("quickSelfText");
-    private static readonly OpenQA.Selenium.By AwardIcons = Locate.AppId("award_layout");
-    private static readonly OpenQA.Selenium.By ActionBarMoreOptions = Locate.Description("More options");
-    private static readonly OpenQA.Selenium.By Thumbnail = Locate.AppId("thumbnail");
-    private static readonly OpenQA.Selenium.By ThumbnailClicker = Locate.AppId("thumbnailClicker");
-    private static readonly OpenQA.Selenium.By GalleryIndicator = Locate.AppId("thumbnail_album");
-    private static readonly OpenQA.Selenium.By CardImage = Locate.AppId("preview");
+    private const string Card = "card";
+    private const string Row = "post";
+    private const string Points = "points";
+    private const string MoreButton = "more_button";
+    private const string TextButton = "next";
+    private const string Text = "quickSelfText";
+    private const string AwardIcons = "award_layout";
+    private const string ActionBarMoreOptions = "More options";
+    private const string Thumbnail = "thumbnail";
+    private const string ThumbnailClicker = "thumbnailClicker";
+    private const string GalleryIndicator = "thumbnail_album";
+    private const string CardImage = "preview";
 
     // "Fix list thumbnails" describes a thumbnail it blurs.
     private const string BlurredThumbnail = "Blurred thumbnail";
@@ -66,7 +68,7 @@ public sealed class PostList(AndroidDriver driver)
     /// </summary>
     public Task WaitUntilMessageShownAsync() =>
         Waiting.UntilAsync(
-            () => driver.FindElements(Message).FirstOrDefault(message => message.Displayed) is { } shown && shown.Text.Trim() != messageBefore,
+            () => ShownMessage(Screen()) is { } shown && shown != messageBefore,
             TimeSpan.FromSeconds(10),
             "BaconReader's message instead of the feed's posts");
 
@@ -87,15 +89,16 @@ public sealed class PostList(AndroidDriver driver)
     public Task<PostListSnapshot> ReadAsync() =>
         OnScreen.ReadAsync(driver, () =>
         {
-            messageBefore = driver.FindElements(Message).FirstOrDefault(message => message.Displayed)?.Text.Trim();
-            var posts = ShownPosts();
+            var screen = Screen();
+            messageBefore = ShownMessage(screen);
+            var posts = ShownPosts(screen);
             return new PostListSnapshot([.. posts.Select(post => post.Title)], messageBefore) { Posts = [.. posts] };
         });
 
     /// <summary>Waits until the list shows its posts as rows, the list view, instead of cards.</summary>
     public Task WaitUntilShownAsRowsAsync() =>
         Waiting.UntilAsync(
-            () => driver.FindElements(List).Any(list => list.FindElements(Row).Count > 0 && list.FindElements(Card).Count == 0),
+            () => Screen().WithAppId(ListId).Any(list => list.WithAppId(Row).Any() && !list.WithAppId(Card).Any()),
             TimeSpan.FromSeconds(10),
             "The main screen's posts as rows");
 
@@ -105,7 +108,7 @@ public sealed class PostList(AndroidDriver driver)
     /// </summary>
     public Task WaitUntilOnlyPostsShownAsync(params string[] titles) =>
         Waiting.UntilAsync(
-            () => ShownPosts().Select(post => post.Title).Order().SequenceEqual(titles.Order()),
+            () => ShownPosts(Screen()).Select(post => post.Title).Order().SequenceEqual(titles.Order()),
             TimeSpan.FromSeconds(10),
             $"Only the posts {string.Join(", ", titles.Select(title => $"\"{title}\""))} in the main screen's list");
 
@@ -123,8 +126,8 @@ public sealed class PostList(AndroidDriver driver)
     /// <summary>Waits until the post titled <paramref name="title"/> shows <paramref name="thumbnail"/>.</summary>
     public Task WaitUntilThumbnailShownAsync(string title, PostThumbnail thumbnail) =>
         Waiting.UntilAsync(
-            () => FindPost(title)?.FindElements(Thumbnail).FirstOrDefault(shown => shown.Displayed) is { } shown
-                && (shown.GetAttribute("content-desc") == BlurredThumbnail ? PostThumbnail.Blurred : PostThumbnail.Shown) == thumbnail,
+            () => FindPost(Screen(), title)?.WithAppId(Thumbnail).FirstOrDefault(shown => shown.Displayed) is { } shown
+                && (shown.Description == BlurredThumbnail ? PostThumbnail.Blurred : PostThumbnail.Shown) == thumbnail,
             TimeSpan.FromSeconds(10),
             $"The post \"{title}\" with {(thumbnail == PostThumbnail.Blurred ? "a blurred thumbnail" : "a thumbnail that isn't blurred")}");
 
@@ -134,7 +137,7 @@ public sealed class PostList(AndroidDriver driver)
         await WaitUntilPostShownAsync(title);
         // The scroll stops once the title is on the screen, and a card's image is under its title: further down, a bit
         // at a time, until the image is on the screen too (the list's end shows the last card whole).
-        for (var scrolls = 0; scrolls < 5 && await Task.Run(() => FindPost(title)?.FindElements(CardImage).Any(image => image.Displayed) != true); scrolls++)
+        for (var scrolls = 0; scrolls < 5 && await Task.Run(() => FindPost(Screen(), title)?.WithAppId(CardImage).Any(image => image.Displayed) != true); scrolls++)
         {
             object? canScrollMore = null;
             await OnScreen.DoAsync(driver, () => canScrollMore = driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
@@ -150,14 +153,14 @@ public sealed class PostList(AndroidDriver driver)
         }
 
         await Waiting.UntilAsync(
-            () => FindPost(title)?.FindElements(CardImage).Any(image => image.Displayed) == true,
+            () => FindPost(Screen(), title)?.WithAppId(CardImage).Any(image => image.Displayed) == true,
             TimeSpan.FromSeconds(10),
             $"The image in the card of the post \"{title}\"");
     }
 
     /// <summary>Taps the thumbnail of the post titled <paramref name="title"/>, in the list view: it opens its media.</summary>
     public Task ClickThumbnailAsync(string title) =>
-        OnScreen.PressAsync(driver, () => PostOrFail(title).FindElement(ThumbnailClicker));
+        OnScreen.PressAtAsync(driver, () => PostOrFail(Screen(), title).WithAppId(ThumbnailClicker).First().Center);
 
     /// <summary>
     /// What the post titled <paramref name="title"/> shows in the list: its points, between its vote arrows, its award
@@ -167,104 +170,124 @@ public sealed class PostList(AndroidDriver driver)
     public Task<PostSnapshot> ReadPostAsync(string title) =>
         OnScreen.ReadAsync(driver, () =>
         {
-            var post = PostOrFail(title);
-            // A card shows its points apart from the post's view.
-            return new PostSnapshot(title, post.FindElements(Points).FirstOrDefault()?.Text.Trim() ?? "")
+            var screen = Screen();
+            var post = PostOrFail(screen, title);
+            // A card shows its points apart from the post's view, after it.
+            return new PostSnapshot(title, screen.FirstWithAppIdFrom(post, Points)?.Text.Trim() ?? "")
             {
-                Awards = post.FindElements(AwardIcons).Sum(icons => icons.FindElements(By.ClassName("android.widget.ImageView")).Count),
-                TextButton = post.FindElements(TextButton).FirstOrDefault()?.GetAttribute("content-desc") is { Length: > 0 } description
+                Awards = post.WithAppId(AwardIcons).Sum(icons => icons.Descendants().Count(icon => icon.ClassName == "android.widget.ImageView")),
+                TextButton = post.WithAppId(TextButton).FirstOrDefault()?.Description is { Length: > 0 } description
                     ? TextPostButtonShowing.ReadTextPostButton(description)
                     : null,
-                Text = TextOf(title)?.Text.Trim(),
-                Thumbnail = post.FindElements(Thumbnail).FirstOrDefault(thumbnail => thumbnail.Displayed) is not { } thumbnail
+                Text = TextOf(screen, title)?.Text.Trim(),
+                Thumbnail = post.WithAppId(Thumbnail).FirstOrDefault(thumbnail => thumbnail.Displayed) is not { } thumbnail
                     ? PostThumbnail.None
-                    : thumbnail.GetAttribute("content-desc") == BlurredThumbnail ? PostThumbnail.Blurred : PostThumbnail.Shown,
-                ShowsGalleryIndicator = post.FindElements(GalleryIndicator).Any(indicator => indicator.Displayed),
-                ShowsCardImage = post.FindElements(CardImage).Any(image => image.Displayed),
+                    : thumbnail.Description == BlurredThumbnail ? PostThumbnail.Blurred : PostThumbnail.Shown,
+                ShowsGalleryIndicator = post.WithAppId(GalleryIndicator).Any(indicator => indicator.Displayed),
+                ShowsCardImage = post.WithAppId(CardImage).Any(image => image.Displayed),
             };
         });
 
     /// <summary>Taps the ⋮ of the card of the post titled <paramref name="title"/>, which opens its menu.</summary>
     public Task ClickMenuButtonAsync(string title) =>
-        OnScreen.PressAsync(driver, () => PostOrFail(title).FindElement(MoreButton));
+        OnScreen.PressAtAsync(driver, () => PostOrFail(Screen(), title).WithAppId(MoreButton).First().Center);
 
     /// <summary>Taps <paramref name="button"/> on the post titled <paramref name="title"/>, which opens or closes its text.</summary>
     public Task ClickTextButtonAsync(string title, TextPostButton button) =>
-        OnScreen.PressAsync(driver, () => PostOrFail(title).FindElement(Locate.Description(button.ToShownText())));
+        OnScreen.PressAtAsync(driver, () => PostOrFail(Screen(), title).Descendants().First(view => view.Description == button.ToShownText()).Center);
 
     /// <summary>Waits until the post titled <paramref name="title"/> shows its text under it.</summary>
     public Task WaitUntilPostTextShownAsync(string title) =>
-        Waiting.UntilAsync(() => TextOf(title) is not null, TimeSpan.FromSeconds(10), $"The text of the post \"{title}\"");
+        Waiting.UntilAsync(() => TextOf(Screen(), title) is not null, TimeSpan.FromSeconds(10), $"The text of the post \"{title}\"");
 
     /// <summary>Waits until the post titled <paramref name="title"/> shows no text under it.</summary>
     public Task WaitUntilPostTextHiddenAsync(string title) =>
-        Waiting.UntilAsync(() => FindPost(title) is not null && TextOf(title) is null, TimeSpan.FromSeconds(10), $"The post \"{title}\" without its text");
+        Waiting.UntilAsync(
+            () =>
+            {
+                var screen = Screen();
+                return FindPost(screen, title) is not null && TextOf(screen, title) is null;
+            },
+            TimeSpan.FromSeconds(10),
+            $"The post \"{title}\" without its text");
 
     /// <summary>
     /// Swipes the row of the post titled <paramref name="title"/> to the left, from three quarters of its width, clear of
     /// its thumbnail, to near its left edge: in the list view, the row turns into its action bar.
     /// </summary>
-    public Task SwipeToActionBarAsync(string title) =>
-        OnScreen.TouchAsync(driver, () => PostOrFail(title), post =>
-        {
-            var bounds = Bounds(post);
-            var y = bounds.Top + (bounds.Height / 2);
-            var finger = new PointerInputDevice(PointerKind.Touch, "finger");
-            var swipe = new ActionSequence(finger, 0);
-            swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, bounds.Left + (bounds.Width * 3 / 4), y, TimeSpan.Zero));
-            swipe.AddAction(finger.CreatePointerDown(MouseButton.Touch));
-            swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, bounds.Left + (bounds.Width / 8), y, TimeSpan.FromMilliseconds(300)));
-            swipe.AddAction(finger.CreatePointerUp(MouseButton.Touch));
-            driver.PerformActions([swipe]);
-        });
+    public Task SwipeToActionBarAsync(string title)
+    {
+        var bounds = Rectangle.Empty;
+        return OnScreen.TouchAtAsync(
+            driver,
+            () =>
+            {
+                bounds = PostOrFail(Screen(), title).Bounds;
+                return new Point(bounds.Left + (bounds.Width * 3 / 4), bounds.Top + (bounds.Height / 2));
+            },
+            from =>
+            {
+                var finger = new PointerInputDevice(PointerKind.Touch, "finger");
+                var swipe = new ActionSequence(finger, 0);
+                swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, from.X, from.Y, TimeSpan.Zero));
+                swipe.AddAction(finger.CreatePointerDown(MouseButton.Touch));
+                swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, bounds.Left + (bounds.Width / 8), from.Y, TimeSpan.FromMilliseconds(300)));
+                swipe.AddAction(finger.CreatePointerUp(MouseButton.Touch));
+                driver.PerformActions([swipe]);
+            });
+    }
 
     /// <summary>Waits until a row of the list shows its action bar: its "More options".</summary>
     public Task WaitUntilActionBarShownAsync() =>
-        Waiting.UntilAsync(() => ActionBarMoreOptionsOrNull() is not null, TimeSpan.FromSeconds(10), "The action bar of a post's row");
+        Waiting.UntilAsync(() => ActionBarMoreOptionsOrNull(Screen()) is not null, TimeSpan.FromSeconds(10), "The action bar of a post's row");
 
     /// <summary>Taps "More options" in the action bar a row shows, which opens the post's menu.</summary>
     public Task ClickActionBarMoreOptionsAsync() =>
-        OnScreen.PressAsync(driver, () => ActionBarMoreOptionsOrNull() ?? throw new InvalidOperationException("No row of the list shows its action bar."));
+        OnScreen.PressAtAsync(driver, () => (ActionBarMoreOptionsOrNull(Screen()) ?? throw new InvalidOperationException("No row of the list shows its action bar.")).Center);
 
     // The "More options" of a row's action bar: inside the list, unlike the toolbar's.
-    private IWebElement? ActionBarMoreOptionsOrNull() =>
-        driver.FindElements(List).SelectMany(list => list.FindElements(ActionBarMoreOptions)).FirstOrDefault(button => button.Displayed);
+    private static ScreenNode? ActionBarMoreOptionsOrNull(ScreenSnapshot screen) =>
+        screen.WithAppId(ListId).SelectMany(list => list.Descendants()).FirstOrDefault(button => button.Displayed && button.Description == ActionBarMoreOptions);
+
+    private ScreenSnapshot Screen() => ScreenSnapshot.Take(driver);
+
+    // The message the list shows instead of posts, or null.
+    private static string? ShownMessage(ScreenSnapshot screen) =>
+        screen.WithAppId(Message).FirstOrDefault(message => message.Displayed)?.Text.Trim();
 
     // Each post's card or row on the screen, top to bottom, with its title and its flair.
-    private List<ShownPost> ShownPosts() =>
-        [.. Posts().Select(post => post.Shown)];
+    private static List<ShownPost> ShownPosts(ScreenSnapshot screen) => [.. Posts(screen).Select(post => post.Shown)];
 
-    private List<(IWebElement View, ShownPost Shown)> Posts() =>
-        [.. driver.FindElements(List)
-            .SelectMany(list => list.FindElements(Card).Concat(list.FindElements(Row)))
-            .Select(post => (View: post, Title: post.FindElements(Title).FirstOrDefault()))
+    private static List<(ScreenNode View, ShownPost Shown)> Posts(ScreenSnapshot screen) =>
+        [.. screen.WithAppId(ListId)
+            .SelectMany(list => list.WithAppId(Card).Concat(list.WithAppId(Row)))
+            .Where(post => post.Displayed)
+            .Select(post => (View: post, Title: post.WithAppId(TitleId).FirstOrDefault(title => title.Displayed)))
             .Where(post => post.Title is not null)
             .Select(post => (post.View, Shown: ShownPost.Read(post.Title!.Text)))
-            .OrderBy(post => post.View.Location.Y)];
+            .OrderBy(post => post.View.Bounds.Y)];
 
-    private IWebElement? FindPost(string title) => Posts().FirstOrDefault(post => post.Shown.Title == title).View;
+    private static ScreenNode? FindPost(ScreenSnapshot screen, string title) => Posts(screen).FirstOrDefault(post => post.Shown.Title == title).View;
 
-    private IWebElement PostOrFail(string title) =>
-        FindPost(title) ?? throw new InvalidOperationException($"The post \"{title}\" isn't on the screen.");
+    private static ScreenNode PostOrFail(ScreenSnapshot screen, string title) =>
+        FindPost(screen, title) ?? throw new InvalidOperationException($"The post \"{title}\" isn't on the screen.");
 
     // The text a post shows under it: in the list view it is under the post's row, before the next post.
-    private IWebElement? TextOf(string title)
+    private static ScreenNode? TextOf(ScreenSnapshot screen, string title)
     {
-        var posts = Posts();
+        var posts = Posts(screen);
         var index = posts.FindIndex(post => post.Shown.Title == title);
         if (index < 0)
         {
             return null;
         }
 
-        var top = posts[index].View.Location.Y;
-        var bottom = index + 1 < posts.Count ? posts[index + 1].View.Location.Y : int.MaxValue;
-        return driver.FindElements(List)
-            .SelectMany(list => list.FindElements(Text))
-            .FirstOrDefault(text => text.Displayed && text.Location.Y > top && text.Location.Y < bottom && text.Text.Trim().Length > 0);
+        var top = posts[index].View.Bounds.Y;
+        var bottom = index + 1 < posts.Count ? posts[index + 1].View.Bounds.Y : int.MaxValue;
+        return screen.WithAppId(ListId)
+            .SelectMany(list => list.WithAppId(Text))
+            .FirstOrDefault(text => text.Displayed && text.Bounds.Y > top && text.Bounds.Y < bottom && text.Text.Trim().Length > 0);
     }
-
-    private static Rectangle Bounds(IWebElement element) => new(element.Location, element.Size);
 }
 
 /// <summary>

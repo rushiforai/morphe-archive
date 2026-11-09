@@ -426,6 +426,7 @@ public final class Settings {
         for (String keep : KEEP_BADGES.values()) owners.put(keep, TAB_BADGES);
         owners.put(QuietCalls.CHOSEN_ONLY, QuietCalls.KEY);
         owners.put(MessageLog.SAVE_EXPIRING, MessageLog.KEY);
+        owners.put(QuietChats.KEY, MessageLog.KEY);
         owners.put(MessageLogButton.KEY, MessageLog.KEY);
         owners.put(MessageLogButton.MENU_KEY, MessageLog.KEY);
         SUB_SWITCHES = Collections.unmodifiableMap(owners);
@@ -616,7 +617,8 @@ public final class Settings {
             return shape < 0 || shape == now ? null : now == AVATAR_CIRCLE;
         }
         Boolean held = "meta_ai".equals(key) ? metaAiTab : "emoji_drawer".equals(key) ? oldEmojiDrawer
-            : SEARCH_BAR.equals(key) ? keptSearchBar : LANDSCAPE.equals(key) ? landscape : OwnFont.KEY.equals(key) ? customFont : CallRecording.KEY.equals(key) ? CallRecording.heldPlayout() : bottomTabs.get(key);
+            : SEARCH_BAR.equals(key) ? keptSearchBar : LANDSCAPE.equals(key) ? landscape : OwnFont.KEY.equals(key) ? customFont : CallRecording.KEY.equals(key) ? CallRecording.heldPlayout()
+            : FLOATING_TAB_BAR.equals(key) ? floatingBar : TAB_BAR_SCROLL_AWAY.equals(key) ? scrollAwayBar : bottomTabs.get(key);
         return held == null || held == wouldUse(key) ? null : held;
     }
 
@@ -779,6 +781,89 @@ public final class Settings {
     public static Object shareStorySection(Object state, Object skip) {
         return state != skip && enabled(SHARE_STORY) ? skip : state;
     }
+    /** The activity behind Messenger's Your story choice in other apps' share sheets, beside its Chats one. */
+    static final String STORY_SHARE_ACTIVITY = "com.facebook.messenger.intents.MediaEditShareIntentHandler";
+    /** Messenger's own last answer for that share target in this process, or null before the chat list has given one. */
+    static volatile Boolean storyTargetWanted;
+    /**
+     * Each time the chat list opens, Messenger turns its Your story share target on or off with this answer, non-zero
+     * meaning on. With the switch on the answer is off, so a share from the gallery goes straight to Chats instead of
+     * asking which one. Off, Pause and safe mode give Messenger's answer back.
+     */
+    public static boolean storyShareTarget(int wanted) {
+        storyTargetWanted = wanted != 0;
+        return wanted != 0 && !enabled(SHARE_STORY);
+    }
+
+    /**
+     * Puts the Your story share target where the switch wants it now, without waiting for the chat list: off while the
+     * switch is in effect, otherwise Messenger's own last answer. Before Messenger has given one, its next answer
+     * settles it.
+     */
+    static void syncStoryShareTarget(Context context) {
+        if (!installed.contains(SHARE_STORY)) return;
+        Boolean wanted = wouldUse(SHARE_STORY) ? Boolean.FALSE : storyTargetWanted;
+        if (wanted == null) return;
+        PackageManager packages = context.getPackageManager();
+        android.content.ComponentName target = new android.content.ComponentName(context, STORY_SHARE_ACTIVITY);
+        int state = wanted ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        try {
+            if (packages.getComponentEnabledSetting(target) != state) {
+                packages.setComponentEnabledSetting(target, state, PackageManager.DONT_KILL_APP);
+            }
+        } catch (IllegalArgumentException | SecurityException error) {
+            hookFailed(SHARE_STORY, "Can't change the Your story share target", error);
+        }
+    }
+    static final String FLOATING_TAB_BAR = "floating_tab_bar";
+    static final String TAB_BAR_SCROLL_AWAY = "tab_bar_scroll_away";
+    /** First answers this process gave for the two tab bar switches, or null before the home screen asked. */
+    static volatile Boolean floatingBar, scrollAwayBar;
+    private static final Object TAB_BAR_LOCK = new Object();
+
+    /** A switch's first answer for this run, so every home screen built before a restart lays the tab bar out alike. */
+    private static boolean heldTabBar(String key) {
+        Boolean held = FLOATING_TAB_BAR.equals(key) ? floatingBar : scrollAwayBar;
+        if (held == null) {
+            if (!HostScreens.started) HostScreens.initializeLate();
+            synchronized (TAB_BAR_LOCK) {
+                if (FLOATING_TAB_BAR.equals(key)) {
+                    if (floatingBar == null) floatingBar = wouldUse(key);
+                    held = floatingBar;
+                } else {
+                    if (scrollAwayBar == null) scrollAwayBar = wouldUse(key);
+                    held = scrollAwayBar;
+                }
+            }
+        }
+        if (held) activeAt.put(key, System.currentTimeMillis());
+        return held;
+    }
+
+    /**
+     * The home screen asks Messenger's floating tab bar flag as it builds its frame, non-zero meaning yes. With the switch
+     * on the answer is yes, so the bar takes Messenger's floating style. Messenger's own yes has nothing to hold. Off,
+     * Pause and safe mode keep Messenger's answer from the next restart on.
+     */
+    public static boolean floatingTabBar(int stock) { return stock != 0 || heldTabBar(FLOATING_TAB_BAR); }
+
+    /**
+     * Then it asks whether to lay the tab bar over the page, where it can slide away, instead of under it. With Hide the
+     * tab bar while scrolling on the answer is yes, held for the run like the floating one.
+     */
+    public static boolean tabBarOverlay(int stock) { return stock != 0 || heldTabBar(TAB_BAR_SCROLL_AWAY); }
+
+    /**
+     * The Chats page's answer on whether the tab bar slides away while its list scrolls. It follows the overlay's held
+     * answer, or the switch itself when Messenger chose the overlay on its own and never asked.
+     */
+    public static boolean tabBarScrollAway(int stock) {
+        if (stock != 0) return true;
+        Boolean held = scrollAwayBar;
+        if (held == null) return enabled(TAB_BAR_SCROLL_AWAY);
+        if (held) activeAt.put(TAB_BAR_SCROLL_AWAY, System.currentTimeMillis());
+        return held;
+    }
     static final String BLOCKED_LIST_PICTURES = "blocked_list_pictures";
     /**
      * The blocked people list hands over each blocked person's picture before it goes on their row. Null gives the row
@@ -789,12 +874,18 @@ public final class Settings {
     /** The folder enum's INBOX constant, found once per folder type. */
     private static volatile Enum<?> inboxFolder;
     /**
-     * The new-message notification check reads the chat's folder before it decides. A RESTRICTED folder comes back as
-     * INBOX, so the chat gets the same mute and status checks as any other chat. Only that local read changes: the chat
-     * stays in Restricted. Off, Pause and safe mode, and every other folder, keep the folder.
+     * The new-message notification check reads the chat's folder before it decides. With Notify for restricted chats on,
+     * a RESTRICTED folder comes back as INBOX, so the chat gets the same mute and status checks as any other chat. With it
+     * off and Log chats that don't notify on, it comes back as INBOX too, marked so the message goes to the log with no
+     * notification. Only that local read changes: the chat stays in Restricted. Off, Pause and safe mode, and every other
+     * folder, keep the folder.
      */
     public static Object notificationFolder(Object folder) {
-        if (!(folder instanceof Enum) || !"RESTRICTED".equals(((Enum<?>) folder).name()) || !enabled(RESTRICTED_NOTIFY)) return folder;
+        boolean restricted = folder instanceof Enum && "RESTRICTED".equals(((Enum<?>) folder).name());
+        boolean notify = restricted && enabled(RESTRICTED_NOTIFY);
+        boolean forLog = restricted && !notify && QuietChats.wanted();
+        QuietChats.restrictedForLog(forLog);
+        if (!notify && !forLog) return folder;
         try {
             Class<?> type = ((Enum<?>) folder).getDeclaringClass();
             Enum<?> inbox = inboxFolder;
@@ -811,9 +902,34 @@ public final class Settings {
             }
             return inbox;
         } catch (ReflectiveOperationException | RuntimeException error) {
-            hookFailed(RESTRICTED_NOTIFY, "Can't notify for a restricted chat", error);
+            QuietChats.restrictedForLog(false);
+            if (notify) hookFailed(RESTRICTED_NOTIFY, "Can't notify for a restricted chat", error);
+            else hookFailed(MessageLog.KEY, "Can't log a restricted chat", error);
             return folder;
         }
+    }
+
+    /**
+     * The notification check's mute check, for a muted chat. With Log chats that don't notify on, the message goes on as
+     * if the chat notified, so the log gets it, and its notification is dropped before it goes up. Off, Pause and safe
+     * mode keep Messenger's: the message stops here.
+     */
+    public static boolean quietChat(Object thread) { return QuietChats.muted(thread); }
+
+    /** The same check for a chat that notifies. A restricted chat let on only for the log still counts as quiet. */
+    public static void loudChat(Object thread) { QuietChats.notifies(thread); }
+
+    /** The notification manager asks this before it reads anything off a new message. */
+    public static boolean logQuietChats() { return QuietChats.wanted(); }
+
+    /**
+     * A new message's notification, right before it goes up. True drops it, since its chat was let on only for the log.
+     * The sender's name goes to the log now: there's no notification to read it from later.
+     */
+    public static boolean dropQuiet(Object thread, String id, String sender) {
+        if (!QuietChats.isQuiet(thread)) return false;
+        MessageLog.noteSender(String.valueOf(thread), id, sender);
+        return true;
     }
     static final String AVATAR_SHAPE = "avatar_shape";
     /** Under Square profile pictures: rounds the square's corners. */
@@ -1057,8 +1173,14 @@ public final class Settings {
     /** The same notification hook asks this for an auto reply: on, not paused, and with at least one reply written. */
     public static boolean autoReplyWanted() { return AutoReply.wanted(); }
 
-    /** Hands an incoming message to the auto reply, which answers it off this thread. */
-    public static void autoReplyTo(String text, String thread) { AutoReply.received(text, thread, takeIncomingMessageId()); }
+    /**
+     * Hands an incoming message to the auto reply, which answers it off this thread. A chat that doesn't notify gets no
+     * answer: it only reaches here for the log, and auto reply answers through a notification it won't have.
+     */
+    public static void autoReplyTo(String text, String thread) {
+        String id = takeIncomingMessageId();
+        if (!QuietChats.isQuiet(thread)) AutoReply.received(text, thread, id);
+    }
 
     /**
      * The chat camera button's intent, right before Messenger starts it. With the switch on it opens the capture screen,

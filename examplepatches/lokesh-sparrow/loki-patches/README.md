@@ -98,7 +98,7 @@ also search the options, back up and restore them, check for updates and pick th
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.4](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v1.2.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
+> **[v1.2.5](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v1.2.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
 <details open>
 <summary><img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
 <br>

@@ -89,6 +89,29 @@ internal static class Login
             });
         }
 
+        // "E2E fake Reddit" asks at the app's start whether to start logged in (RedditWorld.LogInAtStart): the login, with
+        // what the app keeps of one (SessionManager.createSession), or 204.
+        app.MapGet("/_e2e/login", () =>
+        {
+            lock (world.Sync)
+            {
+                if (world.TakeLoginAtStart() is not { } account)
+                {
+                    return Results.NoContent();
+                }
+
+                return Answers.Json(new
+                {
+                    name = account.Name,
+                    access_token = world.IssueToken(account, "access"),
+                    refresh_token = world.IssueToken(account, "refresh"),
+                    expires_in = 86400,
+                    user_id = account.Id,
+                    created_utc = account.Created.ToUnixTimeSeconds(),
+                });
+            }
+        });
+
         // The web view asks for the login page's icon; the fake's pages have none.
         app.MapGet("/favicon.ico", () => Results.NoContent());
 

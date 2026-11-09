@@ -1,0 +1,8 @@
+AppleMusic-one-arm64.apk :: package: name='com.apple.android.music' versionCode='10910' versionName='1.9.10' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+AppleMusic-one-x86.apk :: package: name='com.apple.android.music' versionCode='10910' versionName='1.9.10' platformBuildVersionName='16' platformBuildVersionCode='36' compileSdkVersion='36' compileSdkVersionCodename='16'
+PHONE dumpsys:
+versionCode=10910 minSdk=29 targetSdk=36
+versionName=1.9.10
+EMU dumpsys:
+versionCode=10910 minSdk=29 targetSdk=36
+versionName=1.9.10

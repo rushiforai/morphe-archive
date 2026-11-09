@@ -369,3 +369,51 @@ libs stay byte-identical/STORED/16 KiB-aligned; the output verifies with
 apksig (v2, CN=Morphe); the patched SQL parses in SQLite; and
 `tools/AuditExtDex` reports zero unresolved `android/*` references in the
 modified dex.
+
+### 6.4 What v1.2.1 still broke (and v1.2.2 fixes)
+
+v1.2.1 fixed every *compile-time* reference in the extension, yet patched apps
+still crashed instantly on open. The remaining fault is *runtime* semantics:
+`killPackageManager` installed the proxy with a bare
+`findField(PackageInfo.class, "CREATOR").set(null, creator)` and wrapped the
+whole block in `catch (Exception e) { throw new RuntimeException(...) }`.
+
+- `PackageInfo.CREATOR` is `public static final`, and ART — exactly like the
+  desktop JDK — refuses `Field.set()` on final fields. The
+  ApkSignatureKillerEx lineage therefore clears the FINAL bit in the hidden
+  `java.lang.reflect.Field#accessFlags` field first (the Android equivalent of
+  the JDK `modifiers` reflection hack; Android's `Field` has no `modifiers`).
+  The port had dropped that step, so on current Android the `set` throws
+  `IllegalAccessException`.
+- The catch block then **re-threw from a static initializer**: the hook runs
+  from `<clinit>` (via the re-parented `OperaApplication`/`LeanplumApplication`
+  superclasses), so any escaping throwable surfaces as
+  `ExceptionInInitializerError` at `new OperaApplication()` — an immediate
+  crash-on-open, before the first frame, indistinguishable to the user from
+  the v1.2.0 stub crash. Notably `catch (Exception)` would not even have
+  caught a linkage `Error` (e.g. a missing class); only `catch (Throwable)`
+  makes a `<clinit>` safe.
+
+The upstream `rushiranpise/morphe-patches` `SignatureHookApp.java` carries the
+same two flaws — it presumably survives only on Android builds that still
+allow final-field writes.
+
+v1.2.2 hardens the hook:
+
+1. **Nothing can escape the initializer.** `killPackageManager` catches
+   `Throwable` and logs via `android.util.Log`; a spoof that cannot be
+   installed leaves a *working* app that simply sees the Morphe certificate
+   (signature reads keep their patched-build behavior instead of crashing).
+2. **The swap uses the full technique chain**, attempted in order:
+   hidden-API exemptions first (VMRuntime `setHiddenApiExemptions("L")` via
+   meta-reflection — previously called *after* the swap it was meant to
+   enable), then `Field#accessFlags` FINAL-bit clear + `Field.set`, then a
+   `sun.misc.Unsafe` `staticFieldBase`/`staticFieldOffset`/`putObject` write
+   (Unsafe writes bypass the final check entirely; `sun.misc.Unsafe` is
+   greylisted but reflectable), then a plain set for ART builds that allow
+   final writes. Each route returns its success; the proxy installs on
+   modern Android instead of silently degrading.
+
+Play Protect's "app hasn't been seen before" prompt on install is unrelated
+and expected: every Morphe/ReVanced-style build is re-signed with a local key
+and therefore never matches a Play-distributed certificate.

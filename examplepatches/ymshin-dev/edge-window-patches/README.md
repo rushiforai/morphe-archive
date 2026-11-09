@@ -40,6 +40,8 @@ available, and achievement settings are preserved. The original game files/APK
 are not included in this repository. Attribution and font notices are bundled
 with the patch; see [ProperKorean NOTICE](patches/src/main/resources/balatro/properkorean/NOTICE.md).
 
+**Adjust app font scale** multiplies only the font scale in the patched app's Activity contexts. It leaves display density and density-based layout dimensions unchanged, so it can be combined with Samsung's screen-zoom/DPI setting to keep a denser feed while making text easier to read. Set the multiplier slider between `0.5×` and `2.0×`: `1.0×` keeps the current system font scale, while `1.2×` increases it by that factor. Android 14 and newer scale fonts nonlinearly, so the slider value does not guarantee an identical physical-size change for every text style. The patch is disabled by default; enable it only for the app whose text should change.
+
 ## Add the source in Morphe
 
 After the updated GitHub release is published, open **Sources → + → Remote** in Morphe Manager and enter:
@@ -48,11 +50,13 @@ After the updated GitHub release is published, open **Sources → + → Remote**
 github.com/ymshin-dev/edge-window-patches
 ```
 
-Patches are optional and must be selected in Expert mode. Enable only one variant of the hide patch per app, and only for the app where the content should use the notch or punch-hole area.
+Patches are optional and must be selected in Expert mode. Enable only one variant of the hide patch per app, and only for the app where the content should use the notch or punch-hole area. Apply **Adjust app font scale** only to the app whose text should change.
 
 ## Limits
 
 The inset filter reaches view layouts that use the normal window-inset dispatch path. An app can still add padding itself or read root window insets directly, which may leave the player below the punch-hole. A browser that reads display cutout information from the display object instead of window insets can also offset its page. Removing top insets can move interactive controls close to the camera. Below Android 11, the patch can allow the window into the cutout but does not filter inset dispatch; below Android 9, it can hide the status bar but there is no display-cutout window API.
+
+The font-scale patch only affects text laid out with Android's `sp` scaling. Text drawn at fixed pixel sizes, WebView or browser page content, and custom Canvas/OpenGL rendering may not change. An app that reads the system font scale directly instead of its Activity resources can bypass the override.
 
 ## Build
 
@@ -93,7 +97,7 @@ imports a game APK or complete game Lua files.
 ## Patch catalog
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.0](https://github.com/ymshin-dev/edge-window-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.5.1](https://github.com/ymshin-dev/edge-window-patches/releases/tag/v1.5.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -135,11 +139,12 @@ imports a game APK or complete game Lua files.
 </details>
 
 <details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Adjust app font scale](#adjust-app-font-scale) | Scales text in this app without changing display density or layout sizing. | • Font scale multiplier |
 | [Hide status bar and ignore display cutouts (universal)](#hide-status-bar-and-ignore-display-cutouts-universal) | Hides the status bar and removes top status-bar and cutout insets from app content in any app. |  |
 
 </details>

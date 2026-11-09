@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
 import java.util.stream.IntStream
+import app.morphe.util.names.TelegramNames
 
 /**
  * Something a class's code might mention, for [classDefsMentioning] to narrow a whole-app search
@@ -58,21 +59,33 @@ internal sealed class Mention {
          * A type the code names directly: what `new-instance`, `check-cast`, `instance-of`,
          * `const-class` and the array instructions take, and the owner of every field or method it
          * reads, writes or calls. Not a field's type or a call's parameter and return types.
+         *
+         * The index holds the dex's own names, so a source name of a class 13.2 renamed is looked
+         * for under the build's name too. A name already read off the build stays as it is.
          */
-        fun type(descriptor: String): Mention = Key(key(TYPE, descriptor.hashCode()))
+        fun type(descriptor: String): Mention {
+            val build = TelegramNames.current().type(descriptor)
+            val raw = Key(key(TYPE, descriptor.hashCode()))
+            return if (build == descriptor) raw else raw or Key(key(TYPE, build.hashCode()))
+        }
 
         /** The name of a field or method the code reads, writes or calls, of any class. */
-        fun member(name: String): Mention = Key(key(MEMBER, name.hashCode()))
+        fun member(name: String): Mention = names(TelegramNames.current().anyMemberNames(name))
 
         /** A field or method named [name] on [definingClass], read, written or called. */
-        fun member(definingClass: String, name: String): Mention = type(definingClass) and member(name)
+        fun member(definingClass: String, name: String): Mention {
+            val table = TelegramNames.current()
+            return type(definingClass) and names(table.memberNames(definingClass, name) + table.anyMemberNames(name))
+        }
+
+        private fun names(names: Set<String>): Mention = anyOf(names.map { Key(key(MEMBER, it.hashCode())) })
 
         /** A literal any `const` or literal-operand instruction carries, sign-extended to a long. */
         fun literal(value: Long): Mention = Key(key(LITERAL, java.lang.Long.hashCode(value)))
         fun literal(value: Int): Mention = literal(value.toLong())
 
         /**
-         * Any instruction whose reference reads as [text], the way `reference.toString()` gives it:
+         * Any instruction whose reference reads as [text], the way `reference.origString()` gives it:
          * `Lowner;->name:Type`, `Lowner;->name(Parameters)Return`, a type, or a string constant,
          * since a string reference reads as the string itself.
          */
@@ -81,6 +94,8 @@ internal sealed class Mention {
             // Method handles, call sites and prototypes read differently and aren't indexed. Text
             // that could be one of them narrows nothing rather than risk leaving a class out.
             if (text.isEmpty() || (text[0] != 'L' && text[0] != '[')) return Anything
+            // 13.2 has no R classes: the read of a resource id is the literal R8 put in its place.
+            TelegramNames.current().resourceOf(text)?.let { return literal(it) }
             if (arrow < 0) return string(text) or type(text)
             val rest = text.substring(arrow + 2)
             val end = rest.indexOfFirst { it == ':' || it == '(' }

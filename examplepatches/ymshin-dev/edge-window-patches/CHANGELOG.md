@@ -1,3 +1,27 @@
+## [1.5.1](https://github.com/ymshin-dev/edge-window-patches/compare/v1.5.0...v1.5.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* keep Activity base context type when scaling fonts ([c8926d0](https://github.com/ymshin-dev/edge-window-patches/commit/c8926d060c2e50b77ed69a2e5cb79138fd1f8cc0))
+
+## [1.5.1-dev.1](https://github.com/ymshin-dev/edge-window-patches/compare/v1.5.0...v1.5.1-dev.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* keep Activity base context type when scaling fonts ([c8926d0](https://github.com/ymshin-dev/edge-window-patches/commit/c8926d060c2e50b77ed69a2e5cb79138fd1f8cc0))
+
+## [1.5.0](https://github.com/ymshin-dev/edge-window-patches/compare/v1.4.0...v1.5.0) (2026-11-08)
+
+### ✨ New Features
+
+* add universal app font scale patch ([2b1166a](https://github.com/ymshin-dev/edge-window-patches/commit/2b1166a5946cf8b40c7fd9f834a3cfa156b612cb))
+
+## [1.5.0-dev.1](https://github.com/ymshin-dev/edge-window-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-08)
+
+### ✨ New Features
+
+* add universal app font scale patch ([2b1166a](https://github.com/ymshin-dev/edge-window-patches/commit/2b1166a5946cf8b40c7fd9f834a3cfa156b612cb))
+
 ## [1.4.0](https://github.com/ymshin-dev/edge-window-patches/compare/v1.3.0...v1.4.0) (2026-10-11)
 
 ### ✨ New Features

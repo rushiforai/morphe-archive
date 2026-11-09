@@ -14,21 +14,10 @@ val signatureBypassPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_JIOHOTSTAR)
 
     execute {
-        // Ee/o.c computes MD5(current_cert) as base64, compares with getSignFromJNI().
-        // If they match → z10=false (not tampered). If not → z10=true (tampered).
-        // After re-signing, the computed hash differs from the original.
-        //
-        // Fix: After MD5+Base64 computation (v0 holds the hash string),
-        // replace v0 with the original cert's hash so comparison always succeeds.
-        // The original hash "GnwgdTsKCP54v02ZSST5iA" is from libnative-lib.so getAppSignature.
         val method = SignatureCheckFingerprint.method
         val matches = SignatureCheckFingerprint.instructionMatches
 
-        // instructionMatches[1] = Base64.encodeToString call
-        // After it, move-result-object stores the hash in a register.
-        // We overwrite that register with the original hash.
         val encodeIndex = matches[1].index
-        // The move-result-object is at encodeIndex + 1
         val moveResultIndex = encodeIndex + 1
         val reg = method.getInstruction<OneRegisterInstruction>(moveResultIndex).registerA
 

@@ -1,41 +1,99 @@
-# Google Maps Android Auto 機車路線研究
+# Maps-AA-AnyMode-Morphe: two-wheeler navigation with Google Maps on Android Auto
 
-本專案已有可編譯、通過離線測試的 bytecode 修改核心，以及待建置驗證的 Morphe 接口；**沒有可安裝的 patch 或 `.mpp`**。進度、精確候選位置與限制見 [findings.md](findings.md)。目標與使用者環境見 [handoff.md](handoff.md)。
+**English** | [中文](README.zh-TW.md)
 
-## 執行離線原型
+Makes **Google Maps navigate on an Android Auto head unit with its native car interface, including two-wheeler (motorcycle) routes**. Intended for an Android Auto screen mounted on a motorcycle: stock Google Maps only allows driving routes on Android Auto and refuses two-wheeler navigation.
 
-```powershell
-.\scripts\test-core.ps1
-```
+Patched with [Morphe](https://morphe.software). The patched Maps installs under a different package, **alongside stock Google Maps**: keep stock Maps for driving, use the patched copy on the motorcycle.
 
-核心會在研究用 DEX 副本中，對投影 CAR 的模式選擇器及路線建立器加入機車分支。已通過 64 個條件案例、87,384 個方法的序列化後比對，以及變異／重複套用拒絕檢查。這些不等同手機或偏航實測。原始碼與建置限制見 [patch/README.md](patch/README.md)。
+> Experimental. Only verified on a Galaxy S25 (Android 16) with the headunit head-unit emulator (wired USB). Test while parked before riding. Whether a route is legal (e.g. 125cc bikes are banned from Taiwan's national freeways) depends on local road signs, not on the app.
 
-## 重現本機分析
+## Features
 
-將原始 26.44 APKM 保留在根目錄；使用 PowerShell、Python 3.12 及已安裝的 Android SDK build-tools：
+- Native Google Maps map and turn cards on the head unit
+- Two-wheeler mode gives a two-wheeler route and driving mode gives a driving route; the head unit no longer shows "To navigate on Android Auto, switch to ... directions"
+- Search destinations on the head unit and navigate to several destinations in a row
+- Google sign-in (through MicroG-RE) and location work
 
-```powershell
-python scripts/inspect_apkm.py
-python scripts/disassemble.py
-python scripts/find_methods.py 'TWO_WHEELER|two_wheeler|CarNavigation|CarRoute|requestedTravelMode|NavLogTravelMode' --name modes
-python scripts/find_methods.py 'Lqyf;\.[fg]:|Lqvv;\.b:' --name projected-mode --dump classes4.txt
-python scripts/find_methods.py 'btxk\.h:' --name projection-selector --dump classes2.txt
-python scripts/find_methods.py 'plq\.<clinit>:' --name projection-types --dump classes.txt
-python scripts/find_methods.py 'trq\.h:' --name mode-guards --dump classes4.txt
-python scripts/find_methods.py 'GmmCarProjectionService\.|nativeHandleRerouteResponse|nativeOnRerouteRequested' --name car-flow
-python scripts/extract_classes.py 'Lpkr;' 'Lbwbm;' 'Lckbl;' --implementors
-```
+## Supported version
 
-若 SDK 不在預設路徑，為 `disassemble.py` 傳入 `--dexdump '完整路徑\dexdump.exe'`。所有產物都寫入 `analysis/`，完整反組譯約 1.58 GB，另需原始 APK／DEX 解壓空間。原始 APKM SHA-256 不吻合時，盤點腳本會停止。
+**Google Maps `26.44.06.1006895251` only (versionCode `1068856906`, arm64-v8a).** Every change is pinned to this build's obfuscated names; other versions fail at patch time (they do not produce a broken app). **Do not update** the patched app.
 
-`find_methods.py` 支援 regex，輸出完整方法、DEX code offset、來源行號與證據文字 SHA-256。這是研究索引，**不是可套用 patch 的語意 fingerprint**。請避免在 PowerShell regex 參數中嵌入雙引號。
+This project does not distribute Google Maps. Get the original APKM of the version above yourself (e.g. from APKMirror).
 
-## 建置、安裝與回滾
+## What you need
 
-上游建置 task 為 `buildAndroid`，本地專案在 `patch/`。實際離線建置失敗於缺少 `app.morphe.patches:2.1.0` 外掛，紀錄在 `analysis/morphe-build.log`；Kotlin 接口尚未編譯。需先補齊 Gradle 9.8.2 與 Morphe 依賴，才能繼續驗證 `.mpp`。
+| Item | Download |
+|---|---|
+| Morphe Manager | <https://morphe.software> |
+| **This version of MicroG-RE** (required) | [shuili1013/MicroG-RE releases](https://github.com/shuili1013/MicroG-RE/releases/tag/v7.3.0-maps-fix) → `microg-re-maps-fix-7.3.0.apk` |
+| This project's patch bundle | Add the remote source `github.com/shuili1013/Maps-AA-AnyMode-Morphe` in Morphe (or download `patches-1.0.1.mpp` from [Releases](https://github.com/shuili1013/Maps-AA-AnyMode-Morphe/releases) and add it as a local source) |
 
-目前不提供安裝命令：`base.apk` 只是 split 安裝包的一部分，不能將它當成完整可安裝 APK，也不能用重新簽名的同包名檔案覆蓋原廠 Maps。
+The bundle already includes the Dutch App Patches features it needs; you do not need to add Dutch App Patches separately.
 
-日後 PoC 應在驗證 bridge 與簽章／安裝方式後，使用獨立 package 與原版並存。回滾則解除安裝該實驗副本，並在 AA 選回原版 Maps；不移除原版、不清除其資料。本次未安裝任何東西，因此目前無須回滾。
+### Why this version of MicroG-RE is required
 
-測試僅限停車／桌面環境，見 [測試矩陣](tests/manual-validation.md)。原始 APK、splits、DEX 及分析輸出均由 `.gitignore` 排除，不公開散發。
+Official MicroG-RE has two problems with a patched Google Maps, both fixed in this version of MicroG-RE:
+
+1. **No sign-in, map and search fail**: MicroG-RE only gives account access to Google apps on its allow list, and Google Maps is not on it (log: `GmsAuthProvider: Not granting extended access`).
+2. **No location**: Maps connects to the location service with the original `com.google.android.location.internal.GoogleLocationManagerService.START` action, while the official build only accepts the `app.revanced`-prefixed name (log: `Unable to start service ... not found`).
+
+If official MicroG-RE is already installed, **uninstall it first**, then install this version of MicroG-RE (different signing key, Android cannot update over it). Afterwards open MicroG settings and run Self-Check.
+
+## Installation
+
+1. **Install MicroG-RE** (link above) and run its Self-Check.
+2. **Morphe settings → Patching → enable Expert mode.**
+3. **Sources → + → Remote →** enter `github.com/shuili1013/Maps-AA-AnyMode-Morphe`. If you previously added Dutch App Patches for Maps, disable it.
+4. **Patch Google Maps** (the 26.44 APKM) and select these patches from the **Maps-AA-AnyMode-Morphe** source (all are on by default):
+   - `Change package name`
+   - `Bypass Play Services checks`
+   - `Add microG-RE support`
+   - `Native navigation for Gearslip and Android Auto`
+   - `Allow any travel mode on Android Auto`
+   - `Always two-wheeler on Android Auto`
+   - `Skip private Android Auto car connection`
+
+   Do not add patches for Maps from other sources (e.g. `Clone app` from the official Morphe Patches).
+5. **Install.** The patched app installs as `org.ungoogled.android.apps.maps.microg`, named **Ungoogled Maps**.
+6. **Allow unknown sources in Android Auto:** Android Auto settings on the phone → tap "Version" about 10 times to enable developer mode → top-right menu "Developer settings" → enable **Unknown sources**.
+7. Connect to the head unit and pick **Ungoogled Maps** (the head unit shows two Maps icons; stock Maps cannot be hidden, so pick the right one).
+
+## Known limitations
+
+- The "next turn" info in Android Auto's side rail is not shown; the map and turn cards on the main car screen work.
+- Real head units, wireless Android Auto, rerouting and long real-road trips are not fully verified.
+- Navigation started on the phone and handed to the head unit is less tested than navigation started from a search on the head unit.
+
+## Patches in the bundle
+
+| Patch | Origin | Description |
+|---|---|---|
+| `Change package name` | Dutch App Patches | Installs beside stock Google Maps under its own package name. |
+| `Bypass Play Services checks` | Dutch App Patches | Lets a re-signed Maps load tiles, search and routing. |
+| `Add microG-RE support` | Dutch App Patches | Google sign-in through MicroG-RE. |
+| `Native navigation for Gearslip and Android Auto` | Dutch App Patches, fixed for 26.44 here | Runs Maps' native car map and navigation UI on Android Auto. |
+| `Skip private Android Auto car connection` | This project | Maps' `CarConnectionHandler.onCarConnected` calls a private Android Auto service that always rejects a re-signed app (`Wrong signature - go/gearhead-retail-device`) and crashes it. The handler is skipped. |
+| `Always two-wheeler on Android Auto` | This project | Android Auto's "supported mode" becomes two-wheeler, so destinations searched on the head unit default to two-wheeler routes. |
+| `Allow any travel mode on Android Auto` | This project | Removes the two checks that refuse or end car navigation when the travel mode differs. |
+
+Source: `patch/`. This project's patches are in `patch/patches/src/main/kotlin/tw/maps/`; the included Dutch App Patches code is in `patch/patches/src/main/kotlin/dutch/`, `patch/extensions/` and `patch/support/` (see [NOTICE](NOTICE) for what was changed). The full debugging history, logcat evidence and 26.44 name mappings are in [findings.md](findings.md) (Chinese).
+
+## Original sources and credits
+
+This project builds on:
+
+- **[Morphe](https://github.com/MorpheApp)**: patcher, Manager and the [patches template](https://github.com/MorpheApp/morphe-patches-template).
+- **[Dutch App Patches](https://codeberg.org/JohninNL/nl-morphe-patches)** (JohninNL, GPLv3; [GitLab mirror](https://gitlab.com/johninnld/nl-morphe-patches)): the native Android Auto navigation adapter, `Change package name`, `Bypass Play Services checks` and `Add microG-RE support` are included from v1.53.9. The 26.44 fixes to the adapter are also recorded as patches in [`third_party/dutch-app-patches/`](third_party/dutch-app-patches/).
+- **[bearinmind patches](https://github.com/bearinmindcat/morphe-patches)** (bearinmindcat): the original source of the Maps features in Dutch App Patches.
+- **[MicroG-RE](https://github.com/MorpheApp/MicroG-RE)** (MorpheApp) and **[microG](https://github.com/microg/GmsCore)** (microG Project, Apache-2.0): this version of MicroG-RE ([shuili1013/MicroG-RE](https://github.com/shuili1013/MicroG-RE)) is based on them.
+
+## License
+
+- This repository, including the patch bundle: **GPLv3**, see [LICENSE](LICENSE) and [NOTICE](NOTICE).
+- This version of MicroG-RE: Apache-2.0, as upstream.
+- This project does not distribute any Google APK.
+
+## Research notes
+
+The original reverse-engineering work (DEX disassembly scripts, offline tests, handoff notes) is kept in [handoff.md](handoff.md), [findings.md](findings.md), `scripts/`, `tests/` and [patch/README.md](patch/README.md) (mostly Chinese).

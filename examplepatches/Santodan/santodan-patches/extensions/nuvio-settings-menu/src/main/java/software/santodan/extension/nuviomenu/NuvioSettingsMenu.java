@@ -80,6 +80,12 @@ public final class NuvioSettingsMenu {
         renderGroup(composer, loader, "Streams", 5, 10);
         renderGroup(composer, loader, "Android TV launcher", 10, 11);
         renderGroup(composer, loader, "Playback", 11, BRIDGES.length);
+        try {
+            Class.forName("software.santodan.extension.nuviomenu.SettingsTransferActivity", false, loader)
+                .getMethod("renderSettings", Object.class).invoke(null, composer);
+        } catch (ClassNotFoundException absent) {
+            // Optional in host fixtures; the side-by-side patch registers the activity.
+        } catch (Throwable error) { Log.e(TAG, "Settings transfer rendering failed", error); }
     }
 
     private static void renderGroup(Object composer, ClassLoader loader, String label, int start, int end) {

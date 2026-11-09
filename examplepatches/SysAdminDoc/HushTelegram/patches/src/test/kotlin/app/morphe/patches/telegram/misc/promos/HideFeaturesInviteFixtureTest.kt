@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.patches.telegram.misc.channelbar.commerceReads
 import app.morphe.patches.telegram.misc.commerce.COMMERCE
 import app.morphe.patches.telegram.misc.commerce.hideCommercePatch
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -27,6 +28,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Settings' Features append, the sectioned list's count and row lookups, the stub and the runtime. */
 class HideFeaturesInviteFixtureTest {
@@ -41,16 +46,16 @@ class HideFeaturesInviteFixtureTest {
             }
             val bases = FixtureDex.classes(build, anchors.mapNotNull { it.superclass }.toSet()).values
             // Settings' list view and its adapter, both reached from Settings' onResume.
-            val listTypes = anchors.flatMap { it.methods }.filter { it.name == "onResume" }.flatMap { it.controlBody() }
+            val listTypes = anchors.flatMap { it.methods }.filter { it.origName == "onResume" }.flatMap { it.controlBody() }
                 .mapNotNull { it.controlField() }.flatMap { listOf(it.definingClass, it.type) }.filter { it.startsWith("L") }.toSet()
-            val hosts = (anchors + bases + FixtureDex.classes(build, listTypes).values).distinctBy { it.type }
+            val hosts = commerceReads(build, (anchors + bases + FixtureDex.classes(build, listTypes).values).distinctBy { it.type })
             // Either patch may run first; they never touch the same instruction.
             for (commerceFirst in listOf(false, true)) {
                 val context = PatchContexts.of(ExtensionDex.classes() + hosts)
                 if (commerceFirst) PatchLogCapture.warnings { hideCommercePatch.execute(context) }
                 val site = context.resolveFeaturesInvite()
                 assertEquals("$name: the Contacts list extends the sectioned list", site.counter.definingClass,
-                    hosts.single { it.type == site.adapter }.superclass)
+                    hosts.single { it.origType == site.adapter }.superclass)
                 assertNotEquals(site.phonebook, site.inviteList)
                 val old = listOf(site.settings, site.counter, site.rows).map { ImmutableMethod.of(it) }
                 assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideFeaturesInvitePatch.execute(context) })
@@ -89,22 +94,22 @@ class HideFeaturesInviteFixtureTest {
                         body[site.row].namedRegisters().first()
                 }
 
-                val stub = context.mutableClassDefBy(FEATURES_INVITE).methods.single { it.name == "inviteLayout" }.controlBody()
+                val stub = context.tgMutableClassDefBy(FEATURES_INVITE).methods.single { it.origName == "inviteLayout" }.controlBody()
                 assertTrue("$name: only the Contacts list", stub.first().opcode == Opcode.INSTANCE_OF && stub.first().controlRef() == site.adapter)
                 for (field in listOf(site.phonebook, site.onlyUsers, site.inviteList)) {
                     assertTrue("$name: reads $field", stub.any { it.controlRef() == field })
                     assertTrue(field.startsWith("${site.adapter}->"))
                 }
-                val rebuild = context.mutableClassDefBy(FEATURES_INVITE).methods.single { it.name == "rebuildList" }.controlBody()
+                val rebuild = context.tgMutableClassDefBy(FEATURES_INVITE).methods.single { it.origName == "rebuildList" }.controlBody()
                 assertTrue("$name: only Settings", rebuild.first().opcode == Opcode.INSTANCE_OF && rebuild.first().controlRef() == site.settingsType)
                 assertEquals("$name: list view, then its adapter", listOf(site.listField, site.adapterField),
                     rebuild.filter { it.opcode == Opcode.IGET_OBJECT }.map { it.controlRef() })
                 assertTrue(site.listField.startsWith("${site.settingsType}->"))
                 assertEquals("$name: the adapter's update, asked to animate", listOf(site.update),
                     rebuild.filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
-                assertTrue("$name: an update Settings itself makes", hosts.single { it.type == site.settingsType }.methods
+                assertTrue("$name: an update Settings itself makes", hosts.single { it.origType == site.settingsType }.methods
                     .any { m -> m.controlBody().any { it.opcode == Opcode.INVOKE_VIRTUAL && it.controlRef() == site.update } })
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideFeaturesAndInvite" }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideFeaturesAndInvite" }.controlBody()
                 assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
@@ -126,5 +131,5 @@ class HideFeaturesInviteFixtureTest {
         }
     }
 
-    private fun facts(i: Instruction) = listOf(i.opcode, i.namedRegisters(), (i as? ReferenceInstruction)?.reference?.toString())
+    private fun facts(i: Instruction) = listOf(i.opcode, i.namedRegisters(), i.origRef())
 }

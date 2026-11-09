@@ -229,6 +229,7 @@ public sealed class Explorer : BaseE2E
                 case "crosspost": Reddit.HasACrosspostOf(command.Argument(1), command.Argument(0), command.Argument(2)); break;
                 case "link post to video": Reddit.HasALinkPostLinkingToTheVideoOf(command.Argument(1), command.Argument(0), command.Argument(2)); break;
                 case "avatar": Reddit.TheUserHasAnAvatar(command.Argument(0)); break;
+                case "second account": Reddit.HasASecondAccount(command.Argument(0)); break;
                 case "late media": Reddit.AnswersTheMediaOfThePostLate(command.Argument(0), int.Parse(command.Argument(1), CultureInfo.InvariantCulture)); break;
                 case "fail media": Reddit.AnswersTheMediaOfThePostWith(command.Argument(0), command.Argument(1)); break;
                 case "fail thumbnail": Reddit.AnswersTheThumbnailOfThePostWithTheFirstTimes(command.Argument(0), command.Argument(1), int.Parse(command.Argument(2), CultureInfo.InvariantCulture)); break;
@@ -273,7 +274,7 @@ public sealed record ExplorerCommand(string Text, string Name, IReadOnlyList<str
         "comment with video", "comment with video link", "subscribe", "message", "late comments", "fail posts",
         "refuse posts", "drop posts", "image post", "gif post", "signed thumbnail post", "video post",
         "link post with preview", "nsfw image post", "spoiler image post", "gallery post", "crosspost",
-        "link post to video", "avatar", "late media", "fail media", "fail thumbnail", "imgur album", "imgur video album", "imgur gallery post",
+        "link post to video", "avatar", "second account", "late media", "fail media", "fail thumbnail", "imgur album", "imgur video album", "imgur gallery post",
         "imgur album post", "comment with imgur album", "redgifs post", "deleted redgifs post", "missing redgifs post", "phone joins another network", "x post", "long x post", "bluesky post", "youtube video", "removed youtube video", "youtube post", "comment with link", "comment with snoomoji", "comment with subreddit emote", "imgflip templates", "removed imgflip template", "chat link",
     ];
 

@@ -199,9 +199,8 @@ public final class EmbedCommentImagesPatch {
             boolean imagesOn = parent != null && Settings.SHOW_IMAGES.get();
             boolean videosOn = parent != null && Settings.SHOW_VIDEOS.get();
             boolean titlesOn = Settings.YOUTUBE_TITLES.get();
-            // Thumbnails are drawn inside the text; on metered data with "Wi-Fi only" they are skipped.
-            boolean thumbnailsOn = Settings.YOUTUBE_THUMBNAILS.get()
-                    && !(Settings.IMAGES_WIFI_ONLY.get() && isMetered(context));
+            // Thumbnails are drawn inside the text; they are skipped where images load on tap.
+            boolean thumbnailsOn = Settings.YOUTUBE_THUMBNAILS.get() && !loadOnTap(context);
             boolean xPostsOn = Settings.X_POSTS.get();
             boolean blueskyPostsOn = Settings.BLUESKY_POSTS.get();
             CharSequence text = fullText(textView);
@@ -322,8 +321,8 @@ public final class EmbedCommentImagesPatch {
                 }
             }
             List<YoutubeTitles.Pending> pendingTitles = YoutubeTitles.prepare(textView, builder, youtubeLinks);
-            // Photos of X and Bluesky posts are skipped where images load only on Wi-Fi.
-            boolean postPhotosOn = !(Settings.IMAGES_WIFI_ONLY.get() && isMetered(context));
+            // Photos of X and Bluesky posts are skipped where images load on tap.
+            boolean postPhotosOn = !loadOnTap(context);
             List<SocialPosts.Image> postImages = new ArrayList<>();
             List<SocialPosts.Pending> pendingPosts = SocialPosts.prepare(textView, builder, postLinks, postPhotosOn,
                     postImages);
@@ -369,7 +368,7 @@ public final class EmbedCommentImagesPatch {
             }
             boolean fullWidth = fullWidthFor(textView);
             int maxHeight = (int) (textView.getResources().getDisplayMetrics().heightPixels * EXPANDED_MAX_SCREEN_HEIGHT);
-            boolean loadPreviews = !(Settings.IMAGES_WIFI_ONLY.get() && isMetered(context));
+            boolean loadPreviews = !loadOnTap(context);
             for (String videoId : videoIds) {
                 View slot = CommentVideo.createSlot(textView, videoId, fullWidth, dp(textView, IMAGE_SIZE_DP),
                         maxHeight, loadPreviews);
@@ -582,7 +581,7 @@ public final class EmbedCommentImagesPatch {
             if (!giphy && !linkText.trim().startsWith("http")) continue;
             final String videoId = videosOn ? CommentVideo.videoId(link) : null;
             if (videoId != null) {
-                final boolean loadPreviews = !(Settings.IMAGES_WIFI_ONLY.get() && isMetered(textView.getContext()));
+                final boolean loadPreviews = !loadOnTap(textView.getContext());
                 addAnchor(result, keys, start, end, videoKey(videoId), view -> CommentVideo.createSlot(view, videoId,
                         fullWidthFor(view), dp(view, IMAGE_SIZE_DP),
                         (int) (view.getResources().getDisplayMetrics().heightPixels * EXPANDED_MAX_SCREEN_HEIGHT),
@@ -864,7 +863,7 @@ public final class EmbedCommentImagesPatch {
             }
         };
 
-        if (Settings.IMAGES_WIFI_ONLY.get() && isMetered(context)) {
+        if (loadOnTap(context)) {
             message.setText(str("revanced_embed_comment_images_tap_to_load"));
             message.setVisibility(View.VISIBLE);
             placeholder.setOnClickListener(new View.OnClickListener() {
@@ -965,6 +964,14 @@ public final class EmbedCommentImagesPatch {
     static int[] fitInBox(int width, int height, int box) {
         float scale = Math.min((float) box / width, (float) box / height);
         return new int[]{Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))};
+    }
+
+    /**
+     * Whether images and previews wait for a tap: always with "Load images only when tapped", on
+     * mobile data with "Load images only on Wi-Fi".
+     */
+    static boolean loadOnTap(Context context) {
+        return Settings.IMAGES_TAP_TO_LOAD.get() || (Settings.IMAGES_WIFI_ONLY.get() && isMetered(context));
     }
 
     static boolean isMetered(Context context) {

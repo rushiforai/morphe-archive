@@ -4,7 +4,7 @@ The reviewed app contract lives in
 [`contracts/nuvio/native.properties`](../contracts/nuvio/native.properties).
 It supplies the package/version, original APK/hash, native class names, shared
 field/method names, composed DEX references and exact body fingerprints.
-There is one active contract, currently beta.12. This does not add historical
+There is one active contract, currently beta.13. This does not add historical
 version adapters or automatically enable unverified app versions.
 
 ## What is generated
@@ -84,7 +84,7 @@ After confirming the new manifest/package/version and reviewing candidate DEX:
 5. Test native playback, remote focus, settings/profile persistence and launcher
    publication on the device. Host and DEX verification cannot establish device UI behavior.
 
-`verifyNuvioLatest` currently selects the dedicated beta.12 fixtures. When replacing the
+`verifyNuvioLatest` currently selects the dedicated beta.13 fixtures. When replacing the
 reviewed target, point it to that target's fixtures; preserve historical fixtures
 without extending them. Run Gradle invocations sequentially to avoid competing
 resource builds on Windows. Do not manually bump the patch-bundle release version.
@@ -167,3 +167,12 @@ the player's binge-group field and timer jobs, Home seed/split method names,
 Compose utility owners and the actual install-action FileProvider literal.
 The old install-action class still exists with unrelated behavior. The latest
 suite uses dedicated beta.12 fixtures and preserves historical fixtures.
+
+## Beta.13 migration
+
+See [NuvioBeta13.md](NuvioBeta13.md). Regenerate inventories from originals when
+provenance is uncertain. R8 again splits utility owners, so class similarity
+alone cannot identify every method or icon field. Preserve static search and
+Compose-factory contracts. The receiver's FileProvider authority moved into its
+static fallback helper; validate and repair that helper separately from the
+metadata flag in `onReceive`. Beta.12 fixtures remain unchanged.

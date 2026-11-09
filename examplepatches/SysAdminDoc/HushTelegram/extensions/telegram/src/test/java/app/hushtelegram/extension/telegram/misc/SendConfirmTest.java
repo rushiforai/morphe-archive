@@ -289,6 +289,24 @@ public class SendConfirmTest {
         ShadowDialog.getLatestDialog().dismiss();
     }
 
+    @Test public void thirteenTwoPassesThePreviewSendSoundFirstAndStarsBeforeTheQuestion() {
+        View bar = new View(window());
+        Settings.ASK_BEFORE_VOICE_VIDEO.save(true);
+        assertTrue("without sound", SendConfirm.previewVideoReordered(bar, 0, 0, 0, 0L, 1));
+        assertTrue("scheduled", SendConfirm.previewVoiceReordered(bar, 1, 1_790_000_000, 0, 0L, 1));
+        assertTrue("repeating", SendConfirm.previewVideoReordered(bar, 1, 0, 86_400, 0L, 1));
+        assertTrue("already confirmed as paid", SendConfirm.previewVoiceReordered(bar, 1, 0, 0, 5L, 0));
+        assertNull(ShadowDialog.getLatestDialog());
+
+        for (boolean voice : new boolean[] {true, false}) {
+            assertFalse("asked", voice ? SendConfirm.previewVoiceReordered(bar, 1, 0, 0, 0L, 1) : SendConfirm.previewVideoReordered(bar, 1, 0, 0, 0L, 1));
+            Dialog dialog = ShadowDialog.getLatestDialog();
+            assertNotNull(dialog);
+            button(dialog.getWindow().getDecorView(), "Cancel").performClick();
+            assertFalse(dialog.isShowing());
+        }
+    }
+
     @Test public void aHeldRecordingSendsOnceOnSendAndAtOnceWhenItsQuestionCantShow() throws Exception {
         Activity window = window();
         AtomicInteger sent = new AtomicInteger();

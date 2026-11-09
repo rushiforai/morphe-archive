@@ -8,6 +8,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.After;
@@ -234,6 +235,147 @@ public class HiddenChatsTest {
         HookStatus.clear();
         assertTrue(list == HiddenChats.pinOrder(controller, 0, list));
         assertTrue(report(), report().contains("pinned order"));
+    }
+
+    @Test public void anUnpinFromAnotherDeviceSticksOnAHiddenChat() {
+        Object controller = new Object();
+        long secret = 0x4000000000000007L;
+        HiddenChatsForTests.Dialog gone = new HiddenChatsForTests.Dialog(12).pin(4);
+        HiddenChatsForTests.Dialog stays = new HiddenChatsForTests.Dialog(14).pin(2);
+        HiddenChatsForTests.Dialog hiddenSecret = new HiddenChatsForTests.Dialog(secret).pin(1);
+        ArrayList<Object> list = new ArrayList<>(Arrays.asList(new HiddenChatsForTests.Dialog(13).pin(5), gone, stays, hiddenSecret));
+        telegram.folders.clear();
+        telegram.folders.put(0, list);
+        // Off, nothing here touches a pin.
+        HiddenChats.hide(1000, ids(12L, 14L, secret));
+        HiddenChats.prune(controller);
+        ArrayList<Long> named = new ArrayList<>(Arrays.asList(13L, 14L));
+        HiddenChats.serverPins(controller, 0, named);
+        assertTrue(gone.pinned);
+        assertEquals(Arrays.asList(13L, 14L), named);
+        Settings.HIDDEN_CHATS.save(true);
+        HiddenChats.prune(controller);
+        // Another folder's answer and another controller's leave these alone too.
+        HiddenChats.serverPins(controller, 1, named);
+        HiddenChats.serverPins(new Object(), 0, named);
+        assertTrue(gone.pinned);
+        HiddenChats.serverPins(controller, 0, named);
+        assertFalse(gone.pinned);
+        assertEquals(0, gone.pinnedNum);
+        // A chat the server still names keeps its pin, and a secret chat's pin was never the server's to drop.
+        assertTrue(stays.pinned);
+        assertEquals(2, stays.pinnedNum);
+        assertTrue(hiddenSecret.pinned);
+        assertEquals(Arrays.asList(13L, 14L, secret), named);
+        // So the next order Telegram sends doesn't put the unpinned chat back.
+        assertEquals("[13, 14, " + secret + "]", HiddenChats.pinOrder(controller, 0, list).toString());
+    }
+
+    @Test public void serverPinsThatCantBeReadLeaveEveryPinAlone() {
+        Settings.HIDDEN_CHATS.save(true);
+        HiddenChats.hide(1000, ids(12L));
+        Object controller = new Object();
+        HiddenChatsForTests.Dialog hidden = new HiddenChatsForTests.Dialog(12).pin(2);
+        telegram.folders.clear();
+        telegram.folders.put(0, new ArrayList<>(Arrays.asList(new HiddenChatsForTests.Dialog(11).pin(1), hidden)));
+        HiddenChats.prune(controller);
+        HiddenChatsForTests.use(new HiddenChatsForTests.Fake() {
+            @Override public boolean pinned(Object dialog) { throw new IllegalStateException("Telegram changed"); }
+        });
+        HookStatus.clear();
+        HiddenChats.serverPins(controller, 0, new ArrayList<>(Collections.singletonList(11L)));
+        assertTrue(hidden.pinned);
+        assertTrue(report(), report().contains("server pins"));
+    }
+
+    @Test public void hiddenPinsTakeTheirRoomInTheChatListsPinLimit() {
+        Object controller = new Object();
+        long secret = 0x4000000000000007L;
+        telegram.users.put(0, 1000L);
+        telegram.users.put(1, 2000L);
+        telegram.folders.clear();
+        telegram.folders.put(0, new ArrayList<>(Arrays.asList(new HiddenChatsForTests.Dialog(13).pin(5),
+            new HiddenChatsForTests.Dialog(12).pin(4), new HiddenChatsForTests.Dialog(14).pin(3),
+            new HiddenChatsForTests.Dialog(secret).pin(2), new HiddenChatsForTests.Dialog(17))));
+        telegram.folders.put(1, new ArrayList<>(Collections.singletonList(new HiddenChatsForTests.Dialog(15).pin(6))));
+        HiddenChats.hide(1000, ids(12L, 14L, 15L, 17L, secret));
+        // Off, the limit is Telegram's.
+        HiddenChats.prune(controller);
+        assertEquals(5, HiddenChats.pinRoom(5));
+        Settings.HIDDEN_CHATS.save(true);
+        HiddenChats.prune(controller);
+        // Two pins hidden: the unpinned chat, the archive's pin and the secret chat's own limit don't count.
+        assertEquals(3, HiddenChats.pinRoom(5));
+        assertEquals(0, HiddenChats.pinRoom(1));
+        // Another account's list has its own limit.
+        telegram.selected = 1;
+        assertEquals(5, HiddenChats.pinRoom(5));
+        telegram.selected = 0;
+        // A chat unticked since the sort has given its room back.
+        HiddenChats.hide(1000, ids(14L));
+        assertEquals(4, HiddenChats.pinRoom(5));
+    }
+
+    /** #24: the forward picker, a folder tab's and the share sheet don't give a hidden chat away. */
+    @Test public void hiddenChatsStayOutOfTheForwardAndShareLists() {
+        long saved = 1000L;
+        telegram.users.put(0, saved);
+        ArrayList<Object> everyChat = new ArrayList<>(Arrays.asList(new HiddenChatsForTests.Dialog(saved),
+            new HiddenChatsForTests.Dialog(11), new HiddenChatsForTests.Dialog(12)));
+        telegram.forward.addAll(everyChat);
+        HiddenChatsForTests.Filter tab = (HiddenChatsForTests.Filter) telegram.filters[0];
+        tab.forward.addAll(everyChat);
+        ArrayList<Object> quick = new ArrayList<>(Arrays.asList(saved, 11L, 12L, 40L));
+        HiddenChats.hide(1000, ids(saved, 12L));
+
+        // Off, every list is Telegram's, and the sheet gets Telegram's own list back.
+        HiddenChats.prune(new Object());
+        assertEquals(3, telegram.forward.size());
+        assertSame(everyChat, HiddenChats.shareSheetChats(everyChat));
+        HiddenChats.quickShareIds(quick);
+        assertEquals(4, quick.size());
+
+        Settings.HIDDEN_CHATS.save(true);
+        HiddenChats.prune(new Object());
+        // Saved Messages stays: it's what the pickers lead with, and it isn't private from anyone.
+        assertEquals(Arrays.asList(saved, 11L), idsOf(telegram.forward));
+        assertEquals(Arrays.asList(saved, 11L), idsOf(tab.forward));
+        ArrayList<?> sheet = HiddenChats.shareSheetChats(everyChat);
+        assertEquals(Arrays.asList(saved, 11L), idsOf(sheet));
+        assertEquals("the list the rest of Telegram walks keeps every chat", 3, everyChat.size());
+        HiddenChats.quickShareIds(quick);
+        assertEquals(Arrays.asList(saved, 11L, 40L), quick);
+    }
+
+    /** A Telegram that changed can't cost anyone the share sheet. */
+    @Test public void aShareSheetThatCantReadTheHiddenChatsListsThemAll() {
+        Settings.HIDDEN_CHATS.save(true);
+        HiddenChats.hide(1000, ids(12L));
+        telegram.broken = true;
+        ArrayList<Object> chats = new ArrayList<>(Collections.singletonList(new HiddenChatsForTests.Dialog(12)));
+        HookStatus.clear();
+        assertSame(chats, HiddenChats.shareSheetChats(chats));
+        assertTrue(report(), report().contains("share sheet"));
+        ArrayList<Object> quick = new ArrayList<>(Collections.singletonList(12L));
+        HiddenChats.quickShareIds(quick);
+        assertEquals(1, quick.size());
+    }
+
+    private static List<Object> idsOf(List<?> dialogs) {
+        List<Object> found = new ArrayList<>();
+        for (Object dialog : dialogs) found.add(((HiddenChatsForTests.Dialog) dialog).id);
+        return found;
+    }
+
+    @Test public void aPinLimitThatCantBeReadStaysTelegrams() {
+        Settings.HIDDEN_CHATS.save(true);
+        HiddenChats.hide(1000, ids(12L));
+        HiddenChatsForTests.use(new HiddenChatsForTests.Fake() {
+            @Override public int selectedAccount() { throw new IllegalStateException("Telegram changed"); }
+        });
+        HookStatus.clear();
+        assertEquals(5, HiddenChats.pinRoom(5));
+        assertTrue(report(), report().contains("pin limit"));
     }
 
     @Test public void aSortThatBreaksKeepsOnlyWhatItTookOut() {

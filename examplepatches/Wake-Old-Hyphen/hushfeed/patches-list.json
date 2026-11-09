@@ -6,7 +6,7 @@
   "patches": [
     {
       "name": "AMOLED dark theme",
-      "description": "Makes TikTok's dark mode backgrounds pure black, or a dark color you pick in this patch's options. Black lets OLED screens switch those pixels off. Light mode doesn't change. It's built in while patching, so only patching again without it undoes it.",
+      "description": "Makes TikTok's dark mode backgrounds pure black, or a dark color you pick in this patch's options. Black lets OLED screens switch those pixels off. Light mode doesn't change. The AMOLED dark mode switch in Hushfeed settings > App starts on, and turning it off brings TikTok's own dark grays back.",
       "category": "Interface",
       "use": false,
       "dependencies": [
@@ -54,6 +54,15 @@
             "Mocha": "#181825",
             "Dark gray": "#121212"
           }
+        },
+        {
+          "key": "amoled_dark_mode",
+          "title": "Default: amoled dark mode",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": true,
+          "values": null
         }
       ]
     },
@@ -1972,6 +1981,24 @@
           "values": null
         },
         {
+          "key": "hide_comment_close_button",
+          "title": "Default: hide comment close button",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_comment_expand_button",
+          "title": "Default: hide comment expand button",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
           "key": "larger_comment_like_target",
           "title": "Default: larger comment like target",
           "description": null,
@@ -2189,7 +2216,7 @@
     },
     {
       "name": "Create stickers",
-      "description": "Adds a Create button to the Saved page of the comment sticker panel. Pick a photo and it turns into one of your saved stickers. Make sticker in a video's share sheet does the same with its cover. Works as soon as you patch it in, with no switch.",
+      "description": "Adds a Create button to the Saved page of the comment sticker panel. Pick a photo and it turns into one of your saved stickers. Make sticker in a video's share sheet opens TikTok's sticker editor for any video, or uses its cover when the editor can't open. Profiles that have stickers keep their Stickers tab, and it opens their sticker sets. Works as soon as you patch it in, with no switch.",
       "category": "Comments",
       "use": true,
       "dependencies": [
@@ -2289,7 +2316,7 @@
         {
           "key": "iconPicture",
           "title": "Icon picture",
-          "description": "Where to find a square PNG picture of your own, 432 to 1024 pixels on each side, to use instead of TikTok's note. Home screens trim icons to their own shape, so keep what matters in the middle two thirds. With a picture, the style only sets the color behind it and there's no themed icon. Leave it empty to keep the note.",
+          "description": "Where to find a square PNG picture of your own, 432 to 1024 pixels on each side, to use instead of TikTok's note. Home screens trim icons to their own shape, so keep what matters in the middle two thirds. With a picture, the style only sets the color behind it and there's no themed icon. A folder works too when the picture is the only PNG in it or is named icon.png. Leave it empty to keep the note.",
           "required": false,
           "type": "kotlin.String",
           "default": null,
@@ -4946,7 +4973,7 @@
     },
     {
       "name": "Hide feed search button",
-      "description": "Removes the search button from the top right of the feed, for a cleaner screen. Starts off. Turn it on in Hushfeed settings > Feed screen.",
+      "description": "Removes the search button from the top right of the feed and the one over the video while comments are open. Starts off. Turn it on in Hushfeed settings > Feed screen.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -5902,6 +5929,33 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": true,
+          "values": null
+        },
+        {
+          "key": "invisible_controls_button",
+          "title": "Default: invisible controls button",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "invisible_controls_on",
+          "title": "Default: invisible controls on",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "invisible_controls_keep_caption",
+          "title": "Default: invisible controls keep caption",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
           "values": null
         },
         {
@@ -8714,7 +8768,7 @@
     },
     {
       "name": "Remove creation tools",
-      "description": "Removes TikTok's camera, editing and effects files, saving about 38 MB of storage. The catch: the Create tab and every recording, editing and effects tool stop working, and opening one, like effect search, can close TikTok. Leave it out if you make videos.",
+      "description": "Removes two effects engine libraries TikTok doesn't load for the camera, effects, Retouch or the video editor, saving about 45 MB. Those all keep working. If a creation tool ever closes TikTok, repatch without this one.",
       "category": "Performance",
       "use": false,
       "dependencies": [
@@ -9243,7 +9297,8 @@
       "use": true,
       "dependencies": [
         "BytecodePatch",
-        "RawResourcePatch"
+        "RawResourcePatch",
+        "ResourcePatch"
       ],
       "compatiblePackages": {
         "com.zhiliaoapp.musically": [
@@ -9422,6 +9477,15 @@
           "type": "kotlin.Boolean",
           "default": true,
           "values": null
+        },
+        {
+          "key": "check_for_updates",
+          "title": "Default: check for updates",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
         }
       ]
     },
@@ -9503,6 +9567,15 @@
         {
           "key": "share_tap_copies_link",
           "title": "Default: share tap copies link",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "hide_share_new_group",
+          "title": "Default: hide share new group",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",

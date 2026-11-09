@@ -61,13 +61,20 @@ public final class KeepDeleted {
         final boolean mine;
         final boolean timed;
         final boolean guarded;
+        /** The stored message itself, for its photo or file, or null when it couldn't be read. */
+        final Object message;
 
         Row(long dialog, int id, boolean mine, boolean timed, boolean guarded) {
+            this(dialog, id, mine, timed, guarded, null);
+        }
+
+        Row(long dialog, int id, boolean mine, boolean timed, boolean guarded, Object message) {
             this.dialog = dialog;
             this.id = id;
             this.mine = mine;
             this.timed = timed;
             this.guarded = guarded;
+            this.message = message;
         }
     }
 
@@ -93,6 +100,14 @@ public final class KeepDeleted {
 
         /** Asks a chat showing [messages] of [dialogId] to draw their bubbles again, on the main thread. */
         void redraw(long dialogId, ArrayList<Object> messages) throws Exception;
+
+        /**
+         * Starts downloading the photo or file of each stored message in [messages], the way
+         * Telegram's own auto-download does.
+         *
+         * @return how many downloads were asked for
+         */
+        int saveMedia(List<Object> messages) throws Exception;
     }
 
     /** The accounts signed in to this Telegram, each as its own [Source]. */
@@ -197,6 +212,11 @@ public final class KeepDeleted {
         }
     }
 
+    /** {@link #push(Object, long, ArrayList, long)} for a build whose push deletion takes the IDs last (13.2). */
+    public static boolean pushIdsLast(Object controller, long dialogId, long channelId, ArrayList<?> ids) {
+        return push(controller, dialogId, ids, channelId);
+    }
+
     /** Told which message the bubble is measuring, so the next time it formats can carry the label. */
     public static void measuring(Object message) {
         LABELLED.remove();
@@ -291,6 +311,7 @@ public final class KeepDeleted {
     static void decide(Source source, long dialogId, ArrayList<Integer> ids, long channelId) {
         ArrayList<Integer> release = new ArrayList<>(ids);
         ArrayList<long[]> kept = new ArrayList<>();
+        ArrayList<Object> media = new ArrayList<>();
         List<String> overflow = Collections.emptyList();
         long self = 0;
         try {
@@ -300,6 +321,7 @@ public final class KeepDeleted {
             for (Row row : source.rows(dialogId, ids)) {
                 if (!keeps(row, self) || !release.remove(Integer.valueOf(row.id))) continue;
                 kept.add(new long[] {row.dialog, row.id});
+                if (row.message != null) media.add(row.message);
             }
             List<String> dropped = remember(self, kept);
             // Unsaved, a kept message would outlive a restart in the database with nothing naming it.
@@ -310,6 +332,7 @@ public final class KeepDeleted {
             HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "decision", failure);
             release = new ArrayList<>(ids);
             kept.clear();
+            media.clear();
         }
         // Forgotten past the cap, a kept message would stay in the database with no label, out of
         // reach of Clear kept messages, so it goes to Telegram's own deletion now instead, with
@@ -317,6 +340,7 @@ public final class KeepDeleted {
         if (!overflow.isEmpty()) HookStatus.counted(FamilyNames.KEEP_DELETED_MESSAGES, "oldest kept messages handed back");
         if (self > 0) handBackWaiting(source, self, false);
         redraw(source, self, kept);
+        saveMedia(source, media);
         if (release.isEmpty()) return;
         try {
             source.stock(dialogId, release, channelId);
@@ -365,6 +389,22 @@ public final class KeepDeleted {
             } catch (Throwable failure) {
                 HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "redraw", failure);
             }
+        }
+    }
+
+    /**
+     * A kept photo or file that wasn't downloaded yet would spin in its bubble for good (#2): the
+     * download needs the file reference stored with the message, which expires, and Telegram gets a
+     * fresh one by asking the server for the message, which is gone now. So the download starts the
+     * moment the message is kept, while that reference still works. One that's already on the phone
+     * costs nothing.
+     */
+    static void saveMedia(Source source, List<Object> messages) {
+        if (messages.isEmpty()) return;
+        try {
+            if (source.saveMedia(messages) > 0) HookStatus.counted(FamilyNames.KEEP_DELETED_MESSAGES, "kept media downloaded");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.KEEP_DELETED_MESSAGES, "kept media download", failure);
         }
     }
 

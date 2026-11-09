@@ -161,6 +161,12 @@ jobs:
           console.log('Approved release version verified: v' + expected);
           NODE
 
+      - name: Make Gradle dependency downloads resilient
+        run: |
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://github.com/gradle/gradle-distributions/releases/download/v9.8.2/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
+          printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
       - name: Build and verify approved release payload
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -168,9 +174,10 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew :patches:buildAndroid --no-daemon
-          python3 porting/revisions/v1.10.4/verify-mpp.py 1.10.4
+          python3 porting/revisions/v1.10.5/verify-mpp.py 1.10.5
           python3 porting/tests/regression136.py
           python3 porting/tests/regression141.py
+          python3 porting/tests/regression155.py
 
       # Use the verified project dependency tree, not an action that installs
       # its own separate (unpatched) semantic-release toolchain.

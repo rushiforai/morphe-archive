@@ -147,6 +147,73 @@ internal fun MutableMethod.validateShareStory(): StoryGate =
     storyGate() ?: shareStoryChanged("no gate on the row in ${hookId()}")
 
 /**
+ * Your story as a target in another app's share sheet, beside Chats. Some phones' sheets (Xiaomi's among them) group the
+ * two under Messenger and ask which one, every time. The manifest starts that activity disabled, and each time the chat
+ * list opens it turns it on or off through a static toggle of its own class, which sets the component's enabled state.
+ */
+internal const val SHARE_STORY_TARGET = "share_story_target"
+
+internal const val STORY_SHARE_ACTIVITY = "com.facebook.messenger.intents.MediaEditShareIntentHandler"
+
+private const val SET_COMPONENT = "Landroid/content/pm/PackageManager;->setComponentEnabledSetting(Landroid/content/ComponentName;II)V"
+private val TOGGLE_PARAMETERS = listOf("Landroid/content/Context;", "Ljava/lang/String;", "Z")
+
+/** The chat list's call that turns Your story on or off as a share target: [index] is the call, [flag] its on/off register. */
+internal class StoryTargetCall(val index: Int, val flag: Int)
+
+/**
+ * In a fragment's onActivityCreated, the one load of the Your story activity's name, handed straight on as the name to a
+ * static (Context, String, boolean) toggle of the same class. Nothing may land on the call itself, so every path that
+ * loads the name goes through a guard put right before the call.
+ */
+internal fun Method.storyTargetCall(): StoryTargetCall? {
+    if (name != "onActivityCreated" || returnType != "V" || AccessFlags.STATIC.isSet(accessFlags) ||
+        parameterTypes.map { it.toString() } != listOf("Landroid/os/Bundle;")) return null
+    val code = code()
+    val loads = code.indices.filter { code[it].string() == STORY_SHARE_ACTIVITY }
+    val at = loads.singleOrNull() ?: return null
+    val loaded = (code[at] as OneRegisterInstruction).registerA
+    val call = code.getOrNull(at + 1) as? FiveRegisterInstruction ?: return null
+    val toggle = (call as ReferenceInstruction).reference as? MethodReference ?: return null
+    if (code[at + 1].opcode != Opcode.INVOKE_STATIC || toggle.definingClass != definingClass || toggle.returnType != "V" ||
+        toggle.parameterTypes.map { it.toString() } != TOGGLE_PARAMETERS || call.registerCount != 3 || call.registerD != loaded ||
+        call.registerE == loaded || call.registerE == call.registerC) return null
+    if (at + 1 in jumpTargets()) return null
+    return StoryTargetCall(at + 1, call.registerE)
+}
+
+/**
+ * The one onActivityCreated that turns the Your story share target on or off, whose toggle really sets a component's
+ * enabled state. A second such place, or a toggle that does anything else, leaves the switch unapplied.
+ */
+internal fun findShareStoryTarget(classes: Iterable<ClassDef>): List<Method> {
+    val sites = classes.flatMap { cls -> cls.methods.mapNotNull { method -> method.storyTargetCall()?.let { Triple(cls, method, it) } } }
+    val (cls, method, call) = sites.singleOrNull() ?: return emptyList()
+    val target = (method.code()[call.index] as ReferenceInstruction).reference as MethodReference
+    val toggle = cls.methods.singleOrNull {
+        it.name == target.name && it.returnType == "V" && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map { type -> type.toString() } == TOGGLE_PARAMETERS
+    } ?: return emptyList()
+    if (toggle.code().none { (it as? ReferenceInstruction)?.reference?.toString() == SET_COMPONENT }) return emptyList()
+    return listOf(method)
+}
+
+internal fun MutableMethod.validateShareStoryTarget(): StoryTargetCall =
+    storyTargetCall() ?: shareStoryChanged("no Your story share target toggle in ${hookId()}")
+
+/**
+ * While the switch is on, the chat list's answer for the Your story share target reads as off, so Messenger's own toggle
+ * disables it and a share sheet offers Messenger's Chats alone. Off, Pause and safe mode hand Messenger's answer back.
+ */
+internal fun MutableMethod.injectShareStoryTarget() {
+    val call = validateShareStoryTarget()
+    addInstructions(call.index, """
+        invoke-static {v${call.flag}}, $SETTINGS->storyShareTarget(I)Z
+        move-result v${call.flag}
+    """.trimIndent())
+}
+
+/**
  * While the switch is on, the hoisted loader reads its story answer as no, so it adds only its share-to-Facebook row,
  * and the unhoisted section takes its skip path as if Messenger had turned it off. Off, Pause and safe mode keep
  * Messenger's own answers.

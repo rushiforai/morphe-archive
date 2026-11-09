@@ -54,15 +54,15 @@ Morphe patches that remove ads and block tracking in the phone versions of strea
 | App | Patches | Tested version | Last updated |
 |-----|---------|----------------|--------------|
 | AMC+ | Skip launch video, Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `1.8.62.1` | 10/31/26 |
-| Apple TV | Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `3.0.0` | 10/30/26 |
-| Apple TV (Android TV) 📺 | Auto-skip (Android TV) 🧪, Hide rating prompt (Android TV) 🧪 | `17.0.2` | 11/07/26 |
-| Disney+ | Skip launch video, Skip ads, Block analytics & tracking 🧪⚙️ | `26.20.0+rc2-2026.10.28` | 11/02/26 |
+| Apple TV | Skip ads 🧪, Auto-skip 🧪, Hide rating prompt 🧪, Show release times 🧪, Hide player overlays 🧪⚙️, Disable up next 🧪⚙️, Block analytics & tracking 🧪⚙️ | `3.0.0` | 11/08/26 |
+| Apple TV (Android TV) 📺 | Auto-skip (Android TV) 🧪, Hide rating prompt (Android TV) 🧪, Show release times (Android TV) 🧪, Block analytics & tracking (Android TV) 🧪⚙️ | `17.0.2` | 11/08/26 |
+| Disney+ | Skip launch video, Skip ads, Block analytics & tracking 🧪⚙️ | `26.20.0+rc2-2026.10.28`, `26.20.0+rc3-2026.11.02` 🧪 | 11/08/26 |
 | ESPN | Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `8.29.0` | 11/04/26 |
 | Fandango at Home | Mask ads, Block analytics & tracking ⚙️ | `10.24.r009.179279954` | 11/02/26 |
 | Fox One | Skip ads 🧪, Disable Pairip license check, Block analytics & tracking 🧪⚙️ | `1.25.1` | 11/06/26 |
 | HBO Max 📺 | Skip ads, Remove social sign-in (phone), Block analytics & tracking 🧪⚙️ | `22.0.0.321`, Android TV `22.0.0.36` | 11/07/26 |
 | Hulu | Skip ads 🧪, Block analytics & tracking 🧪⚙️ | `6.34.0+18552420-google` | 10/31/26 |
-| JustWatch 📺 | Block ads, Hide sponsored titles, Block analytics & tracking ⚙️ | `26.44.2`, Android TV `26.43.8` | 11/04/26 |
+| JustWatch 📺 | GmsCore support 🧪⚙️, Block ads, Hide sponsored titles, Streaming titles only 🧪⚙️, Hide unavailable titles 🧪⚙️, Hide watched titles 🧪⚙️, Block analytics & tracking ⚙️ | `26.44.2`, Android TV `26.43.8` | 11/08/26 |
 | MGM+ | Skip ads 🧪, Skip pre-roll promo 🧪, Skip lion intro, Disable MGM+ AI ⚙️, Remove social sign-in, Block analytics & tracking 🧪⚙️ | `240.0.2026240000` | 10/30/26 |
 | Moviebase | GmsCore support, Disable Pairip license check, Block ads, Hide Premium upsell, Block analytics & tracking ⚙️ | `7.7.0` | 11/02/26 |
 | MLB | GmsCore support ⚙️, Skip ads, Hide surveys and rating prompt, Mask live ad breaks 🧪⚙️, Hide betting odds ⚙️, Block analytics & tracking ⚙️ | `26.21.0.49` | 11/05/26 |
@@ -73,7 +73,7 @@ Morphe patches that remove ads and block tracking in the phone versions of strea
 | Peacock | Skip ads 🧪, Disable Xfinity auto sign-in, Block analytics & tracking 🧪⚙️ | `7.10.30` | 11/06/26 |
 | Plex 📺 | Skip ads, Hide sponsored content, Block analytics & tracking ⚙️ | `2026.22.0`, Android TV `2026.22.0` | 11/05/26 |
 | Pluto TV 📺 | Skip launch video, Skip ads, Mask live ad breaks, Block analytics & tracking 🧪⚙️ | `17.3.0`, Android TV `17.3.0` | 11/06/26 |
-| Prime Video | Skip ads, Rename shared permissions, Disable AI 🧪⚙️, Block analytics & tracking 🧪⚙️ | `3.0.480.457` | 11/04/26 |
+| Prime Video | Skip ads, Rename shared permissions, Disable AI 🧪⚙️, Block analytics & tracking 🧪⚙️ | `3.0.480.647` | 11/08/26 |
 | Shudder | Block analytics & tracking ⚙️ | `10.1.1` | 11/05/26 |
 | Starz | Skip launch video, Skip pre-roll promo 🧪, Remove social sign-in, Block analytics & tracking 🧪⚙️ | `6.11.0` | 10/31/26 |
 | Sundance Now | Block analytics & tracking ⚙️ | `5.0.25.2` | 11/05/26 |
@@ -138,7 +138,7 @@ Morphe patches that remove ads and block tracking in the phone versions of strea
 | Target | Hide sponsored listings 🧪, Disable AI 🧪⚙️ | `2026.43.0` | 11/01/26 |
 | The Home Depot | Disable AI 🧪⚙️ | `8.2.5` | 11/01/26 |
 | Walgreens | The shared privacy patches only | `118.0` | 11/01/26 |
-| Walmart | Disable AI 🧪⚙️ | `26.42.1` | 11/06/26 |
+| Walmart | Disable AI 🧪⚙️ | `26.42.1`, `26.42.2` 🧪 | 11/08/26 |
 
 </details>
 
@@ -201,7 +201,7 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 
 </details>
 
-**Block ads** (JustWatch, Moviebase, T-Mobile Play, and Visible) removes the ads and stops the ad networks from starting. The JustWatch Android TV app shows only video ads, before and during free streams, and those are removed. On Visible, it also stops Madme, which shows ads over other apps, after calls, when you unlock the phone, and as notifications.
+**Block ads** (JustWatch, Moviebase, T-Mobile Play, and Visible) removes the ads and stops the ad networks from starting. On the JustWatch phone app, the banner spaces and their "Remove Ads" links are removed too. The JustWatch Android TV app shows only video ads, before and during free streams, and those are removed. On Visible, it also stops Madme, which shows ads over other apps, after calls, when you unlock the phone, and as notifications.
 
 **Mask live ad breaks** (ABC News, Pluto TV, Xumo Play, and YouTube TV) and **Mask ads** (Fandango at Home) cover ads that cannot be removed with a "We'll be right back!" screen and mute them until the break ends. Live ads are part of the broadcast, and Fandango streams a free title only after its ads play. On ABC News, the cover counts down the break. On YouTube TV, it covers only the ads YouTube TV inserts into a live break. The commercials built into the channel's own broadcast are not covered and still play.
 
@@ -223,7 +223,7 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 ### 🔕 Pop-ups and prompts
 
 <details>
-<summary>All pop-up and prompt patches · 30</summary>
+<summary>All pop-up and prompt patches · 31</summary>
 
 | Patch | App | What it hides |
 |-------|-----|---------------|
@@ -251,6 +251,7 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 | Hide rating prompt | NewsBreak | The "How are we doing?" pop-up on the home screen and the Play Store rating request. |
 | Hide rating prompt (Android TV) | NewsNation (Android TV) | The "rate this app" dialog. Rating from Settings still works. |
 | Hide rating prompt (Android TV) | Apple TV (Android TV) | The Google Play review prompt. |
+| Hide rating prompt | Apple TV | The "Enjoying Apple TV?" prompt that asks for a review. |
 | Hide rating prompt | Recreation.gov | The rate-the-app prompt after checkout. |
 | Hide rating prompt | USA TODAY | The Play Store rating request. |
 | Hide subscription prompts | USA TODAY | The "Sale" bar pinned to the bottom of articles, the Subscribe links above Top Stories and in the article toolbar, and the subscription offers that pop up on launch, such as the $1 trial. Sign In stays. |
@@ -302,7 +303,7 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 - ABC News: mParticle, comScore, Braze, and Datadog.
 - AMC+: AppsFlyer, Braze, mParticle, Nielsen, New Relic, and NPAW/Youbora.
 - AP News: Adjust, Branch, Amplitude, Segment, comScore, Parse.ly, LiveRamp, Iterable, Permutive, Quantcast, and AP's BlueConic customer-data platform.
-- Apple TV: Apple's usage metrics, such as the pages you view and what you tap, play, and search for.
+- Apple TV: Apple's usage metrics, such as the pages you view and what you tap, play, and search for. On Android TV, this is a separate, experimental patch, Block analytics & tracking (Android TV). It turns off Apple's usage metrics in the app and stops the player's playback reports. See Known issues for what it does not cover yet. The Android TV app then stops downloading updates to its screens between app updates, because those updates would bring the metrics back.
 - CBS News: Adobe Analytics, comScore, Nielsen, Mux, New Relic, Flurry, Kochava, and Moat.
 - CNN: Adobe, AppsFlyer, Chartbeat, comScore, and CNN's own data collection.
 - C-SPAN Now: the Facebook SDK, Firebase/Google Analytics, and the Privacy Sandbox on-device ad-retargeting call. OneSignal push is left alone.
@@ -401,7 +402,7 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 
 | Patch | App | What it does |
 |-------|-----|--------------|
-| GmsCore support | AP News, MLB, Moviebase, NewsBreak, The Daily Wire, YouTube TV | Signs in with Google through MicroG RE instead of Google Play services. On AP News, MLB, NewsBreak, and The Daily Wire it is off by default, because those apps also offer other sign-ins; with it on, push notifications come through MicroG RE too. |
+| GmsCore support | AP News, JustWatch, MLB, Moviebase, NewsBreak, The Daily Wire, YouTube TV | Signs in with Google through MicroG RE instead of Google Play services. On AP News, JustWatch, MLB, NewsBreak, and The Daily Wire it is off by default, because those apps also offer other sign-ins; with it on, push notifications come through MicroG RE too. |
 | Change app name | YouTube TV | Names the app "YT TV+" by default, so it is easy to tell apart from the official app. |
 | Remove social sign-in | CNN, HBO Max (phone), MGM+, Starz, The New York Times, Tubi | Removes Google, Facebook, and Apple sign-in. Email, TV-provider, and subscriber sign-in keep working. An account created with Google or Facebook needs a password reset to sign in by email. |
 | Faster launch | CNN | Opens the app without waiting to download its feature settings from Optimizely. When a DNS blocker blocks that download, the app otherwise waits about 14 seconds on its splash screen. The app starts with the settings it saved last time, and updates them in the background. |
@@ -427,9 +428,17 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 
 ### ✨ Extra features
 
-**Auto-skip** (Apple TV on Android TV) presses Skip for you on the parts you choose in its options: Apple's promos for other titles, which are on by default, and recaps and intros, which are off by default. Other buttons, such as Add, are left alone.
+**Auto-skip** (Apple TV, on phones and Android TV) skips the parts you choose in its options: Apple's promos for other titles, which are on by default, and recaps and intros, which are off by default. Other buttons, such as Add, are left alone. Recaps and intros are recognized by their English button labels, "Skip Recap" and "Skip Intro". Each recap and intro is skipped once per title, so rewinding into one plays it. On a phone, the app's button then shows "Watch Recap" or "Watch Intro" for a few seconds where the skipped part ends, and goes back to its start.
 
 **Save content for offline use** (FEMA) keeps the Prepare guides, disaster declarations, FAQ, and the images you have viewed readable without a connection. Long-press the app icon for **Save all**, which downloads every guide in English and Spanish (about 150 MB), or **Refresh**, which updates the saved pages. Saved content is replaced only after the new copy downloads completely.
+
+**Streaming titles only**, **Hide unavailable titles**, and **Hide watched titles** (JustWatch) change what the Watchlist shows, on phones and Android TV, using JustWatch's own data for each title. Streaming titles only shows titles you can stream on a subscription or for free, and hides titles you can only rent or buy. Picking a Types filter in the app overrides it. Hide unavailable titles hides titles that are not on the services you picked in the service bar. With All picked, it hides titles that no service offers, except titles that are not released yet. Hide watched titles hides movies you marked as seen and shows you are caught up on. The Seen, Likes, and Dislikes tabs and your other lists are not changed, and the title count at the top of the Watchlist still includes hidden titles.
+
+**Show release times** (Apple TV, on phones and Android TV) shows when an upcoming episode or title is released, in your time zone. The app shows only a day, such as "Coming This Wednesday", which can be the day after the release in your time zone. Episode tiles show the day and time, such as "Tue 4:00 PM PST", the badge on an episode's page says "Coming Tuesday at 4:00 PM PST", and the "Coming Soon" row under Information shows the full date and time. Its options choose 12-hour or 24-hour time, or, on a phone, the device's setting. On Android TV, the app shows labels such as "Coming Tuesday at 4:00 PM PST", and it stops downloading updates to its screens between app updates, as with Block analytics & tracking (Android TV). Labels are in English.
+
+**Hide player overlays** (Apple TV) hides the overlays you choose in its options: the rating card when a title starts, product placement notices, and photosensitivity and high-motion warnings. The warnings are shown by default.
+
+**Disable up next** (Apple TV) lets the credits play full screen, instead of shrinking the video into a corner to show the next episode or a recommendation.
 
 **Show hidden details** (Recreation.gov) shows details the app receives but does not display: the ticket-lottery application and award counts and the per-account limit (in a dialog you dismiss, since that screen has no text to add them to), when each ticket time slot stops selling, booking window rules, the deadline to confirm a lottery win, and when venue booking opens or closes. The lottery's results date is left out because the app already shows it.
 
@@ -450,10 +459,13 @@ Everything runs on the phone, inside the patched app. The patches do not send da
 | App | Issue | Cause or workaround |
 |-----|-------|---------------------|
 | NewsNation (Android TV), Apple TV (Android TV) | On a TV, Morphe Manager may offer to update the app to the phone version (NewsNation 510.3.0, Apple TV 3.0.0). | The phone and Android TV apps share a package name, and Morphe Manager compares only version numbers. Ignore the update. The Android TV versions are NewsNation 4.94 and Apple TV 17.0.2. |
+| Apple TV (Android TV) | With Block analytics & tracking (Android TV) on, the app still contacts Apple's metrics server, `xp.apple.com`, when it starts. | Apple's metrics code takes this address from Apple's servers when the app runs, and the request is made where the patch does not reach yet. Block `xp.apple.com` with a DNS filter to stop it. This is under review. |
+| Apple TV | If you rewind into a recap or intro within about 3 seconds of Auto-skip skipping it, it can be skipped again. | Rewind a few seconds later, or use "Watch Recap" or "Watch Intro". |
+| JustWatch | With Hide unavailable titles or Hide watched titles on, the title count at the top of the Watchlist still includes the hidden titles. | The count comes from JustWatch's server before titles are hidden. |
 | HBO Max | On TV, a resumed episode can show "Couldn't Play Content" (error 39999) when it reaches a mid-roll ad break. | Start the episode from the beginning. |
 | Best Buy | On some phones, every screen has a white tint and the app can take a minute to start. | The official app does the same on these phones, so the patches do not cause it. This is under review. |
 | Moviebase | The Activity and Members tabs do not load. | Moviebase's community server accepts only requests that pass Google's Play Integrity check, which a patched app cannot pass. |
-| Walmart | Sign-in codes are not sent by text. | A DNS filter such as Control D is blocking `drfdisvc.walmart.com`. Allow it and `h-walmart.online-metrix.net`, which Walmart uses for fraud checks at sign-in. |
+| Walmart | Sign-in codes are not sent by text. | A DNS filter may block `drfdisvc.walmart.com`. Allow it and `h-walmart.online-metrix.net`, which Walmart uses for fraud checks at sign-in. |
 | YouTube TV | The location check can take a while indoors, or fail with a VPN on. | MicroG RE falls back to GPS when its Wi-Fi location service has no data for your area. Turn off the VPN if YouTube TV cannot determine your location. |
 
 ## Disclaimer

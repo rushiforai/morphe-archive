@@ -9,7 +9,7 @@ All images reuse published, unedited evidence with synthetic data. Each pair nam
 | Mihon 0.21.3 · official GitHub ARM64 APK | [Preserve excluded Default-category downloads](#preserve-excluded-default-category-downloads) |
 | Komikku 1.14.1 · official GitHub ARM64 APK | [Keep local manga in exclusion searches](#keep-local-manga-in-exclusion-searches) |
 | Read You 0.16.2 | [Import nested OPML feeds](#import-nested-opml-feeds) |
-| Finamp 1.0.1 | [Finamp complete: all eight fixes](#finamp-complete-all-eight-fixes) |
+| Finamp 1.0.1 | [Finamp Complete](#finamp-complete) · [Release 1.9.2](#finamp-complete-all-seven-fixes) |
 | Finamp 1.0.1 | [Song artist order](#song-artist-order) |
 | Finamp 1.0.1 | [Fix section title validation](#fix-section-title-validation) |
 | Finamp 1.0.1 | [Load artist pages faster](#load-artist-pages-faster) |
@@ -53,15 +53,36 @@ export retains the downloaded chapter. The favorite itself remains in both datab
 
 [Raw PNG/XML and acceptance evidence](../tests/mihon/evidence/2026-10-30/README.md) · [Back to patch index](#before--after)
 
-<a id="finamp-complete-all-eight-fixes"></a>
+<a id="finamp-complete-all-seven-fixes"></a>
 
-## Finamp complete: all eight fixes
+## Finamp complete: all seven fixes
 
 **Finamp 1.0.1** · [Setup & patch details](FINAMP_NATIVE.md)
 
-The compact patch applies the eight individual fixes together. This pair
-illustrates one included change: the track-information action. See the eight
+The compact patch applies the seven individual fixes together. This pair
+illustrates one included change: the track-information action. See the seven
 individual comparisons for the other changes.
+
+**Installed Android APK captures.** The before image is the original APK and
+the after image is the separately selected track-information patch, using the
+same synthetic track and display. The captures do not depict the compact bundle.
+
+| Before | After |
+| :---: | :---: |
+| **No track information action** | **Information action with icon** |
+| <img src="../tests/finamp/evidence/2026-11-05-notes/track-before.png" width="300" alt="Before: track menu without an information action"> | <img src="../tests/finamp/evidence/2026-11-05-notes/track-after.png" width="300" alt="After: track information with an icon below the common actions"> |
+
+[Capture provenance and limits](../tests/finamp/evidence/2026-11-05-notes/README.md) · [Back to patch index](#before--after)
+
+<a id="finamp-complete"></a>
+
+## Finamp Complete
+
+**Finamp 1.0.1** · [Setup & patch details](FINAMP_NATIVE.md)
+
+The compact patch applies the individual fixes together. This pair
+illustrates one included change: the track-information action. See the individual
+comparisons for the other changes.
 
 **Installed Android APK captures.** The before image is the original APK and
 the after image is the separately selected track-information patch, using the

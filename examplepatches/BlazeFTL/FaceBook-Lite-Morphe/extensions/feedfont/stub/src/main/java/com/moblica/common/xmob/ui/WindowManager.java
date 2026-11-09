@@ -1,5 +1,5 @@
 package com.moblica.common.xmob.ui;
 
 public class WindowManager {
-    public int A0B, A0C;
+    public int A0A, A0B;
 }

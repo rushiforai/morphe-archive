@@ -1,47 +1,49 @@
-# Woordenlijsten
+# Word lists
 
-Per taal een opgeschoonde woordenlijst die de patch downloadt. Alle lijsten komen uit openbare bronnen
-(zie `sources.json` voor bron, licentie en bronvermelding per taal).
+One cleaned-up word list per language, downloaded by the patch. All lists come from open sources (see
+`sources.json` for the source, licence and attribution of each language).
 
-| Map | Regelsets | Bron | Licentie van de lijst |
+| Folder | Rulesets | Source | Licence of the list |
 |---|---|---|---|
-| `en-us` | 0 (Engels VS) | ENABLE (dolph/dictionary) + Wordnik open word list; ~95% van NWL | Publiek domein + MIT (Copyright (c) 2020 Wordnik) |
-| `en-intl` | 5 (Engels internationaal) | ENABLE + Wordnik + Letterpress `en.txt`; ~98% van Collins | Publiek domein + MIT + CC0 zoals gepubliceerd |
-| `nb` | 1 (Noors bokmål) | Norsk ordbank, Språkbanken / Språkrådet, via Ondkloss/norwegian-wordlist | CC BY 4.0 |
-| `nl` | 2 (Nederlands) | OpenTaal, via jensanjo/wordfeud-wordlists | BSD en/of CC BY 3.0 |
-| `sv` | 4 (Zweeds) | Den stora svenska ordlistan (Göran Andersson), via mrcz/Wordfeud-Player | CC BY-SA 3.0 |
-| `de` | 9 (Duits) | enz/german-wordlist | CC0 1.0 |
-| `nn` | 10 (Noors nynorsk) | Norsk ordbank, Språkbanken / Språkrådet, via Ondkloss/norwegian-wordlist | CC BY 4.0 |
-| `da` | 3 (Deens) | COR₁ 1.5.1.0 (Det Centrale Ordregister, Dansk Sprognævn; = Retskrivningsordbogen 5.1), vormen met status N en K | Vrij voor elk gebruik (CC0 1.0) |
-| `fr` | 7 (Frans) | Lexique des formes fléchies du français, Grammalecte v7.7 | MPL 2.0 |
+| `en-us` | 0 (English, US) | ENABLE (dolph/dictionary) + Wordnik open word list; about 95% of NWL | Public domain + MIT (Copyright (c) 2020 Wordnik) |
+| `nb` | 1 (Norwegian bokmål) | Norsk ordbank, Språkbanken / Språkrådet, via Ondkloss/norwegian-wordlist | CC BY 4.0 |
+| `nl` | 2 (Dutch) | OpenTaal, via jensanjo/wordfeud-wordlists | BSD and/or CC BY 3.0 |
+| `da` | 3 (Danish) | COR₁ 1.5.1.0 (Det Centrale Ordregister, Dansk Sprognævn; = Retskrivningsordbogen 5.1), forms with status N and K | Free for any use (CC0 1.0) |
+| `sv` | 4 (Swedish) | Den stora svenska ordlistan (Göran Andersson), via mrcz/Wordfeud-Player | CC BY-SA 3.0 |
+| `en-intl` | 5 (English, international) | ENABLE + Wordnik + Letterpress `en.txt`; about 98% of Collins | Public domain + MIT + CC0 as published |
+| `es` | 6 (Spanish) | lorenbrichter/Words `es.txt` (Letterpress; content = the FISE-2 lexicon). CH, LL and RR count as one tile | CC0 1.0 as published |
+| `fr` | 7 (French) | Lexique des formes fléchies du français, Grammalecte v7.7 (without symbols, units and short abbreviations) | MPL 2.0 |
+| `sv-strict` | 8 (Swedish strict) | hising/svenska-ord.txt, about 120,000 SAOL base forms | Unlicense as published |
+| `de` | 9 (German) | enz/german-wordlist | CC0 1.0 |
+| `nn` | 10 (Norwegian nynorsk) | Norsk ordbank, Språkbanken / Språkrådet, via Ondkloss/norwegian-wordlist | CC BY 4.0 |
+| `fi` | 11 (Finnish) | fginter/hunspell-fi (TurkuNLP) via mhavo/suomen-kieliavut; all forms generated from the Hunspell dictionary (`tools/wordlists/hunspell.py`) | CC0 1.0 |
+| `pt` | 12 (Portuguese) | jfoclpf/words-pt (European Portuguese, Natura lists of Universidade do Minho) | GPL-3.0 |
 
-| `es` | 6 (Spaans) | lorenbrichter/Words `es.txt` (Letterpress; inhoud = FISE-2-lexicon). CH, LL en RR telt als één tegel | CC0 1.0 zoals gepubliceerd |
-| `sv-strict` | 8 (Zweeds strikt) | hising/svenska-ord.txt, ~120.000 SAOL-grondvormen | Unlicense zoals gepubliceerd |
-| `fi` | 11 (Fins) | fginter/hunspell-fi (TurkuNLP) via mhavo/suomen-kieliavut; alle vormen uit het Hunspell-woordenboek gegenereerd (`tools/wordlists/hunspell.py`) | CC0 1.0 |
-| `pt` | 12 (Portugees) | jfoclpf/words-pt (Europees-Portugees, Natura-lijsten Universidade do Minho) | GPL-3.0 |
+Words are 2 to 15 tiles long (in Spanish a digraph tile counts as one).
 
-Woorden zijn 2 tot 15 tegels lang (bij Spaans telt een dubbelletter-tegel als één).
+The derived list in each folder has the same licence as its source (for CC BY-SA also "share alike"). The licence
+of this project's code (GPLv3) does not apply to these data files.
 
-De afgeleide lijst in elke map valt onder dezelfde licentie als de bron (bij CC BY-SA ook "share alike").
-De licentie van de code van dit project (GPLv3) geldt niet voor deze gegevensbestanden.
+## Files per language
 
-## Bestanden per taal
+- `words.txt.gz`: the list the patch downloads. Generated; do not edit by hand.
+- `remove.txt`: words taken out of the source (for example because the Wordfeud server rejects them).
+- `add.txt`: words added to the source (for example words played in a game that the source lacks).
 
-- `words.txt.gz`: de lijst die de patch downloadt. Gegenereerd, niet met de hand aanpassen.
-- `remove.txt`: woorden die uit de bron gehaald worden (bijvoorbeeld omdat Wordfeud ze weigert).
-- `add.txt`: woorden die aan de bron toegevoegd worden.
+Both are filled automatically by the word reports from the patch (see `tools/report-worker/README.md`), on a
+`wordlist/<folder>` branch with one pull request per language.
 
-`manifest.json` (gegenereerd) bevat per lijst de SHA-256, het aantal woorden en een versienummer. De patch
-controleert de download met die SHA-256; een hogere versie laat geïnstalleerde patches de lijst opnieuw downloaden.
+`manifest.json` (generated) holds the SHA-256, word count and version of each list. The patch checks the download
+against that SHA-256; a higher version makes installed patches download the list again.
 
-## Opnieuw bouwen
+## Rebuilding
 
 ```sh
-python3 tools/wordlists/build.py            # alles
-python3 tools/wordlists/build.py --only nl  # één taal
-python3 tools/wordlists/build.py --check    # controleren of alles up-to-date is (CI)
+python3 tools/wordlists/build.py            # everything
+python3 tools/wordlists/build.py --only nl  # one language
+python3 tools/wordlists/build.py --check    # check that everything is up to date (CI)
 ```
 
-Het script haalt de bronnen op (vaste commit-URL's met SHA-256-controle) en past de normalisatie toe: hoofdletters,
-letters buiten het Wordfeud-alfabet worden teruggebracht tot hun basisletter (é → E) of de regel valt af,
-woorden van 2 tot 15 letters, geen dubbelen, gesorteerd.
+The script downloads the sources (pinned URLs with a SHA-256 check) and normalises them: upper case, letters outside
+the Wordfeud alphabet are reduced to their base letter (é → E) or the word is dropped, 2 to 15 tiles, no duplicates,
+sorted.

@@ -688,21 +688,23 @@ $unchanged = Get-ManifestDelta -Stock $facts -Patched $facts
 Assert-True (@(ConvertTo-ManifestDeltaEntries -Delta $unchanged).Count -eq 0) `
     'An unchanged manifest produced a delta.'
 
-# The checked-in allowlist approves four changes and nothing else: HushTelegram settings exports an
+# The checked-in allowlist approves five changes and nothing else: HushTelegram settings exports an
 # alias of Telegram's launcher activity for Android's App info page, UnifiedPush notifications
-# exports the receiver and service a UnifiedPush app talks to, and Save downloaded files asks for
-# All files access for its storage folder switch.
+# exports the receiver and service a UnifiedPush app talks to, Save downloaded files asks for
+# All files access for its storage folder switch, and the Keep-Alive Service's remote messaging
+# type asks for its foreground permission on the Play build.
 $checkedInAllowlist = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
     Where-Object { $_ })
 $settingsAlias = 'activity-alias:app.hushtelegram.extension.telegram.settings.OpenSettings'
 $approvedEntries = @("exported-added $settingsAlias",
     'exported-added receiver:app.hushtelegram.extension.telegram.misc.UnifiedPushReceiver',
     'exported-added service:app.hushtelegram.extension.telegram.misc.UnifiedPushRaise',
+    'permission-added android.permission.FOREGROUND_SERVICE_REMOTE_MESSAGING',
     'permission-added android.permission.MANAGE_EXTERNAL_STORAGE')
 Assert-True ((@($checkedInAllowlist | Sort-Object -CaseSensitive) -join "`n") -ceq
         (@($approvedEntries | Sort-Object -CaseSensitive) -join "`n")) `
     ('The checked-in manifest delta allowlist approves something besides the settings alias, the UnifiedPush ' +
-     "receiver and service and All files access, or leaves one out: $($checkedInAllowlist -join ', ')")
+     "receiver and service, All files access and the Keep-Alive remote messaging permission, or leaves one out: $($checkedInAllowlist -join ', ')")
 
 $allowlistRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("receipt-" + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $allowlistRoot | Out-Null

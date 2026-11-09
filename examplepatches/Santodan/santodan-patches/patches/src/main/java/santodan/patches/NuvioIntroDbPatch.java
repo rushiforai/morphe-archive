@@ -26,11 +26,12 @@ public final class NuvioIntroDbPatch {
             builder.execute(context -> {
                 if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                     !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0-beta.12");
+                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0-beta.13");
                 validateState(new MutableClass(context.classDefBy(NuvioNative.PLAYER_STATE_TYPE)));
                 for (String signature : UI) require(new MutableClass(context.classDefBy(signature.substring(0, signature.indexOf("->")))), signature);
-                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE)), "c:Lbb/ql;", "d:Lbb/nl;", "i:Lc2/z;", "j:Lkotlin/jvm/functions/Function0;", "k:Lkotlin/jvm/functions/Function0;");
-                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MODEL_TYPE)), "Y:Lbb/gc;");
+                validateInputFocus(new MutableClass(context.classDefBy(NuvioNative.INPUT_FOCUS_TYPE)), Integer.parseInt(NuvioNative.INPUT_FOCUS_BRANCH));
+                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE)), "c:Lbb/vl;", "d:Lbb/sl;", "i:Lb2/a0;", "j:Lkotlin/jvm/functions/Function0;", "k:Lkotlin/jvm/functions/Function0;");
+                fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_MODEL_TYPE)), "Y:Lbb/lc;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLLER_TYPE)), "H0:Lkotlinx/coroutines/flow/StateFlow;", "U0:Lkotlinx/coroutines/Job;");
                 fields(new MutableClass(context.classDefBy(NuvioNative.PLAYER_SESSION_TYPE)), "d:Z");
                 fields(new MutableClass(context.classDefBy(NuvioNative.DROPDOWN_OPTION_TYPE)), "a:Ljava/lang/String;", "b:Ljava/lang/String;");
@@ -38,8 +39,8 @@ public final class NuvioIntroDbPatch {
                 fields(new MutableClass(context.classDefBy(NuvioNative.NATIVE_SPACING_TYPE)), "b:F", "c:F");
                 fields(new MutableClass(context.classDefBy("Lio/sentry/d2;")), "b:Ljava/util/ArrayList;");
                 staticFields(new MutableClass(context.classDefBy(NuvioNative.NATIVE_SPACING_LOCAL_TYPE)), "a:Ljb/m0;");
-                staticFields(new MutableClass(context.classDefBy("Ly2/l1;")), "q:Lh1/c3;");
-                staticFields(new MutableClass(context.classDefBy(NuvioNative.SETTINGS_BUTTON_LABELS_TYPE)), "a:Lr1/s;", "b:Lr1/s;");
+                staticFields(new MutableClass(context.classDefBy("Lx2/l1;")), "q:Lg1/c3;");
+                staticFields(new MutableClass(context.classDefBy(NuvioNative.SETTINGS_BUTTON_LABELS_TYPE)), "a:Lq1/t;", "b:Lq1/t;");
                 staticFields(new MutableClass(context.classDefBy(NuvioNative.COLOR_TYPE)), "b:J");
                 MutableMethod position = require(new MutableClass(context.classDefBy(NuvioNative.PLAYER_POSITION_TYPE)), POSITION);
                 for (String reference : List.of(NuvioNative.REF_PLAYER_POSITION_I, NuvioNative.REF_PLAYER_ENGINE_L, "Landroidx/media3/common/Player;->getCurrentPosition()J"))
@@ -60,11 +61,11 @@ public final class NuvioIntroDbPatch {
             return Unit.INSTANCE;
         });
     }
-    static final String TIMER_HASH = "cac1514d788a270048bbde00099a27b8bc2fdc6a009426e6ee3e2a341698af2e";
+    static final String TIMER_HASH = "3dae2f6f88f53d20757a4a47de1efd71caf82ab9a303ec3e8010c9f406203b15";
     static final String PAUSE_TIMER = NuvioNative.PLAYER_TIMERS_TYPE + "->" + NuvioNative.PAUSE_TIMER_METHOD + "(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
     static final String CANCEL_PAUSE = NuvioNative.PLAYER_TIMERS_TYPE + "->" + NuvioNative.CANCEL_PAUSE_METHOD + "(" + NuvioNative.PLAYER_CONTROLLER_TYPE + ")V";
-    static final String PAUSE_TIMER_HASH = "eced0af32ad8ce294d557de53e6dfc24ffaf87cb6ecf6300e1acec750c7992a9";
-    static final String CANCEL_PAUSE_HASH = "ded9a3edaa6e0825cb51db87cc2c2eba868da2ea7e284538a0122a0087c40bb2";
+    static final String PAUSE_TIMER_HASH = "726f3aef1f8717e532de42164c4c2cc9192071ad5b4872a95751ef1baddcb6fe";
+    static final String CANCEL_PAUSE_HASH = "3546a176e7b4a91f5bbe2dfc328c213778c3b89b5906246fc05dff7f88ebf58a";
     static final String HOLD_TIMER = EXT + "->holdControlsTimer(Ljava/lang/Object;)Z";
     static void validateTimer(MutableMethod method) {
         String hash = method.toString().equals(NuvioNative.REF_PLAYER_TIMERS_F) ? TIMER_HASH :
@@ -96,19 +97,20 @@ public final class NuvioIntroDbPatch {
         NuvioNative.REF_COMPOSE_FACTORY_T, NuvioNative.REF_COMPOSER_D0, NuvioNative.REF_COMPOSER_P,
         NuvioNative.REF_INPUT_FIELD_INIT,
         NuvioNative.REF_INPUT_FOCUS_INIT, NuvioNative.REF_INPUT_CLICK_INIT,
+        NuvioNative.REF_INPUT_FOCUS_INVOKE,
         NuvioNative.REF_INPUT_SAVE_LABEL_INIT,
         NuvioNative.REF_NATIVE_F,
         NuvioNative.REF_FOCUS_MODIFIERS_I,
         NuvioNative.REF_POSTER_IMAGE_Y, NuvioNative.REF_POSTER_IMAGE_A,
-        "Ly/m;->a(JF)Ly/u;", NuvioNative.REF_NATIVE_FOCUS_STYLE_A,
-        "Ll0/g;->b(F)Ll0/f;", "Ly5/c;-><init>(Ly/u;Le2/y0;I)V",
+        "Lx/m;->a(JF)Lx/u;", NuvioNative.REF_NATIVE_FOCUS_STYLE_A,
+        "Lk0/g;->b(F)Lk0/f;", NuvioNative.REF_INPUT_BORDER_INIT,
         NuvioNative.REF_NATIVE_B_2, NuvioNative.REF_NATIVE_A_2,
-        "Ly5/m;->e(Le2/y0;I)Ly5/q;", "Ly5/m;->d(FI)Ly5/p;",
+        "Ly5/m;->e(Ld2/y0;I)Ly5/q;", "Ly5/m;->d(FI)Ly5/p;",
         NuvioNative.REF_NATIVE_C,
         NuvioNative.REF_NATIVE_A,
         NuvioNative.REF_NATIVE_B,
         NuvioNative.REF_VECTOR_BUILDER_INIT, NuvioNative.REF_VECTOR_BUILDER_A, NuvioNative.REF_VECTOR_BUILDER_B,
-        "Le2/a1;-><init>(J)V", "Lio/sentry/d2;-><init>(I)V", "Lio/sentry/d2;->o(FF)V", "Lio/sentry/d2;->m(FF)V", "Lio/sentry/d2;->e()V",
+        "Ld2/a1;-><init>(J)V", "Lio/sentry/d2;-><init>(I)V", "Lio/sentry/d2;->o(FF)V", "Lio/sentry/d2;->m(FF)V", "Lio/sentry/d2;->e()V",
         NuvioNative.REF_COMPOSABLE_LAMBDA_INIT,
         NuvioNative.REF_LIBRARY_CONTENT_Z,
         NuvioNative.REF_SETTINGS_ROWS_D,
@@ -124,10 +126,38 @@ public final class NuvioIntroDbPatch {
         MutableMethod method = owner.getMethods().stream().filter(m -> m.toString().equals(signature)).reduce((a,b) -> {
             throw new IllegalStateException("Ambiguous IntroDB native API: " + signature);
         }).orElseThrow(() -> new IllegalStateException("Missing IntroDB native API: " + signature));
-        boolean instance = method.getName().equals("<init>") || List.of(NuvioNative.COMPOSER_TYPE, NuvioNative.NATIVE_FOCUS_STYLE_TYPE, "Lio/sentry/d2;").contains(owner.getType()) ||
+        boolean instance = method.getName().equals("<init>") || List.of(NuvioNative.COMPOSER_TYPE, NuvioNative.NATIVE_FOCUS_STYLE_TYPE, NuvioNative.INPUT_FOCUS_TYPE, "Lio/sentry/d2;").contains(owner.getType()) ||
             signature.equals(NuvioNative.REF_VECTOR_BUILDER_B);
         if (((method.getAccessFlags() & 8) == 0) != instance) throw new IllegalStateException("Native API static status changed: " + signature);
         return method;
+    }
+    /** R8 merges string-change and focus-state callbacks into the same constructor. */
+    static void validateInputFocus(MutableClass owner, int branch) {
+        MutableMethod invoke = require(owner, NuvioNative.REF_INPUT_FOCUS_INVOKE);
+        var body = NuvioAiringSeriesPatch.instructions(invoke);
+        if (body.size() < 3 || body.get(0).getOpcode() != Opcode.IGET || body.get(1).getOpcode() != Opcode.PACKED_SWITCH)
+            throw new IllegalStateException("IntroDB focus callback selector changed");
+        var payload = (SwitchPayload) body.get(NuvioAnchors.branchTarget(body, 1));
+        var selected = payload.getSwitchElements().stream().filter(e -> e.getKey() == branch).findFirst()
+            .orElseThrow(() -> new IllegalStateException("IntroDB focus callback branch is missing"));
+        int address = body.get(0).getCodeUnits() + selected.getOffset();
+        int cursor = 0, start = -1;
+        for (int i = 0; i < body.size(); i++) {
+            if (cursor == address) { start = i; break; }
+            cursor += body.get(i).getCodeUnits();
+        }
+        if (start < 0 || body.get(start).getOpcode() != Opcode.CHECK_CAST ||
+            !NuvioPlaybackButtonsPatch.reference(body.get(start)).equals("Lb2/i0;"))
+            throw new IllegalStateException("IntroDB callback branch does not accept native focus state");
+        Set<String> calls = new HashSet<>();
+        for (int i = start; i < Math.min(start + 40, body.size()); i++) {
+            calls.add(NuvioPlaybackButtonsPatch.reference(body.get(i)));
+            if (body.get(i).getOpcode() == Opcode.RETURN_OBJECT) break;
+        }
+        if (!calls.containsAll(List.of("Lb2/j0;->a()Z", "Lb2/j0;->b()Z",
+                "Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;", "Lg1/i1;->setValue(Ljava/lang/Object;)V")) ||
+            calls.contains("Ljava/lang/String;"))
+            throw new IllegalStateException("IntroDB callback branch no longer publishes Boolean focus state");
     }
     static void fields(MutableClass owner, String... expected) {
         for (String signature : expected) if (owner.getFields().stream().filter(f -> f.toString().equals(owner.getType() + "->" + signature) && (f.getAccessFlags() & 8) == 0).count() != 1)
@@ -176,7 +206,7 @@ public final class NuvioIntroDbPatch {
             MethodReference nativeRef;
             if (old.getName().equals("more")) nativeRef = new ImmutableMethodReference(NuvioNative.ANIMATED_VISIBILITY_TYPE, "e", List.of("Z",NuvioNative.MODIFIER_TYPE,NuvioNative.ENTER_TRANSITION_TYPE,NuvioNative.EXIT_TRANSITION_TYPE,"Ljava/lang/String;",NuvioNative.COMPOSABLE_LAMBDA_TYPE,NuvioNative.COMPOSER_INTERFACE_TYPE,"I"), "V");
             else if (List.of("play","next","subtitles","audio","chapters","sources","episodes","party","finish").contains(old.getName()))
-                nativeRef = new ImmutableMethodReference(NuvioNative.PLAYER_CONTROLS_TYPE, "c", List.of(NuvioNative.VECTOR_TYPE,"Lj2/a;","Ljava/lang/String;","Lkotlin/jvm/functions/Function0;",NuvioNative.FOCUS_REQUESTER_TYPE,NuvioNative.FOCUS_REQUESTER_TYPE,"Z","Lkotlin/jvm/functions/Function0;","Lkotlin/jvm/functions/Function0;","J",NuvioNative.COMPOSER_INTERFACE_TYPE,"I","I"), "V");
+                nativeRef = new ImmutableMethodReference(NuvioNative.PLAYER_CONTROLS_TYPE, "c", List.of(NuvioNative.VECTOR_TYPE,"Li2/a;","Ljava/lang/String;","Lkotlin/jvm/functions/Function0;",NuvioNative.FOCUS_REQUESTER_TYPE,NuvioNative.FOCUS_REQUESTER_TYPE,"Z","Lkotlin/jvm/functions/Function0;","Lkotlin/jvm/functions/Function0;","J",NuvioNative.COMPOSER_INTERFACE_TYPE,"I","I"), "V");
             else throw new IllegalStateException("Unknown playback bridge");
             List<String> erased = new ArrayList<>();
             for (CharSequence type : nativeRef.getParameterTypes()) erased.add(type.toString().startsWith("L") ? "Ljava/lang/Object;" : type.toString());

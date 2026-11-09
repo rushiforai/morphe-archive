@@ -44,8 +44,10 @@ final class ButtonsIcons {
         return result;
     }
     private static Object inlineIcon(ClassLoader loader, String id) throws Exception {
-        String owner = id.equals("subtitles") ? NuvioNative.ICON_PARTY_NAME : id.equals("episodes") ? NuvioNative.ICON_EXTERNAL_NAME : id.equals("chapters") ? NuvioNative.ICON_CHAPTERS_NAME : NuvioNative.ICON_ASPECT_NAME;
-        String field = id.equals("subtitles") ? "d" : id.equals("chapters") ? "c" : id.equals("episodes") ? "b" : "a";
+        String reference = id.equals("subtitles") ? NuvioNative.REF_ICON_PARTY_D : id.equals("episodes") ? NuvioNative.REF_ICON_EXTERNAL_A : id.equals("chapters") ? NuvioNative.REF_ICON_CHAPTERS_C : NuvioNative.REF_ICON_ASPECT_A;
+        int arrow = reference.indexOf("->");
+        String owner = reference.substring(1, arrow - 1).replace('/', '.');
+        String field = reference.substring(arrow + 2, reference.indexOf(':', arrow));
         java.lang.reflect.Field nativeCache = loader.loadClass(owner).getDeclaredField(field);
         nativeCache.setAccessible(true);
         Object existing = nativeCache.get(null);
@@ -77,7 +79,7 @@ final class ButtonsIcons {
                 x+2,14, x+4,14, x+4,16, x,16);
         }
         java.lang.reflect.Field black = loader.loadClass(NuvioNative.COLOR_NAME).getDeclaredField("b"); black.setAccessible(true);
-        Object brush = loader.loadClass("e2.a1").getDeclaredConstructor(long.class).newInstance(black.get(null));
+        Object brush = loader.loadClass("d2.a1").getDeclaredConstructor(long.class).newInstance(black.get(null));
         java.lang.reflect.Field nodes = path.getClass().getDeclaredField("b"); nodes.setAccessible(true);
         NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.VECTOR_BUILDER_NAME), "a", 4).invoke(null, vector, nodes.get(path), 0, brush);
         return NuvioPlaybackButtons.method(loader.loadClass(NuvioNative.VECTOR_BUILDER_NAME), "b", 0).invoke(vector);

@@ -34,6 +34,29 @@ final class IntroUi {
     static Object constant(ClassLoader loader, String owner, String name) throws Exception {
         Field field = loader.loadClass(owner).getDeclaredField(name); field.setAccessible(true); return field.get(null);
     }
+    static String owner(String reference) { return reference.substring(1, reference.indexOf(';')).replace('/', '.'); }
+    static Method nativeMethod(ClassLoader loader, String reference, int count) throws Exception {
+        String name = reference.substring(reference.indexOf("->") + 2, reference.indexOf('('));
+        return method(loader.loadClass(owner(reference)), name, count);
+    }
+    static Constructor<?> nativeConstructor(ClassLoader loader, String reference) throws Exception {
+        String parameters = reference.substring(reference.indexOf('(') + 1, reference.indexOf(')'));
+        List<Class<?>> types = new ArrayList<>();
+        for (int index = 0; index < parameters.length();) {
+            char type = parameters.charAt(index++);
+            if (type == 'L') {
+                int end = parameters.indexOf(';', index);
+                types.add(loader.loadClass(parameters.substring(index, end).replace('/', '.')));
+                index = end + 1;
+            } else if (type == 'I') types.add(int.class);
+            else throw new IllegalArgumentException("Unsupported native constructor parameter: " + reference);
+        }
+        return loader.loadClass(owner(reference)).getDeclaredConstructor(types.toArray(new Class<?>[0]));
+    }
+    static Object focusCallback(ClassLoader loader, Object focused) throws Exception {
+        return nativeConstructor(loader, NuvioNative.REF_INPUT_FOCUS_INIT)
+            .newInstance(Integer.parseInt(NuvioNative.INPUT_FOCUS_BRANCH), focused);
+    }
     static Object unit(ClassLoader loader) throws Exception { return loader.loadClass("kotlin.Unit").getField("INSTANCE").get(null); }
     static Object callback(ClassLoader loader, String type, Callback callback) throws Exception {
         return Proxy.newProxyInstance(loader, new Class<?>[]{loader.loadClass("kotlin.jvm.functions." + type)}, (p,m,a) -> {
@@ -65,11 +88,11 @@ final class IntroUi {
     static void row(Object composer, String title, String subtitle, String value, Action action) throws Exception {
         ClassLoader loader = composer.getClass().getClassLoader();
         method(loader.loadClass(NuvioNative.SETTINGS_ROWS_NAME), "a", 18).invoke(null, title, subtitle, value, click(loader, action),
-            null, null, false, null, null, 0L, null, null, 0f, 0L, composer, 0, 0, 16368);
+            null, click(loader, () -> {}), true, null, null, 0L, null, null, 0f, 0L, composer, 0, 0, 16336);
     }
     static void dialog(Object composer, String title, String subtitle, Action dismiss, Content content) throws Exception {
         ClassLoader loader = composer.getClass().getClassLoader();
-        method(loader.loadClass(NuvioNative.LIBRARY_CONTENT_NAME), "z", 19).invoke(null, click(loader, dismiss), title, subtitle, 640f,
+        nativeMethod(loader, NuvioNative.REF_LIBRARY_CONTENT_Z, 19).invoke(null, click(loader, dismiss), title, subtitle, 640f,
             0, false, false, null, null, 0f, 0f, 0f, 0f, null, content(loader, 0x53494302, content), composer, 0, 24576, 16336);
     }
     static void actions(Object composer, String submitTitle, boolean enabled, Action submit, String cancelTitle, Action cancel) throws Exception {
@@ -106,13 +129,13 @@ final class IntroUi {
                 nativeButton(row, save, card, foreground, saveContent);
             }), nested, 0, 1);
         });
-        method(loader.loadClass(NuvioNative.LIBRARY_CONTENT_NAME), "z", 19).invoke(null, click(loader, dismiss), "IntroDB API key", "Enter your IntroDB API key. Clear the field and Save to remove it.",
+        nativeMethod(loader, NuvioNative.REF_LIBRARY_CONTENT_Z, 19).invoke(null, click(loader, dismiss), "IntroDB API key", "Enter your IntroDB API key. Clear the field and Save to remove it.",
             700f, 0, false, false, null, null, 0f, 0f, 0f, 0f, null, body, composer, 0, 24576, 16368);
     }
     private static void nativeButton(Object composer, Action action, long background, long foreground, Object text) throws Exception {
         ClassLoader loader = composer.getClass().getClassLoader();
         Object colors = method(loader.loadClass("y5.f"), "b", 8).invoke(null, background, foreground, 0L, 0L, 0L, 0L, composer, 252);
-        method(loader.loadClass("y5.g1"), "a", 13).invoke(null, click(loader, action), null, false, null, null, colors,
+        method(loader.loadClass("y5.h1"), "a", 13).invoke(null, click(loader, action), null, false, null, null, colors,
             null, null, text, composer, 0, 0, 3966);
     }
     /** Same native single-line Card, focused border, cursor and keyboard callbacks as Anime Skip. */
@@ -120,27 +143,26 @@ final class IntroUi {
         ClassLoader loader = composer.getClass().getClassLoader();
         Object modifier = method(loader.loadClass("androidx.compose.foundation.layout.b"), "f", 2)
             .invoke(null, loader.loadClass(NuvioNative.EMPTY_MODIFIER_NAME).getField("b").get(null), 1f);
-        Object changedFocus = loader.loadClass(NuvioNative.INPUT_FOCUS_NAME).getDeclaredConstructor(int.class, loader.loadClass(NuvioNative.COMPOSE_MUTABLE_STATE_NAME)).newInstance(2, focused);
+        Object changedFocus = focusCallback(loader, focused);
         modifier = method(loader.loadClass(NuvioNative.FOCUS_MODIFIERS_NAME), "i", 2).invoke(null, modifier, changedFocus);
         Object colors = method(loader.loadClass(NuvioNative.POSTER_STYLE_NAME), NuvioNative.POSTER_COLORS_METHOD, 1).invoke(null, composer);
         long elevated = (Long)field(colors, "b");
         Object cardColors = method(loader.loadClass("y5.m"), "b", 5).invoke(null, elevated, elevated, composer, 0, 58);
         Object spacing = constant(loader, NuvioNative.NATIVE_SPACING_LOCAL_NAME, "a");
-        Object stroke = method(loader.loadClass("y.m"), "a", 2).invoke(null, (Long)field(colors, "x"), (Float)field(spacing, "b"));
+        Object stroke = method(loader.loadClass("x.m"), "a", 2).invoke(null, (Long)field(colors, "x"), (Float)field(spacing, "b"));
         Object focusRing = method(loader.loadClass(NuvioNative.POSTER_STYLE_NAME), NuvioNative.POSTER_FOCUS_METHOD, 1).invoke(null, composer);
         Object focusedStroke = method(focusRing.getClass(), "a", 2).invoke(focusRing, (Float)field(spacing, "c"), 1f);
-        Object shape = method(loader.loadClass("l0.g"), "b", 1).invoke(null, 10f);
-        Constructor<?> borderConstructor = loader.loadClass("y5.c").getDeclaredConstructor(loader.loadClass("y.u"), loader.loadClass("e2.w0"), int.class);
+        Object shape = method(loader.loadClass("k0.g"), "b", 1).invoke(null, 10f);
+        Constructor<?> borderConstructor = nativeConstructor(loader, NuvioNative.REF_INPUT_BORDER_INIT);
         Object border = method(loader.loadClass("y5.m"), "a", 4).invoke(null, borderConstructor.newInstance(stroke, shape, 2),
             borderConstructor.newInstance(focusedStroke, shape, 2), composer, 4);
         Object cardShape = method(loader.loadClass("y5.m"), "e", 2).invoke(null, shape, 6);
         Object scale = method(loader.loadClass("y5.m"), "d", 2).invoke(null, 1f, 5);
         Object onClick = loader.loadClass(NuvioNative.INPUT_CLICK_NAME).getDeclaredConstructor(loader.loadClass(NuvioNative.FOCUS_REQUESTER_NAME), int.class).newInstance(focus, 0);
-        Object keyboard = method(composer.getClass(), "j", 1).invoke(composer, constant(loader, "y2.l1", "q"));
-        Object input = loader.loadClass(NuvioNative.INPUT_FIELD_NAME).getDeclaredConstructor(loader.loadClass(NuvioNative.FOCUS_REQUESTER_NAME), loader.loadClass("y2.m2"),
-            loader.loadClass(NuvioNative.COMPOSE_MUTABLE_STATE_NAME), loader.loadClass(NuvioNative.COMPOSE_MUTABLE_STATE_NAME), int.class).newInstance(focus, keyboard, text, focused, 0);
+        Object keyboard = method(composer.getClass(), "j", 1).invoke(composer, constant(loader, "x2.l1", "q"));
+        Object input = nativeConstructor(loader, NuvioNative.REF_INPUT_FIELD_INIT).newInstance(focus, keyboard, text, focused, 0);
         Object content = loader.loadClass(NuvioNative.COMPOSABLE_LAMBDA_NAME).getDeclaredConstructor(int.class, Object.class, boolean.class).newInstance(0x53494306, input, true);
-        method(loader.loadClass("y5.g1"), "c", 13).invoke(null, onClick, modifier, null, cardShape, cardColors, scale, border,
+        method(loader.loadClass("y5.h1"), "c", 13).invoke(null, onClick, modifier, null, cardShape, cardColors, scale, border,
             null, null, content, composer, 0, 388);
     }
 }

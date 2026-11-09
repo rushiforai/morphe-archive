@@ -33,6 +33,13 @@ jobs:
         with:
           job-id: morphe-build-v1
 
+      - name: Prefetch Gradle
+        # Fetches the wrapper's Gradle through GitHub's API when it is not cached,
+        # because direct GitHub release links can fail while the API works.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: bash .github/scripts/prefetch_gradle.sh
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 

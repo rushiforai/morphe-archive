@@ -1,3 +1,23 @@
+# [1.9.25](https://github.com/quwi26/Quwis-Patches/compare/v1.9.24...v1.9.25) (2026-11-08)
+
+### Bug Fixes
+
+* **Lichess Puzzles:** the session now follows the puzzle screen through Next, and backing out to the hub right after Next ends it, so a later chess.com puzzle is never taken for a Lichess one. On 4.10.23 chess.com's own guest puzzles are cleared before the first Lichess batch, so the screen no longer starts with a chess.com puzzle and its rating
+* **Lichess Puzzles:** the Classic layout's rating box and graph show the Lichess rating and a local rating history on 4.10.23, and Reset rating clears that history too. The in-game settings dialog hides the rows that do nothing in a session: Collect Puzzle Points, Always Show Rating, Show Puzzle Goals, Difficulty and Show Chat Hints
+* **Accent color:** the Puzzles tab's path background keeps chess.com's green pair instead of following the accent with only half of its checkerboard
+
+# [1.9.24](https://github.com/quwi26/Quwis-Patches/compare/v1.9.23...v1.9.24) (2026-11-08)
+
+### Bug Fixes
+
+* **Customize bottom bar:** the Train tab now opens Train instead of Watch. chess.com sends that route to Watch for accounts outside its own experiment, so a tap keeps the route the tab was given. Bots and Train can also be moved above the tabs that are already on before they are switched on: the settings page keeps the order of every tab, not only of the ones already shown
+
+# [1.9.23](https://github.com/quwi26/Quwis-Patches/compare/v1.9.22...v1.9.23) (2026-11-08)
+
+### Features
+
+* **Clone Chess.com:** the clone installs as com.chess.quwi by default instead of com.chess.noam, so it no longer carries Noam's name. The last part of the package name is now a patch option, so the clone can be given a name of your own. The rest is unchanged: it still installs next to the real Chess.com app, and leaving the patch off keeps updating your current install
+
 # [1.9.22](https://github.com/quwi26/Quwis-Patches/compare/v1.9.21...v1.9.22) (2026-11-04)
 
 ### Bug Fixes

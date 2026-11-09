@@ -2,6 +2,8 @@ package com.anderson.applemusic.one.screen;
 
 import com.anderson.applemusic.one.media.MediaClient;
 
+import java.util.List;
+
 /**
  * What the screens are allowed to ask of {@code OneActivity}: browse subscriptions,
  * transport, overlays and status. Keeps the screens independent from the activity's
@@ -9,7 +11,30 @@ import com.anderson.applemusic.one.media.MediaClient;
  */
 public interface ScreenHost {
 
+    /** One library section already loaded from the browse tree (Biblioteca or its cache). */
+    final class LibrarySection {
+        public final String title;
+        public final List<MediaClient.Item> items;
+
+        public LibrarySection(String title, List<MediaClient.Item> items) {
+            this.title = title;
+            this.items = items;
+        }
+    }
+
     void loadChildren(String parentId, ChildSink sink);
+
+    /**
+     * Library categories already loaded from the browse tree, for the local search scope;
+     * null when the Biblioteca never loaded in this process. Never touches the network.
+     */
+    List<LibrarySection> librarySections();
+
+    /** Leaves the search (when open) and selects the Biblioteca tab. */
+    void openLibrary();
+
+    /** Drops the cached children and re-subscribes, for an explicit refresh. */
+    void refreshChildren(String parentId, ChildSink sink);
 
     void forgetChildren(ChildSink sink);
 
@@ -40,6 +65,16 @@ public interface ScreenHost {
 
     void openAccount();
 
+    /** Opens the engine's official account/subscription screen. */
+    void openAccountSummary();
+
+    /** Whether the engine's own settings screen can be reached: the navigation helper class
+     * and the {@code action_settings} destination both exist in this engine build. */
+    boolean engineSettingsAvailable();
+
+    /** Opens the engine's settings screen inside its {@code MainActivity}. */
+    void openEngineSettings();
+
     void openUpdates();
 
     void openPlayer();
@@ -65,6 +100,9 @@ public interface ScreenHost {
     void closeDetail();
 
     void sessionActions();
+
+    /** Sends one session custom action and returns its user-facing confirmation. */
+    String sessionAction(String actionId);
 
     void itemActions(MediaClient.Item item);
 

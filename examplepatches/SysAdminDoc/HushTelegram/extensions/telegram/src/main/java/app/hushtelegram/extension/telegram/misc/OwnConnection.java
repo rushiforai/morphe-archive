@@ -179,12 +179,12 @@ public final class OwnConnection {
     private static void applyInTelegram() {
         new Handler(Looper.getMainLooper()).post(() -> {
             try {
-                Class.forName("org.telegram.messenger.ApplicationLoader").getMethod("startPushService").invoke(null);
-                int account = Class.forName("org.telegram.messenger.UserConfig").getField("selectedAccount").getInt(null);
+                HostNames.method(Class.forName("org.telegram.messenger.ApplicationLoader"), "startPushService").invoke(null);
+                int account = HostNames.field(Class.forName("org.telegram.messenger.UserConfig"), "selectedAccount").getInt(null);
                 Class<?> connections = Class.forName("org.telegram.tgnet.ConnectionsManager");
-                Object manager = connections.getMethod("getInstance", int.class).invoke(null, account);
-                boolean enabled = (Boolean) connections.getMethod("isPushConnectionEnabled").invoke(manager);
-                connections.getMethod("setPushConnectionEnabled", boolean.class).invoke(manager, enabled);
+                Object manager = HostNames.method(connections, "getInstance", int.class).invoke(null, account);
+                boolean enabled = (Boolean) HostNames.method(connections, "isPushConnectionEnabled").invoke(manager);
+                HostNames.method(connections, "setPushConnectionEnabled", boolean.class).invoke(manager, enabled);
             } catch (Throwable failure) {
                 HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "own connection waits for the next start");
                 Logger.printException(() -> "Couldn't apply Telegram's own connection now", failure);

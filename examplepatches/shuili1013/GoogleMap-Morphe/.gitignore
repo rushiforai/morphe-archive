@@ -5,3 +5,4 @@ tools/
 .gradle/
 **/build/
 __pycache__/
+local.properties

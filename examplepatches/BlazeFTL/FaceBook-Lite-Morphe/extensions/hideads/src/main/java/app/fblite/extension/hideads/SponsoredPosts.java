@@ -12,8 +12,8 @@ import java.util.Set;
  * Hides sponsored posts in the news feed.
  *
  * The feed is the container with component id 30001. A post is not one child but a run of children
- * (separator, header, text, media, actions) sharing the same group id (X.0gp.A0v). A sponsored post's
- * header is tappable (A2X, A2k) and has the references in X.0gs.A0M, which organic headers lack; this
+ * (separator, header, text, media, actions) sharing the same group id (X.0hd.A0w). A sponsored post's
+ * header is tappable (A2Z, A2m) and has the references in X.0hg.A0M, which organic headers lack; this
  * holds whatever the language of the "Sponsored" label.
  *
  * Children are never removed, because the server updates the feed by child index. They are marked
@@ -22,7 +22,7 @@ import java.util.Set;
  *
  * Sponsored reels are handled by {@link ReelAds}, called from here for every decoded component.
  *
- * Field names are for Facebook Lite 530.0.0.8.106.
+ * Field names are for Facebook Lite 536.0.0.11.107.
  */
 public final class SponsoredPosts {
     private static final int FEED_CONTAINER_ID = 30001;
@@ -92,16 +92,16 @@ public final class SponsoredPosts {
 
     private static void resolve() throws Exception {
         ClassLoader app = SponsoredPosts.class.getClassLoader();
-        Class<?> component = Class.forName("X.0gp", false, app);
-        Class<?> container = Class.forName("X.0gs", false, app);
-        id = component.getDeclaredField("A1b");
-        group = component.getDeclaredField("A0v");
-        height = component.getDeclaredField("A0i");
-        hidden = component.getDeclaredField("A2c");
-        parent = component.getDeclaredField("A18");
-        tappable = component.getDeclaredField("A2X");
-        tappableFlag = component.getDeclaredField("A2k");
+        Class<?> component = Class.forName("X.0hd", false, app);
+        Class<?> container = Class.forName("X.0hg", false, app);
+        id = component.getDeclaredField("A1c");
+        group = component.getDeclaredField("A0w");
+        height = component.getDeclaredField("A0j");
+        hidden = component.getDeclaredField("A2e");
+        parent = component.getDeclaredField("A19");
+        tappable = component.getDeclaredField("A2Z");
+        tappableFlag = component.getDeclaredField("A2m");
         references = container.getDeclaredField("A0M");
-        children = Class.forName("X.0gn", false, app).getMethod("AF0");
+        children = Class.forName("X.0hc", false, app).getMethod("ADt");
     }
 }

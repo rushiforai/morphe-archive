@@ -5,18 +5,19 @@ import software.santodan.nuvio.NuvioNative
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
+import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
 private const val ORIGINAL_PACKAGE = NuvioNative.PACKAGE_NAME
-private const val CLONED_PACKAGE = "com.nuvio.santodan"
+private const val CLONED_PACKAGE = "com.nuviotv.santodan"
 private const val CLONED_LABEL = "NuvioTV Patched"
 
 /** Gives the patched APK an install identity that does not collide with official NuvioTV. */
 @Suppress("unused")
 val nuvioSideBySideInstallationPatch = resourcePatch(
     name = "NuvioTV - Side-by-side installation",
-    description = "Installs a separately named NuvioTV clone using a configurable package name and app name.",
+    description = "Installs a separately named NuvioTV clone and adds export/import of all Santodan patch settings.",
     default = true,
 ) {
     compatibleWith(NuvioSideBySideCompatibility.create())
@@ -36,8 +37,15 @@ val nuvioSideBySideInstallationPatch = resourcePatch(
         required = true,
     ) { value -> value != null && value == value.trim() && value.isNotEmpty() && value.length <= 80 }
 
+    dependsOn(NuvioSettingsMenuPatch.getMenuPatch())
     dependsOn(bytecodePatch(default = false) {
         execute {
+            for (reference in listOf(NuvioNative.REF_SETTINGS_ROWS_A, NuvioNative.REF_SETTINGS_ROWS_D,
+                NuvioNative.REF_SETTINGS_ROWS_E, NuvioNative.REF_LIBRARY_CONTENT_Z,
+                NuvioNative.REF_COMPOSABLE_LAMBDA_INIT, NuvioNative.REF_COMPOSER_D0, NuvioNative.REF_COMPOSER_P)) {
+                NuvioIntroDbPatch.require(MutableClass(classDefBy(reference.substringBefore("->"))), reference)
+            }
+            NuvioSettingsRestart.install(mutableClassDefBy(NuvioNative.APPLICATION_TYPE))
             NuvioUpdateInstaller.renameProviders(
                 mutableClassDefBy(NuvioUpdateInstaller.INSTALL_ACTION),
                 mutableClassDefBy(NuvioUpdateInstaller.RECEIVER),
@@ -80,6 +88,18 @@ internal fun transformNuvioManifest(
     renameNuvioProviderAuthorities(document, clonedPackage)
     manifest.setAttribute("package", clonedPackage)
     (applications.item(0) as Element).setAttribute("android:label", clonedLabel)
+    val transfer = document.createElement("activity")
+    transfer.setAttribute("android:name", "software.santodan.extension.nuviomenu.SettingsTransferActivity")
+    transfer.setAttribute("android:exported", "false")
+    transfer.setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
+    (applications.item(0) as Element).appendChild(transfer)
+    val restart = document.createElement("activity")
+    restart.setAttribute("android:name", "software.santodan.extension.nuviomenu.SettingsRestartActivity")
+    restart.setAttribute("android:exported", "false")
+    restart.setAttribute("android:process", ":santodan_restart")
+    restart.setAttribute("android:excludeFromRecents", "true")
+    restart.setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
+    (applications.item(0) as Element).appendChild(restart)
 
     // Nuvio declares a label on each selectable launcher activity, so changing only the
     // application label does not change the name shown by Android launchers.

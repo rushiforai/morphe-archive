@@ -25,13 +25,13 @@ public final class SelectionCheckFixtureTest {
     }
 
     /** The initializer against itself has nothing changed, and one extra instruction is refused. */
-    private static void exercise(Method source) {
-        if (SelectionCheck.buildVarsChanges(source, source, false, 0, "") != 0) throw new AssertionError("BUILD_VARS_FALSE_CHANGE");
+    private static void exercise(Method source, SelectionCheck.Names names) {
+        if (SelectionCheck.buildVarsChanges(source, source, false, 0, "", names) != 0) throw new AssertionError("BUILD_VARS_FALSE_CHANGE");
         checks++;
         var body = new MutableMethodImplementation(source.getImplementation());
         body.addInstruction(0, new BuilderInstruction10x(Opcode.NOP));
         try {
-            SelectionCheck.buildVarsChanges(source, copy(source, body), false, 0, "");
+            SelectionCheck.buildVarsChanges(source, copy(source, body), false, 0, "", names);
             throw new AssertionError("BUILD_VARS_FALSE_ACCEPT");
         } catch (IllegalStateException refusal) { checks++; }
     }
@@ -56,14 +56,16 @@ public final class SelectionCheckFixtureTest {
         if (args.length == 0) throw new AssertionError("FIXTURES_REQUIRED");
         for (String path : args) {
             Map<String, ClassDef> classes = SelectionCheck.classes(DexFileFactory.loadDexContainer(new File(path), Opcodes.getDefault()));
-            ClassDef buildVars = classes.get("Lorg/telegram/messenger/BuildVars;");
+            // 13.2 renames BuildVars, so the fixture's own name table finds it.
+            var names = SelectionCheck.Names.of(new File(path));
+            ClassDef buildVars = classes.get(names.type(SelectionCheck.BUILD_VARS));
             if (buildVars == null) throw new AssertionError("BUILD_VARS_MISSING");
             Method initializer = null;
             for (Method method : buildVars.getMethods()) {
                 if (method.getName().equals("<clinit>")) initializer = method;
             }
             if (initializer == null) throw new AssertionError("BUILD_VARS_INITIALIZER_MISSING");
-            exercise(initializer);
+            exercise(initializer, names);
             launcherIcon(new File(path));
         }
         System.out.println("FIXTURE_CHECKS_PASSED checks=" + checks);

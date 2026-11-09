@@ -20,7 +20,7 @@ private object MusicContentViewCreated : Fingerprint(
 @Suppress("unused")
 val liquidGlassBottomBarPatch = bytecodePatch(
     name = "Liquid Glass bottom bar",
-    description = "Adds a live refractive glass background and animated selection lens to Apple Music's bottom tabs. Refraction requires Android 13 or newer.",
+    description = "Adds live refractive glass to Apple Music's mini-player and bottom tabs, with whole-bar touch feedback, drag parallax and an animated selection lens. Refraction requires Android 13 or newer.",
 ) {
     compatibleWith(
         Compatibility(

@@ -12,9 +12,8 @@ object AudioEditorCompatibility {
         appIconColor = 0x070437,
         targets = listOf(
             // App version confirmed 100% working.
-            AppTarget(
-                version = "2.01.64.0916"
-            )
+            AppTarget(version = "2.01.64.0916"),
+            AppTarget(version = "2.01.65.1014"),
         )
     )
 }

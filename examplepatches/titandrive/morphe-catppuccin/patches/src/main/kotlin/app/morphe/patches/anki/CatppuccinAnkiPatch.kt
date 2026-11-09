@@ -7,6 +7,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -129,14 +132,33 @@ val catppuccinAnkiPatch = bytecodePatch(
         val pageClient = classDefBy { klass -> klass.methods.any { method -> method.implementation?.instructions?.any { instruction ->
             (instruction as? ReferenceInstruction)?.reference?.toString() == "backend/sveltekit/index.html"
         } == true } }
-        val intercept = mutableClassDefBy(pageClient).methods.single { it.name == "shouldInterceptRequest" && it.parameterTypes == listOf("Landroid/webkit/WebView;", "Landroid/webkit/WebResourceRequest;") }
-        require(intercept.implementation!!.registerCount - 3 >= 2) { "Page client scratch registers changed" }
-        intercept.implementation!!.instructions.mapIndexedNotNull { index, instruction ->
-            if(instruction.opcode == com.android.tools.smali.dexlib2.Opcode.RETURN_OBJECT) index to (instruction as com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction).registerA else null
-        }.reversed().forEach { (index, register) ->
-            intercept.replaceInstruction(index, "return-object v0")
-            intercept.addInstructions(index, "move-object/from16 v0, v$register\nmove-object/from16 v1, p1\ninvoke-static {v1, v0}, $EXT->response(Landroid/webkit/WebView;Landroid/webkit/WebResourceResponse;)Landroid/webkit/WebResourceResponse;\nmove-result-object v0")
+        val client = mutableClassDefBy(pageClient)
+        val intercept = client.virtualMethods.single {
+            it.name == "shouldInterceptRequest" &&
+                it.parameterTypes == listOf("Landroid/webkit/WebView;", "Landroid/webkit/WebResourceRequest;")
         }
+        // R8 reuses the native WebView parameter register before returning.
+        // Keep the original arguments in a separate frame while the native method runs.
+        val originalName = "catppuccinInterceptRequest"
+        val wrapper = ImmutableMethod(
+            client.type, intercept.name, intercept.parameters, intercept.returnType,
+            intercept.accessFlags, intercept.annotations, intercept.hiddenApiRestrictions,
+            MutableMethodImplementation(4),
+        ).toMutable()
+        wrapper.addInstructions(0, """
+            invoke-virtual {p0, p1, p2}, ${client.type}->$originalName(Landroid/webkit/WebView;Landroid/webkit/WebResourceRequest;)Landroid/webkit/WebResourceResponse;
+            move-result-object v0
+            invoke-static {p1, v0}, $EXT->response(Landroid/webkit/WebView;Landroid/webkit/WebResourceResponse;)Landroid/webkit/WebResourceResponse;
+            move-result-object v0
+            return-object v0
+        """.trimIndent())
+        check(client.virtualMethods.remove(intercept))
+        check(client.methods.remove(intercept))
+        intercept.setName(originalName)
+        client.virtualMethods.add(intercept)
+        client.virtualMethods.add(wrapper)
+        client.methods.add(intercept)
+        client.methods.add(wrapper)
         var webCalls=0
         var fontCalls=0
         val classes = mutableListOf<ClassDef>()

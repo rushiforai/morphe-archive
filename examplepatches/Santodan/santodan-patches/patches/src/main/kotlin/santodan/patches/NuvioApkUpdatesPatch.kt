@@ -31,7 +31,7 @@ val nuvioApkUpdatesPatch = bytecodePatch(
             mutableClassDefBy("Llb/q;"), mutableClassDefBy("Llb/b;"),
             mutableClassDefBy(NuvioUpdateInstaller.INSTALLER),
             mutableClassDefBy(NuvioUpdateFlowPatch.INSTALL_UI),
-            mutableClassDefBy("Landroidx/core/content/FileProvider;"), mutableClassDefBy("Lb4/a;"),
+            mutableClassDefBy("Landroidx/core/content/FileProvider;"), mutableClassDefBy("La4/b;"),
             mutableClassDefBy("Lmb/a;"),
         )
     }

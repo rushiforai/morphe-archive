@@ -23,7 +23,7 @@ import app.fblite.extension.settings.MorpheSettings;
  * video in a native com.facebook.lite.widget.video.FbVideoView inside MainActivity, so while
  * MainActivity is in front its window is scanned twice a second for those views.
  *
- * Obfuscated member names are for Facebook Lite 530.0.0.8.106. Any reflection error turns the
+ * Obfuscated member names are for Facebook Lite 536.0.0.11.107. Any reflection error turns the
  * feature off, the app keeps working.
  */
 public final class VideoFeatures {

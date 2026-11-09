@@ -33,7 +33,7 @@ class PatchCategoriesTest {
     )
 
     /**
-     * With every patch but three in the default selection, Expert mode is where a reader goes to
+     * With every patch but five in the default selection, Expert mode is where a reader goes to
      * look one up, so no group runs past what fits on a phone screen. Hushfacebook's Interface once
      * held 42, and finding one patch there meant reading all of them.
      */

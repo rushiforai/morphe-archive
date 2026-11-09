@@ -11,6 +11,11 @@ public partial record PostMenuEntry
 {
     public partial record BlockUser;
 
+    public partial record Copy;
+
+    /// <summary>Offered right after "Copy"; "Select text" adds it.</summary>
+    public partial record SelectText;
+
     /// <summary>Offered after "Block User"; "Remove awards" removes it.</summary>
     public partial record GiveAward;
 
@@ -24,12 +29,21 @@ public partial record PostMenuEntry
 /// <summary>What the app shows for each <see cref="PostMenuEntry"/>: the only place those strings live.</summary>
 public static class PostMenuEntryShowing
 {
-    private static readonly PostMenuEntry[] Listed = [new PostMenuEntry.BlockUser(), new PostMenuEntry.GiveAward(), new PostMenuEntry.ViewAwardDetails()];
+    private static readonly PostMenuEntry[] Listed =
+    [
+        new PostMenuEntry.BlockUser(),
+        new PostMenuEntry.Copy(),
+        new PostMenuEntry.SelectText(),
+        new PostMenuEntry.GiveAward(),
+        new PostMenuEntry.ViewAwardDetails(),
+    ];
 
     /// <summary>What the app shows for <paramref name="value"/>.</summary>
     public static string ToShownText(this PostMenuEntry value) =>
         value.Match(
             blockUser => "Block User",
+            copy => "Copy",
+            selectText => "Select text",
             giveAward => "Give Award",
             viewAwardDetails => "View Award Details",
             unlisted => unlisted.Shown);

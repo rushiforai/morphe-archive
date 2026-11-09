@@ -42,6 +42,10 @@ public final class LichessPuzzles {
     private static final String TARGET = "lichess_puzzle_target";
     private static final String SOLVED = "lichess_puzzle_solved";
     private static final String FAILED = "lichess_puzzle_failed";
+    private static final String HISTORY = "lichess_puzzle_history";
+    private static final int HISTORY_LIMIT = 20;
+    /** The settings row type; its enum constants say which row it is. */
+    private static final String SETTING_TYPE = "com.chess.features.puzzles.rated.api.PuzzleSettingType";
     /** Lichess shows a rating as provisional (with a ?) while its deviation is above this. */
     private static final double PROVISIONAL = 110;
 
@@ -58,8 +62,17 @@ public final class LichessPuzzles {
     private static volatile Object sessionActivity;
     private static volatile Object sessionTarget;
     private static final java.util.List<Runnable> countWaiters = new java.util.ArrayList<>();
-    /** The Lichess puzzle screen is the activity in front. */
+    /** The Lichess puzzle screen is the activity in front. Read from other threads. */
     private static volatile boolean puzzleVisible;
+    /**
+     * The puzzle screen instance that put a puzzle in front, once Android has created it. Only the
+     * main-thread lifecycle callbacks below touch it. Null between {@link #beginSession()} and the
+     * screen's creation; the instance matters so a replaced screen's teardown cannot undo its
+     * replacement.
+     */
+    private static WeakReference<Activity> visiblePuzzle = new WeakReference<>(null);
+    /** A hub return waiting for the Next hand-off window to close; main thread only. */
+    private static Runnable pendingHubEnd;
     private static boolean watching;
     private static final String PUZZLE_SCREEN = "com.chess.features.puzzles.rated.RatedPuzzlesGameActivity";
     private static final String HOME_SCREEN = "com.chess.home.HomeActivity";
@@ -145,9 +158,11 @@ public final class LichessPuzzles {
 
     /** Enters the session only once the puzzle screen is actually opening. */
     private static void beginSession() {
+        // A pending hub return belongs to the session this one replaces.
+        cancelHubEnd();
         active = true;
         freshQueue = true;
-        puzzleVisible = true;
+        preparePuzzle();
         unfreezeAt = Long.MAX_VALUE;
         watchScreen();
     }
@@ -276,7 +291,10 @@ public final class LichessPuzzles {
 
     /** Ends the session before the hub resumes, not after the Lichess screen is destroyed. */
     private static void endSessionIfFinishing(Activity activity) {
-        if (isPuzzle(activity) && activity.isFinishing() && SystemClock.uptimeMillis() > keepAliveUntil) active = false;
+        if (isPuzzle(activity) && activity.isFinishing() && isVisiblePuzzle(activity)
+            && SystemClock.uptimeMillis() > keepAliveUntil) {
+            active = false;
+        }
     }
 
     private static boolean isPuzzle(Activity activity) {
@@ -287,9 +305,66 @@ public final class LichessPuzzles {
         return activity.getClass().getName().equals(HOME_SCREEN);
     }
 
+    private static boolean isVisiblePuzzle(Activity activity) {
+        return visiblePuzzle.get() == activity;
+    }
+
+    /**
+     * The session is active before its screen exists: mark a puzzle as on its way without an
+     * instance (the screen shows itself from {@code onActivityCreated}). Keeping the reference
+     * null until then means a stale instance can never be mistaken for the front one.
+     */
+    private static void preparePuzzle() {
+        visiblePuzzle = new WeakReference<>(null);
+        puzzleVisible = true;
+    }
+
+    private static void showPuzzle(Activity activity) {
+        visiblePuzzle = new WeakReference<>(activity);
+        puzzleVisible = true;
+    }
+
+    /** Hides the puzzle screen, unless its replacement is already the one in front. */
+    private static void hidePuzzle(Activity activity) {
+        if (!isVisiblePuzzle(activity)) return;
+        visiblePuzzle = new WeakReference<>(null);
+        puzzleVisible = false;
+    }
+
+    /** Ends a session that came back to the hub; used once the Next hand-off window has closed. */
+    private static void endSessionAtHub() {
+        pendingHubEnd = null;
+        Activity resumed = Utils.resumedActivity();
+        if (active && !puzzleVisible && resumed != null && isHub(resumed)
+            && SystemClock.uptimeMillis() >= keepAliveUntil) {
+            active = false;
+            Utils.log("Lichess session: ended at the hub");
+        }
+    }
+
+    /**
+     * The hub can resume inside the Next window while the replacement is still opening, so wait for
+     * the window to close before deciding. Without this, backing out just after Next would leave
+     * the session active for good, and later chess.com puzzle screens would be treated as Lichess.
+     */
+    private static void endSessionAtHubLater() {
+        cancelHubEnd();
+        pendingHubEnd = LichessPuzzles::endSessionAtHub;
+        MAIN.postDelayed(pendingHubEnd, Math.max(0, keepAliveUntil - SystemClock.uptimeMillis()));
+    }
+
+    private static void cancelHubEnd() {
+        if (pendingHubEnd == null) return;
+        MAIN.removeCallbacks(pendingHubEnd);
+        pendingHubEnd = null;
+    }
+
     private static void onPuzzlePaused(Activity activity) {
-        if (isPuzzle(activity) && !activity.isChangingConfigurations()) puzzleVisible = false;
+        if (!isPuzzle(activity)) return;
+        // Before the puzzle is hidden: whether it was the visible one decides if this ends the
+        // session. Next has already raised the keep-alive window, so its hand-off is exempt.
         endSessionIfFinishing(activity);
+        if (!activity.isChangingConfigurations()) hidePuzzle(activity);
     }
 
     /** Watches the Lichess screen's lifecycle. */
@@ -309,31 +384,47 @@ public final class LichessPuzzles {
 
             @Override
             public void onActivityDestroyed(Activity activity) {
-                if (isPuzzle(activity) && !activity.isChangingConfigurations()) {
-                    puzzleVisible = false;
+                if (!isPuzzle(activity) || activity.isChangingConfigurations()) return;
+                // Next starts the replacement before the old screen is destroyed: it has already
+                // shown itself, and this instance's teardown must not hide it (or end the session).
+                if (isVisiblePuzzle(activity)) {
+                    // A normal finish is already handled at pause; this covers a screen that was
+                    // created and torn down without being paused (an abandoned launch).
+                    hidePuzzle(activity);
                     if (SystemClock.uptimeMillis() > keepAliveUntil) active = false;
                 }
             }
 
             @Override
             public void onActivityCreated(Activity activity, Bundle state) {
-                if (isPuzzle(activity)) puzzleVisible = true;
+                if (isPuzzle(activity)) showPuzzle(activity);
             }
 
             @Override
             public void onActivityStarted(Activity activity) {
-                if (isPuzzle(activity)) puzzleVisible = true;
+                if (isPuzzle(activity)) showPuzzle(activity);
             }
 
             @Override
             public void onActivityResumed(Activity activity) {
-                puzzleVisible = isPuzzle(activity);
+                if (isPuzzle(activity)) {
+                    showPuzzle(activity);
+                } else {
+                    // Another screen is in front, so no puzzle screen is.
+                    visiblePuzzle = new WeakReference<>(null);
+                    puzzleVisible = false;
+                }
                 if (isHub(activity)) {
                     // Back at the hub means the session is over, so a chess.com puzzle started from
-                    // here never sees it. The window keeps the Next hand-off from ending it.
-                    if (active && SystemClock.uptimeMillis() > keepAliveUntil) {
-                        active = false;
-                        Utils.log("Lichess session: ended at the hub");
+                    // here never sees it. Inside the Next window the hub may resume before the
+                    // replacement exists, so wait for the window instead of ending the hand-off.
+                    if (active) {
+                        if (SystemClock.uptimeMillis() > keepAliveUntil) {
+                            active = false;
+                            Utils.log("Lichess session: ended at the hub");
+                        } else {
+                            endSessionAtHubLater();
+                        }
                     }
                     // The hub is back: hold the frozen state for its first refresh.
                     if (freezeActive && unfreezeAt == Long.MAX_VALUE) {
@@ -421,11 +512,15 @@ public final class LichessPuzzles {
 
     /**
      * Empties the guest queue once a session starts, so chess.com's own signed-out guest puzzles
-     * (older and served first) cannot be played in a Lichess session. 4.10.23's delete lives in a
-     * coroutine the patch cannot name, so this is a no-op there.
+     * (older and served first) cannot be played in a Lichess session. 4.10.18 has a DAO delete the
+     * patch can name; 4.10.23 runs it in a coroutine, so there the same table is cleared through
+     * Room's writable database instead. Runs on the seeding thread, before the Lichess rows are
+     * inserted, and only once per session (the caller tracks that).
      */
     private static boolean clearGuestQueue(Object repository, PuzzleStore store) {
-        if (puzzleDbField().isEmpty() || puzzleDbClear().isEmpty()) return true;
+        if (puzzleDbField().isEmpty() || puzzleDbClear().isEmpty()) {
+            return clearGuestQueueBySql(repository, store);
+        }
         try {
             Class<?> sourceClass = Class.forName("com.chess.features.puzzles.db.model.ProblemSource");
             Field field = repository.getClass().getDeclaredField(puzzleDbField());
@@ -439,6 +534,93 @@ public final class LichessPuzzles {
             Utils.logError("Guest puzzles not cleared", throwable);
             return false;
         }
+    }
+
+    /**
+     * 4.10.23's delete lives behind a suspend DAO call; clearing the same table through Room's
+     * writable database is what the DAO would do. The Room members are found by shape: the build
+     * renames the open-helper method, execSQL and the source value. Room's invalidation tracker
+     * does not see this statement, but the seed insert that follows goes through the DAO and does
+     * refresh the puzzle queries.
+     */
+    private static boolean clearGuestQueueBySql(Object repository, PuzzleStore store) {
+        try {
+            Field daoField = repository.getClass().getDeclaredField(daoField());
+            daoField.setAccessible(true);
+            Object dao = daoField.get(repository);
+            Object helper = openHelperOf(roomDatabaseOf(dao));
+            Object writable = helper.getClass().getMethod("getWritableDatabase").invoke(helper);
+            Class<?> sourceClass = Class.forName("com.chess.features.puzzles.db.model.ProblemSource");
+            int source = sourceValue(sourceClass, enumValue(sourceClass, "RATED_GUEST"));
+            execSql(writable, "DELETE FROM tactics_problem WHERE source = " + source);
+            store.ungive();
+            Utils.log("Lichess puzzles: cleared chess.com guest puzzles (source=" + source + ")");
+            return true;
+        } catch (Throwable throwable) {
+            Utils.logError("Lichess guest queue not cleared", throwable);
+            return false;
+        }
+    }
+
+    /** The RoomDatabase a generated DAO holds: the field whose type hands out the open helper. */
+    private static Object roomDatabaseOf(Object dao) throws Exception {
+        for (Class<?> type = dao.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) || openHelperIn(field.getType()) == null) continue;
+                field.setAccessible(true);
+                Object database = field.get(dao);
+                if (database != null) return database;
+            }
+        }
+        throw new IllegalStateException("Room database not found");
+    }
+
+    /** The no-argument method on a RoomDatabase that returns its open helper, whatever its name. */
+    private static Method openHelperIn(Class<?> database) {
+        for (Method method : database.getMethods()) {
+            if (Modifier.isStatic(method.getModifiers()) || method.getParameterTypes().length != 0) continue;
+            if (hasWritableDatabase(method.getReturnType())) return method;
+        }
+        return null;
+    }
+
+    private static boolean hasWritableDatabase(Class<?> type) {
+        try {
+            type.getMethod("getWritableDatabase");
+            return true;
+        } catch (NoSuchMethodException missing) {
+            return false;
+        }
+    }
+
+    private static Object openHelperOf(Object database) throws Exception {
+        Method openHelper = openHelperIn(database.getClass());
+        if (openHelper == null) throw new IllegalStateException("Room open helper not found");
+        return openHelper.invoke(database);
+    }
+
+    /** The int a ProblemSource is stored as: the enum's own value, not its ordinal. */
+    private static int sourceValue(Class<?> sourceClass, Object source) throws Exception {
+        for (Method method : sourceClass.getDeclaredMethods()) {
+            if (Modifier.isStatic(method.getModifiers()) || method.getParameterTypes().length != 0
+                || method.getReturnType() != int.class) continue;
+            method.setAccessible(true);
+            return ((Number) method.invoke(source)).intValue();
+        }
+        throw new IllegalStateException("The puzzle source value was not found");
+    }
+
+    /** Runs one statement: the build renames execSQL, so the one String statement is used. */
+    private static void execSql(Object writable, String sql) throws Exception {
+        java.util.Set<String> names = new java.util.LinkedHashSet<>();
+        for (Method method : writable.getClass().getMethods()) {
+            Class<?>[] parameters = method.getParameterTypes();
+            if (parameters.length == 1 && parameters[0] == String.class && method.getReturnType() == void.class) {
+                names.add(method.getName());
+            }
+        }
+        if (names.size() != 1) throw new IllegalStateException("SQLite execSQL ambiguous: " + names);
+        writable.getClass().getMethod(names.iterator().next(), String.class).invoke(writable, sql);
     }
 
     /** Seeds the guest store from the puzzle view model, which holds the repository. */
@@ -482,6 +664,8 @@ public final class LichessPuzzles {
 
             Glicko before = glicko();
             Glicko after = before.after(puzzleRating > 0 ? puzzleRating : before.rating, correct ? 1 : 0);
+            record(before.rating);
+            record(after.rating);
             save(after);
             count(correct ? SOLVED : FAILED);
             store.solved(number);
@@ -585,9 +769,105 @@ public final class LichessPuzzles {
         }
     }
 
-    /** The Lichess rating as a long while a session runs; the app's value otherwise. */
-    public static long currentRating(long original) {
+    /** The Lichess rating as the app's current rating while a session runs. */
+    public static int currentRating(int original) {
         return session() ? rating() : original;
+    }
+
+    /**
+     * The puzzle screen's rating summary. Guest mode's stats flow emits null, which leaves the
+     * Classic layout without a rating box even when the path stats were filled; a session supplies
+     * an empty summary, and its constructor patch gives it the Lichess rating.
+     */
+    public static Object ratingStats(Object original) {
+        if (original != null || !session()) return original;
+        try {
+            return Class.forName("com.chess.features.puzzles.db.model.o").getConstructor().newInstance();
+        } catch (Throwable throwable) {
+            Utils.logError("Lichess rating summary", throwable);
+            return original;
+        }
+    }
+
+    /** The live Lichess rating for the Classic rating box. */
+    public static int displayRating(int original) {
+        return session() ? rating() : original;
+    }
+
+    /**
+     * The graph's first point. The model draws its primary point first and the list after it, so
+     * the primary must be the oldest rating to keep the line chronological.
+     */
+    public static Object liveRatingPoint(Object point) {
+        if (!session() || point == null) return point;
+        try {
+            int[] values = ratingHistoryValues();
+            int rating = values.length > 0 ? values[0]
+                : displayRating(((Number) fieldValue(point, "a")).intValue());
+            Object selected = fieldValue(point, "b");
+            return point.getClass().getConstructor(int.class, Boolean.class).newInstance(rating, selected);
+        } catch (Throwable throwable) {
+            Utils.logError("Lichess rating point", throwable);
+            return point;
+        }
+    }
+
+    /** The graph's points after the oldest one, ending with the current Lichess rating. */
+    public static java.util.List<?> ratingHistory(java.util.List<?> original) {
+        if (!session()) return original;
+        int[] values = ratingHistoryValues();
+        java.util.List<Object> points = new java.util.ArrayList<>();
+        try {
+            Constructor<?> constructor = Class.forName("com.chess.features.puzzles.rated.ui.m")
+                .getConstructor(int.class, Boolean.class);
+            for (int i = 1; i < values.length; i++) {
+                points.add(constructor.newInstance(values[i], null));
+            }
+        } catch (Throwable throwable) {
+            Utils.logError("Lichess rating history", throwable);
+            return original;
+        }
+        return points;
+    }
+
+    /**
+     * The puzzle screen's settings list without what does nothing in a Lichess session: rating
+     * visibility, points, goals and chat hints belong to chess.com's Path/coach data, and
+     * difficulty is bypassed by the extension's own puzzle-rating target. Mistake feedback, voice
+     * and the timer are local and keep working.
+     */
+    public static java.util.List<?> withoutUnusedSettings(java.util.List<?> items) {
+        if (items == null || !onPuzzleScreen()) return items;
+        java.util.List<Object> kept = new java.util.ArrayList<>(items.size());
+        for (Object item : items) {
+            if (!isUnusedSetting(item)) kept.add(item);
+        }
+        return kept;
+    }
+
+    /** True for a settings row that does nothing in a Lichess session. */
+    private static boolean isUnusedSetting(Object item) {
+        if (item == null) return false;
+        for (Class<?> type = item.getClass(); type != null && type != Object.class; type = type.getSuperclass()) {
+            for (Field field : type.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) continue;
+                Object setting;
+                try {
+                    field.setAccessible(true);
+                    setting = field.get(item);
+                } catch (Throwable unreadable) {
+                    continue;
+                }
+                if (!(setting instanceof Enum)) continue;
+                // The row's setting type is a PuzzleSettingType; its constant names the row.
+                if (!setting.getClass().getName().startsWith(SETTING_TYPE)) continue;
+                String name = ((Enum<?>) setting).name();
+                return "DIFFICULTY_MODE".equals(name) || "ALWAYS_SHOW_RATING".equals(name)
+                    || "PUZZLE_GOALS".equals(name) || "COLLECT_POINTS".equals(name)
+                    || "CHAT_HINTS".equals(name);
+            }
+        }
+        return false;
     }
 
     public static int rating() {
@@ -617,7 +897,8 @@ public final class LichessPuzzles {
     public static void resetRating() {
         SharedPreferences preferences = Features.preferences();
         if (preferences == null) return;
-        preferences.edit().remove(RATING).remove(DEVIATION).remove(VOLATILITY).remove(SOLVED).remove(FAILED).apply();
+        preferences.edit().remove(RATING).remove(DEVIATION).remove(VOLATILITY).remove(SOLVED).remove(FAILED)
+            .remove(HISTORY).apply();
     }
 
     /** The rating puzzles are chosen near: a chosen one, or 0 for the player's own. */
@@ -767,6 +1048,41 @@ public final class LichessPuzzles {
             .putFloat(VOLATILITY, (float) glicko.volatility).apply();
     }
 
+    /** Appends a rating to the small history the in-game graph draws. */
+    private static void record(double rating) {
+        SharedPreferences preferences = Features.preferences();
+        if (preferences == null) return;
+        int value = (int) Math.round(rating);
+        int[] existing = ratingHistoryValues();
+        if (existing.length > 0 && existing[existing.length - 1] == value) return;
+        StringBuilder joined = new StringBuilder();
+        int start = Math.max(0, existing.length - (HISTORY_LIMIT - 1));
+        for (int i = start; i < existing.length; i++) {
+            if (joined.length() > 0) joined.append(',');
+            joined.append(existing[i]);
+        }
+        if (joined.length() > 0) joined.append(',');
+        joined.append(value);
+        preferences.edit().putString(HISTORY, joined.toString()).apply();
+    }
+
+    private static int[] ratingHistoryValues() {
+        SharedPreferences preferences = Features.preferences();
+        if (preferences == null) return new int[0];
+        String raw = preferences.getString(HISTORY, "");
+        if (raw == null || raw.isEmpty()) return new int[0];
+        String[] parts = raw.split(",");
+        int[] values = new int[parts.length];
+        int count = 0;
+        for (String part : parts) {
+            try {
+                values[count++] = Integer.parseInt(part.trim());
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return java.util.Arrays.copyOf(values, count);
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Object enumValue(Class<?> type, String name) {
         return Enum.valueOf((Class) type, name);
@@ -792,5 +1108,19 @@ public final class LichessPuzzles {
             }
         }
         return null;
+    }
+
+    /** A field of one of the app's objects, however its build declares it. */
+    private static Object fieldValue(Object owner, String name) throws Exception {
+        for (Class<?> type = owner.getClass(); type != null; type = type.getSuperclass()) {
+            try {
+                Field field = type.getDeclaredField(name);
+                field.setAccessible(true);
+                return field.get(owner);
+            } catch (NoSuchFieldException missing) {
+                // Declared further up.
+            }
+        }
+        throw new NoSuchFieldException(name);
     }
 }

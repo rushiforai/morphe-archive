@@ -8,9 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -36,6 +36,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The holiday check's class, every class that reads its snow flag and the runtime are the whole context. */
 class HolidayLookFixtureTest {
@@ -75,7 +83,7 @@ class HolidayLookFixtureTest {
             assertTrue("$name: load reads the hat's id", (sites.load until sites.done).any { load[it].reference() == NEW_YEAR_HAT })
             assertEquals("$name: the exit returns the hat", Opcode.RETURN_OBJECT, load[sites.done + 1].opcode)
 
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "holidayLook" }.instructions()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "holidayLook" }.instructions()
             assertEquals("$name: build fact", 1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals("$name: title emoji build fact", 1, flag(context, "titleEmoji"))
         }
@@ -92,7 +100,7 @@ class HolidayLookFixtureTest {
             val readers = FixtureDex.methodsWhere(build, { true }) { method -> method.instructions().any {
                 it.opcode == Opcode.SGET_BOOLEAN && it.reference() == snow } }
             // The top bar starts its snow where it draws the hat; the chat background starts the same snow.
-            val bar = readers.single { it.name == "drawChild" }
+            val bar = readers.single { it.origName == "drawChild" }
             val effect = bar.instructions().first { it.opcode == Opcode.NEW_INSTANCE }.reference()
             assertEquals("$name: snow flag readers", 2, readers.size)
             assertTrue("$name: the bar draws the hat", bar.instructions().any { it.reference()?.endsWith("->${check.name}()$DRAWABLE") == true })
@@ -109,13 +117,13 @@ class HolidayLookFixtureTest {
             val name = build.name
             val check = FixtureDex.methodsWhere(build, { true }) { method -> method.instructions().any { it.reference() == NEW_YEAR_HAT } }.single()
             val asks = { method: Method -> method.instructions().any { it.reference()?.endsWith("->${check.name}()$DRAWABLE") == true } }
-            val bar = FixtureDex.methodsWhere(build, { true }) { method -> method.name == "drawChild" && asks(method) }.single().instructions()
+            val bar = FixtureDex.methodsWhere(build, { true }) { method -> method.origName == "drawChild" && asks(method) }.single().instructions()
             val ask = bar.indexOfFirst { it.reference()?.endsWith("->${check.name}()$DRAWABLE") == true }
             val draw = (ask until bar.size).first { bar[it].reference() == "Landroid/graphics/drawable/Drawable;->draw(Landroid/graphics/Canvas;)V" }
             assertTrue("$name: the hat draws only over a String title",
                 (ask until draw).any { bar[it].opcode == Opcode.INSTANCE_OF && bar[it].reference() == "Ljava/lang/String;" })
 
-            val screens = FixtureDex.methodsWhere(build, { true }) { method -> method.name == "createView" && method.instructions().any {
+            val screens = FixtureDex.methodsWhere(build, { true }) { method -> method.origName == "createView" && method.instructions().any {
                 it.reference()?.endsWith("->setSupportsHolidayImage(Z)V") == true } }
             assertEquals("$name: one screen wants the holiday image", 1, screens.size)
             val title = screens.single().instructions()
@@ -134,13 +142,13 @@ class HolidayLookFixtureTest {
             val stockBar = ImmutableMethod.of(logo.bar)
             val stockTitle = ImmutableMethod.of(logo.create)
             holidayLookPatch.execute(context)
-            val screen = owners(build).single { owner -> owner.methods.any { method -> method.name == "createView" &&
+            val screen = owners(build).single { owner -> owner.methods.any { method -> method.origName == "createView" &&
                 method.instructions().any { it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I" } } }
-            val create = context.mutableClassDefBy(screen.type).methods.single { it.name == "createView" }.instructions()
+            val create = context.tgMutableClassDefBy(screen.type).methods.single { it.origName == "createView" }.instructions()
             assertEquals("${build.name}: register exactly the chat list logo span", 1, create.count {
                 it.reference() == "$HOLIDAY_LOOK->registerLogoSpan(Landroid/text/style/ImageSpan;)V" })
-            val bar = sites.readers.single { it.name == "drawChild" }
-            val after = context.mutableClassDefBy(bar.definingClass).methods.single { it.name == "drawChild" }.instructions()
+            val bar = sites.readers.single { it.origName == "drawChild" }
+            val after = context.tgMutableClassDefBy(bar.definingClass).methods.single { it.origName == "drawChild" }.instructions()
             assertEquals("${build.name}: owned logo gate", 1, after.count {
                 it.reference() == "$HOLIDAY_LOOK->isLogoTitle(Ljava/lang/CharSequence;)Z" })
             assertEquals("${build.name}: separate drawing bridge", 1, after.count {
@@ -161,7 +169,7 @@ class HolidayLookFixtureTest {
                 create[emoji + 3].namedRegisters()[1])
             assertEquals("${build.name}: the title setter follows", stockTitle.instructions()[logo.emojiAt + 2].reference(),
                 create[emoji + 3].reference())
-            val bridge = context.mutableClassDefBy(HOLIDAY_LOOK).methods.single { it.name == "drawLogoHat" }.instructions()
+            val bridge = context.tgMutableClassDefBy(HOLIDAY_LOOK).methods.single { it.origName == "drawLogoHat" }.instructions()
             assertEquals("${build.name}: bounded getter bridge", 1, bridge.count {
                 it.reference() == "$HOLIDAY_LOOK->drawLogoHatAt(Landroid/graphics/Canvas;Ljava/lang/CharSequence;Landroid/graphics/drawable/Drawable;IIIIIII)V" })
             assertEquals("${build.name}: bridge never measures AppName", 0, bridge.count {
@@ -173,8 +181,8 @@ class HolidayLookFixtureTest {
     fun `changed logo String gate refuses before editing`() {
         for (build in Fixtures.declaredBuilds()) {
             val context = contextFor(build)
-            val bar = context.resolveHolidayLookSites().readers.single { it.name == "drawChild" }
-            val method = context.mutableClassDefBy(bar.definingClass).methods.single { it.name == "drawChild" }
+            val bar = context.resolveHolidayLookSites().readers.single { it.origName == "drawChild" }
+            val method = context.tgMutableClassDefBy(bar.definingClass).methods.single { it.origName == "drawChild" }
             val body = method.instructions()
             val gate = body.indices.single { body[it].opcode == Opcode.INSTANCE_OF && body[it].reference() == "Ljava/lang/String;" }
             val registers = body[gate].namedRegisters()
@@ -216,48 +224,55 @@ class HolidayLookFixtureTest {
                     val at = (logo.gate until logo.afterHat).first { logo.bar.instructions()[it].reference()?.endsWith("->setBounds(IIII)V") == true }
                     logo.bar.replaceInstruction(at, "invoke-virtual {v9, v10, v14, v11, v13}, Landroid/graphics/drawable/Drawable;->setBounds(IIII)V")
                 },
+                // 13.2 builds the span in the register the stock call names, so the swaps read it from there.
                 "logo constructor drawable" to { _, _, logo ->
+                    val init = logo.create.instructions()[logo.registerAt - 1].namedRegisters()
                     logo.create.replaceInstruction(logo.registerAt - 1,
-                        "invoke-direct {v5, v3}, Landroid/text/style/ImageSpan;-><init>(Landroid/graphics/drawable/Drawable;)V")
+                        "invoke-direct {v${init[0]}, v3}, Landroid/text/style/ImageSpan;-><init>(Landroid/graphics/drawable/Drawable;)V")
                 },
                 "logo alignment" to { _, _, logo ->
+                    val init = logo.create.instructions()[logo.registerAt - 1].namedRegisters()
                     logo.create.replaceInstruction(logo.registerAt - 1,
-                        "invoke-direct {v5, v9, v8}, Landroid/text/style/ImageSpan;-><init>(Landroid/graphics/drawable/Drawable;I)V")
+                        "invoke-direct {v${init[0]}, v${init[1]}, v11}, Landroid/text/style/ImageSpan;-><init>(Landroid/graphics/drawable/Drawable;I)V")
                 },
                 "logo span range" to { _, _, logo ->
                     val at = logo.create.instructions().indexOfFirst { it.reference()?.endsWith("->setSpan(Ljava/lang/Object;III)V") == true }
+                    val span = logo.create.instructions()[at].namedRegisters()
                     logo.create.replaceInstruction(at,
-                        "invoke-virtual {v3, v5, v11, v6, v6}, Landroid/text/SpannableStringBuilder;->setSpan(Ljava/lang/Object;III)V")
+                        "invoke-virtual {v3, v${span[1]}, v11, v${span[4]}, v${span[4]}}, Landroid/text/SpannableStringBuilder;->setSpan(Ljava/lang/Object;III)V")
                 },
                 "logo bounds start" to { _, _, logo -> logo.create.replaceInstruction(2, "const/4 v11, 0x1") },
                 "logo span flags" to { _, _, logo ->
+                    val flags = logo.create.instructions().first { it.reference()?.endsWith("->setSpan(Ljava/lang/Object;III)V") == true }
+                        .namedRegisters()[4]
                     val at = (0 until logo.registerAt).last { logo.create.instructions()[it].opcode.setsRegister() &&
-                        logo.create.instructions()[it].namedRegisters().firstOrNull() == 6 }
-                    logo.create.replaceInstruction(at, "const/16 v6, 0x22")
+                        logo.create.instructions()[it].namedRegisters().firstOrNull() == flags }
+                    logo.create.replaceInstruction(at, "const/16 v$flags, 0x22")
                 },
                 "main chat list guard" to { _, _, logo ->
-                    val at = logo.create.instructions().indexOfFirst { it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I" } - 58
+                    // 13.2 moved getResources() into a loader helper, so the guard sits 56 before the logo id, not 58.
+                    val at = logo.create.instructions().indexOfFirst { it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I" } - 56
                     val original = logo.create.getInstruction(at) as BuilderOffsetInstruction
                     logo.create.replaceInstruction(at, BuilderInstruction21t(Opcode.IF_NEZ, 3, original.target))
                 },
                 "second holiday owner" to { context, _, logo ->
-                    val owner = context.mutableClassDefBy(logo.create.definingClass)
+                    val owner = context.tgMutableClassDefBy(logo.create.definingClass)
                     owner.methods.add(MutableMethod(ImmutableMethod(logo.create.definingClass, "anotherHolidayOwner", logo.create.parameters,
                         logo.create.returnType, logo.create.accessFlags, null, null, logo.create.implementation)))
                 },
                 "private text getter" to { context, _, logo ->
                     val type = logo.bar.instructions().first { it.reference()?.endsWith("->getTextStartX()I") == true }
                         .reference()!!.substringBefore("->")
-                    val getter = context.mutableClassDefBy(type).methods.single { it.name == "getTextStartX" }
+                    val getter = context.tgMutableClassDefBy(type).methods.single { it.origName == "getTextStartX" }
                     getter.accessFlags = getter.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
                 },
                 "private theme offset" to { context, sites, _ ->
-                    val field = context.mutableClassDefBy(sites.check.definingClass).fields.single { it.name == "D1" }
+                    val field = context.tgMutableClassDefBy(sites.check.definingClass).fields.single { it.origName == "D1" }
                     field.accessFlags = field.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
                 },
                 "static overlay field" to { context, _, logo ->
                     val field = (logo.bar.instructions()[logo.gate - 13] as ReferenceInstruction).reference as FieldReference
-                    val mutable = context.mutableClassDefBy(field.definingClass).fields.single { it.name == field.name }
+                    val mutable = context.tgMutableClassDefBy(field.definingClass).fields.single { it.origName == field.origName }
                     mutable.accessFlags = mutable.accessFlags or AccessFlags.STATIC.value
                 },
                 "title forwarding argument" to { context, _, logo ->
@@ -273,7 +288,7 @@ class HolidayLookFixtureTest {
                 "text getter loses span ownership" to { context, _, logo ->
                     val type = logo.bar.instructions().first { it.reference()?.endsWith("->getText()Ljava/lang/CharSequence;") == true }
                         .reference()!!.substringBefore("->")
-                    val getter = context.mutableClassDefBy(type).methods.single { it.name == "getText" }
+                    val getter = context.tgMutableClassDefBy(type).methods.single { it.origName == "getText" }
                     getter.replaceInstruction(0, "const-string v0, \"Telegram\"")
                 },
             )
@@ -289,7 +304,7 @@ class HolidayLookFixtureTest {
             for ((runtime, hook) in hooks) {
                 for (kind in 0..4) {
                     val context = contextFor(build)
-                    val method = context.mutableClassDefBy(runtime).methods.single { it.name == hook }
+                    val method = context.tgMutableClassDefBy(runtime).methods.single { it.origName == hook }
                     method.accessFlags = when (kind) {
                         0 -> method.accessFlags and AccessFlags.PUBLIC.value.inv()
                         1 -> method.accessFlags and AccessFlags.STATIC.value.inv()
@@ -298,7 +313,7 @@ class HolidayLookFixtureTest {
                         else -> method.accessFlags
                     }
                     if (kind == 4) {
-                        val owner = context.mutableClassDefBy(runtime)
+                        val owner = context.tgMutableClassDefBy(runtime)
                         owner.methods.add(MutableMethod(ImmutableMethod(method.definingClass, method.name,
                             method.parameters + ImmutableMethodParameter("I", null, null), method.returnType,
                             method.accessFlags, null, null, method.implementation)))
@@ -317,7 +332,7 @@ class HolidayLookFixtureTest {
                 val logo = context.resolveHolidayLogoSites(context.resolveHolidayLookSites())
                 val type = logo.bar.instructions().first { it.reference()?.endsWith("->getTextStartX()I") == true }
                     .reference()!!.substringBefore("->")
-                val getter = context.mutableClassDefBy(type).methods.single { it.name == name }
+                val getter = context.tgMutableClassDefBy(type).methods.single { it.origName == name }
                 getter.replaceInstruction(0, "const/4 v0, 0x0")
                 assertRefusedUntouched(build, "changed $name geometry", context)
             }
@@ -332,14 +347,14 @@ class HolidayLookFixtureTest {
                 val logo = context.resolveHolidayLogoSites(context.resolveHolidayLookSites())
                 val type = logo.bar.instructions().first { it.reference()?.endsWith("->getTextStartX()I") == true }
                     .reference()!!.substringBefore("->")
-                val methods = context.mutableClassDefBy(type).methods
+                val methods = context.tgMutableClassDefBy(type).methods
                 when (case) {
-                    "height field" -> methods.single { it.name == "getTextHeight" }
+                    "height field" -> methods.single { it.origName == "getTextHeight" }
                         .replaceInstruction(0, "iget v0, p0, $type->n:I")
-                    "horizontal addition" -> methods.single { it.name == "getTextStartX" }
+                    "horizontal addition" -> methods.single { it.origName == "getTextStartX" }
                         .replaceInstruction(30, "sub-int/2addr v0, v2")
                     else -> {
-                        val getter = methods.single { it.name == "getTextStartY" }
+                        val getter = methods.single { it.origName == "getTextStartY" }
                         val branch = getter.getInstruction(1) as BuilderOffsetInstruction
                         getter.replaceInstruction(1, BuilderInstruction21t(Opcode.IF_EQZ, 0, branch.target))
                     }
@@ -354,7 +369,7 @@ class HolidayLookFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val changes: List<Pair<String, (BytecodePatchContext, HolidayLookSites) -> Unit>> = listOf(
                 "a second hat loader" to { context, sites ->
-                    val other = context.mutableClassDefBy(sites.check.definingClass).methods.first { it != sites.check &&
+                    val other = context.tgMutableClassDefBy(sites.check.definingClass).methods.first { it != sites.check &&
                         (it.implementation?.registerCount ?: 0) > 1 }
                     other.addInstructions(0, "sget v0, $NEW_YEAR_HAT")
                 },
@@ -372,11 +387,11 @@ class HolidayLookFixtureTest {
                     sites.check.replaceInstruction(body.indexOfFirst { it.opcode == Opcode.SPUT_BOOLEAN }, "nop")
                 },
                 "the top bar stops reading the snow flag" to { context, sites ->
-                    val bar = sites.readers.single { it.name == "drawChild" }
-                    val method = context.mutableClassDefBy(bar.definingClass).methods.single { it.name == bar.name &&
+                    val bar = sites.readers.single { it.origName == "drawChild" }
+                    val method = context.tgMutableClassDefBy(bar.definingClass).methods.single { it.origName == bar.origName &&
                         it.parameterTypes.map(CharSequence::toString) == bar.parameterTypes.map(CharSequence::toString) }
                     val body = method.instructions()
-                    val read = body.indexOfFirst { it.opcode == Opcode.SGET_BOOLEAN && (it as ReferenceInstruction).reference.toString() == sites.snow.toString() }
+                    val read = body.indexOfFirst { it.opcode == Opcode.SGET_BOOLEAN && (it as ReferenceInstruction).reference.origString() == sites.snow.toString() }
                     method.replaceInstruction(read, "const/4 v${body[read].namedRegisters()[0]}, 0x0")
                 },
             )
@@ -392,7 +407,7 @@ class HolidayLookFixtureTest {
     private fun assertRefusedUntouched(file: java.io.File, case: String, context: BytecodePatchContext) {
         val build = file.name
         val owners = owners(file).map { it.type }
-        val types = owners + listOf(HOLIDAY_LOOK, SETTINGS_STATUS).filter { context.classDefByOrNull(it) != null }
+        val types = owners + listOf(HOLIDAY_LOOK, SETTINGS_STATUS).filter { context.tgClassDefByOrNull(it) != null }
         val before = snapshot(context, types)
         try {
             holidayLookPatch.execute(context)
@@ -402,16 +417,16 @@ class HolidayLookFixtureTest {
         }
         assertEquals("$build: $case doesn't partly mutate the holiday check or its readers", before,
             snapshot(context, types))
-        val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "holidayLook" }.instructions()
+        val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "holidayLook" }.instructions()
         assertEquals("$build: $case leaves the build fact false", 0, (status[0] as NarrowLiteralInstruction).narrowLiteral)
         assertEquals("$build: $case leaves the title emoji fact false", 0, flag(context, "titleEmoji"))
     }
 
     private fun flag(context: BytecodePatchContext, name: String) =
-        (context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == name }.instructions()[0] as NarrowLiteralInstruction).narrowLiteral
+        (context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == name }.instructions()[0] as NarrowLiteralInstruction).narrowLiteral
 
     private fun snapshot(context: BytecodePatchContext, types: List<String>) = types.associateWith { type ->
-        val owner = context.mutableClassDefBy(type)
+        val owner = context.tgMutableClassDefBy(type)
         listOf(owner.accessFlags, owner.fields.map { listOf(it.name, it.type, it.accessFlags, it.initialValue) },
             owner.methods.map { method -> listOf(method.name, method.parameterTypes.map(CharSequence::toString), method.returnType,
                 method.accessFlags, method.implementation?.registerCount, method.instructions().map(::operation),
@@ -452,14 +467,21 @@ class HolidayLookFixtureTest {
         assertEquals("${build.name}: the holiday check", 1, check.size)
         val loader = check.single().methods.single { method -> method.instructions().any { it.reference() == NEW_YEAR_HAT } }
         val snow = loader.instructions().first { it.opcode == Opcode.SPUT_BOOLEAN }.reference()
-        val readers = FixtureDex.classesWhere(build, SNOW_CENSUS, { true }) { method -> method.name == "getTextStartX" ||
+        val readers = FixtureDex.classesWhere(build, SNOW_CENSUS, { true }) { method -> method.origName == "getTextStartX" ||
             method.instructions().any { (it.opcode == Opcode.SGET_BOOLEAN && it.reference() == snow) ||
-                (method.name == "createView" && it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I") } }
-        return (check + readers).distinctBy { it.type }
+                (method.origName == "createView" && it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I") } }
+        // 13.2 loads the logo through a static helper right after its id, and the patch reads that helper's body.
+        val loaders = readers.flatMap { it.methods }.filter { it.origName == "createView" }.mapNotNull { method ->
+            val body = method.instructions()
+            val logo = body.indexOfFirst { it.reference() == "Lorg/telegram/messenger/R\$drawable;->telegram_logo_2:I" }
+            body.getOrNull(logo + 1)?.takeIf { logo >= 0 && it.opcode == Opcode.INVOKE_STATIC }
+                ?.let { ((it as ReferenceInstruction).reference as MethodReference).definingClass }
+        }.toSet()
+        return (check + readers + FixtureDex.classes(build, loaders).values).distinctBy { it.type }
     }
 
     private fun contextFor(build: java.io.File, runtime: Boolean = true): BytecodePatchContext {
-        val extension = ExtensionDex.classes().filter { runtime || it.type != HOLIDAY_LOOK }
+        val extension = ExtensionDex.classes().filter { runtime || it.origType != HOLIDAY_LOOK }
         return PatchContexts.of(extension + owners(build))
     }
 
@@ -475,14 +497,16 @@ class HolidayLookFixtureTest {
     /** The chat list's own call names the setter; R8 renames it between builds (I, then G). */
     private fun titleSetter(context: BytecodePatchContext, logo: HolidayLogoSites): MutableMethod {
         val call = (logo.create.instructions()[logo.registerAt + 5] as ReferenceInstruction).reference as MethodReference
-        return context.mutableClassDefBy(logo.bar.definingClass).methods.single { it.name == call.name &&
+        return context.tgMutableClassDefBy(logo.bar.definingClass).methods.single { it.origName == call.origName &&
             it.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString) &&
-            it.returnType == call.returnType }
+            it.origReturnType == call.origReturnType }
     }
 
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-    private fun Instruction.reference() = ((this as? ReferenceInstruction)?.reference as? Any)?.let {
-        if (it is FieldReference) "${it.definingClass}->${it.name}:${it.type}" else it.toString() }
+    // 13.2 inlined its R classes: a const holding a resource id reads as the R field it stands for.
+    private fun Instruction.reference() = if (this is NarrowLiteralInstruction) origRef() else
+        ((this as? ReferenceInstruction)?.reference as? Any)?.let {
+            if (it is FieldReference) "${it.definingClass}->${it.name}:${it.type}" else it.toString() }
     private fun operation(instruction: Instruction) = listOf(instruction.opcode, instruction.reference(), instruction.namedRegisters(),
         (instruction as? WideLiteralInstruction)?.wideLiteral)
 }

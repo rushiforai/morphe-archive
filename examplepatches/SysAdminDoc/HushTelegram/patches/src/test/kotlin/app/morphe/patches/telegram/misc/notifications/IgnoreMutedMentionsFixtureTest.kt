@@ -13,7 +13,9 @@ import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.util.namedRegisters
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -21,19 +23,46 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.replaceInstruction
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The four mention swaps in NotificationsController, the stubs and the runtime. */
 class IgnoreMutedMentionsFixtureTest {
     private val hostTypes = setOf(NOTIFICATIONS, MESSAGE_OBJECT, "Lorg/telegram/messenger/MessagesController;")
 
     @Test fun `every mention swap asks the extension with the same message`() {
-        for (build in Fixtures.declaredBuilds()) {
+        val ranged = mutableListOf<String>()
+        val builds = Fixtures.declaredBuilds()
+        for (build in builds) {
             val name = build.name
-            val hosts = FixtureDex.classesWhere(build, { true }) { m -> m.definingClass in hostTypes }.map(ImmutableClassDef::of)
+            val hosts = FixtureDex.classesWhere(build, { true }) { m -> m.origDefiningClass in hostTypes || m.runsNotificationsLambda() }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val sites = context.resolveIgnoreMutedMentions()
-            assertEquals("$name: new, loaded twice and shown", listOf("lambda\$processLoadedUnreadMessages", "lambda\$processNewMessages", "showOrUpdateNotification"),
-                sites.map { it.first.name.substringBeforeLast('$').substringBefore("(") }.sorted())
+            // 13.2 makes every swap a plain call on both builds, so where no build had a range swap the
+            // last one gets one, the same call in the form R8 picks when the message sits above v15.
+            val stockRange = sites.any { (method, indices) -> indices.any { method.controlBody()[it].opcode == Opcode.INVOKE_VIRTUAL_RANGE } }
+            if (build == builds.last() && ranged.isEmpty() && !stockRange) {
+                val (method, indices) = sites.first()
+                val message = method.controlBody()[indices.first()].namedRegisters().single()
+                method.replaceInstruction(indices.first(), "invoke-virtual/range {v$message .. v$message}, $FROM_CHAT")
+            }
+            // 13.2's lambda bodies have no names of their own; each runs under the method making it.
+            val paths = listOf("processLoadedUnreadMessages", "processNewMessages", "showOrUpdateNotification")
+            val controller = context.tgMutableClassDefBy(NOTIFICATIONS)
+            val runsUnder = context.runsUnder(controller)
+            // 13.2 inlined processLoadedUnreadMessages into MessagesStorage, which makes that lambda, so its body is told
+            // by what it takes: the controller and what lambda$processLoadedUnreadMessages$34 captured.
+            fun Method.loaded() = AccessFlags.STATIC.isSet(accessFlags) && origParameterTypes.let { types -> types.size == 5 &&
+                types[0] == NOTIFICATIONS && types[1] == "Ljava/util/ArrayList;" && types[3] == types[1] && types[4] == "Ljava/util/Collection;" }
+            assertEquals("$name: one body takes what the loaded path's lambda captured", 1, controller.methods.count { it.loaded() })
+            assertEquals("$name: new, loaded twice and shown", paths, sites.map { (method) ->
+                runsUnder(method).map { it.removePrefix("lambda\$").substringBefore('$') }.filter { it in paths }.distinct()
+                    .ifEmpty { listOfNotNull("processLoadedUnreadMessages".takeIf { method.loaded() }) }.single()
+            }.sorted())
             assertEquals("$name: four swaps", 4, sites.sumOf { it.second.size })
             val old = sites.map { ImmutableMethod.of(it.first) }
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { ignoreMutedMentionsPatch.execute(context) })
@@ -50,20 +79,27 @@ class IgnoreMutedMentionsFixtureTest {
                         assertEquals(FROM_CHAT, before[i].controlRef())
                         assertEquals(Opcode.MOVE_RESULT_WIDE, after[i + 1].opcode)
                     } else {
-                        assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                            listOf(after[i].opcode, after[i].namedRegisters(), (after[i] as? ReferenceInstruction)?.reference?.toString()))
+                        assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                            listOf(after[i].opcode, after[i].namedRegisters(), after[i].origRef()))
                     }
                 }
             }
-            // One swap is a range call on both builds, so both forms are covered.
-            assertTrue("$name: a range swap", old.withIndex().any { (s, m) -> sites[s].second.any { m.controlBody()[it].opcode == Opcode.INVOKE_VIRTUAL_RANGE } })
+            if (old.withIndex().any { (s, m) -> sites[s].second.any { m.controlBody()[it].opcode == Opcode.INVOKE_VIRTUAL_RANGE } }) ranged += name
 
-            val stub = { n: String -> context.mutableClassDefBy(MUTED_MENTIONS).methods.single { it.name == n }.controlBody().map { it.controlRef() } }
+            val stub = { n: String -> context.tgMutableClassDefBy(MUTED_MENTIONS).methods.single { it.origName == n }.controlBody().map { it.controlRef() } }
             assertTrue(FROM_CHAT in stub("sender"))
             assertTrue("$MESSAGE_OBJECT->getDialogId()J" in stub("chat"))
             assertTrue(DIALOG_MUTED in stub("muted"))
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "ignoreMutedMentions" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "ignoreMutedMentions" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
+        assertTrue("a range swap on some build, so both call forms are covered", ranged.isNotEmpty())
     }
 }
+
+/**
+ * A lambda of NotificationsController's: 13.2 leaves its run() calling a static body on the
+ * controller, which a fixture needs to tell what the body runs under.
+ */
+internal fun Method.runsNotificationsLambda() = origName == "run" &&
+    controlBody().any { it.opcode in setOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE) && it.controlRef()?.startsWith("$NOTIFICATIONS->") == true }

@@ -203,6 +203,32 @@ public class SettingsPolishTest {
         }
     }
 
+    @Test public void storageFolderKeyboardMakesRoomForTheButtons() {
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            AlertDialog dialog = StorageFolderEditor.open(activity.get(), new Preference(activity.get()), before -> { });
+            try { assertResizesForKeyboard(dialog); } finally { dialog.dismiss(); }
+        }
+    }
+
+    /** A name that climbs out of Internal storage stays in the box and saves nothing (#7). */
+    @Test public void storageFolderEditorKeepsANameThatWontWork() {
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            AlertDialog dialog = StorageFolderEditor.open(activity.get(), new Preference(activity.get()), before -> { });
+            try {
+                android.widget.EditText field = dialog.findViewById(android.R.id.edit);
+                field.setText("../Android/data");
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+                ShadowLooper.idleMainLooper();
+                assertTrue("the dialog stays open", dialog.isShowing());
+                assertEquals("../Android/data", field.getText().toString());
+                assertEquals("", Settings.STORAGE_FOLDER_NAME.savedValue());
+            } finally {
+                dialog.dismiss();
+                Settings.STORAGE_FOLDER_NAME.resetToDefault();
+            }
+        }
+    }
+
     @Test public void filterEditorKeyboardMakesRoomForTheButtons() {
         try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
             AlertDialog dialog = FilterEditor.open(activity.get(), new Preference(activity.get()),

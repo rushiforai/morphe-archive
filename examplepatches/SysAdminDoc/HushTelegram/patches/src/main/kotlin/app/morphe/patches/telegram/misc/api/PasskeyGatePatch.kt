@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.api
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.telegram.misc.extension.patchLog
@@ -20,6 +20,8 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val SUPPORTS_PASSKEYS = "Lorg/telegram/messenger/BuildVars;->SUPPORTS_PASSKEYS:Z"
 internal const val PASSKEYS_WORK = "$SIGN_IN_HELP->passkeysWork(I)Z"
@@ -66,7 +68,7 @@ internal val passkeyGatePatch = bytecodePatch {
         controlHook(SIGN_IN_HELP, "passkeysWork", listOf("I"), "Z")
         val hosts = mutableListOf<Pair<String, String>>()
         forEachClassMentioning(Mention.reference(SUPPORTS_PASSKEYS) or Mention.string(SETUP_PASSKEY)) { cls ->
-            if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+            if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
             for (method in cls.methods) if (passkeyGates(method).isNotEmpty()) hosts += cls.type to method.signature()
         }
         var hooked = 0
@@ -74,7 +76,7 @@ internal val passkeyGatePatch = bytecodePatch {
         var reads = 0
         var banners = 0
         for ((type, signature) in hosts) {
-            val method = mutableClassDefBy(type).methods.single { it.signature() == signature }
+            val method = tgMutableClassDefBy(type).methods.single { it.signature() == signature }
             val flow = ControlFlow.of(method)
             // Last first, so the indexes still to come stay where they were.
             for (gate in passkeyGates(method).asReversed()) {

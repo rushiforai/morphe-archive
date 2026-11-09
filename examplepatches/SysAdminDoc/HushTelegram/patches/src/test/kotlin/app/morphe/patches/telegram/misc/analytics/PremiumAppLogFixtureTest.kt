@@ -8,8 +8,9 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.addInstructionsWithLabels
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
@@ -37,6 +38,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** A whole-fixture census, followed by mutation of only the handful of report-owning classes. */
 class PremiumAppLogFixtureTest {
@@ -46,7 +51,7 @@ class PremiumAppLogFixtureTest {
             val builders = hosts(build).flatMap { it.methods }.filter(::buildsAppLog)
             assertEquals("${build.name}: complete constructor census", 6, builders.size)
             assertEquals(6, builders.sumOf { method -> method.instructions().count { it.call()?.let { call ->
-                call.definingClass == SAVE_APP_LOG && call.name == "<init>"
+                call.origDefiningClass == SAVE_APP_LOG && call.origName == "<init>"
             } == true } })
             val classified = builders.filter { method -> method.strings().any { it in CLASSIFIED_TYPES } }
             assertEquals("five literal types and one dynamic push-token batch", 5, classified.size)
@@ -70,7 +75,7 @@ class PremiumAppLogFixtureTest {
                 it.opcode == Opcode.NEW_INSTANCE && it.reference() == APP_EVENT
             })
             assertEquals(2, push.instructions().count { it.opcode == Opcode.NEW_INSTANCE && it.reference() == JSON_NULL })
-            assertTrue(push.instructions().any { it.call()?.name == "setRegId" })
+            assertTrue(push.instructions().any { it.call()?.origName == "setRegId" })
             assertTrue(push.instructions().any { it.reference() == "Lorg/telegram/messenger/SharedConfig;->pushStringGetTimeStart:J" })
             assertTrue(push.instructions().any { it.reference() == "Lorg/telegram/messenger/SharedConfig;->pushStringGetTimeEnd:J" })
             val camera = builders.single { "android_dual_camera" in it.strings() }
@@ -78,8 +83,8 @@ class PremiumAppLogFixtureTest {
             for (field in listOf("MANUFACTURER", "MODEL")) assertTrue(camera.instructions().any {
                 it.reference() == "Landroid/os/Build;->$field:Ljava/lang/String;"
             })
-            assertTrue("camera state logging stays after the request", camera.instructions().any {
-                it.call()?.toString() == "Lorg/telegram/messenger/ApplicationLoader;->logDualCamera(ZZ)V"
+            assertTrue("camera state logging stays after the request", camera.instructions().indices.any {
+                stateSave(camera.instructions().drop(it)) > 0
             })
         }
     }
@@ -133,17 +138,22 @@ class PremiumAppLogFixtureTest {
             assertTrue("cancellation handler is still cleared", cleanup.any {
                 it.opcode == Opcode.IPUT_OBJECT && it.reference() == cleanup[0].reference()
             })
-            assertTrue("both completion paths keep their callbacks", cleanup.count { it.call()?.toString() == "Ljava/lang/Runnable;->run()V" } >= 2)
+            // 13.2 runs the callback through the one Runnable class its R8 narrowed the parameter to.
+            val callbacks = setOf("Ljava/lang/Runnable;", fail.method.parameterTypes[2].toString())
+            assertTrue("both completion paths keep their callbacks", cleanup.count { it.call()?.let { call ->
+                call.definingClass in callbacks && call.name == "run" && call.parameterTypes.isEmpty() && call.returnType == "V"
+            } == true } >= 2)
             assertTrue("payment assignment is retained", cleanup.any { it.reference() == "Lorg/telegram/tgnet/TLRPC\$TL_payments_assignPlayMarketTransaction;" })
             val camera = hooks.getValue(AppLogEvent.DUAL_CAMERA)
             val saved = camera.method.instructions().drop(camera.continuation + 4)
-            assertEquals("a skipped camera report still saves the camera's own state", LOG_DUAL_CAMERA, saved[0].call()?.toString())
-            assertEquals(listOf(Opcode.RETURN_VOID), saved.drop(1).map { it.opcode })
+            val save = stateSave(saved)
+            assertTrue("a skipped camera report still saves the camera's own state", save > 0)
+            assertEquals(listOf(Opcode.RETURN_VOID), saved.drop(save).map { it.opcode })
             assertEquals("the camera report only runs when the server asks for device stats",
                 "Lorg/telegram/messenger/MessagesController;->collectDeviceStats:Z", camera.method.instructions().first {
                     it.opcode == Opcode.IGET_BOOLEAN }.reference())
             for (method in stock) assertEquals("${build.name}: operational path stays stock", method.instructions().map(::operation),
-                context.mutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }.instructions().map(::operation))
+                context.tgMutableClassDefBy(method.definingClass).methods.single { it.sameSignature(method) }.instructions().map(::operation))
             assertFlags(context, AppLogEvent.entries.toSet())
         }
     }
@@ -180,13 +190,14 @@ class PremiumAppLogFixtureTest {
             val context = PatchContexts.of(ExtensionDex.classes() + classes)
             val hook = context.resolveAppLogHooks().getValue(AppLogEvent.DUAL_CAMERA)
             val method = hook.method
-            assertEquals(LOG_DUAL_CAMERA, method.instructions()[hook.continuation].call()?.toString())
+            val save = stateSave(method.instructions().drop(hook.continuation))
+            assertTrue("the report continues into its state save", save > 0)
             when (change) {
                 "state save gone" -> method.replaceInstruction(hook.continuation, "nop")
-                "code after the state save" -> method.addInstructionsAtControlFlowLabel(hook.continuation + 1, "const/4 v0, 0x0")
+                "code after the state save" -> method.addInstructionsAtControlFlowLabel(hook.continuation + save, "const/4 v0, 0x0")
                 "state save skipped" -> {
                     method.addInstructionsAtControlFlowLabel(hook.continuation, "if-eqz v0, :past_state_save",
-                        ExternalLabel("past_state_save", method.implementation!!.instructions[hook.continuation + 1]))
+                        ExternalLabel("past_state_save", method.implementation!!.instructions[hook.continuation + save]))
                     assertEquals(2, ControlFlow.of(method).normal[hook.continuation].size)
                 }
             }
@@ -282,7 +293,7 @@ class PremiumAppLogFixtureTest {
                     "const-string v$typeRegister, \"support.report\"")
                 val now = method.instructions()
                 val literal = now.indexOfFirst { it.string() == AppLogEvent.SHOW.type }
-                val send = now.indexOfFirst { it.call()?.name == "sendRequest" }
+                val send = now.indexOfFirst { it.call()?.origName == "sendRequest" }
                 val protected = if (change == "literal exception") literal else send - 3
                 val target = if (change == "literal exception") literal + 1 else send
                 val handler = now.size
@@ -338,9 +349,9 @@ class PremiumAppLogFixtureTest {
             val at = show.method.instructions().indexOfFirst { it.string() == AppLogEvent.SHOW.type }
             val register = show.method.instructions()[at].namedRegisters().single()
             show.method.replaceInstruction(at, "const-string v$register, \"support.report\"")
-            val replaced = classes.map { if (it.type == show.method.definingClass) ImmutableClassDef.of(setup.mutableClassDefBy(it.type)) else it }
+            val replaced = classes.map { if (it.origType == show.method.origDefiningClass) ImmutableClassDef.of(setup.tgMutableClassDefBy(it.type)) else it }
             val context = PatchContexts.of(ExtensionDex.classes() + replaced)
-            val unknown = context.mutableClassDefBy(show.method.definingClass).methods.single { it.sameSignature(show.method) }
+            val unknown = context.tgMutableClassDefBy(show.method.definingClass).methods.single { it.sameSignature(show.method) }
             val before = unknown.instructions().map(::operation)
             val warnings = PatchLogCapture.warnings { disableAnalyticsPatch.execute(context) }
             assertEquals(1, warnings.size)
@@ -378,7 +389,7 @@ class PremiumAppLogFixtureTest {
     private fun buildsAppLog(method: Method) = method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == SAVE_APP_LOG }
     private fun snapshots(context: BytecodePatchContext, classes: List<ClassDef>) =
         (classes.map { it.type } + listOf(ANALYTICS, SETTINGS_STATUS)).distinct().flatMap { owner ->
-        context.mutableClassDefBy(owner).methods.filter { owner in listOf(ANALYTICS, SETTINGS_STATUS) || buildsAppLog(it) || it.instructions().any { instruction ->
+        context.tgMutableClassDefBy(owner).methods.filter { owner in listOf(ANALYTICS, SETTINGS_STATUS) || buildsAppLog(it) || it.instructions().any { instruction ->
             instruction.opcode == Opcode.NEW_INSTANCE && instruction.reference() == REPORT_READ_METRICS
         } }.map { method ->
             val flow = method.implementation?.let { ControlFlow.of(method) }
@@ -399,7 +410,7 @@ class PremiumAppLogFixtureTest {
         val expected = AppLogEvent.entries.associate { it.capability to (it in covered) } +
             mapOf("readMetrics" to oldTargets, "disableAnalytics" to family, "ghostMode" to family)
         for ((flag, enabled) in expected) {
-            val body = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.instructions()
+            val body = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.instructions()
             assertEquals(flag, if (enabled) 1 else 0, (body[0] as NarrowLiteralInstruction).narrowLiteral)
             assertEquals(Opcode.RETURN, body[1].opcode)
         }
@@ -424,8 +435,20 @@ class PremiumAppLogFixtureTest {
         return found
     }
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
+
+    /**
+     * How many instructions the camera's state save takes at the start of [body], or 0: the
+     * logDualCamera call, or the instance read and null check 13.2's R8 inlined that empty call to.
+     */
+    private fun stateSave(body: List<Instruction>): Int = when {
+        body.firstOrNull()?.call()?.toString() == LOG_DUAL_CAMERA -> 1
+        body.size >= 2 && body[0].opcode == Opcode.SGET_OBJECT && body[0].reference() == APP_LOADER_INSTANCE &&
+            body[1].call()?.toString() == "Ljava/lang/Object;->getClass()Ljava/lang/Class;" &&
+            body[1].namedRegisters() == body[0].namedRegisters() -> 2
+        else -> 0
+    }
     private fun Method.strings() = instructions().mapNotNull { it.string() }
-    private fun Instruction.reference() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.reference() = origRef()
     private fun Instruction.string() = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
     private fun Instruction.call() = (this as? ReferenceInstruction)?.reference as? MethodReference
     private fun operation(instruction: Instruction) = listOf(instruction.opcode, instruction.reference(), instruction.namedRegisters(),

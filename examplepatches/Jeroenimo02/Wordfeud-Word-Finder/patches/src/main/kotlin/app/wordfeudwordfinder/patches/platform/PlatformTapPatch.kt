@@ -14,7 +14,7 @@ internal object HandlePlatformMessageFingerprint : Fingerprint(
 )
 
 // Internal patch (no name): not shown in Morphe Manager or the CLI patch list. It is only applied through
-// overlayPatch's dependsOn, which also supplies compatibleWith and the extension.
+// overlayPatch's dependsOn, which also supplies compatibleWith and the extension (extensionPatch).
 // Observes Flutter navigation, theme and banner messages for the word finder, and remembers the FlutterJNI
 // instance (V4 refresh: send path via FlutterJNI.dispatchPlatformMessage).
 val platformTapPatch = bytecodePatch {

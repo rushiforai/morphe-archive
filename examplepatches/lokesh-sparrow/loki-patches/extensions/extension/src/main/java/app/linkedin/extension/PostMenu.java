@@ -44,6 +44,8 @@ final class PostMenu {
 
     static final class Post {
         String text;
+        /** The post has a commentary, even when its text could not be read: Copy text stays in the menu. */
+        boolean hasCommentary;
         List<MediaItem> media = new ArrayList<>();
         Set<String> documentIds = new LinkedHashSet<>();
     }
@@ -75,6 +77,7 @@ final class PostMenu {
             }
             if (urns.isEmpty()) return;
             post.text = commentary(payload);
+            post.hasCommentary = ProtoEdit.contains(payload, PostCommentary.NAME);
             post.media = MediaItem.extract(ProtoScanner.scan(payload), false);
             synchronized (posts) {
                 for (String urn : urns) posts.put(urn, post);
@@ -84,8 +87,23 @@ final class PostMenu {
         }
     }
 
-    /** The post text: the longest text inside the commentary component. */
+    /**
+     * The post text, from the feed-commentary component (see PostCommentary). The earlier lookup is kept as a fallback,
+     * but never returns the component's tracking id, which is what it used to copy.
+     */
     private static String commentary(byte[] payload) {
+        String text = PostCommentary.text(payload);
+        if (text != null) return text;
+        String legacy = legacyCommentary(payload);
+        if (ProtoEdit.contains(payload, PostCommentary.NAME)) {
+            Settings.debugLog("post text: not in the commentary component, fallback "
+                    + (legacy == null ? "none" : PostCommentary.isTrackingId(legacy) ? "tracking id, refused" : legacy.length() + " chars"));
+        }
+        return PostCommentary.isTrackingId(legacy) ? null : legacy;
+    }
+
+    /** The lookup of 1.2.4: the longest text inside the innermost message carrying the commentary's name. */
+    private static String legacyCommentary(byte[] payload) {
         byte[] part = smallestContaining(payload, COMMENTARY);
         if (part == null) return null;
         String best = null;
@@ -138,7 +156,7 @@ final class PostMenu {
                 post = posts.get(urn);
             }
             List<String[]> items = new ArrayList<>();
-            if (post == null || post.text != null) {
+            if (post == null || post.text != null || post.hasCommentary) {
                 items.add(new String[]{"copy", I18n.tr("Copy text"), "loki-post-copy-text"});
             }
             if (post != null && !post.media.isEmpty()) {
@@ -226,7 +244,11 @@ final class PostMenu {
                 kept.add(field);
             }
         }
-        row.data = relabel(ProtoEdit.write(kept), label, viewName);
+        // Only the icon changes: the bookmark Save carries becomes the item's own design system icon.
+        MenuIconIds.Result icons = new MenuIconIds.Result();
+        byte[] built = MenuIconIds.swap(ProtoEdit.write(kept), action, icons);
+        Settings.debugLog("post menu icon " + action + ": ids [" + icons.seen + "] swapped " + icons.swapped);
+        row.data = relabel(built, label, viewName);
         return row;
     }
 
@@ -286,7 +308,8 @@ final class PostMenu {
         switch (action == null ? "" : action) {
             case "copy":
                 if (post.text == null) {
-                    Downloads.toast(activity, "This post has no text");
+                    Downloads.toast(activity, post.hasCommentary
+                            ? "Could not read this post's text, long press the text to copy it" : "This post has no text");
                 } else {
                     TextSelectionOverlay.copy(activity, post.text);
                 }

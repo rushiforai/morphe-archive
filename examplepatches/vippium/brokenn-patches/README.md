@@ -4,9 +4,9 @@
 
 ### Morphe patches for apps which I love
 
-[![Release](https://img.shields.io/github/v/release/vippium/brokenn-patches?include_prereleases&logo=github&label=release)](https://github.com/vippium/brokenn-patches/releases)
-[![License](https://img.shields.io/badge/license-GPL%20v3-yellow.svg)](LICENSE)
-[![Patches](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvippium%2Fbrokenn-patches%2Fdev%2Fpatches-list.json&query=%24.patches.length&logo=android&label=patches)](patches-list.json)
+![Release](https://img.shields.io/github/v/release/vippium/brokenn-patches?include_prereleases&logo=github&label=Release&labelColor=1E201E&color=3C3D37) 
+![License](https://img.shields.io/badge/License-GPL_v3-D5CEA3?labelColor=3C2A21&logo=gplv3) 
+![Patches](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fvippium%2Fbrokenn-patches%2Fdev%2Fpatches-list.json&query=%24.patches.length&logo=android&label=Patches&labelColor=092328&color=12544F)
 
 <a href="https://morphe.software/add-source?github=vippium/brokenn-patches">
   <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
@@ -29,7 +29,7 @@ surprises.
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.1](https://github.com/vippium/brokenn-patches/releases/tag/v1.0.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.1.0-dev.3](https://github.com/vippium/brokenn-patches/releases/tag/v1.1.0-dev.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
 <details open>
 <summary>📦 JioHotstar&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
 <br>

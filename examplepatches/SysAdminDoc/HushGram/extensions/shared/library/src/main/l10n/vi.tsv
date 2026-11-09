@@ -122,6 +122,8 @@ Settings couldn't open	Không mở được cài đặt
 Settings couldn't refresh completely. Reopen settings and try again.	Cài đặt chưa làm mới xong. Hãy mở lại cài đặt và thử lại.
 Source code and issues	Mã nguồn và sự cố
 Hides sponsored posts, reels, stories and the ad in comments. No empty gap is left where an ad would have been.	Ẩn bài viết được tài trợ, reel, tin và quảng cáo trong phần bình luận. Không để lại khoảng trống ở chỗ quảng cáo.
+Hide Instagram Plus prompts	Ẩn lời mời Instagram Plus
+Takes Instagram's offers to try Plus out of chats, stories and menus. Nothing that comes with Plus is turned on.	Gỡ các lời mời dùng thử Plus của Instagram khỏi đoạn chat, tin và menu. Không tính năng nào của Plus được bật.
 Stays in while paused	Vẫn giữ khi tạm dừng
 Removes tracking tags from links you copy or share, and opens bio links without Instagram's click tracker. The link still opens the same post, reel or profile.	Gỡ thẻ theo dõi khỏi liên kết bạn sao chép hoặc chia sẻ và mở liên kết trong tiểu sử mà không qua trình theo dõi lượt nhấp của Instagram. Liên kết vẫn mở đúng bài viết, reel hoặc trang cá nhân đó.
 Tap to hide this.	Nhấn để ẩn mục này.
@@ -574,6 +576,8 @@ Group by type	Nhóm theo loại
 Group notifications	Nhóm thông báo
 Hide shopping	Ẩn mua sắm
 Hide surveys	Ẩn khảo sát
+Hide story rows	Ẩn hàng tin
+Hides the rows of stories that Instagram puts between posts, like stories that are about to expire. Pull down on Home to refresh after changing it.	Ẩn các hàng tin mà Instagram chèn giữa các bài viết, như tin sắp hết hạn. Hãy kéo xuống trên trang chủ để làm mới sau khi thay đổi.
 Hide the caught up card	Ẩn thẻ đã xem hết
 Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, only that line goes and the link stays. Pull down on Home to refresh after changing it.	Ẩn thẻ hiện sau các bài viết từ tài khoản bạn theo dõi, cho biết bạn đã xem hết bài mới, cùng liên kết Bài viết cũ hơn. Khi trang chủ không có bài mới nào, chỉ dòng đó biến mất còn liên kết vẫn ở lại. Hãy kéo xuống trên trang chủ để làm mới sau khi thay đổi.
 Instagram is locked	Instagram đã khóa
@@ -697,6 +701,13 @@ Takes the row of quick emoji off above the comment box. The box itself stays.	G�
 # context: Comments: the switch that takes GIFs and stickers out of a post's comments (#511). A comment that has words keeps its words and loses only the picture. A comment that's only a GIF disappears, and its replies with it. Comment box is the field where you type a comment.
 Hide GIFs in comments	Ẩn GIF trong bình luận
 Takes GIFs and stickers out of comments, and the GIF button off the comment box. A comment with words keeps them. One that's only a GIF goes, along with its replies.	Gỡ GIF và nhãn dán khỏi bình luận, và gỡ nút GIF khỏi ô bình luận. Bình luận có chữ vẫn giữ phần chữ. Bình luận chỉ có GIF sẽ biến mất cùng các câu trả lời.
+Search comments	Tìm trong bình luận
+Adds a search box above a post's comments. Type a word or a name and the comments scroll to the next one that has it. Replies you haven't opened aren't searched.	Thêm ô tìm kiếm phía trên phần bình luận của bài viết. Gõ một từ hoặc một cái tên, danh sách bình luận sẽ cuộn đến bình luận tiếp theo có chứa nó. Những câu trả lời bạn chưa mở sẽ không được tìm.
+# context: the search box's two arrow buttons, read aloud by screen readers; and the line beside the box while it looks for more comments or when it finds no more
+Previous match	Kết quả trước
+Next match	Kết quả tiếp theo
+Searching...	Đang tìm...
+No more matches	Không còn kết quả nào
 Open comments without the keyboard	Mở bình luận mà không bật bàn phím
 Comments open with the keyboard down. A tap in the comment box, or on Reply, still brings it up.	Bình luận mở với bàn phím thu xuống. Nhấn vào ô bình luận hoặc Trả lời vẫn gọi bàn phím lên.
 Hide Follow on posts	Ẩn Theo dõi trên bài viết
@@ -1038,9 +1049,11 @@ After %1$d seconds	Sau %1$d giây
 Never. Pick a time and the tab bar slides away once a reel has played that long without a touch. Restart Instagram after changing it.	Không bao giờ. Hãy chọn một thời gian và thanh tab sẽ trượt đi khi reel phát chừng đó mà không chạm vào. Hãy khởi động lại Instagram sau khi thay đổi.
 On Reels, the tab bar slides away after %1$d seconds without a touch. Tap the bottom edge of the screen, change tab or press Back to bring it back. Restart Instagram after changing it.	Trên Reels, thanh tab trượt đi sau %1$d giây không chạm. Nhấn vào mép dưới màn hình, đổi tab hoặc nhấn Quay lại để đưa nó trở lại. Hãy khởi động lại Instagram sau khi thay đổi.
 Start feed videos with sound	Bắt đầu video bảng feed có tiếng
-The first video on Home plays with its sound on, the same as tapping its speaker. Your phone's ringer and volume still count, so on silent or with the volume down, it stays quiet.	Video đầu tiên trên trang chủ phát có tiếng, giống như nhấn loa của nó. Chuông và âm lượng điện thoại vẫn có tác dụng, nên ở chế độ im lặng hoặc khi hạ âm lượng, video vẫn không có tiếng.
+Videos on Home play with their sound on, the same as tapping a video's speaker. Mute one and the ones after it stay muted. Your phone's ringer and volume still count, so on silent or with the volume down, they stay quiet.	Video trên trang chủ phát có tiếng, giống như nhấn loa của video. Tắt tiếng một video thì các video sau cũng giữ tắt tiếng. Chuông và âm lượng điện thoại vẫn có tác dụng, nên ở chế độ im lặng hoặc khi hạ âm lượng, video vẫn không có tiếng.
 Tap a feed video to pause it	Nhấn video bảng feed để tạm dừng
 Tap the video playing in a feed to pause it in place instead of opening it in Reels, and tap it again to play it. Ads keep Instagram's own tap.	Nhấn video đang phát trong bảng feed để tạm dừng tại chỗ thay vì mở trong Reels, và nhấn lần nữa để phát. Quảng cáo giữ thao tác nhấn của Instagram.
+Hold for 2x on feed videos	Giữ để xem 2x video trên bảng feed
+Press and hold a video in a feed to play it at 2x, and let go to go back to normal speed.	Nhấn giữ một video trên bảng feed để phát ở tốc độ 2x, và thả ra để trở về tốc độ bình thường.
 Long press a photo to zoom	Nhấn giữ ảnh để phóng to
 Press and hold a photo in a feed to see it twice as big around your finger, and slide to look around. Let go to close it. While this is on, it takes the place of Instagram's own long press on a photo.	Nhấn giữ ảnh trong bảng feed để thấy ảnh lớn gấp đôi quanh ngón tay và trượt để xem xung quanh. Thả ra để đóng. Khi bật, mục này thay cho thao tác nhấn giữ ảnh của Instagram.
 Keep the zoom open	Giữ ảnh phóng to
@@ -1415,6 +1428,8 @@ Pinch to zoom	Chụm để thu phóng
 Two fingers zoom into a playing reel, the way a photo zooms. Lift them and it goes back. Restart Instagram to see the change.	Hai ngón tay phóng to reel đang phát, như cách ảnh phóng to. Nhấc ra thì trở lại. Hãy khởi động lại Instagram để thấy thay đổi.
 Double tap to skip	Nhấn đúp để tua
 A double tap on the left side of a reel goes back 10 seconds, and on the right side it goes ahead 10 seconds. A double tap in the middle still likes it. Reels under 10 seconds don't skip.	Nhấn đúp vào bên trái reel để lùi 10 giây, và bên phải để tới 10 giây. Nhấn đúp ở giữa vẫn thích reel. Reel dưới 10 giây không tua.
+Hide the 2x popup	Ẩn thông báo 2x
+Takes the 2x label off a reel while you hold it to play faster. The speed-up still works.	Bỏ nhãn 2x khỏi reel khi bạn giữ để phát nhanh hơn. Tính năng tăng tốc vẫn hoạt động.
 Mute notification types	Tắt tiếng loại thông báo
 Stops the notification types you tick, even ones Instagram's own notification settings can't turn off.	Chặn các loại thông báo bạn tích, kể cả loại mà cài đặt thông báo của chính Instagram không tắt được.
 %1$d notification type is muted.	Đã tắt tiếng %1$d loại thông báo.
@@ -1436,7 +1451,11 @@ Shows your feed blurred under Home's top bar, like frosted glass.	Hiện bảng 
 Keep the Reels top bar	Giữ thanh trên cùng của Reels
 Keeps the Reels title, the Friends tab and the buttons beside them at the top while you swipe through reels, instead of sliding them away.	Giữ tiêu đề Reels, tab Bạn bè và các nút bên cạnh ở trên cùng khi bạn vuốt qua các reel, thay vì trượt đi.
 Keep a viewing history	Giữ lịch sử đã xem
-Remembers the posts, reels, stories and profiles that come up on screen, and who posted them, newest first, on this phone only. Nothing is sent anywhere, and nothing more is asked of Instagram. Turn it off and it stops at once. Clear it below.	Ghi nhớ bài viết, reel, tin và trang cá nhân hiện trên màn hình, cùng người đã đăng, mới nhất trước, chỉ trên điện thoại này. Không gửi đi đâu và không hỏi thêm gì từ Instagram. Tắt đi là dừng ngay. Xóa ở bên dưới.
+Remembers the posts, reels, stories and profiles that come up on screen, and who posted them, newest first, on this phone only. The list shows their pictures, loaded from Instagram's image servers and kept on the phone. Turn it off and it stops at once.	Ghi nhớ bài viết, reel, tin và trang cá nhân hiện trên màn hình, cùng người đã đăng, mới nhất trước, chỉ trên điện thoại này. Danh sách hiện ảnh của từng mục, tải từ máy chủ ảnh của Instagram và lưu trên điện thoại. Tắt đi là dừng ngay.
+Find a post, reel, story or profile you saw before.	Tìm lại bài viết, reel, tin hoặc trang cá nhân bạn đã xem.
+Recently seen	Đã xem gần đây
+Open profile	Mở trang cá nhân
+Remove from history	Xóa khỏi lịch sử
 Viewing history	Lịch sử đã xem
 Nothing here yet. With Keep a viewing history on, what you look at shows up here.	Chưa có gì. Khi Giữ lịch sử đã xem bật, những gì bạn xem sẽ hiện ở đây.
 # context: the kind of item in the viewing history list: Post, Reel, Story
@@ -1519,6 +1538,8 @@ Instagram gradient on dark	Instagram chuyển sắc trên nền tối
 Retro Instagram	Instagram cổ điển
 Menu button on Home's header	Nút menu ở đầu trang chủ
 Adds a menu button at the top of Home with your viewing history, Ghost mode and HushGram settings. Restart Instagram to see the change.	Thêm nút menu ở đầu trang chủ với lịch sử đã xem, Chế độ ẩn và cài đặt HushGram. Hãy khởi động lại Instagram để thấy thay đổi.
+History button on Home's header	Nút lịch sử ở đầu trang chủ
+Adds a clock at the top of Home that opens your viewing history in one tap. Restart Instagram to see the change.	Thêm một đồng hồ ở đầu trang chủ để mở lịch sử đã xem chỉ với một lần chạm. Hãy khởi động lại Instagram để thấy thay đổi.
 HushGram menu	Menu HushGram
 Seek bar button on feed videos	Nút thanh tua trên video bảng feed
 Adds a small button at the bottom left of a feed video that shows or hides its seek bar. It works with Seek bar on feed videos on or off.	Thêm nút nhỏ ở dưới bên trái video bảng feed để hiện hoặc ẩn thanh tua. Dùng được dù Thanh tua trên video bảng feed bật hay tắt.
@@ -1535,6 +1556,8 @@ Nothing logged yet. With Recent unfollowers on, each time you scroll your own Fo
 %1$s started following you, %2$s	%1$s bắt đầu theo dõi bạn, %2$s
 Hide the Map bubble	Ẩn bong bóng Bản đồ
 Takes only the Map bubble out of the row of notes. Your notes stay.	Chỉ gỡ bong bóng Bản đồ khỏi hàng ghi chú. Ghi chú vẫn giữ.
+Split the notes row	Tách hàng ghi chú
+Splits the row of notes into three stacks, Instants, Notes and Stories, the layout Instagram is trying out. Restart Instagram to see the change.	Tách hàng ghi chú thành ba chồng, Instants, Ghi chú và Tin, bố cục Instagram đang thử nghiệm. Hãy khởi động lại Instagram để thấy thay đổi.
 Hide Saved in the plus menu	Ẩn Đã lưu trong menu dấu cộng
 Takes Saved off the menu the plus button opens in a chat's message bar.	Gỡ Đã lưu khỏi menu mà nút dấu cộng mở ra trong thanh tin nhắn của cuộc trò chuyện.
 Hide AI images in the plus menu	Ẩn ảnh AI trong menu dấu cộng
@@ -1638,6 +1661,9 @@ Accounts mentioned in this story	Các tài khoản được nhắc trong tin nà
 Pill look	Kiểu viên thuốc
 # context: Feed and Stories settings: picks how the seek bar over a video looks (#471)
 Seek bar look	Kiểu thanh tua
+# context: Feed settings: a double tap on the left or right third of a feed video jumps 10 seconds (#562)
+Double tap to skip on feed videos	Nhấn đúp để tua video bảng feed
+Double tap the left side of the video playing in a feed to go back 10 seconds, or the right side to go ahead 10. A double tap in the middle works as before.	Nhấn đúp vào bên trái video đang phát trong bảng feed để lùi 10 giây, hoặc bên phải để tua tới 10 giây. Nhấn đúp ở giữa vẫn hoạt động như trước.
 # context: a look for the page-dots pill and the seek bars: opaque, as before
 Solid	Đặc
 # context: a look for the page-dots pill and the seek bars: partly transparent
@@ -1690,6 +1716,8 @@ Burn-in guard also fades the top and bottom of a story while you watch without t
 # context: Reels settings: a switch for a speed icon beside each reel that opens a list of speeds, after Copy text button on reels (#480). Keep the reel speed is HushGram's switch of that name
 Speed button on reels	Nút tốc độ trên reel
 Puts a speed icon beside a reel. Tap it to pick a speed from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Đặt một biểu tượng tốc độ bên cạnh reel. Chạm vào để chọn tốc độ từ 0,5x đến 3x. Khi bật Giữ tốc độ reel, các reel tiếp theo cũng phát ở tốc độ đó.
+Speed in the reel menu	Tốc độ trong menu reel
+Adds Playback speed to the menu a reel's three dots open. Pick a speed there from 0.5x to 3x. With Keep the reel speed on, the next reels play at it too.	Thêm Tốc độ phát vào menu mở ra từ ba dấu chấm của reel. Chọn tốc độ ở đó từ 0,5x đến 3x. Khi bật Giữ tốc độ reel, các reel tiếp theo cũng phát ở tốc độ đó.
 # context: Reels settings: a switch for an icon beside each reel that does what Instagram's own Full screen row in the reel's menu does (#480). Full screen is Instagram's term for it (bundled 453 string packs: Vollbild, pantalla completa, layar penuh, schermo intero, 전체 화면, tela cheia, tam ekran, toàn màn hình, 全螢幕); Start every reel in clear mode is HushGram's switch of that name
 Full screen button on reels	Nút toàn màn hình trên reel
 Puts a Full screen icon beside a reel, so one tap does what Full screen in its menu does. Start every reel in clear mode opens every reel that way.	Đặt một biểu tượng Toàn màn hình bên cạnh reel, nên một lần chạm làm giống Toàn màn hình trong menu của nó. Bắt đầu mọi reel ở chế độ xem sạch sẽ mở mọi reel theo cách đó.
@@ -1780,3 +1808,28 @@ None yet. Custom stays Instagram's blue until you type one.	Chưa có. Tùy ch�
 That isn't a color. Try #4A6B82.	Đó không phải là màu. Thử #4A6B82.
 Count on the heart	Số trên trái tim
 The heart at the top of Home shows how many notifications are waiting, like the number on Messages, in place of the red dot. Restart Instagram to see the change.	Trái tim ở đầu trang chủ hiện số thông báo đang chờ, giống con số trên Tin nhắn, thay cho chấm đỏ. Hãy khởi động lại Instagram để thấy thay đổi.
+# context: a switch under Seek bar on feed videos
+Seek bar on the bottom edge	Thanh tua ở mép dưới
+Puts the seek bar right on the bottom edge of the video, so it's harder to touch by accident while you scroll.	Đặt thanh tua sát mép dưới của video, để khó chạm nhầm hơn khi bạn cuộn.
+# context: "Made with Edits" is the label Instagram shows under a post's author for a video made in Meta's Edits app; it stays in English here
+Hide Made with Edits	Ẩn "Made with Edits"
+Takes the "Made with Edits" label out of the line under a post's author. The song, the place and the other labels keep taking turns there.	Bỏ nhãn "Made with Edits" khỏi dòng dưới tên người đăng bài viết. Bài hát, địa điểm và các nhãn khác vẫn thay phiên hiện ở đó.
+# context: a switch on the Feed page; Save and Remove from saved are the rows it adds to a feed post's three-dot menu
+Save in the post menu	Lưu trong menu bài viết
+Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	Thêm Lưu vào menu ba dấu chấm của bài viết, hoặc Gỡ khỏi mục đã lưu khi bạn đã lưu nó.
+Hide the Save button	Ẩn nút Lưu
+Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	Bỏ nút Lưu khỏi cuối các bài viết trong bảng feed, để chạm nhầm không lưu bài nào.
+# context: the row in a feed post's three-dot menu for a post you already saved
+Remove from saved	Gỡ khỏi mục đã lưu
+# context: a switch on the Reels page
+Hide lives in Reels	Ẩn video trực tiếp trong Reels
+Leaves out the live broadcasts Instagram puts between reels in the Reels tab and when you swipe through reels from Explore.	Bỏ qua các buổi phát trực tiếp mà Instagram chen vào giữa các reel ở tab Reels và khi bạn vuốt qua reel từ Khám phá.
+# context: a switch on the Feed page; Watch again is the button on the card Instagram shows when a reel in the feed ends, next to Watch more reels
+Watch again in the feed	Xem lại ngay trong bảng feed
+When a reel in your feed ends, Watch again plays it over right there instead of opening Reels.	Khi một thước phim trong bảng feed kết thúc, Xem lại sẽ phát lại ngay tại đó thay vì mở Reels.
+# context: a switch on the Playback page under Keep playing in the background; Android's own name for picture in picture
+Picture in picture for reels	Hình trong hình cho reel
+Leaving Instagram while a reel plays shrinks it into a small window over your other apps. Works in Reels and on reels opened from the feed, on Android 15 or newer.	Khi bạn rời Instagram lúc một reel đang phát, nó thu nhỏ thành một cửa sổ nhỏ nằm trên các ứng dụng khác. Hoạt động trong Reels và với reel mở từ bảng feed, trên Android 15 trở lên.
+# context: a switch on the Profiles page under Mark who doesn't follow you back; it means the mark goes on each profile picture of your own Following list
+Show it on the profile picture	Hiển thị trên ảnh đại diện
+Puts a green check on the picture of each account that follows you back and a red cross on each one that doesn't, instead of the words.	Đặt dấu tích xanh lá trên ảnh của mỗi tài khoản theo dõi lại bạn và dấu X đỏ trên mỗi tài khoản không theo dõi lại, thay cho dòng chữ.

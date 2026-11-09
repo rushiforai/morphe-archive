@@ -228,6 +228,25 @@ public class AutoReplyTest {
         assertTrue(AutoReply.answer("hello", CHAT, null));
     }
 
+    /** A chat let on only for the message log has no notification to answer through, so it gets no reply. */
+    @Test public void aChatLetOnOnlyForTheLogGetsNoAnswer() {
+        Settings.preferences.edit().putBoolean(MessageLog.KEY, true).putBoolean(QuietChats.KEY, true).commit();
+        QuietChats.forget();
+        try {
+            replies(false, "", "Away");
+            notification(CHAT);
+            assertTrue(Settings.quietChat(CHAT));
+            Settings.autoReplyTo("are you there?", CHAT);
+            assertTrue(queued.isEmpty());
+            Settings.loudChat(CHAT);
+            Settings.autoReplyTo("are you there?", CHAT);
+            runQueued();
+            assertEquals("Away", sent());
+        } finally {
+            QuietChats.forget();
+        }
+    }
+
     /** A Reply token Messenger canceled sends nothing and holds no cooldown, so the next message in the chat is answered. */
     @Test public void aCanceledReplyTokenLeavesNoCooldown() {
         replies(false, "", "Away");

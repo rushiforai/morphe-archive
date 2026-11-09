@@ -7,9 +7,16 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.DexFileFactory
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
+import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.writer.io.MemoryDataStore
+import com.android.tools.smali.dexlib2.writer.pool.DexPool
+import java.lang.ref.WeakReference
+import java.nio.ByteBuffer
 import java.nio.file.Files
 import java.nio.file.Path
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -17,6 +24,8 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 private const val CAR_EXTENDER = "LX/0Qq;"
@@ -59,8 +68,32 @@ private fun conversationBundle() = fixtureMethod("$CAR_EXTENDER->A00(LX/0Qr;)Lan
     return-object v0
 """.trimIndent(), registers = 3, flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
 
-internal fun carMessagesFixture(extendMethod: MutableMethod = extend()): List<MutableClass> =
-    listOf(fixtureClass(CAR_EXTENDER, listOf(extendMethod, conversationBundle())))
+private const val CAR_GATE_OWNER = "LX/A7a;"
+internal const val SYNTHETIC_CAR_GATE = "$CAR_GATE_OWNER->A00(Landroid/graphics/Bitmap;)V"
+private const val CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
+
+/**
+ * The notification's bitmap callback as 586 ships it, cut to the flag check: the server flag's answer skips the whole
+ * car extender block when it's off. Six registers, p0 is v4.
+ */
+private val GATE_BODY = """
+    iget-object v1, p0, $CAR_GATE_OWNER->A00:Ljava/lang/Object;
+    const-wide v2, 0x0081027700011858L
+    check-cast v1, $CONFIG
+    invoke-interface {v1, v2, v3}, $CONFIG->B1R(J)Z
+    move-result v1
+    if-eqz v1, :no_car
+    const-string v2, "$CAR_EXTENSION_STEP"
+    new-instance v1, $CAR_EXTENDER
+    invoke-direct {v1}, $CAR_EXTENDER-><init>()V
+    :no_car
+    return-void
+""".trimIndent()
+
+private fun gate(body: String = GATE_BODY, id: String = SYNTHETIC_CAR_GATE): MutableMethod = fixtureMethod(id, body, registers = 6)
+
+internal fun carMessagesFixture(extendMethod: MutableMethod = extend(), gateMethod: MutableMethod = gate()): List<MutableClass> =
+    listOf(fixtureClass(CAR_EXTENDER, listOf(extendMethod, conversationBundle())), fixtureClass(CAR_GATE_OWNER, listOf(gateMethod)))
 
 private fun Method.code() = implementation!!.instructions.toList()
 
@@ -125,7 +158,91 @@ class CarMessagesTest {
         }
     }
 
-    @Test fun everySupportedBuildHandsItsCarBundleOverFromOneExtend() {
+    private fun foundGate(classes: List<MutableClass>) = mirroredControls(classes).getValue(CAR_EXTENSION_GATE).map { it.hookId() }
+
+    @Test fun theGateIsTheOneFlagCheckInFrontOfTheCarExtender() {
+        assertEquals(listOf(SYNTHETIC_CAR_GATE), foundGate(carMessagesFixture()))
+        validateControls(mirroredControls(carMessagesFixture()), setOf(CAR_MESSAGES, CAR_EXTENSION_GATE))
+        assertEquals(setOf(SYNTHETIC_CAR_GATE), SYNTHETIC_PROFILE.hooks.getValue(CAR_EXTENSION_GATE))
+        assertEquals(setOf("LX/A7i;->A00(Landroid/graphics/Bitmap;)V"), BASE_PROFILE.hooks.getValue(CAR_EXTENSION_GATE))
+    }
+
+    /** The gate scan on classes read back from a dex file, the way the patcher reads Messenger's. */
+    private fun scanGateInDex(): WeakReference<DexBackedDexFile> {
+        val pool = DexPool(Opcodes.getDefault())
+        carMessagesFixture().forEach { pool.internClass(it) }
+        val store = MemoryDataStore()
+        pool.writeTo(store)
+        val dex = DexBackedDexFile(Opcodes.getDefault(), ByteBuffer.wrap(store.data))
+        val gates = findCarExtensionGate(dex.classes)
+        assertEquals(listOf(SYNTHETIC_CAR_GATE), gates.map { it.hookId() })
+        assertNotNull(gates.single().carExtensionGate())
+        return WeakReference(dex)
+    }
+
+    @Test fun theGateScanLetsGoOfTheDexFileItRead() {
+        val dex = scanGateInDex()
+        var tries = 0
+        while (dex.get() != null && tries++ < 20) {
+            System.gc()
+            Thread.sleep(50)
+        }
+        assertNull(dex.get(), "the gate scan still holds the dex file it read")
+    }
+
+    @Test fun lookalikeFlagChecksAreNotTheGate() {
+        val cases = mapOf(
+            "another flag" to GATE_BODY.replace("0x0081027700011858L", "0x0081027700011859L"),
+            "the id in other registers" to GATE_BODY.replace("invoke-interface {v1, v2, v3}", "invoke-interface {v1, v3, v4}"),
+            "another config" to GATE_BODY.replace("invoke-interface {v1, v2, v3}, $CONFIG", "invoke-interface {v1, v2, v3}, LX/Other;"),
+            "no cast" to GATE_BODY.replace("check-cast v1, $CONFIG", "nop"),
+            "the branch on another register" to GATE_BODY.replace("if-eqz v1, :no_car", "if-eqz v0, :no_car"),
+            "an if-nez" to GATE_BODY.replace("if-eqz v1", "if-nez v1"),
+            "a jump straight to the branch" to GATE_BODY.replace("iget-object v1, p0", "if-nez p1, :check\niget-object v1, p0")
+                .replace("if-eqz v1, :no_car", ":check\nif-eqz v1, :no_car"),
+            "the step logged twice" to GATE_BODY.replace("return-void", "const-string v2, \"$CAR_EXTENSION_STEP\"\nreturn-void"),
+        )
+        for ((case, body) in cases) {
+            val classes = carMessagesFixture(gateMethod = gate(body))
+            assertTrue(foundGate(classes).isEmpty(), case)
+            assertFailsWith<PatchException>(case) { validateControls(mirroredControls(classes), setOf(CAR_EXTENSION_GATE)) }
+        }
+        val two = carMessagesFixture() + listOf(fixtureClass("LX/Other;", listOf(gate(id = "LX/Other;->A00(Landroid/graphics/Bitmap;)V"))))
+        assertTrue(foundGate(two).isEmpty(), "two methods log the step")
+    }
+
+    @Test fun theFlagsAnswerGoesThroughTheExtensionBeforeTheBranch() {
+        val method = gate()
+        val before = method.code()
+        injectControl(CAR_EXTENSION_GATE, mapOf(CAR_EXTENSION_GATE to listOf(method)))
+        val code = method.code()
+        val at = before.indexOfFirst { it.opcode == Opcode.MOVE_RESULT } + 1
+        assertEquals(before.size + 2, code.size)
+        assertEquals(before.take(at), code.take(at))
+        assertEquals(before.drop(at), code.drop(at + 2))
+        val call = code[at]
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, call.opcode)
+        assertEquals(CAR_EXTENSION_CALL, (call as ReferenceInstruction).reference.toString())
+        assertEquals(1, (call as RegisterRangeInstruction).startRegister)
+        assertEquals(1, call.registerCount)
+        assertEquals(Opcode.MOVE_RESULT, code[at + 1].opcode)
+        assertEquals(1, (code[at + 1] as OneRegisterInstruction).registerA)
+        assertEquals(Opcode.IF_EQZ, code[at + 2].opcode)
+    }
+
+    @Test fun anUnusableGateRefusesTheSwitchBeforeAnyEdit() {
+        val cases = mapOf(
+            "another flag" to gate(GATE_BODY.replace("0x0081027700011858L", "0x0081027700011859L")),
+            "the extender" to extend(),
+        )
+        for ((case, bad) in cases) {
+            val badBefore = bad.code()
+            assertFailsWith<PatchException>(case) { injectControl(CAR_EXTENSION_GATE, mapOf(CAR_EXTENSION_GATE to listOf(bad))) }
+            assertEquals(badBefore, bad.code(), case)
+        }
+    }
+
+    @Test fun everySupportedBuildGatesItsCarBundleOnceAndHandsItOverFromOneExtend() {
         val root = System.getenv("HUSH_NATIVE_FIXTURES")
         assumeTrue(root != null, "Set HUSH_NATIVE_FIXTURES to the exact stock fixture directory")
         val apks = Files.list(Path.of(root!!)).use { it.filter { p -> p.toString().endsWith(".apk") }.sorted().toList() }
@@ -134,9 +251,12 @@ class CarMessagesTest {
             val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             activeProfile = controlProfileFor(code)
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
-            val extenders = findCarMessages(dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes })
+            val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
+            val extenders = findCarMessages(classes)
+            val gates = findCarExtensionGate(classes)
             assertEquals(activeProfile.hooks.getValue(CAR_MESSAGES), extenders.map { it.hookId() }.toSet(), code)
-            validateControls(mapOf(CAR_MESSAGES to extenders), setOf(CAR_MESSAGES))
+            assertEquals(activeProfile.hooks.getValue(CAR_EXTENSION_GATE), gates.map { it.hookId() }.toSet(), code)
+            validateControls(mapOf(CAR_MESSAGES to extenders, CAR_EXTENSION_GATE to gates), setOf(CAR_MESSAGES, CAR_EXTENSION_GATE))
             val method = MutableMethod(extenders.single())
             val before = method.code()
             method.injectCarMessages()
@@ -144,6 +264,16 @@ class CarMessagesTest {
             assertEquals(before.dropLast(1).map { it.opcode }, after.dropLast(2).map { it.opcode }, code)
             assertEquals(CAR_MESSAGES_CALL, (after[after.size - 2] as ReferenceInstruction).reference.toString(), code)
             assertEquals(Opcode.RETURN_VOID, after.last().opcode, code)
+            val gate = MutableMethod(gates.single())
+            val gateBefore = gate.code()
+            gate.injectCarExtensionGate()
+            val gateAfter = gate.code()
+            val at = gateAfter.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == CAR_EXTENSION_CALL }
+            assertEquals(gateBefore.size + 2, gateAfter.size, code)
+            assertEquals(Opcode.MOVE_RESULT, gateAfter[at - 1].opcode, code)
+            assertEquals(Opcode.MOVE_RESULT, gateAfter[at + 1].opcode, code)
+            assertEquals(Opcode.IF_EQZ, gateAfter[at + 2].opcode, code)
+            assertEquals(CAR_EXTENSION_STEP, ((gateAfter[at + 3] as ReferenceInstruction).reference as StringReference).string, code)
         }
     }
 }

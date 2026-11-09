@@ -16,6 +16,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The chat text selection's real canCopy check in every declared build. */
 class CopySelectionFixtureTest {
@@ -30,7 +31,7 @@ class CopySelectionFixtureTest {
             val stock = classes.flatMap { it.methods }.single { it.isSelectionCanCopy() }
             val before = stock.controlBody()
             plan.apply()
-            val patched = context.mutableClassDefBy(stock.definingClass).methods.single { it.toString() == stock.toString() }
+            val patched = context.tgMutableClassDefBy(stock.definingClass).methods.single { it.toString() == stock.toString() }
             val after = patched.controlBody()
             assertEquals(Opcode.INVOKE_STATIC, after[0].opcode)
             assertEquals(SELECTION_COPY, after[0].controlRef())

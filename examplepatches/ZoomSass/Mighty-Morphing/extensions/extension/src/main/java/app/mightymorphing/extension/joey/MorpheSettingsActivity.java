@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -47,15 +49,15 @@ public final class MorpheSettingsActivity extends Activity {
         root.setBackgroundColor(canvas);
 
         Toolbar toolbar = new Toolbar(activity);
-        toolbar.setBackgroundColor(card);
+        toolbar.setBackgroundColor(ModernUi.isModernUiEnabled(activity) ? ModernUi.getPalette(activity).primary : card);
         toolbar.setTitle("Morphe Settings");
-        toolbar.setTitleTextColor(title);
+        toolbar.setTitleTextColor(textColor);
         int back = activity.getResources().getIdentifier(
                 "abc_ic_ab_back_material", "drawable", activity.getPackageName());
         if (back == 0) back = android.R.drawable.ic_media_previous;
         toolbar.setNavigationIcon(back);
         Drawable icon = toolbar.getNavigationIcon();
-        if (icon != null) icon.setColorFilter(title, PorterDuff.Mode.SRC_IN);
+        if (icon != null) icon.setColorFilter(textColor, PorterDuff.Mode.SRC_IN);
         toolbar.setNavigationOnClickListener(v -> close.run());
         root.addView(toolbar, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, Math.round(56 * density)));
@@ -66,7 +68,8 @@ public final class MorpheSettingsActivity extends Activity {
         if (MorpheSettings.pictureControls()) {
             LinearLayout sheet = new LinearLayout(activity);
             sheet.setOrientation(LinearLayout.VERTICAL);
-            sheet.setBackgroundColor(card);
+            applyCardContainer(sheet, activity, density);
+            sheet.setLayoutParams(cardLayoutParams(activity, density));
             sheet.addView(sectionTitle(activity, "Comments"));
             profileRow = toggleRow(activity, "Profile comment previews",
                     "Pictures, GIFs and video previews show on profile comments. Applies to your profile and other's.",
@@ -101,48 +104,87 @@ public final class MorpheSettingsActivity extends Activity {
                         MorpheSettings.saveInline(activity, checked);
                         applyCommentRows(activity);
                     }));
-            sheet.addView(sizeRow);
-            sheet.addView(dragRow);
-            sheet.addView(handleRow);
             sheet.addView(profileRow);
             sheet.addView(youtubeRow);
             sheet.addView(autoplayRow);
             sheet.addView(limitRow);
+            sheet.addView(sizeRow);
+            sheet.addView(dragRow);
+            sheet.addView(handleRow);
             applyCommentRows(activity);
             column.addView(sheet);
+        }
+        if (MorpheSettings.modernUiControls()) {
+            LinearLayout themeCard = new LinearLayout(activity);
+            themeCard.setOrientation(LinearLayout.VERTICAL);
+            applyCardContainer(themeCard, activity, density);
+            themeCard.setLayoutParams(cardLayoutParams(activity, density));
+            themeCard.addView(sectionTitle(activity, "Appearance"));
+            if (ModernUi.isModernUiEnabled(activity)) {
+                themeCard.addView(materialAccentRow(activity));
+                themeCard.addView(groupLabel(activity, "Posts"));
+                themeCard.addView(choiceRow(activity, "Image style", PostLayout.imageBlurb(),
+                        value -> PostLayout.showImage(activity, value)));
+                if (!MorpheSettings.showHideControls()) {
+                    themeCard.addView(postDetailsRow(activity));
+                    themeCard.addView(subredditChipsRow(activity));
+                }
+                themeCard.addView(actionRow(activity, "Downloads",
+                        "A picture, GIF, or video saves straight away. Set the file name and the folder.",
+                        () -> MediaDownload.show(activity)));
+                themeCard.addView(toggleRow(activity, "Swipe albums closed",
+                        "A diagonal swipe leaves an album, the same way a picture closes. Straight up and down still move between pictures.",
+                        ModernUi.albumSwipe(activity),
+                        (btn, checked) -> ModernUi.setAlbumSwipe(activity, checked)));
+            }
+            if (MorpheSplash.isEnabled()) themeCard.addView(splashRow(activity));
+            column.addView(themeCard);
+        } else if (MorpheSplash.isEnabled()) {
+            LinearLayout splashCard = new LinearLayout(activity);
+            splashCard.setOrientation(LinearLayout.VERTICAL);
+            applyCardContainer(splashCard, activity, density);
+            splashCard.setLayoutParams(cardLayoutParams(activity, density));
+            splashCard.addView(splashRow(activity));
+            column.addView(splashCard);
         }
         if (MorpheSettings.showHideControls()) {
             LinearLayout showHide = new LinearLayout(activity);
             showHide.setOrientation(LinearLayout.VERTICAL);
-            showHide.setBackgroundColor(card);
-            LinearLayout.LayoutParams showHideParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            if (column.getChildCount() > 0) showHideParams.topMargin = Math.round(12 * density);
-            showHide.setLayoutParams(showHideParams);
-            showHide.addView(sectionTitle(activity, "Show/Hide"));
-            showHide.addView(actionRow(activity, "Text Formatting bar", "Choose which buttons are shown on the editor toolbar when adding/editing text.",
+            applyCardContainer(showHide, activity, density);
+            showHide.setLayoutParams(cardLayoutParams(activity, density));
+            showHide.addView(sectionTitle(activity, "Show and hide"));
+            showHide.addView(actionRow(activity, "Text formatting bar", "Which buttons show when you write a post or comment.",
                     () -> EditorBar.show(activity)));
-            showHide.addView(actionRow(activity, "Sidebar", "Choose which sidebar entries are shown. Core options can't be toggled off.",
+            showHide.addView(actionRow(activity, "Sidebar",
+                    "Which entries show in the left menu. Some items can't be turned on or off.",
                     () -> Sidebar.show(activity)));
-            showHide.addView(actionRow(activity, "Subreddit toolbar", "Choose which items appear on the top bar and overflow menu, and change their order.",
+            showHide.addView(actionRow(activity, "Subreddit bar", "What sits on the subreddit bar, and the order.",
                     () -> SubredditToolbar.show(activity)));
+            if (MorpheSettings.modernUiControls() && ModernUi.isModernUiEnabled(activity)) {
+                showHide.addView(subredditChipsRow(activity));
+                showHide.addView(postDetailsRow(activity));
+            }
+            showHide.addView(actionRow(activity, "Post bar", "What stays on a post, and what moves into its menu.",
+                    () -> PostLayout.showActions(activity)));
             column.addView(showHide);
         }
+
         if (MorpheSettings.backupControls()) {
             LinearLayout backup = new LinearLayout(activity);
             backup.setOrientation(LinearLayout.VERTICAL);
-            backup.setBackgroundColor(card);
-            LinearLayout.LayoutParams backupParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            if (column.getChildCount() > 0) backupParams.topMargin = Math.round(12 * density);
-            backup.setLayoutParams(backupParams);
+            applyCardContainer(backup, activity, density);
+            backup.setLayoutParams(cardLayoutParams(activity, density));
             backup.addView(sectionTitle(activity, "Backup"));
-            backup.addView(actionRow(activity, "Backup settings", "Save selected settings to a file.",
+            backup.addView(actionRow(activity, "Backup settings", "Save the settings you pick to a file.",
                     () -> MorpheBackup.backup(activity)));
-            backup.addView(actionRow(activity, "Restore settings", "Restore settings from a backup file.",
+            backup.addView(actionRow(activity, "Restore settings", "Load settings from a backup file.",
                     () -> MorpheBackup.restore(activity)));
             column.addView(backup);
         }
+
+        // Modern UI owns the viewer and does not offer this toggle. Another patch must not
+        // delete a row on Modern UI's behalf: that fails if the patches are not both applied.
+        if (!MorpheSettings.modernUiControls()) dropRow(column, "Full screen media");
 
         ScrollView scroll = new ScrollView(activity);
         scroll.setFillViewport(true);
@@ -151,6 +193,16 @@ public final class MorpheSettingsActivity extends Activity {
         root.addView(scroll, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         return root;
+    }
+
+    private View groupLabel(Activity activity, String text) {
+        TextView label = new TextView(activity);
+        label.setText(text);
+        label.setTextColor(sub);
+        label.setTextSize(12);
+        int side = Math.round(16 * activity.getResources().getDisplayMetrics().density);
+        label.setPadding(side, Math.round(8 * activity.getResources().getDisplayMetrics().density), side, 0);
+        return label;
     }
 
     private View sectionTitle(Activity activity, String text) {
@@ -165,10 +217,26 @@ public final class MorpheSettingsActivity extends Activity {
         return heading;
     }
 
+    private interface ValueAction {
+        void run(TextView value);
+    }
+
+    private View choiceRow(Activity activity, String titleText, String subtitle, ValueAction action) {
+        LinearLayout row = rowShell(activity);
+        LinearLayout text = labels(titleText, subtitle);
+        TextView value = (TextView) text.getChildAt(1);
+        row.addView(text, new LinearLayout.LayoutParams(
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(chevron(activity));
+        row.setOnClickListener(v -> action.run(value));
+        return row;
+    }
+
     private View actionRow(Activity activity, String titleText, String subtitle, Runnable action) {
         LinearLayout row = rowShell(activity);
         row.addView(labels(titleText, subtitle), new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(chevron(activity));
         row.setOnClickListener(v -> action.run());
         return row;
     }
@@ -185,8 +253,8 @@ public final class MorpheSettingsActivity extends Activity {
     }
 
     private void setRowEnabled(View row, boolean enabled) {
+        row.setVisibility(enabled ? View.VISIBLE : View.GONE);
         row.setEnabled(enabled);
-        row.setAlpha(enabled ? 1f : 0.45f);
         if (row instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) row;
             for (int i = 0; i < group.getChildCount(); i++) group.getChildAt(i).setEnabled(enabled);
@@ -217,9 +285,10 @@ public final class MorpheSettingsActivity extends Activity {
         value.setText(MorpheSettings.sizeLabel(MorpheSettings.sizeIndex(activity)));
         int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
         value.setPadding(0, 0, pad, 0);
-        row.addView(labels("Default size", "Default size is small for inline images."),
+        row.addView(labels("Default size", "Starting size for pictures in comments."),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(value);
+        row.addView(chevron(activity));
         row.setOnClickListener(v -> {
             int next = (MorpheSettings.sizeIndex(activity) + 1) % 3;
             MorpheSettings.saveSize(activity, next);
@@ -237,9 +306,10 @@ public final class MorpheSettingsActivity extends Activity {
         value.setText(MorpheSettings.limitLabel(MorpheSettings.mediaLimitMb(activity)));
         int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
         value.setPadding(0, 0, pad, 0);
-        row.addView(labels("GIF size limit", "GIFs over this size will show paused as with autoplay setting."),
+        row.addView(labels("GIF size limit", "GIFs over this size stay paused."),
                 new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(value);
+        row.addView(chevron(activity));
         row.setOnClickListener(v -> pickLimit(activity, value));
         return row;
     }
@@ -247,17 +317,14 @@ public final class MorpheSettingsActivity extends Activity {
     private void pickLimit(Activity activity, TextView value) {
         String[] labels = {"5 MB", "10 MB", "25 MB", "50 MB", "100 MB", "Unlimited", "Custom"};
         int[] values = {5, 10, 25, 50, 100, -1};
-        new android.app.AlertDialog.Builder(activity)
-                .setTitle("GIF size limit")
-                .setItems(labels, (dialog, which) -> {
-                    if (which == labels.length - 1) {
-                        customLimit(activity, value);
-                        return;
-                    }
-                    MorpheSettings.saveLimit(activity, values[which]);
-                    value.setText(MorpheSettings.limitLabel(values[which]));
-                })
-                .show();
+        MorpheDialog.choices(activity, "GIF size limit", labels, -1, which -> {
+            if (which == labels.length - 1) {
+                customLimit(activity, value);
+                return;
+            }
+            MorpheSettings.saveLimit(activity, values[which]);
+            value.setText(MorpheSettings.limitLabel(values[which]));
+        });
     }
 
     private void customLimit(Activity activity, TextView value) {
@@ -268,20 +335,48 @@ public final class MorpheSettingsActivity extends Activity {
         if (current > 0) input.setText(String.valueOf(current));
         int pad = Math.round(20 * activity.getResources().getDisplayMetrics().density);
         input.setPadding(pad, pad, pad, pad);
-        new android.app.AlertDialog.Builder(activity)
-                .setTitle("Custom limit")
-                .setView(input)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    try {
-                        int mb = Integer.parseInt(input.getText().toString().trim());
-                        if (mb < 1) return;
-                        MorpheSettings.saveLimit(activity, mb);
-                        value.setText(MorpheSettings.limitLabel(mb));
-                    } catch (NumberFormatException ignored) {
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+        LinearLayout page = MorpheDialog.page(activity, "Custom limit", "Megabytes");
+        input.setTextColor(MorpheDialog.TEXT);
+        page.addView(input);
+        TextView cancel = MorpheDialog.action(activity, "Cancel", MorpheDialog.SUB);
+        TextView save = MorpheDialog.action(activity, "Save", MorpheDialog.GOLD);
+        page.addView(MorpheDialog.actions(activity, cancel, save));
+        android.app.AlertDialog[] shown = new android.app.AlertDialog[1];
+        cancel.setOnClickListener(v -> {
+            if (shown[0] != null) shown[0].dismiss();
+        });
+        save.setOnClickListener(v -> {
+            try {
+                int mb = Integer.parseInt(input.getText().toString().trim());
+                if (mb < 1) return;
+                MorpheSettings.saveLimit(activity, mb);
+                value.setText(MorpheSettings.limitLabel(mb));
+            } catch (NumberFormatException ignored) {
+            }
+            if (shown[0] != null) shown[0].dismiss();
+        });
+        shown[0] = MorpheDialog.show(activity, page);
+    }
+
+    /** Drops a settings row by its title. Missing rows are left alone. */
+    private static void dropRow(ViewGroup group, String title) {
+        for (int i = group.getChildCount() - 1; i >= 0; i--) {
+            View child = group.getChildAt(i);
+            if (!(child instanceof ViewGroup)) continue;
+            boolean row = child instanceof LinearLayout
+                    && ((LinearLayout) child).getOrientation() == LinearLayout.HORIZONTAL;
+            if (row && hasText((ViewGroup) child, title)) group.removeViewAt(i);
+            else dropRow((ViewGroup) child, title);
+        }
+    }
+
+    private static boolean hasText(ViewGroup group, String title) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof TextView && title.contentEquals(((TextView) child).getText())) return true;
+            if (child instanceof ViewGroup && hasText((ViewGroup) child, title)) return true;
+        }
+        return false;
     }
 
     private LinearLayout labels(String titleText, String subtitle) {
@@ -321,13 +416,55 @@ public final class MorpheSettingsActivity extends Activity {
             Object created = Class.forName("com.google.android.material.materialswitch.MaterialSwitch")
                     .getConstructor(Context.class)
                     .newInstance(activity);
-            if (created instanceof CompoundButton) return (CompoundButton) created;
+            if (created instanceof CompoundButton) return tintSwitch(activity, (CompoundButton) created);
         } catch (Throwable ignored) {
         }
-        return new android.widget.Switch(activity);
+        return tintSwitch(activity, new android.widget.Switch(activity));
+    }
+
+    private CompoundButton tintSwitch(Activity activity, CompoundButton toggle) {
+        if (Build.VERSION.SDK_INT < 21) return toggle;
+        int on = title;
+        int offThumb = sub;
+        int offTrack = 0x66FFFFFF & sub | 0x33000000;
+        android.content.res.ColorStateList thumb = new android.content.res.ColorStateList(
+                new int[][]{{android.R.attr.state_checked}, {}},
+                new int[]{on, offThumb});
+        android.content.res.ColorStateList track = new android.content.res.ColorStateList(
+                new int[][]{{android.R.attr.state_checked}, {}},
+                new int[]{on & 0x00FFFFFF | 0x66000000, offTrack});
+        try {
+            toggle.getClass().getMethod("setThumbTintList", android.content.res.ColorStateList.class)
+                    .invoke(toggle, thumb);
+            toggle.getClass().getMethod("setTrackTintList", android.content.res.ColorStateList.class)
+                    .invoke(toggle, track);
+        } catch (Throwable ignored) {
+            toggle.setButtonTintList(thumb);
+        }
+        return toggle;
+    }
+
+    private TextView chevron(Activity activity) {
+        TextView mark = new TextView(activity);
+        mark.setText("›");
+        mark.setTextColor(sub);
+        mark.setTextSize(22);
+        mark.setGravity(Gravity.CENTER_VERTICAL);
+        int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
+        mark.setPadding(0, 0, pad, 0);
+        return mark;
     }
 
     private void readTheme(Activity activity) {
+        if (ModernUi.isModernUiEnabled(activity)) {
+            ModernUi.Palette palette = ModernUi.getPalette(activity);
+            canvas = palette.canvas;
+            card = palette.container;
+            title = palette.accent;
+            textColor = palette.onSurface;
+            sub = palette.onSurfaceVariant;
+            return;
+        }
         try {
             Class<?> themes = Class.forName("ec.m");
             Object theme = themes.getMethod("d", Context.class).invoke(null, activity);
@@ -340,6 +477,35 @@ public final class MorpheSettingsActivity extends Activity {
         }
     }
 
+    private void applyCardContainer(View view, Activity activity, float density) {
+        if (ModernUi.isModernUiEnabled(activity)) {
+            ModernUi.Palette palette = ModernUi.getPalette(activity);
+            GradientDrawable gd = new GradientDrawable();
+            gd.setCornerRadius(16f * density);
+            gd.setColor(palette.container);
+            gd.setStroke(Math.max(1, Math.round(1f * density)), palette.outline);
+            view.setBackground(gd);
+            if (Build.VERSION.SDK_INT >= 21) {
+                view.setClipToOutline(true);
+            }
+        } else {
+            view.setBackgroundColor(card);
+        }
+    }
+
+    private LinearLayout.LayoutParams cardLayoutParams(Activity activity, float density) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        if (ModernUi.isModernUiEnabled(activity)) {
+            int marginH = Math.round(12 * density);
+            int marginV = Math.round(6 * density);
+            params.setMargins(marginH, marginV, marginH, marginV);
+        } else {
+            params.topMargin = Math.round(12 * density);
+        }
+        return params;
+    }
+
     private static int color(Object theme, String method, int fallback) {
         try {
             Object value = theme.getClass().getMethod(method).invoke(theme);
@@ -348,4 +514,78 @@ public final class MorpheSettingsActivity extends Activity {
         }
         return fallback;
     }
+    private View splashRow(Activity activity) {
+        LinearLayout row = rowShell(activity);
+        TextView value = new TextView(activity);
+        value.setTextColor(title);
+        value.setTextSize(15);
+        value.setGravity(Gravity.CENTER_VERTICAL);
+        value.setText(MorpheSplash.summary(activity));
+        int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
+        value.setPadding(0, 0, pad, 0);
+        row.addView(labels("Splash", "Logo, colour, and animation."),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(value);
+        row.addView(chevron(activity));
+        row.setOnClickListener(v -> MorpheSplash.showPicker(activity, () ->
+                value.setText(MorpheSplash.summary(activity))));
+        return row;
+    }
+
+    private View materialAccentRow(Activity activity) {
+        LinearLayout row = rowShell(activity);
+        TextView value = new TextView(activity);
+        value.setTextColor(title);
+        value.setTextSize(15);
+        value.setGravity(Gravity.CENTER_VERTICAL);
+        String active = ModernUi.getMaterialAccent(activity);
+        if (ModernUi.isPureAmoled(activity) && !ModernUi.ACCENT_AMOLED.equalsIgnoreCase(active)) {
+            active = ModernUi.ACCENT_AMOLED;
+        }
+        value.setText(accentLabel(active));
+        int pad = Math.round(16 * activity.getResources().getDisplayMetrics().density);
+        value.setPadding(0, 0, pad, 0);
+        row.addView(labels("Theme", "Colour for the feed, bars, and buttons."),
+                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(value);
+        row.addView(chevron(activity));
+        row.setOnClickListener(v -> pickMaterialAccent(activity, value));
+        return row;
+    }
+
+    private String accentLabel(String accent) {
+        if (ModernUi.ACCENT_TEAL.equalsIgnoreCase(accent)) return "Aqua";
+        if (ModernUi.ACCENT_PURPLE.equalsIgnoreCase(accent)) return "Purple";
+        if (ModernUi.ACCENT_CORAL.equalsIgnoreCase(accent)) return "Coral";
+        if (ModernUi.ACCENT_MINT.equalsIgnoreCase(accent)) return "Mint";
+        if (ModernUi.ACCENT_GOLD.equalsIgnoreCase(accent)) return "Gold";
+        if (ModernUi.ACCENT_AMBER.equalsIgnoreCase(accent)) return "Amber";
+        if (ModernUi.ACCENT_BLACK.equalsIgnoreCase(accent)) return "Black";
+        if (ModernUi.ACCENT_MONET.equalsIgnoreCase(accent)) return "Sky";
+        if (ModernUi.ACCENT_AMOLED.equalsIgnoreCase(accent)) return "AMOLED black";
+        return "Blue";
+    }
+
+    private View subredditChipsRow(Activity activity) {
+        return actionRow(activity, "Subreddit chips",
+                "Sort, Join, and Community info. Hide takes a chip off the row.",
+                () -> ModernUi.showChips(activity));
+    }
+
+    private View postDetailsRow(Activity activity) {
+        return actionRow(activity, "Post details",
+                "What shows under the title, and the order. Joey's own line until you change it.",
+                () -> PostLayout.showDetails(activity));
+    }
+
+    private void pickMaterialAccent(Activity activity, TextView value) {
+        ModernUi.showSettingsThemePicker(activity, () -> {
+            String active = ModernUi.getMaterialAccent(activity);
+            if (ModernUi.isPureAmoled(activity) && !ModernUi.ACCENT_AMOLED.equalsIgnoreCase(active)) {
+                active = ModernUi.ACCENT_AMOLED;
+            }
+            value.setText(accentLabel(active));
+        });
+    }
+
 }

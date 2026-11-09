@@ -1,3 +1,22 @@
+## [1.3.2](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.1...v1.3.2) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **OpenBubbles:** add classic reply and swipe options ([fca22f5](https://github.com/MrCool-888/mrcool-patches/commit/fca22f5fce5497da1580019ebdd27e05aae9c688))
+* **SmartLauncher:** keep Buds widget layout in sync ([90df9b8](https://github.com/MrCool-888/mrcool-patches/commit/90df9b82099c43cf678ecbf309918f6b1c051cf7))
+
+## [1.3.2-dev.2](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.2-dev.1...v1.3.2-dev.2) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **OpenBubbles:** add classic reply and swipe options ([fca22f5](https://github.com/MrCool-888/mrcool-patches/commit/fca22f5fce5497da1580019ebdd27e05aae9c688))
+
+## [1.3.2-dev.1](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.1...v1.3.2-dev.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **SmartLauncher:** keep Buds widget layout in sync ([90df9b8](https://github.com/MrCool-888/mrcool-patches/commit/90df9b82099c43cf678ecbf309918f6b1c051cf7))
+
 ## [1.3.1](https://github.com/MrCool-888/mrcool-patches/compare/v1.3.0...v1.3.1) (2026-11-04)
 
 ### 🐛 Bug Fixes

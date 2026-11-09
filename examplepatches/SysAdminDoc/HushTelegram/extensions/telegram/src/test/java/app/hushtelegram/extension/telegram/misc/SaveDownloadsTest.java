@@ -79,6 +79,8 @@ public class SaveDownloadsTest {
         Settings.SAVE_TIMED_MEDIA.resetToDefault();
         SettingReadsForTests.mend(Settings.MESSAGE_MENU_SAVE_PROTECTED);
         Settings.MESSAGE_MENU_SAVE_PROTECTED.resetToDefault();
+        SettingReadsForTests.mend(Settings.SAVE_KINDS_LEFT_OUT);
+        Settings.SAVE_KINDS_LEFT_OUT.resetToDefault();
         HookStatus.clear();
         SaveDownloadsForTests.STORED.clear();
         SaveDownloadsForTests.LOOKUPS.clear();
@@ -541,6 +543,109 @@ public class SaveDownloadsTest {
         assertEquals("beach.mp4", downloads.row(2).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
         assertArrayEquals(voice, first.toByteArray());
         assertArrayEquals(video, second.toByteArray());
+    }
+
+    @Test public void whatToCopyReadsTheKindFromTheName() {
+        assertEquals(SaveDownloads.Kind.DOCUMENTS, SaveDownloads.kind("report.pdf", false));
+        assertEquals(SaveDownloads.Kind.DOCUMENTS, SaveDownloads.kind("README", false));
+        assertEquals(SaveDownloads.Kind.DOCUMENTS, SaveDownloads.kind("telegram.apk", true));
+        assertEquals(SaveDownloads.Kind.MUSIC, SaveDownloads.kind("song.MP3", false));
+        assertEquals(SaveDownloads.Kind.MUSIC, SaveDownloads.kind("2_88.ogg", false));
+        // On view-once and timed media, sound is a voice message.
+        assertEquals(SaveDownloads.Kind.VOICE, SaveDownloads.kind("2_88.ogg", true));
+        assertEquals(SaveDownloads.Kind.PHOTOS, SaveDownloads.kind("scan.JPEG", false));
+        assertEquals(SaveDownloads.Kind.VIDEOS, SaveDownloads.kind("beach.mp4", true));
+        for (SaveDownloads.Kind kind : SaveDownloads.Kind.values()) assertTrue("starts ticked: " + kind, SaveDownloads.on(kind));
+
+        // The stored list reads loosely, but only its own written form is taken from a backup.
+        assertEquals(java.util.EnumSet.of(SaveDownloads.Kind.MUSIC, SaveDownloads.Kind.VOICE),
+                SaveDownloads.leftOut(" VOICE, MUSIC ,stickers"));
+        assertEquals("MUSIC,VOICE", SaveDownloads.leftOutValue(SaveDownloads.leftOut("VOICE,MUSIC")));
+        assertTrue(SaveDownloads.allowedLeftOut(""));
+        assertTrue(SaveDownloads.allowedLeftOut("MUSIC,VOICE"));
+        assertFalse(SaveDownloads.allowedLeftOut("VOICE,MUSIC"));
+        assertFalse(SaveDownloads.allowedLeftOut("DOCUMENTS,MUSIC,PHOTOS,VIDEOS,VOICE"));
+        assertFalse(SaveDownloads.allowedLeftOut("stickers"));
+    }
+
+    @Test public void aKindLeftOutOfWhatToCopyStaysInTelegram() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_KINDS_LEFT_OUT.save("DOCUMENTS");
+        File pdf = downloaded("2_51.pdf", "the whole report");
+        SaveDownloads.fileLoaded(0, "2_51.pdf", pdf, pdf());
+        assertTrue(downloads.rows.isEmpty());
+        assertTrue(String.join("\n", HookStatus.report()).contains(SaveDownloads.KIND_LEFT_OUT));
+
+        // A song still goes, and the report once Documents is ticked again.
+        bodyOf(1);
+        ByteArrayOutputStream report = bodyOf(2);
+        SaveDownloads.fileLoaded(0, "2_52.mp3", downloaded("2_52.mp3", "la"),
+                new Message(new Document("2_52.mp3", "song.mp3"), true, false));
+        assertEquals("song.mp3", downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        Settings.SAVE_KINDS_LEFT_OUT.save("");
+        SaveDownloads.fileLoaded(0, "2_51.pdf", pdf, pdf());
+        assertEquals("report.pdf", downloads.row(2).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertEquals("the whole report", report.toString(StandardCharsets.UTF_8.name()));
+    }
+
+    @Test public void photosAndVoiceMessagesFollowTheirOwnTicks() throws Exception {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        Settings.SAVE_TIMED_MEDIA.save(true);
+        Settings.SAVE_KINDS_LEFT_OUT.save("PHOTOS,VOICE");
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "photo"), restrictedPhoto());
+        SaveDownloads.fileLoaded(0, "-5012_34.jpg", encrypted("-5012_34.jpg", media(100)),
+                Message.timedPhoto(new Document("-5012_34.jpg", null), false, false));
+        SaveDownloads.fileLoaded(0, "2_88.ogg", encrypted("2_88.ogg", media(300)),
+                Message.timedDocument(new Document("2_88.ogg", ""), false, false));
+        assertTrue(downloads.rows.isEmpty());
+
+        // Videos is still ticked.
+        byte[] video = media(500);
+        ByteArrayOutputStream body = bodyOf(1);
+        SaveDownloads.fileLoaded(0, "4_90.mp4", encrypted("4_90.mp4", video),
+                Message.timedDocument(new Document("4_90.mp4", "beach.mp4"), false, false));
+        assertEquals(1, downloads.rows.size());
+        assertEquals("beach.mp4", downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertArrayEquals(video, body.toByteArray());
+    }
+
+    @Test public void aQueuedKindLeftOutIsNeverLookedUp() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        Settings.SAVE_RESTRICTED_DOWNLOADS.save(true);
+        Settings.SAVE_KINDS_LEFT_OUT.save("PHOTOS");
+        SaveDownloadsForTests.STORED.put("0:-1002233445566:51", restrictedPhoto());
+        SaveDownloads.fileLoaded(0, "-5012_33.jpg", downloaded("-5012_33.jpg", "overnight"),
+                queuedKey(51, -1002233445566L, SaveDownloads.PHOTO_TYPE));
+        // With every kind a file can be left out, a queued file isn't read either.
+        Settings.SAVE_KINDS_LEFT_OUT.save("DOCUMENTS,MUSIC,PHOTOS,VIDEOS");
+        SaveDownloadsForTests.STORED.put("0:-1002233445566:52", pdf());
+        SaveDownloads.fileLoaded(0, "2_51.pdf", downloaded("2_51.pdf", "pdf"), queuedKey(52, -1002233445566L, SaveDownloads.FILE_TYPE));
+        assertTrue(SaveDownloadsForTests.LOOKUPS.isEmpty());
+        assertTrue(downloads.rows.isEmpty());
+    }
+
+    @Test public void untickingAKindDropsItsWaitingCopiesAndSaveByHandIgnoresIt() throws IOException {
+        Settings.SAVE_DOWNLOADS.save(true);
+        java.util.List<Runnable> queued = new java.util.ArrayList<>();
+        SaveDownloads.work = queued::add;
+        bodyOf(1);
+        File pdf = downloaded("2_51.pdf", "pdf");
+        SaveDownloads.fileLoaded(0, "2_51.pdf", pdf, pdf());
+        SaveDownloads.fileLoaded(0, "2_52.mp3", downloaded("2_52.mp3", "la"),
+                new Message(new Document("2_52.mp3", "song.mp3"), true, false));
+        assertEquals(2, queued.size());
+        Settings.SAVE_KINDS_LEFT_OUT.save("DOCUMENTS");
+        for (Runnable copy : queued) copy.run();
+        assertEquals(1, downloads.rows.size());
+        assertEquals("song.mp3", downloads.row(1).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
+        assertTrue(String.join("\n", HookStatus.report()).contains(SaveDownloads.DROPPED));
+
+        // Save to Downloads in the message menu copies any kind.
+        Settings.MESSAGE_MENU_SAVE_PROTECTED.save(true);
+        bodyOf(2);
+        assertEquals(SaveDownloads.SAVED, SaveDownloads.saveByHand(pdf, "report.pdf", "2_51.pdf"));
+        assertEquals("report.pdf", downloads.row(2).getAsString(MediaStore.MediaColumns.DISPLAY_NAME));
     }
 
     @Test public void aSecretChatsTimedMediaStaysInTelegramWithEverySwitchOn() throws Exception {

@@ -26,6 +26,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import java.util.BitSet
+import app.morphe.util.names.origType
 
 /** Every register an instruction names, in operand order, whether it reads or writes it. */
 fun Instruction.namedRegisters(): List<Int> = when (this) {
@@ -338,7 +339,7 @@ fun Method.readsRegisterAsFloat(index: Int, register: Int): Boolean {
             val field = (instruction as ReferenceInstruction).reference as FieldReference
             (instruction as OneRegisterInstruction).registerA == register &&
                 (instruction !is TwoRegisterInstruction || instruction.registerB != register) &&
-                field.type == "F"
+                field.origType == "F"
         }
         Opcode.RETURN -> returnType == "F" && (instruction as OneRegisterInstruction).registerA == register
         Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_SUPER, Opcode.INVOKE_DIRECT, Opcode.INVOKE_STATIC,

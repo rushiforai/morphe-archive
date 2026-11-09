@@ -15,6 +15,8 @@ public final class IconView extends View {
     public IconView(Context context, int icon, int color) {
         super(context);
         drawable = new Icons.IconDrawable(icon, color);
+        // Icons are decoration: the clickable parent carries the label.
+        setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
     }
 
     public void setIcon(int icon) {

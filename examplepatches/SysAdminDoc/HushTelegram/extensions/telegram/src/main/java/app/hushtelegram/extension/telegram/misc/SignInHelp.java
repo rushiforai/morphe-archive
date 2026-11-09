@@ -57,6 +57,9 @@ public final class SignInHelp {
     @Nullable
     static volatile Boolean passkeyCapable;
 
+    /** Google's status codes for backing out of its account picker: SIGN_IN_CANCELLED and CANCELED. */
+    private static final List<String> GOOGLE_BACKED_OUT = Arrays.asList("12501", "16");
+
     private SignInHelp() {}
 
     /**
@@ -123,7 +126,7 @@ public final class SignInHelp {
         try {
             String code = refusal(error, request);
             if (code == null) return false;
-            Activity activity = (Activity) fragment.getClass().getMethod("getParentActivity").invoke(fragment);
+            Activity activity = (Activity) HostNames.method(fragment.getClass(), "getParentActivity").invoke(fragment);
             if (activity == null || activity.isFinishing()) return false;
             show(activity, code);
             Logger.printInfo(() -> "Explained a sign-in refusal: " + code);
@@ -138,7 +141,7 @@ public final class SignInHelp {
     @Nullable
     static String refusal(Object error, Object request) throws ReflectiveOperationException {
         if (error == null || request == null || !SEND_CODE.equals(request.getClass().getName())) return null;
-        Object text = error.getClass().getField("text").get(error);
+        Object text = HostNames.field(error.getClass(), "text").get(error);
         if (!(text instanceof String)) return null;
         if (((String) text).contains(PUBLISHED_FLOOD)) return PUBLISHED_FLOOD;
         if (((String) text).contains(INVALID)) return INVALID;
@@ -159,6 +162,31 @@ public final class SignInHelp {
         CustomDialog.create(activity, L10n.t(activity, "Telegram refused this app's ID"), message(activity, code),
                 null, L10n.t(activity, "Open the guide"), () -> openGuide(activity), () -> { },
                 null, null, false).first.show();
+    }
+
+    /**
+     * Hooked where the login email screen catches a failed Google sign-in, with what it caught. Telegram
+     * only logs it, so picking an account left the screen sitting there with nothing said (issue #19).
+     * A copy signed with another key always lands here, since Google checks the signature, and so does a
+     * network failure, so the message says only what's true of both.
+     */
+    public static void googleFailed(Object failure) {
+        try {
+            if (googleBackedOut(failure)) return;
+            Context context = Utils.getContext();
+            if (context == null) return;
+            Logger.printInfo(() -> "Google sign-in failed: " + failure);
+            Utils.showToastLong(L10n.t(context, "Google sign-in failed. Type your email above."));
+        } catch (Throwable problem) {
+            Logger.printException(() -> "Couldn't explain a failed Google sign-in", problem);
+        }
+    }
+
+    /** An ApiException's message is its status code, a colon and any text. */
+    static boolean googleBackedOut(Object failure) {
+        String message = failure instanceof Throwable ? ((Throwable) failure).getMessage() : null;
+        int colon = message == null ? -1 : message.indexOf(':');
+        return colon > 0 && GOOGLE_BACKED_OUT.contains(message.substring(0, colon));
     }
 
     static void openGuide(Context context) {

@@ -1,3 +1,15 @@
+## [1.17.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.17.0...v1.17.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* minor fixes ([0699bfa](https://github.com/ShuhaibNC/morphe-patches/commit/0699bfa916b8ae146606055a5034889b8753043a))
+
+## [1.17.1-dev.1](https://github.com/ShuhaibNC/morphe-patches/compare/v1.17.0...v1.17.1-dev.1) (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* minor fixes ([0699bfa](https://github.com/ShuhaibNC/morphe-patches/commit/0699bfa916b8ae146606055a5034889b8753043a))
+
 ## [1.17.0](https://github.com/ShuhaibNC/morphe-patches/compare/v1.16.0...v1.17.0) (2026-11-01)
 
 ### 🐛 Bug Fixes

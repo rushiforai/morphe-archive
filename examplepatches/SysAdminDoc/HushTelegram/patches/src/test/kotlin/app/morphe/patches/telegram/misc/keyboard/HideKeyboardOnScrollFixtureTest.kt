@@ -8,7 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -35,6 +36,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
 import java.lang.ref.SoftReference
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The chat list's scroll listener, every other class that pauses spoilers, and the runtime. */
 class HideKeyboardOnScrollFixtureTest {
@@ -66,7 +71,7 @@ class HideKeyboardOnScrollFixtureTest {
             }
             assertTrue("$name: nothing jumps back to the call", (1 until b.normal.size).none { from -> 0 in b.normal[from] })
             assertEquals("$name: every other listener and spoiler pause", untouched, hostState(build, context, setOf(key(listener))))
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideKeyboardOnScroll" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideKeyboardOnScroll" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -76,10 +81,10 @@ class HideKeyboardOnScrollFixtureTest {
             val mutations: List<Pair<String, (BytecodePatchContext, MutableMethod) -> Unit>> = listOf(
                 "no search keyboard close" to { _, l -> l.replaceInstruction(l.controlBody().indexOfFirst { it.controlRef()?.contains("->hideKeyboard(") == true }, "nop") },
                 "no spoiler pause" to { _, l -> l.replaceInstruction(l.controlBody().indexOfFirst { it.controlRef() == STOP_SPOILERS }, "nop") },
-                "missing build flag" to { c, _ -> c.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "hideKeyboardOnScroll" } },
-                "private scroll hook" to { c, _ -> val h = c.mutableClassDefBy(SCROLL_KEYBOARD).methods.single { it.name == "chatScrolled" }
+                "missing build flag" to { c, _ -> c.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "hideKeyboardOnScroll" } },
+                "private scroll hook" to { c, _ -> val h = c.tgMutableClassDefBy(SCROLL_KEYBOARD).methods.single { it.origName == "chatScrolled" }
                     h.accessFlags = h.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value },
-                "missing scroll hook" to { c, _ -> c.mutableClassDefBy(SCROLL_KEYBOARD).methods.removeAll { it.name == "chatScrolled" } },
+                "missing scroll hook" to { c, _ -> c.tgMutableClassDefBy(SCROLL_KEYBOARD).methods.removeAll { it.origName == "chatScrolled" } },
             )
             for ((case, change) in mutations) {
                 val c = context(build)
@@ -93,10 +98,10 @@ class HideKeyboardOnScrollFixtureTest {
 
     private fun context(build: File) = PatchContexts.of(ExtensionDex.classes() + hosts(build))
     private fun completeState(build: File, c: BytecodePatchContext) = (hosts(build).map { it.type } + listOf(SCROLL_KEYBOARD, SETTINGS_STATUS))
-        .filter { c.classDefByOrNull(it) != null }.associateWith { type -> c.mutableClassDefBy(type).let { cls ->
+        .filter { c.tgClassDefByOrNull(it) != null }.associateWith { type -> c.tgMutableClassDefBy(type).let { cls ->
             listOf(cls.accessFlags, cls.methods.map { key(it) to it.state() }) } }
     private fun hostState(build: File, c: BytecodePatchContext, except: Set<String>) = hosts(build)
-        .flatMap { c.mutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
+        .flatMap { c.tgMutableClassDefBy(it.type).methods }.filter { key(it) !in except }.associate { key(it) to it.state() }
 
     private fun hosts(build: File): List<ClassDef> {
         val identity = FixtureDex.inputIdentity(build)
@@ -109,14 +114,14 @@ class HideKeyboardOnScrollFixtureTest {
     /** Every class that starts or stops spoiler animations: the chat list's listener and the message cells. */
     private fun loadHosts(build: File): List<ClassDef> =
         FixtureDex.classesWhere(build, { true }) { method -> method.controlBody().any { it.controlRef() == START_SPOILERS || it.controlRef() == STOP_SPOILERS } }
-            .filter { it.type != "Lorg/telegram/messenger/NotificationCenter;" }.map(ImmutableClassDef::of)
+            .filter { it.origType != "Lorg/telegram/messenger/NotificationCenter;" }.map(ImmutableClassDef::of)
 
     private fun Method.state(): List<Any?> {
         val body = controlBody(); val flow = if (body.isEmpty()) null else ControlFlow.of(this)
         return listOf(accessFlags, implementation?.registerCount, body.map { it.operand() }, body.map { listOf(it.codeUnits, (it as? OffsetInstruction)?.codeOffset) },
             flow?.normal?.toList(), flow?.exceptional?.toList())
     }
-    private fun Instruction.operand() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString(),
+    private fun Instruction.operand() = listOf(opcode, namedRegisters(), origRef(),
         (this as? WideLiteralInstruction)?.wideLiteral)
     private fun key(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
 

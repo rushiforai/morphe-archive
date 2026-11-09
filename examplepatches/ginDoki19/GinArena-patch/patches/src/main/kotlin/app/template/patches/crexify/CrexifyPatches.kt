@@ -259,7 +259,7 @@ private object Hide : Fingerprint(definingClass = "Landroidx/media3/ui/PlayerVie
 @Suppress("unused")
 val crexifyPlaybackControls = bytecodePatch(
     name = "Hide playback controls at stream open",
-    description = "Hides controls when a stream opens or switches fullscreen. Tap the video to show them.",
+    description = "Keeps playback controls hidden when a stream opens or the player switches between embedded and fullscreen. The controls remain available.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_CREXIFY_TV)

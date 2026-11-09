@@ -1764,7 +1764,7 @@ public class SettingsNavigationTest {
             // Every chooser: sticker size, both filter lists, the title emoji, the translation service and language,
             // and the push app.
             for (String key : Arrays.asList(HushTelegramPreferenceFragment.STICKER_SIZE_ROW, FilterEditor.GROUPS,
-                    FilterEditor.CHANNELS, TitleEmojiEditor.KEY, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY,
+                    FilterEditor.CHANNELS, TitleEmojiEditor.KEY, StorageFolderEditor.KEY, TranslateServiceEditor.KEY, TranslateTargetPicker.KEY,
                     UnifiedPushPicker.KEY)) {
                 Preference row = page.findPreference(key);
                 assertNotNull(key, row);

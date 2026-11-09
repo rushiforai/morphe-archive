@@ -1157,17 +1157,26 @@ try {
         function Get-UiNodes { $script:holdScreens.Dequeue() }
         $reel = [pscustomobject]@{ text = ''; 'content-desc' = 'Tap to show video controls' }
         $sheet = [pscustomobject]@{ text = 'Newest'; 'content-desc' = '' }
+        $loading = @([pscustomobject]@{ text = ''; 'content-desc' = 'Loading' }, [pscustomobject]@{ text = 'Add a comment'; 'content-desc' = 'Add a comment' })
+        $spinner = [pscustomobject]@{ text = ''; 'content-desc' = 'Loading' }
         $cases = @(
             @{ Screens = @(, @($reel)); Backs = 0; Name = 'a hold that opened nothing' },
             @{ Screens = @(, @()); Backs = 0; Name = 'a playing reel' },
             @{ Screens = @(@($sheet), @($reel)); Backs = 1; Name = 'the share sheet' },
             @{ Screens = @(@($sheet), @($sheet), @($reel)); Backs = 2; Name = 'a comment sheet with a focused composer' },
-            @{ Screens = @(@($sheet), @($sheet), @($sheet)); Backs = 3; Name = 'a sheet that never closes' })
+            @{ Screens = @(@($sheet), @($sheet), @($sheet)); Backs = 3; Name = 'a sheet that never closes' },
+            # A reel viewer stopped on a page that never loaded reads the same after the hold as before it.
+            # Its reads, as Get-ScreenText gives them before the hold: each node's text, then its description.
+            @{ Screens = @(, @($loading)); Before = @('Add a comment', 'Loading', 'Add a comment'); Backs = 0; Name = 'a stuck page the hold left as it was' },
+            @{ Screens = @(@($sheet), @($loading)); Before = @('Loading', 'Add a comment', 'Add a comment'); Backs = 1; Name = 'a sheet over a stuck page' },
+            @{ Screens = @(@($loading), @($reel)); Before = @('Loading'); Backs = 1; Name = 'a page that changed under the hold' },
+            @{ Screens = @(@($loading + $spinner), @($loading)); Before = @('Loading', 'Add a comment', 'Add a comment'); Backs = 1; Name = 'a sheet holding only a spinner over a stuck page' },
+            @{ Screens = @(@($loading), @($reel)); Before = @('loading', 'Add a comment', 'Add a comment'); Backs = 1; Name = 'a read that differs only in case' })
         foreach ($case in $cases) {
             $script:holdCalls = [Collections.Generic.List[string]]::new()
             $script:holdScreens = [Collections.Generic.Queue[object]]::new()
             foreach ($screen in $case.Screens) { $script:holdScreens.Enqueue($screen) }
-            $backs = Close-AuditHoldCover
+            $backs = if ($case.Before) { Close-AuditHoldCover $case.Before } else { Close-AuditHoldCover }
             $sent = @($script:holdCalls | Where-Object { $_ -ceq 'shell input keyevent KEYCODE_BACK' }).Count
             Assert-That ($backs -eq $case.Backs -and $sent -eq $case.Backs) "Close-AuditHoldCover sent $sent Back(s) and said $backs for $($case.Name)."
             Assert-That ($script:holdCalls.Count -eq $sent) "Close-AuditHoldCover sent something other than Back for $($case.Name)."

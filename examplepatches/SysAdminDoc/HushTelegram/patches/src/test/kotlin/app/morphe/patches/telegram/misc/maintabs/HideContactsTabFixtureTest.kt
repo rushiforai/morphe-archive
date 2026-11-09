@@ -8,8 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.addInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.telegram.misc.extension.PatchLogCapture
 import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
@@ -32,6 +32,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** Telegram's main screen, its bar and tab views, its pager and the runtime. */
 class HideContactsTabFixtureTest {
@@ -88,8 +90,8 @@ class HideContactsTabFixtureTest {
             }
 
             // The stubs reach the bar, the kept tabs and the pager the way Telegram does.
-            val runtime = context.mutableClassDefBy(MAIN_TABS).methods
-            fun stub(method: String) = runtime.single { it.name == method }.controlBody()
+            val runtime = context.tgMutableClassDefBy(MAIN_TABS).methods
+            fun stub(method: String) = runtime.single { it.origName == method }.controlBody()
             val hide = stub("hideContacts")
             assertEquals(plan.screen, hide.first().controlRef())
             assertEquals(Opcode.CHECK_CAST, hide.first().opcode)
@@ -123,7 +125,7 @@ class HideContactsTabFixtureTest {
             // The screen marks Chats with the animation it was given (p0 and p1, the last of four registers).
             assertEquals(listOf(2, first.namedRegisters()[0], 3), chats.filter { it.opcode == Opcode.INVOKE_VIRTUAL }.last().namedRegisters())
 
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideContactsTab" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideContactsTab" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -167,7 +169,7 @@ class HideContactsTabFixtureTest {
                 assertStock(what, stock, after) { i -> i + 2 * own.count { it.at <= i } }
             }
             for (flag in listOf("hideContactsTab", "compactTabBar", "hideNewMessage")) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
@@ -205,7 +207,7 @@ class HideContactsTabFixtureTest {
             },
             Triple("tab height", "the bar no longer fits its tabs inside its padding") { _, bar ->
                 val measure = bar.sizes[3].method
-                val bottom = measure.controlBody().indexOfFirst { it.call()?.name == "getPaddingBottom" }
+                val bottom = measure.controlBody().indexOfFirst { it.call()?.origName == "getPaddingBottom" }
                 val self = measure.controlBody()[bottom].namedRegisters().single()
                 measure.replaceInstruction(bottom, "invoke-virtual {v$self}, Landroid/view/View;->getPaddingRight()I")
             },
@@ -227,7 +229,7 @@ class HideContactsTabFixtureTest {
                 assertEquals("$what: the bar's sizes stay Telegram's", before, sized.map { method -> method.controlBody().map(::operands) })
                 assertEquals("$what: the Contacts tab is still hidden each time the bar is set", shown + 1, plan.shown.controlBody().size)
                 for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 0L, "sideMenu" to 1L, "hideNewMessage" to 1L)) {
-                    val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                    val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                     assertEquals("$what: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
                 }
             }
@@ -275,8 +277,8 @@ class HideContactsTabFixtureTest {
             assertStock("$name back", backBefore, backAfter) { it + 5 }
 
             // The stubs reach the pager's screen, its backward question, the page turn, the switcher and Telegram's words.
-            val runtime = context.mutableClassDefBy(SIDE_MENU).methods
-            fun stub(method: String) = runtime.single { it.name == method }.controlBody()
+            val runtime = context.tgMutableClassDefBy(SIDE_MENU).methods
+            fun stub(method: String) = runtime.single { it.origName == method }.controlBody()
             val pagerType = plan.pager.substringAfter(":")
             val screenStub = stub("screen")
             assertEquals(listOf(pagerType, plan.screen), screenStub.filter { it.opcode == Opcode.INSTANCE_OF }.map { it.controlRef() })
@@ -286,12 +288,13 @@ class HideContactsTabFixtureTest {
             assertEquals(listOf(plan.slide, plan.mark), stub("turnTo").filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
             assertEquals(listOf(side.accounts), stub("accounts").filter { it.opcode == Opcode.INVOKE_VIRTUAL }.map { it.controlRef() })
             assertEquals("$name: Telegram's word for each row, in order", LABELS.map { "Lorg/telegram/messenger/R\$string;->$it:I" },
-                stub("labels").filter { it.opcode == Opcode.SGET }.map { it.controlRef() })
+                // A build that inlines its string ids loads each one as a number instead.
+                stub("labels").filter { it.opcode == Opcode.SGET || it.opcode == Opcode.CONST }.mapNotNull { it.controlRef() })
             assertEquals(side.currentAccount, stub("selfId").first { it.opcode == Opcode.INVOKE_VIRTUAL }.controlRef())
             assertEquals(Opcode.RETURN_WIDE, stub("selfId").last().opcode)
             assertTrue(name, stub("selfName").any { it.controlRef()?.startsWith("Lorg/telegram/messenger/UserObject;->getUserName(") == true })
 
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "sideMenu" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "sideMenu" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -301,14 +304,14 @@ class HideContactsTabFixtureTest {
             val name = build.name
             val context = PatchContexts.of(ExtensionDex.classes() + hosts(build, leaveOut = setOf(LAUNCHER)))
             val plan = context.resolveMainTabs()
-            val start = context.mutableClassDefBy(plan.swipeStart.substringBefore("->")).methods
+            val start = context.tgMutableClassDefBy(plan.swipeStart.substringBefore("->")).methods
                 .single { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" == plan.swipeStart }
             val before = start.controlBody().map(::operands)
             assertEquals(name, listOf("Hide Contacts tab: Telegram's main activity is gone. The patch goes on without the side menu."),
                 PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
             assertEquals("$name: the swipe start stays Telegram's", before, start.controlBody().map(::operands))
             for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 0L, "hideNewMessage" to 1L)) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
@@ -324,7 +327,7 @@ class HideContactsTabFixtureTest {
             val stock = ImmutableMethod.of(method).controlBody()
             val animation = found.animation!!
             val animationStock = ImmutableMethod.of(animation).controlBody()
-            val buttonClass = context.mutableClassDefBy(animation.definingClass)
+            val buttonClass = context.tgMutableClassDefBy(animation.definingClass)
             val neighboringMethods = buttonClass.methods.filter { it != animation }.associateWith { it.controlBody().map(::operands) }
             assertEquals("$name: the compose icon", COMPOSE_ICON, stock[found.at].controlRef())
             assertEquals("$name: the picture is set on the button right after", listOf(found.register),
@@ -359,7 +362,7 @@ class HideContactsTabFixtureTest {
             for ((other, before) in neighboringMethods) {
                 assertEquals("$name: ${other.name} stays native", before, other.controlBody().map(::operands))
             }
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideNewMessage" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideNewMessage" }.controlBody()
             assertEquals("$name: hideNewMessage", 1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -403,7 +406,7 @@ class HideContactsTabFixtureTest {
 
     private fun assertNewMessageUnavailable(context: BytecodePatchContext, name: String) {
         for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 0L)) {
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
             assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }
@@ -422,7 +425,7 @@ class HideContactsTabFixtureTest {
                 "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
             assertEquals("$name: the chat list stays Telegram's", before, method.controlBody().map(::operands))
             for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 0L)) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
@@ -435,7 +438,7 @@ class HideContactsTabFixtureTest {
             assertEquals(name, listOf("Hide Contacts tab: the chat list no longer sets its new message button in one place (0). " +
                 "The patch goes on without the new message switch."), PatchLogCapture.warnings { hideContactsTabPatch.execute(context) })
             for ((flag, value) in listOf("hideContactsTab" to 1L, "compactTabBar" to 1L, "sideMenu" to 1L, "hideNewMessage" to 0L)) {
-                val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == flag }.controlBody()
+                val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == flag }.controlBody()
                 assertEquals("$name: $flag", value, (status.first() as WideLiteralInstruction).wideLiteral)
             }
         }
@@ -465,10 +468,12 @@ class HideContactsTabFixtureTest {
         if (withChatList) {
             val chatLists = FixtureDex.classesWhere(build, { true }, ::isChatListButton)
             chatLists.forEach { loaded[it.type] = it }
-            val buttonTypes = chatLists.flatMap { cls -> cls.methods.filter(::isChatListButton).map { method ->
-                val body = method.controlBody()
-                body[body.indexOfFirst { it.controlRef() == COMPOSE_ICON } + 1].call()!!.definingClass
-            } }.toSet()
+            val buttonTypes = FixtureDex.namedBy(build) {
+                chatLists.flatMap { cls -> cls.methods.filter(::isChatListButton).map { method ->
+                    val body = method.controlBody()
+                    body[body.indexOfFirst { it.controlRef() == COMPOSE_ICON } + 1].call()!!.definingClass
+                } }.toSet()
+            }
             loaded.putAll(FixtureDex.classes(build, buttonTypes))
         }
         val asked = HashSet<String>(leaveOut)
@@ -481,7 +486,7 @@ class HideContactsTabFixtureTest {
                 loaded.values.mapNotNull { it.superclass }
             wanted = named.filter { it.startsWith("L") && isAppType(it) && it !in asked && it !in loaded }.toSet()
         }
-        return if (withChatList) loaded.values else loaded.values.filterNot { cls -> cls.methods.any(::isChatListButton) }
+        return if (withChatList) loaded.values else FixtureDex.namedBy(build) { loaded.values.filterNot { cls -> cls.methods.any(::isChatListButton) } }
     }
 
     /** What the side menu reads beyond the main screen: the activity its links go to, and Telegram's account, name and words. */
@@ -494,7 +499,7 @@ class HideContactsTabFixtureTest {
         body.any { it.controlRef() == COMPOSE_ICON } && body.any { it.controlRef() == NEW_MESSAGE_TITLE }
     }
 
-    private fun isMainBuild(method: Method) = method.name == "createView" && method.controlBody().let { body ->
+    private fun isMainBuild(method: Method) = method.origName == "createView" && method.controlBody().let { body ->
         listOf(CONTACTS_LABEL, CALLS_LABEL, SHOW_CALLS_TAB).all { ref -> body.any { it.controlRef() == ref } }
     }
 }

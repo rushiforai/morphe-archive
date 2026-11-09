@@ -95,6 +95,7 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.PURE_BLACK, "Pure black dark mode");
         ROW_TITLES.put(PatchFamily.HIDE_INSTAGRAM_BUTTON, "Hide the Instagram button");
         ROW_TITLES.put(PatchFamily.HIDE_GHOST_POST_BUBBLES, "Hide ghost post bubbles");
+        ROW_TITLES.put(PatchFamily.FULL_SIZE_PROFILE_PICTURES, "Full size profile pictures");
         ROW_TITLES.put(PatchFamily.EXACT_POST_TIMES, "Show the date and time");
         ROW_TITLES.put(PatchFamily.FILTER_COMMENTS, "Filter comments");
         ROW_TITLES.put(PatchFamily.REMOVE_AD_ID, "Advertising ID removed");
@@ -102,6 +103,8 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.VERSION_CODE, "Version code raised");
         ROW_TITLES.put(PatchFamily.REMOVE_SHARE_TARGETS, "Share sheet entry removed");
         ROW_TITLES.put(PatchFamily.TRUST_USER_CERTIFICATES, "User certificates trusted");
+        ROW_TITLES.put(PatchFamily.CHANGE_PACKAGE_NAME, "Own package name");
+        ROW_TITLES.put(PatchFamily.CHANGE_APP_NAME, "Own app name");
     }
 
     /** The sections every build has, in the order they're drawn. */
@@ -213,13 +216,15 @@ public class HushThreadsPreferenceFragmentTest {
                 if (build.contains(PatchFamily.FILTER_COMMENTS)) expected.add("Comments");
                 if (build.contains(PatchFamily.SAVE_MEDIA)) expected.add("Downloads");
                 if (build.contains(PatchFamily.PURE_BLACK) || build.contains(PatchFamily.HIDE_INSTAGRAM_BUTTON)
-                        || build.contains(PatchFamily.HIDE_GHOST_POST_BUBBLES)) {
+                        || build.contains(PatchFamily.HIDE_GHOST_POST_BUBBLES)
+                        || build.contains(PatchFamily.FULL_SIZE_PROFILE_PICTURES)) {
                     expected.add("Appearance");
                 }
                 expected.addAll(EVERY_BUILD.subList(0, 3));
                 if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)
                         || build.contains(PatchFamily.VERSION_CODE) || build.contains(PatchFamily.REMOVE_SHARE_TARGETS)
-                        || build.contains(PatchFamily.TRUST_USER_CERTIFICATES)) {
+                        || build.contains(PatchFamily.TRUST_USER_CERTIFICATES)
+                        || build.contains(PatchFamily.CHANGE_PACKAGE_NAME) || build.contains(PatchFamily.CHANGE_APP_NAME)) {
                     expected.add("Set when you patched");
                 }
                 expected.addAll(EVERY_BUILD.subList(3, EVERY_BUILD.size()));
@@ -285,6 +290,11 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top "
                 + "of your feed. Restart Threads to see the change.",
                     String.valueOf(page.findPreference(Settings.HIDE_GHOST_POST_BUBBLES.key).getSummary()));
+            // Read each time a picture opens, so its summary carries no restart line.
+            assertEquals("Full size profile pictures", String.valueOf(page.findPreference(Settings.FULL_SIZE_PROFILE_PICTURES.key).getTitle()));
+            assertEquals("A profile picture you open on a profile shows full size, where you can zoom in and save it, "
+                + "instead of the small circle.",
+                    String.valueOf(page.findPreference(Settings.FULL_SIZE_PROFILE_PICTURES.key).getSummary()));
             assertEquals("Show the date and time", String.valueOf(page.findPreference(Settings.EXACT_POST_TIMES.key).getTitle()));
             assertEquals("Posts and replies show the date and time they went up instead of 3h or 2d, in your phone's "
                 + "12 or 24-hour format.", String.valueOf(page.findPreference(Settings.EXACT_POST_TIMES.key).getSummary()));
@@ -305,12 +315,12 @@ public class HushThreadsPreferenceFragmentTest {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The ones that joined it later start off, so a default build looks like Threads, and so
-            // do Hide the Instagram button, Hide ghost post bubbles, Disable swipe to Search and Show
-            // exact post times, which came after.
+            // do Hide the Instagram button, Hide ghost post bubbles, Disable swipe to Search, Show
+            // exact post times and Full size profile pictures, which came after.
             for (BooleanSetting setting : Arrays.asList(Settings.BLOCK_RETURN_REFRESH, Settings.DISABLE_VIDEO_AUTOPLAY,
                     Settings.MAX_IMAGE_QUALITY, Settings.DISABLE_SCREENSHOT_DETECTION, Settings.PURE_BLACK,
                     Settings.HIDE_INSTAGRAM_BUTTON, Settings.HIDE_GHOST_POST_BUBBLES, Settings.DISABLE_SWIPE_TO_SEARCH,
-                    Settings.EXACT_POST_TIMES)) {
+                    Settings.EXACT_POST_TIMES, Settings.FULL_SIZE_PROFILE_PICTURES)) {
                 assertFalse(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The time limit holds until someone lifts it.

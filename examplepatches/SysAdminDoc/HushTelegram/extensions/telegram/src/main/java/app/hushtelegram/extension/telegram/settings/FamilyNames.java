@@ -84,6 +84,8 @@ public final class FamilyNames {
     public static final String DISABLE_UPDATE_CHECKS = "Disable update checks";
     public static final String REPAIR_FIREBASE_PUSH = "Repair Firebase push registration";
     public static final String UNIFIED_PUSH = "UnifiedPush notifications";
+    public static final String TEST_SERVER_SIGN_IN = "Test server sign-in";
+    public static final String BOT_TOKEN_SIGN_IN = "Bot token sign-in";
 
     private FamilyNames() {
     }

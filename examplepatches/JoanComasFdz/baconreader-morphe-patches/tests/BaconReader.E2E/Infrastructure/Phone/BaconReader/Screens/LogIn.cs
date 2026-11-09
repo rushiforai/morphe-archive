@@ -15,6 +15,8 @@ public sealed class LogIn(AndroidDriver driver)
     private static readonly OpenQA.Selenium.By WebPage = Locate.WebPage();
     private static readonly OpenQA.Selenium.By UserName = Locate.WebFieldIn("login-username");
     private static readonly OpenQA.Selenium.By Password = Locate.WebFieldIn("login-password");
+    private static readonly OpenQA.Selenium.By FocusedUserName = Locate.FocusedWebFieldIn("login-username");
+    private static readonly OpenQA.Selenium.By FocusedPassword = Locate.FocusedWebFieldIn("login-password");
     private static readonly OpenQA.Selenium.By LogInButton = Locate.ButtonWithText("Log In");
     private static readonly OpenQA.Selenium.By Connect = Locate.TextContaining("would like to connect with your reddit account");
     private static readonly OpenQA.Selenium.By Accept = Locate.ButtonWithText("Accept");
@@ -24,10 +26,16 @@ public sealed class LogIn(AndroidDriver driver)
         Waiting.UntilShownAsync(driver, UserName, TimeSpan.FromSeconds(10), "Reddit's \"Log In\"");
 
     /// <summary>Types the test account's user name (<see cref="TestAccount"/>) in "Email or username".</summary>
-    public Task TypeTheTestAccountsUserNameAsync() => TypeAsync(UserName, TestAccount.UserName);
+    public Task TypeTheTestAccountsUserNameAsync() => TypeAsync(UserName, FocusedUserName, TestAccount.UserName);
 
     /// <summary>Types the test account's password (<see cref="TestAccount"/>) in "Password".</summary>
-    public Task TypeTheTestAccountsPasswordAsync() => TypeAsync(Password, TestAccount.Password);
+    public Task TypeTheTestAccountsPasswordAsync() => TypeAsync(Password, FocusedPassword, TestAccount.Password);
+
+    /// <summary>Types <paramref name="user"/>, a second account's user name, in "Email or username".</summary>
+    public Task TypeUserNameAsync(string user) => TypeAsync(UserName, FocusedUserName, user);
+
+    /// <summary>Types the password of the second account <paramref name="user"/> (<see cref="SecondAccount"/>) in "Password".</summary>
+    public Task TypePasswordOfAsync(string user) => TypeAsync(Password, FocusedPassword, SecondAccount.PasswordOf(user));
 
     /// <summary>Taps "Log In" (the button, not the title above the form).</summary>
     public Task ClickLogInAsync() => OnScreen.PressAsync(driver, LogInButton);
@@ -55,16 +63,14 @@ public sealed class LogIn(AndroidDriver driver)
     // by key, the keyboard turned "e2e_user"'s "_" into "." and the login page closed. The fake Reddit, unlike Reddit,
     // takes a login whose fields were filled in without a key pressed. On the emulator the web view at times handed
     // Android new views between two of those steps, and it started again; on the Pixel 6 Pro it never did in 4 runs of
-    // every scenario (2026-10-31).
-    private async Task TypeAsync(OpenQA.Selenium.By field, string text)
+    // every scenario (2026-10-31). Each wait hands the field it found to the step after it (OnScreen), and the field
+    // with the focus is found as such: one round trip a look, not two.
+    private async Task TypeAsync(OpenQA.Selenium.By field, OpenQA.Selenium.By focused, string text)
     {
         await Waiting.UntilShownAsync(driver, field, TimeSpan.FromSeconds(10), "Reddit's login field");
         await OnScreen.PressAsync(driver, field);
-        await Waiting.UntilAsync(
-            () => driver.FindElements(field).Any(element => element.GetAttribute("focused") == "true"),
-            TimeSpan.FromSeconds(10),
-            "Reddit's login field taking the focus");
-        await OnScreen.ActAsync(driver, field, element => element.SendKeys(text));
+        await Waiting.UntilShownAsync(driver, focused, TimeSpan.FromSeconds(10), "Reddit's login field taking the focus");
+        await OnScreen.ActAsync(driver, focused, element => element.SendKeys(text));
     }
 }
 

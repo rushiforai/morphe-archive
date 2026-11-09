@@ -14,7 +14,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.1](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.8.1](https://github.com/callMeBeyonder/morphe-patches/releases/tag/v1.8.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 HealthifyMe&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -62,6 +62,36 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium](#unlock-premium) | Unlocks the Pro surfaces that are computed on-device (Strength Score, per-muscle volume heatmap, auto-progression and the analytics screens) by reporting an active RevenueCat entitlement to the app's JavaScript layer. Server-delivered coach programs still require a real subscription. |  |
+
+</details>
+
+<details open>
+<summary>📦 Carbon&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.77.6010 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks Carbon Premium by forcing the app's `isSubscribed` reads to true, stubbing `hasActiveSubscription()` and the RevenueCat entitlement readers (`activeProductId()`, `activeProductPlanId()`, `subscriptionState()`) to a canned active yearly entitlement. Account data the server owns is not affected. |  |
+
+</details>
+
+<details open>
+<summary>📦 Crossrope&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 9.3.9 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Reports the account as premium by forcing the stored `is_premium` check to true and the `membership_tier` getter to the `Standard` tier, which unlocks the paid workout, class, program, benchmark and profile surfaces. Billing is untouched; media the server refuses to serve to free accounts may still fail to load. |  |
 
 </details>
 

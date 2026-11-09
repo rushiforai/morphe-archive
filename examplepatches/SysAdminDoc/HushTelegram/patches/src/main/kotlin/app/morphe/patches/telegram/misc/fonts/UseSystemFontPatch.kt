@@ -4,8 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.fonts
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
@@ -36,6 +36,12 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val SYSTEM_FONT = "$EXTENSION_PACKAGE/misc/SystemFont;"
 internal const val ANDROID_UTILITIES = "Lorg/telegram/messenger/AndroidUtilities;"
@@ -121,9 +127,9 @@ internal fun BytecodePatchContext.resolveSystemFont(): SystemFontSite {
     requireStatusMethod("useSystemFont")
     controlHook(SYSTEM_FONT, "typeface", listOf(STRING), TYPEFACE)
 
-    val owner = mutableClassDefByOrNull(ANDROID_UTILITIES)
+    val owner = tgMutableClassDefByOrNull(ANDROID_UTILITIES)
     controlShape(owner != null, "AndroidUtilities is missing")
-    val loader = owner!!.methods.filter { it.toString() == GET_TYPEFACE }.controlSingle("asset font loader")
+    val loader = owner!!.methods.filter { it.origString() == GET_TYPEFACE }.controlSingle("asset font loader")
     controlShape(AccessFlags.STATIC.isSet(loader.accessFlags), "the asset font loader is no longer static")
     val body = loader.controlBody()
     val asset = loader.localRegisterCount()
@@ -139,7 +145,7 @@ internal fun BytecodePatchContext.resolveSystemFont(): SystemFontSite {
     // Every screen that names one of the Roboto files hands it to this loader.
     val strays = mutableListOf<String>()
     forEachClassMentioning(Mention.anyOf(ROBOTO_ASSETS.map { Mention.string(it) })) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { method ->
             val methodBody = method.controlBody()
             if (methodBody.any { it.controlString() in ROBOTO_ASSETS } && methodBody.none { it.controlRef() == GET_TYPEFACE }) {
@@ -155,7 +161,7 @@ internal fun BytecodePatchContext.resolveSystemFont(): SystemFontSite {
     val chains = mutableMapOf<String, List<BuiltChain>>()
     val unbuilt = mutableListOf<String>()
     forEachClassMentioning(Mention.anyOf(BUILT_ASSETS.map { Mention.string(it) })) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { method ->
             val methodBody = method.controlBody()
             if (methodBody.none { it.controlString() in BUILT_ASSETS }) return@forEach
@@ -166,7 +172,7 @@ internal fun BytecodePatchContext.resolveSystemFont(): SystemFontSite {
     }
     controlShape(unbuilt.isEmpty(), "a Wallet font is built outside a known Typeface.Builder chain (${unbuilt.take(3).joinToString()})")
     val built = chains.flatMap { (key, found) ->
-        val method = mutableClassDefBy(key.substringBefore("->")).methods.single { it.toString() == key }
+        val method = tgMutableClassDefBy(key.substringBefore("->")).methods.single { it.toString() == key }
         found.map { BuiltFontSite(method, it.result, it.asset, it.face) }
     }
 
@@ -199,7 +205,7 @@ private fun builtChain(method: Method, start: Int): BuiltChain? {
                 controlShape(body.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT, "$name's built font is dropped")
                 result = at + 1
             }
-            call != null && call.definingClass == BUILDER && call.returnType == BUILDER &&
+            call != null && call.origDefiningClass == BUILDER && call.origReturnType == BUILDER &&
                 step.opcode == Opcode.INVOKE_VIRTUAL && step.namedRegisters().first() == current -> {
                 controlShape(body.getOrNull(at + 1)?.opcode == Opcode.MOVE_RESULT_OBJECT, "$name's font builder loses its chain")
                 current = body[at + 1].namedRegisters().single()

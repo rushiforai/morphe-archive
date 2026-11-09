@@ -4,6 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.drafts
 
+import app.morphe.util.names.origParameterTypes
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -39,6 +40,15 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import java.util.BitSet
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origInterfaces
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origSuperclass
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Disable draft link previews"
 internal const val WEB_PAGE_PREVIEW = "Lorg/telegram/tgnet/tl/TL_account\$getWebPagePreview;"
@@ -149,20 +159,20 @@ internal fun BytecodePatchContext.resolveDraftPreviewHooks(): Map<DraftPreviewTa
     requireRuntimeHooks()
     val builders = mutableListOf<Method>()
     forEachClassMentioning(Mention.reference(WEB_PAGE_PREVIEW)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         classDef.methods.filterTo(builders) { it.constructs(WEB_PAGE_PREVIEW) }
     }
     val found = DraftPreviewTarget.entries.associateWith { mutableListOf<Method>() }
     for (builder in builders) {
         val target = when {
-            builder.definingClass == MESSAGES_CONTROLLER && builder.name == "reloadWebPages" -> null
+            builder.origDefiningClass == MESSAGES_CONTROLLER && builder.origName == "reloadWebPages" -> null
             builder.isStatic() && builder.params().take(2) == listOf("Landroid/content/Context;", "Landroid/net/Uri;") -> null
             builder.isStatic() && builder.hasShape(listOf(builder.definingClass, CHAR_SEQUENCE, MESSAGES_CONTROLLER, "Z"), "V") -> DraftPreviewTarget.CHAT
             !builder.isStatic() && builder.hasShape(listOf(CHAR_SEQUENCE, "Z"), "V") -> DraftPreviewTarget.SHARE
-            !builder.isStatic() && builder.returnType == "V" && builder.params().size == 2 && builder.params()[0] == "I" -> DraftPreviewTarget.POLL
-            builder.isStatic() && builder.hasShape(listOf(builder.definingClass), "V") -> DraftPreviewTarget.STORY
-            !builder.isStatic() && builder.name == "run" && builder.hasShape(emptyList(), "V") &&
+            !builder.isStatic() && builder.origReturnType == "V" && builder.params().size == 2 && builder.params()[0] == "I" -> DraftPreviewTarget.POLL
+            !builder.isStatic() && builder.origName == "run" && builder.hasShape(emptyList(), "V") &&
                 builder.instructions().any { it.opcode == Opcode.INSTANCE_OF && it.reference() == BOT_WEB_PAGE } -> DraftPreviewTarget.BOT_SHARE
+            builder.storySheet() != null -> DraftPreviewTarget.STORY
             else -> refuse("unknown link preview builder ${builder.definingClass}->${builder.name}")
         }
         if (target != null) found.getValue(target) += builder
@@ -170,7 +180,7 @@ internal fun BytecodePatchContext.resolveDraftPreviewHooks(): Map<DraftPreviewTa
     val hooks = linkedMapOf<DraftPreviewTarget, DraftPreviewHook>()
     for ((target, matches) in found) {
         val match = matches.one("$target preview builder", ::refuse)
-        val method = mutableClassDefBy(match.definingClass).methods.single { it.sameSignature(match) }
+        val method = tgMutableClassDefBy(match.definingClass).methods.single { it.sameSignature(match) }
         hooks[target] = when (target) {
             DraftPreviewTarget.CHAT -> chatHook(method)
             DraftPreviewTarget.SHARE -> shareHook(method)
@@ -189,19 +199,19 @@ private fun chatHook(method: MutableMethod): DraftPreviewHook {
     val fragment = method.parameterRegisterNumber(0)
     val request = requestSite(method)
     val secret = body.indices.filter { body[it].opcode == Opcode.IGET_OBJECT && body[it].field()?.let { field ->
-        field.definingClass == method.definingClass && field.type == ENCRYPTED_CHAT } == true }.one("chat secret-chat read", ::refuse)
+        field.origDefiningClass == method.origDefiningClass && field.origType == ENCRYPTED_CHAT } == true }.one("chat secret-chat read", ::refuse)
     val secretBranch = secret + 1
     val mode = secret + 2
     shape(body[secret].namedRegisters() == listOf(body[secret].namedRegisters()[0], fragment) &&
         body.getOrNull(secretBranch)?.opcode == Opcode.IF_EQZ && body[secretBranch].namedRegisters() == listOf(body[secret].namedRegisters()[0]) &&
         request in ControlFlow.of(method).normal[secretBranch] &&
-        body.getOrNull(mode)?.opcode == Opcode.IGET && body[mode].field()?.let { it.definingClass == MESSAGES_CONTROLLER && it.name == "secretWebpagePreview" } == true &&
+        body.getOrNull(mode)?.opcode == Opcode.IGET && body[mode].field()?.let { it.origDefiningClass == MESSAGES_CONTROLLER && it.origName == "secretWebpagePreview" } == true &&
         body[mode].namedRegisters()[1] == method.parameterRegisterNumber(2), "secret-chat preview question no longer leads to the request")
     // A draft with no links stores the empty result and posts Telegram's own clear. That one sits in the
     // link search's try block, whose handler reads registers the hook holds differently, so a skip goes to
     // the same clear Telegram posts after the block for text too short to hold a link.
     val store = body.indices.filter { body[it].opcode == Opcode.IPUT_OBJECT && body[it].field()?.let { field ->
-        field.definingClass == method.definingClass && field.type == ARRAY_LIST } == true &&
+        field.origDefiningClass == method.origDefiningClass && field.origType == ARRAY_LIST } == true &&
         body[it].namedRegisters().getOrNull(1) == fragment }.one("found link list store", ::refuse)
     val noLinks = store + 1
     shape(body.getOrNull(noLinks)?.opcode == Opcode.IF_NEZ && body[noLinks].namedRegisters() == listOf(body[store].namedRegisters()[0]) &&
@@ -225,8 +235,8 @@ private fun shareHook(method: MutableMethod): DraftPreviewHook {
     val body = method.instructions()
     val flow = ControlFlow.of(method)
     val request = requestSite(method)
-    val join = body.indices.filter { body[it].call()?.let { call -> call.definingClass == "Landroid/text/TextUtils;" &&
-        call.name == "join" && call.hasShape(listOf(CHAR_SEQUENCE, "Ljava/lang/Iterable;"), STRING) } == true }.one("share link join", ::refuse)
+    val join = body.indices.filter { body[it].call()?.let { call -> call.origDefiningClass == "Landroid/text/TextUtils;" &&
+        call.origName == "join" && call.hasShape(listOf(CHAR_SEQUENCE, "Ljava/lang/Iterable;"), STRING) } == true }.one("share link join", ::refuse)
     val index = join - 1
     val skip = index - 1
     val emptyBranch = index - 2
@@ -237,25 +247,25 @@ private fun shareHook(method: MutableMethod): DraftPreviewHook {
         body[join].namedRegisters() == listOf(body[index].namedRegisters()[0], links) &&
         body.getOrNull(skip)?.opcode in GOTOS && body.getOrNull(emptyBranch)?.opcode == Opcode.IF_EQZ &&
         index in flow.normal[emptyBranch] && body.getOrNull(nullBranch)?.opcode == Opcode.IF_EQZ &&
-        body.getOrNull(empty)?.call()?.let { it.definingClass == ARRAY_LIST && it.name == "isEmpty" } == true &&
+        body.getOrNull(empty)?.call()?.let { it.origDefiningClass == ARRAY_LIST && it.origName == "isEmpty" } == true &&
         body[empty].namedRegisters() == listOf(links), "share link presence checks changed")
     val finish = flow.normal[skip].single()
     shape(finish in flow.normal[nullBranch] && finish > request, "share no-link reset is no longer shared")
     // The reset cancels the pending request and drops the preview it held.
     val thisRegister = method.parameterRegisterNumber(0) - 1
-    shape(body[finish].call()?.let { it.definingClass == method.definingClass && it.hasShape(emptyList(), "V") } == true &&
+    shape(body[finish].call()?.let { it.origDefiningClass == method.origDefiningClass && it.hasShape(emptyList(), "V") } == true &&
         body[finish].namedRegisters() == listOf(thisRegister) && body.getOrNull(finish + 1)?.opcode == Opcode.IPUT_OBJECT &&
-        body[finish + 1].field()?.let { it.definingClass == method.definingClass && it.type == WEB_PAGE } == true,
+        body[finish + 1].field()?.let { it.origDefiningClass == method.origDefiningClass && it.origType == WEB_PAGE } == true,
         "share no-link reset changed")
     // The sheet keeps the links it last saw in a list it empties and refills before the hook. A
     // draft with none leaves it empty, and so does a skip, so the same links fetch once the switch is off.
-    val reset = body.indices.filter { body[it].call()?.let { call -> call.definingClass == ARRAY_LIST && call.name == "clear" &&
+    val reset = body.indices.filter { body[it].call()?.let { call -> call.origDefiningClass == ARRAY_LIST && call.origName == "clear" &&
         call.parameterTypes.isEmpty() } == true }.one("share link list reset", ::refuse)
     val held = body[reset].namedRegisters().single()
     val load = (reset - 1 downTo 0).firstOrNull { held in body[it].writes() } ?: refuse("share link list isn't loaded")
     shape(reset < index && body[load].opcode == Opcode.IGET_OBJECT && body[load].namedRegisters()[1] == thisRegister &&
-        body[load].field()?.let { it.definingClass == method.definingClass && it.type == ARRAY_LIST } == true &&
-        body.getOrNull(reset + 2)?.call()?.let { it.definingClass == ARRAY_LIST && it.name == "addAll" } == true &&
+        body[load].field()?.let { it.origDefiningClass == method.origDefiningClass && it.origType == ARRAY_LIST } == true &&
+        body.getOrNull(reset + 2)?.call()?.let { it.origDefiningClass == ARRAY_LIST && it.origName == "addAll" } == true &&
         body[reset + 2].namedRegisters() == listOf(held, links), "share link list no longer holds the links it saw")
     shape(thisRegister <= 15, "share sheet register v$thisRegister is out of iget-object's reach")
     method.requireThisIntact(PATCH, listOf(index))
@@ -269,7 +279,7 @@ private fun pollHook(method: MutableMethod): DraftPreviewHook {
     val body = method.instructions()
     val flow = ControlFlow.of(method)
     val request = requestSite(method)
-    val contains = body.indices.filter { body[it].call()?.let { call -> call.definingClass == HASH_MAP && call.name == "containsKey" } == true }
+    val contains = body.indices.filter { body[it].call()?.let { call -> call.origDefiningClass == HASH_MAP && call.origName == "containsKey" } == true }
     shape(contains.size == 2, "poll preview loader has ${contains.size} cache checks")
     val (cached, loading) = contains
     val cachedBranch = cached + 2
@@ -289,23 +299,38 @@ private fun pollHook(method: MutableMethod): DraftPreviewHook {
     val thisRegister = method.parameterRegisterNumber(0) - 1
     val check = body.getOrNull(finish + 1)?.call()
     shape(body[finish].opcode == Opcode.CONST_4 && (body[finish] as NarrowLiteralInstruction).narrowLiteral == 0 &&
-        check != null && check.definingClass == method.definingClass && check.returnType == "V" &&
+        check != null && check.origDefiningClass == method.origDefiningClass && check.origReturnType == "V" &&
         check.params() == listOf(linkType, "Z") &&
         body[finish + 1].namedRegisters() == listOf(thisRegister, linkRegister, body[finish].namedRegisters()[0]) &&
         link < cached, "poll link check without preview changed")
     return gate(DraftPreviewTarget.POLL, method, index, finish, request)
 }
 
+/**
+ * The story link sheet a preview builder belongs to: its own class for 13.1.1's static builder, or,
+ * where 13.2 inlines that builder into the runnable the sheet posts, the sheet that runnable captured
+ * and reads right after making the request. Null for any other builder.
+ */
+internal fun Method.storySheet(): String? {
+    if (isStatic()) return definingClass.takeIf { hasShape(listOf(definingClass), "V") }
+    if (origName != "run" || !hasShape(emptyList(), "V")) return null
+    val body = instructions()
+    val request = body.indexOfFirst { it.opcode == Opcode.NEW_INSTANCE && it.reference() == WEB_PAGE_PREVIEW }
+    val read = body.getOrNull(request + 2)?.takeIf { request >= 0 && it.opcode == Opcode.IGET_OBJECT } ?: return null
+    val field = read.field() ?: return null
+    return field.type.takeIf { field.definingClass == definingClass && read.namedRegisters()[1] == implementation!!.registerCount - 1 }
+}
+
 /** The story link sheet: the builder is a delayed runnable, so the hook sits where its URL check would post it. */
 private fun BytecodePatchContext.storyHook(builder: MutableMethod): DraftPreviewHook {
-    val sheet = builder.definingClass
-    val checks = mutableClassDefBy(sheet).methods.filter { it.isStatic() && it.hasShape(listOf(sheet, STRING), "V") &&
-        it.instructions().any { instruction -> instruction.call()?.let { call -> call.definingClass == UTILITIES && call.name == "cancelRunOnUIThread" } == true } }
+    val sheet = builder.storySheet()!!
+    val checks = tgMutableClassDefBy(sheet).methods.filter { it.isStatic() && it.hasShape(listOf(sheet, STRING), "V") &&
+        it.instructions().any { instruction -> instruction.call()?.let { call -> call.origDefiningClass == UTILITIES && call.origName == "cancelRunOnUIThread" } == true } }
     val method = checks.one("story link URL check", ::refuse)
     val body = method.instructions()
     val flow = ControlFlow.of(method)
-    val cancel = body.indices.filter { body[it].call()?.let { call -> call.definingClass == UTILITIES && call.name == "cancelRunOnUIThread" } == true }.one("story preview cancel", ::refuse)
-    val post = body.indices.filter { body[it].call()?.let { call -> call.definingClass == UTILITIES && call.name == "runOnUIThread" &&
+    val cancel = body.indices.filter { body[it].call()?.let { call -> call.origDefiningClass == UTILITIES && call.origName == "cancelRunOnUIThread" } == true }.one("story preview cancel", ::refuse)
+    val post = body.indices.filter { body[it].call()?.let { call -> call.origDefiningClass == UTILITIES && call.origName == "runOnUIThread" &&
         call.hasShape(listOf(RUNNABLE, "J"), "V") } == true }.one("story preview post", ::refuse)
     val runnable = body[cancel].namedRegisters().single()
     shape(body[post].namedRegisters()[0] == runnable, "story URL check posts another runnable")
@@ -313,12 +338,13 @@ private fun BytecodePatchContext.storyHook(builder: MutableMethod): DraftPreview
     shape(body[load].opcode == Opcode.IGET_OBJECT && (load + 1 until post).none { runnable in body[it].writes() },
         "story URL check doesn't post the runnable it read")
     val runnableType = body[load].field()!!.type
-    shape(body[load].namedRegisters()[1] == method.parameterRegisterNumber(0) &&
-        classDefByOrNull(runnableType)?.methods?.any { it.name == "run" && it.instructions().any { instruction ->
-            instruction.call()?.let { call -> call.definingClass == sheet && call.name == builder.name } == true } } == true,
+    // 13.2's runnable is the builder itself.
+    shape(body[load].namedRegisters()[1] == method.parameterRegisterNumber(0) && (runnableType == builder.definingClass && builder.origName == "run" ||
+        tgClassDefByOrNull(runnableType)?.methods?.any { it.origName == "run" && it.instructions().any { instruction ->
+            instruction.call()?.let { call -> call.origDefiningClass == sheet && call.origName == builder.origName } == true } } == true),
         "story preview runnable no longer builds the request")
     val result = body.indices.filter { body[it].opcode == Opcode.MOVE_RESULT && body.getOrNull(it - 1)?.call()?.let { call ->
-        call.definingClass == sheet && call.hasShape(listOf(STRING), "Z") } == true }.one("story containsURL result", ::refuse)
+        call.origDefiningClass == sheet && call.hasShape(listOf(STRING), "Z") } == true }.one("story containsURL result", ::refuse)
     val hasUrl = body[result].namedRegisters().single()
     val branch = cancel + 3
     val index = branch + 1
@@ -327,7 +353,7 @@ private fun BytecodePatchContext.storyHook(builder: MutableMethod): DraftPreview
     val finish = flow.normal[branch].single { it != index }
     shape(finish > post, "story no-URL path no longer follows the post")
     // The Done button still follows the real URL check after a skip.
-    val enable = body.indices.filter { body[it].call()?.name == "setEnabled" }.one("story Done button", ::refuse)
+    val enable = body.indices.filter { body[it].call()?.origName == "setEnabled" }.one("story Done button", ::refuse)
     shape(enable > finish && body[enable].namedRegisters().last() == hasUrl &&
         body.indices.none { it > result && hasUrl in body[it].writes() }, "story Done button no longer reads the URL check")
     method.requireParameterIntact(PATCH, 0, listOf(index, finish))
@@ -345,16 +371,20 @@ private fun BytecodePatchContext.botShareHook(method: MutableMethod): DraftPrevi
     val create = (request - 1 downTo 0).firstOrNull { body[it].opcode == Opcode.NEW_INSTANCE } ?: refuse("bot share callback missing")
     val callback = body[create].namedRegisters().single()
     val callbackType = body[create].reference()!!
-    val initialize = (create + 1 until request).firstOrNull { body[it].call()?.let { call -> call.definingClass == callbackType && call.name == "<init>" } == true }
+    val initialize = (create + 1 until request).firstOrNull { body[it].call()?.let { call -> call.origDefiningClass == callbackType && call.origName == "<init>" } == true }
         ?: refuse("bot share callback isn't initialized before the request")
     val index = initialize + 1
     shape((create + 1 until index).none { callback in body[it].writes() }, "bot share callback register changes before the request")
-    val run = classDefByOrNull(callbackType)?.methods?.singleOrNull { it.name == "run" && it.hasShape(listOf("Ljava/lang/Object;"), "V") }
+    // 13.2 names the callback's run as the build names its interface's, which the table only maps on the interface.
+    val run = tgClassDefByOrNull(callbackType)?.let { owner -> owner.methods.singleOrNull { m ->
+        m.hasShape(listOf("Ljava/lang/Object;"), "V") && (m.origName == "run" || owner.origInterfaces.any { face ->
+            tgClassDefByOrNull(face)?.methods?.any { it.origName == "run" && it.name == m.name && it.hasShape(listOf("Ljava/lang/Object;"), "V") } == true })
+    } }
     shape(run != null && !run.isStatic() && AccessFlags.PUBLIC.isSet(run.accessFlags) && run.instructions().take(2).let { first ->
         first.size == 2 && first[1].opcode == Opcode.CHECK_CAST && first[1].reference() == WEB_PAGE } == true,
         "bot share callback no longer takes the loaded preview")
-    val send = (request until body.size).firstOrNull { body[it].call()?.let { call -> call.definingClass == "Lorg/telegram/tgnet/ConnectionsManager;" &&
-        call.name == "sendRequestTyped" } == true } ?: refuse("bot share preview request isn't sent")
+    val send = (request until body.size).firstOrNull { body[it].call()?.let { call -> call.origDefiningClass == "Lorg/telegram/tgnet/ConnectionsManager;" &&
+        call.origName == "sendRequestTyped" } == true } ?: refuse("bot share preview request isn't sent")
     val leave = (send until body.size).firstOrNull { body[it].opcode in GOTOS } ?: refuse("bot share preview request has no exit")
     val finish = flow.normal[leave].single()
     shape(body[finish].opcode == Opcode.RETURN_VOID, "bot share preview exit has more work after it")
@@ -365,7 +395,7 @@ private fun BytecodePatchContext.botShareHook(method: MutableMethod): DraftPrevi
         if-eqz v$answer, :hush_fetch
         move-object/from16 v$answer, v$callback
         const/4 v$empty, 0x0
-        invoke-virtual {v$answer, v$empty}, $callbackType->run(Ljava/lang/Object;)V
+        invoke-virtual {v$answer, v$empty}, $callbackType->${run!!.name}(Ljava/lang/Object;)V
         goto/16 :hush_done
         :hush_fetch
         nop
@@ -410,10 +440,10 @@ private fun clearRunnable(method: Method, at: Int, fragment: Int): Boolean {
     val case = body.getOrNull(at + 1)?.takeIf { it.opcode == Opcode.CONST_16 || it.opcode == Opcode.CONST_4 } ?: return false
     val initialize = body.getOrNull(at + 2)?.call() ?: return false
     val post = body.getOrNull(at + 3)?.call() ?: return false
-    return initialize.definingClass == type && initialize.name == "<init>" &&
+    return initialize.origDefiningClass == type && initialize.origName == "<init>" &&
         initialize.params() == listOf(method.definingClass, "I") &&
         body[at + 2].namedRegisters() == listOf(register, fragment, case.namedRegisters()[0]) &&
-        post.definingClass == UTILITIES && post.name == "runOnUIThread" && post.params() == listOf(RUNNABLE) &&
+        post.origDefiningClass == UTILITIES && post.origName == "runOnUIThread" && post.params() == listOf(RUNNABLE) &&
         body[at + 3].namedRegisters() == listOf(register) && body.getOrNull(at + 4)?.opcode == Opcode.RETURN_VOID
 }
 
@@ -421,7 +451,7 @@ private fun requestSite(method: Method): Int {
     val body = method.instructions()
     val index = body.indices.filter { body[it].opcode == Opcode.NEW_INSTANCE && body[it].reference() == WEB_PAGE_PREVIEW }
         .one("${method.definingClass}->${method.name} preview request", ::refuse)
-    shape(body.getOrNull(index + 1)?.call()?.let { it.definingClass == WEB_PAGE_PREVIEW && it.name == "<init>" && it.parameterTypes.isEmpty() } == true &&
+    shape(body.getOrNull(index + 1)?.call()?.let { it.origDefiningClass == WEB_PAGE_PREVIEW && it.origName == "<init>" && it.parameterTypes.isEmpty() } == true &&
         body[index + 1].namedRegisters() == body[index].namedRegisters(), "preview request constructor changed")
     return index
 }
@@ -443,43 +473,43 @@ internal data class LocalDraftHook(val method: MutableMethod, val index: Int, va
  * content the reader wouldn't see or the emptier wouldn't take out.
  */
 internal fun BytecodePatchContext.resolveLocalDraftHook(): LocalDraftHook {
-    val owner = classDefByOrNull(LOCAL_DRAFTS)
+    val owner = tgClassDefByOrNull(LOCAL_DRAFTS)
     shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public local drafts runtime")
     // One method of each name, so writing a stub can't pick another or fail once the gate is in.
     for (name in listOf("keepOnPhone", "carries", "clear")) {
-        val named = owner!!.methods.filter { it.name == name }
+        val named = owner!!.methods.filter { it.origName == name }
         shape(named.size == 1 && named.single().let { it.hasShape(listOf("Ljava/lang/Object;"), "Z") && it.isStatic() &&
             AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.NATIVE.isSet(it.accessFlags) &&
             !AccessFlags.ABSTRACT.isSet(it.accessFlags) && it.implementation != null },
             "no single callable public static runtime $name")
     }
-    val request = classDefByOrNull(SAVE_DRAFT)
+    val request = tgClassDefByOrNull(SAVE_DRAFT)
     shape(request != null && AccessFlags.PUBLIC.isSet(request.accessFlags), "no public draft request")
     val fields = request!!.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) }
     shape(fields.associate { it.name to it.type } == DRAFT_CONTENT + DRAFT_FRAME && fields.size == DRAFT_CONTENT.size + DRAFT_FRAME.size &&
         fields.all { AccessFlags.PUBLIC.isSet(it.accessFlags) }, "draft request fields changed")
     // A reply counts as content only when it's to a message, as Telegram's own empty-draft check has it.
     // The other kind is where a draft goes in a channel's direct messages you manage, kept when one is emptied.
-    val reply = classDefByOrNull(INPUT_REPLY_TO)
+    val reply = tgClassDefByOrNull(INPUT_REPLY_TO)
     shape(reply != null && AccessFlags.PUBLIC.isSet(reply.accessFlags) && listOf("reply_to_msg_id" to "I", "monoforum_peer_id" to INPUT_PEER)
-        .all { (name, type) -> reply.fields.any { it.name == name && it.type == type && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+        .all { (name, type) -> reply.fields.any { it.origName == name && it.origType == type && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
             !AccessFlags.STATIC.isSet(it.accessFlags) } }, "draft reply fields changed")
-    val direct = classDefByOrNull(MONO_FORUM_REPLY)
-    shape(direct != null && AccessFlags.PUBLIC.isSet(direct.accessFlags) && direct.superclass == INPUT_REPLY_TO &&
-        direct.methods.any { it.name == "<init>" && it.parameterTypes.isEmpty() && AccessFlags.PUBLIC.isSet(it.accessFlags) },
+    val direct = tgClassDefByOrNull(MONO_FORUM_REPLY)
+    shape(direct != null && AccessFlags.PUBLIC.isSet(direct.accessFlags) && direct.origSuperclass == INPUT_REPLY_TO &&
+        direct.methods.any { it.origName == "<init>" && it.parameterTypes.isEmpty() && AccessFlags.PUBLIC.isSet(it.accessFlags) },
         "direct messages draft target changed")
     val uploads = mutableListOf<Method>()
     forEachClassMentioning(Mention.reference(SAVE_DRAFT)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         classDef.methods.filterTo(uploads) { it.constructs(SAVE_DRAFT) }
     }
     val found = uploads.one("draft upload", ::refuse)
-    val method = mutableClassDefBy(found.definingClass).methods.single { it.sameSignature(found) }
+    val method = tgMutableClassDefBy(found.definingClass).methods.single { it.sameSignature(found) }
     val body = method.instructions()
     val created = body.indices.filter { body[it].opcode == Opcode.NEW_INSTANCE && body[it].reference() == SAVE_DRAFT }
         .one("draft request", ::refuse)
     val held = body[created].namedRegisters().single()
-    shape(body.getOrNull(created + 1)?.call()?.let { it.definingClass == SAVE_DRAFT && it.name == "<init>" && it.parameterTypes.isEmpty() } == true &&
+    shape(body.getOrNull(created + 1)?.call()?.let { it.origDefiningClass == SAVE_DRAFT && it.origName == "<init>" && it.parameterTypes.isEmpty() } == true &&
         body[created + 1].namedRegisters() == listOf(held), "draft request constructor changed")
     val index = body.indices.filter { body[it].reference() == SEND_REQUEST }.one("draft upload send", ::refuse)
     shape(body[index].opcode == Opcode.INVOKE_VIRTUAL && body[index].namedRegisters().getOrNull(1) == held && index > created,
@@ -593,10 +623,10 @@ private fun keeps(method: Method, created: Int, use: Int, register: Int): Boolea
 }
 
 private fun BytecodePatchContext.requireRuntimeHooks() {
-    val owner = classDefByOrNull(DRAFT_PREVIEWS)
+    val owner = tgClassDefByOrNull(DRAFT_PREVIEWS)
     shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public draft preview runtime")
     for (target in DraftPreviewTarget.entries) {
-        shape(owner!!.methods.count { it.name == target.hook && it.hasShape(emptyList(), "Z") && it.isStatic() &&
+        shape(owner!!.methods.count { it.origName == target.hook && it.hasShape(emptyList(), "Z") && it.isStatic() &&
             AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.NATIVE.isSet(it.accessFlags) &&
             !AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
             it.implementation?.instructions?.any { instruction -> !instruction.opcode.format.isPayloadFormat } == true } == 1,
@@ -610,14 +640,14 @@ private fun shape(valid: Boolean, reason: String) {
     if (!valid) refuse(reason)
 }
 private fun Method.isStatic() = AccessFlags.STATIC.isSet(accessFlags)
-private fun Method.params(): List<String> = parameterTypes.map { it.toString() }
-private fun MethodReference.params(): List<String> = parameterTypes.map { it.toString() }
+private fun Method.params(): List<String> = origParameterTypes
+private fun MethodReference.params(): List<String> = origParameterTypes
 private fun Method.hasShape(parameters: List<String>, returns: String) = returnType == returns && params() == parameters
 private fun MethodReference.hasShape(parameters: List<String>, returns: String) = returnType == returns && params() == parameters
 private fun Method.sameSignature(other: Method) = name == other.name && returnType == other.returnType && params() == other.params()
 private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
 private fun Method.constructs(type: String) = instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.reference() == type }
-private fun Instruction.reference(): String? = (this as? ReferenceInstruction)?.reference?.toString()
+private fun Instruction.reference(): String? = origRef()
 private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
 private fun Instruction.string(): String? = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
 /** The registers an instruction sets: the first named one for writes, both halves for a wide one. */

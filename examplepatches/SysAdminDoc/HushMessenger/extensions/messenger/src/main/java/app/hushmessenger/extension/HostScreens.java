@@ -165,7 +165,10 @@ public final class HostScreens {
         if (lateStart == null) lateStart = (android.os.SystemClock.elapsedRealtime() - began) + " ms on " + Thread.currentThread().getName();
         // SettingsProvider does this on every other install. The first hook to ask runs this, often on the UI thread, so
         // the shortcut calls go to their own thread.
-        if (started) refreshShortcuts(app);
+        if (!started) return;
+        refreshShortcuts(app);
+        // Only Root Mount gets here, and it's the one route that can run a patched build over a different installed one.
+        shortcutWork.execute(() -> MountedBuild.check(app));
     }
 
     /**

@@ -116,6 +116,34 @@ public sealed class LoginTests(FakeRedditFixture fixture) : FakeRedditTest(fixtu
     }
 
     [Fact]
+    public async Task A_login_at_start_hands_the_app_the_accounts_tokens_once()
+    {
+        var account = World.AddAccount("e2e_user", "right");
+        World.LogInAtStart("e2e_user");
+
+        var login = await GetJsonAsync("/_e2e/login");
+        using var again = await SendAsync(HttpMethod.Get, "/_e2e/login");
+
+        Assert.Equal("e2e_user", login.GetProperty("name").GetString());
+        Assert.Equal(account.Id, login.GetProperty("user_id").GetString());
+        Assert.Equal(account.Created.ToUnixTimeSeconds(), login.GetProperty("created_utc").GetInt64());
+        var me = await GetJsonAsync("/api/v1/me", login.GetProperty("access_token").GetString());
+        Assert.Equal("e2e_user", me.GetProperty("name").GetString());
+        Assert.Equal(HttpStatusCode.NoContent, again.StatusCode);
+    }
+
+    [Fact]
+    public async Task Without_a_login_at_start_the_app_starts_logged_out()
+    {
+        World.AddAccount("e2e_user", "right");
+
+        using var login = await SendAsync(HttpMethod.Get, "/_e2e/login");
+
+        Assert.Equal(HttpStatusCode.NoContent, login.StatusCode);
+        Assert.Empty(World.Unhandled);
+    }
+
+    [Fact]
     public async Task The_login_records_the_client_id_redirect_uri_and_user_agent_it_saw()
     {
         var account = World.AddAccount("e2e_user", "right");

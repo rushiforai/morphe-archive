@@ -2188,7 +2188,6 @@ Picked %1$s. Save, then tap Pick all for more.	Scelti %1$s. Salva, poi tocca Sce
 All loaded items are picked or saved. Scroll for more.	Tutto il caricato è scelto o salvato. Scorri per altri.
 
 Record LIVEs you watch	Registra i LIVE che guardi
-Adds a Record button to LIVE rooms. A recording starts when you tap it and ends when you tap Stop or leave the room. Nothing before that is saved.	Aggiunge un pulsante Registra alle stanze LIVE. La registrazione inizia quando lo tocchi e finisce quando tocchi Interrompi o esci dalla stanza. Quello che c'era prima non viene salvato.
 Record	Registra
 Stop	Interrompi
 Stop recording this LIVE	Interrompi la registrazione di questo LIVE
@@ -2618,3 +2617,28 @@ While the controls are invisible on the main feed, the creator's name, the capti
 Make the controls invisible	Rendi invisibili i controlli
 # context: Spoken label of that eye button while the controls are invisible
 Show the controls	Mostra i controlli
+# context: Share sheet settings row; hides TikTok's gray Send to new group button that shows beside Send separately once two or more people are picked (#375)
+Hide Send to new group	Nascondi “Invia a un nuovo gruppo”
+# context: summary of Hide Send to new group; Send separately is TikTok's red button that stays (#375)
+Hides the button that turns the people you picked into a new group chat. Send separately stays.	Nasconde il pulsante che trasforma le persone scelte in una nuova chat di gruppo. “Invia separatamente” resta.
+# context: Switch in Hushfeed settings > App > Appearance (#372)
+AMOLED dark mode	Modalità scura AMOLED
+# context: Summary under the AMOLED dark mode switch
+Fills dark mode with the color picked while patching, pure black unless another was chosen. Turn it off for TikTok's own dark grays. Light mode doesn't change. Restart TikTok to see the change.	Riempie la modalità scura con il colore scelto durante il patch, nero puro se non ne è stato scelto un altro. Disattivala per avere i grigi scuri di TikTok. La modalità chiara non cambia. Riavvia TikTok per vedere la modifica.
+# context: Switch in Hushfeed settings > App, under the startup message rows (#377)
+Check for Hushfeed updates	Controlla aggiornamenti di Hushfeed
+# context: Summary under the Check for Hushfeed updates switch
+Once a day when TikTok opens, ask GitHub if a newer Hushfeed is out and show a card when it is. The request carries your Hushfeed version and nothing else.	Una volta al giorno, all'apertura di TikTok, chiede a GitHub se è uscito un Hushfeed più recente e in quel caso mostra una scheda. La richiesta contiene solo la tua versione di Hushfeed.
+# context: Title of the card shown when a newer release is out; %1$s is its version, like v0.82.0
+Hushfeed %1$s is out	È uscito Hushfeed %1$s
+# context: Text of that card; %1$s is the installed version. Morphe Manager is an app name
+You have %1$s. Update the patches in Morphe Manager, then patch TikTok again.	Hai la %1$s. Aggiorna le patch in Morphe Manager, poi applica di nuovo il patch a TikTok.
+# context: Button on that card that opens Morphe Manager
+Update	Aggiorna
+# context: Button on that card that hides it for this release
+Dismiss	Ignora
+# context: Last line of the update card when the release notes have more bullets than it lists; %1$s is how many
+%1$s more in the release notes	Altre %1$s nelle note di rilascio
+Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.	Aggiunge un pulsante Registra alle stanze LIVE. Toccalo per avviare o fermare la registrazione. La registrazione si ferma anche quando esci dalla stanza.
+Automatically record LIVEs you enter	Registra automaticamente le LIVE quando entri
+Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.	Avvia la registrazione dello stream LIVE quando entri nella stanza. Dopo aver premuto Stop, non ricomincia finché non esci e rientri. La registrazione dello schermo richiede ancora un tocco e il permesso di Android.

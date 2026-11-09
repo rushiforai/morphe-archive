@@ -4,8 +4,8 @@
  */
 package app.morphe.patches.telegram.misc.links
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.util.names.addInstructions
+import app.morphe.util.names.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -26,6 +26,13 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val MINI_APP_LOCATION = "$EXTENSION_PACKAGE/misc/MiniAppLocation;"
 internal const val GEO_CALLBACK = "Landroid/webkit/GeolocationPermissions\$Callback;"
@@ -147,23 +154,23 @@ private fun BytecodePatchContext.gates(): Map<LocationGate, MutableMethod> {
         if (!cls.isOwn() && cls.methods.any { BOT_LOCATION_PREFS in it.strings() }) managers += cls.type
     }
     need(managers.size == 1, "the bot location manager is missing or ambiguous")
-    val manager = mutableClassDefBy(managers.single())
-    val gps = manager.methods.filter { !it.static() && it.parameterTypes.isEmpty() && it.returnType == "Z" &&
+    val manager = tgMutableClassDefBy(managers.single())
+    val gps = manager.methods.filter { !it.static() && it.parameterTypes.isEmpty() && it.origReturnType == "Z" &&
         GPS_FEATURE in it.strings() && it.controlBody().any { i -> i.controlRef() == HAS_FEATURE } }
     need(gps.size == 1, "the bot location manager's GPS check is missing or ambiguous")
     val answers = manager.methods.filter { it.static() && it.parameterTypes.map(CharSequence::toString) == listOf(LOCATION) &&
-        it.returnType == JSON }
+        it.origReturnType == JSON }
     need(answers.size == 1 && "latitude" in answers.single().strings(), "the bot location manager's answer is missing or ambiguous")
     // Another method building coordinates would hand them out around the answer.
     need(manager.methods.count { "latitude" in it.strings() } == 1, "the bot location manager builds coordinates outside its answer")
     // A fix that comes in later reaches the Mini App through a listener the manager makes. It has to
     // go through the answer too: with the answer folded into it, the gate there would never run.
-    val answerRef = answers.single().let { "${it.definingClass}->${it.name}($LOCATION)$JSON" }
+    val answerRef = answers.single().let { "${it.origDefiningClass}->${it.origName}($LOCATION)$JSON" }
     val listeners = manager.methods.flatMap { m -> m.controlBody().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.controlRef() } }
-        .distinct().mapNotNull { classDefByOrNull(it) }.filter { isLocationListener(it.type) }
+        .distinct().mapNotNull { tgClassDefByOrNull(it) }.filter { isLocationListener(it.type) }
     need(listeners.isNotEmpty(), "the bot location manager's listener for later fixes is missing")
     for (listener in listeners) {
-        val changed = listener.methods.filter { it.name == "onLocationChanged" && it.returnType == "V" &&
+        val changed = listener.methods.filter { it.origName == "onLocationChanged" && it.origReturnType == "V" &&
             it.parameterTypes.map(CharSequence::toString) == listOf(LOCATION) }
         need(changed.size == 1 && changed.single().controlBody().any { it.controlRef() == answerRef },
             "${listener.type} hands a later fix on without the bot location manager's answer")
@@ -181,19 +188,19 @@ private fun BytecodePatchContext.gates(): Map<LocationGate, MutableMethod> {
     classDefForEach { cls ->
         if (!cls.isOwn() && cls.methods.any { it.isPrompt() }) promptOwners += cls.type
     }
-    val prompts = promptOwners.flatMap { owner -> mutableClassDefBy(owner).methods.filter { it.isPrompt() } }
+    val prompts = promptOwners.flatMap { owner -> tgMutableClassDefBy(owner).methods.filter { it.isPrompt() } }
     need(prompts.size == 1, "the web view geolocation prompt is missing or ambiguous")
     val prompt = prompts.single()
     val made = prompt.controlBody().filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.controlRef() }.distinct()
-    val dialogs = made.mapNotNull { mutableClassDefByOrNull(it) }.filter { cls ->
-        cls.methods.any { it.name == "<init>" && GEO_CALLBACK in it.parameterTypes.map(CharSequence::toString) }
+    val dialogs = made.mapNotNull { tgMutableClassDefByOrNull(it) }.filter { cls ->
+        cls.methods.any { it.origName == "<init>" && GEO_CALLBACK in it.origParameterTypes.map(CharSequence::toString) }
     }
     need(dialogs.size == 1, "the geolocation dialog's answer is missing or ambiguous")
-    val dialog = dialogs.single().methods.filter { it.name == "accept" && !it.static() &&
-        it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;") && it.returnType == "V" &&
+    val dialog = dialogs.single().methods.filter { it.origName == "accept" && !it.static() &&
+        it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;") && it.origReturnType == "V" &&
         it.controlBody().any { i -> i.controlRef() == GEO_INVOKE } }
     need(dialog.size == 1, "the geolocation dialog's answer no longer answers the page")
-    val others = callers.filter { it != prompt.definingClass && it != dialog.single().definingClass }.sorted()
+    val others = callers.filter { it != prompt.origDefiningClass && it != dialog.single().origDefiningClass }.sorted()
     need(others.isEmpty(), "something else answers web pages' location prompts (${others.joinToString()})")
 
     val gates = mapOf(
@@ -229,7 +236,7 @@ private fun BytecodePatchContext.gates(): Map<LocationGate, MutableMethod> {
 private fun BytecodePatchContext.isLocationListener(type: String, depth: Int = 0): Boolean {
     if (type == LOCATION_LISTENER) return true
     if (depth > 8) return false
-    val cls = classDefByOrNull(type) ?: return false
+    val cls = tgClassDefByOrNull(type) ?: return false
     return cls.interfaces.any { isLocationListener(it, depth + 1) } || cls.superclass?.let { isLocationListener(it, depth + 1) } == true
 }
 
@@ -238,7 +245,7 @@ private fun BytecodePatchContext.lineage(type: String): List<ClassDef> {
     val found = linkedMapOf<String, ClassDef>()
     fun walk(at: String, depth: Int) {
         if (depth > 8 || at in found) return
-        val cls = classDefByOrNull(at) ?: return
+        val cls = tgClassDefByOrNull(at) ?: return
         found[at] = cls
         cls.superclass?.let { walk(it, depth + 1) }
         cls.interfaces.forEach { walk(it, depth + 1) }

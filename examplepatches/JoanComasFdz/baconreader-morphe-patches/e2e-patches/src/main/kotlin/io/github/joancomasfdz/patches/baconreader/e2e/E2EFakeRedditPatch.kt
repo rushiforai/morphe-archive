@@ -115,7 +115,8 @@ internal object SaveImageGetVideoFilenameFingerprint : Fingerprint(
 @Suppress("unused")
 val e2eFakeRedditPatch = bytecodePatch(
     name = "E2E fake Reddit",
-    description = "Test only: points BaconReader at a fake Reddit server instead of Reddit.",
+    description = "Test only: points BaconReader at a fake Reddit server instead of Reddit, " +
+        "and starts it logged in when the fake hands it a login.",
 ) {
     compatibleWith(COMPATIBILITY_BACONREADER, COMPATIBILITY_BACONREADER_PREMIUM)
 
@@ -131,6 +132,8 @@ val e2eFakeRedditPatch = bytecodePatch(
     // Reddit's: a post is a Reddit video only by the host v.redd.it, and a video is saved from an
     // https URL.
     execute {
+        addLogInAtStart(baseUrlOption.value!!.trimEnd('/'))
+
         // isValid(url): a URL under <baseUrl>/_media/v.redd.it/ is a Reddit video too. p0 is the URL.
         RedditVideoIsValidFingerprint.method.apply {
             addInstructionsWithLabels(

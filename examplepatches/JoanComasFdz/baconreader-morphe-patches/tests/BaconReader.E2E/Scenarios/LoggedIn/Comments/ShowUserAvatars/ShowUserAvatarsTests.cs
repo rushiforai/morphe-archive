@@ -11,7 +11,8 @@ namespace BaconReader.E2E.Scenarios.LoggedIn.Comments;
 
 /// <summary>
 /// "Show user avatars": with its setting on, the author's avatar shows before the name in comments, on the reply screen
-/// and in the inbox, from Reddit's <c>api/user_data_by_account_ids</c>; "Avatar size" makes it, and its line, bigger;
+/// and in the inbox, from Reddit's <c>api/user_data_by_account_ids</c>, and, whatever the setting, each account's
+/// avatar before its name in the left menu: its header and its accounts list; "Avatar size" makes it, and its line, bigger;
 /// "Avatar background" draws a faint disc behind it, which shows through a see-through avatar (without the setting, a
 /// faint disc only keeps an avatar's place while it loads, or when a user has none). The avatar is drawn in the
 /// text, over an object replacement character ("￼ "), so the screen's tree shows where it is; whether the disc is drawn
@@ -23,7 +24,7 @@ public sealed class ShowUserAvatarsTests : BaseE2E
     [PatchedWithEveryPatch]
     [TestDescription("""
         @phone
-        Scenario: Show user avatars puts the author's avatar before the name in comments, the reply screen and the inbox
+        Scenario: Show user avatars puts the author's avatar before the name in comments, the reply screen and the inbox, and each account's in the left menu
           Given Reddit has a post "Introductions" in r/e2e
           And the post "Introductions" has a comment "With an avatar" by u/avatar_user
           And the post "Introductions" has a comment "With a see-through avatar" by u/glass_user
@@ -32,6 +33,9 @@ public sealed class ShowUserAvatarsTests : BaseE2E
           And the test account has an unread message "Hello" saying "A private message"
           # The fake Reddit's messages come from u/e2e_sender.
           And the user "e2e_sender" has an avatar
+          And the user "e2e_user" has an avatar
+          And Reddit has a second account "e2e_second"
+          And the user "e2e_second" has an avatar
           And BaconReader is patched with every patch
           And BaconReader is open
           And the test account is logged in
@@ -41,6 +45,12 @@ public sealed class ShowUserAvatarsTests : BaseE2E
           Then the comment "With an avatar" shows no avatar
           When I go back to the posts
           And I open the left menu
+          # The drawer's avatars don't depend on "Show user avatars", which is still off.
+          Then the left menu shows "e2e_user" with the avatar of "e2e_user" before the name
+          When I tap the arrow next to "e2e_user"
+          Then the accounts list shows "e2e_user" with the avatar of "e2e_user" before the name
+          And "Add account" in the accounts list shows no avatar
+          When I tap the arrow next to "e2e_user"
           And I tap "Settings"
           And I tap "Patches"
           And I scroll to "Avatar background"
@@ -101,8 +111,21 @@ public sealed class ShowUserAvatarsTests : BaseE2E
           # The see-through avatar's place is kept, but nothing is drawn behind it.
           Then the comment "With a see-through avatar" shows nothing before the name
           And the comment "With an avatar" shows the avatar of "avatar_user" before the name
+          When I go back to the posts
+          And I open the left menu
+          And I tap the arrow next to "e2e_user"
+          And I tap "Add account"
+          And I type "e2e_second" in "Email or username"
+          And I type the password of "e2e_second" in "Password"
+          And I tap "Log In"
+          And I tap "Accept"
+          # BaconReader comes back from the login with the left menu open, on the account just added.
+          Then the left menu shows "e2e_second" with the avatar of "e2e_second" before the name
+          When I tap the arrow next to "e2e_second"
+          Then the accounts list shows "e2e_second" with the avatar of "e2e_second" before the name
+          And the accounts list shows "e2e_user" with the avatar of "e2e_user" before the name
         """)]
-    public async Task ShowUserAvatarsPutsTheAuthorsAvatarBeforeTheNameInCommentsTheReplyScreenAndTheInbox(Screen screen)
+    public async Task ShowUserAvatarsPutsTheAuthorsAvatarBeforeTheNameInCommentsTheReplyScreenAndTheInboxAndEachAccountsInTheLeftMenu(Screen screen)
     {
         // Given
         Reddit.HasAPost("Introductions", "e2e");
@@ -113,6 +136,9 @@ public sealed class ShowUserAvatarsTests : BaseE2E
         Reddit.TheTestAccountHasAnUnreadMessage("Hello", "A private message");
         // The fake Reddit's messages come from u/e2e_sender.
         Reddit.TheUserHasAnAvatar("e2e_sender");
+        Reddit.TheUserHasAnAvatar("e2e_user");
+        Reddit.HasASecondAccount("e2e_second");
+        Reddit.TheUserHasAnAvatar("e2e_second");
         await Phone.BaconReader.OpenAsync();
         await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
@@ -132,6 +158,28 @@ public sealed class ShowUserAvatarsTests : BaseE2E
         await Phone.BaconReader.GoBackToThePostsAsync();
         await Phone.BaconReader.Main.LeftMenu.OpenAsync();
         await Phone.BaconReader.Main.LeftMenu.WaitUntilShownAsync();
+        await Reddit.WaitUntilTheAvatarOfTheUserIsServedAsync("e2e_user");
+
+        // Then
+        // The drawer's avatars don't depend on "Show user avatars", which is still off.
+        var header = await Phone.BaconReader.Main.LeftMenu.ReadAccountsAsync();
+        var accountAvatar = Reddit.ReadRequestsForTheAvatarOf("e2e_user");
+        Asserting.That(header).ShowsWithAnAvatarBefore("e2e_user", "e2e_user");
+        Asserting.That(accountAvatar).Served();
+
+        // When
+        await Phone.BaconReader.Main.LeftMenu.ClickArrowNextToAsync("e2e_user");
+        await Phone.BaconReader.Main.LeftMenu.WaitUntilAccountsShownAsync();
+
+        // Then
+        var accounts = await Phone.BaconReader.Main.LeftMenu.ReadAccountsAsync();
+        Asserting.That(accounts)
+            .ShowsInTheAccountsListWithAnAvatarBefore("e2e_user", "e2e_user")
+            .ShowsInTheAccountsListWithNoAvatar(new MenuEntry.AddAccount());
+
+        // When
+        await Phone.BaconReader.Main.LeftMenu.ClickArrowNextToAsync("e2e_user");
+        await Phone.BaconReader.Main.LeftMenu.WaitUntilAccountsClosedAsync();
         await Phone.BaconReader.Main.LeftMenu.ClickAsync(new MenuEntry.Settings());
         await Phone.BaconReader.Settings.WaitUntilShownAsync(new SettingsSection.Patches());
         await Phone.BaconReader.Settings.ClickAsync(new SettingsSection.Patches());
@@ -273,5 +321,39 @@ public sealed class ShowUserAvatarsTests : BaseE2E
         var stillShown = await Phone.BaconReader.Detail.Comments.ReadAuthorLineAsync("With an avatar");
         Asserting.That(noDisc).ShowsNothing();
         Asserting.That(stillShown).ShowsAnAvatarBefore("avatar_user");
+
+        // When
+        await Phone.BaconReader.GoBackToThePostsAsync();
+        await Phone.BaconReader.Main.LeftMenu.OpenAsync();
+        await Phone.BaconReader.Main.LeftMenu.WaitUntilShownAsync();
+        await Phone.BaconReader.Main.LeftMenu.ClickArrowNextToAsync("e2e_user");
+        await Phone.BaconReader.Main.LeftMenu.WaitUntilAccountsShownAsync();
+        await Phone.BaconReader.Main.LeftMenu.ClickAsync(new MenuEntry.AddAccount());
+        await Phone.BaconReader.LogIn.WaitUntilShownAsync();
+        await Phone.BaconReader.LogIn.TypeUserNameAsync("e2e_second");
+        await Phone.BaconReader.LogIn.TypePasswordOfAsync("e2e_second");
+        await Phone.BaconReader.LogIn.ClickLogInAsync();
+        await Phone.BaconReader.LogIn.WaitUntilConnectShownAsync();
+        await Phone.BaconReader.LogIn.ClickAcceptAsync();
+        await Phone.BaconReader.Main.WaitUntilShownAsync();
+        await Phone.BaconReader.Main.LeftMenu.WaitUntilShownAsync();
+        await Reddit.WaitUntilTheAvatarOfTheUserIsServedAsync("e2e_second");
+
+        // Then
+        // BaconReader comes back from the login with the left menu open, on the account just added.
+        var second = await Phone.BaconReader.Main.LeftMenu.ReadAccountsAsync();
+        var secondAvatar = Reddit.ReadRequestsForTheAvatarOf("e2e_second");
+        Asserting.That(second).ShowsWithAnAvatarBefore("e2e_second", "e2e_second");
+        Asserting.That(secondAvatar).Served();
+
+        // When
+        await Phone.BaconReader.Main.LeftMenu.ClickArrowNextToAsync("e2e_second");
+        await Phone.BaconReader.Main.LeftMenu.WaitUntilAccountsShownAsync();
+
+        // Then
+        var both = await Phone.BaconReader.Main.LeftMenu.ReadAccountsAsync();
+        Asserting.That(both)
+            .ShowsInTheAccountsListWithAnAvatarBefore("e2e_second", "e2e_second")
+            .ShowsInTheAccountsListWithAnAvatarBefore("e2e_user", "e2e_user");
     }
 }

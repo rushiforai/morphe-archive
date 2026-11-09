@@ -1,3 +1,27 @@
+## [1.54.1](https://github.com/legendsciber/morphe-patches/compare/v1.54.0...v1.54.1) (2026-11-08)
+
+### 🚀 Updated App Support
+
+* **hillclimb:** update target to 1.73.2 ([5a70613](https://github.com/legendsciber/morphe-patches/commit/5a706133b5514e17d1f8bfab5be857351c8b3f0a))
+
+## [1.54.0](https://github.com/legendsciber/morphe-patches/compare/v1.53.1...v1.54.0) (2026-11-08)
+
+### ✨ New Features
+
+* **subwaysurfers:** remove interstitial and banner ads ([ce2effb](https://github.com/legendsciber/morphe-patches/commit/ce2effb439acd6dd2631e9b3937860d7f64e21b0))
+
+## [1.53.1](https://github.com/legendsciber/morphe-patches/compare/v1.53.0...v1.53.1) (2026-11-08)
+
+### 🚀 Updated App Support
+
+* **dantheman:** update target and reachability gate site for 1.14.11 ([658f5f9](https://github.com/legendsciber/morphe-patches/commit/658f5f9ad1e687f5f12c87ef2c27dbd3d6a8e85d))
+
+## [1.53.0](https://github.com/legendsciber/morphe-patches/compare/v1.52.0...v1.53.0) (2026-11-08)
+
+### ✨ New Features
+
+* **subwaysurfers:** support 3.71.0 with instant rewarded ads ([61f54a9](https://github.com/legendsciber/morphe-patches/commit/61f54a909652968886e14ff6ceefa455598c8452))
+
 ## [1.52.0](https://github.com/legendsciber/morphe-patches/compare/v1.51.0...v1.52.0) (2026-10-15)
 
 ### ✨ New Features

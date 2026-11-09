@@ -1,19 +1,36 @@
 # Handoff — Apple Music
 
-Atualizado em **2026-11-07**. Documento de passagem de contexto; não é uma release.
+Atualizado em **2026-11-08**. Documento de passagem de contexto; não é uma release.
 
-## Estado atual — 2026-11-07 (apps 1.7.0)
+## Estado atual — 2026-11-08 (UI do APK único 1.9.8)
 
-- O produto é **APKs**, não bundle: releases `apps-<versão>` até **`apps-1.7.0`** com
-  `AppleMusic-engine-arm32/arm64`, `AppleMusic-TV`, `AppleMusic-Car`, `updates.json` e
-  `SHA256SUMS`. O `.mpp` é interno (só gera o engine) e não é publicado.
-- **Busca de catálogo** nos dois companions (amp-api com o developer token do engine, mesmo UID;
-  fallback para a busca do app original) e **auto-update** in-app lendo `updates.json`
-  (`versionCode`, SHA-256, `PackageInstaller`, engine antes do companion).
-- Validação desta rodada: **emulador Android TV x86** (`tv34`, 1920×1080) com engine x86 logado;
-  a **TV física está fora de alcance**. A instalação no head unit DiLink não foi refeita.
-- Estado por fase, decisão do APK único e métricas: [ROADMAP.md](ROADMAP.md). Instalação para
-  usuário: [README.md](README.md).
+- **Produto em uso:** APK único `AppleMusic-one-<abi>.apk` = engine Apple Music 7.0.0
+  (1614) + UI própria, sem companion. UI em [`single-apk/single-ui`](single-apk/single-ui)
+  (Java puro + views do framework; só `com.anderson.applemusic.one.*` no dex), build em
+  [`single-apk/build-one-apk.ps1`](single-apk/build-one-apk.ps1), guia em
+  [`single-apk/README-one.md`](single-apk/README-one.md). Versão atual da UI:
+  **1.9.8 (10908)**.
+- **Distribuição:** as releases `apps-<versão>` (até `apps-1.7.0`) seguem com engine avulso +
+  companions `AppleMusic-TV`/`AppleMusic-Car`; o `one-*` ainda não tem release publicada
+  (é gerado localmente/CI). O `.mpp` é interno: só gera o engine.
+- **Matriz device × artefato do APK único:**
+
+  | Device | ABI primária | Artefato |
+  |---|---|---|
+  | TV box 32-bit | `armeabi-v7a` | `AppleMusic-one-arm32.apk` |
+  | Celular | `arm64-v8a` | `AppleMusic-one-arm64.apk` |
+  | Head unit/carro DiLink | `arm64-v8a` | `AppleMusic-one-arm64.apk` |
+  | Emulador x86 (build local) | `x86` | `AppleMusic-one-x86.apk` |
+
+- **UI 1.9.8 cobre:** Início, Biblioteca, Rádio, Busca, detalhe
+  (artista/álbum/playlist/faixa), player com aleatório/repetir/favorito, fila, conta
+  (somente leitura), rotação com estado, acessibilidade em camadas
+  (`importantForAccessibility`) e updater que aceita só a ABI primária (arm64 nunca cai
+  para arm32). Teste do mapeamento: `./single-apk/test-update-abis.ps1`.
+- **Pendências da UI:** letras, download/offline, Ajustes/EQ, sign-out e `one-x86` no CI.
+- **Histórico:** as seções abaixo (apps 1.7.0, bundle, patches de TV, DiLink/WebView) são
+  históricas; o fluxo atual é o APK único acima. Estado por fase e decisão do APK único:
+  [ROADMAP.md](ROADMAP.md). Instalação para usuário: [README.md](README.md).
 
 ## Sessão 2026-11-07 — patches de TV removidos
 

@@ -4,7 +4,7 @@
  */
 package app.morphe.patches.telegram.misc.camera
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -29,6 +29,10 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 private const val PATCH = "Hide gallery camera tile"
 internal const val GALLERY_CAMERA_TILE = "$EXTENSION_PACKAGE/misc/GalleryCameraTile;"
@@ -75,24 +79,24 @@ internal fun insertCameraTileAnswer(target: MutableMethod) {
 internal fun BytecodePatchContext.resolveHideGalleryCameraTile(): GalleryCameraTileSite {
     requireStatusMethod("hideGalleryCameraTile")
     controlHook(GALLERY_CAMERA_TILE, "tile", listOf("Z"), "Z")
-    val layout = mutableClassDefByOrNull(PHOTO_LAYOUT)
+    val layout = tgMutableClassDefByOrNull(PHOTO_LAYOUT)
     controlShape(layout != null, "ChatAttachAlertPhotoLayout is missing")
-    val init = layout!!.methods.filter { it.name == "<init>" }.controlSingle("gallery constructor")
+    val init = layout!!.methods.filter { it.origName == "<init>" }.controlSingle("gallery constructor")
     val params = init.parameterTypes.map(CharSequence::toString)
     controlShape(params.size == 5 && params[1] == "Landroid/content/Context;" && params[2] == "Z" && params[3] == "Z",
         "the gallery constructor no longer takes the camera choice fourth")
 
     // checkCamera asks for the camera permission and starts CameraController with the in-app camera on.
     val check = layout.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf("Z") &&
+        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf("Z") &&
             m.controlBody().let { body ->
-                body.any { it.controlField()?.let { f -> f.definingClass == "Lorg/telegram/messenger/SharedConfig;" && f.name == "inappCamera" } == true } &&
-                    body.any { it.call()?.let { c -> c.definingClass == "Lorg/telegram/messenger/camera/CameraController;" && c.name == "initCamera" } == true } &&
+                body.any { it.controlField()?.let { f -> f.origDefiningClass == "Lorg/telegram/messenger/SharedConfig;" && f.origName == "inappCamera" } == true } &&
+                    body.any { it.call()?.let { c -> c.origDefiningClass == "Lorg/telegram/messenger/camera/CameraController;" && c.origName == "initCamera" } == true } &&
                     body.any { it.controlString() == "android.permission.CAMERA" }
             }
     }.controlSingle("checkCamera")
     // Its first check of the gallery's own flags is whether the gallery wants a camera at all.
-    val needCamera = check.controlBody().firstOrNull { it.opcode == Opcode.IGET_BOOLEAN && it.controlField()?.definingClass == PHOTO_LAYOUT }
+    val needCamera = check.controlBody().firstOrNull { it.opcode == Opcode.IGET_BOOLEAN && it.controlField()?.origDefiningClass == PHOTO_LAYOUT }
         ?.controlField()
     controlShape(needCamera != null, "checkCamera no longer checks whether the gallery wants a camera")
 

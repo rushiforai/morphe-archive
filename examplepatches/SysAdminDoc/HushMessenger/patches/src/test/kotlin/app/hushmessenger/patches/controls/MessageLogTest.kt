@@ -112,6 +112,8 @@ internal fun messageLogFixture(
     hiddenReader: String = HIDDEN_READER_BODY,
     hiddenFlags: Int = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
     unsentClear: String = UNSENT_CLEAR_BODY,
+    quietDrop: String = QUIET_DROP_BODY,
+    senderFlags: Int = AccessFlags.PUBLIC.value,
 ): List<MutableClass> {
     val notificationCtor = newMessageNotificationCtor("LX/5qJ;", "LX/5Yc;")
     val secret = fixtureClass(SECRET_STRING, listOf(
@@ -123,12 +125,12 @@ internal fun messageLogFixture(
         fixtureMethod("$MESSAGE->A0F()$SECRET_STRING", "const-string v0, \"snippet\"\niget-object v0, v1, $MESSAGE->A0m:$SECRET_STRING\nreturn-object v0", 2),
     ), extraFields = listOf(field(MESSAGE, "A0n", SECRET_STRING, bodyFlags), field(MESSAGE, "A0m", SECRET_STRING), field(MESSAGE, "A0e", THREAD_KEY_TYPE), field(MESSAGE, "A09", "J"),
         field(MESSAGE, "A1m", "Ljava/lang/String;", idFlags), field(MESSAGE, "A1x", "Ljava/lang/String;"),
-        field(MESSAGE, "A2E", "Z", hiddenFlags), field(MESSAGE, "A2M", "Z")))
+        field(MESSAGE, "A2E", "Z", hiddenFlags), field(MESSAGE, "A2M", "Z"), field(MESSAGE, "A0U", PARTICIPANT_INFO, senderFlags)))
     val notification = fixtureClass(NEW_MESSAGE_NOTIFICATION, listOf(
         fixtureMethod(notificationCtor, ctorBody, ctorRegisters),
         // The Parcel constructor the resolver must skip.
         fixtureMethod("$NEW_MESSAGE_NOTIFICATION-><init>(Landroid/os/Parcel;)V", "return-void", 2),
-    ))
+    ), extraFields = listOf(field(NEW_MESSAGE_NOTIFICATION, "A0K", MESSAGE)))
     // The manager's recall step: a decoy (Message)Z that reads something else, then the unsent check, then the log.
     val manager = fixtureClass(MESSAGES_NOTIFICATION_MANAGER, listOf(fixtureMethod(
         "$MESSAGES_NOTIFICATION_MANAGER->A0D($FB_USER_SESSION$NEW_MESSAGE_NOTIFICATION)V", """
@@ -138,7 +140,7 @@ internal fun messageLogFixture(
             move-result v1
             const-string v2, "$retraction"
             return-void
-        """.trimIndent(), 6), fixtureMethod(SYNTHETIC_UNSENT_CLEAR, unsentClear, 10)))
+        """.trimIndent(), 6), fixtureMethod(SYNTHETIC_UNSENT_CLEAR, unsentClear, 10), fixtureMethod(SYNTHETIC_QUIET_DROP, quietDrop, 10)))
     val unsent = fixtureClass(UNSENT_OWNER, listOf(fixtureMethod(UNSENT_CHECK, unsentBody, 6, unsentFlags)), flags = unsentOwnerFlags)
     val decoy = fixtureClass("LX/2Ji;", listOf(fixtureMethod("LX/2Ji;->A0S($MESSAGE)Z",
         "iget-object v0, p0, $MESSAGE->A0e:$THREAD_KEY_TYPE\nif-eqz v0, :none\nconst/4 v0, 0x1\n:none\nreturn v0", 2, STATIC_PUBLIC)))
@@ -156,6 +158,14 @@ private const val RECALL_SHAPE = "(${FB_USER_SESSION}Ljava/lang/String;Ljava/lan
 private const val RECALLER_BODY = "const-string v0, \"NotificationRecaller\"\nconst/4 v0, 0x0\nreturn v0"
 
 internal const val SYNTHETIC_UNSENT_CLEAR = "$MESSAGES_NOTIFICATION_MANAGER->A0G($FB_USER_SESSION$NEW_MESSAGE_NOTIFICATION)V"
+internal const val SYNTHETIC_QUIET_DROP = "$MESSAGES_NOTIFICATION_MANAGER->A0H($FB_USER_SESSION$NEW_MESSAGE_NOTIFICATION)V"
+
+/** The manager's new-message method, cut down: it logs under its own name and reads the notification's message. */
+internal val QUIET_DROP_BODY = """
+    const-string v0, "$NOTIFY_NEW_MESSAGE"
+    iget-object v1, p2, $NEW_MESSAGE_NOTIFICATION->A0K:$MESSAGE
+    return-void
+""".trimIndent()
 private const val CLEAR_CALL = "$MESSAGES_NOTIFICATION_MANAGER->A0D($FB_USER_SESSION${THREAD_KEY_TYPE}Ljava/lang/String;)V"
 private const val DROP_LOG = "$MESSAGES_NOTIFICATION_MANAGER->A09(${MESSAGES_NOTIFICATION_MANAGER}Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V"
 private const val CLEAR_DROP_LOG = "invoke-static {p0, v0, v6, v5}, $DROP_LOG"
@@ -166,7 +176,7 @@ private const val RECALLED_BY_CLEARING_LOAD = "const-string v5, \"new_message_no
  * the recaller, else it clears the chat's notification with "UnsendMessage" and logs v6 as the dropped messageId. As in
  * Messenger, the branch lands on the step before the load, not on the load.
  */
-private val UNSENT_CLEAR_BODY = """
+internal val UNSENT_CLEAR_BODY = """
     iget-object v6, p2, $NEW_MESSAGE_NOTIFICATION->A07:Ljava/lang/String;
     iget-object v3, p2, $NEW_MESSAGE_NOTIFICATION->A0O:Ljava/lang/String;
     if-eqz v3, :clear

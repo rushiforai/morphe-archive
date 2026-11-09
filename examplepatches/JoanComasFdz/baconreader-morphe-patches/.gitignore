@@ -124,6 +124,9 @@ gradle-app.setting
 # Dependency directories
 node_modules/
 
+# The NAS runner's settings (tools/e2e/nas/.env.example)
+tools/e2e/nas/.env
+
 # gradle properties, due to Github token
 /gradle.properties
 

@@ -8,7 +8,8 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.origRef
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
@@ -36,6 +37,11 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 import java.io.File
 import java.lang.ref.SoftReference
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 class DisableChannelPullFixtureTest {
     @Test fun `both hooks retain every stock operand edge handler and explicit channel opener`() {
@@ -44,16 +50,16 @@ class DisableChannelPullFixtureTest {
             val sites = context.resolveChannelPullSites()
             val scroll = ImmutableMethod.of(sites.scroll)
             val touch = ImmutableMethod.of(sites.touch)
-            val opener = context.mutableClassDefBy(sites.transition.definingClass).methods.single { it.name == sites.transition.name }
+            val opener = context.tgMutableClassDefBy(sites.transition.definingClass).methods.single { it.origName == sites.transition.origName }
             val beforeOpener = opener.state()
-            val beforeOthers = hosts(build).flatMap { owner -> context.mutableClassDefBy(owner.type).methods }
+            val beforeOthers = hosts(build).flatMap { owner -> context.tgMutableClassDefBy(owner.type).methods }
                 .filter { it !== sites.scroll && it !== sites.touch }.associate { key(it) to it.state() }
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { disableChannelPullPatch.execute(context) })
             assertStock(build.name, scroll, sites.scroll, sites.scrollGate, GUARD)
             assertStock(build.name, touch, sites.touch, sites.releaseGate, GUARD)
             assertEquals("${build.name}: direct opening and its saved state aren't changed", beforeOpener, opener.state())
             assertEquals("${build.name}: all other host methods are untouched", beforeOthers,
-                hosts(build).flatMap { owner -> context.mutableClassDefBy(owner.type).methods }
+                hosts(build).flatMap { owner -> context.tgMutableClassDefBy(owner.type).methods }
                     .filter { it !== sites.scroll && it !== sites.touch }.associate { key(it) to it.state() })
             val scrolling = sites.scroll.instructions()
             assertEquals(sites.topic, scrolling[sites.scrollGate].field())
@@ -120,21 +126,21 @@ class DisableChannelPullFixtureTest {
             "no positive drag requirement" to { _, sites -> sites.scroll.replaceInstruction(sites.channelCall - 3, "nop") },
             "no zero ordinary scroll requirement" to { _, sites -> sites.scroll.replaceInstruction(sites.channelCall - 2, "nop") },
             "different topic state" to { context, sites ->
-                val owner = context.mutableClassDefBy(sites.topic.definingClass)
-                val other = owner.fields.first { it.type == "Z" && it.name != sites.topic.name }
+                val owner = context.tgMutableClassDefBy(sites.topic.definingClass)
+                val other = owner.fields.first { it.origType == "Z" && it.origName != sites.topic.origName }
                 val operands = sites.scroll.instructions()[sites.topicEntry].namedRegisters()
                 sites.scroll.replaceInstruction(sites.topicEntry, "iget-boolean v${operands[0]}, v${operands[1]}, ${other.definingClass}->${other.name}:Z")
             },
             "missing offset accumulation" to { _, sites -> sites.scroll.replaceInstruction(sites.offsetWrite, "nop") },
             "different release offset" to { context, sites ->
-                val owner = context.mutableClassDefBy(sites.offset.definingClass)
-                val other = owner.fields.first { it.type == "F" && it.name != sites.offset.name }
+                val owner = context.tgMutableClassDefBy(sites.offset.definingClass)
+                val other = owner.fields.first { it.origType == "F" && it.origName != sites.offset.origName }
                 val at = sites.touch.instructions().indexOfFirst { it.call()?.toString() == "Ljava/lang/Math;->min(FF)F" } - 7
                 val operands = sites.touch.instructions()[at].namedRegisters()
                 sites.touch.replaceInstruction(at, "iget v${operands[0]}, v${operands[1]}, ${other.definingClass}->${other.name}:F")
             },
             "different drawn drawable" to { context, sites ->
-                val draw = context.mutableClassDefBy(sites.list.type).methods.single { it.name == "onDraw" }
+                val draw = context.tgMutableClassDefBy(sites.list.type).methods.single { it.origName == "onDraw" }
                 val at = draw.instructions().indices.single { draw.instructions()[it].opcode == Opcode.IPUT_OBJECT && draw.instructions()[it].field() == sites.drawable }
                 draw.replaceInstruction(at, "nop")
             },
@@ -144,16 +150,16 @@ class DisableChannelPullFixtureTest {
                     "invoke-static/range {v0 .. v15}, Lfixture/ChannelPullRefusal;->readAll(IIIIIIIIIIIIIIII)V")
             },
             "private injected topic read" to { context, sites ->
-                val field = context.mutableClassDefBy(sites.topic.definingClass).fields.single { it.name == sites.topic.name }
+                val field = context.tgMutableClassDefBy(sites.topic.definingClass).fields.single { it.origName == sites.topic.origName }
                 field.accessFlags = field.accessFlags and AccessFlags.PUBLIC.value.inv() or AccessFlags.PRIVATE.value
             },
             "static injected topic read" to { context, sites ->
-                val field = context.mutableClassDefBy(sites.topic.definingClass).fields.single { it.name == sites.topic.name }
+                val field = context.tgMutableClassDefBy(sites.topic.definingClass).fields.single { it.origName == sites.topic.origName }
                 field.accessFlags = field.accessFlags or AccessFlags.STATIC.value
             },
             "duplicate scroll candidate" to { context, sites ->
                 val old = sites.scroll
-                context.mutableClassDefBy(old.definingClass).methods.add(ImmutableMethod(old.definingClass, old.name + "Duplicate", old.parameters,
+                context.tgMutableClassDefBy(old.definingClass).methods.add(ImmutableMethod(old.definingClass, old.name + "Duplicate", old.parameters,
                     old.returnType, old.accessFlags, old.annotations, old.hiddenApiRestrictions, old.implementation).toMutable())
             },
         )
@@ -172,8 +178,8 @@ class DisableChannelPullFixtureTest {
             for ((owner, name) in listOf(CHANNEL_PULL to "stopBottomPull", CHANNEL_PULL to "keepChannelStill",
                     FORUM_TOPIC_PULL to "stopTopicPull", FORUM_TOPIC_PULL to "keepTopicStill")) for (mutation in 0..6) {
                 val context = contextFor(build)
-                val runtime = context.mutableClassDefBy(owner)
-                val method = runtime.methods.single { it.name == name }
+                val runtime = context.tgMutableClassDefBy(owner)
+                val method = runtime.methods.single { it.origName == name }
                 when (mutation) {
                     0 -> runtime.accessFlags = runtime.accessFlags and AccessFlags.PUBLIC.value.inv()
                     1 -> method.accessFlags = method.accessFlags and AccessFlags.PUBLIC.value.inv()
@@ -196,17 +202,17 @@ class DisableChannelPullFixtureTest {
                 refusedUntouched(build, "$name mutation $mutation", context)
             }
             val status = contextFor(build)
-            status.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == "disableChannelPull" }
+            status.tgMutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.origName == "disableChannelPull" }
             refusedUntouched(build, "missing build fact", status, statusPresent = false)
         }
     }
 
     private fun refusedUntouched(build: File, case: String, context: BytecodePatchContext, statusPresent: Boolean = true) {
-        val types = (hosts(build).map { it.type } + CHANNEL_PULL + FORUM_TOPIC_PULL + SETTINGS_STATUS).filter { context.classDefByOrNull(it) != null }
-        val before = types.associateWith { context.mutableClassDefBy(it).state() }
+        val types = (hosts(build).map { it.type } + CHANNEL_PULL + FORUM_TOPIC_PULL + SETTINGS_STATUS).filter { context.tgClassDefByOrNull(it) != null }
+        val before = types.associateWith { context.tgMutableClassDefBy(it).state() }
         assertThrows("${build.name}: $case", PatchException::class.java) { disableChannelPullPatch.execute(context) }
         assertEquals("${build.name}: $case keeps the complete prior state", before,
-            types.associateWith { context.mutableClassDefBy(it).state() })
+            types.associateWith { context.tgMutableClassDefBy(it).state() })
         if (statusPresent) assertFlag(context, false)
     }
 
@@ -251,12 +257,12 @@ class DisableChannelPullFixtureTest {
                 Opcode.IGET_OBJECT -> registers[regs[0]] = 1
                 Opcode.IGET_BOOLEAN -> registers[regs[0]] = if (when {
                     instruction.field() == sites.topic -> topic
-                    instruction.field()?.name == "megagroup" -> group
+                    instruction.field()?.origName == "megagroup" -> group
                     else -> false
                 }) 1 else 0
                 Opcode.IGET -> registers[regs[0]] = 0 // Normal chat mode.
                 Opcode.CONST_4, Opcode.CONST_16 -> registers[regs[0]] = (instruction as NarrowLiteralInstruction).narrowLiteral
-                Opcode.INVOKE_STATIC, Opcode.INVOKE_VIRTUAL -> answer = when (instruction.call()!!.name) {
+                Opcode.INVOKE_STATIC, Opcode.INVOKE_VIRTUAL -> answer = when (instruction.call()!!.origName) {
                     "isChannel" -> if (channel) 1 else 0
                     "isBotForum" -> if (bot) 1 else 0
                     "stopBottomPull" -> if (enabled) 1 else 0
@@ -298,7 +304,7 @@ class DisableChannelPullFixtureTest {
             if (at == sites.retract + GUARD) return true
             when (body[at].opcode) {
                 Opcode.IGET_BOOLEAN -> value = topic
-                Opcode.INVOKE_STATIC -> value = if (body[at].call()!!.definingClass == FORUM_TOPIC_PULL) topicEnabled else enabled
+                Opcode.INVOKE_STATIC -> value = if (body[at].call()!!.origDefiningClass == FORUM_TOPIC_PULL) topicEnabled else enabled
                 Opcode.MOVE_RESULT -> Unit
                 Opcode.IF_NEZ -> {
                     at = if (value) flow.normal[at].single { it != at + 1 } else at + 1
@@ -320,8 +326,8 @@ class DisableChannelPullFixtureTest {
         assertEquals("${build.name}: one bottom-pull layout manager", 1, layouts.size)
         val scroll = layouts.single().methods.single { it.isChannelPullScroll() }.instructions()
         val fields = scroll.mapNotNull { it.field() }
-        val activity = scroll[scroll.indexOfFirst { it.call()?.name == "isChannel" } - 1].field()!!.definingClass
-        val needed = fields.filter { it.definingClass == activity && it.type.startsWith("Lorg/telegram/ui/") }.map { it.type }.toSet() + activity
+        val activity = scroll[scroll.indexOfFirst { it.call()?.origName == "isChannel" } - 1].field()!!.definingClass
+        val needed = fields.filter { it.origDefiningClass == activity && it.origType.startsWith("Lorg/telegram/ui/") }.map { it.type }.toSet() + activity
         val dependencies = FixtureDex.classes(build, needed)
         assertEquals("${build.name}: structural binding classes", needed, dependencies.keys)
         val parents = mutableListOf<ClassDef>()
@@ -338,9 +344,9 @@ class DisableChannelPullFixtureTest {
     }
 
     private fun contextFor(build: File, runtime: Boolean = true, topicRuntime: Boolean = true) = PatchContexts.of(
-        ExtensionDex.classes().filter { (runtime || it.type != CHANNEL_PULL) && (topicRuntime || it.type != FORUM_TOPIC_PULL) } + hosts(build))
+        ExtensionDex.classes().filter { (runtime || it.origType != CHANNEL_PULL) && (topicRuntime || it.origType != FORUM_TOPIC_PULL) } + hosts(build))
     private fun assertFlag(context: BytecodePatchContext, expected: Boolean) {
-        val body = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "disableChannelPull" }.instructions()
+        val body = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "disableChannelPull" }.instructions()
         assertEquals(if (expected) 1 else 0, (body[0] as NarrowLiteralInstruction).narrowLiteral)
     }
     private fun reachable(flow: ControlFlow, from: Int): Set<Int> {
@@ -366,7 +372,7 @@ class DisableChannelPullFixtureTest {
         (instruction as? WideLiteralInstruction)?.wideLiteral, (instruction as? SwitchPayload)?.switchElements?.map { it.key })
     private fun key(method: Method) = "${method.definingClass}->${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}"
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()
-    private fun Instruction.ref() = (this as? ReferenceInstruction)?.reference?.toString()
+    private fun Instruction.ref() = origRef()
     private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
     private fun Instruction.call(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
     /** The patcher picks the jump's width; any width is the same jump. */

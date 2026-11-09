@@ -4,6 +4,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.dmoniak.patches.shared.BillingHookHelper.executeGooglePlayBillingBypass
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_HOTSTAR
 import com.dmoniak.patches.shared.cloneMethodWithAdditionalRegisters
@@ -12,8 +15,8 @@ import java.util.logging.Logger
 
 @Suppress("unused")
 val hotstarUnlockPremiumPatch = bytecodePatch(
-    name = "Unlock Premium & Enhanced Playback - JioHotstar",
-    description = "Unlocks premium UI features, bypasses subscription gates for higher video resolution selections, allows screenshots/screen recording, and enables playback over HDMI and screen mirroring in JioHotstar.",
+    name = "Unlock Premium, Screenshots & Enhanced Playback - JioHotstar",
+    description = "Unlocks premium UI features, downloads, 4K/HDR10 codecs, removes screenshot & screen recording blocks, and allows HDMI/screen mirroring in JioHotstar.",
 ) {
     compatibleWith(COMPATIBILITY_HOTSTAR)
 
@@ -24,12 +27,137 @@ val hotstarUnlockPremiumPatch = bytecodePatch(
 }
 
 fun BytecodePatchContext.executeHotstarUnlockPremiumLogic(logger: Logger) {
-    logger.info("Executing Unlock Premium & Enhanced Playback patch for JioHotstar (in.startv.hotstar)...")
-    var hookedActivities = 0
-    var hookedMethods = 0
+    logger.info("Executing Unlock Premium, Screenshots & Enhanced Playback patch for JioHotstar (in.startv.hotstar)...")
 
-    // 1. Google Play Billing Client SDK bypass
-    hookedMethods += executeGooglePlayBillingBypass(logger, "JioHotstar")
+    // 1. Google Play Billing Client bypass
+    executeGooglePlayBillingBypass(logger, "JioHotstar")
+
+    // 2. Compose FLAG_SECURE window flag setter neutralization
+    try {
+        ComposeFlagSecureFingerprint.method.addInstructions(
+            0,
+            """
+            return-void
+            """.trimIndent()
+        )
+        logger.info("[Hotstar Screenshots] Neutered Compose FLAG_SECURE window setter")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar Screenshots] ComposeFlagSecureFingerprint failed: ${e.message}")
+    }
+
+    // 3. ABConfig.getUseSecureView() forced to false (prevents video player SurfaceView.setSecure(true))
+    try {
+        UseSecureViewFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x0
+            return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar Screenshots] ABConfig.getUseSecureView() forced to false")
+    } catch (e: Exception) {
+        logger.fine("[Hotstar Screenshots] UseSecureViewFingerprint not matched: ${e.message}")
+    }
+
+    // 4. Multiple display check (HDMI & screen mirroring) neutralization
+    try {
+        MultipleDisplayCheckFingerprint.method.addInstructions(
+            0,
+            """
+            return-void
+            """.trimIndent()
+        )
+        logger.info("[Hotstar ScreenMirroring] Neutered MultipleDisplayCheck")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar ScreenMirroring] MultipleDisplayCheckFingerprint failed: ${e.message}")
+    }
+
+    // 5. Protobuf subscribed state (MyPageData.getIsSubscribed() -> true)
+    try {
+        IsSubscribedFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x1
+            return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar Premium] MyPageData.getIsSubscribed() forced to true")
+    } catch (e: Exception) {
+        logger.fine("[Hotstar Premium] IsSubscribedFingerprint failed: ${e.message}")
+    }
+
+    // 6. Download button unlock (DownloadInfo.getIsPremium() -> false)
+    try {
+        IsPremiumFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x0
+            return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar Premium] DownloadInfo.getIsPremium() forced to false (enables downloads)")
+    } catch (e: Exception) {
+        logger.fine("[Hotstar Premium] IsPremiumFingerprint failed: ${e.message}")
+    }
+
+    // 7. Subscription nudge widget suppression during playback
+    try {
+        SubscriptionNudgeFingerprint.method.addInstructions(
+            0,
+            """
+            return-void
+            """.trimIndent()
+        )
+        logger.info("[Hotstar Premium] Neutered SubscriptionNudgeWidget")
+    } catch (e: Exception) {
+        logger.fine("[Hotstar Premium] SubscriptionNudgeFingerprint failed: ${e.message}")
+    }
+
+    // 8. 4K resolution unlock
+    try {
+        Is4kSupportedFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x1
+            return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar Playback] Is4kSupported forced to true")
+    } catch (e: Exception) {
+        logger.fine("[Hotstar Playback] Is4kSupportedFingerprint failed: ${e.message}")
+    }
+
+    // 9. All video codecs unlock (H265, VP9, AV1)
+    try {
+        IsCodecSupportedFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x1
+            return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar Playback] IsCodecSupported forced to true")
+    } catch (e: Exception) {
+        logger.fine("[Hotstar Playback] IsCodecSupportedFingerprint failed: ${e.message}")
+    }
+
+    // 10. Dolby Vision & HDR10/HDR10+ unlock
+    try {
+        IsDolbyVisionSupportedFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x1
+            return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar Playback] IsDolbyVisionSupported forced to true")
+    } catch (e: Exception) {
+        logger.fine("[Hotstar Playback] IsDolbyVisionSupportedFingerprint failed: ${e.message}")
+    }
+
+    // 11. Activity window lifecycle injection & SurfaceView.setSecure interception
+    var hookedActivities = 0
+    var hookedSurfaceCalls = 0
 
     classDefForEach { classDef ->
         val type = classDef.type
@@ -37,15 +165,11 @@ fun BytecodePatchContext.executeHotstarUnlockPremiumLogic(logger: Logger) {
         if (tl.startsWith("landroidx/") || tl.startsWith("lkotlin/") || tl.startsWith("ljava/")) return@classDefForEach
 
         val superType = classDef.superclass ?: ""
-        val isConcreteHotstarActivity = type == "Lcom/hotstar/MainActivity;" ||
-                type == "Lcom/hotstar/MainActivityJv;" ||
-                type == "Lcom/hotstar/payment_lib_webview/main/HSWebPaymentActivity;" ||
-                (tl.startsWith("lcom/hotstar/") && !type.contains("$") &&
-                        (superType.endsWith("Activity;") || superType.contains("Activity")))
+        val isConcreteHotstarActivity = !type.contains("$") &&
+                (type.endsWith("Activity;") || superType.endsWith("Activity;") || superType.contains("Activity")) &&
+                (tl.contains("hotstar") || tl.contains("startv") || !tl.startsWith("lcom/google/"))
 
-        val mutableClass by lazy { mutableClassDefBy(classDef) }
-
-        // 2. Inject Window.clearFlags(0x2000) into every Activity to allow screenshots & screen mirroring
+        // Clear FLAG_SECURE on all Activity lifecycles using Dalvik format 3rc
         if (isConcreteHotstarActivity) {
             for (method in classDef.methods.toList()) {
                 if (method.implementation == null) continue
@@ -55,6 +179,7 @@ fun BytecodePatchContext.executeHotstarUnlockPremiumLogic(logger: Logger) {
 
                 val isLifecycle = !isStatic && (
                     (mName == "onResume" && pTypes.isEmpty()) ||
+                    (mName == "onAttachedToWindow" && pTypes.isEmpty()) ||
                     (mName == "onCreate" && pTypes.size == 1 && pTypes[0] == "Landroid/os/Bundle;")
                 )
 
@@ -64,7 +189,7 @@ fun BytecodePatchContext.executeHotstarUnlockPremiumLogic(logger: Logger) {
                         cloned.addInstructions(
                             0,
                             """
-                            invoke-virtual {p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
+                            invoke-virtual/range {p0 .. p0}, Landroid/app/Activity;->getWindow()Landroid/view/Window;
                             move-result-object v0
                             if-eqz v0, :cond_clear_flag_secure
                             const/16 v1, 0x2000
@@ -73,83 +198,43 @@ fun BytecodePatchContext.executeHotstarUnlockPremiumLogic(logger: Logger) {
                             """.trimIndent()
                         )
                         hookedActivities++
-                        logger.fine("[Hotstar Premium] Injected Window.clearFlags(0x2000) in ${type}->${mName}")
-                    } catch (e: Exception) {
-                        logger.fine("[Hotstar Premium] Skip activity lifecycle injection: ${e.message}")
-                    }
+                    } catch (_: Exception) {}
                 }
             }
         }
 
-        // 3. Subscription & VIP entitlement checks
+        // Intercept any SurfaceView.setSecure(Z) call to force parameter to false
         for (method in classDef.methods.toList()) {
-            if (method.implementation == null) continue
-            val isStatic = AccessFlags.STATIC.isSet(method.accessFlags)
-            val mName = method.name.lowercase()
-            val retType = method.returnType
-            val pTypes = method.parameterTypes
+            val impl = method.implementation ?: continue
+            val indicesToHook = mutableListOf<Pair<Int, Int>>()
 
-            val isSubscriptionCheck = !isStatic && (
-                mName == "issubscribed" ||
-                mName == "hassubscription" ||
-                mName == "isvipuser" ||
-                mName == "issuperuser" ||
-                mName == "ispremium" ||
-                mName == "ispremiumuser" ||
-                mName == "isactivemembership" ||
-                mName == "iscontentunlocked" ||
-                mName == "canplaypremiumvideo" ||
-                mName == "ishdrenabled" ||
-                mName == "is4kenabled" ||
-                mName == "isscreenmirroringallowed" ||
-                mName == "ishdmiallowed"
-            ) && retType == "Z" && pTypes.isEmpty()
-
-            if (isSubscriptionCheck) {
-                try {
-                    mutableClass.replaceMethod(
-                        method,
-                        registerCount = 2,
-                        smaliCode = """
-                            const/4 v0, 0x1
-                            return v0
-                        """.trimIndent()
-                    )
-                    hookedMethods++
-                    logger.fine("[Hotstar Premium] Hooked entitlement: ${type}->${method.name} -> true")
-                } catch (e: Exception) {
-                    logger.fine("[Hotstar Premium] Skip entitlement hook: ${e.message}")
+            for ((index, instruction) in impl.instructions.withIndex()) {
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                if (ref.definingClass == "Landroid/view/SurfaceView;" && ref.name == "setSecure") {
+                    if (instruction is FiveRegisterInstruction) {
+                        indicesToHook.add(index to instruction.registerD)
+                    }
                 }
             }
 
-            // Suppress paywall nudges & subscription dialogs
-            val isPaywallCheck = !isStatic && (
-                mName == "shouldshowpaywall" ||
-                mName == "shouldshownudge" ||
-                mName == "iscontentlocked" ||
-                mName == "isvideolocked" ||
-                mName == "isrestrictedbyhdmi"
-            ) && retType == "Z" && pTypes.isEmpty()
-
-            if (isPaywallCheck) {
+            if (indicesToHook.isNotEmpty()) {
                 try {
-                    mutableClass.replaceMethod(
-                        method,
-                        registerCount = 2,
-                        smaliCode = """
-                            const/4 v0, 0x0
-                            return v0
-                        """.trimIndent()
-                    )
-                    hookedMethods++
-                    logger.fine("[Hotstar Premium] Hooked paywall check: ${type}->${method.name} -> false")
-                } catch (e: Exception) {
-                    logger.fine("[Hotstar Premium] Skip paywall hook: ${e.message}")
-                }
+                    val mutMethod = mutableClassDefBy(classDef).methods.first {
+                        it.name == method.name && it.parameterTypes == method.parameterTypes
+                    }
+                    for ((index, reg) in indicesToHook.reversed()) {
+                        mutMethod.addInstructions(
+                            index,
+                            """
+                            const/4 v$reg, 0x0
+                            """.trimIndent()
+                        )
+                        hookedSurfaceCalls++
+                    }
+                } catch (_: Exception) {}
             }
         }
     }
 
-    logger.info("[JioHotstar Premium] Total hooks applied: Activities=$hookedActivities, Methods=$hookedMethods")
+    logger.info("[Hotstar Unlock & Screenshots] Hooked: Activities=$hookedActivities, SurfaceView.setSecure calls=$hookedSurfaceCalls")
 }
-

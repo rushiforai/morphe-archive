@@ -92,11 +92,6 @@ val finampPlayerOutputPatch = finampFeature(
 )
 
 @Suppress("unused")
-val finampQuickSettingsBannerPatch = finampFeature(
-    "Fix quick settings banner contrast", "Use the banner's matching foreground color so its text stays readable with custom accents (#1756).", 64,
-)
-
-@Suppress("unused")
 val finampAlbumTrackInformationPatch = finampFeature(
     "Show album and track information", "Show available Jellyfin album and track descriptions, including descriptions saved by download sync (#1852).", 128,
 )

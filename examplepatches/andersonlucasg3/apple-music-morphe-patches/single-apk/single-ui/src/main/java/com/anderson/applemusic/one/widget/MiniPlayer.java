@@ -47,6 +47,7 @@ public final class MiniPlayer extends FrameLayout {
         cover = new ImageView(context);
         cover.setScaleType(ImageView.ScaleType.CENTER_CROP);
         cover.setBackgroundColor(Tokens.SURFACE_HOVER);
+        cover.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         LinearLayout.LayoutParams coverParams =
                 new LinearLayout.LayoutParams(Tokens.dp(40), Tokens.dp(40));
         coverParams.rightMargin = Tokens.dp(12);
@@ -66,6 +67,7 @@ public final class MiniPlayer extends FrameLayout {
                 LayoutParams.WRAP_CONTENT, 1f));
 
         play = new CircleButton(context, Icons.PLAY, 40f, Tokens.ACCENT, Tokens.TEXT, 16f);
+        play.setContentDescription("Reproduzir");
         LinearLayout.LayoutParams playParams =
                 new LinearLayout.LayoutParams(Tokens.dp(40), Tokens.dp(40));
         playParams.leftMargin = Tokens.dp(8);
@@ -93,6 +95,7 @@ public final class MiniPlayer extends FrameLayout {
         title.setText(snapshot.title);
         artist.setText(join(snapshot.artist, snapshot.album));
         play.setIcon(snapshot.playing ? Icons.PAUSE : Icons.PLAY);
+        play.setContentDescription(snapshot.playing ? "Pausar" : "Reproduzir");
         if (snapshot.artwork != null && snapshot.artwork.hashCode() != lastArtwork) {
             lastArtwork = snapshot.artwork.hashCode();
             cover.setImageBitmap(snapshot.artwork);

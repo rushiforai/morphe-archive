@@ -114,7 +114,7 @@ public final class NavigationBar {
         View host = activity.findViewById(activity.getResources().getIdentifier(
                 "nav_host_fragment", "id", activity.getPackageName()));
         if (host != null) {
-            host.getViewTreeObserver().addOnGlobalLayoutListener(() -> padScrollers(host, host.getHeight(), bar.getHeight()));
+            host.getViewTreeObserver().addOnGlobalLayoutListener(() -> padScrollers(host, host, bar.getHeight()));
         }
     }
 
@@ -135,6 +135,18 @@ public final class NavigationBar {
                 && hostHeight > 0 && view.getHeight() >= hostHeight * 0.8f;
     }
 
+    /** Whether the view is a short, visible one whose bottom edge is the bottom edge of the host: a pinned button or bar. */
+    private static boolean isBottomAnchored(View view, View host) {
+        if (view.getVisibility() != View.VISIBLE || view.getHeight() == 0 || view.getHeight() >= host.getHeight() * 0.4f
+                || isScroller(view)) return false;
+        int bottom = view.getHeight();
+        for (View v = view; v != host; v = (View) v.getParent()) {
+            bottom += v.getTop();
+            if (!(v.getParent() instanceof View)) return false;
+        }
+        return Math.abs(bottom - host.getHeight()) <= 4 * host.getResources().getDisplayMetrics().density;
+    }
+
     /** Sets the part of a view's bottom padding that belongs to the bar, keeping the padding the app gave it. */
     private static void addBottomPadding(ViewGroup view, int extra) {
         Integer added = (Integer) view.getTag(PADDED);
@@ -153,10 +165,11 @@ public final class NavigationBar {
      * the bar, so the content stops above the bar and does not clip when it scrolls behind it. The height follows
      * the bar, which is shorter without labels.
      *
-     * @param hostHeight height of the nav host, to tell a whole-screen ComposeView from a small one
+     * @param host the nav host, to tell a whole-screen ComposeView from a small one and to find what is pinned to its bottom
      */
-    private static void padScrollers(View root, int hostHeight, int barHeight) {
+    private static void padScrollers(View root, View host, int barHeight) {
         if (barHeight <= 0) return;
+        int hostHeight = host.getHeight();
         if (isScroller(root)) {
             addBottomPadding((ViewGroup) root, barHeight);
             return;
@@ -169,7 +182,15 @@ public final class NavigationBar {
         }
         if (!(root instanceof ViewGroup)) return;
         ViewGroup group = (ViewGroup) root;
-        for (int i = 0; i < group.getChildCount(); i++) padScrollers(group.getChildAt(i), hostHeight, barHeight);
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (isBottomAnchored(child, host)) {
+                // A button or bar pinned to the bottom of the screen would sit behind the glass bar.
+                child.setTranslationY(-barHeight);
+            } else {
+                padScrollers(child, host, barHeight);
+            }
+        }
     }
 
     /**

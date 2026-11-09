@@ -369,6 +369,96 @@ public final class MediaSave {
         }
     }
 
+    /**
+     * Whether [url] is an address a save or {@link #fetchPicture} would fetch at all: plain https on
+     * one of Meta's media hosts, by {@link MediaUrlPolicy}'s rules. Never throws.
+     */
+    public static boolean isMediaAddress(String url) {
+        try {
+            return RenditionPicker.isHttpUrl(url) && MediaUrlPolicy.shapeRefusal(url) == null;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /**
+     * Save the picture at [url] as it is, for a caller that already holds the one address it wants,
+     * such as the largest size of a profile picture. Nothing ranks it: {@link RenditionPicker#imageTier}
+     * takes a small square for a thumbnail, and a profile picture's largest size can be one. Meta's
+     * address rules hold as for every save. The file is named like any saved photo.
+     *
+     * @return whether a save started. Never throws.
+     */
+    public static boolean savePicture(Context context, String url) {
+        try {
+            Context safe = ready(context);
+            if (safe == null) return false;
+            if (!isMediaAddress(url)) {
+                failure(() -> "nothing to save: the picture's address isn't one of Meta's media addresses", null);
+                return false;
+            }
+            if (!permitted(safe)) return false;
+            return start(safe, false, PostDetails.NONE, fileJob(safe, url, Downloader.Kind.IMAGE)) != null;
+        } catch (Throwable t) {
+            failure(() -> "the picture save could not start", t);
+            return false;
+        }
+    }
+
+    /** The most {@link #fetchPicture} reads: far over any picture Threads shows, far under a phone's memory. */
+    static final long PICTURE_CAP = 16L * 1024 * 1024;
+
+    /**
+     * The bytes of the picture at [url], fetched for showing on screen through the same address
+     * rules and checks as a save, and never put in the gallery. Blocks, so it never runs on the main
+     * thread. Answers null when the address isn't Meta's media, the fetch fails, or [cancelled]
+     * says to stop. Never throws.
+     */
+    public static byte[] fetchPicture(Context context, String url, java.util.function.BooleanSupplier cancelled) {
+        java.io.File file = null;
+        try {
+            Context safe = ready(context);
+            if (safe == null || !isMediaAddress(url)) return null;
+            java.io.File folder = DashSave.workFolder(safe);
+            if (folder == null) return null;
+            file = java.io.File.createTempFile("picture", ".part", folder);
+            Downloader.Result fetched = DashSave.fetchWork(url, Downloader.Kind.IMAGE, file, policyFor(safe),
+                PICTURE_CAP, new Downloader.Progress() {
+                    @Override
+                    public void transferred(long done, long total) {
+                    }
+
+                    @Override
+                    public void reading(Runnable close) {
+                    }
+
+                    @Override
+                    public boolean cancelled() {
+                        return cancelled != null && cancelled.getAsBoolean();
+                    }
+                });
+            if (!fetched.ok()) {
+                info(() -> "the picture was not fetched: " + fetched);
+                return null;
+            }
+            return readAll(file);
+        } catch (Throwable t) {
+            failure(() -> "the picture could not be fetched", t);
+            return null;
+        } finally {
+            DashSave.discard(file);
+        }
+    }
+
+    private static byte[] readAll(java.io.File file) throws java.io.IOException {
+        try (java.io.InputStream in = new java.io.FileInputStream(file)) {
+            java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream((int) Math.min(file.length(), PICTURE_CAP));
+            byte[] buffer = new byte[16 * 1024];
+            for (int read; (read = in.read(buffer)) != -1; ) out.write(buffer, 0, read);
+            return out.toByteArray();
+        }
+    }
+
     // ---------------------------------------------------------------- internals
 
     /** The renditions whose address {@link MediaConnection} can fetch at all. Never null. */

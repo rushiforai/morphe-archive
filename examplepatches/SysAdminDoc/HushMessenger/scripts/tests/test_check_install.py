@@ -207,6 +207,16 @@ class CertificateChecks(unittest.TestCase):
         self.assertEqual(checker.conflicts(apk(), {}, {}, leftover=346000000), [])
         self.assertEqual(checker.conflicts(apk(), {}, {}, leftover=None), [])
 
+    def test_a_kept_meta_build_points_at_clone_install_not_a_higher_code(self):
+        # #156: Messenger 347215347 was uninstalled with its data kept, so patched 347215257 failed with
+        # INSTALL_FAILED_VERSION_DOWNGRADE, and on a device another key failed even at a higher code.
+        problems = checker.conflicts(apk(code=347215257), {}, {}, leftover=347215347)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("kept at version code 347215347, candidate 347215257", problems[0])
+        self.assertIn("Clone install under another package name", problems[0])
+        self.assertIn("even at a higher version code", problems[0])
+        self.assertNotIn("Spoof package version", problems[0])
+
     def test_leftover_version_inventory_is_read_exactly(self):
         output = (
             "package:com.facebook.orca.extra versionCode:1\n"
@@ -433,6 +443,7 @@ class CertificateChecks(unittest.TestCase):
             self.assertIn(
                 "NOTE: com.facebook.orca was uninstalled with its data kept", text
             )
+            self.assertIn("Android refuses a different key on install", text)
             self.assertIn("CONFLICT: Version downgrade", text)
             self.assertIn('"Spoof package version"', text)
             self.assertNotIn(

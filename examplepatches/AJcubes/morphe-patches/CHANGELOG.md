@@ -1,3 +1,10 @@
+## [1.3.0](https://github.com/AJcubes/morphe-patches/compare/v1.2.0...v1.3.0) (2026-11-08)
+
+### ✨ New Features
+
+* add debuggable patch ([bf1ef98](https://github.com/AJcubes/morphe-patches/commit/bf1ef98191416a56ab13cb1ee69e5bd048473686))
+* add debuggable patch ([aecaa0c](https://github.com/AJcubes/morphe-patches/commit/aecaa0c496a8d2b351967008342305b3472f0444))
+
 ## [1.2.0](https://github.com/AJcubes/morphe-patches/compare/v1.1.0...v1.2.0) (2026-11-06)
 
 ### ✨ New Features

@@ -1,0 +1,54 @@
+name: Build .mpp
+
+# Manual build of the patch bundle from any branch. The bundle is attached to the run as an artifact.
+# For real releases, use the Release workflow (semantic-release, as in the Morphe patches template).
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'test/**'
+
+jobs:
+  build:
+    name: Build patches bundle
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -o pipefail
+          # Fetch Gradle with retries (GitHub mirror first): the wrapper's single 10 s attempt fails on flaky runs.
+          V=$(sed -n 's/.*gradle-\([0-9.]*\)-bin\.zip.*/\1/p' gradle/wrapper/gradle-wrapper.properties)
+          curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors -o "$RUNNER_TEMP/gradle.zip" "https://github.com/gradle/gradle-distributions/releases/download/v$V/gradle-$V-bin.zip" \
+            || curl -fsSL --retry 8 --retry-delay 10 --retry-all-errors -o "$RUNNER_TEMP/gradle.zip" "https://services.gradle.org/distributions/gradle-$V-bin.zip"
+          sed -i "s#^distributionUrl=.*#distributionUrl=file\\://$RUNNER_TEMP/gradle.zip#" gradle/wrapper/gradle-wrapper.properties
+          grep distributionUrl gradle/wrapper/gradle-wrapper.properties
+          if ! ./gradlew :patches:buildAndroid :patches:generatePatchesList --no-daemon 2>&1 | tee build.log; then
+            # Surface the end of the log as annotations, which are readable without opening the log.
+            grep -v "^\s*at " build.log | tail -45 | while IFS= read -r line; do
+              [ -n "$line" ] && echo "::error::${line}"
+            done
+            exit 1
+          fi
+
+      - name: Upload .mpp
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-mpp
+          path: patches/build/libs/patches-*.mpp
+          if-no-files-found: error

@@ -120,7 +120,7 @@ public final class EditorBar {
 
     static void show(Activity activity) {
         LinearLayout page = MorpheDialog.page(activity, "Formatting bar",
-                "Untick a button to hide it, or use arrows to change button order. Preview, clear formatting, undo and redo stay hidden in editors that do not use them.");
+                "Untick a button to hide it, or drag the handle to change the order. Preview, clear formatting, undo and redo stay hidden in editors that do not use them.");
 
         Set<String> hidden = new HashSet<>(hidden(activity));
         List<String> order = new ArrayList<>(getOrder(activity));
@@ -151,26 +151,11 @@ public final class EditorBar {
                 });
                 line.addView(box, new LinearLayout.LayoutParams(
                         0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-
-                TextView upBtn = arrowButton(activity, "▲", index > 0);
-                if (index > 0) {
-                    upBtn.setOnClickListener(v -> {
-                        Collections.swap(order, index, index - 1);
-                        saveOrder(activity, order);
-                        rebuildRef[0].run();
-                    });
-                }
-                line.addView(upBtn);
-
-                TextView downBtn = arrowButton(activity, "▼", index < order.size() - 1);
-                if (index < order.size() - 1) {
-                    downBtn.setOnClickListener(v -> {
-                        Collections.swap(order, index, index + 1);
-                        saveOrder(activity, order);
-                        rebuildRef[0].run();
-                    });
-                }
-                line.addView(downBtn);
+                line.addView(DragOrder.handle(activity, rowsContainer, (from, to) -> {
+                    Collections.swap(order, from, to);
+                    saveOrder(activity, order);
+                    return true;
+                }));
 
                 rowsContainer.addView(line);
             }

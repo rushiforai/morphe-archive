@@ -13,7 +13,7 @@ internal object SetUserAgentFingerprint : Fingerprint(
 )
 
 // Internal patch (no name): not shown in Morphe Manager or the CLI patch list. It is only applied through
-// overlayPatch's dependsOn, which also supplies compatibleWith and the extension.
+// overlayPatch's dependsOn, which also supplies compatibleWith and the extension (extensionPatch).
 // Remembers the app's HTTP User-Agent so word finder requests look the same.
 val userAgentPatch = bytecodePatch {
     execute {

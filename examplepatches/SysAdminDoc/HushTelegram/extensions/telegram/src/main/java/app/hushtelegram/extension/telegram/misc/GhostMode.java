@@ -99,7 +99,7 @@ public final class GhostMode {
     /** Whether an update status request says online. Anything unreadable is treated as offline, so it goes out. */
     private static boolean goingOnline(Object request) {
         try {
-            return !request.getClass().getField("offline").getBoolean(request);
+            return !HostNames.field(request.getClass(), "offline").getBoolean(request);
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "ghost mode online status read", t);
             return false;

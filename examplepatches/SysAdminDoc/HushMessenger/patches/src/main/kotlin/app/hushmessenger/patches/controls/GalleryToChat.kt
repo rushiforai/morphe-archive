@@ -157,10 +157,11 @@ private fun copiedMedia(code: List<Instruction>, at: Int): Int? {
  */
 private fun chatDispatchers(methods: List<Method>, byType: Map<String, ClassDef>): Map<String, Set<String>> {
     val found = mutableMapOf<String, MutableSet<String>>()
+    val insertPreview = MemberMatch(INSERT_PREVIEW_INIT)
     for (method in methods) {
         val code = method.implementation?.instructions?.toList() ?: continue
         for (i in 0 until code.size - 1) {
-            if (code[i].opcode != Opcode.INVOKE_DIRECT || code[i].galleryMethod()?.toString() != INSERT_PREVIEW_INIT) continue
+            if (code[i].opcode != Opcode.INVOKE_DIRECT || !insertPreview.matches(code[i].galleryMethod())) continue
             val call = code[i + 1]
             val ref = call.galleryMethod() ?: continue
             if (call.opcode != Opcode.INVOKE_STATIC || ref.returnType != "V" || ref.parameterTypes.size != 2 ||

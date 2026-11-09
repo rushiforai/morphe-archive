@@ -58,6 +58,8 @@ public class ToastLengthTest {
         }
         for (String mode : new String[] {"stock", "chat_heads", "native"})
             check(cut, "bubble_changed " + mode, words.get("bubble_changed", words.base("bubble_" + mode)));
+        for (String style : TonePalette.STYLES)
+            check(cut, "material_you_style_changed " + style, words.get("material_you_style_changed", words.get("material_you_style_" + style)));
         for (String[] control : SettingsActivity.CONTROLS) {
             check(cut, "choice_on " + control[0], words.get("choice_on", control[1]));
             check(cut, "choice_off " + control[0], words.get("choice_off", control[1]));

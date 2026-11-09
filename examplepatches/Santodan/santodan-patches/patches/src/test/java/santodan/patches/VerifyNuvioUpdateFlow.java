@@ -21,12 +21,12 @@ public final class VerifyNuvioUpdateFlow {
     }
     static void apply(Map<String,MutableClass> c) {
         NuvioUpdateFlowPatch.install(c.get("Llb/q;"),c.get("Llb/b;"),c.get(NuvioUpdateInstaller.INSTALLER),
-            c.get(NuvioUpdateFlowPatch.INSTALL_UI),c.get("Landroidx/core/content/FileProvider;"),c.get("Lb4/a;"),c.get("Lmb/a;"));
+            c.get(NuvioUpdateFlowPatch.INSTALL_UI),c.get("Landroidx/core/content/FileProvider;"),c.get("La4/b;"),c.get("Lmb/a;"));
     }
     public static void main(String[] args)throws Exception {
         var originals=new HashMap<String,MutableClass>();
         var types=Set.of("Llb/q;","Llb/b;",NuvioUpdateInstaller.INSTALLER,NuvioUpdateInstaller.RECEIVER,
-            "Landroidx/core/content/FileProvider;","Lb4/a;","Lmb/a;");
+            "Landroidx/core/content/FileProvider;","La4/b;","Lmb/a;");
         try(var zip=new ZipFile(args[0])) {
             for(var e:Collections.list(zip.entries()))if(e.getName().matches("classes\\d*\\.dex"))
                 try(var in=new BufferedInputStream(zip.getInputStream(e))) {
@@ -53,8 +53,8 @@ public final class VerifyNuvioUpdateFlow {
                 if(c.getType().equals(NuvioUpdateInstaller.RECEIVER)&&after.getName().equals("onReceive"))after.getImplementation().removeInstruction(NuvioUpdateInstaller.dmResult(after)+1);
                 if(c.getType().equals(NuvioUpdateFlowPatch.INSTALL_UI)&&after.getName().equals("contentUri")) {
                     var body=after.getImplementation(); check(body.getInstructions().size()==5);
-                    check(NuvioPlaybackButtonsPatch.reference(body.getInstructions().get(0)).equals("Landroidx/core/content/FileProvider;->c(Landroid/content/Context;Ljava/lang/String;)Lb4/a;"));
-                    check(NuvioPlaybackButtonsPatch.reference(body.getInstructions().get(2)).equals("Lb4/a;->c(Ljava/io/File;)Landroid/net/Uri;"));
+                    check(NuvioPlaybackButtonsPatch.reference(body.getInstructions().get(0)).equals("Landroidx/core/content/FileProvider;->c(Landroid/content/Context;Ljava/lang/String;)La4/b;"));
+                    check(NuvioPlaybackButtonsPatch.reference(body.getInstructions().get(2)).equals("La4/b;->c(Ljava/io/File;)Landroid/net/Uri;"));
                     while(!body.getInstructions().isEmpty())body.removeInstruction(0);
                     body.addInstruction(new BuilderInstruction11n(Opcode.CONST_4,0,0)); body.addInstruction(new BuilderInstruction11x(Opcode.RETURN_OBJECT,0));
                 }

@@ -4,7 +4,10 @@
  */
 package app.morphe.patches.telegram.misc.keyboard
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.origDescriptor
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -24,6 +27,9 @@ import app.morphe.patches.telegram.misc.settings.settingsPatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val SCROLL_KEYBOARD = "$EXTENSION_PACKAGE/misc/ScrollKeyboard;"
 internal const val RECYCLER_VIEW = "Landroidx/recyclerview/widget/RecyclerView;"
@@ -66,9 +72,9 @@ internal fun BytecodePatchContext.resolveHideKeyboardOnScroll(): MutableMethod {
 
     val found = mutableListOf<Pair<String, String>>()
     forEachClassMentioning(Mention.reference(START_SPOILERS) and Mention.reference(STOP_SPOILERS)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { method ->
-            if (method.parameterTypes.map(CharSequence::toString) == listOf(RECYCLER_VIEW, "I") && method.returnType == "V" &&
+            if (method.origParameterTypes == listOf(RECYCLER_VIEW, "I") && method.origReturnType == "V" &&
                 !AccessFlags.STATIC.isSet(method.accessFlags)) {
                 val refs = method.controlBody().mapNotNull { it.controlRef() }.toSet()
                 if (START_SPOILERS in refs && STOP_SPOILERS in refs) found += cls.type to signature(method)
@@ -76,10 +82,10 @@ internal fun BytecodePatchContext.resolveHideKeyboardOnScroll(): MutableMethod {
         }
     }
     val (type, wanted) = found.controlSingle("chat list scroll listener")
-    val listener = mutableClassDefBy(type).methods.single { signature(it) == wanted }
+    val listener = tgMutableClassDefBy(type).methods.single { signature(it) == wanted }
     controlShape(listener.controlBody().any { it.controlRef() == HIDE_KEYBOARD },
         "the chat list's scroll listener no longer closes the keyboard during a search")
     return listener
 }
 
-private fun signature(method: Method) = "${method.name}${method.parameterTypes.joinToString("", "(", ")")}${method.returnType}"
+private fun signature(method: Method) = "${method.origName}${method.origDescriptor}"

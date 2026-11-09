@@ -23,6 +23,7 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting IMAGES_FULL_WIDTH = new BooleanSetting("revanced_baconreader_images_full_width", FALSE, parent(SHOW_IMAGES));
     public static final BooleanSetting IMAGES_LONG_PRESS_DOWNLOAD = new BooleanSetting("revanced_baconreader_images_long_press_download", TRUE, parent(SHOW_IMAGES));
     public static final BooleanSetting IMAGES_WIFI_ONLY = new BooleanSetting("revanced_baconreader_images_wifi_only", FALSE, parent(SHOW_IMAGES));
+    public static final BooleanSetting IMAGES_TAP_TO_LOAD = new BooleanSetting("revanced_baconreader_images_tap_to_load", FALSE, parent(SHOW_IMAGES));
     public static final BooleanSetting SHOW_VIDEOS = new BooleanSetting("revanced_baconreader_show_videos", TRUE);
     public static final BooleanSetting YOUTUBE_TITLES = new BooleanSetting("revanced_baconreader_youtube_titles", TRUE);
     public static final BooleanSetting YOUTUBE_THUMBNAILS = new BooleanSetting("revanced_baconreader_youtube_thumbnails", FALSE);
@@ -38,7 +39,9 @@ public class Settings extends BaseSettings {
     public static final IntegerSetting COMMENT_LIMIT = new IntegerSetting("revanced_baconreader_comment_limit", 500);
     public static final IntegerSetting AUTO_LOAD_MORE_COMMENTS = new IntegerSetting("revanced_baconreader_auto_load_more_comments", 2);
 
-    // Improve post media loading: JavaScript in the web view of link posts.
+    // Improve post media loading: the preview while post media loads, and JavaScript in the web
+    // view of link posts.
+    public static final BooleanSetting LOADING_PREVIEW = new BooleanSetting("revanced_baconreader_loading_preview", TRUE);
     public static final BooleanSetting LINK_PREVIEW_JAVASCRIPT = new BooleanSetting("revanced_baconreader_link_preview_javascript", TRUE);
     public static final StringSetting LINK_PREVIEW_JAVASCRIPT_BLOCKED = new StringSetting("revanced_baconreader_link_preview_javascript_blocked",
             "", parent(LINK_PREVIEW_JAVASCRIPT));
@@ -55,4 +58,7 @@ public class Settings extends BaseSettings {
 
     // Reddit chat: chat messages Reddit also sends to the inbox are kept apart from it.
     public static final BooleanSetting CHECK_CHAT_MESSAGES = new BooleanSetting("revanced_baconreader_check_chat_messages", TRUE);
+
+    // Account colors.
+    public static final BooleanSetting ACCOUNT_COLORS = new BooleanSetting("revanced_baconreader_account_colors", TRUE);
 }

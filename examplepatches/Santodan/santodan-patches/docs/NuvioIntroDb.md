@@ -1,10 +1,10 @@
 # NuvioTV IntroDB submissions
 
-Current target: **NuvioTV 1.1.0-beta.9 (1072)**. See [beta.9 contracts and verification](NuvioBeta9.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.9 contract and `verifyNuvioLatest` for the current release.
+Current target: **NuvioTV 1.1.0-beta.13 (1076)**. See [beta.13 contracts and verification](NuvioBeta13.md). Version-specific DEX notes, commands and artifacts for earlier versions below are historical; use the beta.13 contract and `verifyNuvioLatest` for the current release.
 
 
 The optional **NuvioTV - Submit segments to IntroDB** patch targets only
-`com.nuvio.tv` **1.1.0-beta.9**. Select it when patching the original app.
+`com.nuvio.tv` **1.1.0-beta.13**. Select it when patching the original app.
 It works alone and with playback button customization.
 
 ## Setup and playback
@@ -21,6 +21,107 @@ Open **Settings > Layout > Santodan-Patches > Playback**:
 The preference and key are saved locally for this app installation and shared by
 its profiles; they do not sync to Nuvio's cloud settings. Submissions start disabled.
 The API key can be edited in Settings even while the feature is disabled.
+
+### Beta.13 API-key editor fix (2026-11-08)
+
+The user reported that the API-key menu would not open. `IntroUi.row` passed
+`false` as the native action row's enabled argument; the host fixture previously
+invoked its callback without respecting enabled state. The editor also retained
+the old dialog method `na.f2.z`, keyboard-controller type `x2.l2` and border shape
+type `d2.w0`. Original beta.13 uses the following native contracts:
+
+- Dialog: `NuvioNative.REF_LIBRARY_CONTENT_Z`, static `na.f2.B`, nineteen arguments.
+- Field constructor: `gb.u(FocusRequester,x2.m2,MutableState,MutableState,int)`.
+- Border constructor: `y5.c(x.u,d2.y0,int)`.
+
+The row now supplies enabled `true` and an explicit info callback. Dialog and
+constructor lookups derive their names/types from the same full references
+validated by the patch, including the shared `REF_INPUT_BORDER_INIT` contract.
+The editor still uses the existing native field, theme, focus and action controls.
+Saved API keys and settings export/import keep the same preference keys.
+
+`verifyNuvioIntroDbRuntime` models the current beta.13 editor and respects the
+row's enabled state. It opens the editor with submissions disabled, exercises
+Save/Clear/Cancel and keeps incompatible old dialog/constructor overloads that
+throw if used. `verifyNuvioIntroDbApk` checks that packaged `IntroUi` contains all
+three reviewed full references and that those signatures exist in the APK. This
+rejects the previous delivery `NuvioTV-1.1.0-beta.13-patches-0.16.5.apk`, which
+includes settings export/import but retains the stale editor lookups. Evidence is retained under
+`../Skills/inspection-evidence/.inspect-nuvio-beta13/introdb-editor-*`.
+
+Run the focused build and native checks:
+
+```powershell
+.\build-local.ps1 :patches:buildAndroid :patches:verifyNuvioIntroDbRuntime :patches:verifyNuvioIntroDb :patches:verifyNuvioMaintenance :patches:verifyNuvioBeta13Bundle :patches:verifyAndroidBundle :patches:verifyMorpheDesktopImport '-PnuvioBeta13Selections=introdb,combined' '-PmorpheDesktopJar=E:/Morphe/morphe-desktop-2.1.1-all.jar' --continue --offline
+```
+
+Remaining device checks: open the API-key row with submissions off/on, text
+entry and keyboard/focus behavior on TV, Save/Cancel/Clear, restart persistence,
+and exporting/importing the saved key. No test submits to the live IntroDB service.
+
+The focused build, native contracts, runtime editor, standalone/combined bundle,
+Android bundle and Desktop 2.1.1 import checks passed. Desktop rebuilt the
+original APK with IntroDB alone and with all sixteen patches; both actual-APK
+audits passed, including five IntroDB hooks, reviewed reflected bindings and no
+new cross-DEX findings. The combined APK also passed all seventeen playback
+customization hooks and the startup stability check. Native libraries remain
+unchanged and alignment passed. No signing, installation or device test was done.
+
+Final outputs under `../Apps/NuvioTV/`:
+
+| APK | SHA-256 |
+| --- | --- |
+| `NuvioTV-1.1.0-beta.13-patches-0.16.5-introdb-editor-fix-introdb-unsigned.apk` | `95b3d4c01628cf069db09027cbeb3430b0512da34cc634e30ba0dd1a53409f5b` |
+| `NuvioTV-1.1.0-beta.13-patches-0.16.5-introdb-editor-fix-all-unsigned.apk` | `a7e9d7d0deab1d316dec322dbae62609eae23d36d4c40ce5d72c1e9b509c9af4` |
+
+For the actual APK audits, run `:patches:verifyNuvioIntroDbApk` with
+`-PnuvioIntroDbApk=<absolute APK path>`. Its default follows the new combined
+output; each APK uses a separate audit directory. Validation logs are
+`introdb-editor-standalone-apk-validation.log` and
+`introdb-editor-combined-apk-validation.log` in the beta.13 evidence directory.
+
+### Beta.13 focus callback crash follow-up (2026-11-08)
+
+The user's `logs_patch.log` shows `ClassCastException: b2.j0 cannot be cast to
+java.lang.String` at `gb.x.invoke`, immediately after opening the API-key editor.
+The preceding editor fix still constructed `gb.x` with discriminator **2**.
+Original beta.13 merges multiple callbacks into this class: branch 2 accepts a
+String and updates text; branch **0** accepts native focus state and publishes
+`isFocused || hasFocus` as a Boolean. Constructor signature validation alone did
+not establish the callback's behavior. The previous host fixture did not dispatch
+a focus event, so it missed the cast despite exercising editor construction.
+
+The runtime now uses shared `INPUT_FOCUS_BRANCH=0` and `REF_INPUT_FOCUS_INIT`.
+Before changing native code, the patch decodes the original callback's switch and
+checks that the selected branch accepts `b2.i0`, reads `b2.j0.a/b`, boxes a Boolean
+and writes mutable state. Tests reject the String branch and a missing branch.
+The host focus modifier now dispatches initial focus, and the regression checks
+focus gain, descendant focus and focus loss; the old branch reproduces the cast.
+Actual-APK checks require the shared focus constructor and branch value in the
+delivered `IntroUi.focusCallback`, rejecting the previous editor-fix APK.
+
+The current combined output supersedes the editor-fix APK above and retains all
+sixteen patches, settings export/import and the earlier playback-editor fix:
+
+| APK under `../Apps/NuvioTV/` | SHA-256 |
+| --- | --- |
+| `NuvioTV-1.1.0-beta.13-patches-0.16.5-introdb-focus-fix-all-unsigned.apk` | `4bf4e5ab05fa3144d7b3d70677d24eb5ead54f605b79d7c2f80291c7baaa8ab3` |
+| `NuvioTV-1.1.0-beta.13-patches-0.16.5-introdb-focus-fix-introdb-unsigned.apk` | `fab13a1bb51b8be5f8837c0e2ed99135d5817de96160b4a2bceffa940395ed97` |
+
+Evidence, extracted crash stack and native switch dump are retained under
+`../Skills/inspection-evidence/.inspect-nuvio-beta13/introdb-focus-*`.
+Run the focused build/bundle command above and audit these outputs with
+`:patches:verifyNuvioIntroDbApk -PnuvioIntroDbApk=<absolute APK path>`.
+The default now follows the combined focus-fix APK. Device confirmation remains
+required, including initial dialog presentation and keyboard/D-pad focus changes.
+The APKs were rebuilt unsigned; they were not installed or device-tested here.
+The focused build/native checks, focus-event runtime regression, standalone and
+combined bundle checks, Android bundle validation and Desktop import passed.
+Both rebuilt APK audits passed with unchanged original cross-DEX findings; the
+previous editor-fix APK was rejected specifically for its missing verified focus
+callback branch. See `introdb-focus-focused.log`, `introdb-focus-bundle.log`,
+`introdb-focus-old-apk-rejection.log`, `introdb-focus-standalone-apk-validation.log`
+and `introdb-focus-combined-apk-validation.log` in the beta.13 evidence directory.
 
 During an IMDb episode, a dedicated **Submit segment** button appears at the end
 of the main playback row. Its filmstrip icon changes from **play** (mark start)

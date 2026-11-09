@@ -6,13 +6,13 @@ Output is ARM64 only. See [the user guide](../../docs/FINAMP_NATIVE.md).
 
 Bits: 1 = title validation, 2 = song artist order, 4 = artist-page loading,
 8 = offline performing-artist filtering, 16 = Tracks alphabet navigation,
-32 = player output access, 64 = quick-settings banner contrast,
+32 = player output access, 64 = retired banner contrast bit,
 128 = album and track information with downloaded descriptions.
 Every nonempty combination has its own delta against the original snapshot.
 The [source matrix](native-sources.json) pins complete MPL-2.0 source
 trees; it is not a set of patches against current Finamp redesign.
 
-The current matrix has 255 nonempty selections. Historical 1.1.0 reports below
+The development bundle retains 127 nonempty selections without bit 64. The historical source matrix also retains the retired combinations as provenance. Historical 1.1.0 reports below
 cover seven selections; use that tag's scripts to reproduce its exact bundle.
 Current reviewed Artist acceptance is documented in `README-artist-review.md`.
 Player/UI acceptance remains in `README-ui-fixes.md` and
@@ -30,7 +30,7 @@ python3 -B tests/finamp/validate_bundle.py --bundle "$MPP" \
   --report .scratch/finamp/bundle-verification.json
 ```
 
-This replays all 255 payloads, checks source pins, output sizes/hashes, Dart
+This replays all 127 retained payloads, checks source pins, output sizes/hashes, Dart
 snapshot compatibility and compiled feature markers. The manual Release workflow
 runs it before publishing a bundle. APKs and signing keys are never committed
 or included in the MPP.
@@ -79,7 +79,7 @@ Exclude `.worktrees/` in the source checkout's `.git/info/exclude` first. The
 builder uses the explicitly provided detached worktree, enforces the
 committed dependency lock, generates translations, compiles and strips the
 snapshot, then verifies a delta replay. It replaces the production manifest only
-after all 255 masks complete. `--masks 2` defaults to private partial output;
+after all 127 supported masks complete. `--masks 2` defaults to private partial output;
 partial runs cannot write into production resources. Use `--output` for a
 separate full exploratory rebuild too.
 

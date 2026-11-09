@@ -170,7 +170,7 @@ fun main() = runBlocking {
             repository.l("series", "ttnext:1:2", 1, 2, false, playerModel.Y.u3, true).first()
         }
         check(repository.networkCalls.get() == 7)
-        println("PASS: beta.12 binge-group cache keys, source-group changes and preferred-plugin autoplay reuse")
+        println("PASS: beta.13 binge-group cache keys, source-group changes and preferred-plugin autoplay reuse")
         check(NuvioStreamPreload.nextEpisodePluginPause(RuntimePluginRequest(repository, "unrelated", "series", 1, 2)).first())
         NuvioStreamPreload.stopNextEpisode(playerModel)
         playerFlow.value = RuntimePlayerState("ttnext:1:2", RuntimePlayerNext("ttnext:1:3", 1, 3))

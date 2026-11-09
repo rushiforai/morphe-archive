@@ -128,6 +128,48 @@ public sealed class PatchesSettings(AndroidDriver driver)
             return new PatchSettingSwitchSnapshot(setting, toggle.GetAttribute("checked") == "true");
         });
 
+    /// <summary>
+    /// Taps <paramref name="setting"/> in <paramref name="section"/>, on the screen itself, which turns its switch over: the
+    /// first title of that name below the section's own, as "Account colors"' setting has its section's title.
+    /// </summary>
+    public Task TickAsync(PatchSetting setting, PatchesSection section) =>
+        OnScreen.PressAsync(driver, () => SettingIn(setting, section)!);
+
+    /// <summary>
+    /// Scrolls the screen down until <paramref name="section"/>'s title shows, then a little more until
+    /// <paramref name="setting"/>'s title shows under it.
+    /// </summary>
+    public async Task ScrollToAsync(PatchSetting setting, PatchesSection section)
+    {
+        await OnScreen.ScrollToAsync(driver, List, Titled(section.ToShownText()), $"The section \"{section.ToShownText()}\"");
+        for (var scrolls = 0; await Task.Run(() => SettingIn(setting, section)) is null; scrolls++)
+        {
+            if (scrolls == 10)
+            {
+                throw new InvalidOperationException($"\"{setting.ToShownText()}\" didn't show under \"{section.ToShownText()}\" after 10 scrolls.");
+            }
+
+            await OnScreen.DoAsync(driver, () => driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
+            {
+                ["elementId"] = ((OpenQA.Selenium.Appium.AppiumElement)driver.FindElement(List)).Id,
+                ["direction"] = "down",
+                ["percent"] = 0.2,
+            }));
+        }
+    }
+
+    // The first title of the setting's name below the section's title, both on the screen; null while either isn't.
+    private OpenQA.Selenium.IWebElement? SettingIn(PatchSetting setting, PatchesSection section)
+    {
+        var header = driver.FindElements(Titled(section.ToShownText())).Where(found => found.Displayed).OrderBy(found => found.Location.Y).FirstOrDefault();
+        return header is null
+            ? null
+            : driver.FindElements(Titled(setting.ToShownText()))
+                .Where(found => found.Displayed && found.Location.Y > header.Location.Y)
+                .OrderBy(found => found.Location.Y)
+                .FirstOrDefault();
+    }
+
     /// <summary>What the screen shows: the settings it lists, top to bottom.</summary>
     public Task<PatchesSettingsSnapshot> ReadAsync() =>
         OnScreen.ReadAsync(driver, () => new PatchesSettingsSnapshot(

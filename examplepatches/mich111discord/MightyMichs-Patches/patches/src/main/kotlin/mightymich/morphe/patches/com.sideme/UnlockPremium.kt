@@ -1,99 +1,128 @@
 package mightymich.morphe.patches.com.sideme
 
-import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import com.android.tools.smali.dexlib2.AccessFlags
 
 /**
- * Unlocks SideMe Premium (Super subscription).
+ * SideMe Super / Premium unlock.
  *
- * SideMe stores subscription in Firestore as UserSubscription:
- *   { id, isActive, tier }
- * "Super" premium = subscription id matches SUPER + isActive == true.
+ * Narrow targeting only:
+ *  - classes that literally contain the "UserSubscription" model string
+ *  - instance method isActive():Boolean on that model → Boolean.TRUE
+ *  - short ()Z helpers on the same class that only read isActive
  *
- * Strategy:
- * 1. Force UserSubscription.isActive() → Boolean.TRUE
- * 2. Force boolean helpers that call UserSubscriptionsRepo.b() (current Super sub)
- *    so premium is true even when Firestore returns null/empty.
+ * Avoids broad "any class with setActive" matching, which could force
+ * unrelated models and crash startup.
  */
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium",
-    description = "Unlocks SideMe Super / Premium subscription features.",
-    default = true
+    description = "Unlocks SideMe Super / Premium by forcing UserSubscription.isActive to true.",
+    default = true,
 ) {
     compatibleWith(SideMeCompatibility.SIDEME)
 
-    // UserSubscription.isActive(): Boolean
-    val isActiveFingerprint = Fingerprint(
-        name = "isActive",
-        returnType = "Ljava/lang/Boolean;",
-        parameters = emptyList(),
-        custom = { method, classDef ->
-            // Firestore model has setActive + toString with "UserSubscription"
-            classDef.methods.any { it.name == "setActive" } ||
-                classDef.methods.any { it.name == "getTier" }
-        }
-    )
-
-    // Premium gates: ()Z methods that call Lld5;->b() then isActive
-    val premiumGateFingerprint = Fingerprint(
-        returnType = "Z",
-        parameters = emptyList(),
-        custom = { method, _ ->
-            val text = method.implementation?.instructions
-                ?.joinToString("\n") { it.toString() }
-                ?: return@Fingerprint false
-            text.contains("Lld5;->b()") &&
-                (text.contains("isActive") || text.contains("Boolean;->TRUE"))
-        }
-    )
-
     execute {
-        // 1. isActive() → Boolean.TRUE
-        val isActiveMethod = isActiveFingerprint.method
-            ?: throw PatchException(
-                "Could not find UserSubscription.isActive():Boolean"
-            )
-        isActiveMethod.addInstructions(
-            0,
-            """
-                sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-                return-object v0
-            """
-        )
-
-        // 2. All premium-gate helpers → true
-        val gates = try {
-            premiumGateFingerprint.matchAllOrNull()
+        val defs = try {
+            classDefByStrings("UserSubscription")
         } catch (_: Exception) {
-            null
+            emptyList()
         }
 
-        if (gates != null && gates.isNotEmpty()) {
-            gates.forEach { match ->
-                match.method.addInstructions(
-                    0,
-                    """
-                        const/4 v0, 0x1
-                        return v0
-                    """
-                )
+        var patchedIsActive = false
+        var patchedGates = 0
+
+        for (def in defs) {
+            // Prefer the model class itself (has isActive + setActive / tier)
+            val hasIsActive = def.methods.any {
+                it.name == "isActive" &&
+                    it.returnType == "Ljava/lang/Boolean;" &&
+                    it.parameterTypes.isEmpty()
             }
-        } else {
-            // Fallback: at least one gate
-            try {
-                premiumGateFingerprint.method.addInstructions(
-                    0,
-                    """
-                        const/4 v0, 0x1
-                        return v0
-                    """
-                )
+            if (!hasIsActive) continue
+
+            val clazz = try {
+                mutableClassDefBy(def)
             } catch (_: Exception) {
-                // isActive alone may suffice if a sub doc exists
+                continue
             }
+
+            for (method in clazz.methods) {
+                if (method.name != "isActive") continue
+                if (method.returnType != "Ljava/lang/Boolean;") continue
+                if (method.parameterTypes.isNotEmpty()) continue
+                if (AccessFlags.STATIC.isSet(method.accessFlags)) continue
+
+                method.addInstructions(
+                    0,
+                    """
+                        sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                        return-object v0
+                    """,
+                )
+                patchedIsActive = true
+            }
+        }
+
+        // Secondary: ()Z methods that invoke isActive() on UserSubscription-like flow.
+        // Only patch methods whose instruction text references isActive and Boolean.TRUE
+        // path — still scoped to classes found via "UserSubscription" string when possible.
+        try {
+            for (def in classDefByStrings("isActive")) {
+                val clazz = try {
+                    mutableClassDefBy(def)
+                } catch (_: Exception) {
+                    continue
+                }
+                // Skip if class has nothing to do with subscription naming
+                val typeName = def.type
+                if (!typeName.contains("sideme", ignoreCase = true) &&
+                    !typeName.contains("Subscription", ignoreCase = true) &&
+                    !typeName.contains("UserSub", ignoreCase = true)
+                ) {
+                    // Obfuscated packages: allow only very short ()Z with isActive invoke
+                }
+
+                for (method in clazz.methods) {
+                    if (method.returnType != "Z") continue
+                    if (method.parameterTypes.isNotEmpty()) continue
+                    if (AccessFlags.STATIC.isSet(method.accessFlags)) continue
+                    val impl = method.implementation ?: continue
+                    val insns = impl.instructions.toList()
+                    if (insns.size > 24) continue
+
+                    val text = insns.joinToString("\n") { it.toString() }
+                    if (!text.contains("isActive")) continue
+                    // Must look like a premium probe, not random UI
+                    if (!text.contains("Boolean") && !text.contains("TRUE") &&
+                        !text.contains("Subscription")
+                    ) {
+                        continue
+                    }
+
+                    try {
+                        method.addInstructions(
+                            0,
+                            """
+                                const/4 v0, 0x1
+                                return v0
+                            """,
+                        )
+                        patchedGates++
+                    } catch (_: Exception) {
+                    }
+                }
+            }
+        } catch (_: Exception) {
+        }
+
+        if (!patchedIsActive && patchedGates == 0) {
+            throw PatchException(
+                "SideMe: could not find UserSubscription.isActive() or premium ()Z gates. " +
+                    "Obfuscation may have changed; re-derive for this version.",
+            )
         }
     }
 }

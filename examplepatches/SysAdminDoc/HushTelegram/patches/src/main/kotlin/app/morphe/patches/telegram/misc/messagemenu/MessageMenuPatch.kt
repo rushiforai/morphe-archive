@@ -4,7 +4,9 @@
  */
 package app.morphe.patches.telegram.misc.messagemenu
 
-import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.util.names.origString
+import app.morphe.util.names.loadsInt
+import app.morphe.util.names.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
@@ -51,6 +53,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origDescriptor
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val MESSAGE_MENU = "$EXTENSION_PACKAGE/misc/MessageMenu;"
 internal const val FILL = "$MESSAGE_MENU->fill(Ljava/lang/Object;Ljava/lang/Object;Ljava/util/ArrayList;Ljava/util/ArrayList;Ljava/util/ArrayList;)V"
@@ -95,7 +105,7 @@ internal const val APPLICATION_ID = "Lorg/telegram/messenger/ApplicationLoader;-
 private const val NAME = "Add Repeat to the message menu"
 
 /** The extension's option numbers, Repeat, Message details, Copy photo and Quick forward, which Telegram's own may never use. */
-internal val MENU_OPTIONS = listOf(0x48544d01, 0x48544d02, 0x48544d03, 0x48544d04, 0x48544d05, 0x48544d06, 0x48544d07)
+internal val MENU_OPTIONS = listOf(0x48544d01, 0x48544d02, 0x48544d03, 0x48544d04, 0x48544d05, 0x48544d06, 0x48544d07, 0x48544d08, 0x48544d09, 0x48544d0a, 0x48544d0b, 0x48544d0c)
 private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_WIDE, Opcode.MOVE_WIDE_FROM16)
 
 @Suppress("unused")
@@ -112,6 +122,8 @@ val messageMenuPatch = bytecodePatch(
     execute {
         val site = resolveMessageMenu()
         val selection = resolveSelectionCopy()
+        val story = resolveStorySave()
+        val screenshots = resolveScreenshots()
         // Assembled on copies first, so a refusal leaves the app untouched.
         site.insertFill(MutableMethod(ImmutableMethod.of(site.fill)))
         site.insertChosen(MutableMethod(ImmutableMethod.of(site.choose)))
@@ -124,6 +136,25 @@ val messageMenuPatch = bytecodePatch(
         } else {
             patchLog.warning("Add Repeat to the message menu: ${selection.missing}. The patch goes on without selecting text in chats that don't allow saving.")
         }
+        if (story.missing == null) {
+            story.apply()
+            enableCapability("storySave")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${story.missing}. The patch goes on without Save to Gallery in stories.")
+        }
+        if (screenshots.missing == null) {
+            screenshots.apply()
+            enableCapability("allowScreenshots")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${screenshots.missing}. The patch goes on without screenshots in chats that don't allow saving.")
+        }
+        val between = resolveSelectBetween(site.chat)
+        if (between.missing == null) {
+            between.apply(this)
+            enableCapability("selectBetween")
+        } else {
+            patchLog.warning("Add Repeat to the message menu: ${between.missing}. The patch goes on without the Select between button.")
+        }
         enableStatus("messageMenuRepeat")
     }
 }
@@ -132,11 +163,13 @@ val messageMenuPatch = bytecodePatch(
  * The chat screen's menu builder [fill], its choice handler [choose], Telegram's own forward into
  * the open chat [forward], the fields holding the selected message and its album, the chat's
  * activity getter, Telegram's file provider, and the numbers Telegram gives Forward and article
- * messages.
+ * messages. [authority] is the provider authority Share loads as one string, or null where it
+ * joins the app's ID and ".provider" itself.
  */
 internal class MessageMenuSite(
     val chat: String, val fill: MutableMethod, val choose: MutableMethod, val forward: Method, val activity: String,
     val provider: String, val selected: FieldReference, val group: FieldReference, val forwardOption: Int, val article: Int,
+    val authority: String?,
 ) {
     /** The extension adds its items as the builder returns; the branches to that return land on it too. */
     fun insertFill(target: MutableMethod) {
@@ -162,6 +195,12 @@ internal class MessageMenuSite(
 internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     requireStatusMethod("messageMenuRepeat")
     requireStatusMethod("copySelection")
+    requireStatusMethod("storySave")
+    controlHook(STORY_SAVE, "shareable", listOf("I"), "Z")
+    controlHook(STORY_SAVE, "premium", listOf("I"), "Z")
+    requireStatusMethod("allowScreenshots")
+    controlHook(SCREENSHOTS, "protectedContent", listOf("I"), "Z")
+    controlHook(SCREENSHOTS, "storyAllowed", listOf("I"), "Z")
     controlHook(MESSAGE_MENU, "selectionCopy", listOf(), "Z")
     controlHook(MESSAGE_MENU, "fill", listOf(OBJECT, OBJECT, LIST, LIST, LIST), "V")
     controlHook(MESSAGE_MENU, "chosen", listOf(OBJECT, "I"), "V")
@@ -189,6 +228,7 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     controlHook(MESSAGE_MENU, "sendPhoto", listOf("I", "J", STRING, STRING), "Z")
     controlHook(MESSAGE_MENU, "sendFile", listOf("I", "J", STRING, STRING, STRING), "Z")
     controlHook(MESSAGE_MENU, "uri", listOf(CONTEXT, FILE), URI)
+    resolveMessageMenuTools()
 
     // The builder, and the Premium gate on hiding an article's sender.
     val builders = messageMenuBuilders()
@@ -196,46 +236,44 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     val (chat, chatClass, fill, built) = messageMenuBuilder(builders, NAME)
     controlShape(built.none { (it as? NarrowLiteralInstruction)?.narrowLiteral in MENU_OPTIONS }, "the message menu already uses the extension's numbers")
 
-    // Forward goes in through a helper taking the label, the option number and two of the lists.
+    // Forward goes in through a helper taking the label, the option number and two of the lists
+    // (13.2's also takes the icon and hands it back boxed), right after the label and its constants.
     val label = built.indices.filter { built[it].controlRef() == FORWARD_LABEL }.controlSingle("Forward label")
-    val option = built.getOrNull(label + 1) as? NarrowLiteralInstruction
-    val add = built.getOrNull(label + 2)
+    val constants = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
+    val callAt = (label + 1..minOf(label + 4, built.size - 1)).firstOrNull { built[it].opcode !in constants }
+    val add = callAt?.let { built[it] }
     val helper = add?.call()
-    controlShape(built[label].opcode == Opcode.SGET && option != null && built[label + 1].opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST) &&
-        add != null && add.opcode == Opcode.INVOKE_STATIC && helper != null &&
-        helper.parameterTypes.map(CharSequence::toString) == listOf("I", "I", LIST, LIST) && helper.returnType == "V" &&
-        add.namedRegisters().take(2) == listOf((built[label] as OneRegisterInstruction).registerA, (option as OneRegisterInstruction).registerA),
+    controlShape(built[label].loadsInt() && add != null && add.opcode == Opcode.INVOKE_STATIC && helper != null &&
+        helper.origParameterTypes.count { it == LIST } == 2 && helper.origParameterTypes.all { it == "I" || it == LIST },
         "Forward no longer goes into the menu with its number")
-    val helperMethod = classDefByOrNull(helper!!.definingClass)?.methods?.singleOrNull { signature(it) == helper.toString() }
-    val helperBody = helperMethod?.controlBody().orEmpty()
-    val base = (helperMethod?.implementation?.registerCount ?: 0) - 4
-    controlShape(helperMethod != null && AccessFlags.STATIC.isSet(helperMethod.accessFlags) && helperBody.map { it.opcode } == listOf(
-        Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT, Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT_OBJECT,
-        Opcode.INVOKE_VIRTUAL, Opcode.RETURN_VOID) &&
-        helperBody[0].controlRef() == "Lorg/telegram/messenger/LocaleController;->getString(I)Ljava/lang/String;" &&
-        helperBody[0].namedRegisters() == listOf(base) && helperBody[2].controlRef() == ADD_TO_LIST &&
-        helperBody[2].namedRegisters().first() == base + 2 &&
-        helperBody[3].controlRef() == "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;" && helperBody[3].namedRegisters() == listOf(base + 1) &&
-        helperBody[5].controlRef() == ADD_TO_LIST && helperBody[5].namedRegisters() == listOf(base + 3, helperBody[4].namedRegisters().single()),
-        "the menu's label helper changed")
+    val helperMethod = tgClassDefByOrNull(helper!!.origDefiningClass)?.methods?.singleOrNull { signature(it) == helper.origString() }
+    val roles = helperMethod?.let(::labelHelperRoles)
+    controlShape(roles != null, "the menu's label helper changed")
+    val (labelAt, optionAt) = roles!!
+    val passed = add!!.namedRegisters()
+    val optionRegister = passed.getOrNull(optionAt)
+    val option = (label + 1 until callAt!!).lastOrNull { (built[it] as? OneRegisterInstruction)?.registerA == optionRegister }
+        ?.let { built[it] as? NarrowLiteralInstruction }
+    controlShape(passed.getOrNull(labelAt) == (built[label] as OneRegisterInstruction).registerA && option != null,
+        "Forward no longer goes into the menu with its number")
     val forwardOption = option!!.narrowLiteral
 
     // The selected message and its album, as the builder reads them.
-    val selected = built.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.definingClass == chat && f.type == MESSAGE } == true }?.controlField()
-    val group = built.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.definingClass == chat && f.type == GROUPED } == true }?.controlField()
+    val selected = built.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.origDefiningClass == chat && f.origType == MESSAGE } == true }?.controlField()
+    val group = built.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.let { f -> f.origDefiningClass == chat && f.origType == GROUPED } == true }?.controlField()
     controlShape(selected != null && group != null, "the message menu builder no longer reads the selected message and its album")
     for (field in listOf(selected!!, group!!)) {
-        val declared = chatClass.fields.filter { it.name == field.name && it.type == field.type }.controlSingle("${field.name} field")
+        val declared = chatClass.fields.filter { it.origName == field.origName && it.origType == field.origType }.controlSingle("${field.name} field")
         controlShape(AccessFlags.PUBLIC.isSet(declared.accessFlags) && !AccessFlags.STATIC.isSet(declared.accessFlags), "${field.name} is inaccessible")
     }
 
     // The choice handler: a switch on the number that starts from the selected message and clears its album after.
     val choose = chatClass.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf("I") &&
+        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.origParameterTypes == listOf("I") &&
             m.controlBody().let { body -> body.any { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH } && body.any { it.controlString() == "hasInvoice" } }
     }.controlSingle("message menu choice")
     val chosen = choose.controlBody()
-    controlShape(chosen.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.type == MESSAGE }?.controlField().toString() == selected.toString(),
+    controlShape(chosen.firstOrNull { it.opcode == Opcode.IGET_OBJECT && it.controlField()?.origType == MESSAGE }?.controlField().toString() == selected.toString(),
         "the menu choice no longer starts from the selected message")
     controlShape(chosen.any { it.opcode == Opcode.IPUT_OBJECT && it.controlField().toString() == group.toString() }, "the menu choice no longer clears the selected album")
     val cases = chosen.filterIsInstance<SwitchPayload>().flatMap { it.switchElements.map { e -> e.key } }
@@ -243,30 +281,37 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     controlShape(ControlFlow.of(choose).normal.none { 0 in it }, "something jumps back to the start of the menu choice")
 
     // The chat's activity, through the getter the choice handler itself uses.
-    val activity = chosen.mapNotNull { it.call() }.firstOrNull { it.name == "getParentActivity" && it.parameterTypes.isEmpty() && it.returnType == ACTIVITY }
-    val activityOwner = activity?.let { classDefByOrNull(it.definingClass) }
+    val activity = chosen.mapNotNull { it.call() }.firstOrNull { it.origName == "getParentActivity" && it.parameterTypes.isEmpty() && it.origReturnType == ACTIVITY }
+    val activityOwner = activity?.let { tgClassDefByOrNull(it.definingClass) }
     controlShape(activityOwner != null && AccessFlags.PUBLIC.isSet(activityOwner.accessFlags) && activityOwner.methods.any {
-        signature(it) == activity.toString() && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
+        signature(it) == activity.origString() && AccessFlags.PUBLIC.isSet(it.accessFlags) && !AccessFlags.STATIC.isSet(it.accessFlags)
     }, "the chat screen no longer has its activity")
 
     // Telegram's file provider, which the choice handler's Share hands its files to under the app's ".provider" authority.
-    val provider = chosen.mapNotNull { it.call() }.filter { it.parameterTypes.map(CharSequence::toString) == listOf(CONTEXT, "Ljava/lang/String;", FILE) && it.returnType == URI }
-        .map { it.toString() }.distinct().controlSingle("Telegram's file provider")
-    val providerOwner = classDefByOrNull(provider.substringBefore("->"))
+    val provider = chosen.mapNotNull { it.call() }.filter { it.origParameterTypes == listOf(CONTEXT, "Ljava/lang/String;", FILE) && it.origReturnType == URI }
+        .map { it.origString() }.distinct().controlSingle("Telegram's file provider")
+    val providerOwner = tgClassDefByOrNull(provider.substringBefore("->"))
+    // Older builds join the app's ID and ".provider"; newer ones load the joined authority as one string.
+    val joined = chosen.any { it.controlRef() == APPLICATION_ID } && chosen.any { it.controlString() == ".provider" }
+    val authority = if (joined) null else chosen.indices.filter { chosen[it].call()?.origString() == provider }.map { at ->
+        val register = chosen[at].namedRegisters().getOrNull(1)
+        (at - 1 downTo maxOf(0, at - 3)).firstOrNull { (chosen[it] as? OneRegisterInstruction)?.registerA == register }?.let { chosen[it].controlString() }
+    }.distinct().singleOrNull()
     controlShape(providerOwner != null && AccessFlags.PUBLIC.isSet(providerOwner.accessFlags) && providerOwner.methods.any {
         signature(it) == provider && AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags)
-    } && chosen.any { it.controlRef() == APPLICATION_ID } && chosen.any { it.controlString() == ".provider" }, "Telegram's file provider changed")
+    } && (joined || authority != null && authority.endsWith(".provider") && authority.all { it.isLetterOrDigit() || it == '.' || it == '_' }),
+        "Telegram's file provider changed")
 
     // Telegram's forward into the open chat, which the extension calls with the sender hidden.
     val forward = chatClass.methods.filter { m ->
-        !AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" && m.parameterTypes.map(CharSequence::toString) == listOf(LIST, "Z", "Z", "Z", "I", "J") &&
+        !AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" && m.origParameterTypes == listOf(LIST, "Z", "Z", "Z", "I", "J") &&
             m.controlBody().count { it.controlRef() == FORWARD_SEND } == 1
     }.controlSingle("forward into the open chat")
     controlShape(AccessFlags.PUBLIC.isSet(forward.accessFlags), "the forward into the open chat is inaccessible")
     requireForwardArguments(forward)
 
-    requireHostMembers()
-    return MessageMenuSite(chat, fill, choose, forward, activity.toString(), provider, selected, group, forwardOption, article)
+    requireHostMembers(joined)
+    return MessageMenuSite(chat, fill, choose, forward, activity.toString(), provider, selected, group, forwardOption, article, authority)
 }
 
 /**
@@ -277,11 +322,11 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
 internal fun BytecodePatchContext.messageMenuBuilders(): List<Pair<String, String>> {
     val builders = mutableListOf<Pair<String, String>>()
     forEachClassMentioning(Mention.reference(FORWARD_LABEL) and Mention.reference(CANCEL_SENDING)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         cls.methods.forEach { m ->
             val body = m.controlBody()
-            if (!AccessFlags.STATIC.isSet(m.accessFlags) && m.returnType == "V" &&
-                m.parameterTypes.map(CharSequence::toString) == listOf(MESSAGE, LIST, LIST, LIST) &&
+            if (!AccessFlags.STATIC.isSet(m.accessFlags) && m.origReturnType == "V" &&
+                m.origParameterTypes == listOf(MESSAGE, LIST, LIST, LIST) &&
                 body.any { it.controlRef() == FORWARD_LABEL } && body.any { it.controlRef() == CANCEL_SENDING }) builders += cls.type to signature(m)
         }
     }
@@ -297,7 +342,7 @@ internal data class MessageMenuBuilder(val chat: String, val chatClass: MutableC
  */
 internal fun BytecodePatchContext.messageMenuBuilder(builders: List<Pair<String, String>>, patch: String): MessageMenuBuilder {
     val (chat, wanted) = builders.controlSingle("message menu builder")
-    val chatClass = mutableClassDefBy(chat)
+    val chatClass = tgMutableClassDefBy(chat)
     controlShape(AccessFlags.PUBLIC.isSet(chatClass.accessFlags), "the chat screen is inaccessible")
     val fill = chatClass.methods.single { signature(it) == wanted }
     val built = fill.controlBody()
@@ -307,6 +352,43 @@ internal fun BytecodePatchContext.messageMenuBuilder(builders: List<Pair<String,
     fill.requireThisIntact(patch, listOf(end))
     for (i in 0..3) fill.requireParameterIntact(patch, i, listOf(end))
     return MessageMenuBuilder(chat, chatClass, fill, built)
+}
+
+/** LocaleController.getString(res), and the (res, key) form 13.2 left with its arguments swapped. */
+private val LABEL_LOOKUPS = setOf("$LOCALE->getString(I)$STRING", "$LOCALE->getString(I$STRING)$STRING")
+private const val BOX_INT = "Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;"
+
+/**
+ * Which of the menu helper's arguments is the label and which the option number, as positions in
+ * its parameters: the label goes through LocaleController.getString into one list argument and the
+ * number, boxed, into another. Straight-line code only; anything else boxed is handed back, not
+ * added. Null when the helper does something else.
+ */
+private fun labelHelperRoles(helper: Method): Pair<Int, Int>? {
+    val types = helper.origParameterTypes
+    val count = helper.implementation?.registerCount ?: return null
+    if (!AccessFlags.STATIC.isSet(helper.accessFlags) || types.any { it != "I" && it != LIST }) return null
+    val body = helper.controlBody()
+    val allowed = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.INVOKE_STATIC, Opcode.INVOKE_VIRTUAL,
+        Opcode.MOVE_RESULT_OBJECT, Opcode.RETURN_VOID, Opcode.RETURN_OBJECT)
+    if (body.any { it.opcode !in allowed }) return null
+    val first = count - types.size
+    fun param(register: Int?) = register?.minus(first)?.takeIf { it in types.indices }
+    // The list argument a call's result is added to, read at the next instruction naming the result.
+    fun addedTo(call: Int): Int? {
+        val result = (body.getOrNull(call + 1)?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT } as? OneRegisterInstruction)?.registerA ?: return null
+        val next = (call + 2 until body.size).firstOrNull { result in body[it].namedRegisters() }?.let { body[it] } ?: return null
+        if (next.controlRef() != ADD_TO_LIST || next.namedRegisters().getOrNull(1) != result) return null
+        return param(next.namedRegisters().first())?.takeIf { types[it] == LIST }
+    }
+    val text = body.indices.filter { body[it].controlRef() in LABEL_LOOKUPS }.singleOrNull() ?: return null
+    val box = body.indices.filter { body[it].controlRef() == BOX_INT && addedTo(it) != null }.singleOrNull() ?: return null
+    val labelAt = param(body[text].namedRegisters().first())
+    val optionAt = param(body[box].namedRegisters().single())
+    val labels = addedTo(text)
+    if (labelAt == null || optionAt == null || labelAt == optionAt || types[labelAt] != "I" || types[optionAt] != "I" ||
+        labels == null || labels == addedTo(box) || body.count { it.controlRef() == ADD_TO_LIST } != 2) return null
+    return labelAt to optionAt
 }
 
 /**
@@ -333,15 +415,28 @@ private fun requireForwardArguments(forward: Method) {
     }
 }
 
-/** Every Telegram member the stubs reach, with the access and kind each call needs. */
-private fun BytecodePatchContext.requireHostMembers() {
+/** 13.2 makes getPathToMessage static, as it never reads the loader it's called on. */
+private fun BytecodePatchContext.pathIsStatic() = tgClassDefByOrNull(FILE_LOADER)?.methods?.any {
+    "${it.origName}${it.origDescriptor}" == "getPathToMessage($TL_MESSAGE)$FILE" && AccessFlags.STATIC.isSet(it.accessFlags)
+} == true
+
+/** 13.2 inlines getAllDialogs() everywhere into reads of the list it returns. */
+private fun BytecodePatchContext.keepsAllDialogsGetter() = tgClassDefByOrNull(CONTROLLER)?.methods?.any {
+    "${it.origName}${it.origDescriptor}" == "getAllDialogs()$LIST"
+} == true
+
+/**
+ * Every Telegram member the stubs reach, with the access and kind each call needs. The app's ID only
+ * where Share [joinsAuthority] from it; 13.2 drops getApplicationId and loads the authority whole.
+ */
+private fun BytecodePatchContext.requireHostMembers(joinsAuthority: Boolean) {
     controlMembers(MESSAGE, "messageOwner:$TL_MESSAGE", "type:I", "currentAccount:I", "scheduled:Z",
         "getId()I", "getDialogId()J", "getFromChatId()J", "getForwardedName()Ljava/lang/String;", "getDocument()$DOCUMENT",
         "isPoll()Z", "isTodo()Z", "isPhoto()Z", "isHiddenSensitive()Z", "getDocumentName()$STRING", "static getPeerId($PEER)J", "static getMedia($MESSAGE)$MEDIA")
     controlMembers(GROUPED, "messages:$LIST")
     controlMembers(TL_MESSAGE, "message:$STRING", "noforwards:Z", "date:I", "edit_date:I", "fwd_from:$FWD_HEADER", "action:$ACTION", "attachPath:Ljava/lang/String;")
-    controlMembers(FILE_LOADER, "static getInstance(I)$FILE_LOADER", "getPathToMessage($TL_MESSAGE)$FILE")
-    controlMembers("Lorg/telegram/messenger/ApplicationLoader;", "static getApplicationId()Ljava/lang/String;")
+    controlMembers(FILE_LOADER, "static getInstance(I)$FILE_LOADER", "${if (pathIsStatic()) "static " else ""}getPathToMessage($TL_MESSAGE)$FILE")
+    if (joinsAuthority) controlMembers("Lorg/telegram/messenger/ApplicationLoader;", "static getApplicationId()Ljava/lang/String;")
     controlMembers(FWD_HEADER, "date:I", "from_id:$PEER")
     controlMembers(MEDIA, "photo:$PHOTO")
     controlMembers(PHOTO, "dc_id:I", "sizes:$LIST")
@@ -349,12 +444,13 @@ private fun BytecodePatchContext.requireHostMembers() {
     controlMembers(DOCUMENT, "dc_id:I", "size:J")
     controlMembers(PAID_MEDIA)
     controlMembers(ACTION_EMPTY)
-    controlMembers(CONTROLLER, "isPeerNoForwards(J)Z", "static getInstance(I)$CONTROLLER", "getChat(Ljava/lang/Long;)$TL_CHAT", "getUser(Ljava/lang/Long;)$TL_USER", "getAllDialogs()$LIST")
+    controlMembers(CONTROLLER, "isPeerNoForwards(J)Z", "static getInstance(I)$CONTROLLER", "getChat(Ljava/lang/Long;)$TL_CHAT", "getUser(Ljava/lang/Long;)$TL_USER",
+        if (keepsAllDialogsGetter()) "getAllDialogs()$LIST" else "allDialogs:$LIST")
     controlMembers(CHAT_OBJECT, "static isNotInChat($TL_CHAT)Z", "static canSendMessages($TL_CHAT)Z", "static isForum($TL_CHAT)Z", "static isMonoForum($TL_CHAT)Z")
     controlMembers(USER_OBJECT, "static isDeleted($TL_USER)Z", "static isReplyUser(J)Z", "static isService(J)Z", "static getUserName($TL_USER)$STRING")
     controlMembers(TL_CHAT, "title:$STRING")
     controlMembers(TL_DIALOG, "id:J")
-    controlMembers(SEND_HELPER, "static getInstance(I)$SEND_HELPER", "sendMessage(${LIST}JZZZIJ)I")
+    controlMembers(SEND_HELPER, "static getInstance(I)$SEND_HELPER", FORWARD_SEND.substringAfter("->"))
     controlMembers(LOCALE, "static getString(I)$STRING")
     controlMembers(STRINGS, "static SavedMessages:I")
     controlMembers(DIALOG_OBJECT, "static isEncryptedDialog(J)Z")
@@ -468,23 +564,29 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
         iget-object v0, v0, $TL_MESSAGE->attachPath:Ljava/lang/String;
         return-object v0
     """)
-    writeStub(MESSAGE_MENU, "photoFile", 3, """
-        check-cast p0, $MESSAGE
+    val path = if (pathIsStatic()) "invoke-static {v1}" else """
         iget v0, p0, $MESSAGE->currentAccount:I
         invoke-static {v0}, $FILE_LOADER->getInstance(I)$FILE_LOADER
         move-result-object v0
+        invoke-virtual {v0, v1}
+    """.trimIndent()
+    writeStub(MESSAGE_MENU, "photoFile", 3, """
+        check-cast p0, $MESSAGE
         iget-object v1, p0, $MESSAGE->messageOwner:$TL_MESSAGE
-        invoke-virtual {v0, v1}, $FILE_LOADER->getPathToMessage($TL_MESSAGE)$FILE
+        $path, $FILE_LOADER->getPathToMessage($TL_MESSAGE)$FILE
         move-result-object v0
         return-object v0
     """)
-    // The same authority Telegram's Share passes: the app's ID and ".provider".
-    writeStub(MESSAGE_MENU, "uri", 4, """
+    // The same authority Telegram's Share passes: the app's ID and ".provider", or the one string it loads.
+    val authority = site.authority?.let { "const-string v0, \"$it\"" } ?: """
         invoke-static {}, $APPLICATION_ID
         move-result-object v0
         const-string v1, ".provider"
         invoke-virtual {v0, v1}, Ljava/lang/String;->concat(Ljava/lang/String;)Ljava/lang/String;
         move-result-object v0
+    """.trimIndent()
+    writeStub(MESSAGE_MENU, "uri", 4, """
+        $authority
         invoke-static {p0, v0, p1}, ${site.provider}
         move-result-object v0
         return-object v0
@@ -539,6 +641,7 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
     """)
     writeQuickForwardStubs()
     writeSendCopyStubs()
+    writeMessageMenuToolsStubs()
     writeStub(MESSAGE_MENU, "blocked", 2, """
         check-cast p0, $MESSAGE
         invoke-virtual {p0}, $MESSAGE->getId()I
@@ -702,8 +805,8 @@ private fun BytecodePatchContext.writeQuickForwardStubs() {
     writeStub(MESSAGE_MENU, "dialogs", 2, """
         invoke-static {p0}, $CONTROLLER->getInstance(I)$CONTROLLER
         move-result-object v0
-        invoke-virtual {v0}, $CONTROLLER->getAllDialogs()$LIST
-        move-result-object v0
+        ${if (keepsAllDialogsGetter()) "invoke-virtual {v0}, $CONTROLLER->getAllDialogs()$LIST\nmove-result-object v0"
+            else "iget-object v0, v0, $CONTROLLER->allDialogs:$LIST"}
         return-object v0
     """)
     writeStub(MESSAGE_MENU, "dialogId", 3, "check-cast p0, $TL_DIALOG\niget-wide v0, p0, $TL_DIALOG->id:J\nreturn-wide v0")
@@ -798,21 +901,28 @@ private fun BytecodePatchContext.writeQuickForwardStubs() {
         return-object v0
     """)
     // Sound on, now, no stars agreed yet: a chat that charges gets Telegram's own confirmation. The
-    // sender stays shown unless the caller says to hide it.
-    writeStub(MESSAGE_MENU, "forwardTo", 15, """
-        invoke-static {p0}, $SEND_HELPER->getInstance(I)$SEND_HELPER
+    // sender stays shown unless the caller says to hide it. 13.2 dropped the short forward overload,
+    // so this passes the full one what the short one passed: no repeat, no topic, no video start
+    // (-1), no monoforum peer and no suggestion.
+    writeStub(MESSAGE_MENU, "forwardTo", 21, """
+        invoke-static/range {p0 .. p0}, $SEND_HELPER->getInstance(I)$SEND_HELPER
         move-result-object v0
-        move-object v1, p1
-        move-wide v2, p2
-        move v4, p4
+        move-object/from16 v1, p1
+        move-wide/from16 v2, p2
+        move/from16 v4, p4
         const/4 v5, 0x0
         const/4 v6, 0x1
         const/4 v7, 0x0
-        const-wide/16 v8, 0x0
-        invoke-virtual/range {v0 .. v9}, $SEND_HELPER->sendMessage(${LIST}JZZZIJ)I
+        const/4 v8, 0x0
+        const/4 v9, 0x0
+        const/4 v10, -0x1
+        const-wide/16 v11, 0x0
+        const-wide/16 v13, 0x0
+        const/4 v15, 0x0
+        invoke-virtual/range {v0 .. v15}, $FORWARD_SEND
         move-result v0
         return v0
     """)
 }
 
-private fun signature(m: Method) = "${m.definingClass}->${m.name}(${m.parameterTypes.joinToString("")})${m.returnType}"
+private fun signature(m: Method) = m.origString()

@@ -16,8 +16,12 @@ import time
 import zipfile
 
 import android_acceptance as base
+import sys
 
-NAME = "Finamp complete: all eight fixes"
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / ".github/scripts"))
+from finamp_catalogue import catalogue
+
+NAME, _, COMPLETE_MASK, _ = catalogue()
 ORIGINAL_SHA = "0fc61e5cb80d37b10a735851c2217cbc855b3f1a04bde577187658531ffef581"
 NATIVE_PATH = "lib/arm64-v8a/libapp.so"
 PACKAGE = "com.unicornsonlsd.finamp"
@@ -61,7 +65,7 @@ def main():
         raise RuntimeError("Manager did not import the supplied compact bundle")
     with zipfile.ZipFile(args.bundle) as z:
         props = z.read("finamp/1.0.1/manifest.properties").decode()
-    native_sha = re.search(r"^abi\.arm64-v8a\.mask\.255\.sha256=([0-9a-f]{64})$", props, re.M)
+    native_sha = re.search(rf"^abi\.arm64-v8a\.mask\.{COMPLETE_MASK}\.sha256=([0-9a-f]{{64}})$", props, re.M)
     if not native_sha:
         raise ValueError("Missing compact output hash")
 

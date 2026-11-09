@@ -27,14 +27,14 @@ import java.util.WeakHashMap;
  * It logs three things, to morphe-debug.log:
  * - DECODE: every new place in the component tree the server fills in (the chain of container ids), so the
  *   container of Marketplace or any other screen shows up.
- * - PAGER: every list on screen (X.0zb, which holds the feed, Reels and other lists) with one line per item:
+ * - PAGER: every list on screen (X.12u, which holds the feed, Reels and other lists) with one line per item:
  *   flags, counts of the markers the existing rules use, and text. Items that carry a "Sponsored" label in any
  *   language, or match the feed rule, get a path to the label and a full field dump, with a few organic items
  *   for comparison.
  * - TREE and WEBVIEW: the view hierarchy of the front activity when it changes and what a web page holds,
  *   to tell whether a screen is native components or a web page.
  *
- * Names are for Facebook Lite 530.0.0.8.106.
+ * Names are for Facebook Lite 536.0.0.11.107.
  */
 final class AdTrace {
     private static final String TAG = "ads";
@@ -238,7 +238,7 @@ final class AdTrace {
 
     // ------------------------------------------------------------------------------------ lists
 
-    /** A list (X.0zb) is on screen. Dumps its items when they changed. */
+    /** A list (X.12u) is on screen. Dumps its items when they changed. */
     static void onPager(View pager) {
         if (failed || disabled.contains("PAGER trace failed") || !AdLog.enabled()) return;
         try {
@@ -249,19 +249,19 @@ final class AdTrace {
             PAGER_TIME.put(pager, now);
 
             Object layout = field(pager, "A05");
-            Object snap = field(pager, "A07");
+            Object snap = field(pager, "A08");
             if (layout == null) return;
             Object itemList = field(layout, "A0E");
             if (!(itemList instanceof List)) return;
             Object[] items = snapshot((List<?>) itemList);
             StringBuilder signature = new StringBuilder().append(items.length);
-            for (int i = 0; i < items.length && i < 12; i++) signature.append(':').append(field(items[i], "A0J"));
+            for (int i = 0; i < items.length && i < 12; i++) signature.append(':').append(field(items[i], "A0K"));
             String sig = signature.toString();
             if (sig.equals(PAGER_SIGNATURE.get(pager))) return;
             PAGER_SIGNATURE.put(pager, sig);
 
             int current = (Integer) field(layout, "A03");
-            Object horizontal = pager.getClass().getMethod("AQS").invoke(pager);
+            Object horizontal = pager.getClass().getMethod("APY").invoke(pager);
             Object snapMode = snap == null ? null : field(snap, "A02");
             int[] where = new int[2];
             pager.getLocationOnScreen(where);
@@ -283,10 +283,10 @@ final class AdTrace {
     }
 
     private static void describeItem(int index, Object item, boolean isCurrent) throws Exception {
-        Object wrapper = field(item, "A0B");
-        Object tree = wrapper == null ? null : field(wrapper, "A03");
+        Object wrapper = field(item, "A0C");
+        Object tree = wrapper == null ? null : field(wrapper, "A04");
         StringBuilder line = new StringBuilder("  ").append(isCurrent ? ">" : " ").append('[').append(index).append("] item id=")
-                .append(field(item, "A0J")).append(" h=").append(field(item, "A01")).append(" snappable=").append(field(item, "A0N"));
+                .append(field(item, "A0K")).append(" h=").append(field(item, "A02")).append(" snappable=").append(field(item, "A0O"));
         if (tree == null) {
             AdLog.log(TAG, line.append(" no tree").toString());
             return;
@@ -355,7 +355,7 @@ final class AdTrace {
     private static void walk(View view, int depth, StringBuilder out, List<WebView> webs, int[] count) {
         if (depth > 24 || count[0] > 220 || view.getVisibility() != View.VISIBLE) return;
         String chain = chain(view.getClass());
-        boolean interesting = view instanceof WebView || chain.contains("RecyclerView") || chain.contains("X.0zb")
+        boolean interesting = view instanceof WebView || chain.contains("RecyclerView") || chain.contains("X.12u")
                 || chain.contains("VideoView") || chain.contains("TextureView") || chain.contains("SurfaceView");
         // The app has few views (its screens are component trees), so all of them are listed, to find what a story or a
         // photo is made of.
@@ -519,7 +519,7 @@ final class AdTrace {
 
     /**
      * A copy of a list made by index. The app changes its lists while it runs, so they are never iterated live,
-     * and its own list class (X.0yV) does not support toArray.
+     * and its own list class (X.11f) does not support toArray.
      */
     static Object[] snapshot(List<?> list) {
         int n = list.size();
@@ -557,7 +557,7 @@ final class AdTrace {
 
     private static final Object[] NONE = new Object[0];
 
-    /** The node's text (method AIW of text components), or null. */
+    /** The node's text (method AHV of text components), or null. */
     private static String textOf(Object node) {
         Class<?> c = node.getClass();
         Method m;
@@ -565,7 +565,7 @@ final class AdTrace {
             m = TEXT_METHODS.get(c);
         } else {
             try {
-                m = c.getMethod("AIW");
+                m = c.getMethod("AHV");
             } catch (NoSuchMethodException e) {
                 m = NO_METHOD;
             }
@@ -615,18 +615,18 @@ final class AdTrace {
     private static void resolve() throws Exception {
         if (resolved) return;
         ClassLoader app = AdTrace.class.getClassLoader();
-        component = Class.forName("X.0gp", false, app);
-        container = Class.forName("X.0gs", false, app);
-        textClass = Class.forName("X.0hW", false, app);
-        childList = Class.forName("X.0gn", false, app).getMethod("AF0");
-        fId = declared(component, "A1b");
-        fGroup = declared(component, "A0v");
-        fHeight = declared(component, "A0i");
-        fHidden = declared(component, "A2c");
-        fParent = declared(component, "A18");
-        fA2X = declared(component, "A2X");
-        fA2k = declared(component, "A2k");
-        fFlag32 = declared(component, "A32");
+        component = Class.forName("X.0hd", false, app);
+        container = Class.forName("X.0hg", false, app);
+        textClass = Class.forName("X.0i5", false, app);
+        childList = Class.forName("X.0hc", false, app).getMethod("ADt");
+        fId = declared(component, "A1c");
+        fGroup = declared(component, "A0w");
+        fHeight = declared(component, "A0j");
+        fHidden = declared(component, "A2e");
+        fParent = declared(component, "A19");
+        fA2X = declared(component, "A2Z");
+        fA2k = declared(component, "A2m");
+        fFlag32 = declared(component, "A34");
         fRefs = declared(container, "A0M");
         resolved = true;
     }

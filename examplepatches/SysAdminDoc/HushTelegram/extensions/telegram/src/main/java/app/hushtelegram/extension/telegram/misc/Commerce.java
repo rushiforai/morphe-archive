@@ -67,6 +67,17 @@ public final class Commerce {
         return false;
     }
 
+    /**
+     * Telegram's answer to whether purchases are blocked, just before a profile's menu adds Send a
+     * Gift for a person or a channel. Non-zero is blocked, which leaves the item out.
+     */
+    public static boolean profileGiftMenuBlocked(int blocked) {
+        if (blocked != 0) return true;
+        if (!enabled()) return false;
+        HookStatus.counted(FamilyNames.HIDE_COMMERCE, "profile menu Send a Gift item hidden");
+        return true;
+    }
+
     /** The same answer for the popup a tapped TON address opens. Copy address and the rest stay. */
     public static boolean showAddressSendGram(boolean available) {
         if (!available || !enabled()) return available;

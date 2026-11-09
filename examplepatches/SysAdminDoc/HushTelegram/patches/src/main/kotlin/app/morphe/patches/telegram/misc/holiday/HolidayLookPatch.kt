@@ -34,6 +34,14 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Holiday look all year"
 internal const val HOLIDAY_LOOK = "$EXTENSION_PACKAGE/misc/HolidayLook;"
@@ -93,19 +101,19 @@ internal fun BytecodePatchContext.resolveHolidayLookSites(): HolidayLookSites {
     // The holiday check: the one method that reads the New Year hat's drawable.
     val users = mutableListOf<Method>()
     forEachClassMentioning(Mention.reference(NEW_YEAR_HAT)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
-        classDef.methods.filterTo(users) { method -> method.instructions().any { it.field()?.toString() == NEW_YEAR_HAT } }
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        classDef.methods.filterTo(users) { method -> method.instructions().any { it.origRef() == NEW_YEAR_HAT } }
     }
     val user = users.one("reader of the New Year hat", ::refuse)
-    shape(AccessFlags.STATIC.isSet(user.accessFlags) && user.parameterTypes.isEmpty() && user.returnType == DRAWABLE,
+    shape(AccessFlags.STATIC.isSet(user.accessFlags) && user.parameterTypes.isEmpty() && user.origReturnType == DRAWABLE,
         "the holiday check no longer takes nothing and returns the hat")
-    val check = mutableClassDefBy(user.definingClass).methods.single { it.sameAs(user) }
+    val check = tgMutableClassDefBy(user.definingClass).methods.single { it.sameAs(user) }
     val body = check.instructions()
     val owner = check.definingClass
 
     // At most once a minute: the start reads the last check's time.
     shape(body.size > 3 && body[0].call()?.toString() == "Ljava/lang/System;->currentTimeMillis()J" &&
-        body[1].opcode == Opcode.MOVE_RESULT_WIDE && body[2].opcode == Opcode.SGET_WIDE && body[2].field()!!.definingClass == owner,
+        body[1].opcode == Opcode.MOVE_RESULT_WIDE && body[2].opcode == Opcode.SGET_WIDE && body[2].field()!!.origDefiningClass == owner,
         "the holiday check no longer starts by reading its last check's time")
     val checked = body[2].field()!!.immutable()
     shape(body.count { it.opcode == Opcode.SPUT_WIDE && it.field()?.immutable() == checked } == 1,
@@ -115,20 +123,20 @@ internal fun BytecodePatchContext.resolveHolidayLookSites(): HolidayLookSites {
 
     // Snow may start by itself: the one flag of its own the check sets, once each way.
     val snowWrites = body.filter { it.opcode == Opcode.SPUT_BOOLEAN }
-    shape(snowWrites.size == 2 && snowWrites.map { it.field()!!.immutable() }.toSet().size == 1 && snowWrites[0].field()!!.definingClass == owner,
+    shape(snowWrites.size == 2 && snowWrites.map { it.field()!!.immutable() }.toSet().size == 1 && snowWrites[0].field()!!.origDefiningClass == owner,
         "the holiday check no longer sets one snow flag")
     val snow = snowWrites[0].field()!!.immutable()
 
     // The hat's load: application resources, the hat's id, getDrawable, stored to the hat field.
-    val read = body.indices.filter { body[it].field()?.toString() == NEW_YEAR_HAT }.one("read of the hat's id", ::refuse)
+    val read = body.indices.filter { body[it].origRef() == NEW_YEAR_HAT }.one("read of the hat's id", ::refuse)
     val load = read - 3
-    shape(load >= 0 && body[load].opcode == Opcode.SGET_OBJECT && body[load].field()?.toString() == APP_CONTEXT &&
-        body[load + 1].call()?.name == "getResources" && body[load + 2].opcode == Opcode.MOVE_RESULT_OBJECT &&
-        body[read + 1].call()?.let { it.name == "getDrawable" && it.parameterTypes.map(CharSequence::toString) == listOf("I") } == true &&
+    shape(load >= 0 && body[load].opcode == Opcode.SGET_OBJECT && body[load].origRef() == APP_CONTEXT &&
+        body[load + 1].call()?.origName == "getResources" && body[load + 2].opcode == Opcode.MOVE_RESULT_OBJECT &&
+        body[read + 1].call()?.let { it.origName == "getDrawable" && it.parameterTypes.map(CharSequence::toString) == listOf("I") } == true &&
         body[read + 2].opcode == Opcode.MOVE_RESULT_OBJECT && body[read + 3].opcode == Opcode.SPUT_OBJECT,
         "the hat no longer loads from the app's resources into a field")
     val hat = body[read + 3].field()!!.immutable()
-    shape(hat.definingClass == owner && hat.type == DRAWABLE, "the hat is no longer the holiday check's own drawable")
+    shape(hat.origDefiningClass == owner && hat.origType == DRAWABLE, "the hat is no longer the holiday check's own drawable")
 
     // After the load, straight on to the one exit, which returns the hat.
     val exits = body.indices.filter { body[it].opcode.name.startsWith("return") }
@@ -137,18 +145,18 @@ internal fun BytecodePatchContext.resolveHolidayLookSites(): HolidayLookSites {
     shape(body[done].opcode == Opcode.SGET_OBJECT && body[done].field()?.immutable() == hat &&
         body[done].namedRegisters() == body[exits[0]].namedRegisters(), "the holiday check no longer returns the hat field")
     shape(done > read + 3 && (read + 4 until done).none { body[it] is OffsetInstruction } &&
-        (read + 4 until done).all { body[it].field() == null || body[it].field()!!.definingClass == owner } &&
+        (read + 4 until done).all { body[it].field() == null || body[it].field()!!.origDefiningClass == owner } &&
         ControlFlow.of(check).normal[done - 1] == listOf(done), "the hat's load no longer runs straight on to the exit")
     shape(check.implementation!!.tryBlocks.isEmpty(), "the holiday check gained a try block")
 
     // Who reads the snow flag: the top bar's draw, which also draws the hat, and the chat background.
     val readers = mutableListOf<Method>()
     forEachClassMentioning(Mention.member(snow.definingClass, snow.name)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         classDef.methods.filterTo(readers) { method -> method.instructions().any { it.opcode == Opcode.SGET_BOOLEAN && it.field()?.immutable() == snow } }
     }
-    val bar = readers.filter { reader -> reader.name == "drawChild" && reader.instructions().any { it.call()?.let { call ->
-        call.definingClass == owner && call.name == check.name && call.parameterTypes.isEmpty() && call.returnType == DRAWABLE } == true } }
+    val bar = readers.filter { reader -> reader.origName == "drawChild" && reader.instructions().any { it.call()?.let { call ->
+        call.origDefiningClass == owner && call.origName == check.origName && call.parameterTypes.isEmpty() && call.origReturnType == DRAWABLE } == true } }
     shape(bar.size == 1, "the top bar no longer reads the snow flag where it draws the hat")
 
     return HolidayLookSites(check, load, done, hat, snow, checked, readers)
@@ -179,9 +187,9 @@ private fun HolidayLookSites.apply(method: MutableMethod) {
 }
 
 private fun BytecodePatchContext.requireRuntimeHook() {
-    val owner = classDefByOrNull(HOLIDAY_LOOK)
+    val owner = tgClassDefByOrNull(HOLIDAY_LOOK)
     shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public holiday look runtime")
-    shape(owner!!.methods.count { it.name == "mode" && it.parameterTypes.isEmpty() && it.returnType == "I" &&
+    shape(owner!!.methods.count { it.origName == "mode" && it.parameterTypes.isEmpty() && it.origReturnType == "I" &&
         AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
         !AccessFlags.NATIVE.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
         it.implementation?.instructions?.any { instruction -> !instruction.opcode.format.isPayloadFormat } == true } == 1,

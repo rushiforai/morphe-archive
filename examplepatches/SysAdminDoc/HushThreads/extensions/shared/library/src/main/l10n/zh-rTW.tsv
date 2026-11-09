@@ -199,6 +199,10 @@ Hide the Instagram button	隱藏 Instagram 按鈕
 Takes the Instagram button off the top of profiles, yours and other people's. Restart Threads to see the change.	移除你自己與他人個人檔案頂端的 Instagram 按鈕。重新啟動 Threads 以查看變更。
 Hide ghost post bubbles	隱藏幽靈貼文泡泡
 Takes the ghost post bubbles off profile pictures, on profiles and in the row at the top of your feed. Restart Threads to see the change.	移除個人檔案大頭貼與動態消息頂端列中的幽靈貼文泡泡。重新啟動 Threads 以查看變更。
+Full size profile pictures	完整大小的大頭貼照
+A profile picture you open on a profile shows full size, where you can zoom in and save it, instead of the small circle.	在個人檔案中開啟的大頭貼照會以完整大小顯示，而不是小圓圈，可以放大和儲存。
+Close	關閉
+Couldn't load the picture. Try again in a moment.	無法載入圖片。請稍後再試。
 Turn features on or off	開啟或關閉功能
 # Fotos und Videos speichern
 %1$d saved in lower quality than on Threads.	有 %1$d 個項目以低於 Threads 的畫質儲存。
@@ -272,6 +276,12 @@ the removed share sheet entry	已移除的分享面板項目
 User certificates trusted	信任使用者憑證
 Threads accepts security certificates you added to your phone. Its own checks on Meta's certificates are unchanged, so a proxy still can't read most of its traffic.	Threads 接受你新增至手機的安全憑證。它對 Meta 憑證的檢查不變，因此代理伺服器仍無法讀取大部分流量。
 the user certificate trust	使用者憑證信任
+Own package name	自訂套件名稱
+This copy installs beside Threads as an app of its own, with its own sign-in.	這個副本會以獨立應用程式的形式安裝在 Threads 旁邊，並使用自己的登入。
+the new package name	新的套件名稱
+Own app name	自訂應用程式名稱
+The name under the app's icon.	應用程式圖示下方顯示的名稱。
+the new app name	新的應用程式名稱
 Hide screenshots from Threads	不讓 Threads 偵測螢幕截圖
 Threads isn't told when you take a screenshot, so it can't log it or react to it.	截圖時不會通知 Threads，因此它無法記錄或回應截圖。
 Full size photos	完整尺寸相片

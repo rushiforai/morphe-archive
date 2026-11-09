@@ -85,6 +85,61 @@ final class SettingsUi {
         return view;
     }
 
+    /** A title, and a badge set with {@link TitleLine#badge} after it on the line or under it when both don't fit. */
+    TitleLine titleLine() {
+        TitleLine view = new TitleLine(context, dp(8), largeText);
+        view.setGravity(Gravity.CENTER_VERTICAL);
+        return view;
+    }
+
+    /**
+     * Side by side, a wrapping title takes the line's whole width and leaves its badge a sliver, where the badge's
+     * word wrapped a letter or two per line into a tall empty bar. Measured first, the pair sits on one line only
+     * when both fit whole, and otherwise the badge goes under the title.
+     */
+    static final class TitleLine extends LinearLayout {
+        private final int gap;
+        private final boolean stacked;
+        private TextView badge;
+
+        TitleLine(Context context, int gap, boolean stacked) {
+            super(context);
+            this.gap = gap;
+            this.stacked = stacked;
+            setOrientation(stacked ? VERTICAL : HORIZONTAL);
+        }
+
+        void badge(TextView view) {
+            badge = view;
+            view.setSingleLine(true);
+            addView(view, new LayoutParams(-2, -2));
+        }
+
+        boolean sideBySide() { return getOrientation() == HORIZONTAL; }
+
+        @Override protected void onMeasure(int widthSpec, int heightSpec) {
+            if (badge != null && getChildCount() == 2) {
+                boolean fits = !stacked;
+                if (fits && MeasureSpec.getMode(widthSpec) != MeasureSpec.UNSPECIFIED) {
+                    int whole = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED);
+                    View title = getChildAt(0);
+                    title.measure(whole, whole);
+                    badge.measure(whole, whole);
+                    int room = MeasureSpec.getSize(widthSpec) - getPaddingLeft() - getPaddingRight();
+                    fits = title.getMeasuredWidth() + gap + badge.getMeasuredWidth() <= room;
+                }
+                setOrientation(fits ? HORIZONTAL : VERTICAL);
+                LayoutParams params = (LayoutParams) badge.getLayoutParams();
+                params.setMarginStart(fits ? gap : 0);
+                params.topMargin = fits ? 0 : gap / 2;
+                // The badge's start margin was already resolved to a left or right one on its first measure, and
+                // LinearLayout lays out with that, so a line first measured stacked would put the badge against the title.
+                params.resolveLayoutDirection(getLayoutDirection());
+            }
+            super.onMeasure(widthSpec, heightSpec);
+        }
+    }
+
     TextView text(String value, int size, int color, boolean bold) {
         TextView view = new TextView(context);
         view.setText(value);

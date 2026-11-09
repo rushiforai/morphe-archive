@@ -1,3 +1,19 @@
+## 1.10.5 (2026-11-08)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix comment posting failures and restore the display of newly posted comments during playback.
+* **nicoid:** Prevent posted comments from appearing in the wrong playback session or being duplicated after refreshing.
+* **nicoid:** Fix crashes and double-tap closing issues in popup playback.
+* **nicoid:** Fix public mylist tabs showing "nicoid Re" instead of the actual mylist title.
+
+### 🔧 Improvements
+
+* **nicoid:** Improve popup touch handling to prevent accidental closing and unwanted playback controls during dragging and resizing.
+* **nicoid:** Refine double-tap recognition while preserving responsive closing and normal playback controls.
+* **nicoid:** Preserve custom tab names and display long public mylist titles with automatic truncation.
+* **nicoid:** Reduce redundant requests during comment posting and limit background comment retrieval rates to mitigate HTTP 429 errors.
+
 ## 1.10.4 (2026-11-08)
 
 ### ✨ New Features

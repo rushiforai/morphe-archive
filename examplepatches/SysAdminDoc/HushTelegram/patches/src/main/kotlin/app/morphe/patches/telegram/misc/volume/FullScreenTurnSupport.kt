@@ -5,7 +5,7 @@
 package app.morphe.patches.telegram.misc.volume
 
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.telegram.misc.extension.EXTENSION_PACKAGE
@@ -18,6 +18,8 @@ import app.morphe.patches.telegram.misc.localcontrols.forEachClassMentioning
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
 
 internal const val VIDEO_TURN = "$EXTENSION_PACKAGE/misc/VideoTurn;"
 internal const val FULL_SCREEN = "$VIDEO_TURN->fullScreen(Landroid/app/Activity;I)V"
@@ -64,7 +66,7 @@ internal fun BytecodePatchContext.resolveFullScreenTurn(): FullScreenTurn {
 
     val found = mutableListOf<Triple<String, String, List<Int>>>()
     forEachClassMentioning(Mention.allReferences(listOf(GET_ROTATION, SET_ORIENTATION)) and Mention.type(PHOTO_VIEWER)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/")) return@forEachClassMentioning
         for (m in cls.methods) {
             val body = m.controlBody()
             if (body.none { it.controlRef()?.startsWith("$PHOTO_VIEWER->") == true }) continue
@@ -76,7 +78,7 @@ internal fun BytecodePatchContext.resolveFullScreenTurn(): FullScreenTurn {
     }
     if (found.size != 1) return missing("the video viewer no longer turns full screen in one place (${found.size})")
     val (type, signature, turns) = found.single()
-    val method = mutableClassDefBy(type).methods.single { it.toString() == signature }
+    val method = tgMutableClassDefBy(type).methods.single { it.toString() == signature }
     val body = method.controlBody()
     if (turns.any { body[it].opcode != Opcode.INVOKE_VIRTUAL || body[it].namedRegisters().size != 2 }) {
         return missing("the full screen button no longer turns the screen with a plain call")

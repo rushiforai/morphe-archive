@@ -21,18 +21,21 @@ import app.zdrgon.patches.droidcam.shared.Constants.COMPATIBILITY_DROIDCAM
  * from startup; with the parser forced to 2, a_time went from 0 to
  * now + 7 days and the GET PRO page showed as granted.
  *
- * Requires "Disable PairIP protection" (+ its runtime files): without
- * them the re-signed app never gets far enough to verify anything.
+ * Requires "Disable PairIP protection" (declared as a dependency
+ * below): without it the re-signed app never gets far enough to
+ * verify anything.
  */
 @Suppress("unused")
 val unlockProPatch = bytecodePatch(
     name = "Unlock Pro",
     description = "Unlocks DroidCam Pro (HD/4K, no watermark, all options): the license " +
         "verdict is forced to Pro and renews itself at every silent re-check. " +
-        "Requires 'Disable PairIP protection'. DroidCam 9.0 only.",
+        "Requires 'Disable PairIP protection'. DroidCam 10.0 only.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_DROIDCAM)
+
+    dependsOn(disablePairIpPatch)
 
     execute {
         VerdictParserFingerprint.method.addInstructions(

@@ -9,7 +9,26 @@ Get the Morphe patch bundle from the [latest stable release](https://github.com/
 Add `https://github.com/MrCool-888/mrcool-patches` as a patch source in Morphe Manager, then select the patches you want for your app.
 
 <!-- PATCHES_START -->
-> **[v1.3.1](https://github.com/MrCool-888/mrcool-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.3.2](https://github.com/MrCool-888/mrcool-patches/releases/tag/v1.3.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+<details open>
+<summary>📦 OpenBubbles&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<br>
+
+**Package name:** `com.openbubbles.messaging`
+
+**🎯 Supported versions:**
+
+| 2.0.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Classic reply menu](#classic-reply-menu) | Adds inline replies and a separate swipe direction switch in OpenBubbles Settings → Morphe patches. |  |
+| [Ready for messages notification control](#ready-for-messages-notification-control) | Adds a setting to hide or show the background connection notification independently of the Wear bridge. |  |
+| [Wear companion bridge](#wear-companion-bridge) | Embeds the Wear companion in OpenBubbles and includes a background notification control; no separate phone app is needed. |  |
+
+</details>
+
 <details open>
 <summary>📦 Smart Launcher&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -24,25 +43,7 @@ Add `https://github.com/MrCool-888/mrcool-patches` as a patch source in Morphe M
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Enable Pro](#enable-pro) | Enables app features locked behind the subscription paywall. |  |
-| [Fix Galaxy Buds3 Pro widget](#fix-galaxy-buds3-pro-widget) | Fixes widget configuration returning cancelled on Samsung One UI 8.5 and later. |  |
-
-</details>
-
-<details open>
-<summary>📦 OpenBubbles&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**Package name:** `com.openbubbles.messaging`
-
-**🎯 Supported versions:**
-
-| 2.0.0 build 20002293 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Ready for messages notification control](#ready-for-messages-notification-control) | Adds a setting to hide or show the background connection notification independently of the Wear bridge. |  |
-| [Wear companion bridge](#wear-companion-bridge) | Embeds the Wear companion in OpenBubbles and includes a background notification control; no separate phone app is needed. |  |
+| [Fix Galaxy Buds3 Pro widget](#fix-galaxy-buds3-pro-widget) | Fixes widget configuration on Samsung One UI 8.5 and keeps the widget layout in sync with its size. |  |
 
 </details>
 
@@ -71,6 +72,11 @@ The Ready for messages notification control can be selected without the Wear bri
 Settings → Morphe patches → Hide ready-to-receive notification to open Android's Background connection
 channel settings, then turn that channel off or on. This does not turn off incoming message notifications.
 The Wear bridge patch also includes this control for compatibility with existing patched installations.
+
+Select **Classic reply menu** in Morphe to add two switches under **OpenBubbles → Settings → Morphe patches**.
+**Classic reply menu** keeps replies in the main chat and opens the keyboard. Android Back cancels the reply and keeps the draft.
+**Reverse swipe-to-reply** makes incoming messages swipe left and outgoing messages swipe right, with either reply view.
+Both switches default to on. Tap **Restart OpenBubbles** after changing either switch.
 
 ### OpenBubbles compatibility
 

@@ -1,22 +1,24 @@
 [versions]
 # Align with morphe-patches-template (Compatibility / Manager display names). Hold the patcher
 # at the version the stable Morphe Manager bundles: a newer pin trips the manager's
-# Patcher-Version gate and it refuses the bundle. Stable Manager 2.4.0 bundles 2.2.0, and so do
-# desktop 2.0.0 and CLI 2.0.0, which the fixture gates run. 2.2.0 went stable on 2026-11-04 with the
-# same dependencies as 2.1.0, and adds PKCS12 keystores and a one-pass APK write. 2.1.0 brought
-# bundle signing and a refusal of classes newer than Java 17. A 2.0 patcher matches a fingerprint
-# string against the whole literal, decodes only the resources a patch asks for, and hides
-# compatiblePackages behind compatibility (PatchListGenerator rebuilds the old field). Manager
-# 2.3.0 and older refuse a bundle built on 2.2.0 with their update prompt.
-morphe-patcher = "2.2.0"
+# Patcher-Version gate and it refuses the bundle. Stable Manager 2.5.0 bundles 2.3.0, and so do
+# desktop 2.1.x and CLI 2.1.x, which the fixture gates run. 2.3.0 went stable on 2026-11-06: Patch
+# lost its type parameter, extensionStreamProviders moved up from BytecodePatch to Patch,
+# PatchClasses takes a PatcherProgress beside the class set, and ARSCLib moved to 675bed2de3, whose
+# TableBlock.load takes a progress callback. 2.2.0 added PKCS12 keystores and a one-pass APK
+# write. 2.1.0 brought bundle signing and a refusal of classes newer than Java 17. A 2.0 patcher
+# matches a fingerprint string against the whole literal, decodes only the resources a patch asks
+# for, and hides compatiblePackages behind compatibility (PatchListGenerator rebuilds the old
+# field). Manager 2.4.0 and older refuse a bundle built on 2.3.0 with their update prompt.
+morphe-patcher = "2.3.0"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value.
-manager-floor = "2.4.0"
+manager-floor = "2.5.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official
 # release, which google/smali 3.0.10 delivered on 2026-08-20. Keep it the commit the patcher
-# above requests (2.2.0, 2.1.0 and 2.0.1 ask for ac700e1942; 2.0.0 asked for 4220ae75f7). Gradle merges
+# above requests (2.3.0 back to 2.0.1 ask for ac700e1942; 2.0.0 asked for 4220ae75f7). Gradle merges
 # the two requests into one module and keeps the version that sorts higher, not the newer commit:
 # an old pin one commit behind once sorted higher and silently replaced the patcher's dexlib2 in
 # every compile, test and R8 graph. Another group's smali would instead put two copies of dexlib2

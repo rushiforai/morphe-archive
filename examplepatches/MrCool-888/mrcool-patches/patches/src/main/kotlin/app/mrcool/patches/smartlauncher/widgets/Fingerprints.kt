@@ -30,3 +30,33 @@ internal object WidgetReconfigurationFingerprint : Fingerprint(
         )
     )
 )
+
+internal object WidgetSizeUpdateFingerprint : Fingerprint(
+    definingClass = "Lpxb;",
+    name = "e",
+    parameters = listOf("Landroid/content/Context;", "I", "Leq4;", "F", "F", "Z"),
+    returnType = "V",
+    strings = listOf("Cannot update widget size"),
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroid/appwidget/AppWidgetManager;",
+            name = "getAppWidgetOptions",
+            opcode = Opcode.INVOKE_VIRTUAL
+        )
+    )
+)
+
+internal object WidgetSizeInvalidationFingerprint : Fingerprint(
+    definingClass = "Lexb;",
+    name = "invokeSuspend",
+    parameters = listOf("Ljava/lang/Object;"),
+    returnType = "Ljava/lang/Object;",
+    strings = listOf("appWidgetSizes"),
+    filters = listOf(
+        methodCall(
+            definingClass = "Landroid/appwidget/AppWidgetManager;",
+            name = "updateAppWidgetOptions",
+            opcode = Opcode.INVOKE_VIRTUAL
+        )
+    )
+)

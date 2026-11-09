@@ -1,5 +1,7 @@
 package santodan.patches
 
+import software.santodan.nuvio.NuvioNative
+
 import app.morphe.patcher.dex.SdkDexVerifier
 import com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -67,6 +69,10 @@ fun main(args: Array<String>) {
         val calls = mutableSetOf<String>()
         val parents = mutableMapOf<String, String?>()
         var hooks = 0
+        var editorListReferences = 0
+        val introUiReferences = mutableSetOf<String>()
+        val introFocusReferences = mutableSetOf<String>()
+        val transferUiReferences = mutableSetOf<String>()
         var stabilityGuards = 0
         ZipFile(path).use { zip ->
             for (entry in zip.entries().asSequence().filter { it.name.matches(Regex("classes\\d*\\.dex")) }) {
@@ -89,7 +95,7 @@ fun main(args: Array<String>) {
                                     body[4].opcode == com.android.tools.smali.dexlib2.Opcode.IGET_OBJECT)
                                 check((body[4] as ReferenceInstruction).reference.toString() == NuvioAccessPatch.FIELDS.getValue(method.name))
                             }
-                            if (index == 1 && extension == NuvioPlaybackButtonsPatch.EXTENSION && owner.type == "Lbb/ji;" && method.name == "invoke") {
+                            if (index == 1 && extension == NuvioPlaybackButtonsPatch.EXTENSION && owner.type == "Lbb/oi;" && method.name == "invoke") {
                                 val code = method.implementation?.instructions?.toList() ?: emptyList()
                                 val intro = code.indexOfFirst { NuvioPlaybackButtonsPatch.reference(it) == NuvioIntroDbPatch.RENDER }
                                 if (intro >= 0) check(code.getOrNull(intro + 1)?.let { NuvioPlaybackButtonsPatch.reference(it) }
@@ -98,7 +104,22 @@ fun main(args: Array<String>) {
                                 }
                             }
                             for (instruction in method.implementation?.instructions ?: emptyList()) {
+                                if (index == 1 && owner.type == "Lsoftware/santodan/extension/nuviomenu/SettingsTransferUi;")
+                                    NuvioApkUpdates.string(instruction)?.let { transferUiReferences += it }
+                                if (index == 1 && owner.type == "Lsoftware/santodan/extension/nuviointro/IntroUi;") {
+                                    NuvioApkUpdates.string(instruction)?.let { introUiReferences += it }
+                                    if (method.name == "focusCallback")
+                                        NuvioApkUpdates.string(instruction)?.let { introFocusReferences += it }
+                                }
+                                if (index == 1 && owner.type == "Lsoftware/santodan/extension/nuviobuttons/ButtonsUi;" &&
+                                    NuvioApkUpdates.string(instruction) == NuvioNative.REF_LAZY_LIST_I) editorListReferences++
                                 val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: continue
+                                if (index == 1 && owner.type in setOf("Lsoftware/santodan/extension/nuviomenu/SettingsTransferActivity;",
+                                        "Lsoftware/santodan/extension/nuviomenu/SettingsTransferUi;")) {
+                                    check(ref.definingClass != "Landroid/app/AlertDialog\$Builder;" && ref.definingClass != "Landroid/widget/TextView;") {
+                                        "Settings transfer must use native Nuvio dialogs: $ref"
+                                    }
+                                }
                                 if (index == 1 && owner.type.startsWith("Lsoftware/santodan/extension/nuviobuttons/")) {
                                     check(!(ref.definingClass == "Ljava/util/Optional;" && ref.name == "orElseThrow" && ref.parameterTypes.isEmpty())) {
                                         "Playback editor requires an unavailable Android API: $ref in $method"
@@ -115,6 +136,29 @@ fun main(args: Array<String>) {
             }
         }
         if (index == 1) {
+            if ("Lsoftware/santodan/extension/nuviomenu/SettingsTransferUi;" in parents) {
+                val reviewed = setOf(NuvioNative.REF_LIBRARY_CONTENT_Z, NuvioNative.REF_SETTINGS_ROWS_D,
+                    NuvioNative.REF_SETTINGS_ROWS_E, NuvioNative.REF_COMPOSE_FACTORY_T)
+                check(definitions.containsAll(reviewed) && transferUiReferences.containsAll(reviewed)) {
+                    "Settings transfer is missing reviewed native dialog/action/state references"
+                }
+            }
+            if ("Lsoftware/santodan/extension/nuviointro/IntroUi;" in parents) {
+                val reviewed = setOf(NuvioNative.REF_LIBRARY_CONTENT_Z, NuvioNative.REF_INPUT_FIELD_INIT,
+                    NuvioNative.REF_INPUT_BORDER_INIT)
+                check(definitions.containsAll(reviewed) && introUiReferences.containsAll(reviewed)) {
+                    "IntroDB editor is missing reviewed native dialog/input/border references; stale editor bindings can prevent opening beta.13"
+                }
+                check("x2.l2" !in introUiReferences && "d2.w0" !in introUiReferences)
+                check(introFocusReferences.containsAll(setOf(NuvioNative.REF_INPUT_FOCUS_INIT, NuvioNative.INPUT_FOCUS_BRANCH))) {
+                    "IntroDB editor is missing the verified focus callback branch; branch 2 casts focus state to String and crashes"
+                }
+            }
+            if (extension == NuvioPlaybackButtonsPatch.EXTENSION) {
+                check(NuvioNative.REF_LAZY_LIST_I in definitions && editorListReferences > 0) {
+                    "Playback editor is missing the verified native list reference; the stale beta.12 G lookup can crash beta.13"
+                }
+            }
             if (requireStability) check(stabilityGuards == 1) { "Startup seek guard is missing from the rebuilt APK" }
             check(NuvioAccessPatch.TYPE in parents) { "Shared direct native accessors are missing from the rebuilt APK" }
             check(hooks == expectedHooks) { "Rebuilt APK has $hooks hooks for $extension; expected $expectedHooks" }

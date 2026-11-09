@@ -1003,6 +1003,10 @@ Left alone: %s	Tidak diterjemahkan: %s
 Posts in the feed show all of their text, so there's no See more to tap. Tap the text to fold it back. Reel captions have their own switch under Reels and Watch.	Postingan di feed menampilkan seluruh teksnya, jadi tidak perlu mengetuk Lihat selengkapnya. Ketuk teksnya untuk melipatnya kembali. Keterangan reels punya tombolnya sendiri di Reels dan Watch.
 Show full reel captions	Tampilkan keterangan reel lengkap
 Long captions on reels show all of their text right away. Tap the caption to fold it back. A change shows from the next reel.	Keterangan panjang di reels langsung menampilkan seluruh teksnya. Ketuk keterangannya untuk melipatnya kembali. Perubahan berlaku mulai reel berikutnya.
+# context: switch title under Reels and Watch, below Show full reel captions; once a reel's caption is opened, a dark see-through box sits behind its text, like movie subtitles
+Dark box behind open captions	Kotak gelap di balik keterangan yang dibuka
+# context: summary of that switch
+An open reel caption sits on a dark box, like subtitles, so it's easy to read over a bright video. A change shows from the next reel.	Keterangan reel yang dibuka tampil di atas kotak gelap, seperti subtitle, agar mudah dibaca di atas video yang terang. Perubahan berlaku mulai reel berikutnya.
 # context: switch title under News feed and the row it adds to a post's three-dot menu; it opens the list of people who shared the post
 See who shared	Lihat siapa yang membagikan
 Adds See who shared to a post's menu. It opens Facebook's list of the people who shared it.	Menambahkan Lihat siapa yang membagikan ke menu postingan. Ini membuka daftar Facebook berisi orang yang membagikannya.
@@ -1942,6 +1946,14 @@ Watch again at the end of a feed video plays it again right there, instead of op
 Open saved videos in the video player	Buka video tersimpan di pemutar video
 # context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
 A video you tap in Saved plays in the video player instead of Reels, where the next swipe is a suggested reel.	Video yang kamu ketuk di Tersimpan diputar di pemutar video, bukan di Reels, yang menampilkan reel saran saat kamu menggeser.
+# context: switch title under Reels and Watch; on, a reel opened from Facebook's Saved list goes on to the next saved video when it ends or is swiped past, instead of Facebook's suggested reels
+Play saved videos in a row	Putar video tersimpan berurutan
+# context: summary of that switch; Saved is Facebook's own list of things you saved, so use Facebook's name for it in your language if you know it
+A video you open from Saved goes on to the next one in Saved when it ends or when you swipe up, instead of a suggested reel.	Video yang kamu buka dari Tersimpan lanjut ke video berikutnya di Tersimpan saat selesai atau saat kamu menggeser ke atas, bukan ke reel saran.
+# context: switch title under Reels and Watch; on, Facebook stops pausing reels and videos to ask "Are you still watching?", which is Facebook's own prompt, so use the wording Facebook shows in this language
+Skip "Are you still watching?"	Lewati "Masih menonton?"
+# context: summary of that switch; reels and videos go on to the next one by themselves
+Reels and videos keep going to the next one without pausing to ask if you're still watching.	Reels dan video terus berlanjut ke berikutnya tanpa berhenti untuk bertanya apakah Anda masih menonton.
 Hide the new comments pop-up	Sembunyikan pop-up komentar baru
 # context: the bubble Facebook shows over an open comment list when new comments arrive, like "3 new comments"
 The "new comments" bubble no longer pops up while you read comments. New comments still show in the list.	Gelembung “komentar baru” tidak muncul lagi saat kamu membaca komentar. Komentar baru tetap tampil di daftar.
@@ -2596,3 +2608,25 @@ Hide profile pictures on posts	Sembunyikan foto profil di postingan
 Hide profile pictures in comments	Sembunyikan foto profil di komentar
 Takes the profile picture off the top of posts, so the name starts where the picture was. A change shows on the posts drawn after it.	Menghapus foto profil dari bagian atas postingan, sehingga nama dimulai di tempat foto tadi. Perubahan terlihat pada postingan yang ditampilkan setelahnya.
 Takes the profile picture off comments, so the name and text start where the picture was. A change shows on the comments drawn after it.	Menghapus foto profil dari komentar, sehingga nama dan teks dimulai di tempat foto tadi. Perubahan terlihat pada komentar yang ditampilkan setelahnya.
+Search comments	Cari komentar
+Previous match	Hasil sebelumnya
+Next match	Hasil berikutnya
+Close search	Tutup pencarian
+No matches	Tidak ada hasil
+No more matches	Tidak ada hasil lagi
+Not found yet	Belum ditemukan
+A magnifier at the top of the comments opens a search box that finds the comments with your words.	Kaca pembesar di bagian atas komentar membuka kotak pencarian yang menemukan komentar berisi kata-kata Anda.
+Open shared reels on their own	Buka reel yang dibagikan sendiri
+A reel you open from a link in another app or from a chat plays by itself, with no reels to swipe to after it.	Reel yang kamu buka dari tautan di aplikasi lain atau dari obrolan diputar sendiri, tanpa reel lain untuk digeser setelahnya.
+Light bars on the Reels tab	Bilah terang di tab Reels
+In light mode, the Reels tab keeps the same light status bar, top bar and tab bar as the other tabs, instead of turning them dark.	Dalam mode terang, tab Reels tetap memakai bilah status, bilah atas, dan bilah tab terang yang sama dengan tab lain, bukan menggelapkannya.
+Bar opacity	Opasitas bilah
+How much of their color the see-through bars keep, in percent, from %1$s to %2$s. Lower lets more of the feed and its blur show. Leave it blank for %3$s, or %4$s over the blur.	Seberapa banyak warna yang dipertahankan bilah tembus pandang, dalam persen, dari %1$s sampai %2$s. Angka lebih kecil membuat feed dan efek buramnya lebih terlihat. Biarkan kosong untuk %3$s, atau %4$s di atas efek buram.
+The bars keep %1$s percent of their color, or %2$s percent over the blur. Type a number to change it.	Bilah mempertahankan %1$s persen warnanya, atau %2$s persen di atas efek buram. Ketik angka untuk mengubahnya.
+The see-through bars keep %1$s percent of their color.	Bilah tembus pandang mempertahankan %1$s persen warnanya.
+Tab bar width	Lebar bilah tab
+Percent of the screen's width, from %1$s to %2$s. The icons grow and shrink with it. Leave it blank for %3$s.	Persen dari lebar layar, dari %1$s sampai %2$s. Ikon ikut membesar dan mengecil. Biarkan kosong untuk %3$s.
+The rounded tab bar is %1$s percent of the screen wide.	Bilah tab membulat selebar %1$s persen layar.
+Tab bar height	Tinggi bilah tab
+Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Persen dari tinggi penuh yang dipertahankan bilah tab membulat, dari %1$s sampai %2$s, dipotong di atas dan di bawah ikon. Biarkan kosong untuk %3$s.
+The rounded tab bar keeps %1$s percent of its height.	Bilah tab membulat mempertahankan %1$s persen tingginya.

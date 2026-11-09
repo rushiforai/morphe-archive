@@ -73,6 +73,7 @@ public class CallRecordingTest {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().commit();
         Settings.activeAt.clear();
+        Settings.hookErrors.clear();
         CrashGuard.resetForTests();
         CallRecording.resetForTests();
         file = File.createTempFile("call", ".wav");
@@ -389,10 +390,31 @@ public class CallRecordingTest {
         assertTrue(store.kept);
     }
 
+    /** Messenger's own config layer, at the length one build's generated config has. */
+    static final class OwnLayer implements com.facebook.rtc.fbwebrtc.overlayconfig.overlayconfiglayer.OverlayConfigLayerInterface {
+        final int length;
+        int asked;
+
+        OwnLayer(int length) {
+            this.length = length;
+        }
+
+        @Override public int getLayerSource() { return 2; }
+        @Override public int[] getUpdatedValues() { return getValues(); }
+        @Override public int[] getValues() {
+            asked++;
+            return new int[length];
+        }
+        @Override public void logExposure(int id) { }
+    }
+
+    /** 586's generated config length, from the new-array in its MobileConfig layer's getNonCachedValues. */
+    private static final int LENGTH_586 = 0x18d6;
+
     private static boolean layerAdded() {
-        ArrayList<Object> layers = new ArrayList<>();
+        ArrayList<Object> layers = new ArrayList<>(List.of(new OwnLayer(LENGTH_586)));
         CallRecording.addLayer(layers);
-        return !layers.isEmpty();
+        return layers.size() > 1;
     }
 
     @Test public void theAudioOnlyMovesWithTheSwitchOn() {
@@ -424,23 +446,47 @@ public class CallRecordingTest {
 
     @Test public void ourLayerGoesLastBecauseNativeReadsFromTheEnd() {
         on();
-        ArrayList<Object> layers = new ArrayList<>(List.of("Messenger's own"));
+        OwnLayer own = new OwnLayer(LENGTH_586);
+        ArrayList<Object> layers = new ArrayList<>(List.of(own));
         CallRecording.addLayer(layers);
         assertEquals(2, layers.size());
-        assertEquals("Messenger's own", layers.get(0));
+        assertSame(own, layers.get(0));
         assertTrue(layers.get(1) instanceof CallRecording.JavaAudioLayer);
+        assertEquals("Messenger's own layer is only read once native reads ours", 0, own.asked);
     }
 
-    @Test public void theLayerOnlySpeaksAboutTheCallsAudio() {
-        int[] values = new CallRecording.JavaAudioLayer().getValues();
-        assertEquals(CallRecording.JavaAudioLayer.VALUES, values.length);
-        assertEquals(0, values[CallRecording.JavaAudioLayer.OBOE_ON]);
-        assertEquals(0, values[CallRecording.JavaAudioLayer.OBOE_RECORD]);
-        assertEquals(CallRecording.JavaAudioLayer.MODULE_JAVA, values[CallRecording.JavaAudioLayer.MODULE]);
-        int spoken = 0;
-        for (int value : values) if (value != -1) spoken++;
-        assertEquals("Anything else set would override Messenger's own config", 3, spoken);
-        assertEquals(0, new CallRecording.JavaAudioLayer().getUpdatedValues().length);
+    @Test public void withNoLayerOfMessengersOwnNothingIsAddedAndItSaysWhy() {
+        on();
+        ArrayList<Object> layers = new ArrayList<>(List.of("something else"));
+        CallRecording.addLayer(layers);
+        assertEquals(1, layers.size());
+        assertTrue(Settings.hookErrors.containsKey(CallRecording.KEY));
+    }
+
+    @Test public void theLayerOnlySpeaksAboutTheCallsAudioAtTheLengthOfTheBuildsOwn() {
+        // 586 grew the config from 585's 0x18bb values to 0x18d6, and a 585-length layer crashed a 586 call as it started.
+        for (int length : new int[]{0x18bb, LENGTH_586}) {
+            OwnLayer own = new OwnLayer(length);
+            CallRecording.JavaAudioLayer layer = new CallRecording.JavaAudioLayer(own);
+            int[] values = layer.getValues();
+            assertEquals(length, values.length);
+            assertEquals(0, values[CallRecording.JavaAudioLayer.OBOE_ON]);
+            assertEquals(0, values[CallRecording.JavaAudioLayer.OBOE_RECORD]);
+            assertEquals(CallRecording.JavaAudioLayer.MODULE_JAVA, values[CallRecording.JavaAudioLayer.MODULE]);
+            int spoken = 0;
+            for (int value : values) if (value != CallRecording.JavaAudioLayer.UNSET) spoken++;
+            assertEquals("Anything else set would override Messenger's own config", 3, spoken);
+            assertArrayEquals("An update is the same numbers, at the same length", values, layer.getUpdatedValues());
+            values[0] = 7;
+            assertEquals("Native gets its own copy", CallRecording.JavaAudioLayer.UNSET, layer.getValues()[0]);
+            assertEquals("Messenger's own layer is read once", 1, own.asked);
+        }
+    }
+
+    @Test public void aConfigTooShortForTheAudioIdsGetsALayerThatSaysNothing() {
+        int[] values = new CallRecording.JavaAudioLayer(new OwnLayer(0xb1d)).getValues();
+        assertEquals(0xb1d, values.length);
+        for (int value : values) assertEquals(CallRecording.JavaAudioLayer.UNSET, value);
     }
 
     @Test public void theFileIsNamedForWhenItStarted() {

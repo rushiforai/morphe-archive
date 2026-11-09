@@ -67,13 +67,14 @@ public class CommerceTest {
         assertFalse(Commerce.showAttachWallet(true));
         assertFalse(Commerce.showMenuWallet(true));
         assertFalse(Commerce.showProfileSendGram(true));
+        assertTrue(Commerce.profileGiftMenuBlocked(0));
         assertFalse(Commerce.showAddressSendGram(true));
         assertFalse(Commerce.showTransferSendGram(true));
         String report = HookStatus.report().get(0);
         for (String count : new String[]{"Settings sales row hidden 5", "Gifts tab hidden 1",
                 "Gifts tab candidate hidden 1", "channel Gift button hidden 1", "Settings Wallet row hidden 1",
                 "attach menu Wallet button hidden 1", "chat list menu Wallet item hidden 1",
-                "profile menu Send Gram item hidden 1", "TON link Send Gram item hidden 1",
+                "profile menu Send Gram item hidden 1", "profile menu Send a Gift item hidden 1", "TON link Send Gram item hidden 1",
                 "Gram transfer Send Gram item hidden 1"}) {
             assertTrue(report, report.contains(count));
         }
@@ -100,6 +101,7 @@ public class CommerceTest {
         assertFalse(Commerce.showAttachWallet(false));
         assertFalse(Commerce.showMenuWallet(false));
         assertFalse(Commerce.showProfileSendGram(false));
+        assertTrue(Commerce.profileGiftMenuBlocked(1));
         assertFalse(Commerce.showAddressSendGram(false));
         assertFalse(Commerce.showTransferSendGram(false));
         assertNoSuppression();
@@ -107,6 +109,7 @@ public class CommerceTest {
         assertFalse(Commerce.showAttachWallet(true));
         assertFalse(Commerce.showMenuWallet(true));
         assertFalse(Commerce.showProfileSendGram(true));
+        assertTrue(Commerce.profileGiftMenuBlocked(0));
         assertFalse(Commerce.showAddressSendGram(true));
         assertFalse(Commerce.showTransferSendGram(true));
         Settings.HIDE_COMMERCE.save(false);
@@ -118,7 +121,9 @@ public class CommerceTest {
         assertTrue(Commerce.showMenuWallet(true));
         assertFalse(Commerce.showMenuWallet(false));
         assertTrue(Commerce.showProfileSendGram(true));
+        assertFalse(Commerce.profileGiftMenuBlocked(0));
         assertFalse(Commerce.showProfileSendGram(false));
+        assertTrue(Commerce.profileGiftMenuBlocked(1));
         assertTrue(Commerce.showAddressSendGram(true));
         assertFalse(Commerce.showAddressSendGram(false));
         assertTrue(Commerce.showTransferSendGram(true));
@@ -226,7 +231,9 @@ public class CommerceTest {
         assertTrue(Commerce.showMenuWallet(true));
         assertFalse(Commerce.showMenuWallet(false));
         assertTrue(Commerce.showProfileSendGram(true));
+        assertFalse(Commerce.profileGiftMenuBlocked(0));
         assertFalse(Commerce.showProfileSendGram(false));
+        assertTrue(Commerce.profileGiftMenuBlocked(1));
         assertTrue(Commerce.showAddressSendGram(true));
         assertFalse(Commerce.showAddressSendGram(false));
         assertTrue(Commerce.showTransferSendGram(true));

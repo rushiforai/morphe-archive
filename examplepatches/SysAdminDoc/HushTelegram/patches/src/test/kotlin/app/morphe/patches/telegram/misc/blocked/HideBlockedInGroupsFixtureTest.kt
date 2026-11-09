@@ -13,6 +13,8 @@ import app.morphe.patches.telegram.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.telegram.misc.localcontrols.controlBody
 import app.morphe.patches.telegram.misc.localcontrols.controlRef
 import app.morphe.patches.telegram.misc.notifications.NOTIFICATIONS
+import app.morphe.patches.telegram.misc.notifications.runsNotificationsLambda
+import app.morphe.patches.telegram.misc.notifications.runsUnder
 import app.morphe.util.branchTarget
 import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.Opcode
@@ -24,6 +26,11 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origDescriptor
+import app.morphe.util.names.origName
+import app.morphe.util.names.tgMutableClassDefBy
 
 /** The open chat's three type tests, the new-message notification skip, the reply header check, the stubs and the runtime. */
 class HideBlockedInGroupsFixtureTest {
@@ -33,7 +40,7 @@ class HideBlockedInGroupsFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = FixtureDex.classesWhere(build, { true }) { m ->
-                m.definingClass in hostTypes || m.controlBody().any { it.opcode == Opcode.INSTANCE_OF && it.controlRef() == MIGRATE_TO }
+                m.origDefiningClass in hostTypes || m.runsNotificationsLambda() || m.controlBody().any { it.opcode == Opcode.INSTANCE_OF && it.controlRef() == MIGRATE_TO }
             }.map(ImmutableClassDef::of)
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
             val sites = context.resolveHideBlockedInGroups()
@@ -42,13 +49,13 @@ class HideBlockedInGroupsFixtureTest {
             assertEquals("$name: one chat screen", 1, sites.map { it.first.definingClass }.distinct().size)
             val old = sites.map { ImmutableMethod.of(it.first) }
             val (notify, answer) = context.resolveBlockedNotificationSkip()
-            assertTrue("$name: the new-message loop", notify.name.contains("processNewMessages"))
+            assertTrue("$name: the new-message loop", context.runsUnder(context.tgMutableClassDefBy(NOTIFICATIONS))(notify).any { it.contains("processNewMessages") })
             val oldNotify = ImmutableMethod.of(notify).controlBody()
             assertEquals(Opcode.MOVE_RESULT, oldNotify[answer].opcode)
             assertEquals(IMPORTED_FORWARD, oldNotify[answer - 1].controlRef())
             val (reply, yes) = context.resolveBlockedReplyQuote()
             assertEquals("$name: the message's own reply check", listOf(MESSAGE_OBJECT, VALID_REPLY),
-                listOf(reply.definingClass, "${reply.name}(${reply.parameterTypes.joinToString("")})${reply.returnType}"))
+                listOf(reply.origDefiningClass, "${reply.origName}${reply.origDescriptor}"))
             val oldReply = ImmutableMethod.of(reply).controlBody()
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { hideBlockedInGroupsPatch.execute(context) })
 
@@ -92,8 +99,8 @@ class HideBlockedInGroupsFixtureTest {
                 assertEquals("$name: two instructions a test", before.size + 2 * reads.size, after.size)
                 var shift = 0
                 for (i in before.indices) {
-                    assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), (before[i] as? ReferenceInstruction)?.reference?.toString()),
-                        listOf(after[i + shift].opcode, after[i + shift].namedRegisters(), (after[i + shift] as? ReferenceInstruction)?.reference?.toString()))
+                    assertEquals("$name: stock $i", listOf(before[i].opcode, before[i].namedRegisters(), before[i].origRef()),
+                        listOf(after[i + shift].opcode, after[i + shift].namedRegisters(), after[i + shift].origRef()))
                     if (i !in reads) continue
                     val (type, message) = before[i].namedRegisters()
                     assertEquals(Opcode.INVOKE_STATIC, after[i + shift + 1].opcode)
@@ -106,7 +113,7 @@ class HideBlockedInGroupsFixtureTest {
                 }
             }
 
-            val stub = { n: String -> context.mutableClassDefBy(BLOCKED_SENDERS).methods.single { it.name == n }.controlBody().map { it.controlRef() } }
+            val stub = { n: String -> context.tgMutableClassDefBy(BLOCKED_SENDERS).methods.single { it.origName == n }.controlBody().map { it.controlRef() } }
             assertTrue("$MESSAGE_OBJECT->getDialogId()J" in stub("chat"))
             assertTrue("$MESSAGE_OBJECT->getFromChatId()J" in stub("sender"))
             assertTrue(POST in stub("post"))
@@ -115,7 +122,7 @@ class HideBlockedInGroupsFixtureTest {
             assertTrue("$PEERS->indexOfKey(J)I" in stub("blocked"))
             assertEquals("$name: the next page only when the list isn't complete or loading", listOf(BLOCKED_END, BLOCKED_LOADING, BLOCKED_PAGE),
                 stub("loadMoreBlocked").filter { it in setOf(BLOCKED_END, BLOCKED_LOADING, BLOCKED_PAGE) })
-            val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideBlockedInGroups" }.controlBody()
+            val status = context.tgMutableClassDefBy(SETTINGS_STATUS).methods.single { it.origName == "hideBlockedInGroups" }.controlBody()
             assertEquals(1L, (status.first() as WideLiteralInstruction).wideLiteral)
         }
     }

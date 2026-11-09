@@ -4,8 +4,10 @@
  */
 package app.morphe.patches.telegram.misc.translate
 
+import app.morphe.util.names.origDescriptor
+import app.morphe.util.names.origName
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
-import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.util.names.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -26,6 +28,10 @@ import app.morphe.util.namedRegisters
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import app.morphe.util.names.origString
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgMutableClassDefBy
+import app.morphe.util.names.tgMutableClassDefByOrNull
 
 internal const val TRANSLATE_BAR = "$EXTENSION_PACKAGE/misc/TranslateBar;"
 internal const val TRANSLATE_CONTROLLER = "Lorg/telegram/messenger/TranslateController;"
@@ -90,33 +96,33 @@ internal fun BytecodePatchContext.resolveTranslateBar(): List<TranslateBarSite> 
     controlHook(TRANSLATE_BAR, "stockHidden", listOf("Ljava/lang/Object;", "J"), "Z")
     controlHook(TRANSLATE_BAR, "translating", listOf("Ljava/lang/Object;", "J"), "Z")
 
-    val controller = mutableClassDefByOrNull(TRANSLATE_CONTROLLER)
+    val controller = tgMutableClassDefByOrNull(TRANSLATE_CONTROLLER)
     controlShape(controller != null && AccessFlags.PUBLIC.isSet(controller.accessFlags), "TranslateController is missing")
     for (wanted in listOf(BAR_HIDDEN, TRANSLATING)) {
-        val method = controller!!.methods.singleOrNull { it.toString() == wanted }
+        val method = controller!!.methods.singleOrNull { it.origString() == wanted }
         controlShape(method != null && AccessFlags.PUBLIC.isSet(method.accessFlags) && !AccessFlags.STATIC.isSet(method.accessFlags),
             "${wanted.substringAfter("->")} isn't a public TranslateController method")
     }
 
     val found = mutableListOf<Pair<String, Pair<String, Int>>>()
     forEachClassMentioning(Mention.reference(BAR_HIDDEN)) { cls ->
-        if (cls.type.startsWith("Lapp/hushtelegram/") || cls.type == TRANSLATE_CONTROLLER || cls.type == MESSAGE_OBJECT) return@forEachClassMentioning
+        if (cls.origType.startsWith("Lapp/hushtelegram/") || cls.origType == TRANSLATE_CONTROLLER || cls.origType == MESSAGE_OBJECT) return@forEachClassMentioning
         cls.methods.forEach { method ->
             method.controlBody().forEachIndexed { index, instruction ->
-                if (instruction.controlRef() == BAR_HIDDEN) found += cls.type to ("${method.name}${method.parameterTypes.joinToString("", "(", ")")}${method.returnType}" to index)
+                if (instruction.controlRef() == BAR_HIDDEN) found += cls.type to ("${method.origName}${method.origDescriptor}" to index)
             }
         }
     }
     controlShape(found.isNotEmpty(), "the chat screen no longer asks whether the translate bar is hidden")
     val screen = found.map { it.first }.distinct().singleOrNull()
     controlShape(screen != null, "the translate bar is read outside the chat screen (${found.map { it.first }.distinct().take(3).joinToString()})")
-    val screenClass = mutableClassDefBy(screen!!)
-    controlShape(screenClass.methods.any { "${it.name}${it.parameterTypes.joinToString("", "(", ")")}${it.returnType}" == SWIPE_BACK },
+    val screenClass = tgMutableClassDefBy(screen!!)
+    controlShape(screenClass.methods.any { "${it.origName}${it.origDescriptor}" == SWIPE_BACK },
         "$screen isn't a screen")
 
     return found.map { (_, site) ->
         val (signature, index) = site
-        val method = screenClass.methods.single { "${it.name}${it.parameterTypes.joinToString("", "(", ")")}${it.returnType}" == signature }
+        val method = screenClass.methods.single { "${it.origName}${it.origDescriptor}" == signature }
         val body = method.controlBody()
         controlShape(body[index].opcode in setOf(Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE) && body.getOrNull(index + 1)?.opcode == Opcode.MOVE_RESULT,
             "the chat screen no longer reads the translate bar answer in ${method.name}")

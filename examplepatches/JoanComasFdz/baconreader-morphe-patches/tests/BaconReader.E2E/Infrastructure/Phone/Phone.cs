@@ -25,6 +25,7 @@ public sealed class Phone
         AppInfo = new AppInfo(driver);
         OpenByDefault = new OpenByDefault(driver);
         FolderPicker = new FolderPicker(driver);
+        Clipboard = new Clipboard(driver);
         BaconReader = new BaconReaderApp(driver, Launcher, patches, noteAppShown);
     }
 
@@ -42,6 +43,9 @@ public sealed class Phone
 
     /// <summary>Android's folder picker, which an app opens to be given a folder.</summary>
     public FolderPicker FolderPicker { get; }
+
+    /// <summary>Android's clipboard: what an app copied last.</summary>
+    public Clipboard Clipboard { get; }
 
     /// <summary>BaconReader, patched with the scenario's patches (<see cref="PatchSet"/>).</summary>
     public BaconReaderApp BaconReader { get; }

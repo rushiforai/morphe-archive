@@ -35,6 +35,16 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import app.morphe.util.names.loadsInt
+import app.morphe.util.names.origDefiningClass
+import app.morphe.util.names.origName
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.origType
+import app.morphe.util.names.tgClassDefBy
+import app.morphe.util.names.tgClassDefByOrNull
+import app.morphe.util.names.tgMutableClassDefBy
 
 private const val PATCH = "Hide popular apps"
 internal const val POPULAR_APPS = "$EXTENSION_PACKAGE/misc/PopularApps;"
@@ -46,9 +56,10 @@ private const val STRINGS = "Lorg/telegram/messenger/R\$string;"
 val hidePopularAppsPatch = bytecodePatch(
     name = PATCH,
     description = "Hides the Popular apps list on the Apps tab of search and stops Telegram from loading it. On by " +
-        "default. Turn it off in HushTelegram settings > Ads. Two more switches there start off. Search only my " +
+        "default. Turn it off in HushTelegram settings > Ads. More switches there start off. Search only my " +
         "chats keeps search to your own chats and contacts, with nothing public. Find names in styled letters finds " +
-        "names written in decorative letters when you type plain ones.",
+        "names written in decorative letters when you type plain ones. Disable secret chats ignores it when someone asks " +
+        "for a secret chat, with no answer sent back.",
     default = true,
 ) {
     category("Search")
@@ -72,6 +83,13 @@ val hidePopularAppsPatch = bytecodePatch(
         // the rest of the patch and leaves the switch out.
         val fold = resolveNameFold()
         // Blocking new chats rides along the same way, a parental control that's all there or not at all.
+        requireStatusMethod("disableSecretChats")
+        val secretChats = try {
+            resolveSecretChats()
+        } catch (unfit: PatchException) {
+            patchLog.warning("$PATCH: ${unfit.message}. The patch goes on without ignoring secret chat requests.")
+            null
+        }
         val chats = resolveNewChatsBlock()
         shape(chats.sites.none { site -> (popular + searched).any { it === site.method } }, "blocking new chats shares a method with search")
         // The runtime's stubs first: on their own nothing calls them.
@@ -91,6 +109,10 @@ val hidePopularAppsPatch = bytecodePatch(
         } else {
             patchLog.warning("$PATCH: ${chats.missing}. The patch goes on without blocking new channels and groups.")
         }
+        secretChats?.let {
+            it.apply()
+            enableCapability("disableSecretChats")
+        }
         enableStatus("hidePopularApps")
     }
 }
@@ -98,58 +120,63 @@ val hidePopularAppsPatch = bytecodePatch(
 /**
  * [load] is the popular-apps loader, the only code that builds getPopularAppBots. [section] is the
  * Apps tab's fill, where [read] loads the loader's list and [empty] is where Telegram goes when
- * that list is empty, not loading and fully loaded: the section adds nothing from there.
+ * that list is empty, not loading and fully loaded: the section adds nothing from there. [test] is
+ * the isEmpty branch.
  */
-internal class PopularAppsSites(val load: MutableMethod, val section: MutableMethod, val read: Int, val empty: Int)
+private val HOISTED_CONSTS = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
+
+internal class PopularAppsSites(val load: MutableMethod, val section: MutableMethod, val read: Int, val empty: Int, val test: Int)
 
 internal fun BytecodePatchContext.resolvePopularAppsSites(): PopularAppsSites {
     requireRuntimeHooks()
     val builders = mutableListOf<Method>()
     forEachClassMentioning(Mention.type(GET_POPULAR_APP_BOTS)) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         classDef.methods.filterTo(builders) { method -> method.instructions().any { it.opcode == Opcode.NEW_INSTANCE && it.type() == GET_POPULAR_APP_BOTS } }
     }
     val builder = builders.one("getPopularAppBots builder", ::refuse)
     val loaderType = builder.definingClass
-    shape(!AccessFlags.STATIC.isSet(builder.accessFlags) && builder.parameterTypes.isEmpty() && builder.returnType == "V",
+    shape(!AccessFlags.STATIC.isSet(builder.accessFlags) && builder.parameterTypes.isEmpty() && builder.origReturnType == "V",
         "the popular apps loader is no longer an instance method with no arguments")
-    val load = mutableClassDefBy(loaderType).methods.single { it.name == builder.name && it.parameterTypes.isEmpty() && it.returnType == "V" }
+    val load = tgMutableClassDefBy(loaderType).methods.single { it.origName == builder.origName && it.parameterTypes.isEmpty() && it.origReturnType == "V" }
 
     // The loader keeps its list in its one ArrayList field, and says it is loading by setting a
     // boolean to true right after checking it.
-    val loaderClass = classDefBy(loaderType)
-    val list = loaderClass.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.type == ARRAY_LIST }.one("loader list field", ::refuse)
+    val loaderClass = tgClassDefBy(loaderType)
+    val list = loaderClass.fields.filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.origType == ARRAY_LIST }.one("loader list field", ::refuse)
     val loadBody = load.instructions()
     shape(loadBody.size > 2 && loadBody[0].opcode == Opcode.IGET_BOOLEAN && loadBody[1].opcode == Opcode.IF_NEZ,
         "the loader no longer starts by checking whether it is loading")
     val loading = loadBody[0].field()!!
-    shape(loading.definingClass == loaderType && loadBody.any { it.opcode == Opcode.IPUT_BOOLEAN && it.field() == loading },
+    shape(loading.origDefiningClass == loaderType && loadBody.any { it.opcode == Opcode.IPUT_BOOLEAN && it.field() == loading },
         "the loader no longer marks itself loading")
-    val finishedReads = loadBody.filter { it.opcode == Opcode.IGET_BOOLEAN && it.field() != loading && it.field()?.definingClass == loaderType }
+    val finishedReads = loadBody.filter { it.opcode == Opcode.IGET_BOOLEAN && it.field() != loading && it.field()?.origDefiningClass == loaderType }
     val finished = finishedReads.firstOrNull()?.field() ?: refuse("the loader no longer checks whether it has loaded everything")
 
     // The Apps tab: the one method that reads the list and names the Popular heading.
     val fills = mutableListOf<Method>()
-    forEachClassMentioning(Mention.member(list.definingClass, list.name) and Mention.member(STRINGS, "SearchAppsPopular")) { classDef ->
-        if (classDef.type.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
+    forEachClassMentioning(Mention.member(list.definingClass, list.name) and Mention.reference("$STRINGS->SearchAppsPopular:I")) { classDef ->
+        if (classDef.origType.startsWith("Lapp/hushtelegram/extension/")) return@forEachClassMentioning
         classDef.methods.filterTo(fills) { method -> method.instructions().let { body ->
             body.any { it.opcode == Opcode.IGET_OBJECT && it.field() == list } &&
-                body.any { it.opcode == Opcode.SGET && it.field()?.let { field -> field.definingClass == STRINGS && field.name == "SearchAppsPopular" } == true }
+                body.any { it.loadsInt() && it.origRef() == "$STRINGS->SearchAppsPopular:I" }
         } }
     }
     val fill = fills.one("Apps tab fill", ::refuse)
-    val section = mutableClassDefBy(fill.definingClass).methods.single { it.name == fill.name &&
-        it.parameterTypes.map(CharSequence::toString) == fill.parameterTypes.map(CharSequence::toString) && it.returnType == fill.returnType }
+    val section = tgMutableClassDefBy(fill.definingClass).methods.single { it.origName == fill.origName &&
+        it.origParameterTypes == fill.origParameterTypes && it.origReturnType == fill.origReturnType }
     val body = section.instructions()
     val read = body.indices.filter { body[it].opcode == Opcode.IGET_OBJECT && body[it].field() == list }.one("list read in the Apps tab", ::refuse)
     val listRegister = body[read].namedRegisters()[0]
     val owner = body[read].namedRegisters()[1]
-    // isEmpty() on the list, and its true branch.
-    shape(body.getOrNull(read + 1)?.call()?.let { it.definingClass == ARRAY_LIST && it.name == "isEmpty" } == true &&
+    // isEmpty() on the list, and its true branch. 13.2 Play loads a constant for later between the two.
+    val test = read + 3 + if (body.getOrNull(read + 3)?.let { it.opcode in HOISTED_CONSTS &&
+            it.namedRegisters() != body[read + 2].namedRegisters() } == true) 1 else 0
+    shape(body.getOrNull(read + 1)?.call()?.let { it.origDefiningClass == ARRAY_LIST && it.origName == "isEmpty" } == true &&
         body[read + 1].namedRegisters() == listOf(listRegister) && body[read + 2].opcode == Opcode.MOVE_RESULT &&
-        body[read + 3].opcode == Opcode.IF_NEZ && body[read + 3].namedRegisters() == body[read + 2].namedRegisters(),
+        body.getOrNull(test)?.opcode == Opcode.IF_NEZ && body[test].namedRegisters() == body[read + 2].namedRegisters(),
         "the Apps tab no longer checks whether the popular list is empty")
-    val emptyBranch = body.branchTarget(read + 3, ::refuse)
+    val emptyBranch = body.branchTarget(test, ::refuse)
     // Empty: loading shows placeholders, a list with more to load shows them too, a finished list adds nothing.
     shape(body[emptyBranch].isFieldRead(Opcode.IGET_BOOLEAN, loading, owner) && body[emptyBranch + 1].opcode == Opcode.IF_NEZ &&
         body[emptyBranch + 2].isFieldRead(Opcode.IGET_BOOLEAN, finished, owner) && body[emptyBranch + 3].opcode == Opcode.IF_NEZ,
@@ -161,7 +188,7 @@ internal fun BytecodePatchContext.resolvePopularAppsSites(): PopularAppsSites {
     shape(body.getOrNull(empty + 1)?.let { it.opcode == Opcode.IF_EQZ && it.namedRegisters() == listOf(footerFlag) } == true,
         "the section's footer no longer depends on what the popular list added")
     shape(read < emptyBranch && emptyBranch < empty, "the popular section is no longer laid out in order")
-    return PopularAppsSites(load, section, read, empty)
+    return PopularAppsSites(load, section, read, empty, test)
 }
 
 private fun PopularAppsSites.apply() {
@@ -185,10 +212,10 @@ private fun PopularAppsSites.apply() {
 }
 
 private fun BytecodePatchContext.requireRuntimeHooks() {
-    val owner = classDefByOrNull(POPULAR_APPS)
+    val owner = tgClassDefByOrNull(POPULAR_APPS)
     shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public popular apps runtime")
     for (name in listOf("skipLoad", "hideSection")) {
-        shape(owner!!.methods.count { it.name == name && it.parameterTypes.isEmpty() && it.returnType == "Z" &&
+        shape(owner!!.methods.count { it.origName == name && it.parameterTypes.isEmpty() && it.origReturnType == "Z" &&
             AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
             !AccessFlags.NATIVE.isSet(it.accessFlags) && !AccessFlags.ABSTRACT.isSet(it.accessFlags) &&
             it.implementation?.instructions?.any { instruction -> !instruction.opcode.format.isPayloadFormat } == true } == 1,

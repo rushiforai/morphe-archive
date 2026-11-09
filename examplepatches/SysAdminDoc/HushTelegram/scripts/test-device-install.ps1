@@ -366,7 +366,16 @@ exit /b 0
     $linked = $LASTEXITCODE
     try {
         Set-PoolCase -Shared { }
-        if ($linked -ne 0 -or -not (Test-Path -LiteralPath (Join-Path $junction 'emulator-7778.json') -PathType Leaf)) {
+        # Windows can refuse to traverse a junction an ordinary user made (error 448, "untrusted mount
+        # point"), so when the pool's record can't be read through the link, its stored target has to
+        # name the pool instead.
+        $reaches = ($linked -eq 0) -and (Test-Path -LiteralPath (Join-Path $junction 'emulator-7778.json') -PathType Leaf)
+        if (-not $reaches -and $linked -eq 0) {
+            $stored = [string](Get-Item -LiteralPath $junction -Force).Target
+            $reaches = $stored.TrimStart('\', '?').TrimEnd('\') -eq ([IO.Path]::GetFullPath($leaseDir)).TrimEnd('\')
+            if ($reaches) { Write-Host '[device] the junction to the pool is not traversable here (untrusted mount point), so its stored target was checked instead' }
+        }
+        if (-not $reaches) {
             throw 'The junction to the shared pool could not be made, so the alias case would prove nothing.'
         }
         Assert-Refusal { Run-Install -LeaseDirectory $junction } -NoAdb $true -Pattern $sharedOnly

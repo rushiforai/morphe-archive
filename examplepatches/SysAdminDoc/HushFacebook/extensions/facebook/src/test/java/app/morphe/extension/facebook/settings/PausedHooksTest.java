@@ -176,6 +176,7 @@ import app.morphe.extension.facebook.reels.ReelMidCardsForTests;
 import app.morphe.extension.facebook.reels.ReelPrompts;
 import app.morphe.extension.facebook.reels.SavedVideos;
 import app.morphe.extension.facebook.reels.SeenStateSendForTests;
+import app.morphe.extension.facebook.reels.StillWatching;
 import app.morphe.extension.facebook.reels.TapShowsControls;
 import app.morphe.extension.facebook.reels.WatchAgain;
 import app.morphe.extension.facebook.search.MetaAiSearchForTests;
@@ -549,11 +550,13 @@ public class PausedHooksTest {
         // A post header's yes to rotating its subtitle is answered as a no, so it keeps the one line.
         probes.put(PatchFamily.POST_DATES, Collections.singletonList(() -> !PostDates.cycling(true)));
         // A post's cut text is answered with null, so Facebook keeps the whole text with no See more,
-        // and a post starts whole, so the first tap folds it. A reel caption starts whole too (#268).
+        // and a post starts whole, so the first tap folds it. A reel caption starts whole too (#268),
+        // and an open one gets its dark box (#419).
         probes.put(PatchFamily.FULL_POST_TEXT, Arrays.asList(
                 () -> FullPostText.cut(new SpannableString("x"), "a story") == null,
                 () -> !FullPostText.allowTruncation(true),
-                () -> FullPostText.reelCaptionExpanded(false)));
+                () -> FullPostText.reelCaptionExpanded(false),
+                () -> app.morphe.extension.facebook.feed.CaptionBackdrop.forCaption(Integer.MAX_VALUE) != null));
         probes.put(PatchFamily.TRANSLATE_POSTS, Collections.singletonList(() -> {
             PostTranslationForTests.noNetwork();
             Spannable post = new SpannableString("Una frase en otro idioma");
@@ -756,7 +759,9 @@ public class PausedHooksTest {
                 // Watch again at the end of a feed video replays it in place instead of opening Reels (#403).
                 () -> !WatchAgain.opensElsewhere(true),
                 // A video tapped in Saved plays in the video player instead of the Reels viewer (#404).
-                () -> SavedVideos.staysInPlayer("vod_watchfeed_saved")));
+                () -> SavedVideos.staysInPlayer("vod_watchfeed_saved"),
+                // The next video isn't held back to ask "Are you still watching?" (#427).
+                () -> !StillWatching.idle(1)));
         // A reel that would get the interest prompt is answered as one that doesn't.
         probes.put(PatchFamily.REEL_PROMPTS, Collections.singletonList(() -> !ReelPrompts.keep(true)));
         // The Reels batcher's send of the reels you watched never reaches its executor.
@@ -1037,7 +1042,8 @@ public class PausedHooksTest {
                 FullHeightComments::skipSplitScreen,
                 () -> FullHeightComments.fillsScreen(1f),
                 PausedHooksTest::hidesTheVideoAboveTheComments,
-                PausedHooksTest::letsATapThroughToTheReel));
+                PausedHooksTest::letsATapThroughToTheReel,
+                PausedHooksTest::searchesTheComments));
         // A word without @ in a post or comment box looks nobody up, and a list of people left open
         // by an earlier @ is closed.
         probes.put(PatchFamily.TAG_SUGGESTIONS, Arrays.asList(
@@ -1278,6 +1284,13 @@ public class PausedHooksTest {
     private static boolean letsATapThroughToTheReel() {
         return FullHeightComments.tapThrough(
                 new android.app.Dialog(Robolectric.buildActivity(Activity.class).setup().get()), 20);
+    }
+
+    /** A comment sheet's views, set up by Facebook, which Search comments gives a magnifier. */
+    private static boolean searchesTheComments() {
+        FrameLayout sheet = new FrameLayout(RuntimeEnvironment.getApplication());
+        app.morphe.extension.facebook.comments.CommentSearchForTests.open(sheet);
+        return app.morphe.extension.facebook.comments.CommentSearchForTests.watching(sheet);
     }
 
     /** A press at the far end of a bar whose thumb sits at its start, then a cancel to end it. */

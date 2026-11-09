@@ -22,6 +22,12 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import app.morphe.util.names.origRef
+import app.morphe.util.names.origName
+import app.morphe.util.names.origParameterTypes
+import app.morphe.util.names.origType
+import app.morphe.util.names.origReturnType
+import app.morphe.util.names.tgMutableClassDefBy
 
 /**
  * The passkey gate on each declared build: Telegram's five reads of BuildVars.SUPPORTS_PASSKEYS
@@ -30,23 +36,28 @@ import org.junit.Test
  * extension, in the same register, and the rest of each method is Telegram's code unchanged.
  */
 class PasskeyGateFixtureTest {
-    private fun Instruction.shape() = listOf(opcode, (this as? ReferenceInstruction)?.reference?.toString())
+    private fun Instruction.shape() = listOf(opcode, origRef())
 
     @Test
     fun `every passkey check asks the extension on each declared build`() {
         for (build in Fixtures.declaredBuilds()) {
             val name = build.name
             val hosts = FixtureDex.classesWhere(build, { true }) { passkeyGates(it).isNotEmpty() }
-            val gated = hosts.flatMap { host -> host.methods.filter { passkeyGates(it).isNotEmpty() }.map { host.type to it } }
+            val gated = hosts.flatMap { host -> host.methods.filter { passkeyGates(it).isNotEmpty() }.map { host.origType to it } }
             val reads = gated.flatMap { (type, method) ->
-                passkeyGates(method).filter { method.controlBody()[it].opcode == Opcode.SGET_BOOLEAN }.map { "$type->${method.name}" }
+                passkeyGates(method).filter { method.controlBody()[it].opcode == Opcode.SGET_BOOLEAN }.map { "$type->${method.origName}" }
             }
-            assertEquals("$name: five SUPPORTS_PASSKEYS reads", 5, reads.size)
-            assertTrue("$name: creation and login read it: $reads", reads.containsAll(listOf(
-                "Lorg/telegram/messenger/PasskeysController;->create", "Lorg/telegram/messenger/PasskeysController;->login")))
+            // 13.2 inlines passkey login into the sign-in screen's passkey step, whose own read
+            // already holds the extension's answer when the inlined login tests it again.
+            val loginInlined = gated.none { (type, method) -> "$type->${method.origName}" == PASSKEY_LOGIN }
+            if (loginInlined) assertInlinedLoginRetestsStepRead(name, gated.map { it.second })
+            val readCount = if (loginInlined) 4 else 5
+            assertEquals("$name: SUPPORTS_PASSKEYS reads", readCount, reads.size)
+            assertTrue("$name: creation and login read it: $reads", reads.containsAll(
+                if (loginInlined) listOf("Lorg/telegram/messenger/PasskeysController;->create") else listOf("Lorg/telegram/messenger/PasskeysController;->create", PASSKEY_LOGIN)))
             assertEquals("$name: the privacy row and its tap: $reads", 2,
                 reads.count { it.startsWith("Lorg/telegram/ui/PrivacySettingsActivity;->") })
-            assertEquals("$name: one SETUP_PASSKEY banner check", 6, gated.sumOf { passkeyGates(it.second).size })
+            assertEquals("$name: one SETUP_PASSKEY banner check", readCount + 1, gated.sumOf { passkeyGates(it.second).size })
             assertTrue("$name: BuildVars' own write stays", gated.none { it.first == "Lorg/telegram/messenger/BuildVars;" })
 
             val context = PatchContexts.of(ExtensionDex.classes() + hosts)
@@ -56,8 +67,8 @@ class PasskeyGateFixtureTest {
                 val where = "$name: $type->${stock.name}"
                 val gates = passkeyGates(stock).toSet()
                 val before = stock.controlBody()
-                val after = context.mutableClassDefBy(type).methods.single {
-                    it.name == stock.name && it.parameterTypes == stock.parameterTypes && it.returnType == stock.returnType
+                val after = context.tgMutableClassDefBy(type).methods.single {
+                    it.origName == stock.origName && it.origParameterTypes == stock.origParameterTypes && it.origReturnType == stock.origReturnType
                 }.controlBody().filter { it.opcode != Opcode.NOP }
                 val expected = mutableListOf<List<Any?>>()
                 for ((index, instruction) in before.withIndex()) {
@@ -127,7 +138,7 @@ class PasskeyGateFixtureTest {
         val warnings = PatchLogCapture.warnings { passkeyGatePatch.execute(context) }
         assertEquals(listOf("Passkeys: 1 of 3 passkey checks have another way in, so those still offer passkeys on a " +
             "re-signed install."), warnings)
-        val patched = context.mutableClassDefBy("Lcom/example/Host;").methods.associateBy { it.name }
+        val patched = context.tgMutableClassDefBy("Lcom/example/Host;").methods.associateBy { it.name }
         assertEquals(PASSKEYS_WORK, patched.getValue("plain").controlBody()[1].controlRef())
         assertEquals(PASSKEYS_WORK, patched.getValue("banner").controlBody()[3].controlRef())
         assertEquals(listOf(Opcode.SGET_BOOLEAN, Opcode.IF_NEZ, Opcode.CONST_4, Opcode.GOTO, Opcode.RETURN_VOID),
@@ -149,5 +160,30 @@ class PasskeyGateFixtureTest {
         val warnings = PatchLogCapture.warnings { passkeyGatePatch.execute(context) }
         assertEquals(1, warnings.size)
         assertTrue(warnings.single(), warnings.single().startsWith("Passkeys:"))
+    }
+
+    /**
+     * The one method that builds the passkey login request holds the step's switch read, and the
+     * inlined login's own test reads that register again with nothing writing it in between, so the
+     * extension's answer from the step's hook is what lets the login request go out.
+     */
+    private fun assertInlinedLoginRetestsStepRead(name: String, gated: List<com.android.tools.smali.dexlib2.iface.Method>) {
+        val step = gated.single { method -> method.controlBody().any { it.origRef() == INIT_PASSKEY_LOGIN } }
+        val body = step.controlBody()
+        val gate = passkeyGates(step).single { body[it].opcode == Opcode.SGET_BOOLEAN }
+        val register = (body[gate] as OneRegisterInstruction).registerA
+        val request = body.indexOfFirst { it.origRef() == INIT_PASSKEY_LOGIN }
+        val between = (gate + 1 until request).map { body[it] }
+        val tests = between.filter { it.opcode in TESTS && (it as OneRegisterInstruction).registerA == register }
+        assertEquals("$name: the step's check and the inlined login's check test v$register", 2, tests.size)
+        val writes = between.filter { it.opcode !in TESTS && it is OneRegisterInstruction && it.registerA == register && it.opcode !in STORES }
+        assertEquals("$name: nothing writes v$register between the read and the login request", emptyList<Opcode>(), writes.map { it.opcode })
+    }
+
+    private companion object {
+        const val PASSKEY_LOGIN = "Lorg/telegram/messenger/PasskeysController;->login"
+        const val INIT_PASSKEY_LOGIN = "Lorg/telegram/tgnet/tl/TL_account\$initPasskeyLogin;-><init>()V"
+        val TESTS = setOf(Opcode.IF_EQZ, Opcode.IF_NEZ)
+        val STORES = setOf(Opcode.IPUT_BOOLEAN, Opcode.SPUT_BOOLEAN, Opcode.IPUT, Opcode.SPUT, Opcode.APUT_BOOLEAN)
     }
 }

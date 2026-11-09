@@ -21,6 +21,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -59,6 +61,7 @@ public class FeedVideoAloneTest {
     public void restore() {
         PauseForTests.resume();
         Settings.FEED_VIDEOS_ALONE.resetToDefault();
+        Settings.SHARED_REELS_ALONE.resetToDefault();
         FeedVideoAlone.forgetForTests();
         HookStatus.clear();
     }
@@ -501,5 +504,292 @@ public class FeedVideoAloneTest {
         assertFalse("a tap while off arms nothing", FeedVideoAlone.holdsBack(new Object()));
         assertTrue("on again, the player is still held", FeedVideoAlone.holdsBack(player));
         assertFalse("nobody asking is left alone", FeedVideoAlone.holdsBack(null));
+    }
+
+    @Test
+    public void theSharedReelsSwitchStartsOffAndBelongsToCleanUpReels() {
+        assertFalse(Settings.SHARED_REELS_ALONE.get());
+        assertFalse("asked as each viewer opens, so no restart", Settings.SHARED_REELS_ALONE.rebootApp);
+        assertTrue(PatchFamily.REEL_DECLUTTER.switches.contains(Settings.SHARED_REELS_ALONE));
+    }
+
+    @Test
+    public void aReelFromALinkOrAChatPlaysAloneWithTheSharedSwitch() {
+        Settings.FEED_VIDEOS_ALONE.save(false);
+        Settings.SHARED_REELS_ALONE.save(true);
+        for (String where : new String[]{"external_deeplink::fb_shorts_viewer", "messaging::xma_shared_video",
+                "messaging::thread_video_message_media_viewer", "unknown::fb_shorts_viewer"}) {
+            FeedVideoAlone.reelsViewerOpening(origin(where));
+            Object source = new Object();
+            assertFalse(where + ", before its reel is on screen", FeedVideoAlone.seedOnly(source));
+            ReelBinding.bound(new Object(), new Object());
+            assertTrue(where, FeedVideoAlone.seedOnly(source));
+            clock.addAndGet(60_000);
+            assertTrue(where + ", asked again", FeedVideoAlone.seedOnly(source));
+        }
+
+        FeedVideoAlone.feedVideoTapped();
+        assertFalse("a feed tap is the other switch's", FeedVideoAlone.holdsBack(new Object()));
+        for (String where : new String[]{"newsfeed::fb_shorts_native_in_feed_unit", "fb_shorts_tab::reels_tab",
+                "unknown::watch_feed", "messenger_story::fb_shorts_viewer"}) {
+            FeedVideoAlone.reelsViewerOpening(origin(where));
+            assertFalse(where, FeedVideoAlone.seedOnly(new Object()));
+        }
+
+        Object link = new Object();
+        Object home = new Object();
+        FeedVideoAlone.originForTests = params -> params == link ? origin("external_deeplink::fb_shorts_viewer")
+                : params == home ? origin("newsfeed::feed_story") : null;
+        assertFalse("a link's viewer shows no loading page", FeedVideoAlone.moreReelsComing(true, link));
+        assertTrue("a feed's keeps it with the feed switch off", FeedVideoAlone.moreReelsComing(true, home));
+    }
+
+    /**
+     * #421: a reel link from another app opens the reels viewer with no video in it yet. Its reels
+     * feed's fetch and the burst of seed checks its data source asks as it starts are what bring the
+     * linked reel in (S22 2026-11-08: holding the fetch, and then every seed check after the first,
+     * each left the viewer black). They keep Facebook's answers until the reel is on screen; the ask a
+     * second later, which brings Facebook's "Up next" reel, and every fetch after are held. A chat's
+     * reel goes the same way, and a feed video is held from its first fetch, reel on screen or not.
+     */
+    @Test
+    public void aSharedReelGetsFacebooksAnswersUntilItIsOnScreen() {
+        Settings.SHARED_REELS_ALONE.save(true);
+        FeedVideoAlone.reelsViewerOpening(origin("external_deeplink::fb_shorts_external_link"));
+        clock.addAndGet(126);
+        Object viewer = new Object();
+        FeedVideoAlone.warionOpening(viewer, true);
+        clock.addAndGet(63);
+        Object feed = new Object();
+        Object source = new Object();
+        assertFalse("the fetch that loads the linked reel", FeedVideoAlone.holdsBack(feed));
+        for (int ask = 1; ask <= 4; ask++) {
+            assertFalse("the data source's start, ask " + ask, FeedVideoAlone.seedCheck(source));
+        }
+        clock.addAndGet(152);
+        ReelBinding.bound(new Object(), new Object());
+        clock.addAndGet(73);
+        assertTrue("the ask after the reel is on screen keeps it alone", FeedVideoAlone.seedCheck(source));
+        clock.addAndGet(995);
+        assertTrue("the ask a second later, the one that brings Up next", FeedVideoAlone.seedCheck(source));
+        assertTrue("the feed gets nothing more", FeedVideoAlone.holdsBack(feed));
+        clock.addAndGet(60_000);
+        assertTrue("a swipe's fetch long after", FeedVideoAlone.holdsBack(feed));
+        assertTrue("only the asks after the reel was on screen are held: " + statusLine(),
+                statusLine().contains(FeedVideoAlone.HELD_BACK + " 4"));
+
+        FeedVideoAlone.warionClosed(viewer);
+        clock.addAndGet(FeedVideoAlone.WINDOW_MS + 1);
+        FeedVideoAlone.reelsViewerOpening(origin("messaging::xma_shared_video"));
+        FeedVideoAlone.warionOpening(viewer = new Object(), true);
+        Object chatSource = new Object();
+        Object chatFeed = new Object();
+        assertFalse("a chat reel's data source starts its video", FeedVideoAlone.seedCheck(chatSource));
+        assertFalse("and its feed's fetch loads it", FeedVideoAlone.holdsBack(chatFeed));
+        ReelBinding.bound(new Object(), new Object());
+        assertTrue("its feed is held once the reel is on screen", FeedVideoAlone.holdsBack(chatFeed));
+        assertTrue("and so is its data source", FeedVideoAlone.seedCheck(chatSource));
+
+        FeedVideoAlone.warionClosed(viewer);
+        clock.addAndGet(FeedVideoAlone.WINDOW_MS + 1);
+        FeedVideoAlone.feedVideoTapped();
+        Object tapped = new Object();
+        assertTrue("a feed video's player is held from its first fetch", FeedVideoAlone.holdsBack(tapped));
+        ReelBinding.bound(new Object(), new Object());
+        assertTrue("a reel on screen after a feed tap changes nothing", FeedVideoAlone.holdsBack(tapped));
+    }
+
+    /**
+     * #421: a live link loads its reel by itself, and Facebook plays it with a player of its own, so
+     * the Reels controller is handed no player as it takes the screen (S22 2026-11-08, a NASA reel:
+     * that empty binding 0.4 s in, no player ever after, and the asks a second later brought pages of
+     * Facebook's next reels only, one of them a swipe away). That empty binding starts the hold too.
+     */
+    @Test
+    public void aLiveLinksReelIsOnScreenWhenTheControllerIsHandedNoPlayer() {
+        Settings.SHARED_REELS_ALONE.save(true);
+        FeedVideoAlone.reelsViewerOpening(origin("unknown::fb_shorts_viewer"));
+        FeedVideoAlone.reelsViewerOpening(origin("external_deeplink::fb_shorts_external_link"));
+        Object handler = new Object();
+        assertFalse("the link handler's data source starts", FeedVideoAlone.seedCheck(handler));
+        clock.addAndGet(35);
+        Object viewer = new Object();
+        FeedVideoAlone.warionOpening(viewer, true);
+        clock.addAndGet(112);
+        Object source = new Object();
+        assertFalse("the viewer's data source starts", FeedVideoAlone.seedCheck(source));
+        clock.addAndGet(134);
+        ReelBinding.bound(new Object(), null);
+        clock.addAndGet(1262);
+        assertTrue("the viewer's ask a second later", FeedVideoAlone.seedCheck(source));
+        assertTrue("the link handler's", FeedVideoAlone.seedCheck(handler));
+        Object late = new Object();
+        assertFalse("a data source starting late keeps its first ask", FeedVideoAlone.seedCheck(late));
+        assertTrue("and is held after", FeedVideoAlone.seedCheck(late));
+        assertTrue("a swipe's fetch", FeedVideoAlone.holdsBack(new Object()));
+        List<String> page = new ArrayList<>(List.of("Up next"));
+        FeedVideoAlone.vending(source, page);
+        assertEquals("a page after the reel is on screen goes by the held seed check", List.of("Up next"), page);
+
+        FeedVideoAlone.warionClosed(viewer);
+        clock.addAndGet(FeedVideoAlone.WINDOW_MS + 1);
+        FeedVideoAlone.reelsViewerOpening(origin("fb_shorts_tab::reels_tab"));
+        Object tab = new Object();
+        ReelBinding.bound(new Object(), null);
+        assertFalse("an empty binding in the Reels tab holds nothing", FeedVideoAlone.seedCheck(tab));
+        assertFalse(FeedVideoAlone.seedCheck(tab));
+    }
+
+    /**
+     * #421: the page the linked reel's fetch brings has Facebook's next reels after the linked one
+     * (S22 2026-11-08: "Up next: Gb Flowers" under the reel, and a swipe went on to it). While the
+     * shared reel's viewer loads its reel, each page its loader hands over keeps the first reel only.
+     * Once the reel is on screen, and for a feed video or the Reels tab, pages are Facebook's.
+     */
+    @Test
+    public void aSharedReelsPageKeepsOnlyTheLinkedReel() {
+        Settings.SHARED_REELS_ALONE.save(true);
+        FeedVideoAlone.reelsViewerOpening(origin("external_deeplink::fb_shorts_external_link"));
+        Object viewer = new Object();
+        FeedVideoAlone.warionOpening(viewer, true);
+        Object feed = new Object();
+        Object source = new Object();
+        assertFalse(FeedVideoAlone.holdsBack(feed));
+        assertFalse(FeedVideoAlone.seedCheck(source));
+        List<String> page = new ArrayList<>(List.of("linked reel", "Gb Flowers", "third"));
+        FeedVideoAlone.vending(source, page);
+        assertEquals(List.of("linked reel"), page);
+        assertTrue("two reels counted as left out: " + statusLine(),
+                statusLine().contains(FeedVideoAlone.LEFT_OUT + " 2"));
+        List<String> one = new ArrayList<>(List.of("linked reel"));
+        FeedVideoAlone.vending(source, one);
+        assertEquals("a page of one stays", List.of("linked reel"), one);
+        List<String> other = new ArrayList<>(List.of("a", "b"));
+        FeedVideoAlone.vending(new Object(), other);
+        assertEquals("a data source that never asked is Facebook's", List.of("a", "b"), other);
+
+        ReelBinding.bound(new Object(), new Object());
+        List<String> later = new ArrayList<>(List.of("x", "y"));
+        FeedVideoAlone.vending(source, later);
+        assertEquals("once the reel is on screen the seed check holds pages back itself", List.of("x", "y"), later);
+
+        FeedVideoAlone.warionClosed(viewer);
+        clock.addAndGet(FeedVideoAlone.WINDOW_MS + 1);
+        FeedVideoAlone.feedVideoTapped();
+        Object tapped = new Object();
+        assertFalse("a feed video's first seed check", FeedVideoAlone.seedCheck(tapped));
+        List<String> feedPage = new ArrayList<>(List.of("tapped", "next"));
+        FeedVideoAlone.vending(tapped, feedPage);
+        assertEquals("a feed video's pages are the feed switch's business", List.of("tapped", "next"), feedPage);
+
+        clock.addAndGet(FeedVideoAlone.WINDOW_MS + 1);
+        FeedVideoAlone.reelsViewerOpening(origin("fb_shorts_tab::reels_tab"));
+        Object tab = new Object();
+        assertFalse(FeedVideoAlone.seedCheck(tab));
+        List<String> tabPage = new ArrayList<>(List.of("r1", "r2"));
+        FeedVideoAlone.vending(tab, tabPage);
+        assertEquals("the Reels tab keeps its reels", List.of("r1", "r2"), tabPage);
+
+        List<String> fixed = List.of("p", "q");
+        FeedVideoAlone.vending(null, fixed);
+        FeedVideoAlone.vending(source, "not a list");
+        Settings.SHARED_REELS_ALONE.save(false);
+        Settings.FEED_VIDEOS_ALONE.save(false);
+        List<String> off = new ArrayList<>(List.of("m", "n"));
+        FeedVideoAlone.vending(source, off);
+        assertEquals("off, nothing is left out", List.of("m", "n"), off);
+    }
+
+    /**
+     * #421: a reel link opened inside the app gives the viewer's entry the link's origin, but the
+     * viewer's list reads "unknown::unknown" (S22 2026-11-08), and its loading page never filled. The
+     * first such list read soon after a shared opening is that viewer's and shows none, then and
+     * later, even behind a viewer opened over it. Another list, one read only after the window, one
+     * after another viewer opened, and any with Open shared reels on their own off keep Facebook's
+     * answer.
+     */
+    @Test
+    public void aSharedReelsListWithNoOriginOfItsOwnShowsNoLoadingPage() {
+        Settings.FEED_VIDEOS_ALONE.save(false);
+        Settings.SHARED_REELS_ALONE.save(true);
+        FeedVideoAlone.originForTests = params -> origin(FeedVideoAlone.NO_ORIGIN);
+        Object list = new Object();
+        assertTrue("before any shared opening", FeedVideoAlone.moreReelsComing(true, new Object()));
+
+        FeedVideoAlone.reelsViewerOpening(origin("unknown::fb_shorts_viewer"));
+        clock.addAndGet(200);
+        assertFalse("the shared reel's list", FeedVideoAlone.moreReelsComing(true, list));
+        assertTrue("another list", FeedVideoAlone.moreReelsComing(true, new Object()));
+        clock.addAndGet(60_000);
+        assertFalse("its list drawn again later", FeedVideoAlone.moreReelsComing(true, list));
+        assertFalse("none coming stays none", FeedVideoAlone.moreReelsComing(false, list));
+        assertTrue(statusLine(), statusLine().contains(FeedVideoAlone.NO_LOADING_PAGE + " 1"));
+
+        FeedVideoAlone.reelsViewerOpening(origin("external_deeplink::fb_shorts_viewer"));
+        clock.addAndGet(FeedVideoAlone.WINDOW_MS + 1);
+        assertTrue("a list read only after the window", FeedVideoAlone.moreReelsComing(true, new Object()));
+
+        FeedVideoAlone.reelsViewerOpening(origin("fb_shorts_tab::reels_tab"));
+        assertTrue("a list after the Reels tab opened", FeedVideoAlone.moreReelsComing(true, new Object()));
+        // Its fetch stays held, so behind the Reels tab or a profile's reel it still has no next page.
+        assertFalse("the shared viewer's list behind another viewer", FeedVideoAlone.moreReelsComing(true, list));
+
+        Settings.SHARED_REELS_ALONE.save(false);
+        assertTrue("its list with the switch turned off", FeedVideoAlone.moreReelsComing(true, list));
+        Settings.FEED_VIDEOS_ALONE.save(true);
+        FeedVideoAlone.reelsViewerOpening(origin("unknown::fb_shorts_viewer"));
+        assertTrue("feed switch only", FeedVideoAlone.moreReelsComing(true, new Object()));
+    }
+
+    /**
+     * #421: a list with no origin that was on screen before a shared reel opened, the Reels tab's
+     * say, is never taken as the shared viewer's, even when it's drawn again first inside the
+     * window. The shared viewer's own list, read after it, is. A second shared link over the first
+     * takes its own list and the first keeps its own.
+     */
+    @Test
+    public void aListReadBeforeASharedOpeningIsNeverTakenForIt() {
+        Settings.FEED_VIDEOS_ALONE.save(false);
+        Settings.SHARED_REELS_ALONE.save(true);
+        FeedVideoAlone.originForTests = params -> origin(FeedVideoAlone.NO_ORIGIN);
+        Object reelsTab = new Object();
+        FeedVideoAlone.reelsViewerOpening(origin("fb_shorts_tab::reels_tab"));
+        assertTrue("the Reels tab's list", FeedVideoAlone.moreReelsComing(true, reelsTab));
+
+        FeedVideoAlone.reelsViewerOpening(origin("unknown::fb_shorts_viewer"));
+        clock.addAndGet(100);
+        assertTrue("the Reels tab's list drawn again first", FeedVideoAlone.moreReelsComing(true, reelsTab));
+        Object first = new Object();
+        assertFalse("the shared viewer's list", FeedVideoAlone.moreReelsComing(true, first));
+        assertTrue("the Reels tab's list after it", FeedVideoAlone.moreReelsComing(true, reelsTab));
+
+        FeedVideoAlone.reelsViewerOpening(origin("external_deeplink::fb_shorts_viewer"));
+        clock.addAndGet(100);
+        Object second = new Object();
+        assertFalse("the second shared viewer's list", FeedVideoAlone.moreReelsComing(true, second));
+        assertTrue("one list per opening", FeedVideoAlone.moreReelsComing(true, new Object()));
+        assertFalse("the first shared viewer's list under it", FeedVideoAlone.moreReelsComing(true, first));
+        assertTrue("the Reels tab's list still", FeedVideoAlone.moreReelsComing(true, reelsTab));
+    }
+
+    @Test
+    public void theFeedSwitchAloneLeavesLinksAndChatsToFacebook() {
+        for (String where : new String[]{"external_deeplink::fb_shorts_viewer", "messaging::xma_shared_video"}) {
+            FeedVideoAlone.reelsViewerOpening(origin(where));
+            assertFalse(where, FeedVideoAlone.seedOnly(new Object()));
+        }
+        Object link = new Object();
+        FeedVideoAlone.originForTests = params -> origin("external_deeplink::fb_shorts_viewer");
+        assertTrue(FeedVideoAlone.moreReelsComing(true, link));
+
+        Settings.SHARED_REELS_ALONE.save(true);
+        FeedVideoAlone.reelsViewerOpening(origin("messaging::xma_shared_video"));
+        Object chat = new Object();
+        assertFalse("both on, a chat's reel before it's on screen", FeedVideoAlone.seedOnly(chat));
+        ReelBinding.bound(new Object(), new Object());
+        assertTrue("both on, a chat's reel", FeedVideoAlone.seedOnly(chat));
+        FeedVideoAlone.feedVideoTapped();
+        assertTrue("both on, a feed tap", FeedVideoAlone.holdsBack(new Object()));
+        assertFalse(FeedVideoAlone.moreReelsComing(true, link));
     }
 }

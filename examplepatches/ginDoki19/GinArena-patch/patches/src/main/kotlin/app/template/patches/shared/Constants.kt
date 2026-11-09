@@ -186,4 +186,18 @@ object Constants {
         )
     )
 
+    val COMPATIBILITY_DAYLIO = Compatibility(
+        name = "Daylio",
+        packageName = "net.daylio",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x00BFA5,
+        signatures = setOf("6afb7e4100413a77e13b6a1e4f8ac1f9e3421862b3678fb9abe6aa531e859a9d"),
+        targets = listOf(
+            AppTarget(
+                version = "1.71.1", versionCode = 289, isExperimental = false, minSdk = 26,
+                description = "APKM (arm64-v8a / armeabi-v7a / x86 / x86_64, 480-640 dpi, Android 8.0+), build 289"
+            )
+        )
+    )
+
 }

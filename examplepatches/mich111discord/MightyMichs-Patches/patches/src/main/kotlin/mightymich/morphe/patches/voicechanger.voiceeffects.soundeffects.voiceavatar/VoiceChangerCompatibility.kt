@@ -12,9 +12,8 @@ object VoiceChangerCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722,
         targets = listOf(
-            AppTarget(
-                version = "1.02.111.0915"
-            )
+            AppTarget(version = "1.02.111.0915"),
+            AppTarget(version = "1.02.112.1013"),
         )
     )
 }
