@@ -1,6 +1,6 @@
 # Repos reported by the last notification (5)
-0xRJDev/shikify
-RizkLee/morphe-bilibili-danmaku
-maniesh-NR/Vogelkop-MorphePatches
-pardhu23/morphe-patches
-sazap10/sync-patches
+SeveriT/morphe-patches
+aayy-dev/patches
+drtgrf/chefkoch-android-patches
+mirbyte/morphe-patches
+way-lo/waylo-patches
