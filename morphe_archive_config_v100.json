@@ -2707,14 +2707,6 @@
                 "updatedAt": 1791873446408
             },
             {
-                "name": "x-morphe-patches",
-                "source": "https://raw.githubusercontent.com/andradeatdev/x-morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 380,
-                "createdAt": 1791873448130,
-                "updatedAt": 1791873448130
-            },
-            {
                 "name": "arsylk-patches",
                 "source": "https://raw.githubusercontent.com/Arsylk/arsylk-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3345,14 +3337,6 @@
                 "sortOrder": 475,
                 "createdAt": 1793249490735,
                 "updatedAt": 1793249490735
-            },
-            {
-                "name": "veloce-patches",
-                "source": "https://raw.githubusercontent.com/M4TH1EU/veloce-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 476,
-                "createdAt": 1793249491316,
-                "updatedAt": 1793249491316
             },
             {
                 "name": "gboard-gifs-extended",
@@ -4731,14 +4715,6 @@
                 "updatedAt": 1794113574191
             },
             {
-                "name": "morphe-bilibili-danmaku",
-                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 655,
-                "createdAt": 1794113575620,
-                "updatedAt": 1794113575620
-            },
-            {
                 "name": "sync-patches",
                 "source": "https://raw.githubusercontent.com/sazap10/sync-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4753,6 +4729,54 @@
                 "sortOrder": 657,
                 "createdAt": 1794113577626,
                 "updatedAt": 1794113577626
+            },
+            {
+                "name": "patches",
+                "source": "https://raw.githubusercontent.com/aayy-dev/patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 658,
+                "createdAt": 1794200730656,
+                "updatedAt": 1794200730656
+            },
+            {
+                "name": "chefkoch-android-patches",
+                "source": "https://raw.githubusercontent.com/drtgrf/chefkoch-android-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 659,
+                "createdAt": 1794200740759,
+                "updatedAt": 1794200740759
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/mirbyte/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 660,
+                "createdAt": 1794200754027,
+                "updatedAt": 1794200754027
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/SeveriT/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 661,
+                "createdAt": 1794200759386,
+                "updatedAt": 1794200759386
+            },
+            {
+                "name": "Maps-AA-AnyMode-Morphe",
+                "source": "https://raw.githubusercontent.com/shuili1013/Maps-AA-AnyMode-Morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 662,
+                "createdAt": 1794200759992,
+                "updatedAt": 1794200759992
+            },
+            {
+                "name": "waylo-patches",
+                "source": "https://raw.githubusercontent.com/way-lo/waylo-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 663,
+                "createdAt": 1794200764589,
+                "updatedAt": 1794200764589
             }
         ]
     }

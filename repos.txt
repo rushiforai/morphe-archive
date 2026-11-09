@@ -13,6 +13,7 @@
 6jarjar6/morphe-patches
 6zev/morphe-patches
 AaronDeimos/revanced-patches
+aayy-dev/patches
 abhis1n/Morphe-Patches
 adderalladmiral/psychonaut-journal-patches
 adderalladmiral/psychonaut-wiki-journal-patches
@@ -180,6 +181,7 @@ drappula/morphe-patches-instaprime
 Dreaming-Codes/morphe-patches
 drnhzn/supreme-patches
 drosoCode/morphe-patches
+drtgrf/chefkoch-android-patches
 dumb-software/T2C-App-Patch-Morphe
 dumketo/multi-app-patches
 dunecache/oyasumi-patches
@@ -408,6 +410,7 @@ mich-de/openlauncher
 mich111discord/MightyMichs-Patches
 MiguelNinja19/miguel-morphe-patches
 miketweaver/friendsturner-patches
+mirbyte/morphe-patches
 mmenzyns/morphe-patches
 mnhqngl/quang-patches
 MOD-PROD/Morphe-Patches-by-Modprod
@@ -516,8 +519,8 @@ Rosaldivo/rosaldivo-morphe-patches
 RoundSalmon4/morphe-patches-template
 rubenaaroncalahorra/gospel-library-patches
 rufusin/revanced-patches
-rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 rushiranpise/RI-Vanced-Universal-Morphe-Patches
+rushiranpise/Ri-Vanced-Universal-Morphe-Patches
 ryuya0124/gemini-microg-patches
 ryykitty/twitch-patched
 sabbirexist/kodex-patches
@@ -540,6 +543,7 @@ semicoloncolonel/mobile-morphe-patches
 Seobject/Seobject-patches
 serajr/x-twitter-patches
 sevenzip2/books-piko
+SeveriT/morphe-patches
 Sfehhrths/ekispert-morphe-patches
 SFGPLAY/SFGPatches
 Shahriar-0/Telegram-X-Morphe
@@ -548,6 +552,7 @@ shini-cell/shini-morphe
 ShubhamJ010/gboard-clipboard-history
 ShuhaibNC/morphe-patches
 shuili1013/GoogleMap-Morphe
+shuili1013/Maps-AA-AnyMode-Morphe
 sillyredsoup/reddit-morphe-patches
 sjshb57/Pairip-Patches
 sk1nnnny/morphe-patche
@@ -574,8 +579,8 @@ Supperelias2/sbs-morphe-patches
 Supperelias2/sbs-tv-morphe-patches
 sushruth/imgur-patches
 Sylonin/xposed-newx-patches
-SysAdminDoc/Hushfacebook
 SysAdminDoc/HushFacebook
+SysAdminDoc/Hushfacebook
 SysAdminDoc/hushfeed
 SysAdminDoc/HushFeed
 SysAdminDoc/HushGram
@@ -642,6 +647,7 @@ Wake-Old-Hyphen/hushfeed
 WalkTheEarth/morphe-ytvr-patches
 warleysr/instagram-patches
 warleysr/reddit-nsfw-blocker
+way-lo/waylo-patches
 wchill/anddea-rvx-morphed
 wchill/patcheddit
 wchill/rvx-morphed
