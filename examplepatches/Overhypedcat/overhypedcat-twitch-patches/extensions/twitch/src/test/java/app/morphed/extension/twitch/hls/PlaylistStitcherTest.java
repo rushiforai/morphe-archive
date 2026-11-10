@@ -138,4 +138,33 @@ public class PlaylistStitcherTest {
 
         assertTrue(out.contains("#EXT-X-TWITCH-PREFETCH:"));
     }
+
+    @Test
+    public void forgetsOldSegmentsOnStreamsWithoutAds() {
+        // A day without ads would otherwise remember every segment URL the stream ever had.
+        for (long sequence = 100; sequence < 5_100; sequence++) {
+            process(Playlists.media("n", sequence, "llll", false), PlaylistStitcher.NATIVE);
+        }
+
+        assertTrue("remembered " + stitcher.rememberedSegments(), stitcher.rememberedSegments() <= 1_210);
+        assertFalse(stitcher.isRewriting());
+        // The newest segments are still known, so a stream that moves servers is still recognised.
+        assertTrue(stitcher.recognises(MediaPlaylist.parse(Playlists.media("n", 5_099, "llll", false))));
+    }
+
+    @Test
+    public void manyAdSegmentsDoNotAddADiscontinuityWhereThereIsNone() {
+        process(Playlists.media("n", 100, "llll", false), PlaylistStitcher.NATIVE);
+        // A long ad: 600 different ad segments seen, the most the stitcher remembers.
+        for (long sequence = 104; sequence <= 700; sequence++) {
+            process(Playlists.media("n", sequence, "aaaa", true), PlaylistStitcher.NATIVE);
+        }
+        // One more new ad segment goes past that limit, as live content comes back (705).
+        process(Playlists.media("n", 701, "aaaal", true), PlaylistStitcher.NATIVE);
+        String next = process(Playlists.media("n", 702, "aaall", true), PlaylistStitcher.NATIVE);
+
+        // Ad segments 702 to 704 were seen before: only 705 starts after a cut, 706 simply follows it.
+        assertTrue(next.contains(Playlists.segment("n", 706)));
+        assertEquals(1, next.split("#EXT-X-DISCONTINUITY\n", -1).length - 1);
+    }
 }

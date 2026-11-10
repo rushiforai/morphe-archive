@@ -100,7 +100,6 @@ public final class FeatureCatalogTest {
 
         assertEquals(4, groups.size());
         assertGroup(groups.get(0), SettingsSection.HIDE_BOTTOM_TABS,
-                "linimal.voom",
                 "linimal.shopping",
                 "linimal.news",
                 "linimal.wallet",
@@ -166,17 +165,27 @@ public final class FeatureCatalogTest {
         assertEquals("プレビューの Premium の案内を表示しない", groups.get(0).getEntries().get(2).getTitle());
     }
 
+    @Test
+    public void themePageHoldsTheAmoledEntry() {
+        List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
+                SettingsPage.THEME, allCatalogFeatureIds());
+
+        assertEquals(1, groups.size());
+        assertGroup(groups.get(0), null, "linimal.amoled-theme");
+        assertEquals("ダークモードの背景を黒にする", groups.get(0).getEntries().get(0).getTitle());
+    }
+
     /** 見出しだけが残らないよう、項目がすべて消えた小見出しは Group を作りません。 */
     @Test
     public void installedGroupsForPageDropsSectionsWithoutAnyInstalledEntry() {
         List<FeatureCatalog.Group> groups = FeatureCatalog.installedGroupsForPage(
                 SettingsPage.HIDE,
                 Arrays.asList(
-                        "linimal.voom",
+                        "linimal.news",
                         "linimal.home-trending"));
 
         assertEquals(2, groups.size());
-        assertGroup(groups.get(0), SettingsSection.HIDE_BOTTOM_TABS, "linimal.voom");
+        assertGroup(groups.get(0), SettingsSection.HIDE_BOTTOM_TABS, "linimal.news");
         assertGroup(groups.get(1), SettingsSection.HIDE_HOME, "linimal.home-trending");
     }
 

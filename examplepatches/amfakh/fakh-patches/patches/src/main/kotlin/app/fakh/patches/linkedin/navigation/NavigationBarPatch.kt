@@ -74,7 +74,7 @@ internal val navigationHooksPatch = bytecodePatch {
 @Suppress("unused")
 val navigationBarPatch = bytecodePatch(
     name = "Navigation bar",
-    description = "Adds options (turned on in Fakh Patches) to hide the More, Jobs, Network and Notifications tabs " +
+    description = "Adds options in Fakh Patches to hide the More, Jobs, Network and Notifications tabs " +
         "of the navigation bar, its count badges and its labels.",
     default = true
 ) {
@@ -99,7 +99,7 @@ val swipeTabsPatch = bytecodePatch(
 @Suppress("unused")
 val glassNavigationBarPatch = bytecodePatch(
     name = "Glass navigation bar",
-    description = "Draws the navigation bar as a floating, translucent capsule.",
+    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)

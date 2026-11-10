@@ -30,15 +30,12 @@ val freeContentPatch =
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
-                                // package:core_models/src/content_model.dart ->
-                                // ContentModel.fromJson
+                                // package:core_models/src/content_model.dart -> ContentModel.fromJson
                                 // content_access -> id
                                 when (arch) {
                                     CpuArchitecture.ARMEABI_V7A -> {
-                                        // ADD             R2, R5, #0x9000 -> ADD             R2,
-                                        // R5, #0x2000
-                                        // LDR             R2, [R2,#0x89B] -> LDR             R2,
-                                        // [R2,#0x483]
+                                        // ADDR2, R5, #0x9000 -> ADD R2, R5, #0x2000
+                                        // LDRR2, [R2,#0x89B] -> LDR R2, [R2,#0x483]
                                         """
                                             09 2a 85 e2
                                             9b 28 92 e5
@@ -49,9 +46,8 @@ val freeContentPatch =
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
-                                        // ADD             X2, X27, #0x11,LSL#12 -> NOP
-                                        // LDR             X2, [X2,#0x430]       -> LDR
-                                        // X2, [X2,#0x4814]
+                                        // ADD X2, X27, #0x11,LSL#12 -> NOP
+                                        // LDR X2, [X2,#0x430] -> LDR X2, [X2,#0x4814]
                                         """
                                             62 47 40 91
                                             42 18 42 f9
@@ -64,15 +60,12 @@ val freeContentPatch =
                                     else -> {}
                                 }
 
-                                // package:core_models/src/content_model.dart ->
-                                // ContentModel.fromJson
+                                // package:core_models/src/content_model.dart -> ContentModel.fromJson
                                 // ContentAccess.unspecified -> ContentAccess.free
                                 when (arch) {
                                     CpuArchitecture.ARMEABI_V7A -> {
-                                        // ADD             LR, R5, #0x9000 -> ADD             LR,
-                                        // R5, #0x12000
-                                        // LDR             LR, [LR,#0x8A7] -> LDR             LR,
-                                        // [LR,#0x4D3]
+                                        // ADDLR, R5, #0x9000 -> ADD LR, R5, #0x12000
+                                        // LDRLR, [LR,#0x8A7] -> LDR LR, [LR,#0x4D3]
                                         """
                                             09 ea 85 e2
                                             a7 e8 9e e5
@@ -85,10 +78,8 @@ val freeContentPatch =
                                     CpuArchitecture.ARM64_V8A -> {}
 
                                     else -> {
-                                        // ADD             X16, X27, #0x11,LSL#12 -> ADD
-                                        // X16, X27, #0x21,LSL#12
-                                        // LDR             X16, [X16,#0x448]      -> LDR
-                                        // X16, [X16,0x540]
+                                        // ADD X16, X27, #0x11,LSL#12 -> ADD X16, X27, #0x21,LSL#12
+                                        // LDR X16, [X16,#0x448] -> LDR X16, [X16,0x540]
                                         """
                                             70 47 40 91
                                             10 26 42 f9

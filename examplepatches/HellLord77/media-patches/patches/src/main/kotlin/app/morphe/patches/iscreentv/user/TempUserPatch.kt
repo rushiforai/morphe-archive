@@ -8,6 +8,8 @@ import app.morphe.patches.iscreentv.shared.Constants.COMPATIBILITY_ISCREENTV
 import app.morphe.patches.iscreentv.shared.morphe.com.rockstreamer.iscreentv.utils.PreferenceUtil
 import app.morphe.util.getReference
 import app.morphe.util.matchAllMethodIndicesForEach
+import app.morphe.util.matchSingle
+import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -25,14 +27,22 @@ val tempUserPatch =
     ) {
         compatibleWith(COMPATIBILITY_ISCREENTV)
 
-        dependsOn(
-            sharedExtensionPatch,
-            PreferenceUtil.isTVodSubscribedPatch,
-            PreferenceUtil.isSubscribedPatch,
-            PreferenceUtil.isLoginPatch,
-        )
+        dependsOn(sharedExtensionPatch)
 
         execute {
+            PreferenceUtil.IsTVodSubscribedFingerprint
+                .matchSingle()
+                .method
+                .returnEarly(true)
+            PreferenceUtil.IsSubscribedFingerprint
+                .matchSingle()
+                .method
+                .returnEarly(true)
+            PreferenceUtil.IsLoginFingerprint
+                .matchSingle()
+                .method
+                .returnEarly(true)
+
             GetRefreshTokenMethodCallFingerprint.matchAllMethodIndicesForEach {
                 val instruction = getInstruction<FiveRegisterInstruction>(it)
                 val reference = instruction.getReference<MethodReference>()!!

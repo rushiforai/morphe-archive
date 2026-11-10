@@ -15,7 +15,7 @@ val clonePackagePatch = resourcePatch(
     name = "Clone Bloomberg",
     description = "Changes the package name to $CLONE_PACKAGE so the app installs next to the Play Store version. " +
         "Renames custom permissions and provider authorities to match. Makes updating easier as you can get the original APK from Play Store.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_BLOOMBERG)
 

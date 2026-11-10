@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import android.content.Context;
@@ -23,175 +28,206 @@ import java.util.TreeMap;
 import java.util.regex.Pattern;
 
 /**
- * Loki Patches log, kept in a file in the app's private storage so that users can copy it into a bug report
- * from the settings, without a computer. Errors are always kept; details only while "Diagnostic logging" is on.
- * The report removes links, IDs, and e-mail addresses.
+ * The on-device log and the bug report made from it.
+ *
+ * <p>A user can copy the report from the settings screen without a computer, so the file lives in
+ * the app's private storage. Errors are always recorded; detail lines only while "Diagnostic
+ * logging" is on. A report is text the user is about to post in public, so links, member ids and
+ * addresses are stripped from it.
+ *
+ * <p>The log is capped: past {@link #MAX_BYTES} the oldest half is dropped, which keeps the end of
+ * the log — the part a bug report needs — intact.
  */
 final class Diagnostics {
     private static final String FILE_NAME = "loki_log.txt";
-    /** The name this file had before the rename; deleted once on first use. */
-    private static final String LEGACY_FILE_NAME = "michii_log.txt";
-    private static boolean legacyChecked;
-    /** The file is cut to the newest half when it grows past this size. */
+    /** Log line shape: "MM-dd HH:mm:ss D message". */
+    private static final String STAMP_PATTERN = "MM-dd HH:mm:ss";
+
     private static final int MAX_BYTES = 300 * 1024;
     private static final int REPORT_LINES = 200;
-
+    /** Identical detail lines inside this window are counted instead of written. */
     private static final long REPEAT_WINDOW_MS = 5000;
-    private static final Map<String, Long> LAST_WRITTEN = new HashMap<>();
-    private static final Map<String, Integer> REPEATS = new HashMap<>();
+    /** Drop the repeat bookkeeping once it gets this big rather than tracking it forever. */
+    private static final int REPEAT_ENTRIES = 200;
+    /** Stack frames kept per error: the top ones are what locates the failure. */
+    private static final int TRACE_LINES = 12;
 
-    private static final SimpleDateFormat TIME = new SimpleDateFormat("MM-dd HH:mm:ss", Locale.ROOT);
+    private static final Pattern LINK_PATTERN = Pattern.compile("https?://\\S+");
+    private static final Pattern URN_PATTERN = Pattern.compile("urn:li:[A-Za-z_]+:[^\\s,)\\]]+");
+    private static final Pattern MAIL_PATTERN = Pattern.compile("[\\w.+-]+@[\\w-]+\\.[\\w.]+");
+    /** Member and media ids: long, and always mixing letters with digits. */
+    private static final Pattern ID_PATTERN =
+            Pattern.compile("\\b(?=[A-Za-z0-9_-]*\\d)(?=[A-Za-z0-9_-]*[A-Za-z])[A-Za-z0-9_-]{16,}\\b");
+    private static final Pattern LONG_NUMBER_PATTERN = Pattern.compile("\\b\\d{6,}\\b");
 
-    private static final Pattern URL = Pattern.compile("https?://\\S+");
-    private static final Pattern URN = Pattern.compile("urn:li:[A-Za-z_]+:[^\\s,)\\]]+");
-    private static final Pattern EMAIL = Pattern.compile("[\\w.+-]+@[\\w-]+\\.[\\w.]+");
-    /** LinkedIn member and media IDs, such as ACoAAB1x2y... or D4E22AQH.... */
-    private static final Pattern TOKEN = Pattern.compile("\\b(?=[A-Za-z0-9_-]*\\d)(?=[A-Za-z0-9_-]*[A-Za-z])[A-Za-z0-9_-]{16,}\\b");
-    private static final Pattern NUMBER = Pattern.compile("\\b\\d{6,}\\b");
+    private static final SimpleDateFormat STAMP = new SimpleDateFormat(STAMP_PATTERN, Locale.ROOT);
+    private static final Map<String, Long> LAST_WRITTEN_AT = new HashMap<>();
+    private static final Map<String, Integer> SUPPRESSED = new HashMap<>();
 
     private Diagnostics() {
     }
 
-    /** Details, only kept while "Diagnostic logging" is on. */
-    static void debug(String message) {
+    /**
+     * A detail line, written only while "Diagnostic logging" is on.
+     *
+     * <p>Patches call this per feed item or per view, so the same line can arrive dozens of times a
+     * second; repeats inside a short window are counted and reported once as "(+N more)" instead of
+     * pushing the rest of the log out of the report.
+     */
+    static void debug(String detail) {
         if (!Settings.debug()) return;
-        Log.d(Settings.TAG, message);
-        String line = message;
-        // Patches can log the same detail for every feed item. Keep one line per message every few seconds so
-        // repeats don't push the rest of the log out of the report.
-        synchronized (REPEATS) {
-            long now = System.currentTimeMillis();
-            Long last = LAST_WRITTEN.get(message);
-            if (last != null && now - last < REPEAT_WINDOW_MS) {
-                Integer count = REPEATS.get(message);
-                REPEATS.put(message, count == null ? 1 : count + 1);
+        Log.d(Settings.TAG, detail);
+        String line = detail;
+        synchronized (SUPPRESSED) {
+            long at = System.currentTimeMillis();
+            Long writtenBefore = LAST_WRITTEN_AT.get(detail);
+            if (writtenBefore != null && at - writtenBefore < REPEAT_WINDOW_MS) {
+                Integer repeats = SUPPRESSED.get(detail);
+                SUPPRESSED.put(detail, repeats == null ? 1 : repeats + 1);
                 return;
             }
-            Integer skipped = REPEATS.remove(message);
-            if (skipped != null) line = message + " (+" + skipped + " more)";
-            LAST_WRITTEN.put(message, now);
-            if (LAST_WRITTEN.size() > 200) LAST_WRITTEN.clear();
+            Integer suppressed = SUPPRESSED.remove(detail);
+            if (suppressed != null) line = detail + " (+" + suppressed + " more)";
+            LAST_WRITTEN_AT.put(detail, at);
+            if (LAST_WRITTEN_AT.size() > REPEAT_ENTRIES) LAST_WRITTEN_AT.clear();
         }
-        append("D", line);
+        write("D", line);
     }
 
-    /** Errors are always kept, so that a report can show what failed even if logging was off. */
-    static void error(String message, Throwable t) {
-        Log.e(Settings.TAG, message, t);
-        append("E", t == null ? message : message + "\n" + stackTrace(t));
+    /** An error, always recorded — also when logging is off, so a report shows what failed. */
+    static void error(String message, Throwable failure) {
+        Log.e(Settings.TAG, message, failure);
+        if (failure == null) {
+            write("E", message);
+            return;
+        }
+        write("E", message + "\n" + trace(failure));
     }
 
-    private static synchronized void append(String level, String message) {
+    private static synchronized void write(String level, String message) {
         try {
-            File file = file();
-            if (file == null) return;
-            String line = TIME.format(new Date()) + " " + level + " " + message + "\n";
-            try (FileOutputStream out = new FileOutputStream(file, true)) {
-                out.write(line.getBytes(StandardCharsets.UTF_8));
+            File target = logFile();
+            if (target == null) return;
+            String line = STAMP.format(new Date()) + " " + level + " " + message + "\n";
+            byte[] encoded = line.getBytes(StandardCharsets.UTF_8);
+            try (FileOutputStream stream = new FileOutputStream(target, true)) {
+                stream.write(encoded);
             }
-            if (file.length() > MAX_BYTES) {
-                byte[] all = Files.readAllBytes(file.toPath());
-                int from = all.length / 2;
-                while (from < all.length && all[from] != '\n') from++;
-                byte[] kept = new byte[all.length - from - 1];
-                System.arraycopy(all, from + 1, kept, 0, kept.length);
-                Files.write(file.toPath(), kept);
-            }
-        } catch (Throwable ignored) {
-            // Logging must never break the app.
+            if (target.length() > MAX_BYTES) keepNewestHalf(target);
+        } catch (Throwable harmless) {
+            // A logging problem must never become the app's problem.
         }
+    }
+
+    /**
+     * Rewrites the file with everything after the first line break past the halfway point. On a
+     * file without any later line break this throws, and the caller leaves the file alone.
+     */
+    private static void keepNewestHalf(File file) throws Exception {
+        byte[] whole = Files.readAllBytes(file.toPath());
+        int cut = whole.length / 2;
+        while (cut < whole.length && whole[cut] != '\n') cut++;
+        byte[] newest = new byte[whole.length - cut - 1];
+        System.arraycopy(whole, cut + 1, newest, 0, newest.length);
+        Files.write(file.toPath(), newest);
     }
 
     static synchronized void clear() {
-        File file = file();
-        if (file != null) file.delete();
+        File target = logFile();
+        if (target != null) target.delete();
     }
 
-    /** The report to paste into a bug report: app, device, patches, settings, and the newest log lines. */
+    /**
+     * The bug report: versions, patch list, saved settings and the newest log lines, with anything
+     * identifying removed so it can be pasted into an issue.
+     */
     static String report(Context context) {
-        StringBuilder out = new StringBuilder();
-        out.append("### Loki Patches diagnostic report\n");
-        out.append("Links, IDs, and e-mail addresses were removed. Please check it before posting.\n\n");
-        out.append("```\n");
-        out.append("Loki Patches ").append(Settings.patchesVersion())
-                .append(" • LinkedIn ").append(appVersion(context)).append('\n');
-        out.append("Android ").append(Build.VERSION.RELEASE).append(" (API ").append(Build.VERSION.SDK_INT)
-                .append(") • ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL).append('\n');
-        out.append("Language: ").append(I18n.language()).append(" (device ")
+        StringBuilder sb = new StringBuilder();
+        sb.append("### Loki Patches diagnostic report\n")
+                .append("Links, IDs, and e-mail addresses were removed. Please check it before posting.\n\n")
+                .append("```\n");
+        sb.append("Loki Patches ").append(Settings.patchesVersion())
+                .append(" • LinkedIn ").append(linkedInVersion(context)).append('\n');
+        sb.append("Android ").append(Build.VERSION.RELEASE).append(" (API ").append(Build.VERSION.SDK_INT)
+                .append(") • ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL)
+                .append('\n');
+        sb.append("Language: ").append(I18n.language()).append(" (device ")
                 .append(Locale.getDefault().toLanguageTag()).append(")\n");
-        out.append("Diagnostic logging: ").append(Settings.debug() ? "on" : "off").append("\n\n");
+        sb.append("Diagnostic logging: ").append(Settings.debug() ? "on" : "off").append("\n\n");
 
-        out.append("Patches:\n");
+        sb.append("Patches:\n");
         for (Object[] patch : SettingsActivity.patches()) {
-            out.append("  ").append((Boolean) patch[1] ? "[x] " : "[ ] ").append(patch[0]).append('\n');
+            boolean enabled = (Boolean) patch[1];
+            sb.append("  ").append(enabled ? "[x] " : "[ ] ").append(patch[0]).append('\n');
         }
 
-        out.append("\nSettings:\n");
-        SharedPreferences prefs = Settings.prefs();
-        if (prefs != null) {
-            for (Map.Entry<String, ?> entry : new TreeMap<>(prefs.getAll()).entrySet()) {
-                out.append("  ").append(entry.getKey()).append(" = ").append(entry.getValue()).append('\n');
+        sb.append("\nSettings:\n");
+        SharedPreferences preferences = Settings.prefs();
+        if (preferences != null) {
+            TreeMap<String, ?> saved = new TreeMap<>(preferences.getAll());
+            for (Map.Entry<String, ?> entry : saved.entrySet()) {
+                sb.append("  ").append(entry.getKey()).append(" = ").append(entry.getValue()).append('\n');
             }
         }
 
-        out.append("\nLog (newest ").append(REPORT_LINES).append(" lines):\n");
-        List<String> lines = lastLines(REPORT_LINES);
-        if (lines.isEmpty()) out.append("  (empty)\n");
-        for (String line : lines) out.append(line).append('\n');
-        out.append("```\n");
-        return redact(out.toString());
+        sb.append("\nLog (newest ").append(REPORT_LINES).append(" lines):\n");
+        List<String> tail = newestLines(REPORT_LINES);
+        if (tail.isEmpty()) sb.append("  (empty)\n");
+        for (String line : tail) sb.append(line).append('\n');
+        sb.append("```\n");
+        return redact(sb.toString());
     }
 
-    /** Removes links, LinkedIn IDs, e-mail addresses, and long numbers. */
-    static String redact(String text) {
-        text = URL.matcher(text).replaceAll("[link]");
-        text = URN.matcher(text).replaceAll("urn:li:[id]");
-        text = EMAIL.matcher(text).replaceAll("[email]");
-        text = TOKEN.matcher(text).replaceAll("[id]");
-        return NUMBER.matcher(text).replaceAll("[number]");
+    /** Removes links, LinkedIn URNs, e-mail addresses, member ids and long numbers, in that order. */
+    static String redact(String raw) {
+        String withoutLinks = LINK_PATTERN.matcher(raw).replaceAll("[link]");
+        String withoutUrns = URN_PATTERN.matcher(withoutLinks).replaceAll("urn:li:[id]");
+        String withoutMails = MAIL_PATTERN.matcher(withoutUrns).replaceAll("[email]");
+        String withoutIds = ID_PATTERN.matcher(withoutMails).replaceAll("[id]");
+        return LONG_NUMBER_PATTERN.matcher(withoutIds).replaceAll("[number]");
     }
 
-    private static List<String> lastLines(int count) {
-        List<String> lines = new ArrayList<>();
+    /** The last {@code count} lines of the log, or nothing when there is no readable log. */
+    private static List<String> newestLines(int count) {
+        List<String> tail = new ArrayList<>();
         try {
-            File file = file();
-            if (file == null || !file.exists()) return lines;
-            List<String> all = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
-            lines.addAll(all.subList(Math.max(0, all.size() - count), all.size()));
-        } catch (Throwable ignored) {
+            File source = logFile();
+            if (source == null || !source.exists()) return tail;
+            List<String> whole = Files.readAllLines(source.toPath(), StandardCharsets.UTF_8);
+            int from = Math.max(0, whole.size() - count);
+            tail.addAll(whole.subList(from, whole.size()));
+        } catch (Throwable harmless) {
+            // An unreadable log just means the report has no log section.
         }
-        return lines;
+        return tail;
     }
 
-    private static File file() {
-        Context context = Settings.app();
-        if (context == null) return null;
-        File dir = context.getFilesDir();
-        if (!legacyChecked) {
-            legacyChecked = true;
-            // The file was called michii_log.txt before the rename. Delete it once so it does not linger in the
-            // app's private storage forever; nothing reads it any more.
-            File legacy = new File(dir, LEGACY_FILE_NAME);
-            if (legacy.isFile()) legacy.delete();
+    private static File logFile() {
+        Context appContext = Settings.app();
+        if (appContext == null) return null;
+        File storage = appContext.getFilesDir();
+        return new File(storage, FILE_NAME);
+    }
+
+    /** The first frames of a throwable, indented and trimmed for the log. */
+    private static String trace(Throwable failure) {
+        StringWriter buffer = new StringWriter();
+        failure.printStackTrace(new PrintWriter(buffer));
+        String[] frames = buffer.toString().split("\n");
+        StringBuilder sb = new StringBuilder();
+        int keep = Math.min(frames.length, TRACE_LINES);
+        for (int i = 0; i < keep; i++) {
+            sb.append("    ").append(frames[i].trim()).append('\n');
         }
-        return new File(dir, FILE_NAME);
+        return sb.toString().trim();
     }
 
-    private static String stackTrace(Throwable t) {
-        StringWriter writer = new StringWriter();
-        t.printStackTrace(new PrintWriter(writer));
-        // The top of the trace is enough to find the failing patch.
-        String[] lines = writer.toString().split("\n");
-        StringBuilder out = new StringBuilder();
-        for (int i = 0; i < Math.min(lines.length, 12); i++) out.append("    ").append(lines[i].trim()).append('\n');
-        return out.toString().trim();
-    }
-
-    private static String appVersion(Context context) {
+    private static String linkedInVersion(Context appContext) {
         try {
-            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            return info.versionName;
-        } catch (Exception e) {
+            PackageInfo installed = appContext.getPackageManager()
+                    .getPackageInfo(appContext.getPackageName(), 0);
+            return installed.versionName;
+        } catch (Exception unknown) {
             return "?";
         }
     }

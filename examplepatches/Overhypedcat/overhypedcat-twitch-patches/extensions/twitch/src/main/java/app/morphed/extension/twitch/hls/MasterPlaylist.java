@@ -42,7 +42,7 @@ public final class MasterPlaylist {
     }
 
     public static MasterPlaylist parse(String text) {
-        String[] lines = text.split("\r?\n");
+        String[] lines = Lines.of(text);
         List<Variant> variants = new ArrayList<>();
         for (int i = 0; i < lines.length - 1; i++) {
             if (!lines[i].startsWith("#EXT-X-STREAM-INF")) continue;

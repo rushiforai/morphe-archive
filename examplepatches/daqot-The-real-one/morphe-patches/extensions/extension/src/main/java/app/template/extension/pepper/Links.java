@@ -10,6 +10,7 @@ import java.util.Locale;
 final class Links {
 
     private static final String PEPPER_DOMAIN = "pepper.nl";
+    private static final String PEPPER_COM_DOMAIN = "pepper.com";
 
     /**
      * Prefix of the query parameters used to track where a link was shared or opened from.
@@ -47,7 +48,12 @@ final class Links {
         }
 
         host = host.toLowerCase(Locale.ROOT);
-        return host.equals(PEPPER_DOMAIN) || host.endsWith("." + PEPPER_DOMAIN);
+        return isDomainOrSubdomain(host, PEPPER_DOMAIN)
+                || isDomainOrSubdomain(host, PEPPER_COM_DOMAIN);
+    }
+
+    private static boolean isDomainOrSubdomain(String host, String domain) {
+        return host.equals(domain) || host.endsWith("." + domain);
     }
 
     private static Uri removeTrackingParameters(Uri uri) {

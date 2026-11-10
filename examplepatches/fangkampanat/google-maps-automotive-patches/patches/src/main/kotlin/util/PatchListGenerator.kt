@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
 }
 
 @Suppress("DEPRECATION")
-private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
+private fun generatePatchList(version: String, patches: Set<Patch>) {
     val listJson = File("../patches-list.json")
 
     val patchesMap = patches.sortedBy { it.name }.map { patch ->

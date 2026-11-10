@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.bongobd.extension.sharedExtensionPatch
 import app.morphe.patches.bongobd.shared.Constants.COMPATIBILITY_BONGO
+import app.morphe.patches.bongobd.shared.moprhe.com.bongo.bongobd.view.model.pages.PageModelExtensionsKt
 import app.morphe.patches.shared.morphe.com.google.gson.Gson
 import app.morphe.patches.shared.morphe.kotlin.LazyKt
 import app.morphe.patches.shared.morphe.kotlin.collections.CollectionsKt
@@ -15,6 +16,8 @@ import app.morphe.patches.shared.morphe.okhttp3.Response
 import app.morphe.patches.shared.patches.dex.obfuscateExtensionMethodReferencePatch
 import app.morphe.util.getReference
 import app.morphe.util.matchAllMethodIndicesForEach
+import app.morphe.util.matchSingle
+import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -48,6 +51,11 @@ val accessContentPatch =
         )
 
         execute {
+            PageModelExtensionsKt.IsPaidFingerprint
+                .matchSingle()
+                .method
+                .returnEarly(false)
+
             GetContentDetailsMethodCallFingerprint.matchAllMethodIndicesForEach {
                 val instruction = getInstruction<FiveRegisterInstruction>(it)
                 val reference = instruction.getReference<MethodReference>()!!

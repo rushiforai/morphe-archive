@@ -1,3 +1,25 @@
+## 1.10.6 (2026-11-09)
+
+### ✨ New Features
+
+* **nicoid:** Add a vertical tab list accessible from the tab bar or customizable gestures, with tab switching, closing, restoration, and drag-and-drop reordering.
+* **nicoid:** Add options to show or hide the tab list and add-tab buttons.
+* **nicoid:** Add an optional audio focus setting, disabled by default.
+* **nicoid:** Add an option to recognize vertical-only gestures, disabled by default.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix playback controls and the seek bar not responding to taps in popup playback.
+* **nicoid:** Prevent duplicate tabs from opening for the same ranking category and period.
+* **nicoid:** Fix account watch history tabs not restoring correctly.
+
+### 🔧 Improvements
+
+* **nicoid:** Update ranking periods within the current tab without reopening the screen or triggering unnecessary transition animations.
+* **nicoid:** Improve tab management with distinct tab icons, consistent button colors, and smoother closing and restoration.
+* **nicoid:** Refine gesture recognition to prevent accidental activation during vertical scrolling.
+* **nicoid:** Improve gesture sensitivity descriptions and tab-related settings.
+
 ## 1.10.5 (2026-11-08)
 
 ### 🐛 Bug Fixes

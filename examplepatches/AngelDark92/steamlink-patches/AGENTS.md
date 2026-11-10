@@ -186,7 +186,6 @@ it keeps decoded trees, stock originals, tooling and evidence. See
 | Task | Read |
 |---|---|
 | Author, edit, debug or validate a patch | `.opencode/skills/morphe-patches/SKILL.md` |
-| Delegate a bounded search, edit or review | `.opencode/skills/cavecrew/SKILL.md` |
 | Build layout, cleanup policy, retained inputs | `WORKSPACE_CLEANUP.md` |
 | Per-app evidence and open items | `diagnostics/steamlink-*/`, `diagnostics/4xvr-galaxyxr/` |
 | Regenerated patch list | `TECHNICAL_REFERENCE.md` |

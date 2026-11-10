@@ -29,14 +29,12 @@ val freeContentPatch =
                         cpuArchitectures.forEach { arch ->
                             var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
-                            // package:chorki/data/models/content_model.dart ->
-                            // ContentModel.toEntity
+                            // package:chorki/data/models/content_model.dart -> ContentModel.toEntity
                             // content_access -> content_access_token
                             when (arch) {
                                 CpuArchitecture.ARMEABI_V7A -> {
-                                    // ADD             R0, R5, #0xB000
-                                    // LDR             R2, [R2,#0x877] -> LDR             R2,
-                                    // [R2,#0x87F]
+                                    // ADD R0, R5, #0xB000
+                                    // LDR R2, [R2,#0x877] -> LDR R2, [R2,#0x87F]
                                     """
                                         0b 2a 85 e2
                                         77 28 92 e5
@@ -47,9 +45,8 @@ val freeContentPatch =
                                 }
 
                                 CpuArchitecture.ARM64_V8A -> {
-                                    // ADD             X0, X27, #0x15,LSL#12
-                                    // LDR             X0, [X0,#0xA40]       -> LDR
-                                    // X0, [X0,#0xA50]
+                                    // ADD X0, X27, #0x15,LSL#12
+                                    // LDR X0, [X0,#0xA40] -> LDR X0, [X0,#0xA50]
                                     """
                                         62 57 40 91
                                         42 20 45 f9

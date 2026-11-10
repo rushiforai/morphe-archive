@@ -219,6 +219,7 @@ public sealed class Explorer : BaseE2E
                 case "refuse posts": Reddit.RefusesThePostsWith(command.Argument(0), command.Argument(1), command.Argument(2)); break;
                 case "drop posts": Reddit.DropsTheConnectionForThePosts(command.Argument(0)); break;
                 case "image post": Reddit.HasAnImagePost(command.Argument(1), command.Argument(0)); break;
+                case "image post with text": Reddit.HasAnImagePostWithTheText(command.Argument(1), command.Argument(0), Lines(command.Argument(2))); break;
                 case "gif post": Reddit.HasAGifPost(command.Argument(1), command.Argument(0)); break;
                 case "signed thumbnail post": Reddit.HasAnImagePostWithASignedThumbnail(command.Argument(1), command.Argument(0)); break;
                 case "video post": Reddit.HasAVideoPost(command.Argument(1), command.Argument(0)); break;
@@ -272,7 +273,7 @@ public sealed record ExplorerCommand(string Text, string Name, IReadOnlyList<str
         "comment by", "comment with silver", "comment with table link", "comment with spoiler link", "comments", "reply",
         "comment with image", "comment with gif", "comment with image link",
         "comment with video", "comment with video link", "subscribe", "message", "late comments", "fail posts",
-        "refuse posts", "drop posts", "image post", "gif post", "signed thumbnail post", "video post",
+        "refuse posts", "drop posts", "image post", "image post with text", "gif post", "signed thumbnail post", "video post",
         "link post with preview", "nsfw image post", "spoiler image post", "gallery post", "crosspost",
         "link post to video", "avatar", "second account", "late media", "fail media", "fail thumbnail", "imgur album", "imgur video album", "imgur gallery post",
         "imgur album post", "comment with imgur album", "redgifs post", "deleted redgifs post", "missing redgifs post", "phone joins another network", "x post", "long x post", "bluesky post", "youtube video", "removed youtube video", "youtube post", "comment with link", "comment with snoomoji", "comment with subreddit emote", "imgflip templates", "removed imgflip template", "chat link",

@@ -133,6 +133,12 @@ public final class MorpheSplash {
             android.window.SplashScreen splashScreen = activity.getSplashScreen();
             if (splashScreen == null) return;
             splashScreen.setOnExitAnimationListener(splashView -> {
+                // Hide Android's icon before any setting is read. A late read leaves that icon on screen.
+                hideSystemIcon(splashView);
+                if (!animationOn(activity)) {
+                    dismissSplash(activity, splashView);
+                    return;
+                }
                 try {
                     splashView.removeAllViews();
                     splashView.setClipChildren(false);
@@ -143,6 +149,39 @@ public final class MorpheSplash {
                 }
                 new Handler(Looper.getMainLooper()).postDelayed(() -> leave(activity, splashView, 0), 900);
             });
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** Android draws the launcher icon into the splash view. Clear it before choosing a path. */
+    private static void hideSystemIcon(View splashView) {
+        try {
+            splashView.setBackground(null);
+            if (splashView instanceof android.window.SplashScreenView) {
+                View icon = ((android.window.SplashScreenView) splashView).getIconView();
+                if (icon != null) {
+                    icon.setAlpha(0f);
+                    icon.setVisibility(View.INVISIBLE);
+                }
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    /** Drops the splash without playing Android's icon exit, and without Joey's centred icon underneath. */
+    private static void dismissSplash(Activity activity, View splashView) {
+        try {
+            if (activity.getWindow() != null) {
+                activity.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(0xFF000000));
+            }
+        } catch (Throwable ignored) {
+        }
+        try {
+            splashView.setAlpha(0f);
+            if (splashView instanceof ViewGroup) ((ViewGroup) splashView).removeAllViews();
+            if (splashView instanceof android.window.SplashScreenView) {
+                ((android.window.SplashScreenView) splashView).remove();
+            }
         } catch (Throwable ignored) {
         }
     }
@@ -193,6 +232,7 @@ public final class MorpheSplash {
     }
 
     private static final String PREF_MATCH = "morphe_splash_match";
+    private static final String PREF_ANIMATION = "morphe_splash_animate";
     private static final String PREF_LOGO = "morphe_splash_logo";
     private static final String PREF_LOGO_COLOR = "morphe_splash_logo_color";
     private static final String PREF_ANIM_COLOR = "morphe_splash_anim_color";
@@ -218,6 +258,7 @@ public final class MorpheSplash {
     }
 
     public static String summary(Context context) {
+        if (!animationOn(context)) return "Off";
         if (matchesTheme(context)) return "Matches theme";
         return logoLabel(saved(context, PREF_LOGO, LOGO_HEADPHONES))
                 + " · " + colorLabel(saved(context, PREF_LOGO_COLOR, ModernUi.ACCENT_BLUE))
@@ -228,6 +269,7 @@ public final class MorpheSplash {
     public static void showPicker(Activity activity, Runnable saved) {
         float density = activity.getResources().getDisplayMetrics().density;
         final boolean[] match = { matchesTheme(activity) };
+        final boolean[] disabled = { !animationOn(activity) };
         final String[] logo = { saved(activity, PREF_LOGO, LOGO_HEADPHONES) };
         final String[] logoColor = { saved(activity, PREF_LOGO_COLOR, ModernUi.ACCENT_BLUE) };
         final String[] motion = { getActiveStyle(activity, STYLE_GLOW) };
@@ -240,6 +282,7 @@ public final class MorpheSplash {
         };
 
         LinearLayout page = MorpheDialog.page(activity, "Splash", null);
+        android.widget.CheckBox motionOn = MorpheDialog.check(activity, "Disable animation", disabled[0], null);
         android.widget.CheckBox follow = MorpheDialog.check(activity, "Match theme", match[0], null);
 
         FrameLayout stage = new FrameLayout(activity);
@@ -261,8 +304,14 @@ public final class MorpheSplash {
         View[] inks = new View[colors.length + 1];
         final String[] motionKeys = { STYLE_GLOW, STYLE_TECH, STYLE_RADAR, STYLE_CIRCLE, STYLE_RIPPLE };
 
+        final TextView[] replayHold = new TextView[1];
         Runnable paint = () -> {
-            options.setAlpha(match[0] ? 0.38f : 1f);
+            boolean off = disabled[0];
+            stage.setAlpha(off ? 0.38f : 1f);
+            follow.setEnabled(!off);
+            follow.setAlpha(off ? 0.38f : 1f);
+            options.setAlpha(off || match[0] ? 0.38f : 1f);
+            if (replayHold[0] != null) replayHold[0].setAlpha(off ? 0.38f : 1f);
             for (int i = 0; i < faces.length; i++) {
                 boolean on = logos[i].equals(logo[0]);
                 faces[i].setAlpha(on ? 1f : 0.55f);
@@ -288,21 +337,29 @@ public final class MorpheSplash {
             refreshWheels(options);
         };
         Runnable play = () -> {
+            if (disabled[0]) return;
             Look look = match[0]
                     ? matched(activity)
                     : manual(activity, logo[0], logoColor[0], motion[0], motionColor[0]);
             play(activity, stage, look.style, look.ink, look.art);
         };
         follow.setOnCheckedChangeListener((button, checked) -> {
+            if (disabled[0]) return;
             match[0] = checked;
             paint.run();
             play.run();
         });
+        motionOn.setOnCheckedChangeListener((button, checked) -> {
+            disabled[0] = checked;
+            paint.run();
+            if (checked) clearMotion(stage);
+            else play.run();
+        });
 
         options.addView(MorpheDialog.section(activity, "Logo", MorpheDialog.sub(activity)));
-        options.addView(faceRow(activity, density, logos, faces, () -> match[0], logo, paint, play));
+        options.addView(faceRow(activity, density, logos, faces, () -> disabled[0] || match[0], logo, paint, play));
         options.addView(MorpheDialog.section(activity, "Logo colour", MorpheDialog.sub(activity)));
-        options.addView(dotRow(activity, colors, dots, () -> match[0], logoColor, paint, play,
+        options.addView(dotRow(activity, colors, dots, () -> disabled[0] || match[0], logoColor, paint, play,
                 "Match animation", () -> COLOR_AUTO.equals(motionColor[0])
                         ? lift(swatch(activity, logoColor[0]))
                         : swatch(activity, motionColor[0])));
@@ -312,7 +369,7 @@ public final class MorpheSplash {
             TextView chip = MorpheDialog.action(activity, label(motionKeys[i]), MorpheDialog.TEXT);
             int index = i;
             chip.setOnClickListener(v -> {
-                if (match[0]) return;
+                if (disabled[0] || match[0]) return;
                 motion[0] = motionKeys[index];
                 paint.run();
                 play.run();
@@ -322,29 +379,37 @@ public final class MorpheSplash {
         }
         options.addView(motionRow);
         options.addView(MorpheDialog.section(activity, "Animation colour", MorpheDialog.sub(activity)));
-        options.addView(inkRow(activity, colors, inks, () -> match[0], motionColor, paint, play,
+        options.addView(inkRow(activity, colors, inks, () -> disabled[0] || match[0], motionColor, paint, play,
                 "Match logo", () -> swatch(activity, logoColor[0])));
         paint.run();
 
         int previewH = Math.round(200 * density);
         page.addView(stage, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, previewH));
+        page.addView(motionOn);
         page.addView(follow);
         page.addView(options);
 
         TextView replay = MorpheDialog.action(activity, "Replay", MorpheDialog.GOLD);
         TextView cancel = MorpheDialog.action(activity, "Cancel", MorpheDialog.SUB);
-        TextView use = MorpheDialog.action(activity, "Use", MorpheDialog.GOLD);
-        page.addView(MorpheDialog.actions(activity, replay, cancel, use));
+        TextView save = MorpheDialog.action(activity, "Save", MorpheDialog.GOLD);
+        replayHold[0] = replay;
+        paint.run();
+        page.addView(MorpheDialog.actions(activity, replay, cancel, save));
         AlertDialog[] shown = new AlertDialog[1];
-        replay.setOnClickListener(v -> play.run());
+        replay.setOnClickListener(v -> {
+            if (disabled[0]) return;
+            play.run();
+        });
         cancel.setOnClickListener(v -> {
             if (shown[0] != null) shown[0].dismiss();
         });
-        use.setOnClickListener(v -> {
+        save.setOnClickListener(v -> {
             SharedPreferences prefs = activity.getApplicationContext()
                     .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            rememberAnimation(!disabled[0]);
             prefs.edit()
+                    .putBoolean(PREF_ANIMATION, !disabled[0])
                     .putBoolean(PREF_MATCH, match[0])
                     .putString(PREF_LOGO, logo[0])
                     .putString(PREF_LOGO_COLOR, logoColor[0])
@@ -365,7 +430,9 @@ public final class MorpheSplash {
                 stop(stage);
             }
         });
-        stage.post(play);
+        stage.post(() -> {
+            if (!disabled[0]) play.run();
+        });
     }
 
     private static View faceRow(Activity activity, float density, String[] logos, ImageView[] faces,
@@ -572,6 +639,28 @@ public final class MorpheSplash {
         else if (STYLE_CIRCLE.equals(resolved)) buildCircle(activity, root, density, icon, running, ink, art);
         else if (STYLE_RIPPLE.equals(resolved)) buildRipple(activity, root, density, icon, running, ink, art);
         else buildGlow(activity, root, density, icon, running, ink, art);
+    }
+
+    private static boolean sAnimateCached;
+    private static boolean sAnimate = true;
+
+    /** On by default. Off skips the moving splash and opens the app straight away. */
+    private static boolean animationOn(Context context) {
+        if (sAnimateCached) return sAnimate;
+        try {
+            sAnimate = context.getApplicationContext()
+                    .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                    .getBoolean(PREF_ANIMATION, true);
+        } catch (Throwable ignored) {
+            sAnimate = true;
+        }
+        sAnimateCached = true;
+        return sAnimate;
+    }
+
+    private static void rememberAnimation(boolean on) {
+        sAnimate = on;
+        sAnimateCached = true;
     }
 
     private static boolean matchesTheme(Context context) {

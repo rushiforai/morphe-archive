@@ -115,7 +115,7 @@ public final class FeatureCache {
         if (bits == 8) {
             byte[] q = new byte[n];
             in.readFully(q);
-            return new Track(offset, n, q, null, null, step, env);
+            return new Track(offset, n, q, null, null, step, env, null);
         }
         short[] q = new short[n];
         byte[] buf = new byte[32768];
@@ -124,6 +124,6 @@ public final class FeatureCache {
             in.readFully(buf, 0, want);
             for (int b = 0; b < want; b += 2) q[i++] = (short) ((buf[b] << 8) | (buf[b + 1] & 0xFF));
         }
-        return new Track(offset, n, null, q, null, step, env);
+        return new Track(offset, n, null, q, null, step, env, null);
     }
 }

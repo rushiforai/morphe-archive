@@ -50,12 +50,34 @@ public final class MonoDownsampler implements AudioDecoder.Output {
         gateToUs = toUs;
     }
 
+    /** Centre-energy fractions per 20 ms of source audio (0..127), for 5.1 mixes: the same
+     * 20 ms input blocks the bench sidecars use (centre^2 / total^2). Null sink or fewer
+     * than 6 channels: nothing is emitted and the detector falls back to the mono path. */
+    public interface CenvSink {
+        void onCenv(byte[] frac, int count, long ptsUs);
+    }
+
+    private CenvSink cenvSink;
+    private long cenvPtsUs;
+    private double cenvC, cenvT;
+    private int cenvN, cenvPer = -1;
+    private final byte[] cenvBuf = new byte[64];
+    private int cenvCount;
+
+    public void setCenvSink(CenvSink sink) {
+        cenvSink = sink;
+    }
+
     /** Drops all state; the next buffer starts a new stretch. */
     public void reset() {
         started = false;
         lastPtsUs = Long.MIN_VALUE;
         outCount = 0;
         histLen = 0;
+        cenvC = 0;
+        cenvT = 0;
+        cenvN = 0;
+        cenvCount = 0;
     }
 
     @Override
@@ -93,12 +115,47 @@ public final class MonoDownsampler implements AudioDecoder.Output {
         for (int done = 0; done < frames; ) {
             int take = Math.min(frames - done, hist.length - histLen);
             for (int f = 0; f < take; f++) hist[histLen + f] = mix(pcm, at + (done + f) * width * channels, encoding, channels);
+            if (cenvSink != null && channels >= 6) cenv(pcm, at + done * width * channels, take, encoding, channels);
             histLen += take;
             pushed += take;
             done += take;
             produce();
             compact();
         }
+    }
+
+    /** Centre fraction per 20 ms source block: sum(C^2)/sum(all^2), same blocks as the bench. */
+    private void cenv(java.nio.ByteBuffer b, int at, int frames, int encoding, int channels) {
+        int w = encoding == AudioDecoder.PCM_16BIT ? 2 : 4;
+        if (cenvPer < 0 || srcRate <= 0) return;
+        for (int f = 0; f < frames; f++) {
+            int o = at + f * w * channels;
+            float c = sample(b, o + 2 * w, encoding);
+            float e = 0;
+            for (int ch = 0; ch < channels; ch++) {
+                float v = sample(b, o + ch * w, encoding);
+                e += v * v;
+            }
+            if (cenvN == 0) cenvPtsUs = anchorUs + (pushed + f) * 1000000L / srcRate;
+            cenvC += c * c;
+            cenvT += e;
+            if (++cenvN >= cenvPer) {
+                // Only gated full bins are emitted (preroll and a trailing partial are dropped).
+                if (cenvPtsUs >= gateFromUs && cenvPtsUs < gateToUs) {
+                    int v = (int) Math.round(127 * cenvC / Math.max(cenvT, 1e-9));
+                    cenvBuf[cenvCount++] = (byte) Math.max(0, Math.min(127, v));
+                    if (cenvCount == cenvBuf.length) flushCenv();
+                }
+                cenvC = 0;
+                cenvT = 0;
+                cenvN = 0;
+            }
+        }
+    }
+
+    private void flushCenv() {
+        if (cenvCount > 0 && cenvSink != null) cenvSink.onCenv(cenvBuf, cenvCount, cenvPtsUs);
+        cenvCount = 0;
     }
 
     private void start(long ptsUs) {
@@ -173,6 +230,10 @@ public final class MonoDownsampler implements AudioDecoder.Output {
     public void flushBlock() throws DemuxException {
         if (outCount > 0) sink.onPcm(out, outCount, outRate, outPtsUs);
         outCount = 0;
+        cenvC = 0; // a trailing partial 20 ms bin is dropped, like the bench sidecars
+        cenvT = 0;
+        cenvN = 0;
+        flushCenv();
     }
 
     private void compact() {
@@ -187,6 +248,7 @@ public final class MonoDownsampler implements AudioDecoder.Output {
 
     private void buildKernel(int rate) {
         srcRate = rate;
+        cenvPer = Math.max(1, rate / 50); // 20 ms source blocks
         double cutoff = CUTOFF * Math.min(outRate, rate);
         half = (int) Math.ceil(ZERO_CROSSINGS * rate / (2 * cutoff));
         kernel = new float[(PHASES + 1) * 2 * half];

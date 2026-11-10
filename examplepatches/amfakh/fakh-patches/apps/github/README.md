@@ -8,17 +8,17 @@ Enabled by default.
 
 | Category | Patch | What it does |
 |---|---|---|
-| Theme | Material You | Colors the app from your wallpaper (Android 12+): the accent color instead of GitHub blue, and tinted surfaces, cards and borders in light and dark mode. Adds a **Fakh Patches** section to Settings with a **Material You** switch and a **Pitch black in dark mode** switch. |
-| Feature | Navigation bar | Adds a **Hide navigation bar labels** switch to Settings that removes the text under the icons of the bottom bar. |
-| Theme | Glass navigation bar | Draws the bottom bar (the side bar in landscape) as a floating, translucent capsule. Off by default; turn it on with the **Glass navigation bar** switch in Settings. |
-| Feature | Navigation bar on the right | Adds a **Navigation bar on the right** switch to Settings that moves the landscape navigation bar from the left edge to the right one. |
+| Theme | Material You | Colors the app from your wallpaper (Android 12+): the accent color instead of GitHub blue, and tinted surfaces, cards and borders in light and dark mode. Adds a **Fakh Patches** section to Settings with a **Material You** switch and a **Pitch black** switch. |
+| Feature | Navigation bar | Adds **Hide tab labels** and **Navigation bar tabs** settings in Fakh Patches that remove the text under the icons of the navigation bar and choose which tabs it shows. |
+| Theme | Glass navigation bar | Draws the navigation bar (the side bar in landscape) as a floating, translucent capsule with a sliding selection pill. Off by default; turn it on with the **Glass navigation bar** switch in Settings. |
+| Feature | Landscape navigation bar position | Adds a **Landscape navigation bar position** setting in Fakh Patches that moves the landscape navigation bar to the left or right edge. |
 
 The app draws its screens with both Views and Jetpack Compose, so the patch recolors both: resource
 colors for the Views, and the Compose palettes and schemes when the app starts. Markdown and README
 bodies are drawn by a WebView with GitHub's own CSS, so they keep their colors. Semantic colors (red,
 green, yellow, purple, the diff lines) stay as they are, so a changed line is still easy to spot.
 
-The switches are saved in the app's own settings. **Pitch black in dark mode** applies right away and
+The switches are saved in the app's own settings. **Pitch black** applies right away and
 only affects dark mode. **Material You** shows a Restart bar, because the palettes are built once per
 launch.
 

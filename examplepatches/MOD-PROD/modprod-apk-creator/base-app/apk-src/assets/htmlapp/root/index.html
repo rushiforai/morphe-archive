@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Mon appli</title>
+<style>html,body{margin:0;height:100%;background:#141a21;color:#e6ebf0;font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#msg{display:none;box-sizing:border-box;padding:28px 22px;max-width:520px;margin:0 auto}#msg b{color:#f08a24}</style>
+</head>
+<body>
+<div id="msg"></div>
+<script>
+/* Lanceur : ouvre le fichier .html du dossier « index » (peu importe son nom).
+   S'il y en a plusieurs : index.html en priorité, sinon le premier par ordre alphabétique. */
+(function(){
+  var list = [];
+  try{
+    if(window.Android && typeof window.Android.listAssets !== "undefined")
+      list = String(window.Android.listAssets("htmlapp/root/index") || "").split("\n").filter(function(n){ return /\.html?$/i.test(n); }).sort();
+  }catch(e){}
+  var pick = list.indexOf("index.html") >= 0 ? "index.html" : list[0];
+  if(!pick && !(window.Android && typeof window.Android.listAssets !== "undefined")) pick = "index.html";   // ancienne version Android : nom classique
+  if(pick){ location.replace("index/" + encodeURIComponent(pick) + location.search + location.hash); return; }
+  var m = document.getElementById("msg"); m.style.display = "block";
+  m.innerHTML = "<b>Aucun fichier .html trouvé</b><br>Place la page de l'appli dans le dossier <b>assets/htmlapp/root/index/</b> puis recompile.";
+})();
+</script>
+</body>
+</html>

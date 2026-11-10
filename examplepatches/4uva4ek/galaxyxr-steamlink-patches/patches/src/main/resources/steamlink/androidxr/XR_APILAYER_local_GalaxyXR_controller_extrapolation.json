@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_controller_extrapolation",
+    "library_path": "libgxr_controller_extrapolation.so",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "Enables the Galaxy XR runtime's controller pose extrapolation to the requested time",
+    "disable_environment": "GXR_DISABLE_CONTROLLER_EXTRAPOLATION"
+  }
+}

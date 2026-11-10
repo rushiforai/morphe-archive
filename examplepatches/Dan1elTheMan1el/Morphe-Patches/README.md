@@ -57,7 +57,7 @@ Right now, this repo supports **PokeRaid**, **DeFit**, and **Custom Keyboard Des
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.6.0](https://github.com/Dan1elTheMan1el/Morphe-Patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
+> **[v1.6.1](https://github.com/Dan1elTheMan1el/Morphe-Patches/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;18 patches total
 <details>
 <summary>📦 PokeRaid - for Pokémon GO Raid&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
 <br>
@@ -107,7 +107,7 @@ Right now, this repo supports **PokeRaid**, **DeFit**, and **Custom Keyboard Des
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Current Frame Media Artwork](#current-frame-media-artwork) | Adds an in-player control that updates the media artwork from the current video frame, including while the screen is off, and can blank the media title. |  |
+| [Current Frame Media Artwork](#current-frame-media-artwork) | Adds an in-player control that updates the media artwork from the current video frame, including while the screen is off. Long press the button to open the settings. |  |
 
 </details>
 

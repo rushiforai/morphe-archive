@@ -593,6 +593,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean reelProfileTabBar() {
+        return false;
+    }
+
     public static boolean reelOrigin() {
         return false;
     }
@@ -650,6 +654,16 @@ public final class SettingsStatus {
 
     /** Rewritten by the Ask before a call patch. */
     public static boolean askBeforeCall() {
+        return false;
+    }
+
+    /** Rewritten by the Hide the Community Standards reminder patch. */
+    public static boolean kindnessReminder() {
+        return false;
+    }
+
+    /** Rewritten by the Call blocker patch. */
+    public static boolean callBlocker() {
         return false;
     }
 

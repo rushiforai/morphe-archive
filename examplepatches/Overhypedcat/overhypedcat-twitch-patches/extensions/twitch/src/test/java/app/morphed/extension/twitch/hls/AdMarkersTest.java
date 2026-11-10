@@ -79,4 +79,25 @@ public class AdMarkersTest {
         assertTrue(AdMarkers.isPlaceholderUrl("https://edge.example/_404/1.ts"));
         assertTrue(AdMarkers.isPlaceholderUrl("https://edge.example/processing/1.ts"));
     }
+
+    @Test
+    public void cueInLeftAfterItsAdIsNotSuspicious() {
+        String text = Playlists.media("n", 100, "llll", false).replace("#EXT-X-VERSION:3\n", "#EXT-X-VERSION:3\n#EXT-X-CUE-IN\n");
+
+        assertTrue(AdMarkers.suspiciousMarkers(text).isEmpty());
+    }
+
+    @Test
+    public void adWordCheckGivesTheSameAnswerEveryTime() {
+        for (int round = 0; round < 3; round++) {
+            assertTrue(AdMarkers.hasAdWord("EXT-X-TWITCH-AD-BREAK"));
+            assertTrue(AdMarkers.hasAdWord("twitch-maf-ad"));
+            assertFalse(AdMarkers.hasAdWord("EXT-X-PROGRAM-DATE-TIME"));
+            assertFalse(AdMarkers.hasAdWord("twitch-session"));
+        }
+        // Many different names (more than are cached) still get the right answer.
+        for (int i = 0; i < 1_000; i++) {
+            assertEquals(i % 2 == 0, AdMarkers.hasAdWord(i % 2 == 0 ? "EXT-X-AD-" + i : "EXT-X-OTHER-" + i));
+        }
+    }
 }

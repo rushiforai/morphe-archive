@@ -54,6 +54,7 @@ Settings live in BaconReader → **Settings → Patches**.
 | Fix load more comments | "load more comments" loads the hidden comments again |
 | Fix meme templates | Meme templates load again |
 | Fix empty saved files | Saving media no longer leaves empty files |
+| Fix slide show | Slide Show View fits the screen again, and long post text scrolls |
 | Fix Reddit links | Share links, video links and other Reddit links open in the app, not its browser |
 | Save videos with sound | Saved Reddit videos keep their audio |
 | Show request errors | The real error instead of "BaconReader stopped working" |

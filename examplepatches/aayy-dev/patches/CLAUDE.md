@@ -214,7 +214,13 @@ signing certificate**:
 - **Commit author:** use the no-reply identity `aayy-dev <275768457+aayy-dev@users.noreply.github.com>`.
   **Never** commit the user's work email (`aayush.agarwal@unleashedbrands.com`) — scrub it if it
   appears.
-- **Do not add attribution/"Co-authored-by" trailers** to commits or PRs.
+- **NO Claude attribution, ever.** No `Co-Authored-By:` trailers, no `Claude-Session:` / session
+  links, no "Generated with Claude" lines — in commits, tags, release notes, or PRs. Every commit's
+  author AND committer must be the `aayy-dev` no-reply identity, never `Claude <noreply@anthropic.com>`.
+  The repo's `.claude/settings.json` sets `attribution` to empty and `sessionUrl: false`; honor it.
+- **Check incoming commits before merging** work from another session/branch:
+  `git log main..<branch> --format='%an <%ae>%n%B' | grep -iE 'co-authored|claude-session|anthropic'`
+  must print nothing. If it matches, rewrite those commits first — don't merge them as-is.
 - **Work directly on `main` by default.** New patches, extensions, docs, and release chores all go
   straight onto `main`. The repo should normally have exactly **one branch (`main`)**, and local must
   match GitHub (same branches, same tags — prune stale ones on both sides).

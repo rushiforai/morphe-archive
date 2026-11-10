@@ -49,7 +49,7 @@ jobs:
           node-version: 'lts/*'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # Semantic release runs its own Gradle build, which signs the bundle with
       # MORPHE_SIGNING_KEY. A separate build before it would leave a second .mpp

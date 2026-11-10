@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 概要
 
-Linimal は公式 LINE Android クライアント向けの Morphe パッチバンドル（GPL-3.0）。対象は LINE 26.16.0 (versionCode 261600106) arm64-v8a の APKM のみ。すべての機能は Morphe のパッチ選択ではなく、LINE 設定画面の一番下に追加される Linimal 設定で runtime に切り替える。設定 OFF のときは公式 LINE の挙動を維持する。
+Linimal は公式 LINE Android クライアント向けの Morphe パッチバンドル（GPL-3.0）。対象は LINE 26.16.0 (versionCode 261600106) arm64-v8a の APKM のみ。すべての機能は Morphe のパッチ選択ではなく、LINE 設定画面の一番下に追加される Linimal 設定で runtime に切り替える。設定 OFF のときは公式 LINE の挙動を維持する。唯一の例外として、下部タブの VOOM はサービス終了に伴い設定なしで常に取り除く（`MainTabHooks`、`docs/analysis/main-tabs.md`）。
 
 ドキュメント、コメント、コミットメッセージは日本語。
 
@@ -54,6 +54,7 @@ python3 scripts/preflight_reference.py --apksigner "$ANDROID_SDK_ROOT/build-tool
 
 - patches: `features/<area>/<Name>Patch.kt` とテスト、`PatchStatus.kt` の `FeatureId` / `PatchId`、`LinimalPatchTest` の依存鎖
 - extension: `LinimalFeature`、`LinimalConfigSchema`（キー追加。構造変更時は `CURRENT_VERSION` と移行を検討）、`LinimalDefaults`、`LinimalConfig`、`PatchStatusRequirements`、`FeatureCatalog`、`features/<Name>Hooks.java` と各テスト
+- 文言: ソースには日本語の原文を書き、表示の直前に `LinimalText.t(...)` を通す。`i18n/LinimalTranslations` に英語・繁体字中国語・タイ語・インドネシア語の訳を足す（`LinimalTranslationsTest` が漏れを検出する）
 - docs: README の機能表、必要なら `docs/analysis/` の解析文書と `docs/testing/baseline-matrix.md`
 
 既存ユーザーの設定値は更新後も引き継ぐ。`LinimalDefaults` は新規インストール向けの値で今後も変わる。migration が既存インストールへ書き戻す値は `LinimalLegacyDefaults` に凍結してあり、変更しない。

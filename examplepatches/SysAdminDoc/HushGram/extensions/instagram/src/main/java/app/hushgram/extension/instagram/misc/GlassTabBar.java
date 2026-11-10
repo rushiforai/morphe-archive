@@ -604,7 +604,17 @@ public final class GlassTabBar {
     /** {@link #drawLeavingOutSurfaces}, drawing the frame [frames] has for a SurfaceView in its place, when it has one ({@link SurfaceFrames}). */
     static void drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths, java.util.Set<View> skipped,
             @Nullable java.util.function.Function<View, android.graphics.Bitmap> frames, int depth) {
-        if (view.getVisibility() != View.VISIBLE || view.getAlpha() <= 0f || skipped.contains(view)) return;
+        drawLeavingOutSurfaces(canvas, view, paths, skipped, frames, null, depth);
+    }
+
+    /** {@link #drawLeavingOutSurfaces}, with [reels] painting the place of each view in [skipped] ({@link ReelFrames}, #583). */
+    static void drawLeavingOutSurfaces(Canvas canvas, View view, java.util.Set<View> paths, java.util.Set<View> skipped,
+            @Nullable java.util.function.Function<View, android.graphics.Bitmap> frames, @Nullable ReelFrames reels, int depth) {
+        if (view.getVisibility() != View.VISIBLE || view.getAlpha() <= 0f) return;
+        if (skipped.contains(view)) {
+            if (reels != null) reels.draw(canvas, view);
+            return;
+        }
         if (view instanceof android.view.SurfaceView) {
             drawSurfacePlace(canvas, view, frames == null ? null : frames.apply(view));
             return;
@@ -622,10 +632,28 @@ public final class GlassTabBar {
             if (background != null) background.draw(canvas);
             canvas.translate(-view.getScrollX(), -view.getScrollY());
             for (int i = 0, n = group.getChildCount(); i < n; i++) {
-                drawLeavingOutSurfaces(canvas, group.getChildAt(i), paths, skipped, frames, depth + 1);
+                drawLeavingOutSurfaces(canvas, group.getChildAt(i), paths, skipped, frames, reels, depth + 1);
             }
         }
         canvas.restoreToCount(saved);
+    }
+
+    /**
+     * Draws what the glass blurs into [recording]: the bar's colour [base], and over it the views before
+     * [barIndex] in [parent] that cross the strip from [top], [tall] high. Instagram's screens leave most
+     * of their background to the window, so those rows record nothing. Where the blur came out see-through
+     * like that, the sharp screen underneath showed through a clear pill (#583). The colour fills what they
+     * leave, and a SurfaceView's place is still cleared over it.
+     */
+    static void drawUnderBar(Canvas recording, int base, ViewGroup parent, int barIndex, float top, float tall,
+            java.util.Set<View> paths, java.util.Set<View> skipped,
+            @Nullable java.util.function.Function<View, android.graphics.Bitmap> frames, @Nullable ReelFrames reels) {
+        recording.drawColor(base);
+        for (int i = 0; i < barIndex; i++) {
+            View sibling = parent.getChildAt(i);
+            if (sibling.getWidth() <= 0 || sibling.getBottom() <= top || sibling.getTop() >= top + tall) continue;
+            drawLeavingOutSurfaces(recording, sibling, paths, skipped, frames, reels, 0);
+        }
     }
 
     private static final Paint SURFACE_CLEAR = new Paint();
@@ -1512,7 +1540,7 @@ public final class GlassTabBar {
         private final Rect reelsRect = new Rect();
         /** The liquid look (#65): a round pill and highlight, Search in a circle of its own, and the compact row on a scroll. */
         private final boolean liquid;
-        /** Whether the liquid pill's rim bends what's behind it (#369). */
+        /** Whether the pill's rim bends what's behind it (#369), the liquid pill's or the standard one's (#391). */
         private final boolean refract;
         /** How far the liquid bar has shrunk to its compact row: 0 is the whole bar, 1 the tab you're on and Search. */
         private float compact;
@@ -1542,7 +1570,7 @@ public final class GlassTabBar {
             this.lift = liftPx(Settings.GLASS_TAB_BAR_LIFT.get(), floating, density);
             this.room = lift;
             this.liquid = Settings.GLASS_TAB_BAR_LIQUID.get();
-            this.refract = liquid && Settings.GLASS_TAB_BAR_REFRACT.get();
+            this.refract = Settings.GLASS_TAB_BAR_REFRACT.get();
             boolean hideOnScroll = Settings.GLASS_TAB_BAR_HIDE_ON_SCROLL.get();
             // The liquid look shrinks the bar as a list scrolls down, unless a scroll is to take it away altogether
             // or the pill is to keep its full size (#256).
@@ -2541,6 +2569,8 @@ public final class GlassTabBar {
                 // Light glass has nothing under it to stand out against, so it gets a soft shadow.
                 if (!dark) shadow(canvas, rect, radius);
                 boolean blurred = blurWanted && !tries.resting(SystemClock.uptimeMillis()) && drawBackdrop(canvas);
+                // The standard pill's rim bends too, round its own corners (#391). Paused, it's the plain pill.
+                if (blurred && refract && !HushgramPause.isPaused()) paintRim(canvas, rect, radius);
                 fill.setColor(tint(base, blurred, opacityScale()));
                 canvas.drawRoundRect(rect, radius, radius, fill);
 
@@ -2736,13 +2766,7 @@ public final class GlassTabBar {
              */
             private void paintRims(Canvas canvas, boolean apart) {
                 if (!GlassLens.supported()) return;
-                GlassLens pillRim = rimLens;
-                if (pillRim == null) {
-                    pillRim = new GlassLens(true);
-                    rimLens = pillRim;
-                }
-                pillRim.paint(canvas, node, nodeLeft, nodeTop, DOWNSAMPLE, bar.getWidth(), bar.getHeight(), shrunk,
-                        shrunk.height() / 2f);
+                paintRim(canvas, shrunk, shrunk.height() / 2f);
                 if (!apart) return;
                 GlassLens searchRim = circleRim;
                 if (searchRim == null) {
@@ -2751,6 +2775,17 @@ public final class GlassTabBar {
                 }
                 searchRim.paint(canvas, node, nodeLeft, nodeTop, DOWNSAMPLE, bar.getWidth(), bar.getHeight(), circle,
                         circle.height() / 2f);
+            }
+
+            /** The pill's rim over [box] with [corner] corners, the liquid pill's or the standard one's (#391). */
+            private void paintRim(Canvas canvas, RectF box, float corner) {
+                if (!GlassLens.supported()) return;
+                GlassLens pillRim = rimLens;
+                if (pillRim == null) {
+                    pillRim = new GlassLens(true);
+                    rimLens = pillRim;
+                }
+                pillRim.paint(canvas, node, nodeLeft, nodeTop, DOWNSAMPLE, bar.getWidth(), bar.getHeight(), box, corner);
             }
 
             /**
@@ -2867,12 +2902,18 @@ public final class GlassTabBar {
                 surfaces.clear();
                 skipped.clear();
                 frames.clear();
+                reelFrames.clear();
                 hadSurfaces = false;
                 videoCopied = false;
             }
 
             /** Copies of the frames playing in the SurfaceViews under the bar, drawn in their places (#144). */
             private final SurfaceFrames frames = new SurfaceFrames(DOWNSAMPLE);
+            /** Copies of the reels playing behind a floating pill, drawn where the viewers were left out (#583). */
+            private final ReelFrames reelFrames = new ReelFrames();
+            /** Where the last recording's strip started and how tall it was, in the bar's parent. */
+            private float stripTop;
+            private float stripTall;
             /** Whether a frame has been copied since a SurfaceView last came under the bar, for the report's count. */
             private boolean videoCopied;
             private final Runnable frameLanded = () -> {
@@ -2921,10 +2962,22 @@ public final class GlassTabBar {
                 if (shouldRecord(recorded, since, inFrame) || surfaceAppeared()) {
                     lastRecorded = now;
                     recordBackdrop();
+                    copyReels(now);
                 } else if (!catchUpPending) {
                     catchUpPending = true;
                     bar.postDelayed(catchUp, Math.max(RECORD_EVERY_MS - since, 0) + 4);
                 }
+            }
+
+            /**
+             * Copies the reel behind a floating pill for the next recording ({@link ReelFrames}). A playing
+             * reel draws a frame of its own every time, so this runs off those and never asks for one. It's
+             * not done while drawing, which a TextureView's copy doesn't allow.
+             */
+            private void copyReels(long now) {
+                if (!floating || !recorded || skipped.isEmpty() || !(bar.getParent() instanceof ViewGroup)) return;
+                ViewGroup parent = (ViewGroup) bar.getParent();
+                for (View viewer : skipped) reelFrames.copy(viewer, parent, stripTop, stripTall, now);
             }
 
             /** Each SurfaceView under the bar, and the views down to it, that the last recording left out. */
@@ -3041,11 +3094,10 @@ public final class GlassTabBar {
                             if (viewer != null) leaveOut(viewer, parent, leftOut, skipped);
                         }
                         frames.keepOnly(leftOut);
-                        for (int i = 0; i < barIndex; i++) {
-                            View sibling = parent.getChildAt(i);
-                            if (sibling.getWidth() <= 0 || sibling.getBottom() <= top || sibling.getTop() >= top + tall) continue;
-                            drawLeavingOutSurfaces(recording, sibling, leftOut, skipped, frames::frameOf, 0);
-                        }
+                        reelFrames.keepOnly(skipped);
+                        stripTop = top;
+                        stripTall = tall;
+                        drawUnderBar(recording, base, parent, barIndex, top, tall, leftOut, skipped, frames::frameOf, reelFrames);
                     } finally {
                         backdrop.endRecording();
                     }

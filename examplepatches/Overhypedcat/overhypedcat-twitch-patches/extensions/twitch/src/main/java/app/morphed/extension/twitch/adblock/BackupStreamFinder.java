@@ -64,6 +64,11 @@ public final class BackupStreamFinder {
     static final long PLAYER_WAIT_MS = 1_500;
     /** How long a poll waits to refresh the backup already in use. */
     static final long REFRESH_TIMEOUT_MS = 1_500;
+    /**
+     * Refreshes in a row that may fail before the backup in use is given up. One slow answer is
+     * bridged by serving its last playlist; after that it has no new segments left to give.
+     */
+    static final int MAX_REFRESH_FAILURES = 2;
     /** Requests that outlive their budget keep a thread until their own timeout; this caps how many. */
     private static final int MAX_THREADS = 8;
 
@@ -120,25 +125,40 @@ public final class BackupStreamFinder {
             // Own threads: a search's slow requests must not hold up the stream already being served.
             Future<String> refresh = REFRESHES.submit(() -> fetchPlaylist(committed.url));
             String playlist;
+            String failure = null;
             try {
                 playlist = refresh.get(REFRESH_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            } catch (TimeoutException | InterruptedException | ExecutionException e) {
+                if (playlist == null) failure = "refresh failed";
+            } catch (TimeoutException | InterruptedException e) {
                 refresh.cancel(true);
-                // Serving the last good backup playlist again keeps the stream on one source; cutting
-                // the ad instead would switch sources back and forth and stall the player.
-                logger.log("Backup " + committed.playerType + " too slow to refresh, serving its last playlist");
-                return committed;
+                playlist = null;
+                failure = "too slow to refresh";
+            } catch (ExecutionException e) {
+                playlist = null;
+                failure = "refresh crashed (" + e.getCause() + ")";
+                problems.report(Problem.PROCESSING_FAILED, "backup refresh: " + e.getCause());
             }
-            if (playlist == null) {
-                logger.log("Backup " + committed.playerType + " refresh failed, serving its last playlist");
-                return committed;
-            }
-            if (isClean(playlist)) {
+            if (failure != null) {
+                int failures = session.refreshFailures.merge(key, 1, Integer::sum);
+                if (failures < MAX_REFRESH_FAILURES) {
+                    // Serving the last good backup playlist again keeps the stream on one source; cutting
+                    // the ad instead would switch sources back and forth and stall the player.
+                    logger.log("Backup " + committed.playerType + " " + failure + ", serving its last playlist");
+                    return committed;
+                }
+                // Its last playlist has nothing new any more: the player would stall until the break ends.
+                logger.log("Backup " + committed.playerType + " " + failure + " " + failures + " times in a row, looking for another");
+                session.backupResults.remove(key);
+                session.refreshFailures.remove(key);
+            } else if (isClean(playlist)) {
+                session.refreshFailures.remove(key);
                 Result refreshed = new Result(committed.playerType, playlist, committed.url, committed.resolution, committed.target);
                 session.backupResults.put(key, refreshed);
                 return refreshed;
+            } else {
+                session.refreshFailures.remove(key);
+                session.backupResults.remove(key);
             }
-            session.backupResults.remove(key);
         }
 
         Future<Result> search;
@@ -166,7 +186,13 @@ public final class BackupStreamFinder {
             logger.log("Backup search still running, " + (provisional == null ? "cutting the ad out meanwhile"
                     : "serving " + provisional.playerType + " " + provisional.resolution + " meanwhile"));
             return provisional;
-        } catch (InterruptedException | ExecutionException e) {
+        } catch (ExecutionException e) {
+            // The search itself crashed: the ad is cut out instead, and the user is told.
+            logger.log("Backup search failed: " + e.getCause());
+            problems.report(Problem.PROCESSING_FAILED, "backup search: " + e.getCause());
+            return null;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             return null;
         }
     }
@@ -218,10 +244,17 @@ public final class BackupStreamFinder {
             Attempt attempt;
             try {
                 attempt = finished.get();
-            } catch (InterruptedException | ExecutionException e) {
-                continue;
+            } catch (ExecutionException e) {
+                // A crash (for example an answer it could not read) counts as a failed type, so E2
+                // still shows when every type fails this way.
+                attempt = new Attempt();
+                attempt.failed = true;
+                attempt.error = playerType + ": " + e.getCause();
+            } catch (InterruptedException e) {
+                break;
             }
-            if (session.breakGeneration.get() != generation) return null;
+            // The break ended meanwhile: stop here, and drop the requests still running below.
+            if (session.breakGeneration.get() != generation) break;
 
             if (attempt.failed) {
                 session.failedPlayerTypes.put(playerType, clock.getAsLong());
@@ -236,6 +269,13 @@ public final class BackupStreamFinder {
                 best = attempt.result;
                 bestRank = rank;
                 session.backupResults.put(key, best);
+                // A new backup starts with a clean slate; the old one's failed refreshes are not its own.
+                session.refreshFailures.remove(key);
+                // The break may have ended while it was stored: take it back out then.
+                if (session.breakGeneration.get() != generation) {
+                    session.backupResults.remove(key, best);
+                    break;
+                }
                 logger.log("Clean " + playerType + " playlist " + best.resolution + " for " + session.channel);
             } else if (attempt.result == null && !attempt.failed) {
                 logger.log("Backup " + playerType + " also has ads");
@@ -282,7 +322,20 @@ public final class BackupStreamFinder {
             attempt.master = master;
 
             MasterPlaylist.Variant variant = MasterPlaylist.parse(master).closestTo(target);
-            if (variant == null) return attempt;
+            if (variant == null) {
+                // Audio only: this type simply has no audio rendition, the master stays good.
+                if (target.resolution == null) return attempt;
+                // A cached master may be an old or odd one: ask for a fresh one before giving up.
+                if (!fresh) {
+                    master = null;
+                    continue;
+                }
+                // No video quality at all: not a usable master playlist, so neither an ad nor worth keeping.
+                attempt.master = null;
+                attempt.failed = true;
+                attempt.error = playerType + ": no video quality in its master playlist";
+                return attempt;
+            }
             String url = resolve(session.masterUrl, variant.url);
             String playlist = fetchPlaylist(url);
             if (playlist != null) {

@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import android.app.Activity;
@@ -16,13 +21,14 @@ import android.os.PowerManager;
  * With GmsCore support, checks once per start that microG RE is installed, recent enough, allowed to run in the
  * background and running, and says what to do when it is not. Without it "Continue with Google" fails silently.
  * <p>
- * The checks and the minimum version come from the runtime extension of Hoo-dles' MicroG integration patch (GPLv3):
- * https://github.com/hoo-dles/morphe-patches
+ * The package name, the gservices provider and the version codes are read from microG RE's own APK
+ * (https://github.com/MorpheApp/MicroG-RE, release 7.3.0: app.revanced.android.gms, provider
+ * app.revanced.android.gsf.gservices, version code 255070304).
  */
 final class GmsCoreCheck {
     private static final String GMS_CORE_PACKAGE = "app.revanced.android.gms";
     private static final Uri GMS_CORE_PROVIDER = Uri.parse("content://app.revanced.android.gsf.gservices/prefix");
-    /** Oldest microG RE this patch is known to work with. */
+    /** Oldest microG RE accepted; older builds are asked to update. 7.3.0 is 255070304. */
     private static final long MIN_VERSION_CODE = 255070104L;
     private static final String DOWNLOAD_URL = "https://github.com/MorpheApp/microg-RE/releases";
     private static final String DONT_KILL_MY_APP_URL = "https://dontkillmyapp.com/?app=MicroG";

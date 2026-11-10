@@ -8,8 +8,8 @@ import java.util.zip.CRC32;
 /**
  * On-disk stores. Feature cache: detector int8 files (FeatureCache format), 300 MB total,
  * oldest out first, pinned entries survive eviction. Results: one file per video id, bound
- * to the measured file identity and detector version. Attempts: one line per episode per
- * day (the one-attempt rule). Corrupt or old-version files are rejected cleanly (deleted
+ * to the measured file identity and detector version. Attempts: one line per file per
+ * day (at most 2 tries, a finished file is never retried). Corrupt or old-version files are rejected cleanly (deleted
  * for cache/attempts, ignored for results) — a bad file is a miss, never a crash.
  * No URL or token is ever written: keys are episode id + file identity only.
  */
@@ -156,7 +156,7 @@ public final class OneAheadStores {
         }
     }
 
-    // ---- attempts (one per episode per day) --------------------------------
+    // ---- attempts (one file gets at most 2 tries per day, a finished file none) ----
     public static final class AttemptLog {
         private final File file;
         public AttemptLog(File dir) { dir.mkdirs(); this.file = new File(dir, "attempts.txt"); }
@@ -178,6 +178,36 @@ public final class OneAheadStores {
                 else if (l.startsWith(day + " -" + episodeId + " ")) n--;
             }
             return n > 0;
+        }
+        /** Tries started for this exact file today (episode id plus size and head hash). */
+        public synchronized int attemptsToday(String fileKey, String day) {
+            int n = 0;
+            String mark = day + " " + fileKey + " ";
+            String back = day + " -" + fileKey + " ";
+            for (String l : lines()) {
+                if (l.startsWith(mark)) n++;
+                else if (l.startsWith(back)) n--;
+            }
+            if (n < 0) n = 0;
+            if (n > 99) n = 99;
+            return n;
+        }
+        /** A finished try (done or no-segments) blocks any retry for this file today. */
+        public synchronized boolean finishedToday(String fileKey, String day) {
+            String done = day + " " + fileKey + ":done";
+            for (String l : lines()) if (l.startsWith(done)) return true;
+            return false;
+        }
+        /** Records a finished try; the start mark already counted toward the show cap. */
+        public synchronized void markDone(String fileKey, String day) {
+            if (finishedToday(fileKey, day)) return;
+            try (FileWriter w = new FileWriter(file, true)) {
+                w.write(day + " " + fileKey + ":done\n");
+            } catch (IOException ignored) { /* see lines() */ }
+        }
+        /** True when this file may not start another try today: finished or already tried twice. */
+        public synchronized boolean blockedToday(String fileKey, String day) {
+            return finishedToday(fileKey, day) || attemptsToday(fileKey, day) >= 2;
         }
         public synchronized int showEpisodesToday(String showId, String day) {
             int n = 0;

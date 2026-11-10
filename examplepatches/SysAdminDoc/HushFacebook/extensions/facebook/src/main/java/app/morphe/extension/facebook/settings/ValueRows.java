@@ -10,6 +10,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.burnInWaitSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.reelDateStyleSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentsHeightSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentOrderSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.downloadActionSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.feedsSubtabSummary;
@@ -28,6 +29,7 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.qualitySummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.accentSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.textSizeSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.newRowMarkSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.quietHourLabel;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.saveStorageSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.saveToSummary;
@@ -68,6 +70,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.comments.CommentsHeight;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.ReelDateStyle;
@@ -97,6 +100,7 @@ import app.morphe.extension.facebook.notifications.QuietHour;
 import app.morphe.extension.facebook.settings.SettingsRows.RowSemantics;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 
 /**
@@ -1451,15 +1455,22 @@ final class ValueRows {
     }
 
     /**
-     * A Take breaks row, the use time or the break length. Its summary follows its value, whoever
-     * sets it: the person, the shared page syncing it from the setting, or an import.
+     * A list row under a switch: Take breaks' use time or break length, or Show Reels in gray's Turn
+     * gray over. Its summary follows its value, whoever sets it: the person, the shared page
+     * syncing it from the setting, or an import.
      */
     static final class BreakRow extends PlainSummaryList {
         private final Function<String, String> summaryOf;
+        private final BooleanSetting parent;
 
         BreakRow(Context context, Function<String, String> summaryOf) {
+            this(context, summaryOf, Settings.TAKE_BREAKS);
+        }
+
+        BreakRow(Context context, Function<String, String> summaryOf, BooleanSetting parent) {
             super(context);
             this.summaryOf = summaryOf;
+            this.parent = parent;
         }
 
         @Override
@@ -1468,7 +1479,7 @@ final class ValueRows {
             showSummary();
         }
 
-        /** It's greyed out while Take breaks is off, and its summary then says so. */
+        /** It's greyed out while its switch is off, and its summary then says so. */
         @Override
         public void setEnabled(boolean enabled) {
             super.setEnabled(enabled);
@@ -1480,7 +1491,7 @@ final class ValueRows {
             if (summaryOf == null) return;
             String summary = summaryOf.apply(getValue());
             if (!isEnabled()) {
-                summary += " " + L10n.f("Turn on %1$s to use this.", L10n.isolate(SwitchLabels.title(Settings.TAKE_BREAKS)));
+                summary += " " + L10n.f("Turn on %1$s to use this.", L10n.isolate(SwitchLabels.title(parent)));
             }
             setSummary(summary);
         }
@@ -1637,6 +1648,81 @@ final class ValueRows {
                 if (candidate.name().equals(getValue())) style = candidate;
             }
             setSummary(reelDateStyleSummary(style));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /** Open comments at (#179). Its summary follows its value, as Show the post date as does. */
+    static final class CommentsHeightRow extends PlainSummaryList {
+        CommentsHeightRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            CommentsHeight height = CommentsHeight.FACEBOOK;
+            for (CommentsHeight candidate : CommentsHeight.values()) {
+                if (candidate.name().equals(getValue())) height = candidate;
+            }
+            setSummary(commentsHeightSummary(height));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The Mark new settings row (#16). Its summary follows its value, whoever sets it: the person or
+     * an import.
+     */
+    static final class NewRowMarkRow extends PlainSummaryList {
+        NewRowMarkRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            NewRowMark mark = NewRowMark.ONE_VISIT;
+            for (NewRowMark candidate : NewRowMark.values()) {
+                if (candidate.name().equals(getValue())) mark = candidate;
+            }
+            setSummary(newRowMarkSummary(mark));
         }
 
         @Override

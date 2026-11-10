@@ -586,6 +586,8 @@ public class Settings extends BaseSettings {
     );
     /** Discover in the Friends spot of the bottom bar; TikTok reads the layout once at launch. */
     public static final BooleanSetting DISCOVER_BOTTOM_TAB = new BooleanSetting("discover_bottom_tab", FALSE, true);
+    /** Friends in the row of tabs along the top of the feed; TikTok reads the layout once at launch. */
+    public static final BooleanSetting FRIENDS_TOP_TAB = new BooleanSetting("friends_top_tab", FALSE, true);
     /** The red count on Inbox and the dot on Profile, the pull that reopens the app. */
     public static final BooleanSetting HIDE_TAB_BADGES = new BooleanSetting("hide_tab_badges", FALSE, true);
     /** The names under the bottom tab icons, and a name of the user's own for each; empty keeps TikTok's. Read before each frame. */
@@ -595,6 +597,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting BOTTOM_TAB_NAME_INBOX = new StringSetting("bottom_tab_name_inbox", "");
     public static final StringSetting BOTTOM_TAB_NAME_PROFILE = new StringSetting("bottom_tab_name_profile", "");
     public static final StringSetting BOTTOM_TAB_NAME_SHOP = new StringSetting("bottom_tab_name_shop", "");
+    /** Which of TikTok's bottom tab icon sets to draw (#285): tiktok, original, new_1 or new_2. TikTok reads it at launch. */
+    public static final StringSetting BOTTOM_TAB_ICON_STYLE = new StringSetting("bottom_tab_icon_style", "tiktok", true);
     public static final BooleanSetting KEEP_FOR_YOU_ON_TAB_TAP = new BooleanSetting("keep_for_you_on_tab_tap", FALSE);
     public static final BooleanSetting KEEP_FOR_YOU_ON_PULL_DOWN = new BooleanSetting("keep_for_you_on_pull_down", FALSE);
     /** A long press on the Home tab opens Hushfeed's settings (#45). TikTok gives that press nothing of its own. */
@@ -850,6 +854,7 @@ public class Settings extends BaseSettings {
     public static final StringSetting SOUND_GRID_SORT = new StringSetting("sound_grid_sort", "off");
     /** A chip on Liked grids that starts the list at a chosen year or month (#350). */
     public static final BooleanSetting LIKED_JUMP_TO_DATE = new BooleanSetting("liked_jump_to_date", FALSE);
+    public static final BooleanSetting GRID_POSITION_CONTROLS = new BooleanSetting("grid_position_controls", FALSE);
     public static final BooleanSetting SHOW_EXACT_COUNTS = new BooleanSetting("show_exact_counts", FALSE);
     public static final BooleanSetting CLEAR_DISPLAY = new BooleanSetting("clear_display", FALSE);
     /** Clear display turned on by hand carries to the next video. Off, each video starts with its controls (#232). */
@@ -1519,7 +1524,9 @@ public class Settings extends BaseSettings {
     public static final StringSetting CUSTOM_SHARE_DOMAIN = new StringSetting("custom_share_domain", "");
     // Opens a short vt/vm.tiktok.com share link once to swap the full link onto the clipboard.
     public static final BooleanSetting EXPAND_SHORT_SHARE_LINKS = new BooleanSetting("expand_short_share_links", FALSE);
-    public static final BooleanSetting HIDE_LIVE_ENTRANCE = new BooleanSetting("hide_live_entrance", FALSE);
+    // Going on it takes effect at once through the overlay hider; going off needs the toolbar to
+    // build the button again, which it only does as the feed's top bar is made.
+    public static final BooleanSetting HIDE_LIVE_ENTRANCE = new BooleanSetting("hide_live_entrance", FALSE, true);
     // The side menu button beside LIVE (#128). The toolbar asks once, as it builds the feed's
     // top bar, so a change needs a restart.
     public static final BooleanSetting HIDE_FEED_SIDEBAR_BUTTON =

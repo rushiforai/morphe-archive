@@ -31,6 +31,7 @@ import dev.utaa.linimal.patches.features.navigation.mainTabsPatch
 import dev.utaa.linimal.patches.features.premium.premiumPreviewPromotionPatch
 import dev.utaa.linimal.patches.features.premium.premiumSettingsRowPatch
 import dev.utaa.linimal.patches.features.preview.previewScrollPatch
+import dev.utaa.linimal.patches.features.theme.amoledThemeResourcePatch
 import dev.utaa.linimal.patches.features.googleauth.googleAuthMicrogManifestPatch
 import dev.utaa.linimal.patches.features.googleauth.googleAuthTokenRoutingPatch
 import dev.utaa.linimal.patches.features.googleauth.googleAccountPickerRoutingPatch
@@ -112,7 +113,8 @@ class LinimalPatchTest {
         assertEquals(setOf(homeFeedLoadingIndicatorPatch), readWithoutReceiptMenuLabelResourcePatch.dependencies)
         assertEquals(setOf(homeRecentHistoryPatch), homeFeedLoadingIndicatorPatch.dependencies)
         assertEquals(setOf(homeFeaturedCollectionsPatch), homeRecentHistoryPatch.dependencies)
-        assertEquals(setOf(previewScrollPatch), homeFeaturedCollectionsPatch.dependencies)
+        assertEquals(setOf(amoledThemeResourcePatch), homeFeaturedCollectionsPatch.dependencies)
+        assertEquals(setOf(previewScrollPatch), amoledThemeResourcePatch.dependencies)
         assertEquals(setOf(premiumPreviewPromotionPatch), previewScrollPatch.dependencies)
         assertEquals(setOf(premiumSettingsRowPatch), premiumPreviewPromotionPatch.dependencies)
         assertEquals(setOf(homeFeedPostCardsPatch), premiumSettingsRowPatch.dependencies)

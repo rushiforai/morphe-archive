@@ -90,12 +90,15 @@ jobs:
         run: |
           mkdir -p "$HOME/bin" tools
           # gh downloads through the API, which keeps working when direct release links do not.
-          gh release download 1.0.0 -R EFForg/apkeep -p apkeep-x86_64-unknown-linux-gnu -O "$HOME/bin/apkeep"
+          gh release download 1.1.0 -R EFForg/apkeep -p apkeep-x86_64-unknown-linux-gnu -O "$HOME/bin/apkeep"
           chmod +x "$HOME/bin/apkeep"
           echo "$HOME/bin" >> "$GITHUB_PATH"
           gh release download -R MorpheApp/morphe-cli -p '*-all.jar' -D tools
           tag=$(gh release list -R "$GITHUB_REPOSITORY" --limit 1 --json tagName --jq '.[0].tagName')
           gh release download "$tag" -R "$GITHUB_REPOSITORY" -p '*.mpp' -D tools
+          # Issues close only when a main release targets the version.
+          stable=$(gh release list -R "$GITHUB_REPOSITORY" --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')
+          gh release download "$stable" -R "$GITHUB_REPOSITORY" -p '*.mpp' -D tools/stable
           echo "AAPT2=$(ls -d "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -1)" >> "$GITHUB_ENV"
           echo "APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)" >> "$GITHUB_ENV"
 
@@ -110,7 +113,7 @@ jobs:
         run: |
           python .github/scripts/app_updates.py \
             --cli tools/*-all.jar --mpp tools/*.mpp --aapt2 "$AAPT2" --apksigner "$APKSIGNER" \
-            --only "$ONLY" --out app-updates --issues
+            --only "$ONLY" --out app-updates --issues --stable-mpp tools/stable/*.mpp
 
       - name: Summary
         if: always()
@@ -230,6 +233,20 @@ jobs:
             sleep 15
           done
           # A push made with GITHUB_TOKEN does not start other workflows.
+          sha=$(git rev-parse HEAD)
           gh workflow run release.yml --ref dev
-          python .github/scripts/auto_bump.py app-updates --comment "$(git rev-parse HEAD)"
+          # Wait for that Release run, then label the issues if it published the pre-release.
+          release=""
+          run_id=""
+          for attempt in $(seq 1 12); do
+            sleep 10
+            run_id=$(gh run list --workflow release.yml --branch dev --event workflow_dispatch --commit "$sha" \
+              --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+            [ -n "$run_id" ] && break
+          done
+          if [ -n "$run_id" ] && gh run watch "$run_id" --exit-status --interval 20 > /dev/null; then
+            release=$(gh release list --limit 1 --json tagName,isPrerelease \
+              --jq '.[0] | select(.isPrerelease) | .tagName')
+          fi
+          python .github/scripts/auto_bump.py app-updates --comment "$sha" ${release:+--release "$release"}
           { echo "## Bumped on dev"; echo; head -1 app-updates/bump-message.txt; } >> "$GITHUB_STEP_SUMMARY"

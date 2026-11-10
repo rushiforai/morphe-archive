@@ -49,15 +49,17 @@ import app.morphe.extension.shared.Utils;
 @SuppressWarnings("unused")
 public final class SafeMode {
     static final String TAG = "MorpheSafeMode";
-    static final String UI_DENSITY = "ui_density", DRIVER_SIDE = "driver_side", BUILDINGS_3D = "buildings_3d",
+    static final String UI_DENSITY = "ui_density", DRIVER_SIDE = "driver_side", COLOR_SCHEME = "color_scheme",
+            BUILDINGS_3D = "buildings_3d",
             BYD_BATTERY = "byd_battery", SEND_TO_CAR = "send_to_car", LOCATION_LOCKOUT_DELAY = "location_lockout_delay",
             BYD_NAVIGATION_VOLUME = "byd_navigation_volume", TTS_WARMUP = "tts_warmup", WINDOW_REFRESH = "window_refresh",
             SETTINGS_ROWS = "settings_rows";
     /** Every switchable feature, in the report screen's order. */
-    static final String[] FEATURES = {UI_DENSITY, DRIVER_SIDE, BUILDINGS_3D, BYD_BATTERY, SEND_TO_CAR,
+    static final String[] FEATURES = {UI_DENSITY, DRIVER_SIDE, COLOR_SCHEME, BUILDINGS_3D, BYD_BATTERY, SEND_TO_CAR,
             LOCATION_LOCKOUT_DELAY, BYD_NAVIGATION_VOLUME, TTS_WARMUP, WINDOW_REFRESH, SETTINGS_ROWS};
     /** In the core patch; the others are in the APK only when their own patch was included. */
-    private static final List<String> CORE = Arrays.asList(UI_DENSITY, DRIVER_SIDE, TTS_WARMUP, WINDOW_REFRESH, SETTINGS_ROWS);
+    private static final List<String> CORE = Arrays.asList(UI_DENSITY, DRIVER_SIDE, COLOR_SCHEME, TTS_WARMUP, WINDOW_REFRESH,
+            SETTINGS_ROWS);
     /** Must match the activity's process in the patch. */
     static final String REPORT_PROCESS_SUFFIX = ":morphe_report";
     static final int CRASH_LIMIT = 2;

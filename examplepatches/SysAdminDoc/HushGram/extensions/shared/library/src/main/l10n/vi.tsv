@@ -230,6 +230,9 @@ Upload quality applies to	Chất lượng tải lên áp dụng cho
 Stories only	Chỉ tin
 Stories, posts and reels	Tin, bài viết và Reels
 Video bitrate	Tốc độ bit video
+Video resolution	Độ phân giải video
+Video frame rate	Tốc độ khung hình video
+Photo quality	Chất lượng ảnh
 %1$s Mbps	%1$s Mbps
 Download feed videos	Tải video trên bảng feed
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Thêm Tải xuống vào menu của bài viết có video trong bảng feed. Dùng chất lượng bên dưới. Khi tắt hoặc tạm dừng, menu của Instagram trở lại.
@@ -422,6 +425,8 @@ Hide People you don't follow back	Ẩn Người bạn không theo dõi lại
 Takes the People you don't follow back section off the bottom of your notifications. Notifications about new followers stay.	Gỡ phần Người bạn không theo dõi lại khỏi cuối thông báo. Thông báo về người theo dõi mới vẫn giữ.
 Hide suggestions in notifications	Ẩn gợi ý trong thông báo
 Takes rows that only suggest something off your notifications, like a thread from an account you don't follow or someone you might know. Likes, comments, mentions and new followers stay.	Gỡ các hàng chỉ để gợi ý điều gì đó khỏi thông báo, như chuỗi từ tài khoản bạn không theo dõi hoặc người bạn có thể biết. Lượt thích, bình luận, lượt nhắc và người theo dõi mới vẫn giữ.
+Hide channel invites in notifications	Ẩn lời mời tham gia kênh trong thông báo
+Takes invites to join someone's channel off your notifications. Everything else stays.	Gỡ các lời mời tham gia kênh của người khác khỏi thông báo của bạn. Mọi thứ khác vẫn giữ nguyên.
 Hide Featured in notifications	Ẩn Nổi bật trong thông báo
 Takes the Featured section off the top of your notifications, the posts and threads Instagram picks to show you there. Everything under it stays.	Gỡ phần Nổi bật khỏi đầu thông báo, gồm các bài viết và chuỗi Instagram chọn để hiện ở đó. Mọi thứ bên dưới vẫn giữ.
 Keep Featured off the heart's dot	Không để Nổi bật làm sáng chấm trái tim
@@ -661,8 +666,10 @@ Time away before swiping comes back	Thời gian rời đi trước khi vuốt tr
 %1$d minutes in the background	%1$d phút ở chế độ nền
 Take a scroll break	Nghỉ giải lao khi cuộn
 After %1$d minutes	Sau %1$d phút
-Off. It can cover the Home, Reels and Explore tabs for 5 minutes after you've spent a while on them.	Tắt. Có thể che các tab Trang chủ, Reels và Khám phá trong 5 phút sau khi bạn dùng chúng một lúc.
-After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for 5 minutes. Messages, your profile and the tab bar still work.	Sau %1$d phút ở các tab Trang chủ, Reels và Khám phá, màn hình nghỉ giải lao sẽ che chúng trong 5 phút. Tin nhắn, trang cá nhân và thanh tab vẫn dùng được.
+Off. It can cover the Home, Reels and Explore tabs for a break after you've spent a while on them.	Tắt. Có thể che các tab Trang chủ, Reels và Khám phá để nghỉ giải lao sau khi bạn dùng chúng một lúc.
+After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for %2$d minutes. Messages, your profile and the tab bar still work.	Sau %1$d phút ở các tab Trang chủ, Reels và Khám phá, màn hình nghỉ giải lao sẽ che chúng trong %2$d phút. Tin nhắn, trang cá nhân và thanh tab vẫn dùng được.
+Break length	Thời lượng nghỉ
+%1$d minutes	%1$d phút
 Time for a break	Đến giờ nghỉ rồi
 Home, Reels and Explore open again when the countdown ends. Messages and your profile still work.	Trang chủ, Reels và Khám phá mở lại khi đếm ngược kết thúc. Tin nhắn và trang cá nhân vẫn dùng được.
 Time for a break. Home, Reels and Explore open again in %1$s.	Đến giờ nghỉ rồi. Trang chủ, Reels và Khám phá mở lại sau %1$s.
@@ -922,6 +929,8 @@ Stop the background heartbeat	Ngừng nhịp nền
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram đánh thức điện thoại mỗi một hai phút, kể cả khi tắt màn hình, chỉ để ghi nhận là nó vẫn đang chạy. Mục này ngăn điều đó. Tin nhắn, thông báo và mọi thứ bạn thấy không bị ảnh hưởng.
 Stop the analytics upload alarm	Ngừng báo thức tải phân tích
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram đặt báo thức để đánh thức điện thoại và gửi sự kiện sử dụng sau năm phút. Mục này ngăn báo thức đó. Các sự kiện sẽ gửi vào lần tới bạn dùng ứng dụng.
+Stop background feed refresh	Ngừng làm mới bảng tin trong nền
+About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Khoảng nửa giờ một lần, Instagram đánh thức điện thoại để tải trước bảng tin. Mục này ngăn điều đó. Bảng tin sẽ tải khi bạn mở ứng dụng, còn tin nhắn và thông báo vẫn đến.
 Haptic style	Kiểu rung
 Short tick	Rung ngắn
 System tick	Rung hệ thống
@@ -1115,6 +1124,7 @@ Hold the Friends tab to pick friends	Giữ tab Bạn bè để chọn bạn bè
 Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	Giữ tab Bạn bè trên Reels rồi chọn trong số những người bạn tab đã hiện. Sau đó tab chỉ giữ các reel họ đã thích hoặc chia sẻ. Trang không có họ vẫn giữ một reel để trang tiếp theo có thể tải.
 Pick friends	Chọn bạn bè
 Open the Friends tab first.	Hãy mở tab Bạn bè trước.
+No friends to pick yet.	Chưa có bạn bè nào để chọn.
 Applies to the next reels loaded.	Áp dụng cho các reel tải tiếp theo.
 Hide the Save button on reels	Ẩn nút Lưu trên reel
 Burn-in guard	Chống ám màn hình
@@ -1286,7 +1296,7 @@ Takes the arrow off the end of a profile's row of buttons, along with the menu i
 Keep the pill full size	Giữ viên thanh đủ cỡ
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Cuộn danh sách xuống để viên kính lỏng nguyên vẹn, mọi tab vẫn ở chỗ cũ. Hãy khởi động lại Instagram sau khi thay đổi.
 Bend light at the edges	Bẻ cong ánh sáng ở mép
-The liquid pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	Viền của viên kính lỏng bẻ cong những gì phía sau như kính thật, nên cái đi qua dưới mép hiện lộn ngược. Android 13 trở lên. Hãy khởi động lại Instagram sau khi thay đổi.
+The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	Viền của viên kính bẻ cong những gì phía sau như kính thật, nên cái đi qua dưới mép hiện lộn ngược. Android 13 trở lên. Hãy khởi động lại Instagram sau khi thay đổi.
 All of them. Tap to leave some out, and Ghost mode leaves those as you set them.	Tất cả. Nhấn để bỏ một số, và Chế độ ẩn để chúng như bạn đã đặt.
 %1$s. The others stay as you set them.	%1$s. Các mục khác giữ như bạn đã đặt.
 Switches Ghost mode turns	Công tắc mà Chế độ ẩn bật tắt
@@ -1332,6 +1342,8 @@ Show all recent searches	Hiện mọi nội dung tìm gần đây
 Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.	Liệt kê mọi nội dung tìm gần đây dưới thanh tìm kiếm, không chỉ vài mục đầu. Xem tất cả và dấu x trên mỗi hàng hoạt động như trước.
 Hide the call buttons in chats	Ẩn nút gọi trong cuộc trò chuyện
 Takes the voice and video call buttons off the top of a chat. The name keeps its room. Turn it off and they're back the next time a chat opens.	Gỡ nút gọi thoại và gọi video khỏi đầu cuộc trò chuyện. Tên vẫn giữ chỗ. Tắt mục này thì các nút quay lại vào lần mở cuộc trò chuyện sau.
+Hide the Community Standards reminder	Ẩn lời nhắc Tiêu chuẩn cộng đồng
+Takes the banner reminding you to be respectful off the bottom of a chat.	Gỡ biểu ngữ nhắc bạn giữ lịch sự ở cuối cuộc trò chuyện.
 Buttons in the message box	Nút trong ô tin nhắn
 Every button in the message box shows. Untick the ones you don't use. The text box and Send always stay.	Mọi nút trong ô tin nhắn đều hiện. Bỏ tích những nút bạn không dùng. Ô văn bản và Gửi luôn được giữ.
 Left off the message box: %1$s. The text box and Send stay.	Đã bỏ khỏi ô tin nhắn: %1$s. Ô văn bản và Gửi vẫn giữ.
@@ -1483,6 +1495,9 @@ Previous page	Trang trước
 Next page	Trang sau
 Page dots on a pill	Chấm trang trên viên thuốc
 Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Đưa các chấm trang của bài viết nhiều trang lên viên thuốc tròn ở cuối ảnh hoặc video, trang đang xem màu xanh dương.
+# context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
+Hide page number	Ẩn số trang
+Takes the number like 3/5 off the corner of a carousel post's photo or video.	Bỏ số như 3/5 ở góc ảnh hoặc video của bài viết dạng băng chuyền.
 Ambient light	Ánh sáng môi trường
 Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	Đặt quầng sáng dịu theo màu của bài viết quanh ảnh hoặc video, và trong các dải quanh reel không lấp đầy màn hình. Quầng sáng đổi theo video khi phát.
 Glow spread	Độ lan của quầng sáng
@@ -1833,3 +1848,35 @@ Leaving Instagram while a reel plays shrinks it into a small window over your ot
 # context: a switch on the Profiles page under Mark who doesn't follow you back; it means the mark goes on each profile picture of your own Following list
 Show it on the profile picture	Hiển thị trên ảnh đại diện
 Puts a green check on the picture of each account that follows you back and a red cross on each one that doesn't, instead of the words.	Đặt dấu tích xanh lá trên ảnh của mỗi tài khoản theo dõi lại bạn và dấu X đỏ trên mỗi tài khoản không theo dõi lại, thay cho dòng chữ.
+
+# context: Messages rows of Call blocker: Who can call you, its four choices and their summaries, and the list row with its dialog message (#578)
+Who can call you	Ai có thể gọi cho bạn
+Your call list	Danh sách cuộc gọi của bạn
+Usernames, one on each line. A leading @ and capital letters don't matter.	Tên người dùng, mỗi dòng một tên. Dấu @ ở đầu và chữ hoa không quan trọng.
+Nobody	Không ai
+Only people on your list	Chỉ những người trong danh sách
+Everyone except your list	Mọi người trừ danh sách của bạn
+Everyone	Mọi người
+No call rings your phone. Callers just get no answer.	Không cuộc gọi nào đổ chuông trên điện thoại của bạn. Người gọi chỉ không nhận được trả lời.
+Only people on your list ring your phone. Anyone else gets no answer.	Chỉ những người trong danh sách mới làm điện thoại đổ chuông. Người khác không nhận được trả lời.
+People on your list don't ring your phone. Everyone else still does.	Những người trong danh sách không làm điện thoại đổ chuông. Người khác vẫn gọi được.
+Everyone can ring your phone, as usual.	Mọi người có thể gọi cho bạn như bình thường.
+# context: Seek bar shape and preview (#567, #586, #592)
+Seek bar shape	Hình dạng thanh tua
+Thin line	Đường mảnh
+Rounded	Bo tròn
+Expressive	Biểu cảm
+Wave	Sóng
+The bar and round handle you know.	Thanh và nút tròn quen thuộc.
+A thin line with no handle that grows while you drag it. On feed videos it sits on the bottom edge.	Một đường mảnh không có nút, dày lên khi bạn kéo. Trên video bảng feed, nó nằm ở cạnh dưới.
+A thicker rounded bar with no handle.	Một thanh bo tròn dày hơn, không có nút.
+A rounded bar split by a tall handle.	Một thanh bo tròn được chia bởi một nút cao.
+A wavy line for the part played, with a tall handle.	Một đường lượn sóng cho phần đã phát, kèm một nút cao.
+Turn on a seek bar on feed videos, stories or reels to use this choice.	Hãy bật thanh tua trên video bảng feed, tin hoặc Reels để dùng lựa chọn này.
+Preview while you drag a seek bar	Xem trước khi kéo thanh tua
+Shows the time above your finger while you drag a seek bar on a feed video, story or reel, and a small picture of that moment when Instagram has one for the video.	Hiện thời gian phía trên ngón tay khi bạn kéo thanh tua trên video bảng feed, tin hoặc Reels, cùng một ảnh nhỏ của khoảnh khắc đó khi Instagram có ảnh cho video.
+Swipe right on Home opens	Vuốt sang phải trên Trang chủ sẽ mở
+The camera, as Instagram has it. Pick a tab and the same swipe opens that tab instead.	Máy ảnh, như mặc định của Instagram. Chọn một thẻ và thao tác vuốt đó sẽ mở thẻ đó.
+A swipe right on Home opens %1$s. The + button still opens the camera.	Vuốt sang phải trên Trang chủ sẽ mở %1$s. Nút + vẫn mở máy ảnh.
+Keep the tab bar on a reel's profile	Giữ thanh tab trên trang cá nhân của reel
+A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	Trang cá nhân mở từ reel sẽ ở ngay tab bạn đang dùng, với thanh tab bên dưới. Quay lại sẽ trở về reel.

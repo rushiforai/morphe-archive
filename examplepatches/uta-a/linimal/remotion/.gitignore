@@ -1,0 +1,21 @@
+node_modules/
+out/
+
+# テスト配信の中身や Linimal 公式アカウントの名前・アイコンが写った実画面と実機動画。
+# 紹介動画はモックだけを使うので、ローカルにだけ残してコミットしない。
+public/recordings/scroll-preview.mp4
+public/recordings/read-without-receipt-open.mp4
+public/recordings/mark-all-as-read.mp4
+public/recordings/notification-open.mp4
+public/screenshots/chat/scroll-preview-1.png
+public/screenshots/chat/scroll-preview-2.png
+public/screenshots/chat/scroll-preview-3.png
+public/screenshots/chat/room-read-disabled.png
+public/screenshots/chat/room-read-enabled.png
+public/screenshots/chat/room-attach-menu.png
+public/screenshots/chat/room-message-menu.png
+public/screenshots/chat/room-read-disabled-from-notification.png
+public/screenshots/chat/notification-shade.png
+public/screenshots/chat/part-linimal-avatar.png
+public/screenshots/chat/part-room-header.png
+public/screenshots/chat/part-read-disabled-banner.png

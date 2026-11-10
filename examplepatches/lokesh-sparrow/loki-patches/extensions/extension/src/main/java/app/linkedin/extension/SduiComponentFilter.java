@@ -1,257 +1,178 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
- * Hook for the server driven UI (SDUI) screens, which render through
- * ComponentTransformer.doTransform(Component, ...). Returning true makes doTransform
- * return null, which the transformer already does for components it skips.
+ * Called for every component the server sent before LinkedIn renders it. Answering true makes the
+ * transformer drop the component, which is exactly what it already does for the parts it does not draw,
+ * so a hidden component never reaches a layout.
  *
- * Markers below were taken from real payloads of LinkedIn 4.1.1255.1 (viewTracking.viewName).
+ * Every check runs on the component's own bytes and on the names LinkedIn attached to it, never on
+ * on-screen text: the app is used in many languages, and the payload is the one thing that stays the same.
+ * The names used here were collected from real payloads of the supported app versions.
  */
 @SuppressWarnings("unused")
 public final class SduiComponentFilter {
-    private static final String MEDIA_SCREEN_PREFIX = "com.linkedin.sdui.impl.mediaproduct.screens.";
-    private static final String PROFILE_MEDIA_PREFIX = "com.linkedin.sdui.impl.profile.destinations.";
-    private static final int MAX_LOGGED_VIEW_NAMES = 500;
-    private static final Set<String> loggedViewNames = ConcurrentHashMap.newKeySet();
+
+    /** Prefixes of the screens whose payloads carry downloadable media (viewers, profile photo, banner). */
+    private static final String MEDIA_SCREENS = "com.linkedin.sdui.impl.mediaproduct.screens.";
+    private static final String PROFILE_MEDIA_SCREENS = "com.linkedin.sdui.impl.profile.destinations.";
+
+    /** Field numbers of proto.sdui.components.core.Component, used by the diagnostic outline. */
+    private static final int FIELD_VIEW_TRACKING = 26;
+    private static final int FIELD_TRIGGERS = 25;
+    private static final int FIELD_COMPACT_DATA = 35;
+    private static final int FIELD_DISPLAYED = 40;
+
+    /** Nesting limits of the outline, so a deeply nested payload cannot blow the stack. */
+    private static final int MAX_OUTLINE_DEPTH = 40;
+    private static final int MAX_CONTAINER_HOPS = 8;
+    private static final int MAX_DESCRIBED_BYTES = 120;
+
+    /** Words that mark an assistant or prompt card when they are a whole part of a view name. */
+    private static final Set<String> AI_WORDS =
+            new HashSet<>(Arrays.asList("ai", "genai", "gai", "llm", "copilot", "assistant", "aigc"));
 
     /**
-     * With diagnostic logging on, logs each view name once, so a diagnostic report shows the names of the
-     * components a user saw (for new filters). Names with digits are skipped: those can carry profile names.
+     * View names already written to the log. Capped: a report only needs a sample of what a user sees, and
+     * an uncapped set would grow for the whole session.
      */
-    private static void logViewName(String viewName) {
-        if (viewName.isEmpty() || !Settings.debug() || loggedViewNames.size() >= MAX_LOGGED_VIEW_NAMES) return;
-        for (int i = 0; i < viewName.length(); i++) {
-            if (Character.isDigit(viewName.charAt(i))) return;
-        }
-        if (loggedViewNames.add(viewName)) Settings.debugLog("view " + viewName);
+    private static final int MAX_LOGGED_NAMES = 500;
+    private static final Set<String> loggedNames = ConcurrentHashMap.newKeySet();
+
+    /** Largest component already outlined per viewer screen, so each screen's root lands in the report once. */
+    private static final Map<String, Integer> outlinedSizes = new ConcurrentHashMap<>();
+
+    private SduiComponentFilter() {
     }
 
-    /** Size of the biggest component outlined per viewer screen, so each screen's root goes into the report. */
-    private static final java.util.Map<String, Integer> outlined = new ConcurrentHashMap<>();
-    private static final int COMPACT_DATA_FIELD = 35;
-    private static final int VIEW_TRACKING_FIELD = 26;
-    private static final int TRIGGERS_FIELD = 25;
-    private static final int DISPLAYED_FIELD = 40;
+    // region Entry points
 
     /**
-     * With diagnostic logging, writes the component tree of the video and document viewer into the report: view
-     * names, type ids, show/hide expressions (d=) and taps (t), to build the viewers' tap to hide on.
+     * Runs before the hide decision and may return an edited copy of the component: the Loki items added to a
+     * post's ⋯ menu, and the media viewers' tap to hide.
      */
-    private static void outlineViewer(String screenName, Object component) {
-        if (!Settings.debug()) return;
-        // Components carry the name of the data that built them (documentViewerScreenDataAware,
-        // setupDataAndViewer, mediaCommentaryBottomSheetDataAware), not the screen's, so the resumed screen decides.
-        String resumed = SduiMediaDownload.resumedScreen();
-        if (!(resumed.endsWith(".VideoViewer") || resumed.endsWith(".DocumentViewer"))) return;
-        byte[] bytes = payload(component);
-        if (bytes == null) return;
-        String source = screenName.substring(screenName.lastIndexOf('.') + 1);
-        String key = resumed.substring(resumed.lastIndexOf('.') + 1) + "/" + source;
-        Integer biggest = outlined.get(key);
-        if (biggest != null && biggest >= bytes.length) return;
-        outlined.put(key, bytes.length);
-        StringBuilder out = new StringBuilder();
-        outlineComponent(bytes, out, 0);
-        Settings.debugLog("outline " + key + " (" + bytes.length + " bytes): " + out);
-    }
-
-    private static void outlineComponent(byte[] bytes, StringBuilder out, int depth) {
-        java.util.List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
-        if (fields == null) return;
-        String name = "";
-        long type = -1;
-        StringBuilder flags = new StringBuilder();
-        for (ProtoEdit.Field field : fields) {
-            if (field.wireType != 2) continue;
-            if (field.number == VIEW_TRACKING_FIELD) {
-                for (ProtoEdit.Field f : orEmpty(ProtoEdit.parse(field.data))) {
-                    if (f.number == 1 && f.wireType == 2) name = new String(f.data, java.nio.charset.StandardCharsets.UTF_8);
-                }
-            } else if (field.number == COMPACT_DATA_FIELD) {
-                type = typeId(field.data);
-            } else if (field.number == DISPLAYED_FIELD) {
-                flags.append(" d=").append(describe(field.data));
-            } else if (field.number == TRIGGERS_FIELD) {
-                flags.append(" t");
-            }
-        }
-        out.append('{').append(name.isEmpty() ? "-" : name).append('#').append(type).append(flags);
-        if (depth < 40) {
-            for (ProtoEdit.Field field : fields) {
-                if (field.wireType == 2 && field.number != VIEW_TRACKING_FIELD && field.number != DISPLAYED_FIELD
-                        && field.number != TRIGGERS_FIELD) {
-                    findComponents(field.data, out, depth + 1, 0);
-                }
-            }
-        }
-        out.append('}');
-    }
-
-    /** Looks for nested components in a message, through the messages that hold them. */
-    private static void findComponents(byte[] bytes, StringBuilder out, int depth, int hops) {
-        if (hops > 8) return;
-        java.util.List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
-        if (fields == null) return;
-        for (ProtoEdit.Field field : fields) {
-            if (field.wireType != 2 || field.data.length < 2) continue;
-            if (isComponent(field.data)) outlineComponent(field.data, out, depth);
-            else findComponents(field.data, out, depth, hops + 1);
-        }
-    }
-
-    private static boolean isComponent(byte[] bytes) {
-        java.util.List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
-        if (fields == null) return false;
-        for (ProtoEdit.Field field : fields) {
-            if (field.number == COMPACT_DATA_FIELD && field.wireType == 2 && typeId(field.data) > 0) return true;
-        }
-        return false;
-    }
-
-    /** The type id of a CompactAny (field 1), or -1. */
-    private static long typeId(byte[] compactAny) {
-        for (ProtoEdit.Field f : orEmpty(ProtoEdit.parse(compactAny))) {
-            if (f.number == 1 && f.wireType == 0) {
-                long value = 0;
-                for (int i = 0, shift = 0; i < f.data.length; i++, shift += 7) value |= (long) (f.data[i] & 0x7F) << shift;
-                return value;
-            }
-        }
-        return -1;
-    }
-
-    /** Hex of a small message, with spaces: the diagnostic report removes anything that looks like an id. */
-    private static String describe(byte[] bytes) {
-        StringBuilder hex = new StringBuilder("[");
-        for (int i = 0; i < Math.min(bytes.length, 120); i++) {
-            if (i > 0) hex.append(' ');
-            hex.append(String.format("%02x", bytes[i] & 0xFF));
-        }
-        return hex.append(']').toString();
-    }
-
-    private static java.util.List<ProtoEdit.Field> orEmpty(java.util.List<ProtoEdit.Field> fields) {
-        return fields == null ? java.util.Collections.emptyList() : fields;
-    }
-
-    private static final java.util.Set<String> AI_WORDS = new java.util.HashSet<>(java.util.Arrays.asList(
-            "ai", "genai", "gai", "llm", "copilot", "assistant", "aigc"));
-
-    /** AI prompts and assistant cards, recognized by a whole word of the view name (feed-ai-prompt, genai-...). */
-    private static boolean isAiView(String viewName) {
-        for (String word : viewName.split("[-_.]")) {
-            if (AI_WORDS.contains(word)) return true;
-        }
-        return false;
-    }
-
-    /** Components of LinkedIn's puzzle games: search cards (search-game-card-queens), the hub (games-sdui-hub). */
-    /**
-     * The heading above the game cards ("Wind down with a puzzle" on My Network, "Today's puzzles" in search) is a
-     * small text part without a view name, so it can't be found by name: unnamed parts that mention a puzzle.
-     */
-    private static boolean isPuzzleHeading(Object component) {
-        byte[] bytes = payload(component);
-        return bytes != null && bytes.length < 4000 && ProtoScanner.containsAscii(bytes, "uzzle");
-    }
-
-    private static boolean isGameView(String viewName) {
-        return viewName.startsWith("games-") || viewName.startsWith("game-") || viewName.contains("-game-")
-                || viewName.endsWith("-game") || viewName.endsWith("-games");
-    }
-
-    /** Called with every SDUI component before shouldHide; returns it, or an edited copy (the post ⋯ menu). */
     public static Object rewrite(Object component) {
         if (Settings.viewerTapToHide()) {
             try {
-                Object viewTracking = Proto.is(component, "hasViewTracking")
-                        ? Proto.call(component, "getViewTracking") : null;
-                component = ViewerChrome.rewrite(component, Proto.string(viewTracking, "getViewName"),
-                        Proto.string(component, "getObservabilityViewName"), payload(component));
+                Facts facts = new Facts(component);
+                component = ViewerChrome.rewrite(component, facts.name, facts.screen, facts.bytes());
             } catch (Throwable t) {
                 Diagnostics.error("viewer rewrite failed", t);
             }
         }
         if (!Settings.postMenu()) return component;
-        return PostMenu.inject(component, payload(component));
+        // The menu works on the component the viewer rewrite just returned, not on the original one.
+        return PostMenu.inject(component, payloadOf(component));
     }
 
+    /** The serialized component, or null when LinkedIn's model cannot produce one. */
+    private static byte[] payloadOf(Object component) {
+        Object value = Proto.call(component, "toByteArray");
+        return value instanceof byte[] ? (byte[]) value : null;
+    }
+
+    /** True when the component must not be drawn. Never throws: a payload it cannot read stays visible. */
     public static boolean shouldHide(Object component) {
         try {
-            Object viewTracking = Proto.is(component, "hasViewTracking")
-                    ? Proto.call(component, "getViewTracking") : null;
-            String viewName = Proto.string(viewTracking, "getViewName");
-            String screenName = Proto.string(component, "getObservabilityViewName");
-            logViewName(viewName);
-            outlineViewer(screenName, component);
-            if (Settings.hideAi() && isAiView(viewName)) {
-                return hide(true, "ai: " + viewName);
-            }
-            if (Settings.hideGames() && isGameView(viewName)) {
-                return hide(true, "games: " + viewName);
-            }
-            if (Settings.hideGames() && viewName.isEmpty() && isPuzzleHeading(component)) {
-                return hide(true, "games heading");
-            }
-
-            switch (viewName) {
-                case "feed-full-update":
-                    if (Settings.postMenu()) PostMenu.remember(payload(component));
-                    return hideFeedUpdate(component, viewTracking);
-                case "job-card":
-                    return hidePromotedJob(component);
-                case "multiphoto-viewer":
-                    collectMedia(component, viewName);
-                    return false;
-                case "feed-reaction-count":
-                case "feed-comment-count":
-                case "feed-repost-count":
-                case "comment-reaction-count":
-                    return hide(Settings.focusMode(), "focus mode: " + viewName);
-                case "feed-new-update-pill":
-                    return hide(Settings.hideNewPostsPill(), "new posts pill");
-                case "download-document":
-                    // LinkedIn's own button, only on documents the author allows to download; ours saves any.
-                    return hide(Settings.downloadMedia(), "native document download");
-                case "feed-see-translation":
-                    return hide(Settings.hideTranslation(), "see translation");
-                case "profile-card-promo":
-                    // "Suggested for you" profile section; hidden when it carries Premium upsells.
-                    return hide(Settings.hidePremium()
-                            && ProtoScanner.containsAscii(payload(component), "premium-upsell-card"), "profile promo");
-                default:
-                    break;
-            }
-
-            if (Settings.hidePremium() && viewName.contains("upsell") && !keepViewerUpsell(viewName)) {
-                // premium-upsell-card, profile-ai-enhance-card-upsell, taj-home-upsell, ...
-                return hide(true, "premium upsell: " + viewName);
-            }
-
-            if (screenName.startsWith(MEDIA_SCREEN_PREFIX) || screenName.startsWith(PROFILE_MEDIA_PREFIX)) {
-                collectMedia(component, screenName);
-            }
-            return false;
+            Facts facts = new Facts(component);
+            reportWhatWasSeen(facts);
+            String reason = whyHide(facts);
+            if (reason == null) return false;
+            Settings.debugLog("hide " + reason);
+            return true;
         } catch (Throwable t) {
             Diagnostics.error("shouldHide failed", t);
             return false;
         }
     }
 
-    /**
-     * "Who viewed your profile". Free accounts see their latest viewers there, and the locked rows are wrapped in
-     * the interstitial upsell parts (who-viewed-my-profile-interstitial-upsell), so hiding those hid the list
-     * itself. The small Premium cards between the rows are still hidden.
-     */
-    private static boolean keepViewerUpsell(String viewName) {
-        return viewName.contains("interstitial") && SduiMediaDownload.resumedScreen().contains(".premium.wvmp.");
+    // endregion
+
+    // region The decision
+
+    /** The reason to hide [facts], or null to keep the component. Cheap, general rules run first. */
+    private static String whyHide(Facts facts) {
+        String name = facts.name;
+
+        if (Settings.hideAi() && isAssistantCard(name)) return "ai: " + name;
+        if (Settings.hideGames() && isGameCard(name)) return "games: " + name;
+        // The heading over the game cards has no view name at all, so only its text can identify it.
+        if (Settings.hideGames() && name.isEmpty() && isPuzzleHeading(facts.bytes())) return "games heading";
+
+        ExactRule exact = EXACT.get(name);
+        if (exact != null) return exact.apply(facts);
+
+        // Premium upsell cards carry the word in their name, except where the same parts wrap real content.
+        if (Settings.hidePremium() && name.contains("upsell") && !isViewerListWrapper(name)) {
+            return "premium upsell: " + name;
+        }
+
+        if (isMediaScreen(facts.screen)) {
+            offerMedia(facts.scan(), facts.screen, facts.screen.startsWith(PROFILE_MEDIA_SCREENS));
+        }
+        return null;
     }
 
-    private static boolean hideFeedUpdate(Object component, Object viewTracking) {
+    /** A rule for one exact view name: the reason to hide it, or null to keep it. */
+    private interface ExactRule {
+        String apply(Facts facts);
+    }
+
+    private static final Map<String, ExactRule> EXACT = new HashMap<>();
+
+    static {
+        EXACT.put("multiphoto-viewer", facts -> {
+            offerMedia(facts.scan(), facts.name, false);
+            return null;
+        });
+        EXACT.put("feed-full-update", facts -> {
+            if (Settings.postMenu()) PostMenu.remember(facts.bytes());
+            return hideFeedUpdate(facts);
+        });
+        EXACT.put("job-card", facts -> hidePromotedJob(facts.bytes()));
+        EXACT.put("feed-reaction-count", facts -> focusedCount(facts.name));
+        EXACT.put("feed-comment-count", facts -> focusedCount(facts.name));
+        EXACT.put("feed-repost-count", facts -> focusedCount(facts.name));
+        EXACT.put("comment-reaction-count", facts -> focusedCount(facts.name));
+        EXACT.put("feed-new-update-pill", facts -> flag(Settings.hideNewPostsPill(), "new posts pill"));
+        // LinkedIn's own button, drawn only on documents the author allows to download; ours saves any document.
+        EXACT.put("download-document", facts -> flag(Settings.downloadMedia(), "native document download"));
+        EXACT.put("feed-see-translation", facts -> flag(Settings.hideTranslation(), "see translation"));
+        // "Suggested for you" on a profile; only the variant carrying a Premium upsell is worth hiding.
+        EXACT.put("profile-card-promo", facts -> flag(Settings.hidePremium()
+                && ProtoScanner.containsAscii(facts.bytes(), "premium-upsell-card"), "profile promo"));
+    }
+
+    /** [reason] when [hide], so a rule reads as one expression and only logs what it actually does. */
+    private static String flag(boolean hide, String reason) {
+        return hide ? reason : null;
+    }
+
+    private static String focusedCount(String name) {
+        return flag(Settings.focusMode(), "focus mode: " + name);
+    }
+
+    /**
+     * A feed post. Its own view name says nothing about what it contains, so the rules look at the child
+     * components embedded in the payload: their view names identify the post type in every language.
+     */
+    private static String hideFeedUpdate(Facts facts) {
         boolean ads = Settings.hideAds();
         boolean suggested = Settings.hideSuggested();
         boolean celebrations = Settings.hideCelebrations();
@@ -261,104 +182,135 @@ public final class SduiComponentFilter {
         boolean recommendations = Settings.hideRecommendations();
         boolean videos = Settings.hideVideoPosts();
         boolean shortLinks = Settings.resolveShortLinks();
-        java.util.regex.Pattern muted = mutedPattern();
-        if (!ads && !suggested && !celebrations && !jobs && !reposts && !activity && !recommendations && !videos
-                && !shortLinks && muted == null) {
-            return false;
+        Pattern muted = mutedWordsPattern();
+        if (!(ads || suggested || celebrations || jobs || reposts || activity || recommendations || videos
+                || shortLinks || muted != null)) {
+            return null;
         }
 
-        byte[] payload = payload(component);
-        if (shortLinks && ProtoScanner.containsAscii(payload, ShortLinkResolver.PREFIX)) {
-            for (String s : ProtoScanner.scan(payload).strings) {
-                if (s.contains(ShortLinkResolver.PREFIX)) OpenLinksDirectlyPatch.prefetchShortLinks(s);
+        byte[] bytes = facts.bytes();
+        if (shortLinks && ProtoScanner.containsAscii(bytes, ShortLinkResolver.PREFIX)) {
+            // Resolving happens on tap, but the payload is the only place the short links are visible at all.
+            for (String text : ProtoScanner.scan(bytes).strings) {
+                if (text.contains(ShortLinkResolver.PREFIX)) OpenLinksDirectlyPatch.prefetchShortLinks(text);
             }
         }
-        if (ads && (hasSponsoredTracking(viewTracking)
-                || ProtoScanner.containsAscii(payload, "urn:li:sponsoredContentV2:"))) {
-            return hide(true, "sponsored feed update");
+        if (ads && (hasSponsoredMetadata(facts.tracking)
+                || ProtoScanner.containsAscii(bytes, "urn:li:sponsoredContentV2:"))) {
+            return "sponsored feed update";
         }
-        // Child components are embedded in the post payload, so their view names identify the post type.
-        if (celebrations && ProtoScanner.containsAscii(payload, "feed-celebrations-update-detail")) {
-            return hide(true, "celebration post");
+        if (celebrations && ProtoScanner.containsAscii(bytes, "feed-celebrations-update-detail")) {
+            return "celebration post";
         }
-        if (jobs && ProtoScanner.containsAscii(payload, "feed-job-card-entity")) {
-            return hide(true, "job post");
+        if (jobs && ProtoScanner.containsAscii(bytes, "feed-job-card-entity")) {
+            return "job post";
         }
-        if (reposts && ProtoScanner.containsAscii(payload, "feed-original-share-description")) {
-            return hide(true, "repost");
+        if (reposts && ProtoScanner.containsAscii(bytes, "feed-original-share-description")) {
+            return "repost";
         }
-        if (videos && ProtoScanner.containsAscii(payload, "large-single-video-view")) {
-            return hide(true, "video post");
+        if (videos && ProtoScanner.containsAscii(bytes, "large-single-video-view")) {
+            return "video post";
         }
-        boolean recommendationModule = (recommendations || activity) && isRecommendationModule(payload);
-        if (recommendations && recommendationModule) {
-            return hide(true, "recommended for you");
+        boolean module = (recommendations || activity) && isFollowModule(bytes);
+        if (recommendations && module) {
+            return "recommended for you";
         }
-        if (activity && !recommendationModule && isActivityPost(payload)) {
-            return hide(true, "post from someone's activity");
+        if (activity && !module && isActivityPost(bytes)) {
+            return "post from someone's activity";
         }
         if (muted != null) {
-            for (String s : ProtoScanner.scan(payload).strings) {
-                java.util.regex.Matcher m = muted.matcher(s);
-                if (m.find()) return hide(true, "muted word: " + m.group());
+            for (String text : ProtoScanner.scan(bytes).strings) {
+                Matcher match = muted.matcher(text);
+                if (match.find()) return "muted word: " + match.group();
             }
         }
-        // The header label is its own string field, so match the whole string, never a substring
-        // of post text.
-        if (suggested && ProtoScanner.hasExactString(payload, "Suggested", "Disarankan")) {
-            return hide(true, "suggested post");
+        // The header label is a string field of its own, so it is matched whole: a post that merely talks
+        // about something suggested has to stay.
+        if (suggested && ProtoScanner.hasExactString(bytes, "Suggested", "Disarankan")) {
+            return "suggested post";
+        }
+        return null;
+    }
+
+    /** A job card is promoted when the header is exactly the promoted label, not when the text mentions it. */
+    private static String hidePromotedJob(byte[] bytes) {
+        if (!Settings.hidePromotedJobs()) return null;
+        return flag(ProtoScanner.hasExactString(bytes, "Promoted", "Dipromosikan"), "promoted job");
+    }
+
+    // endregion
+
+    // region Recognisers
+
+    /** Assistant and prompt cards, marked by a whole word of the view name (feed-ai-prompt, genai-...). */
+    private static boolean isAssistantCard(String name) {
+        for (String part : name.split("[-_.]")) {
+            if (AI_WORDS.contains(part)) return true;
         }
         return false;
     }
 
-    /**
-     * Posts shown because someone liked, commented on, or reacted to them have a header above the author ("X likes
-     * this") whose text links to that person's, company's or school's page. The header comes before the author in
-     * the payload, so a page action between the two belongs to the header. Matched by structure, so it works in
-     * every language.
-     */
-    private static boolean isActivityPost(byte[] payload) {
-        if (!ProtoScanner.containsAscii(payload, "feed-header")) return false;
-        List<String> strings = ProtoScanner.scan(payload).strings;
-        int header = strings.indexOf("feed-header");
-        int author = strings.indexOf("feed-actor");
-        if (header < 0 || author < header) return false;
-        for (String s : strings.subList(header, author)) {
-            if (s.equals("viewMember") || s.equals("viewCompany") || s.equals("viewSchool")) return true;
-        }
-        return false;
+    /** LinkedIn's puzzle games: the hub (games-sdui-hub) and the cards in search (search-game-card-queens). */
+    private static boolean isGameCard(String name) {
+        return name.startsWith("games-") || name.startsWith("game-") || name.contains("-game-")
+                || name.endsWith("-game") || name.endsWith("-games");
     }
 
     /**
-     * "Recommended for you": a feed item listing several people or pages to follow, with a "Show more" button and
-     * no post text. Regular posts have one author, so two or more authors without post text mark the module.
+     * The heading above the game cards ("Today's puzzles" in search, "Wind down with a puzzle" on My
+     * Network) is a small text part with no view name, so it is recognised by the word in its payload.
      */
-    private static boolean isRecommendationModule(byte[] payload) {
-        if (!ProtoScanner.containsAscii(payload, "feed-call-to-action")
-                || !ProtoScanner.containsAscii(payload, "edge-creation-follow-action")
-                || ProtoScanner.containsAscii(payload, "feed-commentary")) {
+    private static boolean isPuzzleHeading(byte[] bytes) {
+        return bytes != null && bytes.length < 4000 && ProtoScanner.containsAscii(bytes, "uzzle");
+    }
+
+    /**
+     * "Recommended for you": one feed item listing several people or pages to follow. It carries a call to
+     * action with a follow action and two or more authors, and has no commentary of its own, while a normal
+     * post has exactly one author.
+     */
+    private static boolean isFollowModule(byte[] bytes) {
+        if (!ProtoScanner.containsAscii(bytes, "feed-call-to-action")
+                || !ProtoScanner.containsAscii(bytes, "edge-creation-follow-action")
+                || ProtoScanner.containsAscii(bytes, "feed-commentary")) {
             return false;
         }
         int authors = 0;
-        for (String s : ProtoScanner.scan(payload).strings) {
-            if (s.equals("feed-actor") && ++authors >= 2) return true;
+        for (String text : ProtoScanner.scan(bytes).strings) {
+            if (text.equals("feed-actor") && ++authors >= 2) return true;
         }
         return false;
     }
 
-    private static boolean hidePromotedJob(Object component) {
-        if (!Settings.hidePromotedJobs()) return false;
-        return hide(ProtoScanner.hasExactString(payload(component), "Promoted", "Dipromosikan"), "promoted job");
+    /**
+     * A post shown because somebody interacted with it ("X likes this") has a header above the author that
+     * links to that person's, company's or school's page. The header comes first in the payload, so a page
+     * action between the header and the author belongs to it. Structural, therefore language independent.
+     */
+    private static boolean isActivityPost(byte[] bytes) {
+        if (!ProtoScanner.containsAscii(bytes, "feed-header")) return false;
+        List<String> strings = ProtoScanner.scan(bytes).strings;
+        int header = strings.indexOf("feed-header");
+        int author = strings.indexOf("feed-actor");
+        if (header < 0 || author < header) return false;
+        for (String text : strings.subList(header, author)) {
+            if (text.equals("viewMember") || text.equals("viewCompany") || text.equals("viewSchool")) return true;
+        }
+        return false;
     }
 
-    private static boolean hide(boolean hide, String reason) {
-        if (hide) Settings.debugLog("hide " + reason);
-        return hide;
+    /**
+     * "Who viewed your profile". Free accounts see their latest viewers there, and the locked rows are
+     * wrapped in the interstitial upsell parts, so hiding those would empty the list itself. The small
+     * Premium cards between the rows are still hidden by the generic rule.
+     */
+    private static boolean isViewerListWrapper(String name) {
+        return name.contains("interstitial") && SduiMediaDownload.resumedScreen().contains(".premium.wvmp.");
     }
 
-    /** viewTracking.metadata[] contains a TrackingMetadata with sponsoredData for ads. */
-    private static boolean hasSponsoredTracking(Object viewTracking) {
-        Object metadata = Proto.call(viewTracking, "getMetadataList");
+    /** viewTracking.metadata[] holds a TrackingMetadata with sponsoredData on promoted content. */
+    private static boolean hasSponsoredMetadata(Object tracking) {
+        Object metadata = Proto.call(tracking, "getMetadataList");
         if (!(metadata instanceof List)) return false;
         for (Object item : (List<?>) metadata) {
             if (Proto.is(item, "hasSponsoredData")) return true;
@@ -366,34 +318,208 @@ public final class SduiComponentFilter {
         return false;
     }
 
-    private static String mutedSource;
-    private static java.util.regex.Pattern mutedCompiled;
+    private static boolean isMediaScreen(String screen) {
+        return screen.startsWith(MEDIA_SCREENS) || screen.startsWith(PROFILE_MEDIA_SCREENS);
+    }
 
-    /** The muted words as one pattern of whole words and phrases, ignoring case; null when there are none. */
-    private static java.util.regex.Pattern mutedPattern() {
+    private static void offerMedia(ProtoScanner scan, String source, boolean profileScreen) {
+        if (!Settings.downloadMedia()) return;
+        SduiMediaDownload.offer(scan, source, profileScreen);
+    }
+
+    // endregion
+
+    // region Muted words
+
+    private static String mutedSource;
+    private static Pattern mutedPattern;
+
+    /**
+     * All muted words as one alternation of whole words and phrases, ignoring case. Cached against the
+     * setting, which would otherwise be read and compiled for every post. Null when nothing is muted.
+     */
+    private static Pattern mutedWordsPattern() {
         String words = Settings.mutedWords();
-        if (words.equals(mutedSource)) return mutedCompiled;
+        if (words.equals(mutedSource)) return mutedPattern;
         StringBuilder alternatives = new StringBuilder();
         for (String line : words.split("[\\n,]")) {
             String word = line.trim();
             if (word.isEmpty()) continue;
             if (alternatives.length() > 0) alternatives.append('|');
-            alternatives.append(java.util.regex.Pattern.quote(word));
+            alternatives.append(Pattern.quote(word));
         }
-        mutedCompiled = alternatives.length() == 0 ? null : java.util.regex.Pattern.compile(
+        mutedPattern = alternatives.length() == 0 ? null : Pattern.compile(
                 "(?<![\\p{L}\\p{N}])(?:" + alternatives + ")(?![\\p{L}\\p{N}])",
-                java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
+                Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
         mutedSource = words;
-        return mutedCompiled;
+        return mutedPattern;
     }
 
-    private static void collectMedia(Object component, String source) {
-        if (!Settings.downloadMedia()) return;
-        SduiMediaDownload.offer(ProtoScanner.scan(payload(component)), source, source.startsWith(PROFILE_MEDIA_PREFIX));
+    // endregion
+
+    // region Diagnostics
+
+    /**
+     * With diagnostic logging on, records each view name once, so a report shows which components a user
+     * actually saw, which is how new filters are found. Names with digits are skipped because they can carry
+     * a member's name or an id.
+     */
+    private static void reportWhatWasSeen(Facts facts) {
+        logViewName(facts.name);
+        outlineViewer(facts);
     }
 
-    private static byte[] payload(Object component) {
-        Object bytes = Proto.call(component, "toByteArray");
-        return bytes instanceof byte[] ? (byte[]) bytes : null;
+    private static void logViewName(String name) {
+        if (name.isEmpty() || !Settings.debug() || loggedNames.size() >= MAX_LOGGED_NAMES) return;
+        for (int i = 0; i < name.length(); i++) {
+            if (Character.isDigit(name.charAt(i))) return;
+        }
+        if (loggedNames.add(name)) Settings.debugLog("view " + name);
+    }
+
+    /**
+     * With diagnostic logging on, dumps the component tree of the video and document viewers into the
+     * report: view names, type ids, the show/hide expression (d=) and whether a component has triggers.
+     * That dump is what the viewers' tap to hide is built from, so it has to stay comparable.
+     */
+    private static void outlineViewer(Facts facts) {
+        if (!Settings.debug()) return;
+        // Components carry the name of the data that built them (documentViewerScreenDataAware,
+        // setupDataAndViewer, mediaCommentaryBottomSheetDataAware), not the screen's, so the resumed screen
+        // is what says whether the user is in a viewer.
+        String resumed = SduiMediaDownload.resumedScreen();
+        if (!(resumed.endsWith(".VideoViewer") || resumed.endsWith(".DocumentViewer"))) return;
+        byte[] bytes = facts.bytes();
+        if (bytes == null) return;
+        String key = shortName(resumed) + "/" + shortName(facts.screen);
+        Integer biggest = outlinedSizes.get(key);
+        if (biggest != null && biggest >= bytes.length) return;
+        outlinedSizes.put(key, bytes.length);
+        StringBuilder out = new StringBuilder();
+        appendComponent(bytes, out, 0);
+        Settings.debugLog("outline " + key + " (" + bytes.length + " bytes): " + out);
+    }
+
+    private static String shortName(String screen) {
+        return screen.substring(screen.lastIndexOf('.') + 1);
+    }
+
+    /** One component as {name#type flags{child}{child}}, keeping the order of its fields. */
+    private static void appendComponent(byte[] bytes, StringBuilder out, int depth) {
+        List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
+        if (fields == null) return;
+        String name = "";
+        long type = -1;
+        StringBuilder flags = new StringBuilder();
+        for (ProtoEdit.Field field : fields) {
+            if (field.wireType != 2) continue;
+            if (field.number == FIELD_VIEW_TRACKING) {
+                for (ProtoEdit.Field inner : orEmpty(ProtoEdit.parse(field.data))) {
+                    if (inner.number == 1 && inner.wireType == 2) {
+                        name = new String(inner.data, StandardCharsets.UTF_8);
+                    }
+                }
+            } else if (field.number == FIELD_COMPACT_DATA) {
+                type = compactType(field.data);
+            } else if (field.number == FIELD_DISPLAYED) {
+                flags.append(" d=").append(hexPreview(field.data));
+            } else if (field.number == FIELD_TRIGGERS) {
+                flags.append(" t");
+            }
+        }
+        out.append('{').append(name.isEmpty() ? "-" : name).append('#').append(type).append(flags);
+        if (depth < MAX_OUTLINE_DEPTH) {
+            for (ProtoEdit.Field field : fields) {
+                if (field.wireType == 2 && field.number != FIELD_VIEW_TRACKING
+                        && field.number != FIELD_DISPLAYED && field.number != FIELD_TRIGGERS) {
+                    appendChildren(field.data, out, depth + 1, 0);
+                }
+            }
+        }
+        out.append('}');
+    }
+
+    /** Walks a message looking for nested components, through the wrappers that hold them. */
+    private static void appendChildren(byte[] bytes, StringBuilder out, int depth, int hops) {
+        if (hops > MAX_CONTAINER_HOPS) return;
+        List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
+        if (fields == null) return;
+        for (ProtoEdit.Field field : fields) {
+            if (field.wireType != 2 || field.data.length < 2) continue;
+            if (looksLikeComponent(field.data)) appendComponent(field.data, out, depth);
+            else appendChildren(field.data, out, depth, hops + 1);
+        }
+    }
+
+    /** A component is recognised by a CompactAny (field 35) that names a real type. */
+    private static boolean looksLikeComponent(byte[] bytes) {
+        List<ProtoEdit.Field> fields = ProtoEdit.parse(bytes);
+        if (fields == null) return false;
+        for (ProtoEdit.Field field : fields) {
+            if (field.number == FIELD_COMPACT_DATA && field.wireType == 2 && compactType(field.data) > 0) return true;
+        }
+        return false;
+    }
+
+    /** The type id in field 1 of a CompactAny, or -1 when there is none. */
+    private static long compactType(byte[] compactAny) {
+        for (ProtoEdit.Field field : orEmpty(ProtoEdit.parse(compactAny))) {
+            if (field.number == 1 && field.wireType == 0) {
+                long value = 0;
+                for (int i = 0, shift = 0; i < field.data.length; i++, shift += 7) {
+                    value |= (long) (field.data[i] & 0x7F) << shift;
+                }
+                return value;
+            }
+        }
+        return -1;
+    }
+
+    /** Hex of a short message. The report strips anything that looks like an id, so hex is safe to log. */
+    private static String hexPreview(byte[] bytes) {
+        StringBuilder hex = new StringBuilder("[");
+        for (int i = 0; i < Math.min(bytes.length, MAX_DESCRIBED_BYTES); i++) {
+            if (i > 0) hex.append(' ');
+            hex.append(String.format("%02x", bytes[i] & 0xFF));
+        }
+        return hex.append(']').toString();
+    }
+
+    private static List<ProtoEdit.Field> orEmpty(List<ProtoEdit.Field> fields) {
+        return fields == null ? Collections.<ProtoEdit.Field>emptyList() : fields;
+    }
+
+    // endregion
+
+    /** A component under inspection: its names, plus the payload read only once a rule actually needs it. */
+    private static final class Facts {
+        final Object component;
+        final Object tracking;
+        final String name;
+        final String screen;
+        private byte[] bytes;
+        private boolean decoded;
+        private ProtoScanner scan;
+
+        Facts(Object component) {
+            this.component = component;
+            this.tracking = Proto.is(component, "hasViewTracking") ? Proto.call(component, "getViewTracking") : null;
+            this.name = Proto.string(tracking, "getViewName");
+            this.screen = Proto.string(component, "getObservabilityViewName");
+        }
+
+        byte[] bytes() {
+            if (!decoded) {
+                bytes = payloadOf(component);
+                decoded = true;
+            }
+            return bytes;
+        }
+
+        /** Everything the payload holds, strings and images alike. */
+        ProtoScanner scan() {
+            if (scan == null) scan = ProtoScanner.scan(bytes());
+            return scan;
+        }
     }
 }

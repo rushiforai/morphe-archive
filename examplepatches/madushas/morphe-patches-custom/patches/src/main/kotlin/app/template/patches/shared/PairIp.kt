@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -84,6 +85,29 @@ fun BytecodePatchContext.restorePairIpHolders(resourceDir: String) {
  * Also calls [initPairipStringHolders] to inject "" <clinit>s into string
  * holder classes to prevent NPEs when the native lib is not running.
  */
+/**
+ * Replaces the body of a VM call-site method with a minimal return of the correct
+ * type, so a cleared PairIP-injected method is still verifier-valid.
+ * (The plain `returnEarly()` only supports void methods.)
+ */
+private fun MutableMethod.overrideReturnDefault() {
+    val rt = returnType
+    when {
+        rt == "V" -> returnEarly()
+        rt == "Z" -> returnEarly(false)
+        rt == "B" -> returnEarly(0.toByte())
+        rt == "S" -> returnEarly(0.toShort())
+        rt == "C" -> returnEarly('\u0000')
+        rt == "I" -> returnEarly(0)
+        rt == "J" -> returnEarly(0L)
+        rt == "F" -> returnEarly(0f)
+        rt == "D" -> returnEarly(0.0)
+        rt == "Ljava/lang/String;" || rt == "Ljava/lang/CharSequence;" -> returnEarly("")
+        rt.first() == 'L' || rt.first() == '[' -> returnEarly(null as Void?)
+        else -> returnEarly()
+    }
+}
+
 fun BytecodePatchContext.killPairIpFull(
     vararg extraNoOps: Pair<String, String>,
 ) {
@@ -139,26 +163,38 @@ fun BytecodePatchContext.killPairIpFull(
         """.trimIndent())
 
     // Clear all VMRunner.invoke() call sites outside com.pairip.*
+    // NOTE: must use mutableClassDefBy(classDef) + findMutableMethodOf — the
+    // by-string mutableClassDefByOrNull(type) silently returns null for classes
+    // outside the first dex in FULL bytecode mode (all 18 call sites were skipped).
+    // Clear all VMRunner.invoke() call sites outside com.pairip.*
+    // NOTE: classDef instruction lists are ONE-SHOT iterables — collect targets in a
+    // single pass, then mutate. (A second filter pass sees an exhausted stream.)
+    data class Target(val classDef: com.android.tools.smali.dexlib2.iface.ClassDef,
+                      val method: com.android.tools.smali.dexlib2.iface.Method)
+
+    val targets = ArrayList<Target>()
     classDefForEach { classDef ->
         if (classDef.type.startsWith("Lcom/pairip/")) return@classDefForEach
-        val callers = classDef.methods.filter { method ->
-            method.implementation?.instructions?.any { insn ->
-                insn.opcode.name.startsWith("INVOKE") &&
-                    (insn as? ReferenceInstruction)?.reference.let { ref ->
-                        ref is MethodReference &&
-                            ref.definingClass == vm &&
-                            ref.name == "invoke"
-                    }
-            } == true
-        }
-        if (callers.isEmpty()) return@classDefForEach
-        val mutableClass = mutableClassDefByOrNull(classDef.type) ?: return@classDefForEach
-        for (method in callers) {
-            mutableClass.methods.firstOrNull {
-                it.name == method.name && it.returnType == method.returnType
-            }?.returnEarly()
+        classDef.methods.forEach { method ->
+            val impl = method.implementation ?: return@forEach
+            val hit = impl.instructions.any { insn ->
+                val ref = (insn as? ReferenceInstruction)?.reference
+                ref is MethodReference && ref.definingClass == vm && ref.name == "invoke"
+            }
+            if (hit) targets.add(Target(classDef, method))
         }
     }
+    var cleared = 0
+    var skipped = 0
+    for (t in targets) {
+        val mutableClass = mutableClassDefBy(t.classDef)
+        val mm = mutableClass.methods.firstOrNull {
+            it.name == t.method.name && it.returnType == t.method.returnType &&
+                it.parameterTypes == t.method.parameterTypes
+        }
+        if (mm != null) { mm.overrideReturnDefault(); cleared++ } else skipped++
+    }
+    println("[killPairIpFull] callerMethods=${targets.size} cleared=$cleared skipped=$skipped")
 
     for ((cls, method) in extraNoOps)
         mutableClassDefByOrNull(cls)?.methods?.firstOrNull { it.name == method }

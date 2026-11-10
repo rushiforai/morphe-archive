@@ -48,6 +48,7 @@ enum class Reject : uint8_t {
     BadSubImage,
     PoseMismatch,
     SwapchainMismatch,
+    EyesUnavailable,      // eye offsets could not be located this frame (retried next frame)
     Count_
 };
 
@@ -72,6 +73,7 @@ inline const char* rejectName(Reject reason) {
         case Reject::BadSubImage: return "bad_sub_image";
         case Reject::PoseMismatch: return "pose_mismatch";
         case Reject::SwapchainMismatch: return "swapchain_mismatch";
+        case Reject::EyesUnavailable: return "eyes_unavailable";
         default: return "unknown";
     }
 }
@@ -320,6 +322,42 @@ inline bool buildQuads(const Plan& plan, const XrPosef eyes[2], XrCompositionLay
         }
     }
     return true;
+}
+
+// ---- projection stripping -----------------------------------------------------------
+// A tracked session never forwards a projection layer. These helpers touch only the frame
+// argument and are safe on any frame whose layer array is readable.
+
+// The frame can be iterated: right structure type and a readable array. Anything else is left to
+// the downstream runtime, which reports its own error for it.
+inline bool frameIterable(const XrFrameEndInfo* info) {
+    return info && info->type == XR_TYPE_FRAME_END_INFO &&
+        (info->layerCount == 0 || info->layers);
+}
+
+// Number of projection layers anywhere in the frame (null entries are skipped).
+inline uint32_t countProjectionLayers(const XrFrameEndInfo* info) {
+    uint32_t count = 0;
+    for (uint32_t i = 0; i < info->layerCount; ++i) {
+        const XrCompositionLayerBaseHeader* layer = info->layers[i];
+        if (layer && layer->type == XR_TYPE_COMPOSITION_LAYER_PROJECTION) ++count;
+    }
+    return count;
+}
+
+// Copies every non-null, non-projection layer in order. Returns the count, or UINT32_MAX when
+// `capacity` is too small (nothing is then guaranteed about `out`).
+inline uint32_t stripProjectionLayers(const XrFrameEndInfo* info,
+                                      const XrCompositionLayerBaseHeader** out,
+                                      uint32_t capacity) {
+    uint32_t count = 0;
+    for (uint32_t i = 0; i < info->layerCount; ++i) {
+        const XrCompositionLayerBaseHeader* layer = info->layers[i];
+        if (!layer || layer->type == XR_TYPE_COMPOSITION_LAYER_PROJECTION) continue;
+        if (count == capacity) return UINT32_MAX;
+        out[count++] = layer;
+    }
+    return count;
 }
 
 // Exact process guard: the cmdline of the app's main process is its package name.

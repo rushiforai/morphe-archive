@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Process;
 
+import dev.utaa.linimal.extension.i18n.LinimalText;
+
 /**
  * LINE を再起動するための中継画面。LINE とは別のプロセス（{@code :linimal_restart}）と task で動きます。
  *
@@ -37,7 +39,7 @@ public final class LinimalRestartActivity extends Activity {
         }
         if (!started) {
             try {
-                android.widget.Toast.makeText(getApplicationContext(), AppRestarter.MANUAL_RESTART,
+                android.widget.Toast.makeText(getApplicationContext(), LinimalText.t(AppRestarter.MANUAL_RESTART),
                         android.widget.Toast.LENGTH_LONG).show();
             } catch (Throwable ignored) {
                 // 案内を出せなくても、LINE はランチャーから起動すれば保存した設定で動きます。

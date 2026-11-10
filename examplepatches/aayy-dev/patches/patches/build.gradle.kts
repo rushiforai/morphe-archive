@@ -2,7 +2,7 @@ group = "dev.aayy.bwpatches"
 
 patches {
     about {
-        name = "Aayy Patches"
+        name = "aayy-dev"
         description = "Personal patches for use with Morphe"
         source = "git@github.com:aayy-dev/patches.git"
         author = "aayy-dev"

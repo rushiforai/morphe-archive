@@ -81,10 +81,11 @@ public final class OneAheadBorrowTest {
         System.arraycopy(show, 90 * SR, other, 90 * SR, 90 * SR);
         p = prove(show, other, INTRO, ALL);
         check("edge-only refused: " + p.refused, "anchor".equals(p.refused));
-        // The anchor must also agree: a second copy of the same programme shifted past the slack cannot pass.
+        // The anchor must match somewhere, at any offset: a second copy of the same programme shifted past
+        // the slack still passes (validated: any anchor offset, the offset gate is gone).
         float[] farOff = cat(cut(show, 0, 900), programme(4, 2), cut(show, 900, 1448));
         p = prove(show, farOff, INTRO, ALL);
-        check("anchor at another offset refused: " + p.refused, p.refused != null && p.refused.startsWith("anchor"));
+        check("anchor at another offset passes: " + p.refused, p.refused == null && near(p.start, 90) && near(p.end, 180));
         // One edge only: the end of the window is other audio.
         float[] halfEdge = cat(cut(show, 0, 150), programme(5, 1300));
         p = prove(show, halfEdge, INTRO, ALL);
@@ -99,10 +100,11 @@ public final class OneAheadBorrowTest {
         float[] tailed = cat(show, programme(7, 40));
         p = prove(show, tailed, INTRO, ALL);
         check("target 40 s longer at the end " + p.refused, p.refused == null && near(p.start, 90) && near(p.end, 180));
-        // A cut inside the episode moves the far side from the segment: refused, it is another edit.
+        // A cut inside the episode moves the far side from the segment: it passes at the locked
+        // edges (validated: any anchor offset), with marks at the true segment.
         float[] edit = cat(cut(show, 0, 700), programme(8, 40), cut(show, 700, 1450));
         p = prove(show, edit, INTRO, ALL);
-        check("other edit refused: " + p.refused, "anchor".equals(p.refused) || "anchor-offset".equals(p.refused));
+        check("other edit passes at the edges: " + p.refused, p.refused == null && near(p.start, 90) && near(p.end, 180));
 
         // Clamp at the end of the file: the predicted end is past the target's end.
         OneAheadBorrow.Named toEnd = new OneAheadBorrow.Named("credits", 1330, 1450, false);
@@ -159,13 +161,18 @@ public final class OneAheadBorrowTest {
                 new OneAheadBorrow.Donor("http://x/weak", "Show.S01E05.mkv", "Show", true),
                 new OneAheadBorrow.Donor("http://x/second", "Show.S01E05.720p.mkv", "Show", true));
         Fake target = new Fake(lead, "eng");
-        List<OneAheadResult.Segment> found = OneAheadBorrow.run(donors, target, 1, 5, "Show", true, true, files, m -> { });
+        OneAheadBorrow.Run run = OneAheadBorrow.run(donors, target, 1, 5, "Show", true, true, files, m -> { });
+        List<OneAheadResult.Segment> found = run.segments;
         check("uncached and wrong files never read", !read.contains("http://x/uncached") && !read.contains("http://x/neighbour") && !read.contains("http://x/film"));
-        check("both types proved, weak intro usable", found.size() == 2 && near(found.get(0).start, 91.7) && near(found.get(1).end, 1421.7));
+        // Trims move inward: weak intro start 91.7 + 2, strong credits end 1421.7 - 10. The weak
+        // intro still needs the detector's agreement downstream: the run reports it as weak.
+        check("both types proved, weak intro usable", found.size() == 2 && run.weakIntro
+                && near(found.get(0).start, 93.7) && near(found.get(1).end, 1411.7));
         check("source name", OneAheadResult.BORROWED.equals(found.get(0).source));
         int windows = target.windows;
         check("stops at the first donor that covers everything", windows == 6);
-        found = OneAheadBorrow.run(donors, target, 1, 5, "Show", false, true, files, m -> { });
+        run = OneAheadBorrow.run(donors, target, 1, 5, "Show", false, true, files, m -> { });
+        found = run.segments;
         check("only the missing type", found.size() == 1 && "credits".equals(found.get(0).type));
 
         // Hand-off and display keep the source.

@@ -1,3 +1,15 @@
+## [1.8.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.1...v1.8.2) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** add Fix slide show, which fits the Slide Show View to the screen and scrolls a post's long text in it ([92e94ee](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/92e94eed32bf8d5ec89eb0f529b22c3ef08aa759))
+
+## [1.8.2-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.1...v1.8.2-dev.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **baconreader:** add Fix slide show, which fits the Slide Show View to the screen and scrolls a post's long text in it ([92e94ee](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/92e94eed32bf8d5ec89eb0f529b22c3ef08aa759))
+
 ## [1.8.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.0...v1.8.1) (2026-11-08)
 
 ### 🐛 Bug Fixes

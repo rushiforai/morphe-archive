@@ -20,4 +20,13 @@ public class z {
     public static String a() {
         throw new UnsupportedOperationException("Stub");
     }
+
+    /**
+     * The settings of one named account. The third argument is the name of whatever is asking,
+     * which the app varies and which does not change which file is opened.
+     */
+    public static android.content.SharedPreferences h(android.content.Context context,
+                                                      String account, String asking) {
+        throw new UnsupportedOperationException("Stub");
+    }
 }

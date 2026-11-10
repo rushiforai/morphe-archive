@@ -1,5 +1,8 @@
+# Copyright (C) 2026 Lokesh Sparrow
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 name: 🐞 Bug report
-description: Something doesn't work, or works differently than it should.
+description: A patch does nothing, something crashes, or the app behaves differently than described.
 title: "bug: "
 labels: ["Bug report"]
 body:
@@ -8,12 +11,12 @@ body:
       value: |
         <p align="center"><b>🧩 Loki Patches · Bug report</b></p>
 
-        Thanks for taking the time to report a bug! A few things first:
+        Thanks for taking the time to write this up. Before you fill in the form:
 
-        - 🔎 **Search first.** Check the [open and closed bug reports](https://github.com/lokesh-sparrow/loki-patches/issues?q=label%3A%22Bug+report%22) to avoid duplicates.
-        - ⚙️ **Can't find the settings?** Tap your profile photo → **Loki Patches**, or long press the LinkedIn app icon → **Loki Patches**.
-        - 📦 **Use a supported version.** The supported LinkedIn versions are listed in the [README](https://github.com/lokesh-sparrow/loki-patches#patches). Other versions are experimental.
-        - 🚫 **Don't share patched APKs** or links to them in issues.
+        - 🔎 **Look for an existing report first.** The [open and closed bug reports](https://github.com/lokesh-sparrow/loki-patches/issues?q=label%3A%22Bug+report%22) already cover most problems.
+        - ⚙️ **Where are the options?** Tap your profile photo → **Loki Patches**, or long press the LinkedIn icon on your home screen → **Loki Patches**.
+        - 📦 **Check your LinkedIn version.** The [README](https://github.com/lokesh-sparrow/loki-patches#patches) lists the versions this bundle is built for; anything else is experimental.
+        - 🚫 **Never attach a patched APK**, or a link to one, to an issue.
 
   - type: dropdown
     id: app
@@ -28,7 +31,7 @@ body:
     id: app-version
     attributes:
       label: App version
-      description: In Android settings → Apps → LinkedIn, or the name of the APKMirror file you patched.
+      description: Android settings → Apps → LinkedIn, or the file name of the APKMirror download you patched.
       placeholder: "4.1.1267"
     validations:
       required: true
@@ -37,7 +40,7 @@ body:
     id: patches-version
     attributes:
       label: Loki Patches version
-      description: Shown in Loki Patches → About.
+      description: Loki Patches → About.
       placeholder: "1.0.1"
     validations:
       required: true
@@ -54,10 +57,10 @@ body:
     id: description
     attributes:
       label: What happened?
-      description: Describe the bug. What did you expect to happen instead?
+      description: What went wrong, and what did you expect instead?
       placeholder: |
-        The download button does not appear on photos in posts.
-        I expected it to show at the top right, like on profile photos.
+        The download button is missing on photos in posts.
+        I expected it at the top right, as it is on profile photos.
     validations:
       required: true
 
@@ -65,7 +68,7 @@ body:
     id: steps
     attributes:
       label: Steps to reproduce
-      description: How can the bug be reproduced? The more exact, the faster it can be fixed.
+      description: The exact steps. The closer they are to a click-by-click list, the quicker the fix.
       placeholder: |
         1. Open a post with several photos
         2. Tap a photo
@@ -78,37 +81,37 @@ body:
     attributes:
       label: Diagnostic report
       description: |
-        This shows exactly which patches are applied and what failed, and is the fastest way to get a bug fixed:
+        This lists which patches were applied and what failed, and it is the single most useful thing in a report:
 
         1. Loki Patches → **Other** → turn on **Diagnostic logging**
-        2. Close LinkedIn, open it again, and **repeat the bug**
+        2. Close LinkedIn, reopen it, then **repeat the bug**
         3. Loki Patches → **Other** → **Copy diagnostic report**
-        4. Paste it here
+        4. Paste the result here
 
-        Links, IDs, and e-mail addresses are removed from the report, but please read it before posting.
+        Personal data such as links, IDs and e-mail addresses is stripped from the report, but read it before you post it.
       placeholder: "### Loki Patches diagnostic report ..."
 
   - type: textarea
     id: screenshots
     attributes:
       label: Screenshots or screen recording
-      description: Drag images or videos here. Blur any personal information.
+      description: Drop images or videos here. Blur anything personal first.
 
   - type: textarea
     id: context
     attributes:
       label: Anything else?
-      description: Other patch bundles you use, things you already tried, or ideas for a fix.
+      description: Other bundles you have installed, things you already tried, or an idea about the cause.
 
   - type: checkboxes
     id: acknowledgements
     attributes:
       label: Acknowledgements
-      description: Reports that don't follow this list may be closed.
+      description: Reports that skip this list may be closed without an answer.
       options:
         - label: I searched the existing issues and this is not a duplicate.
           required: true
-        - label: I'm using Morphe and the Loki Patches source, not a patched APK downloaded from somewhere else.
+        - label: I'm using Morphe with the Loki Patches source, not a pre-patched APK from somewhere else.
           required: true
-        - label: I wrote a clear title and filled in the requested information.
+        - label: The title says what is broken, and I filled in every field above.
           required: true

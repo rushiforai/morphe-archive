@@ -20,10 +20,11 @@ import app.morphe.extension.shared.Utils;
  * <p>
  * Maps puts that name into its vehicle-info upload to the Google account. It builds it from the car's
  * make and model, and without them (DiLink reports neither) it is "Vehicle 1". The patch passes the
- * name through {@link #vehicleName}, which gives the name chosen in Maps' Settings (row "Car name for
- * Send to car"); nothing else in the upload changes. Maps sends the vehicle info about 20 s after it
- * starts and then at intervals its server sets, so a new name reaches the account after a restart.
- * Part of Send to car: with Send to car switched off, Maps' own name is sent.
+ * name through {@link #vehicleName}, which gives the name chosen in Maps' Settings (row "Send to car",
+ * its status dialog, then "Car name"); nothing else in the upload changes. Maps sends the vehicle info
+ * about 20 s after it starts and then at intervals its server sets, so a new name reaches the account
+ * after a restart. Part of Send to car: with Send to car switched off, Maps' own name is sent. Each
+ * upload's time and name are kept for Send to car's status ({@link SendToCarStatus}).
  * <p>
  * The chosen name is not written to the log or the problem report, only its length.
  */
@@ -34,6 +35,8 @@ public final class CarName {
     private static final String KEY_NAME = "name";
     /** The name Maps built itself, last seen in its upload; the Settings row shows it. */
     private static final String KEY_MAPS_NAME = "maps_name";
+    /** When Maps last built its vehicle upload and the name it got (for Send to car's status, never sent). */
+    private static final String KEY_UPLOAD_AT = "upload_at", KEY_UPLOAD_NAME = "upload_name";
     /** Maps' name for a car without make and model, shown until Maps' upload has run once. */
     private static final String MAPS_FALLBACK = "Vehicle 1";
     /** In UTF-16 units, as the text field counts. Google's own limit is unknown. */
@@ -58,7 +61,9 @@ public final class CarName {
                         ? "car name: Maps' own (" + mapsName + ")"
                         : "car name: the one set in Settings (" + name.length() + " characters) instead of Maps' own");
             }
-            return name == null ? mapsName : name;
+            String given = name == null ? mapsName : name;
+            rememberUpload(context, given);
+            return given;
         } catch (Throwable error) {
             ReportLog.w(TAG, "car name left to Maps", error);
             return mapsName;
@@ -150,8 +155,34 @@ public final class CarName {
         }
     }
 
+    private static void rememberUpload(Context context, String name) {
+        try {
+            preferences(context).edit().putLong(KEY_UPLOAD_AT, System.currentTimeMillis()).putString(KEY_UPLOAD_NAME, name).apply();
+        } catch (RuntimeException exception) {
+            ReportLog.w(TAG, "Could not keep the upload time", exception);
+        }
+    }
+
+    /** When Maps last built its vehicle upload, 0 when it was not seen since Send to car's status existed. */
+    static long uploadAt(Context context) {
+        try {
+            return preferences(context).getLong(KEY_UPLOAD_AT, 0);
+        } catch (RuntimeException exception) {
+            return 0;
+        }
+    }
+
+    /** The name in Maps' last vehicle upload, or null. */
+    static String uploadName(Context context) {
+        try {
+            return preferences(context).getString(KEY_UPLOAD_NAME, null);
+        } catch (RuntimeException exception) {
+            return null;
+        }
+    }
+
     /** Maps' own name, as last seen in its upload. */
-    private static String mapsName(Context context) {
+    static String mapsName(Context context) {
         String name = lastMapsName;
         if (name == null) {
             try {
@@ -163,14 +194,21 @@ public final class CarName {
         return name == null || name.isEmpty() ? MAPS_FALLBACK : name;
     }
 
-    // Settings row. The patch adds it to Maps' Settings list, before About & help.
+    // Settings row. The patch adds it to Maps' Settings list, before About & help. From 0.1.6 it is
+    // Send to car's row: the name phone Maps gets and the status ({@link SendToCarStatus}), whose dialog
+    // also opens the name editor.
 
     /** Injection point: the row title. */
     public static String getSettingsTitle(Context context) {
+        return "Send to car";
+    }
+
+    /** The name editor's title. */
+    private static String editorTitle(Context context) {
         return UiDensityPatch.isThai(context) ? "ชื่อรถสำหรับ Send to car" : "Car name for Send to car";
     }
 
-    /** Injection point: the row subtitle, the name phone Maps gets. */
+    /** Injection point: the row subtitle, the last status check and the name phone Maps gets. */
     public static String getSettingsSummary(Context context) {
         boolean thai = UiDensityPatch.isThai(context);
         if (!SafeMode.on(context, SafeMode.SEND_TO_CAR)) {
@@ -178,19 +216,20 @@ public final class CarName {
                     + ReportPatch.reportPlace(context, thai);
         }
         String name = storedName(context);
-        if (name != null) return name;
-        return mapsName(context) + (thai ? " · ชื่อของ Maps" : " · Maps' name");
+        String shown = name != null ? name : mapsName(context) + (thai ? " (ชื่อของ Maps)" : " (Maps' name)");
+        // The status first: a long name is cut at the row's end.
+        return SendToCarStatus.rowStatus(context, thai) + " · " + shown;
     }
 
     /**
-     * Injection point: the row's click action. The container view of the Settings screen, if the
-     * patch found one, gives the activity when the given context is not one.
+     * Injection point: the row's click action, Send to car's status. The container view of the Settings
+     * screen, if the patch found one, gives the activity when the given context is not one.
      */
     public static Runnable getSettingsAction(Context context, View container) {
-        return () -> showEditor(context, container);
+        return () -> SendToCarStatus.show(context, container);
     }
 
-    private static void showEditor(Context context, View container) {
+    static void showEditor(Context context, View container) {
         Activity activity = UiDensityPatch.findActivity(context);
         if (activity == null && container != null) activity = UiDensityPatch.findActivity(container.getContext());
         if (activity == null || activity.isFinishing()) {
@@ -217,7 +256,7 @@ public final class CarName {
         frame.addView(input);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(host)
-                .setTitle(getSettingsTitle(host))
+                .setTitle(editorTitle(host))
                 .setMessage(thai
                         ? "Google Maps ในมือถือแสดงชื่อนี้สำหรับรถคันนี้ ในหน้าเส้นทางและในส่งไปที่รถยนต์ ชื่อนี้เก็บในบัญชี"
                         + " Google ของคุณ จึงไม่ควรใส่ชื่อคนหรือเลขทะเบียนรถ เว้นว่างไว้เพื่อใช้ชื่อของ Maps"
@@ -269,7 +308,7 @@ public final class CarName {
             toast(activity, thai ? "บันทึกแล้ว" : "Saved.");
         } else {
             new AlertDialog.Builder(activity)
-                    .setTitle(getSettingsTitle(activity))
+                    .setTitle(editorTitle(activity))
                     .setMessage(thai
                             ? "บันทึกแล้ว จะใช้ชื่อนี้เมื่อเปิด Send to car อีกครั้งใน " + ReportPatch.reportPlace(activity, true)
                             : "Saved. This name is used once Send to car is switched on again in "
@@ -284,7 +323,7 @@ public final class CarName {
         boolean thai = UiDensityPatch.isThai(activity);
         String later = thai ? "บันทึกแล้ว จะส่งชื่อตอนเปิดแอปครั้งถัดไป" : "Saved. The name is sent at the next start.";
         new AlertDialog.Builder(activity)
-                .setTitle(getSettingsTitle(activity))
+                .setTitle(editorTitle(activity))
                 .setMessage(thai
                         ? "บันทึกแล้ว แอปส่งชื่อขึ้นบัญชี Google ราว 20 วินาทีหลังเริ่ม เริ่มใหม่ตอนนี้เลยไหม"
                         + " (การนำทางที่กำลังทำงานจะหยุด) ไม่อย่างนั้นจะส่งตอนเปิดครั้งถัดไป"

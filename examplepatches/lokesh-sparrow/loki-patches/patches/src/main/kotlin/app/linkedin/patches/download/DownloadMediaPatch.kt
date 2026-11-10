@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.patches.download
 
 import app.linkedin.patches.shared.Constants.COMPATIBILITY_LINKEDIN
@@ -8,13 +13,14 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 
-private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/DownloadMediaPatch;"
+private const val DOWNLOAD_PATCH = "$EXTENSION_PACKAGE/DownloadMediaPatch;"
 
 /**
  * DocumentSingleViewData(properties, playerId, DocumentAsset, Source, navigablePages, isFullScreenMode, ...),
- * the document (PDF or carousel) player. Later parameters change between versions, so only these are matched.
+ * the player behind PDFs and document carousels. The trailing parameters change between LinkedIn versions,
+ * so only the leading ones are matched.
  */
-private object DocumentPlayerFingerprint : Fingerprint(
+private val documentPlayer = Fingerprint(
     definingClass = "Lcom/linkedin/sdui/viewdata/document/DocumentSingleViewData;",
     name = "<init>",
     custom = { method, _ ->
@@ -29,30 +35,30 @@ private object DocumentPlayerFingerprint : Fingerprint(
 @Suppress("unused")
 val downloadMediaPatch = bytecodePatch(
     name = "Download media",
-    description = "Adds a download button to the full screen photo, video and document viewer. " +
-        "Documents (PDFs and carousels) are saved as one PDF.",
+    description = "Puts a download button in the full screen photo, video and document viewer; documents " +
+        "(PDFs and carousels) are saved as a single PDF.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
 
-    // The server driven viewer is handled by the SDUI filter and SduiFragment lifecycle hooks.
+    // The server driven viewer goes through the SDUI filter, plus the SduiFragment lifecycle hooks of the
+    // settings patch, which tell the extension which fragment is on screen.
     dependsOn(sduiComponentFilterPatch)
 
     execute {
         markIncluded("isDownloadMediaIncluded")
 
-        // Legacy (RecyclerView) media viewer presenters.
-        mediaViewerOnBindFingerprints.forEach {
-            // p1 = ViewData, p2 = ViewDataBinding. Range form because p registers can be above v15.
-            it.method.addInstruction(
+        // The classic viewers. p1 is the ViewData, p2 the binding; range form, since they can be above v15.
+        mediaViewerOnBindFingerprints.forEach { viewer ->
+            viewer.method.addInstruction(
                 0,
-                "invoke-static/range { p1 .. p2 }, $EXTENSION_CLASS->onMediaBind(Ljava/lang/Object;Ljava/lang/Object;)V"
+                "invoke-static/range { p1 .. p2 }, $DOWNLOAD_PATCH->onMediaBind(Ljava/lang/Object;Ljava/lang/Object;)V"
             )
         }
 
-        // p3 = DocumentAsset, p4 = Source, p5 = navigablePages, p6 = isFullScreenMode. A static call before the
-        // super constructor is allowed, as long as it doesn't touch p0.
-        DocumentPlayerFingerprint.method.addInstruction(
+        // p3 DocumentAsset, p4 Source, p5 navigablePages, p6 isFullScreenMode. A static call ahead of a super
+        // constructor call is allowed, as long as it does not touch p0.
+        documentPlayer.method.addInstruction(
             0,
             "invoke-static/range { p3 .. p6 }, $EXTENSION_PACKAGE/DocumentPdf;->onDocument(Ljava/lang/Object;Ljava/lang/Object;IZ)V"
         )

@@ -121,7 +121,7 @@ public final class MaterialYou {
 
     /**
      * Injected at the end of the Compose themes' static initializer for the gap between posts, before the card
-     * is mapped. A gap equal to the card (made so by "Remove gaps and dividers") gets the card's color, otherwise
+     * is mapped. A gap equal to the card (made so by "Hide gaps and dividers") gets the card's color, otherwise
      * it is a step darker than the card.
      */
     public static long canvas(long packed, long card) {
@@ -159,14 +159,14 @@ public final class MaterialYou {
     }
 
     /**
-     * Injected at the end of the Compose themes' static initializer for the gap between posts, by "Remove gaps
+     * Injected at the end of the Compose themes' static initializer for the gap between posts, by "Hide gaps
      * and dividers": the gap gets the card's color.
      */
     public static long flatGap(long gap, long card) {
         return Settings.removeGapsAndDividers() ? card : gap;
     }
 
-    /** Injected after the color of the dividers between list items, by "Remove gaps and dividers". */
+    /** Injected after the color of the dividers between list items, by "Hide gaps and dividers". */
     public static long flatDivider(long packed) {
         // 0 is Color.Transparent.
         return Settings.removeGapsAndDividers() ? 0 : packed;
@@ -338,7 +338,7 @@ public final class MaterialYou {
 
     /**
      * Injected for the Mercado MVP canvas (the background of server drawn screens) and for the warm gray the
-     * server sends for it: the card color with "Remove gaps and dividers", otherwise the Material You canvas.
+     * server sends for it: the card color with "Hide gaps and dividers", otherwise the Material You canvas.
      */
     public static long mvpCanvas(long packed) {
         if (Settings.removeGapsAndDividers()) {

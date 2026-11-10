@@ -42,7 +42,7 @@ val hidePromotedJobsPatch = bytecodePatch(
 @Suppress("unused")
 val expandPostsPatch = bytecodePatch(
     name = "Expand posts",
-    description = "Adds an option (off by default, turned on in Fakh Patches) to show posts expanded by default. Tapping the text collapses them.",
+    description = "Adds an option in Fakh Patches (off by default) to show posts expanded by default. Tapping the text collapses them.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -54,7 +54,7 @@ val expandPostsPatch = bytecodePatch(
 @Suppress("unused")
 val feedFiltersPatch = bytecodePatch(
     name = "Feed filters",
-    description = "Adds optional filters (off by default, turned on in Fakh Patches): engagement counts, " +
+    description = "Adds optional filters in Fakh Patches (off by default): engagement counts, " +
         "celebrations, job cards, network activity (likes, comments, reposts), video posts, \"Recommended for you\", puzzle games, the \"New posts\" pill and \"Show translation\".",
     default = true
 ) {

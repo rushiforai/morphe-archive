@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="color-scheme" content="dark"><meta name="theme-color" content="#141A21">
+<title>Chargement</title>
+<style>
+html,body{margin:0;height:100%;background:#141a21;overflow:hidden;-webkit-user-select:none;user-select:none}
+.w{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ic{width:150px;max-width:44vw;height:auto;border-radius:28px;margin-bottom:18px;animation:pop .6s ease-out both,pulse 1.8s ease-in-out .6s infinite}
+.bar{margin-top:28px;width:140px;height:4px;border-radius:4px;background:rgba(127,127,127,.25);overflow:hidden;position:relative}
+.bar i{position:absolute;top:0;left:-40%;width:40%;height:100%;border-radius:4px;background:#f08a24;animation:run 1.1s ease-in-out infinite}
+@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@keyframes pulse{50%{transform:scale(1.05)}}
+@keyframes run{to{left:100%}}
+</style></head><body>
+<div class="w">
+<!-- Icône de l'appli : assets/htmlapp/root/icon.png (remplacée par le patch ModProd App) -->
+<img class="ic" alt="" src="../root/icon.png" onerror="this.remove()">
+<div class="bar"><i></i></div>
+</div>
+</body></html>

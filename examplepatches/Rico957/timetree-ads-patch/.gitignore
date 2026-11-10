@@ -1,0 +1,24 @@
+# Gradle
+.gradle/
+build/
+patches/build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Signing material — never commit these
+*.keystore
+*.jks
+keystore.properties
+
+# Patching scratch space
+build/
+tmp/
+decoded/
+xapk/
+*.apk
+*.xapk
+!gradle/wrapper/gradle-wrapper.jar

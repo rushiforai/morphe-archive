@@ -10,6 +10,7 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.comments.CommentsHeight;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
 import app.morphe.extension.facebook.download.SaveFolder;
@@ -22,6 +23,7 @@ import app.morphe.extension.facebook.media.SurfaceQuality;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
 import app.morphe.extension.facebook.reels.FeedVideoControls;
+import app.morphe.extension.facebook.reels.GrayOver;
 import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.misc.AppLock;
@@ -55,6 +57,7 @@ import app.morphe.extension.shared.settings.preference.CrashFile;
 public class Settings extends BaseSettings {
     static {
         StoriesSetting.migrate();
+        CommentsHeightSetting.migrate();
         RecentlyWatched.keepOlderListAsItWas();
     }
 
@@ -834,6 +837,23 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_gray_reels", FALSE);
 
     /**
+     * Turn gray over: how many minutes on the Reels screen {@link #GRAY_REELS} takes to go from full
+     * color to gray ({@link app.morphe.extension.facebook.reels.GrayReels}). Fifteen minutes away
+     * from Reels starts the colors over. At once by default, the gray as it always was. Read on each
+     * look, so a change shows right away. It isn't a switch.
+     */
+    public static final EnumSetting<GrayOver> GRAY_REELS_OVER =
+            new EnumSetting<>("hushfacebook_gray_reels_over", GrayOver.AT_ONCE, Setting.parent(GRAY_REELS));
+
+    /**
+     * Show time in Reels: a small label at the top of the Reels screen with the minutes watched
+     * there, counted the way {@link #GRAY_REELS_OVER} counts them, with or without the gray
+     * ({@link app.morphe.extension.facebook.reels.GrayReels}). Off by default. Read on each look.
+     */
+    public static final BooleanSetting REELS_MINUTES =
+            new BooleanSetting("hushfacebook_reels_minutes", FALSE);
+
+    /**
      * The numbers under a reel's Like, Comment and Share icons go, and the icons stay where they are
      * ({@link app.morphe.extension.facebook.reels.ReelDeclutter#countText}, #180). Off by default.
      * A change shows on the buttons drawn after it.
@@ -1452,13 +1472,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_new_comments_pill", FALSE);
 
     /**
-     * The comment sheet opens at the full height of the screen instead of part way up, on posts,
-     * videos, reels and stories, and a reel's or a feed video's Comment button opens that sheet
-     * instead of the split screen with the video above
-     * ({@link app.morphe.extension.facebook.comments.FullHeightComments}, #179). Off by default.
+     * How high the comment sheet opens: where Facebook stops it, the full height of the screen, or
+     * half of it with the reel or video playing above. Full or half, a reel's or a feed video's
+     * Comment button opens that sheet instead of the split screen with the video above
+     * ({@link app.morphe.extension.facebook.comments.FullHeightComments}, #179). Facebook's height
+     * by default; a phone that had the old Open comments at full height switch on starts at full
+     * height ({@link CommentsHeightSetting}).
      */
-    public static final BooleanSetting OPEN_COMMENTS_FULL_HEIGHT =
-            new BooleanSetting("hushfacebook_open_comments_full_height", FALSE);
+    public static final EnumSetting<CommentsHeight> COMMENTS_HEIGHT = new CommentsHeightSetting();
 
     /**
      * The reel playing on screen pauses when its comment sheet opens and plays on from there when
@@ -3266,6 +3287,14 @@ public class Settings extends BaseSettings {
      */
     public static final EnumSetting<TextSize.Scale> TEXT_SIZE =
             new EnumSetting<>("hushfacebook_text_size", TextSize.Scale.P100, true);
+
+    /**
+     * Mark new settings ({@link NewRowDots}, #16): how long the dot beside a setting an update added
+     * stays, from none to 7 days after its page was first opened. Until that page is left by
+     * default, as the dot always worked. The settings entry carries it, so every build has it.
+     */
+    public static final EnumSetting<NewRowMark> NEW_ROW_MARK =
+            new EnumSetting<>("hushfacebook_new_row_mark", NewRowMark.ONE_VISIT);
 
     /**
      * The colour that stands in for Facebook's blue on links, buttons, switches and the selected

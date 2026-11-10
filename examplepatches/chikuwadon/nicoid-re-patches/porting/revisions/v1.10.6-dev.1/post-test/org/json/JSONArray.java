@@ -1,0 +1,1 @@
+package org.json; import java.util.*; public class JSONArray {private final List<Object> list = new ArrayList<>();public JSONArray put(Object v){list.add(v);return this;}public int length(){return list.size();}public String optString(int i){return i<0||i>=list.size()?"":String.valueOf(list.get(i));}}

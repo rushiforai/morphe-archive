@@ -38,6 +38,18 @@ final class AccountInfo {
         return location == null && source == null;
     }
 
+    /**
+     * The country badges and filters go by: the one in "Connected via" when Use device
+     * country is on and it names one, otherwise the account location.
+     */
+    String country() {
+        if (source != null && Settings.deviceCountry()) {
+            String country = Countries.fromSource(source);
+            if (country != null) return country;
+        }
+        return location;
+    }
+
     boolean hasLocationWarning() {
         return location != null && Boolean.FALSE.equals(locationAccurate);
     }

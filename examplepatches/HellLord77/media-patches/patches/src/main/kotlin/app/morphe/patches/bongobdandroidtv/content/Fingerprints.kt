@@ -8,6 +8,7 @@ import app.morphe.patches.shared.Type
 import app.morphe.patches.shared.isNotExtension
 import app.morphe.patches.shared.morphe.java.lang.String
 import app.morphe.patches.shared.morphe.okhttp3.Request
+import app.morphe.patches.shared.morphe.retrofit2.Call
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -19,7 +20,7 @@ object GetVideoDetailsDataMethodCallFingerprint :
                     definingClass = "Lsaas/ott/smarttv/ui/details/data/DetailsEndPoint;",
                     name = "getVideoDetailsData",
                     parameters = listOf(Type.STRING),
-                    returnType = "Lretrofit2/Call;",
+                    returnType = Call.toString(),
                     opcode = Opcode.INVOKE_INTERFACE,
                 ),
             ),

@@ -16,6 +16,7 @@ import app.xposed.patches.twitter.Constants.BRIDGE_CLASS
 import app.xposed.patches.twitter.Constants.COMPATIBILITY_NEW_X
 import app.xposed.patches.twitter.Constants.EXTENSION_PATH
 import app.xposed.patches.twitter.Constants.HOOKS_CLASS
+import app.xposed.patches.twitter.Constants.requireMinVersion
 import app.xposed.patches.twitter.util.clearBitsSmali
 import app.xposed.patches.twitter.util.composableParameter
 import app.xposed.patches.twitter.util.descriptor
@@ -91,6 +92,8 @@ val accountBadgesPatch = bytecodePatch(
     extendWith(EXTENSION_PATH)
 
     execute {
+        requireMinVersion(packageMetadata.versionName)
+
         val user = resolveUser()
         val compose = resolveCompose()
         val badges = resolveBadges()

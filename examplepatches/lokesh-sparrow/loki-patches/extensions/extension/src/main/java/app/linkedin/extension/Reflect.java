@@ -1,65 +1,70 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * LinkedIn's Pegasus models keep their field names, so the extension reads them
- * reflectively instead of compiling against app classes.
+ * Field access for LinkedIn's Pegasus models.
+ *
+ * <p>Those classes ship inside the app, so the extension cannot link against them. Their field
+ * names are stable across releases, which makes lookup by name the cheapest option; the result is
+ * remembered per class so the walk up the hierarchy happens once.
  */
 final class Reflect {
-    private static final Field MISSING;
-    private static final Map<String, Field> CACHE = new ConcurrentHashMap<>();
-
-    static {
-        try {
-            MISSING = Reflect.class.getDeclaredField("MISSING");
-        } catch (NoSuchFieldException e) {
-            throw new ExceptionInInitializerError(e);
-        }
-    }
+    private static final Map<String, Optional<Field>> LOOKUP = new ConcurrentHashMap<>();
 
     private Reflect() {
     }
 
-    /** Returns the value of a field declared on the object's class or a superclass, or null. */
-    static Object get(Object obj, String name) {
-        if (obj == null) return null;
-        Class<?> cls = obj.getClass();
-        String key = cls.getName() + '#' + name;
-        Field field = CACHE.get(key);
-        if (field == null) {
-            field = find(cls, name);
-            CACHE.put(key, field);
-        }
-        if (field == MISSING) return null;
+    /** The value of {@code name} on the object (or a superclass), or null if there is no such field. */
+    static Object get(Object target, String name) {
+        if (target == null) return null;
+        Optional<Field> handle = handleFor(target.getClass(), name);
+        if (!handle.isPresent()) return null;
         try {
-            return field.get(obj);
-        } catch (IllegalAccessException e) {
+            return handle.get().get(target);
+        } catch (IllegalAccessException unreachable) {
+            // setAccessible(true) was already applied, so this cannot normally happen.
             return null;
         }
     }
 
-    /** A field declared on the class or a superclass, made accessible, or null. */
-    static Field field(Class<?> cls, String name) {
-        Field f = find(cls, name);
-        return f == MISSING ? null : f;
+    /** The same field as a writable handle, or null when this build has no field of that name. */
+    static Field field(Class<?> type, String name) {
+        Optional<Field> handle = handleFor(type, name);
+        return handle.isPresent() ? handle.get() : null;
     }
 
-    private static Field find(Class<?> cls, String name) {
-        for (Class<?> c = cls; c != null && c != Object.class; c = c.getSuperclass()) {
+    private static Optional<Field> handleFor(Class<?> type, String name) {
+        String key = type.getName() + '#' + name;
+        return LOOKUP.computeIfAbsent(key, ignored -> locate(type, name));
+    }
+
+    /** Searches the class and then its superclasses; Object is skipped, nothing is declared there. */
+    private static Optional<Field> locate(Class<?> type, String name) {
+        Class<?> current = type;
+        while (current != null && current != Object.class) {
             try {
-                Field f = c.getDeclaredField(name);
-                f.setAccessible(true);
-                return f;
-            } catch (NoSuchFieldException ignored) {
+                Field declared = current.getDeclaredField(name);
+                declared.setAccessible(true);
+                return Optional.of(declared);
+            } catch (NoSuchFieldException notHere) {
+                current = current.getSuperclass();
             }
         }
-        return MISSING;
+        return Optional.empty();
     }
 
+    /** Numeric field value as an int; anything else counts as 0. */
     static int asInt(Object value) {
-        return value instanceof Number ? ((Number) value).intValue() : 0;
+        if (!(value instanceof Number)) return 0;
+        return ((Number) value).intValue();
     }
 }

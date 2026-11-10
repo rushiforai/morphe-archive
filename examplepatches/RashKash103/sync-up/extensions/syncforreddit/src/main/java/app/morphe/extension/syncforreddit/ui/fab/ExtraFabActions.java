@@ -5,6 +5,7 @@ import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -396,7 +397,9 @@ public final class ExtraFabActions {
     private static float cornerOf(View fab, int size) {
         try {
             Drawable its = of(fab).background;
-            if (its != null) {
+            // Outline.getRadius arrived in API 24. Below that the button is not asked and the
+            // corner Material draws one of these with is used instead.
+            if (its != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 android.graphics.Outline outline = new android.graphics.Outline();
                 its.setBounds(0, 0, size, size);
                 its.getOutline(outline);

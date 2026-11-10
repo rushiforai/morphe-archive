@@ -37,6 +37,16 @@ public sealed class PostBuilder
         return this;
     }
 
+    /// <summary>
+    /// Its text, <paramref name="markdown"/>, kept with its link: an image, GIF or video post with a body, which Reddit
+    /// sends in <c>selftext</c> next to the media's URL.
+    /// </summary>
+    public PostBuilder Saying(string markdown)
+    {
+        Post.Text = markdown;
+        return this;
+    }
+
     /// <summary>A link post to <paramref name="url"/>.</summary>
     public PostBuilder LinkingTo(string url)
     {

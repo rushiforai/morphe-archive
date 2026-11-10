@@ -44,7 +44,7 @@ final class HeaderBadges {
         String handle = normalizeHandle(username);
         if (handle == null) {
             bindings.remove(view);
-            FilterViews.apply(view, Filters.Action.NONE);
+            FilterViews.apply(view, null, Filters.Action.NONE);
             return badges;
         }
 
@@ -68,7 +68,7 @@ final class HeaderBadges {
         Settings.init(view.getContext());
         Stats.init(view.getContext());
         AccountInfo info = Lookup.get(handle);
-        FilterViews.apply(view, Filters.actionFor(info));
+        FilterViews.apply(view, handle, Filters.actionFor(info));
         if (info == null || info.isEmpty()) return badges;
 
         BadgeDrawable drawable;
@@ -146,7 +146,7 @@ final class HeaderBadges {
     private static void installTouchListener(View view) {
         view.setOnTouchListener((v, event) -> {
             Binding b = bindings.get(v);
-            if (b == null || b.drawable == null) return false;
+            if (b == null || b.drawable == null || FilterViews.isCovered(v)) return false;
             switch (event.getActionMasked()) {
                 case MotionEvent.ACTION_DOWN:
                     b.pressed = hit(v, b.drawable, event);

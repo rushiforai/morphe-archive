@@ -1,3 +1,29 @@
+## [1.4.0](https://github.com/HellLord77/media-patches/compare/v1.3.5...v1.4.0) (2026-11-10)
+
+### ✨ New Features
+
+* **AddatimesTV:** Ported patches from mobile version ([8efb731](https://github.com/HellLord77/media-patches/commit/8efb731f5577b57faaba4b9c9225c1c39c3bdb88))
+
+### 🐛 Bug Fixes
+
+* **Bongo:** Bypass content access check in ui ([702846f](https://github.com/HellLord77/media-patches/commit/702846f64f7d1c2d8b272b09bddb54c7e9a86fa7))
+
+### 🚀 Updated App Support
+
+* Added newer bongo version ([853f780](https://github.com/HellLord77/media-patches/commit/853f7803c403a14d8d5ceaf503e2aac0938f81ab))
+
+## [1.3.6-dev.2](https://github.com/HellLord77/media-patches/compare/v1.3.6-dev.1...v1.3.6-dev.2) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **Bongo:** Bypass content access check in ui ([702846f](https://github.com/HellLord77/media-patches/commit/702846f64f7d1c2d8b272b09bddb54c7e9a86fa7))
+
+## [1.3.6-dev.1](https://github.com/HellLord77/media-patches/compare/v1.3.5...v1.3.6-dev.1) (2026-11-08)
+
+### 🚀 Updated App Support
+
+* Added newer bongo version ([853f780](https://github.com/HellLord77/media-patches/commit/853f7803c403a14d8d5ceaf503e2aac0938f81ab))
+
 ## [1.3.5](https://github.com/HellLord77/media-patches/compare/v1.3.4...v1.3.5) (2026-11-01)
 
 ### 🚀 Updated App Support

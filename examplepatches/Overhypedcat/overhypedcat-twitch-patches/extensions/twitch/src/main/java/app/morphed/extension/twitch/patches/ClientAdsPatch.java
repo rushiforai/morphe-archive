@@ -31,7 +31,7 @@ public final class ClientAdsPatch {
             reasons.add(reason);
             StreamAdsPatch.LOGGER.log("Client-side ad check: answered ineligible (" + reason + ")");
             // Without the full check's result, only these few reasons are known.
-            if (!fullCheckSeen && noOtherReason) StreamAdsPatch.adBlocked();
+            if (!fullCheckSeen && noOtherReason) StreamAdsPatch.playbackAdBlocked();
         } catch (Throwable t) {
             StreamAdsPatch.PROBLEMS.report(Problem.CLIENT_ADS_NOT_BLOCKED, t.toString());
         }
@@ -49,7 +49,7 @@ public final class ClientAdsPatch {
             fullCheckSeen = true;
             boolean adWasDue = reasons.size() == 1;
             StreamAdsPatch.LOGGER.log("Client-side ad check result: " + reasons + (adWasDue ? ", an ad was due" : ""));
-            if (adWasDue) StreamAdsPatch.adBlocked();
+            if (adWasDue) StreamAdsPatch.playbackAdBlocked();
         } catch (Throwable t) {
             StreamAdsPatch.LOGGER.log("Client-side ad check result unreadable: " + t);
         }

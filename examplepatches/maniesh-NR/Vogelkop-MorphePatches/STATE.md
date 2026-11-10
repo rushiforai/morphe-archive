@@ -190,3 +190,101 @@ stable `284fb24c1822752cbfff41b1a37bdec2…` (see filename), beta
 - Releases: `tools/release.sh <ver>` does push+tag+release+assets+SHA256SUMS.
 - On-device Manager GX .apkm rejection is a Manager-side quirk with this
   4-arch/6-dpi bundle; desktop CLI works — do not "fix" the bundle for it.
+
+## 8. 2026-11-09 (later) — adversarial analysis round: vadj ground truth + test ladder
+
+Findings (evidence: this session + /home/z/my-project/work/x-* in the build sandbox):
+1. **vadj mod base = PLAY flavor arm64** (not generic): named-class diff vadj∖play = 1 class
+   (Ljava/lang/Override; rebuild artifact); mlkit(684)/vungle(58) class counts match play
+   exactly; generic differs (mlkit 966, vungle 0, never any pangle). His arm64 libopera.so is
+   byte-identical to the generic build's (399352480bcd…) — the play-arm64 engine equals the
+   generic one. => A re-signed, dex-rebuilt, merged PLAY-flavor Opera CAN boot. Flavor theory dead.
+2. **libopera.so contains NO signature/tamper validation**: no cert/pubkey pins (raw sha1/sha256,
+   hex, b64, b64url searched in the play-v7a and generic-arm64 engines), no getPackageInfo/
+   signingInfo/META-INF/"APK Sig Block" strings; the 'tamper'/'integrity_check'/
+   'com.android.vending' hits are benign (SQLite PRAGMA, Skia/V8 strings, tracing config).
+   => The MainLibraryBoot failure (codes 0/3/4/5 = LIB_LOAD/CHROMIUM_START/EMULATED_ARM per the
+   IgnoreBrowserBootFailures patch analysis) is a REAL packaging/content failure, not signature
+   rejection. Prime remaining suspects: something in the Morphe rebuild (dex rewrite / pangle
+   merge / manifest merge) — see the ladder below.
+3. **Historical test matrix was contaminated**: the delivered "diagnostics-only v1.2.5" build
+   contains the Spoof superclass swap (OperaApplication extends SignatureHookApp in its dex) —
+   non-exclusive patch selection; and the local artifact is UNSIGNED (sig block missing — the
+   "later jar task wipes the signature" gotcha). Do not trust pre-v1.3.0 test labels.
+4. Morphe pipeline (probe-verified on builds): v2-only signing; merges ALL splits incl. pangle;
+   rewrites dexes when patches apply (new dexes DEFLATEd, originals STOREd); a zero-patch build
+   keeps classes.dex byte-identical (fast path).
+5. vadj packaging: v1+v2+v3 (META-INF/https://t.me/vadjpro.RSA), all dexes rebuilt, pangle
+   excluded. The originals are v2+v3 only — v1 is not required to boot.
+6. Empty vogelkop-diag.log: extension writes were already per-line flushed (FileWriter+use), so
+   an empty file means StartupDiag.init never ran in the tested build — consistent with the
+   contaminated/unsigned artifact history, not a buffering bug.
+
+Test ladder delivered to the user (all in the sandbox download dir + LADDER-SHA256SUMS.txt):
+- **B0** vadjstyle control: APKEditor merge of the beta apkm, pangle excluded, .so STORE fix,
+  v1+v2+v3 — tests merge+re-sign without Morphe.
+- **B2** Morphe zero patches (v2 only) — tests the Morphe pipeline alone.
+- **B2b** = B2 re-signed v1+v2+v3 — pipeline + good signing (KEY).
+- **B1** = the v1.2.3 full-patch build re-signed v1+v2+v3 — patches + good signing (KEY).
+- **B3** = v1.3.0 diag-only (exclusive selection, verified NO spoof) re-signed v1+v2+v3 —
+  self-reporting probe; if it dies, vogelkop-diag.log / logcat tag VogelkopDiag will say where.
+- patches-1.3.0.mpp — hardened diagnostics: logcat mirror of every breadcrumb, unbuffered
+  fsync'ed writes, 500 ms heartbeat (bounds silent-kill moment), launcher-activity injection,
+  and the onCreate(Bundle) register fix (this = registerCount-1-paramCount; the first attempt
+  passed the Bundle — instant VerifyError — caught by self-review before delivery).
+
+Interpretation: B0 ok + B2b ok + B1 ok => v2-only signing was the killer all along (ship
+v1+v2+v3). B0 ok + B2b fail => Morphe rebuild content is the poison (dex rewrite or pangle
+merge). B0 fail => the vadj recipe does not transfer to this v7a beta input (deeper dig).
+B3 always yields a usable trace now (file or logcat).
+
+v1.3.0 build notes: gradle needs GITHUB_ACTOR/GITHUB_TOKEN non-null at settings-apply time
+(the token lives in the git remote URL — extract to .buildenv, gitignored, never print it);
+JDK_JAVA_OPTIONS=-Xmx2560m; a patched-APK rebuild takes ~8 min on the sandbox (zero-patch
+fast path is 10 s). Keystore: morphe.keystore, alias `morphe`, store+key password `Morphe`.
+- **B0b** merge-WITH-pangle control (APKEditor merge incl. split_pangle_ads*, STORE fix,
+  v1+v2+v3) — separates "Pangle split merge" from "Morphe rebuild" when B0 boots but B2b fails.
+
+## 9. 2026-11-10 — second sandbox wipe + recovery
+
+Event: full sandbox re-provision (work/, scripts/, tools/, download/ wiped; the persistent
+upload/ dir survived). The Bash/Task subsystem had already died mid-session on 11-09; the
+user restarted the session on 11-10.
+
+**Lost with this wipe** (was only in the wiped download/ dir, never released):
+- The delivered test-ladder APKs: B0, B0b, B1, B2, B2b, B3 + LADDER-SHA256SUMS.txt
+- The built patches-1.3.0.mpp artifact (**v1.3.0 source is committed but was never
+  released** — last release is v1.2.6)
+
+**Survived**: this repo (through 974a746, incl. v1.3.0 sources + §8 findings), all
+releases/assets through v1.2.6 (incl. durable signing key, keystore, desktop CLI, all
+input APKMs, DIAG pack), and the local upload/ tree (all APKMs + vadj/ANiK555 mods,
+SHA-256s in the recovery manifest committed alongside this note).
+
+Recovery executed on 2026-11-10 (COMPLETE):
+- `patches-1.3.0.mpp` rebuilt from source, signature verified against
+  `morphe-signing.pub` (FtCmZgVC…, same durable key — updates from v1.2.6 need no
+  trust prompt), **released as v1.3.0** (tag, release, sources/javadoc/SHA256SUMS
+  assets). CHANGELOG entry + patches-bundle.json updated for 1.3.0.
+- Test ladder rebuilt and verified (spoof presence checked in dex: B1 has
+  SignatureHookApp, B3/B2b do not; all v1+v2+v3 re-signs verify with
+  `--min-sdk-version 21`; note: default `apksigner verify` infers a high minSdk
+  from Opera's manifest and reports v1/v2 as false even though present — use
+  `--min-sdk-version 21`): B0, B0b (APKEditor merge ± pangle), B2 (zero-patch
+  v2-only), B2b, B1 (v1.2.3 all + v123), B3 (v1.3.0 diag-only + v123).
+- All rungs + LADDER-SHA256SUMS.txt uploaded to `sandbox-storage`; delivered to
+  the user's download dir with LADDER-README.md (testing order + interpretation
+  matrix mirror of §8).
+- Build toolchain notes for the next wipe: APKEditor 1.4.9 (REAndroid), Android
+  build-tools r34 (apksigner 0.9 / zipalign), morphe-desktop-all.jar from
+  sandbox-storage; morphe-patcher/morphe-patches-gradle-plugin cloned fresh and
+  `publishToMavenLocal` needs Aliyun mirrors prepended (sandbox IP rate-limits
+  plugins.gradle.org / maven central) and `-PskipGpgSigning=true` patch (no GPG
+  key in sandbox). Ladder build script preserved at
+  `scripts/build_ladder.sh` + `scripts/upload_ladder.sh` in the build sandbox.
+- User's next action: run the ladder per LADDER-README.md (rungs 1–3 first) and
+  report results; the interpretation matrix determines the fix.
+
+Note: an empty private repo `maniesh-NR/morphe-opera-backup` was accidentally created
+during recovery (fine-grained PAT could create but not push to it — new repos aren't in a
+selected-repos token's scope). Safe to delete; this repo remains the canonical store.

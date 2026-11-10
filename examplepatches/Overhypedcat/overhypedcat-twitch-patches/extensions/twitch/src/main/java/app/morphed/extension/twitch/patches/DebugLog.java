@@ -7,8 +7,11 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -56,8 +59,10 @@ public final class DebugLog {
     /** The open log file, or null while logging is off. */
     private static volatile Writer writer;
     private static volatile String fileName;
+    private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static ScheduledFuture<?> heartbeat;
-    private static ScheduledFuture<?> flusher;
+    /** The file a flush is on its way for, or null; only touched on the IO thread. */
+    private static Writer flushTarget;
     private static boolean checkedOnStart;
 
     private DebugLog() {
@@ -102,26 +107,57 @@ public final class DebugLog {
 
     private static void write(Writer target, String line) {
         try {
-            // Buffered; flush() runs once a second, so logging costs little even when it is busy.
+            // Buffered, and flushed a second after the first unflushed line: a busy log costs one
+            // flush a second, a quiet one (app in the background) none at all.
             target.write(line);
+            if (flushTarget != target) {
+                flushTarget = target;
+                HEARTBEAT.schedule(() -> flush(target), 1, TimeUnit.SECONDS);
+            }
         } catch (IOException e) {
-            Log.e(TAG, "Writing the log failed", e);
+            failed(target, "Writing the detailed log failed", e);
         }
     }
 
     /** Writes buffered lines to the file; at most a second of log is lost if the app is killed. */
-    private static void flush() {
-        Writer target = writer;
-        if (target == null) return;
+    private static void flush(Writer target) {
         IO.execute(() -> {
+            if (flushTarget == target) flushTarget = null;
+            // A file that was closed meanwhile was flushed by its close.
+            if (writer != target) return;
             try {
                 target.flush();
             } catch (IOException e) {
-                Log.e(TAG, "Writing the log failed", e);
+                failed(target, "Writing the detailed log failed", e);
             }
         });
     }
 
+    /**
+     * The log file cannot be written (deleted, storage full): logging stops, the switch goes off,
+     * and the user is told why instead of the log silently ending.
+     */
+    private static void failed(Writer target, String what, Exception e) {
+        Log.e(TAG, what, e);
+        synchronized (DebugLog.class) {
+            if (writer != target) return;
+            // The file is already broken: closing it would only fail again with a second message.
+            stop(false);
+        }
+        Context context = AdBreakIndicator.currentApplication();
+        if (context != null) preferences(context).edit().putBoolean(KEY_ENABLED, false).apply();
+        tell(what + ": " + e.getMessage());
+    }
+
+    /** A short message on screen; the log's own failures cannot go into the log. */
+    private static void tell(String message) {
+        MAIN.post(() -> {
+            Context context = AdBreakIndicator.currentApplication();
+            if (context != null) Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+        });
+    }
+
+    /** Opens a new log file; on failure the switch goes off and the user is told why. */
     private static void start(Context context) {
         String name = "TwitchMorphed-log-" + new SimpleDateFormat("yyyy-MM-dd-HHmmss", Locale.US).format(new Date()) + ".txt";
         try {
@@ -130,22 +166,26 @@ public final class DebugLog {
             fileName = name;
         } catch (IOException | RuntimeException e) {
             Log.e(TAG, "Could not create the log file", e);
+            preferences(context).edit().putBoolean(KEY_ENABLED, false).apply();
+            tell("Detailed log could not be created in Downloads: " + e.getMessage());
             return;
         }
         log("Log started. Android " + Build.VERSION.RELEASE + " (SDK " + Build.VERSION.SDK_INT + "), "
                 + Build.MANUFACTURER + " " + Build.MODEL + ", app " + appVersion(context));
         heartbeat = HEARTBEAT.scheduleWithFixedDelay(DebugLog::heartbeat, HEARTBEAT_SECONDS, HEARTBEAT_SECONDS, TimeUnit.SECONDS);
-        flusher = HEARTBEAT.scheduleWithFixedDelay(DebugLog::flush, 1, 1, TimeUnit.SECONDS);
     }
 
     private static void stop() {
+        stop(true);
+    }
+
+    /** @param tellFailure whether a failed close is shown; not when the file already failed. */
+    private static synchronized void stop(boolean tellFailure) {
         if (heartbeat != null) heartbeat.cancel(false);
-        if (flusher != null) flusher.cancel(false);
         heartbeat = null;
-        flusher = null;
         Writer current = writer;
         if (current == null) return;
-        log("Log stopped.");
+        if (tellFailure) log("Log stopped.");
         // Off right away, so switching it on again at once starts a new file instead of being lost.
         writer = null;
         fileName = null;
@@ -153,7 +193,9 @@ public final class DebugLog {
             try {
                 current.close();
             } catch (IOException e) {
+                // The last lines may be missing from the file.
                 Log.e(TAG, "Closing the log failed", e);
+                if (tellFailure) tell("Saving the detailed log failed: " + e.getMessage());
             }
         });
     }

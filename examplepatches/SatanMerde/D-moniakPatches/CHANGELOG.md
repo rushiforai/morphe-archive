@@ -1,3 +1,31 @@
+## [1.71.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.71.0...v1.71.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **hotstar:** resolve app crash by removing fatal blacklist nulling and experimental codec overrides ([cb5ab25](https://github.com/SatanMerde/D-moniakPatches/commit/cb5ab25304e778d25e74e7f1f3857f7526be17f9))
+
+## [1.71.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.70.0...v1.71.0) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **fctv:** escape inner class dollar signs in smali bytecode strings ([15201ec](https://github.com/SatanMerde/D-moniakPatches/commit/15201ec5483070d20cd4eda15e548ea3953c7761))
+
+### ✨ New Features
+
+* **fctv:** add Enhanced Playback & PiP patch and fix shade overlay and fullscreen controls ([78a6033](https://github.com/SatanMerde/D-moniakPatches/commit/78a6033a88042916891a631b4496d382f4103fed))
+
+## [1.70.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.69.0...v1.70.0) (2026-11-09)
+
+### ✨ New Features
+
+* **shazam:** promote Shazam patches to tested and functional and update README ([32c7704](https://github.com/SatanMerde/D-moniakPatches/commit/32c770464aec77fefd8ca2a3e54f9779683e64f4))
+
+## [1.69.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.68.2...v1.69.0) (2026-11-09)
+
+### ✨ New Features
+
+* **hotstar:** deep SSAI live stream ad neutralization, AV1 DAV1D codec unlock, and Dolby audio enhancements ([64bc70b](https://github.com/SatanMerde/D-moniakPatches/commit/64bc70b14f51fe8dcb9c7b06f2e266f87068fdfc))
+
 ## [1.68.2](https://github.com/SatanMerde/D-moniakPatches/compare/v1.68.1...v1.68.2) (2026-11-08)
 
 ### 🐛 Bug Fixes

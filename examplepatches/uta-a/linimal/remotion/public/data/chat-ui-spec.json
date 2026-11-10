@@ -1,0 +1,148 @@
+{
+  "note": "実機（XIG07、1220×2712、ダークモード）の Linimal トークのスクショから計測した値。座標は画面 px。Remotion で React コンポーネントとしてトーク UI を作り直すときに使う。",
+  "screen": {
+    "width": 1220,
+    "height": 2712
+  },
+  "colors": {
+    "headerBackground": "#111111",
+    "chatBackground": "#1A1A1A",
+    "bubbleReceived": "#2A2A2A",
+    "bubbleText": "#FFFFFF",
+    "timestamp": "#767676",
+    "datePill": "#161616",
+    "datePillText": "#FFFFFF",
+    "headerSubtitle": "#5572F6",
+    "readDisabledBanner": {
+      "background": "#1B1B1B",
+      "border": "#2E2E2E",
+      "text": "#E8E8E8"
+    },
+    "markAllReadButton": {
+      "background": "#1B1B1B",
+      "text": "#E8E8E8",
+      "shadow": "rgba(0,0,0,0.35)"
+    },
+    "inputBar": {
+      "background": "#111111",
+      "field": "#2A2A2A"
+    },
+    "previewDimFactor": 0.251,
+    "previewCard": "#1A1A1A",
+    "previewMenu": "#2A2A2A",
+    "unreadBadge": "#4CC764"
+  },
+  "room": {
+    "header": [
+      0,
+      138,
+      1220,
+      300
+    ],
+    "messageList": [
+      0,
+      300,
+      1220,
+      2494
+    ],
+    "inputBar": [
+      0,
+      2494,
+      1220,
+      2660
+    ],
+    "readDisabledBanner": {
+      "box": [
+        52,
+        340,
+        1167,
+        531
+      ],
+      "radius": 34,
+      "borderWidth": 3,
+      "fontSize": 44,
+      "text": "現在、既読は無効です。メッセージを送信すると既読になります"
+    },
+    "markAllReadButton": {
+      "box": [
+        695,
+        2312,
+        1181,
+        2468
+      ],
+      "radius": 78,
+      "fontSize": 46,
+      "text": "すべて既読にする"
+    },
+    "receivedMessage": {
+      "avatar": {
+        "x": 26,
+        "size": 98
+      },
+      "bubbleX": 140,
+      "paddingX": 42,
+      "singleLineHeight": 112,
+      "lineHeight": 62,
+      "radius": 54,
+      "fontSize": 44,
+      "maxTextWidth": 660,
+      "rowGap": 26,
+      "timestamp": {
+        "gapX": 16,
+        "fontSize": 31,
+        "bottomInset": 21
+      },
+      "tail": "グループの先頭のメッセージだけにアイコンと左上の小さな角が付く（多角形 (0,0),(55,6),(20,36)）"
+    },
+    "datePill": {
+      "rowHeight": 112,
+      "pillHeight": 86,
+      "radius": 43,
+      "fontSize": 36,
+      "centerX": 610
+    }
+  },
+  "scrollPreview": {
+    "card": {
+      "box": [
+        52,
+        234,
+        1168,
+        1636
+      ],
+      "radius": 52,
+      "messageOffsetX": 52,
+      "newestBottomY": 1605
+    },
+    "menu": {
+      "box": [
+        52,
+        1662,
+        866,
+        2662
+      ],
+      "radius": 52,
+      "items": [
+        "既読をつけずに読む",
+        "非表示",
+        "通知オフ",
+        "ピン留め",
+        "既読にする",
+        "削除"
+      ],
+      "itemPitch": 156,
+      "fontSize": 46
+    }
+  },
+  "talkListRow": {
+    "height": 221,
+    "avatar": [
+      53,
+      156
+    ],
+    "nameX": 254,
+    "nameFontSize": 48,
+    "previewFontSize": 42,
+    "timeFontSize": 34
+  }
+}

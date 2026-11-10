@@ -1,3 +1,27 @@
+## [1.5.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **zalo:** locate native signer branch structurally ([170fc4d](https://github.com/Nezumi-2711/morphe-patches/commit/170fc4d154162e7b9f8599df70fad991acaed922))
+
+### ✨ New Features
+
+* add customizable Zalo notification and ringtone sounds ([b2e1b58](https://github.com/Nezumi-2711/morphe-patches/commit/b2e1b583107199f82e688cd05d5e50188dc8e5f9))
+* **zalo:** add hide business box patch ([342b58e](https://github.com/Nezumi-2711/morphe-patches/commit/342b58e15f60aeb960a01512299d1af2b57aa400))
+* **zalo:** label retained recalled messages ([a79c4b2](https://github.com/Nezumi-2711/morphe-patches/commit/a79c4b20172879a5587150442c9e36635f08764e))
+
+## [1.5.0-dev.3](https://github.com/Nezumi-2711/morphe-patches/compare/v1.5.0-dev.2...v1.5.0-dev.3) (2026-11-09)
+
+### ✨ New Features
+
+* **zalo:** add hide business box patch ([342b58e](https://github.com/Nezumi-2711/morphe-patches/commit/342b58e15f60aeb960a01512299d1af2b57aa400))
+
+## [1.5.0-dev.2](https://github.com/Nezumi-2711/morphe-patches/compare/v1.5.0-dev.1...v1.5.0-dev.2) (2026-11-09)
+
+### ✨ New Features
+
+* add customizable Zalo notification and ringtone sounds ([b2e1b58](https://github.com/Nezumi-2711/morphe-patches/commit/b2e1b583107199f82e688cd05d5e50188dc8e5f9))
+
 ## [1.5.0-dev.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-08)
 
 ### 🐛 Bug Fixes
@@ -6,7 +30,7 @@
 
 ### ✨ New Features
 
-* **zalo:** label retained recalled messages ([a79c4b2](https://github.com/Nezumi-2711/morphe-patches/commit/a79c4b20172879a5587150442c9e36635f08764e))
+* **zalo:** add "Keep recalled messages" patch to preserve received messages and locally available photos after they are recalled ([a79c4b2](https://github.com/Nezumi-2711/morphe-patches/commit/a79c4b20172879a5587150442c9e36635f08764e))
 
 ## [1.4.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.3.0...v1.4.0) (2026-11-05)
 

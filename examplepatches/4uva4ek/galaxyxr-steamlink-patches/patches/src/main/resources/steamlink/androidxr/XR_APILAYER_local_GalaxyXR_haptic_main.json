@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_haptic_main",
+    "library_path": "libgxr_haptic_main.so",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "Sends controller vibrations to the Galaxy XR grip vibrator through a Shizuku user service",
+    "disable_environment": "GXR_DISABLE_HAPTIC_MAIN"
+  }
+}

@@ -1,74 +1,81 @@
-{
-  "branches": [
-    "main"
-  ],
-  "plugins": [
-    [
-        "@semantic-release/commit-analyzer", {
-        "releaseRules": [
-            { "type": "fix", "release": "patch" },
-            { "type": "feat", "release": "minor" },
-            { "type": "bump", "release": "patch" },
-            { "type": "perf", "release": "patch" },
-            { "type": "build", "scope": "Needs bump", "release": "patch" }
-        ]
-        }
-    ],
-    [
-        "@semantic-release/release-notes-generator", {
-        "preset": "conventionalcommits",
-        "presetConfig": {
-            "types": [
-                { "type": "fix", "section": "🐛 Bug Fixes", "hidden": false },
-                { "type": "feat", "section": "✨ New Features", "hidden": false },
-                { "type": "bump", "section": "🚀 Updated App Support", "hidden": false },
-                { "type": "perf", "section": "🔧 Improvements",  "hidden": false },
-                { "type": "build", "hidden": true }
-            ]
-        }
-        }
-    ],
-    [
-      "@MorpheApp/changelog", {
-        "releaseJson": {
-          "path": "patches-bundle.json",
-          "downloadUrlTemplate": "https://github.com/${owner}/${repo}/releases/download/v${version}/patches-${version}.mpp",
-          "signatureUrlTemplate": ""
-        }
-      }
-    ],
-    "gradle-semantic-release-plugin",
-    [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "./gradlew generatePatchesList \
-          && jq '.version=\"${nextRelease.version}\"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json \
-          && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md"
-      }
-    ],
-    [
-      "@semantic-release/git",
-      {
-        "assets": [
-          "CHANGELOG.md",
-          "gradle.properties",
-          "patches-bundle.json",
-          "patches-list.json",
-          "README.md"
-        ],
-        "message": "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
-      }
-    ],
-    [
-      "@semantic-release/github",
-      {
-        "assets": [
-          {
-            "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
-          }
-        ],
-        "successComment": false
-      }
-    ]
-  ]
-}
+# Copyright (C) 2026 Lokesh Sparrow
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# semantic-release configuration. Kept in YAML on purpose: it allows comments, and
+# cosmiconfig loads a .releaserc without extension as YAML.
+#
+# A push to main is a release. The commit type decides the version bump; the prepared
+# files (patches list, README table, bundle JSON, CHANGELOG) are committed by
+# @semantic-release/git together with the version bump in gradle.properties.
+
+branches:
+  - main
+
+plugins:
+  # Which commits produce a release, and of what kind.
+  - - "@semantic-release/commit-analyzer"
+    - releaseRules:
+        - type: fix
+          release: patch
+        - type: feat
+          release: minor
+        - type: bump
+          release: patch
+        - type: perf
+          release: patch
+        - type: build
+          scope: Needs bump
+          release: patch
+
+  # Section headings in CHANGELOG.md and the release body.
+  - - "@semantic-release/release-notes-generator"
+    - preset: conventionalcommits
+      presetConfig:
+        types:
+          - type: fix
+            section: "🐛 Bug Fixes"
+            hidden: false
+          - type: feat
+            section: "✨ New Features"
+            hidden: false
+          - type: bump
+            section: "🚀 Updated App Support"
+            hidden: false
+          - type: perf
+            section: "🔧 Improvements"
+            hidden: false
+          - type: build
+            hidden: true
+
+  # patches-bundle.json is what the Morphe manager reads for updates.
+  - - "@MorpheApp/changelog"
+    - releaseJson:
+        path: patches-bundle.json
+        downloadUrlTemplate: https://github.com/${owner}/${repo}/releases/download/v${version}/patches-${version}.mpp
+        signatureUrlTemplate: ""
+
+  # Runs the Gradle build through the project's wrapper.
+  - gradle-semantic-release-plugin
+
+  # Everything generated from the patch bundle, regenerated before the release commit.
+  - - "@semantic-release/exec"
+    - prepareCmd: >-
+        ./gradlew generatePatchesList
+        && jq '.version="${nextRelease.version}"' patches-list.json > patches-list.json.tmp && mv patches-list.json.tmp patches-list.json
+        && python3 .github/scripts/generate_patches_readme.py $GITHUB_REPOSITORY $GITHUB_REF_NAME patches-list.json README.md
+
+  # The files the release commit carries. Never edit these by hand in a version commit.
+  - - "@semantic-release/git"
+    - assets:
+        - CHANGELOG.md
+        - gradle.properties
+        - patches-bundle.json
+        - patches-list.json
+        - README.md
+      message: "chore: Release v${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+
+  # Publishes the release with the bundle, and nothing else.
+  - - "@semantic-release/github"
+    - assets:
+        - path: "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+      successComment: false

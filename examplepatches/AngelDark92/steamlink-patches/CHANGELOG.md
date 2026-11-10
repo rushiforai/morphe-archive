@@ -1,3 +1,17 @@
+## [2.7.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.7.0...v2.7.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **ci:** remove retired cavecrew doc checks ([d796611](https://github.com/AngelDark92/xr-porting-hub/commit/d796611052b2915f985eddb324879671d892fe7b))
+* Refactor network optimizations patch to be disabled by default and updated stock 5002527 quad patch ([d7f61c5](https://github.com/AngelDark92/xr-porting-hub/commit/d7f61c5c60b14eec5655cad8e1f9cce037dd6fd0))
+
+## [2.7.1-dev.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.7.0...v2.7.1-dev.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **ci:** remove retired cavecrew doc checks ([d796611](https://github.com/AngelDark92/xr-porting-hub/commit/d796611052b2915f985eddb324879671d892fe7b))
+* Refactor network optimizations patch to be disabled by default and updated stock 5002527 quad patch ([d7f61c5](https://github.com/AngelDark92/xr-porting-hub/commit/d7f61c5c60b14eec5655cad8e1f9cce037dd6fd0))
+
 ## [2.7.0](https://github.com/AngelDark92/xr-porting-hub/compare/v2.6.0...v2.7.0) (2026-11-06)
 
 ### ✨ New Features

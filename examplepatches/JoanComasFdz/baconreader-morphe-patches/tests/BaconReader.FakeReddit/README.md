@@ -29,7 +29,7 @@ world.LoginPage.ShowCookieBanner = true;
 
 - `Subreddit(name)` makes a subreddit on first use, a default one (the Front Page of an account without
   subscriptions shows its posts) unless `IsDefault` is set to false.
-- `PostBuilder`: `By`, `WithText`, `WithTextAndImage`, `LinkingTo`, `WithImage`, `WithGif`, `WithScore`, `PostedAgo`,
+- `PostBuilder`: `By`, `WithText`, `WithTextAndImage`, `LinkingTo`, `WithImage`, `Saying` (an image, GIF or video post's text), `WithGif`, `WithScore`, `PostedAgo`,
   `Nsfw`, `Spoiler`, `Stickied`, `WithFlair`, `WithSilver`, `AsGallery`, `AsVideo`, `WithASignedThumbnail`,
   `LinkingToAPageWithAPreview`, `CrosspostOf`. `CommentBuilder`: `By`, `WithGif`, `WithImage`, `WithVideo`,
   `LinkingToAnImage`, `LinkingToAVideo`, `WithScore`, `WithSilver`; each media one is a paragraph of its own after the

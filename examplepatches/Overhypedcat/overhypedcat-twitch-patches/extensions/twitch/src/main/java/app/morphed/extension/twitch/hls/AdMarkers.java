@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +41,13 @@ public final class AdMarkers {
             "ad", "ads", "advert", "stitched", "maf", "break", "midroll", "preroll", "sponsor", "cue",
             "scte35", "splice", "commercial", "quartile", "trigger"));
     private static final Pattern DATERANGE_CLASS = Pattern.compile("CLASS=\"([^\"]+)\"");
+    private static final Pattern NON_WORD = Pattern.compile("[^a-z0-9]+");
+    /**
+     * Ad word check per tag or class name. A playlist repeats the same few names on every poll, so
+     * each is only split into words once. Bounded, so unknown names cannot grow it without limit.
+     */
+    private static final Map<String, Boolean> AD_WORD_CACHE = new ConcurrentHashMap<>();
+    private static final int AD_WORD_CACHE_MAX = 256;
 
     private AdMarkers() {
     }
@@ -73,8 +82,9 @@ public final class AdMarkers {
      */
     public static Set<String> suspiciousMarkers(String text) {
         Set<String> markers = new LinkedHashSet<>();
-        for (String line : text.split("\r?\n")) {
-            if (!line.startsWith("#EXT")) continue;
+        for (String line : Lines.of(text)) {
+            // CUE-IN closes a known CUE-OUT and can stay in the window after the CUE-OUT has left it.
+            if (!line.startsWith("#EXT") || line.startsWith("#EXT-X-CUE-IN")) continue;
             int colon = line.indexOf(':');
             String tag = colon >= 0 ? line.substring(0, colon) : line;
             if (hasAdWord(tag.substring(1))) markers.add(tag);
@@ -92,11 +102,18 @@ public final class AdMarkers {
         return markers;
     }
 
-    private static boolean hasAdWord(String name) {
-        for (String word : name.toLowerCase(Locale.ROOT).split("[^a-z0-9]+")) {
-            if (AD_WORDS.contains(word)) return true;
+    static boolean hasAdWord(String name) {
+        Boolean cached = AD_WORD_CACHE.get(name);
+        if (cached != null) return cached;
+        boolean result = false;
+        for (String word : NON_WORD.split(name.toLowerCase(Locale.ROOT))) {
+            if (AD_WORDS.contains(word)) {
+                result = true;
+                break;
+            }
         }
-        return false;
+        if (AD_WORD_CACHE.size() < AD_WORD_CACHE_MAX) AD_WORD_CACHE.put(name, result);
+        return result;
     }
 
     public static boolean isAdSegmentUrl(String url) {

@@ -250,9 +250,47 @@ void rejectNamesAreDistinct() {
     CHECK(static_cast<uint32_t>(Reject::Count_) <= 32);  // reasons are logged via a 32-bit mask
 }
 
+void projectionStripping() {
+    Source source = Source(3, 2, kGolden[1].head, kGolden[1].fov, fovFovea());
+    CHECK(frameIterable(&source.info));
+    CHECK(!frameIterable(nullptr));
+    XrFrameEndInfo bad = source.info;
+    bad.type = XR_TYPE_VIEW_STATE;
+    CHECK(!frameIterable(&bad));
+    bad = source.info;
+    bad.layers = nullptr;
+    CHECK(!frameIterable(&bad));
+    bad.layerCount = 0;
+    CHECK(frameIterable(&bad) && countProjectionLayers(&bad) == 0);
+    CHECK(countProjectionLayers(&source.info) == 3);
+
+    const XrCompositionLayerBaseHeader* out[8]{};
+    CHECK(stripProjectionLayers(&source.info, out, 8) == 2);
+    CHECK(out[0] == source.layers[3] && out[1] == source.layers[4]);
+    CHECK(stripProjectionLayers(&source.info, out, 2) == 2);
+    CHECK(stripProjectionLayers(&source.info, out, 1) == UINT32_MAX);  // too small: reported
+    CHECK(stripProjectionLayers(&source.info, out, 0) == UINT32_MAX);
+
+    // tails, nulls and out-of-place projections
+    std::vector<const XrCompositionLayerBaseHeader*> mix = {
+        nullptr, source.layers[3], source.layers[0], nullptr, source.layers[4], source.layers[1]};
+    XrFrameEndInfo info = source.info;
+    info.layerCount = static_cast<uint32_t>(mix.size());
+    info.layers = mix.data();
+    CHECK(countProjectionLayers(&info) == 2);
+    CHECK(stripProjectionLayers(&info, out, 8) == 2);
+    CHECK(out[0] == source.layers[3] && out[1] == source.layers[4]);
+    // only projections and nulls => empty result; capacity 0 is fine
+    mix = {source.layers[0], source.layers[1], source.layers[2], nullptr};
+    info.layerCount = 4;
+    info.layers = mix.data();
+    CHECK(stripProjectionLayers(&info, out, 0) == 0);
+}
+
 }  // namespace
 
 int main() {
+    projectionStripping();
     goldenGeometry();
     validators();
     eyeLocate();

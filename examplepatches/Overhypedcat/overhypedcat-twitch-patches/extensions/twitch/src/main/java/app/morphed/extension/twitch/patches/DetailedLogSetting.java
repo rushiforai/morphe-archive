@@ -51,12 +51,18 @@ public final class DetailedLogSetting {
     public static void onToggle(Object toggled, boolean on) {
         if (toggled == null || toggled != row.get()) return;
         Context app = context.get();
-        if (app == null) return;
+        if (app == null) app = AdBreakIndicator.currentApplication();
+        if (app == null) {
+            Log.e(TAG, "Switching the detailed log failed: no app context");
+            return;
+        }
         try {
             String file = DebugLog.setEnabled(app, on);
+            // No file when turned on: DebugLog has already said why it could not be created.
             if (file != null) Toast.makeText(app, (on ? "Logging to Downloads/" : "Saved Downloads/") + file, Toast.LENGTH_LONG).show();
         } catch (Throwable t) {
             Log.e(TAG, "Switching the detailed log failed", t);
+            Toast.makeText(app, "Detailed log could not be switched " + (on ? "on" : "off") + ": " + t, Toast.LENGTH_LONG).show();
         }
     }
 }

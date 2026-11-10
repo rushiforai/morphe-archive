@@ -19,7 +19,7 @@ private const val STEAM_LINK_PACKAGE = "com.valvesoftware.steamlinkvr"
 
 // Pins of the bundled payload built from extensions/stock-quad-composition.
 internal const val STOCK_QUAD_HELPER_SHA256 =
-    "ba4076073c947149497638d1d1429bf27636f12a9372e56f21991dc3e04962c0"
+    "d2cd78acdb6072ee461fa3f5729087a7ad988b13399b90fa4d07d8e670afb964"
 internal const val STOCK_QUAD_MANIFEST_SHA256 =
     "08ac03af8e80f11ca78f92e99e7f5622139211b41e50794f61f61d1c61132fc6"
 

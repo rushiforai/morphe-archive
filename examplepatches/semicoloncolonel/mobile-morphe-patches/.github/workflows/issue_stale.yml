@@ -1,0 +1,31 @@
+name: Close untargeted reports
+
+# Closes issues labeled "untargeted version" after 7 days without an update.
+# The label's comment from the triage workflow already says so, so nothing
+# more is posted. An edit that fixes the version removes the label first.
+
+on:
+  schedule:
+    - cron: "15 16 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  close:
+    name: Close untargeted reports
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close reports untouched for 7 days
+        uses: actions/stale@v11
+        with:
+          only-labels: untargeted version
+          days-before-issue-stale: 7
+          days-before-issue-close: 0
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-message: ""
+          close-issue-message: ""
+          close-issue-reason: not_planned

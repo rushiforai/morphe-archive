@@ -8,6 +8,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 
 import dev.utaa.linimal.extension.features.readreceipts.ReadReceiptHooks;
+import dev.utaa.linimal.extension.i18n.LinimalText;
 
 /** 「すべて既読にする」だけを worker に許可します。成功すると閲覧セッションを終えます。 */
 public final class ReadWithoutReceiptManualHooks {
@@ -162,7 +163,7 @@ public final class ReadWithoutReceiptManualHooks {
                         && (ended || ReadWithoutReceiptHooks.sessionTokenFor(activity) == token)) {
                     // worker の状態変更だけでは次の描画が起きないため、案内とボタンの更新を促します。
                     activity.getWindow().getDecorView().invalidate();
-                    Toast.makeText(activity, success ? "既読処理を実行しました" : "既読を反映できませんでした",
+                    Toast.makeText(activity, success ? LinimalText.t("既読処理を実行しました") : LinimalText.t("既読を反映できませんでした"),
                             Toast.LENGTH_SHORT).show();
                 }
             } catch (Throwable ignored) {

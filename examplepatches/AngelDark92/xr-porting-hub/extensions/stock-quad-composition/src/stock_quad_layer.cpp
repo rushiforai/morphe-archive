@@ -12,6 +12,7 @@
 #include <string>
 #include <time.h>
 #include <unistd.h>
+#include <vector>
 
 #include "session_registry.h"
 #include "stock_quad_core.h"
@@ -20,9 +21,13 @@
 
 namespace {
 
-// Experimental, default-off API layer. It reproduces the stock Steam Link 5002527 submission
+// API layer that reproduces the stock Steam Link 5002527 submission
 // (four per-eye quads, no underside layer) from the projection layers older bases submit.
-// It converts only fully verified shapes; everything else is forwarded to xrEndFrame untouched.
+// For the target package a tracked session NEVER forwards a projection layer: a verified shape
+// becomes four quads plus its tail; any frame that carries projections but cannot be converted
+// this frame is submitted without them (non-projection layers keep their order). Conversion is
+// retried on the next frame. xrEndFrame is called exactly once per application frame and the
+// runtime's own result is returned unchanged. Frames without projections pass through untouched.
 
 using namespace gxr::sq;
 
@@ -32,7 +37,6 @@ constexpr char kBuildId[] = "stock-quad-5002527-v1";
 constexpr char kLogTag[] = "GXRStockQuad";
 constexpr char kTargetPackage[] = "com.valvesoftware.steamlinkvr";
 constexpr uint64_t kInitialDiagnosticFrames = 3;
-constexpr uint32_t kMaxLocateFailures = 60;
 
 struct Dispatch {
     XrInstance instance{XR_NULL_HANDLE};
@@ -45,34 +49,38 @@ struct Dispatch {
     PFN_xrDestroySpace destroySpace{};
     PFN_xrLocateViews locateViews{};
     PFN_xrEndFrame endFrame{};
-    PFN_xrPollEvent pollEvent{};
 };
 
 // One per XrInstance: its own downstream dispatch table. Nothing here is ever shared with,
 // or overwritten by, another instance.
 struct InstanceState {
     Dispatch d;
-    bool active{};  // false: package guard or missing core entry points => pure pass-through
+    // false: not the target package => pure pass-through. True: sessions are tracked and no
+    // projection is ever forwarded. Geometry entry points are optional (see `geometry`); without
+    // them every projection frame is submitted stripped, never converted and never forwarded.
+    bool active{};
+    bool geometry{};  // system properties, VIEW space and locate entry points all present
 };
 using InstancePtr = std::shared_ptr<InstanceState>;
 
 struct SessionState {
     InstancePtr owner;  // the instance this session belongs to (dispatch + lifetime)
     XrSession session{XR_NULL_HANDLE};
-    std::atomic<XrSessionState> state{XR_SESSION_STATE_UNKNOWN};
     uint32_t maxLayerCount{};
     XrSpace viewSpace{XR_NULL_HANDLE};
     // Everything below is touched only by the externally synchronized xrEndFrame /
     // xrDestroySession path of this session and is never shared with another session.
-    bool disabled{};
-    const char* disableReason{};
     bool eyeValid{};
     XrPosef eyes[2]{};
-    uint32_t locateFailures{};
+    uint32_t locateFailures{};   // consecutive; only used to log the first of a streak
     uint32_t rejectLogged{};  // bit per Reject value
+    bool endRejectLogged{};
     uint64_t convertedFrames{};
-    uint64_t passthroughFrames{};
+    uint64_t strippedFrames{};   // projection frames submitted without their projections
+    uint64_t runtimeRejectedFrames{};
     XrCompositionLayerQuad quads[kQuadCount]{};
+    // Reused scratch for stripped submissions; grows to the largest frame seen, never shrinks.
+    std::vector<const XrCompositionLayerBaseHeader*> stripScratch;
 };
 
 // XrSession handles are unique among live sessions of a process, so one registry maps a
@@ -137,10 +145,6 @@ InstancePtr soleActiveInstance() {
     return found;
 }
 
-bool isVisible(XrSessionState state) {
-    return state == XR_SESSION_STATE_VISIBLE || state == XR_SESSION_STATE_FOCUSED;
-}
-
 bool processIsTarget() {
     char buffer[256]{};
     std::FILE* file = std::fopen(cmdlinePath, "rb");
@@ -158,19 +162,11 @@ void releaseSessionResources(SessionState& state) {
     }
 }
 
-void disable(SessionState& state, const char* reason, XrResult result) {
-    if (state.disabled) return;
-    state.disabled = true;
-    state.disableReason = reason;
-    emit("stock_quad_disabled",
-        "\"session\":" + std::to_string(handleValue(state.session)) +
-        ",\"reason\":\"" + reason + "\",\"result\":" + std::to_string(result) +
-        ",\"futureFramesPassThrough\":true");
-}
-
-// Eye-to-head offsets, located once in this session's own VIEW space and then cached.
+// Eye-to-head offsets, located once in this session's own VIEW space and then cached. A failed
+// attempt is retried on the next frame; it never disables the session.
 bool ensureEyes(SessionState& state, XrTime displayTime) {
     if (state.eyeValid) return true;
+    if (state.viewSpace == XR_NULL_HANDLE || !state.owner->d.locateViews) return false;
     XrViewLocateInfo locate{XR_TYPE_VIEW_LOCATE_INFO};
     locate.viewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
     locate.displayTime = displayTime;
@@ -186,6 +182,7 @@ bool ensureEyes(SessionState& state, XrTime displayTime) {
         state.eyes[0] = located[0];
         state.eyes[1] = located[1];
         state.eyeValid = true;
+        state.locateFailures = 0;
         const float dx = located[1].position.x - located[0].position.x;
         const float dy = located[1].position.y - located[0].position.y;
         const float dz = located[1].position.z - located[0].position.z;
@@ -211,9 +208,6 @@ bool ensureEyes(SessionState& state, XrTime displayTime) {
             ",\"result\":" + std::to_string(result) +
             ",\"viewCount\":" + std::to_string(count) +
             ",\"viewStateFlags\":" + std::to_string(viewState.viewStateFlags));
-    }
-    if (state.locateFailures >= kMaxLocateFailures) {
-        disable(state, "eye_locate_failed", result);
     }
     return false;
 }
@@ -249,14 +243,48 @@ void logConvertedFrame(const SessionState& state, const XrFrameEndInfo& source,
     emit("stock_quad_frame", fields.str());
 }
 
-void logPassthroughOnce(SessionState& state, Reject reason, const XrFrameEndInfo* info) {
+void logStrippedOnce(SessionState& state, Reject reason, const XrFrameEndInfo* info) {
     const uint32_t bit = 1u << static_cast<uint32_t>(reason);
     if (state.rejectLogged & bit) return;
     state.rejectLogged |= bit;
-    emit("stock_quad_passthrough",
+    emit("stock_quad_stripped",
         "\"session\":" + std::to_string(handleValue(state.session)) +
         ",\"reason\":\"" + rejectName(reason) + "\",\"sourceLayerCount\":" +
-        std::to_string(info ? info->layerCount : 0) + ",\"changed\":false");
+        std::to_string(info ? info->layerCount : 0) + ",\"projectionsForwarded\":false");
+}
+
+// Submits `info` without any projection layer (null entries dropped, other layers in order).
+// Exactly one downstream xrEndFrame; the runtime's result is returned unchanged.
+XrResult submitStripped(SessionState& state, const XrFrameEndInfo* info, Reject reason) {
+    const Dispatch& d = state.owner->d;
+    ++state.strippedFrames;
+    logStrippedOnce(state, reason, info);
+    XrFrameEndInfo output = *info;  // keeps next / displayTime / blend mode
+    if (state.stripScratch.size() < info->layerCount) {
+        try {
+            state.stripScratch.resize(info->layerCount);
+        } catch (...) {
+            // Cannot hold the stripped list: submit no layers at all rather than any projection.
+            output.layerCount = 0;
+            output.layers = nullptr;
+            return d.endFrame(state.session, &output);
+        }
+    }
+    const uint32_t kept =
+        stripProjectionLayers(info, state.stripScratch.data(), info->layerCount);
+    output.layerCount = kept;
+    output.layers = kept ? state.stripScratch.data() : nullptr;
+    const XrResult result = d.endFrame(state.session, &output);
+    if (XR_FAILED(result)) {
+        ++state.runtimeRejectedFrames;
+        if (!state.endRejectLogged) {
+            state.endRejectLogged = true;
+            emit("end_frame_rejected",
+                "\"session\":" + std::to_string(handleValue(state.session)) +
+                ",\"result\":" + std::to_string(result) + ",\"stripped\":true");
+        }
+    }
+    return result;
 }
 
 XrResult XRAPI_PTR layerCreateSession(
@@ -264,6 +292,7 @@ XrResult XRAPI_PTR layerCreateSession(
     const InstancePtr owner = findInstance(instance);
     if (!owner) return XR_ERROR_HANDLE_INVALID;
     const Dispatch& d = owner->d;
+    if (!d.createSession) return XR_ERROR_FUNCTION_UNSUPPORTED;  // not reachable via a hook of this instance
     const XrResult result = d.createSession(instance, info, session);
     if (XR_FAILED(result) || !info || !session) return result;
     if (const auto existing = sessions.find(*session)) {
@@ -278,20 +307,27 @@ XrResult XRAPI_PTR layerCreateSession(
     auto state = std::make_shared<SessionState>();
     state->owner = owner;
     state->session = *session;
-    XrSystemProperties properties{XR_TYPE_SYSTEM_PROPERTIES};
-    const XrResult propertiesResult =
-        d.getSystemProperties(instance, info->systemId, &properties);
-    if (XR_SUCCEEDED(propertiesResult)) {
-        state->maxLayerCount = properties.graphicsProperties.maxLayerCount;
+    XrResult propertiesResult = XR_ERROR_FUNCTION_UNSUPPORTED;
+    XrResult spaceResult = XR_ERROR_FUNCTION_UNSUPPORTED;
+    if (owner->geometry) {
+        XrSystemProperties properties{XR_TYPE_SYSTEM_PROPERTIES};
+        propertiesResult = d.getSystemProperties(instance, info->systemId, &properties);
+        if (XR_SUCCEEDED(propertiesResult)) {
+            state->maxLayerCount = properties.graphicsProperties.maxLayerCount;
+        }
+        XrReferenceSpaceCreateInfo spaceInfo{XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
+        spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
+        spaceInfo.poseInReferenceSpace.orientation.w = 1.0f;
+        spaceResult = d.createReferenceSpace(*session, &spaceInfo, &state->viewSpace);
+        if (XR_FAILED(spaceResult)) state->viewSpace = XR_NULL_HANDLE;
     }
-    XrReferenceSpaceCreateInfo spaceInfo{XR_TYPE_REFERENCE_SPACE_CREATE_INFO};
-    spaceInfo.referenceSpaceType = XR_REFERENCE_SPACE_TYPE_VIEW;
-    spaceInfo.poseInReferenceSpace.orientation.w = 1.0f;
-    const XrResult spaceResult =
-        d.createReferenceSpace(*session, &spaceInfo, &state->viewSpace);
-    if (XR_FAILED(spaceResult)) {
-        state->viewSpace = XR_NULL_HANDLE;
-        disable(*state, "view_space_failed", spaceResult);
+    if (state->viewSpace == XR_NULL_HANDLE) {
+        // No VIEW space: no frame of this session can convert. Projection frames are submitted
+        // stripped (never forwarded); the application's own calls are unaffected.
+        emit("view_space_failed",
+            "\"session\":" + std::to_string(handleValue(*session)) +
+            ",\"result\":" + std::to_string(spaceResult) +
+            ",\"projectionsForwarded\":false");
     }
     sessions.insert(*session, state);
     emit("session_created",
@@ -313,11 +349,13 @@ XrResult XRAPI_PTR layerDestroySession(XrSession session) {
         emit("stock_quad_summary",
             "\"session\":" + std::to_string(handleValue(session)) +
             ",\"convertedFrames\":" + std::to_string(state->convertedFrames) +
-            ",\"passthroughFrames\":" + std::to_string(state->passthroughFrames) +
-            ",\"disabled\":" + (state->disabled ? std::string("true") : "false") +
-            ",\"disableReason\":\"" + (state->disableReason ? state->disableReason : "") + '"');
+            ",\"strippedFrames\":" + std::to_string(state->strippedFrames) +
+            ",\"runtimeRejectedFrames\":" + std::to_string(state->runtimeRejectedFrames));
         releaseSessionResources(*state);
     }
+    // Only reachable through a lookup on an instance that has the entry point; another instance's
+    // hook applied to this owner is reported as the unsupported call it is, never dereferenced.
+    if (!owner->d.destroySession) return XR_ERROR_FUNCTION_UNSUPPORTED;
     return owner->d.destroySession(session);
 }
 
@@ -326,30 +364,27 @@ XrResult XRAPI_PTR layerEndFrame(XrSession session, const XrFrameEndInfo* info) 
     if (!state) {
         // Unknown/destroyed handle: forward through the only unambiguous owner, if any.
         const InstancePtr owner = soleActiveInstance();
-        return owner ? owner->d.endFrame(session, info) : XR_ERROR_HANDLE_INVALID;
+        if (!owner) return XR_ERROR_HANDLE_INVALID;
+        return owner->d.endFrame ? owner->d.endFrame(session, info) : XR_ERROR_FUNCTION_UNSUPPORTED;
     }
     // The state keeps its instance (and dispatch) alive until the session is destroyed.
     const Dispatch& d = state->owner->d;
-    // Every path below calls the downstream xrEndFrame exactly once.
-    if (state->disabled || !isVisible(state->state.load(std::memory_order_acquire))) {
-        ++state->passthroughFrames;
+    if (!d.endFrame) return XR_ERROR_FUNCTION_UNSUPPORTED;
+    // Every path below calls the downstream xrEndFrame exactly once. A frame the runtime would
+    // reject for its structure, and any frame without projection layers (stock quads, overlays,
+    // empty frames), is forwarded untouched so the runtime reports its own verdict.
+    if (!frameIterable(info) || countProjectionLayers(info) == 0) {
         return d.endFrame(session, info);
     }
+    // From here on the frame carries projection layers: they are converted or removed, never sent.
     Plan plan;
     const Reject rejected = planFrame(info, state->maxLayerCount, &plan);
-    if (rejected != Reject::None) {
-        ++state->passthroughFrames;
-        logPassthroughOnce(*state, rejected, info);
-        return d.endFrame(session, info);
-    }
+    if (rejected != Reject::None) return submitStripped(*state, info, rejected);
     if (!ensureEyes(*state, info->displayTime)) {
-        ++state->passthroughFrames;
-        return d.endFrame(session, info);
+        return submitStripped(*state, info, Reject::EyesUnavailable);
     }
     if (!buildQuads(plan, state->eyes, state->quads)) {
-        ++state->passthroughFrames;
-        logPassthroughOnce(*state, Reject::BadPose, info);
-        return d.endFrame(session, info);
+        return submitStripped(*state, info, Reject::BadPose);
     }
 
     const XrCompositionLayerBaseHeader* layers[kMaxOutputLayers];
@@ -364,30 +399,21 @@ XrResult XRAPI_PTR layerEndFrame(XrSession session, const XrFrameEndInfo* info) 
     output.layers = layers;
     const XrResult result = d.endFrame(session, &output);
     if (XR_FAILED(result)) {
-        // Never submit this begun frame a second time: report the runtime's verdict and stand
-        // down for the rest of the session.
-        logConvertedFrame(*state, *info, output, plan, state->convertedFrames + 1, result);
-        disable(*state, "end_frame_rejected", result);
+        // Never submit this begun frame a second time and never fall back to the projections:
+        // return the runtime's verdict. The next frame tries the quads again.
+        ++state->runtimeRejectedFrames;
+        if (!state->endRejectLogged) {
+            state->endRejectLogged = true;
+            logConvertedFrame(*state, *info, output, plan, state->convertedFrames + 1, result);
+            emit("end_frame_rejected",
+                "\"session\":" + std::to_string(handleValue(session)) +
+                ",\"result\":" + std::to_string(result) + ",\"stripped\":false");
+        }
         return result;
     }
     const uint64_t frame = ++state->convertedFrames;
     if (frame <= kInitialDiagnosticFrames) {
         logConvertedFrame(*state, *info, output, plan, frame, result);
-    }
-    return result;
-}
-
-XrResult XRAPI_PTR layerPollEvent(XrInstance instance, XrEventDataBuffer* data) {
-    const InstancePtr owner = findInstance(instance);
-    if (!owner) return XR_ERROR_HANDLE_INVALID;
-    const XrResult result = owner->d.pollEvent(instance, data);
-    if (result != XR_SUCCESS || !data) return result;
-    if (data->type == XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED) {
-        const auto* event = reinterpret_cast<const XrEventDataSessionStateChanged*>(data);
-        // Only this instance's own sessions react to this instance's events.
-        if (const auto state = sessions.find(event->session); state && state->owner == owner) {
-            state->state.store(event->state, std::memory_order_release);
-        }
     }
     return result;
 }
@@ -426,14 +452,14 @@ XrResult XRAPI_PTR layerGetInstanceProcAddr(
     }
     if (std::strcmp(name, "xrDestroyInstance") == 0) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(layerDestroyInstance);
-    } else if (owner->active && std::strcmp(name, "xrCreateSession") == 0) {
+    } else if (owner->active && owner->d.createSession &&
+               std::strcmp(name, "xrCreateSession") == 0) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(layerCreateSession);
-    } else if (owner->active && std::strcmp(name, "xrDestroySession") == 0) {
+    } else if (owner->active && owner->d.destroySession &&
+               std::strcmp(name, "xrDestroySession") == 0) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(layerDestroySession);
-    } else if (owner->active && std::strcmp(name, "xrEndFrame") == 0) {
+    } else if (owner->active && owner->d.endFrame && std::strcmp(name, "xrEndFrame") == 0) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(layerEndFrame);
-    } else if (owner->active && std::strcmp(name, "xrPollEvent") == 0) {
-        *function = reinterpret_cast<PFN_xrVoidFunction>(layerPollEvent);
     } else {
         return owner->d.getInstanceProcAddr(instance, name, function);
     }
@@ -465,18 +491,22 @@ XrResult XRAPI_PTR layerCreateApiLayerInstance(
         return XR_ERROR_INITIALIZATION_FAILED;
     }
     const bool targetPackage = processIsTarget();
-    // Any missing core entry point leaves this instance as a pure pass-through; the application
-    // keeps working and other instances are unaffected.
-    const bool coreLoaded = targetPackage &&
-        load(d, "xrGetSystemProperties", d.getSystemProperties) &&
-        load(d, "xrCreateSession", d.createSession) &&
-        load(d, "xrDestroySession", d.destroySession) &&
-        load(d, "xrCreateReferenceSpace", d.createReferenceSpace) &&
-        load(d, "xrDestroySpace", d.destroySpace) &&
-        load(d, "xrLocateViews", d.locateViews) &&
-        load(d, "xrEndFrame", d.endFrame) &&
-        load(d, "xrPollEvent", d.pollEvent);
-    owner->active = coreLoaded;
+    // Hook available core entry points independently, without inventing initialization errors.
+    // Geometry entry points only enable conversion; tracked projection frames are stripped
+    // when geometry facilities are unavailable.
+    if (targetPackage) {
+        // Each entry point is loaded and hooked on its own, and only when the downstream runtime
+        // has it. A missing one is never invented: the loader lookup is delegated so the runtime
+        // reports its own availability/error, and instance creation keeps the runtime's result.
+        (void)load(d, "xrCreateSession", d.createSession);
+        (void)load(d, "xrDestroySession", d.destroySession);
+        (void)load(d, "xrEndFrame", d.endFrame);
+        owner->geometry = load(d, "xrGetSystemProperties", d.getSystemProperties) &&
+            load(d, "xrCreateReferenceSpace", d.createReferenceSpace) &&
+            load(d, "xrDestroySpace", d.destroySpace) &&
+            load(d, "xrLocateViews", d.locateViews);
+    }
+    owner->active = targetPackage;
     {
         std::lock_guard<std::mutex> lock(instancesMutex);
         instances[*instance] = owner;  // a stale entry with a reused handle is replaced

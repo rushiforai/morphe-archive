@@ -2,8 +2,8 @@ package app.morphed.extension.twitch.hls;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,7 +30,7 @@ public final class PlaylistStitcher {
 
     private final Map<String, Long> sequenceByUri = new HashMap<>();
     private final TreeSet<Long> discontinuities = new TreeSet<>();
-    private final Set<String> seenAdUris = new HashSet<>();
+    private final Set<String> seenAdUris = new LinkedHashSet<>();
 
     private boolean rewriting;
     private long nextSequence = Long.MIN_VALUE;
@@ -41,6 +41,11 @@ public final class PlaylistStitcher {
     private long discontinuityBaseSequence;
     private String lastOutput;
     private int emptyPolls;
+
+    /** How many segments it remembers; for tests. */
+    synchronized int rememberedSegments() {
+        return sequenceByUri.size();
+    }
 
     public synchronized boolean isRewriting() {
         return rewriting;
@@ -63,6 +68,13 @@ public final class PlaylistStitcher {
 
         if (!rewriting && NATIVE.equals(source) && !playlist.hasAds()) {
             remember(playlist);
+            // Without ads nothing else forgets old segments, and a stream can run for days. Pruned in
+            // batches: walking the whole map on every poll would cost more than the memory it frees.
+            if (sequenceByUri.size() > 2 * MAX_REMEMBERED_SEGMENTS) {
+                forgetOldSegments();
+                // Passed-through playlists carry their own discontinuity sequence: older marks are not needed.
+                discontinuities.headSet(nextSequence - MAX_REMEMBERED_SEGMENTS).clear();
+            }
             lastOutput = text;
             return text;
         }
@@ -168,7 +180,13 @@ public final class PlaylistStitcher {
             discontinuityBaseSequence = oldest;
             discontinuities.headSet(oldest).clear();
         }
-        if (seenAdUris.size() > MAX_REMEMBERED_SEGMENTS) seenAdUris.clear();
+        // Oldest first. Clearing them all would make the ads still in the window look new, and
+        // mark a discontinuity (a visible glitch) where there is none.
+        Iterator<String> oldestAds = seenAdUris.iterator();
+        while (seenAdUris.size() > MAX_REMEMBERED_SEGMENTS && oldestAds.hasNext()) {
+            oldestAds.next();
+            oldestAds.remove();
+        }
     }
 
     private long discontinuitySequenceAt(long firstSequence) {

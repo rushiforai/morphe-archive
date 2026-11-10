@@ -120,18 +120,19 @@ final class BadgeSheet implements Lookup.Listener {
         footer.setPadding(0, ui.dp(16), 0, ui.dp(16));
         content.addView(footer);
 
-        if (info.location != null) {
-            boolean filtered = Filters.isFiltered(info.location);
+        String country = info.country();
+        if (country != null) {
+            boolean filtered = Filters.isFiltered(country);
             String verb = Settings.highlightMode() ? "Highlight" : "Hide";
             String label = filtered
-                    ? (Settings.highlightMode() ? "Stop highlighting " : "Stop hiding ") + info.location
-                    : verb + " posts from " + info.location;
+                    ? (Settings.highlightMode() ? "Stop highlighting " : "Stop hiding ") + country
+                    : verb + " posts from " + country;
             TextView toggle = ui.pill(label, !filtered, v -> {
                 Set<String> locations = new HashSet<>(Filters.locations());
                 if (filtered) {
-                    locations.removeIf(l -> Countries.canonicalKey(l).equals(Countries.canonicalKey(info.location)));
+                    locations.removeIf(l -> Countries.canonicalKey(l).equals(Countries.canonicalKey(country)));
                 } else {
-                    locations.add(info.location);
+                    locations.add(country);
                 }
                 Filters.save(locations, Settings.highlightMode());
                 HeaderBadges.refreshAll();

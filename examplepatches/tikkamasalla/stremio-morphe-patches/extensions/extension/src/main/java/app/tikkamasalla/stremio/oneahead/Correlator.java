@@ -12,7 +12,7 @@ import java.util.List;
 public final class Correlator {
     public static final int WIN = 400, HOP = 100;
     static final int GAP = 23;                       // 0.6 s of 0.025 s steps, truncated
-    static final double THR = 0.5, MIN_STRETCH = 4.0;
+    static final double THR = 0.6, MIN_STRETCH = 4.0;
     static final int MIN_OVERLAP = 20 * Track.SR;
     static final int SEP = 2 * Track.SR;
     public static final int BLOCK = 1 << 16;         // 16.384 s
@@ -40,7 +40,7 @@ public final class Correlator {
         public final int lag;
         public final double peak, noise;
 
-        Lag(int lag, double peak, double noise) {
+        public Lag(int lag, double peak, double noise) {
             this.lag = lag;
             this.peak = peak;
             this.noise = noise;
@@ -54,7 +54,7 @@ public final class Correlator {
 
     /** A run where the two windows are the same recording at one lag; times in the first window's file clock. */
     public static final class Stretch {
-        public double start, end, ncc, density;
+        public double start, end, ncc, density, q75;
         public boolean clipStart, clipEnd;
         public int lag, windows;
 
@@ -192,6 +192,13 @@ public final class Correlator {
 
     /** Every run of 0.1 s windows at NCC >= 0.5 at lag k, gaps up to 0.6 s bridged, at least 4 s long. */
     public static List<Stretch> stretches(Track x, Track y, int k) {
+        return stretches(x, y, k, THR, GAP, MIN_STRETCH, THR);
+    }
+
+    /** As above with explicit thresholds (landmark tier): windows at NCC >= thr bridge gaps of
+     * gapHops hops, runs of at least minSec; edges then trim inward to the first/last window at
+     * NCC >= edgeThr so chance collisions past the music cannot stretch the span into story. */
+    public static List<Stretch> stretches(Track x, Track y, int k, double thr, int gapHops, double minSec, double edgeThr) {
         List<Stretch> res = new ArrayList<>();
         int lo = Math.max(0, k), hi = Math.min(x.n, y.n + k), n = hi - lo;
         if (n < 2 * WIN) return res;
@@ -227,7 +234,7 @@ public final class Correlator {
         for (int i = 0; i < m; i++) {
             boolean live = ex[i] > floor && ey[i] > floor;
             if (!live) ncc[i] = -1.0;
-            match[i] = ncc[i] >= THR;
+            match[i] = ncc[i] >= thr;
         }
         double h = HOP / (double) Track.SR;
         double c0 = (lo + WIN / 2.0) / Track.SR;
@@ -235,25 +242,30 @@ public final class Correlator {
         while (i < m) {
             if (!match[i]) { i++; continue; }
             int j = i, last = i, cnt = 0;
-            while (j < m && j - last <= GAP) {
+            while (j < m && j - last <= gapHops) {
                 if (match[j]) { last = j; cnt++; }
                 j++;
             }
+            int iE = i, lastE = last;
+            while (iE <= lastE && ncc[iE] < edgeThr) iE++;
+            while (lastE >= iE && ncc[lastE] < edgeThr) lastE--;
             double s, e;
-            boolean cs = i == 0, ce = last == m - 1;
-            if (cs) s = c0;
+            boolean cs = iE == 0, ce = lastE == m - 1;
+            if (iE > lastE) { s = 1; e = 0; }
+            else if (cs) s = c0;
             else {
-                double n0 = ncc[i - 1], n1 = ncc[i];
-                double f = n1 != n0 ? (THR - n0) / (n1 - n0) : 0.0;
-                s = c0 + (i - 1) * h + f * h;
+                double n0 = ncc[iE - 1], n1 = ncc[iE];
+                double f = n1 != n0 ? (edgeThr - n0) / (n1 - n0) : 0.0;
+                s = c0 + (iE - 1) * h + f * h;
             }
-            if (ce) e = c0 + last * h;
+            if (iE > lastE) e = 0;
+            else if (ce) e = c0 + lastE * h;
             else {
-                double n0 = ncc[last], n1 = ncc[last + 1];
-                double f = n0 != n1 ? (n0 - THR) / (n0 - n1) : 0.0;
-                e = c0 + last * h + f * h;
+                double n0 = ncc[lastE], n1 = ncc[lastE + 1];
+                double f = n0 != n1 ? (n0 - edgeThr) / (n0 - n1) : 0.0;
+                e = c0 + lastE * h + f * h;
             }
-            if (e - s >= MIN_STRETCH) {
+            if (e - s >= minSec) {
                 int i0 = Math.max((int) Math.round(s * Track.SR) - lo, 0), i1 = Math.min((int) Math.round(e * Track.SR) - lo, n);
                 double p = 0, a = 0, b = 0;
                 for (int t = i0; t < i1; t++) {
@@ -266,7 +278,14 @@ public final class Correlator {
                 st.start = s + x.offset;
                 st.end = e + x.offset;
                 st.ncc = p / Math.sqrt(a * b + 1e-12);
-                st.density = cnt * h / Math.max(e - s, 1e-9);
+                int cntE = 0;
+                for (int q = iE; q <= lastE; q++) if (match[q]) cntE++;
+                st.density = cntE * h / Math.max(e - s, 1e-9);
+                cnt = cntE;
+                double[] wq = new double[Math.max(0, lastE - iE + 1)];
+                for (int q = 0; q < wq.length; q++) wq[q] = ncc[iE + q];
+                Arrays.sort(wq);
+                st.q75 = wq.length == 0 ? 0 : wq[(int) Math.min(wq.length - 1, (long) (0.75 * wq.length))];
                 st.clipStart = cs;
                 st.clipEnd = ce;
                 st.lag = k;
@@ -276,5 +295,31 @@ public final class Correlator {
             i = last + 1;
         }
         return res;
+    }
+
+    /** Waveform stats over one span at lag k: {whole-span ncc, share of 0.1 s windows at
+     * NCC >= thr, 75th-percentile window NCC}. Same windows as stretches(). */
+    public static double[] stats(Track x, Track y, int k, double s, double e, double thr) {
+        int lo = Math.max(0, k);
+        int i0 = Math.max(0, (int) Math.round(s * Track.SR) - lo), i1 = Math.min(Math.min(x.n, y.n + k) - lo, (int) Math.round(e * Track.SR) - lo);
+        if (i1 - i0 < 2 * WIN) return new double[]{0, 0, 0};
+        double p = 0, a = 0, b = 0;
+        for (int t = i0; t < i1; t++) {
+            double xs = x.at(lo + t), ys = y.at(lo - k + t);
+            p += xs * ys; a += xs * xs; b += ys * ys;
+        }
+        int m = (i1 - i0 - WIN) / HOP + 1, cnt = 0;
+        double[] wq = new double[m];
+        for (int i = 0; i < m; i++) {
+            double wp = 0, wa = 0, wb = 0;
+            for (int t = i0 + i * HOP, te = t + WIN; t < te; t++) {
+                double xs = x.at(lo + t), ys = y.at(lo - k + t);
+                wp += xs * ys; wa += xs * xs; wb += ys * ys;
+            }
+            wq[i] = wp / Math.sqrt(wa * wb + 1e-12);
+            if (wq[i] >= thr) cnt++;
+        }
+        Arrays.sort(wq);
+        return new double[]{p / Math.sqrt(a * b + 1e-12), cnt / (double) m, wq[(int) Math.min(m - 1, (long) (0.75 * m))]};
     }
 }

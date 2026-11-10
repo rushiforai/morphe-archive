@@ -149,9 +149,9 @@ Native gates that Java hooks may not cover (device test required): `com.lemon.ed
 | 2 | Remove Watermark | On | `Q0`,`C4`,`F4`,`v4`→true; `y2`,`EditConfig.k`→false |
 | 3 | Unlock Ultra HD Export | On | `TemplateExportUltraHdUtils.c/d/e/j/q`→true |
 | 4 | Unlock Premium Templates | On | `x6`,`A6`→true; `C6`→false; `TemplateBreakDomain.e`→false; `LoginChecker.e`→pass |
-| 5 | Bypass Signature Check | On | Signature/integrity hooks plus persist-free CrackingInterceptor dependency, template-feed response passthrough, and `creator_sign_alert` business-sign dialog suppression |
+| 5 | Bypass Signature Check | On | Signature/integrity hooks plus persist-free verdict dependency, cracking-dialog suppression, and removal of the JNI cracking interceptor from both network-init lists |
 | 6 | Persist-free CrackingInterceptor (`c(I)V` stub) | Off when selected alone; automatically included by Bypass Signature Check | 1 |
-| 7 | Bypass Unsafe Package Modal | On | `LynxSchemaConfig.<init>` fallback URL plus `LynxSchemeConfigCapCutImpl.t0()` runtime schema getter |
+| 7 | Bypass Unsafe Package Modal | On | `DeeplinkActivity.onCreate` and central `FunctionKt.j` channel guards plus constructor/runtime schema fallbacks |
 | 8 | Bypass GeoBlock | On | 5 |
 | 9 | Bypass Effects Region | On | 3 (`windows`, did `0`) |
 | 10 | Spoof Region to USA | On (operator choice) | `FlavorLocale` b/c/d/e/g/k, `CarrierEntry$Companion` d–o (12), `LocaleEntry$Companion.b` |
@@ -162,10 +162,11 @@ Native gates that Java hooks may not cover (device test required): `com.lemon.ed
 | 15 | Disable Forced Update | On | `VersionUpdateService.a` |
 | 16 | Block Telemetry | On | kveld set minus `TicketGuardProvider` |
 | 17 | Neutralize Play Billing | On | 7 |
-| 18 | Redirect API to v2-boot | On | 4 host rewrites; required for template category/tab loading when default API hosts are blocked |
+| 18 | Redirect API to v2-boot | Off | 4 host rewrites for regions where default hosts are blocked; can fail behind DNS filters/VPNs and is unnecessary on working U.S. hosts |
 | 19 | Change Package Name | Off | manifest rename |
 | 20 | Debloat locales / native slimmer | Off | speech `.so` removal kills auto-captions and TTS |
 | 21 | Unlock Ultra Plan | On | Depends on Unlock Premium; reports `SubscriptionLevel.ULTRA`, far-future local end times, non-auto purchase state, and no trial/expiry flags |
+| 22 | Allow Functional Network Hosts | On | Allows `capcutapi.com`, `ibyteimg.com`, and `tiktokcdn-us.com` through Helios domain enforcement; other domains keep stock policy |
 
 ## Implementation steps (gated on operator approval of this plan)
 

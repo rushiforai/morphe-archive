@@ -39,6 +39,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import app.fakh.extension.shared.TabSheet;
+import app.fakh.extension.shared.Translations;
+
 /**
  * Fakh Patches settings screen, laid out like LinkedIn's own settings pages (Account preferences and the like):
  * one page with a titled section per category, plus search across all settings.
@@ -63,9 +66,11 @@ public final class SettingsActivity extends Activity {
         final ValueRow value;
         /** A checkbox instead of a switch, for one choice of a list. */
         final boolean checkbox;
+        /** For a row that opens a bottom sheet: the choices in the sheet. */
+        final List<Item> choices;
 
         Item(String key, boolean def, String title, String summary, Runnable onChange, ValueRow value,
-                boolean checkbox) {
+                boolean checkbox, List<Item> choices) {
             this.key = key;
             this.def = def;
             this.title = title;
@@ -73,6 +78,7 @@ public final class SettingsActivity extends Activity {
             this.onChange = onChange;
             this.value = value;
             this.checkbox = checkbox;
+            this.choices = choices;
         }
     }
 
@@ -98,17 +104,39 @@ public final class SettingsActivity extends Activity {
         }
 
         Category toggle(String key, boolean def, String title, String summary, Runnable onChange) {
-            items.add(new Item(key, def, title, summary, onChange, null, false));
+            items.add(new Item(key, def, title, summary, onChange, null, false, null));
             return this;
         }
 
         Category check(String key, boolean def, String title) {
-            items.add(new Item(key, def, title, null, null, null, true));
+            items.add(new Item(key, def, title, null, null, null, true, null));
             return this;
         }
 
         Category value(String title, ValueRow value) {
-            items.add(new Item(null, false, title, null, null, value, false));
+            items.add(new Item(null, false, title, null, null, value, false, null));
+            return this;
+        }
+
+        /** A row that opens a bottom sheet with one check row per choice, and says how many are on. */
+        Category sheet(String title, List<Item> choices, Runnable open) {
+            items.add(new Item(null, false, title, null, null, new ValueRow() {
+                public String currentValue() {
+                    int shown = 0;
+                    for (Item choice : choices) {
+                        if (choice.key == null || Settings.get(choice.key, choice.def)) shown++;
+                    }
+                    return I18n.f("%1$s of %2$s shown", shown, choices.size());
+                }
+
+                public Runnable onClick() {
+                    return open;
+                }
+
+                public boolean enabled() {
+                    return true;
+                }
+            }, false, choices));
             return this;
         }
 
@@ -128,6 +156,16 @@ public final class SettingsActivity extends Activity {
                 }
             });
         }
+    }
+
+    /** A check row of a bottom sheet that is always on and cannot be changed. */
+    private static Item fixed(String title) {
+        return new Item(null, true, title, null, null, null, true, null);
+    }
+
+    /** One check row of a bottom sheet. */
+    private static Item choice(String key, boolean def, String title) {
+        return new Item(key, def, title, null, null, null, true, null);
     }
 
     private List<Category> buildCategories() {
@@ -195,6 +233,12 @@ public final class SettingsActivity extends Activity {
 
         if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()) {
             Category navigation = new Category("Navigation bar");
+            List<Item> tabs = new ArrayList<>();
+            tabs.add(fixed("Home"));
+            tabs.add(choice(Settings.SHOW_TAB_JOBS, true, "Jobs"));
+            tabs.add(choice(Settings.SHOW_TAB_NETWORK, true, "Network"));
+            tabs.add(choice(Settings.SHOW_TAB_NOTIFICATIONS, true, "Notifications"));
+            tabs.add(choice(Settings.SHOW_TAB_MORE, Settings.showMoreTab(), "More"));
             if (Settings.isGlassNavigationBarIncluded()) {
                 navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Glass navigation bar",
                         "A floating, translucent navigation bar.");
@@ -203,11 +247,8 @@ public final class SettingsActivity extends Activity {
                 navigation.toggle(Settings.HIDE_TAB_LABELS, false, "Hide tab labels", "Text under the navigation bar icons.")
                         .toggle(Settings.HIDE_TAB_BADGES, false, "Hide notification badges",
                                 "The count on the navigation bar tabs.")
-                        .action("Navigation bar tabs", "Home is always shown.", null)
-                        .check(Settings.SHOW_TAB_JOBS, true, "Jobs")
-                        .check(Settings.SHOW_TAB_NETWORK, true, "Network")
-                        .check(Settings.SHOW_TAB_NOTIFICATIONS, true, "Notifications")
-                        .check(Settings.SHOW_TAB_MORE, Settings.showMoreTab(), "More");
+                        .sheet("Navigation bar tabs", tabs, () -> showSheet("Navigation bar tabs",
+                                "Home is always shown.", tabs));
             }
             categories.add(navigation);
         }
@@ -216,7 +257,10 @@ public final class SettingsActivity extends Activity {
             Category more = new Category("More tab")
                     .toggle(Settings.MOVE_MORE_ITEMS, Settings.moveMoreItems(), "Show in the profile menu",
                             "Also list the items of the More tab in the profile menu.");
-            for (MoreMenu.Item item : MoreMenu.items()) more.check(item.key(), true, item.label);
+            List<Item> moreItems = new ArrayList<>();
+            for (MoreMenu.Item item : MoreMenu.items()) moreItems.add(choice(item.key(), true, item.label));
+            more.sheet("Items in the More tab", moreItems, () -> showSheet("Items in the More tab",
+                    "Choose which items the More tab lists.", moreItems));
             categories.add(more);
             categories.add(new Category("Shortcuts")
                     .toggle(Settings.GAMES_SHORTCUT, true, "Puzzle games shortcut",
@@ -227,7 +271,7 @@ public final class SettingsActivity extends Activity {
                 || Settings.isAmoledBlackIncluded()) {
             Category appearance = new Category("Appearance");
             if (Settings.isRemoveGapsAndDividersIncluded()) {
-                appearance.toggle(Settings.REMOVE_GAPS_AND_DIVIDERS, true, "Remove gaps and dividers",
+                appearance.toggle(Settings.REMOVE_GAPS_AND_DIVIDERS, true, "Hide gaps and dividers",
                         "Flat lists with no gaps or dividers.");
             }
             if (Settings.isMaterialYouIncluded()) {
@@ -315,7 +359,7 @@ public final class SettingsActivity extends Activity {
                         "Strip tracking from LinkedIn links you copy or share.");
             }
             if (Settings.isBlockTrackingIncluded()) {
-                privacy.toggle(Settings.BLOCK_TRACKING, false, "Block tracking",
+                privacy.toggle(Settings.BLOCK_TRACKING, false, "Disable analytics",
                         "Stop most analytics events. Turn off if something breaks.");
             }
             if (Settings.isAnonymousProfileViewingIncluded()) {
@@ -369,6 +413,9 @@ public final class SettingsActivity extends Activity {
     private LinearLayout content;
     private ScrollView scroll;
     private View restartBanner;
+    private FrameLayout rootView;
+    /** The bottom sheet on screen, or null. */
+    private TabSheet sheet;
 
     /**
      * Colors the buttons of a dialog shown over LinkedIn's own screens, whose theme makes button text transparent.
@@ -439,6 +486,7 @@ public final class SettingsActivity extends Activity {
         root.addView(column);
         restartBanner = restartBanner();
         root.addView(restartBanner);
+        rootView = root;
         setContentView(root);
 
         render();
@@ -447,7 +495,9 @@ public final class SettingsActivity extends Activity {
     @Override
     @SuppressWarnings("deprecation")
     public void onBackPressed() {
-        if (searching) {
+        if (sheet != null) {
+            sheet.close();
+        } else if (searching) {
             setSearching(false);
         } else {
             super.onBackPressed();
@@ -522,8 +572,12 @@ public final class SettingsActivity extends Activity {
         List<String> names = new ArrayList<>();
         for (Category category : categories) {
             for (Item item : category.items) {
+                StringBuilder choices = new StringBuilder();
+                if (item.choices != null) {
+                    for (Item choice : item.choices) choices.append(' ').append(I18n.tr(choice.title));
+                }
                 String haystack = (I18n.tr(item.title) + " " + (item.summary == null ? "" : I18n.tr(item.summary)) + " "
-                        + I18n.tr(category.title)).toLowerCase(Locale.ROOT);
+                        + I18n.tr(category.title) + choices).toLowerCase(Locale.ROOT);
                 if (q.isEmpty() || haystack.contains(q)) {
                     found.add(item);
                     names.add(category.title);
@@ -634,6 +688,15 @@ public final class SettingsActivity extends Activity {
                     dark ? 0xFF474747 : 0xFFBDBDBD}));
             toggle = track;
         }
+        if (item.key == null) {
+            // Always on: shown, but not something to change.
+            toggle.setChecked(true);
+            toggle.setEnabled(false);
+            row.setEnabled(false);
+            row.setAlpha(0.45f);
+            row.addView(toggle);
+            return row;
+        }
         toggle.setChecked(Settings.get(item.key, item.def));
         toggle.setOnCheckedChangeListener((button, checked) -> {
             Settings.set(item.key, checked);
@@ -712,9 +775,9 @@ public final class SettingsActivity extends Activity {
                 {"Messaging", Settings.isMessagingIncluded()},
                 {"Open links directly", Settings.isOpenLinksDirectlyIncluded()},
                 {"Sanitize share links", Settings.isSanitizeShareLinksIncluded()},
-                {"Block tracking", Settings.isBlockTrackingIncluded()},
+                {"Disable analytics", Settings.isBlockTrackingIncluded()},
                 {"Anonymous profile viewing", Settings.isAnonymousProfileViewingIncluded()},
-                {"Remove gaps and dividers", Settings.isRemoveGapsAndDividersIncluded()},
+                {"Hide gaps and dividers", Settings.isRemoveGapsAndDividersIncluded()},
                 {"Material You", Settings.isMaterialYouIncluded()},
                 {"Pitch black", Settings.isAmoledBlackIncluded()},
                 {"Glass navigation bar", Settings.isGlassNavigationBarIncluded()},
@@ -896,6 +959,23 @@ public final class SettingsActivity extends Activity {
 
     // endregion
 
+    // region Bottom sheet
+
+    /** A bottom sheet with one check row per choice. Tapping the dimmed area or going back closes it. */
+    private void showSheet(String title, String hint, List<Item> choices) {
+        if (sheet != null) return;
+        LinearLayout rows = new LinearLayout(this);
+        rows.setOrientation(LinearLayout.VERTICAL);
+        for (Item choice : choices) rows.addView(toggleRow(choice, null));
+        // The row that opened the sheet shows how many choices are on, so it is refreshed when the sheet is gone.
+        sheet = TabSheet.show(this, rootView, title, hint, background, textPrimary, textSecondary, rows, () -> {
+            sheet = null;
+            refresh();
+        });
+    }
+
+    // endregion
+
     // region Helpers
 
     private View restartBanner() {
@@ -906,7 +986,7 @@ public final class SettingsActivity extends Activity {
         banner.setBackground(rounded(dark ? 0xFF262626 : 0xFF202124, 16));
         banner.setElevation(dp(8));
 
-        TextView message = text("Restart LinkedIn to apply all changes.", 14, 0xFFFFFFFF, false);
+        TextView message = text(I18n.f("Restart %1$s to apply the change", "LinkedIn"), 14, 0xFFFFFFFF, false);
         banner.addView(message, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
         TextView action = text("RESTART", 14, MaterialYou.settingsAccent(true, 0xFF2DBCB1), true);

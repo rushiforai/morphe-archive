@@ -1970,10 +1970,20 @@ List cleared	Список очищен
 Nothing here yet. With Remember what you watch on, the reels, videos and stories you watch show up here.	Пока здесь ничего нет. Когда включена настройка «Запоминать просмотренное», просмотренные Reels, видео и Истории будут появляться здесь.
 # context: shown in the Recently watched list when the picked chip has no entries
 Nothing of this kind yet.	Пока нет элементов этого типа.
-# context: switch title under Comments; on, the comment sheet opens at the full height of the screen
-Open comments at full height	Открывать комментарии на весь экран
-# context: summary of that switch; Comment is the button under a reel or video, the split view shows the video above the comments
+# context: summary of the Full height choice; Comment is the button under a reel or video, the split view shows the video above the comments
 Comments open on a sheet that fills the screen instead of stopping part way up. On reels and videos, Comment opens that sheet in place of the split view with the video on top.	Комментарии открываются на панели во весь экран, а не на панели, которая занимает только часть экрана. В Reels и видео кнопка «Комментировать» открывает такую панель вместо разделенного экрана с видео сверху.
+# context: title of the list that picks how high the comments sheet opens; its choices follow
+Open comments at	Высота комментариев
+Facebook's height	Как в Facebook
+Full height	Во весь экран
+Half height	На пол-экрана
+# context: summary of the Half height choice; Comment is the button under a reel or video
+Comments open on a sheet that covers half the screen, and the reel or video keeps playing above it. On reels and videos, Comment opens that sheet in place of the split view.	Комментарии открываются на панели в половину экрана, а Reels или видео продолжает играть над ней. В Reels и видео кнопка «Комментировать» открывает такую панель вместо разделенного экрана.
+Comments open where Facebook stops them, part way up on reels and videos.	Комментарии открываются на той высоте, где их останавливает Facebook, в Reels и видео это часть экрана.
+# context: sentences in a settings import preview
+Comments will open at full height.	Комментарии будут открываться во весь экран.
+Comments will open at half height.	Комментарии будут открываться на пол-экрана.
+Comments will open where Facebook stops them.	Комментарии будут открываться на той высоте, где их останавливает Facebook.
 # context: switch title under Appearance; on, Android's status bar (clock, battery) is hidden on Facebook's main screen
 Hide the status bar	Скрывать строку состояния
 # context: summary of that switch; a swipe down from the top edge shows the bar briefly
@@ -2684,3 +2694,30 @@ The rounded tab bar is %1$s percent of the screen wide.	Ширина скруг�
 Tab bar height	Высота панели вкладок
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Сколько процентов полной высоты сохраняет скруглённая панель вкладок, от %1$s до %2$s, с обрезкой сверху и снизу от значков. Оставьте поле пустым, чтобы использовать %3$s.
 The rounded tab bar keeps %1$s percent of its height.	Скруглённая панель вкладок сохраняет %1$s процентов своей высоты.
+# context: title of a row under About that picks how long a dot marks settings an update added
+Mark new settings	Отмечать новые настройки
+# context: choice in that row; the dot goes once the page holding the setting is left
+Until I leave the page	Пока я не уйду со страницы
+# context: summary of that row when Off is picked
+Settings an update adds get no dot.	Настройки, добавленные обновлением, не отмечаются точкой.
+# context: summary of that row for the default choice
+A dot marks each setting an update adds, until you leave the page it's on.	Точка отмечает каждую настройку, добавленную обновлением, пока вы не уйдете со страницы, где она находится.
+# context: summary of that row; %1$s is a time such as 3 days
+A dot marks each setting an update adds, for %1$s from the first time you open its page.	Точка отмечает каждую настройку, добавленную обновлением, на %1$s с первого открытия ее страницы.
+# context: sentence in the import preview when the file turns that row Off
+Settings an update adds won't get a dot.	Настройки, добавленные обновлением, не будут отмечаться точкой.
+# context: sentence in the import preview for the default choice
+Settings an update adds will get a dot until you leave their page.	Настройки, добавленные обновлением, будут отмечаться точкой, пока вы не уйдете с их страницы.
+# context: sentence in the import preview; %1$s is a time such as 3 days
+Settings an update adds will get a dot for %1$s from the first time you open their page.	Настройки, добавленные обновлением, будут отмечаться точкой на %1$s с первого открытия их страницы.
+Turn gray over	Обесцвечивать за
+Reels are gray from the start.	Reels серые с самого начала.
+# context: %1$s is a time such as 10 minutes
+Reels lose their color over %1$s of watching. 15 minutes away starts them in color again.	Reels теряют цвет за %1$s просмотра. 15 минут перерыва возвращают им цвет.
+Show Reels in gray will make reels gray from the start.	Reels в оттенках серого сделает Reels серыми с самого начала.
+# context: sentence in the import preview; %1$s is a time such as 10 minutes
+Show Reels in gray will take reels from color to gray over %1$s.	Reels в оттенках серого переведёт Reels из цвета в серый за %1$s.
+Show time in Reels	Показывать время в Reels
+A small label at the top of Reels shows the minutes you've watched. Time on other tabs doesn't count, and 15 minutes away starts it over.	Небольшая метка вверху Reels показывает, сколько минут вы посмотрели. Время на других вкладках не считается, а после 15 минут вне Reels счёт начинается заново.
+# context: a short label on the Reels screen; %1$d is a number of minutes
+%1$d min	%1$d мин

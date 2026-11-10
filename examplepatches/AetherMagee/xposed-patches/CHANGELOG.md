@@ -1,3 +1,13 @@
+## [1.1.0](https://github.com/AetherMagee/xposed-patches/compare/v1.0.0...v1.1.0) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* keep filtered quotes and posts hidden, add quoted-post scope ([631d3ba](https://github.com/AetherMagee/xposed-patches/commit/631d3baa4e4f0c5728551f2ffb3ba504ae305a64))
+
+### ✨ New Features
+
+* option to filter and flag by device country ([808800d](https://github.com/AetherMagee/xposed-patches/commit/808800d1521eb7547e20adc5388b10b0d98b3360))
+
 ## 1.0.0 (2026-10-25)
 
 ### 🐛 Bug Fixes

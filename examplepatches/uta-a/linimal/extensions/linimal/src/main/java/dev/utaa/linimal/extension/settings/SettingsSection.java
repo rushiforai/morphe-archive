@@ -1,5 +1,7 @@
 package dev.utaa.linimal.extension.settings;
 
+import dev.utaa.linimal.extension.i18n.LinimalText;
+
 /**
  * 設定ページ内の小見出しを表します。
  *
@@ -31,6 +33,6 @@ public enum SettingsSection {
 
     /** 小見出しとして表示する文言です。 */
     public String getTitle() {
-        return title;
+        return LinimalText.t(title);
     }
 }

@@ -26,10 +26,12 @@ final class Filters {
 
     /** Called for every post header and client event item, so it avoids locks and allocation. */
     static Action actionFor(AccountInfo info) {
-        if (info == null || info.location == null) return Action.NONE;
+        if (info == null) return Action.NONE;
         if (!loaded) load();
         Set<String> k = keys;
-        if (k.isEmpty() || !k.contains(Countries.canonicalKey(info.location))) return Action.NONE;
+        if (k.isEmpty()) return Action.NONE;
+        String country = info.country();
+        if (country == null || !k.contains(Countries.canonicalKey(country))) return Action.NONE;
         return Settings.highlightMode() ? Action.HIGHLIGHT : Action.HIDE;
     }
 

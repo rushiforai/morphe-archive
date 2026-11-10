@@ -214,29 +214,38 @@ public final class NextPrep {
         long started = System.currentTimeMillis();
         List<StreamRanker.Stream> candidates = new ArrayList<StreamRanker.Stream>();
         Map<StreamRanker.Stream, String[]> origin = new java.util.IdentityHashMap<StreamRanker.Stream, String[]>();
-        int asked = 0, answered = 0;
+        int asked = 0, answered = 0, rows = 0, kept = 0;
+        StringBuilder perAddon = new StringBuilder();
         for (String[] addon : addons) {
             String url = NextPrepCore.streamRequestUrl(addon[1], type, videoId);
             if (url.length() == 0) continue;
             asked++; // one request per addon per preparation, no retry
-            String body = get(url);
-            if (body == null) continue;
-            answered++;
-            for (NextPrepCore.Cand c : NextPrepCore.parseStreams(body)) {
-                if (c.name.contains("⚠") || c.title.contains("⚠") || c.title.contains("⛔")) continue;
-                if (metaName != null && metaName.length() > 0
-                        && !StreamAutoPick.matchesMeta(c.name + " " + c.title, metaName)) continue;
-                StreamRanker.Stream s = new StreamRanker.Stream(c.name, c.title, c.url, addon[0], c.fileName);
-                candidates.add(s);
-                origin.put(s, new String[]{c.json, addon[1]});
+            String body = get(url, 10000);
+            int got = 0, use = 0;
+            if (body != null) {
+                answered++;
+                for (NextPrepCore.Cand c : NextPrepCore.parseStreams(body)) {
+                    if (c.name.contains("⚠") || c.title.contains("⚠") || c.title.contains("⛔")) continue;
+                    if (metaName != null && metaName.length() > 0
+                            && !StreamAutoPick.matchesMeta(c.name + " " + c.title, metaName)) continue;
+                    got++;
+                    StreamRanker.Stream s = new StreamRanker.Stream(c.name, c.title, c.url, addon[0], c.fileName);
+                    candidates.add(s);
+                    origin.put(s, new String[]{c.json, addon[1]});
+                    use++;
+                }
             }
+            rows += got; kept += use;
+            if (perAddon.length() > 0) perAddon.append(";");
+            perAddon.append(shortAddon(addon[1])).append(body == null ? "=no-answer" : "=" + got + "/" + use);
         }
         int[] req = StreamRanker.requestOf(videoId);
         List<StreamRanker.Ranked> ranked = candidates.isEmpty() ? new ArrayList<StreamRanker.Ranked>()
                 : StreamRanker.rank(candidates, false, req[0], req[1], 0);
         long ms = System.currentTimeMillis() - started;
         if (ranked.isEmpty()) {
-            Log.i(TAG, "nothing for " + videoId + " (" + answered + "/" + asked + " addons answered)");
+            Log.i(TAG, "nothing for " + videoId + " (" + answered + "/" + asked + " addons answered"
+                    + " rows=" + rows + " kept=" + kept + " [" + perAddon + "])");
             PlaybackDiary.ev(ctx, "next.prep", "vid", videoId, "ok", false, "why", "no stream", "asked", asked, "answered", answered, "ms", ms);
             return;
         }
@@ -373,25 +382,31 @@ public final class NextPrep {
         }
     }
 
-    private static String get(String url) {
+    /** Why the last get() on this thread returned null (status or exception class); read right after a null. */
+    private static final ThreadLocal<String> GET_FAILURE = new ThreadLocal<String>();
+
+    private static String get(String url, int readMs) {
         java.net.HttpURLConnection conn = null;
+        GET_FAILURE.set("none");
         try {
             conn = (java.net.HttpURLConnection) new java.net.URL(url).openConnection();
             conn.setConnectTimeout(5000);
-            conn.setReadTimeout(10000);
+            conn.setReadTimeout(readMs);
             conn.setRequestProperty("Accept", "application/json");
-            if (conn.getResponseCode() != 200) return null;
+            int status = conn.getResponseCode();
+            if (status != 200) { GET_FAILURE.set("http=" + status); return null; }
             java.io.InputStream in = conn.getInputStream();
             java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
             byte[] buf = new byte[8192];
             int n;
             while ((n = in.read(buf)) > 0) {
                 out.write(buf, 0, n);
-                if (out.size() > MAX_BODY) return null;
+                if (out.size() > MAX_BODY) { GET_FAILURE.set("too-large"); return null; }
             }
             in.close();
             return out.toString("UTF-8");
-        } catch (Throwable ignored) {
+        } catch (Throwable failed) {
+            GET_FAILURE.set(failed.getClass().getSimpleName());
             return null;
         } finally {
             if (conn != null) {
@@ -478,8 +493,11 @@ public final class NextPrep {
         try {
             String url = NextPrepCore.streamRequestUrl(transport, type, videoId);
             if (url.length() == 0) return out;
-            String body = get(url);
-            if (body == null) return out;
+            String body = get(url, 25000);
+            if (body == null) {
+                Log.i("NextPrep", "query null-body ep=" + videoId + " why=" + GET_FAILURE.get());
+                return out;
+            }
             List<StreamRanker.Stream> candidates = new ArrayList<StreamRanker.Stream>();
             for (NextPrepCore.Cand c : NextPrepCore.parseStreams(body)) {
                 if (c.url == null || c.url.length() == 0) continue;
@@ -807,5 +825,19 @@ public final class NextPrep {
 
     private static String safe(String s) {
         return s == null ? "" : s;
+    }
+
+    /** Short addon tag for the log (host only, never a key): "torrentio.strem.fun" from a transport URL. */
+    public static String shortAddon(String transportUrl) {
+        try {
+            String base = NextPrepCore.addonBase(transportUrl);
+            int at = base.indexOf("://");
+            String host = at >= 0 ? base.substring(at + 3) : base;
+            int slash = host.indexOf('/');
+            if (slash >= 0) host = host.substring(0, slash);
+            return host.length() == 0 ? "?" : host;
+        } catch (Throwable ignored) {
+            return "?";
+        }
     }
 }

@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.patches.links
 
 import app.linkedin.patches.shared.Constants.COMPATIBILITY_LINKEDIN
@@ -11,17 +16,17 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 
-private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/OpenLinksDirectlyPatch;"
+private const val URL_UNWRAPPER = "$EXTENSION_PACKAGE/OpenLinksDirectlyPatch;"
 
 /** NavigateToUrlActionViewData(Uri, UrlNavigationType, LegacyFeedUrlTrackingData, boolean, IntStack). */
-private object NavigateToUrlActionFingerprint : Fingerprint(
+private val urlAction = Fingerprint(
     definingClass = "Lcom/linkedin/sdui/viewdata/action/NavigateToUrlActionViewData;",
     name = "<init>",
     parameters = listOf("Landroid/net/Uri;", "L", "L", "Z", "L"),
 )
 
 /** RichTextUtils.getLinkShimmingLink(String): wraps chat links in linkedin.com/safety/go. */
-private object MessagingLinkShimFingerprint : Fingerprint(
+private val messagingLinkShim = Fingerprint(
     definingClass = "Lcom/linkedin/android/messaging/util/RichTextUtils;",
     name = "getLinkShimmingLink",
     returnType = "Ljava/lang/String;",
@@ -31,7 +36,7 @@ private object MessagingLinkShimFingerprint : Fingerprint(
 @Suppress("unused")
 val openLinksDirectlyPatch = bytecodePatch(
     name = "Open links directly",
-    description = "Opens external links without LinkedIn's safety/go warning page.",
+    description = "Skips LinkedIn's safety/go warning page and opens external links straight away.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -40,21 +45,21 @@ val openLinksDirectlyPatch = bytecodePatch(
     execute {
         markIncluded("isOpenLinksDirectlyIncluded")
 
-        // Replace the Uri parameter before the constructor stores it. Range form because p1 can be above v15.
-        NavigateToUrlActionFingerprint.method.addInstructions(
+        // Swap the Uri before the constructor stores it. Range form, since p1 can be above v15.
+        urlAction.method.addInstructions(
             0,
             """
-                invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->unwrap(Landroid/net/Uri;)Landroid/net/Uri;
+                invoke-static/range { p1 .. p1 }, $URL_UNWRAPPER->unwrap(Landroid/net/Uri;)Landroid/net/Uri;
                 move-result-object p1
             """
         )
 
-        MessagingLinkShimFingerprint.method.apply {
-            // Static method: p0 is the link. At method entry every local register is free.
+        // Static method, so p0 is the link; the locals are empty at offset 0 and v0 is free to use.
+        with(messagingLinkShim.method) {
             addInstructionsWithLabels(
                 0,
                 """
-                    invoke-static { }, $EXTENSION_CLASS->skipMessagingShim()Z
+                    invoke-static { }, $URL_UNWRAPPER->skipMessagingShim()Z
                     move-result v0
                     if-eqz v0, :shim
                     return-object p0

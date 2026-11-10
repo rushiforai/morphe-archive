@@ -1,6 +1,7 @@
 package app.mightymorphing.extension.joey;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
@@ -120,23 +121,49 @@ public final class MorpheSettingsActivity extends Activity {
             applyCardContainer(themeCard, activity, density);
             themeCard.setLayoutParams(cardLayoutParams(activity, density));
             themeCard.addView(sectionTitle(activity, "Appearance"));
-            if (ModernUi.isModernUiEnabled(activity)) {
-                themeCard.addView(materialAccentRow(activity));
-                themeCard.addView(groupLabel(activity, "Posts"));
-                themeCard.addView(choiceRow(activity, "Image style", PostLayout.imageBlurb(),
-                        value -> PostLayout.showImage(activity, value)));
-                if (!MorpheSettings.showHideControls()) {
-                    themeCard.addView(postDetailsRow(activity));
-                    themeCard.addView(subredditChipsRow(activity));
-                }
-                themeCard.addView(actionRow(activity, "Downloads",
-                        "A picture, GIF, or video saves straight away. Set the file name and the folder.",
-                        () -> MediaDownload.show(activity)));
-                themeCard.addView(toggleRow(activity, "Swipe albums closed",
-                        "A diagonal swipe leaves an album, the same way a picture closes. Straight up and down still move between pictures.",
-                        ModernUi.albumSwipe(activity),
-                        (btn, checked) -> ModernUi.setAlbumSwipe(activity, checked)));
+            boolean classic = ModernUi.isClassic(activity);
+            themeCard.addView(confirmToggle(activity, "Classic Joey",
+                    "Joey's own theme, fonts, and post style.",
+                    classic,
+                    "Enable classic UI?",
+                    "Use the Modern look?",
+                    checked -> ModernUi.setClassicUi(activity, checked)));
+            View theme = materialAccentRow(activity);
+            View posts = groupLabel(activity, "Posts");
+            View image = choiceRow(activity, "Image style", PostLayout.imageBlurb(),
+                    value -> PostLayout.showImage(activity, value));
+            View details = postDetailsRow(activity);
+            View chips = subredditChipsRow(activity);
+            View downloads = actionRow(activity, "Downloads",
+                    "A picture, GIF, or video saves straight away. Set the file name and the folder.",
+                    () -> MediaDownload.show(activity));
+            View albums = toggleRow(activity, "Swipe albums closed",
+                    "A diagonal swipe leaves an album, the same way a picture closes. Straight up and down still move between pictures.",
+                    ModernUi.albumSwipe(activity),
+                    (btn, checked) -> ModernUi.setAlbumSwipe(activity, checked));
+            View bird = confirmToggle(activity, "Sidebar bird",
+                    "Joey's bird in the account header.",
+                    ModernUi.sidebarBird(activity),
+                    "Show the Joey bird?",
+                    "Hide the Joey bird?",
+                    checked -> ModernUi.setSidebarBird(activity, checked));
+            greyRow(theme, !classic);
+            greyRow(posts, !classic);
+            greyRow(image, !classic);
+            greyRow(details, !classic);
+            greyRow(chips, !classic);
+            greyRow(downloads, !classic);
+            greyRow(albums, !classic);
+            themeCard.addView(theme);
+            themeCard.addView(posts);
+            themeCard.addView(image);
+            if (!MorpheSettings.showHideControls()) {
+                themeCard.addView(details);
+                themeCard.addView(chips);
             }
+            themeCard.addView(downloads);
+            themeCard.addView(albums);
+            if (!classic) themeCard.addView(bird);
             if (MorpheSplash.isEnabled()) themeCard.addView(splashRow(activity));
             column.addView(themeCard);
         } else if (MorpheSplash.isEnabled()) {
@@ -160,12 +187,18 @@ public final class MorpheSettingsActivity extends Activity {
                     () -> Sidebar.show(activity)));
             showHide.addView(actionRow(activity, "Subreddit bar", "What sits on the subreddit bar, and the order.",
                     () -> SubredditToolbar.show(activity)));
-            if (MorpheSettings.modernUiControls() && ModernUi.isModernUiEnabled(activity)) {
-                showHide.addView(subredditChipsRow(activity));
-                showHide.addView(postDetailsRow(activity));
+            if (MorpheSettings.modernUiControls()) {
+                View chipOrder = subredditChipsRow(activity);
+                View detailOrder = postDetailsRow(activity);
+                greyRow(chipOrder, ModernUi.isModernUiEnabled(activity));
+                greyRow(detailOrder, ModernUi.isModernUiEnabled(activity));
+                showHide.addView(chipOrder);
+                showHide.addView(detailOrder);
             }
-            showHide.addView(actionRow(activity, "Post bar", "What stays on a post, and what moves into its menu.",
-                    () -> PostLayout.showActions(activity)));
+            View postBar = actionRow(activity, "Post bar", "What stays on a post, and what moves into its menu.",
+                    () -> PostLayout.showActions(activity));
+            if (MorpheSettings.modernUiControls()) greyRow(postBar, ModernUi.isModernUiEnabled(activity));
+            showHide.addView(postBar);
             column.addView(showHide);
         }
 
@@ -250,6 +283,52 @@ public final class MorpheSettingsActivity extends Activity {
         setRowEnabled(limitRow, inline && MorpheSettings.autoplay(activity));
         setRowEnabled(dragRow, inline);
         setRowEnabled(handleRow, inline && MorpheSettings.resizeEnabled(activity));
+    }
+
+    private interface Choice {
+        void save(boolean checked);
+    }
+
+    /** The switch asks before it is saved, then restarts. Cancel puts the switch back. */
+    private View confirmToggle(Activity activity, String titleText, String subtitle, boolean checked,
+                               String enableTitle, String disableTitle, Choice save) {
+        boolean[] ignore = { false };
+        return toggleRow(activity, titleText, subtitle, checked, (button, now) -> {
+            if (ignore[0] || now == checked) return;
+            LinearLayout page = MorpheDialog.page(activity, now ? enableTitle : disableTitle, null);
+            TextView cancel = MorpheDialog.action(activity, "Cancel", MorpheDialog.SUB);
+            TextView apply = MorpheDialog.action(activity, "Apply and restart", MorpheDialog.GOLD);
+            page.addView(MorpheDialog.actions(activity, cancel, apply));
+            AlertDialog dialog = MorpheDialog.show(activity, page);
+            boolean[] applied = { false };
+            cancel.setOnClickListener(v -> dialog.dismiss());
+            apply.setOnClickListener(v -> {
+                applied[0] = true;
+                save.save(now);
+                ModernUi.restartApp(activity);
+            });
+            dialog.setOnDismissListener(d -> {
+                if (applied[0]) return;
+                ignore[0] = true;
+                button.setChecked(checked);
+                ignore[0] = false;
+            });
+        });
+    }
+
+    /** Leaves the row in place and stops it being changed. */
+    private void greyRow(View row, boolean enabled) {
+        row.setAlpha(enabled ? 1f : 0.38f);
+        row.setEnabled(enabled);
+        if (row instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) row;
+            group.setClickable(enabled);
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View child = group.getChildAt(i);
+                child.setEnabled(enabled);
+                child.setClickable(enabled);
+            }
+        }
     }
 
     private void setRowEnabled(View row, boolean enabled) {

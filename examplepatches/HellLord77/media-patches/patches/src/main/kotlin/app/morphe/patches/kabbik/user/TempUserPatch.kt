@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.kabbik.extension.sharedExtensionPatch
 import app.morphe.patches.kabbik.shared.Constants.COMPATIBILITY_KABBIK
+import app.morphe.patches.kabbik.shared.morphe.com.kabbik.app.KabbikApplication
 import app.morphe.util.matchSingle
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c
@@ -23,7 +24,7 @@ val tempUserPatch =
         dependsOn(sharedExtensionPatch)
 
         execute {
-            KabbikApplicationOnCreateFingerprint.matchSingle().method.apply {
+            KabbikApplication.OnCreateFingerprint.matchSingle().method.apply {
                 addInstruction(
                     0,
                     BuilderInstruction35c(

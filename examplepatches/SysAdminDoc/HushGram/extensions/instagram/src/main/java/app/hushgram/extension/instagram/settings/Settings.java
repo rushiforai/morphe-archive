@@ -17,6 +17,7 @@ import app.hushgram.extension.instagram.download.HoldFingers;
 import app.hushgram.extension.instagram.download.HoldTime;
 import app.hushgram.extension.instagram.download.SaveFolder;
 import app.hushgram.extension.instagram.feed.OverlayLook;
+import app.hushgram.extension.instagram.feed.SeekShape;
 import app.hushgram.extension.instagram.media.PlaybackQuality;
 import app.hushgram.extension.instagram.media.TapToPlayScope;
 import app.hushgram.extension.instagram.profile.ProfileTabs;
@@ -397,6 +398,21 @@ public class Settings extends BaseSettings {
             new EnumSetting<>("hushgram_upload_video_bitrate", app.hushgram.extension.instagram.stories.UploadBitrate.INSTAGRAM,
                     parent(UPLOAD_STORIES_AT_FULL_QUALITY));
 
+    /** Under {@link #UPLOAD_STORIES_AT_FULL_QUALITY}: the least video width an upload it covers asks for (#37). */
+    public static final EnumSetting<app.hushgram.extension.instagram.stories.UploadResolution> UPLOAD_VIDEO_RESOLUTION =
+            new EnumSetting<>("hushgram_upload_video_resolution", app.hushgram.extension.instagram.stories.UploadResolution.INSTAGRAM,
+                    parent(UPLOAD_STORIES_AT_FULL_QUALITY));
+
+    /** Under {@link #UPLOAD_STORIES_AT_FULL_QUALITY}: the least frame rate an upload it covers is encoded at (#37). */
+    public static final EnumSetting<app.hushgram.extension.instagram.stories.UploadFrameRate> UPLOAD_FRAME_RATE =
+            new EnumSetting<>("hushgram_upload_frame_rate", app.hushgram.extension.instagram.stories.UploadFrameRate.INSTAGRAM,
+                    parent(UPLOAD_STORIES_AT_FULL_QUALITY));
+
+    /** Under {@link #UPLOAD_STORIES_AT_FULL_QUALITY}: the least JPEG quality a photo being prepared gets (#37). */
+    public static final EnumSetting<app.hushgram.extension.instagram.stories.UploadPhotoQuality> UPLOAD_PHOTO_QUALITY =
+            new EnumSetting<>("hushgram_upload_photo_quality", app.hushgram.extension.instagram.stories.UploadPhotoQuality.INSTAGRAM,
+                    parent(UPLOAD_STORIES_AT_FULL_QUALITY));
+
     /**
      * The first feed video of a Home session starts with its sound on, through the video's own sound
      * flag, when the phone's ringer is on and its volume is up
@@ -536,6 +552,10 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting CAROUSEL_DOTS_PILL =
             new BooleanSetting("hushgram_carousel_dots_pill", FALSE);
+
+    /** Takes Instagram's own page number, like 3/5, off a carousel post (#581). Off to start. */
+    public static final BooleanSetting CAROUSEL_HIDE_NUMBER =
+            new BooleanSetting("hushgram_carousel_hide_number", FALSE);
 
     /**
      * How {@link #CAROUSEL_DOTS_PILL}'s pill looks (#471): solid, as it always was, see-through, or frosted
@@ -931,6 +951,34 @@ public class Settings extends BaseSettings {
      * ({@link app.hushgram.extension.instagram.direct.CallButtons}, #217). Off to start.
      */
     public static final BooleanSetting HIDE_CALL_BUTTONS = new BooleanSetting("hushgram_hide_call_buttons", FALSE);
+
+    /**
+     * The banner reminding you to be respectful stays off the bottom of a chat
+     * ({@link app.hushgram.extension.instagram.direct.KindnessReminder}, #588). Off to start.
+     */
+    public static final BooleanSetting HIDE_KINDNESS_REMINDER = new BooleanSetting("hushgram_hide_kindness_reminder", FALSE);
+
+    /**
+     * Who can ring your phone with an Instagram call
+     * ({@link app.hushgram.extension.instagram.direct.CallBlocker}, #578). Everyone to start.
+     */
+    public static final EnumSetting<app.hushgram.extension.instagram.direct.CallBlockMode> CALL_BLOCK_MODE =
+            new EnumSetting<>("hushgram_call_block_mode", app.hushgram.extension.instagram.direct.CallBlockMode.EVERYONE);
+
+    /**
+     * The people {@link #CALL_BLOCK_MODE} reads, one to a line. A control, not a switch. Empty to
+     * start, and only in use for the two choices that read a list.
+     */
+    public static final StringSetting CALL_BLOCK_ACCOUNTS =
+            new StringSetting("hushgram_call_block_accounts", "", new Setting.Availability() {
+                @Override public boolean isAvailable() {
+                    return CALL_BLOCK_MODE.savedValue().usesList();
+                }
+
+                @Override public List<Setting<?>> getParentSettings() {
+                    return Collections.singletonList(CALL_BLOCK_MODE);
+                }
+            });
 
     /**
      * The Like button under a post asks before it likes or unlikes the post
@@ -1605,12 +1653,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_glass_tab_bar_keep_size", FALSE, true, parent(GLASS_TAB_BAR_LIQUID));
 
     /**
-     * Under {@link #GLASS_TAB_BAR_LIQUID}: the liquid pill's rim bends what's behind it the way the edge of real
-     * glass does, so what passes under the edge shows mirrored and upside down (#369). Android 13 and newer,
-     * where the bar can run a shader. Read as the bar is built, so a change asks for a restart. Off to start.
+     * Under {@link #GLASS_TAB_BAR_BLUR}: the pill's rim bends what's behind it the way the edge of real glass
+     * does, so what passes under the edge shows mirrored and upside down (#369). The liquid pill and the
+     * standard one both bend (#391), and only where the pill is blurred. Android 13 and newer, where the bar
+     * can run a shader. Read as the bar is built, so a change asks for a restart. Off to start.
      */
     public static final BooleanSetting GLASS_TAB_BAR_REFRACT =
-            new BooleanSetting("hushgram_glass_tab_bar_refract", FALSE, true, parent(GLASS_TAB_BAR_LIQUID));
+            new BooleanSetting("hushgram_glass_tab_bar_refract", FALSE, true, parent(GLASS_TAB_BAR_BLUR));
 
     /**
      * Under {@link #GLASS_TAB_BAR_HAPTICS}: which tick plays ({@link app.hushgram.extension.instagram.misc.HapticStyle}).
@@ -1630,7 +1679,7 @@ public class Settings extends BaseSettings {
                     .withRange(0, 150);
 
     /**
-     * Under {@link #GLASS_TAB_BAR_REFRACT}: how far the liquid pill bends what's behind it, in percent of the
+     * Under {@link #GLASS_TAB_BAR_REFRACT}: how far the pill's rim bends what's behind it, in percent of the
      * bend it has always had, from a slider (#391). Zero leaves the backdrop straight, higher bends it harder.
      * Read as the pill draws, so a change shows on the bar without a restart.
      */
@@ -1738,6 +1787,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting STOP_UPLOAD_ALARM =
             new BooleanSetting("hushgram_stop_upload_alarm", FALSE);
+
+    /**
+     * Instagram stops queueing the job that wakes the phone about every half hour to download the feed ahead
+     * of time, cancels the ones it queued, and ends any that still starts
+     * ({@link app.hushgram.extension.instagram.misc.Heartbeat#stopBackgroundFetch}). Read each time a job would
+     * be queued or start. Off to start.
+     */
+    public static final BooleanSetting STOP_BACKGROUND_FETCH =
+            new BooleanSetting("hushgram_stop_background_fetch", FALSE);
 
     /**
      * Instagram's windows ask Android for the display's fastest mode at the resolution it runs at
@@ -2044,6 +2102,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_hide_notification_suggestions", FALSE);
 
     /**
+     * Notification rows inviting you to join someone's channel, one at a time or as a roundup
+     * ({@link app.hushgram.extension.instagram.profile.ProfileSuggestions#isChannelInvite}, #259). Read
+     * each time the notifications load, so off or paused, they're back on the next load. Off to start.
+     */
+    public static final BooleanSetting HIDE_NOTIFICATION_CHANNEL_INVITES =
+            new BooleanSetting("hushgram_hide_notification_channel_invites", FALSE);
+
+    /**
      * The Featured section at the top of your notifications, header and rows: posts and threads the
      * server picks to show you there
      * ({@link app.hushgram.extension.instagram.profile.ProfileSuggestions#featuredRows}, #259). Read
@@ -2157,6 +2223,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting STOP_SWIPE_TO_CREATE =
             new BooleanSetting("hushgram_stop_swipe_to_create", FALSE);
+
+    /**
+     * What a swipe right on Home opens ({@link app.hushgram.extension.instagram.feed.HomeSwipe}), the camera
+     * to start. Read at each step of a swipe, so a change shows on the next one.
+     */
+    public static final EnumSetting<app.hushgram.extension.instagram.feed.HomeSwipe> HOME_SWIPE_OPENS =
+            new EnumSetting<>("hushgram_home_swipe_opens", app.hushgram.extension.instagram.feed.HomeSwipe.CAMERA);
 
     /**
      * A sideways swipe between the main tabs
@@ -3019,6 +3092,23 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_photo_reel_seek_bar", FALSE);
 
     /**
+     * The shape of the seek bars on feed videos, stories and reels (#586, #592), one choice for all
+     * of them. {@link SeekShape#STANDARD} to start, which leaves each bar as it's always been.
+     */
+    public static final EnumSetting<SeekShape> SEEK_BAR_SHAPE =
+            new EnumSetting<>("hushgram_seek_bar_shape", SeekShape.STANDARD,
+                    parentsAny(FEED_SEEK_BAR, FEED_SEEK_BUTTON, STORY_SEEK_BAR, REEL_SEEK_BAR, BIG_REEL_SEEK_BAR, DM_REEL_SEEK_BAR));
+
+    /**
+     * A card above the finger while a seek bar on a feed video, story or reel is dragged (#567, #592):
+     * the time, and a picture of that moment from the strip Instagram sends with a video, fetched only
+     * when a drag gets to it. Off to start.
+     */
+    public static final BooleanSetting SEEK_PREVIEW =
+            new BooleanSetting("hushgram_seek_preview", FALSE,
+                    parentsAny(FEED_SEEK_BAR, FEED_SEEK_BUTTON, STORY_SEEK_BAR, REEL_SEEK_BAR, BIG_REEL_SEEK_BAR, DM_REEL_SEEK_BAR));
+
+    /**
      * A reel shows the date and time it was posted on a line under its author's name
      * ({@link app.hushgram.extension.instagram.reels.ReelPostTime}), the way a post's exact time
      * writes it (#172). Read as each reel's title is drawn, so a change shows from the next reel.
@@ -3101,6 +3191,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_reel_swipe_to_profile", FALSE, true);
 
     /**
+     * A profile opened from a reel stays on the tab, with the tab bar under it (#385,
+     * {@link app.hushgram.extension.instagram.reels.ReelProfileTabBar}). Read at each tap, so it needs
+     * no restart. Off to start.
+     */
+    public static final BooleanSetting REEL_PROFILE_TAB_BAR =
+            new BooleanSetting("hushgram_reel_profile_tab_bar", FALSE);
+
+    /**
      * After {@link #REEL_CAP_COUNT} reels in a session, swiping in Reels stops until Instagram has been
      * in the background for {@link #REEL_CAP_BREAK} minutes
      * ({@link app.hushgram.extension.instagram.reels.ReelScrolling}). Read at each new reel. Off to start.
@@ -3126,12 +3224,29 @@ public class Settings extends BaseSettings {
                     .withRange(5, 120);
 
     /**
-     * After this long on Home's feed, Reels and Explore, a break screen covers them for 5 minutes
-     * ({@link app.hushgram.extension.instagram.reels.ScrollBreak}, #297). Read each second, so a
-     * change shows at once. Off to start.
+     * After this long on Home's feed, Reels and Explore, a break screen covers them for
+     * {@link #SCROLL_BREAK_LENGTH} ({@link app.hushgram.extension.instagram.reels.ScrollBreak}, #297).
+     * Read each second, so a change shows at once. Off to start.
      */
     public static final EnumSetting<app.hushgram.extension.instagram.reels.ScrollBreakTime> SCROLL_BREAK =
             new EnumSetting<>("hushgram_scroll_break", app.hushgram.extension.instagram.reels.ScrollBreakTime.OFF);
+
+    /**
+     * Under {@link #SCROLL_BREAK}: how many minutes the break screen stays, and how long in the background
+     * counts as a break, from a slider (#297). Starts on the 5 minutes it's always been, and is only offered
+     * while a time is picked.
+     */
+    public static final IntegerSetting SCROLL_BREAK_LENGTH =
+            new IntegerSetting("hushgram_scroll_break_length",
+                    app.hushgram.extension.instagram.reels.ScrollBreak.BREAK_MINUTES, false, new Setting.Availability() {
+                        @Override public boolean isAvailable() {
+                            return SCROLL_BREAK.savedValue() != app.hushgram.extension.instagram.reels.ScrollBreakTime.OFF;
+                        }
+
+                        @Override public List<Setting<?>> getParentSettings() {
+                            return Collections.singletonList(SCROLL_BREAK);
+                        }
+                    }).withRange(5, 120);
 
     /**
      * A profile opened from a reel scrolls its Reels tab to that reel, or its posts grid for a photo
@@ -3224,14 +3339,6 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushgram_feed_download_button", FALSE, parentsAny(DOWNLOAD_VIDEOS, DOWNLOAD_PHOTOS));
 
     /**
-     * Under {@link #FEED_DOWNLOAD_BUTTON}: a tap on a carousel saves every page at once, as Save all
-     * does, instead of asking for this page or all of them (#190). A post with one page saves as it
-     * always did. Starts off, so the icon keeps asking.
-     */
-    public static final BooleanSetting FEED_DOWNLOAD_ALL_PAGES =
-            new BooleanSetting("hushgram_feed_download_all_pages", FALSE, parent(FEED_DOWNLOAD_BUTTON));
-
-    /**
      * A Download icon in the column beside a reel, under Save, so a tap saves the reel without
      * opening its menu (#178). It saves what Download in the reel's menu saves, through the same call
      * ({@link app.hushgram.extension.instagram.download.ReelDownloadButton}), so it waits for Download
@@ -3239,6 +3346,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting REEL_DOWNLOAD_BUTTON =
             new BooleanSetting("hushgram_reel_download_button", FALSE, parent(DOWNLOAD_REELS));
+
+    /**
+     * Under either Download icon: a tap on a carousel saves every page at once, as Save all does,
+     * instead of asking (#190), beside a feed post and in the Reels viewer that Explore and Search
+     * open carousels in. A post with one page saves as it always did. Starts off, so the icons keep
+     * asking.
+     */
+    public static final BooleanSetting FEED_DOWNLOAD_ALL_PAGES =
+            new BooleanSetting("hushgram_feed_download_all_pages", FALSE, parentsAny(FEED_DOWNLOAD_BUTTON, REEL_DOWNLOAD_BUTTON));
 
     /**
      * With it on, a tap on that Download icon asks what to save first: the reel, its cover or its

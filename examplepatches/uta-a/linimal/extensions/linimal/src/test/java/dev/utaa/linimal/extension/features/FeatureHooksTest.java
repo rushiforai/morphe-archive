@@ -1,5 +1,6 @@
 package dev.utaa.linimal.extension.features;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -65,94 +66,113 @@ public final class FeatureHooksTest {
         }
     }
 
+    private static MainTabHooks.HiddenTabs hidden(boolean news, boolean wallet, boolean shopping, boolean mini) {
+        return new MainTabHooks.HiddenTabs(news, wallet, shopping, mini);
+    }
+
+    /** VOOM はサービス終了に伴い、設定によらず常に隠します。 */
     @Test
-    public void mainTabsReturnTheSameListWhenEverySuppressionIsOff() {
-        List<MainTab> tabs = Arrays.asList(MainTab.HOME, MainTab.TIMELINE, MainTab.NEWS, MainTab.WALLET);
+    public void timelineButtonIsAlwaysHiddenAndOtherButtonsKeepTheirOriginalPosition() {
+        MainTabHooks.HiddenTabs allOff = hidden(false, false, false, false);
+        Integer timeline = 2;
+        Integer news = 3;
 
-        List<?> result = MainTabHooks.filterTabsForEnabledStates(tabs, false, false, false, false, false);
-
-        assertSame(tabs, result);
+        assertNull(MainTabHooks.visibleButtonPositionForState(MainTab.TIMELINE, timeline, allOff));
+        assertSame(news, MainTabHooks.visibleButtonPositionForState(MainTab.NEWS, news, allOff));
+        assertSame(news, MainTabHooks.visibleButtonPositionForState(MainTab.HOME, news, allOff));
+        assertNull(MainTabHooks.visibleButtonPositionForState(MainTab.NEWS, null, allOff));
     }
 
     @Test
-    public void mainTabsPreserveOrderAndOnlyRemoveConfiguredSemanticTabs() {
+    public void eachSettingHidesOnlyItsOwnButtons() {
+        assertNull(MainTabHooks.visibleButtonPositionForState(
+                MainTab.NEWS, 3, hidden(true, false, false, false)));
+        assertNull(MainTabHooks.visibleButtonPositionForState(
+                MainTab.NEWS_ROW, 3, hidden(true, false, false, false)));
+        assertNull(MainTabHooks.visibleButtonPositionForState(
+                MainTab.WALLET, 4, hidden(false, true, false, false)));
+        assertNull(MainTabHooks.visibleButtonPositionForState(
+                ShoppingTab.COMMERCE, 2, hidden(false, false, true, false)));
+        assertNull(MainTabHooks.visibleButtonPositionForState(
+                ShoppingTab.COMMERCE_TW, 2, hidden(false, false, true, false)));
+        assertNull(MainTabHooks.visibleButtonPositionForState(
+                MainTab.MINI, 4, hidden(false, false, false, true)));
+
+        MainTabHooks.HiddenTabs onlyNews = hidden(true, false, false, false);
+        assertEquals(Integer.valueOf(4), MainTabHooks.visibleButtonPositionForState(MainTab.WALLET, 4, onlyNews));
+        assertEquals(Integer.valueOf(4), MainTabHooks.visibleButtonPositionForState(MainTab.MINI, 4, onlyNews));
+        assertEquals(Integer.valueOf(2), MainTabHooks.visibleButtonPositionForState(
+                ShoppingTab.COMMERCE, 2, onlyNews));
+        assertEquals(Integer.valueOf(1), MainTabHooks.visibleButtonPositionForState(MainTab.OTHER, 1, onlyNews));
+    }
+
+    /** 設定を読めない（未初期化の）場合も、VOOM だけは隠し、他は元のままにします。 */
+    @Test
+    public void unavailableConfigStillHidesOnlyTheTimelineButton() {
+        assertNull(MainTabHooks.visibleButtonPosition(MainTab.TIMELINE, 2));
+        assertEquals(Integer.valueOf(3), MainTabHooks.visibleButtonPosition(MainTab.NEWS, 3));
+        assertEquals(Integer.valueOf(4), MainTabHooks.visibleButtonPosition(MainTab.WALLET, 4));
+        assertEquals(Integer.valueOf(7), MainTabHooks.visibleButtonPosition(null, 7));
+    }
+
+    @Test
+    public void walletTooltipIsOnlyKeptWhileTheWalletButtonIsShown() {
+        assertTrue(MainTabHooks.keepsWalletTooltip(true));
+        assertFalse(MainTabHooks.keepsWalletTooltip(false));
+    }
+
+    @Test
+    public void restoredPositionOfAHiddenTabFallsBackToTheFirstPage() {
         List<MainTab> tabs = Arrays.asList(
-                MainTab.HOME, MainTab.TIMELINE, MainTab.NEWS, MainTab.NEWS_ROW, MainTab.WALLET);
+                MainTab.HOME, MainTab.OTHER, MainTab.TIMELINE, MainTab.NEWS, MainTab.WALLET);
+        MainTabHooks.HiddenTabs newsHidden = hidden(true, false, false, false);
 
-        List<?> result = MainTabHooks.filterTabsForEnabledStates(tabs, true, true, false, false, false);
-
-        assertTrue(result.equals(Arrays.asList(MainTab.HOME, MainTab.WALLET)));
+        assertEquals(0, MainTabHooks.visibleTabPositionForState(tabs, 2, newsHidden));
+        assertEquals(0, MainTabHooks.visibleTabPositionForState(tabs, 3, newsHidden));
+        assertEquals(4, MainTabHooks.visibleTabPositionForState(tabs, 4, newsHidden));
+        assertEquals(1, MainTabHooks.visibleTabPositionForState(tabs, 1, newsHidden));
+        assertEquals(3, MainTabHooks.visibleTabPositionForState(tabs, 3, hidden(false, false, false, false)));
     }
 
     @Test
-    public void shoppingSuppressionRemovesBothCommerceVariantsWithoutChangingOtherValues() {
-        Object unknownItem = new Object();
-        List<Object> tabs = new ArrayList<>(Arrays.asList(
-                MainTab.HOME,
-                ShoppingTab.COMMERCE,
-                null,
-                ShoppingTab.COMMERCE_TW,
-                MainTab.TIMELINE,
-                MainTab.NEWS,
-                MainTab.WALLET,
-                MainTab.OTHER,
-                unknownItem));
+    public void restoredPositionOutsideTheListIsLeftToLine() {
+        List<MainTab> tabs = Arrays.asList(MainTab.HOME, MainTab.NEWS);
+        MainTabHooks.HiddenTabs newsHidden = hidden(true, false, false, false);
 
-        List<?> result = MainTabHooks.filterTabsForEnabledStates(tabs, false, false, false, true, false);
-
-        assertTrue(tabs.equals(Arrays.asList(
-                MainTab.HOME,
-                ShoppingTab.COMMERCE,
-                null,
-                ShoppingTab.COMMERCE_TW,
-                MainTab.TIMELINE,
-                MainTab.NEWS,
-                MainTab.WALLET,
-                MainTab.OTHER,
-                unknownItem)));
-        assertTrue(result.equals(Arrays.asList(
-                MainTab.HOME,
-                null,
-                MainTab.TIMELINE,
-                MainTab.NEWS,
-                MainTab.WALLET,
-                MainTab.OTHER,
-                unknownItem)));
-        assertSame(tabs.get(0), result.get(0));
-        assertSame(tabs.get(8), result.get(6));
+        assertEquals(5, MainTabHooks.visibleTabPositionForState(tabs, 5, newsHidden));
+        assertEquals(-1, MainTabHooks.visibleTabPositionForState(tabs, -1, newsHidden));
+        assertEquals(1, MainTabHooks.visibleTabPositionForState(null, 1, newsHidden));
+        assertEquals(1, MainTabHooks.visibleTabPositionForState(Arrays.asList("HOME", "NEWS"), 1, newsHidden));
     }
 
     @Test
-    public void shoppingAndWalletSuppressionRemainIndependent() {
-        List<Object> tabs = Arrays.asList(MainTab.HOME, ShoppingTab.COMMERCE, MainTab.WALLET);
+    public void unavailableConfigHidesOnlyTheTimelineTabOnRestore() {
+        List<MainTab> tabs = Arrays.asList(MainTab.HOME, MainTab.TIMELINE, MainTab.NEWS);
 
-        assertSame(tabs, MainTabHooks.filterTabsForEnabledStates(tabs, false, false, false, false, false));
-        assertTrue(MainTabHooks.filterTabsForEnabledStates(tabs, false, false, false, true, false)
-                .equals(Arrays.asList(MainTab.HOME, MainTab.WALLET)));
-        assertTrue(MainTabHooks.filterTabsForEnabledStates(tabs, false, false, true, false, false)
-                .equals(Arrays.asList(MainTab.HOME, ShoppingTab.COMMERCE)));
-        assertTrue(MainTabHooks.filterTabsForEnabledStates(tabs, false, false, true, true, false)
-                .equals(Arrays.asList(MainTab.HOME)));
+        assertEquals(0, MainTabHooks.visibleTabPosition(tabs, 1));
+        assertEquals(2, MainTabHooks.visibleTabPosition(tabs, 2));
+        assertEquals(3, MainTabHooks.visibleTabPosition(tabs, 3));
     }
 
     @Test
-    public void miniSuppressionOnlyRemovesTheMiniTabAndKeepsEveryOtherTab() {
-        List<Object> tabs = Arrays.asList(
-                MainTab.HOME,
-                MainTab.TIMELINE,
-                MainTab.NEWS,
-                MainTab.WALLET,
-                MainTab.MINI,
-                ShoppingTab.COMMERCE);
+    public void requestedHiddenTabOpensTheHomeTab() {
+        MainTabHooks.HiddenTabs newsHidden = hidden(true, false, false, false);
 
-        assertSame(tabs, MainTabHooks.filterTabsForEnabledStates(tabs, false, false, false, false, false));
-        assertTrue(MainTabHooks.filterTabsForEnabledStates(tabs, false, false, false, false, true)
-                .equals(Arrays.asList(
-                        MainTab.HOME,
-                        MainTab.TIMELINE,
-                        MainTab.NEWS,
-                        MainTab.WALLET,
-                        ShoppingTab.COMMERCE)));
+        assertSame(MainTab.HOME, MainTabHooks.visibleTabForState(MainTab.NEWS, MainTab.HOME, newsHidden));
+        assertSame(MainTab.HOME, MainTabHooks.visibleTabForState(MainTab.TIMELINE, MainTab.HOME, newsHidden));
+        assertSame(MainTab.WALLET, MainTabHooks.visibleTabForState(MainTab.WALLET, MainTab.HOME, newsHidden));
+        assertSame(MainTab.OTHER, MainTabHooks.visibleTabForState(MainTab.OTHER, MainTab.HOME, newsHidden));
+    }
+
+    @Test
+    public void requestedTabIsKeptWhenThereIsNoUsableHomeTab() {
+        MainTabHooks.HiddenTabs newsHidden = hidden(true, false, false, false);
+
+        assertSame(MainTab.NEWS, MainTabHooks.visibleTabForState(MainTab.NEWS, null, newsHidden));
+        assertSame(MainTab.NEWS, MainTabHooks.visibleTabForState(MainTab.NEWS, MainTab.NEWS_ROW, newsHidden));
+        assertNull(MainTabHooks.visibleTabForState(null, MainTab.HOME, newsHidden));
+        assertSame(MainTab.TIMELINE, MainTabHooks.visibleTab(MainTab.TIMELINE, null));
+        assertSame(MainTab.HOME, MainTabHooks.visibleTab(MainTab.TIMELINE, MainTab.HOME));
     }
 
     @Test
@@ -203,10 +223,10 @@ public final class FeatureHooksTest {
     }
 
     @Test
-    public void tabFilteringDoesNotMutateTheCallerList() {
+    public void tabPositionLookupDoesNotMutateTheCallerList() {
         List<MainTab> mutable = new ArrayList<>(Arrays.asList(MainTab.HOME, MainTab.WALLET));
 
-        MainTabHooks.filterTabsForEnabledStates(mutable, false, false, true, false, false);
+        MainTabHooks.visibleTabPositionForState(mutable, 1, hidden(false, true, false, false));
 
         assertTrue(mutable.equals(Arrays.asList(MainTab.HOME, MainTab.WALLET)));
     }

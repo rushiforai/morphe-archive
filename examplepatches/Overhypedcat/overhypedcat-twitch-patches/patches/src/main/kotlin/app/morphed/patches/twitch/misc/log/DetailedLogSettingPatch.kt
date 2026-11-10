@@ -4,6 +4,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphed.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
 import app.morphed.patches.twitch.shared.addInstructionsBeforeReturn
+import app.morphed.patches.twitch.shared.checkRegisterNotReused
 import app.morphed.patches.twitch.shared.indicesOf
 import com.android.tools.smali.dexlib2.Opcode
 
@@ -24,6 +25,7 @@ val detailedLogSettingPatch = bytecodePatch(
         // Add the switch after the screen's own rows, every time the screen is filled.
         PreferencesScreenFingerprint.method.apply {
             val thisRegister = implementation!!.registerCount - 1
+            checkRegisterNotReused(thisRegister)
             indicesOf(Opcode.RETURN_VOID).forEach { returnIndex ->
                 addInstructionsBeforeReturn(
                     returnIndex,

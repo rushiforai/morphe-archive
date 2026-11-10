@@ -252,6 +252,7 @@ arguments: a Markdown table is `Scores\n\n¦ Player ¦ Score ¦\n¦---¦---¦\n�
 | `refuse posts: <subreddit> \| <status> \| <explanation>` | the same, with Reddit's explanation |
 | `drop posts: <subreddit>` | the subreddit's posts answered by dropping the connection |
 | `image post: <subreddit> \| <title>`, `gif post`, `video post`, `nsfw image post`, `spoiler image post` | a media post |
+| `image post with text: <subreddit> \| <title> \| <text>` | an image post with that Markdown as its text, under the image |
 | `signed thumbnail post: <subreddit> \| <title>` | an image post whose thumbnail is a signed preview, sent with its "&" HTML-escaped |
 | `link post with preview: <subreddit> \| <title>` | a link post to a web page that runs JavaScript, with a preview and no thumbnail |
 | `gallery post: <subreddit> \| <title> \| <images>` | a gallery of that many images |

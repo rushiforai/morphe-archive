@@ -7,8 +7,6 @@
     <img src=".github/assets/donate.svg" alt="Buy a fish for my cat" height="48">
 </a>
 
-<b>Patches for apps you like.</b>
-
 ## Add Patch to Morphe Manager
    <a href="https://morphe.software/add-source?github=ShuhaibNC/morphe-patches">
      <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe Manager" height="48">

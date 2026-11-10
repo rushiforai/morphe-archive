@@ -1,5 +1,8 @@
+# Copyright (C) 2026 Lokesh Sparrow
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 name: 🌐 Translation
-description: Report a wrong translation, or offer to translate Loki Patches into a new language.
+description: Point out a translation that is wrong, or volunteer a new language.
 title: "i18n: "
 labels: ["Translation"]
 body:
@@ -8,7 +11,7 @@ body:
       value: |
         <p align="center"><b>🧩 Loki Patches · Translation</b></p>
 
-        The texts are in [`extensions/extension/src/main/translations`](https://github.com/lokesh-sparrow/loki-patches/tree/dev/extensions/extension/src/main/translations), one JSON file per language with the English text as the key. You can also open a pull request directly.
+        Every language is one JSON file in [`extensions/extension/src/main/translations`](https://github.com/lokesh-sparrow/loki-patches/tree/main/extensions/extension/src/main/translations), keyed by the English text. If you prefer, open a pull request with the file instead of an issue.
 
   - type: input
     id: language
@@ -33,7 +36,7 @@ body:
     id: details
     attributes:
       label: Details
-      description: The current text, where it appears, and your suggested translation.
+      description: The text as it is now, where it appears, and what it should say.
       placeholder: |
         Screen: Other → Language
         Current: "Automatique (langue de l'appareil)"

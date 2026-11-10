@@ -1,0 +1,1 @@
+package e.e.a; import java.util.*;public class CommentUi {public static ArrayList<?> last;public static void apply(Object model,ArrayList<?> rows){last=PostEcho123.keep(model,rows);}}

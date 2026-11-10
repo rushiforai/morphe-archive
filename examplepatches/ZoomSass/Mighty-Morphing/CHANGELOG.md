@@ -1,3 +1,16 @@
+## [1.3.6](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.5...v1.3.6) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* Classic Joey can be turned back on. The Joey bird image in sidebar can be toggled on when using ModernUI. Performance improvements for Modern UI. ([3fe17bc](https://github.com/ZoomSass/Mighty-Morphing/commit/3fe17bcd2c96ffb1a432dde79cd808834ae4df21))
+* Post style settings are back, without post layout, thumbnail side, or corner roundness. Thumbnail post style ui fixes. ([ef85301](https://github.com/ZoomSass/Mighty-Morphing/commit/ef85301121a278d48373cc8d94705a4962589b9a))
+
+## [1.3.5](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.4...v1.3.5) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* Splash animation can be disabled ([5ef60c2](https://github.com/ZoomSass/Mighty-Morphing/commit/5ef60c25472a55cc740d1cfd870a8066b9fb86b7))
+
 ## [1.3.4](https://github.com/ZoomSass/Mighty-Morphing/compare/v1.3.3...v1.3.4) (2026-11-09)
 
 ### 🐛 Bug Fixes

@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_controller_velocity_frame",
+    "library_path": "libgxr_controller_velocity_frame.so",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "Rotates the Galaxy XR runtime's controller velocities out of the controller-attached frame they are reported in",
+    "disable_environment": "GXR_DISABLE_CONTROLLER_VELOCITY_FRAME"
+  }
+}

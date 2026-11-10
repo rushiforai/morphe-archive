@@ -154,6 +154,7 @@ public final class FamilyNames {
     public static final String REEL_AUTO_SCROLL = "Keep Reels auto scroll on";
     public static final String REEL_SCROLLING = "Stop Reels scrolling";
     public static final String SWIPE_TO_PROFILE = "Swipe left to open the profile";
+    public static final String REEL_PROFILE_TAB_BAR = "Keep the tab bar on a reel's profile";
     public static final String REEL_ORIGIN = "Find the reel you came from";
     public static final String STORY_DOWNLOAD = "Download any story";
     public static final String VIDEO_DOWNLOAD = "Download any video";
@@ -177,6 +178,8 @@ public final class FamilyNames {
     public static final String CHAT_HISTORY = "Chat history tools";
     public static final String PREVIEW_CHATS = "Preview chats";
     public static final String ASK_BEFORE_CALL = "Ask before a call";
+    public static final String KINDNESS_REMINDER = "Hide the Community Standards reminder";
+    public static final String CALL_BLOCKER = "Call blocker";
     public static final String MESSAGE_BOX = "Message box buttons";
     public static final String PLUS_MENU = "Chat plus menu";
     public static final String GLASS_CHAT = "Glass in chats";

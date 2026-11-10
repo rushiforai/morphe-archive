@@ -7,6 +7,14 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-0095D5?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
 [![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 
+## ⚠️ Disclaimer
+
+**AI-Generated Patches Notice:** 
+Most patches in this repository are autonomously generated or assisted by AI models (such as Grok). 
+
+* **No Warranty:** These scripts and patches are provided "as is", without warranty of any kind. They may break your app, cause bootloops, or summon digital gremlins. Use them at your own risk.
+* **Found a Bug?** If a patch fails or behaves unexpectedly, please open a detailed [Issue](https://github.com/mich111discord/MightyMichs-Patches/issues) with reproduction steps and logs so we can fix it. PRs are always welcome! 🚀
+
 ## ❓ About
 
 Patches for the best apps from Playstore🛍️

@@ -185,10 +185,12 @@ public class OneAheadSelfTest {
         };
         OneAheadRunner runner4 = new OneAheadRunner(new File(dir, "cx"), new StubFetcher(), OneAheadRunner.defaultDetectors(), cancel, () -> "2026-11-02");
         ok("cancel ends as no-times/refused", runner4.runOnce(sref("tc", false), cands, "show1").status != OneAheadRunner.Status.DONE, null);
-        // A cancel gives the attempt back, for the episode and for the show's daily count.
+        // A cancel burns one try per file: temporary, so one retry stays open, show count 1.
         OneAheadStores.AttemptLog cxLog = new OneAheadStores.AttemptLog(new File(dir, "cx"));
-        ok("cancel does not burn the attempt", !cxLog.attemptedToday("tc", "2026-11-02")
-                && cxLog.showEpisodesToday("show1", "2026-11-02") == 0, null);
+        String tcKey = OneAheadStores.key("tc", sref("tc", false).fileSize, sref("tc", false).headHash);
+        ok("cancel burns one try", cxLog.attemptsToday(tcKey, "2026-11-02") == 1
+                && !cxLog.blockedToday(tcKey, "2026-11-02")
+                && cxLog.showEpisodesToday("show1", "2026-11-02") == 1, null);
         OneAheadRunner again = new OneAheadRunner(new File(dir, "cx"), new StubFetcher(), OneAheadRunner.defaultDetectors(), PlaybackGuard.NONE, () -> "2026-11-02");
         OneAheadRunner.Outcome o7 = again.runOnce(sref("tc", false), cands, "show1");
         ok("episode runs again after a cancel", o7.status == OneAheadRunner.Status.DONE, o7.status + "/" + o7.reason);
@@ -205,7 +207,8 @@ public class OneAheadSelfTest {
                 && cancelCalls[0] == 2, o9.reason + " calls=" + cancelCalls[0]);
         ok("that cancel keeps the attempt", !midCancel.attemptedToday("mct"), null);
         OneAheadRunner.Outcome o10 = midCancel.runOnce(sref("mct2", false), Arrays.asList(sref("rx", false), sref("ry", false), sref("rz", false)), "show1");
-        ok("the runner forgets a cancel on its next run", o10.status == OneAheadRunner.Status.DONE && midCancel.attemptedToday("mct2"),
+        ok("different file runs after a cancel, then blocks when done", o10.status == OneAheadRunner.Status.DONE
+                && midCancel.attemptedToday("mct2", sref("mct2", false).fileSize, sref("mct2", false).headHash),
                 o10.status + "/" + o10.reason);
         // Written after every file, and the attempt before the first: a killed process keeps both.
         final File logDir = new File(dir, "log");
@@ -213,7 +216,7 @@ public class OneAheadSelfTest {
         final boolean[] markedAtFirst = {false};
         OneAheadRunner.FeatureFetcher counting = (fp, b, g) -> {
             OneAheadStores.AttemptLog l = new OneAheadStores.AttemptLog(logDir);
-            if (fp.ref.episodeId.equals("cnt")) markedAtFirst[0] = l.attemptedToday("cnt", "2026-11-02");
+            if (fp.ref.episodeId.equals("cnt")) markedAtFirst[0] = l.attemptsToday(OneAheadStores.key(fp.ref.episodeId, fp.ref.fileSize, fp.ref.headHash), "2026-11-02") == 1;
             if (fp.ref.episodeId.equals("ra")) seenAtSecond[0] = l.bytesToday("2026-11-02");
             b.add(1000);
             return new StubFetcher().fetch(fp, b, g);

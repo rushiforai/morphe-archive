@@ -47,6 +47,7 @@ public final class NezumiSettings {
     private static final String HIDE_READ_RECEIPTS = "hide_read_receipts";
     private static final String HIDE_DELIVERY_RECEIPTS = "hide_delivery_receipts";
     private static final String HIDE_MEDIA_BOX = "hide_media_box";
+    private static final String HIDE_BUSINESS_BOX = "hide_business_box";
     private static final String KEEP_RECALLED_MESSAGES = "keep_recalled_messages";
     private static final String HIDE_ONLINE_STATUS = "hide_online_status";
     private static final String HIDE_DISCOVERY = "hide_discovery";
@@ -61,10 +62,12 @@ public final class NezumiSettings {
     private static final int FEATURE_READ_RECEIPTS = 1 << 2;
     private static final int FEATURE_DELIVERY_RECEIPTS = 1 << 3;
     private static final int FEATURE_MEDIA_BOX = 1 << 4;
+    private static final int FEATURE_BUSINESS_BOX = 1 << 10;
     private static final int FEATURE_RECALLED_MESSAGES = 1 << 8;
     private static final int FEATURE_ONLINE_STATUS = 1 << 5;
     private static final int FEATURE_CUSTOM_FONT = 1 << 6;
     private static final int FEATURE_DISCOVERY = 1 << 7;
+    private static final int FEATURE_CUSTOM_SOUNDS = 1 << 9;
     private static final Object ONLINE_LOCK = new Object();
     private static final Set<String> ONLINE_USERS = new HashSet<>();
     private static final Object RECALL_LOCK = new Object();
@@ -112,6 +115,11 @@ public final class NezumiSettings {
     public static boolean isMediaBoxHidden(Context context) {
         return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(HIDE_MEDIA_BOX, false);
+    }
+
+    public static boolean isBusinessBoxHidden(Context context) {
+        return context != null && context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getBoolean(HIDE_BUSINESS_BOX, false);
     }
 
     public static boolean isRecalledMessagesKept(Context context) {
@@ -579,6 +587,10 @@ public final class NezumiSettings {
         attach(root, anchor, FEATURE_MEDIA_BOX);
     }
 
+    public static void attachBusinessBox(View root, View anchor) {
+        attach(root, anchor, FEATURE_BUSINESS_BOX);
+    }
+
     public static void attachRecalledMessages(View root, View anchor) {
         attach(root, anchor, FEATURE_RECALLED_MESSAGES);
     }
@@ -593,6 +605,10 @@ public final class NezumiSettings {
 
     public static void attachCustomFont(View root, View anchor) {
         attach(root, anchor, FEATURE_CUSTOM_FONT);
+    }
+
+    public static void attachCustomSounds(View root, View anchor) {
+        attach(root, anchor, FEATURE_CUSTOM_SOUNDS);
     }
 
     private static void attach(View root, View anchor, int feature) {
@@ -827,6 +843,7 @@ public final class NezumiSettings {
         String readLabel = vietnamese ? "Ẩn trạng thái đã xem" : "Hide read receipts";
         String deliveryLabel = vietnamese ? "Ẩn trạng thái đã nhận" : "Hide delivery receipts";
         String mediaBoxLabel = vietnamese ? "Ẩn Media Box" : "Hide Media Box";
+        String businessBoxLabel = vietnamese ? "Ẩn Business Box" : "Hide Business Box";
         String recalledMessagesLabel = vietnamese ? "Giữ tin nhắn đã thu hồi" :
             "Keep recalled messages";
         String onlineLabel = vietnamese ? "Ẩn trạng thái hoạt động" : "Hide activity status";
@@ -1006,8 +1023,10 @@ public final class NezumiSettings {
         list.addView(discoveryItem, new LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
         }
-        if ((features & FEATURE_MEDIA_BOX) != 0) {
+        if ((features & (FEATURE_MEDIA_BOX | FEATURE_BUSINESS_BOX)) != 0) {
         addGroup(list, context, vietnamese ? "Hội thoại" : "Conversation", darkMode);
+        }
+        if ((features & FEATURE_MEDIA_BOX) != 0) {
         LinearLayout mediaBoxItem = new LinearLayout(context);
         mediaBoxItem.setGravity(Gravity.CENTER_VERTICAL);
         mediaBoxItem.setBackgroundColor(surfaceColor(context, darkMode));
@@ -1025,6 +1044,27 @@ public final class NezumiSettings {
         mediaBoxItem.addView(mediaBoxToggle);
         mediaBoxItem.setOnClickListener(view -> mediaBoxToggle.setChecked(!mediaBoxToggle.isChecked()));
         list.addView(mediaBoxItem, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
+        }
+        if ((features & FEATURE_BUSINESS_BOX) != 0) {
+        LinearLayout businessBoxItem = new LinearLayout(context);
+        businessBoxItem.setGravity(Gravity.CENTER_VERTICAL);
+        businessBoxItem.setBackgroundColor(surfaceColor(context, darkMode));
+        businessBoxItem.setPadding(dp(context, 16), 0, dp(context, 16), 0);
+        businessBoxItem.addView(label(context, businessBoxLabel, darkMode),
+            new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        Switch businessBoxToggle = new Switch(context);
+        businessBoxToggle.setContentDescription(businessBoxLabel);
+        businessBoxToggle.setThumbTintList(ColorStateList.valueOf(0xFFFFFFFF));
+        businessBoxToggle.setTrackTintList(new ColorStateList(
+            new int[][] { new int[] { android.R.attr.state_checked }, new int[] {} },
+            new int[] { BLUE, 0xFFBDBDBD }));
+        businessBoxToggle.setChecked(prefs.getBoolean(HIDE_BUSINESS_BOX, false));
+        businessBoxToggle.setOnCheckedChangeListener((button, checked) ->
+            prefs.edit().putBoolean(HIDE_BUSINESS_BOX, checked).apply());
+        businessBoxItem.addView(businessBoxToggle);
+        businessBoxItem.setOnClickListener(view -> businessBoxToggle.setChecked(!businessBoxToggle.isChecked()));
+        list.addView(businessBoxItem, new LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, dp(context, 56)));
         }
         if ((features & FEATURE_CUSTOM_FONT) != 0) {
         addGroup(list, context, vietnamese ? "Giao diện" : "Appearance", darkMode);
@@ -1051,8 +1091,38 @@ public final class NezumiSettings {
         });
         list.addView(resetFont);
         }
+        if ((features & FEATURE_CUSTOM_SOUNDS) != 0) {
+            addGroup(list, context, vietnamese ? "Âm thanh" : "Sounds", darkMode);
+            addSoundRows(list, context, CustomSounds.NOTIFICATION,
+                vietnamese ? "Âm báo tin nhắn" : "Notification sound", darkMode, vietnamese);
+            addSoundRows(list, context, CustomSounds.RINGTONE,
+                vietnamese ? "Nhạc chuông cuộc gọi" : "Incoming-call ringtone", darkMode, vietnamese);
+        }
         page.show();
         page.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+    }
+
+    private static void addSoundRows(LinearLayout list, Context context, String kind, String title,
+            boolean darkMode, boolean vietnamese) {
+        View item = row(context, title, false, true, darkMode);
+        TextView text = findTextView(item);
+        Runnable update = () -> text.setText(title + (CustomSounds.isSelected(context, kind)
+            ? (vietnamese ? " (đã chọn)" : " (selected)") : ""));
+        update.run();
+        item.setOnClickListener(view -> {
+            if (!CustomSounds.pick(context, kind, update)) {
+                Toast.makeText(context, vietnamese ? "Không thể mở trình chọn âm thanh"
+                    : "Cannot open audio picker", Toast.LENGTH_SHORT).show();
+            }
+        });
+        list.addView(item);
+        View reset = row(context, vietnamese ? "Khôi phục: " + title : "Restore: " + title,
+            false, false, darkMode);
+        reset.setOnClickListener(view -> {
+            CustomSounds.reset(context, kind);
+            update.run();
+        });
+        list.addView(reset);
     }
 
     private static Dialog page(Context context, String title, boolean darkMode) {

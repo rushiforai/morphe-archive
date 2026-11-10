@@ -1,0 +1,61 @@
+<div class="readability-section-control">
+  <h3 class="readability-section-label"><span role="text">Custom Font</span></h3>
+  <div class="readability-section-appendix">
+    <div id="morphe-font-main">
+      <div class="shibui-form-field shibui-style-default shibui-form-switch shibui-form-switch-toggle">
+        <div class="shibui-form-field-core">
+          <label class="shibui-form-field-label" for="morphe-font-enabled" aria-hidden="true">
+            <span class="shibui-form-field-label-text" id="morphe-font-enabled-label">Use custom font</span>
+          </label>
+          <div class="shibui-form-switch-target">
+            <input class="shibui-form-switch-control shibui-form-field-control"
+                   type="checkbox" id="morphe-font-enabled"
+                   data-halo-delegate="morphe-font-enabled-face" disabled>
+            <div class="shibui-form-switch-face" id="morphe-font-enabled-face">
+              <svg viewBox="0 0 64 64" version="1.1" xmlns="http://www.w3.org/2000/svg"
+                   class="shibui-graphic shibui-form-switch-tick icon" aria-hidden="true">
+                <g stroke="#000000" stroke-width="5" fill="none" fill-rule="evenodd"
+                   stroke-linecap="round" class="icon-hollow">
+                  <path d="M15,38.0591818 L25.2922068,47.7559046 C25.6913541,48.1319581 26.2730601,48.0725291 26.5945962,47.6187735 L49,16"></path>
+                </g>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="shibui-form-field-explanation shibui-form-field-description"></p>
+      </div>
+      <div class="morphe-font-library">
+        <div class="morphe-font-header">
+          <div class="morphe-font-current">
+            <span class="morphe-font-current-label">Current font</span>
+            <span class="morphe-font-current-name" id="morphe-font-status">No font selected</span>
+          </div>
+          <button class="morphe-font-upload"
+                  type="button" id="morphe-font-upload">Add font&hellip;</button>
+        </div>
+        <input class="morphe-font-search" id="morphe-font-search" type="search"
+               placeholder="Search fonts" aria-label="Search fonts"
+               autocomplete="off" spellcheck="false" hidden>
+        <div class="morphe-font-list" id="morphe-font-list"
+             role="group" aria-label="Uploaded fonts"></div>
+        <p class="readability-section-explanation" id="morphe-font-empty">No fonts uploaded yet.</p>
+      </div>
+      <div class="morphe-font-field morphe-font-weight-field">
+        <label class="morphe-font-field-label" for="morphe-font-weight">Reading weight</label>
+        <select class="morphe-font-weight-select" id="morphe-font-weight">
+          <option value="0" selected>Default (app setting)</option>
+          <option value="100">Thin (100)</option>
+          <option value="200">Extra Light (200)</option>
+          <option value="300">Light (300)</option>
+          <option value="400">Regular (400)</option>
+          <option value="500">Medium (500)</option>
+          <option value="600">Semi Bold (600)</option>
+          <option value="700">Bold (700)</option>
+          <option value="800">Extra Bold (800)</option>
+          <option value="900">Black (900)</option>
+        </select>
+      </div>
+    </div>
+    <div id="morphe-font-editor" hidden></div>
+  </div>
+</div>

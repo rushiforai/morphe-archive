@@ -16,5 +16,7 @@ android {
 
 dependencies {
     compileOnly(project(":extensions:twitch:stub"))
+    // Tests load the IVS classes the wrapper implements; the real ones come from Twitch.
+    testImplementation(project(":extensions:twitch:stub"))
     testImplementation("junit:junit:4.13.2")
 }

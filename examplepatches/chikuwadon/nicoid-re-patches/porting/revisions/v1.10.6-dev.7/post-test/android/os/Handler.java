@@ -1,0 +1,1 @@
+package android.os; import java.util.*;public class Handler {public static boolean defer;private static final ArrayList<Runnable> pending=new ArrayList<>();public Handler(Looper l){}public boolean post(Runnable r){if(defer)pending.add(r);else r.run();return true;}public static void flush(){ArrayList<Runnable> q=new ArrayList<>(pending);pending.clear();for(Runnable r:q)r.run();}}

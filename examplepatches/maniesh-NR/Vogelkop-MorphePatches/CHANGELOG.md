@@ -5,6 +5,39 @@ Opera GX) are documented here. Versions follow the tags in this repository;
 each tag matches a GitHub release carrying the compiled `patches-<version>.mpp`
 bundle.
 
+## v1.3.0 (2026-11-09)
+
+### Hardened startup diagnostics — the self-reporting probe
+
+After the Test A incident (empty 0-byte `vogelkop-diag.log`, no breadcrumbs),
+the diagnostics extension was rebuilt so it can no longer lose the trail:
+
+- **Logcat mirror**: every breadcrumb is mirrored to logcat (`VogelkopDiag`
+  tag) *before* it is written to the file — `adb logcat -d VogelkopDiag:* *:S`
+  recovers the trail even when the file is never created.
+- **Unbuffered, fsync'ed writes**: `FileOutputStream` + `fd.sync()` on every
+  line — a native `abort()` can no longer swallow the tail of the log.
+- **500 ms heartbeat** thread bounds the exact moment of a silent kill
+  (e.g. the ~5 s engine death observed on Test A).
+- **Launcher-activity injection** (`activityStart`) gives a second,
+  independent injection point proving the extension dex loaded even if the
+  Application hooks were absent.
+- **onCreate(Bundle) register fix**: the first attempt registered the
+  activity hook with a `Bundle` parameter — an instant `VerifyError` —
+  caught by self-review before delivery; the register is now 0-arg against
+  the 0-param `onCreate` (registerCount-1-paramCount).
+- The crash handler mirrors the full stack to logcat as well as the file,
+  and re-chains itself ahead of Opera's breakpad handler at several
+  injection points.
+
+No other patch logic changed vs v1.2.6 (patch classes byte-identical except
+*Startup diagnostics*). Same durable signing key (`FtCmZgVC…`) — updates
+from v1.2.6 flow without any trust prompt.
+
+Note: the v1.3.0 artifacts were originally built 2026-11-09 but lost with
+the sandbox wipe before the release was cut; this release is the faithful
+rebuild from the committed sources (see STATE.md §9).
+
 ## v1.2.6 (2026-11-09)
 
 ### Durable signing key + cross-session continuity

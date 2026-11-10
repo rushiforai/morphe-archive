@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.patches.links
 
 import app.linkedin.patches.shared.Constants.COMPATIBILITY_LINKEDIN
@@ -14,37 +19,41 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
-private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/ShareLinkPatch;"
+private const val SHARE_LINK_PATCH = "$EXTENSION_PACKAGE/ShareLinkPatch;"
 
-/** A framework call that is redirected to a static method of the extension with the same arguments. */
+/**
+ * A framework call that is turned into a static call to the extension, which cleans the text up and then
+ * makes the real call: (receiver, arguments...) become the static call's arguments unchanged.
+ */
 private class Redirect(
-    val definingClass: String,
-    val name: String,
-    val parameters: List<String>,
-    val returnType: String,
-    val extensionMethod: String,
+    private val owner: String,
+    private val name: String,
+    private val parameters: List<String>,
+    private val returns: String,
+    val smali: String,
 ) {
-    fun matches(reference: MethodReference) =
-        reference.definingClass == definingClass && reference.name == name &&
-            reference.returnType == returnType && reference.parameterTypes.map { it.toString() } == parameters
+    fun handles(ref: MethodReference) = ref.definingClass == owner && ref.name == name &&
+        ref.returnType == returns && ref.parameterTypes.map { it.toString() } == parameters
 }
 
 private val redirects = listOf(
+    // Copying a post's link: the text is cleaned before it reaches the clipboard.
     Redirect(
         "Landroid/content/ClipboardManager;", "setPrimaryClip", listOf("Landroid/content/ClipData;"), "V",
-        "$EXTENSION_CLASS->setPrimaryClip(Landroid/content/ClipboardManager;Landroid/content/ClipData;)V",
+        "$SHARE_LINK_PATCH->setPrimaryClip(Landroid/content/ClipboardManager;Landroid/content/ClipData;)V",
     ),
+    // Sharing: LinkedIn puts the link in an Intent extra before the share sheet opens.
     Redirect(
         "Landroid/content/Intent;", "putExtra", listOf("Ljava/lang/String;", "Ljava/lang/String;"),
         "Landroid/content/Intent;",
-        "$EXTENSION_CLASS->putExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;",
+        "$SHARE_LINK_PATCH->putExtra(Landroid/content/Intent;Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;",
     ),
 )
 
 @Suppress("unused")
 val sanitizeShareLinksPatch = bytecodePatch(
     name = "Sanitize share links",
-    description = "Removes tracking parameters from LinkedIn links when they are copied or shared.",
+    description = "Strips the tracking parameters from LinkedIn links that get copied or shared.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -53,44 +62,45 @@ val sanitizeShareLinksPatch = bytecodePatch(
     execute {
         markIncluded("isSanitizeShareLinksIncluded")
 
-        // Collect every class that calls one of the redirected methods, then edit them. This includes
-        // libraries (Compose clipboard, ShareCompat), since LinkedIn copies and shares through them too.
-        // The extension itself is skipped: it makes the real calls.
-        val targets = mutableListOf<ClassDef>()
+        // AndroidX and other libraries (Compose's clipboard, ShareCompat) make these calls on LinkedIn's
+        // behalf, so every class that calls one of them is rewritten, not just LinkedIn's own classes. The
+        // extension is left alone: it is the code that performs the real call.
+        val extensionPrefix = "L${EXTENSION_PACKAGE.removePrefix("L")}/"
+        val callers = mutableListOf<ClassDef>()
         classDefForEach { classDef ->
-            if (classDef.type.startsWith("L${EXTENSION_PACKAGE.removePrefix("L")}/")) return@classDefForEach
-            val calls = classDef.methods.any { method ->
+            if (classDef.type.startsWith(extensionPrefix)) return@classDefForEach
+            val redirectsHere = classDef.methods.any { method ->
                 method.implementation?.instructions?.any { instruction ->
-                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                    reference != null && redirects.any { it.matches(reference) }
+                    val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    ref != null && redirects.any { it.handles(ref) }
                 } == true
             }
-            if (calls) targets += classDef
+            if (redirectsHere) callers += classDef
         }
 
-        targets.forEach { classDef ->
+        callers.forEach { classDef ->
             mutableClassDefBy(classDef).methods.forEach { method ->
-                val instructions = method.implementation?.instructions ?: return@forEach
-                instructions.withIndex().toList().reversed().forEach { (index, instruction) ->
-                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                        ?: return@forEach
-                    val redirect = redirects.firstOrNull { it.matches(reference) } ?: return@forEach
-                    // Same registers as the virtual call: the receiver becomes the first static argument.
-                    val call = when (instruction.opcode) {
+                val code = method.implementation?.instructions ?: return@forEach
+                // Same indexes as the call being rewritten, so the order does not matter; newest first anyway.
+                code.withIndex().toList().asReversed().forEach { (index, instruction) ->
+                    val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+                    val redirect = ref?.let { r -> redirects.firstOrNull { it.handles(r) } } ?: return@forEach
+                    val replacement = when (instruction.opcode) {
                         Opcode.INVOKE_VIRTUAL -> {
-                            val r = method.getInstruction<FiveRegisterInstruction>(index)
-                            val registers = listOf(r.registerC, r.registerD, r.registerE, r.registerF, r.registerG)
-                                .take(r.registerCount).joinToString { "v$it" }
-                            "invoke-static { $registers }, ${redirect.extensionMethod}"
+                            val regs = method.getInstruction<FiveRegisterInstruction>(index)
+                            val arguments = listOf(regs.registerC, regs.registerD, regs.registerE, regs.registerF, regs.registerG)
+                                .take(regs.registerCount)
+                                .joinToString { "v$it" }
+                            "invoke-static { $arguments }, ${redirect.smali}"
                         }
                         Opcode.INVOKE_VIRTUAL_RANGE -> {
-                            val r = method.getInstruction<RegisterRangeInstruction>(index)
-                            "invoke-static/range { v${r.startRegister} .. v${r.startRegister + r.registerCount - 1} }, " +
-                                redirect.extensionMethod
+                            val regs = method.getInstruction<RegisterRangeInstruction>(index)
+                            "invoke-static/range { v${regs.startRegister} .. v${regs.startRegister + regs.registerCount - 1} }, " +
+                                redirect.smali
                         }
                         else -> return@forEach
                     }
-                    method.replaceInstruction(index, call)
+                    method.replaceInstruction(index, replacement)
                 }
             }
         }

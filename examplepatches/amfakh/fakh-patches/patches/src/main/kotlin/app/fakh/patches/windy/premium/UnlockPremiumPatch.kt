@@ -185,7 +185,7 @@ private val PATCHES = listOf(
 
 @Suppress("unused")
 val windyUnlockPremiumPatch = rawResourcePatch(
-    name = "Unlock Premium",
+    name = "Premium unlock",
     description = "Unlocks Windy Pro on your phone: deeper map zoom, 1-hour forecast steps, " +
         "the premium calendar view and the rest of the premium screens, and hides the " +
         "\"Go Premium\" button. Stays unlocked when you are logged out.",

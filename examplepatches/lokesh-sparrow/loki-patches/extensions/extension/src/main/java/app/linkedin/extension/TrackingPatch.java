@@ -1,14 +1,26 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
-/** Analytics blocking: MetricQueue.queueMetric returns early when this is true. */
+/**
+ * Analytics blocking for MetricQueue.queueMetric: the collected metric is discarded before it
+ * leaves the app.
+ */
 @SuppressWarnings("unused")
 public final class TrackingPatch {
-    private static int blocked;
+    /** Metrics arrive in bursts, so only every Nth blocked one is worth a log line. */
+    private static final int LOG_ONE_IN = 50;
+
+    private static int blockedCount;
 
     public static boolean blockTracking() {
-        boolean block = Settings.blockTracking();
-        // Log only now and then: tracking events are very frequent.
-        if (block && (blocked++ % 50) == 0) Settings.debugLog("tracking events blocked: " + blocked);
-        return block;
+        if (!Settings.blockTracking()) return false;
+        blockedCount++;
+        // 1st, 51st, 101st ... blocked metric: enough to see the hook working without flooding.
+        if (blockedCount % LOG_ONE_IN == 1) Settings.debugLog("tracking events blocked: " + blockedCount);
+        return true;
     }
 }

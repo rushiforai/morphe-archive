@@ -26,10 +26,6 @@ ROOT = Path(__file__).resolve().parents[2]
 RULE_FILES = {
     "AGENTS.md": 1600,
     ".opencode/skills/morphe-patches/SKILL.md": 2300,
-    ".opencode/skills/cavecrew/SKILL.md": 700,
-    ".opencode/agents/cavecrew-builder.md": 500,
-    ".opencode/agents/cavecrew-investigator.md": 500,
-    ".opencode/agents/cavecrew-reviewer.md": 500,
     ".github/copilot-instructions.md": 250,
     ".cursor/rules/project.mdc": 180,
     ".agents/AGENTS.md": 150,
@@ -42,10 +38,6 @@ ADAPTER_FILES = [
     ".cursor/rules/project.mdc",
     ".agents/AGENTS.md",
     ".hermes.md",
-    ".opencode/agents/cavecrew-builder.md",
-    ".opencode/agents/cavecrew-investigator.md",
-    ".opencode/agents/cavecrew-reviewer.md",
-    ".opencode/skills/cavecrew/SKILL.md",
 ]
 
 BUILD_PAIR = re.compile(r"\b\d+\.\d+\.\d+/\d{4,}\b")
@@ -54,14 +46,6 @@ MIRRORS = [
     (
         ".opencode/skills/morphe-patches/SKILL.md",
         ".agents/skills/morphe-patches/SKILL.md",
-    ),
-    (
-        ".opencode/skills/cavecrew/SKILL.md",
-        ".agents/skills/cavecrew/SKILL.md",
-    ),
-    (
-        ".opencode/skills/cavecrew/references/hermes-roles.md",
-        ".agents/skills/cavecrew/references/hermes-roles.md",
     ),
 ]
 

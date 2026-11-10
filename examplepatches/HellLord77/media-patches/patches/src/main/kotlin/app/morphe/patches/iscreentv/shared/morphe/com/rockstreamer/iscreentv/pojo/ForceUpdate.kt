@@ -1,10 +1,7 @@
 package app.morphe.patches.iscreentv.shared.morphe.com.rockstreamer.iscreentv.pojo
 
 import app.morphe.patcher.Fingerprint
-import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Type
-import app.morphe.util.matchSingle
-import app.morphe.util.returnBoxedBooleanEarly
 import com.android.tools.smali.dexlib2.AccessFlags
 
 object ForceUpdate {
@@ -18,11 +15,4 @@ object ForceUpdate {
             returnType = Type.BOOLEAN,
             parameters = emptyList(),
         )
-
-    val getTVForceUpdatePatch =
-        bytecodePatch {
-            execute {
-                GetTvForceUpdateFingerprint.matchSingle().method.returnBoxedBooleanEarly(false)
-            }
-        }
 }

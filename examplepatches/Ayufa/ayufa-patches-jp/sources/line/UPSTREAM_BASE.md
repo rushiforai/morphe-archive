@@ -7,9 +7,9 @@
 
 - repository: https://github.com/andrewliang25/morphe-patches
 - version: v3.11.0
-- commit: ac7ecae7c3df423c92d3495481f9ce647981531d
+- commit: c00bb2de583b06bd0118b137667cafe45d190738
 - recorded: 2026-11-05
-- updated: 2026-11-08（日次同期で v3.10.0 → v3.11.0 を取り込み。LINE 側は「Restore biometric login」の既定をオンに変更のみで、説明・設定 UI 文字列の変更なし。残りは Facebook 側と文書）
+- updated: 2026-11-10（日次同期で ac7ecae → c00bb2d を取り込み。変更は CI の再リリース用ワークフロー追加と文書（LINE 26.16.0 の署名者名インベントリ追記）のみで、パッチコード・説明・設定 UI 文字列・対応バージョンの変更なし。翻訳作業なし）
 
 コピーは本家のツリー全体（Facebook 向けパッチや `util/` のリリース用ツールを含む）を
 そのまま保持します。ビルドへの注入時に LINE 分だけを取り出します:

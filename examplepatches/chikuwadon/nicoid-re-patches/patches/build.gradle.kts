@@ -282,7 +282,7 @@ val verifyHistorySort = tasks.register<JavaExec>("verifyHistorySort") {
 // v1.10.2 canonical release payload overlay: compile the source helper from
 // editable Java, disassemble it to smali and assemble it with a COPY of the
 // recovered v1.10.1 payload. No published source files are modified.
-val dev111Sources = rootProject.file("porting/revisions/v1.10.5/java")
+val dev111Sources = rootProject.file("porting/revisions/v1.10.6/java")
 val compileDev111 = tasks.register<JavaCompile>("compileDev111") {
     source(fileTree(dev111Sources) { include("**/*.java") })
     classpath = files(androidJar)
@@ -323,7 +323,7 @@ val dev111Smali = tasks.register<JavaExec>("dev111Smali") {
 }
 val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     dependsOn(dev111Smali)
-    val revision = rootProject.file("porting/revisions/v1.10.5")
+    val revision = rootProject.file("porting/revisions/v1.10.6")
     val payloads = rootProject.file("patches/src/main/resources/nicoid")
     val devSources = layout.buildDirectory.dir("nicoid/dev111/smali")
     inputs.dir(revision)

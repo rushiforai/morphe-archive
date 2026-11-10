@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <bool name="abc_action_bar_embed_tabs">true</bool>
+    <bool name="ScrollBars">false</bool>
+    <bool name="Zoom">false</bool>
+    <bool name="flag_secure">false</bool>
+    <bool name="fullscr">false</bool>
+    <bool name="isDebugMode">false</bool>
+    <bool name="keepScreenOn">false</bool>
+    <bool name="lightBars">false</bool>
+    <bool name="portrait">true</bool>
+</resources>

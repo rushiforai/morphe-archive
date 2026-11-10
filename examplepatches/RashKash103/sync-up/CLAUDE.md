@@ -97,6 +97,19 @@ those Kotlin string literals is not assembled until a patch executes against an 
 malformed instruction compiles perfectly and fails only at patch time. A patch that has only
 been built has not been tested in any meaningful sense.
 
+Note that a device is only ever *one* device. The app's `minSdk` is 23, so extension code can
+call a method that does not exist on most of the range it is offered to and still work
+perfectly on whatever is to hand. `./gradlew :extensions:syncforreddit:lintRelease` is what
+answers that question — its `NewApi` check reads every call against `minSdk` — and
+`buildAndroid` does not run it, so it has to be asked for. It found three: `Map.computeIfAbsent`,
+`List.sort` and `Outline.getRadius`, all API 24, all shipped. D8 *outlines* such a call into a
+`$$ExternalSyntheticApiModelOutline0` rather than desugaring it, so it is still the real method
+and still throws below the level it needs; seeing that name in the dex is not reassurance.
+Being inside a `catch` is not reassurance either, since a `NoSuchMethodError` is an `Error` and
+walks straight through a `catch (Exception)`. R8 does quietly fix some of it — `Map.of()`
+becomes `Collections.EMPTY_MAP` — so what the dex holds is worth reading before changing
+anything.
+
 ### A patch that touches the settings must be tested against Backup
 
 **Back up and restore on a device before shipping anything that adds, moves, hides or changes a
@@ -153,6 +166,15 @@ the setup time, since it turns a CI round trip into a few seconds.
    `dde016e1…b482`, which is what is on the test device.
 5. **A Sync APK** — the supported build, `v23.06.30-13:39`. One is at
    `~/Downloads/sync-revanced/` on this machine.
+6. **The emulator comes up locked, and a locked device has no app.** The AVD here carries a
+   device lock, so after a cold boot the user is `RUNNING_LOCKED` and credential-encrypted
+   storage is shut. In that state Sync's components are not registered at all: `am start`
+   answers `Activity class ... does not exist`, `monkey` says *No activities found to run*, and
+   `screencap` returns a black image. None of that is the patch — the stock APK does exactly
+   the same. `adb shell cmd lock_settings verify --old <pin>` unlocks the user, and
+   `input swipe` plus the PIN dismisses the keyguard. Typing with `input text` goes through the
+   keyboard's autocorrect, which mangles a username; `adb shell ime disable <the IME>` while
+   typing credentials avoids it, and it has to be enabled again afterwards.
 
 Building and patching, with all of the above exported:
 
@@ -237,6 +259,21 @@ Errors found the hard way, all of which compiled cleanly and failed at patch or 
   body is where this comes up, since writing one to a sink is the documented way. Read the bytes
   off the body object instead: what `RequestBody.create(MediaType, byte[])` returns holds them
   in a field, found by its type rather than its name, since the names do not survive R8.
+- **Most of the app's drawables are not there any more.** R8's resource shrinker left every
+  unused one's name and id in place and replaced the drawing with `<x/>`, a stub whose element
+  names a class that was shrunk away too. A row given one patches perfectly and takes its whole
+  settings screen down the moment it is opened, with
+  `InflateException: Class not found x` and nothing naming the drawable. Only the drawables the
+  app still uses itself survived as a real `<vector>` — `outline_vpn_key_24` is a stub,
+  `outline_lock_24` is not — and nothing in the name says which. `patches/util/Drawables.kt`
+  reads the drawable and answers with nothing where there is no real drawing, so the row goes
+  without an icon rather than the screen coming down; name icons through it. Nothing cosmetic
+  should be able to fail a patch: `Spoof client` is what lets the app sign in at all, and a
+  credit line or a row's icon failing to find what it expected would take that down with it and
+  leave the app unable to reach Reddit. Check the tint too:
+  a surviving vector whose `fillColor` is a literal `#FF000000` or `#FFFFFFFF` disappears in one
+  of the two themes, while the ones Sync uses on its own rows carry
+  `android:tint="?attr/..."` and follow the theme.
 - **Two methods on a class can have the same signature.** `Loc/c;` has both `u()V` and `p()V`,
   so a predicate matching "no parameters, returns void, on `Loc/c;`" finds the wrong one. Anchor
   on what guards or surrounds the call instead.
@@ -280,6 +317,70 @@ with its rows already loaded. A screen that does not hold the rows in question i
 whatever is turned off, since Sync colours every row's words as it draws them whatever state the
 row is in.
 
+**Sync's Backup writes out the per-account settings file, so anything kept there travels in
+it.** The file is handed to whoever is helping and copied between devices, so nothing of ours
+that is a secret belongs in it: the client id and the three things beside it live in
+`sync_up_client`, and a PIN in `sync_up_locks`, both files of our own that Sync has never heard
+of and therefore cannot write out. A PIN of four digits beside the salt it was hashed with is
+worked out from such a file in no time. Both classes move anything an older build of ours left
+in Sync's settings across on first use and take it out of Sync's, so a backup made afterwards is
+clean; check by reading the written file rather than by reasoning about it.
+
+**An activity that is stopped before it builds its screen has no window of its own.**
+`HomeActivity.h0` decides what to ask for before the app opens, and the path that asks calls
+neither `l0()` nor anything else that sets a content view, so until the lock is satisfied the
+activity has nothing. Sync can do that because a `BiometricPrompt` is the system's window and
+goes on taking input; a dialog of ours is the app's own, and when it goes the app has no window
+at all. Input dispatch then times out — `ANR in ... Reason: Input dispatching timed out
+(Application does not have a focused window)` — and the app is bricked until it is force stopped.
+A dialog shown from inside `onCreate` is also torn off as a leaked window the first time the
+activity is rebuilt, which a foldable does merely by being opened. Anything of ours that locks
+the way in has to let the app build its screen first, or not lock there at all.
+
+What works is to cover `MainActivity` instead: hook its `onCreate`, post, and put up a full
+screen opaque `Dialog` over a screen that is already whole. Only Sync's *reading* of
+`biometric_start` is answered in `h0`, never where it goes next, so the app always reaches what
+builds its screen. Losing the cover then leaves a working app rather than a brick, which is the
+right way round. Two things that only show up once it is full screen: an `EditText` needs
+`IME_FLAG_NO_EXTRACT_UI` or the keyboard takes the whole screen for a field of its own in
+landscape and what is being asked goes with it, and the content needs a `ScrollView` or the way
+out is pushed off the bottom with the keyboard up. **Force a rotation** —
+`settings put system accelerometer_rotation 0; settings put system user_rotation 1` — as the
+stand-in for a device that folds; both of those were found that way and neither shows in
+portrait.
+
+**Changing account builds the screen again, and sometimes the whole process again.** The logs
+say `Start proc` for the one and leave `MainActivity` created afresh for the other, and which of
+the two happens is not consistent. Anything hooked on `MainActivity.onCreate` therefore runs a
+moment after an account has been changed, so a lock asked there asks a second time for what the
+account switch has just been given. A flag in the process does not survive the restart; what
+does is a note left in our own settings and thrown away as it is read, so that it can only ever
+excuse the one prompt, with a minute's expiry in case nothing reads it. Keep the in-process flag
+as well for the rebuilds that do not restart anything — a foldable being opened is one.
+
+**A local bundle is named after the version in `gradle.properties`, which the release moves.**
+Patching with `patches-<the version you last typed>.mpp` goes on succeeding against a file from
+hours ago, and what is then tested is not what was just built. Take the newest instead:
+`ls -t patches/build/libs/patches-*.mpp | grep -v -e sources -e javadoc | head -1`. Two fixes
+were "verified" here against a stale bundle before this was noticed.
+
+**Sync's own fingerprint prompt can be stood down by answering the setting for it.** Each of the
+three sites reads `SharedPreferences.getBoolean("biometric"/"biometric_start", false)` with the
+same three registers, so that one instruction is swapped for a static of ours taking the same
+three. Answering `false` is what lets a prompt of ours offer the fingerprint *instead of* Sync's
+rather than after it. `androidx.biometric` is in the app and its callback class is public, so a
+compile-only stub naming the obfuscated members — `s` is authenticate, `e$a` is the builder with
+`d`/`c`/`b`/`a`, and the callback's `c` is onAuthenticationSucceeded — is enough to put that
+prompt up. The account being unlocked has to be remembered between the two injections, because
+the register holding its name is reused a couple of instructions later.
+
+**`HomeActivity` is not where the app ends up.** An ordinary run opens it, it sends the app on
+to `MainActivity` and finishes itself, and `MainActivity` is what stays on the screen. Anything
+shown from `HomeActivity.onCreate` is therefore taken off the screen a moment after it arrives —
+a dialog posted from there is gone before it can be read, while having already counted as shown.
+`OnboardingActivity` is the first run's, and it stays. Read `dumpsys activity activities` for
+`topResumedActivity` rather than assuming the first activity named is the one in front.
+
 **Note that `android:dependency` is not an answer here.** It only keys off a checkbox, so a row
 that should follow a list preference's value has to be turned on and off in code.
 
@@ -287,6 +388,25 @@ that should follow a list preference's value has to be turned on and off in code
 `res/layout/dialog_bottom_post_more.xml`, a `LinearLayout` of `MaterialRow` views dispatched by
 `view.getId()` in `onItemClicked`. Adding an entry the way Boost does is not possible; rows are
 built and inserted at runtime instead, which avoids introducing an id resource.
+
+**A menu opened from the toolbar is a different thing from the same menu opened anywhere else.**
+`Ls9/f;` is the base of Sync's sheet menus, and `P1` sets `L0` — read back through `d4()` — when
+the last touch was above the bottom of `id/toolbar`. In that mode the sheet is a *top* sheet:
+`A3()` hands back `MaterialTopSheet` rather than `MaterialBottomSheet`, `C3()` skips colouring
+the dialog's navigation bar, and `o2()` takes the behaviour off `id/design_bottom_sheet`
+(`CoordinatorLayout$f->q(null)`). Both sheet themes inherit `enableEdgeToEdge`, so Material
+registers `BottomSheetDialog$1` on the sheet, and the first insets it is handed build an
+`EdgeToEdgeCallback`, whose constructor calls `BottomSheetBehavior.from` on the sheet that no
+longer has one: `IllegalArgumentException: The view is not associated with BottomSheetBehavior`,
+on the main thread, which is the whole app. Whether the insets ever reach the sheet is
+device-dependent — the emulator here never dispatches them that deep, on either navigation style
+and with or without a cutout, so the crash cannot be reproduced locally even though the
+behaviour is demonstrably gone. `toolbarMenuCrashPatch` answers Material's lookup before it is
+made. The sort chip under the subreddit title never enters this mode, which is why only the two
+toolbar buttons were ever affected. The reporter confirmed on v1.10.0-dev.11 that the crash is
+gone on a device that had it, so the mechanism read out of the bytecode was the right one — a
+fix shipped on `build(Needs bump):` precisely because it could not be reproduced here, and
+confirmed by the one person who could.
 
 **Text is built, then handed to a view.** `Loc/c;` is a builder: characters in a `StringBuilder`
 and a list of spans beside them. `Loc/c;->d()` returns a `SpannableString` when that list holds
@@ -400,9 +520,8 @@ Checking a string against the APK is not enough on its own: it can be an exact s
 somewhere else while being only a fragment within the class the fingerprint targets, which is
 what `"Basic"` was — exact in okhttp's `Credentials`, a fragment in Sync's own. Read the strings
 of the *target* class. Where the whole string cannot be written down because it names the package
-or the version — the user agent does both, and this bundle is offered for the Pro and Dev
-packages at any version — match with `custom` over the method's instructions instead, which is
-not string matching at all and so reads the same under either behaviour.
+or the version — the user agent does both — match with `custom` over the method's instructions
+instead, which is not string matching at all and so reads the same under either behaviour.
 
 ### What the 1.3.3 to 2.x migration moved
 
@@ -431,7 +550,10 @@ the run dies on a missing option long before it reaches a fingerprint.
 The patch logic is a faithful port. Where this repository intentionally differs:
 
 - Only Sync for Reddit is targeted. All other client patches, the Sync for Lemmy target, and
-  the shared code only those used, are dropped.
+  the shared code only those used, are dropped. The `.pro` and `.dev` packages were carried over
+  as targets at first, at any version; they are dropped too. Neither was ever patched or run,
+  every fingerprint is written against the free build, and the paid builds are obfuscated
+  separately, so declaring them promised something nobody could check. See `sync/Constants.kt`.
 - Patches with no Patcheddit equivalent, written for problems specific to Sync: the RedGifs
   `/info` emulation and the Gfycat to RedGifs redirect. Both came out of endpoints Sync depends
   on that no longer exist. Also the translation patch, and `Unlock Sync Ultra`.

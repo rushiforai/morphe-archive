@@ -111,16 +111,32 @@ val blitzerPreferencePatch = resourcePatch(
         val file = get("res/xml/preferences_speed_cameras.xml", true)
         val content = file.readText()
 
-        // Add the new preference before the closing PreferenceScreen
-        val newPref = """
+        // Add the new preferences before the closing PreferenceScreen
+        val newPrefs = """
             <SwitchPreference
                 android:key="blitzer_de_cameras"
                 android:title="Blitzer.de cameras"
                 android:summary="Show live Blitzer.de speed cameras from Atudo API"
                 android:defaultValue="true" />
+
+            <SwitchPreference
+                android:key="blitzer_de_debug"
+                android:title="Debug mode"
+                android:summary="Enable debug overlay on map"
+                android:defaultValue="false" />
+
+            <Preference
+                android:key="blitzer_de_force_fetch"
+                android:title="Force fetch now"
+                android:summary="Immediately fetch cameras around current location" />
+
+            <Preference
+                android:key="blitzer_de_status"
+                android:title="Status: idle"
+                android:summary="Last fetch time, distance, camera count" />
             </PreferenceScreen>"""
 
-        val newContent = content.replace("</PreferenceScreen>", newPref.trim())
+        val newContent = content.replace("</PreferenceScreen>", newPrefs.trim())
         file.writeText(newContent)
     }
 }

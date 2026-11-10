@@ -9,6 +9,8 @@ import android.os.Build;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import dev.utaa.linimal.extension.i18n.LinimalText;
+
 /**
  * MicroG-RE へ向けた Google ドライブの token 要求が失敗したとき、失敗の種類を通知で知らせます。
  *
@@ -135,16 +137,17 @@ final class GoogleAuthFailureNotifier {
     /** 失敗の種類ごとの説明。原因の候補と、利用者が確かめられることを示します。 */
     static String message(Kind kind, String error) {
         if (kind == Kind.BIND_FAILED) {
-            return "MicroG-RE に接続できませんでした。"
-                    + "MicroG-RE が停止していないか、バッテリーの設定でスリープや使用制限の対象になっていないかを確認してください。";
+            return LinimalText.t("MicroG-RE に接続できませんでした。"
+                    + "MicroG-RE が停止していないか、バッテリーの設定でスリープや使用制限の対象になっていないかを確認してください。");
         }
         if ("NetworkError".equals(error)) {
-            return "MicroG-RE がエラー「NetworkError」を返しました。"
+            return LinimalText.t("MicroG-RE がエラー「NetworkError」を返しました。"
                     + "選んだ Google アカウントが MicroG-RE に無いか、MicroG-RE が Google に接続できなかったか、"
                     + "Google が要求を拒否した可能性があります。"
-                    + "MicroG-RE のアカウント、MicroG-RE の通信の制限、MicroG-RE からの通知を確認してください。";
+                    + "MicroG-RE のアカウント、MicroG-RE の通信の制限、MicroG-RE からの通知を確認してください。");
         }
-        return "MicroG-RE がエラー「" + error + "」を返しました。";
+        // 値を伏せた場合の「不明な値」だけが訳の対象で、英字だけのエラーコードはそのまま入ります。
+        return LinimalText.format("MicroG-RE がエラー「%s」を返しました。", LinimalText.t(error));
     }
 
     static String environment(String microgVersion, String lineVersion, String androidRelease, int sdk) {
@@ -154,7 +157,7 @@ final class GoogleAuthFailureNotifier {
     }
 
     private static String orUnknown(String value) {
-        return value == null || value.isEmpty() ? "不明" : value;
+        return value == null || value.isEmpty() ? LinimalText.t("不明") : value;
     }
 
     private static String versionName(Context context, String packageName) {
@@ -173,15 +176,15 @@ final class GoogleAuthFailureNotifier {
         Notification.Builder builder;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID, "Linimal: バックアップの認証エラー", NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription("MicroG-RE を使った Google ドライブの認証が失敗したときの詳細");
+                    CHANNEL_ID, LinimalText.t("Linimal: バックアップの認証エラー"), NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription(LinimalText.t("MicroG-RE を使った Google ドライブの認証が失敗したときの詳細"));
             manager.createNotificationChannel(channel);
             builder = new Notification.Builder(context, CHANNEL_ID);
         } else {
             builder = new Notification.Builder(context);
         }
         builder.setSmallIcon(android.R.drawable.stat_sys_warning)
-                .setContentTitle(TITLE)
+                .setContentTitle(LinimalText.t(TITLE))
                 .setContentText(text)
                 .setStyle(new Notification.BigTextStyle().bigText(text))
                 .setOnlyAlertOnce(true)

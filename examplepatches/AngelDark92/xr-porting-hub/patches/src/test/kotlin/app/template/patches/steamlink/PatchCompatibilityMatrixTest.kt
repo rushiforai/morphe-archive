@@ -40,10 +40,10 @@ import kotlin.test.assertTrue
 class PatchCompatibilityMatrixTest {
     @Test
     fun `every pre-2363 build recommends its own set`() {
-        // One Network Optimizations patch is recommended on every verified base; each loaded
-        // build dispatches to its own layout.
+        // Network Optimizations is supported on every verified base but is no longer recommended;
+        // each loaded build still dispatches to its own layout.
         val recommended = legacyRecommendedPatches
-        assertEquals(21, recommended.size)
+        assertEquals(20, recommended.size)
         listOf("2.0.20" to 5001712, "2.0.20" to 5001812, "2.0.21" to 5001968, "2.0.22" to 5002244)
             .forEach { (version, code) ->
                 assertEquals(recommended, recommendedFor(version, code).toSet(), "$version/$code")
@@ -74,12 +74,12 @@ class PatchCompatibilityMatrixTest {
                 oledCalibrationPatch,
                 controllerVelocityFramePatch,
                 blueNoisePatch, // fovea and background options are both default-on
-                networkOptimizationsPatch, // exact 5002527 layout, default on
             ),
             recommendedFor("2.0.24", 5002527).toSet(),
         )
         recommendedFor("2.0.24", 5002527).forEach { assertTrue(it.default, it.name) }
         assertFalse(deviceIdentityPatch.supports("2.0.24", 5002527))
+        assertTrue(networkOptimizationsPatch.supports("2.0.24", 5002527))
         val blueNoiseOptions = blueNoisePatch.options.values.filter { it.default == true }
         assertEquals(2, blueNoiseOptions.size, "both blue-noise layers are on by default")
     }
@@ -320,14 +320,12 @@ class PatchCompatibilityMatrixTest {
             xrManifestCapabilityPackPatch,
             deviceIdentityPatch, blueNoisePatch,
             xrCodecsSupportPatch,
-            networkOptimizationsPatch,
             controllerVelocityFramePatch,
         )
 
         // 2.0.23/5002363 and 2.0.24/5002395.
         val nativeRecommendedPatches = setOf(
             stockQuadCompositionPatch,
-            networkOptimizationsPatch,
             gxrFacebridgePatch,
             microphoneInputPresetPatch,
             xrCodecsSupportPatch,

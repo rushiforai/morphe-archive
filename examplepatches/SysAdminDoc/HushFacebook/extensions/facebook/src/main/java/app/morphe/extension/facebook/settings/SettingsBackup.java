@@ -32,8 +32,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.comments.CommentsHeight;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
+import app.morphe.extension.facebook.reels.GrayOver;
 import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
@@ -254,6 +256,7 @@ public final class SettingsBackup {
             Settings.HIDE_VIEWER_BACK_BUTTON,
             Settings.BURN_IN_STAY_DIM,
             Settings.GRAY_REELS,
+            Settings.REELS_MINUTES,
             Settings.HIDE_REEL_COUNTS,
             Settings.HIDE_REEL_SAVE_BUTTON,
             Settings.HIDE_REEL_WHATSAPP_BUTTON,
@@ -328,7 +331,6 @@ public final class SettingsBackup {
             Settings.HIDE_INCOMING_COMMENT_TYPING,
             Settings.HIDE_NEW_COMMENTS_PILL,
             Settings.HIDE_VIDEO_COMMENT_COMPOSER,
-            Settings.OPEN_COMMENTS_FULL_HEIGHT,
             Settings.PAUSE_REELS_UNDER_COMMENTS,
             Settings.TAP_REELS_ABOVE_COMMENTS,
             Settings.SEARCH_COMMENTS,
@@ -653,10 +655,23 @@ public final class SettingsBackup {
     static final EnumSetting<BurnInWait> BURN_IN_WAIT = Settings.BURN_IN_WAIT;
 
     /**
+     * Show Reels in gray's Turn gray over, held in a file as its {@link GrayOver#fileValue}.
+     * Anything else refuses the whole file, as a reels order does.
+     */
+    static final EnumSetting<GrayOver> GRAY_OVER = Settings.GRAY_REELS_OVER;
+
+    /**
      * How a reel's post date reads (#357), held in a file as its {@link ReelDateStyle#fileValue}.
      * Anything else refuses the whole file, as a reels order does.
      */
     static final EnumSetting<ReelDateStyle> DATE_STYLE = Settings.REEL_POST_DATE_STYLE;
+
+    /**
+     * How high comments open (#179), held in a file as its {@link CommentsHeight#fileValue}.
+     * Anything else refuses the whole file, as a reels order does. A file from before the list
+     * holds the old switch instead, which still reads: true is full height, false Facebook's.
+     */
+    static final EnumSetting<CommentsHeight> COMMENTS_HEIGHT = Settings.COMMENTS_HEIGHT;
 
     /**
      * The hours notification quiet hours start and end, each held in a file as its
@@ -707,6 +722,12 @@ public final class SettingsBackup {
     static final EnumSetting<TextSize.Scale> TEXT_SIZE = Settings.TEXT_SIZE;
 
     /**
+     * Mark new settings (#16), held in a file as its {@link NewRowMark#fileValue}. Anything else
+     * refuses the whole file, as a text size does. Which rows have been seen stays out.
+     */
+    static final EnumSetting<NewRowMark> NEW_ROW_MARK = Settings.NEW_ROW_MARK;
+
+    /**
      * The accent color, held in a file as its {@link AccentColor.Preset#fileValue}. Anything else
      * refuses the whole file, as a text size does.
      */
@@ -749,10 +770,10 @@ public final class SettingsBackup {
 
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, BURN_IN, BURN_IN_WAIT, DATE_STYLE, REELS_ORDER, WATCHED_KEEP, SHARE_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, FEED_TYPES, CEILING, BURN_IN, BURN_IN_WAIT, GRAY_OVER, DATE_STYLE, REELS_ORDER, COMMENTS_HEIGHT, WATCHED_KEEP, SHARE_ITEMS, MENU_TILES, HOME_FEED, TAB_ORDER, BACKGROUND, LIGHT_BACKGROUND, HEADER_TEXT, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
                     FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
-                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, ACCENT, ACCENT_CUSTOM, LOGO_EMOJI, BADGE,
-                    LOGO, TAB));
+                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, PAUSE_LENGTH, BREAK_AFTER, BREAK_LENGTH, TEXT_SIZE, NEW_ROW_MARK, ACCENT, ACCENT_CUSTOM, LOGO_EMOJI,
+                    BADGE, LOGO, TAB));
 
     /** The longest name or value a file holds that isn't a word list, far past a package name. */
     private static final int MAX_OTHER_CHARS = 1024;
@@ -877,7 +898,10 @@ public final class SettingsBackup {
         private static final String REELS_ORDER_NAME = "reels_order";
         private static final String BURN_IN_NAME = "burn_in_guard";
         private static final String BURN_IN_WAIT_NAME = "burn_in_wait";
+        private static final String GRAY_OVER_NAME = "gray_reels_over";
+        private static final String NEW_ROW_MARK_NAME = "new_row_mark";
         private static final String DATE_STYLE_NAME = "reel_post_date_style";
+        private static final String COMMENTS_HEIGHT_NAME = "comments_height";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
@@ -1016,9 +1040,18 @@ public final class SettingsBackup {
         /** The Dim after wait the file holds, the same way. */
         @Nullable
         BurnInWait burnInWait;
+        /** The Turn gray over choice the file holds, the same way. */
+        @Nullable
+        GrayOver grayOver;
+        /** The Mark new settings choice the file holds, the same way. */
+        @Nullable
+        NewRowMark newRowMark;
         /** How the file says a reel's post date reads, the same way. */
         @Nullable
         ReelDateStyle dateStyle;
+        /** How high the file says comments open, the same way. */
+        @Nullable
+        CommentsHeight commentsHeight;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
 
@@ -1265,8 +1298,14 @@ public final class SettingsBackup {
             if (burnInChange != null) changes.put(BURN_IN, burnInChange);
             BurnInWait burnInWaitChange = burnInWaitChange();
             if (burnInWaitChange != null) changes.put(BURN_IN_WAIT, burnInWaitChange);
+            GrayOver grayOverChange = grayOverChange();
+            if (grayOverChange != null) changes.put(GRAY_OVER, grayOverChange);
+            NewRowMark newRowMarkChange = newRowMarkChange();
+            if (newRowMarkChange != null) changes.put(NEW_ROW_MARK, newRowMarkChange);
             ReelDateStyle dateStyleChange = dateStyleChange();
             if (dateStyleChange != null) changes.put(DATE_STYLE, dateStyleChange);
+            CommentsHeight commentsHeightChange = commentsHeightChange();
+            if (commentsHeightChange != null) changes.put(COMMENTS_HEIGHT, commentsHeightChange);
             SendLink.Action actionChange = actionChange();
             if (actionChange != null) changes.put(ACTION, actionChange);
             String appChange = appChange();
@@ -1561,10 +1600,28 @@ public final class SettingsBackup {
             return burnInWait == null || burnInWait == BURN_IN_WAIT.savedValue() ? null : burnInWait;
         }
 
+        /** The Turn gray over choice after this file, the same way. */
+        @Nullable
+        GrayOver grayOverChange() {
+            return grayOver == null || grayOver == GRAY_OVER.savedValue() ? null : grayOver;
+        }
+
+        /** Mark new settings after this file, the same way. */
+        @Nullable
+        NewRowMark newRowMarkChange() {
+            return newRowMark == null || newRowMark == NEW_ROW_MARK.savedValue() ? null : newRowMark;
+        }
+
         /** How a reel's post date reads after this file, the same way. */
         @Nullable
         ReelDateStyle dateStyleChange() {
             return dateStyle == null || dateStyle == DATE_STYLE.savedValue() ? null : dateStyle;
+        }
+
+        /** How high comments open after this file, the same way. */
+        @Nullable
+        CommentsHeight commentsHeightChange() {
+            return commentsHeight == null || commentsHeight == COMMENTS_HEIGHT.savedValue() ? null : commentsHeight;
         }
 
         @Nullable
@@ -1626,7 +1683,10 @@ public final class SettingsBackup {
             if (reelsOrder != null) state.putString(REELS_ORDER_NAME, reelsOrder.fileValue);
             if (burnIn != null) state.putString(BURN_IN_NAME, burnIn.fileValue);
             if (burnInWait != null) state.putString(BURN_IN_WAIT_NAME, burnInWait.fileValue);
+            if (grayOver != null) state.putString(GRAY_OVER_NAME, grayOver.fileValue);
+            if (newRowMark != null) state.putString(NEW_ROW_MARK_NAME, newRowMark.fileValue);
             if (dateStyle != null) state.putString(DATE_STYLE_NAME, dateStyle.fileValue);
+            if (commentsHeight != null) state.putString(COMMENTS_HEIGHT_NAME, commentsHeight.fileValue);
             state.putInt(UNKNOWN, unknown);
             return state;
         }
@@ -1700,7 +1760,10 @@ public final class SettingsBackup {
             read.reelsOrder = ReelsOrder.fromFile(state.get(REELS_ORDER_NAME));
             read.burnIn = BurnInMode.fromFile(state.get(BURN_IN_NAME));
             read.burnInWait = BurnInWait.fromFile(state.get(BURN_IN_WAIT_NAME));
+            read.grayOver = GrayOver.fromFile(state.get(GRAY_OVER_NAME));
+            read.newRowMark = NewRowMark.fromFile(state.get(NEW_ROW_MARK_NAME));
             read.dateStyle = ReelDateStyle.fromFile(state.get(DATE_STYLE_NAME));
+            read.commentsHeight = CommentsHeight.fromFile(state.get(COMMENTS_HEIGHT_NAME));
             Object background = state.get(BACKGROUND_NAME);
             read.background = isBackground(background) ? (String) background : null;
             Object lightBackground = state.get(LIGHT_BACKGROUND_NAME);
@@ -1773,7 +1836,9 @@ public final class SettingsBackup {
             switches.put(REELS_ORDER.key, of(REELS_ORDER).fileValue);
             switches.put(BURN_IN.key, of(BURN_IN).fileValue);
             switches.put(BURN_IN_WAIT.key, of(BURN_IN_WAIT).fileValue);
+            switches.put(GRAY_OVER.key, of(GRAY_OVER).fileValue);
             switches.put(DATE_STYLE.key, of(DATE_STYLE).fileValue);
+            switches.put(COMMENTS_HEIGHT.key, of(COMMENTS_HEIGHT).fileValue);
             switches.put(QUIET_FROM.key, of(QUIET_FROM).fileValue());
             switches.put(QUIET_UNTIL.key, of(QUIET_UNTIL).fileValue());
             switches.put(LOCK_AFTER.key, of(LOCK_AFTER).fileValue);
@@ -1783,6 +1848,7 @@ public final class SettingsBackup {
             switches.put(WATCHED_KEEP.key, of(WATCHED_KEEP).fileValue);
             switches.put(SEEN_KEEP.key, of(SEEN_KEEP).fileValue);
             switches.put(TEXT_SIZE.key, of(TEXT_SIZE).fileValue);
+            switches.put(NEW_ROW_MARK.key, of(NEW_ROW_MARK).fileValue);
             switches.put(ACCENT.key, of(ACCENT).fileValue);
             switches.put(CEILING.key, of(CEILING).fileValue);
             switches.put(ACTION.key, of(ACTION).fileValue);
@@ -1952,7 +2018,11 @@ public final class SettingsBackup {
         ReelsOrder reelsOrder = null;
         BurnInMode burnIn = null;
         BurnInWait burnInWait = null;
+        GrayOver grayOver = null;
+        NewRowMark newRowMark = null;
         ReelDateStyle dateStyle = null;
+        CommentsHeight commentsHeight = null;
+        Boolean legacyFullHeight = null;
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
@@ -1962,6 +2032,14 @@ public final class SettingsBackup {
                     throw new Rejected(Reason.VALUE, "Not true or false: " + name);
                 }
                 legacyStories = (Boolean) value;
+                continue;
+            }
+            if (CommentsHeightSetting.LEGACY_KEY.equals(name)) {
+                Object value = values.opt(name);
+                if (!(value instanceof Boolean)) {
+                    throw new Rejected(Reason.VALUE, "Not true or false: " + name);
+                }
+                legacyFullHeight = (Boolean) value;
                 continue;
             }
             if (FOLDER.key.equals(name)) {
@@ -2096,9 +2174,24 @@ public final class SettingsBackup {
                 if (burnInWait == null) throw new Rejected(Reason.VALUE, "Not a dim after wait: " + name);
                 continue;
             }
+            if (GRAY_OVER.key.equals(name)) {
+                grayOver = GrayOver.fromFile(values.opt(name));
+                if (grayOver == null) throw new Rejected(Reason.VALUE, "Not a turn gray over: " + name);
+                continue;
+            }
+            if (NEW_ROW_MARK.key.equals(name)) {
+                newRowMark = NewRowMark.fromFile(values.opt(name));
+                if (newRowMark == null) throw new Rejected(Reason.VALUE, "Not a new settings mark: " + name);
+                continue;
+            }
             if (DATE_STYLE.key.equals(name)) {
                 dateStyle = ReelDateStyle.fromFile(values.opt(name));
                 if (dateStyle == null) throw new Rejected(Reason.VALUE, "Not a post date style: " + name);
+                continue;
+            }
+            if (COMMENTS_HEIGHT.key.equals(name)) {
+                commentsHeight = CommentsHeight.fromFile(values.opt(name));
+                if (commentsHeight == null) throw new Rejected(Reason.VALUE, "Not a comments height: " + name);
                 continue;
             }
             if (QUIET_FROM.key.equals(name) || QUIET_UNTIL.key.equals(name)) {
@@ -2242,6 +2335,11 @@ public final class SettingsBackup {
             found.putIfAbsent(Settings.HIDE_TOP_STORIES_TRAY, legacyStories);
             found.putIfAbsent(Settings.HIDE_STORIES_BETWEEN_POSTS, legacyStories);
         }
+        if (commentsHeight == null && legacyFullHeight != null) {
+            // A file from before the list: the old switch on is full height, off Facebook's
+            // height. The list's own key wins whatever order the JSON object uses.
+            commentsHeight = CommentsHeightSetting.fromLegacy(legacyFullHeight);
+        }
         // The lists share their room. One the file leaves out stays as it is, so it counts as stored.
         if ((hidden != null || kept != null) && !PostWords.fits(
                 hidden != null ? hidden : PostWords.clean(HIDDEN.savedValue()),
@@ -2277,7 +2375,10 @@ public final class SettingsBackup {
         read.reelsOrder = reelsOrder;
         read.burnIn = burnIn;
         read.burnInWait = burnInWait;
+        read.grayOver = grayOver;
+        read.newRowMark = newRowMark;
         read.dateStyle = dateStyle;
+        read.commentsHeight = commentsHeight;
         return read;
     }
 
@@ -2319,6 +2420,7 @@ public final class SettingsBackup {
                 Map<Setting<?>, Object> changes = snapshot.changes();
                 if (changes.isEmpty()) return 0;
                 StoriesSetting.finishMigration();
+                CommentsHeightSetting.finishMigration();
                 Setting.saveAll(changes);
                 return changes.size();
             } catch (Setting.BatchFailed failed) {

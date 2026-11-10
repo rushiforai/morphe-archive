@@ -1,0 +1,10 @@
+[versions]
+morphe-patcher = "2.1.0"
+#noinspection GradleDependency
+smali = "4220ae75f7"
+gson = "2.14.0"
+
+[libraries]
+# Declared only for dependabot; the gradle plugin adds the real runtime dependency.
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

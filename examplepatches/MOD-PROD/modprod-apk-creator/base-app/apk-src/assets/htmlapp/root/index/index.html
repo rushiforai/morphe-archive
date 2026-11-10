@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<script>
+/* ===== 1. Menu développeur : version de test chargée sans recompiler =====
+   Si un .html a été chargé via le menu (10 touchers sur le logo), il remplace cette page.
+   3 démarrages ratés de suite = retour automatique à la version intégrée. */
+(function(){
+  if(window.__DEV_LOADED__) return;
+  var h = null;
+  try{
+    h = localStorage.getItem("app-devHtml");
+    if(h){
+      var n = parseInt(localStorage.getItem("app-devBoot") || "0", 10) + 1;
+      if(n > 3){ localStorage.removeItem("app-devHtml"); localStorage.setItem("app-devReverted", "1"); localStorage.removeItem("app-devBoot"); h = null; }
+      else localStorage.setItem("app-devBoot", String(n));
+    }
+  }catch(e){ h = null; }
+  if(!h) return;
+  document.write('<plaintext style="display:none">');
+  document.addEventListener("DOMContentLoaded", function(){ window.__DEV_LOADED__ = true; document.open(); document.write(h); document.close(); });
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Mon appli</title>
+<script>
+/* ===== 2. Configuration =====
+   Priorité : menu développeur > premier .js du dossier « config » > valeurs ci-dessous.
+   Format : une option par ligne « Nom : valeur ». */
+window.APP_CONFIG_DEFAULT = `# ===== Configuration =====
+Splashscreen: on
+Splashscreen time: 2s
+Splash titre: Mon *appli*
+Splash sous-titre: Sous-titre
+Splash fond: #141a21
+Splash accent: #f08a24
+Double retour pour quitter: on
+Délai double retour: 2s
+Nouvelle fenêtre: navigateur
+Dev input setting: true
+Appuis sur le logo: 10
+`;
+(function(){
+  var href = location.href.split("#")[0].split("?")[0], dir = href.slice(0, href.lastIndexOf("/") + 1);
+  var root = /\/index\/$/i.test(dir) ? dir.replace(/index\/$/i, "") : dir;
+  window.APP_ROOT = root;
+  var files = [];
+  try{
+    var m = /android_asset\/(.*)$/.exec(root);
+    if(m && window.Android && typeof window.Android.listAssets !== "undefined"){
+      var l = String(window.Android.listAssets(m[1] + "config") || "").split("\n").filter(function(n){ return /\.js$/i.test(n); }).sort();
+      if(l.length) files = [root + "config/" + encodeURIComponent(l[0])];
+    }
+  }catch(e){}
+  if(!files.length) files = [root + "config.js", root + "config/config.js"];
+  for(var i = 0; i < files.length; i++) document.write('<script src="' + files[i] + '"><\/script>');
+})();
+</script>
+<script>
+(function(){
+  // clé interne : [type, noms reconnus (minuscules, sans accents ni espaces)]
+  var SCHEMA = {
+    splash:     ["bool", "splashscreen"],          splashTime: ["ms",   "splashscreentime"],
+    splashTitle:["text", "splashtitre"],           splashSub:  ["text", "splashsoustitre"],
+    splashBg:   ["color","splashfond"],            splashAcc:  ["color","splashaccent"],
+    backDouble: ["bool", "doubleretourpourquitter"], backDelay: ["ms",   "delaidoubleretour"],
+    newWindow:  ["win",  "nouvellefenetre"],
+    dev:        ["bool", "devinputsetting", "menudev"], devTaps: ["int",  "appuissurlelogo"]
+  };
+  var alias = {}; for(var k in SCHEMA) for(var i = 1; i < SCHEMA[k].length; i++) alias[SCHEMA[k][i]] = k;
+  var norm = function(s){ s = String(s).toLowerCase(); try{ s = s.normalize("NFD").replace(/[̀-ͯ]/g, ""); }catch(e){} return s.replace(/[^a-z0-9]/g, ""); };
+  function val(t, raw){
+    var s = String(raw).trim(), l = s.toLowerCase();
+    if(t === "bool") return /^(on|true|oui|1)$/.test(l) ? true : /^(off|false|non|0)$/.test(l) ? false : undefined;
+    if(t === "ms"){ var m = l.replace(",", ".").match(/^(\d+(?:\.\d+)?)\s*(ms|s)?$/); if(!m) return undefined; var n = parseFloat(m[1]); return Math.round((m[2] || (n < 100 ? "s" : "ms")) === "ms" ? n : n*1000); }
+    if(t === "int"){ var x = parseInt(l, 10); return x > 0 ? x : undefined; }
+    if(t === "win") return /^(navigateur|browser|externe)$/.test(l) ? "browser" : /^(webview|appli|interne)$/.test(l) ? "webview" : undefined;
+    if(t === "color") return /^[#a-z0-9(),.%\s-]{1,40}$/i.test(s) ? s : undefined;
+    return s;
+  }
+  function parse(text, into, errs){
+    String(text || "").split(/\r?\n/).forEach(function(line){
+      line = line.trim(); if(!line || line[0] === "#") return;
+      var p = line.search(/[:=]/), key = p > 0 ? alias[norm(line.slice(0, p))] : null;
+      if(!key){ if(errs) errs.push("inconnu : " + line); return; }
+      var v = val(SCHEMA[key][0], line.slice(p + 1).replace(/\s+#\s.*$/, ""));
+      if(v === undefined){ if(errs) errs.push("valeur invalide : " + line); return; }
+      into[key] = v;
+    });
+    return into;
+  }
+  var cfg = parse(window.APP_CONFIG_DEFAULT, {}), errs = [], src = "défaut";
+  if(typeof window.APP_CONFIG === "string"){ parse(window.APP_CONFIG, cfg, errs); src = "fichier config"; }
+  var over = null; try{ over = localStorage.getItem("app-config"); }catch(e){}
+  if(over){ var keep = cfg.dev; parse(over, cfg, errs); src = "menu développeur"; if(keep && cfg.dev === false) cfg.dev = true; }
+  window.CFG = cfg; window.CFG_INFO = {source: src, errors: errs, parse: parse};
+})();
+</script>
+<style>
+:root{--bg:#141a21;--card:#1b232c;--field:#222b35;--line:#2c3743;--ink:#e6ebf0;--muted:#98a5b3;--acc:#f08a24}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color-scheme:dark}
+.wrap{max-width:560px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;gap:12px;margin:8px 0 18px}
+#logo{width:44px;height:44px;border-radius:12px;background:var(--acc);display:grid;place-items:center;font-weight:800;color:#141a21;cursor:pointer;user-select:none}
+h1{font-size:1.3rem;margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+button,.btn{display:block;width:100%;margin-top:10px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--field);color:var(--ink);font-family:inherit;font-size:1rem;font-weight:600;line-height:1.3;cursor:pointer;text-align:center}
+.btn.main{background:var(--acc);border-color:var(--acc);color:#141a21}
+dialog{border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);width:min(520px,calc(100vw - 24px));padding:18px}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+textarea{width:100%;height:40vh;background:var(--field);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font:500 .82rem/1.45 ui-monospace,monospace;white-space:pre}
+.hint{color:var(--muted);font-size:.88rem}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#e6ebf0;color:#141a21;padding:10px 16px;border-radius:12px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;max-width:86vw;text-align:center}
+#toast.on{opacity:1}
+#splash{display:none;position:fixed;inset:0;z-index:9999;flex-direction:column;align-items:center;justify-content:center;background:var(--sp-bg,#141a21);transition:opacity .4s}
+#splash h1{font-size:28px;letter-spacing:.06em}#splash h1 b{color:var(--sp-acc,#f08a24)}
+#splash p{color:var(--muted);margin:6px 0 0}
+</style>
+</head>
+<body>
+<!-- ===== 3. Écran de démarrage (APK uniquement) ===== -->
+<div id="splash"><h1 id="spT"></h1><p id="spS"></p></div>
+<script>
+(function(){
+  var C = window.CFG || {}, el = document.getElementById("splash");
+  if(C.splash === false || !/; wv\)/.test(navigator.userAgent || "")) return;
+  if(C.splashBg) el.style.setProperty("--sp-bg", C.splashBg); if(C.splashAcc) el.style.setProperty("--sp-acc", C.splashAcc);
+  var esc = function(t){ return String(t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); };
+  document.getElementById("spT").innerHTML = esc(C.splashTitle || "").replace(/\*([^*]+)\*/g, "<b>$1</b>");
+  document.getElementById("spS").textContent = C.splashSub || "";
+  el.style.display = "flex";
+  setTimeout(function(){ el.style.opacity = "0"; setTimeout(function(){ el.remove(); }, 450); }, C.splashTime || 2000);
+})();
+</script>
+
+<div class="wrap">
+  <header><div id="logo" title="Logo">A</div><h1>Mon appli</h1></header>
+
+  <!-- ===== TON APPLI ICI ===== -->
+  <div class="card">
+    <p>Page de départ du modèle ModProd. Remplace ce bloc par ton appli.</p>
+    <button type="button" id="demoSave">Tester l'enregistrement d'un fichier</button>
+    <button type="button" id="demoDlg">Ouvrir une fenêtre (test du bouton retour)</button>
+    <a class="btn" href="https://example.com" target="_blank">Lien externe (test)</a>
+  </div>
+</div>
+
+<dialog id="demo"><p>Fenêtre de test : le bouton retour la ferme.</p><button type="button" onclick="this.closest('dialog').close()">Fermer</button></dialog>
+
+<!-- ===== Menu développeur ===== -->
+<dialog id="devDlg">
+  <p style="font-weight:700;margin-top:0">🛠 Menu développeur</p>
+  <p class="hint" id="devInfo"></p>
+  <label class="btn" for="devFile">Charger un .html…</label><input type="file" id="devFile" class="vh">
+  <button type="button" id="devCfg">Configuration…</button>
+  <button type="button" id="devReset">Revenir à la version intégrée</button>
+  <button type="button" id="devReload">Recharger l'appli</button>
+  <button type="button" class="btn main" id="devClose">Fermer</button>
+</dialog>
+<dialog id="cfgDlg">
+  <p style="font-weight:700;margin-top:0">⚙ Configuration</p>
+  <p class="hint" id="cfgInfo"></p>
+  <textarea id="cfgText" spellcheck="false" wrap="off"></textarea>
+  <button type="button" id="cfgSave" class="btn main">Enregistrer et redémarrer</button>
+  <button type="button" id="cfgReset">Revenir au fichier config</button>
+  <button type="button" id="cfgClose">Fermer</button>
+</dialog>
+<div id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); }, C = window.CFG || {};
+  var toastT; function toast(msg){ var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(function(){ t.classList.remove("on"); }, 2200); }
+  window.toast = toast;
+  var hasAndroid = function(m){ return !!(window.Android && typeof window.Android[m] !== "undefined"); };
+
+  /* ===== 4. Enregistrer un fichier (PDF, JSON, CSV…) =====
+     APK : passe par Android (MediaStore → Téléchargements, nom pré-rempli). Navigateur : téléchargement normal. */
+  window.saveFile = function(filename, blob){
+    if(hasAndroid("getBase64FromBlobData")){
+      var r = new FileReader();
+      r.onload = function(){ var b64 = String(r.result).split(",")[1], mime = blob.type || "application/octet-stream";
+        window.Android.getBase64FromBlobData("data:" + mime + ";name=" + encodeURIComponent(filename) + ";base64," + b64, mime); };
+      r.readAsDataURL(blob); return;
+    }
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  };
+
+  /* ===== 5. Sauvegarde silencieuse dans un dossier (sans fenêtre) =====
+     window.autoSave(texte, "Documents/MonAppli/", "sauvegarde.json") → "ok" ou "err…" */
+  window.autoSave = function(text, dir, name){
+    if(!hasAndroid("autoSave")) return "err:no-android";
+    try{ return String(window.Android.autoSave(text, dir, name)); }catch(e){ return "err:" + e.message; }
+  };
+
+  /* ===== 6. Bouton retour Android =====
+     Renvoie "ok" (géré dans la page) ou "exit" (l'appli se ferme). */
+  var lastBack = 0;
+  window.__appBack = function(){
+    try{
+      var open = Array.prototype.slice.call(document.querySelectorAll("dialog[open]"));
+      if(open.length){ open[open.length - 1].close(); return "ok"; }
+      var now = Date.now();
+      if(C.backDouble === false || now - lastBack < (C.backDelay || 2000)) return "exit";
+      lastBack = now; toast("Appuie encore sur retour pour quitter"); return "ok";
+    }catch(e){ return "exit"; }
+  };
+
+  /* ===== 7. Liens externes : navigateur ou dans l'appli ===== */
+  var inApk = /; wv\)/.test(navigator.userAgent || ""), special = /^(mailto|tel|sms|geo|intent|market|whatsapp):/i;
+  function route(u){
+    var x; try{ x = new URL(u, location.href); }catch(e){ return false; }
+    var ext = special.test(x.protocol) || (/^https?:$/.test(x.protocol) && x.origin !== location.origin);
+    if(!ext || !inApk) return false;
+    if(special.test(x.protocol) || C.newWindow !== "webview"){ try{ return hasAndroid("openExternal") && String(window.Android.openExternal(x.href)) === "ok"; }catch(e){ return false; } }
+    location.href = x.href; return true;
+  }
+  document.addEventListener("click", function(e){ var a = e.target.closest && e.target.closest("a[href]"); if(a && !a.hasAttribute("download") && route(a.getAttribute("href"))) e.preventDefault(); }, true);
+  var openOrig = window.open; window.open = function(u){ if(u && route(String(u))) return null; return openOrig.apply(window, arguments); };
+
+  /* ===== 8. Menu développeur : 10 touchers sur le logo ===== */
+  var dd = $("devDlg"), cd = $("cfgDlg"), TAPS = C.devTaps || 10, taps = 0, tapT;
+  setTimeout(function(){ try{ localStorage.removeItem("app-devBoot"); }catch(e){} }, 4000);
+  try{ if(localStorage.getItem("app-devReverted")){ localStorage.removeItem("app-devReverted"); setTimeout(function(){ toast("Version de test en échec : retour à la version intégrée"); }, 1500); } }catch(e){}
+  if(window.__DEV_LOADED__){ var tag = document.createElement("span"); tag.textContent = "DEV"; tag.style.cssText = "margin-left:auto;background:#e5484d;color:#fff;font:700 .7rem sans-serif;padding:4px 7px;border-radius:6px"; document.querySelector("header").appendChild(tag); }
+  if(C.dev !== false) $("logo").addEventListener("click", function(){
+    taps++; clearTimeout(tapT); tapT = setTimeout(function(){ taps = 0; }, 1500);
+    if(taps >= Math.max(2, TAPS - 5) && taps < TAPS) toast("Encore " + (TAPS - taps) + "…");
+    if(taps >= TAPS){ taps = 0; var h = null; try{ h = localStorage.getItem("app-devHtml"); }catch(e){}
+      $("devInfo").textContent = h ? "Version active : TEST (" + Math.round(h.length/1024) + " Ko)." : "Version active : intégrée à l'APK."; dd.showModal(); }
+  });
+  $("devClose").onclick = function(){ dd.close(); };
+  $("devReload").onclick = function(){ location.reload(); };
+  $("devReset").onclick = function(){ try{ localStorage.removeItem("app-devHtml"); localStorage.removeItem("app-devBoot"); }catch(e){} location.reload(); };
+  $("devFile").onclick = function(e){ e.target.value = ""; };
+  $("devFile").onchange = function(e){
+    var f = e.target.files && e.target.files[0]; if(!f) return;
+    var r = new FileReader(); r.onload = function(){
+      var t = String(r.result).replace(/^﻿/, "");
+      if(!/<html[\s>]/i.test(t)){ toast("Ce n'est pas une page HTML complète"); return; }
+      try{ localStorage.setItem("app-devHtml", t); localStorage.removeItem("app-devBoot"); }catch(err){ toast("Fichier trop gros"); return; }
+      location.reload();
+    }; r.readAsText(f);
+  };
+  $("devCfg").onclick = function(){
+    var o = null; try{ o = localStorage.getItem("app-config"); }catch(e){}
+    $("cfgText").value = o || (typeof window.APP_CONFIG === "string" ? window.APP_CONFIG.replace(/^\s*\n/, "") : window.APP_CONFIG_DEFAULT);
+    var I = window.CFG_INFO; $("cfgInfo").textContent = "Source : " + I.source + (I.errors.length ? " · ⚠ " + I.errors.join(" · ") : "");
+    dd.close(); cd.showModal();
+  };
+  $("cfgSave").onclick = function(){ try{ localStorage.setItem("app-config", $("cfgText").value); }catch(e){} location.reload(); };
+  $("cfgReset").onclick = function(){ try{ localStorage.removeItem("app-config"); }catch(e){} location.reload(); };
+  $("cfgClose").onclick = function(){ cd.close(); };
+
+  /* ===== Démo (à supprimer) ===== */
+  $("demoSave").onclick = function(){ saveFile("test.txt", new Blob(["Bonjour depuis le modèle ModProd\n"], {type: "text/plain"})); toast("Fichier envoyé"); };
+  $("demoDlg").onclick = function(){ $("demo").showModal(); };
+})();
+</script>
+</body>
+</html>

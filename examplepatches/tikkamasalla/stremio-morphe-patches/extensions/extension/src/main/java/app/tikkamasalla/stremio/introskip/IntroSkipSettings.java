@@ -50,8 +50,8 @@ public final class IntroSkipSettings {
     public static final String S_SHOWLIST = "Never auto-pick, always show every stream";
     public static final String T_PREPARE = "Prepare next episode";
     public static final String S_PREPARE = "Near the end, find the next episode's stream and skip times so Next starts at once";
-    public static final String T_ONEAHEAD = "Work out missing skip times";
-    public static final String S_ONEAHEAD = "Works out missing skip times from upcoming episodes in the background and uses them like any other source";
+    public static final String T_ONEAHEAD = "Fingerprint Lookahead";
+    public static final String S_ONEAHEAD = "Finds skip times by matching audio across episodes";
     public static final String T_BORROW = "Borrow chapters from other releases";
     public static final String S_BORROW = "Copies intro and credits marks from another release of the same episode when the audio lines up";
 

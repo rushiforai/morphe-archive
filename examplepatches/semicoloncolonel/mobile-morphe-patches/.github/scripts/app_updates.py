@@ -9,19 +9,25 @@ For each app in the patch bundle, this script:
 3. Asks Google Play which version it serves to an ordinary phone, using a
    throwaway account (PLAY_EMAIL, PLAY_AAS_TOKEN) or, without one, an
    anonymous login from Aurora Store's token dispenser. A newer APKPure
-   version that Play does not serve yet, such as a staged rollout, is
-   reported as not public on Play and is not downloaded or patched.
-4. When APKPure has a newer version that Play serves, downloads it and checks its signing
+   version that Play does not serve yet is a staged rollout. It is still
+   tested, because dev is for testing, and the issue says it is a rollout.
+4. When APKPure has a newer version, downloads it and checks its signing
    certificate against the app's known-good certificate in
    .github/app-certs.json. APKPure has been found modifying apps, and a
    modified app cannot carry the developer's certificate, so a download
    whose certificate does not match is reported and not used. A matching
    download is checked for the Android TV build and patched with every patch
-   for the app. Downloads are only patched on the runner, never installed.
+   for the app. Some apps share a package with their Android TV app, and
+   APKPure can list only the TV build. Then the phone build Google Play
+   serves is used instead: when Play still serves the targeted version, the
+   app is up to date, and when Play serves a newer one, that download is
+   checked and patched. Downloads are only patched on the runner, never
+   installed.
 5. Writes a Markdown and JSON report, and with --issues keeps one GitHub
    issue per app and version up to date: it opens "App update: <App>
-   <version>", updates it on later runs, and closes it once the bundle
-   targets that version.
+   <version>", updates it on later runs, and closes it once the latest
+   main release (--stable-mpp) targets that version. A version bumped on
+   dev stays open for people to report how the pre-release works.
 
 The design follows hxreborn's app update check
 (https://github.com/hxreborn/morphe-patches, GPL-3.0). It does not bypass
@@ -29,6 +35,7 @@ any site's bot protection.
 """
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -44,6 +51,7 @@ from pathlib import Path
 ISSUE_LABEL = "app update"
 REVIEW_LABEL = "needs review"
 READY_LABEL = "ready to bump"
+TESTING_LABEL = "testing on dev"
 TITLE_PREFIX = "App update: "
 
 
@@ -63,13 +71,36 @@ def version_key(version):
     return [int(part) for part in re.findall(r"\d+", version)]
 
 
-def newer(a, b):
+RELEASE_DATE = re.compile(r"(\d{4})\.(\d{2})\.(\d{2})$")
+
+
+def compare(a, b):
+    """-1, 0, or 1 as version a is older than, the same as, or newer than b."""
     # Hulu's versions are "6.34.0+18552420-google", but APKPure lists only the
     # build part, "18552420-google". When only one side has a "+", compare the
     # build parts.
     if ("+" in a) != ("+" in b):
         a, b = a.split("+", 1)[-1], b.split("+", 1)[-1]
-    return version_key(a) > version_key(b)
+    key_a, key_b = version_key(a), version_key(b)
+    if "+" not in a:
+        # Disney+'s build parts are "rc3-2026.11.02": a release candidate number
+        # that starts over with every version, then the build date. APKPure lists
+        # only that part, so the date orders them, not the release candidate.
+        # Its old releases, such as "3.5.0-rc4", have no date and are older.
+        date_a, date_b = RELEASE_DATE.search(a), RELEASE_DATE.search(b)
+        if date_a and date_b:
+            key_a = [int(part) for part in date_a.groups()] + key_a
+            key_b = [int(part) for part in date_b.groups()] + key_b
+        elif date_a or date_b:
+            return 1 if date_a else -1
+    return (key_a > key_b) - (key_a < key_b)
+
+
+def newer(a, b):
+    return compare(a, b) > 0
+
+
+version_order = functools.cmp_to_key(compare)
 
 
 # ── The bundle ──────────────────────────────────────────────────────────────
@@ -177,21 +208,46 @@ class PlayStore:
         self.aas_token = os.environ.get("PLAY_AAS_TOKEN")
         self.auth = None
         self.error = None
+        self.downloads = {}
 
     def account_version(self, package):
-        """The versionName of the APK Play gives the throwaway account, or None."""
-        with tempfile.TemporaryDirectory(dir=self.workdir) as tmp:
-            result = run(["apkeep", "-a", package, "-d", "google-play", "-e", self.email, "-t", self.aas_token,
-                          "-o", "split_apk=true", tmp], timeout=900)
-            base = next(Path(tmp).rglob(f"{package}.apk"), None)
-            if base is None:
-                # apkeep's output never contains the token, only the package and its error.
-                print(f"  {package}: Google Play download failed: {(result.stdout + result.stderr).strip()[-300:]}",
-                      flush=True)
-                return None
-            badging = run([self.aapt2, "dump", "badging", str(base)]).stdout
-            found = re.search(r"versionName='([^']+)'", badging)
-            return found.group(1) if found else None
+        """The versionName of the APK Play gives the throwaway account, or None.
+        The download is kept for downloaded(package)."""
+        folder = Path(tempfile.mkdtemp(dir=self.workdir, prefix="play-"))
+        result = run(["apkeep", "-a", package, "-d", "google-play", "-e", self.email, "-t", self.aas_token,
+                      "-o", "split_apk=true", str(folder)], timeout=900)
+        base = next(folder.rglob(f"{package}.apk"), None)
+        if base is None:
+            # apkeep's output never contains the token, only the package and its error.
+            print(f"  {package}: Google Play download failed: {(result.stdout + result.stderr).strip()[-300:]}",
+                  flush=True)
+            shutil.rmtree(folder, ignore_errors=True)
+            return None
+        self.downloads[package] = (folder, base)
+        badging = run([self.aapt2, "dump", "badging", str(base)]).stdout
+        found = re.search(r"versionName='([^']+)'", badging)
+        return found.group(1) if found else None
+
+    def downloaded(self, package):
+        """(base APK, input to patch) of the phone build read by version(), or None.
+        A split download is packed into one .apks archive for patching."""
+        folder, base = self.downloads.get(package, (None, None))
+        if base is None or not base.exists():
+            return None
+        splits = sorted(base.parent.glob("*.apk"))
+        if len(splits) == 1:
+            return base, base
+        archive = folder / f"{package}.apks"
+        with zipfile.ZipFile(archive, "w", zipfile.ZIP_STORED) as z:
+            for split in splits:
+                z.write(split, split.name)
+        return base, archive
+
+    def discard(self, package):
+        """Deletes the kept download to free the runner's disk."""
+        folder, _ = self.downloads.pop(package, (None, None))
+        if folder is not None:
+            shutil.rmtree(folder, ignore_errors=True)
 
     def login(self):
         props = {}
@@ -317,6 +373,18 @@ def version_code(apk, aapt2):
         return int(found.group(1)) if found else None
 
 
+def version_name(apk, aapt2):
+    """The base APK's versionName, or None."""
+    if not aapt2:
+        return None
+    with tempfile.TemporaryDirectory() as tmp:
+        base = base_apk(apk, tmp)
+        if base is None:
+            return None
+        found = re.search(r"versionName='([^']+)'", run([aapt2, "dump", "badging", str(base)]).stdout)
+        return found.group(1) if found else None
+
+
 def is_tv_build(apk, aapt2):
     """True when the base APK declares the Android TV (leanback) feature."""
     if not aapt2:
@@ -354,56 +422,79 @@ def check(apps, names, certs, cli_path, mpp, workdir, aapt2, apksigner, only, ke
         if only and package not in only:
             continue
         app = apps[package]
-        pinned = max(app["versions"], key=version_key) if app["versions"] else None
+        pinned = max(app["versions"], key=version_order) if app["versions"] else None
         record = {"package": package, "name": names.get(package, package), "pinned": pinned,
-                  "targets": sorted(app["versions"], key=version_key)}
+                  "targets": sorted(app["versions"], key=version_order)}
         public = apkpure_versions(package)
-        candidates = sorted((v for v in public if not pinned or newer(v, pinned)), key=version_key, reverse=True)
+        candidates = sorted((v for v in public if not pinned or newer(v, pinned)), key=version_order, reverse=True)
         if not public:
             record["status"] = "not on APKPure"
         elif not candidates:
             record["status"] = "up to date"
-            record["latest"] = max(public, key=version_key)
+            record["latest"] = max(public, key=version_order)
         else:
-            # Only a version Google Play serves to an ordinary phone is public.
-            # A newer one on APKPure is a staged rollout or not released yet,
-            # so it is not downloaded or patched.
-            served = play.version(package)
-            record["play"] = served
-            if served is None:
-                record["status"] = "Play version unknown"
-                record["latest"] = candidates[0]
-                candidates = []
-            elif not [v for v in candidates if not newer(v, served)]:
-                record["status"] = "not public on Play"
-                record["latest"] = candidates[0]
-                candidates = []
-            else:
-                candidates = [v for v in candidates if not newer(v, served)]
-                record["status"] = "up to date"
+            # Google Play's version for an ordinary phone shows whether the newer
+            # APKPure version is out to everyone or still a staged rollout. Dev is
+            # for testing, so a rollout is still tested and can be bumped there;
+            # the issue and the dev commit say it is a rollout.
+            record["play"] = play.version(package)
         if candidates:
             # Some apps share a package with their Android TV app, whose version
             # numbers can sort above the phone app's (Tubi's TV build is 10.44.5000).
             # The newest phone build is used, trying up to three versions.
+            first_tv = None
             for version in candidates[:3]:
                 outcome = check_version(package, version, app, certs, cli_path, mpp, workdir, aapt2,
                                         apksigner, keep_dir)
                 if outcome.get("tv_build"):
                     record.setdefault("tv_builds_skipped", []).append(version)
+                    first_tv = first_tv or (version, outcome)
                     continue
-                record.update(outcome, status="update", latest=version)
+                # APKPure can shorten the name (Disney+'s "rc1-2026.11.20"), so the
+                # report uses the version name inside the APK, which the pin needs.
+                latest = outcome.get("version_name") or version
+                served = record.get("play")
+                record.update(outcome, status="update", latest=latest,
+                              rollout=served is not None and newer(latest, served))
                 break
+            else:
+                # APKPure has only the Android TV build of the newer versions, as it
+                # does for ABC News, Peacock, and Tubi. The phone build Google Play
+                # serves decides instead.
+                served = record.get("play")
+                if served and pinned and not newer(served, pinned):
+                    record.update(status="up to date", latest=served)
+                elif served and (found := play.downloaded(package)):
+                    base, patch_input = found
+                    outcome = inspect_apk(package, base, patch_input, app, certs, cli_path, mpp, workdir,
+                                          aapt2, apksigner, keep_dir)
+                    record.update(outcome, status="update", source="Google Play",
+                                  latest=outcome.get("version_name") or served, rollout=False)
+                elif first_tv:
+                    # Play's version is unknown, so the update is reported for review.
+                    version, outcome = first_tv
+                    record.update(outcome, status="update", latest=outcome.get("version_name") or version)
+            play.discard(package)
         print(f"{record['name']}: {record['status']} {record.get('latest', '')}", flush=True)
         results.append(record)
     return results
 
 
 def check_version(package, version, app, certs, cli_path, mpp, workdir, aapt2, apksigner, keep_dir):
-    """Downloads one version, checks its certificate and build, and test-patches it."""
-    outcome = {}
+    """Downloads one version from APKPure, checks its certificate and build, and test-patches it."""
     apk = download(package, version, workdir)
     if apk is None:
         return {"download": "failed"}
+    outcome = inspect_apk(package, apk, apk, app, certs, cli_path, mpp, workdir, aapt2, apksigner, keep_dir)
+    # Free the runner's disk before the next download.
+    shutil.rmtree(apk.parent, ignore_errors=True)
+    return outcome
+
+
+def inspect_apk(package, apk, patch_input, app, certs, cli_path, mpp, workdir, aapt2, apksigner, keep_dir):
+    """Checks a download's certificate and build, and test-patches patch_input
+    (the APK itself, or an .apks archive of its splits)."""
+    outcome = {}
     digest = signing_cert(apk, apksigner)
     known = certs.get(package, [])
     outcome["cert"] = ("unreadable" if digest is None else "no known certificate" if not known
@@ -412,17 +503,16 @@ def check_version(package, version, app, certs, cli_path, mpp, workdir, aapt2, a
     if outcome["cert"] != "does not match":
         outcome["tv_build"] = is_tv_build(apk, aapt2)
         outcome["version_code"] = version_code(apk, aapt2)
+        outcome["version_name"] = version_name(apk, aapt2)
         if not outcome["tv_build"]:
-            outcome["patches"] = patch_check(apk, app["patches"], cli_path, mpp, workdir)
-            patched = Path(workdir, apk.stem + "-patched.apk")
+            outcome["patches"] = patch_check(patch_input, app["patches"], cli_path, mpp, workdir)
+            patched = Path(workdir, patch_input.stem + "-patched.apk")
             if fully_patched(outcome) and patched.exists():
                 # Kept for the launch check on an emulator.
                 keep_dir.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(patched), keep_dir / f"{package}.apk")
                 outcome["patched_apk"] = f"{package}.apk"
-    # Free the runner's disk before the next download.
-    shutil.rmtree(apk.parent, ignore_errors=True)
-    for leftover in Path(workdir).glob(apk.stem + "-*"):
+    for leftover in Path(workdir).glob(patch_input.stem + "-*"):
         leftover.unlink(missing_ok=True)
     return outcome
 
@@ -457,18 +547,11 @@ def render(results):
         if r["status"] != "update":
             continue
         build = " (Android TV build)" if r.get("tv_build") else ""
+        build += " (staged rollout)" if r.get("rollout") else ""
         flag = "needs review" if review_reasons(r) else "ready to bump"
         lines.append(f"| {r['name']} | `{r['pinned']}` | `{r['latest']}`{build} | {summary_cell(r)} | {flag} |")
     if len(lines) == 4:
         lines.append("| Every app is up to date. | | | | |")
-    held = [f"{r['name']} `{r['latest']}` (Play serves `{r['play']}`)" for r in results
-            if r["status"] == "not public on Play"]
-    if held:
-        lines += ["", "Newer on APKPure but not public on Google Play, so not patched: " + ", ".join(held) + "."]
-    unknown = [r["name"] for r in results if r["status"] == "Play version unknown"]
-    if unknown:
-        lines += ["", "Google Play's version could not be read, so these were not patched: "
-                  + ", ".join(unknown) + "."]
     missing = [r["name"] for r in results if r["status"] == "not on APKPure"]
     if missing:
         lines += ["", "Not on APKPure: " + ", ".join(missing) + "."]
@@ -508,14 +591,24 @@ def review_reasons(r):
     return reasons
 
 
+def play_note(r):
+    if r.get("play") is None:
+        return "its version could not be read"
+    if r.get("rollout"):
+        return (f"serves `{r['play']}` to an ordinary phone, so `{r['latest']}` is a staged rollout "
+                "that has not reached everyone yet")
+    return f"serves `{r['play']}` to an ordinary phone, so this version is out to everyone"
+
+
 def issue_body(r):
     build = "Android TV build" if r.get("tv_build") else "phone build" if r.get("tv_build") is False else "not checked"
     lines = [
-        f"A newer public version of {r['name']} is on APKPure.",
+        f"A newer public version of {r['name']} is on {r.get('source', 'APKPure')}.",
         "",
         f"- Package: `{r['package']}`",
         f"- Targeted by the patches: {', '.join(f'`{v}`' for v in r['targets'])}",
-        f"- On APKPure: `{r['latest']}` ({build})",
+        f"- On {r.get('source', 'APKPure')}: `{r['latest']}` ({build})",
+        f"- Google Play: {play_note(r)}.",
     ]
     if r.get("cert"):
         cert = {
@@ -543,7 +636,7 @@ def issue_body(r):
         lines += [f"- [ ] {reason}" for reason in reasons]
     else:
         lines.append(f"- [ ] Every patch applied. Test it on a device, then move the pin to `{r['latest']}`.")
-    lines += ["", "This issue is updated by the daily app update check and closes when the patches target this version."]
+    lines += ["", "This issue is updated by the app update check and closes when a main release targets this version."]
     return "\n".join(lines) + "\n"
 
 
@@ -556,30 +649,40 @@ def set_review(number, needs_review, owner):
         gh("issue", "edit", str(number), "--add-label", READY_LABEL, "--remove-label", REVIEW_LABEL)
 
 
-def sync_issues(results, owner):
+def sync_issues(results, owner, stable=None):
+    """stable maps each package to the newest version the latest main release
+    targets. An issue closes only when a main release targets its version, so
+    a version bumped on dev stays open, labeled "testing on dev", for people
+    to report how the pre-release works."""
     gh("label", "create", ISSUE_LABEL, "--force", "--color", "FBCA04",
        "--description", "A newer app version is available")
     gh("label", "create", REVIEW_LABEL, "--force", "--color", "D93F0B",
        "--description", "An app update needs a manual check or patch edit")
     gh("label", "create", READY_LABEL, "--force", "--color", "0E8A16",
        "--description", "Every patch applied to the new version")
+    gh("label", "create", TESTING_LABEL, "--force", "--color", "1D76DB",
+       "--description", "In a dev pre-release; comment with how it works on your device")
     issues = json.loads(gh("issue", "list", "--label", ISSUE_LABEL, "--state", "open", "--limit", "500",
                            "--json", "number,title") or "[]")
     for r in results:
         prefix = f"{TITLE_PREFIX}{r['name']} "
         mine = [i for i in issues if i["title"].startswith(prefix)]
+        released = (stable or {}).get(r["package"], r["pinned"])
         for issue in mine:
             version = issue["title"][len(prefix):]
-            if r["pinned"] and not newer(version, r["pinned"]):
-                gh("issue", "close", str(issue["number"]), "--comment",
-                   f"The patches now target {r['name']} `{r['pinned']}`, so this is closed.")
-        if r["status"] == "not public on Play":
-            for issue in mine:
-                version = issue["title"][len(prefix):]
-                if r["pinned"] is None or newer(version, r["pinned"]):
-                    gh("issue", "close", str(issue["number"]), "--reason", "not planned", "--comment",
-                       f"Google Play serves {r['name']} `{r['play']}` to an ordinary phone, so `{version}` "
-                       "is not public yet. A new issue opens when Play serves a newer version.")
+            if released and not newer(version, released):
+                gh("issue", "close", str(issue["number"]), "--reason", "completed", "--comment",
+                   f"The latest main release targets {r['name']} `{released}`, so this is closed.")
+        tv_only = [v for v in r.get("tv_builds_skipped", []) if r["status"] != "update" or v != r.get("latest")]
+        for issue in mine:
+            version = issue["title"][len(prefix):]
+            if version in tv_only and (not released or newer(version, released)):
+                phone = (f"Google Play serves the phone build `{r['latest']}`, which has its own issue"
+                         if r["status"] == "update" else
+                         f"Google Play still serves {r['name']} `{r.get('play') or r['pinned']}` to phones")
+                gh("issue", "close", str(issue["number"]), "--reason", "not planned", "--comment",
+                   f"`{version}` is the Android TV build, and the patches target the phone app. {phone}, "
+                   "so this is closed.")
         if r["status"] != "update":
             continue
         title = prefix + r["latest"]
@@ -609,6 +712,8 @@ def main():
     parser.add_argument("--out", default="app-updates")
     parser.add_argument("--workdir", default=tempfile.mkdtemp(prefix="app-updates-"))
     parser.add_argument("--issues", action="store_true", help="open, update, and close GitHub issues")
+    parser.add_argument("--stable-mpp", help="the latest main release's bundle, which decides when issues close "
+                        "(default: --mpp)")
     args = parser.parse_args()
 
     only = {p.strip() for p in args.only.split(",") if p.strip()}
@@ -625,7 +730,9 @@ def main():
     (out / "app-updates.json").write_text(json.dumps(results, indent=2))
     (out / "app-updates.md").write_text(render(results))
     if args.issues:
-        sync_issues(results, os.environ.get("GITHUB_REPOSITORY_OWNER"))
+        stable_apps = bundle_apps(args.cli, args.stable_mpp) if args.stable_mpp else apps
+        stable = {p: max(a["versions"], key=version_order) for p, a in stable_apps.items() if a["versions"]}
+        sync_issues(results, os.environ.get("GITHUB_REPOSITORY_OWNER"), stable)
 
 
 if __name__ == "__main__":

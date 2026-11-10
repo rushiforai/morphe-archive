@@ -25,7 +25,7 @@ val hotstarAdFreePatch = bytecodePatch(
 fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
     logger.info("Executing battle-tested Ad-Free & Live Sports Ad-Block patch for JioHotstar (in.startv.hotstar)...")
 
-    // 1. Battle-tested SSAI & AdMetadata constructor hook
+    // 1. SSAI & AdMetadata constructor hook
     // Force: disablePreRoll=true(p1), disableMidRoll=true(p2),
     //        hasPreRoll=false(p3), hasPlayablePreRoll=false(p4), enableMidRollLoad=false(p5)
     // Clear ssaiTag (p6) to completely eliminate live match SSAI (Server-Side Ad Insertion) ads
@@ -104,7 +104,7 @@ fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
     // 6. Comprehensive Google IMA SDK & FreeWheel suppression
     var hookedPoints = executeComprehensiveAdBlock(logger, "JioHotstar")
 
-    // 7. Generic heuristics for any remaining ad widgets & state getters
+    // 10. Generic heuristics for any remaining ad widgets & state getters
     classDefForEach { classDef ->
         val type = classDef.type
         val tl = type.lowercase()

@@ -2097,7 +2097,7 @@ Load more	Cargar más
 TikTok's total: %1$s. Filtered accounts: %2$s.	Total según TikTok: %1$s. Cuentas filtradas: %2$s.
 Your account changed. Close this list and open it again.	Tu cuenta cambió. Cierra esta lista y vuelve a abrirla.
 Loading cancelled. The list is incomplete.	Carga cancelada. La lista está incompleta.
-Loading page %1$s...	Cargando la página %1$s...
+Loading page %1$s…	Cargando la página %1$s…
 TikTok reports no more items in this list.	TikTok indica que no hay más elementos en esta lista.
 More items are available.	Hay más elementos disponibles.
 Sign in to view this list	Inicia sesión para ver esta lista
@@ -2519,7 +2519,7 @@ Stop tapping this LIVE	Dejar de tocar este LIVE
 Auto tap stopped	Toque automático detenido
 Clean up your account	Limpia tu cuenta
 Remove all reposts	Quitar todos los reposts
-Deletes all reposts from your account sequentially.	Elimina uno a uno todos los reposts de tu cuenta.
+Removes every repost from your account one after another.	Elimina uno a uno todos los reposts de tu cuenta.
 Remove all likes	Quitar todos los Me gusta
 Unlikes every video one after another.	Quita el Me gusta de cada video, uno tras otro.
 Clear Favorites	Vaciar Favoritos
@@ -2642,3 +2642,23 @@ Dismiss	Descartar
 Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.	Añade un botón Grabar a las salas LIVE. Tócalo para iniciar o detener una grabación. Salir de la sala también detiene la grabación.
 Automatically record LIVEs you enter	Grabar automáticamente los LIVE al entrar
 Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.	Empieza a grabar la transmisión LIVE cuando entras a la sala. Si tocas Detener, no se reiniciará hasta que salgas y vuelvas a entrar. Las grabaciones de pantalla siguen requiriendo un toque y el permiso de Android.
+# context: Row title of the Feed screen switch that adds a drag handle and Top, Back and End buttons to long video grids
+Drag handle and jump buttons on grids	Asa de arrastre y botones de salto en cuadrículas
+# context: Row summary for that switch; Top, Back and End are the button labels, Liked is the profile tab
+On long profile, Liked and sound grids, scrolling brings up a handle you can drag through what's loaded, plus Top, Back and End buttons. Back returns to where you were.	En cuadrículas largas de perfil, Me gusta y sonidos, al desplazarte aparece un asa para arrastrar por lo cargado, además de los botones Inicio, Atrás y Final. Atrás vuelve a donde estabas.
+# context: Short button label on a long video grid, jumps to the first video
+Top	Inicio
+# context: Short button label on a long video grid, jumps to the last video loaded
+End	Final
+# context: Row title of the Feed tabs choice that picks which of TikTok's icon sets the bottom bar draws
+Bottom bar icons	Iconos de la barra inferior
+# context: Note under that choice
+TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.	TikTok prueba varios juegos de iconos para la barra inferior. Elige uno aquí o déjalo en manos de TikTok.
+# context: Choice value for the bottom bar's icons, one of TikTok's newer icon sets
+New style 1	Estilo nuevo 1
+# context: Choice value for the bottom bar's icons, TikTok's other newer icon set
+New style 2	Estilo nuevo 2
+# context: Row title of the Feed tabs switch that adds Friends to the row of tabs along the top of the feed
+Friends in the top tabs	Amigos en las pestañas superiores
+# context: Summary under that switch; Friends and Following are TikTok's tab names
+Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	Amigos pasa a las pestañas de arriba del feed, junto a Siguiendo, y Descubrir ocupa su lugar en la barra inferior, como lo organiza TikTok en algunos países. Tu región y tu feed no cambian.

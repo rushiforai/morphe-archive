@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import android.content.Context;
@@ -10,408 +15,469 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * Material You for LinkedIn's Compose themes (Delux and Mercado), which define their colors in code instead of
- * resources. The patches pass the color constants of those themes through {@link #accent(long)} and
- * {@link #background(long)}, and a few tokens through the other hooks here. Each hook checks its setting, which
- * the themes read once, so a change applies after LinkedIn restarts.
+ * Material You for the two Compose themes, Delux and Mercado, which keep their colors in code instead of in
+ * resources. The theme patch routes every color constant of theirs through one of the hooks below, and a
+ * handful of other tokens through the remaining ones. Each hook asks its setting when it is called, and the
+ * themes read their colors once, so a change shows up after LinkedIn restarts.
+ *
+ * Hooks that take and return a {@code long} work on a value Compose Color: ARGB in the upper 32 bits and the
+ * color space in the lower ones, which is 0 (sRGB) for every color these themes define.
  */
 @SuppressWarnings("unused")
 public final class MaterialYou {
-    // Material 3 surface roles (Android 14), with the neutral tones closest to them on Android 12 and 13.
-    private static final boolean ROLES = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
-    private static final int LIGHT_SURFACE =
-            ROLES ? android.R.color.system_surface_light : android.R.color.system_neutral2_50;
-    private static final int LIGHT_CANVAS =
-            ROLES ? android.R.color.system_surface_container_low_light : android.R.color.system_neutral2_100;
-    private static final int LIGHT_SURFACE_HIGH =
-            ROLES ? android.R.color.system_surface_container_high_light : android.R.color.system_neutral2_100;
-    private static final int LIGHT_SURFACE_HIGHEST =
-            ROLES ? android.R.color.system_surface_container_highest_light : android.R.color.system_neutral2_100;
-    private static final int LIGHT_BORDER =
-            ROLES ? android.R.color.system_surface_container_highest_light : android.R.color.system_neutral2_200;
-    private static final int DARK_SURFACE =
-            ROLES ? android.R.color.system_surface_container_dark : android.R.color.system_neutral1_900;
-    private static final int DARK_SURFACE_HIGH =
-            ROLES ? android.R.color.system_surface_container_high_dark : android.R.color.system_neutral2_800;
-    private static final int DARK_CANVAS =
-            ROLES ? android.R.color.system_surface_dark : android.R.color.system_neutral1_1000;
-    private static final int DARK_BORDER =
-            ROLES ? android.R.color.system_surface_container_highest_dark : android.R.color.system_neutral2_700;
 
-    /** LinkedIn blue (0xRRGGBB) to the system palette color that replaces it. */
-    private static final Map<Integer, Integer> ACCENTS = new HashMap<>();
-    /** LinkedIn background color (0xRRGGBB) to the system palette color that replaces it. */
-    private static final Map<Integer, Integer> BACKGROUNDS = new HashMap<>();
-    /** LinkedIn green of selected states (0xRRGGBB) to the system palette color that replaces it. */
-    private static final Map<Integer, Integer> CHECKED = new HashMap<>();
+    /** System accent tones, by lightness. */
+    private static final int T10 = android.R.color.system_accent1_10;
+    private static final int T50 = android.R.color.system_accent1_50;
+    private static final int T100 = android.R.color.system_accent1_100;
+    private static final int T200 = android.R.color.system_accent1_200;
+    private static final int T300 = android.R.color.system_accent1_300;
+    private static final int T400 = android.R.color.system_accent1_400;
+    private static final int T500 = android.R.color.system_accent1_500;
+    private static final int T600 = android.R.color.system_accent1_600;
+    private static final int T700 = android.R.color.system_accent1_700;
+    private static final int T800 = android.R.color.system_accent1_800;
+    private static final int T900 = android.R.color.system_accent1_900;
+
+    /** LinkedIn blues (0xRRGGBB) and the system tone that replaces each. */
+    private static final Map<Integer, Integer> BLUES = new HashMap<>();
+    /** LinkedIn backgrounds (0xRRGGBB) and the system color that replaces each. */
+    private static final Map<Integer, Integer> BACKDROPS = new HashMap<>();
+    /** LinkedIn greens of selected states and teals of charts, recolored the same way. */
+    private static final Map<Integer, Integer> SELECTED = new HashMap<>();
+
+    /** The dark backgrounds of LinkedIn: cards, containers and tinted rows. */
+    private static final int[] DARK_ROWS = {0x1B1F23, 0x1D2226, 0x293037, 0x293138};
+
+    /** The warm light canvas LinkedIn puts behind server drawn screens, visible between the items. */
+    private static final int WARM_GRAY = 0xE9E5DF;
+
+    private static final int DARK_CONTAINER = 0xFF1D2226;
+    private static final int WHITE = 0xFFFFFFFF;
+    /** Black as a packed Compose color, for the AMOLED mode. */
+    private static final long PACKED_BLACK = 0xFF000000L << 32;
+
+    /** Android 14 has the Material 3 surface roles; Android 12 and 13 only have the neutral tones. */
+    private static final boolean HAS_ROLES = Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE;
+
+    private static final int CARD_LIGHT = role(android.R.color.system_surface_light, android.R.color.system_neutral2_50);
+    private static final int CANVAS_LIGHT =
+            role(android.R.color.system_surface_container_low_light, android.R.color.system_neutral2_100);
+    private static final int ROW_LIGHT =
+            role(android.R.color.system_surface_container_high_light, android.R.color.system_neutral2_100);
+    private static final int HIGHEST_LIGHT =
+            role(android.R.color.system_surface_container_highest_light, android.R.color.system_neutral2_100);
+    private static final int BORDER_LIGHT_ROLE =
+            role(android.R.color.system_surface_container_highest_light, android.R.color.system_neutral2_200);
+    private static final int CARD_DARK =
+            role(android.R.color.system_surface_container_dark, android.R.color.system_neutral1_900);
+    private static final int ROW_DARK =
+            role(android.R.color.system_surface_container_high_dark, android.R.color.system_neutral2_800);
+    private static final int CANVAS_DARK =
+            role(android.R.color.system_surface_dark, android.R.color.system_neutral1_1000);
+    private static final int BORDER_DARK_ROLE =
+            role(android.R.color.system_surface_container_highest_dark, android.R.color.system_neutral2_700);
+
+    /** System accent tones, lightest first, that blues of server drawn screens are matched to. */
+    private static final int[] ACCENT_TONES = modern()
+            ? new int[]{T10, T50, T100, T200, T300, T400, T500, T600, T700, T800, T900}
+            : new int[0];
+
+    private static boolean warnedWithoutContext;
 
     static {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            // Blue palette: links, buttons, selected states.
-            ACCENTS.put(0xF6FBFF, android.R.color.system_accent1_10);
-            ACCENTS.put(0xE8F3FF, android.R.color.system_accent1_50);
-            ACCENTS.put(0xD0E8FF, android.R.color.system_accent1_100);
-            ACCENTS.put(0xD2E9FF, android.R.color.system_accent1_100);
-            ACCENTS.put(0xA8D4FF, android.R.color.system_accent1_200);
-            ACCENTS.put(0xAAD6FF, android.R.color.system_accent1_200);
-            ACCENTS.put(0x70B5F9, android.R.color.system_accent1_200);
-            ACCENTS.put(0x71B7FB, android.R.color.system_accent1_200);
-            ACCENTS.put(0x378FE9, android.R.color.system_accent1_400);
-            ACCENTS.put(0x0A66C2, android.R.color.system_accent1_600);
-            ACCENTS.put(0x004182, android.R.color.system_accent1_700);
-            ACCENTS.put(0x09223B, android.R.color.system_accent1_800);
-            ACCENTS.put(0x0A2037, android.R.color.system_accent1_900);
-            // ArtDeco's older blues: links in messages, for one.
-            ACCENTS.put(0x0073B1, android.R.color.system_accent1_600);
-            ACCENTS.put(0x0084BF, android.R.color.system_accent1_500);
-            ACCENTS.put(0x006097, android.R.color.system_accent1_700);
-            // Selected states, green in LinkedIn's palette: light theme (checked, hover) and dark theme.
-            CHECKED.put(0x01754F, android.R.color.system_accent1_600);
-            CHECKED.put(0x004C33, android.R.color.system_accent1_700);
-            CHECKED.put(0x37C898, android.R.color.system_accent1_200);
-            CHECKED.put(0x74E5C0, android.R.color.system_accent1_100);
-            // Teal accent of charts (analytics): light theme (accent, hover) and dark theme.
-            CHECKED.put(0x1A707E, android.R.color.system_accent1_600);
-            CHECKED.put(0x114951, android.R.color.system_accent1_700);
-            CHECKED.put(0x5EC0CF, android.R.color.system_accent1_200);
-            CHECKED.put(0x94DDE8, android.R.color.system_accent1_100);
-            // Backgrounds: cards in dark mode, and the light canvas.
-            BACKGROUNDS.put(0x1B1F23, DARK_SURFACE);
-            BACKGROUNDS.put(0x1D2226, DARK_SURFACE);
-            BACKGROUNDS.put(0x293037, DARK_SURFACE_HIGH);
-            BACKGROUNDS.put(0x293138, DARK_SURFACE_HIGH);
-            BACKGROUNDS.put(0xF4F2EE, LIGHT_CANVAS);
-            BACKGROUNDS.put(0xF3F2EF, LIGHT_CANVAS);
-            // Light table background (the games leaderboard), a step darker than the card like the dark one.
-            BACKGROUNDS.put(0xF8FAFD, LIGHT_CANVAS);
+        if (modern()) {
+            // The blue palette of links, buttons and selected states, lightest first.
+            BLUES.put(0xF6FBFF, T10);
+            BLUES.put(0xE8F3FF, T50);
+            BLUES.put(0xD0E8FF, T100);
+            BLUES.put(0xD2E9FF, T100);
+            BLUES.put(0xA8D4FF, T200);
+            BLUES.put(0xAAD6FF, T200);
+            BLUES.put(0x70B5F9, T200);
+            BLUES.put(0x71B7FB, T200);
+            BLUES.put(0x378FE9, T400);
+            BLUES.put(0x0A66C2, T600);
+            BLUES.put(0x004182, T700);
+            BLUES.put(0x09223B, T800);
+            BLUES.put(0x0A2037, T900);
+            // The older blues of ArtDeco, still used for links in messages.
+            BLUES.put(0x0073B1, T600);
+            BLUES.put(0x0084BF, T500);
+            BLUES.put(0x006097, T700);
+            // Selected states, green in LinkedIn: light theme (checked, hover) and dark theme.
+            SELECTED.put(0x01754F, T600);
+            SELECTED.put(0x004C33, T700);
+            SELECTED.put(0x37C898, T200);
+            SELECTED.put(0x74E5C0, T100);
+            // The teal accent of the analytics charts: light theme (accent, hover) and dark theme.
+            SELECTED.put(0x1A707E, T600);
+            SELECTED.put(0x114951, T700);
+            SELECTED.put(0x5EC0CF, T200);
+            SELECTED.put(0x94DDE8, T100);
+            // Backgrounds: cards and tinted rows in dark mode, the canvas in light mode.
+            BACKDROPS.put(0x1B1F23, CARD_DARK);
+            BACKDROPS.put(0x1D2226, CARD_DARK);
+            BACKDROPS.put(0x293037, ROW_DARK);
+            BACKDROPS.put(0x293138, ROW_DARK);
+            BACKDROPS.put(0xF4F2EE, CANVAS_LIGHT);
+            BACKDROPS.put(0xF3F2EF, CANVAS_LIGHT);
+            // The light table behind the games leaderboard: one step below the card, like the dark one.
+            BACKDROPS.put(0xF8FAFD, CANVAS_LIGHT);
             // Pale blue cards (cool gray 20).
-            BACKGROUNDS.put(0xEDF3F8, LIGHT_SURFACE_HIGH);
-            BACKGROUNDS.put(0xEEF3F8, LIGHT_SURFACE_HIGH);
-            // Stronger pale blue cards (cool gray 30): hiring cards on profiles, for one.
-            BACKGROUNDS.put(0xDDE7F1, LIGHT_SURFACE_HIGHEST);
+            BACKDROPS.put(0xEDF3F8, ROW_LIGHT);
+            BACKDROPS.put(0xEEF3F8, ROW_LIGHT);
+            // Stronger pale blue cards (cool gray 30), such as the hiring cards on profiles.
+            BACKDROPS.put(0xDDE7F1, HIGHEST_LIGHT);
         }
     }
-
-    /** Packed Compose black, for "AMOLED black". */
-    private static final long BLACK = 0xFF000000L << 32;
-    /** LinkedIn's dark backgrounds (0xRRGGBB): cards, containers and tinted rows. */
-    private static final int[] DARK_BACKGROUNDS = {0x1B1F23, 0x1D2226, 0x293037, 0x293138};
 
     private MaterialYou() {
     }
 
-    /** Whether "AMOLED black" turns this packed Compose Color, a dark background, black. */
-    private static boolean isAmoledDark(long packed) {
-        // sRGB Compose colors keep the ARGB value in the upper 32 bits and color space 0 in the lower ones.
-        if ((packed & 0x3F) != 0 || !Settings.amoledBlack()) return false;
-        int argb = (int) (packed >>> 32);
-        return (argb >>> 24) == 0xFF && luminance(argb) < 128;
+    /** The Android 14 role, or the neutral tone that looks closest to it on Android 12 and 13. */
+    private static int role(int withRoles, int neutralTones) {
+        return HAS_ROLES ? withRoles : neutralTones;
     }
 
-    /** Whether "AMOLED black" turns this ARGB color, one of LinkedIn's dark backgrounds, black. */
-    private static boolean isAmoledBackground(long argb) {
-        if ((argb >>> 24) != 0xFF || !Settings.amoledBlack()) return false;
-        int rgb = (int) (argb & 0xFFFFFF);
-        for (int dark : DARK_BACKGROUNDS) {
-            if (rgb == dark) return true;
+    /** Whether this Android has the system palette at all. */
+    private static boolean modern() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
+    }
+
+    /** Whether the user asked for the wallpaper colors. */
+    private static boolean themed() {
+        return Settings.materialYou();
+    }
+
+    // region Packed Compose colors
+
+    private static boolean isSrgb(long value) {
+        return (value & 0x3FL) == 0;
+    }
+
+    private static int argbOf(long value) {
+        return (int) (value >>> 32);
+    }
+
+    /** The packed color of a 32 bit ARGB value. */
+    private static long pack(long bits) {
+        return (bits & 0xFFFFFFFFL) << 32;
+    }
+
+    private static int alphaOf(int bits) {
+        return bits >>> 24;
+    }
+
+    private static int alphaOf(long bits) {
+        return (int) (bits >>> 24);
+    }
+
+    /** Whether "AMOLED black" turns this dark packed color black. */
+    private static boolean paintsBlack(long value) {
+        if (!isSrgb(value) || !Settings.amoledBlack()) return false;
+        int bits = argbOf(value);
+        return alphaOf(bits) == 0xFF && luminance(bits) < 128;
+    }
+
+    /** Whether this ARGB value is one of LinkedIn's dark backgrounds, so "AMOLED black" turns it black. */
+    private static boolean isDarkBackdrop(long bits) {
+        if (alphaOf(bits) != 0xFF || !Settings.amoledBlack()) return false;
+        int rgbValue = (int) (bits & 0xFFFFFF);
+        for (int row : DARK_ROWS) {
+            if (rgbValue == row) return true;
         }
         return false;
     }
 
-    /**
-     * Injected at the end of the Compose themes' static initializer for the card token. Takes and returns a
-     * packed Compose Color: a light card becomes the light neutral, a dark one the dark neutral.
-     */
-    public static long surface(long packed) {
-        if (isAmoledDark(packed)) return BLACK;
-        if (!Settings.materialYou()) return packed;
-        return tone(packed, LIGHT_SURFACE, DARK_SURFACE);
+    // endregion
+
+    // region Compose theme hooks
+
+    /** The card token: a light card takes the light neutral, a dark card the dark one. */
+    public static long surface(long value) {
+        if (paintsBlack(value)) return PACKED_BLACK;
+        if (!themed()) return value;
+        return reskin(value, CARD_LIGHT, CARD_DARK);
     }
 
     /**
-     * Injected at the end of the Compose themes' static initializer for the gap between posts, before the card
-     * is mapped. A gap equal to the card (made so by "Remove gaps and dividers") gets the card's color, otherwise
-     * it is a step darker than the card.
+     * The gap between posts, run before the card is recolored: a gap that "Remove gaps and dividers" made
+     * equal to the card takes the card's own color, any other gap is a step darker than the card.
      */
-    public static long canvas(long packed, long card) {
-        if (packed == card) return surface(card);
-        if (isAmoledDark(packed)) return BLACK;
-        if (!Settings.materialYou()) return packed;
-        return tone(packed, LIGHT_CANVAS, DARK_CANVAS);
+    public static long canvas(long value, long cardColor) {
+        if (value == cardColor) return surface(cardColor);
+        if (paintsBlack(value)) return PACKED_BLACK;
+        if (!themed()) return value;
+        return reskin(value, CANVAS_LIGHT, CANVAS_DARK);
     }
 
-    /** Injected for the faint border (outlines around cards) of the light Compose themes. */
-    public static long borderLight(long packed) {
-        return border(packed, LIGHT_BORDER);
+    /** The faint outline around cards, in the light and in the dark theme. */
+    public static long borderLight(long value) {
+        return outline(value, BORDER_LIGHT_ROLE);
     }
 
-    /** Injected for the faint border (outlines around cards) of the dark Compose themes. */
-    public static long borderDark(long packed) {
-        return border(packed, DARK_BORDER);
+    public static long borderDark(long value) {
+        return outline(value, BORDER_DARK_ROLE);
     }
 
-    /** The system color [color] as a packed Compose Color, in place of the translucent gray border. */
-    private static long border(long packed, int color) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return packed;
-        return (resources().getColor(color, null) & 0xFFFFFFFFL) << 32;
+    private static long outline(long value, int color) {
+        if (!modern() || !themed()) return value;
+        return pack(palette().getColor(color, null));
     }
 
     /**
-     * Injected before ThemeManager sets the status bar or navigation bar color: LinkedIn's white and dark
-     * container become the card colors.
+     * Every color token of the themes: a translucent LinkedIn blue (search fields, pressed states) takes the
+     * accent color and keeps its alpha.
      */
-    public static int bar(int color) {
-        if (color == 0xFF1D2226 && Settings.amoledBlack()) return 0xFF000000;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return color;
-        if (color == 0xFFFFFFFF) return resources().getColor(LIGHT_SURFACE, null);
-        if (color == 0xFF1D2226) return resources().getColor(DARK_SURFACE, null);
-        return color;
+    public static long translucentAccent(long value) {
+        if (!isSrgb(value) || !themed()) return value;
+        long bits = value >>> 32;
+        long alpha = alphaOf(bits);
+        int rgbValue = (int) (bits & 0xFFFFFF);
+        if (alpha == 0 || alpha == 0xFF || !BLUES.containsKey(rgbValue)) return value;
+        long accent = lookup(BLUES, 0xFF000000L | rgbValue) & 0xFFFFFF;
+        return pack((alpha << 24) | accent);
+    }
+
+    /** The selected state tokens of the themes. */
+    public static long checked(long value) {
+        if (!isSrgb(value) || !themed()) return value;
+        return pack(lookup(SELECTED, value >>> 32));
+    }
+
+    /** Each blue constant of the themes, as the ARGB value {@code Color(long)} takes. */
+    public static long accent(long bits) {
+        return themed() ? lookup(BLUES, bits) : bits;
+    }
+
+    /** Each background constant of the themes, as the ARGB value {@code Color(long)} takes. */
+    public static long background(long bits) {
+        if (isDarkBackdrop(bits)) return 0xFF000000L;
+        return themed() ? lookup(BACKDROPS, bits) : bits;
+    }
+
+    /** The gap between posts, for "Remove gaps and dividers": it takes the card's color. */
+    public static long flatGap(long gapValue, long cardColor) {
+        return Settings.removeGapsAndDividers() ? cardColor : gapValue;
+    }
+
+    /** The dividers between list items, for "Remove gaps and dividers"; 0 is transparent. */
+    public static long flatDivider(long value) {
+        return Settings.removeGapsAndDividers() ? 0 : value;
+    }
+
+    /** The Mercado MVP canvas of server drawn screens, and the warm gray the server sends for it. */
+    public static long mvpCanvas(long value) {
+        if (Settings.removeGapsAndDividers()) {
+            // LinkedIn's card colors: white, and the dark container.
+            return surface(isLight(value) ? pack(WHITE) : pack(DARK_CONTAINER));
+        }
+        if (paintsBlack(value)) return PACKED_BLACK;
+        if (!themed()) return value;
+        return reskin(value, CANVAS_LIGHT, CANVAS_DARK);
     }
 
     /**
-     * Injected at the end of the Compose themes' static initializer for the gap between posts, by "Remove gaps
-     * and dividers": the gap gets the card's color.
+     * A system color for a light packed color, and the dark one for a dark packed color. Anything that
+     * cannot be resolved stays as it is, so a missing palette never blanks a screen.
      */
-    public static long flatGap(long gap, long card) {
-        return Settings.removeGapsAndDividers() ? card : gap;
-    }
-
-    /** Injected after the color of the dividers between list items, by "Remove gaps and dividers". */
-    public static long flatDivider(long packed) {
-        // 0 is Color.Transparent.
-        return Settings.removeGapsAndDividers() ? 0 : packed;
-    }
-
-    /**
-     * Injected at the end of the Compose themes' static initializer for every color token: a translucent LinkedIn
-     * blue (search fields, pressed states) gets the accent color with the same alpha.
-     */
-    public static long translucentAccent(long packed) {
-        // sRGB Compose colors keep the ARGB value in the upper 32 bits and color space 0 in the lower ones.
-        if ((packed & 0x3F) != 0 || !Settings.materialYou()) return packed;
-        long argb = packed >>> 32;
-        long alpha = argb >>> 24;
-        int rgb = (int) (argb & 0xFFFFFF);
-        if (alpha == 0 || alpha == 0xFF || !ACCENTS.containsKey(rgb)) return packed;
-        long accent = map(ACCENTS, 0xFF000000L | rgb) & 0xFFFFFF;
-        return ((alpha << 24) | accent) << 32;
-    }
-
-    /** Injected at the end of the Compose themes' static initializer for the selected state tokens. */
-    public static long checked(long packed) {
-        // sRGB Compose colors keep the ARGB value in the upper 32 bits and color space 0 in the lower ones.
-        if ((packed & 0x3F) != 0 || !Settings.materialYou()) return packed;
-        return (map(CHECKED, packed >>> 32) & 0xFFFFFFFFL) << 32;
-    }
-
-    /** The system color [light] for a light packed Compose Color, [dark] for a dark one. */
-    private static long tone(long packed, int light, int dark) {
+    private static long reskin(long value, int light, int dark) {
         try {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || (packed & 0x3F) != 0) return packed;
-            int argb = (int) (packed >>> 32);
-            if ((argb >>> 24) != 0xFF) return packed;
-            int luminance = (299 * ((argb >> 16) & 0xFF) + 587 * ((argb >> 8) & 0xFF) + 114 * (argb & 0xFF)) / 1000;
-            return (resources().getColor(luminance >= 128 ? light : dark, null) & 0xFFFFFFFFL) << 32;
-        } catch (Throwable t) {
-            Diagnostics.error("Material You surface failed", t);
-            return packed;
+            if (!modern() || !isSrgb(value)) return value;
+            int bits = argbOf(value);
+            if (alphaOf(bits) != 0xFF) return value;
+            int level = (299 * ((bits >> 16) & 0xFF) + 587 * ((bits >> 8) & 0xFF) + 114 * (bits & 0xFF)) / 1000;
+            return pack(palette().getColor(level >= 128 ? light : dark, null));
+        } catch (Throwable problem) {
+            Diagnostics.error("Material You surface failed", problem);
+            return value;
         }
     }
 
-    /** Injected after each blue constant of the Compose themes: an ARGB value as used by Color(long). */
-    public static long accent(long argb) {
-        return Settings.materialYou() ? map(ACCENTS, argb) : argb;
-    }
-
-    /** Injected after each background constant of the Compose themes: an ARGB value as used by Color(long). */
-    public static long background(long argb) {
-        if (isAmoledBackground(argb)) return 0xFF000000L;
-        return Settings.materialYou() ? map(BACKGROUNDS, argb) : argb;
-    }
-
-    private static long map(Map<Integer, Integer> colors, long argb) {
+    /** An ARGB value recolored through [colors]; anything unknown, translucent or broken stays as it is. */
+    private static long lookup(Map<Integer, Integer> table, long bits) {
         try {
-            if (colors.isEmpty() || (argb >>> 24) != 0xFF) return argb;
-            Integer systemColor = colors.get((int) (argb & 0xFFFFFF));
-            if (systemColor == null) return argb;
-            return resources().getColor(systemColor, null) & 0xFFFFFFFFL;
-        } catch (Throwable t) {
-            Diagnostics.error("Material You color failed", t);
-            return argb;
+            if (table.isEmpty() || alphaOf(bits) != 0xFF) return bits;
+            Integer replacement = table.get((int) (bits & 0xFFFFFF));
+            if (replacement == null) return bits;
+            return palette().getColor(replacement, null) & 0xFFFFFFFFL;
+        } catch (Throwable problem) {
+            Diagnostics.error("Material You color failed", problem);
+            return bits;
         }
     }
 
-    /** System accent tones, light to dark, that blue colors of server drawn screens are matched to. */
-    private static final int[] ACCENT_TONES = Build.VERSION.SDK_INT < Build.VERSION_CODES.S ? new int[0] : new int[]{
-            android.R.color.system_accent1_10, android.R.color.system_accent1_50, android.R.color.system_accent1_100,
-            android.R.color.system_accent1_200, android.R.color.system_accent1_300, android.R.color.system_accent1_400,
-            android.R.color.system_accent1_500, android.R.color.system_accent1_600, android.R.color.system_accent1_700,
-            android.R.color.system_accent1_800, android.R.color.system_accent1_900,
-    };
+    // endregion
+
+    // region Server drawn screens
 
     /**
-     * Injected at the start of DeluxSduiTheme: the colors (token id to Compose Color) a server drawn screen sends
-     * to override the theme. LinkedIn's blues, greens and backgrounds get the same system colors as the theme, and
-     * other blues the accent tone of the nearest lightness.
+     * DeluxSduiTheme: the colors (token id to Compose Color) a server drawn screen sends to override the
+     * theme. LinkedIn's blues, greens and backgrounds take the same system colors as the theme, and blues
+     * outside the table the accent tone closest to their lightness.
      */
-    public static Map<Object, Object> sduiColors(Map<Object, Object> overrides) {
-        if (overrides == null || overrides.isEmpty()) return overrides;
-        if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) && !Settings.amoledBlack()) {
-            return overrides;
-        }
+    public static Map<Object, Object> sduiColors(Map<Object, Object> given) {
+        if (given == null || given.isEmpty()) return given;
+        if ((!modern() || !themed()) && !Settings.amoledBlack()) return given;
         try {
-            Map<Object, Object> result = new LinkedHashMap<>(overrides);
-            Method box = null;
-            int recolored = 0;
-            for (Map.Entry<Object, Object> entry : overrides.entrySet()) {
-                Object color = entry.getValue();
-                if (color == null) continue;
-                long packed = (long) Reflect.get(color, "value");
-                long mapped = sduiColor(packed);
-                if (mapped == packed) continue;
-                if (box == null) box = color.getClass().getMethod("box-impl", long.class);
-                result.put(entry.getKey(), box.invoke(null, mapped));
-                recolored++;
+            Map<Object, Object> out = new LinkedHashMap<>(given);
+            Method boxer = null;
+            int changed = 0;
+            for (Map.Entry<Object, Object> token : given.entrySet()) {
+                Object entry = token.getValue();
+                if (entry == null) continue;
+                long bitsValue = (long) Reflect.get(entry, "value");
+                long recolored = sduiColor(bitsValue);
+                if (recolored == bitsValue) continue;
+                if (boxer == null) boxer = entry.getClass().getMethod("box-impl", long.class);
+                out.put(token.getKey(), boxer.invoke(null, recolored));
+                changed++;
             }
-            Diagnostics.debug("SDUI color overrides: " + overrides.size() + ", recolored " + recolored);
-            return result;
-        } catch (Throwable t) {
-            Diagnostics.error("Material You SDUI colors failed", t);
-            return overrides;
+            Diagnostics.debug("SDUI color overrides: " + given.size() + ", recolored " + changed);
+            return out;
+        } catch (Throwable problem) {
+            Diagnostics.error("Material You SDUI colors failed", problem);
+            return given;
         }
     }
 
     /**
-     * Injected before each return of the resolver of server drawn colors: theme tokens, and the raw and base
-     * palette colors the server sends, which skip the theme.
+     * The resolver of server drawn colors, before each of its returns: theme tokens as well as the raw and
+     * base palette colors the server sends, which bypass the theme.
      */
     public static Object sduiUIColor(Object color) {
-        if (color == null || (Build.VERSION.SDK_INT < Build.VERSION_CODES.S && !Settings.amoledBlack())) return color;
+        if (color == null || (!modern() && !Settings.amoledBlack())) return color;
         try {
-            long packed = (long) Reflect.get(color, "value");
-            long mapped = sduiColor(packed);
-            if (mapped == packed) return color;
-            return color.getClass().getMethod("box-impl", long.class).invoke(null, mapped);
-        } catch (Throwable t) {
-            Diagnostics.error("Material You SDUI color failed", t);
+            long bitsValue = (long) Reflect.get(color, "value");
+            long recolored = sduiColor(bitsValue);
+            if (recolored == bitsValue) return color;
+            return color.getClass().getMethod("box-impl", long.class).invoke(null, recolored);
+        } catch (Throwable problem) {
+            Diagnostics.error("Material You SDUI color failed", problem);
             return color;
         }
     }
 
-    private static long sduiColor(long packed) {
-        // sRGB Compose colors keep the ARGB value in the upper 32 bits and color space 0 in the lower ones.
-        if ((packed & 0x3F) != 0) return packed;
-        long argb = packed >>> 32;
-        int rgb = (int) (argb & 0xFFFFFF);
-        if (rgb == WARM_GRAY_30 && (argb >>> 24) == 0xFF) return mvpCanvas(packed);
-        if (isAmoledBackground(argb)) return BLACK;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return packed;
-        if ((argb >>> 24) != 0xFF) return translucentAccent(packed);
-        long mapped = argb;
-        if (ACCENTS.containsKey(rgb)) mapped = map(ACCENTS, argb);
-        else if (CHECKED.containsKey(rgb)) mapped = map(CHECKED, argb);
-        else if (BACKGROUNDS.containsKey(rgb)) mapped = map(BACKGROUNDS, argb);
-        else if ((argb >>> 24) == 0xFF && isBlue(rgb)) mapped = nearestAccent(rgb);
-        return mapped == argb ? packed : (mapped & 0xFFFFFFFFL) << 32;
+    /** One packed color of a server drawn screen, through the tables and rules the themes use. */
+    private static long sduiColor(long value) {
+        if (!isSrgb(value)) return value;
+        long bits = value >>> 32;
+        int rgbValue = (int) (bits & 0xFFFFFF);
+        if (rgbValue == WARM_GRAY && alphaOf(bits) == 0xFF) return mvpCanvas(value);
+        if (isDarkBackdrop(bits)) return PACKED_BLACK;
+        if (!modern() || !themed()) return value;
+        if (alphaOf(bits) != 0xFF) return translucentAccent(value);
+        long recolored = bits;
+        if (BLUES.containsKey(rgbValue)) recolored = lookup(BLUES, bits);
+        else if (SELECTED.containsKey(rgbValue)) recolored = lookup(SELECTED, bits);
+        else if (BACKDROPS.containsKey(rgbValue)) recolored = lookup(BACKDROPS, bits);
+        else if (isBlue(rgbValue)) recolored = nearestAccent(rgbValue);
+        return recolored == bits ? value : pack(recolored);
     }
 
-    /** LinkedIn's light canvas behind server drawn screens, which shows through the gaps between items. */
-    private static final int WARM_GRAY_30 = 0xE9E5DF;
+    // endregion
+
+    // region System bars and settings
 
     /**
-     * Injected for the Mercado MVP canvas (the background of server drawn screens) and for the warm gray the
-     * server sends for it: the card color with "Remove gaps and dividers", otherwise the Material You canvas.
+     * Before ThemeManager sets the status or navigation bar: LinkedIn's white and dark container become the
+     * card colors.
      */
-    public static long mvpCanvas(long packed) {
-        if (Settings.removeGapsAndDividers()) {
-            // LinkedIn's card colors: white, and the dark container.
-            long card = isLight(packed) ? 0xFFFFFFFFL << 32 : 0xFF1D2226L << 32;
-            return surface(card);
-        }
-        if (isAmoledDark(packed)) return BLACK;
-        if (!Settings.materialYou()) return packed;
-        return tone(packed, LIGHT_CANVAS, DARK_CANVAS);
+    public static int bar(int color) {
+        if (color == DARK_CONTAINER && Settings.amoledBlack()) return 0xFF000000;
+        if (!modern() || !themed()) return color;
+        if (color == WHITE) return palette().getColor(CARD_LIGHT, null);
+        if (color == DARK_CONTAINER) return palette().getColor(CARD_DARK, null);
+        return color;
     }
 
-    private static boolean isLight(long packed) {
-        return luminance((int) (packed >>> 32)) >= 128;
-    }
-
-    /**
-     * Injected before each call that sets the navigation bar color: AndroidX's light and dark scrims become
-     * transparent, LinkedIn's white and dark container the card colors.
-     */
+    /** Before each call that sets the navigation bar color: the AndroidX scrims become transparent. */
     public static int navigationBarColor(int color) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return color;
+        if (!modern() || !themed()) return color;
         if (color == 0xE6FFFFFF || color == 0x801B1B1B) return 0;
         return bar(color);
     }
 
-    /** Injected before each call that turns the navigation bar contrast (a white scrim) on or off. */
+    /** Before each call that turns the navigation bar contrast (a white scrim) on or off. */
     public static boolean navigationBarContrast(boolean enforced) {
-        return Settings.materialYou() ? false : enforced;
-    }
-
-    /** Whether [rgb] is a saturated blue (hue 190° to 250°). */
-    private static boolean isBlue(int rgb) {
-        float[] hsv = new float[3];
-        android.graphics.Color.colorToHSV(rgb, hsv);
-        return hsv[0] >= 190 && hsv[0] <= 250 && hsv[1] >= 0.25f && hsv[2] >= 0.2f;
-    }
-
-    /** The accent tone whose lightness is nearest to [rgb]'s. */
-    private static long nearestAccent(int rgb) {
-        int best = rgb;
-        float distance = Float.MAX_VALUE;
-        for (int tone : ACCENT_TONES) {
-            int color = resources().getColor(tone, null);
-            float d = Math.abs(luminance(color) - luminance(rgb));
-            if (d < distance) {
-                distance = d;
-                best = color;
-            }
-        }
-        return best & 0xFFFFFFFFL;
-    }
-
-    private static float luminance(int rgb) {
-        return 0.299f * ((rgb >> 16) & 0xFF) + 0.587f * ((rgb >> 8) & 0xFF) + 0.114f * (rgb & 0xFF);
+        return !themed() && enforced;
     }
 
     /**
-     * The Loki Patches settings colors when Material You is on, the same roles as LinkedIn's: background, rows,
-     * dividers and accent. Null when it is off, so the settings keep their own colors.
+     * The settings screen's colors when Material You is on, in LinkedIn's roles: background, rows, dividers
+     * and accent. Null when it is off, so the settings keep their own colors.
      */
     static int[] settingsColors(boolean dark) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !Settings.materialYou()) return null;
-        Resources r = resources();
+        if (!modern() || !themed()) return null;
+        Resources res = palette();
+        int surfaceRole = dark ? CARD_DARK : CARD_LIGHT;
+        int rowRole = dark ? ROW_DARK : ROW_LIGHT;
+        int borderRole = dark ? BORDER_DARK_ROLE : BORDER_LIGHT_ROLE;
+        int accentRole = dark ? T200 : T600;
         return new int[]{
-                r.getColor(dark ? DARK_SURFACE : LIGHT_SURFACE, null),
-                r.getColor(dark ? DARK_SURFACE_HIGH : LIGHT_SURFACE_HIGH, null),
-                r.getColor(dark ? DARK_BORDER : LIGHT_BORDER, null),
-                r.getColor(dark ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600, null),
+                res.getColor(surfaceRole, null),
+                res.getColor(rowRole, null),
+                res.getColor(borderRole, null),
+                res.getColor(accentRole, null),
         };
     }
 
-    /** The accent of the Loki Patches settings and dialogs. */
+    /** The accent of the settings screen and its dialogs. */
     static int settingsAccent(boolean dark, int fallback) {
         int[] colors = settingsColors(dark);
         return colors != null ? colors[3] : fallback;
     }
 
+    // endregion
+
+    // region Palette
+
     /**
-     * The app's resources, which have the wallpaper colors. The system resources don't (they have Android's default
-     * blue palette), so they're only the last resort.
+     * LinkedIn's resources, which carry the wallpaper colors. The system resources do not (they always hold
+     * Android's default blue palette), so they are only the last resort.
      */
-    private static Resources resources() {
+    private static Resources palette() {
         Context context = Settings.context();
         if (context != null) return context.getResources();
-        if (!warnedNoContext) {
-            warnedNoContext = true;
+        if (!warnedWithoutContext) {
+            warnedWithoutContext = true;
             Diagnostics.error("Material You colors read before LinkedIn's context exists", new IllegalStateException());
         }
         return Resources.getSystem();
     }
 
-    private static boolean warnedNoContext;
+    private static boolean isLight(long value) {
+        return luminance(argbOf(value)) >= 128;
+    }
+
+    /** Whether [rgbValue] is a saturated blue, hue 190° to 250°. */
+    private static boolean isBlue(int rgbValue) {
+        float[] hsv = new float[3];
+        android.graphics.Color.colorToHSV(rgbValue, hsv);
+        return hsv[0] >= 190 && hsv[0] <= 250 && hsv[1] >= 0.25f && hsv[2] >= 0.2f;
+    }
+
+    /** The accent tone whose lightness is nearest to [rgbValue]'s; the lightest wins a tie. */
+    private static long nearestAccent(int rgbValue) {
+        int best = rgbValue;
+        float distance = Float.MAX_VALUE;
+        float target = luminance(rgbValue);
+        for (int tone : ACCENT_TONES) {
+            int candidate = palette().getColor(tone, null);
+            float nearness = Math.abs(luminance(candidate) - target);
+            if (nearness < distance) {
+                distance = nearness;
+                best = candidate;
+            }
+        }
+        return best & 0xFFFFFFFFL;
+    }
+
+    /** Perceived lightness of an ARGB color, 0 to 255. */
+    private static float luminance(int rgbValue) {
+        return 0.299f * ((rgbValue >> 16) & 0xFF) + 0.587f * ((rgbValue >> 8) & 0xFF) + 0.114f * (rgbValue & 0xFF);
+    }
+
+    // endregion
 }

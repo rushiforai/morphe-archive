@@ -3,6 +3,7 @@ package app.fakh.patches.kompas
 import app.fakh.patches.kompas.shared.Constants.COMPATIBILITY_KOMPAS
 import app.fakh.patches.shared.gms.gmsCoreSupportResourcePatch
 import app.fakh.patches.shared.gms.redirectToGmsCore
+import app.fakh.patches.shared.gms.warnWithoutGmsCore
 import app.morphe.patcher.patch.bytecodePatch
 
 private const val KOMPAS_PACKAGE = "com.ertanto.kompas.official"
@@ -24,9 +25,14 @@ val gmsCoreSupportPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_KOMPAS)
     category("Feature")
+    extendWith("extensions/extension.mpe")
     dependsOn(gmsCoreSupportResourcePatch(KOMPAS_PACKAGE, KOMPAS_SIGNATURE))
 
     execute {
         redirectToGmsCore()
+        warnWithoutGmsCore(
+            "Lapp/fakh/extension/kompas/GmsCore;->require()V",
+            "Lcom/google/android/gms/auth/api/signin/GoogleSignIn;" to "getClient",
+        )
     }
 }

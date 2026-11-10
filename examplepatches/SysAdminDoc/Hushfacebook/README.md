@@ -4,7 +4,7 @@
   <a href="https://github.com/SysAdminDoc/Hushfacebook/releases"><img src="https://img.shields.io/badge/version-0.21.0-0866FF" alt="Version 0.21.0"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%2011%2B-3DDC84" alt="Platform Android 11+">
-  <img src="https://img.shields.io/badge/Facebook-585.0.0.47.54-0866FF" alt="Facebook 585.0.0.47.54">
+  <img src="https://img.shields.io/badge/Facebook-586.0.0.52.53-0866FF" alt="Facebook 586.0.0.52.53">
   <img src="https://img.shields.io/badge/for-Morphe%20Manager%202.5.0%2B-8A2BE2" alt="For Morphe Manager 2.5.0 or newer">
 </p>
 
@@ -33,7 +33,7 @@ The latest release is [v0.21.0](https://github.com/SysAdminDoc/Hushfacebook/rele
 
 1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 2.5.0 or newer.
 2. Add Hushfacebook as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushfacebook
-3. Download Facebook 585.0.0.47.54 from [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/). Take the bundle labelled (arm64-v8a) (120-640dpi) (Android 11+), build 476015655, or on a phone with only a 32-bit processor the one labelled (arm-v7a) (320dpi) (Android 11+), build 476015543. Both are .apkm files. Take the 64-bit one whenever your phone can run it. The 32-bit one only has images for 320 dpi screens, so on a sharper screen some icons look soft.
+3. Download Facebook 586.0.0.52.53 from [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/). Take the bundle labelled (arm64-v8a) (120-640dpi) (Android 11+), build 476217123, or on a phone with only a 32-bit processor the one labelled (arm-v7a) (320dpi) (Android 11+), build 476217122. Both are .apkm files. Take the 64-bit one whenever your phone can run it. The 32-bit one only has images for 320 dpi screens, so on a sharper screen some icons look soft.
 4. In Morphe Manager, tap **Select other apps**, then **Open APK file**, and pick that file. Android may ask for file access the first time.
 5. Patch with the default selection and install. If Meta's own Facebook is on the phone, Android makes you uninstall it first, as [Package conflict](#package-conflict) explains.
 
@@ -141,7 +141,7 @@ Each row says what the patch does, how its switch starts and which settings sect
 | `Hide Meta AI questions under posts` | Removes the row of Meta AI questions Facebook adds under some posts, for a cleaner feed. The post and its buttons stay. On by default. Turn it off in Hushfacebook settings > News feed. |
 | `Hide Meta AI comment summaries` | Removes Meta AI's summary of the comments from the top of the comment sheet and from under posts, so you read what people actually wrote. Starts off. Turn it on in Hushfacebook settings > Comments and writing. |
 | `Comment sheet options` | Small fixes for comments. Stop a long press on Like from opening reactions, hide the GIF and sticker buttons, show every reply without tapping View replies, load a whole reply thread as you scroll, close an open reply thread with a Hide replies button, open more replies with a tap anywhere on their row, hide the comments under feed posts, hide the thumbs-down on comments or turn it into a Block button, put Block on reaction lists, hide Like on comments, hide Related groups under group posts, hide comments with shop links or your words, hide who is typing and the new comments pop-up, hide the emoji row over the comment box, hide the line over the comment box, and hide the comment box under full-screen videos. Starts off. Turn on the parts you want in Hushfacebook settings > Comments and writing. |
-| `Open comments at full height` | Opens the comment sheet at the full height of the screen instead of part way up, on posts, videos, reels and stories. On reels and videos, Comment opens that sheet instead of the split view. A second switch pauses a reel while its comments are open, a third lets a tap on the reel above a half-open sheet play or pause it, and a fourth puts a magnifier at the top of the comments that searches them for your words. All start off. Turn them on in Hushfacebook settings > Comments and writing. |
+| `Open comments at full height` | Opens the comment sheet at full or half height instead of part way up. Full height fills the screen on posts, videos, reels and stories. Half height covers half the screen, and the reel or video keeps playing above it. On reels and videos, Comment opens that sheet instead of the split view. Other switches pause a reel while its comments are open, let a tap on the reel above a half-open sheet play or pause it, and put a magnifier at the top of the comments that searches them for your words. All start off. Turn them on in Hushfacebook settings > Comments and writing. |
 | `Hide the Feeds header` | Takes the title row and the All, Favorites, Friends, Groups and Pages filters off the top of the Feeds tab, so it opens straight on posts. Starts off. Turn it on in Hushfacebook settings > News feed, then restart Facebook. |
 | `Keep post dates` | Keeps the date under the poster's name, so you can always tell how old a post is. Facebook's newer header can swap it for rotating details, and on some phones the line goes blank. On by default. Turn it off in Hushfacebook settings > News feed. |
 | `Show full post text` | Shows all of a post's text in the feed, and a reel's caption, so you don't have to tap See more. A tap on the text folds it back. Starts off. Turn posts on in Hushfacebook settings > News feed, and reel captions under Reels and Watch, where an open caption can also sit on a dark box like subtitles. |
@@ -240,7 +240,7 @@ Questions about setting up, or about whether a Facebook build works, go in [Disc
 
 ### Unsupported Version
 
-Manager shows this before it patches, usually with "This is a different build of the same version". Facebook 585.0.0.47.54 comes in several builds, each compiled separately, and Hushfacebook declares only the two its patches are checked against, 476015655 for 64-bit phones and 476015543 for 32-bit ones. Download one of those as [Install](#install) describes and the warning goes away. **Proceed anyway** patches the build you have, but other builds haven't been tried, and if a patch can't find what it changes, patching stops and names it. The same check is why Manager won't offer the Facebook you installed from Google Play unless it's that exact build.
+Manager shows this before it patches, usually with "This is a different build of the same version". Facebook 586.0.0.52.53 comes in several builds, each compiled separately, and Hushfacebook declares only the two its patches are checked against, 476217123 for 64-bit phones and 476217122 for 32-bit ones. Download one of those as [Install](#install) describes and the warning goes away. **Proceed anyway** patches the build you have, but other builds haven't been tried, and if a patch can't find what it changes, patching stops and names it. The same check is why Manager won't offer the Facebook you installed from Google Play unless it's that exact build.
 
 ### Patching stops on one patch
 
@@ -274,7 +274,9 @@ Messenger, Facebook Lite, Meta Business Suite and Workplace declare two permissi
 
 ### Android blocks apps from unverified developers
 
-Google now checks that apps on certified Android phones come from a developer registered with it. Phones running Android 7 or newer in Brazil, Indonesia, Singapore and Thailand have done this since September 30, 2026, and Google plans to bring it to every country in 2027. Manager signs the patched Facebook with your own key, which Google has no record of, so a phone that checks can stop the install. Updates fail the same way. There are two ways through.
+Google has started checking that apps on certified Android phones come from a developer registered with it. Since [September 30, 2026](https://developer.android.com/developer-verification/guides) the check runs in Brazil, Indonesia, Singapore and Thailand on Android 7 or newer, and only for apps installed from the stores Google lists: Google Play and six phone makers' own stores, Samsung's Galaxy Store and Xiaomi's GetApps among them. Manager isn't on that list, so a patched Facebook still installs as before, even in those four countries. Google plans to check every app on certified phones everywhere in 2027.
+
+Once that reaches your phone, expect the patched Facebook to be stopped. Manager signs it with your own key, which Google has no record of. Android Authority [passed on](https://www.androidauthority.com/how-to-bypass-android-developer-verification-sideloading-rules-3718002/) a user's report that Morphe-patched apps already count as unverified for that reason. Google's own pages don't say how it treats an app signed again. Updates would fail the same way. There are two ways through.
 
 The first is Android's advanced flow. Turn on Developer options (tap **Build number** seven times under **Settings → About phone**), open them and turn on the setting that allows apps from unverified developers. Android asks you to confirm nobody is coaching you through it, restarts the phone and makes you wait a day before you confirm with your fingerprint or PIN. You can allow it for 7 days or for good. After that the install shows a warning that the app comes from an unverified developer, and **Install Anyway** goes ahead. If you picked 7 days, updates stop going through again once the week is up.
 
@@ -286,7 +288,7 @@ adb install -r patched-facebook.apk
 
 `-r` installs over the Facebook already on the phone and keeps its data, as long as both carry the same key ([Keep your signing key](#keep-your-signing-key)).
 
-If Android refuses Facebook some other way, please [report it](https://github.com/SysAdminDoc/Hushfacebook/issues/new?template=bug_report.yml) with the exact words it shows. Google hasn't said whether an app its owner signed again counts as unregistered, and that message is what will settle it.
+If Android refuses Facebook some other way, please [report it](https://github.com/SysAdminDoc/Hushfacebook/issues/new?template=bug_report.yml) with the exact words it shows. That message is what will show how Google really handles a patched app.
 
 ### Facebook links from other apps don't open in Facebook
 
@@ -356,19 +358,19 @@ A few rows hand a link to another app instead of going online themselves. **Send
 | Field | Value |
 |---|---|
 | Package | `com.facebook.katana` |
-| Version | `585.0.0.47.54` |
-| 64-bit phones | build `476015655`, the (arm64-v8a) (120-640dpi) (Android 11+) bundle |
-| 32-bit phones | build `476015543`, the (arm-v7a) (320dpi) (Android 11+) bundle |
+| Version | `586.0.0.52.53` |
+| 64-bit phones | build `476217123`, the (arm64-v8a) (120-640dpi) (Android 11+) bundle |
+| 32-bit phones | build `476217122`, the (arm-v7a) (320dpi) (Android 11+) bundle |
 | Minimum Android version | Android 11 |
 | Download | [APKMirror](https://www.apkmirror.com/apk/facebook-2/facebook/) |
 
-There are 117 patches for `com.facebook.katana`, and a release only goes out once every one of them has applied to that build. Older Facebook versions like 584 and 583 aren't supported any more, so update Facebook before you patch. When a newer stable Facebook comes out, Hushfacebook moves to it and drops the one before. Meta's builds for Android 9 and 8 can't be patched at all, since their code sits in a compressed archive the patcher can't read. The 64-bit build is the 120-640dpi one because 585 has no 480-640dpi bundle for Android 11; it carries every screen density, so it fits any 64-bit phone.
+There are 117 patches for `com.facebook.katana`, and a release only goes out once every one of them has applied to that build. Older Facebook versions like 585 and 584 aren't supported any more, so update Facebook before you patch. When a newer stable Facebook comes out, Hushfacebook moves to it and drops the one before. Meta's builds for Android 9 and 8 can't be patched at all, since their code sits in a compressed archive the patcher can't read. The 64-bit build is the 120-640dpi one because 586 has no 480-640dpi bundle for Android 11; it carries every screen density, so it fits any 64-bit phone.
 
 SHA-256 of the .apkm files the patches are checked against:
 
 ```text
-476015655  1090dff6c9fe4903dd7c590f4d340bf0a912e43cd0a79c019c43bc265f5dda53  arm64-v8a
-476015543  ec6bb38a25349ab6eba4750f04486ceb3e3d8b268efc6733928d8669bd489c28  armeabi-v7a
+476217123  18bcf009e2efe403fdd4eb81c0cf1db9b0b77658f9a165001a4b73e18a1bbb57  arm64-v8a
+476217122  d7df17133d86f726ab880a21fabb56a42a95bec4be6551aa328cb4fc06693ee6  armeabi-v7a
 ```
 
 On Windows, compare yours with `Get-FileHash -Algorithm SHA256 .\facebook.apkm`, or use `sha256sum facebook.apkm` on Linux and macOS.

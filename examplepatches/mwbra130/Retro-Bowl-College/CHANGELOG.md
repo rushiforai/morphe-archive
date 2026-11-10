@@ -1,3 +1,33 @@
+## [1.68.3](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.68.2...v1.68.3) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **businessx:** mark 6.5.2 target experimental (Testing-stage app) ([28b867f](https://github.com/mwbra130/Retro-Bowl-College/commit/28b867fa6d17c6acb58fc0dcaf28a63e14b0ef84))
+* **diskwala:** mark 27.3 target experimental (Testing-stage app) ([730d381](https://github.com/mwbra130/Retro-Bowl-College/commit/730d3811a76dffb7931489d5d237d75ef10951a0))
+* **notes:** mark 2.2.2 target experimental ([4e9bf89](https://github.com/mwbra130/Retro-Bowl-College/commit/4e9bf89b2a5ee65d492d274353c6390bb853214a))
+* **pikaspot:** mark 1.4.5 target experimental (Testing-stage app) ([5ca59e6](https://github.com/mwbra130/Retro-Bowl-College/commit/5ca59e67020f02bc8e7b2be77c439ac6eb982fb8))
+
+## [1.68.2](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.68.1...v1.68.2) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **googlemessages:** mark OLED black mode target experimental (Testing-stage app, not stable) ([efd60c0](https://github.com/mwbra130/Retro-Bowl-College/commit/efd60c058eade9796ab0a35379ca9cef9e28222e))
+
+## [1.68.1](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.68.0...v1.68.1) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **pikaspot:** use L-suffixed wide literal in token ingest pin ([9c46ec0](https://github.com/mwbra130/Retro-Bowl-College/commit/9c46ec0e694476b550c70550ab783d89a38a7a2b))
+
+## [1.68.0](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.67.3...v1.68.0) (2026-11-09)
+
+### ✨ New Features
+
+* **pikaspot:** add Enable Lifetime VIP patch (ingest + status pins) ([9b75466](https://github.com/mwbra130/Retro-Bowl-College/commit/9b75466ed108c0058410c73d2bf4d91bda668f7a))
+* **pikaspot:** add lifetime VIP and PairIP license fingerprints ([1865c4d](https://github.com/mwbra130/Retro-Bowl-College/commit/1865c4d2ef7afb3c11463c339d9d877e560d8983))
+* **pikaspot:** add PairIP license check bypass ([9f154cf](https://github.com/mwbra130/Retro-Bowl-College/commit/9f154cf2c3f51a55acd2a18461de66a751e0a08b))
+* **pikaspot:** add Pika Spot 1.4.5 compatibility declaration ([c3f39d9](https://github.com/mwbra130/Retro-Bowl-College/commit/c3f39d9819ab0edd2d946627d6fb6b67d9e87f6a))
+
 ## [1.67.3](https://github.com/mwbra130/Retro-Bowl-College/compare/v1.67.2...v1.67.3) (2026-11-09)
 
 ### 🐛 Bug Fixes

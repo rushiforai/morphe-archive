@@ -2,21 +2,30 @@ name: Private patch build
 
 on:
   push:
-    branches: [dev, audit/v1.10.5-dev.5]
+    branches: [dev, 'audit/**']
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: read
 
+concurrency:
+  group: private-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     if: >-
       github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'docs: update release notes')
     runs-on: ubuntu-latest
+    timeout-minutes: 65
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Validate workflow action pinning and release safeguards
+        run: python3 porting/tests/VerifyGithubActionsSecurity.py
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: '21'
@@ -75,7 +84,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          source = Path("porting/revisions/v1.10.5-dev.5/java/e/e/a/Dev119.java").read_text()
+          source = Path("porting/revisions/v1.10.6/java/e/e/a/Dev119.java").read_text()
           assert "option.setDefaultValue(Boolean.TRUE)" in source
           assert ".getBoolean(KEY, true)" in source
           assert "option.setDefaultValue(Boolean.FALSE)" not in source
@@ -88,35 +97,35 @@ jobs:
       - name: Test secure comment posting endpoint policy
         run: |
           mkdir -p /tmp/nicoid-post122
-          javac -d /tmp/nicoid-post122 porting/revisions/v1.10.5-dev.5/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.5-dev.5/PostingPolicy122Test.java
+          javac -d /tmp/nicoid-post122 porting/revisions/v1.10.6/java/e/e/a/PostingPolicy122.java porting/revisions/v1.10.6/PostingPolicy122Test.java
           java -cp /tmp/nicoid-post122 e.e.a.PostingPolicy122Test
-      - name: Use the official Gradle GitHub release for CI
+      - name: Use the official Gradle distribution CDN for CI
         run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://github.com/gradle/gradle-distributions/releases/download/v9.8.2/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
-          grep -q 'github.com/gradle/gradle-distributions' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          grep -q 'downloads.gradle.org/distributions' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
           sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
           printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
       - name: Test confirmed comment posting and adapter deduplication
         run: |
           mkdir -p /tmp/nicoid-post123
-          javac -d /tmp/nicoid-post123 porting/revisions/v1.10.5-dev.5/java/e/e/a/PostEcho123.java $(find porting/revisions/v1.10.5-dev.5/post-test -name '*.java' | sort)
+          javac -d /tmp/nicoid-post123 porting/revisions/v1.10.6/java/e/e/a/PostEcho123.java $(find porting/revisions/v1.10.6/post-test -name '*.java' | sort)
           java -cp /tmp/nicoid-post123 e.e.a.PostEcho123Test
       - name: Test popup tap, drag, double-tap and pinch policy
         run: |
           mkdir -p /tmp/nicoid-popup125
-          javac -d /tmp/nicoid-popup125 porting/revisions/v1.10.5-dev.5/java/e/e/a/PopupTouchPolicy125.java porting/revisions/v1.10.5-dev.5/PopupTouchPolicy125Test.java
+          javac -d /tmp/nicoid-popup125 porting/revisions/v1.10.6/java/e/e/a/PopupTouchPolicy125.java porting/revisions/v1.10.6/PopupTouchPolicy125Test.java
           java -cp /tmp/nicoid-popup125 e.e.a.PopupTouchPolicy125Test
       - name: Test public mylist title synchronization rules
         run: |
           mkdir -p /tmp/nicoid-mylists126
-          javac -d /tmp/nicoid-mylists126 porting/revisions/v1.10.5-dev.5/java/e/e/a/TabTitleRules126.java porting/revisions/v1.10.5-dev.5/TabTitleRules126Test.java
+          javac -d /tmp/nicoid-mylists126 porting/revisions/v1.10.6/java/e/e/a/TabTitleRules126.java porting/revisions/v1.10.6/TabTitleRules126Test.java
           java -cp /tmp/nicoid-mylists126 e.e.a.TabTitleRules126Test
       - name: Verify popup double tap bridge regression
         run: |
           python3 - <<'PY'
           from pathlib import Path
-          root = Path("porting/revisions/v1.10.5-dev.5")
+          root = Path("porting/revisions/v1.10.6")
           bridge = (root / "java/e/e/a/PopupTouch125.java").read_text()
           policy = (root / "java/e/e/a/PopupTouchPolicy125.java").read_text()
           assert 'getMethod("isVisible")' not in bridge
@@ -128,24 +137,166 @@ jobs:
           PY
       - name: Test popup bridge event streams
         run: python3 porting/tests/regression155.py
+      - name: Test account watch-history tab URL restoration
+        run: |
+          mkdir -p /tmp/nicoid-history127
+          javac --release 8 -d /tmp/nicoid-history127 porting/revisions/v1.10.6/java/e/e/a/TabHistory127.java porting/revisions/v1.10.6/TabHistory127Test.java
+          java -cp /tmp/nicoid-history127 e.e.a.TabHistory127Test
+          python3 - <<'PY'
+          from pathlib import Path
+          r=Path("porting/revisions/v1.10.6")
+          p=(r/"patch-payloads.py").read_text()
+          for name in ('SavedTabs227$Tab.smali','MultiTabs227.smali','TabRoutes228.smali'):
+              assert 'method("'+name+'"' in p
+          assert "TabHistory127;->url(ILjava/lang/String;)" in p
+          print("PASS: all three account-history restoration hooks staged")
+          PY
+      - name: Test vertical reversal gesture policy (Issue #113)
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nicoid-turn128
+          javac --release 8 -d /tmp/nicoid-turn128 porting/revisions/v1.10.6/java/e/e/a/GestureTurnPolicy128.java porting/revisions/v1.10.6/GestureTurnPolicy128Test.java
+          java -cp /tmp/nicoid-turn128 e.e.a.GestureTurnPolicy128Test
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path("porting/revisions/v1.10.6")
+          ui=(root/"java/e/e/a/Dev128.java").read_text(encoding="utf-8")
+          smali=(root/"patch-payloads.py").read_text(encoding="utf-8")
+          profile=(root/"java/e/e/a/Dev118.java").read_text(encoding="utf-8")
+          assert "上下方向のみのジェスチャーを認識" in ui
+          assert "OFFの場合、上下方向のみの操作をジェスチャーとして認識せず、スクロールを継続します" in ui
+          assert "prefs.getBoolean(KEY, false)" in ui
+          assert "remove(KEY).apply()" in ui
+          assert "Dev128;->allowClaim" in smali
+          assert "Dev128;->install" in smali
+          assert "Dev128;->reset" in smali
+          assert "Dev128.allowClaim(a,pattern(s))" in profile
+          print("PASS: Issue #113 user copy, default OFF, reset and touch routing")
+          PY
+      - name: Check audio focus preferences and gesture formatting
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('porting/revisions/v1.10.6')
+          audio=(root/'java/e/e/a/Dev131.java').read_text(encoding='utf-8')
+          style=(root/'java/e/e/a/Dev130.java').read_text(encoding='utf-8')
+          overlay=(root/'patch-payloads.py').read_text(encoding='utf-8')
+          assert 'nicoid_content_filter' in audio
+          assert 'オーディオフォーカス' in audio
+          assert 'ONの場合、動画再生時に他のアプリとの音声再生を調整します' in audio
+          assert 'getBoolean(KEY, false)' in audio
+          assert 'setDefaultValue(Boolean.FALSE)' in audio
+          assert 'requestAudioFocus(listener, streamType, duration)' in audio
+          assert 'applyToPlayer' in audio
+          assert 'RelativeSizeSpan(0.86f)' in style
+          assert 'ForegroundColorSpan(grey)' in style
+          for member in ('Dev130;->styleSensitivity', 'Dev130;->stripFinalStop',
+                         'Dev131;->applyToPlayer', 'Dev131;->requestServiceFocus',
+                         'Dev131;->installSettings'):
+              assert member in overlay, 'Missing patch hook '+member
+          print('PASS: audio focus OFF by default, normal/service focus guards, gesture copy/style')
+          PY
+      - name: Check tab list integration and popup control priority
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('porting/revisions/v1.10.6')
+          panel=(root/'java/e/e/a/Dev132.java').read_text()
+          overlay=(root/'patch-payloads.py').read_text()
+          listener=(root/'java/e/e/a/PopupTouch125.java').read_text()
+          policy=(root/'java/e/e/a/PopupTouchPolicy125.java').read_text()
+          for text in ('nicoid_tab_list_button','nicoid_tab_add_button', 'startDragAndDrop',
+                       'decorateBar', 'installSettings', 'restore', 'ACTION_DROP'):
+              assert text in panel, text
+          for text in ('Dev132;->decorateBar', 'Dev132;->show', 'Dev132;->actionName', 'tablist'):
+              assert text in overlay, text
+          assert 'interactiveHit(root, (View) player' in listener
+          assert 'routing = !interactive;' in policy
+          print('PASS: tab list controls, gesture, drag/reorder and popup control routing')
+          PY
+      - name: Test canonical ranking tab matching
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/nicoid-ranking133
+          javac -d /tmp/nicoid-ranking133             porting/revisions/v1.10.6/java/e/e/a/RankingTabIdentity133.java             porting/revisions/v1.10.6/RankingTabIdentity133Test.java
+          java -cp /tmp/nicoid-ranking133 e.e.a.RankingTabIdentity133Test
+      - name: Verify combined tab controls and in-place restore
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          rev=Path('porting/revisions/v1.10.6')
+          panel=(rev/'java/e/e/a/Dev132.java').read_text()
+          placement=(rev/'java/e/e/a/Dev111.java').read_text()
+          overlay=(rev/'patch-payloads.py').read_text()
+          assert 'MultiSelectListPreference option=' in panel
+          assert 'nicoid_tab_bar_buttons' in panel and 'BUTTONS_KEY' in placement
+          assert '"multiple_video_tabs", Dev132.BUTTONS_KEY' in placement
+          assert 'new Glyph(activity,0,true)' in panel
+          assert '"直前に閉じたタブを復元"' in panel
+          restore=panel.split('private static void restore(',1)[1].split('private static void close(',1)[0]
+          assert 'dialog.dismiss()' not in restore
+          closing=panel.split('close.setOnClickListener(',1)[1].split('row.addView(close',1)[0]
+          assert 'dialog.dismiss()' not in closing
+          assert 'Dev132;->sameRanking' in overlay
+          assert 'Dev132;->rememberClosed' in overlay
+          print('PASS: combined tab button settings, accent, in-place delete/restore, ranking hooks')
+          PY
+      - name: Verify programmatic navigation has no slide animations
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          rev=Path("porting/revisions/v1.10.6")
+          overlay=(rev/"patch-payloads.py").read_text()
+          assert 'RankingPeriod$1.smali' in overlay
+          assert 'const p4, 0x10000' in overlay
+          assert overlay.count('overridePendingTransition(II)V') >= 2
+          assert 'TabPager233;->destroy(Landroid/app/Activity;)V' in overlay
+          assert '.method select(Ljava/lang/String;)V' in overlay
+          # The native user-driven TabPager animation remains untouched.
+          assert 'method("TabPager233.smali"' not in overlay
+          print("PASS: no slide for ranking sort/programmatic restore; real swipe preserved")
+          PY
+      - name: Check ranking in-place sort and tab-bar button descriptions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('porting/revisions/v1.10.6')
+          source=(root/'java/e/e/a/Dev134.java').read_text()
+          panel=(root/'java/e/e/a/Dev132.java').read_text()
+          hooks=(root/'patch-payloads.py').read_text()
+          for token in ('applyPeriod(Activity activity,Intent next)', 'set(tab,"url",updated)',
+                        'set(fragment,"d0",updated)', 'set(loader,"b",change.url)',
+                        'Refresh192', 'notifyDataSetChanged', 'callStatic(multi,"save"'):
+              assert token in source,token
+          assert 'activity.startActivity(' not in source
+          assert 'activity.finish(' not in source
+          assert 'activity.recreate(' not in source
+          assert 'Dev134;->applyPeriod(Landroid/app/Activity;Landroid/content/Intent;)Z' in hooks
+          assert '左端の一覧ボタンでタブの切替・管理' in panel
+          assert '右端の＋ボタンでタブを追加' in panel
+          print('PASS: ranking period in-place reload and detailed button help')
+          PY
+      - name: Audit release candidate source, security and lifecycle guards
+        run: |
+          python3 porting/revisions/v1.10.6/release-readiness-audit.py
       - name: Build Morphe bundle
         run: ./gradlew :patches:buildAndroid --no-daemon
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Verify final distributed MPP, payload and patch version
-        run: python3 porting/revisions/v1.10.5-dev.5/verify-mpp.py 1.10.5-dev.5
+        run: python3 porting/revisions/v1.10.6/verify-mpp.py 1.10.6-dev.7
       - name: Verify stable resources and feature continuity
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           mkdir -p /tmp/nicoid-baseline /tmp/nicoid-stage
-          gh release download v1.10.4 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.4.mpp --dir /tmp/nicoid-baseline
-          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.4.mpp patches/build/libs/patches-1.10.5-dev.5.mpp
-          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.4.mpp patches/build/libs/patches-1.10.5-dev.5.mpp
+          gh release download v1.10.5 --repo chikuwadon/nicoid-re-patches --pattern patches-1.10.5.mpp --dir /tmp/nicoid-baseline
+          python3 porting/tests/VerifyResourceIdentity191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.7.mpp
+          python3 porting/tests/VerifyLegacyImageFormats191.py /tmp/nicoid-baseline/patches-1.10.5.mpp patches/build/libs/patches-1.10.6-dev.7.mpp
           cp -a porting/revisions/v1.10.1/helpers porting/revisions/v1.10.1/method-delta /tmp/nicoid-stage/
-          python3 porting/revisions/v1.10.5-dev.5/patch-payloads.py /tmp/nicoid-stage 1.10.5-dev.5
+          python3 porting/revisions/v1.10.6/patch-payloads.py /tmp/nicoid-stage 1.10.6-dev.7
           python3 porting/tests/VerifyReleaseContinuity.py porting/revisions/v1.10.1/helpers /tmp/nicoid-stage/helpers /tmp/nicoid-stage/method-delta
           python3 porting/tests/VerifyQualityRegisters195.py /tmp/nicoid-stage
       - name: Prepare development sources and verification report
@@ -153,12 +304,12 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p patches/build/dev-delivery
-          version=1.10.5-dev.5
+          version=1.10.6-dev.7
           git archive --format=zip --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.zip" HEAD
           git archive --format=tar.gz --prefix="nicoid-re-$version/" \
             --output="patches/build/dev-delivery/nicoid-re-$version-source.tar.gz" HEAD
-          python3 porting/revisions/v1.10.5-dev.5/sync-source-payloads.py "$version"
+          python3 porting/revisions/v1.10.6/sync-source-payloads.py "$version"
           {
             echo "nicoid Re $version / development verification"
             echo "Commit: $GITHUB_SHA"
@@ -168,26 +319,71 @@ jobs:
             echo "Source ZIP/TAR DEX parity with generated MPP: PASS"
             echo "Audit fixes: comment echo session ownership across network/UI delay, optional popup player fallback, final-UP touch slop"
             echo "Additional JVM regressions: PASS"
-            echo "Stable v1.10.4 resource and feature continuity: PASS"
+            echo "Stable v1.10.5 resource and feature continuity: PASS"
             echo "Android device/emulator runtime testing: NOT PERFORMED"
             echo "Official release/tag update: NOT PERFORMED"
-            echo "Changes: secure confirmed comment posting, same-session local echo, popup touch arbitration and public mylist tab title synchronization"
+            echo "Changes: vertical-only scroll guard, smaller grey sensitivity explanation, default-off audio focus, official workflow lockfiles"
             echo "Comment lifecycle and controls boundary tests: PASS (JVM doubles; Android runtime not covered)"
             echo "Popup bridge event-stream regressions: PASS (Android boundary doubles; device runtime not covered)"
+            echo "Issue #113 full vertical-only gesture regression and DEX hooks: PASS"
             echo
             echo "Files (SHA-256):"
             sha256sum patches/build/libs/*.mpp patches/build/dev-delivery/*source.*
           } > patches/build/dev-delivery/verification.txt
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v1.10.5-dev.5-mpp
+          name: nicoid-re-v1.10.6-mpp
           path: patches/build/libs/*.mpp
           if-no-files-found: error
           retention-days: 2
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: nicoid-re-v1.10.5-dev.5-source-verification
+          name: nicoid-re-v1.10.6-source-verification
           path: patches/build/dev-delivery/
           if-no-files-found: error
           retention-days: 2
+
+  release-tools-smoke:
+    name: Validate lockfile and release tooling without publishing
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Validate updated npm lockfile and release tooling (Issue #110)
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts --no-audit --no-fund
+          node .github/scripts/verify-release-npm.cjs
+          node --input-type=module <<'NODE'
+          import semanticRelease from 'semantic-release';
+          if (typeof semanticRelease !== 'function') throw Error('semantic-release CLI invalid');
+          console.log('PASS: npm 11.21.2, bundled undici 6.29.1, Node 24, semantic-release import');
+          NODE
+
+  actions-lock-verify:
+    name: Verify GitHub official workflow lockfile
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Verify action provenance and transitive dependencies
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh extension install github/gh-actions-lock --pin v0.4.1
+          gh actions-lock --verify
+          gh actions-lock --verify-local

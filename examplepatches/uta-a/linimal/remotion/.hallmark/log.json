@@ -1,0 +1,4 @@
+[
+  { "date": "2026-11-06", "macrostructure": "Long Document (video spreads)", "theme": "custom", "theme_axes": "light / high-contrast-serif / chromatic-other(green)", "vibe": "雑誌の見開き、明朝の見出し、紙色、図版とキャプション", "enrichment": "none", "brief": "Linimal 紹介動画 · 編集的版（LinimalEditorial）" },
+  { "date": "2026-11-06", "macrostructure": "Workbench (video)", "theme": "custom", "theme_axes": "dark / grotesk-sans + mono / chromatic-other(green)", "vibe": "素っ気ない実務的、罫線と等幅、黒に近い紙", "enrichment": "none", "brief": "Linimal 紹介動画 · 実務的版（LinimalUtility）" }
+]

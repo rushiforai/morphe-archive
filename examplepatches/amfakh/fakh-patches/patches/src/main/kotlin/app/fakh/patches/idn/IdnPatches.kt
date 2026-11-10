@@ -164,7 +164,7 @@ private object CreateMenuDelegateFingerprint : Fingerprint(
 @Suppress("unused")
 val hideCreateButtonPatch = bytecodePatch(
     name = "Hide Create button",
-    description = "Removes the \"+\" button (write news, start a live stream) from the middle of the bottom navigation. The switch for it is on the Fakh Patches page.",
+    description = "Removes the \"+\" button (write news, start a live stream) from the middle of the navigation bar. The switch is in Fakh Patches.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_IDN)
@@ -248,7 +248,7 @@ private object HomeTabsFingerprint : Fingerprint(
 @Suppress("unused")
 val hideHomeTabsPatch = bytecodePatch(
     name = "Hide home tabs",
-    description = "Adds switches to hide the Nonton, IDN Live, Berita and Quiz tabs, on a Fakh Patches page in the app's Settings.",
+    description = "Adds switches to hide the Nonton, IDN Live, Berita and Quiz tabs in Fakh Patches.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_IDN)
@@ -291,7 +291,7 @@ private fun Method.startsPreviewVideo() = returnType == "V" && parameterTypes.si
 @Suppress("unused")
 val stopAutoplayPatch = bytecodePatch(
     name = "Stop autoplay",
-    description = "Adds a switch to stop the video previews and the automatic sliding of the home banners, on a Fakh Patches page in the app's Settings.",
+    description = "Adds a switch to stop the video previews and the automatic sliding of the home banners in Fakh Patches.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_IDN)
@@ -408,7 +408,7 @@ private object SubscriptionFrameFingerprint : Fingerprint(
 @Suppress("unused")
 val hidePackageBannerPatch = bytecodePatch(
     name = "Hide package banner",
-    description = "Removes the \"Beli Paket\" banner from the profile, since packages cannot be bought in a patched app. The switch for it is on the Fakh Patches page.",
+    description = "Removes the \"Beli Paket\" banner from the profile, since packages cannot be bought in a patched app. The switch is in Fakh Patches.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_IDN)

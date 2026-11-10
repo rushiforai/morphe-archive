@@ -9,6 +9,7 @@ public enum SettingsPage {
     AGENT_I,
     HIDE,
     READ_RECEIPT,
+    THEME,
     GENERAL;
 
     /**

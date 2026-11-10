@@ -1,0 +1,815 @@
+#morphe-font-settings .morphe-font-header {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: relative;
+  margin: 12px 0 10px;
+}
+
+#morphe-font-settings .morphe-font-current {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+#morphe-font-settings .morphe-font-current-label {
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  user-select: none;
+}
+
+#morphe-font-settings .morphe-font-current-name {
+  display: block;
+  margin: 0;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1.25;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Libby positions its own dialog buttons absolutely; the class is dropped, but
+   force static flow too so the header always lays out side by side.
+   Colors come from currentColor so the button follows the reader theme:
+   the app draws its own borders the same way (85% foreground in dark mode). */
+#morphe-font-settings #morphe-font-upload {
+  position: static !important;
+  inset: auto !important;
+  float: none !important;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: auto !important;
+  min-height: 38px;
+  margin: 0 !important;
+  padding: 0 16px;
+  border: 2px solid currentColor;
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.18);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 1px 2px color-mix(in srgb, currentColor 22%, transparent);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#morphe-font-settings #morphe-font-upload::before {
+  content: '+';
+  font-size: 1.3em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+#morphe-font-settings #morphe-font-upload:active {
+  background: rgba(128, 128, 128, 0.32);
+  background: color-mix(in srgb, currentColor 24%, transparent);
+  box-shadow: none;
+}
+
+#morphe-font-settings #morphe-font-upload:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+#morphe-font-settings .morphe-font-search {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  border-color: color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+#morphe-font-settings .morphe-font-search[hidden],
+#morphe-font-settings #morphe-font-empty[hidden] {
+  display: none;
+}
+
+#morphe-font-settings .morphe-font-list {
+  max-height: 220px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid currentColor;
+}
+
+/* A styled scrollbar stays visible in Chromium, unlike the overlay scrollbar,
+   so the list reads as scrollable even before the first swipe. */
+#morphe-font-settings .morphe-font-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+#morphe-font-settings .morphe-font-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#morphe-font-settings .morphe-font-list::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: currentColor;
+}
+
+#morphe-font-settings .morphe-font-list:empty {
+  display: none;
+}
+
+#morphe-font-settings .morphe-font-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-top: 1px solid rgba(128, 128, 128, 0.35);
+  border-top-color: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+#morphe-font-settings .morphe-font-row:first-child {
+  border-top: 0;
+}
+
+#morphe-font-settings .morphe-font-choice {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 2px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+#morphe-font-settings .morphe-font-choice-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#morphe-font-settings .morphe-font-row.is-selected .morphe-font-choice-name {
+  font-weight: 700;
+}
+
+#morphe-font-settings .morphe-font-choice-meta {
+  font-size: 0.8em;
+  opacity: 0.6;
+}
+
+#morphe-font-settings .morphe-font-delete {
+  flex: 0 0 auto;
+  padding: 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  font-size: 0.85em;
+  opacity: 0.6;
+  text-decoration: underline;
+}
+
+#morphe-font-settings .morphe-font-choice:focus-visible,
+#morphe-font-settings .morphe-font-delete:focus-visible,
+#morphe-font-settings .morphe-font-search:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+#morphe-font-settings #morphe-font-enabled:disabled + .shibui-form-switch-face {
+  opacity: 0.5;
+}
+
+/* --- Editor ------------------------------------------------------------- */
+
+#morphe-font-settings #morphe-font-main[hidden],
+#morphe-font-settings #morphe-font-editor[hidden],
+#morphe-font-settings .morphe-font-editor-status[hidden],
+#morphe-font-settings .morphe-font-hint[hidden] {
+  display: none !important;
+}
+
+#morphe-font-settings .morphe-font-edit {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  border: 0;
+  background: none;
+  color: inherit;
+  opacity: 0.62;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#morphe-font-settings .morphe-font-edit svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+#morphe-font-settings .morphe-font-edit:active {
+  opacity: 1;
+}
+
+#morphe-font-settings #morphe-font-editor {
+  max-height: 62vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 2px;
+}
+
+#morphe-font-settings .morphe-font-editor-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.35);
+  border-bottom-color: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+#morphe-font-settings .morphe-font-back {
+  flex: 0 0 auto;
+  padding: 6px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+#morphe-font-settings .morphe-font-editor-title {
+  font-size: 0.78em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+#morphe-font-settings .morphe-font-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+#morphe-font-settings .morphe-font-weight-field {
+  margin: 12px 0 10px;
+}
+
+#morphe-font-settings .morphe-font-weight-select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  border-color: color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+#morphe-font-settings .morphe-font-weight-select:disabled {
+  opacity: 0.5;
+}
+
+#morphe-font-settings .morphe-font-weight-select:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+#morphe-font-settings .morphe-font-field-label,
+#morphe-font-settings .morphe-font-faces-title,
+#morphe-font-settings .morphe-weight-label {
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  user-select: none;
+}
+
+#morphe-font-settings .morphe-font-name-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid rgba(128, 128, 128, 0.5);
+  border-color: color-mix(in srgb, currentColor 45%, transparent);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+#morphe-font-settings .morphe-font-faces {
+  margin-bottom: 12px;
+}
+
+#morphe-font-settings .morphe-font-faces-title {
+  margin-bottom: 6px;
+}
+
+#morphe-font-settings .morphe-font-face {
+  padding: 10px 0;
+  border-top: 1px solid rgba(128, 128, 128, 0.35);
+  border-top-color: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+#morphe-font-settings .morphe-font-faces-title + .morphe-font-face {
+  border-top: 0;
+}
+
+#morphe-font-settings .morphe-font-face-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+#morphe-font-settings .morphe-font-face-title {
+  font-weight: 700;
+}
+
+#morphe-font-settings .morphe-font-face-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.85em;
+  opacity: 0.6;
+}
+
+#morphe-font-settings .morphe-font-face-file {
+  margin: -2px 0 6px;
+  font-size: 0.8em;
+  opacity: 0.55;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#morphe-font-settings .morphe-font-link,
+#morphe-font-settings .morphe-font-delete {
+  flex: 0 0 auto;
+  padding: 2px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85em;
+  text-decoration: underline;
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+#morphe-font-settings .morphe-font-delete {
+  color: #b3261e;
+  color: var(--c-hsla-danger, #b3261e);
+  opacity: 1;
+}
+
+#morphe-font-settings .morphe-font-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-bottom: 8px;
+}
+
+#morphe-font-settings .morphe-font-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+#morphe-font-settings .morphe-font-inline input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: currentColor;
+}
+
+#morphe-font-settings .morphe-weight-field {
+  margin-top: 8px;
+}
+
+#morphe-font-settings .morphe-weight-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+#morphe-font-settings .morphe-weight-value {
+  font-size: 0.85em;
+  font-weight: 600;
+}
+
+#morphe-font-settings .morphe-weight-scale {
+  position: relative;
+  padding: 0 0 2px;
+}
+
+#morphe-font-settings .morphe-weight-labels {
+  position: relative;
+  height: 28px;
+  margin: 0 10px;
+}
+
+#morphe-font-settings .morphe-weight-tick {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  transform: translateX(-50%);
+  font-size: 0.6em;
+  line-height: 1.1;
+  white-space: nowrap;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+#morphe-font-settings .morphe-weight-number {
+  font-size: 1.25em;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+#morphe-font-settings .morphe-weight-name {
+  font-size: 1em;
+}
+
+#morphe-font-settings .morphe-weight-tick.is-in-range {
+  opacity: 0.8;
+}
+
+#morphe-font-settings .morphe-weight-tick.is-active {
+  opacity: 1;
+}
+
+#morphe-font-settings .morphe-weight-tick.is-active .morphe-weight-number {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+#morphe-font-settings .morphe-weight-slider {
+  position: relative;
+  height: 34px;
+  margin: 2px 0;
+  cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#morphe-font-settings .morphe-weight-area {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 0;
+  bottom: 0;
+}
+
+#morphe-font-settings .morphe-weight-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 6px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.35);
+  background: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+#morphe-font-settings .morphe-weight-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.55;
+}
+
+#morphe-font-settings .morphe-weight-handle {
+  position: absolute;
+  top: 50%;
+  box-sizing: border-box;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  margin-top: -9px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 2px rgba(127, 127, 127, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+  cursor: grab;
+  touch-action: none;
+}
+
+#morphe-font-settings .morphe-weight-handle.is-dragging {
+  cursor: grabbing;
+}
+
+#morphe-font-settings .morphe-weight-slider:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+#morphe-font-settings .morphe-weight-handle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+#morphe-font-settings .morphe-font-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 14px 0 4px;
+}
+
+#morphe-font-settings .morphe-font-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 14px;
+  border: 2px solid currentColor;
+  border-radius: 8px;
+  background: rgba(128, 128, 128, 0.18);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#morphe-font-settings .morphe-font-action:active {
+  background: rgba(128, 128, 128, 0.32);
+  background: color-mix(in srgb, currentColor 24%, transparent);
+}
+
+#morphe-font-settings .morphe-font-hint {
+  margin: 4px 0 0;
+  min-height: 1.35em;
+  font-size: 0.78em;
+  line-height: 1.35;
+  color: #c9a227;
+}
+
+#morphe-font-settings .morphe-font-note {
+  margin: 0;
+  font-size: 0.78em;
+  line-height: 1.35;
+  opacity: 0.6;
+}
+
+#morphe-font-settings .morphe-font-editor-status {
+  margin: 8px 0 0;
+  font-size: 0.85em;
+  color: #b3261e;
+  color: var(--c-hsla-danger, #b3261e);
+}
+
+#morphe-font-settings .morphe-font-danger-zone {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(128, 128, 128, 0.35);
+  border-top-color: color-mix(in srgb, currentColor 22%, transparent);
+}
+
+#morphe-font-settings .morphe-font-edit:focus-visible,
+#morphe-font-settings .morphe-font-back:focus-visible,
+#morphe-font-settings .morphe-font-action:focus-visible,
+#morphe-font-settings .morphe-font-link:focus-visible,
+#morphe-font-settings .morphe-font-name-input:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+/* One sheet for both ways of adding faces. It lives inside the section so
+   these scoped rules apply, but covers the viewport like a native dialog. */
+#morphe-font-settings .morphe-font-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+#morphe-font-settings .morphe-font-modal-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff;
+  background: Canvas;
+  color: #111;
+  color: CanvasText;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.35);
+}
+
+#morphe-font-settings .morphe-font-modal-title {
+  margin: 0 0 4px;
+  font-size: 1em;
+  font-weight: 700;
+}
+
+#morphe-font-settings .morphe-font-modal-note {
+  margin: 0;
+  font-size: 0.85em;
+  line-height: 1.4;
+  opacity: 0.7;
+}
+
+#morphe-font-settings .morphe-font-modal .morphe-font-list {
+  max-height: 45vh;
+  border-bottom: 0;
+}
+
+#morphe-font-settings .morphe-font-modal .morphe-font-link {
+  align-self: flex-start;
+}
+
+#morphe-font-settings .morphe-font-modal .morphe-font-note {
+  margin: 0;
+  font-size: 0.78em;
+  line-height: 1.35;
+  opacity: 0.6;
+}
+
+
+/* --- Font sheet ---------------------------------------------------------
+   Our own modal, so none of Libby's shade sizing, padding or keyboard
+   behavior applies. The element is fixed and fitted to the visual viewport by
+   controller.js, which is what keeps it above the keyboard. */
+
+#morphe-font-overlay[hidden] {
+  display: none !important;
+}
+
+#morphe-font-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  box-sizing: border-box;
+  /* Transparent: the panel and backdrop paint; the reader stays visible. */
+  background: transparent;
+  color-scheme: light dark;
+}
+
+#morphe-font-overlay .morphe-font-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+#morphe-font-overlay .morphe-font-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  height: 60%;
+  max-height: 100%;
+  min-height: 0;
+  border-radius: 16px 16px 0 0;
+  background: Canvas;
+  color: CanvasText;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+#morphe-font-overlay .morphe-font-panel-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+  border-bottom-color: color-mix(in srgb, currentColor 24%, transparent);
+}
+
+#morphe-font-overlay .morphe-font-panel-title {
+  margin: 0;
+  font-size: 1.05em;
+  font-weight: 700;
+}
+
+#morphe-font-overlay .morphe-font-panel-close {
+  flex: 0 0 auto;
+  padding: 8px 4px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+#morphe-font-overlay .morphe-font-panel-close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 1px;
+}
+
+/* The only scroller in the sheet. Flex min-height:0 lets it shrink when the
+   keyboard opens, so its content stays scrollable instead of being clipped. */
+#morphe-font-overlay .morphe-font-panel-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Category header inside the sheet ("Custom Font"). Further sections can be
+   added below it later. */
+#morphe-font-overlay #morphe-font-settings .readability-section-label {
+  margin: 0 0 10px;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+#morphe-font-overlay #morphe-font-settings {
+  margin: 0;
+}
+
+/* Nested scrollers are awkward with a keyboard open: the panel body scrolls,
+   so the list and editor can grow to their natural height. The add-face modal
+   keeps its own height cap below. */
+#morphe-font-overlay .morphe-font-list,
+#morphe-font-overlay #morphe-font-editor {
+  max-height: none;
+  overflow: visible;
+}
+
+#morphe-font-overlay .morphe-font-modal-sheet {
+  max-height: 100%;
+}
+
+/* Font item in the reader's nav bar. The button markup is Libby's, cloned from
+   the Appearance item; only the icon inner content is ours. */
+#morphe-font-nav-item .morphe-font-nav-glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 0.92em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}

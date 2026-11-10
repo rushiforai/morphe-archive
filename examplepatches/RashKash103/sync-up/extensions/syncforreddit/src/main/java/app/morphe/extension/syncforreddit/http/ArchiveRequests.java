@@ -48,7 +48,8 @@ public final class ArchiveRequests {
      * <p>Kept per host: these are several separate services, and one of them being down says
      * nothing about the others.
      */
-    private static final Map<String, AtomicInteger> refusals = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, AtomicInteger> refusals =
+            new ConcurrentHashMap<>();
     private static final Map<String, Long> restingUntil = new ConcurrentHashMap<>();
 
     private static final Semaphore inFlight = new Semaphore(CONCURRENT_REQUESTS, true);
@@ -118,8 +119,16 @@ public final class ArchiveRequests {
     }
 
     private static void notAnswering(String host) {
-        int failed = refusals.computeIfAbsent(host, where -> new AtomicInteger())
-                .incrementAndGet();
+        // Not Map.computeIfAbsent, which arrived in API 24 and throws below it. Asked of
+        // ConcurrentHashMap rather than of Map, since putIfAbsent on the interface is API 24
+        // as well while the one on the concurrent map has always been there.
+        AtomicInteger seen = refusals.get(host);
+        if (seen == null) {
+            AtomicInteger first = new AtomicInteger();
+            AtomicInteger raced = refusals.putIfAbsent(host, first);
+            seen = raced == null ? first : raced;
+        }
+        int failed = seen.incrementAndGet();
         if (failed >= FAILURES_BEFORE_RESTING) {
             restingUntil.put(host, System.currentTimeMillis() + REST_FOR_MS);
             refusals.remove(host);

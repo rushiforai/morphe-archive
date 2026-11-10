@@ -56,7 +56,8 @@
       "profile_grid_sort",
       "liked_grid_sort",
       "sound_grid_sort",
-      "liked_jump_to_date"
+      "liked_jump_to_date",
+      "grid_position_controls"
     ],
     "Always upload in HD": [
       "always_upload_hd"
@@ -290,6 +291,8 @@
       "bottom_navigation_tabs",
       "bottom_navigation_block_new_tabs",
       "discover_bottom_tab",
+      "friends_top_tab",
+      "bottom_tab_icon_style",
       "hide_tab_badges",
       "hide_bottom_tab_labels",
       "bottom_tab_name_home",
@@ -1090,6 +1093,12 @@
       "type": "string",
       "default": "HOME,FRIENDS,PUBLISH,INBOX,PROFILE,MALL"
     },
+    "bottom_tab_icon_style": {
+      "field": "BOTTOM_TAB_ICON_STYLE",
+      "key": "bottom_tab_icon_style",
+      "type": "string",
+      "default": "tiktok"
+    },
     "bottom_tab_name_friends": {
       "field": "BOTTOM_TAB_NAME_FRIENDS",
       "key": "bottom_tab_name_friends",
@@ -1884,6 +1893,12 @@
       "type": "boolean",
       "default": false
     },
+    "friends_top_tab": {
+      "field": "FRIENDS_TOP_TAB",
+      "key": "friends_top_tab",
+      "type": "boolean",
+      "default": false
+    },
     "full_screen_hold": {
       "field": "FULL_SCREEN_HOLD",
       "key": "full_screen_hold",
@@ -1983,6 +1998,12 @@
     "glass_video_blur": {
       "field": "GLASS_VIDEO_BLUR",
       "key": "glass_video_blur",
+      "type": "boolean",
+      "default": false
+    },
+    "grid_position_controls": {
+      "field": "GRID_POSITION_CONTROLS",
+      "key": "grid_position_controls",
       "type": "boolean",
       "default": false
     },

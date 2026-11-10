@@ -1,0 +1,19 @@
+{
+  "name": "Mon appli",
+  "short_name": "Mon appli",
+  "description": "Appli créée avec ModProd APK Creator.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#141A21",
+  "theme_color": "#141A21",
+  "lang": "fr",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

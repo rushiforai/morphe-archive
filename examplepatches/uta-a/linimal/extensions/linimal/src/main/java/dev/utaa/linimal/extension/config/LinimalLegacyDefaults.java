@@ -15,6 +15,9 @@ import java.util.Map;
  * <p>ここに載っていない機能は、この table を凍結した後に追加された新しい機能です。既存
  * インストールにとっても新機能であり保護すべき挙動が無いため、migration は書き込まず、その時点の
  * {@link LinimalDefaults} をフォールバックとして使わせます。</p>
+ *
+ * <p>機能そのものを削除した場合は、その行だけを取り除きます。下部タブの VOOM 設定はサービス終了に伴い
+ * 削除し（VOOM は常に取り除きます）、保存済みの {@code linimal.feature.voom} は読まれないまま残ります。</p>
  */
 final class LinimalLegacyDefaults {
     /** schema v3 より前の {@code LinimalDefaults.READ_RECEIPT_MODE} です。 */
@@ -44,7 +47,6 @@ final class LinimalLegacyDefaults {
         states.put(LinimalFeature.ADS, true);
         states.put(LinimalFeature.LINE_AI, true);
         states.put(LinimalFeature.PREMIUM, true);
-        states.put(LinimalFeature.VOOM, true);
         states.put(LinimalFeature.NEWS, true);
         states.put(LinimalFeature.WALLET, false);
         states.put(LinimalFeature.HOME_RECOMMENDATIONS, true);

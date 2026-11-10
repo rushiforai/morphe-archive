@@ -26,6 +26,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Setup Node.js
         uses: actions/setup-node@v7
@@ -38,6 +39,9 @@ jobs:
 
       - name: Make gradlew executable
         run: chmod +x gradlew
+
+      - name: Pre-fetch Gradle wrapper
+        run: ./gradlew --version
 
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc

@@ -61,9 +61,9 @@ param(
     # or on Android's app chooser.
     [string[]]$Visit = @('fb://feed', 'tap:Comment', 'back', 'fb://watch', 'fb://fb_shorts/viewer', 'longpress',
         'fb://notifications', 'fb://marketplace', 'fb://profile', 'fb://search', 'query',
-        'fb://bookmarks', 'tap:Settings and privacy', 'fb://bookmarks', 'tap:Feeds', 'fb://feed'),
+        'fb://bookmarks', 'tap:Settings and privacy', 'tap:Settings', 'tap:Notifications', 'fb://feed'),
     # Only these explicitly optional steps may be absent without failing the requested scope.
-    [string[]]$OptionalVisit = @('tap:Comment', 'tap:Feeds'),
+    [string[]]$OptionalVisit = @('tap:Comment', 'tap:Settings', 'tap:Notifications'),
     [int]$Swipes = 4,
     [int]$SettleSeconds = 4,
     # Setting keys to turn on or off on top of the all-on profile, besides the few the walk itself
@@ -195,7 +195,7 @@ function Assert-AuditLease {
 function Assert-AuditSteps {
     $allowed = @('fb://feed', 'fb://watch', 'fb://fb_shorts/viewer', 'fb://notifications',
         'fb://marketplace', 'fb://profile', 'fb://search', 'fb://bookmarks',
-        'tap:Comment', 'tap:Settings and privacy', 'tap:Feeds', 'back', 'longpress', 'query')
+        'tap:Comment', 'tap:Settings and privacy', 'tap:Settings', 'tap:Notifications', 'tap:Feeds', 'back', 'longpress', 'query')
     foreach ($step in $Visit) {
         if ($allowed -cnotcontains $step) { throw "Not a permitted audit navigation step: $step" }
     }
@@ -263,7 +263,7 @@ function Invoke-Adb {
                     throw 'The tap is not inside the one search field holding the query. No tap was sent.'
                 }
             } elseif ($arguments[2] -eq 'tap') {
-                if ($inputNodeLabel -cnotin @('Comment', 'Settings and privacy', 'Feeds')) {
+                if ($inputNodeLabel -cnotin @('Comment', 'Settings and privacy', 'Settings', 'Notifications', 'Feeds')) {
                     throw 'No permitted navigation node was selected. No tap was sent.'
                 }
                 # The label must still name one target on the fresh screen, and the tap must land in it.
@@ -567,6 +567,8 @@ function Select-AuditTapNode([string]$Label, [object[]]$Nodes, [string[]]$Repeat
         return @($reachable | Sort-Object Top)[0].Node
     }
     $rows = @($found | Where-Object { $_.clickable -ceq 'true' })
+    # The Menu's header gear and its expanded group's row both say Settings and open the same page.
+    if ($rows.Count -eq 1 -and $Label -ceq 'Settings') { return $rows[0] }
     if ($found.Count -lt 2 -or $rows.Count -ne 1) { return $null }
     $null = $rows[0].bounds -match $boundsPattern
     $outer = @([int]$Matches[1], [int]$Matches[2], [int]$Matches[3], [int]$Matches[4])
@@ -648,10 +650,13 @@ function Send-Profile([string]$Json) {
 # Keep the reel speed run on it alone. Hiding the Comment button under posts leaves tap:Comment
 # nothing to open, and the comment sheet is the only way the walk reaches Open comments at full
 # height (585 hides it; 584 never sent the row's type list on this account, so the baseline didn't
-# see it). A key in both -On and -Off ends off, as the extension applies off after on.
+# see it). Hiding the speaker on reels keeps Move the speaker above the three dots from ever building
+# one, so the walk never called the side column's builder, and 586's Reels tab crash in it (the
+# builder became an instance method) passed a walk with 0 crashes. A key in both -On and -Off ends
+# off, as the extension applies off after on.
 function Get-AuditOff([string[]]$OnKeys, [string[]]$OffKeys,
     [string[]]$WalkKeys = @('hushfacebook_hold_reel_right_edge', 'hushfacebook_long_press_opens_comments',
-        'hushfacebook_hide_post_comment_button')) {
+        'hushfacebook_hide_post_comment_button', 'hushfacebook_hide_reel_sound_button')) {
     $keys = [System.Collections.Generic.List[string]]::new()
     foreach ($key in @(@($WalkKeys | Where-Object { $OnKeys -cnotcontains $_ }) + @($OffKeys))) {
         if ($key -and -not $keys.Contains($key)) { $keys.Add($key) }
@@ -945,7 +950,10 @@ function Test-SettingsScreen([string[]]$Text, [object]$Rows) {
 }
 
 # Back until no Hush settings screen is left. Back first takes a page back from its section jump,
-# then closes the screen.
+# then closes the screen. A section page (schema 3) always shows the toolbar's list toggle, and its
+# title can be one of Facebook's own tab labels (Menu, Search, Marketplace, Notifications), so only
+# a schema 2 page counts by its title alone. Matching "Menu" on Facebook's tab bar sent one Back too
+# many on 586 and put Facebook in the background.
 function Close-Settings {
     for ($i = 0; $i -lt 4; $i++) {
         $text = @(Get-ScreenText)
@@ -953,7 +961,7 @@ function Close-Settings {
         $shown = if ($record) { $record | ConvertFrom-Json } else { $null }
         $table = if ($shown) { Get-AuditLocaleTable ([string]$shown.locale) $shown.localeTags } else { $null }
         if (-not ((Test-SettingsScreen $text $(if ($table) { $table.Rows } else { $null })) -or $text -contains 'Search settings' -or
-                ($shown -and $shown.schema -in @(2, 3) -and $text -contains $shown.title))) { return }
+                ($shown -and $shown.schema -eq 2 -and $text -contains $shown.title))) { return }
         Invoke-Adb shell input keyevent KEYCODE_BACK | Out-Null
         Start-Sleep -Milliseconds 900
     }
@@ -1203,7 +1211,16 @@ try {
             } elseif ($step -eq 'back') {
                 if ($skipBack) { $skipBack = $false; continue }
                 $inputReel = $routeReel
-                try { Invoke-Adb shell input keyevent KEYCODE_BACK | Out-Null }
+                try {
+                    # A post with no comments opens its sheet with the composer focused and the keyboard
+                    # up, where a Back only drops the keyboard and leaves the sheet over the next links
+                    # (third S22 walk, 2026-11-09, failed the reel hold under it). So that Back goes first.
+                    if (-not $routeReel -and (Test-AuditKeyboard)) {
+                        Invoke-Adb shell input keyevent KEYCODE_BACK | Out-Null
+                        Start-Sleep -Seconds 1
+                    }
+                    Invoke-Adb shell input keyevent KEYCODE_BACK | Out-Null
+                }
                 finally { $inputReel = $false }
                 $routeReel = $false
                 $routeStep = $null

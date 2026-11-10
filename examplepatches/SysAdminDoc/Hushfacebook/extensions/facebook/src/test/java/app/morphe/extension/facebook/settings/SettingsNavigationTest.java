@@ -304,6 +304,12 @@ public class SettingsNavigationTest {
         assertTrue(BaseSettings.PAUSED.savedValue());
         assertTrue(((Preference) list().getItemAtPosition(0)).getSummary().toString()
                 .contains("pauses when Facebook restarts"));
+        // The card showed "Hushfacebook pauses when Facebook restarts." twice, as its title and its line.
+        View card = list().getAdapter().getView(0, null, list());
+        TextView title = card.findViewById(android.R.id.title);
+        TextView line = card.findViewById(android.R.id.summary);
+        assertEquals("Hushfacebook is on", title.getText().toString());
+        assertTrue(line.getText().toString(), line.getText().toString().contains("pauses when Facebook restarts"));
         action = statusAction();
         assertEquals("Undo", action.getText().toString());
         action.performClick();
@@ -2142,8 +2148,12 @@ public class SettingsNavigationTest {
         page.importPreview.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
         page.navigation.navigate("");
         page.navigation.navigate("About");
-        Preference about = page.sections().get(page.sections().size() - 1);
-        Preference licenses = ((PreferenceCategory) about).getPreference(2);
+        PreferenceCategory about = (PreferenceCategory) page.sections().get(page.sections().size() - 1);
+        Preference licenses = null;
+        for (int i = 0; i < about.getPreferenceCount(); i++) {
+            if ("Licenses".contentEquals(about.getPreference(i).getTitle())) licenses = about.getPreference(i);
+        }
+        assertNotNull("About has no Licenses row", licenses);
         licenses.getOnPreferenceClickListener().onPreferenceClick(licenses);
         AlertDialog notice = (AlertDialog) org.robolectric.shadows.ShadowDialog.getLatestDialog();
         captureDialog(prefix + "dialog-licenses", notice);

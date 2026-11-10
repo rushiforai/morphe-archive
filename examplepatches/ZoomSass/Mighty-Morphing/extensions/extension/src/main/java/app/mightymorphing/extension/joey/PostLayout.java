@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -156,6 +157,21 @@ public final class PostLayout {
 
     public static boolean offerLayout(Activity activity) {
         return activity != null && ModernUi.isModernUiEnabled(activity);
+    }
+
+    /** Modern UI already fixes layout, thumbnail side, and corner radius. */
+    public static void trimPostStyle(Activity activity) {
+        if (activity == null || !ModernUi.isModernUiEnabled(activity)) return;
+        hideRow(activity, "post_type_clickable");
+        hideRow(activity, "thumbnail_radius_clickable");
+        hideRow(activity, "thumbnail_right_clickable");
+    }
+
+    private static void hideRow(Activity activity, String name) {
+        int id = activity.getResources().getIdentifier(name, "id", activity.getPackageName());
+        if (id == 0) return;
+        View row = activity.findViewById(id);
+        if (row != null) row.setVisibility(View.GONE);
     }
 
     public static boolean offerImage(Activity activity) {
@@ -516,6 +532,7 @@ public final class PostLayout {
             thumb.getClass().getMethod("setCornerRadius", float.class).invoke(thumb, 10f * density);
         } catch (Throwable ignored) {
         }
+        seatBody(item, thumb);
         if (bar == null) return;
         ViewGroup.LayoutParams barLp = bar.getLayoutParams();
         setConstraint(barLp, "rightToLeft", -1);
@@ -530,6 +547,57 @@ public final class PostLayout {
         }
     }
 
+    private static final int BODY_SEATED = 0x4d4f0007;
+
+    /**
+     * A visible written body is full width and starts under the square.
+     * The title and the info line stay beside it. A row with no body is unchanged.
+     */
+    private static void seatBody(View item, View thumb) {
+        View body = find(item, "htmlDisplay_submission_card");
+        if (body == null || body.getVisibility() != View.VISIBLE) return;
+        ViewGroup.LayoutParams lp = body.getLayoutParams();
+        setConstraint(lp, "topToTop", -1);
+        setConstraint(lp, "topToBottom", thumb.getId());
+        setConstraint(lp, "leftToRight", -1);
+        setConstraint(lp, "leftToLeft", 0);
+        setConstraint(lp, "rightToLeft", -1);
+        setConstraint(lp, "rightToRight", 0);
+        if (lp instanceof ViewGroup.MarginLayoutParams) {
+            ((ViewGroup.MarginLayoutParams) lp).topMargin = 0;
+        }
+        body.setLayoutParams(lp);
+        View filler = find(item, "filler_view");
+        if (filler != null) {
+            ViewGroup.LayoutParams fillerLp = filler.getLayoutParams();
+            setConstraint(fillerLp, "bottomToTop", -1);
+            filler.setLayoutParams(fillerLp);
+        }
+        if (body.getTag(BODY_SEATED) == null) {
+            body.setTag(BODY_SEATED, Boolean.TRUE);
+            body.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, orr, ob) -> clearBody(body, thumb, item));
+        }
+    }
+
+    /** Keep the body under the info line when that line is taller than the square. */
+    private static void clearBody(View body, View thumb, View item) {
+        if (body.getVisibility() != View.VISIBLE || thumb.getVisibility() == View.GONE) return;
+        ViewGroup.LayoutParams lp = body.getLayoutParams();
+        if (!(lp instanceof ViewGroup.MarginLayoutParams)) return;
+        ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
+        int textBottom = 0;
+        View info = find(item, "submissionInfo");
+        View spoken = find(item, "submission_tts");
+        if (info != null && info.getVisibility() != View.GONE) textBottom = info.getBottom();
+        if (spoken != null && spoken.getVisibility() != View.GONE) {
+            textBottom = Math.max(textBottom, spoken.getBottom());
+        }
+        int need = Math.max(0, textBottom - thumb.getBottom());
+        if (mlp.topMargin == need) return;
+        mlp.topMargin = need;
+        body.post(() -> body.setLayoutParams(mlp));
+    }
+
     /** The full-width action row starts below the thumbnail when the text is shorter than it. */
     private static void clearThumbnail(View bar, View thumb, int baseKey, int gap) {
         Object stored = bar.getTag(baseKey);
@@ -540,7 +608,10 @@ public final class PostLayout {
         int base = (Integer) stored;
         int extra = mlp.topMargin - base;
         int need = 0;
-        if (thumb.getVisibility() != View.GONE && "THUMBNAIL".equals(imageName())) {
+        View body = thumb.getParent() instanceof View
+                ? find((View) thumb.getParent(), "htmlDisplay_submission_card") : null;
+        boolean written = body != null && body.getVisibility() == View.VISIBLE;
+        if (!written && thumb.getVisibility() != View.GONE && "THUMBNAIL".equals(imageName())) {
             need = Math.max(0, thumb.getBottom() + gap - (bar.getTop() - extra));
         }
         if (need == extra) return;
@@ -1351,8 +1422,14 @@ public final class PostLayout {
         return found == 0 ? null : item.findViewById(found);
     }
 
+    private static final Map<String, Integer> IDS = new HashMap<>();
+
     private static int id(View view, String name) {
-        return view.getResources().getIdentifier(name, "id", view.getContext().getPackageName());
+        Integer cached = IDS.get(name);
+        if (cached != null) return cached;
+        int found = view.getResources().getIdentifier(name, "id", view.getContext().getPackageName());
+        IDS.put(name, found);
+        return found;
     }
 
     private static View findCard(View item) {
@@ -1381,12 +1458,20 @@ public final class PostLayout {
         }
     }
 
+    private static final Map<String, Method> METHODS = new HashMap<>();
+
     private static void invoke(Object target, String name, Object arg) {
         try {
             Class<?> type = arg instanceof Float ? float.class
                     : arg instanceof Boolean ? boolean.class
                     : arg instanceof Integer ? int.class : arg.getClass();
-            target.getClass().getMethod(name, type).invoke(target, arg);
+            String key = target.getClass().getName() + "#" + name + "#" + type.getName();
+            Method method = METHODS.get(key);
+            if (method == null) {
+                method = target.getClass().getMethod(name, type);
+                METHODS.put(key, method);
+            }
+            method.invoke(target, arg);
         } catch (Throwable ignored) {
         }
     }

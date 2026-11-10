@@ -1,0 +1,43 @@
+name: Diagnose NoBrokerHood Kotlin
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/diagnose-morphe.yml'
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Compile and report errors outside logs
+        shell: bash
+        run: |
+          chmod +x ./gradlew
+          set +e
+          ./gradlew :patches:compileKotlin --no-daemon --console=plain > gradle-output.txt 2>&1
+          status=$?
+          {
+            echo "## Kotlin build result: exit code $status"
+            echo '### Compiler and build errors'
+            echo '```text'
+            grep -nE '(^e:|^FAILURE:|^\* What went wrong:|^Execution failed for task|^> Task .*FAILED|^Caused by:)' gradle-output.txt | head -n 45 || true
+            echo '```'
+            echo '### Last 50 build lines'
+            echo '```text'
+            tail -n 50 gradle-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" -ne 0 ]; then
+            echo '::error::Kotlin compilation failed. Open the workflow RUN SUMMARY to see the error text.'
+          fi
+          exit "$status"

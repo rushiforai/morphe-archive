@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.patches.feed
 
 import app.linkedin.patches.shared.Constants.COMPATIBILITY_LINKEDIN
@@ -8,24 +13,24 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 
-private const val ACTION_LIST = "Lcom/linkedin/sdui/viewdata/action/ActionListViewData;"
+private const val CLICK_CALLBACKS = "Lcom/linkedin/sdui/viewdata/action/ActionListViewData;"
 
 /**
- * ClickActions(onClick, onLongClick, onDoubleClick) of the server driven UI.
- * 4.1.1261 added a fourth parameter (onLongClickPhases), so only the first three are matched.
+ * ClickActions(onClick, onLongClick, onDoubleClick, ...) of the server driven UI. 4.1.1261 appended
+ * onLongClickPhases, and more may follow, so only the leading ActionListViewData parameters are checked.
  */
-private object ClickActionsFingerprint : Fingerprint(
+private val clickActions = Fingerprint(
     definingClass = "Lcom/linkedin/sdui/viewdata/action/ClickActions;",
     name = "<init>",
     custom = { method, _ ->
-        method.parameterTypes.size >= 3 && method.parameterTypes.take(3).all { it.toString() == ACTION_LIST }
+        method.parameterTypes.size >= 3 && method.parameterTypes.take(3).all { it.toString() == CLICK_CALLBACKS }
     },
 )
 
 @Suppress("unused")
 val disableDoubleTapLikePatch = bytecodePatch(
     name = "Disable double-tap like",
-    description = "Stops double tapping a post or photo from liking it.",
+    description = "A double tap on a post or a photo no longer likes it.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -34,13 +39,13 @@ val disableDoubleTapLikePatch = bytecodePatch(
     execute {
         markIncluded("isDisableDoubleTapLikeIncluded")
 
-        // p3 is onDoubleClick. Range form because p3 can be above v15.
-        ClickActionsFingerprint.method.addInstructions(
+        // p3 holds onDoubleClick. The range form is needed because p3 can sit above v15.
+        clickActions.method.addInstructions(
             0,
             """
                 invoke-static/range { p3 .. p3 }, $EXTENSION_PACKAGE/DoubleTapPatch;->filterDoubleClick(Ljava/lang/Object;)Ljava/lang/Object;
                 move-result-object p3
-                check-cast p3, $ACTION_LIST
+                check-cast p3, $CLICK_CALLBACKS
             """
         )
     }

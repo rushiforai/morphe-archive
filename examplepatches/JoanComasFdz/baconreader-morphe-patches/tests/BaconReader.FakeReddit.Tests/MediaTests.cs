@@ -146,6 +146,20 @@ public sealed class MediaTests(FakeRedditFixture fixture) : FakeRedditTest(fixtu
             data.GetProperty("selftext_html").GetString());
     }
 
+    [Fact]
+    public async Task An_image_post_with_text_keeps_its_image_and_sends_its_text()
+    {
+        var post = World.AddPost("e2e", "Captioned", build => build.WithImage().Saying("A long caption"));
+
+        var page = await GetJsonAsync($"/comments/{post.Id}/.json");
+
+        var data = page[0].GetProperty("data").GetProperty("children")[0].GetProperty("data");
+        Assert.False(data.GetProperty("is_self").GetBoolean());
+        Assert.Equal(post.Url, data.GetProperty("url").GetString());
+        Assert.Equal("A long caption", data.GetProperty("selftext").GetString());
+        Assert.Contains("A long caption", data.GetProperty("selftext_html").GetString(), StringComparison.Ordinal);
+    }
+
     // The data of the post's one comment.
     private async Task<JsonElement> ReadCommentAsync(Post post)
     {

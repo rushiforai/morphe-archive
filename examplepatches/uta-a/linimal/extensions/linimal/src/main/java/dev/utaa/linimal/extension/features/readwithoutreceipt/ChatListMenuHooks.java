@@ -3,6 +3,7 @@ package dev.utaa.linimal.extension.features.readwithoutreceipt;
 import android.content.Context;
 
 import dev.utaa.linimal.extension.config.LinimalConfig;
+import dev.utaa.linimal.extension.i18n.LinimalText;
 
 /**
  * トーク一覧の長押しメニューへ追加する「既読をつけずに読む」行の判定とラベルを提供します。
@@ -80,7 +81,8 @@ public final class ChatListMenuHooks {
      */
     public static String menuLabel() {
         final Context context = applicationContext;
-        return menuLabelWith(new LabelResolver() {
+        // resource の値は日本語の原文で、表示言語の訳はここで引きます。
+        return LinimalText.t(menuLabelWith(new LabelResolver() {
             @Override
             public String resolve() {
                 if (context == null) {
@@ -93,7 +95,7 @@ public final class ChatListMenuHooks {
                 }
                 return context.getString(resourceId);
             }
-        });
+        }));
     }
 
     /** {@code resolver} が null・例外・空文字を返した場合はすべて {@link #DEFAULT_MENU_LABEL} へ倒します。 */

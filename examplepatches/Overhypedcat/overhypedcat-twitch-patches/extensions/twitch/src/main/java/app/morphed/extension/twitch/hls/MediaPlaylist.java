@@ -115,7 +115,7 @@ public final class MediaPlaylist {
         boolean inSegments = false;
         String map = null;
 
-        for (String rawLine : text.split("\r?\n")) {
+        for (String rawLine : Lines.of(text)) {
             String line = rawLine.trim();
             if (line.isEmpty()) continue;
 
@@ -203,12 +203,80 @@ public final class MediaPlaylist {
         return line.startsWith("#EXT-X-TWITCH-PREFETCH:") || line.startsWith("#EXT-X-PRELOAD-HINT:");
     }
 
-    private static long parseTime(String value) {
+    static long parseTime(String value) {
+        String text = value.trim();
+        long fast = parseUtcTime(text);
+        if (fast != UNKNOWN_TIME) return fast;
         try {
-            return OffsetDateTime.parse(value.trim()).toInstant().toEpochMilli();
+            return OffsetDateTime.parse(text).toInstant().toEpochMilli();
         } catch (DateTimeParseException e) {
             return UNKNOWN_TIME;
         }
+    }
+
+    /**
+     * Twitch's own format, {@code 2026-11-09T09:25:59.434Z}, read without java.time: every segment of
+     * every poll has one, and the general parser is the slowest part of reading a playlist. Anything
+     * else (other offsets, odd digits) gives {@link #UNKNOWN_TIME} and goes to the general parser.
+     */
+    static long parseUtcTime(String text) {
+        int length = text.length();
+        if (length < 20 || text.charAt(length - 1) != 'Z' || text.charAt(4) != '-' || text.charAt(7) != '-'
+                || text.charAt(10) != 'T' || text.charAt(13) != ':' || text.charAt(16) != ':') {
+            return UNKNOWN_TIME;
+        }
+        int year = digits(text, 0, 4);
+        int month = digits(text, 5, 7);
+        int day = digits(text, 8, 10);
+        int hour = digits(text, 11, 13);
+        int minute = digits(text, 14, 16);
+        int second = digits(text, 17, 19);
+        if (year < 0 || month < 1 || month > 12 || day < 1 || day > 31 || hour < 0 || hour > 23
+                || minute < 0 || minute > 59 || second < 0 || second > 59) {
+            return UNKNOWN_TIME;
+        }
+        int millis = 0;
+        if (length > 20) {
+            // ".fraction": only milliseconds count, further digits are dropped like toEpochMilli does.
+            // java.time takes 1 to 9 fraction digits.
+            if (text.charAt(19) != '.' || length == 21 || length > 30) return UNKNOWN_TIME;
+            int scale = 100;
+            for (int i = 20; i < length - 1; i++) {
+                int digit = text.charAt(i) - '0';
+                if (digit < 0 || digit > 9) return UNKNOWN_TIME;
+                millis += digit * scale;
+                scale /= 10;
+            }
+        }
+        if (day > daysInMonth(year, month)) return UNKNOWN_TIME;
+        long days = daysSinceEpoch(year, month, day);
+        return ((days * 24 + hour) * 60 + minute) * 60_000L + second * 1_000L + millis;
+    }
+
+    /** The number in {@code text[from, to)}, or -1 if it is not all digits. */
+    private static int digits(String text, int from, int to) {
+        int value = 0;
+        for (int i = from; i < to; i++) {
+            int digit = text.charAt(i) - '0';
+            if (digit < 0 || digit > 9) return -1;
+            value = value * 10 + digit;
+        }
+        return value;
+    }
+
+    private static int daysInMonth(int year, int month) {
+        if (month == 2) return (year % 4 == 0 && (year % 100 != 0 || year % 400 == 0)) ? 29 : 28;
+        return month == 4 || month == 6 || month == 9 || month == 11 ? 30 : 31;
+    }
+
+    /** Days from 1970-01-01 to the given date (proleptic Gregorian), as in java.time's LocalDate.toEpochDay. */
+    private static long daysSinceEpoch(int year, int month, int day) {
+        long y = month <= 2 ? year - 1 : year;
+        long era = Math.floorDiv(y, 400);
+        long yearOfEra = y - era * 400;
+        long dayOfYear = (153L * (month + (month > 2 ? -3 : 9)) + 2) / 5 + day - 1;
+        long dayOfEra = yearOfEra * 365 + yearOfEra / 4 - yearOfEra / 100 + dayOfYear;
+        return era * 146_097 + dayOfEra - 719_468;
     }
 
     private static long parseLong(String value, long fallback) {

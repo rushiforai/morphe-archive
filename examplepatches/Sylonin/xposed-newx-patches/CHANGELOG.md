@@ -1,3 +1,9 @@
+## [4.1.0](https://github.com/Sylonin/xposed-newx-patches/compare/v4.0.0...v4.1.0) (2026-11-09)
+
+### ✨ New Features
+
+* support X 12.40.1-prod.01 and newer ([922b828](https://github.com/Sylonin/xposed-newx-patches/commit/922b8282c6dd316a4a1721a9f890776680c1d827))
+
 ## [4.0.0](https://github.com/Sylonin/xposed-newx-patches/compare/v3.0.0...v4.0.0) (2026-11-06)
 
 ### ⚠ BREAKING CHANGES

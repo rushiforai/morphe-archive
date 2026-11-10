@@ -36,16 +36,14 @@ fun spoofClientPatch(
         null,
         "OAuth client ID",
         "The Reddit OAuth client ID. Refer to Sync Up documentation for more " +
-                "information on what to put here.",
-        true,
+                "information on what to put here. It can be left empty and set in the app " +
+                "afterwards, under Settings > Everything else > Sync Up client; the app " +
+                "cannot sign in until one is given in one place or the other.",
+        false,
         validator = { value ->
-            if (value.isNullOrBlank()) {
-                return@stringOption false
-            }
-            if (!value.matches(Regex("^[\\w-]{22}$"))) {
-                return@stringOption false
-            }
-            true
+            // Empty is allowed: it can be set in the app instead, which is what lets a copy be
+            // built by something that has no client id of its own to give.
+            value.isNullOrBlank() || value.matches(Regex("^[\\w-]{22}$"))
         }
     )
     val redirectUriOption = stringOption(
@@ -54,8 +52,10 @@ fun spoofClientPatch(
         null,
         "Redirect URI",
         "The Reddit OAuth redirect URI. Refer to Sync Up documentation for more " +
-                "information on what to put here. Default value is RedReader's redirect URI.",
-        true,
+                "information on what to put here. Default value is RedReader's redirect URI. " +
+                "It can also be changed in the app, under Settings > Everything else > " +
+                "Sync Up client.",
+        false,
     )
     val userAgentOption = stringOption(
         "user-agent",
@@ -63,8 +63,9 @@ fun spoofClientPatch(
         null,
         "User agent",
         "The app's user agent. Refer to Sync Up documentation for more information " +
-                "on what to put here. Default value is RedReader's user agent.",
-        true
+                "on what to put here. Default value is RedReader's user agent. It can also be " +
+                "changed in the app, under Settings > Everything else > Sync Up client.",
+        false
     )
 
     block(

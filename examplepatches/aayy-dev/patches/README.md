@@ -1,4 +1,4 @@
-# Aayy Patches
+# aayy-dev
 
 Personal patches for use with [Morphe](https://morphe.software). Morphe patches an app's official APK
 **on the device** (ReVanced-style), so there is no custom fork to install and no build server to run.

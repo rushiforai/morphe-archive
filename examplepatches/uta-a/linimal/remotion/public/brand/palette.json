@@ -1,0 +1,12 @@
+{
+  "background": "#111111",
+  "surface": "#1E1E1E",
+  "text": "#F2F2F2",
+  "muted": "#9A9A9A",
+  "accent": "#4FD1A5",
+  "accent2": "#7AA7FF",
+  "warning": "#F0B45A",
+  "lineDarkModeBackground": "#111111",
+  "linimalSettingsBackground": "#1B1B1B",
+  "switchOn": "#4CD964"
+}

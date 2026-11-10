@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_controller_pose_time",
+    "library_path": "libgxr_controller_pose_time.so",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "Sends each controller pose with the time the Galaxy XR runtime labelled it, minus a compensation",
+    "disable_environment": "GXR_DISABLE_CONTROLLER_POSE_TIME"
+  }
+}

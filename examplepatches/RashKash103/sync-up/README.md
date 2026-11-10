@@ -35,9 +35,9 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.9.4](https://github.com/RashKash103/sync-up/releases/tag/v1.9.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
+> **[v1.10.0](https://github.com/RashKash103/sync-up/releases/tag/v1.10.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;34 patches total
 <details open>
-<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;30 patches</summary>
+<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;33 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -64,6 +64,7 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 | [Keep the links in the text of a post](#keep-the-links-in-the-text-of-a-post) | Keeps the formatting and links in the body shown under a post, which Sync otherwise discards. |  |
 | [Keep transparency in a picture](#keep-transparency-in-a-picture) | Draws the transparent parts of a picture opened in the viewer as the background behind it rather than as white. |  |
 | [Load threads whose text contains a dollar sign](#load-threads-whose-text-contains-a-dollar-sign) | Stops a thread failing to load when the text in it contains a dollar sign. |  |
+| [Lock an account with a PIN](#lock-an-account-with-a-pin) | Adds a PIN to the Security settings that is asked for when an account is opened and, if you like, when the app is opened, beside or instead of Sync's fingerprint lock. |  |
 | [Make an address in a post tappable](#make-an-address-in-a-post-tappable) | Draws a bare address in a post's body as a link. |  |
 | [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
 | [More actions on the floating button](#more-actions-on-the-floating-button) | Puts up to four of Sync's own actions beside the feed's floating button. |  |
@@ -72,84 +73,10 @@ Add this patch source to Morphe Manager: https://morphe.software/add-source?gith
 | [Show a hidden profile from the archive](#show-a-hidden-profile-from-the-archive) | Fills in a profile from Project Arctic Shift when Reddit answers with nothing. |  |
 | [Show a subreddit's banner on its feed](#show-a-subreddit-s-banner-on-its-feed) | Draws the banner a subreddit sets at the top of its posts, rather than only on its About page. |  |
 | [Show media in a comment where it sits](#show-media-in-a-comment-where-it-sits) | Draws a link in a comment as the picture or video it points at rather than as a chip naming where it goes. |  |
+| [Show the feed while a post is swiped away](#show-the-feed-while-a-post-is-swiped-away) | Draws the screen behind a post as it is dragged aside, which is otherwise left black. |  |
 | [Show videos posted in comments](#show-videos-posted-in-comments) | Draws a video posted in a comment in the comment, and plays it when tapped. |  |
 | [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent<br>• Imgur client ID |
-| [Translate posts and comments](#translate-posts-and-comments) | Translates a post or comment where it sits, on this device or through DeepL or Google Cloud. |  |
-| [Unlock Sync Ultra](#unlock-sync-ultra) | Turns on the Sync Ultra features that work on the device alone, and removes the offers to buy it. |  |
-| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated /u profile endpoint with /user. |  |
-
-</details>
-
-<details open>
-<summary>📦 Sync for Reddit Pro&nbsp;&nbsp;•&nbsp;&nbsp;29 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Add archive links to menus](#add-archive-links-to-menus) | Adds Wayback Machine and archive.today options to the menus behind a post and behind a link. |  |
-| [Automatically undelete Imgur media](#automatically-undelete-imgur-media) | Loads Imgur images and videos that no longer exist from the Wayback Machine. |  |
-| [Automatically undelete Reddit content](#automatically-undelete-reddit-content) | Restores the text of removed posts and comments, and the names of deleted authors, from Project Arctic Shift. |  |
-| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
-| [Fix /s/ links](#fix-s-links) | Opens Reddit's shortened /s/ share links in the app. |  |
-| [Fix Imgur links](#fix-imgur-links) | Resolves Imgur links in the app instead of through Sync's proxy, which no longer exists. |  |
-| [Fix Redgifs API](#fix-redgifs-api) | Fixes loading RedGifs media, which RedGifs otherwise refuses. |  |
-| [Fix loading more comments](#fix-loading-more-comments) | Loads the comments behind a "view more" from the thread instead of the endpoint Reddit stopped answering. |  |
-| [Fix opening albums](#fix-opening-albums) | Looks a post up through Reddit's thread endpoint instead of the one Reddit stopped answering, which is what an album is opened by. |  |
-| [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
-| [Fix revealing spoilers](#fix-revealing-spoilers) | Opens a spoiler where it sits when it is tapped, which Sync otherwise answers with "Missing post information". |  |
-| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
-| [Gestures for the video player](#gestures-for-the-video-player) | Double tap a video or GIF to play or pause it rather than zoom, drag sideways to seek, and drag up or down after a double tap for volume. |  |
-| [Keep the links in the text of a post](#keep-the-links-in-the-text-of-a-post) | Keeps the formatting and links in the body shown under a post, which Sync otherwise discards. |  |
-| [Keep transparency in a picture](#keep-transparency-in-a-picture) | Draws the transparent parts of a picture opened in the viewer as the background behind it rather than as white. |  |
-| [Load threads whose text contains a dollar sign](#load-threads-whose-text-contains-a-dollar-sign) | Stops a thread failing to load when the text in it contains a dollar sign. |  |
-| [Make an address in a post tappable](#make-an-address-in-a-post-tappable) | Draws a bare address in a post's body as a link. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [More actions on the floating button](#more-actions-on-the-floating-button) | Puts up to four of Sync's own actions beside the feed's floating button. |  |
-| [Recover post thumbnails from the archive](#recover-post-thumbnails-from-the-archive) | Loads a post's thumbnail from the Wayback Machine when its Reddit preview has been purged. |  |
-| [Redirect Gfycat links to RedGifs](#redirect-gfycat-links-to-redgifs) | Loads Gfycat links from RedGifs, including the autoplaying video Sync asks its own proxy for. |  |
-| [Show a hidden profile from the archive](#show-a-hidden-profile-from-the-archive) | Fills in a profile from Project Arctic Shift when Reddit answers with nothing. |  |
-| [Show a subreddit's banner on its feed](#show-a-subreddit-s-banner-on-its-feed) | Draws the banner a subreddit sets at the top of its posts, rather than only on its About page. |  |
-| [Show media in a comment where it sits](#show-media-in-a-comment-where-it-sits) | Draws a link in a comment as the picture or video it points at rather than as a chip naming where it goes. |  |
-| [Show videos posted in comments](#show-videos-posted-in-comments) | Draws a video posted in a comment in the comment, and plays it when tapped. |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent<br>• Imgur client ID |
-| [Translate posts and comments](#translate-posts-and-comments) | Translates a post or comment where it sits, on this device or through DeepL or Google Cloud. |  |
-| [Unlock Sync Ultra](#unlock-sync-ultra) | Turns on the Sync Ultra features that work on the device alone, and removes the offers to buy it. |  |
-| [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated /u profile endpoint with /user. |  |
-
-</details>
-
-<details open>
-<summary>📦 Sync for Reddit Dev&nbsp;&nbsp;•&nbsp;&nbsp;29 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Add archive links to menus](#add-archive-links-to-menus) | Adds Wayback Machine and archive.today options to the menus behind a post and behind a link. |  |
-| [Automatically undelete Imgur media](#automatically-undelete-imgur-media) | Loads Imgur images and videos that no longer exist from the Wayback Machine. |  |
-| [Automatically undelete Reddit content](#automatically-undelete-reddit-content) | Restores the text of removed posts and comments, and the names of deleted authors, from Project Arctic Shift. |  |
-| [Disable Sync for Lemmy bottom sheet](#disable-sync-for-lemmy-bottom-sheet) | Disables the bottom sheet at the startup that asks you to signup to "Sync for Lemmy". |  |
-| [Fix /s/ links](#fix-s-links) | Opens Reddit's shortened /s/ share links in the app. |  |
-| [Fix Imgur links](#fix-imgur-links) | Resolves Imgur links in the app instead of through Sync's proxy, which no longer exists. |  |
-| [Fix Redgifs API](#fix-redgifs-api) | Fixes loading RedGifs media, which RedGifs otherwise refuses. |  |
-| [Fix loading more comments](#fix-loading-more-comments) | Loads the comments behind a "view more" from the thread instead of the endpoint Reddit stopped answering. |  |
-| [Fix opening albums](#fix-opening-albums) | Looks a post up through Reddit's thread endpoint instead of the one Reddit stopped answering, which is what an album is opened by. |  |
-| [Fix post thumbnails](#fix-post-thumbnails) | Fixes loading post thumbnails by correcting their URLs. |  |
-| [Fix revealing spoilers](#fix-revealing-spoilers) | Opens a spoiler where it sits when it is tapped, which Sync otherwise answers with "Missing post information". |  |
-| [Fix video downloads](#fix-video-downloads) | Fixes a bug in Sync's MPD parser resulting in only the audio-track being saved. |  |
-| [Gestures for the video player](#gestures-for-the-video-player) | Double tap a video or GIF to play or pause it rather than zoom, drag sideways to seek, and drag up or down after a double tap for volume. |  |
-| [Keep the links in the text of a post](#keep-the-links-in-the-text-of-a-post) | Keeps the formatting and links in the body shown under a post, which Sync otherwise discards. |  |
-| [Keep transparency in a picture](#keep-transparency-in-a-picture) | Draws the transparent parts of a picture opened in the viewer as the background behind it rather than as white. |  |
-| [Load threads whose text contains a dollar sign](#load-threads-whose-text-contains-a-dollar-sign) | Stops a thread failing to load when the text in it contains a dollar sign. |  |
-| [Make an address in a post tappable](#make-an-address-in-a-post-tappable) | Draws a bare address in a post's body as a link. |  |
-| [Modify login WebView](#modify-login-webview) | Modify the WebView used for logging into reddit to prevent login issues |  |
-| [More actions on the floating button](#more-actions-on-the-floating-button) | Puts up to four of Sync's own actions beside the feed's floating button. |  |
-| [Recover post thumbnails from the archive](#recover-post-thumbnails-from-the-archive) | Loads a post's thumbnail from the Wayback Machine when its Reddit preview has been purged. |  |
-| [Redirect Gfycat links to RedGifs](#redirect-gfycat-links-to-redgifs) | Loads Gfycat links from RedGifs, including the autoplaying video Sync asks its own proxy for. |  |
-| [Show a hidden profile from the archive](#show-a-hidden-profile-from-the-archive) | Fills in a profile from Project Arctic Shift when Reddit answers with nothing. |  |
-| [Show a subreddit's banner on its feed](#show-a-subreddit-s-banner-on-its-feed) | Draws the banner a subreddit sets at the top of its posts, rather than only on its About page. |  |
-| [Show media in a comment where it sits](#show-media-in-a-comment-where-it-sits) | Draws a link in a comment as the picture or video it points at rather than as a chip naming where it goes. |  |
-| [Show videos posted in comments](#show-videos-posted-in-comments) | Draws a video posted in a comment in the comment, and plays it when tapped. |  |
-| [Spoof client](#spoof-client) | Restores functionality of the app by using custom client ID. | • OAuth client ID<br>• Redirect URI<br>• User agent<br>• Imgur client ID |
+| [Stop the toolbar menus closing the app](#stop-the-toolbar-menus-closing-the-app) | Keeps Sync open when the sort or overflow button in the toolbar is tapped, which closes it on some devices. |  |
 | [Translate posts and comments](#translate-posts-and-comments) | Translates a post or comment where it sits, on this device or through DeepL or Google Cloud. |  |
 | [Unlock Sync Ultra](#unlock-sync-ultra) | Turns on the Sync Ultra features that work on the device alone, and removes the offers to buy it. |  |
 | [Use /user/ endpoint](#use-user-endpoint) | Replaces the deprecated /u profile endpoint with /user. |  |
@@ -180,48 +107,77 @@ service being asked.
 
 #### Getting the app working again
 
-- **Spoof client** — Replaces Sync's revoked OAuth credentials with your own client ID,
+- <a name="spoof-client"></a>**Spoof client** — Replaces Sync's revoked OAuth credentials with your own client ID,
   redirect URI and user agent. Nothing else works without this. See
   [Getting started](#-getting-started). Its `Imgur client ID` option is separate and optional;
-  see [Uploading pictures to Imgur](#uploading-pictures-to-imgur).
-- **Fix /s/ links** — Reddit's shortened `/s/` share links resolve to a real thread rather
+  see [Uploading pictures to Imgur](#uploading-pictures-to-imgur). All four are optional and can
+  also be set in the app, under Settings > Everything else > Sync Up client, which means a copy can
+  be patched with none of them given and told afterwards — useful where whatever does the
+  patching has no credentials of its own. Each row says whether it is reading what you typed or
+  what the build was given, and offers a way back to the latter. Where no client ID is given at
+  all, the app says so on the way in: as part of the setup on a first run, before there is any
+  question of signing in, and as a notice afterwards that leads straight to the row.
+
+  What the build was given is copied onto the device the first time the app runs, so patching
+  again later without naming one keeps the ID already in use rather than emptying it. Where the
+  new build names a different one, that is taken instead; anything you typed in the app always
+  wins. None of the four, and no PIN, is written into Sync's Backup file — those are kept where a
+  backup cannot reach them.
+
+  The same screen gains two rows under *Credits*, naming this project and linking the
+  repository. That is the only place in the app that says it has been patched at all; everywhere
+  else reads as Sync's own. A row's icon, a credit line or the subtitle on the way in is left out
+  rather than insisted on where the app is not laid out the way this expects, so nothing
+  cosmetic can stop the app signing in.
+- <a name="fix-s-links"></a>**Fix /s/ links** — Reddit's shortened `/s/` share links resolve to a real thread rather
   than failing.
-- **Use /user/ endpoint** — Profiles are fetched from `/user/`; the `/u/` form Sync used is
+- <a name="use-user-endpoint"></a>**Use /user/ endpoint** — Profiles are fetched from `/user/`; the `/u/` form Sync used is
   no longer served.
-- **Fix opening albums** — Reddit stopped answering `/api/info`, the endpoint Sync looks a post
+- <a name="fix-opening-albums"></a>**Fix opening albums** — Reddit stopped answering `/api/info`, the endpoint Sync looks a post
   up by, and refuses `/by_id` beside it, so an album raised an error instead of opening. The
   post is read from its own thread, which publishes the same gallery, and the reply is cut back
   to the shape the old endpoint answered in. Ordinary listings were never affected.
-- **Fix loading more comments** — Reddit stopped answering `/api/morechildren` as well, so a
+- <a name="fix-loading-more-comments"></a>**Fix loading more comments** — Reddit stopped answering `/api/morechildren` as well, so a
   "view more" only ever raised an error. The comments behind it are read from the thread, where
   Reddit still serves any comment and everything hanging from it, and the reply is flattened the
   way the old endpoint answered. The comments already on screen are left out, so nothing is
   drawn twice.
-- **Modify login WebView** — Routes the login page through the extension so that signing in
+- <a name="modify-login-webview"></a>**Modify login WebView** — Routes the login page through the extension so that signing in
   completes.
-- **Disable ads**, **Disable Sync for Lemmy bottom sheet** — Removes the ads shown between
+- <a name="stop-the-toolbar-menus-closing-the-app"></a>**Stop the toolbar menus closing the app** — On some devices the app closed the moment the
+  sort or overflow button in the toolbar was tapped. A menu opened from the toolbar is drawn
+  hanging from under it rather than rising from the bottom, and to place it there Sync takes the
+  behaviour off the sheet's layout parameters. Material's own edge-to-edge handling then asks
+  that same sheet for its behaviour the first time the window hands it its insets, and where
+  there is none it throws, on the main thread. Whether the insets reach the sheet at all depends
+  on the device, which is why only some copies did this; the sort chip under the subreddit title
+  never enters that mode and was never affected. This answers the one question Material asks and
+  leaves its edge-to-edge work undone for a sheet that has no behaviour to find. Sync already
+  leaves the navigation bar alone for those menus, so there is nothing of it to miss, and every
+  other sheet still has its behaviour and is untouched.
+- <a name="disable-ads"></a>**Disable ads**, <a name="disable-sync-for-lemmy-bottom-sheet"></a>**Disable Sync for Lemmy bottom sheet** — Removes the ads shown between
   posts, and the prompt to sign up to Sync for Lemmy at startup.
 
 #### Media that no longer loads
 
-- **Fix Redgifs API** — RedGifs refuses Sync's requests as they stand; this makes them
+- <a name="fix-redgifs-api"></a>**Fix Redgifs API** — RedGifs refuses Sync's requests as they stand; this makes them
   acceptable again.
-- **Redirect Gfycat links to RedGifs** — Gfycat shut down and its domains no longer resolve.
+- <a name="redirect-gfycat-links-to-redgifs"></a>**Redirect Gfycat links to RedGifs** — Gfycat shut down and its domains no longer resolve.
   Much of its content moved to RedGifs, and Gfycat links are answered from there. Content
   that did not move stays broken.
-- **Fix Imgur links** — Sync resolves Imgur links through a proxy of its own that no longer
+- <a name="fix-imgur-links"></a>**Fix Imgur links** — Sync resolves Imgur links through a proxy of its own that no longer
   exists. Those requests are answered in the app instead. An album that still exists is read
   from its own page; one that has gone is looked for in the archive, where only albums
   captured while Imgur still rendered the list into the page can be recovered.
-- **Automatically undelete Imgur media** — Imgur removed a large amount of older content.
+- <a name="automatically-undelete-imgur-media"></a>**Automatically undelete Imgur media** — Imgur removed a large amount of older content.
   Images and videos that no longer exist are loaded from the Wayback Machine, including the
   still shown for a video in a feed. Only what the archive happens to hold is recoverable.
-- **Fix post thumbnails** — Corrects the thumbnail URLs Sync builds.
-- **Recover post thumbnails from the archive** — Reddit purges the preview it generated for
+- <a name="fix-post-thumbnails"></a>**Fix post thumbnails** — Corrects the thumbnail URLs Sync builds.
+- <a name="recover-post-thumbnails-from-the-archive"></a>**Recover post thumbnails from the archive** — Reddit purges the preview it generated for
   older posts, leaving a blank tile even where opening the post still works. The linked
   image is fetched from the Wayback Machine, and only once the preview has actually failed.
-- **Fix video downloads** — Corrects Sync's MPD parser, which saved only the audio track.
-- **Show media in a comment where it sits** — Sync draws a link in a comment inline only
+- <a name="fix-video-downloads"></a>**Fix video downloads** — Corrects Sync's MPD parser, which saved only the audio track.
+- <a name="show-media-in-a-comment-where-it-sits"></a>**Show media in a comment where it sits** — Sync draws a link in a comment inline only
   where the address ends in one of five extensions or names one of a handful of services;
   everything else becomes a chip naming where it goes. This widens that to everything Sync
   can draw, and draws the picture itself rather than a card beside the address. Sizes come
@@ -240,7 +196,7 @@ service being asked.
   size in use are faded, and they change as the size is chosen. Nothing is ever drawn wider
   than the comment it sits in.
 
-- **Show videos posted in comments** — Reddit writes a video posted in a comment as a link
+- <a name="show-videos-posted-in-comments"></a>**Show videos posted in comments** — Reddit writes a video posted in a comment as a link
   to a player page on its own site, which opens in a browser and is answered with a banned
   notice. The link is pointed at the video itself, so it is drawn beside the comment like
   any other media and plays in Sync's own player. Whether it is drawn is governed by Sync's
@@ -248,42 +204,78 @@ service being asked.
 
 #### Text that is missing or inert
 
-- **Automatically undelete Reddit content** — Restores the text of removed posts and
+- <a name="automatically-undelete-reddit-content"></a>**Automatically undelete Reddit content** — Restores the text of removed posts and
   comments from Project Arctic Shift, and the name of an author whose account has since
   been deleted. A note under the author says why the content was taken down. Only text is
   recoverable, only where the archive holds it, and media in a removed post stays gone.
-- **Show a hidden profile from the archive** — An account can hide its own posts and
+- <a name="show-a-hidden-profile-from-the-archive"></a>**Show a hidden profile from the archive** — An account can hide its own posts and
   comments from its profile, which Sync shows as a user with nothing to their name. Project
   Arctic Shift still serves what it recorded while those posts were public. Only a profile
   that comes back empty is filled in, and only its posts, comments and overview tabs.
-- **Keep the links in the text of a post** — Sync renders the body shown under a post in
+- <a name="keep-the-links-in-the-text-of-a-post"></a>**Keep the links in the text of a post** — Sync renders the body shown under a post in
   full and then discards the result, drawing bare characters. Keeping it means quotes,
   emphasis and links appear. Images are still discarded, so a feed loads no more than it
   did. A link in a post body in a feed becomes tappable, so tapping directly on one opens
   the link rather than the post.
-- **Make an address in a post tappable** — Sync turns a bare address into a link only where
+- <a name="make-an-address-in-a-post-tappable"></a>**Make an address in a post tappable** — Sync turns a bare address into a link only where
   it recognises the host, which is Reddit, Imgur and a couple besides. Any address in a
   post body is written as a link instead. An address already written as a link is left
   alone.
-- **Load threads whose text contains a dollar sign** — Sync rewrites code blocks and links
+- <a name="load-threads-whose-text-contains-a-dollar-sign"></a>**Load threads whose text contains a dollar sign** — Sync rewrites code blocks and links
   before drawing them and puts the matched text back as a replacement, where a dollar sign
   does not stand for itself. Text such as `${SYS_USER}` aborted the whole thread with
   "Error loading page".
-- **Add archive links to menus** — Adds Wayback Machine and archive.today options to the
+- <a name="add-archive-links-to-menus"></a>**Add archive links to menus** — Adds Wayback Machine and archive.today options to the
   menu behind a post's overflow button and to the one behind a link, next to *Open in
   browser*, for reading a page since taken down or put behind a paywall. Nothing is
   requested until one is tapped.
 
-- **Fix revealing spoilers** — Tapping a spoiler opens it where it sits. Sync answers a tap by
+- <a name="fix-revealing-spoilers"></a>**Fix revealing spoilers** — Tapping a spoiler opens it where it sits. Sync answers a tap by
   taking the markers out of the body it stores for the post and writing that back, which only
   runs for one kind of post and reads a body the markers have already been taken out of, so a
   tap said "Missing post information" instead. A spoiler is hidden by being painted in the
   colour it sits on, so the one tapped is remembered and that painting is skipped. Nothing is
   fetched, stored or rewritten, and a spoiler closes again if the text is built afresh.
 
+#### The feed and the viewer
+
+- <a name="show-a-subreddit-s-banner-on-its-feed"></a>**Show a subreddit's banner on its feed** — Sync shows a subreddit's banner only on its
+  About page. This draws it in a strip above the posts, which scrolls away with them and opens
+  as a picture when tapped. What a subreddit's banner is comes from Reddit's own answer about it
+  as that goes past on the wire, so nothing extra is asked for where Sync has already asked; a
+  feed opened without that having happened is asked about directly, once, borrowing the
+  credentials off a request of Sync's own. A subreddit with no banner gets no strip, and neither
+  does a front page or a multireddit, which have none of their own. A banner that cannot be
+  fetched or drawn leaves the feed exactly as it was. On, under *Posts > View tweaks*.
+- <a name="more-actions-on-the-floating-button"></a>**More actions on the floating button** — Sync's floating button carries one of three things,
+  and everything else it can do is behind the *More actions* sheet. This puts up to three more of
+  Sync's own actions beside it, chosen from the two dozen that sheet already offers, with the
+  button's own action last — four in all. Each is one of Sync's own, carried out by the call Sync
+  carries it out with; nothing new is added to the app. What is drawn is laid over Sync's button
+  rather than replacing it, so the button goes on deciding what it is for and goes on sliding and
+  fading away with the feed, and where any of it fails the button is given back what it draws
+  with rather than the feed coming down. *Orientation* stands the extras vertically or
+  horizontally and *Separate the extra actions* draws a line between them; all of it sits under
+  *General > Floating Action Button*.
+- <a name="keep-transparency-in-a-picture"></a>**Keep transparency in a picture** — The zooming view Sync opens a picture in decodes in a
+  format with no alpha channel unless something says otherwise, so everything transparent
+  arrived opaque, showing whatever the file was saved over — white, for most. The format to
+  decode in is answered the library's own way, which every one of its decoders reads, and the
+  colour each tile is filled with before the picture is drawn over it is the background behind
+  the viewer rather than opaque white. On, under *Images > Deepzoom*.
+
 #### Gestures
 
-- **Gestures for the video player** — In a video or GIF: double tap to play or pause rather
+- <a name="show-the-feed-while-a-post-is-swiped-away"></a>**Show the feed while a post is swiped away** — Dragging a post aside is meant to carry the
+  feed in behind it. For the screen underneath to go on being drawn, the post has to tell the
+  system it is translucent, and Sync asks for that through `Activity.convertToTranslucent`, which
+  has never been part of the SDK. As the platform tightened up on non-SDK interfaces the call
+  stopped landing, so nothing was drawn underneath and the uncovered half of the screen was
+  simply black. Nothing in the app changed; the ground under it did. There is a supported way to
+  ask the same thing now — `Activity.setTranslucent`, public since Android 11 — and that is used
+  where it exists. On anything older nothing is claimed and Sync asks the way it always did,
+  which is where it still worked.
+- <a name="gestures-for-the-video-player"></a>**Gestures for the video player** — In a video or GIF: double tap to play or pause rather
   than zoom, drag sideways to seek, and drag up or down after a double tap to change the
   volume. Each is read as the gesture is made, so anything here can be turned on or off under
   *Gestures* in Sync's settings without repatching, and with all of them off the viewer
@@ -302,7 +294,7 @@ service being asked.
 
 #### Translation
 
-- **Translate posts and comments** — Translates a post or a comment where it stands, in place
+- <a name="translate-posts-and-comments"></a>**Translate posts and comments** — Translates a post or a comment where it stands, in place
   of the text rather than under it. Everything about it is set up under *Translation* in Sync's
   own settings, and nothing is translated until asked for.
   - **Where it is offered.** Sync's own translation is a paid feature that also waits on a flag
@@ -350,7 +342,7 @@ service being asked.
 
 #### Sync Ultra
 
-- **Unlock Sync Ultra** — Turns on the parts of Sync's subscription that need nothing but the
+- <a name="unlock-sync-ultra"></a>**Unlock Sync Ultra** — Turns on the parts of Sync's subscription that need nothing but the
   device they run on, and takes away what can no longer be had.
   - **Website previews** in comments — including the picture beside them. Sync asks its own
     proxy for that picture and the proxy refuses everything now, so every preview but a video's
@@ -371,9 +363,41 @@ service being asked.
   - The **Sync Ultra screen is removed** from settings, along with the cloud backup section that
     needed it and the offer to buy it in the account switcher.
 
+#### Locks
+
+- <a name="lock-an-account-with-a-pin"></a>**Lock an account with a PIN** — Sync locks an account with a fingerprint and nothing else,
+  which is of no use where someone else's finger opens the same phone. This adds a PIN to the
+  Security settings, asked for at the two places Sync asks for a fingerprint: choosing an account
+  and acting on one. It is another thing to pass rather than a replacement, so the two settings
+  together say what is asked for — neither set asks nothing, Sync's alone asks for a fingerprint,
+  a PIN alone asks for the PIN, and both ask for the fingerprint and then the PIN. A PIN belongs
+  to one account, so each can have its own or none. It is kept as a salted hash rather than as
+  itself; four digits will not survive someone determined who already has the file, but they
+  should not be sitting there in the open either, and it is kept out of Sync's Backup file for
+  the same reason.
+
+  Two rows sit beside it. **PIN login lock** asks for the PIN when the app is opened, not only
+  when accounts change — without it the account already open when you launch Sync is not behind
+  the PIN at all, which is the hole Sync's own login lock fills for fingerprints. **When a PIN
+  and a fingerprint are both set** chooses between asking for both, which is the default, and
+  asking for either: with *either*, Sync's own fingerprint prompt stands down and the
+  fingerprint is offered on the same screen as the PIN, so there is one way in rather than two
+  prompts in a row. That row is faded until there are two locks for it to choose between, and
+  follows Sync's own switches as they are turned on and off.
+
+  The lock on the way in goes **over** a screen the app has already built, opaque and full
+  screen so that nothing shows through, rather than stopping the app before it builds one.
+  Stopping it is what Sync's own login lock does and it cannot be copied: an activity stopped
+  before it sets a content view has no window of its own, so the prompt becomes the only window
+  the app has, and the moment it goes — which on a foldable happens merely by opening the phone
+  — the app has none at all and stops answering touches until it is force stopped. Sync gets
+  away with it because a fingerprint prompt belongs to the system. The cost of doing it this way
+  round is that a lock which cannot be drawn leaves the app open rather than shut, which is the
+  right way round for something that can otherwise brick it.
+
 #### Other
 
-- **Enable Android debugging** — Inherited from upstream, off by default, and applies to any
+- <a name="enable-android-debugging"></a>**Enable Android debugging** — Inherited from upstream, off by default, and applies to any
   app rather than to Sync alone. It slows the app down and is only useful when debugging it.
 
 ## 🚀 Getting started
@@ -382,12 +406,19 @@ service being asked.
 2. Click [this link](https://morphe.software/add-source?github=RashKash103/sync-up) to add
    this patch source to Morphe Manager.
 3. Get the APK for Sync for Reddit. APKM bundles (aka split APKs) also work.
-   * Use the last released version, `v23.06.30-13:39`. The Pro and Dev package names are
-     supported too, but no specific version of them is verified.
+   * Use the last released version, `v23.06.30-13:39`, of the free app
+     (`com.laurencedawson.reddit_sync`). That is the only build these patches are written for.
+     The Pro and Dev packages are not supported: every patch here was written against the free
+     build's bytecode, and the paid builds are obfuscated separately, so little of it would
+     apply. If you have one of them and want it supported, open an issue — it needs somebody
+     with that APK to test against.
 4. Select the patches you want, then patch.
    * You will need an OAuth client ID from https://www.reddit.com/prefs/apps/. Reddit is no
      longer issuing new ones without an approval process that usually ends in denial, so see
      [What if I don't have a client ID?](#what-if-i-dont-have-a-client-id) below.
+   * The `Spoof client` options may all be left empty and filled in on the device instead, under
+     Settings > Everything else > Sync Up client. The app asks for the client ID during its own
+     setup when the build was given none.
    * Make sure the redirect URI in the `Spoof client` options and on
      https://www.reddit.com/prefs/apps/ match exactly.
 5. Once patching is complete, install the app and set it up as usual.

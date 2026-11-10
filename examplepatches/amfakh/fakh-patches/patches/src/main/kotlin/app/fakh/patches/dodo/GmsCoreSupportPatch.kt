@@ -3,6 +3,7 @@ package app.fakh.patches.dodo
 import app.fakh.patches.dodo.shared.Constants.COMPATIBILITY_DODO
 import app.fakh.patches.shared.gms.gmsCoreSupportResourcePatch
 import app.fakh.patches.shared.gms.redirectToGmsCore
+import app.fakh.patches.shared.gms.warnWithoutGmsCore
 import app.morphe.patcher.patch.bytecodePatch
 
 private const val DODO_PACKAGE = "com.dundunstudio.autoplay"
@@ -19,16 +20,21 @@ private const val DODO_SIGNATURE = "7dd6724c683c33fbe5cb0d3332d4e5204a938c14"
 @Suppress("unused")
 val gmsCoreSupportPatch = bytecodePatch(
     name = "GmsCore support",
-    description = "Makes \"Sign in with Google\" work, so your collection and playlists saved to your Google " +
-        "account come back. Signs in through microG RE (GmsCore) instead of Google Play services, so it needs " +
-        "microG RE installed and signed in to a Google account.",
+    description = "Makes \"Sign in with Google\" work by signing in through microG RE (GmsCore) instead of Google Play " +
+        "services, so your collection and playlists saved to your Google account come back. Needs microG RE " +
+        "installed and signed in to a Google account.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_DODO)
     category("Feature")
+    extendWith("extensions/extension.mpe")
     dependsOn(gmsCoreSupportResourcePatch(DODO_PACKAGE, DODO_SIGNATURE))
 
     execute {
         redirectToGmsCore()
+        warnWithoutGmsCore(
+            "Lapp/fakh/extension/dodo/GmsCore;->require()V",
+            "Lcom/google/android/gms/auth/api/identity/Identity;" to "getSignInClient",
+        )
     }
 }

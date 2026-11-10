@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphed.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
 import app.morphed.patches.twitch.shared.addInstructionsBeforeReturn
+import app.morphed.patches.twitch.shared.checkRegisterNotReused
 import app.morphed.patches.twitch.shared.indicesOf
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -41,7 +42,10 @@ val blockStreamAdsPatch = bytecodePatch(
 
         // Remember each player so it can be nudged back to the live edge after an ad break.
         CorePlayerImplConstructorFingerprint.method.apply {
-            val thisRegister = implementation!!.registerCount - parameters.size - 1
+            // Parameters fill the last registers; long and double ones take two.
+            val parameterRegisters = parameters.sumOf { if (it.type == "J" || it.type == "D") 2 else 1 }
+            val thisRegister = implementation!!.registerCount - parameterRegisters - 1
+            checkRegisterNotReused(thisRegister)
             indicesOf(Opcode.RETURN_VOID).forEach { returnIndex ->
                 addInstructionsBeforeReturn(
                     returnIndex,

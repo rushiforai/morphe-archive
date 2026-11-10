@@ -47,7 +47,7 @@ final class BadgeDrawable extends Drawable {
     private final Settings.Badge config;
     private final BadgeStyle.Size size;
     private final boolean dark, warning;
-    private final String location, source;
+    private final String country, source;
     private final List<Item> items = new ArrayList<>();
     private final String flag;
     private final Glyphs.Glyph deviceGlyph;
@@ -72,11 +72,11 @@ final class BadgeDrawable extends Drawable {
         size = config.size;
         showInfo = config.info;
         background = config.background;
-        location = info.location;
+        country = info.country();
         source = info.source;
         warning = info.hasLocationWarning();
-        if (config.flags && info.location != null) {
-            String f = Countries.flagFor(info.location);
+        if (config.flags && country != null) {
+            String f = Countries.flagFor(country);
             flag = f != null ? f : Countries.UNKNOWN_FLAG;
             items.add(new Item(Kind.FLAG, size.icon));
         } else {
@@ -116,7 +116,7 @@ final class BadgeDrawable extends Drawable {
     /** True when this badge would look the same for info, so a header can keep it across binds. */
     boolean looksLike(Context context, AccountInfo info) {
         return config == Settings.badge() && dark == isDark(context) && warning == info.hasLocationWarning()
-                && java.util.Objects.equals(location, info.location) && java.util.Objects.equals(source, info.source);
+                && java.util.Objects.equals(country, info.country()) && java.util.Objects.equals(source, info.source);
     }
 
     private static boolean isDark(Context context) {

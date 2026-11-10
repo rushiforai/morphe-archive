@@ -42,6 +42,8 @@ final class StreamSession {
     final Map<String, String> backupMasters = new ConcurrentHashMap<>();
     /** Backup chosen per quality for the current ad break. */
     final Map<String, BackupStreamFinder.Result> backupResults = new ConcurrentHashMap<>();
+    /** Refreshes in a row of the backup in use that failed or ran out of time, per quality. */
+    final Map<String, Integer> refreshFailures = new ConcurrentHashMap<>();
     final Map<String, Long> failedPlayerTypes = new ConcurrentHashMap<>();
     final AtomicBoolean searching = new AtomicBoolean();
     /** Counts finished ad breaks; a search from an earlier break must not change the next one. */
@@ -117,19 +119,24 @@ final class StreamSession {
         return true;
     }
 
-    /** The break of the quality {@code url} belongs to is over. */
-    void endAdSwap(String url, long now) {
+    /**
+     * The break of the quality {@code url} belongs to is over. Returns true if that ended the break
+     * as a whole; false while another quality the player still polls is in it.
+     */
+    boolean endAdSwap(String url, long now) {
         String key = UrlKey.of(variantUrlFor(url));
         QualityState state = qualityFor(url);
         state.swappingAds = false;
         state.cleanPolls = 0;
         backupResults.remove(key);
+        refreshFailures.remove(key);
         for (QualityState other : qualities.values()) {
             // A quality the player switched away from mid-break would otherwise hold it open forever.
-            if (other.swappingAds && now - other.lastPoll < QUALITY_LEFT_MS) return;
+            if (other.swappingAds && now - other.lastPoll < QUALITY_LEFT_MS) return false;
         }
         for (QualityState other : qualities.values()) other.swappingAds = false;
         resetAfterBreak();
+        return true;
     }
 
     private void resetAfterBreak() {
@@ -137,6 +144,7 @@ final class StreamSession {
         // still running from this break drop their results.
         breakGeneration.incrementAndGet();
         backupResults.clear();
+        refreshFailures.clear();
         failedPlayerTypes.clear();
         lastEmptySearchAt = Long.MIN_VALUE / 2;
     }

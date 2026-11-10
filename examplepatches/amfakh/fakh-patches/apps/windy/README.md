@@ -9,7 +9,7 @@ Enabled by default.
 
 | Category | Patch | What it does |
 |---|---|---|
-| Premium | Unlock Premium | Unlocks Windy Pro on your phone: deeper map zoom, 1-hour forecast steps, the premium calendar view and the rest of the premium screens. The "Go Premium" button disappears. |
+| Premium | Premium unlock | Unlocks Windy Pro on your phone: deeper map zoom, 1-hour forecast steps, the premium calendar view and the rest of the premium screens. The "Go Premium" button disappears. |
 
 ## How the unlock works
 

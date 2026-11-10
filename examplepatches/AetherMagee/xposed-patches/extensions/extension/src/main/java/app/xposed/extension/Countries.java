@@ -2,6 +2,7 @@ package app.xposed.extension;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -34,11 +35,14 @@ final class Countries {
     private static final int MEMO_LIMIT = 2000;
     private static final Map<String, String> CANONICAL = new ConcurrentHashMap<>();
     private static final Map<String, String> FLAG_MEMO = new ConcurrentHashMap<>();
+    private static final Map<String, String> SOURCE_MEMO = new ConcurrentHashMap<>();
 
     private static final Map<String, String> FLAGS = new HashMap<>();
     private static final Map<String, String> REGION_FLAGS = new HashMap<>();
     private static final Map<String, String> ALIASES = new HashMap<>();
     private static Map<String, String> localizedFlags;
+    /** Localized and English ISO country names to the English one. */
+    private static Map<String, String> englishNames;
 
     static {
         f("afghanistan", "\ud83c\udde6\ud83c\uddeb");
@@ -430,6 +434,32 @@ final class Countries {
         return FLAGS.containsKey(canonical != null ? canonical : k);
     }
 
+    /**
+     * The country in X's "Connected via" text, which reads "<Country> <Platform> App"
+     * (e.g. "India Android App"): the longest leading words that name a country, like
+     * X-Posed's getDeviceCountry(). Null when there is none, e.g. "Web".
+     */
+    static String fromSource(String source) {
+        if (source == null) return null;
+        String cached = SOURCE_MEMO.get(source);
+        if (cached != null) return cached.isEmpty() ? null : cached;
+        String[] words = SPACES.split(source.trim());
+        String country = null;
+        for (int n = words.length; n > 0 && country == null; n--) {
+            String candidate = String.join(" ", Arrays.copyOf(words, n));
+            String k = key(candidate);
+            String canonical = ALIASES.get(k);
+            if (FLAGS.containsKey(canonical != null ? canonical : k)) {
+                country = candidate;
+            } else if (localized().containsKey(k)) {
+                // In English, so it matches the filters' names.
+                country = englishNames.get(k);
+            }
+        }
+        if (SOURCE_MEMO.size() < MEMO_LIMIT) SOURCE_MEMO.put(source, country == null ? "" : country);
+        return country;
+    }
+
     /** The flag emoji for a location, or null when there is none (regions, unknown names). */
     static String flagFor(String location) {
         if (location == null) return null;
@@ -447,13 +477,18 @@ final class Countries {
     private static synchronized Map<String, String> localized() {
         if (localizedFlags == null) {
             Map<String, String> map = new HashMap<>();
+            Map<String, String> english = new HashMap<>();
             Locale display = Locale.getDefault();
             for (String code : Locale.getISOCountries()) {
                 Locale country = new Locale("", code);
                 String flag = regionalIndicators(code);
+                String name = country.getDisplayCountry(Locale.ENGLISH);
                 map.put(key(country.getDisplayCountry(display)), flag);
-                map.put(key(country.getDisplayCountry(Locale.ENGLISH)), flag);
+                map.put(key(name), flag);
+                english.put(key(country.getDisplayCountry(display)), name);
+                english.put(key(name), name);
             }
+            englishNames = english;
             localizedFlags = map;
         }
         return localizedFlags;

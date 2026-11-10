@@ -22,6 +22,7 @@ import java.lang.ref.WeakReference;
 
 import dev.utaa.linimal.extension.config.LinimalConfig;
 import dev.utaa.linimal.extension.settings.ui.LinimalPalette;
+import dev.utaa.linimal.extension.i18n.LinimalText;
 
 /** 確定済み閲覧セッションの案内と全体既読ボタン。公式画面と重ならない余白を確保します。 */
 final class ReadWithoutReceiptNotice {
@@ -166,7 +167,7 @@ final class ReadWithoutReceiptNotice {
             panel.addView(text);
             Button button = new Button(activity);
             markAll = button;
-            button.setText("すべて既読にする");
+            button.setText(LinimalText.t("すべて既読にする"));
             button.setTextSize(14);
             button.setTextColor(new ColorStateList(
                     new int[][] {new int[] {android.R.attr.state_enabled}, new int[0]},
@@ -413,7 +414,7 @@ final class ReadWithoutReceiptNotice {
     }
 
     private static String currentMessage() {
-        return LinimalConfig.get().isKeepUnreadAfterSendEnabled() ? KEEP_UNREAD_MESSAGE : MESSAGE;
+        return LinimalText.t(LinimalConfig.get().isKeepUnreadAfterSendEnabled() ? KEEP_UNREAD_MESSAGE : MESSAGE);
     }
 
     private static int dp(View view, int value) {

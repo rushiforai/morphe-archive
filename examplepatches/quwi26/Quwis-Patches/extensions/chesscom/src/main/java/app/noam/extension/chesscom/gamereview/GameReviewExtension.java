@@ -76,7 +76,16 @@ public final class GameReviewExtension {
     }
 
     public static boolean getAnalysisPermission(boolean defaultValue, String permissionName) {
-        return GameReview.local() || defaultValue;
+        return GameReview.localPermissions() || defaultValue;
+    }
+
+    /**
+     * The navigation view model's "is signed in" check: a signed-out user may still open Game
+     * Review when a reviewer on this phone or on the user's computer is available.
+     */
+    public static boolean allowGuestReview(boolean signedIn) {
+        GameReview.noteSignedIn(signedIn);
+        return signedIn || GameReview.localReview();
     }
 
     /**

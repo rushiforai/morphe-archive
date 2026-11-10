@@ -10,7 +10,7 @@ public final class OneAheadResult {
     /** Theme-song backup inside the one-ahead job: same lowest priority, never auto over real sources. */
     public static final String THEME = "One-ahead themes";
     /** Bump when Detector gates/config change in a way that can move an edge. */
-    public static final int DETECTOR_VERSION = 2;
+    public static final int DETECTOR_VERSION = 5;
 
     public static final class Segment {
         public final String type; // "intro" or "credits"

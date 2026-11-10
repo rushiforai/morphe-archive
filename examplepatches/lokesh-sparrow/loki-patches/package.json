@@ -1,4 +1,7 @@
 {
+  "name": "loki-patches",
+  "private": true,
+  "description": "Release tooling for Loki Patches: semantic-release publishes the bundle and the generated files.",
   "devDependencies": {
     "@cleyrop-org/semantic-release-backmerge": "^6.2.0",
     "@MorpheApp/changelog": "git+https://github.com/MorpheApp/changelog.git#bundle",

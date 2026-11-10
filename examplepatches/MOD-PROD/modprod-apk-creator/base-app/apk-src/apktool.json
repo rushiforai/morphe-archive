@@ -1,0 +1,76 @@
+{
+  "apkFileName": "modprod-base.apk",
+  "PackageInfo": {
+    "forcedPackageId": "127",
+    "renameManifestPackage": null
+  },
+  "doNotCompress": [
+    "resources.arsc",
+    "png",
+    "assets/dexopt/baseline.prof",
+    "assets/dexopt/baseline.profm"
+  ],
+  "compressionType": false,
+  "sparseResources": false,
+  "version": "2.4.0-261013",
+  "sharedLibrary": false,
+  "VersionInfo": {
+    "versionName": "Dev",
+    "versionCode": "23"
+  },
+  "UsesFramework": {
+    "ids": [
+      1
+    ],
+    "tag": null
+  },
+  "unknownFiles": {
+    "META-INF/androidx.vectordrawable_vectordrawable.version": "0",
+    "META-INF/androidx.legacy_legacy-support-core-utils.version": "0",
+    "META-INF/androidx.loader_loader.version": "0",
+    "META-INF/androidx.lifecycle_lifecycle-livedata.version": "8",
+    "META-INF/kotlinx_coroutines_core.version": "0",
+    "META-INF/androidx.lifecycle_lifecycle-runtime.version": "8",
+    "META-INF/androidx.localbroadcastmanager_localbroadcastmanager.version": "0",
+    "META-INF/androidx.core_core-ktx.version": "0",
+    "META-INF/androidx.appcompat_appcompat-resources.version": "0",
+    "META-INF/androidx.lifecycle_lifecycle-livedata-core.version": "8",
+    "META-INF/androidx.profileinstaller_profileinstaller.version": "0",
+    "META-INF/androidx.lifecycle_lifecycle-viewmodel-savedstate.version": "8",
+    "META-INF/androidx.appcompat_appcompat.version": "0",
+    "META-INF/androidx.swiperefreshlayout_swiperefreshlayout.version": "0",
+    "META-INF/androidx.viewpager_viewpager.version": "0",
+    "META-INF/androidx.cursoradapter_cursoradapter.version": "0",
+    "META-INF/androidx.lifecycle_lifecycle-viewmodel.version": "8",
+    "META-INF/androidx.emoji2_emoji2-views-helper.version": "0",
+    "META-INF/androidx.annotation_annotation-experimental.version": "0",
+    "META-INF/androidx.drawerlayout_drawerlayout.version": "0",
+    "META-INF/androidx.core_core.version": "0",
+    "META-INF/androidx.print_print.version": "0",
+    "META-INF/androidx.arch.core_core-runtime.version": "8",
+    "META-INF/androidx.tracing_tracing.version": "0",
+    "META-INF/androidx.emoji2_emoji2.version": "0",
+    "DebugProbesKt.bin": "8",
+    "META-INF/androidx.versionedparcelable_versionedparcelable.version": "0",
+    "META-INF/version-control-info.textproto": "0",
+    "META-INF/androidx.vectordrawable_vectordrawable-animated.version": "0",
+    "META-INF/androidx.savedstate_savedstate.version": "0",
+    "META-INF/androidx.interpolator_interpolator.version": "0",
+    "META-INF/androidx.palette_palette.version": "0",
+    "META-INF/androidx.cardview_cardview.version": "0",
+    "META-INF/androidx.fragment_fragment.version": "0",
+    "META-INF/androidx.lifecycle_lifecycle-process.version": "8",
+    "META-INF/androidx.startup_startup-runtime.version": "0",
+    "META-INF/androidx.activity_activity.version": "0",
+    "META-INF/androidx.customview_customview.version": "0",
+    "META-INF/kotlinx_coroutines_android.version": "0",
+    "META-INF/androidx.documentfile_documentfile.version": "0",
+    "META-INF/com/android/build/gradle/app-metadata.properties": "8"
+  },
+  "compactEntries": false,
+  "isFrameworkApk": false,
+  "sdkInfo": {
+    "minSdkVersion": "24",
+    "targetSdkVersion": "36"
+  }
+}

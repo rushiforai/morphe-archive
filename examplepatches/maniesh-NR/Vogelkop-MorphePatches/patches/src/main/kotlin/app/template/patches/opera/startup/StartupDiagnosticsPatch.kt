@@ -23,6 +23,14 @@ private const val ON_CREATE_START_DESC =
     "$DIAG_CLASS->onCreateStart(Landroid/app/Application;)V"
 private const val ON_CREATE_END_DESC =
     "$DIAG_CLASS->onCreateEnd()V"
+private const val ACTIVITY_START_DESC =
+    "$DIAG_CLASS->activityStart(Landroid/app/Activity;)V"
+
+/** Launcher activities across the Opera family (manifest android:name). */
+private val LAUNCHER_ACTIVITIES = listOf(
+    "Lcom/opera/android/BrowserActivity;", // stable + beta (alias target)
+    "Lcom/opera/android/MainActivity;", // GX and older variants
+)
 
 private fun isExtensionClass(type: String): Boolean =
     type.startsWith("Lapp/template/extension/") || type.startsWith("Lapp/morphe/")
@@ -33,9 +41,17 @@ private fun isApplicationSubclass(classDef: ClassDef): Boolean =
 
 /**
  * Installs a startup breadcrumb trail and an uncaught-exception crash
- * reporter into every Application subclass of the target app, so that a
- * patched build that dies on launch records its own full stack trace and how
- * far startup got - no `adb logcat` and no root required.
+ * reporter into every Application subclass of the target app (plus the
+ * launcher activity), so that a patched build that dies on launch records
+ * its own full stack trace and how far startup got - no `adb logcat` and
+ * no root required.
+ *
+ * v1.3.0: every breadcrumb is mirrored to logcat (tag "VogelkopDiag"), file
+ * writes are unbuffered + fsync'ed, a 500 ms heartbeat bounds the moment of
+ * a silent kill, and the launcher activity's onCreate is a second,
+ * independent injection point (activityStart) - so the "empty log" failure
+ * mode of Test A (file exists, 0 bytes, no breadcrumbs) can no longer happen
+ * silently: either the file carries the trail, or logcat does.
  *
  * The log lands in the app's own external files directory
  * (`Android/data/<package>/files/vogelkop-diag.log`), which any file manager
@@ -57,6 +73,9 @@ private fun isApplicationSubclass(classDef: ClassDef): Boolean =
  *  - start of every `onCreate()`: `StartupDiag.onCreateStart(this)`;
  *  - before every `return-void` in every `onCreate()`:
  *    `StartupDiag.onCreateEnd()`.
+ *  - start of the launcher activity's `onCreate(Bundle)`:
+ *    `StartupDiag.activityStart(this)` (optional; skipped when the class
+ *    does not exist in the target build).
  *
  * The crash handler chains to (and then re-asserts itself over) Opera's own
  * breakpad handler, so Opera's crash flow is preserved. This patch is
@@ -66,12 +85,15 @@ private fun isApplicationSubclass(classDef: ClassDef): Boolean =
 @Suppress("unused")
 val operaStartupDiagnosticsPatch = bytecodePatch(
     name = "Startup diagnostics",
-    description = "Records a startup breadcrumb trail and the full stack trace " +
-        "of any launch crash to Android/data/<package>/files/vogelkop-diag.log " +
-        "(openable with any file manager). Also logs which signing certificate " +
-        "the app sees for itself, proving whether the signature spoof engaged. " +
-        "Leave enabled while debugging a startup crash; it does not alter app " +
-        "behavior and never throws.",
+    description = "Records a startup breadcrumb trail (mirrored to logcat " +
+        "tag VogelkopDiag) and the full stack trace of any launch crash to " +
+        "Android/data/<package>/files/vogelkop-diag.log (openable with any " +
+        "file manager). v1.3.0: unbuffered fsync'ed writes, a 500 ms " +
+        "heartbeat, and a launcher-activity injection point, so a launch " +
+        "death always leaves a trace in the file or in logcat. Also logs " +
+        "which signing certificate the app sees for itself. Leave enabled " +
+        "while debugging a startup crash; it does not alter app behavior " +
+        "and never throws.",
     default = true,
 ) {
     compatibleWith(OPERA_COMPATIBILITY, OPERA_DIRECT_COMPATIBILITY, OPERA_BETA_COMPATIBILITY, OPERA_GX_COMPATIBILITY)
@@ -82,9 +104,37 @@ val operaStartupDiagnosticsPatch = bytecodePatch(
         var injectedApps = 0
         var attachBaseContextInjected = 0
         var onCreateInjected = 0
-        var skippedHighRegisters = 0
+        var activitiesInjected = 0
 
         classDefForEach { classDef ->
+            if (!isExtensionClass(classDef.type) &&
+                LAUNCHER_ACTIVITIES.contains(classDef.type)
+            ) {
+                val mutableClass = mutableClassDefBy(classDef)
+                for (mutableMethod in mutableClass.methods.toList()) {
+                    val implementation = mutableMethod.implementation ?: continue
+                    if (mutableMethod.name == "onCreate" &&
+                        mutableMethod.returnType == "V" &&
+                        !AccessFlags.STATIC.isSet(mutableMethod.accessFlags) &&
+                        (mutableMethod.parameterTypes.isEmpty() ||
+                            mutableMethod.parameterTypes == listOf("Landroid/os/Bundle;"))
+                    ) {
+                        // 'this' sits at registerCount - 1 - <param count>:
+                        // parameters occupy the HIGHEST registers, and for
+                        // onCreate(Bundle) the last register holds the Bundle,
+                        // not the receiver.
+                        val thisRegister =
+                            implementation.registerCount - 1 - mutableMethod.parameterTypes.size
+                        mutableMethod.addInstructions(
+                            0,
+                            activityStartInstruction(thisRegister),
+                        )
+                        activitiesInjected++
+                    }
+                }
+                return@classDefForEach
+            }
+
             if (!isApplicationSubclass(classDef)) return@classDefForEach
 
             val mutableClass = mutableClassDefBy(classDef)
@@ -153,12 +203,8 @@ val operaStartupDiagnosticsPatch = bytecodePatch(
             append(attachBaseContextInjected)
             append(", onCreate x")
             append(onCreateInjected)
-            append(")")
-            if (skippedHighRegisters > 0) {
-                append(", skipped ")
-                append(skippedHighRegisters)
-                append(" injection point(s) without a usable single-register form")
-            }
+            append("), launcher activities x")
+            append(activitiesInjected)
         }
         println(summary)
     }
@@ -181,4 +227,11 @@ private fun onCreateStartInstruction(register: Int): String =
         "invoke-static {v$register}, $ON_CREATE_START_DESC"
     } else {
         "invoke-static/range {v$register .. v$register}, $ON_CREATE_START_DESC"
+    }
+
+private fun activityStartInstruction(register: Int): String =
+    if (register <= 15) {
+        "invoke-static {v$register}, $ACTIVITY_START_DESC"
+    } else {
+        "invoke-static/range {v$register .. v$register}, $ACTIVITY_START_DESC"
     }

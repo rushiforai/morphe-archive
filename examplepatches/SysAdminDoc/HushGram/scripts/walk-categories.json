@@ -252,6 +252,7 @@
           "Chat history tools",
           "Preview chats",
           "Ask before a call",
+          "Call blocker",
           "Message box buttons",
           "Chat plus menu",
           "Glass in chats",
@@ -311,6 +312,7 @@
           "Keep Reels auto scroll on",
           "Stop Reels scrolling",
           "Swipe left to open the profile",
+          "Keep the tab bar on a reel's profile",
           "Find the reel you came from"
         ]
       },
@@ -784,6 +786,15 @@
         },
         {
           "title": "Stop the analytics upload alarm",
+          "when": {
+            "op": "any",
+            "patches": [
+              "Stop background wake-ups"
+            ]
+          }
+        },
+        {
+          "title": "Stop background feed refresh",
           "when": {
             "op": "any",
             "patches": [

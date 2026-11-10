@@ -1,13 +1,13 @@
-group = "app.hagiahaya"
+group = "app.daqot"
 
 patches {
     about {
-        name = "HagiaHaya Patches"
+        name = "daqot-The-real-one Patches"
         description = "Patches for the Dutch Pepper app"
-        source = "git@github.com:HagiaHaya/morphe-patches.git"
-        author = "HagiaHaya"
-        contact = "https://github.com/HagiaHaya/morphe-patches/issues"
-        website = "https://github.com/HagiaHaya/morphe-patches"
+        source = "git@github.com:Karamelsabbelaar/morphe-patches.git"
+        author = "daqot-The-real-one"
+        contact = "https://github.com/Karamelsabbelaar/morphe-patches/issues"
+        website = "https://github.com/Karamelsabbelaar/morphe-patches"
         license = "GPLv3"
     }
 }

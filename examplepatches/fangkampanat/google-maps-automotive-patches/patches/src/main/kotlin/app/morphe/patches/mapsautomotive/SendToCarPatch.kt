@@ -101,8 +101,8 @@ private val pushReceiverPatch = resourcePatch {
 val sendToCarPatch = bytecodePatch(
     name = "Send to car",
     description = "Lets phone Maps send a trip to the head unit through MicroG-RE (push routes, the notification " +
-        "service identity and maps.app.goo.gl links). Adds a Settings row for the car's name in phone Maps " +
-        "(default \"Vehicle 1\").",
+        "service identity and maps.app.goo.gl links). Adds a Send to car row in Settings: a status check and the " +
+        "car's name in phone Maps (default \"Vehicle 1\").",
     default = true,
 ) {
     compatibleWith(compatibility)

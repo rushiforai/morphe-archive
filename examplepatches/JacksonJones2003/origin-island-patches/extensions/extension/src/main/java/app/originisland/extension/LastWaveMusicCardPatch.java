@@ -9,6 +9,8 @@ import android.media.MediaMetadata;
 import android.media.Rating;
 import android.media.browse.MediaBrowser;
 import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
+import android.media.session.MediaController;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -102,6 +104,15 @@ public final class LastWaveMusicCardPatch {
     private static String lyrics = "";
     private static String lyricsFor = "";
     private static final Runnable sendLyricsTask = LastWaveMusicCardPatch::sendLyrics;
+
+    /**
+     * The island and the widget of the lock screen forget the lyrics when they are made again, as
+     * when the screen locks, and they ask the app for them again in a way the card never passes
+     * on to apps like this one. So the lyrics are sent again now and then while a song plays.
+     */
+    private static final long LYRICS_REFRESH_INTERVAL_MS = 4000;
+    private static final Runnable refreshLyricsTask = LastWaveMusicCardPatch::refreshLyrics;
+    private static boolean refreshingLyrics;
 
     private LastWaveMusicCardPatch() {
     }
@@ -373,7 +384,11 @@ public final class LastWaveMusicCardPatch {
     /**
      * Sends the lyrics of the song that plays, or none if LastWave has not loaded them yet.
      */
-    private static synchronized void sendLyrics() {
+    private static void sendLyrics() {
+        sendLyrics(true);
+    }
+
+    private static synchronized void sendLyrics(boolean log) {
         try {
             MediaSession session = sessionRef.get();
             if (session == null) {
@@ -390,7 +405,9 @@ public final class LastWaveMusicCardPatch {
             extras.putString(EXTRA_LYRICS, lrc);
             session.setExtras(extras);
 
-            Log.i(TAG, "Lyrics sent: " + lrc.length() + " characters");
+            if (log) {
+                Log.i(TAG, "Lyrics sent: " + lrc.length() + " characters");
+            }
         } catch (Exception ex) {
             Log.e(TAG, "sendLyrics failure", ex);
         }
@@ -400,7 +417,41 @@ public final class LastWaveMusicCardPatch {
         if (session != null && sessionRef.get() != session) {
             sessionRef = new WeakReference<>(session);
             playModes = new PlayModes(session, mainHandler, LastWaveMusicCardPatch::publishLastMetadataSoon);
+            session.getController().registerCallback(new MediaController.Callback() {
+                @Override
+                public void onPlaybackStateChanged(PlaybackState state) {
+                    if (isPlaying(state) && !refreshingLyrics) {
+                        scheduleLyricsRefresh();
+                    }
+                }
+            }, mainHandler);
         }
+    }
+
+    private static boolean isPlaying(PlaybackState state) {
+        return state != null && (state.getState() == PlaybackState.STATE_PLAYING
+                || state.getState() == PlaybackState.STATE_BUFFERING);
+    }
+
+    private static void scheduleLyricsRefresh() {
+        mainHandler.removeCallbacks(refreshLyricsTask);
+        mainHandler.postDelayed(refreshLyricsTask, LYRICS_REFRESH_INTERVAL_MS);
+        refreshingLyrics = true;
+    }
+
+    /**
+     * Sends the lyrics again while a song plays, and stops when it does not.
+     */
+    private static synchronized void refreshLyrics() {
+        refreshingLyrics = false;
+        MediaSession session = sessionRef.get();
+        if (session == null || !isPlaying(session.getController().getPlaybackState())) {
+            return;
+        }
+        if (trackId.equals(lyricsFor) && !lyrics.isEmpty()) {
+            sendLyrics(false);
+        }
+        scheduleLyricsRefresh();
     }
 
     private static void publishLastMetadataSoon() {

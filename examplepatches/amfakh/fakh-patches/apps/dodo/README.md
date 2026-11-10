@@ -9,10 +9,10 @@ Every patch is on by default except GmsCore support. Morphe Manager groups them 
 
 | Category | Patch | What it does |
 |---|---|---|
-| Feature | GmsCore support | Makes "Sign in with Google" work, so the collection and playlists saved to your Google account come back. Signs in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services, so it needs microG RE installed and signed in. Off by default. |
+| Feature | GmsCore support | Makes "Sign in with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services, so your collection and playlists saved to your Google account come back. Needs microG RE installed and signed in to a Google account. Off by default. |
 | Premium | Premium unlock | Unlocks premium on your phone: no ads and every premium feature. The patched app also opens normally instead of closing on Google Play's license check, and the ad SDK never starts. |
 | Premium | Fix song playback | Makes songs play. A patched app is signed with a different key, which the server rejects when it hands out the encrypted song, so without this every song hangs on "loading". |
-| Privacy | Disable analytics | Stops Adjust and TikTok from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics and Sessions. |
+| Privacy | Disable analytics | Stops Adjust and TikTok from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. |
 
 ## How the unlock works
 

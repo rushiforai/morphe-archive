@@ -37,6 +37,19 @@ internal object HandleGetCredentialResponseFingerprint : Fingerprint(
     )
 )
 
+/**
+ * Selects the framework or legacy credential response format based on the Android version.
+ */
+internal object RetrieveGetCredentialResponseFingerprint : Fingerprint(
+    definingClass = "Landroidx/credentials/provider/PendingIntentHandler\$Companion;",
+    name = "retrieveGetCredentialResponse",
+    returnType = "Landroidx/credentials/GetCredentialResponse;",
+    parameters = listOf("Landroid/content/Intent;"),
+    filters = listOf(
+        fieldAccess(smali = "Landroid/os/Build\$VERSION;->SDK_INT:I"),
+    )
+)
+
 internal object MainActivityOnCreateFingerprint : Fingerprint(
     definingClass = "Lcom/pepper/apps/android/presentation/MainActivity;",
     name = "onCreate",

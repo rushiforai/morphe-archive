@@ -1,5 +1,8 @@
+# Copyright (C) 2026 Lokesh Sparrow
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 name: ⭐ Feature request
-description: Suggest a new patch or an improvement to an existing one.
+description: Propose a new patch, or a change to one that already exists.
 title: "feat: "
 labels: ["Feature request"]
 body:
@@ -8,10 +11,10 @@ body:
       value: |
         <p align="center"><b>🧩 Loki Patches · Feature request</b></p>
 
-        Got an idea? Great! A few things first:
+        An idea is welcome. Two things to read first:
 
-        - 🔎 **Search first.** Check the [existing feature requests](https://github.com/lokesh-sparrow/loki-patches/issues?q=label%3A%22Feature+request%22). If your idea is there, add a 👍 to it instead.
-        - 🧭 **Out of scope:** unlocking paid features or content (Premium, subscriptions), and anything that collects other people's data. These requests will be closed.
+        - 🔎 **Check the [existing requests](https://github.com/lokesh-sparrow/loki-patches/issues?q=label%3A%22Feature+request%22).** If yours is already there, a 👍 on it counts more than a second issue.
+        - 🧭 **Out of scope:** unlocking paid features or content (Premium, subscriptions), and anything that gathers other people's data. Those requests are closed.
 
   - type: dropdown
     id: app
@@ -39,7 +42,7 @@ body:
     id: description
     attributes:
       label: What should it do?
-      description: Describe the feature. Screenshots, videos, or examples from other apps or patch bundles help a lot.
+      description: Describe the behaviour. A screenshot, a recording, or an example from another app or bundle makes it much easier to picture.
       placeholder: Add an option to hide the "Add to your feed" suggestions on the home feed.
     validations:
       required: true
@@ -48,7 +51,7 @@ body:
     id: motivation
     attributes:
       label: Why is it useful?
-      description: What problem does it solve for you, and how often do you run into it?
+      description: Which annoyance does it remove for you, and how often do you hit it?
     validations:
       required: true
 
@@ -57,7 +60,7 @@ body:
     attributes:
       label: Acknowledgements
       options:
-        - label: I searched the existing feature requests and this is not a duplicate.
+        - label: I checked the existing feature requests and mine is not among them.
           required: true
-        - label: This request does not unlock paid features or content.
+        - label: This request is not about unlocking paid features or content.
           required: true

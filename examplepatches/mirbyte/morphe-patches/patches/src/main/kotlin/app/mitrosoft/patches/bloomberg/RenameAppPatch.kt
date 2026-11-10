@@ -9,7 +9,7 @@ import org.w3c.dom.Element
 val renameAppPatch = resourcePatch(
     name = "Rename Bloomberg",
     description = "Changes the launcher name shown under the app icon.",
-    default = false,
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_BLOOMBERG)
 

@@ -27,7 +27,7 @@ private val billingPermissions = listOf(
 
 @Suppress("unused")
 val permissionsStripPatch = resourcePatch(
-    name = "Strip Bloomberg permissions",
+    name = "Strip permissions",
     description = "Removes the selected permission groups from AndroidManifest.xml.",
     default = true,
 ) {

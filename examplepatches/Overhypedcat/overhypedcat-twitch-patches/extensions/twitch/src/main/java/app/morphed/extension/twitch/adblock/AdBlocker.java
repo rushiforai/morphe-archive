@@ -9,7 +9,9 @@ import app.morphed.extension.twitch.hls.UrlKey;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -73,7 +75,17 @@ public final class AdBlocker {
     private final BreakListener breaks;
     private final Problem.Reporter problems;
     private final Map<String, StreamSession> sessionsByVariant = new ConcurrentHashMap<>();
-    private final Set<String> previewVariants = ConcurrentHashMap.newKeySet();
+    /**
+     * Qualities of previews, oldest first. Only the oldest are dropped when it is full: forgetting a
+     * preview that still plays would make its playlists look unrecognised (E4).
+     */
+    private final Set<String> previewVariants = Collections.synchronizedSet(Collections.newSetFromMap(
+            new LinkedHashMap<String, Boolean>() {
+                @Override
+                protected boolean removeEldestEntry(Map.Entry<String, Boolean> eldest) {
+                    return size() > MAX_PREVIEW_VARIANTS;
+                }
+            }));
 
     public AdBlocker(BackupStreamFinder backups, Logger logger, LongSupplier clock,
                      BreakListener breaks, Problem.Reporter problems) {
@@ -97,6 +109,7 @@ public final class AdBlocker {
 
     /** Called for requests that are not inspected, to notice playlists that slip past. */
     public void checkRequest(String url) {
+        if (url == null || !url.contains(".m3u8")) return;
         if (isUnrecognizedLivePlaylist(url)) problems.report(Problem.UNRECOGNIZED_PLAYLIST, UrlKey.of(url));
     }
 
@@ -163,7 +176,9 @@ public final class AdBlocker {
     }
 
     public boolean shouldInspect(String url) {
-        if (url == null || isPreviewPlaylist(url)) return false;
+        // Every player request comes here (video segments too, several a second): only playlists
+        // can be inspected, and the check for that is the cheap one.
+        if (url == null || !url.contains(".m3u8") || isPreviewPlaylist(url)) return false;
         return isMasterPlaylist(url) || isKnownMediaPlaylist(url) || isLiveMediaPlaylist(url);
     }
 
@@ -187,7 +202,7 @@ public final class AdBlocker {
         if (now - latest.lastSeen < MOVED_GAP_MS) {
             // That stream is still being polled at its own URL, so this playlist belongs to another
             // player (for example a preview): leave it alone.
-            logger.log("Leaving unrelated playlist alone: " + UrlKey.of(url));
+            if (logger.detailed()) logger.log("Leaving unrelated playlist alone: " + UrlKey.of(url));
             return body;
         }
         // Only the same stream shares segments with it; anything else (picture-by-picture, a preview
@@ -197,7 +212,7 @@ public final class AdBlocker {
             sameStream = latest.stitcherFor(latest.lastVariantUrl).recognises(MediaPlaylist.parse(body, url));
         }
         if (!sameStream) {
-            logger.log("Leaving unrelated playlist alone (no shared segments): " + UrlKey.of(url));
+            if (logger.detailed()) logger.log("Leaving unrelated playlist alone (no shared segments): " + UrlKey.of(url));
             return body;
         }
         return onMediaPlaylist(adoptMovedPlaylist(latest, url), url, body);
@@ -237,8 +252,14 @@ public final class AdBlocker {
         MasterPlaylist master = MasterPlaylist.parse(body);
         if (isPreview(url)) {
             // Previews have no ads to block; remember their qualities only to leave them alone.
-            if (previewVariants.size() > MAX_PREVIEW_VARIANTS) previewVariants.clear();
-            for (MasterPlaylist.Variant variant : master.variants) previewVariants.add(UrlKey.of(variant.url));
+            for (MasterPlaylist.Variant variant : master.variants) {
+                String key = UrlKey.of(variant.url);
+                synchronized (previewVariants) {
+                    // Moved to the newest end, so a preview that is opened again is kept longest.
+                    previewVariants.remove(key);
+                    previewVariants.add(key);
+                }
+            }
             logger.log("Ignoring preview of " + channel);
             return;
         }
@@ -285,7 +306,7 @@ public final class AdBlocker {
         long waitStart = clock.getAsLong();
         synchronized (session) {
             long waited = clock.getAsLong() - waitStart;
-            if (waited > 100) logger.log("Waited " + waited + "ms for " + session.channel + " (another playlist was being handled)");
+            if (waited > 100 && logger.detailed()) logger.log("Waited " + waited + "ms for " + session.channel + " (another playlist was being handled)");
             return handleMediaPlaylist(session, url, body, playlist, backup, searchNote);
         }
     }
@@ -298,7 +319,7 @@ public final class AdBlocker {
         PlaylistStitcher stitcher = session.stitcherFor(url);
         StreamSession.QualityState quality = session.qualityFor(url);
         quality.lastPoll = session.lastSeen;
-        logger.log(pollSummary(session, url, playlist, quality));
+        if (logger.detailed()) logger.log(pollSummary(session, url, playlist, quality));
 
         if (!playlist.hasAds()) {
             Set<String> suspicious = AdMarkers.suspiciousMarkers(body);
@@ -333,9 +354,12 @@ public final class AdBlocker {
         // between two ads) does not end it and start it again moments later.
         String output = stitcher.process(playlist, body, PlaylistStitcher.NATIVE);
         if (quality.swappingAds && ++quality.cleanPolls >= 2) {
-            logger.log("Ad break over on " + session.channel);
-            session.endAdSwap(url, clock.getAsLong());
-            breaks.onBreakOver();
+            // Another quality still in the break (polled moments ago) keeps it open: the label and
+            // the player refresh wait for the break as a whole to end.
+            if (session.endAdSwap(url, clock.getAsLong())) {
+                logger.log("Ad break over on " + session.channel);
+                breaks.onBreakOver();
+            }
         } else if (!quality.swappingAds && session.endLeftBreaks(clock.getAsLong())) {
             // The player switched to this (clean) quality during the break and left the other one.
             logger.log("Ad break over on " + session.channel + " (quality changed)");

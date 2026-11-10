@@ -1,0 +1,45 @@
+name: Triage issues
+
+# Checks bug reports from people outside the project against the app versions
+# the patches support on main and dev, and labels the ones that use another
+# version or build "untargeted version". See .github/scripts/issue_triage.py.
+#
+# The issue body is untrusted. Only the script reads it, from the event file;
+# it never reaches a shell command.
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions: {}
+
+concurrency:
+  group: triage-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    name: Check the reported version
+    if: >-
+      contains(github.event.issue.labels.*.name, 'bug') &&
+      github.event.issue.state == 'open' &&
+      github.event.issue.user.type != 'Bot' &&
+      !contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.issue.author_association)
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # main and dev are both read for the supported versions.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check the report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 .github/scripts/issue_triage.py

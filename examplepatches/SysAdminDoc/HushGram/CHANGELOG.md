@@ -6,11 +6,20 @@ Every HushGram release, newest first.
 
 ### Features
 
+* HushGram's settings are now in Thai, thanks to MangaThatsFine in #593.
+* `Upload stories at full quality` adds `Video resolution` up to 1440p, `Video frame rate` up to 60 fps and `Photo quality` up to 100. Instagram still re-encodes on its servers, so these set what leaves your phone. Asked for in #37.
+* `Seek bar shape` under Feed gives the seek bars on feed videos, stories and reels a new look: a thin line, a thicker rounded bar, a bar split by a tall handle, or a wave. They grow while you drag. Asked for in #586 and #592.
+* `Preview while you drag a seek bar` under Feed shows the time above your finger on feed videos, stories and reels, with a small picture of that moment when Instagram has one. Most feed videos don't come with those pictures, so there the paused video itself follows your finger. A reel or story playing faster or slower shows its speed on the card too. Asked for in #567 and #592.
+* `Keep the tab bar on a reel's profile` keeps the tab bar on a profile you open from a reel, and Back goes back to the reel. It starts off, in the Reels section of HushGram settings.
+* `Swipe right on Home opens` picks what that swipe does: the camera, as it is now, or Search, Reels, Messages or Profile. Asked for in #589.
 * `Picture in picture for reels` under Playback, below `Keep playing in the background`, shrinks a playing reel into a small window over other apps when you leave Instagram. Needs Android 15 or newer. Starts off. Asked for in #572.
 * `Show it on the profile picture` under `Mark who doesn't follow you back` swaps the words for a badge on each profile picture in your Following list. Green check means they follow back, red cross means they don't. Starts off. Asked for in #572.
 * New patch, `Search comments`. Its switch under Comments puts a search box above a post's comments. Type a word or name to jump to the next match, loading more as needed. Arrows step between matches. Unopened replies aren't searched. Asked for in #560.
 * New patch, `Split the notes row`. Its switch under Messages splits the notes row at the top of your messages into three stacks (Instants, Notes and Stories), the layout Instagram is testing on some accounts. Takes a restart. Asked for in #558.
 * New patch, `Hide Instagram Plus prompts`. Its switch under Ads and privacy takes the Try Instagram Plus card and See preview row off a chat you hold, plus other Plus offers shown the same way. Nothing from Plus turns on. Asked for in #559.
+* `Hide the Community Standards reminder` under Messages takes the "Help keep Instagram a supportive place" banner off the bottom of a chat. Asked for in #588.
+* `Who can call you` under Messages stops Instagram calls from ringing your phone: nobody, only people on your list, or everyone except them. Callers just get no answer. Asked for in #578.
+* `Hide page number` under Feed takes the number like 3/5 off the corner of a carousel post. Starts off. Asked for in #581.
 * `Hide story rows` under Feed takes out the rows of stories Instagram puts between posts on Home, like Expiring Stories. It's off until you turn it on. Asked for in #557.
 * `Swipe through a chat's photos and posts` under Messages lets you open a photo, video or shared post from a chat and swipe up through the chat's other photos, videos and shared posts, in chat order. Asked for in #350.
 * `Seek bar on photos with music` under Reels gives a reel that's a photo with a song the same seek bar and time as a video reel, following the song. Asked for in #10.
@@ -39,36 +48,55 @@ Every HushGram release, newest first.
 * New patch, `Hide Made with Edits`. Its switch under Feed takes the "Made with Edits" label out of the line under a post's author, and the song, the place and the other labels keep taking turns there. Asked for in #570.
 * New patch, `Watch again in the feed`. With its switch on under Feed, Watch again at the end of a reel in your feed plays it over in place instead of opening Reels. `Watch more reels` still opens Reels. Asked for in #568.
 * `Seek bar on the bottom edge` under `Seek bar on feed videos` moves the bar down onto the video's bottom edge, so a scroll is less likely to catch it. Asked for in #567.
+* `Take a scroll break` now lets you pick how long you scroll, from 5 minutes up to 2 hours, and a `Break length` slider sets the break from 5 to 120 minutes. Asked for in #297.
+* `Stop background feed refresh` under Battery stops the job that wakes your phone about every half hour to fetch your feed. Your feed loads when you open Instagram, and messages and notifications still come in. Reported in #341.
 
 ### Improvements
 
+* The diagnostic report has a `[SCREEN]` part now. It names the screen you were on, which tabs show, and the views covering most of it, so a report sent right after a blank screen shows what was in front. Asked for in #535.
+* Dusk blue, Pine and Slate are now full color sets. Story rings and Instagram's other gradients run through three colors, likes and badges get the set's own color, and backgrounds start from its screen color.
+* **Tooling:** `scripts/gen-readme-patches.py` writes the README's patch table and counts from `patches-list.json` and leaves the rest of the README alone.
 * **Tooling:** The release walk now reads the settings overview while its own header shows HushGram's name, Home's welcome screen on 454, a long reel with its scrubber, and a screen with the activity tooltip up.
 * **Tooling:** `patch-all-builds.ps1` merges a split bundle before patching it, like the other patching scripts.
 * **Tooling:** The release facts check reads the patch count and target build from the description's sentences, so a change's bullet that counts patches no longer stops a release.
 * **Tooling:** Morphe Desktop 2.1.1 now has its reviewed advisory exceptions, so the audit accepts it.
 * With `Keep a seek bar on Reels` on, Instagram's own track now glides between position updates too, and a round handle stays on the line's end. Reported in #10.
+* `Bend light at the edges` works on the standard glass pill too, not just the liquid one, round whatever corners you picked. It sits under `Blur behind the tab bar` now, since the bend needs the blur. Asked for in #391.
+* The `Instagram gradient on dark` app icon is bigger on the home screen, about as big as the other icons. Reported in #327.
 * `Pure black dark mode` now turns the menu you get by holding a message, or a chat in your inbox, black too, along with the Instagram Plus card over that menu and the notes above your chats. Asked for in #543.
 * With `Full screen Reels` hiding the status bar, the Reels and Friends tabs and the buttons at the top of a reel now sit just below a punch hole camera instead of under it. Asked for in #525.
 * `Select text` opens a comment, caption or bio in HushGram's own dark window now, black with `Pure black dark mode`, instead of the phone's gray one. Asked for in #525.
 * The story mentions sheet from the top bar floats over the story as glass now, with the story blurred behind it on Android 12 and up. Phones that can't blur get a nearly solid tint so names stay readable. Asked for in #525.
 * `Glass in chats` gives the back, call and video buttons real glass circles that match the liquid tab bar, with a lit rim instead of flat grey. The thin line under a chat's top bar is gone too. Asked for in #537 and #542.
-* With debug logging on, the diagnostic report now has a timed line each time the glass or classic tab bar moves a screen, the Reels viewer, a sheet or the space under a reel. A report taken right after a reel freezes on its cover shows what moved just before it. Reported in #509 and #222.
+* With debug logging on, the diagnostic report has a timed line each time a tab bar moves a screen, the Reels viewer, a sheet or the space under a reel. Reported in #509 and #222.
 
 ### Bug Fixes
 
-* With `Gray out stories you've watched`, the story row no longer puts stories you've watched ahead of new ones after it reloads, like after a pull to refresh or coming back to the app. The next batch of stories that loads as you scroll the row also stays after the ones you had, instead of mixing in with the gray rings. Reported in #241.
+* With `Peek at the next carousel page` on, Instagram no longer crashes while you scroll Home past carousels. When Instagram reused a carousel for another post, it could look for a page slot the carousel no longer had.
+* `Clear saved copies now`, and the clear that runs on its own, empty the photo cache on Instagram 454 too. That version keeps its pictures in a new folder, so nothing was being freed.
+* `Backgrounds in the accent color` now reaches the message list. Its rows and search field stayed near-black under a colored page because that screen takes its grays from code instead of the theme. Refs #577.
+* `Pure black dark mode` no longer paints a note's bubble, the Instagram Plus card, the comments sheet or the strip under it black on top of `Backgrounds in the accent color`. Refs #577.
+* With `Gray out stories you've watched`, the story row no longer puts watched stories ahead of new ones after it reloads, and the next batch stays after the ones you had. Reported in #241.
+* With `Gray out stories you've watched`, the highlight tiles at the end of the story row stay there instead of jumping ahead of watched stories, where they looked like a watched story with a new ring. Reported in #241.
+* `Ambient light` shows on the posts that were missing it. Instagram's frame around those pictures comes out a pixel taller than the picture, and the glow was drawn on that frame with no room to show. Reported in #580.
+* `Ambient light` glows around a reel that doesn't fill the screen when `Rounded corners on Reels` is on. The rounding was cutting the glow off with the empty space around the video. Reported in #580.
+* `Save every page without asking` works on the download icon beside a reel too, so a carousel opened from Explore, Search or Reels saves all its pages with no popup. Reported in #190.
+* A reel's seek bar no longer ends up in the strip at the bottom of the screen when the tab bar has moved out of the way, so scrubbing can't swipe you home. Reported in #450.
+* `Glass tab bar` now works on tablets and a foldable's inner screen. It keeps Instagram's phone layout there, since the glass needs the tab bar along the bottom and the big screen layout only has the rail down the side.
 * With `Hide the Create button` on, a long press on your profile's menu opens the HushGram settings again. With the button gone, the long press couldn't tell it was on your own profile. Reported in #431.
-* `See-through top bar` reaches behind the clock on more phones. Where Instagram already runs Home's posts up under the clock, the glass now covers that strip too. Where the tabs swipe sideways, only Home's page moves up, so Reels and the other tabs stay where they were. Reported in #462.
-* With `Glass tab bar` on, the seek bar on a reel opened outside the Reels tab, like from a post in your feed, sits above the gesture handle now instead of on the screen's bottom edge. Scrubbing there used to swipe you home. Reported in #450.
-* `Start feed videos with sound` now turns the sound on for every video on Home, not just the first one, the same as tapping a video's speaker. Mute one and the next ones stay muted. Your ringer still counts, so on silent or vibrate videos start muted. Reported in #504.
-* `Keep playing in the background` keeps going after you open a video. A video opened from your feed, the Reels tab and stories used to stop a few seconds after you left Instagram, since Instagram let go of the player. Stories play on too now. Reported in #497.
-* Explore no longer leaves two blank spots in every fourth row when `Full size covers` is on. The switch tells Instagram the screen is 4320 pixels wide, and at a phone's pixel density that's a tablet, so Explore sent its grid for wider rows. The density now goes up with the size (for `Ask for larger photos` too), so the screen keeps a phone's size and covers still come in full. Reported in #433.
+* `See-through top bar` reaches behind the clock on more phones. Where Home's posts already run under the clock, the glass now covers that strip. Where the tabs swipe sideways, only Home's page moves up. Reported in #462.
+* With `Glass tab bar` on, the seek bar on a reel opened outside the Reels tab sits above the gesture handle instead of on the screen's edge, where scrubbing swiped you home. Reported in #450.
+* The floating `Glass tab bar` pill now frosts over a playing reel instead of staying clear, and on Home and Profile the sharp screen no longer shows through half of it. Reported in #583.
+* `Start feed videos with sound` now turns the sound on for every video on Home, the same as tapping a speaker. Mute one and the rest stay muted. On silent or vibrate they start muted. Reported in #504.
+* `Keep playing in the background` keeps going after you open a video from your feed, Reels or stories. Those used to stop a few seconds after you left Instagram. Reported in #497.
+* `See who a story mentions` opens its list again after you watch the story of a profile you went to from it. That story used to end the list, so coming back left it closed. Reported in #403.
+* Explore no longer leaves two blank spots in every fourth row when `Full size covers` is on. Covers still come in full, and `Ask for larger photos` got the same fix. Reported in #433.
 * `Keep a viewing history` now records the reels you watch. It only heard about them while `Download button on reels` was on, so with that icon off the Reels list stayed empty. Reported in #228.
 * With `Rounded corners on Reels` on, opening the comments on a wide reel no longer cuts its video down to a thin strip. The rounded edge now moves up with the video. Reported in #522.
 * `Phone layout on big screens` now takes the rail down the side away too. It only changed Home's header on 454, since Instagram's main screen asks a second copy of the width check. Reported in #515.
 * `See-through top bar` now reaches up behind the clock again instead of stopping at the header's top edge. Reported in #513 and #521.
 * `See-through top bar` no longer draws an empty frosted band across Home when nothing in the header is showing. Only the strip behind the clock stays. Reported in #513.
-* With `Keep Home's top bar` on, the Instagram logo and the buttons beside it no longer vanish after you come back to Instagram from another app. Instagram faded them out as if the header had scrolled away, and they stayed gone until a restart. Reported in #513.
+* With `Keep Home's top bar` on, the Instagram logo and the buttons beside it no longer vanish after you come back to Instagram from another app. Reported in #513.
 * `Start tab` now works when you open Instagram from its icon without a saved `Tab order`. On 454 Instagram picks the first tab before the tab bar is built, and that pick used to need a saved order. Reported in #534.
 * `Clean up Reels` no longer stops patching when the APK numbers the Friends tab's icon differently. It now also finds the tab by how Instagram builds it. Reported in #533.
 * Reels on the Reels tab fill the screen again when `Hide the tab bar on Reels` slides the bar away or `Run Reels behind the tab bar` is on. They used to sit low under a black band. Reported in #544.
@@ -91,6 +119,7 @@ Every HushGram release, newest first.
 * With `Pure black dark mode` on, the strip behind the navigation bar is black while comments are open and under a reel opened from the feed. It used to show the video through it. Reported in #571.
 * `Rounded post corners` now rounds the top corners of a reel in the feed too. The shadow behind its name row stayed square over them, which showed with `Ambient light` on. Reported in #571.
 * New `Keep the comment bar's space` switch under the comment bar switches in Reels. A reel opened from a post or profile used to slide into the hidden bar's space. This keeps that space empty so nothing moves. Reported in #523.
+* With `Seek bar on feed videos` on, a swipe up or down that starts on a video's seek bar scrolls Home instead of doing nothing. Dragging along the bar still moves through the video.
 
 ## 0.0.19 (2026-11-06)
 

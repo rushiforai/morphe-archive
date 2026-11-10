@@ -1,3 +1,27 @@
+## [1.27.8](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.7...v1.27.8) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** allow functional network hosts ([4394973](https://github.com/durgesh0505/chiggi_morphe_patches/commit/4394973af6bc2717d94d62b7992e859bf8c44cc7))
+
+## [1.27.7](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.6...v1.27.7) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** stop unsafe deeplink activity ([4a1e922](https://github.com/durgesh0505/chiggi_morphe_patches/commit/4a1e9227569fea8691a6f98acf1b03f682a553c3))
+
+## [1.27.6](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.5...v1.27.6) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** block unsafe modal deeplink ([f2ca55f](https://github.com/durgesh0505/chiggi_morphe_patches/commit/f2ca55f4510c0330f75992adb1b2afd5bd5b1b4b))
+
+## [1.27.5](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.4...v1.27.5) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **capcut:** remove native cracking interceptor ([4629d15](https://github.com/durgesh0505/chiggi_morphe_patches/commit/4629d157fb9253e21b93127c6531f44b7ff5afb2))
+
 ## [1.27.4](https://github.com/durgesh0505/chiggi_morphe_patches/compare/v1.27.3...v1.27.4) (2026-11-09)
 
 ### 🐛 Bug Fixes

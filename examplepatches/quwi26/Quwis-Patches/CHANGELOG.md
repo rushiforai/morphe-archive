@@ -1,3 +1,9 @@
+# [1.9.26](https://github.com/quwi26/Quwis-Patches/compare/v1.9.25...v1.9.26) (2026-11-09)
+
+### Bug Fixes
+
+* **Game Review:** a signed-out account now reaches the reviewer chooser and can review with Stockfish on the phone or on the computer, instead of the app opening its "Sign up to use this feature." screen. Chess.com's own review and signed-in accounts are unchanged
+
 # [1.9.25](https://github.com/quwi26/Quwis-Patches/compare/v1.9.24...v1.9.25) (2026-11-08)
 
 ### Bug Fixes

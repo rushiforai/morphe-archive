@@ -19,3 +19,73 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+
+Loki Patches NOTICE
+===================
+
+Copyright (C) 2026 Lokesh Sparrow
+
+Loki Patches is licensed under the GNU General Public License, version 3 or
+later (GPL-3.0-or-later). The full licence text is in LICENSE. This NOTICE
+adds terms under section 7 of that licence and records where the project
+came from.
+
+1. Where this project came from
+-------------------------------
+
+Loki Patches is maintained by Lokesh Sparrow. It is a patch bundle for the
+LinkedIn Android app and is used together with Morphe.
+
+The code in this repository is written by Lokesh Sparrow.
+
+History: releases v1.0.0 through v1.2.5 were built on Michii Patches by
+heyymichii (https://github.com/heyymichii/michii-patches) and the Morphe
+patches template (https://github.com/MorpheApp/morphe-patches-template), both
+GPLv3. From 2.0 the code is a complete rewrite; those releases keep their own
+notices.
+
+2. Additional terms (GPLv3, section 7)
+--------------------------------------
+
+The following additional terms apply to Loki Patches, as section 7 of the
+GPLv3 allows. They are written here in plain English; they are meant to be
+read together with the licence text, not instead of it.
+
+a. Keep the author credit. Any redistribution of this project, or of a
+   modified version of it, must keep the line "Loki Patches by Lokesh
+   Sparrow" and must keep this NOTICE file with it, unmodified in substance.
+   Where the redistribution has a settings screen, an about screen or a
+   similar place, the credit belongs there as well.
+
+b. Do not misrepresent where this came from. You may not state or imply that
+   Loki Patches was written by someone other than Lokesh Sparrow, or present a
+   copy of it as your own work. You may not remove or hide the
+   history note in section 1.
+
+c. Mark modified versions as changed. If you distribute a modified version,
+   it must carry a clear notice that it has been changed, and it must not
+   present itself as the unchanged Loki Patches. Keep the date of the change
+   with that notice.
+
+d. Do not use the name as your own product name. A modified version must not
+   be distributed under the name "Loki Patches", or a name confusingly
+   similar to it, as its own product name. Choose a different name and its
+   own branding, and credit this project as the source of the code.
+
+e. Descriptive references are fine. Saying that your work "is based on Loki
+   Patches", "is a fork of Loki Patches" or "works with Loki Patches" is
+   allowed and encouraged, as long as it is accurate and is not presented as
+   the product name.
+
+If a term above cannot be met for a particular redistribution, that
+redistribution may not use this project's code under this licence. Ask
+first; the answer is usually yes with a different arrangement.
+
+3. What this licence does not cover
+-----------------------------------
+
+The patches modify LinkedIn's app on the user's own device. LinkedIn's
+application, its name and its trademarks belong to LinkedIn and are not
+covered by this licence or by this NOTICE. Nothing here grants permission to
+distribute a modified copy of the LinkedIn app.

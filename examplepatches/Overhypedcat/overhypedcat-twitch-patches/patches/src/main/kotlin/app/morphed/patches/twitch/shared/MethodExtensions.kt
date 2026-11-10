@@ -7,6 +7,23 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
+/**
+ * Fails the patch if any instruction writes [register]. Code added before a return reads a parameter
+ * register (usually `this`) there; if the app's compiler reused it for another value, the call would
+ * get the wrong object and Android would refuse to load the class. A clear patch error is better.
+ */
+internal fun MutableMethod.checkRegisterNotReused(register: Int) {
+    implementation!!.instructions.forEachIndexed { index, instruction ->
+        if (!instruction.opcode.setsRegister() || instruction !is OneRegisterInstruction) return@forEachIndexed
+        val written = instruction.registerA
+        val wide = instruction.opcode.setsWideRegister()
+        check(written != register && !(wide && written + 1 == register)) {
+            "$definingClass->$name reuses v$register (instruction $index, ${instruction.opcode.name}); " +
+                "the patch needs an update for this app version"
+        }
+    }
+}
+
 /** Indices of every [opcode] instruction, last first so inserting code keeps them valid. */
 internal fun MutableMethod.indicesOf(opcode: Opcode): List<Int> {
     val indices = implementation!!.instructions

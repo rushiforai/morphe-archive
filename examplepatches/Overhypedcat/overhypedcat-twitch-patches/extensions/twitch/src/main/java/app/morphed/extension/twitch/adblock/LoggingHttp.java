@@ -36,6 +36,8 @@ public final class LoggingHttp implements Http {
     }
 
     private Response logged(String method, String url, Call call) throws IOException {
+        // One line per request: during an ad break the backup is refreshed on every poll.
+        if (!logger.detailed()) return call.run();
         long start = clock.getAsLong();
         try {
             Response response = call.run();

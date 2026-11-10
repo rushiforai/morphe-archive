@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import android.app.Activity;
@@ -13,116 +18,144 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Adds a "Loki Patches" entry to the native "Me" panel, right below "Saved posts".
- * It reuses the panel's own section view data, and its click is redirected to SettingsActivity.
+ * The "Loki Patches" row in LinkedIn's native "Me" panel, directly under "Saved posts".
+ *
+ * <p>The row is a copy of the panel's own section view data, so it looks like the rows around it,
+ * and its header click is redirected to the extension's settings activity.
  */
 @SuppressWarnings("unused")
 public final class NavPanelPatch {
-    private static final String PACKAGE = "com.linkedin.android.home.navpanel.";
+    private static final String PANEL_TYPES = "com.linkedin.android.home.navpanel.";
     static final String TITLE = "Loki Patches";
 
-    /** Injected before every return of HomeNavPanelTransformer.transform(HomeNavPanelAggregateResponse). */
+    /** Injected before every return of HomeNavPanelTransformer.transform(...). */
     public static AbstractList<Object> addSettingsItem(Object panel) {
         @SuppressWarnings("unchecked")
-        AbstractList<Object> list = (AbstractList<Object>) panel;
-        if (list == null) return null;
+        AbstractList<Object> sections = (AbstractList<Object>) panel;
+        if (sections == null) return null;
         try {
-            Class<?> viewData = Class.forName(PACKAGE + "HomeNavPanelSectionV2ViewData");
-            Class<?> sectionType = Class.forName(PACKAGE + "SectionType");
-            Class<?> chevronType = Class.forName(PACKAGE + "HomeNavPanelSectionChevronType");
-            Object savedPosts = sectionType.getField("SAVED_POSTS").get(null);
-            Object chevronRight = chevronType.getField("RIGHT").get(null);
-
-            ArrayList<Object> result = new ArrayList<>(list);
-            if (Settings.hideGames()) removeGames(result, sectionType);
-
-            for (Object item : result) {
-                if (viewData.isInstance(item) && TITLE.equals(String.valueOf(Reflect.get(item, "title")))) {
-                    return result;
-                }
-            }
-
-            Object entry = newSection(viewData, savedPosts, chevronRight);
-
-            // "Saved posts" is a section V2 in older builds and a plain section in 4.1.1261; both have a sectionType.
-            int index = result.size();
-            for (int i = 0; i < result.size(); i++) {
-                Object item = result.get(i);
-                if (Reflect.get(item, "sectionType") == savedPosts) {
-                    index = i + 1;
-                    break;
-                }
-            }
-            result.add(index, entry);
-            return result;
-        } catch (Throwable t) {
-            Diagnostics.error("addSettingsItem failed", t);
-            return list;
+            return withSettingsRow(sections);
+        } catch (Throwable failure) {
+            Diagnostics.error("addSettingsItem failed", failure);
+            return sections;
         }
     }
 
+    private static AbstractList<Object> withSettingsRow(AbstractList<Object> sections) throws Exception {
+        Class<?> sectionData = Class.forName(PANEL_TYPES + "HomeNavPanelSectionV2ViewData");
+        Class<?> sectionTypes = Class.forName(PANEL_TYPES + "SectionType");
+        Class<?> chevronTypes = Class.forName(PANEL_TYPES + "HomeNavPanelSectionChevronType");
+        Object savedPostsType = sectionTypes.getField("SAVED_POSTS").get(null);
+        Object chevronRight = chevronTypes.getField("RIGHT").get(null);
+
+        ArrayList<Object> rows = new ArrayList<>(sections);
+        if (Settings.hideGames()) removeGamesRows(rows, sectionTypes);
+        // The panel is rebuilt on every visit; never end up with two of our rows.
+        if (alreadyHasSettingsRow(rows, sectionData)) return rows;
+
+        Object settingsRow = buildRow(sectionData, savedPostsType, chevronRight);
+        rows.add(indexAfter(rows, savedPostsType), settingsRow);
+        return rows;
+    }
+
+    private static boolean alreadyHasSettingsRow(List<Object> rows, Class<?> sectionData) {
+        for (int i = 0; i < rows.size(); i++) {
+            Object row = rows.get(i);
+            if (!sectionData.isInstance(row)) continue;
+            String title = String.valueOf(Reflect.get(row, "title"));
+            if (TITLE.equals(title)) return true;
+        }
+        return false;
+    }
+
     /**
-     * Removes the "Games" section (any panel item whose sectionType is GAMES), for "Hide games". Builds without
-     * it are left as they are.
+     * Where the new row goes: right after "Saved posts". Both section shapes (V2 section data on
+     * older builds, a plain section on 4.1.1261) carry a sectionType, so that is what is compared.
      */
-    private static void removeGames(List<Object> items, Class<?> sectionType) {
-        Object games;
+    private static int indexAfter(List<Object> rows, Object sectionType) {
+        for (int i = 0; i < rows.size(); i++) {
+            Object row = rows.get(i);
+            Object rowType = Reflect.get(row, "sectionType");
+            if (rowType == sectionType) return i + 1;
+        }
+        return rows.size();
+    }
+
+    /**
+     * Removes every "Games" row for "Hide games". A build without a GAMES section type keeps its
+     * panel exactly as it was.
+     */
+    private static void removeGamesRows(List<Object> rows, Class<?> sectionTypes) {
+        Object gamesType;
         try {
-            games = sectionType.getField("GAMES").get(null);
-        } catch (ReflectiveOperationException e) {
+            gamesType = sectionTypes.getField("GAMES").get(null);
+        } catch (ReflectiveOperationException noGamesHere) {
             return;
         }
-        for (int i = items.size() - 1; i >= 0; i--) {
-            Object item = items.get(i);
-            if (Reflect.get(item, "sectionType") == games) {
-                items.remove(i);
-                Settings.debugLog("hide games section");
-            }
+        for (int i = rows.size() - 1; i >= 0; i--) {
+            Object rowType = Reflect.get(rows.get(i), "sectionType");
+            if (rowType != gamesType) continue;
+            rows.remove(i);
+            Settings.debugLog("hide games section");
         }
     }
 
     /**
-     * Builds a section through whichever constructor this LinkedIn build has. Older builds take
-     * (CharSequence, SectionType, ChevronType, List, AnalyticsWidgetViewData); newer ones take a String
-     * title and append (List collapsedStackItems, int overflowCount, int defaultsMask).
+     * Builds the row with whichever constructor this build offers. Up to 4.1.1261 it takes
+     * (CharSequence, SectionType, ChevronType, List, AnalyticsWidgetViewData); newer builds take a
+     * String title and append (List collapsedStackItems, int overflowCount, int defaultsMask).
+     * Arguments past the third get a harmless default: empty list, 0, false.
      */
-    private static Object newSection(Class<?> viewData, Object sectionType, Object chevron) throws Exception {
-        for (Constructor<?> constructor : viewData.getConstructors()) {
-            Class<?>[] types = constructor.getParameterTypes();
-            if (types.length < 3 || !types[0].isAssignableFrom(String.class)
-                    || !types[1].isInstance(sectionType) || !types[2].isInstance(chevron)) continue;
-            Object[] args = new Object[types.length];
-            args[0] = TITLE;
-            args[1] = sectionType;
-            args[2] = chevron;
-            for (int i = 3; i < types.length; i++) {
-                if (types[i] == List.class) args[i] = Collections.emptyList();
-                else if (types[i] == int.class) args[i] = 0;
-                else if (types[i] == boolean.class) args[i] = false;
-            }
-            return constructor.newInstance(args);
+    private static Object buildRow(Class<?> sectionData, Object sectionType, Object chevron) throws Exception {
+        Constructor<?>[] available = sectionData.getConstructors();
+        for (int c = 0; c < available.length; c++) {
+            Constructor<?> candidate = available[c];
+            Class<?>[] parameters = candidate.getParameterTypes();
+            if (parameters.length < 3) continue;
+            if (!parameters[0].isAssignableFrom(String.class)) continue;
+            if (!parameters[1].isInstance(sectionType)) continue;
+            if (!parameters[2].isInstance(chevron)) continue;
+            return candidate.newInstance(argumentsFor(parameters, sectionType, chevron));
         }
-        throw new NoSuchMethodException(viewData.getName() + ".<init>(title, SectionType, ChevronType, ...)");
+        throw new NoSuchMethodException(sectionData.getName() + ".<init>(title, SectionType, ChevronType, ...)");
+    }
+
+    private static Object[] argumentsFor(Class<?>[] parameters, Object sectionType, Object chevron) {
+        Object[] arguments = new Object[parameters.length];
+        arguments[0] = TITLE;
+        arguments[1] = sectionType;
+        arguments[2] = chevron;
+        for (int i = 3; i < parameters.length; i++) {
+            Class<?> type = parameters[i];
+            if (type == List.class) arguments[i] = Collections.emptyList();
+            else if (type == int.class) arguments[i] = 0;
+            else if (type == boolean.class) arguments[i] = false;
+        }
+        return arguments;
     }
 
     /** Injected before every return of HomeNavPanelSectionV2Presenter.onBind(ViewDataBinding). */
     public static void onSectionBind(Object presenter) {
         try {
-            Object viewData = Reflect.get(presenter, "viewData");
-            if (!TITLE.equals(String.valueOf(Reflect.get(viewData, "title")))) return;
-            View.OnClickListener open = v -> SettingsActivity.open(activityOf(v.getContext()));
-            Field field = Reflect.field(presenter.getClass(), "sectionHeaderClickListener");
-            if (field != null) field.set(presenter, open);
-        } catch (Throwable t) {
-            Diagnostics.error("onSectionBind failed", t);
+            Object sectionData = Reflect.get(presenter, "viewData");
+            String title = String.valueOf(Reflect.get(sectionData, "title"));
+            if (!TITLE.equals(title)) return;
+            View.OnClickListener openSettings = clicked -> SettingsActivity.open(activityBehind(clicked.getContext()));
+            Field clickField = Reflect.field(presenter.getClass(), "sectionHeaderClickListener");
+            if (clickField == null) return;
+            clickField.set(presenter, openSettings);
+        } catch (Throwable failure) {
+            Diagnostics.error("onSectionBind failed", failure);
         }
     }
 
-    private static Context activityOf(Context context) {
-        Context c = context;
-        while (c instanceof ContextWrapper) {
-            if (c instanceof Activity) return c;
-            c = ((ContextWrapper) c).getBaseContext();
+    /** The Activity behind a (possibly wrapped) view context, or the context itself if there is none. */
+    private static Context activityBehind(Context context) {
+        Context current = context;
+        while (current instanceof ContextWrapper) {
+            if (current instanceof Activity) return current;
+            ContextWrapper wrapper = (ContextWrapper) current;
+            current = wrapper.getBaseContext();
         }
         return context;
     }

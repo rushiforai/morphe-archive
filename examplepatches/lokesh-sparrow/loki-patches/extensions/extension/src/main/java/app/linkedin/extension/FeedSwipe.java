@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import android.graphics.Rect;
@@ -107,9 +112,10 @@ public final class FeedSwipe {
                     lastMoveY = event.getRawY();
                     break;
                 case MotionEvent.ACTION_CANCEL:
-                    // Only reported: a parent that takes a sideways drag never lets the swipe reach ACTION_UP here.
+                    // A parent that takes a sideways drag never lets the swipe reach ACTION_UP here.
                     if (handledDownTime != downTime && Math.abs(lastMoveX - downX) > view.getRootView().getWidth() * 0.1f
                             && Math.abs(lastMoveX - downX) >= Math.abs(lastMoveY - downY) * 2.5f) {
+                        if (onMyNetwork() && cancelledSwipe(view, event)) break;
                         ignored("the app took the gesture (cancelled after " + (int) Math.abs(lastMoveX - downX) + " px)");
                     }
                     break;
@@ -122,6 +128,28 @@ public final class FeedSwipe {
     }
 
     /**
+     * On My Network the page under the finger takes a long sideways drag and cancels it here, so the swipe never ends
+     * with ACTION_UP. The cancel then stands in for the finger lifting: same distance, angle and speed rules.
+     *
+     * @return whether the swipe was taken.
+     */
+    private static boolean cancelledSwipe(View view, MotionEvent event) throws ReflectiveOperationException {
+        float dx = lastMoveX - downX;
+        float dy = lastMoveY - downY;
+        if (Math.abs(dx) < view.getRootView().getWidth() * 0.25f || Math.abs(dx) < Math.abs(dy) * 2.5f) return false;
+        if (multiTouch || TextSelectionOverlay.isShowing()) return false;
+        if (event.getEventTime() - downTime > MAX_DURATION) return false;
+        handledDownTime = downTime;
+        Settings.debugLog("feed swipe: My Network page cancelled the swipe, switching anyway");
+        switchTo(view, dx < 0 ? 1 : 0, (int) downX, (int) downY);
+        return true;
+    }
+
+    private static boolean onMyNetwork() {
+        return SduiMediaDownload.resumedScreen().endsWith(".MyNetwork");
+    }
+
+    /**
      * Taps tab 0 (For you) or 1 (Network), unless the swipe started on a carousel. The tabs are in the home screen's
      * header, a different Compose view than the feed, so every Compose view of the window is searched.
      *
@@ -131,8 +159,14 @@ public final class FeedSwipe {
         List<View> composeViews = new ArrayList<>();
         findComposeViews(view.getRootView(), composeViews);
         Rect bounds = new Rect();
-        Rect target = null;
-        boolean targetSelected = false;
+        // Home tabs and My Network tabs are kept apart: the home feed stays attached behind My Network, and its
+        // selected "For you, 1 of 2" tab must not be mistaken for Grow.
+        Rect homeTarget = null;
+        boolean homeSelected = false;
+        Rect networkTarget = null;
+        Rect networkOther = null;
+        boolean networkSelected = false;
+        boolean networkTabsShown = false;
         for (View composeView : composeViews) {
             AccessibilityNodeProvider provider = CopyTextPatch.provider(composeView);
             int[] ids = CopyTextPatch.semanticsNodeIds(composeView);
@@ -148,16 +182,37 @@ public final class FeedSwipe {
                         return false;
                     }
                 }
-                if (tabIndex(info) == tab) {
-                    target = new Rect();
-                    info.getBoundsInScreen(target);
-                    targetSelected = isSelected(info) && !myNetworkTab(info);
-                    if (myNetworkTab(info)) {
-                        Settings.debugLog("feed swipe: tab " + label(info) + " " + target + " selected="
-                                + isSelected(info));
+                int index = tabIndex(info);
+                if (index < 0) continue;
+                Rect found = new Rect();
+                info.getBoundsInScreen(found);
+                if (myNetworkTab(info)) {
+                    if (info.isVisibleToUser() && !found.isEmpty()) networkTabsShown = true;
+                    if (index == tab) {
+                        networkTarget = found;
+                        networkSelected = isSelected(info);
+                        Settings.debugLog("feed swipe: tab " + label(info) + " " + found + " selected=" + networkSelected);
+                    } else {
+                        networkOther = found;
                     }
+                } else if (index == tab && !found.isEmpty() && (homeTarget == null || found.top < homeTarget.top)) {
+                    // A post with two photos also reads ", 1 of 2": the real tab is the one highest on screen.
+                    homeTarget = found;
+                    homeSelected = isSelected(info);
                 }
             }
+        }
+        Rect target;
+        boolean targetSelected;
+        if ((networkTabsShown || networkTarget != null) && (onMyNetwork() || homeTarget == null)) {
+            target = networkTarget;
+            // The selected flag of the My Network tabs is not reliable; tapping the open tab does no harm.
+            targetSelected = false;
+            if (target == null) target = movedWith(view.getRootView(), tab, networkOther);
+            if (networkOther != null && !networkOther.isEmpty()) remember(1 - tab, networkOther);
+        } else {
+            target = homeTarget;
+            targetSelected = homeSelected;
         }
         if (target == null) {
             // The tabs of My Network (Grow, Catch up) are regular views, not Compose.
@@ -177,6 +232,11 @@ public final class FeedSwipe {
             // The My Network header stops exposing the inactive tab once one is selected; its place has not moved.
             target = remembered(view.getRootView(), tab);
             if (target != null) Settings.debugLog("feed swipe: " + tabName(tab) + " remembered at " + target);
+        }
+        if ((target == null || target.isEmpty()) && onMyNetwork()) {
+            // On Catch up, LinkedIn hides Grow from accessibility and Grow was never seen: it sits right beside
+            // Catch up, so tap the same-sized spot next to it.
+            target = beside(view.getRootView(), tab, networkOther);
         }
         if (target == null || target.isEmpty()) {
             Settings.debugLog("feed swipe: tabs not on screen (" + composeViews.size() + " views)");
@@ -266,6 +326,40 @@ public final class FeedSwipe {
     private static String tabName(int tab) {
         if (SduiMediaDownload.resumedScreen().endsWith(".MyNetwork")) return tab == 0 ? "Grow" : "Catch up";
         return tab == 0 ? "For you" : "Network";
+    }
+
+    /**
+     * A spot beside the other My Network tab: Grow sits left of Catch up, Catch up right of Grow, same size, with a
+     * small gap. The other tab is taken from the screen if present, otherwise from where it was last tapped.
+     */
+    private static Rect beside(View root, int tab, Rect otherNow) {
+        Rect other = otherNow != null && !otherNow.isEmpty() ? otherNow
+                : lastTabBounds.get(SduiMediaDownload.resumedScreen() + "|" + (1 - tab));
+        if (other == null || other.isEmpty()) return null;
+        int width = other.width();
+        int gap = Math.max(width / 8, 1);
+        Rect spot = tab == 0
+                ? new Rect(other.left - gap - width, other.top, other.left - gap, other.bottom)
+                : new Rect(other.right + gap, other.top, other.right + gap + width, other.bottom);
+        int[] origin = new int[2];
+        root.getLocationOnScreen(origin);
+        if (spot.exactCenterX() < origin[0] || spot.exactCenterX() > origin[0] + root.getWidth()) return null;
+        Settings.debugLog("feed swipe: " + tabName(tab) + " placed beside the other tab at " + spot);
+        return spot;
+    }
+
+    /**
+     * The hidden My Network tab, placed from where it was last seen and moved by as much as the visible tab moved
+     * since (the header slides down when the page scrolls up).
+     */
+    private static Rect movedWith(View root, int tab, Rect otherNow) {
+        Rect last = lastTabBounds.get(SduiMediaDownload.resumedScreen() + "|" + tab);
+        Rect otherLast = lastTabBounds.get(SduiMediaDownload.resumedScreen() + "|" + (1 - tab));
+        if (last == null || otherNow == null || otherLast == null || otherNow.isEmpty()) return null;
+        Rect moved = new Rect(last);
+        moved.offset(otherNow.left - otherLast.left, otherNow.top - otherLast.top);
+        Settings.debugLog("feed swipe: " + tabName(tab) + " placed next to the shown tab at " + moved);
+        return moved;
     }
 
     /** Remembers where a tab was found, so it can be tapped again while the app hides it from accessibility. */

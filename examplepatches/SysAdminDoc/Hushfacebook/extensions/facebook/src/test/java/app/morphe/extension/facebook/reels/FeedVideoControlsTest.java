@@ -688,6 +688,20 @@ public class FeedVideoControlsTest {
         assertEquals(on(player.view)[1] + 600 - FeedVideoControls.BAR_LIFT_DP, on(bar())[1] + bar().getHeight());
     }
 
+    @Test public void anUprightVideoCroppedToAShorterSlotKeepsItsButtonsInsideTheSlot() {
+        // A row that doesn't clip its children counts the cropped part of the surface as showing.
+        row.setClipChildren(false);
+        player.view.removeAllViews();
+        place(player.view, new TextureView(activity), 0, -233, 1080, 1066);
+        castOn();
+        barOn();
+        refreshAfterLayout();
+        layout();
+        assertEquals("below the slot's top, not the surface's", FeedVideoControls.TOP_DP, on(button())[1] - on(player.view)[1]);
+        assertEquals(FeedVideoControls.TOP_DP, on(cast())[1] - on(player.view)[1]);
+        assertEquals(on(player.view)[1] + 600 - FeedVideoControls.BAR_LIFT_DP, on(bar())[1] + bar().getHeight());
+    }
+
     @Test public void somethingOverTheBottomEdgeTakesTheBarOffUntilItMoves() {
         barOn();
         View tabs = paint(root, on(bar())[1] - on(root)[1], 120);
@@ -1368,6 +1382,36 @@ public class FeedVideoControlsTest {
         log = LogBufferManager.buildExportText();
         assertEquals(log, 1, occurrences(log, "Inline feed button: none, no video id, or an ad, audio or GIF"));
         assertEquals(log, 1, occurrences(log, "Inline feed button: none, origin"));
+    }
+
+    @Test public void debugLoggingNamesAReleasedPlayerOnce() {
+        BaseSettings.DEBUG.save(true);
+        LogBufferManager.clearLogBuffer();
+        FeedVideoControls.released(player);
+        drain();
+        FeedVideoControls.changed(player);
+        drain();
+        String log = LogBufferManager.buildExportText();
+        assertEquals(log, 1, occurrences(log, "Inline feed button: none, its player was released"));
+        attach(player);
+        assertNotNull(button());
+    }
+
+    @Test public void controlsComeBackWhenTheWindowGetsFocusBack() {
+        barOn();
+        assertNotNull(button());
+        assertNotNull(bar());
+        // The comment sheet takes the window's focus, and the feed draws once more under it.
+        window.windowFocusChanged(false);
+        FeedVideoControls.changed(player);
+        drain();
+        assertNull(button());
+        assertNull(bar());
+        // Closing it gives the focus back without drawing a paused video again (#239).
+        window.windowFocusChanged(true);
+        drain();
+        assertNotNull(button());
+        assertNotNull(bar());
     }
 
     private static int occurrences(String text, String part) {

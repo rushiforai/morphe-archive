@@ -14,9 +14,11 @@ body:
     attributes:
       label: Before you submit
       options:
-        - label: "I read [What the patches do](https://github.com/semicoloncolonel/mobile-morphe-patches#what-the-patches-do) and the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches#known-issues) in the README."
+        - label: "I read [What the patches do](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/patches.md) and the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/known-issues.md)."
           required: true
         - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this enhancement."
+          required: true
+        - label: "I understand that the patches do not currently remove paywalls or unlock paid content."
           required: true
   - type: dropdown
     id: app
@@ -29,6 +31,7 @@ body:
         - "AMC+"
         - "AP News"
         - "Apple TV"
+        - "Apple TV (Android TV)"
         - "Best Buy"
         - "C-SPAN Now"
         - "CBS News"
@@ -82,6 +85,7 @@ body:
         - "The Wall Street Journal"
         - "The Washington Post"
         - "theScore"
+        - "Truth Social"
         - "Tubi"
         - "USA TODAY"
         - "Visible"
@@ -116,7 +120,7 @@ body:
     attributes:
       label: Patches version
       description: The version of these patches, shown under Sources in Morphe Manager.
-      placeholder: "1.0.13"
+      placeholder: "1.0.19"
   - type: textarea
     id: description
     attributes:

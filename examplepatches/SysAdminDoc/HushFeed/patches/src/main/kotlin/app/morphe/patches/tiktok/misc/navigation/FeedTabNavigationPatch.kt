@@ -23,6 +23,7 @@ import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.callThroughLocals
 import app.morphe.patches.tiktok.shared.objectIn
 import app.morphe.patches.tiktok.shared.requireLocals
+import app.morphe.patches.tiktok.shared.valueIn
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
@@ -41,6 +42,7 @@ private const val FEED_LOCK_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/wel
 private const val START_PAGE_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/StartPage;"
 private const val FEED_BUTTONS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/FeedButtons;"
 private const val PROFILE_TAB_WATCH_HISTORY_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/ProfileTabWatchHistory;"
+private const val BOTTOM_TAB_ICONS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/BottomTabIcons;"
 private const val DISCOVER_TAB_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/DiscoverTab;"
 
 /** A method reference the way smali writes it after the invoke's registers. */
@@ -212,11 +214,47 @@ internal fun MutableMethod.offerDiscoverTab() {
         }
 }
 
+/** Every `return` of a boolean or int method passes through [target], which hands back the answer. */
+internal fun MutableMethod.answerThrough(target: String) {
+    val implementation = implementation
+        ?: throw PatchException("Feed tab navigation: $name has no implementation.")
+    implementation.instructions.withIndex()
+        .filter { (_, instruction) -> instruction.opcode == Opcode.RETURN }
+        .map { (index, instruction) -> index to (instruction as OneRegisterInstruction).registerA }
+        .asReversed()
+        .forEach { (index, register) ->
+            val call = callThroughLocals(
+                "Feed tab navigation",
+                "invoke-static",
+                target,
+                valueIn("v$register"),
+            )
+            addInstructionsAtControlFlowLabel(index, "$call\nmove-result v$register")
+        }
+}
+
+/** A picked icon set answers before TikTok reads its experiment; no pick leaves the read alone. */
+internal fun MutableMethod.offerBottomTabIcons() {
+    requireLocals("Feed tab navigation", 1)
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $BOTTOM_TAB_ICONS_CLASS_DESCRIPTOR->version()I
+            move-result v0
+            if-ltz v0, :tiktok
+            invoke-static {v0}, Ljava/lang/Integer;->valueOf(I)Ljava/lang/Integer;
+            move-result-object v0
+            return-object v0
+        """,
+        ExternalLabel("tiktok", getInstruction(0)),
+    )
+}
+
 @Suppress("unused")
 val feedTabNavigationPatch = bytecodePatch(
     name = "Feed tab navigation",
     description = "Lets you hide feed and bottom tabs you don't use, put Discover in the " +
-        "bottom bar, rename the bottom tabs, " +
+        "bottom bar and Friends in the top tabs, rename the bottom tabs, pick the bottom bar's icons, " +
         "choose the tab TikTok opens on, stop For You reloading when you tap Home and hold " +
         "Profile to open your Watch history. Starts off, " +
         "except holding Home to open Hushfeed settings. Find it in Hushfeed settings > Feed tabs.",
@@ -366,8 +404,32 @@ val feedTabNavigationPatch = bytecodePatch(
             )
         }
 
+        val iconVersion = if (packageMetadata.versionName in declaredVersions()) {
+            BottomTabIconVersionFingerprint.method
+        } else {
+            BottomTabIconVersionFingerprint.methodOrNull
+        }
+        iconVersion?.let { getter ->
+            getter.offerBottomTabIcons()
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableBottomTabIcons()V",
+            )
+        }
+
         if (typedAbGetters.isNotEmpty()) {
             typedAbGetters.forEach { it.offerDiscoverTab() }
+            // The layout only offers the tabs. Each Friends tab also asks a check of its own (#98).
+            val declared = packageMetadata.versionName in declaredVersions()
+            listOf(
+                FriendsOnTopFingerprint to "friendsOnTop(Z)Z",
+                FriendsTopIndexFingerprint to "friendsTopIndex(I)I",
+                FriendsBottomTabEnableFingerprint to "friendsInBottomBar(Z)Z",
+                SavedTabsFingerprint to "useSavedTabs(Z)Z",
+            ).forEach { (fingerprint, answer) ->
+                val method = if (declared) fingerprint.method else fingerprint.methodOrNull
+                method?.answerThrough("$DISCOVER_TAB_CLASS_DESCRIPTOR->$answer")
+            }
             SettingsStatusLoadFingerprint.method.addInstruction(
                 0,
                 "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableDiscoverTab()V",

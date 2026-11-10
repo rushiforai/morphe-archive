@@ -662,7 +662,7 @@
     },
     {
       "name": "Always show publish date",
-      "description": "Shows the date a video was posted next to the creator's name, so you can tell how old it is. It can also show the exact time, dates and lengths on profile grids, or sort the videos a grid has loaded. On by default. Turn it off in Hushfeed settings > Feed screen.",
+      "description": "Shows the date a video was posted next to the creator's name, so you can tell how old it is. It can also show the exact time, dates and lengths on profile grids, sort the videos a grid has loaded, start your Liked grid at a year or month you pick, or add a drag handle and jump buttons to long grids. On by default. Turn it off in Hushfeed settings > Feed screen.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -783,6 +783,15 @@
         {
           "key": "liked_jump_to_date",
           "title": "Default: liked jump to date",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "grid_position_controls",
+          "title": "Default: grid position controls",
           "description": null,
           "required": false,
           "type": "kotlin.Boolean",
@@ -3848,7 +3857,7 @@
     },
     {
       "name": "Feed tab navigation",
-      "description": "Lets you hide feed and bottom tabs you don't use, put Discover in the bottom bar, rename the bottom tabs, choose the tab TikTok opens on, stop For You reloading when you tap Home and hold Profile to open your Watch history. Starts off, except holding Home to open Hushfeed settings. Find it in Hushfeed settings > Feed tabs.",
+      "description": "Lets you hide feed and bottom tabs you don't use, put Discover in the bottom bar and Friends in the top tabs, rename the bottom tabs, pick the bottom bar's icons, choose the tab TikTok opens on, stop For You reloading when you tap Home and hold Profile to open your Watch history. Starts off, except holding Home to open Hushfeed settings. Find it in Hushfeed settings > Feed tabs.",
       "category": "Settings",
       "use": true,
       "dependencies": [
@@ -3946,6 +3955,24 @@
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,
+          "values": null
+        },
+        {
+          "key": "friends_top_tab",
+          "title": "Default: friends top tab",
+          "description": null,
+          "required": false,
+          "type": "kotlin.Boolean",
+          "default": false,
+          "values": null
+        },
+        {
+          "key": "bottom_tab_icon_style",
+          "title": "Default: bottom tab icon style",
+          "description": null,
+          "required": false,
+          "type": "kotlin.String",
+          "default": "tiktok",
           "values": null
         },
         {
@@ -8595,7 +8622,7 @@
     },
     {
       "name": "Remove LIVE extras",
-      "description": "Removes the files for LIVE co-hosting, joining a LIVE as a guest, matches, games and gift effects, so the app gets about 3 MB smaller. The catch: in LIVEs, battle scores and guest names can go missing, and joining someone's LIVE by voice or video, co-hosting, games or animated gifts may stop working.",
+      "description": "Removes the script for games inside LIVEs and turns off animated gift effects. It saves very little space. The catch: LIVE games and animated gifts may stop working. Co-hosting, joining a LIVE as a guest, invitations and battle scores aren't touched.",
       "category": "Performance",
       "use": false,
       "dependencies": [

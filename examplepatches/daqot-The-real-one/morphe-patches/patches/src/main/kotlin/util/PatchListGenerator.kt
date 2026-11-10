@@ -37,7 +37,7 @@ fun main() {
 }
 
 @Suppress("DEPRECATION")
-private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
+private fun generatePatchList(version: String, patches: Set<Patch>) {
     val listJson = File("../patches-list.json")
 
     val patchesMap = patches.sortedBy { it.name }.map { patch ->
@@ -92,7 +92,7 @@ private fun generatePatchList(version: String, patches: Set<Patch<*>>) {
     jsonObject.addProperty(
         "NOTE",
         "Do NOT manually edit this file. This file is automatically updated when " +
-                "semantic release (release.yml) runs. Manually editing this file can break " +
+                "a release workflow runs. Manually editing this file can break " +
                 "your releases and break third party tools that use this file."
     )
     jsonObject.addProperty("version", version)

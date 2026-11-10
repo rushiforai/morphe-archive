@@ -21,13 +21,45 @@ import app.noam.patches.chesscom.shared.markFeaturePatched
 import app.noam.patches.chesscom.upsell.NavigateFingerprint
 import app.noam.patches.chesscom.upsell.ShowDialogDirectionFingerprint
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS = "${Constants.EXTENSION_PACKAGE}/gamereview/GameReviewExtension;"
 private const val GAME_REVIEW = "${Constants.EXTENSION_PACKAGE}/gamereview/GameReview;"
 private const val CHOOSER = "${Constants.EXTENSION_PACKAGE}/gamereview/ReviewChooser;"
+
+private const val ANALYSIS_CONFIG = "Lcom/chess/entities/ComputerAnalysisConfiguration;"
+private const val SESSION_STORE = "Lcom/chess/net/v1/users/SessionStore;"
+/** The review navigation's "signed out" result: 4.10.18 calls it f$d, 4.10.23 f$c. */
+private val GUEST_RESULTS = setOf(
+    "Lcom/chess/gamereview/api/f\$c;",
+    "Lcom/chess/gamereview/api/f\$d;",
+)
+
+/**
+ * Where the review navigation's "signed in" check ends and the register it stored the answer in,
+ * in the method that also builds the navigation's guest result; null anywhere else.
+ */
+private fun Method.guestCheck(): Pair<Int, Int>? {
+    if (!parameterTypes.map(CharSequence::toString).contains(ANALYSIS_CONFIG)) return null
+    val instructions = implementation?.instructions?.toList() ?: return null
+    val buildsGuestResult = instructions.any { instruction ->
+        val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+        field != null && field.definingClass in GUEST_RESULTS
+    }
+    if (!buildsGuestResult) return null
+    val check = instructions.indexOfFirst { instruction ->
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        call != null && call.definingClass == SESSION_STORE && call.returnType == "Z"
+    }
+    if (check < 0) return null
+    val result = instructions.getOrNull(check + 1) as? OneRegisterInstruction ?: return null
+    return (check + 2) to result.registerA
+}
 
 private const val LICHESS_MARKS = "chesscom/lichessreview"
 
@@ -127,6 +159,26 @@ val gameReviewPatch = bytecodePatch(
                 ExternalLabel("morphe_review_chooser", fingerprint.method.getInstruction(0)),
             )
         }
+
+        // A signed-out user never reaches the chooser: the review navigation view model answers with
+        // its "guest" result as soon as SessionStore says the session is anonymous, which the app
+        // turns into the "Sign up to use this feature." screen. When a reviewer on the phone or on the
+        // computer is available, the guest may open the review and pick it. The check is the "signed
+        // in" call in the method that also builds that guest result; the class and the method names
+        // differ between 4.10.18 and 4.10.23, so both are found by what they reference.
+        val guestClass = classDefByOrNull { classDef ->
+            classDef.type.startsWith("Lcom/chess/gamereview/") && classDef.methods.any { it.guestCheck() != null }
+        } ?: throw PatchException("The Game Review guest check was not found")
+        val guestMethod = mutableClassDefBy(guestClass).methods.single { it.guestCheck() != null }
+        val (checkEnd, signedIn) = guestMethod.guestCheck()
+            ?: throw PatchException("The Game Review guest check was not found in ${guestMethod.name}")
+        guestMethod.addInstructions(
+            checkEnd,
+            """
+                invoke-static { v$signedIn }, $EXTENSION_CLASS->allowGuestReview(Z)Z
+                move-result v$signedIn
+            """,
+        )
 
         // A Lichess-style review shows Lichess's move types, plus chess.com's Book and Miss and, from
         // Local Stockfish, Best, Excellent and Good: the overview's other summary rows and the
@@ -299,11 +351,13 @@ val gameReviewPatch = bytecodePatch(
         )
 
         // The initial "what can I do with this game" permissions fetch, so the Review button
-        // itself does not stay gated before the user even opens the screen.
+        // itself does not stay gated before the user even opens the screen. The review navigation
+        // asks once more after it has seen a signed-out session, and a guest who can pick a local
+        // reviewer needs the full set there too.
         GameAnalysisServiceImplGetPermissionsFingerprint.method.addInstructionsWithLabels(
             0,
             """
-                invoke-static { }, $GAME_REVIEW->local()Z
+                invoke-static { }, $GAME_REVIEW->localPermissions()Z
                 move-result v0
                 if-eqz v0, :original
                 invoke-static { }, $EXTENSION_CLASS->getFullGameAnalysisPermissions()Ljava/lang/Object;

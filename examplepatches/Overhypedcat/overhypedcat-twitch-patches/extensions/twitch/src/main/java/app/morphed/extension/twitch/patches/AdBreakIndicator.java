@@ -23,6 +23,7 @@ import android.view.ViewParent;
 import android.view.WindowInsets;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.amazonaws.ivs.player.Player;
 
@@ -46,6 +47,10 @@ final class AdBreakIndicator {
     /** Twitch's player view; its video surface is the one to label. Not obfuscated. */
     private static final String TWITCH_PLAYER_VIEW = "TwitchPlayerView";
 
+    /** WindowManagerGlobal and its list of window roots, looked up once (main thread only). */
+    private static Object windowManager;
+    private static Field windowViews;
+
     private final Problem.Reporter problems;
     private final Handler main = new Handler(Looper.getMainLooper());
     private final Runnable hideRunnable = this::hideNow;
@@ -54,6 +59,9 @@ final class AdBreakIndicator {
     private WeakReference<View> video = new WeakReference<>(null);
     private boolean callbacksRegistered;
     private TextView label;
+    private final ToastThrottle toasts = new ToastThrottle();
+    /** The fallback toast on screen (or recently shown), cancelled when the label shows. */
+    private Toast toast;
 
     AdBreakIndicator(Problem.Reporter problems) {
         this.problems = problems;
@@ -68,21 +76,31 @@ final class AdBreakIndicator {
         show(quality == null ? "Blocking ads" : "Blocking ads (" + quality + ")", STALE_MS);
     }
 
-    /** Shows {@code text} briefly, for blocks that are over at once (a refused ad request). */
-    void flash(String text) {
+    /**
+     * Shows {@code text} briefly, for blocks that are over at once (a refused ad). {@code onShown}
+     * runs (main thread) only if the user got to see it, as a label or a toast.
+     */
+    void flash(String text, Runnable onShown) {
         main.post(() -> safely(() -> {
-            // An ongoing break keeps its own text.
-            if (label != null && !text.contentEquals(label.getText())) return;
-            showNow(text, FLASH_MS);
+            // An ongoing break keeps its own text; its label already tells the user.
+            if (label != null && !text.contentEquals(label.getText())) {
+                onShown.run();
+                return;
+            }
+            if (showNow(text, FLASH_MS, false)) onShown.run();
         }));
     }
 
+    /** The break is over. */
     void hide() {
-        main.post(() -> safely(this::hideNow));
+        main.post(() -> safely(() -> {
+            toasts.breakOver();
+            hideNow();
+        }));
     }
 
     private void show(String text, long visibleMs) {
-        main.post(() -> safely(() -> showNow(text, visibleMs)));
+        main.post(() -> safely(() -> showNow(text, visibleMs, true)));
     }
 
     /** Main thread work must never crash Twitch: failures become an error message (E7). */
@@ -100,25 +118,69 @@ final class AdBreakIndicator {
         }
     }
 
-    private void showNow(String text, long visibleMs) {
+    /** Returns whether the user got to see it (label or toast); {@code duringBreak} for break labels. */
+    private boolean showNow(String text, long visibleMs, boolean duringBreak) {
         registerCallbacks();
         Player watched = PlayerRefresher.watchedPlayer();
         if (watched == null) {
             hideNow();
             DebugLog.log("Label not shown (" + text + "): no stream playing");
-            return;
+            return false;
         }
-        View surface = findWatchedVideo(watched);
+        if (PlayerRefresher.playsAudioOnly(watched)) {
+            // No video to put it on (its hidden view would place the label over the header).
+            hideNow();
+            DebugLog.log("Label not shown (" + text + "): audio only");
+            return fallbackToast(text, duringBreak);
+        }
+        // During a break this runs on every poll: while the label still sits over a visible video,
+        // only its text and timeout change, without searching every window for the video again.
+        View current = video.get();
+        if (current != null && inPictureInPicture(current)) {
+            // The stream moved into a small player: no label there (see inPictureInPicture).
+            hideNow();
+            DebugLog.log("Label not shown (" + text + "): picture in picture");
+            return false;
+        }
+        if (label != null && label.isAttachedToWindow() && current != null && current.isShown()
+                && visibleArea(current) > 0 && label.getParent() instanceof ViewGroup
+                && label.getRootView() == current.getRootView()) {
+            dismissToast();
+            if (!text.contentEquals(label.getText())) label.setText(text);
+            ViewGroup parent = (ViewGroup) label.getParent();
+            // The video can move without a layout of its own (a dragged mini player, a scrolling parent).
+            place(parent, label, current);
+            if (parent.getChildAt(parent.getChildCount() - 1) != label) label.bringToFront();
+            main.removeCallbacks(hideRunnable);
+            main.postDelayed(hideRunnable, visibleMs);
+            return true;
+        }
+        List<View> previews = new ArrayList<>();
+        View surface = findWatchedVideo(watched, previews);
+        if (surface == null && !previews.isEmpty()) {
+            // Only feed previews are on screen (the stream plays on in the background or a mini
+            // player that is not visible): the user is looking for a stream, so nothing is shown.
+            hideNow();
+            DebugLog.log("Label not shown (" + text + "): only feed previews on screen");
+            return false;
+        }
+        if (surface != null && inPictureInPicture(surface)) {
+            hideNow();
+            DebugLog.log("Label not shown (" + text + "): picture in picture");
+            return false;
+        }
         if (surface == null) {
             hideNow();
             DebugLog.log("Label not shown (" + text + "): the stream's video is not on screen");
-            return;
+            // Something plays with sound but its video cannot be found (audio only, a player in
+            // another window): the block is still shown, as a short message.
+            return fallbackToast(text, duringBreak);
         }
         ViewGroup host = hostFor(surface);
         if (host == null) {
             hideNow();
             DebugLog.log("Label not shown (" + text + "): no window to show it in");
-            return;
+            return fallbackToast(text, duringBreak);
         }
 
         if (label == null || label.getParent() != host || video.get() != surface) {
@@ -132,12 +194,46 @@ final class AdBreakIndicator {
             DebugLog.log("Label shown: " + text + " in " + host.getClass().getSimpleName()
                     + " over " + surface.getClass().getSimpleName() + " " + describe(surface));
         }
+        // The label and a toast are never on screen together: the label takes over.
+        dismissToast();
         if (!text.contentEquals(label.getText())) label.setText(text);
         place(host, label, surface);
         // bringToFront relayouts the whole window, so only when something else covers the label.
         if (host.getChildAt(host.getChildCount() - 1) != label) label.bringToFront();
         main.removeCallbacks(hideRunnable);
         main.postDelayed(hideRunnable, visibleMs);
+        return true;
+    }
+
+    /**
+     * Shows the block as a toast when the label cannot be placed over the video. Only while one of
+     * Twitch's screens is in front: with the app in the background (audio playing on) or a screen
+     * being left, a toast would land over other apps or the main page. One per break (see ToastThrottle).
+     */
+    private boolean fallbackToast(String text, boolean duringBreak) {
+        if (resumedActivity.get() == null) {
+            DebugLog.log("No message for \"" + text + "\": Twitch is not in front");
+            return false;
+        }
+        // Already told during this break.
+        if (!toasts.allow(duringBreak)) return true;
+        Application app = currentApplication();
+        if (app == null) {
+            problems.report(Problem.LABEL_FAILED, "no screen to show \"" + text + "\" on");
+            return false;
+        }
+        // Only called after hideNow(): no label is on screen while the toast shows.
+        dismissToast();
+        toast = Toast.makeText(app, text, Toast.LENGTH_SHORT);
+        toast.show();
+        DebugLog.log("Shown as a message instead: " + text);
+        return true;
+    }
+
+    private void dismissToast() {
+        if (toast == null) return;
+        toast.cancel();
+        toast = null;
     }
 
     private void replace() {
@@ -168,10 +264,18 @@ final class AdBreakIndicator {
      * The video view of {@code watched}: a SurfaceView whose surface is the one the player draws on,
      * else the most visible video view inside Twitch's player view, else the most visible one.
      */
-    private View findWatchedVideo(Player watched) {
+    private View findWatchedVideo(Player watched, List<View> previews) {
         Surface surface = PlayerRefresher.surfaceOf(watched);
+        List<View> all = new ArrayList<>();
+        for (View root : rootViews(resumedActivity.get())) collectVideoViews(root, all);
+        // Videos in a scrolling list are feed previews (Live, Following, vertical feed), never the
+        // stream being watched: Twitch's TextureViews cannot be matched to their player, so without
+        // this the most visible preview would get the label of a stream playing elsewhere.
         List<View> candidates = new ArrayList<>();
-        for (View root : rootViews(resumedActivity.get())) collectVideoViews(root, candidates);
+        for (View view : all) {
+            if (inScrollingList(view)) previews.add(view);
+            else candidates.add(view);
+        }
 
         for (View candidate : candidates) {
             if (surface != null && candidate instanceof SurfaceView
@@ -206,6 +310,47 @@ final class AdBreakIndicator {
             }
         }
         return best;
+    }
+
+    /**
+     * Whether {@code video} plays in a small player: Android's picture in picture window over other
+     * apps, or Twitch's own mini player in a corner of the app. The user asked for no label there
+     * (and no message instead); it comes back when the stream is opened again during the break.
+     */
+    private static boolean inPictureInPicture(View video) {
+        Activity activity = activityOf(video.getContext());
+        if (activity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && activity.isInPictureInPictureMode()) {
+            return true;
+        }
+        View root = video.getRootView();
+        if (root == null) return false;
+        Rect visible = new Rect();
+        if (!video.getGlobalVisibleRect(visible)) return false;
+        return isMiniPlayer(visible.left, visible.width(), root.getWidth());
+    }
+
+    /**
+     * Twitch's mini player sits in a corner, under half the screen wide, and grows or shrinks there
+     * when it comes back from picture in picture. The stream and past broadcast screens show the
+     * video across the whole width, or centred in full screen when the video is narrower than the screen.
+     */
+    static boolean isMiniPlayer(int left, int width, int windowWidth) {
+        if (width <= 0 || windowWidth <= 0) return false;
+        if (width * 2 < windowWidth) return true;
+        boolean fullWidth = width * 100 >= windowWidth * 95;
+        int offCentre = Math.abs(2 * left + width - windowWidth);
+        return !fullWidth && offCentre * 10 > windowWidth;
+    }
+
+    /**
+     * Whether {@code video} is an item of a vertically scrolling list. Twitch's feeds are lists of
+     * playing previews; the stream and past broadcast screens keep their player outside any list.
+     * Decided by the layout, not by player types, which Twitch changes.
+     */
+    private static boolean inScrollingList(View video) {
+        return Ancestors.any(video,
+                view -> view.getParent() instanceof View ? (View) view.getParent() : null,
+                view -> view instanceof ViewGroup && (view.canScrollVertically(1) || view.canScrollVertically(-1)));
     }
 
     private static boolean insideTwitchPlayer(View view) {
@@ -257,11 +402,14 @@ final class AdBreakIndicator {
         List<View> roots = new ArrayList<>();
         if (activity != null) roots.add(activity.getWindow().getDecorView());
         try {
-            Class<?> global = Class.forName("android.view.WindowManagerGlobal");
-            Object instance = global.getMethod("getInstance").invoke(null);
-            Field views = global.getDeclaredField("mViews");
-            views.setAccessible(true);
-            for (Object view : new ArrayList<>((List<?>) views.get(instance))) {
+            if (windowViews == null) {
+                Class<?> global = Class.forName("android.view.WindowManagerGlobal");
+                windowManager = global.getMethod("getInstance").invoke(null);
+                Field views = global.getDeclaredField("mViews");
+                views.setAccessible(true);
+                windowViews = views;
+            }
+            for (Object view : new ArrayList<>((List<?>) windowViews.get(windowManager))) {
                 if (view instanceof View && !roots.contains(view)) roots.add((View) view);
             }
         } catch (Throwable t) {

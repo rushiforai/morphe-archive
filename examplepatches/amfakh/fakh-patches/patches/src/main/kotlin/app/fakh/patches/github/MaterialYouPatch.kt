@@ -343,6 +343,6 @@ val materialYouPatch = bytecodePatch(
         )
 
         addSwitch("fakh_material_you", "Material You", true)
-        addSwitch("fakh_amoled", "Pitch black in dark mode", false)
+        addSwitch("fakh_amoled", "Pitch black", false)
     }
 }

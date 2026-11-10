@@ -134,8 +134,10 @@ public final class OneAheadGate {
         int at = seasonIdsInOrder.indexOf(targetId);
         if (at < 0) return out;
         int usableEnd = seasonIdsInOrder.size() - FINALE_TAIL;
+        // The season's first episode is asked first: the detector's premiere checks need it as a reference.
+        if (at > 0 && usableEnd > 0) out.add(seasonIdsInOrder.get(0));
         for (int i = at + 1; i < usableEnd; i++) out.add(seasonIdsInOrder.get(i));
-        for (int i = Math.min(at, usableEnd) - 1; i >= 0; i--) out.add(seasonIdsInOrder.get(i));
+        for (int i = Math.min(at, usableEnd) - 1; i >= 1; i--) out.add(seasonIdsInOrder.get(i));
         return out;
     }
 
@@ -205,10 +207,23 @@ public final class OneAheadGate {
             }
             if (same.size() >= OneAheadPlanner.MIN_REFS) {
                 for (Candidate c : same) { if (out.size() >= OneAheadPlanner.MAX_REFS) break; if (!out.contains(c)) out.add(c); }
-                return out;
+                return keepEarliest(ordered, out);
             }
         }
         for (Candidate c : ordered) { if (out.size() >= OneAheadPlanner.MAX_REFS) break; if (!out.contains(c)) out.add(c); }
+        return keepEarliest(ordered, out);
+    }
+
+    /** The earliest episode among the candidates stays in the pick (replacing the last one when full): the planner
+     * pins it, and the detector's premiere checks need it. */
+    static List<Candidate> keepEarliest(List<Candidate> ordered, List<Candidate> out) {
+        Candidate first = null;
+        for (Candidate c : ordered) {
+            if (first == null || Detector.before(Detector.epOrder(c.episodeId), Detector.epOrder(first.episodeId))) first = c;
+        }
+        if (first == null || out.contains(first) || Detector.epOrder(first.episodeId)[0] == Integer.MAX_VALUE) return out;
+        if (out.size() >= OneAheadPlanner.MAX_REFS) out.remove(out.size() - 1);
+        out.add(0, first);
         return out;
     }
 

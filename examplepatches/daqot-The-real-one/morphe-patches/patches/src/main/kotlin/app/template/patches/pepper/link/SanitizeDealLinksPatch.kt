@@ -5,7 +5,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.COMPATIBILITY_PEPPER
-import app.template.patches.shared.Constants.COMPATIBILITY_PEPPER_LEGACY
 
 private const val EXTENSION_CLASS = "Lapp/template/extension/pepper/SanitizeDealLinksPatch;"
 
@@ -17,7 +16,6 @@ val sanitizeDealLinksPatch = bytecodePatch(
     default = true
 ) {
     compatibleWith(COMPATIBILITY_PEPPER)
-    compatibleWith(COMPATIBILITY_PEPPER_LEGACY)
 
     extendWith("extensions/extension.mpe")
 

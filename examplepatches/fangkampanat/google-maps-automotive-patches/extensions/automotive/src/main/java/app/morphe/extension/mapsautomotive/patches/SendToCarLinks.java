@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Locale;
@@ -47,6 +48,11 @@ public final class SendToCarLinks {
     private static final long RETRY_UNTIL_MS = 15000;
     private static final long FIRST_RETRY_MS = 1000;
     private static final Pattern GOOGLE_SUFFIX = Pattern.compile("[a-z]{2,3}(\\.[a-z]{2,3})?");
+    /** Maps' extra for a sent trip and its values in 120003.E (its enum of how the trip is shown). */
+    private static final String SEND_TO_CAR_EXTRA = "SEND_TO_CAR_INTENT";
+    private static final Set<String> SEND_TO_CAR_TYPES = new HashSet<>(Arrays.asList("NONE", "NOTIFICATION_TAP",
+            "FIRST_SHOW_ON_ACTIVITY_RESUME", "FIRST_SHOW_ACTIVITY_IN_FOREGROUND", "FIRST_SHOW_ACTIVITY_IN_BACKGROUND",
+            "FIRST_SHOW_AFTER_RESTART", "RESHOW"));
     private static final Set<String> expanding = Collections.synchronizedSet(new HashSet<>());
     private static ExecutorService worker;
     private static Handler main;
@@ -88,8 +94,9 @@ public final class SendToCarLinks {
                 return true;
             }
             Target target = (Target) processor;
+            boolean sentTrip = intent.hasExtra(SEND_TO_CAR_EXTRA);
             ReportLog.i(TAG, "expanding a " + SHORT_LINK_HOST + " link"
-                    + (intent.hasExtra("SEND_TO_CAR_INTENT") ? " (send to car)" : ""));
+                    + sendToCarSuffix(sentTrip, sentTrip ? intent.getStringExtra(SEND_TO_CAR_EXTRA) : null));
             worker().execute(() -> {
                 Result result = resolve(link);
                 mainHandler().post(() -> deliver(target, intent, referrer, link, result));
@@ -103,8 +110,19 @@ public final class SendToCarLinks {
 
     private static void deliver(Target target, Intent intent, Uri referrer, String link, Result result) {
         expanding.remove(link);
+        // For Send to car's status; the extras were already read in expand.
+        boolean sentTrip;
+        String type;
+        try {
+            sentTrip = intent.hasExtra(SEND_TO_CAR_EXTRA);
+            type = sentTrip ? intentType(intent.getStringExtra(SEND_TO_CAR_EXTRA)) : null;
+        } catch (RuntimeException error) {
+            sentTrip = false;
+            type = null;
+        }
         if (result.url == null) {
             ReportLog.w(TAG, "short link not expanded: " + result.detail);
+            if (sentTrip) SendToCarStatus.recordTrip(Utils.getContext(), type, SendToCarStatus.LINK_FAILED + result.detail);
             toast();
             return;
         }
@@ -113,10 +131,12 @@ public final class SendToCarLinks {
             target.morpheOpenMapsLink(intent, referrer, result.url);
         } catch (Throwable error) {
             ReportLog.w(TAG, "Maps did not open the expanded link", error);
+            if (sentTrip) SendToCarStatus.recordTrip(Utils.getContext(), type, SendToCarStatus.MAPS_FAILED);
             toast();
             return;
         }
-        String sendToCar = intent.getStringExtra("SEND_TO_CAR_INTENT");
+        if (sentTrip) SendToCarStatus.recordTrip(Utils.getContext(), type, SendToCarStatus.OPENED);
+        String sendToCar = intent.getStringExtra(SEND_TO_CAR_EXTRA);
         if (sendToCar == null || "NONE".equals(sendToCar)) return;
         try {
             target.morpheClearSentTrip();
@@ -124,6 +144,20 @@ public final class SendToCarLinks {
         } catch (Throwable error) {
             ReportLog.w(TAG, "sent trip not cleared", error);
         }
+    }
+
+    /**
+     * How Maps opened a sent trip, for the log: one of its own values (when the activity was in the
+     * foreground, after a notification tap, a show again at a start, ...), else "other". Any app can put
+     * this extra into an intent, so nothing else from it is logged (REPORT-API section 26). Plain Java.
+     */
+    static String intentType(String value) {
+        return value != null && SEND_TO_CAR_TYPES.contains(value) ? value : "other";
+    }
+
+    /** The "expanding" line's end: " (send to car, TYPE)" for a sent trip, else nothing. Plain Java. */
+    static String sendToCarSuffix(boolean sentTrip, String value) {
+        return sentTrip ? " (send to car, " + intentType(value) + ")" : "";
     }
 
     static boolean isShortLink(Uri uri) {

@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.patches.ads
 
 import app.linkedin.patches.shared.Constants.COMPATIBILITY_LINKEDIN
@@ -13,15 +18,19 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 
-private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/HideAdsPatch;"
-private const val COLLECTION_TEMPLATE = "Lcom/linkedin/android/pegasus/gen/collection/CollectionTemplate;"
-private const val EXTENSION_METHOD =
-    "$EXTENSION_CLASS->copyWithoutSponsored(Ljava/lang/Object;Ljava/util/List;)Ljava/lang/Object;"
+private const val COLLECTION = "Lcom/linkedin/android/pegasus/gen/collection/CollectionTemplate;"
+
+/** Drop-in for `copyWithNewElements`: same collection without the promoted items. */
+private const val FILTERED_COPY =
+    "$EXTENSION_PACKAGE/HideAdsPatch;->copyWithoutSponsored(Ljava/lang/Object;Ljava/util/List;)Ljava/lang/Object;"
+
+/** The call rewritten in place: the receiver collection stays the first argument of the static method. */
+private fun callWith(receiver: String, list: String) = "invoke-static { $receiver, $list }, $FILTERED_COPY"
 
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
     name = "Hide ads",
-    description = "Removes promoted (sponsored) posts from the feed.",
+    description = "Removes sponsored (promoted) posts from the feed.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
@@ -31,27 +40,26 @@ val hideAdsPatch = bytecodePatch(
     execute {
         markIncluded("isHideAdsIncluded")
 
-        // Legacy (RecyclerView) home feed. The server driven feed is handled by the SDUI filter.
-        SponsoredDuplicatesFilterFingerprint.let {
-            val index = it.instructionMatches.last().index
+        // The classic RecyclerView feed; the server driven feed goes through the SDUI filter instead.
+        sponsoredDuplicatesFilter.let { fingerprint ->
+            val method = fingerprint.method
+            val at = fingerprint.instructionMatches.last().index
+            val copy = method.getInstruction(at)
 
-            // Replace collection.copyWithNewElements(list) in place rather than inserting before it,
-            // because branches jump straight to this instruction and would skip inserted code.
-            val replacement = when (val call = it.method.getInstruction(index)) {
-                is FiveRegisterInstruction ->
-                    "invoke-static { v${call.registerC}, v${call.registerD} }, $EXTENSION_METHOD"
+            // Rewritten where it stands rather than preceded by extra code: the branches around this call
+            // jump straight at it, and they would jump over anything inserted before it.
+            val replacement = when (copy) {
+                is FiveRegisterInstruction -> callWith("v${copy.registerC}", "v${copy.registerD}")
                 is RegisterRangeInstruction ->
-                    "invoke-static/range { v${call.startRegister} .. v${call.startRegister + 1} }, $EXTENSION_METHOD"
-                else -> throw IllegalStateException("Unexpected instruction: $call")
+                    "invoke-static/range { v${copy.startRegister} .. v${copy.startRegister + 1} }, $FILTERED_COPY"
+                else -> throw IllegalStateException("Unexpected instruction: $copy")
             }
-            it.method.replaceInstruction(index, replacement)
+            method.replaceInstruction(at, replacement)
 
-            // The extension returns Object, so restore the CollectionTemplate type for the verifier.
-            val moveResult = it.method.getInstruction<OneRegisterInstruction>(index + 1)
-            check(moveResult.opcode == Opcode.MOVE_RESULT_OBJECT) {
-                "Expected move-result-object after copyWithNewElements"
-            }
-            it.method.addInstruction(index + 2, "check-cast v${moveResult.registerA}, $COLLECTION_TEMPLATE")
+            // The extension answers with Object; give the verifier back the CollectionTemplate type.
+            val result = method.getInstruction<OneRegisterInstruction>(at + 1)
+            check(result.opcode == Opcode.MOVE_RESULT_OBJECT) { "Expected move-result-object after copyWithNewElements" }
+            method.addInstruction(at + 2, "check-cast v${result.registerA}, $COLLECTION")
         }
     }
 }

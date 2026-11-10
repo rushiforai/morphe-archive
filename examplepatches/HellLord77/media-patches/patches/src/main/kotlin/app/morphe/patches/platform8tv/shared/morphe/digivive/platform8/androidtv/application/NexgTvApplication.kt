@@ -5,7 +5,7 @@ import app.morphe.patches.shared.Type
 import com.android.tools.smali.dexlib2.AccessFlags
 
 object NexgTvApplication {
-    override fun toString() = "digivive/platform8/androidtv/application/NexgTvApplication;"
+    override fun toString() = "Ldigivive/platform8/androidtv/application/NexgTvApplication;"
 
     object OnCreateFingerPrint :
         Fingerprint(

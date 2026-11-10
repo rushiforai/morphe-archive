@@ -49,6 +49,7 @@ import java.util.logging.Logger
 // Car.createCar without android.car. No exit as the system user where an Android Automotive build
 // runs apps as user 0 (DiLink 5). UI density chosen in Maps' Settings instead of a patch option.
 // Driver side chosen in Maps' Settings: the side of Maps' cards and map buttons (DriverSidePatch.kt).
+// Color scheme chosen in Maps' Settings: day or night colors, Auto from the car's low beam (ColorSchemePatch.kt).
 // Cronet telemetry off (its logger uses the API 30 StatsEvent).
 // Report a problem (ReportPatch in the extension): a Settings row and its own screen outside Maps,
 // with safe mode and the feature switches (SafeMode), and a launcher icon of its own.
@@ -82,6 +83,8 @@ private const val CRASH_LOG_CLASS = "Lapp/morphe/extension/mapsautomotive/patche
 internal const val UI_DENSITY_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/UiDensityPatch;"
 internal const val REPORT_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/ReportPatch;"
 internal const val SAFE_MODE_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/SafeMode;"
+// The "Updates" row: whether a newer release is out (0.1.6).
+private const val UPDATE_CHECK_CLASS = "Lapp/morphe/extension/mapsautomotive/patches/UpdateCheck;"
 // The report screen: its own process, where Maps' start is skipped, and a launcher entry.
 // The names and the process suffix must match ReportActivity and SafeMode in the extension.
 private const val REPORT_ACTIVITY = "app.morphe.extension.mapsautomotive.patches.ReportActivity"
@@ -157,8 +160,8 @@ internal object IncludedFeatures {
 val automotiveMicroGPatch = bytecodePatch(
     name = "Google Maps Automotive for MicroG-RE",
     description = "Runs Google Maps for Android Automotive on Android 10 with MicroG-RE 7.3.0, named " +
-        "\"$DEFAULT_APP_NAME\" unless the App name option says otherwise. Adds UI density and driver side settings, " +
-        "a problem report and a safe mode.",
+        "\"$DEFAULT_APP_NAME\" unless the App name option says otherwise. Adds UI density, driver side and color scheme settings, " +
+        "a problem report, an update check and a safe mode.",
     default = true,
 ) {
     compatibleWith(compatibility)
@@ -171,6 +174,7 @@ val automotiveMicroGPatch = bytecodePatch(
         IncludedFeatures.reset()
         IncludedFeatures.settingsRows += UI_DENSITY_CLASS
         IncludedFeatures.settingsRows += DRIVER_SIDE_CLASS
+        IncludedFeatures.settingsRows += COLOR_SCHEME_CLASS
         rewriteGmsCoreStrings()
         patchLocationServiceAction()
         patchExtensionRuntime()
@@ -190,10 +194,11 @@ val automotiveMicroGPatch = bytecodePatch(
         skipSystemUserExit()
         applyUiDensity()
         useDriverSide()
+        useColorScheme()
     }
 
     finalize {
-        addSettingsRows(IncludedFeatures.settingsRows + REPORT_CLASS)
+        addSettingsRows(IncludedFeatures.settingsRows + REPORT_CLASS + UPDATE_CHECK_CLASS)
         startSafeMode()
         writeIncludedFeatures(IncludedFeatures.features)
     }

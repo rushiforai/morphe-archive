@@ -1,0 +1,149 @@
+name: Release patch bundle
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  # Publish the release and commit the refreshed bundle metadata.
+  contents: write
+  # Read app.morphe:patches-library and the gradle plugin from GitHub Packages.
+  packages: read
+
+jobs:
+  build:
+    name: Build .mpp
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Android SDK (best effort)
+        run: |
+          set -uo pipefail
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          SM="$(ls -d "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -1 || true)"
+          if [ -n "$SM" ]; then
+            yes | "$SM" --licenses > /dev/null 2>&1 || true
+            "$SM" "platforms;android-36" "build-tools;36.0.0" > /dev/null 2>&1 \
+              || echo "::warning::could not install android-36 / build-tools 36; falling back to the preinstalled SDK"
+            "$SM" "platform-tools" > /dev/null 2>&1 || true
+          else
+            echo "::warning::no sdkmanager found, using the preinstalled SDK as-is"
+          fi
+          echo "--- preinstalled platforms ---"; ls "$SDK/platforms" 2>/dev/null || true
+          echo "--- preinstalled build-tools ---"; ls "$SDK/build-tools" 2>/dev/null || true
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: ver
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            VERSION="$(grep -E '^version *=' gradle.properties | head -1 | cut -d= -f2 | tr -d ' ')"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "resolved version: ${VERSION}"
+
+      - name: Build patches
+        env:
+          # The Morphe gradle plugin and patches library live in GitHub Packages.
+          # A workflow token is enough to read public packages.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          chmod +x ./gradlew
+          # buildAndroid runs d8 and packs the patch classes into classes.dex inside the
+          # .mpp. Without it the bundle only carries JVM .class files, which Morphe on
+          # Android cannot load, and the source shows up with zero patches.
+          ./gradlew build buildAndroid -Pversion=${{ steps.ver.outputs.version }} --no-daemon --stacktrace
+
+      - name: Collect bundle
+        id: bundle
+        run: |
+          set -euo pipefail
+          echo "--- patches/build/libs ---"
+          ls -l patches/build/libs || true
+          # The plugin also emits -javadoc / -sources variants with the .mpp suffix;
+          # the real bundle is the largest remaining one.
+          MPP_PATH="$(ls -S patches/build/libs/*.mpp 2>/dev/null \
+            | grep -Ev -- '-(javadoc|sources)\.mpp$' \
+            | head -1 || true)"
+          if [[ -z "${MPP_PATH}" ]]; then
+            echo "::error::no patch bundle found in patches/build/libs"
+            exit 1
+          fi
+          SIZE="$(stat -c%s "$MPP_PATH")"
+          if (( SIZE < 10240 )); then
+            echo "::error::${MPP_PATH} is only ${SIZE} bytes, that is not a usable bundle"
+            exit 1
+          fi
+          MPP_NAME="$(basename "$MPP_PATH")"
+          echo "path=${MPP_PATH}" >> "$GITHUB_OUTPUT"
+          echo "name=${MPP_NAME}" >> "$GITHUB_OUTPUT"
+          echo "bundle: ${MPP_PATH} (${SIZE} bytes)"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: patches-${{ steps.ver.outputs.version }}
+          path: ${{ steps.bundle.outputs.path }}
+          if-no-files-found: error
+
+      - name: Write bundle metadata
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/patches-bundle.json" <<EOF
+          {
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%S)",
+            "description": "TimeTree ad remover ${{ steps.ver.outputs.version }}",
+            "download_url": "https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${{ steps.bundle.outputs.name }}",
+            "signature_download_url": "",
+            "version": "${{ steps.ver.outputs.version }}"
+          }
+          EOF
+          cat "$RUNNER_TEMP/patches-bundle.json"
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            ${{ steps.bundle.outputs.path }}
+            ${{ runner.temp }}/patches-bundle.json
+
+      - name: Commit refreshed metadata
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main
+          cp "$RUNNER_TEMP/patches-bundle.json" patches-bundle.json
+          git add patches-bundle.json
+          if git diff --cached --quiet; then
+            echo "metadata unchanged"
+            exit 0
+          fi
+          git commit -m "chore: refresh patches-bundle.json for ${{ steps.ver.outputs.version }}"
+          git push origin main

@@ -10,7 +10,7 @@ Every patch is on by default. Morphe Manager groups them by category.
 | Category | Patch | What it does |
 |---|---|---|
 | Ads | Hide ads | Removes the Google ad banners from the home, article, quiz, event and live screens, and the promo popups (such as the full-screen one at launch). The free-episode ads in short movies stay. |
-| Layout | Hide Create button | Removes the "+" button (write news, start a live stream) from the middle of the bottom navigation. |
+| Layout | Hide Create button | Removes the "+" button (write news, start a live stream) from the middle of the navigation bar. |
 | Layout | Hide home tabs | Adds switches to hide the Nonton, IDN Live, Berita and Quiz tabs. |
 | Layout | Hide package banner | Removes the "Beli Paket" banner from the profile. |
 | Privacy | Disable analytics | Stops AppsFlyer, Firebase Analytics, Crashlytics, Google Tag Manager, comScore and Facebook events from collecting data. CleverTap stays for push and popups, without the advertising ID. Push notifications and the app's own Lifestream activity feed stay. |

@@ -341,6 +341,7 @@ Blur strength,Blur strength
 "Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up.","Blur the part of the video that sits behind the glass pill on the main feed, so it looks like frosted glass. Needs Liquid glass look and Android 12 and up."
 Blur the video behind the bar,Blur the video behind the bar
 Bold,Bold
+Bottom bar icons,Bottom bar icons
 Bottom left double tap,Bottom left double tap
 Bottom right double tap,Bottom right double tap
 Bottom tabs to keep,Bottom tabs to keep
@@ -563,7 +564,6 @@ Default playback speed,Default playback speed
 Delete recording files,Delete recording files
 Delete search,Delete search
 Deletes %1$s from TikTok's storage.,Deletes %1$s from TikTok's storage.
-Deletes all reposts from your account sequentially.,Deletes all reposts from your account sequentially.
 Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.,Delivery unconfirmed: %1$d/%2$d chats. Remaining chats still need a message.
 Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.,Delivery unconfirmed: %1$d/%2$d chats. Those chats won't be retried today.
 Description text size,Description text size
@@ -605,6 +605,7 @@ Double tap by corner,Double tap by corner
 "Download lists the qualities this video comes in, with the size TikTok gives for each, and saves the one you pick. The quality above stays as it is for the next save.","Download lists the qualities this video comes in, with the size TikTok gives for each, and saves the one you pick. The quality above stays as it is for the next save."
 Download original photos,Download original photos
 Downloads,Downloads
+Drag handle and jump buttons on grids,Drag handle and jump buttons on grids
 "Drag to move, release to place","Drag to move, release to place"
 Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.,Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.
 Drama and Series,Drama and Series
@@ -619,6 +620,7 @@ Empty,Empty
 "Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it.","Empty the menu that opens when you press and hold TikTok's icon on the home screen. Turning this off asks TikTok to build them again. Tapping the icon still opens the app, and a shortcut you pinned yourself stays where you put it."
 Enable,Enable
 Enabled,Enabled
+End,End
 Enter a JSON object or array,Enter a JSON object or array
 Enter a creator handle or id,Enter a creator handle or id
 Enter a finite number,Enter a finite number
@@ -723,6 +725,8 @@ Found %1$s in your chats.,Found %1$s in your chats.
 Frame saved to %1$s,Frame saved to %1$s
 Freeze TikTok's experiments,Freeze TikTok's experiments
 Friends,Friends
+Friends in the top tabs,Friends in the top tabs
+"Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.","Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are."
 Friends tab name,Friends tab name
 "Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger.","Friends won't see a green dot or Active now while you're in TikTok. Needs Ghost mode on. Their status may stop updating for you, and your last status can linger."
 Frosted,Frosted
@@ -1172,7 +1176,7 @@ Loaded current values. Loading all known gates…,Loaded current values. Loading
 Loaded-value file export failed,Loaded-value file export failed
 Loading cancelled. The list is incomplete.,Loading cancelled. The list is incomplete.
 Loading gates…,Loading gates…
-Loading page %1$s...,Loading page %1$s...
+Loading page %1$s…,Loading page %1$s…
 Loading the gate list and TikTok's current values…,Loading the gate list and TikTok's current values…
 Local profile counts,Local profile counts
 Local verified badge,Local verified badge
@@ -1267,6 +1271,8 @@ Network proxy,Network proxy
 Never from these countries,Never from these countries
 New comment emoji,New comment emoji
 New device identity,New device identity
+New style 1,New style 1
+New style 2,New style 2
 New value,New value
 Newest first,Newest first
 Newest likes,Newest likes
@@ -1369,6 +1375,7 @@ Offline videos,Offline videos
 Offline videos limit,Offline videos limit
 Oldest first,Oldest first
 "On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too.","On a one-photo post, Download video makes an MP4 with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks if you want the originals or one video. A photo story saves as a video too."
+"On long profile, Liked and sound grids, scrolling brings up a handle you can drag through what's loaded, plus Top, Back and End buttons. Back returns to where you were.","On long profile, Liked and sound grids, scrolling brings up a handle you can drag through what's loaded, plus Top, Back and End buttons. Back returns to where you were."
 On mobile data,On mobile data
 On or off,On or off
 "On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before.","On the Discover tab, which TikTok shows in some regions, hide the trending hashtags, the banners and the tabs under the search box. The search box stays and works as before."
@@ -1616,6 +1623,7 @@ Removed %1$s,Removed %1$s
 Removed: %1$d,Removed: %1$d
 "Removed: %1$d. The other %2$d are still there. Open your Inbox, then try again.","Removed: %1$d. The other %2$d are still there. Open your Inbox, then try again."
 Removes every message that was kept. Each chat shows TikTok's usual notice that a message was unsent.,Removes every message that was kept. Each chat shows TikTok's usual notice that a message was unsent.
+Removes every repost from your account one after another.,Removes every repost from your account one after another.
 Removes every video from Favorites one after another.,Removes every video from Favorites one after another.
 Removing all likes in %1$d,Removing all likes in %1$d
 Removing all reposts in %1$d,Removing all reposts in %1$d
@@ -2313,6 +2321,7 @@ TikTok slips the videos it saved for offline viewing back into For You when it c
 TikTok sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.,TikTok sometimes tests a change that empties the Favorites tab on your profile. This keeps the tab and your saved videos.
 TikTok sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when TikTok restarts.,TikTok sometimes tests your phone's speed in a background process that can use a lot of memory. This stops that test from starting. One already running ends when TikTok restarts.
 TikTok starts as a new phone after the restart. Tap again to cancel.,TikTok starts as a new phone after the restart. Tap again to cancel.
+"TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.","TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok."
 "TikTok treats your phone as one without passkeys, so signing in asks for your password or a code by email or text instead. Password managers won't hand a passkey to a patched app. If TikTok's 2-step check still wants only a passkey, add email or text as a way to verify on tiktok.com or another phone first.","TikTok treats your phone as one without passkeys, so signing in asks for your password or a code by email or text instead. Password managers won't hand a passkey to a patched app. If TikTok's 2-step check still wants only a passkey, add email or text as a way to verify on tiktok.com or another phone first."
 TikTok's background play and Auto scroll,TikTok's background play and Auto scroll
 TikTok's color,TikTok's color
@@ -2343,6 +2352,7 @@ Today: %1$d video,Today: %1$d video
 Today: %1$d videos,Today: %1$d videos
 Too late to put the saved videos back,Too late to put the saved videos back
 Too many saves running. Try again soon.,Too many saves running. Try again soon.
+Top,Top
 Top left double tap,Top left double tap
 Top right double tap,Top right double tap
 Tracking,Tracking

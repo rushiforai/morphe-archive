@@ -4,7 +4,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.Compatibility
 import app.morphe.patcher.patch.bytecodePatch
-import app.morphe.patches.hoichoi.extension.sharedExtensionPatch
 import app.morphe.patches.shared.Type
 import app.morphe.patches.shared.morphe.okhttp3.MediaType
 import app.morphe.patches.shared.morphe.okhttp3.OkHttpClient

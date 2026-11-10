@@ -129,10 +129,12 @@ template <int I> XrResult XRAPI_PTR fakeEndFrameT(XrSession session, const XrFra
     ++r.endCalls;
     r.lastInfo = info;
     r.lastSession = session;
+    if (!info) return r.endResult;  // the layer must not dereference a null frame itself
     if (r.capture) {
         r.lastCopy = *info;
-        CHECK(info->layerCount <= kMaxOutputLayers);
-        for (uint32_t i = 0; i < info->layerCount; ++i) r.lastLayers[i] = info->layers[i];
+        if (info->layers && info->layerCount <= kMaxOutputLayers) {
+            for (uint32_t i = 0; i < info->layerCount; ++i) r.lastLayers[i] = info->layers[i];
+        }
     }
     return r.endResult;
 }
@@ -362,10 +364,37 @@ void stockLayoutAndForeignShapesPassThrough() {
     info.layers = layers;
     CHECK(f.api.endFrame(f.session, &info) == XR_SUCCESS);
     CHECK(R.endCalls == 1 && R.lastInfo == &info && R.locateCalls == 0);
-    CHECK(logContains("not_applicable"));
+    CHECK(!logContains("stock_quad_stripped"));
+    // Overlay-only and empty frames carry no projection: forwarded untouched, even with a null
+    // entry (the runtime reports its own verdict for that).
+    const XrCompositionLayerBaseHeader* withNull[2] = {nullptr, layers[0]};
+    XrFrameEndInfo nullInfo = info;
+    nullInfo.layerCount = 2;
+    nullInfo.layers = withNull;
+    CHECK(f.api.endFrame(f.session, &nullInfo) == XR_SUCCESS && R.lastInfo == &nullInfo);
+    XrFrameEndInfo empty{XR_TYPE_FRAME_END_INFO};
+    CHECK(f.api.endFrame(f.session, &empty) == XR_SUCCESS && R.lastInfo == &empty);
+    // Structurally invalid frames are never dereferenced by the layer: the runtime decides.
+    XrFrameEndInfo noArray = info;
+    noArray.layers = nullptr;
+    CHECK(f.api.endFrame(f.session, &noArray) == XR_SUCCESS && R.lastInfo == &noArray);
+    XrFrameEndInfo wrongType = info;
+    wrongType.type = XR_TYPE_VIEW_STATE;
+    CHECK(f.api.endFrame(f.session, &wrongType) == XR_SUCCESS && R.lastInfo == &wrongType);
+    CHECK(f.api.endFrame(f.session, nullptr) == XR_SUCCESS && R.lastInfo == nullptr);
 }
 
-void rejectedShapesForwardOriginalOnceAndRecover() {
+bool hasProjection(const Runtime& r) {
+    for (uint32_t i = 0; i < r.lastCopy.layerCount; ++i) {
+        if (r.lastLayers[i] == nullptr ||
+            r.lastLayers[i]->type == XR_TYPE_COMPOSITION_LAYER_PROJECTION) return true;
+    }
+    return false;
+}
+
+// Rejected conversions submit the frame once WITHOUT any projection layer; tail layers keep their
+// identity and order; the very next valid frame converts again.
+void rejectedShapesAreStrippedOnceAndRecover() {
     Fixture f;
     const auto run = [&](auto mutate, const char* reason) {
         Source source = goldenSource(3, 1);
@@ -373,12 +402,14 @@ void rejectedShapesForwardOriginalOnceAndRecover() {
         const int before = R.endCalls;
         CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS);
         CHECK(R.endCalls == before + 1);
-        CHECK(R.lastInfo == &source.info);  // original object, byte for byte
+        CHECK(R.lastInfo != &source.info && !hasProjection(R));
+        CHECK(R.lastCopy.layerCount == 1 && R.lastLayers[0] == source.layers.back());
+        CHECK(R.lastCopy.displayTime == source.info.displayTime);
         CHECK(logContains(reason));
-        // A rejected conversion is not a session-wide disable: the next valid frame converts.
         Source good = goldenSource(3, 0);
         CHECK(f.api.endFrame(f.session, &good.info) == XR_SUCCESS);
         CHECK(R.endCalls == before + 2 && R.lastInfo != &good.info && R.lastCopy.layerCount == 4);
+        CHECK(!hasProjection(R));
     };
     run([](Source& s) { s.baseView(0).next = &s.settings[0]; }, "bad_view_next");
     run([](Source& s) { s.base().next = &s.tail[0]; }, "bad_layer_next");
@@ -391,66 +422,65 @@ void rejectedShapesForwardOriginalOnceAndRecover() {
     CHECK(!logContains("stock_quad_disabled"));
 }
 
-void layerCapRejectsOversizedAndUnknown() {
+void layerCapStripsOversizedAndUnknown() {
     Fixture f;
     f.api.destroySession(f.session);
     R.maxLayerCount = 4;  // 3 projections + 1 tail needs 5 output layers
     f.session = startSession(f.api, 11);
-    setState(f.api, f.session, XR_SESSION_STATE_VISIBLE);
     Source source = goldenSource(3, 1);
     CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS);
-    CHECK(R.lastInfo == &source.info && logContains("layer_cap"));
+    CHECK(R.lastInfo != &source.info && !hasProjection(R) && R.lastCopy.layerCount == 1);
+    CHECK(logContains("layer_cap"));
     Source fits = goldenSource(3, 0);
     CHECK(f.api.endFrame(f.session, &fits.info) == XR_SUCCESS);
-    CHECK(R.lastInfo != &fits.info && R.lastCopy.layerCount == 4);
-    // Unknown cap (system properties unavailable => 0) fails closed.
+    CHECK(R.lastInfo != &fits.info && R.lastCopy.layerCount == 4 && !hasProjection(R));
+    // Unknown cap (system properties unavailable => 0) fails closed to a stripped frame.
     f.api.destroySession(f.session);
     R.maxLayerCount = 0;
     f.session = startSession(f.api, 11);
-    setState(f.api, f.session, XR_SESSION_STATE_VISIBLE);
-    CHECK(f.api.endFrame(f.session, &fits.info) == XR_SUCCESS && R.lastInfo == &fits.info);
+    CHECK(f.api.endFrame(f.session, &fits.info) == XR_SUCCESS);
+    CHECK(!hasProjection(R) && R.lastCopy.layerCount == 0 && R.lastInfo != &fits.info);
 }
 
-void sessionStateGatesConversion() {
+// There is no visibility bypass: whatever the (unpolled) session state, projections never leave.
+void sessionStateDoesNotBypass() {
     Fixture f(11, false);
     Source source = goldenSource(2, 0);
-    CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS);
-    CHECK(R.lastInfo == &source.info && R.locateCalls == 0);  // state UNKNOWN
-    setState(f.api, f.session, XR_SESSION_STATE_READY);
-    CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS && R.lastInfo == &source.info);
-    setState(f.api, f.session, XR_SESSION_STATE_VISIBLE);
-    CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS && R.lastInfo != &source.info);
-    setState(f.api, f.session, XR_SESSION_STATE_STOPPING);
-    CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS && R.lastInfo == &source.info);
-    CHECK(R.endCalls == 4);
+    for (XrSessionState state : {XR_SESSION_STATE_UNKNOWN, XR_SESSION_STATE_READY,
+                                 XR_SESSION_STATE_VISIBLE, XR_SESSION_STATE_STOPPING}) {
+        if (state != XR_SESSION_STATE_UNKNOWN) setState(f.api, f.session, state);
+        CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS);
+        CHECK(R.lastInfo != &source.info && !hasProjection(R) && R.lastCopy.layerCount == 4);
+    }
+    CHECK(R.endCalls == 4 && R.locateCalls == 1);
 }
 
-void locateFailuresForwardOriginalOnce() {
+void locateFailuresAreStrippedAndRetried() {
     Fixture f;
-    const auto expectOriginal = [&](const char* what) {
+    const auto expectStripped = [&](const char* what) {
         Source source = goldenSource(3, 0);
         const int before = R.endCalls;
         CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS);
         CHECK_NEAR(R.endCalls, before + 1, 0);
-        if (R.lastInfo != &source.info) {
-            std::cerr << "converted despite " << what << "\n";
+        if (R.lastInfo == &source.info || hasProjection(R) || R.lastCopy.layerCount != 0) {
+            std::cerr << "projection forwarded or converted despite " << what << "\n";
             std::abort();
         }
     };
     R.locateResult = XR_ERROR_RUNTIME_FAILURE;
-    expectOriginal("locate error");
+    expectStripped("locate error");
     R.locateResult = XR_SUCCESS;
     R.locateFlags = XR_VIEW_STATE_ORIENTATION_VALID_BIT;
-    expectOriginal("position invalid");
+    expectStripped("position invalid");
     R.locateFlags = XR_VIEW_STATE_ORIENTATION_VALID_BIT | XR_VIEW_STATE_POSITION_VALID_BIT;
     R.locateCount = 1;
-    expectOriginal("one view");
+    expectStripped("one view");
     R.locateCount = 2;
     R.eyes[0].orientation = {0, 0, 0, 0};
-    expectOriginal("bad eye quaternion");
+    expectStripped("bad eye quaternion");
     setEyes(0.0f, 0.0f);
-    expectOriginal("zero ipd");
-    CHECK(R.locateCalls == 5);  // nothing invalid was cached
+    expectStripped("zero ipd");
+    CHECK(R.locateCalls == 5);  // nothing invalid was cached; retried on every frame
     setEyes(-0.032f, 0.032f);
     Source ok = goldenSource(3, 0);
     CHECK(f.api.endFrame(f.session, &ok.info) == XR_SUCCESS);
@@ -458,35 +488,193 @@ void locateFailuresForwardOriginalOnce() {
     CHECK(logCountOf("eye_locate_failed") == 1);  // logged once
 }
 
-void persistentLocateFailureDisables() {
+// A persistent locate failure never disables the session and never forwards projections; the
+// first frame after the runtime recovers converts.
+void persistentLocateFailureNeverDisables() {
     Fixture f;
     R.locateResult = XR_ERROR_RUNTIME_FAILURE;
-    for (uint32_t i = 0; i < kMaxLocateFailures + 5; ++i) {
+    for (int i = 0; i < 200; ++i) {
         Source source = goldenSource(2, 0);
         CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS);
-        CHECK(R.lastInfo == &source.info);
+        CHECK(R.lastInfo != &source.info && !hasProjection(R) && R.lastCopy.layerCount == 0);
     }
-    CHECK(R.locateCalls == static_cast<int>(kMaxLocateFailures));
-    CHECK(logCountOf("stock_quad_disabled") == 1 && logContains("eye_locate_failed"));
+    CHECK(R.locateCalls == 200 && R.endCalls == 200);
+    CHECK(logCountOf("eye_locate_failed") == 1 && !logContains("stock_quad_disabled"));
+    R.locateResult = XR_SUCCESS;
+    Source source = goldenSource(2, 0);
+    CHECK(f.api.endFrame(f.session, &source.info) == XR_SUCCESS);
+    CHECK(R.lastCopy.layerCount == 4 && !hasProjection(R) && R.locateCalls == 201);
 }
 
-void endFrameRejectionDisablesWithoutRetry() {
+// The runtime's own rejection is returned unchanged, once, with no retry, no disable and no
+// fallback to the projections. The next frame tries the quads again.
+void runtimeRejectionIsReturnedAndNextFrameConvertsAgain() {
     Fixture f;
     R.endResult = XR_ERROR_LAYER_INVALID;
     Source source = goldenSource(3, 0);
     CHECK(f.api.endFrame(f.session, &source.info) == XR_ERROR_LAYER_INVALID);
     CHECK(R.endCalls == 1);  // never a second xrEndFrame for the same frame
-    CHECK(R.lastInfo != &source.info);
+    CHECK(R.lastInfo != &source.info && !hasProjection(R) && R.lastCopy.layerCount == 4);
     CHECK(logCountOf("end_frame_rejected") == 1);
+    R.endResult = XR_ERROR_LAYER_LIMIT_EXCEEDED;
+    CHECK(f.api.endFrame(f.session, &source.info) == XR_ERROR_LAYER_LIMIT_EXCEEDED);
+    CHECK(R.endCalls == 2 && logCountOf("end_frame_rejected") == 1);  // logged once
     R.endResult = XR_SUCCESS;
     for (int i = 0; i < 5; ++i) {
         Source next = goldenSource(3, 0);
         CHECK(f.api.endFrame(f.session, &next.info) == XR_SUCCESS);
-        CHECK(R.lastInfo == &next.info);  // stands down for the rest of the session
+        CHECK(R.lastInfo != &next.info && !hasProjection(R) && R.lastCopy.layerCount == 4);
     }
-    CHECK(R.endCalls == 6 && logCountOf("end_frame_rejected") == 1);
+    CHECK(R.endCalls == 7 && R.locateCalls == 1);
+    // A runtime rejection of a stripped frame is returned unchanged as well.
+    R.endResult = XR_ERROR_RUNTIME_FAILURE;
+    Source bad = goldenSource(3, 1);
+    bad.baseView(0).next = &bad.settings[0];
+    CHECK(f.api.endFrame(f.session, &bad.info) == XR_ERROR_RUNTIME_FAILURE);
+    CHECK(R.endCalls == 8 && !hasProjection(R) && R.lastCopy.layerCount == 1);
+    R.endResult = XR_SUCCESS;
     f.api.destroySession(f.session);
-    CHECK(logContains("\"disabled\":true") && logContains("stock_quad_summary"));
+    CHECK(logContains("\"runtimeRejectedFrames\":3") && logContains("stock_quad_summary") &&
+          !logContains("\"disabled\""));
+}
+
+// Projections anywhere (leading, in the tail, mixed with null entries and overlays) never reach the
+// runtime, whatever the conversion outcome; non-projection layers keep their order.
+void projectionsInTailAndNullsAreStripped() {
+    Fixture f;
+    Source source = goldenSource(3, 2);
+    // projection after the tail => ProjectionInTail => whole frame stripped
+    XrCompositionLayerProjection extra = source.projections[0];
+    std::vector<const XrCompositionLayerBaseHeader*> layers = source.layers;
+    layers.push_back(reinterpret_cast<const XrCompositionLayerBaseHeader*>(&extra));
+    {
+        XrFrameEndInfo plain = source.info;
+        plain.layerCount = static_cast<uint32_t>(layers.size());
+        plain.layers = layers.data();
+        CHECK(f.api.endFrame(f.session, &plain) == XR_SUCCESS);
+        CHECK(R.lastInfo != &plain && !hasProjection(R) && R.lastCopy.layerCount == 2);
+        CHECK(logContains("projection_in_tail"));
+    }
+    layers = source.layers;
+    layers.insert(layers.begin() + 4, nullptr);
+    layers.push_back(reinterpret_cast<const XrCompositionLayerBaseHeader*>(&extra));
+    layers.push_back(nullptr);
+    XrFrameEndInfo info = source.info;
+    info.layerCount = static_cast<uint32_t>(layers.size());
+    info.layers = layers.data();
+    CHECK(f.api.endFrame(f.session, &info) == XR_SUCCESS);
+    CHECK(R.lastInfo != &info && !hasProjection(R) && R.lastCopy.layerCount == 2);
+    CHECK(R.lastLayers[0] == source.layers[3] && R.lastLayers[1] == source.layers[4]);
+    CHECK(logContains("null_layer"));
+    // Overlay first, then projections => not a convertible shape => stripped, overlay kept.
+    std::vector<const XrCompositionLayerBaseHeader*> lead;
+    lead.push_back(source.layers[3]);
+    for (int i = 0; i < 3; ++i) lead.push_back(source.layers[i]);
+    info.layerCount = static_cast<uint32_t>(lead.size());
+    info.layers = lead.data();
+    CHECK(f.api.endFrame(f.session, &info) == XR_SUCCESS);
+    CHECK(!hasProjection(R) && R.lastCopy.layerCount == 1 && R.lastLayers[0] == source.layers[3]);
+    // A null entry among projections is dropped too (null before the projections => stripped).
+    std::vector<const XrCompositionLayerBaseHeader*> nulls = {nullptr};
+    for (int i = 0; i < 3; ++i) nulls.push_back(source.layers[i]);
+    info.layerCount = static_cast<uint32_t>(nulls.size());
+    info.layers = nulls.data();
+    CHECK(f.api.endFrame(f.session, &info) == XR_SUCCESS);
+    CHECK(!hasProjection(R) && R.lastCopy.layerCount == 0);
+    // More layers than any output cap: still stripped, bounded by the input length, no overflow.
+    std::vector<const XrCompositionLayerBaseHeader*> many(70, source.layers[3]);
+    many[10] = source.layers[0];
+    many[69] = nullptr;
+    info.layerCount = static_cast<uint32_t>(many.size());
+    info.layers = many.data();
+    R.capture = false;
+    CHECK(f.api.endFrame(f.session, &info) == XR_SUCCESS);
+    R.capture = true;
+    CHECK(R.lastInfo != &info && R.lastInfo->layerCount == 68);
+    for (uint32_t i = 0; i < R.lastInfo->layerCount; ++i) {
+        CHECK(R.lastInfo->layers[i] == source.layers[3]);
+    }
+}
+
+// Repeated rejected / converted / transient-failure frames in any order never alternate to a
+// projection submission.
+void neverAlternatesToProjections() {
+    Fixture f;
+    uint32_t seed = 12345;
+    const auto next = [&]() { seed = seed * 1664525u + 1013904223u; return seed >> 8; };
+    for (int i = 0; i < 400; ++i) {
+        Source source = goldenSource(next() % 2 ? 3 : 2, static_cast<int>(next() % 3));
+        const uint32_t pick = next() % 6;
+        if (pick == 0) source.baseView(0).next = &source.settings[0];
+        if (pick == 1) source.fovea().layerFlags = 0;
+        if (pick == 2) source.baseView(1).pose.position.x = 3.0f;
+        R.endResult = next() % 7 == 0 ? XR_ERROR_LAYER_INVALID : XR_SUCCESS;
+        const int before = R.endCalls;
+        const XrResult result = f.api.endFrame(f.session, &source.info);
+        CHECK(R.endCalls == before + 1 && result == R.endResult);
+        CHECK(R.lastInfo != &source.info && !hasProjection(R));
+        const uint32_t tail = source.info.layerCount - static_cast<uint32_t>(source.count);
+        CHECK(R.lastCopy.layerCount == (pick < 3 ? 0u : 4u) + tail);
+    }
+}
+
+// Deterministic randomized invariant over arbitrary layer mixes: exactly one downstream call, no
+// projection or null ever forwarded when the source had a projection, and every non-projection
+// layer survives in order. Frames without projections are forwarded as the same object.
+void randomizedFrameInvariant() {
+    Fixture f;
+    uint32_t seed = 2026;
+    const auto next = [&]() { seed = seed * 1664525u + 1013904223u; return seed >> 8; };
+    XrCompositionLayerProjection projections[12]{};
+    XrCompositionLayerQuad quads[12]{};
+    XrCompositionLayerCylinderKHR other{};
+    for (auto& p : projections) p.type = XR_TYPE_COMPOSITION_LAYER_PROJECTION;
+    for (auto& q : quads) q.type = XR_TYPE_COMPOSITION_LAYER_QUAD;
+    other.type = XR_TYPE_COMPOSITION_LAYER_CYLINDER_KHR;
+    for (int round = 0; round < 2000; ++round) {
+        const uint32_t n = next() % 13;
+        std::vector<const XrCompositionLayerBaseHeader*> layers(n);
+        std::vector<const XrCompositionLayerBaseHeader*> expected;
+        bool anyProjection = false;
+        for (uint32_t i = 0; i < n; ++i) {
+            switch (next() % 4) {
+                case 0:
+                    layers[i] = nullptr;
+                    break;
+                case 1:
+                    layers[i] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&projections[i]);
+                    anyProjection = true;
+                    break;
+                case 2:
+                    layers[i] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&quads[i]);
+                    expected.push_back(layers[i]);
+                    break;
+                default:
+                    layers[i] = reinterpret_cast<const XrCompositionLayerBaseHeader*>(&other);
+                    expected.push_back(layers[i]);
+                    break;
+            }
+        }
+        XrFrameEndInfo info{XR_TYPE_FRAME_END_INFO};
+        info.displayTime = 1000 + round;
+        info.environmentBlendMode = XR_ENVIRONMENT_BLEND_MODE_OPAQUE;
+        info.layerCount = n;
+        info.layers = n ? layers.data() : nullptr;
+        R.capture = false;
+        const int before = R.endCalls;
+        CHECK(f.api.endFrame(f.session, &info) == XR_SUCCESS);
+        R.capture = true;
+        CHECK(R.endCalls == before + 1);
+        if (!anyProjection) {
+            CHECK(R.lastInfo == &info);
+            continue;
+        }
+        CHECK(R.lastInfo != &info && R.lastInfo->displayTime == info.displayTime);
+        CHECK(R.lastInfo->layerCount == expected.size());
+        for (uint32_t i = 0; i < R.lastInfo->layerCount; ++i) {
+            CHECK(R.lastInfo->layers[i] == expected[i]);
+        }
+    }
 }
 
 void eyeCacheIsPerSession() {
@@ -501,7 +689,6 @@ void eyeCacheIsPerSession() {
     // Second session: different eyes; must locate on its own and never see session 1's cache.
     setEyes(-0.040f, 0.040f);
     XrSession other = startSession(f.api, 12);
-    setState(f.api, other, XR_SESSION_STATE_VISIBLE);
     CHECK(f.api.endFrame(other, &one.info) == XR_SUCCESS);
     CHECK(R.locateCalls == 2);
     const float otherX =
@@ -518,9 +705,7 @@ void eyeCacheIsPerSession() {
     setEyes(-0.020f, 0.020f);
     other = startSession(f.api, 12);
     CHECK(f.api.endFrame(other, &one.info) == XR_SUCCESS);
-    CHECK(R.lastInfo == &one.info);  // new session is UNKNOWN until its first state event
-    setState(f.api, other, XR_SESSION_STATE_FOCUSED);
-    CHECK(f.api.endFrame(other, &one.info) == XR_SUCCESS && R.locateCalls == 3);
+    CHECK(R.lastInfo != &one.info && !hasProjection(R) && R.locateCalls == 3);
     CHECK(reinterpret_cast<const XrCompositionLayerQuad*>(R.lastLayers[1])->pose.position.x <
           firstX);
     // A destroyed handle is simply forwarded.
@@ -561,14 +746,15 @@ void viewSpaceLifecycle() {
         }
     }
     {
-        // VIEW space creation failure => session passes everything through.
+        // VIEW space creation failure => no conversion is possible, and the projections are
+        // stripped rather than forwarded.
         Api api = bootstrap();
         R.createSpaceResult = XR_ERROR_RUNTIME_FAILURE;
         XrSession session = startSession(api, 31);
-        setState(api, session, XR_SESSION_STATE_VISIBLE);
-        Source source = goldenSource(3, 0);
+        Source source = goldenSource(3, 1);
         CHECK(api.endFrame(session, &source.info) == XR_SUCCESS);
-        CHECK(R.lastInfo == &source.info && R.locateCalls == 0);
+        CHECK(R.lastInfo != &source.info && !hasProjection(R) && R.lastCopy.layerCount == 1 &&
+              R.locateCalls == 0);
         CHECK(logContains("view_space_failed"));
         R.events.clear();
         api.destroySession(session);
@@ -665,12 +851,6 @@ void twoInstancesInterleaved(bool destroyFirstFirst, bool destroySessionsFirst) 
     const XrSpace spaceA = RT[0].lastSpace;
     const XrSpace spaceB = RT[1].lastSpace;
     CHECK(spaceA != spaceB);
-    setState(a, sa, XR_SESSION_STATE_FOCUSED);
-    setState(b, sb, XR_SESSION_STATE_VISIBLE);
-    // A state event delivered by one instance never changes the other instance's session.
-    setState(b, sa, XR_SESSION_STATE_STOPPING);
-    setState(a, sb, XR_SESSION_STATE_STOPPING);
-
     Source sourceA = goldenSource(3, 1);
     Source sourceB = goldenSource(2, 0);
     for (int round = 0; round < 3; ++round) {
@@ -794,29 +974,100 @@ void recreatedInstanceHandleReplacesStaleEntry() {
     CHECK(second.destroyInstance(second.instance) == XR_SUCCESS && liveInstances() == 0);
 }
 
-void dispatchFailureBeforeSessionCreation() {
-    // A missing core entry point leaves the instance a clean pass-through.
+// Facilities only conversion needs may be missing: the instance is still intercepted and every
+// projection frame is stripped (inactive-geometry target path). Never a pass-through.
+void missingGeometryFacilitiesStillStripProjections() {
     for (const char* missing : {"xrLocateViews", "xrCreateReferenceSpace", "xrGetSystemProperties",
                                 "xrDestroySpace"}) {
         Api api = bootstrap(kPackage, false, 0, missing);
-        CHECK(liveInstances() == 1 && !instanceActive(api));
-        // Not hooked: the application talks straight to the downstream runtime.
-        CHECK(api.createSession == fakeCreateSession && api.endFrame == fakeEndFrame);
+        CHECK(liveInstances() == 1 && instanceActive(api));
+        CHECK(api.createSession != fakeCreateSession && api.endFrame != fakeEndFrame);
         XrSession session = startSession(api, 11);
-        Source source = goldenSource(3, 0);
+        Source source = goldenSource(3, 1);
         CHECK(api.endFrame(session, &source.info) == XR_SUCCESS);
-        CHECK(R.lastInfo == &source.info && R.locateCalls == 0 && R.lastSpace == nullptr);
+        CHECK(R.lastInfo != &source.info && !hasProjection(R) && R.lastCopy.layerCount == 1);
+        CHECK(R.lastLayers[0] == source.layers.back() && R.locateCalls == 0);
+        CHECK(R.lastSpace == nullptr);  // no VIEW space was created
+        // Overlay-only frames still pass through untouched.
+        XrFrameEndInfo overlay = source.info;
+        const XrCompositionLayerBaseHeader* only[1] = {source.layers.back()};
+        overlay.layerCount = 1;
+        overlay.layers = only;
+        CHECK(api.endFrame(session, &overlay) == XR_SUCCESS && R.lastInfo == &overlay);
+        R.events.clear();
         CHECK(api.destroySession(session) == XR_SUCCESS);
         CHECK(R.events.size() == 1 && R.events[0] == "destroySession");
         CHECK(api.destroyInstance(api.instance) == XR_SUCCESS);
         CHECK(R.destroyInstanceCalls == 1 && liveInstances() == 0);
     }
-    for (const char* missing : {"xrCreateSession", "xrDestroySession", "xrEndFrame", "xrPollEvent"}) {
-        Api api = bootstrap(kPackage, false, 0, missing);
-        CHECK(liveInstances() == 1 && !instanceActive(api));
-        CHECK(api.destroyInstance(api.instance) == XR_SUCCESS);
-        CHECK(R.destroyInstanceCalls == 1 && R.events.size() == 1 && liveInstances() == 0);
+    // xrPollEvent is not needed at all any more.
+    Api api = bootstrap(kPackage, false, 0, "xrPollEvent");
+    CHECK(instanceActive(api) && api.destroyInstance(api.instance) == XR_SUCCESS);
+    CHECK(liveInstances() == 0);
+}
+
+// Each core entry point is hooked on its own and only when the downstream runtime has it. A missing
+// one is never invented: instance creation keeps the runtime's success, and the lookup is delegated
+// so the runtime reports its own error (null function, XR_ERROR_FUNCTION_UNSUPPORTED here).
+void missingCoreEntryPointsAreDelegatedNotInvented() {
+    const char* const names[3] = {"xrCreateSession", "xrDestroySession", "xrEndFrame"};
+    for (const char* missing : names) {
+        Api api = bootstrap(kPackage, false, 0, missing);  // creation must still succeed
+        CHECK(liveInstances() == 1 && instanceActive(api));
+        const auto lookup = [&](const char* name, PFN_xrVoidFunction* f) {
+            *f = reinterpret_cast<PFN_xrVoidFunction>(layerEndFrame);  // must be overwritten
+            return api.gipa(api.instance, name, f);
+        };
+        PFN_xrVoidFunction f{};
+        for (const char* name : names) {
+            const XrResult r = lookup(name, &f);
+            if (!std::strcmp(name, missing)) {
+                CHECK(r == XR_ERROR_FUNCTION_UNSUPPORTED && f == nullptr);  // the runtime's error
+            } else {
+                CHECK(r == XR_SUCCESS && f != nullptr);
+                // present entry points are layer hooks, not the downstream functions
+                PFN_xrVoidFunction raw{};
+                CHECK(fakeGipaT<0>(XR_NULL_HANDLE, name, &raw) == XR_SUCCESS && f != raw);
+            }
+        }
+        if (!std::strcmp(missing, "xrDestroySession")) {
+            // Usable create/endFrame tracking is not suppressed by a missing destroy.
+            setEyes(-0.032f, 0.032f);
+            XrSession session = startSession(api, 51);
+            Source source = goldenSource(3, 1);
+            CHECK(api.endFrame(session, &source.info) == XR_SUCCESS);
+            CHECK(R.lastInfo != &source.info && !hasProjection(R) && R.lastCopy.layerCount == 5);
+            Source bad = goldenSource(3, 1);
+            bad.baseView(0).next = &bad.settings[0];
+            CHECK(api.endFrame(session, &bad.info) == XR_SUCCESS);
+            CHECK(!hasProjection(R) && R.lastCopy.layerCount == 1);
+            R.events.clear();
+            CHECK(api.destroyInstance(api.instance) == XR_SUCCESS);  // frees our VIEW space
+            CHECK(R.events.size() == 2 && R.events[0] == "destroySpace" &&
+                  R.events[1] == "destroyInstance");
+        } else if (!std::strcmp(missing, "xrEndFrame")) {
+            XrSession session = startSession(api, 52);
+            CHECK(session != nullptr && api.endFrame == nullptr);
+            CHECK(api.destroySession(session) == XR_SUCCESS);
+            CHECK(api.destroyInstance(api.instance) == XR_SUCCESS);
+        } else {
+            // No xrCreateSession downstream: the application cannot create a session through this
+            // runtime. Residual limitation (invalid runtime): no session is ever tracked, so a
+            // stray endFrame on an unknown handle is forwarded as before.
+            CHECK(api.createSession == nullptr);
+            XrSession stray = fake<XrSession>(61);
+            Source source = goldenSource(3, 0);
+            CHECK(api.endFrame(stray, &source.info) == XR_SUCCESS && R.lastInfo == &source.info);
+            CHECK(api.destroyInstance(api.instance) == XR_SUCCESS);
+        }
+        CHECK(R.destroyInstanceCalls == 1 && liveInstances() == 0);
+        CHECK(!logContains("intercept_unavailable"));
     }
+    // A non-target process with the same gaps stays a pure pass-through and creates fine.
+    Api other = bootstrap("com.example.other", false, 0, "xrEndFrame");
+    CHECK(!instanceActive(other) && other.destroyInstance(other.instance) == XR_SUCCESS);
+}
+void dispatchFailureBeforeSessionCreation() {
     // Without a downstream xrDestroyInstance the instance cannot be tracked: creation fails.
     RT[0] = Runtime{};
     RT[0].gipaFailName = "xrDestroyInstance";
@@ -871,9 +1122,7 @@ void nullAndUnknownInstancesAreRejected() {
     CHECK(api.gipa(api.instance, "xrEndFrame", nullptr) == XR_ERROR_VALIDATION_FAILURE);
     XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
     XrSession session{};
-    XrEventDataBuffer buffer{XR_TYPE_EVENT_DATA_BUFFER};
     CHECK(layerCreateSession(XR_NULL_HANDLE, &createInfo, &session) == XR_ERROR_HANDLE_INVALID);
-    CHECK(layerPollEvent(XR_NULL_HANDLE, &buffer) == XR_ERROR_HANDLE_INVALID);
     CHECK(layerDestroyInstance(XR_NULL_HANDLE) == XR_ERROR_HANDLE_INVALID);
     CHECK(layerDestroyInstance(reinterpret_cast<XrInstance>(uintptr_t{9999})) ==
           XR_ERROR_HANDLE_INVALID);
@@ -902,27 +1151,33 @@ void goldenThroughLayer() {
 
 }  // namespace
 
+#define RUN(f) do { std::cerr << "[run] " #f "\n"; f(); } while (false)
 int main() {
-    convertsBothLayouts();
-    stockLayoutAndForeignShapesPassThrough();
-    rejectedShapesForwardOriginalOnceAndRecover();
-    layerCapRejectsOversizedAndUnknown();
-    sessionStateGatesConversion();
-    locateFailuresForwardOriginalOnce();
-    persistentLocateFailureDisables();
-    endFrameRejectionDisablesWithoutRetry();
-    eyeCacheIsPerSession();
-    viewSpaceLifecycle();
-    packageGuardMakesLayerInert();
-    steadyStateIsSilentAndAllocationFree();
-    goldenThroughLayer();
+    RUN(convertsBothLayouts);
+    RUN(stockLayoutAndForeignShapesPassThrough);
+    RUN(rejectedShapesAreStrippedOnceAndRecover);
+    RUN(layerCapStripsOversizedAndUnknown);
+    RUN(sessionStateDoesNotBypass);
+    RUN(locateFailuresAreStrippedAndRetried);
+    RUN(persistentLocateFailureNeverDisables);
+    RUN(runtimeRejectionIsReturnedAndNextFrameConvertsAgain);
+    RUN(projectionsInTailAndNullsAreStripped);
+    RUN(neverAlternatesToProjections);
+    RUN(randomizedFrameInvariant);
+    RUN(eyeCacheIsPerSession);
+    RUN(viewSpaceLifecycle);
+    RUN(packageGuardMakesLayerInert);
+    RUN(steadyStateIsSilentAndAllocationFree);
+    RUN(goldenThroughLayer);
     for (bool destroyFirstFirst : {true, false}) {
         for (bool sessionsFirst : {true, false}) twoInstancesInterleaved(destroyFirstFirst, sessionsFirst);
     }
-    reusedSessionHandlesAcrossInstances();
-    recreatedInstanceHandleReplacesStaleEntry();
-    dispatchFailureBeforeSessionCreation();
-    nullAndUnknownInstancesAreRejected();
+    RUN(reusedSessionHandlesAcrossInstances);
+    RUN(recreatedInstanceHandleReplacesStaleEntry);
+    RUN(missingGeometryFacilitiesStillStripProjections);
+    RUN(missingCoreEntryPointsAreDelegatedNotInvented);
+    RUN(dispatchFailureBeforeSessionCreation);
+    RUN(nullAndUnknownInstancesAreRejected);
     CHECK(liveInstances() == 0);
     std::remove("stock_quad_cmdline_test.bin");
     std::cout << "stock_quad_layer_tests passed\n";

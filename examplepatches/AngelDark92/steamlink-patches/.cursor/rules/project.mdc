@@ -12,7 +12,7 @@ supported-build table here.
 ## Work
 
 - Patch procedure: `.opencode/skills/morphe-patches/SKILL.md`.
-- Delegation: `.opencode/skills/cavecrew/SKILL.md`.
+- Delegation: use installed specialists and the relevant project skill.
 - Evidence and open items: `diagnostics/`.
 - Cleanup policy: `WORKSPACE_CLEANUP.md`.
 

@@ -237,6 +237,9 @@ Upload quality applies to	上傳畫質套用範圍
 Stories only	僅限時動態
 Stories, posts and reels	限時動態、貼文和 Reels
 Video bitrate	影片位元率
+Video resolution	影片解析度
+Video frame rate	影片影格率
+Photo quality	相片品質
 %1$s Mbps	%1$s Mbps
 Download feed videos	下載動態首頁影片
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	在動態首頁的影片貼文選單中新增「下載」，使用下方的畫質設定。關閉或暫停後會還原 Instagram 原本的選單。
@@ -427,6 +430,8 @@ Hide People you don't follow back	隱藏「你未回追的用戶」
 Takes the People you don't follow back section off the bottom of your notifications. Notifications about new followers stay.	移除通知底部的「你未回追的用戶」區塊。新追蹤者通知仍會保留。
 Hide suggestions in notifications	隱藏通知中的推薦內容
 Takes rows that only suggest something off your notifications, like a thread from an account you don't follow or someone you might know. Likes, comments, mentions and new followers stay.	移除通知中僅用來推薦內容的橫列，例如未追蹤帳號的串文或你可能認識的人。按讚、留言、提及與新追蹤者通知仍會保留。
+Hide channel invites in notifications	隱藏通知中的頻道邀請
+Takes invites to join someone's channel off your notifications. Everything else stays.	從通知中移除加入他人頻道的邀請。其他內容都會保留。
 Hide Featured in notifications	隱藏通知中的精選內容
 Takes the Featured section off the top of your notifications, the posts and threads Instagram picks to show you there. Everything under it stays.	移除通知頂端的精選區塊，也就是 Instagram 挑選給你的貼文與串文。下方內容仍會保留。
 Keep Featured off the heart's dot	不讓精選內容點亮愛心上的紅點
@@ -667,8 +672,10 @@ Time away before swiping comes back	恢復滑動前的離開時間
 Take a scroll break	捲動休息時間
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	%1$d 分鐘後
-Off. It can cover the Home, Reels and Explore tabs for 5 minutes after you've spent a while on them.	已關閉。可在使用首頁、Reels 與探索一段時間後，遮住這些分頁 5 分鐘。
-After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for 5 minutes. Messages, your profile and the tab bar still work.	在首頁、Reels 與探索分頁使用 %1$d 分鐘後，會顯示休息畫面並遮住這些分頁 5 分鐘。私訊、個人檔案與分頁列仍可使用。
+Off. It can cover the Home, Reels and Explore tabs for a break after you've spent a while on them.	已關閉。可在使用首頁、Reels 與探索一段時間後，遮住這些分頁讓你休息一下。
+After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for %2$d minutes. Messages, your profile and the tab bar still work.	在首頁、Reels 與探索分頁使用 %1$d 分鐘後，會顯示休息畫面並遮住這些分頁 %2$d 分鐘。私訊、個人檔案與分頁列仍可使用。
+Break length	休息時間長度
+%1$d minutes	%1$d 分鐘
 Time for a break	該休息一下了
 Home, Reels and Explore open again when the countdown ends. Messages and your profile still work.	倒數結束後，首頁、Reels 與探索會重新開放。私訊與個人檔案仍可使用。
 # context: read aloud by the screen reader on the break screen; %1$s is the time left, like 4:59
@@ -929,6 +936,8 @@ Stop the background heartbeat	停用背景存活回報
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram 每隔一兩分鐘就會喚醒手機，即使螢幕關閉也一樣，目的只是記錄自己仍在執行。此選項會停止該行為。訊息、通知與畫面上的功能不受影響。
 Stop the analytics upload alarm	停用分析資料上傳鬧鐘
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram 會設定鬧鐘，在五分鐘後喚醒手機並傳送使用事件。此選項會停用該鬧鐘，事件改在下次使用應用程式時傳送。
+Stop background feed refresh	停止背景動態更新
+About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Instagram 大約每半小時會喚醒手機，提前下載你的動態。此選項會停止該行為。動態改在開啟應用程式時載入，訊息與通知仍會照常送達。
 Haptic style	觸覺回饋樣式
 Short tick	短震
 System tick	系統震動
@@ -1132,6 +1141,7 @@ Hold the Friends tab to pick friends	長按好友分頁以選擇好友
 Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	在 Reels 長按好友分頁，從它顯示過的好友中挑選。之後只保留他們按讚或分享的 Reels。沒有他們的頁面會留下一則 Reels，讓下一頁能載入。
 Pick friends	選擇好友
 Open the Friends tab first.	請先開啟好友分頁。
+No friends to pick yet.	還沒有可選的好友。
 Applies to the next reels loaded.	從接下來載入的 Reels 開始套用。
 Hide the Save button on reels	隱藏 Reels 上的儲存按鈕
 Burn-in guard	防烙印保護
@@ -1329,7 +1339,7 @@ Keep the pill full size	保持膠囊完整大小
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	向下捲動清單時，液態膠囊會維持原樣，所有分頁皆保留在原位。變更後請重新啟動 Instagram。
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	在邊緣折射光線
-The liquid pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	液態膠囊的邊緣會像真正的玻璃一樣折射後方的內容，經過邊緣下方的東西會上下顛倒。需要 Android 13 以上版本。變更後請重新啟動 Instagram。
+The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	膠囊的邊緣會像真正的玻璃一樣折射後方的內容，經過邊緣下方的東西會上下顛倒。需要 Android 13 以上版本。變更後請重新啟動 Instagram。
 # context: Ghost mode: the row and dialog picking which switches Ghost mode turns (#251). %1$s is a list of switch names
 All of them. Tap to leave some out, and Ghost mode leaves those as you set them.	全部。點擊可排除部分開關，幽靈模式會保留這些開關原本的設定。
 %1$s. The others stay as you set them.	%1$s。其他開關會保留你原本的設定。
@@ -1377,6 +1387,8 @@ Show all recent searches	顯示所有最近搜尋
 Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.	在搜尋列下方列出所有最近搜尋，而非僅前幾筆。「查看全部」與每列的 x 仍可照常使用。
 Hide the call buttons in chats	隱藏聊天中的通話按鈕
 Takes the voice and video call buttons off the top of a chat. The name keeps its room. Turn it off and they're back the next time a chat opens.	移除聊天頂端的語音與視訊通話按鈕，名稱仍保有顯示空間。關閉後，下次開啟聊天就會恢復。
+Hide the Community Standards reminder	隱藏社群守則提醒
+Takes the banner reminding you to be respectful off the bottom of a chat.	移除聊天底部提醒你保持尊重的橫幅。
 Buttons in the message box	訊息輸入框按鈕
 Every button in the message box shows. Untick the ones you don't use. The text box and Send always stay.	訊息輸入框中的所有按鈕皆會顯示。取消勾選用不到的按鈕，文字輸入框與傳送按鈕一律保留。
 Left off the message box: %1$s. The text box and Send stay.	訊息輸入框中已隱藏：%1$s。文字輸入框與傳送按鈕仍會保留。
@@ -1546,6 +1558,9 @@ Next page	下一頁
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	膠囊頁面圓點
 Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	將輪播貼文的頁面圓點移到相片或影片底部的圓角膠囊上，目前的頁面以藍色顯示。
+# context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
+Hide page number	隱藏頁碼
+Takes the number like 3/5 off the corner of a carousel post's photo or video.	拿掉輪播貼文相片或影片角落類似 3/5 的數字。
 # context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
 Ambient light	環境光
 Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	在貼文的相片或影片周圍加上貼文本身色彩的柔和光暈，沒有填滿螢幕的 Reels 周圍空白處也會亮起。影片播放時光暈會跟著變化。
@@ -1919,3 +1934,35 @@ Leaving Instagram while a reel plays shrinks it into a small window over your ot
 # context: a switch on the Profiles page under Mark who doesn't follow you back; it means the mark goes on each profile picture of your own Following list
 Show it on the profile picture	顯示在大頭貼照上
 Puts a green check on the picture of each account that follows you back and a red cross on each one that doesn't, instead of the words.	在有回追你的帳號大頭貼照上加綠色勾勾，在未回追的帳號上加紅色叉叉，取代文字。
+
+# context: Messages rows of Call blocker: Who can call you, its four choices and their summaries, and the list row with its dialog message (#578)
+Who can call you	誰可以打給你
+Your call list	你的通話名單
+Usernames, one on each line. A leading @ and capital letters don't matter.	使用者名稱，每行一個。開頭的 @ 和大小寫都沒有影響。
+Nobody	沒有人
+Only people on your list	只有名單上的人
+Everyone except your list	名單以外的所有人
+Everyone	所有人
+No call rings your phone. Callers just get no answer.	沒有任何來電會響。對方只會得不到回應。
+Only people on your list ring your phone. Anyone else gets no answer.	只有名單上的人來電才會響。其他人得不到回應。
+People on your list don't ring your phone. Everyone else still does.	名單上的人來電不會響。其他人照常會響。
+Everyone can ring your phone, as usual.	所有人都能像平常一樣打給你。
+# context: Seek bar shape and preview (#567, #586, #592)
+Seek bar shape	拖曳列形狀
+Thin line	細線
+Rounded	圓角
+Expressive	表現力
+Wave	波浪
+The bar and round handle you know.	您熟悉的拖曳列與圓形拖曳鈕。
+A thin line with no handle that grows while you drag it. On feed videos it sits on the bottom edge.	沒有拖曳鈕的細線，拖曳時會變粗。在動態影片上會貼齊下緣。
+A thicker rounded bar with no handle.	較粗的圓角拖曳列，沒有拖曳鈕。
+A rounded bar split by a tall handle.	由高拖曳鈕分隔的圓角拖曳列。
+A wavy line for the part played, with a tall handle.	已播放部分為波浪線，並附高拖曳鈕。
+Turn on a seek bar on feed videos, stories or reels to use this choice.	請啟用動態影片、限時動態或 Reels 的拖曳列以使用此選項。
+Preview while you drag a seek bar	拖曳拖曳列時預覽
+Shows the time above your finger while you drag a seek bar on a feed video, story or reel, and a small picture of that moment when Instagram has one for the video.	在動態影片、限時動態或 Reels 上拖曳拖曳列時，於手指上方顯示時間，若 Instagram 有該影片的圖片，也會顯示該時刻的小圖。
+Swipe right on Home opens	在首頁向右滑動會開啟
+The camera, as Instagram has it. Pick a tab and the same swipe opens that tab instead.	相機，與 Instagram 原本相同。選擇分頁後，同樣的滑動會改為開啟該分頁。
+A swipe right on Home opens %1$s. The + button still opens the camera.	在首頁向右滑動會開啟 %1$s。+ 按鈕仍會開啟相機。
+Keep the tab bar on a reel's profile	在 Reel 的個人檔案保留分頁列
+A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	從 Reel 開啟的個人檔案會留在目前的分頁，下方保留分頁列。返回會回到 Reel.

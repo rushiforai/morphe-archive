@@ -43,7 +43,7 @@ final class SettingsScreen {
     private static final java.text.NumberFormat NUMBERS = java.text.NumberFormat.getIntegerInstance();
     private LinearLayout list;
     private LinearLayout preview;
-    private View highlightPreview;
+    private FrameLayout filterPreview;
 
     private SettingsScreen(Context context) {
         this.context = context;
@@ -88,11 +88,17 @@ final class SettingsScreen {
         choice("When a post matches", "Highlighted posts stay readable; hidden posts are removed from timelines.",
                 Settings.FILTER_MODE, new String[]{"Highlight it", "Hide it"},
                 new String[]{Settings.MODE_HIGHLIGHT, Settings.MODE_HIDE}, Settings.MODE_HIGHLIGHT);
+        choice("Quoted posts", "What changes when only the quoted account matches.", Settings.QUOTE_SCOPE,
+                new String[]{"Quote only", "Whole post"}, new String[]{Settings.SCOPE_QUOTE, Settings.SCOPE_POST},
+                Settings.SCOPE_QUOTE);
+        toggle("Use device country", "Go by the country in \"Connected via\" instead of where the account is based, "
+                + "for flags and filters. Accounts on the web keep their location.", Settings.DEVICE_COUNTRY, false);
         List<String> filtered = Filters.locations();
         row("Countries and regions", filtered.isEmpty() ? "None" : String.join(", ", filtered), null,
                 v -> new CountryPicker().show());
-        highlightPreview = mockPost();
-        list.addView(highlightPreview, Ui.matchWidth());
+        filterPreview = new FrameLayout(context);
+        list.addView(filterPreview, Ui.matchWidth());
+        updateFilterPreview();
         choice("Highlight contrast", "How strongly highlighted posts stand out. Standard matches X-Posed.",
                 Settings.HIGHLIGHT_CONTRAST, new String[]{"Subtle", "Standard", "Strong", "Bold"},
                 new String[]{"subtle", "standard", "strong", "bold"}, "standard");
@@ -131,7 +137,7 @@ final class SettingsScreen {
 
     private void changed() {
         updatePreview();
-        if (highlightPreview != null) highlightPreview.invalidate();
+        updateFilterPreview();
         HeaderBadges.refreshAll();
     }
 
@@ -150,8 +156,18 @@ final class SettingsScreen {
         preview.addView(image, lp);
     }
 
-    /** A post as it would look when highlighted, for the contrast setting. */
-    private View mockPost() {
+    /** A post quoting a filtered account, as it looks with the current filter settings. */
+    private void updateFilterPreview() {
+        filterPreview.removeAllViews();
+        boolean hide = !Settings.highlightMode(), wholePost = Settings.quoteAffectsPost();
+        if (hide && wholePost) {
+            TextView gone = ui.text("Posts quoting a filtered account are removed from your timeline, like posts from it.",
+                    13, false, ui.secondary);
+            gone.setPadding(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(12));
+            filterPreview.addView(gone);
+            return;
+        }
+
         LinearLayout post = new LinearLayout(context);
         post.setPadding(ui.dp(16), ui.dp(12), ui.dp(16), ui.dp(12));
         View avatar = new View(context);
@@ -163,18 +179,46 @@ final class SettingsScreen {
         LinearLayout body = new LinearLayout(context);
         body.setOrientation(LinearLayout.VERTICAL);
         body.setPadding(ui.dp(12), 0, 0, 0);
-        LinearLayout header = new LinearLayout(context);
-        header.addView(ui.text("Example", 15, true, ui.text));
-        TextView meta = ui.text("  @example · 1h", 15, false, ui.secondary);
-        header.addView(meta);
-        body.addView(header);
-        body.addView(ui.text("This is how posts from countries you filter look in your timeline.", 15, false, ui.text));
-        post.addView(body, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        body.addView(header("Example", "@example · 1h"));
+        body.addView(ui.text("This post quotes an account from a country you filter.", 15, false, ui.text));
 
+        View quote;
+        if (hide) {
+            quote = new View(context);
+            quote.setBackground(new FilterViews.Placeholder(context, 0));
+        } else {
+            LinearLayout card = new LinearLayout(context);
+            card.setOrientation(LinearLayout.VERTICAL);
+            card.setPadding(ui.dp(12), ui.dp(10), ui.dp(12), ui.dp(12));
+            GradientDrawable border = new GradientDrawable();
+            border.setCornerRadius(ui.dp(12));
+            border.setStroke(Math.max(1, ui.dp(1)), ui.divider);
+            card.setBackground(border);
+            card.addView(header("Quoted", "@quoted · 2h"));
+            card.addView(ui.text("The quoted post.", 15, false, ui.text));
+            if (!wholePost) highlight(card);
+            quote = card;
+        }
+        LinearLayout.LayoutParams quoteLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                hide ? ui.dp(44) : ViewGroup.LayoutParams.WRAP_CONTENT);
+        quoteLp.topMargin = ui.dp(12);
+        body.addView(quote, quoteLp);
+        post.addView(body, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        if (!hide && wholePost) highlight(post);
+        filterPreview.addView(post);
+    }
+
+    private LinearLayout header(String name, String meta) {
+        LinearLayout header = new LinearLayout(context);
+        header.addView(ui.text(name, 15, true, ui.text));
+        header.addView(ui.text("  " + meta, 15, false, ui.secondary));
+        return header;
+    }
+
+    private void highlight(View view) {
         FilterViews.Highlight highlight = new FilterViews.Highlight(context);
-        post.getOverlay().add(highlight);
-        post.addOnLayoutChangeListener(highlight);
-        return post;
+        view.getOverlay().add(highlight);
+        view.addOnLayoutChangeListener(highlight);
     }
 
     private void showStats() {

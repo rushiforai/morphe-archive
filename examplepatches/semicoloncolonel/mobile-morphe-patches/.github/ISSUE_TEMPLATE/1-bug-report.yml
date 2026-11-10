@@ -1,22 +1,26 @@
 name: 🐞 Bug report
-description: A patch fails to apply, the patched app crashes or will not play, or a patch does not do what the README says.
+description: A patch fails to apply, the patched app crashes or will not play, or a patch does not do what its description says.
 title: "bug: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reporting a problem. Only the description is required, but every other field helps find the cause faster.
+        Thank you for reporting a problem. The required fields are the basics needed to find the cause, and every other field helps find it faster. A report without them cannot be looked into.
 
         Before you start, please check the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) for the same problem.
+
+        **Using a dev pre-release?** Please comment on the app's open issue labeled [testing on dev](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue+is%3Aopen+label%3A%22testing+on+dev%22) instead of opening a report here. Open a report only for a critical problem, such as a patched app that will not install or open. Report a security problem privately, as the [security policy](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/SECURITY.md) describes.
   - type: checkboxes
     id: before
     attributes:
       label: Before you submit
       options:
-        - label: "I read the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches#known-issues) in the README."
+        - label: "I read the [Known issues](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/known-issues.md)."
           required: true
         - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this problem."
+          required: true
+        - label: "I understand that the patches do not currently remove paywalls or unlock paid content."
           required: true
   - type: dropdown
     id: app
@@ -29,6 +33,7 @@ body:
         - "AMC+"
         - "AP News"
         - "Apple TV"
+        - "Apple TV (Android TV)"
         - "Best Buy"
         - "C-SPAN Now"
         - "CBS News"
@@ -82,6 +87,7 @@ body:
         - "The Wall Street Journal"
         - "The Washington Post"
         - "theScore"
+        - "Truth Social"
         - "Tubi"
         - "USA TODAY"
         - "Visible"
@@ -92,12 +98,16 @@ body:
         - "Xumo Play"
         - "YouTube TV"
         - "Other (name it in the description)"
+    validations:
+      required: true
   - type: input
     id: app-version
     attributes:
       label: App version
       description: The version you patched. In Morphe Manager it is shown when you select the APK.
       placeholder: "17.3.0"
+    validations:
+      required: true
   - type: input
     id: version-code
     attributes:
@@ -113,6 +123,8 @@ body:
         - Phone or tablet
         - Android TV or Google TV
         - Not sure
+    validations:
+      required: true
   - type: dropdown
     id: apk-source
     attributes:
@@ -123,12 +135,27 @@ body:
         - Installed copy from the Play Store
         - Morphe Manager's download link
         - Other (name it in the description)
+    validations:
+      required: true
   - type: input
     id: patches-version
     attributes:
       label: Patches version
       description: The version of these patches, shown under Sources in Morphe Manager.
-      placeholder: "1.0.13"
+      placeholder: "1.0.19"
+    validations:
+      required: true
+  - type: dropdown
+    id: patches-release
+    attributes:
+      label: Patches release
+      description: Dev pre-releases have "-dev" in the version, such as 1.0.20-dev.4.
+      options:
+        - Main release
+        - Dev pre-release
+        - Not sure
+    validations:
+      required: true
   - type: input
     id: manager-version
     attributes:
@@ -154,6 +181,8 @@ body:
       label: Device
       description: The phone, tablet, or TV device model.
       placeholder: "Galaxy S25 Ultra, NVIDIA Shield, Google TV Streamer"
+    validations:
+      required: true
   - type: dropdown
     id: android-version
     attributes:
@@ -169,6 +198,8 @@ body:
         - "Android 10"
         - "Android 9 or older"
         - "Not sure"
+    validations:
+      required: true
   - type: dropdown
     id: root
     attributes:

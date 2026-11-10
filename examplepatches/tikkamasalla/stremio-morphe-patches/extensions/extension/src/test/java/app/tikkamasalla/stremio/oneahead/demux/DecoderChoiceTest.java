@@ -95,6 +95,39 @@ public class DecoderChoiceTest {
         check("undecodable is skipped", TrackChooser.choose(Arrays.asList(dts), eng, noDts) == null);
     }
 
+    private static TrackInfo named(int number, String mime, String lang, int channels, boolean isDefault, String name) {
+        TrackInfo t = track(number, mime, lang, channels, isDefault);
+        t.name = name;
+        return t;
+    }
+
+    private static void reasons() {
+        // Our Great National Parks on the Streamer: main English E-AC3 5.1 plus a Czech AAC 5.1 dub.
+        // The viewer played English, so every file reads English: track #2 A_AAC cs 6ch was the bug.
+        TrackInfo eac3 = track(1, "audio/eac3", "en", 6, true);
+        TrackInfo aac = named(2, "audio/mp4a-latm", "cs", 6, false, "Czech");
+        TrackChooser.Request eng51 = new TrackChooser.Request("eng", 6);
+        check("viewer English 5.1 reads E-AC3, not the Czech dub",
+                TrackChooser.choose(Arrays.asList(eac3, aac), eng51, ALL) == eac3);
+        check("Czech-first order still reads E-AC3",
+                TrackChooser.choose(Arrays.asList(aac, eac3), eng51, ALL) == eac3);
+        check("logged reason names the language, channels and codec",
+                TrackChooser.reason(Arrays.asList(eac3, aac), eac3, eng51).contains("lang=eng")
+                        && TrackChooser.reason(Arrays.asList(eac3, aac), eac3, eng51).contains("6")
+                        && TrackChooser.reason(Arrays.asList(eac3, aac), eac3, eng51).contains("audio/eac3"));
+        // Unknown want (no player language): same-layout E-AC3 beats AAC by codec cost.
+        TrackInfo aac2 = track(2, "audio/mp4a-latm", "eng", 6, false);
+        check("no want reads E-AC3 over same-layout AAC",
+                TrackChooser.choose(Arrays.asList(aac2, eac3), new TrackChooser.Request(null, 0), ALL) == eac3);
+        // Name lists are the Streamer's own: "cs" is Czech, "uk" is Ukrainian, not English.
+        check("cs normalises to ces, not eng", "ces".equals(TrackChooser.normalize("cs")));
+        check("uk normalises to ukr, not eng", "ukr".equals(TrackChooser.normalize("uk")));
+        // Second cheapest E-AC3 5.1 wins over a stereo E-AC3 when the viewer plays 5.1.
+        TrackInfo stereo = track(3, "audio/eac3", "eng", 2, false);
+        check("same language keeps the 5.1 layout the viewer plays",
+                TrackChooser.choose(Arrays.asList(stereo, eac3), eng51, ALL) == eac3);
+    }
+
     private static void selection() throws DemuxException {
         Stub media = new Stub("audio/mp4a-latm"), ffmpeg = new Stub("audio/ac3");
         SoftwareDecoders d = new SoftwareDecoders(media, ffmpeg);
@@ -219,6 +252,7 @@ public class DecoderChoiceTest {
 
     public static void main(String[] a) throws Exception {
         chooser();
+        reasons();
         selection();
         layouts();
         dtsCore();

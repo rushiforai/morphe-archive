@@ -110,4 +110,34 @@ public class MediaPlaylistTest {
 
         assertTrue(playlist.segments.get(0).isAd());
     }
+
+    @Test
+    public void readsTwitchTimesLikeJavaTime() {
+        java.util.Random random = new java.util.Random(7);
+        String[] fractions = {"", ".4", ".43", ".434", ".4345", ".123456789"};
+        for (int i = 0; i < 20_000; i++) {
+            // 1900 to 2200, leap years and month ends included.
+            long seconds = -2_208_988_800L + (long) (random.nextDouble() * 9_467_280_000L);
+            String text = java.time.Instant.ofEpochSecond(seconds).toString().replace("Z", fractions[i % fractions.length] + "Z");
+            long expected = java.time.OffsetDateTime.parse(text).toInstant().toEpochMilli();
+            assertEquals(text, expected, MediaPlaylist.parseUtcTime(text));
+            assertEquals(text, expected, MediaPlaylist.parseTime(text));
+        }
+    }
+
+    @Test
+    public void otherTimeFormatsStillWork() {
+        // Not Twitch's own format: the general parser takes them.
+        assertEquals(MediaPlaylist.UNKNOWN_TIME, MediaPlaylist.parseUtcTime("2026-11-09T11:25:59.434+02:00"));
+        assertEquals(java.time.Instant.parse("2026-11-09T09:25:59.434Z").toEpochMilli(),
+                MediaPlaylist.parseTime("2026-11-09T11:25:59.434+02:00"));
+        // Impossible dates are refused, as by java.time.
+        assertEquals(MediaPlaylist.UNKNOWN_TIME, MediaPlaylist.parseTime("2026-02-30T09:25:59.434Z"));
+        assertEquals(MediaPlaylist.UNKNOWN_TIME, MediaPlaylist.parseTime("2026-11-09T24:00:00Z"));
+        // java.time takes a decimal point without digits; the fast path leaves that one to it.
+        assertEquals(MediaPlaylist.UNKNOWN_TIME, MediaPlaylist.parseUtcTime("2026-11-09T09:25:59.Z"));
+        assertEquals(java.time.OffsetDateTime.parse("2026-11-09T09:25:59.Z").toInstant().toEpochMilli(),
+                MediaPlaylist.parseTime("2026-11-09T09:25:59.Z"));
+        assertEquals(MediaPlaylist.UNKNOWN_TIME, MediaPlaylist.parseTime("not a time"));
+    }
 }

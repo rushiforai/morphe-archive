@@ -5,6 +5,7 @@
 package app.morphe.patches.tiktok.misc.navigation
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patches.tiktok.shared.dispatchesOnIndex
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -135,6 +136,19 @@ internal fun Method.isLiveBottomTabCheck(): Boolean =
         implementation?.instructions?.any {
             it.opcode == Opcode.SGET_OBJECT && it.getReference<FieldReference>()?.type == COPY_ON_WRITE
         } == true
+
+/**
+ * The lazy that reads which set of bottom tab icons to draw (#285). Everything else that names
+ * this experiment key only registers it and returns nothing. It has to be a lambda of its own:
+ * were R8 to fold the read into a merged group, the pick written at the top of the group's entry
+ * point would answer every lambda in it, so that entry point is no match and the icons are left out.
+ */
+internal object BottomTabIconVersionFingerprint : Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf(),
+    strings = listOf("new_bottom_tab_icon2"),
+    custom = { method, _ -> method.name == "invoke" && !method.dispatchesOnIndex() },
+)
 
 /** The corner button compares TikTok's LIVE placement with both top-tab modes here. */
 internal object LiveTopTabModeFingerprint : Fingerprint(
@@ -530,6 +544,50 @@ internal const val HOX = "Lcom/bytedance/hox/Hox;"
  * signed-in account outside teen mode that is the tab TikTok's home page service names, else
  * "For You", handed to Hox's tab switch by its tag. The start page answers there.
  */
+private const val FRIENDS_TOP_EXPERIMENT = "Lcom/ss/android/ugc/aweme/friendstab/experiment/FriendsTabTopExperiment;"
+
+/**
+ * TikTok's answer to whether Friends is in the top row (#98): the one no-argument boolean on the
+ * friends service that falls back on the experiment's index. The bottom Friends tab asks it too.
+ */
+internal object FriendsOnTopFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/friendstab/service/FriendsFeedServiceImpl;",
+    returnType = "Z",
+    parameters = listOf(),
+    custom = { method, _ ->
+        method.implementation?.instructions?.any { instruction ->
+            instruction.opcode == Opcode.INVOKE_STATIC && instruction.getReference<MethodReference>()?.let {
+                it.definingClass == FRIENDS_TOP_EXPERIMENT && it.returnType == "I"
+            } == true
+        } == true
+    },
+)
+
+/** The experiment's place for Friends in the top row, -1 when it isn't there. Its only `()I`. */
+internal object FriendsTopIndexFingerprint : Fingerprint(
+    definingClass = FRIENDS_TOP_EXPERIMENT,
+    returnType = "I",
+    parameters = listOf(),
+)
+
+/** Whether the Friends tab offers itself to the bottom bar. */
+internal object FriendsBottomTabEnableFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/tab/FriendsTabProtocol;",
+    name = "enable",
+    returnType = "Z",
+    parameters = listOf(),
+)
+
+/**
+ * TikTok's fast-start flag (`tab_fcp_backup_config`): while it's on, both tab rows come from the list
+ * saved on the last run and no tab's own check is asked (#98). The flag's one `()Z` reader.
+ */
+internal object SavedTabsFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf(),
+    strings = listOf("tab_fcp_backup_config"),
+)
+
 internal object FirstTopTabFingerprint : Fingerprint(
     definingClass = HOME_VIEW_PAGER_ASSEM,
     name = "onViewCreated",

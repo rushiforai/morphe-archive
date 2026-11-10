@@ -291,7 +291,7 @@ val networkOptimizationsPatch = rawResourcePatch(
     name = "Network Optimizations",
     description = "Keeps streaming smooth after packet loss. " +
         buildLabel(NETWORK_COMPATIBILITIES),
-    default = true,
+    default = false,
 ) {
     category(PatchCategories.STREAMING_AND_NETWORK)
     compatibleWith(*NETWORK_COMPATIBILITIES.toTypedArray())

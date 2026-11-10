@@ -1,0 +1,31 @@
+# Opens monthly pull requests against dev for new versions of the GitHub
+# Actions, npm packages, and Gradle dependencies the build uses. Each kind is
+# grouped into one pull request, so a month brings at most three.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        patterns: ["*"]
+
+  - package-ecosystem: gradle
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
+    groups:
+      gradle:
+        patterns: ["*"]

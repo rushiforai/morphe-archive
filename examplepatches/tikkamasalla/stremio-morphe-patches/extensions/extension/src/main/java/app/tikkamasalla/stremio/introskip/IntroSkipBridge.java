@@ -1057,7 +1057,7 @@ public final class IntroSkipBridge {
                             + " currentByJump=" + currentByJump
                             + " jumpCount=" + (jumpCount == null ? 0 : jumpCount)
                             + " flowReady=" + flowReady
-                            + " buttonOnly=" + (segment.inferred() || segment.buttonOnly));
+                            + " buttonOnly=" + segment.buttonOnly);
                     showButton(segment);
                 }
                 refreshArmed(now);
@@ -1187,6 +1187,8 @@ public final class IntroSkipBridge {
         }
 
         /** Stremio video id of this session's media ("tt0944947:1:2"), "" when unknown. */
+        String curVideoId() { return prepVideoId(); }
+
         private String prepVideoId() {
             if (player instanceof PortSkipPlayer) return PortHooks.streamId();
             if (cachedVideoId == null && kindResolved && !movie) cachedVideoId = stremioVideoId(anchor);
@@ -1564,7 +1566,9 @@ public final class IntroSkipBridge {
         }
 
         private boolean wantsAuto(Segment segment) {
-            if (segment.inferred() || segment.buttonOnly) return false;
+            if (segment.buttonOnly) return false;
+            if (segment.isPreview())
+                return IntroSkipPrefs.isPreviewsEnabled(activity) && !IntroSkipPrefs.isManualMode(activity);
             if (segment.isCredits()) return IntroSkipPrefs.isCreditsAuto(activity);
             return !IntroSkipPrefs.isManualMode(activity);
         }
@@ -4306,7 +4310,8 @@ public final class IntroSkipBridge {
 
         /**
          * A preview only guessed (tail after the credits with or without a generic last chapter, subtitle or
-         * live cue): no chapter name and no online source says so. Button only, never an automatic skip.
+         * live cue): no chapter name and no online source says so. Follows the preview setting:
+         * auto-skips in Auto when previews are on, shows a button in Manual.
          * Sources may carry a suffix (" clipped at post-credit chapter").
          */
         boolean inferred() {
@@ -5011,11 +5016,172 @@ public final class IntroSkipBridge {
                     else if (!s.isRecap() && !s.isPreview() && !s.isPostCredits()) hasIntro = true;
                 }
             }
+            String[] audio = selectedAudio(sessionForCur(curId, curUrl));
+            String source = app.tikkamasalla.stremio.oneahead.demux.TrackChooser.SELECTED;
+            if (audio[0].length() > 0) {
+                lastAudio = audio;
+            } else if (lastAudio != null) {
+                // Not readable now: the language the previous episode played (the chooser tries the default flag first).
+                audio = lastAudio;
+                source = app.tikkamasalla.stremio.oneahead.demux.TrackChooser.PREVIOUS;
+            } else {
+                source = app.tikkamasalla.stremio.oneahead.demux.TrackChooser.UNKNOWN;
+            }
+            Log.i("OneAhead", "playing audio " + (audio[0].length() > 0 ? audio[0] + "/" + audio[1] + "ch" : "-")
+                    + " src=" + source + " vid=" + (curId == null ? "" : curId));
             app.tikkamasalla.stremio.oneahead.OneAheadTrigger.onLookupDone(
-                    ctx, nextVideoId, hasIntro, hasCredits, curId, curUrl, curLengthSec);
+                    ctx, nextVideoId, hasIntro, hasCredits, curId, curUrl, curLengthSec,
+                    audio[0], audio.length > 1 ? Integer.parseInt("0" + audio[1]) : 0, source);
         } catch (Throwable ignored) {
             // One-ahead is optional.
         }
+    }
+
+    /** The session whose player holds curUrl (the file playing now); null when none matches. */
+    static Session sessionForCur(String curId, String curUrl) {
+        try {
+            String want = curUrl == null ? "" : curUrl.trim();
+            synchronized (SESSIONS) {
+                for (Session s : SESSIONS.values()) {
+                    if (s == null || s.player == null) continue;
+                    try {
+                        android.net.Uri u = s.player.mediaUri();
+                        String have = u == null ? "" : String.valueOf(u).trim();
+                        if (!want.isEmpty() ? want.equals(have) : curId != null && curId.equals(s.curVideoId())) return s;
+                    } catch (Throwable next) { /* another session */ }
+                }
+            }
+        } catch (Throwable ignored) {
+            // No session scan: the job reads the cheapest track, as before.
+        }
+        return null;
+    }
+
+    /** Last audio (language, channels) read off a player: what the previous episode played. */
+    private static volatile String[] lastAudio;
+
+    /** Language (ISO 639-2) and channels of the player's selected audio track; "" when unreadable. No hearing. */
+    static String[] selectedAudio(Session s) {
+        String[] none = new String[]{"", "0"};
+        try {
+            if (s == null || s.player == null) return none;
+            SkipPlayer.MediaHint hint = s.player.mediaHint();
+            Object[] roots = hint == null ? null : hint.reflectionRoots;
+            // Compose builds: the engine is the app's ExoPlayer wrapper, itself a Media3 Player.
+            if (roots == null && s.player instanceof PortSkipPlayer) roots = new Object[]{((PortSkipPlayer) s.player).engine()};
+            if (roots == null) return none;
+            return onPlayerThread(roots);
+        } catch (Throwable ignored) {
+            return none;
+        }
+    }
+
+    /** Media3 answers getCurrentTracks only on its application thread; the lookup runs on a pool thread. */
+    private static String[] onPlayerThread(final Object[] roots) throws InterruptedException {
+        android.os.Looper looper = null;
+        for (Object root : roots) {
+            try {
+                if (root != null) looper = (android.os.Looper) root.getClass().getMethod("getApplicationLooper").invoke(root);
+                if (looper != null) break;
+            } catch (Throwable next) { /* another root */ }
+        }
+        if (looper == null) looper = Looper.getMainLooper();
+        if (Looper.myLooper() == looper) return readAudio(roots);
+        final String[][] out = new String[1][];
+        final java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        new Handler(looper).post(new Runnable() {
+            @Override
+            public void run() {
+                try { out[0] = readAudio(roots); } finally { done.countDown(); }
+            }
+        });
+        done.await(2, java.util.concurrent.TimeUnit.SECONDS);
+        return out[0] == null ? new String[]{"", "0"} : out[0];
+    }
+
+    /** The selected audio of the first root that answers; reflection only, no Android. */
+    static String[] readAudio(Object[] roots) {
+        String[] none = new String[]{"", "0"};
+        try {
+            for (Object root : roots) {
+                if (root == null) continue;
+                try {
+                    Object tracks = callPublic(root, "getCurrentTracks");
+                    if (tracks == null) continue;
+                    // The groups come back as a Guava ImmutableList whose concrete class is package-private: go through java.util.List.
+                    java.util.List<?> gs = (java.util.List<?>) callPublic(tracks, "getGroups");
+                    int n = gs.size();
+                    for (int i = 0; i < n; i++) {
+                        Object g = gs.get(i);
+                        int type;
+                        try { type = (Integer) callPublic(g, "getType"); }
+                        catch (Throwable noType) { continue; }
+                        if (type != 1 /* C.TRACK_TYPE_AUDIO (2 is video) */) continue;
+                        int len = (Integer) g.getClass().getField("length").get(g);
+                        java.lang.reflect.Method fmt = publicMethod(g.getClass(), "getTrackFormat", int.class);
+                        java.lang.reflect.Method sel = publicMethod(g.getClass(), "isTrackSelected", int.class);
+                        for (int j = 0; j < len; j++) {
+                            if (!Boolean.TRUE.equals(sel.invoke(g, j))) continue;
+                            Object f = fmt.invoke(g, j);
+                            if (f == null) return none;
+                            Object langObj = f.getClass().getField("language").get(f);
+                            String lang = langObj == null ? "" : langObj.toString();
+                            int ch = 0;
+                            try { ch = (Integer) f.getClass().getField("channelCount").get(f); }
+                            catch (Throwable noChannels) { /* left 0 */ }
+                            if (lang == null || lang.length() == 0 || "und".equals(lang)) return none;
+                            return new String[]{TrackMemory.lang3(lang), String.valueOf(ch)};
+                        }
+                    }
+                } catch (Throwable next) {
+                    logAudioReadOnce(root, next);
+                }
+            }
+        } catch (Throwable ignored) {
+            // Unknown player: the job reads the cheapest track, as before.
+        }
+        return none;
+    }
+
+    private static volatile boolean audioReadLogged;
+
+    /** Says once why the player's audio could not be read (the lookup carries on with the fallback order). */
+    private static void logAudioReadOnce(Object root, Throwable t) {
+        if (audioReadLogged) return;
+        audioReadLogged = true;
+        try {
+            Throwable c = t instanceof java.lang.reflect.InvocationTargetException && t.getCause() != null ? t.getCause() : t;
+            Log.i("OneAhead", "audio read failed root=" + root.getClass().getName() + " " + c.getClass().getName() + ": " + c.getMessage());
+        } catch (Throwable ignored) {
+            // Logging only.
+        }
+    }
+
+    /** A no-argument method of o, resolved on a public class or interface (not the possibly hidden runtime class). */
+    private static Object callPublic(Object o, String name) throws Exception {
+        return publicMethod(o.getClass(), name).invoke(o);
+    }
+
+    /** The method as declared by a public class or interface of c (itself, its superclasses, its interfaces); else c's own. */
+    static java.lang.reflect.Method publicMethod(Class<?> c, String name, Class<?>... params) throws NoSuchMethodException {
+        java.util.ArrayDeque<Class<?>> todo = new java.util.ArrayDeque<>();
+        java.util.HashSet<Class<?>> seen = new java.util.HashSet<>();
+        todo.add(c);
+        while (!todo.isEmpty()) {
+            Class<?> k = todo.poll();
+            if (k == null || !seen.add(k)) continue;
+            if (java.lang.reflect.Modifier.isPublic(k.getModifiers())) {
+                try {
+                    java.lang.reflect.Method m = k.getMethod(name, params);
+                    if (java.lang.reflect.Modifier.isPublic(m.getDeclaringClass().getModifiers())) return m;
+                } catch (NoSuchMethodException next) { /* try the parents */ }
+            }
+            todo.add(k.getSuperclass());
+            for (Class<?> i : k.getInterfaces()) todo.add(i);
+        }
+        java.lang.reflect.Method m = c.getMethod(name, params);
+        try { m.setAccessible(true); } catch (Throwable ignored) { /* invoke may still work */ }
+        return m;
     }
 
     /** True when the file's own named chapters give both an intro and credits (small reads only). */
@@ -6338,6 +6504,13 @@ public final class IntroSkipBridge {
             if (hasSegmentType(out, label)) return;
             JSONObject item = segments.optJSONObject(key);
             if (item == null) return;
+            // SkipDB marks stale-release windows itself: adjusted=true with match "shifted".
+            // All 12 such intros in the frame-exact audit cut story, so never use them.
+            if (item.optBoolean("adjusted", false)
+                    && "shifted".equals(item.optString("match", ""))) {
+                logger.log("SkipDB: skipped " + key + " (shifted match, stale release)");
+                return;
+            }
             if ("out-of-range".equals(item.optString("match", ""))) {
                 logger.log("SkipDB: skipped " + key + " (out-of-range match)");
                 return;

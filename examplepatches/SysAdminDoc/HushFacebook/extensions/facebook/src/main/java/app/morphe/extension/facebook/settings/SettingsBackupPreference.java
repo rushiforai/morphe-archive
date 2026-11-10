@@ -47,8 +47,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.comments.CommentsHeight;
 import app.morphe.extension.facebook.reels.BurnInMode;
 import app.morphe.extension.facebook.reels.BurnInWait;
+import app.morphe.extension.facebook.reels.GrayOver;
 import app.morphe.extension.facebook.reels.ReelDateStyle;
 import app.morphe.extension.facebook.reels.ReelsOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
@@ -415,7 +417,10 @@ public class SettingsBackupPreference extends Preference {
             if (snapshot.reelsOrderChange() != null) parts.add(reelsOrderSentence(snapshot.reelsOrderChange()));
             if (snapshot.burnInChange() != null) parts.add(burnInSentence(snapshot.burnInChange()));
             if (snapshot.burnInWaitChange() != null) parts.add(burnInWaitSentence(snapshot.burnInWaitChange()));
+            if (snapshot.grayOverChange() != null) parts.add(grayOverSentence(snapshot.grayOverChange()));
+            if (snapshot.newRowMarkChange() != null) parts.add(newRowMarkSentence(snapshot.newRowMarkChange()));
             if (snapshot.dateStyleChange() != null) parts.add(dateStyleSentence(snapshot.dateStyleChange()));
+            if (snapshot.commentsHeightChange() != null) parts.add(commentsHeightSentence(snapshot.commentsHeightChange()));
             if (snapshot.backgroundChange() != null) parts.add(backgroundSentence(snapshot.backgroundChange()));
             if (snapshot.lightBackgroundChange() != null) parts.add(lightBackgroundSentence(snapshot.lightBackgroundChange()));
             if (snapshot.badgeChange() != null) parts.add(markColorSentence(Mark.BADGE, snapshot.badgeChange()));
@@ -605,16 +610,38 @@ public class SettingsBackupPreference extends Preference {
         return L10n.f("Burn-in guard will be set to %1$s.", HushfacebookPreferenceFragment.burnInLabel(mode));
     }
 
+    /** The sentence that says how new settings are marked after an import (#16). */
+    static String newRowMarkSentence(NewRowMark mark) {
+        if (mark == NewRowMark.OFF) return L10n.t("Settings an update adds won't get a dot.");
+        if (mark == NewRowMark.ONE_VISIT) return L10n.t("Settings an update adds will get a dot until you leave their page.");
+        return L10n.f("Settings an update adds will get a dot for %1$s from the first time you open their page.",
+                HushfacebookPreferenceFragment.newRowMarkLabel(mark));
+    }
+
     /** The sentence that says how long Burn-in guard waits after an import (#288). */
     static String burnInWaitSentence(BurnInWait wait) {
         if (wait == BurnInWait.AT_ONCE) return L10n.t("Burn-in guard will dim the Reels screen as soon as you stop touching it.");
         return L10n.f("Burn-in guard will dim the Reels screen after %1$d seconds without a touch.", (int) (wait.millis / 1000));
     }
 
+    /** The sentence that says how Show Reels in gray takes the color out after an import. */
+    static String grayOverSentence(GrayOver over) {
+        if (over == GrayOver.AT_ONCE) return L10n.t("Show Reels in gray will make reels gray from the start.");
+        return L10n.f("Show Reels in gray will take reels from color to gray over %1$s.",
+                HushfacebookPreferenceFragment.grayOverLabel(over));
+    }
+
     /** The sentence that says how a reel's post date reads after an import (#357). */
     static String dateStyleSentence(ReelDateStyle style) {
         if (style == ReelDateStyle.DATE) return L10n.t("Reel post dates will show the day they were posted.");
         return L10n.t("Reel post dates will show how long ago they were posted.");
+    }
+
+    /** The sentence that says how high comments open after an import (#179). */
+    static String commentsHeightSentence(CommentsHeight height) {
+        if (height == CommentsHeight.FULL) return L10n.t("Comments will open at full height.");
+        if (height == CommentsHeight.HALF) return L10n.t("Comments will open at half height.");
+        return L10n.t("Comments will open where Facebook stops them.");
     }
 
     /** The sentence that says in what order comments open after an import. */
@@ -1068,7 +1095,10 @@ public class SettingsBackupPreference extends Preference {
                     + (snapshot.reelsOrderChange() == null ? "" : " " + reelsOrderSentence(snapshot.reelsOrderChange()))
                     + (snapshot.burnInChange() == null ? "" : " " + burnInSentence(snapshot.burnInChange()))
                     + (snapshot.burnInWaitChange() == null ? "" : " " + burnInWaitSentence(snapshot.burnInWaitChange()))
+                    + (snapshot.grayOverChange() == null ? "" : " " + grayOverSentence(snapshot.grayOverChange()))
+                    + (snapshot.newRowMarkChange() == null ? "" : " " + newRowMarkSentence(snapshot.newRowMarkChange()))
                     + (snapshot.dateStyleChange() == null ? "" : " " + dateStyleSentence(snapshot.dateStyleChange()))
+                    + (snapshot.commentsHeightChange() == null ? "" : " " + commentsHeightSentence(snapshot.commentsHeightChange()))
                     + (snapshot.backgroundChange() == null ? "" : " " + backgroundSentence(snapshot.backgroundChange()))
                     + (snapshot.lightBackgroundChange() == null ? "" : " " + lightBackgroundSentence(snapshot.lightBackgroundChange()))
                     + (snapshot.badgeChange() == null ? "" : " " + markColorSentence(Mark.BADGE, snapshot.badgeChange()))

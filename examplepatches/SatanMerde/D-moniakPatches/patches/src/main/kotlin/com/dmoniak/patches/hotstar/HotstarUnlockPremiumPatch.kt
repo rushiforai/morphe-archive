@@ -10,13 +10,12 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.dmoniak.patches.shared.BillingHookHelper.executeGooglePlayBillingBypass
 import com.dmoniak.patches.shared.Constants.COMPATIBILITY_HOTSTAR
 import com.dmoniak.patches.shared.cloneMethodWithAdditionalRegisters
-import com.dmoniak.patches.shared.replaceMethod
 import java.util.logging.Logger
 
 @Suppress("unused")
 val hotstarUnlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium, Screenshots & Enhanced Playback - JioHotstar",
-    description = "Unlocks premium UI features, downloads, 4K/HDR10 codecs, removes screenshot & screen recording blocks, and allows HDMI/screen mirroring in JioHotstar.",
+    description = "Unlocks premium UI features, downloads, AV1/HEVC/VP9 codecs, 4K/HDR10/Dolby Vision, removes screenshot & screen recording blocks, and allows HDMI/screen mirroring in JioHotstar.",
 ) {
     compatibleWith(COMPATIBILITY_HOTSTAR)
 
@@ -59,7 +58,7 @@ fun BytecodePatchContext.executeHotstarUnlockPremiumLogic(logger: Logger) {
         logger.fine("[Hotstar Screenshots] UseSecureViewFingerprint not matched: ${e.message}")
     }
 
-    // 4. Multiple display check (HDMI & screen mirroring) neutralization
+    // 4. Multiple display check & HDMI broadcast listener neutralization
     try {
         MultipleDisplayCheckFingerprint.method.addInstructions(
             0,
@@ -70,6 +69,19 @@ fun BytecodePatchContext.executeHotstarUnlockPremiumLogic(logger: Logger) {
         logger.info("[Hotstar ScreenMirroring] Neutered MultipleDisplayCheck")
     } catch (e: Exception) {
         logger.warning("[Hotstar ScreenMirroring] MultipleDisplayCheckFingerprint failed: ${e.message}")
+    }
+
+    try {
+        PlayerConfigHdmiBroadcastFingerprint.method.addInstructions(
+            0,
+            """
+            const/4 v0, 0x0
+            return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar ScreenMirroring] PlayerConfig.getEnableHdmiBroadcastListener() forced to false")
+    } catch (e: Exception) {
+        logger.fine("[Hotstar ScreenMirroring] PlayerConfigHdmiBroadcastFingerprint: ${e.message}")
     }
 
     // 5. Protobuf subscribed state (MyPageData.getIsSubscribed() -> true)
@@ -113,49 +125,7 @@ fun BytecodePatchContext.executeHotstarUnlockPremiumLogic(logger: Logger) {
         logger.fine("[Hotstar Premium] SubscriptionNudgeFingerprint failed: ${e.message}")
     }
 
-    // 8. 4K resolution unlock
-    try {
-        Is4kSupportedFingerprint.method.addInstructions(
-            0,
-            """
-            const/4 v0, 0x1
-            return v0
-            """.trimIndent()
-        )
-        logger.info("[Hotstar Playback] Is4kSupported forced to true")
-    } catch (e: Exception) {
-        logger.fine("[Hotstar Playback] Is4kSupportedFingerprint failed: ${e.message}")
-    }
-
-    // 9. All video codecs unlock (H265, VP9, AV1)
-    try {
-        IsCodecSupportedFingerprint.method.addInstructions(
-            0,
-            """
-            const/4 v0, 0x1
-            return v0
-            """.trimIndent()
-        )
-        logger.info("[Hotstar Playback] IsCodecSupported forced to true")
-    } catch (e: Exception) {
-        logger.fine("[Hotstar Playback] IsCodecSupportedFingerprint failed: ${e.message}")
-    }
-
-    // 10. Dolby Vision & HDR10/HDR10+ unlock
-    try {
-        IsDolbyVisionSupportedFingerprint.method.addInstructions(
-            0,
-            """
-            const/4 v0, 0x1
-            return v0
-            """.trimIndent()
-        )
-        logger.info("[Hotstar Playback] IsDolbyVisionSupported forced to true")
-    } catch (e: Exception) {
-        logger.fine("[Hotstar Playback] IsDolbyVisionSupportedFingerprint failed: ${e.message}")
-    }
-
-    // 11. Activity window lifecycle injection & SurfaceView.setSecure interception
+    // 8. Activity window lifecycle injection & SurfaceView.setSecure interception
     var hookedActivities = 0
     var hookedSurfaceCalls = 0
 

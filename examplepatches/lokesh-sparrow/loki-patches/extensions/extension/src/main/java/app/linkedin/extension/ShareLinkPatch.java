@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import android.content.ClipData;
@@ -5,42 +10,52 @@ import android.content.ClipboardManager;
 import android.content.Intent;
 
 /**
- * Every ClipboardManager.setPrimaryClip and Intent.putExtra(String, String) call in LinkedIn's
- * code is redirected here at patch time, so links are cleaned wherever they are copied or shared.
+ * Replacement bodies for LinkedIn's clipboard write and share-intent putExtra. Every copy and every
+ * share therefore passes through {@link LinkCleaner} before the user sees it.
  */
 @SuppressWarnings("unused")
 public final class ShareLinkPatch {
 
+    /** Replaces ClipboardManager.setPrimaryClip(ClipData). */
     public static void setPrimaryClip(ClipboardManager clipboard, ClipData clip) {
-        clipboard.setPrimaryClip(cleanClip(clip));
+        ClipData cleaned = sanitized(clip);
+        clipboard.setPrimaryClip(cleaned);
     }
 
+    /** Replaces Intent.putExtra(String, String) for share text. */
     public static Intent putExtra(Intent intent, String name, String value) {
-        String cleaned = value;
-        if (Intent.EXTRA_TEXT.equals(name) && Settings.sanitizeShareLinks()) {
-            cleaned = cleanLogged(value);
-        }
-        return intent.putExtra(name, cleaned);
+        if (!Intent.EXTRA_TEXT.equals(name)) return intent.putExtra(name, value);
+        if (!Settings.sanitizeShareLinks()) return intent.putExtra(name, value);
+        return intent.putExtra(name, cleanAndLog(value));
     }
 
-    private static ClipData cleanClip(ClipData clip) {
+    /**
+     * The clip with its single text item cleaned. Anything else is returned as it is: cleaning off,
+     * more than one item, no text, no change, or any failure along the way.
+     */
+    private static ClipData sanitized(ClipData clip) {
         try {
-            if (clip == null || !Settings.sanitizeShareLinks() || clip.getItemCount() != 1) return clip;
-            CharSequence text = clip.getItemAt(0).getText();
-            if (text == null) return clip;
-            String cleaned = cleanLogged(text.toString());
-            if (cleaned.equals(text.toString())) return clip;
-            CharSequence label = clip.getDescription() == null ? null : clip.getDescription().getLabel();
+            if (clip == null) return clip;
+            if (!Settings.sanitizeShareLinks()) return clip;
+            if (clip.getItemCount() != 1) return clip;
+            CharSequence original = clip.getItemAt(0).getText();
+            if (original == null) return clip;
+            String cleaned = cleanAndLog(original.toString());
+            if (cleaned.equals(original.toString())) return clip;
+            android.content.ClipDescription description = clip.getDescription();
+            CharSequence label = description == null ? null : description.getLabel();
             return ClipData.newPlainText(label, cleaned);
-        } catch (Throwable t) {
-            Diagnostics.error("cleanClip failed", t);
+        } catch (Throwable failure) {
+            Diagnostics.error("cleanClip failed", failure);
             return clip;
         }
     }
 
-    private static String cleanLogged(String text) {
-        String cleaned = LinkCleaner.clean(text);
-        if (cleaned != null && !cleaned.equals(text)) Settings.debugLog("share link cleaned");
-        return cleaned;
+    /** Cleans one piece of text, and notes in the log when that changed anything. */
+    private static String cleanAndLog(String text) {
+        String sanitizedText = LinkCleaner.clean(text);
+        if (sanitizedText == null || sanitizedText.equals(text)) return sanitizedText;
+        Settings.debugLog("share link cleaned");
+        return sanitizedText;
     }
 }

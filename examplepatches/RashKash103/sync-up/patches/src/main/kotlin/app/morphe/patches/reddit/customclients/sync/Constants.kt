@@ -16,17 +16,16 @@ internal val SyncForRedditFreeCompatible = Compatibility(
     targets = listOf(AppTarget(version = "v23.06.30-13:39"))
 )
 
-internal val SyncForRedditCompatible = arrayOf(
-    SyncForRedditFreeCompatible,
-    Compatibility(
-        name = "Sync for Reddit Pro",
-        packageName = "com.laurencedawson.reddit_sync.pro",
-        targets = listOf(AppTarget(version = null))
-    ),
-    Compatibility(
-        name = "Sync for Reddit Dev",
-        packageName = "com.laurencedawson.reddit_sync.dev",
-        targets = listOf(AppTarget(version = null))
-    )
-)
+/**
+ * The one package these patches are written for.
+ *
+ * <p>`com.laurencedawson.reddit_sync.pro` and `.dev` were declared here as well, at any version
+ * at all, and neither has ever been patched or run: every fingerprint is written against the
+ * free build's bytecode, and the paid builds are obfuscated separately, so a name like `Lpa/d;`
+ * means something else in them. Declaring a target nobody can verify is worse than refusing it
+ * — what a reader gets is an app that patches and then misbehaves, which neither they nor
+ * anyone here can diagnose. Adding one back is a line, and should wait for somebody who has the
+ * APK to test it against.
+ */
+internal val SyncForRedditCompatible = arrayOf(SyncForRedditFreeCompatible)
 

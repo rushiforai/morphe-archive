@@ -621,7 +621,7 @@ public final class IntroSkip implements Runnable {
             return "Preview".equals(name);
         }
 
-        /** A Preview guessed from the tail after the credits or from subtitle cues (no chapter name, no online segment says so). */
+        /** A Preview guessed from the tail after the credits or from subtitle cues. Follows the preview setting. */
         boolean inferred() {
             return preview() && ("post-ed-tail".equals(rule) || "subtitle-cue".equals(rule));
         }
@@ -1353,13 +1353,11 @@ public final class IntroSkip implements Runnable {
         boolean isPreview = seg != null && seg.preview();
         boolean creditsOff = isCredits && VimuIntroSkipPrefs.CREDITS_OFF.equals(creditsMode);
         boolean previewsOff = isPreview && !previewsOn;
-        // An inferred preview is a button, never an automatic skip: a post-credit scene and a short preview tail look the same.
-        boolean inferredPreview = isPreview && seg.inferred();
         boolean buttonOnly = (isCredits && VimuIntroSkipPrefs.CREDITS_BUTTON.equals(creditsMode))
-                || previewsOff || inferredPreview;
+                || previewsOff;
         boolean autoModeForSeg = isCredits
                 ? VimuIntroSkipPrefs.CREDITS_AUTO.equals(creditsMode)
-                : !manualMode && !previewsOff && !inferredPreview;
+                : !manualMode && !previewsOff;
         boolean autoPending = seg != null && !creditsOff && !previewsOff && autoModeForSeg
                 && !seg.buttonOnly
                 && !currentBySeek && !skipped.contains(seg.key());

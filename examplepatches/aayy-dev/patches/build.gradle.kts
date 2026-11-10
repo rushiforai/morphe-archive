@@ -1,1 +1,1 @@
-// Root build configuration for Aayy Patches
+// Root build configuration for aayy-dev patches

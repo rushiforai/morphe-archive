@@ -33,6 +33,8 @@ import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +44,11 @@ import java.util.Objects;
 import java.util.WeakHashMap;
 import java.util.function.BooleanSupplier;
 
+import app.hushgram.extension.instagram.feed.OverlayLook;
+import app.hushgram.extension.instagram.feed.SeekPreview;
+import app.hushgram.extension.instagram.feed.SeekShape;
+import app.hushgram.extension.instagram.feed.SeekShapes;
+import app.hushgram.extension.instagram.feed.SeekSheet;
 import app.hushgram.extension.instagram.settings.FamilyNames;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
@@ -134,6 +141,13 @@ final class ReelTimeLabel {
 
     /** Each seek bar container Instagram bound to a reel: true for an ordinary reel, false for an ad. */
     private static final Map<View, Boolean> REELS = new WeakHashMap<>();
+
+    /**
+     * Each seek bar container's reel, as clips_scrubber_ and its id, from the binder itself. Instagram
+     * 454 tags the container that way only on some screens, so the tag alone can't name every reel.
+     * Guarded by REELS.
+     */
+    private static final Map<View, String> BOUND = new WeakHashMap<>();
 
     /** The label each view holds, as a child or on its overlay. At most one per view. */
     private static final Map<ViewGroup, WeakReference<TextView>> HELD = new WeakHashMap<>();
@@ -345,6 +359,18 @@ final class ReelTimeLabel {
     }
 
     /**
+     * Notes the reel [id] Instagram is binding [container], a seek bar container, to, just before
+     * {@link #bind} hears whether it's an ad. A null id forgets the one before. Never throws.
+     */
+    static void bindReel(Object container, @Nullable String id) {
+        if (!(container instanceof View)) return;
+        synchronized (REELS) {
+            if (id == null || id.isEmpty()) BOUND.remove(container);
+            else BOUND.put((View) container, REEL_TAG_PREFIX + id);
+        }
+    }
+
+    /**
      * A bar Instagram moves on to another reel keeps the last reel's position until the new reel's
      * player first moves it, so its thumb and played part showed a few percent in and then jumped back
      * to the start (#10). Bound to a reel tag other than the one before, the bar starts at 0, as
@@ -381,9 +407,13 @@ final class ReelTimeLabel {
                 // An ad's bar, a bar on another screen, or one taken out of its container.
                 if (label != null) remove(bar, label);
                 ease(bar, false);
+                SeekShapes.restore(bar);
                 return;
             }
             int max = bar.getMax();
+            // In this order round the handle: each gets Instagram's drawables back from the other before it keeps them.
+            SeekShape shape = ReelSeekBar.shaped() ? SeekShapes.wanted() : SeekShape.STANDARD;
+            if (shape == SeekShape.STANDARD) SeekShapes.restore(bar);
             boolean labelOn = on.getAsBoolean() || ReelSeekBar.photoShown(reelOf(bar));
             boolean thumbOn = ReelSeekBar.thumbOn() && max > 0 && bar.isAttachedToWindow();
             if (tracker == null && thumbOn) tracker = track(bar, on);
@@ -393,6 +423,10 @@ final class ReelTimeLabel {
                 // A bar first seen playing learns its reel here, so binding that reel again doesn't start it over.
                 if (state.bound == null) state.bound = reelOf(bar);
                 updateThumb(bar, state, thumbOn);
+            }
+            if (shape != SeekShape.STANDARD) SeekShapes.apply(bar, shape, OverlayLook.SOLID, true);
+            if (bar.isPressed() && SeekPreview.on()) {
+                SeekPreview.dragged(bar, progress, SeekSheet.ofMedia(ReelSeekBar.mediaOf(reelOf(bar))), ReelSpeed.playing(), FamilyNames.REEL_SEEK_BAR);
             }
             ease(bar, (labelOn || ReelSeekBar.thumbOn()) && max > 0);
             if (!labelOn || max <= 0) {
@@ -426,7 +460,7 @@ final class ReelTimeLabel {
         List<View> containers = new ArrayList<>(1);
         synchronized (REELS) {
             for (Map.Entry<View, Boolean> reel : REELS.entrySet()) {
-                if (Boolean.TRUE.equals(reel.getValue()) && tag.equals(reel.getKey().getTag())) containers.add(reel.getKey());
+                if (Boolean.TRUE.equals(reel.getValue()) && tag.equals(reelOfContainer(reel.getKey()))) containers.add(reel.getKey());
             }
         }
         for (View container : containers) {
@@ -1269,12 +1303,22 @@ final class ReelTimeLabel {
     }
 
     /**
-     * The tag Instagram 449 gives the bar's reel container when it binds it, "clips_scrubber_" and
-     * the reel's id, or null.
+     * The bar's reel, "clips_scrubber_" and the reel's id, or null: the id the binder handed over, or
+     * else the tag Instagram 449 gives the reel container when it binds it.
      */
     static String reelOf(View bar) {
-        View container = containerOf(bar);
-        Object tag = container == null ? null : container.getTag();
+        return reelOfContainer(containerOf(bar));
+    }
+
+    /** The reel of [container], a seek bar container, as {@link #reelOf} names it. */
+    @Nullable
+    static String reelOfContainer(@Nullable View container) {
+        if (container == null) return null;
+        synchronized (REELS) {
+            String bound = BOUND.get(container);
+            if (bound != null) return bound;
+        }
+        Object tag = container.getTag();
         return tag instanceof String && ((String) tag).startsWith(REEL_TAG_PREFIX) ? (String) tag : null;
     }
 

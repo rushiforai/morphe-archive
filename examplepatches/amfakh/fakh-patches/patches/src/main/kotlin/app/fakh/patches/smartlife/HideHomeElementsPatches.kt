@@ -290,7 +290,7 @@ val hideRecommendedForYouPatch = bytecodePatch(
 @Suppress("unused")
 val hideAiAskBarPatch = bytecodePatch(
     name = "Hide AI ask bar",
-    description = "Removes the \"How can I help?\" Tuya AI bar above the bottom navigation and at the bottom of device panels.",
+    description = "Removes the \"How can I help?\" Tuya AI bar above the navigation bar and at the bottom of device panels.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)
@@ -315,7 +315,7 @@ private const val EXPLORE_TAB =
 @Suppress("unused")
 val hideExploreTabPatch = rawResourcePatch(
     name = "Hide Explore tab",
-    description = "Removes the Explore tab from the bottom navigation.",
+    description = "Removes the Explore tab from the navigation bar.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SMARTLIFE, COMPATIBILITY_TUYA_SMART)

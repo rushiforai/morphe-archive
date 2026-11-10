@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.68.2",
+  "version": "1.71.1",
   "patches": [
     {
       "name": "120 FPS High Refresh Rate & Low Latency - Subway Surfers (Experimental)",
@@ -837,7 +837,7 @@
       "options": []
     },
     {
-      "name": "Ad-Free & Clean Interface - Shazam (Experimental)",
+      "name": "Ad-Free & Clean Interface - Shazam",
       "description": "Strips post-recognition promo cards, Apple Music targeted upsells, in-app survey banners, and announcement sheets in Shazam.",
       "default": true,
       "category": null,
@@ -1887,7 +1887,7 @@
       "options": []
     },
     {
-      "name": "Always-On Auto Shazam - Shazam (Experimental)",
+      "name": "Always-On Auto Shazam - Shazam",
       "description": "Keeps Auto Shazam background listening continuously active without automatic timeout cancellation or sleep limits.",
       "default": true,
       "category": null,
@@ -5912,6 +5912,84 @@
           "targets": [
             {
               "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Enhanced Playback & Picture-in-Picture - FCTV33 & RBTV+",
+      "description": "Enables Picture-in-Picture (PiP) mode across all streams, activates portrait PiP controls, adds background PiP support, and stabilizes fullscreen orientation switching on FCTV33 & RBTV+.",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.fctv77.app",
+          "name": "FCTV33 (Mobile)",
+          "description": "FCTV33: Live Football & Sports Streaming (Mobile)",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.0.323",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.fctv77.tv",
+          "name": "FCTV33 (TV)",
+          "description": "FCTV33: Live Football & Sports Streaming (Android TV)",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.0.323",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.rblive.app",
+          "name": "RBTV+ / RBLive (Mobile)",
+          "description": "RBTV+ / RBLive: Live Football & Sports Streaming (Mobile)",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.0.323",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        },
+        {
+          "packageName": "com.rblive.tv",
+          "name": "RBTV+ / RBLive (TV)",
+          "description": "RBTV+ / RBLive: Live Football & Sports Streaming (Android TV)",
+          "apkFileType": null,
+          "appIconColor": "#1E88E5",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.0.323",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -12666,7 +12744,7 @@
     },
     {
       "name": "Unlock Premium, Screenshots & Enhanced Playback - JioHotstar",
-      "description": "Unlocks premium UI features, downloads, 4K/HDR10 codecs, removes screenshot & screen recording blocks, and allows HDMI/screen mirroring in JioHotstar.",
+      "description": "Unlocks premium UI features, downloads, AV1/HEVC/VP9 codecs, 4K/HDR10/Dolby Vision, removes screenshot & screen recording blocks, and allows HDMI/screen mirroring in JioHotstar.",
       "default": true,
       "category": null,
       "dependencies": [],

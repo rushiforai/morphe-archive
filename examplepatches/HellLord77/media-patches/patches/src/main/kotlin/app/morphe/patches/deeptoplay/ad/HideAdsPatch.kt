@@ -30,15 +30,12 @@ val hideAdsPatch =
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
-                                // package:core_models/src/content_model.dart ->
-                                // ContentModel.fromJson
+                                // package:core_models/src/content_model.dart -> ContentModel.fromJson
                                 // ad_campaign -> ads
                                 when (arch) {
                                     CpuArchitecture.ARMEABI_V7A -> {
-                                        // ADD             R2, R5, #0xB000 -> ADD             R2,
-                                        // R5, #0x1000
-                                        // LDR             R2, [R2,#3]     -> LDR             R2,
-                                        // [R2,#1A3]
+                                        // ADDR2, R5, #0xB000 -> ADD R2, R5, #0x1000
+                                        // LDRR2, [R2,#3] -> LDR R2, [R2,#1A3]
                                         """
                                             0b 2a 85 e2
                                             03 20 92 e5
@@ -49,10 +46,8 @@ val hideAdsPatch =
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
-                                        // ADD             X2, X27, #0x14,LSL#12 -> ADD
-                                        // X2, X27, #0x1D,LSL#12
-                                        // LDR             X2, [X2,#0x108]       -> LDR
-                                        // X2, [X2,#0xF50]
+                                        // ADD X2, X27, #0x14,LSL#12 -> ADD X2, X27, #0x1D,LSL#12
+                                        // LDR X2, [X2,#0x108] -> LDR X2, [X2,#0xF50]
                                         """
                                             62 53 40 91
                                             42 84 40 f9

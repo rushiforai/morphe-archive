@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectStreamClass;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.UnaryOperator;
 
 /**
@@ -30,12 +32,13 @@ import java.util.function.UnaryOperator;
  * charging-curve and regeneration energy levels to that capacity and picks the temperature-dependent
  * parts (VehicleEnergyModelManager, VEMData). This class does the same with this car's readings, but
  * picks the file by capacity ({@link #tableOrder}): the Dolphin's model id has no file of its
- * own and other cars' ids are not known.
+ * own and other cars' ids are not known. Between two drain-at-time sets it sends both interpolated by
+ * the outside temperature ({@link #drainSelection}) where DiCarServer sends the nearest.
  * <p>
  * Read only, nothing of BYD's is bundled. The file is deserialized with a class allowlist; every part
- * must be well-formed protobuf, and the drivetrain losses must show zero loss at zero power, as stored or
- * put back from BYD's transposed order ({@link #checkedLosses}). Plain Java without Android APIs, so the JVM
- * probe runs this code.
+ * must be well-formed protobuf (the drain-at-time entries down to their drain_watts), and the drivetrain losses must
+ * show zero loss at zero power, as stored or put back from BYD's transposed order ({@link #checkedLosses}). Plain
+ * Java without Android APIs, so the JVM probe runs this code.
  */
 final class BydVehicleEnergyFile {
     private static final String BYD_CLASS = "com.byd.car.VEMBinaryData";
@@ -64,6 +67,12 @@ final class BydVehicleEnergyFile {
     // DrivetrainLosses {7 LossesAtSpeed {1 speed (float), 2 LossAtPower {1 power_watts (sint32), 2 losses_watts
     // (IntWithUncertainty)}}}.
     private static final int LOSSES_AT_SPEED = 7, LOSS_SPEED = 1, LOSS_AT_POWER = 2, LOSS_POWER = 1, LOSS_VALUE = 2;
+    // DrainAtTime {1 relative_time_sec, 3 drain_watts}; DrainAtTemperature {1 temp_celsius (float), 2 hvac, 3 battery
+    // conditioning, 4 total_drain_watts}; the watts are IntWithUncertainty {1 mean (int32), 2 standard_deviation (float)}.
+    private static final int DRAIN_SECONDS = 1, DRAIN_WATTS = 3, DRAIN_TEMP = 1, HVAC_DRAIN = 2, TOTAL_DRAIN = 4, MEAN = 1,
+            DEVIATION = 2;
+    /** Google's rule (reference v1.2): the drain at time holds 15 min after its last point, then the drain at temperature. */
+    private static final int DRAIN_AT_TIME_HOLD_S = 900;
     // The tables used and their capacities, each with a fallback name (81_1 and 81_1750_1 are the
     // same file). Not used: 215_1, 251_1 and 425_1, whose drag coefficient is 12x below the others' (km/h
     // units); 81_1620_1 (51,136 Wh), which would split from 420_1 at 48.1 kWh, the Dolphin's own capacity;
@@ -85,8 +94,11 @@ final class BydVehicleEnergyFile {
     final float airDensity, fileExternalTemp;
     /** Road load A, B, C (N, N/(m/s), N/(m/s)²). */
     final float roadA, roadB, roadC;
-    /** Raise when {@link Predictor} computes differently, so BydSpeedBands starts its pools again. */
-    private static final int PREDICTION_VERSION = 1;
+    /**
+     * Raise when {@link Predictor} computes differently, so BydSpeedBands starts its pools again. 2 (0.1.6): the drain at
+     * time interpolated by temperature, the drain at temperature after it.
+     */
+    private static final int PREDICTION_VERSION = 2;
     /** Whether the drivetrain losses were stored in transposed order and are used put back ({@link #checkedLosses}). */
     final boolean lossesReordered;
     private final byte[] vehicleInfo, roadLoad, drivetrainLosses, chargingCurves;
@@ -179,15 +191,21 @@ final class BydVehicleEnergyFile {
         if (!(roadA >= 0 && roadA <= 1000 && roadB >= 0 && roadB <= 20 && roadC > 0 && roadC <= 2))
             throw invalid("road load " + roadA + "/" + roadB + "/" + roadC);
 
-        // The parts that are rewritten must parse as their messages.
+        // The parts that are rewritten must parse as their messages: regen and charging curves (scaled), and every
+        // drain-at-time set down to its drain_watts (rebuilt between two keys by encode, read by the Predictor), so that
+        // encode never fails on a file read accepted.
         for (byte[] regen : maxRegen.values()) scaleRegen(regen, capacity);
         if (chargingCurves != null) scaleChargingCurves(chargingCurves, capacity);
+        for (List<byte[]> set : drainAtTime.values()) {
+            setPoints(set);
+            deviations(set);
+        }
         predictionSha256 = predictionHash();
     }
 
     /**
      * {@link #predictionSha256}: the Predictor's version, the file's mass, capacity and temperature (used without the
-     * car's), road load, drivetrain losses, regen, battery losses, drain at time.
+     * car's), road load, drivetrain losses, regen, battery losses, drain at time, drain at temperature.
      */
     private String predictionHash() {
         ByteArrayOutputStream parts = new ByteArrayOutputStream();
@@ -209,60 +227,233 @@ final class BydVehicleEnergyFile {
             writeVarintField(parts, 5, entry.getKey());
             for (byte[] part : entry.getValue()) writeMessage(parts, 5, part);
         }
+        for (byte[] part : drainAtTemp) writeMessage(parts, 6, part);
         return sha256(parts.toByteArray());
     }
 
     /**
      * The model for Maps, as DiCarServer assembles it: this car's vehicle info (the file's other
      * fields are kept), the file's road load, drivetrain losses and drain at temperature, the max
-     * regeneration and drain at time nearest the outside temperature, the battery losses at
-     * {@link #BATTERY_TEMP_C}, and regeneration and charging-curve energies scaled to the capacity.
-     * A motor power or charging rate of 0 is left out, as in DiCarServer's model.
+     * regeneration nearest the outside temperature, the battery losses at {@link #BATTERY_TEMP_C}, and
+     * regeneration and charging-curve energies scaled to the capacity. A motor power or charging rate of 0
+     * is left out, as in DiCarServer's model. Unlike DiCarServer, the drain at time between two keys is
+     * both sets interpolated by the outside temperature ({@link #drainAtTimeEntries}); at a key or at and
+     * outside the end keys it is the nearest set as stored.
      */
     byte[] encode(int massKg, int batteryLevelWh, int capacityWh, int externalTempC, int peakMotorPowerW,
                   int maxChargingRateW) throws IOException {
+        return assemble(massKg, batteryLevelWh, capacityWh, externalTempC, peakMotorPowerW, maxChargingRateW, roadLoad,
+                drivetrainLosses, drainAtTimeEntries(externalTempC), drainAtTemp);
+    }
+
+    /**
+     * The model for Maps with learned values ({@link BydModelParts.Sent}): {@link #encode}'s bytes when {@code sent} is
+     * the table unchanged. Otherwise as encode, but road load A, B and C times the rolling, linear and drag multipliers
+     * (other road-load fields kept); every drivetrain losses_watts mean times the drive-loss multiplier at power_watts
+     * 0 or more and the regen-loss one below 0 ({@link Math#round(double)}, a zero mean left out, every other field
+     * kept); the drain at time from {@code sent} when it has one; the drain at temperature from {@code sent} at its
+     * temperatures (HVAC = total) with the table's entries below its first and above its last temperature, when it has
+     * one. Throws IOException for no {@code sent}, a multiplier that is not finite and above 0, drain values that are
+     * missing, not ascending or negative, or losses that no longer have zero loss at zero power; the caller then sends
+     * encode's model.
+     */
+    byte[] encodeLearned(int massKg, int batteryLevelWh, int capacityWh, int externalTempC, int peakMotorPowerW,
+                         int maxChargingRateW, BydModelParts.Sent sent) throws IOException {
+        if (sent == null) throw new IOException("learned model: none");
+        if (sent.isTable()) {
+            return encode(massKg, batteryLevelWh, capacityWh, externalTempC, peakMotorPowerW, maxChargingRateW);
+        }
+        checkMultiplier(sent.rolling, "rolling");
+        checkMultiplier(sent.linear, "linear");
+        checkMultiplier(sent.drag, "drag");
+        checkMultiplier(sent.driveLoss, "drive loss");
+        checkMultiplier(sent.regenLoss, "regen loss");
+        try {
+            return assemble(massKg, batteryLevelWh, capacityWh, externalTempC, peakMotorPowerW, maxChargingRateW,
+                    scaledRoadLoad(sent.rolling, sent.linear, sent.drag), scaledLosses(sent.driveLoss, sent.regenLoss),
+                    sent.drainAtTime == null ? drainAtTimeEntries(externalTempC) : sentDrainAtTime(sent.drainAtTime),
+                    sent.drainTemps == null ? drainAtTemp : sentDrainAtTemp(sent.drainTemps, sent.drainTotals));
+        } catch (IllegalArgumentException error) {
+            throw new IOException("learned model: " + error.getMessage());
+        }
+    }
+
+    /**
+     * The model's fields in number order: this car's vehicle info, the given road load and drivetrain losses, the max
+     * regen and battery losses as {@link #encode} picks them, the given drain entries, the scaled charging curves.
+     */
+    private byte[] assemble(int massKg, int batteryLevelWh, int capacityWh, int externalTempC, int peakMotorPowerW,
+                            int maxChargingRateW, byte[] road, byte[] losses, List<byte[]> drainTime,
+                            List<byte[]> drainTemp) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream(4096);
         writeMessage(out, VEHICLE_INFO, vehicleInfo(massKg, batteryLevelWh, capacityWh, externalTempC,
                 peakMotorPowerW, maxChargingRateW));
-        writeMessage(out, ROAD_LOAD, roadLoad);
-        writeMessage(out, DRIVETRAIN_LOSSES, drivetrainLosses);
+        writeMessage(out, ROAD_LOAD, road);
+        writeMessage(out, DRIVETRAIN_LOSSES, losses);
         if (!maxRegen.isEmpty()) {
             writeMessage(out, MAX_REGEN_POWER, scaleRegen(maxRegen.get(nearestKey(maxRegen, externalTempC)), capacityWh));
         }
         if (!batteryLosses.isEmpty()) {
             writeMessage(out, BATTERY_LOSSES, batteryLosses.get(nearestKey(batteryLosses, BATTERY_TEMP_C)));
         }
-        if (!drainAtTime.isEmpty()) {
-            for (byte[] entry : drainAtTime.get(nearestKey(drainAtTime, externalTempC))) writeMessage(out, DRAIN_AT_TIME, entry);
-        }
-        for (byte[] entry : drainAtTemp) writeMessage(out, DRAIN_AT_TEMP, entry);
+        for (byte[] entry : drainTime) writeMessage(out, DRAIN_AT_TIME, entry);
+        for (byte[] entry : drainTemp) writeMessage(out, DRAIN_AT_TEMP, entry);
         if (chargingCurves != null) writeMessage(out, CHARGING_CURVES, scaleChargingCurves(chargingCurves, capacityWh));
         return out.toByteArray();
     }
 
-    /** This table's own energy prediction for BydSpeedBands; throws if a part it needs is malformed. */
+    // The learned model's parts.
+
+    private static void checkMultiplier(double multiplier, String what) throws IOException {
+        if (!(multiplier > 0) || Double.isInfinite(multiplier)) throw new IOException("learned model: " + what + " " + multiplier);
+    }
+
+    /** The road load with A, B and C (field 1 of their messages) times the multipliers; everything else as stored. */
+    private byte[] scaledRoadLoad(double rolling, double linear, double drag) {
+        double[] multipliers = {0, rolling, linear, drag};
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        for (Reader field = new Reader(roadLoad); field.next(); ) {
+            if (field.field < 1 || field.field > 3 || field.wireType != LENGTH_DELIMITED) {
+                field.copyTo(out);
+                continue;
+            }
+            ByteArrayOutputStream value = new ByteArrayOutputStream();
+            for (Reader inner = new Reader(field.message()); inner.next(); ) {
+                if (!inner.is(1, FIXED32)) {
+                    inner.copyTo(value);
+                    continue;
+                }
+                float scaled = (float) (inner.fixed32Float() * multipliers[field.field]);
+                if (Float.isNaN(scaled) || Float.isInfinite(scaled)) throw new IllegalArgumentException("road load " + scaled);
+                writeFloat(value, 1, scaled);
+            }
+            writeMessage(out, field.field, value.toByteArray());
+        }
+        return out.toByteArray();
+    }
+
+    /**
+     * The drivetrain losses Maps gets ({@link #checkedLosses}) with each losses_watts mean times {@code driveLoss} at a
+     * power of 0 or more and {@code regenLoss} below; the result must still pass checkedLosses as stored.
+     */
+    private byte[] scaledLosses(double driveLoss, double regenLoss) throws IOException {
+        byte[] scaled = rewrite(drivetrainLosses, LOSSES_AT_SPEED, atSpeed -> rewrite(atSpeed, LOSS_AT_POWER, atPower -> {
+            double multiplier = lossPoint(atPower).power >= 0 ? driveLoss : regenLoss;
+            return rewrite(atPower, LOSS_VALUE, value -> scaledMeans(value, multiplier));
+        }));
+        if (checkedLosses(scaled) != scaled) throw new IOException("learned model: drivetrain losses not zero at zero power");
+        return scaled;
+    }
+
+    /** An IntWithUncertainty with each mean times {@code multiplier}, rounded; a zero mean is left out (proto3). */
+    private static byte[] scaledMeans(byte[] value, double multiplier) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        for (Reader field = new Reader(value); field.next(); ) {
+            if (!field.is(MEAN, VARINT)) {
+                field.copyTo(out);
+                continue;
+            }
+            long scaled = Math.round((int) field.varint * multiplier);
+            if (scaled < Integer.MIN_VALUE || scaled > Integer.MAX_VALUE) throw new IllegalArgumentException("loss " + scaled);
+            if (scaled != 0) writeVarintField(out, MEAN, (int) scaled);
+        }
+        return out.toByteArray();
+    }
+
+    /** Drain-at-time entries {1 relative_time_sec (0 left out), 3 drain_watts {1 mean}} from {seconds, watts}. */
+    private static List<byte[]> sentDrainAtTime(int[][] points) {
+        if (points.length != 2 || points[0] == null || points[1] == null || points[0].length == 0
+                || points[0].length != points[1].length) {
+            throw new IllegalArgumentException("drain at time points");
+        }
+        List<byte[]> entries = new ArrayList<>(points[0].length);
+        for (int i = 0; i < points[0].length; i++) {
+            if (points[0][i] < 0 || i > 0 && points[0][i] <= points[0][i - 1] || points[1][i] < 0) {
+                throw new IllegalArgumentException("drain at time " + points[0][i] + " s " + points[1][i] + " W");
+            }
+            ByteArrayOutputStream entry = new ByteArrayOutputStream();
+            if (points[0][i] != 0) writeVarintField(entry, DRAIN_SECONDS, points[0][i]);
+            writeMessage(entry, DRAIN_WATTS, intWithUncertainty(points[1][i]));
+            entries.add(entry.toByteArray());
+        }
+        return entries;
+    }
+
+    /**
+     * Drain-at-temperature entries {1 temp_celsius, 2 hvac {1 mean}, 4 total {1 mean}} (hvac = total) at the given
+     * temperatures, after the table's entries below the first and before those above the last, in temperature order
+     * (entries at one temperature in stored order); the table's entries are kept as stored.
+     */
+    private List<byte[]> sentDrainAtTemp(float[] temps, int[] totals) {
+        if (temps.length == 0) throw new IllegalArgumentException("drain at temperature empty");
+        for (int i = 0; i < temps.length; i++) {
+            if (Float.isNaN(temps[i]) || Float.isInfinite(temps[i]) || i > 0 && !(temps[i] > temps[i - 1]) || totals[i] < 0) {
+                throw new IllegalArgumentException("drain at temperature " + temps[i] + " °C " + totals[i] + " W");
+            }
+        }
+        float first = temps[0], last = temps[temps.length - 1];
+        List<Map.Entry<Float, byte[]>> below = new ArrayList<>(), above = new ArrayList<>();
+        for (byte[] entry : drainAtTemp) {
+            float temp = 0;
+            for (Reader field = new Reader(entry); field.next(); ) {
+                // -0.0 is the absent 0.0; the last temperature field counts, as in the Predictor.
+                if (field.is(DRAIN_TEMP, FIXED32)) temp = field.fixed32Float() + 0.0f;
+            }
+            if (temp < first) below.add(new AbstractMap.SimpleImmutableEntry<>(temp, entry));
+            else if (temp > last) above.add(new AbstractMap.SimpleImmutableEntry<>(temp, entry));
+        }
+        // List.sort is stable.
+        below.sort(Map.Entry.comparingByKey());
+        above.sort(Map.Entry.comparingByKey());
+        List<byte[]> entries = new ArrayList<>(below.size() + temps.length + above.size());
+        for (Map.Entry<Float, byte[]> entry : below) entries.add(entry.getValue());
+        for (int i = 0; i < temps.length; i++) {
+            ByteArrayOutputStream entry = new ByteArrayOutputStream();
+            writeFloat(entry, DRAIN_TEMP, temps[i]);
+            byte[] watts = intWithUncertainty(totals[i]);
+            writeMessage(entry, HVAC_DRAIN, watts);
+            writeMessage(entry, TOTAL_DRAIN, watts);
+            entries.add(entry.toByteArray());
+        }
+        for (Map.Entry<Float, byte[]> entry : above) entries.add(entry.getValue());
+        return entries;
+    }
+
+    /** This table's own energy prediction for BydSpeedBands and the calibration's prior; throws if a part it needs is malformed. */
     Predictor predictor() {
         return new Predictor(this);
     }
 
     /**
      * Battery energy this table predicts for one interval (for the speed-band comparison in
-     * BydSpeedBands only: not sent to Maps, and not Maps' own computation). Road load A + B·v + C·v² at
-     * the mean speed plus the change of kinetic energy with the given mass give the wheel power; then
-     * drivetrain losses at (speed, wheel power), regeneration capped by the max regen power at the
-     * energy level, the auxiliary drain at time for the outside temperature, and the battery losses at
-     * {@link #BATTERY_TEMP_C}. Flat road: the grade is not known. Drain at temperature is not added,
-     * as the drain at time already depends on the temperature.
+     * BydSpeedBands and, split into parts ({@link #parts}), the PC replay's learner: not sent to Maps, and not Maps' own
+     * computation). Road load A + B·v + C·v² at the mean speed plus the change of kinetic energy with the given mass
+     * give the wheel power; then drivetrain losses at (speed, wheel power), regeneration capped by the max regen power
+     * at the energy level, the auxiliary power ({@link #auxiliaryWatts}: the drain at time Maps gets, then the drain at
+     * temperature, as Google's rule switches), and the battery losses at {@link #BATTERY_TEMP_C}. Flat road: the grade
+     * is not known.
      */
-    static final class Predictor {
+    static final class Predictor implements BydModelParts.Base {
+        /** The file's {@link #predictionSha256}. */
+        private final String identity;
         private final float a, b, c;
         private final int fileCapacityWh;
         private final float[] lossSpeeds;
         private final int[][] lossPowers, lossValues;
         private final int[][] battery;
-        private final TreeMap<Integer, int[][]> regen = new TreeMap<>(), drain = new TreeMap<>();
+        private final TreeMap<Integer, int[][]> regen = new TreeMap<>();
+        /**
+         * The drain at time {@link #encode} sends at each whole temperature from the first key to the last, from index 0
+         * at {@link #drainFirstKey}: {seconds, watts}, null without points; null if the file has no drain at time.
+         */
+        private final int[][][] drainByTemp;
+        private final int drainFirstKey;
+        /** Drain at temperature: total watts at ascending temperatures; null if the file has none. */
+        private final float[] drainTemps;
+        private final int[] drainTotals;
 
         private Predictor(BydVehicleEnergyFile file) {
+            identity = file.predictionSha256;
             a = file.roadA; b = file.roadB; c = file.roadC;
             fileCapacityWh = file.fileCapacityWh;
             TreeMap<Float, int[][]> speeds = new TreeMap<>();
@@ -304,17 +495,34 @@ final class BydVehicleEnergyFile {
                 }
                 if (!rates.isEmpty()) regen.put(entry.getKey(), sorted(rates));
             }
-            for (Map.Entry<Integer, List<byte[]>> entry : file.drainAtTime.entrySet()) {
-                List<int[]> points = new ArrayList<>();
-                for (byte[] part : entry.getValue()) {
-                    int seconds = 0, watts = 0;
-                    for (Reader field = new Reader(part); field.next(); ) {
-                        if (field.is(1, VARINT)) seconds = (int) field.varint;
-                        else if (field.is(3, LENGTH_DELIMITED)) watts = mean(field.message());
-                    }
-                    points.add(new int[]{seconds, watts});
+            if (file.drainAtTime.isEmpty()) {
+                drainFirstKey = 0;
+                drainByTemp = null;
+            } else {
+                drainFirstKey = file.drainAtTime.firstKey();
+                drainByTemp = new int[file.drainAtTime.lastKey() - drainFirstKey + 1][][];
+                for (int k = 0; k < drainByTemp.length; k++) {
+                    int[][] points = file.drainPoints(file.drainSelection(drainFirstKey + k));
+                    drainByTemp[k] = points[0].length == 0 ? null : points;
                 }
-                if (!points.isEmpty()) drain.put(entry.getKey(), sorted(points));
+            }
+            TreeMap<Float, Integer> totals = new TreeMap<>();
+            for (byte[] entry : file.drainAtTemp) {
+                float temp = 0;
+                Integer total = null;
+                for (Reader field = new Reader(entry); field.next(); ) {
+                    // -0.0 is the absent 0.0.
+                    if (field.is(DRAIN_TEMP, FIXED32)) temp = field.fixed32Float() + 0.0f;
+                    else if (field.is(TOTAL_DRAIN, LENGTH_DELIMITED)) total = mean(field.message());
+                }
+                // An entry without a total or at a temperature that is not finite is left out; the last at a temperature counts.
+                if (total != null && !Float.isNaN(temp) && !Float.isInfinite(temp)) totals.put(temp, total);
+            }
+            drainTemps = totals.isEmpty() ? null : new float[totals.size()];
+            drainTotals = totals.isEmpty() ? null : new int[totals.size()];
+            i = 0;
+            for (Map.Entry<Float, Integer> entry : totals.entrySet()) {
+                drainTemps[i] = entry.getKey(); drainTotals[i] = entry.getValue(); i++;
             }
         }
 
@@ -333,10 +541,79 @@ final class BydVehicleEnergyFile {
                 double level = (double) energyWh / capacityWh * fileCapacityWh;
                 motor = Math.max(motor, -interpolate(regen.get(nearestKey(regen, outsideC)), level));
             }
-            double aux = drain.isEmpty() ? 0 : interpolate(drain.get(nearestKey(drain, outsideC)), sinceStartS + seconds / 2);
-            double pack = motor + aux;
+            double pack = motor + auxiliaryWatts(sinceStartS + seconds / 2, outsideC);
             double total = pack + (battery == null ? 0 : interpolate(battery, pack));
             return total * seconds / 3600.0;
+        }
+
+        /**
+         * Auxiliary power (W) {@code atS} after the drive started at {@code outsideC}: the drain at time {@link #encode}
+         * sends, its last value held, up to {@link #DRAIN_AT_TIME_HOLD_S} after its last point; after that the drain at
+         * temperature's total, linear by temperature with the end values held. Without drain at temperature the drain
+         * at time holds on; without drain at time (or with no points at this temperature) the drain at temperature
+         * from the start; without either, 0.
+         */
+        double auxiliaryWatts(double atS, int outsideC) {
+            int[][] time = drainByTemp == null ? null : drainByTemp[Math.min(Math.max(outsideC, drainFirstKey),
+                    drainFirstKey + drainByTemp.length - 1) - drainFirstKey];
+            if (time != null && (drainTemps == null || atS <= time[0][time[0].length - 1] + DRAIN_AT_TIME_HOLD_S)) {
+                return interpolate(time, atS);
+            }
+            return drainTemps == null ? 0 : interpolate(drainTemps, drainTotals, outsideC);
+        }
+
+        /**
+         * {@link #intervalWh}'s steps for one interval, each kept ({@link BydModelParts.Parts}): the wheel power's
+         * terms A·v, C·v³ and B·v² plus the change of kinetic energy, the drivetrain loss at (speed, wheel power) as a
+         * drive loss at a wheel power of 0 or more and a regen loss below, the regeneration cap (capped less uncapped
+         * motor power), the battery losses at the pack power and the auxiliary power, each times the interval;
+         * {@code totalWh} is intervalWh's. All 0 for an interval that is not longer than 0 s.
+         */
+        @Override
+        public BydModelParts.Parts parts(double fromKmh, double toKmh, double seconds, double massKg, double sinceStartS,
+                                         int outsideC, int energyWh, int capacityWh) {
+            BydModelParts.Parts parts = new BydModelParts.Parts();
+            if (!(seconds > 0)) return parts;
+            double from = fromKmh / 3.6, to = toKmh / 3.6, speed = (from + to) / 2;
+            double wheel = (a + b * speed + c * speed * speed) * speed + 0.5 * massKg * (to * to - from * from) / seconds;
+            double loss = drivetrainLoss(speed, wheel);
+            double uncapped = wheel + loss, motor = uncapped;
+            if (motor < 0 && !regen.isEmpty() && capacityWh > 0) {
+                double level = (double) energyWh / capacityWh * fileCapacityWh;
+                motor = Math.max(motor, -interpolate(regen.get(nearestKey(regen, outsideC)), level));
+            }
+            double aux = auxiliaryWatts(sinceStartS + seconds / 2, outsideC);
+            double pack = motor + aux;
+            double total = pack + (battery == null ? 0 : interpolate(battery, pack));
+            parts.rollingWh = a * speed * seconds / 3600.0;
+            parts.dragWh = c * speed * speed * speed * seconds / 3600.0;
+            parts.otherWheelWh = (b * speed * speed + 0.5 * massKg * (to * to - from * from) / seconds) * seconds / 3600.0;
+            if (wheel >= 0) parts.driveLossWh = loss * seconds / 3600.0;
+            else parts.regenLossWh = loss * seconds / 3600.0;
+            parts.capWh = (motor - uncapped) * seconds / 3600.0;
+            parts.batteryLossWh = (total - pack) * seconds / 3600.0;
+            parts.tableAuxWh = aux * seconds / 3600.0;
+            parts.totalWh = intervalWh(fromKmh, toKmh, seconds, massKg, sinceStartS, outsideC, energyWh, capacityWh);
+            parts.seconds = seconds;
+            return parts;
+        }
+
+        /** The drain at temperature's total (W): linear between its entries, the end values outside; NaN without any. */
+        @Override
+        public double tableDrainAtTemperature(double tempC) {
+            return drainTemps == null ? Double.NaN : interpolate(drainTemps, drainTotals, tempC);
+        }
+
+        /** {@link #auxiliaryWatts}. */
+        @Override
+        public double tableAuxWatts(double atS, int outsideC) {
+            return auxiliaryWatts(atS, outsideC);
+        }
+
+        /** The file's {@link #predictionSha256}. */
+        @Override
+        public String identity() {
+            return identity;
         }
 
         private double drivetrainLoss(double speed, double power) {
@@ -379,11 +656,163 @@ final class BydVehicleEnergyFile {
             }
             return ys[ys.length - 1];
         }
+
+        /** The same at distinct, ascending temperatures (drain at temperature). */
+        private static double interpolate(float[] xs, int[] ys, double x) {
+            if (x <= xs[0]) return ys[0];
+            for (int i = 1; i < xs.length; i++) {
+                if (x <= xs[i]) return ys[i - 1] + (ys[i] - ys[i - 1]) * (x - xs[i - 1]) / ((double) xs[i] - xs[i - 1]);
+            }
+            return ys[ys.length - 1];
+        }
     }
 
-    /** The drain-at-time key for an outside temperature, or null if the file has none. */
+    // Drain at time.
+
+    /** The drain at time for one outside temperature: the sets of two keys around it, or one set. */
+    private static final class DrainSelection {
+        final int lowerKey, upperKey, tempC;
+
+        DrainSelection(int lowerKey, int upperKey, int tempC) {
+            this.lowerKey = lowerKey;
+            this.upperKey = upperKey;
+            this.tempC = tempC;
+        }
+
+        /** One set, sent as stored. */
+        boolean single() {
+            return lowerKey == upperKey;
+        }
+
+        /** The upper key's weight, 0 to 1 (0 for one set). */
+        double weight() {
+            return single() ? 0 : (double) (tempC - lowerKey) / (upperKey - lowerKey);
+        }
+
+        /** {@code low} to {@code high} at the temperature; multiplied before dividing, exact where the result is a half. */
+        double between(double low, double high) {
+            return single() ? low : low + (high - low) * (tempC - lowerKey) / (upperKey - lowerKey);
+        }
+    }
+
+    /**
+     * The drain at time for an outside temperature, null if the file has none. Strictly between two keys: both sets,
+     * weighted linearly by the temperature. At a key, at or outside the end keys, or next to an empty set: the set
+     * {@link #nearestKey} picks, as DiCarServer does.
+     */
+    private DrainSelection drainSelection(int externalTempC) {
+        if (drainAtTime.isEmpty()) return null;
+        if (externalTempC > drainAtTime.firstKey() && externalTempC < drainAtTime.lastKey()) {
+            int lower = drainAtTime.floorKey(externalTempC), upper = drainAtTime.ceilingKey(externalTempC);
+            if (lower != upper && !drainAtTime.get(lower).isEmpty() && !drainAtTime.get(upper).isEmpty()) {
+                return new DrainSelection(lower, upper, externalTempC);
+            }
+        }
+        int key = nearestKey(drainAtTime, externalTempC);
+        return new DrainSelection(key, key, externalTempC);
+    }
+
+    /**
+     * The drain-at-time entries {@link #encode} sends: one set as stored, or one entry per time point of either set
+     * ({@link #drainPoints}): relative_time_sec and drain_watts {mean, and the standard deviation of the lower key's
+     * entry at that time if it has one}. Zero values are left out (proto3); drain_watts is written even when empty, as
+     * BYD's entry at 0 s is.
+     */
+    private List<byte[]> drainAtTimeEntries(int externalTempC) {
+        DrainSelection drain = drainSelection(externalTempC);
+        if (drain == null) return Collections.emptyList();
+        if (drain.single()) return drainAtTime.get(drain.lowerKey);
+        int[][] points = drainPoints(drain);
+        Map<Integer, byte[]> deviations = deviations(drainAtTime.get(drain.lowerKey));
+        List<byte[]> entries = new ArrayList<>(points[0].length);
+        for (int i = 0; i < points[0].length; i++) {
+            ByteArrayOutputStream watts = new ByteArrayOutputStream();
+            if (points[1][i] != 0) writeVarintField(watts, MEAN, points[1][i]);
+            byte[] deviation = deviations.get(points[0][i]);
+            if (deviation != null) watts.write(deviation, 0, deviation.length);
+            ByteArrayOutputStream entry = new ByteArrayOutputStream();
+            if (points[0][i] != 0) writeVarintField(entry, DRAIN_SECONDS, points[0][i]);
+            writeMessage(entry, DRAIN_WATTS, watts.toByteArray());
+            entries.add(entry.toByteArray());
+        }
+        return entries;
+    }
+
+    /**
+     * {seconds, watts}, ascending in time. One set: its points. Two sets: the union of their times, each set
+     * interpolated in time (end values held), then lower + (upper − lower) · weight, rounded half up
+     * ({@link Math#round(double)}).
+     */
+    private int[][] drainPoints(DrainSelection drain) {
+        int[][] lower = setPoints(drainAtTime.get(drain.lowerKey));
+        if (drain.single()) return lower;
+        int[][] upper = setPoints(drainAtTime.get(drain.upperKey));
+        TreeSet<Integer> times = new TreeSet<>();
+        for (int time : lower[0]) times.add(time);
+        for (int time : upper[0]) times.add(time);
+        int[][] points = {new int[times.size()], new int[times.size()]};
+        int i = 0;
+        for (int time : times) {
+            points[0][i] = time;
+            points[1][i++] = (int) Math.round(drain.between(Predictor.interpolate(lower, time), Predictor.interpolate(upper, time)));
+        }
+        return points;
+    }
+
+    /** One set's {seconds, watts (mean)}, ascending in time (entries at the same time in stored order). */
+    private static int[][] setPoints(List<byte[]> set) {
+        List<int[]> points = new ArrayList<>(set.size());
+        for (byte[] part : set) {
+            int seconds = 0, watts = 0;
+            for (Reader field = new Reader(part); field.next(); ) {
+                if (field.is(DRAIN_SECONDS, VARINT)) seconds = (int) field.varint;
+                else if (field.is(DRAIN_WATTS, LENGTH_DELIMITED)) watts = mean(field.message());
+            }
+            points.add(new int[]{seconds, watts});
+        }
+        return Predictor.sorted(points);
+    }
+
+    /** Each time's standard-deviation field as stored (tag included), from the first entry at that time that has one. */
+    private static Map<Integer, byte[]> deviations(List<byte[]> set) {
+        Map<Integer, byte[]> deviations = new TreeMap<>();
+        for (byte[] part : set) {
+            int seconds = 0;
+            byte[] deviation = null;
+            for (Reader field = new Reader(part); field.next(); ) {
+                if (field.is(DRAIN_SECONDS, VARINT)) {
+                    seconds = (int) field.varint;
+                } else if (field.is(DRAIN_WATTS, LENGTH_DELIMITED)) {
+                    for (Reader value = new Reader(field.message()); value.next(); ) {
+                        if (!value.is(DEVIATION, FIXED32)) continue;
+                        ByteArrayOutputStream out = new ByteArrayOutputStream();
+                        value.copyTo(out);
+                        deviation = out.toByteArray();
+                    }
+                }
+            }
+            if (deviation != null && !deviations.containsKey(seconds)) deviations.put(seconds, deviation);
+        }
+        return deviations;
+    }
+
+    /**
+     * The drain-at-time key nearest an outside temperature (DiCarServer's choice), or null if the file has none;
+     * {@link #drainAtTimeText} names the sets {@link #encode} sends.
+     */
     Integer drainAtTimeKey(int externalTempC) {
         return drainAtTime.isEmpty() ? null : nearestKey(drainAtTime, externalTempC);
+    }
+
+    /**
+     * The drain-at-time sets {@link #encode} sends for an outside temperature: between two keys "23/35@0.25" (the keys
+     * and the upper key's weight), else the one key ("35"); null if the file has none.
+     */
+    String drainAtTimeText(int externalTempC) {
+        DrainSelection drain = drainSelection(externalTempC);
+        if (drain == null) return null;
+        return drain.single() ? String.valueOf(drain.lowerKey)
+                : String.format(Locale.ROOT, "%d/%d@%.2f", drain.lowerKey, drain.upperKey, drain.weight());
     }
 
     /** The file name without ".bin", for the dialog. */
@@ -400,10 +829,11 @@ final class BydVehicleEnergyFile {
                 drainAtTemp.size(), chargingCurves != null, lossesReordered ? "reordered" : "as_stored");
     }
 
-    /** The temperature keys used for an outside temperature, for the log. */
+    /** The temperature keys used for an outside temperature, for the log; the drain at time as {@link #drainAtTimeText}. */
     String describeSelection(int externalTempC) {
+        String drain = drainAtTimeText(externalTempC);
         return "regen_key=" + (maxRegen.isEmpty() ? "none" : nearestKey(maxRegen, externalTempC))
-                + ";drain_time_key=" + (drainAtTime.isEmpty() ? "none" : nearestKey(drainAtTime, externalTempC))
+                + ";drain_time_key=" + (drain == null ? "none" : drain)
                 + ";losses_key=" + (batteryLosses.isEmpty() ? "none" : nearestKey(batteryLosses, BATTERY_TEMP_C));
     }
 

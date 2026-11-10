@@ -8,6 +8,8 @@ import app.morphe.patches.instagram.ads.hideAdsPatch
 import app.morphe.patches.instagram.ads.plus.hidePlusUpsellPatch
 import app.morphe.patches.instagram.coexist.installNextToInstagramPatch
 import app.morphe.patches.instagram.direct.calls.askBeforeCallPatch
+import app.morphe.patches.instagram.direct.reminder.hideKindnessReminderPatch
+import app.morphe.patches.instagram.direct.calls.callBlockerPatch
 import app.morphe.patches.instagram.direct.messagebox.messageBoxPatch
 import app.morphe.patches.instagram.direct.glass.glassChatPatch
 import app.morphe.patches.instagram.direct.plusmenu.chatPlusMenuPatch
@@ -117,6 +119,7 @@ import app.morphe.patches.instagram.feed.edits.hideEditsLabelPatch
 import app.morphe.patches.instagram.feed.savemenu.saveInPostMenuPatch
 import app.morphe.patches.instagram.feed.watchagain.watchAgainInFeedPatch
 import app.morphe.patches.instagram.reels.scrolling.stopReelsScrollingPatch
+import app.morphe.patches.instagram.reels.profiletabbar.reelProfileTabBarPatch
 import app.morphe.patches.instagram.reels.swipeprofile.swipeToProfilePatch
 import app.morphe.patches.instagram.reels.seekbar.reelSeekBarPatch
 import app.morphe.patches.instagram.reels.speed.keepReelSpeedPatch
@@ -189,6 +192,8 @@ class DefaultCatalogTest {
         accentColorPatch,
         allowScreenshotsPatch,
         askBeforeCallPatch,
+        hideKindnessReminderPatch,
+        callBlockerPatch,
         askBeforeLikePatch,
         askBeforeRefreshPatch,
         backLeavesHomePatch,
@@ -332,6 +337,7 @@ class DefaultCatalogTest {
         saveInPostMenuPatch,
         hideLiveReelsPatch,
         watchAgainInFeedPatch,
+        reelProfileTabBarPatch,
     )
 
     private val prior = listOf<Patch>(
@@ -367,7 +373,7 @@ class DefaultCatalogTest {
     }
 
     @Test fun initiallyNeutralControlsAreAvailableInSimpleMode() {
-        assertEquals(146, neutral.size)
+        assertEquals(149, neutral.size)
         neutral.forEach { assertEquals(it.name, true, it.default) }
     }
 
@@ -379,7 +385,7 @@ class DefaultCatalogTest {
     @Test fun generatedCatalogMatchesAllReviewedDeclarations() {
         val all = prior + neutral + optIn
         val declarations = all.associate { it.name!! to it.default }
-        assertEquals("every named patch needs one reviewed decision", 167, all.size)
+        assertEquals("every named patch needs one reviewed decision", 170, all.size)
         assertEquals("the review must not name a patch twice", all.size, declarations.size)
         val file = File("patches-list.json").takeIf(File::isFile) ?: File("../patches-list.json")
         val rows = JsonParser.parseString(file.readText()).asJsonObject.getAsJsonArray("patches")

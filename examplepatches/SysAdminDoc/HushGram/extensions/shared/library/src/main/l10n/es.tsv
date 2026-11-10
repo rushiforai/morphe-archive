@@ -232,6 +232,9 @@ Upload quality applies to	La calidad de subida se aplica a
 Stories only	Solo historias
 Stories, posts and reels	Historias, publicaciones y reels
 Video bitrate	Tasa de bits del video
+Video resolution	Resolución de video
+Video frame rate	Velocidad de fotogramas del video
+Photo quality	Calidad de las fotos
 %1$s Mbps	%1$s Mbps
 Download feed videos	Descargar videos del feed
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Añade Descargar al menú de una publicación con video en tu feed. Usa la calidad de abajo. Desactivado o en pausa, vuelve el menú de Instagram.
@@ -422,6 +425,8 @@ Hide People you don't follow back	Ocultar Personas a las que no sigues
 Takes the People you don't follow back section off the bottom of your notifications. Notifications about new followers stay.	Quita la sección Personas a las que no sigues del final de tus notificaciones. Los avisos de nuevos seguidores se quedan.
 Hide suggestions in notifications	Ocultar sugerencias en notificaciones
 Takes rows that only suggest something off your notifications, like a thread from an account you don't follow or someone you might know. Likes, comments, mentions and new followers stay.	Quita de tus notificaciones las filas que solo sugieren algo, como un hilo de una cuenta que no sigues o alguien a quien quizá conozcas. Los me gusta, comentarios, menciones y nuevos seguidores se quedan.
+Hide channel invites in notifications	Ocultar invitaciones a canales en las notificaciones
+Takes invites to join someone's channel off your notifications. Everything else stays.	Quita de tus notificaciones las invitaciones para unirte al canal de alguien. Todo lo demás se queda.
 Hide Featured in notifications	Ocultar Destacado en las notificaciones
 Takes the Featured section off the top of your notifications, the posts and threads Instagram picks to show you there. Everything under it stays.	Quita la sección Destacado de la parte superior de tus notificaciones, las publicaciones e hilos que Instagram elige para mostrarte ahí. Todo lo que hay debajo se queda.
 Keep Featured off the heart's dot	Que Destacado no encienda el punto del corazón
@@ -663,8 +668,10 @@ Time away before swiping comes back	Tiempo fuera antes de que vuelva el deslizam
 Take a scroll break	Tomar un descanso del scroll
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	Después de %1$d minutos
-Off. It can cover the Home, Reels and Explore tabs for 5 minutes after you've spent a while on them.	Desactivado. Puede tapar las pestañas Inicio, Reels y Explorar durante 5 minutos después de pasar un rato en ellas.
-After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for 5 minutes. Messages, your profile and the tab bar still work.	Después de %1$d minutos en las pestañas Inicio, Reels y Explorar, una pantalla de descanso las tapa durante 5 minutos. Los mensajes, tu perfil y la barra de pestañas siguen funcionando.
+Off. It can cover the Home, Reels and Explore tabs for a break after you've spent a while on them.	Desactivado. Puede tapar las pestañas Inicio, Reels y Explorar para un descanso después de pasar un rato en ellas.
+After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for %2$d minutes. Messages, your profile and the tab bar still work.	Después de %1$d minutos en las pestañas Inicio, Reels y Explorar, una pantalla de descanso las tapa durante %2$d minutos. Los mensajes, tu perfil y la barra de pestañas siguen funcionando.
+Break length	Duración del descanso
+%1$d minutes	%1$d minutos
 Time for a break	Hora de un descanso
 Home, Reels and Explore open again when the countdown ends. Messages and your profile still work.	Inicio, Reels y Explorar se abren de nuevo cuando termina la cuenta atrás. Los mensajes y tu perfil siguen funcionando.
 # context: read aloud by the screen reader on the break screen; %1$s is the time left, like 4:59
@@ -937,6 +944,8 @@ Stop the background heartbeat	Detener el latido en segundo plano
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram despierta tu teléfono cada minuto o dos, también con la pantalla apagada, solo para anotar que sigue funcionando. Esto lo detiene. Los mensajes, las notificaciones y todo lo que ves no cambian.
 Stop the analytics upload alarm	Detener la alarma de subida de analíticas
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram programa una alarma que despierta tu teléfono para enviar sus datos de uso cinco minutos después. Esto detiene esa alarma. Los datos se envían la próxima vez que uses la app.
+Stop background feed refresh	Detener la actualización del feed en segundo plano
+About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Más o menos cada media hora, Instagram despierta tu teléfono para descargar tu feed por adelantado. Esto lo detiene. El feed se carga cuando abres la app, y los mensajes y las notificaciones siguen llegando.
 Haptic style	Estilo de vibración
 Short tick	Toque corto
 System tick	Toque del sistema
@@ -1144,6 +1153,7 @@ Hold the Friends tab to pick friends	Mantén pulsada la pestaña Amigos para ele
 Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	Mantén pulsada la pestaña Amigos en Reels y elige entre los amigos que te ha mostrado. Después solo conserva los reels que les gustaron o que compartieron. Una página sin ellos conserva un reel para que pueda cargar la siguiente.
 Pick friends	Elegir amigos
 Open the Friends tab first.	Abre primero la pestaña Amigos.
+No friends to pick yet.	Aún no hay amigos para elegir.
 Applies to the next reels loaded.	Se aplica a los próximos reels que carguen.
 Hide the Save button on reels	Ocultar el botón Guardar en los reels
 Burn-in guard	Protección contra quemado
@@ -1341,7 +1351,7 @@ Keep the pill full size	Mantener la píldora a tamaño completo
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Al desplazarte hacia abajo en una lista, la píldora de cristal líquido se queda como está, con cada pestaña en su sitio. Reinicia Instagram tras cambiarlo.
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	Curvar la luz en los bordes
-The liquid pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	El borde de la píldora de cristal líquido curva lo que hay detrás como un cristal de verdad, así que lo que pasa bajo el borde se ve al revés. Android 13 o posterior. Reinicia Instagram tras cambiarlo.
+The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	El borde de la píldora curva lo que hay detrás como un cristal de verdad, así que lo que pasa bajo el borde se ve al revés. Android 13 o posterior. Reinicia Instagram tras cambiarlo.
 # context: Ghost mode: the row and dialog picking which switches Ghost mode turns (#251). %1$s is a list of switch names
 All of them. Tap to leave some out, and Ghost mode leaves those as you set them.	Todos. Toca para dejar algunos fuera, y el modo fantasma los deja como los pusiste.
 %1$s. The others stay as you set them.	%1$s. Los demás se quedan como los pusiste.
@@ -1389,6 +1399,8 @@ Show all recent searches	Mostrar todas las búsquedas recientes
 Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.	Muestra todas las búsquedas recientes bajo la barra de búsqueda, no solo las primeras. Ver todo y la x de cada fila funcionan como antes.
 Hide the call buttons in chats	Ocultar los botones de llamada en los chats
 Takes the voice and video call buttons off the top of a chat. The name keeps its room. Turn it off and they're back the next time a chat opens.	Quita los botones de llamada de voz y de video de la parte superior de un chat. El nombre conserva su espacio. Si lo desactivas, vuelven la próxima vez que abras un chat.
+Hide the Community Standards reminder	Ocultar el recordatorio de las Normas comunitarias
+Takes the banner reminding you to be respectful off the bottom of a chat.	Quita de la parte inferior del chat el aviso que te recuerda ser respetuoso.
 Buttons in the message box	Botones del cuadro de mensaje
 Every button in the message box shows. Untick the ones you don't use. The text box and Send always stay.	Se muestran todos los botones del cuadro de mensaje. Quita la marca de los que no uses. El cuadro de texto y Enviar siempre se quedan.
 Left off the message box: %1$s. The text box and Send stay.	Quitados del cuadro de mensaje: %1$s. El cuadro de texto y Enviar se quedan.
@@ -1543,6 +1555,9 @@ Next page	Página siguiente
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	Puntos de página en una cápsula
 Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Mueve los puntos de página de una publicación en carrusel a una cápsula redonda en la parte inferior de su foto o video, con la página en la que estás en azul.
+# context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
+Hide page number	Ocultar número de página
+Takes the number like 3/5 off the corner of a carousel post's photo or video.	Quita el número como 3/5 de la esquina de la foto o el video de una publicación en carrusel.
 # context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
 Ambient light	Luz ambiental
 Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	Pone un brillo suave con los colores de la publicación alrededor de su foto o video, y en las franjas alrededor de un reel que no llena la pantalla. El brillo sigue al video mientras se reproduce.
@@ -1916,3 +1931,35 @@ Leaving Instagram while a reel plays shrinks it into a small window over your ot
 # context: a switch on the Profiles page under Mark who doesn't follow you back; it means the mark goes on each profile picture of your own Following list
 Show it on the profile picture	Mostrarlo en la foto de perfil
 Puts a green check on the picture of each account that follows you back and a red cross on each one that doesn't, instead of the words.	Pone una marca verde en la foto de cada cuenta que te sigue y una cruz roja en cada una que no, en lugar del texto.
+
+# context: Messages rows of Call blocker: Who can call you, its four choices and their summaries, and the list row with its dialog message (#578)
+Who can call you	Quién puede llamarte
+Your call list	Tu lista de llamadas
+Usernames, one on each line. A leading @ and capital letters don't matter.	Nombres de usuario, uno por línea. Da igual una @ inicial o las mayúsculas.
+Nobody	Nadie
+Only people on your list	Solo las personas de tu lista
+Everyone except your list	Todos menos tu lista
+Everyone	Todos
+No call rings your phone. Callers just get no answer.	Ninguna llamada suena en tu teléfono. Quien llama simplemente no recibe respuesta.
+Only people on your list ring your phone. Anyone else gets no answer.	Solo las personas de tu lista hacen sonar tu teléfono. Los demás no reciben respuesta.
+People on your list don't ring your phone. Everyone else still does.	Las personas de tu lista no hacen sonar tu teléfono. Los demás sí.
+Everyone can ring your phone, as usual.	Todos pueden llamarte, como siempre.
+# context: Seek bar shape and preview (#567, #586, #592)
+Seek bar shape	Forma de la barra de búsqueda
+Thin line	Línea fina
+Rounded	Redondeada
+Expressive	Expresiva
+Wave	Onda
+The bar and round handle you know.	La barra y el control redondo de siempre.
+A thin line with no handle that grows while you drag it. On feed videos it sits on the bottom edge.	Una línea fina sin control que crece mientras la arrastras. En los videos del feed queda en el borde inferior.
+A thicker rounded bar with no handle.	Una barra redondeada más gruesa, sin control.
+A rounded bar split by a tall handle.	Una barra redondeada dividida por un control alto.
+A wavy line for the part played, with a tall handle.	Una línea ondulada para la parte reproducida, con un control alto.
+Turn on a seek bar on feed videos, stories or reels to use this choice.	Activa una barra de búsqueda en los videos del feed, las historias o los Reels para usar esta opción.
+Preview while you drag a seek bar	Vista previa al arrastrar una barra de búsqueda
+Shows the time above your finger while you drag a seek bar on a feed video, story or reel, and a small picture of that moment when Instagram has one for the video.	Muestra el tiempo sobre tu dedo mientras arrastras una barra de búsqueda en un video del feed, una historia o un Reel, y una imagen pequeña de ese momento cuando Instagram tiene una para el video.
+Swipe right on Home opens	Deslizar a la derecha en Inicio abre
+The camera, as Instagram has it. Pick a tab and the same swipe opens that tab instead.	La cámara, como en Instagram. Elige una pestaña y el mismo gesto abrirá esa pestaña.
+A swipe right on Home opens %1$s. The + button still opens the camera.	Deslizar a la derecha en Inicio abre %1$s. El botón + sigue abriendo la cámara.
+Keep the tab bar on a reel's profile	Mantener la barra de pestañas en el perfil de un reel
+A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	Un perfil que abres desde un reel se queda en la pestaña en la que estás, con la barra de pestañas debajo. Atrás te lleva de vuelta al reel.

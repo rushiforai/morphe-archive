@@ -24,6 +24,24 @@ public final class OneAheadPlanner {
     public static final long PACE_INTERNAL_BPS = 4_000_000L, PACE_EXTERNAL_BPS = 2_000_000L;
     public static final int MP4_MAX_REQUESTS = 20000;
     public static final double HEAD_SEC = 360, TAIL_SEC = 240;
+    /** Runtime-proportional windows: head min(360 s, 0.25 of runtime), tail min(480 s, 0.15).
+     * Heads stay at 360: wider heads admit unfixable audio-only composites (a replayed
+     * premiere and an in-score motif both tighten into title doppelgangers with more
+     * context); the 600-head gains (BCS e02, Lost e03) stay an AWS-service pass with
+     * truth vetoes. Tails reach Kingdom's late credits (275 s out). Short sitcoms
+     * (1300 s: head 325, tail 195) cost less than half the fixed 600/300 bytes. */
+    public static double headSec(double durationSec) {
+        return Math.min(360.0, 0.25 * durationSec);
+    }
+    public static double tailSec(double durationSec) {
+        return Math.min(480.0, 0.15 * durationSec);
+    }
+    public static double coreHeadSec(double durationSec) {
+        return 0.12 * durationSec;
+    }
+    public static double coreTailSec(double durationSec) {
+        return 0.06 * durationSec;
+    }
     public enum Container { MKV, MP4, UNKNOWN }
     /** Only full windows are read. Sparse probing exists in Detector but is not used for fetched targets. */
     public enum Mode { FULL }
@@ -41,16 +59,26 @@ public final class OneAheadPlanner {
         public final double durationSec;
         public final Container container;
         public final boolean finale, cached;
+        /** Channels of the audio the viewer plays (0 when unknown): references read the same layout. */
+        public final int channels;
         /** Demuxer-priced full-window bytes, or -1 when not yet priced. */
         public final long estimatedFullBytes;
         public FileRef(String episodeId, String videoId, long urlHash, long fileSize, long headHash,
                        double durationSec, Container container, boolean finale, boolean cached,
                        String language, long estimatedFullBytes) {
+            this(episodeId, videoId, urlHash, fileSize, headHash, durationSec, container, finale, cached,
+                    language, 0, estimatedFullBytes);
+        }
+        public FileRef(String episodeId, String videoId, long urlHash, long fileSize, long headHash,
+                       double durationSec, Container container, boolean finale, boolean cached,
+                       String language, int channels, long estimatedFullBytes) {
             this.episodeId = episodeId; this.videoId = videoId; this.urlHash = urlHash;
             this.fileSize = fileSize; this.headHash = headHash; this.durationSec = durationSec;
             this.container = container; this.finale = finale; this.cached = cached;
-            this.language = language; this.estimatedFullBytes = estimatedFullBytes;
+            this.language = language; this.channels = channels; this.estimatedFullBytes = estimatedFullBytes;
         }
+        /** Channels of the wanted audio layout, 0 when unknown. */
+        public int channels() { return channels; }
         boolean sameFile(FileRef o) {
             return fileSize != 0 && fileSize == o.fileSize && headHash != 0 && headHash == o.headHash;
         }
@@ -61,6 +89,8 @@ public final class OneAheadPlanner {
         public int showEpisodesToday;
         public long bytesToday;
         public boolean targetAttemptedToday;
+        public int targetAttemptsToday;
+        public boolean targetFinishedToday;
     }
 
     public static final class FilePlan {
@@ -93,7 +123,8 @@ public final class OneAheadPlanner {
     }
 
     public Outcome plan(FileRef target, List<FileRef> candidates, Usage usage) {
-        if (usage != null && usage.targetAttemptedToday) return no(Refusal.ALREADY_ATTEMPTED);
+        if (usage != null && (usage.targetFinishedToday || usage.targetAttemptsToday >= 2
+                || usage.targetAttemptedToday)) return no(Refusal.ALREADY_ATTEMPTED);
         if (target == null || target.durationSec <= 0 || target.fileSize <= 0 || target.headHash == 0)
             return no(Refusal.INVALID_TARGET); // a result must bind to a measured file identity
         // Usable references: never a finale, never the target's file, no duplicates, language must not clash.
@@ -111,6 +142,19 @@ public final class OneAheadPlanner {
         usable.sort(Comparator.comparing((FileRef f) -> !f.cached).thenComparingLong(f -> f.fileSize));
         // A reference is correlated in full: one whose full windows exceed the per-file cap is unusable.
         usable.removeIf(f -> !f.cached && price(f, Mode.FULL).estimatedBytes > FILE_CAP);
+        // The earliest episode before the target votes in every plan, ahead of the cap and the day-budget drop: the
+        // detector's premiere checks (a replayed cold open, a recap sting that later episodes share and the premiere
+        // lacks) read it. Bench: with it pinned, 3 and 4 references lost the Mandalorian recap cut (106 s summed).
+        FileRef first = null;
+        int[] te = Detector.epOrder(target.episodeId);
+        for (FileRef f : usable) {
+            int[] e = Detector.epOrder(f.episodeId);
+            if (Detector.before(e, te) && (first == null || Detector.before(e, Detector.epOrder(first.episodeId)))) first = f;
+        }
+        if (first != null) {
+            usable.remove(first);
+            usable.add(0, first);
+        }
         if (usable.size() > MAX_REFS) usable = new ArrayList<>(usable.subList(0, MAX_REFS));
         if (usage != null && usage.showEpisodesToday >= MAX_SHOW_EPS_PER_DAY) return no(Refusal.SHOW_DAILY_LIMIT);
         long dayLeft = DAY_CAP - (usage == null ? 0 : usage.bytesToday);
@@ -143,8 +187,8 @@ public final class OneAheadPlanner {
 
     static FilePlan price(FileRef f, Mode mode) {
         long est = f.estimatedFullBytes >= 0 ? f.estimatedFullBytes
-                : Math.round(f.fileSize * Math.min(1.0, (HEAD_SEC + TAIL_SEC) / f.durationSec));
-        int winSec = (int) (HEAD_SEC + TAIL_SEC);
+                : Math.round(f.fileSize * Math.min(1.0, (headSec(f.durationSec) + tailSec(f.durationSec)) / f.durationSec));
+        int winSec = (int) (headSec(f.durationSec) + tailSec(f.durationSec));
         // MP4 with a 256 KB gap costs at most ~4 requests per media second (measured on a real file: 1931 GETs for 600 s).
         // At that rate a full plan of 6 MP4 files stays under MP4_MAX_REQUESTS, which is left as a fuse.
         int reqs = f.container == Container.MP4 ? winSec * 4
@@ -154,8 +198,8 @@ public final class OneAheadPlanner {
 
     static List<double[]> slices(double duration, Mode mode) {
         List<double[]> out = new ArrayList<>();
-        double tailStart = Math.max(0, duration - TAIL_SEC);
-        out.add(new double[]{0, Math.min(HEAD_SEC, duration)});
+        double tailStart = Math.max(0, duration - tailSec(duration));
+        out.add(new double[]{0, Math.min(headSec(duration), duration)});
         if (tailStart > 0) out.add(new double[]{tailStart, duration});
         return out;
     }

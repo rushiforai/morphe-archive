@@ -1,3 +1,14 @@
+## 2.0.0 (2026-11-10)
+
+A complete rewrite with independently developed patch code, while preserving the existing functionality of all 22 patches.
+
+### Fixes
+- Fixed bidirectional feed swiping on My Network.
+- Improved feed detection for posts containing multiple photos.
+- Fixed duplicate launcher shortcuts from older installations.
+
+**22 patches in total.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#patches).
+
 ## 1.2.5 (2026-11-08)
 
 ### Fixes

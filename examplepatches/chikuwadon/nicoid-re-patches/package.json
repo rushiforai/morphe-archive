@@ -1,6 +1,5 @@
 {
   "devDependencies": {
-    "@cleyrop-org/semantic-release-backmerge": "^6.2.0",
     "@MorpheApp/changelog": "git+https://github.com/MorpheApp/changelog.git#caa1e931730f097bb6c4dee636b01c2c24ccd72d",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^11.0.1",
@@ -17,6 +16,6 @@
     "ip-address": "10.7.5",
     "postcss-selector-parser": "7.1.7",
     "tar": "7.5.22",
-    "npm": "11.21.1"
+    "npm": "11.21.2"
   }
 }

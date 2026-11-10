@@ -232,6 +232,9 @@ Upload quality applies to	Yükleme kalitesinin geçerli olduğu yerler
 Stories only	Yalnızca hikayeler
 Stories, posts and reels	Hikayeler, gönderiler ve Reels
 Video bitrate	Video bit hızı
+Video resolution	Video çözünürlüğü
+Video frame rate	Video kare hızı
+Photo quality	Fotoğraf kalitesi
 %1$s Mbps	%1$s Mbps
 Download feed videos	Akıştaki videoları indir
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	Akışındaki videolu bir gönderinin menüsüne İndir ekler. Aşağıdaki kaliteyi kullanır. Kapalıyken veya duraklatıldığında Instagram'ın kendi menüsü geri gelir.
@@ -422,6 +425,8 @@ Hide People you don't follow back	Geri takip etmediğin kişiler bölümünü gi
 Takes the People you don't follow back section off the bottom of your notifications. Notifications about new followers stay.	Bildirimlerinin altındaki Geri takip etmediğin kişiler bölümünü kaldırır. Yeni takipçi bildirimleri kalır.
 Hide suggestions in notifications	Bildirimlerdeki önerileri gizle
 Takes rows that only suggest something off your notifications, like a thread from an account you don't follow or someone you might know. Likes, comments, mentions and new followers stay.	Takip etmediğin bir hesabın gönderisi ya da tanıyor olabileceğin biri gibi yalnızca öneri olan satırları bildirimlerinden kaldırır. Beğeniler, yorumlar, bahsetmeler ve yeni takipçiler kalır.
+Hide channel invites in notifications	Bildirimlerde kanal davetlerini gizle
+Takes invites to join someone's channel off your notifications. Everything else stays.	Birinin kanalına katılma davetlerini bildirimlerinden kaldırır. Geri kalan her şey kalır.
 Hide Featured in notifications	Bildirimlerde Öne Çıkanlar'ı gizle
 Takes the Featured section off the top of your notifications, the posts and threads Instagram picks to show you there. Everything under it stays.	Bildirimlerinin en üstündeki Öne Çıkanlar bölümünü, yani Instagram'ın orada göstermek için seçtiği gönderileri ve gönderi dizilerini kaldırır. Altındaki her şey kalır.
 Keep Featured off the heart's dot	Öne Çıkanlar kalpteki noktayı yakmasın
@@ -663,8 +668,10 @@ Time away before swiping comes back	Kaydırma geri gelmeden önceki ara
 Take a scroll break	Kaydırmaya mola ver
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	%1$d dakika sonra
-Off. It can cover the Home, Reels and Explore tabs for 5 minutes after you've spent a while on them.	Kapalı. Ana Sayfa, Reels ve Keşfet sekmelerinde bir süre geçirdikten sonra bu sekmeleri 5 dakika boyunca kapatabilir.
-After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for 5 minutes. Messages, your profile and the tab bar still work.	Ana Sayfa, Reels ve Keşfet sekmelerinde %1$d dakika geçirdikten sonra bir mola ekranı onları 5 dakika boyunca kapatır. Mesajlar, profilin ve sekme çubuğu çalışmaya devam eder.
+Off. It can cover the Home, Reels and Explore tabs for a break after you've spent a while on them.	Kapalı. Ana Sayfa, Reels ve Keşfet sekmelerinde bir süre geçirdikten sonra bu sekmeleri bir mola için kapatabilir.
+After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for %2$d minutes. Messages, your profile and the tab bar still work.	Ana Sayfa, Reels ve Keşfet sekmelerinde %1$d dakika geçirdikten sonra bir mola ekranı onları %2$d dakika boyunca kapatır. Mesajlar, profilin ve sekme çubuğu çalışmaya devam eder.
+Break length	Mola süresi
+%1$d minutes	%1$d dakika
 Time for a break	Mola zamanı
 Home, Reels and Explore open again when the countdown ends. Messages and your profile still work.	Geri sayım bitince Ana Sayfa, Reels ve Keşfet yeniden açılır. Mesajlar ve profilin çalışmaya devam eder.
 # context: read aloud by the screen reader on the break screen; %1$s is the time left, like 4:59
@@ -937,6 +944,8 @@ Stop the background heartbeat	Arka plandaki kalp atışını durdur
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram, ekran kapalıyken bile her bir iki dakikada bir telefonunu yalnızca hâlâ çalıştığını not etmek için uyandırır. Bu, bunu durdurur. Mesajlar, bildirimler ve gördüğün her şey etkilenmez.
 Stop the analytics upload alarm	Analiz yükleme alarmını durdur
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram, kullanım verilerini beş dakika sonra göndermek için telefonunu uyandıran bir alarm kurar. Bu, o alarmı durdurur. Veriler uygulamayı bir sonraki kullanışında gider.
+Stop background feed refresh	Arka planda akış yenilemeyi durdur
+About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Instagram yaklaşık yarım saatte bir, akışını önceden indirmek için telefonunu uyandırır. Bu, bunu durdurur. Akış bunun yerine uygulamayı açtığında yüklenir, mesajlar ve bildirimler gelmeye devam eder.
 Haptic style	Haptik stili
 Short tick	Kısa tık
 System tick	Sistem tıkı
@@ -1144,6 +1153,7 @@ Hold the Friends tab to pick friends	Arkadaş seçmek için Arkadaşlar sekmesin
 Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	Reels'te Arkadaşlar sekmesini basılı tut ve sana gösterdiği arkadaşlar arasından seç. Sekme artık yalnızca onların beğendiği veya paylaştığı reelleri tutar. Onların olmadığı bir sayfa, sonraki sayfa yüklenebilsin diye bir reel bırakır.
 Pick friends	Arkadaş seç
 Open the Friends tab first.	Önce Arkadaşlar sekmesini aç.
+No friends to pick yet.	Henüz seçilecek arkadaş yok.
 Applies to the next reels loaded.	Sonraki yüklenen reellere uygulanır.
 Hide the Save button on reels	Reels'te Kaydet düğmesini gizle
 Burn-in guard	Ekran yanığı koruması
@@ -1341,7 +1351,7 @@ Keep the pill full size	Hapı tam boyutta tut
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	Bir listeyi aşağı kaydırınca sıvı cam hap olduğu gibi kalır, her sekme yerinde durur. Değiştirdikten sonra Instagram'ı yeniden başlat.
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	Kenarlarda ışığı kır
-The liquid pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	Sıvı cam hapın kenarı arkasındakini gerçek cam gibi kırar, kenarın altından geçen her şey ters görünür. Android 13 ve sonrası. Değiştirdikten sonra Instagram'ı yeniden başlat.
+The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	Hapın kenarı arkasındakini gerçek cam gibi kırar, kenarın altından geçen her şey ters görünür. Android 13 ve sonrası. Değiştirdikten sonra Instagram'ı yeniden başlat.
 # context: Ghost mode: the row and dialog picking which switches Ghost mode turns (#251). %1$s is a list of switch names
 All of them. Tap to leave some out, and Ghost mode leaves those as you set them.	Hepsi. Bazılarını dışarıda bırakmak için dokun, Hayalet modu onları senin ayarladığın gibi bırakır.
 %1$s. The others stay as you set them.	%1$s. Diğerleri senin ayarladığın gibi kalır.
@@ -1389,6 +1399,8 @@ Show all recent searches	Tüm son aramaları göster
 Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.	Arama çubuğunun altında yalnızca ilk birkaçını değil, tüm son aramaları listeler. Tümünü gör ve her satırdaki x eskisi gibi çalışır.
 Hide the call buttons in chats	Sohbetlerdeki arama düğmelerini gizle
 Takes the voice and video call buttons off the top of a chat. The name keeps its room. Turn it off and they're back the next time a chat opens.	Sohbetin üstündeki sesli ve görüntülü arama düğmelerini kaldırır. İsim yerini korur. Kapatırsan düğmeler sohbeti bir sonraki açışında geri gelir.
+Hide the Community Standards reminder	Topluluk Standartları hatırlatıcısını gizle
+Takes the banner reminding you to be respectful off the bottom of a chat.	Sohbetin altındaki saygılı olmanı hatırlatan afişi kaldırır.
 Buttons in the message box	Mesaj kutusundaki düğmeler
 Every button in the message box shows. Untick the ones you don't use. The text box and Send always stay.	Mesaj kutusundaki tüm düğmeler görünür. Kullanmadıklarının işaretini kaldır. Metin kutusu ve Gönder her zaman kalır.
 Left off the message box: %1$s. The text box and Send stay.	Mesaj kutusundan çıkarılanlar: %1$s. Metin kutusu ve Gönder kalır.
@@ -1543,6 +1555,9 @@ Next page	Sonraki sayfa
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	Hap üzerinde sayfa noktaları
 Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	Çoklu gönderinin sayfa noktalarını fotoğrafın veya videonun altındaki yuvarlak bir hapın üzerine taşır. Bulunduğun sayfa mavi görünür.
+# context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
+Hide page number	Sayfa numarasını gizle
+Takes the number like 3/5 off the corner of a carousel post's photo or video.	Karusel gönderisinin fotoğraf veya videosunun köşesindeki 3/5 gibi sayıyı kaldırır.
 # context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
 Ambient light	Ortam ışığı
 Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	Bir gönderinin fotoğrafının veya videosunun çevresine kendi renklerinde yumuşak bir parıltı ekler. Ekranı doldurmayan bir reels videosunun çevresindeki şeritlere de ekler. Parıltı, video oynarken onu takip eder.
@@ -1916,3 +1931,35 @@ Leaving Instagram while a reel plays shrinks it into a small window over your ot
 # context: a switch on the Profiles page under Mark who doesn't follow you back; it means the mark goes on each profile picture of your own Following list
 Show it on the profile picture	Profil fotoğrafında göster
 Puts a green check on the picture of each account that follows you back and a red cross on each one that doesn't, instead of the words.	Seni geri takip eden her hesabın fotoğrafına yeşil bir onay işareti, etmeyenlerinkine kırmızı bir çarpı koyar, yazının yerine.
+
+# context: Messages rows of Call blocker: Who can call you, its four choices and their summaries, and the list row with its dialog message (#578)
+Who can call you	Seni kimler arayabilir
+Your call list	Arama listen
+Usernames, one on each line. A leading @ and capital letters don't matter.	Kullanıcı adları, her satıra bir tane. Baştaki @ ve büyük harfler fark etmez.
+Nobody	Hiç kimse
+Only people on your list	Yalnızca listendeki kişiler
+Everyone except your list	Listen dışındaki herkes
+Everyone	Herkes
+No call rings your phone. Callers just get no answer.	Hiçbir arama telefonunu çaldırmaz. Arayanlar yalnızca yanıt alamaz.
+Only people on your list ring your phone. Anyone else gets no answer.	Telefonunu yalnızca listendeki kişiler çaldırır. Diğerleri yanıt alamaz.
+People on your list don't ring your phone. Everyone else still does.	Listendeki kişiler telefonunu çaldırmaz. Diğerleri çaldırmaya devam eder.
+Everyone can ring your phone, as usual.	Herkes seni her zamanki gibi arayabilir.
+# context: Seek bar shape and preview (#567, #586, #592)
+Seek bar shape	Arama çubuğu şekli
+Thin line	İnce çizgi
+Rounded	Yuvarlatılmış
+Expressive	Etkileyici
+Wave	Dalga
+The bar and round handle you know.	Bildiğiniz çubuk ve yuvarlak tutamaç.
+A thin line with no handle that grows while you drag it. On feed videos it sits on the bottom edge.	Sürüklerken kalınlaşan, tutamaçsız ince bir çizgi. Akış videolarında alt kenarda durur.
+A thicker rounded bar with no handle.	Tutamaçsız, daha kalın yuvarlatılmış bir çubuk.
+A rounded bar split by a tall handle.	Uzun bir tutamaçla bölünmüş yuvarlatılmış bir çubuk.
+A wavy line for the part played, with a tall handle.	Oynatılan kısım için dalgalı bir çizgi ve uzun bir tutamaç.
+Turn on a seek bar on feed videos, stories or reels to use this choice.	Bu seçimi kullanmak için akış videolarında, hikayelerde veya Reels'te bir arama çubuğunu açın.
+Preview while you drag a seek bar	Arama çubuğunu sürüklerken önizleme
+Shows the time above your finger while you drag a seek bar on a feed video, story or reel, and a small picture of that moment when Instagram has one for the video.	Bir akış videosunda, hikayede veya Reels videosunda arama çubuğunu sürüklerken parmağınızın üstünde süreyi ve Instagram'da o video için varsa o anın küçük bir resmini gösterir.
+Swipe right on Home opens	Ana sayfada sağa kaydırınca açılan
+The camera, as Instagram has it. Pick a tab and the same swipe opens that tab instead.	Instagram'daki gibi kamera. Bir sekme seçersen aynı kaydırma o sekmeyi açar.
+A swipe right on Home opens %1$s. The + button still opens the camera.	Ana sayfada sağa kaydırma %1$s sekmesini açar. + düğmesi kamerayı açmaya devam eder.
+Keep the tab bar on a reel's profile	Bir reel profilinde sekme çubuğunu koru
+A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	Bir reel üzerinden açtığın profil bulunduğun sekmede kalır ve altında sekme çubuğu görünür. Geri, reel'e döndürür.

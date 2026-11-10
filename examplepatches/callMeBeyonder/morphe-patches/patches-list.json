@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.8.1",
+  "version": "1.9.0",
   "patches": [
     {
       "name": "Bypass Root Detection",
@@ -327,6 +327,32 @@
           "targets": [
             {
               "version": "1.9.0",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock Premium",
+      "description": "Unlocks all premium content by forcing every premium gate (\"true\"===this.state.premium) and every premium flag seed to true in the web bundle.",
+      "default": true,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.muzudre.jump.rope.training.challenges.jumprope",
+          "name": "Jump Rope Challenge",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#2A39FF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "1.8.1",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

@@ -30,14 +30,12 @@ val freeContentPatch =
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
-                                // package:goplay_tv/data/models/content_model.dart ->
-                                // ContentModel.toEntity
+                                // package:goplay_tv/data/models/content_model.dart -> ContentModel.toEntity
                                 // content_access -> id
                                 when (arch) {
                                     CpuArchitecture.ARMEABI_V7A -> {
-                                        // ADD             R2, R5, #0x6000
-                                        // LDR             R2, [R2,#0x93F]  -> LDR             R2,
-                                        // [R2,#0x90B]
+                                        // ADD R2, R5, #0x6000
+                                        // LDR R2, [R2,#0x93F] -> LDR R2, [R2,#0x90B]
                                         """
                                             06 2a 85 e2
                                             3f 29 92 e5
@@ -48,9 +46,8 @@ val freeContentPatch =
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
-                                        // ADD             X2, X27, #0xB,LSL#12
-                                        // LDR             X2, [X2,#0xDB0]      -> LDR
-                                        // X2, [X2,#0xD48]
+                                        // ADD X2, X27, #0xB,LSL#12
+                                        // LDR X2, [X2,#0xDB0] -> LDR X2, [X2,#0xD48]
                                         """
                                             62 2f 40 91
                                             42 d8 46 f9
@@ -69,14 +66,12 @@ val freeContentPatch =
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
-                                // package:goplay_tv/data/models/content_model.dart ->
-                                // ContentModel.toEntity
+                                // package:goplay_tv/data/models/content_model.dart -> ContentModel.toEntity
                                 // content_access -> id
                                 when (arch) {
                                     CpuArchitecture.ARMEABI_V7A -> {
-                                        // ADD             R2, R5, #0x5000
-                                        // LDR             R2, [R2,#0x1E3]  -> LDR             R2,
-                                        // [R2,#0x1AF]
+                                        // ADD R2, R5, #0x5000
+                                        // LDR R2, [R2,#0x1E3] -> LDR R2, [R2,#0x1AF]
                                         """
                                             05 2a 85 e2
                                             e3 21 92 e5
@@ -87,9 +82,8 @@ val freeContentPatch =
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
-                                        // ADD             X0, X27, #8,LSL#12
-                                        // LDR             X0, [X0,#0xF00]    -> LDR             X0,
-                                        // [X0,#0xE98]
+                                        // ADD X0, X27, #8,LSL#12
+                                        // LDR X0, [X0,#0xF00] -> LDR X0, [X0,#0xE98]
                                         """
                                             62 23 40 91
                                             42 80 47 f9

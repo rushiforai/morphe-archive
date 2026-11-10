@@ -225,7 +225,7 @@ private fun planSurfaceEdits(instructions: List<Instruction>): SurfaceEdits? {
 val currentFrameMediaArtworkPatch = bytecodePatch(
     name = "Current Frame Media Artwork",
     description = "Adds an in-player control that updates the media artwork from the current " +
-        "video frame, including while the screen is off, and can blank the media title.",
+        "video frame, including while the screen is off. Long press the button to open the settings.",
     default = true,
 ) {
     extendWith("extensions/current_frame_media_artwork.dex")

@@ -37,7 +37,15 @@ final class FakeHttp implements Http {
     /** Requests whose URL contains a key take this many milliseconds. */
     final Map<String, Long> delays = new LinkedHashMap<>();
 
+    /** Requests whose URL (or body) contains one of these crash instead of answering. */
+    final List<String> crashes = Collections.synchronizedList(new ArrayList<>());
+
     private Response find(Map<String, String> responses, String key) throws IOException {
+        synchronized (crashes) {
+            for (String crash : crashes) {
+                if (key.contains(crash)) throw new IllegalStateException("crash for " + crash);
+            }
+        }
         for (Map.Entry<String, Long> delay : delays.entrySet()) {
             if (!key.contains(delay.getKey())) continue;
             try {

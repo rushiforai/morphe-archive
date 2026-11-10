@@ -537,4 +537,120 @@ public class AdBlockerTest {
 
         assertEquals(siteRequests, http.requests.stream().filter(r -> r.contains("\"playerType\":\"site\"")).count());
     }
+
+    @Test
+    public void breakIsNotOverWhileAnotherPolledQualityIsStillInIt() {
+        backupHasAds("site", false);
+        http.getResponses.put("site-720.m3u8", Playlists.media("site720", 101, "llll", false));
+        blocker.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+        blocker.process(NATIVE_720, Playlists.media("m", 100, "llll", false));
+        blocker.process(NATIVE_1080, Playlists.media("n", 102, "llaa", true));
+        blocker.process(NATIVE_720, Playlists.media("m", 102, "llaa", true));
+
+        // 720p is clean again, but 1080p was polled moments ago and is still in the break.
+        blocker.process(NATIVE_720, Playlists.media("m", 106, "llll", false));
+        blocker.process(NATIVE_720, Playlists.media("m", 107, "llll", false));
+        assertEquals(0, refreshes);
+        assertFalse(notices.contains("over"));
+
+        // Once 1080p is left behind, the break ends, once.
+        now += 7_000;
+        blocker.process(NATIVE_720, Playlists.media("m", 108, "llll", false));
+        assertEquals(1, refreshes);
+    }
+
+    @Test
+    public void backupThatKeepsFailingToRefreshIsReplaced() {
+        backupHasAds("site", false);
+        http.getResponses.put("popout-1080.m3u8", Playlists.media("popout", 103, "llll", false));
+        blocker.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+        assertTrue(blocker.process(NATIVE_1080, Playlists.media("n", 102, "llaa", true)).contains("/site/"));
+
+        // The site backup dies: its last playlist is served once, then another backup is found.
+        http.getResponses.remove("site-1080.m3u8");
+        String bridged = blocker.process(NATIVE_1080, Playlists.media("n", 103, "laaa", true));
+        assertTrue(bridged.contains(Playlists.segment("site", 104)));
+
+        String replaced = blocker.process(NATIVE_1080, Playlists.media("n", 104, "aaaa", true));
+        assertTrue(replaced.contains(Playlists.segment("popout", 106)));
+        assertFalse(replaced.contains("/ads/"));
+    }
+
+    @Test
+    public void onlyPlaylistsAreInspected() {
+        assertFalse(blocker.shouldInspect("https://weaver.example/native-1080.ts"));
+        assertFalse(blocker.shouldInspect("https://video-edge.example.hls.ttvnw.net/v1/segment/abc.ts"));
+        blocker.checkRequest("https://usher.ttvnw.net/api/channel/hls/x/segment.ts");
+        assertTrue(problems.isEmpty());
+    }
+
+    @Test
+    public void manyPreviewsDoNotForgetTheOnesStillPlaying() {
+        List<Problem> found = new ArrayList<>();
+        BackupStreamFinder finder = new BackupStreamFinder(http, new AccessTokenClient(http, "device"), Logger.NONE, () -> now,
+                Problem.Reporter.NONE);
+        AdBlocker fresh = new AdBlocker(finder, Logger.NONE, () -> now, AdBlocker.BreakListener.NONE,
+                (problem, detail) -> found.add(problem));
+        for (int i = 0; i < 600; i++) {
+            String previewMaster = "https://usher.ttvnw.net/api/v2/channel/hls/c" + i + ".m3u8?allow_source=true"
+                    + "&token=%7B%22player_type%22%3A%22mobile-feed%22%7D&sig=s";
+            fresh.process(previewMaster, Playlists.master("https://video-weaver.example.hls.ttvnw.net/v1/playlist/p" + i + ".m3u8"));
+        }
+
+        // Preview 450 was opened before the list filled up; clearing the whole list used to drop it.
+        String recent = "https://video-weaver.example.hls.ttvnw.net/v1/playlist/p450.m3u8";
+        assertFalse(fresh.shouldInspect(recent));
+        fresh.checkRequest(recent);
+        assertTrue(found.isEmpty());
+        // The oldest ones are the ones dropped.
+        assertTrue(fresh.shouldInspect("https://video-weaver.example.hls.ttvnw.net/v1/playlist/p0.m3u8"));
+    }
+
+    @Test
+    public void perPollLinesAreOnlyBuiltWhenTheDetailedLogIsOn() {
+        List<String> lines = new ArrayList<>();
+        Logger quiet = new Logger() {
+            @Override
+            public void log(String message) {
+                lines.add(message);
+            }
+
+            @Override
+            public boolean detailed() {
+                return false;
+            }
+        };
+        BackupStreamFinder finder = new BackupStreamFinder(http, new AccessTokenClient(http, "device"), quiet, () -> now,
+                Problem.Reporter.NONE);
+        AdBlocker fresh = new AdBlocker(finder, quiet, () -> now, AdBlocker.BreakListener.NONE, Problem.Reporter.NONE);
+        backupHasAds("site", false);
+        fresh.process(MASTER_URL, Playlists.master(NATIVE_1080, NATIVE_720));
+        fresh.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+        fresh.process(NATIVE_1080, Playlists.media("n", 102, "llaa", true));
+
+        assertTrue(lines.stream().anyMatch(line -> line.startsWith("Watching somechannel")));
+        assertTrue(lines.stream().anyMatch(line -> line.startsWith("Serving site")));
+        assertFalse(lines.stream().anyMatch(line -> line.startsWith("Playlist ") || line.startsWith("HTTP ")));
+    }
+
+    @Test
+    public void backupWithoutAnyVideoQualityIsAnErrorNotAnAd() {
+        for (String type : BackupStreamFinder.PLAYER_TYPES) http.getResponses.put("sig=sig-" + type + "&", "#EXTM3U\n");
+        blocker.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+
+        blocker.process(NATIVE_1080, Playlists.media("n", 102, "llaa", true));
+
+        assertTrue(problems.contains(Problem.BACKUPS_UNAVAILABLE));
+    }
+
+    @Test
+    public void crashingBackupRequestsAreReportedLikeFailingOnes() {
+        http.crashes.add("PlaybackAccessToken");
+        blocker.process(NATIVE_1080, Playlists.media("n", 100, "llll", false));
+
+        String out = blocker.process(NATIVE_1080, Playlists.media("n", 102, "llaa", true));
+
+        assertTrue(problems.contains(Problem.BACKUPS_UNAVAILABLE));
+        assertFalse(out.contains("/ads/"));
+    }
 }

@@ -19,8 +19,12 @@ public final class Track {
     final float step;
     /** Level per 20 ms in whole dB below full scale (0..127), computed before band-limiting and AGC. */
     public final byte[] env;
+    /** Centre-channel energy fraction per 20 ms (0..127 = 0..1 of total channel energy), for
+     * 5.1 mixes: dialogue drives it up ~7x over score (0.055 theme vs 0.38 dialogue).
+     * Null when unavailable (stereo, unmeasured): callers fall back to the mono path. */
+    public final byte[] cenv;
 
-    Track(double offset, int n, byte[] q8, short[] q16, float[] f, float step, byte[] env) {
+    Track(double offset, int n, byte[] q8, short[] q16, float[] f, float step, byte[] env, byte[] cenv) {
         this.offset = offset;
         this.n = n;
         this.q8 = q8;
@@ -28,6 +32,7 @@ public final class Track {
         this.f = f;
         this.step = step;
         this.env = env;
+        this.cenv = cenv;
     }
 
     float at(int i) {
@@ -51,6 +56,11 @@ public final class Track {
         return quantize(offset, p, env, bits);
     }
 
+    /** Same track with centre-fraction levels attached (runtime only, never cached). */
+    public Track withCenv(byte[] cenv) {
+        return new Track(offset, n, q8, q16, f, step, env, cenv);
+    }
+
     static Track quantize(double offset, float[] p, byte[] env, int bits) {
         int n = p.length;
         if (bits == 8) {
@@ -60,7 +70,7 @@ public final class Track {
                 int v = Math.round(p[i] / step);
                 q[i] = (byte) (v > 127 ? 127 : v < -127 ? -127 : v);
             }
-            return new Track(offset, n, q, null, null, step, env);
+            return new Track(offset, n, q, null, null, step, env, null);
         }
         if (bits == 16) {
             float step = 8f / 32767f;
@@ -69,9 +79,9 @@ public final class Track {
                 int v = Math.round(p[i] / step);
                 q[i] = (short) (v > 32767 ? 32767 : v < -32767 ? -32767 : v);
             }
-            return new Track(offset, n, null, q, null, step, env);
+            return new Track(offset, n, null, q, null, step, env, null);
         }
-        return new Track(offset, n, null, null, p, 1f, env);
+        return new Track(offset, n, null, null, p, 1f, env, null);
     }
 
     /** RMS level per 20 ms in whole dB below full scale. */

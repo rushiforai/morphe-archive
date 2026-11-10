@@ -1,0 +1,382 @@
+[
+  {
+    "path": "gradlew",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "14501a22bbf7d03bbebda6d4c66d3c23d0f200c0240997afdccf756a94db082b"
+  },
+  {
+    "path": "gradlew.bat",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "4e7d86ce993eceebc6193b184bfeed8bde2402ded02ab43ccdabd6c8e889db97"
+  },
+  {
+    "path": "gradle/wrapper/gradle-wrapper.jar",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "497c8c2a7e5031f6aa847f88104aa80a93532ec32ee17bdb8d1d2f67a194a9c7"
+  },
+  {
+    "path": "gradle/wrapper/gradle-wrapper.properties",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "5c0c1bb89c2c1dbefd1494435dd493cc5c73f07383ea0ff85dd7ed14378d5838"
+  },
+  {
+    "path": "gradle/libs.versions.toml",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "f673058cc0a8f05e165ecc9f7fbd4ded1bb59e76e1bec64131440447b8bba25c"
+  },
+  {
+    "path": "LICENSE",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "230184f60bae2feaf244f10a8bac053c8ff33a183bcc365b4d8b876d2b7f4809"
+  },
+  {
+    "path": "NOTICE",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "fca3db575c0e22696864f3028fd5f6d5e667bcfada5d85c50d9345597be1ba6a"
+  },
+  {
+    "path": ".gitattributes",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "f729df6fc6fae8dbf9963f03e5b1cdec4cd313e811560f7fbd9e67c5178b9f5b"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/ControllerAngularVelocityFrame.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "83a0120f4e4c7695f43b2bab7e8bf1d2422b3479ed7f423b235d61b08e950ca7"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/ControllerVelocityFramePatch.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "10e9917507cf099345ab84804910239864dcb760608f3a28854d9fa96e895600"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/ControllerPoseExtrapolationPatch.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "905e37d36358c197c856d2780397a95a3b578c3a44ece296955ea356d38d4940"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/ControllerPoseTimePatch.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "e6fa1dcb255a17692f6ed5aa2a0a900f2370c014d12317ce5d3f255530cbf1ac"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/ControllerHalPosePatch.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "73430ec1560a506fc80ebe005a868f26af6a1d307417dbb2f98f81afd30637d8"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/ControllerGripHapticsPatch.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "e50355b6af4241d1b3477f6b60ce820ac3da7133055f2502aa60b75a1a5c73a4"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/ShizukuBridgePatch.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "585fd1d58c9f5edb2ec36fa261b9bfaa937b24ddc6a2583691400c67dcc09ef2"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/ControllerThrowAnglePatch.kt",
+    "source": "local-controller-work",
+    "sha256": "fe663e91760235a230f55583fd79ba0402bf36bf287b2d6e536991fdf2df3a1e"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/shared/PatchBuilds.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "b3d85f9118d382f50cd32b5610bd5d650669badfc21443dd46e550cd5fa364f0"
+  },
+  {
+    "path": "patches/src/main/kotlin/util/PatchListGenerator.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "2ddd29ef4139f0b4367429c052971799fbbeb9f6b2462fda33175bd128058030"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/androidxr/ControllerVelocityFramePatchTest.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "6d8bb726e7759b55f3332f3a391d3d8035ddf27ea69c0474fde63deb3331a878"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/androidxr/ControllerPoseExtrapolationPatchTest.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "fcc54bbda804b28f453c1d268eda21b6d5b8f702221e496f1b490ef02a883afa"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/androidxr/ControllerPoseTimePatchTest.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "46f95cb5db710b8f7b0583bee0f4624f4578f3930ee18e598746d72cb5879290"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/androidxr/ControllerHalPosePatchTest.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "e086b73df7daf62d361fcbb2fa6abcb261d1a7ae9b47cefade490b58daeb7e80"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/androidxr/ControllerGripHapticsPatchTest.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "4dda35a9ad5b8e41706cded8ac499cf42d7f3ea98bf87003afb1c856a382969d"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/androidxr/ShizukuBridgePatchTest.kt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "62dbe3e17643bf70d0a7b11d24b2b8a4137473068858a7ad3faf8d7034ea6f19"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/androidxr/ControllerThrowAnglePatchTest.kt",
+    "source": "local-controller-work",
+    "sha256": "94dfdf566c3bdcd5ca429692111083c7b9d4042177bedaa1fccf98f04665c470"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/libgxr_controller_velocity_frame.so",
+    "source": "local-controller-work",
+    "sha256": "e39d0045e27f298956d9192358491b6e5935d5661a224647877d50e5702d57ea"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_controller_velocity_frame.json",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "b0c5c5f4c7633c04eb7f5e4b8964a1da1d6feb6629269ca3fbcb3e6e372ee855"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/libgxr_controller_extrapolation.so",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "ae75434d377afd8056f70ffd5bf28377ae4c3a8d6dbbca5adac2566ab7c9f092"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_controller_extrapolation.json",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "636d328e77043ce5ad441063466b71890e6272d25b4130c3232bc364797eecea"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/libgxr_controller_pose_time.so",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "351f216d332e0e25ed4b5b66943ea40ba438f17c277588b1205e3fb2a1d865cf"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_controller_pose_time.json",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "03d51ccf80b3a25c3669dd9728dbda706ca16e6a5ebd150b3e6cae7c6e7938cf"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/libgxr_controller_hal_pose.so",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "5ab5453536a08a04509e404f5d73afa436c1056404d938198f5562218df00e87"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_controller_hal_pose.json",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "8f07b5bdd690bcd4c15f0f11bab7cba31f28c3981d39fe30cd51c59a236de8fe"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/libgxr_haptic_main.so",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "8204dbd693df9f0f46e799352d40fb72adacb6a9a3a307fe7e730aa1773895e3"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_haptic_main.json",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "2554b21d35f22ee4880dbc2d84c45d4fec7c54213d144ad7ebeca78f22441e2c"
+  },
+  {
+    "path": "patches/src/main/resources/extensions/controller-grip-haptics.mpe",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "047fa4c406ceca691bab4e0632cfae7cd7fc7290287be8b2a8c5f883df707373"
+  },
+  {
+    "path": "patches/src/main/resources/extensions/controller-hal-pose.mpe",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "7ebf2aacc5399080157621c7e44ff07503726fac43e0501f7f5c663878e3ca73"
+  },
+  {
+    "path": "patches/src/main/resources/extensions/shizuku-bridge.mpe",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "f03710766c1967df7297b1b64c99f6b6b7e394282b3022546b320c35b20902d5"
+  },
+  {
+    "path": "extensions/controller-velocity-frame-layer/CMakeLists.txt",
+    "source": "local-controller-work",
+    "sha256": "13b88881b576b7dc236868e05598e27256ee169eba3e1b5c636cc04b5d878320"
+  },
+  {
+    "path": "extensions/controller-velocity-frame-layer/README.md",
+    "source": "local-controller-work",
+    "sha256": "e53e48d514e2e84c6bed449908bd5c0c39bd8341dceb6809f09ea2674f82a8bc"
+  },
+  {
+    "path": "extensions/controller-velocity-frame-layer/src/controller_velocity_frame_layer.cpp",
+    "source": "local-controller-work",
+    "sha256": "d91c325ddae09a215f498698d5bdd8fdba49fc616edc7c9228ddddc371ac2e15"
+  },
+  {
+    "path": "extensions/controller-velocity-frame-layer/src/throw_angle.h",
+    "source": "local-controller-work",
+    "sha256": "3135d3ef07f99b9e56a314f2af05d7f7e452e72fbcf7e4f12468a2039bcd919c"
+  },
+  {
+    "path": "extensions/controller-velocity-frame-layer/tests/throw_angle_test.cpp",
+    "source": "local-controller-work",
+    "sha256": "93c3d86e384593d4c075c330eeee00ed8979d9f17e7984af546d129af74ee595"
+  },
+  {
+    "path": "extensions/controller-extrapolation-layer/CMakeLists.txt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "7a1d394fb42029ee0537df71a51de3c27c14391a71c650600d71e87e541cda67"
+  },
+  {
+    "path": "extensions/controller-extrapolation-layer/README.md",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "e7d3865437a98cffcd1068ebbee9d4920cf450862fae3336b111be251fdb03b2"
+  },
+  {
+    "path": "extensions/controller-extrapolation-layer/src/controller_extrapolation_layer.cpp",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "7d4f23c0a993b5a1fa3e93626ce90fa667b627f42d166ebfffc0ca827e460521"
+  },
+  {
+    "path": "extensions/controller-pose-time-layer/CMakeLists.txt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "7258facbeb7fd1408dde0e89deabf781febe90f8b35e48964fb42e58c294b890"
+  },
+  {
+    "path": "extensions/controller-pose-time-layer/profiles.py",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "8571ece700df5275d18e3e363693efa2234232db3051e56d08cd2c2fc8021dd7"
+  },
+  {
+    "path": "extensions/controller-pose-time-layer/README.md",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "b2155995972bc822854beefce4693489750094c0023c5cda5062282b3bb6686b"
+  },
+  {
+    "path": "extensions/controller-pose-time-layer/src/controller_pose_time_layer.cpp",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "b28b25353f0c5fa1af45f8845e1ab378936cef2e9fb56a456024aed0a67e51d7"
+  },
+  {
+    "path": "extensions/controller-pose-time-layer/src/pose_time.h",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "2a44c284b4f7c218c6db2e77341243c9c7007c9f8f267e45bf1d11b96af996ec"
+  },
+  {
+    "path": "extensions/controller-pose-time-layer/src/sha256.h",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "9c1729c05aa906d170ce098884bc3965460116cda3113c0bd14e1c5a6bb038b4"
+  },
+  {
+    "path": "extensions/controller-pose-time-layer/tests/native_test.cpp",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "b2e0f43e3f4f68551910995fdee1ee1781bf6fab484a926c8ead030f5eda7f8e"
+  },
+  {
+    "path": "extensions/controller-hal-pose/CMakeLists.txt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "6177875c419410d7dc4e98111d6572e064378ca95efe82f80325956b19ef10fe"
+  },
+  {
+    "path": "extensions/controller-hal-pose/README.md",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "62d053b60e0c851663ace408a9fc5ee87c68f5b3f4c5b2fe7133f18d8cf5c660"
+  },
+  {
+    "path": "extensions/controller-hal-pose/src/controller_hal_pose_layer.cpp",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "79b5bd6addf84c517d63798437749d4f610a052fe8d68084515545a0504d041e"
+  },
+  {
+    "path": "extensions/controller-hal-pose/java/gxr/pose/PoseBridge.java",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "79e2377d60f6e225cbfee7009124c3ea96e7afdd094dcdd9340adea028b861cd"
+  },
+  {
+    "path": "extensions/controller-hal-pose/java/gxr/pose/PoseService.java",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "3f3a48020684b08c18aef699410f9c95e71d36c854d0c61568172cd2dac7ce00"
+  },
+  {
+    "path": "extensions/controller-grip-haptics/CMakeLists.txt",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "d553451c7e1d0a4ae7714d23eb2dd0e309b4a2e39bd7ac229378e27af9260e8a"
+  },
+  {
+    "path": "extensions/controller-grip-haptics/README.md",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "6fdb66ab353c4922c2c1390df6b9c49411f046a1d381d436f9ff911248bec12f"
+  },
+  {
+    "path": "extensions/controller-grip-haptics/src/controller_grip_haptics_layer.cpp",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "2895fa28611a24b4fc43167d59ac3ed1afd6f8086d365afa88d357293ccd4889"
+  },
+  {
+    "path": "extensions/controller-grip-haptics/java/gxr/haptic/HapticBridge.java",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "4ac404674c8286902adb49b3f4010cdf70872b98d1de9cf0c271e4266cc3112c"
+  },
+  {
+    "path": "extensions/controller-grip-haptics/java/gxr/haptic/HapticService.java",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "5f36170a7a68ebfcab0dc683218a9182faceef796a9ee593ace679aabde9881f"
+  },
+  {
+    "path": "extensions/shizuku-bridge/README.md",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "1dff423f923a13493f9cfe90f6d73bbc28c9b196d91dd127d995eb35e29d673d"
+  },
+  {
+    "path": "extensions/shizuku-bridge/java/gxr/shizuku/ShizukuBridge.java",
+    "source": "xr-porting-hub-4efb4ac",
+    "sha256": "a06bffc9402209052cc0c78f1d3bd3fa9ea3eb08837be3e6eb68b0f04d6ed2e8"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/identity/GalaxyXrVendorDriverPatch.kt",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "199db32f689f0f2058ca21c344052bc4ac60d942806b1240d87aafe9ec6b1097"
+  },
+  {
+    "path": "patches/src/main/kotlin/app/template/patches/steamlink/androidxr/PerformanceBoostPatch.kt",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "e5bd7bdd82b66735f2e8d9af8b4cc92111951ffec9b6851e15989e5d83ba8437"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/identity/GalaxyXrVendorDriverPatchTest.kt",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "a4d9c6c2d81e1d1f05c458e440515df6a5d910f9c7684f12d3a13a36aba530e3"
+  },
+  {
+    "path": "patches/src/test/kotlin/app/template/patches/steamlink/androidxr/PerformanceBoostPatchTest.kt",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "4efc699bbbc195d753ee0a7ecfeca1147047f6fe225c3c81c9526c0c772fe5f1"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/libgxr_performance_boost.so",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "c70ff32251c92a9c0ba5034891994ee0b56261d8b9f2dbadef2e2c6dd147552c"
+  },
+  {
+    "path": "patches/src/main/resources/steamlink/androidxr/XR_APILAYER_local_GalaxyXR_performance_boost.json",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "cbe54e51de51cc4a063c920df09b7042aaa6fee9377e24fb7f0613dbefe26fcf"
+  },
+  {
+    "path": "extensions/performance-boost/build_standalone.py",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "7c9c3aa39bad9e687339e65eaaf4a8c88f06a50434d4e638eeda727254c5ce7c"
+  },
+  {
+    "path": "extensions/performance-boost/CMakeLists.txt",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "af40d89e947385f8c5b89ee8d5c0c211d7c0f0eb2bdf2ac479bba9653c40a0a5"
+  },
+  {
+    "path": "extensions/performance-boost/README.md",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "630deaf8d47a6f8ccd9bcce2c4f83d564161e3b7ef21ac5521e47b3f77fc0513"
+  },
+  {
+    "path": "extensions/performance-boost/src/layer.cpp",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "7921f45911cf5dd426e4a9b940e22f9f861405ea2687d08cb76f443a1414cf9a"
+  },
+  {
+    "path": "extensions/performance-boost/tests/lifecycle.cpp",
+    "source": "4uva4ek-working-copy; authored in 739b04c/24e658a (vendor driver) or 02b931c (BOOST)",
+    "sha256": "1f3012d977ea4f73b57bb30980128efd53462326c9765b09d7a6b725d1dc99f8"
+  }
+]

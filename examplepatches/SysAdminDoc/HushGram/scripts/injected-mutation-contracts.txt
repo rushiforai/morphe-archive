@@ -300,6 +300,12 @@ start-call Lapp/hushgram/extension/instagram/direct/ScreenshotReports;->hold()Z 
 shared-call Lapp/hushgram/extension/instagram/direct/ScreenshotReports;->hold()Z in instance (JLjava/lang/String;Ljava/util/List;)V class-holding ScreenshotDetectorByContent Started\snew\sscreenshot\ssession
 start-call Lapp/hushgram/extension/instagram/direct/ScreenshotReports;->hold()Z in static (L*;Ljava/lang/String;Ljava/util/List;)V pooled holding Reporting\sscreenshot:\s%s\s->\s%s
 shared-call Lapp/hushgram/extension/instagram/direct/ScreenshotReports;->hold()Z in static (L*;Ljava/lang/String;Ljava/util/List;)V pooled holding Reporting\sscreenshot:\s%s\s->\s%s
+# Hide the Community Standards reminder hands KindnessReminder the boolean first in the one callback
+# loading direct_kindness_reminder, and the count a public chat reads just before it compares it.
+# Left out, the banner comes back in that kind of chat.
+start-call Lapp/hushgram/extension/instagram/direct/KindnessReminder;->mayShow(I)I in instance (Z)V pooled holding direct_kindness_reminder
+once-call Lapp/hushgram/extension/instagram/direct/KindnessReminder;->mayShow(I)I in instance (Z)V pooled holding direct_kindness_reminder
+once-call Lapp/hushgram/extension/instagram/direct/KindnessReminder;->timesShown(I)I in instance ()V pooled holding kindness_reminder_public_chat_shown
 # Don't report Blend visits asks BlendVisits.quiet() first in the static request for a Blend's reels
 # (the one method loading clips/get_blend_medias/), handing it the boolean Instagram sends as
 # force_disable_visitation_xma. Left out, opening a Blend posts the visit message in its chat; twice
@@ -1522,6 +1528,17 @@ once-call Lapp/hushgram/extension/instagram/feed/EditsLabel;->labels(Ljava/util/
 # elsewhere, it isn't the hook the patch wrote.
 once-call Lapp/hushgram/extension/instagram/feed/WatchAgain;->inFeed(I)Z in instance (Landroid/content/Context;L*;L*;L*;ZZZZZ)V pooled class-holding continue_watching
 #
+# Keep the tab bar on a reel's profile (#385) asks ReelProfileTabBar.open before the launcher of
+# the profile's own screen, on both routes a reel opens one by (09Ts's A02 and 044g's A0D on 454's
+# 386014758). Left out, the profile keeps opening with no tab bar. Twice or elsewhere, it isn't
+# the hook the patch wrote.
+once-call Lapp/hushgram/extension/instagram/reels/ReelProfileTabBar;->open(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z pooled holding android_purge_26_q3_AuthorInfoNavigator_navigateToNormalProfile
+once-call Lapp/hushgram/extension/instagram/reels/ReelProfileTabBar;->open(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z pooled holding android_purge_26_q3_ClipsViewerUtils_launchProfile
+# And both tab hosts let ReelProfileTabBar.keepTabRoot answer their root check, in the method that decides
+# on the tab bar (03ja's A02 and 02lW's A03 on 454). The check itself stays as it is for its other callers.
+once-call Lapp/hushgram/extension/instagram/reels/ReelProfileTabBar;->keepTabRoot(ILjava/lang/Object;)I in static (L*;)V calling instance Landroidx/fragment/app/Fragment;->getChildFragmentManager()L*; pooled class-holding IgTabHostFragment.loadFragment
+once-call Lapp/hushgram/extension/instagram/reels/ReelProfileTabBar;->keepTabRoot(ILjava/lang/Object;)I in static (L*;)V calling instance Landroidx/fragment/app/Fragment;->getChildFragmentManager()L*; pooled class-holding IgSwipeableTabHostFragment.loadFragment
+#
 # Tap to play: IgGrootPlayer's play asks allowDirectStart() first, its prepare tells rebound()
 # first, and the autoplay check hands its answer to autoplayAllowed() where it returns, once on
 # 449 and twice on 454, whose check has two returns. The touch dispatch feeds the tap clock first. IgVideoPlayerImpl's playInternal asks
@@ -2350,6 +2367,8 @@ once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->lazy(I)Z in stat
 start-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->progress(Landroid/widget/SeekBar;I)V in instance (Landroid/widget/SeekBar;IZ)V holding Lcom/instagram/ui/mediaactions/VideoScrubberSeekBar;->A01:Landroid/widget/SeekBar$OnSeekBarChangeListener;
 once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->progress(Landroid/widget/SeekBar;I)V in instance (Landroid/widget/SeekBar;IZ)V holding Lcom/instagram/ui/mediaactions/VideoScrubberSeekBar;->A01:Landroid/widget/SeekBar$OnSeekBarChangeListener;
 once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->bind(Ljava/lang/Object;I)V in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; pooled holding clips_scrubber_ LX/*;->A0F:Landroid/graphics/drawable/Drawable;
+once-call Lapp/hushgram/extension/instagram/reels/ReelSeekBar;->bindReel(Ljava/lang/Object;Ljava/lang/Object;)V in instance (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object; pooled holding clips_scrubber_ LX/*;->A0F:Landroid/graphics/drawable/Drawable;
+first-call Lapp/hushgram/extension/instagram/reels/ReelItemReader;->id(Ljava/lang/Object;)Ljava/lang/String; outside Lapp/hushgram/extension/
 # The same patch swaps the one setOnTouchListener call in the Reels progress controller's
 # prepareExpandedTouchView, which gives the invisible strip over the bottom of Reels its scrubbing
 # listener, for ReelSeekTouch.listen with the same strip and listener (#452). Left out, the strip
@@ -2589,6 +2608,13 @@ once-call Lapp/hushgram/extension/instagram/feed/HiddenLikeCounts;->rowRead(Ljav
 # MediaCacheHookTest checks where it lands on each declared build.
 start-call Lapp/hushgram/extension/instagram/misc/MediaCache;->beforeVideoCache(Ljava/lang/String;)V in static (Ljava/lang/Integer;Ljava/lang/String;)Ljava/io/File; holding /ExoPlayerCacheDir/videocache /ExoPlayerCacheDir/videoprefetchcache /ExoPlayerCacheDir/videocachemetadata
 once-call Lapp/hushgram/extension/instagram/misc/MediaCache;->beforeVideoCache(Ljava/lang/String;)V in static (Ljava/lang/Integer;Ljava/lang/String;)Ljava/io/File; holding /ExoPlayerCacheDir/videocache /ExoPlayerCacheDir/videoprefetchcache /ExoPlayerCacheDir/videocachemetadata
+# Call blocker hands CallBlocker.drop the call object first thing in the method that turns an
+# incoming call into its ring (0gKo.A01 on 454), the one method taking RtcConnectionEntity and
+# loading the incoming call's intent action. Left out, every call rings whatever the choice says;
+# twice or elsewhere, it isn't the guard the patch wrote. CallBlockerHookTest checks where it lands
+# on each declared build.
+start-call Lapp/hushgram/extension/instagram/direct/CallBlocker;->drop(Ljava/lang/Object;)Z in (*Lcom/instagram/rtc/signaling/models/RtcConnectionEntity;*)V pooled holding rtc_call_activity_intent_action_incoming_call
+once-call Lapp/hushgram/extension/instagram/direct/CallBlocker;->drop(Ljava/lang/Object;)Z in (*Lcom/instagram/rtc/signaling/models/RtcConnectionEntity;*)V pooled holding rtc_call_activity_intent_action_incoming_call
 # Ask before a call hands CallConfirm.hold the chat's call start's own arguments first thing in that
 # start (01YY.A02 on 450), the one instance (chat, entry point, co-watch arguments, video) method,
 # here picked by the shape and the account schema text it loads. Left out, a call starts without the
@@ -2683,6 +2709,14 @@ once-call Lapp/hushgram/extension/instagram/misc/Heartbeat;->stop()Z in (L*;)V h
 # It also routes the AlarmManager.set call that sets the analytics upload alarm through the extension, in the
 # static upload scheduler holding the alarm's tag and its intent action.
 sole-call Lapp/hushgram/extension/instagram/misc/Heartbeat;->setUploadAlarm(Landroid/app/AlarmManager;IJLandroid/app/PendingIntent;)V replacing Landroid/app/AlarmManager;->set(IJLandroid/app/PendingIntent;)V in static (L*;L*;I)V holding AnalyticsUploadAlarm action_batch_upload
+# And it asks first thing in the background prefetch scheduler (0Guo.A08 on 454), the static method handed
+# the job service class that queues the prefetch through JobScheduler or WorkManager and holds both their
+# failure messages, and first thing in the prefetch job service's onStartJob, the one that stores the
+# scheduler it runs (#341). StopHeartbeatFixtureTest checks both on each declared build.
+start-call Lapp/hushgram/extension/instagram/misc/Heartbeat;->stopBackgroundFetch(Ljava/lang/Class;)Z in static (L*;Ljava/lang/Class;Ljava/util/List;)V pooled holding scheduleJobWithJobScheduler()\sfailed:\s scheduleJobWithWorkManager()\sfailed:\s
+once-call Lapp/hushgram/extension/instagram/misc/Heartbeat;->stopBackgroundFetch(Ljava/lang/Class;)Z in static (L*;Ljava/lang/Class;Ljava/util/List;)V pooled holding scheduleJobWithJobScheduler()\sfailed:\s scheduleJobWithWorkManager()\sfailed:\s
+start-call Lapp/hushgram/extension/instagram/misc/Heartbeat;->skipBackgroundFetch()Z in instance (Landroid/app/job/JobParameters;)Z holding Lcom/instagram/jobscheduler/bgfetch/scheduler/IgBgFetchSchedulerService;->A00:LX/*;
+once-call Lapp/hushgram/extension/instagram/misc/Heartbeat;->skipBackgroundFetch()Z in instance (Landroid/app/job/JobParameters;)Z holding Lcom/instagram/jobscheduler/bgfetch/scheduler/IgBgFetchSchedulerService;->A00:LX/*;
 
 # Ghost mode from the inbox: GhostModeEntry.longPress() goes into the inbox header's static builder
 # (07OJ.A01 on 450's 385611438), right after the New message button's tap listener is stored in its
@@ -2838,6 +2872,13 @@ once-call Lapp/hushgram/extension/instagram/download/HoldDownload;->feedMade(Lja
 # RoundedCorners.made last thing before it returns, once, next to Hold to download's own call there. Left out, no post
 # frame is rounded; twice or elsewhere, it isn't the call the patch wrote.
 once-call Lapp/hushgram/extension/instagram/feed/RoundedCorners;->made(Ljava/lang/Object;)V in instance (Landroid/content/Context;Lcom/instagram/feed/media/Media;L*;Lcom/instagram/ui/widget/framelayout/MediaFrameLayout;L*;L*;IJZZZZ)V holding LX/*;->*:Landroid/view/GestureDetector;
+# Peek at the next carousel page (#361): the carousel pager's buffer setter, the instance (Boolean, int, boolean)
+# method sizing the pager's page slot arrays through Math.max and laying them out through the pager's static
+# (pager, boolean, boolean) call, hands the pager and the buffer to CarouselPeek.buffer first thing, once. Left out,
+# Instagram's bind shrinks a peeking carousel's slot arrays under the page count it holds and the app crashes; twice
+# or elsewhere, it isn't the call the patch wrote.
+start-call Lapp/hushgram/extension/instagram/feed/CarouselPeek;->buffer(Ljava/lang/Object;I)I in instance (Ljava/lang/Boolean;IZ)V calling static Lcom/instagram/common/ui/widget/reboundviewpager/ReboundViewPager;->*(Lcom/instagram/common/ui/widget/reboundviewpager/ReboundViewPager;ZZ)V holding Ljava/lang/Math;->max(II)I
+once-call Lapp/hushgram/extension/instagram/feed/CarouselPeek;->buffer(Ljava/lang/Object;I)I in instance (Ljava/lang/Boolean;IZ)V calling static Lcom/instagram/common/ui/widget/reboundviewpager/ReboundViewPager;->*(Lcom/instagram/common/ui/widget/reboundviewpager/ReboundViewPager;ZZ)V holding Ljava/lang/Math;->max(II)I
 # A reel's gesture detector hands itself, the view and every touch to HoldDownload.reelTouch first, in
 # its one instance (View, MotionEvent) boolean method holding the detector's touch marker. Left out,
 # a hold on a reel never saves; twice or elsewhere, it isn't the call the patch wrote.
@@ -2911,6 +2952,17 @@ once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->fullQua
 # 454 pools its strings and has three returns there, so three calls. Fewer calls leave a path where
 # the upload keeps Instagram's bitrate with a higher one chosen.
 once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->bitrate(Ljava/lang/Object;I)I in instance (LX/*;)V calling instance LX/*;->*()Z sites 3 pooled holding const:0x895440 ig_media_transcode_param null\stranscode\sparam
+# Its Video frame rate choice (#37) sits beside the bitrate call at each of those returns, reading and
+# writing the frame rate the setter falls back to 30 on. Fewer calls leave a path at Instagram's rate.
+once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->frameRate(Ljava/lang/Object;I)I in instance (LX/*;)V calling instance LX/*;->*()Z sites 3 pooled holding const:0x895440 ig_media_transcode_param null\stranscode\sparam
+# Its Video resolution choice (#37) hands StoryUploadQuality.resolution the width Instagram's width step
+# (0Wot.A00 on 454) was asked for, 1080, 1440 or 0, with the upload's share type, read just before it.
+# Left out, Video resolution does nothing.
+once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->resolution(Ljava/lang/Object;I)I in static (Landroid/content/Context;Lcom/instagram/common/session/UserSession;LX/*;IZZZZ)LX/*; calling instance LX/*;->*()Lcom/instagram/pendingmedia/model/constants/ShareType; holding const:0x438 const:0x5a0
+# Its Photo quality choice (#37) hands StoryUploadQuality.photoQuality the JPEG quality first in the static
+# factory (0BWX.A02 on 454) of the class that calls Bitmap.compress with it. Left out, Photo quality does nothing.
+start-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->photoQuality(I)I in static (Landroid/graphics/Bitmap;LX/*;II)LX/*; class-holding Landroid/graphics/Bitmap;->compress(Landroid/graphics/Bitmap$CompressFormat;ILjava/io/OutputStream;)Z
+once-call Lapp/hushgram/extension/instagram/stories/StoryUploadQuality;->photoQuality(I)I in static (Landroid/graphics/Bitmap;LX/*;II)LX/*; class-holding Landroid/graphics/Bitmap;->compress(Landroid/graphics/Bitmap$CompressFormat;ILjava/io/OutputStream;)Z
 
 # Full screen Reels and Home (#147) and Glass tab bar (#144) share one routing of both bar heights
 # Instagram's window insets listener keeps (00oX.F1L on 450, the decor's insets listener of
@@ -3021,6 +3073,8 @@ once-call Lapp/hushgram/extension/instagram/feed/FeedTapPause;->opening(Ljava/la
 start-call Lapp/hushgram/extension/instagram/feed/FeedSeekBar;->progress(Ljava/lang/Object;II)V in instance (IIZ)V holding IgFeedVideoPlayer:\sPersistent\sVisible\sCover\sImage
 once-call Lapp/hushgram/extension/instagram/feed/FeedSeekBar;->progress(Ljava/lang/Object;II)V in instance (IIZ)V holding IgFeedVideoPlayer:\sPersistent\sVisible\sCover\sImage
 first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->view(Ljava/lang/Object;)Landroid/view/View; outside Lapp/hushgram/extension/
+first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->sheet(Ljava/lang/Object;)Ljava/util/Map; outside Lapp/hushgram/extension/
+first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->scrubberSheet(Ljava/lang/Object;)Ljava/util/Map; outside Lapp/hushgram/extension/
 first-call Lapp/hushgram/extension/instagram/feed/FeedSeekReader;->seekTo(Ljava/lang/Object;IZ)Z outside Lapp/hushgram/extension/
 # Double tap to skip on feed videos (#562) asks FeedDoubleTapSkip.doubleTap first thing in the
 # onDoubleTap of the media frame's gesture listener, the one Long press to zoom finds, with the

@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import app.hushgram.extension.instagram.misc.ScreenReport;
 import app.hushgram.extension.instagram.misc.VersionCode;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
@@ -79,7 +80,7 @@ public enum PatchFamily {
     ROUNDED_POST_CORNERS(FamilyNames.ROUNDED_POST_CORNERS, "roundedPostCorners", null, Settings.ROUNDED_POST_CORNERS,
             Settings.ROUNDED_REEL_CORNERS, Settings.ROUNDED_STORY_CORNERS, Settings.PEEK_CAROUSEL_PAGES),
     CAROUSEL_ARROWS(FamilyNames.CAROUSEL_ARROWS, "carouselArrows", null, Settings.CAROUSEL_ARROWS,
-            Settings.CAROUSEL_DOTS_PILL),
+            Settings.CAROUSEL_DOTS_PILL, Settings.CAROUSEL_HIDE_NUMBER),
     AMBIENT_LIGHT(FamilyNames.AMBIENT_LIGHT, "ambientLight", null, Settings.AMBIENT_LIGHT, Settings.AMBIENT_LIGHT_STORIES),
     STORY_SEEN(FamilyNames.STORY_SEEN, "storySeen", null, Settings.VIEW_STORIES_ANONYMOUSLY,
             Settings.MARK_STORIES_SEEN, Settings.GRAY_OUT_WATCHED_STORIES),
@@ -108,6 +109,8 @@ public enum PatchFamily {
     PREVIEW_CHATS(FamilyNames.PREVIEW_CHATS, "previewChats", null, Settings.PREVIEW_CHATS),
     ASK_BEFORE_CALL(FamilyNames.ASK_BEFORE_CALL, "askBeforeCall", null, Settings.ASK_BEFORE_CALL,
             Settings.HIDE_CALL_BUTTONS),
+    CALL_BLOCKER(FamilyNames.CALL_BLOCKER, "callBlocker", null),
+    KINDNESS_REMINDER(FamilyNames.KINDNESS_REMINDER, "kindnessReminder", null, Settings.HIDE_KINDNESS_REMINDER),
     MESSAGE_BOX(FamilyNames.MESSAGE_BOX, "messageBox", null),
     PLUS_MENU(FamilyNames.PLUS_MENU, "plusMenu", null, Settings.HIDE_PLUS_SAVED, Settings.HIDE_PLUS_AI_IMAGES,
             Settings.HIDE_PLUS_DRAW, Settings.MOVE_TO_PLUS_MENU),
@@ -165,7 +168,7 @@ public enum PatchFamily {
             Settings.FILL_STORY_SCREEN),
     SAVED_ON_PROFILE(FamilyNames.SAVED_ON_PROFILE, "savedOnProfile", null, Settings.SAVED_ON_PROFILE),
     STOP_HEARTBEAT(FamilyNames.STOP_HEARTBEAT, "stopHeartbeat", null, Settings.STOP_HEARTBEAT,
-            Settings.STOP_UPLOAD_ALARM),
+            Settings.STOP_UPLOAD_ALARM, Settings.STOP_BACKGROUND_FETCH),
     REFRESH_RATE(FamilyNames.REFRESH_RATE, "refreshRate", null, Settings.HIGHEST_REFRESH_RATE),
     EMOJI_STYLE(FamilyNames.EMOJI_STYLE, "emojiStyle", null, Settings.NOTO_EMOJI),
     ACCENT_COLOR(FamilyNames.ACCENT_COLOR, "accentColor", null, Settings.ACCENT_COLOR, Settings.ACCENT_BADGES,
@@ -187,7 +190,8 @@ public enum PatchFamily {
             Settings.TRACK_UNFOLLOWERS, Settings.NOTIFY_UNFOLLOWS),
     PROFILE_SUGGESTIONS(FamilyNames.PROFILE_SUGGESTIONS, "profileSuggestions", null, Settings.HIDE_PROFILE_SUGGESTIONS,
             Settings.HIDE_FOLLOW_LIST_SUGGESTIONS, Settings.HIDE_PROFILE_COMPLETION, Settings.HIDE_FOLLOW_BACK_SUGGESTIONS,
-            Settings.HIDE_NOTIFICATION_SUGGESTIONS, Settings.HIDE_NOTIFICATION_FEATURED, Settings.HIDE_FEATURED_DOT),
+            Settings.HIDE_NOTIFICATION_SUGGESTIONS, Settings.HIDE_NOTIFICATION_CHANNEL_INVITES, Settings.HIDE_NOTIFICATION_FEATURED,
+            Settings.HIDE_FEATURED_DOT),
     PROFILE_HIGHLIGHTS(FamilyNames.PROFILE_HIGHLIGHTS, "profileHighlights", null, Settings.HIDE_HIGHLIGHTS),
     PROFILE_TABS(FamilyNames.PROFILE_TABS, "profileTabs", null),
     THREADS_BUTTON(FamilyNames.THREADS_BUTTON, "threadsButton", null, Settings.HIDE_THREADS_BUTTON,
@@ -265,6 +269,7 @@ public enum PatchFamily {
             Settings.REEL_SCROLL_FROM_PROFILE, Settings.REEL_SCROLL_FROM_SEARCH, Settings.REEL_SCROLL_FROM_AUDIO,
             Settings.REEL_CAP),
     SWIPE_TO_PROFILE(FamilyNames.SWIPE_TO_PROFILE, "swipeToProfile", null, Settings.REEL_SWIPE_TO_PROFILE),
+    REEL_PROFILE_TAB_BAR(FamilyNames.REEL_PROFILE_TAB_BAR, "reelProfileTabBar", null, Settings.REEL_PROFILE_TAB_BAR),
     REEL_ORIGIN(FamilyNames.REEL_ORIGIN, "reelOrigin", null, Settings.FIND_REEL_ORIGIN,
             Settings.FIND_REEL_ORIGIN_ON_TAP),
     STORY_DOWNLOAD(FamilyNames.STORY_DOWNLOAD, "storyDownload", null, Settings.DOWNLOAD_STORIES,
@@ -669,11 +674,12 @@ public enum PatchFamily {
     }
 
     /**
-     * Registers the [PATCHES] report section, and tells Hook status which families no pause
-     * reaches, so a paused export marks only the ones a switch runs. Registering twice keeps one.
+     * Registers the [PATCHES] and [SCREEN] report sections, and tells Hook status which families no
+     * pause reaches, so a paused export marks only the ones a switch runs. Registering twice keeps one.
      */
     public static void registerDiagnostics() {
         LogBufferManager.registerReportSection(REPORT);
+        LogBufferManager.registerReportSection(ScreenReport.SECTION);
         for (PatchFamily family : values()) {
             if (family.switches.isEmpty() && family.staysWhilePaused != null) HookStatus.runsWhilePaused(family.patchName);
         }

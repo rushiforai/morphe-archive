@@ -18,7 +18,7 @@ The retired entries below are historical records and are not selectable.
 | App & device identity | 4 | [Change package name](#change-package-name-changepackagenamepatch); [Device identity](#device-identity-deviceidentitypatch); Galaxy XR vendor driver; [OpenXR CPU and GPU BOOST](#openxr-cpu-and-gpu-boost-performanceboostpatch) |
 | Advanced XR compatibility | 7 | [XR Core Runtime](#xr-core-runtime-xrcoreruntimepatch); [XR Device Config Baseline](#xr-device-config-baseline-xrdeviceconfigbaselinepatch); [XR Manifest Capability Pack](#xr-manifest-capability-pack-xrmanifestcapabilitypackpatch); [Android XR native permission names; Force HMD initialization gates; Force lobby permission-state gate; Force stream XR gates](#native-xr-compatibility-gates) |
 | Controller | 5 | [Controller pose extrapolation](#controller-pose-extrapolation-controllerposeextrapolationpatch); [Controller velocity frame](#controller-velocity-frame-controllervelocityframepatch) (stable, recommended on every supported build); [Controller pose time (experimental)](#controller-pose-time-experimental-controllerposetimepatch) (all six builds); [Controller tracking from the controller HAL through Shizuku](#controller-tracking-from-the-controller-hal-through-shizuku-controllerhalposepatch); [Controller grip haptics through Shizuku](#controller-grip-haptics-through-shizuku-controllergriphapticspatch). Only Controller velocity frame is on by default. |
-| Streaming & network | 2 | [Codecs Support](#codecs-support-xrcodecssupportpatch) (all six builds; experimental, recommended); [Network Optimizations](#network-optimizations-networkoptimizationspatch) (all seven builds; recommended) |
+| Streaming & network | 2 | [Codecs Support](#codecs-support-xrcodecssupportpatch) (all six builds; experimental, recommended); [Network Optimizations](#network-optimizations-networkoptimizationspatch) (all seven builds; optional, not recommended) |
 
 ## OpenXR CPU and GPU BOOST (`performanceBoostPatch`)
 
@@ -83,7 +83,7 @@ The layer tried to synthesize a frame when the stream missed a display tick by h
 
 The current catalog supports exactly **2.0.20/5001712**, **2.0.20/5001812**, **2.0.21/5001968**, **2.0.22/5002244**, **2.0.23/5002363**, **2.0.24/5002395** and **2.0.24/5002527** (the newest base is adapted only for the patches that list it, including Network Optimizations). Compatibility uses the exact version name and build code, never a version range. Historical references to 5001740, 5002296, 5002313, 5002318, and 5002322 below do not make those builds selectable.
 
-The four pre-2363 builds expose the same 24 standalone patches and recommend the same 21, including Codecs Support, Network Optimizations and Controller velocity frame. 2.0.23/5002363 and 2.0.24/5002395 each expose 12 individual patches; both recommend 10. The OpenXR CPU and GPU BOOST patch is experimental and off by default. Morphe Manager auto-selects the set for the detected exact version and build. Change package name remains optional.
+The four pre-2363 builds expose the same 24 standalone patches and recommend the same 20, including Codecs Support and Controller velocity frame. 2.0.23/5002363 and 2.0.24/5002395 each expose 12 individual patches; both recommend 9. Network Optimizations is optional and not recommended on any base. The OpenXR CPU and GPU BOOST patch is experimental and off by default. Morphe Manager auto-selects the set for the detected exact version and build. Change package name remains optional.
 
 The 5001712 reference is an analysis reconstruction, so its regression checks do not establish pristine-source APK patching. 5002244 has a reconstructed decoded fixture; 5001812 and 5001968 currently have decoded trees only.
 
@@ -91,13 +91,13 @@ Startup permissions and splash/XR launch-mode edits are separate patches, part o
 
 ### Steam Link 2.0.23 / 5002363
 
-This exact pair exposes 12 individual patches; the 10-patch recommended set is default-enabled: GXR face and tongue bridge, Stock quad composition, Microphone input preset, OLED color calibration, Blue-noise dithering (fovea default), Unrestricted battery usage, Visual Delay Fix, Network Optimizations, Codecs Support and Controller velocity frame. OpenXR CPU and GPU BOOST is experimental and off by default. Device identity is legacy-only: stock 2.0.23 identity is authoritative, so no identity patch is shipped for this build. Native targets: OLED shader `0x970a1`; format MOVs `0x10c840`, `0x10c8b0`, `0x10c920`; microphone `0xf44c0`; HMD pose hook `0x101f1c`; tongue block `0x141c6c`. High resolution uses Stock quad composition. Legacy mutations and retired experiments remain excluded.
+This exact pair exposes 12 individual patches; the 9-patch recommended set is default-enabled: GXR face and tongue bridge, Stock quad composition, Microphone input preset, OLED color calibration, Blue-noise dithering (fovea default), Unrestricted battery usage, Visual Delay Fix, Codecs Support and Controller velocity frame. Network Optimizations is optional and not recommended. OpenXR CPU and GPU BOOST is experimental and off by default. Device identity is legacy-only: stock 2.0.23 identity is authoritative, so no identity patch is shipped for this build. Native targets: OLED shader `0x970a1`; format MOVs `0x10c840`, `0x10c8b0`, `0x10c920`; microphone `0xf44c0`; HMD pose hook `0x101f1c`; tongue block `0x141c6c`. High resolution uses Stock quad composition. Legacy mutations and retired experiments remain excluded.
 
 See the [5002363 validation](diagnostics/steamlink-5002363/README.md), [native targets](diagnostics/steamlink-5002363/native-targets.md), and [Java/config targets](diagnostics/steamlink-5002363/surface-targets.md).
 
 ### Steam Link 2.0.24 / 5002395
 
-This exact pair exposes 12 individual patches and the same 10-patch recommended set as 2.0.23. The manifest and all four config assets are byte-identical to 2.0.23; only the SDL smali and native libraries changed. Device identity remains legacy-only. Native targets: OLED shader `0x97aae`; format MOVs `0x10da98`, `0x10db08`, `0x10db78`; microphone `0xf5710`; HMD pose hook `0x103174`; tongue block `0x1433ac`; Network scene `0x1682a0`/`0x169044`/`0x1772cc` and main `0x903634`; Codecs Support anchor `0xfe954` with 15 GOT slots. High resolution uses Stock quad composition. The optional telemetry setting is not admitted for 2.0.24 yet and fails closed instead of installing an empty receipt.
+This exact pair exposes 12 individual patches and the same 9-patch recommended set as 2.0.23. Network Optimizations is optional and not recommended. The manifest and all four config assets are byte-identical to 2.0.23; only the SDL smali and native libraries changed. Device identity remains legacy-only. Native targets: OLED shader `0x97aae`; format MOVs `0x10da98`, `0x10db08`, `0x10db78`; microphone `0xf5710`; HMD pose hook `0x103174`; tongue block `0x1433ac`; Network scene `0x1682a0`/`0x169044`/`0x1772cc` and main `0x903634`; Codecs Support anchor `0xfe954` with 15 GOT slots. High resolution uses Stock quad composition. The optional telemetry setting is not admitted for 2.0.24 yet and fails closed instead of installing an empty receipt.
 
 See the [5002395 native validation](diagnostics/steamlink-5002395/README.md) and [native targets](diagnostics/steamlink-5002395/native-targets.md).
 
@@ -105,7 +105,7 @@ See the [5002395 native validation](diagnostics/steamlink-5002395/README.md) and
 
 The recommended set is the individual patches themselves, default-enabled and auto-selected for the detected exact version and build code.
 
-On each exact pre-2363 build (2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244) the same 22 individual patches are default-enabled:
+On each exact pre-2363 build (2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244) the same 20 individual patches are default-enabled:
 
 1. Android XR native permission names
 2. Force HMD initialization gates
@@ -126,8 +126,7 @@ On each exact pre-2363 build (2.0.20/5001712, 2.0.20/5001812, 2.0.21/5001968, 2.
 17. Startup permission requests (before 5002322)
 18. Blue-noise dithering (fovea default, background opt-in; OLED's VD-like fovea toggle must stay off)
 19. Codecs Support
-20. Network Optimizations
-21. Controller velocity frame
+20. Controller velocity frame
 
 **Device identity** has no selector and is legacy-only: every pre-2363 base reports the Galaxy XR identity with model `xrvst2ue`, the headset's `Build.PRODUCT`. Stock 2.0.23 identity is authoritative; no native identity patch exists.
 

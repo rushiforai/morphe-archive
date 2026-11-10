@@ -143,7 +143,6 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_COMMENTS_WITH_WORDS) return L10n.t("Hide comments with your words");
         if (setting == Settings.HIDE_INCOMING_COMMENT_TYPING) return L10n.t("Hide who is typing in comments");
         if (setting == Settings.HIDE_NEW_COMMENTS_PILL) return L10n.t("Hide the new comments pop-up");
-        if (setting == Settings.OPEN_COMMENTS_FULL_HEIGHT) return L10n.t("Open comments at full height");
         if (setting == Settings.PAUSE_REELS_UNDER_COMMENTS) return L10n.t("Pause reels while comments are open");
         if (setting == Settings.TAP_REELS_ABOVE_COMMENTS) return L10n.t("Tap a reel above its comments");
         if (setting == Settings.SEARCH_COMMENTS) return L10n.t("Search comments");
@@ -190,6 +189,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_VIEWER_BACK_BUTTON) return L10n.t("Hide Back on opened videos");
         if (setting == Settings.BURN_IN_STAY_DIM) return L10n.t("Stay dim when I tap");
         if (setting == Settings.GRAY_REELS) return L10n.t("Show Reels in gray");
+        if (setting == Settings.REELS_MINUTES) return L10n.t("Show time in Reels");
         if (setting == Settings.HIDE_REEL_COUNTS) return L10n.t("Hide counts on reels");
         if (setting == Settings.HIDE_REEL_SAVE_BUTTON) return L10n.t("Hide Save on reels");
         if (setting == Settings.HIDE_REEL_WHATSAPP_BUTTON) return L10n.t("Hide WhatsApp on reels");

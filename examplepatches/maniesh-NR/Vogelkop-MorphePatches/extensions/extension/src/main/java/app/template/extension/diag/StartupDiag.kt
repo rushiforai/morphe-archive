@@ -10,7 +10,7 @@ import android.os.Process
 import android.util.Log
 import java.io.File
 import java.io.FileInputStream
-import java.io.FileWriter
+import java.io.FileOutputStream
 import java.io.InputStreamReader
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
@@ -20,35 +20,31 @@ import java.util.Locale
 /**
  * Startup diagnostics + crash self-reporting for the Vogelkop patched builds.
  *
- * WHY THIS EXISTS: v1.2.0-v1.2.3 patched builds crashed instantly on open for
- * one user, and without a device-side stack trace every fix attempt was a
- * guess (three signature-spoof rewrites did not cure it). The usual channel
- * for a device-side stack trace is `adb logcat`, but requesting that from a
- * non-technical user failed repeatedly. This class removes that dependency:
+ * v1.3.0 hardening (after the empty-log incident on Test A, where the file
+ * existed with 0 bytes and no breadcrumbs):
  *
- *  - A startup breadcrumb trail is appended to
- *    `<app external files dir>/vogelkop-diag.log`
- *    (Android/data/<package>/files/, readable with any file manager, no
- *    permission needed) at the injection points the *Startup diagnostics*
- *    patch writes into every Application subclass: attachBaseContext entry,
- *    onCreate entry, onCreate exit.
- *  - An uncaught-exception handler is installed as early as possible
- *    (attachBaseContext runs before ContentProviders and before
- *    Application.onCreate, so provider and early-init crashes are captured
- *    too) and writes the FULL stack trace of any startup crash to the same
- *    file. The handler chains to the previous default handler (Opera's
- *    breakpad wiring) so Opera's own crash flow is preserved, and it
- *    re-asserts itself at several injection points, because Opera replaces
- *    the default handler during onCreate.
- *  - It also records WHICH signing certificate the patched app currently
- *    sees for itself: Opera's vendor certificate proves the spoof layers
- *    engage at runtime; the Morphe key means they did not.
+ *  - Every breadcrumb is mirrored to logcat (tag "VogelkopDiag") BEFORE it is
+ *    written to the file, so `adb logcat -d VogelkopDiag:* *:S` recovers the
+ *    trail even when the file is never created or is lost.
+ *  - File writes are unbuffered and fsync'ed (FileOutputStream + fd.sync()),
+ *    so every line that returns is already on disk - a native abort() can no
+ *    longer swallow the tail of the log.
+ *  - init() reports to logcat FIRST (before touching the filesystem), then
+ *    writes a STARTUP header, then the environment block; the resolved log
+ *    path itself is logged so there is no doubt where the file should be.
+ *  - A daemon heartbeat thread appends a timestamped beat every 500 ms, so
+ *    the last beat in the file bounds the exact moment a silent kill happens
+ *    (e.g. the ~5 s death observed with a dead engine on Test A).
+ *  - The crash handler mirrors the full stack to logcat as well as the file.
+ *  - The launcher activity's onCreate is instrumented (activityStart), giving
+ *    an independent second injection point that proves the extension dex
+ *    loaded even if the Application hooks were somehow absent.
  *
  * The class must survive ANY failure: every entry point is wrapped in
  * try/Throwable, and a diagnostic layer that crashes the app is worse than no
  * diagnostic layer. It must also compile without kotlin-stdlib references
- * (same discipline as SignatureHookApp: no lambdas, no Kotlin collections,
- * explicit .equals(), no reference ==, no smart-cast helpers).
+ * (no lambdas, no Kotlin collections, explicit .equals(), no reference ==,
+ * no smart-cast helpers).
  *
  * Merged through its own extension dex (extensions/diag.mpe) by the
  * *Startup diagnostics* patch, independently of *Spoof app signature* - so a
@@ -61,11 +57,14 @@ class StartupDiag private constructor() {
         private const val TAG = "VogelkopDiag"
         private const val FILE_NAME = "vogelkop-diag.log"
         private const val MAX_BYTES: Long = 262144
+        private const val VERSION = "v1.3.0"
 
         private val lock = Any()
         private var logFile: File? = null
         private var formatter: SimpleDateFormat? = null
         private var catcher: CrashCatcher? = null
+        private var heartbeat: Thread? = null
+        private var bootMillis: Long = 0L
 
         // ------------------------------------------------------------------
         // Injection points (called from bytecode the patch inserts).
@@ -74,7 +73,10 @@ class StartupDiag private constructor() {
         /** Injected at the very start of every Application.attachBaseContext. */
         @JvmStatic
         fun init(base: Context?) {
+            // Logcat FIRST - it works even when nothing else does.
+            Log.i(TAG, "diag-init entered (v$VERSION, ctx=" + (if (base == null) "null" else base.getPackageName()) + ")")
             try {
+                bootMillis = System.currentTimeMillis()
                 val file = resolveLogFile(base)
                 synchronized(lock) {
                     logFile = file
@@ -83,10 +85,13 @@ class StartupDiag private constructor() {
                     }
                 }
                 if (file == null) {
-                    Log.w(TAG, "no writable dir for diag log; breadcrumbs disabled")
+                    Log.w(TAG, "no writable dir for diag log; file breadcrumbs disabled")
+                } else {
+                    Log.i(TAG, "diag log file: " + file.getAbsolutePath())
                 }
                 breadcrumb("attach-base-context entered")
                 installCatcher()
+                startHeartbeat()
                 logEnvironment(base)
             } catch (t: Throwable) {
                 Log.w(TAG, "init failed", t)
@@ -116,7 +121,7 @@ class StartupDiag private constructor() {
             }
         }
 
-        /** Injected at the start of the launcher Activity.onCreate (optional). */
+        /** Injected at the start of the launcher Activity.onCreate. */
         @JvmStatic
         fun activityStart(activity: Activity?) {
             try {
@@ -124,6 +129,41 @@ class StartupDiag private constructor() {
                 breadcrumb("activity-onCreate " + name)
             } catch (t: Throwable) {
                 Log.w(TAG, "activityStart failed", t)
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Heartbeat: bounds the moment of a silent kill.
+        // ------------------------------------------------------------------
+
+        private fun startHeartbeat() {
+            synchronized(lock) {
+                val existing = heartbeat
+                if (existing != null) {
+                    return
+                }
+                val t = object : Thread() {
+                    override fun run() {
+                        try {
+                            sleep(1500L) // let startup breadcrumbs land first
+                        } catch (t: Throwable) {
+                            return
+                        }
+                        while (true) {
+                            val up = System.currentTimeMillis() - bootMillis
+                            appendToFileNoLog("hb +" + java.lang.Long.toString(up) + "ms\n")
+                            try {
+                                sleep(500L)
+                            } catch (t: Throwable) {
+                                return
+                            }
+                        }
+                    }
+                }
+                t.setName("VogelkopDiag-HB")
+                t.setDaemon(true)
+                t.start()
+                heartbeat = t
             }
         }
 
@@ -144,6 +184,7 @@ class StartupDiag private constructor() {
                     sb.append("thread: ").append(thread.getName()).append('\n')
                     sb.append(Log.getStackTraceString(throwable))
                     sb.append("=================\n")
+                    Log.e(TAG, sb.toString())
                     appendToFile(sb.toString())
                 } catch (t: Throwable) {
                     // never let the reporter itself break anything
@@ -185,7 +226,7 @@ class StartupDiag private constructor() {
                 return
             }
             val sb = StringBuilder()
-            sb.append("\n===== STARTUP =====\n")
+            sb.append("\n===== STARTUP (diag ").append(VERSION).append(") =====\n")
             sb.append("time: ").append(now()).append('\n')
             sb.append("process: ").append(processName()).append('\n')
             sb.append("device: ").append(Build.MANUFACTURER).append(' ').append(Build.MODEL)
@@ -280,11 +321,12 @@ class StartupDiag private constructor() {
         }
 
         private fun breadcrumb(message: String) {
+            Log.i(TAG, message)
             appendToFile("[" + now() + "] [" + processName() + "] " + message + '\n')
         }
 
         // ------------------------------------------------------------------
-        // File plumbing.
+        // File plumbing: unbuffered, fsync'ed, never throws.
         // ------------------------------------------------------------------
 
         private fun resolveLogFile(base: Context?): File? {
@@ -308,6 +350,10 @@ class StartupDiag private constructor() {
         }
 
         private fun appendToFile(text: String) {
+            appendToFileNoLog(text)
+        }
+
+        private fun appendToFileNoLog(text: String) {
             val file = synchronized(lock) { logFile } ?: return
             try {
                 synchronized(lock) {
@@ -315,10 +361,16 @@ class StartupDiag private constructor() {
                         // keep the file from growing forever; drop the oldest half
                         val keep = readTail(file, MAX_BYTES / 2)
                         val tmp = File(file.getParentFile(), FILE_NAME + ".tmp")
-                        FileWriter(tmp, false).use { it.write(keep) }
+                        FileOutputStream(tmp, false).use { stream ->
+                            stream.write(keep.toByteArray())
+                            stream.getFD().sync()
+                        }
                         tmp.renameTo(file)
                     }
-                    FileWriter(file, true).use { it.write(text) }
+                    FileOutputStream(file, true).use { stream ->
+                        stream.write(text.toByteArray())
+                        stream.getFD().sync()
+                    }
                 }
             } catch (t: Throwable) {
                 Log.w(TAG, "diag append failed", t)
@@ -404,7 +456,7 @@ class StartupDiag private constructor() {
                     sb.append('0')
                 }
                 sb.append(Integer.toHexString(b))
-                i++
+                i += 1
             }
             return sb.toString()
         }

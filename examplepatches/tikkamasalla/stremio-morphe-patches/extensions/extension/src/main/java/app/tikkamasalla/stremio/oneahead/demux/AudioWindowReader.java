@@ -55,7 +55,7 @@ public final class AudioWindowReader {
             throw new DemuxException(DemuxException.Kind.NO_TRACK, tracks.size() + " audio tracks, none usable");
         }
         demuxer.select(track);
-        log.log("track " + track + " of " + tracks.size() + ", duration " + demuxer.durationSec());
+        log.log("track " + track + " of " + tracks.size() + " (" + TrackChooser.reason(tracks, track, request) + "), duration " + demuxer.durationSec());
         return track;
     }
 
@@ -105,6 +105,12 @@ public final class AudioWindowReader {
         return sum;
     }
 
+    /** Centre fractions for the current slice go here; null disables (stereo-safe). */
+    public void setCenvSink(MonoDownsampler.CenvSink s) {
+        current.csink = s;
+        if (downsampler != null) downsampler.setCenvSink(current);
+    }
+
     /** Decodes [startSec, endSec) into the sink. Refuses before fetching when the estimate is over budget. */
     public SliceResult read(double startSec, double endSec, PcmSink sink) throws DemuxException {
         long startUs = (long) (startSec * 1e6), endUs = (long) (endSec * 1e6);
@@ -115,6 +121,7 @@ public final class AudioWindowReader {
         final PtsCheck check = new PtsCheck();
         if (decoder == null) {
             downsampler = new MonoDownsampler(outRate, current, current);
+            downsampler.setCenvSink(current);
             decoder = decoders.create(track, downsampler);
         } else if (needsFlush) {
             decoder.flush();
@@ -174,9 +181,10 @@ public final class AudioWindowReader {
     }
 
     /** The decoder and downsampler live across slices; this points them at the current slice's check and sink. */
-    private static final class CurrentSlice implements AudioDecoder.Output, PcmSink {
+    private static final class CurrentSlice implements AudioDecoder.Output, PcmSink, MonoDownsampler.CenvSink {
         PtsCheck check;
         PcmSink sink;
+        MonoDownsampler.CenvSink csink;
 
         @Override
         public void onDecoded(java.nio.ByteBuffer pcm, int encoding, int channels, int sampleRate, long ptsUs) {
@@ -186,6 +194,11 @@ public final class AudioWindowReader {
         @Override
         public void onPcm(short[] mono, int count, int sampleRate, long ptsUs) throws DemuxException {
             sink.onPcm(mono, count, sampleRate, ptsUs);
+        }
+
+        @Override
+        public void onCenv(byte[] frac, int count, long ptsUs) {
+            if (csink != null) csink.onCenv(frac, count, ptsUs);
         }
     }
 }

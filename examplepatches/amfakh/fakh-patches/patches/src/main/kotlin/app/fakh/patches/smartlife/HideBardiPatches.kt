@@ -17,7 +17,7 @@ private const val MALL_TAB =
 @Suppress("unused")
 val hideMallTabPatch = rawResourcePatch(
     name = "Hide Mall tab",
-    description = "Removes the Mall tab from the bottom navigation.",
+    description = "Removes the Mall tab from the navigation bar.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_BARDI)

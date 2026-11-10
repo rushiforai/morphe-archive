@@ -1,3 +1,15 @@
+## [1.8.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.8.0...v1.8.1) (2026-11-09)
+
+### Bug Fixes
+
+* find more intros and credits and make reference lookups more reliable ([c81154a](https://github.com/tikkamasalla/stremio-morphe-patches/commit/c81154a8c12431d61c03e20a3c3905c6eebf3e1e))
+
+## [1.8.1-dev.1](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.8.0...v1.8.1-dev.1) (2026-11-09)
+
+### Bug Fixes
+
+* find more intros and credits and make reference lookups more reliable ([c81154a](https://github.com/tikkamasalla/stremio-morphe-patches/commit/c81154a8c12431d61c03e20a3c3905c6eebf3e1e))
+
 ## [1.8.0](https://github.com/tikkamasalla/stremio-morphe-patches/compare/v1.7.1...v1.8.0) (2026-11-03)
 
 ### New Features

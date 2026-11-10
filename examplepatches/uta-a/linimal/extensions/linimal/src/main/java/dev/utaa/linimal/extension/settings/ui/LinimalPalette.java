@@ -3,6 +3,9 @@ package dev.utaa.linimal.extension.settings.ui;
 import android.content.Context;
 import android.content.res.Configuration;
 
+import dev.utaa.linimal.extension.config.LinimalConfig;
+import dev.utaa.linimal.extension.config.LinimalConfigHealth;
+
 /**
  * LINE の設定画面に合わせた配色。LINE のテーマ resource は難読化や差し替えの影響を受けるため、
  * 参照せずに端末のダークモードだけで切り替えます。
@@ -21,10 +24,10 @@ public final class LinimalPalette {
     public final int statusError;
     public final boolean dark;
 
-    private LinimalPalette(boolean dark) {
+    private LinimalPalette(boolean dark, boolean amoled) {
         this.dark = dark;
         if (dark) {
-            background = 0xFF1B1B1B;
+            background = amoled ? 0xFF000000 : 0xFF1B1B1B;
             primaryText = 0xFFE8E8E8;
             secondaryText = 0xFF9A9A9A;
             disabledText = 0xFF5A5A5A;
@@ -43,7 +46,17 @@ public final class LinimalPalette {
     }
 
     public static LinimalPalette of(Context context) {
-        return new LinimalPalette(isNightMode(context));
+        return new LinimalPalette(isNightMode(context), isAmoledThemeEnabled());
+    }
+
+    /** LINE の画面と同じく、この process の起動時に AMOLED テーマが有効だったかどうかで決めます。 */
+    private static boolean isAmoledThemeEnabled() {
+        try {
+            LinimalConfig config = LinimalConfig.get();
+            return config.getRuntimeHealth() == LinimalConfigHealth.OK && config.isAmoledThemeEnabled();
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private static boolean isNightMode(Context context) {

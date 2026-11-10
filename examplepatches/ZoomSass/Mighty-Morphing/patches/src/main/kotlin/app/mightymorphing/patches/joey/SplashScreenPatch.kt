@@ -6,6 +6,7 @@ import app.morphe.patcher.patch.BytecodePatch
 import app.morphe.patcher.patch.ResourcePatch
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import org.w3c.dom.Element
 
 /**
  * Internal resource patch that injects the fan-made Teal Koala (by u/otheast) into Joey's
@@ -43,13 +44,50 @@ private val splashResourcePatch: ResourcePatch = resourcePatch {
             targetDef.parentFile?.mkdirs()
             defStream.use { input -> targetDef.outputStream().use { output -> input.copyTo(output) } }
         }
+
+        // Android 12 draws the launcher icon before any code runs. A blank icon keeps that frame empty.
+        val blank = resDir.resolve("drawable/morphe_splash_blank.xml")
+        blank.parentFile?.mkdirs()
+        blank.writeText(
+            """
+            <?xml version="1.0" encoding="utf-8"?>
+            <vector xmlns:android="http://schemas.android.com/apk/res/android"
+                android:width="108dp"
+                android:height="108dp"
+                android:viewportWidth="108"
+                android:viewportHeight="108">
+                <path android:pathData="M0,0h108v108h-108z" android:fillColor="#00000000" />
+            </vector>
+            """.trimIndent(),
+        )
+        document("res/values/styles.xml").use { styles ->
+            val nodes = styles.getElementsByTagName("style")
+            var found = false
+            for (index in 0 until nodes.length) {
+                val style = nodes.item(index) as Element
+                if (style.getAttribute("name") != "baseThemeLight.Splash") continue
+                found = true
+                listOf(
+                    "android:windowSplashScreenBackground" to "@color/splash",
+                    "android:windowSplashScreenAnimatedIcon" to "@drawable/morphe_splash_blank",
+                    "android:windowSplashScreenIconBackgroundColor" to "@android:color/transparent",
+                    "android:windowSplashScreenAnimationDuration" to "0",
+                ).forEach { (name, value) ->
+                    val item = styles.createElement("item")
+                    item.setAttribute("name", name)
+                    item.textContent = value
+                    style.appendChild(item)
+                }
+            }
+            if (!found) error("Joey splash theme was not found")
+        }
     }
 }
 
 @Suppress("unused")
 val splashScreenPatch: BytecodePatch = bytecodePatch(
     name = "Splash Screen",
-    description = "Logo inspired by u/otheast. Animation and colours are fully customisable in Joey Settings - Morphe Settings.",
+    description = "[v1.3.5: Animation can be turned off] Logo inspired by u/otheast. Animation and colours are fully customisable in Joey Settings - Morphe Settings.",
     default = true,
 ) {
     compatibleWith(JOEY)

@@ -1,0 +1,9 @@
+.gradle/
+.kotlin/
+build/
+**/build-*/
+*.apk
+*.idsig
+*.key
+local.properties
+__pycache__/

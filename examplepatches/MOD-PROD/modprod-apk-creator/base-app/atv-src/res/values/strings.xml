@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ATV Base</string>
+    <string name="MainActivity">atv.links.Url</string>
+    <string name="versionCode">20261231</string>
+    <string name="versionName">Leanback</string>
+    <string name="isGame">false</string>
+    <string name="target_url">intent://exemple.app/#Intent;scheme=https;end</string>
+    <string name="target_apk">com.exemple.apk</string>
+</resources>

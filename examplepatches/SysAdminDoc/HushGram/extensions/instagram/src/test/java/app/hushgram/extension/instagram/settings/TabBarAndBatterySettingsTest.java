@@ -85,6 +85,7 @@ public class TabBarAndBatterySettingsTest {
         Settings.GLASS_TAB_BAR_LIQUID.resetToDefault();
         Settings.GLASS_TAB_BAR_KEEP_SIZE.resetToDefault();
         Settings.GLASS_TAB_BAR_REFRACT.resetToDefault();
+        Settings.GLASS_TAB_BAR_BLUR.resetToDefault();
         Settings.GLASS_TAB_BAR_HAPTIC_STYLE.resetToDefault();
         Settings.GLASS_TAB_BAR_OPACITY.resetToDefault();
         Settings.GLASS_TAB_BAR_REFRACT_STRENGTH.resetToDefault();
@@ -97,6 +98,7 @@ public class TabBarAndBatterySettingsTest {
         Settings.SAVED_ON_PROFILE.resetToDefault();
         Settings.STOP_HEARTBEAT.resetToDefault();
         Settings.STOP_UPLOAD_ALARM.resetToDefault();
+        Settings.STOP_BACKGROUND_FETCH.resetToDefault();
         BaseSettings.PAUSED.save(false);
         PauseForTests.resume();
     }
@@ -117,7 +119,7 @@ public class TabBarAndBatterySettingsTest {
         open();
         for (String key : List.of(Settings.GLASS_TAB_BAR.key, Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key, Settings.GLASS_TAB_BAR_OPACITY.key, Settings.GLASS_TAB_BAR_HEIGHT.key,
                 Settings.GLASS_TAB_BAR_CORNERS.key, Settings.GLASS_TAB_BAR_LIFT.key, Settings.GLASS_TAB_BAR_BLUR_RADIUS.key, Settings.GLASS_TAB_BAR_REELS_HIDE.key, Settings.SAVED_ON_PROFILE.key, Settings.STOP_HEARTBEAT.key,
-                Settings.STOP_UPLOAD_ALARM.key)) {
+                Settings.STOP_UPLOAD_ALARM.key, Settings.STOP_BACKGROUND_FETCH.key)) {
             assertNull(key, row(key));
         }
         assertFalse(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_HAPTIC_STYLE.key));
@@ -535,14 +537,15 @@ public class TabBarAndBatterySettingsTest {
 
     /**
      * Bend light at the edges (#369) is a switch right after the liquid look, off to start, offered
-     * while the liquid look is on, backed up, and read as the bar is built, so it asks for a restart.
+     * while the pill is blurred, liquid or not (#391), backed up, and read as the bar is built, so it
+     * asks for a restart.
      */
-    @Test public void bendLightAtTheEdgesSitsUnderTheLiquidLookAndStartsOff() throws Exception {
+    @Test public void bendLightAtTheEdgesSitsUnderTheBlurAndStartsOff() throws Exception {
         open(PatchFamily.GLASS_TAB_BAR);
         SwitchPreference refract = (SwitchPreference) row(Settings.GLASS_TAB_BAR_REFRACT.key);
         assertNotNull(refract);
         assertEquals("Bend light at the edges", String.valueOf(refract.getTitle()));
-        assertEquals("The liquid pill's rim bends what's behind it like real glass, so what passes under the edge "
+        assertEquals("The pill's rim bends what's behind it like real glass, so what passes under the edge "
                 + "shows upside down. Android 13 and newer. Restart Instagram after changing it. Can slow down older phones.",
                 String.valueOf(refract.getSummary()));
         assertFalse(refract.isChecked());
@@ -560,10 +563,15 @@ public class TabBarAndBatterySettingsTest {
         assertEquals("right after Liquid glass look", liquidAt + 1, refractAt);
         assertTrue(ConfigurationBackup.eligible().containsKey(Settings.GLASS_TAB_BAR_REFRACT.key));
 
-        assertFalse("no liquid look, no rim", Settings.GLASS_TAB_BAR_REFRACT.isAvailable());
+        assertFalse("no glass bar, no rim", Settings.GLASS_TAB_BAR_REFRACT.isAvailable());
         Settings.GLASS_TAB_BAR.save(true);
-        Settings.GLASS_TAB_BAR_LIQUID.save(true);
-        assertTrue(Settings.GLASS_TAB_BAR_REFRACT.isAvailable());
+        assertFalse(Settings.GLASS_TAB_BAR_LIQUID.savedValue());
+        assertTrue("the standard pill bends too (#391)", Settings.GLASS_TAB_BAR_REFRACT.isAvailable());
+        Settings.GLASS_TAB_BAR_REFRACT.save(true);
+        assertTrue("and so is its slider", Settings.GLASS_TAB_BAR_REFRACT_STRENGTH.isAvailable());
+        Settings.GLASS_TAB_BAR_BLUR.save(false);
+        assertFalse("no blur, nothing to bend", Settings.GLASS_TAB_BAR_REFRACT.isAvailable());
+        assertFalse(Settings.GLASS_TAB_BAR_REFRACT_STRENGTH.isAvailable());
     }
 
     /**
@@ -653,16 +661,22 @@ public class TabBarAndBatterySettingsTest {
         assertTrue(Settings.SAVED_ON_PROFILE.rebootApp);
     }
 
-    @Test public void batteryHoldsBothAlarmSwitchesAndBothStartOff() throws Exception {
+    @Test public void batteryHoldsAllThreeWakeUpSwitchesAndAllStartOff() throws Exception {
         open(PatchFamily.STOP_HEARTBEAT);
         SwitchPreference heartbeat = (SwitchPreference) row(Settings.STOP_HEARTBEAT.key);
         SwitchPreference upload = (SwitchPreference) row(Settings.STOP_UPLOAD_ALARM.key);
+        SwitchPreference fetch = (SwitchPreference) row(Settings.STOP_BACKGROUND_FETCH.key);
         assertNotNull(heartbeat);
         assertNotNull(upload);
+        assertNotNull(fetch);
         assertEquals("Battery", String.valueOf(sectionOf(page.getPreferenceScreen(), heartbeat).getTitle()));
         assertSame(sectionOf(page.getPreferenceScreen(), heartbeat), sectionOf(page.getPreferenceScreen(), upload));
+        assertSame(sectionOf(page.getPreferenceScreen(), heartbeat), sectionOf(page.getPreferenceScreen(), fetch));
+        assertEquals("Stop background feed refresh", String.valueOf(fetch.getTitle()));
         assertFalse(heartbeat.isChecked());
         assertFalse(upload.isChecked());
-        assertEquals(Arrays.asList(Settings.STOP_HEARTBEAT, Settings.STOP_UPLOAD_ALARM), PatchFamily.STOP_HEARTBEAT.switches);
+        assertFalse(fetch.isChecked());
+        assertEquals(Arrays.asList(Settings.STOP_HEARTBEAT, Settings.STOP_UPLOAD_ALARM, Settings.STOP_BACKGROUND_FETCH),
+                PatchFamily.STOP_HEARTBEAT.switches);
     }
 }

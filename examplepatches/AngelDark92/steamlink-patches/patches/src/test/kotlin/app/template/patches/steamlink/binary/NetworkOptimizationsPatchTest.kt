@@ -27,10 +27,10 @@ class NetworkOptimizationsPatchTest {
     )
 
     @Test
-    fun `one recommended patch dispatches to every verified loaded build`() {
+    fun `one patch dispatches to every verified loaded build`() {
         val patch = networkOptimizationsPatch
         assertEquals("Network Optimizations", patch.name)
-        assertTrue(patch.default)
+        assertFalse(patch.default)
         assertEquals(PatchCategories.STREAMING_AND_NETWORK, patch.category)
         assertTrue(patch.dependencies.isEmpty(), "No dependency may bypass the exact execution guard")
         assertPatchDescriptionContract(patch)

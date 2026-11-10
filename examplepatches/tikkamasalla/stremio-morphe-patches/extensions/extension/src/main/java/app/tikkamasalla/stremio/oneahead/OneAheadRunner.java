@@ -12,11 +12,12 @@ import java.util.List;
 
 /**
  * Executes a plan on one background thread. Every failure — refusal, budget, codec,
- * playback conflict, corrupt cache — ends as NO_TIMES, never a crash, never a retry:
- * at most one attempt per episode per day, and no loop. A job stopped by its guard gives
- * the attempt back; the trigger starts one job per episode per process, so that cannot
- * loop. The mark is written first, so a job that kills the process is not run again that
- * day. Features already in the cache are reused, so a resume re-fetches only the files it lacks.
+ * playback conflict, corrupt cache — ends as NO_TIMES, never a crash. One file gets
+ * at most 2 tries per day: a try that failed for a temporary reason (network or IO
+ * error, link expired, rate limited, worker died, cancelled) may run once more, a
+ * finished try (done or no-segments) or a second try never runs again that day.
+ * The mark is written first, so a job that kills the process keeps its try.
+ * Features already in the cache are reused, so a resume re-fetches only the files it lacks.
  */
 public final class OneAheadRunner {
     /** Fetches and decodes one file's plan slices into features. Implemented over demux. */
@@ -57,6 +58,7 @@ public final class OneAheadRunner {
     private volatile Thread worker;
     private volatile Outcome last;
     private List<OneAheadResult.Segment> borrowed = new ArrayList<>();
+    private boolean borrowedIntroWeak;
     private double borrowedDuration;
     private long borrowedBytes;
     /** Bytes one borrowing run may read, under the day's cap. */
@@ -79,11 +81,16 @@ public final class OneAheadRunner {
     public OneAheadStores.FeatureStore features() { return features; }
     public OneAheadStores.ResultStore results() { return results; }
     public boolean attemptedToday(String episodeId) { return attempts.attemptedToday(episodeId, clock.today()); }
+    /** True when this exact file may not start another try today: finished or already tried twice. */
+    public boolean attemptedToday(String episodeId, long size, long hash) {
+        return attempts.blockedToday(OneAheadStores.key(episodeId, size, hash), clock.today());
+    }
     public Outcome last() { return last; }
 
     /** Types already proved from another release: they replace what the audio run finds for them. */
-    void setBorrowed(List<OneAheadResult.Segment> segments, double fileDuration) {
+    void setBorrowed(List<OneAheadResult.Segment> segments, boolean weakIntro, double fileDuration) {
         borrowed = segments;
+        borrowedIntroWeak = weakIntro;
         borrowedDuration = fileDuration;
     }
 
@@ -115,18 +122,29 @@ public final class OneAheadRunner {
         attempts.addBytes(clock.today(), bytes);
     }
 
-    /** Records the episode attempt for a theme run on an episode the planner refused. */
-    void markThemed(String episodeId, String showId) {
-        attempts.mark(episodeId, showId == null ? "" : showId.trim(), clock.today());
+    /** Records the file attempt for a theme run on a file the planner refused. */
+    void markThemed(String episodeId, long size, long hash, String showId) {
+        String day = clock.today();
+        String key = OneAheadStores.key(episodeId, size, hash);
+        attempts.mark(key, showId == null ? "" : showId.trim(), day);
     }
 
     /** Borrowed times alone are the result: nothing is left for the audio run to find. */
     Outcome keepBorrowed(String videoId, String showId, long size, long hash) throws IOException {
         OneAheadResult r = new OneAheadResult(videoId, size, hash, OneAheadResult.DETECTOR_VERSION);
         r.fileDurationSec = borrowedDuration;
-        r.segments.addAll(borrowed);
+        for (OneAheadResult.Segment s : borrowed) {
+            // A weak intro stands only with the detector's intro behind it: without an audio
+            // run there is nothing to agree with, so it is dropped here, never kept alone.
+            if ("intro".equals(s.type) && borrowedIntroWeak) continue;
+            r.segments.add(s);
+        }
+        if (r.segments.isEmpty()) return new Outcome(Status.NO_TIMES, "borrow-empty", null, borrowedBytes, 0);
         results.save(r);
-        attempts.mark(videoId, showId == null ? "" : showId.trim(), clock.today());
+        String day = clock.today();
+        String key = OneAheadStores.key(videoId, size, hash);
+        attempts.mark(key, showId == null ? "" : showId.trim(), day);
+        attempts.markDone(key, day);
         return new Outcome(Status.DONE, "ok", r, borrowedBytes, 0);
     }
 
@@ -146,18 +164,21 @@ public final class OneAheadRunner {
         if (target == null) return new Outcome(Status.REFUSED, OneAheadPlanner.Refusal.INVALID_TARGET.name(), null, 0, 0);
         showId = showId == null ? "" : showId.trim();
         String day = clock.today();
+        String attemptKey = OneAheadStores.key(target.episodeId, target.fileSize, target.headHash);
         cancelSeen = false;
         bytesLogged = 0;
         lastRefFailure = "none";
         try {
             OneAheadPlanner.Usage usage = new OneAheadPlanner.Usage();
-            usage.targetAttemptedToday = attempts.attemptedToday(target.episodeId, day);
+            usage.targetAttemptsToday = attempts.attemptsToday(attemptKey, day);
+            usage.targetFinishedToday = attempts.finishedToday(attemptKey, day);
+            usage.targetAttemptedToday = usage.targetFinishedToday || usage.targetAttemptsToday >= 2;
             usage.showEpisodesToday = attempts.showEpisodesToday(showId == null ? "" : showId, day);
             usage.bytesToday = attempts.bytesToday(day);
             OneAheadPlanner.Outcome planned = planner.plan(target, candidates, usage);
             if (!planned.ok()) return new Outcome(Status.REFUSED, planned.refusal.name(), null, 0, 0);
             OneAheadPlanner.Plan plan = planned.plan;
-            attempts.mark(target.episodeId, showId == null ? "" : showId, day); // the one attempt
+            attempts.mark(attemptKey, showId == null ? "" : showId, day); // one of at most 2 tries
             ByteBudget dayBudget = new ByteBudget(OneAheadPlanner.DAY_CAP, usage.bytesToday, null);
             // Per-file budgets under the shared day cap: each file may fetch up to FILE_CAP.
             List<ByteBudget> fileBudgets = new ArrayList<>();
@@ -165,42 +186,130 @@ public final class OneAheadRunner {
             try {
                 EpisodeFeatures t = obtain(plan.target, newFileBudget(dayBudget, fileBudgets), pins);
                 logBytes(day, fileBudgets);
-                if (t == null) return noTimes("target-unavailable", fileBudgets);
+                if (t == null) {
+                    Outcome o = noTimes("target-unavailable", fileBudgets);
+                    finishIfDone(attemptKey, day, o);
+                    return o;
+                }
                 List<EpisodeFeatures> refs = new ArrayList<>();
+                boolean refTempSeen = false;
+                // Every planned reference (up to MAX_REFS = 5, already priced against the day cap).
+                // The detector's composite, replay and edge guards were validated at five references;
+                // at three they fall silent (bench, 5 rotations of 3: 370 s of story cut on tuned
+                // shows, Mouse replays and the Mandalorian echo return; 0 s at five).
                 for (OneAheadPlanner.FilePlan rp : storedFirst(plan.refs)) {
-                    if (refs.size() >= 3) break;
+                    if (refs.size() >= OneAheadPlanner.MAX_REFS) break;
                     long b0 = used(fileBudgets);
                     long t0 = System.currentTimeMillis();
                     EpisodeFeatures r = obtain(rp, newFileBudget(dayBudget, fileBudgets), pins);
                     logBytes(day, fileBudgets);
                     long secs = (System.currentTimeMillis() - t0) / 1000L;
                     String why = r != null ? "ok" : lastRefFailure;
+                    if (r == null && lastRefTemporary()) refTempSeen = true;
                     safeLog("ref ep=" + rp.ref.episodeId + " bytes=" + (used(fileBudgets) - b0)
                             + " secs=" + secs + " reason=" + why + " cont=" + rp.ref.container
                             + " size=" + rp.ref.fileSize);
                     if (cancelSeen) return noTimes("cancelled", fileBudgets);
                     if (r != null) refs.add(r);
                 }
-                if (refs.size() < 2) return noTimes("refs-lost:" + lastRefFailure, fileBudgets);
+                if (refs.size() < 2) {
+                    if (refTempSeen) return noTimes("refs-lost:" + lastRefFailure, fileBudgets);
+                    Outcome o = noTimes("refs-lost:" + lastRefFailure, fileBudgets);
+                    finishIfDone(attemptKey, day, o);
+                    return o;
+                }
                 awaitPlayback();
                 if (guard.isCancelled() || !HeapGate.fits(HeapGate.DETECT_BYTES)) return noTimes("cancelled", fileBudgets);
-                Detector.Result found = detectors.create(false).detect(t, refs);
+                java.util.Map<String, double[]> hints = hintPass(t, refs);
+                Detector.Result found = detectors.create(false).detect(t, refs, hints);
                 OneAheadResult result = OneAheadResult.fromDetector(target.videoId, t, found);
-                if (result.segments.isEmpty()) return noTimes("no-segments", fileBudgets);
+                if (result.segments.isEmpty()) {
+                    Outcome o = noTimes("no-segments", fileBudgets);
+                    attempts.markDone(attemptKey, day);
+                    return o;
+                }
                 for (OneAheadResult.Segment b : borrowed) {
+                    // A weak intro replaces the detector's only when they agree: without the
+                    // detector's intro behind it the weak name is dropped, never kept alone.
+                    if ("intro".equals(b.type) && borrowedIntroWeak && !detectorAgrees(result.segments, b)) continue;
                     result.segments.removeIf(s -> s.type.equals(b.type));
                     result.segments.add(b);
                 }
                 results.save(result);
+                attempts.markDone(attemptKey, day);
                 return new Outcome(Status.DONE, "ok", result, used(fileBudgets), 0);
             } finally {
                 logBytes(day, fileBudgets);
                 for (String k : pins) features.unpin(k);
-                if (cancelSeen) attempts.unmark(target.episodeId, showId, day);
             }
         } catch (IOException | RuntimeException | OutOfMemoryError e) {
-            return new Outcome(Status.NO_TIMES, e.getClass().getSimpleName(), null, 0, 0);
+            Outcome o = new Outcome(Status.NO_TIMES, e.getClass().getSimpleName(), null, 0, 0);
+            if (!(e instanceof IOException)) attempts.markDone(attemptKey, day);
+            return o;
         }
+    }
+
+    /** A finished try blocks any retry today; a temporary failure leaves its one retry. */
+    private void finishIfDone(String attemptKey, String day, Outcome o) {
+        if (o == null || o.status != Status.NO_TIMES) return;
+        if ("no-segments".equals(o.reason)) { attempts.markDone(attemptKey, day); return; }
+        if (!isTemporary(o.reason)) attempts.markDone(attemptKey, day);
+    }
+
+    private boolean isTemporary(String reason) {
+        if (reason == null) return false;
+        if ("cancelled".equals(reason)) return true;
+        if ("target-unavailable".equals(reason)) return lastRefTemporary();
+        if (reason.startsWith("refs-lost:")) return lastRefTemporary();
+        if ("IOException".equals(reason)) return true;
+        return reason.endsWith("Exception") && (reason.contains("Socket")
+                || reason.contains("Timeout") || reason.contains("Connect") || reason.contains("Host"));
+    }
+
+    private boolean lastRefTemporary() {
+        if (lastRefFailure == null) return false;
+        return lastRefFailure.startsWith("IO:") || lastRefFailure.startsWith("LINK_EXPIRED:")
+                || lastRefFailure.startsWith("RATE_LIMITED:") || lastRefFailure.startsWith("CANCELLED:")
+                || "IOException".equals(lastRefFailure) || lastRefFailure.contains("Socket")
+                || lastRefFailure.contains("Timeout") || lastRefFailure.contains("Connect")
+                || lastRefFailure.contains("Host");
+    }
+
+    /** The detector's intro within 15 s at both edges: what a weak borrowed intro needs behind it. */
+    private static boolean detectorAgrees(List<OneAheadResult.Segment> found, OneAheadResult.Segment borrowed) {
+        for (OneAheadResult.Segment s : found) {
+            if ("intro".equals(s.type) && Math.abs(s.start - borrowed.start) <= OneAheadBorrow.DETECTOR_AGREE_S
+                    && Math.abs(s.end - borrowed.end) <= OneAheadBorrow.DETECTOR_AGREE_S) return true;
+        }
+        return false;
+    }
+
+    /** Pass 1 for the premiere-context replay veto: the earliest episode's intro, ranked by
+     * refcount only. All features are already in memory; no fetching. Null when unknown. */
+    private java.util.Map<String, double[]> hintPass(EpisodeFeatures t, List<EpisodeFeatures> refs) {
+        java.util.Map<String, double[]> hints = new java.util.HashMap<>();
+        try {
+            List<EpisodeFeatures> all = new java.util.ArrayList<>(refs);
+            all.add(t);
+            EpisodeFeatures earliest = all.get(0);
+            for (EpisodeFeatures e : all) {
+                int[] a = Detector.epOrder(e.id), b = Detector.epOrder(earliest.id);
+                if (a[0] < b[0] || (a[0] == b[0] && a[1] < b[1])) earliest = e;
+            }
+            List<EpisodeFeatures> others = new java.util.ArrayList<>(all);
+            others.remove(earliest);
+            if (others.size() < 2) return hints;
+            Detector.Result r = Detector.hintDetector().detect(earliest, others, null);
+            for (Detector.Segment s : r.segments) {
+                if ("intro".equals(s.type)) {
+                    hints.put(earliest.id, new double[]{s.start, s.end});
+                    break;
+                }
+            }
+        } catch (RuntimeException | OutOfMemoryError e) {
+            hints.clear();
+        }
+        return hints;
     }
 
     /** Stored features first, so a run stops before any lengthy fetch it does not need. */

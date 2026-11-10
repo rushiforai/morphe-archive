@@ -1,0 +1,1 @@
+package e.e.a; public final class q {public final String body,command;public final Integer[] attributes;public String h;q(String body,String command,Integer[] attributes){this.body=body;this.command=command;this.attributes=attributes;}}

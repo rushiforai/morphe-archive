@@ -1,0 +1,206 @@
+{
+  ".github/scripts/generate_patches_readme.py": {
+    "mtime": 1792790921.030345,
+    "seen": 1792791123.0902495,
+    "ast_hash": "ed3754edc57248d1fca3a466e17d2c61",
+    "semantic_hash": ""
+  },
+  "build.gradle.kts": {
+    "mtime": 1792625261.066782,
+    "seen": 1792658498.1721747,
+    "ast_hash": "9f56f86029d0d25dd1d125ea46193d1c",
+    "semantic_hash": "9f56f86029d0d25dd1d125ea46193d1c"
+  },
+  "extensions/extension/build.gradle.kts": {
+    "mtime": 1794016348.3181841,
+    "seen": 1794106343.3565414,
+    "ast_hash": "8bf3493a09b07668100d624e08cf96ca",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/app/template/extension/extension/ExamplePatch.java": {
+    "mtime": 1792625261.0864074,
+    "seen": 1792658498.1721783,
+    "ast_hash": "f68b52a18847381b54ed45b3ad0b6d2b",
+    "semantic_hash": "f68b52a18847381b54ed45b3ad0b6d2b"
+  },
+  "extensions/extension/src/main/java/app/template/extension/kayo/KayoPatch.java": {
+    "mtime": 1794105824.2155554,
+    "seen": 1794106343.3565462,
+    "ast_hash": "a4006dfd721210fb4b240db20576579b",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/com/google/android/exoplayer2/Format.java": {
+    "mtime": 1794016348.324251,
+    "seen": 1794106343.3565497,
+    "ast_hash": "e423717572d54f5be483a75c54dcd82a",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/com/google/android/exoplayer2/Tracks.java": {
+    "mtime": 1794016348.3257718,
+    "seen": 1794106343.3565512,
+    "ast_hash": "75602d1671d389ad03312493460d6593",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/com/google/android/exoplayer2/source/TrackGroup.java": {
+    "mtime": 1794016348.3267941,
+    "seen": 1794106343.3565521,
+    "ast_hash": "f592fd76922893a70b6f71111171e6da",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/com/google/android/exoplayer2/trackselection/DefaultTrackSelector.java": {
+    "mtime": 1794016348.3278112,
+    "seen": 1794106343.3565538,
+    "ast_hash": "85b9bad80ae4a166a9b3e99c78c66af3",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/com/google/android/exoplayer2/trackselection/TrackSelectionOverride.java": {
+    "mtime": 1794016348.3298059,
+    "seen": 1794106343.356555,
+    "ast_hash": "9eeeda20c686e74e36825568c392b89b",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/com/google/android/exoplayer2/trackselection/TrackSelectionParameters.java": {
+    "mtime": 1794016348.3308084,
+    "seen": 1794106343.3565562,
+    "ast_hash": "6f56f76a69081d0c04560ec1261f3b3a",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/com/google/common/collect/ImmutableList.java": {
+    "mtime": 1794016348.3318112,
+    "seen": 1794106343.3565576,
+    "ast_hash": "5c30517cebc68e363bfc39a32a09b8b9",
+    "semantic_hash": ""
+  },
+  "gradlew": {
+    "mtime": 1792625261.0965164,
+    "seen": 1792658498.17219,
+    "ast_hash": "a43be8432bac3ffd05b3769aa42fe996",
+    "semantic_hash": "a43be8432bac3ffd05b3769aa42fe996"
+  },
+  "package.json": {
+    "mtime": 1792791733.5991147,
+    "seen": 1792791768.4994283,
+    "ast_hash": "3ef83e67e50cf331cad8b4e997876e0c",
+    "semantic_hash": ""
+  },
+  "patches-bundle.json": {
+    "mtime": 1794016347.9879513,
+    "seen": 1794106343.356564,
+    "ast_hash": "670088c0f97ce9b8e94361ec945b0eb9",
+    "semantic_hash": ""
+  },
+  "patches-list.json": {
+    "mtime": 1794016347.989474,
+    "seen": 1794106343.3565652,
+    "ast_hash": "9f9f7ef2e420dd914b602993572d461e",
+    "semantic_hash": ""
+  },
+  "patches/build.gradle.kts": {
+    "mtime": 1792625376.4899445,
+    "seen": 1792658498.1721945,
+    "ast_hash": "47654ef7f645e170ce681fe902be588f",
+    "semantic_hash": "47654ef7f645e170ce681fe902be588f"
+  },
+  "patches/src/main/kotlin/app/template/patches/kayo/KayoPatch.kt": {
+    "mtime": 1794106181.1304226,
+    "seen": 1794106343.356569,
+    "ast_hash": "a2b24f699d010332b9f80b7cb7db1411",
+    "semantic_hash": ""
+  },
+  "patches/src/main/kotlin/app/template/patches/shared/Constants.kt": {
+    "mtime": 1792789239.3985014,
+    "seen": 1792789502.0829866,
+    "ast_hash": "d3c54501d246894b7756bd0a5d572f25",
+    "semantic_hash": ""
+  },
+  "patches/src/main/kotlin/util/PatchListGenerator.kt": {
+    "mtime": 1792625261.1271913,
+    "seen": 1792658498.1721992,
+    "ast_hash": "a019f8fd40f826d11d060c5317861711",
+    "semantic_hash": "a019f8fd40f826d11d060c5317861711"
+  },
+  "settings.gradle.kts": {
+    "mtime": 1792790898.8800642,
+    "seen": 1792791123.0903022,
+    "ast_hash": "5f43fcd16ab9b090087fc8c382fadb95",
+    "semantic_hash": ""
+  },
+  ".github/ISSUE_TEMPLATE/bug_report.yml": {
+    "mtime": 1792625261.0402822,
+    "seen": 1792658498.1722019,
+    "ast_hash": "8af430ee4d0232ea85e95e451fdf32b6",
+    "semantic_hash": "8af430ee4d0232ea85e95e451fdf32b6"
+  },
+  ".github/ISSUE_TEMPLATE/config.yml": {
+    "mtime": 1792625261.041293,
+    "seen": 1792658498.172203,
+    "ast_hash": "2a704333c98ec809cf4e655a4001e214",
+    "semantic_hash": "2a704333c98ec809cf4e655a4001e214"
+  },
+  ".github/ISSUE_TEMPLATE/feature_request.yml": {
+    "mtime": 1792625261.042292,
+    "seen": 1792658498.1722043,
+    "ast_hash": "7a6519b4d2c763a17fb54417a40954ae",
+    "semantic_hash": "7a6519b4d2c763a17fb54417a40954ae"
+  },
+  ".github/dependabot.yml": {
+    "mtime": 1792625261.0439525,
+    "seen": 1792658498.1722052,
+    "ast_hash": "3dfb703709378dbd06fe9e0dd89ca48c",
+    "semantic_hash": "3dfb703709378dbd06fe9e0dd89ca48c"
+  },
+  ".github/workflows/open_pull_request.yml": {
+    "mtime": 1792625261.055087,
+    "seen": 1792658498.1722064,
+    "ast_hash": "27bef29b9788d7623a1499cf83a3b208",
+    "semantic_hash": "27bef29b9788d7623a1499cf83a3b208"
+  },
+  ".github/workflows/release.yml": {
+    "mtime": 1792790954.3969033,
+    "seen": 1792791123.0903168,
+    "ast_hash": "d010724433fe29664d19811fe850ddc0",
+    "semantic_hash": ""
+  },
+  "CHANGELOG.md": {
+    "mtime": 1794016347.9503193,
+    "seen": 1794106343.3565881,
+    "ast_hash": "0ada51931c86a38e0153f39460a050c4",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1794016347.9534352,
+    "seen": 1794106343.3565893,
+    "ast_hash": "949227e1d93c34b6fcf36f2a4cefe772",
+    "semantic_hash": ""
+  },
+  ".agents/rules/graphify.md": {
+    "mtime": 1792658567.3801062,
+    "seen": 1792660938.801244,
+    "ast_hash": "a0e4d192b9e2e17256124dbfc8e24e6a",
+    "semantic_hash": ""
+  },
+  ".agents/workflows/graphify.md": {
+    "mtime": 1792658567.3821187,
+    "seen": 1792660938.8012455,
+    "ast_hash": "a831cf3669f1e6ab85d8a80ebe655f99",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/main/java/com/google/android/exoplayer2/ExoPlayer.java": {
+    "mtime": 1794016348.323246,
+    "seen": 1794106343.356548,
+    "ast_hash": "6a98d2e2b8539f016fd9ab3f10a21753",
+    "semantic_hash": ""
+  },
+  "patches/src/main/kotlin/app/template/patches/kayo/Fingerprints.kt": {
+    "mtime": 1794106181.1284342,
+    "seen": 1794106343.3565679,
+    "ast_hash": "260a62fc2ada13778eb4bd1cca63689b",
+    "semantic_hash": ""
+  },
+  "extensions/extension/src/test/java/app/template/extension/kayo/KayoPatchTest.java": {
+    "mtime": 1794105695.550431,
+    "seen": 1794106343.3565588,
+    "ast_hash": "fc2107c2f3b2e01e2fd248f0a537c32e",
+    "semantic_hash": ""
+  }
+}

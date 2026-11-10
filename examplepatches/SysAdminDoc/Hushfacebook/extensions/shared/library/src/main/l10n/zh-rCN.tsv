@@ -1921,10 +1921,20 @@ List cleared	列表已清空
 Nothing here yet. With Remember what you watch on, the reels, videos and stories you watch show up here.	这里还没有内容。开启“记住我看过的内容”后，你看过的 Reels、视频和快拍会显示在这里。
 # context: shown in the Recently watched list when the picked chip has no entries
 Nothing of this kind yet.	此类内容暂无。
-# context: switch title under Comments; on, the comment sheet opens at the full height of the screen
-Open comments at full height	全屏打开评论
-# context: summary of that switch; Comment is the button under a reel or video, the split view shows the video above the comments
+# context: summary of the Full height choice; Comment is the button under a reel or video, the split view shows the video above the comments
 Comments open on a sheet that fills the screen instead of stopping part way up. On reels and videos, Comment opens that sheet in place of the split view with the video on top.	评论面板会铺满整个屏幕，而不是只展开一部分。在 Reels 和视频上，“评论”按钮会打开这个面板，而不是视频在上方的分屏视图。
+# context: title of the list that picks how high the comments sheet opens; its choices follow
+Open comments at	评论打开高度
+Facebook's height	Facebook 默认高度
+Full height	全屏高度
+Half height	半屏高度
+# context: summary of the Half height choice; Comment is the button under a reel or video
+Comments open on a sheet that covers half the screen, and the reel or video keeps playing above it. On reels and videos, Comment opens that sheet in place of the split view.	评论面板会覆盖半个屏幕，上方的 Reels 或视频会继续播放。在 Reels 和视频上，“评论”按钮会打开这个面板，而不是分屏视图。
+Comments open where Facebook stops them, part way up on reels and videos.	评论在 Facebook 默认的位置打开，在 Reels 和视频上只展开一部分。
+# context: sentences in a settings import preview
+Comments will open at full height.	评论将以全屏高度打开。
+Comments will open at half height.	评论将以半屏高度打开。
+Comments will open where Facebook stops them.	评论将在 Facebook 默认的位置打开。
 # context: switch title under Appearance; on, Android's status bar (clock, battery) is hidden on Facebook's main screen
 Hide the status bar	隐藏状态栏
 # context: summary of that switch; a swipe down from the top edge shows the bar briefly
@@ -2625,3 +2635,30 @@ The rounded tab bar is %1$s percent of the screen wide.	圆角标签栏的宽度
 Tab bar height	标签栏高度
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	圆角标签栏保留其完整高度的百分比，范围 %1$s 到 %2$s，在图标上方和下方裁剪。留空则使用 %3$s.
 The rounded tab bar keeps %1$s percent of its height.	圆角标签栏保留其高度的百分之 %1$s.
+# context: title of a row under About that picks how long a dot marks settings an update added
+Mark new settings	标记新设置
+# context: choice in that row; the dot goes once the page holding the setting is left
+Until I leave the page	直到我离开页面
+# context: summary of that row when Off is picked
+Settings an update adds get no dot.	更新新增的设置不显示圆点.
+# context: summary of that row for the default choice
+A dot marks each setting an update adds, until you leave the page it's on.	更新新增的每项设置旁会显示圆点，直到你离开它所在的页面.
+# context: summary of that row; %1$s is a time such as 3 days
+A dot marks each setting an update adds, for %1$s from the first time you open its page.	更新新增的每项设置旁会显示圆点，从你第一次打开其页面起保留%1$s.
+# context: sentence in the import preview when the file turns that row Off
+Settings an update adds won't get a dot.	更新新增的设置将不显示圆点.
+# context: sentence in the import preview for the default choice
+Settings an update adds will get a dot until you leave their page.	更新新增的设置将显示圆点，直到你离开其页面.
+# context: sentence in the import preview; %1$s is a time such as 3 days
+Settings an update adds will get a dot for %1$s from the first time you open their page.	更新新增的设置将显示圆点，从你第一次打开其页面起保留%1$s.
+Turn gray over	变灰用时
+Reels are gray from the start.	Reels 从一开始就是灰色.
+# context: %1$s is a time such as 10 minutes
+Reels lose their color over %1$s of watching. 15 minutes away starts them in color again.	Reels 会在观看 %1$s 的过程中逐渐褪色。离开 15 分钟后会重新恢复彩色.
+Show Reels in gray will make reels gray from the start.	以灰色显示 Reels 将让 Reels 从一开始就是灰色.
+# context: sentence in the import preview; %1$s is a time such as 10 minutes
+Show Reels in gray will take reels from color to gray over %1$s.	以灰色显示 Reels 将在 %1$s 内让 Reels 从彩色变为灰色.
+Show time in Reels	在 Reels 中显示观看时间
+A small label at the top of Reels shows the minutes you've watched. Time on other tabs doesn't count, and 15 minutes away starts it over.	Reels 顶部的小标签显示你已观看的分钟数。在其他标签页的时间不计入，离开 Reels 15 分钟后会从头计算.
+# context: a short label on the Reels screen; %1$d is a number of minutes
+%1$d min	%1$d 分钟

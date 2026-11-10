@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.patches.feed
 
 import app.linkedin.patches.shared.Constants.COMPATIBILITY_LINKEDIN

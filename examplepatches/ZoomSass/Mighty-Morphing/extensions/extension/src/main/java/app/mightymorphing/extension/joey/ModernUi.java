@@ -34,6 +34,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -48,6 +49,8 @@ public final class ModernUi {
 
     // Preference Keys
     public static final String KEY_MODERN_ENABLED = "modern_ui_enabled";
+    public static final String KEY_CLASSIC = "classic_ui";
+    public static final String KEY_SIDEBAR_BIRD = "sidebar_bird";
     public static final String KEY_SYSTEM_FONT = "use_system_font";
     public static final String KEY_BANNER = "banner_scale";
     public static final String KEY_PIN_RAIL = "pin_nav_rail";
@@ -192,8 +195,13 @@ public final class ModernUi {
     }
 
     public static Palette getPalette(Context context) {
+        if (sPalette != null && sPaletteKey != null && !sPaletteKey.startsWith(ACCENT_MONET)) {
+            return sPalette;
+        }
         String accentKey = getMaterialAccent(context);
-        boolean amoled = ACCENT_AMOLED.equalsIgnoreCase(accentKey) || isPureAmoled(context);
+        boolean amoled = ACCENT_AMOLED.equalsIgnoreCase(accentKey) || cachedAmoled(context);
+        String key = accentKey + ":" + amoled;
+        if (key.equals(sPaletteKey) && sPalette != null) return sPalette;
 
         int accent = COLOR_BLUE;
         int primary = 0xFF111827;
@@ -271,7 +279,7 @@ public final class ModernUi {
             outline = 0xFF26303B;
         }
 
-        return new Palette(
+        sPalette = new Palette(
                 accent,
                 primary,
                 canvas,
@@ -281,6 +289,20 @@ public final class ModernUi {
                 0xFFF1F5F9,
                 0xFF94A3B8
         );
+        sPaletteKey = key;
+        return sPalette;
+    }
+
+    private static boolean cachedAmoled(Context context) {
+        if (sAmoledCache == null) sAmoledCache = isPureAmoled(context);
+        return sAmoledCache;
+    }
+
+    private static void forgetTheme() {
+        sAccentCache = null;
+        sAmoledCache = null;
+        sPaletteKey = null;
+        sPalette = null;
     }
 
     // =========================================================================
@@ -291,12 +313,40 @@ public final class ModernUi {
         return context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
+    /** Modern stays on unless Classic was saved. The older key is left unread. */
     public static boolean isModernUiEnabled(Context context) {
-        if (sControlsEnabled) return true;
-        if (sModernEnabled == null) {
-            sModernEnabled = getPrefs(context).getBoolean(KEY_MODERN_ENABLED, true);
+        return !isClassic(context);
+    }
+
+    private static Boolean sClassicCache;
+
+    public static boolean isClassic(Context context) {
+        try {
+            Context source = context != null ? context : getContext();
+            if (source == null) return sClassicCache != null && sClassicCache;
+            sClassicCache = getPrefs(source).getBoolean(KEY_CLASSIC, false);
+            return sClassicCache;
+        } catch (Throwable ignored) {
+            return sClassicCache != null && sClassicCache;
         }
-        return sModernEnabled;
+    }
+
+    public static void setClassicUi(Context context, boolean classic) {
+        sClassicCache = classic;
+        getPrefs(context).edit().putBoolean(KEY_CLASSIC, classic).commit();
+    }
+
+    public static boolean sidebarBird(Context context) {
+        try {
+            return isModernUiEnabled(context) && getPrefs(context).getBoolean(KEY_SIDEBAR_BIRD, false);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
+    public static void setSidebarBird(Context context, boolean shown) {
+        getPrefs(context).edit().putBoolean(KEY_SIDEBAR_BIRD, shown).commit();
+        for (Activity activity : runningActivities()) Sidebar.refresh(activity);
     }
 
     public static void setModernUiEnabled(Context context, boolean enabled) {
@@ -313,8 +363,15 @@ public final class ModernUi {
         if (context instanceof Activity) refreshLive((Activity) context);
     }
 
+    private static String sAccentCache;
+    private static Boolean sAmoledCache;
+    private static String sPaletteKey;
+    private static Palette sPalette;
+
     public static String getMaterialAccent(Context context) {
-        return getPrefs(context).getString(KEY_ACCENT, ACCENT_TEAL);
+        if (sAccentCache != null) return sAccentCache;
+        sAccentCache = getPrefs(context).getString(KEY_ACCENT, ACCENT_TEAL);
+        return sAccentCache;
     }
 
     public static void setMaterialAccent(Context context, String accent) {
@@ -341,7 +398,7 @@ public final class ModernUi {
 
     /** The status and gesture bars follow the theme without recreating this screen. */
     static void paintSystemBars(Activity activity) {
-        if (activity == null || activity.getWindow() == null) return;
+        if (activity == null || activity.getWindow() == null || !isModernUiEnabled(activity)) return;
         Palette palette = getPalette(activity);
         Window window = activity.getWindow();
         window.setStatusBarColor(palette.canvas);
@@ -352,6 +409,7 @@ public final class ModernUi {
         SharedPreferences.Editor editor = getPrefs(context).edit().putString(KEY_ACCENT, accent);
         if (!ACCENT_AMOLED.equalsIgnoreCase(accent)) editor.putBoolean(KEY_AMOLED, false);
         editor.commit();
+        forgetTheme();
     }
 
     /** Other screens recreate immediately, including the one that is open. */
@@ -690,6 +748,9 @@ public final class ModernUi {
     }
 
     public static void setPureAmoled(Context context, boolean amoled) {
+        sAmoledCache = null;
+        sPaletteKey = null;
+        sPalette = null;
         getPrefs(context).edit().putBoolean(KEY_AMOLED, amoled).commit();
         if (context instanceof Activity) refreshLive((Activity) context);
     }
@@ -1110,8 +1171,7 @@ public final class ModernUi {
         for (String name : new String[]{
                 "setting_item_theme",
                 "settings_theme_title",
-                "setting_item_font",
-                "setting_item_post_style"}) {
+                "setting_item_font"}) {
             int id = context.getResources().getIdentifier(name, "string", context.getPackageName());
             if (id != 0) hidden.add(context.getString(id));
         }
@@ -1231,15 +1291,9 @@ public final class ModernUi {
         // Joey's comment, time, user, and arrow marks are drawn with font 5.
         if (id == 5) return null;
         Context context = getContext();
-        if (context != null) {
-            if (!isModernUiEnabled(context)) return null;
-            if (isSystemFontEnabled(context)) {
-                return Typeface.DEFAULT;
-            }
-            return null;
-        }
-        if (sModernEnabled != null && !sModernEnabled) return null;
-        return Typeface.DEFAULT;
+        if (context == null || !isModernUiEnabled(context)) return null;
+        if (isSystemFontEnabled(context)) return Typeface.DEFAULT;
+        return null;
     }
 
     public static Typeface overrideTypeface(int id, Typeface orig, Context context) {
@@ -1697,16 +1751,12 @@ public final class ModernUi {
         int signature = bannerSignature(banner, container, hidden, height);
         Integer applied = BANNER_SIG.get(banner);
         if (applied != null && applied == signature) {
+            // Joey can put the picture colour back over the blur between frames.
+            clearPictureTint(banner);
+            if (banner.getBackground() != null) banner.setBackground(null);
+            followWash(container, banner);
             View collapsing = container.getParent() instanceof View ? (View) container.getParent() : null;
-            Activity activity = activityOf(context);
-            if (collapsing != null && homeFeed(activity)) {
-                parkToolbar(collapsing, container);
-                if (!hidden) hideCollapsedTitle(collapsing);
-            } else if (collapsing != null) raiseBack(collapsing, container);
-            if (activity != null) seatRail(activity);
-            // Joey paints the picture's own colour back over the blur on a later frame.
-            if (container instanceof ViewGroup) placeWash((ViewGroup) container, banner, hidden);
-            concealHeaderChips(container);
+            if (collapsing != null && homeFeed(activityOf(context))) followToolbar(collapsing, container);
             return;
         }
         BANNER_SIG.put(banner, signature);
@@ -1757,10 +1807,48 @@ public final class ModernUi {
         hash = 31 * hash + container.getWidth();
         hash = 31 * hash + String.valueOf(textOf(container, "top_info_headline")).hashCode();
         hash = 31 * hash + String.valueOf(textOf(container, "top_info_desc")).hashCode();
+        hash = 31 * hash + chipSignature(container);
         Palette palette = getPalette(banner.getContext());
         hash = 31 * hash + palette.accent;
         hash = 31 * hash + palette.primary;
         return hash;
+    }
+
+    /** Join and sort labels, so a chip change still restyles the header. */
+    private static int chipSignature(View container) {
+        View chips = findChild(container, "top_info_chipGroup");
+        if (!(chips instanceof ViewGroup)) return 0;
+        ViewGroup group = (ViewGroup) chips;
+        int hash = group.getChildCount();
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            hash = 31 * hash + child.getVisibility();
+            hash = 31 * hash + chipLabel(child).hashCode();
+        }
+        return hash;
+    }
+
+    /** Keeps the blur lined up when the banner moves, without rebuilding it. */
+    private static void followWash(View container, View banner) {
+        if (!(container instanceof ViewGroup)) return;
+        View wash = ((ViewGroup) container).findViewWithTag("morphe_slot_wash");
+        if (wash == null || wash.getVisibility() != View.VISIBLE) return;
+        float dx = banner.getLeft() - wash.getLeft();
+        float dy = banner.getTop() - wash.getTop();
+        if (Math.abs(wash.getTranslationX() - dx) > 1f || Math.abs(wash.getTranslationY() - dy) > 1f) {
+            wash.setTranslationX(dx);
+            wash.setTranslationY(dy);
+        }
+    }
+
+    /** Keeps the home toolbar beside the chips while the header scrolls. */
+    private static void followToolbar(View collapsing, View container) {
+        View toolbar = findChild(collapsing, "toolbar");
+        View chips = findChild(container, "top_info_hsv");
+        if (toolbar == null || chips == null || chips.getHeight() == 0) return;
+        int target = chips.getTop() + (chips.getHeight() - toolbar.getHeight()) / 2;
+        float shift = target - toolbar.getTop();
+        if (Math.abs(toolbar.getTranslationY() - shift) > 1f) toolbar.setTranslationY(shift);
     }
 
     /** Name and description sit on the lower left of the banner. The picture stays sharp. */
@@ -2178,7 +2266,6 @@ public final class ModernUi {
                 ChipTurn turn = turn((ViewGroup) parent);
                 turn.removed = true;
                 turn.removedView = child;
-                rememberJoin(turn, (ViewGroup) parent, child);
                 scheduleTurn((ViewGroup) parent, turn);
             }
         });
@@ -2210,6 +2297,7 @@ public final class ModernUi {
                 fadeJoinIn(added);
                 return;
             }
+            if (removedView != null) rememberJoin(turn, chips, removedView);
             fadeJoinOut(chips, turn);
         });
     }
@@ -2401,6 +2489,17 @@ public final class ModernUi {
     private static final int JOIN_DOT = 0x4d4f0002;
     private static final int CHIP_WATCH = 0x4d4f0003;
     private static final int CHIP_TURN = 0x4d4f0004;
+    private static final int CHIP_LABEL = 0x4d4f0005;
+
+    private static final class ChipLabel {
+        final CharSequence source;
+        final String value;
+
+        ChipLabel(CharSequence source, String value) {
+            this.source = source;
+            this.value = value;
+        }
+    }
 
     private static final class JoinDot extends android.graphics.drawable.Drawable {
         final Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -2471,17 +2570,34 @@ public final class ModernUi {
         return "sort";
     }
 
+    private static Method sChipText;
+    private static boolean sChipTextReady;
+
     private static String chipLabel(View child) {
-        CharSequence text = null;
-        if (child instanceof TextView) text = ((TextView) child).getText();
-        else {
-            try {
-                Object value = child.getClass().getMethod("getText").invoke(child);
-                if (value instanceof CharSequence) text = (CharSequence) value;
-            } catch (Throwable ignored) {
-            }
+        CharSequence text = chipText(child);
+        Object cached = child.getTag(CHIP_LABEL);
+        if (cached instanceof ChipLabel && ((ChipLabel) cached).source == text) {
+            return ((ChipLabel) cached).value;
         }
-        return text == null ? "" : text.toString().trim().toLowerCase();
+        String value = text == null ? "" : text.toString().trim().toLowerCase();
+        child.setTag(CHIP_LABEL, new ChipLabel(text, value));
+        return value;
+    }
+
+    private static CharSequence chipText(View child) {
+        if (child instanceof TextView) return ((TextView) child).getText();
+        try {
+            if (!sChipTextReady) {
+                sChipTextReady = true;
+                sChipText = child.getClass().getMethod("getText");
+            }
+            if (sChipText != null) {
+                Object value = sChipText.invoke(child);
+                if (value instanceof CharSequence) return (CharSequence) value;
+            }
+        } catch (Throwable ignored) {
+        }
+        return null;
     }
 
     /**
@@ -2573,9 +2689,23 @@ public final class ModernUi {
     private static final WeakHashMap<View, Boolean> TOOLBAR_PASS = new WeakHashMap<>();
 
     /** Title and spacer views sit across the chip row. They must not take the tap. */
+    private static final int TOOLBAR_GAPS = 0x4d4f0006;
+
     private static void releaseToolbarGaps(View toolbar) {
         if (!(toolbar instanceof ViewGroup)) return;
         ViewGroup group = (ViewGroup) toolbar;
+        Object mark = toolbar.getTag(TOOLBAR_GAPS);
+        if (mark instanceof Integer && (Integer) mark == group.getChildCount()) {
+            boolean held = true;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                View child = group.getChildAt(i);
+                if (child instanceof ImageView && child.getVisibility() != View.INVISIBLE) {
+                    held = false;
+                    break;
+                }
+            }
+            if (held) return;
+        }
         for (int i = 0; i < group.getChildCount(); i++) {
             View child = group.getChildAt(i);
             if (child instanceof ImageView) {
@@ -2591,6 +2721,7 @@ public final class ModernUi {
             if (child.isLongClickable()) child.setLongClickable(false);
             if (child.getTouchDelegate() != null) child.setTouchDelegate(null);
         }
+        toolbar.setTag(TOOLBAR_GAPS, group.getChildCount());
     }
 
     private static boolean handToChip(View chips, View[] handed, MotionEvent event) {
@@ -2865,12 +2996,13 @@ public final class ModernUi {
 
     /** Joey reveals the big subreddit name once the banner has collapsed. Leave that name hidden. */
     private static void hideCollapsedTitle(View collapsing) {
+        if (TITLE_GUARD.containsKey(collapsing)) return;
         paintToolbarTitle(collapsing, false);
         try {
             collapsing.getClass().getMethod("setTitleEnabled", boolean.class).invoke(collapsing, false);
         } catch (Throwable ignored) {
         }
-        if (!(collapsing.getParent() instanceof View) || TITLE_GUARD.containsKey(collapsing)) return;
+        if (!(collapsing.getParent() instanceof View)) return;
         View appbar = (View) collapsing.getParent();
         try {
             ClassLoader loader = appbar.getClass().getClassLoader();
@@ -2894,13 +3026,20 @@ public final class ModernUi {
     }
 
     /** Hidden banner uses Joey's collapsed toolbar: small title, no big name or picture. */
+    private static Method sTitleColor;
+    private static Method sSubtitleColor;
+
     private static void paintToolbarTitle(View collapsing, boolean show) {
         View toolbar = findChild(collapsing, "toolbar");
         if (toolbar == null) return;
         int color = show ? getPalette(toolbar.getContext()).onSurface : 0;
         try {
-            toolbar.getClass().getMethod("setTitleTextColor", int.class).invoke(toolbar, color);
-            toolbar.getClass().getMethod("setSubtitleTextColor", int.class).invoke(toolbar, color);
+            if (sTitleColor == null) {
+                sTitleColor = toolbar.getClass().getMethod("setTitleTextColor", int.class);
+                sSubtitleColor = toolbar.getClass().getMethod("setSubtitleTextColor", int.class);
+            }
+            sTitleColor.invoke(toolbar, color);
+            sSubtitleColor.invoke(toolbar, color);
         } catch (Throwable ignored) {
         }
     }
@@ -2979,7 +3118,7 @@ public final class ModernUi {
     }
 
     private static View findChild(View container, String name) {
-        int id = container.getResources().getIdentifier(name, "id", container.getContext().getPackageName());
+        int id = getResId(container.getContext(), name, "id");
         if (id == 0) return null;
         return container.findViewById(id);
     }
@@ -2992,7 +3131,7 @@ public final class ModernUi {
     }
 
     private static void setSlot(View container, String name, boolean hide) {
-        int id = container.getResources().getIdentifier(name, "id", container.getContext().getPackageName());
+        int id = getResId(container.getContext(), name, "id");
         if (id == 0) return;
         View slot = container.findViewById(id);
         if (slot == null) return;
@@ -3338,10 +3477,14 @@ public final class ModernUi {
         }
     }
 
+    private static int sStatusBarId = -1;
+
     private static int statusBarHeight(Activity activity) {
-        int id = activity.getResources().getIdentifier("status_bar_height", "dimen", "android");
-        if (id == 0) return 0;
-        return activity.getResources().getDimensionPixelSize(id);
+        if (sStatusBarId < 0) {
+            sStatusBarId = activity.getResources().getIdentifier("status_bar_height", "dimen", "android");
+        }
+        if (sStatusBarId == 0) return 0;
+        return activity.getResources().getDimensionPixelSize(sStatusBarId);
     }
 
     private static void openDrawer(Activity activity) {
@@ -3436,7 +3579,14 @@ public final class ModernUi {
         return false;
     }
 
+    private static final Map<String, Integer> RES_IDS = new HashMap<>();
+
     private static int getResId(Context context, String name, String type) {
-        return context.getResources().getIdentifier(name, type, context.getPackageName());
+        String key = type + ":" + name;
+        Integer cached = RES_IDS.get(key);
+        if (cached != null) return cached;
+        int id = context.getResources().getIdentifier(name, type, context.getPackageName());
+        RES_IDS.put(key, id);
+        return id;
     }
 }

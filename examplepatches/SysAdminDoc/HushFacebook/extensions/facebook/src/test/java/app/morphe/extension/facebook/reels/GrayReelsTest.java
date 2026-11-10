@@ -18,6 +18,7 @@ import android.graphics.Color;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.os.Looper;
 import android.view.Gravity;
 import android.view.SurfaceView;
@@ -76,6 +77,8 @@ public class GrayReelsTest {
     @Before
     public void setUp() {
         Settings.GRAY_REELS.resetToDefault();
+        Settings.GRAY_REELS_OVER.resetToDefault();
+        Settings.REELS_MINUTES.resetToDefault();
         PauseForTests.resume();
         GrayReels.resetForTests();
         HookStatus.clear();
@@ -107,6 +110,8 @@ public class GrayReelsTest {
         GrayReels.resetForTests();
         controller.close();
         Settings.GRAY_REELS.resetToDefault();
+        Settings.GRAY_REELS_OVER.resetToDefault();
+        Settings.REELS_MINUTES.resetToDefault();
         PauseForTests.resume();
         HookStatus.clear();
     }
@@ -389,6 +394,147 @@ public class GrayReelsTest {
         assertEquals("Facebook's layer was taken off", View.LAYER_TYPE_SOFTWARE, content.getLayerType());
     }
 
+    /** Turn gray over: from full color to gray in even steps over the minutes picked, at once by default. */
+    @Test
+    public void theSaturationFallsInStepsOverTheMinutesPicked() {
+        assertEquals(GrayOver.AT_ONCE, Settings.GRAY_REELS_OVER.get());
+        assertEquals(0f, GrayReels.saturation(0L, GrayOver.AT_ONCE), 0f);
+        long step = 5 * 60_000L / GrayReels.STEPS;
+        assertEquals(1f, GrayReels.saturation(0L, GrayOver.FIVE_MINUTES), 0f);
+        assertEquals("a step came before its time", 1f, GrayReels.saturation(step - 1, GrayOver.FIVE_MINUTES), 0f);
+        assertEquals(0.98f, GrayReels.saturation(step, GrayOver.FIVE_MINUTES), 1e-6f);
+        assertEquals(0.5f, GrayReels.saturation(150_000L, GrayOver.FIVE_MINUTES), 1e-6f);
+        assertEquals(0f, GrayReels.saturation(5 * 60_000L, GrayOver.FIVE_MINUTES), 0f);
+        assertEquals(0f, GrayReels.saturation(Long.MAX_VALUE / 2, GrayOver.FIVE_MINUTES), 0f);
+        assertEquals(0.5f, GrayReels.saturation(15 * 60_000L, GrayOver.THIRTY_MINUTES), 1e-6f);
+    }
+
+    /** Over five minutes: the red button starts red, is half gray at two and a half, and gray at five. */
+    @Test
+    public void overFiveMinutesTheReelsScreenGoesGrayAStepAtATime() {
+        Settings.GRAY_REELS.save(true);
+        Settings.GRAY_REELS_OVER.save(GrayOver.FIVE_MINUTES);
+        GrayReels.resumed(activity);
+        assertEquals(View.LAYER_TYPE_HARDWARE, content.getLayerType());
+        assertSame(GrayReels.PART_GRAY, ReflectionHelpers.getField(content, "mLayerPaint"));
+        assertEquals("the button isn't red at the start", Color.RED, pixelOf(redButton) | 0xFF000000);
+
+        after(150_000L);
+        int half = pixelOf(redButton);
+        assertTrue("half way isn't half gray: " + Integer.toHexString(half),
+                Color.red(half) > Color.green(half) + 60 && Color.green(half) > 10);
+        assertEquals(Color.green(half), Color.blue(half));
+        assertTrue("a step wasn't counted", reported(GrayReels.COUNT_STEP));
+
+        after(151_000L);
+        assertGray("after five minutes");
+        int pixel = pixelOf(redButton);
+        assertEquals(Color.red(pixel), Color.green(pixel));
+    }
+
+    /** A minute away keeps the steps without counting the minute; fifteen starts it over in color. */
+    @Test
+    public void timeAwayIsntCountedAndALongBreakStartsOver() {
+        Settings.GRAY_REELS.save(true);
+        Settings.GRAY_REELS_OVER.save(GrayOver.FIVE_MINUTES);
+        GrayReels.resumed(activity);
+        after(120_000L);
+        long watched = GrayReels.watchedForTests();
+        assertTrue("two minutes weren't counted: " + watched, watched >= 118_000L && watched <= 121_000L);
+
+        GrayReels.paused(activity);
+        assertColor("away");
+        after(60_000L);
+        GrayReels.resumed(activity);
+        assertEquals("the minute away was counted", watched, GrayReels.watchedForTests());
+        assertSame(GrayReels.PART_GRAY, ReflectionHelpers.getField(content, "mLayerPaint"));
+        assertTrue("the steps were lost", Color.green(pixelOf(redButton)) > 10);
+
+        after(200_000L);
+        assertGray("gray again");
+        GrayReels.paused(activity);
+        after(GrayReels.AWAY_MS);
+        GrayReels.resumed(activity);
+        assertEquals("fifteen minutes away didn't start over", 0L, GrayReels.watchedForTests());
+        assertEquals("the colors didn't come back", Color.RED, pixelOf(redButton) | 0xFF000000);
+    }
+
+    @Test
+    public void theTimeReadsInWholeMinutes() {
+        assertEquals("0 min", ReelsClock.label(0L));
+        assertEquals("0 min", ReelsClock.label(59_999L));
+        assertEquals("1 min", ReelsClock.label(60_000L));
+        assertEquals("60 min", ReelsClock.label(3_600_000L));
+        assertEquals("0 min", ReelsClock.label(-5L));
+    }
+
+    /**
+     * Show time in Reels on its own: the pill shows at the top middle, darkening what's under it,
+     * counts the minutes, and the screen keeps its colors. Leaving takes it off and gives that spot
+     * back, and so does turning it off.
+     */
+    @Test
+    public void theTimeShowsAtTheTopOfTheReelsScreenWithoutTheGray() {
+        Settings.REELS_MINUTES.save(true);
+        assertFalse(Settings.GRAY_REELS.get());
+        GrayReels.resumed(activity);
+        assertColor("the time alone");
+        assertEquals("0 min", ReelsClock.shownForTests());
+        assertTrue("the time wasn't counted", reported(ReelsClock.COUNT_SHOWN));
+        assertTrue(GrayReels.watchingLayoutsForTests());
+
+        Rect pill = ReelsClock.boundsForTests();
+        assertFalse("the pill has no size", pill.isEmpty());
+        assertTrue("the pill isn't in the middle: " + pill, Math.abs(pill.centerX() - W / 2) <= 1);
+        assertTrue("the pill isn't at the top: " + pill, pill.top > 0 && pill.bottom < H / 4);
+        int x = pill.left + Math.round(4 * activity.getResources().getDisplayMetrics().density);
+        int y = pill.centerY();
+        int dark = pixelAt(x, y);
+
+        after(150_000L);
+        assertEquals("2 min", ReelsClock.shownForTests());
+        assertColor("two and a half minutes of the time alone");
+        assertEquals("the red button lost its color", Color.RED, pixelOf(redButton) | 0xFF000000);
+
+        GrayReels.paused(activity);
+        assertNull("the time stayed after leaving", ReelsClock.shownForTests());
+        int clear = pixelAt(x, y);
+        assertTrue("the pill didn't darken its spot: " + Integer.toHexString(dark) + " over "
+                + Integer.toHexString(clear), Color.red(dark) + 8 < Color.red(clear));
+
+        GrayReels.resumed(activity);
+        assertEquals("2 min", ReelsClock.shownForTests());
+        assertEquals("the pill didn't come back where it was", dark, pixelAt(x, y));
+        Settings.REELS_MINUTES.save(false);
+        after(GrayReels.KEEP_MS + 10);
+        assertNull("the time stayed with the switch off", ReelsClock.shownForTests());
+        assertFalse("still listening with both switches off", GrayReels.watchingLayoutsForTests());
+    }
+
+    /** A reel still on a SurfaceView can't go gray, but its time still shows. */
+    @Test
+    public void theTimeShowsOverASurfaceViewReel() {
+        putASurfaceViewReel();
+        layout();
+        Settings.GRAY_REELS.save(true);
+        Settings.REELS_MINUTES.save(true);
+        GrayReels.resumed(activity);
+        assertColor("a reel on a SurfaceView");
+        assertEquals("0 min", ReelsClock.shownForTests());
+    }
+
+    /** With both on, the screen goes gray and the time shows, from one count. */
+    @Test
+    public void withBothOnTheTimeAndTheGrayShareTheCount() {
+        Settings.GRAY_REELS.save(true);
+        Settings.GRAY_REELS_OVER.save(GrayOver.FIVE_MINUTES);
+        Settings.REELS_MINUTES.save(true);
+        GrayReels.resumed(activity);
+        after(301_000L);
+        assertGray("five minutes with both on");
+        assertEquals("5 min", ReelsClock.shownForTests());
+    }
+
     /** Swaps the page's TextureView for a SurfaceView, a reel whose player was built before the switch went on. */
     private void putASurfaceViewReel() {
         assertTrue(page.getChildAt(0) instanceof TextureView);
@@ -406,6 +552,15 @@ public class GrayReelsTest {
     private void assertColor(String why) {
         assertEquals(why + ": the layer", View.LAYER_TYPE_NONE, content.getLayerType());
         assertFalse(why, GrayReels.grayForTests());
+    }
+
+    /** The color at [x], [y] when the whole window is drawn, its overlay included. */
+    private int pixelAt(int x, int y) {
+        Bitmap shot = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);
+        activity.getWindow().getDecorView().draw(new Canvas(shot));
+        int pixel = shot.getPixel(x, y);
+        shot.recycle();
+        return pixel;
     }
 
     /** The color [view] shows at its middle when the whole window is drawn. */

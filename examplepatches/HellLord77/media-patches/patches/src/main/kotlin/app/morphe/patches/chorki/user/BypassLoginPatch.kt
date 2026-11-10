@@ -30,14 +30,12 @@ val bypassLoginPatch =
                             cpuArchitectures.forEach { arch ->
                                 var lib = "$NATIVE_LIBRARY_DIRECTORY/${arch.arch}/libapp.so"
 
-                                // package:chorki/data/models/settings_model.json ->
-                                // SettingsModel.fromJson
+                                // package:chorki/data/models/settings_model.json -> SettingsModel.fromJson
                                 // login_required -> restrict_vpn
                                 when (arch) {
                                     CpuArchitecture.ARMEABI_V7A -> {
-                                        // ADD             R2, R5, #0xD000
-                                        // LDR             R2, [R2,#0x9D7] -> LDR             R2,
-                                        // [R2,#0x917]
+                                        // ADD R2, R5, #0xD000
+                                        // LDR R2, [R2,#0x9D7] -> LDR R2, [R2,#0x917]
                                         """
                                             0d 2a 85 e2
                                             d7 29 92 e5
@@ -48,9 +46,8 @@ val bypassLoginPatch =
                                     }
 
                                     CpuArchitecture.ARM64_V8A -> {
-                                        // ADD             X2, X27, #0x19,LSL#12
-                                        // LDR             X2, [X2,#0xC88]       -> LDR
-                                        // X2, [X2,#0xB08]
+                                        // ADD X2, X27, #0x19,LSL#12
+                                        // LDR X2, [X2,#0xC88] -> LDR X2, [X2,#0xB08]
                                         """
                                             62 67 40 91
                                             42 44 46 f9

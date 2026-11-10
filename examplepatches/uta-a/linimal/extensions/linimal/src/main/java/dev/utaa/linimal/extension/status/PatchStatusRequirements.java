@@ -28,6 +28,7 @@ final class PatchStatusRequirements {
         requirements.put("linimal.premium-preview-promotion",
                 ids("linimal.patch.premium-preview-promotion"));
         requirements.put("linimal.preview-scroll", ids("linimal.patch.preview-scroll"));
+        requirements.put("linimal.amoled-theme", ids("linimal.patch.amoled-theme-colors"));
         requirements.put("linimal.external-browser", ids("linimal.patch.external-browser-chat-text-link"));
         requirements.put("linimal.push-notifications", ids("linimal.patch.fis-certificate-header"));
         requirements.put("linimal.google-drive-backup",
@@ -46,7 +47,6 @@ final class PatchStatusRequirements {
         requirements.put("linimal.line-ai-message-context-menu",
                 ids("linimal.patch.line-ai-message-context-menu", "linimal.patch.line-ai-image-side-menu"));
         requirements.put("linimal.line-ai-gallery-viewer", ids("linimal.patch.line-ai-gallery-viewer"));
-        requirements.put("linimal.voom", ids("linimal.patch.main-tab-voom"));
         requirements.put("linimal.shopping", ids("linimal.patch.main-tab-shopping"));
         requirements.put("linimal.news", ids("linimal.patch.main-tab-news"));
         requirements.put("linimal.wallet", ids("linimal.patch.main-tab-wallet"));

@@ -121,7 +121,13 @@ public final class CurrentFrameMediaArtwork {
      * off.
      */
     private static volatile boolean backgroundFrames = true;
-    /** Replace the media title and subtitle with blank text. */
+    /**
+     * Blank the media title and subtitle. The choice is saved on its own, but it is
+     * only applied
+     * while the artwork is on (see {@link #decorate}), so turning the artwork off
+     * brings the real
+     * title back and turning it on blanks it again.
+     */
     private static volatile boolean hideText;
     /**
      * Whether the patch managed to apply the background-frame hooks to this YouTube
@@ -303,7 +309,7 @@ public final class CurrentFrameMediaArtwork {
      * blanked, if enabled. Returns the base object itself when nothing changes.
      */
     private static MediaMetadata decorate(MediaMetadata base, Bitmap artwork) {
-        final boolean blank = hideText;
+        final boolean blank = hideText && captureEnabled;
         if (artwork == null && !blank)
             return base;
 
@@ -1051,11 +1057,14 @@ public final class CurrentFrameMediaArtwork {
         updateButtonText();
 
         if (captureEnabled) {
+            republishNow(false); // blank the title now instead of waiting for the next frame
             requestStart();
             return;
         }
 
-        // Put YouTube's own artwork back instead of leaving the last captured frame.
+        // Put YouTube's own artwork and title back instead of leaving the last captured
+        // frame
+        // and a blanked title (decorate no longer blanks now that the artwork is off).
         MediaSession currentSession = session;
         MediaMetadata original = metadata;
         if (currentSession != null && original != null) {
@@ -1153,7 +1162,8 @@ public final class CurrentFrameMediaArtwork {
                         });
             }
 
-            addDropdown(content, themed, "Title and subtitle",
+            final Spinner hideTextSpinner = addDropdown(content, themed,
+                    captureEnabled ? "Title and subtitle" : "Title and subtitle (needs artwork on)",
                     new String[] { "Show", "Hide (blank)" },
                     hideText ? 1 : 0,
                     new AdapterView.OnItemSelectedListener() {
@@ -1172,6 +1182,8 @@ public final class CurrentFrameMediaArtwork {
                         public void onNothingSelected(AdapterView<?> parent) {
                         }
                     });
+            // Hiding the title only makes sense while the frames are on.
+            hideTextSpinner.setEnabled(captureEnabled);
 
             addDropdown(content, themed, "Aspect",
                     new String[] { "Original", "Fit square (black bars)" },
@@ -1198,7 +1210,7 @@ public final class CurrentFrameMediaArtwork {
         }
     }
 
-    private static void addDropdown(LinearLayout parent, Context context, String label,
+    private static Spinner addDropdown(LinearLayout parent, Context context, String label,
             String[] options, int selected,
             AdapterView.OnItemSelectedListener listener) {
         TextView title = new TextView(context);
@@ -1217,6 +1229,7 @@ public final class CurrentFrameMediaArtwork {
         spinner.setOnItemSelectedListener(listener);
         parent.addView(spinner, new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return spinner;
     }
 
     private static int dp(Context context, int value) {

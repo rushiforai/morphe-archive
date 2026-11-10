@@ -79,8 +79,8 @@ You need an Android phone and [Morphe Manager](https://morphe.software).
 
 1. In Morphe Manager, **[add the Loki Patches source](https://morphe.software/add-source?github=lokesh-sparrow/loki-patches&name=Loki%20Patches)**
    (or add `https://github.com/lokesh-sparrow/loki-patches` by hand). It gets stable releases only.
-2. Choose **LinkedIn**, and download the version Morphe Manager recommends from APKMirror. Use the
-   *Android 10+* variant: the APK, not the bundle.
+2. Choose **LinkedIn**, and download the version Morphe Manager recommends from APKMirror. Take the
+   *Android 10+* download, which is a plain APK; the bundle variants cannot be patched.
 3. Patch it and install it.
 
 If you used another LinkedIn patch source before, patch with Loki Patches only, not both: picking the
@@ -88,9 +88,9 @@ same patches from two sources applies them twice.
 
 ## Settings
 
-Every option has a switch in the **Loki Patches** settings. To open them, tap your profile photo to open
-the **Me** panel → **Loki Patches**, or long press the LinkedIn app icon → **Loki Patches**. There you can
-also search the options, back up and restore them, check for updates and pick the language.
+All the options sit on one screen called **Loki Patches**. Reach it from the **Me** panel (tap your profile
+photo) or by long pressing the LinkedIn icon on your home screen, then the **Loki Patches** entry. The same
+screen has a search box, settings backup and restore, the update check, and the language picker.
 
 > [!IMPORTANT]
 > Please don't share patched APKs. Share this source instead, so everyone gets the latest fixes.
@@ -149,9 +149,9 @@ counted visits in our tests on 4.1.1270. LinkedIn could change that in an update
 report it.
 
 **I can't find the Loki Patches settings.**
-The app icon shortcut appears after LinkedIn has been opened once, and some launchers don't show it, so use
-the Me panel. If it's missing there too, check that your LinkedIn version is supported and send a
-diagnostic report.
+The home screen shortcut only appears once LinkedIn has been opened at least once, and some launchers hide
+shortcuts entirely, so use the Me panel instead. If the entry is missing there as well, confirm on the
+[patches list](#patches) that your LinkedIn version is supported, and attach a diagnostic report.
 
 **I can't sign in with Google.**
 Google checks the app's signature, so signing in with Google needs the **GmsCore support** patch and
@@ -160,13 +160,14 @@ in with your e-mail and password always works. If you signed up with Google and 
 on [linkedin.com](https://www.linkedin.com/checkpoint/rp/request-password-reset) first.
 
 **Material You or AMOLED black doesn't change some screens.**
-Restart LinkedIn after changing them. A few older screens keep the colors chosen when patching.
+The colors are read when the app is patched, and a few older screens in LinkedIn keep the ones they were
+built with. Restarting LinkedIn after a change is still worth it, but those screens stay as they are.
 
 ## Reporting a bug
 
-In the Loki Patches settings, turn on **Other → Diagnostic logging**, do what goes wrong, then tap
-**Copy diagnostic report** and paste it into a [bug report](https://github.com/lokesh-sparrow/loki-patches/issues/new/choose).
-Links, IDs and e-mail addresses are removed from the report.
+Switch on **Other → Diagnostic logging** in the Loki Patches settings, reproduce the problem, then use
+**Copy diagnostic report** and paste the text into a [bug report](https://github.com/lokesh-sparrow/loki-patches/issues/new/choose).
+Anything that could identify you (links, IDs, e-mail addresses) is filtered out of the report before it is copied.
 
 ## Building from source
 
@@ -179,14 +180,13 @@ You need JDK 17 or newer, the Android SDK, and a GitHub token with `read:package
 
 ## Disclaimer
 
-Loki Patches is an independent project. It is not affiliated with, endorsed by or part of LinkedIn or the
-Morphe project. Loki Patches removes ads and clutter and adds features; it doesn't unlock paid features or
-content. Modifying an app may go against its terms of service; you use it at your own risk.
+Loki Patches is an independent project. Neither LinkedIn nor the Morphe project made it, endorses it or is
+involved in it. It removes ads and clutter and adds features; it does not unlock paid features or paid content.
+Modifying an app can conflict with that app's terms of service, and you install the result at your own risk.
 
 ## License
 
-GPLv3, with the additional terms in [NOTICE](NOTICE). See [LICENSE](LICENSE). Inspired by and built on
-[Michii Patches](https://github.com/heyymichii/michii-patches) by heyymichii. The microG RE check is adapted from [Hoo-dles' MicroG integration](https://github.com/hoo-dles/morphe-patches) (GPLv3).
+Loki Patches © 2026 Lokesh Sparrow. Free and open-source software under [GPLv3](LICENSE), with additional project terms and third-party attributions in [NOTICE](NOTICE).
 
 ---
 

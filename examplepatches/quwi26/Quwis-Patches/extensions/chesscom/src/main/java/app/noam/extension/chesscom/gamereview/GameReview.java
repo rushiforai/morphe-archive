@@ -383,6 +383,27 @@ public final class GameReview {
         return enabled() && mode() != Mode.CHESSCOM;
     }
 
+    /**
+     * A reviewer on this phone or on the user's computer is available. Neither needs a chess.com
+     * account, so a signed-out user can open Game Review with one; chess.com's own review does need
+     * an account, and without a local reviewer the app's sign-up screen stays.
+     */
+    public static boolean localReview() {
+        return enabled() && (Features.stockfishPatched() || computerReview());
+    }
+
+    /** Whether the last review navigation found a signed-out session; null until one runs. */
+    private static volatile Boolean guestSession;
+
+    static void noteSignedIn(boolean signedIn) {
+        guestSession = !signedIn;
+    }
+
+    /** Full review permissions: a local review now, or a guest who can still pick one. */
+    public static boolean localPermissions() {
+        return local() || (Boolean.TRUE.equals(guestSession) && localReview());
+    }
+
     /** Fair-play gate: true if a game against a human (or a live game being watched) is on screen. */
     public static boolean isLiveMatch(Activity activity) {
         if (activity == null) return false;

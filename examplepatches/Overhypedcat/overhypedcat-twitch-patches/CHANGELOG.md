@@ -1,3 +1,38 @@
+## [3.0.3](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v3.0.2...v3.0.3) (2026-11-09)
+
+### Bug Fixes
+
+* No ad label in picture in picture or the mini player ([5aa9f92](https://github.com/[secure]/overhypedcat-twitch-patches/commit/5aa9f92c93a80f8096a781227cd976482babc8f7))
+
+## [3.0.2](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v3.0.1...v3.0.2) (2026-11-09)
+
+### Bug Fixes
+
+* No ad label on feed previews while scrolling ([8790ff3](https://github.com/[secure]/overhypedcat-twitch-patches/commit/8790ff3f0c5a44982729a3590f97d6dd4a1cc38c))
+
+## [3.0.1](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v3.0.0...v3.0.1) (2026-11-09)
+
+### Bug Fixes
+
+* In Audio Only mode the ad block shows as a message instead of a misplaced label ([1532248](https://github.com/[secure]/overhypedcat-twitch-patches/commit/1532248d9dad7fb76bfd701c09a04c46f545f52f))
+
+## [3.0.0](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v2.1.5...v3.0.0) (2026-11-09)
+
+### ⚠ BREAKING CHANGES
+
+* Version 3 of the patches. Includes the fixes and efficiency work since 2.1.5.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01CMF1Byn4vzgmF1mbGXbNkJ
+
+### Bug Fixes
+
+* Backup streams that stop refreshing, false error codes, and less work per playlist ([1c3f24d](https://github.com/[secure]/overhypedcat-twitch-patches/commit/1c3f24dc2b7b1fdcbff9c1a10c73ab194d84d24c))
+
+### New Features
+
+* Version 3, ad feedback for past broadcasts and a message when the label cannot be placed ([b7678e2](https://github.com/[secure]/overhypedcat-twitch-patches/commit/b7678e2922413c61af745e89937ca7b3fef9d333))
+
 ## [2.1.5](https://github.com/[secure]/overhypedcat-twitch-patches/compare/v2.1.4...v2.1.5) (2026-11-01)
 
 ### Bug Fixes

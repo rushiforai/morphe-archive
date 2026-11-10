@@ -99,13 +99,16 @@ public final class ReportPatch {
 
     /**
      * From Application.onCreate (CrashLogPatch), in the main process: the uploader, the native crash
-     * check, the main thread watchdog, the start log and the start notices.
+     * check, the main thread watchdog, the start log, the network and boot line and the start notices.
      */
     static void onAppStart(Context context) {
         try {
             if (!context.getPackageName().equals(Application.getProcessName())) return;
             if (configured()) ReportUploader.start(context);
             Utils.runOnBackgroundThread(() -> NativeCrashes.check(context, true));
+            Utils.runOnBackgroundThread(() -> ReportDiagnostics.logStart(context));
+            SendToCarStatus.refreshAfterStart(context);
+            UpdateCheck.start(context);
             MainWatchdog.start();
             StartLogcat.start(context);
             Utils.runOnBackgroundThread(() -> setLauncherEntry(context));
@@ -253,6 +256,12 @@ public final class ReportPatch {
         };
     }
 
+    /** Fills the open report screen again, if there is one in this process (its update row after a check). Main thread. */
+    static void refreshScreen() {
+        Runnable refresh = screenRefresh;
+        if (refresh != null) refresh.run();
+    }
+
     /** Only for the screen that attached last: a screen opened again can attach before the old one is destroyed. */
     static void detachScreen(Activity host) {
         if (screenHost == null || screenHost.get() != host) return;
@@ -281,6 +290,7 @@ public final class ReportPatch {
             content.addView(views.divider());
         }
         addGitHubRow(host, views, content, thai);
+        addUpdateRow(host, views, content, thai);
         content.addView(views.divider());
         TextView intro = views.paragraph(thai
                 ? "ส่งบันทึกการทำงานของแอปให้ผู้พัฒนาแพตช์เพื่อแก้ปัญหา คุณจะเห็นข้อมูลทั้งหมดก่อนส่ง และลบได้ทุกเมื่อ"
@@ -354,6 +364,27 @@ public final class ReportPatch {
         qr.setOnClickListener(view -> showGitHub(host, null, Utils.getPatchesReleaseVersion(), appVersion(host), thai));
         row.addView(qr, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         row.setOnClickListener(view -> showGitHub(host, null, Utils.getPatchesReleaseVersion(), appVersion(host), thai));
+        content.addView(row);
+    }
+
+    /** Whether a newer version is released (UpdateCheck): its status, and its dialog on a tap. */
+    private static void addUpdateRow(Activity host, Views views, LinearLayout content, boolean thai) {
+        LinearLayout row = views.horizontal();
+        row.setMinimumHeight(views.px(56));
+        row.setPadding(views.px(24), views.px(4), views.px(24), views.px(4));
+        LinearLayout texts = views.vertical();
+        TextView title = views.text(16, views.primary, false);
+        title.setText(UpdateCheck.getSettingsTitle(host));
+        TextView status = views.text(13, views.secondary, false);
+        status.setText(UpdateCheck.getSettingsSummary(host));
+        texts.addView(title);
+        texts.addView(status);
+        row.addView(texts, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        TypedValue ripple = new TypedValue();
+        if (views.themed.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, ripple, true)) {
+            row.setBackgroundResource(ripple.resourceId);
+        }
+        row.setOnClickListener(view -> UpdateCheck.show(host, null));
         content.addView(row);
     }
 
@@ -470,7 +501,7 @@ public final class ReportPatch {
         builder.show();
     }
 
-    private static boolean hasBrowser(Context context, Intent view) {
+    static boolean hasBrowser(Context context, Intent view) {
         try {
             return view.resolveActivity(context.getPackageManager()) != null;
         } catch (RuntimeException error) {
@@ -478,7 +509,7 @@ public final class ReportPatch {
         }
     }
 
-    private static void openLink(Activity host, Intent view, boolean thai) {
+    static void openLink(Activity host, Intent view, boolean thai) {
         try {
             host.startActivity(view);
         } catch (RuntimeException error) {
@@ -489,7 +520,7 @@ public final class ReportPatch {
     }
 
     // Black on white with the four-module quiet zone, whole pixels per module and no density scaling, so it stays sharp.
-    private static Bitmap qrBitmap(QrCode code, int maxSide) {
+    static Bitmap qrBitmap(QrCode code, int maxSide) {
         int modules = code.size + 8, scale = Math.max(1, maxSide / modules), side = modules * scale;
         int[] pixels = new int[side * side];
         Arrays.fill(pixels, Color.WHITE);
@@ -577,6 +608,7 @@ public final class ReportPatch {
         switch (feature) {
             case SafeMode.UI_DENSITY: return thai ? "ขนาดการแสดงผล (UI density)" : "UI density";
             case SafeMode.DRIVER_SIDE: return thai ? "ฝั่งพวงมาลัย (Driver side)" : "Driver side";
+            case SafeMode.COLOR_SCHEME: return thai ? "รูปแบบสี (Color scheme)" : "Color scheme";
             case SafeMode.BUILDINGS_3D: return thai ? "อาคาร 3 มิติ (3D buildings)" : "3D buildings";
             case SafeMode.BYD_BATTERY: return thai ? "แบตเตอรี่รถ BYD (EV)" : "BYD battery (EV)";
             case SafeMode.SEND_TO_CAR: return "Send to car";
@@ -592,6 +624,7 @@ public final class ReportPatch {
         switch (feature) {
             case SafeMode.UI_DENSITY: return thai ? "ใช้ขนาดของระบบ" : "the system density";
             case SafeMode.DRIVER_SIDE: return thai ? "Maps เลือกฝั่งการ์ดเอง (บน DiLink 3 อยู่ซ้าย)" : "Maps picks the cards' side (left on DiLink 3)";
+            case SafeMode.COLOR_SCHEME: return thai ? "ใช้สีของ Maps (บน BYD เป็นสีกลางคืนตลอด)" : "Maps' colors (night colors all day on BYD)";
             case SafeMode.BUILDINGS_3D: return thai ? "ชั้นแผนที่ไม่มีอาคาร 3 มิติ" : "no 3D buildings in the map layers";
             case SafeMode.BYD_BATTERY: return thai ? "ไม่ส่งแบตเตอรี่ให้ Maps ไม่มีหน้าจอ EV" : "no battery for Maps, no EV screens";
             case SafeMode.SEND_TO_CAR: return thai ? "รับทริปจากมือถือไม่ได้ และมือถือเห็นชื่อรถของ Maps" : "trips from the phone do not arrive, and phone Maps shows Maps' car name";
@@ -757,7 +790,7 @@ public final class ReportPatch {
         content.addView(views.paragraph(redactionText(draft.redactor.counts(), thai)));
 
         EditText comment = new EditText(views.themed);
-        comment.setHint(thai ? "อธิบายปัญหา (ไม่บังคับ) เช่น ทำอะไรอยู่ เกิดอะไรขึ้น" : "What happened? (optional)");
+        comment.setHint(thai ? "อธิบายปัญหา (ไม่บังคับ) เช่น ทำอะไรอยู่ เกิดอะไรขึ้น ตอนกี่โมง" : "What happened, and when? (optional)");
         comment.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         comment.setMinLines(2);
         comment.setMaxLines(6);
@@ -846,8 +879,12 @@ public final class ReportPatch {
     }
 
     /**
-     * The consent text, version 6: version 5 without the app's name, which a patch option now sets: "the
-     * app", the patch developer, Google Maps as the other app, and the report screen's actual name.
+     * The consent text, version 9: version 8 plus the setup state for Send to car (battery optimization of the app
+     * and MicroG-RE, the push token count and the newest one's age, the network type and whether it reaches the
+     * internet, the boot and sleep time). Version 8: version 7
+     * (headlight state) plus the BYD battery's drive summaries and Maps'
+     * battery-on-arrival forecasts. Version 6 dropped the app's name, which a patch option now sets: "the app", the
+     * patch developer, Google Maps as the other app, and the report screen's actual name.
      */
     private static CharSequence consentText(Context context, boolean thai) {
         SpannableStringBuilder text = new SpannableStringBuilder();
@@ -856,8 +893,12 @@ public final class ReportPatch {
         text.setSpan(new StyleSpan(Typeface.BOLD), 0, heading.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
         text.append('\n').append(thai
                 ? "ข้อมูลที่ส่ง: รุ่นแอปและแพตช์ รุ่นอุปกรณ์และ Android ขนาด memory page ระบบรถของเครื่อง (Android Automotive,"
-                + " SDK ของรถ, system library) รหัสรุ่นและเวอร์ชันซอฟต์แวร์ของรถ BYD สถานะ BYD battery และหน้าจอ"
-                + " การตั้งค่าฟีเจอร์เสริม แอปที่อาจรบกวน (Google Maps, Google Play services) บันทึกการทำงานของแอป"
+                + " SDK ของรถ, system library) รหัสรุ่นและเวอร์ชันซอฟต์แวร์ของรถ BYD สถานะ BYD battery พร้อมสรุปการขับ (เวลา ระยะทาง ความเร็ว พลังงาน อุณหภูมิ ทางขึ้นลง)"
+                + " ค่าแบตเมื่อถึงที่ Maps ทำนายระหว่างนำทาง (พร้อมระยะทางและเวลาที่เหลือ) สถานะแอร์ กระแส แรงดันและกำลังไฟของแบต และสัดส่วนพลังงานของทริปจากรถ"
+                + " ไฟหน้า และหน้าจอ"
+                + " การตั้งค่าฟีเจอร์เสริม แอปที่อาจรบกวน (Google Maps, Google Play services)"
+                + " การยกเว้นการประหยัดแบตของแอปและ MicroG-RE จำนวน push token ของแอปและอายุของอันล่าสุด (ไม่ส่งตัว token)"
+                + " ประเภทเครือข่ายและการเข้าถึงอินเทอร์เน็ต (ไม่มีชื่อ Wi-Fi หรือ IP) เวลาบูตและเวลาที่เครื่องหลับ บันทึกการทำงานของแอป"
                 + " ย้อนหลังไม่เกิน 3 วัน บรรทัดคำเตือนและข้อผิดพลาดใน log ระบบของ process หลักของแอป (รวมของโค้ด Maps"
                 + " ของ Google แม้ไม่ crash) ไฟล์ crash (ถ้ามี) พร้อมบรรทัดแบบเดียวกันของ process ที่ crash เหตุที่ process ของแอป"
                 + " ปิดครั้งล่าสุด (Android 11 ขึ้นไป) และข้อความที่คุณพิมพ์\n"
@@ -867,9 +908,13 @@ public final class ReportPatch {
                 + "ลบรายงานได้ทุกเมื่อที่ " + reportPlace(context, true) + " หรือแจ้งรหัสรายงานที่ GitHub Issues ของโปรเจกต์\n"
                 + "กด \"ส่ง\" เพื่อยินยอม"
                 : "Sent: app and patch versions, device and Android version, memory page size, the car platform (Android"
-                + " Automotive, car SDKs, system libraries), BYD model id and head unit software version, BYD battery and"
-                + " window state, the extra features' settings, other apps that may interfere (Google Maps, Google Play"
-                + " services), the app's own logs from the last 3 days at most, the warning and error lines the app's main"
+                + " Automotive, car SDKs, system libraries), BYD model id and head unit software version, BYD battery"
+                + " with drive summaries (times, distance, speeds, energy, temperatures, climb), Maps' battery-on-arrival forecasts"
+                + " (with the distance and time left), A/C state, battery current, voltage and power, and the car's split of the trip energy,"
+                + " headlight and window state, the extra features' settings, other apps that may interfere (Google Maps, Google Play"
+                + " services), whether the app and MicroG-RE are exempt from battery optimization, how many push tokens the app"
+                + " holds and how old the newest is (not the tokens), the network type and whether it reaches the internet (no"
+                + " Wi-Fi name or IP address), when the head unit booted and how long it slept, the app's own logs from the last 3 days at most, the warning and error lines the app's main"
                 + " process wrote to the system log (Google's Maps code included, even without a crash), crash files (if"
                 + " any) with the same lines from the crashed process, why the app's processes last closed (Android 11"
                 + " and newer), and your"
@@ -1081,7 +1126,7 @@ public final class ReportPatch {
     }
 
     /** Views styled from the dialog theme, sized for a head unit at arm's length. */
-    private static final class Views {
+    static final class Views {
         final Context themed;
         final int primary, secondary, accent;
 

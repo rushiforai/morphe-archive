@@ -59,6 +59,29 @@ public final class PlayerRefresher {
         return null;
     }
 
+    /**
+     * Whether {@code player} plays sound without video (Twitch's Audio Only mode). Its video view
+     * stays in place, hidden behind the player's header, so a label over it would be misplaced.
+     * Read through reflection: if a Twitch update drops the method, the label is used as before.
+     */
+    static boolean playsAudioOnly(Player player) {
+        try {
+            Object quality = player.getClass().getMethod("getQuality").invoke(player);
+            if (quality == null) return false;
+            Object height = quality.getClass().getMethod("getHeight").invoke(quality);
+            Object name = quality.getClass().getMethod("getName").invoke(quality);
+            return isAudioOnly(height instanceof Integer ? (Integer) height : -1, name == null ? null : name.toString());
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    /** IVS reports audio only as a quality without height, named like {@code audio_only}. */
+    static boolean isAudioOnly(int height, String name) {
+        if (name != null && name.toLowerCase(java.util.Locale.ROOT).contains("audio")) return true;
+        return height == 0;
+    }
+
     /** The surface {@code player} draws on, or null if unknown. */
     static Surface surfaceOf(Player player) {
         WeakReference<Surface> surface = player == null ? null : PLAYERS.get(player);

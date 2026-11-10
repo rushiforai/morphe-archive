@@ -9,6 +9,7 @@ import app.tikkamasalla.stremio.introskip.NextPrep;
 import app.tikkamasalla.stremio.introskip.StreamRanker;
 import app.tikkamasalla.stremio.oneahead.demux.ByteBudget;
 import app.tikkamasalla.stremio.oneahead.demux.PlaybackGuard;
+import app.tikkamasalla.stremio.oneahead.demux.TrackChooser;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -43,6 +44,13 @@ public final class OneAheadTrigger {
     private static final long STALE_MS = 10_000L, RECENT_MS = 3_000L;
     /** Enough for the planner's floor when the file playing now is a finale and cannot vote. */
     private static final int MAX_STREAM_QUERIES = 3;
+    /** Hard bound on asks per job, answered or not, so a dead addon cannot spin. */
+    private static final int MAX_STREAM_ASKS = 6;
+
+    /** Another episode may be asked while fewer than 3 asks have returned rows and fewer than 6 were made in all. */
+    static boolean mayAsk(int usableAsks, int totalAsks) {
+        return usableAsks < MAX_STREAM_QUERIES && totalAsks < MAX_STREAM_ASKS;
+    }
 
     private OneAheadTrigger() {}
 
@@ -138,6 +146,11 @@ public final class OneAheadTrigger {
         boolean cached, external, hasIntro, hasCredits, preparedDone, lookupDone, started;
         long sizeBytes;
         double curDurSec;
+        /** Audio of the file playing now (ISO 639-2 + channels), read off the player's selected track. */
+        String curAudioLang = "";
+        int curAudioChannels;
+        /** How curAudioLang was learned: TrackChooser.SELECTED (player), PREVIOUS (last episode) or UNKNOWN. */
+        String curAudioSource = TrackChooser.UNKNOWN;
     }
 
     private static final Map<String, Pending> PENDING = new ConcurrentHashMap<>();
@@ -164,6 +177,19 @@ public final class OneAheadTrigger {
 
     public static void onLookupDone(Context ctx, String videoId, boolean hasIntro, boolean hasCredits,
                                     String curId, String curUrl, double curDurSec) {
+        onLookupDone(ctx, videoId, hasIntro, hasCredits, curId, curUrl, curDurSec, "", 0);
+    }
+
+    public static void onLookupDone(Context ctx, String videoId, boolean hasIntro, boolean hasCredits,
+                                    String curId, String curUrl, double curDurSec,
+                                    String curAudioLang, int curAudioChannels) {
+        onLookupDone(ctx, videoId, hasIntro, hasCredits, curId, curUrl, curDurSec, curAudioLang, curAudioChannels,
+                curAudioLang == null || curAudioLang.isEmpty() ? TrackChooser.UNKNOWN : TrackChooser.SELECTED);
+    }
+
+    public static void onLookupDone(Context ctx, String videoId, boolean hasIntro, boolean hasCredits,
+                                    String curId, String curUrl, double curDurSec,
+                                    String curAudioLang, int curAudioChannels, String curAudioSource) {
         try {
             if (ctx == null || videoId == null || videoId.length() == 0
                     || !settingOn(ctx)) return;
@@ -175,6 +201,13 @@ public final class OneAheadTrigger {
                 if (curId != null && curId.length() > 0) p.curId = curId;
                 if (curUrl != null && curUrl.length() > 0) p.curUrl = curUrl;
                 if (curDurSec > 0) p.curDurSec = curDurSec;
+                // The player's own track beats the previous episode's language; neither is erased by nothing.
+                if (curAudioLang != null && curAudioLang.length() > 0
+                        && !(TrackChooser.SELECTED.equals(p.curAudioSource) && !TrackChooser.SELECTED.equals(curAudioSource))) {
+                    p.curAudioLang = curAudioLang;
+                    p.curAudioChannels = curAudioChannels;
+                    p.curAudioSource = curAudioSource == null ? TrackChooser.UNKNOWN : curAudioSource;
+                }
                 p.lookupDone = true;
             }
             maybeStart(ctx, p);
@@ -300,10 +333,9 @@ public final class OneAheadTrigger {
                 return;
             }
 
-            if (attempts.attemptedToday(p.videoId, today)) {
-                Log.i(TAG, "refuse already-attempted vid=" + p.videoId);
-                return;
-            }
+            // No per-episode attempt check here: one file gets its own tries, so the
+            // worker probes the file identity and the runner refuses a finished file
+            // or one already tried twice today.
 
             // Known without any media read: chapters win at playback, Own times
             // already cover the missing types. Either stops the whole fetch.
@@ -364,6 +396,9 @@ public final class OneAheadTrigger {
         job.putString("metaTransport", p.metaTransport);
         job.putString("curId", p.curId);
         job.putString("curUrl", p.curUrl);
+        job.putString("curAudioLang", p.curAudioLang);
+        job.putInt("curAudioChannels", p.curAudioChannels);
+        job.putString("curAudioSource", p.curAudioSource);
         job.putBoolean("cached", p.cached);
         job.putBoolean("external", p.external);
         job.putBoolean("hasIntro", p.hasIntro);
@@ -379,7 +414,13 @@ public final class OneAheadTrigger {
             @Override public android.os.Bundle playerState() { return playerStateBundle(ctx); }
         });
         if (end == OneAheadWorkerLink.End.DIED) {
-            attempts.mark(p.videoId, p.metaId == null ? "" : p.metaId.trim(), today);
+            String show = p.metaId == null ? "" : p.metaId.trim();
+            long pace = p.external ? OneAheadPlanner.PACE_EXTERNAL_BPS : OneAheadPlanner.PACE_INTERNAL_BPS;
+            long[] id = probe(p.url, guard(ctx.getApplicationContext()), pace);
+            if (id != null) {
+                String key = OneAheadStores.key(p.videoId, id[0], id[1]);
+                if (attempts.attemptsToday(key, today) == 0) attempts.mark(key, show, today);
+            }
             Log.w(TAG, "worker died vid=" + p.videoId + ", counted as today's attempt");
             PlaybackDiary.ev(ctx, "oneahead.refuse", "vid", p.videoId, "why", "worker-died");
             return;
@@ -440,6 +481,13 @@ public final class OneAheadTrigger {
         p.metaTransport = job.getString("metaTransport");
         p.curId = job.getString("curId");
         p.curUrl = job.getString("curUrl");
+        try {
+            String l = job.getString("curAudioLang");
+            p.curAudioLang = l == null ? "" : l;
+            p.curAudioChannels = job.getInt("curAudioChannels");
+            String src = job.getString("curAudioSource");
+            p.curAudioSource = src == null || src.isEmpty() ? TrackChooser.UNKNOWN : src;
+        } catch (Throwable ignored) { /* older Bundle without the audio */ }
         p.cached = job.getBoolean("cached");
         p.external = job.getBoolean("external");
         p.hasIntro = job.getBoolean("hasIntro");
@@ -479,7 +527,7 @@ public final class OneAheadTrigger {
                         String u = urlByHash.get(ref.urlHash);
                         return OneAheadAndroid.source(u == null ? "" : u, g, budget, pace);
                     },
-                    OneAheadAndroid.decoders(msg -> Log.i(TAG, msg)), msg -> Log.i(TAG, msg));
+                    OneAheadAndroid.decoders(msg -> Log.i(TAG, msg)), msg -> Log.i(TAG, msg), p.curAudioSource);
             OneAheadRunner runner = new OneAheadRunner(storeDir(ctx), fetcher,
                     OneAheadRunner.defaultDetectors(), guard, null);
             boolean wantBorrow = OneAheadGate.runBorrow(borrowOn(ctx));
@@ -518,8 +566,10 @@ public final class OneAheadTrigger {
             }
 
             // Between online sources and audio detection: nothing else to run when it covers every missing type.
-            List<OneAheadResult.Segment> borrowed = wantBorrow ? borrow(p, job, runner, meta, guard, pace) : new ArrayList<>();
-            if (!borrowed.isEmpty() && covers(borrowed, job.getBoolean("needIntro"), job.getBoolean("needCredits"))) {
+            OneAheadBorrow.Run br = wantBorrow ? borrow(p, job, runner, meta, guard, pace) : null;
+            List<OneAheadResult.Segment> borrowed = br == null ? new ArrayList<>() : br.segments;
+            boolean weakIntro = br != null && br.weakIntro;
+            if (!borrowed.isEmpty() && covers(borrowed, job.getBoolean("needIntro"), job.getBoolean("needCredits"), weakIntro)) {
                 report(runner.keepBorrowed(p.videoId, p.metaId, targetId[0], targetId[1]), p, targetId, startedAt, reply, end);
                 return;
             }
@@ -544,6 +594,7 @@ public final class OneAheadTrigger {
             for (Cand c : cands) if (!byEpisode.containsKey(c.gate.episodeId)) byEpisode.put(c.gate.episodeId, c);
 
             List<OneAheadPlanner.FileRef> refs = new ArrayList<>();
+            String wantLang = p.curAudioLang == null ? "" : p.curAudioLang;
             for (OneAheadGate.Candidate gc : picks) {
                 if (refs.size() >= OneAheadPlanner.MAX_REFS) break;
                 Cand c = byEpisode.get(gc.episodeId);
@@ -552,21 +603,22 @@ public final class OneAheadTrigger {
                 if (c.cachedFeat) {
                     refs.add(new OneAheadPlanner.FileRef(gc.episodeId, gc.episodeId,
                             c.url == null ? 0 : OneAheadStores.urlHash(c.url), c.fSize, c.fHash, duration,
-                            OneAheadGate.containerOf(c.gate.fileName), finale, true, null, 0));
+                            OneAheadGate.containerOf(c.gate.fileName), finale, true, wantLang, p.curAudioChannels, 0));
                 } else {
                     long[] id = probe(c.url, guard, pace);
                     if (id == null) continue; // an unresolvable link is simply not a candidate
                     register(urlByHash, c.url);
                     refs.add(new OneAheadPlanner.FileRef(gc.episodeId, gc.episodeId,
                             OneAheadStores.urlHash(c.url), id[0], id[1], duration,
-                            OneAheadGate.containerOf(c.gate.fileName), finale, false, null, -1));
+                            OneAheadGate.containerOf(c.gate.fileName), finale, false, wantLang, p.curAudioChannels, -1));
                 }
             }
             OneAheadPlanner.FileRef target = new OneAheadPlanner.FileRef(p.videoId, p.videoId,
                     OneAheadStores.urlHash(p.url), targetId[0], targetId[1], duration,
                     OneAheadGate.containerOf(p.fileName), OneAheadGate.isFinale(p.videoId, seasonIds),
-                    false, null, -1);
-            Log.i(TAG, "start vid=" + p.videoId + " refs=" + refs.size() + " pace=" + pace);
+                    false, wantLang, p.curAudioChannels, -1);
+            Log.i(TAG, "start vid=" + p.videoId + " refs=" + refs.size() + " pace=" + pace
+                    + " audio=" + (wantLang.isEmpty() ? "-" : wantLang + "/" + p.curAudioChannels + "ch") + " audio-src=" + p.curAudioSource);
             diary(reply, "oneahead.start", "vid", p.videoId, "refs", String.valueOf(refs.size()));
             OneAheadRunner.Outcome o = runner.runOnce(target, refs, p.metaId);
             String preReason = o.reason == null ? "" : o.reason;
@@ -610,19 +662,20 @@ public final class OneAheadTrigger {
         }
     }
 
-    private static boolean covers(List<OneAheadResult.Segment> found, boolean intro, boolean credits) {
+    private static boolean covers(List<OneAheadResult.Segment> found, boolean intro, boolean credits, boolean weakIntro) {
         boolean i = !intro, c = !credits;
         for (OneAheadResult.Segment s : found) {
-            if ("intro".equals(s.type)) i = true;
+            // A weak intro covers nothing on its own: only the detector's agreement keeps it.
+            if ("intro".equals(s.type) && !weakIntro) i = true;
             if ("credits".equals(s.type)) c = true;
         }
         return i && c;
     }
 
     /** Runs the chapter borrowing once a day per episode. Failure is simply no borrowed times. */
-    private static List<OneAheadResult.Segment> borrow(Pending p, android.os.Bundle job, OneAheadRunner runner,
-                                                       MetaInfo meta, PlaybackGuard guard, long pace) {
-        List<OneAheadResult.Segment> none = new ArrayList<>();
+    private static OneAheadBorrow.Run borrow(Pending p, android.os.Bundle job, OneAheadRunner runner,
+                                             MetaInfo meta, PlaybackGuard guard, long pace) {
+        OneAheadBorrow.Run none = new OneAheadBorrow.Run(new ArrayList<>(), false);
         ArrayList<String> urls = job.getStringArrayList("dUrls"), names = job.getStringArrayList("dNames"),
                 titles = job.getStringArrayList("dTitles");
         if (urls == null || meta == null || !runner.startBorrow(p.videoId)) return none;
@@ -644,11 +697,12 @@ public final class OneAheadTrigger {
             target = files.open(p.url);
             if (target.duration() > 0) runtime[0] = target.duration();
             int[] se = StreamRanker.requestOf(p.videoId);
-            List<OneAheadResult.Segment> found = OneAheadBorrow.run(donors, target, se[0], se[1], meta.name,
+            OneAheadBorrow.Run rb = OneAheadBorrow.run(donors, target, se[0], se[1], meta.name,
                     job.getBoolean("needIntro"), job.getBoolean("needCredits"), files, msg -> Log.i(TAG, msg));
-            runner.setBorrowed(found, target.duration());
+            List<OneAheadResult.Segment> found = rb.segments;
+            runner.setBorrowed(found, rb.weakIntro, target.duration());
             Log.i(TAG, "borrow done segs=" + found.size() + " bytes=" + budget.used() + " vid=" + p.videoId);
-            return found;
+            return rb;
         } catch (Throwable t) {
             Log.i(TAG, "borrow stopped " + OneAheadGate.safeReason(t) + " vid=" + p.videoId);
             return none;
@@ -753,18 +807,22 @@ public final class OneAheadTrigger {
         }
         if (seasonIds != null && p.transport != null && p.transport.length() > 0) {
             String targetGroup = OneAheadGate.releaseGroup(p.fileName);
-            int asked = 0;
-            for (String epId : OneAheadGate.queryOrder(seasonIds, p.videoId)) {
-                if (asked >= MAX_STREAM_QUERIES || out.size() >= OneAheadPlanner.MAX_REFS) break;
+            int asked = 0, usableAsks = 0;
+            List<String> order = OneAheadGate.queryOrder(seasonIds, p.videoId);
+            String firstEp = seasonIds.isEmpty() ? null : seasonIds.get(0);
+            for (String epId : order) {
+                // the season's first episode is asked even when the stored features already fill the references
+                if (!mayAsk(usableAsks, asked) || (out.size() >= OneAheadPlanner.MAX_REFS && !epId.equals(firstEp))) break;
                 if (seen.contains(epId)) continue; // already a candidate; save the query
                 asked++;
                 List<String[]> rows = NextPrep.queryEpisodeStreams(p.type, epId, p.transport);
+                if (!rows.isEmpty()) usableAsks++;
                 String[] pick = OneAheadGate.pickReference(rows, targetGroup);
                 int cached = 0;
                 for (String[] row : rows) if (row != null && row.length > 2 && "1".equals(row[2])) cached++;
                 String why = pick != null ? "picked" : rows.isEmpty() ? "no-rows" : cached == 0 ? "no-cached" : "no-pick";
                 Log.i(TAG, "query ep=" + epId + " rows=" + rows.size() + " cached=" + cached
-                        + " picked=" + (pick != null) + " why=" + why);
+                        + " picked=" + (pick != null) + " why=" + why + " ask=" + asked + " usable=" + usableAsks + " via=" + NextPrep.shortAddon(p.transport));
                 if (pick != null && seen.add(epId)) {
                     register(urlByHash, pick[0]);
                     long size = 0;
@@ -870,7 +928,7 @@ public final class OneAheadTrigger {
                 JSONObject v = videos.optJSONObject(i);
                 if (v == null) continue;
                 String id = v.optString("id", "");
-                int season = v.optInt("season", -1), episode = v.optInt("episode", -1);
+                int season = v.optInt("season", -1), episode = v.optInt("episode", v.optInt("number", -1));
                 if (id.length() == 0 || episode < 0) continue;
                 if (req[0] > 0 && season >= 0 && season != req[0]) continue; // specials are not the season
                 eps.add(new Object[]{episode, id});

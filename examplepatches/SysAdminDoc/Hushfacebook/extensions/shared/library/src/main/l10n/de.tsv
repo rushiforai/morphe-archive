@@ -1926,10 +1926,20 @@ List cleared	Liste geleert
 Nothing here yet. With Remember what you watch on, the reels, videos and stories you watch show up here.	Hier ist noch nichts. Wenn Merken, was du ansiehst aktiv ist, erscheinen hier die Reels, Videos und Stories, die du ansiehst.
 # context: shown in the Recently watched list when the picked chip has no entries
 Nothing of this kind yet.	Davon gibt es noch nichts.
-# context: switch title under Comments; on, the comment sheet opens at the full height of the screen
-Open comments at full height	Kommentare in voller Höhe öffnen
-# context: summary of that switch; Comment is the button under a reel or video, the split view shows the video above the comments
+# context: summary of the Full height choice; Comment is the button under a reel or video, the split view shows the video above the comments
 Comments open on a sheet that fills the screen instead of stopping part way up. On reels and videos, Comment opens that sheet in place of the split view with the video on top.	Kommentare öffnen sich auf einem Blatt, das den ganzen Bildschirm füllt, statt auf halber Höhe stehen zu bleiben. Bei Reels und Videos öffnet „Kommentieren“ dieses Blatt statt der geteilten Ansicht mit dem Video oben.
+# context: title of the list that picks how high the comments sheet opens; its choices follow
+Open comments at	Kommentare öffnen auf
+Facebook's height	Facebook-Höhe
+Full height	Volle Höhe
+Half height	Halbe Höhe
+# context: summary of the Half height choice; Comment is the button under a reel or video
+Comments open on a sheet that covers half the screen, and the reel or video keeps playing above it. On reels and videos, Comment opens that sheet in place of the split view.	Kommentare öffnen sich auf einem Blatt, das den halben Bildschirm bedeckt, und das Reel oder Video läuft darüber weiter. Bei Reels und Videos öffnet „Kommentieren“ dieses Blatt statt der geteilten Ansicht.
+Comments open where Facebook stops them, part way up on reels and videos.	Kommentare öffnen sich dort, wo Facebook sie anhält, bei Reels und Videos auf halber Höhe.
+# context: sentences in a settings import preview
+Comments will open at full height.	Kommentare öffnen sich in voller Höhe.
+Comments will open at half height.	Kommentare öffnen sich in halber Höhe.
+Comments will open where Facebook stops them.	Kommentare öffnen sich dort, wo Facebook sie anhält.
 # context: switch title under Appearance; on, Android's status bar (clock, battery) is hidden on Facebook's main screen
 Hide the status bar	Statusleiste ausblenden
 # context: summary of that switch; a swipe down from the top edge shows the bar briefly
@@ -2630,3 +2640,30 @@ The rounded tab bar is %1$s percent of the screen wide.	Die abgerundete Tab-Leis
 Tab bar height	Höhe der Tab-Leiste
 Percent of its full height the rounded tab bar keeps, from %1$s to %2$s, trimmed above and below the icons. Leave it blank for %3$s.	Wie viel Prozent ihrer vollen Höhe die abgerundete Tab-Leiste behält, von %1$s bis %2$s, über und unter den Symbolen gekürzt. Leer lassen für %3$s.
 The rounded tab bar keeps %1$s percent of its height.	Die abgerundete Tab-Leiste behält %1$s Prozent ihrer Höhe.
+# context: title of a row under About that picks how long a dot marks settings an update added
+Mark new settings	Neue Einstellungen markieren
+# context: choice in that row; the dot goes once the page holding the setting is left
+Until I leave the page	Bis ich die Seite verlasse
+# context: summary of that row when Off is picked
+Settings an update adds get no dot.	Einstellungen, die ein Update hinzufügt, bekommen keinen Punkt.
+# context: summary of that row for the default choice
+A dot marks each setting an update adds, until you leave the page it's on.	Ein Punkt markiert jede Einstellung, die ein Update hinzufügt, bis du die Seite verlässt, auf der sie steht.
+# context: summary of that row; %1$s is a time such as 3 days
+A dot marks each setting an update adds, for %1$s from the first time you open its page.	Ein Punkt markiert jede Einstellung, die ein Update hinzufügt, für %1$s ab dem ersten Öffnen ihrer Seite.
+# context: sentence in the import preview when the file turns that row Off
+Settings an update adds won't get a dot.	Einstellungen, die ein Update hinzufügt, bekommen dann keinen Punkt.
+# context: sentence in the import preview for the default choice
+Settings an update adds will get a dot until you leave their page.	Einstellungen, die ein Update hinzufügt, bekommen dann einen Punkt, bis du ihre Seite verlässt.
+# context: sentence in the import preview; %1$s is a time such as 3 days
+Settings an update adds will get a dot for %1$s from the first time you open their page.	Einstellungen, die ein Update hinzufügt, bekommen dann für %1$s ab dem ersten Öffnen ihrer Seite einen Punkt.
+Turn gray over	Grau werden über
+Reels are gray from the start.	Reels sind von Anfang an grau.
+# context: %1$s is a time such as 10 minutes
+Reels lose their color over %1$s of watching. 15 minutes away starts them in color again.	Reels verlieren über %1$s Zuschauen ihre Farbe. 15 Minuten Pause lassen sie wieder farbig starten.
+Show Reels in gray will make reels gray from the start.	Reels in Graustufen zeigen macht Reels von Anfang an grau.
+# context: sentence in the import preview; %1$s is a time such as 10 minutes
+Show Reels in gray will take reels from color to gray over %1$s.	Reels in Graustufen zeigen lässt Reels über %1$s von Farbe zu Grau wechseln.
+Show time in Reels	Zeit in Reels anzeigen
+A small label at the top of Reels shows the minutes you've watched. Time on other tabs doesn't count, and 15 minutes away starts it over.	Eine kleine Anzeige oben in Reels zeigt, wie viele Minuten du geschaut hast. Zeit auf anderen Tabs zählt nicht, und nach 15 Minuten Pause beginnt sie wieder bei null.
+# context: a short label on the Reels screen; %1$d is a number of minutes
+%1$d min	%1$d Min

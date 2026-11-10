@@ -1,3 +1,23 @@
+## [1.16.0](https://github.com/amfakh/fakh-patches/compare/v1.15.4...v1.16.0) (2026-11-09)
+
+### New Features
+
+* **Jira:** support `2026.21.2` with Material You, Hide Rovo button, Glass navigation bar and Disable Play license check ([fa1aff6](https://github.com/amfakh/fakh-patches/commit/fa1aff6212595fbf34958fd26970532a58d38427))
+* **Jira:** choose which navigation bar tabs show, in a bottom sheet with Home always on ([0f59398](https://github.com/amfakh/fakh-patches/commit/0f593982039653a0e46b850ace8d8d8c0a9142b8))
+* **LinkedIn:** choose which navigation bar tabs and More tab items show, in a bottom sheet with Home always on ([1ab3716](https://github.com/amfakh/fakh-patches/commit/1ab3716f8149db22949ca9868a1c16091b1618b4), [df8c588](https://github.com/amfakh/fakh-patches/commit/df8c588957ebb0078544cb2a69649a1dd030e7c0))
+* **GitHub:** choose which navigation bar tabs show and where the landscape navigation bar sits, in the app's own choice sheets ([94f4d4a](https://github.com/amfakh/fakh-patches/commit/94f4d4a342faba2c828fd7c2d443c540caa8ca9a))
+* **GitHub, LinkedIn:** the glass navigation bar has a sliding selection pill in your accent color, shrinks to fit its tabs and can hide tab labels ([fb1345f](https://github.com/amfakh/fakh-patches/commit/fb1345ffab9b64f9b63546c8134cae5b2de68ae5))
+* **Kompas, DoDo, LinkedIn, Smart Life:** a message tells you when "Sign in with Google" needs microG RE and it is not installed ([044ee0d](https://github.com/amfakh/fakh-patches/commit/044ee0dd114087b95510e1159bef7b5b255028e7))
+* **Jira, GitHub:** the text added by Fakh Patches follows your device language ([5aba699](https://github.com/amfakh/fakh-patches/commit/5aba6990c0a5911c2a93ddb2e5668ae95c0c846d))
+* **LinkedIn:** the settings are translated in every language ([856f26b](https://github.com/amfakh/fakh-patches/commit/856f26bce86793b7ac572c84074d36dd478813b4))
+
+### Bug Fixes
+
+* **DoDo, Smart Life:** Disable analytics also turns off Firebase Performance ([1a61bf5](https://github.com/amfakh/fakh-patches/commit/1a61bf5e127f9b592641df1148f3d9d39b1ab530))
+* rename patches for consistent wording, so select them again in Manager: Windy `Unlock Premium` to `Premium unlock`, LinkedIn `Block tracking` to `Disable analytics`, LinkedIn `Remove gaps and dividers` to `Hide gaps and dividers`, GitHub `Navigation bar on the right` to `Landscape navigation bar position` ([e51d625](https://github.com/amfakh/fakh-patches/commit/e51d6253dd0c625cd056e87a29972d4da8751680))
+* **GitHub:** rename the switches `Hide navigation bar labels` to `Hide tab labels` and `Pitch black in dark mode` to `Pitch black` ([e51d625](https://github.com/amfakh/fakh-patches/commit/e51d6253dd0c625cd056e87a29972d4da8751680))
+* **GitHub, Jira:** the restart notice reads "Restart <app> to apply the change" ([f596053](https://github.com/amfakh/fakh-patches/commit/f596053db99207703610fcb71201b82d9674fe63))
+
 ## [1.15.4](https://github.com/amfakh/fakh-patches/compare/v1.15.3...v1.15.4) (2026-11-09)
 
 ### Updated App Support

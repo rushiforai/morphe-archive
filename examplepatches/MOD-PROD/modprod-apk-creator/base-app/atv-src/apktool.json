@@ -1,0 +1,30 @@
+{
+  "apkFileName": "atv-base.apk",
+  "PackageInfo": {
+    "forcedPackageId": "127",
+    "renameManifestPackage": null
+  },
+  "doNotCompress": [
+    "resources.arsc",
+    "png"
+  ],
+  "compressionType": false,
+  "sparseResources": false,
+  "version": "2.4.0-251224",
+  "sharedLibrary": false,
+  "VersionInfo": {
+    "versionName": "1.0",
+    "versionCode": "1"
+  },
+  "UsesFramework": {
+    "ids": [1],
+    "tag": null
+  },
+  "unknownFiles": {},
+  "compactEntries": false,
+  "isFrameworkApk": false,
+  "sdkInfo": {
+    "minSdkVersion": "21",
+    "targetSdkVersion": "34"
+  }
+}

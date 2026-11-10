@@ -1,0 +1,57 @@
+{
+  "name": "Linimal",
+  "tagline": "公式 LINE Android クライアント向けの Morphe パッチバンドル",
+  "summary": "広告や使わない機能の表示を消し、既読の送信を制御できるようにします。すべての機能は LINE の設定画面から個別に ON / OFF でき、OFF のときは公式 LINE と同じ動作になります。",
+  "disclaimer": "Linimal は独立したプロジェクトであり、LINE および Morphe の公式プロジェクトではありません。",
+  "license": "GPL-3.0",
+  "repository": "https://github.com/uta-a/linimal",
+  "addSourceUrl": "https://morphe.software/add-source?github=uta-a/linimal",
+  "target": {
+    "app": "LINE (jp.naver.line.android)",
+    "version": "26.16.0",
+    "versionCode": 261600106,
+    "abi": "arm64-v8a",
+    "input": "APKM"
+  },
+  "latestVersion": "0.11.0",
+  "stats": {
+    "commits": 132,
+    "releases": 18,
+    "firstCommit": "2026-09-01",
+    "latestRelease": "2026-11-05",
+    "settingsPages": 5,
+    "bytecodePatchFiles": 49,
+    "kotlinPatchLines": 14476,
+    "javaExtensionLines": 8068,
+    "testFiles": 84,
+    "githubStars": 6,
+    "settingsRows": 25,
+    "switchesOnDevice": 37,
+    "switchesByPage": {
+      "広告": 2,
+      "Agent i・LINE AI": 8,
+      "表示を消す": 16,
+      "既読": 4,
+      "一般": 7
+    }
+  },
+  "statsCollectedAt": "2026-11-06",
+  "install": [
+    "Morphe Manager でリンクを開き Linimal をパッチソースに追加",
+    "LINE 26.16.0 の APKM を選ぶ",
+    "Linimal を適用してインストール",
+    "LINE の設定 → 一番下の Linimal から機能を切り替え"
+  ],
+  "migration": [
+    "MicroG-RE を準備",
+    "公式 LINE でトークを Google ドライブへバックアップ",
+    "公式 LINE をアンインストールし Linimal 適用版をインストール",
+    "ログインして Google ドライブから復元"
+  ],
+  "principles": [
+    "設定 OFF なら公式 LINE と同じ動作",
+    "対象を特定できない機能は自動で無効化（fail-open）",
+    "広告・課金・通信は変更せず表示だけを消す",
+    "既読は実際の送信経路で抑制"
+  ]
+}

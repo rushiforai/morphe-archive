@@ -113,6 +113,9 @@ public final class AmbientLight {
     /** How many parents of a picture are asked whether they're its stage. */
     static final int STAGE_DEPTH = 16;
 
+    /** A parent no more than this many pixels bigger than a picture is rounding, with no room for a glow (#580). */
+    static final int ROUNDING = 2;
+
     /** The copy of a picture is SAMPLE pixels square; the glow's face adds RING cells around it. */
     static final int SAMPLE = 16, RING = 8, SIDE = SAMPLE + 2 * RING;
 
@@ -286,27 +289,46 @@ public final class AmbientLight {
         return frame;
     }
 
-    /** A post's stage: the nearest of [media]'s first {@link #STAGE_DEPTH} parents that is bigger than it either way. */
+    /**
+     * A post's stage: the nearest of [media]'s first {@link #STAGE_DEPTH} parents that is bigger than
+     * it either way by more than {@link #ROUNDING}. Instagram's zoom container comes out a pixel
+     * taller than the picture on many posts, and a glow on that has nowhere to show.
+     */
     @Nullable
     static ViewGroup stageOf(View media) {
         ViewParent parent = media.getParent();
         for (int i = 0; i < STAGE_DEPTH && parent instanceof ViewGroup; i++, parent = parent.getParent()) {
             ViewGroup group = (ViewGroup) parent;
-            if (group.getWidth() > media.getWidth() || group.getHeight() > media.getHeight()) return group;
+            if (group.getWidth() > media.getWidth() + ROUNDING || group.getHeight() > media.getHeight() + ROUNDING) return group;
         }
         return null;
     }
 
-    /** A reel's stage: the nearest view from [video]'s parent up to [frame] that spans at least nine tenths of the frame. */
+    /**
+     * A reel's stage: the nearest view from [video]'s parent up to [frame] that spans at least nine
+     * tenths of the frame. Rounded corners on Reels clips the frame to the video, and a glow inside
+     * the frame with it, so a parent of the frame's own size takes the stage when there is one (#580).
+     */
     @Nullable
     static ViewGroup reelStageOf(View video, View frame) {
         ViewParent parent = video.getParent();
         for (int i = 0; i < STAGE_DEPTH && parent instanceof ViewGroup; i++, parent = parent.getParent()) {
             ViewGroup group = (ViewGroup) parent;
-            if (group.getWidth() >= frame.getWidth() * 0.9f && group.getHeight() >= frame.getHeight() * 0.9f) return group;
+            if (group.getWidth() >= frame.getWidth() * 0.9f && group.getHeight() >= frame.getHeight() * 0.9f) {
+                return outsideFrame(group, frame);
+            }
             if (group == frame) return null;
         }
         return null;
+    }
+
+    /** [frame]'s parent when it's no bigger than the frame, else [stage]. */
+    private static ViewGroup outsideFrame(ViewGroup stage, View frame) {
+        ViewParent above = frame.getParent();
+        if (!(above instanceof ViewGroup)) return stage;
+        ViewGroup parent = (ViewGroup) above;
+        boolean sameSize = parent.getWidth() <= frame.getWidth() + ROUNDING && parent.getHeight() <= frame.getHeight() + ROUNDING;
+        return sameSize ? parent : stage;
     }
 
     /**

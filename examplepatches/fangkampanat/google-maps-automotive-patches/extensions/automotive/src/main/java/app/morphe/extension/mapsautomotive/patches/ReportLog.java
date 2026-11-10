@@ -32,7 +32,7 @@ import java.util.concurrent.Executors;
 final class ReportLog {
     /** The tags of the extension's classes, which call this class instead of android.util.Log. */
     static final String[] TAGS = {"MorpheApiCompat", "MorpheArrivalBattery", "MorpheBuildings3d", "MorpheBydAudio",
-            "MorpheBydBattery", "MorpheBydBands", "MorpheBydModel", "MorpheDriverSide", "MorpheLocationLockout", "MorpheLocationService", "MorpheReport", "MorpheSafeMode",
+            "MorpheBydBattery", "MorpheBydBands", "MorpheBydDrive", "MorpheBydModel", "MorpheColorScheme", "MorpheDriverSide", "MorpheLocationLockout", "MorpheLocationService", "MorpheReport", "MorpheSafeMode",
             "MorpheSendToCar", "MorpheTtsWarmup", "MorpheUiDensity", "MorpheWatchdog", "MorpheWindow"};
     private static final long MAX_FILE_BYTES = 256 * 1024;
     private static final int MAX_LINE_CHARS = 1024, STACK_FRAMES = 5, CAUSE_FRAMES = 2, MAX_CAUSES = 3, MAX_PENDING = 500;

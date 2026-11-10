@@ -1,8 +1,12 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import android.content.Context;
 import android.graphics.drawable.GradientDrawable;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,158 +15,224 @@ import android.widget.ImageButton;
 
 import java.util.List;
 
+/**
+ * The download button of the older viewer presenters, the ones still assembled out of views rather than
+ * composed. {@link #onMediaBind} is injected at the start of their onBind: the overlay is built once per
+ * inflated layout and then re-pointed at whatever item the presenter is showing now, because presenters are
+ * recycled and the same view comes back with a different photo or video in it.
+ */
 @SuppressWarnings("unused")
 public final class DownloadMediaPatch {
-    private static final String TAG = "LinkedInPatches";
-    /** Also read by SduiMediaDownload, which hides both button variants together. */
+
+    /** Tag of the overlay. The Compose viewer's button looks it up too, so both variants hide together. */
     static final String OVERLAY_TAG = "morphe_download_overlay";
 
-    /**
-     * Injected at the start of onBind(ViewData, ViewDataBinding) of the media viewer presenters.
-     * Adds (or rebinds) a download button on top of the photo or video.
-     */
+    private static final int OVERLAY_FILL = 0x80000000;
+    private static final int OVAL = GradientDrawable.OVAL;
+    private static final int ICON = android.R.drawable.stat_sys_download;
+    private static final String ICON_LABEL = "Download";
+    private static final int BUTTON_SIZE = 44;
+    private static final int BUTTON_PADDING = 10;
+    /** Clear of the viewer's own bar, where its close and overflow buttons sit. */
+    private static final int BUTTON_TOP = 112;
+    private static final int BUTTON_MARGIN_END = 16;
+
+    private DownloadMediaPatch() {
+    }
+
+    /** Adds, or re-points, the button that floats over the photo or video of a viewer presenter. */
     public static void onMediaBind(Object viewData, Object binding) {
         try {
-            if (!Settings.downloadMedia()) return;
-            View root = (View) binding.getClass().getMethod("getRoot").invoke(binding);
-            Settings.debugLog("legacy media viewer bind " + viewData.getClass().getSimpleName());
-            if (!(root instanceof ViewGroup)) return;
-            ViewGroup group = (ViewGroup) root;
+            if (!enabled()) return;
+            View root = rootOf(binding);
+            String bound = viewData.getClass().getSimpleName();
+            Settings.debugLog("legacy media viewer bind " + bound);
+            ViewGroup host = root instanceof ViewGroup ? (ViewGroup) root : null;
+            if (host == null) return;
 
-            View overlay = group.findViewWithTag(OVERLAY_TAG);
-            if (overlay == null) {
-                overlay = createOverlay(group.getContext());
-                group.addView(overlay, new ViewGroup.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            View overlay = host.findViewWithTag(OVERLAY_TAG);
+            if (overlay != null) {
+                reveal(overlay);
+            } else {
+                View created = overlayFor(host.getContext());
+                host.addView(created, overlayParams());
+                reveal(created);
+                overlay = created;
             }
-            overlay.bringToFront();
-            overlay.setVisibility(View.VISIBLE);
-            // Presenters are recycled, so always rebind to the current item.
-            ((ViewGroup) overlay).getChildAt(0).setOnClickListener(v -> download(v.getContext(), viewData));
-        } catch (Throwable t) {
-            Diagnostics.error("onMediaBind failed", t);
+            // The pass-through overlay is a frame, and the button is its only child.
+            bind(overlay, viewData);
+        } catch (Throwable problem) {
+            Diagnostics.error("onMediaBind failed", problem);
         }
     }
 
-    private static View createOverlay(Context context) {
-        // Full size, non-clickable layer: touches outside the button fall through to the media.
-        FrameLayout overlay = new FrameLayout(context);
-        overlay.setTag(OVERLAY_TAG);
-
-        ImageButton button = new ImageButton(context);
-        button.setImageResource(android.R.drawable.stat_sys_download);
-        button.setContentDescription("Download");
-        GradientDrawable background = new GradientDrawable();
-        background.setShape(GradientDrawable.OVAL);
-        background.setColor(0x80000000);
-        button.setBackground(background);
-        int padding = dp(context, 10);
-        button.setPadding(padding, padding, padding, padding);
-
-        int size = dp(context, 44);
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.END);
-        // Below the viewer's top bar (close / overflow buttons).
-        params.topMargin = dp(context, 112);
-        params.setMarginEnd(dp(context, 16));
-        overlay.addView(button, params);
-        return overlay;
+    private static boolean enabled() {
+        return Settings.downloadMedia();
     }
 
-    private static void download(Context context, Object viewData) {
+    /** The inflated root of a presenter's binding. */
+    private static View rootOf(Object binding) throws Exception {
+        return (View) binding.getClass().getMethod("getRoot").invoke(binding);
+    }
+
+    /** Covers the viewer, so the button can sit in its corner. */
+    private static ViewGroup.LayoutParams overlayParams() {
+        return new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+    }
+
+    private static void reveal(View overlay) {
+        overlay.setVisibility(View.VISIBLE);
+        ViewGroup parent = (ViewGroup) overlay.getParent();
+        parent.bringChildToFront(overlay);
+    }
+
+    private static void bind(View overlay, Object viewData) {
+        ViewGroup frame = (ViewGroup) overlay;
+        frame.getChildAt(0).setOnClickListener(clicked -> downloadCurrent(clicked.getContext(), viewData));
+    }
+
+    private static View overlayFor(Context context) {
+        // Nothing but the button is clickable here, so touches beside it reach the media underneath.
+        FrameLayout layer = new FrameLayout(context);
+        layer.setTag(OVERLAY_TAG);
+        layer.addView(downloadButton(context), buttonParams(context));
+        return layer;
+    }
+
+    private static ImageButton downloadButton(Context context) {
+        ImageButton circle = new ImageButton(context);
+        circle.setContentDescription(ICON_LABEL);
+        circle.setImageResource(ICON);
+        circle.setBackground(round(OVERLAY_FILL));
+        int padding = px(context, BUTTON_PADDING);
+        circle.setPadding(padding, padding, padding, padding);
+        return circle;
+    }
+
+    /** A filled circle behind the icon, so it stays visible over a photo of any brightness. */
+    private static GradientDrawable round(int argb) {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(argb);
+        shape.setShape(OVAL);
+        return shape;
+    }
+
+    private static FrameLayout.LayoutParams buttonParams(Context context) {
+        int size = px(context, BUTTON_SIZE);
+        FrameLayout.LayoutParams layout = new FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.END);
+        layout.topMargin = px(context, BUTTON_TOP);
+        layout.setMarginEnd(px(context, BUTTON_MARGIN_END));
+        return layout;
+    }
+
+    private static void downloadCurrent(Context context, Object viewData) {
         try {
-            String url = findVideoUrl(viewData);
-            boolean isVideo = url != null;
-            if (!isVideo) url = findImageUrl(viewData);
+            String video = videoUrl(viewData);
+            // A video viewer has both models on it; the video wins, since that is what is playing.
+            String url = video != null ? video : imageUrl(viewData);
+            boolean isVideo = video != null;
             if (url == null) {
-                Downloads.toast(context, "Media not found");
+                reportMissing(context);
                 return;
             }
-
-            if (Downloads.enqueue(context, url, String.valueOf(System.currentTimeMillis()), isVideo)) {
-                Downloads.toastStarted(context, 1, isVideo);
-            }
-        } catch (Throwable t) {
-            Diagnostics.error("download failed", t);
-            Downloads.toast(context, I18n.f("Download failed: %1$s", t.getMessage()));
+            // Pegasus has no asset id at this level, so the moment of the tap names the saved file.
+            String name = String.valueOf(System.currentTimeMillis());
+            if (Downloads.enqueue(context, url, name, isVideo)) Downloads.toastStarted(context, 1, isVideo);
+        } catch (Throwable problem) {
+            Diagnostics.error("download failed", problem);
+            Downloads.toast(context, I18n.f("Download failed: %1$s", problem.getMessage()));
         }
+    }
+
+    private static void reportMissing(Context context) {
+        Downloads.toast(context, "Media not found");
     }
 
     /**
-     * MediaViewerVideoViewData.videoPlayMetadata.progressiveStreams[]
-     * -> highest resolution stream -> streamingLocations[0].url (a plain MP4).
+     * MediaViewerVideoViewData.videoPlayMetadata.progressiveStreams[]: the most pixels wins, the higher bit
+     * rate breaks a tie, and the winner's first streamingLocation is a plain MP4.
      */
-    private static String findVideoUrl(Object viewData) {
-        Object streams = Reflect.get(Reflect.get(viewData, "videoPlayMetadata"), "progressiveStreams");
-        if (!(streams instanceof List)) return null;
+    private static String videoUrl(Object viewData) {
+        Object metadata = Reflect.get(viewData, "videoPlayMetadata");
+        Object renditions = Reflect.get(metadata, "progressiveStreams");
+        if (!(renditions instanceof List)) return null;
 
-        Object best = null;
-        long bestScore = -1;
-        for (Object stream : (List<?>) streams) {
-            long pixels = (long) Reflect.asInt(Reflect.get(stream, "width")) * Reflect.asInt(Reflect.get(stream, "height"));
-            long score = pixels * 100_000L + Reflect.asInt(Reflect.get(stream, "bitRate")) / 1000;
-            if (score > bestScore && firstUrl(stream) != null) {
-                best = stream;
-                bestScore = score;
+        Object winner = null;
+        long winnerScore = -1;
+        for (Object candidate : (List<?>) renditions) {
+            if (streamUrl(candidate) == null) continue;
+            long ranking = rank(candidate);
+            if (ranking > winnerScore) {
+                winner = candidate;
+                winnerScore = ranking;
             }
         }
-        return best == null ? null : firstUrl(best);
+        return winner == null ? null : streamUrl(winner);
     }
 
-    private static String firstUrl(Object stream) {
-        Object locations = Reflect.get(stream, "streamingLocations");
-        if (!(locations instanceof List)) return null;
-        for (Object location : (List<?>) locations) {
-            Object url = Reflect.get(location, "url");
-            if (url instanceof String) return (String) url;
+    /** Pixels first, bit rate as the tie breaker: the biggest picture at the best quality. */
+    private static long rank(Object stream) {
+        long pixels = (long) Reflect.asInt(Reflect.get(stream, "width"))
+                * Reflect.asInt(Reflect.get(stream, "height"));
+        return pixels * 100_000L + Reflect.asInt(Reflect.get(stream, "bitRate")) / 1000;
+    }
+
+    /** The first location of a stream that carries a URL; broken renditions have none. */
+    private static String streamUrl(Object stream) {
+        Object places = Reflect.get(stream, "streamingLocations");
+        if (!(places instanceof List)) return null;
+        for (Object place : (List<?>) places) {
+            Object address = Reflect.get(place, "url");
+            if (address instanceof String) return (String) address;
         }
         return null;
     }
 
     /**
-     * ImageViewModel.attributes[].detailData.vectorImageValue
-     * -> rootUrl + largest artifact's fileIdentifyingUrlPathSegment.
+     * ImageViewModel.attributes[].detailData, whichever shape it has: a vector image (its root URL plus the
+     * segmented URL of the widest artifact) or a plain image URL.
      */
-    private static String findImageUrl(Object viewData) {
-        Object image = Reflect.get(viewData, "image"); // MediaViewerImageViewData
-        if (image == null) image = Reflect.get(viewData, "imageViewModel"); // MultiPhotoImageViewData
-        Object attributes = Reflect.get(image, "attributes");
-        if (!(attributes instanceof List)) return null;
+    private static String imageUrl(Object viewData) {
+        Object model = Reflect.get(viewData, "image"); // MediaViewerImageViewData
+        if (model == null) model = Reflect.get(viewData, "imageViewModel"); // MultiPhotoImageViewData
+        Object parts = Reflect.get(model, "attributes");
+        if (!(parts instanceof List)) return null;
 
-        for (Object attribute : (List<?>) attributes) {
-            Object detail = Reflect.get(attribute, "detailData");
-
-            String vectorUrl = largestArtifactUrl(Reflect.get(detail, "vectorImageValue"));
-            if (vectorUrl != null) return vectorUrl;
-
-            Object plainUrl = Reflect.get(Reflect.get(detail, "imageUrlValue"), "url");
-            if (plainUrl instanceof String) return (String) plainUrl;
+        for (Object part : (List<?>) parts) {
+            Object data = Reflect.get(part, "detailData");
+            String segmented = artifactUrl(Reflect.get(data, "vectorImageValue"));
+            if (segmented != null) return segmented;
+            Object direct = Reflect.get(Reflect.get(data, "imageUrlValue"), "url");
+            if (direct instanceof String) return (String) direct;
         }
         return null;
     }
 
-    private static String largestArtifactUrl(Object vectorImage) {
-        Object artifacts = Reflect.get(vectorImage, "artifacts");
-        if (!(artifacts instanceof List)) return null;
+    /** The URL segment of the widest artifact, absolute already or relative to the vector image's root. */
+    private static String artifactUrl(Object vectorImage) {
+        Object renditions = Reflect.get(vectorImage, "artifacts");
+        if (!(renditions instanceof List)) return null;
 
-        Object rootUrl = Reflect.get(vectorImage, "rootUrl");
-        String best = null;
-        int bestWidth = -1;
-        for (Object artifact : (List<?>) artifacts) {
-            Object segment = Reflect.get(artifact, "fileIdentifyingUrlPathSegment");
-            int width = Reflect.asInt(Reflect.get(artifact, "width"));
-            if (segment instanceof String && width > bestWidth) {
-                best = (String) segment;
-                bestWidth = width;
+        Object base = Reflect.get(vectorImage, "rootUrl");
+        String widest = null;
+        int widestWidth = -1;
+        for (Object rendition : (List<?>) renditions) {
+            Object path = Reflect.get(rendition, "fileIdentifyingUrlPathSegment");
+            int width = Reflect.asInt(Reflect.get(rendition, "width"));
+            if (width > widestWidth && path instanceof String) {
+                widest = (String) path;
+                widestWidth = width;
             }
         }
-        if (best == null) return null;
-        // Segments are usually relative to rootUrl, but can already be absolute.
-        return best.startsWith("http") || !(rootUrl instanceof String) ? best : rootUrl + best;
+        if (widest == null) return null;
+        boolean absolute = widest.startsWith("http");
+        return absolute || !(base instanceof String) ? widest : base + widest;
     }
 
-    private static int dp(Context context, int value) {
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value,
-                context.getResources().getDisplayMetrics());
+    /** A dp value in pixels, the same conversion applied dimensions use. */
+    private static int px(Context context, int value) {
+        float density = context.getResources().getDisplayMetrics().density;
+        return (int) (value * density);
     }
-
 }

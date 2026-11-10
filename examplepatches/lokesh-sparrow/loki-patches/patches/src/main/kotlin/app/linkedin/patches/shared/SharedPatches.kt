@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.patches.shared
 
 import app.linkedin.patches.shared.Constants.EXTENSION_PACKAGE
@@ -7,239 +12,218 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
-import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import org.w3c.dom.Document
+import org.w3c.dom.Element
 
-private const val SETTINGS_CLASS = "$EXTENSION_PACKAGE/Settings;"
-private const val SETTINGS_ACTIVITY = "app.linkedin.extension.SettingsActivity"
-private const val SDUI_FILTER_CLASS = "$EXTENSION_PACKAGE/SduiComponentFilter;"
-private const val SDUI_MEDIA_CLASS = "$EXTENSION_PACKAGE/SduiMediaDownload;"
-private const val SDUI_FRAGMENT = "Lcom/linkedin/android/infra/sdui/view/SduiFragment;"
+// Smali types of the extension classes the shared hooks call.
+private const val EXT_SETTINGS = "$EXTENSION_PACKAGE/Settings;"
+private const val EXT_NAV_PANEL = "$EXTENSION_PACKAGE/NavPanelPatch;"
+private const val EXT_SDUI_FILTER = "$EXTENSION_PACKAGE/SduiComponentFilter;"
+private const val EXT_SDUI_MEDIA = "$EXTENSION_PACKAGE/SduiMediaDownload;"
+private const val EXT_SHORTCUT = "$EXTENSION_PACKAGE/SettingsShortcut;"
+
+private const val LI_NAV_PANEL = "Lcom/linkedin/android/home/navpanel"
+private const val LI_SDUI_FRAGMENT = "Lcom/linkedin/android/infra/sdui/view/SduiFragment;"
+private const val LI_COMPONENT = "Lproto/sdui/components/core/Component;"
+
+/** Java package of the extension, as the manifest spells class names. */
+private const val EXT_JAVA_PACKAGE = "app.linkedin.extension"
+
+/** Builds `<tag a="b" ...>` with the attributes in the given order and appends [children] to it. */
+private fun Document.node(tag: String, vararg attributes: Pair<String, String>, children: List<Element> = emptyList()) =
+    createElement(tag).also { element ->
+        for ((key, value) in attributes) element.setAttribute(key, value)
+        children.forEach(element::appendChild)
+    }
 
 /**
- * Declares the Loki Patches settings activity. It is reached through a launcher shortcut
- * (long press the LinkedIn icon) and by long pressing the download button.
+ * Two activities of the extension that LinkedIn's manifest has to declare, since the extension ships none:
+ * the Loki Patches settings screen, and an invisible activity that receives the `lokipatches://post/...`
+ * links behind the rows added to a post's ⋯ menu.
  */
-private val settingsManifestPatch = resourcePatch {
+private val extensionActivitiesManifestPatch = resourcePatch {
     execute {
-        document("AndroidManifest.xml").use { document ->
-            val application = document.getElementsByTagName("application").item(0)
-            val activity = document.createElement("activity")
-            activity.setAttribute("android:name", SETTINGS_ACTIVITY)
-            activity.setAttribute("android:exported", "false")
-            activity.setAttribute("android:label", "Loki Patches")
-            activity.setAttribute("android:theme", "@android:style/Theme.DeviceDefault.DayNight")
-            application.appendChild(activity)
-
-            // Opens the lokipatches://post/... links of the items added to a post's ⋯ menu, invisibly.
-            val postAction = document.createElement("activity")
-            postAction.setAttribute("android:name", "app.linkedin.extension.PostActionActivity")
-            postAction.setAttribute("android:exported", "true")
-            postAction.setAttribute("android:excludeFromRecents", "true")
-            postAction.setAttribute("android:noHistory", "true")
-            postAction.setAttribute("android:taskAffinity", "")
-            postAction.setAttribute("android:theme", "@android:style/Theme.Translucent.NoTitleBar")
-            val filter = document.createElement("intent-filter")
-            filter.appendChild(document.createElement("action").apply {
-                setAttribute("android:name", "android.intent.action.VIEW")
-            })
-            filter.appendChild(document.createElement("category").apply {
-                setAttribute("android:name", "android.intent.category.DEFAULT")
-            })
-            filter.appendChild(document.createElement("data").apply {
-                setAttribute("android:scheme", "lokipatches")
-                setAttribute("android:host", "post")
-            })
-            postAction.appendChild(filter)
-            application.appendChild(postAction)
+        document("AndroidManifest.xml").use { manifest ->
+            val application = manifest.getElementsByTagName("application").item(0)
+            application.appendChild(
+                manifest.node(
+                    "activity",
+                    "android:name" to "$EXT_JAVA_PACKAGE.SettingsActivity",
+                    "android:exported" to "false",
+                    "android:label" to "Loki Patches",
+                    "android:theme" to "@android:style/Theme.DeviceDefault.DayNight",
+                )
+            )
+            val postLinks = manifest.node(
+                "intent-filter",
+                children = listOf(
+                    manifest.node("action", "android:name" to "android.intent.action.VIEW"),
+                    manifest.node("category", "android:name" to "android.intent.category.DEFAULT"),
+                    manifest.node("data", "android:scheme" to "lokipatches", "android:host" to "post"),
+                ),
+            )
+            application.appendChild(
+                manifest.node(
+                    "activity",
+                    "android:name" to "$EXT_JAVA_PACKAGE.PostActionActivity",
+                    "android:exported" to "true",
+                    "android:excludeFromRecents" to "true",
+                    "android:noHistory" to "true",
+                    "android:taskAffinity" to "",
+                    "android:theme" to "@android:style/Theme.Translucent.NoTitleBar",
+                    children = listOf(postLinks),
+                )
+            )
         }
     }
 }
 
-private const val NAV_PANEL_CLASS = "$EXTENSION_PACKAGE/NavPanelPatch;"
+/** A fingerprint that pins a method exactly by class, name, return type and parameter types. */
+private fun exactMethod(owner: String, method: String, returns: String, params: List<String>) =
+    Fingerprint(definingClass = owner, name = method, returnType = returns, parameters = params)
 
-/** HomeNavPanelTransformer.transform(HomeNavPanelAggregateResponse): the items of the native "Me" panel. */
-private object NavPanelTransformFingerprint : Fingerprint(
-    definingClass = "Lcom/linkedin/android/home/navpanel/HomeNavPanelTransformer;",
-    name = "transform",
-    returnType = "Ljava/util/AbstractList;",
-    parameters = listOf("Lcom/linkedin/android/home/navpanel/HomeNavPanelAggregateResponse;"),
+// Launcher entry point: every LinkedIn icon and shortcut starts here.
+private val mainActivityCreate = exactMethod(
+    "Lcom/linkedin/android/infra/navigation/MainActivity;", "onCreate", "V", listOf("Landroid/os/Bundle;"),
 )
 
-/** HomeNavPanelSectionV2Presenter.onBind(ViewDataBinding): sets the section's click listener. */
-private object NavPanelSectionBindFingerprint : Fingerprint(
-    definingClass = "Lcom/linkedin/android/home/navpanel/presenter/HomeNavPanelSectionV2Presenter;",
-    name = "onBind",
-    returnType = "V",
-    parameters = listOf("Landroidx/databinding/ViewDataBinding;"),
+// Builds the rows of the native "Me" side panel from the aggregated response.
+private val mePanelRows = exactMethod(
+    "$LI_NAV_PANEL/HomeNavPanelTransformer;", "transform", "Ljava/util/AbstractList;",
+    listOf("$LI_NAV_PANEL/HomeNavPanelAggregateResponse;"),
 )
 
-/** MainActivity.onCreate(Bundle): every launcher icon of LinkedIn opens this activity. */
-private object MainActivityOnCreateFingerprint : Fingerprint(
-    definingClass = "Lcom/linkedin/android/infra/navigation/MainActivity;",
-    name = "onCreate",
-    returnType = "V",
-    parameters = listOf("Landroid/os/Bundle;"),
+// Binds one "Me" panel section and installs its own click listener.
+private val mePanelSectionBind = exactMethod(
+    "$LI_NAV_PANEL/presenter/HomeNavPanelSectionV2Presenter;", "onBind", "V",
+    listOf("Landroidx/databinding/ViewDataBinding;"),
 )
 
 /**
- * Settings screen, reached from a "Loki Patches" item in the "Me" panel (plus a launcher
- * shortcut), and SduiFragment lifecycle hooks that drive the SDUI download button.
+ * Positions of every [opcode] instruction in the method, highest first: rewriting from the end leaves the
+ * positions still to be visited untouched.
+ */
+private fun MutableMethod.positionsOf(opcode: Opcode): List<Int> {
+    val code = implementation!!.instructions.toList()
+    return code.indices.filter { code[it].opcode == opcode }.asReversed()
+}
+
+/*
+ * The hooks below swap a return instruction for a call plus a fresh return, instead of inserting the call
+ * before the return: a branch that targets the return directly would otherwise jump past the call.
+ */
+
+/** Ends every `return-object vX` of the method by passing vX through [hook] first. */
+private fun MutableMethod.filterObjectReturns(hook: String) = positionsOf(Opcode.RETURN_OBJECT).forEach { at ->
+    val reg = getInstruction<OneRegisterInstruction>(at).registerA
+    replaceInstruction(at, "invoke-static/range { v$reg .. v$reg }, $hook")
+    addInstructions(at + 1, "move-result-object v$reg\nreturn-object v$reg")
+}
+
+/** Runs [hook] on `this` (p0) right before every `return-void` of the method. */
+private fun MutableMethod.callOnVoidReturns(hook: String) = positionsOf(Opcode.RETURN_VOID).forEach { at ->
+    replaceInstruction(at, "invoke-static/range { p0 .. p0 }, $hook")
+    addInstruction(at + 1, "return-void")
+}
+
+/**
+ * Base of every other patch: bundles the extension, adds the Loki Patches entry points (a row in the "Me"
+ * panel, a launcher shortcut) and lets the extension follow SduiFragment's lifecycle for the download button.
  */
 val settingsPatch = bytecodePatch {
-    dependsOn(settingsManifestPatch)
+    dependsOn(extensionActivitiesManifestPatch)
 
     extendWith("extensions/extension.mpe")
 
     execute {
-        // Tell the extension which bundle version it belongs to (shown in About, used for updates).
-        Fingerprint(
-            definingClass = SETTINGS_CLASS,
-            name = "patchesVersion",
-            returnType = "Ljava/lang/String;",
-            parameters = emptyList(),
-        ).method.addInstructions(
+        // The extension reports this as its own version (About screen, update check).
+        exactMethod(EXT_SETTINGS, "patchesVersion", "Ljava/lang/String;", emptyList()).method.addInstructions(
             0,
-            """
-                const-string v0, "${bundleVersion()}"
-                return-object v0
-            """
+            "const-string v0, \"${bundleVersion()}\"\nreturn-object v0",
         )
 
-        // Register the launcher shortcut and show "What's new" from the main screen. This doesn't depend on
-        // the "Me" panel or SDUI hooks, which change more often between LinkedIn versions.
-        MainActivityOnCreateFingerprint.method.addInstruction(
+        // Shortcut registration and the "What's new" prompt hang off the main activity alone, so they keep
+        // working when a LinkedIn update moves the Me panel or the SDUI classes.
+        mainActivityCreate.method.addInstruction(
             0,
-            "invoke-static/range { p0 .. p0 }, $EXTENSION_PACKAGE/SettingsShortcut;->onMainActivityCreated(Landroid/app/Activity;)V"
+            "invoke-static/range { p0 .. p0 }, $EXT_SHORTCUT->onMainActivityCreated(Landroid/app/Activity;)V",
         )
 
-        // Each return is replaced in place (rather than code inserted before it) because branches
-        // may jump straight to the return instruction and would skip inserted code.
+        // The extension appends its row to whatever list the transformer hands back...
+        mePanelRows.method.filterObjectReturns("$EXT_NAV_PANEL->addSettingsItem(Ljava/lang/Object;)Ljava/util/AbstractList;")
+        // ...and takes over that row's click once the presenter has set LinkedIn's listener.
+        mePanelSectionBind.method.callOnVoidReturns("$EXT_NAV_PANEL->onSectionBind(Ljava/lang/Object;)V")
 
-        // Add the "Loki Patches" item at every return of the Me panel transformer.
-        NavPanelTransformFingerprint.method.apply {
-            returnIndices(Opcode.RETURN_OBJECT).forEach { index ->
-                val register = getInstruction<OneRegisterInstruction>(index).registerA
-                replaceInstruction(
-                    index,
-                    "invoke-static/range { v$register .. v$register }, $NAV_PANEL_CLASS->addSettingsItem(Ljava/lang/Object;)Ljava/util/AbstractList;"
-                )
-                addInstructions(
-                    index + 1,
-                    """
-                        move-result-object v$register
-                        return-object v$register
-                    """
-                )
-            }
+        val fragmentHooks = listOf(
+            Triple("onResume", emptyList(), "{ p0 .. p0 }, $EXT_SDUI_MEDIA->onFragmentResumed(Ljava/lang/Object;)V"),
+            Triple("onPause", emptyList(), "{ p0 .. p0 }, $EXT_SDUI_MEDIA->onFragmentPaused(Ljava/lang/Object;)V"),
+            Triple("onHiddenChanged", listOf("Z"), "{ p0 .. p1 }, $EXT_SDUI_MEDIA->onFragmentHiddenChanged(Ljava/lang/Object;Z)V"),
+        )
+        for ((callback, params, call) in fragmentHooks) {
+            exactMethod(LI_SDUI_FRAGMENT, callback, "V", params).method.addInstruction(0, "invoke-static/range $call")
         }
-
-        // Point the item's click at the settings screen, after the presenter sets its own listener.
-        NavPanelSectionBindFingerprint.method.apply {
-            returnIndices(Opcode.RETURN_VOID).forEach { index ->
-                replaceInstruction(
-                    index,
-                    "invoke-static/range { p0 .. p0 }, $NAV_PANEL_CLASS->onSectionBind(Ljava/lang/Object;)V"
-                )
-                addInstruction(index + 1, "return-void")
-            }
-        }
-
-        fun lifecycle(name: String, parameters: List<String>) = Fingerprint(
-            definingClass = SDUI_FRAGMENT,
-            name = name,
-            returnType = "V",
-            parameters = parameters,
-        ).method
-
-        lifecycle("onResume", emptyList()).addInstruction(
-            0, "invoke-static/range { p0 .. p0 }, $SDUI_MEDIA_CLASS->onFragmentResumed(Ljava/lang/Object;)V"
-        )
-        lifecycle("onPause", emptyList()).addInstruction(
-            0, "invoke-static/range { p0 .. p0 }, $SDUI_MEDIA_CLASS->onFragmentPaused(Ljava/lang/Object;)V"
-        )
-        lifecycle("onHiddenChanged", listOf("Z")).addInstruction(
-            0, "invoke-static/range { p0 .. p1 }, $SDUI_MEDIA_CLASS->onFragmentHiddenChanged(Ljava/lang/Object;Z)V"
-        )
     }
 }
 
 /**
- * ComponentTransformer.doTransform(Component, TransformContext, ParentLayoutInfo,
- * ViewNameHierarchyNode, boolean, boolean). Every server driven UI component passes
- * through here, and it already returns null for components it does not render.
+ * The single funnel of server driven UI: each Component is turned into a view model here, and a null result
+ * already means "draw nothing". Matched loosely on the trailing parameters, which are obfuscated types.
  */
-private object SduiComponentTransformFingerprint : Fingerprint(
+private val sduiTransform = Fingerprint(
     definingClass = "Lcom/linkedin/sdui/transformer/impl/ComponentTransformer;",
     name = "doTransform",
-    parameters = listOf("Lproto/sdui/components/core/Component;", "L", "L", "L", "Z", "Z"),
+    parameters = listOf(LI_COMPONENT, "L", "L", "L", "Z", "Z"),
 )
 
-/** Lets the extension skip (hide) any server driven UI component. */
+/** Gives the extension two say-sos over every SDUI component: rewrite it, then optionally drop it. */
 val sduiComponentFilterPatch = bytecodePatch {
     dependsOn(settingsPatch)
 
     execute {
-        SduiComponentTransformFingerprint.method.apply {
-            // At method entry every local register is free, so v0 can be used as scratch.
-            addInstructionsWithLabels(
-                0,
-                """
-                    invoke-static/range { p1 .. p1 }, $SDUI_FILTER_CLASS->shouldHide(Ljava/lang/Object;)Z
-                    move-result v0
-                    if-eqz v0, :show
-                    const/4 v0, 0x0
-                    return-object v0
-                """,
-                ExternalLabel("show", getInstruction(0))
+        with(sduiTransform.method) {
+            // Nothing is stored in the locals yet at offset 0, so v0 is free to use.
+            val dropIfHidden = listOf(
+                "invoke-static/range { p1 .. p1 }, $EXT_SDUI_FILTER->shouldHide(Ljava/lang/Object;)Z",
+                "move-result v0",
+                "if-eqz v0, :show",
+                "const/4 v0, 0x0",
+                "return-object v0",
             )
-            // Runs before the filter: edits components (the items added to a post's ⋯ menu).
-            addInstructions(
-                0,
-                """
-                    invoke-static/range { p1 .. p1 }, $SDUI_FILTER_CLASS->rewrite(Ljava/lang/Object;)Ljava/lang/Object;
-                    move-result-object p1
-                    check-cast p1, Lproto/sdui/components/core/Component;
-                """
+            addInstructionsWithLabels(0, dropIfHidden.joinToString("\n"), ExternalLabel("show", getInstruction(0)))
+
+            // Placed ahead of the check above, so the filter sees the edited component (extra ⋯ menu rows).
+            val rewrite = listOf(
+                "invoke-static/range { p1 .. p1 }, $EXT_SDUI_FILTER->rewrite(Ljava/lang/Object;)Ljava/lang/Object;",
+                "move-result-object p1",
+                "check-cast p1, $LI_COMPONENT",
             )
+            addInstructions(0, rewrite.joinToString("\n"))
         }
     }
 }
 
-/** Indices of all instructions with the opcode, last first so edits keep earlier indices valid. */
-private fun MutableMethod.returnIndices(opcode: Opcode) =
-    implementation!!.instructions.withIndex().filter { it.value.opcode == opcode }.map { it.index }.reversed()
-
-/** Version of this patch bundle, from the manifest the build writes into the .mpp (Version attribute). */
-/** Version of this patch bundle, read from the manifest of the .mpp. */
+/**
+ * Version string the build stamps into the .mpp manifest, found by the bundle's "Name" attribute among all
+ * manifests on the class path. "dev" when there is none (or it carries no Version).
+ */
 fun bundleVersion(): String {
-    val loader = object {}.javaClass.classLoader
-    for (url in loader.getResources("META-INF/MANIFEST.MF")) {
-        val attributes = url.openStream().use { java.util.jar.Manifest(it).mainAttributes }
-        if (attributes.getValue("Name") == "Loki Patches") {
-            return attributes.getValue("Version") ?: break
-        }
+    val manifests = object {}.javaClass.classLoader.getResources("META-INF/MANIFEST.MF")
+    while (manifests.hasMoreElements()) {
+        val main = manifests.nextElement().openStream().use { java.util.jar.Manifest(it).mainAttributes }
+        if (main.getValue("Name") != "Loki Patches") continue
+        return main.getValue("Version") ?: "dev"
     }
     return "dev"
 }
 
-/** Makes Settings.<method>() return true, marking a feature as patched in. */
+/** Lets the extension know a feature was patched in: `Settings.<flag>()` now always answers true. */
 fun BytecodePatchContext.markIncluded(method: String) {
-    Fingerprint(
-        definingClass = SETTINGS_CLASS,
-        name = method,
-        returnType = "Z",
-        parameters = emptyList(),
-    ).method.addInstructions(
-        0,
-        """
-            const/4 v0, 0x1
-            return v0
-        """
-    )
+    exactMethod(EXT_SETTINGS, method, "Z", emptyList()).method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
 }

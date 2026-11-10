@@ -73,7 +73,7 @@ internal class ContentRepository(
 
         network.performRequest(request).run {
             require(statusCode == HttpURLConnection.HTTP_OK)
-            JSONObject(data.decodeToString()).apply {
+            JSONObject(data.decodeToString()).run {
                 require(getString("error_code").toInt() == HttpURLConnection.HTTP_OK)
                 return getJSONObject("result")
             }
@@ -99,7 +99,7 @@ internal class ContentRepository(
 
         network.performRequest(request).run {
             require(statusCode == HttpURLConnection.HTTP_OK)
-            JSONObject(data.decodeToString()).apply {
+            JSONObject(data.decodeToString()).run {
                 require(getString("error_code").toInt() == HttpURLConnection.HTTP_OK)
                 return getJSONArray("result")
             }

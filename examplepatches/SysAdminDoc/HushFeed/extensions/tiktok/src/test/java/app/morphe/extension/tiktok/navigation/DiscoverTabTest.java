@@ -1,6 +1,7 @@
 package app.morphe.extension.tiktok.navigation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
@@ -30,10 +31,178 @@ public class DiscoverTabTest {
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         Settings.DISCOVER_BOTTOM_TAB.save(true);
+        Settings.FRIENDS_TOP_TAB.save(true);
     }
 
     @After public void tearDown() {
         Settings.DISCOVER_BOTTOM_TAB.save(false);
+        Settings.FRIENDS_TOP_TAB.save(false);
+    }
+
+    private static TabConfig topRow(String... keys) {
+        ArrayList<TopTabItem> items = new ArrayList<>();
+        for (String key : keys) {
+            items.add(new TopTabItem(key));
+        }
+        return new TabConfig(new LinkedHashMap<>(), new TopTab(items));
+    }
+
+    private static List<String> keys(TabConfig config) {
+        List<String> found = new ArrayList<>();
+        for (TopTabItem item : config.topTab.topTabList) {
+            found.add(item.topTabKey);
+        }
+        return found;
+    }
+
+    /** The row the test account gets on 47.7.3, with Friends going just left of Following. */
+    @Test public void friendsGoesJustLeftOfFollowing() {
+        TabConfig config = topRow("live", "stem", "following", "mall", "hot");
+
+        assertSame(config, DiscoverTab.apply(DiscoverTab.GATE_KEY, config));
+
+        assertEquals(Arrays.asList("live", "stem", "friends", "following", "mall", "hot"), keys(config));
+        TopTabItem friends = config.topTab.topTabList.get(2);
+        assertSame(TopTabItem.class, friends.getClass());
+        assertNull(friends.leftEntrance);
+        assertNull(friends.filterRules);
+    }
+
+    /** An installed app reads the older gates; only the newest one's edit never reached the screen. */
+    @Test public void everyGateTheLayoutComesFromGetsBothEdits() {
+        for (String key : Arrays.asList(
+                DiscoverTab.GATE_KEY, DiscoverTab.OLDER_GATE_KEY, DiscoverTab.FRAME_GATE_KEY)) {
+            TabConfig row = topRow("following", "hot");
+            DiscoverTab.apply(key, row);
+            assertEquals(key, Arrays.asList("friends", "following", "hot"), keys(row));
+
+            TabConfig bar = usLayout();
+            DiscoverTab.apply(key, bar);
+            assertEquals(key, "discover", bar.bottomTab.get("1").get(0).bottomTabKey);
+        }
+    }
+
+    @Test public void theFriendsSwitchAnswersTikToksOwnChecks() {
+        assertTrue(DiscoverTab.friendsOnTop(false));
+        assertEquals(1, DiscoverTab.friendsTopIndex(-1));
+        assertEquals("TikTok's own place stays", 3, DiscoverTab.friendsTopIndex(3));
+
+        Settings.FRIENDS_TOP_TAB.save(false);
+        assertFalse(DiscoverTab.friendsOnTop(false));
+        assertTrue("TikTok's own yes stays", DiscoverTab.friendsOnTop(true));
+        assertEquals(-1, DiscoverTab.friendsTopIndex(-1));
+    }
+
+    @Test public void theDiscoverSwitchTakesFriendsOutOfTheBottomBar() {
+        assertFalse(DiscoverTab.friendsInBottomBar(true));
+
+        Settings.DISCOVER_BOTTOM_TAB.save(false);
+        assertFalse("Friends on top leaves the bar too", DiscoverTab.friendsInBottomBar(true));
+
+        Settings.FRIENDS_TOP_TAB.save(false);
+        assertTrue(DiscoverTab.friendsInBottomBar(true));
+        assertFalse("TikTok's own no stays", DiscoverTab.friendsInBottomBar(false));
+    }
+
+    /** With Friends still a candidate of the spot it stayed in the bottom bar and never reached the top row. */
+    @Test public void theFriendsSwitchAloneGivesDiscoverTheSpot() {
+        Settings.DISCOVER_BOTTOM_TAB.save(false);
+
+        for (String key : Arrays.asList(
+                DiscoverTab.GATE_KEY, DiscoverTab.OLDER_GATE_KEY, DiscoverTab.FRAME_GATE_KEY)) {
+            TabConfig bar = usLayout();
+            DiscoverTab.apply(key, bar);
+            assertEquals(key, 1, bar.bottomTab.get("1").size());
+            assertEquals(key, "discover", bar.bottomTab.get("1").get(0).bottomTabKey);
+        }
+    }
+
+    @Test public void eitherSwitchMakesTikTokBuildTheTabsFresh() {
+        assertFalse(DiscoverTab.useSavedTabs(true));
+
+        Settings.FRIENDS_TOP_TAB.save(false);
+        assertFalse("Discover alone", DiscoverTab.useSavedTabs(true));
+
+        Settings.DISCOVER_BOTTOM_TAB.save(false);
+        assertTrue("both off keeps TikTok's fast start", DiscoverTab.useSavedTabs(true));
+        assertFalse("TikTok's own no stays", DiscoverTab.useSavedTabs(false));
+
+        Settings.FRIENDS_TOP_TAB.save(true);
+        assertFalse("Friends alone", DiscoverTab.useSavedTabs(true));
+    }
+
+    @Test public void aGateThatIsntTheLayoutIsLeftAlone() {
+        TabConfig row = topRow("following", "hot");
+
+        assertSame(row, DiscoverTab.apply("tab_fcp_config_nuj_opt", row));
+
+        assertEquals(Arrays.asList("following", "hot"), keys(row));
+    }
+
+    @Test public void aRowWithoutFollowingGetsFriendsLeftOfTheLastTab() {
+        TabConfig config = topRow("live", "hot");
+
+        DiscoverTab.apply(DiscoverTab.GATE_KEY, config);
+
+        assertEquals(Arrays.asList("live", "friends", "hot"), keys(config));
+    }
+
+    @Test public void aRowThatHasFriendsIsLeftAloneAndASecondPassAddsNothing() {
+        TabConfig sent = topRow("friends", "following", "hot");
+        TopTabItem theirs = sent.topTab.topTabList.get(0);
+        DiscoverTab.apply(DiscoverTab.GATE_KEY, sent);
+        assertSame(theirs, sent.topTab.topTabList.get(0));
+        assertEquals(3, sent.topTab.topTabList.size());
+
+        TabConfig added = topRow("following", "hot");
+        DiscoverTab.apply(DiscoverTab.GATE_KEY, added);
+        DiscoverTab.apply(DiscoverTab.GATE_KEY, added);
+        assertEquals(Arrays.asList("friends", "following", "hot"), keys(added));
+    }
+
+    @Test public void theFriendsSwitchOffOrAnEmptyRowLeavesTheRowAlone() {
+        TabConfig empty = topRow();
+        DiscoverTab.apply(DiscoverTab.GATE_KEY, empty);
+        assertTrue(empty.topTab.topTabList.isEmpty());
+
+        Settings.FRIENDS_TOP_TAB.save(false);
+        TabConfig off = topRow("following", "hot");
+        DiscoverTab.apply(DiscoverTab.GATE_KEY, off);
+        assertEquals(Arrays.asList("following", "hot"), keys(off));
+    }
+
+    @Test public void discoverStillAppliesWhenTheTopRowCantTakeFriends() {
+        TabConfig config = usLayout();
+        ArrayList<Object> row = new ArrayList<>();
+        row.add(new NoKeyConstructorItem());
+        NoKeyRowConfig broken = new NoKeyRowConfig(config.bottomTab, new NoKeyRow(row));
+
+        assertSame(broken, DiscoverTab.apply(DiscoverTab.GATE_KEY, broken));
+
+        assertEquals(1, row.size());
+        assertEquals("discover", config.bottomTab.get("1").get(0).bottomTabKey);
+    }
+
+    @Test public void theFeedFilterKeepsFriendsWhileTheSwitchIsOn() {
+        Settings.FEED_NAVIGATION.save(true);
+        Settings.FEED_NAVIGATION_TABS.save("HOT");
+        Settings.FEED_NAVIGATION_OBSERVED_TABS.save("HOT," + NavigationTabOptions.FRIENDS);
+        Settings.FEED_NAVIGATION_BLOCK_NEW_TABS.save(true);
+        try {
+            NavigationTabsFilterTest.GetterTab hot = new NavigationTabsFilterTest.GetterTab("homepage_hot");
+            NavigationTabsFilterTest.GetterTab friends = new NavigationTabsFilterTest.GetterTab("friends");
+            List<?> tabs = Arrays.asList(friends, hot);
+
+            assertEquals(Arrays.asList(friends, hot), NavigationTabsFilter.filterTopTabs(tabs, false));
+
+            Settings.FRIENDS_TOP_TAB.save(false);
+            assertEquals(Arrays.asList(hot), NavigationTabsFilter.filterTopTabs(tabs, false));
+        } finally {
+            Settings.FEED_NAVIGATION.save(false);
+            Settings.FEED_NAVIGATION_TABS.save(NavigationTabOptions.defaultEnabledKeys());
+            Settings.FEED_NAVIGATION_OBSERVED_TABS.save(NavigationTabOptions.HOT);
+            Settings.FEED_NAVIGATION_BLOCK_NEW_TABS.save(false);
+        }
     }
 
     /** The US layout TikTok sent on 47.7.2: Friends, then Discover, in the second spot. */
@@ -104,6 +273,7 @@ public class DiscoverTabTest {
         assertEquals(2, other.bottomTab.get("1").size());
 
         Settings.DISCOVER_BOTTOM_TAB.save(false);
+        Settings.FRIENDS_TOP_TAB.save(false);
         TabConfig off = usLayout();
         DiscoverTab.apply(DiscoverTab.GATE_KEY, off);
         assertEquals("friends", off.bottomTab.get("1").get(0).bottomTabKey);
@@ -135,6 +305,10 @@ public class DiscoverTabTest {
             assertEquals(Arrays.asList(home, discover, profile), NavigationTabsFilter.filterBottomTabs(tabs));
 
             Settings.DISCOVER_BOTTOM_TAB.save(false);
+            assertEquals("Friends on top hands its spot to Discover", Arrays.asList(home, discover, profile),
+                    NavigationTabsFilter.filterBottomTabs(tabs));
+
+            Settings.FRIENDS_TOP_TAB.save(false);
             assertEquals(Arrays.asList(home, profile), NavigationTabsFilter.filterBottomTabs(tabs));
         } finally {
             Settings.BOTTOM_NAVIGATION.save(false);
@@ -158,10 +332,63 @@ public class DiscoverTabTest {
     /** Shaped like TikTok's com.ss.android.ugc.aweme.experiment.TabConfig. */
     static final class TabConfig {
         public final Map<String, ArrayList<BottomTab>> bottomTab;
+        public final TopTab topTab;
 
         TabConfig(Map<String, ArrayList<BottomTab>> bottomTab) {
-            this.bottomTab = bottomTab;
+            this(bottomTab, null);
         }
+
+        TabConfig(Map<String, ArrayList<BottomTab>> bottomTab, TopTab topTab) {
+            this.bottomTab = bottomTab;
+            this.topTab = topTab;
+        }
+    }
+
+    /** Shaped like TikTok's TopTab. */
+    static final class TopTab {
+        public final ArrayList<TopTabItem> topTabList;
+
+        TopTab(ArrayList<TopTabItem> topTabList) {
+            this.topTabList = topTabList;
+        }
+    }
+
+    /** Shaped like TikTok's TopTabItem: the key first, then what it can go without. */
+    static final class TopTabItem {
+        public final String topTabKey;
+        public final Object leftEntrance;
+        public final Map<String, Boolean> filterRules;
+
+        TopTabItem(String topTabKey) {
+            this(topTabKey, null, null);
+        }
+
+        TopTabItem(String topTabKey, Object leftEntrance, Map<String, Boolean> filterRules) {
+            this.topTabKey = topTabKey;
+            this.leftEntrance = leftEntrance;
+            this.filterRules = filterRules;
+        }
+    }
+
+    static final class NoKeyRowConfig {
+        public final Map<String, ArrayList<BottomTab>> bottomTab;
+        public final NoKeyRow topTab;
+
+        NoKeyRowConfig(Map<String, ArrayList<BottomTab>> bottomTab, NoKeyRow topTab) {
+            this.bottomTab = bottomTab;
+            this.topTab = topTab;
+        }
+    }
+
+    static final class NoKeyRow {
+        public final ArrayList<Object> topTabList;
+
+        NoKeyRow(ArrayList<Object> topTabList) {
+            this.topTabList = topTabList;
+        }
+    }
+
+    static final class NoKeyConstructorItem {
     }
 
     /** Shaped like TikTok's BottomTab, which has no constructor without arguments. */

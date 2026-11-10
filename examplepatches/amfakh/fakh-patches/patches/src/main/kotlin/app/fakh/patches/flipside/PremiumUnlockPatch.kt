@@ -1,6 +1,7 @@
 package app.fakh.patches.flipside
 
 import app.fakh.patches.flipside.shared.Constants.COMPATIBILITY_FLIPSIDE
+import app.fakh.patches.shared.pairip.pairipLicenseCheckPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
@@ -31,21 +32,6 @@ private val isUnlockedFingerprint = Fingerprint(
     },
 )
 
-/**
- * `com.pairip.licensecheck.LicenseClient.checkLicense(Context)`, called from
- * `com.pairip.application.Application.attachBaseContext`. It binds to the
- * Play licensing service and closes the app when the response fails to verify.
- * A repackaged APK always fails it, so the call goes.
- */
-private val checkLicenseFingerprint = Fingerprint(
-    returnType = "V",
-    parameters = listOf("Landroid/content/Context;"),
-    custom = { method, classDef ->
-        classDef.type.startsWith("Lcom/pairip/licensecheck/") &&
-            method.name == "checkLicense"
-    },
-)
-
 @Suppress("unused")
 val premiumUnlockPatch = bytecodePatch(
     name = "Premium unlock",
@@ -55,6 +41,7 @@ val premiumUnlockPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_FLIPSIDE)
     category("Premium")
+    dependsOn(pairipLicenseCheckPatch)
 
     execute {
         isUnlockedFingerprint.method.addInstructions(
@@ -64,6 +51,5 @@ val premiumUnlockPatch = bytecodePatch(
                 return v0
             """,
         )
-        checkLicenseFingerprint.method.addInstructions(0, "return-void")
     }
 }

@@ -20,7 +20,9 @@ Then patch X 12.19.1-release.0 (the APKM from APKMirror). Works on its own and a
 - **Account sheet**: tap a badge to see what X reports about the account (country, connection
   source, location accuracy, affiliation) and highlight or hide posts from that country.
 - **Country filters**: highlight (default) or hide posts from chosen countries or X regions.
-  A filtered quoted account only affects its quote card.
+  A filtered quoted account affects only its quote card (a hidden one can be tapped to show
+  it) or, if you choose, the whole post. Filters and flags can go by the country in
+  "Connected via" instead of the account location.
 - **No passive engagement**: impressions, viewing time, video views and opening of filtered
   posts aren't reported to X. Likes, replies and reposts still are.
 - **Settings and statistics**: badge style with a live preview, filters, highlight contrast,
@@ -44,7 +46,7 @@ and what X reports about them is shared back. Your X session is never sent there
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/AetherMagee/xposed-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
+> **[v1.1.0](https://github.com/AetherMagee/xposed-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;1 patches total
 <details open>
 <summary>📦 Twitter&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

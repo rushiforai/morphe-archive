@@ -55,13 +55,17 @@ to finish the file. Access tokens are cut from every logged URL.
 - `extensions/twitch/stub` - compile-time copies of the Amazon IVS classes it hooks
 - `patches` - the Morphe bytecode patch
 
+To check stream ad blocking on a test device when Twitch serves no ads, `adb shell setprop debug.twitchmorphed.fake_ad 3`
+makes the newest 3 segments of the watched stream look like a stitched ad (backup search, label, refresh after the
+break all run for real); `0` ends it. Apps cannot set `debug.*` properties, so only adb can turn it on.
+
 Commits to `dev` publish pre-releases, merges to `main` publish releases
 ([semantic commits](https://www.conventionalcommits.org): `fix:`, `feat:`, `chore:`).
 
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.1.5](https://github.com/Overhypedcat/overhypedcat-twitch-patches/releases/tag/v2.1.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v3.0.3](https://github.com/Overhypedcat/overhypedcat-twitch-patches/releases/tag/v3.0.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>Twitch&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>

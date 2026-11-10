@@ -4,7 +4,7 @@ Patches for the LinkedIn app (`com.linkedin.android`, versions `4.1.1264`, `4.1.
 
 ## Patches
 
-Every patch is on by default except Material You, Pitch black, Remove gaps and dividers, and GmsCore support.
+Every patch is on by default except Material You, Pitch black, Hide gaps and dividers, and GmsCore support.
 Morphe Manager groups them by category.
 
 | Category | Patch | Default | What it does |
@@ -25,12 +25,12 @@ Morphe Manager groups them by category.
 | Privacy | Messaging | On | Hides sponsored messages, and adds an optional ghost mode that sends no typing indicator and no automatic read receipts. |
 | Privacy | Open links directly | On | Opens outside links without LinkedIn's warning page, including `lnkd.in` short links. |
 | Privacy | Sanitize share links | On | Strips tracking parameters from LinkedIn links you copy or share. |
-| Privacy | Block tracking | On | Adds a switch, off by default, that stops most LinkedIn analytics events from being sent. |
+| Privacy | Disable analytics | On | Adds a switch, off by default, that stops most LinkedIn analytics events from being sent. |
 | Privacy | Anonymous profile viewing | On | Adds a switch, off by default, that stops the app from reporting your visits to profiles, so they are not listed in "Who viewed your profile". |
 | Theme | Material You | Off | Wallpaper colors (Android 12+) instead of LinkedIn blue for accents, backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers keep their own colors. |
 | Theme | Pitch black | Off | Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter black. Works with or without Material You. |
-| Theme | Remove gaps and dividers | Off | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |
-| Theme | Glass navigation bar | Off | Draws the navigation bar as a floating, translucent capsule, in the style of the glass navigation bar of [Morphe Patches](https://github.com/MorpheApp/morphe-patches). |
+| Theme | Hide gaps and dividers | Off | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |
+| Theme | Glass navigation bar | Off | Draws the navigation bar as a floating, translucent capsule with a sliding selection pill, in the style of the glass navigation bar of [Morphe Patches](https://github.com/MorpheApp/morphe-patches). |
 
 Settings are in **Fakh Patches** on LinkedIn's Settings screen (profile menu → Settings & Privacy), or long press
 the Home tab.

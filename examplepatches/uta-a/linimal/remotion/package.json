@@ -1,0 +1,23 @@
+{
+  "name": "linimal-promo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Linimal 紹介動画（Remotion）",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render LinimalPromo out/linimal-promo.mp4",
+    "render:utility": "remotion render LinimalUtility out/linimal-utility.mp4",
+    "render:editorial": "remotion render LinimalEditorial out/linimal-editorial.mp4",
+    "still": "remotion still"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.541",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.541"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}

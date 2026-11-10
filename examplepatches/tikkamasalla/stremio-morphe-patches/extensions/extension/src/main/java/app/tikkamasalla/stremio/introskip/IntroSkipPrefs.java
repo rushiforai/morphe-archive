@@ -24,7 +24,7 @@ public final class IntroSkipPrefs {
     public static final String KEY_SHOWLIST = "autopick_showlist";
     /** Prepare the next episode (streams + skip data) while the current one plays. */
     public static final String KEY_PREPARE_NEXT = "prepare_next";
-    /** Work out missing skip times in the background (one-ahead detector); default off. */
+    /** Fingerprint Lookahead in the background (one-ahead detector); default off. */
     public static final String KEY_ONEAHEAD = "oneahead_enabled";
     /** Borrow chapters from other releases; default off until its test is finished. */
     public static final String KEY_BORROW = "borrow_enabled";

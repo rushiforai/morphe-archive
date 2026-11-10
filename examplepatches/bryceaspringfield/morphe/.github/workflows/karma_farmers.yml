@@ -1,0 +1,28 @@
+name: Flagged accounts list
+
+# Rebuilds karma_farmers.txt.gz, the accounts Bot Bouncer has banned as bots or karma farmers, from the newest
+# r/BotBouncer posts, and replaces the asset on the karma-farmers release, which the app downloads once a day.
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  list:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the current list
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download karma-farmers --pattern karma_farmers.txt.gz --dir previous
+      - name: Add the accounts banned since the last run
+        run: python3 reddit/tools/karma_farmers.py karma_farmers.txt.gz --previous previous/karma_farmers.txt.gz --workers 2
+      - name: Replace the release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload karma-farmers karma_farmers.txt.gz --clobber

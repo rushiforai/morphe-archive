@@ -35,6 +35,8 @@ val blockClientAdsPatch = bytecodePatch(
                 instruction.getReference<FieldReference>()
                     ?.takeIf { it.type == it.definingClass }
                     ?.definingClass
+                    // A Kotlin object's INSTANCE field (a logger, say) has its own type too: only an enum will do.
+                    ?.takeIf { classDefByOrNull(it)?.superclass == "Ljava/lang/Enum;" }
             } ?: error("Ad ineligibility reasons enum not found in $definingClass->$name")
 
             indicesOf(Opcode.RETURN_OBJECT).forEach { returnIndex ->

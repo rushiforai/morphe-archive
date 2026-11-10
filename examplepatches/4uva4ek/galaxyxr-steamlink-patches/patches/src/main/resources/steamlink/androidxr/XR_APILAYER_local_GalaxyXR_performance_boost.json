@@ -1,0 +1,11 @@
+{
+  "file_format_version": "1.0.0",
+  "api_layer": {
+    "name": "XR_APILAYER_local_GalaxyXR_performance_boost",
+    "library_path": "libgxr_performance_boost.so",
+    "api_version": "1.0",
+    "implementation_version": "1",
+    "description": "Optional CPU and GPU BOOST hints for Steam Link OpenXR sessions",
+    "disable_environment": "GXR_DISABLE_PERFORMANCE_BOOST"
+  }
+}

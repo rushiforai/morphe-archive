@@ -46,7 +46,6 @@ public final class LinimalConfigTest {
             LinimalFeature.ADS,
             LinimalFeature.LINE_AI,
             LinimalFeature.PREMIUM,
-            LinimalFeature.VOOM,
             LinimalFeature.NEWS,
             LinimalFeature.HOME_RECOMMENDATIONS,
             LinimalFeature.HOME_TRENDING,
@@ -79,7 +78,8 @@ public final class LinimalConfigTest {
             LinimalFeature.PUSH_NOTIFICATIONS,
             LinimalFeature.GOOGLE_DRIVE_BACKUP,
             LinimalFeature.PREMIUM_PREVIEW_PROMOTION,
-            LinimalFeature.PREVIEW_SCROLL);
+            LinimalFeature.PREVIEW_SCROLL,
+            LinimalFeature.AMOLED_THEME);
 
     @Test
     public void beforeInitializationHooksPreserveOriginalBehavior() {
@@ -102,6 +102,7 @@ public final class LinimalConfigTest {
         assertFalse(config.isPremiumSettingsRowSuppressionEnabled());
         assertFalse(config.isPremiumPreviewPromotionSuppressionEnabled());
         assertFalse(config.isPreviewScrollEnabled());
+        assertFalse(config.isAmoledThemeEnabled());
         assertFalse(PreviewScrollHooks.allowScroll(false));
         assertTrue(PreviewScrollHooks.allowScroll(true));
         assertFalse(config.isHomeFeedPostCardsSuppressionEnabled());
@@ -137,7 +138,7 @@ public final class LinimalConfigTest {
         assertFalse(config.isPremiumSettingsRowSuppressionEnabled());
         assertFalse(config.isPremiumPreviewPromotionSuppressionEnabled());
         assertFalse(config.isPreviewScrollEnabled());
-        assertFalse(config.isVoomSuppressionEnabled());
+        assertFalse(config.isAmoledThemeEnabled());
         assertFalse(config.isNewsSuppressionEnabled());
         assertFalse(config.isWalletSuppressionEnabled());
         assertFalse(config.isMiniSuppressionEnabled());
@@ -227,12 +228,12 @@ public final class LinimalConfigTest {
     public void invalidValueFailsOpenWithoutAdvancingToV3() {
         InMemoryBackend backend = new InMemoryBackend();
         backend.values.put(LinimalConfigSchema.SCHEMA_VERSION_KEY, 2);
-        backend.values.put(LinimalConfigSchema.VOOM_ENABLED_KEY, "true");
+        backend.values.put(LinimalConfigSchema.NEWS_ENABLED_KEY, "true");
 
         LinimalConfig config = configFor(backend);
 
         assertEquals(LinimalConfigHealth.ERROR, config.getRuntimeHealth());
-        assertFalse(config.isVoomSuppressionEnabled());
+        assertFalse(config.isNewsSuppressionEnabled());
         assertEquals(2, backend.values.get(LinimalConfigSchema.SCHEMA_VERSION_KEY));
         assertNull(backend.values.get(LinimalConfigSchema.PREMIUM_ENABLED_KEY));
         assertNull(backend.values.get(LinimalConfigSchema.READ_RECEIPT_MODE_KEY));
@@ -254,7 +255,7 @@ public final class LinimalConfigTest {
         assertEquals(writesAfterFirstRun, backend.writes.size());
         assertFalse(second.isSmartChannelAdsSuppressionEnabled());
         assertFalse(second.isHomeTopAdSuppressionEnabled());
-        assertTrue(second.isVoomSuppressionEnabled());
+        assertTrue(second.isNewsSuppressionEnabled());
     }
 
     @Test
@@ -640,12 +641,10 @@ public final class LinimalConfigTest {
         assertEquals(LinimalConfigHealth.OK, config.getRuntimeHealth());
         assertTrue(config.isMiniSuppressionEnabled());
         assertFalse(config.isWalletSuppressionEnabled());
-        assertFalse(config.isVoomSuppressionEnabled());
         assertFalse(config.isNewsSuppressionEnabled());
         assertFalse(config.isShoppingSuppressionEnabled());
         assertEquals(true, backend.values.get(LinimalConfigSchema.MINI_ENABLED_KEY));
         assertNull(backend.values.get(LinimalConfigSchema.WALLET_ENABLED_KEY));
-        assertNull(backend.values.get(LinimalConfigSchema.VOOM_ENABLED_KEY));
         assertNull(backend.values.get(LinimalConfigSchema.NEWS_ENABLED_KEY));
         assertNull(backend.values.get(LinimalConfigSchema.SHOPPING_ENABLED_KEY));
     }
@@ -738,21 +737,37 @@ public final class LinimalConfigTest {
         }
     }
 
+    /** 削除した VOOM の保存値が残っていても、読み取りも他のタブ設定も壊れません。 */
+    @Test
+    public void aStoredValueOfTheRemovedVoomTabIsIgnored() {
+        InMemoryBackend backend = new InMemoryBackend();
+        backend.values.put(LinimalConfigSchema.SCHEMA_VERSION_KEY, LinimalConfigSchema.CURRENT_VERSION);
+        backend.values.put("linimal.feature.voom", true);
+        backend.values.put(LinimalConfigSchema.NEWS_ENABLED_KEY, true);
+
+        LinimalConfig config = configFor(backend);
+
+        assertEquals(LinimalConfigHealth.OK, config.getRuntimeHealth());
+        assertTrue(config.isNewsSuppressionEnabled());
+        assertFalse(config.isShoppingSuppressionEnabled());
+        assertEquals(true, backend.values.get("linimal.feature.voom"));
+    }
+
     @Test
     public void featuresWithoutAnOkPatchStatusIgnoreStoredValues() {
         InMemoryBackend backend = new InMemoryBackend();
         LinimalConfig config = configFor(backend, availableFeatures(LinimalFeature.PREMIUM));
 
         config.setSuppressionEnabled(LinimalFeature.PREMIUM, true);
-        config.setSuppressionEnabled(LinimalFeature.VOOM, true);
+        config.setSuppressionEnabled(LinimalFeature.NEWS, true);
         // 表示系の機能は、再起動後に hook へ反映されます。
         config = config.restartForTesting();
 
         assertEquals(LinimalConfigHealth.OK, config.getRuntimeHealth());
         assertTrue(config.isPremiumSuppressionEnabled());
         assertTrue(config.isSuppressionEnabled(LinimalFeature.PREMIUM));
-        assertFalse(config.isVoomSuppressionEnabled());
-        assertFalse(config.isSuppressionEnabled(LinimalFeature.VOOM));
+        assertFalse(config.isNewsSuppressionEnabled());
+        assertFalse(config.isSuppressionEnabled(LinimalFeature.NEWS));
     }
 
     @Test
@@ -760,18 +775,18 @@ public final class LinimalConfigTest {
         InMemoryBackend backend = new InMemoryBackend();
         LinimalConfig config = configFor(backend, FeatureAvailability.NONE);
 
-        config.setSuppressionEnabled(LinimalFeature.VOOM, true);
+        config.setSuppressionEnabled(LinimalFeature.NEWS, true);
         config.setReadReceiptMode(ReadReceiptMode.MANUAL);
 
-        assertFalse(config.isVoomSuppressionEnabled());
+        assertFalse(config.isNewsSuppressionEnabled());
         assertEquals(ReadReceiptMode.NORMAL, config.getReadReceiptMode());
-        assertEquals(true, backend.values.get(LinimalConfigSchema.VOOM_ENABLED_KEY));
+        assertEquals(true, backend.values.get(LinimalConfigSchema.NEWS_ENABLED_KEY));
         assertEquals("manual", backend.values.get(LinimalConfigSchema.READ_RECEIPT_MODE_KEY));
 
         // patch が揃ったビルドへ入れ替えると、保存済みの設定がそのまま復活します。
         LinimalConfig restored = configFor(backend);
 
-        assertTrue(restored.isVoomSuppressionEnabled());
+        assertTrue(restored.isNewsSuppressionEnabled());
         assertEquals(ReadReceiptMode.MANUAL, restored.getReadReceiptMode());
     }
 
@@ -855,6 +870,33 @@ public final class LinimalConfigTest {
         } finally {
             shared.set(null, previous);
         }
+    }
+
+    @Test
+    public void amoledThemePersistsAndAppliesOnlyAfterRestartWhenAvailable() {
+        InMemoryBackend backend = new InMemoryBackend();
+        LinimalConfig config = configFor(backend);
+        assertFalse(config.isAmoledThemeEnabled());
+
+        config.setSuppressionEnabled(LinimalFeature.AMOLED_THEME, true);
+        assertEquals(true, backend.values.get("linimal.appearance.amoled"));
+        assertTrue(config.isSuppressionEnabled(LinimalFeature.AMOLED_THEME));
+        assertFalse(config.isAmoledThemeEnabled());
+        assertTrue(config.isRestartPending(LinimalFeature.AMOLED_THEME));
+
+        config = config.restartForTesting();
+        assertTrue(config.isAmoledThemeEnabled());
+        assertFalse(config.isRestartPending(LinimalFeature.AMOLED_THEME));
+        assertFalse(config.isPreviewScrollEnabled());
+
+        config = configFor(backend, availableFeatures(LinimalFeature.PREVIEW_SCROLL));
+        assertFalse(config.isAmoledThemeEnabled());
+        assertEquals(true, backend.values.get("linimal.appearance.amoled"));
+
+        config = configFor(backend);
+        config.setSuppressionEnabled(LinimalFeature.AMOLED_THEME, false);
+        config = config.restartForTesting();
+        assertFalse(config.isAmoledThemeEnabled());
     }
 
     @Test
@@ -1092,37 +1134,37 @@ public final class LinimalConfigTest {
     public void presentationChangesWaitForRestartButBehaviourChangesApplyImmediately() {
         InMemoryBackend backend = new InMemoryBackend();
         LinimalConfig config = configFor(backend);
-        boolean voomBefore = config.isVoomSuppressionEnabled();
+        boolean newsBefore = config.isNewsSuppressionEnabled();
 
-        config.setSuppressionEnabled(LinimalFeature.VOOM, !voomBefore);
+        config.setSuppressionEnabled(LinimalFeature.NEWS, !newsBefore);
         config.setSuppressionEnabled(LinimalFeature.EXTERNAL_BROWSER, true);
 
         // 表示中の画面を壊さないよう、表示系の hook は起動時の値を使い続けます。設定画面は保存値を表示します。
-        assertEquals(voomBefore, config.isVoomSuppressionEnabled());
-        assertEquals(!voomBefore, config.isSuppressionEnabled(LinimalFeature.VOOM));
-        assertTrue(config.isRestartPending(LinimalFeature.VOOM));
+        assertEquals(newsBefore, config.isNewsSuppressionEnabled());
+        assertEquals(!newsBefore, config.isSuppressionEnabled(LinimalFeature.NEWS));
+        assertTrue(config.isRestartPending(LinimalFeature.NEWS));
         // 振る舞いの機能はすぐに反映し、再起動を求めません。
         assertTrue(config.isExternalBrowserOverrideEnabled());
         assertFalse(config.isRestartPending(LinimalFeature.EXTERNAL_BROWSER));
 
         // 元に戻せば、反映待ちの変更はなくなります。
-        config.setSuppressionEnabled(LinimalFeature.VOOM, voomBefore);
-        assertFalse(config.isRestartPending(LinimalFeature.VOOM));
-        config.setSuppressionEnabled(LinimalFeature.VOOM, !voomBefore);
+        config.setSuppressionEnabled(LinimalFeature.NEWS, newsBefore);
+        assertFalse(config.isRestartPending(LinimalFeature.NEWS));
+        config.setSuppressionEnabled(LinimalFeature.NEWS, !newsBefore);
 
         LinimalConfig restarted = config.restartForTesting();
-        assertEquals(!voomBefore, restarted.isVoomSuppressionEnabled());
-        assertFalse(restarted.isRestartPending(LinimalFeature.VOOM));
+        assertEquals(!newsBefore, restarted.isNewsSuppressionEnabled());
+        assertFalse(restarted.isRestartPending(LinimalFeature.NEWS));
     }
 
     @Test
     public void valuesReadBeforeASuccessfulLoadAreNotFrozen() {
         InMemoryBackend backend = new InMemoryBackend();
         LinimalConfig config = configFor(backend);
-        config.setSuppressionEnabled(LinimalFeature.VOOM, true);
+        config.setSuppressionEnabled(LinimalFeature.NEWS, true);
         // 起動直後に hook が初期化前の config（元の LINE）を読んでも、後から読めた設定が使われます。
         LinimalConfig restarted = config.restartForTesting();
-        assertTrue(restarted.isVoomSuppressionEnabled());
+        assertTrue(restarted.isNewsSuppressionEnabled());
     }
 
     @Test

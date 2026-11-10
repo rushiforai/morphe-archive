@@ -3,6 +3,7 @@ package app.fakh.patches.dodo
 import app.fakh.patches.dodo.shared.Constants.COMPATIBILITY_DODO
 import app.fakh.patches.dodo.shared.disableProviders
 import app.fakh.patches.dodo.shared.references
+import app.fakh.patches.shared.pairip.pairipLicenseCheckPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
@@ -36,21 +37,6 @@ private val isVipFingerprint = Fingerprint(
 )
 
 /**
- * `com.pairip.licensecheck.LicenseClient.checkLicense(Context)`, called from
- * `com.pairip.application.Application.attachBaseContext`. It binds to the
- * Play licensing service and closes the app when the response fails to verify.
- * A repackaged APK always fails it, so the call goes.
- */
-private val checkLicenseFingerprint = Fingerprint(
-    returnType = "V",
-    parameters = listOf("Landroid/content/Context;"),
-    custom = { method, classDef ->
-        classDef.type.startsWith("Lcom/pairip/licensecheck/") &&
-            method.name == "checkLicense"
-    },
-)
-
-/**
  * Ad and analytics SDKs that start themselves from a content provider before
  * `Application.onCreate`. Facebook also logs app events (its own analytics)
  * from the same init.
@@ -76,7 +62,7 @@ val premiumUnlockPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_DODO)
     category("Premium")
-    dependsOn(adSdksManifestPatch)
+    dependsOn(adSdksManifestPatch, pairipLicenseCheckPatch)
 
     execute {
         isVipFingerprint.method.addInstructions(
@@ -86,7 +72,6 @@ val premiumUnlockPatch = bytecodePatch(
                 return v0
             """,
         )
-        checkLicenseFingerprint.method.addInstructions(0, "return-void")
 
         // MainApp.initAds and the ad loader call MobileAds.initialize directly, so the disabled provider alone
         // still leaves the SDK running and fetching its scripts. Premium hides every ad slot, so nothing waits on it.

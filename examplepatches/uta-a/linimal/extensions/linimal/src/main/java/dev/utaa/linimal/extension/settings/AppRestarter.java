@@ -5,6 +5,8 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.widget.Toast;
 
+import dev.utaa.linimal.extension.i18n.LinimalText;
+
 /** 表示系の設定を変えたあと、反映に必要な LINE の再起動を確認して行います。 */
 final class AppRestarter {
     static final String TITLE = "再起動が必要です";
@@ -22,10 +24,10 @@ final class AppRestarter {
                 return;
             }
             new AlertDialog.Builder(activity)
-                    .setTitle(TITLE)
-                    .setMessage(MESSAGE)
-                    .setPositiveButton("再起動", (dialog, which) -> restart(activity))
-                    .setNegativeButton("あとで", null)
+                    .setTitle(LinimalText.t(TITLE))
+                    .setMessage(LinimalText.t(MESSAGE))
+                    .setPositiveButton(LinimalText.t("再起動"), (dialog, which) -> restart(activity))
+                    .setNegativeButton(LinimalText.t("あとで"), null)
                     .show();
         } catch (Throwable ignored) {
             // 確認を出せなくても、保存した設定は次回の起動で反映されます。
@@ -55,7 +57,7 @@ final class AppRestarter {
 
     private static void showManualRestart(Activity activity) {
         try {
-            Toast.makeText(activity, MANUAL_RESTART, Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, LinimalText.t(MANUAL_RESTART), Toast.LENGTH_LONG).show();
         } catch (Throwable ignored) {
             // 案内を出せなくても、保存した設定は次回の起動で反映されます。
         }

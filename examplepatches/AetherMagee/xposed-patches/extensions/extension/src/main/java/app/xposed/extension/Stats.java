@@ -74,11 +74,12 @@ final class Stats {
             it.remove();
         }
         add(POSTS, 1);
-        if (author == null || author.location == null) {
+        String country = author == null ? null : author.country();
+        if (country == null) {
             add(POSTS_UNKNOWN, 1);
         } else {
-            seen.merge(author.location, 1, Integer::sum);
-            if (Filters.actionFor(author) != Filters.Action.NONE) filtered.merge(author.location, 1, Integer::sum);
+            seen.merge(country, 1, Integer::sum);
+            if (Filters.actionFor(author) != Filters.Action.NONE) filtered.merge(country, 1, Integer::sum);
         }
         scheduleSave();
     }

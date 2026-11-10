@@ -279,25 +279,35 @@ public final class Sidebar {
         float density = item.getResources().getDisplayMetrics().density;
         View top = id(item, "drawer_top") == item.getId() ? item : find(item, "drawer_top");
         if (top == null) top = item;
-        hide(find(item, "drawer_image"));
+        boolean bird = ModernUi.sidebarBird(item.getContext());
+        View image = find(item, "drawer_image");
+        if (bird) showBird(image);
+        else hide(image);
         View bubble = find(item, "give_food_container");
         hide(bubble);
         if (bubble != null && bubble.getParent() instanceof View) hide((View) bubble.getParent());
         hide(find(item, "top_heading"));
 
-        int height = Math.round(56 * density);
-        fill(top, palette.canvas);
+        int height = Math.round((bird ? 168 : 56) * density);
+        if (bird) {
+            top.setBackgroundColor(palette.canvas);
+            top.setElevation(0f);
+        } else {
+            fill(top, palette.canvas);
+        }
+        top.setElevation(0f);
         top.setMinimumHeight(0);
         ViewGroup.LayoutParams topLp = top.getLayoutParams();
         if (topLp != null) {
             topLp.height = height;
             top.setLayoutParams(topLp);
         }
-        top.setPadding(Math.round(16 * density), 0, Math.round(12 * density), 0);
+        if (bird) top.setPadding(0, 0, 0, 0);
+        else top.setPadding(Math.round(16 * density), 0, Math.round(12 * density), 0);
         if (top.getParent() instanceof View) {
             View parent = (View) top.getParent();
             ViewGroup.LayoutParams parentLp = parent.getLayoutParams();
-            if (parentLp != null && parentLp.height > height) {
+            if (parentLp != null && parentLp.height > 0 && parentLp.height != height) {
                 parentLp.height = height;
                 parent.setLayoutParams(parentLp);
             }
@@ -317,19 +327,37 @@ public final class Sidebar {
 
         if (name.getParent() instanceof ViewGroup) {
             ViewGroup row = (ViewGroup) name.getParent();
+            View mark = row.findViewWithTag("morphe_user_mark");
             ViewGroup.LayoutParams rowLp = row.getLayoutParams();
             if (rowLp != null) {
                 rowLp.width = ViewGroup.LayoutParams.MATCH_PARENT;
-                rowLp.height = ViewGroup.LayoutParams.MATCH_PARENT;
-                if (rowLp instanceof FrameLayout.LayoutParams) {
-                    FrameLayout.LayoutParams fl = (FrameLayout.LayoutParams) rowLp;
-                    fl.gravity = Gravity.CENTER_VERTICAL;
-                    fl.setMargins(0, 0, 0, 0);
+                if (bird) {
+                    rowLp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+                    if (rowLp instanceof FrameLayout.LayoutParams) {
+                        FrameLayout.LayoutParams fl = (FrameLayout.LayoutParams) rowLp;
+                        fl.gravity = Gravity.BOTTOM;
+                        fl.setMargins(0, 0, 0, 0);
+                    }
+                } else {
+                    rowLp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+                    if (rowLp instanceof FrameLayout.LayoutParams) {
+                        FrameLayout.LayoutParams fl = (FrameLayout.LayoutParams) rowLp;
+                        fl.gravity = Gravity.CENTER_VERTICAL;
+                        fl.setMargins(0, 0, 0, 0);
+                    }
                 }
                 row.setLayoutParams(rowLp);
             }
-            row.setPadding(0, 0, 0, 0);
-            paintMark(row, name, label, palette, density);
+            row.setPadding(bird ? Math.round(12 * density) : 0, bird ? Math.round(8 * density) : 0,
+                    bird ? Math.round(8 * density) : 0, bird ? Math.round(8 * density) : 0);
+            if (bird) {
+                row.setBackgroundColor(palette.container);
+                if (mark != null) mark.setVisibility(View.GONE);
+            } else {
+                row.setBackground(null);
+                if (mark != null) mark.setVisibility(View.VISIBLE);
+                paintMark(row, name, label, palette, density);
+            }
         }
 
         View arrow = find(item, "drawer_top_drop_down_arrow");
@@ -430,6 +458,18 @@ public final class Sidebar {
         }
     }
 
+    /** Joey's own bird, in the original header slot, with no extra tint. */
+    private static void showBird(View image) {
+        if (image == null) return;
+        image.setVisibility(View.VISIBLE);
+        if (image instanceof ImageView) {
+            ImageView view = (ImageView) image;
+            view.setColorFilter(null);
+            view.setScaleType(ImageView.ScaleType.FIT_CENTER);
+            view.setAdjustViewBounds(false);
+        }
+    }
+
     private static void hide(View view) {
         if (view == null) return;
         view.setVisibility(View.GONE);
@@ -471,8 +511,14 @@ public final class Sidebar {
         return found == 0 ? null : item.findViewById(found);
     }
 
+    private static final Map<String, Integer> IDS = new HashMap<>();
+
     private static int id(View view, String name) {
-        return view.getResources().getIdentifier(name, "id", view.getContext().getPackageName());
+        Integer cached = IDS.get(name);
+        if (cached != null) return cached;
+        int found = view.getResources().getIdentifier(name, "id", view.getContext().getPackageName());
+        IDS.put(name, found);
+        return found;
     }
 
     static void show(Activity activity) {

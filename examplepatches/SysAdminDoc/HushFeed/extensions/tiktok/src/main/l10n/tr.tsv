@@ -2097,7 +2097,7 @@ Load more	Daha fazla yükle
 TikTok's total: %1$s. Filtered accounts: %2$s.	TikTok'a göre toplam: %1$s. Filtrelenen hesap: %2$s.
 Your account changed. Close this list and open it again.	Hesabın değişti. Bu listeyi kapatıp yeniden aç.
 Loading cancelled. The list is incomplete.	Yükleme iptal edildi. Liste eksik.
-Loading page %1$s...	%1$s. sayfa yükleniyor...
+Loading page %1$s…	%1$s. sayfa yükleniyor…
 TikTok reports no more items in this list.	TikTok bu listede başka öğe olmadığını bildiriyor.
 More items are available.	Daha fazla öğe var.
 Sign in to view this list	Bu listeyi görmek için giriş yap
@@ -2519,7 +2519,7 @@ Stop tapping this LIVE	Bu LIVE'a dokunmayı durdur
 Auto tap stopped	Otomatik dokunma durdu
 Clean up your account	Hesabını temizle
 Remove all reposts	Tüm yeniden yayınlamaları kaldır
-Deletes all reposts from your account sequentially.	Hesabındaki tüm yeniden yayınlamaları tek tek siler.
+Removes every repost from your account one after another.	Hesabındaki tüm yeniden yayınlamaları tek tek siler.
 Remove all likes	Tüm beğenileri kaldır
 Unlikes every video one after another.	Her videonun beğenisini sırayla geri alır.
 Clear Favorites	Favorileri temizle
@@ -2642,3 +2642,23 @@ Dismiss	Yoksay
 Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.	LIVE odalarına Kaydet düğmesi ekler. Kaydı başlatmak veya durdurmak için dokun. Odadan çıkınca kayıt da durur.
 Automatically record LIVEs you enter	Girdiğin LIVE yayınlarını otomatik kaydet
 Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.	Bir LIVE odasına girdiğinde yayını kaydetmeye başlar. Durdurduktan sonra odadan çıkıp yeniden girene kadar kayıt başlamaz. Ekran kaydı için yine dokunman ve Android izni gerekir.
+# context: Row title of the Feed screen switch that adds a drag handle and Top, Back and End buttons to long video grids
+Drag handle and jump buttons on grids	Izgaralarda sürükleme tutamacı ve atlama düğmeleri
+# context: Row summary for that switch; Top, Back and End are the button labels, Liked is the profile tab
+On long profile, Liked and sound grids, scrolling brings up a handle you can drag through what's loaded, plus Top, Back and End buttons. Back returns to where you were.	Uzun profil, Beğeniler ve ses ızgaralarında kaydırınca yüklenenler arasında sürükleyebileceğin bir tutamaç ile Başa, Geri ve Sona düğmeleri çıkar. Geri, bulunduğun yere döndürür.
+# context: Short button label on a long video grid, jumps to the first video
+Top	Başa
+# context: Short button label on a long video grid, jumps to the last video loaded
+End	Sona
+# context: Row title of the Feed tabs choice that picks which of TikTok's icon sets the bottom bar draws
+Bottom bar icons	Alt çubuk simgeleri
+# context: Note under that choice
+TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.	TikTok alt çubuk için birden fazla simge seti deniyor. Buradan birini seç veya seçimi TikTok'a bırak.
+# context: Choice value for the bottom bar's icons, one of TikTok's newer icon sets
+New style 1	Yeni stil 1
+# context: Choice value for the bottom bar's icons, TikTok's other newer icon set
+New style 2	Yeni stil 2
+# context: Row title of the Feed tabs switch that adds Friends to the row of tabs along the top of the feed
+Friends in the top tabs	Üst sekmelerde Arkadaşlar
+# context: Summary under that switch; Friends and Following are TikTok's tab names
+Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.	Arkadaşlar, akışın üstündeki sekmelere, Takip Edilenler'in yanına geçer ve Keşfet alt çubukta onun yerini alır, TikTok bazı ülkelerde böyle dizer. Bölgen ve akışın olduğu gibi kalır.

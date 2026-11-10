@@ -1072,7 +1072,7 @@ Loaded current values. Loading all known gates…,Đã tải các giá trị hi�
 Loaded-value file export failed,Xuất tệp giá trị đã tải thất bại
 Loading cancelled. The list is incomplete.,Đã hủy tải. Danh sách chưa hoàn chỉnh.
 Loading gates…,Đang tải các cổng…
-Loading page %1$s...,Đang tải trang %1$s...
+Loading page %1$s…,Đang tải trang %1$s…
 Loading the gate list and TikTok's current values…,Đang tải danh sách cổng và các giá trị hiện tại của TikTok…
 Local profile counts,Số lượng số liệu trang cá nhân cục bộ
 Local verified badge,Huy hiệu xác minh cục bộ (tích xanh)
@@ -2478,7 +2478,7 @@ Stop tapping this LIVE,Dừng chạm vào LIVE này
 Auto tap stopped,Đã dừng tự động chạm
 Clean up your account,Dọn dẹp tài khoản
 Remove all reposts,Xóa tất cả bài đăng lại
-Deletes all reposts from your account sequentially.,Lần lượt xóa mọi bài đăng lại khỏi tài khoản của bạn.
+Removes every repost from your account one after another.,Lần lượt xóa mọi bài đăng lại khỏi tài khoản của bạn.
 Remove all likes,Xóa tất cả lượt thích
 Unlikes every video one after another.,Lần lượt bỏ thích từng video.
 Clear Favorites,Xóa mục Yêu thích
@@ -2566,3 +2566,13 @@ Dismiss,Bỏ qua
 Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.,Thêm nút Ghi vào phòng LIVE. Chạm để bắt đầu hoặc dừng ghi. Rời phòng cũng sẽ dừng ghi.
 Automatically record LIVEs you enter,Tự động ghi LIVE khi vào phòng
 Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.,"Bắt đầu ghi luồng LIVE khi bạn vào phòng. Sau khi nhấn Dừng, tính năng sẽ không ghi lại cho đến khi bạn rời phòng rồi vào lại. Ghi màn hình vẫn cần thao tác chạm và quyền Android."
+Drag handle and jump buttons on grids,Tay cầm kéo và nút chuyển nhanh trên lưới
+"On long profile, Liked and sound grids, scrolling brings up a handle you can drag through what's loaded, plus Top, Back and End buttons. Back returns to where you were.","Trên lưới trang cá nhân, video đã thích và âm thanh dài, khi cuộn sẽ hiện tay cầm để kéo qua phần đã tải, cùng các nút Đầu, Quay lại và Cuối. Quay lại đưa bạn về chỗ cũ."
+Top,Đầu
+End,Cuối
+Bottom bar icons,Biểu tượng thanh dưới
+"TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.",TikTok đang thử nhiều bộ biểu tượng cho thanh dưới. Chọn một bộ ở đây hoặc để TikTok quyết định.
+New style 1,Kiểu mới 1
+New style 2,Kiểu mới 2
+Friends in the top tabs,Bạn bè ở các thẻ trên cùng
+"Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.","Bạn bè chuyển lên các thẻ ở đầu bảng tin, cạnh Đang theo dõi, và Khám phá thay chỗ nó ở thanh dưới cùng, giống cách TikTok sắp xếp ở một số quốc gia. Khu vực và bảng tin của bạn vẫn giữ nguyên."

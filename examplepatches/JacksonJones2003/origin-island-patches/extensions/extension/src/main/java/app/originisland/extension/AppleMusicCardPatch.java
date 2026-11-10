@@ -71,7 +71,16 @@ public final class AppleMusicCardPatch {
      * later the id of the same song is changed.
      */
     private static final long ISLAND_LYRICS_WINDOW_MS = 2000;
+    private static final long LYRICS_AFTER_MEDIA_ID_MS = 1000;
+    private static final long LYRICS_RESEND_DELAY_MS = 2500;
     private static final String LATE_LYRICS_SUFFIX = "-lyrics";
+
+    /**
+     * The island and the widget of the lock screen forget the lyrics when they are made again, as
+     * when the screen locks, and they ask the app for them again in a way the card never passes
+     * on to apps like this one. So the lyrics are sent again now and then while a song plays.
+     */
+    private static final long LYRICS_REFRESH_INTERVAL_MS = 4000;
 
     private static final String[] COVER_ADDRESS_KEYS = {
             MediaMetadata.METADATA_KEY_ALBUM_ART_URI,
@@ -83,6 +92,7 @@ public final class AppleMusicCardPatch {
     private static final ExecutorService lyricsLoader = Executors.newSingleThreadExecutor();
     private static final Runnable publishTask = AppleMusicCardPatch::publishLastMetadata;
     private static final Runnable sendLyricsTask = AppleMusicCardPatch::sendLyrics;
+    private static final Runnable refreshLyricsTask = AppleMusicCardPatch::refreshLyrics;
 
     private static final long LIST_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
     private static final long DOWNLOADS_REFRESH_INTERVAL_MS = 30 * 1000;
@@ -97,6 +107,9 @@ public final class AppleMusicCardPatch {
     private static MediaMetadata lastMetadata;
     private static String songId = "";
     private static String trackId = "";
+    private static long trackIdChangedAt;
+    private static long firstLyricsSendsUntil;
+    private static boolean refreshingLyrics;
     private static String lyrics = "";
     private static volatile String lyricsFor = "";
 
@@ -112,6 +125,7 @@ public final class AppleMusicCardPatch {
         if (!MUSIC_CARD_PACKAGE.equals(clientPackageName)) {
             return null;
         }
+        Log.i(TAG, "Card connected");
         mainHandler.postDelayed(publishTask, PUBLISH_AFTER_CONNECTING_DELAY_MS);
         mainHandler.postDelayed(sendLyricsTask, PUBLISH_AFTER_CONNECTING_DELAY_MS);
         mainHandler.postDelayed(() -> {
@@ -377,8 +391,38 @@ public final class AppleMusicCardPatch {
             public void onPlaybackStateChanged(PlaybackState state) {
                 mainHandler.removeCallbacks(publishTask);
                 mainHandler.postDelayed(publishTask, PUBLISH_DELAY_MS);
+                if (isPlaying(state) && !refreshingLyrics) {
+                    scheduleLyricsRefresh(LYRICS_REFRESH_INTERVAL_MS);
+                }
             }
         }, mainHandler);
+    }
+
+    private static boolean isPlaying(PlaybackState state) {
+        return state != null && (state.getState() == PlaybackState.STATE_PLAYING
+                || state.getState() == PlaybackState.STATE_BUFFERING);
+    }
+
+    /**
+     * Sends the lyrics again while a song plays, and stops when it does not.
+     */
+    private static void refreshLyrics() {
+        refreshingLyrics = false;
+        MediaSession session = sessionRef.get();
+        if (session == null || !isPlaying(session.getController().getPlaybackState())) {
+            return;
+        }
+        // Not while the lyrics for a new song are still being sent for the first time.
+        if (SystemClock.elapsedRealtime() >= firstLyricsSendsUntil) {
+            sendLyrics();
+        }
+        scheduleLyricsRefresh(LYRICS_REFRESH_INTERVAL_MS);
+    }
+
+    private static void scheduleLyricsRefresh(long delay) {
+        mainHandler.removeCallbacks(refreshLyricsTask);
+        mainHandler.postDelayed(refreshLyricsTask, delay);
+        refreshingLyrics = true;
     }
 
     private static synchronized void publishLastMetadata() {
@@ -417,6 +461,8 @@ public final class AppleMusicCardPatch {
         if (!mediaId.equals(songId)) {
             songId = mediaId;
             trackId = mediaId;
+            trackIdChangedAt = SystemClock.elapsedRealtime();
+            Log.i(TAG, "Song changed, id " + Integer.toHexString(trackId.hashCode()));
             MediaBrowserService browserService = browserServiceRef.get();
             if (browserService != null) {
                 browserService.notifyChildrenChanged(LIST_CURRENT);
@@ -520,14 +566,32 @@ public final class AppleMusicCardPatch {
             return;
         }
         lyrics = lrc;
+        Log.i(TAG, "Lyrics " + (lrc.isEmpty() ? "not found" : "loaded") + " after "
+                + (System.currentTimeMillis() - startedAt) + " ms");
         if (lrc.isEmpty()) {
             return;
         }
         if (System.currentTimeMillis() - startedAt > ISLAND_LYRICS_WINDOW_MS) {
             trackId = mediaId + LATE_LYRICS_SUFFIX;
+            trackIdChangedAt = SystemClock.elapsedRealtime();
+            Log.i(TAG, "Lyrics came late, id changed to " + Integer.toHexString(trackId.hashCode()));
             publishLastMetadata();
         }
-        sendLyrics();
+        scheduleLyrics();
+    }
+
+    /**
+     * The card drops lyrics for a media id that is not yet the one it has for the song, and it takes
+     * the song a moment after the metadata is set, so the lyrics are sent a moment after the media id
+     * changed. They are sent once more a little later, as the card can be slower than that.
+     */
+    private static void scheduleLyrics() {
+        long wait = Math.max(0, trackIdChangedAt + LYRICS_AFTER_MEDIA_ID_MS - SystemClock.elapsedRealtime());
+        mainHandler.removeCallbacks(sendLyricsTask);
+        mainHandler.postDelayed(sendLyricsTask, wait);
+        mainHandler.postDelayed(sendLyricsTask, wait + LYRICS_RESEND_DELAY_MS);
+        firstLyricsSendsUntil = SystemClock.elapsedRealtime() + wait + LYRICS_RESEND_DELAY_MS + 100;
+        scheduleLyricsRefresh(wait + LYRICS_RESEND_DELAY_MS + LYRICS_REFRESH_INTERVAL_MS);
     }
 
     /**
@@ -537,7 +601,13 @@ public final class AppleMusicCardPatch {
         try {
             MediaSession session = sessionRef.get();
             if (session == null || lyrics.isEmpty() || !songId.equals(lyricsFor)) {
+                if (SystemClock.elapsedRealtime() - trackIdChangedAt < 10_000) Log.i(TAG, "Lyrics not sent: session " + (session != null) + ", have lyrics "
+                        + !lyrics.isEmpty() + ", same song " + songId.equals(lyricsFor));
                 return;
+            }
+            if (SystemClock.elapsedRealtime() - trackIdChangedAt < 10_000) {
+                Log.i(TAG, "Lyrics sent for id " + Integer.toHexString(trackId.hashCode()) + ", "
+                        + (SystemClock.elapsedRealtime() - trackIdChangedAt) + " ms after the id changed");
             }
             // The app keeps extras of its own on the session.
             Bundle appExtras = session.getController().getExtras();

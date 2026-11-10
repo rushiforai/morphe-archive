@@ -164,42 +164,11 @@ object MultipleDisplayCheckFingerprint : Fingerprint(
     )
 )
 
-// ============================================================================
-// 6. Playback Codecs, HDR10 & 4K Fingerprints
-// ============================================================================
-
 /**
- * 4K resolution support check — bypasses 4K blacklist.
+ * PlayerConfig.getEnableHdmiBroadcastListener() — Listener that shuts off playback when HDMI is connected.
  */
-object Is4kSupportedFingerprint : Fingerprint(
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    parameters = listOf("Landroid/content/Context;"),
-    filters = listOf(
-        string("4k"),
-    )
-)
-
-/**
- * Video codec support check (H265, VP9, AV1).
- */
-object IsCodecSupportedFingerprint : Fingerprint(
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    filters = listOf(
-        string("supportsCodec Picked from cache")
-    )
-)
-
-/**
- * Dolby Vision / HDR10 support check — bypasses device capability blacklist.
- */
-object IsDolbyVisionSupportedFingerprint : Fingerprint(
-    returnType = "Z",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
-    parameters = listOf("Landroid/content/Context;", "Z", "I", "Z"),
-    filters = listOf(
-        string("dv"),
-        string("bklst"),
-    )
+object PlayerConfigHdmiBroadcastFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/player/models/config/PlayerConfig;",
+    name = "getEnableHdmiBroadcastListener",
+    returnType = "Z"
 )

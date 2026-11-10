@@ -1,11 +1,16 @@
+# Copyright (C) 2026 Lokesh Sparrow
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# What the "New issue" page offers besides the forms: a choice of contact links instead of
+# a blank issue.
 blank_issues_enabled: false
 contact_links:
   - name: 💬 Questions and help
     url: https://github.com/lokesh-sparrow/loki-patches/discussions/categories/q-a
-    about: How do I…? Ask in Discussions, other users can help too.
+    about: Ask a "how do I" question in Discussions; other users often answer faster than I can.
   - name: 📣 Announcements
     url: https://github.com/lokesh-sparrow/loki-patches/discussions/categories/announcements
-    about: News about upcoming updates and new apps.
+    about: Release news, and what is coming next.
   - name: 📖 How to use Loki Patches
     url: https://github.com/lokesh-sparrow/loki-patches#install
-    about: Adding the patch source to Morphe, supported versions, and how to open the settings.
+    about: Adding the source to Morphe, which versions are supported, and how to reach the settings.

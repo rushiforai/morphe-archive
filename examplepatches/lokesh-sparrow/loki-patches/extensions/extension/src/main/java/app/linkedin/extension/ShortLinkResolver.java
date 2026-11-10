@@ -1,3 +1,8 @@
+/*
+ * Copyright (C) 2026 Lokesh Sparrow
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+
 package app.linkedin.extension;
 
 import java.io.ByteArrayOutputStream;
@@ -13,79 +18,108 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Resolves lnkd.in short links in the background. lnkd.in answers with a LinkedIn warning page
- * whose "continue" button (data-tracking-control-name="external_url_click") holds the target.
- * Results are cached so a tap can use the target without waiting for the network.
- * Plain Java (no Android types) so it can be tested off device.
+ * Expands lnkd.in short links ahead of time.
+ *
+ * <p>lnkd.in answers with a LinkedIn page rather than a redirect, and the destination sits in that
+ * page's "continue" button. Fetching it on a click would show a spinner, so it is fetched in the
+ * background as soon as a feed payload mentions the link; a tap that finds a cached target goes
+ * straight there, and a tap that does not opens the normal page while the fetch starts.
  */
 final class ShortLinkResolver {
     static final String PREFIX = "https://lnkd.in/";
-    private static final Pattern SHORT_LINK = Pattern.compile("https://lnkd\\.in/[A-Za-z0-9_-]+");
-    private static final Pattern TARGET = Pattern.compile(
+    /** A short link in text. The slug is case sensitive, so the pattern is exact. */
+    private static final Pattern SLUG = Pattern.compile("https://lnkd\\.in/[A-Za-z0-9_-]+");
+    /** The continue button: its tracking name precedes the href, so both must be on one anchor. */
+    private static final Pattern CONTINUE_BUTTON = Pattern.compile(
             "<a[^>]*data-tracking-control-name=\"external_url_click\"[^>]*href=\"([^\"]+)\"");
-    private static final int MAX_LINKS = 200;
 
-    private static final Map<String, String> resolved = new ConcurrentHashMap<>();
-    private static final Map<String, Boolean> started = new ConcurrentHashMap<>();
-    private static final ExecutorService executor = Executors.newFixedThreadPool(2);
+    /** Enough links for a long session, small enough that the maps stay bounded. */
+    private static final int LIMIT = 200;
+    private static final int TIMEOUT_MS = 8000;
+    private static final int READ_CHUNK = 8192;
+    private static final int PAGE_LIMIT = 512 * 1024;
+
+    private static final Map<String, String> TARGETS = new ConcurrentHashMap<>();
+    private static final Map<String, Boolean> IN_FLIGHT = new ConcurrentHashMap<>();
+    /** Two fetches at a time: more would only compete with the feed's own traffic. */
+    private static final ExecutorService FETCHER = Executors.newFixedThreadPool(2);
 
     private ShortLinkResolver() {
     }
 
-    /** The cached target of a short link, or null if it is not resolved (yet). */
+    /** The target of a short link if it has been resolved already, otherwise null. */
     static String cached(String shortLink) {
-        return resolved.get(normalize(shortLink));
+        return TARGETS.get(canonical(shortLink));
     }
 
-    /** Starts resolving every lnkd.in link found in the text. */
+    /** Starts a fetch for every short link in the given text. */
     static void prefetchAll(String text) {
-        Matcher matcher = SHORT_LINK.matcher(text);
-        while (matcher.find()) prefetch(matcher.group());
+        Matcher found = SLUG.matcher(text);
+        while (found.find()) prefetch(found.group());
     }
 
+    /** Starts a fetch for one short link; a link is never fetched twice. */
     static void prefetch(String shortLink) {
-        String key = normalize(shortLink);
-        if (started.size() >= MAX_LINKS || started.putIfAbsent(key, Boolean.TRUE) != null) return;
-        executor.execute(() -> {
-            String target = resolve(key);
-            if (target != null) resolved.put(key, target);
-        });
+        String key = canonical(shortLink);
+        if (IN_FLIGHT.size() >= LIMIT) return;
+        if (IN_FLIGHT.putIfAbsent(key, Boolean.TRUE) != null) return;
+        Runnable job = () -> {
+            String destination = resolve(key);
+            if (destination == null) return;
+            TARGETS.put(key, destination);
+        };
+        FETCHER.execute(job);
     }
 
-    /** Fetches the warning page and returns the target URL, or null. Blocking. */
+    /** Fetches the warning page for one link and returns its target. Blocking; null on any error. */
     static String resolve(String shortLink) {
-        HttpURLConnection connection = null;
+        HttpURLConnection http = null;
         try {
-            connection = (HttpURLConnection) new URL(shortLink).openConnection();
-            connection.setConnectTimeout(8000);
-            connection.setReadTimeout(8000);
-            connection.setInstanceFollowRedirects(true);
-            if (connection.getResponseCode() != 200) return null;
-            try (InputStream in = connection.getInputStream()) {
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                byte[] buffer = new byte[8192];
-                int n;
-                while ((n = in.read(buffer)) > 0 && out.size() < 512 * 1024) out.write(buffer, 0, n);
-                return targetFromPage(out.toString(StandardCharsets.UTF_8.name()));
+            URL endpoint = new URL(shortLink);
+            http = (HttpURLConnection) endpoint.openConnection();
+            http.setConnectTimeout(TIMEOUT_MS);
+            http.setReadTimeout(TIMEOUT_MS);
+            http.setInstanceFollowRedirects(true);
+            int status = http.getResponseCode();
+            if (status != 200) return null;
+            try (InputStream body = http.getInputStream()) {
+                ByteArrayOutputStream page = new ByteArrayOutputStream();
+                byte[] chunk = new byte[READ_CHUNK];
+                int read;
+                while ((read = body.read(chunk)) > 0 && page.size() < PAGE_LIMIT) {
+                    page.write(chunk, 0, read);
+                }
+                String html = page.toString(StandardCharsets.UTF_8.name());
+                return targetFromPage(html);
             }
-        } catch (Throwable t) {
+        } catch (Throwable unreadable) {
             return null;
         } finally {
-            if (connection != null) connection.disconnect();
+            if (http != null) http.disconnect();
         }
     }
 
+    /** The link behind a warning page's continue button, or null when there is none or it is no web link. */
     static String targetFromPage(String html) {
-        Matcher matcher = TARGET.matcher(html);
-        if (!matcher.find()) return null;
-        String target = matcher.group(1)
-                .replace("&amp;", "&").replace("&quot;", "\"").replace("&#39;", "'").replace("&#x3D;", "=");
-        return target.startsWith("https://") || target.startsWith("http://") ? target : null;
+        Matcher button = CONTINUE_BUTTON.matcher(html);
+        if (!button.find()) return null;
+        String href = button.group(1);
+        String unescaped = href.replace("&amp;", "&")
+                .replace("&quot;", "\"")
+                .replace("&#39;", "'")
+                .replace("&#x3D;", "=");
+        if (unescaped.startsWith("https://")) return unescaped;
+        if (unescaped.startsWith("http://")) return unescaped;
+        return null;
     }
 
-    /** Short links are case sensitive; only strip a trailing slash or query. */
-    private static String normalize(String shortLink) {
-        Matcher matcher = SHORT_LINK.matcher(shortLink);
-        return matcher.find() ? matcher.group() : shortLink;
+    /**
+     * The short link without a trailing slash, query or fragment. Case is preserved: the slug is
+     * case sensitive and the wrong case is a different link.
+     */
+    private static String canonical(String shortLink) {
+        Matcher found = SLUG.matcher(shortLink);
+        if (found.find()) return found.group();
+        return shortLink;
     }
 }

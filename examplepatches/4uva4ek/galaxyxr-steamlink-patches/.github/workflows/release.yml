@@ -1,0 +1,44 @@
+name: Release
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Prepare framework sources
+        run: python3 -B tools/prepare_dependencies.py
+      - name: Build and verify
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          export MORPHE_GRADLE_PLUGIN_SOURCE="$GITHUB_WORKSPACE/../build-dependencies/morphe-patches-gradle-plugin"
+          export MORPHE_PATCHER_SOURCE="$GITHUB_WORKSPACE/../build-dependencies/morphe-patcher"
+          bash ./gradlew :patches:test :patches:buildAndroid :patches:generatePatchesList --no-daemon
+          python3 -B tools/prepare_manifest.py
+      - name: Publish matching artifact and metadata
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          version=$(python3 -c 'import json; print(json.load(open("patches-bundle.json"))["version"])')
+          test "$GITHUB_REF_NAME" = main
+          if git rev-parse "v$version" >/dev/null 2>&1; then echo 'Version already tagged'; exit 1; fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add patches-bundle.json patches-list*.json
+          git diff --cached --quiet || git commit -m "chore: prepare release v$version"
+          git tag "v$version"
+          git push origin main "v$version"
+          gh release create "v$version" "../builds/galaxyxr-steamlink-patches/gradle/patches/libs/patches-$version.mpp" "../builds/galaxyxr-steamlink-patches/gradle/patches/libs/SHA256SUMS.txt" --title "Galaxy XR Steam Link Patches $version" --notes-file docs/RELEASE-NOTES.md --verify-tag

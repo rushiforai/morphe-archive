@@ -40,6 +40,7 @@ import dev.utaa.linimal.extension.settings.ui.LinimalPalette;
 import dev.utaa.linimal.extension.status.PatchStatus;
 import dev.utaa.linimal.extension.status.PatchStatusReadResult;
 import dev.utaa.linimal.extension.status.PatchStatusReport;
+import dev.utaa.linimal.extension.i18n.LinimalText;
 
 /** LINE の設定画面に合わせた見た目で、Linimal の設定と適用状況を表示します。 */
 public final class LinimalSettingsActivity extends Activity {
@@ -230,21 +231,23 @@ public final class LinimalSettingsActivity extends Activity {
 
     private void addRootPage(LinearLayout parent) {
         addCategoryRow(parent, SettingsPage.ADS,
-                "広告", "広告の表示を止めます。");
+                LinimalText.t("広告"), LinimalText.t("広告の表示を止めます。"));
         addCategoryRow(parent, SettingsPage.AGENT_I,
-                "Agent i・LINE AI", "Agent i と LINE AI の入口を場所ごとに設定します。");
+                LinimalText.t("Agent i・LINE AI"), LinimalText.t("Agent i と LINE AI の入口を場所ごとに設定します。"));
         addCategoryRow(parent, SettingsPage.HIDE,
-                "表示を消す", "画面ごとに表示する項目を選びます。");
+                LinimalText.t("表示を消す"), LinimalText.t("画面ごとに表示する項目を選びます。"));
         addCategoryRow(parent, SettingsPage.READ_RECEIPT,
-                "既読", "既読の送信と、既読をつけずに読む機能を設定します。");
+                LinimalText.t("既読"), LinimalText.t("既読の送信と、既読をつけずに読む機能を設定します。"));
+        addCategoryRow(parent, SettingsPage.THEME,
+                LinimalText.t("テーマ"), LinimalText.t("LINE の画面の配色を設定します。"));
         addCategoryRow(parent, SettingsPage.GENERAL,
-                "一般", "Premium の案内とリンクの開き方を設定します。");
+                LinimalText.t("一般"), LinimalText.t("Premium の案内とリンクの開き方を設定します。"));
     }
 
     private void addFeaturePage(LinearLayout parent, SettingsPage page) {
         if (patchStatusResult == null || !patchStatusResult.isAvailable()) {
             // status がないときは誤操作を防ぐため、Switch 自体を表示しません。
-            addUnavailableFeatureMessage(parent, "パッチ情報を読み取れないため、機能の設定を変更できません。");
+            addUnavailableFeatureMessage(parent, LinimalText.t("パッチ情報を読み取れないため、機能の設定を変更できません。"));
             return;
         }
 
@@ -269,14 +272,14 @@ public final class LinimalSettingsActivity extends Activity {
         }
 
         if (!hasEntry) {
-            addUnavailableFeatureMessage(parent, "このページで利用できる機能はありません。");
+            addUnavailableFeatureMessage(parent, LinimalText.t("このページで利用できる機能はありません。"));
         }
     }
 
     private void addCategoryRow(
             LinearLayout parent, SettingsPage page, String titleText, String summaryText) {
         LinearLayout row = createInteractiveRow(parent);
-        row.setContentDescription(titleText + "。" + summaryText);
+        row.setContentDescription(LinimalText.joinSentences(titleText, summaryText));
         row.setOnClickListener(view -> openPage(page));
 
         LinearLayout labels = createLabels(titleText, summaryText);
@@ -288,7 +291,7 @@ public final class LinimalSettingsActivity extends Activity {
         ImageView chevron = new ImageView(this);
         chevron.setImageDrawable(new ChevronDrawable(palette.secondaryText, density()));
         chevron.setScaleType(ImageView.ScaleType.CENTER);
-        chevron.setContentDescription("詳細を開く");
+        chevron.setContentDescription(LinimalText.t("詳細を開く"));
         chevron.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         LinearLayout.LayoutParams chevronParams = new LinearLayout.LayoutParams(dp(32), dp(48));
         chevronParams.gravity = Gravity.CENTER_VERTICAL;
@@ -306,13 +309,14 @@ public final class LinimalSettingsActivity extends Activity {
         }
         keepUnreadAfterSendPatchAvailable = manual == PatchStatus.OK || notification == PatchStatus.OK;
         LinearLayout row = createInteractiveRow(parent);
-        LinearLayout labels = createLabels(KEEP_UNREAD_AFTER_SEND_TITLE, KEEP_UNREAD_AFTER_SEND_SUMMARY);
+        LinearLayout labels = createLabels(LinimalText.t(KEEP_UNREAD_AFTER_SEND_TITLE),
+                LinimalText.t(KEEP_UNREAD_AFTER_SEND_SUMMARY));
         keepUnreadAfterSendSummary = (TextView) labels.getChildAt(1);
         LinearLayout.LayoutParams labelParams = new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
         labelParams.gravity = Gravity.CENTER_VERTICAL;
         row.addView(labels, labelParams);
-        keepUnreadAfterSendToggle = createSwitch(KEEP_UNREAD_AFTER_SEND_TITLE);
+        keepUnreadAfterSendToggle = createSwitch(LinimalText.t(KEEP_UNREAD_AFTER_SEND_TITLE));
         addToggle(row, keepUnreadAfterSendToggle);
         row.setOnClickListener(view -> {
             if (keepUnreadAfterSendToggle.isEnabled()) {
@@ -332,7 +336,7 @@ public final class LinimalSettingsActivity extends Activity {
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
 
-        TextView title = createText("通常チャットの自動既読を停止", 16, palette.primaryText);
+        TextView title = createText(LinimalText.t("通常チャットの自動既読を停止"), 16, palette.primaryText);
         labels.addView(title, wrap());
 
         readReceiptSummary = createText("", 13, palette.secondaryText);
@@ -344,7 +348,7 @@ public final class LinimalSettingsActivity extends Activity {
         labelParams.gravity = Gravity.CENTER_VERTICAL;
         row.addView(labels, labelParams);
 
-        readReceiptToggle = createSwitch("通常チャットの自動既読を停止");
+        readReceiptToggle = createSwitch(LinimalText.t("通常チャットの自動既読を停止"));
         addToggle(row, readReceiptToggle);
         row.setOnClickListener(view -> {
             if (readReceiptToggle.isEnabled()) {
@@ -441,7 +445,7 @@ public final class LinimalSettingsActivity extends Activity {
             boolean available = row.patchStatus == PatchStatus.OK && health == LinimalConfigHealth.OK;
             String summary = row.entry.getSummary();
             if (config.isRestartPending(row.entry.getFeature())) {
-                summary = summary + "\n" + RESTART_PENDING_SUMMARY;
+                summary = summary + "\n" + LinimalText.t(RESTART_PENDING_SUMMARY);
             }
             row.summary.setText(available ? summary : unavailableSummary(row.patchStatus, health));
             row.summary.setTextColor(available ? palette.secondaryText : palette.statusError);
@@ -473,8 +477,9 @@ public final class LinimalSettingsActivity extends Activity {
             return;
         }
         boolean available = keepUnreadAfterSendPatchAvailable && health == LinimalConfigHealth.OK;
-        keepUnreadAfterSendSummary.setText(available ? KEEP_UNREAD_AFTER_SEND_SUMMARY
-                : KEEP_UNREAD_AFTER_SEND_SUMMARY + "\n既読なし閲覧のパッチまたは設定を確認できないため、変更できません。");
+        keepUnreadAfterSendSummary.setText(available ? LinimalText.t(KEEP_UNREAD_AFTER_SEND_SUMMARY)
+                : LinimalText.t(KEEP_UNREAD_AFTER_SEND_SUMMARY) + "\n"
+                        + LinimalText.t("既読なし閲覧のパッチまたは設定を確認できないため、変更できません。"));
         keepUnreadAfterSendSummary.setTextColor(available ? palette.secondaryText : palette.statusError);
         keepUnreadAfterSendToggle.setOnCheckedChangeListener(null);
         keepUnreadAfterSendToggle.setEnabled(available);
@@ -494,7 +499,7 @@ public final class LinimalSettingsActivity extends Activity {
         boolean available = readReceiptPatchStatus == PatchStatus.OK
                 && health == LinimalConfigHealth.OK;
         readReceiptSummary.setText(available
-                ? "1対1・グループ・ルームが対象です。LINE の手動既読操作がある場合、その操作だけ送信します。OpenChat、Service Chat、AI Character は対象外です。"
+                ? LinimalText.t("1対1・グループ・ルームが対象です。LINE の手動既読操作がある場合、その操作だけ送信します。OpenChat、Service Chat、AI Character は対象外です。")
                 : unavailableSummary(readReceiptPatchStatus, health));
         readReceiptSummary.setTextColor(available ? palette.secondaryText : palette.statusError);
 
@@ -514,15 +519,15 @@ public final class LinimalSettingsActivity extends Activity {
 
     private String unavailableSummary(PatchStatus patchStatus, LinimalConfigHealth health) {
         if (health != LinimalConfigHealth.OK) {
-            return "設定を利用できないため、この機能は現在利用できません。";
+            return LinimalText.t("設定を利用できないため、この機能は現在利用できません。");
         }
         if (patchStatus == null) {
-            return "パッチの適用状況を確認できないため、この機能は現在利用できません。";
+            return LinimalText.t("パッチの適用状況を確認できないため、この機能は現在利用できません。");
         }
         if (patchStatus == PatchStatus.DISABLED) {
-            return "この build では用意されていないため、この機能は利用できません。";
+            return LinimalText.t("この build では用意されていないため、この機能は利用できません。");
         }
-        return "パッチが完全に適用されていないため、この機能は現在利用できません。";
+        return LinimalText.t("パッチが完全に適用されていないため、この機能は現在利用できません。");
     }
 
     private View createHeader() {
@@ -533,7 +538,7 @@ public final class LinimalSettingsActivity extends Activity {
         back.setImageDrawable(new BackArrowDrawable(palette.primaryText, density()));
         back.setScaleType(ImageView.ScaleType.CENTER);
         back.setBackground(borderlessRipple());
-        back.setContentDescription("戻る");
+        back.setContentDescription(LinimalText.t("戻る"));
         back.setOnClickListener(view -> navigateBack());
         header.addView(back, new FrameLayout.LayoutParams(
                 dp(48), dp(48), Gravity.START | Gravity.CENTER_VERTICAL));
@@ -553,15 +558,17 @@ public final class LinimalSettingsActivity extends Activity {
     private String titleFor(SettingsPage page) {
         switch (page) {
             case ADS:
-                return "広告";
+                return LinimalText.t("広告");
             case AGENT_I:
-                return "Agent i・LINE AI";
+                return LinimalText.t("Agent i・LINE AI");
             case HIDE:
-                return "表示を消す";
+                return LinimalText.t("表示を消す");
             case READ_RECEIPT:
-                return "既読";
+                return LinimalText.t("既読");
+            case THEME:
+                return LinimalText.t("テーマ");
             case GENERAL:
-                return "一般";
+                return LinimalText.t("一般");
             case ROOT:
             default:
                 return "Linimal";

@@ -1,6 +1,6 @@
-# 👋🧩 Morphe Patches template
+# 👋🧩 Media Patches
 
-Template repository for Morphe Patches.
+Repository for Media Patches.
 
 ## ❓ About
 
@@ -10,20 +10,48 @@ Patches for apps I like.
 
 ### How to use these patches
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=HellLord77/media-patches
+Click the button below, or manually add this repo url to Morphe Manager: https://github.com/HellLord77/media-patches
+
+<a href="https://morphe.software/add-source?github=HellLord77/media-patches">
+  <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
+</a>
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.3.5](https://github.com/HellLord77/media-patches/releases/tag/v1.3.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;52 patches total
+> **[v1.4.0](https://github.com/HellLord77/media-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;58 patches total
+<details open>
+<summary>📦 Addatimes&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<br>
+
+**Package name:** `com.addatimes.Addatimes`
+
+**🎯 Supported versions:**
+
+| 5849 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Access content](#access-content) | Enables access to content. |  |
+| [Access content (TV)](#access-content-tv) | Enables access to content. |  |
+| [Anonymous user](#anonymous-user) | Log in as anonymous user. |  |
+| [Anonymous user (TV)](#anonymous-user-tv) | Log in as anonymous user. |  |
+| [Default source](#default-source) | Use default media source for video player. |  |
+| [Play button](#play-button) | Change the play button label. |  |
+
+</details>
+
 <details open>
 <summary>📦 Bongo&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
+**Package name:** `com.bongo.bongobd`
+
 **🎯 Supported versions:**
 
-| 6.11.2 | 6.11.1 | 6.10.3 | 6.10.2 | 6.10.0 | 6.9.2 | 6.9.1 | 6.9.0 | 6.8.9 | 6.8.8 | 6.8.6 |
-| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| 6.11.3 | 6.11.2 | 6.11.1 | 6.10.3 | 6.10.2 | 6.10.0 | 6.9.2 | 6.9.1 | 6.9.0 | 6.8.9 | 6.8.8 | 6.8.6 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -35,6 +63,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <details open>
 <summary>📦 Bongo&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
+
+**Package name:** `com.bongo.bongobdandroidtv`
 
 **🎯 Supported versions:**
 
@@ -51,6 +81,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <details open>
 <summary>📦 Hoichoi&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
+
+**Package name:** `com.viewlift.hoichoi`
 
 **🎯 Supported versions:**
 
@@ -71,6 +103,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <summary>📦 Platform8&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
+**Package name:** `com.digivive.platform8`
+
 **🎯 Supported versions:**
 
 | 9.66.23 |
@@ -87,6 +121,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <details open>
 <summary>📦 Platform8&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
+
+**Package name:** `digivive.platform8.androidtv`
 
 **🎯 Supported versions:**
 
@@ -105,6 +141,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <summary>📦 Shadhin&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
+**Package name:** `com.gm.shadhin`
+
 **🎯 Supported versions:**
 
 | 4.4.5 | 4.4.4 | 4.4.2 | 4.4.1 | 4.3.9 | 4.3.7 | 4.3.5 | 4.3.4 |
@@ -120,6 +158,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <details open>
 <summary>📦 Klikk&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
+
+**Package name:** `com.angel.klikk`
 
 **🎯 Supported versions:**
 
@@ -139,6 +179,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <summary>📦 Chorki&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
+**Package name:** `com.prothomalo`
+
 **🎯 Supported versions:**
 
 | 2.4.3 |
@@ -157,6 +199,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <summary>📦 Chorki TV&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
+**Package name:** `com.prothomalo.chorki`
+
 **🎯 Supported versions:**
 
 | 2.0.90 | 2.0.88 |
@@ -174,6 +218,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <summary>📦 Kabbik&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
+**Package name:** `com.kabbik.app`
+
 **🎯 Supported versions:**
 
 | 🧪&nbsp;1.8.2 | 🧪&nbsp;1.7.12 |
@@ -189,6 +235,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <details open>
 <summary>📦 Klikk&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
+
+**Package name:** `com.angel.klikk.tv`
 
 **🎯 Supported versions:**
 
@@ -208,6 +256,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <summary>📦 IScreen Tv&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
+**Package name:** `com.rockstreamer.iscreentv`
+
 **🎯 Supported versions:**
 
 | 4.4.4 | 4.4.1 | 4.3.8 | 4.2.9 | 4.2.0 | 4.1.32 |
@@ -226,6 +276,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <summary>📦 DeeptoPlay&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
+**Package name:** `com.gotipath.deeptotv`
+
 **🎯 Supported versions:**
 
 | 2.2.10 |
@@ -241,6 +293,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <details open>
 <summary>📦 DeeptoTV&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
+
+**Package name:** `com.gotipath.deeptotvapp`
 
 **🎯 Supported versions:**
 
@@ -258,6 +312,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <summary>📦 IScreen&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
+**Package name:** `com.rockstreamer.iscreen`
+
 **🎯 Supported versions:**
 
 | 2.2.51 | 2.2.50 | 2.2.41 | 2.2.31 | 2.2.15 | 2.2.7 |
@@ -274,6 +330,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 <details open>
 <summary>📦 Toffee&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
+
+**Package name:** `com.banglalink.toffee`
 
 **🎯 Supported versions:**
 

@@ -35,7 +35,6 @@ class ContentDetailsInterceptor : Interceptor {
 
         if (!intercept(request, response)) return response
         response.closeQuietly()
-        Logger.printInfo { "intercepted content details request: $request" }
 
         val systemId = request.url.pathSegments.last()
         Logger.printDebug { "systemId: $systemId" }

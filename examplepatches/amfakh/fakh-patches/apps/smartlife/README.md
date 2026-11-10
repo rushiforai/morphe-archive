@@ -15,18 +15,18 @@ of them.
 |---|---|---|---|
 | Layout | Hide Plus button | Smart Life, Tuya Smart | Removes the "Plus" pill from the home header. |
 | Layout | Hide Recommended for you | Smart Life, Tuya Smart | Removes the "Recommended for You" section and its cards from the home screen. |
-| Layout | Hide AI ask bar | Smart Life, Tuya Smart | Removes the "How can I help?" Tuya AI bar above the bottom navigation. |
-| Layout | Hide Explore tab | Smart Life, Tuya Smart | Removes the Explore tab from the bottom navigation. |
+| Layout | Hide AI ask bar | Smart Life, Tuya Smart | Removes the "How can I help?" Tuya AI bar above the navigation bar. |
+| Layout | Hide Explore tab | Smart Life, Tuya Smart | Removes the Explore tab from the navigation bar. |
 | Layout | Hide Rewards Hub | Smart Life, Tuya Smart | Removes the "Rewards Hub" row and its banner from the Me tab. |
 | Layout | Hide My Orders | Smart Life, Tuya Smart | Removes the "My Orders" row from the Me tab. |
 | Layout | Hide Tuya AI Web Version | Smart Life, Tuya Smart | Removes the "Tuya AI Web Version" row from the Me tab. |
-| Layout | Hide Mall tab | BARDI | Removes the Mall tab from the bottom navigation. |
+| Layout | Hide Mall tab | BARDI | Removes the Mall tab from the navigation bar. |
 | Layout | Hide Me banner | BARDI | Removes the "Enjoy Your Smart Life" banner and its ad slot from the Me tab. |
 | Layout | Hide App Mall | BARDI | Removes the "App Mall" row from the Me tab. |
 | Privacy | Hide ads | Smart Life, Tuya Smart | Removes the ad banners and the AdMob ad entry. |
-| Privacy | Disable analytics | Smart Life, Tuya Smart | Stops AppsFlyer from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics and Sessions. Tuya's own usage statistics stay on. |
+| Privacy | Disable analytics | Smart Life, Tuya Smart | Stops AppsFlyer from tracking installs and in-app events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. Tuya's own usage statistics stay on. |
 | Feature | Spoof signature | all | Lets the patched app start. Without it the app's integrity check closes it a few seconds after it opens. |
-| Feature | GmsCore support | all | Makes "Sign in with Google" and location work through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services, so it needs microG RE installed and signed in. Off by default. |
+| Feature | GmsCore support | all | Makes "Sign in with Google" and location work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
 
 The layout patches, Hide ads, Disable analytics and Spoof signature are on by default.
 

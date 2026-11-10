@@ -11,8 +11,9 @@ import android.view.MenuItem;
  * The problem report's own screen: "Report" and the app's name in the launcher, also opened from the row in
  * Maps' Settings and from the crash and safe-mode notifications. It runs in its own process
  * (":morphe_report"), where the patch skips Maps' start, so it opens even when Maps crashes while
- * starting or in Settings. It shows {@link ReportPatch}'s GitHub link, report list and feature switches,
- * with the patch and Google Maps versions under its title.
+ * starting or in Settings. It shows {@link ReportPatch}'s GitHub link, update status, report list and feature
+ * switches, with the patch and Google Maps versions under its title; the update notification opens it with
+ * {@link UpdateCheck}'s dialog.
  */
 @SuppressWarnings("unused")
 public final class ReportActivity extends Activity {
@@ -42,6 +43,20 @@ public final class ReportActivity extends Activity {
         }
         ReportUploader.start(getApplicationContext());
         refresh = ReportPatch.attachScreen(this);
+        // The update notification opens this screen with the update dialog over it; Recents replays that intent, so not then.
+        Intent intent = getIntent();
+        if (savedInstanceState == null && UpdateCheck.ACTION_SHOW.equals(intent.getAction())
+                && (intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0) {
+            UpdateCheck.show(this, null);
+        }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        // The screen is single-task: the notification reaches an open one here.
+        setIntent(intent);
+        if (UpdateCheck.ACTION_SHOW.equals(intent.getAction())) UpdateCheck.show(this, null);
     }
 
     @Override

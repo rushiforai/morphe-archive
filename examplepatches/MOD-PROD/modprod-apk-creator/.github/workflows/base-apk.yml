@@ -1,0 +1,83 @@
+name: APK de base
+
+# Compile les APK de base (sources au format Apktool M) et les publie dans la release « base-apk ».
+# Ce sont ces APK que Morphe Manager transforme avec les patches.
+#   base-app/apk-src → apk-base.apk  (patches « ModProd App » et « ModProd Réglages »)
+#   base-app/atv-src → atv-base.apk  (patch « ATV Launcher »)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'base-app/apk-src/**'
+      - 'base-app/atv-src/**'
+      - '.github/workflows/base-apk.yml'
+      - '.github/scripts/apktool_json_to_yml.py'
+
+permissions:
+  contents: write
+
+env:
+  APKTOOL_VERSION: '2.12.1'
+
+jobs:
+  build:
+    name: Compiler ${{ matrix.apk }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - src: base-app/apk-src
+            apk: apk-base.apk
+          - src: base-app/atv-src
+            apk: atv-base.apk
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Télécharger Apktool
+        run: |
+          curl -sSL -o apktool.jar \
+            "https://github.com/iBotPeaches/Apktool/releases/download/v${APKTOOL_VERSION}/apktool_${APKTOOL_VERSION}.jar"
+
+      - name: Préparer les sources (apktool.json → apktool.yml)
+        run: |
+          cp -r "${{ matrix.src }}" build-src
+          python3 .github/scripts/apktool_json_to_yml.py build-src "$APKTOOL_VERSION"
+
+      - name: Compiler
+        run: java -jar apktool.jar b build-src -o unsigned.apk
+
+      - name: Aligner et signer (clé de test)
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          "$BT/zipalign" -p -f 4 unsigned.apk aligned.apk
+          keytool -genkeypair -keystore test.jks -storepass android -keypass android \
+            -alias base -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=APK Base"
+          "$BT/apksigner" sign --ks test.jks --ks-pass pass:android --out "${{ matrix.apk }}" aligned.apk
+          "$BT/apksigner" verify "${{ matrix.apk }}"
+          "$BT/aapt2" dump badging "${{ matrix.apk }}" | head -3
+
+      - name: Publier dans la release « base-apk »
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view base-apk >/dev/null 2>&1 || \
+            gh release create base-apk --title "APK de base" --prerelease \
+              --notes "APK de base à transformer avec Morphe Manager : apk-base.apk (ModProd App) et atv-base.apk (ATV Launcher)."
+          gh release upload base-apk "${{ matrix.apk }}" --clobber
+
+      - name: Artefact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.apk }}
+          path: ${{ matrix.apk }}

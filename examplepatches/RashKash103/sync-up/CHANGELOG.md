@@ -1,3 +1,92 @@
+## [1.10.0](https://github.com/RashKash103/sync-up/compare/v1.9.4...v1.10.0) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* Do not let a credit or an icon stop the app signing in ([7b68258](https://github.com/RashKash103/sync-up/commit/7b68258dd0fcaae513e350823e9b7198f6307bcc))
+* Give the Sync Up rows icons, plainer wording and a credit ([8c2f16d](https://github.com/RashKash103/sync-up/commit/8c2f16ddbeb61eec684e037c62077be6a2f12c77))
+* Keep the client credentials and the account PIN out of Sync's backup ([2f764e1](https://github.com/RashKash103/sync-up/commit/2f764e163ff502edcda486909a18a67aa3f948a1))
+* Keep to methods every supported Android has ([c15b8b6](https://github.com/RashKash103/sync-up/commit/c15b8b63c28858577c0b7f39f75f98c943e5ad7e))
+* Put the PIN up after the app has a window to put it on ([e210549](https://github.com/RashKash103/sync-up/commit/e210549a86a49b3e8aaa870b97a8aa8b5877c97e))
+* Stop the PIN being asked twice when changing account ([0b46629](https://github.com/RashKash103/sync-up/commit/0b46629aff92eb765dedc6689f337e12adb97184))
+* Take the PIN back off the way into the app ([1925e57](https://github.com/RashKash103/sync-up/commit/1925e57144650e32d2bb2d66194355f170705a46))
+
+### ✨ New Features
+
+* Ask for the OAuth client ID when the app has none ([fb1ed85](https://github.com/RashKash103/sync-up/commit/fb1ed8567459ca45b4c39d8dda86c2280a9db09e))
+* Ask for the PIN when the app opens, or instead of a fingerprint ([8c471d8](https://github.com/RashKash103/sync-up/commit/8c471d8f66f1d564eaccd4614af563ce4ce62242))
+* Ask for the PIN when the app opens, over a screen it has built ([a1b27d5](https://github.com/RashKash103/sync-up/commit/a1b27d51c14f713f729e428dd79f96d520c89057))
+* Lock an account with a PIN ([42e0e20](https://github.com/RashKash103/sync-up/commit/42e0e209b9b18d73dd2baad27713072fa6689e2f))
+* Set the client id, redirect URI and user agent in the app ([7ed1ff6](https://github.com/RashKash103/sync-up/commit/7ed1ff6d87f0d4ffd319cb8fe44001992430714b))
+* Show the feed while a post is swiped away ([e42431f](https://github.com/RashKash103/sync-up/commit/e42431f179bee2faef380af217bf47f17491a290))
+
+## [1.10.0-dev.11](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.10...v1.10.0-dev.11) (2026-11-08)
+
+## [1.10.0-dev.10](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.9...v1.10.0-dev.10) (2026-11-07)
+
+### ✨ New Features
+
+* Show the feed while a post is swiped away ([e42431f](https://github.com/RashKash103/sync-up/commit/e42431f179bee2faef380af217bf47f17491a290))
+
+## [1.10.0-dev.9](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.8...v1.10.0-dev.9) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* Keep to methods every supported Android has ([c15b8b6](https://github.com/RashKash103/sync-up/commit/c15b8b63c28858577c0b7f39f75f98c943e5ad7e))
+
+## [1.10.0-dev.8](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.7...v1.10.0-dev.8) (2026-11-07)
+
+### 🐛 Bug Fixes
+
+* Do not let a credit or an icon stop the app signing in ([7b68258](https://github.com/RashKash103/sync-up/commit/7b68258dd0fcaae513e350823e9b7198f6307bcc))
+
+## [1.10.0-dev.7](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.6...v1.10.0-dev.7) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* Stop the PIN being asked twice when changing account ([0b46629](https://github.com/RashKash103/sync-up/commit/0b46629aff92eb765dedc6689f337e12adb97184))
+
+## [1.10.0-dev.6](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.5...v1.10.0-dev.6) (2026-11-06)
+
+### ✨ New Features
+
+* Ask for the PIN when the app opens, over a screen it has built ([a1b27d5](https://github.com/RashKash103/sync-up/commit/a1b27d51c14f713f729e428dd79f96d520c89057))
+
+## [1.10.0-dev.5](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.4...v1.10.0-dev.5) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* Take the PIN back off the way into the app ([1925e57](https://github.com/RashKash103/sync-up/commit/1925e57144650e32d2bb2d66194355f170705a46))
+
+## [1.10.0-dev.4](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.3...v1.10.0-dev.4) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* Put the PIN up after the app has a window to put it on ([e210549](https://github.com/RashKash103/sync-up/commit/e210549a86a49b3e8aaa870b97a8aa8b5877c97e))
+
+## [1.10.0-dev.3](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.2...v1.10.0-dev.3) (2026-11-06)
+
+### ✨ New Features
+
+* Ask for the PIN when the app opens, or instead of a fingerprint ([8c471d8](https://github.com/RashKash103/sync-up/commit/8c471d8f66f1d564eaccd4614af563ce4ce62242))
+
+## [1.10.0-dev.2](https://github.com/RashKash103/sync-up/compare/v1.10.0-dev.1...v1.10.0-dev.2) (2026-11-06)
+
+### 🐛 Bug Fixes
+
+* Give the Sync Up rows icons, plainer wording and a credit ([8c2f16d](https://github.com/RashKash103/sync-up/commit/8c2f16ddbeb61eec684e037c62077be6a2f12c77))
+* Keep the client credentials and the account PIN out of Sync's backup ([2f764e1](https://github.com/RashKash103/sync-up/commit/2f764e163ff502edcda486909a18a67aa3f948a1))
+
+### ✨ New Features
+
+* Ask for the OAuth client ID when the app has none ([fb1ed85](https://github.com/RashKash103/sync-up/commit/fb1ed8567459ca45b4c39d8dda86c2280a9db09e))
+
+## [1.10.0-dev.1](https://github.com/RashKash103/sync-up/compare/v1.9.4...v1.10.0-dev.1) (2026-11-05)
+
+### ✨ New Features
+
+* Lock an account with a PIN ([42e0e20](https://github.com/RashKash103/sync-up/commit/42e0e209b9b18d73dd2baad27713072fa6689e2f))
+* Set the client id, redirect URI and user agent in the app ([7ed1ff6](https://github.com/RashKash103/sync-up/commit/7ed1ff6d87f0d4ffd319cb8fe44001992430714b))
+
 ## [1.9.4](https://github.com/RashKash103/sync-up/compare/v1.9.3...v1.9.4) (2026-10-31)
 
 ### 🐛 Bug Fixes

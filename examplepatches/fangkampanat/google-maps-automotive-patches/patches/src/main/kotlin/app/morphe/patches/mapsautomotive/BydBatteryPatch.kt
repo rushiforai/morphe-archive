@@ -23,6 +23,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -44,6 +45,8 @@ private const val OEM_ENERGY_AUTHORITY = "google_maps_energy"
 private const val CAR_ENERGY_PERMISSION = "android.car.permission.CAR_ENERGY"
 private const val MVI_START_TRACE = "start MVI listener: "
 private const val OEM_NULL_STREAM = "OEM ContentProvider returned null InputStream"
+private const val FORECAST_SENDER_DUMP = "MviEnergyForecastSenderImpl:"
+private const val EXECUTOR_EXECUTE = "Ljava/util/concurrent/Executor;->execute(Ljava/lang/Runnable;)V"
 private const val STRING = "Ljava/lang/String;"
 private const val URI = "Landroid/net/Uri;"
 private const val INPUT_STREAM = "Ljava/io/InputStream;"
@@ -65,6 +68,9 @@ private val bydBatteryMethods = mapOf(
     "resolveProvider" to (resolveProviderReference.parameterTypes.map { it.toString() } to resolveProviderReference.returnType),
     "ownsEnergyModel" to (listOf(URI) to "Z"),
     "openEnergyModel" to (listOf(URI) to INPUT_STREAM),
+    "forecastListener" to (listOf("Z") to "Z"),
+    "forecastIntercept" to (emptyList<String>() to "Z"),
+    "captureForecast" to (listOf("[B") to "V"),
 )
 
 private fun Instruction.stringValue() = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
@@ -141,6 +147,7 @@ val bydBatteryPatch = bytecodePatch(
         redirectEnergyModelListener()
         acceptOwnEnergyProvider()
         readOwnEnergyModel()
+        captureEnergyForecast()
         useArrivalBattery()
         IncludedFeatures.settingsRows += BYD_BATTERY_CLASS
         IncludedFeatures.features += "byd_battery"
@@ -389,6 +396,108 @@ private fun BytecodePatchContext.readOwnEnergyModel() {
         ExternalLabel("morphe_stream_opened", code[open + 2]),
     )
     bydLogger.info("OEM listener read: $read (stream open at $open, uri v$uriRegister, result v$resultRegister)")
+}
+
+// Maps' energy forecast (battery on arrival per stop during guidance) goes to the OEM through a sender that writes
+// content://google_maps_energy/forecast with CAR_ENERGY. Its factory creates the sender and the guidance listener only
+// when its boolean parameter is true (a BEV outside the system user), so DiLink builds no forecast. When BYD battery is on:
+// the factory creates them, and the sender hands each forecast's bytes to the extension and returns before anything is
+// written (BYD's DiCarServer declares google_maps_energy; nothing may reach the car). Both hooks or neither: every anchor
+// is checked before either method changes.
+private fun BytecodePatchContext.captureEnergyForecast() {
+    val dumps = mapsMethods { it.hasString(FORECAST_SENDER_DUMP) }
+    val dump = dumps.singleOrNull()
+        ?: throw PatchException("Expected one energy forecast sender dump, found ${dumps.joinToString()}")
+    val sender = classDefByOrNull(dump.definingClass)
+        ?: throw PatchException("Missing energy forecast sender ${dump.definingClass}")
+
+    // The sending method: one parameter (the forecast), CAR_ENERGY checked, the write posted to an executor.
+    val sends = sender.methods.filter {
+        it.implementation != null && it.returnType == "V" && it.parameterTypes.size == 1 &&
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.hasString(CAR_ENERGY_PERMISSION) &&
+            it.implementation!!.instructions.any { instruction -> memberKey(instruction) == EXECUTOR_EXECUTE }
+    }
+    val send = sends.singleOrNull()
+        ?: throw PatchException("Expected one forecast send in ${sender.type}, found ${sends.joinToString()}")
+    val forecastType = send.parameterTypes.single().toString()
+    val declared = sender.interfaces.mapNotNull { classDefByOrNull(it) }.filter { type ->
+        type.methods.any { it.name == send.name && it.parameterTypes.map { p -> p.toString() } == listOf(forecastType) }
+    }
+    if (declared.size != 1) throw PatchException("${send.name}($forecastType) is not the sender interface's method in ${sender.type}")
+
+    // The serializer: the ()[B method the dump calls on the sender's field of the forecast type.
+    val dumpInstructions = dump.implementation!!.instructions.toList()
+    val serializers = dumpInstructions.indices.mapNotNull { index ->
+        val read = dumpInstructions[index]
+        val field = (read as? ReferenceInstruction)?.reference as? FieldReference
+        val call = dumpInstructions.getOrNull(index + 1)
+        val reference = call?.methodRef()
+        if (read.opcode != Opcode.IGET_OBJECT || field?.definingClass != sender.type || field.type != forecastType ||
+            call?.opcode != Opcode.INVOKE_VIRTUAL || reference == null || reference.returnType != "[B" ||
+            reference.parameterTypes.isNotEmpty() || call.registerList() != listOf((read as OneRegisterInstruction).registerA)
+        ) {
+            null
+        } else {
+            reference
+        }
+    }.distinctBy { "${it.definingClass}->${it.name}" }
+    val serializer = serializers.singleOrNull()
+        ?: throw PatchException("Expected one forecast serializer in $dump, found ${serializers.joinToString()}")
+    var type = classDefByOrNull(forecastType)
+    while (type != null && type.type != serializer.definingClass) type = type.superclass?.let { classDefByOrNull(it) }
+    if (type == null) throw PatchException("$serializer is not a method of $forecastType or its superclasses")
+
+    // The factory: the one method creating the sender, starting with a branch on its one boolean parameter.
+    val factories = mapsMethods { method ->
+        method.implementation!!.instructions.any {
+            it.opcode == Opcode.NEW_INSTANCE && ((it as ReferenceInstruction).reference as? TypeReference)?.type == sender.type
+        }
+    }
+    val factory = factories.singleOrNull()
+        ?: throw PatchException("Expected one factory of ${sender.type}, found ${factories.joinToString()}")
+    val switches = factory.parameterTypes.indices.filter { factory.parameterTypes[it].toString() == "Z" }
+    val switchIndex = switches.singleOrNull() ?: throw PatchException("Expected one boolean parameter in $factory")
+    val sizes = factory.parameterTypes.map { if (it.toString() == "J" || it.toString() == "D") 2 else 1 }
+    val isStatic = AccessFlags.STATIC.isSet(factory.accessFlags)
+    val firstParameter = factory.implementation!!.registerCount - sizes.sum() - if (isStatic) 0 else 1
+    val switchRegister = firstParameter + sizes.take(switchIndex).sum() + if (isStatic) 0 else 1
+    val first = factory.implementation!!.instructions.first()
+    if (first.opcode !in setOf(Opcode.IF_EQZ, Opcode.IF_NEZ) || (first as OneRegisterInstruction).registerA != switchRegister) {
+        throw PatchException("$factory does not start by checking its boolean parameter")
+    }
+
+    // The send method's registers: locals first, then this and the forecast. At its first instruction every local is free.
+    val sendImplementation = send.implementation!!
+    val forecastRegister = sendImplementation.registerCount - 1
+    if (sendImplementation.registerCount < 3 || forecastRegister > 15) {
+        throw PatchException("Unexpected registers in $send: ${sendImplementation.registerCount}")
+    }
+
+    mutableMethodOf(factory).addInstructions(
+        0,
+        """
+            invoke-static/range { v$switchRegister .. v$switchRegister }, $BYD_BATTERY_CLASS->forecastListener(Z)Z
+            move-result v$switchRegister
+        """.trimIndent(),
+    )
+    val mutableSend = mutableMethodOf(send)
+    mutableSend.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static {}, $BYD_BATTERY_CLASS->forecastIntercept()Z
+            move-result v0
+            if-eqz v0, :morphe_forecast_send
+            invoke-virtual { v$forecastRegister }, ${serializer.definingClass}->${serializer.name}()[B
+            move-result-object v0
+            invoke-static { v0 }, $BYD_BATTERY_CLASS->captureForecast([B)V
+            return-void
+        """.trimIndent(),
+        ExternalLabel("morphe_forecast_send", mutableSend.implementation!!.instructions[0]),
+    )
+    bydLogger.info(
+        "Energy forecast: factory $factory (switch v$switchRegister), sender $send (forecast v$forecastRegister, " +
+            "serializer ${serializer.definingClass}->${serializer.name})",
+    )
 }
 
 // The stub provider that owns our energy-model authority (see BydEnergyModelProvider).

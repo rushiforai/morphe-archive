@@ -1,0 +1,162 @@
+{
+  "source": "README.md 機能表",
+  "pages": [
+    "広告",
+    "Agent i・LINE AI",
+    "表示を消す",
+    "既読",
+    "一般"
+  ],
+  "features": [
+    {
+      "page": "広告",
+      "title": "Smart Channel の広告を表示しない",
+      "defaultOn": true,
+      "description": "トーク一覧上部の Smart Channel を表示しません。"
+    },
+    {
+      "page": "広告",
+      "title": "ホーム内の広告を表示しない",
+      "defaultOn": true,
+      "description": "ホームの広告枠とフィード内の広告カードを表示しません。"
+    },
+    {
+      "page": "Agent i・LINE AI",
+      "title": "ホーム上部の Agent i を表示しない",
+      "defaultOn": true,
+      "description": ""
+    },
+    {
+      "page": "Agent i・LINE AI",
+      "title": "ウォレット上部の Agent i を表示しない",
+      "defaultOn": true,
+      "description": ""
+    },
+    {
+      "page": "Agent i・LINE AI",
+      "title": "トーク一覧の検索欄の Agent i を表示しない",
+      "defaultOn": true,
+      "description": "検索欄がその分だけ広がります。"
+    },
+    {
+      "page": "Agent i・LINE AI",
+      "title": "チャット情報の Agent i を表示しない",
+      "defaultOn": true,
+      "description": ""
+    },
+    {
+      "page": "Agent i・LINE AI",
+      "title": "チャット入力欄の Agent i を表示しない",
+      "defaultOn": true,
+      "description": "入力欄の Agent i と AI の返信提案を表示しません。"
+    },
+    {
+      "page": "Agent i・LINE AI",
+      "title": "メッセージ長押しメニューの LINE AI を表示しない",
+      "defaultOn": true,
+      "description": "画像メッセージ横の LINE AI ボタンも消えます。"
+    },
+    {
+      "page": "Agent i・LINE AI",
+      "title": "写真・動画表示画面の LINE AI を表示しない",
+      "defaultOn": true,
+      "description": ""
+    },
+    {
+      "page": "Agent i・LINE AI",
+      "title": "設定画面の Agent i を表示しない",
+      "defaultOn": true,
+      "description": ""
+    },
+    {
+      "page": "表示を消す",
+      "title": "VOOM / ショッピング / ニュース / ウォレット / アプリ を表示しない",
+      "defaultOn": false,
+      "description": "下部タブから取り除きます。"
+    },
+    {
+      "page": "表示を消す",
+      "title": "AI Friends / カレンダー / オープンチャット を表示しない",
+      "defaultOn": false,
+      "description": "トーク一覧上部のアイコンを表示しません。"
+    },
+    {
+      "page": "表示を消す",
+      "title": "カレンダー / LINE ギフト / LINE Pay を表示しない",
+      "defaultOn": false,
+      "description": "トークの ＋ メニューから取り除きます。"
+    },
+    {
+      "page": "表示を消す",
+      "title": "おすすめ / 話題 / ホームの投稿カード / 特集枠 / 最近の履歴 を表示しない",
+      "defaultOn": false,
+      "description": "ホームの各枠を表示しません。"
+    },
+    {
+      "page": "既読",
+      "title": "既読をつけずに読むをメニューに追加",
+      "defaultOn": false,
+      "description": "長押しメニュー（スクロールプレビューではプレビューのメニュー）から開いたトークは未読を維持します。受信メッセージごとの手動既読と、現在のトークの全体既読ボタンを表示します。既定では送信すると既読になります。"
+    },
+    {
+      "page": "既読",
+      "title": "通知から既読をつけずに開く",
+      "defaultOn": false,
+      "description": "通知から開いた通常トークにも、未読維持と手動既読ボタンを適用します。既定では送信すると既読になります。メニューの設定とは独立です。"
+    },
+    {
+      "page": "既読",
+      "title": "送信しても既読を有効にしない",
+      "defaultOn": false,
+      "description": "既読なしで開いたトークでは送信後も抑制を維持します。閲覧・返信と相手側の既読表示が一致せず、誤解やトラブルにつながる可能性があります。"
+    },
+    {
+      "page": "既読",
+      "title": "通常チャットの自動既読を停止",
+      "defaultOn": false,
+      "description": "通常のトークでは手動の既読操作だけ送信します。既読なし閲覧中でも、送信後も無効にする設定が OFF なら送信時の既読反映を一回許可します。オープンチャットなどは対象外です。"
+    },
+    {
+      "page": "一般",
+      "title": "Premium の案内を表示しない",
+      "defaultOn": false,
+      "description": "送信取消時の LINE Premium の案内を表示しません。"
+    },
+    {
+      "page": "一般",
+      "title": "設定のプレミアムを表示しない",
+      "defaultOn": false,
+      "description": "LINE の設定画面のプレミアムの行を表示しません。"
+    },
+    {
+      "page": "一般",
+      "title": "プレビューの Premium の案内を表示しない",
+      "defaultOn": false,
+      "description": "スクロールプレビューにある LINE Premium の案内とメニューの行を表示しません。「画面をスクロールできます」の案内は残ります。"
+    },
+    {
+      "page": "一般",
+      "title": "プレビューをスクロール可能にする",
+      "defaultOn": false,
+      "description": "長押しで開いたトークのプレビューをスクロール可能にします。プレビュー自体の提供条件は変更しません。再起動後に反映されます。"
+    },
+    {
+      "page": "一般",
+      "title": "リンクを外部ブラウザで開く",
+      "defaultOn": false,
+      "description": "トーク本文の http / https のリンクを端末のブラウザで開きます。ログインや決済のリンクは元のままです。"
+    },
+    {
+      "page": "一般",
+      "title": "アプリを閉じていても通知を受け取る",
+      "defaultOn": true,
+      "description": "下記を参照してください。"
+    },
+    {
+      "page": "一般",
+      "title": "MicroG-RE で Google ログインとバックアップを行う",
+      "defaultOn": true,
+      "description": "下記を参照してください。"
+    }
+  ]
+}

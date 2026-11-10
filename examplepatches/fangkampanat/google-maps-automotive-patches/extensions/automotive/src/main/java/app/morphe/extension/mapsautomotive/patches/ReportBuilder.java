@@ -43,13 +43,16 @@ import app.morphe.extension.shared.Utils;
  * and the feature switches, Maps Car's own logs of the last 3 days with the main process's logcat
  * warnings and errors ({@link StartLogcat}, from 0.1.2), up to three different crash files (with their
  * process's logcat warnings and errors from 0.1.1), an index of all crashes, on Android 11 and newer
- * the processes' last exits ({@link ExitReasons}), and, at Send, the comment and the consent. Every
+ * the processes' last exits ({@link ExitReasons}), and, at Send, the comment and the consent. From
+ * 0.1.6 also the setup state for Send to car ({@link ReportDiagnostics}): battery optimization of the
+ * app and MicroG-RE, the push token count, the network and the boot time. Every
  * string is redacted ({@link ReportRedactor}) before the preview, and
  * the body is cut to the size limit before the preview too, so the preview shows what is sent. Runs
- * off the main thread; reads only state the extension already holds, never the car again.
+ * off the main thread; reads state the extension already holds, never the car again, and (from 0.1.6)
+ * Maps' push token store and Android's power and network services.
  */
 final class ReportBuilder {
-    static final int SCHEMA = 1, CONSENT_TEXT_VERSION = 6, MAX_COMMENT_CHARS = 2000;
+    static final int SCHEMA = 1, CONSENT_TEXT_VERSION = 9, MAX_COMMENT_CHARS = 2000;
     /** The main process's last battery and window state is saved at most this often, unless asked for at once. */
     private static final long SNAPSHOT_EVERY_MS = 60 * 1000;
     private static long snapshotAt;
@@ -126,6 +129,8 @@ final class ReportBuilder {
                 .put("provider", provider(context))
                 .put("device", device(context))
                 .put("setup", setup(context))
+                .put("push", ReportDiagnostics.push(context))
+                .put("network", ReportDiagnostics.network(context))
                 .put("byd", orNull(BydBatteryPatch.reportByd(context)))
                 .put("battery", !SafeMode.included(SafeMode.BYD_BATTERY) ? JSONObject.NULL
                         : reportProcess ? fromSnapshot(snapshot, "battery") : BydBatteryPatch.reportBattery(context))
@@ -260,7 +265,8 @@ final class ReportBuilder {
                 .put("signer_sha256_16", orNull(info != null ? CrashLogPatch.getSignatureHash(info.signatures) : null))
                 .put("patches", new JSONArray(SafeMode.patchNames()))
                 .put("process", SafeMode.isReportProcess() ? "report" : "main")
-                .put("process_uptime_s", Math.max(0, (SystemClock.elapsedRealtime() - Process.getStartElapsedRealtime()) / 1000));
+                .put("process_uptime_s", Math.max(0, (SystemClock.elapsedRealtime() - Process.getStartElapsedRealtime()) / 1000))
+                .put("battery_optimization_exempt", ReportDiagnostics.batteryOptimizationExempt(context, context.getPackageName()));
         return app;
     }
 
@@ -270,7 +276,8 @@ final class ReportBuilder {
         if (info != null) {
             provider.put("version_name", orNull(info.versionName))
                     .put("version_code", info.getLongVersionCode())
-                    .put("signer_sha256_16", orNull(CrashLogPatch.getSignatureHash(info.signatures)));
+                    .put("signer_sha256_16", orNull(CrashLogPatch.getSignatureHash(info.signatures)))
+                    .put("battery_optimization_exempt", ReportDiagnostics.batteryOptimizationExempt(context, PROVIDER_PACKAGE));
         }
         return provider;
     }
@@ -327,6 +334,7 @@ final class ReportBuilder {
                 .put("ui_mode_type", uiModeType(system))
                 .put("night", night(system)));
         device.put("page_size", pageSize()).put("platform", platform(context));
+        ReportDiagnostics.putBoot(device);
         return device;
     }
 
@@ -427,6 +435,7 @@ final class ReportBuilder {
                 .put("density_default_dpi", UiDensityPatch.defaultDensityDpi(context))
                 .put("density_applied_dpi", screen.densityDpi > 0 ? screen.densityDpi : JSONObject.NULL)
                 .put("driver_side", DriverSide.report(context))
+                .put("color_scheme", ColorScheme.report(context))
                 .put("buildings_3d", SafeMode.included(SafeMode.BUILDINGS_3D) ? Buildings3d.report() : JSONObject.NULL)
                 .put("window", window);
     }

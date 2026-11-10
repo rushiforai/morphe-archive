@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -434,7 +435,11 @@ public final class Originals {
             }
 
             List<String> oldest = new ArrayList<>(all.keySet());
-            oldest.sort((one, other) -> Long.compare(at(all.get(one)), at(all.get(other))));
+            // Collections.sort rather than List.sort, which arrived in API 24 and throws
+            // below it. This runs inside a catch of Exception, which an Error walks straight
+            // through, so it would take the app down rather than leave the store untrimmed.
+            Collections.sort(oldest,
+                    (one, other) -> Long.compare(at(all.get(one)), at(all.get(other))));
 
             for (int dropped = 0; dropped < DROPPED_AT_ONCE && dropped < oldest.size(); dropped++) {
                 forget(oldest.get(dropped));

@@ -88,9 +88,8 @@ ON へ変更した瞬間に attach 済みの UI を強制的に remove しない
 - 投稿の取得、既読、いいね、フォロー状態
 - 友だち追加の実処理
 - Home の他 module の順序と object identity
-- 下部タブの VOOM 設定
 
-Tabs の VOOM 設定は下部タブ item の除去であり、この feature とは独立している。
+下部タブの VOOM は、サービス終了に伴い設定なしで常に取り除く。この feature は下部タブとは独立している。
 
 ## Premium 設定行
 

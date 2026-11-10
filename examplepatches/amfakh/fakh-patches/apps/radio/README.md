@@ -14,7 +14,7 @@ All of them are enabled by default. Morphe Manager groups them by category.
 | Premium | Premium unlock | Unlocks the lifetime premium client-side: no visual ads, and the music equalizer (EQ button in the mini player). Also keeps every ad network from starting at all, so none of them runs in the background. |
 | Privacy | Disable data collection SDKs | Stops the SDKs that collect location, Wi-Fi and mobile network data to sell or share with third parties. |
 | Privacy | Disable analytics | Turns off Firebase Analytics, Crashlytics, Performance and Sessions, and the Facebook SDK. |
-| Theme | Material You | Colors the app from your wallpaper (Android 12+) in light and dark mode, with rounder cards and wider spacing. Adds a floating now playing bar, a Material 3 bottom bar, and a redesigned full player with scrolling titles and the station logo as artwork when a song has none. |
+| Theme | Material You | Colors the app from your wallpaper (Android 12+) in light and dark mode, with rounder cards and wider spacing. Adds a floating now playing bar, a Material 3 navigation bar, and a redesigned full player with scrolling titles and the station logo as artwork when a song has none. |
 
 The media notification patch adds a small extension class to the app. It downloads the artwork
 the station already publishes for the current song, scales it down and hands it to the media

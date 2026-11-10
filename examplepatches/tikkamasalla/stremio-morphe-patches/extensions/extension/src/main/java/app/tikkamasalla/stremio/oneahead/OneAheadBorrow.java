@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 public final class OneAheadBorrow {
     static final double PEAK = 0.5, AGREE_S = 0.25, EDGE_S = 30, ANCHOR_S = 30, SLACK_S = 3, CLEAR_S = 15,
             CLUSTER = 0.08, EOF_S = 2, INTRO_ANCHOR = 0.65, CREDITS_ANCHOR = 0.35;
+    static final double INTRO_START_TRIM_S = 2, CREDITS_START_TRIM_S = 3, CREDITS_END_TRIM_S = 10;
+    static final double DETECTOR_AGREE_S = 15;
     static final int MAX_DONORS = 5;
     private static final int MIN_WINDOW = 6 * Track.SR;
     private static final double[] INTRO_SPOTS = {0.65, 0.60, 0.70, 0.55}, CREDITS_SPOTS = {0.35, 0.30, 0.40, 0.45};
@@ -217,7 +219,6 @@ public final class OneAheadBorrow {
         if (spot < 0) return no("no-anchor-spot");
         Lock far = lock(donor, spot, ANCHOR_S, target, lo, hi, c);
         if (far == null || far.peak < PEAK) return no("anchor");
-        if (Math.abs(far.offset - (a.offset + b.offset) / 2) > AGREE_S) return no("anchor-offset");
         double start = seg.start + a.offset, end = donorEnd + b.offset;
         // A donor chapter that simply runs out with its file says nothing about what follows on a longer one.
         if (dd - donorEnd <= EOF_S && end <= td && td - end > EOF_S) return no("end-of-file");
@@ -239,10 +240,20 @@ public final class OneAheadBorrow {
      * Tries the donors for each missing type and returns what it could prove. The target's language
      * track and each donor stay open only for this call. A cancelled read ends the run.
      */
-    static List<OneAheadResult.Segment> run(List<Donor> donors, Audio target, int season, int episode, String show,
-                                            boolean needIntro, boolean needCredits, Files files, Log log)
+    static final class Run {
+        final List<OneAheadResult.Segment> segments;
+        /** The intro came from a weak chapter name: it still needs the detector's intro to agree. */
+        final boolean weakIntro;
+        Run(List<OneAheadResult.Segment> segments, boolean weakIntro) {
+            this.segments = segments; this.weakIntro = weakIntro;
+        }
+    }
+
+    static Run run(List<Donor> donors, Audio target, int season, int episode, String show,
+                   boolean needIntro, boolean needCredits, Files files, Log log)
             throws DemuxException {
         List<OneAheadResult.Segment> out = new ArrayList<>();
+        boolean weakIntro = false;
         List<Held> held = new ArrayList<>();
         try {
             for (Donor d : donors) {
@@ -261,12 +272,12 @@ public final class OneAheadBorrow {
                 }
             }
             log.line("borrow donors=" + held.size() + " of " + donors.size());
-            if (held.isEmpty()) return out;
+            if (held.isEmpty()) return new Run(out, false);
             double[] durations = new double[held.size() + 1];
             durations[0] = target.duration();
             for (int i = 0; i < held.size(); i++) durations[i + 1] = held.get(i).audio.duration();
             List<Integer> kept = durationCluster(durations);
-            if (!kept.contains(0)) { log.line("borrow refused: target outside the duration cluster"); return out; }
+            if (!kept.contains(0)) { log.line("borrow refused: target outside the duration cluster"); return new Run(out, false); }
             Correlator c = new Correlator();
             boolean intro = needIntro, credits = needCredits;
             String usedLanguage = null;
@@ -279,19 +290,19 @@ public final class OneAheadBorrow {
                     h.audio.use(language);
                     if (!language.equals(usedLanguage)) { usedLanguage = null; target.use(language); usedLanguage = language; }
                     if (intro) {
-                        OneAheadResult.Segment s = proveType(h, target, "OP", "intro", i, c, log);
-                        if (s != null) { out.add(s); intro = false; }
+                        Cand proved = proveType(h, target, "OP", "intro", i, c, log);
+                        if (proved != null) { out.add(proved.segment); weakIntro = proved.weak; intro = false; }
                     }
                     if (credits) {
-                        OneAheadResult.Segment s = proveType(h, target, "credits", "credits", i, c, log);
-                        if (s != null) { out.add(s); credits = false; }
+                        Cand proved = proveType(h, target, "credits", "credits", i, c, log);
+                        if (proved != null) { out.add(proved.segment); credits = false; }
                     }
                 } catch (DemuxException e) {
                     if (e.kind == DemuxException.Kind.CANCELLED) throw e;
                     log.line("borrow donor " + i + " refused: " + e.kind);
                 }
             }
-            return out;
+            return new Run(out, weakIntro);
         } finally {
             for (Held h : held) h.audio.release();
         }
@@ -303,8 +314,14 @@ public final class OneAheadBorrow {
     }
 
     /** Strong names first, a weak one only when the donor has no strong one. */
-    private static OneAheadResult.Segment proveType(Held h, Audio target, String label, String type, int index,
-                                                    Correlator c, Log log) throws DemuxException {
+    private static final class Cand {
+        final OneAheadResult.Segment segment;
+        final boolean weak;
+        Cand(OneAheadResult.Segment segment, boolean weak) { this.segment = segment; this.weak = weak; }
+    }
+
+    private static Cand proveType(Held h, Audio target, String label, String type, int index,
+                                  Correlator c, Log log) throws DemuxException {
         for (boolean weak : new boolean[]{false, true}) {
             boolean any = false;
             for (Named n : h.segments) {
@@ -312,9 +329,16 @@ public final class OneAheadBorrow {
                 any = true;
                 Proof p = prove(h.audio, target, n, h.segments, c);
                 if (p.refused == null) {
+                    double s = p.start, e = p.end;
+                    if ("OP".equals(label)) s += INTRO_START_TRIM_S;
+                    else { s += CREDITS_START_TRIM_S; e -= CREDITS_END_TRIM_S; }
+                    if (e <= s) {
+                        log.line("borrow " + type + " donor " + index + " refused: trimmed-empty");
+                        return null;
+                    }
                     log.line(String.format(Locale.US, "borrow %s proved by donor %d: %.3f-%.3f (donor %.3f-%.3f)",
-                            type, index, p.start, p.end, n.start, n.end));
-                    return new OneAheadResult.Segment(type, p.start, p.end, false, OneAheadResult.BORROWED);
+                            type, index, s, e, n.start, n.end));
+                    return new Cand(new OneAheadResult.Segment(type, s, e, false, OneAheadResult.BORROWED), weak);
                 }
                 log.line("borrow " + type + " donor " + index + " refused: " + p.refused);
             }

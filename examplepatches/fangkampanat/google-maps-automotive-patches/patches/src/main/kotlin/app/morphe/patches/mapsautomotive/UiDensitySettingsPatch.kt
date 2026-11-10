@@ -23,8 +23,8 @@ import java.util.logging.Logger
 // logging VE, subtitle) is wrapped in a list item and added to a list builder; About & help is the
 // last row. A "UI density" row is built the same way, with About's row and item types, VE and
 // builder, right before About. Required: without the row the density cannot be changed.
-// "Driver side", the rows of the separate patches when included ("BYD battery", the car name for Send
-// to car) and "Report a problem" follow it, built the same way.
+// "Driver side", "Color scheme", the rows of the separate patches when included ("BYD battery", the car name for Send
+// to car), "Report a problem" and "Updates" follow it, built the same way.
 // The rows are skipped while SafeMode turns them off, so a tester can check whether they break
 // Maps' Settings on a car.
 

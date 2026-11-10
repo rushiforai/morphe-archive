@@ -160,6 +160,7 @@ public final class PortSkipPlayer implements SkipPlayer {
         hint.uri = uri;
         hint.mimeType = null;
         hint.hasRequest = false;
+        // Not the engine: the title walk over reflectionRoots stays off here. Audio is read through engine().
         hint.reflectionRoots = null;
 
         return hint;

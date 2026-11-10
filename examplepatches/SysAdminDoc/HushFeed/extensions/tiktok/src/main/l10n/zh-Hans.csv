@@ -997,7 +997,7 @@ Still reading loaded values. Try again soon.,仍在读取已加载的值，请�
 Loaded-value file export failed,加载值文件导出失败
 Loading cancelled. The list is incomplete.,加载已取消。该列表不完整.
 Loading gates…,装载门…
-Loading page %1$s...,正在加载页面%1$s.
+Loading page %1$s…,正在加载页面%1$s…
 Loading the gate list and TikTok's current values…,正在加载门列表和 TikTok 的当前值…
 Local profile counts,本地档案计数
 Local verified badge,本地验证徽章
@@ -2478,7 +2478,7 @@ Stop tapping this LIVE,停止点击此 LIVE
 Auto tap stopped,自动点击已停止
 Clean up your account,清理你的账号
 Remove all reposts,移除所有转发
-Deletes all reposts from your account sequentially.,逐一删除你账号中的所有转发.
+Removes every repost from your account one after another.,逐一删除你账号中的所有转发.
 Remove all likes,取消所有点赞
 Unlikes every video one after another.,逐个取消每个视频的点赞.
 Clear Favorites,清空收藏
@@ -2566,3 +2566,13 @@ Dismiss,忽略
 Adds a Record button to LIVE rooms. Tap it to start or stop recording. Leaving the room also stops a recording.,在直播间添加录制按钮。点击可开始或停止录制，离开直播间也会停止录制.
 Automatically record LIVEs you enter,进入直播间时自动录制
 Start recording a LIVE's stream when you enter the room. Stop won't restart it until you leave and enter again. Screen recordings still need a tap and Android's permission.,进入直播间时自动开始录制直播流。点击停止后，只有退出并重新进入该直播间才会再次录制。录屏仍需手动点击并获得 Android 授权.
+Drag handle and jump buttons on grids,网格上的拖动手柄和跳转按钮
+"On long profile, Liked and sound grids, scrolling brings up a handle you can drag through what's loaded, plus Top, Back and End buttons. Back returns to where you were.",在较长的主页、喜欢和音乐网格上，滚动时会出现可拖动浏览已加载内容的手柄，以及“顶部”“返回”“末尾”按钮。“返回”会回到你之前的位置.
+Top,顶部
+End,末尾
+Bottom bar icons,底部栏图标
+"TikTok tests more than one set of icons for the bottom bar. Pick one here, or leave it to TikTok.",TikTok 正在为底部栏测试多套图标。可在此选择一套，或交给 TikTok 决定.
+New style 1,新样式 1
+New style 2,新样式 2
+Friends in the top tabs,顶部标签显示“朋友”
+"Friends moves up to the tabs at the top of the feed, next to Following, and Discover takes its spot in the bottom bar, the way TikTok lays it out in some countries. Your region and your feed stay as they are.",“朋友”会移到信息流顶部的标签，位于“关注”旁边，“发现”则占据它在底部栏的位置，和 TikTok 在部分国家的布局一样。你的地区和信息流保持不变.

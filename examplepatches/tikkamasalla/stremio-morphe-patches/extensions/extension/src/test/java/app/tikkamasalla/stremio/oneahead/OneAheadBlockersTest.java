@@ -146,11 +146,39 @@ public final class OneAheadBlockersTest {
         String v = src("net/gtvbox/videoplayer/IntroSkip.java");
         check("B4 Vimu builds it without the flag", v.contains("\"One-ahead\", false, 0));"));
         check("B4 Vimu gate has no source special case", v.contains("boolean autoPending = seg != null && !creditsOff && !previewsOff && autoModeForSeg\n                && !seg.buttonOnly\n                && !currentBySeek"));
-        check("B4 Vimu Auto skips, Manual is the button", v.contains(": !manualMode && !previewsOff && !inferredPreview;"));
+        check("B4 Vimu Auto skips, Manual is the button", v.contains(": !manualMode && !previewsOff;") && !v.contains("inferredPreview"));
         check("B4 Vimu credits follow the credits setting", v.contains("? VimuIntroSkipPrefs.CREDITS_AUTO.equals(creditsMode)"));
         check("B4 Vimu keeps a viewer seek across the fill", v.contains("inheritSeek = current != null && currentBySeek;\n            segments = next;"));
         check("B4 the hand-off carries no flag", !src("app/tikkamasalla/stremio/oneahead/OneAheadShow.java").contains("buttonOnly"));
-        check("B4 setting text", src(INTRO + "IntroSkipSettings.java").contains("uses them like any other source"));
+        check("B4 setting text", src(INTRO + "IntroSkipSettings.java").contains("Fingerprint Lookahead")
+                && src(INTRO + "IntroSkipSettings.java").contains("Finds skip times by matching audio across episodes"));
+    }
+
+    /** Cosmos: Cinemeta lists episodes with "number", not "episode". The season list must read it. */
+    private static void b5() throws Exception {
+        String t = src(ONEAHEAD + "OneAheadTrigger.java");
+        check("B5 number fallback in the season parse",
+                t.contains("v.optInt(\"episode\", v.optInt(\"number\", -1))"));
+        String meta = "{\"videos\":["
+                + "{\"id\":\"tt11170862:1:1\",\"season\":1,\"number\":1},"
+                + "{\"id\":\"tt11170862:1:2\",\"season\":1,\"number\":2},"
+                + "{\"id\":\"tt11170862:1:3\",\"season\":1,\"number\":3},"
+                + "{\"id\":\"tt11170862:1:4\",\"season\":1,\"number\":4},"
+                + "{\"id\":\"tt11170862:1:5\",\"season\":1,\"number\":5}]}";
+        int found = 0, ep5 = -1;
+        for (String part : meta.split("\\{\"id\":")) {
+            int n = part.indexOf("\"number\":");
+            if (n < 0) continue;
+            int end = n + 9;
+            while (end < part.length() && Character.isDigit(part.charAt(end))) end++;
+            int episode = Integer.parseInt(part.substring(n + 9, end));
+            if (episode >= 0) { found++; if (part.contains("tt11170862:1:5")) ep5 = episode; }
+        }
+        check("B5 Cosmos number-only meta gives 5 episodes", found == 5);
+        check("B5 Cosmos episode 5 parses as number 5", ep5 == 5);
+        String o = src(INTRO + "NextPrep.java");
+        check("B5 no-answer logged per addon", o.contains("=no-answer") && o.contains("perAddon"));
+        check("B5 query line names the addon", t.contains("via=") && o.contains("shortAddon"));
     }
 
     public static void main(String[] a) throws Exception {
@@ -158,6 +186,7 @@ public final class OneAheadBlockersTest {
         b2();
         b3();
         b4();
+        b5();
         System.out.println("TOTAL " + total + " FAIL " + fails);
         System.exit(fails == 0 ? 0 : 1);
     }

@@ -10,36 +10,46 @@ on:
         required: true
         type: string
 
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Release
+    outputs:
+      new_release_published: ${{ steps.release.outputs.new_release_published }}
+      new_release_git_tag: ${{ steps.release.outputs.new_release_git_tag }}
     if: >-
       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
       && inputs.release_confirmation == 'APPROVE'
     permissions:
       contents: write
-      issues: write
       packages: write
       id-token: write
       attestations: write
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
 
       - name: Setup Java
-        uses: actions/setup-java@v6.1.0
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: 'temurin'
           java-version: '21'
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 'lts/*'
-          cache: 'npm'
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Validate workflow action pinning and release safeguards
+        run: python3 porting/tests/VerifyGithubActionsSecurity.py
 
       - name: Check published source baseline and metadata
         run: python3 porting/tests/VerifyReleaseBaseline.py
@@ -128,11 +138,18 @@ jobs:
         run: python3 porting/tests/VerifyQualityRegisters195.py porting/helpers-smali
       - name: Validate helper source precedence
         run: python3 porting/tests/VerifyCanonicalHelpers.py
-      - name: Install dependencies
-        run: npm ci
+      - name: Install lockfile-pinned release dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
 
-      - name: Patch bundled npm dependency
-        run: node .github/scripts/patch-bundled-undici.cjs
+      - name: Verify fixed npm release dependency
+        run: node .github/scripts/verify-release-npm.cjs
+
+      - name: Make Gradle dependency downloads resilient
+        run: |
+          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://downloads.gradle.org/distributions/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
+          sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
+          printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
 
       # A manual approval must not accidentally publish v1.11.0 if development
       # commits contain minor-release types. Preview the exact next tag first.
@@ -161,12 +178,8 @@ jobs:
           console.log('Approved release version verified: v' + expected);
           NODE
 
-      - name: Make Gradle dependency downloads resilient
-        run: |
-          sed -i 's#https\\://services.gradle.org/distributions/gradle-9.8.2-bin.zip#https\\://github.com/gradle/gradle-distributions/releases/download/v9.8.2/gradle-9.8.2-bin.zip#' gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/^networkTimeout=.*/networkTimeout=180000/' gradle/wrapper/gradle-wrapper.properties
-          sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
-          printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
+      - name: Audit release candidate source and lifecycle guards
+        run: python3 porting/revisions/v1.10.6/release-readiness-audit.py
       - name: Build and verify approved release payload
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -174,7 +187,7 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew :patches:buildAndroid --no-daemon
-          python3 porting/revisions/v1.10.5/verify-mpp.py 1.10.5
+          python3 porting/revisions/v1.10.6/verify-mpp.py 1.10.6
           python3 porting/tests/regression136.py
           python3 porting/tests/regression141.py
           python3 porting/tests/regression155.py
@@ -209,7 +222,7 @@ jobs:
 
       - name: Attest
         if: steps.release.outputs.new_release_published == 'true' && github.event.repository.private == false
-        uses: actions/attest-build-provenance@v4
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: 'Morphe Patches ${{ steps.release.outputs.new_release_git_tag }}'
           subject-path: patches/build/libs/patches-*.mpp
@@ -220,3 +233,43 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew clean :patches:buildAndroid --no-daemon
+
+  sync-dev:
+    name: Fast-forward dev after a published stable release
+    needs: release
+    if: needs.release.outputs.new_release_published == 'true' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Synchronize main to dev without rewriting history
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ needs.release.outputs.new_release_git_tag }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+            echo "::error::Unexpected stable release tag"; exit 1;
+          }
+          git fetch --prune origin main dev --tags
+          git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}" >/dev/null
+          git merge-base --is-ancestor "refs/tags/$RELEASE_TAG^{commit}" origin/main || {
+            echo "::error::The published tag is not in main"; exit 1;
+          }
+          if git merge-base --is-ancestor origin/dev origin/main; then
+            git checkout --detach origin/main
+            if git push origin HEAD:refs/heads/dev; then
+              echo "### Release branch synchronization" >> "$GITHUB_STEP_SUMMARY"
+              echo "Fast-forwarded dev to the verified main commit after $RELEASE_TAG." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "::warning::dev push blocked by branch rules or a concurrent update; manual sync required"
+              echo "### Warning: dev synchronization was blocked; manually review the branch protection or concurrent update." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "::warning::dev is not an ancestor of main; refusing rebase or force-push"
+            echo "### Warning: dev diverged from main. Review and merge deliberately; no history was rewritten." >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -12,6 +12,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.Toast;
 
+import dev.utaa.linimal.extension.i18n.LinimalText;
+
 /**
  * 「MicroG-RE で Google ログインとバックアップを行う」が ON なのに MicroG-RE がないとき、導入を案内します。
  *
@@ -63,7 +65,7 @@ final class MicrogInstallNotifier {
     private static void showToast(Context context) {
         new Handler(Looper.getMainLooper()).post(() -> {
             try {
-                Toast.makeText(context, TOAST_TEXT, Toast.LENGTH_LONG).show();
+                Toast.makeText(context, LinimalText.t(TOAST_TEXT), Toast.LENGTH_LONG).show();
             } catch (Throwable ignored) {
                 // 表示できない状態でも LINE の処理には影響させません。
             }
@@ -87,7 +89,7 @@ final class MicrogInstallNotifier {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID, "Linimal", NotificationManager.IMPORTANCE_DEFAULT);
-            channel.setDescription("Linimal の機能に必要なアプリの案内");
+            channel.setDescription(LinimalText.t("Linimal の機能に必要なアプリの案内"));
             manager.createNotificationChannel(channel);
             builder = new Notification.Builder(context, CHANNEL_ID);
         } else {
@@ -98,10 +100,10 @@ final class MicrogInstallNotifier {
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         PendingIntent pending = PendingIntent.getActivity(
                 context, 0, open, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
-        String text = "Google アカウントでのログインと、トークのバックアップ・復元には MicroG-RE が必要です。"
-                + "タップして MicroG-RE を入手し、LINE と同じ Google アカウントを追加してください。";
+        String text = LinimalText.t("Google アカウントでのログインと、トークのバックアップ・復元には MicroG-RE が必要です。"
+                + "タップして MicroG-RE を入手し、LINE と同じ Google アカウントを追加してください。");
         builder.setSmallIcon(android.R.drawable.stat_sys_warning)
-                .setContentTitle("MicroG-RE が見つかりません")
+                .setContentTitle(LinimalText.t("MicroG-RE が見つかりません"))
                 .setContentText(text)
                 .setStyle(new Notification.BigTextStyle().bigText(text))
                 .setContentIntent(pending)

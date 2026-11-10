@@ -20,7 +20,7 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x1A73E8,
         targets = listOf(
-            AppTarget(version = "messages.android_20261020_00_RC01.phone_dynamic")
+            AppTarget(version = "messages.android_20261020_00_RC01.phone_dynamic", isExperimental = true)
         )
     )
 }

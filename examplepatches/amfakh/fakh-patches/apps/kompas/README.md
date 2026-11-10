@@ -12,7 +12,7 @@ Every patch is on by default except GmsCore support. Morphe Manager groups them 
 | Ads | Hide ads | Removes the ad banners together with their grey "Iklan" block from the home feed, articles, lists and the Video tab, the native ad in the home feed, the video ad before a video starts, the Teads video ad in articles, the full-screen ad, and the banners on kompas.com pages opened in the app (such as Harga Emas). |
 | Privacy | Disable analytics | Stops AppsFlyer, Mixpanel and Insider from tracking installs, reads and other in-app events, and turns off Firebase Analytics, Crashlytics, Performance and Sessions. |
 | Feature | Stop autoplay | Stops the videos in the "Video Pilihan" block under an article from playing on their own. They play when tapped. |
-| Feature | GmsCore support | Makes "Login dengan Google" work by signing in through microG RE (GmsCore) instead of Google Play services. Off by default. |
+| Feature | GmsCore support | Makes "Login dengan Google" work by signing in through microG RE (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account. Off by default. |
 
 ## How the patches work
 

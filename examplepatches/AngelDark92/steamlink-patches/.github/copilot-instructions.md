@@ -7,7 +7,7 @@ This repository patches Android apps for the Samsung Galaxy XR with Morphe. Ever
 app keeps its own package, exact bases, sources, resources and extension payload.
 
 - Patch procedure: `.opencode/skills/morphe-patches/SKILL.md`.
-- Delegation: `.opencode/skills/cavecrew/SKILL.md`.
+- Delegation: use installed specialists and the relevant project skill.
 - Build layout and cleanup: `WORKSPACE_CLEANUP.md`.
 - Evidence: `diagnostics/`.
 

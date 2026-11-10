@@ -21,6 +21,27 @@ private object RuntimeCrackGuideSchemaFingerprint : Fingerprint(
     parameters = listOf(),
 )
 
+private object CentralLynxOpenFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/core/ext/FunctionKt;",
+    name = "j",
+    returnType = "Z",
+    parameters = listOf(
+        "Landroid/content/Context;",
+        "Ljava/lang/String;",
+        "Z",
+        "Lorg/json/JSONObject;",
+        "Landroid/content/Intent;",
+        "Landroid/os/Bundle;",
+    ),
+)
+
+private object DeeplinkActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/vega/launcher/precondition/DeeplinkActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
+
 private const val UNSAFE_MODAL_URL =
     "capcut://main/lynx?channel=image_lynx_global_unsafe_pkg_modal&bundle=template.js&hide_loading=0&hide_nav_bar=1&immersive_mode=1&enter_mode=modal&present_style=over_full_screen&loading_bgcolor=00000000&dynamic=3&exit_mode=none"
 
@@ -30,7 +51,7 @@ private const val TEMPLATE_PORTAL_URL =
 @Suppress("unused")
 val capcutBypassUnsafeModalPatch = bytecodePatch(
     name = "Bypass Unsafe Package Modal",
-    description = "Replaces both the default and runtime-overridden crack-guide schema with the template portal URL so the blocking security notice cannot reopen after remote settings load.",
+    description = "Blocks the unsafe-package security modal at CapCut's central Lynx opener and replaces default/runtime crack-guide schemas with the template portal.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_CAPCUT)
@@ -70,6 +91,42 @@ val capcutBypassUnsafeModalPatch = bytecodePatch(
             """,
         )
 
-        println("[Bypass Unsafe Package Modal] Rewrote ${matches.size} default(s) and forced the runtime crack-guide schema to the template portal.")
+        CentralLynxOpenFingerprint.method.addInstructions(
+            0,
+            """
+                const-string v0, "image_lynx_global_unsafe_pkg_modal"
+                invoke-virtual {p1, v0}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v0
+                if-eqz v0, :continue_open
+                const/4 v0, 0x1
+                return v0
+                :continue_open
+            """,
+        )
+
+        DeeplinkActivityOnCreateFingerprint.method.addInstructions(
+            0,
+            """
+                move-object/from16 v2, p0
+                invoke-virtual {v2}, Landroid/app/Activity;->getIntent()Landroid/content/Intent;
+                move-result-object v0
+                if-eqz v0, :continue_deeplink
+                invoke-virtual {v0}, Landroid/content/Intent;->getDataString()Ljava/lang/String;
+                move-result-object v0
+                if-eqz v0, :continue_deeplink
+                const-string v1, "image_lynx_global_unsafe_pkg_modal"
+                invoke-virtual {v0, v1}, Ljava/lang/String;->contains(Ljava/lang/CharSequence;)Z
+                move-result v0
+                if-eqz v0, :continue_deeplink
+                move-object/from16 v3, p1
+                invoke-static {v2, v3}, Lcom/bytedance/helios/statichook/lifecycle/ActivityLifecycleHook;->a(Landroid/app/Activity;Landroid/os/Bundle;)V
+                invoke-super {v2, v3}, Lcom/vega/ui/start/BaseInfraActivity;->onCreate(Landroid/os/Bundle;)V
+                invoke-virtual {v2}, Landroid/app/Activity;->finish()V
+                return-void
+                :continue_deeplink
+            """,
+        )
+
+        println("[Bypass Unsafe Package Modal] Blocked unsafe modal URLs at central and deep-link routing, rewrote ${matches.size} default(s), and forced the runtime schema to the template portal.")
     }
 }

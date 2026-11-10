@@ -1,3 +1,10 @@
+## [1.13.3](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.13.2...v1.13.3) (2026-11-09)
+
+### 🐛 Bug Fixes
+
+* **Apple Music:** keep the lyrics on Origin Island and the lock screen without opening the player ([ddb62f8](https://github.com/JacksonJones2003/origin-island-patches/commit/ddb62f8813393859663e93de73f47886e3a48838))
+* **LastWave:** keep the lyrics on Origin Island and the lock screen without opening the player ([94b4841](https://github.com/JacksonJones2003/origin-island-patches/commit/94b484132e811a6cd16d2bd8b2d15a16572585c7))
+
 ## [1.13.2](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.13.1...v1.13.2) (2026-11-04)
 
 ### 🐛 Bug Fixes

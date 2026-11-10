@@ -1,3 +1,6 @@
+# Copyright (C) 2026 Lokesh Sparrow
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 [versions]
 morphe-patcher = "1.15.0"
 #noinspection GradleDependency
@@ -6,6 +9,9 @@ gson = "2.14.0"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
-# Gradle plugins adds the dependency during build, this declaration is here only for dependabot to provide updates.
+
+# The Gradle plugin puts morphe-patcher on the build classpath by itself; the entry below only
+# exists so dependabot can propose updates for it. Keep the version in sync with the plugin
+# version in settings.gradle.kts.
 #noinspection UnusedVersionCatalogEntry
 morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

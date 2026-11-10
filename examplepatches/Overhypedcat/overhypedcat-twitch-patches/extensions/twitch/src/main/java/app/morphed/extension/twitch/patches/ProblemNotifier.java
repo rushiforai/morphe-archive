@@ -29,7 +29,13 @@ final class ProblemNotifier implements Problem.Reporter {
         }
         main.post(() -> {
             Context context = applicationContext();
-            if (context == null) return;
+            if (context == null) {
+                // Nothing to show it with yet: the next report of this problem tries again.
+                synchronized (shown) {
+                    shown.remove(problem);
+                }
+                return;
+            }
             String message = "Ad blocker needs an update (" + problem.code + ")\n" + problem.description;
             if (detail != null && !detail.isEmpty()) message += "\n" + shorten(detail);
             Toast.makeText(context, message, Toast.LENGTH_LONG).show();

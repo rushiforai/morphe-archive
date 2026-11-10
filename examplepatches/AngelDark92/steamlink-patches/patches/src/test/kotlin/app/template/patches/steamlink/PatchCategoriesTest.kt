@@ -67,7 +67,7 @@ class PatchCategoriesTest {
                 (it.category == "Controller" || it.category == "Controllers (Shizuku)") && it.default
             }.toSet(),
         )
-        assertEquals(true, networkOptimizationsPatch.default)
+        assertEquals(false, networkOptimizationsPatch.default)
         assertEquals(true, stockQuadCompositionPatch.default)
         groups.forEach { (category, patches) ->
             patches.forEach { patch ->
@@ -86,7 +86,7 @@ class PatchCategoriesTest {
                 xrStartupPermissionsPatch, xrManifestCapabilityPackPatch,
                 deviceIdentityPatch,
                 xrCodecsSupportPatch,
-                networkOptimizationsPatch, blueNoisePatch,
+                blueNoisePatch,
                 controllerVelocityFramePatch,
             ),
             publicPatches.filter { it.default }.toSet(),

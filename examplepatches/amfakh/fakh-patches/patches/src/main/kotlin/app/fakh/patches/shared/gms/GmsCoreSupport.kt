@@ -124,6 +124,23 @@ fun BytecodePatchContext.redirectToGmsCore() {
     }
 }
 
+/**
+ * Calls [hook], a static no-argument method of the app's extension that tells the user GmsCore is missing, first thing
+ * in each method of [entries] (class type to method name), where the app starts its Google sign-in.
+ */
+fun BytecodePatchContext.warnWithoutGmsCore(hook: String, vararg entries: Pair<String, String>) {
+    var hooked = 0
+    classDefForEach { classDef ->
+        val names = entries.filter { it.first == classDef.type }.map { it.second }
+        if (names.isEmpty()) return@classDefForEach
+        mutableClassDefBy(classDef).methods.filter { it.name in names && it.implementation != null }.forEach {
+            it.addInstructions(0, "invoke-static { }, $hook")
+            hooked++
+        }
+    }
+    if (hooked == 0) throw PatchException("No Google sign-in entry point found")
+}
+
 /** The class with type [type]. */
 internal fun BytecodePatchContext.mutableClass(type: String): MutableClass {
     var found: MutableClass? = null

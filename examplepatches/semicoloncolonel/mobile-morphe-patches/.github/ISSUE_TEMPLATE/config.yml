@@ -2,7 +2,13 @@ blank_issues_enabled: false
 contact_links:
   - name: 📖 Read the README
     url: https://github.com/semicoloncolonel/mobile-morphe-patches#readme
-    about: How to install the patches, what each one does, and which app versions are tested.
+    about: How to install the patches.
+  - name: 📱 Supported apps
+    url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/apps.md
+    about: Every supported app, its patches, and the versions they were tested on.
+  - name: 🧩 What the patches do
+    url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/patches.md
+    about: What each patch changes in each app.
   - name: ⚠️ Known issues
-    url: https://github.com/semicoloncolonel/mobile-morphe-patches#known-issues
+    url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/known-issues.md
     about: Problems that are already known, with their causes and workarounds.

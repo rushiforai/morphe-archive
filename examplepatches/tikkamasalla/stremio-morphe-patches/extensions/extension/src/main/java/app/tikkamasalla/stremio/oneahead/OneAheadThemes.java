@@ -104,15 +104,15 @@ public final class OneAheadThemes {
             try {
                 OneAheadThemeStore store = new OneAheadThemeStore(new File(storeDir, "themes"));
                 String slug = store.resolveShow(kitsu, guard, tb);
-                if (slug.isEmpty()) { log("themes skip vid=" + vid + " why=no-show-map kitsu=" + kitsu); return keepBytes(runner, vid, metaId, o, tb, guard); }
+                if (slug.isEmpty()) { log("themes skip vid=" + vid + " why=no-show-map kitsu=" + kitsu); return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard); }
                 OneAheadThemeStore.Show show;
                 try {
                     show = store.show(slug, guard, tb);
                 } catch (Exception bad) {
                     log("themes skip vid=" + vid + " why=show-fetch-failed " + safeReason(bad));
-                    return keepBytes(runner, vid, metaId, o, tb, guard);
+                    return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard);
                 }
-                if (show.themes.isEmpty()) { log("themes skip vid=" + vid + " why=no-songs slug=" + slug); return keepBytes(runner, vid, metaId, o, tb, guard); }
+                if (show.themes.isEmpty()) { log("themes skip vid=" + vid + " why=no-songs slug=" + slug); return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard); }
                 // Only types with at least one ranked candidate are worth any episode bytes.
                 List<String> workable = new ArrayList<>();
                 for (String want : missing) {
@@ -121,21 +121,21 @@ public final class OneAheadThemes {
                     for (OneAheadThemeStore.Entry e : show.themes) themes.add(e.theme());
                     if (!OneAheadThemeMatcher.rank(themes, ep, kind).isEmpty()) workable.add(want);
                 }
-                if (workable.isEmpty()) { log("themes skip vid=" + vid + " why=no-candidates"); return keepBytes(runner, vid, metaId, o, tb, guard); }
-                if (guard.isCancelled()) return keepBytes(runner, vid, metaId, o, tb, guard);
+                if (workable.isEmpty()) { log("themes skip vid=" + vid + " why=no-candidates"); return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard); }
+                if (guard.isCancelled()) return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard);
                 Windows win;
                 try {
                     win = readWindows(url, guard, tb, pace, workable.contains("intro"), workable.contains("credits"));
                 } catch (DemuxException bad) {
                     log("themes skip vid=" + vid + " why=audio-failed " + bad.kind);
-                    return keepBytes(runner, vid, metaId, o, tb, guard);
+                    return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard);
                 }
                 log("themes show vid=" + vid + " kitsu=" + kitsu + " ep=" + ep + " slug=" + slug);
-                if (guard.isCancelled()) return keepBytes(runner, vid, metaId, o, tb, guard);
-                if (!HeapGate.fits(HeapGate.DETECT_BYTES)) { log("themes skip vid=" + vid + " why=low-heap"); return keepBytes(runner, vid, metaId, o, tb, guard); }
+                if (guard.isCancelled()) return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard);
+                if (!HeapGate.fits(HeapGate.DETECT_BYTES)) { log("themes skip vid=" + vid + " why=low-heap"); return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard); }
                 List<OneAheadResult.Segment> added = new ArrayList<>();
                 for (String want : workable) added.addAll(fillType(store, slug, show, want, ep, win, vid, guard, tb, pace));
-                if (added.isEmpty()) return keepBytes(runner, vid, metaId, o, tb, guard);
+                if (added.isEmpty()) return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard);
                 // A fresh result: the audio one is never mutated, so a failed save
                 // cannot leak unsaved segments into the reported outcome.
                 OneAheadResult result;
@@ -154,7 +154,7 @@ public final class OneAheadThemes {
                     runner.results().save(result);
                 } catch (java.io.IOException bad) {
                     log("themes skip vid=" + vid + " why=save-failed");
-                    return keepBytes(runner, vid, metaId, o, tb, guard);
+                    return keepBytes(runner, vid, metaId, fileSize, headHash, o, tb, guard);
                 }
                 log("themes done vid=" + vid + " segs=" + result.segments.size() + " bytes=" + tb.used());
                 return new OneAheadRunner.Outcome(OneAheadRunner.Status.DONE, "ok",
@@ -169,21 +169,21 @@ public final class OneAheadThemes {
     }
 
     /**
-     * The audio outcome with the theme bytes added. A REFUSED episode never
+     * The audio outcome with the theme bytes added. A REFUSED file never
      * recorded an attempt (the planner refused before marking), so spending
      * theme bytes on one converts it to NO_TIMES and records the attempt: the
      * next trigger will not re-download. A cancelled run keeps its attempt.
      */
     private static OneAheadRunner.Outcome keepBytes(OneAheadRunner runner, String vid, String showId,
-            OneAheadRunner.Outcome o, ByteBudget tb, PlaybackGuard guard) {
+            long fileSize, long headHash, OneAheadRunner.Outcome o, ByteBudget tb, PlaybackGuard guard) {
         long spent = tb.used();
         if (spent <= 0) return o;
-        if (o.status == OneAheadRunner.Status.REFUSED && !guard.isCancelled()) {
-            runner.markThemed(vid, showId);
+        if (o.status == OneAheadRunner.Status.REFUSED) {
+            runner.markThemed(vid, fileSize, headHash, showId);
+            if (guard.isCancelled()) return o;
             return new OneAheadRunner.Outcome(OneAheadRunner.Status.NO_TIMES, "no-themes",
                     null, o.bytesFetched + spent, o.requests);
         }
-        if (o.status == OneAheadRunner.Status.REFUSED) return o;
         return new OneAheadRunner.Outcome(o.status, o.reason, o.result,
                 o.bytesFetched + spent, o.requests);
     }

@@ -37,16 +37,46 @@ fun BytecodePatchContext.executeFCTVBlockAdsLogic(logger: Logger) {
             for (method in classDef.methods.toList()) {
                 if (method.name == "i" && method.returnType == "V" && method.parameterTypes.contains("Lsc/l;")) {
                     try {
-                        mutableClass.replaceMethod(
-                            method,
-                            registerCount = 2,
-                            smaliCode = """
+                        val isMobile = type == "Lcom/rblive/app/ui/player/PlayerActivity;"
+                        val smali = if (isMobile) {
+                            """
+                                invoke-virtual {p0}, Lcom/rblive/common/base/BaseBindingActivity;->getBinding()Lx1/a;
+                                move-result-object v0
+                                check-cast v0, Lpa/b;
+                                if-eqz v0, :cond_shade
+                                iget-object v0, v0, Lpa/b;->l:Landroid/widget/FrameLayout;
+                                if-eqz v0, :cond_shade
+                                const/16 v1, 8
+                                invoke-virtual {v0, v1}, Landroid/view/View;->setVisibility(I)V
+                                :cond_shade
                                 if-eqz p1, :cond_0
                                 sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
                                 invoke-interface {p1, v0}, Lsc/l;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
                                 :cond_0
                                 return-void
                             """.trimIndent()
+                        } else {
+                            """
+                                invoke-virtual {p0}, Lcom/rblive/common/base/BaseBindingActivity;->getBinding()Lx1/a;
+                                move-result-object v0
+                                check-cast v0, Ldb/d;
+                                if-eqz v0, :cond_shade
+                                iget-object v0, v0, Ldb/d;->c:Landroid/widget/FrameLayout;
+                                if-eqz v0, :cond_shade
+                                const/16 v1, 8
+                                invoke-virtual {v0, v1}, Landroid/view/View;->setVisibility(I)V
+                                :cond_shade
+                                if-eqz p1, :cond_0
+                                sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                                invoke-interface {p1, v0}, Lsc/l;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
+                                :cond_0
+                                return-void
+                            """.trimIndent()
+                        }
+                        mutableClass.replaceMethod(
+                            method,
+                            registerCount = 3,
+                            smaliCode = smali
                         )
                         hookedPoints++
                         logger.info("[FCTV Ads] Neutralized pre-roll shade and ad prompt in $type->${method.name}")

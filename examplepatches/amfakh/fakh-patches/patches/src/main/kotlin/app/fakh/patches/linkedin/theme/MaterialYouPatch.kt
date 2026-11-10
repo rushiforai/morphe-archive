@@ -258,7 +258,7 @@ private val CANVAS_ATTRIBUTES = mapOf(
 /** Styles of the app's windows, light and dark. */
 private val APP_THEMES = listOf("VoyagerAppTheme.Mercado", "VoyagerAppTheme.Mercado.Dark")
 
-/** Background color of cards and lists, which "Remove gaps and dividers" also gives the window. */
+/** Background color of cards and lists, which "Hide gaps and dividers" also gives the window. */
 private const val CONTAINER_COLOR = "@color/mercado_mvp_color_background_container"
 
 /** Accent resource colors: XML layouts and the View based screens. */
@@ -302,7 +302,7 @@ private val NOTIFICATION_BADGES = listOf(
 /** Background resource colors, and the theme attributes that use a generic white or gray as a background. */
 private val materialYouBackgroundsResourcePatch = resourcePatch {
     execute {
-        // A window background that "Remove gaps and dividers" already gave the card color keeps it.
+        // A window background that "Hide gaps and dividers" already gave the card color keeps it.
         val surfaces = editThemeItems { style, item, current ->
             THEME_SURFACES[style to item]?.let { if (current == CONTAINER_COLOR) current else "@color/$it" }
         }
@@ -514,7 +514,7 @@ private val MVP_GETTERS = mapOf(
 )
 
 /**
- * Hooks that both "Remove gaps and dividers" and "Material You" need: the Mercado MVP canvas and container, and
+ * Hooks that both "Hide gaps and dividers" and "Material You" need: the Mercado MVP canvas and container, and
  * the raw and base palette colors of server drawn screens. Each hook checks both settings.
  */
 private val sharedColorsPatch = bytecodePatch {
@@ -683,7 +683,7 @@ private fun MutableClass.mapColorConstants(colors: Set<Long>, method: String): I
 
 @Suppress("unused")
 val removeGapsAndDividersPatch = bytecodePatch(
-    name = "Remove gaps and dividers",
+    name = "Hide gaps and dividers",
     description = "Removes the gray gaps between posts and the dividers between list items, so the feed and " +
         "lists are one flat surface.",
     default = false
@@ -764,7 +764,7 @@ private val colorHooksPatch = bytecodePatch {
 
             // Surface tokens are rewritten by field, not by value: their constants (white, for one) are shared
             // with text and icon tokens. The gap is mapped first, while the card still has LinkedIn's color, so a
-            // gap that "Remove gaps and dividers" made equal to the card gets the card's color.
+            // gap that "Hide gaps and dividers" made equal to the card gets the card's color.
             val fields = theme.colorFields(COMPOSE_GAP_FIELDS + COMPOSE_SURFACE_FIELD + COMPOSE_BORDER_FIELD)
             if (COMPOSE_SURFACE_FIELD !in fields) return@forEach
             val smali = buildString {

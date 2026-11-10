@@ -25,7 +25,6 @@ public enum LinimalFeature {
     LINE_AI("linimal.agent-i-chat-information"),
 
     PREMIUM("linimal.premium"),
-    VOOM("linimal.voom"),
     NEWS("linimal.news"),
     WALLET("linimal.wallet"),
     HOME_RECOMMENDATIONS("linimal.home-recommendations"),
@@ -52,6 +51,7 @@ public enum LinimalFeature {
     PREMIUM_SETTINGS_ROW("linimal.premium-settings-row"),
     PREMIUM_PREVIEW_PROMOTION("linimal.premium-preview-promotion"),
     PREVIEW_SCROLL("linimal.preview-scroll"),
+    AMOLED_THEME("linimal.amoled-theme"),
     READ_WITHOUT_RECEIPT("linimal.read-without-receipt"),
     NOTIFICATION_READ_WITHOUT_RECEIPT("linimal.chat.notification-read-without-receipt"),
     MINI("linimal.mini"),

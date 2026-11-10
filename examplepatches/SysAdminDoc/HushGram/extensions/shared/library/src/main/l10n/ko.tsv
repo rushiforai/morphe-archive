@@ -233,6 +233,9 @@ Upload quality applies to	업로드 화질 적용 대상
 Stories only	스토리만
 Stories, posts and reels	스토리, 게시물, 릴스
 Video bitrate	동영상 비트레이트
+Video resolution	동영상 해상도
+Video frame rate	동영상 프레임 속도
+Photo quality	사진 품질
 %1$s Mbps	%1$s Mbps
 Download feed videos	피드 동영상 다운로드 메뉴 추가
 Adds Download to the menu of a post in your feed with a video. Uses the quality below. Off or paused, Instagram's own menu returns.	피드에서 동영상이 포함된 게시물의 메뉴에 다운로드를 추가하며, 설정한 다운로드 화질로 저장할 수 있습니다. 이 기능을 비활성화하거나 HushGram을 일시 정지하면 Instagram의 원래 메뉴가 다시 표시됩니다
@@ -423,6 +426,8 @@ Hide People you don't follow back	맞팔로우하지 않은 사람 숨기기
 Takes the People you don't follow back section off the bottom of your notifications. Notifications about new followers stay.	알림 맨 아래의 맞팔로우하지 않은 사람 섹션을 없앱니다. 새 팔로워 알림은 그대로 남습니다.
 Hide suggestions in notifications	알림의 추천 숨기기
 Takes rows that only suggest something off your notifications, like a thread from an account you don't follow or someone you might know. Likes, comments, mentions and new followers stay.	팔로우하지 않는 계정의 스레드나 알 수도 있는 사람처럼 추천만 하는 행을 알림에서 없앱니다. 좋아요, 댓글, 언급, 새 팔로워는 그대로 남습니다.
+Hide channel invites in notifications	알림에서 채널 초대 숨기기
+Takes invites to join someone's channel off your notifications. Everything else stays.	다른 사람의 채널에 참여하라는 초대를 알림에서 없앱니다. 나머지는 그대로 남습니다.
 Hide Featured in notifications	알림에서 주요 항목 숨기기
 Takes the Featured section off the top of your notifications, the posts and threads Instagram picks to show you there. Everything under it stays.	알림 맨 위의 주요 항목 섹션, 즉 Instagram이 골라서 보여 주는 게시물과 스레드를 없앱니다. 그 아래 항목은 그대로 남습니다.
 Keep Featured off the heart's dot	주요 항목 때문에 하트에 점이 뜨지 않게 하기
@@ -662,8 +667,10 @@ Time away before swiping comes back	스와이프가 돌아오기까지 쉬는 �
 Take a scroll break	스크롤 쉬는 시간 갖기
 # context: a choice in the scroll break list; %1$d is 10, 20, 30 or 60
 After %1$d minutes	%1$d분 후
-Off. It can cover the Home, Reels and Explore tabs for 5 minutes after you've spent a while on them.	꺼짐. 홈, 릴스, 탐색 탭에서 한동안 시간을 보내면 5분 동안 그 탭들을 가릴 수 있습니다.
-After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for 5 minutes. Messages, your profile and the tab bar still work.	홈, 릴스, 탐색 탭에서 %1$d분을 보내면 쉬는 시간 화면이 5분 동안 그 탭들을 가립니다. 메시지, 내 프로필, 탭 바는 계속 쓸 수 있습니다.
+Off. It can cover the Home, Reels and Explore tabs for a break after you've spent a while on them.	꺼짐. 홈, 릴스, 탐색 탭에서 한동안 시간을 보내면 쉬는 시간 동안 그 탭들을 가릴 수 있습니다.
+After %1$d minutes on the Home, Reels and Explore tabs, a break screen covers them for %2$d minutes. Messages, your profile and the tab bar still work.	홈, 릴스, 탐색 탭에서 %1$d분을 보내면 쉬는 시간 화면이 %2$d분 동안 그 탭들을 가립니다. 메시지, 내 프로필, 탭 바는 계속 쓸 수 있습니다.
+Break length	쉬는 시간 길이
+%1$d minutes	%1$d분
 Time for a break	쉬는 시간입니다
 Home, Reels and Explore open again when the countdown ends. Messages and your profile still work.	카운트다운이 끝나면 홈, 릴스, 탐색이 다시 열립니다. 메시지와 내 프로필은 계속 쓸 수 있습니다.
 # context: read aloud by the screen reader on the break screen; %1$s is the time left, like 4:59
@@ -936,6 +943,8 @@ Stop the background heartbeat	백그라운드 하트비트 중지
 Instagram wakes your phone every minute or two, screen off included, only to note that it is still running. This stops that. Messages, notifications and everything you see are unaffected.	Instagram은 화면이 꺼져 있을 때도 1~2분마다 휴대폰을 깨워 아직 실행 중이라고 기록만 합니다. 이를 멈춥니다. 메시지, 알림, 화면에 보이는 모든 것은 그대로입니다.
 Stop the analytics upload alarm	분석 업로드 알람 중지
 Instagram sets an alarm to wake your phone and send its usage events five minutes later. This stops that alarm. The events go the next time you use the app.	Instagram은 5분 뒤 사용 데이터를 보내기 위해 휴대폰을 깨우는 알람을 설정합니다. 이 알람을 멈춥니다. 데이터는 다음에 앱을 사용할 때 전송됩니다.
+Stop background feed refresh	백그라운드 피드 새로고침 중지
+About every half hour, Instagram wakes your phone to download your feed ahead of time. This stops that. The feed loads when you open the app instead, and messages and notifications still arrive.	Instagram은 약 30분마다 휴대폰을 깨워 피드를 미리 내려받습니다. 이를 멈춥니다. 피드는 앱을 열 때 불러오며, 메시지와 알림은 계속 도착합니다.
 Haptic style	햅틱 스타일
 Short tick	짧은 틱
 System tick	시스템 틱
@@ -1143,6 +1152,7 @@ Hold the Friends tab to pick friends	친구 탭을 길게 눌러 친구 선택
 Hold the Friends tab on Reels and pick from the friends it has shown you. It then keeps only reels they liked or shared. A page with none of them keeps one reel so the next page can load.	릴스의 친구 탭을 길게 눌러 지금까지 표시된 친구 중에서 고릅니다. 그러면 그 친구들이 좋아하거나 공유한 릴스만 남습니다. 해당 친구가 없는 페이지는 다음 페이지를 불러올 수 있도록 릴스 하나를 남깁니다.
 Pick friends	친구 선택
 Open the Friends tab first.	먼저 친구 탭을 여세요.
+No friends to pick yet.	아직 고를 친구가 없어요.
 Applies to the next reels loaded.	다음에 불러오는 릴스부터 적용됩니다.
 Hide the Save button on reels	릴스의 저장 버튼 숨기기
 Burn-in guard	번인 방지
@@ -1340,7 +1350,7 @@ Keep the pill full size	알약 크기 그대로 유지
 Scrolling a list down leaves the liquid pill as it is, every tab in place. Restart Instagram after changing it.	목록을 아래로 스크롤해도 리퀴드 글래스 알약이 그대로 유지되고 모든 탭이 제자리에 있습니다. 변경한 뒤에는 Instagram을 다시 시작하세요.
 # context: Layout: Glass tab bar's switch that makes the liquid pill's rim bend and mirror what's behind it like glass (#369)
 Bend light at the edges	가장자리에서 빛 굴절
-The liquid pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	리퀴드 글래스 알약의 가장자리가 실제 유리처럼 뒤에 있는 것을 굴절시켜, 가장자리 아래로 지나가는 것이 거꾸로 보입니다. Android 13 이상. 변경한 뒤에는 Instagram을 다시 시작하세요.
+The pill's rim bends what's behind it like real glass, so what passes under the edge shows upside down. Android 13 and newer. Restart Instagram after changing it.	알약의 가장자리가 실제 유리처럼 뒤에 있는 것을 굴절시켜, 가장자리 아래로 지나가는 것이 거꾸로 보입니다. Android 13 이상. 변경한 뒤에는 Instagram을 다시 시작하세요.
 # context: Ghost mode: the row and dialog picking which switches Ghost mode turns (#251). %1$s is a list of switch names
 All of them. Tap to leave some out, and Ghost mode leaves those as you set them.	모두. 탭하여 일부를 제외하면 고스트 모드는 그 스위치를 설정한 그대로 둡니다.
 %1$s. The others stay as you set them.	%1$s. 나머지는 설정한 그대로 유지됩니다.
@@ -1388,6 +1398,8 @@ Show all recent searches	최근 검색 모두 표시
 Lists every recent search under the search bar, not just the first few. See all and the x on each row work as before.	검색창 아래에 처음 몇 개만이 아니라 최근 검색을 전부 보여 줍니다. 모두 보기와 각 줄의 x는 전과 똑같이 작동합니다.
 Hide the call buttons in chats	채팅에서 통화 버튼 숨기기
 Takes the voice and video call buttons off the top of a chat. The name keeps its room. Turn it off and they're back the next time a chat opens.	채팅 상단의 음성 통화 및 영상 통화 버튼을 없앱니다. 이름은 자리를 그대로 유지합니다. 끄면 다음에 채팅을 열 때 버튼이 다시 나타납니다.
+Hide the Community Standards reminder	커뮤니티 규정 알림 숨기기
+Takes the banner reminding you to be respectful off the bottom of a chat.	채팅 하단에 표시되는 서로 존중하라는 배너를 없앱니다.
 Buttons in the message box	메시지 입력창의 버튼
 Every button in the message box shows. Untick the ones you don't use. The text box and Send always stay.	메시지 입력창의 모든 버튼이 표시됩니다. 쓰지 않는 버튼은 선택을 해제하세요. 텍스트 입력란과 보내기는 항상 남습니다.
 Left off the message box: %1$s. The text box and Send stay.	메시지 입력창에서 뺀 버튼: %1$s. 텍스트 입력란과 보내기는 남습니다.
@@ -1542,6 +1554,9 @@ Next page	다음 페이지
 # context: Feed settings: the Page dots on a pill switch, right under Carousel arrows (#419). A pill is a small bar with round ends that holds the dots.
 Page dots on a pill	알약 모양 페이지 점
 Moves a carousel post's page dots onto a round pill at the bottom of its photo or video, with the page you're on in blue.	캐러셀 게시물의 페이지 점을 사진이나 동영상 아래쪽의 둥근 알약 모양 위로 옮깁니다. 지금 보고 있는 페이지는 파란색으로 표시됩니다.
+# context: Feed settings: the Hide page number switch, under Carousel arrows (#581). The number is the 3/5 in the corner of a carousel post.
+Hide page number	페이지 번호 숨기기
+Takes the number like 3/5 off the corner of a carousel post's photo or video.	캐러셀 게시물의 사진이나 동영상 모서리에 있는 3/5 같은 숫자를 없앱니다.
 # context: Feed settings: the Ambient light switch and its Glow spread and Glow speed lists (#416)
 Ambient light	앰비언트 라이트
 Puts a soft glow in a post's own colors around its photo or video, and in the bands around a reel that doesn't fill the screen. The glow follows a video as it plays.	게시물의 사진이나 동영상 주위에 그 게시물의 색으로 은은한 빛을 비추고, 화면을 다 채우지 않는 릴스 주위의 빈 띠에도 비춥니다. 동영상이 재생되는 동안 빛이 따라 바뀝니다.
@@ -1915,3 +1930,35 @@ Leaving Instagram while a reel plays shrinks it into a small window over your ot
 # context: a switch on the Profiles page under Mark who doesn't follow you back; it means the mark goes on each profile picture of your own Following list
 Show it on the profile picture	프로필 사진에 표시
 Puts a green check on the picture of each account that follows you back and a red cross on each one that doesn't, instead of the words.	나를 맞팔로우하는 계정의 사진에는 초록색 체크를, 그렇지 않은 계정의 사진에는 빨간색 X를 문구 대신 표시합니다.
+
+# context: Messages rows of Call blocker: Who can call you, its four choices and their summaries, and the list row with its dialog message (#578)
+Who can call you	전화할 수 있는 사람
+Your call list	내 통화 목록
+Usernames, one on each line. A leading @ and capital letters don't matter.	사용자 이름을 한 줄에 하나씩 입력하세요. 앞의 @와 대문자는 상관없습니다.
+Nobody	아무도 안 됨
+Only people on your list	목록에 있는 사람만
+Everyone except your list	목록을 제외한 모든 사람
+Everyone	모든 사람
+No call rings your phone. Callers just get no answer.	어떤 전화도 울리지 않습니다. 건 사람은 그냥 응답을 받지 못합니다.
+Only people on your list ring your phone. Anyone else gets no answer.	목록에 있는 사람의 전화만 울립니다. 다른 사람은 응답을 받지 못합니다.
+People on your list don't ring your phone. Everyone else still does.	목록에 있는 사람의 전화는 울리지 않습니다. 다른 사람의 전화는 그대로 울립니다.
+Everyone can ring your phone, as usual.	평소처럼 누구나 전화할 수 있습니다.
+# context: Seek bar shape and preview (#567, #586, #592)
+Seek bar shape	탐색 막대 모양
+Thin line	가는 선
+Rounded	둥근 막대
+Expressive	표현형
+Wave	물결
+The bar and round handle you know.	익숙한 막대와 둥근 핸들입니다.
+A thin line with no handle that grows while you drag it. On feed videos it sits on the bottom edge.	핸들 없는 가는 선으로, 드래그하는 동안 굵어집니다. 피드 동영상에서는 아래쪽 가장자리에 표시됩니다.
+A thicker rounded bar with no handle.	핸들 없는 더 두꺼운 둥근 막대입니다.
+A rounded bar split by a tall handle.	긴 핸들로 나뉜 둥근 막대입니다.
+A wavy line for the part played, with a tall handle.	재생된 부분은 물결선으로 표시되고 긴 핸들이 있습니다.
+Turn on a seek bar on feed videos, stories or reels to use this choice.	이 옵션을 사용하려면 피드 동영상, 스토리 또는 Reels의 탐색 막대를 켜세요
+Preview while you drag a seek bar	탐색 막대를 드래그할 때 미리 보기
+Shows the time above your finger while you drag a seek bar on a feed video, story or reel, and a small picture of that moment when Instagram has one for the video.	피드 동영상, 스토리 또는 Reels에서 탐색 막대를 드래그할 때 손가락 위에 시간을 표시하고, Instagram에 해당 동영상의 이미지가 있으면 그 순간의 작은 그림도 함께 표시합니다.
+Swipe right on Home opens	홈에서 오른쪽으로 스와이프하면 열기
+The camera, as Instagram has it. Pick a tab and the same swipe opens that tab instead.	Instagram 기본 동작인 카메라입니다. 탭을 고르면 같은 스와이프로 그 탭이 열립니다.
+A swipe right on Home opens %1$s. The + button still opens the camera.	홈에서 오른쪽으로 스와이프하면 %1$s 탭이 열립니다. + 버튼은 계속 카메라를 엽니다.
+Keep the tab bar on a reel's profile	릴스 프로필에서 탭 바 유지
+A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	릴스에서 연 프로필이 지금 있는 탭에서 열리고 아래에 탭 바가 보입니다. 뒤로 가면 릴스로 돌아갑니다.
