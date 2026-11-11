@@ -2131,14 +2131,6 @@
                 "updatedAt": 1790394335936
             },
             {
-                "name": "MightyMichs-Patches",
-                "source": "https://raw.githubusercontent.com/mich111discord/MightyMichs-Patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 295,
-                "createdAt": 1790394336291,
-                "updatedAt": 1790394336291
-            },
-            {
                 "name": "telegram-morphe-patches-",
                 "source": "https://raw.githubusercontent.com/newuser7171/telegram-morphe-patches-/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -3369,14 +3361,6 @@
                 "sortOrder": 480,
                 "createdAt": 1793335943634,
                 "updatedAt": 1793335943634
-            },
-            {
-                "name": "morphe-patches",
-                "source": "https://raw.githubusercontent.com/Fuku856/morphe-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 482,
-                "createdAt": 1793420905106,
-                "updatedAt": 1793420905106
             },
             {
                 "name": "bitchord-morphe-patches",
@@ -4875,14 +4859,6 @@
                 "updatedAt": 1794291698932
             },
             {
-                "name": "morphe-bilibili-danmaku",
-                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 679,
-                "createdAt": 1794291699687,
-                "updatedAt": 1794291699687
-            },
-            {
                 "name": "sey-morphe-patches",
                 "source": "https://raw.githubusercontent.com/seythegamer/sey-morphe-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4921,6 +4897,14 @@
                 "sortOrder": 684,
                 "createdAt": 1794291704427,
                 "updatedAt": 1794291704427
+            },
+            {
+                "name": "morphe-bilibili-danmaku",
+                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 685,
+                "createdAt": 1794373395409,
+                "updatedAt": 1794373395409
             }
         ]
     }
