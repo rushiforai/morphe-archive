@@ -20,7 +20,7 @@ const val VERSION_NAME_OVERRIDE_KEY = "pref_override_build_version_name"
  * the support pinning on a version bump. scripts/check-upstream-version.mjs reads this
  * constant alongside the literal AppTarget versions.
  */
-const val SUPPORTED_APP_VERSION = "1.90.05"
+const val SUPPORTED_APP_VERSION = "1.91.10"
 
 object Constants {
     val COMPATIBILITY_YOUTUBE_VR = Compatibility(
@@ -80,15 +80,16 @@ object Constants {
             // regex (`AppTarget\s*\(\s*version`) cannot cross a comment line, so a comment
             // inside the parens would hide the target from it.
             // ---------------------------------------------------------------------------------
-            // Kept: newest verified target -- fingerprints re-derived against this APK.
+            // Kept: newest verified target -- fingerprints re-derived against this APK
+            // (re-anchoring pass 2026-11-10; the 1.91.10 name map is in FINGERPRINTS.md).
             AppTarget(
-                version = "1.90.05",
+                version = "1.91.10",
                 description = "Verified: every fingerprint was re-derived against this build.",
             ),
-            // Kept: previous verified target; headsets that have not taken the 1.90.05
-            // store update are still served 1.89.09, and dropping it strands them.
+            // Kept: previous verified target; headsets that have not taken the 1.91.10
+            // store update are still served 1.90.05, and dropping it strands them.
             AppTarget(
-                version = "1.89.09",
+                version = "1.90.05",
                 description = "Verified: every fingerprint was re-derived against this build.",
             ),
         ),

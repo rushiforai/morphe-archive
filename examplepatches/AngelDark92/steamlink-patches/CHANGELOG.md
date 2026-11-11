@@ -1,3 +1,9 @@
+## [2.7.2](https://github.com/AngelDark92/xr-porting-hub/compare/v2.7.1...v2.7.2) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **release:** publish native quad experiment ([5b01edf](https://github.com/AngelDark92/xr-porting-hub/commit/5b01edf6b67dbf1bf24c3ec2eec242da5068c8e0))
+
 ## [2.7.1](https://github.com/AngelDark92/xr-porting-hub/compare/v2.7.0...v2.7.1) (2026-11-09)
 
 ### 🐛 Bug Fixes

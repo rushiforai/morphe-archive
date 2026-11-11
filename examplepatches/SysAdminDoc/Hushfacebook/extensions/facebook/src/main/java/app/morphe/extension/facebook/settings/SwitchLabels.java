@@ -52,7 +52,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_HOME_COMPOSER) return L10n.t("Hide the composer row");
         if (setting == Settings.HIDE_FEED_REELS) return L10n.t("Hide Reels in the feed");
         if (setting == Settings.HIDE_POST_PROMPTS) return L10n.t("Hide post prompts");
-        if (setting == Settings.HIDE_POST_FOLLOW_LINK) return L10n.t("Hide the Follow link on posts");
+        if (setting == Settings.HIDE_POST_FOLLOW_LINK) return L10n.t("Hide the Follow and Subscribe links on posts");
         if (setting == Settings.HIDE_POST_JOIN_BUTTON) return L10n.t("Hide the Join button on posts");
         if (setting == Settings.HIDE_POST_X) return L10n.t("Hide the X on posts");
         if (setting == Settings.HIDE_POST_COUNTS) return L10n.t("Hide counts on posts");
@@ -111,6 +111,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_STORY_CREDITS) return L10n.t("Hide song and effect credits");
         if (setting == Settings.HIDE_STORY_REPLY_SUGGESTIONS) return L10n.t("Hide reply suggestions");
         if (setting == Settings.HIDE_STORY_SUBSCRIBE) return L10n.t("Hide the Subscribe button");
+        if (setting == Settings.HIDE_STORY_CREATE_CARDS) return L10n.t("Hide create story cards");
         if (setting == Settings.STORY_PROGRESS_BAR) return L10n.t("Progress bar at the bottom");
         if (setting == Settings.HIDE_FEED_STORY_RINGS) return L10n.t("Hide rings in the feed");
         if (setting == Settings.HIDE_COMMENT_STORY_RINGS) return L10n.t("Hide rings in comments");
@@ -229,6 +230,9 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_READ_RECEIPTS) return L10n.t("Hide read receipts");
         if (setting == Settings.ORIGINAL_CHAT_MEDIA) return L10n.t("Send photos and videos at original quality");
         if (setting == Settings.TURN_OFF_DOUBLE_TAP_LIKE) return L10n.t("Turn off double tap to like");
+        if (setting == Settings.ASK_BEFORE_LIKING_POSTS) return L10n.t("Ask before liking a post");
+        if (setting == Settings.ASK_BEFORE_LIKING_REELS) return L10n.t("Ask before liking a reel");
+        if (setting == Settings.ASK_BEFORE_LIKING_COMMENTS) return L10n.t("Ask before liking a comment");
         if (setting == Settings.DOUBLE_TAP_SKIP) return L10n.t("Double tap to skip");
         if (setting == Settings.TAP_SHOWS_CONTROLS) return L10n.t("Tap shows the controls");
         if (setting == Settings.DOUBLE_TAP_OPENS_COMMENTS) return L10n.t("Double tap opens comments");
@@ -237,7 +241,9 @@ final class SwitchLabels {
         if (setting == Settings.KEEP_REEL_SPEED) return L10n.t("Keep the reel speed");
         if (setting == Settings.KEEP_VIDEO_SPEED) return L10n.t("Keep the video speed");
         if (setting == Settings.SLOWER_REEL_SPEEDS) return L10n.t("Slower speeds");
+        if (setting == Settings.FASTER_REEL_SPEEDS) return L10n.t("Faster speeds");
         if (setting == Settings.SPEED_ON_REPLAYS) return L10n.t("Speed on finished live videos");
+        if (setting == Settings.POST_MENU_SPEED) return L10n.t("Playback speed in the post menu");
         if (setting == Settings.HOLD_REEL_FOR_2X) return L10n.t("Hold a reel for 2x");
         if (setting == Settings.HOLD_REEL_RIGHT_EDGE) return L10n.t("Only on the right edge");
         if (setting == Settings.HOLD_FEED_VIDEO_FOR_2X) return L10n.t("Hold a feed video for 2x");
@@ -256,8 +262,10 @@ final class SwitchLabels {
         if (setting == Settings.FEED_VIDEO_SEEK_BAR) return L10n.t("Seek bar on feed videos");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_FADE) return L10n.t("Fade the seek bar and speaker");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_LOWER) return L10n.t("Lower the seek bar and speaker");
+        if (setting == Settings.FEED_VIDEO_SEEK_BAR_EDGE) return L10n.t("Seek bar on the bottom edge");
         if (setting == Settings.FEED_VIDEO_FULL_PLAYER_BUTTON) return L10n.t("Full player button on feed videos");
         if (setting == Settings.FEED_VIDEO_SKIP_BUTTONS) return L10n.t("Skip buttons on feed videos");
+        if (setting == Settings.FEED_VIDEO_DOUBLE_TAP_SKIP) return L10n.t("Double tap to skip on feed videos");
         if (setting == Settings.FEED_VIDEO_SPEED_BUTTON) return L10n.t("Speed button on feed videos");
         if (setting == Settings.FEED_VIDEO_SEEK_BAR_TIMES) return L10n.t("Times on the seek bar");
         if (setting == Settings.CENTER_FULL_SCREEN_VIDEOS) return L10n.t("Open full screen videos centered");
@@ -329,6 +337,7 @@ final class SwitchLabels {
         if (setting == Settings.DONT_SAVE_SEARCH_HISTORY) return L10n.t("Don't save search history");
         if (setting == Settings.SEARCH_DATE_RANGE) return L10n.t("Search date range");
         if (setting == Settings.SEARCH_POSTS_TAB) return L10n.t("Show Posts in search");
+        if (setting == Settings.SEARCH_SAVED_BUTTON) return L10n.t("Saved button in search");
         if (setting == Settings.HIDE_SPONSORED_SEARCH_RESULTS) return L10n.t("Hide sponsored search results");
         if (setting == Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS) return L10n.t("Hide sponsored Marketplace listings");
         if (setting == Settings.MARKETPLACE_ADVANCED_SEARCH) return L10n.t("Advanced Marketplace search");
@@ -366,6 +375,7 @@ final class SwitchLabels {
         if (setting == Settings.KEEP_TAB_BAR) return L10n.t("Keep the tab bar on screen");
         if (setting == Settings.KEEP_TOP_BAR) return L10n.t("Keep the top bar on screen");
         if (setting == Settings.PHONE_LAYOUT_ON_BIG_SCREENS) return L10n.t("Phone layout on big screens");
+        if (setting == Settings.HIDE_REELS_TAB_BAR) return L10n.t("Hide the tab bar on the Reels tab");
         if (setting == Settings.TRANSLUCENT_BARS) return L10n.t("See-through bars");
         if (setting == Settings.ROUNDED_TAB_BAR) return L10n.t("Rounded tab bar");
         if (setting == Settings.HIDE_STATUS_BAR) return L10n.t("Hide the status bar");

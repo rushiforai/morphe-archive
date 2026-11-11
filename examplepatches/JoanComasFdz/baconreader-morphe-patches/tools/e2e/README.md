@@ -51,7 +51,8 @@ couldn't (the error says why) and **2** for a command line it doesn't take (the 
 Uses the `gh` CLI (`GH_TOKEN`) on `--repo` or `GITHUB_REPOSITORY`. The first form uploads `<out>/scenarios.json`'s
 GIFs and MP4s (`--out` is `out` by default; the workflow passes `e2e-gifs`) to `prs-resources`, creating that
 pre-release if it doesn't exist, posts the next `## ✅ Scenarios (V<N>)` comment and collapses and hides the earlier ones.
-The second keeps only the PR's newest version in `prs-resources` and shrinks its older posts (`--merged` is only logged:
+The second keeps only each run's newest recording in `prs-resources` and shrinks the older posts whose scenarios were all
+recorded again (`--merged` is only logged:
 a merged PR and one closed without merging are cleaned alike). `--dry-run` prints what it would upload, create, post,
 edit, hide or delete instead of doing it (it still reads from GitHub).
 

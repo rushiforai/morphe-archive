@@ -22,7 +22,7 @@ public static class ScenarioPosting
             return new Result<Unit, string>.Error(unread.Failure);
         }
 
-        var recorded = ((Result<ImmutableArray<ScenarioEntry>, string>.Ok)entries).Value;
+        var recorded = ((Result<ImmutableArray<ScenarioEntry>, string>.Ok)entries).Value.Select(PlayerPacking.Pack).ToImmutableArray();
         if (recorded.IsEmpty)
         {
             E2EFiles.Report("No scenario recorded: nothing to post.");   // impure
@@ -59,7 +59,7 @@ public static class ScenarioPosting
             return notPosted;
         }
 
-        var collapses = PostVersioning.PlanCollapses(comments, version);   // pure
+        var collapses = PostVersioning.PlanCollapses(comments, version, PostVersioning.ReadRuns(post));   // pure
         PostEditing.EditComments(options, collapses);   // impure
         var toCheck = PostVersioning.PlanHides(comments, version, ImmutableHashSet<string>.Empty);   // pure
         var hidden = ReadHidden(options, toCheck);   // impure

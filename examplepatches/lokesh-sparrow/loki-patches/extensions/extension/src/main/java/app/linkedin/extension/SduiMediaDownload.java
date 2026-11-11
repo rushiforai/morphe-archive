@@ -114,6 +114,7 @@ public final class SduiMediaDownload {
 
             Activity host = activityOf(fragment);
             if (host == null) return;
+            PremiumTakeover.onScreenResumed(host, fragment, id);
             WhatsNew.maybeShow(host);
             GmsCoreCheck.check(host);
             removeButton(host, BUTTON_TAG);

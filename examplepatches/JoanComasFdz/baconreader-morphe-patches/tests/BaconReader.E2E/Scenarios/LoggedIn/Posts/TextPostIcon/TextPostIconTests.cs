@@ -22,8 +22,8 @@ public sealed class TextPostIconTests : BaseE2E
         Scenario: Text post icon opens a text post's text with a page icon whose chevron flips
           Given Reddit has a post "Read me" in r/e2e with the text "The hidden text"
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           # BaconReader starts in the card view. The icon's description says what tapping it does.
           Then the post "Read me" shows "Show post text"
@@ -48,8 +48,8 @@ public sealed class TextPostIconTests : BaseE2E
     {
         // Given
         Reddit.HasAPostWithTheText("Read me", "e2e", "The hidden text");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));
@@ -59,7 +59,9 @@ public sealed class TextPostIconTests : BaseE2E
         // Then
         // BaconReader starts in the card view. The icon's description says what tapping it does.
         var cardClosed = await Phone.BaconReader.Main.Posts.ReadPostAsync("Read me");
-        Asserting.That(cardClosed).ShowsTheTextButton(new TextPostButton.ShowPostText()).ShowsNoText();
+        Asserting.That(cardClosed)
+            .ShowsNoText()
+            .ShowsTheTextButton(new TextPostButton.ShowPostText());
 
         // When
         await Phone.BaconReader.Main.Posts.ClickTextButtonAsync("Read me", new TextPostButton.ShowPostText());
@@ -67,7 +69,9 @@ public sealed class TextPostIconTests : BaseE2E
 
         // Then
         var cardOpen = await Phone.BaconReader.Main.Posts.ReadPostAsync("Read me");
-        Asserting.That(cardOpen).ShowsTheText("The hidden text").ShowsTheTextButton(new TextPostButton.HidePostText());
+        Asserting.That(cardOpen)
+            .ShowsTheText("The hidden text")
+            .ShowsTheTextButton(new TextPostButton.HidePostText());
 
         // When
         await Phone.BaconReader.Main.Posts.ClickTextButtonAsync("Read me", new TextPostButton.HidePostText());
@@ -75,7 +79,9 @@ public sealed class TextPostIconTests : BaseE2E
 
         // Then
         var cardClosedAgain = await Phone.BaconReader.Main.Posts.ReadPostAsync("Read me");
-        Asserting.That(cardClosedAgain).ShowsNoText().ShowsTheTextButton(new TextPostButton.ShowPostText());
+        Asserting.That(cardClosedAgain)
+            .ShowsNoText()
+            .ShowsTheTextButton(new TextPostButton.ShowPostText());
 
         // When
         await Phone.BaconReader.Main.Toolbar.ClickMoreOptionsAsync();
@@ -93,7 +99,9 @@ public sealed class TextPostIconTests : BaseE2E
 
         // Then
         var rowOpen = await Phone.BaconReader.Main.Posts.ReadPostAsync("Read me");
-        Asserting.That(rowOpen).ShowsTheText("The hidden text").ShowsTheTextButton(new TextPostButton.HidePostText());
+        Asserting.That(rowOpen)
+            .ShowsTheText("The hidden text")
+            .ShowsTheTextButton(new TextPostButton.HidePostText());
 
         // When
         await Phone.BaconReader.Main.Posts.ClickTextButtonAsync("Read me", new TextPostButton.HidePostText());
@@ -101,6 +109,8 @@ public sealed class TextPostIconTests : BaseE2E
 
         // Then
         var rowClosedAgain = await Phone.BaconReader.Main.Posts.ReadPostAsync("Read me");
-        Asserting.That(rowClosedAgain).ShowsNoText().ShowsTheTextButton(new TextPostButton.ShowPostText());
+        Asserting.That(rowClosedAgain)
+            .ShowsNoText()
+            .ShowsTheTextButton(new TextPostButton.ShowPostText());
     }
 }

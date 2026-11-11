@@ -22,11 +22,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Runtime support for the Proteus Reddit "Show deleted comments" patch.
+ * Runtime support for the Proteus Reddit "Show deleted posts and comments" patch.
  *
- * <p>Reddit does not send the text of a deleted or removed comment back to
- * clients, so the only way to display it is an external archive.  This helper
- * resolves archived bodies for exactly the comments that are rendered as
+ * <p>Reddit does not send the text of a deleted or removed post/comment back
+ * to clients, so the only way to display it is an external archive.  This
+ * helper resolves archived bodies for exactly the rows that are rendered as
  * {@code [deleted]} / {@code [removed]} in the listings the app builds, and
  * swaps the placeholder for the archived text (prefixed with
  * {@link #MARKER} so the restored text is always recognisable).
@@ -34,22 +34,25 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>Injection contract used by the patch
  * ({@code ShowDeletedCommentsPatch}):
  * <ul>
- *   <li>{@code undeleteComments(List) -> List} — called on the same
+ *   <li>{@code undeleteContent(List) -> List} — called on the same
  *       {@code Listing.children} choke point used by the AutoMod / content
- *       filter helpers.  Comment pages are deserialized off the main thread,
- *       so the (synchronous) archive request runs off the UI thread.  No
- *       network call is made when a listing contains no deleted comments.</li>
+ *       filter helpers.  Listings are deserialized off the main thread, so
+ *       the (synchronous) archive request runs off the UI thread.  No
+ *       network call is made when a listing contains no deleted rows.</li>
  * </ul>
  *
  * <p>Behaviour details and fail-safes:
  * <ul>
- *   <li>Only comment-shaped rows whose body is exactly {@code [deleted]} or
- *       {@code [removed]} are looked up.  Post-shaped rows are ignored.</li>
- *   <li>The archive is queried in one batch per listing by comment id
- *       (Arctic Shift {@code /api/comments/ids}, falling back to PullPush
- *       {@code /reddit/search/comment}).  No API key is required by either
- *       service.  Only the comment ids from the visible thread are sent —
- *       never anything else — and nothing is written anywhere.</li>
+ *   <li>Comment-shaped rows ({@code t1}) whose body is exactly
+ *       {@code [deleted]} or {@code [removed]} use the comment archive;
+ *       post-shaped rows ({@code t3}) use the post archive and may restore
+ *       both the selftext and the title.</li>
+ *   <li>Archives are queried in batches by id (Arctic Shift
+ *       {@code /api/comments/ids} and {@code /api/posts/ids}, falling back to
+ *       PullPush {@code /reddit/search/comment} and
+ *       {@code /reddit/search/submission}).  No API key is required by either
+ *       service.  Only ids from the visible listing are sent — never anything
+ *       else — and nothing is written anywhere.</li>
  *   <li>Results (including misses) are cached in memory for the lifetime of
  *       the process.</li>
  *   <li>Any failure — offline, timeout, rate limit, parse error, model layout
@@ -66,13 +69,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public final class RedditDeletedCommentHelper {
 
-    /** Shown in front of every restored comment so provenance is visible. */
+    /** Shown in front of every restored row so provenance is visible. */
     private static final String MARKER = "[archived] ";
 
-    private static final String ARCHIVE_ENDPOINT =
+    private static final String COMMENT_ARCHIVE_ENDPOINT =
             "https://arctic-shift.photon-reddit.com/api/comments/ids?ids=%s&fields=id,body";
-    private static final String FALLBACK_ENDPOINT =
+    private static final String COMMENT_FALLBACK_ENDPOINT =
             "https://api.pullpush.io/reddit/search/comment/?ids=%s&size=%d";
+    private static final String POST_ARCHIVE_ENDPOINT =
+            "https://arctic-shift.photon-reddit.com/api/posts/ids?ids=%s&fields=id,selftext,title";
+    private static final String POST_FALLBACK_ENDPOINT =
+            "https://api.pullpush.io/reddit/search/submission/?ids=%s&size=%d";
 
     private static final int MAX_IDS_PER_REQUEST = 100;
     private static final int MAX_IDS_TOTAL = 300;
@@ -83,12 +90,16 @@ public final class RedditDeletedCommentHelper {
     /** Negative-cache sentinel: this id was looked up and is not archived. */
     private static final String MISS = "";
 
-    private static final Map<String, String> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, String> COMMENT_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, PostArchive> POST_CACHE = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Boolean> MODEL_TYPE_CACHE = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Accessors> ACCESSOR_CACHE = new ConcurrentHashMap<>();
 
     private static final String[] BODY_GETTERS = {
             "getBody", "getSelftext", "getSelfText", "getText", "getCommentBody"
+    };
+    private static final String[] TITLE_GETTERS = {
+            "getTitle", "getPostTitle", "getLinkTitle"
     };
     private static final String[] ID_GETTERS = {
             "getId", "getCommentId", "getIdentifier", "getName",
@@ -101,8 +112,11 @@ public final class RedditDeletedCommentHelper {
             "getParentId", "getLinkId", "getDepth", "getReplies"
     };
     private static final String[] BODY_FIELD_NAMES = {
-            "body", "selftext", "self_text", "commentbody", "comment_body",
+            "body", "bodypreview", "selftext", "self_text", "commentbody", "comment_body",
             "text", "content", "markdown"
+    };
+    private static final String[] TITLE_FIELD_NAMES = {
+            "title", "posttitle", "post_title", "linktitle", "link_title"
     };
     private static final String[] BODY_SETTER_NAMES = {
             "setBody", "setSelftext", "setSelfText", "setCommentBody", "setText"
@@ -124,68 +138,146 @@ public final class RedditDeletedCommentHelper {
      * and each read would otherwise redo the reflective placeholder scan.
      * Output is unchanged on every pass of the same list instance.
      */
-    public static List<?> undeleteComments(List<?> list) {
+    public static List<?> undeleteContent(List<?> list) {
         if (list == null || list.isEmpty()) {
             return list;
         }
-        List<?> memoized = ProteusListMemo.get(list);
+        List<?> memoized = ProteusListMemo.get("undeleteContent", list);
         if (memoized != null) {
             return memoized;
         }
-        List<?> result = undeleteCommentsInner(list);
-        ProteusListMemo.put(list, result);
+        List<?> result = undeleteContentInner(list);
+        ProteusListMemo.put("undeleteContent", list, result);
         return result;
     }
 
-    private static List<?> undeleteCommentsInner(List<?> list) {
+    /** Backwards-compatible alias for the original comment-only patch anchor. */
+    public static List<?> undeleteComments(List<?> list) {
+        return undeleteContent(list);
+    }
+
+    /**
+     * Batch entry point for the obfuscated comment-tree `TreeData` constructor.
+     * Comment threads build their rows through the comment tree store, not
+     * through {@code Listing}.  The constructor receives the full id → comment
+     * map, so all deleted comments in one emission are resolved with a single
+     * archive request.  Non-deleted comments are a local no-op.
+     */
+    public static Map<?, ?> undeleteTreeComments(Map<?, ?> comments) {
+        if (comments == null || comments.isEmpty()) {
+            return comments;
+        }
         List<Pending> pending = null;
-        for (Object item : list) {
-            Object model = findModel(item);
-            if (model == null || !isCommentLike(model)) {
+        for (Object value : comments.values()) {
+            Object model = findModel(value);
+            if (model == null || rowKind(model) != RowKind.COMMENT) {
                 continue;
             }
-            String body = bodyText(model);
-            String lowerSentinel = deletedSentinel(body);
-            if (lowerSentinel == null) {
+            String sentinel = deletedSentinel(bodyText(model));
+            if (sentinel == null) {
                 continue;
             }
-            String id = commentId(model);
+
+            // Prefer the undo payload if Reddit attached one; avoids a request
+            // for comments the client can already reconstruct.
+            Object restore = commentToRestore(model);
+            if (restore != null) {
+                String original = bodyText(restore);
+                if (deletedSentinel(original) == null && !original.trim().isEmpty()
+                        && replaceBody(model, sentinel, MARKER + original)) {
+                    continue;
+                }
+            }
+
+            String id = rowId(model);
             if (id == null) {
                 continue;
             }
             if (pending == null) {
                 pending = new ArrayList<>();
             }
-            pending.add(new Pending(model, id, lowerSentinel));
+            pending.add(new Pending(model, id, sentinel, null));
         }
 
         if (pending == null) {
-            // No deleted comments in this listing: no network traffic at all.
-            return list;
+            return comments;
         }
-        log("found " + pending.size() + " deleted/removed comment row(s); querying archive");
-
-        List<String> ids = new ArrayList<>(pending.size());
-        for (Pending entry : pending) {
-            ids.add(entry.id);
-        }
-
-        Map<String, String> resolved;
         try {
-            resolved = resolveBodies(ids);
+            restoreComments(pending);
         } catch (Throwable t) {
-            log("archive lookup failed (" + t.getClass().getSimpleName() + "); keeping original rows");
-            return list;
+            log("comment-tree restore failed (" + t.getClass().getSimpleName()
+                    + "); keeping original rows");
         }
+        return comments;
+    }
 
-        int hits = 0;
-        for (Pending entry : pending) {
-            String archived = resolved.get(entry.id);
-            if (archived != null && !archived.isEmpty()) {
-                hits++;
+    private static Object commentToRestore(Object model) {
+        Accessors accessors = accessors(model.getClass());
+        return invoke(accessors.commentToRestore, model);
+    }
+
+    private static List<?> undeleteContentInner(List<?> list) {
+        List<Pending> comments = null;
+        List<Pending> posts = null;
+        for (Object item : list) {
+            Object model = findModel(item);
+            if (model == null) {
+                continue;
+            }
+            RowKind kind = rowKind(model);
+            if (kind == null) {
+                continue;
+            }
+            String text = kind == RowKind.COMMENT ? bodyText(model) : postText(model);
+            String lowerSentinel = deletedSentinel(text);
+            String title = kind == RowKind.POST ? titleText(model) : null;
+            String titleSentinel = kind == RowKind.POST ? deletedSentinel(title) : null;
+            if (lowerSentinel == null && titleSentinel == null) {
+                continue;
+            }
+            String id = rowId(model);
+            if (id == null) {
+                continue;
+            }
+            if (kind == RowKind.COMMENT) {
+                if (comments == null) {
+                    comments = new ArrayList<>();
+                }
+                comments.add(new Pending(model, id, lowerSentinel, null));
+            } else {
+                if (posts == null) {
+                    posts = new ArrayList<>();
+                }
+                posts.add(new Pending(model, id, lowerSentinel, titleSentinel));
             }
         }
-        log("archive returned bodies for " + hits + " of " + pending.size() + " id(s)");
+
+        if (comments == null && posts == null) {
+            // No deleted content in this listing: no network traffic at all.
+            return list;
+        }
+
+        int restored = 0;
+        if (comments != null) {
+            restored += restoreComments(comments);
+        }
+        if (posts != null) {
+            restored += restorePosts(posts);
+        }
+        log("restored " + restored + " archived row(s)");
+        return list;
+    }
+
+    private static int restoreComments(List<Pending> pending) {
+        log("found " + pending.size() + " deleted/removed comment row(s); querying archive");
+        Map<String, String> resolved;
+        try {
+            resolved = resolveComments(idsOf(pending));
+        } catch (Throwable t) {
+            log("comment archive lookup failed (" + t.getClass().getSimpleName()
+                    + "); keeping original rows");
+            return 0;
+        }
 
         int restored = 0;
         for (Pending entry : pending) {
@@ -193,23 +285,63 @@ public final class RedditDeletedCommentHelper {
             if (archived == null || archived.isEmpty()) {
                 continue;
             }
-            if (replaceBody(entry.model, entry.lowerSentinel, MARKER + archived)) {
+            if (replaceBody(entry.model, entry.bodySentinel, MARKER + archived)) {
                 restored++;
             }
         }
-        if (restored > 0) {
-            log("restored " + restored + " archived comment(s)");
-        } else if (hits > 0) {
-            log("archive had bodies but no comment model could be rewritten "
-                    + "(setter missing or model layout drift); staying [deleted]");
-        } else {
-            log("no archived copies found; very recent deletions are often not "
-                    + "tracked yet; staying [deleted]");
+        if (restored == 0) {
+            log("no restored comment bodies (no archive copy or model layout drift)");
         }
-        return list;
+        return restored;
     }
 
-    // ── Comment shape detection ──────────────────────────────────────────────
+    private static int restorePosts(List<Pending> pending) {
+        log("found " + pending.size() + " deleted/removed post row(s); querying archive");
+        Map<String, PostArchive> resolved;
+        try {
+            resolved = resolvePosts(idsOf(pending));
+        } catch (Throwable t) {
+            log("post archive lookup failed (" + t.getClass().getSimpleName()
+                    + "); keeping original rows");
+            return 0;
+        }
+
+        int restored = 0;
+        for (Pending entry : pending) {
+            PostArchive archived = resolved.get(entry.id);
+            if (archived == null) {
+                continue;
+            }
+            boolean changed = false;
+            if (entry.bodySentinel != null && archived.selftext != null
+                    && !archived.selftext.isEmpty()) {
+                changed |= replaceBody(entry.model, entry.bodySentinel,
+                        MARKER + archived.selftext);
+            }
+            if (entry.titleSentinel != null && archived.title != null
+                    && !archived.title.isEmpty()) {
+                changed |= replaceTitle(entry.model, entry.titleSentinel,
+                        MARKER + archived.title);
+            }
+            if (changed) {
+                restored++;
+            }
+        }
+        if (restored == 0) {
+            log("no restored post bodies/titles (no archive copy or model layout drift)");
+        }
+        return restored;
+    }
+
+    private static List<String> idsOf(List<Pending> pending) {
+        List<String> ids = new ArrayList<>(pending.size());
+        for (Pending entry : pending) {
+            ids.add(entry.id);
+        }
+        return ids;
+    }
+
+    // ── Row shape detection ──────────────────────────────────────────────────
 
     /** Returns the lower-cased placeholder ("[deleted]" / "[removed]"), or null. */
     private static String deletedSentinel(String body) {
@@ -223,38 +355,127 @@ public final class RedditDeletedCommentHelper {
         return null;
     }
 
-    private static boolean isCommentLike(Object model) {
+    private enum RowKind {
+        COMMENT,
+        POST
+    }
+
+    private static RowKind rowKind(Object model) {
         Class<?> type = model.getClass();
         Accessors accessors = accessors(type);
 
         String kind = stringValue(invoke(accessors.kind, model))
                 .trim().toLowerCase(Locale.ROOT);
         if (kind.startsWith("t1")) {
-            return true;
+            return RowKind.COMMENT;
         }
         if (kind.startsWith("t3")) {
-            // Self-posts are t3_* and are out of scope for this patch.
-            return false;
+            return RowKind.POST;
         }
 
         String className = type.getName().toLowerCase(Locale.ROOT);
         if (className.contains("comment")) {
-            return true;
+            return RowKind.COMMENT;
+        }
+        if (isPostLike(type)) {
+            return RowKind.POST;
         }
         for (String marker : COMMENT_MARKER_GETTERS) {
             if (noArgMethod(type, marker) != null) {
-                return true;
+                return RowKind.COMMENT;
             }
         }
-        return false;
+        return null;
+    }
+
+    private static boolean isPostLike(Class<?> type) {
+        String className = type.getName().toLowerCase(Locale.ROOT);
+        if (className.contains("post") || className.contains("link")) {
+            return true;
+        }
+        return noArgMethod(type, "getSelftext") != null
+                && noArgMethod(type, "getTitle") != null;
     }
 
     private static String bodyText(Object model) {
         Accessors accessors = accessors(model.getClass());
-        return stringValue(invoke(accessors.body, model));
+        String body = stringValue(invoke(accessors.body, model));
+        if (deletedSentinel(body) != null) {
+            return body;
+        }
+        String preview = stringValue(invoke(accessors.preview, model));
+        if (deletedSentinel(preview) != null) {
+            return preview;
+        }
+        Object tombstone = tombstone(model);
+        if (tombstone == null) {
+            return body;
+        }
+        String tombstoneText = tombstoneText(tombstone);
+        if (deletedSentinel(tombstoneText) != null) {
+            return tombstoneText;
+        }
+        return body.isEmpty() ? "[deleted]" : body;
     }
 
-    private static String commentId(Object model) {
+    private static Object tombstone(Object model) {
+        Accessors accessors = accessors(model.getClass());
+        if (accessors.tombstone != null) {
+            return invoke(accessors.tombstone, model);
+        }
+        for (Class<?> owner = model.getClass(); owner != null && owner != Object.class;
+             owner = owner.getSuperclass()) {
+            Field[] declared;
+            try {
+                declared = owner.getDeclaredFields();
+            } catch (Throwable t) {
+                continue;
+            }
+            for (Field field : declared) {
+                if (Modifier.isStatic(field.getModifiers())
+                        || !field.getName().toLowerCase(Locale.ROOT).contains("tombstone")) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object fieldValue = field.get(model);
+                    if (fieldValue != null) {
+                        return fieldValue;
+                    }
+                } catch (Throwable ignored) {
+                    // Try the next field.
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String tombstoneText(Object tombstone) {
+        String markdown = stringValue(invoke(
+                noArgMethod(tombstone.getClass(), "getMarkdown"), tombstone));
+        if (deletedSentinel(markdown) != null) {
+            return markdown;
+        }
+        String richtext = stringValue(invoke(
+                noArgMethod(tombstone.getClass(), "getRichtext"), tombstone));
+        if (deletedSentinel(richtext) != null) {
+            return richtext;
+        }
+        return markdown;
+    }
+
+    private static String postText(Object model) {
+        Accessors accessors = accessors(model.getClass());
+        String body = stringValue(invoke(accessors.body, model));
+        return body.isEmpty() ? stringValue(invoke(accessors.selftext, model)) : body;
+    }
+
+    private static String titleText(Object model) {
+        Accessors accessors = accessors(model.getClass());
+        return stringValue(invoke(accessors.title, model));
+    }
+
+    private static String rowId(Object model) {
         Accessors accessors = accessors(model.getClass());
         if (accessors.id == null) {
             return null;
@@ -267,7 +488,7 @@ public final class RedditDeletedCommentHelper {
             return null;
         }
         String value = raw.trim().toLowerCase(Locale.ROOT);
-        if (value.startsWith("t1_")) {
+        if (value.startsWith("t1_") || value.startsWith("t3_")) {
             value = value.substring(3);
         }
         if (value.length() < 3 || value.length() > 12) {
@@ -286,15 +507,41 @@ public final class RedditDeletedCommentHelper {
 
     // ── Archive lookup (batched, cached, fail-safe) ──────────────────────────
 
-    private static Map<String, String> resolveBodies(List<String> ids) {
+    private static Map<String, String> resolveComments(List<String> ids) {
         Map<String, String> result = new ConcurrentHashMap<>();
-        List<String> missing = new ArrayList<>();
-        Set<String> seen = new java.util.HashSet<>();
-
+        List<String> missing = collectMissingIds(ids, new java.util.HashSet<>());
         for (String id : ids) {
-            String cached = CACHE.get(id);
+            String cached = COMMENT_CACHE.get(id);
+            if (cached != null && !MISS.equals(cached)) {
+                result.put(id, cached);
+            }
+        }
+
+        for (int start = 0; start < missing.size(); start += MAX_IDS_PER_REQUEST) {
+            List<String> chunk =
+                    missing.subList(start, Math.min(start + MAX_IDS_PER_REQUEST, missing.size()));
+            Map<String, String> chunkResult = fetchCommentChunk(new ArrayList<>(chunk));
+            for (String id : chunk) {
+                String body = chunkResult == null ? null : chunkResult.get(id);
+                if (body == null || body.trim().isEmpty() || deletedSentinel(body) != null) {
+                    COMMENT_CACHE.put(id, MISS);
+                } else {
+                    COMMENT_CACHE.put(id, body);
+                    result.put(id, body);
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Map<String, PostArchive> resolvePosts(List<String> ids) {
+        Map<String, PostArchive> result = new ConcurrentHashMap<>();
+        Set<String> seen = new java.util.HashSet<>();
+        List<String> missing = new ArrayList<>();
+        for (String id : ids) {
+            PostArchive cached = POST_CACHE.get(id);
             if (cached != null) {
-                if (!MISS.equals(cached)) {
+                if (!cached.isMiss()) {
                     result.put(id, cached);
                 }
                 continue;
@@ -307,47 +554,73 @@ public final class RedditDeletedCommentHelper {
         for (int start = 0; start < missing.size(); start += MAX_IDS_PER_REQUEST) {
             List<String> chunk =
                     missing.subList(start, Math.min(start + MAX_IDS_PER_REQUEST, missing.size()));
-            Map<String, String> chunkResult = fetchChunk(new ArrayList<>(chunk));
-            if (chunkResult == null) {
-                for (String id : chunk) {
-                    CACHE.put(id, MISS);
-                }
-                continue;
-            }
+            Map<String, PostArchive> chunkResult = fetchPostChunk(new ArrayList<>(chunk));
             for (String id : chunk) {
-                String body = chunkResult.get(id);
-                if (body == null || body.trim().isEmpty() || deletedSentinel(body) != null) {
-                    CACHE.put(id, MISS);
+                PostArchive archived = chunkResult == null ? null : chunkResult.get(id);
+                if (archived == null || archived.isMiss()) {
+                    POST_CACHE.put(id, PostArchive.MISS);
                 } else {
-                    CACHE.put(id, body);
-                    result.put(id, body);
+                    POST_CACHE.put(id, archived);
+                    result.put(id, archived);
                 }
             }
         }
         return result;
     }
 
+    private static List<String> collectMissingIds(List<String> ids, Set<String> seen) {
+        List<String> missing = new ArrayList<>();
+        for (String id : ids) {
+            if (COMMENT_CACHE.get(id) == null && missing.size() < MAX_IDS_TOTAL
+                    && seen.add(id)) {
+                missing.add(id);
+            }
+        }
+        return missing;
+    }
+
     /**
      * @return id → archived body, or null when every archive source failed.
      *         An empty (non-null) map means "archive has no copy of these ids".
      */
-    private static Map<String, String> fetchChunk(List<String> chunk) {
+    private static Map<String, String> fetchCommentChunk(List<String> chunk) {
         String joined = join(chunk, ",");
 
-        String primaryJson = httpGet(String.format(Locale.US, ARCHIVE_ENDPOINT, joined));
+        String primaryJson =
+                httpGet(String.format(Locale.US, COMMENT_ARCHIVE_ENDPOINT, joined));
         Map<String, String> primary = primaryJson == null ? null : parseDataArray(primaryJson);
         if (primary != null && !primary.isEmpty()) {
             return primary;
         }
 
         String fallbackJson =
-                httpGet(String.format(Locale.US, FALLBACK_ENDPOINT, joined, chunk.size()));
+                httpGet(String.format(Locale.US, COMMENT_FALLBACK_ENDPOINT, joined, chunk.size()));
         Map<String, String> fallback = fallbackJson == null ? null : parseDataArray(fallbackJson);
         if (fallback != null) {
             return fallback;
         }
         // Distinguish "archive error" (null → negative-cache all) from
         // "archive has nothing" (empty map → negative-cache all, same handling).
+        return primary;
+    }
+
+    private static Map<String, PostArchive> fetchPostChunk(List<String> chunk) {
+        String joined = join(chunk, ",");
+
+        String primaryJson = httpGet(String.format(Locale.US, POST_ARCHIVE_ENDPOINT, joined));
+        Map<String, PostArchive> primary =
+                primaryJson == null ? null : parsePostDataArray(primaryJson);
+        if (primary != null && !primary.isEmpty()) {
+            return primary;
+        }
+
+        String fallbackJson =
+                httpGet(String.format(Locale.US, POST_FALLBACK_ENDPOINT, joined, chunk.size()));
+        Map<String, PostArchive> fallback =
+                fallbackJson == null ? null : parsePostDataArray(fallbackJson);
+        if (fallback != null) {
+            return fallback;
+        }
         return primary;
     }
 
@@ -412,15 +685,58 @@ public final class RedditDeletedCommentHelper {
         }
     }
 
+    /**
+     * Parses post archives ({@code selftext} + {@code title}) from Arctic
+     * Shift or PullPush.  Entries that only contain placeholders are kept so
+     * they can be negative-cached without another request.
+     */
+    private static Map<String, PostArchive> parsePostDataArray(String json) {
+        try {
+            JSONObject root = new JSONObject(json);
+            JSONArray data = root.optJSONArray("data");
+            if (data == null) {
+                return Collections.emptyMap();
+            }
+            Map<String, PostArchive> map = new ConcurrentHashMap<>();
+            for (int i = 0; i < data.length(); i++) {
+                JSONObject entry = data.optJSONObject(i);
+                if (entry == null) {
+                    continue;
+                }
+                String id = normalizeId(entry.optString("id", null));
+                if (id == null) {
+                    continue;
+                }
+                String selftext = usableArchiveText(entry.optString("selftext", null));
+                String title = usableArchiveText(entry.optString("title", null));
+                if (selftext != null || title != null) {
+                    map.put(id, new PostArchive(selftext, title));
+                }
+            }
+            return map;
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    private static String usableArchiveText(String value) {
+        if (value == null || value.trim().isEmpty() || deletedSentinel(value) != null) {
+            return null;
+        }
+        return value;
+    }
+
     // ── Body replacement ─────────────────────────────────────────────────────
 
     private static boolean replaceBody(Object model, String lowerSentinel, String replacement) {
+        boolean replaced = false;
+
         // Prefer a dedicated setter when the model exposes one.
         Method setter = stringSetter(model.getClass());
         if (setter != null) {
             try {
                 setter.invoke(model, replacement);
-                return true;
+                replaced = true;
             } catch (Throwable ignored) {
                 // Fall through to the field walk.
             }
@@ -431,7 +747,100 @@ public final class RedditDeletedCommentHelper {
         // fields are never touched.
         List<Field> named = new ArrayList<>();
         List<Field> valued = new ArrayList<>();
-        collectSentinelFields(model, lowerSentinel, named, valued);
+        collectSentinelFields(model, lowerSentinel, false, named, valued);
+
+        List<Field> targets = !named.isEmpty() ? named : valued;
+        for (Field field : targets) {
+            try {
+                field.set(model, replacement);
+                replaced = true;
+            } catch (Throwable ignored) {
+                // Keep trying the other candidates.
+            }
+        }
+
+        Object tombstone = tombstone(model);
+        if (tombstone != null) {
+            replaced |= replaceEmptyBodyFields(model, replacement);
+            replaced |= replaceTombstone(tombstone, replacement);
+        }
+        return replaced;
+    }
+
+    private static boolean replaceEmptyBodyFields(Object model, String replacement) {
+        boolean replaced = false;
+        for (Class<?> owner = model.getClass(); owner != null && owner != Object.class;
+             owner = owner.getSuperclass()) {
+            Field[] declared;
+            try {
+                declared = owner.getDeclaredFields();
+            } catch (Throwable t) {
+                continue;
+            }
+            for (Field field : declared) {
+                int modifiers = field.getModifiers();
+                if (Modifier.isStatic(modifiers)
+                        || !String.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                String name = field.getName().toLowerCase(Locale.ROOT);
+                if (!isBodyFieldName(name)) {
+                    continue;
+                }
+                try {
+                    field.setAccessible(true);
+                    Object value = field.get(model);
+                    if (value instanceof String && !((String) value).trim().isEmpty()) {
+                        continue;
+                    }
+                    field.set(model, replacement);
+                    replaced = true;
+                } catch (Throwable ignored) {
+                    // Try the next body field.
+                }
+            }
+        }
+        return replaced;
+    }
+
+    private static boolean replaceTombstone(Object tombstone, String replacement) {
+        boolean replaced = false;
+        for (Class<?> owner = tombstone.getClass(); owner != null && owner != Object.class;
+             owner = owner.getSuperclass()) {
+            Field[] declared;
+            try {
+                declared = owner.getDeclaredFields();
+            } catch (Throwable t) {
+                continue;
+            }
+            for (Field field : declared) {
+                int modifiers = field.getModifiers();
+                if (Modifier.isStatic(modifiers)
+                        || !String.class.isAssignableFrom(field.getType())) {
+                    continue;
+                }
+                String name = field.getName().toLowerCase(Locale.ROOT);
+                try {
+                    field.setAccessible(true);
+                    if (name.equals("richtext")) {
+                        field.set(tombstone, null);
+                        replaced = true;
+                    } else if (isBodyFieldName(name)) {
+                        field.set(tombstone, replacement);
+                        replaced = true;
+                    }
+                } catch (Throwable ignored) {
+                    // Try the next tombstone field.
+                }
+            }
+        }
+        return replaced;
+    }
+
+    private static boolean replaceTitle(Object model, String lowerSentinel, String replacement) {
+        List<Field> named = new ArrayList<>();
+        List<Field> valued = new ArrayList<>();
+        collectSentinelFields(model, lowerSentinel, true, named, valued);
 
         List<Field> targets = !named.isEmpty() ? named : valued;
         boolean replaced = false;
@@ -446,7 +855,7 @@ public final class RedditDeletedCommentHelper {
         return replaced;
     }
 
-    private static void collectSentinelFields(Object model, String lowerSentinel,
+    private static void collectSentinelFields(Object model, String lowerSentinel, boolean title,
             List<Field> named, List<Field> valued) {
         for (Class<?> owner = model.getClass(); owner != null && owner != Object.class;
              owner = owner.getSuperclass()) {
@@ -485,10 +894,26 @@ public final class RedditDeletedCommentHelper {
                 if (!current.equals(lowerSentinel)) {
                     continue;
                 }
-                if (isBodyFieldName(name)) {
-                    named.add(field);
+                boolean bodyName = isBodyFieldName(name);
+                boolean titleName = isTitleFieldName(name);
+                if (title) {
+                    if (bodyName) {
+                        continue;
+                    }
+                    if (titleName) {
+                        named.add(field);
+                    } else {
+                        valued.add(field);
+                    }
                 } else {
-                    valued.add(field);
+                    if (titleName) {
+                        continue;
+                    }
+                    if (bodyName) {
+                        named.add(field);
+                    } else {
+                        valued.add(field);
+                    }
                 }
             }
         }
@@ -496,6 +921,15 @@ public final class RedditDeletedCommentHelper {
 
     private static boolean isBodyFieldName(String lowerName) {
         for (String wanted : BODY_FIELD_NAMES) {
+            if (lowerName.equals(wanted)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isTitleFieldName(String lowerName) {
+        for (String wanted : TITLE_FIELD_NAMES) {
             if (lowerName.equals(wanted)) {
                 return true;
             }
@@ -578,6 +1012,7 @@ public final class RedditDeletedCommentHelper {
                 || name.contains("reddit")
                 || name.contains("comment");
         boolean looksLikeModel = firstMethod(type, BODY_GETTERS) != null
+                || firstMethod(type, TITLE_GETTERS) != null
                 || firstMethod(type, KIND_GETTERS) != null
                 || firstMethod(type, COMMENT_MARKER_GETTERS) != null;
         boolean result = reddit && looksLikeModel;
@@ -597,25 +1032,53 @@ public final class RedditDeletedCommentHelper {
 
     private static final class Accessors {
         final Method body;
+        final Method preview;
+        final Method selftext;
+        final Method title;
         final Method id;
         final Method kind;
+        final Method tombstone;
+        final Method commentToRestore;
 
         Accessors(Class<?> type) {
             body = firstMethod(type, BODY_GETTERS);
+            preview = firstMethod(type, new String[]{"getBodyPreview"});
+            selftext = firstMethod(type, new String[]{"getSelftext", "getSelfText"});
+            title = firstMethod(type, TITLE_GETTERS);
             id = firstMethod(type, ID_GETTERS);
             kind = firstMethod(type, KIND_GETTERS);
+            tombstone = firstMethod(type, new String[]{"getCommentTombstone"});
+            commentToRestore = firstMethod(type, new String[]{"getCommentToRestore"});
         }
     }
 
     private static final class Pending {
         final Object model;
         final String id;
-        final String lowerSentinel;
+        final String bodySentinel;
+        final String titleSentinel;
 
-        Pending(Object model, String id, String lowerSentinel) {
+        Pending(Object model, String id, String bodySentinel, String titleSentinel) {
             this.model = model;
             this.id = id;
-            this.lowerSentinel = lowerSentinel;
+            this.bodySentinel = bodySentinel;
+            this.titleSentinel = titleSentinel;
+        }
+    }
+
+    private static final class PostArchive {
+        static final PostArchive MISS = new PostArchive(null, null);
+
+        final String selftext;
+        final String title;
+
+        PostArchive(String selftext, String title) {
+            this.selftext = selftext;
+            this.title = title;
+        }
+
+        boolean isMiss() {
+            return selftext == null && title == null;
         }
     }
 

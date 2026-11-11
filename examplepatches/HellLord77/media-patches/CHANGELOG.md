@@ -1,3 +1,15 @@
+## [1.5.0](https://github.com/HellLord77/media-patches/compare/v1.4.0...v1.5.0) (2026-11-10)
+
+### ✨ New Features
+
+* **Cinematic:** Added spoofed subscribed user patch ([476d4c6](https://github.com/HellLord77/media-patches/commit/476d4c6e2c2cb9913145bdc229eb5647f3ec9330))
+
+## [1.5.0-dev.1](https://github.com/HellLord77/media-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-11-10)
+
+### ✨ New Features
+
+* **Cinematic:** Added spoofed subscribed user patch ([476d4c6](https://github.com/HellLord77/media-patches/commit/476d4c6e2c2cb9913145bdc229eb5647f3ec9330))
+
 ## [1.4.0](https://github.com/HellLord77/media-patches/compare/v1.3.5...v1.4.0) (2026-11-10)
 
 ### ✨ New Features

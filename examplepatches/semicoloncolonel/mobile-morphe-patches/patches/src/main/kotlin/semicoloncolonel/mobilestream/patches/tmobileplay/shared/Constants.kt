@@ -11,6 +11,10 @@ object Constants {
         description = "The T-Mobile Play app.",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xE20074,
-        targets = listOf(AppTarget("19.4.4"))
+        targets = listOf(
+            // Patches apply, but this version has not been tested on a device.
+            AppTarget(version = "19.5.2", isExperimental = true),
+            AppTarget("19.4.4"),
+        )
     )
 }

@@ -10,6 +10,30 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
+/** PackageManager must be allowed to see the same clone targeted by the DEX patch. */
+private val geminiPackageVisibilityPatch = app.morphe.patcher.patch.resourcePatch {
+    execute {
+        VersionHookRegistry.requireProfile(packageMetadata)
+        document("AndroidManifest.xml").use { doc ->
+            val manifest = doc.documentElement
+            val androidNs = "http://schemas.android.com/apk/res/android"
+            val queries = (0 until manifest.childNodes.length)
+                .map { manifest.childNodes.item(it) }
+                .filterIsInstance<org.w3c.dom.Element>().singleOrNull { it.tagName == "queries" }
+                ?: doc.createElement("queries").also { manifest.appendChild(it) }
+            val target = "com.google.android.googlequicksearchbox.morphe"
+            val present = (0 until queries.childNodes.length)
+                .map { queries.childNodes.item(it) }.filterIsInstance<org.w3c.dom.Element>()
+                .any { it.tagName == "package" && it.getAttributeNS(androidNs, "name") == target }
+            if (!present) {
+                queries.appendChild(doc.createElement("package").also {
+                    it.setAttributeNS(androidNs, "android:name", target)
+                })
+            }
+        }
+    }
+}
+
 /**
  * Gemini アプリが呼び出す Google アプリのパッケージ名をクローン版（.morphe）へ変更するパッチ
  */
@@ -19,6 +43,7 @@ val geminiTargetPackagePatch = bytecodePatch(
     default = true
 ) {
     compatibleWith("com.google.android.apps.bard")
+    dependsOn(geminiPackageVisibilityPatch)
 
     execute {
         VersionHookRegistry.requireProfile(packageMetadata)
@@ -74,7 +99,7 @@ val geminiTargetPackagePatch = bytecodePatch(
  */
 val geminiStandalonePatch = app.morphe.patcher.patch.resourcePatch(
     name = "Gemini Standalone Support",
-    description = "Gemini アプリの AndroidManifest.xml から Split APK 制約（requiredSplitTypes等）を除去し単体インストール可能にします。",
+    description = "Geminiのsplit APK制約を除去します。Gemini本体機能には別途クローン版Googleアプリが必要です。",
     default = true
 ) {
     compatibleWith("com.google.android.apps.bard")

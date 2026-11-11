@@ -1,0 +1,10 @@
+# id	returnType	parameterCount	exactStringsSeparatedByPipe
+eligibility	java.lang.Object	1	Robin eligibility : is disallowed on Work profile|Robin eligibility : Work profile is allowed.
+trampoline	java.lang.Object	2	Trampolining to web app for work profile. %s
+compliance_feature	void	2	Checking for device compliance...|Feature is disabled!
+compliance_redirect	java.lang.Object	0	Redirecting to UncertifiedDeviceActivity.
+gms_availability	int	2	 requires Google Play services, but their signature is invalid.
+gms_certificate_class	boolean	2	Unable to obtain package certificate history.
+main_process_class	java.lang.String	0	More than 1 custom main process specified
+runtime_permissions	void	1	ROBIN_MAIN_ACTIVITY_ON_CREATE_END
+process_name_callers	*	*	com.google.android.googlequicksearchbox:googleapp

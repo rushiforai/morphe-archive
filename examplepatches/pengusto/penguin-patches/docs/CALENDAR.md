@@ -7,8 +7,9 @@ independent of [Pengusto Calendar's source fix](https://github.com/pengusto/Cale
 | --- | --- | --- |
 | 1.12.0, code 23 | [calendar-23-foss-release.apk](https://github.com/FossifyOrg/Calendar/releases/tag/1.12.0) | `d43b2df05d5702bea760a7ab03402977ba72e446e5932038efbdab248a5de987` |
 | 1.12.1, code 24 | [calendar-24-foss-release.apk](https://github.com/FossifyOrg/Calendar/releases/tag/1.12.1) | `dae815ce83285facf9fd8648b8c4f039700d95126325db124521eba479b270ba` |
+| 1.12.2, code 25 | [calendar-25-foss-release.apk](https://github.com/FossifyOrg/Calendar/releases/tag/1.12.2) | `2825816d0a972bd85eb289e556221293fadecfd3179a4a2531bde6f89c6f0238` |
 
-Both official APKs have signer SHA-256
+All three official APKs have signer SHA-256
 `affdb124d3f4720c2f98dbca9eacba0514fba4306e20a2786c861c3c0d6ff292`.
 
 HTML descriptions appear as a native preview in the event editor, with an
@@ -22,17 +23,24 @@ The patch does not change the storage format.
 ## Verification and limits
 
 On Android 15 ARM64, the local bundle was applied with Morphe Desktop 1.18.1
-and 1.19.1 to both original APKs. For each version the repeatable test in
+and 1.19.1 to the original APKs. For each version the repeatable test in
 [`tests/calendar/description_acceptance.py`](../tests/calendar/description_acceptance.py)
-reproduced raw HTML on the original and passed **34 checks** on the patched APK:
+reproduced raw HTML on the original and passed at least **34 checks** on the patched APK:
 real widget RemoteViews rendering, actual posted collapsed/expanded reminder
 notifications, HTML, Google-style line breaks/entities, plain text, the
 location alternative, source toggle, native saves and exact source preservation.
-The original passed 29 baseline assertions, including reproduction of native
+The original passed at least 29 baseline assertions, including reproduction of native
 whitespace trimming. These are synthetic offline fixtures.
 
-Morphe Manager 2.2.0 also applied the local candidate on the emulator: its
-exported APKs passed the HTML checks on both versions and the combined all-day
+The notification test also covers the synthetic
+Microsoft Exchange document from [Fossify's HTML discussion](https://github.com/FossifyOrg/Calendar/issues/12#issuecomment-6118588268).
+For 1.12.1 and 1.12.2, an additional disposable-emulator test imports an Exchange-style
+description through Android's calendar provider and verifies Fossify's actual
+scheduled reminder and unchanged stored source. This simulates the provider
+boundary; it does not connect to Microsoft 365.
+
+Morphe Manager 2.2.0 also applied the earlier local candidate on the emulator: its
+exported APKs passed the HTML checks on 1.12.0 and 1.12.1 and the combined all-day
 suite passed 131 checks on 1.12.0. A same-key update to the Manager export
 retained the database and preferences. Morphe Desktop rejects reapplication.
 The separate all-day reminders patch **still supports 1.12.0 only**.

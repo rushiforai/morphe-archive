@@ -2,8 +2,10 @@
 # SPDX-License-Identifier: GPL-3.0-only
 
 # Fails when a shared file differs from the other BaconReader patches repo's (AGENTS.md, "Shared and
-# patcher-specific files"). Same file in both repos. A PR compares with the other repo's branch of the
-# same name when there is one, so the two PRs of one change pass together.
+# patcher-specific files"): AGENTS.md, CLAUDE.md, STYLE.md, docs/patches.md and each patch's page in docs/patches/. A PR compares with the other repo's branch of the same name when there is one, so
+# the two PRs of one change pass together. A push to main or dev compares with the other repo's base branch, or with its
+# branch named as the PR just merged here: the other repo's PR of the same change may not be merged yet, and passes once
+# it is.
 name: Shared docs
 
 on:
@@ -14,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   compare:
@@ -26,22 +29,55 @@ jobs:
         env:
           REPO: ${{ github.repository }}
           HEAD_REF: ${{ github.head_ref }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           case "$REPO" in
             */baconreader-reseam-patches) other=JoanComasFdz/baconreader-morphe-patches base=dev ;;
             */baconreader-morphe-patches) other=JoanComasFdz/baconreader-reseam-patches base=main ;;
             *) echo "::error::unknown repo $REPO"; exit 1 ;;
           esac
-          ref=$base
-          if [ -n "$HEAD_REF" ] && curl -fsSIL -o /dev/null "https://raw.githubusercontent.com/$other/$HEAD_REF/AGENTS.md"; then
-            ref=$HEAD_REF
+          files=(AGENTS.md CLAUDE.md STYLE.md docs/patches.md)
+          # Each patch's page (docs/patches/<patch>.md): the same set of files on both sides, each word for word.
+          patch_pages() {
+            { ls docs/patches/*.md 2> /dev/null
+              gh api "repos/$other/contents/docs/patches?ref=$1" --jq '.[] | select(.name | endswith(".md")) | "docs/patches/" + .name' 2> /dev/null
+            } | sort -u
+          }
+          exists() { curl -fsIL -o /dev/null "https://raw.githubusercontent.com/$other/$1/AGENTS.md"; }
+          # The other repo's shared files at a branch compared with this one's; with "loud", each difference is printed
+          # and annotated.
+          compare() {
+            local fail=0 f
+            for f in "${files[@]}" $(patch_pages "$1"); do
+              if ! curl -fsSL "https://raw.githubusercontent.com/$other/$1/$f" -o "$RUNNER_TEMP/other"; then
+                [ "${2:-}" = loud ] && echo "::error file=$f::missing in $other@$1"
+                fail=1
+                continue
+              fi
+              if [ ! -f "$f" ]; then
+                [ "${2:-}" = loud ] && echo "::error file=$f::missing here, but in $other@$1"
+                fail=1
+              elif [ "${2:-}" = loud ]; then
+                diff -u "$RUNNER_TEMP/other" "$f" || { echo "::error file=$f::differs from $other@$1"; fail=1; }
+              else
+                cmp -s "$RUNNER_TEMP/other" "$f" || fail=1
+              fi
+            done
+            return $fail
+          }
+          refs=()
+          if [ -n "$HEAD_REF" ]; then
+            if exists "$HEAD_REF"; then refs+=("$HEAD_REF"); else refs+=("$base"); fi
+          else
+            refs+=("$base")
+            merged=$(gh api "repos/$REPO/commits/$GITHUB_SHA/pulls" --jq 'map(select(.merged_at != null)) | .[0].head.ref // empty' 2> /dev/null || true)
+            if [ -n "$merged" ] && [ "$merged" != "$base" ] && exists "$merged"; then refs+=("$merged"); fi
           fi
-          echo "Comparing with $other@$ref"
-          fail=0
-          for f in AGENTS.md CLAUDE.md STYLE.md docs/patches.md; do
-            if ! curl -fsSL "https://raw.githubusercontent.com/$other/$ref/$f" -o "$RUNNER_TEMP/other"; then
-              echo "::error file=$f::missing in $other@$ref"; fail=1; continue
+          for ref in "${refs[@]}"; do
+            if compare "$ref"; then
+              echo "Matches $other@$ref."
+              exit 0
             fi
-            diff -u "$RUNNER_TEMP/other" "$f" || { echo "::error file=$f::differs from $other@$ref"; fail=1; }
+            echo "Differs from $other@$ref."
           done
-          exit $fail
+          compare "${refs[0]}" loud

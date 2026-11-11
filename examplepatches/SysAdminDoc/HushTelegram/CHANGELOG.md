@@ -2,6 +2,33 @@
 
 Every HushTelegram release, newest first.
 
+## Unreleased
+
+### Changed
+
+* **Telegram:** The telegram.org web build moves from 13.2.0 (72809) to 13.2.1 (72919). Both builds now track Telegram 13.2.1.
+* **Telegram:** **Ghost mode** lets channel reads go out now, so a channel you read on this phone shows as read on your other devices too. Nobody in a channel can see who read what, so they learn nothing. Groups and private chats stay unread everywhere else, since there the read is what people would see (#65).
+
+### Added
+
+* **Telegram:** **Suppress screenshot notification**, a new patch with its switch in HushTelegram settings > Privacy, off by default. Telegram stops telling the other person you took a screenshot, in regular and secret chats.
+* **Telegram:** **Unlock Premium features**, in Privacy and off by default. Telegram on your phone treats your account as Premium, so the parts the app itself locks open up. Telegram's servers still know your real plan, so their limits stay the same.
+* **Telegram:** **Bypass channel restrictions**, in Privacy and off by default. Channels and chats that turn off forwarding, copying and saving let you do all three. Its second switch, **Open restricted channels**, opens channels, groups and messages Telegram marks unavailable for copyright or local law, as long as Telegram still sends them (#58).
+* **Telegram:** **Bypass integrity check**, in Privacy and off by default. Telegram's two emulator checks always say your phone isn't an emulator.
+* **Telegram:** **Send photos and videos in the best quality**, a fifth switch under **Faster downloads** in HushTelegram settings > Playback, off by default. Photos go out in HD and videos at their own size and quality without a trip to the quality button, and you can still lower one before you send it (#63).
+* **Telegram:** **Auto-forwarding rules** forwards now. Under its switch in Privacy, **Forwarding rules** lists your rules for the account you're on, and **Add rule** picks the chat to watch, the chat to send to and whether every message goes or only ones with a photo, video or file. Only messages other people send go out. A forward from any account you're signed in to never goes out again, and neither does a copy of a message a rule already sent to that chat, so rules pointing at each other can't loop, even across two accounts or through channels. Saved Messages can take forwards but isn't offered as a chat to watch. Chats you can't post in, Replies, Telegram's own account and deleted accounts aren't offered to send to, and at most 20 forwards leave a minute. Off by default.
+
+### Fixed
+
+* **Telegram:** With **Turn videos only from the full screen button** on, a video you put in full screen with the button stays sideways on 13.2 instead of standing back up as soon as you turn the phone (#27).
+* **Telegram:** **Save to Downloads** in the message menu saves every photo of an album, not just the one you long-pressed (#46).
+* **Telegram:** **Save downloaded files** no longer logs an error in its diagnostics whenever a profile photo or a sticker finishes downloading (#27).
+* **Telegram:** The account rows in HushTelegram settings and the checks that tell your own accounts apart no longer log an error on 13.2.1 from Google Play. They only look at the four account slots that build has.
+* **Telegram:** Turning **UnifiedPush notifications** off, or picking another push app, when your phone couldn't save the change (a full phone, say) no longer leaves the row saying the push app ended the sign-up. Turning it back on signs up again, and a move to another app goes ahead once the old one lets go. A refusal, an address or an end the old app sends in the middle of a move can't undo it anymore, and Telegram goes back to Google's push until the new app sends its address.
+* **Telegram:** With large text, the HushTelegram settings list no longer jumps a few pixels when you go back from a search. The top bar used to come back a little shorter after a long title had to shrink to fit.
+* **Telegram:** With Telegram set to Português (Brasil), HushTelegram settings and messages come out in Portuguese. They were in English, because Telegram runs that language with no region and only the Brazilian table had Portuguese text.
+* **Telegram:** In German, the text under **Receive only mode** and **Power off accounts** says "du" like the rest of HushTelegram settings.
+
 ## 0.0.24 (2026-11-08)
 
 The fifteenth release moves to Telegram 13.2.1 from Google Play and 13.2.0 from telegram.org, so update Telegram before you patch. It's on Morphe patcher 2.3.0 now and needs Morphe Manager 2.5.0 or newer. There are 69 patches, two more than last time, and both new ones (Test server sign-in and Bot token sign-in) work from the phone number screen. Most of the rest came from your reports again. Special contacts keeps a history of the people you choose to track, and a new switch lets screenshots work in chats that don't allow saving.

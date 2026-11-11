@@ -51,6 +51,11 @@ CHUNK = 60
 # the new one, so the same table has to be reachable under both.
 ALIASES = {"in": "id", "id": "in", "iw": "he", "he": "iw", "ji": "yi", "yi": "ji"}
 
+# Android reads a language set with no region as its likely region (CLDR's likely subtags), so a
+# plain "pt" takes values-pt-rBR. Telegram runs Português (Brasil) as plain "pt", and a table only
+# Brazil has never answered it.
+LIKELY = {"pt": "br"}
+
 # Both spellings a format string can use, numbered and bare.
 PLACEHOLDER = re.compile(r"%(?:\d+\$)?[a-zA-Z]")
 
@@ -235,6 +240,21 @@ def main():
         for label in labels:
             lines.append("            case %s:" % literal(label))
         lines.append("                return build%s();" % method_name(lang))
+    lines.append("            default:")
+    lines.append("                return null;")
+    lines.append("        }")
+    lines.append("    }")
+    lines.append("")
+    lines.append("    /**")
+    lines.append("     * The region Android reads a language with no region as, lower case, for a language")
+    lines.append("     * whose only table is that region's, or null.")
+    lines.append("     */")
+    lines.append("    static String likelyRegion(String language) {")
+    lines.append("        switch (language) {")
+    for head, region in sorted(LIKELY.items()):
+        if head + "-r" + region in known and head not in known:
+            lines.append("            case %s:" % literal(head))
+            lines.append("                return %s;" % literal(region))
     lines.append("            default:")
     lines.append("                return null;")
     lines.append("        }")

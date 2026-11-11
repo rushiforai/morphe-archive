@@ -356,10 +356,15 @@ private fun BytecodePatchContext.writeSaveDownloadsStubs() {
         return v0
     """)
     // View-once and timed media, in any chat; the extension keeps secret chats out itself (#9).
+    // These two are asked about every finished download, and a profile photo's or a sticker's
+    // parent isn't a message, so like messageDocument they answer no for anything else (#27).
     writeStub(SAVE_DOWNLOADS, "timedMedia", 2, """
+        instance-of v0, p0, $MESSAGE_OBJECT
+        if-eqz v0, :hush_no
         check-cast p0, $MESSAGE_OBJECT
         invoke-virtual {p0}, $IS_SECRET_MEDIA
         move-result v0
+        :hush_no
         return v0
     """)
     // The size a chat shows and Save to Gallery saves, the way ChatMessageCell picks it.
@@ -367,12 +372,17 @@ private fun BytecodePatchContext.writeSaveDownloadsStubs() {
     val closestCall = if (closest == CLOSEST_PHOTO_SIZE) "invoke-static {v0, v1}, $closest"
         else "const/4 p0, 0x0\n        invoke-static {v0, v1, p0, p0, p0}, $closest"
     writeStub(SAVE_DOWNLOADS, "photo", 3, """
+        instance-of v0, p0, $MESSAGE_OBJECT
+        if-eqz v0, :hush_none
         check-cast p0, $MESSAGE_OBJECT
         iget-object v0, p0, $PHOTO_THUMBS
         invoke-static {}, $PHOTO_SIZE
         move-result v1
         $closestCall
         move-result-object v0
+        return-object v0
+        :hush_none
+        const/4 v0, 0x0
         return-object v0
     """)
     // A document, or a photo's size: FileLoader names both the same way.

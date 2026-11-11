@@ -15,7 +15,22 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.4.3](https://github.com/AzizPatel786/kayo-morphe-patches/releases/tag/v1.4.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.6.1](https://github.com/AzizPatel786/kayo-morphe-patches/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+<details open>
+<summary>📦 Kayo Sports (Android TV)&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 4.8.1 | 4.6.1 |
+| :---: | :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Kayo Android TV 4K quality & performance](#kayo-android-tv-4k-quality-performance) | Fixes startup license lockout on sideloaded Kayo TV builds and unlocks 4K50 UHD / HEVC / HDR10 / Widevine L1 / HDCP 2.2 capabilities, D-pad remote quality & audio selector, 80 Mbps instant startup, and Live Stream Diagnostics HUD on Kayo Sports (Android TV). |  |
+
+</details>
+
 <details open>
 <summary>📦 Kayo Sports&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -27,22 +42,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [In-player quality menu](#in-player-quality-menu) | Adds a menu that lists the available video qualities so the user can pick a specific resolution when watching a live stream on Kayo Sports instead of adaptive streaming. |  |
-
-</details>
-
-<details open>
-<summary>📦 Kayo Sports (Android TV)&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 4.6.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [In-player quality menu](#in-player-quality-menu) | Adds a menu that lists the available video qualities so the user can pick a specific resolution when watching a live stream on Kayo Sports instead of adaptive streaming. |  |
+| [Kayo Mobile quality & performance](#kayo-mobile-quality-performance) | Unlocks 1080p50 / 4K50 UHD stream quality, multi-audio commentary switching, 80 Mbps instant startup, deep rebuffer-proof buffering, Picture-in-Picture (PiP), and Live Stream Diagnostics HUD on Kayo Sports (Mobile). |  |
 
 </details>
 

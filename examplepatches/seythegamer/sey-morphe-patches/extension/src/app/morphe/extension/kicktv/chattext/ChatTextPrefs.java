@@ -23,6 +23,16 @@ public final class ChatTextPrefs {
     private static final int STOCK_FONT_SP = 11;
     private static final int STOCK_LINE_HEIGHT_SP = 16;
 
+    /** Vertical gap that KICK puts between chat message items (LazyColumn). */
+    private static final float STOCK_MESSAGE_SPACING_DP = 2.0f;
+
+    /**
+     * Twitch leaves roughly one text line of empty space between two chat
+     * messages. With KICK's 13 sp / 20 sp "Twitch" style, 10 dp reproduces
+     * that gap on a 1080p TV.
+     */
+    private static final float TWITCH_MESSAGE_SPACING_DP = 10.0f;
+
     /** Selectable chat font sizes. 0 keeps the stock 11 sp text. */
     public static final int SIZE_OFF = 0;
     public static final int SIZE_13 = 13;
@@ -148,6 +158,18 @@ public final class ChatTextPrefs {
             return packSp(lineHeightSpFor(size));
         }
         return packSp(stockSp);
+    }
+
+    /**
+     * Replacement for the `2.0f` argument of the chat message LazyColumn's
+     * `Arrangement.spacedBy(...)`. When the tweak is off the stock 2 dp gap is
+     * kept; otherwise the wider Twitch-like gap is used so the messages do not
+     * look crammed together next to Twitch.
+     */
+    public static float messageSpacingDp() {
+        return getSizeSp() == SIZE_OFF
+                ? STOCK_MESSAGE_SPACING_DP
+                : TWITCH_MESSAGE_SPACING_DP;
     }
 
     /**

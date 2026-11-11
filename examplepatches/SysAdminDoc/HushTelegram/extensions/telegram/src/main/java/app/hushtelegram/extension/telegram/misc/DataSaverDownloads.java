@@ -104,6 +104,8 @@ public final class DataSaverDownloads {
     /** What the mask was last told, or null before it first asked. */
     @Nullable private static volatile Boolean lastMask;
     private static final AtomicBoolean watching = new AtomicBoolean();
+    /** Tries at listening: the first, and one more after a refusal. */
+    private static final AtomicInteger watchTries = new AtomicInteger(2);
 
     /** Where Telegram's check runs: the main thread, where its own runs after a network change. */
     static volatile Executor later = Utils::runOnMainThread;
@@ -174,11 +176,16 @@ public final class DataSaverDownloads {
         checkAllAgain();
     }
 
-    /** Listens, from the first time the switch is found on, for Data Saver and the network's metering to change. */
+    /**
+     * Listens, from the first time the switch is found on, for Data Saver and the network's metering to change.
+     * A refusal (an app already holding Android's 100 network callbacks gets one) is reported, and the next
+     * switch read tries once more; after that, {@link #restricted()} re-reading Android every second still holds.
+     */
     private static void watch() {
         if (watching.get()) return;
         Context context = Utils.getContext();
         if (context == null || !watching.compareAndSet(false, true)) return;
+        BroadcastReceiver registered = null;
         try {
             BroadcastReceiver receiver = new BroadcastReceiver() {
                 @Override public void onReceive(Context ignored, Intent intent) {
@@ -191,10 +198,20 @@ public final class DataSaverDownloads {
             } else {
                 context.registerReceiver(receiver, filter);
             }
+            registered = receiver;
             ConnectivityManager connectivity = context.getSystemService(ConnectivityManager.class);
             if (connectivity != null) connectivity.registerDefaultNetworkCallback(new Metering());
         } catch (RuntimeException failure) {
-            Logger.printDebug(() -> "Data Saver: can't watch for changes: " + failure);
+            HookStatus.threw(FamilyNames.FASTER_DOWNLOADS, "Data Saver watch", failure);
+            // The retry registers the receiver again, so this one goes.
+            if (registered != null) {
+                try {
+                    context.unregisterReceiver(registered);
+                } catch (IllegalArgumentException notRegistered) {
+                    Logger.printDebug(() -> "Data Saver: receiver already gone: " + notRegistered);
+                }
+            }
+            if (watchTries.decrementAndGet() > 0) watching.set(false);
         }
     }
 
@@ -251,6 +268,7 @@ public final class DataSaverDownloads {
         controllers.clear();
         lastMask = null;
         watching.set(false);
+        watchTries.set(2);
         last = null;
         later = Utils::runOnMainThread;
         checker = DataSaverDownloads::checkAgain;

@@ -16,11 +16,28 @@ import java.util.Set;
 
 import dev.utaa.linimal.extension.config.LinimalConfig;
 
-/** 通常リンク専用の bytecode hook からだけ呼び出す外部ブラウザ起動処理です。 */
+/** トーク内のリンク専用の bytecode hook からだけ呼び出す外部ブラウザ起動処理です。 */
 public final class ExternalBrowserHooks {
     private static final Uri GENERIC_BROWSER_URI = Uri.parse("https://example.invalid/");
 
     private ExternalBrowserHooks() {
+    }
+
+    /**
+     * トーク内のリンクを押したときの hook です。{@code action} は referrer の action enum で、
+     * {@link ExternalBrowserPolicy#isEligibleChatLinkAction} が認めたものだけを外部へ渡します。
+     * 外部ブラウザを起動できなければ false を返し、LINE の元の navigation を続行させます。
+     */
+    public static boolean tryOpenChatLinkExternally(Context context, Uri uri, Object action) {
+        try {
+            if (!(action instanceof Enum)
+                    || !ExternalBrowserPolicy.isEligibleChatLinkAction(((Enum<?>) action).name())) {
+                return false;
+            }
+            return tryOpenNormalLinkExternally(context, uri);
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     /**

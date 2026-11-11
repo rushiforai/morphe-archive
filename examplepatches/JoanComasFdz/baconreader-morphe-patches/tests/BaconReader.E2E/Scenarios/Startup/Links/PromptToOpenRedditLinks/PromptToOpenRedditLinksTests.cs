@@ -56,7 +56,9 @@ public sealed class PromptToOpenRedditLinksTests : BaseE2E
         // Then
         // The prompt waits until the announcement is closed.
         var prompt = await Phone.BaconReader.OpenRedditLinksPrompt.ReadAsync();
-        Asserting.That(prompt).IsShown().OffersNotNowAndSetUp();
+        Asserting.That(prompt)
+            .IsShown()
+            .OffersNotNowAndSetUp();
 
         // When
         await Phone.BaconReader.OpenRedditLinksPrompt.ClickSetUpAsync();
@@ -65,7 +67,9 @@ public sealed class PromptToOpenRedditLinksTests : BaseE2E
         // Then
         // reddit.com verifies only Reddit's own app: "0 verified links".
         var openByDefault = await Phone.OpenByDefault.ReadAsync();
-        Asserting.That(openByDefault).IsOpenByDefaultFor("BaconReader Premium").ListsNoLink();
+        Asserting.That(openByDefault)
+            .IsOpenByDefaultFor("BaconReader Premium")
+            .ListsNoLink();
 
         // When
         await Phone.OpenByDefault.ClickAddLinkAsync();

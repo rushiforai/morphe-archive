@@ -41,6 +41,8 @@ public final class VideoUpright {
     static final String KEPT_UPRIGHT = "turn kept upright";
     static final String ONLY_BUTTON_ENDS = "full screen ending only from the button";
 
+    private static final String PHOTO_VIEWER = "org.telegram.ui.PhotoViewer";
+
     /** How long the pin outlasts a video's player, so the next video in the viewer keeps it. */
     private static final long RELEASE_DELAY_MILLIS = 250;
 
@@ -70,12 +72,14 @@ public final class VideoUpright {
         boolean telegramsExit = true;
         try {
             if (active()) {
+                // The listener stays off whether or not the activity turns up: it's the one that
+                // stands a full screen back up (#27), and it needs nothing from the activity.
+                telegramsExit = !onlyTheButtonTurns();
                 Activity current = activityOf(listener);
                 if (current == null) {
                     HookStatus.missingMember(FamilyNames.KEEP_VIDEOS_MUTED, "field", "video viewer", "activity");
                 } else {
                     shown(current);
-                    telegramsExit = !onlyTheButtonTurns();
                 }
             }
         } catch (Throwable failure) {
@@ -216,15 +220,17 @@ public final class VideoUpright {
 
     /**
      * The activity the viewer sits in. Telegram's listener holds the viewer and the viewer holds the
-     * activity, both under names that change every build, so they are found by their types.
+     * activity, both under names that change every build, so they are found by their types. 13.2
+     * merges the viewer's listener with another player's, which keeps the viewer in an Object field
+     * (#27), so a field counts when it holds a viewer, whatever it was declared as.
      */
     static Activity activityOf(Object listener) throws IllegalAccessException {
         for (Field outer : listener.getClass().getDeclaredFields()) {
-            if (!"org.telegram.ui.PhotoViewer".equals(outer.getType().getName())) continue;
+            if (outer.getType().isPrimitive()) continue;
             outer.setAccessible(true);
             Object viewer = outer.get(listener);
-            if (viewer == null) continue;
-            for (Field inner : outer.getType().getDeclaredFields()) {
+            if (viewer == null || !PHOTO_VIEWER.equals(viewer.getClass().getName())) continue;
+            for (Field inner : viewer.getClass().getDeclaredFields()) {
                 if (inner.getType() != Activity.class) continue;
                 inner.setAccessible(true);
                 return (Activity) inner.get(viewer);

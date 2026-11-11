@@ -48,3 +48,9 @@ public sealed class LoginPageOptions
 /// <param name="Matches">Which requests: their method and their path, without <c>.json</c> and a trailing slash.</param>
 /// <param name="Times">How many of them it hits, the first ones; null, every one.</param>
 public sealed record RequestTrouble(Func<string, string, bool> Matches, TimeSpan Delay, int? Status = null, string? Explanation = null, bool Drops = false, int? Times = null);
+
+/// <summary>
+/// A thing the setup page shows that the scenario did to the fake or read from it (RedditWorld.NoteOnSetupPage): its
+/// number, oldest first, its title and, for a read, the snapshot read, as JSON.
+/// </summary>
+internal sealed record SetupEvent(int Number, string Title, string? CheckedJson);

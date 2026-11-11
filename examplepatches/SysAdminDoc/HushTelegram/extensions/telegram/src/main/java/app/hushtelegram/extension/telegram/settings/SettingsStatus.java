@@ -149,6 +149,7 @@ public final class SettingsStatus {
     public static boolean dataSaverDownloads() { return false; }
     public static boolean fasterUploads() { return false; }
     public static boolean downloadManager() { return false; }
+    public static boolean bestQualityMedia() { return false; }
     public static boolean saveDownloads() { return false; }
     public static boolean galleryFolder() { return false; }
     public static boolean storageFolder() { return false; }
@@ -229,4 +230,10 @@ public final class SettingsStatus {
     public static boolean ghostMode() { return false; }
     public static boolean receiveOnly() { return false; }
     public static boolean powerOff() { return false; }
+    public static boolean suppressScreenshotNotification() { return false; }
+    public static boolean unlockPremium() { return false; }
+    public static boolean bypassChannelRestrictions() { return false; }
+    public static boolean openRestrictedChats() { return false; }
+    public static boolean bypassIntegrityCheck() { return false; }
+    public static boolean autoForwarding() { return false; }
 }

@@ -349,7 +349,7 @@
   },
   "FullscreenViewport209": {
     "owner": "snapshot",
-    "java_sha256": "61225b9918d3a3f89015da5a4c12659de1dcd9b43cee91f00243893be7fbc362",
+    "java_sha256": "dd4ccea2cb84218cfdfb0a6591c9580e0119f647fd5b9ed53c01d8ad85ea3619",
     "smali_sha256": "8c70de2746698062600795fb333fea9ec7c355407af58310caddae66d9e8bb98"
   },
   "GestureRules": {
@@ -680,7 +680,7 @@
   },
   "SettingsBackupData": {
     "owner": "snapshot",
-    "java_sha256": "0d8bfdf626be3aa83d076abf924de28a93b1057b444707677b64c4d3070955ec",
+    "java_sha256": "1c15533fe5cd1ad13ff8a8d6ac82875b5638b877bcaa0c970174f22ae11179c7",
     "smali_sha256": "e7a476b36ac4b05c44ab6bf7ea5f0903ca18d4e146208e46ef0c25a396919cc2"
   },
   "SettingsIntegrity": {

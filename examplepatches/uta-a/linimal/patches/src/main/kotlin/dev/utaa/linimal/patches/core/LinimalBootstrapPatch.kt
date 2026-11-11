@@ -90,7 +90,7 @@ val linimalBootstrapPatch = bytecodePatch(
             exceptionHandlerAddresses(originalImplementation),
         ) ?: bootstrapFailure("BootstrapInjectionIndexDiverted", 0)
 
-        method.addInstructions(insertionIndex, "invoke-static { p0 }, $BOOTSTRAP_METHOD")
+        method.addInstructions(insertionIndex, "invoke-static/range { p0 .. p0 }, $BOOTSTRAP_METHOD")
 
         patchStatusCollector.record(
             patchId = PatchId.BOOTSTRAP,

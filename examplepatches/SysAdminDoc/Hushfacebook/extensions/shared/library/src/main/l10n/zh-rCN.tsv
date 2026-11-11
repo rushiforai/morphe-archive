@@ -579,6 +579,7 @@ Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Hus
 Hide suggested groups	隐藏推荐小组
 # context: summary of that switch; Discover more groups is the label of Facebook's own button under that row
 Hides the row of groups to join between posts. Posts from groups you're in stay.	隐藏帖子之间的待加入小组行。你所在小组的帖子保留。
+Hides the row of groups to join between posts and the groups card between reels. Posts from groups you're in stay.	隐藏帖子之间的待加入小组行，以及 Reels 之间的小组卡片。你所在小组的帖子保留。
 # context: switch title under News feed; Facebook's own header of a row of Stories from people you don't know, shown between posts
 Hide "Stories you might like"	隐藏“你可能喜欢的快拍”
 Hide Memories in the feed	隐藏动态中的回忆
@@ -833,6 +834,26 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	正在保存……
 Turn off double tap to like	关闭双击点赞
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel, a video or a photo in the feed no longer likes it or shows a heart. A single tap and the Like button work as before.	双击 Reels、视频或动态中的照片不再点赞，也不会显示爱心。单击和“赞”按钮照常使用。
+# context: switch title on the News feed page; on, a tap on Like under a post asks first
+Ask before liking a post	点赞帖子前先询问
+# context: summary of that switch; Like is Facebook's own button as Facebook shows it in this language; Continue is the question's button, as translated below
+A tap on Like under a post asks first, and only Continue likes or unlikes it.	点按帖子下方的“赞”会先询问，只有点“继续”才会点赞或取消点赞。
+# context: switch title under Reels and Watch; on, a tap on Like beside a reel asks first
+Ask before liking a reel	点赞 Reels 前先询问
+# context: summary of that switch
+A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	点按 Reels 旁边的“赞”会先询问，只有点“继续”才会点赞或取消点赞。
+# context: switch title under Comments and writing; on, a tap on Like under a comment asks first
+Ask before liking a comment	点赞评论前先询问
+# context: summary of that switch
+A tap on Like under a comment asks first, and only Continue likes or unlikes it.	点按评论下方的“赞”会先询问，只有点“继续”才会点赞或取消点赞。
+# context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
+Like or unlike this post?	要点赞还是取消点赞这条帖子？
+# context: the same question for a reel
+Like or unlike this reel?	要点赞还是取消点赞这条 Reels？
+# context: the same question for a comment
+Like or unlike this comment?	要点赞还是取消点赞这条评论？
+# context: the question's button that goes ahead
+Continue	继续
 # context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
 Double tap to skip	双击快进快退
 # context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
@@ -969,9 +990,9 @@ Hide post prompts	隐藏帖子提示
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 Hides the strip on some posts, like "Are you interested in this post?" or who recently commented, plus follow and chat suggestions there. The post stays.	隐藏部分帖子上的提示条，例如“你对这条帖子感兴趣吗？”或谁最近评论了，以及那里的关注和聊天建议。帖子本身保留。
 # context: switch title under News feed; the Follow link is the small "Follow" text after a poster's name in a post's header
-Hide the Follow link on posts	隐藏帖子上的“关注”链接
+Hide the Follow and Subscribe links on posts	隐藏帖子上的“关注”和“订阅”链接
 # context: description of that switch; "Follow" is Facebook's own word for the link, so use Facebook's wording in your language if you know it
-Hides the "Follow" link next to the name on posts from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	隐藏来自你未关注的公共主页和用户的帖子中，名字旁边的“关注”链接。点按名字仍会打开个人主页。更改会在之后绘制的帖子上显示。
+Hides the "Follow" or "Subscribe" link next to the name on posts and videos from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	隐藏来自你未关注的公共主页和用户的帖子和视频中，名字旁边的“关注”或“订阅”链接。点按名字仍会打开个人主页。更改会在之后绘制的帖子上显示。
 # context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
 Hide Meta AI questions under posts	隐藏帖子下方的 Meta AI 问题
 # context: description of that switch; a link card is the preview of a shared link inside a post
@@ -1259,6 +1280,7 @@ Couldn't save this post's photos. Try again in a moment.	无法保存此帖子�
 Save GIF	保存 GIF
 # context: message after a tap on Save GIF when the save didn't start
 Couldn't save this GIF. Try again in a moment.	无法保存此 GIF。请稍后重试。
+Couldn't save this photo. Try again in a moment.	无法保存此照片。请稍后重试。
 # context: sentence added after the summary of the Save any photo switch; Save GIF is the row's name, keep it as translated for that row
 A GIF comment gets Save GIF when you long-press it.	长按 GIF 评论即可看到“保存 GIF”。
 Couldn't save this story's photo. Try again in a moment.	无法保存此快拍的照片。请稍后重试。
@@ -1555,6 +1577,8 @@ Only the first reel waits	只有第一个 Reels 等待点按
 With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	开启上面的开关后，你播放一个 Reels 之后，滑动到的 Reels 会自动播放。动态消息、Watch 和快拍始终等待点按。
 Slower speeds	更慢的速度
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	在 Reels 以及动态消息和 Watch 视频的速度菜单中添加 0.1 倍和 0.25 倍，用于放慢精彩瞬间。
+Faster speeds	更快的速度
+Adds 2.5x and 3x to the speed menu of reels and of feed and Watch videos, for watching faster.	在 Reels 以及动态消息和 Watch 视频的速度菜单中添加 2.5 倍和 3 倍，用于更快地观看。
 Speed on finished live videos	已结束直播视频的播放速度
 A live video that has ended gets Playback speed in its gear menu, like other videos. Videos that are still live, and ads, keep Facebook's menu.	已结束的直播视频会像其他视频一样，在齿轮菜单中提供播放速度。仍在直播的视频和广告保留 Facebook 的菜单。
 Share now	立即分享
@@ -2208,6 +2232,8 @@ Fade the seek bar and speaker	淡化进度条和扬声器按钮
 Lower the seek bar and speaker	降低进度条和扬声器按钮
 While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	动态视频播放时，它的进度条和 Facebook 的扬声器按钮会在视频开始或你最后一次触碰几秒后变淡。触碰进度条或暂停视频，它们就会恢复。需要开启“动态视频上的进度条”。
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	把动态视频的进度条移得更靠近底边，Facebook 的扬声器和标记的人按钮也一起下移。需要开启“动态视频上的进度条”。
+Seek bar on the bottom edge	进度条贴底边
+Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	把动态视频的进度条放在底边上，滑动时不容易误触。Facebook 的扬声器和标记的人按钮会上移到它上方。优先于“降低进度条和扬声器按钮”。需要开启“动态视频上的进度条”。
 Feed video position	动态视频播放位置
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	徽章颜色
@@ -2524,6 +2550,8 @@ Show only watched stories	只显示看过的快拍
 The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	快拍栏只保留你已经看过的快拍，方便你再找到某一个。关闭后可看到新的快拍。开启时“隐藏已看过的快拍”暂不生效。在 Facebook 下次加载快拍栏时生效。
 Show Posts in search	在搜索中显示帖子
 Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	把“帖子”放回搜索结果上方的那一行，排在 Reels 之后，这样你可以只看与搜索内容相关的帖子。
+Saved button in search	搜索中的收藏按钮
+Puts a Saved button at the end of the search bar, so your saved posts and videos are one tap away. Restart Facebook to see the change.	在搜索栏末尾放一个“收藏”按钮，点一下就能看到你收藏的帖子和视频。重启 Facebook 后可看到更改。
 Restore feed sound after opened videos	打开视频后恢复动态的声音
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	你打开的视频照常带声音播放。回到动态后，声音会恢复到打开视频之前的状态，即使看了很久也一样。
 Hide the Join button on posts	隐藏帖子上的加入按钮
@@ -2589,6 +2617,8 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	去掉快拍底部那一排建议回复。回复框会保留。从你打开的下一个快拍开始生效。
 Hide the Subscribe button	隐藏订阅按钮
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	去掉快拍顶部的订阅按钮。从你打开的下一个快拍开始生效。
+Hide create story cards	隐藏创建快拍卡片
+Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	去掉快拍之间邀请你发快拍的卡片，包括用你图库照片生成的卡片。下次打开快拍时生效。
 Progress bar at the bottom	底部进度条
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	在快拍底部显示一条随播放逐渐填满的细条，和 Reels 上的一样。
 Seek bar on stories	快拍上的进度条
@@ -2662,3 +2692,9 @@ Show time in Reels	在 Reels 中显示观看时间
 A small label at the top of Reels shows the minutes you've watched. Time on other tabs doesn't count, and 15 minutes away starts it over.	Reels 顶部的小标签显示你已观看的分钟数。在其他标签页的时间不计入，离开 Reels 15 分钟后会从头计算.
 # context: a short label on the Reels screen; %1$d is a number of minutes
 %1$d min	%1$d 分钟
+Hide the tab bar on the Reels tab	在 Reels 标签页隐藏标签栏
+The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	打开 Reels 标签页时标签栏会消失，Reels 占满整个屏幕。其他标签页保留标签栏。重启 Facebook 后可看到更改.
+Playback speed in the post menu	帖子菜单中的播放速度
+A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	动态消息或 Watch 视频的三点菜单会加入播放速度，从 0.5 倍到 3 倍，直播视频也可以。默认关闭，因为尚未在真实账号上试过。
+Double tap to skip on feed videos	动态视频双击快进快退
+Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	双击正在播放的动态视频右侧可前进 10 秒，双击左侧可后退 10 秒。继续点按可以跳得更远。直播视频在可以回退时也适用。单击一侧仍会打开视频，只是比平时稍晚一点。开启“点按播放”时，还需要开启“动态消息视频控件”。

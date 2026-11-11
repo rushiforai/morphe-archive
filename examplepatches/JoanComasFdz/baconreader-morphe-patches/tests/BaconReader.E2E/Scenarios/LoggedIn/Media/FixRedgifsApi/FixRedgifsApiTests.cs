@@ -24,21 +24,21 @@ public sealed class FixRedgifsApiTests : BaseE2E
           Given Reddit has a RedGIFs post "First clip" in r/e2e
           And Reddit has a RedGIFs post "Second clip" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap the post "First clip"
           And I tap the thumbnail in the post's header
           Then the video plays
-          # Not on the screen: the fake RedGIFs records what BaconReader asked for.
+          # On the setup page: the fake RedGIFs records what BaconReader asked for.
           And RedGIFs answered the video of "First clip" to BaconReader's temporary token and User-Agent
           When I go back
           And I go back to the posts
-          # Not on the phone: the fake RedGIFs refuses the tokens it gave, "401 WrongSender", as RedGIFs does once the phone's address changes.
+          # On the setup page: the fake RedGIFs refuses the tokens it gave, "401 WrongSender", as RedGIFs does once the phone's address changes.
           And the phone joins another network
           And I tap the post "Second clip"
           And I tap the thumbnail in the post's header
           Then the video plays
-          # Not on the screen: the fake RedGIFs records what BaconReader asked for.
+          # On the setup page: the fake RedGIFs records what BaconReader asked for.
           And BaconReader asked RedGIFs for a new temporary token
         """)]
     public async Task FixRedgifsApiPlaysRedGIFsVideosWithATemporaryTokenAndWithANewOneOnceThePhoneJoinsAnotherNetwork(Screen screen)
@@ -46,8 +46,8 @@ public sealed class FixRedgifsApiTests : BaseE2E
         // Given
         Reddit.HasARedGifsPost("First clip", "e2e");
         Reddit.HasARedGifsPost("Second clip", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Posts.ClickPostAsync("First clip");
@@ -57,7 +57,7 @@ public sealed class FixRedgifsApiTests : BaseE2E
 
         // Then
         var first = await Phone.BaconReader.MediaViewer.ReadAsync();
-        // Not on the screen: the fake RedGIFs records what BaconReader asked for.
+        // On the setup page: the fake RedGIFs records what BaconReader asked for.
         var firstLookups = Reddit.ReadRedGifsLookupsOfTheVideoOf("First clip");
         Asserting.That(first).PlaysTheVideo();
         Asserting.That(firstLookups).AnsweredToBaconReadersTemporaryTokenAndUserAgent();
@@ -66,7 +66,7 @@ public sealed class FixRedgifsApiTests : BaseE2E
         await Phone.BaconReader.MediaViewer.ClickBackAsync();
         await Phone.BaconReader.Detail.WaitUntilPostShownAsync("First clip");
         await Phone.BaconReader.GoBackToThePostsAsync();
-        // Not on the phone: the fake RedGIFs refuses the tokens it gave, "401 WrongSender", as RedGIFs does once the phone's address changes.
+        // On the setup page: the fake RedGIFs refuses the tokens it gave, "401 WrongSender", as RedGIFs does once the phone's address changes.
         Reddit.ThePhoneJoinsAnotherNetwork();
         await Phone.BaconReader.Main.Posts.ClickPostAsync("Second clip");
         await Phone.BaconReader.Detail.WaitUntilPostShownAsync("Second clip");
@@ -75,7 +75,7 @@ public sealed class FixRedgifsApiTests : BaseE2E
 
         // Then
         var second = await Phone.BaconReader.MediaViewer.ReadAsync();
-        // Not on the screen: the fake RedGIFs records what BaconReader asked for.
+        // On the setup page: the fake RedGIFs records what BaconReader asked for.
         var tokens = Reddit.ReadRedGifsTemporaryTokens();
         Asserting.That(second).PlaysTheVideo();
         Asserting.That(tokens).AskedForANewTemporaryToken();

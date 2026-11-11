@@ -151,7 +151,7 @@ jobs:
           sed -i 's/^retries=.*/retries=2/' gradle/wrapper/gradle-wrapper.properties
           printf '\nsystemProp.org.gradle.internal.http.connectionTimeout=180000\nsystemProp.org.gradle.internal.http.socketTimeout=180000\n' >> gradle.properties
 
-      # A manual approval must not accidentally publish v1.11.0 if development
+      # A manual approval must not accidentally publish the wrong version if development
       # commits contain minor-release types. Preview the exact next tag first.
       - name: Confirm approved release target
         shell: bash
@@ -179,7 +179,7 @@ jobs:
           NODE
 
       - name: Audit release candidate source and lifecycle guards
-        run: python3 porting/revisions/v1.10.6/release-readiness-audit.py
+        run: python3 porting/revisions/v1.11.1/release-readiness-audit.py
       - name: Build and verify approved release payload
         env:
           GITHUB_ACTOR: ${{ github.actor }}
@@ -187,10 +187,13 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew :patches:buildAndroid --no-daemon
-          python3 porting/revisions/v1.10.6/verify-mpp.py 1.10.6
+          python3 porting/revisions/v1.11.1/verify-mpp.py 1.11.1
           python3 porting/tests/regression136.py
           python3 porting/tests/regression141.py
           python3 porting/tests/regression155.py
+          python3 porting/tests/retained-notification-regression.py
+          python3 porting/tests/tap-regions-regression.py
+          python3 porting/tests/tap-region-ui-regression.py
 
       # Use the verified project dependency tree, not an action that installs
       # its own separate (unpatched) semantic-release toolchain.

@@ -1,8 +1,17 @@
+## [1.6.9](https://github.com/6zev/morphe-patches/compare/v1.6.8...v1.6.9) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* keep ADB input working without the speed-up server ([0f08d21](https://github.com/6zev/morphe-patches/commit/0f08d21746f02a18d183b3a7de9aac1455ecad2b))
+
 ## [1.6.8](https://github.com/6zev/morphe-patches/compare/v1.6.7...v1.6.8) (2026-11-08)
 
 ### 🐛 Bug Fixes
 
 * replace Looper.prepare() with invoke-static myLooper to satisfy verifier type requirements ([3d6c794](https://github.com/6zev/morphe-patches/commit/3d6c7946dade822065ff26dcbf89b2160bc9a97a))
+* drop the Looper patch: `Server.main` must keep `Looper.prepare()`. The device log line `MainLooper already prepared` comes from `P3/C2` *inside* the server coroutine, so the prepare had already succeeded; replacing it removed the Looper that `Looper.loop()` needs and made the server exit 255 on every start
+* add **Input without the ADB server**: gate every `localhost:15000` injection site on the app's own port probe (`h3.e.n()`), so numpad keys, pointer and gamepad input fall back to local injection while the speed-up server is down
+* **ADB server log** now appends `tvqa-server-exit=<status>`, telling `255` (System.exit), `137` (SIGKILL), `132` (SIGILL) and `139` (SIGSEGV) apart
 
 ## [1.6.7](https://github.com/6zev/morphe-patches/compare/v1.6.6...v1.6.7) (2026-11-08)
 

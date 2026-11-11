@@ -28,7 +28,7 @@ public sealed class PhotoViewer(AndroidDriver driver)
             driver.FindElements(Share).Count > 0 && driver.FindElements(Photo).Any(photo => photo.Size.Height > 0)));
 
     /// <summary>Taps Android's Back, which closes the screen.</summary>
-    public Task ClickBackAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(OpenQA.Selenium.Appium.Android.Enums.AndroidKeyCode.Back));
+    public Task ClickBackAsync() => OnScreen.PressBackAsync(driver);
 }
 
 /// <summary>Whether BaconReader's photo viewer shows, with its photo.</summary>

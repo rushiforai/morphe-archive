@@ -44,18 +44,18 @@ public sealed partial class Reddit
     /// <c>/3/album/&lt;id&gt;/images</c>, each one's status.
     /// </summary>
     public ImgurRequestsSnapshot ReadRequestsForTheImgurAlbum(string album) =>
-        ImgurRequests($"the images of the album \"{album}\"", $"/_imgur/3/album/{ImgurAlbumTitled(album).Id}/images");
+        Checked<ImgurRequestsSnapshot>(ImgurRequests($"the images of the album \"{album}\"", $"/_imgur/3/album/{ImgurAlbumTitled(album).Id}/images"), album);
 
     /// <summary>
     /// "Imgur served the gallery post "&lt;album&gt;"": the requests Imgur's API got for the gallery post,
     /// <c>/3/gallery/&lt;id&gt;</c>, each one's status.
     /// </summary>
     public ImgurRequestsSnapshot ReadRequestsForTheImgurGalleryPost(string album) =>
-        ImgurRequests($"the gallery post \"{album}\"", $"/_imgur/3/gallery/{ImgurAlbumTitled(album).Id}");
+        Checked<ImgurRequestsSnapshot>(ImgurRequests($"the gallery post \"{album}\"", $"/_imgur/3/gallery/{ImgurAlbumTitled(album).Id}"), album);
 
     /// <summary>"Imgur got the upload …": the uploads Imgur got, oldest first, with their content type.</summary>
     public ImgurUploadsSnapshot ReadImgurUploads() =>
-        new([.. world.Imgur.Uploads.Select(upload => new ImgurUploadSeen(upload.ContentType, upload.Accepted))]);
+        Checked<ImgurUploadsSnapshot>(new([.. world.Imgur.Uploads.Select(upload => new ImgurUploadSeen(upload.ContentType, upload.Accepted))]));
 
     /// <summary>Waits until Imgur got an upload: BaconReader uploads the reply's images when it is sent.</summary>
     public Task WaitUntilImgurGotAnUploadAsync() =>

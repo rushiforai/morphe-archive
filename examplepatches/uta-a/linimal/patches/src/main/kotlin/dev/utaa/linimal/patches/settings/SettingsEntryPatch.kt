@@ -17,6 +17,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.patchStatusCollector
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val SETTINGS_CATEGORY_SUPER = "Lec5/f2;"
 private const val LIST_TYPE = "Ljava/util/List;"
@@ -110,7 +111,8 @@ val settingsEntryPatch = bytecodePatch(
             storeField.opcode != Opcode.SPUT_OBJECT ||
             listField?.type != LIST_TYPE ||
             listField.definingClass != match.originalClassDef.type ||
-            resultRegister > 15
+            resultRegister > 15 ||
+            !isSafeInjectionIndex(method.implementation, listBuilderIndex + 2)
         ) {
             settingsFailure("SettingsListInstructionShapeMismatch", actualTargetCount, "list tail")
         }

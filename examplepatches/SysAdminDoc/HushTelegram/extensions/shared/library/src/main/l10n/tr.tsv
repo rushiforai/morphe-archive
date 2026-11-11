@@ -1511,3 +1511,37 @@ That bot token was revoked.	Bu bot jetonu iptal edilmiş.
 Wait %1$s seconds, then try again.	%1$s saniye bekleyin, sonra tekrar deneyin.
 # context: short message when Telegram refuses the sign-in with an error code of its own. %1$s is that code, in capitals, as Telegram sends it.
 Telegram refused it: %1$s	Telegram reddetti: %1$s
+# context: Five experimental patches added in the 72919 retarget. All off by default.
+Suppress screenshot notification	Ekran görüntüsü bildirimini engelle
+Telegram no longer tells the other person in a secret chat when you take a screenshot.	Telegram, ekran görüntüsü aldığında gizli sohbetteki diğer kişiye artık haber vermez.
+Unlock Premium features	Premium özelliklerinin kilidini aç
+Telegram on this phone treats your account as Premium, so the parts the app itself locks open up. Telegram's servers still know your real plan, so their limits stay the same.	Bu telefondaki Telegram hesabını Premium sayar, böylece uygulamanın kendisinin kilitlediği kısımlar açılır. Telegram sunucuları gerçek planını yine bilir, bu yüzden onların sınırları aynı kalır.
+Bypass channel restrictions	Kanal kısıtlamalarını aş
+Channels and chats that block forwarding and saving let you forward messages and save media.	İletmeyi ve kaydetmeyi engelleyen kanallarda ve sohbetlerde mesajları iletebilir ve medyayı kaydedebilirsin.
+Bypass integrity check	Bütünlük denetimini aş
+Telegram's two emulator checks always say this phone isn't an emulator.	Telegram'ın iki emülatör denetimi bu telefonun emülatör olmadığını her zaman söyler.
+Auto-forwarding rules	Otomatik iletme kuralları
+# context: Auto-forwarding rules. The row under the switch, its list of rules and the three pickers that add one. %1$s and %2$s are chat names, the chat new messages come from and the chat they go to.
+New messages in a chat are forwarded to another chat by the rules below. Your own forwards are never forwarded again, and at most 20 go out a minute.	Bir sohbetteki yeni mesajlar aşağıdaki kurallara göre başka bir sohbete iletilir. Kendi ilettikleriniz asla yeniden iletilmez ve dakikada en fazla 20 ileti gönderilir.
+Forwarding rules	İletme kuralları
+No rules yet.	Henüz kural yok.
+%1$s to %2$s	%1$s → %2$s
+%1$s to %2$s, media only	%1$s → %2$s, yalnızca medya
+Add rule	Kural ekle
+Tap a rule to remove it	Kaldırmak için bir kurala dokunun
+Couldn't save the rules. Try again in a moment.	Kurallar kaydedilemedi. Birazdan tekrar deneyin.
+Rule removed	Kural kaldırıldı
+A rule needs two chats.	Bir kural için iki sohbet gerekir.
+Forward new messages from	Yeni mesajları şuradan ilet
+Forward them to	Şuraya ilet
+Those chats already have a rule.	Bu sohbetler için zaten bir kural var.
+What to forward	Neler iletilsin
+Every message	Her mesaj
+Only messages with media	Yalnızca medya içeren mesajlar
+Rule saved	Kural kaydedildi
+Open restricted channels	Kısıtlanmış kanalları aç
+Channels, groups and messages Telegram says are unavailable for copyright or local law open anyway, as long as Telegram still sends them.	Telegram'ın telif hakkı veya yerel yasalar nedeniyle kullanılamıyor dediği kanallar, gruplar ve mesajlar, Telegram onları göndermeye devam ettiği sürece yine de açılır.
+channels restricted for copyright or local law	telif hakkı veya yerel yasalar nedeniyle kısıtlanmış kanallar
+Send photos and videos in the best quality	Fotoğraf ve videoları en iyi kalitede gönder
+Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	Fotoğraflar HD, videolar kendi boyutu ve kalitesiyle gider, önce kalite düğmesine dokunmana gerek kalmaz. Göndermeden önce birinin kalitesini yine düşürebilirsin. Bir fotoğrafı tam olduğu gibi yalnızca dosya olarak göndermek korur.
+photos and videos in their best quality	en iyi kalitede fotoğraf ve videolar

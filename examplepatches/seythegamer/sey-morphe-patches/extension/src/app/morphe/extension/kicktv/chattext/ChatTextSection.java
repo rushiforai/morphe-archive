@@ -35,7 +35,8 @@ public final class ChatTextSection implements MorpheSection {
         container.addView(sizeButton, MorpheTheme.matchWidth());
 
         final TextView hint = new TextView(activity);
-        hint.setText("Stock KICK chat is 11 sp. Restart KICK after changing this.");
+        hint.setText("Stock KICK chat is 11 sp. The Twitch preset also widens the "
+                + "gap between messages. Restart KICK after changing this.");
         hint.setTextColor(MorpheTheme.COLOR_MUTED);
         hint.setTextSize(13);
         hint.setPadding(

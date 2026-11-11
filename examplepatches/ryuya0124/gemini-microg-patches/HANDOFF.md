@@ -108,3 +108,14 @@
 ### 送信失敗の解決確認
 
 追加修正版を同じ新キーで上書きし、既存feature-disabled経路の復旧ログ、内部サービスのdisabledComponentsからの消失を確認。ユーザーに改めて送信・返答を依頼し「できた」と確認済み。最初の起動確認と混同しない。通常領域・端末再起動・音声/Liveは今回未再検証。
+
+## 2026-11-10（最新）
+
+- 作業先は `/Users/ryuya/Documents/GeminiPatch`。11月4日にSharedからGit履歴・入力・キー込みで移動済み。
+- Google 17.72.17.ve.arm64を端末から抽出して新版定義を追加。Geminiは1.0.995038376のまま。
+- Issue #7を調査。投稿者本人がclosed/not_plannedにしていた。コメント・再オープンは行っていない。queriesの変更漏れを修正し、Standalone Supportがsplitの話であることも明記。
+- DexKit 2.3.0をホスト解析へ導入。9ルールの候補・参照関係をJSON保存。同じAPK/ルール/コード/ツールはキャッシュ利用。端末には探索コードを追加していない。ネイティブライブラリはtools下でビルドする。初回はscripts/setup-dexkit.sh。
+- 新版のtrampoline直前にはnullable Booleanの別条件が増えたため、最寄り分岐を書き換える方法を使わず、検証済みAND_INT_2ADDR直後の条件と分岐先を使う。
+- プロセス名探索では定数文字列googleappを返す別ヘルパーを除外。版別完全記述子に一致する本物のプロセス名取得関数だけを選択する。
+- キーは既存のlocal/keys/gemini-release.p12を維持。バックアップはBドライブの既存アプリ別フォルダを維持。
+- 入力ハッシュ/版定義/DEX分岐・資格判定・認定チェック・trampoline/Manifestを検証。実機更新をuser 150へ実施し、利用者の確認待ち。

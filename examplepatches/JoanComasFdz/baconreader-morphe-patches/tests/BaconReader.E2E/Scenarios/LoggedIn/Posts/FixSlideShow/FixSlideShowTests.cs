@@ -25,8 +25,8 @@ public sealed class FixSlideShowTests : BaseE2E
           Given Reddit has an image post "Long caption" in r/e2e with 25 paragraphs of text, "Paragraph 1" to "Paragraph 25"
           And Reddit has a gallery post "Three photos" in r/e2e of 3 images
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap the post "Long caption"
           And I tap "Slide Show View" in the toolbar
           # The page used to run on behind the bottom bar, cutting the post's text.
@@ -49,8 +49,8 @@ public sealed class FixSlideShowTests : BaseE2E
         // Given
         Reddit.HasAnImagePostWithParagraphs("Long caption", "e2e", 25);
         Reddit.HasAGalleryPostOf("Three photos", "e2e", 3);
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Posts.ClickPostAsync("Long caption");

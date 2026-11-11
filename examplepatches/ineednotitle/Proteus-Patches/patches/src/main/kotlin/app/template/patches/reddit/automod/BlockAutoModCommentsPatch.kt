@@ -2,6 +2,7 @@ package app.template.patches.reddit.automod
 
 import app.morphe.patcher.patch.bytecodePatch
 import app.template.patches.shared.Constants.REDDIT_COMPATIBILITY
+import app.template.patches.reddit.shared.injectAutoModCommentTreeFilter
 import app.template.patches.reddit.shared.injectListingChildrenFilter
 
 /**
@@ -16,10 +17,15 @@ import app.template.patches.reddit.shared.injectListingChildrenFilter
  * Mechanism:
  *   1. The patch injects `RedditContentFilterHelper.hideAutoModComments(List)`
  *      at the `Listing.children` choke point (constructor field write and the
- *      optional `getChildren()` getter).  Feeds and comment threads both build
- *      this container, so the filter covers every surface that renders a
- *      comment row.
- * 2. The extension resolves the underlying Reddit model reflectively, reads
+ *      optional `getChildren()` getter) for feed/listing surfaces.
+ *   2. Comment threads do not build a `Listing` in this build; they are built
+ *      by the obfuscated comment tree store, which emits `Lc5l0;` TreeData.
+ *      The patch also wraps that constructor and filters all three parallel
+ *      views (ordered ids, id → comment map, id → tree-item map) via
+ *      `hideAutoModTreeIds` / `hideAutoModTreeComments` /
+ *      `hideAutoModTreeItems`, so the renderer cannot resurrect the row from
+ *      another view.
+ *   3. The extension resolves the underlying Reddit model reflectively, reads
  *      its author and decides comment-vs-post shape from `getKindWithId()`,
  *      `getKind()`/`getType()`, `getParentId()`/`getLinkId()`/`getDepth()` and
  *      title/body accessors.  Nothing is imported from the app, so R8-renamed
@@ -28,19 +34,17 @@ import app.template.patches.reddit.shared.injectListingChildrenFilter
  *      whose body contains the canonical AutoModerator footer ("I am a bot,
  *      and this action was performed automatically") is still dropped; a
  *      resolved non-AutoModerator author always wins.
- * 3. At runtime the helper prints a one-time `[Proteus][Block AutoMod]
- *      filter is live` line plus throttled drop counts to `System.out`
- *      (visible with `adb logcat | grep -i proteus`).  If that line never
- *      appears, the comment-thread renderer in this build does not flow
- *      through `Listing` and this patch cannot hide those comments — the
- *      choke point, not the detector, needs rework for that build.
+ *   4. At runtime the helper prints one-time `filter is live` and
+ *      `comment tree filter is live` lines plus throttled drop counts to
+ *      `System.out` (visible with `adb logcat | grep -i proteus`).  Those
+ *      lines prove which choke point actually ran on the device.
  *
  * Local client-side filtering only: the comments are still delivered by the
  * API, and the comment count in the header may still include them.  Off by
  * default so users who rely on stickied mod notices can leave them visible.
  *
- * Verified statically against the Reddit 2026.42.0 `Listing` layout used by
- * "Remove ads"; no APK was available in this workspace for on-device testing.
+ * Verified statically against the Reddit 2026.42.0 `Listing` and comment-tree
+ * layouts; no APK was available in this workspace for on-device testing.
  */
 @Suppress("unused")
 val redditBlockAutoModCommentsPatch = bytecodePatch(
@@ -58,5 +62,6 @@ val redditBlockAutoModCommentsPatch = bytecodePatch(
             helperMethod = "hideAutoModComments",
             logTag = "Block AutoMod comments",
         )
+        injectAutoModCommentTreeFilter("Block AutoMod comments")
     }
 }

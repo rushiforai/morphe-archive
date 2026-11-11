@@ -16,10 +16,12 @@ public sealed class JsonReadingTests
             [{"domain": "Account", "class": "SpoofClientTests", "method": "Opens", "title": "Opens",
               "gherkin": "Scenario: opens", "patches": ["Spoof client"], "screen": "phone", "gif": "Account/opens-phone.gif",
               "mp4": "Account/opens-phone.mp4", "startupSeconds": 1.5, "passed": false,
-              "selected": "fixtures", "fixtures": ["a.json"]}]
+              "selected": "fixtures", "fixtures": ["a.json"], "marks": [{"line": 1, "seconds": 2.5, "failed": false}]}]
             """;
 
         var entry = Assert.Single(Unwrap(JsonReading.ReadScenarios(json)));
+
+        Assert.Equal([new LineMark(1, 2.5, false)], entry.Marks);
 
         Assert.Equal("SpoofClientTests", entry.Class);
         Assert.Equal(Optional.Some("phone"), entry.Screen);

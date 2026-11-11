@@ -1,3 +1,39 @@
+## 1.11.1 (2026-11-11)
+
+### 🐛 Bug Fixes
+* **nicoid:** Fix Ambient Mode lighting overlapping comments, text, icons, and playback controls.
+* **nicoid:** Fix the Ambient Mode toggle occasionally becoming unresponsive.
+* **nicoid:** Fix the video player overlapping the status bar after exiting fullscreen in landscape tablet mode.
+
+### 🔧 Improvements
+* **nicoid:** Improve Ambient Mode lighting spread and intensity during normal playback.
+* **nicoid:** Extend ambient lighting below the tab bar and around the right edge and corners in landscape mode.
+* **nicoid:** Smooth lighting transitions and reduce visible boundaries between the video player and surrounding UI.
+
+## 1.11.0 (2026-11-10)
+
+### ✨ New Features
+* **nicoid:** Add Ambient Mode with customizable lighting effects that respond to video colors.
+* **nicoid:** Add customizable single-tap regions for showing and hiding playback controls, supporting normal, fullscreen, and popup playback.
+* **nicoid:** Add Ranking to the tab selection menu, allowing ranking categories to be opened as tabs.
+* **nicoid:** Expand gesture assignments with direct access to navigation menus and app actions.
+* **nicoid:** Add customization options for tab bar button labels.
+
+### 🐛 Bug Fixes
+* **nicoid:** Fix black screens and playback issues when returning from background playback or notifications.
+* **nicoid:** Fix single-tap control regions not working correctly during normal and fullscreen playback.
+* **nicoid:** Fix missing ambient lighting on the right side during fullscreen playback.
+* **nicoid:** Fix Ambient Mode and single-tap region settings not being included in settings backups.
+* **nicoid:** Fix app resume behavior not correctly restoring normal playback.
+
+### 🔧 Improvements
+* **nicoid:** Improve seamless transitions between normal, background, and notification playback.
+* **nicoid:** Improve media notification information and playback continuity.
+* **nicoid:** Improve ranking navigation, tab management, and dialog layouts.
+* **nicoid:** Improve Ambient Mode lighting, color transitions, and black-bar detection.
+* **nicoid:** Optimize Ambient Mode to avoid unnecessary frame processing when lighting is disabled.
+* **nicoid:** Refine the single-tap region editor with more compact controls and precise adjustments.
+
 ## 1.10.6 (2026-11-09)
 
 ### ✨ New Features

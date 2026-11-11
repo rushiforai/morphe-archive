@@ -23,10 +23,10 @@ private const val USER_CONFIG = "Lorg/telegram/messenger/UserConfig;"
 class ExtensionHostNamesFixtureTest {
     /** Per build: the row lines the extension needs for MessagesController, UserConfig and one inlined string. */
     private val expected = mapOf(
-        "72809" to listOf(
-            "m org.telegram.messenger.lp getInstance (I) r1",
-            "f org.telegram.messenger.w10 selectedAccount r0",
-            "r string PushReactText 7f0fdee2",
+        "72919" to listOf(
+            "m org.telegram.messenger.rp getInstance (I) s1",
+            "f org.telegram.messenger.c20 selectedAccount t0",
+            "r string PushReactText 7f0fded5",
         ),
         "72911" to listOf(
             "m org.telegram.messenger.vp getInstance (I) s1",
@@ -64,7 +64,7 @@ class ExtensionHostNamesFixtureTest {
             }
             assertEquals("$name: no class name the build renamed is left in the extension", emptyList<String>(), stale)
             assertTrue("$name: the extension names MessagesController by the build's name",
-                "org.telegram.messenger.${if (table.build == "72809") "lp" else "vp"}" in strings)
+                table.type(MESSAGES_CONTROLLER).removePrefix("L").removeSuffix(";").replace('/', '.') in strings)
         }
     }
 

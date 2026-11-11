@@ -26,7 +26,7 @@ public final class NuvioIntroDbPatch {
             builder.execute(context -> {
                 if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                     !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0-beta.13");
+                    throw new IllegalStateException("IntroDB requires NuvioTV 1.1.0");
                 validateState(new MutableClass(context.classDefBy(NuvioNative.PLAYER_STATE_TYPE)));
                 for (String signature : UI) require(new MutableClass(context.classDefBy(signature.substring(0, signature.indexOf("->")))), signature);
                 validateInputFocus(new MutableClass(context.classDefBy(NuvioNative.INPUT_FOCUS_TYPE)), Integer.parseInt(NuvioNative.INPUT_FOCUS_BRANCH));

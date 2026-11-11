@@ -2,13 +2,31 @@
 
 ## HTML editor, widget and notification acceptance
 
-`description_acceptance.py` accepts an official 1.12.0 or 1.12.1 APK and the
+`description_acceptance.py` accepts an official 1.12.0, 1.12.1 or 1.12.2 APK and the
 corresponding locally patched unsigned APK. It verifies original checksum,
 signer, package/version, disposable AVD identity and the existing fixture's
 test certificate. It installs same-key copies, compares native original and
 patched widget RemoteViews, posted notifications, explicit source-editing and
 database save/readback, then restores the APK that was present at startup.
 Synthetic events and notification channels remain in the disposable fixture.
+
+The provider-to-reminder test `synced_notification_acceptance.py` exercises an
+Exchange-style description through Android's calendar provider, Fossify's
+CalDAV import and its scheduled notification. It does not contact Microsoft
+365. On a rooted disposable AVD, install the re-signed APK under test and set
+up the sole Android LOCAL calendar with account/name `penguin-test`, display
+name `PenguinSyntheticSync`, and select it in Fossify's CalDAV settings. Then:
+
+```sh
+python3 tests/calendar/synced_notification_acceptance.py \
+  --adb "$ANDROID_HOME/platform-tools/adb" --serial emulator-5580 \
+  --avd-name YOUR_DISPOSABLE_AVD --apk .scratch/calendar-html/installed.apk \
+  --disposable-emulator
+```
+
+Use `--baseline` with the corresponding re-signed original APK to assert that
+the unpatched notification contains raw HTML. The script verifies the emulator,
+installed APK hash, current user and synthetic provider identity before writes.
 It does not wipe data, uninstall apps or use a personal account/device.
 
 ```sh
@@ -29,7 +47,7 @@ results are recorded separately. See [scope and limits](../../docs/CALENDAR.md).
 
 `validate_bundle.py` is run by the release workflow on the bundle built for
 publication. It verifies the pinned official APKs and Morphe Desktop, applies
-both Calendar patches together to 1.12.0 and the HTML patch to 1.12.1, checks
+both Calendar patches together to 1.12.0 and the HTML patch to 1.12.1 and 1.12.2, checks
 the resulting package/version and patch reports, and verifies that reapplying
 the HTML patch fails. Reports and generated APKs stay outside the merge diff.
 Run `python3 tests/calendar/validate_bundle.py --help` for required paths.

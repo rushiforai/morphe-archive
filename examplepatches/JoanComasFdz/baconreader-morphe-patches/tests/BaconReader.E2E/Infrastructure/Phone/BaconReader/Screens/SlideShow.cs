@@ -83,12 +83,7 @@ public sealed class SlideShow(AndroidDriver driver)
                     throw new InvalidOperationException("The post's text could still scroll after 10 swipes.");
                 }
 
-                var canScrollMore = driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
-                {
-                    ["elementId"] = ((OpenQA.Selenium.Appium.AppiumElement)scroll).Id,
-                    ["direction"] = "down",
-                    ["percent"] = 0.75,
-                });
+                var canScrollMore = OnScreen.ScrollGesture(driver, scroll, "down", 0.75);
                 if (canScrollMore is false)
                 {
                     return;

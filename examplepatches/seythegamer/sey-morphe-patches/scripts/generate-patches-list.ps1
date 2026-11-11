@@ -12,7 +12,7 @@
 # The version must match patches-bundle.json and the bundle manifest.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.2.2'
+    [string]$Version = '1.2.4'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -114,6 +114,27 @@ $patches = @(
         options            = @()
     },
     [ordered]@{
+        name               = 'HIDE PINNED'
+        description        = 'Removes the pinned message card (and the ad banner ' +
+                             'attached to it) from the top of the KICK TV chat. ' +
+                             'Toggle it in SEYTTINGS. Requires the SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($kickTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'SKIP 18+ WARNING'
+        description        = 'Automatically accepts the 18+ mature content warning ' +
+                             'when a stream opens, so the player starts without the ' +
+                             'extra click. Toggle it in SEYTTINGS. Requires the ' +
+                             'SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($kickTv)
+        options            = @()
+    },
+    [ordered]@{
         name               = 'SEYTTINGS'
         description        = 'Adds the red themed SEYTTINGS menu to KICK TV. ' +
                              'This is the base patch required by every KICK TV tweak.'
@@ -158,6 +179,28 @@ $patches = @(
         description        = 'Hides the "Join the conversation" footer button and lets ' +
                              'the chat fill the full panel height. One toggle in SEYTTINGS. ' +
                              'Requires the SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($twitchTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'HIDE PINNED'
+        description        = 'Hides pinned chat messages on Twitch TV: the pinned ' +
+                             'card, its "Pinned by" label, the pin badge and any ' +
+                             'pinned highlight in the message list. One toggle in ' +
+                             'SEYTTINGS. Requires the SEYTTINGS patch.'
+        default            = $true
+        category           = $null
+        compatiblePackages = @($twitchTv)
+        options            = @()
+    },
+    [ordered]@{
+        name               = 'SKIP 18+ WARNING'
+        description        = 'Automatically accepts the 18+ mature content warning ' +
+                             'on Twitch TV, so a mature stream starts without the ' +
+                             'extra click. One toggle in SEYTTINGS. Requires the ' +
+                             'SEYTTINGS patch.'
         default            = $true
         category           = $null
         compatiblePackages = @($twitchTv)

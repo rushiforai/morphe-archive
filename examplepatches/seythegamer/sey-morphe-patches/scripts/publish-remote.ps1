@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory = $true)][string]$Owner,
     [Parameter(Mandatory = $true)][string]$Repo,
     [string]$Branch = 'main',
-    [string]$Version = '1.2.2'
+    [string]$Version = '1.2.4'
 )
 
 $ErrorActionPreference = 'Stop'

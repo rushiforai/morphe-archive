@@ -68,16 +68,19 @@ Scenario: <what it proves, as a statement>
 3. **Given:** what Reddit has (section 7), the app, what it is patched with, and the state it starts in. **One fact a
    line,** each a line any scenario can reuse word for word: the first line `Given`, the next ones `And`.
    - `Given Reddit has a post "Weekly thread" in r/e2e`, `And the post "Weekly thread" has a comment with a GIF`: the
-     Reddit data the scenario needs, first, since the app shows it once it opens;
+     Reddit data the scenario needs, first, since the app shows it once it opens. **Everything the fake Reddit and
+     the fake sites (Imgur, RedGIFs, YouTube, X, Bluesky, Imgflip) have is set up in the Given, before "is open"**: a
+     recording shows each of these lines on the fake's setup page, in Chrome, before the app opens over it;
    - what the app is patched with, by the scenario's group ([patch scenarios](given-when-then-patch-scenarios.md),
      "Scope"):
      - a **Startup** scenario (how the app starts: the login, the first-start dialogs): **every patch it is patched
        with, each in quotes,** the fewest it needs, one line each: `And BaconReader is patched with "Spoof client"`;
      - a **LoggedIn** scenario (everything else): `And BaconReader is patched with every patch`, one line;
    - `And BaconReader is installed`: the app is installed, not opened yet;
-   - `And BaconReader is open`: opened on its main screen, its first-start dialogs answered (section 4.4);
-   - `And the test account is logged in`: logged in with the test account (section 7), back on the main screen's
-     posts. A LoggedIn scenario's Given ends with "is open" and this line.
+   - `And the test account is logged in`: the app starts logged in with the test account (section 7), as the fake
+     Reddit hands it the login; before "is open", as a recording's setup page shows it before the app opens;
+   - `And BaconReader is open`: opened on its main screen, its first-start dialogs answered (section 4.4); logged in,
+     on its feed's posts. A LoggedIn scenario's Given ends with "the test account is logged in" and this line.
 
    The test-only patches every scenario's app gets (its README, "The fake Reddit") are never named.
 4. **One Gherkin per patch.** Everything a patch does is one Gherkin, and one test: each case is a round of it, in
@@ -117,9 +120,14 @@ Scenario: <what it proves, as a statement>
 3. **Check only what the patch changes.** The rest of the screen is left out.
 4. **Say what must not be there** when it matters: `no post shows an award`, `"View Sidebar" is greyed out`. The test
    checks it too.
-5. **Explain anything that looks surprising** in a `#` line right above the check it explains: "# Not on the screen:
+5. **Explain anything that looks surprising** in a `#` line right above the check it explains: "# On the setup page:
    the fake Reddit records what BaconReader sent." Something that is expected but looks wrong gets a comment, never
    silence.
+   - **A step or a check on another app shows that app.** A When line that changes the fake once the app is open (`the
+     phone joins another network`) and a Then line that checks what the fake saw (`Reddit got the reply …`) play on
+     the fake's setup page: a recording brings it in front of the app for the line, with what it changed or what the
+     check read, and the app back for the next line on it. A check of something no screen shows (the phone's files,
+     its clipboard) says so: "# Not on the screen: the test reads the phone's files."
 6. **Layout checks** name the views and what holds between them: `the table's columns don't overlap`, `"Search" sits
    at the sort bar's right end`, `the table fits inside the screen`.
 

@@ -22,6 +22,7 @@ import dev.utaa.linimal.patches.status.unsafeFeatureStatus
 import dev.utaa.linimal.patches.util.BOOLEAN
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
+import dev.utaa.linimal.patches.util.composeSkipReachesGroupEnd
 
 private const val COMPOSER = "Lj3/r;"
 private const val COMPOSER_IMPL = "Lj3/d1;"
@@ -244,6 +245,19 @@ internal fun homeFeedPostModuleGateShape(
         branch.registerA != resultMove.registerA ||
         // 抑制と復元に使う const/4 は 4bit register しか取れません。
         resultMove.registerA !in 0..15
+    ) {
+        return null
+    }
+
+    // false 側が同じ composer の skipToGroupEnd → endRestartGroup へ一本道で進む形だけを受け入れます。
+    if (
+        !composeSkipReachesGroupEnd(
+            instructions,
+            shouldExecuteIndex,
+            branchIndex,
+            skipIndex = composerCallIndices(instructions, "l", VOID).single(),
+            endIndex = composerCallIndices(instructions, "Z", END_RESTART_GROUP_RESULT).single(),
+        )
     ) {
         return null
     }

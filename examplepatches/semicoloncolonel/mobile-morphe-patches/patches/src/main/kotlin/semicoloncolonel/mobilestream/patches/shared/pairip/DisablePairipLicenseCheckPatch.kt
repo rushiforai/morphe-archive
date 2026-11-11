@@ -55,7 +55,9 @@ val disablePairipLicenseCheckPatch = bytecodePatch(
     )
 
     execute {
-        PairipProcessResponseFingerprint.method.apply {
+        // Some versions drop Pairip licensing (Moviebase 7.7.1 has no
+        // com.pairip classes), and then there is nothing to turn off.
+        PairipProcessResponseFingerprint.methodOrNull?.apply {
             // Turn off the repeated background check: the sget-boolean of
             // repeatedCheckEnabled becomes a constant false, in place.
             val instructions = implementation!!.instructions.toList()
@@ -70,6 +72,6 @@ val disablePairipLicenseCheckPatch = bytecodePatch(
             addInstructions(0, "const/4 p1, 0x0")
         }
         // Skip the signature check of the license response.
-        PairipValidateResponseFingerprint.method.addInstructions(0, "return-void")
+        PairipValidateResponseFingerprint.methodOrNull?.addInstructions(0, "return-void")
     }
 }

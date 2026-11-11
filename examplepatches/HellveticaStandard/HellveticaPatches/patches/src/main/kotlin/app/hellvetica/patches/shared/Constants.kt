@@ -10,7 +10,7 @@ object Constants {
      * Package name confirmed from BuildConfig: com.sankakucomplex.channel.black
      * Targeted versions: 4.23 (versionCode 91 = rc91), 4.24 (versionCode 92 = rc92),
      *                    4.25 (versionCode 93 = rc93), 4.26 (versionCode 96 = rc96),
-     *                    4.28 (versionCode 100 = rc100)
+     *                    4.28 (versionCode 100 = rc100), 4.29 (versionCode 103 = rc103)
      */
     val COMPATIBILITY_SANKAKU = Compatibility(
         name = "Sankaku App",
@@ -32,6 +32,9 @@ object Constants {
             ),
             AppTarget(
                 version = "4.28",
+            ),
+            AppTarget(
+                version = "4.29",
             )
         )
     )

@@ -40,24 +40,24 @@ public sealed partial class Reddit
         world.Bluesky.AddPost(name, handle.TrimStart('@'), text, SocialPostDate, embed);
 
     /// <summary>"… shows its link's address": the address of the X post that starts with "&lt;text&gt;", as a comment links it.</summary>
-    public LinkSnapshot ReadTheLinkToTheXPost(string text) => new($"the X post \"{text}\"", XPostStarting(text).Link);
+    public LinkSnapshot ReadTheLinkToTheXPost(string text) => Checked<LinkSnapshot>(new($"the X post \"{text}\"", XPostStarting(text).Link), text);
 
     /// <summary>"… shows its link's address": the address of the X post X doesn't have, as a comment links it.</summary>
-    public LinkSnapshot ReadTheLinkToTheMissingXPost() => new("the X post X doesn't have", MissingXPost);
+    public LinkSnapshot ReadTheLinkToTheMissingXPost() => Checked<LinkSnapshot>(new("the X post X doesn't have", MissingXPost));
 
     /// <summary>"… shows its link's address": the address of the Bluesky post that says "&lt;text&gt;", as a comment links it.</summary>
-    public LinkSnapshot ReadTheLinkToTheBlueskyPost(string text) => new($"the Bluesky post \"{text}\"", BlueskyPostSaying(text).Link);
+    public LinkSnapshot ReadTheLinkToTheBlueskyPost(string text) => Checked<LinkSnapshot>(new($"the Bluesky post \"{text}\"", BlueskyPostSaying(text).Link), text);
 
     /// <summary>"… shows its link's address": the address of the Bluesky post Bluesky doesn't have, as a comment links it.</summary>
-    public LinkSnapshot ReadTheLinkToTheMissingBlueskyPost() => new("the Bluesky post Bluesky doesn't have", MissingBlueskyPost);
+    public LinkSnapshot ReadTheLinkToTheMissingBlueskyPost() => Checked<LinkSnapshot>(new("the Bluesky post Bluesky doesn't have", MissingBlueskyPost));
 
     /// <summary>"X served the small photo of "&lt;text&gt;"": the requests for the post's photo, each with whether it asked for the small one and its status.</summary>
     public XPhotoRequestsSnapshot ReadRequestsForThePhotoOfTheXPost(string text)
     {
         var path = new Uri(XPostStarting(text).Image!).AbsolutePath;
-        return new(text, [.. world.Requests
+        return Checked<XPhotoRequestsSnapshot>(new(text, [.. world.Requests
             .Where(request => request.Method == "GET" && request.Path == path)
-            .Select(request => new XPhotoRequest(request.Query.Contains("name=small", StringComparison.Ordinal), request.Status))]);
+            .Select(request => new XPhotoRequest(request.Query.Contains("name=small", StringComparison.Ordinal), request.Status))]), text);
     }
 
     /// <summary>Waits until X served the photo of the post that starts with "&lt;text&gt;": the patch asks for it once the post shows.</summary>

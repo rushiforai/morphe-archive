@@ -97,6 +97,11 @@ import java.util.TreeSet;
  * string and counted calls in any method holding it. The device verifier stays the authority;
  * these catch the known shapes without a phone.
  *
+ * <p>A subclass that overrides a changed host method is read as well. Its override only reaches the
+ * hook through a super call, so one that never makes it runs without the hook and is a finding,
+ * unless all it does is return a constant. One that calls up on some paths only is printed as a
+ * note to read.
+ *
  *   java -cp &lt;cli jar&gt; DexDiff.java &lt;cleanApk&gt; &lt;patchedApk&gt; &lt;reportFile&gt;
  *       &lt;removalAllowlist&gt; [&lt;contracts&gt;]
  */
@@ -1688,6 +1693,126 @@ public class DexDiff {
         return "";
     }
 
+    /**
+     * Every subclass method that overrides a changed host method without being changed itself and
+     * never calls up to it, unless all it does is return a constant. A hook in a method only runs
+     * for a subclass whose override calls up to it, so such an override runs without the hook, and
+     * each one is a finding. An override that calls up on some paths only goes in [notes] to be
+     * read: the five 13.2.1 has skip super only where they also skip what the hook changes (a
+     * frozen account's send, an image paste, an editor with paste turned off, a preview cell's own
+     * gestures). The bundle's own subclasses are its design, not the host's, and aren't read.
+     */
+    private static List<String> overrideFindings(File apk, Set<String> changed, List<String> notes) throws Exception {
+        Map<String, ClassDef> classes = new HashMap<>();
+        Map<String, List<String>> children = new HashMap<>();
+        MultiDexContainer<? extends DexFile> container =
+                DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
+        for (String entry : container.getDexEntryNames()) {
+            for (ClassDef cd : container.getEntry(entry).getDexFile().getClasses()) {
+                if (classes.putIfAbsent(cd.getType(), cd) != null || cd.getSuperclass() == null) continue;
+                children.computeIfAbsent(cd.getSuperclass(), k -> new ArrayList<>()).add(cd.getType());
+            }
+        }
+        List<String> out = new ArrayList<>();
+        for (String s : changed) {
+            int arrow = s.indexOf("->");
+            ClassDef host = classes.get(s.substring(0, arrow));
+            if (host == null || AccessFlags.INTERFACE.isSet(host.getAccessFlags())) continue;
+            Method hooked = null;
+            for (Method m : host.getMethods()) if (sig(host, m).equals(s)) hooked = m;
+            if (hooked == null || !overridable(hooked)) continue;
+            String member = s.substring(arrow);
+            Deque<String> todo = new ArrayDeque<>(children.getOrDefault(host.getType(), List.of()));
+            while (!todo.isEmpty()) {
+                ClassDef sub = classes.get(todo.pop());
+                todo.addAll(children.getOrDefault(sub.getType(), List.of()));
+                if (sub.getType().startsWith(OWN) || changed.contains(sub.getType() + member)) continue;
+                for (Method m : sub.getMethods()) {
+                    if (!sig(sub, m).equals(sub.getType() + member) || !overridable(m) || m.getImplementation() == null) continue;
+                    if (!overrides(hooked, host, sub)) continue;
+                    int up = callsUp(m);
+                    if (up == 0 && !onlyConstant(m)) out.add(sig(sub, m) + " overrides " + s + " without the hook and never calls it");
+                    else if (up == 1) notes.add(sig(sub, m) + " overrides " + s + " and calls it on some paths only");
+                }
+            }
+        }
+        return out;
+    }
+
+    private static boolean overridable(Method m) {
+        int flags = m.getAccessFlags();
+        return !AccessFlags.STATIC.isSet(flags) && !AccessFlags.PRIVATE.isSet(flags) && !m.getName().startsWith("<");
+    }
+
+    /** A package-private method is only overridden from its own package. */
+    private static boolean overrides(Method hooked, ClassDef host, ClassDef sub) {
+        int flags = hooked.getAccessFlags();
+        if (AccessFlags.PUBLIC.isSet(flags) || AccessFlags.PROTECTED.isSet(flags)) return true;
+        String a = host.getType(), b = sub.getType();
+        return a.substring(0, a.lastIndexOf('/') + 1).equals(b.substring(0, b.lastIndexOf('/') + 1));
+    }
+
+    private static boolean callsSuper(Instruction i, Method m) {
+        if (i.getOpcode() != Opcode.INVOKE_SUPER && i.getOpcode() != Opcode.INVOKE_SUPER_RANGE) return false;
+        Reference r = ((ReferenceInstruction) i).getReference();
+        return r instanceof MethodReference && ((MethodReference) r).getName().equals(m.getName())
+                && ((MethodReference) r).getParameterTypes().equals(m.getParameterTypes());
+    }
+
+    /**
+     * 0 when [m] never calls super's copy of itself, 2 when every path from its entry to a return
+     * passes that call, 1 otherwise. Exception edges aren't followed: a handler that returns
+     * without the call is a thrown case, not the method's answer.
+     */
+    private static int callsUp(Method m) {
+        List<Instruction> body = instructions(m);
+        boolean any = false;
+        for (Instruction i : body) any |= callsSuper(i, m);
+        if (!any) return 0;
+        Map<Integer, Integer> indexAt = new HashMap<>();
+        int[] offsets = new int[body.size()];
+        int at = 0;
+        for (int k = 0; k < body.size(); k++) {
+            offsets[k] = at;
+            indexAt.put(at, k);
+            at += body.get(k).getCodeUnits();
+        }
+        Deque<Integer> work = new ArrayDeque<>(List.of(0));
+        Set<Integer> seen = new HashSet<>();
+        while (!work.isEmpty()) {
+            int k = work.pop();
+            if (!seen.add(k)) continue;
+            Instruction i = body.get(k);
+            Opcode op = i.getOpcode();
+            if (callsSuper(i, m) || op == Opcode.THROW) continue;
+            if (op == Opcode.RETURN_VOID || op == Opcode.RETURN || op == Opcode.RETURN_WIDE || op == Opcode.RETURN_OBJECT) return 1;
+            if (op == Opcode.PACKED_SWITCH || op == Opcode.SPARSE_SWITCH) {
+                SwitchPayload payload = (SwitchPayload) body.get(indexAt.get(offsets[k] + ((OffsetInstruction) i).getCodeOffset()));
+                for (SwitchElement e : payload.getSwitchElements()) work.push(indexAt.get(offsets[k] + e.getOffset()));
+            } else if (i instanceof OffsetInstruction) {
+                work.push(indexAt.get(offsets[k] + ((OffsetInstruction) i).getCodeOffset()));
+                if (op == Opcode.GOTO || op == Opcode.GOTO_16 || op == Opcode.GOTO_32) continue;
+            }
+            if (k + 1 < body.size()) work.push(k + 1);
+        }
+        return 2;
+    }
+
+    /** Whether [m] does nothing but load a constant and return it (or return nothing). */
+    private static boolean onlyConstant(Method m) {
+        for (Instruction i : instructions(m)) {
+            switch (i.getOpcode()) {
+                case CONST_4: case CONST_16: case CONST: case CONST_HIGH16:
+                case CONST_WIDE_16: case CONST_WIDE_32: case CONST_WIDE: case CONST_WIDE_HIGH16:
+                case RETURN_VOID: case RETURN: case RETURN_WIDE: case RETURN_OBJECT:
+                    break;
+                default:
+                    return false;
+            }
+        }
+        return true;
+    }
+
     private static Set<String> dexEntries(File apk) throws Exception {
         MultiDexContainer<? extends DexFile> container =
                 DexFileFactory.loadDexContainer(apk, Opcodes.getDefault());
@@ -2053,6 +2178,15 @@ public class DexDiff {
         System.out.println("[diff] structural findings: " + structuralCount);
         problems += structuralCount;
 
+        System.out.println("[diff] checking subclass overrides of the changed host methods");
+        List<String> overrideNotes = new ArrayList<>();
+        List<String> overrides = overrideFindings(patched, changed, overrideNotes);
+        for (String finding : overrides) System.out.println("[diff] FAIL: " + finding);
+        for (String note : overrideNotes) System.out.println("[diff] note: " + note);
+        System.out.println("[diff] overrides that skip a hook: " + overrides.size()
+                + " (calling it on some paths only: " + overrideNotes.size() + ")");
+        problems += overrides.size();
+
         PrintWriter report = new PrintWriter(args[2], "UTF-8");
         try {
             report.println("Methods a patched APK does not share with the clean build it came from.");
@@ -2070,6 +2204,11 @@ public class DexDiff {
                 report.println("  " + e.getKey());
                 for (String finding : e.getValue()) report.println("    FAIL  " + finding);
             }
+            report.println();
+
+            report.println("Subclass overrides that skip a hook: " + overrides.size());
+            for (String finding : overrides) report.println("    FAIL  " + finding);
+            for (String note : overrideNotes) report.println("    note  " + note);
             report.println();
 
             report.println("Removed methods:");

@@ -1,5 +1,7 @@
 import java.util.zip.ZipFile
 import java.io.File
+import javax.inject.Inject
+import org.gradle.api.file.FileSystemOperations
 
 group = "app.nicoid"
 
@@ -67,10 +69,11 @@ val verifyHelperOwnership = tasks.register<Exec>("verifyHelperOwnership") {
 }
 val modernShortsSource = rootProject.file("extensions/extension/src/main/java/e/e/a/ModernShorts.java")
 val generateNicoidVersion = tasks.register("generateNicoidVersion") {
-    inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
+    val patchVersion = providers.gradleProperty("version").orElse(project.version.toString())
+    inputs.property("patchVersion", patchVersion)
     outputs.file(modernShortsSource)
     doLast {
-        val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
+        val version = patchVersion.get()
         val source = modernShortsSource.readText(Charsets.UTF_8)
         val marker = Regex("    private static final String PATCH_VERSION = \"[^\"]*\";")
         check(marker.containsMatchIn(source)) { "Patch version marker is missing from ModernShorts.java" }
@@ -106,17 +109,20 @@ val nicoidHelpersDex = tasks.register<JavaExec>("nicoidHelpersDex") {
 }
 val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
     val staged = layout.buildDirectory.dir("nicoid/override-smali")
-    inputs.file(rootProject.file("porting/helpers-1.10.0.zip"))
-    inputs.file(rootProject.file("porting/helper-ownership.json"))
-    inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
+    val snapshot = rootProject.file("porting/helpers-1.10.0.zip")
+    val ownershipFile = rootProject.file("porting/helper-ownership.json")
+    val patchVersion = providers.gradleProperty("version").orElse(project.version.toString())
+    inputs.file(snapshot)
+    inputs.file(ownershipFile)
+    inputs.property("patchVersion", patchVersion)
     outputs.dir(staged)
     doLast {
-        val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
+        val version = patchVersion.get()
         staged.get().asFile.deleteRecursively()
         // Canonical implementation recovered from the validated development bundle.
-        val ownership = groovy.json.JsonSlurper().parse(rootProject.file("porting/helper-ownership.json")) as Map<*, *>
+        val ownership = groovy.json.JsonSlurper().parse(ownershipFile) as Map<*, *>
         val javaFamilies = ownership.filterValues { (it as Map<*, *>)["owner"] == "java" }.keys.map { it.toString() }.toSet()
-        for (snapshot in listOf("porting/helpers-1.10.0.zip")) ZipFile(rootProject.file(snapshot)).use { archive ->
+        ZipFile(snapshot).use { archive ->
             archive.entries().asSequence().filter {
                 !it.isDirectory && it.name.endsWith(".smali") && it.name.substringAfterLast('/').substringBefore('$').removeSuffix(".smali") !in javaFamilies
             }.forEach { entry ->
@@ -241,12 +247,21 @@ val compileCacheModeTests = tasks.register<JavaCompile>("compileCacheModeTests")
     options.encoding = "UTF-8"
     options.release.set(8)
 }
-val verifyCacheMode = tasks.register<JavaExec>("verifyCacheMode") {
+abstract class CacheModeExec : JavaExec() {
+    @get:Inject
+    abstract val fileSystem: FileSystemOperations
+}
+
+val verifyCacheMode = tasks.register<CacheModeExec>("verifyCacheMode") {
     dependsOn(compileCacheModeTests)
     classpath = files(compileCacheModeTests.flatMap { it.destinationDirectory }, compileNicoidHelpers.flatMap { it.destinationDirectory }) + nicoidTestJson + files(androidJar)
     mainClass.set("e.e.a.CacheModeTest")
-    val directory=layout.buildDirectory.dir("nicoid/cache-mode-test-files")
-    doFirst { project.delete(directory);directory.get().asFile.mkdirs() }
+    val directory = layout.buildDirectory.dir("nicoid/cache-mode-test-files")
+    val files = fileSystem
+    doFirst {
+        files.delete { delete(directory) }
+        directory.get().asFile.mkdirs()
+    }
     args(directory.get().asFile.absolutePath)
 }
 val verifyPlaybackMenu = tasks.register<JavaExec>("verifyPlaybackMenu") {
@@ -282,7 +297,7 @@ val verifyHistorySort = tasks.register<JavaExec>("verifyHistorySort") {
 // v1.10.2 canonical release payload overlay: compile the source helper from
 // editable Java, disassemble it to smali and assemble it with a COPY of the
 // recovered v1.10.1 payload. No published source files are modified.
-val dev111Sources = rootProject.file("porting/revisions/v1.10.6/java")
+val dev111Sources = rootProject.file("porting/revisions/v1.11.1/java")
 val compileDev111 = tasks.register<JavaCompile>("compileDev111") {
     source(fileTree(dev111Sources) { include("**/*.java") })
     classpath = files(androidJar)
@@ -323,7 +338,7 @@ val dev111Smali = tasks.register<JavaExec>("dev111Smali") {
 }
 val prepareNicoidHelpers = tasks.register<Exec>("prepareNicoidHelpers") {
     dependsOn(dev111Smali)
-    val revision = rootProject.file("porting/revisions/v1.10.6")
+    val revision = rootProject.file("porting/revisions/v1.11.1")
     val payloads = rootProject.file("patches/src/main/resources/nicoid")
     val devSources = layout.buildDirectory.dir("nicoid/dev111/smali")
     inputs.dir(revision)

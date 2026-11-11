@@ -88,6 +88,11 @@ public final class AppleMusicCardPatch {
             MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI,
     };
 
+    /**
+     * The app Jovi asks for songs by voice, under the package of QQ Music, which Jovi knows.
+     */
+    private static final String JOVI_STAND_IN_PACKAGE = "com.tencent.qqmusic";
+
     private static final Handler mainHandler = new Handler(Looper.getMainLooper());
     private static final ExecutorService lyricsLoader = Executors.newSingleThreadExecutor();
     private static final Runnable publishTask = AppleMusicCardPatch::publishLastMetadata;
@@ -103,6 +108,17 @@ public final class AppleMusicCardPatch {
     private static final Set<String> listsLoading = new HashSet<>();
 
     private static WeakReference<MediaSession> sessionRef = new WeakReference<>(null);
+
+    /**
+     * If the app may connect to its own player, which it does to start it for a voice request.
+     */
+    static volatile boolean allowOwnBrowser;
+    private static final String OWN_PACKAGE = "com.apple.android.music";
+
+    static MediaSession getSession() {
+        return sessionRef.get();
+    }
+
     private static WeakReference<MediaBrowserService> browserServiceRef = new WeakReference<>(null);
     private static MediaMetadata lastMetadata;
     private static String songId = "";
@@ -122,6 +138,15 @@ public final class AppleMusicCardPatch {
      * @return The root for the client, or null if the client is not the music card.
      */
     public static MediaBrowserService.BrowserRoot onGetBrowserRoot(String clientPackageName) {
+        if (allowOwnBrowser && OWN_PACKAGE.equals(clientPackageName)) {
+            // The voice request receiver, starting the player for a song asked for by voice.
+            return new MediaBrowserService.BrowserRoot(BROWSER_ROOT_ID, null);
+        }
+        if (JOVI_STAND_IN_PACKAGE.equals(clientPackageName)) {
+            // The app that takes the songs Jovi is asked for by voice, and has them played here.
+            Log.i(TAG, "Jovi stand-in connected");
+            return new MediaBrowserService.BrowserRoot(BROWSER_ROOT_ID, null);
+        }
         if (!MUSIC_CARD_PACKAGE.equals(clientPackageName)) {
             return null;
         }

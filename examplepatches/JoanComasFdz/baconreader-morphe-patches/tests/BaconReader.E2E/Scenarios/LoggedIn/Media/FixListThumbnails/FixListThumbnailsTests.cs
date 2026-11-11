@@ -37,14 +37,14 @@ public sealed class FixListThumbnailsTests : BaseE2E
           And YouTube has a video "Listed video" on the channel "@e2ekitchen"
           And Reddit has a link post "YouTube video" in r/e2e linking to the YouTube video "Listed video"
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           And I tap "More options" in the toolbar
           And I tap "List View"
-          # Not on the screen: the fake Reddit records what BaconReader asked for. Reddit sends the signed URL with its "&" HTML-escaped, and refuses it so.
+          # On the setup page: the fake Reddit records what BaconReader asked for. Reddit sends the signed URL with its "&" HTML-escaped, and refuses it so.
           Then Reddit served the thumbnail of "Signed thumbnail" with its "&" unescaped
-          # Not on the screen: a network hiccup; BaconReader asked once.
+          # On the setup page: a network hiccup; BaconReader asked once.
           And Reddit served the thumbnail of "Flaky thumbnail" on the third request
           And the post "Link with a preview" shows a thumbnail
           And Reddit served the preview of "Link with a preview"
@@ -54,11 +54,11 @@ public sealed class FixListThumbnailsTests : BaseE2E
           And the post "Spoiler picture" shows a blurred thumbnail
           # Reddit sends no thumbnail for it: the patch asks RedGIFs for the video's.
           And the post "Clip" shows a thumbnail
-          # Not on the screen: the fake RedGIFs records what BaconReader asked for.
+          # On the setup page: the fake RedGIFs records what BaconReader asked for.
           And RedGIFs served the thumbnail of "Clip"
           # Reddit sends no thumbnail for it: the patch takes the video's from YouTube.
           And the post "YouTube video" shows a thumbnail
-          # Not on the screen: the fake YouTube records what BaconReader asked for.
+          # On the setup page: the fake YouTube records what BaconReader asked for.
           And YouTube served the thumbnail of "Listed video"
           # BaconReader hides NSFW posts until "Show NSFW posts" is on.
           When I open the left menu
@@ -95,8 +95,8 @@ public sealed class FixListThumbnailsTests : BaseE2E
         Reddit.HasARedGifsPost("Clip", "e2e");
         Reddit.YouTubeHasAVideo("Listed video", "@e2ekitchen");
         Reddit.HasALinkPostLinkingToTheYouTubeVideo("YouTube video", "e2e", "Listed video");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));
@@ -114,9 +114,9 @@ public sealed class FixListThumbnailsTests : BaseE2E
         await Reddit.WaitUntilTheYouTubeThumbnailOfTheVideoIsServedAsync("Listed video");
 
         // Then
-        // Not on the screen: the fake Reddit records what BaconReader asked for. Reddit sends the signed URL with its "&" HTML-escaped, and refuses it so.
+        // On the setup page: the fake Reddit records what BaconReader asked for. Reddit sends the signed URL with its "&" HTML-escaped, and refuses it so.
         var signed = Reddit.ReadRequestsForTheThumbnailOf("Signed thumbnail");
-        // Not on the screen: a network hiccup; BaconReader asked once.
+        // On the setup page: a network hiccup; BaconReader asked once.
         var flaky = Reddit.ReadRequestsForTheThumbnailOf("Flaky thumbnail");
         var link = await Phone.BaconReader.Main.Posts.ReadPostAsync("Link with a preview");
         var preview = Reddit.ReadRequestsForThePreviewOf("Link with a preview");
@@ -126,11 +126,11 @@ public sealed class FixListThumbnailsTests : BaseE2E
         var spoiler = await Phone.BaconReader.Main.Posts.ReadPostAsync("Spoiler picture");
         // Reddit sends no thumbnail for it: the patch asks RedGIFs for the video's.
         var clip = await Phone.BaconReader.Main.Posts.ReadPostAsync("Clip");
-        // Not on the screen: the fake RedGIFs records what BaconReader asked for.
+        // On the setup page: the fake RedGIFs records what BaconReader asked for.
         var clipThumbnail = Reddit.ReadRequestsForTheRedGifsThumbnailOf("Clip");
         // Reddit sends no thumbnail for it: the patch takes the video's from YouTube.
         var youTubePost = await Phone.BaconReader.Main.Posts.ReadPostAsync("YouTube video");
-        // Not on the screen: the fake YouTube records what BaconReader asked for.
+        // On the setup page: the fake YouTube records what BaconReader asked for.
         var youTubeThumbnail = Reddit.ReadRequestsForTheYouTubeThumbnailOf("Listed video");
         Asserting.That(signed).ServedWithItsAmpersandsUnescaped();
         Asserting.That(flaky).ServedOnTheThirdRequest();
@@ -185,16 +185,12 @@ public sealed class FixListThumbnailsTests : BaseE2E
         await Phone.BaconReader.Main.Toolbar.MoreOptions.WaitUntilShownAsync();
         await Phone.BaconReader.Main.Toolbar.MoreOptions.ClickAsync(new OverflowMenuEntry.CardView());
         await Phone.BaconReader.Main.Posts.WaitUntilCardImageShownAsync("Album");
-
-        // Then
-        var album = await Phone.BaconReader.Main.Posts.ReadPostAsync("Album");
-        Asserting.That(album).ShowsAnImageInItsCard();
-
-        // When
         await Phone.BaconReader.Main.Posts.WaitUntilCardImageShownAsync("Shared album");
 
         // Then
+        var album = await Phone.BaconReader.Main.Posts.ReadPostAsync("Album");
         var sharedAlbum = await Phone.BaconReader.Main.Posts.ReadPostAsync("Shared album");
+        Asserting.That(album).ShowsAnImageInItsCard();
         Asserting.That(sharedAlbum).ShowsAnImageInItsCard();
     }
 }

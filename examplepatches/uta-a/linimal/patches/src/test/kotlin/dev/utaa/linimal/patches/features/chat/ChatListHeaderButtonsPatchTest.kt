@@ -1,7 +1,9 @@
 package dev.utaa.linimal.patches.features.chat
 
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
@@ -118,7 +120,7 @@ class ChatListHeaderButtonsPatchTest {
         val diverted = guarded(jumpOffset = 16)
 
         assertTrue(isDivertedInjectionIndex(diverted, 8))
-        assertNull(chatListHeaderButtonsInjection(diverted, BUTTON_ENUM, emptySet()))
+        assertNull(chatListHeaderButtonsInjection(diverted, BUTTON_ENUM, emptySet(), ::isBuiltListType))
     }
 
     @Test
@@ -129,23 +131,54 @@ class ChatListHeaderButtonsPatchTest {
         assertFalse(isDivertedInjectionIndex(safe, 8))
         assertEquals(
             ChatListHeaderButtonsInjection(index = 8, register = 1),
-            chatListHeaderButtonsInjection(safe, BUTTON_ENUM, emptySet()),
+            chatListHeaderButtonsInjection(safe, BUTTON_ENUM, emptySet(), ::isBuiltListType),
         )
     }
 
     @Test
     fun `an injection point that starts an exception handler is rejected`() {
         // 注入位置 (addr 000e) が handler の先頭だと、例外経路だけが絞り込みを飛び越します。
-        assertNull(chatListHeaderButtonsInjection(builderBody(), BUTTON_ENUM, setOf(INJECTION_ADDRESS)))
+        assertNull(chatListHeaderButtonsInjection(builderBody(), BUTTON_ENUM, setOf(INJECTION_ADDRESS), ::isBuiltListType))
         // handler が別の address なら注入位置は変わりません。
         assertEquals(
             ChatListHeaderButtonsInjection(index = 7, register = 1),
-            chatListHeaderButtonsInjection(builderBody(), BUTTON_ENUM, setOf(0)),
+            chatListHeaderButtonsInjection(builderBody(), BUTTON_ENUM, setOf(0), ::isBuiltListType),
         )
     }
 
+    @Test
+    fun `a build call that does not return a list is rejected`() {
+        assertNull(chatListHeaderButtonsInjection(builderBody(), BUTTON_ENUM, emptySet()) { false })
+    }
+
+    @Test
+    fun `list types are resolved through the app class hierarchy and known jdk lists`() {
+        val classes = mapOf(
+            "Lfb8/b;" to classDef("Lfb8/b;", superclass = "Lfb8/a;"),
+            "Lfb8/a;" to classDef("Lfb8/a;", superclass = "Ljava/util/AbstractList;"),
+            "Lfb8/c;" to classDef("Lfb8/c;", interfaces = listOf("Ljava/util/List;")),
+            "Lfb8/d;" to classDef("Lfb8/d;"),
+        )
+
+        assertTrue(isListType("Ljava/util/List;", classes::get))
+        assertTrue(isListType("Lfb8/b;", classes::get))
+        assertTrue(isListType("Lfb8/c;", classes::get))
+        assertFalse(isListType("Lfb8/d;", classes::get))
+        // たどれない型は List と見なしません。
+        assertFalse(isListType("Lfb8/unknown;", classes::get))
+        assertFalse(isListType("Ljava/util/Collection;", classes::get))
+    }
+
+    private fun classDef(
+        type: String,
+        superclass: String = "Ljava/lang/Object;",
+        interfaces: List<String> = emptyList(),
+    ): ClassDef = ImmutableClassDef(type, 0, superclass, interfaces, null, null, null, null)
+
+    private fun isBuiltListType(type: String): Boolean = type == "Lfb8/b;"
+
     private fun injectionOf(instructions: List<Instruction>): ChatListHeaderButtonsInjection? =
-        chatListHeaderButtonsInjection(instructions, BUTTON_ENUM, emptySet())
+        chatListHeaderButtonsInjection(instructions, BUTTON_ENUM, emptySet(), ::isBuiltListType)
 
     /**
      * 先頭に if-eqz を置いた形。addr 0000 の if-eqz から [jumpOffset] だけ進んだ address が分岐先です。

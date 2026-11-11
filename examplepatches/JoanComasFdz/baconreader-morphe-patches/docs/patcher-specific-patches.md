@@ -72,7 +72,7 @@ In the Comments section:
 | Setting | Key | Default |
 |---|---|---|
 | Comments to load: 200 to 500, with a number box and a slider | `revanced_baconreader_comment_limit` | `500` |
-| Auto-load "load more comments": Off, 1 reply, or up to 2 to 5 replies | `revanced_baconreader_auto_load_more_comments` | Up to 2 replies (`2`) |
+| Auto-load "load more comments": "Off", "1 reply", "Up to 2 replies" … "Up to 5 replies" | `revanced_baconreader_auto_load_more_comments` | Up to 2 replies (`2`) |
 
 ### Show user avatars settings
 

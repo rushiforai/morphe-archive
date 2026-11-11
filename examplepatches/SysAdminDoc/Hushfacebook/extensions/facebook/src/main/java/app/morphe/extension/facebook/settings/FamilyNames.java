@@ -65,6 +65,7 @@ public final class FamilyNames {
     public static final String REEL_WATCH_HISTORY = "Don't send reel watch history";
     public static final String NEWEST_REELS_FIRST = "Newest reels first";
     public static final String DOUBLE_TAP_LIKE = "Turn off double tap to like";
+    public static final String ASK_BEFORE_LIKE = "Ask before a like";
     public static final String DOUBLE_TAP_SKIP = "Double tap to skip";
     public static final String TAP_SHOWS_CONTROLS = "Tap shows the controls";
     public static final String REEL_GESTURES = "Open comments with a gesture";
@@ -120,6 +121,7 @@ public final class FamilyNames {
     public static final String SEARCH_HISTORY = "Don't save search history";
     public static final String SEARCH_DATE_RANGE = "Search date range";
     public static final String SEARCH_POSTS_TAB = "Search posts tab";
+    public static final String SEARCH_SAVED_BUTTON = "Saved button in search";
     public static final String PROMO_NOTIFICATIONS = "Block promotional notifications";
     public static final String AD_PREFETCH = "Block background ad prefetch";
     public static final String AD_TELEMETRY = "Block ad telemetry";

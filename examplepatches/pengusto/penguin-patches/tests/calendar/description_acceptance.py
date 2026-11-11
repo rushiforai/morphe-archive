@@ -17,6 +17,7 @@ PKG = 'org.fossify.calendar'
 ORIGINALS = {
     'd43b2df05d5702bea760a7ab03402977ba72e446e5932038efbdab248a5de987': '1.12.0',
     'dae815ce83285facf9fd8648b8c4f039700d95126325db124521eba479b270ba': '1.12.1',
+    '2825816d0a972bd85eb289e556221293fadecfd3179a4a2531bde6f89c6f0238': '1.12.2',
 }
 OFFICIAL_CERT = 'affdb124d3f4720c2f98dbca9eacba0514fba4306e20a2786c861c3c0d6ff292'
 

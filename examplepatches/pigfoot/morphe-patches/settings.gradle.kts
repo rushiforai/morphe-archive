@@ -17,5 +17,14 @@ pluginManagement {
 }
 
 plugins {
-    id("app.morphe.patches") version "1.3.4"
+    id("app.morphe.patches") version providers.environmentVariable("MORPHE_PLUGIN_VERSION").get()
+}
+
+// The resolver discovers a fresh stable version for every CI job; no source pin.
+dependencyResolutionManagement {
+    versionCatalogs {
+        create("libs") {
+            version("morphe-patcher", providers.environmentVariable("MORPHE_PATCHER_VERSION").get())
+        }
+    }
 }

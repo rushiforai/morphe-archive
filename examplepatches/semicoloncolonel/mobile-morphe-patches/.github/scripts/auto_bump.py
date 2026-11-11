@@ -18,7 +18,7 @@ updates workflow, which runs only when the repository variable AUTO_BUMP is
     TV) keep their "ready to bump" issue for a person to handle.
 
 The pin becomes devTarget(new version, versionCode = ...), so dev builds mark
-it experimental, and the README's tested version and date are updated. The
+it experimental, and the tested version and date in docs/apps.md are updated. The
 workflow then commits to dev and starts the Release workflow, which publishes
 the next dev pre-release. semantic-release numbers it from the git tags, so it
 follows any dev pre-release published by hand.
@@ -122,8 +122,8 @@ def bump_constants(repo, package, old, new, code):
 
 
 def bump_readme(repo, name, old, new):
-    """Updates the app's row in the README. Returns False when no row matched."""
-    readme = Path(repo, "README.md")
+    """Updates the app's row in docs/apps.md. Returns False when no row matched."""
+    readme = Path(repo, "docs", "apps.md")
     lines = readme.read_text().split("\n")
     today = datetime.date.today().strftime("%m/%d/%y")
     for i, line in enumerate(lines):
@@ -206,9 +206,8 @@ def comment(report, sha, release=None):
                     f"and it has not been tested on a device yet.\n\n"
                     f"If you try it, please comment here with what works and what does not, along with your "
                     f"device and Android version. This issue closes when a main release includes this version.\n")
-            subprocess.run(["gh", "label", "create", TESTING_LABEL, "--force", "--color", "1D76DB",
-                            "--description", "In a dev pre-release; comment with how it works on your device"],
-                           capture_output=True, text=True)
+            # Colors and descriptions come from .github/labels.json; this only fills in a missing label.
+            subprocess.run(["gh", "label", "create", TESTING_LABEL], capture_output=True, text=True)
             subprocess.run(["gh", "issue", "edit", str(match["number"]), "--add-label", TESTING_LABEL,
                             "--remove-label", READY_LABEL], capture_output=True, text=True)
             subprocess.run(["gh", "issue", "comment", str(match["number"]), "--body-file", "-"],

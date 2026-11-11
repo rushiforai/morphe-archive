@@ -142,6 +142,12 @@ public sealed class RedditWorld
             Chat.Reset();
             LoginPage = new LoginPageOptions();
             loginAtStart = null;
+            accountsBeforeScenario = 0;
+            setupEvents.Clear();
+            scenario++;
+            SetupShown = null;
+            SetupWordsShown = 0;
+            setupWordsRead = 0;
             BlocksLoggedOut = true;
             BlocksMoreChildren = false;
             // Reddit's ids are base 36; starting at 36^4 makes them five characters, like an old post's.
@@ -425,6 +431,95 @@ public sealed class RedditWorld
     internal IReadOnlyList<Subreddit> SubredditsUnlocked => subreddits;
 
     internal IReadOnlyList<Post> PostsUnlocked => posts;
+
+    // What the scenario did to the fake and read from it once the app was open, for the setup page, oldest first.
+    private readonly List<SetupEvent> setupEvents = [];
+
+    // Which scenario the fake is set up for: one more at each Reset, for the setup page to start afresh.
+    private int scenario;
+
+    /// <summary>
+    /// Shows on the setup page (<c>/_fake/setup</c>) that the scenario changed the fake (<paramref name="checkedJson"/>
+    /// null: "the phone joins another network") or read what it saw (<paramref name="checkedJson"/>: the snapshot it
+    /// read, as JSON), titled <paramref name="title"/>: a recording shows the page for such a line.
+    /// </summary>
+    public void NoteOnSetupPage(string title, string? checkedJson = null)
+    {
+        lock (Sync)
+        {
+            setupEvents.Add(new SetupEvent(setupEvents.Count, title, checkedJson));
+        }
+    }
+
+    internal IReadOnlyList<SetupEvent> SetupEventsUnlocked => setupEvents;
+
+    internal int ScenarioUnlocked => scenario;
+
+    /// <summary>The version of what the fake has that the setup page last said it shows (Endpoints/Setup.cs).</summary>
+    internal string? SetupShown { get; set; }
+
+    /// <summary>How many words the setup page has shown as new, in all, this scenario, as it last said.</summary>
+    internal int SetupWordsShown { get; set; }
+
+    // SetupWordsShown when WaitUntilSetupShown last returned: the words since are the new ones to read.
+    private int setupWordsRead;
+
+    /// <summary>
+    /// Waits until the phone's setup page (<c>/_fake/setup</c>) shows what the fake has now, up to
+    /// <paramref name="timeout"/>: a recording holds on a line only once its result is on the screen. Gives how many
+    /// words the page showed as new since the last time it was waited for, for the recording to hold long enough to read
+    /// them; null when it didn't show it in time (no page open, or a slow link).
+    /// </summary>
+    public int? WaitUntilSetupShown(TimeSpan timeout)
+    {
+        var until = DateTime.UtcNow + timeout;
+        do
+        {
+            lock (Sync)
+            {
+                if (SetupShown == Endpoints.Setup.Version(this))
+                {
+                    var words = Math.Max(0, SetupWordsShown - setupWordsRead);
+                    setupWordsRead = SetupWordsShown;
+                    return words;
+                }
+            }
+
+            Thread.Sleep(50);
+        }
+        while (DateTime.UtcNow < until);
+        return null;
+    }
+
+    /// <summary>The accounts the app is logged in with: each one a token was given to, or handed the app at its start.</summary>
+    internal IEnumerable<Account> LoggedInUnlocked =>
+        tokens.Values.Concat(loginAtStart is { } handed ? [handed] : []).Distinct();
+
+    // How many accounts the fake had when the scenario began (MarkScenarioStart): the setup page shows only those made
+    // after, and the ones logged in.
+    private int accountsBeforeScenario;
+
+    /// <summary>The accounts the setup page shows: those the scenario made, and those the app is logged in with.</summary>
+    internal IEnumerable<Account> SetupAccountsUnlocked
+    {
+        get
+        {
+            var loggedIn = LoggedInUnlocked.ToHashSet();
+            return accounts.Where((account, index) => index >= accountsBeforeScenario || loggedIn.Contains(account));
+        }
+    }
+
+    /// <summary>
+    /// Notes that the scenario begins: the setup page (<c>/_fake/setup</c>) shows what the fake gets from now on, so an
+    /// account made for every scenario, before it (the test account), shows only once the app logs in with it.
+    /// </summary>
+    public void MarkScenarioStart()
+    {
+        lock (Sync)
+        {
+            accountsBeforeScenario = accounts.Count;
+        }
+    }
 
     /// <summary>
     /// A user's fullname, <c>t2_&lt;id&gt;</c>, as the JSON sends it in <c>author_fullname</c>: an account's own, or for

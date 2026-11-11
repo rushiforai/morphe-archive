@@ -63,6 +63,9 @@ private const val SEEKED_LITERAL = "onSeeked(positionMillis=%d)"
  * (the app's own poller also starts only on a playback-state transition).
  */
 private const val ON_PLAYING_LITERAL = "onPlaying()"
+
+/** 1.91.10 gave the playing callback a role parameter and widened its log line with it. */
+private const val ON_PLAYING_ROLE_LITERAL = "onPlaying(role=%s)"
 private const val ON_PAUSED_LITERAL = "onPaused()"
 private const val ON_STOPPED_LITERAL = "onStopped()"
 
@@ -76,8 +79,12 @@ private const val SEEK_SOURCE_UNKNOWN_LITERAL = "SEEK_SOURCE_UNKNOWN"
  * `findint`, which takes the hex digits) — and the two the overlay needs at runtime
  * are baked into the app at start, so the extension never guesses them. One set
  * per supported version; baking the wrong set would paint markers on the wrong view.
+ *
+ * `internal` so [SeekbarIdSetsTest] can hold the supported sets to their invariants at build
+ * time — the bake site's collision guard is the runtime backstop, but a collision caught at
+ * `buildAndroid` costs no patch run.
  */
-private class SeekbarIds(
+internal class SeekbarIds(
     val seekbar: Int,
     val seekbarBg: Int,
     val seekbarBuffered: Int,
@@ -89,11 +96,11 @@ private class SeekbarIds(
 }
 
 @Suppress("MagicNumber")
-private val SEEKBAR_SETS = listOf(
+internal val SEEKBAR_SETS = listOf(
+    // 1.91.10
+    SeekbarIds(0x7f0b0a3e, 0x7f0b0a3f, 0x7f0b0a40, 0x7f0b0a41, 0x7f0b0a44, 0x7f0b0a45),
     // 1.90.05
     SeekbarIds(0x7f0b0a3b, 0x7f0b0a3c, 0x7f0b0a3d, 0x7f0b0a3e, 0x7f0b0a41, 0x7f0b0a42),
-    // 1.89.09
-    SeekbarIds(0x7f0b0a39, 0x7f0b0a3a, 0x7f0b0a3b, 0x7f0b0a3c, 0x7f0b0a3f, 0x7f0b0a40),
 )
 
 /**
@@ -159,11 +166,12 @@ private fun Method.matchedSeekbarIds(): SeekbarIds? = matchingSeekbarSets().firs
 
 /**
  * Every supported seek-bar id set whose five code-referenced ids this method contains
- * (seekbar, buffered, container, position, thumb). Those five overlap by one id: 1.90.05's
- * seekbar is `0x7f0b0a3b`, which is 1.89.09's seekbar_buffered. `0x7f0b0a3c` is seekbar_bg on
- * 1.90.05 and seekbar_container on 1.89.09, so only the 1.89.09 set matches on it. A future
- * denser overlap could make both sets match one method; the bake site throws in that case
- * instead of baking the first set's ids into the wrong build.
+ * (seekbar, buffered, container, position, thumb). The 1.90.05 and 1.89.09 sets overlapped by
+ * one id (1.90.05's seekbar was 1.89.09's seekbar_buffered); the two supported sets today,
+ * 1.91.10 and 1.90.05, share two ids (between those builds `0x7f0b0a3e` changed role from
+ * container to seekbar and `0x7f0b0a41` from position to container). A denser overlap could
+ * make two sets match one method; the
+ * bake site throws in that case instead of baking the first set's ids into the wrong build.
  */
 private fun Method.matchingSeekbarSets(): List<SeekbarIds> {
     val implementation = implementation ?: return emptyList()
@@ -219,15 +227,6 @@ private val seekbarTimelineFingerprint = Fingerprint(
             } == true
     },
 )
-
-/**
- * `R.id.settings_fragment_holder`: the FrameLayout inside the settings card that the app's
- * settings *content* is added to. The "Patch settings" row is put at the top of that column so
- * it reads as one of the app's own rows instead of floating at the card's top-right corner.
- * Hand-kept for the same reason as `seekbar_bg` — the layout references it, no code does —
- * and the row falls back to the corner when it resolves to nothing.
- */
-private const val ID_SETTINGS_HOLDER = 0x7f0b0a51
 
 /**
  * `R.xml.settings_prefs` and `R.xml.panel2_settings_prefs`: the preference XMLs the app's settings
@@ -906,14 +905,22 @@ private val loadVideoFingerprint = Fingerprint(
  *    7  invoke-interface  Lqhg;->g()J                 <- #2: duration ms
  *   ...                                              #3..#7: buffered/live/cpn
  * ```
+ *
+ * 1.91.10 (`Lqal;->f(Ljava/lang/String;)Lqov;`) grew a snapshot **cache** into the same
+ * method: it now also holds a backend lookup (`p(String)`), two `ConcurrentMap.put`s and a
+ * comparison `r()`, and its *first* `iget-object` is the cache's state object rather than the
+ * backend field. The whole-method scan this used to be cannot tell the eight real accessors
+ * from that noise (it measured 12 interface calls and the wrong field), so the mining below
+ * collects them from the window that ends at the factory call instead: the eight
+ * accessor/move-result pairs immediately before the invocation, then the one `iget-object`
+ * that feeds the first accessor. On 1.88-1.90, whose snapshot is exactly that window, the walk
+ * yields the same eight calls and the same field the old scan found.
  */
 private val timeInfoSnapshotFingerprint = Fingerprint(
     custom = { method, classDef ->
         method.name != "<init>" &&
             classDef.holdsStringLiteral(LOAD_VIDEO_LITERAL) &&
-            method.invokesStaticReturningReference(
-                listOf("J", "J", "J", "J", "I", "J", "J", "Ljava/lang/String;"),
-            )
+            method.invokesTimeInfoFactory()
     },
 )
 
@@ -942,7 +949,6 @@ private val onSeekedFingerprint = Fingerprint(
 
 /** The playback-state callbacks: no parameters, one literal each (measured: 1 per literal). */
 private val playerStateFingerprints = listOf(
-    ON_PLAYING_LITERAL to "onPlaying",
     ON_PAUSED_LITERAL to "onPaused",
     ON_STOPPED_LITERAL to "onStopped",
 ).map { (literal, extensionMethod) ->
@@ -952,6 +958,22 @@ private val playerStateFingerprints = listOf(
         custom = { method, _ -> method.parameterTypes.isEmpty() },
     ) to extensionMethod
 }
+
+/**
+ * The playing callback, the skip tick's start signal. 1.88-1.90 log `onPlaying()` from a
+ * no-parameter method; 1.91.10 logs `onPlaying(role=%s)` from a one-parameter one — measured:
+ * exactly one method per build holds either literal. The injected call passes no arguments, so
+ * the hook is identical on both shapes, and matching either literal keeps one fingerprint
+ * working across the supported versions instead of two per-version branches that each fail the
+ * other versions loudly. A build that carried both literals would resolve the fingerprint to
+ * two methods, which the 2.x matcher refuses loudly rather than picking one.
+ */
+private val onPlayingFingerprint = Fingerprint(
+    returnType = "V",
+    custom = { method, _ ->
+        method.holdsConstant(ON_PLAYING_LITERAL) || method.holdsConstant(ON_PLAYING_ROLE_LITERAL)
+    },
+)
 
 /**
  * Matches the seek-source enum's static initializer, the only method in the app
@@ -965,20 +987,12 @@ private val seekSourceEnumClinitFingerprint = Fingerprint(
 )
 
 /**
- * True when [this] method invokes a **static** method whose parameter prototype is
- * exactly [parameterTypes] and whose return type is a reference.
+ * True when [this] method carries the TimeInfo factory call the snapshot mining walks back from
+ * -- the same predicate and the same prototype ([TimeInfoSnapshotMining.isFactoryCall]), so a
+ * build cannot be matched on one call shape and mined from another.
  */
-private fun Method.invokesStaticReturningReference(parameterTypes: List<String>): Boolean = implementation?.instructions?.any { instruction ->
-    (
-        instruction.opcode == Opcode.INVOKE_STATIC ||
-            instruction.opcode == Opcode.INVOKE_STATIC_RANGE
-        ) &&
-        (instruction as? ReferenceInstruction)?.reference.let { reference ->
-            reference is MethodReference &&
-                reference.parameterTypes.map { it.toString() } == parameterTypes &&
-                reference.returnType.startsWith("L")
-        }
-} ?: false
+private fun Method.invokesTimeInfoFactory(): Boolean = implementation?.instructions
+    ?.any(TimeInfoSnapshotMining::isFactoryCall) == true
 
 /** The option value, which is only null if it and its default were both lost. */
 private fun requireValue(value: String?, optionKey: String): String = value ?: throw PatchException("SponsorBlock: option '$optionKey' has no value")
@@ -1161,32 +1175,26 @@ val sponsorBlockPatch = bytecodePatch(
         }
 
         // ------------------------------------------------------------------
-        // Mine the references the bridge bodies are built from.
+        // Mine the references the bridge bodies are built from: the snapshot's
+        // backend field and its eight accessors, collected from the window that ends
+        // at the TimeInfo factory call (see TimeInfoSnapshotMining for why the walk
+        // replaced the whole-method scan, and what makes every shape drift fail
+        // loudly instead of mining a wrong accessor).
         // ------------------------------------------------------------------
         val snapshot = timeInfoSnapshotFingerprint.method
         val wrapperType = timeInfoSnapshotFingerprint.classDef.type
 
-        var backendField: FieldReference? = null
-        val accessors = mutableListOf<MethodReference>()
-        for (instruction in snapshot.implementation?.instructions ?: throw PatchException(
+        val instructions = snapshot.implementation?.instructions?.toList() ?: throw PatchException(
             "SponsorBlock: the time-info snapshot has no body",
-        )) {
-            val reference = (instruction as? ReferenceInstruction)?.reference ?: continue
-            when (instruction.opcode) {
-                Opcode.IGET_OBJECT -> if (backendField == null) {
-                    backendField = reference as FieldReference
-                }
-
-                Opcode.INVOKE_INTERFACE -> accessors += reference as MethodReference
-
-                else -> Unit
-            }
-        }
-        check(backendField != null && accessors.size == 8) {
-            "SponsorBlock: the time-info snapshot does not have the expected shape " +
-                "(one backend field read, eight accessor calls); found " +
-                "${backendField != null} and ${accessors.size}"
-        }
+        )
+        val mined = TimeInfoSnapshotMining.mine(instructions) ?: throw PatchException(
+            "SponsorBlock: the time-info snapshot does not have the expected shape (the " +
+                "TimeInfo factory call with an eight-accessor window behind it and one " +
+                "backend field read of the accessors' interface); found none -- " +
+                "see TimeInfoSnapshotMining",
+        )
+        val backendField = mined.backendField
+        val accessors = mined.accessors
         val positionAccessor = accessors[0]
         val durationAccessor = accessors[2]
         check(
@@ -1281,7 +1289,7 @@ val sponsorBlockPatch = bytecodePatch(
                         Opcode.IGET_OBJECT,
                         0,
                         1,
-                        ImmutableFieldReference.of(backendField!!),
+                        ImmutableFieldReference.of(backendField),
                     ),
                     ImmutableInstruction35c(
                         Opcode.INVOKE_INTERFACE,
@@ -1316,7 +1324,7 @@ val sponsorBlockPatch = bytecodePatch(
                         Opcode.IGET_OBJECT,
                         0,
                         2,
-                        ImmutableFieldReference.of(backendField!!),
+                        ImmutableFieldReference.of(backendField),
                     ),
                     ImmutableInstruction21c(
                         Opcode.SGET_OBJECT,
@@ -1422,6 +1430,13 @@ val sponsorBlockPatch = bytecodePatch(
         )
 
         // Playback state: the tick polls only between onPlaying and onPaused/onStopped.
+        // The playing hook is its own fingerprint: 1.91.10 widened the log line to
+        // `onPlaying(role=%s)` and gave the method a parameter, and [onPlayingFingerprint]
+        // matches both shapes so the injected no-argument call is identical everywhere.
+        onPlayingFingerprint.method.addInstructions(
+            0,
+            "invoke-static {}, Lapp/ytvr/extension/SponsorSkipController;->onPlaying()V",
+        )
         playerStateFingerprints.forEach { (fingerprint, extensionMethod) ->
             fingerprint.method.addInstructions(
                 0,

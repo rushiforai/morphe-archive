@@ -10,7 +10,7 @@ Enabled by default.
 |---|---|---|
 | Theme | Material You | Colors the app from your wallpaper (Android 12+): the accent color instead of GitHub blue, and tinted surfaces, cards and borders in light and dark mode. Adds a **Fakh Patches** section to Settings with a **Material You** switch and a **Pitch black** switch. |
 | Feature | Navigation bar | Adds **Hide tab labels** and **Navigation bar tabs** settings in Fakh Patches that remove the text under the icons of the navigation bar and choose which tabs it shows. |
-| Theme | Glass navigation bar | Draws the navigation bar (the side bar in landscape) as a floating, translucent capsule with a sliding selection pill. Off by default; turn it on with the **Glass navigation bar** switch in Settings. |
+| Theme | Glass navigation bar | Draws the navigation bar (the side bar in landscape) as a floating, translucent capsule with a sliding selection pill. Off by default; turn it on with the **Glass navigation bar** switch in Settings. Slide a finger along the bar to switch tabs, with a haptic tick for each tab. The **Liquid Glass** switch (on by default) blurs what's behind the bar and bends it at the edges on Android 12 and newer. The pill takes the wallpaper accent with Material You and stays neutral gray without it. |
 | Feature | Landscape navigation bar position | Adds a **Landscape navigation bar position** setting in Fakh Patches that moves the landscape navigation bar to the left or right edge. |
 
 The app draws its screens with both Views and Jetpack Compose, so the patch recolors both: resource

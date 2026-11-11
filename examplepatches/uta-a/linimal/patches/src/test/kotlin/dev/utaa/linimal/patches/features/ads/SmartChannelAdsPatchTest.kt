@@ -5,6 +5,8 @@ import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.PatchStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class SmartChannelAdsPatchTest {
     @Test
@@ -34,6 +36,27 @@ class SmartChannelAdsPatchTest {
 
         assertEquals(PatchStatus.PARTIAL, record.status)
         assertEquals("SmartChannelTargetPartial", record.reason)
+    }
+
+    @Test
+    fun `every target is applied only after all of them are verified`() {
+        val applied = mutableListOf<String>()
+
+        val allVerified = applyAllOrNone(listOf({ applied += "uiState" }, { applied += "initial" }, { applied += "rebind" }))
+
+        assertTrue(allVerified)
+        assertEquals(listOf("uiState", "initial", "rebind"), applied)
+    }
+
+    @Test
+    fun `a failed verification leaves the earlier verified targets untouched`() {
+        val applied = mutableListOf<String>()
+
+        // 後続の rebind だけが形状検証に失敗しても、先に検証できた対象への注入を残しません。
+        val allVerified = applyAllOrNone(listOf({ applied += "uiState" }, { applied += "initial" }, null))
+
+        assertFalse(allVerified)
+        assertTrue(applied.isEmpty())
     }
 
     @Test

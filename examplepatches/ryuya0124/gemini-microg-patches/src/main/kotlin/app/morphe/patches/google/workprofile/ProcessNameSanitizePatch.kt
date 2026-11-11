@@ -72,7 +72,7 @@ val processNameSanitizePatch = bytecodePatch(
                         val ins = insList[i]
                         if (ins.opcode == Opcode.INVOKE_STATIC) {
                             val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference
-                            if (ref != null && ref.returnType == "Ljava/lang/String;" && ref.parameterTypes.isEmpty()) {
+                            if (ref != null && ref.returnType == "Ljava/lang/String;" && ref.parameterTypes.isEmpty() && spec.matches(ref)) {
                                 targetMethodsToPatch.add("${ref.definingClass}->${ref.name}")
                                 println("[ProcessNameSanitizePatch] Identified process name provider: ${ref.definingClass}->${ref.name}")
                             }

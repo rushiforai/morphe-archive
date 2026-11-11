@@ -129,4 +129,19 @@ public class FullscreenLayout209Test {
   FullscreenViewport209.restore(f.root);
  }
 
+ @Test public void fullscreenExitRestoresWholeTabletViewportBelowStatusBar(){
+  Fixture f=new Fixture(false);InsetRoot root=(InsetRoot)f.root;root.statusInset=64;
+  layout(f.decor,2048,955);int[] before=new int[2];root.getLocationInWindow(before);assertTrue(before[1]<64);
+  FullscreenViewport209.restoreNormalViewport(root);layout(f.decor,2048,955);
+  int[] first=new int[2];root.getLocationInWindow(first);
+  assertTrue("Video viewport still overlaps status bar",first[1]>=64);
+  assertTrue("Video bottom must remain inside content area",root.getBottom()<=f.content.getHeight());
+  int margin=((ViewGroup.MarginLayoutParams)root.getLayoutParams()).topMargin;
+  FullscreenViewport209.restoreNormalViewport(root);layout(f.decor,2048,955);
+  assertEquals("Insets accumulated on repeated checks",margin,((ViewGroup.MarginLayoutParams)root.getLayoutParams()).topMargin);
+  root.statusInset=0;FullscreenViewport209.restoreNormalViewport(root);layout(f.decor,2048,955);
+  assertEquals("Stale inset survived hiding status bar",0,((ViewGroup.MarginLayoutParams)root.getLayoutParams()).topMargin);
+  FullscreenViewport209.restore(root);assertEquals(0,((ViewGroup.MarginLayoutParams)root.getLayoutParams()).topMargin);
+ }
+
 }

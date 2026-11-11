@@ -109,6 +109,9 @@
         "assets": [
           {
             "path": "patches/build/libs/patches-!(*sources*|*javadoc*).mpp?(.asc)"
+          },
+          {
+            "path": "morphe-toolchain.json"
           }
         ],
         "successComment": false

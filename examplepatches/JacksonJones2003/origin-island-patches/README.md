@@ -21,7 +21,7 @@ risk. See the [license](LICENSE) for details.
 ## Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.13.3](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.13.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
+> **[v1.14.0](https://github.com/JacksonJones2003/origin-island-patches/releases/tag/v1.14.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
 <summary>📦 YouTube&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
@@ -362,6 +362,47 @@ The download list comes from the tree Apple Music keeps for Android Auto, which 
 and which it plays from the media ids. The tree has no list of favorites, so these are asked of the
 library the way Apple Music does for its own suggestions. Loading can take longer than the card waits,
 so the lists are loaded when the card connects and are kept.
+
+## Jovi voice requests (Apple Music)
+
+> **This needs a small companion app as well as the patched Apple Music.** Jovi only sends songs to a
+> few music apps it knows by their package, so the companion app is installed under the package of
+> QQ Music (`com.tencent.qqmusic`). It plays nothing itself: every song plays in Apple Music.
+
+Lets the Jovi voice assistant of vivo play a song asked for by voice, such as
+"play Money for Nothing by Dire Straits on QQ Music", in Apple Music.
+
+### Using it
+
+1. Patch Apple Music with **Origin Island music card**, as above. The patched app takes the requests.
+2. Download `jovi-stand-in.apk` from the [latest release](../../releases/latest) and install it. It
+   shows up as **Jovi voice requests**, and opening it opens Apple Music.
+3. Ask Jovi for a song "on QQ Music". Jovi may ask you to confirm before it plays.
+
+vivo can warn about the companion app as it is installed, since it has the package of QQ Music without
+its signature; keep the app to use it. The real QQ Music and the copy of YouTube Music for Jovi
+cannot be installed next to it, as they use the same package.
+
+Apple Music has to be running, open or in the background. When it is swiped away from the recent
+apps, vivo stops it, and Android does not let another app start a stopped app again. Lock Apple Music
+in the recent apps to keep it running, or ask Jovi to open it first.
+
+### How it works
+
+Jovi asks QQ Music for songs through the interface QQ Music has for other apps: it binds a service of
+QQ Music, says hi, searches for what was asked for, plays a song of the results by its id, and waits
+to be told that it plays. The companion app answers a search with what was asked for as the only song.
+Jovi puts the singer and the name of the song together without a space, so they are split where a
+lowercase letter is followed by a capital one.
+
+vivo does not let an app in the background connect to another app, which the companion app is when
+Jovi asks it, so it sends the song to Apple Music in a broadcast, which Android delivers even to an app
+in the background. The patched Apple Music only takes it from the companion app, which shares who it is
+with the broadcast, and searches for the song and plays it, with the singer and the name of the song
+as well, so its search finds the right one. Pausing, resuming and skipping by voice go the same way.
+
+The companion app is built from [`jovi-stand-in`](jovi-stand-in) with
+`gradle -p jovi-stand-in assembleRelease`.
 
 ## Jovi voice requests (YouTube Music)
 

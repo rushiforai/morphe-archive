@@ -57,6 +57,53 @@ public final class ReadWithoutReceiptHooksTest {
         org.junit.Assert.assertFalse(ReadWithoutReceiptHooks.isRecentlyEnded("chat", 1001L));
     }
 
+    private static void endConfirmedSession(boolean fromNotification) {
+        Object activity = new Object();
+        if (fromNotification) {
+            ReadWithoutReceiptHooks.markNotificationSuppressedAt("chat", 0L);
+        } else {
+            ReadWithoutReceiptHooks.markSuppressedAt("chat", 0L);
+        }
+        ReadWithoutReceiptHooks.onChatCreatedObserved(activity, "chat", 0L, 1L, true, true,
+                ReadWithoutReceiptHooks.currentSuppression());
+        ReadWithoutReceiptHooks.endActivityObserved(activity, false, true,
+                ReadWithoutReceiptHooks.currentSuppression(), 1000L);
+    }
+
+    @Test
+    public void disablingBothSourcesDiscardsTheGrace() {
+        endConfirmedSession(false);
+
+        ReadWithoutReceiptHooks.clearDisabledSuppression(false, false);
+
+        assertFalse(ReadWithoutReceiptHooks.isRecentlyEnded("chat", 1001L));
+    }
+
+    @Test
+    public void graceFollowsTheSettingOfItsOwnSource() {
+        endConfirmedSession(false);
+        assertTrue(ReadWithoutReceiptHooks.isRecentlyEndedGivenSources("chat", 1001L, true, false));
+        assertFalse(ReadWithoutReceiptHooks.isRecentlyEndedGivenSources("chat", 1002L, false, true));
+        // 一度 OFF で破棄した猶予は、再度 ON にしても復活しません。
+        assertFalse(ReadWithoutReceiptHooks.isRecentlyEndedGivenSources("chat", 1003L, true, true));
+
+        endConfirmedSession(true);
+        assertTrue(ReadWithoutReceiptHooks.isRecentlyEndedGivenSources("chat", 1001L, false, true));
+        assertFalse(ReadWithoutReceiptHooks.isRecentlyEndedGivenSources("chat", 1002L, true, false));
+        assertFalse(ReadWithoutReceiptHooks.isRecentlyEndedGivenSources("chat", 1003L, true, true));
+    }
+
+    @Test
+    public void disablingTheOtherSourceKeepsTheGrace() {
+        endConfirmedSession(true);
+
+        ReadWithoutReceiptHooks.clearDisabledSuppression(false, true);
+        assertTrue(ReadWithoutReceiptHooks.isRecentlyEnded("chat", 1001L));
+
+        ReadWithoutReceiptHooks.clearDisabledSuppression(true, false);
+        assertFalse(ReadWithoutReceiptHooks.isRecentlyEnded("chat", 1002L));
+    }
+
     @Test
     public void pendingBlocksOnlyTheSelectedChatAndExpiresPermanently() {
         assertFalse(blocks("chat-1", 0L));

@@ -158,6 +158,70 @@ class CommentTest(unittest.TestCase):
         self.assertFalse(t.is_dev_report({"Patches version": "1.0.19", "Patches release": "Main release"}))
         self.assertFalse(t.is_dev_report({}))
 
+    def test_evidence(self):
+        shot = "![Screenshot](https://github.com/user-attachments/assets/296dd177-da97-4036-8257-e28ab9753434)"
+        video = "https://github.com/user-attachments/assets/a41a4fa8-1099-41ef-96e7-5eeeb52e362d"
+        crash = ("FATAL EXCEPTION: main\nProcess: com.disney.disneyplus, PID: 1867\n"
+                 "java.lang.IllegalStateException: boom\n\tat com.disney.App.onCreate(SourceFile:6)")
+        def report(screens, log=None):
+            return (form("Disney+", "26.20.0+rc3-2026.11.02") + f"\n### Crash log\n\n{log or '_No response_'}\n\n"
+                    f"### Screenshots or video\n\n{screens}\n")
+        for body in (report(shot), report(video), report("See crash log", crash)):
+            self.assertTrue(t.has_evidence(body, t.parse_form(body)))
+        for body in (report("The app is broken"), report("See crash log", "Error: it does not work"),
+                     report("none", "it crashes")):
+            self.assertFalse(t.has_evidence(body, t.parse_form(body)))
+
+    def test_required_fields_come_from_the_forms(self):
+        bug = [label for label, _ in t.required_fields("1-bug-report.yml")]
+        self.assertIn("Device", bug)
+        self.assertIn("Screenshots or video", bug)
+        self.assertNotIn("Crash log", bug)
+        enhancement = [label for label, _ in t.required_fields("2-enhancement.yml")]
+        self.assertEqual(enhancement[:2], ["App", "Patch"])
+        self.assertNotIn("Anything else", enhancement)
+
+    def test_issue_33_is_incomplete(self):
+        """Issue 33 came in through the Enhancement form with only the description filled in;
+        GitHub writes "None" for a dropdown left empty."""
+        body = ("### App\n\nNone\n\n### Patch\n\n_No response_\n\n### App version\n\n_No response_\n\n"
+                "### Phone or Android TV build\n\nNone\n\n### Patches version\n\n_No response_\n\n"
+                "### What could be better\n\nYou are missing a trailing 0\n")
+        fields = t.parse_form(body)
+        self.assertEqual(t.form_of(fields), "2-enhancement.yml")
+        gaps = t.missing(body, fields, "2-enhancement.yml")
+        for label in ("App", "Patch", "App version", "Phone or Android TV build", "Patches version", "Device"):
+            self.assertIn(label, gaps)
+        self.assertIn("- App\n", t.incomplete_comment(gaps))
+        self.assertIn("closes after 7 days", t.incomplete_comment(gaps))
+
+    def test_a_complete_bug_report_has_no_gaps(self):
+        values = {"App": "Disney+", "App version": "26.20.0+rc3-2026.11.02", "Phone or Android TV build": "Phone or tablet",
+                  "Where the APK came from": "Aurora Store", "Patches version": "1.0.20", "Patches release": "Main release",
+                  "Morphe Manager version": "2.5.0", "Patches selected": "Defaults", "Device": "Samsung Galaxy S25 Ultra",
+                  "Android version": "Android 17", "Ad blockers or DNS filters": "No ad blocker or DNS filter",
+                  "What happened": "It crashes.", "Steps to reproduce": "Open it.",
+                  "Screenshots or video": "![s](https://github.com/user-attachments/assets/296dd177-da97-4036-8257-e28ab9753434)"}
+        body = "".join(f"### {k}\n\n{v}\n\n" for k, v in values.items())
+        fields = t.parse_form(body)
+        self.assertEqual(t.missing(body, fields, t.form_of(fields)), [])
+        no_shot = body.replace(values["Screenshots or video"], "The app is broken")
+        self.assertEqual(t.missing(no_shot, t.parse_form(no_shot), "1-bug-report.yml"),
+                         ["a screenshot, video, or crash log"])
+
+    def test_version_form(self):
+        labels = [label for label, _ in t.required_fields("0-version-or-build.yml")]
+        self.assertEqual(labels[:4], ["App", "App version", "App version code", "Phone or Android TV build"])
+        self.assertIn("Morphe Manager's message", labels)
+        self.assertNotIn("Anything else", labels)
+        body = (form("Disney+", "26.20.0+rc3-2026.11.02", code="1793662190", build="Android TV or Google TV")
+                + "\n### Morphe Manager's message\n\nIt says not supported\n")
+        fields = t.parse_form(body)
+        self.assertEqual(t.form_of(fields), "0-version-or-build.yml")
+        self.assertIn("a screenshot of Morphe Manager's message", t.missing(body, fields, "0-version-or-build.yml"))
+        # The version check answers it with the supported builds.
+        self.assertEqual(t.evaluate(fields, EvaluateTest.apps)["kind"], "build")
+
     def test_dev_comment_links_the_testing_issue(self):
         text = t.dev_comment("NPS", [{"title": "App update: NPS 2.16.0", "url": "https://example.com/27"}])
         self.assertIn("- [App update: NPS 2.16.0](https://example.com/27)", text)

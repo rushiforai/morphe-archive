@@ -70,7 +70,8 @@ class FasterDownloadsFixtureTest {
         val found = FixtureDex.classes(build, setOf(LOAD_OPERATION, DOWNLOAD_CONTROLLER, UPLOAD_OPERATION, "Lorg/telegram/messenger/FileLoader;", queue))
         val host = found.values.map(ImmutableClassDef::of)
         assertEquals("${build.name}: FileLoadOperation, DownloadController, FileUploadOperation and the download queues", 5, host.size)
-        return PatchContexts.of(ExtensionDex.classes() + host + queueRunnables(build, found.getValue(queue)) + dataSaverClasses(build))
+        return PatchContexts.of(ExtensionDex.classes() + host + queueRunnables(build, found.getValue(queue)) + dataSaverClasses(build) +
+            qualityClasses(build))
     }
 
     private fun ClassDef.status(name: String) = methods.single { it.origName == name }.controlBody()

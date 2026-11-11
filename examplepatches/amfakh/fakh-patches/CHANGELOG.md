@@ -1,3 +1,57 @@
+## [1.18.1](https://github.com/amfakh/fakh-patches/compare/v1.18.0...v1.18.1) (2026-11-11)
+
+### Performance Improvements
+
+* **LinkedIn, GitHub, IDN, Smart Life, Tuya Smart, BARDI Smart Home, KOMPAS.com:** patching takes up to 3 times less time, and the patched app comes out the same as before ([c130002](https://github.com/amfakh/fakh-patches/commit/c1300022e1647863a3c5ee7b3a61f3f8e342906f))
+* **Jira:** adding the Fakh Patches rows to Settings no longer reads the code of every class, so patching is faster ([c130002](https://github.com/amfakh/fakh-patches/commit/c1300022e1647863a3c5ee7b3a61f3f8e342906f))
+
+## [1.18.0](https://github.com/amfakh/fakh-patches/compare/v1.17.2...v1.18.0) (2026-11-11)
+
+### New Features
+
+* **LinkedIn:** the glass navigation bar's pill covers the whole tab, icon and label, a little wider than the tab with a thin rim of the capsule all around ([40840e4](https://github.com/amfakh/fakh-patches/commit/40840e4d585e51e7584606a723dbda1dca857d26))
+* **Jira:** the glass navigation bar's pill covers the whole tab, icon and label, a little wider than the tab with a thin rim of the capsule all around ([40840e4](https://github.com/amfakh/fakh-patches/commit/40840e4d585e51e7584606a723dbda1dca857d26))
+* **GitHub:** the glass navigation bar's pill covers the whole tab, icon and label, a little wider than the tab with a thin rim of the capsule all around ([40840e4](https://github.com/amfakh/fakh-patches/commit/40840e4d585e51e7584606a723dbda1dca857d26))
+* **Jira:** the glass navigation bar is 56dp tall, with the labels closer to their icons ([40840e4](https://github.com/amfakh/fakh-patches/commit/40840e4d585e51e7584606a723dbda1dca857d26))
+* **GitHub:** the glass navigation bar is 56dp tall, with the labels closer to their icons ([40840e4](https://github.com/amfakh/fakh-patches/commit/40840e4d585e51e7584606a723dbda1dca857d26))
+* **LinkedIn:** pressing a tab of the glass navigation bar shows no ripple, as the pill already marks it ([457b72e](https://github.com/amfakh/fakh-patches/commit/457b72e6be3944d28391df231d8df0bfbc28987b))
+* **Jira:** pressing a tab of the glass navigation bar shows no ripple, as the pill already marks it ([457b72e](https://github.com/amfakh/fakh-patches/commit/457b72e6be3944d28391df231d8df0bfbc28987b))
+* **GitHub:** pressing a tab of the glass navigation bar shows no ripple, as the pill already marks it ([457b72e](https://github.com/amfakh/fakh-patches/commit/457b72e6be3944d28391df231d8df0bfbc28987b))
+
+### Bug Fixes
+
+* **LinkedIn:** the glass navigation bar's pill runs a little past the new tab and swells as it moves, instead of stopping short ([f96a28f](https://github.com/amfakh/fakh-patches/commit/f96a28ff3bdd6b901df28b07225c38040fd67e02))
+* **Jira:** the glass navigation bar's pill runs a little past the new tab and swells as it moves, instead of stopping short ([f96a28f](https://github.com/amfakh/fakh-patches/commit/f96a28ff3bdd6b901df28b07225c38040fd67e02))
+* **GitHub:** the glass navigation bar's pill runs a little past the new tab and swells as it moves, instead of stopping short ([f96a28f](https://github.com/amfakh/fakh-patches/commit/f96a28ff3bdd6b901df28b07225c38040fd67e02))
+
+## [1.17.2](https://github.com/amfakh/fakh-patches/compare/v1.17.1...v1.17.2) (2026-11-11)
+
+### New Features
+
+* **LinkedIn:** add Always show navigation bar, a switch in Fakh Patches (off by default) that keeps the navigation bar on screen while you scroll instead of sliding it away ([965abd4](https://github.com/amfakh/fakh-patches/commit/965abd429c05c592ba9b8c883be77336af29424c))
+
+## [1.17.1](https://github.com/amfakh/fakh-patches/compare/v1.17.0...v1.17.1) (2026-11-11)
+
+### New Features
+
+* **LinkedIn, Jira, GitHub:** the glass navigation bar turns solid when Reduce transparency and blur or High contrast fonts is on in the phone's accessibility settings ([a611962](https://github.com/amfakh/fakh-patches/commit/a61196277cd8a7f2cd33ee7ad742442619a59292))
+* **LinkedIn, Jira, GitHub:** with Liquid Glass, the pill stays clear in the middle and bends what's behind it at its edges, like a curved piece of glass ([d9f5be5](https://github.com/amfakh/fakh-patches/commit/d9f5be509a0387e900d0676bbb2e8be5be97350a))
+
+## [1.17.0](https://github.com/amfakh/fakh-patches/compare/v1.16.0...v1.17.0) (2026-11-10)
+
+### New Features
+
+* **LinkedIn, Jira, GitHub:** slide a finger along the glass navigation bar to move the pill across the tabs, with a haptic tick for each tab, and let go to open the tab under it ([9ac9f4c](https://github.com/amfakh/fakh-patches/commit/9ac9f4c18b5a16121817e62fa92a48aad2624a9e))
+* **LinkedIn, Jira, GitHub:** the selection pill springs to the new tab and swells a little as it moves ([9ac9f4c](https://github.com/amfakh/fakh-patches/commit/9ac9f4c18b5a16121817e62fa92a48aad2624a9e))
+* **LinkedIn, Jira, GitHub:** a Liquid Glass switch, on by default, blurs what's behind the glass navigation bar and bends it at the edges (Android 12 and newer), with a raised pill and a white rim ([47b7312](https://github.com/amfakh/fakh-patches/commit/47b73120ba3cdaa4275ed4d0069b48424ec3d62a))
+* **GitHub:** the glass navigation bar's pill takes your accent color and the tab labels follow the icons, accent on the selected tab and gray on the others ([47b7312](https://github.com/amfakh/fakh-patches/commit/47b73120ba3cdaa4275ed4d0069b48424ec3d62a))
+* **LinkedIn, Jira, GitHub:** without Material You the glass navigation bar's pill is neutral gray instead of following the wallpaper ([ecd6f16](https://github.com/amfakh/fakh-patches/commit/ecd6f165eac3c07c05184ce5dbd043d3dd9e5c75))
+
+### Bug Fixes
+
+* **GitHub:** stop the glass navigation bar crashing the app on screens with images, such as Explore ([bbf835f](https://github.com/amfakh/fakh-patches/commit/bbf835f422adfc7cb39374e619a95c6a042335f0))
+* **GitHub:** the glass navigation bar and the landscape navigation bar position work without the Material You patch ([aafb6ec](https://github.com/amfakh/fakh-patches/commit/aafb6ec78a793201be3020e25eee66a1cac6b89f))
+
 ## [1.16.0](https://github.com/amfakh/fakh-patches/compare/v1.15.4...v1.16.0) (2026-11-09)
 
 ### New Features

@@ -40,7 +40,7 @@ Beispiel: In Finamp steht nach dem Patch der Albuminterpret vor den übrigen Mit
 - [Vorwarnzeit für Wecker wählen](../../README.md#preview-choose-upcoming-alarm-notification-time)
 - [Eigenen OAuth-Client für Infinity+ einrichten](../../README.md#preview-configure-custom-oauth-for-infinity)
 - [Benachrichtigung beim Markieren als gelesen entfernen](../../README.md#preview-dismiss-notifications-when-marking-conversations-read)
-- [Finamp Complete: alle sieben Änderungen](../../README.md#preview-finamp-complete-all-seven-fixes)
+- [Finamp Complete](../../README.md#preview-finamp-complete)
 - [Verschachtelte OPML-Feeds importieren](../../README.md#preview-import-nested-opml-feeds)
 - [Unterhaltungen im Hintergrund ungelesen lassen](../../README.md#preview-keep-background-conversations-unread)
 - [Favoriten nach Umbenennung oder Löschung konsistent halten](../../README.md#preview-keep-favorites-consistent-after-folder-rename-or-removal)

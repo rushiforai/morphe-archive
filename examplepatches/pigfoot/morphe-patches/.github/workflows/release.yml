@@ -38,10 +38,18 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev && npm test
 
+      - name: Resolve latest stable Morphe toolchain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/resolve-morphe-toolchain.mjs
+
       - name: Verify patches
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:test :patches:buildAndroid :patches:generatePatchesList --no-daemon
+
+      - name: Verify selected toolchain in preflight bundle
+        run: python3 scripts/verify-morphe-toolchain.py
 
       # Semantic release runs its own Gradle build command.
       # Only dev and main branch will generate a release as specified by .releaserc
@@ -73,6 +81,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew :patches:test :patches:buildAndroid --no-daemon
 
+      - name: Verify selected toolchain in final bundle
+        run: python3 scripts/verify-morphe-toolchain.py
+
       - name: Upload verification artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -81,4 +92,5 @@ jobs:
           path: |
             patches/build/libs/patches-*.mpp
             patches-list.json
+            morphe-toolchain.json
             patches/build/test-results/test/*.xml

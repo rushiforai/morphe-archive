@@ -1,4 +1,4 @@
-"""Checks a new bug report against the app versions the patches support.
+"""Checks new issues for missing details, and bug reports against the app versions the patches support.
 
 Runs from .github/workflows/issue_triage.yml when someone outside the project
 opens or edits an issue made with the Bug report form. It reads the App, App
@@ -14,6 +14,14 @@ patches version, is labeled "dev pre-release". When the app has an open
 issue labeled "testing on dev", the report gets a comment that asks for the
 problem there instead, unless it is critical.
 
+Every issue made with a form is checked for the fields its form marks
+required, read from .github/ISSUE_TEMPLATE, and a bug report also for an
+attached screenshot or video or a crash log with a stack trace. An issue that
+lacks any of them is labeled "incomplete" with a comment that lists them, and
+the label is removed when an edit fills them in. Labeled issues close after 7
+days, like "untargeted version". The version checks run for bug reports and the
+version or build form only.
+
 Run from the repository root with GITHUB_EVENT_PATH set. DRY_RUN=true prints
 what it would do instead of doing it.
 """
@@ -25,17 +33,21 @@ import subprocess
 import sys
 
 LABEL = "untargeted version"
-LABEL_COLOR = "C5DEF5"
-LABEL_DESCRIPTION = "The reported app version or build is not one the patches support"
 REFS = ["origin/main", "origin/dev"]
 SOURCE = "patches/src/main/kotlin"
 DEV_TARGET_HELPER = "shared/misc/DevTarget.kt"
 NO_RESPONSE = "_No response_"
 DEV_LABEL = "dev pre-release"
-DEV_LABEL_COLOR = "BFD4F2"
-DEV_LABEL_DESCRIPTION = "A report for a dev pre-release of the patches"
 TESTING_LABEL = "testing on dev"
 APP_UPDATE_PREFIX = "App update: "
+INCOMPLETE_LABEL = "incomplete"
+FORMS_DIR = ".github/ISSUE_TEMPLATE"
+# A heading that only one form has, which tells the forms apart.
+FORM_MARKERS = {"Morphe Manager's message": "0-version-or-build.yml", "What happened": "1-bug-report.yml", "What could be better": "2-enhancement.yml",
+                "What the patch should do": "3-new-app-or-patch.yml", "Topic": "4-something-else.yml"}
+ATTACHMENT = re.compile(r"https://github\.com/(?:user-attachments/assets|user-attachments/files|[^/\s]+/[^/\s]+/assets)/|"
+                        r"https://user-images\.githubusercontent\.com/|https://private-user-images\.githubusercontent\.com/")
+CRASH = re.compile(r"FATAL EXCEPTION|^\s*at [\w$.<>]+\(|\b(?:[a-z][\w$]*\.)+[A-Z][\w$]*(?:Exception|Error)\b", re.M)
 
 
 # ── The form ────────────────────────────────────────────────────────────────
@@ -258,6 +270,63 @@ def testing_issues(app):
 
 # ── Acting on the issue ─────────────────────────────────────────────────────
 
+def has_evidence(body, fields):
+    """Whether a bug report includes a screenshot or video, or a crash log with a stack trace."""
+    if ATTACHMENT.search(body or ""):
+        return True
+    log = fields.get("Crash log") or ""
+    return bool(CRASH.search(log))
+
+
+def form_of(fields):
+    """The form file an issue was made with, from the headings in its body, or None."""
+    return next((form for heading, form in FORM_MARKERS.items() if heading in fields), None)
+
+
+def required_fields(form, forms_dir=FORMS_DIR):
+    """(label, type) of the fields the form marks required, in form order. Checkbox groups are left
+    out: GitHub enforces those, and their answers do not appear as fields."""
+    text = open(os.path.join(forms_dir, form)).read()
+    labels = []
+    for item in re.split(r"(?m)^  - type: ", text.split("\nbody:\n", 1)[1])[1:]:
+        kind = item.split("\n", 1)[0].strip()
+        label = re.search(r"^      label: (.+)$", item, re.M)
+        if kind in ("markdown", "checkboxes") or not label:
+            continue
+        if re.search(r"^    validations:\n(?:      .*\n)*?      required: true", item, re.M):
+            labels.append((label.group(1).strip().strip('"'), kind))
+    return labels
+
+
+def missing(body, fields, form, forms_dir=FORMS_DIR):
+    """What the report still needs: empty required fields, and for a bug report, evidence."""
+    # GitHub writes "None" for a dropdown left empty.
+    gaps = [label for label, kind in required_fields(form, forms_dir)
+            if not fields.get(label) or (kind == "dropdown" and fields[label] == "None")]
+    if form == "1-bug-report.yml" and not has_evidence(body, fields):
+        gaps.append("a screenshot, video, or crash log")
+    if form == "0-version-or-build.yml" and not ATTACHMENT.search(body or ""):
+        gaps.append("a screenshot of Morphe Manager's message")
+    return gaps
+
+
+def incomplete_comment(gaps):
+    items = "\n".join(f"- {gap}" for gap in gaps)
+    return ("This issue is missing details that are needed to look into it:\n\n" + items + "\n\n"
+            "Please edit this issue and fill them in. A screenshot or video can be attached by dragging it "
+            "into the issue, and a crash log can be pasted in the Crash log field. The `incomplete` label is "
+            "removed when nothing is missing. An issue with this label closes after 7 days without an update.\n")
+
+
+def ensure_label(name):
+    """Creates the label if it is missing. Its color and description come from
+    .github/labels.json, so an existing label is left as it is."""
+    if os.environ.get("DRY_RUN") == "true":
+        print(f"would make sure the label exists: {name}")
+        return
+    subprocess.run(["gh", "label", "create", name], capture_output=True, text=True)
+
+
 def gh(*args):
     if os.environ.get("DRY_RUN") == "true":
         print("would run: gh " + " ".join(args))
@@ -271,12 +340,27 @@ def main():
     number = str(issue["number"])
     labels = {label["name"] for label in issue.get("labels", [])}
     fields = parse_form(issue.get("body"))
-    if is_dev_report(fields) and DEV_LABEL not in labels:
+    form = form_of(fields)
+    gaps = missing(issue.get("body"), fields, form) if form else []
+    if gaps and INCOMPLETE_LABEL not in labels:
+        print(f"#{number}: incomplete, missing {', '.join(gaps)}")
+        ensure_label(INCOMPLETE_LABEL)
+        gh("issue", "edit", number, "--add-label", INCOMPLETE_LABEL)
+        if os.environ.get("DRY_RUN") == "true":
+            print("would comment:\n" + incomplete_comment(gaps))
+        else:
+            subprocess.run(["gh", "issue", "comment", number, "--body-file", "-"], input=incomplete_comment(gaps),
+                           text=True, check=True)
+    elif not gaps and INCOMPLETE_LABEL in labels:
+        print(f"#{number}: no longer incomplete")
+        gh("issue", "edit", number, "--remove-label", INCOMPLETE_LABEL)
+    if form not in ("0-version-or-build.yml", "1-bug-report.yml"):
+        return
+    if form == "1-bug-report.yml" and is_dev_report(fields) and DEV_LABEL not in labels:
         app = fields.get("App")
         testing = testing_issues(app) if app else []
         print(f"#{number}: dev pre-release report for {app}, {len(testing)} testing issue(s)")
-        gh("label", "create", DEV_LABEL, "--force", "--color", DEV_LABEL_COLOR,
-           "--description", DEV_LABEL_DESCRIPTION)
+        ensure_label(DEV_LABEL)
         gh("issue", "edit", number, "--add-label", DEV_LABEL)
         if testing:
             if os.environ.get("DRY_RUN") == "true":
@@ -289,7 +373,7 @@ def main():
         print(f"#{number}: {problem['kind']} problem for {problem['app']} {problem['version']}")
         if LABEL in labels:
             return
-        gh("label", "create", LABEL, "--force", "--color", LABEL_COLOR, "--description", LABEL_DESCRIPTION)
+        ensure_label(LABEL)
         gh("issue", "edit", number, "--add-label", LABEL)
         if os.environ.get("DRY_RUN") == "true":
             print("would comment:\n" + comment(problem))

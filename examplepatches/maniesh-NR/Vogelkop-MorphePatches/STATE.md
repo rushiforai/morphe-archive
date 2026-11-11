@@ -288,3 +288,245 @@ Recovery executed on 2026-11-10 (COMPLETE):
 Note: an empty private repo `maniesh-NR/morphe-opera-backup` was accidentally created
 during recovery (fine-grained PAT could create but not push to it — new repos aren't in a
 selected-repos token's scope). Safe to delete; this repo remains the canonical store.
+
+## 10. 2026-11-10 (later) — LADDER VERDICT: patch content is the killer; bisect rungs C1/C2 delivered
+
+User ladder results (all tested on device, uninstall between rungs):
+
+| Rung | Recipe | Result |
+|---|---|---|
+| B0 | APKEditor merge, no pangle, v1+v2+v3, no Morphe | **Boots** |
+| B2b | Morphe zero patches, v1+v2+v3 | **Boots** |
+| B1 | v1.2.3 ALL patches, v1+v2+v3 | **Crashes immediately** |
+| B3 | v1.3.0 diag-only (exclusive, no spoof), v1+v2+v3 | **Boots** |
+
+Verdict: Morphe pipeline exonerated (B2b), v1+v2+v3 re-signing exonerated (B0/B2b/B3),
+diagnostics exonerated (B3). **One (or more) of the functional patches in the "all"
+selection kills the app at launch.** Prime suspect: `Spoof app signature` — instant-crash
+signature matches Application-class failure, and the patch swaps superclasses of TWO
+classes (`com.opera.android.OperaApplication` AND `com.leanplum.LeanplumApplication`
+-> `app.template.extension.extension.SignatureHookApp`; Leanplum swap newly observed on
+Beta 104).
+
+Bisect rungs built (scripts/build_bisect.sh in build sandbox; from patches-1.3.0.mpp,
+both re-signed v1+v2+v3, both include "Startup diagnostics" for traces):
+- **C1** `morphe-v130-nospoof-v123.apk` = all patches MINUS spoof (default selection
+  `-d "Spoof app signature"`). Dex-verified: NO class extends SignatureHookApp.
+- **C2** `morphe-v130-spoofdiag-v123.apk` = spoof ONLY + diag (`--exclusive -e "Spoof app
+  signature" -e "Startup diagnostics"`). Dex-verified: OperaApplication + LeanplumApplication
+  both extend SignatureHookApp.
+- SHA-256: C1 068c8e02…, C2 95875bfe… (C-SHA256SUMS.txt). Delivered to download/.
+
+Interpretation for next results: C2 crash => spoof is the killer (fix or drop the
+superclass swap; consider patch-level getPackageInfo hooking without Application swap).
+C1 crash => killer among the other 8 (bisect further in halves). Both boot => interaction
+effect (spoof × another patch) — then pair-testing.
+
+Also requested by user (feature work for v1.3.1, pending recon):
+1. Remove the purple first-launch Terms & Conditions dialog (Next button).
+2. Remove the startup "make Opera the default browser" prompt.
+3. Remove the "Help us make Opera better" dialog AND force its data-collection toggles
+   OFF by default without user intervention.
+Recon = jadx re-install + Beta 104 dex/resources analysis (dialogs named Onboarding/
+FirstRun/Terms/Consent/DefaultBrowser expected; privacy toggles map to pref defaults).
+NOTE: user-device baseline is Android 9 (A50) but beta minSdk 29 — irrelevant here.
+
+## 11. 2026-11-10 (final) — v1.3.1: spoof dropped, first-run dialogs + VPN Pro patches designed, smoke-built, uploaded
+
+**Third sandbox recycle** (toolchain, repo clone, PAT, and morphe.keystore all lost again;
+only `upload/` survived). Everything re-derived from the original .apkm in ~1h.
+
+### v1.3.1 patch set (all NEW except where noted)
+| # | Patch | Mechanism |
+| --- | --- | --- |
+| 01 | Spoof app signature | **REMOVED** — was the sole killer per C1/C2 verdict. Not replaced in v1.3.1 (AppComponentFactory-based redesign parked for v1.4.x). |
+| 02a | Welcome T&C bypass | `WelcomeActivity` onCreate+onStart: insert `const/4 vX, 0x1` after `SettingsManager.i("eula_accepted.gdpr")` move-result, before branch (2 sites). |
+| 02b | CMP consent never asked | `r65.l(Z)Z` body → `const/4 v0, 0x0; return v0`. Never asking = default-deny = all toggles off (user requirement 3 from §10). |
+| 02c | Default-browser prompt never shown | `mm6.e`: insert `const/4 v13, 0x0` after `show_enable_default_browser_dialog_on_startpage` getBoolean, before `if-eqz` (defense-in-depth; welcome-flow bypass already covers it). |
+| 03a | VPN Pro system surfaces | Manifest: strip `VpnProReceiver` (BOOT_COMPLETED), `VpnProQuickSettingsTileService`, `VpnProAppWidget`. Free-VPN `VpnReceiver` untouched. |
+| 03b | VPN Pro feature gate | `wdn.a()Z` ("is VPN Pro supported") body → `const/4 v0, 0x0; return v0`. All 6 callers (ggn/nlk/yvg/yi2/hlk/ydn) short-circuit to "not supported". |
+| 03c | VPN Pro strings blanked | `values/strings.xml`: vpn_pro_title, omnibox_suggested_vpn_pro_title, switch_to_vpn_pro_{button,banner_body,reminder_dialog_title} → `" "`. Localized values-* NOT patched (v1.3.2 if needed). |
+| 03z | (workaround) mbridge theme | `MBCommonActivity android:theme="@-2113273852"` → `@android:style/Theme.Translucent.NoTitleBar`. Pre-existing apktool 2.11.1/aapt2 link failure, hits unpatched tree too. |
+
+### VPN Pro recon summary (evidence/vpn-pro-recon.md)
+53 classes reference VpnPro/vpn_pro/VPN_PRO; 109 vpn_pro* string resources; 3 manifest
+components; `MainMenuVpnProBannerState` exists only as a signature string in r7d (class
+stripped by R8); VpnProBanner inflated only from vpn_settings_info_{premium,free}.xml;
+the main-menu banner visibility is gated upstream by `ggn` → `wdn.a()Z`, which is why
+03b is the load-bearing patch. 3-layer approach (03a+03b+03c) chosen for redundancy.
+
+### Smoke test (this sandbox, passed)
+apktool d (7 dex, 45,244 smali) → apply_v131_patches.py (idempotent, all 6+1 applied) →
+apktool b (all 7 dex assembled clean) → zipalign → apksigner (v3, min-sdk 29) → verify OK,
+unzip -t OK. `Opera_Beta_104.0.5262.91143_v1.3.1_base_signed.apk` 147,004,228 bytes,
+sha256 1ec93ab66d5d679cb81814a05ec061c21fcfa7ec680b6ff2af6d7c531b4f6384.
+**On-device boot test still required before declaring v1.3.1 working** (sandbox has no
+emulator; expect pass — no v1.3.1 patch touches Application hierarchy).
+
+### ⚠ KEYS — read §3 first, then this
+- New `morphe.keystore` (RSA-2048, CN=Morphe,O=Vogelkop,C=ZZ, alias morphe, pass Morphe,
+  sha256 1fb06b11776bc509e6f5a9073d9571c5153307b95b26e54bbcf07b7a7fa880ea) generated
+  this session after the recycle lost the v1.3.0 one.
+- **The release's old morphe.keystore asset (the v1.3.0 APK-signing key) was OVERWRITTEN
+  by the v1.3.1 upload script (same asset name) and is NOT recoverable** (not in git,
+  GitHub asset deletion is permanent, private key not extractable from signed APKs).
+- Impact: NONE public (v1.3.0 never shipped; it was the crashing version). Only test
+  devices with bisect-ladder builds (B0–C2) installed must uninstall before installing
+  new-key builds. C1 remains downloadable+bootable, just not upgrade-in-place.
+- Bundle-signing Ed25519 key (morphe-signing.key) UNAFFECTED — still valid in the release.
+
+### Uploaded to sandbox-storage (release id 438742968)
+Opera_Beta_104.0.5262.91143_v1.3.1_base_signed.apk · morphe_v1.3.1_patches.zip ·
+morphe.keystore (new) · SHA256SUMS.txt. All state=uploaded, verified via API listing.
+
+### Remaining for release (see docs/v1.3.1/HANDOFF.md)
+1. On-device boot test (9-row checklist). 2. Merge with .apkm splits via build_bisect.sh
+(uploaded APK is base-only). 3. Publish v1.3.1. 4. Revoke PAT. 5. Then wipe this release
+per its own note (it still contains morphe-signing.key + the new APK keystore).
+
+## 12. 2026-11-10 (even later) — parse-error postmortem + UNIVERSAL v1.3.1 build (D0) uploaded
+
+User hit **"There was a problem while parsing the package"** installing the base-only APK.
+
+**Root cause (confirmed via aapt2 xmltree):** bundle base module carries
+`android:isSplitRequired=true` + `requiredSplitTypes="base__density"` → Android refuses
+standalone install no matter how valid the rest is. (HANDOFF.md had warned "base-only,
+not the final installable" — now proven in practice.) Everything else was healthy:
+arsc/.so stored uncompressed, manifest parsed, signature valid.
+
+**Fix:** APKEditor 1.4.9 (`m -i merge_in -o out`, B0-rung method) merging the patched
+base + 46 splits → universal APK. APKEditor's output was already zipaligned
+(`zipalign -c -p 4` rc=0); signed its raw output directly (a zipalign rewrite emitted
+hundreds of "header mismatch" warnings on APKEditor's zip style — skipped to stay
+closest to the proven B0 pipeline).
+
+**D-rung (new):**
+- **D0 = `Opera_Beta_104.0.5262.91143_v1.3.1_universal_signed.apk`** — v1.3.1 patches
+  ONLY on STOCK base (no v1.3.0 Morphe functional patches), universal-merged.
+  153,368,929 bytes, sha256 d714dcad75c74d10645f816c242347db8c44a8dbd8d61dc8cd74b7cfffc22b7a.
+  Uploaded + verified downloadable. This is the installable test vehicle for the
+  v1.3.1 features (dialog bypass + VPN Pro removal) in isolation.
+- **D1 (pending)** = C1 (all v1.3.0 Morphe patches minus spoof) + v1.3.1 patches =
+  the full v1.3.1 release content. Blocked this session: C1 download from the release
+  throttled to ~53 KB/s (26 MB of 177 MB in 500 s; APKEditor jar from the same host
+  later came instantly, so transient). Retry when convenient: download C1, apktool d,
+  run apply_v131_patches.py (NOTE: script's class paths are smali_classes3-hardcoded;
+  generalize to glob smali* before running on C1), apktool b, sign.
+
+**Verification performed on D0 (all pass):** isSplitRequired/requiredSplitTypes = 0 ·
+badging parses · VpnPro components = 0 · free-VPN VpnReceiver = 1 kept · arsc + .so
+Stored · unzip -t clean · apksigner verify Verifies (v3) · **bytecode proof via
+dexdump on the final APK**: `wdn.a()Z` = `const/4 v0, #0; return v0` (2 insns),
+`r65.l(Z)Z` = same — both feature gates hard-dead in the shipped dex.
+
+**apksigner quirk (documented, not a problem):** `verify --verbose` reports
+"v1: false, v2: false, v3: true" for minSdk≥29 APKs — it does not attempt v1/v2
+verification for that platform range. v1 JAR artifacts ARE present
+(META-INF/MORPHE.SF/.RSA + 770 KB MANIFEST.MF). Installability on Android 10+ is
+guaranteed by the verifying v3 signature (v3 supported since API 28; minSdk 29).
+
+**Install notes for D0:** device must be Android 10+ (minSdk 29 — the A50 baseline on
+Android 9 Pie cannot install this app at all, patched or not) · uninstall any previous
+Morphe/ladder build first (keystore rotated, §11) · boot test checklist in
+docs/v1.3.1/HANDOFF.md.
+
+### §12 addendum — D1 BUILT AND UPLOADED (same session, later)
+
+C1 download succeeded on retry (throttle was transient; 2 MB probe flew at 4.1 MB/s, the
+full 177 MB needed one resume). C1 sha256 re-verified = 068c8e02… (matches C-SHA256SUMS).
+
+**D1 = `Opera_Beta_104.0.5262.91143_v1.3.1_FULL_universal_signed.apk`** — the complete
+v1.3.1: C1 content (all v1.3.0 Morphe patches minus spoof) + all 7 v1.3.1 patches.
+176,700,330 bytes, sha256 964c4f497a6aa4a41a9def974a39a15395fc6aaaa10af66c91b55543510b89dc.
+Uploaded to sandbox-storage + release notes updated. **This is the recommended install.**
+
+Build path: apktool d C1 (10 dex — Morphe extension dex included; merged arsc with the
+pangle shared library pkgId 132 decoded fine) → apply_v131_patches.py (ALL anchors
+matched on the C1 tree; target classes still in smali_classes3; 03z mbridge fix needed
+and applied) → apktool b clean → sign raw output → verify.
+
+Anchor notes discovered during D1: WelcomeActivity has a 4th eula_accepted.gdpr site
+(inside `startActivityForResult`, the "lock user into welcome flow" guard) present in
+the ORIGINAL base too (recon §10's display had truncated it). Left unpatched by design:
+it only matters while the welcome flow is actively running, which the onCreate/onStart
+bypass skips entirely. Callers: if BrowserActivity still launches WelcomeActivity on
+fresh state, the patched activity no-ops through the accepted path and finishes.
+
+Verification (D1, all pass): isSplitRequired=0 · badging OK · VpnPro components=0 ·
+VpnReceiver=1 kept · arsc/.so stored · zipalign -c rc=0 · unzip -t clean · apksigner
+verify OK · dexdump bytecode proof: wdn.a()Z and r65.l(Z)Z both `const/4 v0, #0;
+return v0` in the shipped classes3.dex.
+
+Remaining: on-device boot test of D1 (D0 available as the isolation control if D1
+misbehaves — it differs only by the v1.3.0 Morphe patch content) → then publish v1.3.1
+and wipe this release.
+
+## 13. 2026-11-11 — E-rung: D1 parse-error on device confirmed → binary patch pipeline (no apktool anywhere)
+
+User report: **D1 (`Opera_Beta_…_FULL_universal_signed.apk`) also fails on device with
+"there was a problem parsing this package"** (same as base-signed before it).
+
+### Root cause (by elimination; the only systematic difference)
+Every device-proven build (B0/B0b/C1 — installed AND launched) descends from Opera's
+ORIGINAL dex/manifest/arsc bytes. Every apktool-rebuilt build (base_signed, D0, D1)
+passed every host-side check we have (unzip -t, zipalign -c, apksigner verify,
+aapt dump badging, androguard parse, dexdump) yet is rejected by the device
+PackageManager. The one thing they alone share is the **aapt2-recompiled
+resources / re-serialized manifest lineage** (apktool d→b, then APKEditor merge on
+top). §12's isSplitRequired finding correctly explained the base-only failure but
+was not the whole story for universals. Fix: stop recompiling entirely.
+
+### Fix — byte-level patcher `scripts/v131_binary_patch.py` (E-rung)
+Applies the full v1.3.1 patch set with **equal-length binary edits** on a
+device-proven substrate; no apktool, no aapt2, no smali reassembly:
+- 02a: `invoke (3u) + move-result (1u)` → `const/4 vN,val + 3×nop` (8B→8B)
+- 02b/03b: method head (4B) → `const/4 v0,0; return v0`; remainder = dead code
+  (unreachable code is not verified; heads asserted before writing:
+  r65.l = `12 10` const/4 v0,1; wdn.a = `55 10` iget-boolean v0,p0)
+- 03a: binary AXML chunk cut of the 3 VpnPro elements + top-level size fixup
+  (string pool untouched; attrExt-relative attributeStart handled)
+- 03c: in-place string-pool blanking to `" "` — **all locales** (25–26 configs per
+  name; D1 only blanked the default config)
+- 03z: obsolete (was an apktool/aapt2 workaround)
+
+**02a scope corrected to FOUR sites** (androguard ground truth on C1/E1 dexes —
+the v1.3.1 smali recon had under-counted):
+1. onCreate #1 (v4, if-eqz) — gates m9k.S() pre-onboarding hook (doc Site 1 ✓)
+2. onCreate #2 (v1, if-eqz) — **the actual "show onboarding/T&C fragment vs
+   q0o.f() proceed" gate on fresh launches; missed by the smali recon and NOT
+   patched in D1** (D1 would still have shown the T&C onboarding)
+3. onStop (v0, if-nez) — the doc's "Site 2", mislabeled onStart; the smali
+   text-replace did hit this method in D1
+4. startActivityForResult (v0, if-nez) — lock-in wrapper, previously left alone
+   by design; now patched because eula is never written, which would leave the
+   wrapper permanently engaged
+
+### Artifacts (replaced D0/D1 on the release, same asset names)
+- **E2 = `Opera_Beta_104.0.5262.91143_v1.3.1_FULL_universal_signed.apk`**
+  (RECOMMENDED) = C1 (all v1.3.0 Morphe patches minus spoof, device-proven) +
+  binary v1.3.1 patches. 177,405,772 bytes,
+  sha256 8a99ccf6b6e3bbc535015f29779422ad2fa9b1a904bb44af74ea8a508ca59663.
+- **E1 = `Opera_Beta_104.0.5262.91143_v1.3.1_universal_signed.apk`**
+  (isolation control, replaces D0) = STOCK base + 46 splits APKEditor-merged
+  (B0b method) + binary v1.3.1 patches. 153,644,316 bytes,
+  sha256 e84bf658f642a6d0dc195cda81c1e83299b953441fbf4a80533ff763c6a8a384.
+- Both signed morphe.keystore / morphe (v1 JAR + v2 + v3 blocks;
+  `apksigner verify --min-sdk-version 24` → v2: true, v3: true).
+
+### Verification (both E1 & E2, all pass)
+apksigner verify (v2+v3) · zipalign -c -p 4 · aapt dump badging (minSdk 29 /
+targetSdk 37, versionName 104.0.5262.91143) · unzip -t · androguard bytecode
+proof on the shipped dex: `wdn.a()Z` and `r65.l(Z)Z` = `const/4 v0, 0; return v0`,
+mm6.e = `const-string …; const/4 v13, 0; nop; nop`, WelcomeActivity = 4 forced
+`const/4 vN, 1` sites · manifest VpnPro components = 0, free VpnReceiver = 1,
+no isSplitRequired/requiredSplitTypes/split attrs · arsc 5 strings = `" "` in
+every config · **CRC-level entry diff vs substrate: only AndroidManifest.xml +
+classes3.dex + resources.arsc changed** (dex/arsc edits are same-length).
+
+### Remaining
+On-device test of E2 (E1 as the isolation control if E2 misbehaves — they differ
+only by the v1.3.0 Morphe patch content). If E2 also fails to parse on a
+Android 10+ device with matching sha256, the next suspects are device-side
+(download integrity, installer quirks) since the artifact now differs from the
+bootable C1 by three surgically-edited entries only. → publish v1.3.1, revoke
+PAT, wipe release.

@@ -1,3 +1,15 @@
+## [1.2.1](https://gitlab.com/LOCKhart07/morphe-patches/compare/v1.2.0...v1.2.1) (2026-11-10)
+
+### 🚀 Updated App Support
+
+* Heads Up! – support 4.15.14 ([7ae7168](https://gitlab.com/LOCKhart07/morphe-patches/commit/7ae716889f89a2acc713461e2763fdeb544e946b))
+
+## [1.2.1-dev.1](https://gitlab.com/LOCKhart07/morphe-patches/compare/v1.2.0...v1.2.1-dev.1) (2026-11-10)
+
+### 🚀 Updated App Support
+
+* Heads Up! – support 4.15.14 ([7ae7168](https://gitlab.com/LOCKhart07/morphe-patches/commit/7ae716889f89a2acc713461e2763fdeb544e946b))
+
 ## [1.2.0](https://gitlab.com/LOCKhart07/morphe-patches/compare/v1.1.0...v1.2.0) (2026-10-21)
 
 ### 🐛 Bug Fixes

@@ -68,6 +68,78 @@ object LiveAdsManagerProcessFingerprint : Fingerprint(
     )
 )
 
+/**
+ * SCTE Live Ad Fetch URL — fetches live match ad pods during cricket match overs/wickets.
+ */
+object LiveAdMetadataGetScteFetchAdUrlFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/player/models/ads/LiveAdMetadata;",
+    name = "getScteFetchAdUrl",
+    returnType = "Ljava/lang/String;"
+)
+
+/**
+ * SGAI Server Ad URL — endpoint for Server-Guided Ad Insertion.
+ */
+object PlayerWidgetSgaiConfigGetSgaiAdsUrlFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/ui/model/widget/PlayerWidget\$SgaiConfig;",
+    name = "getSgaiAdsUrl",
+    returnType = "Ljava/lang/String;"
+)
+
+/**
+ * SGAI Prefetch Network Config flag — triggers background prefetching of filler video ads.
+ */
+object PlayerWidgetSgaiConfigHasPrefetchNetworkConfigFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/ui/model/widget/PlayerWidget\$SgaiConfig;",
+    name = "hasPrefetchNetworkConfig",
+    returnType = "Z"
+)
+
+/**
+ * SGAI Sync Call Config flag — triggers synchronous ad insertion requests.
+ */
+object PlayerWidgetSgaiConfigHasSyncCallConfigFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/ui/model/widget/PlayerWidget\$SgaiConfig;",
+    name = "hasSyncCallConfig",
+    returnType = "Z"
+)
+
+/**
+ * LiveStreamAdData Ad Server URL — base ad server for live streams.
+ */
+object PlayerWidgetLiveStreamAdDataGetAdServerUrlFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/ui/model/widget/PlayerWidget\$LiveStreamAdData;",
+    name = "getAdServerUrl",
+    returnType = "Ljava/lang/String;"
+)
+
+/**
+ * LiveStreamAdData SGAI Ads URL — live stream SGAI ad URL.
+ */
+object PlayerWidgetLiveStreamAdDataGetSgaiAdsUrlFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/ui/model/widget/PlayerWidget\$LiveStreamAdData;",
+    name = "getSgaiAdsUrl",
+    returnType = "Ljava/lang/String;"
+)
+
+/**
+ * LiveStreamAdData SSAI Tag — live stream SSAI tag.
+ */
+object PlayerWidgetLiveStreamAdDataGetSsaiTagFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/ui/model/widget/PlayerWidget\$LiveStreamAdData;",
+    name = "getSsaiTag",
+    returnType = "Ljava/lang/String;"
+)
+
+/**
+ * LiveStreamAdData hasSgaiConfig — controls whether SGAI configuration is active for live stream.
+ */
+object PlayerWidgetLiveStreamAdDataHasSgaiConfigFingerprint : Fingerprint(
+    definingClass = "Lcom/hotstar/ui/model/widget/PlayerWidget\$LiveStreamAdData;",
+    name = "hasSgaiConfig",
+    returnType = "Z"
+)
+
 // ============================================================================
 // 2. Screenshots & Screen Recording Protection Fingerprints
 // ============================================================================

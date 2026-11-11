@@ -253,6 +253,57 @@ public class VideoUprightTest {
         });
     }
 
+    /** 13.2's listener, merged with another player's: a kind number and the owner as a plain Object (#27). */
+    private static final class MergedListener extends OrientationEventListener {
+        @SuppressWarnings("unused") private final int kind;
+        @SuppressWarnings("unused") private final Object owner;
+        boolean enabled;
+
+        MergedListener(Activity activity, Object owner) {
+            super(activity);
+            this.kind = 0;
+            this.owner = owner;
+        }
+
+        @Override public void enable() { enabled = true; }
+        @Override public void onOrientationChanged(int degrees) {}
+    }
+
+    @Test public void theViewerIsFoundInA132MergedListenerThatKeepsItAsAnObject() throws Exception {
+        withActivity(activity -> {
+            try {
+                assertSame(activity, VideoUpright.activityOf(new MergedListener(activity, new PhotoViewer(activity))));
+                assertNull("another player's owner", VideoUpright.activityOf(new MergedListener(activity, new Object())));
+            } catch (IllegalAccessException failure) {
+                throw new AssertionError(failure);
+            }
+        });
+    }
+
+    @Test public void aMergedListenerStaysOffSoFullScreenStaysSideways() {
+        // The 0.0.24 report on 13.2.0: the viewer wasn't found, so Telegram's listener ran and stood the video up again.
+        Settings.VIDEO_EITHER_LANDSCAPE.save(true);
+        Settings.VIDEO_ONLY_FROM_BUTTON.save(true);
+        withActivity(activity -> {
+            MergedListener listener = new MergedListener(activity, new PhotoViewer(activity));
+            VideoUpright.listenerOn(listener);
+            assertFalse(listener.enabled);
+            assertEquals(PORTRAIT, activity.getRequestedOrientation());
+            assertTrue(report(), HookStatus.missing(FamilyNames.KEEP_VIDEOS_MUTED).isEmpty());
+        });
+    }
+
+    @Test public void withASwitchOnTelegramsListenerStaysOffEvenWhenTheViewerIsntFound() {
+        Settings.VIDEO_EITHER_LANDSCAPE.save(true);
+        withActivity(activity -> {
+            MergedListener listener = new MergedListener(activity, new Object());
+            VideoUpright.listenerOn(listener);
+            assertFalse(listener.enabled);
+            assertTrue(report(), report().contains(VideoUpright.ONLY_BUTTON_ENDS + " 1"));
+            assertFalse(HookStatus.missing(FamilyNames.KEEP_VIDEOS_MUTED).isEmpty());
+        });
+    }
+
     @Test public void aListenerWithoutTheViewerIsReportedAndLeavesTheScreenFree() {
         Settings.VIDEO_ONLY_FROM_BUTTON.save(true);
         withActivity(activity -> {

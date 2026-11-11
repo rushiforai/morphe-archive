@@ -1,3 +1,22 @@
+## [1.6.0](https://github.com/WZSE/aapam-patches/compare/v1.5.0...v1.6.0) (2026-11-10)
+
+### ✨ New Features
+
+* add Monect PC Link TV patch to unlock premium features ([d14bfad](https://github.com/WZSE/aapam-patches/commit/d14bfad65e7d24ec2bd3008fd02599e54d853155))
+* **indwealth:** add INDmoney patches to disable app tracking and suppress app lockout ([b90d614](https://github.com/WZSE/aapam-patches/commit/b90d614f3c32127d352f2a7ae747b4c8374f9183))
+
+## [1.6.0-dev.2](https://github.com/WZSE/aapam-patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-11-09)
+
+### ✨ New Features
+
+* add Monect PC Link TV patch to unlock premium features ([d14bfad](https://github.com/WZSE/aapam-patches/commit/d14bfad65e7d24ec2bd3008fd02599e54d853155))
+
+## [1.6.0-dev.1](https://github.com/WZSE/aapam-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-11-09)
+
+### ✨ New Features
+
+* **indwealth:** add INDmoney patches to disable app tracking and suppress app lockout ([b90d614](https://github.com/WZSE/aapam-patches/commit/b90d614f3c32127d352f2a7ae747b4c8374f9183))
+
 ## [1.5.0](https://github.com/WZSE/aapam-patches/compare/v1.4.0...v1.5.0) (2026-10-26)
 
 ### 🐛 Bug Fixes

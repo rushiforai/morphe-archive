@@ -4166,7 +4166,6 @@ f Lorg/telegram/messenger/MediaController; ignoreOnPause Z Lorg/telegram/messeng
 f Lorg/telegram/messenger/MediaController; ignorePlayerUpdate Z Lorg/telegram/messenger/MediaController; R1 Z
 f Lorg/telegram/messenger/MediaController; inputFieldHasText Z Lorg/telegram/messenger/MediaController; L Z
 f Lorg/telegram/messenger/MediaController; isDrawingWasReady Z Lorg/telegram/messenger/MediaController; L0 Z
-f Lorg/telegram/messenger/MediaController; isSilent Z Lorg/telegram/messenger/MediaController; f0 Z
 f Lorg/telegram/messenger/MediaController; lastAccelerometerDetected J Lorg/telegram/messenger/MediaController; x J
 f Lorg/telegram/messenger/MediaController; lastProximityValue F Lorg/telegram/messenger/MediaController; J F
 f Lorg/telegram/messenger/MediaController; lastTimestamp J Lorg/telegram/messenger/MediaController; G J

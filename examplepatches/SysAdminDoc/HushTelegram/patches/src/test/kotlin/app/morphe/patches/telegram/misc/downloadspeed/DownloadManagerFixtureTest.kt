@@ -56,7 +56,8 @@ class DownloadManagerFixtureTest {
         val found = FixtureDex.classes(build, setOf(LOAD_OPERATION, DOWNLOAD_CONTROLLER, UPLOAD_OPERATION, loader, queue))
         val host = found.values.map(ImmutableClassDef::of)
         assertEquals("${build.name}: the download classes", 5, host.size)
-        return PatchContexts.of(ExtensionDex.classes() + host + queueRunnables(build, found.getValue(queue)) + dataSaverClasses(build))
+        return PatchContexts.of(ExtensionDex.classes() + host + queueRunnables(build, found.getValue(queue)) + dataSaverClasses(build) +
+            qualityClasses(build))
     }
 
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), origRef())

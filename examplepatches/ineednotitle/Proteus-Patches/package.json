@@ -3,7 +3,25 @@
   "version": "0.0.0-semantically-released",
   "private": true,
   "license": "GPL-3.0-only",
-  "description": "Proteus Patches — a Morphe patch bundle for 230+ Android apps. Releases are versioned by semantic-release; this version field is never bumped.",
+  "description": "A curated Morphe patch bundle for Android: privacy, ad and annoyance patches for 31 apps plus 25 universal patches.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ineednotitle/Proteus-Patches.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ineednotitle/Proteus-Patches/issues"
+  },
+  "homepage": "https://github.com/ineednotitle/Proteus-Patches#readme",
+  "keywords": [
+    "android",
+    "morphe",
+    "patches",
+    "privacy",
+    "adblock"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@cleyrop-org/semantic-release-backmerge": "^6.2.0",
     "@MorpheApp/changelog": "git+https://github.com/MorpheApp/changelog.git#bundle",

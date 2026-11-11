@@ -54,7 +54,7 @@
     and opens the screen again. An ask that stays is named in the problem.
 
 .EXAMPLE
-    scripts/walk-app.ps1 -Serial emulator-5580 -Apk fixtures/telegram-web-13.2.0-72809.apk
+    scripts/walk-app.ps1 -Serial emulator-5580 -Apk fixtures/telegram-web-13.2.1-72919.apk
 
 .EXAMPLE
     # Walk a build already patched from this bundle and installed (records its APK hash):

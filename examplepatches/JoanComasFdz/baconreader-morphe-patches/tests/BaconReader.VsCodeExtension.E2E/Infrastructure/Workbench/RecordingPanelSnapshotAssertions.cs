@@ -1,6 +1,9 @@
 // SPDX-FileCopyrightText: 2026 JoanComasFdz
 // SPDX-License-Identifier: GPL-3.0-only
 
+using System.IO.Compression;
+using System.Text;
+using System.Text.Json;
 using JoanComasFdz.AssertingThat;
 
 namespace BaconReader.VsCodeExtension.E2E.Infrastructure.Workbench;
@@ -76,11 +79,30 @@ public static class RecordingPanelSnapshotAssertions
         return that;
     }
 
-    /// <summary>"Open in e2e player ↗" shows and goes to <paramref name="url"/>.</summary>
-    public static AssertingThat<RecordingPanelSnapshot> LinksToThePlayer(this AssertingThat<RecordingPanelSnapshot> that, string url)
+    /// <summary>
+    /// "Open in e2e player ↗" shows and goes to <paramref name="url"/>, its fragment holding the Gherkin of the scenario
+    /// titled <paramref name="title"/> (the player's data: deflated JSON in base64url, #s=…), with no marks.
+    /// </summary>
+    public static AssertingThat<RecordingPanelSnapshot> LinksToThePlayerWithTheGherkinOf(this AssertingThat<RecordingPanelSnapshot> that, string url, string title)
     {
-        Assert.True(that.InstanceToAssert.PlayerLink == url, $"\"Open in e2e player ↗\" goes to \"{that.InstanceToAssert.PlayerLink ?? "(not shown)"}\", but \"{url}\" was expected.");
+        var link = that.InstanceToAssert.PlayerLink ?? "(not shown)";
+        var parts = link.Split("#s=", 2);
+        Assert.True(parts[0] == url, $"\"Open in e2e player ↗\" goes to \"{parts[0]}\", but \"{url}\" was expected.");
+        Assert.True(parts.Length == 2, $"\"Open in e2e player ↗\" goes to \"{link}\", with no Gherkin.");
+        using var data = JsonDocument.Parse(Inflate(parts[1]));
+        var gherkin = data.RootElement.GetProperty("g").GetString() ?? "";
+        Assert.True(
+            gherkin.Split('\n').Any(line => line.Trim() == $"Scenario: {title}") && data.RootElement.GetProperty("m").GetArrayLength() == 0,
+            $"\"Open in e2e player ↗\" carries the Gherkin \"{gherkin}\", but the Gherkin of \"{title}\", with no marks, was expected.");
         return that;
+    }
+
+    private static string Inflate(string base64Url)
+    {
+        var base64 = base64Url.Replace('-', '+').Replace('_', '/');
+        using var inflating = new DeflateStream(new MemoryStream(Convert.FromBase64String(base64 + new string('=', (4 - (base64.Length % 4)) % 4))), CompressionMode.Decompress);
+        using var reader = new StreamReader(inflating, Encoding.UTF8);
+        return reader.ReadToEnd();
     }
 
     /// <summary>"Open in e2e player ↗" doesn't show (the run has no MP4).</summary>

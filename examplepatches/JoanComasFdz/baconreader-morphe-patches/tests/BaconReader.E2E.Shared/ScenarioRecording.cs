@@ -6,7 +6,8 @@ namespace BaconReader.E2E.Shared;
 /// <summary>
 /// What tools/e2e/record.sh reads next to a run's video (each project's BaseE2E writes it, camelCase JSON): the
 /// scenario's names and Gherkin, the screen it was played on, the patches its app was patched with (none for the VS Code
-/// extension's), when the app's first screen was shown and whether it passed. The app's video is <c>&lt;gif&gt;.mp4</c>,
+/// extension's), when the app's first screen was shown, whether it passed, and when each line of its Gherkin played in
+/// the video (none for the VS Code extension's). The app's video is <c>&lt;gif&gt;.mp4</c>,
 /// the first screen's time seconds into it; VS Code's is <c>&lt;gif&gt;.webm</c>, with <c>&lt;gif&gt;.home.png</c>, the
 /// workbench as the test saw it, which record.sh trims the video at (the e2e tool's find-home: the video's clock runs
 /// behind the test's).
@@ -21,4 +22,11 @@ public sealed record ScenarioRecording(
     string Gif,
     IReadOnlyList<string> Patches,
     double? HomeShownSeconds,
-    bool Passed);
+    bool Passed,
+    IReadOnlyList<GherkinMark>? Marks = null);
+
+/// <summary>
+/// When a Gherkin line played in a scenario's video: <paramref name="Line"/> is an index in the Gherkin's text's lines,
+/// <paramref name="Seconds"/> into the video; <paramref name="Failed"/> when the scenario failed there.
+/// </summary>
+public sealed record GherkinMark(int Line, double Seconds, bool Failed);

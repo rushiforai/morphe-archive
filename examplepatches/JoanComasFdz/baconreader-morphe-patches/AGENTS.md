@@ -9,7 +9,7 @@ Follow [STYLE.md](STYLE.md). A change is done when the checks below pass for eve
 
 The same BaconReader patches exist for two patchers: [baconreader-reseam-patches](https://github.com/JoanComasFdz/baconreader-reseam-patches) (Reseam) and [baconreader-morphe-patches](https://github.com/JoanComasFdz/baconreader-morphe-patches) (Morphe).
 
-- **Shared, word for word in both repos:** `AGENTS.md`, `CLAUDE.md`, `STYLE.md`, `docs/patches.md`. The "Shared docs" workflow fails when one differs from the other repo's. Change them in both repos, in one PR each.
+- **Shared, word for word in both repos:** `AGENTS.md`, `CLAUDE.md`, `STYLE.md`, `docs/patches.md` and each patch's page in `docs/patches/`. The "Shared docs" workflow fails when one differs from the other repo's. Change them in both repos, in one PR each.
 - **Shared but for the patcher's name:** the VS Code e2e recordings extension (`tools/vscode-extension`), its e2e project (`tests/BaconReader.VsCodeExtension.E2E`), the e2e projects' shared code (`tests/BaconReader.E2E.Shared`) and the dev container (`.devcontainer`). The "Shared VS Code extension" workflow fails when the other repo's copy, with "Morphe" and "Reseam" swapped, differs from this one. Change them in both repos, in one PR each.
 - **Patcher-specific:** what really differs between the patchers, one set per repo:
   - [patcher-specific-build.md](patcher-specific-build.md): tools, build, list, patch, sign.
@@ -17,6 +17,19 @@ The same BaconReader patches exist for two patchers: [baconreader-reseam-patches
   - [patcher-specific-release.md](patcher-specific-release.md): branches, PRs, releases.
   - [docs/patcher-specific-patches.md](docs/patcher-specific-patches.md): settings and keys, differences from ReVanced.
 - A new patch or a behavior change goes to both repos. A difference between them is either a patcher limit, written down in `docs/patcher-specific-patches.md`, or a bug.
+
+## Patch pages
+
+Each patch has a page, `docs/patches/<patch name, kebab-case>.md`, for its users: what they get and see, its settings and its limits, in their words, short and straight to the point. It's checked against the code, never copied from an older description. Its shape is the other pages':
+- `<!-- scenarios: <TestClass>, … -->` under the license lines: the e2e scenario classes that show the patch (`PatchPagesTests` checks that every scenario is on one page). A patch with no scenario yet has `<!-- scenarios: -->`; the user guide shows its page with no recording.
+- `# <the patch's name in the bundle>`, then one sentence of what the user gets: the patch's row in `docs/patches.md`, word for word.
+- Bullets of what changes in the app, quoting its texts as the screen shows them.
+- `**Settings** (BaconReader → Settings → Patches, under "<page>"):` with a bullet per setting (its title, its default, what it does), or `No settings.`
+- `**Limits**:`, only for what a user must know.
+
+What a patch does only with one patcher (a patcher limit, or a setting only one has) goes in that repo's `docs/patcher-specific-patches/<the page's file name>.md`, bullets in the same words: its user guide shows them under the patch as "Only in <patcher>".
+
+A new patch, or a change to what one does or to its settings, updates its page and its row in `docs/patches.md` in the same PR. So does a new or renamed scenario, in its `scenarios` line. The user guide on GitHub Pages is built from the pages and the scenarios' newest recordings after each merge and each posted recording (docs/hosting.md, "The user guide"): nothing else to update.
 
 ## Cloud sessions with both repos
 
@@ -55,7 +68,7 @@ In both repos, [tests/BaconReader.E2E](tests/BaconReader.E2E/README.md):
 - A patch's scenarios go in the patch's PR, and play on the NAS, next to the phone, in a fraction of the time a cloud session takes ([tools/e2e/nas/README.md](tools/e2e/nas/README.md)): push the branch, open the PR, then start the "E2E on the phone" workflow on the branch with `--changed-since origin/<base branch>`, `video` and the PR. A run that passes is the recording: it posts the GIFs on the PR. A run that fails says why in its job's log and its "e2e-results" artifact; fix it, push, and start it again. A push after the recording means recording again.
 - A session uses the phone itself only to look: `tools/e2e/explore.sh`, to copy a Gherkin's texts from the screen, or `tools/e2e/record.sh --no-video <TestClass>`, when a failure on the NAS can't be understood from its log. It releases the lease right after (`tools/e2e/connect.sh --down`): a NAS run waits for it. Recording from the session (`tools/e2e/record.sh --changed-since origin/<base branch>`, then `tools/e2e/push-gifs.sh`) is for when the NAS is down.
 - `dotnet build BaconReader.E2E.slnx` and `dotnet test BaconReader.E2E.slnx` pass with no warnings (without a phone, the scenarios skip).
-- The VS Code e2e recordings extension ([tools/vscode-extension](tools/vscode-extension/README.md)) shows each scenario's recordings next to its code. Its own scenarios, [tests/BaconReader.VsCodeExtension.E2E](tests/BaconReader.VsCodeExtension.E2E/README.md), play in VS Code for the web, with no phone: `tools/e2e/record.sh Recordings`. Its unit tests: `node --test tools/vscode-extension/test/*.test.js`.
+- The VS Code e2e recordings extension ([tools/vscode-extension](tools/vscode-extension/README.md)) shows each scenario's recordings next to its code. Its own scenarios, [tests/BaconReader.VsCodeExtension.E2E](tests/BaconReader.VsCodeExtension.E2E/README.md), play in VS Code for the web, with no phone, never on the NAS (it is there for the phone): a change to the extension is recorded from the session, `tools/e2e/record.sh Recordings`, then `tools/e2e/push-gifs.sh`. Its unit tests: `node --test tools/vscode-extension/test/*.test.js`.
 
 ## Test APKs
 
@@ -78,5 +91,5 @@ In both repos, [tests/BaconReader.E2E](tests/BaconReader.E2E/README.md):
 2. Find each fingerprint's method in BaconReader 6.1.4 (jadx or apktool) and write the patcher's target for it ([patcher-specific-code.md](patcher-specific-code.md)).
 3. Write the extension in the repo's extension language. Check that BaconReader reaches every branch you keep.
 4. Map its settings to the patcher's settings ([patcher-specific-code.md](patcher-specific-code.md)).
-5. Run the checks. Then add the patch's one-line row to the README, in Fixes, Features or Cleanups, its row to [docs/patches.md](docs/patches.md), and its settings, keys and differences from ReVanced to [docs/patcher-specific-patches.md](docs/patcher-specific-patches.md).
+5. Run the checks. Then add the patch's page to `docs/patches/` and its row to [docs/patches.md](docs/patches.md), under Fixes, Features or Cleanups ("Patch pages"), and its settings, keys and differences from ReVanced to [docs/patcher-specific-patches.md](docs/patcher-specific-patches.md).
 6. Port it to the other repo too, or say in the PR why not.

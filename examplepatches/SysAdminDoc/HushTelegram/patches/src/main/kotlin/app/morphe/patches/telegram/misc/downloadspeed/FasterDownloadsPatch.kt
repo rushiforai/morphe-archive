@@ -52,7 +52,9 @@ val fasterDownloadsPatch = bytecodePatch(
         "A second switch, Hold automatic downloads on Data Saver, keeps Telegram from downloading media on its own " +
         "while Android's Data Saver is on and the network is metered. A third, Faster uploads, keeps four times as many " +
         "upload pieces in flight. A fourth, Download manager, runs downloads one at a time in the order you asked and " +
-        "adds a Downloads row to the side menu. All four start off. Turn them on in HushTelegram settings > Playback.",
+        "adds a Downloads row to the side menu. A fifth, Send photos and videos in the best quality, sends photos in HD " +
+        "and videos at their own size unless you lower one first. All five start off. Turn them on in HushTelegram " +
+        "settings > Playback.",
     default = true,
 ) {
     category("Playback")
@@ -68,6 +70,13 @@ val fasterDownloadsPatch = bytecodePatch(
             resolveFasterUploads().also { it.rehearse() }
         } catch (unfit: PatchException) {
             patchLog.warning("Faster downloads: ${unfit.message}. Uploads are left as they are.")
+            null
+        }
+        requireStatusMethod("bestQualityMedia")
+        val quality = try {
+            resolveBestQuality().also { it.rehearse() }
+        } catch (unfit: PatchException) {
+            patchLog.warning("Faster downloads: ${unfit.message}. Photos and videos keep Telegram's quality.")
             null
         }
         requireDownloadManagerRuntime()
@@ -87,6 +96,10 @@ val fasterDownloadsPatch = bytecodePatch(
         uploads?.let {
             it.insert()
             enableCapability("fasterUploads")
+        }
+        quality?.let {
+            it.insert()
+            enableCapability("bestQualityMedia")
         }
         if (manager.missing == null) {
             manager.apply()

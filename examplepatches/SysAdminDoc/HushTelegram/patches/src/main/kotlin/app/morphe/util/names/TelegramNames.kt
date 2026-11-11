@@ -36,7 +36,7 @@ object TelegramNames {
     private const val IDENTITY_BUILD = "identity"
 
     /** The version codes with a table, one per supported Telegram build. */
-    private val BUILDS = listOf("72809", "72911")
+    private val BUILDS = listOf("72919", "72911")
 
     /** A member's name and descriptor in one build: a method's `(params)return`, a field's type. */
     data class Member(val owner: String, val name: String, val descriptor: String)

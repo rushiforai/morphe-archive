@@ -1,6 +1,6 @@
 # AGENTS.md — how to work on this repo
 
-A Morphe/ReVanced patch bundle for **YouTube VR 1.90.05 and 1.89.09** on Quest 3 (`eureka`, Snapdragon XR2 Gen 2),
+A Morphe/ReVanced patch bundle for **YouTube VR 1.91.10 and 1.90.05** on Quest 3 (`eureka`, Snapdragon XR2 Gen 2),
 plus a Java extension injected into the app. Read this before touching anything; the traps in
 "Measured traps" have each cost a full build-install-device cycle.
 
@@ -95,7 +95,9 @@ adb shell input keyevent KEYCODE_WAKEUP # ...the display must be woken AFTER set
 adb shell screencap -p /sdcard/shot.png # write ON DEVICE: host-side redirection can mangle bytes
 adb pull /sdcard/shot.png
 ```
-Frames are 4128x2208 stereoscopic (both eyes; crop one half if useful).
+Frames are 4128x2208 stereoscopic (both eyes; crop one half if useful). The wake-and-launch
+recipe as one command lives in `scripts/device-log.ps1` (stay-on, WAKE, clear logcat, `am start`
+with a watch URL, then the extension's lines / crash buffer / process / Guardian check).
 
 * **A headset that is not being worn sleeps, whatever the power state.** Measured 2026-10-13: AC power
   connected *and* `stay_on_while_plugged_in = 15` set, with `mWakefulness=Asleep` anyway -- Horizon OS
@@ -148,13 +150,18 @@ from the device.
   decision table, run by a `build.yml` step). They were promoted from hand-run `build/probe`
   harnesses. A fake `Context` is not possible — `android.jar`'s `ContextWrapper` constructor is a
   stub — so keep decision logic in pure functions and test those.
-* The headless **patch-run gate** `scripts/check-apk.ps1` patches every stock APK in `apk/` with
-  the current bundle (`-NoInstall`, default options) and fails on any failed patch or audit
-  finding. This is the version-bump check: a fingerprint that stopped matching shows up here in
-  minutes, without the device. It needs a stock APK, so it cannot run in CI — run it before
-  pushing, and whenever a store update lands. The supported-version list it walks is itself
-  policy-checked: `SupportedVersionsPolicyTest` holds it to the latest two normal targets, each
-  with a `// Kept: <reason>` comment above it (see docs/VERSIONING.md).
+* The headless **patch-run gate** `scripts/check-apk.ps1` patches every supported stock APK in
+  `apk/` with the current bundle (`-NoInstall`, default options) and fails on any failed patch,
+  audit finding or role mismatch. A version is "supported" when its verified
+  `tools/dexaudit/roles/<version>.json` is committed: a stock APK **older** than the newest
+  supported target is skipped with a note, while one **newer** than it fails the run — that APK is
+  the store update the gate exists for, so it must not pass silently (re-derive it, then commit
+  its roles file). An APK whose filename carries no version needs `-Apk <path>`. This is the
+  version-bump check: a fingerprint that stopped matching shows up here in minutes, without the
+  device. It needs a stock APK, so it cannot run in CI — run it before pushing, and whenever a
+  store update lands. The supported-version list it walks is itself policy-checked:
+  `SupportedVersionsPolicyTest` holds it to the latest two normal targets, each with a
+  `// Kept: <reason>` comment above it (see docs/VERSIONING.md).
 * Never narrow a configuration that was verified: one "tidy-up" that relabelled a single itag made the
   8K quality option disappear from the menu.
 * Diff the applied patch set against the previous build before installing over the user's app.
@@ -182,6 +189,7 @@ crash fix that was in the source.
 | reachability | an app method we injected into that nothing calls. The audit resolves the legitimate shapes itself -- a supertype declaration the method overrides (a lifecycle callback, or Cronet's request factory), a call site or method handle (a lambda), and a native library containing a name long enough to mean anything -- and only complains about what is left. `tools/dexaudit/known-callerless.txt` is the escape hatch for a genuine case it cannot prove, and it is **empty**: the 2026-10-13 build's 26 hooks are all explained by the tool. This is the check that would have flagged the DRC patch on day one, which overrode nothing and was read by nothing |
 | cast lint | an object result stored into a field of another type with no `check-cast`: the `saj` VerifyError, which launches fine and dies at the first video. `-SelfTest` points the lint at the pre-fix fixture and fails if it does not fire -- CI runs that, because a lint that cannot fire is worse than none |
 | settings XML | an unqualified `@name` reference (the encoder stores it as a raw string and the hub crashes on inflation), plus a printed list of the hub's rows and summaries, so a row whose advice `CategoryRows` overwrites is visible instead of invisible |
+| role match (`-Roles <json>`, driven by `check-apk.ps1`) | a re-anchor whose fingerprint matched the wrong-shaped-but-wrong method: the patch run stays green and only this check notices the hook moved house. `tools/dexaudit/roles/<version>.json` holds the verified build's injection-site set (site, extension call, role); the patched APK's inventory must equal it exactly. Generated from a verified build when a version is re-anchored -- a supported version without a roles file fails `check-apk`. The diagnostics build adds one site the default-options file omits (the innertube route log), and the ad-slot accessors cannot appear at all (their early return carries no extension reference; their exact-name fingerprint branches fail loudly on a rename instead) |
 | bundle mode (run by `build.yml`) | a patch template naming an extension member the extension dex does not have -- the half that needs no stock APK. The templates' injected smali lives in *string constants*, so the same `Lclass;->member` pattern reads out of whichever shape the bundle carries: a patcher 1.x template dex, or the `.class` template files a patcher 2.x bundle ships under `app/` (a dex-only scan found **0 references** there and passed vacuously -- caught by the pre-push review 2026-10-30). Membership is the exact `Lclass;->name` from `DexAudit extmembers`, not a substring of the dex: `log` used to satisfy `logGateToggle`. A same-length mutation (`bindRow`->`bindRoX`) fails the audit with exit 1 |
 
 **Four of these checks were wrong when first written, and each failed silently rather than noisily** --
@@ -351,8 +359,8 @@ gate before merging, and it shows on the pull request because the PR's head comm
 `generateNotes` plugin `.github/scripts/supported-versions-notes.mjs` reads the `AppTarget`s out of
 `Constants.kt` (via the shared reader `scripts/supported-versions.mjs`, which
 `scripts/check-upstream-version.mjs` also imports -- one JS parser, mirrored by
-`SupportedVersionsPolicyTest`) and renders "This release patches **YouTube VR 1.90.05** and
-**1.89.09** (Meta Quest)…". Because semantic-release concatenates `generateNotes` output, the
+`SupportedVersionsPolicyTest`) and renders "This release patches **YouTube VR 1.91.10** and
+**1.90.05** (Meta Quest)…". Because semantic-release concatenates `generateNotes` output, the
 section lands in the GitHub release body, `CHANGELOG.md`, the release commit message, and
 `patches-bundle.json`'s description -- which is what Morphe Desktop's "Patch notes" viewer shows.
 The per-release *change* ("support X added, Y dropped") still comes from the commit bullet; the

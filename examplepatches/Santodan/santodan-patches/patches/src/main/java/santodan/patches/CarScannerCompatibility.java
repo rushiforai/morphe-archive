@@ -14,6 +14,6 @@ public final class CarScannerCompatibility {
     public static Compatibility create() {
         return new Compatibility(PACKAGE, "Car Scanner ELM OBD2", null,
             ApkFileType.APK, null, null,
-            List.of(new AppTarget(VERSION, null, false, 21, null), new AppTarget("2.2.21", null, false, 23, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false);
+            List.of(new AppTarget(VERSION, null, false, 21, null), new AppTarget("2.2.21", null, false, 23, null), new AppTarget("2.2.42", null, false, 23, null)), app.morphe.patcher.patch.FormFactor.MOBILE, false);
     }
 }

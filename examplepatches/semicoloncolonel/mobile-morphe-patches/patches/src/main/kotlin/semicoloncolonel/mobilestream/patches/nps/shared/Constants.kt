@@ -1,7 +1,7 @@
 package semicoloncolonel.mobilestream.patches.nps.shared
 
-import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
@@ -11,6 +11,6 @@ object Constants {
         description = "The National Park Service app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x2B4423,
-        targets = listOf(AppTarget("2.15.0"))
+        targets = listOf(AppTarget("2.16.0", versionCode = 3937))
     )
 }

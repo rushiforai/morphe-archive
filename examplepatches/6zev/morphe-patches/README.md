@@ -12,7 +12,7 @@ loads a native engine library from `Application.onCreate` that **aborts the proc
 is not signed with the original certificate**. That makes a plain "patch and re-sign" impossible:
 the app dies a fraction of a second after launch, before it draws anything.
 
-The bundle contains three patches:
+The bundle contains five patches:
 
 1. **Unlock premium** (bytecode) forces the licence policy to always report the app as licensed.
 2. **Unlock native engine** (native library) patches `libd.so` so that the library loads and keeps
@@ -40,6 +40,29 @@ The bundle contains three patches:
    The app only skips the foreground app, and only when "Don't kill foreground app" is enabled,
    so the patch covers what that preference does not.
 
+4. **Input without the ADB server** (bytecode) keeps numpad keys, pointer and gamepad input
+   working while the "Use ADB speed up" server is down. With that preference on, the app stops
+   injecting input itself and sends every key, tap and swipe to a small HTTP server it starts as
+   the shell user on `localhost:15000`; the requests are fired at a closed port while that server
+   is not running and are dropped without the app noticing, so the ordinary path (the input
+   method, the accessibility service, a shell `input` command) is never reached and the numpad and
+   the pointer do nothing. Each of those request sites is gated on `h3.e.n()` - the app's own
+   "is port 15000 taken" probe - so the request is only made while a server is listening and the
+   site's own fallback runs otherwise. Nothing changes while the server is up.
+
+5. **ADB server log** (bytecode) is a diagnostic: it makes the server's own output readable, which
+   is not otherwise possible because its logger is built at a level that drops everything and its
+   stdout goes to `/dev/null`. It also appends the server's exit status, so a `Killed` line can be
+   told apart from the app's own `System.exit(255)`.
+
+There is deliberately **no** patch that touches `Server.main`'s `Looper.prepare()`. An earlier
+release replaced it with `Looper.myLooper()` on the theory that `app_process` had already prepared
+the main Looper; the device says otherwise. The server's own log contains
+`MainLooper already prepared: The main Looper has already been prepared.`, which is written from
+inside the coroutine (`P3/C2.<clinit>`) that is only reached *after* `Looper.prepare()` succeeded
+and set `sMainLooper` by reflection. Dropping the call therefore only removed the Looper that
+`Looper.loop()` needs, and the server exited with 255 on every start.
+
 ### How to use these patches
 
 Add this repo URL in Morphe Manager → patch sources, then patch your own copy of the app:
@@ -55,7 +78,7 @@ https://github.com/6zev/morphe-patches
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.8](https://github.com/6zev/morphe-patches/releases/tag/v1.6.8)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.6.9](https://github.com/6zev/morphe-patches/releases/tag/v1.6.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
 <details open>
 <summary>📦 tvQuickActions Pro&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
@@ -70,7 +93,7 @@ https://github.com/6zev/morphe-patches
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [ADB server log](#adb-server-log) | Writes the native ADB server's own log to /data/local/tmp/tvqa-server.log and lets its debug messages through. The server is started again every few seconds and nothing of what it says is reachable otherwise: its logger is built at a level that drops every message, and its output is sent to /dev/null. Use this to find out why it ends, not as a fix. |  |
-| [Initialize ADB server Looper](#initialize-adb-server-looper) | Neutralizes the redundant Looper.prepare() call from the ADB server main entry point. |  |
+| [Input without the ADB server](#input-without-the-adb-server) | Keeps key, pointer and gamepad input working when the "ADB speed up" server is not running. The app only asks whether speed-up is enabled, not whether the server it starts as the shell user on localhost:15000 is up, and it drops the request without falling back when the port is closed - so numpad keys and mouse input do nothing. Each of those requests is now gated on the app's own port probe, and the injection site's ordinary path runs while no server is listening. |  |
 | [Never stop itself](#never-stop-itself) | Keeps the app from stopping its own package. Stop recent apps, Restart app and Force stop app all end in `am force-stop <package>` run over ADB, and the app is in the recents list it works from, so once an ADB connection is up the app stops itself, restarts, and loops every few seconds. The app only skips the foreground app, and only when the matching preference is enabled, so this covers what the preference does not. Custom ADB command actions are covered too, and such a command is logged under the TVQA-GUARD tag before it is dropped. |  |
 | [Unlock native engine](#unlock-native-engine) | Patches the native engine libraries so that they run on a re-signed APK. The anti-tamper constructor of libd.so that destroys a global mutex is disabled, and the trap instructions the verification routine plants inside its own code - udf #0 (SIGILL) and stores of the markers 0xdead and 0xdeadbeef (SIGSEGV) - are replaced by no-ops, leaving the routine's work intact. This is what makes Web Widget Overlay and button emulation work. The server-only liba.so self-stop calls are also disabled for ARM32 and ARM64 so ADB speed-up does not terminate the app. |  |
 | [Unlock premium](#unlock-premium) | Makes the bundled Google LVL policy always report the app as licensed, which unlocks the premium features. |  |
@@ -141,7 +164,7 @@ patches/src/main/kotlin/app/tvqa/patches/
 ├── shared/Constants.kt                     # app compatibility (package, versions)
 └── tvquickactions/
     ├── AdbServerLogPatch.kt                  # redirects ADB server output to a readable log
-    ├── InitializeServerLooperPatch.kt         # avoids preparing the ADB main Looper twice
+    ├── AdbInputFallbackPatch.kt              # speed-up requests only while its server is up
     ├── UnlockPremiumPatch.kt                  # licence policy -> allowAccess() = true
     ├── NativeEnginePatch.kt                   # libd anti-tamper + liba server self-stop (ARM32/64)
     └── NeverStopItselfPatch.kt                # stop actions: drop the app's own stop command

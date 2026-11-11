@@ -1,5 +1,37 @@
 # Hosting
 
+## The user guide
+
+**`https://joancomasfdz.github.io/baconreader-morphe-patches/`**: what each patch does, with the newest recording of each
+of its e2e scenarios played beside its Gherkin and its marks.
+
+- **Built, not written:** `tools/guide/build.js` (Node, no dependencies; its tests: `node --test tools/guide/test/*.test.js`)
+  builds `site/` into `_site/`:
+  - `index.html` is a user guide: a sidebar on the left lists the patches in docs/patches.md's groups (Fixes, Features,
+    Cleanups; a patch in none comes under "More") where its `<!-- guide-nav -->` comment is, highlights the one being
+    read and folds into a "Patches" menu on a phone; each patch's page, `docs/patches/<patch>.md` (AGENTS.md, "Patch
+    pages"), comes in the same order where its `<!-- guide -->` comment is, with what it does only with this repo's
+    patcher (`docs/patcher-specific-patches/<patch>.md`, if any) as an "Only in <patcher>" note; a patch with no
+    scenario shows its page and "No recording";
+  - every page gets the player, `site/e2e-player.css` and `site/e2e-player.js`, inlined where its `include` comments
+    are, so a published page is one file and never meets a cached copy of another deploy's player;
+  - `E2EPlayer.mount(element, { src, steps, lazy })` puts a recording in any element; the guide's load only when they
+    come near the screen;
+  - `site/favicon.png` is BaconReader's icon, from its APK (`res/mipmap-xxxhdpi/ic_launcher.png`); `site/preview.jpg`
+    (1200 × 630) is the preview a shared link to the guide shows, through `index.html`'s Open Graph tags. Both are
+    copied as they are.
+- **Which recording:** a scenario's newest in `prs-resources`, the highest PR, then its highest version, as the VS Code
+  extension picks it (the builder uses its code). Its Gherkin and marks come from the player link in that PR's post,
+  whose fragment carries them, since no page can read a file from the release. A scenario with no recording shows its
+  Gherkin from its code, with no times.
+- **When:** `.github/workflows/pages.yml` builds and publishes it on a push to dev that changes `site/`, the patch pages,
+  the scenarios or the builder; after each run of "E2E videos" and "E2E on the phone", which post and clean recordings;
+  every day; and on Run workflow.
+- **Locally:** `GITHUB_REPOSITORY=JoanComasFdz/baconreader-morphe-patches node tools/guide/build.js _site`, then open
+  `_site/index.html` (`GUIDE_OFFLINE=1` builds it without GitHub, every scenario unrecorded). In a cloud session, Node's
+  `fetch` takes the session's proxy only with `NODE_USE_ENV_PROXY=1 NODE_EXTRA_CA_CERTS=/root/.ccr/ca-bundle.crt`, and
+  `GITHUB_TOKEN` unset.
+
 ## E2E videos on pull requests
 
 Every pull request from a branch of this repository shows the end-to-end scenarios it added or changed
@@ -56,13 +88,21 @@ scenario's code.
 - **The player page for MP4s:** GitHub draws a video player only for a video it stored itself, and no markdown can show
   one for an MP4 in a release. The site has a page that plays one:
   **`https://joancomasfdz.github.io/baconreader-morphe-patches/e2e-player.html?v=<asset>`** (`site/e2e-player.html`,
-  published to the `gh-pages` branch by `.github/workflows/pages.yml` on every push to `main` or `dev` that changes `site/`), with
+  built and published to the `gh-pages` branch by `.github/workflows/pages.yml`: "The user guide"), with
   the browser's own controls. `v` is an asset's name only,
   `pr-<n>-v<k>-<run>.mp4` (letters, digits and `-` in `<run>`); the page builds the URL itself,
   `https://github.com/JoanComasFdz/baconreader-morphe-patches/releases/download/prs-resources/<v>`, so it never plays a URL someone
   else chose, and any other `v` shows a short message. Above the video: the scenario's name from `<run>`, a link to PR
   #n, the version, the screen and the release. An asset that can't be loaded shows a message: an older version
-  is deleted when its PR closes.
+  is deleted when its PR closes. The link's fragment, `#s=<data>`, carries the scenario's Gherkin and when each line
+  played in the video (`PlayerLinking` in the e2e tool: `{"g": Gherkin, "m": [[line, seconds, failed], …]}`, deflated,
+  in base64url; the page can't read a file from the release, whose downloads no other site may read). With it, the
+  page shows the Gherkin left of the video (under it on a phone): each line its time, a button that plays the video
+  from there; the line the video is at highlighted, one at a time; a failed line in red, and the lines it never
+  reached dimmed. A bar under the video marks each line's time in white (red where it failed), and a click on it seeks
+  there. The scenarios stand still 0.8 s on each Then line, so each shows highlighted in turn (E2E-TEST-CODE-RULES.md,
+  rule b, "the Gherkin marks"). The VS Code extension's "Open in e2e player ↗" carries the scenario's Gherkin,
+  read from its file, without marks (in uncompressed deflate blocks: the extension doesn't wait to compress).
 - **Naming:** `pr-<PR number>-v<version>-<run>.gif`, and the same name ending in `.mp4` for its MP4, e.g.
   `pr-12-v1-baconreader-patched-with-spoof-client-opens-phone.gif`.
   - `pr-<n>-` first, so a PR's assets sit together and its cleanup finds them (the dash after the number keeps `pr-7-`
@@ -89,8 +129,9 @@ scenario's code.
   `### Added or changed by this PR`). Every post ends with `---` and `_Recorded by the e2e workflow · Claude Code_`. The
   workflow never touches the PR's description. `tools/e2e/BaconReader.E2ETools.Tests` tests the layout.
 - **Earlier versions collapse and are hidden as Outdated:** once a new post is up, the tool edits each earlier post
-  still open into a closed `<details>` holding it unchanged, summary **Scenarios (V1)** · 12 scenarios · replaced by V2,
-  then hides every earlier post as Outdated (GraphQL's `minimizeComment`, with the workflow's token; a session gets 403
+  still open into a closed `<details>` holding it unchanged, summary **Scenarios (V1)** · 12 scenarios · replaced by V2
+  when the later posts recorded all its scenarios again, "partly replaced by V2" when some, and "followed by V2" when
+  none (a run of other scenarios: re-recording many scenarios in batches, one run each on the same PR), then hides every earlier post as Outdated (GraphQL's `minimizeComment`, with the workflow's token; a session gets 403
   from GraphQL). An edit or a hide GitHub refuses is a warning in the run's log, never a red run. `--dry-run` prints
   each edit and hide.
 - **Failures:** a failing scenario still gets its GIF and its ❌ (the session fixes it before pushing, so it shouldn't
@@ -101,14 +142,14 @@ scenario's code.
   skipped (its branch is deleted all the same), so push the GIFs once per round.
 - **Cleanup:** when the PR is closed or merged, the workflow deletes any `e2e-gifs/pr-<n>-…` branch left behind, then
   runs the base branch's e2e tool, `post --closed` (with `--merged` for a merged PR; both are cleaned alike):
-  - `prs-resources` keeps every GIF and MP4 of the PR's newest version and deletes its older versions'
-    (`pr-<n>-v1-…` to `pr-<n>-v<N-1>-…`), so the PR's last post keeps showing its GIFs and playing its MP4s for good.
-    The newest version is the highest `v<N>`, read as a number. Only names `pr-<n>-v<N>-…` of that PR are ever deleted:
-    the owner's own assets and other PRs' are never touched. The job's log names each deleted asset and how many assets
-    the release holds.
-  - The PR's older posts would open onto broken images, so each is shrunk to one line: **Scenarios (V1)** · 12
-    scenarios · replaced by V2 · recordings deleted when the PR closed (its footer kept as a hidden comment, its version
-    still counted).
+  - `prs-resources` keeps each run's newest recording (its GIF and MP4 of the highest `v<N>` that recorded it, read as a
+    number) and deletes the older ones, so the newest post that shows a scenario keeps showing its GIF and playing its
+    MP4 for good, and the batches of a PR that re-recorded its scenarios a few at a time all keep theirs. Only names
+    `pr-<n>-v<N>-…` of that PR are ever deleted: the owner's own assets and other PRs' are never touched. The job's log
+    names each deleted asset and how many assets the release holds.
+  - An older post whose scenarios were all recorded again later would open onto broken images, so it is shrunk to one
+    line: **Scenarios (V1)** · 12 scenarios · replaced by V2 · recordings deleted when the PR closed (its footer kept as
+    a hidden comment, its version still counted). The other older posts keep their recordings, collapsed as they are.
 - **The release's limit:** a release holds at most 1,000 assets (a run takes two). The cleanup's log warns above 900.
   Near the limit, the owner creates a new pre-release (e.g. `prs-resources-2`) and points `PrsRelease` in
   `tools/e2e/BaconReader.E2ETools.Core/ReleaseNaming.cs` and `release` in `site/e2e-player.html` at it (or lets the

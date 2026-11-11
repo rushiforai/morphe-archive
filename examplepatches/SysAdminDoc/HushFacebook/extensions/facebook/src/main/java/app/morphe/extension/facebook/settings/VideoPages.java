@@ -307,6 +307,11 @@ final class VideoPages {
                     L10n.t("A double tap on a reel, a video or a photo in the feed no longer likes it or shows a heart. "
                             + "A single tap and the Like button work as before.")));
         }
+        if (build.contains(PatchFamily.ASK_BEFORE_LIKE)) {
+            // Read on each tap, so a change shows on the next one.
+            reels.addPreference(toggle(context, Settings.ASK_BEFORE_LIKING_REELS,
+                    L10n.t("A tap on Like beside a reel asks first, and only Continue likes or unlikes it.")));
+        }
         if (build.contains(PatchFamily.DOUBLE_TAP_SKIP)) {
             // Read as each player is set up, so a change shows on the next reel or video.
             reels.addPreference(toggle(context, Settings.DOUBLE_TAP_SKIP,
@@ -336,12 +341,20 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.KEEP_VIDEO_SPEED,
                     L10n.t("The speed you pick in a feed or Watch video's menu carries over to the next videos. Reels keep "
                             + "their own speed. Off by default, since it hasn't been tried on a real account yet.")));
+            reels.addPreference(toggle(context, Settings.FASTER_REEL_SPEEDS,
+                    L10n.t("Adds 2.5x and 3x to the speed menu of reels and of feed and Watch videos, for watching "
+                            + "faster.")));
             reels.addPreference(toggle(context, Settings.SLOWER_REEL_SPEEDS,
                     L10n.t("Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a "
                             + "fast moment.")));
             reels.addPreference(toggle(context, Settings.SPEED_ON_REPLAYS,
                     L10n.t("A live video that has ended gets Playback speed in its gear menu, like other videos. "
                             + "Videos that are still live, and ads, keep Facebook's menu.")));
+            if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
+                reels.addPreference(toggle(context, Settings.POST_MENU_SPEED,
+                        L10n.t("A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos "
+                                + "too. Off by default, since it hasn't been tried on a real account yet.")));
+            }
         }
         if (build.contains(PatchFamily.REEL_HOLD)) {
             reels.addPreference(toggle(context, Settings.HOLD_REEL_FOR_2X,
@@ -408,6 +421,12 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.FEED_VIDEO_SKIP_BUTTONS,
                         L10n.t("Adds buttons to feed videos that jump back or ahead 10 seconds, like Facebook's own player has. "
                                 + "Live videos and ads keep their own controls. With Tap to play on, it needs Inline feed video controls on too.")));
+                // Asked at each press, so it applies to the next tap.
+                playback.addPreference(toggle(context, Settings.FEED_VIDEO_DOUBLE_TAP_SKIP,
+                        L10n.t("Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. "
+                                + "Keep tapping to go further. Live videos work too when they can be rewound. "
+                                + "One tap on a side still opens the video, a moment later than usual. "
+                                + "With Tap to play on, it needs Inline feed video controls on too.")));
                 // Hold a reel for 2x's patch reaches the player's speed, which the button reads and sets.
                 if (build.contains(PatchFamily.REEL_HOLD)) {
                     playback.addPreference(toggle(context, Settings.FEED_VIDEO_SPEED_BUTTON,
@@ -423,6 +442,10 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_LOWER,
                         L10n.t("Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. "
                                 + "Needs Seek bar on feed videos on.")));
+                playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_EDGE,
+                        L10n.t("Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. "
+                                + "Facebook's speaker and tagged people buttons move up to sit above it. "
+                                + "Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.")));
                 playback.addPreference(toggle(context, Settings.FEED_VIDEO_SEEK_BAR_TIMES,
                         L10n.t("Shows how far into a feed video you are at the left end of its seek bar, and how much is left at the right end. "
                                 + "Needs Seek bar on feed videos on.")));

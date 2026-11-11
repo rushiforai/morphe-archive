@@ -37,8 +37,8 @@ public sealed class ShowUserAvatarsTests : BaseE2E
           And Reddit has a second account "e2e_second"
           And the user "e2e_second" has an avatar
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           And I tap the post "Introductions"
           # "Show user avatars" is off by default.
@@ -139,8 +139,8 @@ public sealed class ShowUserAvatarsTests : BaseE2E
         Reddit.TheUserHasAnAvatar("e2e_user");
         Reddit.HasASecondAccount("e2e_second");
         Reddit.TheUserHasAnAvatar("e2e_second");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));
@@ -162,10 +162,9 @@ public sealed class ShowUserAvatarsTests : BaseE2E
 
         // Then
         // The drawer's avatars don't depend on "Show user avatars", which is still off.
+        // The wait above failed unless Reddit served the avatar.
         var header = await Phone.BaconReader.Main.LeftMenu.ReadAccountsAsync();
-        var accountAvatar = Reddit.ReadRequestsForTheAvatarOf("e2e_user");
         Asserting.That(header).ShowsWithAnAvatarBefore("e2e_user", "e2e_user");
-        Asserting.That(accountAvatar).Served();
 
         // When
         await Phone.BaconReader.Main.LeftMenu.ClickArrowNextToAsync("e2e_user");
@@ -200,12 +199,11 @@ public sealed class ShowUserAvatarsTests : BaseE2E
         await Reddit.WaitUntilTheAvatarOfTheUserIsServedAsync("glass_user");
 
         // Then
+        // The waits above failed unless Reddit served the avatars.
         var normal = await Phone.BaconReader.Detail.Comments.ReadAuthorLineAsync("With an avatar");
-        var avatar = Reddit.ReadRequestsForTheAvatarOf("avatar_user");
         // "Avatar background" is on by default: a faint disc behind the avatar shows through u/glass_user's.
         var disc = await Phone.BaconReader.Detail.Comments.ReadAvatarSpotAsync("With a see-through avatar");
         Asserting.That(normal).ShowsAnAvatarBefore("avatar_user");
-        Asserting.That(avatar).Served();
         Asserting.That(disc).ShowsAFaintDisc();
 
         // When
@@ -228,10 +226,9 @@ public sealed class ShowUserAvatarsTests : BaseE2E
         await Reddit.WaitUntilTheAvatarOfTheUserIsServedAsync("e2e_sender");
 
         // Then
+        // The wait above failed unless Reddit served the avatar.
         var message = await Phone.BaconReader.Inbox.ReadMessageAsync("Hello");
-        var senderAvatar = Reddit.ReadRequestsForTheAvatarOf("e2e_sender");
         Asserting.That(message).ShowsWithAnAvatarBefore("Hello: from e2e_sender", "e2e_sender");
-        Asserting.That(senderAvatar).Served();
 
         // When
         await Phone.BaconReader.GoBackToThePostsAsync();
@@ -341,10 +338,9 @@ public sealed class ShowUserAvatarsTests : BaseE2E
 
         // Then
         // BaconReader comes back from the login with the left menu open, on the account just added.
+        // The wait above failed unless Reddit served the avatar.
         var second = await Phone.BaconReader.Main.LeftMenu.ReadAccountsAsync();
-        var secondAvatar = Reddit.ReadRequestsForTheAvatarOf("e2e_second");
         Asserting.That(second).ShowsWithAnAvatarBefore("e2e_second", "e2e_second");
-        Asserting.That(secondAvatar).Served();
 
         // When
         await Phone.BaconReader.Main.LeftMenu.ClickArrowNextToAsync("e2e_second");

@@ -32,14 +32,14 @@ public sealed partial class Reddit
     /// account's private message (<c>api/comment</c> on its t4), oldest first.
     /// </summary>
     public RedditRepliesSnapshot ReadRepliesToTheMessage(string subject) =>
-        new($"the message \"{subject}\"", RepliesTo(MessageWithSubject(subject).FullName));
+        Checked<RedditRepliesSnapshot>(new($"the message \"{subject}\"", RepliesTo(MessageWithSubject(subject).FullName)), subject);
 
     /// <summary>
     /// "Reddit got the reply "…" to the comment "&lt;text&gt;"": the texts BaconReader sent as replies to that comment,
     /// oldest first.
     /// </summary>
     public RedditRepliesSnapshot ReadRepliesToTheComment(string text) =>
-        new($"the comment \"{text}\"", RepliesTo(CommentWithText(text).FullName));
+        Checked<RedditRepliesSnapshot>(new($"the comment \"{text}\"", RepliesTo(CommentWithText(text).FullName)), text);
 
     /// <summary>Waits until Reddit got a reply to the test account's private message "&lt;subject&gt;".</summary>
     public Task WaitUntilAReplyToTheMessageIsSentAsync(string subject)

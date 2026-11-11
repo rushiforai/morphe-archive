@@ -1,3 +1,25 @@
+## [1.6.1](https://github.com/AzizPatel786/kayo-morphe-patches/compare/v1.6.0...v1.6.1) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **tv:** eliminate live stream buffering and clamp network bandwidth on Android TV ([be1363c](https://github.com/AzizPatel786/kayo-morphe-patches/commit/be1363c2981743f139b0cfbcbd1a642207cd03a7))
+
+## [1.6.0](https://github.com/AzizPatel786/kayo-morphe-patches/compare/v1.5.0...v1.6.0) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **release:** trigger clean semantic-release for v1.6.0 ([a7bc509](https://github.com/AzizPatel786/kayo-morphe-patches/commit/a7bc50943454b4a536b10994947660d692781553))
+
+### ✨ New Features
+
+* **tv:** tailor Kayo Android TV patch for v4.8.1 (4000172) while preserving v4.6.1 compatibility ([ac87c33](https://github.com/AzizPatel786/kayo-morphe-patches/commit/ac87c335c2b9bdb80363cd17aab59d1a414af062))
+
+## [1.5.0](https://github.com/AzizPatel786/kayo-morphe-patches/compare/v1.4.3...v1.5.0) (2026-11-10)
+
+### ✨ New Features
+
+* **kayo:** split into specialized Mobile and Android TV patches and fix TV Pairip startup lockout ([85407d3](https://github.com/AzizPatel786/kayo-morphe-patches/commit/85407d38712ff3ac7e71d959b0cb5cc0ee22b5d7))
+
 ## [1.4.3](https://github.com/AzizPatel786/kayo-morphe-patches/compare/v1.4.2...v1.4.3) (2026-11-08)
 
 ### 🔧 Improvements

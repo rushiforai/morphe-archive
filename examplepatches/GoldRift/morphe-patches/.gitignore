@@ -1,3 +1,7 @@
+### Morphe
+# Private key that signs the patches file
+morphe-signing.key
+
 ### Java template
 # Compiled class file
 *.class
@@ -124,7 +128,7 @@ gradle-app.setting
 node_modules/
 
 # gradle properties, due to Github token
-./gradle.properties
+/gradle.properties
 
 # Ignore IDEA files
 .idea/

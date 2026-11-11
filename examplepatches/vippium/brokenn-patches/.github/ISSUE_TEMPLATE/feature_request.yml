@@ -6,28 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Brokenn Patches feature request
-
-        Before creating a new feature request, please keep the following in mind:
-
-        - **Do not submit a duplicate feature request**: Search existing requests [here](https://github.com/vippium/brokenn-patches/issues?q=label%3A%22Feature+request%22).
-        - **Review the contribution guidelines** before submitting a request.
+        - Feature requests are accepted only for JioHotstar right now.
+        - Search open and closed issues before posting.
+        - Keep the title prefix unchanged.
   - type: textarea
     attributes:
-      label: Feature description
+      label: What do you want to be added? 
       description: |
-        - Describe your feature in detail
-        - Add images, videos, links, examples, references, etc. if possible
-  - type: textarea
-    attributes:
-      label: Motivation
-      description: |
-        A strong motivation is necessary for a feature request to be considered.
-
-        - Why should this feature be implemented? 
-        - What is the explicit use case?
-        - What are the benefits?
-        - What makes this feature important?
+        - Describe the feature clearly. Add screenshots if applicable.
     validations:
       required: true
   - type: checkboxes

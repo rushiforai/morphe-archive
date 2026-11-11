@@ -138,7 +138,8 @@ final class StoriesCategory {
         if (build.contains(PatchFamily.STORY_LOOP)) {
             stories.add(toggle(context, Settings.LOOP_STORIES, L10n.t("Loop a story"),
                     L10n.t("A story plays again from the start when it ends, until you tap or swipe to move on. "
-                            + "Ads still move on. With Stop Story auto-advance on too, stories loop.")));
+                            + "Ads still move on. With Stop Story auto-advance on too, stories loop.") + " "
+                            + L10n.t("To loop one story, tap Loop this story in its menu.")));
         }
         if (build.contains(PatchFamily.STORY_SOUND)) {
             stories.add(toggle(context, Settings.START_STORIES_WITH_SOUND, L10n.t("Start stories with sound"),
@@ -154,6 +155,20 @@ final class StoriesCategory {
             stories.add(toggle(context, Settings.HIDE_STORY_REPLY_BOX, L10n.t("Hide the reply box on stories"),
                     L10n.t("Takes the Send message box off the bottom of other people's stories. The like and "
                             + "share buttons next to it stay where they are.")));
+            stories.add(toggle(context, Settings.HIDE_STORY_LIKE_BUTTON, L10n.t("Hide the Like button on stories"),
+                    L10n.t("Takes the heart off the bottom of other people's stories, so nothing gets liked by "
+                            + "mistake. No empty space is left behind.")));
+            stories.add(toggle(context, Settings.HIDE_STORY_COMMENT_BUTTON, L10n.t("Hide the Comment button on stories"),
+                    L10n.t("Takes the Comment button off the bottom of other people's stories that have one. "
+                            + "No empty space is left behind.")));
+            stories.add(toggle(context, Settings.HIDE_STORY_SHARE_BUTTON, L10n.t("Hide the Share button on stories"),
+                    L10n.t("Takes the paper plane off the bottom of other people's stories. No empty space is "
+                            + "left behind.")));
+        }
+        if (build.contains(PatchFamily.STORY_BUTTONS_ROOM)) {
+            stories.add(toggle(context, Settings.KEEP_STORY_BUTTONS_BELOW, L10n.t("Keep story buttons below the story"),
+                    L10n.t("With a large font or display size, the reply box and buttons at the bottom of a story "
+                            + "sit in the space under it instead of covering the story.")));
         }
         if (build.contains(PatchFamily.STORY_TIME)) {
             stories.add(toggle(context, Settings.SHOW_STORY_TIME, L10n.t("Show a story's exact time"),

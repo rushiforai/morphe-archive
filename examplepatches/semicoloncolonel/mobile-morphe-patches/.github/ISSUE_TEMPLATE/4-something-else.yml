@@ -37,12 +37,27 @@ body:
       placeholder: "Disney+ 26.20.0+rc2-2026.10.28"
     validations:
       required: true
+  - type: dropdown
+    id: apk-source
+    attributes:
+      label: Where the APK came from
+      description: Most version and build problems come from the file. The [FAQ](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md) explains how to get the right one.
+      options:
+        - APKMirror
+        - APKPure
+        - Aurora Store
+        - Installed copy from the Play Store
+        - Morphe Manager's download link
+        - Other (name it in the description)
+        - Does not apply
+    validations:
+      required: true
   - type: input
     id: device
     attributes:
       label: Device
-      description: The phone, tablet, or TV device model. If it is not about a device, write None.
-      placeholder: "Galaxy S25 Ultra, NVIDIA Shield, Google TV Streamer"
+      description: The maker and model of the phone, tablet, or TV device. If it is not about a device, write None.
+      placeholder: "Samsung Galaxy S25 Ultra, NVIDIA Shield TV Pro, Google TV Streamer"
     validations:
       required: true
   - type: dropdown
@@ -51,6 +66,7 @@ body:
       label: Android version
       description: On a phone, see Settings > About phone. On a TV, see Settings > System > About.
       options:
+        - "Android 17"
         - "Android 16"
         - "Android 15"
         - "Android 14"

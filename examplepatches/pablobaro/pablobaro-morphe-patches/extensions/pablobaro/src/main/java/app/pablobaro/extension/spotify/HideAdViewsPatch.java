@@ -1,5 +1,6 @@
 package app.pablobaro.extension.spotify;
 
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -9,18 +10,23 @@ import app.pablobaro.extension.shared.Logger;
 import app.pablobaro.extension.shared.Reflection;
 
 /**
- * Hides ad banners and ad players.
+ * Hides ad banners, ad labels, ad overlay controls, ad players and the audio and embedded ad layouts.
  */
 @SuppressWarnings("unused")
 public final class HideAdViewsPatch {
     /**
-     * Known ad view classes.
+     * Known ad view classes. Must match the list of the patch.
      */
     public static final String[] AD_VIEW_CLASSES = {
+            // Older Spotify versions.
             "com.spotify.adsinternal.playback.video.CountdownBarView",
             "com.spotify.adsinternal.display.DisplayAdView",
             "com.spotify.adsinternal.ads.AudioAdView",
             "com.spotify.nowplaying.ads.AdPlayerView",
+            // Newer Spotify versions.
+            "com.spotify.adsdisplay.uiusecases.adtag.AdTagView",
+            "com.spotify.adsdisplay.uiusecases.videocontrolsoverlay.VideoControlsOverlayView",
+            "com.spotify.nowplayingmodes.adsmode.ui.overlay.AdsOverlayControlsLayout",
     };
 
     private static final String[] AD_CLASS_NAME_MARKERS = {
@@ -71,6 +77,30 @@ public final class HideAdViewsPatch {
         // Constructors can delegate to each other, so this may run more than once.
         view.removeOnAttachStateChangeListener(HIDE_ON_ATTACH);
         view.addOnAttachStateChangeListener(HIDE_ON_ATTACH);
+    }
+
+    /**
+     * Injection point: replaces {@link LayoutInflater#inflate(int, ViewGroup, boolean)} calls that inflate ad layouts.
+     *
+     * @return The result of the inflation, with the inflated ad layout hidden.
+     */
+    public static View inflateAdLayout(LayoutInflater inflater, int resource, ViewGroup root, boolean attachToRoot) {
+        View view = inflater.inflate(resource, root, attachToRoot);
+        try {
+            int index = InflatedAdLayout.indexOfInflatedView(
+                    attachToRoot,
+                    root != null && view == root,
+                    root == null ? 0 : root.getChildCount()
+            );
+            if (index == InflatedAdLayout.RETURNED_VIEW) {
+                onAdViewCreated(view);
+            } else if (index != InflatedAdLayout.NONE) {
+                onAdViewCreated(root.getChildAt(index));
+            }
+        } catch (Throwable ex) {
+            Logger.error("inflateAdLayout failure", ex);
+        }
+        return view;
     }
 
     private static boolean containsAny(String value, String[] markers) {

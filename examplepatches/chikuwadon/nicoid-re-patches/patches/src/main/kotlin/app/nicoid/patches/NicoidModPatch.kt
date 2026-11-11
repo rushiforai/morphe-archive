@@ -11,11 +11,13 @@ import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableField.Companion.toMutable
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -481,8 +483,50 @@ val nicoidModPatch = bytecodePatch(
             invoke-static/range {v$pageThis .. v$pageThis}, Le/e/a/LocalPlaylists;->loadOrFeed(Landroid/app/Activity;)V
             return-void
         """.trimIndent())
+        val videoTap = mutableClassDefBy("Lcom/devbrackets/android/exomedia/ui/widget/VideoView\$TouchListener;")
+        val nativeSingle = videoTap.methods.single {
+            it.name == "onSingleTapConfirmed" && it.parameterTypes == listOf("Landroid/view/MotionEvent;")
+        }
+        check(checkNotNull(nativeSingle.implementation).registerCount > 2) {
+            "The native single tap callback has no scratch register"
+        }
+        // The Activity and popup routes each own single-tap controls.
+        nativeSingle.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+        // The nicoid overlays toggle on DOWN before ExoMedia sees any input.
+        // Skip just that block; keep the rest of the native drag/seek listener.
+        for ((listener, fragment, visible, command) in listOf(
+            listOf("Le/e/a/d1;", "Lcom/sauzask/nicoid/NicoidVideoFragment;", "Q1", "j"),
+            listOf("Le/e/a/t2;", "Le/e/a/a3;", "T1", "i")
+        )) {
+            val overlayTouch = mutableClassDefBy(listener).methods.single {
+                it.name == "onTouch" && it.parameterTypes == listOf("Landroid/view/View;", "Landroid/view/MotionEvent;")
+            }
+            val code = checkNotNull(overlayTouch.implementation)
+            val instructions = code.instructions.toList()
+            val fallback = instructions.indices.single { index ->
+                val ref = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == fragment && ref.name == "c0" && ref.parameterTypes.isEmpty()
+            }
+            val branch = (fallback - 12 until fallback).single { index ->
+                val instruction = instructions[index]
+                val ref = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+                instruction.opcode == Opcode.IGET_BOOLEAN && ref?.definingClass == fragment && ref.name == visible
+            }
+            check(instructions.subList(branch, fallback).any {
+                val ref = (it as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == fragment && ref.name == command && ref.parameterTypes == listOf("I")
+            }) { "Missing nicoid tap toggle: $listener" }
+            val owner = (instructions[branch] as TwoRegisterInstruction).registerB
+            val event = code.registerCount - 1
+            check(event < 16) { "Unexpected nicoid overlay event register: $listener" }
+            overlayTouch.addInstructionsWithLabels(branch, """
+                invoke-static {v$owner, v$event}, Le/e/a/TapControls141;->nativeDown(Ljava/lang/Object;Landroid/view/MotionEvent;)V
+                goto :nicoid_after_stock_toggle
+            """.trimIndent(), ExternalLabel("nicoid_after_stock_toggle", instructions[fallback + 1]))
+        }
         val touch = mutableClassDefBy("Lcom/sauzask/nicoid/NicoidVideoActivity;").methods.single { it.name == "dispatchTouchEvent" }
         touch.addInstructions(0, """
+            invoke-static {v1, v2}, Le/e/a/TapControls141;->activityInput(Landroid/app/Activity;Landroid/view/MotionEvent;)V
             invoke-static {v1, v2}, Le/e/a/Review181;->seekTouch(Landroid/app/Activity;Landroid/view/MotionEvent;)Z
             move-result v0
             if-eqz v0, :review_normal_touch

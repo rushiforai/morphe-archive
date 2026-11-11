@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.recgov.shared.Constants
 import semicoloncolonel.mobilestream.patches.shared.misc.forEachMatchingMethod
 import semicoloncolonel.mobilestream.patches.shared.misc.returnEarly
+import semicoloncolonel.mobilestream.patches.shared.misc.blockPlayReviewSheetPatch
 
 // Recreation.gov 2.2.67 asks for a rating after an order is confirmed, at
 // most every 15 days. The check that shows the prompt now returns at once.
@@ -15,6 +16,9 @@ val hideRatingPromptPatch = bytecodePatch(
     description = "Stops the \"rate this app\" prompt after checkout.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+
+    // Also stops Google Play's review sheet, where the app calls it by name.
+    dependsOn(blockPlayReviewSheetPatch)
 
     execute {
         val count = forEachMatchingMethod(

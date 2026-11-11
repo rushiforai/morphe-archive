@@ -56,17 +56,17 @@ function contains(what, haystack, needle) {
 // the property SupportedVersionsPolicyTest mirrors). SUPPORTED_APP_VERSION is also excluded from
 // parseTargets: it names a target, and counting it twice would double-list it.
 const shipped = `
-const val SUPPORTED_APP_VERSION = "1.90.05"
+const val SUPPORTED_APP_VERSION = "1.91.10"
 val targets = listOf(
     //     AppTarget(
     //         version = "1.88.10",
     //         isExperimental = true,
     AppTarget(
-        version = "1.90.05",
+        version = "1.91.10",
         description = "Verified.",
     ),
     AppTarget(
-        version = "1.89.09",
+        version = "1.90.05",
         description = "Verified.",
     ),
 )`;
@@ -74,14 +74,14 @@ equal('shipped: two targets', parseTargets(shipped).length, 2);
 equal(
   'shipped: versions in file order',
   parseTargets(shipped).map((t) => t.version).join(','),
-  '1.90.05,1.89.09'
+  '1.91.10,1.90.05'
 );
 check(
   'shipped: none experimental (commented-out example excluded too)',
   parseTargets(shipped).every((t) => !t.experimental)
 );
-equal('shipped: flat list', parseSupportedVersions(shipped).join(','), '1.90.05,1.89.09');
-equal('shipped: constant', parseSupportedAppVersion(shipped), '1.90.05');
+equal('shipped: flat list', parseSupportedVersions(shipped).join(','), '1.91.10,1.90.05');
+equal('shipped: constant', parseSupportedAppVersion(shipped), '1.91.10');
 
 // An experimental target is parsed as one: it is attempted, not verified, and the rendered
 // section has to keep that distinction. Detection is the ASSIGNMENT (`isExperimental = true`),
@@ -128,7 +128,7 @@ equal(
 // ---- rendering the section ---------------------------------------------------
 
 const twoNormal = renderSupportedVersionsSection(parseTargets(shipped));
-contains('render: two normal targets', twoNormal, '**YouTube VR 1.90.05** and **1.89.09**');
+contains('render: two normal targets', twoNormal, '**YouTube VR 1.91.10** and **1.90.05**');
 check('render: no experimental line', !twoNormal.toLowerCase().includes('experimental'));
 contains('render: says other versions are skipped', twoNormal, 'skipped by the patcher');
 check('render: section heading', twoNormal.startsWith('### 📱 Supported app versions'));

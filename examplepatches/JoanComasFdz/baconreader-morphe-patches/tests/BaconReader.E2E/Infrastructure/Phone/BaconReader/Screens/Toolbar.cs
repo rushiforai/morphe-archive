@@ -68,12 +68,7 @@ public sealed class Toolbar(AndroidDriver driver)
             return;
         }
 
-        await OnScreen.DoAsync(driver, () => driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
-        {
-            ["elementId"] = ((OpenQA.Selenium.Appium.AppiumElement)driver.FindElement(Posts)).Id,
-            ["direction"] = "up",
-            ["percent"] = 0.2,
-        }));
+        await OnScreen.DoAsync(driver, () => OnScreen.ScrollGesture(driver, driver.FindElement(Posts), "up", 0.2));
         await Waiting.UntilShownAsync(driver, button, TimeSpan.FromSeconds(5), $"{what} in the toolbar");
     }
 

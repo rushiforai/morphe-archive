@@ -198,9 +198,9 @@ val agentISettingsPatch = bytecodePatch(
                 """
                     invoke-virtual { v${gate.booleanRegister} }, $BOOLEAN_UNBOX
                     move-result v${gate.booleanRegister}
-                    invoke-static { v${gate.booleanRegister} }, $SETTINGS_HOOK
+                    invoke-static/range { v${gate.booleanRegister} .. v${gate.booleanRegister} }, $SETTINGS_HOOK
                     move-result v${gate.booleanRegister}
-                    invoke-static { v${gate.booleanRegister} }, $BOOLEAN_BOX
+                    invoke-static/range { v${gate.booleanRegister} .. v${gate.booleanRegister} }, $BOOLEAN_BOX
                     move-result-object v${gate.booleanRegister}
                 """.trimIndent(),
             )

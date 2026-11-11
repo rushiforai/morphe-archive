@@ -1,3 +1,39 @@
+## [1.7.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.6.1...v1.7.0) (2026-11-10)
+
+### ✨ New Features
+
+* guard NoBrokerHood notification click browser routes ([17d7737](https://github.com/srinath1848/nobrokerhood-patches/commit/17d7737b24ac83160760add5a3e9d00520bc1d98))
+
+## [1.6.1](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.6.0...v1.6.1) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* suppress post-approval multimedia cards ([a9912ea](https://github.com/srinath1848/nobrokerhood-patches/commit/a9912ea6136f0c7bfd5d7fe0eb40befabb67b7bb))
+
+## [1.6.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.5.0...v1.6.0) (2026-11-10)
+
+### ✨ New Features
+
+* test selective island-banner suppression ([513e9b9](https://github.com/srinath1848/nobrokerhood-patches/commit/513e9b9f6f8c159682dd9d1c39ea6234ef790334))
+
+## [1.5.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.4.0...v1.5.0) (2026-11-10)
+
+### ✨ New Features
+
+* test accurate NoBrokerHood banner renderers ([a9bcac2](https://github.com/srinath1848/nobrokerhood-patches/commit/a9bcac227d32c364f2a6de3cec5a8bdd60e5ab4e))
+
+## [1.4.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.3.0...v1.4.0) (2026-11-10)
+
+### ✨ New Features
+
+* test NoBrokerHood floating sidebar removal ([45a1277](https://github.com/srinath1848/nobrokerhood-patches/commit/45a12771ae0045dbb630c82eaca926c2a4c4c032))
+
+## [1.3.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.2.0...v1.3.0) (2026-11-10)
+
+### ✨ New Features
+
+* add NoBrokerHood targeted nag and redirect patches ([1e39258](https://github.com/srinath1848/nobrokerhood-patches/commit/1e3925815d238530f02da25fa0e793ec829b5c5f))
+
 ## [1.2.0](https://github.com/srinath1848/nobrokerhood-patches/compare/v1.1.0...v1.2.0) (2026-11-10)
 
 ### ✨ New Features

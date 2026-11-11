@@ -201,6 +201,37 @@ deshalb die gewählte Variante.
 Wer den Injektionspunkt auf eine andere Methode verschiebt, muss das erneut prüfen: Sobald die
 Zielmethode mehr als 16 Register hat, ist `p0` außerhalb der 4-Bit-Reichweite.
 
+### Back-Taste → App beenden (Seam 2b, implementiert)
+
+Die YouTube-TV-App (Cobalt-Shell) hat keinen nativen Back-Button-Handler, der auf der
+Startseite die App schließt — die Zurück-Taste wird vom Navigation-Stack der Web-App
+verbraucht.
+
+Der Seam nutzt dieselbe `evaluateJavaScript`-Brücke wie der Adblock-Patch: JavaScript wird
+in die Seite injiziert, aber diesmal mit einem {@code JavaScriptCallback} als drittem
+Argument. Der Callback ist ein Java-Proxy, der {@code handleJavaScriptResult(String)}
+implementiert. Im injizierten Skript ist er als {@code arguments[3]} verfügbar.
+
+Ablauf:
+
+1. Das JS registriert einen {@code popstate}-Event-Listener.
+2. Wenn die URL die Home-Path ist ({@code /tv}) und {@code history.length <= 1}, ruft
+   es {@code arguments[3]('BACK_TO_EXIT_HOME')} auf.
+3. Der Java-Proxy empfängt den String und ruft {@code activity.finish()} auf.
+
+Umsetzung: `InjectBackToExitPatch` injiziert `BackToExitInjector.schedule()` am Anfang von
+`CobaltActivity.onCreate`. `BackToExitInjector.schedule()` pollt auf WebContents (wie der
+Adblock-Injektor) und injiziert dann das Back-Exit-Skript mit dem Callback-Proxy.
+
+**Kanalgeschwindigkeits-Regeln (ergänzend zu Seam 2):** `ChannelSpeedPayload` definiert
+JavaScript, das die Kanal-URL ausliest ({@code /channel/<id>}) und bei einem Match
+{@code setClientSettingEndpoint('videoSpeed', 1.0)} aufruft. Geregelt sind Sky Sport,
+DAZN, RTL Sport, NBA und NFL. Platzhalter-IDs müssen nach dem ersten Lauf ersetzt werden:
+
+```
+adb logcat -s ysamjo-tv-adblock | grep channel
+```
+
 ## Seam 3 — das Netzwerk (nicht umgesetzt)
 
 Cobalt hat einen eigenen Net-Stack (`cobalt.org.chromium.net.*`). Ein Filter auf Netzwerkebene

@@ -20,6 +20,7 @@ import dev.utaa.linimal.patches.status.patchStatusCollector
 import dev.utaa.linimal.patches.status.recordFeatureStatus
 import dev.utaa.linimal.patches.status.recordUnappliedFeatureStatus
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val DIAGNOSTIC_HOOKS = "Ldev/utaa/linimal/extension/features/googleauth/GoogleAuthRoutingHooks;"
 private const val TOKEN_ERROR_HOOK = "$DIAGNOSTIC_HOOKS->onTokenError(Ljava/lang/String;)V"
@@ -80,7 +81,11 @@ val googleAuthFailureDiagnosticsPatch = bytecodePatch(
         val bindInstructions = bind.implementation?.instructions?.toList().orEmpty()
         val componentKept = bindSite != null &&
             !writesRegister(bindInstructions.take(bindSite.index), componentRegister, ignoreResultOf = ROUTING_HOOK_NAME)
-        if (errorSite == null || bindSite == null || !componentKept) {
+        if (
+            errorSite == null || bindSite == null || !componentKept ||
+            !isSafeInjectionIndex(response.implementation, errorSite.index) ||
+            !isSafeInjectionIndex(bind.implementation, bindSite.index)
+        ) {
             recordUnsafeFeatureStatus(ids, 2, 2, "GoogleAuthDiagnosticsShapeMismatch")
             return@execute
         }

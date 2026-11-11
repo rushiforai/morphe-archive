@@ -25,6 +25,20 @@ public final class ExternalBrowserPolicyTest {
     }
 
     @Test
+    public void onlyLinkTapsInsideChatAreEligibleActions() {
+        assertTrue(ExternalBrowserPolicy.isEligibleChatLinkAction("CLICK"));
+        assertTrue(ExternalBrowserPolicy.isEligibleChatLinkAction("RICH_MSG"));
+        assertTrue(ExternalBrowserPolicy.isEligibleChatLinkAction("RICH_MENU"));
+        assertTrue(ExternalBrowserPolicy.isEligibleChatLinkAction("TEMPLATE_MSG"));
+        // 操作の種類を持たない経路や、動画再生などの別の操作は元の処理へ残します。
+        assertFalse(ExternalBrowserPolicy.isEligibleChatLinkAction("UNKNOWN"));
+        assertFalse(ExternalBrowserPolicy.isEligibleChatLinkAction("PLAY"));
+        assertFalse(ExternalBrowserPolicy.isEligibleChatLinkAction("DIRECT"));
+        assertFalse(ExternalBrowserPolicy.isEligibleChatLinkAction(null));
+        assertFalse(ExternalBrowserPolicy.isEligibleChatLinkAction("click"));
+    }
+
+    @Test
     public void knownLineWebHostsStayInOriginalNavigation() {
         assertTrue(ExternalBrowserPolicy.isKnownLineWebHost("line.me"));
         assertTrue(ExternalBrowserPolicy.isKnownLineWebHost("ACCESS.LINE.ME"));

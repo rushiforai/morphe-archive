@@ -29,8 +29,8 @@ public sealed class SelectTextTests : BaseE2E
             | 500 g | 300 ml |
           And the post "Bread recipe" has a comment ">!the crust burns!<"
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           And I tap the menu button of the post "Bread recipe"
           Then the menu offers "Select text" right after "Copy"
@@ -95,8 +95,8 @@ public sealed class SelectTextTests : BaseE2E
             ["500 g", "300 ml"],
         ]);
         Reddit.ThePost("Bread recipe").HasAComment(">!the crust burns!<");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));

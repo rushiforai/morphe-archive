@@ -172,6 +172,8 @@ import app.hushgram.extension.instagram.download.SaveControl;
 import app.hushgram.extension.instagram.download.SaveLeftovers;
 import app.hushgram.extension.instagram.download.SaveFolder;
 import app.hushgram.extension.instagram.download.SaveTree;
+import app.hushgram.extension.instagram.download.ProfileHistory;
+import app.hushgram.extension.instagram.download.SavedProfiles;
 import app.hushgram.extension.instagram.download.ViewingHistory;
 import app.hushgram.extension.shared.L10n;
 import app.hushgram.extension.shared.Logger;
@@ -222,6 +224,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     static final String FOLLOWER_HISTORY_ROW = "hushgram_follower_history_row";
     static final String VIEWING_HISTORY_ROW = "hushgram_viewing_history_row";
     static final String CLEAR_VIEWING_HISTORY = "hushgram_clear_viewing_history";
+    static final String PROFILE_HISTORY_ROW = "hushgram_profile_history_row";
+    static final String CLEAR_PROFILE_HISTORY = "hushgram_clear_profile_history";
+    static final String SAVED_PROFILES_ROW = "hushgram_saved_profiles_row";
     static final String CLEAR_UNFOLLOWERS = "hushgram_clear_unfollowers";
     /** The row that lists the chats locked one at a time. */
     static final String LOCKED_CHATS_ROW = "hushgram_locked_chats_row";
@@ -769,6 +774,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             && (Settings.SPEED_BUTTON_ON_REELS.key.equals(key) || Settings.SPEED_IN_REEL_MENU.key.equals(key));
                     belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.REEL_DECLUTTER)
                             && Settings.FULL_SCREEN_BUTTON_ON_REELS.key.equals(key);
+                    belongs |= (family == PatchFamily.REEL_DOWNLOAD || family == PatchFamily.REEL_TAP_AND_VOLUME)
+                            && (Settings.MUTE_BUTTON_ON_REELS.key.equals(key) || Settings.MUTE_BUTTON_IN_CLEAR_MODE.key.equals(key));
                     belongs |= family == PatchFamily.REEL_DOWNLOAD && (Settings.HIDE_SOUND_REELS.key.equals(key)
                             || HIDDEN_SOUNDS_ROW.equals(key));
                     belongs |= family == PatchFamily.ACCENT_COLOR && (Settings.ACCENT_HUE.key.equals(key)
@@ -816,6 +823,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     belongs |= family == PatchFamily.VIDEO_DOWNLOAD && CLEAR_DOWNLOAD_HISTORY.equals(key);
                     belongs |= family == PatchFamily.VIDEO_DOWNLOAD && (Settings.VIEWING_HISTORY.key.equals(key)
                             || VIEWING_HISTORY_ROW.equals(key) || CLEAR_VIEWING_HISTORY.equals(key));
+                    belongs |= family == PatchFamily.PROFILE_PICTURE
+                            && (PROFILE_HISTORY_ROW.equals(key) || CLEAR_PROFILE_HISTORY.equals(key)
+                            || SAVED_PROFILES_ROW.equals(key));
                     belongs |= family == PatchFamily.RESTORE_TRUST && L10n.t("Instagram accepts this build").equals(row.getTitle());
                     belongs |= family == PatchFamily.REMOVE_AD_ID && L10n.t("Advertising ID removed").equals(row.getTitle());
                     belongs |= family == PatchFamily.PURE_BLACK && L10n.t("Pure black dark mode").equals(row.getTitle());
@@ -1767,6 +1777,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
 
     /** Whether the viewing history page may take a row off its list now. The settings lock holds it, as it holds Clear. */
     static boolean viewingHistoryChangeAllowed(Preference row) {
+        return allowMutation(row, false);
+    }
+
+    /** Whether the Saved profiles page may take an account off its list now. The settings lock holds it too. */
+    static boolean savedProfilesChangeAllowed(Preference row) {
         return allowMutation(row, false);
     }
 
@@ -4489,6 +4504,135 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             });
         })) {
             Utils.showToastLong(L10n.t("Couldn't clear the viewing history. Try again."));
+        }
+    }
+
+    /** How many of the newest profile changes the settings row shows. Its page has them all. */
+    static final int PROFILE_HISTORY_SHOWN = 3;
+
+    /**
+     * The row with the newest usernames, bios and pictures the profile history saw replaced. Read
+     * off the main thread, so it says so until it's read. Tapping it opens them all on a page.
+     */
+    static Preference profileHistoryRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(PROFILE_HISTORY_ROW);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Profile changes"));
+        row.setSummary(L10n.t("Reading the list…"));
+        row.setOnPreferenceClickListener(tapped -> {
+            ProfileHistoryPage.open(tapped.getContext(), tapped);
+            return true;
+        });
+        Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+        if (!Utils.runOnBackgroundThread(() -> {
+            String summary = profileHistorySummary(ProfileHistory.past(application), System.currentTimeMillis());
+            Utils.runOnMainThread(() -> row.setSummary(summary));
+        })) {
+            row.setSummary(profileHistorySummary(ProfileHistory.past(application), System.currentTimeMillis()));
+        }
+        return mark(row, SettingsIcons.UPDATES);
+    }
+
+    /** What the profile history row says for [changes], newest first, at [now]. */
+    static String profileHistorySummary(List<ProfileHistory.Past> changes, long now) {
+        if (changes.isEmpty()) {
+            return L10n.t("Nothing here yet. With Keep profile history on, the old usernames, bios and pictures "
+                    + "of profiles you open show up here.");
+        }
+        StringBuilder text = new StringBuilder();
+        int shown = 0;
+        for (ProfileHistory.Past change : changes) {
+            if (shown == PROFILE_HISTORY_SHOWN) break;
+            text.append('@').append(change.username).append(": ").append(profileChangeLabel(change, now)).append('\n');
+            shown++;
+        }
+        text.append(L10n.f("Tap to see all %1$d, or search them.", changes.size()));
+        return text.toString().trim();
+    }
+
+    /** What [change] was and when it was replaced, without whose it was. */
+    static String profileChangeLabel(ProfileHistory.Past change, long now) {
+        String ago = android.text.format.DateUtils.getRelativeTimeSpanString(change.until, now,
+                android.text.format.DateUtils.MINUTE_IN_MILLIS).toString();
+        switch (change.entry.field) {
+            case USERNAME: return L10n.f("Was @%1$s, %2$s", change.entry.value, ago);
+            case PICTURE: return L10n.f("Old profile picture, %s", ago);
+            default: return L10n.f("Old bio, %s", ago);
+        }
+    }
+
+    /** How many of the newest saved accounts the settings row names. Its page has them all. */
+    static final int SAVED_PROFILES_SHOWN = 3;
+
+    /**
+     * The row naming the newest saved accounts. Read off the main thread, so it says so until it's
+     * read. Tapping it opens them all on a page.
+     */
+    static Preference savedProfilesRow(Context context) {
+        Row row = new Row(context);
+        row.setKey(SAVED_PROFILES_ROW);
+        row.setPersistent(false);
+        row.setTitle(L10n.t("Your saved profiles"));
+        row.setSummary(L10n.t("Reading the list…"));
+        row.setOnPreferenceClickListener(tapped -> {
+            SavedProfilesPage.open(tapped.getContext(), tapped);
+            return true;
+        });
+        Context application = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+        if (!Utils.runOnBackgroundThread(() -> {
+            String summary = savedProfilesSummary(SavedProfiles.all(application));
+            Utils.runOnMainThread(() -> row.setSummary(summary));
+        })) {
+            row.setSummary(savedProfilesSummary(SavedProfiles.all(application)));
+        }
+        return mark(row, SettingsIcons.PERSON);
+    }
+
+    /** What the Saved profiles row says for [profiles], newest first. */
+    static String savedProfilesSummary(List<SavedProfiles.Profile> profiles) {
+        if (profiles.isEmpty()) {
+            return L10n.t("Nothing saved yet. With Saved profiles on, tap Save profile in the menu on someone's "
+                    + "profile and it shows up here.");
+        }
+        StringBuilder text = new StringBuilder();
+        int shown = 0;
+        for (SavedProfiles.Profile profile : profiles) {
+            if (shown == SAVED_PROFILES_SHOWN) break;
+            text.append('@').append(profile.username).append('\n');
+            shown++;
+        }
+        text.append(L10n.f("Tap to see all %1$d, or search them.", profiles.size()));
+        return text.toString().trim();
+    }
+
+    /** Forgets the profile history off the main thread, says so, and empties [list]. */
+    static void clearProfileHistory(Preference row, Preference list) {
+        clearProfileHistory(row, list, null);
+    }
+
+    /** {@link #clearProfileHistory(Preference, Preference)}, running [after] once it's gone. */
+    static void clearProfileHistory(Preference row, Preference list, @Nullable Runnable after) {
+        if (!allowMutation(row, true)) return;
+        Context context = row.getContext();
+        if (!Utils.runOnBackgroundThread(() -> {
+            if (!asyncChangesAllowed()) {
+                Utils.showToastLong(heldMessage());
+                return;
+            }
+            boolean cleared = ProfileHistory.clear(context);
+            Utils.runOnMainThread(() -> {
+                ProfileHistoryPage.forgetPictures();
+                if (cleared) {
+                    Utils.showToastShort(L10n.t("Profile history cleared."));
+                    list.setSummary(profileHistorySummary(java.util.Collections.emptyList(), System.currentTimeMillis()));
+                    if (after != null) after.run();
+                } else {
+                    Utils.showToastLong(L10n.t("Couldn't clear the profile history. Try again."));
+                }
+            });
+        })) {
+            Utils.showToastLong(L10n.t("Couldn't clear the profile history. Try again."));
         }
     }
 

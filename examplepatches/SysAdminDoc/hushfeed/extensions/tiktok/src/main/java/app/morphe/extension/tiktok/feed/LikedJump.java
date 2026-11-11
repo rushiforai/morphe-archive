@@ -290,7 +290,8 @@ public final class LikedJump {
                 int paddingX = SettingsUi.dp(context, 10);
                 int paddingY = SettingsUi.dp(context, 5);
                 chip.setPadding(paddingX, paddingY, paddingX, paddingY);
-                chip.setBackground(SettingsUi.overlayChip(context, SettingsUi.RADIUS_OVERLAY));
+                // Words over thumbnails take the text scrim, the same as the grid's Top/Back/End.
+                chip.setBackground(SettingsUi.overlayBanner(context));
                 chip.setElevation(SettingsUi.dp(context, 2));
                 FrameLayout.LayoutParams layout = new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -323,7 +324,7 @@ public final class LikedJump {
         return null;
     }
 
-    private static Activity shownActivity(View anchor) {
+    static Activity shownActivity(View anchor) {
         Activity activity = activityOf(anchor.getContext());
         if (activity == null) activity = Utils.getVisibleActivity();
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return null;

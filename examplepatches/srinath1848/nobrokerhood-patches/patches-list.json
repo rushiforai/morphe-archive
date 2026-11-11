@@ -1,10 +1,64 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.2.0",
+  "version": "1.7.0",
   "patches": [
+    {
+      "name": "NoBrokerHood: Default browser, block known ad hosts (experimental)",
+      "description": "Keep default-browser support but block known Multipl and Innovid ad-tracking hosts.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.app.nobrokerhood",
+          "name": "NoBrokerHood",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
     {
       "name": "NoBrokerHood: Hide app-bar banners (experimental)",
       "description": "Empty app-bar banner entries; may leave a layout placeholder.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.app.nobrokerhood",
+          "name": "NoBrokerHood",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "NoBrokerHood: Hide app-bar island row (test)",
+      "description": "Skip the AppBarIsland.kt horizontal row. May hide non-ad items.",
       "default": false,
       "category": null,
       "compatiblePackages": [
@@ -138,8 +192,62 @@
       "options": []
     },
     {
+      "name": "NoBrokerHood: Hide floating promotional sidebar",
+      "description": "Hide the SideAd.kt Compose renderer attached to the RIGHT_AD home section.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.app.nobrokerhood",
+          "name": "NoBrokerHood",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "NoBrokerHood: Hide home-discover carousel (experimental)",
       "description": "Hide cards in the homepage discover carousel; may hide non-ad items too.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.app.nobrokerhood",
+          "name": "NoBrokerHood",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "NoBrokerHood: Hide homepage billboard",
+      "description": "Hide the homepage top billboard by clearing TopAdState during construction.",
       "default": false,
       "category": null,
       "compatiblePackages": [
@@ -192,8 +300,62 @@
       "options": []
     },
     {
+      "name": "NoBrokerHood: Hide island promotional strip (experimental)",
+      "description": "Hide homepage items marked ISLAND_BANNER; test against the blue Domino's strip.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.app.nobrokerhood",
+          "name": "NoBrokerHood",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "NoBrokerHood: Hide post-approval ad card (experimental)",
       "description": "Hide the sponsored card shown after entry approval or pre-approval (3.6.11).",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.app.nobrokerhood",
+          "name": "NoBrokerHood",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "NoBrokerHood: Hide post-approval multimedia ads",
+      "description": "Suppress image, GIF, video and Lottie ad cards after approval, without blocking the approval status.",
       "default": false,
       "category": null,
       "compatiblePackages": [
@@ -246,6 +408,33 @@
       "options": []
     },
     {
+      "name": "NoBrokerHood: Hide promotional side tab (experimental)",
+      "description": "Suppress the draggable multimedia promotion card; verify on-device.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.app.nobrokerhood",
+          "name": "NoBrokerHood",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "NoBrokerHood: Hide visitor-flow ads",
       "description": "Hide the visitor-flow promotional carousel (3.6.11).",
       "default": true,
@@ -273,8 +462,35 @@
       "options": []
     },
     {
-      "name": "NoBrokerHood: Use Android default browser (experimental)",
-      "description": "Replace Chrome-only link opening with the system-selected browser; test links and notification launches.",
+      "name": "NoBrokerHood: Stop full-screen permission nag",
+      "description": "Stop the home-screen full-screen alert reminder without changing permissions.",
+      "default": false,
+      "category": null,
+      "compatiblePackages": [
+        {
+          "packageName": "com.app.nobrokerhood",
+          "name": "NoBrokerHood",
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "formFactor": "MOBILE",
+          "targets": [
+            {
+              "version": "3.6.11",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "NoBrokerHood: Stop promotional browser launches from notifications",
+      "description": "Prevent notification-triggered browser ad routes; retain security alerts and in-app event metadata (experimental).",
       "default": false,
       "category": null,
       "compatiblePackages": [

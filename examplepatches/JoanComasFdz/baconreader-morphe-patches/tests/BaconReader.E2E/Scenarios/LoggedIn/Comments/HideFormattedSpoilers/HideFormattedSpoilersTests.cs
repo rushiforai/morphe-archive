@@ -27,8 +27,8 @@ public sealed class HideFormattedSpoilersTests : BaseE2E
           And the post "Spoilers" has a comment that is a spoiler "the chef" linking to an image
           And the post "Spoilers" has a comment ">!`butler()`!<"
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap the post "Spoilers"
           # Not on the screen: a hidden spoiler is a box painted over its text, which reads as "spoiler" to accessibility.
           # BaconReader hides a plain spoiler itself; the patch must leave it hidden.
@@ -45,7 +45,7 @@ public sealed class HideFormattedSpoilersTests : BaseE2E
           Then the comment "the chef" shows its spoiler
           When I tap the comment "the chef"
           Then BaconReader's photo viewer shows
-          # Not on the screen: the fake Reddit records what BaconReader asked for.
+          # On the setup page: the fake Reddit records what BaconReader asked for.
           And Reddit served the image "the chef" links to
         """)]
     public async Task HideFormattedSpoilersHidesSpoilersWithFormattingALinkOrCodeUntilTapped(Screen screen)
@@ -56,8 +56,8 @@ public sealed class HideFormattedSpoilersTests : BaseE2E
         Reddit.ThePost("Spoilers").HasAComment(">!the **gardener** did it!<");
         Reddit.ThePost("Spoilers").HasACommentThatIsASpoilerLinkingToAnImage("the chef");
         Reddit.ThePost("Spoilers").HasAComment(">!`butler()`!<");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Posts.ClickPostAsync("Spoilers");
@@ -106,7 +106,7 @@ public sealed class HideFormattedSpoilersTests : BaseE2E
 
         // Then
         var viewer = await Phone.BaconReader.PhotoViewer.ReadAsync();
-        // Not on the screen: the fake Reddit records what BaconReader asked for.
+        // On the setup page: the fake Reddit records what BaconReader asked for.
         var served = Reddit.ReadMediaServed();
         Asserting.That(viewer).IsShown();
         Asserting.That(served).ServedTheImageOf("the chef");

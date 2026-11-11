@@ -41,6 +41,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
 import org.robolectric.shadows.ShadowConnectivityManager;
 import org.robolectric.shadows.ShadowNetwork;
 import org.robolectric.shadows.ShadowNetworkCapabilities;
@@ -67,6 +69,7 @@ public class DataSaverDownloadsTest {
         Settings.DATA_SAVER_DOWNLOADS.resetToDefault();
         DataSaverDownloads.reset();
         HookStatus.clear();
+        RefusingConnectivity.refusals = 0;
     }
 
     private static DataSaverDownloads.Status now() {
@@ -248,6 +251,60 @@ public class DataSaverDownloadsTest {
         assertFalse(DataSaverDownloads.holdMask(controller));
         assertEquals(Collections.singletonList(controller), checked);
         assertFalse(HookStatus.missing(FamilyNames.FASTER_DOWNLOADS).isEmpty());
+    }
+
+    /** Android's ConnectivityManager, refusing the next {@link #refusals} default-network callbacks. */
+    @Implements(ConnectivityManager.class)
+    public static class RefusingConnectivity extends ShadowConnectivityManager {
+        static int refusals;
+
+        @Implementation
+        @Override protected void registerDefaultNetworkCallback(ConnectivityManager.NetworkCallback callback) {
+            if (refusals > 0) {
+                refusals--;
+                // What Android throws for a 101st callback (TooManyRequestsException is hidden).
+                throw new RuntimeException("too many network callbacks");
+            }
+            super.registerDefaultNetworkCallback(callback);
+        }
+    }
+
+    @Test @Config(shadows = RefusingConnectivity.class)
+    public void aRefusedWatchIsReportedAndTriedOnceMoreOnly() {
+        Settings.DATA_SAVER_DOWNLOADS.save(true);
+        android(RESTRICT_BACKGROUND_STATUS_ENABLED, TYPE_MOBILE);
+        RefusingConnectivity.refusals = 2;
+        // Downloads still follow Data Saver, from Android's answer.
+        assertTrue(DataSaverDownloads.hold());
+        assertTrue(String.join("\n", HookStatus.report()).contains("'Data Saver watch' hook"));
+        assertFalse("the receiver stayed after the watch was refused", listensForDataSaver());
+        assertEquals(1, RefusingConnectivity.refusals);
+        // The next switch read tries once more, and is refused again.
+        assertTrue(DataSaverDownloads.hold());
+        assertEquals(0, RefusingConnectivity.refusals);
+        RefusingConnectivity.refusals = 1;
+        for (int read = 0; read < 5; read++) assertTrue(DataSaverDownloads.hold());
+        assertEquals("tried again after its one retry", 1, RefusingConnectivity.refusals);
+        assertTrue(connectivity().getNetworkCallbacks().isEmpty());
+        assertFalse(listensForDataSaver());
+    }
+
+    @Test @Config(shadows = RefusingConnectivity.class)
+    public void aWatchRefusedOnceListensFromTheNextRead() {
+        Settings.DATA_SAVER_DOWNLOADS.save(true);
+        android(RESTRICT_BACKGROUND_STATUS_ENABLED, TYPE_MOBILE);
+        RefusingConnectivity.refusals = 1;
+        assertTrue(DataSaverDownloads.holdMask(controller));
+        assertTrue(connectivity().getNetworkCallbacks().isEmpty());
+        assertTrue(DataSaverDownloads.holdMask(controller));
+        assertEquals(1, connectivity().getNetworkCallbacks().size());
+        assertTrue(listensForDataSaver());
+        checked.clear();
+        connectivity().setRestrictBackgroundStatus(RESTRICT_BACKGROUND_STATUS_DISABLED);
+        RuntimeEnvironment.getApplication().sendBroadcast(new Intent(ConnectivityManager.ACTION_RESTRICT_BACKGROUND_CHANGED));
+        shadowOf(Looper.getMainLooper()).idle();
+        // One receiver, so Telegram's check runs once.
+        assertEquals(Collections.singletonList(controller), checked);
     }
 
     @Test public void theUnpatchedCheckStubDoesNothing() {

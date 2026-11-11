@@ -227,7 +227,7 @@ public final class FeatureCatalog {
                     "トーク一覧の長押しで開くプレビューをスクロール可能にします。プレビュー自体の提供や Premium の契約状態は変わりません。"),
             new Entry(LinimalFeature.EXTERNAL_BROWSER, SettingsPage.GENERAL,
                     "リンクを外部ブラウザで開く",
-                    "通常の http/https のみ外部ブラウザへ渡します。ログインや決済は元のまま開きます。"),
+                    "トークの本文、リッチメッセージ、リッチメニュー、カードの http/https リンクを外部ブラウザへ渡します。LINE のログインや決済は元のまま開きます。"),
             new Entry(LinimalFeature.PUSH_NOTIFICATIONS, SettingsPage.GENERAL,
                     "アプリを閉じていても通知を受け取る",
                     "通知の登録時に Google へ送る署名情報を公式 LINE のものに置き換えます。"

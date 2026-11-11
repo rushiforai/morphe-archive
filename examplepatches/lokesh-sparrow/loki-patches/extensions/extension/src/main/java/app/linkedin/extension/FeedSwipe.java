@@ -145,8 +145,11 @@ public final class FeedSwipe {
         return true;
     }
 
+    /**
+     * Any My Network page: the main one, and the Catch up page LinkedIn reopens as "CatchUpAll" after Search.
+     */
     private static boolean onMyNetwork() {
-        return SduiMediaDownload.resumedScreen().endsWith(".MyNetwork");
+        return SduiMediaDownload.resumedScreen().contains(".mynetwork.");
     }
 
     /**
@@ -167,6 +170,9 @@ public final class FeedSwipe {
         Rect networkOther = null;
         boolean networkSelected = false;
         boolean networkTabsShown = false;
+        // Everything tappable on screen: the My Network tab that is not open has no label LinkedIn exposes to us,
+        // but its tappable area is there, next to the open one.
+        List<Rect> tappable = new ArrayList<>();
         for (View composeView : composeViews) {
             AccessibilityNodeProvider provider = CopyTextPatch.provider(composeView);
             int[] ids = CopyTextPatch.semanticsNodeIds(composeView);
@@ -174,6 +180,11 @@ public final class FeedSwipe {
             for (int id : ids) {
                 AccessibilityNodeInfo info = provider.createAccessibilityNodeInfo(id);
                 if (info == null) continue;
+                if (info.isClickable() && info.isVisibleToUser()) {
+                    Rect area = new Rect();
+                    info.getBoundsInScreen(area);
+                    if (!area.isEmpty()) tappable.add(area);
+                }
                 // A tab can still be reachable while the app marks it invisible to accessibility: match it anyway.
                 if (info.isVisibleToUser() && (scrollsSideways(info) || PAGES.matcher(label(info)).find())) {
                     info.getBoundsInScreen(bounds);
@@ -208,6 +219,7 @@ public final class FeedSwipe {
             target = networkTarget;
             // The selected flag of the My Network tabs is not reliable; tapping the open tab does no harm.
             targetSelected = false;
+            if (target == null) target = tabNextTo(networkOther, tab, tappable);
             if (target == null) target = movedWith(view.getRootView(), tab, networkOther);
             if (networkOther != null && !networkOther.isEmpty()) remember(1 - tab, networkOther);
         } else {
@@ -234,9 +246,9 @@ public final class FeedSwipe {
             if (target != null) Settings.debugLog("feed swipe: " + tabName(tab) + " remembered at " + target);
         }
         if ((target == null || target.isEmpty()) && onMyNetwork()) {
-            // On Catch up, LinkedIn hides Grow from accessibility and Grow was never seen: it sits right beside
-            // Catch up, so tap the same-sized spot next to it.
-            target = beside(view.getRootView(), tab, networkOther);
+            // Say what was there, so a report shows why the tab was not found. Nothing is guessed or tapped.
+            Settings.debugLog("feed swipe: " + tabName(tab) + " not found; open tab " + networkOther
+                    + ", tappable " + tappable.size());
         }
         if (target == null || target.isEmpty()) {
             Settings.debugLog("feed swipe: tabs not on screen (" + composeViews.size() + " views)");
@@ -324,28 +336,35 @@ public final class FeedSwipe {
 
     /** The tab's name for the log: the home feed and My Network have different pairs. */
     private static String tabName(int tab) {
-        if (SduiMediaDownload.resumedScreen().endsWith(".MyNetwork")) return tab == 0 ? "Grow" : "Catch up";
+        if (SduiMediaDownload.resumedScreen().contains(".mynetwork.")) return tab == 0 ? "Grow" : "Catch up";
         return tab == 0 ? "For you" : "Network";
     }
 
     /**
-     * A spot beside the other My Network tab: Grow sits left of Catch up, Catch up right of Grow, same size, with a
-     * small gap. The other tab is taken from the screen if present, otherwise from where it was last tapped.
+     * The My Network tab that is not open, found from what is on screen: the tab row holds two tappable halves side
+     * by side, and the one we want is the tappable area level with the open tab's label, on its left (Grow) or
+     * right (Catch up). Measured on the device: Catch up open, its label at 832-1040, and Grow's tappable half at
+     * 0-624 in the same row. Nothing here depends on the screen size.
      */
-    private static Rect beside(View root, int tab, Rect otherNow) {
-        Rect other = otherNow != null && !otherNow.isEmpty() ? otherNow
-                : lastTabBounds.get(SduiMediaDownload.resumedScreen() + "|" + (1 - tab));
-        if (other == null || other.isEmpty()) return null;
-        int width = other.width();
-        int gap = Math.max(width / 8, 1);
-        Rect spot = tab == 0
-                ? new Rect(other.left - gap - width, other.top, other.left - gap, other.bottom)
-                : new Rect(other.right + gap, other.top, other.right + gap + width, other.bottom);
-        int[] origin = new int[2];
-        root.getLocationOnScreen(origin);
-        if (spot.exactCenterX() < origin[0] || spot.exactCenterX() > origin[0] + root.getWidth()) return null;
-        Settings.debugLog("feed swipe: " + tabName(tab) + " placed beside the other tab at " + spot);
-        return spot;
+    private static Rect tabNextTo(Rect openLabel, int tab, List<Rect> tappable) {
+        if (openLabel == null || openLabel.isEmpty()) return null;
+        int rowY = openLabel.centerY();
+        Rect best = null;
+        for (Rect area : tappable) {
+            // Level with the tab labels, and not much taller than the row (so not a whole page or card).
+            if (rowY < area.top || rowY > area.bottom || area.height() > openLabel.height() * 4) continue;
+            boolean side = tab == 0 ? area.right <= openLabel.left : area.left >= openLabel.right;
+            if (!side) continue;
+            // The nearest one on that side is the neighbouring tab.
+            int gap = tab == 0 ? openLabel.left - area.right : area.left - openLabel.right;
+            int bestGap = best == null ? Integer.MAX_VALUE
+                    : tab == 0 ? openLabel.left - best.right : best.left - openLabel.right;
+            if (gap < bestGap) best = area;
+        }
+        if (best != null) {
+            Settings.debugLog("feed swipe: " + tabName(tab) + " tab found next to the open one at " + best);
+        }
+        return best;
     }
 
     /**

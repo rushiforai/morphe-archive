@@ -3,14 +3,18 @@ package app.fakh.patches.github
 import app.fakh.patches.github.shared.Constants.COMPATIBILITY_GITHUB
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -19,6 +23,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
+import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val NAVIGATION_BAR = "Lapp/fakh/extension/github/NavigationBar;"
 
@@ -152,7 +158,7 @@ val navigationBarPatch = bytecodePatch(
 @Suppress("unused")
 val glassNavigationBarPatch = bytecodePatch(
     name = "Glass navigation bar",
-    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. The switch is in Fakh Patches.",
+    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Liquid Glass blurs what's behind it. The switch is in Fakh Patches.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_GITHUB)
@@ -218,7 +224,7 @@ val glassNavigationBarPatch = bytecodePatch(
         // The indicator is a box colored by the 'indicator' field of the item colors, read right after its tag.
         val colors = tab.parameters[10]
         val found = mutableListOf<Pair<String, String>>()
-        classDefForEach { classDef ->
+        classDefByStrings("indicator").distinctBy { it.type }.forEach { classDef ->
             for (method in classDef.methods) {
                 val implementation = method.implementation ?: continue
                 var tagged = false
@@ -253,7 +259,12 @@ val glassNavigationBarPatch = bytecodePatch(
                 move-result-wide v$register
             """,
         )
+        tintLabels(colors)
+        removeTabRipple()
+        tightenTabLabel()
+        watchActivities()
         addSwitch("fakh_glass_navbar", "Glass navigation bar", false)
+        addSwitch("fakh_liquid_glass", "Liquid Glass", true)
     }
 }
 
@@ -268,5 +279,197 @@ val navigationBarRightPatch = bytecodePatch(
     dependsOn(githubSettingsPatch)
     extendWith("extensions/extension.mpe")
 
-    execute { addSwitch("fakh_nav_position", "Landscape navigation bar position", null) }
+    execute {
+        watchActivities()
+        addSwitch("fakh_nav_position", "Landscape navigation bar position", null)
+    }
+}
+
+/**
+ * Takes the press ripple off the tabs while the bar is glass, where the pill already shows the tab. Material 3 draws it
+ * in a box tagged "indicatorRipple": the box's modifier gets indication(interactionSource, ripple(bounded, radius,
+ * color)), the ripple built by a static call taking (Z, F, J) just before. [NAVIGATION_BAR]'s tabIndication turns that
+ * indication into null, which Compose draws as nothing.
+ */
+private fun BytecodePatchContext.removeTabRipple() {
+    val found = mutableListOf<Pair<String, String>>()
+    classDefByStrings("indicatorRipple").distinctBy { it.type }.forEach { classDef ->
+        for (method in classDef.methods) {
+            if (method.implementation?.instructions?.any {
+                    it.opcode == Opcode.CONST_STRING &&
+                        ((it as ReferenceInstruction).reference as StringReference).string == "indicatorRipple"
+                } == true && method.indicationCall() != null) {
+                found += classDef.type to method.name
+            }
+        }
+    }
+    if (found.size != 1) throw PatchException("Tab ripple not found: $found")
+    val method = mutableClassDefBy(found.single().first).methods.first {
+        it.name == found.single().second && it.indicationCall() != null
+    }
+    val (index, type) = method.indicationCall()!!
+    val register = (method.implementation!!.instructions[index] as FiveRegisterInstruction).registerE
+    method.addInstructions(
+        index,
+        """
+            invoke-static/range { v$register .. v$register }, $NAVIGATION_BAR->tabIndication(Ljava/lang/Object;)Ljava/lang/Object;
+            move-result-object v$register
+            check-cast v$register, $type
+        """,
+    )
+}
+
+/**
+ * Moves the label of a tab up to its icon while the bar is glass, so icon and label fit the lower glass bar. Material 3
+ * lays out a tab with the measure policy that looks its children up by the tags "indicatorRipple" and "label" and,
+ * without a label, makes the tab 80dp tall (an 80f constant). With a label, the first 4f constant after that is the
+ * space between the icon's indicator and the label, used both for the tab's content height and for the label's top;
+ * [NAVIGATION_BAR]'s labelGap turns it into 0.
+ */
+private fun BytecodePatchContext.tightenTabLabel() {
+    fun Method.gapIndex(): Int? {
+        val instructions = implementation?.instructions?.toList() ?: return null
+        fun literal(index: Int) = (instructions[index] as? NarrowLiteralInstruction)
+            ?.takeIf { instructions[index].opcode == Opcode.CONST_HIGH16 }?.narrowLiteral
+        val strings = instructions.mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+        if ("indicatorRipple" !in strings || "label" !in strings) return null
+        val tall = instructions.indices.firstOrNull { literal(it) == 80f.toRawBits() } ?: return null
+        return (tall + 1 until instructions.size).firstOrNull { literal(it) == 4f.toRawBits() }
+    }
+    val found = mutableListOf<Pair<String, String>>()
+    classDefByStrings("indicatorRipple").distinctBy { it.type }.forEach { classDef ->
+        for (method in classDef.methods) if (method.gapIndex() != null) found += classDef.type to method.name
+    }
+    if (found.size != 1) throw PatchException("Tab label gap not found: $found")
+    val method = mutableClassDefBy(found.single().first).methods.first {
+        it.name == found.single().second && it.gapIndex() != null
+    }
+    val index = method.gapIndex()!!
+    val register = (method.implementation!!.instructions[index] as OneRegisterInstruction).registerA
+    method.addInstructions(
+        index + 1,
+        """
+            invoke-static/range { v$register .. v$register }, $NAVIGATION_BAR->labelGap(F)F
+            move-result v$register
+        """,
+    )
+}
+
+/**
+ * In a method that tags a box "indicatorRipple": the index of the first three-argument static call after the ripple is
+ * built (a static call taking Z, F, J), and the type of its last argument, the indication. Null when there is none.
+ */
+private fun Method.indicationCall(): Pair<Int, String>? {
+    var tagged = false
+    var ripple = false
+    implementation!!.instructions.forEachIndexed { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference
+        if (instruction.opcode == Opcode.CONST_STRING && (reference as? StringReference)?.string == "indicatorRipple") {
+            tagged = true
+        } else if (tagged && instruction.opcode == Opcode.INVOKE_STATIC && reference is MethodReference) {
+            val parameters = reference.parameterTypes.map(CharSequence::toString)
+            if (!ripple) {
+                ripple = parameters == listOf("Z", "F", "J")
+            } else if (parameters.size == 3 && parameters.all { it.startsWith("L") }) {
+                return index to parameters[2]
+            }
+        }
+    }
+    return null
+}
+
+/**
+ * Gives the tab labels the colors of the tab icons while the bar is glass: the accent on the selected tab and gray on
+ * the others. Material 3 hands the label those colors as its content color, but the label's text style still carries
+ * the color of GitHub's theme, which wins over the content color. The label's composable is the one that reads the
+ * item colors' text fields (the 2nd and 5th colors the constructor stores, in Material 3's order) and no icon field;
+ * just before that read it copies the style. The copy now gets the same text color the read picks, through a method
+ * added to the item colors, and [NAVIGATION_BAR]'s labelStyleMask lets it use that color only while the bar is glass.
+ */
+private fun BytecodePatchContext.tintLabels(colors: String) {
+    val stored = mutableClassDefBy(colors).methods.first { it.name == "<init>" }.implementation!!.instructions
+        .filter { it.opcode == Opcode.IPUT_WIDE }
+        .sortedBy { (it as TwoRegisterInstruction).registerA }
+        .map { ((it as ReferenceInstruction).reference as FieldReference).name }
+    if (stored.size < 5) throw PatchException("Item colors have ${stored.size} color fields")
+    val texts = setOf(stored[1], stored[4])
+    val icons = setOf(stored[0], stored[3])
+    val targets = mutableListOf<Pair<String, Method>>()
+    // Only classes that read a field of the item colors, found through the patcher's index.
+    Fingerprint(filters = listOf(fieldAccess(definingClass = colors))).matchAllOrNull().orEmpty()
+        .map { it.originalClassDef }.distinctBy { it.type }.forEach { classDef ->
+        if (classDef.type == colors) return@forEach
+        for (method in classDef.methods) {
+            val fields = method.implementation?.instructions?.mapNotNull {
+                ((it as? ReferenceInstruction)?.reference as? FieldReference)?.takeIf { field -> field.definingClass == colors }?.name
+            } ?: continue
+            if (fields.any { it in texts } && fields.none { it in icons }) targets += classDef.type to method
+        }
+    }
+    if (targets.size != 1) throw PatchException("Tab label composable not found: ${targets.map { it.first }}")
+    val (type, found) = targets.single()
+    val label = mutableClassDefBy(type).methods.first {
+        it.name == found.name && it.parameterTypes == found.parameterTypes && it.returnType == found.returnType
+    }
+    val instructions = label.implementation!!.instructions.toList()
+    val read = instructions.indexOfFirst {
+        it.opcode == Opcode.IGET_WIDE && ((it as ReferenceInstruction).reference as FieldReference).let { field ->
+            field.definingClass == colors && field.name in texts
+        }
+    }
+    // The style copy: a static call that takes a style and returns one of the same type.
+    val copy = (read - 1 downTo 0).firstOrNull { index ->
+        val reference = (instructions[index] as? ReferenceInstruction)?.reference as? MethodReference
+        instructions[index].opcode == Opcode.INVOKE_STATIC_RANGE && reference != null &&
+            reference.parameterTypes.firstOrNull()?.toString() == reference.returnType &&
+            reference.parameterTypes.getOrNull(1)?.toString() == "J"
+    } ?: throw PatchException("Tab label style copy not found")
+    val range = instructions[copy] as RegisterRangeInstruction
+    val color = range.startRegister + 1
+    val mask = range.startRegister + range.registerCount - 1
+    // The read sits right after the branch on whether the tab is selected, which reads one text field when it is
+    // and the other when it isn't. A method added to the item colors makes the same pick for the copy.
+    val branch = instructions[read - 1]
+    if (branch.opcode != Opcode.IF_EQZ) throw PatchException("Tab label color branch not found")
+    val selected = (branch as OneRegisterInstruction).registerA
+    val owner = (instructions[read] as TwoRegisterInstruction).registerB
+    val selectedText = ((instructions[read] as ReferenceInstruction).reference as FieldReference).name
+    val otherText = texts.single { it != selectedText }
+    val holder = mutableClassDefBy(colors)
+    holder.methods.add(
+        ImmutableMethod(colors, "fakhLabelColor", listOf(ImmutableMethodParameter("Z", null, null)), "J",
+            AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, null, null, MutableMethodImplementation(4)).toMutable().apply {
+            addInstructions(
+                0,
+                """
+                    if-eqz p1, :unselected
+                    iget-wide v0, p0, $colors->$selectedText:J
+                    return-wide v0
+                    :unselected
+                    iget-wide v0, p0, $colors->$otherText:J
+                    return-wide v0
+                """,
+            )
+        },
+    )
+    label.addInstructions(
+        copy,
+        """
+            invoke-virtual { v$owner, v$selected }, $colors->fakhLabelColor(Z)J
+            move-result-wide v$color
+            invoke-static/range { v$mask .. v$mask }, $NAVIGATION_BAR->labelStyleMask(I)I
+            move-result v$mask
+        """,
+    )
+}
+
+/**
+ * Has every activity's bottom bar shaped once it comes to the front, through [NAVIGATION_BAR]'s watch at the start of
+ * attachBaseContext. Both the glass and the landscape position patches need it, and neither leans on Material You.
+ */
+private fun BytecodePatchContext.watchActivities() {
+    appCompatActivity().methods.first { it.name == "attachBaseContext" }.addInstructions(
+        0,
+        "invoke-static/range { p1 .. p1 }, $NAVIGATION_BAR->watch(Landroid/content/Context;)V",
+    )
 }

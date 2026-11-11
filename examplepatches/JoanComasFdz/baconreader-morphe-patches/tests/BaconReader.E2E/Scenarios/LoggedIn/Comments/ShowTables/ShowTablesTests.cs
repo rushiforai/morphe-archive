@@ -35,8 +35,8 @@ public sealed class ShowTablesTests : BaseE2E
             | Rovers | 30     |
             | City   | 28     |
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap the post "Tables"
           Then the comment "Scores" shows a table with the rows "Player, Score", "Ann, 12" and "Bob, 7"
           And the columns of the comment "Scores"'s table don't overlap
@@ -55,7 +55,7 @@ public sealed class ShowTablesTests : BaseE2E
           When I scroll to the comment "Links"
           And I tap "Open picture" in the comment "Links"'s table
           Then BaconReader's photo viewer shows
-          # Not on the screen: the fake Reddit records what BaconReader asked for.
+          # On the setup page: the fake Reddit records what BaconReader asked for.
           And Reddit served the image "Open picture" links to
           When I tap Back
           And I go back to the posts
@@ -86,8 +86,8 @@ public sealed class ShowTablesTests : BaseE2E
             ["Rovers", "30"],
             ["City", "28"],
         ]);
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Posts.ClickPostAsync("Tables");
@@ -101,7 +101,9 @@ public sealed class ShowTablesTests : BaseE2E
         // Too wide for the text: its cells wrap until it's expanded.
         var wideLayout = await Phone.BaconReader.Detail.Comments.ReadTableLayoutAsync("Wide");
         Asserting.That(scores).ShowsTheRows("Player, Score", "Ann, 12", "Bob, 7");
-        Asserting.That(scoresLayout).ColumnsDontOverlap().FitsInsideTheScreen();
+        Asserting.That(scoresLayout)
+            .ColumnsDontOverlap()
+            .FitsInsideTheScreen();
         Asserting.That(scores).ShowsNoButton(new TableButton.Expand());
         Asserting.That(wide).ShowsTheRows(
             "Player, Team, Position, Goals, Assists, Minutes played",
@@ -115,7 +117,9 @@ public sealed class ShowTablesTests : BaseE2E
 
         // Then
         var expanded = await Phone.BaconReader.Detail.Comments.ReadTableLayoutAsync("Wide");
-        Asserting.That(expanded).HidesTheColumnPastItsRightEdge("Minutes played").ColumnsDontOverlap();
+        Asserting.That(expanded)
+            .HidesTheColumnPastItsRightEdge("Minutes played")
+            .ColumnsDontOverlap();
 
         // When
         await Phone.BaconReader.Detail.Comments.SwipeTableLeftAsync("Wide");
@@ -140,7 +144,7 @@ public sealed class ShowTablesTests : BaseE2E
 
         // Then
         var viewer = await Phone.BaconReader.PhotoViewer.ReadAsync();
-        // Not on the screen: the fake Reddit records what BaconReader asked for.
+        // On the setup page: the fake Reddit records what BaconReader asked for.
         var served = Reddit.ReadMediaServed();
         Asserting.That(viewer).IsShown();
         Asserting.That(served).ServedTheImageOf("Open picture");

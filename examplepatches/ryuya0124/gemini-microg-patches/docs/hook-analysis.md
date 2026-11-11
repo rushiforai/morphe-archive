@@ -64,7 +64,7 @@ Google 17.54.18のuser 150イベントログで `com.google.android.gms.gmscompl
 
 現在はMorpheのFingerprint/DEX検索で**パッチ生成時**に探索し、アプリ起動時に探索しない。文字列・引数/戻り値・参照先・分岐構造・期待件数を組み合わせ、版別の観測値とも照合する。難読化名だけが変わっても候補探索できるが、制御フロー変更は別途検証が必要。
 
-[DexKit](https://github.com/LuckyPray/DexKit)も同種の複合探索を提供する。現時点では組み込んでいない。将来端末側に導入する場合は、初回起動またはAPK更新後の初回起動だけ探索する。APKのSHA-256（splitを使う場合はそれらも含む）・探索ルール版をキャッシュキーとし、同一キーでは探索しない。キーが変われば再探索し、0件/複数件ならフックせず停止して結果を記録する。更新前のキャッシュを無条件に流用しない。
+[DexKit](https://github.com/LuckyPray/DexKit)も同種の複合探索を提供する。2026-11-10よりホスト解析ツールに導入した（analysis/dexkit/README.md）。MPP/端末には組み込んでいない。将来端末側に導入する場合は、初回起動またはAPK更新後の初回起動だけ探索する。APKのSHA-256（splitを使う場合はそれらも含む）・探索ルール版をキャッシュキーとし、同一キーでは探索しない。キーが変われば再探索し、0件/複数件ならフックせず停止して結果を記録する。更新前のキャッシュを無条件に流用しない。
 
 ### 警告だけ消しても送信できなかった理由
 
@@ -73,3 +73,13 @@ Google 17.54.18のuser 150イベントログで `com.google.android.gms.gmscompl
 `Checking for device compliance...` と `Feature is disabled!` から `Ldsvb;->a(Lhgpk;Lhgpk;)V` を特定。Boolean.booleanValue直後のMOVE_RESULTを同幅CONST_4 falseに置換して既存feature-disabled経路を使う。ここからdsvc.bの復旧処理が走り、通常のコンポーネント状態へ戻して一度再起動する。復旧ログとdisabledComponentsからのサービス消失、ユーザーによる送受信成功を確認した。旧版の対応メソッドはLdkwy.a(Lgtks;Lgtks;)V。
 
 新規インストールだけでなく、**以前の認定チェックでコンポーネントが無効化された状態からの更新**を検証すること。bind成功を偽装したり、警告Activityだけ閉じたりしても根本解決にならない。`scripts/verify-apks.sh` には認定チェックのfeature gateと転送分岐の2つの単一命令差分検証を組み込んだ。
+
+## 2026-11-10: Google 17.72.17 / Gemini Manifest
+
+Google 17.72.17.ve.arm64 (301831138)を端末の元アプリから抽出。Geminiは1.0.995038376 (345)から変わっていなかった。DexKitで旧版・新版の9ルールを探索し、候補と参照関係を出力した。
+
+- Trampolineはajiy.t(AccountId,hiiq)。ログ直前のIF_EQZ v2はnullable Booleanの判定で、本来の条件ではない。AND_INT_2ADDR v14,v9直後のIF_EQZ v14（命令146、code unit 264→392）を検証してからv14=0を挿入する。VerifyTrampolineで挿入1命令以外の命令・レジスタ・参照と全相対分岐先の対応を検証する。
+- Process provider候補には新たにeyaq.bも現れたが、これはfbzs.GOOGLEAPPの文字列 `googleapp` を返す定数ヘルパー。現在のフルプロセス名を返すekjg.bとは別物。登録済み完全記述子に一致する呼び出しだけを選び、ekjc.bの実プロセス名利用と区別する。
+- MainActivityは23レジスタになった。完了フラグo:Zはcode unit 811、Activity別名v0、scratch v6/v7/v8、後続cleanupのv3/v19は前版同様。新定義と元命令を照合した。
+- Issue #7の画像の判定は、Gemini cma.b→ahx.u(getPackageInfo)→byf.a(versionCode)→BardEntryPointActivityの0判定→ErrorActivity(error-type=1)。パッチ済みDEXはクローンを検出するが、Manifest queriesに元Googleしか宣言されていなかった。連携先変更パッチの依存リソースパッチでクローン宣言を追加し、VerifyGeminiManifestで1件だけ存在することを検証する。修正前のAPKでは検証が失敗し、修正後は成功することを確認。
+- 投稿者の環境や適用パッチは不明なので、Issue #7の原因をqueries不足だとは断定しない。元Googleを消した実機条件は別途検証が必要。

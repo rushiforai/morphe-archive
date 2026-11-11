@@ -108,7 +108,7 @@ public enum PatchFamily {
             Settings.STORY_PLAY_BUTTON, Settings.STORY_DOUBLE_TAP),
     STORY_VIEWER_CLEANUP(FamilyNames.STORY_VIEWER_CLEANUP, "storyViewerCleanup", null,
             Settings.HIDE_STORY_CREDITS, Settings.HIDE_STORY_REPLY_SUGGESTIONS, Settings.HIDE_STORY_SUBSCRIBE,
-            Settings.STORY_PROGRESS_BAR),
+            Settings.HIDE_STORY_CREATE_CARDS, Settings.STORY_PROGRESS_BAR),
     STORY_RINGS(FamilyNames.STORY_RINGS, "storyRings", null,
             Settings.HIDE_FEED_STORY_RINGS, Settings.HIDE_COMMENT_STORY_RINGS, Settings.HIDE_PROFILE_STORY_RINGS),
     PINCH_TO_ZOOM(FamilyNames.PINCH_TO_ZOOM, "pinchToZoom", null,
@@ -157,6 +157,8 @@ public enum PatchFamily {
             Settings.NEWEST_REELS_FIRST, Settings.PROFILE_REELS_MOST_VIEWED),
     DOUBLE_TAP_LIKE(FamilyNames.DOUBLE_TAP_LIKE, "doubleTapLike", null,
             Settings.TURN_OFF_DOUBLE_TAP_LIKE),
+    ASK_BEFORE_LIKE(FamilyNames.ASK_BEFORE_LIKE, "askBeforeLike", null,
+            Settings.ASK_BEFORE_LIKING_POSTS, Settings.ASK_BEFORE_LIKING_REELS, Settings.ASK_BEFORE_LIKING_COMMENTS),
     DOUBLE_TAP_SKIP(FamilyNames.DOUBLE_TAP_SKIP, "doubleTapSkip", null,
             Settings.DOUBLE_TAP_SKIP),
     TAP_SHOWS_CONTROLS(FamilyNames.TAP_SHOWS_CONTROLS, "tapShowsControls", null,
@@ -165,7 +167,7 @@ public enum PatchFamily {
             Settings.DOUBLE_TAP_OPENS_COMMENTS, Settings.LONG_PRESS_OPENS_COMMENTS, Settings.SELECT_POST_TEXT),
     KEEP_REEL_SPEED(FamilyNames.KEEP_REEL_SPEED, "keepReelSpeed", null,
             Settings.KEEP_REEL_SPEED, Settings.KEEP_VIDEO_SPEED, Settings.SLOWER_REEL_SPEEDS,
-            Settings.SPEED_ON_REPLAYS),
+            Settings.FASTER_REEL_SPEEDS, Settings.SPEED_ON_REPLAYS, Settings.POST_MENU_SPEED),
     REEL_HOLD(FamilyNames.HOLD_REEL_FOR_2X, "reelHold", null,
             Settings.HOLD_REEL_FOR_2X, Settings.HOLD_REEL_RIGHT_EDGE, Settings.HOLD_FEED_VIDEO_FOR_2X,
             Settings.HIDE_2X_LOCK_HINT, Settings.HIDE_2X_POPUPS),
@@ -192,8 +194,9 @@ public enum PatchFamily {
             Settings.TAP_TO_PLAY, Settings.TAP_TO_PLAY_REELS_AFTER_FIRST, Settings.TAP_TO_PLAY_STORIES, Settings.TAP_TO_PLAY_SEARCH,
             Settings.INLINE_FEED_VIDEO_CONTROLS,
             Settings.FEED_VIDEO_CAST_BUTTON, Settings.FEED_VIDEO_SEEK_BAR, Settings.FEED_VIDEO_SEEK_BAR_FADE,
-            Settings.FEED_VIDEO_SEEK_BAR_LOWER, Settings.FEED_VIDEO_SEEK_BAR_TIMES, Settings.FEED_VIDEO_FULL_PLAYER_BUTTON,
-            Settings.FEED_VIDEO_SKIP_BUTTONS, Settings.FEED_VIDEO_SPEED_BUTTON,
+            Settings.FEED_VIDEO_SEEK_BAR_LOWER, Settings.FEED_VIDEO_SEEK_BAR_EDGE, Settings.FEED_VIDEO_SEEK_BAR_TIMES,
+            Settings.FEED_VIDEO_FULL_PLAYER_BUTTON,
+            Settings.FEED_VIDEO_SKIP_BUTTONS, Settings.FEED_VIDEO_DOUBLE_TAP_SKIP, Settings.FEED_VIDEO_SPEED_BUTTON,
             Settings.CENTER_FULL_SCREEN_VIDEOS, Settings.STORY_SEEK_BAR, Settings.STORY_SEEK_BAR_FADE),
     RESUME_LONG_VIDEOS(FamilyNames.RESUME_LONG_VIDEOS, "resumeLongVideos", null,
             Settings.RESUME_LONG_VIDEOS, Settings.RECENTLY_WATCHED, Settings.BREAK_AFTER_REELS),
@@ -269,7 +272,7 @@ public enum PatchFamily {
             Settings.BOTTOM_TAB_BAR, Settings.TOP_TAB_BAR, Settings.TAB_BAR_SCROLL_AWAY, Settings.KEEP_TAB_BAR,
             Settings.KEEP_TOP_BAR,
             Settings.PHONE_LAYOUT_ON_BIG_SCREENS, Settings.TRANSLUCENT_BARS, Settings.ROUNDED_TAB_BAR, Settings.HIDE_STATUS_BAR,
-            Settings.LIGHT_REELS_TAB_BARS,
+            Settings.LIGHT_REELS_TAB_BARS, Settings.HIDE_REELS_TAB_BAR,
             Settings.HIDE_MESSENGER_BUTTON, Settings.HIDE_MESSENGER_COUNT, Settings.HIDE_FACEBOOK_LOGO,
             Settings.HIDE_CREATE_BUTTON, Settings.HIDE_SEARCH_BUTTON, Settings.SEARCH_WITH_PICTURE),
     FORCE_DARK_MODE(FamilyNames.FORCE_DARK_MODE, "forceDarkMode", null,
@@ -297,6 +300,8 @@ public enum PatchFamily {
             Settings.SEARCH_DATE_RANGE),
     SEARCH_POSTS_TAB(FamilyNames.SEARCH_POSTS_TAB, "searchPostsTab", null,
             Settings.SEARCH_POSTS_TAB),
+    SEARCH_SAVED_BUTTON(FamilyNames.SEARCH_SAVED_BUTTON, "searchSavedButton", null,
+            Settings.SEARCH_SAVED_BUTTON),
     ANALYTICS_UPLOADS(FamilyNames.ANALYTICS_UPLOADS, "analyticsUploads", null,
             Settings.HOLD_ANALYTICS_UPLOADS, Settings.HOLD_CAMERA_ROLL_PROCESSING),
     SCREENSHOTS(FamilyNames.SCREENSHOTS, "allowScreenshots", null,
@@ -581,6 +586,7 @@ public enum PatchFamily {
         if (this == TAP_TO_PLAY) anyOn = Settings.TAP_TO_PLAY.savedValue() || Settings.INLINE_FEED_VIDEO_CONTROLS.savedValue()
                 || Settings.FEED_VIDEO_CAST_BUTTON.savedValue() || Settings.FEED_VIDEO_SEEK_BAR.savedValue()
                 || Settings.FEED_VIDEO_FULL_PLAYER_BUTTON.savedValue() || Settings.FEED_VIDEO_SKIP_BUTTONS.savedValue()
+                || Settings.FEED_VIDEO_DOUBLE_TAP_SKIP.savedValue()
                 || Settings.FEED_VIDEO_SPEED_BUTTON.savedValue() || Settings.CENTER_FULL_SCREEN_VIDEOS.savedValue();
         // The time switch starts on, and does nothing without the bar kept; Tap the bar to seek works alone.
         if (this == PROGRESS_BAR) anyOn = Settings.KEEP_PROGRESS_BAR.savedValue() || Settings.TAP_TO_SEEK.savedValue();

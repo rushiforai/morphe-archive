@@ -4,7 +4,8 @@
 # Plays e2e scenarios on the phone from the NAS's runner (README.md here), in the job of .github/workflows/e2e-phone.yml.
 # Same file in both BaconReader repos.
 #   tools/e2e/nas/run.sh <record.sh arguments>   -> waits for the phone's lease, takes it, keeps it while record.sh
-#                                                   --no-bundle <arguments> plays, then releases it
+#                                                   --no-bundle --phone-only <arguments> plays, then releases it
+# Only the app's scenarios: the NAS is there for the phone. The VS Code extension's play in a session.
 # The workflow puts the bundles where record.sh looks for them and names the patcher (E2E_RESEAM or E2E_MORPHE_DESKTOP).
 # The runner's container gives E2E_PHONE_LAN, E2E_ADB_KEY_FILE and E2E_ARTIFACTS_DIR (compose.yaml).
 # E2E_LEASE_WAIT_MINUTES (default 45): how long to wait while another session holds the lease, then fail.
@@ -40,4 +41,4 @@ tools/e2e/lease.sh keep "$E2E_ADB_SERIAL" "$E2E_LEASE_ID" &
 keeper=$!
 # The C# compiler's server (VBCSCompiler) would outlive the job by about 10 minutes, holding ~300 MB.
 trap 'kill $keeper 2> /dev/null; wait $keeper 2> /dev/null; tools/e2e/connect.sh --down; dotnet build-server shutdown > /dev/null 2>&1' EXIT
-tools/e2e/record.sh --no-bundle "$@"
+tools/e2e/record.sh --no-bundle --phone-only "$@"

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A microphone over a note: songs asked for by voice. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,30a8,8 0,0 0,-8 8v14a8,8 0,0 0,16 0V38a8,8 0,0 0,-8 -8zM40,51a2,2 0,0 1,4 0a10,10 0,0 0,20 0a2,2 0,0 1,4 0a14,14 0,0 1,-12 13.86V70h6a2,2 0,0 1,0 4H46a2,2 0,0 1,0 -4h6v-5.14A14,14 0,0 1,40 51z" />
+</vector>

@@ -50,7 +50,8 @@ public static class JsonReading
                 ReadFlag(record, "passed").Map(passed =>
                 new RunRecord(
                     domain, cls, method, title, ReadString(record, "gherkin"), screen, gif, ReadTexts(record, "patches"),
-                    ReadDecimal(record, "homeShownSeconds"), passed))))))))
+                    ReadDecimal(record, "homeShownSeconds"), passed)
+                { Marks = ReadMarks(record) })))))))
                 .ToResult(() => "a run's record lacks its domain, class, method, title, screen, gif or passed."));
 
     /// <summary>The files a <c>scenarios.json</c> lists, each once in the order they come: each entry's GIF, then its MP4.</summary>
@@ -109,7 +110,8 @@ public static class JsonReading
         ReadFlag(entry, "passed").Map(passed =>
         new ScenarioEntry(
             cls, method, title, ReadText(entry, "gherkin"), ReadText(entry, "screen"), gif, ReadText(entry, "mp4"),
-            ReadTexts(entry, "patches"), passed, ReadSelection(entry)))))))
+            ReadTexts(entry, "patches"), passed, ReadSelection(entry))
+        { Marks = ReadMarks(entry) })))))
         .ToResult(() => "an entry lacks its class, method, title, gif or passed");
 
     /// <summary>"fixtures" with the fixture files that changed, or else "changed".</summary>
@@ -123,6 +125,18 @@ public static class JsonReading
         [.. (item[name] as JsonArray ?? [])
             .Select(value => value is JsonValue text && text.TryGetValue(out string? found) && found.Length > 0 ? Optional.Some(found) : Optional.None<string>())
             .OfType<Optional<string>.Some>()
+            .Select(some => some.Value)];
+
+    /// <summary>
+    /// The marks of a run's Gherkin lines (<c>{"line", "seconds", "failed"}</c> each); a mark that lacks its line or its
+    /// seconds is left out, and a missing "failed" is false. Empty when the field is missing or not an array.
+    /// </summary>
+    private static ImmutableArray<LineMark> ReadMarks(JsonNode item) =>
+        [.. (item["marks"] as JsonArray ?? [])
+            .OfType<JsonObject>()
+            .Select(mark => ReadNumber(mark, "line").Bind(line => ReadDecimal(mark, "seconds").Map(seconds =>
+                new LineMark((int)line, seconds, ReadFlag(mark, "failed").UnwrapOr(false)))))
+            .OfType<Optional<LineMark>.Some>()
             .Select(some => some.Value)];
 
     /// <summary>A text field, empty or not; none when it is missing or not text.</summary>

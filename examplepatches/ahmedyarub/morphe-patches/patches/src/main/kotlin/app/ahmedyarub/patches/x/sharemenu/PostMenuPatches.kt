@@ -90,13 +90,21 @@ internal val postMenuPatch = bytecodePatch(
         PostMenuSetting("actionClass").method.returnEarly(actionType.toClassName())
         PostMenuSetting("groupClass").method.returnEarly(OptionGroupToStringFingerprint.classDef.type.toClassName())
 
-        // The state: (shown, author, groups, labels, ...). The labels are a Map up to 12.36 and a
-        // LinkedHashMap from 12.37; labels() returns the map it is given or a LinkedHashMap, so the
-        // result is cast back to the parameter's own type.
+        // The state: (shown, author, groups, labels, ...). The labels map's concrete type keeps
+        // changing under R8: a Map up to 12.36, a LinkedHashMap from 12.37, a kotlin MapBuilder from
+        // 12.42 (which R8 specialises the field to, so the constructor stores it with iput-object and
+        // the value must be that exact class at runtime). The constructor is found by its stable
+        // params (boolean shown, ..., List groups, the map); labels() returns an instance of the
+        // map's own class and the result is cast back to the parameter's own type, so only the set
+        // below needs a new entry when the map type changes again.
         val state = mutableClassDefBy(PostOptionsStateToStringFingerprint.classDef).methods.single { method ->
             method.name == "<init>" && method.parameterTypes.firstOrNull() == "Z" &&
                 method.parameterTypes.getOrNull(2) == "Ljava/util/List;" &&
-                method.parameterTypes.getOrNull(3)?.toString() in setOf("Ljava/util/Map;", "Ljava/util/LinkedHashMap;")
+                method.parameterTypes.getOrNull(3)?.toString() in setOf(
+                    "Ljava/util/Map;",
+                    "Ljava/util/LinkedHashMap;",
+                    "Lkotlin/collections/builders/MapBuilder;",
+                )
         }
         state.addInstructions(
             0,

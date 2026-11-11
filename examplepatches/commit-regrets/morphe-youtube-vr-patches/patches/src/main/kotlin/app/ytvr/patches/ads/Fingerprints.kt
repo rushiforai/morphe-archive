@@ -138,11 +138,19 @@ object CuePointListFingerprint : Fingerprint(
  * `Lmit;->c(Lzlo;)Lvpn;` and `Lmit;->d(Lzlo;Ljava/util/List;)Lvpn;`, and both read
  * `Lzlo;->n:Lwzv;`. They live in the ad-scheduling utility class whose `g(Lzlo;, List)` helper
  * the hooked CISA detector calls. The caller pattern is unchanged: `d` is called 3x by the
- * neutered layout bootstrap (`mnd.a`) and 3x by this build's unhooked reader (`mtb.r`); `c` is
+ * neutered layout bootstrap (`mnd.a`) and 3x by 1.90.05's unhooked reader (`mtb.r`); `c` is
  * the shorthand (`fcf.A`, `gsl.a`, `mit.e`). Measured: exactly one static method app-wide per
- * shape. The 1.89.09 branch is still `Lmht;->k(Lzmj;)Lvpr;` and
- * `Lmht;->l(Lzmj;Ljava/util/List;)Lvpr;`, reading `Lzmj;->n:Lxau;`. 1.88.10 read
- * `Lzjp;->n:Lwxq;` off the player response and is no longer a supported target.
+ * shape.
+ *
+ * 1.91.10 renamed the same pair in place: `Lmiq;->o(Lzoh;)Lvsm;` and
+ * `Lmiq;->p(Lzoh;Ljava/util/List;)Lvsm;`, both reading `Lzoh;->n:Lxcp;`. The caller pattern is
+ * the same again: `p` is called 3x by the neutered layout bootstrap (`Lmow;->a`) and 3x by the
+ * unhooked reader (`Lmuw;->r`), plus its own sibling `s` (the CISA lookup) and one extra reader
+ * (`Lmuv;->get`); `o` is the shorthand, still the only static in the app with its exact shape.
+ *
+ * The 1.89.09 branch (`Lmht;->k(Lzmj;)Lvpr;` / `Lmht;->l(Lzmj;Ljava/util/List;)Lvpr;`,
+ * reading `Lzmj;->n:Lxau;`) was dropped with that target on 2026-11-10; 1.88.10 read
+ * `Lzjp;->n:Lwxq;` off the player response and was dropped earlier.
  *
  * The class and method names are obfuscated and expected to change between versions, so each
  * supported version gets an explicit branch and a rename fails the patch loudly at patch time
@@ -155,29 +163,29 @@ object CuePointListFingerprint : Fingerprint(
 object AdSlotAccessorFingerprint : Fingerprint(
     custom = { method, _ ->
         val params = method.parameterTypes.map { it.toString() }
+        val is19110 = method.definingClass == "Lmiq;" &&
+            method.name == "o" &&
+            params == listOf("Lzoh;") &&
+            method.returnType == "Lvsm;"
         val is19005 = method.definingClass == "Lmit;" &&
             method.name == "c" &&
             params == listOf("Lzlo;") &&
             method.returnType == "Lvpn;"
-        val is18909 = method.definingClass == "Lmht;" &&
-            method.name == "k" &&
-            params == listOf("Lzmj;") &&
-            method.returnType == "Lvpr;"
-        is19005 || is18909
+        is19110 || is19005
     },
 )
 
 object AdSlotTypedAccessorFingerprint : Fingerprint(
     custom = { method, _ ->
         val params = method.parameterTypes.map { it.toString() }
+        val is19110 = method.definingClass == "Lmiq;" &&
+            method.name == "p" &&
+            params == listOf("Lzoh;", "Ljava/util/List;") &&
+            method.returnType == "Lvsm;"
         val is19005 = method.definingClass == "Lmit;" &&
             method.name == "d" &&
             params == listOf("Lzlo;", "Ljava/util/List;") &&
             method.returnType == "Lvpn;"
-        val is18909 = method.definingClass == "Lmht;" &&
-            method.name == "l" &&
-            params == listOf("Lzmj;", "Ljava/util/List;") &&
-            method.returnType == "Lvpr;"
-        is19005 || is18909
+        is19110 || is19005
     },
 )

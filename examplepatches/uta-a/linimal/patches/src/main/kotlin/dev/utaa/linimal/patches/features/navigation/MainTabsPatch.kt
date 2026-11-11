@@ -496,6 +496,14 @@ internal fun redirectRequestedTab(
     instructions.forEachIndexed { index, instruction -> implementation.addInstruction(index, instruction) }
 }
 
+/**
+ * 同じ method への挿入を、注入前の index が大きいものから順に適用します。後ろの挿入は前の index を
+ * ずらさないため、各 site が持つ注入前の index をそのまま使えます。
+ */
+internal fun applyEditsFromLast(vararg edits: Pair<Int, () -> Unit>) {
+    edits.sortedByDescending { (index, _) -> index }.forEach { (_, edit) -> edit() }
+}
+
 val mainTabsPatch = bytecodePatch(
     name = "下部タブ",
     description = "下部タブから VOOM を取り除き、ショッピング・ニュース・ウォレット・アプリも実行時設定で個別に取り除けるようにします。",
@@ -647,15 +655,19 @@ val mainTabsPatch = bytecodePatch(
             buttonSite == null || walletSite == null || positionSite == null || requestSite == null ||
             pageFactoryImplementation == null || pageIdImplementation == null ||
             pageFactorySite == null || pageIdSite == null || !placeholderConstructible ||
-            pageImplementation == null || pageSite == null
+            pageImplementation == null || pageSite == null ||
+            walletSite.insertIndex == buttonSite.insertIndex
         ) {
             recordUnsafeFeatureStatus(mainTabPatchIds, TARGET_COUNT, TARGET_COUNT, "MainTabInjectionShapeMismatch")
             return@execute
         }
 
         // 同じ method では後ろの位置から書き換え、前の index がずれないようにします。
-        gateWalletTooltip(buttonImplementation, walletSite)
-        hideButtonAtPosition(buttonImplementation, buttonSite)
+        // wallet と button の前後関係は仮定せず、実際の index から順序を決めます。
+        applyEditsFromLast(
+            walletSite.insertIndex to { gateWalletTooltip(buttonImplementation, walletSite) },
+            buttonSite.insertIndex to { hideButtonAtPosition(buttonImplementation, buttonSite) },
+        )
         redirectRestoredPosition(managerImplementation, positionSite)
         redirectRequestedTab(requestImplementation, requestSite, positionSite.tabAtPosition)
         placeholderForHiddenPage(pageFactoryImplementation, pageFactorySite)

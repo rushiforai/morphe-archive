@@ -12,7 +12,8 @@ import re
 import sys
 from pathlib import Path
 
-FORMS = [Path(".github/ISSUE_TEMPLATE/1-bug-report.yml"), Path(".github/ISSUE_TEMPLATE/2-enhancement.yml")]
+FORMS = [Path(".github/ISSUE_TEMPLATE/0-version-or-build.yml"), Path(".github/ISSUE_TEMPLATE/1-bug-report.yml"),
+         Path(".github/ISSUE_TEMPLATE/2-enhancement.yml")]
 
 
 def excluded_globs():

@@ -135,6 +135,16 @@ public sealed class PostWritingTests
     }
 
     [Fact]
+    public void A_runs_player_link_carries_its_Gherkin_and_marks_in_its_fragment()
+    {
+        var run = WithMp4(RunOf("LoginTests", "Logs"));
+
+        var post = WritePost(run with { Entry = run.Entry with { PlayerData = "abc-_" } });
+
+        Assert.Contains("\n[▶ Play MP4](https://owner.github.io/repo/e2e-player.html?v=pr-1-v1-Logs-phone.mp4#s=abc-_)\n", post);
+    }
+
+    [Fact]
     public void The_player_is_on_the_owners_pages_lowercased() =>
         Assert.Equal(
             "https://joancomasfdz.github.io/baconreader-reseam-patches/e2e-player.html?v=pr-3-v1-a-phone.mp4",

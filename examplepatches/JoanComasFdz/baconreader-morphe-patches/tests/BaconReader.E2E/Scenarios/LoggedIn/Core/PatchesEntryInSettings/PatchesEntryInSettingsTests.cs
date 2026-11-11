@@ -23,8 +23,8 @@ public sealed class PatchesEntryInSettingsTests : BaseE2E
         Scenario: Patches entry in settings adds "Patches" to BaconReader's settings and the patches' version to the left menu
           Given Reddit has a post "Hello from r/e2e" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I open the left menu
           # "Patches <version> (<patcher>)": it changes with each build and patcher.
           Then the left menu shows the patches' version at its bottom
@@ -37,8 +37,8 @@ public sealed class PatchesEntryInSettingsTests : BaseE2E
     {
         // Given
         Reddit.HasAPost("Hello from r/e2e", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.LeftMenu.OpenAsync();

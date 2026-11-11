@@ -141,3 +141,4 @@ local.properties
 # .NET build output (the end-to-end tests and their tools)
 bin/
 obj/
+_site/

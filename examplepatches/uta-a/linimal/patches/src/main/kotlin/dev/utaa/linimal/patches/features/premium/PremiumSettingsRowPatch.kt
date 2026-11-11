@@ -190,9 +190,9 @@ val premiumSettingsRowPatch = bytecodePatch(
                 """
                     invoke-virtual { v${gate.booleanRegister} }, $BOOLEAN_UNBOX
                     move-result v${gate.booleanRegister}
-                    invoke-static { v${gate.booleanRegister} }, $PREMIUM_SETTINGS_ROW_HOOK
+                    invoke-static/range { v${gate.booleanRegister} .. v${gate.booleanRegister} }, $PREMIUM_SETTINGS_ROW_HOOK
                     move-result v${gate.booleanRegister}
-                    invoke-static { v${gate.booleanRegister} }, $BOOLEAN_BOX
+                    invoke-static/range { v${gate.booleanRegister} .. v${gate.booleanRegister} }, $BOOLEAN_BOX
                     move-result-object v${gate.booleanRegister}
                 """.trimIndent(),
             )

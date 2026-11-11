@@ -1,5 +1,43 @@
 # Santodan Patches
 
+Never commit, push, or run a publishing workflow without an explicit user request
+for that action on the current changes. Authorization for an earlier release
+does not authorize a follow-up fix or another commit.
+
+## Car Scanner 2.2.42
+
+Arm64 plain-PE placement must be four-byte aligned. Its original XALZ block starts
+at file 9828258 (2 mod 4); the rewritten PE starts at 9828260. Reusing the compressed
+block's unaligned start misaligns Mono's exception-section lookup, leaks settings
+locks and hangs profile application/startup. Retain the real `y.ad<T>` finally
+section regression in `VerifyCarScanner242Arm64`. See the model-wait investigation
+in [CarScanner242.md](docs/CarScanner242.md). Diagnostic JIT builds alter exception
+behavior and are not deliverables; restore the normal manifest and AOT image.
+
+Latest original: `../OriginalApps/Car_Scanner-2.2.42.apk`, package
+`com.ovz.carscanner`, versionCode 42002042, supplied as the replacement arm64 original.
+Read [CarScanner242.md](docs/CarScanner242.md). `CarScanner242Arm64` adds the
+phone layout; `CarScanner242` retains the earlier x86_64 layout. Both cover managed and compiled premium
+and ECU predicates, the failure-only exit scheduler, and both settings/profile
+decoder paths. The x86_64 XABA format is `0x80030003`; arm64 uses `0x80010003`.
+The exact-version patch and the new unrestricted experimental alternative are
+mutually exclusive choices. Experimental retains the old and new implementations
+and selects by archive layout, with exact image validation; changed future images
+still need review. Historical implementations remain unchanged. Run
+`verifyCarScanner242`, `verifyCarScanner242Bundle`, `verifyAndroidBundle` and
+`verifyMorpheDesktopImport` with the current Desktop JAR.
+
+## Fylo File Manager 2.6
+
+For `com.aeroloom.fylofilemanager` **2.6 / 19**, see [Fylo26.md](docs/Fylo26.md).
+The exact-version and unrestricted experimental **Fylo - Enable Pro** patches are
+alternatives. Both preserve the local Pro boolean at startup and billing refresh;
+they do not write purchase records or replace the entitlement vault. The original
+1.9 upstream debug-unlock class is absent in 2.6. Both patches also skip the Pairip
+launch license-check entry for rebuilt APKs. Run `verifyFylo`, `verifyFyloBundle`,
+and `verifyFyloApk`; retain all original Play configuration splits. Future versions
+must satisfy the structural matcher. Device behavior remains unverified.
+
 ## NuvioTV date-label appearance
 
 For beta.13 custom date-label colors, see [NuvioBeta13.md](docs/NuvioBeta13.md).
@@ -27,6 +65,12 @@ do not restore it as the supported approach. Read
 app reference and current verification tasks. Preserve the original APKS splits
 and package identity; the successful setup also used the separate Google Play
 installer-source spoof.
+
+## NuvioTV official 1.1.0
+
+The latest reviewed target is **1.1.0 / 1077**. Read [Nuvio110.md](docs/Nuvio110.md).
+The active contract and `verifyNuvioLatest` use dedicated release fixtures.
+Beta.13 notes below describe the preceding target; its historical fixtures remain unchanged.
 
 ## Start here: creating or modifying a patch
 
@@ -862,7 +906,7 @@ read/write contract and emulator reproduction; retain the byte-round-trip test.
 The agent verified settings persistence across force-stop and normal exit on
 `emulator-5554`; the user subsequently confirmed correct operation on 2026-10-30.
 
-The latest local input is `com.ovz.carscanner` **2.2.21**, versionCode 42002021.
+The preceding reviewed input is `com.ovz.carscanner` **2.2.21**, versionCode 42002021.
 `CarScanner221` handles its XABA v3 assembly store, premium getter and ECU
 certificate predicate in both IL and compiled arm64 AOT code. It also disables
 the failure-only native scheduler that calls `_exit(0)` after APK integrity

@@ -63,7 +63,7 @@ public sealed class MediaViewer(AndroidDriver driver)
         Waiting.UntilShownAsync(driver, Page, TimeSpan.FromSeconds(10), "The link post's web page");
 
     /// <summary>Taps Android's Back, which closes the media and goes back to where it was opened from.</summary>
-    public Task ClickBackAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(OpenQA.Selenium.Appium.Android.Enums.AndroidKeyCode.Back));
+    public Task ClickBackAsync() => OnScreen.PressBackAsync(driver);
 
     /// <summary>Taps "More options" in the toolbar, which opens its menu.</summary>
     public Task ClickMoreOptionsAsync() => OnScreen.PressAsync(driver, MoreOptionsButton);

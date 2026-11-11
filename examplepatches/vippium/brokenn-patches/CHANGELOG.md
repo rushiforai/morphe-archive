@@ -1,3 +1,13 @@
+## [1.2.0](https://github.com/vippium/brokenn-patches/compare/v1.1.0...v1.2.0) (2026-11-10)
+
+### ✨ New Features
+
+* remove voice assistant and its ChatGPT integration ([30a155a](https://github.com/vippium/brokenn-patches/commit/30a155a53d175f3b8d6fae997db153260d737658))
+
+### 🚀 Updated App Support
+
+* supported JioHotstar version to 26.10.26.0 ([00cd6fa](https://github.com/vippium/brokenn-patches/commit/00cd6fa8d2765484a3abc1cde838678bd04705d7))
+
 ## [1.1.0](https://github.com/vippium/brokenn-patches/compare/v1.0.1...v1.1.0) (2026-11-09)
 
 ### ✨ New Features

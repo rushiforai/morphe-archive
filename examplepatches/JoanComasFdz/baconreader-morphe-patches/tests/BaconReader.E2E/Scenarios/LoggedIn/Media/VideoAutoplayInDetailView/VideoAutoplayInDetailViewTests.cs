@@ -25,8 +25,8 @@ public sealed class VideoAutoplayInDetailViewTests : BaseE2E
           Given Reddit has a video post "Watch this" in r/e2e
           And Reddit has a GIF post "Dancing" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           And I open the left menu
           And I tap "Settings"
@@ -67,8 +67,8 @@ public sealed class VideoAutoplayInDetailViewTests : BaseE2E
         // Given
         Reddit.HasAVideoPost("Watch this", "e2e");
         Reddit.HasAGifPost("Dancing", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));

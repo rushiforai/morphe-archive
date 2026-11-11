@@ -1,3 +1,15 @@
+## [1.6.0-dev.2](https://github.com/Nezumi-2711/morphe-patches/compare/v1.6.0-dev.1...v1.6.0-dev.2) (2026-11-11)
+
+### ✨ New Features
+
+* **zalo:** add patch to hide OA accounts ([2439f3e](https://github.com/Nezumi-2711/morphe-patches/commit/2439f3e9ad0cd44c495aeb89844a56dd9890bf99))
+
+## [1.6.0-dev.1](https://github.com/Nezumi-2711/morphe-patches/compare/v1.5.0...v1.6.0-dev.1) (2026-11-10)
+
+### ✨ New Features
+
+* **zalo:** add optional feed ad hiding ([fbbff95](https://github.com/Nezumi-2711/morphe-patches/commit/fbbff9588e524fe0d9ad9043dbcc17754aa6a738))
+
 ## [1.5.0](https://github.com/Nezumi-2711/morphe-patches/compare/v1.4.0...v1.5.0) (2026-11-10)
 
 ### 🐛 Bug Fixes

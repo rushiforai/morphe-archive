@@ -231,7 +231,8 @@ public final class SettingsActivity extends Activity {
             categories.add(feed);
         }
 
-        if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()) {
+        if (Settings.isNavigationBarIncluded() || Settings.isGlassNavigationBarIncluded()
+                || Settings.isAlwaysShowNavigationBarIncluded()) {
             Category navigation = new Category("Navigation bar");
             List<Item> tabs = new ArrayList<>();
             tabs.add(fixed("Home"));
@@ -242,6 +243,12 @@ public final class SettingsActivity extends Activity {
             if (Settings.isGlassNavigationBarIncluded()) {
                 navigation.toggle(Settings.GLASS_NAVIGATION_BAR, true, "Glass navigation bar",
                         "A floating, translucent navigation bar.");
+                navigation.toggle(Settings.LIQUID_GLASS, true, "Liquid Glass",
+                        "Blurs what's behind the bar and bends it at the edges. Turn it off on a slower phone.");
+            }
+            if (Settings.isAlwaysShowNavigationBarIncluded()) {
+                navigation.toggle(Settings.ALWAYS_SHOW_NAVIGATION_BAR, false, "Always show navigation bar",
+                        "Keeps the navigation bar on screen while you scroll.");
             }
             if (Settings.isNavigationBarIncluded()) {
                 navigation.toggle(Settings.HIDE_TAB_LABELS, false, "Hide tab labels", "Text under the navigation bar icons.")
@@ -782,6 +789,7 @@ public final class SettingsActivity extends Activity {
                 {"Pitch black", Settings.isAmoledBlackIncluded()},
                 {"Glass navigation bar", Settings.isGlassNavigationBarIncluded()},
                 {"Navigation bar", Settings.isNavigationBarIncluded()},
+                {"Always show navigation bar", Settings.isAlwaysShowNavigationBarIncluded()},
                 {"More tab", Settings.isMoreMenuIncluded()},
                 {"GmsCore support", Settings.isGmsCoreSupportIncluded()},
         };

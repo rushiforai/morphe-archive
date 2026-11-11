@@ -9,7 +9,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/WZSE/aapam-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v1.6.0](https://github.com/WZSE/aapam-patches/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;20 patches total
 <details open>
 <summary>📦 Telegram&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -117,6 +117,22 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
+<summary>📦 INDmoney&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 9.9.92 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable App Inventory Tracking](#disable-app-inventory-tracking) | Prevents INDmoney from querying installed applications, competitor apps, and UPI handlers. |  |
+| [Suppress App Blocked Screen](#suppress-app-blocked-screen) | Neutralizes Talsec RASP callbacks, threat dispatchers, memory map checks, and AppExitTracker to prevent access blocked screens and premature process termination. |  |
+
+</details>
+
+<details open>
 <summary>📦 ZEE5 Android TV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
@@ -183,6 +199,21 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 |----------|----------------|-----------|
 | [Disable ads](#disable-ads) | Removes all AdMob ads (banner, interstitial, rewarded, rewarded interstitial, app open) by intercepting the Corona SDK AdMob plugin bridge before any ad is initialised, loaded, or shown. |  |
 | [Unlock ad-free](#unlock-ad-free) | Hooks CoronaRuntime.onWillLoadMain() to execute a Lua bootstrap script that stubs in-app purchases (Tienda.ProductoComprado returning 'S'), hides promo/ad UI buttons, and stubs libads. |  |
+
+</details>
+
+<details open>
+<summary>📦 Monect PC Link TV&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 8.3.4 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium](#unlock-premium) | Unlocks full Premium VIP status across Monect PC Link TV, enabling 4K/2K/1080p remote desktop streaming, up to 10 hosts, unlimited file transfers, custom screen casting ratios, and removing all ads. |  |
 
 </details>
 

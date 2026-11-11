@@ -1,3 +1,123 @@
+## [1.11.0](https://github.com/zeldrisho/morphe-patches/compare/v1.10.0...v1.11.0) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* clarify per-patch compatibility ([9cc5c22](https://github.com/zeldrisho/morphe-patches/commit/9cc5c222c18afe2e71f2c22d5c8a6eb36f669642))
+* distinguish file types in supported version headings ([af47245](https://github.com/zeldrisho/morphe-patches/commit/af4724599e3e472ecb984a580531ab1407ccd264))
+* **zalo:** apply AMOLED overlay to dark theme resources ([797d2ab](https://github.com/zeldrisho/morphe-patches/commit/797d2ab135a1fcf89d5a90e966b0200d7755280f))
+* **zalo:** apply AMOLED to native header surfaces ([0e7dead](https://github.com/zeldrisho/morphe-patches/commit/0e7dead7399921782bd11db9e643980a8137a0ea))
+* **zalo:** avoid unnecessary stranger notification restart prompt ([9b5b88b](https://github.com/zeldrisho/morphe-patches/commit/9b5b88b5731b26506cf9087894ff869350f82adc))
+* **zalo:** cover more AMOLED theme surfaces ([12c12a5](https://github.com/zeldrisho/morphe-patches/commit/12c12a5972a2fe4e717aa575612ba1835f562296))
+* **zalo:** match native theme setting icon ([488e453](https://github.com/zeldrisho/morphe-patches/commit/488e4539178d81ca3aeceb88a0b7f306186e3271))
+* **zalo:** resolve the version-specific Drive account refresh method ([d23cd9b](https://github.com/zeldrisho/morphe-patches/commit/d23cd9bae5252b732da7528051a5b69c110dde9f))
+* **zalo:** retry unavailable recall preference reads ([6f87502](https://github.com/zeldrisho/morphe-patches/commit/6f87502c2ceda9b0bc15d245d49e47042e6bc758))
+* **zalo:** validate launcher PNGs and navigation bounds ([1c158ee](https://github.com/zeldrisho/morphe-patches/commit/1c158eebd1ba5549d1ff1efeef896d280556151c))
+* **zalo:** validate package rename counts per version ([abe1706](https://github.com/zeldrisho/morphe-patches/commit/abe17064712d31c86f63c6d56822e25f8c95e167)), closes [#51](https://github.com/zeldrisho/morphe-patches/issues/51)
+
+### ✨ New Features
+
+* **threads:** hide suggested account carousel ([0661c2a](https://github.com/zeldrisho/morphe-patches/commit/0661c2a63cb33a806e37d8e967c7722dfaa16677))
+* **zalo:** add backup and notification settings ([61b1889](https://github.com/zeldrisho/morphe-patches/commit/61b18891b91631c9c44ac2479d54ff2087f4fccd))
+* **zalo:** add in-app appearance controls ([f80fa48](https://github.com/zeldrisho/morphe-patches/commit/f80fa487bcd0cd297c0844edb7e58aaad010e80f)), closes [#55](https://github.com/zeldrisho/morphe-patches/issues/55) [#56](https://github.com/zeldrisho/morphe-patches/issues/56)
+* **zalo:** add native navigation tab settings ([871f868](https://github.com/zeldrisho/morphe-patches/commit/871f8686eebe1acfd125ac37fd8c7011ea1f97d0))
+* **zalo:** add recall retention and customization controls ([b53e7af](https://github.com/zeldrisho/morphe-patches/commit/b53e7afee6e32454e1cd0cc5c3ccc7a016bfa9d9)), closes [#53](https://github.com/zeldrisho/morphe-patches/issues/53) [#54](https://github.com/zeldrisho/morphe-patches/issues/54) [#55](https://github.com/zeldrisho/morphe-patches/issues/55) [#56](https://github.com/zeldrisho/morphe-patches/issues/56) [#59](https://github.com/zeldrisho/morphe-patches/issues/59) [#60](https://github.com/zeldrisho/morphe-patches/issues/60) [#61](https://github.com/zeldrisho/morphe-patches/issues/61)
+* **zalo:** make AMOLED dark theme optional and cover the Me tab ([16f3ada](https://github.com/zeldrisho/morphe-patches/commit/16f3adae19b7c52324d076a60db8b9a89d6fc171))
+
+## [1.11.0-dev.15](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.14...v1.11.0-dev.15) (2026-11-10)
+
+### ✨ New Features
+
+* **zalo:** make AMOLED dark theme optional and cover the Me tab ([16f3ada](https://github.com/zeldrisho/morphe-patches/commit/16f3adae19b7c52324d076a60db8b9a89d6fc171))
+
+## [1.11.0-dev.14](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.13...v1.11.0-dev.14) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **zalo:** apply AMOLED to native header surfaces ([0e7dead](https://github.com/zeldrisho/morphe-patches/commit/0e7dead7399921782bd11db9e643980a8137a0ea))
+
+## [1.11.0-dev.13](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.12...v1.11.0-dev.13) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **zalo:** match native theme setting icon ([488e453](https://github.com/zeldrisho/morphe-patches/commit/488e4539178d81ca3aeceb88a0b7f306186e3271))
+
+## [1.11.0-dev.12](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.11...v1.11.0-dev.12) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **zalo:** cover more AMOLED theme surfaces ([12c12a5](https://github.com/zeldrisho/morphe-patches/commit/12c12a5972a2fe4e717aa575612ba1835f562296))
+
+## [1.11.0-dev.11](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.10...v1.11.0-dev.11) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **zalo:** apply AMOLED overlay to dark theme resources ([797d2ab](https://github.com/zeldrisho/morphe-patches/commit/797d2ab135a1fcf89d5a90e966b0200d7755280f))
+
+## [1.11.0-dev.10](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.9...v1.11.0-dev.10) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **zalo:** avoid unnecessary stranger notification restart prompt ([9b5b88b](https://github.com/zeldrisho/morphe-patches/commit/9b5b88b5731b26506cf9087894ff869350f82adc))
+
+## [1.11.0-dev.9](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.8...v1.11.0-dev.9) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **zalo:** validate launcher PNGs and navigation bounds ([1c158ee](https://github.com/zeldrisho/morphe-patches/commit/1c158eebd1ba5549d1ff1efeef896d280556151c))
+
+## [1.11.0-dev.8](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.7...v1.11.0-dev.8) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **zalo:** retry unavailable recall preference reads ([6f87502](https://github.com/zeldrisho/morphe-patches/commit/6f87502c2ceda9b0bc15d245d49e47042e6bc758))
+
+## [1.11.0-dev.7](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.6...v1.11.0-dev.7) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* distinguish file types in supported version headings ([af47245](https://github.com/zeldrisho/morphe-patches/commit/af4724599e3e472ecb984a580531ab1407ccd264))
+
+### ✨ New Features
+
+* **zalo:** add in-app appearance controls ([f80fa48](https://github.com/zeldrisho/morphe-patches/commit/f80fa487bcd0cd297c0844edb7e58aaad010e80f)), closes [#55](https://github.com/zeldrisho/morphe-patches/issues/55) [#56](https://github.com/zeldrisho/morphe-patches/issues/56)
+
+## [1.11.0-dev.6](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.5...v1.11.0-dev.6) (2026-11-10)
+
+### ✨ New Features
+
+* **zalo:** add recall retention and customization controls ([b53e7af](https://github.com/zeldrisho/morphe-patches/commit/b53e7afee6e32454e1cd0cc5c3ccc7a016bfa9d9)), closes [#53](https://github.com/zeldrisho/morphe-patches/issues/53) [#54](https://github.com/zeldrisho/morphe-patches/issues/54) [#55](https://github.com/zeldrisho/morphe-patches/issues/55) [#56](https://github.com/zeldrisho/morphe-patches/issues/56) [#59](https://github.com/zeldrisho/morphe-patches/issues/59) [#60](https://github.com/zeldrisho/morphe-patches/issues/60) [#61](https://github.com/zeldrisho/morphe-patches/issues/61)
+
+## [1.11.0-dev.5](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.4...v1.11.0-dev.5) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* clarify per-patch compatibility ([9cc5c22](https://github.com/zeldrisho/morphe-patches/commit/9cc5c222c18afe2e71f2c22d5c8a6eb36f669642))
+
+## [1.11.0-dev.4](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.3...v1.11.0-dev.4) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **zalo:** resolve the version-specific Drive account refresh method ([d23cd9b](https://github.com/zeldrisho/morphe-patches/commit/d23cd9bae5252b732da7528051a5b69c110dde9f))
+
+## [1.11.0-dev.3](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.2...v1.11.0-dev.3) (2026-11-01)
+
+### 🐛 Bug Fixes
+
+* **zalo:** validate package rename counts per version ([abe1706](https://github.com/zeldrisho/morphe-patches/commit/abe17064712d31c86f63c6d56822e25f8c95e167)), closes [#51](https://github.com/zeldrisho/morphe-patches/issues/51)
+
+## [1.11.0-dev.2](https://github.com/zeldrisho/morphe-patches/compare/v1.11.0-dev.1...v1.11.0-dev.2) (2026-11-01)
+
+### ✨ New Features
+
+* **threads:** hide suggested account carousel ([0661c2a](https://github.com/zeldrisho/morphe-patches/commit/0661c2a63cb33a806e37d8e967c7722dfaa16677))
+* **zalo:** add backup and notification settings ([61b1889](https://github.com/zeldrisho/morphe-patches/commit/61b18891b91631c9c44ac2479d54ff2087f4fccd))
+
+## [1.11.0-dev.1](https://github.com/zeldrisho/morphe-patches/compare/v1.10.0...v1.11.0-dev.1) (2026-10-31)
+
+### ✨ New Features
+
+* **zalo:** add native navigation tab settings ([871f868](https://github.com/zeldrisho/morphe-patches/commit/871f8686eebe1acfd125ac37fd8c7011ea1f97d0))
+
 ## [1.10.0](https://github.com/zeldrisho/morphe-patches/compare/v1.9.0...v1.10.0) (2026-10-30)
 
 ### 🐛 Bug Fixes

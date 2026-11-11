@@ -1,0 +1,34 @@
+/* The e2e recordings' player (e2e-player.js): the Gherkin beside the video, the line the video is at highlighted, each
+   line's time a button, a bar of marks under the video. Everything is under .e2e-player, so it embeds in any page; the
+   page sets the colors' variables (--panel, --line, --text, --muted, --arc, --fail, --now). */
+.e2e-player { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.e2e-player .player { order: -1; display: flex; flex-direction: column; gap: 8px; max-width: 100%; }
+.e2e-player video { display: block; max-width: 100%; max-height: var(--video-height, calc(100vh - 160px)); background: #000;
+    border: 1px solid var(--line); border-radius: 8px; }
+.e2e-player .bar { position: relative; height: 14px; border-radius: 7px; background: var(--panel); border: 1px solid var(--line);
+    cursor: pointer; touch-action: none; }
+.e2e-player .bar .fill { position: absolute; inset: 0 auto 0 0; width: 0; border-radius: 7px; background: #2a4a63; pointer-events: none; }
+.e2e-player .bar .tick { position: absolute; top: 1px; bottom: 1px; width: 2px; margin-left: -1px; background: #fff; border-radius: 1px;
+    pointer-events: none; }
+.e2e-player .bar .tick.failed { background: var(--fail); }
+.e2e-player .gherkin { width: 100%; margin: 0; padding: 8px 0; list-style: none; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 8px; font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow: auto; }
+.e2e-player .gherkin li { display: flex; gap: 8px; padding: 1px 12px 1px 8px; border-left: 3px solid transparent; }
+.e2e-player .gherkin li.now { background: var(--now); border-left-color: var(--arc); }
+.e2e-player .gherkin li.failed { border-left-color: var(--fail); }
+.e2e-player .gherkin li.failed .text { color: var(--fail); }
+.e2e-player .gherkin .time { flex: none; width: 5ch; padding: 0; border: 0; background: none; color: var(--arc); font: inherit;
+    text-align: right; cursor: pointer; }
+.e2e-player .gherkin .time:hover, .e2e-player .gherkin .time:focus-visible { text-decoration: underline; outline: none; }
+.e2e-player .gherkin .spacer { flex: none; width: 5ch; }
+.e2e-player .gherkin .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.e2e-player .gherkin .keyword { color: var(--arc); font-weight: 600; }
+.e2e-player .gherkin .comment, .e2e-player .gherkin .tag { color: var(--muted); font-style: italic; }
+.e2e-player .gherkin .title { font-weight: 600; }
+.e2e-player .gherkin li.unreached .text { opacity: 0.55; }
+.e2e-player [hidden] { display: none !important; }
+@media (min-width: 900px) {
+    .e2e-player.with-gherkin { flex-direction: row; align-items: flex-start; justify-content: center; }
+    .e2e-player.with-gherkin .gherkin { flex: 1 1 0; min-width: 320px; max-height: var(--gherkin-height, calc(100vh - 110px)); }
+    .e2e-player.with-gherkin .player { order: 0; flex: none; }
+}

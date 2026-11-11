@@ -507,7 +507,7 @@ Adds Copy username to a selected comment's menu, for the account that wrote it.	
 Comment copied	Yorum kopyalandı
 Couldn't copy comment	Yorum kopyalanamadı
 Save comment photo	Yorum fotoğrafını kaydet
-Adds Save to a selected comment's menu when the comment has its own photo or GIF. Saves the largest size Instagram sent.	Kendi fotoğrafı veya GIF'i olan seçili bir yorumun menüsüne Kaydet seçeneğini ekler. Instagram'ın gönderdiği en büyük boyutu kaydeder.
+Press and hold a comment that has its own photo, GIF or sticker, and its menu gets Save. Saves the largest size Instagram sent.	Kendi fotoğrafı, GIF'i veya çıkartması olan bir yorumu basılı tutunca menüsüne Kaydet eklenir. Instagram'ın gönderdiği en büyük boyutu kaydeder.
 Reply with a comment's GIF	Yorumun GIF'iyle yanıtla
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	Bir yorumda GIF varsa menüsüne, aynı GIF'i animasyonlu olarak yanıtın olarak gönderen bir GIF yanıtı eklenir.
 Show a comment GIF's name	Yorumdaki GIF'in adını göster
@@ -585,6 +585,8 @@ Hide story rows	Hikaye satırlarını gizle
 Hides the rows of stories that Instagram puts between posts, like stories that are about to expire. Pull down on Home to refresh after changing it.	Instagram'ın gönderilerin arasına koyduğu, süresi dolmak üzere olan hikayeler gibi hikaye satırlarını gizler. Değiştirdikten sonra yenilemek için Ana Sayfa'yı aşağı çek.
 Hide the caught up card	Hepsini gördün kartını gizle
 Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, only that line goes and the link stays. Pull down on Home to refresh after changing it.	Takip ettiğin hesapların gönderilerinden sonra gelen, en yenilerini gördüğünü söyleyen kartı ve onun Eski gönderiler bağlantısını gizler. Ana Sayfa'da hiç yeni gönderi yoksa yalnızca o yazı gider, bağlantı kalır. Değiştirdikten sonra yenilemek için Ana Sayfa'yı aşağı çek.
+Hide the Join bar on channel posts	Kanal gönderilerindeki Katıl çubuğunu gizle
+Hides the bar under a post that asks you to join the account's channel. The post stays.	Bir gönderinin altında seni hesabın kanalına katılmaya çağıran çubuğu gizler. Gönderi kalır.
 Instagram is locked	Instagram kilitli
 Instagram locks as soon as you leave it or the screen turns off.	Instagram'dan çıktığın veya ekran kapandığı anda Instagram kilitlenir.
 Instagram locks once you've been away from it for %1$s.	Instagram'dan %1$s boyunca uzak kaldığında Instagram kilitlenir.
@@ -597,6 +599,7 @@ Puts every notification from Instagram in one group that shows how many it holds
 Right away	Hemen
 Set a phone screen lock so HushGram can lock Instagram.	Instagram'ı kilitlemek için ekran kilidi kur.
 Set a phone screen lock so HushGram can lock messages.	Mesajları kilitlemek için ekran kilidi kur.
+Set a phone screen lock so HushGram can lock Saved.	Kaydedilenler'i kilitlemek için ekran kilidi kur.
 Hides the cards between posts that ask you to rate what you saw.	Gönderiler arasında gördüklerini puanlamanı isteyen kartları gizler.
 Hides the rows of products to shop and live shopping that Instagram puts between posts, and the shop tiles in Explore. Posts with tagged products don't show the shopping bag.	Instagram'ın gönderiler arasına koyduğu alışveriş ürünü satırlarını ve canlı alışverişi, ayrıca Keşfet'teki mağaza kutucuklarını gizler. Ürün etiketli gönderilerde alışveriş çantası görünmez.
 Unlock	Kilidi aç
@@ -706,6 +709,9 @@ No other way into HushGram is on, so the row stays in Instagram's menu.	HushGram
 Instagram's Settings and activity screen leaves out the HushGram row while another way here opens HushGram. With every other way off, the row comes back.	Buraya gelen başka bir yol HushGram'ı açtığı sürece Instagram'ın Ayarlar ve hareketler ekranında HushGram satırı gösterilmez. Diğer bütün yollar kapalıyken satır geri gelir.
 Stop loading stories and highlights	Hikayeleri ve öne çıkanları yükleme
 Takes the Comment button and the comment count off the posts in your feed.	Akışındaki gönderilerden Yorum yap düğmesini ve yorum sayısını kaldırır.
+# context: Comments: a second Hide comments switch that takes the Reply button off each comment in a comment sheet (#619). Reply and View more replies are Instagram's own labels under a comment; use this language's Instagram words for them.
+Hide Reply on comments	Yorumlarda Yanıtla'yı gizle
+Takes Reply off each comment in a post's or reel's comments. View more replies stays, so you can still open them.	Bir gönderinin ya da reels videosunun yorumlarında her yorumdan Yanıtla'yı kaldırır. Diğer yanıtları gör yerinde kalır, yani yanıtları yine açabilirsin.
 # context: Comments: the switch that hides the row of quick emoji above the comment box (#248). Comment box is the field where you type a comment.
 Hide the emoji row	Emoji satırını gizle
 Takes the row of quick emoji off above the comment box. The box itself stays.	Yorum kutusunun üstündeki hızlı emoji satırını kaldırır. Kutunun kendisi kalır.
@@ -755,12 +761,13 @@ Ask before a like	Beğenmeden önce sor
 Ask before a refresh	Yenilemeden önce sor
 Continue	Devam et
 Like or unlike this post?	Bu gönderiyi beğen veya beğenmekten vazgeç?
+Like or unlike this comment?	Bu yorumu beğen veya beğenmekten vazgeç?
 Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on screen.	Aşağı çekmenin Ana Sayfa'yı, Reels'i veya başka bir listeyi yenilemesinden önce sorar. İptal, ekrandakini korur.
 Skip the collections tray	Koleksiyonlar panelini atla
 Saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection.	Bir gönderiyi veya Reels videosunu kaydettiğinde, koleksiyon oluşturmanı isteyen panel yerine Instagram yalnızca kaydedildiğini söyleyen mesajı gösterir.
 Refresh	Yenile
 Refresh this list?	Bu liste yenilensin mi?
-Asks before the Like button under a post likes or unlikes it, so a stray tap doesn't do it for you. Double taps aren't asked about.	Bir gönderinin altındaki Beğen düğmesi beğenmeden veya beğeniyi geri almadan önce sorar, böylece yanlışlıkla dokunma bunu yapmaz. Çift dokunuşta sorulmaz.
+Asks before the Like button under a post, on a reel or on a comment likes or unlikes it, so a stray tap doesn't do it for you. Double taps aren't asked about.	Bir gönderinin altındaki, bir reel'deki veya bir yorumdaki Beğen düğmesi beğenmeden veya beğeniyi geri almadan önce sorar, böylece yanlışlıkla dokunma bunu yapmaz. Çift dokunuşta sorulmaz.
 Adds a row next to Download on a reel and a feed video that plays it in an app you pick, such as VLC. The player streams it from Instagram's servers.	Bir Reels videosunda ve akıştaki bir videoda İndir'in yanına, onu VLC gibi seçtiğin bir uygulamada oynatan bir satır ekler. Oynatıcı videoyu Instagram'ın sunucularından akışla oynatır.
 Couldn't open another player	Başka bir oynatıcı açılamadı
 No app on this phone can play this video	Bu telefonda bu videoyu oynatabilecek bir uygulama yok
@@ -1044,6 +1051,13 @@ A swipe up on someone's story no longer opens the reply box and its reactions. T
 # context: Stories switch; Send message is Instagram's reply field at the bottom of someone else's story, beside its heart (like) and share buttons. Use Instagram's own label for it.
 Hide the reply box on stories	Hikayelerde yanıt kutusunu gizle
 Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are.	Başkalarının hikayelerinin altındaki Mesaj gönder kutusunu kaldırır. Yanındaki beğen ve paylaş düğmeleri yerinde kalır.
+# context: Stories switches; Like (the heart), Comment (the speech bubble) and Share (the paper plane) are Instagram's buttons at the bottom of someone else's story, beside the Send message box. Use Instagram's own labels for them.
+Hide the Like button on stories	Hikayelerde Beğen düğmesini gizle
+Takes the heart off the bottom of other people's stories, so nothing gets liked by mistake. No empty space is left behind.	Başkalarının hikayelerinin altındaki kalbi kaldırır, böylece yanlışlıkla hiçbir şey beğenilmez. Boşluk kalmaz.
+Hide the Comment button on stories	Hikayelerde Yorum Yap düğmesini gizle
+Takes the Comment button off the bottom of other people's stories that have one. No empty space is left behind.	Başkalarının hikayelerinin altındaki Yorum Yap düğmesini, olan hikayelerde kaldırır. Boşluk kalmaz.
+Hide the Share button on stories	Hikayelerde Paylaş düğmesini gizle
+Takes the paper plane off the bottom of other people's stories. No empty space is left behind.	Başkalarının hikayelerinin altındaki kağıt uçağı kaldırır. Boşluk kalmaz.
 # context: toast when Download all is tapped while another post is still saving; it waits its turn
 Queued. It starts once the post before it is saved.	Sırada. Önceki gönderi kaydedilince başlayacak.
 # context: toast when Download all is tapped but the waiting line is already full; %1$d is the number waiting
@@ -1622,6 +1636,10 @@ The screens asking you to sync your contacts and turn on location services stop 
 Skip the ad data reminder	Reklam verisi hatırlatıcısını atla
 # context: summary under that switch
 Instagram's reminder to review whether it can process your data for ads stops opening by itself. Your ad choice doesn't change, and nothing is answered for you.	Instagram'ın verilerini reklamlar için işleyip işleyemeyeceğini gözden geçirmeni isteyen hatırlatıcısı artık kendiliğinden açılmaz. Reklam tercihin değişmez ve senin yerine hiçbir şey yanıtlanmaz.
+# context: Ads and privacy settings: switch that stops Instagram reading where the photos and videos in your gallery were taken, from the files and their EXIF (#628)
+Keep photo locations from Instagram	Fotoğraf konumlarını Instagram'dan gizle
+# context: summary under that switch
+Instagram can't read where the photos and videos in your gallery were taken.	Instagram, galerindeki fotoğrafların ve videoların nerede çekildiğini okuyamaz.
 # context: Playback settings: switch that stops feed videos and reels from playing again from the start when they end (#248, #175)
 Stop videos looping	Videoları tekrarlama
 # context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
@@ -1917,7 +1935,7 @@ Save in the post menu	Gönderi menüsünde Kaydet
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	Bir gönderinin üç noktasının açtığı menüye Kaydet ekler, zaten kaydettiysen Kaydedilenlerden kaldır ekler.
 Hide the Save button	Kaydet düğmesini gizle
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	Akışındaki gönderilerin altındaki Kaydet düğmesini kaldırır, böylece yanlışlıkla bir dokunuş hiçbir şeyi kaydetmez.
-# context: the row in a feed post's three-dot menu for a post you already saved
+# context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	Kaydedilenlerden kaldır
 # context: a switch on the Reels page
 Hide lives in Reels	Reels'te canlı yayınları gizle
@@ -1963,3 +1981,123 @@ The camera, as Instagram has it. Pick a tab and the same swipe opens that tab in
 A swipe right on Home opens %1$s. The + button still opens the camera.	Ana sayfada sağa kaydırma %1$s sekmesini açar. + düğmesi kamerayı açmaya devam eder.
 Keep the tab bar on a reel's profile	Bir reel profilinde sekme çubuğunu koru
 A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	Bir reel üzerinden açtığın profil bulunduğun sekmede kalır ve altında sekme çubuğu görünür. Geri, reel'e döndürür.
+Mute button on reels	Reels'te ses düğmesi
+Puts a speaker icon beside a reel. Tap it to turn the sound off or on while the reel keeps playing.	Bir reel'in yanına hoparlör simgesi koyar. Reel oynamaya devam ederken sesi kapatmak ya da açmak için dokun.
+Mute button in clear mode	Temiz modda ses düğmesi
+Keeps the speaker icon next to clear mode's exit button.	Hoparlör simgesini temiz moddan çıkış düğmesinin yanında tutar.
+# context: TalkBack label of the speaker icon beside a reel and next to clear mode's exit button (#608)
+Sound	Ses
+# context: toast when a tap on the speaker icon couldn't reach the reel's sound (#608)
+Sound didn't change	Ses değişmedi
+# context: Stories switch that moves the row along a story's bottom (Send message box, like, share) off the story at a large font (#598)
+Keep story buttons below the story	Hikaye düğmelerini hikayenin altında tut
+With a large font or display size, the reply box and buttons at the bottom of a story sit in the space under it instead of covering the story.	Yazı tipi veya ekran boyutu büyükken, bir hikayenin altındaki yanıt kutusu ve düğmeler hikayeyi kapatmak yerine altındaki boşlukta durur.
+# context: switch under Hidden accounts; Favorites, For you and Following are Instagram's Home feed choices (#601)
+Keep hidden accounts in Favorites	Gizli hesapları Favoriler'de tut
+Posts from your hidden accounts still show in Favorites. For you and Following leave them out. Pull down on Home to refresh after changing it.	Gizli hesaplarının gönderileri Favoriler'de görünmeye devam eder. Senin için ve Takip Edilenler onları göstermez. Değiştirdikten sonra yenilemek için Ana Sayfa'yı aşağı çek.
+# context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
+Lock Saved	Kaydedilenler'i kilitle
+Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	Parmak izin, yüzün veya ekran kilidin sen olduğunu doğrulayana kadar Kaydedilenler ve içindeki her şey kapalı kalır.
+Saved is locked	Kaydedilenler kilitli
+Unlock Saved	Kaydedilenler'in kilidini aç
+# context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)
+Loop this video	Bu videoyu tekrarla
+Stop looping this video	Bu videoyu tekrarlamayı durdur
+# context: toasts after tapping Loop this video or Stop looping this video (#610)
+Looping this video	Bu video tekrarlanıyor
+This video plays once	Bu video bir kez oynatılır
+Loop didn't change	Tekrar değişmedi
+# context: second sentence of the Stop videos looping summary in HushGram settings > Playback; names the menu row Loop this video (#610)
+To loop one video anyway, tap Loop this video in its menu.	Yine de tek bir videoyu tekrarlamak için menüsünde Bu videoyu tekrarla'ya dokun.
+# context: row in a story's three-dot menu while Loop a story is off; makes only the story on screen play again from the start when it ends (#610)
+Loop this story	Bu hikayeyi tekrarla
+Stop looping this story	Bu hikayeyi tekrarlamayı durdur
+# context: toasts after tapping Loop this story or Stop looping this story (#610)
+Looping this story	Bu hikaye tekrarlanıyor
+This story plays once	Bu hikaye bir kez oynatılır
+# context: last sentence of the Loop a story summary in HushGram settings > Stories; names the menu row Loop this story (#610)
+To loop one story, tap Loop this story in its menu.	Tek bir hikayeyi tekrarlamak için menüsünde Bu hikayeyi tekrarla'ya dokun.
+# context: switch in HushGram settings > Feed; removes posts whose author is a business or creator (professional) Instagram account from Home (#579)
+Hide posts from business and creator accounts	İşletme ve içerik üreticisi hesaplarının gönderilerini gizle
+Removes posts by business and creator accounts from Home and Following, friends who use one included. Pull down on Home to refresh after changing it.	İşletme ve içerik üreticisi hesaplarının gönderilerini, bu hesaplardan birini kullanan arkadaşların dahil, Ana Sayfa'dan ve Takip Edilenler'den kaldırır. Değiştirdikten sonra yenilemek için Ana Sayfa'yı aşağı çek.
+# context: added after the summary of Hide posts from business and creator accounts; Favorites is the feed of accounts you picked at the top of Home (#579)
+Favorites still shows them.	Favoriler onları göstermeye devam eder.
+# context: switch in HushGram settings > Profiles; keeps the username, bio and profile picture of each profile opened, on the phone, and says when one changed (#611)
+Keep profile history	Profil geçmişi tut
+Remembers the username, bio and profile picture of each profile you open, on this phone only, and tells you when one changed since your last visit. Pictures are copied from Instagram's image servers. Turn it off and it stops at once.	Açtığın her profilin kullanıcı adını, biyografisini ve profil fotoğrafını yalnızca bu telefonda hatırlar ve son ziyaretinden beri bir şey değiştiyse sana söyler. Fotoğraflar Instagram'ın görsel sunucularından kopyalanır. Kapatırsan hemen durur.
+# context: row and page title in HushGram settings > Profiles listing the old usernames, bios and profile pictures Keep profile history saw replaced (#611)
+Profile changes	Profil değişiklikleri
+Nothing here yet. With Keep profile history on, the old usernames, bios and pictures of profiles you open show up here.	Henüz bir şey yok. Profil geçmişi tut açıkken, açtığın profillerin eski kullanıcı adları, biyografileri ve fotoğrafları burada görünür.
+# context: last line of the Profile changes row; %1$d is how many old values are listed (#611)
+Tap to see all %1$d, or search them.	%1$d değişikliğin hepsini görmek veya aramak için dokun.
+# context: a row on the Profile changes page; %1$s is the account's old username, %2$s Android's relative time of the change, like 2 days ago (#611)
+Was @%1$s, %2$s	Önceden @%1$s, %2$s
+# context: a row on the Profile changes page; %s is Android's relative time of the change, like 2 days ago (#611)
+Old profile picture, %s	Eski profil fotoğrafı, %s
+Old bio, %s	Eski biyografi, %s
+Clear profile history	Profil geçmişini temizle
+Forgets every username, bio and picture on the list, for all your accounts. The switch stays as it is.	Listedeki tüm kullanıcı adlarını, biyografileri ve fotoğrafları tüm hesapların için unutur. Anahtar olduğu gibi kalır.
+Profile history cleared.	Profil geçmişi temizlendi.
+Couldn't clear the profile history. Try again.	Profil geçmişi temizlenemedi. Tekrar dene.
+# context: toast when a profile opened has a different username than last time; %s is the old username (#611)
+Used to be @%s	Eskiden @%s idi
+# context: toast when a profile opened has a new profile picture and bio since last time (#611)
+New profile picture and bio	Yeni profil fotoğrafı ve biyografi
+New profile picture	Yeni profil fotoğrafı
+Their bio changed	Biyografisi değişti
+# context: Profiles > title of the switch that hides the Threads badge under the bio on other people's profiles (#627)
+Hide the Threads badge	Threads rozetini gizle
+# context: Profiles > summary of Hide the Threads badge (#627)
+Takes the Threads badge from under the bio on other people's profiles. Yours keeps it.	Başkalarının profillerinde biyografinin altındaki Threads rozetini kaldırır. Seninki onu korur.
+# context: Profiles > title of the switch that hides links to someone's Facebook profile, page or group under their bio (#627)
+Hide Facebook links	Facebook bağlantılarını gizle
+# context: Profiles > summary of Hide Facebook links (#627)
+Takes the links to someone's Facebook profile, page or group from under their bio. Yours keeps them.	Birinin Facebook profiline, sayfasına veya grubuna giden bağlantıları biyografisinin altından kaldırır. Seninki onları korur.
+# context: Profiles > title of the switch that hides the WhatsApp link under someone's bio (#627)
+Hide the WhatsApp link	WhatsApp bağlantısını gizle
+# context: Profiles > summary of Hide the WhatsApp link (#627)
+Takes the link to someone's WhatsApp from under their bio. Yours keeps it.	Birinin WhatsApp'ına giden bağlantıyı biyografisinin altından kaldırır. Seninki onu korur.
+# context: Profiles > title of the switch that hides the song someone picked for their profile (#627)
+Hide the profile song	Profil şarkısını gizle
+# context: Profiles > summary of Hide the profile song (#627)
+Takes the song someone picked for their profile from under their bio. Yours keeps it.	Birinin profili için seçtiği şarkıyı biyografisinin altından kaldırır. Seninki onu korur.
+# context: Profiles > title of the switch that hides the interests (activities) someone lists under their bio (#627)
+Hide interests	İlgi alanlarını gizle
+# context: Profiles > summary of Hide interests (#627)
+Takes the interests someone added, like reading or hiking, from under their bio. Yours keeps them.	Birinin eklediği, okuma veya yürüyüş gibi ilgi alanlarını biyografisinin altından kaldırır. Seninki onları korur.
+# context: Profiles > title of the switch that hides the invite to someone's broadcast channel under their bio (#627)
+Hide channel invites	Kanal davetlerini gizle
+# context: Profiles > summary of Hide channel invites (#627)
+Takes the invite to someone's broadcast channel from under their bio. Yours keeps it.	Birinin yayın kanalına davetini biyografisinin altından kaldırır. Seninki onu korur.
+# context: Profiles > title of the switch that hides every other banner under the bio on other people's profiles (#627)
+Hide the other profile banners	Diğer profil afişlerini gizle
+# context: Profiles > summary of Hide the other profile banners (#627)
+Takes the rest of the banners under the bio off other people's profiles, like events, fundraisers, schools and business hours. Yours keeps them.	Başkalarının profillerinde biyografinin altındaki diğer afişleri, örneğin etkinlikleri, bağış kampanyalarını, okulları ve çalışma saatlerini kaldırır. Seninki onları korur.
+# context: the row HushGram adds to the menu on someone's profile; it puts the account on the Saved profiles list (#629)
+Save profile	Profili kaydet
+# context: toast after Save profile; %s is the account's username (#629)
+Saved @%s	@%s kaydedildi
+# context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
+Removed @%s from saved	@%s kaydedilenlerden kaldırıldı
+# context: toast when the Saved profiles list already holds 2,000 accounts (#629)
+Saved profiles is full.	Kaydedilen profiller listesi dolu.
+# context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
+Saved profiles	Kaydedilen profiller
+# context: Profiles > summary of Saved profiles; Favorites and Following are Instagram's own lists of accounts (#629)
+Adds Save profile to the menu on someone's profile, even one you don't follow. The list stays on this phone, apart from Instagram's Favorites and Following.	Başkalarının profilindeki menüye Profili kaydet seçeneğini ekler, takip etmediğin hesaplarda da. Liste bu telefonda kalır, Instagram'ın Favoriler ve Takip Edilenler listelerinden ayrıdır.
+# context: row in HushGram settings > Profiles that opens the page of saved accounts (#629)
+Your saved profiles	Kaydettiğin profiller
+# context: summary of Your saved profiles, and the Saved profiles page's text, when nothing is saved (#629)
+Nothing saved yet. With Saved profiles on, tap Save profile in the menu on someone's profile and it shows up here.	Henüz kaydedilen bir şey yok. Kaydedilen profiller açıkken birinin profilindeki menüde Profili kaydet'e dokun, burada görünür.
+# context: spoken label of the cross at the end of a row on the Saved profiles page; %s is the account's username (#629)
+Remove @%s from saved	@%s hesabını kaydedilenlerden kaldır
+# context: Profiles > title of the switch that asks before a Follow or Follow back button follows someone (#631)
+Ask before a follow	Takip etmeden önce sor
+# context: Profiles > summary of Ask before a follow; Follow, Follow back, Followers and Following are Instagram's own button and list names (#631)
+Asks before a Follow or Follow back button follows someone or sends them a request, so a stray tap on a profile or in a Followers or Following list doesn't do it for you.	Takip Et veya Geri Takip Et düğmesi birini takip etmeden ya da istek göndermeden önce sorar, böylece bir profilde veya Takipçiler ya da Takip edilenler listesinde yanlışlıkla dokunmak bunu senin yerine yapmaz.
+# context: Title of the question Ask before a follow puts up; %1$s is the account's username (#631)
+Follow @%1$s?	@%1$s takip edilsin mi?
+# context: Title of the question Ask before a follow puts up when the username can't be read (#631)
+Follow this account?	Bu hesap takip edilsin mi?
+# context: The question's confirm button; Instagram's own Follow button label (#631)
+Follow	Takip Et

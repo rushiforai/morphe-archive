@@ -16,6 +16,17 @@ pluginManagement {
     }
 }
 
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Use the AGP release with Gradle 10 compatibility fixes on Morphe's plugin classpath.
+        classpath("com.android.tools.build:gradle:9.5.0")
+    }
+}
+
 plugins {
     id("app.morphe.patches") version "1.3.4"
 }

@@ -73,8 +73,11 @@ jobs:
             --pattern calendar-23-foss-release.apk --dir "$RUNNER_TEMP/calendar-input"
           gh release download 1.12.1 --repo FossifyOrg/Calendar \
             --pattern calendar-24-foss-release.apk --dir "$RUNNER_TEMP/calendar-input"
+          gh release download 1.12.2 --repo FossifyOrg/Calendar \
+            --pattern calendar-25-foss-release.apk --dir "$RUNNER_TEMP/calendar-input"
           echo "CALENDAR_ORIGINAL_120=$RUNNER_TEMP/calendar-input/calendar-23-foss-release.apk" >> "$GITHUB_ENV"
           echo "CALENDAR_ORIGINAL_121=$RUNNER_TEMP/calendar-input/calendar-24-foss-release.apk" >> "$GITHUB_ENV"
+          echo "CALENDAR_ORIGINAL_122=$RUNNER_TEMP/calendar-input/calendar-25-foss-release.apk" >> "$GITHUB_ENV"
 
       - name: Verify same-size Finamp native writes
         env:

@@ -859,17 +859,17 @@ public final class KayoPatch {
         }
         try {
             Class<?> clazz = loadControl.getClass();
-            // 1.5s fast-startup buffer for immediate 1080p50/4K50 time-to-first-frame
-            setFieldSafe(clazz, loadControl, "bufferForPlaybackUs", 1_500_000L);
-            // 3.0s rebuffer recovery threshold
-            setFieldSafe(clazz, loadControl, "bufferForPlaybackAfterRebufferUs", 3_000_000L);
-            // 50s min / 120s max forward buffer and 30s keyframe-aligned back buffer
-            setFieldSafe(clazz, loadControl, "minBufferUs", 50_000_000L);
-            setFieldSafe(clazz, loadControl, "maxBufferUs", 120_000_000L);
-            setFieldSafe(clazz, loadControl, "backBufferDurationUs", 30_000_000L);
+            // 3.0s startup buffer for immediate 1080p50 time-to-first-frame without initial underflow
+            setFieldSafe(clazz, loadControl, "bufferForPlaybackUs", 3_000_000L);
+            // 6.0s rebuffer recovery threshold so playback never enters rapid rebuffer cycles
+            setFieldSafe(clazz, loadControl, "bufferForPlaybackAfterRebufferUs", 6_000_000L);
+            // 20s min / 40s max forward buffer and 10s keyframe-aligned back buffer
+            setFieldSafe(clazz, loadControl, "minBufferUs", 20_000_000L);
+            setFieldSafe(clazz, loadControl, "maxBufferUs", 40_000_000L);
+            setFieldSafe(clazz, loadControl, "backBufferDurationUs", 10_000_000L);
             setFieldSafe(clazz, loadControl, "retainBackBufferFromKeyframe", true);
             setFieldSafe(clazz, loadControl, "prioritizeTimeOverSizeThresholds", true);
-            android.util.Log.i("MorpheKayo", "Configured DefaultLoadControl: playback=1.5s, rebuffer=3s, min=50s, max=120s, back=30s");
+            android.util.Log.i("MorpheKayo", "Configured DefaultLoadControl: playback=3s, rebuffer=6s, min=20s, max=40s, back=10s");
         } catch (Throwable t) {
             android.util.Log.e("MorpheKayo", "Error in configureDefaultLoadControl", t);
         }
@@ -979,6 +979,10 @@ public final class KayoPatch {
      * TV hook: Clamps the bandwidth estimate reported to JS via Notificator.onBandwidthSample
      * to at least 80 Mbps so the web player never reacts to transient segment download dips.
      */
+    public static long getInitialBitrateEstimate() {
+        return 80_000_000L;
+    }
+
     public static long overrideReportedBandwidth(long bitrateEstimate) {
         return Math.max(bitrateEstimate, 80_000_000L);
     }

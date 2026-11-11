@@ -1,4 +1,4 @@
-name: 🐞 Bug report
+name: 🐞 Bug Report
 description: Report a bug or an issue.
 title: "bug: "
 labels: ["Bug report"]
@@ -6,34 +6,23 @@ body:
   - type: markdown
     attributes:
       value: |
-        # Brokenn Patches bug report
-
-        Before creating a new bug report, please keep the following in mind:
-
-        - **Do not submit a duplicate bug report**: Search existing reports [here](https://github.com/vippium/brokenn-patches/issues?q=label%3A%22Bug+report%22).
-        - **Review the contribution guidelines** before submitting a report.
+        - Search open and closed issues first.
+        - Report one bug per issue. Keep the title prefix unchanged.
   - type: textarea
     attributes:
       label: Bug description
-      description: |
-        - Describe your bug in detail
-        - Add steps to reproduce the bug if possible (Step 1. ... Step 2. ...)
-        - Add images and videos if possible
+      description: Include expected behavior, actual behavior, and steps to reproduce.
     validations:
       required: true
   - type: textarea
     attributes:
       label: Error logs
-      description: Exceptions can be captured by running `logcat | grep AndroidRuntime` in a shell.
+      description: Paste relevant logs, if available.
       render: shell
   - type: textarea
     attributes:
       label: Solution
       description: If applicable, add a possible solution to the bug.
-  - type: textarea
-    attributes:
-      label: Additional context
-      description: Add additional context here.
   - type: checkboxes
     id: acknowledgements
     attributes:

@@ -32,7 +32,7 @@ metadata_version = bundle["version"]
 
 # Generated Morphe metadata is owned by semantic-release, not edited by hand.
 # Immediately before the explicitly approved manual release, the Gradle
-# version may be exactly one patch ahead of the last published metadata.
+# version may be the next patch or next minor release after published metadata.
 if version != metadata_version:
     require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) is not None,
             "Only a stable patch release candidate may be staged")
@@ -40,8 +40,9 @@ if version != metadata_version:
             "Published metadata must be a stable version")
     new = tuple(int(x) for x in version.split("."))
     old = tuple(int(x) for x in metadata_version.split("."))
-    require(new[:2] == old[:2] and new[2] == old[2] + 1,
-            "Release candidate must be exactly one patch version newer")
+    require((new[:2] == old[:2] and new[2] == old[2] + 1)
+            or (new[0] == old[0] and new[1] == old[1] + 1 and new[2] == 0),
+            "Release candidate must be the next patch or next minor version")
     require((ROOT / ".github" / "release-notes" / f"v{version}.md").is_file(),
             "Approved release notes missing")
     exists = subprocess.run(

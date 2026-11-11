@@ -29,8 +29,8 @@ public sealed class SearchCommentsTests : BaseE2E
           And the post "Long thread" has 500 comments, "Comment 1" to "Comment 500"
           And the comment "Comment 2" has the replies "Reply 1 to Comment 2", "Reply 2 to Comment 2" and "Reply 3 to Comment 2"
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap the post "Breakfast"
           Then "Search comments" sits right before "COLLAPSE ALL"
           When I tap "Search comments"
@@ -78,8 +78,8 @@ public sealed class SearchCommentsTests : BaseE2E
         Reddit.HasAPost("Long thread", "e2e");
         Reddit.ThePost("Long thread").HasComments(500);
         Reddit.ThePost("Long thread").TheComment("Comment 2").HasTheReplies("Reply 1 to Comment 2", "Reply 2 to Comment 2", "Reply 3 to Comment 2");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Posts.ClickPostAsync("Breakfast");
@@ -172,7 +172,9 @@ public sealed class SearchCommentsTests : BaseE2E
         // Then
         // Its replies are behind "load more comments (3 replies)", not loaded yet.
         var notLoaded = await Phone.BaconReader.Detail.CommentSearch.ReadAsync();
-        Asserting.That(notLoaded).ShowsTheCount("0/0").OffersSearchAll();
+        Asserting.That(notLoaded)
+            .ShowsTheCount("0/0")
+            .OffersSearchAll();
 
         // When
         await Phone.BaconReader.Detail.CommentSearch.ClickSearchAllAsync();

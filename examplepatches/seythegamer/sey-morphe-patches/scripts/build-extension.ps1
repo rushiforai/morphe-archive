@@ -6,6 +6,8 @@
 #   extension\dex\kick-chatsize\classes.dex     - CHAT SIZE feature module
 #   extension\dex\kick-chattext\classes.dex     - CHAT TEXT SIZE feature module
 #   extension\dex\kick-chatexpand\classes.dex   - EXPAND CHAT feature module
+#   extension\dex\kick-hidepinned\classes.dex   - HIDE PINNED feature module
+#   extension\dex\kick-maturewarning\classes.dex - SKIP 18+ WARNING feature module
 #
 # Twitch (Android TV):
 #   extension\dex\twitch-seyttings\classes.dex  - base SEYTTINGS module
@@ -13,10 +15,14 @@
 #   extension\dex\twitch-expandchat\classes.dex - EXPAND CHAT feature module
 #   extension\dex\twitch-adblock\classes.dex    - AD BLOCK feature module
 #   extension\dex\twitch-amoled\classes.dex     - AMOLED feature module
+#   extension\dex\twitch-maturewarning\classes.dex - SKIP 18+ WARNING feature module
+#   extension\dex\twitch-hidepinned\classes.dex - HIDE PINNED feature module
 #
-# The AD BLOCK and AMOLED scripts live in extension\js. This script turns them
-# into AdBlockScript.java and AmoledScript.java (String arrays) before
-# compiling, so the Java sources stay readable and the DEX carries the script.
+# The AD BLOCK, AMOLED, SKIP 18+ WARNING and HIDE PINNED scripts live in
+# extension\js. This script turns them into AdBlockScript.java,
+# AmoledScript.java, MatureWarningScript.java and PinnedChatScript.java (String
+# arrays) before compiling, so the Java sources stay readable and the DEX
+# carries the script.
 [CmdletBinding()]
 param()
 
@@ -150,15 +156,21 @@ $kickEmoteSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\emotes'
 $kickChatSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\chat'
 $kickChatTextSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\chattext'
 $kickChatExpandSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\chatexpand'
+$kickHidePinnedSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\hidepinned'
+$kickMatureWarningSrc = Join-Path $srcRoot 'app\morphe\extension\kicktv\maturewarning'
 
 $twitchBaseSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\base'
 $twitchEmoteSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\emotes'
 $twitchExpandChatSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\expandchat'
 $twitchAdBlockSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\adblock'
 $twitchAmoledSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\amoled'
+$twitchMatureWarningSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\maturewarning'
+$twitchHidePinnedSrc = Join-Path $srcRoot 'app\morphe\extension\twitch\hidepinned'
 
 $adBlockGeneratedRoot = Join-Path $generatedRoot 'adblock'
 $amoledGeneratedRoot = Join-Path $generatedRoot 'amoled'
+$matureWarningGeneratedRoot = Join-Path $generatedRoot 'maturewarning'
+$hidePinnedGeneratedRoot = Join-Path $generatedRoot 'hidepinned'
 
 $adBlockScript = New-JsSource `
     -JsPath (Join-Path $script:RepoRoot 'extension\js\twitch-adblock.js') `
@@ -176,6 +188,24 @@ $amoledScript = New-JsSource `
     -ClassName 'AmoledScript'
 if (-not (Test-Path $amoledScript)) {
     throw "Failed to generate $amoledScript."
+}
+
+$matureWarningScript = New-JsSource `
+    -JsPath (Join-Path $script:RepoRoot 'extension\js\twitch-maturewarning.js') `
+    -OutDir $matureWarningGeneratedRoot `
+    -Package 'app.morphe.extension.twitch.maturewarning' `
+    -ClassName 'MatureWarningScript'
+if (-not (Test-Path $matureWarningScript)) {
+    throw "Failed to generate $matureWarningScript."
+}
+
+$hidePinnedScript = New-JsSource `
+    -JsPath (Join-Path $script:RepoRoot 'extension\js\twitch-hidepinned.js') `
+    -OutDir $hidePinnedGeneratedRoot `
+    -Package 'app.morphe.extension.twitch.hidepinned' `
+    -ClassName 'PinnedChatScript'
+if (-not (Test-Path $hidePinnedScript)) {
+    throw "Failed to generate $hidePinnedScript."
 }
 
 $kickBaseClasses = Join-Path $classesRoot 'kick-base'
@@ -203,6 +233,14 @@ Build-Module -Label 'KICK expand chat' -SourceDir $kickChatExpandSrc `
     -ClassesDir (Join-Path $classesRoot 'kick-chatexpand') `
     -DexDir (Join-Path $dexRoot 'kick-chatexpand') -BaseClasses $kickBaseClasses
 
+Build-Module -Label 'KICK hide pinned' -SourceDir $kickHidePinnedSrc `
+    -ClassesDir (Join-Path $classesRoot 'kick-hidepinned') `
+    -DexDir (Join-Path $dexRoot 'kick-hidepinned') -BaseClasses $kickBaseClasses
+
+Build-Module -Label 'KICK mature warning' -SourceDir $kickMatureWarningSrc `
+    -ClassesDir (Join-Path $classesRoot 'kick-maturewarning') `
+    -DexDir (Join-Path $dexRoot 'kick-maturewarning') -BaseClasses $kickBaseClasses
+
 Build-Module -Label 'Twitch emotes' -SourceDir $twitchEmoteSrc `
     -ClassesDir (Join-Path $classesRoot 'twitch-emotes') `
     -DexDir (Join-Path $dexRoot 'twitch-emotes') -BaseClasses $twitchBaseClasses
@@ -218,3 +256,11 @@ Build-Module -Label 'Twitch ad block' -SourceDir @($twitchAdBlockSrc, $adBlockGe
 Build-Module -Label 'Twitch amoled' -SourceDir @($twitchAmoledSrc, $amoledGeneratedRoot) `
     -ClassesDir (Join-Path $classesRoot 'twitch-amoled') `
     -DexDir (Join-Path $dexRoot 'twitch-amoled') -BaseClasses $twitchBaseClasses
+
+Build-Module -Label 'Twitch mature warning' -SourceDir @($twitchMatureWarningSrc, $matureWarningGeneratedRoot) `
+    -ClassesDir (Join-Path $classesRoot 'twitch-maturewarning') `
+    -DexDir (Join-Path $dexRoot 'twitch-maturewarning') -BaseClasses $twitchBaseClasses
+
+Build-Module -Label 'Twitch hide pinned' -SourceDir @($twitchHidePinnedSrc, $hidePinnedGeneratedRoot) `
+    -ClassesDir (Join-Path $classesRoot 'twitch-hidepinned') `
+    -DexDir (Join-Path $dexRoot 'twitch-hidepinned') -BaseClasses $twitchBaseClasses

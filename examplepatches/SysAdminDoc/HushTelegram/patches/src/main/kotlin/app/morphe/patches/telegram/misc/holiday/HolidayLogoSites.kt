@@ -466,6 +466,8 @@ internal fun BytecodePatchContext.resolveHolidayLogoSites(holiday: HolidayLookSi
     // The window's registers, read once from the stock code and then pinned by it.
     val half = title[logo + 4].namedRegisters().singleOrNull() ?: refuse("no logo inset register")
     val left = title[logo + 6].namedRegisters().singleOrNull() ?: refuse("no logo left edge register")
+    // v10 in 13.2.1 Play, v9 in 13.2.1 web.
+    val width = title[logo + 7].namedRegisters().firstOrNull() ?: refuse("no logo width register")
     val bottom = title[logo + 12].namedRegisters().firstOrNull() ?: refuse("no logo bottom edge register")
     val spanSet = title[logo + 34].namedRegisters()
     shape(spanSet.size == 5, "the logo span call changed")
@@ -491,16 +493,16 @@ internal fun BytecodePatchContext.resolveHolidayLogoSites(holiday: HolidayLookSi
         const/high16 v$a, 0x40000000
         invoke-static {v$a}, Lorg/telegram/messenger/AndroidUtilities;->dp(F)I
         move-result v$b
-        iget-object v10, v1, $logoField
-        invoke-virtual {v10}, $DRAWABLE->getIntrinsicWidth()I
-        move-result v10
+        iget-object v$width, v1, $logoField
+        invoke-virtual {v$width}, $DRAWABLE->getIntrinsicWidth()I
+        move-result v$width
         invoke-static {v$a}, Lorg/telegram/messenger/AndroidUtilities;->dp(F)I
         move-result v$a
         iget-object v$d, v1, $logoField
         invoke-virtual {v$d}, $DRAWABLE->getIntrinsicHeight()I
         move-result v$d
         add-int/2addr v$d, v$a
-        invoke-virtual {v3, v11, v$b, v10, v$d}, $DRAWABLE->setBounds(IIII)V
+        invoke-virtual {v3, v11, v$b, v$width, v$d}, $DRAWABLE->setBounds(IIII)V
         iget-object v3, v1, $logoField
         sget v$a, $color
         invoke-virtual {v1, v$a}, $colorGetter

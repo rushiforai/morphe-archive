@@ -13,6 +13,8 @@
 
 /** The longest asset name the workflow writes (tools/e2e ReleaseNaming.MaxName). */
 const MAX_ASSET_NAME = 200;
+// The most a deflate "stored" block holds (its length is 16 bits).
+const MAX_STORED_BLOCK = 65535;
 /** pr-<n>-v<version>-<run>.gif / .mp4 (docs/hosting.md, "E2E videos on pull requests", "Naming"). */
 const ASSET_NAME = /^pr-(\d+)-v(\d+)-.+\.(gif|mp4)$/;
 /** A scenario's screen attribute, [PlayOnPhone] or [PlayOnDesktop]: the screen is its name after "PlayOn". */
@@ -74,10 +76,40 @@ function nameAsset(pr, version, gifName, extension, digest) {
   return `${stem.slice(0, keep).replace(/-+$/, '')}-${digest}${extension}`;
 }
 
-/** https://<owner, lowercase>.github.io/<repo>/e2e-player.html?v=<MP4>: the site's player page (docs/hosting.md). */
-function toPlayerUrl(repository, mp4Name) {
+/**
+ * https://<owner, lowercase>.github.io/<repo>/e2e-player.html?v=<MP4>: the site's player page (docs/hosting.md), with
+ * the scenario's Gherkin in its fragment when there is one, so the page shows it beside the video. The e2e tool's links
+ * also carry when each line played (its PlayerLinking); the extension doesn't know that, so its links carry none.
+ */
+function toPlayerUrl(repository, mp4Name, gherkin) {
   const [owner, repo] = repository.split('/');
-  return `https://${owner.toLowerCase()}.github.io/${repo}/e2e-player.html?v=${encodeURIComponent(mp4Name)}`;
+  const page = `https://${owner.toLowerCase()}.github.io/${repo}/e2e-player.html?v=${encodeURIComponent(mp4Name)}`;
+  return gherkin ? `${page}#s=${writePlayerData(gherkin)}` : page;
+}
+
+/**
+ * The player's data, as the e2e tool's PlayerLinking writes it: {"g": Gherkin, "m": []}, deflated (raw) and in
+ * base64url. Deflated in "stored" blocks, which any inflater reads: no compression to wait for, and the link isn't in a
+ * post, so its length doesn't matter.
+ */
+function writePlayerData(gherkin) {
+  const bytes = new TextEncoder().encode(JSON.stringify({ g: gherkin, m: [] }));
+  const blocks = [];
+  for (let at = 0; at === 0 || at < bytes.length; at += MAX_STORED_BLOCK) {
+    const block = bytes.subarray(at, at + MAX_STORED_BLOCK);
+    const last = at + MAX_STORED_BLOCK >= bytes.length ? 1 : 0;
+    const length = block.length;
+    blocks.push(Uint8Array.of(last, length & 0xff, length >> 8, ~length & 0xff, (~length >> 8) & 0xff), block);
+  }
+  const binary = blocks.map((part) => Array.from(part, (byte) => String.fromCharCode(byte)).join('')).join('');
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** A scenario's Gherkin as BaconReader.E2E.Shared's Gherkin.Read gives its text: its common indentation removed. */
+function dedentGherkin(lines) {
+  const filled = lines.filter((line) => line.trim().length > 0);
+  const indent = filled.length === 0 ? 0 : Math.min(...filled.map((line) => line.length - line.trimStart().length));
+  return lines.map((line) => (line.length >= indent ? line.slice(indent).trimEnd() : line.trim())).join('\n').replace(/^\n+|\n+$/g, '');
 }
 
 /** "PR #12 · V1". */
@@ -109,7 +141,7 @@ function toIds(prefix) {
 
 /**
  * The scenarios of a C# file: each method with a [TestDescription("""…""")] (tests/*E2E/E2E-TEST-CODE-RULES.md, rule a),
- * with its Gherkin's title, the screens its [PlayOn<Screen>] attributes name, its class and domain folder, the line its
+ * with its Gherkin and its title, the screens its [PlayOn<Screen>] attributes name, its class and domain folder, the line its
  * attributes start on (where "Play e2e recording of this scenario" finds it from) and the line of its declaration (its
  * CodeLens goes there, between the attributes and the declaration, with other extensions' CodeLens).
  */
@@ -137,6 +169,7 @@ function readScenario(lines, described, domain) {
   return Object.freeze({
     method,
     title: title ? title.slice('Scenario:'.length).trim() : method,
+    gherkin: dedentGherkin(lines.slice(open + 1, close)),
     className: findClassName(lines, described),
     domain,
     screens: [...new Set([...attributes.matchAll(PLAY_ON)].map((played) => played[1].toLowerCase()))],
@@ -245,7 +278,7 @@ function writePanel(scenario, recordings, chosen, repository, release, nonce, cs
       label: toScreenLabel(screen),
       gif: recording.runs[screen].gif ?? null,
       mp4: recording.runs[screen].mp4 ?? null,
-      player: recording.runs[screen].mp4 ? toPlayerUrl(repository, recording.runs[screen].mp4.name) : null,
+      player: recording.runs[screen].mp4 ? toPlayerUrl(repository, recording.runs[screen].mp4.name, scenario.gherkin) : null,
     })),
   }));
   const at = Math.max(0, recordings.findIndex((r) => r.pr === chosen.pr && r.version === chosen.version));

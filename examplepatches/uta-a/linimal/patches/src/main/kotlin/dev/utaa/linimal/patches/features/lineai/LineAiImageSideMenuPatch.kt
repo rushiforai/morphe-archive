@@ -119,7 +119,7 @@ val lineAiImageSideMenuPatch = bytecodePatch(
         match.method.addInstructions(
             shape.insertionIndex,
             """
-                invoke-static { v${shape.availabilityRegister} }, $LINE_AI_CONTEXT_HOOK
+                invoke-static/range { v${shape.availabilityRegister} .. v${shape.availabilityRegister} }, $LINE_AI_CONTEXT_HOOK
                 move-result v${shape.availabilityRegister}
             """.trimIndent(),
         )

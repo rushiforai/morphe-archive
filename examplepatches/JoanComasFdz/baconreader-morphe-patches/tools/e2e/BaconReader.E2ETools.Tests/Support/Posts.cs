@@ -42,7 +42,7 @@ internal static class Posts
         foreach (var title in titles)
         {
             lines = lines.Concat([$"<details><summary><b>✅ {title}</b></summary>", "", "```gherkin", "Scenario: x", "```", "",
-                "#### 📱 Phone", "", "![gif](u)", "", "</details>", ""]);
+                "#### 📱 Phone", "", $"![gif](https://github.com/{Repo}/releases/download/prs-resources/pr-1-v{version}-{title}-phone.gif)", "", "</details>", ""]);
         }
 
         return string.Join('\n', lines.Concat(["---", PostVersioning.Footer, ""]));
@@ -52,7 +52,10 @@ internal static class Posts
 
     /// <summary>The post as the next version collapses it.</summary>
     public static PrComment CollapsedOf(long id, int version, params string[] titles) =>
-        CommentOf(id, PostVersioning.PlanCollapses([CommentOf(id, PostOf(version, titles))], version + 1)[0].Body);
+        CommentOf(id, PostVersioning.PlanCollapses([CommentOf(id, PostOf(version, titles))], version + 1, RunsOf(titles))[0].Body);
+
+    /// <summary>The runs PostOf's titles record: each its GIF's name without its PR and version.</summary>
+    public static ImmutableHashSet<string> RunsOf(params string[] titles) => [.. titles.Select(title => $"{title}-phone")];
 
     /// <summary>The post as closing the PR shrinks it, a later version being the newest.</summary>
     public static PrComment ShrunkOf(long id, int version) =>

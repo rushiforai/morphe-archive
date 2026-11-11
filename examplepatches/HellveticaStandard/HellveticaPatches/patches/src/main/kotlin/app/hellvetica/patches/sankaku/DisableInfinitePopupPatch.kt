@@ -48,6 +48,13 @@ import app.morphe.patcher.patch.rawResourcePatch
  * - checkShowPopupUpsellModal: bundle offset 0x100D4E5. Same r2 pattern as rc92/rc96 (unique).
  * - checkForUpdate: bundle offset 0x107E28F. Same 14-byte pattern as rc96 (unique).
  *   All three patterns from rc96 apply without modification; only bundle offsets shifted.
+ *
+ * 4.29-rc103:
+ * - showPopupUpsell (#39839, 123 bytes) at bundle offset 0x136DB63. Same 10-byte pattern as rc92/rc96 (unique).
+ * - checkShowPopupUpsellModal (#20239, 428 bytes): pattern at bundle offset 0x102E9EB.
+ *   Same r2 pattern as rc92/rc96 (unique); same in-function position as rc100 (+0x190).
+ * - checkForUpdate (#22383, 43 bytes) at bundle offset 0x10A067F. Same 14-byte pattern as rc96 (unique).
+ *   All three patterns from rc96 apply without modification; only bundle offsets shifted.
  */
 @Suppress("unused")
 val disableInfinitePopupPatch = rawResourcePatch(
@@ -152,6 +159,12 @@ val disableInfinitePopupPatch = rawResourcePatch(
         )
 
         val patchTargets = listOf(
+            // rc103: all three patterns from rc96/rc100 apply unchanged; only bundle offsets shifted.
+            "4.29-rc103" to listOf(
+                BundlePatch("showPopupUpsell early return", rc92ShowPopupTargetPattern, rc92ShowPopupReplacementPattern),
+                BundlePatch("checkShowPopupUpsellModal returns false", rc92CheckPopupTargetPattern, rc92CheckPopupReplacementPattern),
+                BundlePatch("disable hot-updater checkForUpdate", rc96CheckForUpdateTargetPattern, rc96CheckForUpdateReplacementPattern),
+            ),
             // rc100: all three patterns from rc96 apply unchanged; only bundle offsets shifted.
             "4.28-rc100" to listOf(
                 BundlePatch("showPopupUpsell early return", rc92ShowPopupTargetPattern, rc92ShowPopupReplacementPattern),

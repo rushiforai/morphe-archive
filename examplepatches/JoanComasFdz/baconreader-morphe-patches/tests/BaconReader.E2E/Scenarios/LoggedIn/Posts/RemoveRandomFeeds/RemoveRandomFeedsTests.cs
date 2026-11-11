@@ -21,8 +21,8 @@ public sealed class RemoveRandomFeedsTests : BaseE2E
         Scenario: Remove Random feeds leaves Random and My Random out of the feed list
           Given Reddit has a post "Hello from r/e2e" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap the feed's name in the toolbar
           Then the feed list shows "Front Page", "All", "Popular", "Friends" and "e2e", in this order
           And the feed list shows neither "Random" nor "My Random"
@@ -31,8 +31,8 @@ public sealed class RemoveRandomFeedsTests : BaseE2E
     {
         // Given
         Reddit.HasAPost("Hello from r/e2e", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.ClickFeedNameAsync();

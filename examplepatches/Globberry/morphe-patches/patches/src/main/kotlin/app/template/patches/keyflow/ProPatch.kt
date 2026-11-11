@@ -1,5 +1,6 @@
 package app.template.patches.keyflow
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.classDefForEach
 import app.morphe.patcher.patch.mutableClassDefBy
 import app.morphe.patcher.patch.patch
@@ -28,7 +29,7 @@ val proPatch = patch(
             if (classDef.type == "Lf6olX;") {
                 val mutable = mutableClassDefBy(classDef)
 
-                // <clinit>()V -> yMQp6hm=false (so yMQp6hm() doesn't return sentinel/block), lSqPRgn=false
+                // <clinit>()V -> yMQp6hm=false, lSqPRgn=false
                 val (clinitCloned, clinitAdded) = mutable.methods.first { m ->
                     m.name == "<clinit>" && m.parameters.isEmpty() && m.returnType == "V" && (m.accessFlags and AccessFlags.STATIC.value) != 0
                 }.addFreeRegisters(2)
@@ -43,10 +44,10 @@ val proPatch = patch(
                 mutable.methods.first { m ->
                     m.name == "NMGZ06" &&
                         m.parameters.size == 3 &&
-                        m.parameters[0].type == "Landroid/content/Context;" &&
-                        m.parameters[1].type == "Ljava/util/ArrayList;" &&
-                        m.parameters[2].type == "LbJtamtc;" &&
-                        m.returnType == "Ljava/lang/Object;" &&
+                        m.parameters[0].type.toString() == "Landroid/content/Context;" &&
+                        m.parameters[1].type.toString() == "Ljava/util/ArrayList;" &&
+                        m.parameters[2].type.toString() == "LbJtamtc;" &&
+                        m.returnType.toString() == "Ljava/lang/Object;" &&
                         (m.accessFlags and AccessFlags.STATIC.value) != 0
                 }.let { method ->
                     val (cloned, added) = method.addFreeRegisters(1)
@@ -63,9 +64,9 @@ val proPatch = patch(
                 mutable.methods.first { m ->
                     m.name == "yMQp6hm" &&
                         m.parameters.size == 2 &&
-                        m.parameters[0].type == "Landroid/content/Context;" &&
-                        m.parameters[1].type == "LbJtamtc;" &&
-                        m.returnType == "Ljava/lang/Object;" &&
+                        m.parameters[0].type.toString() == "Landroid/content/Context;" &&
+                        m.parameters[1].type.toString() == "LbJtamtc;" &&
+                        m.returnType.toString() == "Ljava/lang/Object;" &&
                         (m.accessFlags and AccessFlags.STATIC.value) == 0
                 }.let { method ->
                     val (cloned, added) = method.addFreeRegisters(1)
@@ -84,6 +85,39 @@ val proPatch = patch(
                         m.returnType == "Z" &&
                         (m.accessFlags and AccessFlags.STATIC.value) != 0
                 }.returnEarly(true)
+
+                // Patch ALL Object-returning methods in f6olX to return Boolean.TRUE at
+                // position 0, so they return before reaching the if-ne sentinel check
+                // (goto :goto_aX after if-ne v2, v4).
+                // Use .toList() to snapshot the methods before iterating — addFreeRegisters
+                // clones/replaces methods in the live collection, which would otherwise
+                // throw ConcurrentModificationException during forEach.
+                mutable.methods.toList().forEach { m ->
+                    if (m.returnType.toString() == "Ljava/lang/Object;") {
+                        val (cloned, added) = m.addFreeRegisters(1)
+                        cloned.addInstructions(added, """
+                            const/4 v0, 0x1
+                            invoke-static {v0}, Ljava/lang/Boolean;->valueOf(Z)Ljava/lang/Boolean;
+                            move-result-object v0
+                            return-object v0
+                        """)
+                    }
+                }
+            }
+        }
+
+        // Patch uHQuORIu.yMQp6hm() to be a complete no-op.
+        // This is called by mMDNzWiQL and P0JcGi9 when the signer check fails,
+        // which resets Pro state. Making it no-op prevents Pro from being reset.
+        classDefForEach { classDef: ClassDef ->
+            if (classDef.type == "LuHQuORIu;") {
+                val mutable = mutableClassDefBy(classDef)
+                mutable.methods.first { m ->
+                    m.name == "yMQp6hm" &&
+                        m.parameters.isEmpty() &&
+                        m.returnType == "V" &&
+                        (m.accessFlags and AccessFlags.STATIC.value) != 0
+                }.returnEarly()
             }
         }
 

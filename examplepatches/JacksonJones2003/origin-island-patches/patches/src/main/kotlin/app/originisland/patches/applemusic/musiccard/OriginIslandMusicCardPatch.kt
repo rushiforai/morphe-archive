@@ -60,6 +60,9 @@ private object AppleMusicSetMediaItemsFingerprint : Fingerprint(
     }
 )
 
+private const val VOICE_REQUEST_RECEIVER = "app.originisland.extension.AppleMusicVoiceRequestReceiver"
+private const val VOICE_REQUEST_ACTION = "app.originisland.applemusic.action.PLAY_FROM_SEARCH"
+
 private val appleMusicCardServiceResourcePatch = resourcePatch {
     execute {
         document("AndroidManifest.xml").use { document ->
@@ -73,6 +76,30 @@ private val appleMusicCardServiceResourcePatch = resourcePatch {
             val declared = (0 until actions.length).any {
                 (actions.item(it) as Element).getAttribute("android:name") == MUSIC_CARD_SERVICE_ACTION
             }
+            val application = document.getElementsByTagName("application").item(0)
+            val receiverDeclared = (0 until document.getElementsByTagName("receiver").length).any {
+                (document.getElementsByTagName("receiver").item(it) as Element)
+                    .getAttribute("android:name") == VOICE_REQUEST_RECEIVER
+            }
+            if (!receiverDeclared) {
+                // Takes the songs Jovi is asked for by voice, from the app that takes them as QQ Music.
+                application.appendChild(
+                    document.createElement("receiver").apply {
+                        setAttribute("android:name", VOICE_REQUEST_RECEIVER)
+                        setAttribute("android:exported", "true")
+                        appendChild(
+                            document.createElement("intent-filter").apply {
+                                appendChild(
+                                    document.createElement("action").apply {
+                                        setAttribute("android:name", VOICE_REQUEST_ACTION)
+                                    }
+                                )
+                            }
+                        )
+                    }
+                )
+            }
+
             if (declared) return@use
 
             playbackService.appendChild(

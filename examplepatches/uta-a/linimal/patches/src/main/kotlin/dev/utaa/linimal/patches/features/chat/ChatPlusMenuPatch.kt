@@ -227,7 +227,7 @@ val chatPlusMenuPatch = bytecodePatch(
         method.addInstructionsWithLabels(
             0,
             """
-                invoke-static { p0 }, $CHAT_MENU_HOOK
+                invoke-static/range { p0 .. p0 }, $CHAT_MENU_HOOK
                 move-result v0
                 if-eqz v0, :original
                 const/4 v0, 0x0

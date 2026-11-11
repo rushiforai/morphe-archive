@@ -1,15 +1,11 @@
 package app.morphe.patches.bongobdandroidtv.extension.hooks
 
 import app.morphe.patches.all.misc.extension.activityOnCreateExtensionHook
+import app.morphe.patches.bongobdandroidtv.shared.morphe.saas.ott.smarttv.MainApplication
+import app.morphe.patches.bongobdandroidtv.shared.morphe.saas.ott.smarttv.ui.splash.view.SplashActivity
 
 internal val bongobdandroidtvActivityOnCreateHook =
-    activityOnCreateExtensionHook(
-        activityClassType = "Lsaas/ott/smarttv/ui/splash/view/SplashActivity;",
-        targetBundleMethod = true,
-    )
+    activityOnCreateExtensionHook(SplashActivity.toString(), true)
 
 internal val bongobdandroidtvApplicationOnCreateHook =
-    activityOnCreateExtensionHook(
-        activityClassType = "Lsaas/ott/smarttv/MainApplication;",
-        targetBundleMethod = false,
-    )
+    activityOnCreateExtensionHook(MainApplication.toString(), false)

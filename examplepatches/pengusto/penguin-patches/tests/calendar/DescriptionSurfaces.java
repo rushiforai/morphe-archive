@@ -316,6 +316,15 @@ public final class DescriptionSurfaces extends Instrumentation {
             check(notification("Plain < 5", location, false).contains("Plain < 5"), "Notification plain text");
             value = notification("First<br>Second &amp; third", location, false);
             check(baseline ? value.contains("<br>") : value.contains("First Second & third"), "Notification line breaks: " + value);
+            // Synthetic counterpart of the Exchange payload documented in FossifyOrg/Calendar#12.
+            String exchange = "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">"
+                + "<meta name=\"Generator\" content=\"Microsoft Exchange Server\"><style></style></head><body>"
+                + "<font size=\"2\"><span style=\"font-size:11pt;\"><div class=\"PlainText\">"
+                + "Workshop schedule confirmed.</div></span></font></body></html>";
+            value = notification(exchange, location, false);
+            check(baseline ? value.contains("<html>") : value.contains("Workshop schedule confirmed.")
+                && !value.contains("<html>") && !value.contains("<div") && !value.contains("<font"),
+                "Exchange-style notification description: " + value);
             editorSave();
             result.putString("stream", "PASS: " + checks + " Calendar widget/notification checks\n");
             finish(-1, result);

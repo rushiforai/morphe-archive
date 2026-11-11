@@ -83,11 +83,11 @@ class MenuSectionsFixtureTest {
         .filter { it.opcode.name.startsWith("invoke-") }
         .map { ((it as ReferenceInstruction).reference as MethodReference).returnType }
 
-    /** The classes of the no-argument static calls [method] makes. */
-    private fun noArgumentStatics(method: Method): List<String> = method.instructionList()
+    /** The classes of the static calls [method] makes that answer an object, as a list factory does. */
+    private fun objectStatics(method: Method): List<String> = method.instructionList()
         .filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
         .map { (it as ReferenceInstruction).reference as MethodReference }
-        .filter { it.parameterTypes.isEmpty() }
+        .filter { it.returnType.startsWith("L") }
         .map { it.definingClass }
 
     private fun calls(instruction: Any, method: Method): Boolean =
@@ -217,8 +217,9 @@ class MenuSectionsFixtureTest {
                 val enum = classes.getValue(nativeRead.type)
 
                 // Both hand their children back through the same list, which the hooks build empty.
-                // 582 makes it through a static factory, so the sections' no-argument statics come along.
-                val factories = FixtureDex.classes(bundle, (noArgumentStatics(native) + noArgumentStatics(server)).toSet())
+                // 582 makes it through a static factory, and 586's Android 9 build through one taking two
+                // arguments, so the classes of the sections' statics answering an object come along.
+                val factories = FixtureDex.classes(bundle, (objectStatics(native) + objectStatics(server)).toSet())
                 val factory: (MethodReference) -> Method? = { call -> factories[call.definingClass]?.let { resolveStatic(it, call) } }
                 val nativeList = childrenList(native, factory)
                 assertNotNull("${bundle.name}: the native section's children list", nativeList)
@@ -248,6 +249,21 @@ class MenuSectionsFixtureTest {
                 val borrowed = native.freeLocalsAt(PATCH, nativeRead.index + 1, 2)
                 assertTrue("${bundle.name}: v${borrowed.joinToString(", v")} in ${native.name}", borrowed.all { it <= 15 })
 
+                // The header keeps its own collapsed state after the seed and flips it on a tap, so the
+                // section marks the header it makes, with a local free right after the seed, and the
+                // header's render and tap handler each read that state once where the mark can go in
+                // beside it (#224 follow-up).
+                val seed = headerSeed(native, nativeRead, startRead(native, nativeRead)!!)
+                assertNotNull("${bundle.name}: the native section's store of its header seed", seed)
+                val flag = native.freeLocalsAt(PATCH, seed!!.index + 1, 1).single()
+                assertTrue("${bundle.name}: v$flag after the header seed", flag <= 15)
+                val headerClass = FixtureDex.classes(bundle, setOf(seed.headerClass))[seed.headerClass]
+                assertNotNull("${bundle.name}: the seeded header ${seed.headerClass}", headerClass)
+                val stateReads = headerStateReads(headerClass!!)
+                assertNotNull("${bundle.name}: ${seed.headerClass}'s reads of its collapsed state", stateReads)
+                assertEquals("${bundle.name}: tap handlers reading the header's state", 1, stateReads!!.count { it.click })
+                assertTrue("${bundle.name}: renders reading the header's state", stateReads.any { !it.click })
+
                 // The native section draws the group's collapsible header, the one TalkBack reads
                 // as "Upgrades, header. Section is expanded." on the phone.
                 // 586's header asks a method of another class for those words, so the label may
@@ -265,6 +281,7 @@ class MenuSectionsFixtureTest {
                     component.methods.any { method -> loadsLiteral(method, label) || calledMethods(method).any(loadsLabel) }
                 }
                 assertEquals("${bundle.name}: header components the native section creates", 1, headers.size)
+                assertEquals("${bundle.name}: the header the seed goes to", headers.single().type, seed.headerClass)
 
                 // Where the root adds the Upgrades and Also from Meta groups, it tags each with its
                 // test key, reads the group's constant, and builds both hooked sections.

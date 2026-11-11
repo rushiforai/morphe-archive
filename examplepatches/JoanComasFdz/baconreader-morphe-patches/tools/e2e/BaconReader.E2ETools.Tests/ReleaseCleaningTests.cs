@@ -10,11 +10,21 @@ namespace BaconReader.E2ETools.Tests;
 public sealed class ReleaseCleaningTests
 {
     [Fact]
-    public void Prs_resources_keeps_the_PRs_newest_version_only_and_never_touches_other_names()
+    public void Prs_resources_keeps_each_runs_newest_recording_and_never_touches_other_names()
     {
-        var held = AssetsOf("pr-7-v1-a-phone.gif", "pr-7-v2-a-phone.mp4", "pr-7-v10-b-phone.gif", "pr-70-v1-a-phone.gif", "owners-own.png");
+        var held = AssetsOf(
+            "pr-7-v1-a-phone.gif", "pr-7-v1-a-phone.mp4", "pr-7-v1-b-phone.gif", "pr-7-v2-a-phone.gif", "pr-7-v2-a-phone.mp4",
+            "pr-7-v10-c-phone.gif", "pr-70-v1-a-phone.gif", "owners-own.png");
 
-        Assert.Equal(["pr-7-v1-a-phone.gif", "pr-7-v2-a-phone.mp4"], ReadNames(ReleaseCleaning.PlanPrDeletions(held, 7)));
+        Assert.Equal(["pr-7-v1-a-phone.gif", "pr-7-v1-a-phone.mp4"], ReadNames(ReleaseCleaning.PlanPrDeletions(held, 7)));
+    }
+
+    [Fact]
+    public void A_run_recorded_again_in_a_later_version_loses_only_its_older_recordings()
+    {
+        var held = AssetsOf("pr-7-v1-a-phone.gif", "pr-7-v2-a-phone.gif", "pr-7-v10-a-phone.gif");
+
+        Assert.Equal(["pr-7-v1-a-phone.gif", "pr-7-v2-a-phone.gif"], ReadNames(ReleaseCleaning.PlanPrDeletions(held, 7)));
     }
 
     [Fact]

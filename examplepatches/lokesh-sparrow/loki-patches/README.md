@@ -43,6 +43,7 @@
 | 🛡️ **Block tracking** | Stop most of LinkedIn's analytics |
 | 🎨 **Material You** | Your wallpaper's colors, and an optional flat feed without gaps |
 | ⚫ **AMOLED black bars** | Pure black top bar, bottom bar and side menu in dark mode (needs Material You) |
+| 🖤 **Dark app icon** | Black launcher icon with the white "in", instead of LinkedIn's blue (optional) |
 | 👆 **Swipe between feeds** | Swipe left or right to switch For you and Network, and Grow and Catch up |
 | 🖼️ **Tap to hide in viewers** | Tap a document or video in full screen to hide its caption and buttons |
 | ⋯ **Post menu items** | Copy text, Download media and Save as PDF in a post's menu |
@@ -98,9 +99,9 @@ screen has a search box, settings backup and restore, the update check, and the 
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.5](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v1.2.5)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;22 patches total
+> **[v2.1.1](https://github.com/lokesh-sparrow/loki-patches/releases/tag/v2.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
 <details open>
-<summary><img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
+<summary><img src="assets/icons/com.linkedin.android.svg" width="20" height="20" align="top" alt=""> LinkedIn&nbsp;&nbsp;•&nbsp;&nbsp;23 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -110,26 +111,27 @@ screen has a search box, settings backup and restore, the update check, and the 
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [AMOLED black bars](#amoled-black-bars) | Makes the dark top bar, bottom bar, side menu and other screens drawn by the app pure black, next to the feed that the AMOLED black setting already covers. Needs Material You. |  |
+| [AMOLED black bars](#amoled-black-bars) | Turns the dark top bar, bottom bar, side menu and the other screens the app draws pure black, matching the feed that the AMOLED black setting already covers. Needs Material You. |  |
 | [Anonymous profile viewing](#anonymous-profile-viewing) | Adds an option (off by default, experimental) to visit profiles without being listed in "Who viewed your profile": the analytics events of profile pages are not sent. |  |
-| [Block tracking](#block-tracking) | Adds an option (off by default) to stop sending most LinkedIn analytics events. |  |
+| [Block tracking](#block-tracking) | Adds a switch (off by default) that stops most of LinkedIn's analytics events from being sent. |  |
 | [Copy text](#copy-text) | Long press a post, comment or any other text to select and copy it in place, like on Reddit. |  |
-| [Disable double-tap like](#disable-double-tap-like) | Stops double tapping a post or photo from liking it. |  |
-| [Download media](#download-media) | Adds a download button to the full screen photo, video and document viewer. Documents (PDFs and carousels) are saved as one PDF. |  |
-| [Feed filters](#feed-filters) | Adds optional filters (off by default, turned on in Loki Patches): focus mode, celebrations, job cards, reposts, posts from others' activity, "Recommended for you", video posts, games, the "New posts" pill and "See translation". |  |
-| [GmsCore support](#gmscore-support) | Makes "Continue with Google" work in patched LinkedIn by signing in through microG RE (GmsCore) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |  |
-| [Hide Premium upsells](#hide-premium-upsells) | Removes Premium and AI upsell cards and banners, including on profiles and the Me panel. |  |
-| [Hide ads](#hide-ads) | Removes promoted (sponsored) posts from the feed. |  |
+| [Dark app icon](#dark-app-icon) | Black launcher icon with the white "in", instead of LinkedIn's blue. Chosen when patching: a launcher icon cannot switch with dark mode on its own. |  |
+| [Disable double-tap like](#disable-double-tap-like) | A double tap on a post or a photo no longer likes it. |  |
+| [Download media](#download-media) | Puts a download button in the full screen photo, video and document viewer; documents (PDFs and carousels) are saved as a single PDF. |  |
+| [Feed filters](#feed-filters) | Adds a set of filters that are off until turned on in Loki Patches: focus mode, celebrations, job cards, reposts, posts from other people's activity, "Recommended for you", video posts, games, the "New posts" pill and "See translation". |  |
+| [GmsCore support](#gmscore-support) | Routes "Continue with Google" through microG RE (GmsCore) instead of Google Play services, so signing in works in patched LinkedIn. microG RE has to be installed and signed in to a Google account. |  |
+| [Hide Premium upsells](#hide-premium-upsells) | Drops the Premium and AI upsell cards and banners, on profiles and in the Me panel too. |  |
+| [Hide ads](#hide-ads) | Removes sponsored (promoted) posts from the feed. |  |
 | [Hide bottom tabs](#hide-bottom-tabs) | Adds switches to take My Network and Jobs out of the bottom bar. |  |
-| [Hide promoted jobs](#hide-promoted-jobs) | Removes promoted job listings from the Jobs tab and job search. |  |
-| [Hide suggested posts](#hide-suggested-posts) | Removes "Suggested" posts from outside your network from the feed. |  |
+| [Hide promoted jobs](#hide-promoted-jobs) | Drops promoted job listings from the Jobs tab and from job searches. |  |
+| [Hide suggested posts](#hide-suggested-posts) | Drops the "Suggested" posts from people outside your network. |  |
 | [Keep feed on reopen](#keep-feed-on-reopen) | Keeps your place in the feed when you come back to LinkedIn, instead of reloading it. Pull down or tap the "New posts" button to load new posts. |  |
-| [Material You](#material-you) | Uses your wallpaper's colors (Android 12+): the accent color instead of LinkedIn blue and the green of selected filters, and Material 3 surface colors for backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers may keep their own colors. |  |
-| [Messaging](#messaging) | Hides sponsored messages, and adds an optional ghost mode that does not send typing indicators or read status. |  |
-| [Open links directly](#open-links-directly) | Opens external links without LinkedIn's safety/go warning page. |  |
+| [Material You](#material-you) | Takes the colors from your wallpaper (Android 12+): the accent replaces LinkedIn blue and the green of the selected filters, and the backgrounds, cards, bars and borders become Material 3 surfaces. Some screens LinkedIn draws from its servers may keep their own colors. |  |
+| [Messaging](#messaging) | Drops sponsored messages from the inbox, and adds an optional ghost mode that sends no typing indicators and no read receipts. |  |
+| [Open links directly](#open-links-directly) | Skips LinkedIn's safety/go warning page and opens external links straight away. |  |
 | [Post menu items](#post-menu-items) | Adds Copy text, Download photos and videos, and Save document as PDF to the ⋯ menu of posts. |  |
-| [Remove gaps and dividers](#remove-gaps-and-dividers) | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |  |
-| [Sanitize share links](#sanitize-share-links) | Removes tracking parameters from LinkedIn links when they are copied or shared. |  |
+| [Remove gaps and dividers](#remove-gaps-and-dividers) | Removes the gray gaps between posts and the dividers between list items, so the feed and the lists read as one flat surface. |  |
+| [Sanitize share links](#sanitize-share-links) | Strips the tracking parameters from LinkedIn links that get copied or shared. |  |
 | [Swipe between feeds](#swipe-between-feeds) | Swipe left and right on the home feed to switch between For you and Network, like on X. |  |
 | [Tap to hide in viewers](#tap-to-hide-in-viewers) | Tap a video or document in full screen to hide the caption and buttons, like photos. |  |
 

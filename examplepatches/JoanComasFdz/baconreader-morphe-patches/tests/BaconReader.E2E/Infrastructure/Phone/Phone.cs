@@ -51,5 +51,5 @@ public sealed class Phone
     public BaconReaderApp BaconReader { get; }
 
     /// <summary>Goes back, as Android's Back does: closes the dialog or the screen on top.</summary>
-    public Task GoBackAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(AndroidKeyCode.Back));
+    public Task GoBackAsync() => OnScreen.PressBackAsync(driver);
 }

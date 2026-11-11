@@ -186,6 +186,7 @@ public sealed class FakeRedditServer : IAsyncDisposable
         BlueskyApi.Map(app, world);
         Chat.Map(app, world);
         Debug.Map(app, world);
+        Setup.Map(app, world);
         app.MapFallback((HttpContext context) =>
         {
             context.Items[Unhandled] = true;

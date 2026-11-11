@@ -455,18 +455,16 @@ object TvVideoPluginGetPhysicalDisplaySizeFingerprint : Fingerprint(
 )
 
 /**
- * Matches `DaznDrmSessionManager.<init>` in Kayo TV (au.com.kayosports.tv).
+ * Matches `DaznDrmSessionManager.<init>` in Kayo TV (au.com.kayosports.tv) across v4.6.1 (5 params) and v4.8.1 (6 params).
+ * In both versions, `p3` is `useWidevineL3:Z`.
  */
 object TvDaznDrmSessionManagerConstructorFingerprint : Fingerprint(
     definingClass = "Lcom/dazn/plugins/media3/drm/DaznDrmSessionManager;",
     name = "<init>",
     returnType = "V",
-    parameters = listOf(
-        "Lcom/dazn/plugins/texttospeech/AccessibilityMonitor;",
-        "Ljava/util/UUID;",
-        "Z",
-        "Z",
-        "Z"
+    filters = listOf(
+        string("securityLevel"),
+        string("L3")
     )
 )
 
@@ -570,13 +568,16 @@ object TvDefaultTrackSelectorParametersConstructorFingerprint : Fingerprint(
 )
 
 /**
- * Matches `Action$Companion.queryConnectedHdcpLevel()Ljava/lang/String;` in Kayo TV (au.com.kayosports.tv).
+ * Matches `queryConnectedHdcpLevel()Ljava/lang/String;` in Kayo TV (au.com.kayosports.tv) across
+ * v4.6.1 (`Lcom/dazn/plugins/media3/enums/Action$Companion;`) and v4.8.1 (`Landroidx/lifecycle/ViewModelStore;`).
  */
 object TvHdcpLevelQuerierFingerprint : Fingerprint(
-    definingClass = "Lcom/dazn/plugins/media3/enums/Action\$Companion;",
     name = "queryConnectedHdcpLevel",
     returnType = "Ljava/lang/String;",
-    parameters = listOf()
+    parameters = listOf(),
+    filters = listOf(
+        string("HdcpLevelQuerier")
+    )
 )
 
 /**
@@ -590,13 +591,23 @@ object TvHdmiStatusPluginTryNotifyFingerprint : Fingerprint(
 )
 
 /**
- * Matches `DrmPlayer.releasePlayer()V` in Kayo TV (au.com.kayosports.tv).
+ * Matches `HdmiStatusPlugin.setConnected(Ljava/lang/String;Z)V` in Kayo TV v4.8.1+ (`au.com.kayosports.tv`).
+ */
+object TvHdmiStatusPluginSetConnectedFingerprint : Fingerprint(
+    definingClass = "Lcom/dazn/plugins/hdmistatus/HdmiStatusPlugin;",
+    name = "setConnected",
+    returnType = "V",
+    parameters = listOf("Ljava/lang/String;", "Z")
+)
+
+/**
+ * Matches `DrmPlayer.releasePlayer` in Kayo TV (`au.com.kayosports.tv`) across v4.6.1 (`()V`)
+ * and v4.8.1 (`(Lcom/dazn/plugins/media3/ReleaseReason;)V`).
  */
 object TvDrmPlayerReleasePlayerFingerprint : Fingerprint(
     definingClass = "Lcom/dazn/plugins/media3/drm/DrmPlayer;",
     name = "releasePlayer",
-    returnType = "V",
-    parameters = listOf()
+    returnType = "V"
 )
 
 /**
@@ -688,6 +699,20 @@ object TvExoPlayerConfigConstructorFingerprint : Fingerprint(
 object TvNotificatorOnBandwidthSampleFingerprint : Fingerprint(
     definingClass = "Lcom/dazn/plugins/media3/Notificator;",
     name = "onBandwidthSample",
+    returnType = "V",
+    parameters = listOf(
+        "I",
+        "J",
+        "J"
+    )
+)
+
+/**
+ * Matches `DefaultBandwidthMeter.maybeNotifyBandwidthSample(IJJ)V` in Kayo TV (au.com.kayosports.tv).
+ */
+object TvDefaultBandwidthMeterMaybeNotifyBandwidthSampleFingerprint : Fingerprint(
+    definingClass = "Landroidx/media3/exoplayer/upstream/DefaultBandwidthMeter;",
+    name = "maybeNotifyBandwidthSample",
     returnType = "V",
     parameters = listOf(
         "I",
@@ -837,3 +862,108 @@ object MobileAdaptiveTrackSelectionEvaluateQueueSizeFingerprint : Fingerprint(
         "Ljava/util/List;"
     )
 )
+
+// =============================================================================
+// Android TV Pairip License Check Bypass Fingerprints (au.com.kayosports.tv)
+// =============================================================================
+
+/**
+ * Matches `com.pairip.application.Application.attachBaseContext(Context)V` in Kayo TV.
+ */
+object TvPairipApplicationAttachBaseContextFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/application/Application;",
+    name = "attachBaseContext",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;")
+)
+
+/**
+ * Matches `LicenseClient.checkLicense(Context)V` in Kayo TV.
+ */
+object TvPairipLicenseClientCheckLicenseFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "checkLicense",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;")
+)
+
+/**
+ * Matches `LicenseClient.initializeLicenseCheck()V` in Kayo TV.
+ */
+object TvPairipLicenseClientInitializeFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "initializeLicenseCheck",
+    returnType = "V",
+    parameters = listOf()
+)
+
+/**
+ * Matches `LicenseClient.performLocalInstallerCheck()Z` in Kayo TV.
+ */
+object TvPairipLicenseClientLocalCheckFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "performLocalInstallerCheck",
+    returnType = "Z",
+    parameters = listOf()
+)
+
+/**
+ * Matches `LicenseClient.handleError(LicenseCheckException)V` in Kayo TV.
+ */
+object TvPairipLicenseClientHandleErrorFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "handleError",
+    returnType = "V",
+    parameters = listOf("Lcom/pairip/licensecheck/LicenseCheckException;")
+)
+
+/**
+ * Matches `LicenseClient.scheduleAppShutdown()V` in Kayo TV.
+ */
+object TvPairipLicenseClientScheduleAppShutdownFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseClient;",
+    name = "scheduleAppShutdown",
+    returnType = "V",
+    parameters = listOf()
+)
+
+/**
+ * Matches `LicenseContentProvider.onCreate()Z` in Kayo TV.
+ */
+object TvPairipLicenseContentProviderOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseContentProvider;",
+    name = "onCreate",
+    returnType = "Z",
+    parameters = listOf()
+)
+
+/**
+ * Matches `LicenseActivity.onStart()V` in Kayo TV.
+ */
+object TvPairipLicenseActivityOnStartFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseActivity;",
+    name = "onStart",
+    returnType = "V",
+    parameters = listOf()
+)
+
+/**
+ * Matches `LicenseActivity.closeApp()V` in Kayo TV.
+ */
+object TvPairipLicenseActivityCloseAppFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseActivity;",
+    name = "closeApp",
+    returnType = "V",
+    parameters = listOf()
+)
+
+/**
+ * Matches `LicenseActivity.exitApp()V` in Kayo TV.
+ */
+object TvPairipLicenseActivityExitAppFingerprint : Fingerprint(
+    definingClass = "Lcom/pairip/licensecheck/LicenseActivity;",
+    name = "exitApp",
+    returnType = "V",
+    parameters = listOf()
+)
+

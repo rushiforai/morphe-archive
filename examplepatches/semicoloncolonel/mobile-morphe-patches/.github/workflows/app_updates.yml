@@ -69,10 +69,10 @@ jobs:
       issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           # Zulu downloads from Azul's CDN, so a GitHub release-download outage
           # cannot stop the check, as it did with Temurin on 2026-11-08.
@@ -80,7 +80,7 @@ jobs:
           java-version: '26'
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -121,7 +121,7 @@ jobs:
 
       - name: Upload report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: app-updates
           path: app-updates
@@ -136,10 +136,10 @@ jobs:
       issues: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Download report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: app-updates
           path: app-updates
@@ -174,7 +174,7 @@ jobs:
 
       - name: Upload launch results
         if: always() && steps.apps.outputs.any == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: launch-results
           path: app-updates/launch.json
@@ -192,24 +192,24 @@ jobs:
       issues: write
     steps:
       - name: Checkout dev
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: dev
           fetch-depth: 0
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
       - name: Download report
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: app-updates
           path: app-updates
 
       - name: Download launch results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         continue-on-error: true
         with:
           name: launch-results

@@ -26,8 +26,8 @@ public sealed class FixUnreadMessagesTests : BaseE2E
           And the test account has an unread message "Second subject" saying "Second message"
           And Reddit has a post "Hello from r/e2e" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I open the left menu
           And I tap "Inbox"
           And I tap the message "Second message"
@@ -46,7 +46,7 @@ public sealed class FixUnreadMessagesTests : BaseE2E
           And I tap "Mark read"
           And I go back to the posts
           Then the left menu's button shows no orange envelope
-          # Not on the screen: the fake Reddit records what BaconReader sent.
+          # On the setup page: the fake Reddit records what BaconReader sent.
           And Reddit got "First subject" and "Second subject" marked as read
         """)]
     public async Task FixUnreadMessagesTurnsTheInboxEnvelopeBackToNormalOnceEveryMessageIsRead(Screen screen)
@@ -55,8 +55,8 @@ public sealed class FixUnreadMessagesTests : BaseE2E
         Reddit.TheTestAccountHasAnUnreadMessage("First subject", "First message");
         Reddit.TheTestAccountHasAnUnreadMessage("Second subject", "Second message");
         Reddit.HasAPost("Hello from r/e2e", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.LeftMenu.OpenAsync();
@@ -108,7 +108,7 @@ public sealed class FixUnreadMessagesTests : BaseE2E
 
         // Then
         var noneUnread = await Phone.BaconReader.Main.LeftMenu.ReadButtonAsync();
-        // Not on the screen: the fake Reddit records what BaconReader sent.
+        // On the setup page: the fake Reddit records what BaconReader sent.
         var read = Reddit.ReadMessagesMarkedAsRead();
         Asserting.That(noneUnread).ShowsNoOrangeEnvelope();
         Asserting.That(read).MarkedAsRead("First subject", "Second subject");

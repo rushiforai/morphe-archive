@@ -6,7 +6,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for the suggestion. Only the request itself is required, but every other field helps.
+        Thank you for the suggestion. Every field except Anything else is required.
 
         Before you start, please check the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) for the same request, and the [Morphe patches site](https://morphe-patches.software/) for a patch that another source already offers. If that patch is out of date, please ask its author to update it first. I take over a patch only when its author no longer works on it.
   - type: checkboxes
@@ -30,21 +30,29 @@ body:
         - Support for another version of a supported app
         - Support for the Android TV build of a supported app
         - Something else
+    validations:
+      required: true
   - type: input
     id: app
     attributes:
       label: App name
       placeholder: "Pluto TV"
+    validations:
+      required: true
   - type: input
     id: link
     attributes:
       label: Play Store or APKMirror link
       placeholder: "https://play.google.com/store/apps/details?id=..."
+    validations:
+      required: true
   - type: input
     id: version
     attributes:
       label: App version
       description: The version you would like supported, if it matters.
+    validations:
+      required: true
   - type: dropdown
     id: build
     attributes:
@@ -53,6 +61,8 @@ body:
         - Phone or tablet
         - Android TV or Google TV
         - Both
+    validations:
+      required: true
   - type: textarea
     id: request
     attributes:

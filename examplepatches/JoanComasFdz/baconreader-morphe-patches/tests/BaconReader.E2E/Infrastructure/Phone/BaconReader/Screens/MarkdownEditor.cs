@@ -134,7 +134,7 @@ public sealed class MarkdownEditor(AndroidDriver driver)
         swipe.AddAction(finger.CreatePointerDown(MouseButton.Touch));
         swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, to, y, TimeSpan.FromMilliseconds(400)));
         swipe.AddAction(finger.CreatePointerUp(MouseButton.Touch));
-        driver.PerformActions([swipe]);
+        OnScreen.PerformSwipe(driver, swipe, new Point(from, y), new Point(to, y));
     }
 
     private string? CounterText() =>

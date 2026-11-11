@@ -3464,7 +3464,6 @@ f Lorg/telegram/messenger/FileLoader$2; val$parentObject Ljava/lang/Object; Lorg
 f Lorg/telegram/messenger/FileLoader; Instance [Lorg/telegram/messenger/FileLoader; Lorg/telegram/messenger/w7; M [Lorg/telegram/messenger/w7; w
 f Lorg/telegram/messenger/FileLoader; currentUploadOperationsCount I Lorg/telegram/messenger/w7; r I
 f Lorg/telegram/messenger/FileLoader; currentUploadSmallOperationsCount I Lorg/telegram/messenger/w7; s I
-f Lorg/telegram/messenger/FileLoader; delegate Lorg/telegram/messenger/FileLoader$FileLoaderDelegate; Lorg/telegram/messenger/w7; I Lorg/telegram/messenger/q7; w
 f Lorg/telegram/messenger/FileLoader; fileLoaderQueue Lorg/telegram/messenger/DispatchQueue; Lorg/telegram/messenger/w7; K Lorg/telegram/messenger/l5;
 f Lorg/telegram/messenger/FileLoader; filePathDatabase Lorg/telegram/messenger/FilePathDatabase; Lorg/telegram/messenger/w7; d Lorg/telegram/messenger/e8; w
 f Lorg/telegram/messenger/FileLoader; lastReferenceId I Lorg/telegram/messenger/w7; G I
@@ -4140,7 +4139,6 @@ f Lorg/telegram/messenger/MediaController; ignoreOnPause Z Lorg/telegram/messeng
 f Lorg/telegram/messenger/MediaController; ignorePlayerUpdate Z Lorg/telegram/messenger/MediaController; U1 Z
 f Lorg/telegram/messenger/MediaController; inputFieldHasText Z Lorg/telegram/messenger/MediaController; N Z
 f Lorg/telegram/messenger/MediaController; isDrawingWasReady Z Lorg/telegram/messenger/MediaController; N0 Z
-f Lorg/telegram/messenger/MediaController; isSilent Z Lorg/telegram/messenger/MediaController; h0 Z
 f Lorg/telegram/messenger/MediaController; lastAccelerometerDetected J Lorg/telegram/messenger/MediaController; x J
 f Lorg/telegram/messenger/MediaController; lastProximityValue F Lorg/telegram/messenger/MediaController; L F
 f Lorg/telegram/messenger/MediaController; lastTimestamp J Lorg/telegram/messenger/MediaController; I J

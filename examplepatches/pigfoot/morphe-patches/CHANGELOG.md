@@ -1,3 +1,9 @@
+## [0.6.1](https://github.com/pigfoot/morphe-patches/compare/v0.6.0...v0.6.1) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* rebuild with latest stable Morphe Patcher for every release ([b39e47c](https://github.com/pigfoot/morphe-patches/commit/b39e47c8d01258a4131df8fc0dadb496cc57fb54))
+
 ## [0.6.0](https://github.com/pigfoot/morphe-patches/compare/v0.5.0...v0.6.0) (2026-11-08)
 
 ### ✨ New Features

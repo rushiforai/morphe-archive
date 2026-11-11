@@ -40,7 +40,7 @@ Penguin Patches は、既存アプリの機能を改善・修正する、Morphe 
 - [アラームの事前通知時間を選択](../../README.md#preview-choose-upcoming-alarm-notification-time)
 - [Infinity+ に独自 OAuth クライアントを設定](../../README.md#preview-configure-custom-oauth-for-infinity)
 - [既読にした会話の通知を削除](../../README.md#preview-dismiss-notifications-when-marking-conversations-read)
-- [Finamp Complete：7 件の修正をまとめて適用](../../README.md#preview-finamp-complete-all-seven-fixes)
+- [Finamp Complete](../../README.md#preview-finamp-complete)
 - [入れ子の OPML フィードをインポート](../../README.md#preview-import-nested-opml-feeds)
 - [バックグラウンドの会話を未読に保持](../../README.md#preview-keep-background-conversations-unread)
 - [フォルダー変更・削除後のお気に入りを整合](../../README.md#preview-keep-favorites-consistent-after-folder-rename-or-removal)

@@ -24,6 +24,10 @@ tools/e2e/record.sh --no-video CodeLensTests          # one class
 tools/e2e/record.sh --changed-since origin/<base>     # recorded: out/Recordings/<scenario>-desktop.gif + .mp4, right before a push
 ```
 
+They play in a session, never on the NAS, which is there for the phone and plays only the app's scenarios
+([tools/e2e/nas/README.md](../../tools/e2e/nas/README.md)): record them here, then post them with
+`tools/e2e/push-gifs.sh`.
+
 For this project it:
 1. installs VS Code for the web's runner once (`npm ci` in `vscode-web/`: `@vscode/test-web`, pinned in
    `vscode-web/package-lock.json`; its `node_modules/` is never committed);

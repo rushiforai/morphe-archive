@@ -258,6 +258,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
             addPreference(new TogglePreference(context, "Show the Not interested button",
                     "Add a button beside the block control to send feedback about the current video.",
                     Settings.NOT_INTERESTED_BUTTON));
+            // The chooser adds to the feed filter's lists, so it needs the feed filter.
+            if (SettingsStatus.feedFilterEnabled) {
+                addPreference(new TogglePreference(context, "Also filter it",
+                        "After you tap Not interested, offer to skip the video's creator, sound or hashtags from now on.",
+                        Settings.NOT_INTERESTED_ALSO_FILTER));
+            }
         }
         if (SettingsStatus.feedMuteEnabled) {
             addPreference(new TogglePreference(context, "Show the mute button on videos",
@@ -366,6 +372,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                             "Jump to a date on Liked grids",
                             "Adds a button to the Liked grid's top corner that starts your likes at a year or month you pick, so older ones load without scrolling past newer ones. Pick Newest likes there to go back.",
                             Settings.LIKED_JUMP_TO_DATE
+                    ));
+                }
+                if (SettingsStatus.likedGridSortEnabled) {
+                    addPreference(new TogglePreference(
+                            context,
+                            "Search Liked and Favorites grids",
+                            "Adds a Search button to the top of the Liked and Favorites grids. Type a word from a caption, a creator or a sound to see only the loaded videos that have it.",
+                            Settings.GRID_SEARCH
                     ));
                 }
                 if (SettingsStatus.soundGridSortEnabled) {

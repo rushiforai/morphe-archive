@@ -198,6 +198,34 @@ class StockQuadCompositionPatchTest {
     }
 
     @Test
+    fun `stock quad rejects new quad helper before any mutation`() = withSyntheticBase { root ->
+        val newQuadHelper = File(libDirectory(root), "libgxr_quad_native.so")
+        newQuadHelper.apply { parentFile.mkdirs(); writeText("new quad marker") }
+        val error = assertFailsWith<PatchException> {
+            installStockQuadResources(root, steamLink, "2.0.24", "5002395")
+        }
+        assertTrue(error.message.orEmpty().contains("Choose only one"))
+        assertFalse(File(layerDirectory(root), STOCK_QUAD_MANIFEST).exists())
+        assertFalse(File(libDirectory(root), STOCK_QUAD_LIBRARY).exists())
+        assertContentEquals(ByteArray(SYNTHETIC_SCENE_SIZE), sceneFile(root).readBytes())
+        assertFalse(root.walkTopDown().any { it.name.endsWith(".tmp") })
+    }
+
+    @Test
+    fun `native renderer hooks still exclude stock mode when helper is missing`() = withSyntheticBase { root ->
+        val bytes = sceneFile(root).readBytes()
+        "libgxr_quad_native.so".toByteArray(Charsets.US_ASCII).copyInto(bytes, 0x100)
+        sceneFile(root).writeBytes(bytes)
+        val error = assertFailsWith<PatchException> {
+            installStockQuadResources(root, steamLink, "2.0.24", "5002395")
+        }
+        assertTrue(error.message.orEmpty().contains("Choose only one"))
+        assertContentEquals(bytes, sceneFile(root).readBytes())
+        assertFalse(File(layerDirectory(root), STOCK_QUAD_MANIFEST).exists())
+        assertFalse(File(libDirectory(root), STOCK_QUAD_LIBRARY).exists())
+    }
+
+    @Test
     fun `manifest mode metadata is stable and replaces a retired alpha-0 mode`() {
         val stock = manifestDocument()
         configurePermissionFreeProjectionMode(stock, STOCK_QUAD_MODE)

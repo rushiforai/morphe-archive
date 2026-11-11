@@ -13,6 +13,7 @@ public final class FullscreenViewport209 {
  private static final Map<View,Session> sessions=new WeakHashMap<View,Session>();
  private static final Map<View,Session> sideSessions=new WeakHashMap<View,Session>();
  private static final Map<View,Session> normalSessions=new WeakHashMap<View,Session>();
+ private static final Map<View,Session> viewportSessions=new WeakHashMap<View,Session>();
  private static View find(View root,String name){return root.findViewById(root.getResources().getIdentifier(name,"id",root.getContext().getPackageName()));}
  private static Activity owner(Context c){for(int i=0;i<16;i++){if(c instanceof Activity)return (Activity)c;if(!(c instanceof ContextWrapper))break;Context next=((ContextWrapper)c).getBaseContext();if(next==c)break;c=next;}return null;}
  public static void update(View root,ViewGroup decor,View bar){
@@ -44,7 +45,7 @@ public final class FullscreenViewport209 {
   s.fit(comments,-1,-1,Math.max(0,upper),Math.max(0,lower),false);
   s.commentBounds(comments);s.fit(find(root,"video_view"),-1,-1,0,0,false);
  }
- public static void restore(View root){restoreSession(sessions.remove(root));restoreSession(sideSessions.remove(root));restoreSession(normalSessions.remove(root));}
+ public static void restore(View root){restoreSession(sessions.remove(root));restoreSession(sideSessions.remove(root));restoreSession(normalSessions.remove(root));restoreSession(viewportSessions.remove(root));}
  private static void restoreSession(Session s){if(s==null)return;if(s.attachRoot!=null)s.attachRoot.removeOnAttachStateChangeListener(s.detach);s.removeListeners();s.restoreParents();for(Map.Entry<View,Saved> e:s.saved.entrySet())e.getValue().restore(e.getKey());if(s.decor!=null)s.decor.setSystemUiVisibility(s.flags);if(s.activity!=null){Window w=s.activity.getWindow();w.setFlags(s.windowFlags,WindowManager.LayoutParams.FLAG_FULLSCREEN);if(s.cutout>=0)try{WindowManager.LayoutParams p=w.getAttributes();p.getClass().getField("layoutInDisplayCutoutMode").setInt(p,s.cutout);w.setAttributes(p);}catch(Exception ignored){}}}
  /** Keep the native information pane's reserved width; controls stay inside the picture column. */
  public static boolean side(View root){
@@ -64,6 +65,36 @@ public final class FullscreenViewport209 {
   state.belowStatus(titlebar,status);
   if(tools!=null&&!within(tools,titlebar))state.belowStatus(tools,status);
   return true;
+ }
+ /** Restore the entire video viewport after fullscreen, not only its toolbar.
+  * Base each calculation on the original margin to avoid duplicate insets. */
+ public static void restoreNormalViewport(final View root){
+  if(root==null||root.getParent()==null)return;
+  ViewGroup.LayoutParams params=root.getLayoutParams();
+  if(!(params instanceof ViewGroup.MarginLayoutParams))return;
+  int status=statusTop(root);int[] pos=new int[2];root.getLocationInWindow(pos);
+  Session state=viewportSessions.get(root);
+  if(state==null&&(status<=0||pos[1]>=status))return;
+  if(state==null){
+   state=new Session();state.attachRoot=root;
+   final java.lang.ref.WeakReference<View> target=new java.lang.ref.WeakReference<View>(root);
+   state.detach=new View.OnAttachStateChangeListener(){public void onViewAttachedToWindow(View v){}public void onViewDetachedFromWindow(View v){View r=target.get();if(r!=null)restore(r);}};
+   root.addOnAttachStateChangeListener(state.detach);viewportSessions.put(root,state);
+  }
+  state.save(root);Saved saved=state.saved.get(root);if(saved==null)return;
+  ViewGroup.MarginLayoutParams current=(ViewGroup.MarginLayoutParams)root.getLayoutParams();
+  int original=((ViewGroup.MarginLayoutParams)saved.params).topMargin;
+  int origin=pos[1]-(current.topMargin-original);
+  int desired=original+Math.max(0,status-origin);
+  if(current.topMargin!=desired){
+   ViewGroup.MarginLayoutParams next=(ViewGroup.MarginLayoutParams)copy(current);
+   next.topMargin=desired;root.setLayoutParams(next);
+  }
+  if(!state.listeners.containsKey(root)){
+   View.OnLayoutChangeListener listener=new View.OnLayoutChangeListener(){
+    public void onLayoutChange(View v,int l,int t,int r,int b,int ol,int ot,int or,int ob){restoreNormalViewport(root);}
+   };state.listeners.put(root,listener);root.addOnLayoutChangeListener(listener);
+  }
  }
  private static void normalStatus(final View root){
   final View bar=find(root,"titlebar");if(bar==null||!(bar.getLayoutParams() instanceof ViewGroup.MarginLayoutParams))return;

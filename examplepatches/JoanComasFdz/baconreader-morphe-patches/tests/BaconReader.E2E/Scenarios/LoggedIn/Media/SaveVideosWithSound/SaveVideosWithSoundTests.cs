@@ -23,8 +23,8 @@ public sealed class SaveVideosWithSoundTests : BaseE2E
           Given Reddit has a video post "Watch this" in r/e2e with sound
           And Reddit has a video post "Silent clip" in r/e2e without sound
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           And I tap "More options" in the toolbar
           And I tap "List View"
@@ -51,8 +51,8 @@ public sealed class SaveVideosWithSoundTests : BaseE2E
         // Given
         Reddit.HasAVideoPostWithSound("Watch this", "e2e");
         Reddit.HasAVideoPostWithoutSound("Silent clip", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));

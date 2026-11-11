@@ -21,7 +21,25 @@ Or add `https://github.com/SledgeSune/morphe-patches` as a patch source in Morph
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/SledgeSune/morphe-patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;5 patches total
+> **[v1.1.0](https://github.com/SledgeSune/morphe-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
+<details open>
+<summary>📦 Waze&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**Package name:** `com.waze`
+
+**🎯 Supported versions:**
+
+| 5.27.4.900 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Disable reroute auto-accept](#disable-reroute-auto-accept) | Removes the countdown from the "faster route found" prompt while driving, so the route only changes when you tap the button yourself. |  |
+| [Trip history](#trip-history) | Shows the start and end time of each drive under Settings > Privacy > Navigation history. Uses the drive list from Waze's servers, and trips recorded on the phone when not signed in. |  |
+
+</details>
+
 <details open>
 <summary>📦 Sync.ME&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>

@@ -8,7 +8,7 @@
 # (Morphe Manager on Android), plus one extension DEX per feature.
 [CmdletBinding()]
 param(
-    [string]$Version = '1.2.2'
+    [string]$Version = '1.2.4'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -57,7 +57,14 @@ New-Item $patchDexDir -ItemType Directory -Force | Out-Null
 $classPaths = $classFiles | ForEach-Object { $_.FullName }
 
 Write-Host "Dexing patch classes for Morphe Manager..."
-& $d8 --min-api 26 --lib $androidJar --output $patchDexDir @classPaths | Out-Host
+# Windows caps the command line at ~32 KB and the patch classes now exceed it,
+# so the input list is passed to d8 through an argument file.
+$d8ArgFile = Join-Path $script:RepoRoot 'patch-dex\d8-classes.txt'
+$relativeClassPaths = $classPaths | ForEach-Object {
+    $_.Substring($script:RepoRoot.Length + 1)
+}
+Set-Content -Path $d8ArgFile -Value $relativeClassPaths -Encoding ASCII
+& $d8 --min-api 26 --lib $androidJar --output $patchDexDir "@$d8ArgFile" | Out-Host
 if ($LASTEXITCODE -ne 0) {
     throw "d8 failed on the patch classes with exit code $LASTEXITCODE."
 }
@@ -72,11 +79,15 @@ $extensions = @(
     @{ Name = 'extensions/KickChatSize.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-chatsize\classes.dex') },
     @{ Name = 'extensions/KickChatText.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-chattext\classes.dex') },
     @{ Name = 'extensions/KickChatExpand.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-chatexpand\classes.dex') },
+    @{ Name = 'extensions/KickHidePinned.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-hidepinned\classes.dex') },
+    @{ Name = 'extensions/KickMatureWarning.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\kick-maturewarning\classes.dex') },
     @{ Name = 'extensions/TwitchSeyttings.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-seyttings\classes.dex') },
     @{ Name = 'extensions/TwitchEmotes.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-emotes\classes.dex') },
     @{ Name = 'extensions/TwitchExpandChat.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-expandchat\classes.dex') },
     @{ Name = 'extensions/TwitchAdBlock.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-adblock\classes.dex') },
-    @{ Name = 'extensions/TwitchAmoled.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-amoled\classes.dex') }
+    @{ Name = 'extensions/TwitchAmoled.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-amoled\classes.dex') },
+    @{ Name = 'extensions/TwitchMatureWarning.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-maturewarning\classes.dex') },
+    @{ Name = 'extensions/TwitchHidePinned.mpe'; Source = (Join-Path $script:RepoRoot 'extension\dex\twitch-hidepinned\classes.dex') }
 )
 foreach ($extension in $extensions) {
     if (-not (Test-Path $extension.Source)) {
@@ -98,7 +109,7 @@ $timestamp = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 $manifest = @"
 Manifest-Version: 1.0
 Name: Sey Morphe Patches
-Description: Morphe patches for KICK (Android TV) and Twitch (Android TV) - Sey (SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT, AD BLOCK and AMOLED)
+Description: Morphe patches for KICK (Android TV) and Twitch (Android TV) - Sey (SEYTTINGS, EMOTES, CHAT SIZE, CHAT TEXT SIZE, EXPAND CHAT, HIDE PINNED, SKIP 18+ WARNING, AD BLOCK and AMOLED)
 Version: $Version
 Timestamp: $timestamp
 Source: https://github.com/seythegamer/sey-morphe-patches

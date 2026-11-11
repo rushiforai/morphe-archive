@@ -132,7 +132,7 @@ val readWithoutReceiptMarkAsReadBlockPatch = bytecodePatch(
         match.method.addInstructionsWithLabels(
             0,
             """
-                invoke-static { v${shape.chatIdRegister} }, $SHOULD_BLOCK
+                invoke-static/range { v${shape.chatIdRegister} .. v${shape.chatIdRegister} }, $SHOULD_BLOCK
                 move-result v0
                 if-eqz v0, :rwrRpcEntryContinue
                 return-void

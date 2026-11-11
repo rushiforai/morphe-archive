@@ -9,6 +9,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Media/*" LogicalName="Media/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Setup/setup.html" LogicalName="Setup/setup.html" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="BaconReader.FakeReddit.Tests" />

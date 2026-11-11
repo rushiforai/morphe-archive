@@ -46,6 +46,7 @@ public class UnifiedPushTest {
     private final List<String> registered = new ArrayList<>();
     private final List<Runnable> wakes = new ArrayList<>();
     private final List<String> released = new ArrayList<>();
+    private final java.util.Map<Thread, Throwable> failed = new java.util.concurrent.ConcurrentHashMap<>();
     private UnifiedPush.Telegram real;
     private java.util.concurrent.Executor realWork;
     private final java.util.function.Function<Context, android.content.SharedPreferences> realStore = UnifiedPush.store;
@@ -617,6 +618,9 @@ public class UnifiedPushTest {
         boolean failedWritesStay;
         /** When set, each read of the auth secret waits up to a second for the others, so first asks overlap if they can. */
         java.util.concurrent.CountDownLatch readers;
+        /** Runs once, right after the next read of {@link #afterReadOf}, as whatever happens between that read and the next step. */
+        Runnable afterRead;
+        String afterReadOf = UnifiedPush.TOKEN;
 
         Flaky(android.content.SharedPreferences real) {
             this.real = real;
@@ -625,6 +629,11 @@ public class UnifiedPushTest {
         @Override public java.util.Map<String, ?> getAll() { return real.getAll(); }
         @Override public String getString(String key, String fallback) {
             String value = real.getString(key, fallback);
+            if (afterRead != null && afterReadOf.equals(key)) {
+                Runnable between = afterRead;
+                afterRead = null;
+                between.run();
+            }
             if (readers != null && UnifiedPush.WEB_PUSH_AUTH.equals(key)) {
                 readers.countDown();
                 try {
@@ -672,16 +681,28 @@ public class UnifiedPushTest {
 
     /** Nothing goes to the app or to Telegram on a write that didn't reach the disk. */
     @Test public void nothingGoesOutUntilWhatItDependsOnIsSaved() {
+        nothingGoesOutUntilSaved(false);
+    }
+
+    /** The same when Android keeps each failed write in memory, as its own commit does. */
+    @Test public void nothingGoesOutUntilSavedWhenFailedWritesStayInMemory() {
+        nothingGoesOutUntilSaved(true);
+    }
+
+    private void nothingGoesOutUntilSaved(boolean failedWritesStay) {
         install(UnifiedPush.NTFY);
         Settings.UNIFIED_PUSH.save(true);
         Flaky flaky = new Flaky(UnifiedPush.prefs(context));
         UnifiedPush.store = ignored -> flaky;
         flaky.failWrites = true;
+        flaky.failedWritesStay = failedWritesStay;
         UnifiedPush.sync(context, true);
         assertNull("a token this side couldn't keep was sent", last(UnifiedPush.REGISTER));
+        assertNull(token());
         assertTrue(String.join("\n", HookStatus.report()).contains("sign-up not saved"));
         UnifiedPush.choose(context, UnifiedPush.NTFY, true);
         assertNull(last(UnifiedPush.REGISTER));
+        assertNull(flaky.getString(UnifiedPush.CHOSEN, null));
 
         flaky.failWrites = false;
         UnifiedPush.sync(context, true);
@@ -691,12 +712,394 @@ public class UnifiedPushTest {
         UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, token).putExtra("endpoint", ENDPOINT), () -> {});
         assertTrue("Telegram got an address that a restart would forget", registered.isEmpty());
         assertNull(UnifiedPush.activeEndpoint());
+        assertNull(flaky.getString(UnifiedPush.ENDPOINT, null));
         assertTrue(String.join("\n", HookStatus.report()).contains("address not saved"));
 
         // Off still ends the sign-up with the app, and says the file still holds it.
         UnifiedPush.sync(context, false);
         assertEquals(token, last(UnifiedPush.UNREGISTER).getStringExtra("token"));
         assertTrue(String.join("\n", HookStatus.report()).contains("sign-up not forgotten"));
+        assertEquals("reads this run see what the file holds", token, token());
+    }
+
+    /** Problems the app reports that couldn't be saved don't show up later in the same run either. */
+    @Test public void problemsThatWerentSavedLeaveTheSignUpAsItWas() {
+        install(UnifiedPush.NTFY);
+        Settings.UNIFIED_PUSH.save(true);
+        UnifiedPush.sync(context, true);
+        String waiting = token();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        flaky.failWrites = true;
+        flaky.failedWritesStay = true;
+        UnifiedPush.receive(context, from(UnifiedPush.REGISTRATION_FAILED, waiting), () -> {});
+        assertEquals(waiting, token());
+        assertNull(flaky.getString(UnifiedPush.PROBLEM, null));
+        assertTrue(String.join("\n", HookStatus.report()).contains("refusal not saved"));
+
+        flaky.failWrites = false;
+        UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, waiting).putExtra("endpoint", ENDPOINT), () -> {});
+        assertEquals(ENDPOINT, UnifiedPush.activeEndpoint());
+        flaky.failWrites = true;
+        UnifiedPush.receive(context, from(UnifiedPush.TEMP_UNAVAILABLE, waiting), () -> {});
+        assertNull(flaky.getString(UnifiedPush.PROBLEM, null));
+        UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, waiting).putExtra("endpoint", "http://ntfy.example/upAbC"), () -> {});
+        assertEquals(ENDPOINT, flaky.getString(UnifiedPush.ENDPOINT, null));
+        assertNull(flaky.getString(UnifiedPush.PROBLEM, null));
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, waiting), () -> {});
+        assertEquals(waiting, token());
+        assertEquals(ENDPOINT, flaky.getString(UnifiedPush.ENDPOINT, null));
+        assertNull(flaky.getString(UnifiedPush.PROBLEM, null));
+        assertTrue(String.join("\n", HookStatus.report()).contains("ended sign-up not saved"));
+    }
+
+    /** Off whose save failed still ends the sign-up, and the app's answer to that isn't the app ending it. */
+    @Test public void theAnswerToAnOffWhoseSaveFailedLetsTheSwitchSignUpAgain() {
+        String token = signedUp();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        flaky.failWrites = true;
+        flaky.failedWritesStay = true;
+        Settings.UNIFIED_PUSH.save(false);
+        UnifiedPush.sync(context, false);
+        assertEquals(token, last(UnifiedPush.UNREGISTER).getStringExtra("token"));
+        assertEquals("the file still holds it", token, token());
+
+        flaky.failWrites = false;
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {});
+        assertNull(token());
+        assertNull(flaky.getString(UnifiedPush.ENDPOINT, null));
+        assertNull("not shown as the app ending it", flaky.getString(UnifiedPush.PROBLEM, null));
+        int registers = count(UnifiedPush.REGISTER);
+        Settings.UNIFIED_PUSH.save(true);
+        UnifiedPush.sync(context, true);
+        assertEquals("back on, it signs up again", registers + 1, count(UnifiedPush.REGISTER));
+        assertEquals(token(), last(UnifiedPush.REGISTER).getStringExtra("token"));
+        assertFalse(UnifiedPush.status(context, true).contains("ended"));
+    }
+
+    /** Back on before the app answered an off whose save failed: the new sign-up gets its own token, which the answer can't end. */
+    @Test public void onAgainBeforeTheAppAnsweredSignsUpWithANewToken() {
+        String token = signedUp();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        flaky.failWrites = true;
+        flaky.failedWritesStay = true;
+        Settings.UNIFIED_PUSH.save(false);
+        UnifiedPush.sync(context, false);
+        int unregisters = count(UnifiedPush.UNREGISTER);
+
+        flaky.failWrites = false;
+        Settings.UNIFIED_PUSH.save(true);
+        UnifiedPush.sync(context, true);
+        String fresh = token();
+        assertNotEquals(token, fresh);
+        assertEquals(fresh, last(UnifiedPush.REGISTER).getStringExtra("token"));
+        assertEquals("the old token isn't asked to end twice", unregisters, count(UnifiedPush.UNREGISTER));
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {});
+        assertEquals(fresh, token());
+        UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, fresh).putExtra("endpoint", ENDPOINT), () -> {});
+        assertEquals(ENDPOINT, UnifiedPush.activeEndpoint());
+        assertNull(flaky.getString(UnifiedPush.PROBLEM, null));
+    }
+
+    /** The same for the old app's answer when moving to another app couldn't be saved, which signs up with the new one then. */
+    @Test public void theOldAppsAnswerToAMoveWhoseSaveFailedSignsUpWithTheNewApp() {
+        install(OTHER);
+        String token = signedUp();
+        UnifiedPush.prefs(context).edit().putString(UnifiedPush.CHOSEN, OTHER).commit();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        flaky.failWrites = true;
+        flaky.failedWritesStay = true;
+        UnifiedPush.sync(context, true);
+        Intent ended = last(UnifiedPush.UNREGISTER);
+        assertEquals(UnifiedPush.NTFY, ended.getPackage());
+        assertEquals(token, ended.getStringExtra("token"));
+        assertEquals(token, token());
+
+        flaky.failWrites = false;
+        int registers = count(UnifiedPush.REGISTER);
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {});
+        assertNull(flaky.getString(UnifiedPush.PROBLEM, null));
+        assertEquals("the move goes ahead without waiting for a start", registers + 1, count(UnifiedPush.REGISTER));
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        assertNotEquals(token, token());
+        assertEquals(token(), last(UnifiedPush.REGISTER).getStringExtra("token"));
+    }
+
+    /** Back on while the app's answer to an off whose save failed is handled: the sign-up waits for it, and one new token is signed up. */
+    @Test public void aSignUpAskedForDuringTheAppsAnswerWaitsForIt() throws Exception {
+        String token = signedUp();
+        Flaky flaky = offWhoseSaveFailed();
+        int before = sent().size();
+        Thread[] signUp = new Thread[1];
+        // The answer has read the old token when the switch's sign-up starts on its own thread.
+        flaky.afterRead = () -> signUp[0] = overlapping(() -> UnifiedPush.sync(context, true));
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {});
+        finished(signUp[0]);
+        assertNotNull(token());
+        assertNotEquals(token, token());
+        assertEquals("every sign-up since carries the one token kept", Collections.singleton(token()), signedUpSince(before));
+        assertNull(flaky.getString(UnifiedPush.PROBLEM, null));
+    }
+
+    /** The app's answer arriving while a sign-up is under way waits for it, so the sign-up never reuses the ending token. */
+    @Test public void theAppsAnswerWaitsForASignUpUnderWay() throws Exception {
+        String token = signedUp();
+        Flaky flaky = offWhoseSaveFailed();
+        int withOld = registersWith(token);
+        Thread[] answer = new Thread[1];
+        // The sign-up has read the old token when the answer comes in on Android's main thread.
+        flaky.afterRead = () -> answer[0] = overlapping(
+                () -> UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {}));
+        UnifiedPush.sync(context, true);
+        finished(answer[0]);
+        assertEquals("the ending token was signed up again", withOld, registersWith(token));
+        assertNotEquals(token, token());
+        assertEquals(token(), last(UnifiedPush.REGISTER).getStringExtra("token"));
+    }
+
+    /** The old app turning its sign-up down while the user moves to another app leaves the move's sign-up alone. */
+    @Test public void aRefusalHandledDuringAMoveLeavesTheNewSignUp() throws Exception {
+        String token = waitingForAnAddress();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        int before = sent().size();
+        Thread[] move = new Thread[1];
+        flaky.afterRead = () -> move[0] = overlapping(() -> UnifiedPush.choose(context, OTHER, true));
+        UnifiedPush.receive(context, from(UnifiedPush.REGISTRATION_FAILED, token), () -> {});
+        finished(move[0]);
+        assertNotNull("the move's sign-up was wiped", token());
+        assertNotEquals(token, token());
+        assertNull(flaky.getString(UnifiedPush.PROBLEM, null));
+        assertEquals(Collections.singleton(token()), signedUpSince(before));
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+    }
+
+    /** The old app's address arriving while the user moves to another app isn't kept as the new sign-up's. */
+    @Test public void anAddressHandledDuringAMoveIsntKeptForTheNewSignUp() throws Exception {
+        String token = waitingForAnAddress();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        Thread[] move = new Thread[1];
+        flaky.afterRead = () -> move[0] = overlapping(() -> UnifiedPush.choose(context, OTHER, true));
+        UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, token).putExtra("endpoint", ENDPOINT), () -> {});
+        finished(move[0]);
+        assertNotEquals(token, token());
+        assertEquals(token(), last(UnifiedPush.REGISTER).getStringExtra("token"));
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        assertNull("the new sign-up holds the old app's address", flaky.getString(UnifiedPush.ENDPOINT, null));
+        assertNull(UnifiedPush.activeEndpoint());
+        assertEquals("Telegram still holds the old app's address", Collections.singletonList(ENDPOINT), released);
+    }
+
+    @Test public void movingToAnotherAppHandsTheOldAddressBack() {
+        install(OTHER);
+        signedUp();
+        assertEquals(webPush(), UnifiedPush.token(2, "fcm-token"));
+        UnifiedPush.choose(context, OTHER, true);
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        assertEquals("nothing answers at the old address, so Telegram is asked for Firebase again",
+                Collections.singletonList(ENDPOINT), released);
+        assertNull(UnifiedPush.activeEndpoint());
+        assertEquals("fcm-token", UnifiedPush.token(2, "fcm-token"));
+        // Until the new app sends its own address.
+        String moved = "https://push.example.org/up/9f8e7d";
+        UnifiedPush.receive(context, from(UnifiedPush.NEW_ENDPOINT, token()).putExtra("endpoint", moved), () -> {});
+        assertEquals(moved, UnifiedPush.activeEndpoint());
+        assertEquals("the new address is kept", Collections.singletonList(ENDPOINT), released);
+    }
+
+    @Test public void anOldPickDoesntUndoALaterEndWhenItsAppComesBack() {
+        install(OTHER);
+        signedUp();
+        UnifiedPush.choose(context, OTHER, true);
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        // The picked app goes, ntfy takes over, and then ntfy ends it.
+        shadowOf(context.getPackageManager()).removeResolveInfosForIntent(new Intent(UnifiedPush.REGISTER), OTHER);
+        UnifiedPush.sync(context, true);
+        assertEquals(UnifiedPush.NTFY, last(UnifiedPush.REGISTER).getPackage());
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token()), () -> {});
+        int registers = count(UnifiedPush.REGISTER);
+        install(OTHER);
+        UnifiedPush.sync(context, true);
+        assertEquals("the end holds until the user acts", registers, count(UnifiedPush.REGISTER));
+    }
+
+    @Test public void anEndAfterPickingAnAppThatsSinceGoneStillHoldsItBack() {
+        install(OTHER);
+        String token = signedUp();
+        List<Runnable> queued = new ArrayList<>();
+        UnifiedPush.work = queued::add;
+        UnifiedPush.choose(context, OTHER, true);
+        shadowOf(context.getPackageManager()).removeResolveInfosForIntent(new Intent(UnifiedPush.REGISTER), OTHER);
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {});
+        int registers = count(UnifiedPush.REGISTER);
+        for (Runnable step : queued) step.run();
+        assertEquals("ntfy isn't asked again behind its back", registers, count(UnifiedPush.REGISTER));
+        assertNull(token());
+    }
+
+    /** The old app ends its sign-up after another app was picked but before the move's sign-up ran. */
+    @Test public void anEndThatLandsBeforeAPickedMoveRunsDoesntHoldItBack() {
+        install(OTHER);
+        String token = signedUp();
+        List<Runnable> queued = new ArrayList<>();
+        UnifiedPush.work = queued::add;
+        UnifiedPush.choose(context, OTHER, true);
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {});
+        int registers = count(UnifiedPush.REGISTER);
+        for (Runnable step : queued) step.run();
+        assertEquals(registers + 1, count(UnifiedPush.REGISTER));
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        assertEquals(token(), last(UnifiedPush.REGISTER).getStringExtra("token"));
+        assertEquals("Signing up with org.example.push…", UnifiedPush.status(context, true));
+    }
+
+    /** A pick landing while a sign-up reads the choice isn't spent by that sign-up, so an end that follows doesn't hold the move back. */
+    @Test public void aPickLandingDuringASignUpStillMovesAfterAnEnd() throws Exception {
+        install(OTHER);
+        signedUp();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        List<Runnable> queued = new ArrayList<>();
+        UnifiedPush.work = queued::add;
+        Thread[] move = new Thread[1];
+        // The start's sign-up has read the choice when the user picks the other app.
+        flaky.afterReadOf = UnifiedPush.CHOSEN;
+        flaky.afterRead = () -> move[0] = overlapping(() -> UnifiedPush.choose(context, OTHER, true));
+        UnifiedPush.sync(context, true);
+        finished(move[0]);
+        // Then ntfy ends the sign-up it was just asked again for.
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token()), () -> {});
+        for (Runnable step : queued) step.run();
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        assertEquals(token(), last(UnifiedPush.REGISTER).getStringExtra("token"));
+    }
+
+    /** A move spends only the pick it read, so a second pick landing during its sign-up still moves after an end. */
+    @Test public void aSecondPickLandingDuringAMoveStillMovesAfterAnEnd() throws Exception {
+        String third = "org.example.third";
+        install(OTHER, third);
+        signedUp();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        List<Runnable> queued = new ArrayList<>();
+        UnifiedPush.work = queued::add;
+        UnifiedPush.choose(context, OTHER, true);
+        queued.clear();
+        Thread[] move = new Thread[1];
+        // The move to the other app has read its pick when the user picks a third one.
+        flaky.afterReadOf = UnifiedPush.ENDPOINT;
+        flaky.afterRead = () -> move[0] = overlapping(() -> UnifiedPush.choose(context, third, true));
+        UnifiedPush.sync(context, true);
+        finished(move[0]);
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        // Then the other app ends the sign-up it was just asked for.
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token()), () -> {});
+        for (Runnable step : queued) step.run();
+        assertEquals(third, last(UnifiedPush.REGISTER).getPackage());
+        assertEquals(token(), last(UnifiedPush.REGISTER).getStringExtra("token"));
+    }
+
+    /** A move whose sign-up didn't reach the disk keeps its pick, so it goes ahead at the next start despite the end. */
+    @Test public void aPickWhoseSignUpWasntSavedIsKeptForTheNextTry() {
+        install(OTHER);
+        String token = signedUp();
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        List<Runnable> queued = new ArrayList<>();
+        UnifiedPush.work = queued::add;
+        UnifiedPush.choose(context, OTHER, true);
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {});
+        // Writes start failing once the move's sign-up is under way.
+        flaky.afterReadOf = UnifiedPush.ENDPOINT;
+        flaky.afterRead = () -> flaky.failWrites = true;
+        for (Runnable step : queued) step.run();
+        assertNull(token());
+        assertNotEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        flaky.failWrites = false;
+        UnifiedPush.sync(context, true);
+        assertEquals(OTHER, last(UnifiedPush.REGISTER).getPackage());
+        assertEquals(token(), last(UnifiedPush.REGISTER).getStringExtra("token"));
+    }
+
+    @Test public void anEndAfterPickingTheSameAppAgainStillHoldsItBack() {
+        String token = signedUp();
+        List<Runnable> queued = new ArrayList<>();
+        UnifiedPush.work = queued::add;
+        UnifiedPush.choose(context, UnifiedPush.NTFY, true);
+        UnifiedPush.receive(context, from(UnifiedPush.UNREGISTERED, token), () -> {});
+        int registers = count(UnifiedPush.REGISTER);
+        for (Runnable step : queued) step.run();
+        assertEquals("the app that ended it isn't asked again behind its back", registers, count(UnifiedPush.REGISTER));
+        assertEquals("io.heckel.ntfy ended the sign-up. Turn the switch off and on to sign up again.", UnifiedPush.status(context, true));
+    }
+
+    /** Signed up with ntfy and waiting for its address, another app installed, the switch on. */
+    private String waitingForAnAddress() {
+        install(UnifiedPush.NTFY, OTHER);
+        Settings.UNIFIED_PUSH.save(true);
+        UnifiedPush.sync(context, true);
+        assertEquals(UnifiedPush.NTFY, last(UnifiedPush.REGISTER).getPackage());
+        return token();
+    }
+
+    /**
+     * Starts [step] on a thread of its own and returns once it's waiting for a lock or done, the
+     * way a broadcast on Android's main thread and a sign-up on the work thread overlap.
+     */
+    private Thread overlapping(Runnable step) {
+        Thread thread = new Thread(step);
+        thread.setUncaughtExceptionHandler(failed::put);
+        thread.start();
+        long until = System.nanoTime() + 5_000_000_000L;
+        while (thread.getState() != Thread.State.BLOCKED && thread.getState() != Thread.State.TERMINATED) {
+            if (System.nanoTime() > until) throw new AssertionError("the overlapping step neither waited nor finished");
+            Thread.yield();
+        }
+        return thread;
+    }
+
+    /** Waits for an {@link #overlapping} step and fails with whatever it threw. */
+    private void finished(Thread thread) throws InterruptedException {
+        assertNotNull("the overlapping step never started", thread);
+        thread.join(5000);
+        assertFalse("the overlapping step never finished", thread.isAlive());
+        Throwable failure = failed.get(thread);
+        if (failure != null) throw new AssertionError("the overlapping step failed", failure);
+    }
+
+    /** The tokens of the sign-ups sent after the first [before] broadcasts. */
+    private java.util.Set<String> signedUpSince(int before) {
+        java.util.Set<String> tokens = new java.util.HashSet<>();
+        List<Intent> all = sent();
+        for (Intent intent : all.subList(before, all.size())) {
+            if (UnifiedPush.REGISTER.equals(intent.getAction())) tokens.add(intent.getStringExtra("token"));
+        }
+        return tokens;
+    }
+
+    /** Off whose save failed, the app not answered yet, the switch saved back on and saves working again. */
+    private Flaky offWhoseSaveFailed() {
+        Flaky flaky = new Flaky(UnifiedPush.prefs(context));
+        UnifiedPush.store = ignored -> flaky;
+        flaky.failWrites = true;
+        flaky.failedWritesStay = true;
+        Settings.UNIFIED_PUSH.save(false);
+        UnifiedPush.sync(context, false);
+        flaky.failWrites = false;
+        Settings.UNIFIED_PUSH.save(true);
+        return flaky;
+    }
+
+    private int registersWith(String token) {
+        int n = 0;
+        for (Intent intent : sent()) {
+            if (UnifiedPush.REGISTER.equals(intent.getAction()) && token.equals(intent.getStringExtra("token"))) n++;
+        }
+        return n;
     }
 
     private int count(String action) {

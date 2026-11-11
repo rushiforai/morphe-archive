@@ -122,5 +122,20 @@ class TvBuildTest(unittest.TestCase):
         self.assertIn("still serves Tubi `10.44.2` to phones", closes[0][-1])
 
 
+class CleanupTest(unittest.TestCase):
+    def test_keeps_the_download_folder(self):
+        """Run 42789639970: patching Play's com.abc.abcnews.apk must not touch
+        APKPure's com.abc.abcnews-11.12.0 download folder."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as workdir:
+            work = Path(workdir)
+            (work / "com.abc.abcnews-11.12.0").mkdir()
+            (work / "com.abc.abcnews-result.json").write_text("{}")
+            (work / "com.abc.abcnews-patched.apk").write_text("")
+            (work / "com.abc.abcnews-patched-temporary-files").mkdir()
+            app_updates.remove_patch_outputs(workdir, "com.abc.abcnews")
+            self.assertEqual(sorted(p.name for p in work.iterdir()), ["com.abc.abcnews-11.12.0"])
+
+
 if __name__ == "__main__":
     unittest.main()

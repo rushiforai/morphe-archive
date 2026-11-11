@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-09T06:16:52",
-  "description": "## 1.10.6 (2026-11-09)\n\n### ✨ New Features\n\n* **nicoid:** Add a vertical tab list accessible from the tab bar or customizable gestures, with tab switching, closing, restoration, and drag-and-drop reordering.\n* **nicoid:** Add options to show or hide the tab list and add-tab buttons.\n* **nicoid:** Add an optional audio focus setting, disabled by default.\n* **nicoid:** Add an option to recognize vertical-only gestures, disabled by default.\n\n### 🐛 Bug Fixes\n\n* **nicoid:** Fix playback controls and the seek bar not responding to taps in popup playback.\n* **nicoid:** Prevent duplicate tabs from opening for the same ranking category and period.\n* **nicoid:** Fix account watch history tabs not restoring correctly.\n\n### 🔧 Improvements\n\n* **nicoid:** Update ranking periods within the current tab without reopening the screen or triggering unnecessary transition animations.\n* **nicoid:** Improve tab management with distinct tab icons, consistent button colors, and smoother closing and restoration.\n* **nicoid:** Refine gesture recognition to prevent accidental activation during vertical scrolling.\n* **nicoid:** Improve gesture sensitivity descriptions and tab-related settings.",
-  "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.10.6/patches-1.10.6.mpp",
+  "created_at": "2026-11-10T16:44:17",
+  "description": "## 1.11.1 (2026-11-11)\n\n### 🐛 Bug Fixes\n* **nicoid:** Fix Ambient Mode lighting overlapping comments, text, icons, and playback controls.\n* **nicoid:** Fix the Ambient Mode toggle occasionally becoming unresponsive.\n* **nicoid:** Fix the video player overlapping the status bar after exiting fullscreen in landscape tablet mode.\n\n### 🔧 Improvements\n* **nicoid:** Improve Ambient Mode lighting spread and intensity during normal playback.\n* **nicoid:** Extend ambient lighting below the tab bar and around the right edge and corners in landscape mode.\n* **nicoid:** Smooth lighting transitions and reduce visible boundaries between the video player and surrounding UI.",
+  "download_url": "https://github.com/chikuwadon/nicoid-re-patches/releases/download/v1.11.1/patches-1.11.1.mpp",
   "signature_download_url": "",
-  "version": "1.10.6"
+  "version": "1.11.1"
 }

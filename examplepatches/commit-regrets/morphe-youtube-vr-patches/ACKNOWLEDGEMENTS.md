@@ -6,25 +6,7 @@ accordingly; see [LICENSE](LICENSE) (GNU GPL-3.0, kept from upstream).
 ## The patch set this is derived from
 
 - **[WalkTheEarth/morphe-ytvr-patches](https://github.com/WalkTheEarth/morphe-ytvr-patches)**
-  (GPL-3.0) — the original "Morphe patches for YouTube VR (Meta Quest)" project. This repository
-  started as a clone of it and is **31 commits ahead** of its `main`, with the same license and
-  the same copyright holders.
-
-  What changed here, so nobody has to guess:
-  - **Playback fix:** the spoofed VISIONOS formats were refused with HTTP 400 because the app
-    rewrote the request shape (a UMP `?ump=1&range=` envelope from `pqy`, and an AbrState
-    protobuf POST body from `axu`). The DataSpec build is normalised back to a plain GET with no
-    body, and `pqy.c` is cleared.
-  - **Pre-roll fix:** the ad is a *client-side ad slot* in the app's **own** player response
-    (the spoof only ever replaced `streamingData`), so the slot list is cleared on the app's own
-    response. A/B verified: with the clear, the skip-ad countdown never ticks and no ad request
-    is made.
-  - **`App name` patch** (new): the official *Custom branding* patch is a resource patch for the
-    phone YouTube/Music apps and applies **zero** patches to YouTube VR, so this repo sets
-    `youtube_vr_app_name` itself through a `values-v24` overlay.
-  - `scripts/patch-and-install.ps1` (new): the whole Quest pipeline in one command.
-  - Extension hooks, probes and the development notes — development
-    scaffolding, not upstream material.
+  (GPL-3.0) — the original "Morphe patches for YouTube VR (Meta Quest)" project.
 
 ## Framework and patch ecosystem
 

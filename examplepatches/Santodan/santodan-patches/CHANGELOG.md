@@ -1,3 +1,20 @@
+## [0.18.1](https://github.com/Santodan/santodan-patches/compare/v0.18.0...v0.18.1) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **carscanner:** support arm64 2.2.42 and fix model-selection/startup waits ([12fb877](https://github.com/Santodan/santodan-patches/commit/12fb8778e2f46d7dd5bb4996c3fbdeab663ba792))
+
+## [0.18.0](https://github.com/Santodan/santodan-patches/compare/v0.17.0...v0.18.0) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **nuviotv:** support official 1.1.0 release [skip ci] ([fd2509d](https://github.com/Santodan/santodan-patches/commit/fd2509d884b8420553831d2b68043756493b514f))
+
+### ✨ New Features
+
+* **carscanner:** support 2.2.42 and add experimental premium patch ([82bfdb5](https://github.com/Santodan/santodan-patches/commit/82bfdb592ab5344454cc1534b38a6bbe8985b131))
+* **fylo:** support 2.6 and unrestricted experimental patch [skip ci] ([96c2f8d](https://github.com/Santodan/santodan-patches/commit/96c2f8df5232266985c1b1df3653239b00f555ce))
+
 ## [0.17.0](https://github.com/Santodan/santodan-patches/compare/v0.16.5...v0.17.0) (2026-11-08)
 
 ### ✨ New Features

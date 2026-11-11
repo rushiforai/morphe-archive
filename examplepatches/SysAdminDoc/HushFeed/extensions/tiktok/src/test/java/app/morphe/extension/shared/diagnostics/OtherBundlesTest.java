@@ -4,10 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import android.app.Activity;
+import android.content.ClipboardManager;
 import android.content.Context;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
+import app.morphe.extension.shared.settings.preference.ExportDiagnosticReportPreference;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.tiktok.SettingsContextRule;
 
@@ -16,6 +19,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -52,12 +56,75 @@ public class OtherBundlesTest {
     @After
     public void forgetTheScan() {
         OtherBundles.useApksForTests(null);
+        OtherBundles.useOwnClassesForTests(null);
     }
 
     @Test
     public void aHushfeedOnlyApkSaysNone() throws Exception {
         File apk = apk(dex(concat(TIKTOK, HUSHFEED)));
         assertEquals(Collections.emptyMap(), OtherBundles.scan(Collections.singletonList(apk)));
+    }
+
+    @Test
+    public void aClassUnderHushfeedsPackagesThatIsNotOnItsListIsAnotherBundles() throws Exception {
+        // Another TikTok bundle built from the same template keeps Hushfeed's package names.
+        File apk = apk(dex(concat(TIKTOK, HUSHFEED, new String[]{
+                "Lapp/morphe/extension/shared/Extra;", "Lapp/morphe/extension/tiktok/other/Foreign;",
+        })));
+        String crash = "[STACK TRACE]\njava.lang.IllegalStateException\n"
+                + "\tat app.morphe.extension.tiktok.other.Foreign.run(Foreign.java:3)\n"
+                + "Caused by: java.lang.NullPointerException\n"
+                + "\tat app.morphe.extension.tiktok.feedfilter.FeedFilter.filter(FeedFilter.java:9)\n";
+
+        OtherBundles.useOwnClassesForTests(new HashSet<>(Arrays.asList(HUSHFEED)));
+        assertEquals("{app.morphe.extension.shared=1, app.morphe.extension.tiktok=1}",
+                OtherBundles.scan(Collections.singletonList(apk)).toString());
+        assertEquals(Arrays.asList(
+                "latest_crash_top_app_frame: at app.morphe.extension.tiktok.other.Foreign.run(Foreign.java:3)",
+                "latest_crash_top_app_frame_from: another patch bundle (app.morphe.extension.tiktok)",
+                "latest_crash_cause_app_frame: at app.morphe.extension.tiktok.feedfilter.FeedFilter.filter(FeedFilter.java:9)",
+                "latest_crash_cause_app_frame_from: Hushfeed",
+                "latest_crash_frames_from_other_bundles: 1"),
+                OtherBundles.crashLines(crash, null));
+
+        // An APK patched before the list existed goes by package name and can't tell them apart.
+        OtherBundles.useOwnClassesForTests(Collections.emptySet());
+        assertEquals(Collections.emptyMap(), OtherBundles.scan(Collections.singletonList(apk)));
+        assertEquals("latest_crash_top_app_frame_from: Hushfeed", OtherBundles.crashLines(crash, null).get(1));
+    }
+
+    @Test
+    public void aSavedCrashInAClassAnEarlierHushfeedHadIsStillHushfeeds() throws Exception {
+        // Saved before an update that renamed the class, so the new list doesn't hold it.
+        String crash = "[STACK TRACE]\njava.lang.IllegalStateException\n"
+                + "\tat app.morphe.extension.tiktok.renamed.Gone.run(Gone.java:3)\n";
+        OtherBundles.useOwnClassesForTests(new HashSet<>(Arrays.asList(HUSHFEED)));
+        File alone = apk(dex(concat(TIKTOK, HUSHFEED)));
+        List<String> lines = OtherBundles.crashLines(crash,
+                new OtherBundles.Scan(OtherBundles.scan(Collections.singletonList(alone)), null));
+        assertEquals("latest_crash_top_app_frame_from: Hushfeed (an earlier build)", lines.get(1));
+        assertEquals("latest_crash_frames_from_other_bundles: 0", lines.get(2));
+
+        // Another bundle under the same names in this APK could own it, so it isn't told apart.
+        File shared = apk(dex(concat(TIKTOK, HUSHFEED, new String[]{"Lapp/morphe/extension/tiktok/other/Foreign;"})));
+        lines = OtherBundles.crashLines(crash,
+                new OtherBundles.Scan(OtherBundles.scan(Collections.singletonList(shared)), null));
+        assertEquals("latest_crash_top_app_frame_from: another patch bundle (app.morphe.extension.tiktok)", lines.get(1));
+        // An APK that couldn't be read says nothing either way.
+        lines = OtherBundles.crashLines(crash, new OtherBundles.Scan(Collections.emptyMap(), "IOException"));
+        assertEquals("latest_crash_top_app_frame_from: another patch bundle (app.morphe.extension.tiktok)", lines.get(1));
+    }
+
+    @Test
+    public void theOwnClassListReadsOneDescriptorALine() throws Exception {
+        byte[] list = "Lapp/morphe/extension/R;\nLapp/morphe/extension/tiktok/A$1;\n\nnot a class\nLX/0abc;\n"
+                .getBytes("ISO-8859-1");
+        assertEquals(new HashSet<>(Arrays.asList("Lapp/morphe/extension/R;", "Lapp/morphe/extension/tiktok/A$1;")),
+                OtherBundles.readOwnClasses(new ByteArrayInputStream(list)));
+        assertTrue(OtherBundles.readOwnClasses(new ByteArrayInputStream(new byte[0])).isEmpty());
+        byte[] huge = new byte[(4 << 20) + 1];
+        Arrays.fill(huge, (byte) 'L');
+        assertTrue(OtherBundles.readOwnClasses(new ByteArrayInputStream(huge)).isEmpty());
     }
 
     @Test
@@ -84,8 +151,55 @@ public class OtherBundlesTest {
         byte[] cut = dex(concat(TIKTOK, new String[]{"Lapp/morphe/extension/youtube/Shorts;"}));
         byte[] broken = withLastStringOffset(cut, cut.length + 100);
         Set<String> classes = new HashSet<>();
-        OtherBundles.scanDex(new ByteArrayInputStream(broken), classes);
+        OtherBundles.scanDex(() -> new ByteArrayInputStream(broken), classes);
         assertEquals(Collections.singleton("Lapp/morphe/extension/youtube/Shorts;"), classes);
+    }
+
+    @Test
+    public void aStringTablePointingIntoTheHeaderOrPast2GbIsRefused() throws Exception {
+        byte[] good = dex(concat(TIKTOK, new String[]{"Lapp/morphe/extension/youtube/Shorts;"}));
+        for (int offset : new int[]{0x10, -8}) {
+            // Out of id order, so the read sorts the ids and the bad one comes first.
+            byte[] broken = withLastStringOffset(good, offset);
+            try {
+                OtherBundles.scanDex(() -> new ByteArrayInputStream(broken), new HashSet<>());
+                throw new AssertionError("read a string at " + offset);
+            } catch (IOException expected) {
+                assertEquals("bad string table", expected.getMessage());
+            }
+        }
+    }
+
+    @Test
+    public void stringDataBeforeTheIdsTableIsReadAgainFromTheStart() throws Exception {
+        List<byte[]> strings = new ArrayList<>();
+        for (String name : new String[]{"LX/0abc;", "Lapp/rvx/extension/Patch;", "Lcom/ss/A;"}) {
+            strings.add(name.getBytes("ISO-8859-1"));
+        }
+        byte[] dataFirst = dexWithDataFirst(strings);
+        int[] opens = {0};
+        Set<String> classes = new HashSet<>();
+        OtherBundles.scanDex(() -> {
+            opens[0]++;
+            return new ByteArrayInputStream(dataFirst);
+        }, classes);
+        assertEquals(Collections.singleton("Lapp/rvx/extension/Patch;"), classes);
+        assertEquals(2, opens[0]);
+
+        // The usual layout is still read in one pass.
+        byte[] usual = dexOf(strings);
+        opens[0] = 0;
+        classes.clear();
+        OtherBundles.scanDex(() -> {
+            opens[0]++;
+            return new ByteArrayInputStream(usual);
+        }, classes);
+        assertEquals(Collections.singleton("Lapp/rvx/extension/Patch;"), classes);
+        assertEquals(1, opens[0]);
+
+        // And through the APK, which opens the entry twice.
+        assertEquals("{app.rvx.extension=1}",
+                OtherBundles.scan(Collections.singletonList(apk(dataFirst))).toString());
     }
 
     @Test
@@ -98,7 +212,8 @@ public class OtherBundlesTest {
             strings.add(name.getBytes("ISO-8859-1"));
         }
         Set<String> classes = new HashSet<>();
-        OtherBundles.scanDex(new ByteArrayInputStream(dexOf(strings)), classes);
+        byte[] dex = dexOf(strings);
+        OtherBundles.scanDex(() -> new ByteArrayInputStream(dex), classes);
         assertEquals(Collections.singleton("Lapp/rvx/extension/Patch;"), classes);
     }
 
@@ -127,21 +242,21 @@ public class OtherBundlesTest {
                 "latest_crash_top_app_frame: at app.ftl.extension.dpi.DensityPatch.apply(DensityPatch.kt:20)",
                 "latest_crash_top_app_frame_from: another patch bundle (app.ftl.extension.dpi)",
                 "latest_crash_frames_from_other_bundles: 2"),
-                OtherBundles.crashLines(crash));
+                OtherBundles.crashLines(crash, null));
 
         String ours = "[STACK TRACE]\njava.lang.RuntimeException\n"
                 + "\tat android.os.Handler.dispatchMessage(Handler.java:106)\n"
                 + "\tat app.morphe.extension.tiktok.feedfilter.FeedFilter.filter(FeedFilter.java:9)\n";
-        assertEquals("latest_crash_top_app_frame_from: Hushfeed", OtherBundles.crashLines(ours).get(1));
+        assertEquals("latest_crash_top_app_frame_from: Hushfeed", OtherBundles.crashLines(ours, null).get(1));
 
         String tiktok = "[STACK TRACE]\njava.lang.RuntimeException\n"
                 + "\tat com.android.billingclient.api.BillingClientImpl.a(Unknown Source:2)\n"
                 + "\tat com.ss.android.ugc.aweme.live.LivePlayActivity.onCreate(Unknown Source:8)\n";
-        List<String> lines = OtherBundles.crashLines(tiktok);
+        List<String> lines = OtherBundles.crashLines(tiktok, null);
         assertEquals("latest_crash_top_app_frame_from: TikTok's own classes, which a bundle may have rewritten",
                 lines.get(1));
         assertEquals("latest_crash_frames_from_other_bundles: 0", lines.get(2));
-        assertEquals(Collections.emptyList(), OtherBundles.crashLines(""));
+        assertEquals(Collections.emptyList(), OtherBundles.crashLines("", null));
     }
 
     @Test
@@ -156,7 +271,7 @@ public class OtherBundlesTest {
                 "latest_crash_top_app_frame: at app.ftl.extension.dpi.DensityPatch.load(DensityPatch.kt:31)",
                 "latest_crash_top_app_frame_from: another patch bundle (app.ftl.extension.dpi)",
                 "latest_crash_frames_from_other_bundles: 1"),
-                OtherBundles.crashLines(crash));
+                OtherBundles.crashLines(crash, null));
     }
 
     @Test
@@ -164,7 +279,7 @@ public class OtherBundlesTest {
         String crash = "[STACK TRACE]\njava.lang.ArrayIndexOutOfBoundsException\n"
                 + "\tat de.sciss.jump3r.mp3.Lame.lame_encode_buffer(Lame.java:120)\n"
                 + "\tat app.morphe.extension.tiktok.download.Mp3Transcoder.encode(Mp3Transcoder.java:80)\n";
-        assertEquals("latest_crash_top_app_frame_from: Hushfeed", OtherBundles.crashLines(crash).get(1));
+        assertEquals("latest_crash_top_app_frame_from: Hushfeed", OtherBundles.crashLines(crash, null).get(1));
     }
 
     @Test
@@ -182,7 +297,7 @@ public class OtherBundlesTest {
                 "latest_crash_cause_app_frame: at app.ftl.extension.dpi.DensityPatch.apply(DensityPatch.kt:20)",
                 "latest_crash_cause_app_frame_from: another patch bundle (app.ftl.extension.dpi)",
                 "latest_crash_frames_from_other_bundles: 1"),
-                OtherBundles.crashLines(crash));
+                OtherBundles.crashLines(crash, null));
     }
 
     @Test
@@ -196,7 +311,7 @@ public class OtherBundlesTest {
                 + "\tat X.0def.close(Unknown Source:1)\n"
                 + "Caused by: java.io.IOException: disk\n"
                 + "\tat app.rvx.extension.cache.Cache.close(Cache.java:3)\n";
-        List<String> lines = OtherBundles.crashLines(crash);
+        List<String> lines = OtherBundles.crashLines(crash, null);
         assertEquals("latest_crash_cause_app_frame: at app.ftl.extension.dpi.DensityPatch.apply(DensityPatch.kt:20)",
                 lines.get(2));
         assertEquals("latest_crash_frames_from_other_bundles: 2", lines.get(4));
@@ -270,6 +385,77 @@ public class OtherBundlesTest {
         assertFalse(other, other.contains("[OTHER PATCH BUNDLES]"));
     }
 
+    @Test
+    public void theExportChoiceReadsTheApkOnlyForAReportThatShowsTheSection() throws Exception {
+        File apk = apk(dex(concat(TIKTOK, HUSHFEED)));
+        OtherBundles.useApksForTests(Collections.singletonList(apk));
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            activity.setTheme(android.R.style.Theme_Material_Light);
+            Utils.setContext(activity);
+            HookStatus.clear();
+            LogBufferManager.clearLogBuffer();
+            BaseSettings.DEBUG_LOG_FILTERS.save(DiagnosticCategory.FEED_AND_NAVIGATION.value);
+            ExportDiagnosticReportPreference row = new ExportDiagnosticReportPreference(activity);
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            Utils.awaitBackgroundTasksForTests();
+            assertFalse("a report without the section started a scan", OtherBundles.startedForTests());
+
+            // Turned back on, the section's first read starts it.
+            BaseSettings.DEBUG_LOG_FILTERS.save("all");
+            HookStatus.missingViewId("comments", "jlk");
+            String early = LogBufferManager.buildExportText();
+            assertTrue(early, early.contains("[OTHER PATCH BUNDLES]\nextension_packages: still being read"));
+            Utils.awaitBackgroundTasksForTests();
+            String report = LogBufferManager.buildExportText();
+            assertTrue(report, report.contains("[OTHER PATCH BUNDLES]\nextension_packages: none\n"));
+
+            // And so does opening the choice, once the section is in the report.
+            OtherBundles.useApksForTests(Collections.singletonList(apk));
+            assertTrue(row.getOnPreferenceClickListener().onPreferenceClick(row));
+            assertTrue(OtherBundles.startedForTests());
+            Utils.awaitBackgroundTasksForTests();
+        } finally {
+            BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        }
+    }
+
+    @Test
+    public void aQuickCopyOfALongReportKeepsTheOtherBundles() throws Exception {
+        Context context = RuntimeEnvironment.getApplication();
+        Utils.setContext(context);
+        BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        HookStatus.clear();
+        LogBufferManager.clearLogBuffer();
+        OtherBundles.useApksForTests(Collections.singletonList(apk(dex(concat(TIKTOK, HUSHFEED,
+                new String[]{"Lapp/ftl/extension/dpi/DensityPatch;"})))));
+        OtherBundles.scanForTests();
+        try {
+            LogBufferManager.appendEvent(DiagnosticCategory.DOWNLOADS, "Fixture", "INFO", "phase=oldest");
+            for (int index = 0; index < 180; index++) {
+                LogBufferManager.appendEvent(DiagnosticCategory.DOWNLOADS, "Fixture", "INFO",
+                        "phase=ready " + "x".repeat(500));
+            }
+            LogBufferManager.appendEvent(DiagnosticCategory.DOWNLOADS, "Fixture", "INFO", "phase=newest");
+            assertTrue(LogBufferManager.buildExportText().length() > 60_000);
+            LogBufferManager.exportToClipboard();
+            ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            String copied = clipboard.getPrimaryClip().getItemAt(0).getText().toString();
+            assertTrue(copied, copied.contains("clipboard_note:"));
+            assertTrue(copied, copied.contains("[OTHER PATCH BUNDLES]\n"
+                    + "extension_packages: app.ftl.extension.dpi (1 class)\n"));
+            // Only the oldest events go. The head of the report stays, and so does the newest event.
+            assertTrue(copied.length() <= 60_000);
+            assertTrue(copied, copied.startsWith("MORPHE DIAGNOSTIC REPORT\nschema: 1\n"));
+            assertTrue(copied, copied.contains("[SELECTED EVENTS]\ncategory | timestamp | thread | source | level | message\n"
+                    + "clipboard_note: older events omitted"));
+            assertTrue(copied.contains("phase=newest"));
+            assertFalse(copied.contains("phase=oldest"));
+        } finally {
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
     private static String[] concat(String[]... parts) {
         List<String> all = new ArrayList<>();
         for (String[] part : parts) all.addAll(Arrays.asList(part));
@@ -306,6 +492,32 @@ public class OtherBundlesTest {
         for (int i = 0; i < count; i++) putInt(file, 0x70 + i * 4, offsets[i]);
         byte[] body = data.toByteArray();
         System.arraycopy(body, 0, file, dataStart, body.length);
+        return file;
+    }
+
+    /** The same strings with their data between the header and the ids table. */
+    private static byte[] dexWithDataFirst(List<byte[]> strings) {
+        int count = strings.size();
+        ByteArrayOutputStream data = new ByteArrayOutputStream();
+        int[] offsets = new int[count];
+        for (int i = 0; i < count; i++) {
+            offsets[i] = 0x70 + data.size();
+            byte[] bytes = strings.get(i);
+            data.write(bytes.length);
+            data.write(bytes, 0, bytes.length);
+            data.write(0);
+        }
+        while (data.size() % 4 != 0) data.write(0);
+        int idsOffset = 0x70 + data.size();
+        byte[] file = new byte[idsOffset + count * 4];
+        System.arraycopy("dex\n035\0".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1), 0, file, 0, 8);
+        putInt(file, 0x20, file.length);
+        putInt(file, 0x38, count);
+        putInt(file, 0x3C, idsOffset);
+        putInt(file, 0x6C, 0x70);
+        byte[] body = data.toByteArray();
+        System.arraycopy(body, 0, file, 0x70, body.length);
+        for (int i = 0; i < count; i++) putInt(file, idsOffset + i * 4, offsets[i]);
         return file;
     }
 

@@ -721,10 +721,19 @@ public final class MediaDownload {
                 + describe(smaller) + " instead");
             result = saveFile(application, smaller, Downloader.Kind.VIDEO, why, offered, writable, quality, writer,
                 progress);
-            if (result.ok()) result = result.smaller(RenditionPicker.qualityOf(smaller));
+            if (result.ok()) result = savedSmaller(result, smaller);
             tried = smaller;
         }
         return result;
+    }
+
+    /**
+     * [saved], the smaller file of [url] saved in place of a pick over the cap, named by the picture
+     * its file measures. Only a file the phone can't read back is named by what [url] states, since
+     * an address whose only marker is "sd" ranks as 480 and a 1:18:20 replay's measured 360 (#238).
+     */
+    private static Downloader.Result savedSmaller(Downloader.Result saved, String url) {
+        return saved.smaller(saved.picture > 0 ? saved.picture : RenditionPicker.qualityOf(url));
     }
 
     /**
@@ -775,13 +784,15 @@ public final class MediaDownload {
             Downloader.Result published = Downloader.publish(file, mime, writer, progress);
             boolean lower = false;
             boolean refused = false;
+            int picture = 0;
             if (published.ok() && kind == Downloader.Kind.VIDEO) {
                 DashSave.ReadBack holds = DashSave.savedFormat(file);
                 refused = holds.refused;
                 info(() -> "the saved file holds " + holds.text + (why == null ? "" : ". Saved in place of the manifest's "
                     + "tracks because " + bounded(why)));
+                int savedShortSide = DashSave.savedVideoShortSide(file);
+                picture = savedShortSide;
                 if (!offered.isEmpty() || writable != null) {
-                    int savedShortSide = DashSave.savedVideoShortSide(file);
                     DashManifest.Track better = offered.isEmpty() ? null : better(offered, savedShortSide, quality);
                     if (better != null) {
                         final DashManifest.Track shown = better;
@@ -803,7 +814,7 @@ public final class MediaDownload {
                 }
             }
             Downloader.Result saved = published.ok() && lower ? published.lower() : published;
-            return refused ? saved.refused() : saved;
+            return (refused ? saved.refused() : saved).picture(picture);
         } catch (Throwable t) {
             // Only a work file that couldn't be made is known to be the storage's doing.
             return Downloader.Result.fail(Downloader.Status.WRITE_ERROR,
@@ -1016,8 +1027,8 @@ public final class MediaDownload {
             + qualityNote(quality) + compatibleNote(keptCompatible) + pictureNote(video, transcodeVideo)
             + soundNote(audio, reencodeSound) + belowNote(better));
 
-        Downloader.Result result = dashJob(application, video, audio, transcodeVideo, reencodeSound, fallback, quality)
-            .run(writer, progress);
+        Downloader.Result result = dashJob(application, video, audio, transcodeVideo, reencodeSound, lengthUs, fallback,
+            quality).run(writer, progress);
         boolean lower = better != null && noticeablyLower(picture(video, quality), better.shortSide());
         return result.ok() && lower ? result.lower() : result;
     }
@@ -1066,23 +1077,25 @@ public final class MediaDownload {
      * when the person cancelled it, though: the fallback would start the save over. A fallback
      * below [video]'s picture says so, held to a plain test: [video] already passed the writability
      * check that picked it, so there's no picture-nothing-could-write excuse to make room for here.
-     * The quality setting is read once, when this job is built, so a change while the DASH save
+     * A fallback after a DASH save over the size cap carries its quality for the toast, as
+     * {@link #saveVideoFile}'s step-down does. The quality setting is read once, when this job is built, so a change while the DASH save
      * runs can't move what the fallback is judged against.
      */
     static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio, String fallback) {
-        return dashJob(application, video, audio, false, false, fallback, quality());
+        return dashJob(application, video, audio, false, false, -1, fallback, quality());
     }
 
     /**
      * As above, with [quality] already read by {@link #saveDash} rather than read again here,
-     * [transcodeVideo] when [video] is to be made H.264 first, and [reencodeSound] when the
-     * xHE-AAC [audio] is to be made AAC-LC first.
+     * [transcodeVideo] when [video] is to be made H.264 first, [reencodeSound] when the xHE-AAC
+     * [audio] is to be made AAC-LC first, and [lengthUs] the manifest's length of the video or -1,
+     * for the sound's share of the progress before its fetch.
      */
     private static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio,
-            boolean transcodeVideo, boolean reencodeSound, String fallback, DownloadQuality quality) {
+            boolean transcodeVideo, boolean reencodeSound, long lengthUs, String fallback, DownloadQuality quality) {
         return (writer, progress) -> {
-            Downloader.Result result = DashSave.save(application, video, audio, transcodeVideo, reencodeSound, writer,
-                policyFor(application), cap(), progress);
+            Downloader.Result result = DashSave.save(application, video, audio, transcodeVideo, reencodeSound,
+                lengthUs, writer, policyFor(application), cap(), progress);
             if (result.ok() || fallback == null || result.status == Downloader.Status.CANCELLED) return result;
             // A failed gallery publication is terminal. A fallback can repair a fetch or join,
             // but mustn't start another fetch after this save's publication state has failed.
@@ -1093,8 +1106,12 @@ public final class MediaDownload {
                 RenditionPicker.qualityOf(fallback), quality);
             failure(() -> "the DASH save ended with " + result + ", saving " + describe(fallback) + belowNote(better),
                 null);
-            return saveFile(application, fallback, Downloader.Kind.VIDEO, "the DASH save ended with " + result,
-                java.util.Collections.singletonList(video), video, quality, writer, progress);
+            Downloader.Result saved = saveFile(application, fallback, Downloader.Kind.VIDEO,
+                "the DASH save ended with " + result, java.util.Collections.singletonList(video), video, quality,
+                writer, progress);
+            // Over the cap, the fallback is the smaller file saved in its place, and the toast says so.
+            return saved.ok() && result.status == Downloader.Status.TOO_LARGE
+                ? savedSmaller(saved, fallback) : saved;
         };
     }
 

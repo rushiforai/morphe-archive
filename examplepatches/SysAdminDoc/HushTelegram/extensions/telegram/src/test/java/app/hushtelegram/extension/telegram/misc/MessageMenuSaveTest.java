@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import org.junit.After;
 import org.junit.Before;
@@ -48,12 +50,14 @@ public class MessageMenuSaveTest {
         static boolean restricted;
         static String attachPath;
         static String documentName;
+        static ArrayList<Object> album;
+        static final Map<Object, String> paths = new HashMap<>();
 
         @Implementation protected static Object selected(Object chat) { return message; }
         @Implementation protected static Activity activity(Object chat) { return host; }
-        @Implementation protected static ArrayList<?> grouped(Object chat) { return null; }
+        @Implementation protected static ArrayList<?> grouped(Object chat) { return album; }
         @Implementation protected static boolean restricted(Object message) { return restricted; }
-        @Implementation protected static String attachPath(Object message) { return attachPath; }
+        @Implementation protected static String attachPath(Object message) { return paths.getOrDefault(message, attachPath); }
         @Implementation protected static File photoFile(Object message) { return null; }
         @Implementation protected static String documentName(Object message) { return documentName; }
     }
@@ -71,6 +75,8 @@ public class MessageMenuSaveTest {
 
     @After public void restore() {
         SaveDownloads.work = realWork;
+        Native.album = null;
+        Native.paths.clear();
         PauseForTests.resume();
         SettingReadsForTests.mend(Settings.MESSAGE_MENU_SAVE_PROTECTED);
         Settings.MESSAGE_MENU_SAVE_PROTECTED.resetToDefault();
@@ -133,6 +139,20 @@ public class MessageMenuSaveTest {
         MessageMenu.chosen(new Object(), MessageMenu.SAVE_DOWNLOAD);
         Shadows.shadowOf(Looper.getMainLooper()).idle();
         assertEquals("Already in Downloads", ShadowToast.getTextOfLatestToast());
+    }
+
+    @Test public void anAlbumSavesEveryDownloadedPhotoNotJustTheOneTelegramHandsOver() throws IOException {
+        // #46: Telegram selects one message of an album, and only that one used to be saved.
+        Settings.MESSAGE_MENU_SAVE_PROTECTED.save(true);
+        Object first = new Object();
+        Object third = new Object();
+        Native.paths.put(first, folder.newFile("2_52.jpg").getPath());
+        Native.paths.put(third, folder.newFile("2_53.jpg").getPath());
+        Native.album = new ArrayList<>(Arrays.asList(first, Native.message, third));
+        MessageMenu.chosen(new Object(), MessageMenu.SAVE_DOWNLOAD);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("Already in Downloads", ShadowToast.getTextOfLatestToast());
+        assertTrue(String.join("\n", HookStatus.report()), String.join("\n", HookStatus.report()).contains("file already in shared storage 3"));
     }
 
     @Test public void choosingItDoesNothingWhenOffOrPaused() {

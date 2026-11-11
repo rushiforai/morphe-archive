@@ -17,7 +17,7 @@ public sealed partial class Reddit
     public SnoomojiRequestsSnapshot ReadRequestsForTheSnoomoji(string name)
     {
         var path = "/_media/" + RedditEmotes.SnoomojiGif(name);
-        return new(name, [.. world.Requests.Where(request => request.Method == "GET" && request.Path == path).Select(request => request.Status)]);
+        return Checked<SnoomojiRequestsSnapshot>(new(name, [.. world.Requests.Where(request => request.Method == "GET" && request.Path == path).Select(request => request.Status)]), name);
     }
 
     /// <summary>Waits until Reddit served the Snoomoji <paramref name="name"/>'s GIF: the patch loads it once its comment shows.</summary>

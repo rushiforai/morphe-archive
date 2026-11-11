@@ -512,7 +512,7 @@ Adds Copy username to a selected comment's menu, for the account that wrote it.	
 Comment copied	已複製留言
 Couldn't copy comment	無法複製留言
 Save comment photo	儲存留言照片
-Adds Save to a selected comment's menu when the comment has its own photo or GIF. Saves the largest size Instagram sent.	若留言含有自己的照片或 GIF，則在所選留言的選單中新增「儲存」。以 Instagram 傳送的最大尺寸儲存。
+Press and hold a comment that has its own photo, GIF or sticker, and its menu gets Save. Saves the largest size Instagram sent.	長按含有自己照片、GIF 或貼圖的留言，選單中就會出現「儲存」。以 Instagram 傳送的最大尺寸儲存。
 Reply with a comment's GIF	用留言的 GIF 回覆
 When a comment has a GIF, its menu gets a GIF reply that sends that same GIF back as your reply, animated.	留言含有 GIF 時，其選單會多出 GIF 回覆，將同一個 GIF 以動畫形式作為你的回覆傳回。
 Show a comment GIF's name	顯示留言 GIF 的名稱
@@ -590,6 +590,8 @@ Hide story rows	隱藏限時動態列
 Hides the rows of stories that Instagram puts between posts, like stories that are about to expire. Pull down on Home to refresh after changing it.	隱藏 Instagram 插在貼文之間的限時動態列，例如即將到期的限時動態。變更後請下拉重新整理首頁。
 Hide the caught up card	隱藏「已看完最新貼文」卡片
 Hides the card after the posts from accounts you follow that says you've seen the latest ones, and its Older posts link. When Home has no new posts at all, only that line goes and the link stays. Pull down on Home to refresh after changing it.	隱藏已追蹤帳號貼文之後的「已看完最新貼文」卡片與「較舊貼文」連結。若首頁完全沒有新貼文，只會隱藏那行文字，連結仍會保留。變更後請下拉重新整理首頁。
+Hide the Join bar on channel posts	隱藏頻道貼文的「加入」列
+Hides the bar under a post that asks you to join the account's channel. The post stays.	隱藏貼文下方邀請你加入該帳號頻道的橫列。貼文會保留。
 Instagram is locked	Instagram 已鎖定
 Instagram locks as soon as you leave it or the screen turns off.	離開 Instagram 或關閉螢幕後會立即鎖定。
 Instagram locks once you've been away from it for %1$s.	離開 Instagram %1$s 後會鎖定。
@@ -602,6 +604,7 @@ Puts every notification from Instagram in one group that shows how many it holds
 Right away	立即
 Set a phone screen lock so HushGram can lock Instagram.	請先在手機上設定螢幕鎖定，HushGram 才能鎖定 Instagram。
 Set a phone screen lock so HushGram can lock messages.	請先在手機上設定螢幕鎖定，HushGram 才能鎖定私訊。
+Set a phone screen lock so HushGram can lock Saved.	請先在手機上設定螢幕鎖定，HushGram 才能鎖定「已儲存」。
 Hides the cards between posts that ask you to rate what you saw.	隱藏貼文之間請你評價所看內容的卡片。
 Hides the rows of products to shop and live shopping that Instagram puts between posts, and the shop tiles in Explore. Posts with tagged products don't show the shopping bag.	隱藏 Instagram 在貼文之間插入的商品與直播購物橫列，以及探索中的商店方塊。標註商品的貼文也不會顯示購物袋。
 Unlock	解鎖
@@ -710,6 +713,9 @@ No other way into HushGram is on, so the row stays in Instagram's menu.	目前�
 Instagram's Settings and activity screen leaves out the HushGram row while another way here opens HushGram. With every other way off, the row comes back.	啟用其他 HushGram 入口時，Instagram 的「設定和動態」畫面會隱藏 HushGram 項目。關閉所有其他入口後，此項目會重新出現。
 Stop loading stories and highlights	停止載入限時動態與精選
 Takes the Comment button and the comment count off the posts in your feed.	移除動態首頁貼文的留言按鈕與留言數。
+# context: Comments: a second Hide comments switch that takes the Reply button off each comment in a comment sheet (#619). Reply and View more replies are Instagram's own labels under a comment; use this language's Instagram words for them.
+Hide Reply on comments	隱藏留言的「回覆」
+Takes Reply off each comment in a post's or reel's comments. View more replies stays, so you can still open them.	移除貼文或 Reels 留言中每則留言的「回覆」。「查看更多回覆」仍會保留，你還是可以展開回覆。
 # context: Comments: the switch that hides the row of quick emoji above the comment box (#248). Comment box is the field where you type a comment.
 Hide the emoji row	隱藏表情符號列
 Takes the row of quick emoji off above the comment box. The box itself stays.	移除留言輸入框上方的快速表情符號列，輸入框本身仍會保留。
@@ -759,12 +765,13 @@ Ask before a like	按讚前詢問
 Ask before a refresh	重新整理前詢問
 Continue	繼續
 Like or unlike this post?	要對這則貼文按讚或收回讚嗎？
+Like or unlike this comment?	要對這則留言按讚或收回讚嗎？
 Asks before pulling down refreshes Home, Reels or another list. Cancel keeps what's on screen.	下拉重新整理首頁、Reels 或其他清單前先詢問。取消會保留畫面上的內容。
 Skip the collections tray	略過珍藏分類面板
 Saving a post or reel shows Instagram's Saved message instead of the tray that asks you to start a collection.	儲存貼文或 Reels 時，Instagram 只會顯示已儲存的訊息，而不是要你建立珍藏分類的面板。
 Refresh	重新整理
 Refresh this list?	要重新整理此清單嗎？
-Asks before the Like button under a post likes or unlikes it, so a stray tap doesn't do it for you. Double taps aren't asked about.	透過貼文下方的按讚按鈕按讚或收回讚前先詢問，避免誤觸。雙擊則不會詢問。
+Asks before the Like button under a post, on a reel or on a comment likes or unlikes it, so a stray tap doesn't do it for you. Double taps aren't asked about.	透過貼文下方、Reels 上或留言上的按讚按鈕按讚或收回讚前先詢問，避免誤觸。雙擊則不會詢問。
 Adds a row next to Download on a reel and a feed video that plays it in an app you pick, such as VLC. The player streams it from Instagram's servers.	在 Reel 與動態首頁影片的「下載」旁新增選項，使用你選擇的應用程式（例如 VLC）播放。播放器會從 Instagram 伺服器串流播放。
 Couldn't open another player	無法開啟其他播放器
 No app on this phone can play this video	手機上沒有可播放此影片的應用程式
@@ -1036,6 +1043,13 @@ A swipe up on someone's story no longer opens the reply box and its reactions. T
 # context: Stories switch; Send message is Instagram's reply field at the bottom of someone else's story, beside its heart (like) and share buttons. Use Instagram's own label for it.
 Hide the reply box on stories	隱藏限時動態的回覆框
 Takes the Send message box off the bottom of other people's stories. The like and share buttons next to it stay where they are.	移除他人限時動態底部的「傳送訊息」框。旁邊的按讚和分享按鈕會留在原位。
+# context: Stories switches; Like (the heart), Comment (the speech bubble) and Share (the paper plane) are Instagram's buttons at the bottom of someone else's story, beside the Send message box. Use Instagram's own labels for them.
+Hide the Like button on stories	隱藏限時動態的讚按鈕
+Takes the heart off the bottom of other people's stories, so nothing gets liked by mistake. No empty space is left behind.	移除他人限時動態底部的愛心，避免不小心按讚。不會留下空白。
+Hide the Comment button on stories	隱藏限時動態的留言按鈕
+Takes the Comment button off the bottom of other people's stories that have one. No empty space is left behind.	移除他人限時動態底部的「留言」按鈕（若有的話）。不會留下空白。
+Hide the Share button on stories	隱藏限時動態的分享按鈕
+Takes the paper plane off the bottom of other people's stories. No empty space is left behind.	移除他人限時動態底部的紙飛機。不會留下空白。
 # context: toast when Download all is tapped while another post is still saving; it waits its turn
 Queued. It starts once the post before it is saved.	已加入佇列，前一則貼文儲存完成後會開始。
 # context: toast when Download all is tapped but the waiting line is already full; %1$d is the number waiting
@@ -1625,6 +1639,10 @@ The screens asking you to sync your contacts and turn on location services stop 
 Skip the ad data reminder	略過廣告資料提醒
 # context: summary under that switch
 Instagram's reminder to review whether it can process your data for ads stops opening by itself. Your ad choice doesn't change, and nothing is answered for you.	Instagram 要你檢視是否可處理你的資料以用於廣告的提醒，不會再自行開啟。你的廣告選擇不會改變，也不會代你作答。
+# context: Ads and privacy settings: switch that stops Instagram reading where the photos and videos in your gallery were taken, from the files and their EXIF (#628)
+Keep photo locations from Instagram	對 Instagram 隱藏照片位置
+# context: summary under that switch
+Instagram can't read where the photos and videos in your gallery were taken.	Instagram 無法讀取圖庫中相片和影片的拍攝地點.
 # context: Playback settings: switch that stops feed videos and reels from playing again from the start when they end (#248, #175)
 Stop videos looping	影片不重複播放
 # context: summary under that switch; auto scroll is Instagram's own Reels setting, worded as in Keep auto scroll on
@@ -1920,7 +1938,7 @@ Save in the post menu	貼文選單中的儲存
 Adds Save to the menu behind a post's three dots, or Remove from saved when you saved it already.	在貼文三個點開啟的選單中加入「儲存」，已儲存的貼文則顯示「從已儲存移除」。
 Hide the Save button	隱藏儲存按鈕
 Takes the Save button off the bottom of posts in your feed, so a stray tap can't save one.	移除動態中貼文底部的儲存按鈕，避免誤觸而儲存貼文。
-# context: the row in a feed post's three-dot menu for a post you already saved
+# context: the row in a feed post's three-dot menu for a post you already saved, and the row that takes an account off Saved profiles, on its profile's menu and on the Saved profiles page (#629)
 Remove from saved	從已儲存移除
 # context: a switch on the Reels page
 Hide lives in Reels	隱藏 Reels 中的直播
@@ -1966,3 +1984,123 @@ The camera, as Instagram has it. Pick a tab and the same swipe opens that tab in
 A swipe right on Home opens %1$s. The + button still opens the camera.	在首頁向右滑動會開啟 %1$s。+ 按鈕仍會開啟相機。
 Keep the tab bar on a reel's profile	在 Reel 的個人檔案保留分頁列
 A profile you open from a reel stays on the tab you're on, with the tab bar under it. Back goes back to the reel.	從 Reel 開啟的個人檔案會留在目前的分頁，下方保留分頁列。返回會回到 Reel.
+Mute button on reels	Reels 靜音按鈕
+Puts a speaker icon beside a reel. Tap it to turn the sound off or on while the reel keeps playing.	在 Reel 旁加入喇叭圖示。點一下即可在 Reel 繼續播放時關閉或開啟聲音。
+Mute button in clear mode	清爽模式靜音按鈕
+Keeps the speaker icon next to clear mode's exit button.	在清爽模式的離開按鈕旁保留喇叭圖示。
+# context: TalkBack label of the speaker icon beside a reel and next to clear mode's exit button (#608)
+Sound	聲音
+# context: toast when a tap on the speaker icon couldn't reach the reel's sound (#608)
+Sound didn't change	聲音未變更
+# context: Stories switch that moves the row along a story's bottom (Send message box, like, share) off the story at a large font (#598)
+Keep story buttons below the story	將限時動態按鈕留在限時動態下方
+With a large font or display size, the reply box and buttons at the bottom of a story sit in the space under it instead of covering the story.	字型或顯示大小較大時，限時動態底部的回覆框和按鈕會放在下方的空白處，而不會遮住限時動態。
+# context: switch under Hidden accounts; Favorites, For you and Following are Instagram's Home feed choices (#601)
+Keep hidden accounts in Favorites	在「最愛」保留隱藏的帳號
+Posts from your hidden accounts still show in Favorites. For you and Following leave them out. Pull down on Home to refresh after changing it.	隱藏帳號的貼文仍會出現在「最愛」。「為你推薦」與「追蹤中」不會顯示這些貼文。變更後請下拉重新整理首頁。
+# context: switch next to Lock your messages; Saved is Instagram's page of your saved posts and collections (#597)
+Lock Saved	鎖定「已儲存」
+Saved and everything in it stay covered until your fingerprint, face or screen lock says it's you.	「已儲存」及其中的所有內容都會被遮住，直到透過指紋、臉部或螢幕鎖定驗證身分。
+Saved is locked	「已儲存」已鎖定
+Unlock Saved	解鎖「已儲存」
+# context: three-dot menu row on a reel or feed video with Stop videos looping on; makes only the video on screen play again and again (#610)
+Loop this video	重複播放這部影片
+Stop looping this video	停止重複播放這部影片
+# context: toasts after tapping Loop this video or Stop looping this video (#610)
+Looping this video	正在重複播放這部影片
+This video plays once	這部影片只播放一次
+Loop didn't change	重複播放未變更
+# context: second sentence of the Stop videos looping summary in HushGram settings > Playback; names the menu row Loop this video (#610)
+To loop one video anyway, tap Loop this video in its menu.	若仍想重複播放某一部影片，請在它的選單中點選「重複播放這部影片」。
+# context: row in a story's three-dot menu while Loop a story is off; makes only the story on screen play again from the start when it ends (#610)
+Loop this story	重複播放這則限時動態
+Stop looping this story	停止重複播放這則限時動態
+# context: toasts after tapping Loop this story or Stop looping this story (#610)
+Looping this story	正在重複播放這則限時動態
+This story plays once	這則限時動態只播放一次
+# context: last sentence of the Loop a story summary in HushGram settings > Stories; names the menu row Loop this story (#610)
+To loop one story, tap Loop this story in its menu.	若要重複播放某一則限時動態，請在它的選單中點選「重複播放這則限時動態」。
+# context: switch in HushGram settings > Feed; removes posts whose author is a business or creator (professional) Instagram account from Home (#579)
+Hide posts from business and creator accounts	隱藏商業和創作者帳號的貼文
+Removes posts by business and creator accounts from Home and Following, friends who use one included. Pull down on Home to refresh after changing it.	從首頁與追蹤中移除商業和創作者帳號的貼文，包括使用這類帳號的朋友。變更後請下拉重新整理首頁。
+# context: added after the summary of Hide posts from business and creator accounts; Favorites is the feed of accounts you picked at the top of Home (#579)
+Favorites still shows them.	「最愛」仍會顯示這些貼文。
+# context: switch in HushGram settings > Profiles; keeps the username, bio and profile picture of each profile opened, on the phone, and says when one changed (#611)
+Keep profile history	保留個人檔案紀錄
+Remembers the username, bio and profile picture of each profile you open, on this phone only, and tells you when one changed since your last visit. Pictures are copied from Instagram's image servers. Turn it off and it stops at once.	只在這支手機上記住你開啟的每個個人檔案的使用者名稱、個人簡介和個人檔案相片，並在上次造訪後有變動時告訴你。相片會從 Instagram 的圖片伺服器複製。關閉後會立即停止。
+# context: row and page title in HushGram settings > Profiles listing the old usernames, bios and profile pictures Keep profile history saw replaced (#611)
+Profile changes	個人檔案變更
+Nothing here yet. With Keep profile history on, the old usernames, bios and pictures of profiles you open show up here.	目前還沒有內容。開啟「保留個人檔案紀錄」後，你開啟過的個人檔案的舊使用者名稱、個人簡介和相片會顯示在這裡。
+# context: last line of the Profile changes row; %1$d is how many old values are listed (#611)
+Tap to see all %1$d, or search them.	輕觸即可查看全部 %1$d 項，或進行搜尋。
+# context: a row on the Profile changes page; %1$s is the account's old username, %2$s Android's relative time of the change, like 2 days ago (#611)
+Was @%1$s, %2$s	曾為 @%1$s，%2$s
+# context: a row on the Profile changes page; %s is Android's relative time of the change, like 2 days ago (#611)
+Old profile picture, %s	舊的個人檔案相片，%s
+Old bio, %s	舊的個人簡介，%s
+Clear profile history	清除個人檔案紀錄
+Forgets every username, bio and picture on the list, for all your accounts. The switch stays as it is.	清除清單中所有的使用者名稱、個人簡介和相片，涵蓋你的所有帳號。開關維持原狀。
+Profile history cleared.	已清除個人檔案紀錄。
+Couldn't clear the profile history. Try again.	無法清除個人檔案紀錄，請再試一次。
+# context: toast when a profile opened has a different username than last time; %s is the old username (#611)
+Used to be @%s	以前是 @%s
+# context: toast when a profile opened has a new profile picture and bio since last time (#611)
+New profile picture and bio	新的個人檔案相片和個人簡介
+New profile picture	新的個人檔案相片
+Their bio changed	個人簡介已變更
+# context: Profiles > title of the switch that hides the Threads badge under the bio on other people's profiles (#627)
+Hide the Threads badge	隱藏 Threads 徽章
+# context: Profiles > summary of Hide the Threads badge (#627)
+Takes the Threads badge from under the bio on other people's profiles. Yours keeps it.	移除他人個人檔案中個人簡介下方的 Threads 徽章。你自己的個人檔案仍會保留。
+# context: Profiles > title of the switch that hides links to someone's Facebook profile, page or group under their bio (#627)
+Hide Facebook links	隱藏 Facebook 連結
+# context: Profiles > summary of Hide Facebook links (#627)
+Takes the links to someone's Facebook profile, page or group from under their bio. Yours keeps them.	移除他人個人簡介下方連到 Facebook 個人檔案、粉絲專頁或社團的連結。你自己的個人檔案仍會保留。
+# context: Profiles > title of the switch that hides the WhatsApp link under someone's bio (#627)
+Hide the WhatsApp link	隱藏 WhatsApp 連結
+# context: Profiles > summary of Hide the WhatsApp link (#627)
+Takes the link to someone's WhatsApp from under their bio. Yours keeps it.	移除他人個人簡介下方連到 WhatsApp 的連結。你自己的個人檔案仍會保留。
+# context: Profiles > title of the switch that hides the song someone picked for their profile (#627)
+Hide the profile song	隱藏個人檔案歌曲
+# context: Profiles > summary of Hide the profile song (#627)
+Takes the song someone picked for their profile from under their bio. Yours keeps it.	移除他人為個人檔案挑選、顯示在個人簡介下方的歌曲。你自己的個人檔案仍會保留。
+# context: Profiles > title of the switch that hides the interests (activities) someone lists under their bio (#627)
+Hide interests	隱藏興趣
+# context: Profiles > summary of Hide interests (#627)
+Takes the interests someone added, like reading or hiking, from under their bio. Yours keeps them.	移除他人在個人簡介下方新增的興趣，例如閱讀或健行。你自己的個人檔案仍會保留。
+# context: Profiles > title of the switch that hides the invite to someone's broadcast channel under their bio (#627)
+Hide channel invites	隱藏頻道邀請
+# context: Profiles > summary of Hide channel invites (#627)
+Takes the invite to someone's broadcast channel from under their bio. Yours keeps it.	移除他人個人簡介下方的廣播頻道邀請。你自己的個人檔案仍會保留。
+# context: Profiles > title of the switch that hides every other banner under the bio on other people's profiles (#627)
+Hide the other profile banners	隱藏其他個人檔案橫幅
+# context: Profiles > summary of Hide the other profile banners (#627)
+Takes the rest of the banners under the bio off other people's profiles, like events, fundraisers, schools and business hours. Yours keeps them.	移除他人個人檔案中個人簡介下方的其餘橫幅，例如活動、募款、學校與營業時間。你自己的個人檔案仍會保留。
+# context: the row HushGram adds to the menu on someone's profile; it puts the account on the Saved profiles list (#629)
+Save profile	儲存個人檔案
+# context: toast after Save profile; %s is the account's username (#629)
+Saved @%s	已儲存 @%s
+# context: toast after Remove from saved takes an account off the Saved profiles list; %s is its username (#629)
+Removed @%s from saved	已將 @%s 從已儲存移除
+# context: toast when the Saved profiles list already holds 2,000 accounts (#629)
+Saved profiles is full.	已儲存的個人檔案已達上限。
+# context: Profiles > title of the switch that adds Save profile to the menu on profiles, and title of the page listing the saved accounts (#629)
+Saved profiles	已儲存的個人檔案
+# context: Profiles > summary of Saved profiles; Favorites and Following are Instagram's own lists of accounts (#629)
+Adds Save profile to the menu on someone's profile, even one you don't follow. The list stays on this phone, apart from Instagram's Favorites and Following.	在他人個人檔案的選單中加入「儲存個人檔案」，即使是你沒有追蹤的帳號也可以。清單只保留在這支手機上，與 Instagram 的「最愛」和「追蹤中」分開。
+# context: row in HushGram settings > Profiles that opens the page of saved accounts (#629)
+Your saved profiles	你儲存的個人檔案
+# context: summary of Your saved profiles, and the Saved profiles page's text, when nothing is saved (#629)
+Nothing saved yet. With Saved profiles on, tap Save profile in the menu on someone's profile and it shows up here.	尚未儲存任何內容。開啟「已儲存的個人檔案」後，在他人個人檔案的選單中點按「儲存個人檔案」，該檔案就會顯示在這裡。
+# context: spoken label of the cross at the end of a row on the Saved profiles page; %s is the account's username (#629)
+Remove @%s from saved	將 @%s 從已儲存移除
+# context: Profiles > title of the switch that asks before a Follow or Follow back button follows someone (#631)
+Ask before a follow	追蹤前詢問
+# context: Profiles > summary of Ask before a follow; Follow, Follow back, Followers and Following are Instagram's own button and list names (#631)
+Asks before a Follow or Follow back button follows someone or sends them a request, so a stray tap on a profile or in a Followers or Following list doesn't do it for you.	在「追蹤」或「回追蹤」按鈕追蹤某人或送出追蹤要求前先詢問，避免在個人檔案、追蹤者名單或追蹤中名單誤觸時直接幫你追蹤.
+# context: Title of the question Ask before a follow puts up; %1$s is the account's username (#631)
+Follow @%1$s?	要追蹤 @%1$s 嗎？
+# context: Title of the question Ask before a follow puts up when the username can't be read (#631)
+Follow this account?	要追蹤這個帳號嗎？
+# context: The question's confirm button; Instagram's own Follow button label (#631)
+Follow	追蹤

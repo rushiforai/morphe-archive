@@ -1,8 +1,14 @@
-# Build outputs (were accidentally committed once — keep them out)
+# Build outputs
 build/
 patches/build/
 extensions/extension/build/
 .gradle/
+.kotlin/
+
+# IDE and OS files
+.idea/
+*.iml
+.DS_Store
 
 # Local Gradle credentials — NEVER commit tokens.
 # Use gpr.user / gpr.key here only on your own machine, or better:

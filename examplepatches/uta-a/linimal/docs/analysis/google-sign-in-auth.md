@@ -26,6 +26,37 @@
   service を問い合わせるため、パッケージ名を替えても MicroG-RE には届かない。
 - `ds/n.D()` と `F()` は register が 1 つで、`this` の register に定数を置いて返す。
 
+## 要求と接続の対応（2026-11-11、静的解析）
+
+ADR 0004 の「判定から 60 秒以内の次の 1 回の接続」を、要求と client の直接の対応付けへ置き換えられるかを、
+元の 26.16.0 DEX で調べた。結論は「現行の位置のままでは対応付けられない」。
+
+- `g8/m.g` は `uq/d.a(Context)` で Sign-In client の wrapper（`ds/m`、`er/g` = GoogleApi を継承）を毎回新しく作り、
+  `ds/m.l`（乱数の session id、`ds/p.a()`）を要求 `uq/c` に入れて `ds/m.k(1, …)` で送る。session id は wrapper と要求に
+  だけあり、接続には渡らない。
+- wrapper の options は `new uq/v()`。`uq/v` は field を持たず、`equals` は `instance-of uq/v` だけ、`hashCode` は
+  `Arrays.hashCode(uq/v.class)` の定数。
+- `er/g.<init>` は ApiKey `fr/b(api, options, attributionTag)` を作り、`fr/b.equals` はこの 3 つを比べる。したがって、
+  同じプロセスの Sign-In client の wrapper はすべて同じ ApiKey になり、GoogleApiManager が持つ 1 つの接続（`ds/n`）を共有する。
+- `ds/n` を作るのは builder `ds/f.c(Context, Looper, hr/g, Object options, fr/e, fr/m)` だけで、`ds/n.<init>` は options を
+  受け取らない。`ds/n` から wrapper・options・session id へはたどれない。
+- 同じ Sign-In client（`uq/d.a`）を使うのは `g8/m.g`（Google ID）、`g8/m$a`（結果の読み取り）、`d8/m.g` と `d8/m$a`
+  （パスキー・パスワード）、`CredentialProviderPlayServicesImpl.runFallbackClearCredFlow`（ログアウト時の clear）。
+  接続はこれらと共有される。
+
+このため、wrapper や要求に印を付けても、bind 先を決める `ds/n` の `E()`・`D()`・`F()` からはその印を読めない。
+直接対応付けるには、向け替える要求だけ別の ApiKey にする（`uq/v` の等価性を変えるか、印付きの options を作る）ことと、
+`ds/f.c` で options の印を新しい `ds/n` へ移すことの 2 つが要る。GMS 共通の接続共有の前提を変える変更で、
+影響範囲が現行の時間窓より広い。
+
+現行の時間窓に残る懸念（いずれも実機では未確認）:
+
+- 判定の時点で Sign-In client がすでに接続済みだと、`E()` は呼ばれず、要求はそのままの接続先へ送られる。
+  準備は消費されずに残り、60 秒以内に切断して再接続した別の要求（`d8/m` のパスキーなど）を MicroG-RE へ向け得る。
+- MicroG-RE へ接続した後、切断されるまでは、同じ接続を使う別の要求も MicroG-RE へ送られる。
+  GoogleApiManager が接続を切るまでの時間は確かめていない。
+- どちらも、Play services 版 provider を使う要求（向け替え対象の Google ID 要求、または SDK 33 以下）でだけ起きる。
+
 ## MicroG-RE 側
 
 - `IdentitySignInService` を action `app.revanced.android.gms.auth.api.identity.service.signin.START` で公開する

@@ -34,6 +34,9 @@ public sealed partial class Reddit
     {
         tokensBeforeTheNetworkChanged = world.RedGifs.Requests.Count(request => request.Kind == RedGifsRequestKind.TemporaryToken);
         world.RedGifs.ForgetTokens();
+        world.NoteOnSetupPage(tokensBeforeTheNetworkChanged == 1
+            ? "The phone joined another network: RedGIFs refuses the temporary token it gave"
+            : $"The phone joined another network: RedGIFs refuses the {tokensBeforeTheNetworkChanged} temporary tokens it gave");
     }
 
     /// <summary>
@@ -43,9 +46,9 @@ public sealed partial class Reddit
     public RedGifsLookupsSnapshot ReadRedGifsLookupsOfTheVideoOf(string title)
     {
         var id = RedGifOf(title);
-        return new(title, [.. world.RedGifs.Requests
+        return Checked<RedGifsLookupsSnapshot>(new(title, [.. world.RedGifs.Requests
             .Where(request => request.Kind == RedGifsRequestKind.Gif && request.GifId == id)
-            .Select(request => new RedGifsLookup(request.Status, request.Token is not null, request.UserAgent))]);
+            .Select(request => new RedGifsLookup(request.Status, request.Token is not null, request.UserAgent))]), title);
     }
 
     /// <summary>
@@ -55,14 +58,14 @@ public sealed partial class Reddit
     public RedGifsTokensSnapshot ReadRedGifsTemporaryTokens()
     {
         var all = world.RedGifs.Requests.Count(request => request.Kind == RedGifsRequestKind.TemporaryToken);
-        return new(tokensBeforeTheNetworkChanged ?? all, all - (tokensBeforeTheNetworkChanged ?? all));
+        return Checked<RedGifsTokensSnapshot>(new(tokensBeforeTheNetworkChanged ?? all, all - (tokensBeforeTheNetworkChanged ?? all)));
     }
 
     /// <summary>"RedGIFs served the thumbnail of "&lt;title&gt;"": the requests for the RedGIFs post's video's thumbnail, each one's status.</summary>
     public RedGifsThumbnailRequestsSnapshot ReadRequestsForTheRedGifsThumbnailOf(string title)
     {
         var path = new Uri(world.RedGifs.FindGif(RedGifOf(title))!.Thumbnail).AbsolutePath;
-        return new(title, [.. world.Requests.Where(request => request.Method == "GET" && request.Path == path).Select(request => request.Status)]);
+        return Checked<RedGifsThumbnailRequestsSnapshot>(new(title, [.. world.Requests.Where(request => request.Method == "GET" && request.Path == path).Select(request => request.Status)]), title);
     }
 
     /// <summary>Waits until RedGIFs served the thumbnail of the RedGIFs post "&lt;title&gt;": "Fix list thumbnails" asks for it as the list shows the post.</summary>

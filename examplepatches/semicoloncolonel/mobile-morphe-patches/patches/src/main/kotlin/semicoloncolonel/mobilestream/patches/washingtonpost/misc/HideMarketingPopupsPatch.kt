@@ -36,7 +36,7 @@ internal object FrontSubscriptionBannerFingerprint : Fingerprint(
 @Suppress("unused")
 val hideMarketingPopupsPatch = bytecodePatch(
     name = "Hide marketing pop-ups",
-    description = "Stops in-app marketing pop-ups, such as subscription offers, and the subscribe banner.",
+    description = "Stops in-app marketing pop-ups and the subscribe banner on the home page, but not the paywall.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
 

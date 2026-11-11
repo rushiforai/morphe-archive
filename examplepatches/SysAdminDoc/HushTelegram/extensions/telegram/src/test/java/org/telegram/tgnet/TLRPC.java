@@ -11,6 +11,8 @@ public final class TLRPC {
     /** A group, as Telegram keeps a basic one. */
     public static class Chat {
         public String title;
+        public boolean broadcast;
+        public boolean megagroup;
     }
 
     /** A channel or supergroup. */
@@ -37,6 +39,19 @@ public final class TLRPC {
 
     /** Leaving a channel, which a block on new chats lets through. */
     public static class TL_channels_leaveChannel { }
+
+    public static class InputChannel {
+        public long channel_id;
+        public long access_hash;
+    }
+
+    public static class TL_inputChannel extends InputChannel { }
+
+    /** Marks a channel or supergroup read up to max_id. */
+    public static class TL_channels_readHistory {
+        public InputChannel channel;
+        public int max_id;
+    }
 
     public static class Peer {
         public long user_id;

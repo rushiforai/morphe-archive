@@ -162,68 +162,10 @@ function Fail([string] $message) {
     exit 1
 }
 
-function Resolve-Java {
-    if ($script:Java) { return $script:Java }
-    if ($env:JAVA_HOME) {
-        $candidate = Join-Path $env:JAVA_HOME 'bin/java.exe'
-        if (Test-Path $candidate) { return $candidate }
-    }
-    $cmd = Get-Command java -ErrorAction SilentlyContinue
-    if ($cmd) { return $cmd.Source }
-    Fail 'no java found: set -Java, or JAVA_HOME, or put java on PATH'
-}
-
-function Resolve-MorpheCli {
-    if ($script:MorpheCli) { return $script:MorpheCli }
-    if ($env:MORPHE_CLI) { return $env:MORPHE_CLI }
-    # The bundle needs a patcher 2.x host (docs/INTERNALS.md, "The patcher 2.x alignment"):
-    # Desktop releases now ship versioned jar names (morphe-desktop-<v>-all.jar), and the old
-    # unversioned morphe-desktop-all.jar can be a pre-2.x host that fails the bundle with a
-    # misleading NoSuchMethodError at patch time. Prefer the highest versioned jar found, then
-    # fall back to the unversioned name; the winner's version is probed below.
-    $dirs = @(
-        (Join-Path $PSScriptRoot '..\apk'),
-        (Join-Path $PSScriptRoot '..\tools\morphe'),
-        (Join-Path $HOME 'tools\morphe')
-    )
-    $versioned = @()
-    foreach ($dir in $dirs) {
-        $full = [System.IO.Path]::GetFullPath($dir)
-        if (Test-Path $full) {
-            $versioned += @(Get-ChildItem $full -Filter 'morphe-desktop-*-all.jar' -ErrorAction SilentlyContinue)
-        }
-    }
-    $best = $versioned |
-        ForEach-Object { if ($_.Name -match 'morphe-desktop-(\d+(\.\d+)*)-all\.jar') {
-            [pscustomobject]@{ Jar = $_.FullName; Ver = [version]$Matches[1] }
-        } } |
-        Sort-Object Ver -Descending |
-        Select-Object -First 1
-    if ($best) { return $best.Jar }
-    foreach ($dir in $dirs) {
-        $legacy = Join-Path ([System.IO.Path]::GetFullPath($dir)) 'morphe-desktop-all.jar'
-        if (Test-Path $legacy) { return $legacy }
-    }
-    Fail 'morphe-desktop-all.jar not found: set -MorpheCli or MORPHE_CLI'
-}
-
-function Resolve-OurBundle {
-    if ($script:OurBundle) {
-        if (-not (Test-Path $script:OurBundle)) { Fail "our bundle not found: $script:OurBundle" }
-        return (Resolve-Path $script:OurBundle).Path
-    }
-    $libs = Join-Path $PSScriptRoot '..\patches\build\libs'
-    # Exclude the -sources and -javadoc variants: Gradle writes all three with the same
-    # timestamp, so ordering by time alone can hand the patcher a sources jar instead of the
-    # bundle (the release workflow's asset glob excludes them for the same reason).
-    $newest = Get-ChildItem $libs -Filter 'patches-*.mpp' -ErrorAction SilentlyContinue |
-        Where-Object { $_.Name -notmatch '-(sources|javadoc)\.mpp$' } |
-        Sort-Object LastWriteTime -Descending | Select-Object -First 1
-    if (-not $newest) {
-        Fail "no bundle in $libs -- run ./gradlew buildAndroid first, or pass -OurBundle"
-    }
-    return $newest.FullName
-}
+# The tool resolvers (java, Morphe CLI, our bundle, adb) live in one file so every script that
+# drives them inherits the same precedence ladder -- in particular the versioned-Desktop-jar
+# preference that keeps a stale pre-2.x host from failing the bundle with a NoSuchMethodError.
+. (Join-Path $PSScriptRoot 'lib\resolvers.ps1')
 
 <#
     Runs one patch apply and returns the parsed --result-file JSON.
@@ -425,26 +367,6 @@ function Assert-ApkEntryString([string] $ApkPath, [string] $Entry, [string] $Exp
         }
         Write-Host ("   {0}: '{1}' present in the patched {2}" -f $What, $Expected, $Entry) -ForegroundColor Green
     } finally { $zip.Dispose() }
-}
-
-function Resolve-Adb {
-    if ($script:Adb) {
-        if (-not (Test-Path $script:Adb) -and -not (Get-Command $script:Adb -ErrorAction SilentlyContinue)) {
-            Fail "adb not found: $script:Adb"
-        }
-        return $script:Adb
-    }
-    $cmd = Get-Command adb -ErrorAction SilentlyContinue
-    if ($cmd) { return $cmd.Source }
-    $candidates = @(
-        'C:\adb\platform-tools\adb.exe',
-        (Join-Path $HOME 'AppData\Local\Android\Sdk\platform-tools\adb.exe'),
-        (Join-Path $env:LOCALAPPDATA 'Android\Sdk\platform-tools\adb.exe')
-    )
-    foreach ($candidate in $candidates) {
-        if ($candidate -and (Test-Path $candidate)) { return $candidate }
-    }
-    Fail 'adb not found: put it on PATH or pass -Adb <path>'
 }
 
 # --- resolve inputs -------------------------------------------------------------------

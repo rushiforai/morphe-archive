@@ -36,6 +36,16 @@ public static class OnScreen
 
     private sealed record Found(By Target, IWebElement View);
 
+    // The drivers in the middle of a touch (TouchAsync, TouchAtAsync), and the swipe one of them made, with when its
+    // finger moved: the touch notes it, its ring following the finger, instead of a ring that stays where it landed.
+    private static readonly ConditionalWeakTable<AndroidDriver, object> Touching = [];
+    private static readonly ConditionalWeakTable<AndroidDriver, Swiped> SwipedInTouch = [];
+
+    private sealed record Swiped(Point From, Point To, long Moved, long Lifted);
+
+    // UiAutomator scrolls inside a view less this share of its size on each side, its gesture margins.
+    private const double ScrollMargin = 0.1;
+
     private static bool Recording => E2EDevice.VideoDirectory is not null;
 
     /// <summary>Has <paramref name="recording"/> draw the taps <paramref name="driver"/> makes from now on.</summary>
@@ -92,8 +102,8 @@ public static class OnScreen
             var bounds = Task.Run(() => element.GetAttribute("bounds") ?? "");
             await Task.WhenAll(bounds, Task.Delay(TapShown));
             var (x, y) = Center(await bounds);
-            await Task.Run(() => touch(element));
-            recording.NoteTap(x, y, shown, Stopwatch.GetTimestamp());
+            await TouchingAsync(driver, () => touch(element));
+            NoteTouch(driver, recording, x, y, shown);
         }
         else
         {
@@ -126,12 +136,136 @@ public static class OnScreen
         {
             var shown = Stopwatch.GetTimestamp();
             await Task.Delay(TapShown);
-            await Task.Run(() => touch(point));
-            recording.NoteTap(point.X, point.Y, shown, Stopwatch.GetTimestamp());
+            await TouchingAsync(driver, () => touch(point));
+            NoteTouch(driver, recording, point.X, point.Y, shown);
         }
         else
         {
             await Task.Run(() => touch(point));
+        }
+
+        NoteStepEnded(driver);
+    }
+
+    /// <summary>
+    /// Performs <paramref name="swipe"/>, a finger's moves from <paramref name="from"/> to <paramref name="to"/>, and has
+    /// the recording show it: the touch it is part of draws its ring following the finger, or, outside a touch (a flick
+    /// of a list in a step of its own), it draws one itself.
+    /// </summary>
+    public static void PerformSwipe(AndroidDriver driver, OpenQA.Selenium.Interactions.ActionSequence swipe, Point from, Point to)
+    {
+        var moved = Stopwatch.GetTimestamp();
+        driver.PerformActions([swipe]);
+        NoteSwipe(driver, from, to, moved, Stopwatch.GetTimestamp());
+    }
+
+    /// <summary>
+    /// Scrolls <paramref name="scrollable"/> by <paramref name="percent"/> of its size in <paramref name="direction"/>
+    /// ("up", "down", "left", "right"), with UiAutomator's scroll gesture, and returns whether it can scroll further. The
+    /// recording shows the finger's path, worked out as UiAutomator makes it: from the view's edge, inside its margins,
+    /// against the direction, by that share of its size.
+    /// </summary>
+    public static object? ScrollGesture(AndroidDriver driver, IWebElement scrollable, string direction, double percent)
+    {
+        var recording = TapsDrawnOn.TryGetValue(driver, out var drawing);
+        var bounds = recording ? Bounds(scrollable.GetAttribute("bounds") ?? "") : Rectangle.Empty;
+        var moved = Stopwatch.GetTimestamp();
+        var canScrollMore = driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
+        {
+            ["elementId"] = ((OpenQA.Selenium.Appium.AppiumElement)scrollable).Id,
+            ["direction"] = direction,
+            ["percent"] = percent,
+        });
+        if (recording && !bounds.IsEmpty)
+        {
+            var (from, to) = ScrollPath(bounds, direction, percent);
+            NoteSwipe(driver, from, to, moved, Stopwatch.GetTimestamp());
+        }
+
+        return canScrollMore;
+    }
+
+    // The finger's path of a scroll gesture: UiAutomator swipes against the scroll's direction, from the edge of the view
+    // less its margins, by percent of that area.
+    private static (Point From, Point To) ScrollPath(Rectangle bounds, string direction, double percent)
+    {
+        var area = Rectangle.Inflate(bounds, -(int)(bounds.Width * ScrollMargin), -(int)(bounds.Height * ScrollMargin));
+        var x = area.Left + (area.Width / 2);
+        var y = area.Top + (area.Height / 2);
+        var across = (int)(area.Width * percent);
+        var down = (int)(area.Height * percent);
+        return direction switch
+        {
+            "down" => (new Point(x, area.Bottom), new Point(x, area.Bottom - down)),
+            "up" => (new Point(x, area.Top), new Point(x, area.Top + down)),
+            "right" => (new Point(area.Right, y), new Point(area.Right - across, y)),
+            _ => (new Point(area.Left, y), new Point(area.Left + across, y)),
+        };
+    }
+
+    // A swipe the recording shows: handed to the touch it is part of, or drawn at once.
+    private static void NoteSwipe(AndroidDriver driver, Point from, Point to, long moved, long lifted)
+    {
+        if (!TapsDrawnOn.TryGetValue(driver, out var recording))
+        {
+            return;
+        }
+
+        if (Touching.TryGetValue(driver, out _))
+        {
+            SwipedInTouch.AddOrUpdate(driver, new Swiped(from, to, moved, lifted));
+        }
+        else
+        {
+            recording.NoteSwipe(from.X, from.Y, to.X, to.Y, moved, moved, lifted);
+        }
+    }
+
+    // Runs a touch, marked as one, so a swipe in it is handed to it (NoteSwipe).
+    private static async Task TouchingAsync(AndroidDriver driver, Action touch)
+    {
+        Touching.AddOrUpdate(driver, driver);
+        try
+        {
+            await Task.Run(touch);
+        }
+        finally
+        {
+            Touching.Remove(driver);
+        }
+    }
+
+    // A touch's ring: following the finger when the touch was a swipe, else where it landed.
+    private static void NoteTouch(AndroidDriver driver, ScreenRecording recording, int x, int y, long shown)
+    {
+        if (SwipedInTouch.TryGetValue(driver, out var swiped))
+        {
+            SwipedInTouch.Remove(driver);
+            recording.NoteSwipe(swiped.From.X, swiped.From.Y, swiped.To.X, swiped.To.Y, shown, swiped.Moved, swiped.Lifted);
+        }
+        else
+        {
+            recording.NoteTap(x, y, shown, Stopwatch.GetTimestamp());
+        }
+    }
+
+    /// <summary>
+    /// Presses Android's Back, after the recording has shown it for <see cref="TapShown"/>: an arrow pointing left, at the
+    /// screen's right side, as the swipe from its edge that goes back (<see cref="ScreenRecording.NoteBack"/>).
+    /// </summary>
+    public static async Task PressBackAsync(AndroidDriver driver)
+    {
+        await WaitForActionGapAsync(driver);
+        if (TapsDrawnOn.TryGetValue(driver, out var recording))
+        {
+            var shown = Stopwatch.GetTimestamp();
+            await Task.Delay(TapShown);
+            await Task.Run(() => driver.PressKeyCode(OpenQA.Selenium.Appium.Android.Enums.AndroidKeyCode.Back));
+            recording.NoteBack(shown, Stopwatch.GetTimestamp());
+        }
+        else
+        {
+            await Task.Run(() => driver.PressKeyCode(OpenQA.Selenium.Appium.Android.Enums.AndroidKeyCode.Back));
         }
 
         NoteStepEnded(driver);
@@ -224,12 +358,7 @@ public static class OnScreen
                 throw new InvalidOperationException($"{what} wasn't on the screen after scrolling 20 screens down and up.");
             }
 
-            var canScrollMore = await Task.Run(() => driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
-            {
-                ["elementId"] = ((OpenQA.Selenium.Appium.AppiumElement)driver.FindElement(scrollable)).Id,
-                ["direction"] = direction,
-                ["percent"] = 0.75,
-            }));
+            var canScrollMore = await Task.Run(() => ScrollGesture(driver, driver.FindElement(scrollable), direction, 0.75));
             if (canScrollMore is false)
             {
                 if (direction == "up")
@@ -268,6 +397,14 @@ public static class OnScreen
     }
 
     // UiAutomator2's bounds, "[left,top][right,bottom]" in the screen's pixels: where its click lands.
+    private static Rectangle Bounds(string bounds)
+    {
+        var edges = bounds.Split(['[', ']', ','], StringSplitOptions.RemoveEmptyEntries)
+            .Select(edge => int.Parse(edge, System.Globalization.CultureInfo.InvariantCulture))
+            .ToArray();
+        return edges.Length == 4 ? Rectangle.FromLTRB(edges[0], edges[1], edges[2], edges[3]) : Rectangle.Empty;
+    }
+
     private static (int X, int Y) Center(string bounds)
     {
         var edges = bounds.Split(['[', ']', ','], StringSplitOptions.RemoveEmptyEntries)
@@ -277,7 +414,21 @@ public static class OnScreen
     }
 
     private static IWebElement? ShownOnScreen(AndroidDriver driver, By target) =>
-        driver.FindElements(target).FirstOrDefault(element => element.Displayed && element.Size.Height > 0);
+        driver.FindElements(target).FirstOrDefault(IsShown);
+
+    // A view that goes stale while it's read (the list redrew its rows: Fix Reddit links coming back to its posts,
+    // 2026-11-09) isn't on the screen yet: the scroll looks again.
+    private static bool IsShown(IWebElement element)
+    {
+        try
+        {
+            return element.Displayed && element.Size.Height > 0;
+        }
+        catch (StaleElementReferenceException)
+        {
+            return false;
+        }
+    }
 
     private static void NoteStepEnded(AndroidDriver driver) => SinceLastStep.AddOrUpdate(driver, Stopwatch.StartNew());
 }

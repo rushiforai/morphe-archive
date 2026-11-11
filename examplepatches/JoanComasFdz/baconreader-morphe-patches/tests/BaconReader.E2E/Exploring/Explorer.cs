@@ -54,8 +54,8 @@ public sealed class Explorer : BaseE2E
             answers.Add("post: e2e | Hello from r/e2e (none in the commands file: logging in waits for a post)");
         }
 
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
         foreach (var command in commands.Except(data))
         {
             if (command.Name == "quit")

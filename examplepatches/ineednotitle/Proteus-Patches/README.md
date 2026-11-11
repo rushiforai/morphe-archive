@@ -1,61 +1,307 @@
 # Proteus Patches
 
-> *One bundle, patches everywhere. A curated [Morphe](https://github.com/MorpheApp/Morphe) patch suite for Android.*
+[![Release](https://img.shields.io/github/v/release/ineednotitle/Proteus-Patches?include_prereleases&label=release&color=2563eb)](https://github.com/ineednotitle/Proteus-Patches/releases)
+[![Build](https://github.com/ineednotitle/Proteus-Patches/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/ineednotitle/Proteus-Patches/actions/workflows/build.yml)
+[![Patches](https://img.shields.io/badge/patches-179-2563eb)](patches-list.json)
+[![Universal](https://img.shields.io/badge/universal-25-7c3aed)](#universal-patches)
+[![Apps](https://img.shields.io/badge/apps-31-f59e0b)](#whats-inside)
+[![License](https://img.shields.io/badge/license-GPL--3.0--only-16a34a)](LICENSE)
 
-[![License: GPL-3.0-only](https://img.shields.io/badge/License-GPL--3.0--only-green.svg)](#license)
-[![Patches](https://img.shields.io/badge/patches-174-blue.svg)](#whats-inside)
-[![Universal patches](https://img.shields.io/badge/universal-24-purple.svg)](#universal-patches)
-[![Apps](https://img.shields.io/badge/apps-28-orange.svg)](#supported-apps)
+**Proteus Patches** is a curated [Morphe](https://github.com/MorpheApp/Morphe)
+patch bundle for Android. It removes ads, trackers and privacy-hostile defaults
+from **31 popular apps**, and ships **25 universal patches** that work on almost
+any APK.
 
-**Proteus Patches** is a Morphe patch bundle (`.mpp`) that removes tracking,
-ads, annoyances and risky defaults from popular Android apps — plus a set of
-**universal patches** that apply to any app.
-
-- **[v2.2.9](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.9)** — pre-release (not the latest; re-cut #3 — `invoke-static/range` fix for the patch-time crash in the Mereframe bypass; re-cut #2 superseded): Reddit save-flow stability hardening. "Remove ads" Layer 3 (comment-banner ad loader kill) rewritten as a constant `return-void` entry — zero registers used; Layer 5 (AdPostSection Compose-render no-op) kept ON by explicit decision, see [docs/REDDIT-STABILITY.md](docs/REDDIT-STABILITY.md); new "Reddit: Diagnostic crash log" patch (default off) writes `Downloads/reddit-crash-*.txt`. Also resolves all open issues: **#22** (Amazon India patching error) — AMOLED resource pass now writes android:-framework attributes only with a hard guard; the Google Photos AMOLED patch carried the same defect and got the identical fix; **#21** (Amazon India video ads) — NEW "Amazon: Stop feed video autoplay" patch (default off) + [docs/AMAZON.md](docs/AMAZON.md) with enable steps and reach limits; **#5** (Mereframe 0.8.4) — "Bypass native integrity checks" rewritten to call the native session JNI inside a real JVM try/catch in the extension, instead of inline smali whose `.catch` was silently dropped; "Spoof install source" Layer 2 now walks the superclass chain (androidx parents like LifecycleProcess); "Spoof app signature" SignatureHookApp presence is now enforced by the bundle verifier. See [docs/MEREFRAME.md](docs/MEREFRAME.md). Unverified on device; 2026.42.0 remains the verified Reddit build; Latest stays v2.2.4
+> **Current pre-release:** [v2.2.10](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.10) —
+> Reddit listing filters, autoplay and external-browser controls, deleted-content
+> restore, and a rewritten Mereframe Pro unlock. Build and patch-application
+> verified; on-device testing is community-driven.
 
 [![Add to Morphe](https://img.shields.io/badge/Add_to-Morphe-1f6feb?style=for-the-badge)](https://morphe.software/add-source?github=ineednotitle/Proteus-Patches)
+[![Releases](https://img.shields.io/badge/Download-Releases-0f172a?style=for-the-badge)](https://github.com/ineednotitle/Proteus-Patches/releases)
 
-> Tapping **Add to Morphe** on a device with
-> [Morphe Manager](https://github.com/MorpheApp/Morphe) installed adds this repo
-> as a patch source automatically.
-
-Patch source URL (to add manually in Morphe Manager → Sources):
+**Patch source**
 
 ```text
 https://github.com/ineednotitle/Proteus-Patches
 ```
 
-Use the remote repository source for updates. Morphe checks enabled remote sources
-on launch (subject to network and Manager settings); locally imported `.mpp` files
-must be updated manually.
+## Contents
 
----
+- [Install](#install)
+- [What's inside](#whats-inside)
+- [Safety](#safety)
+- [Documentation](#documentation)
+- [Build from source](#build-from-source)
+- [Contributing](#contributing)
+- [Support](#support)
+- [License](#license)
 
-For configuration advice, limitations, and permission-patch examples, see the
-[universal patches guide](docs/UNIVERSAL-PATCHES.md).
-
-## 📦 Install
+## Install
 
 1. Install **[Morphe Manager](https://github.com/MorpheApp/Morphe)**.
-2. Easiest: tap the **Add to Morphe** button above, or add
-   `https://github.com/ineednotitle/Proteus-Patches` as a patch source.
-3. Or download the latest bundle from **[Releases](https://github.com/ineednotitle/Proteus-Patches/releases)**
-   (`patches-2.2.6.mpp`) and use **Settings → Patches → Import patches** in the Manager.
-4. Pick the apps you patch, choose your patches, and patch.
+2. Tap **Add to Morphe** above, or add the patch source URL manually in
+   **Morphe Manager → Sources**.
+3. Select an app, review its compatible versions and patch options, then patch.
+4. To import manually, download the newest `.mpp` from
+   **[Releases](https://github.com/ineednotitle/Proteus-Patches/releases)** and use
+   **Settings → Patches → Import patches**.
 
-<!-- PATCHES_START EXPANDED -->
-> **[v2.2.9](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;174 patches total
-<details open>
-<summary>📦 Google Photos&nbsp;&nbsp;•&nbsp;&nbsp;7 patches</summary>
+Use the remote source for automatic updates. Imported `.mpp` files must be
+updated manually.
+
+## What's inside
+
+The catalog below is generated from `patches-list.json`. Expand an app to see its
+compatible versions, patches and options.
+
+<!-- PATCHES_START -->
+> **[v2.2.10](https://github.com/ineednotitle/Proteus-Patches/releases/tag/v2.2.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;179 patches total
+
+### Supported apps
+
+| App | Compatible versions | Patches |
+| :--- | :--- | ---: |
+| [Amazon India](#app-in-amazon-mshop-android-shopping) | 32.18.0.300 · 32.19.0.300 | 9 |
+| [Amazon Shopping](#app-com-amazon-mshop-android-shopping) | 32.18.0.100 | 9 |
+| [Brave Browser](#app-com-brave-browser) | 1.98.63 | 14 |
+| [ChatGPT](#app-com-openai-chatgpt) | 1.2026.293 | 3 |
+| [Claude](#app-com-anthropic-claude) | 1.261023.20 | 1 |
+| [District](#app-com-application-zomato-district) | 2.76.0 | 2 |
+| [Everything Widgets](#app-com-jndapp-nothing-widgets-pack) | 2.1.014 | 3 |
+| [Excel](#app-com-microsoft-office-excel) | 16.0.20228.20090 | 1 |
+| [Firefox](#app-org-mozilla-firefox) | 158.0.2 | 2 |
+| [Gboard](#app-com-google-android-inputmethod-latin) | 18.5.4.993608717-release-arm64-v8a | 1 |
+| [Google Photos](#app-com-google-android-apps-photos) | 7.97.0.997578476 | 7 |
+| [Hindustan Times](#app-com-ht-news) | 4.9.16 | 3 |
+| [Inure App Manager](#app-app-simple-inure-play) | build107.2.1 | 1 |
+| [Inure App Manager (GitHub)](#app-app-simple-inure) | build107.2.4 | 1 |
+| [Malwarebytes Mobile Security](#app-org-malwarebytes-antimalware) | 5.27.0+564 | 1 |
+| [Meesho](#app-com-meesho-shopping) | 29.9 · 29.8 · 29.7 · +2 more | 3 |
+| [Mereframe](#app-app-unnamed-rawrecording) | 0.8.4 | 4 |
+| [Mint](#app-com-htmedia-mint) | 5.7.5 · 5.8.4 | 3 |
+| [MUBI](#app-com-mubi) | 100.0 · 99.1 | 16 |
+| [Pinterest](#app-com-pinterest) | 14.41.0 | 4 |
+| [Proton Pass](#app-proton-android-pass) | 1.41.3 | 1 |
+| [Proton VPN](#app-ch-protonvpn-android) | 5.19.78.0 | 1 |
+| [Proxyman](#app-com-proxyman-proxymanandroid) | 1.21.0 | 1 |
+| [Reddit](#app-com-reddit-frontpage) | 2026.42.0 · 2026.41.0 · 2026.40.0 · +3 more | 14 |
+| [Strava](#app-com-strava) | 480.15 · 486.9 | 3 |
+| [Telegram](#app-org-telegram-messenger) | 12.10.1 | 14 |
+| [Telegram Plus](#app-org-telegram-plus) | 12.10.1.1 | 15 |
+| [Telegram Web](#app-org-telegram-messenger-web) | 12.10.1 | 14 |
+| [trakt.TV Shows & Movies](#app-tv-trakt-trakt) | 3.26.1 | 1 |
+| [Word](#app-com-microsoft-office-word) | 16.0.20228.20090 | 1 |
+| [Yatri](#app-com-yatrirailways-yatri) | 5.0.6 | 1 |
+| [Universal patches](#universal-patches) | Any app | 25 |
+
+<a id="app-in-amazon-mshop-android-shopping"></a>
+<details>
+<summary><strong>Amazon India</strong> · 9 patches</summary>
 <br>
 
-**🎯 Supported versions:**
+**Compatible versions**
+
+| 32.18.0.300 | 32.19.0.300 |
+| :---: | :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Amazon: Stop feed video autoplay](#amazon-stop-feed-video-autoplay) | Stops Amazon's home-feed native video units (live promotional videos,<br>review carousels, sponsored reels) from starting on their own, using<br>the same setPlayWhenReady(true) → false heuristic as the universal<br>'Disable video autoplay (ExoPlayer/Media3)' patch.<br><br>Covers native ExoPlayer/Media3 players only — NOT the in-app WebView<br>pages (use the default-on 'Disable video autoplay' patch for those),<br>and NOT WebView CSS-injected ad blocks (use 'Remove ads'). Heuristic:<br>reflection or obfuscated player setup is not covered. Can stop playback<br>entirely in apps whose only play path is a flipped literal call — turn<br>it off if videos never start. Unverified on device. |  |
+| [Dark mode](#dark-mode) | Force dark mode for Amazon Shopping. | • Dark mode |
+| [Disable search suggestions tracking](#disable-search-suggestions-tracking) | Prevents search keypress and focus events from being sent with suggestion requests. |  |
+| [Disable video autoplay](#disable-video-autoplay) | Prevents videos from autoplaying in Amazon's in-app WebView pages. |  |
+| [Fix Amazon manifest conflicts](#fix-amazon-manifest-conflicts) | Updates shared Amazon permissions so other Amazon apps can coexist. |  |
+| [Hide Rufus tab](#hide-rufus-tab) | Removes the Rufus AI assistant tab from Amazon's bottom navigation bar. |  |
+| [Open links in browser](#open-links-in-browser) | Opens non-Amazon URLs in the default browser instead of the in-app WebView. |  |
+| [Price history charts](#price-history-charts) | Injects Keepa and CamelCamelCamel price history charts on Amazon product pages. | • Chart period<br>• Show period toggle<br>• Toggle periods<br>• Keepa price lines<br>• CamelCamelCamel chart<br>• Hide zero-price gaps<br>• Chart size<br>• Start collapsed |
+| [Remove ads](#remove-ads) | Hides sponsored and ad content in Amazon Shopping via CSS injection. |  |
+
+</details>
+
+<a id="app-com-amazon-mshop-android-shopping"></a>
+<details>
+<summary><strong>Amazon Shopping</strong> · 9 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 32.18.0.100 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Amazon: Stop feed video autoplay](#amazon-stop-feed-video-autoplay) | Stops Amazon's home-feed native video units (live promotional videos,<br>review carousels, sponsored reels) from starting on their own, using<br>the same setPlayWhenReady(true) → false heuristic as the universal<br>'Disable video autoplay (ExoPlayer/Media3)' patch.<br><br>Covers native ExoPlayer/Media3 players only — NOT the in-app WebView<br>pages (use the default-on 'Disable video autoplay' patch for those),<br>and NOT WebView CSS-injected ad blocks (use 'Remove ads'). Heuristic:<br>reflection or obfuscated player setup is not covered. Can stop playback<br>entirely in apps whose only play path is a flipped literal call — turn<br>it off if videos never start. Unverified on device. |  |
+| [Dark mode](#dark-mode) | Force dark mode for Amazon Shopping. | • Dark mode |
+| [Disable search suggestions tracking](#disable-search-suggestions-tracking) | Prevents search keypress and focus events from being sent with suggestion requests. |  |
+| [Disable video autoplay](#disable-video-autoplay) | Prevents videos from autoplaying in Amazon's in-app WebView pages. |  |
+| [Fix Amazon manifest conflicts](#fix-amazon-manifest-conflicts) | Updates shared Amazon permissions so other Amazon apps can coexist. |  |
+| [Hide Rufus tab](#hide-rufus-tab) | Removes the Rufus AI assistant tab from Amazon's bottom navigation bar. |  |
+| [Open links in browser](#open-links-in-browser) | Opens non-Amazon URLs in the default browser instead of the in-app WebView. |  |
+| [Price history charts](#price-history-charts) | Injects Keepa and CamelCamelCamel price history charts on Amazon product pages. | • Chart period<br>• Show period toggle<br>• Toggle periods<br>• Keepa price lines<br>• CamelCamelCamel chart<br>• Hide zero-price gaps<br>• Chart size<br>• Start collapsed |
+| [Remove ads](#remove-ads) | Hides sponsored and ad content in Amazon Shopping via CSS injection. |  |
+
+</details>
+
+<a id="app-com-brave-browser"></a>
+<details>
+<summary><strong>Brave Browser</strong> · 14 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 1.98.63 (experimental) |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Block Motion Sensors](#block-motion-sensors) | Attempts to disable Chromium's Android sensor provider; may also block ambient sensors. Requires device validation. |  |
+| [Block Popups & Ratings](#block-popups-ratings) | Disables the identified rating and Brave Ads signup eligibility checks; other dialogs can still appear. |  |
+| [Block Telemetry](#block-telemetry) | Blocks usage analytics, crash uploads and experiment downloads. | • Block offers server |
+| [Brave Origin](#brave-origin) | Unlocks Brave Origin feature switches across Rewards, News, Wallet, and VPN. |  |
+| [Clean New Tab](#clean-new-tab) | Removes sponsored wallpapers, news feed and promo cards. | • Hide shortcut tiles |
+| [Close Tab In Group Order](#close-tab-in-group-order) | Selects the previous tab in the tab group when closing a tab. |  |
+| [Custom Brave theme](#custom-brave-theme) | Applies custom colors to Brave dark mode chrome, defaulting to pure OLED black for battery saving on OLED screens. | • Background color<br>• Surfaces use background color<br>• Surface / container color<br>• Text ink color<br>• Accent highlight color<br>• Disable Material You dynamic colors<br>• Window background color<br>• Preference card color<br>• Style preference rows as cards<br>• Modulate text tiers by luminance<br>• Patch Material You system color roles<br>• Patch color state list lStar selectors<br>• Patch vector drawable surface fills |
+| [Preserve last active tab](#preserve-last-active-tab) | Disables the identified new-tab opening-screen override after inactivity. Does not prevent tab unloading under memory pressure. |  |
+| [Remove Extra Languages](#remove-extra-languages) | Replaces larger unselected Chromium locale PAKs with the English fallback; gender variants and Android resources are not removed. | • Languages to keep |
+| [Remove Unused AI & VPN](#remove-unused-ai-vpn) | Deletes unused AR and XR files to shrink the app. | • Remove VPN library |
+| [Skip Welcome Screens](#skip-welcome-screens) | Reports the first-run flow complete; may skip essential consent, search or setup screens. |  |
+| [Stop Background Wakeups](#stop-background-wakeups) | Disables the identified Chromium background-sync scheduler gate; other wakeups remain and site background sync can break. |  |
+| [Stop Promo Notifications](#stop-promo-notifications) | Disables identified Chromium tips and retention notification entry points; other notifications may remain. |  |
+| [Stop Text Sharing with System](#stop-text-sharing-with-system) | Disables Chromium's OnscreenContentProvider content-capture gate, not every possible text-sharing mechanism. |  |
+
+</details>
+
+<a id="app-com-openai-chatgpt"></a>
+<details>
+<summary><strong>ChatGPT</strong> · 3 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 1.2026.293 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Privacy: block trackers & analytics](#privacy-block-trackers-analytics) | Suppresses ChatGPT product analytics, Statsig events/exposures, Segment event dispatch and Bitdrift crash/session-replay startup; disables Datadog RUM and removes ad-ID/install-referrer access. Chat, login, files and push notifications are preserved. Core service requests and server-side logging cannot be disabled by an APK patch. |  |
+| [Privacy: no location, contacts or phone data](#privacy-no-location-contacts-or-phone-data) | Removes ChatGPT's location, contacts, phone-state and SMS-send permissions. Location-based answers, contact lookup, phone-state access and direct SMS sending are disabled. Call/voice-assistant framework permissions, chat, files and push notifications are preserved. |  |
+| [Privacy: no mic or camera](#privacy-no-mic-or-camera) | Removes RECORD_AUDIO, CAMERA, FOREGROUND_SERVICE_MICROPHONE plus all camera/microphone uses-feature declarations from the manifest. Voice Mode and camera capture become impossible (not merely denied - the grant dialog itself is gone). File storage, notifications and everything else are untouched. |  |
+
+</details>
+
+<a id="app-com-anthropic-claude"></a>
+<details>
+<summary><strong>Claude</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| 1.261023.20 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Block Sentry telemetry](#block-sentry-telemetry) | Disables Sentry crash/error/performance telemetry entirely by neutralizing the configurator that writes the DSN - with no DSN set, Sentry self-disables. Fixes nothing to break: the configurator's return is void and unused. Verified against 1.261023.20. |  |
+
+</details>
+
+<a id="app-com-application-zomato-district"></a>
+<details>
+<summary><strong>District</strong> · 2 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 2.76.0 (experimental) |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Block analytics & data collection](#block-analytics-data-collection) | Neutralizes Firebase Analytics, AppsFlyer, CleverTap event fan-out and the in-house crash-report enqueue of District by Zomato. |  |
+| [Block location tracking](#block-location-tracking) | Stops District by Zomato from acquiring GPS fixes (continuous updates + one-shot fetch). Manual city selection still works. |  |
+
+</details>
+
+<a id="app-com-jndapp-nothing-widgets-pack"></a>
+<details>
+<summary><strong>Everything Widgets</strong> · 3 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 2.1.014 (experimental) |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Remove tracking & analytics](#remove-tracking-analytics) | Kills Facebook auto-init and OneSignal, and opts Firebase Crashlytics/Performance/Analytics out of collection at boot, in Everything Widgets. Widget functionality is unaffected; OneSignal push notifications stop. |  |
+| [Spoof Play Store signature](#spoof-play-store-signature) | Forces the Google license (Pairip) verdict branch to LICENSED and neutralizes the license payload's signature verification, so the patched/re-signed Everything Widgets build always passes store validation. |  |
+| [Unlock Premium](#unlock-premium) | Bypasses the Google license (Pairip) purchase check of the paid Everything Widgets app: the app runs fully without a Play purchase. Donation SKUs are cosmetic and untouched. |  |
+
+</details>
+
+<a id="app-com-microsoft-office-excel"></a>
+<details>
+<summary><strong>Excel</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| 16.0.20228.20090 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Unlock Excel](#unlock-excel) | Removes login requirement, unlocks premium, blocks ads, bypasses signature and code transparency checks. |  |
+
+</details>
+
+<a id="app-org-mozilla-firefox"></a>
+<details>
+<summary><strong>Firefox</strong> · 2 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 158.0.2 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Block Firefox telemetry](#block-firefox-telemetry) | IronFox-style hardening: never initializes Glean telemetry, Nimbus experiments, Sentry crash reporting, or Adjust attribution at startup; kills Mozilla-side server traffic during browsing (Firefox Suggest/Merino, sponsored shortcuts/Contile, Pocket feed + sponsored stories, search suggestion streaming incl. private tabs, studies previews); and makes the telemetry toggles in Settings read OFF. Browsing, Sync and add-ons keep working; local-only suggestions untouched. |  |
+| [Improve startup performance](#improve-startup-performance) | Skips two launch-time routines whose only job is metrics/experiments upkeep: the 4k-line startup-metrics coroutine (pure telemetry writes, ~64 metric writes per launch) and the forced Nimbus experiment fetch right after first render. Less launch I/O = faster, smoother open/close. Browser features unchanged. |  |
+
+</details>
+
+<a id="app-com-google-android-inputmethod-latin"></a>
+<details>
+<summary><strong>Gboard</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| 18.5.4.993608717-release-arm64-v8a |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Offline-only voice typing & telemetry reduction](#offline-only-voice-typing-telemetry-reduction) | On Gboard 18.5.4.993608717 arm64, routes core voice typing only through the on-device<br>recognizers and returns no recognizer when a local provider/model is unavailable (no<br>online fallback). Disables Agentic Dictation's server/batch retry path, reduces selected<br>metrics/telemetry and disables app backup. INTERNET and unrelated network features are<br>retained; this is best-effort telemetry reduction, not a guarantee of zero Google traffic.<br><br>Requires the appropriate offline speech model/provider to be installed. Without one,<br>voice typing is unavailable by design. Agentic Dictation is disabled. |  |
+
+</details>
+
+<a id="app-com-google-android-apps-photos"></a>
+<details>
+<summary><strong>Google Photos</strong> · 7 patches</summary>
+<br>
+
+**Compatible versions**
 
 | 7.97.0.997578476 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
+| Patch | Description | Options |
+| :--- | :--- | :--- |
 | [AMOLED dark theme](#amoled-dark-theme) | Makes Google Photos dark surfaces true black. |  |
 | [Change package name](#change-package-name) | Installs Google Photos beside the system Photos app by changing package, permissions, providers, and app name. | • Package name<br>• App name |
 | [Custom branding](#custom-branding) | Adds an option to replace the Google Photos launcher icon. | • Custom icon |
@@ -66,53 +312,139 @@ For configuration advice, limitations, and permission-patch examples, see the
 
 </details>
 
-<details open>
-<summary>📦 Pinterest&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<a id="app-com-ht-news"></a>
+<details>
+<summary><strong>Hindustan Times</strong> · 3 patches</summary>
 <br>
 
-**🎯 Supported versions:**
+**Compatible versions**
 
-| 14.41.0 |
+| 4.9.16 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Ad-free feed (remove promoted Pins)](#ad-free-feed-remove-promoted-pins) | Removes promoted/sponsored Pins from every feed, search result, and board list during deserialization, so they never render. Organic pinning, boards and saving are unaffected. |  |
-| [Block analytics and data collection](#block-analytics-and-data-collection) | No-ops Firebase screen/event tracking and AppsFlyer attribution + event logging (concrete SDK entry points, verified in 14.41.0). Push notifications keep working; Pinterest features are untouched. |  |
-| [Enable media downloads](#enable-media-downloads) | Enables the pin-level image download eligibility flag. Use the separate experimental video download patch for supported video Pins. |  |
-| [Enable video download](#enable-video-download) | Experimental: enables the download row on video Pins and saves an available MP4. Streaming-only or unavailable videos are reported instead of saved as images. |  |
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Hindustan Times: Block analytics & tracking SDKs](#hindustan-times-block-analytics-tracking-sdks) | Blocks Hindustan Times' analytics & tracking SDKs (Firebase Analytics,<br>AppsFlyer, Adjust, WebEngage, CleverTap and similar) using the same universal<br>heuristic as 'Block analytics & tracking SDKs'.<br><br>Applies to com.ht.news only. Heuristic; obfuscated or reflection-based<br>reporting is not covered. Unverified on device. |  |
+| [Hindustan Times: Disable video autoplay (ExoPlayer)](#hindustan-times-disable-video-autoplay-exoplayer) | Stops video autoplay in the Hindustan Times feed/article bodies<br>(ExoPlayer/Media3) using the same heuristic as 'Disable video autoplay<br>(ExoPlayer/Media3)'.<br><br>Applies to com.ht.news only. Heuristic; see the universal entry for<br>limitations. Unverified on device. |  |
+| [Hindustan Times: Prefer external browser over Custom Tabs](#hindustan-times-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.ht.news only. Some article WebViews are not affected —<br>this covers Custom Tabs / CustomTabsIntent call sites only.<br>Unverified on device. |  |
 
 </details>
 
-<details open>
-<summary>📦 Mereframe&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<a id="app-app-simple-inure-play"></a>
+<details>
+<summary><strong>Inure App Manager</strong> · 1 patch</summary>
 <br>
 
-**🎯 Supported versions:**
+**Compatible versions**
+
+| build107.2.1 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Unlock Full Version](#unlock-full-version) | Bypasses the 15-day trial gate and unlocks all premium features in Inure App Manager. |  |
+
+</details>
+
+<a id="app-app-simple-inure"></a>
+<details>
+<summary><strong>Inure App Manager (GitHub)</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| build107.2.4 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Inure — Unlock Full Version (GitHub)](#inure-unlock-full-version-github) | Bypasses the 15-day trial gate and unlocks all premium features in Inure App Manager (GitHub). |  |
+
+</details>
+
+<a id="app-org-malwarebytes-antimalware"></a>
+<details>
+<summary><strong>Malwarebytes Mobile Security</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| 5.27.0+564 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Unlock Ultimate](#unlock-ultimate) | Unlocks all Malwarebytes Ultimate features via enum singleton and feature gate patches. |  |
+
+</details>
+
+<a id="app-com-meesho-shopping"></a>
+<details>
+<summary><strong>Meesho</strong> · 3 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 29.9 | 29.8 | 29.7 | 29.6 | 29.5 |
+| :---: | :---: | :---: | :---: | :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Meesho: Block analytics & tracking SDKs](#meesho-block-analytics-tracking-sdks) | Blocks Meesho's analytics & tracking SDKs (Firebase Analytics, AppsFlyer,<br>Adjust, Facebook AppEvents, WebEngage, CleverTap and similar) using the<br>same universal heuristic as 'Block analytics & tracking SDKs'.<br><br>Applies to com.meesho.shopping only. Heuristic; obfuscated or<br>reflection-based reporting is not covered. Unverified on device. |  |
+| [Meesho: Disable video autoplay (ExoPlayer)](#meesho-disable-video-autoplay-exoplayer) | Stops video autoplay in the Meesho feed and product videos (ExoPlayer/Media3)<br>using the same heuristic as 'Disable video autoplay (ExoPlayer/Media3)'.<br><br>Applies to com.meesho.shopping only. Heuristic; see the universal entry<br>for limitations. Unverified on device. |  |
+| [Meesho: Prefer external browser over Custom Tabs](#meesho-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.meesho.shopping only. Covers Custom Tabs /<br>CustomTabsIntent call sites only. Unverified on device. |  |
+
+</details>
+
+<a id="app-app-unnamed-rawrecording"></a>
+<details>
+<summary><strong>Mereframe</strong> · 4 patches</summary>
+<br>
+
+**Compatible versions**
 
 | 0.8.4 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
+| Patch | Description | Options |
+| :--- | :--- | :--- |
 | [Allow re-signed/sideloaded installs](#allow-re-signed-sideloaded-installs) | Neutralizes Mereframe's install-integrity checks so patched (re-signed) builds start normally instead of showing the installation-refused screen. Required for any other patch here to be usable. |  |
-| [Bypass native integrity checks](#bypass-native-integrity-checks) | libunnamed_raw.so JNI-throws 'app integrity check failed' on re-signed builds, killing camera session start (preview) - observed via diagnostic crash log. This patch catches the throw at the session-opening wrapper and substitutes a valid session result. Required together with 'Allow re-signed/sideloaded installs'. |  |
+| [Bypass native integrity checks](#bypass-native-integrity-checks) | libunnamed_raw.so JNI-throws 'app integrity check failed' on re-signed builds, killing camera session start (preview) - observed via diagnostic crash log. This patch calls the session-opening wrapper inside a real JVM try/catch (extension) and substitutes a well-formed session result on failure. Required together with 'Allow re-signed/sideloaded installs'. |  |
 | [Diagnostic crash log](#diagnostic-crash-log) | DIAGNOSTIC ONLY - writes the full stack trace to Downloads/mereframe-crash-*.txt when the app crashes, for remote diagnosis. Off by default; enable when asked to produce a crash log. Chain-forwards to the original crash handler. |  |
-| [Unlock Pro features](#unlock-pro-features) | Includes every registered feature in the resolved feature set by dropping the ownership check at the entitlement resolver (nv.e). LOCAL client-side effect only. WARNING (kept off by default): on at least one device (realme/Android 16) enabling the single registered Pro feature crashes capture - the Pro pipeline path is gated by this flag and we cannot verify its safety side. Enable only if you specifically want the Pro toolset; the app works fully (RAW capture incl.) with just 'Allow re-signed installs'. |  |
+| [Unlock Pro features](#unlock-pro-features) | Returns every registered feature from the entitlement accessor (Qu.k) so all Pro gates resolve unlocked. LOCAL client-side effect only. WARNING (kept off by default): on at least one device (realme/Android 16) enabling the single registered Pro feature crashes capture - the Pro pipeline path is gated by this flag and we cannot verify its safety side. Enable only if you specifically want the Pro toolset; the app works fully (RAW capture incl.) with just 'Allow re-signed installs'. |  |
 
 </details>
 
-<details open>
-<summary>📦 MUBI&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
+<a id="app-com-htmedia-mint"></a>
+<details>
+<summary><strong>Mint</strong> · 3 patches</summary>
 <br>
 
-**🎯 Supported versions:**
+**Compatible versions**
+
+| 5.7.5 | 5.8.4 |
+| :---: | :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Mint: Block analytics & tracking SDKs](#mint-block-analytics-tracking-sdks) | Blocks Mint's analytics & tracking SDKs (Firebase Analytics, AppsFlyer, Adjust,<br>WebEngage, CleverTap and similar) using the same universal heuristic as<br>'Block analytics & tracking SDKs'.<br><br>Applies to com.htmedia.mint only. Heuristic; obfuscated or reflection-based<br>reporting is not covered. Unverified on device. |  |
+| [Mint: Disable video autoplay (ExoPlayer)](#mint-disable-video-autoplay-exoplayer) | Stops video autoplay in the Mint feed/article bodies (ExoPlayer/Media3)<br>using the same heuristic as 'Disable video autoplay (ExoPlayer/Media3)'.<br><br>Applies to com.htmedia.mint only. Heuristic; see the universal entry for<br>limitations. Unverified on device. |  |
+| [Mint: Prefer external browser over Custom Tabs](#mint-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.htmedia.mint only. Some article WebViews are not affected<br>— this covers Custom Tabs / CustomTabsIntent call sites only.<br>Unverified on device. |  |
+
+</details>
+
+<a id="app-com-mubi"></a>
+<details>
+<summary><strong>MUBI</strong> · 16 patches</summary>
+<br>
+
+**Compatible versions**
 
 | 100.0 | 99.1 |
 | :---: | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
+| Patch | Description | Options |
+| :--- | :--- | :--- |
 | [Allow screenshots & screen recording](#allow-screenshots-screen-recording) | Removes FLAG_SECURE and secure-surface flags from MUBI's players, so screenshots, screen recording and screen mirroring work. DRM-protected video may still render black on some devices. |  |
 | [Block analytics & tracking](#block-analytics-tracking) | No-ops Braze, Firebase Analytics, AppsFlyer, Adjust, Facebook App Events and Segment logging in MUBI. Push notifications and account features keep working. |  |
 | [Block upgrade & sale deep links](#block-upgrade-sale-deep-links) | Makes MUBI's upgrade screen non-exported and disables the upgrade-yearly / blackfriday / flash-sale deep links. Playback and entitlements are unchanged. |  |
@@ -132,17 +464,132 @@ For configuration advice, limitations, and permission-patch examples, see the
 
 </details>
 
-<details open>
-<summary>📦 Telegram&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<a id="app-com-pinterest"></a>
+<details>
+<summary><strong>Pinterest</strong> · 4 patches</summary>
 <br>
 
-**🎯 Supported versions:**
+**Compatible versions**
+
+| 14.41.0 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Ad-free feed (remove promoted Pins)](#ad-free-feed-remove-promoted-pins) | Removes promoted/sponsored Pins from every feed, search result, and board list during deserialization, so they never render. Organic pinning, boards and saving are unaffected. |  |
+| [Block analytics and data collection](#block-analytics-and-data-collection) | No-ops Firebase screen/event tracking and AppsFlyer attribution + event logging (concrete SDK entry points, verified in 14.41.0). Push notifications keep working; Pinterest features are untouched. |  |
+| [Enable media downloads](#enable-media-downloads) | Enables the pin-level image download eligibility flag. Use the separate experimental video download patch for supported video Pins. |  |
+| [Enable video download](#enable-video-download) | Experimental: enables the download row on video Pins and saves an available MP4. Streaming-only or unavailable videos are reported instead of saved as images. |  |
+
+</details>
+
+<a id="app-proton-android-pass"></a>
+<details>
+<summary><strong>Proton Pass</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| 1.41.3 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Unlock Unlimited Plan](#unlock-unlimited-plan) | Forces Proton Pass Plus plan with all limits removed and paid features unlocked. |  |
+
+</details>
+
+<a id="app-ch-protonvpn-android"></a>
+<details>
+<summary><strong>Proton VPN</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| 5.19.78.0 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Unlock VPN Plus](#unlock-vpn-plus) | Injects max tier (3=PMTeam) into VpnUser at construction for all UI unlocks, while routing connections through free servers for server-side compatibility. Phone and TV |  |
+
+</details>
+
+<a id="app-com-proxyman-proxymanandroid"></a>
+<details>
+<summary><strong>Proxyman</strong> · 1 patch</summary>
+<br>
+
+**Compatible versions**
+
+| 1.21.0 |
+| :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Unlock Lifetime](#unlock-lifetime) | Unlocks all Lifetime features in Proxyman. |  |
+
+</details>
+
+<a id="app-com-reddit-frontpage"></a>
+<details>
+<summary><strong>Reddit</strong> · 14 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 2026.42.0 | 2026.41.0 (experimental) | 2026.40.0 (experimental) | 2026.39.0 (experimental) | 2026.24.0 | 2026.10.0 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Block AutoMod comments](#block-automod-comments) | Hides all comments from u/AutoModerator, including stickied bot comments. AutoModerator posts are kept. Client-side only; off by default. |  |
+| [Content filters](#content-filters) | Adds patch-time keyword, community, author and flair filters for feed posts (optionally comments), and locally bypasses Reddit's NSFW/spoiler/quarantine gates and over-18 account flags. Server-side filtering still applies. Off by default. | • Keywords to hide<br>• Communities to hide<br>• Authors to hide<br>• Flairs to hide<br>• Match mode<br>• Bypass built-in content gates<br>• Also filter comments |
+| [Disable Click Tracking](#disable-click-tracking) | Forces the outbound click-tracking account preference off at the Account deserialization choke point (local; server-side click analytics may still be recorded). Enabled by default. |  |
+| [Disable Reddit video autoplay](#disable-reddit-video-autoplay) | Forces Reddit's video autoplay preference to 'Never' so videos only play after a tap. Scoped to Reddit; off by default. |  |
+| [Employee Debug Flags](#employee-debug-flags) | Spoofs is_employee locally at the Account JSON adapter, exposing Reddit's internal employee/debug UI menus (mostly non-functional without the employee backend, and a few may misbehave — enable for exploration only). Off by default. |  |
+| [Hide crossposts](#hide-crossposts) | Hides crossposts in feeds and listings, keeping ordinary posts and comments. Client-side only; off by default. |  |
+| [Hide live streams](#hide-live-streams) | Hides live streams and broadcasts in feeds and listings. Client-side only; off by default. |  |
+| [Hide read posts](#hide-read-posts) | Hides posts Reddit has marked as read/visited in feeds and listings. Client-side only; off by default. |  |
+| [Open Reddit links in external browser](#open-reddit-links-in-external-browser) | Opens outbound Reddit links in the default external browser instead of Reddit's in-app Custom Tab. Falls back to the in-app tab if launching fails. Off by default. |  |
+| [Reddit: Diagnostic crash log](#reddit-diagnostic-crash-log) | DIAGNOSTIC ONLY - writes the full stack trace to Downloads/reddit-crash-*.txt when the app crashes, for remote diagnosis. Off by default; enable when asked to produce a crash log. Installs on the first account sync after launch; crashes before that are not captured. Chain-forwards to the original crash handler. |  |
+| [Remove ads](#remove-ads) | Hides promoted posts in feeds and banner ads in comment threads. |  |
+| [Show deleted posts and comments](#show-deleted-posts-and-comments) | Shows the original text of posts and comments deleted or removed on Reddit, restored at render time from the free Arctic Shift archive (no API key; falls back to PullPush). Only the ids of deleted rows in the listings you open are sent, and restored text is prefixed with [archived]. Coverage depends on the archive; needs network. Off by default. |  |
+| [Unlock Account Entitlements](#unlock-account-entitlements) | Locally flips account-gating flags at the Account JSON adapter: can_create_subreddit, can_edit_name, password_set (kills the SSO 'set password' nag) and has_verified_email. Off by default; server entitlements still rule API actions. |  |
+| [Unlock Premium](#unlock-premium) | Flips the local isGold/has_gold_subscription account flags at the JSON adapter to enable Reddit Premium UI (custom icons, premium screens). Server-side perks cannot be unlocked. |  |
+
+</details>
+
+<a id="app-com-strava"></a>
+<details>
+<summary><strong>Strava</strong> · 3 patches</summary>
+<br>
+
+**Compatible versions**
+
+| 480.15 | 486.9 |
+| :---: | :---: |
+
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Block analytics and data collection](#block-analytics-and-data-collection) | Stops Strava's Braze telemetry bootstrap (session + engagement tracking, endpoint sdk.iad-07.braze.com) before it is configured. Firebase Analytics collection and Facebook auto event logging are already off in Strava's own manifest; this removes the one tracker pipe that is actually live. Push, GPS, and recording keep working. |  |
+| [Force password login (OTP bypass)](#force-password-login-otp-bypass) | Always shows the password login field instead of the OTP code flow. OFF by default: breaks log-in AND sign-up for OTP-only accounts. Enable only if your Strava account has an actual password. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks Strava Premium features. |  |
+
+</details>
+
+<a id="app-org-telegram-messenger"></a>
+<details>
+<summary><strong>Telegram</strong> · 14 patches</summary>
+<br>
+
+**Compatible versions**
 
 | 12.10.1 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
+| Patch | Description | Options |
+| :--- | :--- | :--- |
 | [Anti-delete messages](#anti-delete-messages) | Prevents messages deleted by other users from being removed locally. |  |
 | [Anti-disappearing media](#anti-disappearing-media) | Keeps view-once photos, videos and voice messages viewable indefinitely. |  |
 | [Anti-screenshot notification](#anti-screenshot-notification) | Blocks screenshot notifications from being sent to the other user. |  |
@@ -160,45 +607,18 @@ For configuration advice, limitations, and permission-patch examples, see the
 
 </details>
 
-<details open>
-<summary>📦 Telegram Web&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<a id="app-org-telegram-plus"></a>
+<details>
+<summary><strong>Telegram Plus</strong> · 15 patches</summary>
 <br>
 
-**🎯 Supported versions:**
-
-| 12.10.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Anti-delete messages](#anti-delete-messages) | Prevents messages deleted by other users from being removed locally. |  |
-| [Anti-disappearing media](#anti-disappearing-media) | Keeps view-once photos, videos and voice messages viewable indefinitely. |  |
-| [Anti-screenshot notification](#anti-screenshot-notification) | Blocks screenshot notifications from being sent to the other user. |  |
-| [Bypass channel restrictions](#bypass-channel-restrictions) | Allows opening, viewing, saving and forwarding content from restricted, sensitive, and copyright-restricted channels. |  |
-| [Bypass content restrictions](#bypass-content-restrictions) | Allows saving and forwarding content from restricted channels, chats, and users. |  |
-| [Bypass integrity check](#bypass-integrity-check) | Spoofs certificate fingerprint and SafetyNet results so login works on patched APK. |  |
-| [Disable auto-update](#disable-auto-update) | Disables automatic app update checks, the blocking update screen, and the proxy sponsor channel insertion. On Telegram Plus also disables the Plus-specific updater and update settings flag. |  |
-| [Disable channel switching](#disable-channel-switching) | Disables the pull-down gesture that switches to the next unread channel. |  |
-| [Download speed boost](#download-speed-boost) | Increases download chunk size to 1 MB and max concurrent requests to 12. |  |
-| [Hide typing indicator](#hide-typing-indicator) | Hides your typing indicator from other users in all chats. On Telegram Plus also silences the controller-level sendTyping dispatcher. |  |
-| [Remove ads](#remove-ads) | Removes sponsored messages and video ads from all chats and channels. On Telegram Plus also blocks native banner and inline ads. |  |
-| [Unlock Premium](#unlock-premium) | Unlocks Telegram Premium features for the current account. |  |
-| [Use normal paste](#use-normal-paste) | Skips Telegram's Rich HTML paste handler and falls back to the normal paste path. |  |
-| [Voice to music](#voice-to-music) | Plays voice notes in the full music player with seek bar and background playback. |  |
-
-</details>
-
-<details open>
-<summary>📦 Telegram Plus&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
-<br>
-
-**🎯 Supported versions:**
+**Compatible versions**
 
 | 12.10.1.1 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
+| Patch | Description | Options |
+| :--- | :--- | :--- |
 | [Anti-delete messages](#anti-delete-messages) | Prevents messages deleted by other users from being removed locally. |  |
 | [Anti-disappearing media](#anti-disappearing-media) | Keeps view-once photos, videos and voice messages viewable indefinitely. |  |
 | [Anti-screenshot notification](#anti-screenshot-notification) | Blocks screenshot notifications from being sent to the other user. |  |
@@ -217,423 +637,90 @@ For configuration advice, limitations, and permission-patch examples, see the
 
 </details>
 
-<details open>
-<summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<a id="app-org-telegram-messenger-web"></a>
+<details>
+<summary><strong>Telegram Web</strong> · 14 patches</summary>
 <br>
 
-**🎯 Supported versions:**
+**Compatible versions**
 
-| 2026.42.0 | 🧪&nbsp;2026.41.0 | 🧪&nbsp;2026.40.0 | 🧪&nbsp;2026.39.0 | 2026.24.0 | 2026.10.0 |
-| :---: | :---: | :---: | :---: | :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Block AutoMod comments](#block-automod-comments) | Hides all comments from u/AutoModerator, including stickied bot comments. AutoModerator posts are kept. Client-side only; off by default. |  |
-| [Content filters](#content-filters) | Adds patch-time keyword, community, author and flair filters for feed posts (optionally comments), and locally bypasses Reddit's NSFW/spoiler/quarantine gates and over-18 account flags. Server-side filtering still applies. Off by default. | • Keywords to hide<br>• Communities to hide<br>• Authors to hide<br>• Flairs to hide<br>• Match mode<br>• Bypass built-in content gates<br>• Also filter comments |
-| [Disable Click Tracking](#disable-click-tracking) | Forces the outbound click-tracking account preference off at the Account deserialization choke point (local; server-side click analytics may still be recorded). Enabled by default. |  |
-| [Employee Debug Flags](#employee-debug-flags) | Spoofs is_employee locally at the Account JSON adapter, exposing Reddit's internal employee/debug UI menus (mostly non-functional without the employee backend, and a few may misbehave — enable for exploration only). Off by default. |  |
-| [Reddit: Diagnostic crash log](#reddit-diagnostic-crash-log) | DIAGNOSTIC ONLY - writes the full stack trace to Downloads/reddit-crash-*.txt when the app crashes, for remote diagnosis. Off by default; enable when asked to produce a crash log. Installs on the first account sync after launch; crashes before that are not captured. Chain-forwards to the original crash handler. |  |
-| [Remove ads](#remove-ads) | Hides promoted posts in feeds and banner ads in comment threads. |  |
-| [Show deleted comments](#show-deleted-comments) | Shows the original text of comments deleted or removed on Reddit, restored at render time from the free Arctic Shift archive (no API key; falls back to PullPush). Only the ids of deleted comments in the threads you open are sent, and restored text is prefixed with [archived]. Coverage depends on the archive; needs network. Off by default. |  |
-| [Unlock Account Entitlements](#unlock-account-entitlements) | Locally flips account-gating flags at the Account JSON adapter: can_create_subreddit, can_edit_name, password_set (kills the SSO 'set password' nag) and has_verified_email. Off by default; server entitlements still rule API actions. |  |
-| [Unlock Premium](#unlock-premium) | Flips the local isGold/has_gold_subscription account flags at the JSON adapter to enable Reddit Premium UI (custom icons, premium screens). Server-side perks cannot be unlocked. |  |
-
-</details>
-
-<details open>
-<summary>📦 Firefox&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 158.0.2 |
+| 12.10.1 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Block Firefox telemetry](#block-firefox-telemetry) | IronFox-style hardening: never initializes Glean telemetry, Nimbus experiments, Sentry crash reporting, or Adjust attribution at startup; kills Mozilla-side server traffic during browsing (Firefox Suggest/Merino, sponsored shortcuts/Contile, Pocket feed + sponsored stories, search suggestion streaming incl. private tabs, studies previews); and makes the telemetry toggles in Settings read OFF. Browsing, Sync and add-ons keep working; local-only suggestions untouched. |  |
-| [Improve startup performance](#improve-startup-performance) | Skips two launch-time routines whose only job is metrics/experiments upkeep: the 4k-line startup-metrics coroutine (pure telemetry writes, ~64 metric writes per launch) and the forced Nimbus experiment fetch right after first render. Less launch I/O = faster, smoother open/close. Browser features unchanged. |  |
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Anti-delete messages](#anti-delete-messages) | Prevents messages deleted by other users from being removed locally. |  |
+| [Anti-disappearing media](#anti-disappearing-media) | Keeps view-once photos, videos and voice messages viewable indefinitely. |  |
+| [Anti-screenshot notification](#anti-screenshot-notification) | Blocks screenshot notifications from being sent to the other user. |  |
+| [Bypass channel restrictions](#bypass-channel-restrictions) | Allows opening, viewing, saving and forwarding content from restricted, sensitive, and copyright-restricted channels. |  |
+| [Bypass content restrictions](#bypass-content-restrictions) | Allows saving and forwarding content from restricted channels, chats, and users. |  |
+| [Bypass integrity check](#bypass-integrity-check) | Spoofs certificate fingerprint and SafetyNet results so login works on patched APK. |  |
+| [Disable auto-update](#disable-auto-update) | Disables automatic app update checks, the blocking update screen, and the proxy sponsor channel insertion. On Telegram Plus also disables the Plus-specific updater and update settings flag. |  |
+| [Disable channel switching](#disable-channel-switching) | Disables the pull-down gesture that switches to the next unread channel. |  |
+| [Download speed boost](#download-speed-boost) | Increases download chunk size to 1 MB and max concurrent requests to 12. |  |
+| [Hide typing indicator](#hide-typing-indicator) | Hides your typing indicator from other users in all chats. On Telegram Plus also silences the controller-level sendTyping dispatcher. |  |
+| [Remove ads](#remove-ads) | Removes sponsored messages and video ads from all chats and channels. On Telegram Plus also blocks native banner and inline ads. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks Telegram Premium features for the current account. |  |
+| [Use normal paste](#use-normal-paste) | Skips Telegram's Rich HTML paste handler and falls back to the normal paste path. |  |
+| [Voice to music](#voice-to-music) | Plays voice notes in the full music player with seek bar and background playback. |  |
 
 </details>
 
-<details open>
-<summary>📦 Brave Browser&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
+<a id="app-tv-trakt-trakt"></a>
+<details>
+<summary><strong>trakt.TV Shows &amp; Movies</strong> · 1 patch</summary>
 <br>
 
-**🎯 Supported versions:**
-
-| 🧪&nbsp;1.98.63 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Block Motion Sensors](#block-motion-sensors) | Attempts to disable Chromium's Android sensor provider; may also block ambient sensors. Requires device validation. |  |
-| [Block Popups & Ratings](#block-popups-ratings) | Disables the identified rating and Brave Ads signup eligibility checks; other dialogs can still appear. |  |
-| [Block Telemetry](#block-telemetry) | Blocks usage analytics, crash uploads and experiment downloads. | • Block offers server |
-| [Brave Origin](#brave-origin) | Unlocks Brave Origin feature switches across Rewards, News, Wallet, and VPN. |  |
-| [Clean New Tab](#clean-new-tab) | Removes sponsored wallpapers, news feed and promo cards. | • Hide shortcut tiles |
-| [Close Tab In Group Order](#close-tab-in-group-order) | Selects the previous tab in the tab group when closing a tab. |  |
-| [Custom Brave theme](#custom-brave-theme) | Applies custom colors to Brave dark mode chrome, defaulting to pure OLED black for battery saving on OLED screens. | • Background color<br>• Surfaces use background color<br>• Surface / container color<br>• Text ink color<br>• Accent highlight color<br>• Disable Material You dynamic colors<br>• Window background color<br>• Preference card color<br>• Style preference rows as cards<br>• Modulate text tiers by luminance<br>• Patch Material You system color roles<br>• Patch color state list lStar selectors<br>• Patch vector drawable surface fills |
-| [Preserve last active tab](#preserve-last-active-tab) | Disables the identified new-tab opening-screen override after inactivity. Does not prevent tab unloading under memory pressure. |  |
-| [Remove Extra Languages](#remove-extra-languages) | Replaces larger unselected Chromium locale PAKs with the English fallback; gender variants and Android resources are not removed. | • Languages to keep |
-| [Remove Unused AI & VPN](#remove-unused-ai-vpn) | Deletes unused AR and XR files to shrink the app. | • Remove VPN library |
-| [Skip Welcome Screens](#skip-welcome-screens) | Reports the first-run flow complete; may skip essential consent, search or setup screens. |  |
-| [Stop Background Wakeups](#stop-background-wakeups) | Disables the identified Chromium background-sync scheduler gate; other wakeups remain and site background sync can break. |  |
-| [Stop Promo Notifications](#stop-promo-notifications) | Disables identified Chromium tips and retention notification entry points; other notifications may remain. |  |
-| [Stop Text Sharing with System](#stop-text-sharing-with-system) | Disables Chromium's OnscreenContentProvider content-capture gate, not every possible text-sharing mechanism. |  |
-
-</details>
-
-<details open>
-<summary>📦 Claude&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.261023.20 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Block Sentry telemetry](#block-sentry-telemetry) | Disables Sentry crash/error/performance telemetry entirely by neutralizing the configurator that writes the DSN - with no DSN set, Sentry self-disables. Fixes nothing to break: the configurator's return is void and unused. Verified against 1.261023.20. |  |
-
-</details>
-
-<details open>
-<summary>📦 District&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;2.76.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Block analytics & data collection](#block-analytics-data-collection) | Neutralizes Firebase Analytics, AppsFlyer, CleverTap event fan-out and the in-house crash-report enqueue of District by Zomato. |  |
-| [Block location tracking](#block-location-tracking) | Stops District by Zomato from acquiring GPS fixes (continuous updates + one-shot fetch). Manual city selection still works. |  |
-
-</details>
-
-<details open>
-<summary>📦 Strava&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 480.15 | 486.9 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Block analytics and data collection](#block-analytics-and-data-collection) | Stops Strava's Braze telemetry bootstrap (session + engagement tracking, endpoint sdk.iad-07.braze.com) before it is configured. Firebase Analytics collection and Facebook auto event logging are already off in Strava's own manifest; this removes the one tracker pipe that is actually live. Push, GPS, and recording keep working. |  |
-| [Force password login (OTP bypass)](#force-password-login-otp-bypass) | Always shows the password login field instead of the OTP code flow. OFF by default: breaks log-in AND sign-up for OTP-only accounts. Enable only if your Strava account has an actual password. |  |
-| [Unlock Premium](#unlock-premium) | Unlocks Strava Premium features. |  |
-
-</details>
-
-<details open>
-<summary>📦 Amazon Shopping&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 32.18.0.100 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Amazon: Stop feed video autoplay](#amazon-stop-feed-video-autoplay) | Stops Amazon's home-feed native video units (live promotional videos,<br>review carousels, sponsored reels) from starting on their own, using<br>the same setPlayWhenReady(true) → false heuristic as the universal<br>'Disable video autoplay (ExoPlayer/Media3)' patch.<br><br>Covers native ExoPlayer/Media3 players only — NOT the in-app WebView<br>pages (use the default-on 'Disable video autoplay' patch for those),<br>and NOT WebView CSS-injected ad blocks (use 'Remove ads'). Heuristic:<br>reflection or obfuscated player setup is not covered. Can stop playback<br>entirely in apps whose only play path is a flipped literal call — turn<br>it off if videos never start. Unverified on device. |  |
-| [Dark mode](#dark-mode) | Force dark mode for Amazon Shopping. | • Dark mode |
-| [Disable search suggestions tracking](#disable-search-suggestions-tracking) | Prevents search keypress and focus events from being sent with suggestion requests. |  |
-| [Disable video autoplay](#disable-video-autoplay) | Prevents videos from autoplaying in Amazon's in-app WebView pages. |  |
-| [Fix Amazon manifest conflicts](#fix-amazon-manifest-conflicts) | Updates shared Amazon permissions so other Amazon apps can coexist. |  |
-| [Hide Rufus tab](#hide-rufus-tab) | Removes the Rufus AI assistant tab from Amazon's bottom navigation bar. |  |
-| [Open links in browser](#open-links-in-browser) | Opens non-Amazon URLs in the default browser instead of the in-app WebView. |  |
-| [Price history charts](#price-history-charts) | Injects Keepa and CamelCamelCamel price history charts on Amazon product pages. | • Chart period<br>• Show period toggle<br>• Toggle periods<br>• Keepa price lines<br>• CamelCamelCamel chart<br>• Hide zero-price gaps<br>• Chart size<br>• Start collapsed |
-| [Remove ads](#remove-ads) | Hides sponsored and ad content in Amazon Shopping via CSS injection. |  |
-
-</details>
-
-<details open>
-<summary>📦 Amazon India&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 32.18.0.300 | 32.19.0.300 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Amazon: Stop feed video autoplay](#amazon-stop-feed-video-autoplay) | Stops Amazon's home-feed native video units (live promotional videos,<br>review carousels, sponsored reels) from starting on their own, using<br>the same setPlayWhenReady(true) → false heuristic as the universal<br>'Disable video autoplay (ExoPlayer/Media3)' patch.<br><br>Covers native ExoPlayer/Media3 players only — NOT the in-app WebView<br>pages (use the default-on 'Disable video autoplay' patch for those),<br>and NOT WebView CSS-injected ad blocks (use 'Remove ads'). Heuristic:<br>reflection or obfuscated player setup is not covered. Can stop playback<br>entirely in apps whose only play path is a flipped literal call — turn<br>it off if videos never start. Unverified on device. |  |
-| [Dark mode](#dark-mode) | Force dark mode for Amazon Shopping. | • Dark mode |
-| [Disable search suggestions tracking](#disable-search-suggestions-tracking) | Prevents search keypress and focus events from being sent with suggestion requests. |  |
-| [Disable video autoplay](#disable-video-autoplay) | Prevents videos from autoplaying in Amazon's in-app WebView pages. |  |
-| [Fix Amazon manifest conflicts](#fix-amazon-manifest-conflicts) | Updates shared Amazon permissions so other Amazon apps can coexist. |  |
-| [Hide Rufus tab](#hide-rufus-tab) | Removes the Rufus AI assistant tab from Amazon's bottom navigation bar. |  |
-| [Open links in browser](#open-links-in-browser) | Opens non-Amazon URLs in the default browser instead of the in-app WebView. |  |
-| [Price history charts](#price-history-charts) | Injects Keepa and CamelCamelCamel price history charts on Amazon product pages. | • Chart period<br>• Show period toggle<br>• Toggle periods<br>• Keepa price lines<br>• CamelCamelCamel chart<br>• Hide zero-price gaps<br>• Chart size<br>• Start collapsed |
-| [Remove ads](#remove-ads) | Hides sponsored and ad content in Amazon Shopping via CSS injection. |  |
-
-</details>
-
-<details open>
-<summary>📦 Inure App Manager (GitHub)&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| build107.2.4 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Inure — Unlock Full Version (GitHub)](#inure-unlock-full-version-github) | Bypasses the 15-day trial gate and unlocks all premium features in Inure App Manager (GitHub). |  |
-
-</details>
-
-<details open>
-<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 18.5.4.993608717-release-arm64-v8a |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Offline-only voice typing & telemetry reduction](#offline-only-voice-typing-telemetry-reduction) | On Gboard 18.5.4.993608717 arm64, routes core voice typing only through the on-device<br>recognizers and returns no recognizer when a local provider/model is unavailable (no<br>online fallback). Disables Agentic Dictation's server/batch retry path, reduces selected<br>metrics/telemetry and disables app backup. INTERNET and unrelated network features are<br>retained; this is best-effort telemetry reduction, not a guarantee of zero Google traffic.<br><br>Requires the appropriate offline speech model/provider to be installed. Without one,<br>voice typing is unavailable by design. Agentic Dictation is disabled. |  |
-
-</details>
-
-<details open>
-<summary>📦 ChatGPT&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.2026.293 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Privacy: block trackers & analytics](#privacy-block-trackers-analytics) | Suppresses ChatGPT product analytics, Statsig events/exposures, Segment event dispatch and Bitdrift crash/session-replay startup; disables Datadog RUM and removes ad-ID/install-referrer access. Chat, login, files and push notifications are preserved. Core service requests and server-side logging cannot be disabled by an APK patch. |  |
-| [Privacy: no location, contacts or phone data](#privacy-no-location-contacts-or-phone-data) | Removes ChatGPT's location, contacts, phone-state and SMS-send permissions. Location-based answers, contact lookup, phone-state access and direct SMS sending are disabled. Call/voice-assistant framework permissions, chat, files and push notifications are preserved. |  |
-| [Privacy: no mic or camera](#privacy-no-mic-or-camera) | Removes RECORD_AUDIO, CAMERA, FOREGROUND_SERVICE_MICROPHONE plus all camera/microphone uses-feature declarations from the manifest. Voice Mode and camera capture become impossible (not merely denied - the grant dialog itself is gone). File storage, notifications and everything else are untouched. |  |
-
-</details>
-
-<details open>
-<summary>📦 Everything Widgets&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;2.1.014 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Remove tracking & analytics](#remove-tracking-analytics) | Kills Facebook auto-init and OneSignal, and opts Firebase Crashlytics/Performance/Analytics out of collection at boot, in Everything Widgets. Widget functionality is unaffected; OneSignal push notifications stop. |  |
-| [Spoof Play Store signature](#spoof-play-store-signature) | Forces the Google license (Pairip) verdict branch to LICENSED and neutralizes the license payload's signature verification, so the patched/re-signed Everything Widgets build always passes store validation. |  |
-| [Unlock Premium](#unlock-premium) | Bypasses the Google license (Pairip) purchase check of the paid Everything Widgets app: the app runs fully without a Play purchase. Donation SKUs are cosmetic and untouched. |  |
-
-</details>
-
-<details open>
-<summary>📦 Excel&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 16.0.20228.20090 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Excel](#unlock-excel) | Removes login requirement, unlocks premium, blocks ads, bypasses signature and code transparency checks. |  |
-
-</details>
-
-<details open>
-<summary>📦 Inure App Manager&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| build107.2.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Full Version](#unlock-full-version) | Bypasses the 15-day trial gate and unlocks all premium features in Inure App Manager. |  |
-
-</details>
-
-<details open>
-<summary>📦 Proxyman&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.21.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Lifetime](#unlock-lifetime) | Unlocks all Lifetime features in Proxyman. |  |
-
-</details>
-
-<details open>
-<summary>📦 Malwarebytes Mobile Security&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 5.27.0+564 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Ultimate](#unlock-ultimate) | Unlocks all Malwarebytes Ultimate features via enum singleton and feature gate patches. |  |
-
-</details>
-
-<details open>
-<summary>📦 Proton Pass&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 1.41.3 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Unlimited Plan](#unlock-unlimited-plan) | Forces Proton Pass Plus plan with all limits removed and paid features unlocked. |  |
-
-</details>
-
-<details open>
-<summary>📦 trakt.TV Shows & Movies&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
+**Compatible versions**
 
 | 3.26.1 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
+| Patch | Description | Options |
+| :--- | :--- | :--- |
 | [Unlock VIP](#unlock-vip) | Unlocks VIP in trakt.TV Shows & Movies by forcing the parsed User.isVip flag to true (covers no-ads, advanced/saved filters, year-in-review and other local VIP gates). Methods delegating to the primary User constructor are covered automatically. |  |
 
 </details>
 
-<details open>
-<summary>📦 Yatri&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<a id="app-com-microsoft-office-word"></a>
+<details>
+<summary><strong>Word</strong> · 1 patch</summary>
 <br>
 
-**🎯 Supported versions:**
-
-| 5.0.6 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock VIP](#unlock-vip) | Unlocks Yatri VIP by forcing active plan status and spoofing active plan DB query. |  |
-
-</details>
-
-<details open>
-<summary>📦 Proton VPN&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 5.19.78.0 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock VPN Plus](#unlock-vpn-plus) | Injects max tier (3=PMTeam) into VpnUser at construction for all UI unlocks, while routing connections through free servers for server-side compatibility. Phone and TV |  |
-
-</details>
-
-<details open>
-<summary>📦 Word&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
+**Compatible versions**
 
 | 16.0.20228.20090 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
+| Patch | Description | Options |
+| :--- | :--- | :--- |
 | [Unlock Word](#unlock-word) | Removes login requirement, unlocks premium, blocks ads, bypasses signature and code transparency checks. |  |
 
 </details>
 
-<details open>
-<summary>📦 Mint&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<a id="app-com-yatrirailways-yatri"></a>
+<details>
+<summary><strong>Yatri</strong> · 1 patch</summary>
 <br>
 
-**🎯 Supported versions:**
+**Compatible versions**
 
-| 5.7.5 | 5.8.4 |
-| :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Mint: Block analytics & tracking SDKs](#mint-block-analytics-tracking-sdks) | Blocks Mint's analytics & tracking SDKs (Firebase Analytics, AppsFlyer, Adjust,<br>WebEngage, CleverTap and similar) using the same universal heuristic as<br>'Block analytics & tracking SDKs'.<br><br>Applies to com.htmedia.mint only. Heuristic; obfuscated or reflection-based<br>reporting is not covered. Unverified on device. |  |
-| [Mint: Disable video autoplay (ExoPlayer)](#mint-disable-video-autoplay-exoplayer) | Stops video autoplay in the Mint feed/article bodies (ExoPlayer/Media3)<br>using the same heuristic as 'Disable video autoplay (ExoPlayer/Media3)'.<br><br>Applies to com.htmedia.mint only. Heuristic; see the universal entry for<br>limitations. Unverified on device. |  |
-| [Mint: Prefer external browser over Custom Tabs](#mint-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.htmedia.mint only. Some article WebViews are not affected<br>— this covers Custom Tabs / CustomTabsIntent call sites only.<br>Unverified on device. |  |
-
-</details>
-
-<details open>
-<summary>📦 Hindustan Times&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 4.9.16 |
+| 5.0.6 |
 | :---: |
 
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Hindustan Times: Block analytics & tracking SDKs](#hindustan-times-block-analytics-tracking-sdks) | Blocks Hindustan Times' analytics & tracking SDKs (Firebase Analytics,<br>AppsFlyer, Adjust, WebEngage, CleverTap and similar) using the same universal<br>heuristic as 'Block analytics & tracking SDKs'.<br><br>Applies to com.ht.news only. Heuristic; obfuscated or reflection-based<br>reporting is not covered. Unverified on device. |  |
-| [Hindustan Times: Disable video autoplay (ExoPlayer)](#hindustan-times-disable-video-autoplay-exoplayer) | Stops video autoplay in the Hindustan Times feed/article bodies<br>(ExoPlayer/Media3) using the same heuristic as 'Disable video autoplay<br>(ExoPlayer/Media3)'.<br><br>Applies to com.ht.news only. Heuristic; see the universal entry for<br>limitations. Unverified on device. |  |
-| [Hindustan Times: Prefer external browser over Custom Tabs](#hindustan-times-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.ht.news only. Some article WebViews are not affected —<br>this covers Custom Tabs / CustomTabsIntent call sites only.<br>Unverified on device. |  |
+| Patch | Description | Options |
+| :--- | :--- | :--- |
+| [Unlock VIP](#unlock-vip) | Unlocks Yatri VIP by forcing active plan status and spoofing active plan DB query. |  |
 
 </details>
 
-<details open>
-<summary>📦 Meesho&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<a id="universal-patches"></a>
+<details>
+<summary><strong>Universal patches</strong> · 25 patches</summary>
 <br>
 
-**🎯 Supported versions:**
-
-| 29.9 | 29.8 | 29.7 | 29.6 | 29.5 |
-| :---: | :---: | :---: | :---: | :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Meesho: Block analytics & tracking SDKs](#meesho-block-analytics-tracking-sdks) | Blocks Meesho's analytics & tracking SDKs (Firebase Analytics, AppsFlyer,<br>Adjust, Facebook AppEvents, WebEngage, CleverTap and similar) using the<br>same universal heuristic as 'Block analytics & tracking SDKs'.<br><br>Applies to com.meesho.shopping only. Heuristic; obfuscated or<br>reflection-based reporting is not covered. Unverified on device. |  |
-| [Meesho: Disable video autoplay (ExoPlayer)](#meesho-disable-video-autoplay-exoplayer) | Stops video autoplay in the Meesho feed and product videos (ExoPlayer/Media3)<br>using the same heuristic as 'Disable video autoplay (ExoPlayer/Media3)'.<br><br>Applies to com.meesho.shopping only. Heuristic; see the universal entry<br>for limitations. Unverified on device. |  |
-| [Meesho: Prefer external browser over Custom Tabs](#meesho-prefer-external-browser-over-custom-tabs) | Opens links in the default external browser instead of an in-app Custom<br>Tab, using the same rewrite as the universal 'Prefer external browser<br>over Custom Tabs' patch.<br><br>Applies to com.meesho.shopping only. Covers Custom Tabs /<br>CustomTabsIntent call sites only. Unverified on device. |  |
-
-</details>
-
-<details open>
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;25 patches</summary>
-<br>
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
+| Patch | Description | Options |
+| :--- | :--- | :--- |
 | [Allow screenshots & screen recording](#allow-screenshots-screen-recording) | Attempts to remove recognizable FLAG_SECURE and secure SurfaceView settings<br>so screenshots and screen recordings can work. Some screens or protection<br>methods may still block capture, including payment or banking screens.<br><br>Applies to any app. Do not combine with "Block screenshots & screen recording". |  |
 | [Block analytics & tracking SDKs](#block-analytics-tracking-sdks) | Disables common analytics/tracking SDKs (Firebase Analytics, AppsFlyer, Adjust,<br>Facebook AppEvents, Segment, Amplitude, Mixpanel and similar) by removing their<br>event-reporting calls.<br><br>Heuristic: obfuscated or reflection-based reporting is not covered. Applies to<br>any app. |  |
 | [Block cleartext (HTTP) traffic](#block-cleartext-http-traffic) | Sets android:usesCleartextTraffic="false" so the app cannot send plaintext<br>HTTP requests. Breaks apps that still use legacy HTTP endpoints.<br><br>Applies to any app. |  |
@@ -664,55 +751,84 @@ For configuration advice, limitations, and permission-patch examples, see the
 
 <!-- PATCHES_END -->
 
-## 🛡️ Security & safety
+## Safety
 
-Every patch follows a fail-safe design (details:
-**[UNIVERSAL_PATCH_AUDIT.md](UNIVERSAL_PATCH_AUDIT.md)**):
+Every patch is designed to fail safe. The full design and per-patch review are
+documented in the **[universal patch audit](UNIVERSAL_PATCH_AUDIT.md)**.
 
-- Fail-safe by default; heuristic patches default to **off**
-- Bytecode edits only rewrite call sites that match known SDK shapes — unrecognised
-  sites are skipped, never guessed at, and component class names are never renamed
-- No payment, purchase or account bypasses. The PairIP and DRM patches only disable
-  local client-side checks; they do not defeat server-side billing or attestation
-- No network calls, no exec, no secrets in the bundle — with one opt-in exception: the Reddit
-  "[Show deleted comments](#show-deleted-comments)" patch contacts the Arctic Shift archive
-  (PullPush fallback) at view time while enabled, and only for deleted comments in the threads
-  you open
+- Heuristic patches default to **off**; unsupported bytecode is skipped, never
+  guessed at.
+- Patches do not bypass server-side billing, Play Integrity or hardware
+  attestation. Premium/unlock patches only change documented client-side checks.
+- The bundle contains no secrets and performs no background network activity.
+  Network-dependent features are opt-in and described in the relevant docs.
+- Review signature, integrity and permission patches before applying them to
+  apps you do not trust.
 
-Understand the risk classes before enabling signature/integrity-related
-patches on apps you don't trust — see the audit for details.
+Patches modify third-party applications. Use them only on APKs you are permitted
+to modify, and respect each app's terms of service and the laws that apply to you.
 
-## 🧾 Provenance
+## Documentation
 
-**Thanks For Doom's Morphe Patches to inspire this Project for reddit as premium is closed by Doom's
-([rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches))
-And Thanks to the Morphe Team for creating App and
-The bundle *format* for creating patches
-[morphe-patches-template](https://github.com/MorpheApp/morphe-patches-template).
+| Document | Description |
+| :--- | :--- |
+| [Documentation index](docs/README.md) | All guides, status notes and triage docs |
+| [Universal patches guide](docs/UNIVERSAL-PATCHES.md) | Configuration and permission-patch examples |
+| [Universal patch audit](UNIVERSAL_PATCH_AUDIT.md) | Per-patch correctness and UX review |
+| [Reddit deleted comments](docs/REDDIT-DELETED-COMMENTS.md) | How archive restore works, limits and privacy |
+| [Mereframe](docs/MEREFRAME.md) | Patch status, verification and crash triage |
+| [Changelog](CHANGELOG.md) | Release history and notable changes |
+| [Community listing](docs/COMMUNITY-LISTING.md) | Using Proteus in community patch indexes |
 
-## 🔨 Build from source
+## Build from source
+
+Requirements: JDK 21 and the Android SDK (platform 36).
 
 ```bash
 git clone https://github.com/ineednotitle/Proteus-Patches.git
 cd Proteus-Patches
-./gradlew buildAndroid        # produces patches/build/libs/patches-<version>.mpp
+./gradlew buildAndroid        # patches/build/libs/patches-<version>.mpp
 ```
 
-Releases are versioned by semantic-release (conventional commits); CI builds the
-`.mpp` and publishes the GitHub Release automatically on pushes to `main`.
+Releases follow [Conventional Commits](https://www.conventionalcommits.org/) and
+are published by semantic-release from `main`. Run the verification scripts in
+`.github/scripts/` before opening a release-related pull request.
 
-## 📄 Docs
+## Contributing
 
-- [docs/BRAVE.md](docs/BRAVE.md) — Brave patch status, the v2.2.6 `res=-113` fix and install troubleshooting
-- [UNIVERSAL_PATCH_AUDIT.md](UNIVERSAL_PATCH_AUDIT.md) — per-patch correctness & UX audit
-- [docs/REDDIT-DELETED-COMMENTS.md](docs/REDDIT-DELETED-COMMENTS.md) — how the "Show deleted comments" patch works, limits and privacy notes
-- [CHANGELOG.md](CHANGELOG.md) — release history
-- [docs/COMMUNITY-LISTING.md](docs/COMMUNITY-LISTING.md) — patch listing for community indexes
+Bug reports and focused pull requests are welcome. Please read
+[CONTRIBUTING.md](CONTRIBUTING.md) before opening an issue or PR. Report security
+problems privately using [SECURITY.md](SECURITY.md), not in a public issue.
 
-## Warning:
-I have no intentions of stealing any of your data. So, Be chill about getting Hacked. You can Even check the code or give it to AI to check or put patched apps in the Virustotal.
-The Project created becoz I am a big fan of Morphe Project & I Love my Privacy as it a right! for everyone.  
+## Support
 
-## ⚖️ License
+If these patches save you time or make an app more usable, you can support
+ongoing development:
 
-Proteus Patches is licensed under [GPL-3.0-only](LICENSE). The full license is also included in the patch bundle. Third-party GPL-derived works and their attribution notices remain covered by their respective notices; see [Brave](docs/BRAVE.md) and [Pinterest](docs/PINTEREST-VIDEO.md). Patches modify third-party apps at your own risk — use only on APKs whose signature you trust.
+<p align="center">
+  <a href="#scan-to-donate"><img alt="Donate via UPI (scan QR)" src="https://img.shields.io/badge/UPI-Scan%20QR-FF6B00?style=for-the-badge&logo=googlepay&logoColor=white"></a>
+  <a href="https://paypal.me/ineednotitle"><img alt="Donate via PayPal" src="https://img.shields.io/badge/PayPal-Donate-00457C?style=for-the-badge&logo=paypal&logoColor=white"></a>
+  <a href="https://buymeacoffee.com/ADD_BMC_HANDLE"><img alt="Buy Me a Coffee" src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Support-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black"></a>
+</p>
+
+
+Donations are optional. Bug reports, testing and focused pull requests help just
+as much.
+
+## Acknowledgements
+
+Proteus began as an extension of the Reddit work in
+[rushiranpise/morphe-patches](https://github.com/rushiranpise/morphe-patches).
+The project is built on the Morphe bundle format and
+[morphe-patches-template](https://github.com/MorpheApp/morphe-patches-template).
+Thanks to the Morphe team and the patch authors whose work made this possible.
+
+## License
+
+Proteus Patches is licensed under [GPL-3.0-only](LICENSE). The full license is
+included in the patch bundle. Third-party GPL-derived work remains subject to its
+original attribution notices; see [Brave](docs/BRAVE.md) and
+[Pinterest](docs/PINTEREST-VIDEO.md).
+
+Proteus is not affiliated with Morphe, Google, or any application vendor. The
+bundle is provided as-is, without warranty. You are responsible for how you use it.

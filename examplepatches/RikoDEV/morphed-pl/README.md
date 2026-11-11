@@ -14,7 +14,7 @@
 
 > [!WARNING]
 > - **No affiliation.** This is an independent community project. It is not affiliated with, endorsed by any app developer, or the Morphe project.
-> - **Trademarks.** Yanosik, Orange, InPost, Żabka, Android Auto and all other product names, logos and brands belong to their respective owners. They are used here only to say which apps the patches work with.
+> - **Trademarks.** Yanosik, Orange, InPost, Żabka, Lidl, Android Auto and all other product names, logos and brands belong to their respective owners. They are used here only to say which apps the patches work with.
 > - **No app files.** This repository contains only patch code. It **does not** host or distribute any original or modified APKs. You need to get the app yourself from an official source.
 > - **Your responsibility.** Modifying an app may break its terms of service, and some patches, change how paid features are offered. You are responsible for making sure your use follows the app's terms. If you find the app useful, consider supporting its developer.
 > - **Road safety.** Patched apps may behave differently from the original, including alerts and Android Auto behaviour. Don't rely on them alone, follow traffic rules, and don't handle your phone while driving.
@@ -34,11 +34,42 @@
 | Mój Orange | `pl.orange.mojeorange` |
 | InPost Mobile | `pl.inpost.inmobile` |
 | Żappka | `pl.zabka.apb2c` |
+| Lidl Plus | `com.lidl.eci.lidlplus` |
 
 All patches are enabled by default.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.1](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.6.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v1.7.0](https://github.com/RikoDEV/morphed-pl/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;35 patches total
+<details open>
+<summary>📦 Lidl Plus&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 17.13.6 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Auto claim coupons](#auto-claim-coupons) | Activates every coupon that needs no article choice as soon as the coupon list loads. Each activation is the app's own "Activate" action, and refusals stay silent. |  |
+| [Block telemetry](#block-telemetry) | Blocks Firebase Analytics, Crashlytics and Performance, AppsFlyer, Adjust, Marketing Cloud analytics, the app's own event tracker (including the one used by the React Native screens) and the digital leaflet activity reports. |  |
+| [Custom Google Maps key](#custom-google-maps-key) | Replaces the app's Google Maps API key. The original key is locked to the developer's signing certificate, so maps stay grey in a re-signed app. Use a key you own that allows the app's package name and the SHA-1 of the key the patched app is signed with. | • Google Maps API key |
+| [Dark mode](#dark-mode) | Makes Lidl Plus follow the system dark theme. Android's Force Dark darkens the window, native and React Native screens, and the Compose screens are recoloured through their paints. The loyalty card and code screens stay light so their QR codes keep scanning, and the launch screen turns dark. |  |
+| [Hide home shortcuts](#hide-home-shortcuts) | Removes the round shortcut bubbles at the top of the home screen (WorldOfNeeds), the product catalog categories (productCatalog) and the small blue business model chips under the store header (businessModels). |  |
+| [Hide info cards](#hide-info-cards) | Removes the dismissible info cards (tipcards) from the home screen, such as the verify data, notifications and location prompts. |  |
+| [Hide leaflets](#hide-leaflets) | Removes the leaflet (brochures and digital leaflet) carousels from the home screen. |  |
+| [Hide offers and promotions](#hide-offers-and-promotions) | Removes the offers and promotions carousels from the home screen. The Coupons tab is unchanged. |  |
+| [Hide online shop cards](#hide-online-shop-cards) | Removes every online shop card from the home screen: the shop teaser, search, campaign and Deal of the Day variants (onlineshop1cx*). |  |
+| [Hide online shop tab](#hide-online-shop-tab) | Removes the link to the online shop from the bottom navigation bar. |  |
+| [Hide product carousels](#hide-product-carousels) | Removes the featured products, recommended products and product catalog starting page modules from the home screen. |  |
+| [Hide product of the day](#hide-product-of-the-day) | Removes the online shop Deal of the Day card from the home screen. |  |
+| [Hide promo banners and messages](#hide-promo-banners-and-messages) | Removes Lidl's promo banners, video banners and the home message from the home screen. |  |
+| [Hide recipes and inspirations](#hide-recipes-and-inspirations) | Removes the recipes carousel and the product showcase (inspiration) carousels from the home screen. |  |
+| [Hide sponsored ads](#hide-sponsored-ads) | Removes the sponsored brand deal slots (brandDeals_slot_a and brandDeals_slot_b) from the home screen. Their ad requests and view tracking are never made. |  |
+| [Hide store header](#hide-store-header) | Removes the usual store header (store name, opening hours and store picker) from the home screen. |  |
+
+</details>
+
 <details open>
 <summary>📦 Yanosik&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
@@ -76,7 +107,7 @@ All patches are enabled by default.
 </details>
 
 <details open>
-<summary>📦 InPost Mobile&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
+<summary>📦 InPost Mobile&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -87,6 +118,7 @@ All patches are enabled by default.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block telemetry](#block-telemetry) | Blocks app analytics, Firebase Analytics, Crashlytics and Performance, Microsoft Clarity session recording, Adjust, Facebook app events and Synerise event tracking. |  |
+| [Custom Google Maps key](#custom-google-maps-key) | Replaces the app's Google Maps API key. The original key is locked to the developer's signing certificate, so maps stay grey in a re-signed app. Use a key you own that allows the app's package name and the SHA-1 of the key the patched app is signed with. | • Google Maps API key |
 | [Hide Von Halsky](#hide-von-halsky) | Removes Von Halsky shopping: the Kupuj tab, the home search box, and the banners and promotions in parcel lists, details, the cart and the More menu. |  |
 | [Hide promotional banners](#hide-promotional-banners) | Removes the promotional banner carousel from the home screen. |  |
 
@@ -111,7 +143,7 @@ All patches are enabled by default.
 </details>
 
 <details open>
-<summary>📦 Żappka&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<summary>📦 Żappka&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -122,6 +154,7 @@ All patches are enabled by default.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Block telemetry](#block-telemetry) | Blocks the Żabka CDP event pipeline (device, root, network and carrier data attached to every event), Sentry, AppsFlyer, Synerise event tracking, Firebase Analytics, Facebook app events and Google datatransport uploads. |  |
+| [Custom Google Maps key](#custom-google-maps-key) | Replaces the app's Google Maps API key. The original key is locked to the developer's signing certificate, so maps stay grey in a re-signed app. Use a key you own that allows the app's package name and the SHA-1 of the key the patched app is signed with. | • Google Maps API key |
 | [Spoof signing certificate](#spoof-signing-certificate) | Reports Żabka's original signing certificate to Firebase, so login works after the app is re-signed by patching. |  |
 
 </details>

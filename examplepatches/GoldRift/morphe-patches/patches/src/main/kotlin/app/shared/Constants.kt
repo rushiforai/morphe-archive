@@ -8,11 +8,11 @@ object Constants {
     val COMPATIBILITY_STRONG = Compatibility(
         name = "Strong",
         packageName = "io.strongapp.strong",
-        apkFileType = ApkFileType.APK,
+        apkFileType = ApkFileType.APKM,
         appIconColor = 0x1565C0,
         targets = listOf(
             AppTarget(
-                version = "v6.2.2"
+                version = "v6.2.8"
             )
         )
     )

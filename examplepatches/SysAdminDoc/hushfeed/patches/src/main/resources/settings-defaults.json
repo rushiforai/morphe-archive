@@ -57,6 +57,7 @@
       "liked_grid_sort",
       "sound_grid_sort",
       "liked_jump_to_date",
+      "grid_search",
       "grid_position_controls"
     ],
     "Always upload in HD": [
@@ -134,6 +135,7 @@
       "comment_search_folded",
       "comment_links",
       "hide_comment_media",
+      "hide_voice_comments",
       "hide_spam_comments",
       "hide_comment_polls",
       "hide_comment_reply_previews",
@@ -394,7 +396,8 @@
       "turn_off_chat_double_tap",
       "turn_off_chat_swipe_reply",
       "hide_inbox_custom_titles",
-      "show_inbox_filters"
+      "show_inbox_filters",
+      "pin_more_chats"
     ],
     "Hide inbox stories": [
       "hide_inbox_stories"
@@ -534,6 +537,7 @@
       "keep_live_clear_screen",
       "dark_live_panels",
       "record_live",
+      "auto_record_live",
       "live_record_quality",
       "live_record_source",
       "live_auto_tap",
@@ -582,6 +586,7 @@
     ],
     "Not interested button": [
       "not_interested_button",
+      "not_interested_also_filter",
       "not_interested_button_position"
     ],
     "Notification controls": [
@@ -894,6 +899,12 @@
     "auto_advance_search": {
       "field": "AUTO_ADVANCE_SEARCH",
       "key": "auto_advance_search",
+      "type": "boolean",
+      "default": false
+    },
+    "auto_record_live": {
+      "field": "AUTO_RECORD_LIVE",
+      "key": "auto_record_live",
       "type": "boolean",
       "default": false
     },
@@ -2007,6 +2018,12 @@
       "type": "boolean",
       "default": false
     },
+    "grid_search": {
+      "field": "GRID_SEARCH",
+      "key": "grid_search",
+      "type": "boolean",
+      "default": false
+    },
     "hidden_profile_shortcuts": {
       "field": "HIDDEN_PROFILE_SHORTCUTS",
       "key": "hidden_profile_shortcuts",
@@ -2769,6 +2786,12 @@
       "type": "boolean",
       "default": false
     },
+    "hide_voice_comments": {
+      "field": "HIDE_VOICE_COMMENTS",
+      "key": "hide_voice_comments",
+      "type": "boolean",
+      "default": false
+    },
     "hide_vpn": {
       "field": "HIDE_VPN",
       "key": "hide_vpn",
@@ -3411,6 +3434,12 @@
       "type": "boolean",
       "default": false
     },
+    "not_interested_also_filter": {
+      "field": "NOT_INTERESTED_ALSO_FILTER",
+      "key": "not_interested_also_filter",
+      "type": "boolean",
+      "default": false
+    },
     "not_interested_button": {
       "field": "NOT_INTERESTED_BUTTON",
       "key": "not_interested_button",
@@ -3476,6 +3505,12 @@
     "picture_in_picture": {
       "field": "PICTURE_IN_PICTURE",
       "key": "picture_in_picture",
+      "type": "boolean",
+      "default": false
+    },
+    "pin_more_chats": {
+      "field": "PIN_MORE_CHATS",
+      "key": "pin_more_chats",
       "type": "boolean",
       "default": false
     },

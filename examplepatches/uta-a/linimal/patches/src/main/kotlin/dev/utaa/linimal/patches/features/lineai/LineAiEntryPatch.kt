@@ -16,6 +16,7 @@ import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
 import dev.utaa.linimal.patches.status.recordFeatureStatus
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val LINE_AI_HOOK =
     "Ldev/utaa/linimal/extension/features/LineAiHooks;->adjustVisibility(Z)Z"
@@ -81,7 +82,7 @@ val lineAiEntryPatch = bytecodePatch(
             firstReference.name != "getClass" ||
             superReference?.parameterTypes != listOf("I", "I", "I", "Z", "Z") ||
             superReference.returnType != "V" ||
-            method.implementation == null
+            !isSafeInjectionIndex(method.implementation, 1)
         ) {
             recordUnsafeFeatureStatus(
                 listOf(PatchId.AGENT_I_CHAT_INFORMATION_ENTRY),
@@ -95,7 +96,7 @@ val lineAiEntryPatch = bytecodePatch(
         method.addInstructions(
             1,
             """
-                invoke-static { p2 }, $LINE_AI_HOOK
+                invoke-static/range { p2 .. p2 }, $LINE_AI_HOOK
                 move-result p2
             """.trimIndent(),
         )

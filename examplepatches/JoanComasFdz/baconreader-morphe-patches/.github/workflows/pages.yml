@@ -1,17 +1,28 @@
 name: Deploy site
 
-# Publishes site/ (the e2e recordings' player page, e2e-player.html: docs/hosting.md, "E2E videos on pull requests") to
-# the root of the gh-pages branch, as destiny-loopsmith's pages.yml publishes its site with its player page.
+# Builds the site (tools/guide/build.js: the user guide, index.html, and the e2e recordings' player page,
+# e2e-player.html: docs/hosting.md, "The user guide" and "E2E videos on pull requests") and publishes it to the root of
+# the gh-pages branch. The guide shows each patch's page (docs/patches/) and the newest recording of each of its
+# scenarios, so it's built again when those change: on a push that changes them, after each run of the workflows that
+# post or clean recordings, and every day. Always from dev, where the patch pages and the scenarios land first.
 # One-time setup (docs/hosting.md): Settings → Pages → Source: "Deploy from a branch", gh-pages, / (root).
 
 on:
   push:
-    branches: [main, dev]
-    paths: ['site/**', '.github/workflows/pages.yml']
+    branches: [dev]
+    paths: ['site/**', 'docs/patches.md', 'docs/patches/**', 'tools/guide/**', 'tools/vscode-extension/extension.js',
+      'tests/BaconReader.E2E/Scenarios/**', '.github/workflows/pages.yml']
+  workflow_run:
+    workflows: ['E2E videos', 'E2E on the phone']
+    types: [completed]
+  schedule:
+    - cron: '41 4 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
+  issues: read
+  pull-requests: read
 
 concurrency:
   group: gh-pages
@@ -22,9 +33,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: dev
+      - name: Build the site
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/guide/build.js _site
       - name: Deploy to gh-pages
         uses: JamesIves/github-pages-deploy-action@fa24774553152dd7873cd16ebd8d959b010c5445 # v4.9.0
         with:
           branch: gh-pages
-          folder: site
+          folder: _site
           force: false

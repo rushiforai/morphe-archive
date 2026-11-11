@@ -35,8 +35,14 @@
   "com.cbs.app": [
     "a7520085336e50053de6b8b92e5ab89b6f62b5c22653e5684870586d02fb014e"
   ],
+  "com.cnbc.client": [
+    "fd048298e3a5f042bc9617e348c951ccab0c896969b8162c553f7d85a1c66f31"
+  ],
   "com.cnn.mobile.android.phone": [
     "c547eacb70460f12374e5a56b8e76598199105161a8d756bb5a8acb0fd13e6c0"
+  ],
+  "com.costco.app.android": [
+    "cec08537be5151905759a0e0301669582eff8e6b98b6676bbd0a654a535245fc"
   ],
   "com.cvs.launchers.cvs": [
     "37bff7c0ee776177f0fdcb98bca438901149533e4cb82fbcfc948222cbc11050"
@@ -88,6 +94,9 @@
   "com.justwatch.justwatch": [
     "a24cb9ee497862eb734e97786a2715657b0010fbe7ea13a4ac2add6a703af9a4"
   ],
+  "com.kanopy": [
+    "2b2ebed6ffe9c30ee60c6e79560214885965b5f8d5387f684fe88a3d925d2946"
+  ],
   "com.moviebase": [
     "5c6a17a64d884f8bd810a6464ae4a19428d4b76b86455967e6d14777ee05a607"
   ],
@@ -115,6 +124,9 @@
   ],
   "com.plexapp.android": [
     "822cd1246884be960e0f2667eb8afc5f7df08920363c2f16742933bfeb5717c6"
+  ],
+  "com.sirius": [
+    "efdcfc8096973f22085bc1fcabd2cafd74536238fee873f2fde2a8a8369c8360"
   ],
   "com.substack.app": [
     "9f6f3f65080de1ecef3e3961ad468ff3204bd9976d6c88cf95d9a34622653cf5"

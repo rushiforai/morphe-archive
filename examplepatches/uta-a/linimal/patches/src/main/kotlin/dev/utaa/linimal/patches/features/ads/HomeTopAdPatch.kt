@@ -231,7 +231,8 @@ val homeTopAdPatch = bytecodePatch(
         val catalogMatches = homePerformanceAdCatalogFingerprint.matchAllOrNull().orEmpty()
         if (catalogMatches.size != 1) {
             patchStatusCollector.record(
-                homePerformanceAdCatalogUnappliedRecord(0, "HomePerformanceAdCatalogNotUnique"),
+                // 複数一致を 0 件と区別できるよう、実際の一致数を渡して ERROR にします。
+                homePerformanceAdCatalogUnappliedRecord(catalogMatches.size, "HomePerformanceAdCatalogNotUnique"),
             )
             return@execute
         }
@@ -366,14 +367,14 @@ val homeTopAdPatch = bytecodePatch(
         flowGate.method.addInstructions(
             flowGate.insertionIndex,
             """
-                invoke-static { v${flowGate.listRegister} }, $HOME_TOP_AD_HOOK
+                invoke-static/range { v${flowGate.listRegister} .. v${flowGate.listRegister} }, $HOME_TOP_AD_HOOK
                 move-result-object v${flowGate.listRegister}
             """.trimIndent(),
         )
         gcsAdGate.method.addInstructions(
             gcsAdGate.insertionIndex,
             """
-                invoke-static { v${gcsAdGate.listRegister} }, $HOME_TOP_AD_HOOK
+                invoke-static/range { v${gcsAdGate.listRegister} .. v${gcsAdGate.listRegister} }, $HOME_TOP_AD_HOOK
                 move-result-object v${gcsAdGate.listRegister}
             """.trimIndent(),
         )

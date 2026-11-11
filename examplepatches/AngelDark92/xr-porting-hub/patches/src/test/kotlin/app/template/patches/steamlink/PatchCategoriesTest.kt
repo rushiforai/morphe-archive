@@ -19,6 +19,7 @@ class PatchCategoriesTest {
     private val groups = linkedMapOf(
         "Image quality" to listOf(
             oledCalibrationPatch, blueNoisePatch, stockQuadCompositionPatch,
+            nativeQuadCompositionPatch,
         ),
         "Tracking & audio" to listOf(
             hmdOnlyPatch, gxrFacebridgePatch,
@@ -53,8 +54,8 @@ class PatchCategoriesTest {
 
     @Test
     fun `every public patch carries its agreed category and default`() {
-        assertEquals(28, publicPatches.size)
-        assertEquals(listOf(3, 4, 3, 4, 7, 3, 2, 2), groups.values.map { it.size })
+        assertEquals(29, publicPatches.size)
+        assertEquals(listOf(4, 4, 3, 4, 7, 3, 2, 2), groups.values.map { it.size })
         // All five controller patches are public: velocity frame recommended, the rest optional.
         assertEquals(
             setOf(controllerPoseExtrapolationPatch, controllerVelocityFramePatch, controllerPoseTimePatch,
@@ -116,7 +117,7 @@ class PatchCategoriesTest {
             val name = channel.name
             assertEquals(channel.name.lowercase(), generated.get("channel").asString)
             val entries = generated.getAsJsonArray("patches").map { it.asJsonObject }
-            assertEquals(if (channel == ReleaseChannel.STABLE) 22 else 28, entries.size, name)
+            assertEquals(if (channel == ReleaseChannel.STABLE) 23 else 29, entries.size, name)
             val names = entries.map { it.get("name").asString }
             assertEquals(names.sorted(), names, name)
             assertEquals(names.size, names.toSet().size, name)

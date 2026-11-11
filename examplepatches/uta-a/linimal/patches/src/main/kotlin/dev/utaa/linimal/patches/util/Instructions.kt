@@ -64,6 +64,14 @@ fun isDivertedInjectionIndex(
     return address in handlerAddresses || address in branchTargetAddresses(instructions)
 }
 
+/**
+ * [implementation] の [index] へ注入しても、分岐や例外経路が注入コードを飛び越さないかどうか。
+ * その method への最初の注入より前に、注入前の命令列で判定します。
+ */
+fun isSafeInjectionIndex(implementation: MethodImplementation?, index: Int): Boolean =
+    implementation != null &&
+        !isDivertedInjectionIndex(implementation.instructions.toList(), index, exceptionHandlerAddresses(implementation))
+
 /** 例外 handler の先頭 code address。注入位置がここと一致すると例外経路だけが注入を飛び越します。 */
 fun exceptionHandlerAddresses(implementation: MethodImplementation): Set<Int> =
     implementation.tryBlocks

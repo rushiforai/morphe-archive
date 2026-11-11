@@ -1,3 +1,11 @@
+## [1.9.3](https://github.com/pengusto/penguin-patches/compare/v1.9.2...v1.9.3) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* avoid redundant bot PR preflight ([494d323](https://github.com/pengusto/penguin-patches/commit/494d323a54e80a97c2563d63f7fb10523ed24bb7))
+* **calendar:** support readable descriptions on 1.12.2 ([#80](https://github.com/pengusto/penguin-patches/issues/80)) ([556cf1e](https://github.com/pengusto/penguin-patches/commit/556cf1e8b97cef7b82db40f1d77a084688a6a93c))
+* simplify Finamp patch maintenance ([597fc81](https://github.com/pengusto/penguin-patches/commit/597fc814c5ca22bf2355dcaa52179145eb6424f0))
+
 ## [1.9.2](https://github.com/pengusto/penguin-patches/compare/v1.9.1...v1.9.2) (2026-11-09)
 
 ### 🐛 Bug Fixes

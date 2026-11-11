@@ -6,11 +6,28 @@ This guide describes the factory Telegram APK that HushTelegram patches. It give
 
 The builds HushTelegram patches are declared in one place, [AppCompatibilities.kt](../patches/src/main/kotlin/app/morphe/patches/shared/compat/AppCompatibilities.kt), with each build's package, version, version code and signer and the patched app's minimum Android version. The fixture tests read that same list, so every patch check runs against exactly those builds. The generated [patches-list.json](../patches-list.json) carries what each published patch declares, and the README's [supported builds](../README.md#supported-telegram-builds) section gives users the release's builds and checksums. Main can target a newer build than the latest release, so the README and the code can name different versions for a while.
 
-This page doesn't copy those numbers. Wherever it names a Telegram version, it's describing what was seen on that build.
+Wherever this page names a Telegram version, it's describing what was seen on that build. AppCompatibilities.kt stays the source of truth when the two disagree.
+
+### APK identity
+
+The rows below come from the two 13.2.1 fixtures, read on 2026-11-10. Those APKs stay in the local, gitignored `fixtures/` folder.
+
+| Field | telegram.org APK | Google Play APK |
+|---|---|---|
+| App label | Telegram | Telegram |
+| Package | `org.telegram.messenger.web` | `org.telegram.messenger` |
+| Version | 13.2.1, code 72919 | 13.2.1, code 72911 |
+| APK SHA-256 | `2b73067f429a5cc20cf060e84c9296a18a04b77f1aa02739fa6457c6b5a508d2` | `1d444a7ee2579257b4a86530e5014ee066c5690c4ff505e3a43b3658af2aea22` |
+| Vendor signer | CN=Nikolay Kudashov, OU=VK, O=VK, L=Saint-Petersburg | the same |
+| Signer SHA-256 | `49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1` | the same |
+| Manifest SDK | minimum 23, target 36, compiled with SDK 36 | minimum 23, target 36, compiled with SDK 36 |
+| Native ABIs | `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64` | `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64` |
+
+Both come as one universal APK, the Play build from APKMirror. Telegram declares Android 6 as its minimum, and HushTelegram's extension raises the patched app's floor to Android 9, API 28. The official beta, `org.telegram.messenger.beta`, isn't a target anymore.
 
 ## What earlier builds showed
 
-The first-run screens and the APK identity table below were read from Telegram 12.10.6, version code 71129, telegram.org's single APK. Its SHA-256 is `7827ea506d297644b1d350266bdfbd8d5d38a7869fa3fc1a0fbcb1ebc81f45ad`. The fixture APKs stay in the local, gitignored `fixtures/` folder.
+The first-run screens below were read from Telegram 12.10.6, version code 71129, telegram.org's single APK (SHA-256 `7827ea506d297644b1d350266bdfbd8d5d38a7869fa3fc1a0fbcb1ebc81f45ad`). That build declared Android 5 as its minimum.
 
 Two deeper audits come from the same period. The [Telegram 12.10.6 app audit](telegram-audit-12.10.6.md) maps ad delivery, telemetry, common friction and patch opportunities. The [signed-in runtime audit](telegram-runtime-audit-12.10.7.md) adds a physical S22 walkthrough of official beta 12.10.7, live search-ad evidence, network captures and background measurements. Both describe those builds. Treat a finding there as a lead to check again on the current target, not as proof that it still holds.
 
@@ -27,22 +44,6 @@ Start Messaging opens Telegram's call-verification explanation. Android then dis
 ![Telegram's factory phone-number page](images/telegram-12.10.6-factory-phone-entry.png)
 
 No phone number or login code was entered during this emulator flow. `READ_PHONE_NUMBERS` and `READ_PHONE_STATE` remained ungranted. The later [S22 walkthrough](telegram-runtime-audit-12.10.7.md) covers signed-in screens on the official beta. Android's permission dialog can vary by system version and prior permission history.
-
-### APK identity
-
-| Field | Factory web APK, 12.10.6 |
-|---|---|
-| App label | Telegram |
-| Package | `org.telegram.messenger.web` |
-| Version | 12.10.6, code 71129 |
-| Vendor signer | CN=Nikolay Kudashov, OU=VK, O=VK |
-| Signer SHA-256 | `49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1` |
-| Manifest SDK | minimum 21, target 36, compiled with SDK 36 |
-| Native ABIs | `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64` |
-
-The package and signer rows are the ones AppCompatibilities.kt still declares. The version and SDK rows belong to 12.10.6. The Play Store build, `org.telegram.messenger`, has the same vendor signer and gets its own fixture checks. APKMirror carries it as one universal APK, with its own version code (71831 at 13.0.3, where the web build is 71839). That Telegram APK declared Android 5 as its minimum, and HushTelegram's extension raises the patched app floor to Android 9, API 28.
-
-AppCompatibilities.kt declares the telegram.org web APK and the Play Store APK. The official beta, `org.telegram.messenger.beta`, isn't a target anymore.
 
 ## App entry points and component families
 
@@ -61,9 +62,11 @@ Most activity screens live under `org.telegram.ui`. Reusable widgets and views s
 
 ## Bytecode anchors that survive updates
 
-Telegram runs R8 over much of the UI. Many internal `org.telegram.ui` class and method names change on each build. Most `org.telegram.messenger` and `org.telegram.tgnet.TLRPC` names stay readable, while generated lambda suffixes can move. Manifest components and stable resource names also remain useful.
+Telegram runs R8 over much of the UI. Many internal `org.telegram.ui` class and method names change on each build, and generated lambda suffixes can move. Since 13.2.0, R8 also renames the top-level classes of `org.telegram.messenger` and most of their members. On 13.2.1, `MessagesController` is `rp` in the telegram.org build and `vp` in the Play build. `org.telegram.tgnet` (the `TLRPC` classes and `ConnectionsManager` included), the subpackages of `org.telegram.messenger`, manifest components and resource names keep their names.
 
-Use a Telegram request class, a kept method or field, a stable resource name and nearby bytecode shape to find a patch point. A raw obfuscated UI name or a lambda number is weak evidence by itself. The table gives examples already used by HushTelegram, and each fixture test it names runs against every build AppCompatibilities.kt declares.
+The patches keep naming the source classes and members. [TelegramNames.kt](../patches/src/main/kotlin/app/morphe/util/names/TelegramNames.kt) translates them through one table per supported build, at [`hushtelegram/names/<versionCode>.txt`](../patches/src/main/resources/hushtelegram/names/). Each table was made by matching that build against 13.1.1, the last build R8 left named.
+
+Use a Telegram request class, a kept method or field, a stable resource name and nearby bytecode shape to find a patch point. A raw obfuscated name or a lambda number is weak evidence by itself. The table gives examples already used by HushTelegram, and each fixture test it names runs against every build AppCompatibilities.kt declares. Every anchor in it was found in both 13.2.1 builds on 2026-11-10, the renamed ones through their name tables.
 
 | Feature area | Stable evidence in the APK | Current implementation and fixture check |
 |---|---|---|
@@ -99,7 +102,7 @@ Patch status and runtime behavior are separate. The status fields say which code
 1. Put the exact official web or Play APK in the private fixture folder. Verify its package, version name, version code, signer and SHA-256. The web and Play APKs need separate checks.
 2. Run `scripts/verify-all-patches.ps1 -Apk <apk> -Force -DesktopJar <jar> -WorkDir <private scratch>`. `-Force` lets the patcher inspect a build before it is declared compatible. The report names patch failures and approved resource changes.
 3. For a failed target, compare the method in the old and new APK with `scripts/fingerprint-candidates.ps1`. It ranks possible matches by strings, literals, calls, opcodes, signature, owner and callers. Verify the candidate in the APK. The script reports ambiguity instead of selecting between close matches.
-4. Update the patch to recognize both the new build and every retained build. Add the package, version, version code and minimum SDK to `AppCompatibilities.kt`. Keep version-specific obfuscated names out of patch source.
+4. Give the new build its name table in `patches/src/main/resources/hushtelegram/names/`, named for its version code, so the patches can find the classes R8 renamed. Then update the patch to recognize both the new build and every retained build. Add the package, version, version code and minimum SDK to `AppCompatibilities.kt`. Keep version-specific obfuscated names out of patch source.
 5. Add or update a fixture test beside the patch. Run the patch checks against every declared web and Play fixture with `HUSHTELEGRAM_FIXTURE_DIR` set. Missing fixtures must remain a failure in the required push gate.
 6. Regenerate the catalog with `:patches:generatePatchesList` before building the Android bundle with `:patches:buildAndroid`. Release receipts and provenance checks cover the published bundle separately.
 

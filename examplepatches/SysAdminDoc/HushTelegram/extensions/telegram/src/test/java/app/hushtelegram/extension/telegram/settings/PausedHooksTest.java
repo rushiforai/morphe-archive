@@ -53,6 +53,7 @@ import app.hushtelegram.extension.telegram.misc.Suggestions;
 import app.hushtelegram.extension.telegram.misc.LinkRouting;
 import app.hushtelegram.extension.telegram.ads.ProxyPromotions;
 import app.hushtelegram.extension.shared.SettingsContextRule;
+import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.shared.settings.BaseSettings;
 import app.hushtelegram.extension.shared.settings.BooleanSetting;
 import app.hushtelegram.extension.shared.settings.HushTelegramPause;
@@ -322,12 +323,15 @@ public class PausedHooksTest {
         // A voice message opens the full player.
         probes.put(PatchFamily.VOICE_MUSIC_PLAYER, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.VoicePlayerForTests.voiceOpensThePlayer()));
-        // A download the server didn't flag keeps Telegram's small pieces, and Data Saver on a
-        // metered network holds neither automatic downloads nor the download mask.
+        // A download the server didn't flag keeps Telegram's small pieces, Data Saver on a metered
+        // network holds neither automatic downloads nor the download mask, and a photo nobody pressed
+        // HD on and a video under 1000 MB go out at Telegram's usual quality.
         probes.put(PatchFamily.FASTER_DOWNLOADS, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.DownloadSpeed.fast(false),
                 () -> app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests.holdsOnMeteredDataSaver(),
-                () -> app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests.holdsMaskOnMeteredDataSaver()));
+                () -> app.hushtelegram.extension.telegram.misc.DataSaverDownloadsForTests.holdsMaskOnMeteredDataSaver(),
+                () -> app.hushtelegram.extension.telegram.misc.MediaQuality.hdPhoto(false),
+                () -> app.hushtelegram.extension.telegram.misc.MediaQuality.videoLimit(0x3e800000L) < 0));
         // A finished file from a message is queued for a copy in Download/Telegram, and so are one from
         // a chat that doesn't allow saving and a view-once photo.
         probes.put(PatchFamily.SAVE_DOWNLOADS, Arrays.asList(
@@ -453,6 +457,26 @@ public class PausedHooksTest {
         // The phone number screen offers a bot token sign-in.
         probes.put(PatchFamily.BOT_TOKEN_SIGN_IN, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.BotSignIn.offered(0)));
+        // A screenshot in a secret chat sends no notice.
+        probes.put(PatchFamily.SUPPRESS_SCREENSHOT_NOTIFICATION, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ScreenshotNotification.suppress(1)));
+        probes.put(PatchFamily.UNLOCK_PREMIUM, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.PremiumUnlock.isPremium(1) == 1));
+        // A chat and a message that forbid forwarding allow it, and a chat restricted for copyright or local law opens.
+        probes.put(PatchFamily.BYPASS_CHANNEL_RESTRICTIONS, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.ChannelRestrictions.isChatNoForwards(1) == 0,
+                () -> app.hushtelegram.extension.telegram.misc.ChannelRestrictions.noForwards(1) == 0,
+                () -> app.hushtelegram.extension.telegram.misc.ChannelRestrictions.ignoreRestrictionReason(
+                        new ArrayList<>(Collections.singletonList("copyright")))));
+        probes.put(PatchFamily.BYPASS_INTEGRITY_CHECK, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.IntegrityBypass.skipIntegrityCheck(1),
+                () -> app.hushtelegram.extension.telegram.misc.IntegrityBypass.spoofSignature(1)));
+        // New messages are looked at for forwarding.
+        probes.put(PatchFamily.AUTO_FORWARDING, Collections.singletonList(() -> {
+            List<String> before = HookStatus.report();
+            app.hushtelegram.extension.telegram.misc.AutoForwarding.onNewMessages(new ArrayList<>(), 0);
+            return !before.equals(HookStatus.report());
+        }));
         return probes;
     }
 

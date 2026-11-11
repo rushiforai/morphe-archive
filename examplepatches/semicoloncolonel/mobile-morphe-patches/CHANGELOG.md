@@ -1,3 +1,98 @@
+## [1.0.20](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.19...v1.0.20) (2026-11-10)
+
+
+### New apps
+
+* add Kanopy, with Hide rating prompt, Hide survey, and Block analytics & tracking
+* add CNBC
+* add SiriusXM
+* add Costco
+
+
+### New patches
+
+* add Hide rating prompt to every app
+* add Video quality to HBO Max
+* add Hide League Pass upsells to NBA, off by default
+
+
+### Supported versions
+
+* Disney+: 26.20.0+rc3-2026.11.02 is now a regular supported version, so Morphe Manager no longer offers 26.20.0+rc2-2026.10.28 as an update. 26.20.0+rc2-2026.10.28 is still supported.
+* Walmart: 26.42.2 is now a regular supported version.
+* support NBA 1.3.0, NewsBreak 26.45.1, NPS 2.16.0, Target 2026.44.0, Prime Video 3.0.480.747 and 3.0.479.847, Amazon Shopping 32.20.0.100, Moviebase 7.7.1, The New York Times 11.98.2, Substack 3.13.1, The Home Depot 8.2.6, and The Washington Post 7.18.4
+* support T-Mobile Play 19.5.2 as experimental
+
+
+### Fixes
+
+* Disable Pairip license check no longer fails on an app version without Pairip, such as Moviebase 7.7.1
+* say that Hide marketing pop-ups does not remove The Washington Post or WSJ paywalls
+
+## [1.0.20-dev.7](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.20-dev.6...v1.0.20-dev.7) (2026-11-10)
+
+
+### Bug Fixes
+
+* list Disney+ 26.20.0+rc3-2026.11.02 as a regular supported version, so Morphe Manager stops offering rc2 as an update ([f8acbe1](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/f8acbe15868b3314ec0b4f099892c3bca4a7b4fe))
+* support the current public versions of Amazon Shopping, Moviebase, The New York Times, Prime Video, Substack, The Home Depot, and The Washington Post, and T-Mobile Play 19.5.2 as experimental ([cfba7a5](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/cfba7a55a1d40ea6abaf5548ae200350f02c9fe3))
+
+
+### Features
+
+* add Kanopy ([0ed4374](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/0ed4374d47dc21faf6dd18d5dad6ae1c85b9ecc9))
+
+## [1.0.20-dev.6](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.20-dev.5...v1.0.20-dev.6) (2026-11-10)
+
+
+### Bug Fixes
+
+* testing NBA 1.3.0, NewsBreak 26.45.1 ([23521ad](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/23521adaf09d09f00001dc5d06a2b3dad08e8aae))
+
+## [1.0.20-dev.5](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.20-dev.4...v1.0.20-dev.5) (2026-11-10)
+
+
+### Bug Fixes
+
+* testing Prime Video 3.0.480.747 ([1ca95c8](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/1ca95c88b14522953e5531f77f274f3559873b64))
+
+## [1.0.20-dev.4](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.20-dev.3...v1.0.20-dev.4) (2026-11-09)
+
+
+### Bug Fixes
+
+* support NPS 2.16.0, Target 2026.44.0 ([326ae5f](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/326ae5fd796413fbee01ff3bbb47680b744def6a))
+
+## [1.0.20-dev.3](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.20-dev.2...v1.0.20-dev.3) (2026-11-09)
+
+
+### Bug Fixes
+
+* accept only the phone build of Disney+ 26.20.0+rc2-2026.10.28 ([851a29e](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/851a29e2229af2f1c3b4569a40d9f9516b607832))
+* say that Hide marketing pop-ups does not remove The Washington Post or WSJ paywalls ([8420d87](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/8420d87b82da0f4ae104413e4a92e3b999fc4535))
+
+## [1.0.20-dev.2](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.20-dev.1...v1.0.20-dev.2) (2026-11-09)
+
+
+### Bug Fixes
+
+* let CNBC's Hide rating prompt include the shared one, and cover SiriusXM and Costco ([aaaa4db](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/aaaa4db447562617c23876539a09a958eee30151))
+
+
+### Features
+
+* add CNBC ([3015e53](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/3015e53a5ac5bcfd0bf2d8a906dd5d9ee27425da))
+* add Costco (experimental) ([7d36368](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/7d36368fc4130c4833974a05f1ce545c5b925303))
+* add Hide rating prompt to every app ([0b2d79a](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/0b2d79afecd84d052ed905e834b7213fd625add8))
+* add SiriusXM ([dde5670](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/dde5670a4ee1c2bc9cb9a0d9a2f52f73886c3544))
+
+## [1.0.20-dev.1](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.19...v1.0.20-dev.1) (2026-11-09)
+
+
+### Features
+
+* add Video quality to HBO Max ([7c9a573](https://github.com/semicoloncolonel/mobile-morphe-patches/commit/7c9a5731e047973c9881966a7c011fe65a3ea875))
+
 ## [1.0.19](https://github.com/semicoloncolonel/mobile-morphe-patches/compare/v1.0.18...v1.0.19) (2026-11-09)
 
 

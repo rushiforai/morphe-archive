@@ -7,10 +7,12 @@ import app.fakh.patches.linkedin.shared.settingsPatch
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
@@ -99,13 +101,48 @@ val swipeTabsPatch = bytecodePatch(
 @Suppress("unused")
 val glassNavigationBarPatch = bytecodePatch(
     name = "Glass navigation bar",
-    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill.",
+    description = "Draws the navigation bar as a floating, translucent capsule with a sliding selection pill. Slide a finger along it to switch tabs. Liquid Glass blurs what's behind it.",
     default = false
 ) {
     compatibleWith(COMPATIBILITY_LINKEDIN)
     category("Theme")
     dependsOn(navigationHooksPatch)
     execute { markIncluded("isGlassNavigationBarIncluded") }
+}
+
+/** SlimBottomNavigationBehavior.handleDirection(bar, direction): slides the bottom bar away or back as a screen scrolls. */
+private object ScrollDirectionFingerprint : Fingerprint(
+    definingClass = "Lcom/linkedin/android/home/bottomnav/SlimBottomNavigationBehavior;",
+    name = "handleDirection",
+    returnType = "V",
+    parameters = listOf("Lcom/linkedin/android/home/bottomnav/SlimBottomBar;", "I"),
+)
+
+@Suppress("unused")
+val alwaysShowNavigationBarPatch = bytecodePatch(
+    name = "Always show navigation bar",
+    description = "Adds an option in Fakh Patches to keep the navigation bar on screen while you scroll.",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_LINKEDIN)
+    category("Feature")
+    dependsOn(settingsPatch)
+    execute {
+        markIncluded("isAlwaysShowNavigationBarIncluded")
+        // The bar is only ever slid away from here, so skipping it keeps the bar where it is.
+        ScrollDirectionFingerprint.method.apply {
+            addInstructionsWithLabels(
+                0,
+                """
+                    invoke-static { }, $EXTENSION_PACKAGE/Settings;->alwaysShowNavigationBar()Z
+                    move-result v0
+                    if-eqz v0, :scroll
+                    return-void
+                """,
+                ExternalLabel("scroll", getInstruction(0)),
+            )
+        }
+    }
 }
 
 /** Indices of all instructions with the opcode, last first so edits keep earlier indices valid. */

@@ -7,14 +7,17 @@
     <meta name="color-scheme" content="dark" />
     <meta name="darkreader-lock" />
     <meta name="robots" content="noindex" />
+    <link rel="icon" type="image/png" href="favicon.png" />
     <title>BaconReader patches · e2e recording</title>
     <!-- Plays one e2e recording MP4 with the browser's own video controls: …/e2e-player.html?v=pr-<n>-v<k>-<run>.mp4
          from the prs-resources release. GitHub shows no player for a video it didn't store itself, so the PR comments
          link here (docs/hosting.md, "E2E videos on pull requests"). The video's URL is built from v alone, which must be
-         such a name, so the page never plays a URL someone else chose. Plain HTML,
-         styles and script inline: nothing here can meet a cached copy of another deploy. -->
+         such a name, so the page never plays a URL someone else chose. The link's fragment, #s=<data>, carries the
+         scenario's Gherkin and when each line played (the e2e tool's PlayerLinking); the player, e2e-player.js and
+         e2e-player.css, shows them beside the video. tools/guide/build.js inlines those two files where the include
+         comments are, so the published page is one file: nothing in it can meet a cached copy of another deploy. -->
     <style>
-        :root { --bg: #0a0d13; --panel: #111620; --line: #263046; --text: #e7eaf0; --muted: #8a94a8; --arc: #6fe3ff; --warn: #ffcf5a; }
+        :root { --bg: #0a0d13; --panel: #111620; --line: #263046; --text: #e7eaf0; --muted: #8a94a8; --arc: #6fe3ff; --warn: #ffcf5a; --fail: #ff6b6b; --now: #1b3346; }
         *, *::before, *::after { box-sizing: border-box; }
         body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
         main { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 12px; }
@@ -22,10 +25,10 @@
         h1 { margin: 0; font-size: 18px; font-weight: 600; overflow-wrap: anywhere; }
         .meta { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
         a { color: var(--arc); }
-        video { display: block; max-width: 100%; max-height: calc(100vh - 140px); background: #000; border: 1px solid var(--line); border-radius: 8px; }
         .note { width: 100%; margin: 0; padding: 12px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; color: var(--warn); }
         .note code { color: var(--text); overflow-wrap: anywhere; }
         [hidden] { display: none !important; }
+        /* include: e2e-player.css */
     </style>
 </head>
 
@@ -35,9 +38,12 @@
             <h1 id="title">E2E recording</h1>
             <p class="meta" id="meta"></p>
         </header>
-        <video id="video" controls playsinline preload="metadata" hidden></video>
+        <div id="stage" hidden></div>
         <p class="note" id="note" hidden></p>
     </main>
+    <script>
+        /* include: e2e-player.js */
+    </script>
     <script>
         (function () {
             var repo = "JoanComasFdz/baconreader-morphe-patches";
@@ -48,7 +54,7 @@
             var query = new URLSearchParams(location.search);
             var asset = query.get("v") || "";
             var parts = asset.match(name);
-            var video = document.getElementById("video");
+            var stage = document.getElementById("stage");
             var note = document.getElementById("note");
 
             function say(text, code) {
@@ -81,13 +87,18 @@
             link.textContent = "PR #" + pr;
             meta.append(link, " · V" + version + (screen ? " · " + screens[screen[1]] : "") + " · " + release);
 
-            video.addEventListener("error", function () {
-                video.hidden = true;
-                say("This recording can't be loaded. Closing a pull request keeps only its newest version's recordings, so an older "
-                    + "version's are gone:", asset);
-            });
-            video.src = "https://github.com/" + repo + "/releases/download/" + release + "/" + asset;
-            video.hidden = false;
+            var src = "https://github.com/" + repo + "/releases/download/" + release + "/" + asset;
+            var hash = /^#s=(.+)$/.exec(location.hash);
+            (hash ? E2EPlayer.readSteps(hash[1]) : Promise.reject()).then(function (steps) { return steps; }, function () { return null; })
+                .then(function (steps) {
+                    var video = E2EPlayer.mount(stage, { src: src, steps: steps });
+                    stage.hidden = false;
+                    video.addEventListener("error", function () {
+                        stage.hidden = true;
+                        say("This recording can't be loaded. Closing a pull request keeps only each scenario's newest recording, so this one, "
+                            + "recorded again later, is gone:", asset);
+                    });
+                });
         })();
     </script>
 </body>

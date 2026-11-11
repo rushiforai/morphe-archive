@@ -28,6 +28,8 @@
     <Using Include="BaconReader.E2E.Shared" />
   </ItemGroup>
   <ItemGroup>
+    <!-- The scenarios' own code, which ScenarioSteps reads to mark each Gherkin line in the recording. -->
+    <EmbeddedResource Include="Scenarios/**/*.cs" LogicalName="Scenarios/%(RecursiveDir)%(Filename)%(Extension)" />
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

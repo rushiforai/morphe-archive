@@ -200,9 +200,15 @@ public final class SettingsDialog extends DialogFragment {
         pageTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         pageTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22);
         pageTitle.setMaxLines(1);
-        pageTitle.setAutoSizeTextTypeUniformWithConfiguration(12, 22, 1, TypedValue.COMPLEX_UNIT_SP);
         pageTitle.setAccessibilityHeading(true);
         pageTitle.setPaddingRelative(dp(8), dp(8), dp(8), dp(8));
+        // Autosize shrinks a long title only after its height is measured, so the bar kept a shrunk
+        // title's height once "HushTelegram" came back at full size, and the list under it moved.
+        // The title keeps the height of one full-size line, with a shrunk one centred in it.
+        pageTitle.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        pageTitle.setMinHeight(pageTitle.getMeasuredHeight());
+        pageTitle.setGravity(Gravity.CENTER_VERTICAL | Gravity.START);
+        pageTitle.setAutoSizeTextTypeUniformWithConfiguration(12, 22, 1, TypedValue.COMPLEX_UNIT_SP);
 
         pauseAction = new Button(getContext());
         pauseAction.setTag(PAUSE_ACTION);

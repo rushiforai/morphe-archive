@@ -255,6 +255,10 @@ public final class ConfigurationBackup {
             if (PatchFamily.REEL_DECLUTTER.inBuild()) {
                 settings.put(Settings.FULL_SCREEN_BUTTON_ON_REELS.key, Settings.FULL_SCREEN_BUTTON_ON_REELS);
             }
+            if (PatchFamily.REEL_TAP_AND_VOLUME.inBuild()) {
+                settings.put(Settings.MUTE_BUTTON_ON_REELS.key, Settings.MUTE_BUTTON_ON_REELS);
+                settings.put(Settings.MUTE_BUTTON_IN_CLEAR_MODE.key, Settings.MUTE_BUTTON_IN_CLEAR_MODE);
+            }
         }
         if (PatchFamily.REEL_POST_TIME.inBuild()) {
             settings.put(Settings.REEL_POST_TIME_SECONDS.key, Settings.REEL_POST_TIME_SECONDS);
@@ -542,13 +546,13 @@ public final class ConfigurationBackup {
     }
 
     /**
-     * With a HushGram PIN behind the locks, a file (or an Undo) can't switch Lock your messages or
-     * Lock all of Instagram, so a backup can't be a way round the PIN. With the phone's lock behind
-     * them, it can't while they're locked either: settings left open from before the lock came back
-     * ask for a new unlock first, and this holds at the write itself.
+     * With a HushGram PIN behind the locks, a file (or an Undo) can't switch Lock your messages,
+     * Lock all of Instagram or Lock Saved, so a backup can't be a way round the PIN. With the phone's
+     * lock behind them, it can't while they're locked either: settings left open from before the
+     * lock came back ask for a new unlock first, and this holds at the write itself.
      */
     private static boolean heldByLock(Setting<?> setting) {
-        return (setting == Settings.LOCK_MESSAGES || setting == Settings.LOCK_APP)
+        return (setting == Settings.LOCK_MESSAGES || setting == Settings.LOCK_APP || setting == Settings.LOCK_SAVED)
                 && (app.hushgram.extension.instagram.direct.PinLock.protects()
                         || app.hushgram.extension.instagram.direct.MessagesLock.locked());
     }

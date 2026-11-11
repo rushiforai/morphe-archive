@@ -27,6 +27,11 @@ import app.morphe.patcher.patch.rawResourcePatch
  * - Replacement: LoadConstNull r0; Ret r0 — causes React to render nothing,
  *   effectively removing the entire "Trending tags" section from the UI.
  * - Bytes 4–13 of the original prologue are retained as dead code for size parity.
+ *
+ * 4.29-rc103:
+ * - `TrendingTags` render function at bundle offset 0x010405EC (683 bytes),
+ *   identified by hermes_dec as function #20448.
+ * - Same 14-byte prologue pattern as rc100, unique in the bundle; only offsets shifted.
  */
 @Suppress("unused")
 val hideTrendingTagsSectionPatch = rawResourcePatch(
@@ -78,6 +83,14 @@ val hideTrendingTagsSectionPatch = rawResourcePatch(
         )
 
         val patchTargets = listOf(
+            // rc103: same TrendingTags prologue pattern as rc100; only bundle offset shifted.
+            "4.29-rc103" to listOf(
+                BundlePatch(
+                    "hide TrendingTags render",
+                    rc100TrendingTagsTargetPattern,
+                    rc100TrendingTagsReplacementPattern,
+                ),
+            ),
             "4.28-rc100" to listOf(
                 BundlePatch(
                     "hide TrendingTags render",

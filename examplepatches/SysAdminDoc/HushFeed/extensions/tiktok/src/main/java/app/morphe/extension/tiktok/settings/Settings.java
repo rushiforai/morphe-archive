@@ -854,6 +854,8 @@ public class Settings extends BaseSettings {
     public static final StringSetting SOUND_GRID_SORT = new StringSetting("sound_grid_sort", "off");
     /** A chip on Liked grids that starts the list at a chosen year or month (#350). */
     public static final BooleanSetting LIKED_JUMP_TO_DATE = new BooleanSetting("liked_jump_to_date", FALSE);
+    /** A chip on Liked and Favorites grids that narrows the loaded videos to a search. */
+    public static final BooleanSetting GRID_SEARCH = new BooleanSetting("grid_search", FALSE);
     public static final BooleanSetting GRID_POSITION_CONTROLS = new BooleanSetting("grid_position_controls", FALSE);
     public static final BooleanSetting SHOW_EXACT_COUNTS = new BooleanSetting("show_exact_counts", FALSE);
     public static final BooleanSetting CLEAR_DISPLAY = new BooleanSetting("clear_display", FALSE);
@@ -1042,6 +1044,8 @@ public class Settings extends BaseSettings {
 
     public static final BooleanSetting ENABLE_LONG_PRESS_SPEED_LOCK = new BooleanSetting("enable_long_press_speed_lock", FALSE, true);
     public static final BooleanSetting NOT_INTERESTED_BUTTON = new BooleanSetting("not_interested_button", FALSE);
+    /** After the Not interested button sends its feedback, offers the video's creator, sound and hashtags to the feed filter. */
+    public static final BooleanSetting NOT_INTERESTED_ALSO_FILTER = new BooleanSetting("not_interested_also_filter", FALSE);
     /**
      * Mute feed videos. Whether the feed is muted right now is the phone's state, like the volume,
      * so a backup doesn't carry it; paused, Hushfeed plays the feed with sound as TikTok would.
@@ -1297,6 +1301,12 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SHOW_INBOX_FILTERS =
             new BooleanSetting("show_inbox_filters", FALSE, true);
+    /**
+     * Lifts the app's cap on pinned chats in the Inbox, 5 unless TikTok's server says otherwise.
+     * TikTok reads the cap once per launch. See PinMoreChats.
+     */
+    public static final BooleanSetting PIN_MORE_CHATS =
+            new BooleanSetting("pin_more_chats", FALSE, true);
     public static final BooleanSetting EXPAND_ACTIVITY_LIST = new BooleanSetting("expand_activity_list", FALSE);
     /** Chat screen clutter. Each is off by default and read live when a chat opens. */
     public static final BooleanSetting HIDE_CHAT_CALL_BUTTONS =
@@ -1555,6 +1565,11 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting COMMENT_SEARCH_FOLDED = new BooleanSetting("comment_search_folded", FALSE);
     public static final BooleanSetting COMMENT_LINKS = new BooleanSetting("comment_links", FALSE);
     public static final BooleanSetting HIDE_COMMENT_MEDIA = new BooleanSetting("hide_comment_media", FALSE);
+    /**
+     * Drops comments carrying a voice recording with something to play (a vid or a local file),
+     * whatever media type TikTok gives them, so a picture comment with a recording goes too.
+     */
+    public static final BooleanSetting HIDE_VOICE_COMMENTS = new BooleanSetting("hide_voice_comments", FALSE);
     /** Drops bot comments that point to a bio, a link or a messenger, or bait follows (#187). */
     public static final BooleanSetting HIDE_SPAM_COMMENTS = new BooleanSetting("hide_spam_comments", FALSE);
     public static final BooleanSetting HIDE_COMMENT_POLLS = new BooleanSetting("hide_comment_polls", FALSE);

@@ -40,7 +40,7 @@ Penguin Patches 是一组独立的 Android 补丁，兼容 Morphe Manager，用�
 - [选择闹钟提前提醒时间](../../README.md#preview-choose-upcoming-alarm-notification-time)
 - [为 Infinity+ 配置自定义 OAuth 客户端](../../README.md#preview-configure-custom-oauth-for-infinity)
 - [标记已读时清除通知](../../README.md#preview-dismiss-notifications-when-marking-conversations-read)
-- [Finamp Complete：全部七项改进](../../README.md#preview-finamp-complete-all-seven-fixes)
+- [Finamp Complete](../../README.md#preview-finamp-complete)
 - [导入嵌套 OPML 订阅源](../../README.md#preview-import-nested-opml-feeds)
 - [后台会话保持未读](../../README.md#preview-keep-background-conversations-unread)
 - [重命名或删除文件夹后同步收藏](../../README.md#preview-keep-favorites-consistent-after-folder-rename-or-removal)

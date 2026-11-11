@@ -391,7 +391,7 @@ private fun injectFactoryCaller(method: MutableMethod, shape: ExplicitFactoryCal
     method.addInstructions(shape.cleanupIndex, "invoke-static { }, $CLEAR_MANUAL")
     method.addInstructions(
         shape.factoryCallIndex,
-        "invoke-static { v${shape.chatIdRegister} }, $BEGIN_MANUAL",
+        "invoke-static/range { v${shape.chatIdRegister} .. v${shape.chatIdRegister} }, $BEGIN_MANUAL",
     )
     if (!shape.needsCatchAll) {
         return
@@ -425,7 +425,7 @@ private fun injectMarkAllAsRead(method: MutableMethod, shape: MarkAllAsReadShape
     method.addInstructions(shape.senderCallIndex + 1, "invoke-static { }, $CLEAR_PREPARED")
     method.addInstructions(
         shape.senderCallIndex,
-        "invoke-static { v${shape.chatIdRegister} }, $PREPARE_EXPLICIT",
+        "invoke-static/range { v${shape.chatIdRegister} .. v${shape.chatIdRegister} }, $PREPARE_EXPLICIT",
     )
 
     val implementation = checkNotNull(method.implementation)

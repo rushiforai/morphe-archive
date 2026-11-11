@@ -34,8 +34,8 @@ public final class FakhSettings {
     private static final int ROW_KEY = 0x46414B30;
     private static final int CARD_KEY = 0x46414B3F;
     /** Number of the first switch that belongs to a tab, and the number of the row that opens the tab sheet. */
-    private static final int FIRST_TAB = 4;
-    private static final int TABS_ROW = 4;
+    private static final int FIRST_TAB = 5;
+    private static final int TABS_ROW = 5;
 
     private static WeakReference<Activity> current = new WeakReference<>(null);
     /** A Compose state that counts the switches flipped, so the rows are drawn again when one is. */

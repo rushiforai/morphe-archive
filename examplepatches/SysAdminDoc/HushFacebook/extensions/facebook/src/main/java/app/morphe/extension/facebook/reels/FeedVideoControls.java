@@ -293,7 +293,11 @@ public final class FeedVideoControls {
     }
 
     private static boolean lowerOn() {
-        return seekOn() && Settings.FEED_VIDEO_SEEK_BAR_LOWER.get();
+        return seekOn() && !edgeOn() && Settings.FEED_VIDEO_SEEK_BAR_LOWER.get();
+    }
+
+    private static boolean edgeOn() {
+        return seekOn() && Settings.FEED_VIDEO_SEEK_BAR_EDGE.get();
     }
 
     private static boolean openOn() {
@@ -641,12 +645,13 @@ public final class FeedVideoControls {
 
     /**
      * Where the seek bar goes in the window, {@link #BAR_LIFT_DP} above [video]'s bottom, less what
-     * Lower the seek bar moved Facebook's corner buttons down, or null when that spot isn't showing
-     * in [visible], or something on top of the feed lies across it. The buttons keep [room] of the height.
+     * Lower the seek bar moved Facebook's corner buttons down, or on the bottom edge itself with Seek
+     * bar on the bottom edge (#431), or null when that spot isn't showing in [visible], or something on
+     * top of the feed lies across it. The buttons keep [room] of the height.
      */
     @Nullable
     private static Rect barArea(Control control, Rect video, View list, View content, Rect visible, int room, float density) {
-        int bottom = video.bottom - Math.round(BAR_LIFT_DP * density) + control.lowered;
+        int bottom = edgeOn() ? video.bottom : video.bottom - Math.round(BAR_LIFT_DP * density) + control.lowered;
         int height = Math.round(BAR_DP * density);
         if (visible.bottom < bottom || visible.height() < room + height) return noBar(control, "its bottom edge doesn't show", null);
         if (inGestureStrip(content, bottom)) return noBar(control, "its bottom edge is in the system's gesture strip", null);
@@ -674,12 +679,14 @@ public final class FeedVideoControls {
     /**
      * Finds Facebook's own buttons in [video]'s bottom corners inside [row], the speaker and the
      * tagged people, at most once a tick, and moves them down for Lower the seek bar (#386). They all
-     * move by the same amount, which the bar takes too, so it stays just clear of them. With both
+     * move by the same amount, which the bar takes too, so it stays just clear of them. Seek bar on
+     * the bottom edge moves them up instead, just clear of the bar along that edge (#431). With the
      * switches off, or on a live video, they're put back as they were.
      */
     private static void corners(Control control, View row, Rect video, float density, boolean live) {
         boolean lower = lowerOn();
-        if (live || (!lower && !fadeOn())) {
+        boolean edge = edgeOn();
+        if (live || (!lower && !edge && !fadeOn())) {
             control.restoreCorners();
             return;
         }
@@ -697,6 +704,9 @@ public final class FeedVideoControls {
         }
         int room = Math.round(LOWER_DP * density);
         int gap = Math.round(MARGIN_DP * density);
+        // On the bottom edge the bar takes its own height there, and the lowest button ends a gap above it.
+        int clear = video.bottom - Math.round(BAR_DP * density) - gap;
+        int lift = 0;
         int side = Math.round(CORNER_DP * density);
         boolean rtl = row.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
         StringBuilder seen = new StringBuilder();
@@ -709,19 +719,21 @@ public final class FeedVideoControls {
             Rect base = base(control, view);
             corner.speakerSide = rtl ? base.left - video.left <= side : video.right - base.right <= side;
             room = Math.min(room, Math.max(0, video.bottom - base.bottom - gap));
+            lift = Math.max(lift, base.bottom - clear);
             seen.append(seen.length() == 0 ? "" : ", ").append(view.getClass().getName())
                     .append(corner.speakerSide ? " speaker side " : " ").append(view.getContentDescription());
         }
-        int shift = lower ? room : 0;
+        int shift = edge ? -lift : lower ? room : 0;
         for (Corner corner : control.corners.values()) corner.shift(shift);
-        control.lowered = shift;
+        control.lowered = lower ? shift : 0;
         String summary = seen.length() == 0 ? "none" : seen.toString();
         if (!summary.equals(control.cornersSaid)) {
             control.cornersSaid = summary;
             if (!found.isEmpty()) HookStatus.bound(FAMILY, "feed video corner buttons");
             if (BaseSettings.DEBUG.get()) {
                 Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE,
-                        () -> "Feed video corner buttons: " + summary + ", moved down " + shift + " px");
+                        () -> "Feed video corner buttons: " + summary
+                                + (shift < 0 ? ", moved up " + -shift : ", moved down " + shift) + " px");
             }
         }
     }
@@ -750,7 +762,7 @@ public final class FeedVideoControls {
         for (int i = 0; i < group.getChildCount(); i++) findCorners(control, group.getChildAt(i), video, strip, small, side, found);
     }
 
-    /** [view]'s spot in the window as Facebook placed it, before Lower the seek bar moved it. */
+    /** [view]'s spot in the window as Facebook placed it, before a seek bar switch moved it. */
     private static Rect base(Control control, View view) {
         int[] at = new int[2];
         view.getLocationInWindow(at);
@@ -878,7 +890,7 @@ public final class FeedVideoControls {
                 return;
             }
             if (kind == BACK || kind == AHEAD) {
-                skip(control, player, button, kind == AHEAD ? SKIP_MS : -SKIP_MS);
+                skip(control, player, button.params.get(), kind == AHEAD ? SKIP_MS : -SKIP_MS, "inline skip");
                 return;
             }
             if (kind == SPEED) {
@@ -917,12 +929,11 @@ public final class FeedVideoControls {
     /**
      * Moves [player] [by] milliseconds, kept inside the video. A tap before the last skip landed
      * counts from where that one asked for, since the player reports its old spot until then, so
-     * three quick taps jump 30 seconds.
+     * three quick taps jump 30 seconds. False when the player gives no length to keep it inside.
      */
-    private static void skip(Control control, Object player, Button button, int by) {
-        Object params = button.params.get();
+    private static boolean skip(Control control, Object player, @Nullable Object params, int by, String what) {
         int length = params == null ? 0 : access.length(player, params);
-        if (length <= 0) return;
+        if (length <= 0) return false;
         long now = SystemClock.uptimeMillis();
         int position = Math.max(0, Math.min(length, access.position(player)));
         int from = control.skipTo >= 0 && now < control.skipUntil && Math.abs(position - control.skipTo) > LANDED_WITHIN_MS
@@ -939,7 +950,26 @@ public final class FeedVideoControls {
             bar.setProgress(to);
         }
         control.wake();
-        HookStatus.counted(FAMILY, "inline skip");
+        HookStatus.counted(FAMILY, what);
+        return true;
+    }
+
+    /** Whether [player] has a length a jump can stay inside, which a live video has while it can be rewound (#432). */
+    static boolean skippable(Object player) {
+        Object params = access.params(player);
+        return params != null && access.length(player, params) > 0;
+    }
+
+    /** Jumps [player] [by] milliseconds for a double tap, as the skip buttons do, live videos included (#432). */
+    static boolean skipBy(Object player, int by) {
+        Control control;
+        synchronized (players) {
+            control = players.get(player);
+        }
+        if (control == null) return false;
+        Object params = access.params(player);
+        boolean live = params != null && access.live(params);
+        return skip(control, player, params, by, live ? "double tap skip, live" : "double tap skip");
     }
 
     /** The speed after [now] in {@link #SPEEDS}. One off the list goes back to 1x. */

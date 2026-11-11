@@ -30,6 +30,17 @@ public final class KeywordRules {
     private static final Pattern COMPOSITE =
             Pattern.compile("^\\s*\"([^\"]+)\"\\s*(!?&!?)\\s*\"([^\"]+)\"\\s*$");
 
+    /**
+     * A phrase that is one hashtag and nothing else, like the ones Also filter it adds. It starts
+     * with a letter, digit or underscore, so the keycap emoji's # and its marks aren't a tag.
+     */
+    private static final Pattern HASHTAG = Pattern.compile("#[\\p{L}\\p{N}_][\\p{L}\\p{M}\\p{N}_]*");
+
+    private static final char DOTLESS_I = (char) 0x131;
+    private static final char DOT_ABOVE = (char) 0x307;
+    private static final char FINAL_SIGMA = (char) 0x3C2;
+    private static final char SIGMA = (char) 0x3C3;
+
     /** Test-only observer for proving the feed path does not rebuild unchanged rules. */
     private static volatile Runnable parseTestHook;
     private static final Object CACHE_LOCK = new Object();
@@ -54,10 +65,16 @@ public final class KeywordRules {
         private final String second;
         private final boolean without;
         private final String entry;
+        private final boolean firstIsTag;
+        private final boolean secondIsTag;
 
         private Rule(String first, String second, boolean without, String entry) {
-            this.first = first;
-            this.second = second;
+            // A quoted half keeps its spaces, which can mean a word's edge, but " #cat" is still
+            // the tag and nothing else.
+            this.firstIsTag = isTag(first);
+            this.secondIsTag = second != null && isTag(second);
+            this.first = firstIsTag ? first.trim() : first;
+            this.second = secondIsTag ? second.trim() : second;
             this.without = without;
             this.entry = entry;
         }
@@ -67,11 +84,49 @@ public final class KeywordRules {
             return entry;
         }
 
-        /** @param lowerCased the text to test, already lower cased with {@link Locale#ROOT}. */
+        /** Whether the rule asks for its second phrase to be missing ({@code "a" !& "b"}). */
+        public boolean excludesSecond() {
+            return second != null && without;
+        }
+
+        /** @param lowerCased the text to test, already lower cased with {@link #fold}. */
         public boolean matches(String lowerCased) {
-            if (lowerCased == null || first.isEmpty() || !lowerCased.contains(first)) return false;
+            if (lowerCased == null || first.isEmpty() || !holds(lowerCased, first, firstIsTag)) return false;
             if (second == null) return true;
-            return without != lowerCased.contains(second);
+            return without != holds(lowerCased, second, secondIsTag);
+        }
+    }
+
+    /**
+     * Whether the text holds the phrase. A phrase that is one hashtag counts only where the tag
+     * ends too, so #cat doesn't hide #catholic or #cats. Anything else is a plain substring.
+     */
+    private static boolean holds(String lowerCased, String phrase, boolean tag) {
+        int at = lowerCased.indexOf(phrase);
+        if (!tag) return at >= 0;
+        for (; at >= 0; at = lowerCased.indexOf(phrase, at + 1)) {
+            int end = at + phrase.length();
+            if (end == lowerCased.length() || !tagCharacter(lowerCased.codePointAt(end))) return true;
+        }
+        return false;
+    }
+
+    private static boolean isTag(String phrase) {
+        return HASHTAG.matcher(phrase.trim()).matches();
+    }
+
+    /** A character that carries a hashtag on: a letter, mark, number or underscore. */
+    public static boolean tagCharacter(int codePoint) {
+        if (codePoint == '_' || Character.isLetterOrDigit(codePoint)) return true;
+        switch (Character.getType(codePoint)) {
+            case Character.NON_SPACING_MARK:
+            case Character.COMBINING_SPACING_MARK:
+            case Character.ENCLOSING_MARK:
+            case Character.LETTER_NUMBER:
+            case Character.OTHER_NUMBER:
+                return true;
+            default:
+                return false;
         }
     }
 
@@ -197,7 +252,31 @@ public final class KeywordRules {
     }
 
     private static String lower(String value) {
-        return value.toLowerCase(Locale.ROOT);
+        return fold(value);
+    }
+
+    /**
+     * Text lower cased the way both a list and what it's matched against are. {@link Locale#ROOT}
+     * alone leaves three gaps: Turkish capital dotted I comes out as i plus a combining dot, so
+     * #ali missed it as a whole tag, the dotless i never met a typed i, and Greek capital sigma
+     * turns final only at a word's end, so a tag on the list and the same tag inside a caption
+     * could come out spelled differently.
+     */
+    public static String fold(String text) {
+        String lower = text.toLowerCase(Locale.ROOT);
+        StringBuilder folded = null;
+        for (int index = 0; index < lower.length(); index++) {
+            char character = lower.charAt(index);
+            boolean dropped = character == DOT_ABOVE && index > 0
+                    && (lower.charAt(index - 1) == 'i' || lower.charAt(index - 1) == DOTLESS_I);
+            char kept = character == DOTLESS_I ? 'i' : character == FINAL_SIGMA ? SIGMA : character;
+            if (folded == null) {
+                if (!dropped && kept == character) continue;
+                folded = new StringBuilder(lower.length()).append(lower, 0, index);
+            }
+            if (!dropped) folded.append(kept);
+        }
+        return folded == null ? lower : folded.toString();
     }
 
     /**
@@ -233,7 +312,7 @@ public final class KeywordRules {
      */
     public static Rule firstMatch(List<Rule> rules, String text) {
         if (text == null || rules.isEmpty()) return null;
-        String lowerCased = text.toLowerCase(Locale.ROOT);
+        String lowerCased = fold(text);
         for (Rule rule : rules) {
             if (rule.matches(lowerCased)) return rule;
         }

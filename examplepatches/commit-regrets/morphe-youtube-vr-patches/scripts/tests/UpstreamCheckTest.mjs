@@ -102,9 +102,13 @@ equal('fixture storefront (1.88.10, dropped) -> no update', fixtureRollback.hasU
 equal('fixture storefront (1.88.10, dropped) -> rollback', fixtureRollback.isRollback, true);
 
 // A genuine release: the storefront serves something newer than every supported version.
+// 1.92.00: genuinely AHEAD of the newest supported target (1.91.10 as of the 2026-11-10 flip).
+// The 1.91.00 this used to pin became a SUPPORTED version at that flip, and both
+// "serves a new version" and "unreadable storefront" stopped being updates -- these fixtures
+// must be bumped above the newest AppTarget whenever a release reaches their version.
 const genuine = decide({
-  released: { version: '1.91.00', versionCode: 19100000, binaryId: 'x' },
-  channel: { ...channelAhead, version: '1.91.00', versionCode: 19100000 },
+  released: { version: '1.92.00', versionCode: 19200000, binaryId: 'x' },
+  channel: { ...channelAhead, version: '1.92.00', versionCode: 19200000 },
   supportedVersions: supported,
 });
 equal('storefront serves a new version -> update', genuine.hasUpdate, true);
@@ -124,7 +128,7 @@ equal('older storefront version -> flagged as rollback', rollback.isRollback, tr
 // channel's build is one nobody supports yet, so it is still an update worth reporting.
 const unreadable = decide({
   released: null,
-  channel: { ...channelAhead, version: '1.91.00', versionCode: 19100000 },
+  channel: { ...channelAhead, version: '1.92.00', versionCode: 19200000 },
   supportedVersions: supported,
 });
 equal('unreadable storefront -> still reports the channel', unreadable.hasUpdate, true);

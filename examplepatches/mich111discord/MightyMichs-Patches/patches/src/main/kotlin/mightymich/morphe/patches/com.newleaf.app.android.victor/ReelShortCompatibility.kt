@@ -11,8 +11,9 @@ object ReelShortCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xE50914,
         targets = listOf(
+            AppTarget(version = "4.2.60"),
             AppTarget(version = "4.2.20"),
-            AppTarget(version = "4.2.00"),
+            AppTarget(version = "4.2.00", isExperimental = true),
         ),
     )
 }

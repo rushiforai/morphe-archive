@@ -24,6 +24,7 @@ import dev.utaa.linimal.patches.status.unsafeFeatureStatus
 import dev.utaa.linimal.patches.util.BOOLEAN
 import dev.utaa.linimal.patches.util.OBJECT
 import dev.utaa.linimal.patches.util.VOID
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val FUNCTION3 = "Lnt8/q;"
 
@@ -85,7 +86,7 @@ val agentIChatListSearchPatch = bytecodePatch(
 
         val header = headerMatches.single()
         val injectionShape = chatListSearchInjectionShape(header.method)
-        if (injectionShape == null) {
+        if (injectionShape == null || !isSafeInjectionIndex(header.method.implementation, injectionShape.insertionIndex)) {
             patchStatusCollector.record(
                 unsafeFeatureStatus(
                     patchId = PatchId.AGENT_I_CHAT_LIST_SEARCH,
@@ -102,7 +103,7 @@ val agentIChatListSearchPatch = bytecodePatch(
         header.method.addInstructions(
             injectionShape.insertionIndex,
             """
-                invoke-static { v${injectionShape.visibilityRegister} }, $CHAT_LIST_SEARCH_HOOK
+                invoke-static/range { v${injectionShape.visibilityRegister} .. v${injectionShape.visibilityRegister} }, $CHAT_LIST_SEARCH_HOOK
                 move-result v${injectionShape.visibilityRegister}
             """.trimIndent(),
         )

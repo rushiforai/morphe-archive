@@ -39,6 +39,7 @@ public final class FamilyNames {
     public static final String STORY_SOUND = "Start stories with sound";
     public static final String STORY_SWIPE_REPLY = "Stop swipe up to reply";
     public static final String STORY_REPLY_BOX = "Hide the reply box on stories";
+    public static final String STORY_BUTTONS_ROOM = "Keep story buttons below the story";
     public static final String STORY_FONTS = "Story text fonts";
     public static final String STORY_UPLOAD_QUALITY = "Upload stories at full quality";
     public static final String FEED_SOUND = "Start feed videos with sound";
@@ -55,6 +56,7 @@ public final class FamilyNames {
     public static final String APP_PROXY = "App-only proxy";
     public static final String SETUP_POPUPS = "Skip the contacts and location popups";
     public static final String AD_DATA_REMINDER = "Skip the ad data reminder";
+    public static final String PHOTO_LOCATIONS = "Keep photo locations from Instagram";
     public static final String THREAD_SEEN = "Read messages without the seen receipt";
     public static final String TYPING = "Hide that you're typing";
     public static final String ACTIVE_STATUS = "Hide your active status";
@@ -111,6 +113,7 @@ public final class FamilyNames {
     public static final String PROFILE_TABS = "Hide profile tabs";
     public static final String THREADS_BUTTON = "Hide the Threads button";
     public static final String PROFILE_NOTES = "Hide Notes on profile pictures";
+    public static final String PROFILE_BANNERS = "Hide profile banners";
     public static final String PROFILE_POSTS_LIST = "Profile posts as a list";
     public static final String PROFILE_GRID_JUMP = "Jump a profile's posts to a date";
     public static final String COMMENT_COPY = "Copy comment";
@@ -185,6 +188,7 @@ public final class FamilyNames {
     public static final String GLASS_CHAT = "Glass in chats";
     public static final String ASK_BEFORE_LIKE = "Ask before a like";
     public static final String ASK_BEFORE_REFRESH = "Ask before a refresh";
+    public static final String ASK_BEFORE_FOLLOW = "Ask before a follow";
     public static final String SAVE_TRAY = "Skip the collections tray";
     public static final String LIVE_SEEN = "View live anonymously";
 }

@@ -4,7 +4,7 @@
 
 | ファイル | 内容 |
 | --- | --- |
-| `google-base.apk` | Google 17.70.11.ve.arm64 / versionCode 301827586のbase |
+| `google-base.apk` | Google 17.72.17.ve.arm64 / versionCode 301831138のbase |
 | `google-xxhdpi.apk` | 同じ配布セットのxxhdpi split |
 | `gemini-base.apk` | Gemini 1.0.995038376 / versionCode 345のbase |
 

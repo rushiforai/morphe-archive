@@ -153,6 +153,8 @@ public class FeedScreenCoverageTest {
                 "block_sound_button", "not_interested_button", "feed_mute_button", "download_button"}) {
             put(button, YES, YES, NONE);
         }
+        // The chooser after a Not interested tap, so it reaches where that button does.
+        put("not_interested_also_filter", YES, YES, NONE);
 
         // Video info. The text sizes, the date and the creator row hook TikTok's own owners,
         // which both windows share.
@@ -174,6 +176,7 @@ public class FeedScreenCoverageTest {
         put("sound_grid_sort", NONE, NONE, NONE);
         // Where the Liked grid's list starts, which neither window draws (#350).
         put("liked_jump_to_date", NONE, NONE, NONE);
+        put("grid_search", NONE, NONE, NONE);
         // Controls over the profile, Liked and sound grids, which neither window draws (#378).
         put("grid_position_controls", NONE, NONE, NONE);
         put("show_author_region", YES, YES, NONE);

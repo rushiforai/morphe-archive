@@ -63,6 +63,18 @@ public final class ExternalBrowserPolicy {
         return "http".equals(normalized) || "https".equals(normalized);
     }
 
+    /**
+     * トーク内で外部ブラウザへ渡すリンクの操作。本文リンク（CLICK）、リッチメッセージ（RICH_MSG）、
+     * リッチメニュー（RICH_MENU）、テンプレート・Flex のカード（TEMPLATE_MSG）です。
+     * 名前の分からない操作や、操作の種類を持たない経路（UNKNOWN）は元の処理へ残します。
+     */
+    public static boolean isEligibleChatLinkAction(String actionName) {
+        return "CLICK".equals(actionName)
+                || "RICH_MSG".equals(actionName)
+                || "RICH_MENU".equals(actionName)
+                || "TEMPLATE_MSG".equals(actionName);
+    }
+
     /** LINE が内部 routing に使う既知の web host は、通常リンクでも元の処理へ残します。 */
     public static boolean isKnownLineWebHost(String host) {
         if (host == null) {

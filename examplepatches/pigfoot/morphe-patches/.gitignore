@@ -132,3 +132,6 @@ local.properties
 *.apks
 *.mpp
 *.mpe
+
+# Resolved per CI job; published with the build, never a repository version pin.
+morphe-toolchain.json

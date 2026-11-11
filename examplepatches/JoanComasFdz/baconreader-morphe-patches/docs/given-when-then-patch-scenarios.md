@@ -35,12 +35,12 @@ Scenario: BaconReader patched with Spoof client logs in to Reddit as RedReader
   When I tap "Accept"
   # BaconReader comes back from the login with the left menu open.
   Then the left menu shows the test account's user name
-  # Not on the screen: the fake Reddit records what BaconReader sent.
+  # On the setup page: the fake Reddit records what BaconReader sent.
   And Reddit saw RedReader's client ID, redirect URI and User-Agent
   When I close the left menu
   Then the toolbar shows the "Front Page" feed
   And the feed shows the post "Hello from r/e2e"
-  # Not on the screen: the fake Reddit records what BaconReader sent.
+  # On the setup page: the fake Reddit records what BaconReader sent.
   And Reddit got the request for the posts with RedReader's User-Agent
 ```
 
@@ -55,8 +55,8 @@ Scenario: BaconReader patched with Spoof client logs in to Reddit as RedReader
      "Spoof client" when it needs a login (anything that loads posts or comments: Reddit, and so the fake Reddit,
      refuses a logged-out BaconReader with `HTTP 403 Blocked`). Each one is quoted in the Given, one a line.
    - **LoggedIn** (`Scenarios/LoggedIn/`): every other patch. **Patch with every patch**, as the user installs them,
-     one APK for every LoggedIn scenario: `And BaconReader is patched with every patch`, then `And BaconReader is open`
-     and `And the test account is logged in`. It still tests only its own patch (point 1). When another patch changes
+     one APK for every LoggedIn scenario: `And BaconReader is patched with every patch`, then `And the test account is logged in`
+     and `And BaconReader is open`. It still tests only its own patch (point 1). When another patch changes
      what it sees, say so in a `#` line above the check; when that is a bug of the two together, tell the owner.
 3. **Cover every case that can change the result.** For example:
    - each value its setting offers (on and off, each choice);

@@ -1,0 +1,84 @@
+name: Bug report
+description: Report a patch failure, crash or incorrect behavior
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough detail to reproduce it.
+        For security issues, use the private security policy instead of this form.
+
+  - type: input
+    id: app
+    attributes:
+      label: App and version
+      description: Name and exact version of the app being patched.
+      placeholder: Reddit 2026.42.0
+    validations:
+      required: true
+
+  - type: input
+    id: patch
+    attributes:
+      label: Patch name
+      description: Exact name shown in Morphe Manager.
+      placeholder: Hide read posts
+    validations:
+      required: true
+
+  - type: input
+    id: morphe
+    attributes:
+      label: Morphe Manager version
+      placeholder: 2.1.1
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      placeholder: Pixel 8, Android 16
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the expected and actual behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Patch ...
+        2. Open ...
+        3. Tap ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Patcher output, crash log or screenshots. Remove personal data and tokens.
+      render: text
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and the documentation.
+          required: true
+        - label: I am using the latest release or pre-release bundle.
+          required: true
+        - label: This report does not contain credentials or private data.
+          required: true

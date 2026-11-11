@@ -1,3 +1,9 @@
+## [1.14.0](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.13.3...v1.14.0) (2026-11-10)
+
+### ✨ New Features
+
+* **Apple Music:** play songs asked for by voice through Jovi ([1b9a703](https://github.com/JacksonJones2003/origin-island-patches/commit/1b9a7032ab718fc31bf8016e133adec9070f0777))
+
 ## [1.13.3](https://github.com/JacksonJones2003/origin-island-patches/compare/v1.13.2...v1.13.3) (2026-11-09)
 
 ### 🐛 Bug Fixes

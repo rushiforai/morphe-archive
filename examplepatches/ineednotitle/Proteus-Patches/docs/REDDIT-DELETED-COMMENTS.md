@@ -12,9 +12,11 @@ what it restored.
 1. The patch hooks the same verified `Listing.<init>` children choke point used by
    "Block AutoMod comments" / "Content filters" (plus `getChildren()` when present), via
    `injectListingChildrenFilter(...)` in `reddit/shared/RedditListingChildren.kt`.
-2. `RedditDeletedCommentHelper.undeleteComments(List)` walks every row. A row is in
+2. `RedditDeletedCommentHelper.undeleteContent(List)` walks every row. A row is in
    scope only when it is comment-shaped (`t1_*` kind, a comment-model class name, or the
-   usual parent/depth markers) **and** its body is exactly `[deleted]` or `[removed]`.
+   usual parent/depth markers) **and** its visible text is exactly `[deleted]` or
+   `[removed]`. The check covers `body`, `bodyPreview`, and the nested
+   `CommentTombstone.markdown`/`richtext` placeholders used by current Reddit builds.
 3. All in-scope comment ids in the listing are looked up in **one batched request**
    against the free [Arctic Shift](https://github.com/ArthurHeitmann/arctic_shift) id
    endpoint (`GET /api/comments/ids?ids=…&fields=id,body`, no API key). If Arctic Shift
@@ -24,7 +26,10 @@ what it restored.
 4. Restored text is written back into the comment model prefixed with `[archived] ` so
    provenance is always visible. Bodies are replaced through a `setBody`-style setter
    when the model exposes one; otherwise through instance `String` fields whose current
-   value is exactly the placeholder. Author/user-like fields are never touched.
+   value is exactly the placeholder. Current builds render deleted comments from a
+   nested `CommentTombstone`, so the helper also rewrites its markdown and clears its
+   richtext placeholder; otherwise the UI would keep showing the original tombstone.
+   Author/user-like fields are never touched.
 5. Results — including misses — are cached in memory for the lifetime of the process.
 
 ## Privacy notes
@@ -71,18 +76,23 @@ blaming the patch:
   2026-11-06 (endpoint path, `ids` limit 500, `fields` parameter, response envelope).
 - The bytecode injection rides the `Listing.children` anchor used by the existing
   "Remove ads" patch on Reddit 2026.42.0 (static match only, not exercised on-device).
-- The runtime restore path (reflection into the comment model) has **not** been
-  exercised on-device. It fails safe: any exception, missing setter, or field-layout
-  drift leaves the stock `[deleted]` row intact and logs to stdout.
-- Static verification only in this workspace (no JDK/APK); run the CI build and a real
-  2026.42.0 APK before release.
+- The runtime restore path (reflection into the comment model and nested
+  `CommentTombstone`) has **not** been exercised on-device. It fails safe: any
+  exception, missing field, or field-layout drift leaves the stock `[deleted]` row
+  intact and logs to stdout.
+- Unit tests cover `body`/`bodyPreview`/`CommentTombstone` detection and replacement;
+  the Android bundle and patch injection are build-verified against 2026.42.0.
 
 ## Re-verifying after a Reddit update
 
 1. Confirm `Lcom/reddit/domain/model/listing/Listing;->children` still exists with the
    same constructor writes (see `reddit/shared/RedditListingChildren.kt` header).
 2. Confirm comment rows flow through that container (they did on 2026.42.0).
-3. If the archive lookup fails silently on-device, check `adb logcat` for
+3. Confirm `Comment` still exposes `getBody`/`getBodyPreview` and
+   `getCommentTombstone`, and that `CommentTombstone` still has `markdown`/`richtext`
+   fields. Deleted rows may leave `body` empty and put the placeholder in the
+   tombstone, so body-only detection is not sufficient.
+4. If the archive lookup fails silently on-device, check `adb logcat` for
    `[Proteus] Show deleted comments:` lines — the helper logs how many deleted rows it
    saw, how many ids the archive returned, and whether a hit could be written back into
    the model. Endpoint changes or rate limits are logged there, and the comment is left

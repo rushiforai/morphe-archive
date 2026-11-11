@@ -73,6 +73,11 @@ public final class CobaltScriptInjector {
         }
         scheduled = true;
 
+        // Also schedule the back-to-exit handler. Both the ad-block and the back-exit need
+        // WebContents before they can inject; sharing the timing here saves the second call
+        // from the patch from having to re-poll.
+        BackToExitInjector.schedule(activity);
+
         final Handler handler = new Handler(Looper.getMainLooper());
 
         handler.postDelayed(new Runnable() {

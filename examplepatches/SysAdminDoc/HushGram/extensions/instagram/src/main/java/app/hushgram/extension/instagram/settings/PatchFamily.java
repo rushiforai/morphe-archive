@@ -67,7 +67,9 @@ public enum PatchFamily {
     STORY_PRIORITY(FamilyNames.STORY_PRIORITY, "storyPriority", null, Settings.STORY_PRIORITY),
     STORY_SOUND(FamilyNames.STORY_SOUND, "storySound", null, Settings.START_STORIES_WITH_SOUND),
     STORY_SWIPE_REPLY(FamilyNames.STORY_SWIPE_REPLY, "storySwipeReply", null, Settings.STOP_STORY_SWIPE_REPLY),
-    STORY_REPLY_BOX(FamilyNames.STORY_REPLY_BOX, "storyReplyBox", null, Settings.HIDE_STORY_REPLY_BOX),
+    STORY_REPLY_BOX(FamilyNames.STORY_REPLY_BOX, "storyReplyBox", null, Settings.HIDE_STORY_REPLY_BOX,
+            Settings.HIDE_STORY_LIKE_BUTTON, Settings.HIDE_STORY_COMMENT_BUTTON, Settings.HIDE_STORY_SHARE_BUTTON),
+    STORY_BUTTONS_ROOM(FamilyNames.STORY_BUTTONS_ROOM, "storyButtonsRoom", null, Settings.KEEP_STORY_BUTTONS_BELOW),
     STORY_FONTS(FamilyNames.STORY_FONTS, "storyFonts", null, Settings.STORY_FONTS, Settings.STORY_EMOJI),
     STORY_UPLOAD_QUALITY(FamilyNames.STORY_UPLOAD_QUALITY, "storyUploadQuality", null, Settings.UPLOAD_STORIES_AT_FULL_QUALITY),
     FEED_SOUND(FamilyNames.FEED_SOUND, "feedSound", null, Settings.START_FEED_VIDEOS_WITH_SOUND),
@@ -90,13 +92,14 @@ public enum PatchFamily {
     APP_PROXY(FamilyNames.APP_PROXY, "appProxy", null, Settings.APP_PROXY),
     SETUP_POPUPS(FamilyNames.SETUP_POPUPS, "setupPopups", null, Settings.SKIP_SETUP_POPUPS),
     AD_DATA_REMINDER(FamilyNames.AD_DATA_REMINDER, "adDataReminder", null, Settings.SKIP_AD_DATA_REMINDER),
+    PHOTO_LOCATIONS(FamilyNames.PHOTO_LOCATIONS, "photoLocations", null, Settings.KEEP_PHOTO_LOCATIONS),
     THREAD_SEEN(FamilyNames.THREAD_SEEN, "threadSeen", null, Settings.READ_WITHOUT_SEEN_RECEIPT,
             Settings.KEEP_CHATS_UNREAD, Settings.MARK_SEEN_ON_REPLY, Settings.MARK_READ_IN_CHAT, Settings.SEEN_PER_CHAT),
     TYPING(FamilyNames.TYPING, "typing", null, Settings.HIDE_TYPING),
     ACTIVE_STATUS(FamilyNames.ACTIVE_STATUS, "activeStatus", null, Settings.HIDE_ACTIVE_STATUS),
     LAST_ACTIVE(FamilyNames.LAST_ACTIVE, "lastActive", null, Settings.SHOW_LAST_ACTIVE),
     MESSAGES_LOCK(FamilyNames.MESSAGES_LOCK, "messagesLock", null, Settings.LOCK_MESSAGES, Settings.LOCK_APP,
-            Settings.DOUBLE_TAP_HIDDEN_CHATS),
+            Settings.LOCK_SAVED, Settings.DOUBLE_TAP_HIDDEN_CHATS),
     SCREENSHOT_REPORTS(FamilyNames.SCREENSHOT_REPORTS, "screenshotReports", null, Settings.HIDE_SCREENSHOTS),
     BLEND_VISITS(FamilyNames.BLEND_VISITS, "blendVisits", null, Settings.HIDE_BLEND_VISITS),
     SCREENSHOT_BLOCK(FamilyNames.SCREENSHOT_BLOCK, "screenshotBlock", null, Settings.ALLOW_SCREENSHOTS),
@@ -117,6 +120,7 @@ public enum PatchFamily {
     GLASS_CHAT(FamilyNames.GLASS_CHAT, "glassChat", null, Settings.GLASS_CHAT),
     ASK_BEFORE_LIKE(FamilyNames.ASK_BEFORE_LIKE, "askBeforeLike", null, Settings.ASK_BEFORE_LIKE),
     ASK_BEFORE_REFRESH(FamilyNames.ASK_BEFORE_REFRESH, "askBeforeRefresh", null, Settings.ASK_BEFORE_REFRESH),
+    ASK_BEFORE_FOLLOW(FamilyNames.ASK_BEFORE_FOLLOW, "askBeforeFollow", null, Settings.ASK_BEFORE_FOLLOW),
     SAVE_TRAY(FamilyNames.SAVE_TRAY, "saveTray", null, Settings.SKIP_COLLECTIONS_TRAY),
     STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null, Settings.HIDE_SUGGESTED_STORIES,
             Settings.HIDE_STORY_REWINDS, Settings.HIDE_STORY_RECAPS, Settings.STOP_LOADING_STORIES,
@@ -129,8 +133,9 @@ public enum PatchFamily {
     FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null, Settings.HIDE_FEED_REELS),
     FEED_SUGGESTIONS(FamilyNames.FEED_SUGGESTIONS, "feedSuggestions", null, Settings.HIDE_SUGGESTED_ACCOUNTS,
             Settings.HIDE_SUGGESTED_POSTS, Settings.HIDE_THREADS_POSTS, Settings.HIDE_FEED_SURVEYS,
-            Settings.HIDE_FEED_STORY_ROWS, Settings.HIDE_FEED_SHOPPING, Settings.HIDE_FEED_INTEREST, Settings.HIDE_CAUGHT_UP_CARD, Settings.HIDE_FEED_VIDEOS,
-            Settings.HIDE_FEED_PHOTOS, Settings.HIDE_FEED_CAROUSELS, Settings.HIDE_FEED_LIKED),
+            Settings.HIDE_FEED_STORY_ROWS, Settings.HIDE_FEED_SHOPPING, Settings.HIDE_FEED_INTEREST, Settings.HIDE_CAUGHT_UP_CARD, Settings.HIDE_CHANNEL_JOIN_BAR, Settings.HIDE_FEED_VIDEOS,
+            Settings.HIDE_FEED_PHOTOS, Settings.HIDE_FEED_CAROUSELS, Settings.HIDE_FEED_LIKED, Settings.HIDE_FEED_PROFESSIONAL,
+            Settings.HIDDEN_IN_FAVORITES),
     HOME_FEED(FamilyNames.HOME_FEED, "homeFeed", null, Settings.HIDE_HOME_FEED),
     FOLLOWING_FEED(FamilyNames.FOLLOWING_FEED, "followingFeed", null, Settings.START_ON_FOLLOWING,
             Settings.ONLY_FOLLOWING, Settings.LOGO_ON_FOLLOWING, Settings.FOLLOWING_FALLBACK, Settings.FOLLOWING_MIX),
@@ -198,6 +203,9 @@ public enum PatchFamily {
             Settings.HIDE_CREATE_BUTTON, Settings.HIDE_SHARE_PROFILE_BUTTON, Settings.HIDE_SUBSCRIBE_PROFILE_BUTTON,
             Settings.HIDE_PROFILE_OVERFLOW_BUTTON),
     PROFILE_NOTES(FamilyNames.PROFILE_NOTES, "profileNotes", null, Settings.HIDE_PROFILE_NOTES),
+    PROFILE_BANNERS(FamilyNames.PROFILE_BANNERS, "profileBanners", null, Settings.HIDE_PROFILE_THREADS_BADGE,
+            Settings.HIDE_PROFILE_FACEBOOK_LINKS, Settings.HIDE_PROFILE_WHATSAPP_LINK, Settings.HIDE_PROFILE_SONG,
+            Settings.HIDE_PROFILE_INTERESTS, Settings.HIDE_PROFILE_CHANNEL_BANNER, Settings.HIDE_OTHER_PROFILE_BANNERS),
     PROFILE_POSTS_LIST(FamilyNames.PROFILE_POSTS_LIST, "profilePostsList", null, Settings.PROFILE_POSTS_LIST),
     PROFILE_GRID_JUMP(FamilyNames.PROFILE_GRID_JUMP, "profileGridJump", null, Settings.PROFILE_GRID_JUMP),
     COMMENT_COPY(FamilyNames.COMMENT_COPY, "commentCopy", null, Settings.COPY_COMMENTS, Settings.COPY_COMMENT_AUTHORS,
@@ -206,9 +214,9 @@ public enum PatchFamily {
             Settings.REPLY_WITH_COMMENT_GIFS, Settings.SHOW_COMMENT_GIF_NAMES),
     PROFILE_PICTURE(FamilyNames.PROFILE_PICTURE, "profilePicture", null, Settings.SAVE_PROFILE_PICTURES,
             Settings.VIEW_PROFILE_PICTURES, Settings.COPY_PROFILE_TEXT, Settings.PROFILE_EXTRAS_BUTTON,
-            Settings.ABOUT_ACCOUNT_BUTTON),
+            Settings.ABOUT_ACCOUNT_BUTTON, Settings.PROFILE_HISTORY, Settings.SAVED_PROFILES),
     VOICE_MESSAGE(FamilyNames.VOICE_MESSAGE, "voiceMessage", null, Settings.DOWNLOAD_VOICE_MESSAGES),
-    HIDE_COMMENTS(FamilyNames.HIDE_COMMENTS, "hideComments", null, Settings.HIDE_COMMENTS),
+    HIDE_COMMENTS(FamilyNames.HIDE_COMMENTS, "hideComments", null, Settings.HIDE_COMMENTS, Settings.HIDE_COMMENT_REPLY),
     COMMENT_EMOJI_ROW(FamilyNames.COMMENT_EMOJI_ROW, "commentEmojiRow", null, Settings.HIDE_COMMENT_EMOJI_ROW),
     COMMENT_KEYBOARD(FamilyNames.COMMENT_KEYBOARD, "commentKeyboard", null, Settings.COMMENT_KEYBOARD_DOWN),
     COMMENT_GIFS(FamilyNames.COMMENT_GIFS, "commentGifs", null, Settings.HIDE_COMMENT_GIFS),
@@ -405,6 +413,22 @@ public enum PatchFamily {
         return COMMENT_PHOTO.inBuild() && SettingsStatus.commentGifName() && commentAuthorInBuild();
     }
 
+    /** Whether a test says this build takes Reply off comments, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean commentReplyForTests;
+
+    /**
+     * Whether this build takes Reply off each comment in a post's or reel's comments. Hide comments
+     * goes in without it when the line under a comment has moved, so that switch isn't offered then.
+     */
+    public static boolean commentReplyInBuild() {
+        Boolean forced = commentReplyForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(HIDE_COMMENTS);
+        return HIDE_COMMENTS.inBuild() && SettingsStatus.commentReply();
+    }
+
     /** Whether a test says this build filters Home by a post's type, instead of asking {@link SettingsStatus}. */
     @Nullable
     static volatile Boolean feedTypesForTests;
@@ -420,6 +444,40 @@ public enum PatchFamily {
         Set<PatchFamily> families = inBuildForTests;
         if (families != null) return families.contains(FEED_SUGGESTIONS);
         return FEED_SUGGESTIONS.inBuild() && SettingsStatus.feedTypes();
+    }
+
+    /** Whether a test says this build tells which feed Home asks for, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean favoritesSourceForTests;
+
+    /**
+     * Whether this build tells a page of Favorites from one of For you or Following, which Keep
+     * hidden accounts in Favorites needs. Hide suggested posts goes in without it when the
+     * parameters of Home's requests have moved, so that switch isn't offered then.
+     */
+    public static boolean favoritesSourceInBuild() {
+        Boolean forced = favoritesSourceForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(FEED_SUGGESTIONS);
+        return feedTypesInBuild() && SettingsStatus.favoritesSource();
+    }
+
+    /** Whether a test says this build reads an account's type, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean professionalForTests;
+
+    /**
+     * Whether this build reads whether a post's author is a business or creator account, which Hide
+     * posts from business and creator accounts needs. Hide suggested posts goes in without it when
+     * an account's type has moved, so that switch isn't offered then.
+     */
+    public static boolean professionalInBuild() {
+        Boolean forced = professionalForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(FEED_SUGGESTIONS);
+        return feedTypesInBuild() && SettingsStatus.feedProfessional();
     }
 
     /** Whether a test says this build mixes Following into For you, instead of asking {@link SettingsStatus}. */
@@ -480,11 +538,21 @@ public enum PatchFamily {
             if (inBuild.contains(family)) {
                 lines.add(family.reportLine(paused));
                 if (family == FEED_SUGGESTIONS && !feedTypesInBuild()) {
-                    lines.add("  Hide videos, Hide photos, Hide carousels, Hide posts you've liked and Hidden accounts: "
-                            + "not in this build (Home's feed or a post's details didn't match)");
+                    lines.add("  Hide videos, Hide photos, Hide carousels, Hide posts you've liked, Hide posts from business "
+                            + "and creator accounts and Hidden accounts: not in this build (Home's feed or a post's details didn't match)");
+                } else if (family == FEED_SUGGESTIONS) {
+                    if (!favoritesSourceInBuild()) {
+                        lines.add("  Keep hidden accounts in Favorites: not in this build (Home's requests didn't match)");
+                    }
+                    if (!professionalInBuild()) {
+                        lines.add("  Hide posts from business and creator accounts: not in this build (an account's type didn't match)");
+                    }
                 }
                 if (family == COMMENT_COPY && !commentAuthorInBuild()) {
                     lines.add("  Copy the commenter's username: not in this build (the comment menu's label or the comment's author didn't match)");
+                }
+                if (family == HIDE_COMMENTS && !commentReplyInBuild()) {
+                    lines.add("  Hide Reply on comments: not in this build (the line under a comment didn't match)");
                 }
                 if (family == FOLLOWING_FEED && !followingMixInBuild()) {
                     lines.add("  Mix in Following: not in this build (Home's paging didn't match)");

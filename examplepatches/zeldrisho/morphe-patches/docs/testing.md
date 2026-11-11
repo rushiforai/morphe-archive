@@ -8,6 +8,18 @@ For each target, record the original APK or split bundle's package, version, ver
 
 See the [target evidence template](template.md) and [bytecode reference](bytecode.md). Do not declare a new supported target until its fingerprints, reflection ABI, transformations and behavior have been independently reviewed.
 
+## Current target evidence
+
+Compatibility entries in `shared/Constants.kt` describe which builds the patches target; they are not device-validation records. Current status:
+
+| Target | Patch application | Device behavior |
+| --- | --- | --- |
+| Zalo 26.08.01 (`260801903`) | PASS | Drive/microG flow validated through initial OAuth, photo restore, and a full backup/restore cycle; see [microG](microg.md). Re-run after the account-refresh fix. |
+| Zalo 26.10.02 (`261002903`) | PASS for the default set and both Drive patches | Several settings and navigation behaviors user-confirmed; Drive/microG account refresh and restore UNEXECUTED. |
+| Threads 453.0.0.56.79 (`512308696`) | PASS for the default set | Signed build installed as an update and the app works normally; individual patch behavior UNEXECUTED. |
+
+Promote a row only from a recorded run, and keep the raw evidence in the ignored analysis workspace.
+
 ## Build and patch
 
 ```bash

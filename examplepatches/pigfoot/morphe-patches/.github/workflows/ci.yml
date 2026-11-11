@@ -23,6 +23,14 @@ jobs:
           cache: 'npm'
       - run: npm ci --include=dev && npm test
 
+      - name: Resolve latest stable Morphe toolchain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/resolve-morphe-toolchain.mjs
+
       - run: ./gradlew :patches:test :patches:buildAndroid :patches:generatePatchesList --no-daemon
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify selected toolchain in bundle
+        run: python3 scripts/verify-morphe-toolchain.py

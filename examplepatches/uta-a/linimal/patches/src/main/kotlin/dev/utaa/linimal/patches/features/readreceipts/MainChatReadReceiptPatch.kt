@@ -125,6 +125,7 @@ private val cachedThreadSchedulerFingerprint = Fingerprint(
 private data class OutboundGateShape(
     val insertionIndex: Int,
     val queueField: FieldReference,
+    val queueInit: MethodReference,
     val queueMapField: FieldReference,
     val queueStoreField: FieldReference,
     val storePreferencesField: FieldReference,
@@ -571,6 +572,7 @@ private fun outboundGateShape(match: Match, failedStoreType: String): OutboundGa
         queueInit.definingClass != queueType ||
         queueInit.parameterTypes.isNotEmpty() ||
         queueInit.returnType != VOID ||
+        !isInvoke(instructions[7], Opcode.INVOKE_VIRTUAL, listOf(localMark), queueInit.name, emptyList(), VOID) ||
         queueMapField == null ||
         queueMapField.definingClass != queueType ||
         queueMapField.type != HASH_MAP ||
@@ -624,6 +626,7 @@ private fun outboundGateShape(match: Match, failedStoreType: String): OutboundGa
     return OutboundGateShape(
         insertionIndex = insertionIndex,
         queueField = queueField,
+        queueInit = queueInit,
         queueMapField = queueMapField,
         queueStoreField = queueStoreField,
         storePreferencesField = storePreferencesField,
@@ -664,6 +667,8 @@ private fun hasOutboundTail(
  */
 private fun injectOutboundGate(method: MutableMethod, shape: OutboundGateShape) {
     val queueField = fieldSmali(shape.queueField)
+    // 初期化 method 名は固定せず、元の flow が monitor-enter 直後に呼ぶ命令から導いたものを使います。
+    val queueInit = methodSmali(shape.queueInit)
     val queueMapField = fieldSmali(shape.queueMapField)
     val queueStoreField = fieldSmali(shape.queueStoreField)
     val storePreferencesField = fieldSmali(shape.storePreferencesField)
@@ -675,7 +680,7 @@ private fun injectOutboundGate(method: MutableMethod, shape: OutboundGateShape) 
             if-eqz v9, :originalQueue
             iget-object v9, v5, $queueField
             monitor-enter v9
-            invoke-virtual { v9 }, ${shape.queueField.type}->a()V
+            invoke-virtual { v9 }, $queueInit
             iget-object v0, v9, $queueMapField
             invoke-virtual { v0, v8 }, Ljava/util/HashMap;->remove(Ljava/lang/Object;)Ljava/lang/Object;
             move-result-object v0
@@ -758,7 +763,7 @@ internal fun manualButtonShape(method: Method): ManualButtonShape? {
  */
 private fun injectManualCaller(method: MutableMethod, shape: ManualButtonShape) {
     method.addInstructions(shape.cleanupIndex, "invoke-static { }, $CLEAR_MANUAL")
-    method.addInstructions(shape.executorCallIndex, "invoke-static { v${shape.chatIdRegister} }, $BEGIN_MANUAL")
+    method.addInstructions(shape.executorCallIndex, "invoke-static/range { v${shape.chatIdRegister} .. v${shape.chatIdRegister} }, $BEGIN_MANUAL")
 
     val implementation = checkNotNull(method.implementation)
     val handlerIndex = implementation.instructions.size
@@ -1069,6 +1074,9 @@ private fun typeReference(instruction: Instruction?): String? =
     ((instruction as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.TypeReference)?.type
 
 private fun fieldSmali(field: FieldReference): String = "${field.definingClass}->${field.name}:${field.type}"
+
+private fun methodSmali(method: MethodReference): String =
+    "${method.definingClass}->${method.name}(${method.parameterTypes.joinToString("")})${method.returnType}"
 
 private fun methodMatches(
     reference: MethodReference,

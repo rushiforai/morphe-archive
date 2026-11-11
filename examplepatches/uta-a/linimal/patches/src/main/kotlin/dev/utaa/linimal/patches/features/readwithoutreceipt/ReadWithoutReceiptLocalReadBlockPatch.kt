@@ -23,6 +23,7 @@ import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
 import dev.utaa.linimal.patches.util.OBJECT
 import dev.utaa.linimal.patches.util.STRING
 import dev.utaa.linimal.patches.util.VOID
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val READ_WITHOUT_RECEIPT_HOOKS =
     "Ldev/utaa/linimal/extension/features/readwithoutreceipt/ReadWithoutReceiptHooks;"
@@ -138,7 +139,7 @@ val readWithoutReceiptLocalReadBlockPatch = bytecodePatch(
         val clearShape = clearMatches.singleOrNull()?.let { clear ->
             localUpdate?.let { localUnreadClearShape(clear.originalMethod, it) }
         }
-        if (clearShape == null) {
+        if (clearShape == null || !isSafeInjectionIndex(clearMatches.single().method.implementation, 1)) {
             recordUnsafeFeatureStatus(
                 listOf(PatchId.READ_WITHOUT_RECEIPT_LOCAL_READ_BLOCK, PatchId.NOTIFICATION_READ_WITHOUT_RECEIPT_LOCAL_READ_BLOCK),
                 expectedTargetCount = 2,
@@ -151,7 +152,7 @@ val readWithoutReceiptLocalReadBlockPatch = bytecodePatch(
         clearMatches.single().method.addInstructionsWithLabels(
             1,
             """
-                invoke-static { v${clearShape.chatIdRegister} }, $SHOULD_BLOCK
+                invoke-static/range { v${clearShape.chatIdRegister} .. v${clearShape.chatIdRegister} }, $SHOULD_BLOCK
                 move-result v${clearShape.scratchRegister}
                 if-eqz v${clearShape.scratchRegister}, :rwrUnreadClearContinue
                 sget-object v${clearShape.scratchRegister}, ${clearShape.resultField.smali()}
@@ -164,7 +165,7 @@ val readWithoutReceiptLocalReadBlockPatch = bytecodePatch(
         match.method.addInstructionsWithLabels(
             0,
             """
-                invoke-static { v${shape.chatIdRegister} }, $SHOULD_BLOCK
+                invoke-static/range { v${shape.chatIdRegister} .. v${shape.chatIdRegister} }, $SHOULD_BLOCK
                 move-result v0
                 if-eqz v0, :rwrLocalReadContinue
                 return-void

@@ -187,6 +187,12 @@ DEV220_ARRAYS_CONFLICT_BLOBS = (
     "cd901a5428b7e09219fc62f3d4716cbb7efce1ca",
     "4347822665301b6771b029049f8ca2376656289a",
 )
+# Stable 2.2.0 includes the seekbar choices plus later upstream array changes.
+STABLE220_ARRAYS_CONFLICT_BLOBS = (
+    "154c3b6d4d6faae76b7d32ea05b960ee0e5619f0",
+    "cd901a5428b7e09219fc62f3d4716cbb7efce1ca",
+    "4697a5d88ce4e85a44b1bda0b3c287086732c849",
+)
 
 # One-time, fail-closed merge of Morphe 1.48.0-dev.8 Series Tracker with
 # Dual VoT's Yandex settings. Any different source versions require review.
@@ -563,6 +569,7 @@ def resolve_dual_yandex_arrays_conflict() -> None:
         DEV210_ARRAYS_CONFLICT_BLOBS,
         STABLE210_ARRAYS_CONFLICT_BLOBS,
         DEV220_ARRAYS_CONFLICT_BLOBS,
+        STABLE220_ARRAYS_CONFLICT_BLOBS,
     ):
         return
     base, ours, theirs = (

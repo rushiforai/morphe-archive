@@ -1,3 +1,20 @@
+## 2.1.1 (2026-11-10)
+
+### Fixes
+- Hide Premium upsells: the full screen Premium takeover that LinkedIn opens when the feed loads is closed as soon as its content is hidden, so it no longer leaves a black page. Pressing back is no longer needed.
+
+**23 patches in total.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#patches).
+
+## 2.1.0 (2026-11-10)
+
+### New Features
+- Dark app icon: optional black launcher icon (off by default).
+
+### Fixes
+- Swipe between feeds: My Network tabs now switch reliably on every screen size, including Catch up after Search.
+
+**23 patches in total.** Full list in the [README](https://github.com/lokesh-sparrow/loki-patches#patches).
+
 ## 2.0.0 (2026-11-10)
 
 A complete rewrite with independently developed patch code, while preserving the existing functionality of all 22 patches.

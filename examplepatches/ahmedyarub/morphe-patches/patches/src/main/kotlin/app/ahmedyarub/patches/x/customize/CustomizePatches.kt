@@ -443,8 +443,10 @@ val customizeSideBarPatch = bytecodePatch(
             hidden.filterValues { it.value == true }.keys.flatMap { SIDE_BAR_ROWS.getValue(it) }.joinToString(","),
         )
 
-        // The side bar has no list: each row is drawn by calling one of two row composables with
-        // its localised title. A hidden row returns before its composable starts its group.
+        // The side bar has no list: each row is drawn by a row composable called with its localised
+        // title as the first argument. The app has merged these over time (two variants up to 12.41,
+        // one from 12.42), so every composable of that shape is guarded rather than a fixed count. A
+        // hidden row returns before its composable starts its group.
         val rows = mutableClassDefBy(DrawerFingerprint.classDef).methods.filter { method ->
             AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" &&
                 method.parameterTypes.map { it.toString() }.let { parameters ->
@@ -453,7 +455,7 @@ val customizeSideBarPatch = bytecodePatch(
                         "Landroidx/compose/runtime/Composer;" in parameters
                 }
         }
-        if (rows.size != 2) throw PatchException("Expected the side bar's two row composables, found ${rows.size}")
+        if (rows.isEmpty()) throw PatchException("Expected the side bar's row composable(s), found none")
 
         rows.forEach { row ->
             row.addInstructionsWithLabels(

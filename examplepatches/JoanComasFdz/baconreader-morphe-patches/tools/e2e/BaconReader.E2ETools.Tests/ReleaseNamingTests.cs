@@ -41,10 +41,10 @@ public sealed class ReleaseNamingTests
     }
 
     [Theory]
-    [InlineData("pr-7-v2-opens-phone.gif", 7, 2)]
-    [InlineData("pr-70-v10-x.mp4", 70, 10)]
-    public void A_name_reads_back_as_its_PR_and_version(string name, int pr, int version) =>
-        Assert.Equal(Optional.Some(new AssetName(pr, version)), ReleaseNaming.ReadAsset(name));
+    [InlineData("pr-7-v2-opens-phone.gif", 7, 2, "opens-phone.gif")]
+    [InlineData("pr-70-v10-x.mp4", 70, 10, "x.mp4")]
+    public void A_name_reads_back_as_its_PR_version_and_run(string name, int pr, int version, string run) =>
+        Assert.Equal(Optional.Some(new AssetName(pr, version, run)), ReleaseNaming.ReadAsset(name));
 
     [Theory]
     [InlineData("owners-own.png")]

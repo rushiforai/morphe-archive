@@ -20,6 +20,8 @@ val settingsRowsPatch = bytecodePatch {
     execute {
         var added = 0
         classDefForEach { classDef ->
+            // The class name first: reading the code of every class in the app takes far longer.
+            if (!classDef.type.endsWith("/settings/impl/SettingsKt;")) return@classDefForEach
             classDef.methods.forEach { method ->
                 val instructions = method.implementation?.instructions?.toList() ?: return@forEach
                 val cards = instructions.withIndex().filter { (_, instruction) ->
@@ -28,7 +30,7 @@ val settingsRowsPatch = bytecodePatch {
                             it.definingClass.endsWith("/SpacedItemsKt;") && it.name == "a" && it.parameterTypes.size == 7
                         }
                 }
-                if (!classDef.type.endsWith("/settings/impl/SettingsKt;") || cards.size < 2) return@forEach
+                if (cards.size < 2) return@forEach
                 val composer = (cards[0].value as RegisterRangeInstruction).startRegister + 4
                 mutableClassDefBy(classDef).methods.first {
                     it.name == method.name && it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)

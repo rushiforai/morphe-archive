@@ -25,8 +25,8 @@ public sealed class AccountColorsTests : BaseE2E
           Given Reddit has a post "Hello from r/e2e" in r/e2e
           And Reddit has a second account "e2e_second"
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I open the left menu
           And I open the list of accounts
           Then the left menu shows a "Color of e2e_user" circle
@@ -90,8 +90,8 @@ public sealed class AccountColorsTests : BaseE2E
         // Given
         Reddit.HasAPost("Hello from r/e2e", "e2e");
         Reddit.HasASecondAccount("e2e_second");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.LeftMenu.OpenAsync();

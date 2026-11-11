@@ -11,6 +11,6 @@ object Constants {
         description = "The Home Depot shopping app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xF96302,
-        targets = listOf(AppTarget("8.2.5"))
+        targets = listOf(AppTarget("8.2.6"), AppTarget("8.2.5"))
     )
 }

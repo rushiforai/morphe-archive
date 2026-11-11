@@ -115,7 +115,7 @@ public enum PatchFamily {
     HIDE_CONTACTS_TAB(FamilyNames.HIDE_CONTACTS_TAB, "hideContactsTab", null, Settings.HIDE_CONTACTS_TAB,
             Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE),
     FASTER_DOWNLOADS(FamilyNames.FASTER_DOWNLOADS, "fasterDownloads", null, Settings.FASTER_DOWNLOADS,
-            Settings.DATA_SAVER_DOWNLOADS, Settings.DOWNLOAD_MANAGER, Settings.FASTER_UPLOADS),
+            Settings.DATA_SAVER_DOWNLOADS, Settings.DOWNLOAD_MANAGER, Settings.FASTER_UPLOADS, Settings.BEST_QUALITY_MEDIA),
     SAVE_DOWNLOADS(FamilyNames.SAVE_DOWNLOADS, "saveDownloads", null, Settings.SAVE_DOWNLOADS,
             Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA, Settings.STORAGE_FOLDER),
     CHAT_TYPE_FOLDERS(FamilyNames.CHAT_TYPE_FOLDERS, "chatTypeFolders", null, Settings.CHAT_TYPE_FOLDERS),
@@ -139,7 +139,15 @@ public enum PatchFamily {
     UNIFIED_PUSH(FamilyNames.UNIFIED_PUSH, "unifiedPush", null, Settings.UNIFIED_PUSH, Settings.REACTION_ALERTS,
             Settings.REACTION_SOUND),
     TEST_SERVER_SIGN_IN(FamilyNames.TEST_SERVER_SIGN_IN, "testServerSignIn", null, Settings.TEST_SERVER_SIGN_IN),
-    BOT_TOKEN_SIGN_IN(FamilyNames.BOT_TOKEN_SIGN_IN, "botTokenSignIn", null, Settings.BOT_TOKEN_SIGN_IN);
+    BOT_TOKEN_SIGN_IN(FamilyNames.BOT_TOKEN_SIGN_IN, "botTokenSignIn", null, Settings.BOT_TOKEN_SIGN_IN),
+    SUPPRESS_SCREENSHOT_NOTIFICATION(FamilyNames.SUPPRESS_SCREENSHOT_NOTIFICATION, "suppressScreenshotNotification", null,
+            Settings.SUPPRESS_SCREENSHOT_NOTIFICATION),
+    UNLOCK_PREMIUM(FamilyNames.UNLOCK_PREMIUM, "unlockPremium", null, Settings.UNLOCK_PREMIUM),
+    BYPASS_CHANNEL_RESTRICTIONS(FamilyNames.BYPASS_CHANNEL_RESTRICTIONS, "bypassChannelRestrictions", null,
+            Settings.BYPASS_CHANNEL_RESTRICTIONS, Settings.OPEN_RESTRICTED_CHATS),
+    BYPASS_INTEGRITY_CHECK(FamilyNames.BYPASS_INTEGRITY_CHECK, "bypassIntegrityCheck", null,
+            Settings.BYPASS_INTEGRITY_CHECK),
+    AUTO_FORWARDING(FamilyNames.AUTO_FORWARDING, "autoForwarding", null, Settings.AUTO_FORWARDING);
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -207,7 +215,8 @@ public enum PatchFamily {
                 ALLOW_CHAT_BLUR, NO_HAPTICS, REACTION_EFFECTS_OFF, HIDE_STICKER_TIME, CHANGE_STICKER_SIZE, HIDE_FEATURES_AND_INVITE,
                 HIDE_CHANNEL_BUTTONS, HIDE_SEND_AS),
         PRIVACY("Privacy", DISABLE_ANALYTICS, DISABLE_CALL_DEBUG, DISABLE_DRAFT_PREVIEWS, GALLERY_CAMERA_ON_TAP,
-                HIDE_PHONE_NUMBER);
+                HIDE_PHONE_NUMBER, SUPPRESS_SCREENSHOT_NOTIFICATION, UNLOCK_PREMIUM,
+                BYPASS_CHANNEL_RESTRICTIONS, BYPASS_INTEGRITY_CHECK, AUTO_FORWARDING);
 
         /** The English title, which is also the page's route and its translation key. */
         final String title;
@@ -393,6 +402,7 @@ public enum PatchFamily {
         COPIED_LINK_TRACKING(STRIP_LINK_TRACKING, "copiedLinkTracking", "copied links", true),
         PASTED_LINK_TRACKING(STRIP_LINK_TRACKING, "pastedLinkTracking", "pasted links", true),
         SHARE_NUMBER_UNTICKED(HIDE_PHONE_NUMBER, "shareNumberUnticked", "number sharing on new contacts", true),
+        OPEN_RESTRICTED_CHATS(BYPASS_CHANNEL_RESTRICTIONS, "openRestrictedChats", "channels restricted for copyright or local law", true),
         COMPACT_TAB_BAR(HIDE_CONTACTS_TAB, "compactTabBar", "bottom bar size", true),
         SIDE_MENU(HIDE_CONTACTS_TAB, "sideMenu", "side menu", true),
         HIDE_NEW_MESSAGE(HIDE_CONTACTS_TAB, "hideNewMessage", "new message button", true),
@@ -411,6 +421,7 @@ public enum PatchFamily {
         DATA_SAVER_DOWNLOADS(FASTER_DOWNLOADS, "dataSaverDownloads", "automatic downloads on Data Saver", true),
         FASTER_UPLOADS(FASTER_DOWNLOADS, "fasterUploads", "uploads", true),
         DOWNLOAD_MANAGER(FASTER_DOWNLOADS, "downloadManager", "download manager", true),
+        BEST_QUALITY_MEDIA(FASTER_DOWNLOADS, "bestQualityMedia", "photos and videos in their best quality", true),
         GALLERY_FOLDER(SAVE_DOWNLOADS, "galleryFolder", "gallery folder for saved photos and videos", true),
         STORAGE_FOLDER(SAVE_DOWNLOADS, "storageFolder", "Telegram's own files in internal storage", true),
         TITLE_EMOJI(HOLIDAY_LOOK, "titleEmoji", "emoji next to the chat list title", true),

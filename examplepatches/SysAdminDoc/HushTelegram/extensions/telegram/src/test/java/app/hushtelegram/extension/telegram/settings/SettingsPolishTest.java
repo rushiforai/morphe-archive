@@ -13,6 +13,7 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.preference.Preference;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -97,6 +98,55 @@ public class SettingsPolishTest {
             int under = (clear.getLeft() + clear.getRight()) / 2;
             assertEquals("nor along the top and bottom under the button", accent, drawn.getPixel(under, 0));
             assertEquals(accent, drawn.getPixel(under, drawn.getHeight() - 1));
+        }
+    }
+
+    /** On a phone-width screen at twice the text size even "HushTelegram" shrinks, and the search heading shrinks more. */
+    @Test @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void barKeepsItsHeightAfterAShrunkTitleAtTwiceTheTextSize() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        org.robolectric.RuntimeEnvironment.setFontScale(2f);
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            SettingsDialog dialog = show(activity.get());
+            EditText search = search(dialog.getView());
+            TextView title = dialog.getView().findViewWithTag(SettingsDialog.PAGE_TITLE);
+            // Large text stacks the title over Pause, and the stack sits in the bar beside Back.
+            ViewGroup bar = (ViewGroup) title.getParent().getParent();
+            float full = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 22, bar.getResources().getDisplayMetrics());
+            float home = title.getTextSize();
+            assertTrue("the home title must already be shrunk here, as on the phone", home < full);
+            int probe = Math.round(320 * bar.getResources().getDisplayMetrics().density);
+            settle(bar, probe);
+            int around = probe - (title.getWidth() - title.getTotalPaddingLeft() - title.getTotalPaddingRight());
+            // Room for "HushTelegram" at its home size, but not for the search heading.
+            float brand = title.getPaint().measureText("HushTelegram");
+            float searching = title.getPaint().measureText("Search settings");
+            assertTrue("the search heading must be the wider title, or this proves nothing", searching > brand + 4);
+            int width = around + Math.round((brand + searching) / 2);
+            settle(bar, width);
+            float before = title.getTextSize();
+            int height = title.getHeight();
+            int barHeight = bar.getHeight();
+            search.setText("ads");
+            ShadowLooper.idleMainLooper();
+            settle(bar, width);
+            assertEquals("Search settings", title.getText().toString());
+            assertTrue("the search heading must shrink further, or this proves nothing", title.getTextSize() < before);
+            search.setText("");
+            ShadowLooper.idleMainLooper();
+            settle(bar, width);
+            assertEquals("HushTelegram", title.getText().toString());
+            assertEquals(before, title.getTextSize(), 0.01f);
+            assertEquals("the title must keep a full-size line's height", height, title.getHeight());
+            assertEquals("and the bar with it, so the list under it stays put", barHeight, bar.getHeight());
+        } finally { org.robolectric.RuntimeEnvironment.setFontScale(1f); }
+    }
+
+    private static void settle(View view, int width) {
+        for (int pass = 0; pass < 2; pass++) {
+            view.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            view.layout(0, 0, width, view.getMeasuredHeight());
         }
     }
 

@@ -5,7 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
-import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR_TOPBAR
+import app.brokenn.patches.jiohotstar.shared.Constants.COMPATIBILITY_JIOHOTSTAR
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -21,9 +21,9 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 @Suppress("unused")
 val removeTopBarSwitcherPatch = bytecodePatch(
     name = "Remove top bar switcher",
-    description = "Removes the JioHotstar/Tadka mode-switcher row from the top of Home."
+    description = "Removes the JioHotstar/Tadka switcher from the top of Home."
 ) {
-    compatibleWith(COMPATIBILITY_JIOHOTSTAR_TOPBAR)
+    compatibleWith(COMPATIBILITY_JIOHOTSTAR)
 
     execute {
         val contentMethod = TopBarContentFingerprint.method

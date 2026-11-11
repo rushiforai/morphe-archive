@@ -20,7 +20,16 @@ public sealed record ScenarioEntry(
     Optional<string> Mp4,
     ImmutableArray<string> Patches,
     bool Passed,
-    RunSelection Selection);
+    RunSelection Selection)
+{
+    /// <summary>When each line of its Gherkin played in its video (<see cref="RunRecord.Marks"/>).</summary>
+    public ImmutableArray<LineMark> Marks { get; init; } = [];
+
+    /// <summary>
+    /// Its Gherkin and marks, packed for the player's link (<see cref="PlayerLinking"/>); empty when it has no Gherkin.
+    /// </summary>
+    public string PlayerData { get; init; } = "";
+}
 
 /// <summary>Why record.sh recorded a run: its scenario changed, or only fixture files it uses did (and which).</summary>
 [Union]

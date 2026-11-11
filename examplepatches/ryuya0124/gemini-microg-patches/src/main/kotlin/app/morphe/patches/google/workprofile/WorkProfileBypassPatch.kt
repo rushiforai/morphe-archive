@@ -38,6 +38,19 @@ val bypassWorkProfilePatch = bytecodePatch(
             check(spec.matches(targetMethod)) { "Unexpected trampoline target: $methodNameTag" }
             val insList = targetMethod.instructions.toList()
             var localPatched = false
+            spec.integers["branchIndex"]?.let { branchIndex ->
+                val guard = insList[branchIndex]
+                val previous = insList[branchIndex - 1]
+                val register = spec.int("branchRegister")
+                check(guard.opcode == Opcode.IF_EQZ && (guard as OneRegisterInstruction).registerA == register)
+                check(previous.opcode == Opcode.AND_INT_2ADDR && (previous as OneRegisterInstruction).registerA == register)
+                val address = insList.take(branchIndex).sumOf { it.codeUnits }
+                check(address + (guard as com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction).codeOffset == spec.int("branchTargetCodeUnit"))
+                check(insList.any { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == spec.anchorStrings[0] })
+                targetMethod.addInstructions(branchIndex, "const/4 v$register, 0x0")
+                return true
+            }
+
 
             for (idx in insList.indices) {
                 val ins = insList[idx]

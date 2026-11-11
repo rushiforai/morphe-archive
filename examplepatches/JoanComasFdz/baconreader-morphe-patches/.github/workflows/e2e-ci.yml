@@ -8,9 +8,9 @@ name: E2E CI
 on:
   push:
     branches: [main, dev]
-    paths: ['tests/**', 'tools/e2e/**', 'tools/vscode-extension/**', 'BaconReader.E2E.slnx', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '.github/workflows/e2e-ci.yml']
+    paths: ['tests/**', 'tools/e2e/**', 'tools/vscode-extension/**', 'tools/guide/**', 'BaconReader.E2E.slnx', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '.github/workflows/e2e-ci.yml']
   pull_request:
-    paths: ['tests/**', 'tools/e2e/**', 'tools/vscode-extension/**', 'BaconReader.E2E.slnx', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '.github/workflows/e2e-ci.yml']
+    paths: ['tests/**', 'tools/e2e/**', 'tools/vscode-extension/**', 'tools/guide/**', 'BaconReader.E2E.slnx', 'Directory.Build.props', 'Directory.Packages.props', 'global.json', '.github/workflows/e2e-ci.yml']
 
 permissions:
   contents: read
@@ -28,3 +28,4 @@ jobs:
       - run: dotnet test tests/BaconReader.E2E -c Release --no-build
       - run: dotnet test tests/BaconReader.VsCodeExtension.E2E -c Release --no-build
       - run: node --test tools/vscode-extension/test/*.test.js
+      - run: node --test tools/guide/test/*.test.js

@@ -11,6 +11,6 @@ object Constants {
         description = "The Amazon Shopping app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x232F3E,
-        targets = listOf(AppTarget("32.19.0.100"))
+        targets = listOf(AppTarget("32.20.0.100"), AppTarget("32.19.0.100"))
     )
 }

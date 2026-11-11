@@ -12,7 +12,8 @@ namespace BaconReader.E2ETools.Core;
 /// <summary>
 /// A recording's runs → its <c>scenarios.json</c>, which <c>post</c> reads (<see cref="JsonReading.ReadScenarios"/>) and
 /// push-gifs.sh lists the files of: one entry per run, in the records' order, with the run's names, Gherkin, patches,
-/// screen, GIF and MP4 (under its domain folder), startup time, result and why it was picked (<see cref="ClassSelection"/>).
+/// screen, GIF and MP4 (under its domain folder), startup time, result, when each Gherkin line played in its video and why
+/// it was picked (<see cref="ClassSelection"/>).
 /// Also the summary record.sh prints.
 /// </summary>
 public static class ScenarioListing
@@ -58,6 +59,12 @@ public static class ScenarioListing
             new("mp4", $"{record.Domain}/{record.Gif}.mp4"),
             new("startupSeconds", RoundStartup(record).Match<JsonNode?>(some => JsonValue.Create(some.Value), _ => null)),
             new("passed", record.Passed),
+            new("marks", new JsonArray([.. record.Marks.Select(mark => new JsonObject
+            {
+                ["line"] = mark.Line,
+                ["seconds"] = mark.Seconds,
+                ["failed"] = mark.Failed,
+            })])),
         ];
 
     /// <summary>"changed", or "fixtures" with the fixture files that alone picked the run's class.</summary>

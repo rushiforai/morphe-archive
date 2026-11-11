@@ -18,4 +18,16 @@ object Constants {
             AppTarget(version = null, isExperimental = true),
         )
     )
+
+    val COMPATIBILITY_WAZE = Compatibility(
+        name = "Waze",
+        packageName = "com.waze",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0x33CCFF,
+        targets = listOf(
+            // Version the patch was developed against.
+            AppTarget(version = "5.27.4.900"),
+            AppTarget(version = null, isExperimental = true),
+        )
+    )
 }

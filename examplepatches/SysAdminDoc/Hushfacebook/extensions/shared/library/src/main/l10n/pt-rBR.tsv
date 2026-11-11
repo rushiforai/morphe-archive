@@ -521,6 +521,7 @@ Takes this button out of the row under posts in the feed. The other buttons stay
 Hushfacebook settings can't open here. Long-press the Facebook logo instead.	As configurações do Hushfacebook não podem ser abertas aqui. Toque e segure o logotipo do Facebook.
 Hide suggested groups	Ocultar grupos sugeridos
 Hides the row of groups to join between posts. Posts from groups you're in stay.	Oculta a fileira de grupos para participar entre as publicações. As publicações dos grupos dos quais você participa continuam.
+Hides the row of groups to join between posts and the groups card between reels. Posts from groups you're in stay.	Oculta a fileira de grupos para participar entre as publicações e o cartão de grupos entre os reels. As publicações dos grupos dos quais você participa continuam.
 Hide "Stories you might like"	Ocultar “Stories que você talvez curta”
 Hide Memories in the feed	Ocultar lembranças no feed
 Hide friend requests in the feed	Ocultar solicitações de amizade no feed
@@ -722,6 +723,26 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	Salvando… Para c
 Turn off double tap to like	Desativar toque duplo para curtir
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel, a video or a photo in the feed no longer likes it or shows a heart. A single tap and the Like button work as before.	Tocar duas vezes em um reel, vídeo ou foto do feed não curte mais nem mostra um coração. Um toque e o botão Curtir funcionam como antes.
+# context: switch title on the News feed page; on, a tap on Like under a post asks first
+Ask before liking a post	Perguntar antes de curtir uma publicação
+# context: summary of that switch; Like is Facebook's own button as Facebook shows it in this language; Continue is the question's button, as translated below
+A tap on Like under a post asks first, and only Continue likes or unlikes it.	Tocar em Curtir abaixo de uma publicação pergunta antes, e só Continuar curte ou descurte.
+# context: switch title under Reels and Watch; on, a tap on Like beside a reel asks first
+Ask before liking a reel	Perguntar antes de curtir um reel
+# context: summary of that switch
+A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	Tocar em Curtir ao lado de um reel pergunta antes, e só Continuar curte ou descurte.
+# context: switch title under Comments and writing; on, a tap on Like under a comment asks first
+Ask before liking a comment	Perguntar antes de curtir um comentário
+# context: summary of that switch
+A tap on Like under a comment asks first, and only Continue likes or unlikes it.	Tocar em Curtir abaixo de um comentário pergunta antes, e só Continuar curte ou descurte.
+# context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
+Like or unlike this post?	Curtir ou descurtir esta publicação?
+# context: the same question for a reel
+Like or unlike this reel?	Curtir ou descurtir este reel?
+# context: the same question for a comment
+Like or unlike this comment?	Curtir ou descurtir este comentário?
+# context: the question's button that goes ahead
+Continue	Continuar
 # context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
 Double tap to skip	Toque duplo para pular
 # context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
@@ -858,9 +879,9 @@ Hide post prompts	Ocultar as perguntas abaixo das publicações
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 Hides the strip on some posts, like "Are you interested in this post?" or who recently commented, plus follow and chat suggestions there. The post stays.	Oculta a faixa em algumas publicações, como “Você tem interesse nesta publicação?” ou quem comentou recentemente, além de sugestões de seguir e de conversar. A publicação continua.
 # context: switch title under News feed; the Follow link is the small "Follow" text after a poster's name in a post's header
-Hide the Follow link on posts	Ocultar o link Seguir nas publicações
+Hide the Follow and Subscribe links on posts	Ocultar os links Seguir e Inscrever-se nas publicações
 # context: description of that switch; "Follow" is Facebook's own word for the link, so use Facebook's wording in your language if you know it
-Hides the "Follow" link next to the name on posts from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Oculta o link «Seguir» ao lado do nome nas publicações de Páginas e de pessoas que você não segue. Tocar no nome continua abrindo o perfil. A mudança aparece nas publicações carregadas depois dela.
+Hides the "Follow" or "Subscribe" link next to the name on posts and videos from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Oculta o link «Seguir» ou «Inscrever-se» ao lado do nome nas publicações e vídeos de Páginas e de pessoas que você não segue. Tocar no nome continua abrindo o perfil. A mudança aparece nas publicações carregadas depois dela.
 # context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
 Hide Meta AI questions under posts	Ocultar as perguntas da Meta AI abaixo das publicações
 # context: description of that switch; a link card is the preview of a shared link inside a post
@@ -1149,6 +1170,7 @@ Couldn't save this post's photos. Try again in a moment.	Não foi possível salv
 Save GIF	Salvar GIF
 # context: message after a tap on Save GIF when the save didn't start
 Couldn't save this GIF. Try again in a moment.	Não foi possível salvar este GIF. Tente de novo em instantes.
+Couldn't save this photo. Try again in a moment.	Não foi possível salvar esta foto. Tente de novo em instantes.
 # context: sentence added after the summary of the Save any photo switch; Save GIF is the row's name, keep it as translated for that row
 A GIF comment gets Save GIF when you long-press it.	Ao tocar e segurar um comentário com GIF, aparece Salvar GIF.
 Couldn't save this story's photo. Try again in a moment.	Não foi possível salvar a foto deste Story. Tente de novo em instantes.
@@ -1445,6 +1467,8 @@ Only the first reel waits	Só o primeiro reel espera
 With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	Com o botão acima ligado, depois que você toca um reel, os reels para os quais você desliza tocam sozinhos. O feed, o Watch e os stories sempre esperam.
 Slower speeds	Velocidades mais lentas
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	Adiciona 0,1x e 0,25x ao menu de velocidade dos reels e dos vídeos do feed e do Watch, para desacelerar um momento rápido.
+Faster speeds	Velocidades mais rápidas
+Adds 2.5x and 3x to the speed menu of reels and of feed and Watch videos, for watching faster.	Adiciona 2,5x e 3x ao menu de velocidade dos reels e dos vídeos do feed e do Watch, para assistir mais rápido.
 Speed on finished live videos	Velocidade em vídeos ao vivo encerrados
 A live video that has ended gets Playback speed in its gear menu, like other videos. Videos that are still live, and ads, keep Facebook's menu.	Um vídeo ao vivo que já terminou ganha Velocidade de reprodução no menu da engrenagem, como os outros vídeos. Vídeos ainda ao vivo e anúncios continuam com o menu do Facebook.
 Share now	Compartilhar agora
@@ -2099,6 +2123,8 @@ Fade the seek bar and speaker	Esmaecer a barra de progresso e o alto-falante
 Lower the seek bar and speaker	Abaixar a barra de progresso e o alto-falante
 While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	Enquanto um vídeo do feed toca, a barra de progresso e o botão de alto-falante do Facebook esmaecem alguns segundos depois que ele começa ou depois do seu último toque. Toque na barra ou pause o vídeo e eles voltam. Precisa de “Barra de progresso nos vídeos do feed” ligado.
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Aproxima a barra de progresso de um vídeo do feed da borda de baixo, junto com os botões de alto-falante e de pessoas marcadas do Facebook. Precisa de “Barra de progresso nos vídeos do feed” ligado.
+Seek bar on the bottom edge	Barra de progresso na borda de baixo
+Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Coloca a barra de progresso de um vídeo do feed bem na borda de baixo, para não atrapalhar quando você rola. Os botões de alto-falante e de pessoas marcadas do Facebook sobem para ficar acima dela. Tem prioridade sobre “Abaixar a barra de progresso e o alto-falante”. Precisa de “Barra de progresso nos vídeos do feed” ligado.
 Feed video position	Posição do vídeo do feed
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Cor dos selos
@@ -2415,6 +2441,8 @@ Show only watched stories	Mostrar só Stories vistos
 The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	A bandeja de Stories mostra só os que você já viu, para você achar um de novo. Desligue para ver os novos. Ocultar Stories vistos espera enquanto isto estiver ligado. Vale quando o Facebook carregar a bandeja de novo.
 Show Posts in search	Mostrar Publicações na pesquisa
 Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	Coloca Publicações de volta na fileira acima dos resultados da pesquisa, depois de Reels, para você ver só publicações do que pesquisou.
+Saved button in search	Botão Salvos na pesquisa
+Puts a Saved button at the end of the search bar, so your saved posts and videos are one tap away. Restart Facebook to see the change.	Coloca um botão Salvos no fim da barra de pesquisa, para suas publicações e vídeos salvos ficarem a um toque. Reinicie o Facebook para ver a mudança.
 Restore feed sound after opened videos	Restaurar o som do feed depois de abrir vídeos
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	Um vídeo que você abre toca com som como sempre. De volta ao feed, o som fica como estava antes de você abrir, mesmo depois de assistir por muito tempo.
 Hide the Join button on posts	Ocultar o botão Participar nas publicações
@@ -2480,6 +2508,8 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Tira a fileira de respostas sugeridas da parte de baixo de um story. A caixa de resposta continua. Vale a partir do próximo story que você abrir.
 Hide the Subscribe button	Ocultar o botão Inscrever-se
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Tira o botão Inscrever-se da parte de cima de um story. Vale a partir do próximo story que você abrir.
+Hide create story cards	Ocultar cartões de criar story
+Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	Tira o cartão entre os stories que pede para você criar um, inclusive os feitos com fotos da sua galeria. Vale a partir da próxima vez que você abrir os stories.
 Progress bar at the bottom	Barra de progresso embaixo
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Mostra uma barra fina na parte de baixo de um story que vai enchendo enquanto ele toca, como a do Reels.
 Seek bar on stories	Barra de progresso nos stories
@@ -2553,3 +2583,9 @@ Show time in Reels	Mostrar o tempo nos Reels
 A small label at the top of Reels shows the minutes you've watched. Time on other tabs doesn't count, and 15 minutes away starts it over.	Uma pequena etiqueta no topo dos Reels mostra quantos minutos você assistiu. O tempo em outras abas não conta, e 15 minutos longe recomeçam do zero.
 # context: a short label on the Reels screen; %1$d is a number of minutes
 %1$d min	%1$d min
+Hide the tab bar on the Reels tab	Ocultar a barra de abas na aba Reels
+The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	A barra de abas some enquanto a aba Reels está aberta, e o reel ocupa a tela inteira. As outras abas mantêm a barra. Reinicie o Facebook para ver a mudança.
+Playback speed in the post menu	Velocidade de reprodução no menu da publicação
+A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	O menu de três pontos de um vídeo do feed ou do Watch ganha Velocidade de reprodução, de 0,5x a 3x, inclusive em vídeos ao vivo. Desligado por padrão, porque ainda não foi testado em uma conta real.
+Double tap to skip on feed videos	Toque duplo para pular nos vídeos do feed
+Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Toque duas vezes no lado direito de um vídeo do feed em reprodução para avançar 10 segundos, ou no lado esquerdo para voltar 10. Continue tocando para ir mais longe. Vídeos ao vivo também funcionam quando dá para voltar neles. Um toque só em um lado ainda abre o vídeo, um pouco mais tarde que o normal. Com “Tocar para reproduzir” ligado, “Controles de vídeo no feed” também precisa estar ligado.

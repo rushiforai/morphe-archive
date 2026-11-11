@@ -24,4 +24,8 @@ morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-p
 # compile classpath; it must stay the commit the compiled-against patcher pins (see the
 # smali version note above).
 smali = { module = "com.github.MorpheApp.smali:smali", version.ref = "smali" }
+# The dexlib2 classes proper (incl. the immutable instruction builders the mining test uses).
+# The plugin puts this on the MAIN compile classpath itself; the tests need their own copy.
+# Same pairing rule as `smali` above: the commit the compiled-against patcher pins.
+smali-dexlib2 = { module = "com.github.MorpheApp.smali:smali-dexlib2", version.ref = "smali" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }

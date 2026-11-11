@@ -28,7 +28,7 @@ public final class VerifyMorpheDesktopImport {
                 throw new AssertionError("Updater default does not match this bundle version");
         }
         if (!packages.equals(Set.of("com.nuvio.tv", "com.alticelabs.meo.androidtv", "com.ovz.carscanner",
-            "com.nexon.tfdc", "xyz.rtrvr.pillo", "com.reddit.frontpage", "h7.hamzio.emuithemeotg", "com.klevico.monet")))
+            "com.aeroloom.fylofilemanager", "com.nexon.tfdc", "xyz.rtrvr.pillo", "com.reddit.frontpage", "h7.hamzio.emuithemeotg", "com.klevico.monet")))
             throw new AssertionError("Unexpected supported packages: " + packages);
         System.out.println("PASS: Desktop runtime imports " + names.size() + " patches across " + packages.size() +
             " apps, with unique names, targets, options and TV/mobile metadata");

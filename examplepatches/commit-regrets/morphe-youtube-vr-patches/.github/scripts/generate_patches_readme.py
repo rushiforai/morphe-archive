@@ -74,23 +74,55 @@ def anchor(name):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
 
 
+def summarize(text, limit=200):
+    """The patch description, cut to its first sentence when it is longer than [limit].
+
+    Descriptions are written for the Morphe UI, where every sentence has room; in a README row
+    the third sentence is what makes the table tall. A description that fits is kept whole, so
+    a short caveat at the end ("does not bypass the age restriction") is not dropped; only the
+    genuinely long ones (the clone and QUIC rows) lose their later sentences, and those repeat
+    what the README's own sections explain. The cut lands on a word boundary, never mid-word.
+    """
+    flat = re.sub(r"\s+", " ", (text or "").strip())
+    if len(flat) <= limit:
+        return flat
+    sentence = re.search(r"[.!?](?=\s+[A-Z0-9\"“])", flat)
+    if sentence:
+        flat = flat[: sentence.end()]
+    if len(flat) > limit:
+        cut = flat.rfind(" ", 0, limit)
+        flat = flat[: cut if cut > 0 else limit].rstrip(" ,;:") + "…"
+    return flat
+
+
+def options_cell(options):
+    """Option names on one line, without the parenthetical guidance or one bullet per line.
+
+    The titles are the option-level guidance written for the Morphe UI ("Verbose diagnostics
+    (development only)"); the bare name is what identifies the option in a table, and keeping
+    them inline turns an 11-line bullet list into a wrapping line.
+    """
+    names = []
+    for opt in options or []:
+        title = (opt.get("title") or opt.get("key") or "").strip()
+        title = re.sub(r"\s*\([^)]*\)", "", title)
+        if title:
+            names.append(title)
+    return ", ".join(names)
+
+
 def patches_table(patches):
-    """Render a sorted markdown table of patches with name, description, and options."""
+    """Render a sorted markdown table of patches with a one-sentence description and options."""
     rows = [
         "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
         "|----------|----------------|-----------|",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
         a = anchor(p["name"])
-        options = p.get("options") or []
-        if options:
-            # Show only option titles as a bullet list
-            parts = [opt.get("title") or opt.get("key") or "" for opt in options]
-            opts_cell = "<br>".join(f"• {t}" for t in parts)
-        else:
-            opts_cell = ""
-        desc = (p.get("description") or "").replace("\n", "<br>")
-        rows.append(f"| [{p['name']}](#{a}) | {desc} | {opts_cell} |")
+        rows.append(
+            f"| [{p['name']}](#{a}) | {summarize(p.get('description'))} | "
+            f"{options_cell(p.get('options'))} |"
+        )
     return "\n".join(rows)
 
 

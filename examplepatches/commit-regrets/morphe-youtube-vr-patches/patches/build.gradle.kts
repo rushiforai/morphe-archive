@@ -41,6 +41,11 @@ dependencies {
     // or `compileOnly` is its business, so the test needs its own explicit copy.
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.morphe.patcher)
+    // TimeInfoSnapshotMiningTest builds synthetic instruction lists, so the tests need the same
+    // dexlib2 the main sources compile against. The Morphe plugin injects it into the main
+    // compilation only (see the smali pin note in gradle/libs.versions.toml), so the tests need
+    // their own explicit copy, like the patcher above.
+    testImplementation(libs.smali.dexlib2)
     // The Morphe plugin does not put the main output on the test compilation's classpath (the
     // default java-plugin wiring does not survive its source-set reconfiguration), so the tests
     // that exercise the patch's own classes -- SettingsXmlKt -- need it added by hand.

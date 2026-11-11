@@ -81,11 +81,11 @@ public final class MaterialYou {
     private static final String PITCH_BLACK = "fakh_pitch_black";
     private static final String HIDE_ROVO = "fakh_hide_rovo";
     /** Pref key, label and default of each Fakh Patches switch, by the number its row is made with. */
-    static final String[] KEYS = {MATERIAL_YOU, PITCH_BLACK, HIDE_ROVO, "fakh_hide_tab_labels", "fakh_tab_Spaces",
-            "fakh_tab_All work", "fakh_tab_Dashboards", "fakh_tab_Notifications"};
-    static final String[] LABELS = {"Material You", "Pitch black", "Hide Rovo", "Hide tab labels", "Spaces",
-            "All work", "Dashboards", "Notifications"};
-    static final boolean[] DEFAULTS = {true, false, true, false, true, true, true, true};
+    static final String[] KEYS = {MATERIAL_YOU, PITCH_BLACK, HIDE_ROVO, "fakh_hide_tab_labels", "fakh_liquid_glass",
+            "fakh_tab_Spaces", "fakh_tab_All work", "fakh_tab_Dashboards", "fakh_tab_Notifications"};
+    static final String[] LABELS = {"Material You", "Pitch black", "Hide Rovo", "Hide tab labels", "Liquid Glass",
+            "Spaces", "All work", "Dashboards", "Notifications"};
+    static final boolean[] DEFAULTS = {true, false, true, false, true, true, true, true, true};
 
     /** The darkest page background (0xRRGGBB), the canvas behind cards, which pitch black turns black. */
     private static final int DARK_CANVAS = 0x111213;
@@ -130,9 +130,17 @@ public final class MaterialYou {
         return pack(0xFF000000 | (context.getColor(DARK_SURFACES.get(DARK_CANVAS)) & 0xFFFFFF));
     }
 
-    /** Whether the Material You switch is on. Read when the palettes are built, so a change applies after a restart. */
+    /** Whether the Material You patch is in; the patch makes this return true. */
+    static boolean isMaterialYouIncluded() {
+        return false;
+    }
+
+    /**
+     * Whether Material You is patched in and its switch is on. Read when the palettes are built, so a change applies
+     * after a restart. Without the patch the glass bar's pill stays neutral.
+     */
     static boolean materialYou(Context context) {
-        return prefs(context).getBoolean(MATERIAL_YOU, true);
+        return isMaterialYouIncluded() && prefs(context).getBoolean(MATERIAL_YOU, true);
     }
 
     /** Whether the pitch black switch is on. Read when the palettes are built, so a change applies after a restart. */
@@ -171,6 +179,11 @@ public final class MaterialYou {
     /** Whether the bottom bar hides the text under its icons. */
     static boolean hideTabLabels(Context context) {
         return prefs(context).getBoolean(KEYS[3], false);
+    }
+
+    /** Whether the bottom bar has the Liquid Glass look. */
+    static boolean liquidGlass(Context context) {
+        return prefs(context).getBoolean(KEYS[4], true);
     }
 
     /** Whether the bottom bar shows the tab with this label; tabs it has no switch for always show. */

@@ -1,5 +1,8 @@
 blank_issues_enabled: false
 contact_links:
+  - name: ❓ Morphe Manager says my app version or build is wrong
+    url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md#morphe-manager-says-my-version-or-build-is-not-supported
+    about: Read this first. It explains version and build numbers, and where to get the right file.
   - name: 📖 Read the README
     url: https://github.com/semicoloncolonel/mobile-morphe-patches#readme
     about: How to install the patches.
@@ -9,6 +12,9 @@ contact_links:
   - name: 🧩 What the patches do
     url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/patches.md
     about: What each patch changes in each app.
+  - name: ❓ FAQ
+    url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md
+    about: Where to get the right APK, and why a version or build is not accepted.
   - name: ⚠️ Known issues
     url: https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/known-issues.md
     about: Problems that are already known, with their causes and workarounds.

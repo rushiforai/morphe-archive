@@ -21,8 +21,8 @@ public sealed class RemoveLogOutTests : BaseE2E
         Scenario: Remove Log out leaves Log out out of the left menu's accounts
           Given Reddit has a post "Hello from r/e2e" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I open the left menu
           And I tap the test account's user name at the top of the left menu
           Then the left menu's accounts show the test account's user name and "Add account", in this order
@@ -32,8 +32,8 @@ public sealed class RemoveLogOutTests : BaseE2E
     {
         // Given
         Reddit.HasAPost("Hello from r/e2e", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.LeftMenu.OpenAsync();

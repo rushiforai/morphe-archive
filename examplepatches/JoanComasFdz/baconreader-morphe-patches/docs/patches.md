@@ -3,57 +3,62 @@
 
 # Patches
 
-What each patch does. Shared by the Reseam and Morphe BaconReader repos, word for word. Each patcher's settings, keys and differences from ReVanced are in [patcher-specific-patches.md](patcher-specific-patches.md).
+What each patch does, in a line; its page says more. Shared by the Reseam and Morphe BaconReader repos, word for word,
+with the pages in [patches/](patches/). Each patcher's settings, keys and differences from ReVanced are in
+[patcher-specific-patches.md](patcher-specific-patches.md).
+
+## 🔧 Fixes
+
+What broke since 2023.
 
 | Patch | What it does |
 |---|---|
-| Spoof client | Logs in to Reddit with another app's client ID, since Reddit no longer accepts BaconReader's own. Defaults to RedReader's client ID, redirect URI and user agent, like ReVanced. Also rewrites `ssl.reddit.com` URLs to `www.reddit.com`. |
-| Fix Redgifs API | Replaces BaconReader's Redgifs interceptor with one that fetches the temporary tokens the Redgifs API now requires, and a new one when Redgifs refuses the last, as it does after the phone joins another network. |
-| Fix list thumbnails | Fixes empty thumbnails in the post list: unescapes the signed preview URLs Reddit sends and tries again when loading fails. Link posts get a thumbnail from Reddit's preview, the embed or YouTube, crossposted galleries the preview of their first image and BaconReader's gallery indicator, galleries their first image in the card list, and RedGIFs posts theirs from the RedGIFs API. NSFW posts (with "Show NSFW images" off) and spoilers get a blurred thumbnail on Android 12 and later. |
-| Show tables | Draws tables in comments and posts as a grid instead of BaconReader's "header: value" lines. Tables wider than the text get an Expand button, and then scroll sideways. Links in cells open as anywhere else in the text. |
-| Text post icon | Replaces the button that opens a text post's text in the post list, which looks like a video's play button, with a page icon and a chevron that flips when the text is open. In the list and card views. |
-| Fix Imgur API | Calls Imgur's own API instead of the RapidAPI proxy BaconReader used, which refuses every request, so Imgur albums and galleries load again, showing still images as images and videos as videos. Also sends image uploads in comments and posts with a content type, which Imgur's API requires. |
-| Embed comment images | Shows images, GIFs, Imgur albums and emotes in comments and post text as images, plays videos uploaded in comments and video links in place with BaconReader's ExoPlayer, shows bare YouTube links with the channel, title and a thumbnail, and shows bare X and Bluesky links as the post. In comments and post texts, a bare link's image, album or video takes the link's place. Images in posts start at full width; in comments, as the settings say. Depends on Fix Imgur API, for albums. |
-| Improve post media loading | Shows a progress bar and the downloaded size while post media loads, over a dimmed still preview unless that is turned off, and a red bar when loading fails, long images included. GIFs load through BaconReader's own cache loader, which reports the progress. Galleries use small previews for their thumbnail strip, and download the image shown with a progress bar, over its preview unless that is turned off. A deleted or missing RedGIFs video shows a message instead of RedGIFs' broken web page. Settings decide which link post pages run JavaScript. |
-| Prompt to open Reddit links | Since Android 12, an app can't turn on its own links, and reddit.com only verifies Reddit's app. While no Reddit link opens in BaconReader, asks once, on the main screen, whether to open Android's "Open by default" screen to select them. |
-| Fix Reddit links | Opens Reddit links that BaconReader sent to its browser in the app: share links (`/r/<sub>/s/<code>`, `/u/<user>/s/<code>`), resolved through the redirect Reddit answers them with, posts linked without their subreddit (`/comments/<post>`) and galleries (`/gallery/<post>`). Posts on a user's profile (`/user/<user>/comments/<post>`) open as the post instead of the profile. A video's link (`v.redd.it/<video>`) opens the post it was posted in, which Reddit's `api/info` finds, or else plays the video; BaconReader looked it up through an address Reddit now refuses. A post's own gallery or video, from its thumbnail or the link next to its title, still opens in BaconReader's media viewer, which fetches a gallery's post through Reddit's API when it has only its address. A Reddit link in the text of a post, comment or message opens in the app even with BaconReader's "Open links inside app" off. When a share link can't be resolved, it opens in the browser as before. |
-| Fix lost post votes | Keeps a vote made on a post while its comments load. The copy of the post that comes with the comments was requested before the vote, and replaced the voted post in the post list. |
-| Fix meme templates | Shows Imgflip's 100 most used meme templates in the drawing screen's template grid, since BaconReader's own server answers 404 for its templates. A tapped template is downloaded at full size, up to 1440 px wide. |
-| Fix empty saved files | Saving media to the device no longer leaves an empty file named after the post next to the saved one. |
-| Fix slide show | Fits each post of the Slide Show View to the screen. BaconReader sizes the post from the display, which newer Android versions (seen on Android 16 and 17) report with the status and navigation bars, so the post ran on behind the bottom bar: the end of an image post's text, a gallery's thumbnails and the post's border were hidden, and its media sat low. An image post's text, expanded, scrolls inside the post instead of being cut off at its bottom. |
-| Remove awards | Removes the award icons of posts and comments, "Give Award" and "View Award Details" from the action bars and the post menu, and the two "Hide Reddit Awards" settings. Reddit's API no longer reports awards, and giving them used Reddit's discontinued coins. Names the action bars' buttons after their actions ("Upvote", "Save", "More options"…) for screen readers. |
-| Disable unavailable sidebar | Greys out "View Sidebar" in the post list's menu on feeds without a sidebar: Front Page, All, Popular, Friends and multireddits, and Random until its posts load. |
-| Show request errors | Shows the actual error of a failed Reddit request, such as "reddit: 500 Internal Server Error", Reddit's own explanation ("reddit: You need to be a moderator to do that") or, for a dropped connection, "The target server failed to respond", instead of BaconReader's message that it stopped working in July 2023. BaconReader's Reddit requests have no timeout: a slow answer keeps the feed loading. |
-| Remove Random feeds | Removes Random and My Random from the feed list. Reddit removed r/random and r/myrandom in December 2024, so they never load. |
-| Remove Log out | Removes "Log out" from the accounts in the menu. It logs out of every account at once and keeps them listed, each to be logged in to again. Each account's ✕ still removes that account. |
-| Disable feedback popup | Stops the "Please take a few moments to provide feedback about BaconReader" popup, and the time tracking that triggers it. |
-| Disable final release announcement | Stops the "FINAL RELEASE ANNOUNCEMENT!" popup, which says BaconReader stops working on July 1, 2023, from showing when the app starts after a new install. |
-| Flair filter | Adds a "Flair" button to the sort bar of subreddits. It lists the subreddit's flairs, from Reddit or from the loaded posts, and shows only the posts with the chosen ones, through a Reddit search in the subreddit. |
-| Show user avatars | Shows the author's avatar before the name in comments, on the reply screen and in the inbox, as on Reddit's website, and always shows each account's avatar before its name in the drawer: the active account's header and the expanded accounts list. Reads the authors' ids from the comments' JSON and asks Reddit for up to 100 avatars at once. Off by default, except in the drawer. |
-| Search comments | Adds a search button next to "COLLAPSE ALL" on posts. It finds the comments with a text or user name, also inside collapsed ones, highlights the matches and jumps between them, or shows only those comments. "Search all" first loads the comments behind "load more comments". |
-| Load more comments | Requests up to 500 comments when a post opens, instead of Reddit's default of about 200, and loads the "load more comments" with few replies right after the post's comments. |
-| Fix load more comments | Reddit refuses apps the request behind "load more comments" (`api/morechildren`) since October 2026, with "403 Blocked". The app still asks it first; when Reddit refuses, the comments come from their threads, which Reddit still serves: the hidden replies of a comment from that comment's thread, and the post's own comments from each one's thread, 50 at a time, with a new "load more comments" for the rest. Comments Reddit no longer has, deleted or removed, drop out of the list. |
-| Fix unread messages | Turns the orange inbox envelope back to normal, and clears the new messages notification, when "Mark read" leaves no unread message. Removes "Mark unread", since Reddit answers its request with 404. |
-| Inbox comment reply screen | "Reply" in the inbox opens the comment reply screen, with the comment or message being replied to, instead of the plain "Send message" form. Both post the same reply. Private messages show on it as a comment of the other person, without "in r/null". |
-| Markdown editor | Makes the text box of comments, replies, edits, messages and text posts as big as the screen allows, with a bar of Reddit's formats above it in place of BaconReader's "A" button, and shows the markdown formatted while typing. A counter shows the characters against Reddit's limit, or the subreddit's own post requirements for text posts. |
-| Hide formatted spoilers | Hides spoilers (`>!...!<`) that contain formatting, a link or code behind the spoiler box. BaconReader only hides spoilers of plain text, and showed the others in plain sight. A tap on a link in a hidden spoiler shows the spoiler; the next one opens the link. |
-| Save videos with sound | After "Save to device" saves a Reddit video, downloads its audio track, from the DASH manifest or Reddit's usual file names, and combines both into the saved file without re-encoding. |
-| Video autoplay in detail view | Adds "Autoplay videos in Detail View" to the settings, on by default. When off, the detail view of a post shows its preview image with a play button instead of loading the video, and a tap on it plays the video. GIFs, and videos in the full-screen viewer, comments and browser, are not affected. |
-| Reddit chat | Adds Chat to the menu, after the Inbox, which shows Reddit's chat from its mobile website, www.reddit.com/chat, in place of the post list, below BaconReader's toolbar. Links to the chat that BaconReader opens go there too. Takes the chat messages Reddit also sends to the inbox out of it, shows their count next to Chat and notifies of them as chat messages. See [Reddit chat](#reddit-chat). |
-| Account colors | Adds a circle between each account's name and its ✕ in the menu's list of accounts. A tap on it picks one of 12 colors for the account, or "No color". The color of the account in use shows as a thin line along the bottom of the toolbar of every screen that has one, and follows the account when another one is chosen. An account without a color shows an outlined circle and no line. Removing an account forgets its color. The colors are kept by user name in the app's `baconreader_patches` preferences. A setting turns the circles and the line off. Not a ReVanced patch. |
-| Select text | Adds "Select text" after "Copy" in the menus of posts and comments, the post's ⋮ and a comment's "More options". It shows the post's title and text, or the comment's text, as BaconReader draws them, in a dialog where Android's own selection picks any part of it to copy; "Copy" copies the whole text as markdown. Spoilers show in plain sight, and links open with a tap. A table drawn by Show tables shows as text, one line a row, its cells separated by " \| ". Not a ReVanced patch. |
+| [Spoof client](patches/spoof-client.md) | You can log in to Reddit again, and BaconReader loads your feeds. |
+| [Fix Redgifs API](patches/fix-redgifs-api.md) | RedGIFs videos play again. |
+| [Fix Imgur API](patches/fix-imgur-api.md) | Imgur albums and galleries open again, and images you attach to comments and posts upload again. |
+| [Fix list thumbnails](patches/fix-list-thumbnails.md) | The post list shows its thumbnails again, finds the missing ones, and blurs NSFW and spoiler thumbnails. |
+| [Fix unread messages](patches/fix-unread-messages.md) | The orange inbox envelope turns back to normal once every message is read. |
+| [Fix lost post votes](patches/fix-lost-post-votes.md) | A vote made on a post while its comments load stays on the post in the post list. |
+| [Fix load more comments](patches/fix-load-more-comments.md) | "load more comments" loads the hidden comments again. |
+| [Fix meme templates](patches/fix-meme-templates.md) | The drawing screen's meme templates load again, with Imgflip's 100 most used ones. |
+| [Fix empty saved files](patches/fix-empty-saved-files.md) | Saving a post's media to the device no longer leaves an empty file next to the saved one. |
+| [Fix slide show](patches/fix-slide-show.md) | The Slide Show View fits the screen again, and a long post text scrolls. |
+| [Fix Reddit links](patches/fix-reddit-links.md) | Share links, video links and other Reddit links open in BaconReader instead of its browser. |
+| [Save videos with sound](patches/save-videos-with-sound.md) | Reddit videos saved with "Save to device" keep their sound. |
+| [Show request errors](patches/show-request-errors.md) | A failed Reddit request shows its real error instead of BaconReader's message that it stopped working in July 2023. |
 
-The patches are pinned to version 6.1.4, BaconReader's last release, of `com.onelouder.baconreader` and `com.onelouder.baconreader.premium`. Only Premium has been tested.
+## ✨ Features
 
-## Reddit chat
+| Patch | What it does |
+|---|---|
+| [Reddit chat](patches/reddit-chat.md) | Reddit's chat inside BaconReader, with its unread messages counted and notified. |
+| [Embed comment images](patches/embed-comment-images.md) | Comments and post texts show their images, GIFs, emotes, Imgur albums and videos, and what YouTube, X and Bluesky |
+| [Improve post media loading](patches/improve-post-media-loading.md) | Post media shows how far its download is, galleries open faster, and you choose which link post pages run JavaScript. |
+| [Show tables](patches/show-tables.md) | Tables in comments and posts show as a grid of rows and columns. |
+| [Markdown editor](patches/markdown-editor.md) | A big text box with Reddit's formats above it and a character counter, for comments, replies, edits, messages and |
+| [Search comments](patches/search-comments.md) | A search button on posts finds the comments with a text or a user name. |
+| [Load more comments](patches/load-more-comments.md) | Posts open with up to 500 comments, and fewer "load more comments" to tap. |
+| [Show user avatars](patches/show-user-avatars.md) | The author's avatar shows before the name, as on Reddit's website. |
+| [Flair filter](patches/flair-filter.md) | A "Flair" button in a subreddit's sort bar shows only the posts with the flairs you pick. |
+| [Inbox comment reply screen](patches/inbox-comment-reply-screen.md) | "Reply" in the inbox opens the full comment reply screen, with the message you're replying to. |
+| [Hide formatted spoilers](patches/hide-formatted-spoilers.md) | Every spoiler in comments and posts stays hidden until you tap it. |
+| [Text post icon](patches/text-post-icon.md) | Text posts in the post list get a page icon instead of a button that looks like a video's play button. |
+| [Prompt to open Reddit links](patches/prompt-to-open-reddit-links.md) | BaconReader asks once to set up Reddit links to open in it, which Android doesn't let an app do by itself. |
+| [Video autoplay in detail view](patches/video-autoplay-in-detail-view.md) | A setting to stop videos from loading and playing by themselves when you open a post. |
+| [Account colors](patches/account-colors.md) | A color for each account, shown as a line under the toolbars, so you see which account is in use. |
+| [Select text](patches/select-text.md) | "Select text" in the menus of posts and comments lets you select and copy any part of their text. |
+| [Patches entry in settings](patches/patches-entry-in-settings.md) | BaconReader's settings get a "Patches" entry, and the left menu tells which build of the patches is installed. |
 
-Reddit has no public API for its chat, so the Reddit chat patch shows the chat of Reddit's mobile website, the one at https://www.reddit.com/chat in a phone's browser, inside BaconReader. It's not a ReVanced patch.
+## 🧹 Cleanups
 
-- **Login.** BaconReader's own login can't be used for the website. Log in to Reddit's website once in the chat, with the user name and password. Google sign-in may refuse to work inside an app's web view; when it does, set a password for the Reddit account on Reddit's website and log in with it. The login stays in BaconReader's web view cookies.
-- **Accounts.** Each BaconReader account keeps its own chat login. The web view has one set of reddit.com cookies, so when another account shows, the chat's cookies are put aside for the last account, in the app's `baconreader_patches` preferences, and those of the new account, if it logged in to the chat before, are put back; the chat's other website data is cleared and the chat starts over. A login in the chat belongs to the account shown when it's made. A login from before this release is asked once for its user name at www.reddit.com/api/me.json, and kept for the BaconReader account of that name.
-- **On the main screen.** Chat shows in place of the post list, under BaconReader's toolbar, with "Chat" as its title. The drawer still opens. Choosing a feed, in the drawer or the toolbar's title, leaves the chat for that feed; Inbox, Profile, Settings and the other screens open over it as usual, and Back comes back to it. The toolbar keeps only Refresh, which reloads the chat. Back goes back in the chat's pages, then to the post list. The chat keeps its page while a post list shows, until the main screen closes.
-- **Links.** Chat and login pages stay in the chat. Other Reddit links open in BaconReader, and other sites in the browser. Reddit chat links and the notification open a main screen with the chat; Back from it returns to where the link was.
-- **Images.** The chat's attach button opens Android's file picker.
-- **Theme.** The chat follows BaconReader's theme: on Android 10 and later, the web view shows the pages dark with BaconReader's dark themes.
-- **Chat messages in the inbox.** Reddit also sends each chat message to the inbox, as a private message titled "[direct chat room]". With Chat messages apart from the inbox on, they're left out of every inbox tab, and of the inbox envelope and BaconReader's "new message" notification, which keep counting the other messages. BaconReader's own message check, which asks Reddit for the unread messages when the app comes to the foreground and at its update interval, hands the chat ones over: Chat in the menu shows their count, such as "Chat (3)", for the account shown, and a notification in BaconReader's Messages channel, "3 new chat messages" with the newest one, tells of messages newer than the last one notified, while BaconReader's "Notify on messages" is on; tapping it opens the chat. Opening the chat marks them as read on Reddit, through BaconReader's own request code, and clears the count and the notification; so do messages that arrive while the chat shows. The check is BaconReader's, with its interval and its account: the patch adds no request of its own. With the option off, the chat messages stay in the inbox as before.
-- **Unread re-check.** Fix unread messages asks Reddit for the unread messages after "Mark read" to update the envelope. While chat messages are apart, it asks for up to 100 and leaves them out, so unread chat messages don't keep the envelope orange.
+| Patch | What it does |
+|---|---|
+| [Remove awards](patches/remove-awards.md) | Award icons and award actions, which no longer work, are gone. |
+| [Remove Random feeds](patches/remove-random-feeds.md) | Random and My Random, which no longer load, are gone from the feed list. |
+| [Remove Log out](patches/remove-log-out.md) | "Log out" is gone from the menu's accounts, so you can't log out of every account at once by mistake. |
+| [Disable unavailable sidebar](patches/disable-unavailable-sidebar.md) | "View Sidebar" is greyed out on feeds that have no sidebar. |
+| [Disable feedback popup](patches/disable-feedback-popup.md) | The popup asking for feedback about BaconReader no longer shows. |
+| [Disable final release announcement](patches/disable-final-release-announcement.md) | The "FINAL RELEASE ANNOUNCEMENT!" popup no longer shows when the app starts. |
+
+The patches are pinned to version 6.1.4, BaconReader's last release, of `com.onelouder.baconreader` and
+`com.onelouder.baconreader.premium`. Only Premium has been tested.

@@ -25,8 +25,8 @@ public sealed class RemoveAwardsTests : BaseE2E
           Given Reddit has a post "Golden post" in r/e2e with 3 Silver awards
           And the post "Golden post" has a comment "Golden comment" with 2 Silver awards
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           # BaconReader starts in the card view.
           Then the post "Golden post" shows no award
@@ -73,8 +73,8 @@ public sealed class RemoveAwardsTests : BaseE2E
         // Given
         Reddit.HasAPostWithSilverAwards("Golden post", "e2e", 3);
         Reddit.ThePost("Golden post").HasACommentWithSilverAwards("Golden comment", 2);
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));

@@ -314,7 +314,8 @@ class HideRecommendationsFixtureTest {
         // Both the cast and the missing map's jump now reach the guard; everything past it moved by six.
         fun index(i: Int) = if (i >= at) i + 6 else i
         fun target(i: Int) = if (i > at) i + 6 else i
-        val code = before.indexOfFirst { it.opcode == Opcode.NOP }.let { if (it < 0) before.size else it }
+        // Code ends at the first alignment NOP or payload; 72919 has its switch payload already aligned, with no NOP.
+        val code = before.indexOfFirst { it.opcode == Opcode.NOP || it.opcode.format.isPayloadFormat }.let { if (it < 0) before.size else it }
         for (i in 0 until code) {
             assertEquals("$where: stock branch $i", oldFlow.normal[i].map(::target).sorted(), newFlow.normal[index(i)].sorted())
             assertEquals("$where: stock handler $i", oldFlow.exceptional[i].map(::target).sorted(), newFlow.exceptional[index(i)].sorted())

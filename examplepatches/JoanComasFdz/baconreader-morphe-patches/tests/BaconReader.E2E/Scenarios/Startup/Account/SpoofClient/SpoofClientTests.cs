@@ -34,12 +34,12 @@ public sealed class SpoofClientTests : BaseE2E
           When I tap "Accept"
           # BaconReader comes back from the login with the left menu open.
           Then the left menu shows the test account's user name
-          # Not on the screen: the fake Reddit records what BaconReader sent.
+          # On the setup page: the fake Reddit records what BaconReader sent.
           And Reddit saw RedReader's client ID, redirect URI and User-Agent
           When I close the left menu
           Then the toolbar shows the "Front Page" feed
           And the feed shows the post "Hello from r/e2e"
-          # Not on the screen: the fake Reddit records what BaconReader sent.
+          # On the setup page: the fake Reddit records what BaconReader sent.
           And Reddit got the request for the posts with RedReader's User-Agent
         """)]
     public async Task BaconReaderPatchedWithSpoofClientLogsInToRedditAsRedReader(Screen screen)
@@ -92,7 +92,7 @@ public sealed class SpoofClientTests : BaseE2E
         // Then
         var toolbar = await Phone.BaconReader.Main.Toolbar.ReadAsync();
         var posts = await Phone.BaconReader.Main.Posts.ReadAsync();
-        // Not on the screen: the fake Reddit records what BaconReader sent.
+        // On the setup page: the fake Reddit records what BaconReader sent.
         var requestsForPosts = Reddit.ReadRequestsForPosts();
         Asserting.That(toolbar).ShowsFeed(new Feed.FrontPage());
         Asserting.That(posts).ShowsThePosts("Hello from r/e2e");

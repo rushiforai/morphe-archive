@@ -31,6 +31,7 @@ import dev.utaa.linimal.patches.util.OBJECT
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.branchTargetAddress
 import dev.utaa.linimal.patches.util.instructionAddress
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val VIEW = "Landroid/view/View;"
 private const val GALLERY_BINDER = "Lhc8/s0;"
@@ -180,7 +181,7 @@ val lineAiGalleryViewerPatch = bytecodePatch(
 
         val binder = binderMatches.single()
         val injectionShape = lineAiGalleryViewerInjectionShape(binder)
-        if (injectionShape == null) {
+        if (injectionShape == null || !isSafeInjectionIndex(binder.method.implementation, injectionShape.insertionIndex)) {
             patchStatusCollector.record(
                 unsafeFeatureStatus(
                     patchId = PatchId.LINE_AI_GALLERY_VIEWER,
@@ -196,7 +197,7 @@ val lineAiGalleryViewerPatch = bytecodePatch(
         binder.method.addInstructions(
             injectionShape.insertionIndex,
             """
-                invoke-static { v${injectionShape.visibilityRegister} }, $LINE_AI_GALLERY_HOOK
+                invoke-static/range { v${injectionShape.visibilityRegister} .. v${injectionShape.visibilityRegister} }, $LINE_AI_GALLERY_HOOK
                 move-result v${injectionShape.visibilityRegister}
             """.trimIndent(),
         )

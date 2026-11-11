@@ -1,8 +1,11 @@
-name: Close untargeted reports
+name: Close untargeted and incomplete reports
 
-# Closes issues labeled "untargeted version" after 7 days without an update.
-# The label's comment from the triage workflow already says so, so nothing
-# more is posted. An edit that fixes the version removes the label first.
+# Closes issues labeled "untargeted version" or "incomplete" after 7 days
+# without an update. The triage workflow's comment already says so, so nothing
+# more is posted. An edit that fixes the report removes the label first.
+#
+# It also removes "may reopen" from closed issues after 7 days without a new
+# comment. See .github/scripts/expire_may_reopen.py.
 
 on:
   schedule:
@@ -13,7 +16,7 @@ permissions: {}
 
 jobs:
   close:
-    name: Close untargeted reports
+    name: Close untargeted and incomplete reports
     permissions:
       issues: write
     runs-on: ubuntu-latest
@@ -21,7 +24,7 @@ jobs:
       - name: Close reports untouched for 7 days
         uses: actions/stale@v11
         with:
-          only-labels: untargeted version
+          any-of-labels: untargeted version,incomplete
           days-before-issue-stale: 7
           days-before-issue-close: 0
           days-before-pr-stale: -1
@@ -29,3 +32,22 @@ jobs:
           stale-issue-message: ""
           close-issue-message: ""
           close-issue-reason: not_planned
+
+  may-reopen:
+    name: Expire "may reopen"
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Remove the label after 7 quiet days
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 .github/scripts/expire_may_reopen.py

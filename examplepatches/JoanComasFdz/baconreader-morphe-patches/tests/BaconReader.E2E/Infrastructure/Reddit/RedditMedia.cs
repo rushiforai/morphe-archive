@@ -111,15 +111,11 @@ public sealed partial class Reddit
 
     /// <summary>"Reddit served the thumbnail of "&lt;title&gt;" …": the requests for it, with their query and answer.</summary>
     public RedditMediaFileRequestsSnapshot ReadRequestsForTheThumbnailOf(string title) =>
-        RequestsFor($"the thumbnail of \"{title}\"", MediaPath(PostTitled(title).Thumbnail));
+        Checked<RedditMediaFileRequestsSnapshot>(RequestsFor($"the thumbnail of \"{title}\"", MediaPath(PostTitled(title).Thumbnail)), title);
 
     /// <summary>"Reddit served the preview of "&lt;title&gt;"": the requests for the post's preview image.</summary>
     public RedditMediaFileRequestsSnapshot ReadRequestsForThePreviewOf(string title) =>
-        RequestsFor($"the preview of \"{title}\"", MediaPath(PostTitled(title).PreviewImages.FirstOrDefault()));
-
-    /// <summary>"Reddit served the avatar of "&lt;user&gt;"": the requests for the avatar the Given gave the user.</summary>
-    public RedditMediaFileRequestsSnapshot ReadRequestsForTheAvatarOf(string user) =>
-        RequestsFor($"the avatar of \"{user}\"", "/_media/" + avatars[user]);
+        Checked<RedditMediaFileRequestsSnapshot>(RequestsFor($"the preview of \"{title}\"", MediaPath(PostTitled(title).PreviewImages.FirstOrDefault())), title);
 
     /// <summary>
     /// "Reddit served the gallery's thumbnails …": for each image of the gallery post "&lt;title&gt;", in order, the widths
@@ -129,7 +125,7 @@ public sealed partial class Reddit
     {
         var post = PostTitled(title);
         var requests = world.Requests;
-        return new(title, [.. post.Media.Values.Select(image =>
+        return Checked<RedditGalleryRequestsSnapshot>(new(title, [.. post.Media.Values.Select(image =>
         {
             var preview = "/_media/" + image.Path;
             var full = $"/_media/i.redd.it/{image.Id}.{image.ContentType["image/".Length..]}";
@@ -137,7 +133,7 @@ public sealed partial class Reddit
                 [.. requests.Where(request => request is { Method: "GET", Status: 200 } && request.Path == preview)
                     .Select(request => PreviewWidth(request.Query)).OfType<int>().Distinct().Order()],
                 requests.Any(request => request is { Method: "GET", Status: 200 } && request.Path == full));
-        })]);
+        })]), title);
     }
 
     /// <summary>
@@ -146,7 +142,7 @@ public sealed partial class Reddit
     /// comments, which it does when the post opens.
     /// </summary>
     public RedditMediaFileRequestsSnapshot ReadRequestsForTheVideoOf(string title) =>
-        new($"the video of \"{title}\"", [.. VideoRequestsSinceThePostOpened(title).Select(request => new RedditMediaRequest(request.Query, request.Status))]);
+        Checked<RedditMediaFileRequestsSnapshot>(new($"the video of \"{title}\"", [.. VideoRequestsSinceThePostOpened(title).Select(request => new RedditMediaRequest(request.Query, request.Status))]), title);
 
     /// <summary>Waits until Reddit served a file of the video of the post "&lt;title&gt;" since the post last opened.</summary>
     public Task WaitUntilTheVideoOfThePostIsServedAsync(string title) =>
@@ -157,7 +153,7 @@ public sealed partial class Reddit
 
     /// <summary>"Reddit served the GIF of "&lt;title&gt;"": the requests for the GIF post's GIF.</summary>
     public RedditMediaFileRequestsSnapshot ReadRequestsForTheGifOf(string title) =>
-        RequestsFor($"the GIF of \"{title}\"", MediaPath(PostTitled(title).Url));
+        Checked<RedditMediaFileRequestsSnapshot>(RequestsFor($"the GIF of \"{title}\"", MediaPath(PostTitled(title).Url)), title);
 
     /// <summary>Waits until Reddit served the GIF of the GIF post "&lt;title&gt;".</summary>
     public Task WaitUntilTheGifOfThePostIsServedAsync(string title)
@@ -224,7 +220,7 @@ public sealed partial class Reddit
         var runs = world.Requests.Count(request => request.Method == "GET" && request.Path == page && request.Query == "?script=ran");
         var before = scriptRunsSeen.GetValueOrDefault(page);
         scriptRunsSeen[page] = runs;
-        return new RedditPageScriptSnapshot(title, runs > before);
+        return Checked<RedditPageScriptSnapshot>(new RedditPageScriptSnapshot(title, runs > before), title);
     }
 
     private static async Task WaitUntilAsync(Func<bool> done, TimeSpan timeout, string failure)

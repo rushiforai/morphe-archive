@@ -42,6 +42,17 @@ class MainTabsPatchTest {
     // 下部ボタン（ng8.p）の constructor -----------------------------------------------------------------
 
     @Test
+    fun `edits in the same method are applied from the last index regardless of the argument order`() {
+        val applied = mutableListOf<Int>()
+
+        applyEditsFromLast(3 to { applied += 3 }, 10 to { applied += 10 })
+        applyEditsFromLast(10 to { applied += 10 }, 3 to { applied += 3 })
+
+        // wallet と button のどちらが先に現れても、後ろの位置から書き換えます。
+        assertEquals(listOf(10, 3, 10, 3), applied)
+    }
+
+    @Test
     fun `the button position is found right after the Integer cast of the lookup`() {
         val site = buttonPositionSite(buttonConstructor(), DESCRIPTOR, BUTTON_CONTROLLER)
 

@@ -198,102 +198,107 @@ abstract class CaptureBundleSource : DefaultTask() {
     }
 }
 
-/**
- * MorpheSig1, the bundle signature morphe-patcher 2.1 checks and Morphe Manager 2.3 pins per
- * source: Ed25519 over "MorpheSig1" and the SHA-256 of the archive with an empty comment, stored
- * in the zip comment as "MorpheSig1 <public key> <signature>" (PatchBundleSignature.sign writes
- * the same bytes). MORPHE_SIGNING_KEY is the Base64 raw private key; scripts/release/release.ps1
- * loads it from HUSHFEED_BUNDLE_SIGNING_KEY. Without it the bundle stays unsigned, which a release
- * run refuses. Ed25519 is deterministic, so the same bundle always gets the same signature.
- */
-fun signBundle(bundle: File, privateKey: String?, publicKey: String) {
-    val bytes = bundle.readBytes()
-    fun length(at: Int) = (bytes[at].toInt() and 0xFF) or ((bytes[at + 1].toInt() and 0xFF) shl 8)
-    // The end of central directory record is the last one whose comment reaches the end.
-    val end = (bytes.size - 22 downTo maxOf(0, bytes.size - 22 - 0xFFFF)).firstOrNull {
-        bytes[it] == 0x50.toByte() && bytes[it + 1] == 0x4b.toByte() && bytes[it + 2] == 5.toByte() &&
-            bytes[it + 3] == 6.toByte() && length(it + 20) == bytes.size - it - 22
-    } ?: throw GradleException("$bundle is not a zip archive")
-    val unsigned = bytes.copyOf(end + 22).also { it[end + 20] = 0; it[end + 21] = 0 }
-    if (privateKey.isNullOrBlank()) {
-        if (unsigned.size != bytes.size) bundle.writeBytes(unsigned)
-        return
-    }
-    val message = "MorpheSig1".toByteArray(Charsets.US_ASCII) + MessageDigest.getInstance("SHA-256").digest(unsigned)
-    val keys = KeyFactory.getInstance("Ed25519")
-    val signature = Signature.getInstance("Ed25519").run {
-        initSign(keys.generatePrivate(EdECPrivateKeySpec(NamedParameterSpec.ED25519, Base64.getDecoder().decode(privateKey.trim()))))
-        update(message)
-        sign()
-    }
-    // A raw Ed25519 public key behind its fixed X.509 prefix.
-    val x509 = byteArrayOf(0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00) +
-        Base64.getDecoder().decode(publicKey)
-    val matches = Signature.getInstance("Ed25519").run {
-        initVerify(keys.generatePublic(X509EncodedKeySpec(x509)))
-        update(message)
-        verify(signature)
-    }
-    if (!matches) throw GradleException("MORPHE_SIGNING_KEY is not the key morphe-signing.pub publishes")
-    val comment = "MorpheSig1 $publicKey ${Base64.getEncoder().encodeToString(signature)}".toByteArray(Charsets.US_ASCII)
-    unsigned[end + 20] = (comment.size and 0xFF).toByte()
-    unsigned[end + 21] = (comment.size shr 8).toByte()
-    bundle.writeBytes(unsigned + comment)
-}
-
-/**
- * Rewrites the bundle with the timestamp pinned, leaving everything else as it was.
- *
- * <p>Every entry is written again rather than copied compressed, because the zip API offers no
- * way to move compressed bytes across without decoding them. That makes the output differ from
- * what the plugin first wrote, which does not matter: what matters is that two runs of this
- * produce the same bytes, and they do, because nothing here reads a clock.
- */
-fun pinBundleTimestamp(bundle: File, epochSeconds: Long, sourceFacts: Map<String, String>) {
-    val stampMillis = epochSeconds * 1000L
-    val names = mutableListOf<String>()
-    val contents = mutableMapOf<String, ByteArray>()
-    val times = mutableMapOf<String, Long>()
-    val methods = mutableMapOf<String, Int>()
-
-    ZipFile(bundle).use { zip ->
-        for (entry in zip.entries()) {
-            val bytes = zip.getInputStream(entry).use { it.readBytes() }
-            names += entry.name
-            contents[entry.name] = bytes
-            times[entry.name] = entry.time
-            methods[entry.name] = entry.method
+// The release bundle's last two steps, run from buildAndroid's action. Inside an object rather than
+// at the top of the script, because a call to a script function takes the script along with it,
+// and the configuration cache can keep neither the script nor its project.
+object BundleRelease {
+    /**
+     * MorpheSig1, the bundle signature morphe-patcher 2.1 checks and Morphe Manager 2.3 pins per
+     * source: Ed25519 over "MorpheSig1" and the SHA-256 of the archive with an empty comment, stored
+     * in the zip comment as "MorpheSig1 <public key> <signature>" (PatchBundleSignature.sign writes
+     * the same bytes). HUSHFEED_BUNDLE_SIGNING_KEY is the Base64 raw private key. Without it the
+     * bundle stays unsigned, which a release run refuses. Ed25519 is deterministic, so the same
+     * bundle always gets the same signature.
+     */
+    fun signBundle(bundle: File, privateKey: String?, publicKey: String) {
+        val bytes = bundle.readBytes()
+        fun length(at: Int) = (bytes[at].toInt() and 0xFF) or ((bytes[at + 1].toInt() and 0xFF) shl 8)
+        // The end of central directory record is the last one whose comment reaches the end.
+        val end = (bytes.size - 22 downTo maxOf(0, bytes.size - 22 - 0xFFFF)).firstOrNull {
+            bytes[it] == 0x50.toByte() && bytes[it + 1] == 0x4b.toByte() && bytes[it + 2] == 5.toByte() &&
+                bytes[it + 3] == 6.toByte() && length(it + 20) == bytes.size - it - 22
+        } ?: throw GradleException("$bundle is not a zip archive")
+        val unsigned = bytes.copyOf(end + 22).also { it[end + 20] = 0; it[end + 21] = 0 }
+        if (privateKey.isNullOrBlank()) {
+            if (unsigned.size != bytes.size) bundle.writeBytes(unsigned)
+            return
         }
+        val message = "MorpheSig1".toByteArray(Charsets.US_ASCII) + MessageDigest.getInstance("SHA-256").digest(unsigned)
+        val keys = KeyFactory.getInstance("Ed25519")
+        val signature = Signature.getInstance("Ed25519").run {
+            initSign(keys.generatePrivate(EdECPrivateKeySpec(NamedParameterSpec.ED25519, Base64.getDecoder().decode(privateKey.trim()))))
+            update(message)
+            sign()
+        }
+        // A raw Ed25519 public key behind its fixed X.509 prefix.
+        val x509 = byteArrayOf(0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65, 0x70, 0x03, 0x21, 0x00) +
+            Base64.getDecoder().decode(publicKey)
+        val matches = Signature.getInstance("Ed25519").run {
+            initVerify(keys.generatePublic(X509EncodedKeySpec(x509)))
+            update(message)
+            verify(signature)
+        }
+        if (!matches) throw GradleException("HUSHFEED_BUNDLE_SIGNING_KEY is not the key morphe-signing.pub publishes")
+        val comment = "MorpheSig1 $publicKey ${Base64.getEncoder().encodeToString(signature)}".toByteArray(Charsets.US_ASCII)
+        unsigned[end + 20] = (comment.size and 0xFF).toByte()
+        unsigned[end + 21] = (comment.size shr 8).toByte()
+        bundle.writeBytes(unsigned + comment)
     }
 
-    val manifestName = "META-INF/MANIFEST.MF"
-    val manifestBytes = contents[manifestName]
-        ?: throw GradleException("The bundle has no $manifestName: $bundle")
-    val manifest = Manifest(manifestBytes.inputStream())
-    if (manifest.mainAttributes.getValue("Timestamp") == null) {
-        throw GradleException("The bundle manifest has no Timestamp line to pin: $bundle")
-    }
-    manifest.mainAttributes.putValue("Timestamp", stampMillis.toString())
-    for ((name, value) in sourceFacts) manifest.mainAttributes.putValue(name, value)
-    contents[manifestName] = ByteArrayOutputStream().also { manifest.write(it) }.toByteArray()
+    /**
+     * Rewrites the bundle with the timestamp pinned, leaving everything else as it was.
+     *
+     * <p>Every entry is written again rather than copied compressed, because the zip API offers no
+     * way to move compressed bytes across without decoding them. That makes the output differ from
+     * what the plugin first wrote, which does not matter: what matters is that two runs of this
+     * produce the same bytes, and they do, because nothing here reads a clock.
+     */
+    fun pinBundleTimestamp(bundle: File, epochSeconds: Long, sourceFacts: Map<String, String>) {
+        val stampMillis = epochSeconds * 1000L
+        val names = mutableListOf<String>()
+        val contents = mutableMapOf<String, ByteArray>()
+        val times = mutableMapOf<String, Long>()
+        val methods = mutableMapOf<String, Int>()
 
-    val rebuilt = ByteArrayOutputStream()
-    ZipOutputStream(rebuilt).use { out ->
-        for (name in names) {
-            val bytes = contents.getValue(name)
-            val entry = ZipEntry(name)
-            entry.time = times.getValue(name)
-            entry.method = methods.getValue(name)
-            if (entry.method == ZipEntry.STORED) {
-                entry.size = bytes.size.toLong()
-                entry.crc = CRC32().apply { update(bytes) }.value
+        ZipFile(bundle).use { zip ->
+            for (entry in zip.entries()) {
+                val bytes = zip.getInputStream(entry).use { it.readBytes() }
+                names += entry.name
+                contents[entry.name] = bytes
+                times[entry.name] = entry.time
+                methods[entry.name] = entry.method
             }
-            out.putNextEntry(entry)
-            out.write(bytes)
-            out.closeEntry()
         }
+
+        val manifestName = "META-INF/MANIFEST.MF"
+        val manifestBytes = contents[manifestName]
+            ?: throw GradleException("The bundle has no $manifestName: $bundle")
+        val manifest = Manifest(manifestBytes.inputStream())
+        if (manifest.mainAttributes.getValue("Timestamp") == null) {
+            throw GradleException("The bundle manifest has no Timestamp line to pin: $bundle")
+        }
+        manifest.mainAttributes.putValue("Timestamp", stampMillis.toString())
+        for ((name, value) in sourceFacts) manifest.mainAttributes.putValue(name, value)
+        contents[manifestName] = ByteArrayOutputStream().also { manifest.write(it) }.toByteArray()
+
+        val rebuilt = ByteArrayOutputStream()
+        ZipOutputStream(rebuilt).use { out ->
+            for (name in names) {
+                val bytes = contents.getValue(name)
+                val entry = ZipEntry(name)
+                entry.time = times.getValue(name)
+                entry.method = methods.getValue(name)
+                if (entry.method == ZipEntry.STORED) {
+                    entry.size = bytes.size.toLong()
+                    entry.crc = CRC32().apply { update(bytes) }.value
+                }
+                out.putNextEntry(entry)
+                out.write(bytes)
+                out.closeEntry()
+            }
+        }
+        bundle.writeBytes(rebuilt.toByteArray())
     }
-    bundle.writeBytes(rebuilt.toByteArray())
 }
 
 group = "app.morphe"
@@ -328,6 +333,7 @@ val reviewedBouncyCastleRequests = setOf("1.77", "1.79", safeBouncyCastleVersion
 // Guarded by hand rather than with a synchronized collection wrapper: in a Kotlin build script
 // `java` is the Java extension, so the java.util package cannot be named here.
 val requestedBouncyCastleVersions = sortedSetOf<String>()
+val bouncyCastleRequestReason = rootProject.extra["bouncyCastleRequestReason"] as String
 
 configurations.configureEach {
     resolutionStrategy.eachDependency {
@@ -362,21 +368,42 @@ val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph"
             "testCompileClasspath", "testRuntimeClasspath")
         val seen = sortedMapOf<String, String>()
         val missing = mutableListOf<String>()
+        val unresolved = sortedSetOf<String>()
         for (name in inspected) {
             val configuration = configurations.findByName(name)
             if (configuration == null || !configuration.isCanBeResolved) {
                 missing += name
                 continue
             }
-            val modules = configuration.incoming.resolutionResult.allComponents
-                .mapNotNull { it.moduleVersion?.takeIf { module -> module.group == "org.bouncycastle" } }
-            for (module in modules) seen[module.name] = module.version
+            // An edge that resolves to nothing has no component below, so a published request
+            // for a module the reviewed release doesn't publish (bcprov-jdk15on stopped at 1.70)
+            // would pass here and only fail later on the classpath.
+            for (dependency in configuration.incoming.resolutionResult.allDependencies) {
+                if (dependency !is org.gradle.api.artifacts.result.UnresolvedDependencyResult) continue
+                val attempted = dependency.attempted as? org.gradle.api.artifacts.component.ModuleComponentSelector ?: continue
+                if (attempted.group == "org.bouncycastle") unresolved += "${attempted.module}:${attempted.version} in $name"
+            }
+            for (component in configuration.incoming.resolutionResult.allComponents) {
+                val module = component.moduleVersion?.takeIf { it.group == "org.bouncycastle" } ?: continue
+                seen[module.name] = module.version
+                // A published component's request reaches eachDependency already rewritten by the
+                // root build's metadata rule, which leaves the original as the selection reason.
+                for (reason in component.selectionReason.descriptions) {
+                    if (!reason.description.startsWith(bouncyCastleRequestReason)) continue
+                    val asked = reason.description.removePrefix(bouncyCastleRequestReason)
+                        .ifBlank { "a request with no version of its own" }
+                    synchronized(requestedBouncyCastleVersions) { requestedBouncyCastleVersions.add(asked) }
+                }
+            }
         }
         if (missing.isNotEmpty()) {
             throw GradleException(
                 "These configurations were not there to inspect: " + missing.joinToString(", ") +
                     ". The plugin renamed them, so this gate is looking at the wrong graph."
             )
+        }
+        if (unresolved.isNotEmpty()) {
+            throw GradleException("Bouncy Castle did not resolve: " + unresolved.joinToString(", "))
         }
         // Named, not merely non-empty. A module that fails to resolve is absent from
         // allComponents rather than raising, so a force at a version that does not publish a
@@ -469,6 +496,7 @@ val extensionClasses = listOf(
     "app/morphe/patches/tiktok/interaction/seekbar/SoundSeekbarBridgesTest.class",
     "app/morphe/patches/tiktok/interaction/videooverlays/MusicDiscSpinAnchorsTest.class",
     "app/morphe/patches/tiktok/misc/diagnostics/BuildDetailsPatchTest.class",
+    "app/morphe/patches/tiktok/misc/diagnostics/OwnClassesTest.class",
     "app/morphe/patches/tiktok/misc/featuregatelab/FeatureGateLabFramesTest.class",
     "app/morphe/patches/tiktok/misc/inbox/InboxQueryOwnerFixturesTest.class",
     "app/morphe/patches/tiktok/misc/inbox/InboxRenderedModelsFixturesTest.class",
@@ -618,8 +646,23 @@ tasks {
         val bundleFile = layout.buildDirectory.file("libs/$releaseBundleName")
         val releaseDirectory = layout.buildDirectory.dir("release")
         val pinnedEpoch = sourceDateEpoch
-        val signingKey = providers.environmentVariable("MORPHE_SIGNING_KEY")
+        // Never MORPHE_SIGNING_KEY: since 2.1.0 the patches plugin signs build/libs in place from
+        // it (or from a morphe-signing.key file), and pinBundleTimestamp throws that signature
+        // away, so the bundle would be signed twice. With neither set the plugin warns that the
+        // libs bundle is unsigned, which is true and harmless: the release bundle is signed below.
+        val signingKey = providers.environmentVariable("HUSHFEED_BUNDLE_SIGNING_KEY")
         val publicKeyFile = rootProject.layout.projectDirectory.file("morphe-signing.pub")
+        val pluginKeyFile = rootProject.layout.projectDirectory.file("morphe-signing.key")
+        // Before the plugin's own action, which would sign with another Hush repo's key left in
+        // the shell by its scripts, or fail on it.
+        doFirst {
+            if (!System.getenv("MORPHE_SIGNING_KEY").isNullOrBlank()) throw GradleException(
+                "MORPHE_SIGNING_KEY is set, probably left by another Hush repo's script. hushfeed signs " +
+                    "with HUSHFEED_BUNDLE_SIGNING_KEY: clear it with Remove-Item env:MORPHE_SIGNING_KEY")
+            if (pluginKeyFile.asFile.exists()) throw GradleException(
+                "morphe-signing.key would have the patches plugin sign build/libs. hushfeed signs with " +
+                    "HUSHFEED_BUNDLE_SIGNING_KEY: move the file out of the repo")
+        }
         // Whether the bundle is signed changes the output, but the key itself is never an input.
         inputs.property("bundleSigned", signingKey.map { it.isNotBlank() }.orElse(false))
         val sourceRoot = rootProject.layout.projectDirectory.asFile
@@ -641,9 +684,9 @@ tasks {
             val releaseBundle = directory.resolve(releaseBundleName)
             bundleFile.get().asFile.copyTo(releaseBundle)
             // Before the checksum, so what is recorded is what a rebuild will produce.
-            pinBundleTimestamp(releaseBundle, pinnedEpoch, BundleSource.manifestFacts(start, end))
+            BundleRelease.pinBundleTimestamp(releaseBundle, pinnedEpoch, BundleSource.manifestFacts(start, end))
             // Signed before the checksum too: the bundle a release publishes is the signed file.
-            signBundle(releaseBundle, signingKey.orNull, publicKeyFile.asFile.readText().trim())
+            BundleRelease.signBundle(releaseBundle, signingKey.orNull, publicKeyFile.asFile.readText().trim())
             // Record only at the producer boundary. Standalone verification must not
             // bless a modified bundle by generating its own expected checksum.
             val digest = MessageDigest.getInstance("SHA-256")

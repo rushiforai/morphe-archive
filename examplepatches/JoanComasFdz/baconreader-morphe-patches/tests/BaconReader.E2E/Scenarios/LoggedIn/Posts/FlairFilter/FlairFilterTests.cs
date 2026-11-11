@@ -28,8 +28,8 @@ public sealed class FlairFilterTests : BaseE2E
           And Reddit has a post "Ask anything" in r/quiet with the flair "Question"
           And Reddit has a post "Nothing to see" in r/plain
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "Front Page" feed
           Then the sort bar shows no "Flair"
           When I select the "All" feed
@@ -73,8 +73,8 @@ public sealed class FlairFilterTests : BaseE2E
         Reddit.TheSubredditLetsUsersChooseTheFlairs("e2e", "Discussion", "News", "Meta");
         Reddit.HasAPostWithTheFlair("Ask anything", "quiet", "Question");
         Reddit.HasAPost("Nothing to see", "plain");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.FrontPage());

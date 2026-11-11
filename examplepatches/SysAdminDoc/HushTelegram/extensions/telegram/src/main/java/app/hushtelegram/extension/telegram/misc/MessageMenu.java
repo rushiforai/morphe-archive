@@ -153,7 +153,7 @@ public final class MessageMenu {
             } else if (option == COPY_TEXT) {
                 copyText(context, copyable(chat, message));
             } else if (option == SAVE_DOWNLOAD) {
-                saveToDownloads(context, message);
+                saveToDownloads(context, chat, message);
             } else if (option == FORWARD_COPY) {
                 forwardAsCopy(context, chat, message);
             } else if (MessageMenuTools.owns(option)) {
@@ -390,24 +390,35 @@ public final class MessageMenu {
     }
 
     /**
-     * Copies the downloaded file into Downloads/Telegram on the copy worker, then says so. Only this
-     * item's own switch decides, so the automatic Save downloads switches can stay off.
+     * Copies the downloaded files into Downloads/Telegram on the copy worker, then says so: the whole
+     * album when the message is part of one (#46), since Telegram hands over only one of its messages.
+     * Only this item's own switch decides, so the automatic Save downloads switches can stay off.
      */
-    private static void saveToDownloads(Context context, Object message) {
-        File file = downloaded(message);
-        if (file == null) {
+    private static void saveToDownloads(Context context, Object chat, Object message) {
+        List<File> files = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        for (Object each : batch(chat, message)) {
+            File file = downloaded(each);
+            if (file == null) continue;
+            files.add(file);
+            names.add(SaveDownloads.displayName(documentName(each), file.getName()));
+        }
+        if (files.isEmpty()) {
             feedback(context, L10n.t(context, "Couldn't save that. Try again."));
             return;
         }
-        String name = SaveDownloads.displayName(documentName(message), file.getName());
         SaveDownloads.work.execute(() -> {
-            String result = SaveDownloads.saveByHand(file, name, file.getName());
-            boolean saved = SaveDownloads.SAVED.equals(result);
-            boolean already = SaveDownloads.ALREADY_SAVED.equals(result);
-            String said = saved ? L10n.t(context, "Saved to Downloads")
-                    : already ? L10n.t(context, "Already in Downloads") : L10n.t(context, "Couldn't save that. Try again.");
+            int saved = 0;
+            boolean failed = false;
+            for (int i = 0; i < files.size(); i++) {
+                String result = SaveDownloads.saveByHand(files.get(i), names.get(i), files.get(i).getName());
+                if (SaveDownloads.SAVED.equals(result)) saved++;
+                else if (!SaveDownloads.ALREADY_SAVED.equals(result)) failed = true;
+            }
+            String said = failed ? L10n.t(context, "Couldn't save that. Try again.")
+                    : saved > 0 ? L10n.t(context, "Saved to Downloads") : L10n.t(context, "Already in Downloads");
             feedback(context, said);
-            if (saved) HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "file saved by hand");
+            for (int i = 0; i < saved; i++) HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "file saved by hand");
         });
     }
 

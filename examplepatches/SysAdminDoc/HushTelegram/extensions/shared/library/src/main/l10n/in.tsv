@@ -1511,3 +1511,37 @@ That bot token was revoked.	Token bot itu sudah dicabut.
 Wait %1$s seconds, then try again.	Tunggu %1$s detik, lalu coba lagi.
 # context: short message when Telegram refuses the sign-in with an error code of its own. %1$s is that code, in capitals, as Telegram sends it.
 Telegram refused it: %1$s	Telegram menolaknya: %1$s
+# context: Five experimental patches added in the 72919 retarget. All off by default.
+Suppress screenshot notification	Sembunyikan notifikasi tangkapan layar
+Telegram no longer tells the other person in a secret chat when you take a screenshot.	Telegram tidak lagi memberi tahu lawan bicara di obrolan rahasia saat kamu mengambil tangkapan layar.
+Unlock Premium features	Buka fitur Premium
+Telegram on this phone treats your account as Premium, so the parts the app itself locks open up. Telegram's servers still know your real plan, so their limits stay the same.	Telegram di ponsel ini memperlakukan akunmu sebagai Premium, jadi bagian yang dikunci oleh aplikasinya sendiri terbuka. Server Telegram tetap tahu paket aslimu, jadi batasan mereka tetap sama.
+Bypass channel restrictions	Lewati pembatasan kanal
+Channels and chats that block forwarding and saving let you forward messages and save media.	Kanal dan obrolan yang memblokir penerusan dan penyimpanan tetap memungkinkan kamu meneruskan pesan dan menyimpan media.
+Bypass integrity check	Lewati pemeriksaan integritas
+Telegram's two emulator checks always say this phone isn't an emulator.	Dua pemeriksaan emulator Telegram selalu menyatakan ponsel ini bukan emulator.
+Auto-forwarding rules	Aturan penerusan otomatis
+# context: Auto-forwarding rules. The row under the switch, its list of rules and the three pickers that add one. %1$s and %2$s are chat names, the chat new messages come from and the chat they go to.
+New messages in a chat are forwarded to another chat by the rules below. Your own forwards are never forwarded again, and at most 20 go out a minute.	Pesan baru di satu obrolan diteruskan ke obrolan lain menurut aturan di bawah. Pesan yang Anda teruskan sendiri tidak pernah diteruskan lagi, dan paling banyak 20 terkirim per menit.
+Forwarding rules	Aturan penerusan
+No rules yet.	Belum ada aturan.
+%1$s to %2$s	%1$s ke %2$s
+%1$s to %2$s, media only	%1$s ke %2$s, hanya media
+Add rule	Tambah aturan
+Tap a rule to remove it	Ketuk aturan untuk menghapusnya
+Couldn't save the rules. Try again in a moment.	Aturan tidak dapat disimpan. Coba lagi sebentar lagi.
+Rule removed	Aturan dihapus
+A rule needs two chats.	Aturan butuh dua obrolan.
+Forward new messages from	Teruskan pesan baru dari
+Forward them to	Teruskan ke
+Those chats already have a rule.	Obrolan itu sudah punya aturan.
+What to forward	Yang diteruskan
+Every message	Semua pesan
+Only messages with media	Hanya pesan dengan media
+Rule saved	Aturan disimpan
+Open restricted channels	Buka saluran yang dibatasi
+Channels, groups and messages Telegram says are unavailable for copyright or local law open anyway, as long as Telegram still sends them.	Saluran, grup, dan pesan yang menurut Telegram tidak tersedia karena hak cipta atau hukum setempat tetap terbuka, selama Telegram masih mengirimkannya.
+channels restricted for copyright or local law	saluran yang dibatasi karena hak cipta atau hukum setempat
+Send photos and videos in the best quality	Kirim foto dan video dengan kualitas terbaik
+Photos go out in HD and videos at their own size and quality, without touching the quality button first. You can still lower one before sending. Only sending as a file keeps a photo exactly as it is.	Foto terkirim dalam HD dan video dengan ukuran serta kualitas aslinya, tanpa menyentuh tombol kualitas dulu. Kamu masih bisa menurunkannya sebelum mengirim. Hanya mengirim sebagai file yang menjaga foto persis seperti aslinya.
+photos and videos in their best quality	foto dan video dalam kualitas terbaik

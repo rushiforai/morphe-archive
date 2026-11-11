@@ -41,7 +41,6 @@ for owner, function, cls, target, descriptor in [
     ('PlaybackSession','prepared','MediaControls','attach','(Ljava/lang/Object;Z)V'),
     ('PlaybackSession','destroy','MediaControls','detach','(Ljava/lang/Object;)V'),
     ('PlaybackSession','prefs','NoMini','migrate','(Landroid/content/Context;)V'),
-    ('PlaybackSession','leave','NoMini','canDrawOverlays','(Landroid/content/Context;)Z'),
     ('PlaybackSession','formDialog','FeedbackFixes','form','(Landroid/app/AlertDialog;)V'),
     ('ModernShorts','fillVideo','CommentVisuals','fullViewport','(Landroid/view/View;)V'),
 ]:
@@ -49,6 +48,14 @@ for owner, function, cls, target, descriptor in [
     assert '"e.e.a.'+cls+'"' in caller and '"'+target+'"' in caller, (owner,target)
     assert re.search(r'^\.method[^\n]*\bpublic\b[^\n]* '+re.escape(target+descriptor)+r'$', body(cls), re.M), (cls,target)
     checks += 1
+
+# In the single-handoff implementation, overlay permission is verified by
+# PlaybackTransfer221.popup, not by the obsolete PlaybackSession.leave fallback.
+policy=method(body('PlaybackSession'),'leave')
+popup=method(body('PlaybackTransfer221'),'popup')
+assert 'Le/e/a/PlaybackTransfer221;->policy(Ljava/lang/Object;Z)I' in policy, "Modern playback policy is not used"
+assert 'Le/e/a/NoMini;->canDrawOverlays(Landroid/content/Context;)Z' in popup, "Popup overlay permission check lost"
+checks += 2
 
 assert '"amoled"' in body('ThemeRules') and '"MyThemeAMOLED"' in body('ThemeRules')
 assert 'AMOLED' in body('ThemeChoice')

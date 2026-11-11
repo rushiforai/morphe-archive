@@ -26,8 +26,16 @@ private const val SERVER_START = "LV3/Q;"
 /** The redirect the start command ends with, which throws the server's output away. */
 private const val DISCARD_OUTPUT = " >/dev/null 2>&1"
 
-/** Where the output is sent instead, so a repo copy of it can be read off the device. */
-private const val KEEP_OUTPUT = " >>/data/local/tmp/tvqa-server.log 2>&1"
+/**
+ * Where the output is sent instead, so a repo copy of it can be read off the device.
+ *
+ * The exit status is appended as well: `Killed` in that file only says the shell saw the server die
+ * from a signal, while the status distinguishes a plain exit (`exit=255`, which is what the app's
+ * own `System.exit` does when its startup fails) from a kill (`exit=137`, SIGKILL) and from the
+ * native traps (`exit=132` SIGILL, `exit=139` SIGSEGV).
+ */
+private const val KEEP_OUTPUT =
+    " >>/data/local/tmp/tvqa-server.log 2>&1; echo tvqa-server-exit=\$? >>/data/local/tmp/tvqa-server.log"
 
 /**
  * The debug level the server's logger is built with. At 3 every message is dropped: `U3/c.a`

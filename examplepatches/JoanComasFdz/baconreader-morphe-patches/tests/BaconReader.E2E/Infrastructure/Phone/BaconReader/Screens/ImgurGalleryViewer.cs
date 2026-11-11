@@ -40,7 +40,7 @@ public sealed class ImgurGalleryViewer(AndroidDriver driver)
     public Task ClickNextAsync() => OnScreen.PressAsync(driver, Forward);
 
     /// <summary>Taps Android's Back, which closes the album and goes back to the post.</summary>
-    public Task ClickBackAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(OpenQA.Selenium.Appium.Android.Enums.AndroidKeyCode.Back));
+    public Task ClickBackAsync() => OnScreen.PressBackAsync(driver);
 
     /// <summary>What the album shows: its image or its video, its thumbnails and their play badges, and its arrows.</summary>
     public Task<ImgurGalleryViewerSnapshot> ReadAsync() => OnScreen.ReadAsync(driver, Read);

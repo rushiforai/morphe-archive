@@ -26,6 +26,7 @@ import dev.utaa.linimal.patches.status.patchStatusCollector
 import dev.utaa.linimal.patches.status.recordFeatureStatus
 import dev.utaa.linimal.patches.status.recordUnappliedFeatureStatus
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val STRING = "Ljava/lang/String;"
 private const val OBJECT = "Ljava/lang/Object;"
@@ -111,7 +112,8 @@ val googleSignInRoutingPatch = bytecodePatch(
         if (playServices.size != 1 || packageGetter.size != 1 || dynamicLookup.size != 1 ||
             client.methods.any { it.name == packageGetter.single().name && it.parameterTypes.isEmpty() } ||
             factoryRegisters < 3 || !returnsConstant(action.originalMethod, Opcode.CONST_STRING) ||
-            !returnsConstant(dynamicLookup.single(), Opcode.CONST_4) || legacyBranch == null) {
+            !returnsConstant(dynamicLookup.single(), Opcode.CONST_4) || legacyBranch == null ||
+            !isSafeInjectionIndex(getCredentials.single().method.implementation, legacyBranch.resultIndex + 1)) {
             recordUnsafeFeatureStatus(ids, 5, 3, "GoogleSignInShapeMismatch")
             return@execute
         }

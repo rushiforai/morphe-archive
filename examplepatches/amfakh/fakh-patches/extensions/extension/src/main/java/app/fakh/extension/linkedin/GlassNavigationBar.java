@@ -1,22 +1,23 @@
 package app.fakh.extension.linkedin;
 
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.RectF;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.RippleDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 
 import app.fakh.extension.shared.GlassCapsule;
 import app.fakh.extension.shared.GlassTabs;
+import app.fakh.extension.shared.TabSlide;
 
 /** Draws LinkedIn's bottom bar as a floating, translucent capsule, using the shared {@link GlassCapsule}. */
 final class GlassNavigationBar {
     private static final int SIDE_MARGIN_DP = 12;
-    private static final int INNER_PADDING_DP = 14;
+    private static final int INNER_PADDING_DP = 7;
+    /** How far the pill stays in from the capsule's edges, and how far past its tab it reaches on either side. */
+    private static final int PILL_INSET_DP = 4;
+    private static final int PILL_GROW_DP = 4;
     private static final String ICON = "slim_notification_badge_icon";
     private static final String LABEL = "slim_notification_badge_label";
 
@@ -40,9 +41,12 @@ final class GlassNavigationBar {
         GlassCapsule capsule = new GlassCapsule(color, density, selection);
         // The selected tab takes the accent: the wallpaper's with Material You, LinkedIn blue without.
         selection.accent = app.fakh.extension.shared.MaterialYou.accent(bar.getContext(), Settings.materialYou(), 0xFF0A66C2, 0xFF70B5F9);
-        capsule.setAccent(selection.accent);
+        // The pill takes the accent's wash with Material You, and stays neutral gray without it.
+        if (app.fakh.extension.shared.MaterialYou.wallpaper(Settings.materialYou())) capsule.setAccent(selection.accent);
         selection.glass = capsule;
         bar.setBackground(capsule);
+        capsule.setLiquid(Settings.liquidGlass());
+        TabSlide.install(bar, capsule, false, TabSlide.children(tabs, tabs));
         // On a light theme the app paints both backgrounds again after the bar is shown, so the capsule goes back.
         bar.getViewTreeObserver().addOnPreDrawListener(() -> {
             if (bar.getBackground() != capsule) bar.setBackground(capsule);
@@ -53,7 +57,7 @@ final class GlassNavigationBar {
         });
     }
 
-    /** Gives the tabs equal shares of the capsule, and a ripple that stays inside the tab. */
+    /** Gives the tabs equal shares of the capsule, and no press ripple: the pill already shows the tab. */
     static void arrangeTabs(ViewGroup tabs, int barWidth) {
         int count = tabs.getChildCount();
         if (count == 0 || barWidth <= 0) return;
@@ -66,21 +70,7 @@ final class GlassNavigationBar {
                 params.width = width;
                 tab.setLayoutParams(params);
             }
-            if (!(tab.getBackground() instanceof TabRipple)) tab.setBackground(new TabRipple());
-        }
-    }
-
-    /** A ripple that stays inside its tab, as a pill, where LinkedIn's own one spreads past the capsule. */
-    private static final class TabRipple extends RippleDrawable {
-        TabRipple() {
-            super(ColorStateList.valueOf(0x33808080), null, mask());
-        }
-
-        private static Drawable mask() {
-            GradientDrawable mask = new GradientDrawable();
-            mask.setColor(Color.WHITE);
-            mask.setCornerRadius(Float.MAX_VALUE);
-            return mask;
+            if (tab.getBackground() != null) tab.setBackground(null);
         }
     }
 
@@ -96,6 +86,9 @@ final class GlassNavigationBar {
         private int selected = -1;
         /** Left edge of the tabs in the bar, set by {@link #capsule} for {@link #pill}. */
         private float left;
+        /** The capsule's edges, set by {@link #capsule}, which the pill stays inside. */
+        private float capsuleLeft;
+        private float capsuleRight;
 
         Selection(ViewGroup tabs, float density) {
             this.tabs = tabs;
@@ -139,17 +132,21 @@ final class GlassNavigationBar {
             float padding = INNER_PADDING_DP * density;
             out.set(left + tabs.getChildAt(0).getLeft() - padding, top,
                     left + tabs.getChildAt(count - 1).getRight() + padding, top + tabs.getHeight());
+            capsuleLeft = out.left;
+            capsuleRight = out.right;
             return true;
         }
 
         @Override
         public boolean pill(RectF out) {
             if (selected < 0 || selected >= tabs.getChildCount() || !glass.slider().has()) return false;
-            // A pill behind the selected tab, inset from the capsule so a thin rim of it stays around the pill.
-            float inset = 5 * density;
+            // A pill a little wider than the selected tab, with a thin rim of the capsule all around it.
+            float inset = PILL_INSET_DP * density;
+            float grow = PILL_GROW_DP * density;
             View row = (View) tabs.getParent();
             float top = row.getTop() + tabs.getTop();
-            out.set(left + glass.slider().start() + inset, top + inset, left + glass.slider().end() - inset, top + tabs.getHeight() - inset);
+            out.set(Math.max(capsuleLeft + inset, left + glass.slider().start() - grow), top + inset,
+                    Math.min(capsuleRight - inset, left + glass.slider().end() + grow), top + tabs.getHeight() - inset);
             return true;
         }
     }

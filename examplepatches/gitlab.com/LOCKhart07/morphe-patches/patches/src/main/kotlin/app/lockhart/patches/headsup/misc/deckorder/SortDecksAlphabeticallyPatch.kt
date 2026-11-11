@@ -18,7 +18,8 @@
  * built directly: sign set, exponent 0x3FF and the packed characters as the mantissa, which
  * orders the same way.
  *
- * Verified on com.wb.headsup 4.15.13 (versionCode 4151300), arm64-v8a and armeabi-v7a.
+ * Verified on com.wb.headsup 4.15.13 (versionCode 4151300) and 4.15.14 (versionCode 4151400),
+ * arm64-v8a and armeabi-v7a.
  */
 package app.lockhart.patches.headsup.misc.deckorder
 

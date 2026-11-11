@@ -5,163 +5,121 @@ Patches for YouTube VR (Meta Quest / Horizon OS), for use with
 
 ## ❓ About
 
-Patches for the YouTube VR app for Meta Quest (`com.google.android.apps.youtube.vr.oculus`), pinned to
-**1.90.05** and **1.89.09**. R8 reassigns every name per release, so a store update needs re-fingerprinting and an
-unlisted version is *skipped*, not failed — see [docs/VERSIONING.md](docs/VERSIONING.md) and
+Patches for `com.google.android.apps.youtube.vr.oculus`, pinned to **1.91.10** and **1.90.05**. R8
+renames everything per release, so a store update needs re-fingerprinting and an unlisted version is
+*skipped*, not failed — see [docs/VERSIONING.md](docs/VERSIONING.md) and
 [docs/FINGERPRINTS.md](docs/FINGERPRINTS.md).
 
 ### How to use these patches
 
-Add these patches to Morphe: https://morphe.software/add-source?github=commit-regrets/morphe-youtube-vr-patches
+Add this bundle to Morphe: https://morphe.software/add-source?github=commit-regrets/morphe-youtube-vr-patches
 
-Apply them to your own copy of the YouTube VR APK. **The defaults are the recommended configuration** —
-the ad-free streaming spoof is on and the development diagnostics are off, so there is nothing to
-configure. Getting the APK is its own step, and it has to come from your own headset:
-[docs/GETTING-THE-APK.md](docs/GETTING-THE-APK.md).
+Apply it to your own copy of the YouTube VR APK. The easiest source is Morphe Manager itself:
+**Use installed app** at the APK step patches the build already on the headset — no extraction. If
+Manager is not an option, or you need a version your headset has not taken yet, see
+[docs/GETTING-THE-APK.md](docs/GETTING-THE-APK.md). **The defaults are the recommended
+configuration**: the ad-free streaming spoof is on and the development diagnostics are off.
 
 ### Install as clone
 
-A patched APK is signed differently from Google's, so it cannot update the store app in place — Horizon
-OS detects the mismatch and asks for the app to be removed. This bundle's **Install as clone** patch
-renames the package instead, and it is **on by default**, so a normal run produces a separate app with
-no extra step:
+A patched APK is signed differently from Google's, so it cannot update the store app in place. The
+**Install as clone** patch renames the package instead, and it is **on by default**:
 
 * **Clone** (the default) — `app.morphe.android.youtube`: a second app beside the store's YouTube VR,
   which is left untouched.
-* **Replace** — keeps `com.google.android.apps.youtube.vr.oculus`: the store copy has to be uninstalled
+* **Replace** — keeps `com.google.android.apps.youtube.vr.oculus`: the store copy must be uninstalled
   first (the signatures differ), Horizon OS then treats this build as the YouTube VR app (a restore
-  prompt, and a warning on every reboot), and the next store update collides with it.
+  prompt, a warning on every reboot), and the next store update collides with it.
 
-The patched app is listed as **YouTube VR (patched)**; change it with `-AppName` or `-OappName=…`. (The
-official "Custom branding" patch does not apply to this app.)
+The app is listed as **YouTube VR (patched)**; change it with `-AppName` or `-OappName=…`.
 
-Windows, one command:
+Windows, one command — it applies the bundle, installs over `adb`, and verifies the *effective* options
+and the package id the rename actually took, so a silently dropped option cannot ship:
 
 ```powershell
 pwsh -File scripts/patch-and-install.ps1 -Apk <path-to-youtube-vr.apk> `
-  -AppName "YouTube VR (patched)" `
-  -PackageName app.morphe.android.youtube
+  -AppName "YouTube VR (patched)" -PackageName app.morphe.android.youtube
 ```
 
-It applies our bundle (clone included), installs over `adb`, and checks the *effective* option values
-from the patch result — including the package id the rename actually took — so a silently dropped option
-or a rename that no-ops cannot ship. Add `-NoSpoof` to apply the patches with the streaming spoof off
-(A/B comparisons only), `-NoClone` to rename nothing, or `-OfficialClone` to rename with the official
-*Clone app* instead, which disables ours for that run.
+Add `-NoSpoof` (spoof off, for A/B comparisons), `-NoClone`, or `-OfficialClone` (rename with the
+official *Clone app* instead, which disables ours for that run). CLI traps and the hand-apply recipe:
+[docs/INTERNALS.md](docs/INTERNALS.md).
 
-By hand, it is one apply:
-
-```bash
-JAVA=java; M=morphe-desktop-all.jar
-# our patches, defaults: clone included, and the id is the clone option's default
-"$JAVA" -jar "$M" patch --patches patches-<version>.mpp -o out.apk youtube-vr.apk
-adb install -r out.apk
-```
-
-Two CLI traps (`-O` belongs to the first `--enable`; the official *Clone app* needs its own pass) and
-the rest of the recipe: [docs/INTERNALS.md](docs/INTERNALS.md).
-
-### Installing with Morphe Manager
-
-The add-source link above is all Manager needs — **including the clone**, which this bundle performs
-itself: *Install as clone* is a patch *for this app*, so it is a default patch and **Simple mode**
-applies it along with the rest. **Expert mode is no longer needed for the clone.** Do not also tick the
-official *Clone app* — with both renamers selected the official one wins — and note that skipping the
-clone has real costs: the build then cannot coexist with the store app, and with Shizuku and "auto
-uninstall" enabled Manager may remove the installed app first. The mechanics behind all of this are in
+**In Morphe Manager**, the link above is all you need: the clone is applied by this bundle, so **Simple
+mode** works. Do not also tick the official *Clone app* (with both renamers selected, the official one
+wins); skipping the clone means the build cannot coexist with the store app, and with Shizuku and "auto
+uninstall" enabled Manager may remove the installed app first. See
 [AGENTS.md](AGENTS.md#morphe-manager-the-mechanics-that-are-not-visible-from-here).
 
-### Known behaviour: the "App name unavailable" card
-
-While a **cloned** build is running, its card in the Quest library shows `App name unavailable` plus
-Quit. That is Horizon OS, not the patches: it names a running *immersive* app from an app-manager
-record keyed by package name, and a re-signed clone has no such record. It is **not fixable from inside
-the APK** — the decompiled evidence is in [docs/APP-NAME-CARD.md](docs/APP-NAME-CARD.md). Two things
-follow: **Quit is how you exit the app** (immersive VR apps have no in-app exit; from a PC,
-`adb shell am force-stop app.morphe.android.youtube` does the same), and launching the app's **2D panel**
-entry instead shows the proper name, because panel apps are named from the APK label.
+While a cloned build runs, its Quest-library card shows `App name unavailable` plus Quit — that is
+Horizon OS naming a running immersive app from a package-keyed record, not a patch bug, and it is not
+fixable from inside the APK ([decompiled evidence](docs/APP-NAME-CARD.md)). **Quit is how you exit** (or
+`adb shell am force-stop app.morphe.android.youtube`); the app's **2D panel** entry shows the proper
+name.
 
 ### Default video quality
 
-Starts every video at one resolution instead of the app's own per-video choice, which drifts downward
-over a session. The requested value is a *ceiling*: a video that does not have it plays at its highest
-available format, so **Highest available** means 8K where the stream has it (the streaming spoof
-supplies that format) and otherwise simply the best there is. The picker also offers the fixed values —
-**8K (4320p)**, **4K (2160p)**, 1440p, 1080p Full HD, 720p, 480p, 360p — plus **Auto**, which hands the
-choice back to the app. 8K and Highest available are the same ceiling today, because nothing taller than
-4320 is served; they are separate entries so the row shows back the one you picked.
-
-It lives on the **Patch settings** hub and applies to the next video without a rebuild. The row shows
-the current choice under its name, and tapping it opens the list *inside the row* — a dialog is never
-composited into the VR panel. The Manager patch option of the same name only *seeds* the headset setting
-on first launch; the headset row governs from the first change there.
+Starts every video at one resolution instead of the app's per-video choice, which drifts downward over
+a session. The value is a *ceiling*: a video without it plays at its highest available format, so
+**Highest available** is 8K where the stream has it. **Auto** hands the choice back to the app. Set it
+on the **Patch settings** hub; the Manager option only *seeds* the headset setting on first launch.
 
 ### SponsorBlock
 
-Skips crowd-sourced segments from [sponsor.ajay.app](https://sponsor.ajay.app) while a video plays.
-**It is on by default**, with upstream's recommended configuration (`sponsor` = `skip-once`;
-`selfpromo`/`interaction`/`highlight`/`intro`/`outro`/`music_offtopic` = `manual-skip`;
-`preview`/`hook`/`filler` = `ignore`), configurable per category in the headset's Patch settings and at
-build time (a self-hosted API instance works too). Segments are also drawn **on the VR seek bar** in
-their category colours, so you can see what is coming and where a segment was skipped.
+Skips crowd-sourced segments from [sponsor.ajay.app](https://sponsor.ajay.app). **On by default**, with
+upstream's recommended rules (`sponsor` = `skip-once`; `selfpromo`/`interaction`/`highlight`/`intro`/
+`outro`/`music_offtopic` = `manual-skip`; `preview`/`hook`/`filler` = `ignore`), configurable per
+category in the headset and at build time (a self-hosted API works too). Segments are also drawn **on
+the VR seek bar** in their category colours.
 
-Every decision logs to logcat under the `SponsorBlock:` tag:
+Every decision logs under the `SponsorBlock:` tag: `adb logcat -d | rg -a "SponsorBlock:"`.
 
-```powershell
-adb logcat -d | rg -a "SponsorBlock:"
-```
+Three behaviours surprise people: a skip is per *pass* (dragging back before a segment skips it again);
+dragging *into* a segment lets it play out; and a category set to **Disable** does nothing at all,
+silently — VR has no skip button, so a video whose only segments are `filler` or `music_offtopic` looks
+broken until that category is on. Design and measurements:
+[docs/SPONSORBLOCK-NOTES.md](docs/SPONSORBLOCK-NOTES.md).
 
-Three behaviours surprise people: a skip is per *pass*, so dragging the seek bar back before a segment
-makes it skip again; dragging *into* a segment lets that segment play out; and a category set to
-**Disable** does nothing at all, silently — VR has no skip button, so a video whose only segments are
-`filler` or `music_offtopic` looks like SponsorBlock is broken until that category is switched on.
-Measured behaviour and the design: [docs/SPONSORBLOCK-NOTES.md](docs/SPONSORBLOCK-NOTES.md).
+### Patch settings
 
-### Patch settings (in the headset)
+YouTube VR's own **Settings** gains a **Patch settings** row at the top, opening this project's hub,
+built from the app's own preferences XML so it renders and focuses like YouTube's own rows:
 
-YouTube VR's own **Settings** list gains a **Patch settings** row at the top, opening this project's hub
-(the app's native fragment navigation, one entry per feature). Every row is built from the app's own
-preferences XML, so it renders, scrolls and focuses exactly like YouTube's own rows:
-
-* **SponsorBlock** — master switch, seek-bar markers, one colour-coded row per category (tapping a
-  category opens an in-row behaviour picker), a display-only **Stats** counter, and a
-  **Minimum segment duration** slider.
+* **SponsorBlock** — master switch, seek-bar markers, one colour-coded row per category (tap for its
+  in-row picker), **Stats**, and a **Minimum segment duration** slider.
 * **Default video quality** — the resolution every video starts at.
-* **QUIC (HTTP/3)** — whether the app's network stack may use QUIC (TLS over UDP). Leave it on
-  unless playback stalls on a network that blocks UDP (corporate Wi-Fi, many VPNs); turning it off
-  forces TCP/TLS, and a change applies after a restart.
-* **Verbose logging** — toggles diagnostic logs to logcat, for troubleshooting.
+* **QUIC (HTTP/3)** — allow QUIC (TLS over UDP); turn it off if playback stalls on a network that
+  blocks UDP. Applies after a restart.
+* **Verbose logging** — diagnostic logs to logcat, for troubleshooting.
 
-Changes are stored on the device and apply to the next video — no rebuild, no restart — and they
-override the patch options, which stay the defaults. The streaming spoof and the diagnostic probes stay
-**build-time** on purpose: the spoof is applied as hooks, so turning it off means a build without them
-rather than a switch.
+Changes apply to the next video, no rebuild or restart, and override the patch options (which stay the
+defaults). The streaming spoof and the diagnostic probes stay **build-time** on purpose.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.30.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases/tag/v1.30.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
+> **[v1.31.0](https://github.com/commit-regrets/morphe-youtube-vr-patches/releases/tag/v1.31.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
 <details open>
 <summary>📦 YouTube VR&nbsp;&nbsp;•&nbsp;&nbsp;11 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.90.05 | 1.89.09 |
+| 1.91.10 | 1.90.05 |
 | :---: | :---: |
 | Verified: every fingerprint was re-derived against this build. | Verified: every fingerprint was re-derived against this build. |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [App name](#app-name) | Changes the app name shown in the headset's library and in app info. The stock name is just "YouTube", which is easy to confuse with the store app. | • App name |
-| [Default video quality](#default-video-quality) | Starts every video at one resolution instead of the app's per-video choice; a resolution the video lacks falls back to its highest available (8K included when the stream spoof provides it). Changeable in the headset's Patch settings; Auto keeps the app's own behaviour. | • Default video quality |
-| [Extension](#extension) | Injects the extension the other patches run through: its streaming spoof is what removes the pre-roll (ad-free playback) and provides the 8K format support. Turning this patch off restores ads. | • Ad-free streaming spoof (recommended)<br>• Verbose diagnostics (development only)<br>• Force verbose logging (development builds)<br>• Force the native fallback (development only)<br>• Probe identity matrix (~14 requests; needs Verbose diagnostics)<br>• Native formats without SABR (retired experiment)<br>• 8K: accept the AV1 8K HDR tier as SDR (experiment) |
+| [App name](#app-name) | Changes the app name shown in the headset's library and in app info. The stock name is just "YouTube", which is easy to confuse with the store app. | App name |
+| [Default video quality](#default-video-quality) | Starts every video at one resolution instead of the app's per-video choice; a resolution the video lacks falls back to its highest available (8K included when the stream spoof provides it). | Default video quality |
+| [Extension](#extension) | Injects the extension the other patches run through: its streaming spoof is what removes the pre-roll (ad-free playback) and provides the 8K format support. Turning this patch off restores ads. | Ad-free streaming spoof, Verbose diagnostics, Force verbose logging, Force the native fallback, Probe identity matrix, Native formats without SABR, 8K: accept the AV1 8K HDR tier as SDR |
 | [Hide ads](#hide-ads) | Hides video ads, including the pre-roll when the streaming spoof is unavailable and the app falls back to its own player response. |  |
-| [Install as clone](#install-as-clone) | Installs the patched app as a separate app by default, so it sits alongside the store's YouTube VR instead of replacing it. Replace mode keeps the official package name: the store copy has to be removed to satisfy the signing difference, Horizon OS then treats this build as the YouTube VR app (a restore prompt, and a warning on every reboot), and a store update will collide with it because this build is signed differently. | • Package name<br>• Update permissions<br>• Update providers |
+| [Install as clone](#install-as-clone) | Installs the patched app as a separate app by default, so it sits alongside the store's YouTube VR instead of replacing it. | Package name, Update permissions, Update providers |
 | [Patch settings](#patch-settings) | Builds the in-headset "Patch settings" hub and the SponsorBlock settings screen. The resource half of the SponsorBlock patch, which mines what this patch restructures the XML with. |  |
-| [QUIC (HTTP/3)](#quic-http-3) | Adds the in-headset switch for QUIC, the transport under HTTP/3: TLS over UDP, used for this app's API and media requests. Leave it on unless playback stalls on a network that blocks or throttles UDP 443 (corporate Wi-Fi, many VPNs), where turning it off forces TCP/TLS. A change applies after the app restarts. | • QUIC (HTTP/3) |
+| [QUIC (HTTP/3)](#quic-http-3) | Adds the in-headset switch for QUIC, the transport under HTTP/3: TLS over UDP, used for this app's API and media requests. | QUIC |
 | [Remove viewer discretion dialog](#remove-viewer-discretion-dialog) | Removes the dialog that appears when opening a video that has been age-restricted by accepting it automatically. This does not bypass the age restriction. |  |
-| [SponsorBlock](#sponsorblock) | Automatically skips SponsorBlock segments (sponsors, self-promos, intros, ...). On by default (sponsors: skip once); configure per-category behaviour below or in the headset's Patch settings screen. | • SponsorBlock API base<br>• Sponsor<br>• Self-promotion<br>• Interaction reminder<br>• Intermission/intro<br>• Outro/endcards<br>• Preview/recap<br>• Hook (padding after intro)<br>• Filler tangent<br>• Music: non-music<br>• Highlight (jump to point) |
-| [Spoof app version](#spoof-app-version) | Adds an option to trick the app into thinking you are running a different version; the option ships set to the app's current version, so selecting the patch alone changes nothing. | • Spoofed version name |
-| [Spoof package name in User-Agent](#spoof-package-name-in-user-agent) | Adds an option to report a different app package name in the Cronet User-Agent; the option ships set to the original package name, so selecting the patch alone changes nothing. | • Spoofed package name |
+| [SponsorBlock](#sponsorblock) | Automatically skips SponsorBlock segments (sponsors, self-promos, intros, ...). On by default (sponsors: skip once); configure per-category behaviour below or in the headset's Patch settings screen. | SponsorBlock API base, Sponsor, Self-promotion, Interaction reminder, Intermission/intro, Outro/endcards, Preview/recap, Hook, Filler tangent, Music: non-music, Highlight |
+| [Spoof app version](#spoof-app-version) | Adds an option to trick the app into thinking you are running a different version; the option ships set to the app's current version, so selecting the patch alone changes nothing. | Spoofed version name |
+| [Spoof package name in User-Agent](#spoof-package-name-in-user-agent) | Adds an option to report a different app package name in the Cronet User-Agent; the option ships set to the original package name, so selecting the patch alone changes nothing. | Spoofed package name |
 
 </details>
 
@@ -181,25 +139,20 @@ rather than a switch.
 | **[REA](https://github.com/morluto/rea)** *(optional)* | reverse-engineering toolkit: device integration and APK/JADX analysis | `PATH` |
 | **`gh`** *(optional)* | checking CI runs and releases | `PATH` |
 
-You also need a **stock YouTube VR 1.90.05 or 1.89.09 APK** as the input; this repository does not ship one, and
-the build's first run needs network access to resolve the patcher dependency. The headset-only recipes
-(wireless adb, capturing the screen without wearing it) are in [AGENTS.md](AGENTS.md#device-access),
-along with one honest caveat: `rea capture-adb-screen` did not work in this environment, so the
-screenshots this repository's notes refer to came from plain `adb`.
+You also need a **stock YouTube VR 1.91.10 or 1.90.05 APK** as the input; this repository does not ship
+one, and the first build needs network access to resolve the patcher dependency. Headset-only recipes
+(wireless adb, capturing the screen without wearing it) are in [AGENTS.md](AGENTS.md#device-access).
 
 ### 🛠️ Building locally
 
-- Run `./gradlew buildAndroid` — this also runs Spotless, detekt and the JUnit suite in
-  `patches/src/test` (the SponsorBlock decision logic, the settings-XML restructure against both
-  patcher hosts' layouts, the log gate).
-- Before pushing, run the headless patch-run gate against every stock APK in `apk/`:
-  `pwsh -NoProfile -File scripts/check-apk.ps1`. It patches each APK with the current bundle
-  (no device, no install) and fails on any patch failure or audit finding — this is how a
-  fingerprint that no longer matches shows up in minutes instead of at install time.
-- The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
-- Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop) like any other patch bundle.
-
-See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more information.
+- `./gradlew buildAndroid` — build, plus Spotless, detekt and the JUnit suite in `patches/src/test`
+  (SponsorBlock decision logic, the settings-XML restructure, the log gate).
+- Before pushing, `pwsh -NoProfile -File scripts/check-apk.ps1` patches every supported stock APK in
+  `apk/` headlessly and fails on any patch failure, audit finding or role mismatch — the version-bump
+  check, without a device.
+- The bundle lands in `patches/build/libs/patches-*.mpp`; apply it with
+  [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop) like any other patch bundle. More:
+  [Morphe documentation](https://github.com/MorpheApp/morphe-documentation).
 
 ### Development notes
 

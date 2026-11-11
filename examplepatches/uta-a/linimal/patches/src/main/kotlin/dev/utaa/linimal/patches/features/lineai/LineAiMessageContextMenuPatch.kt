@@ -30,6 +30,7 @@ import dev.utaa.linimal.patches.util.OBJECT
 import dev.utaa.linimal.patches.util.VOID
 import dev.utaa.linimal.patches.util.branchTargetAddress
 import dev.utaa.linimal.patches.util.instructionAddress
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val CONTEXT = "Landroid/content/Context;"
 private const val CONTEXT_MENU_ITEM = "Lxc1/c;"
@@ -224,7 +225,10 @@ val lineAiMessageContextMenuPatch = bytecodePatch(
 
         val supplier = supplierMatches.single()
         val injectionShape = lineAiMessageContextSupplierInjectionShape(supplier)
-        if (injectionShape == null) {
+        if (
+            injectionShape == null ||
+            !isSafeInjectionIndex(supplier.method.implementation, injectionShape.availabilityBranchIndex)
+        ) {
             patchStatusCollector.record(
                 unsafeFeatureStatus(
                     patchId = PatchId.LINE_AI_MESSAGE_CONTEXT_MENU,
@@ -240,7 +244,7 @@ val lineAiMessageContextMenuPatch = bytecodePatch(
         supplier.method.addInstructions(
             injectionShape.availabilityBranchIndex,
             """
-                invoke-static { v${injectionShape.availabilityRegister} }, $LINE_AI_CONTEXT_HOOK
+                invoke-static/range { v${injectionShape.availabilityRegister} .. v${injectionShape.availabilityRegister} }, $LINE_AI_CONTEXT_HOOK
                 move-result v${injectionShape.availabilityRegister}
             """.trimIndent(),
         )

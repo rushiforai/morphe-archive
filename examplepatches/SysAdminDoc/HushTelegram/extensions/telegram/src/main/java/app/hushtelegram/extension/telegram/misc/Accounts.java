@@ -16,7 +16,7 @@ import app.hushtelegram.extension.shared.Logger;
 
 /**
  * Telegram's signed-in accounts, read by reflection so nothing here names a class R8 could move.
- * An account is its index in Telegram's own tables (0 for the first, up to 15); the same index
+ * An account is its index in Telegram's own tables (0 for the first, below {@link #slots}); the same index
  * names the account's connection manager, user config and every controller.
  */
 public final class Accounts {
@@ -74,7 +74,10 @@ public final class Accounts {
      * per-account table where R8 folded that constant away (13.2).
      */
     static int slots(ClassLoader loader) throws ReflectiveOperationException {
-        Class<?> config = Class.forName(USER_CONFIG, false, loader);
+        return slots(Class.forName(USER_CONFIG, false, loader));
+    }
+
+    static int slots(Class<?> config) throws ReflectiveOperationException {
         try {
             return HostNames.field(config, "MAX_ACCOUNT_COUNT").getInt(null);
         } catch (NoSuchFieldException folded) {
@@ -86,13 +89,23 @@ public final class Accounts {
 
     /** The accounts that are signed in, with a name for each. Empty when Telegram's tables can't be read. */
     public static List<Entry> signedIn() {
+        try {
+            return signedIn(Class.forName(USER_CONFIG));
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            Logger.printException(() -> "Accounts: the signed-in accounts can't be listed", failure);
+            return new ArrayList<>();
+        }
+    }
+
+    /** {@link #signedIn()} over [config]'s slots only: 13.2.1 Play holds 4, and getInstance(4) throws there. */
+    static List<Entry> signedIn(Class<?> config) {
         List<Entry> found = new ArrayList<>();
         try {
-            Class<?> config = Class.forName(USER_CONFIG);
             Method instance = HostNames.method(config, "getInstance", int.class);
             Method activated = HostNames.method(config, "isClientActivated");
             Method user = HostNames.method(config, "getCurrentUser");
-            for (int index = 0; index < MAX; index++) {
+            int slots = Math.min(MAX, slots(config));
+            for (int index = 0; index < slots; index++) {
                 Object each = instance.invoke(null, index);
                 if (each == null || !Boolean.TRUE.equals(activated.invoke(each))) continue;
                 found.add(new Entry(index, nameOf(user.invoke(each), index)));
@@ -117,11 +130,21 @@ public final class Accounts {
     public static int ofUser(long userId) {
         if (userId == 0) return -1;
         try {
-            Class<?> config = Class.forName(USER_CONFIG);
+            return ofUser(Class.forName(USER_CONFIG), userId);
+        } catch (ReflectiveOperationException | RuntimeException failure) {
+            Logger.printException(() -> "Accounts: the account for a user can't be found", failure);
+            return -1;
+        }
+    }
+
+    static int ofUser(Class<?> config, long userId) {
+        if (userId == 0) return -1;
+        try {
             Method instance = HostNames.method(config, "getInstance", int.class);
             Method id = HostNames.method(config, "getClientUserId");
             Method activated = HostNames.method(config, "isClientActivated");
-            for (int index = 0; index < MAX; index++) {
+            int slots = Math.min(MAX, slots(config));
+            for (int index = 0; index < slots; index++) {
                 Object each = instance.invoke(null, index);
                 if (each != null && Boolean.TRUE.equals(activated.invoke(each)) && ((Long) id.invoke(each)) == userId) return index;
             }

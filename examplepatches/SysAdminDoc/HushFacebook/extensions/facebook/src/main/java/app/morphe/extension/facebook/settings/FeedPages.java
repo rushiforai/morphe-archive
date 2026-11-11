@@ -178,6 +178,7 @@ final class FeedPages {
                 || build.contains(PatchFamily.META_AI_QUESTIONS)
                 || build.contains(PatchFamily.POST_DATES)
                 || build.contains(PatchFamily.AUTO_TRANSLATION)
+                || build.contains(PatchFamily.ASK_BEFORE_LIKE)
                 || build.contains(PatchFamily.FEEDS_HEADER)) {
             PreferenceCategory feed = category(screen, L10n.t("News feed"));
             // The families whose rules run in the feed guard, which keeps the tally.
@@ -220,8 +221,13 @@ final class FeedPages {
                                 ? L10n.t("Hides friend suggestions between posts, on your own profile, and as cards with an Add button in the "
                                         + "Stories tray.")
                                 : L10n.t("Hides friend suggestions between posts and on your own profile.")));
+                // The groups card between reels goes through the Reels mid-card hook, which only
+                // Clean up Reels and Hide reel interest prompts put in.
                 feed.addPreference(toggle(context, Settings.HIDE_SUGGESTED_GROUPS,
-                        L10n.t("Hides the row of groups to join between posts. Posts from groups you're in stay.")));
+                        build.contains(PatchFamily.REEL_DECLUTTER) || build.contains(PatchFamily.REEL_PROMPTS)
+                                ? L10n.t("Hides the row of groups to join between posts and the groups card between reels. "
+                                        + "Posts from groups you're in stay.")
+                                : L10n.t("Hides the row of groups to join between posts. Posts from groups you're in stay.")));
                 feed.addPreference(toggle(context, Settings.HIDE_GROUP_POSTS_NOT_JOINED,
                         L10n.t("Hides posts from groups you haven't joined, like a friend's post in a public group, and a "
                                 + "group post a friend commented on or shared. Posts from your groups stay.")));
@@ -275,8 +281,8 @@ final class FeedPages {
                         L10n.t("Hides the strip on some posts, like \"Are you interested in this post?\" or who recently commented, "
                                 + "plus follow and chat suggestions there. The post stays.")));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_FOLLOW_LINK,
-                        L10n.t("Hides the \"Follow\" link next to the name on posts from Pages and people you don't follow. "
-                                + "Tapping the name still opens the profile. A change shows on the posts drawn after it.")));
+                        L10n.t("Hides the \"Follow\" or \"Subscribe\" link next to the name on posts and videos from Pages and people "
+                                + "you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.")));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_JOIN_BUTTON,
                         L10n.t("Hides the Join button next to the group's name on posts from groups you haven't joined, "
                                 + "and the Join group bar under their videos. A change shows on the posts drawn after it.")));
@@ -317,6 +323,11 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_POST_COMMENT_BUTTON, hides));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_SHARE_BUTTON, hides));
                 feed.addPreference(toggle(context, Settings.HIDE_POST_SEND_BUTTON, hides));
+            }
+            if (build.contains(PatchFamily.ASK_BEFORE_LIKE)) {
+                // Read on each tap, so a change shows on the next one.
+                feed.addPreference(toggle(context, Settings.ASK_BEFORE_LIKING_POSTS,
+                        L10n.t("A tap on Like under a post asks first, and only Continue likes or unlikes it.")));
             }
             if (build.contains(PatchFamily.POST_DATES)) {
                 feed.addPreference(toggle(context, Settings.KEEP_POST_DATES,
@@ -761,6 +772,9 @@ final class FeedPages {
                                 + "Applies from the next story you open.")));
                 stories.addPreference(toggle(context, Settings.HIDE_STORY_SUBSCRIBE,
                         L10n.t("Takes the Subscribe button off the top of a story. Applies from the next story you open.")));
+                stories.addPreference(toggle(context, Settings.HIDE_STORY_CREATE_CARDS,
+                        L10n.t("Takes out the card between stories that asks you to make one, including the ones "
+                                + "built from photos in your gallery. Applies the next time you open stories.")));
                 stories.addPreference(toggle(context, Settings.STORY_PROGRESS_BAR,
                         L10n.t("Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.")));
             }
@@ -825,7 +839,8 @@ final class FeedPages {
         boolean fullHeight = build.contains(PatchFamily.FULL_HEIGHT_COMMENTS);
         boolean tags = build.contains(PatchFamily.TAG_SUGGESTIONS);
         boolean pictures = build.contains(PatchFamily.PROFILE_PICTURES);
-        if (!order && !summaries && !options && !reactions && !fullHeight && !tags && !pictures) return;
+        boolean ask = build.contains(PatchFamily.ASK_BEFORE_LIKE);
+        if (!order && !summaries && !options && !reactions && !fullHeight && !tags && !pictures && !ask) return;
         PreferenceCategory comments = category(screen, L10n.t("Comments and writing"));
         if (order) {
             comments.addPreference(toggle(context, Settings.DEFAULT_COMMENT_ORDER,
@@ -847,6 +862,11 @@ final class FeedPages {
             comments.addPreference(toggle(context, Settings.HIDE_COMMENT_PROFILE_PICTURES,
                     L10n.t("Takes the profile picture off comments, so the name and text start where the picture "
                             + "was. A change shows on the comments drawn after it.")));
+        }
+        if (ask) {
+            // Read on each tap, so a change shows on the next one.
+            comments.addPreference(toggle(context, Settings.ASK_BEFORE_LIKING_COMMENTS,
+                    L10n.t("A tap on Like under a comment asks first, and only Continue likes or unlikes it.")));
         }
         if (options) {
             comments.addPreference(toggle(context, Settings.LIKE_ONLY,

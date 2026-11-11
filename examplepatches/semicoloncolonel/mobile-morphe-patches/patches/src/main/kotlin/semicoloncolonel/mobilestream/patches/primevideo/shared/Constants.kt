@@ -1,7 +1,7 @@
 package semicoloncolonel.mobilestream.patches.primevideo.shared
 
-import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
@@ -11,6 +11,6 @@ object Constants {
         description = "The phone app, not the Android TV app.",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x1399FF,
-        targets = listOf(AppTarget(version = "3.0.480.647"))
+        targets = listOf(AppTarget("3.0.480.747", versionCode = 480000747), AppTarget("3.0.479.847"))
     )
 }

@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 
 import app.fakh.extension.shared.GlassCapsule;
+import app.fakh.extension.shared.TabSlide;
 
 /**
  * Draws Jira's bottom bar (a Material 3 BottomNavigationView) as a floating, translucent capsule with the shared
@@ -19,11 +20,17 @@ public final class GlassNavigationBar {
     private static final int VERTICAL_MARGIN_DP = 6;
     private static final int PILL_WIDTH_DP = 64;
     private static final int PILL_HEIGHT_DP = 32;
+    /** How far the pill stays in from the capsule's edges, and how far past its tab it reaches on either side. */
+    private static final int PILL_INSET_DP = 4;
+    private static final int PILL_GROW_DP = 4;
     /** Space between the capsule's edge and the first and last tab, so a long label such as "Notifications" fits. */
     private static final int INNER_PADDING_DP = 8;
     private static final float LABEL_SP = 10f;
-    /** Space above and below the pill when the labels are hidden. */
-    private static final int NO_LABEL_PADDING_DP = 14;
+    /** Space above and below the icon indicator when the labels are hidden, which makes the capsule 56dp tall. */
+    private static final int NO_LABEL_PADDING_DP = 12;
+    /** How tall the capsule is with labels, and how far the labels move up to their icons to fit in it. */
+    private static final int CAPSULE_HEIGHT_DP = 56;
+    private static final int LABEL_LIFT_DP = 4;
     /** Distance between the capsule and the bar's bottom edge when the labels are hidden. */
     private static final int NO_LABEL_BOTTOM_MARGIN_DP = 10;
     /** How opaque the capsule is; the page shows through the rest. */
@@ -93,6 +100,8 @@ public final class GlassNavigationBar {
         /** The capsule's left and right edges in the bar, around the visible tabs. */
         private float spanLeft;
         private float spanRight;
+        /** The capsule as {@link #pill} last asked for it, which the pill stays inside. */
+        private final RectF capsuleRect = new RectF();
         /** True when the tabs put the label beside the icon, as the bar does in landscape. */
         private boolean sideBySide;
 
@@ -105,7 +114,8 @@ public final class GlassNavigationBar {
         /** Replaces the bar's background with the capsule. */
         void attach() {
             glass = new GlassCapsule(surface(bar.getContext()), density, this, FILL_ALPHA);
-            glass.setAccent(accent);
+            // The pill takes the accent's wash with Material You, and stays neutral gray without it.
+            if (app.fakh.extension.shared.MaterialYou.wallpaper(MaterialYou.materialYou(bar.getContext()))) glass.setAccent(accent);
             GlassCapsule.clearSystemBar(bar.getContext());
             bar.setElevation(0);
             // The screen animates layout changes of its children (animateLayoutChanges), so every time the library
@@ -119,6 +129,8 @@ public final class GlassNavigationBar {
             int sides = Math.round((SIDE_MARGIN_DP + INNER_PADDING_DP) * density);
             bar.setPadding(bar.getPaddingLeft() + sides, bar.getPaddingTop(), bar.getPaddingRight() + sides, bar.getPaddingBottom());
             bar.setBackground(glass);
+            glass.setLiquid(MaterialYou.liquidGlass(bar.getContext()));
+            if (tabs() != null) TabSlide.install(bar, glass, false, TabSlide.children(tabs(), bar));
         }
 
         /** The row of tabs, which is the bar's first child. */
@@ -156,6 +168,8 @@ public final class GlassNavigationBar {
             int large = id(bar, "navigation_bar_item_large_label_view");
             int small = id(bar, "navigation_bar_item_small_label_view");
             int indicator = id(bar, "navigation_bar_item_active_indicator_view");
+            int iconContainer = id(bar, "navigation_bar_item_icon_container");
+            int labelsGroup = id(bar, "navigation_bar_item_labels_group");
             int now = -1;
             for (int i = 0; i < tabs.getChildCount(); i++) {
                 View tab = tabs.getChildAt(i);
@@ -171,6 +185,17 @@ public final class GlassNavigationBar {
                     own.setBackground(null);
                     own.setAlpha(0f);
                 }
+                // No press ripple, as the pill already shows the tab: the library puts it on the icon's container,
+                // or on the tab itself when the indicator is off.
+                View container = tab.findViewById(iconContainer);
+                if (container != null && container.getForeground() != null) container.setForeground(null);
+                if (tab.getBackground() != null) tab.setBackground(null);
+                // The labels sit closer to the icon than Material puts them, so both fit the lower capsule.
+                View labels = tab.findViewById(labelsGroup);
+                boolean below = !MaterialYou.hideTabLabels(bar.getContext()) && bar.getResources().getConfiguration()
+                        .orientation != android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+                float lift = below ? -LABEL_LIFT_DP * density : 0;
+                if (labels != null && labels.getTranslationY() != lift) labels.setTranslationY(lift);
                 if (tab.isSelected()) now = i;
                 for (int label : new int[] {large, small}) {
                     View text = tab.findViewById(label);
@@ -195,13 +220,7 @@ public final class GlassNavigationBar {
             fitWidth(tabs, large, icon);
             if (now >= 0) {
                 View tab = tabs.getChildAt(now);
-                if (sideBySide) {
-                    glass.slider().select(offset(tab, 0) + 4 * density, offset(tab, 0) + tab.getWidth() - 4 * density);
-                } else {
-                    float center = offset(tab, 0) + tab.getWidth() / 2f;
-                    float half = Math.min(PILL_WIDTH_DP * density, tab.getWidth()) / 2f;
-                    glass.slider().select(center - half, center + half);
-                }
+                glass.slider().select(offset(tab, 0), offset(tab, 0) + tab.getWidth());
             }
             if (now == selected) return relaid;
             if (selected >= 0 && selected < tabs.getChildCount() && tabs.getChildCount() > 2) {
@@ -350,6 +369,19 @@ public final class GlassNavigationBar {
                 float half = (PILL_HEIGHT_DP / 2f + NO_LABEL_PADDING_DP) * density;
                 top = noLabelCenter() - half;
                 bottom = noLabelCenter() + half;
+            } else if (!sideBySide) {
+                // With labels under the icons it is as tall as without, centered on a tab's icon and its lifted label.
+                for (int i = 0; i < tabs.getChildCount(); i++) {
+                    View tab = tabs.getChildAt(i);
+                    View icon = tab.findViewById(id(bar, "navigation_bar_item_icon_view"));
+                    View label = tab.findViewById(id(bar, "navigation_bar_item_large_label_view"));
+                    if (tab.getVisibility() == View.GONE || icon == null || label == null || label.getHeight() == 0) continue;
+                    float center = (offset(icon, 1) + offset(label, 1) + label.getHeight() - LABEL_LIFT_DP * density) / 2f;
+                    float half = CAPSULE_HEIGHT_DP * density / 2f;
+                    top = center - half;
+                    bottom = center + half;
+                    break;
+                }
             }
             out.set(spanLeft, top, spanRight, bottom);
             return true;
@@ -358,20 +390,13 @@ public final class GlassNavigationBar {
         @Override
         public boolean pill(RectF out) {
             ViewGroup tabs = tabs();
-            if (tabs == null || selected < 0 || selected >= tabs.getChildCount() || !glass.slider().has()) return false;
-            View tab = tabs.getChildAt(selected);
-            View indicator = tab.findViewById(id(bar, "navigation_bar_item_active_indicator_view"));
-            float centerY;
-            float half = PILL_HEIGHT_DP * density / 2f;
-            if (MaterialYou.hideTabLabels(bar.getContext())) {
-                centerY = noLabelCenter();
-            } else if (indicator != null && indicator.getHeight() > 0) {
-                centerY = offset(indicator, 1) + indicator.getHeight() / 2f;
-                if (sideBySide) half = indicator.getHeight() / 2f;
-            } else {
-                centerY = offset(tab, 1) + tab.getPaddingTop() + PILL_HEIGHT_DP * density / 2f;
-            }
-            out.set(glass.slider().start(), centerY - half, glass.slider().end(), centerY + half);
+            if (tabs == null || selected < 0 || selected >= tabs.getChildCount() || !glass.slider().has()
+                    || !capsule(capsuleRect)) return false;
+            // The whole tab, icon and label, a little wider than the tab, with a thin rim of the capsule all around.
+            float inset = PILL_INSET_DP * density;
+            float grow = PILL_GROW_DP * density;
+            out.set(Math.max(capsuleRect.left + inset, glass.slider().start() - grow), capsuleRect.top + inset,
+                    Math.min(capsuleRect.right - inset, glass.slider().end() + grow), capsuleRect.bottom - inset);
             return true;
         }
     }

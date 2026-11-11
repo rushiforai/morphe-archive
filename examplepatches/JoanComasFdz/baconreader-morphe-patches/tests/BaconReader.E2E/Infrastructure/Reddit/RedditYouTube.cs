@@ -26,13 +26,13 @@ public sealed partial class Reddit
         world.AddPost(subreddit, title, post => post.LinkingTo(YouTubeVideoTitled(video).Link));
 
     /// <summary>"… the address of the YouTube video "&lt;title&gt;"": the video's watch page, as a comment links it.</summary>
-    public YouTubeVideoSnapshot ReadTheYouTubeVideo(string title) => new(title, YouTubeVideoTitled(title).Link);
+    public YouTubeVideoSnapshot ReadTheYouTubeVideo(string title) => Checked<YouTubeVideoSnapshot>(new(title, YouTubeVideoTitled(title).Link), title);
 
     /// <summary>"YouTube served the thumbnail of "&lt;title&gt;"": the requests for the video's 16:9 thumbnail, each one's status.</summary>
     public YouTubeThumbnailRequestsSnapshot ReadRequestsForTheYouTubeThumbnailOf(string title)
     {
         var path = new Uri(YouTubeVideoTitled(title).Thumbnail).AbsolutePath;
-        return new(title, [.. world.Requests.Where(request => request.Method == "GET" && request.Path == path).Select(request => request.Status)]);
+        return Checked<YouTubeThumbnailRequestsSnapshot>(new(title, [.. world.Requests.Where(request => request.Method == "GET" && request.Path == path).Select(request => request.Status)]), title);
     }
 
     /// <summary>Waits until YouTube served the thumbnail of the video "&lt;title&gt;": the patches ask for it as they show the link or the post.</summary>

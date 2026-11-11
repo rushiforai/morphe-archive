@@ -2,11 +2,13 @@ package app.fakh.patches.idn
 
 import app.fakh.patches.idn.shared.Constants.COMPATIBILITY_IDN
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.checkCast
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -283,10 +285,19 @@ private fun autoPlaySetter(type: String) = Fingerprint(
     parameters = listOf("Z"),
 )
 
-private const val LOW_QUALITY_TRAILER = "Lmedia/idn/videoPlayer/ExoVideoPlayerView;->setLowQualityTrailer(Z)V"
-
 /** The bind method of a Nonton home carousel card: it starts the muted preview video, which is the only caller of setLowQualityTrailer. */
-private fun Method.startsPreviewVideo() = returnType == "V" && parameterTypes.size == 2 && references().contains(LOW_QUALITY_TRAILER)
+private object PreviewVideoBindFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        methodCall(
+            definingClass = "Lmedia/idn/videoPlayer/ExoVideoPlayerView;",
+            name = "setLowQualityTrailer",
+            parameters = listOf("Z"),
+            returnType = "V",
+        )
+    ),
+    custom = { method, _ -> method.parameterTypes.size == 2 },
+)
 
 @Suppress("unused")
 val stopAutoplayPatch = bytecodePatch(
@@ -309,9 +320,7 @@ val stopAutoplayPatch = bytecodePatch(
                 """,
             )
         }
-        val cardClasses = mutableListOf<String>()
-        classDefForEach { classDef -> if (classDef.methods.any { it.startsPreviewVideo() }) cardClasses += classDef.type }
-        val binds = cardClasses.flatMap { type -> mutableClassDefBy(type).methods.filter { it.startsPreviewVideo() } }
+        val binds = PreviewVideoBindFingerprint.matchAllOrNull().orEmpty().map { it.method }
         if (binds.size != 2) throw PatchException("IDN: expected 2 home carousel card previews, found ${binds.size}.")
         binds.forEach {
             it.apply {
@@ -388,6 +397,7 @@ private const val SKELETON_LAYOUT = "Lcom/faltenreich/skeletonlayout/SkeletonLay
 /** MySubscriptionStatusManager's bind: fills the subscription banner on the profile with one of its variants (the only one-argument method that sets card colors). */
 private object SubscriptionBannerFingerprint : Fingerprint(
     returnType = "V",
+    filters = listOf(methodCall(name = "setCardBackgroundColor", parameters = listOf("I"), returnType = "V")),
     custom = { method, _ ->
         method.parameterTypes.size == 1 &&
             method.references().count { it.endsWith("->setCardBackgroundColor(I)V") } >= 2
@@ -398,11 +408,7 @@ private object SubscriptionBannerFingerprint : Fingerprint(
 private object SubscriptionFrameFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Z"),
-    custom = { method, _ ->
-        method.implementation?.instructions?.any {
-            it.opcode == Opcode.CHECK_CAST && (it as ReferenceInstruction).reference.toString() == SKELETON_LAYOUT
-        } == true
-    },
+    filters = listOf(checkCast(SKELETON_LAYOUT)),
 )
 
 @Suppress("unused")
@@ -426,20 +432,18 @@ val hidePackageBannerPatch = bytecodePatch(
         // default banner. The server can send its own banner, so the banner object says nothing; the status does. A package
         // is available, or none is active: both read their banner off the status right before the branch that falls back
         // to the default banner, so the mark goes there, not before the bind call a branch can jump over.
-        var caller: Method? = null
-        var callerType = ""
-        classDefForEach { classDef ->
-            classDef.methods.forEach { method ->
-                if (method.references().count { it == bindCall } >= 2) {
-                    caller = method
-                    callerType = classDef.type
-                }
-            }
-        }
-        val statusCaller = caller ?: throw PatchException("IDN: the profile banner status code was not found.")
-        mutableClassDefBy(callerType).methods.first {
-            it.name == statusCaller.name && it.parameterTypes.map { type -> type.toString() } == statusCaller.parameterTypes.map { type -> type.toString() } && it.returnType == statusCaller.returnType
-        }.apply {
+        val statusCaller = Fingerprint(
+            filters = listOf(
+                methodCall(
+                    definingClass = bind.definingClass,
+                    name = bind.name,
+                    parameters = bind.parameterTypes.map { it.toString() },
+                    returnType = bind.returnType,
+                )
+            )
+        ).matchAllOrNull().orEmpty().lastOrNull { match -> match.originalMethod.references().count { it == bindCall } >= 2 }
+            ?: throw PatchException("IDN: the profile banner status code was not found.")
+        statusCaller.method.apply {
             val marks = sortedSetOf<Int>()
             instructions.forEachIndexed { index, instruction ->
                 if ((instruction as? ReferenceInstruction)?.reference?.toString() != bindCall) return@forEachIndexed

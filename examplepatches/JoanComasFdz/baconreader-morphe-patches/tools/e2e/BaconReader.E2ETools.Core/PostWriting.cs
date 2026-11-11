@@ -10,7 +10,8 @@ namespace BaconReader.E2ETools.Core;
 /// changed; each scenario shows once, as a closed &lt;details&gt; whose summary is its bold title after ✅ or ❌ (so the
 /// owner opens only the ones to look at), holding its Gherkin, the patches its app was patched with, then a "📱 Phone"
 /// subtitle (the app's scenarios; "🖥️ Desktop" for the VS Code extension's) with that screen's GIF and, below it, "▶ Play MP4": both link to the site's player page, since GitHub shows
-/// no player for a video it didn't store itself (a tap on a bare GIF would only download it).
+/// no player for a video it didn't store itself (a tap on a bare GIF would only download it), with the run's Gherkin and
+/// when each line played (<see cref="PlayerLinking"/>).
 /// </summary>
 public static class PostWriting
 {
@@ -68,8 +69,12 @@ public static class PostWriting
         return $"https://{parts[0].ToLowerInvariant()}.github.io/{parts[1]}/e2e-player.html";
     }
 
-    /// <summary>The player page on an MP4 of prs-resources: ?v=&lt;its name&gt;.</summary>
-    public static string LinkPlayer(string repo, string mp4Asset) => $"{FindPlayer(repo)}?v={mp4Asset}";
+    /// <summary>
+    /// The player page on an MP4 of prs-resources: ?v=&lt;its name&gt;, then its run's Gherkin and marks
+    /// (<see cref="PlayerLinking"/>) when it has them.
+    /// </summary>
+    public static string LinkPlayer(string repo, string mp4Asset, string playerData = "") =>
+        $"{FindPlayer(repo)}?v={mp4Asset}{PlayerLinking.LinkFragment(playerData)}";
 
     /// <summary>The runs of each scenario (its class and method), in the order the scenarios first appear, in the screens' order.</summary>
     private static ImmutableArray<ImmutableArray<PlannedRun>> GroupByScenario(ImmutableArray<PlannedRun> runs) =>
@@ -133,7 +138,7 @@ public static class PostWriting
             return [heading, "", image, ""];
         }
 
-        var player = LinkPlayer(repo, run.Mp4Asset);
+        var player = LinkPlayer(repo, run.Mp4Asset, run.Entry.PlayerData);
         return [heading, "", $"[{image}]({player})", "", $"[▶ Play MP4]({player})", ""];
     }
 

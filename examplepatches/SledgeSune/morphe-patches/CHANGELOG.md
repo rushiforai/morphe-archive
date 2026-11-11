@@ -1,3 +1,10 @@
+## [1.1.0](https://github.com/SledgeSune/morphe-patches/compare/v1.0.0...v1.1.0) (2026-11-10)
+
+### ✨ New Features
+
+* **Waze:** Add "Trip history" patch ([05b0531](https://github.com/SledgeSune/morphe-patches/commit/05b05312c2a701de0f6c913a09f70224a4e9e965))
+* **Waze:** Add "Disable reroute auto-accept" patch ([6d8accd](https://github.com/SledgeSune/morphe-patches/commit/6d8accdce2c4e862592fcdec2a913881169b2d57))
+
 ## 1.0.0 (2026-11-08)
 
 ### ✨ New Features

@@ -8,6 +8,7 @@ import app.morphe.ExtensionDex
 import app.morphe.FixtureDex
 import app.morphe.Fixtures
 import app.morphe.PatchContexts
+import app.morphe.util.names.TelegramNames
 import app.morphe.util.names.origDefiningClass
 import app.morphe.util.names.origName
 import app.morphe.util.names.origParameterTypes
@@ -57,6 +58,17 @@ class SendCopyFixtureTest {
                 smali.contains("invoke-static/range {v0 .. v${locals - 1}}, ${method.origDefiningClass}->prepareSendingDocument(${params.joinToString("")})${method.origReturnType}"),
             )
             assertTrue(smali.startsWith("invoke-static/range {p0 .. p0}, ${params[0]}->getInstance(I)${params[0]}"))
+
+            // writeStub puts each call through the build's table, which must hold every send's source key.
+            val table = TelegramNames.of(context)
+            for ((send, stubParams) in listOf(text to 4, photo to 5, document to 6)) {
+                val built = send.method
+                val translated = table.translate(copyCall(send, stubParams).first, context)
+                assertTrue(
+                    "${build.name}: ${built.origName} translates to the build's own method",
+                    translated.contains("->${built.name}(${built.parameterTypes.joinToString("")})${built.returnType}"),
+                )
+            }
         }
     }
 }

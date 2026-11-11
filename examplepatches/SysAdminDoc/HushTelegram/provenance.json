@@ -383,13 +383,33 @@
         "patches/src/main/kotlin/app/morphe/patches/telegram/misc/calldebug/CallRecordingHook.kt",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/settings/SettingsRoutes.java",
         "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SpecialContacts.java",
-        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SpecialContactsStore.java"
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/SpecialContactsStore.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/MediaQuality.java"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/HushTelegram",
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Telegram request and presentation guards written for version 12.10.6 from its own dex. Runtime switches retain the stock paths when disabled or paused, with separate target capabilities."
+    },
+    {
+      "paths": [
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/AutoForwarding.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ChannelRestrictions.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/IntegrityBypass.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/PremiumUnlock.java",
+        "extensions/telegram/src/main/java/app/hushtelegram/extension/telegram/misc/ScreenshotNotification.java",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/autoforward/AutoForwardingPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/integrity/BypassIntegrityCheckPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/premium/UnlockPremiumPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/restrictions/BypassChannelRestrictionsPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/telegram/misc/screenshotnotif/SuppressScreenshotNotificationPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushTelegram",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Five experimental patches for Telegram 13.2.1: anti-screenshot notification, premium unlock, channel restriction bypass, integrity check bypass and auto-forwarding. All disabled by default."
     },
     {
       "paths": [

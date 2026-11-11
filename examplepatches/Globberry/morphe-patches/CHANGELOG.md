@@ -1,3 +1,100 @@
+## [1.3.9](https://github.com/Globberry/morphe-patches/compare/v1.3.8...v1.3.9) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* remove CtCUGg.cdo7kOuyS patch - fixes startup VerifyError and import regression ([f2573b1](https://github.com/Globberry/morphe-patches/commit/f2573b11c65618c1684c9df1e093374af4a9469f))
+
+## [1.3.8](https://github.com/Globberry/morphe-patches/compare/v1.3.7...v1.3.8) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* CtCUGg.cdo7kOuyS() - replace instr 0 with const/4 v0,0x0 and instr 1 with return v0 ([2bd4d5e](https://github.com/Globberry/morphe-patches/commit/2bd4d5e3efb90254c55443ca7517d9789d4ed64d))
+
+## [1.3.7](https://github.com/Globberry/morphe-patches/compare/v1.3.6...v1.3.7) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* CtCUGg.cdo7kOuyS() - replace all instructions to avoid VerifyError ([3b20b64](https://github.com/Globberry/morphe-patches/commit/3b20b64aea409ca318228b6a862652ba88dafb05))
+
+## [1.3.6](https://github.com/Globberry/morphe-patches/compare/v1.3.5...v1.3.6) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* remove CtCUGg.cdo7kOuyS patch that caused VerifyError on startup ([56423e5](https://github.com/Globberry/morphe-patches/commit/56423e532fb7eb4def5f760a1d44a68ae933a20e))
+
+## [1.3.5](https://github.com/Globberry/morphe-patches/compare/v1.3.4...v1.3.5) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* comprehensive Export Pro Gate Bypass - 4-part patch ([f60d420](https://github.com/Globberry/morphe-patches/commit/f60d42025c438b1a0ea9db4fe4f4efa03c43d01d))
+
+## [1.3.5](https://github.com/Globberry/morphe-patches/compare/v1.3.4...v1.3.5) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* comprehensive Export Pro Gate Bypass - 4-part patch ([f60d420](https://github.com/Globberry/morphe-patches/commit/f60d42025c438b1a0ea9db4fe4f4efa03c43d01d))
+
+## [1.3.4](https://github.com/Globberry/morphe-patches/compare/v1.3.3...v1.3.4) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* strengthen Export Pro Gate Bypass - add ZFJe6vx50 y88yfJ73C bypass ([f1d49e4](https://github.com/Globberry/morphe-patches/commit/f1d49e44bfdcac24e33df1d261d22e0b94fa8a96))
+
+## [1.3.3](https://github.com/Globberry/morphe-patches/compare/v1.3.2...v1.3.3) (2026-11-11)
+
+### 🐛 Bug Fixes
+
+* strengthen Export Pro Gate Bypass - null out both state and error ([cda2cce](https://github.com/Globberry/morphe-patches/commit/cda2cce9ff5ccbaf439def7008469a446a8e8946))
+
+## [1.3.2](https://github.com/Globberry/morphe-patches/compare/v1.3.1...v1.3.2) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* bypass Pro gate in export pipeline (kCg72Z4t) ([9700f07](https://github.com/Globberry/morphe-patches/commit/9700f07090d063e0ec0a0f01e6b8223861d3a486))
+
+## [1.3.1](https://github.com/Globberry/morphe-patches/compare/v1.3.0...v1.3.1) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* make LuHQuORIu.yMQp6hm() a complete no-op to prevent Pro reset after opening a project ([64f283f](https://github.com/Globberry/morphe-patches/commit/64f283f300e9a4456cb3fb50c611d2c32721b6d8))
+
+## [1.3.0](https://github.com/Globberry/morphe-patches/compare/v1.2.15...v1.3.0) (2026-11-10)
+
+### ✨ New Features
+
+* add Keyflow 1.5.10 export Pro bypass patches ([b5ab232](https://github.com/Globberry/morphe-patches/commit/b5ab2325f3694943c3cf0e62a7156ac99f706f3b))
+
+## [1.2.15](https://github.com/Globberry/morphe-patches/compare/v1.2.14...v1.2.15) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* CME in ProPatch + add f6olX goto fix for Keyflow 1.5.10 export ([1ed085e](https://github.com/Globberry/morphe-patches/commit/1ed085e5d5ead279c63c8fd253c6219bcecdd7ec))
+
+## [1.2.14](https://github.com/Globberry/morphe-patches/compare/v1.2.13...v1.2.14) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* add Keyflow f6olX export unlock goto patch for 1.5.10 ([678e71c](https://github.com/Globberry/morphe-patches/commit/678e71c03236ee344e5fce17736d4a617e682578))
+* correct f6olX export unlock patch Kotlin API usage ([ecd3a84](https://github.com/Globberry/morphe-patches/commit/ecd3a84fa90d1dbbc1da0fb8c4049bc90cc55a7d))
+
+## [1.2.13](https://github.com/Globberry/morphe-patches/compare/v1.2.12...v1.2.13) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* patch uHQuORIu.yMQp6hm() to set yMQp6hm=true (fixes settings Pro tab); fix f6olX export patches with addFreeRegisters (but f6olX is in classes4.dex, not accessible via Morphe) ([1822375](https://github.com/Globberry/morphe-patches/commit/182237544b459a16d0d4d432c302937c55f7d848))
+
+## [1.2.12](https://github.com/Globberry/morphe-patches/compare/v1.2.11...v1.2.12) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* remove non-functional f6olX patches (classes in classes4.dex); keep uHQuOrIu, mx6nK, kjXTc, uhgAYKl2b patches for Pro state unlock ([bddce74](https://github.com/Globberry/morphe-patches/commit/bddce74c11046f3b51d4c073903c14472262d421))
+
+## [1.2.11](https://github.com/Globberry/morphe-patches/compare/v1.2.10...v1.2.11) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* set LwQ0TDjP.BEDum=Boolean.FALSE in clinit to break sentinel check; remove broken instruction modification code ([74e58a2](https://github.com/Globberry/morphe-patches/commit/74e58a296c006025c3e6b0678b46f0d203cf82e6))
+
 ## [1.2.10](https://github.com/Globberry/morphe-patches/compare/v1.2.9...v1.2.10) (2026-11-10)
 
 ### 🐛 Bug Fixes

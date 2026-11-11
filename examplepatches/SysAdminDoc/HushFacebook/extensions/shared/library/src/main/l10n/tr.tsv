@@ -579,6 +579,7 @@ Hushfacebook settings can't open here. Long-press the Facebook logo instead.	Hus
 Hide suggested groups	Önerilen grupları gizle
 # context: summary of that switch; Discover more groups is the label of Facebook's own button under that row
 Hides the row of groups to join between posts. Posts from groups you're in stay.	Gönderilerin arasındaki katılabileceğiniz gruplar satırını gizler. Üyesi olduğunuz grupların gönderileri kalır.
+Hides the row of groups to join between posts and the groups card between reels. Posts from groups you're in stay.	Gönderilerin arasındaki katılabileceğiniz gruplar satırını ve Reeller arasındaki grup kartını gizler. Üyesi olduğunuz grupların gönderileri kalır.
 # context: switch title under News feed; Facebook's own header of a row of Stories from people you don't know, shown between posts
 Hide "Stories you might like"	“Beğenebileceğin hikayeler” bölümünü gizle
 Hide Memories in the feed	Akıştaki anıları gizle
@@ -836,6 +837,26 @@ Saving... To cancel, open Downloads in Hushfacebook settings.	Kaydediliyor… İ
 Turn off double tap to like	Beğenmek için çift dokunmayı kapat
 # context: summary of that switch; Like is the name of Facebook's own button, as Facebook shows it in this language
 A double tap on a reel, a video or a photo in the feed no longer likes it or shows a heart. A single tap and the Like button work as before.	Bir reel'e, videoya veya akıştaki bir fotoğrafa çift dokunmak artık onu beğenmez ve kalp göstermez. Tek dokunuş ve Beğen düğmesi eskisi gibi çalışır.
+# context: switch title on the News feed page; on, a tap on Like under a post asks first
+Ask before liking a post	Gönderiyi beğenmeden önce sor
+# context: summary of that switch; Like is Facebook's own button as Facebook shows it in this language; Continue is the question's button, as translated below
+A tap on Like under a post asks first, and only Continue likes or unlikes it.	Bir gönderinin altındaki Beğen'e dokunmak önce sorar, beğeniyi yalnızca Devam ekler ya da kaldırır.
+# context: switch title under Reels and Watch; on, a tap on Like beside a reel asks first
+Ask before liking a reel	Reel'i beğenmeden önce sor
+# context: summary of that switch
+A tap on Like beside a reel asks first, and only Continue likes or unlikes it.	Bir reel'in yanındaki Beğen'e dokunmak önce sorar, beğeniyi yalnızca Devam ekler ya da kaldırır.
+# context: switch title under Comments and writing; on, a tap on Like under a comment asks first
+Ask before liking a comment	Yorumu beğenmeden önce sor
+# context: summary of that switch
+A tap on Like under a comment asks first, and only Continue likes or unlikes it.	Bir yorumun altındaki Beğen'e dokunmak önce sorar, beğeniyi yalnızca Devam ekler ya da kaldırır.
+# context: the question shown after a tap on Like under a post; Continue goes ahead with the like or unlike, Cancel leaves it
+Like or unlike this post?	Bu gönderi beğenilsin mi, beğeni kaldırılsın mı?
+# context: the same question for a reel
+Like or unlike this reel?	Bu reel beğenilsin mi, beğeni kaldırılsın mı?
+# context: the same question for a comment
+Like or unlike this comment?	Bu yorum beğenilsin mi, beğeni kaldırılsın mı?
+# context: the question's button that goes ahead
+Continue	Devam
 # context: switch title under Reels and Watch; on, a double tap on the left or right edge of a reel or a video skips back or forward in it
 Double tap to skip	Atlamak için çift dokun
 # context: summary of that switch; the edge is about a fifth of the player's width, and 30 seconds is the whole length of the reel or video
@@ -972,9 +993,9 @@ Hide post prompts	Gönderi altındaki soruları gizle
 # context: description of that switch; the quoted texts are Facebook's own prompts, so use Facebook's wording in your language if you know it
 Hides the strip on some posts, like "Are you interested in this post?" or who recently commented, plus follow and chat suggestions there. The post stays.	Bazı gönderilerdeki “Bu gönderiyle ilgileniyor musun?” veya yakın zamanda kimin yorum yaptığı gibi şeridi ve oradaki takip ve sohbet önerilerini gizler. Gönderi kalır.
 # context: switch title under News feed; the Follow link is the small "Follow" text after a poster's name in a post's header
-Hide the Follow link on posts	Gönderilerdeki Takip Et bağlantısını gizle
+Hide the Follow and Subscribe links on posts	Gönderilerdeki Takip Et ve Abone Ol bağlantılarını gizle
 # context: description of that switch; "Follow" is Facebook's own word for the link, so use Facebook's wording in your language if you know it
-Hides the "Follow" link next to the name on posts from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Takip etmediğiniz Sayfaların ve kişilerin gönderilerinde adın yanındaki "Takip Et" bağlantısını gizler. Ada dokunmak yine profili açar. Değişiklik, sonrasında yüklenen gönderilerde görünür.
+Hides the "Follow" or "Subscribe" link next to the name on posts and videos from Pages and people you don't follow. Tapping the name still opens the profile. A change shows on the posts drawn after it.	Takip etmediğiniz Sayfaların ve kişilerin gönderilerinde ve videolarında adın yanındaki "Takip Et" veya "Abone Ol" bağlantısını gizler. Ada dokunmak yine profili açar. Değişiklik, sonrasında yüklenen gönderilerde görünür.
 # context: switch title under News feed; Meta AI is the name of Meta's assistant, and the questions are the row of suggested questions for it that Facebook puts under some posts
 Hide Meta AI questions under posts	Gönderilerin altındaki Meta AI sorularını gizle
 # context: description of that switch; a link card is the preview of a shared link inside a post
@@ -1263,6 +1284,7 @@ Couldn't save this post's photos. Try again in a moment.	Bu gönderinin fotoğra
 Save GIF	GIF'i kaydet
 # context: message after a tap on Save GIF when the save didn't start
 Couldn't save this GIF. Try again in a moment.	Bu GIF kaydedilemedi. Birazdan tekrar dene.
+Couldn't save this photo. Try again in a moment.	Bu fotoğraf kaydedilemedi. Birazdan tekrar dene.
 # context: sentence added after the summary of the Save any photo switch; Save GIF is the row's name, keep it as translated for that row
 A GIF comment gets Save GIF when you long-press it.	Bir GIF yorumuna basılı tuttuğunda GIF'i kaydet çıkar.
 Couldn't save this story's photo. Try again in a moment.	Bu hikayenin fotoğrafı kaydedilemedi. Birazdan tekrar dene.
@@ -1559,6 +1581,8 @@ Only the first reel waits	Yalnızca ilk reel bekler
 With the switch above on, after you play one reel, the reels you swipe to play on their own. The feed, Watch and stories always wait.	Yukarıdaki anahtar açıkken bir reel oynattıktan sonra kaydırdığınız reeller kendiliğinden oynar. Akış, Watch ve hikayeler her zaman bekler.
 Slower speeds	Daha yavaş hızlar
 Adds 0.1x and 0.25x to the speed menu of reels and of feed and Watch videos, for slowing down a fast moment.	Reellerin ve akış ile Watch videolarının hız menüsüne 0,1x ve 0,25x seçeneklerini ekler; hızlı geçen bir anı yavaşlatmak için.
+Faster speeds	Daha yüksek hızlar
+Adds 2.5x and 3x to the speed menu of reels and of feed and Watch videos, for watching faster.	Reellerin ve akış ile Watch videolarının hız menüsüne 2,5x ve 3x seçeneklerini ekler; daha hızlı izlemek için.
 Speed on finished live videos	Biten canlı videolarda hız
 A live video that has ended gets Playback speed in its gear menu, like other videos. Videos that are still live, and ads, keep Facebook's menu.	Sona ermiş bir canlı video, diğer videolar gibi dişli menüsünde Oynatma hızı seçeneğini alır. Hâlâ canlı olan videolar ve reklamlar Facebook'un menüsünü korur.
 Share now	Şimdi paylaş
@@ -2213,6 +2237,8 @@ Fade the seek bar and speaker	Sarma çubuğunu ve hoparlörü soldur
 Lower the seek bar and speaker	Sarma çubuğunu ve hoparlörü aşağı al
 While a feed video plays, its seek bar and Facebook's speaker button fade a few seconds after it starts or you last touch them. Touch the bar or pause the video and they come back. Needs Seek bar on feed videos on.	Akıştaki bir video oynarken sarma çubuğu ve Facebook'un hoparlör düğmesi, video başladıktan ya da onlara son dokunuşunuzdan birkaç saniye sonra solar. Çubuğa dokunun ya da videoyu duraklatın, geri gelirler. “Akış videolarında sarma çubuğu” açık olmalıdır.
 Moves a feed video's seek bar closer to the bottom edge, along with Facebook's speaker and tagged people buttons. Needs Seek bar on feed videos on.	Akıştaki bir videonun sarma çubuğunu, Facebook'un hoparlör ve etiketlenen kişiler düğmeleriyle birlikte alt kenara yaklaştırır. “Akış videolarında sarma çubuğu” açık olmalıdır.
+Seek bar on the bottom edge	Sarma çubuğu alt kenarda
+Puts a feed video's seek bar right on its bottom edge, so it's out of the way while you scroll. Facebook's speaker and tagged people buttons move up to sit above it. Wins over Lower the seek bar and speaker. Needs Seek bar on feed videos on.	Akıştaki bir videonun sarma çubuğunu tam alt kenarına koyar, böylece kaydırırken yolunuza çıkmaz. Facebook'un hoparlör ve etiketlenen kişiler düğmeleri onun üstüne çıkar. “Sarma çubuğunu ve hoparlörü aşağı al” ayarından önce gelir. “Akış videolarında sarma çubuğu” açık olmalıdır.
 Feed video position	Akış videosu konumu
 # context: title of the row that holds a color code for the count badges on the tabs
 Badge color	Rozet rengi
@@ -2529,6 +2555,8 @@ Show only watched stories	Yalnızca izlenen hikayeleri göster
 The Stories tray keeps only the stories you've already watched, so you can find one again. Turn it off to see the new ones. Hide seen stories waits while this is on. Applies when Facebook next loads the tray.	Hikayeler tepsisi yalnızca izlediğiniz hikayeleri tutar, böylece birini yeniden bulabilirsiniz. Yenileri görmek için kapatın. Bu açıkken İzlenen hikayeleri gizle bekler. Facebook tepsiyi bir sonraki yüklediğinde uygulanır.
 Show Posts in search	Aramada Gönderiler'i göster
 Puts Posts back in the row over search results, after Reels, so you can see only posts for what you searched.	Gönderiler'i arama sonuçlarının üstündeki sıraya, Reels'ten sonra geri koyar, böylece aradığın şey için yalnızca gönderileri görebilirsin.
+Saved button in search	Aramada Kaydedilenler düğmesi
+Puts a Saved button at the end of the search bar, so your saved posts and videos are one tap away. Restart Facebook to see the change.	Arama çubuğunun sonuna bir Kaydedilenler düğmesi koyar, böylece kaydettiğin gönderiler ve videolar bir dokunuş uzakta olur. Değişikliği görmek için Facebook'u yeniden başlatın.
 Restore feed sound after opened videos	Açılan videolardan sonra akışın sesini geri yükle
 A video you open plays with its sound as usual. Back in the feed, the sound is what it was before you opened it, even after a long watch.	Açtığın bir video her zamanki gibi sesli oynar. Akışa döndüğünde ses, videoyu açmadan önceki gibi olur, uzun süre izlesen bile.
 Hide the Join button on posts	Gönderilerde Katıl düğmesini gizle
@@ -2594,6 +2622,8 @@ Takes the song and effect credits off the line under the poster's name on a stor
 Takes the row of suggested replies off the bottom of a story. The reply box stays. Applies from the next story you open.	Bir hikayenin altındaki önerilen yanıtlar satırını kaldırır. Yanıt kutusu kalır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
 Hide the Subscribe button	Abone ol düğmesini gizle
 Takes the Subscribe button off the top of a story. Applies from the next story you open.	Bir hikayenin üstündeki Abone ol düğmesini kaldırır. Açtığın bir sonraki hikayeden itibaren geçerli olur.
+Hide create story cards	Hikaye oluşturma kartlarını gizle
+Takes out the card between stories that asks you to make one, including the ones built from photos in your gallery. Applies the next time you open stories.	Hikayeler arasında senden bir tane oluşturmanı isteyen kartı, galerindeki fotoğraflardan hazırlananlar dahil kaldırır. Hikayeleri bir sonraki açışında geçerli olur.
 Progress bar at the bottom	Altta ilerleme çubuğu
 Shows a thin bar along the bottom of a story that fills as it plays, like the one on Reels.	Bir hikayenin altında, oynatıldıkça dolan ince bir çubuk gösterir, Reels'teki gibi.
 Seek bar on stories	Hikayelerde sarma çubuğu
@@ -2667,3 +2697,9 @@ Show time in Reels	Reels'te süreyi göster
 A small label at the top of Reels shows the minutes you've watched. Time on other tabs doesn't count, and 15 minutes away starts it over.	Reels'in üstündeki küçük bir etiket kaç dakika izlediğini gösterir. Diğer sekmelerde geçen süre sayılmaz ve 15 dakika uzak kalınca sıfırdan başlar.
 # context: a short label on the Reels screen; %1$d is a number of minutes
 %1$d min	%1$d dk
+Hide the tab bar on the Reels tab	Reels sekmesinde sekme çubuğunu gizle
+The tab bar goes away while the Reels tab is open, and the reel gets the whole screen. The other tabs keep the bar. Restart Facebook to see the change.	Reels sekmesi açıkken sekme çubuğu kaybolur ve reel tüm ekranı kaplar. Diğer sekmeler çubuğu korur. Değişikliği görmek için Facebook'u yeniden başlatın.
+Playback speed in the post menu	Gönderi menüsünde oynatma hızı
+A feed or Watch video's 3-dot menu gets Playback speed, from 0.5x to 3x, live videos too. Off by default, since it hasn't been tried on a real account yet.	Akıştaki veya Watch'taki bir videonun üç nokta menüsüne 0,5x ile 3x arasında Oynatma hızı eklenir, canlı videolarda da. Varsayılan olarak kapalı, çünkü gerçek bir hesapta henüz denenmedi.
+Double tap to skip on feed videos	Akış videolarında atlamak için çift dokun
+Double tap the right side of a playing feed video to jump ahead 10 seconds, or the left side to go back 10. Keep tapping to go further. Live videos work too when they can be rewound. One tap on a side still opens the video, a moment later than usual. With Tap to play on, it needs Inline feed video controls on too.	Oynayan bir akış videosunun sağ tarafına iki kez dokunarak 10 saniye ileri, sol tarafına dokunarak 10 saniye geri atlayın. Daha ileri gitmek için dokunmaya devam edin. Geri sarılabildiğinde canlı videolarda da çalışır. Bir kenara tek dokunuş videoyu yine açar, yalnızca her zamankinden biraz geç. “Oynatmak için dokun” açıksa “Akış videosu denetimleri” de açık olmalıdır.

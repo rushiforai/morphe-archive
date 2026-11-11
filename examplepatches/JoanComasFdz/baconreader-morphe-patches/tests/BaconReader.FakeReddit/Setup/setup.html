@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- SPDX-FileCopyrightText: 2026 JoanComasFdz -->
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<!-- What the fake Reddit has for the scenario (Endpoints/Setup.cs): its accounts and posts, from /_fake/setup.json, read
+     a few times a second; each new thing glows as it comes and is scrolled to. -->
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Test setup</title>
+    <style>
+        body { margin: 0; background: #0a0d13; color: #e7eaf0; font: 17px/1.4 system-ui, -apple-system, Roboto, sans-serif; }
+        header { padding: 20px 18px 12px; border-bottom: 1px solid #263046; background: #111620; }
+        header h1 { margin: 0; font-size: 22px; }
+        header p { margin: 4px 0 0; color: #8a94a8; font-size: 14px; }
+        h2 { margin: 18px 18px 6px; font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a94a8; }
+        .box { margin: 8px 14px; padding: 12px 14px; background: #111620; border: 1px solid #263046; border-radius: 10px; }
+        .account { display: flex; align-items: center; gap: 10px; }
+        .account .name { flex: 1; font-weight: 600; }
+        .sub { color: #8a94a8; font-size: 13px; }
+        .title { font-weight: 600; }
+        .tag { display: inline-block; margin-top: 6px; padding: 1px 8px; border-radius: 10px; background: #263046; color: #cdd5e3; font-size: 12px; }
+        .tag.on { background: #1f4a2e; color: #9fe6b4; }
+        .comment { margin: 8px 0 0; padding: 6px 0 0 10px; border-left: 2px solid #263046; font-size: 15px; }
+        .comment .who { color: #8a94a8; font-size: 13px; }
+        .more { margin-top: 8px; color: #8a94a8; font-size: 13px; }
+        .empty { margin: 8px 18px; color: #8a94a8; }
+        .event .title { margin-bottom: 4px; }
+        .event .kind { color: #6fe3ff; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+        .row { margin: 6px 0 0; padding: 6px 8px; background: #0a0d13; border-radius: 6px; font-size: 14px; overflow-wrap: anywhere; }
+        .row .key { color: #8a94a8; }
+        .new { animation: arrive 1.2s ease-out; }
+        @keyframes arrive { from { background: #2a5a3a; } to { background: #111620; } }
+        .comment.new { animation: arrive-line 1.2s ease-out; }
+        @keyframes arrive-line { from { background: #2a5a3a; } to { background: transparent; } }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🧪 Test setup</h1>
+        <p>What the fake Reddit has for this test</p>
+    </header>
+    <div id="now"></div>
+    <h2>Accounts</h2>
+    <div id="accounts"></div>
+    <h2>Posts</h2>
+    <div id="posts"></div>
+    <script>
+        (function () {
+            "use strict";
+            var shown = null;
+            // How many words this scenario's page has shown as new: the recording holds to read them.
+            var wordsShown = 0;
+            var scenario = null;
+            var version = "";
+            var seen = {};
+
+            function el(tag, className, text) {
+                var element = document.createElement(tag);
+                if (className) element.className = className;
+                if (text !== undefined) element.textContent = text;
+                return element;
+            }
+
+            // Marks an element that wasn't there before as new; the first page shows everything as it is.
+            function arrive(element, key, first, fresh) {
+                if (!first && !seen[key]) {
+                    element.classList.add("new");
+                    fresh.push(element);
+                }
+                seen[key] = true;
+                return element;
+            }
+
+            // "withAToken" → "with a token".
+            function words(key) {
+                return key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/([A-Z])([A-Z][a-z])/g, "$1 $2").toLowerCase();
+            }
+
+            function text(value) {
+                if (value === null || value === undefined) return "none";
+                if (typeof value === "boolean") return value ? "yes" : "no";
+                if (typeof value === "object") return JSON.stringify(value);
+                return String(value);
+            }
+
+            // A snapshot the scenario read: each list in it a row an item, each other field a row.
+            function snapshot(box, value) {
+                Object.keys(value || {}).forEach(function (key) {
+                    var field = value[key];
+                    var items = Array.isArray(field) ? field : [field];
+                    if (Array.isArray(field) && field.length === 0) {
+                        var none = el("div", "row");
+                        none.append(el("span", "key", words(key) + ": "), "none");
+                        box.append(none);
+                    }
+                    items.forEach(function (item) {
+                        var row = el("div", "row");
+                        if (item !== null && typeof item === "object" && !Array.isArray(item)) {
+                            Object.keys(item).forEach(function (name, at) {
+                                if (at > 0) row.append(" · ");
+                                row.append(el("span", "key", words(name) + " "), text(item[name]));
+                            });
+                        } else {
+                            row.append(el("span", "key", words(key) + ": "), text(item));
+                        }
+                        box.append(row);
+                    });
+                });
+            }
+
+            function render(data) {
+                if (scenario !== data.scenario) {
+                    scenario = data.scenario;
+                    seen = {};
+                    shown = null;
+                    wordsShown = 0;
+                }
+                var first = shown === null;
+                var fresh = [];
+                var now = document.getElementById("now");
+                now.textContent = "";
+                if (data.events.length > 0) now.append(el("h2", "", "Now"));
+                data.events.slice().reverse().forEach(function (happened) {
+                    var box = arrive(el("div", "box event"), "e:" + happened.number, false, fresh);
+                    box.append(el("div", "kind", happened.checked ? "Checked" : "Happened"), el("div", "title", happened.title));
+                    if (happened.checked) snapshot(box, happened.checked);
+                    now.append(box);
+                });
+                var accounts = document.getElementById("accounts");
+                accounts.textContent = "";
+                if (data.accounts.length === 0) accounts.append(el("p", "empty", "None yet"));
+                data.accounts.forEach(function (account) {
+                    var row = arrive(el("div", "box account"), "a:" + account.name + ":" + account.loggedIn, first, fresh);
+                    row.append(el("span", "", "👤"), el("span", "name", "u/" + account.name));
+                    if (account.unread > 0) row.append(el("span", "tag", account.unread + " unread"));
+                    row.append(el("span", "tag" + (account.loggedIn ? " on" : ""), account.loggedIn ? "logged in" : "not logged in"));
+                    accounts.append(row);
+                });
+                var posts = document.getElementById("posts");
+                posts.textContent = "";
+                if (data.posts.length === 0) posts.append(el("p", "empty", "None yet"));
+                data.posts.forEach(function (post) {
+                    var box = arrive(el("div", "box"), "p:" + post.id, first, fresh);
+                    box.append(el("div", "sub", "r/" + post.subreddit), el("div", "title", post.title), el("span", "tag", post.kind));
+                    post.comments.forEach(function (comment) {
+                        var line = arrive(el("div", "comment"), "c:" + comment.id, first, fresh);
+                        line.style.marginLeft = comment.depth * 14 + "px";
+                        line.append(el("div", "who", "u/" + comment.author), el("div", "", comment.body));
+                        box.append(line);
+                    });
+                    if (post.commentCount > post.comments.length) {
+                        box.append(el("div", "more", post.commentCount + " comments"));
+                    }
+                    posts.append(box);
+                });
+                // The words of what is new, each counted once: a new post's new comments are in its box.
+                fresh.forEach(function (element) {
+                    if (!fresh.some(function (other) { return other !== element && other.contains(element); })) {
+                        wordsShown += element.textContent.split(/\s+/).filter(Boolean).length;
+                    }
+                });
+                // The newest thing: an event is the first of "Now", at the top; else the last of the others.
+                var newest = fresh.filter(function (element) { return element.classList.contains("event"); })[0] || fresh[fresh.length - 1];
+                if (newest) newest.scrollIntoView({ block: "nearest", behavior: "smooth" });
+            }
+
+            function read() {
+                // Says which version it shows, so a recording waits until it shows what the scenario made.
+                fetch("setup.json?shown=" + encodeURIComponent(version) + "&words=" + wordsShown, { cache: "no-store" })
+                    .then(function (response) { return response.text(); })
+                    .then(function (text) {
+                        if (text !== shown) {
+                            var data = JSON.parse(text);
+                            render(data);
+                            shown = text;
+                            version = data.version;
+                        }
+                    })
+                    .catch(function (error) { console.error("setup page:", error); })
+                    .finally(function () { setTimeout(read, 250); });
+            }
+
+            read();
+        })();
+    </script>
+</body>
+</html>

@@ -38,7 +38,7 @@ public final class VerifyNuvioUpdateInstaller {
         if (args.length > 2) {
             var expected = copy(originals);
             NuvioUpdateInstaller.disableMetadata(expected.get(NuvioUpdateInstaller.INSTALLER), expected.get(NuvioUpdateInstaller.RECEIVER));
-            NuvioUpdateInstaller.renameProviders(expected.get(NuvioUpdateInstaller.INSTALL_ACTION), expected.get(NuvioUpdateInstaller.RECEIVER), "com.nuvio.santodan.fileprovider");
+            NuvioUpdateInstaller.renameProviders(expected.get(NuvioUpdateInstaller.INSTALL_ACTION), expected.get(NuvioUpdateInstaller.RECEIVER), "com.nuviotv.santodan.fileprovider");
             int matched = 0;
             try (var zip = new ZipFile(args[2])) {
                 for (var entry : Collections.list(zip.entries())) if (entry.getName().matches("classes\\d*\\.dex"))

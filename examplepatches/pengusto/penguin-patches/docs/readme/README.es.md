@@ -40,7 +40,7 @@ Ejemplo: en Finamp, el parche coloca al artista del álbum antes que los demás 
 - [Elegir el aviso anticipado de cada alarma](../../README.md#preview-choose-upcoming-alarm-notification-time)
 - [Configurar un cliente OAuth propio en Infinity+](../../README.md#preview-configure-custom-oauth-for-infinity)
 - [Descartar la notificación al marcar como leído](../../README.md#preview-dismiss-notifications-when-marking-conversations-read)
-- [Finamp Complete: las siete mejoras](../../README.md#preview-finamp-complete-all-seven-fixes)
+- [Finamp Complete](../../README.md#preview-finamp-complete)
 - [Importar fuentes OPML anidadas](../../README.md#preview-import-nested-opml-feeds)
 - [Mantener sin leer las conversaciones en segundo plano](../../README.md#preview-keep-background-conversations-unread)
 - [Mantener favoritos al renombrar o borrar carpetas](../../README.md#preview-keep-favorites-consistent-after-folder-rename-or-removal)

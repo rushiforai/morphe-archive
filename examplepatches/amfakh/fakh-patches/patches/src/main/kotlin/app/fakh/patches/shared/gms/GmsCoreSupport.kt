@@ -12,6 +12,7 @@ package app.fakh.patches.shared.gms
 import app.fakh.patches.shared.gms.GmsCoreStrings.ACTIONS
 import app.fakh.patches.shared.gms.GmsCoreStrings.AUTHORITIES
 import app.fakh.patches.shared.gms.GmsCoreStrings.PERMISSIONS
+import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -99,7 +100,12 @@ fun BytecodePatchContext.redirectToGmsCore() {
             string.replace("content://$it", "content://${it.replace("com.google", GMS_CORE_VENDOR)}")
         }
 
-    if (replaceStrings(::replacement) == 0) throw PatchException("No Google Play services strings found")
+    // The patcher's string index finds the classes that hold one of the strings, a scan of every method takes a second.
+    val classes = (
+        replacements.keys.flatMap { classDefByStrings(it) } +
+            AUTHORITIES.flatMap { classDefByStrings("content://$it", StringComparisonType.STARTS_WITH) }
+        ).distinctBy { it.type }
+    if (replaceStrings(classes, ::replacement) == 0) throw PatchException("No Google Play services strings found")
 
     // GmsCore is signed with its own key, so the signature checks of the availability calls would fail. It
     // reports as too old for the APIs that need Play services 25.24 or newer (Credential Manager's Identity
@@ -142,22 +148,13 @@ fun BytecodePatchContext.warnWithoutGmsCore(hook: String, vararg entries: Pair<S
 }
 
 /** The class with type [type]. */
-internal fun BytecodePatchContext.mutableClass(type: String): MutableClass {
-    var found: MutableClass? = null
-    classDefForEach { if (it.type == type) found = mutableClassDefBy(it) }
-    return found ?: throw PatchException("$type not found")
-}
+internal fun BytecodePatchContext.mutableClass(type: String): MutableClass =
+    mutableClassDefByOrNull(type) ?: throw PatchException("$type not found")
 
 /**
- * Replaces every string constant for which [replacement] returns a value. Returns how many were replaced.
+ * Replaces every string constant in [classes] for which [replacement] returns a value. Returns how many were replaced.
  */
-private fun BytecodePatchContext.replaceStrings(replacement: (String) -> String?): Int {
-    val classes = mutableListOf<ClassDef>()
-    classDefForEach { classDef ->
-        if (classDef.methods.any { method ->
-                method.implementation?.instructions?.any { it.stringConstant()?.let(replacement) != null } == true
-            }) classes += classDef
-    }
+private fun BytecodePatchContext.replaceStrings(classes: List<ClassDef>, replacement: (String) -> String?): Int {
     var replaced = 0
     classes.forEach { classDef ->
         mutableClassDefBy(classDef).methods.forEach { method ->

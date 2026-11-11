@@ -526,19 +526,21 @@ public class PatchFamilyTest {
     }
 
     @Test
-    public void fasterDownloadsHasThreeOffByDefaultSwitchesOnPlaybackThatApplyAtOnce() {
+    public void fasterDownloadsSwitchesStartOffOnPlaybackAndApplyAtOnce() {
         PatchFamily family = PatchFamily.FASTER_DOWNLOADS;
         assertEquals("Faster downloads", family.patchName);
         assertEquals("fasterDownloads", family.statusMethod);
         // The second switch, the Data Saver hold, starts off too and works with or without the first.
-        assertEquals(Arrays.asList(Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.DOWNLOAD_MANAGER, Settings.FASTER_UPLOADS), family.switches);
+        assertEquals(Arrays.asList(Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.DOWNLOAD_MANAGER, Settings.FASTER_UPLOADS,
+                Settings.BEST_QUALITY_MEDIA), family.switches);
         for (BooleanSetting setting : family.switches) {
             assertFalse(setting.key, setting.defaultValue);
             // Telegram picks the piece size each time a download starts and asks again before each
             // automatic download, so no restart is needed.
             assertFalse(setting.key, setting.rebootApp);
         }
-        assertEquals(EnumSet.of(PatchFamily.Capability.DATA_SAVER_DOWNLOADS, PatchFamily.Capability.FASTER_UPLOADS, PatchFamily.Capability.DOWNLOAD_MANAGER), family.expectedCapabilities());
+        assertEquals(EnumSet.of(PatchFamily.Capability.DATA_SAVER_DOWNLOADS, PatchFamily.Capability.FASTER_UPLOADS, PatchFamily.Capability.DOWNLOAD_MANAGER,
+                PatchFamily.Capability.BEST_QUALITY_MEDIA), family.expectedCapabilities());
         assertOnItsPage(family);
         assertEquals(PatchFamily.Page.PLAYBACK, PatchFamily.Page.of(family));
     }
@@ -1133,7 +1135,9 @@ public class PatchFamilyTest {
                 "Hide ads: on (hushtelegram_hide_ads=on)",
                 "Disable analytics: on (hushtelegram_disable_analytics=off, hushtelegram_ghost_mode=off, "
                         + "hushtelegram_ghost_read_receipts=on, hushtelegram_ghost_stories=on, hushtelegram_ghost_typing=off, hushtelegram_ghost_online=off, hushtelegram_ghost_button=off, hushtelegram_receive_only=off, hushtelegram_power_off_accounts=off)",
-                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable pull to archive, Start the camera on the rear lens, Hide gallery camera tile, Hide time on stickers, Change sticker size, Ignore mentions in muted chats, Hide blocked users in groups, Hide messages by keyword, Hide Telegram Features and Invite Friends, Add Repeat to the message menu, Keep deleted messages, Ask before sending a sticker, Translate with an outside service, Hide channel bar buttons, Hide Send as button, Hide Contacts tab, Faster downloads, Save downloaded files, Folders by chat type, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration, UnifiedPush notifications, Test server sign-in, Bot token sign-in",
+                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable pull to archive, Start the camera on the rear lens, Hide gallery camera tile, Hide time on stickers, Change sticker size, Ignore mentions in muted chats, Hide blocked users in groups, Hide messages by keyword, Hide Telegram Features and Invite Friends, Add Repeat to the message menu, Keep deleted messages, Ask before sending a sticker, Translate with an outside service, Hide channel bar buttons, Hide Send as button, Hide Contacts tab, Faster downloads, Save downloaded files, Folders by chat type, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration, UnifiedPush notifications, Test server sign-in, Bot token sign-in, "
+                        + "Suppress screenshot notification, Unlock Premium features, Bypass channel restrictions, "
+                        + "Bypass integrity check, Auto-forwarding rules",
                 "Hide ads coverage: channel ads, video ads, search ads",
                 "Disable analytics coverage: channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures, dual camera reports, read receipts and story views, receive only mode, powering off accounts"),
                 running);
@@ -1193,7 +1197,8 @@ public class PatchFamilyTest {
                 "Save downloaded files coverage: switch only; missing: gallery folder for saved photos and videos, "
                         + "Telegram's own files in internal storage"));
         assertTrue(report.toString(), report.contains(
-                "Faster downloads coverage: switch only; missing: automatic downloads on Data Saver, uploads, download manager"));
+                "Faster downloads coverage: switch only; missing: automatic downloads on Data Saver, uploads, download manager, "
+                        + "photos and videos in their best quality"));
         assertTrue(report.toString(), report.contains("Hide ads coverage: none; missing: channel ads, video ads, search ads"));
 
         PatchFamily.capabilitiesForTests = EnumSet.of(PatchFamily.Capability.GALLERY_FOLDER,
@@ -1201,7 +1206,8 @@ public class PatchFamilyTest {
         report = PatchFamily.reportLines(build, false);
         assertTrue(report.toString(), report.contains("Save downloaded files coverage: gallery folder for saved photos and videos; "
                 + "missing: Telegram's own files in internal storage"));
-        assertTrue(report.toString(), report.contains("Faster downloads coverage: automatic downloads on Data Saver; missing: uploads, download manager"));
+        assertTrue(report.toString(), report.contains("Faster downloads coverage: automatic downloads on Data Saver; missing: uploads, download manager, "
+                + "photos and videos in their best quality"));
     }
 
     /**

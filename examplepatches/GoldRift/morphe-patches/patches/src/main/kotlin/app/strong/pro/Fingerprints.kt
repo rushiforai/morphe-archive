@@ -7,18 +7,18 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 object ProCheckerFingerprint : Fingerprint(
-    definingClass = "Lso6;",
+    definingClass = "Lkp6;",
     name = "H4",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "Lep6;",
+    returnType = "Lwp6;",
     filters = listOf(
         string("PRO_FOREVER"),
         string("EARLY_ADOPTER"),
         fieldAccess(
             opcode = Opcode.SGET_OBJECT,
-            definingClass = "Lep6;",
+            definingClass = "Lwp6;",
             name = "i",
-            type = "Lep6;"
+            type = "Lwp6;"
         ),
     )
 )

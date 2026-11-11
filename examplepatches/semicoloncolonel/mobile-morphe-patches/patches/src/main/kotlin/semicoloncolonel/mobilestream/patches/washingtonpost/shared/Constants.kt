@@ -11,6 +11,6 @@ object Constants {
         description = "The Washington Post news app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0x111111,
-        targets = listOf(AppTarget("7.18.3"), AppTarget("7.18.1"))
+        targets = listOf(AppTarget("7.18.4"), AppTarget("7.18.3"), AppTarget("7.18.1"))
     )
 }

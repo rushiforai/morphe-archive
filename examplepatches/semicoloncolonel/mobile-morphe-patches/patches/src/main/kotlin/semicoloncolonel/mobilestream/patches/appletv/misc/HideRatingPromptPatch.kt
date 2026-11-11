@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import semicoloncolonel.mobilestream.patches.appletv.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.blockPlayReviewSheetPatch
 
 // Apple TV phone app 3.0.0. The app shows its own "Enjoying Apple TV?" dialog
 // with a "Leave a Review" button, not Google Play's review sheet. Whether it
@@ -29,6 +30,9 @@ val hideRatingPromptPatch = bytecodePatch(
     description = "Stops the \"Enjoying Apple TV?\" review prompt.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+
+    // Also stops Google Play's review sheet, where the app calls it by name.
+    dependsOn(blockPlayReviewSheetPatch)
 
     execute {
         val config = StoreReviewConfigurationToStringFingerprint.classDefOrNull ?: return@execute

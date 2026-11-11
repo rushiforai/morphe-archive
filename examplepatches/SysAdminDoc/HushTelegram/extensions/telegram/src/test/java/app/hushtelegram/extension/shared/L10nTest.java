@@ -76,6 +76,21 @@ public class L10nTest {
         assertEquals(KEY, L10n.t(in(new Locale("pt", "PT")), KEY));
     }
 
+    /**
+     * Telegram runs Português (Brasil) as plain "pt", with no region, and Hush read English there.
+     * Android reads a plain language as its likely region, Brazil for Portuguese.
+     */
+    @Test
+    public void plainPortugueseReadsAsBrazilsAndPortugalsStillDoesNot() {
+        Context plain = in(new Locale("pt"));
+        assertEquals(Arrays.asList("pt-rbr", "pt"), L10n.tags(plain));
+        assertEquals(table("pt-rbr").get(KEY), L10n.t(plain, KEY));
+        assertEquals("a, b e c", L10n.join(plain, Arrays.asList("a", "b", "c")));
+        assertEquals(KEY, L10n.t(in(new Locale("pt", "PT")), KEY));
+        assertEquals("a language with its own table gains no region", Arrays.asList("de"),
+                L10n.tags(in(new Locale("de"))));
+    }
+
     @Test
     public void indonesianAnswersToBothOfItsCodes() {
         // Android reports the old code "in", a desktop JVM the new "id".

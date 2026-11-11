@@ -1,0 +1,147 @@
+{
+  "version": "1.91.10",
+  "buildOptions": "default (no diagnostics; the diagnostics build adds the innertube route-log site)",
+  "note": "Expected extension-injection sites for this app version, from the verified re-derivation build. scripts/check-apk.ps1 re-derives the inventory from the patched APK (DexAudit inventory) and requires exact site-set and call equality. When re-anchoring a new version, generate the new file from that build and review the roles against docs/FINGERPRINTS.md before committing it.",
+  "sites": [
+    {
+      "site": "Landroidx/preference/Preference;#a",
+      "call": "Lapp/ytvr/extension/CategoryRows;->bindRow(Ljava/lang/Object;)V",
+      "role": "preference row binder (category colours + behaviour pickers)"
+    },
+    {
+      "site": "Laxl;#a",
+      "call": "Lapp/ytvr/extension/PotUrls;->onBuild(Ljava/lang/Object;)V",
+      "role": "DataSpec build normalisation (media GET fix)"
+    },
+    {
+      "site": "Lcge;#h",
+      "call": "Lapp/ytvr/extension/ModSettingsUi;->onSettingsHidden(Ljava/lang/Object;)V",
+      "role": "settings fragment view-destroyed (hub deregistration)"
+    },
+    {
+      "site": "Lcom/google/android/apps/youtube/vr/activities/YouTubeVrActivity;#onBackPressed",
+      "call": "Lapp/ytvr/extension/ModSettingsUi;->goBack()Z",
+      "role": "activity back guard (hub open)"
+    },
+    {
+      "site": "Lcom/google/android/apps/youtube/vr/activities/YouTubeVrPanel2Activity;#onBackPressed",
+      "call": "Lapp/ytvr/extension/ModSettingsUi;->goBack()Z",
+      "role": "activity back guard (hub open)"
+    },
+    {
+      "site": "Lcom/google/android/apps/youtube/vr/application/YouTubeVrTikTokRoot_Application;#onCreate",
+      "call": "Lapp/ytvr/extension/VideoQuality;->buildDefault:Ljava/lang/String;",
+      "role": "Application.onCreate baked defaults (quality, overlay ids, log gate)"
+    },
+    {
+      "site": "Lcom/google/android/libraries/youtube/media/interfaces/CuePointDataProviderWrapper$NativeCallback;#onCuepointList",
+      "call": "Lapp/ytvr/extension/PotUrls;->onAdPath(Ljava/lang/String;)V",
+      "role": "SABR cue-point callback (report path)"
+    },
+    {
+      "site": "Lcom/google/android/libraries/youtube/media/player/exo2/platypus/PlatypusEnablingManager;#c",
+      "call": "Lapp/ytvr/extension/SpoofStreams;->sabrNotForced()Z",
+      "role": "Platypus enable gating (SABR decision)"
+    },
+    {
+      "site": "Lfod;#b",
+      "call": "Lapp/ytvr/extension/PotUrls;->onAdCountdown(I)V",
+      "role": "skip-ad countdown 1 (ad-on-screen signal)"
+    },
+    {
+      "site": "Lgas;#ad",
+      "call": "Lapp/ytvr/extension/ModSettingsUi;->onSettingsShown(Ljava/lang/Object;)V",
+      "role": "settings holder view-created (hub registration)"
+    },
+    {
+      "site": "Lgwe;#<init>",
+      "call": "Lapp/ytvr/extension/SkipButtonCard;->attachActivity(Ljava/lang/Object;)V",
+      "role": "skip-Ad button constructor (SkipButtonCard host)"
+    },
+    {
+      "site": "Lgwe;#b",
+      "call": "Lapp/ytvr/extension/PotUrls;->onAdCountdown(I)V",
+      "role": "skip-ad countdown 2 (ad-on-screen signal)"
+    },
+    {
+      "site": "Lgwg;#<init>",
+      "call": "Lapp/ytvr/extension/SponsorBlockOverlay;->attach(Landroid/view/View;)V",
+      "role": "seek-bar binder constructor (overlay attach)"
+    },
+    {
+      "site": "Lgwg;#e",
+      "call": "Lapp/ytvr/extension/SponsorBlockOverlay;->onTimeline(JJJJ)V",
+      "role": "seek-bar timeline update (marker geometry)"
+    },
+    {
+      "site": "Lmow;#a",
+      "call": "Lapp/ytvr/extension/PotUrls;->onAdPath(Ljava/lang/String;)V",
+      "role": "PlayerBytes layout bootstrap (neutered)"
+    },
+    {
+      "site": "Lmye;#a",
+      "call": "Lapp/ytvr/extension/PotUrls;->onAdPath(Ljava/lang/String;)V",
+      "role": "PlayerBytes slot detector (reports no slot)"
+    },
+    {
+      "site": "Lmyj;#a",
+      "call": "Lapp/ytvr/extension/PotUrls;->onAdPath(Ljava/lang/String;)V",
+      "role": "ad-break renderer (empty-list early return site)"
+    },
+    {
+      "site": "Lntd;#a",
+      "call": "Lapp/ytvr/extension/QuicTransport;->quicEnabled()Z",
+      "role": "Cronet engine builder QUIC gate"
+    },
+    {
+      "site": "Lorg/chromium/net/impl/CronetUrlRequestContext;#newUrlRequestBuilder",
+      "call": "Lapp/ytvr/extension/PotUrls;->filterUrl(Ljava/lang/String;)Ljava/lang/String;",
+      "role": "Cronet request filter (ad creative / tracker rewrite)"
+    },
+    {
+      "site": "Lovo;#<init>",
+      "call": "Lapp/ytvr/extension/SpoofStreams;->augmentPlayerResponse(Ljava/lang/Object;)V",
+      "role": "streaming-data constructor (spoof augment; SB player-response capture)"
+    },
+    {
+      "site": "Lpwp;#<init>",
+      "call": "Lapp/ytvr/extension/SpoofStreams;->umpRewriteAllowed(I)I",
+      "role": "media data-source constructor (UMP rewrite gate)"
+    },
+    {
+      "site": "Lqak;#m",
+      "call": "Lapp/ytvr/extension/SponsorSkipController;->onPaused()V",
+      "role": "player state: paused"
+    },
+    {
+      "site": "Lqak;#r",
+      "call": "Lapp/ytvr/extension/SponsorSkipController;->onPlaying()V",
+      "role": "player state: playing"
+    },
+    {
+      "site": "Lqak;#x",
+      "call": "Lapp/ytvr/extension/SponsorSkipController;->onSeeked(J)V",
+      "role": "player state: seeked"
+    },
+    {
+      "site": "Lqak;#z",
+      "call": "Lapp/ytvr/extension/SponsorSkipController;->onStopped()V",
+      "role": "player state: stopped"
+    },
+    {
+      "site": "Lqal;#k",
+      "call": "Lapp/ytvr/extension/SponsorSkipController;->onLoadVideo(Ljava/lang/Object;)V",
+      "role": "player handover: loadVideo (capture, reset, fetch)"
+    },
+    {
+      "site": "Lsff;#<init>",
+      "call": "Lapp/ytvr/extension/VideoQuality;->fixInitialResolution(Ljava/lang/Object;)Ljava/lang/Object;",
+      "role": "video-quality constructor (starting resolution)"
+    },
+    {
+      "site": "Lueg;#s",
+      "call": "Lapp/ytvr/extension/PotUrls;->onAdPath(Ljava/lang/String;)V",
+      "role": "ad-break request (fetch neutralised)"
+    }
+  ]
+}

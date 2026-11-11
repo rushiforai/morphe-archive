@@ -72,7 +72,7 @@ No desktop IP, pairing token, APK hash, or native telemetry enrollment is requir
 This section is generated from the patch catalog during releases.
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.7.1](https://github.com/AngelDark92/xr-porting-hub/releases/tag/v2.7.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;44 patches total
+> **[v2.7.2](https://github.com/AngelDark92/xr-porting-hub/releases/tag/v2.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;45 patches total
 <details open>
 <summary>📦 4XVR&nbsp;&nbsp;•&nbsp;&nbsp;16 patches</summary>
 <br>
@@ -132,7 +132,7 @@ This section is generated from the patch catalog during releases.
 </details>
 
 <details open>
-<summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;22 patches</summary>
+<summary>📦 Steam Link&nbsp;&nbsp;•&nbsp;&nbsp;23 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -146,6 +146,7 @@ This section is generated from the patch catalog during releases.
 | 💊&nbsp;Patch | 📜&nbsp;Description | 🔢&nbsp;Builds | ⚙️&nbsp;Options |
 |----------|----------------|----------------|-----------|
 | [Blue-noise dithering](#blue-noise-dithering) | Adds fine grain that hides color steps; center and background can be toggled. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Center of the view<br>• Background |
+| [Native quad composition (experimental)](#native-quad-composition-experimental) | Builds eye-aware quads directly in Steam Link's renderer. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. Needs: disable Stock quad composition. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
 | [OLED color calibration](#oled-color-calibration) | Tunes OLED color with gamma and saturation presets. Builds: 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527. Headset verification pending. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395, 5002527 | • Calibration profile<br>• Gamma<br>• Saturation<br>• VD-like center mode<br>• Center gamma adjustment |
 | [Stock quad composition](#stock-quad-composition) | Rebuilds Steam Link's projection layers as eye-aware stock-style quads in a separate OpenXR layer. Builds: 2.0.20 (5001712, 5001812), 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363, 2.0.24/5002395. | 5001712, 5001812, 5001968, 5002244, 5002363, 5002395 |  |
 

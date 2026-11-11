@@ -4,11 +4,12 @@ import app.fakh.patches.linkedin.shared.Constants.COMPATIBILITY_LINKEDIN
 import app.fakh.patches.linkedin.shared.Constants.EXTENSION_PACKAGE
 import app.fakh.patches.linkedin.shared.markIncluded
 import app.fakh.patches.linkedin.shared.settingsPatch
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
+import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -54,23 +55,24 @@ val sanitizeShareLinksPatch = bytecodePatch(
     execute {
         markIncluded("isSanitizeShareLinksIncluded")
 
-        // Collect every class that calls one of the redirected methods, then edit them. This includes
-        // libraries (Compose clipboard, ShareCompat), since LinkedIn copies and shares through them too.
+        // Edit every class that calls one of the redirected methods, found through the patcher's call index. This
+        // includes libraries (Compose clipboard, ShareCompat), since LinkedIn copies and shares through them too.
         // The extension itself is skipped: it makes the real calls.
-        val targets = mutableListOf<ClassDef>()
-        classDefForEach { classDef ->
-            if (classDef.type.startsWith("L${EXTENSION_PACKAGE.removePrefix("L")}/")) return@classDefForEach
-            val calls = classDef.methods.any { method ->
-                method.implementation?.instructions?.any { instruction ->
-                    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                    reference != null && redirects.any { it.matches(reference) }
-                } == true
-            }
-            if (calls) targets += classDef
-        }
+        val targets = redirects.flatMap { redirect ->
+            Fingerprint(
+                filters = listOf(
+                    methodCall(
+                        definingClass = redirect.definingClass,
+                        name = redirect.name,
+                        parameters = redirect.parameters,
+                        returnType = redirect.returnType,
+                    )
+                )
+            ).matchAllOrNull().orEmpty()
+        }.filterNot { it.originalClassDef.type.startsWith("$EXTENSION_PACKAGE/") }.map { it.classDef }.distinctBy { it.type }
 
         targets.forEach { classDef ->
-            mutableClassDefBy(classDef).methods.forEach { method ->
+            classDef.methods.forEach { method ->
                 val instructions = method.implementation?.instructions ?: return@forEach
                 instructions.withIndex().toList().reversed().forEach { (index, instruction) ->
                     val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference

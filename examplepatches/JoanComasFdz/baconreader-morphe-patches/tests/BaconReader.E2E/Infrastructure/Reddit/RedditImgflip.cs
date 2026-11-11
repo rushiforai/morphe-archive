@@ -27,11 +27,11 @@ public sealed partial class Reddit
 
     /// <summary>"Imgflip served the thumbnail of every template shown": for each of the first <paramref name="shown"/> templates, the statuses of the requests for its thumbnail.</summary>
     public ImgflipThumbnailsSnapshot ReadRequestsForTheThumbnailsOfTheFirstTemplates(int shown) =>
-        new([.. Imgflip.Templates.Take(shown).Select(template => new ImgflipThumbnailRequests(template.Name, Statuses(template.ThumbnailPath)))]);
+        Checked<ImgflipThumbnailsSnapshot>(new([.. Imgflip.Templates.Take(shown).Select(template => new ImgflipThumbnailRequests(template.Name, Statuses(template.ThumbnailPath)))]));
 
     /// <summary>"Imgflip served the template "&lt;name&gt;" at full size": the statuses of the requests for its full image.</summary>
     public ImgflipTemplateRequestsSnapshot ReadRequestsForTheTemplateAtFullSize(string name) =>
-        new(name, Statuses(Template(name).FullPath));
+        Checked<ImgflipTemplateRequestsSnapshot>(new(name, Statuses(Template(name).FullPath)), name);
 
     /// <summary>Waits until Imgflip served the thumbnails of the first <paramref name="shown"/> templates: the grid loads those it shows.</summary>
     public Task WaitUntilImgflipServedTheThumbnailsAsync(int shown) =>

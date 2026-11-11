@@ -4,6 +4,7 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import semicoloncolonel.mobilestream.patches.newsbreak.shared.Constants
+import semicoloncolonel.mobilestream.patches.shared.misc.blockPlayReviewSheetPatch
 
 // NewsBreak 26.44.1. The home screen shows a "How are we doing?" dialog that
 // leads to a Play Store rating, ten days after install and again every 60
@@ -29,6 +30,9 @@ val hideRatingPromptPatch = bytecodePatch(
     description = "Removes the \"How are we doing?\" pop-up and the Play Store rating request.",
 ) {
     compatibleWith(Constants.COMPATIBILITY)
+
+    // Also stops Google Play's review sheet, where the app calls it by name.
+    dependsOn(blockPlayReviewSheetPatch)
 
     execute {
         ShouldShowRatingFingerprint.method.addInstructions(0, "const/4 v0, 0x0\nreturn v0")

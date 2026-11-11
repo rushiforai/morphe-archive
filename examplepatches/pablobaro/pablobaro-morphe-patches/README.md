@@ -18,12 +18,17 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.1](https://github.com/pablobaro/pablobaro-morphe-patches/releases/tag/v1.1.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.1.2](https://github.com/pablobaro/pablobaro-morphe-patches/releases/tag/v1.1.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 Spotify&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
 <br>
 
 **Package name:** `com.spotify.music`
+
+**🎯 Supported versions:**
+
+| 9.1.94.1929 |
+| :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -34,7 +39,7 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 | [Fix third party launchers widgets](#fix-third-party-launchers-widgets) | Allows the Spotify widgets to be added to third party launchers. |  |
 | [Hide Premium tab](#hide-premium-tab) | Removes the "Premium" tab from the bottom navigation bar. |  |
 | [Hide ad sections](#hide-ad-sections) | Removes brand ad sections from the home and search page. |  |
-| [Hide ad views](#hide-ad-views) | Hides ad banners, display ads and the ad player. (Only works on older Spotify versions.) |  |
+| [Hide ad views](#hide-ad-views) | Hides ad banners, ad labels, ad overlay controls, the ad player and the audio and embedded ad layouts of the now playing view. |  |
 | [Hide context menu upsells](#hide-context-menu-upsells) | Removes "Premium" entries from the context menus of songs, albums and playlists. (Only works on older Spotify versions.) |  |
 | [Hide playlist ads](#hide-playlist-ads) | Removes ads embedded into playlists. |  |
 | [Hide video ads](#hide-video-ads) | Disables the video ad plugin of the now playing view. |  |

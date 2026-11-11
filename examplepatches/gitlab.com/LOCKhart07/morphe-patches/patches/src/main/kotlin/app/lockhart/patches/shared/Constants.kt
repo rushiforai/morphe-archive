@@ -22,6 +22,11 @@ object Constants {
                 version = "4.15.13",
                 minSdk = 26,
             ),
+            // Verified against the arm64-v8a and armeabi-v7a splits.
+            AppTarget(
+                version = "4.15.14",
+                minSdk = 26,
+            ),
         ),
     )
 }

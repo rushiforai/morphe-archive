@@ -27,8 +27,8 @@ public sealed class InboxCommentReplyScreenTests : BaseE2E
           And the comment "Welcome" has a reply "Thanks for having me" by u/other_user
           And the test account has an unread message "Hello" saying "A private message"
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I open the left menu
           And I tap "Inbox"
           And I tap the message "Hello"
@@ -53,8 +53,8 @@ public sealed class InboxCommentReplyScreenTests : BaseE2E
         Reddit.ThePost("Introductions").HasACommentBy("Welcome", "e2e_user");
         Reddit.ThePost("Introductions").TheComment("Welcome").HasAReplyBy("Thanks for having me", "other_user");
         Reddit.TheTestAccountHasAnUnreadMessage("Hello", "A private message");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.LeftMenu.OpenAsync();

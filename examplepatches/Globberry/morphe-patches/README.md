@@ -19,9 +19,9 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.10](https://github.com/Globberry/morphe-patches/releases/tag/v1.2.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.3.9](https://github.com/Globberry/morphe-patches/releases/tag/v1.3.9)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
-<summary>📦 Keyflow&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
+<summary>📦 Keyflow&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
 
 **Package name:** `com.angkin.keyflow`
@@ -33,6 +33,10 @@ Click the button below, or manually add this repo url to Morphe Manager: https:/
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [Keyflow Export Pro Gate Bypass](#keyflow-export-pro-gate-bypass) | Allows exporting projects that use Pro features by bypassing the Pro gate in the export pipeline. |  |
+| [Keyflow Trusted Signer Bypass](#keyflow-trusted-signer-bypass) | Always report the app signature as trusted so Pro is not reset when opening a project or exporting. |  |
+| [Keyflow byYKY0yXO Signer Bypass](#keyflow-byyky0yxo-signer-bypass) | Return a dummy signer identity string during export so the export path does not fail on re-signed APKs. |  |
+| [Keyflow f6olX Goto Fix](#keyflow-f6olx-goto-fix) | Replaces failure goto sites in f6olX with nop so all code paths reach Premium (Keyflow 1.5.10 export). |  |
 | [PairIP License Check](#pairip-license-check) | Neuters PairIP license verification so the app runs without a valid license. |  |
 | [Pro Unlock](#pro-unlock) | Forces all Pro features enabled and replaces the Google Play confirmation with a fake success, so ad surfaces never appear. |  |
 | [Signer Identity](#signer-identity) | Forces the app's signer identity to match the original publisher certificate. |  |

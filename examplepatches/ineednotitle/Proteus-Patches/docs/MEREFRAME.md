@@ -12,8 +12,40 @@ current status page and the triage runbook for field crashes.
 | Allow re-signed/sideloaded installs | **on** | Neutralizes the startup install-legality verdict → app starts at all |
 | Bypass native integrity checks | **on** | NEW (v2.2.9 re-cut): routes the camera session JNI call through a real JVM try/catch in the extension and substitutes {0L,1L} on failure |
 | Diagnostic crash log | off | Writes the full stack to `Downloads/mereframe-crash-*.txt`, then chains to the normal crash path |
-| Unlock Pro features | off | Drops the entitlement ownership check (nv.e). **WARNING:** on realme/Android 16 enabling it crashed capture on the one device tested — keep off unless deliberately testing |
+| Unlock Pro features | off | Makes the entitlement accessor (`Qu.k`) return the full registered feature set, so every Pro gate (`Qu.e/o/p`) resolves unlocked. **WARNING:** on realme/Android 16 enabling it crashed capture on the one device tested — keep off unless deliberately testing |
 | Fix Firebase after re-signing (universal) | off | Needed if Firebase services break after re-signing |
+
+## 2026-11-10 — issue #5: Pro paywall still appears (FIXED, patch-application verified)
+
+The previous fix nop'ed the ownership `contains` guard inside `Lnv;->e(...)`.
+That method only runs while processing a real Play purchase callback, so with
+no purchase the entitlement map stays empty and `LQu;->k(...)` still returns
+an empty set — every feature remains locked and the paywall opens.
+
+Root cause verified against the official **0.8.4 (vc 118)** APK: `Qu.k` is the
+single source of truth consumed by `Qu.e` (one feature), `Qu.o` (all Pro
+features) and `Qu.p` (Pro product). The patch now replaces `Qu.k` with a direct
+return of `Llr.p` (the vendor's own full registered-feature set, the same set
+granted by its "installed before Pro arrived" path). No billing, account or
+network path is involved.
+
+Verification: the patch bundle was applied to the official 0.8.4 (vc 118)
+XAPK with Morphe Desktop 2.1.1 (`--validate`), and the rebuilt DEX was checked
+with `dexdump`. The patched `Qu.k` now contains exactly:
+
+```
+sget-object v0, Llr;->p:LAc;
+invoke-static {v0}, LN7;->G1(Ljava/util/Collection;)Ljava/util/Set;
+move-result-object v0
+return-object v0
+```
+
+`Qu.o` also contains `Qu.c(...).containsAll(Llr.p)`, so the all-Pro gate sees
+the full set. Runtime UI behaviour still needs an on-device check.
+
+0.8.7 (vc 127) moved the same code to `Llx`/`Px`; it is not a supported target
+yet, so the manager will not offer these patches for it. Do not report a
+Mereframe patch failure without confirming the app is 0.8.4 / vc 118.
 
 ## 2026-11-07 (later same day) — issue: v2.2.9 re-cut #2 fails at PATCH time (FIXED in v2.2.9 re-cut #3)
 

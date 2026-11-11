@@ -21,6 +21,16 @@ public final class MaterialYou {
     }
 
     /**
+     * Whether colors come from the wallpaper: Material You is on and the phone runs Android 12 or newer.
+     *
+     * @param dynamic whether the user turned Material You on
+     * @return true when the wallpaper's colors apply
+     */
+    public static boolean wallpaper(boolean dynamic) {
+        return dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S;
+    }
+
+    /**
      * The accent of the selected tab, a link or a check: the wallpaper's on Android 12 and up, else the app's own
      * color for the current theme.
      *
@@ -32,7 +42,7 @@ public final class MaterialYou {
      */
     public static int accent(Context context, boolean dynamic, int light, int dark) {
         boolean night = night(context);
-        if (dynamic && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        if (wallpaper(dynamic)) {
             return context.getColor(night ? android.R.color.system_accent1_200 : android.R.color.system_accent1_600);
         }
         return night ? dark : light;

@@ -26,8 +26,8 @@ public sealed class ShowRequestErrorsTests : BaseE2E
           And Reddit has a post "Behind a dropped connection" in r/dropped
           And Reddit drops the connection when asked for the posts of r/dropped
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap the feed's name in the toolbar
           And I tap "broken" in the feed list
           Then the feed shows the error "reddit: 500 Internal Server Error"
@@ -49,8 +49,8 @@ public sealed class ShowRequestErrorsTests : BaseE2E
         Reddit.RefusesThePostsWith("moderated", "403 Forbidden", "You need to be a moderator to do that");
         Reddit.HasAPost("Behind a dropped connection", "dropped");
         Reddit.DropsTheConnectionForThePosts("dropped");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.ClickFeedNameAsync();

@@ -1,0 +1,50 @@
+name: Feature request
+description: Suggest a new patch, app or improvement
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature requests are most useful when they name a concrete app, version
+        and behavior. Patch proposals should stay client-side and fail safe.
+
+  - type: input
+    id: app
+    attributes:
+      label: App and version
+      description: Which app and version should this apply to? Write "Any app" for universal patches.
+      placeholder: Reddit 2026.42.0
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user-facing problem should this solve?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior, patch approach or UI change you expect.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Additional context
+      description: Logs, screenshots, class or method names, or links to related work.
+    validations:
+      required: false

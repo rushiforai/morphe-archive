@@ -119,10 +119,10 @@ public final class SaveDownloads {
         /** Whether the message is a photo or a video, not a GIF, round video or self-destructing media. */
         boolean photoOrVideo(Object message);
 
-        /** The photo size a chat shows and Save to Gallery saves, or null. */
+        /** The photo size a chat shows and Save to Gallery saves, or null, as for anything that isn't a message. */
         Object photo(Object message);
 
-        /** Whether the message is view-once or self-destructing media, in any chat. */
+        /** Whether the message is view-once or self-destructing media, in any chat. False for anything that isn't a message. */
         boolean timedMedia(Object message);
     }
 

@@ -1,3 +1,9 @@
+## [1.72.0](https://github.com/SatanMerde/D-moniakPatches/compare/v1.71.1...v1.72.0) (2026-11-10)
+
+### ✨ New Features
+
+* **hotstar:** neutralize SGAI ad servers and SCTE live cricket ad pods ([f83c453](https://github.com/SatanMerde/D-moniakPatches/commit/f83c453f95556ad53f92c05097940c9cc1f3d2e7))
+
 ## [1.71.1](https://github.com/SatanMerde/D-moniakPatches/compare/v1.71.0...v1.71.1) (2026-11-09)
 
 ### 🐛 Bug Fixes

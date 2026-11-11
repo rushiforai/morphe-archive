@@ -86,6 +86,11 @@ public final class FamilyNames {
     public static final String UNIFIED_PUSH = "UnifiedPush notifications";
     public static final String TEST_SERVER_SIGN_IN = "Test server sign-in";
     public static final String BOT_TOKEN_SIGN_IN = "Bot token sign-in";
+    public static final String SUPPRESS_SCREENSHOT_NOTIFICATION = "Suppress screenshot notification";
+    public static final String UNLOCK_PREMIUM = "Unlock Premium features";
+    public static final String BYPASS_CHANNEL_RESTRICTIONS = "Bypass channel restrictions";
+    public static final String BYPASS_INTEGRITY_CHECK = "Bypass integrity check";
+    public static final String AUTO_FORWARDING = "Auto-forwarding rules";
 
     private FamilyNames() {
     }

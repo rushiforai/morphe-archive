@@ -31,7 +31,7 @@ public sealed class Main(AndroidDriver driver, Action noteShown)
     /// Taps Android's Back, which closes this main screen when a link opened it over another screen, and goes back to
     /// that screen.
     /// </summary>
-    public Task ClickBackAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(OpenQA.Selenium.Appium.Android.Enums.AndroidKeyCode.Back));
+    public Task ClickBackAsync() => OnScreen.PressBackAsync(driver);
 
     /// <summary>
     /// Whether the main screen shows its posts, the left menu closed, within 3 s: a screen closing with Back takes a

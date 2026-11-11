@@ -8,6 +8,7 @@ import app.template.patches.steamlink.androidxr.controllerPoseExtrapolationPatch
 import app.template.patches.steamlink.androidxr.controllerPoseTimePatch
 import app.template.patches.steamlink.androidxr.controllerVelocityFramePatch
 import app.template.patches.steamlink.androidxr.gxrFacebridgePatch
+import app.template.patches.steamlink.androidxr.nativeQuadCompositionPatch
 import app.template.patches.steamlink.androidxr.stockQuadCompositionPatch
 import app.template.patches.steamlink.androidxr.unrestrictedBatteryUsagePatch
 import app.template.patches.steamlink.androidxr.performanceBoostPatch
@@ -122,7 +123,7 @@ class PatchCompatibilityMatrixTest {
     fun `legacy base exposes every standalone patch with matching defaults`() {
         val reference = allIndividualPatches.filter { it.supports("2.0.20", 5001712) }.toSet()
         assertEquals(allIndividualPatches.toSet(), reference)
-        assertEquals(28, reference.size)
+        assertEquals(29, reference.size)
         recommendedFor("2.0.20", 5001712).forEach { assertTrue(it.default, it.name) }
         (reference - legacyRecommendedPatches).forEach { patch ->
             assertFalse(patch.default, patch.name)
@@ -132,6 +133,7 @@ class PatchCompatibilityMatrixTest {
     @Test
     fun `native bases expose exactly their individual patches`() {
         val earlierNative = setOf(
+            nativeQuadCompositionPatch,
             networkOptimizationsPatch,
             gxrFacebridgePatch,
             microphoneInputPresetPatch,
@@ -180,7 +182,7 @@ class PatchCompatibilityMatrixTest {
                     assertFalse(patch.supports(version, versionCode), "${patch.name}: $version/$versionCode")
                 }
             }
-        assertEquals(28, allIndividualPatches.size)
+        assertEquals(29, allIndividualPatches.size)
         assertEquals(12, allIndividualPatches.toSet().size - earlierNative.size)
         val modernClosure = nativeRecommendedPatches.flatMap { it.dependencyClosure() }.toSet()
         assertTrue(modernClosure.intersect(allIndividualPatches.toSet() - earlierNative).isEmpty())
@@ -280,6 +282,7 @@ class PatchCompatibilityMatrixTest {
             forceStreamXrGatesPatch,
             gxrFacebridgePatch,
             stockQuadCompositionPatch,
+            nativeQuadCompositionPatch,
             microphoneInputPresetPatch,
             networkOptimizationsPatch,
             blueNoisePatch,

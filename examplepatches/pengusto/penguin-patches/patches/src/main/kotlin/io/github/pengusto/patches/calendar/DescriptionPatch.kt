@@ -52,7 +52,7 @@ val readableDescriptionPatch = bytecodePatch(
     description = "Readable event descriptions in the editor, lists, widget and reminders; preserves the original editor text.",
     default = true
 ) {
-    compatibleWith(Compatibility(name = "Fossify Calendar", packageName = "org.fossify.calendar", targets = listOf(AppTarget(version = "1.12.0"), AppTarget(version = "1.12.1"))))
+    compatibleWith(Compatibility(name = "Fossify Calendar", packageName = "org.fossify.calendar", targets = listOf(AppTarget(version = "1.12.0"), AppTarget(version = "1.12.1"), AppTarget(version = "1.12.2"))))
     dependsOn(descriptionLayout)
     extendWith("extensions/extension.mpe")
     execute {

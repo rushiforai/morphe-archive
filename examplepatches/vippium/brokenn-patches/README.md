@@ -1,8 +1,6 @@
 <div align="center">
 
-# 🥀 Brokenn Patches
-
-### Morphe patches for apps which I love
+![Repository Card](.github/assets/repo_card.jpg)
 
 ![Release](https://img.shields.io/github/v/release/vippium/brokenn-patches?include_prereleases&logo=github&label=Release&labelColor=1E201E&color=3C3D37) 
 ![License](https://img.shields.io/badge/License-GPL_v3-D5CEA3?labelColor=3C2A21&logo=gplv3) 
@@ -22,23 +20,19 @@
 [Morphe](https://morphe.software) patcher — unlocking premium features, removing
 ads, and restoring user freedom in Android apps I use every day.
 
-Every release is built automatically by CI, signed, and published through
-[semantic-release](https://semantic-release.gitbook.io/) — no manual uploads, no
-surprises.
-
 ## 🩹 Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.1.0](https://github.com/vippium/brokenn-patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;9 patches total
+> **[v1.2.0](https://github.com/vippium/brokenn-patches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;10 patches total
 <details open>
-<summary>📦 JioHotstar&nbsp;&nbsp;•&nbsp;&nbsp;9 patches</summary>
+<summary>📦 JioHotstar&nbsp;&nbsp;•&nbsp;&nbsp;10 patches</summary>
 <br>
 
 **Package name:** `in.startv.hotstar`
 
 **🎯 Supported versions:**
 
-| 26.10.12.2 |
+| 26.10.26.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -50,8 +44,9 @@ surprises.
 | [Force HDR10](#force-hdr10) | Enables HDR10 and HDR10+ playback on compatible devices. |  |
 | [Monochrome icon support](#monochrome-icon-support) | Adds a themed-icon version of the launcher icon for Android 13+. |  |
 | [Premium unlock](#premium-unlock) | Unlocks premium UI features, removes subscription nudges, and enables downloads. |  |
+| [Remove ChatGPT Voice Assistant](#remove-chatgpt-voice-assistant) | Strips out the integrated ChatGPT voice assistant module entirely. |  |
 | [Remove ads](#remove-ads) | Removes pre-roll, mid-roll, live-match and home-feed ads. |  |
-| [Remove top bar switcher](#remove-top-bar-switcher) | Removes the JioHotstar/Tadka mode-switcher row from the top of Home. |  |
+| [Remove top bar switcher](#remove-top-bar-switcher) | Removes the JioHotstar/Tadka switcher from the top of Home. |  |
 
 </details>
 

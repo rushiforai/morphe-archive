@@ -15,7 +15,8 @@ GIFs and MP4s the "E2E videos" workflow keeps in the `prs-resources` release
 - **Panel** beside the editor, opened by "Play … recording": the Gherkin's title, its class, domain folder, PR and
   version, a tab per screen (**Phone**, or **Desktop**), the MP4 with the browser's controls (the GIF when the run has
   no MP4, or when this VS Code can't play it), **Recorded in** with every PR and version of the scenario, newest first,
-  and **Open in e2e player ↗** (the site's `e2e-player.html`).
+  and **Open in e2e player ↗** (the site's `e2e-player.html`, with the scenario's Gherkin, read from its file, beside
+  the video; the PR posts' links also mark when each line played, which the extension doesn't know).
 - **Play e2e recording of this scenario**: the ▷ button in the editor's title bar of a scenario file, and **BaconReader
   Morphe: Play e2e recording of this scenario** in the Command Palette, open the panel on the scenario the cursor is in
   (the file's first one when the cursor is above them all), on its first screen.

@@ -8,6 +8,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const zlib = require('node:zlib');
 const extension = require('../extension.js');
 
 const SPOOF_CLIENT = `using BaconReader.E2E.Infrastructure;
@@ -94,12 +95,14 @@ test('kebab-cases like Humanizer 3.0.10 (its output for the scenarios so far and
   }
 });
 
-test('reads a scenario file: its scenarios, their titles, screens, class, domain and where the CodeLens goes', () => {
+test('reads a scenario file: its scenarios, their Gherkins and titles, screens, class, domain and where the CodeLens goes', () => {
   const [spoof, both, ...others] = extension.findScenarios(SPOOF_CLIENT);
   assert.equal(others.length, 0, 'the private method has no [TestDescription]: it is no scenario');
   assert.deepEqual({ ...spoof }, {
     method: 'BaconReaderPatchedWithSpoofClientLogsInToRedditAsRedReader',
     title: 'BaconReader patched with Spoof client logs in to Reddit as RedReader',
+    gherkin: '@phone\nScenario: BaconReader patched with Spoof client logs in to Reddit as RedReader\n'
+      + '  Given BaconReader is patched with "Spoof client"\n  When I open BaconReader\n  Then the feed shows no posts',
     className: 'SpoofClientTests',
     domain: 'Startup/Account',
     screens: ['phone'],
@@ -129,6 +132,26 @@ test('a file outside Scenarios has the domain folder "Unsorted", and a file with
 test('the player link is the repository\'s site\'s player page', () => {
   assert.equal(extension.toPlayerUrl('JoanComasFdz/baconreader-morphe-patches', 'pr-1-v1-a-phone.mp4'),
     'https://joancomasfdz.github.io/baconreader-morphe-patches/e2e-player.html?v=pr-1-v1-a-phone.mp4');
+});
+
+test('the player link carries the scenario\'s Gherkin, deflated as the player inflates it, and no marks', () => {
+  const [scenario] = extension.findScenarios(SPOOF_CLIENT);
+  const url = extension.toPlayerUrl('JoanComasFdz/baconreader-morphe-patches', 'pr-1-v1-a-phone.mp4', scenario.gherkin);
+  const [page, data] = url.split('#s=');
+  assert.equal(page, 'https://joancomasfdz.github.io/baconreader-morphe-patches/e2e-player.html?v=pr-1-v1-a-phone.mp4');
+  const inflated = zlib.inflateRawSync(Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64')).toString('utf8');
+  assert.deepEqual(JSON.parse(inflated), {
+    g: '@phone\nScenario: BaconReader patched with Spoof client logs in to Reddit as RedReader\n'
+      + '  Given BaconReader is patched with "Spoof client"\n  When I open BaconReader\n  Then the feed shows no posts',
+    m: [],
+  });
+});
+
+test('a Gherkin past one stored block still inflates whole', () => {
+  const gherkin = `Scenario: Long\n${'  Then a line that repeats\n'.repeat(4000)}`;
+  const data = extension.toPlayerUrl('Owner/repo', 'pr-1-v1-a-phone.mp4', gherkin).split('#s=')[1];
+  const inflated = zlib.inflateRawSync(Buffer.from(data.replace(/-/g, '+').replace(/_/g, '/'), 'base64')).toString('utf8');
+  assert.equal(JSON.parse(inflated).g, gherkin);
 });
 
 test('the commands, settings and panel are named after package.json\'s prefix', () => {

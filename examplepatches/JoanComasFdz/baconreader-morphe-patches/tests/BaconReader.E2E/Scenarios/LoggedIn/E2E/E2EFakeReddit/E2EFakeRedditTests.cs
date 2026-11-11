@@ -22,8 +22,8 @@ public sealed class E2EFakeRedditTests : BaseE2E
           Given Reddit has a post "First fake post" in r/e2e
           And Reddit has a post "Second fake post" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select "All" in the toolbar's feed list
           Then the toolbar shows the "All" feed
           And the feed shows the posts "First fake post" and "Second fake post"
@@ -33,8 +33,8 @@ public sealed class E2EFakeRedditTests : BaseE2E
         // Given
         Reddit.HasAPost("First fake post", "e2e");
         Reddit.HasAPost("Second fake post", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.All());

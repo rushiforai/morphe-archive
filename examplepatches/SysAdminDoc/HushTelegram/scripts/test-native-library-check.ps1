@@ -22,7 +22,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $Java = Resolve-Java -Explicit $Java
 if (-not $FixtureDir) { $FixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR }
 if (-not $FixtureDir) { $FixtureDir = Join-Path $Root 'fixtures' }
-$fixtures = @('telegram-web-13.2.0-72809.apk', 'telegram-play-13.2.1-72911.apk') |
+$fixtures = @('telegram-web-13.2.1-72919.apk', 'telegram-play-13.2.1-72911.apk') |
     ForEach-Object { Join-Path $FixtureDir $_ }
 foreach ($fixturePath in $fixtures) {
     if (-not (Test-Path -LiteralPath $fixturePath -PathType Leaf)) { throw "Missing read-only native fixture: $fixturePath" }
@@ -394,7 +394,7 @@ try {
     # Both builds carry libtmessages and liblanguage_id_l2c_jni for four ABIs. The Play build adds
     # libdatastore_shared_counter to each, so it has three libraries per ABI where the web build has two.
     $pinned = @{
-        'telegram-web-13.2.0-72809' = @{ Entries = 8; Aligned16Kb = 4; Relros64 = 4; MidPage = 2 }
+        'telegram-web-13.2.1-72919' = @{ Entries = 8; Aligned16Kb = 4; Relros64 = 4; MidPage = 2 }
         'telegram-play-13.2.1-72911' = @{ Entries = 12; Aligned16Kb = 6; Relros64 = 6; MidPage = 4 }
     }
     foreach ($fixturePath in $fixtures) {

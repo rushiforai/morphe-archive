@@ -40,7 +40,7 @@ Penguin Patches는 기존 앱의 기능을 개선하거나 문제를 고치는 M
 - [알람 사전 알림 시간 선택](../../README.md#preview-choose-upcoming-alarm-notification-time)
 - [Infinity+에 개인 OAuth 클라이언트 설정](../../README.md#preview-configure-custom-oauth-for-infinity)
 - [읽음 표시 시 알림 지우기](../../README.md#preview-dismiss-notifications-when-marking-conversations-read)
-- [Finamp Complete: 7개 수정 사항](../../README.md#preview-finamp-complete-all-seven-fixes)
+- [Finamp Complete](../../README.md#preview-finamp-complete)
 - [중첩 OPML 피드 가져오기](../../README.md#preview-import-nested-opml-feeds)
 - [백그라운드 대화를 읽지 않음으로 유지](../../README.md#preview-keep-background-conversations-unread)
 - [폴더 이름 변경 및 삭제 후 즐겨찾기 정리](../../README.md#preview-keep-favorites-consistent-after-folder-rename-or-removal)

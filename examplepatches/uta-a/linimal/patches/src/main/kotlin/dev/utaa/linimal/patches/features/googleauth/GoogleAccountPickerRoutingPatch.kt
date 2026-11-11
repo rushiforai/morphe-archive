@@ -20,6 +20,7 @@ import dev.utaa.linimal.patches.status.patchStatusCollector
 import dev.utaa.linimal.patches.status.recordFeatureStatus
 import dev.utaa.linimal.patches.status.recordUnappliedFeatureStatus
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val PICKER_HOOKS = "Ldev/utaa/linimal/extension/features/googleauth/GoogleAuthRoutingHooks;"
 private const val INTENT = "Landroid/content/Intent;"
@@ -78,7 +79,11 @@ val googleAccountPickerRoutingPatch = bytecodePatch(
         val pickerReturns = pickerReturnRegisters(picker.originalMethod)
         val fields = selectedAccountFields(selector.originalMethod)
         val selectorThis = (selector.originalMethod.implementation?.registerCount ?: 0) - 2
-        if (pickerReturns == null || fields == null || selectorThis < 1 || selectorThis + 1 > 15) {
+        // return への分岐があると、その経路だけが return 直前の hook を飛び越します。
+        if (
+            pickerReturns == null || fields == null || selectorThis < 1 || selectorThis + 1 > 15 ||
+            pickerReturns.any { (index, _) -> !isSafeInjectionIndex(picker.method.implementation, index) }
+        ) {
             recordUnsafeFeatureStatus(ids, 2, 2, "GoogleAccountPickerShapeMismatch")
             return@execute
         }

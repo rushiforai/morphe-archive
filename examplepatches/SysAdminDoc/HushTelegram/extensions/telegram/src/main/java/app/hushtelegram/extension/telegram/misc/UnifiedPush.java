@@ -30,9 +30,12 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -83,6 +86,8 @@ import app.hushtelegram.extension.telegram.settings.Settings;
 public final class UnifiedPush {
     static final String PREFS = "hushtelegram_unified_push";
     static final String CHOSEN = "chosen";
+    /** A pick the next sign-up hasn't acted on yet. */
+    static final String PICKED = "picked";
     static final String DISTRIBUTOR = "distributor";
     static final String TOKEN = "token";
     static final String ENDPOINT = "endpoint";
@@ -222,6 +227,12 @@ public final class UnifiedPush {
     private static final Object KEYS = new Object();
 
     /**
+     * Tokens this run asked an app to let go of while the file still held them, after a save that
+     * didn't land. The app's UNREGISTERED for one of them is that answer, not the app ending it.
+     */
+    private static final Set<String> ENDING = Collections.synchronizedSet(new HashSet<>());
+
+    /**
      * Injected at the top of {@code sendRegistrationToServer}, before {@link #type}. While the
      * switch is on and an address is saved, any sign-up Telegram starts, Firebase's included,
      * signs up that address instead, as a Web Push token.
@@ -267,9 +278,7 @@ public final class UnifiedPush {
                     byte[] secret = new byte[16];
                     new SecureRandom().nextBytes(secret);
                     auth = base64url.encodeToString(secret);
-                    if (!prefs.edit().putString(WEB_PUSH_KEY, key).putString(WEB_PUSH_AUTH, auth).commit()) {
-                        // Android keeps a failed write in memory, where the next ask this run would find them.
-                        prefs.edit().remove(WEB_PUSH_KEY).remove(WEB_PUSH_AUTH).commit();
+                    if (!save(prefs, WEB_PUSH_KEY, key, WEB_PUSH_AUTH, auth)) {
                         HookStatus.counted(FamilyNames.UNIFIED_PUSH, "Web Push keys not saved, made again at the next start");
                         return null;
                     }
@@ -356,7 +365,7 @@ public final class UnifiedPush {
     public static void choose(Context context, String distributor, boolean on) {
         if (context == null || !PatchFamily.UNIFIED_PUSH.inBuild()) return;
         Context app = context.getApplicationContext() != null ? context.getApplicationContext() : context;
-        if (!prefs(app).edit().putString(CHOSEN, distributor).remove(PROBLEM).commit()) {
+        if (!save(prefs(app), CHOSEN, distributor, PICKED, distributor, PROBLEM, null)) {
             HookStatus.counted(FamilyNames.UNIFIED_PUSH, "app choice not saved");
             return;
         }
@@ -378,24 +387,40 @@ public final class UnifiedPush {
                 String endpoint = prefs.getString(ENDPOINT, null);
                 // The choice of app stays. Everything about the sign-up goes, before the app hears,
                 // so a broadcast with the old token is somebody else's from here on.
-                boolean forgotten = prefs.edit().remove(DISTRIBUTOR).remove(TOKEN).remove(ENDPOINT).remove(PROBLEM).commit();
-                if (token != null && current != null) send(context, new Intent(UNREGISTER), current, token);
+                boolean forgotten = save(prefs, DISTRIBUTOR, null, TOKEN, null, ENDPOINT, null, PROBLEM, null);
+                if (token != null && current != null) unregister(context, current, token, forgotten);
                 if (endpoint != null) telegram.release(endpoint);
                 // Still on disk, it's ended again at the next start with the switch off. The app ignores a token it no longer knows.
                 if (!forgotten) HookStatus.counted(FamilyNames.UNIFIED_PUSH, "sign-up not forgotten, ended again at the next start");
                 return;
             }
-            if (ENDED.equals(prefs.getString(PROBLEM, null))) return;
             List<String> installed = distributors(context);
-            String distributor = pick(installed, prefs.getString(CHOSEN, current));
+            // A pick is one write, so it's read in one go: a pick landing now is seen whole or not at all.
+            String chosen;
+            String picked;
+            String problem;
+            synchronized (SAVING) {
+                chosen = prefs.getString(CHOSEN, null);
+                picked = prefs.getString(PICKED, null);
+                problem = prefs.getString(PROBLEM, null);
+            }
+            // An end holds back everything but a pick of another app that's still there, which can
+            // land between the pick and this sign-up. A pick counts once, so an old one can't undo a
+            // later end when its app comes back.
+            if (ENDED.equals(problem) && (picked == null || picked.equals(current) || !installed.contains(picked))) {
+                if (!saveTaking(prefs, picked)) HookStatus.counted(FamilyNames.UNIFIED_PUSH, "app pick not cleared");
+                return;
+            }
+            String distributor = pick(installed, chosen != null ? chosen : current);
             if (distributor == null) {
                 // The app is gone, or there are several and none is picked yet. An address nothing
                 // answers any more would keep Firebase out for good, so the sign-up goes with it.
-                if (token != null && current != null && installed.contains(current)) {
-                    send(context, new Intent(UNREGISTER), current, token);
-                }
                 String endpoint = prefs.getString(ENDPOINT, null);
-                if (!prefs.edit().remove(DISTRIBUTOR).remove(TOKEN).remove(ENDPOINT).commit()) {
+                boolean forgotten = saveTaking(prefs, picked, DISTRIBUTOR, null, TOKEN, null, ENDPOINT, null);
+                if (token != null && current != null && installed.contains(current)) {
+                    unregister(context, current, token, forgotten);
+                }
+                if (!forgotten) {
                     HookStatus.counted(FamilyNames.UNIFIED_PUSH, "sign-up not forgotten, ended again at the next start");
                 }
                 // Telegram's servers may still hold the dead address, from before or from a sign-up
@@ -403,17 +428,26 @@ public final class UnifiedPush {
                 if (endpoint != null) telegram.release(endpoint);
                 return;
             }
-            if (token == null || !distributor.equals(current)) {
-                if (token != null && current != null) send(context, new Intent(UNREGISTER), current, token);
+            // A token whose end is still on its way isn't signed up again, or the app's answer would end the new sign-up.
+            boolean ending = token != null && ENDING.contains(token);
+            if (token == null || ending || !distributor.equals(current)) {
                 String fresh = UUID.randomUUID().toString();
+                String endpoint = prefs.getString(ENDPOINT, null);
                 // The token goes out only once it's on disk. An app holding a token this side forgot
-                // would have its answers dropped as a stranger's.
-                if (!prefs.edit().putString(DISTRIBUTOR, distributor).putString(TOKEN, fresh)
-                        .remove(ENDPOINT).remove(PROBLEM).commit()) {
+                // would have its answers dropped as a stranger's. The pick is spent in the same write,
+                // so one that doesn't reach the disk is still there for the next try.
+                boolean saved = saveTaking(prefs, picked, DISTRIBUTOR, distributor, TOKEN, fresh, ENDPOINT, null, PROBLEM, null);
+                if (token != null && current != null && !ending) unregister(context, current, token, saved);
+                if (!saved) {
                     HookStatus.counted(FamilyNames.UNIFIED_PUSH, "sign-up not saved, tried again at the next start");
                     return;
                 }
+                // The old sign-up's address dies with it, and the new app may never send one, so
+                // Telegram goes back to Firebase until it does.
+                if (endpoint != null) telegram.release(endpoint);
                 token = fresh;
+            } else if (!saveTaking(prefs, picked)) {
+                HookStatus.counted(FamilyNames.UNIFIED_PUSH, "app pick not cleared");
             }
             send(context, new Intent(REGISTER)
                     .putExtra("application", context.getPackageName())
@@ -422,6 +456,12 @@ public final class UnifiedPush {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.UNIFIED_PUSH, "sign-up", failure);
         }
+    }
+
+    /** Asks [distributor] to end [token]'s sign-up. Unless the file let the token go, its answer is one this side asked for. */
+    private static void unregister(Context context, String distributor, String token, boolean forgotten) {
+        if (!forgotten) ENDING.add(token);
+        send(context, new Intent(UNREGISTER), distributor, token);
     }
 
     /**
@@ -484,66 +524,104 @@ public final class UnifiedPush {
         try {
             if (intent == null || !PatchFamily.UNIFIED_PUSH.inBuild()) { once.run(); return; }
             SharedPreferences prefs = prefs(context);
-            String token = prefs.getString(TOKEN, null);
-            if (token == null || !token.equals(intent.getStringExtra("token"))) {
-                Logger.printInfo(() -> "UnifiedPush: dropped a broadcast without this sign-up's token");
-                once.run();
-                return;
-            }
+            String token = intent.getStringExtra("token");
             String action = String.valueOf(intent.getAction());
-            switch (action) {
-                case NEW_ENDPOINT:
-                    // The spec asks for this acknowledgement too, and an app may drop an address nobody acknowledged.
-                    acknowledge(context, prefs, token, intent.getStringExtra("id"));
-                    endpoint(context, prefs, intent.getStringExtra("endpoint"));
-                    break;
-                case MESSAGE:
-                    acknowledge(context, prefs, token, intent.getStringExtra("id"));
-                    if (Utils.settingsReady() && Settings.UNIFIED_PUSH.get()) {
-                        telegram.wake(once);
-                        return;
-                    }
-                    break;
-                case REGISTRATION_FAILED:
-                    if (prefs.getString(ENDPOINT, null) != null) {
-                        // This token's address already came in, so the spec says a refusal is ignored.
-                        // Asked again at a start, the app can fail for a moment while the address still works.
-                        Logger.printInfo(() -> "UnifiedPush: ignored a refusal after the address came in ("
-                                + intent.getStringExtra("reason") + ")");
-                        break;
-                    }
-                    // The spec asks for a new token on the next sign-up, so this one is let go.
-                    if (!prefs.edit().remove(TOKEN).putString(PROBLEM, REFUSED).commit()) {
-                        HookStatus.counted(FamilyNames.UNIFIED_PUSH, "refusal not saved");
-                    }
-                    Logger.printInfo(() -> "UnifiedPush: the app turned the sign-up down ("
-                            + intent.getStringExtra("reason") + ")");
-                    break;
-                case TEMP_UNAVAILABLE:
-                    // The app's server is down for now. The sign-up and its address stay, and its next
-                    // NEW_ENDPOINT says it's back. A stand-in app it suggests (useDistributor) isn't used.
-                    if (!prefs.edit().putString(PROBLEM, UNAVAILABLE).commit()) {
-                        HookStatus.counted(FamilyNames.UNIFIED_PUSH, "outage not saved");
-                    }
-                    Logger.printInfo(() -> "UnifiedPush: the app's server is down for now");
-                    break;
-                case UNREGISTERED: {
-                    String ended = prefs.getString(ENDPOINT, null);
-                    if (!prefs.edit().remove(TOKEN).remove(ENDPOINT).putString(PROBLEM, ENDED).commit()) {
-                        HookStatus.counted(FamilyNames.UNIFIED_PUSH, "ended sign-up not saved");
-                    }
-                    Logger.printInfo(() -> "UnifiedPush: the app ended the sign-up");
-                    // Nothing answers at that address now, so Telegram is pointed back at Firebase.
-                    if (ended != null) telegram.release(ended);
-                    break;
+            if (!MESSAGE.equals(action)) {
+                answer(context, prefs, token, intent, action);
+            } else if (!ours(prefs, token)) {
+                Logger.printInfo(() -> "UnifiedPush: dropped a broadcast without this sign-up's token");
+            } else {
+                acknowledge(context, prefs, token, intent.getStringExtra("id"));
+                if (Utils.settingsReady() && Settings.UNIFIED_PUSH.get()) {
+                    telegram.wake(once);
+                    return;
                 }
-                default:
-                    break;
             }
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.UNIFIED_PUSH, "UnifiedPush broadcast", failure);
         }
         once.run();
+    }
+
+    /**
+     * The app's answer about [token]'s sign-up. Answers change the sign-up, so they take turns with
+     * {@link #sync} and read the saved token under its lock: a sign-up that replaces [token] can't
+     * land between the check and the change, and an answer for one already replaced is dropped.
+     */
+    private static synchronized void answer(Context context, SharedPreferences prefs, @Nullable String token, Intent intent, String action) {
+        if (!ours(prefs, token)) {
+            // The end of a sign-up this side asked to end and has since replaced: nothing is left to do.
+            if (UNREGISTERED.equals(action)) ENDING.remove(token);
+            Logger.printInfo(() -> "UnifiedPush: dropped a broadcast without this sign-up's token");
+            return;
+        }
+        switch (action) {
+            case NEW_ENDPOINT:
+                // The spec asks for this acknowledgement too, and an app may drop an address nobody acknowledged.
+                acknowledge(context, prefs, token, intent.getStringExtra("id"));
+                endpoint(context, prefs, intent.getStringExtra("endpoint"));
+                break;
+            case REGISTRATION_FAILED:
+                if (prefs.getString(ENDPOINT, null) != null) {
+                    // This token's address already came in, so the spec says a refusal is ignored.
+                    // Asked again at a start, the app can fail for a moment while the address still works.
+                    Logger.printInfo(() -> "UnifiedPush: ignored a refusal after the address came in ("
+                            + intent.getStringExtra("reason") + ")");
+                    break;
+                }
+                // The spec asks for a new token on the next sign-up, so this one is let go.
+                if (!save(prefs, TOKEN, null, PROBLEM, REFUSED)) {
+                    HookStatus.counted(FamilyNames.UNIFIED_PUSH, "refusal not saved");
+                }
+                Logger.printInfo(() -> "UnifiedPush: the app turned the sign-up down ("
+                        + intent.getStringExtra("reason") + ")");
+                break;
+            case TEMP_UNAVAILABLE:
+                // The app's server is down for now. The sign-up and its address stay, and its next
+                // NEW_ENDPOINT says it's back. A stand-in app it suggests (useDistributor) isn't used.
+                if (!save(prefs, PROBLEM, UNAVAILABLE)) {
+                    HookStatus.counted(FamilyNames.UNIFIED_PUSH, "outage not saved");
+                }
+                Logger.printInfo(() -> "UnifiedPush: the app's server is down for now");
+                break;
+            case UNREGISTERED:
+                unregistered(context, prefs, token);
+                break;
+            default:
+                break;
+        }
+    }
+
+    /** Whether [token] is the saved sign-up's. */
+    private static boolean ours(SharedPreferences prefs, @Nullable String token) {
+        String saved = prefs.getString(TOKEN, null);
+        return saved != null && saved.equals(token);
+    }
+
+    /** The app's end of [token]'s sign-up, the saved one. */
+    private static void unregistered(Context context, SharedPreferences prefs, String token) {
+        String ended = prefs.getString(ENDPOINT, null);
+        if (ENDING.remove(token)) {
+            // The end this side asked for, whose save didn't land: the sign-up goes now,
+            // and the row doesn't say the app ended it.
+            boolean forgotten = save(prefs, TOKEN, null, ENDPOINT, null);
+            if (!forgotten) {
+                HookStatus.counted(FamilyNames.UNIFIED_PUSH, "sign-up not forgotten, ended again at the next start");
+            }
+            Logger.printInfo(() -> "UnifiedPush: the app let go of a sign-up as asked");
+            // A move to another app that couldn't be saved goes ahead now, with the switch still on.
+            if (forgotten && Utils.settingsReady() && Settings.UNIFIED_PUSH.savedValue()) {
+                Context app = context.getApplicationContext() != null ? context.getApplicationContext() : context;
+                work.execute(() -> sync(app, true));
+            }
+        } else {
+            if (!save(prefs, TOKEN, null, ENDPOINT, null, PROBLEM, ENDED)) {
+                HookStatus.counted(FamilyNames.UNIFIED_PUSH, "ended sign-up not saved");
+            }
+            Logger.printInfo(() -> "UnifiedPush: the app ended the sign-up");
+        }
+        // Nothing answers at that address now, so Telegram is pointed back at Firebase.
+        if (ended != null) telegram.release(ended);
     }
 
     private static void endpoint(Context context, SharedPreferences prefs, @Nullable String endpoint) {
@@ -552,7 +630,7 @@ public final class UnifiedPush {
                 // Telegram's servers call only https, so the row says why nothing arrives. A new
                 // address replaces the old one, so nothing answers there now either.
                 String old = prefs.getString(ENDPOINT, null);
-                if (!prefs.edit().remove(ENDPOINT).putString(PROBLEM, INSECURE).commit()) {
+                if (!save(prefs, ENDPOINT, null, PROBLEM, INSECURE)) {
                     HookStatus.counted(FamilyNames.UNIFIED_PUSH, "insecure address not saved");
                 }
                 Logger.printInfo(() -> "UnifiedPush: turned away a plain http address");
@@ -563,7 +641,7 @@ public final class UnifiedPush {
             return;
         }
         // Handed to Telegram only once it's on disk. Unsaved, the next start's sign-up brings it again.
-        if (!prefs.edit().putString(ENDPOINT, endpoint).remove(PROBLEM).commit()) {
+        if (!save(prefs, ENDPOINT, endpoint, PROBLEM, null)) {
             HookStatus.counted(FamilyNames.UNIFIED_PUSH, "address not saved, asked again at the next start");
             return;
         }
@@ -647,6 +725,54 @@ public final class UnifiedPush {
 
     static SharedPreferences prefs(Context context) {
         return store.apply(context);
+    }
+
+    /**
+     * Writes each key's new value, null removing it, and says whether it reached the disk. Android
+     * keeps a failed write in memory, where the rest of this run would read it as saved, so a
+     * failure puts back what the keys held before. Saves take turns, so putting back never undoes
+     * another thread's save.
+     */
+    static boolean save(SharedPreferences prefs, String... keysAndValues) {
+        synchronized (SAVING) {
+            String[] before = new String[keysAndValues.length / 2];
+            SharedPreferences.Editor writes = prefs.edit();
+            for (int i = 0; i < keysAndValues.length; i += 2) {
+                before[i / 2] = prefs.getString(keysAndValues[i], null);
+                put(writes, keysAndValues[i], keysAndValues[i + 1]);
+            }
+            if (writes.commit()) return true;
+            SharedPreferences.Editor back = prefs.edit();
+            for (int i = 0; i < keysAndValues.length; i += 2) put(back, keysAndValues[i], before[i / 2]);
+            // This write's disk half fails too, but memory takes it, and memory is what was wrong.
+            back.commit();
+            return false;
+        }
+    }
+
+    private static final Object SAVING = new Object();
+
+    /**
+     * {@link #save} that also spends [picked] in the same write, unless a newer pick has replaced
+     * it since, and true with nothing to write.
+     */
+    private static boolean saveTaking(SharedPreferences prefs, @Nullable String picked, String... keysAndValues) {
+        synchronized (SAVING) {
+            if (picked != null && picked.equals(prefs.getString(PICKED, null))) {
+                // The copy's last value is already null.
+                keysAndValues = Arrays.copyOf(keysAndValues, keysAndValues.length + 2);
+                keysAndValues[keysAndValues.length - 2] = PICKED;
+            }
+            return keysAndValues.length == 0 || save(prefs, keysAndValues);
+        }
+    }
+
+    private static void put(SharedPreferences.Editor writes, String key, @Nullable String value) {
+        if (value == null) {
+            writes.remove(key);
+        } else {
+            writes.putString(key, value);
+        }
     }
 
     private static Runnable once(Runnable done) {

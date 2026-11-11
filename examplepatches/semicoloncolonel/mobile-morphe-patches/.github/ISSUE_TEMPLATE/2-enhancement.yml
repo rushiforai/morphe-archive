@@ -1,14 +1,25 @@
-name: ✨ Enhancement
-description: Improve a patch that already exists, for example an ad, prompt, or tracker it misses, or an empty space it leaves behind.
+name: ✨ Improve a working patch
+description: A patch works, but it misses something, such as an ad, a prompt, or a tracker, or it leaves an empty space behind. Not for problems.
 title: "enhancement: "
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for helping improve a patch. Only the description is required, but every other field helps.
+        Use this form only when a patch works as described and you would like it to do more, for example hide an ad or prompt it misses, or remove an empty space it leaves behind.
 
-        If the patch fails or the app crashes, use the Bug report form instead.
+        This form is not for anything that does not work. Use the [Bug report](https://github.com/semicoloncolonel/mobile-morphe-patches/issues/new?template=1-bug-report.yml) form when:
+
+        - Morphe Manager does not accept your app version or build.
+        - A patch fails to apply.
+        - The patched app will not install, open, play, or sign in, or it crashes.
+        - A patch does not do what [What the patches do](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/patches.md) says it does.
+
+        To ask for a new app, a new patch, or another app version, use the [New app or patch request](https://github.com/semicoloncolonel/mobile-morphe-patches/issues/new?template=3-new-app-or-patch.yml) form.
+
+        Thank you for helping improve a patch. I maintain these patches as a volunteer, so complete requests are the quickest to act on. A screenshot of what the patch misses helps the most. Before you submit, remove or cover any private information, such as your email address, account name, phone number, or location, in text and screenshots.
+
+        Required fields are marked with an asterisk. A request that is incomplete, or that does not show what the patch misses, may be closed without a change.
   - type: checkboxes
     id: before
     attributes:
@@ -19,6 +30,8 @@ body:
         - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this enhancement."
           required: true
         - label: "I understand that the patches do not currently remove paywalls or unlock paid content."
+          required: true
+        - label: "The patch works. This request asks it to do more, and it is not a report of something that does not work."
           required: true
   - type: dropdown
     id: app
@@ -35,7 +48,9 @@ body:
         - "Best Buy"
         - "C-SPAN Now"
         - "CBS News"
+        - "CNBC"
         - "CNN"
+        - "Costco"
         - "CVS"
         - "DealSeek"
         - "Disney+"
@@ -48,6 +63,7 @@ body:
         - "HBO Max"
         - "Hulu"
         - "JustWatch"
+        - "Kanopy"
         - "MGM+"
         - "Mint Mobile"
         - "MLB"
@@ -73,6 +89,7 @@ body:
         - "Prime Video"
         - "Recreation.gov"
         - "Shudder"
+        - "SiriusXM"
         - "Starz"
         - "Substack"
         - "Sundance Now"
@@ -96,17 +113,23 @@ body:
         - "Xumo Play"
         - "YouTube TV"
         - "Other (name it in the description)"
+    validations:
+      required: true
   - type: input
     id: patch
     attributes:
       label: Patch
       description: The patch you would like improved.
       placeholder: "Skip ads"
+    validations:
+      required: true
   - type: input
     id: app-version
     attributes:
       label: App version
       placeholder: "17.3.0"
+    validations:
+      required: true
   - type: dropdown
     id: build
     attributes:
@@ -115,12 +138,56 @@ body:
         - Phone or tablet
         - Android TV or Google TV
         - Both
+    validations:
+      required: true
+  - type: dropdown
+    id: apk-source
+    attributes:
+      label: Where the APK came from
+      description: Most version and build problems come from the file. The [FAQ](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md) explains how to get the right one.
+      options:
+        - APKMirror
+        - APKPure
+        - Aurora Store
+        - Installed copy from the Play Store
+        - Morphe Manager's download link
+        - Other (name it in the description)
+    validations:
+      required: true
   - type: input
     id: patches-version
     attributes:
       label: Patches version
       description: The version of these patches, shown under Sources in Morphe Manager.
       placeholder: "1.0.19"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: The maker and model of the phone, tablet, or TV device.
+      placeholder: "Samsung Galaxy S25 Ultra, NVIDIA Shield TV Pro, Google TV Streamer"
+    validations:
+      required: true
+  - type: dropdown
+    id: android-version
+    attributes:
+      label: Android version
+      description: On a phone, see Settings > About phone. On a TV, see Settings > System > About.
+      options:
+        - "Android 17"
+        - "Android 16"
+        - "Android 15"
+        - "Android 14"
+        - "Android 13"
+        - "Android 12 or 12L"
+        - "Android 11"
+        - "Android 10"
+        - "Android 9 or older"
+        - "Not sure"
+    validations:
+      required: true
   - type: textarea
     id: description
     attributes:

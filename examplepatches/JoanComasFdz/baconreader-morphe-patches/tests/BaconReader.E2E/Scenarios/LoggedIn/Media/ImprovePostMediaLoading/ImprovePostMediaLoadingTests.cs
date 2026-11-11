@@ -36,8 +36,8 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
           And Reddit has a RedGIFs post "Missing clip" in r/e2e whose video RedGIFs never had
           And Reddit has a link post "Link with a preview" in r/e2e to a page that runs JavaScript
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           And I tap "More options" in the toolbar
           And I tap "List View"
@@ -46,11 +46,11 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
           Then the media shows its loading bar with "GIF · 0.4 MB"
           When I wait for the GIF to arrive
           Then the media shows no loading bar
-          # "Preview while loading" is on. Not on the screen: the fake Reddit records what BaconReader asked for.
+          # "Preview while loading" is on. On the setup page: the fake Reddit records what BaconReader asked for.
           And Reddit served the preview of "Slow GIF"
           When I go back to the posts
           And I tap the thumbnail of "Album"
-          # Not on the screen: the fake Reddit records what BaconReader asked for.
+          # On the setup page: the fake Reddit records what BaconReader asked for.
           Then Reddit served the gallery's 3 thumbnails as previews 216 pixels wide, and no full image for them
           And the gallery shows its first image
           When I go back to the posts
@@ -67,7 +67,7 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
           And I tap "Slide Show View" in the toolbar
           And I tap "Tap to open link"
           # BaconReader's own browser, which a thumbnail opens, always runs JavaScript; the post's page in its slide show follows the settings.
-          # "JavaScript in link posts" is on, and no site is blocked. Not on the screen: the page's script asks Reddit for the page again.
+          # "JavaScript in link posts" is on, and no site is blocked. On the setup page: the page's script asks Reddit for the page again.
           Then the page of "Link with a preview" ran its script
           When I tap "Detail View" in the toolbar
           And I go back to the posts
@@ -139,8 +139,8 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         Reddit.HasARedGifsPostWhoseVideoWasDeleted("Deleted clip", "e2e");
         Reddit.HasARedGifsPostWhoseVideoRedGifsNeverHad("Missing clip", "e2e");
         Reddit.HasALinkPostToAPageThatRunsJavaScript("Link with a preview", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));
@@ -164,7 +164,7 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         // Then
         var loaded = await Phone.BaconReader.MediaViewer.ReadAsync();
         Asserting.That(loaded).ShowsNoLoadingBar();
-        // "Preview while loading" is on. Not on the screen: the fake Reddit records what BaconReader asked for.
+        // "Preview while loading" is on. On the setup page: the fake Reddit records what BaconReader asked for.
         var preview = Reddit.ReadRequestsForThePreviewOf("Slow GIF");
         Asserting.That(preview).Served();
 
@@ -174,12 +174,11 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         await Phone.BaconReader.MediaViewer.WaitUntilGalleryShownAsync();
 
         // Then
-        // Not on the screen: the fake Reddit records what BaconReader asked for.
+        // On the setup page: the fake Reddit records what BaconReader asked for.
         var gallery = Reddit.ReadRequestsForTheGalleryOf("Album");
         var shown = await Phone.BaconReader.MediaViewer.ReadAsync();
-        Asserting.That(gallery).ServedItsThumbnailsAsPreviews(3, 216);
+        Asserting.That(gallery).ServedItsThumbnailsAsPreviews(3, 216).ServedTheFirstImageWhole();
         Asserting.That(shown).ShowsTheGalleryWith(3);
-        Asserting.That(gallery).ServedTheFirstImageWhole();
 
         // When
         await Phone.BaconReader.GoBackToThePostsAsync();
@@ -219,7 +218,7 @@ public sealed class ImprovePostMediaLoadingTests : BaseE2E
         await Reddit.WaitUntilThePageOfThePostIsServedAsync("Link with a preview");
 
         // Then
-        // "JavaScript in link posts" is on, and no site is blocked. Not on the screen: the page's script asks Reddit for the page again.
+        // "JavaScript in link posts" is on, and no site is blocked. On the setup page: the page's script asks Reddit for the page again.
         var allSites = Reddit.ReadTheScriptRunsOfThePage("Link with a preview");
         Asserting.That(allSites).RanItsScript();
 

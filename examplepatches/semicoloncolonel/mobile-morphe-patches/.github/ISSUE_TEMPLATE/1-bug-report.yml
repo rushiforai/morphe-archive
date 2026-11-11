@@ -1,16 +1,20 @@
 name: 🐞 Bug report
-description: A patch fails to apply, the patched app crashes or will not play, or a patch does not do what its description says.
+description: Morphe Manager does not accept your app version or build, a patch fails to apply, the patched app crashes or will not play, or a patch does not do what its description says.
 title: "bug: "
 labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reporting a problem. The required fields are the basics needed to find the cause, and every other field helps find it faster. A report without them cannot be looked into.
+        Thank you for reporting a problem. Please work through [Before you report a problem](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md#before-you-report-a-problem) first. It solves many problems, and this form asks you to confirm each step.
 
-        Before you start, please check the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) for the same problem.
+        I maintain these patches as a volunteer, so clear and complete reports are what make a fix possible. Please give as much detail as you can, even if you cannot answer every question. Before you submit, remove or cover any private information, such as your email address, account name, phone number, or location, in text, logs, and screenshots.
 
-        **Using a dev pre-release?** Please comment on the app's open issue labeled [testing on dev](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue+is%3Aopen+label%3A%22testing+on+dev%22) instead of opening a report here. Open a report only for a critical problem, such as a patched app that will not install or open. Report a security problem privately, as the [security policy](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/SECURITY.md) describes.
+        Required fields are marked with an asterisk. A report that is incomplete, or that does not show what is wrong and how to reproduce it, may be closed without a fix.
+
+        **Security problem?** Please do not report it here. Report it privately, as the [security policy](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/SECURITY.md) describes. The troubleshooting steps do not apply.
+
+        **Using a dev pre-release?** Please comment on the app's open issue labeled [testing on dev](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue+is%3Aopen+label%3A%22testing+on+dev%22) instead of opening a report here. Open a report only for a critical problem, such as a patched app that will not install or open.
   - type: checkboxes
     id: before
     attributes:
@@ -21,6 +25,24 @@ body:
         - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this problem."
           required: true
         - label: "I understand that the patches do not currently remove paywalls or unlock paid content."
+          required: true
+  - type: checkboxes
+    id: troubleshooting
+    attributes:
+      label: Troubleshooting
+      description: The steps in [Before you report a problem](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md#before-you-report-a-problem). Each one is required.
+      options:
+        - label: "I updated the patches in Morphe Manager and patched the app again with the latest release."
+          required: true
+        - label: "The app version and version code match [Supported apps](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/apps.md), and the APK came from a source the FAQ recommends."
+          required: true
+        - label: "I uninstalled the patched app, installed a fresh copy of the app, and patched it again."
+          required: true
+        - label: "I tried again with ad blockers, DNS filters, and VPNs turned off."
+          required: true
+        - label: "I tried again with only the default patches selected."
+          required: true
+        - label: "The problem does not happen in the unpatched app."
           required: true
   - type: dropdown
     id: app
@@ -37,7 +59,9 @@ body:
         - "Best Buy"
         - "C-SPAN Now"
         - "CBS News"
+        - "CNBC"
         - "CNN"
+        - "Costco"
         - "CVS"
         - "DealSeek"
         - "Disney+"
@@ -50,6 +74,7 @@ body:
         - "HBO Max"
         - "Hulu"
         - "JustWatch"
+        - "Kanopy"
         - "MGM+"
         - "Mint Mobile"
         - "MLB"
@@ -75,6 +100,7 @@ body:
         - "Prime Video"
         - "Recreation.gov"
         - "Shudder"
+        - "SiriusXM"
         - "Starz"
         - "Substack"
         - "Sundance Now"
@@ -112,7 +138,7 @@ body:
     id: version-code
     attributes:
       label: App version code
-      description: Some apps have phone and Android TV builds with the same version, and only the version code tells them apart. APKMirror shows it on the download page.
+      description: Some apps have phone and Android TV builds with the same version, and only the version code tells them apart. Morphe Manager shows it when you select the APK, and APKMirror shows it on the download page.
       placeholder: "520000991"
   - type: dropdown
     id: build
@@ -129,8 +155,10 @@ body:
     id: apk-source
     attributes:
       label: Where the APK came from
+      description: Most version and build problems come from the file. The [FAQ](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md) explains how to get the right one.
       options:
         - APKMirror
+        - APKPure
         - Aurora Store
         - Installed copy from the Play Store
         - Morphe Manager's download link
@@ -161,11 +189,15 @@ body:
     attributes:
       label: Morphe Manager version
       placeholder: "2.5.0"
+    validations:
+      required: true
   - type: textarea
     id: selected-patches
     attributes:
       label: Patches selected
       description: The patches you applied. If you kept the defaults, say so.
+    validations:
+      required: true
   - type: dropdown
     id: clone
     attributes:
@@ -179,8 +211,8 @@ body:
     id: device
     attributes:
       label: Device
-      description: The phone, tablet, or TV device model.
-      placeholder: "Galaxy S25 Ultra, NVIDIA Shield, Google TV Streamer"
+      description: The maker and model of the phone, tablet, or TV device.
+      placeholder: "Samsung Galaxy S25 Ultra, NVIDIA Shield TV Pro, Google TV Streamer"
     validations:
       required: true
   - type: dropdown
@@ -189,6 +221,7 @@ body:
       label: Android version
       description: On a phone, see Settings > About phone. On a TV, see Settings > System > About.
       options:
+        - "Android 17"
         - "Android 16"
         - "Android 15"
         - "Android 14"
@@ -214,13 +247,15 @@ body:
       description: Ad blockers and DNS filters can stop video or sign-in on their own. Select any that were on.
       multiple: true
       options:
-        - None
+        - No ad blocker or DNS filter
         - AdGuard
         - Control D
         - NextDNS
         - Pi-hole
         - Private DNS (set in Android settings)
         - Other (name it in the description)
+    validations:
+      required: true
   - type: textarea
     id: description
     attributes:
@@ -236,6 +271,8 @@ body:
         1. Open the app
         2. Play a movie
         3. ...
+    validations:
+      required: true
   - type: textarea
     id: logs
     attributes:
@@ -247,10 +284,6 @@ body:
     id: screenshots
     attributes:
       label: Screenshots or video
-      description: Drag files here to attach them.
-  - type: checkboxes
-    id: checks
-    attributes:
-      label: Checks
-      options:
-        - label: The problem does not happen in the unpatched app.
+      description: Drag a screenshot or video of the problem here to attach it. If you pasted a crash log in Crash log, write "See crash log". A report with neither cannot be looked into.
+    validations:
+      required: true

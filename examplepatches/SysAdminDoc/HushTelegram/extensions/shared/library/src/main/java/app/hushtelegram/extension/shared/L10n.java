@@ -327,6 +327,11 @@ public final class L10n {
             // A second region of a language already listed still counts: with Portugal's
             // Portuguese first and Brazil's second, the Brazilian table is the one that answers.
             String country = locale.getCountry();
+            if (country == null || country.isEmpty()) {
+                // Telegram runs Português (Brasil) as plain "pt". Android reads a language with
+                // no region as its likely one, and so does this, while Portugal's stays its own.
+                country = L10nTranslations.likelyRegion(language);
+            }
             if (country != null && !country.isEmpty()) {
                 String regional = language + "-r" + country.toLowerCase(Locale.ROOT);
                 if (!tags.contains(regional)) tags.add(regional);

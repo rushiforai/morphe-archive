@@ -203,7 +203,8 @@ public class SettingsBackupTest {
         for (Setting<?> setting : declaredSettings(Settings.class)) {
             if (!(setting instanceof BooleanSetting) && !SettingsBackup.FILTER_LISTS.contains(setting)
                     && !SettingsBackup.NUMBERS.contains(setting) && !SettingsBackup.TEXTS.contains(setting)
-                    && setting != Settings.RECEIVE_ONLY_ACCOUNTS && setting != Settings.POWERED_OFF_ACCOUNTS) notSwitches.add(setting.key);
+                    && setting != Settings.RECEIVE_ONLY_ACCOUNTS && setting != Settings.POWERED_OFF_ACCOUNTS
+                    && setting != Settings.AUTO_FORWARDING_RULES) notSwitches.add(setting.key);
         }
         assertEquals("a setting in Settings isn't a switch, and a settings file has no format for it",
                 Collections.emptyList(), notSwitches);
@@ -223,12 +224,14 @@ public class SettingsBackupTest {
                         Settings.IGNORE_MUTED_MENTIONS, Settings.HIDE_BLOCKED_IN_GROUPS, Settings.HIDE_BY_KEYWORD, Settings.HIDE_FEATURES_AND_INVITE, Settings.MESSAGE_MENU_REPEAT, Settings.KEEP_DELETED_MESSAGES, Settings.RED_DELETED_LABEL, Settings.KEEP_EDIT_HISTORY,
                         Settings.KEEP_TIMED_MEDIA, Settings.ASK_BEFORE_STICKER, Settings.OUTSIDE_TRANSLATE, Settings.HIDE_CHANNEL_BUTTONS, Settings.HIDE_CHANNEL_MUTE, Settings.HIDE_CHANNEL_SHARE, Settings.HIDE_SEND_AS, Settings.HIDE_CONTACTS_TAB,
                         Settings.COMPACT_TAB_BAR, Settings.SIDE_MENU, Settings.HIDE_NEW_MESSAGE, Settings.TEST_SERVER_SIGN_IN, Settings.BOT_TOKEN_SIGN_IN,
-                        SettingsRoutes.SETTINGS_ROW, SettingsRoutes.TITLE_PRESS, SettingsRoutes.SIDE_MENU_ROW, SettingsRoutes.SHORTCUT, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.FASTER_UPLOADS, Settings.DOWNLOAD_MANAGER, Settings.SAVE_DOWNLOADS,
+                        SettingsRoutes.SETTINGS_ROW, SettingsRoutes.TITLE_PRESS, SettingsRoutes.SIDE_MENU_ROW, SettingsRoutes.SHORTCUT, Settings.FASTER_DOWNLOADS, Settings.DATA_SAVER_DOWNLOADS, Settings.FASTER_UPLOADS, Settings.DOWNLOAD_MANAGER, Settings.BEST_QUALITY_MEDIA, Settings.SAVE_DOWNLOADS,
                         Settings.SAVE_RESTRICTED_DOWNLOADS, Settings.SAVE_TIMED_MEDIA, Settings.STORAGE_FOLDER, Settings.ASK_BEFORE_GIF, Settings.ASK_BEFORE_VOICE_VIDEO, Settings.ASK_BEFORE_CALL, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS,
                         Settings.MESSAGE_MENU_QUICK_FORWARD, Settings.MESSAGE_MENU_COPY_PROTECTED, Settings.MESSAGE_MENU_SAVE_PROTECTED, Settings.MESSAGE_MENU_FORWARD_COPY, Settings.STORY_SAVE_BUTTON, Settings.ALLOW_SCREENSHOTS, Settings.MESSAGE_MENU_FAST_FORWARD, Settings.MESSAGE_MENU_FORWARD_SAVED, Settings.MESSAGE_MENU_SAVE_COVER,
                         Settings.MESSAGE_MENU_SAVE_ART, Settings.MESSAGE_MENU_CLEAR_CACHE, Settings.DISABLE_ANALYTICS, Settings.GHOST_MODE, Settings.GHOST_READS, Settings.GHOST_STORIES, Settings.GHOST_TYPING, Settings.GHOST_ONLINE, Settings.GHOST_BUTTON,
                         Settings.RECEIVE_ONLY, Settings.POWER_OFF_ACCOUNTS, Settings.DISABLE_CALL_DEBUG, Settings.RECORD_CALLS, Settings.RECORD_CALL_BUTTON, Settings.DISABLE_DRAFT_PREVIEWS, Settings.LOCAL_DRAFTS, Settings.LOCAL_SEARCH,
-                        Settings.GALLERY_CAMERA_ON_TAP, Settings.OPEN_EXTERNAL_LINKS, Settings.MINI_APP_LOCATION_OFF, Settings.STRIP_LINK_TRACKING, Settings.SKIP_AUTOLOGIN, Settings.STRIP_LINK_COPY_PASTE, Settings.DISABLE_UPDATE_CHECKS, Settings.REPAIR_FIREBASE_PUSH, Settings.KEEP_ALIVE_RUNNING),
+                        Settings.GALLERY_CAMERA_ON_TAP, Settings.OPEN_EXTERNAL_LINKS, Settings.MINI_APP_LOCATION_OFF, Settings.STRIP_LINK_TRACKING, Settings.SKIP_AUTOLOGIN, Settings.STRIP_LINK_COPY_PASTE, Settings.DISABLE_UPDATE_CHECKS, Settings.REPAIR_FIREBASE_PUSH, Settings.KEEP_ALIVE_RUNNING,
+                        Settings.SUPPRESS_SCREENSHOT_NOTIFICATION, Settings.UNLOCK_PREMIUM, Settings.BYPASS_CHANNEL_RESTRICTIONS,
+                        Settings.OPEN_RESTRICTED_CHATS, Settings.BYPASS_INTEGRITY_CHECK, Settings.AUTO_FORWARDING),
                 SettingsBackup.ALLOWLIST);
     }
 

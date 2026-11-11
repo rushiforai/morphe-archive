@@ -56,6 +56,10 @@ ADB_SERIAL=端末のIP:ポート scripts/install-device.sh
 
 利用するプロファイル内にmicroG (`app.revanced.android.gms`) とアカウントを用意し、Gemini (Morphe)を開いて初回のアカウント権限とmicroG拡張権限を許可します。SamsungではADBからセキュアフォルダ内のActivityを起動できないため、フォルダ内で手動で開きます。
 
+## Googleアプリの依存関係
+
+Geminiランチャーとは別に、**パッチ済みGoogleアプリとmicroGを同じプロファイルにインストール**してください。元の未改造Googleアプリを参照する設計ではありません。`Gemini Standalone Support` はsplit APKなしでインストールできるという意味で、Google本体を不要にする機能ではありません。v0.3.0からGeminiのManifestにもGoogleクローンのパッケージ可視性を明示します。
+
 ## バージョン別フック情報
 
 [バージョン別記録](docs/versions/README.md)に、クラス・メソッド・フィールド・探索文字列・APKハッシュ・検証結果をまとめています。パッチ本体とDEX検証コードは同じ定義を参照します。新バージョンは別ファイルで追加し、未登録版への汎用適用は行いません。
@@ -111,3 +115,5 @@ local/           署名キー・個人用メモ・旧作業資料（Git対象外
 [Morphe Desktop](https://github.com/MorpheApp/morphe-desktop)、[Morphe patches](https://github.com/MorpheApp/morphe-patches)、[microG](https://github.com/microg/GmsCore)を利用しています。このリポジトリにはGoogleの元APK、署名キー、実機の生ログを含めません。
 
 更新時の探索方法・症状別の手掛かり・失敗例は [フック解析ガイド](docs/hook-analysis.md) を参照してください。`scripts/inspect-hooks.sh` で未知版のDEXも読み取り専用で検索できます。
+
+新版の解析には [DexKit探索ツール](analysis/dexkit/README.md) を利用できます。`scripts/setup-dexkit.sh` の後、`scripts/discover-hooks.sh APK` で候補を抽出し、同じ入力の再探索はキャッシュで省略します。

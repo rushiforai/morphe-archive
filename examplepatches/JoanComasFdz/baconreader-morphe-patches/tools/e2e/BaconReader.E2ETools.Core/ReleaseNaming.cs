@@ -7,8 +7,11 @@ using System.Text.RegularExpressions;
 
 namespace BaconReader.E2ETools.Core;
 
-/// <summary>The parts of an asset name <c>pr-&lt;n&gt;-v&lt;version&gt;-&lt;run&gt;</c> the cleanup needs: its PR and its version.</summary>
-public sealed record AssetName(int Pr, int Version);
+/// <summary>
+/// The parts of an asset name <c>pr-&lt;n&gt;-v&lt;version&gt;-&lt;run&gt;</c> the cleanup needs: its PR, its version and its run (the
+/// GIF's name with the asset's extension, the same in every version).
+/// </summary>
+public sealed record AssetName(int Pr, int Version, string Run);
 
 /// <summary>
 /// Where a run's recordings go, the <c>prs-resources</c> pre-release, and what they are called there:
@@ -41,12 +44,12 @@ public static partial class ReleaseNaming
         return $"{stem[..keep].TrimEnd('-')}-{digest}{extension}";
     }
 
-    /// <summary>The PR and version of a name <c>pr-&lt;n&gt;-v&lt;version&gt;-…</c>; none for any other name.</summary>
+    /// <summary>The PR, version and run of a name <c>pr-&lt;n&gt;-v&lt;version&gt;-&lt;run&gt;</c>; none for any other name.</summary>
     public static Optional<AssetName> ReadAsset(string name)
     {
         var found = CreateAssetPattern().Match(name);
         return found.Success && int.TryParse(found.Groups[1].Value, out var pr) && int.TryParse(found.Groups[2].Value, out var version)
-            ? Optional.Some(new AssetName(pr, version))
+            ? Optional.Some(new AssetName(pr, version, found.Groups[3].Value))
             : Optional.None<AssetName>();
     }
 

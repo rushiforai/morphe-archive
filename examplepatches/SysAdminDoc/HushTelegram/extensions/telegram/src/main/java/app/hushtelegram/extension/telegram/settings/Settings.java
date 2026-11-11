@@ -601,6 +601,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting DOWNLOAD_MANAGER =
             new BooleanSetting("hushtelegram_download_manager", FALSE);
 
+    /** Photos go out in HD and videos at their own size unless one is changed before sending (#63). */
+    public static final BooleanSetting BEST_QUALITY_MEDIA =
+            new BooleanSetting("hushtelegram_best_quality_media", FALSE);
+
     /** A file or song that finishes downloading gets a copy in Download/Telegram, unless saving it isn't allowed. */
     public static final BooleanSetting SAVE_DOWNLOADS =
             new BooleanSetting("hushtelegram_save_downloads", FALSE);
@@ -927,4 +931,56 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting CHECK_FOR_RELEASES =
             new BooleanSetting("hushtelegram_check_releases", FALSE);
+
+    /**
+     * The screenshot notification Telegram sends to the other party in a secret chat is dropped
+     * before it leaves the phone ({@link app.hushtelegram.extension.telegram.misc.ScreenshotNotification}).
+     */
+    public static final BooleanSetting SUPPRESS_SCREENSHOT_NOTIFICATION =
+            new BooleanSetting("hushtelegram_suppress_screenshot_notification", FALSE);
+
+    /**
+     * The app behaves as if the account has Telegram Premium, locally only. The server still knows
+     * the real status, so server-enforced limits stay. Unlocks client-side Premium features like
+     * doubled limits, extra reactions, no ads and faster downloads
+     * ({@link app.hushtelegram.extension.telegram.misc.PremiumUnlock}).
+     */
+    public static final BooleanSetting UNLOCK_PREMIUM =
+            new BooleanSetting("hushtelegram_unlock_premium", FALSE);
+
+    /**
+     * Content restrictions on channels and chats (no forwards, no saving) are bypassed locally.
+     * Forwarding, copying and saving work as if the restriction was never set
+     * ({@link app.hushtelegram.extension.telegram.misc.ChannelRestrictions}).
+     */
+    public static final BooleanSetting BYPASS_CHANNEL_RESTRICTIONS =
+            new BooleanSetting("hushtelegram_bypass_channel_restrictions", FALSE);
+
+    /**
+     * Channels, chats and messages Telegram restricts for copyright or local law open and show as
+     * they would anywhere else (#58,
+     * {@link app.hushtelegram.extension.telegram.misc.ChannelRestrictions#ignoreRestrictionReason}).
+     */
+    public static final BooleanSetting OPEN_RESTRICTED_CHATS =
+            new BooleanSetting("hushtelegram_open_restricted_chats", FALSE);
+
+    /**
+     * Play Integrity, SafetyNet and certificate verification checks are answered with a passing
+     * result so the app doesn't detect it has been re-signed
+     * ({@link app.hushtelegram.extension.telegram.misc.IntegrityBypass}).
+     */
+    public static final BooleanSetting BYPASS_INTEGRITY_CHECK =
+            new BooleanSetting("hushtelegram_bypass_integrity_check", FALSE);
+
+    /**
+     * New messages in a rule's chat are forwarded to the rule's other chat on the same account.
+     * Rules are kept in {@link #AUTO_FORWARDING_RULES}
+     * ({@link app.hushtelegram.extension.telegram.misc.AutoForwarding}).
+     */
+    public static final BooleanSetting AUTO_FORWARDING =
+            new BooleanSetting("hushtelegram_auto_forwarding", FALSE);
+
+    /** The forwarding rules, one a line: user id, source chat, destination chat, then 1 for media only. Kept per account, so they aren't in settings files. */
+    public static final StringSetting AUTO_FORWARDING_RULES =
+            new StringSetting("hushtelegram_auto_forwarding_rules", "", false, false);
 }

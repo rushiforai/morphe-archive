@@ -1,5 +1,7 @@
 package app.fakh.patches.github
 
+import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.checkCast
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
@@ -9,6 +11,7 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMuta
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -273,13 +276,20 @@ private fun Method.strings(): Set<String> = implementation?.instructions
 /** The parameter types of a method as strings. */
 private val MethodReference.parameters get() = parameterTypes.map(CharSequence::toString)
 
-/** Every method of the app, with its class, that [matches]. */
-private fun BytecodePatchContext.methodsWhere(matches: (Method) -> Boolean): List<Pair<String, Method>> {
+/**
+ * Every method, with its class, that [matches]: of [classes] when given (found through the patcher's indexes, much
+ * faster), else of the whole app.
+ */
+private fun BytecodePatchContext.methodsWhere(
+    classes: List<ClassDef>? = null,
+    matches: (Method) -> Boolean,
+): List<Pair<String, Method>> {
     val found = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith("Lapp/fakh/extension/")) return@classDefForEach
+    fun search(classDef: ClassDef) {
+        if (classDef.type.startsWith("Lapp/fakh/extension/")) return
         for (method in classDef.methods) if (method.implementation != null && matches(method)) found += classDef.type to method
     }
+    if (classes != null) classes.distinctBy { it.type }.forEach(::search) else classDefForEach(::search)
     return found
 }
 
@@ -318,7 +328,9 @@ private fun List<Instruction>.resultCallAfter(anchor: String): Int? {
  * manager: the call after the string [anchor] that takes a String and a Bundle. [strings] find the one method.
  */
 private fun BytecodePatchContext.hookChoiceResult(strings: Set<String>, anchor: String) {
-    val found = methodsWhere { it.strings().containsAll(strings) && it.body.resultCallAfter(anchor) != null }
+    val found = methodsWhere(classDefByStrings(anchor)) {
+        it.strings().containsAll(strings) && it.body.resultCallAfter(anchor) != null
+    }
     if (found.size != 1) throw PatchException("Choice result $strings found in ${found.map { it.first }}")
     val (type, original) = found.single()
     val method = mutableClassDefBy(type).methods.first {
@@ -350,7 +362,8 @@ private fun BytecodePatchContext.hookChoiceRowEnabled() {
     fun Instruction.rowConstructor() = opcode == Opcode.INVOKE_DIRECT_RANGE && method?.let {
         it.name == "<init>" && it.parameters == listOf("I", STRING, STRING, STRING, "Z")
     } == true
-    val found = methodsWhere { method ->
+    val casts = Fingerprint(filters = listOf(checkCast(MULTI_SHEET))).matchAllOrNull().orEmpty().map { it.originalClassDef }
+    val found = methodsWhere(casts) { method ->
         method.body.any { it.opcode == Opcode.CHECK_CAST && it.typeReference == MULTI_SHEET } && method.body.any { it.rowConstructor() }
     }
     if (found.size != 1) throw PatchException("Multi-choice row constructor found in ${found.map { it.first }}")
@@ -420,7 +433,7 @@ private fun BytecodePatchContext.hookChoiceRowStyle() {
  */
 private fun BytecodePatchContext.addChoiceSheets(api: PreferenceApi, build: MutableMethod) {
     // Theme: SingleChoiceBottomSheet.Companion.a(title, selected, requestKey, items).v3(fragmentManager, tag).
-    val theme = methodsWhere { method ->
+    val theme = methodsWhere(classDefByStrings("key_single_choice_dialog_theme")) { method ->
         "key_single_choice_dialog_theme" in method.strings() &&
             method.body.any { it.opcode == Opcode.INVOKE_STATIC && it.method?.returnType == SINGLE_SHEET }
     }.firstOrNull() ?: throw PatchException("Theme sheet call not found")
@@ -441,7 +454,7 @@ private fun BytecodePatchContext.addChoiceSheets(api: PreferenceApi, build: Muta
     } ?: throw PatchException("Fragment manager call not found")
 
     // The Copilot home filter opens the multi-choice sheet from a bundle: setArguments is the first call taking only one.
-    val multi = methodsWhere { method ->
+    val multi = methodsWhere(classDefByStrings("key_sheet_title")) { method ->
         "key_sheet_title" in method.strings() && method.body.any { it.opcode == Opcode.NEW_INSTANCE && it.typeReference == MULTI_SHEET }
     }.firstOrNull() ?: throw PatchException("Multi-choice sheet call not found")
     val multiBody = multi.second.body

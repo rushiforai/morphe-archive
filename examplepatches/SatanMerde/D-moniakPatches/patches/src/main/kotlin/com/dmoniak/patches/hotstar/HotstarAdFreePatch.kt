@@ -101,7 +101,120 @@ fun BytecodePatchContext.executeHotstarAdFreeLogic(logger: Logger) {
         logger.warning("[Hotstar AdBlock] LiveAdsManagerProcessFingerprint failed: ${e.message}")
     }
 
-    // 6. Comprehensive Google IMA SDK & FreeWheel suppression
+    // 6. Neutralize SGAI (Server-Guided Ad Insertion) and SCTE live cricket ad pods
+    try {
+        replaceMethod(
+            LiveAdMetadataGetScteFetchAdUrlFingerprint.method,
+            registerCount = 2,
+            smaliCode = """
+                const-string v0, ""
+                return-object v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutralized LiveAdMetadata.getScteFetchAdUrl")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] LiveAdMetadataGetScteFetchAdUrlFingerprint failed: ${e.message}")
+    }
+
+    try {
+        replaceMethod(
+            PlayerWidgetSgaiConfigGetSgaiAdsUrlFingerprint.method,
+            registerCount = 2,
+            smaliCode = """
+                const-string v0, ""
+                return-object v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutralized PlayerWidget.SgaiConfig.getSgaiAdsUrl")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] PlayerWidgetSgaiConfigGetSgaiAdsUrlFingerprint failed: ${e.message}")
+    }
+
+    try {
+        replaceMethod(
+            PlayerWidgetSgaiConfigHasPrefetchNetworkConfigFingerprint.method,
+            registerCount = 2,
+            smaliCode = """
+                const/4 v0, 0x0
+                return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutralized PlayerWidget.SgaiConfig.hasPrefetchNetworkConfig")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] PlayerWidgetSgaiConfigHasPrefetchNetworkConfigFingerprint failed: ${e.message}")
+    }
+
+    try {
+        replaceMethod(
+            PlayerWidgetSgaiConfigHasSyncCallConfigFingerprint.method,
+            registerCount = 2,
+            smaliCode = """
+                const/4 v0, 0x0
+                return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutralized PlayerWidget.SgaiConfig.hasSyncCallConfig")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] PlayerWidgetSgaiConfigHasSyncCallConfigFingerprint failed: ${e.message}")
+    }
+
+    try {
+        replaceMethod(
+            PlayerWidgetLiveStreamAdDataGetAdServerUrlFingerprint.method,
+            registerCount = 2,
+            smaliCode = """
+                const-string v0, ""
+                return-object v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutralized PlayerWidget.LiveStreamAdData.getAdServerUrl")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] PlayerWidgetLiveStreamAdDataGetAdServerUrlFingerprint failed: ${e.message}")
+    }
+
+    try {
+        replaceMethod(
+            PlayerWidgetLiveStreamAdDataGetSgaiAdsUrlFingerprint.method,
+            registerCount = 2,
+            smaliCode = """
+                const-string v0, ""
+                return-object v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutralized PlayerWidget.LiveStreamAdData.getSgaiAdsUrl")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] PlayerWidgetLiveStreamAdDataGetSgaiAdsUrlFingerprint failed: ${e.message}")
+    }
+
+    try {
+        replaceMethod(
+            PlayerWidgetLiveStreamAdDataGetSsaiTagFingerprint.method,
+            registerCount = 2,
+            smaliCode = """
+                const-string v0, ""
+                return-object v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutralized PlayerWidget.LiveStreamAdData.getSsaiTag")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] PlayerWidgetLiveStreamAdDataGetSsaiTagFingerprint failed: ${e.message}")
+    }
+
+    try {
+        replaceMethod(
+            PlayerWidgetLiveStreamAdDataHasSgaiConfigFingerprint.method,
+            registerCount = 2,
+            smaliCode = """
+                const/4 v0, 0x0
+                return v0
+            """.trimIndent()
+        )
+        logger.info("[Hotstar AdBlock] Neutralized PlayerWidget.LiveStreamAdData.hasSgaiConfig")
+    } catch (e: Exception) {
+        logger.warning("[Hotstar AdBlock] PlayerWidgetLiveStreamAdDataHasSgaiConfigFingerprint failed: ${e.message}")
+    }
+
+    // 7. Comprehensive Google IMA SDK & FreeWheel suppression
     var hookedPoints = executeComprehensiveAdBlock(logger, "JioHotstar")
 
     // 10. Generic heuristics for any remaining ad widgets & state getters

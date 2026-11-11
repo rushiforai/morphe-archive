@@ -24,10 +24,12 @@ public final class ReadWithoutReceiptHooks {
     private static final class RecentlyEnded {
         final String chatId;
         final long atMillis;
+        final boolean fromNotification;
 
-        RecentlyEnded(String chatId, long atMillis) {
+        RecentlyEnded(String chatId, long atMillis, boolean fromNotification) {
             this.chatId = chatId;
             this.atMillis = atMillis;
+            this.fromNotification = fromNotification;
         }
     }
 
@@ -104,6 +106,10 @@ public final class ReadWithoutReceiptHooks {
         Suppression observed = currentSuppression();
         if (observed != null && !(observed.fromNotification ? notificationEnabled : manualEnabled)) {
             SUPPRESSION.compareAndSet(observed, null);
+        }
+        RecentlyEnded ended = RECENTLY_ENDED.get();
+        if (ended != null && !(ended.fromNotification ? notificationEnabled : manualEnabled)) {
+            RECENTLY_ENDED.compareAndSet(ended, null);
         }
     }
 
@@ -196,12 +202,15 @@ public final class ReadWithoutReceiptHooks {
             if (ReadWithoutReceiptManualHooks.hasManualInvocation()) {
                 return ReadWithoutReceiptManualHooks.blockManualInvocation(chatId);
             }
-            if (isRecentlyEnded(chatId, monotonicMillis())) {
+            LinimalConfig config = LinimalConfig.get();
+            boolean manualEnabled = config.isReadWithoutReceiptEnabled();
+            boolean notificationEnabled = config.isNotificationReadWithoutReceiptEnabled();
+            // 終了猶予も入口別の設定に従います。OFF・適用不可になった入口の猶予はここで破棄します。
+            if (isRecentlyEndedGivenSources(chatId, monotonicMillis(), manualEnabled, notificationEnabled)) {
                 return true;
             }
-            LinimalConfig config = LinimalConfig.get();
             return shouldBlockGivenSources(chatId, SystemClock.elapsedRealtime(), currentSuppression(),
-                    config.isReadWithoutReceiptEnabled(), config.isNotificationReadWithoutReceiptEnabled());
+                    manualEnabled, notificationEnabled);
         } catch (Throwable ignored) {
             clearSuppression();
             return false;
@@ -288,7 +297,7 @@ public final class ReadWithoutReceiptHooks {
         if (changingConfigurations) {
             SUPPRESSION.compareAndSet(observed, observed.withOwner(null));
         } else if (ending && SUPPRESSION.compareAndSet(observed, null)) {
-            RECENTLY_ENDED.set(new RecentlyEnded(observed.chatId, endMillis));
+            RECENTLY_ENDED.set(new RecentlyEnded(observed.chatId, endMillis, observed.fromNotification));
         }
     }
 
@@ -309,11 +318,17 @@ public final class ReadWithoutReceiptHooks {
     }
 
     static boolean isRecentlyEnded(String chatId, long nowMillis) {
+        return isRecentlyEndedGivenSources(chatId, nowMillis, true, true);
+    }
+
+    static boolean isRecentlyEndedGivenSources(String chatId, long nowMillis,
+            boolean manualEnabled, boolean notificationEnabled) {
         RecentlyEnded ended = RECENTLY_ENDED.get();
         if (ended == null) {
             return false;
         }
-        if (nowMillis < ended.atMillis || nowMillis - ended.atMillis >= ENDED_GRACE_MILLIS) {
+        if (!(ended.fromNotification ? notificationEnabled : manualEnabled)
+                || nowMillis < ended.atMillis || nowMillis - ended.atMillis >= ENDED_GRACE_MILLIS) {
             RECENTLY_ENDED.compareAndSet(ended, null);
             return false;
         }

@@ -5,7 +5,8 @@
 # differs from the other BaconReader patches repo's in anything but the patcher's name (AGENTS.md, "Shared and
 # patcher-specific files"): the other repo's copy, with "Morphe" and "Reseam" swapped (any case), must be this one.
 # Same file in both repos. A PR compares with the other repo's branch of the same name when there is one, so the two PRs
-# of one change pass together.
+# of one change pass together. A push to main or dev compares with the other repo's base branch, or with its branch named
+# as the PR just merged here: the other repo's PR of the same change may not be merged yet, and passes once it is.
 name: Shared VS Code extension
 
 on:
@@ -16,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   compare:
@@ -28,25 +30,45 @@ jobs:
         env:
           REPO: ${{ github.repository }}
           HEAD_REF: ${{ github.head_ref }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           case "$REPO" in
             */baconreader-reseam-patches) other=JoanComasFdz/baconreader-morphe-patches base=dev mine=reseam theirs=morphe ;;
             */baconreader-morphe-patches) other=JoanComasFdz/baconreader-reseam-patches base=main mine=morphe theirs=reseam ;;
             *) echo "::error::unknown repo $REPO"; exit 1 ;;
           esac
-          ref=$base
-          if [ -n "$HEAD_REF" ] && curl -fsSIL -o /dev/null "https://raw.githubusercontent.com/$other/$HEAD_REF/AGENTS.md"; then
-            ref=$HEAD_REF
-          fi
-          echo "Comparing with $other@$ref, $theirs → $mine"
-          copy="$RUNNER_TEMP/other"
-          mkdir -p "$copy"
-          curl -fsSL "https://codeload.github.com/$other/tar.gz/refs/heads/$ref" | tar -xz -C "$copy" --strip-components=1
           Mine="${mine^}" Theirs="${theirs^}"
-          # Its text files with the other patcher's name swapped for this one's (binary files stay as they are).
-          grep -rlI . "$copy" | xargs -r perl -pi -e "s/$theirs/$mine/g; s/$Theirs/$Mine/g; s/\U$theirs\E/\U$mine\E/g"
-          fail=0
-          for d in tools/vscode-extension tests/BaconReader.VsCodeExtension.E2E tests/BaconReader.E2E.Shared .devcontainer; do
-            diff -ru "$copy/$d" "$d" || { echo "::error file=$d::differs from $other@$ref (with $Theirs → $Mine)"; fail=1; }
+          dirs=(tools/vscode-extension tests/BaconReader.VsCodeExtension.E2E tests/BaconReader.E2E.Shared .devcontainer)
+          exists() { curl -fsIL -o /dev/null "https://raw.githubusercontent.com/$other/$1/AGENTS.md"; }
+          # The other repo's copy at a branch, its text files with the other patcher's name swapped for this one's (binary
+          # files stay as they are), compared with this one; with "loud", each difference is printed and annotated.
+          compare() {
+            local copy="$RUNNER_TEMP/other-${1//\//-}" fail=0
+            mkdir -p "$copy"
+            curl -fsSL "https://codeload.github.com/$other/tar.gz/refs/heads/$1" | tar -xz -C "$copy" --strip-components=1 || return 1
+            grep -rlI . "$copy" | xargs -r perl -pi -e "s/$theirs/$mine/g; s/$Theirs/$Mine/g; s/\U$theirs\E/\U$mine\E/g"
+            for d in "${dirs[@]}"; do
+              if [ "${2:-}" = loud ]; then
+                diff -ru "$copy/$d" "$d" || { echo "::error file=$d::differs from $other@$1 (with $Theirs → $Mine)"; fail=1; }
+              else
+                diff -rq "$copy/$d" "$d" > /dev/null || fail=1
+              fi
+            done
+            return $fail
+          }
+          refs=()
+          if [ -n "$HEAD_REF" ]; then
+            if exists "$HEAD_REF"; then refs+=("$HEAD_REF"); else refs+=("$base"); fi
+          else
+            refs+=("$base")
+            merged=$(gh api "repos/$REPO/commits/$GITHUB_SHA/pulls" --jq 'map(select(.merged_at != null)) | .[0].head.ref // empty' 2> /dev/null || true)
+            if [ -n "$merged" ] && [ "$merged" != "$base" ] && exists "$merged"; then refs+=("$merged"); fi
+          fi
+          for ref in "${refs[@]}"; do
+            if compare "$ref"; then
+              echo "Matches $other@$ref ($Theirs → $Mine)."
+              exit 0
+            fi
+            echo "Differs from $other@$ref ($Theirs → $Mine)."
           done
-          exit $fail
+          compare "${refs[0]}" loud

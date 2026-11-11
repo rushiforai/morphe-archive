@@ -1,3 +1,15 @@
+## [1.1.2](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.1...v1.1.2) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **spotify:** support Spotify 9.1.94 in "Hide ad views" ([3e7e677](https://github.com/pablobaro/pablobaro-morphe-patches/commit/3e7e677688a96e1e51a96f8857e14e1ab1790b54)), closes [#5](https://github.com/pablobaro/pablobaro-morphe-patches/issues/5) [#5](https://github.com/pablobaro/pablobaro-morphe-patches/issues/5)
+
+## [1.1.2-dev.1](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.1...v1.1.2-dev.1) (2026-11-10)
+
+### 🐛 Bug Fixes
+
+* **spotify:** support Spotify 9.1.94 in "Hide ad views" ([3e7e677](https://github.com/pablobaro/pablobaro-morphe-patches/commit/3e7e677688a96e1e51a96f8857e14e1ab1790b54)), closes [#5](https://github.com/pablobaro/pablobaro-morphe-patches/issues/5) [#5](https://github.com/pablobaro/pablobaro-morphe-patches/issues/5)
+
 ## [1.1.1](https://github.com/pablobaro/pablobaro-morphe-patches/compare/v1.1.0...v1.1.1) (2026-11-06)
 
 ### 🐛 Bug Fixes

@@ -17,6 +17,11 @@ internal const val STOCK_QUAD_MANIFEST = "XR_APILAYER_local_GalaxyXR_stock_quad_
 internal const val STOCK_QUAD_BUILD_ID = "stock-quad-5002527-v1"
 private const val STEAM_LINK_PACKAGE = "com.valvesoftware.steamlinkvr"
 
+// Keep the two quad modes exclusive without introducing a patch dependency between them.
+private const val NATIVE_QUAD_LIBRARY_MARKER = "libgxr_quad_native.so"
+private const val MUTUAL_EXCLUSION_MESSAGE =
+    "Choose only one quad-composition mode. Disable the other one and start from a clean APK when switching."
+
 // Pins of the bundled payload built from extensions/stock-quad-composition.
 internal const val STOCK_QUAD_HELPER_SHA256 =
     "d2cd78acdb6072ee461fa3f5729087a7ad988b13399b90fa4d07d8e670afb964"
@@ -71,13 +76,22 @@ internal fun installStockQuadResources(
     if (!sceneFile.isFile) {
         throw PatchException("Stock quad composition needs the Steam Link scene library")
     }
-    retiredNativeProjectionHook(sceneFile.readBytes())?.let { retired ->
+    val sceneBytes = sceneFile.readBytes()
+    retiredNativeProjectionHook(sceneBytes)?.let { retired ->
         throw PatchException(
             "Stock quad composition found retired renderer helper $retired; use a clean source APK",
         )
     }
 
     val libDir = sceneFile.parentFile!!
+
+    // Mutual exclusion with the native-quad mode, checked before loading or staging stock resources.
+    if (File(libDir, NATIVE_QUAD_LIBRARY_MARKER).exists() ||
+        sceneBytes.toString(Charsets.ISO_8859_1).contains(NATIVE_QUAD_LIBRARY_MARKER)
+    ) {
+        throw PatchException(MUTUAL_EXCLUSION_MESSAGE)
+    }
+
     val layerDir = File(apkRoot, "assets/openxr/1/api_layers/implicit.d")
     val helper = helperBytes ?: projectionModeResource(STOCK_QUAD_LIBRARY)
     val manifest = manifestBytes ?: projectionModeResource(STOCK_QUAD_MANIFEST)

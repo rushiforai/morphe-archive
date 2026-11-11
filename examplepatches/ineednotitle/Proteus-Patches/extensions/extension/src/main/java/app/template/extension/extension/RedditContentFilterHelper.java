@@ -8,7 +8,9 @@ import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -63,7 +65,9 @@ public final class RedditContentFilterHelper {
 
     /** Set once the first hideAutoModComments pass completes; lets device logs prove the hook is live. */
     private static final AtomicBoolean AUTO_MOD_PROBE_LOGGED = new AtomicBoolean();
+    private static final AtomicBoolean AUTO_MOD_TREE_PROBE_LOGGED = new AtomicBoolean();
     private static final AtomicInteger AUTO_MOD_DROP_LOG_COUNT = new AtomicInteger();
+    private static final AtomicInteger AUTO_MOD_TREE_DROP_LOG_COUNT = new AtomicInteger();
 
     private static void logAutoMod(String message) {
         System.out.println("[Proteus][Block AutoMod] " + message);
@@ -107,6 +111,17 @@ public final class RedditContentFilterHelper {
     private static final String[] COMMENT_MARKER_GETTERS = {
             "getParentId", "getLinkId", "getDepth", "getReplies", "getParent"
     };
+    private static final String[] READ_GETTERS = {
+            "isRead", "getRead", "isVisited", "getVisited", "isSeen", "getSeen"
+    };
+    private static final String[] TYPE_GETTERS = {
+            "getTypename", "getTypeName", "getKindWithId", "getKind"
+    };
+    private static final String[] URL_GETTERS = {
+            "getUrl", "getURL", "getPermalink", "getCanonicalUrl"
+    };
+
+    private static final AtomicInteger LISTING_DROP_LOG_COUNT = new AtomicInteger();
 
     private RedditContentFilterHelper() {
         // Static injection surface only.
@@ -128,12 +143,12 @@ public final class RedditContentFilterHelper {
         if (list == null || list.isEmpty()) {
             return list;
         }
-        List<?> memoized = ProteusListMemo.get(list);
+        List<?> memoized = ProteusListMemo.get("hideAutoModComments", list);
         if (memoized != null) {
             return memoized;
         }
         List<?> result = hideAutoModCommentsInner(list);
-        ProteusListMemo.put(list, result);
+        ProteusListMemo.put("hideAutoModComments", list, result);
         return result;
     }
 
@@ -164,6 +179,170 @@ public final class RedditContentFilterHelper {
         return list;
     }
 
+    // ── Comment-tree filters ─────────────────────────────────────────────────
+
+    /**
+     * Comment threads do not flow through {@code Listing}.  Reddit's comment
+     * tree store emits a {@code TreeData} object whose constructor receives
+     * three parallel views: the ordered tree item ids, the id → comment map,
+     * and the tree item wrappers.  AutoMod rows must be removed from all three
+     * or the renderer resurrects them from one of the other views.
+     *
+     * <p>Each helper returns the original object when nothing matched, so the
+     * injected {@code move-result-object} is cheap on the common path.
+     */
+    public static List<?> hideAutoModTreeIds(
+            List<?> treeItemIds,
+            Map<?, ?> comments,
+            Map<?, ?> treeItems
+    ) {
+        if (treeItemIds == null || treeItemIds.isEmpty()) {
+            return treeItemIds;
+        }
+        Set<Object> removed = autoModTreeKeys(comments, treeItems);
+        if (removed.isEmpty()) {
+            return treeItemIds;
+        }
+        if (!AUTO_MOD_TREE_PROBE_LOGGED.getAndSet(true)) {
+            int commentCount = comments == null ? 0 : comments.size();
+            int itemCount = treeItems == null ? 0 : treeItems.size();
+            logAutoMod("comment tree filter is live (" + commentCount
+                    + " comments, " + itemCount + " tree items)");
+        }
+
+        List<Object> filtered = new ArrayList<>(treeItemIds.size());
+        boolean changed = false;
+        for (Object id : treeItemIds) {
+            if (removed.contains(id)) {
+                changed = true;
+                continue;
+            }
+            filtered.add(id);
+        }
+        if (changed) {
+            logAutoModTreeDrop(treeItemIds.size() - filtered.size(), treeItemIds.size());
+        }
+        return changed ? filtered : treeItemIds;
+    }
+
+    /** Drops AutoModerator entries from a comment-id map. */
+    public static Map<?, ?> hideAutoModTreeComments(Map<?, ?> comments) {
+        if (comments == null || comments.isEmpty()) {
+            return comments;
+        }
+        Map<Object, Object> filtered = null;
+        for (Map.Entry<?, ?> entry : comments.entrySet()) {
+            if (!isAutoModComment(entry.getValue())) {
+                continue;
+            }
+            if (filtered == null) {
+                filtered = new LinkedHashMap<Object, Object>(comments);
+            }
+            filtered.remove(entry.getKey());
+        }
+        return filtered != null ? filtered : comments;
+    }
+
+    /** Drops AutoModerator entries from a tree-item wrapper map. */
+    public static Map<?, ?> hideAutoModTreeItems(Map<?, ?> comments, Map<?, ?> treeItems) {
+        if (treeItems == null || treeItems.isEmpty()) {
+            return treeItems;
+        }
+        Set<Object> removed = autoModTreeKeys(comments, treeItems);
+        if (removed.isEmpty()) {
+            return treeItems;
+        }
+        Map<Object, Object> filtered = null;
+        for (Map.Entry<?, ?> entry : treeItems.entrySet()) {
+            Object key = entry.getKey();
+            String id = treeItemId(entry.getValue());
+            if (removed.contains(key) || (id != null && removed.contains(id))) {
+                if (filtered == null) {
+                    filtered = new LinkedHashMap<Object, Object>(treeItems);
+                }
+                filtered.remove(key);
+            }
+        }
+        return filtered != null ? filtered : treeItems;
+    }
+
+    /**
+     * Collects every key that can identify an AutoMod comment: the comment map
+     * key, its kind-with-id string, and any tree-item wrapper key that points
+     * back at one of those ids.
+     */
+    private static Set<Object> autoModTreeKeys(Map<?, ?> comments, Map<?, ?> treeItems) {
+        Set<Object> removed = null;
+        if (comments != null) {
+            for (Map.Entry<?, ?> entry : comments.entrySet()) {
+                Object value = entry.getValue();
+                if (!isAutoModComment(value)) {
+                    continue;
+                }
+                if (removed == null) {
+                    removed = new HashSet<>();
+                }
+                removed.add(entry.getKey());
+                Object model = findModel(value);
+                if (model != null) {
+                    String kind = stringValue(invoke(accessors(model.getClass()).kind, model));
+                    if (!kind.isEmpty()) {
+                        removed.add(kind);
+                    }
+                }
+            }
+        }
+        if (treeItems != null && removed != null) {
+            for (Map.Entry<?, ?> entry : treeItems.entrySet()) {
+                String id = treeItemId(entry.getValue());
+                if (id != null && removed.contains(id)) {
+                    removed.add(entry.getKey());
+                }
+            }
+        }
+        return removed != null ? removed : Collections.emptySet();
+    }
+
+    /**
+     * The tree stores ordered ids and a wrapper object per id; the wrapper's
+     * public {@code a} field is the kind-with-id string (e.g. {@code t1_abc}).
+     * Keep this reflective so R8-renamed wrapper classes cannot break the
+     * extension's compile-time classpath.
+     */
+    private static String treeItemId(Object item) {
+        if (item == null) {
+            return null;
+        }
+        try {
+            Field field = item.getClass().getField("a");
+            field.setAccessible(true);
+            Object value = field.get(item);
+            if (value instanceof CharSequence) {
+                return value.toString();
+            }
+        } catch (Throwable ignored) {
+            // Try the accessor shape next.
+        }
+        try {
+            Method getter = noArgMethod(item.getClass(), "getA");
+            Object value = invoke(getter, item);
+            if (value instanceof CharSequence) {
+                return value.toString();
+            }
+        } catch (Throwable ignored) {
+            // Unknown wrapper shape: leave the row alone.
+        }
+        return null;
+    }
+
+    private static void logAutoModTreeDrop(int dropped, int total) {
+        int n = AUTO_MOD_TREE_DROP_LOG_COUNT.incrementAndGet();
+        if (n <= 5 || n % 25 == 0) {
+            logAutoMod("tree dropped " + dropped + " of " + total
+                    + " items (event " + n + ")");
+        }
+    }
+
     /**
      * Applies the configured content rules.  Also clears local content gates on
      * kept items when "Bypass built-in content gates" is enabled.  This cannot
@@ -178,12 +357,12 @@ public final class RedditContentFilterHelper {
         if (list == null || list.isEmpty()) {
             return list;
         }
-        List<?> memoized = ProteusListMemo.get(list);
+        List<?> memoized = ProteusListMemo.get("filterContent", list);
         if (memoized != null) {
             return memoized;
         }
         List<?> result = filterContentInner(list);
-        ProteusListMemo.put(list, result);
+        ProteusListMemo.put("filterContent", list, result);
         return result;
     }
 
@@ -212,6 +391,84 @@ public final class RedditContentFilterHelper {
             }
         }
         return filtered != null ? filtered : list;
+    }
+
+    // ── Post listing filters ─────────────────────────────────────────────────
+
+    /** Drops post rows Reddit has marked as read/visited. */
+    public static List<?> hideReadPosts(List<?> list) {
+        return filterPosts(list, "hideReadPosts", "Hide read posts", 0);
+    }
+
+    /** Drops crossposts (rows carrying a crosspost parent or a positive count). */
+    public static List<?> hideCrossposts(List<?> list) {
+        return filterPosts(list, "hideCrossposts", "Hide crossposts", 1);
+    }
+
+    /** Drops live streams / broadcasts surfaced in listings. */
+    public static List<?> hideLiveStreams(List<?> list) {
+        return filterPosts(list, "hideLiveStreams", "Hide live streams", 2);
+    }
+
+    private static List<?> filterPosts(List<?> list, String tag, String label, int mode) {
+        if (list == null || list.isEmpty()) {
+            return list;
+        }
+        List<?> memoized = ProteusListMemo.get(tag, list);
+        if (memoized != null) {
+            return memoized;
+        }
+        List<?> result = filterPostsInner(list, mode);
+        ProteusListMemo.put(tag, list, result);
+        return result;
+    }
+
+    private static List<?> filterPostsInner(List<?> list, int mode) {
+        List<Object> filtered = null;
+        int dropped = 0;
+        for (int i = 0, size = list.size(); i < size; i++) {
+            Object item = list.get(i);
+            if (shouldDropPost(item, mode)) {
+                dropped++;
+                if (filtered == null) {
+                    filtered = new ArrayList<Object>(list.subList(0, i));
+                }
+                continue;
+            }
+            if (filtered != null) {
+                filtered.add(item);
+            }
+        }
+        if (filtered != null) {
+            int n = LISTING_DROP_LOG_COUNT.incrementAndGet();
+            if (n <= 5 || n % 25 == 0) {
+                System.out.println("[Proteus][listing filters] dropped " + dropped
+                        + " of " + list.size() + " rows (mode " + mode + ", event " + n + ")");
+            }
+            return filtered;
+        }
+        return list;
+    }
+
+    private static boolean shouldDropPost(Object item, int mode) {
+        Object model = findModel(item);
+        if (model == null) {
+            return false;
+        }
+        Accessors accessors = accessors(model.getClass());
+        if (!accessors.isPostLike(model)) {
+            return false;
+        }
+        switch (mode) {
+            case 0:
+                return accessors.isRead(model);
+            case 1:
+                return accessors.isCrosspost(model);
+            case 2:
+                return accessors.isLiveStream(model);
+            default:
+                return false;
+        }
     }
 
     // ── AutoModerator detection ──────────────────────────────────────────────
@@ -549,6 +806,12 @@ public final class RedditContentFilterHelper {
         final Method parentId;
         final Method linkId;
         final Method depth;
+        final Method read;
+        final Method crosspostParents;
+        final Method crosspostCount;
+        final Method websocketUrl;
+        final Method typeName;
+        final Method url;
 
         Accessors(Class<?> type) {
             this.type = type;
@@ -562,6 +825,59 @@ public final class RedditContentFilterHelper {
             parentId = noArgMethod(type, "getParentId");
             linkId = noArgMethod(type, "getLinkId");
             depth = firstMethod(type, COMMENT_MARKER_GETTERS);
+            read = firstMethod(type, READ_GETTERS);
+            crosspostParents = noArgMethod(type, "getCrossPostParentList");
+            crosspostCount = noArgMethod(type, "getCrosspostCount");
+            websocketUrl = noArgMethod(type, "getWebsocketUrl");
+            typeName = firstMethod(type, TYPE_GETTERS);
+            url = firstMethod(type, URL_GETTERS);
+        }
+
+        boolean isPostLike(Object model) {
+            String kindValue = stringValue(invoke(kind, model)).toLowerCase(Locale.ROOT);
+            if (kindValue.startsWith("t3")) {
+                return true;
+            }
+            if (kindValue.startsWith("t1")) {
+                return false;
+            }
+            String className = type.getName().toLowerCase(Locale.ROOT);
+            if (className.contains("comment") || className.contains("reply")) {
+                return false;
+            }
+            return title != null && (className.contains("link") || className.contains("post"));
+        }
+
+        boolean isRead(Object model) {
+            Object value = invoke(read, model);
+            return Boolean.TRUE.equals(value)
+                    || (value instanceof Number && ((Number) value).intValue() != 0);
+        }
+
+        boolean isCrosspost(Object model) {
+            Object parents = invoke(crosspostParents, model);
+            if (parents instanceof Iterable<?> && ((Iterable<?>) parents).iterator().hasNext()) {
+                return true;
+            }
+            Object count = invoke(crosspostCount, model);
+            return count instanceof Number && ((Number) count).intValue() > 0;
+        }
+
+        boolean isLiveStream(Object model) {
+            String websocket = stringValue(invoke(websocketUrl, model));
+            if (!websocket.isEmpty()) {
+                return true;
+            }
+            String type = stringValue(invoke(typeName, model)).toLowerCase(Locale.ROOT);
+            if (type.contains("liveupdate") || type.contains("live_update")
+                    || type.contains("livethread") || type.contains("live_thread")) {
+                return true;
+            }
+            String link = stringValue(invoke(url, model)).toLowerCase(Locale.ROOT);
+            // Only Reddit-hosted live threads count here. A normal link post can
+            // point at e.g. youtube.com/live/... and must not be hidden.
+            return link.contains("reddit.com/live/") || link.startsWith("/live/")
+                    || link.startsWith("/live?");
         }
 
         boolean isCommentLike(Object model) {

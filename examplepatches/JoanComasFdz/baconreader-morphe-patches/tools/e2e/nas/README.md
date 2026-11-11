@@ -8,6 +8,12 @@ A GitHub Actions runner on the NAS the phone is plugged into, which plays the e2
 milliseconds, instead of a round trip over the cloud sessions' slow link (~130 ms, ~1–4 Mbit/s). Measured from a cloud
 session on 2026-11-07, the 32 LoggedIn scenarios took 52 minutes, three quarters of them round trips.
 
+It plays only the app's scenarios: it is there for the phone. The VS Code extension's scenarios
+([tests/BaconReader.VsCodeExtension.E2E](../../../tests/BaconReader.VsCodeExtension.E2E/README.md)) need no phone and
+play in a cloud session, with the Chromium its image ships (`tools/e2e/record.sh Recordings`, then
+`tools/e2e/push-gifs.sh`); the runner has no browser for them. `run.sh` passes `record.sh --phone-only`, so a run
+whose arguments pick an extension scenario (`--changed-since` after a change to the extension) leaves it out.
+
 This folder is the same in both BaconReader repos: one image, one container, one runner for each repo.
 
 ## How a run goes
@@ -20,7 +26,7 @@ inputs `scenarios`, `video` and `pr`).
 2. **phone**, here: `run.sh` connects to the phone over the phone stack's network (`connect.sh` with `E2E_PHONE_LAN`:
    adb at `android-phone:7555`, the waker at `android-phone:8080`, no tailnet), waits up to 45 minutes while another
    session holds the lease, takes it as `nas-<repo>-<run id>`, renews it every 10 minutes (`tools/e2e/lease.sh keep`),
-   plays `record.sh --no-bundle <scenarios>` and releases the lease, whatever happened. The job summary lists each
+   plays `record.sh --no-bundle --phone-only <scenarios>` and releases the lease, whatever happened. The job summary lists each
    run's result; the "e2e-results" artifact holds `out/` (the `.trx` files, the raw recordings) and `run.log`.
 3. **post**, on GitHub's machine, only with `video` and a `pr`: makes the GIFs and MP4s (`record.sh --gifs-only`) and
    posts them on the PR as `push-gifs.sh` and the "E2E videos" workflow do. The PR must be open, this repository's, and

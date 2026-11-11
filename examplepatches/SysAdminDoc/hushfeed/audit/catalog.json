@@ -888,6 +888,12 @@
     "row": "Jump to a date on Liked grids"
    },
    {
+    "key": "grid_search",
+    "default": false,
+    "type": "bool",
+    "row": "Search Liked and Favorites grids"
+   },
+   {
     "key": "grid_position_controls",
     "default": false,
     "type": "bool",
@@ -2505,6 +2511,12 @@
     "row": "Hide picture comments"
    },
    {
+    "key": "hide_voice_comments",
+    "default": false,
+    "type": "bool",
+    "row": "Hide voice comments"
+   },
+   {
     "key": "hide_spam_comments",
     "default": false,
     "type": "bool",
@@ -2634,6 +2646,44 @@
      }
     ],
     "auto": true
+   },
+   {
+    "id": "voice-comments-hidden",
+    "what": "Review: with Hide voice comments on, a thread that has voice comments from other accounts shows none of them, and the comment count in the header stays as TikTok sent it. Off, they're back. A feed video rarely has one, so open a thread known to hold a voice comment.",
+    "steps": [
+     {
+      "set": {
+       "hide_voice_comments": "true"
+      }
+     },
+     {
+      "open": "feed"
+     },
+     {
+      "probe": "videoinfo",
+      "expect": "comments=(?:1000orFewer|over1000)",
+      "retrySwipe": 12,
+      "precondition": true
+     },
+     {
+      "probe": "comments",
+      "expect": "openComments\\([^)]*\\)=true",
+      "waitMs": 2500
+     },
+     {
+      "shot": "voice-comments-hidden",
+      "review": "Comment sheet with Hide voice comments on: no row has a voice comment's play button and waveform, and the header count is TikTok's own. Do not type, post or play anything."
+     },
+     {
+      "back": true
+     },
+     {
+      "set": {
+       "hide_voice_comments": "false"
+      }
+     }
+    ],
+    "auto": false
    },
    {
     "id": "comment-search-box",
@@ -3491,7 +3541,7 @@
      },
      {
       "probe": "report",
-      "expect": "target_version: 47\\.6\\.3"
+      "expect": "target_version: 47\\.7\\.3"
      }
     ],
     "auto": true
@@ -4681,7 +4731,7 @@
   "checks": [
    {
     "id": "record-and-report",
-    "what": "A recording starts, TikTok's gate reads during a few feed swipes are captured, and the report names the 47.6.3 target with at least one gate.",
+    "what": "A recording starts, TikTok's gate reads during a few feed swipes are captured, and the report names the 47.7.3 target with at least one gate.",
     "steps": [
      {
       "open": "feed"
@@ -4719,7 +4769,7 @@
       "extras": {
        "op": "stop"
       },
-      "expect": "\\\"target\\\": \\\"TikTok 47\\.6\\.3\\\"[\\s\\S]*\\\"gate_count\\\": [1-9]"
+      "expect": "\\\"target\\\": \\\"TikTok 47\\.7\\.3\\\"[\\s\\S]*\\\"gate_count\\\": [1-9]"
      }
     ],
     "auto": true
@@ -7627,6 +7677,12 @@
     "default": false,
     "type": "bool",
     "row": "Show inbox filters"
+   },
+   {
+    "key": "pin_more_chats",
+    "default": false,
+    "type": "bool",
+    "row": "Pin more chats"
    }
   ],
   "surface": "inbox",
@@ -9298,10 +9354,6 @@
       "probe": "fill",
       "expect": "ok fill players=\\d+ pictures=\\d+ covers=true",
       "retrySwipe": 2
-     },
-     {
-      "shot": "see-through-bottom-on",
-      "review": "The band above the tabs shows the video, not black."
      },
      {
       "set": {
@@ -11515,6 +11567,7 @@
   "source": [
    "patches/src/main/kotlin/app/morphe/patches/tiktok/interaction/notinterested/NotInterestedPatch.kt",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/notinterested/NotInterested.java",
+   "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/notinterested/AlsoFilter.java",
    "extensions/tiktok/src/main/java/app/morphe/extension/tiktok/blockauthor/BlockAuthorOverlay.java"
   ],
   "settings": [
@@ -11523,6 +11576,12 @@
     "default": false,
     "type": "bool",
     "row": "Show the Not interested button"
+   },
+   {
+    "key": "not_interested_also_filter",
+    "default": false,
+    "type": "bool",
+    "row": "Also filter it"
    }
   ],
   "surface": "feed",
@@ -11588,6 +11647,47 @@
      {
       "probe": "report",
       "expect": "registered_switches:[^\\n]*\\bnotInterested\\b"
+     }
+    ],
+    "auto": true
+   },
+   {
+    "id": "also-filter-switch",
+    "what": "Also filter it reads through: with the feed filter in the bundle, the chooser is armed with the switch on and not with it off. The runner never presses Not interested, so the chooser itself is a device check by hand.",
+    "steps": [
+     {
+      "set": {
+       "not_interested_also_filter": "true"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "probe": "call",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.notinterested.AlsoFilter",
+       "method": "enabled"
+      },
+      "expect": "^ok call enabled -> true$",
+      "waitMs": 1500
+     },
+     {
+      "set": {
+       "not_interested_also_filter": "false"
+      }
+     },
+     {
+      "restart": true
+     },
+     {
+      "probe": "call",
+      "extras": {
+       "class": "app.morphe.extension.tiktok.notinterested.AlsoFilter",
+       "method": "enabled"
+      },
+      "expect": "^ok call enabled -> false$",
+      "waitMs": 1500
      }
     ],
     "auto": true

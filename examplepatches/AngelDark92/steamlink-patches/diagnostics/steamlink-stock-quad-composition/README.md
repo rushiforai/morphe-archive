@@ -1,5 +1,9 @@
 # Stock quad composition backport (2026-11-03)
 
+This record describes the OpenXR API-layer converter. The separate default-off
+[native quad experiment](NATIVE-EXPERIMENT.md) replaces streaming projection
+production inside the renderer and removes unused underside swapchain work.
+
 Default-off experimental patch for exact Steam Link 2.0.20/5001712,
 2.0.20/5001812, 2.0.21/5001968, 2.0.22/5002244, 2.0.23/5002363 and
 2.0.24/5002395. Keep Alpha-0 deselected when using this experiment; its source

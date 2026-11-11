@@ -21,7 +21,7 @@ public sealed class ImageViewer(AndroidDriver driver)
         Waiting.UntilShownAsync(driver, Image, TimeSpan.FromSeconds(10), "The full-screen image viewer");
 
     /// <summary>Closes the viewer with Android's Back.</summary>
-    public Task ClickBackAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(AndroidKeyCode.Back));
+    public Task ClickBackAsync() => OnScreen.PressBackAsync(driver);
 
     /// <summary>Where the viewer's image is, and the window it's shown in, in pixels.</summary>
     public Task<ImageViewerLayoutSnapshot> ReadLayoutAsync() =>

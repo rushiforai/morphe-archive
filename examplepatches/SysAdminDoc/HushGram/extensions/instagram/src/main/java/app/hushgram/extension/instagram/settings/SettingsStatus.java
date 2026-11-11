@@ -105,6 +105,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean storyButtonsRoom() {
+        return false;
+    }
+
     public static boolean storyFonts() {
         return false;
     }
@@ -139,6 +143,11 @@ public final class SettingsStatus {
         return false;
     }
 
+    /** Rewritten by the Keep photo locations from Instagram patch. */
+    public static boolean photoLocations() {
+        return false;
+    }
+
     public static boolean threadSeen() {
         return false;
     }
@@ -165,6 +174,16 @@ public final class SettingsStatus {
 
     /** Rewritten by Hide suggested posts when Home's reads and a post's type were found. */
     public static boolean feedTypes() {
+        return false;
+    }
+
+    /** Rewritten by Hide suggested posts when the parameters of Home's requests were found too. */
+    public static boolean favoritesSource() {
+        return false;
+    }
+
+    /** Rewritten by Hide suggested posts when an account's type was found too. */
+    public static boolean feedProfessional() {
         return false;
     }
 
@@ -341,6 +360,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean profileBanners() {
+        return false;
+    }
+
     public static boolean profilePostsList() {
         return false;
     }
@@ -428,6 +451,11 @@ public final class SettingsStatus {
     }
 
     public static boolean hideComments() {
+        return false;
+    }
+
+    /** Rewritten by Hide comments when the Reply on a comment's line was found too. */
+    public static boolean commentReply() {
         return false;
     }
 
@@ -682,6 +710,10 @@ public final class SettingsStatus {
     }
 
     public static boolean askBeforeRefresh() {
+        return false;
+    }
+
+    public static boolean askBeforeFollow() {
         return false;
     }
 

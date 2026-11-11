@@ -15,6 +15,7 @@ Morphe Manager groups them by category.
 | Feature | Download media | On | A download button on full screen photos and videos, profile photos and banners. |
 | Feature | More tab | On | Hides items of the More tab (Puzzle games, Groups, Events, Newsletters), or lists them at the bottom of the profile menu. Adds a Puzzle games shortcut to the LinkedIn app icon, with its own switch. |
 | Feature | Swipe between tabs | On | Swipe sideways to go to the next or previous tab of the navigation bar, with a slide animation. Does not act where something under the finger can scroll sideways. |
+| Feature | Always show navigation bar | On | Adds a switch in Fakh Patches, off by default, that keeps the navigation bar on screen while you scroll instead of sliding it away. |
 | Feature | Navigation bar | On | Adds switches in Fakh Patches to show or hide the More, Jobs, Network and Notifications tabs of the navigation bar, its notification badges and its tab labels. |
 | Feature | GmsCore support | Off | Makes "Continue with Google" work by signing in through [microG RE](https://github.com/MorpheApp/microg-RE) instead of Google Play services. Needs microG RE installed and signed in to a Google account. |
 | Feed | Hide suggested posts | On | Removes "Suggested" posts from people outside your network. |
@@ -30,7 +31,7 @@ Morphe Manager groups them by category.
 | Theme | Material You | Off | Wallpaper colors (Android 12+) instead of LinkedIn blue for accents, backgrounds, cards, bars and borders. Some screens drawn by LinkedIn's servers keep their own colors. |
 | Theme | Pitch black | Off | Replaces the gray backgrounds of dark mode with black, and cards with a slightly lighter black. Works with or without Material You. |
 | Theme | Hide gaps and dividers | Off | Removes the gray gaps between posts and the dividers between list items, so the feed and lists are one flat surface. |
-| Theme | Glass navigation bar | Off | Draws the navigation bar as a floating, translucent capsule with a sliding selection pill, in the style of the glass navigation bar of [Morphe Patches](https://github.com/MorpheApp/morphe-patches). |
+| Theme | Glass navigation bar | Off | Draws the navigation bar as a floating, translucent capsule with a sliding selection pill, in the style of the glass navigation bar of [Morphe Patches](https://github.com/MorpheApp/morphe-patches). Slide a finger along the bar to switch tabs, with a haptic tick for each tab. The **Liquid Glass** switch (on by default) blurs what's behind the bar and bends it at the edges on Android 12 and newer. The pill takes the wallpaper accent with Material You and stays neutral gray without it. |
 
 Settings are in **Fakh Patches** on LinkedIn's Settings screen (profile menu → Settings & Privacy), or long press
 the Home tab.

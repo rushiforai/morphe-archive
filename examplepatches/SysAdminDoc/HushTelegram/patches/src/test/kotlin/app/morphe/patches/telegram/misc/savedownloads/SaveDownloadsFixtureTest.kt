@@ -69,7 +69,7 @@ class SaveDownloadsFixtureTest {
 
     private fun context(build: File): BytecodePatchContext {
         val host = FixtureDex.classes(build, hosts + downloadHosts(build)).values.map(ImmutableClassDef::of)
-        assertTrue("${build.name}: Telegram's download classes", host.map { it.origType }.containsAll(hosts))
+        assertEquals("${build.name}: Telegram's download classes", emptySet<String>(), hosts - host.map { it.origType }.toSet())
         return PatchContexts.of(ExtensionDex.classes() + host)
     }
 
@@ -154,8 +154,10 @@ class SaveDownloadsFixtureTest {
             assertEquals(listOf(DOCUMENT, DOCUMENT_NAME), context.stub("documentName").refs())
             assertEquals(listOf(MESSAGE_OBJECT, IS_SECRET_MEDIA, IS_GIF, IS_ROUND_VIDEO, IS_PHOTO, IS_VIDEO),
                 context.stub("photoOrVideo").refs())
+            // A profile photo's or a sticker's parent isn't a message: the two asked first check before casting (#27).
             val photo = context.stub("photo")
-            assertEquals(listOf(MESSAGE_OBJECT, PHOTO_THUMBS, PHOTO_SIZE, context.closestPhotoSize()), photo.refs())
+            assertEquals(listOf(MESSAGE_OBJECT, MESSAGE_OBJECT, PHOTO_THUMBS, PHOTO_SIZE, context.closestPhotoSize()), photo.refs())
+            assertEquals(Opcode.INSTANCE_OF, photo.first().opcode)
             if (context.closestPhotoSize() == CLOSEST_PHOTO_SIZE_FULL) {
                 // Where the two-argument form is inlined, the full one gets its defaults: false, null, false.
                 val call = photo.indexOfFirst { it.controlRef() == CLOSEST_PHOTO_SIZE_FULL }
@@ -164,7 +166,8 @@ class SaveDownloadsFixtureTest {
                 assertEquals("$name: the defaults' registers", List(3) { zero.namedRegisters().single() }, photo[call].namedRegisters().drop(2))
             }
             // View-once and timed media in any chat; the extension turns a secret chat's away (#9).
-            assertEquals(listOf(MESSAGE_OBJECT, IS_SECRET_MEDIA), context.stub("timedMedia").refs())
+            assertEquals(listOf(MESSAGE_OBJECT, MESSAGE_OBJECT, IS_SECRET_MEDIA), context.stub("timedMedia").refs())
+            assertEquals(Opcode.INSTANCE_OF, context.stub("timedMedia").first().opcode)
             for (stub in listOf("messageDocument", "fileOrSong", "savingForbidden", "secretChat", "attachName", "documentName",
                 "storedMessage", "photoOrVideo", "photo", "timedMedia")) {
                 val method = context.tgMutableClassDefBy(SAVE_DOWNLOADS).method(stub)

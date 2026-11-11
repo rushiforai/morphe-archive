@@ -232,14 +232,10 @@ public final class SettingsNavigationChecks extends Instrumentation {
             require(backView[0] instanceof ImageButton, "No actual Back image button");
             ImageButton image = (ImageButton) backView[0];
             require(image.getDrawable().isAutoMirrored() && image.getDrawable().getLayoutDirection() == image.getLayoutDirection(), "Back drawable does not mirror");
-            ViewGroup bar = (ViewGroup) image.getParent();
-            TextView brand = null;
-            for (int i = 0; i < bar.getChildCount(); i++) {
-                View sibling = bar.getChildAt(i);
-                if (sibling instanceof TextView && "HushTelegram".equalsIgnoreCase(((TextView)sibling).getText().toString())) {
-                    require(brand == null, "Ambiguous navigation brand label"); brand = (TextView)sibling;
-                }
-            }
+            // Large text stacks the brand over Pause inside the bar, so the label can sit one level down.
+            TextView[] found = {null};
+            findBrand((ViewGroup) image.getParent(), found);
+            TextView brand = found[0];
             require(brand != null, "No navigation brand beside Back");
             int[] backAt = new int[2], brandAt = new int[2];
             image.getLocationOnScreen(backAt); brand.getLocationOnScreen(brandAt);
@@ -487,17 +483,24 @@ public final class SettingsNavigationChecks extends Instrumentation {
             try {
                 ListView list = (ListView) field(navigation().getClass(), "list").get(navigation());
                 position[0] = new Position(list.getFirstVisiblePosition(), list.getChildAt(0) == null ? 0 : list.getChildAt(0).getTop());
+                int[] at = new int[2];
+                list.getLocationOnScreen(at);
+                position[0].layout = "list " + list.getHeight() + "px at y" + at[1] + ", rows " + list.getFirstVisiblePosition() + "-"
+                        + list.getLastVisiblePosition() + " of " + list.getCount() + (list.canScrollVertically(1) ? "" : ", at the end");
             } catch (Exception error) { throw new RuntimeException(error); }
         });
         return position[0];
     }
     private static final class Position {
         final int index, top;
+        String layout = "";
         Position(int index, int top) { this.index = index; this.top = top; }
         @Override public boolean equals(Object other) { return other instanceof Position && index == ((Position)other).index && Math.abs(top - ((Position)other).top) <= 2; }
         @Override public String toString() { return index + "/" + top; }
     }
-    private static void samePosition(Position expected, Position actual, String message) { require(expected.equals(actual), message + " (" + expected + " -> " + actual + ")"); }
+    private static void samePosition(Position expected, Position actual, String message) {
+        require(expected.equals(actual), message + " (" + expected + " [" + expected.layout + "] -> " + actual + " [" + actual.layout + "])");
+    }
 
     private Map<String, Boolean> switches() throws Exception {
         Map<String, Boolean> snapshot = new TreeMap<>();
@@ -542,6 +545,14 @@ public final class SettingsNavigationChecks extends Instrumentation {
         if (description.equals(String.valueOf(view.getContentDescription()))) return view;
         if (view instanceof ViewGroup) for (int i = 0; i < ((ViewGroup)view).getChildCount(); i++) { View found = findDescription(((ViewGroup)view).getChildAt(i), description); if (found != null) return found; }
         return null;
+    }
+    private static void findBrand(ViewGroup group, TextView[] found) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof TextView && "HushTelegram".equalsIgnoreCase(((TextView)child).getText().toString())) {
+                require(found[0] == null, "Ambiguous navigation brand label"); found[0] = (TextView)child;
+            } else if (child instanceof ViewGroup) findBrand((ViewGroup)child, found);
+        }
     }
     private void settle() throws Exception {
         guard(); stage("wait for accessibility idle"); automation.waitForIdle(250, 5000);

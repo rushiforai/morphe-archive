@@ -14,7 +14,7 @@ public sealed class PostVersioningTests
     {
         var v1 = CommentOf(1, PostOf(1, ["A", "B"]));
 
-        var edit = Assert.Single(PostVersioning.PlanCollapses([v1], 2));
+        var edit = Assert.Single(PostVersioning.PlanCollapses([v1], 2, RunsOf("A", "B")));
 
         Assert.Same(v1, edit.Comment);
         Assert.StartsWith("<details><summary><b>Scenarios (V1)</b> · 2 scenarios · replaced by V2</summary>\n\n", edit.Body);
@@ -28,7 +28,7 @@ public sealed class PostVersioningTests
         var v1 = CollapsedOf(1, 1, "A");
         var v2 = CommentOf(2, PostOf(2, ["A", "B", "C"]));
 
-        var edit = Assert.Single(PostVersioning.PlanCollapses([v1, v2], 3));
+        var edit = Assert.Single(PostVersioning.PlanCollapses([v1, v2], 3, RunsOf("A", "B", "C")));
 
         Assert.Same(v2, edit.Comment);
         Assert.Contains("<b>Scenarios (V2)</b> · 3 scenarios · replaced by V3", edit.Body);
@@ -39,7 +39,7 @@ public sealed class PostVersioningTests
     {
         var v1 = CommentOf(1, PostWriting.WritePost(Repo, 1, [RunOf("LoginTests", "Logs", passed: false), RunOf("FeedTests", "Scrolls")], "Text."));
 
-        var edit = Assert.Single(PostVersioning.PlanCollapses([v1], 2));
+        var edit = Assert.Single(PostVersioning.PlanCollapses([v1], 2, PostVersioning.ReadRuns(v1.Body)));
 
         Assert.Equal(1, PostVersioning.FindLastVersion([v1]));
         Assert.Equal(2, PostVersioning.CountScenarios(v1.Body));
@@ -69,7 +69,7 @@ public sealed class PostVersioningTests
     {
         var other = CommentOf(9, $"Something else\n\n---\n{PostVersioning.Footer}\n");
 
-        Assert.Empty(PostVersioning.PlanCollapses([other], 1));
+        Assert.Empty(PostVersioning.PlanCollapses([other], 1, []));
         Assert.Empty(PostVersioning.PlanShrinks([other]));
     }
 
@@ -101,11 +101,11 @@ public sealed class PostVersioningTests
     }
 
     [Fact]
-    public void Closing_shrinks_every_post_but_the_newest_to_its_line()
+    public void Closing_shrinks_every_post_recorded_again_later_to_its_line()
     {
         var v1 = CollapsedOf(1, 1, "A", "B");
         var v2 = CommentOf(2, PostOf(2, ["A"]));
-        var v3 = CommentOf(3, PostOf(3, ["A"]));
+        var v3 = CommentOf(3, PostOf(3, ["A", "B"]));
 
         var edits = PostVersioning.PlanShrinks([v1, v2, v3]);
 
@@ -117,6 +117,35 @@ public sealed class PostVersioningTests
     }
 
     [Fact]
+    public void A_post_of_other_scenarios_collapses_as_followed_and_one_of_some_as_partly_replaced()
+    {
+        var v1 = CommentOf(1, PostOf(1, ["A", "B"]));
+
+        Assert.Contains("· 2 scenarios · followed by V2</summary>", Assert.Single(PostVersioning.PlanCollapses([v1], 2, RunsOf("C"))).Body);
+        Assert.Contains("· 2 scenarios · partly replaced by V2</summary>", Assert.Single(PostVersioning.PlanCollapses([v1], 2, RunsOf("B", "C"))).Body);
+    }
+
+    [Fact]
+    public void Closing_shrinks_only_the_posts_whose_runs_were_all_recorded_again()
+    {
+        var batch1 = CollapsedOf(1, 1, "A", "B");
+        var batch2 = CommentOf(2, PostOf(2, ["C"]));
+        var again = CommentOf(3, PostOf(3, ["C"]));
+
+        var edit = Assert.Single(PostVersioning.PlanShrinks([batch1, batch2, again]));
+
+        Assert.Same(batch2, edit.Comment);
+    }
+
+    [Fact]
+    public void Each_GIF_of_a_post_is_one_of_its_runs()
+    {
+        var post = PostWriting.WritePost(Repo, 4, [RunOf("LoginTests", "Logs"), RunOf("FeedTests", "Scrolls")], "Text.");
+
+        Assert.Equal(["Logs-phone", "Scrolls-phone"], PostVersioning.ReadRuns(post).Order(StringComparer.Ordinal));
+    }
+
+    [Fact]
     public void A_shrunk_post_is_left_as_it_is_and_still_counts_its_version()
     {
         var shrunk = ShrunkOf(1, 1);
@@ -124,7 +153,7 @@ public sealed class PostVersioningTests
 
         Assert.Empty(PostVersioning.PlanShrinks([shrunk, v2]));
         Assert.Equal(1, PostVersioning.FindLastVersion([shrunk]));
-        Assert.Empty(PostVersioning.PlanCollapses([shrunk], 3));
+        Assert.Empty(PostVersioning.PlanCollapses([shrunk], 3, []));
     }
 
     [Fact]

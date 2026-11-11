@@ -22,8 +22,8 @@ public sealed class DisableUnavailableSidebarTests : BaseE2E
         Scenario: Disable unavailable sidebar greys out View Sidebar on feeds without a sidebar
           Given Reddit has a post "Hello from r/e2e" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap "More options" in the toolbar
           # The toolbar shows the "Front Page" feed.
           Then "View Sidebar" is greyed out
@@ -48,8 +48,8 @@ public sealed class DisableUnavailableSidebarTests : BaseE2E
     {
         // Given
         Reddit.HasAPost("Hello from r/e2e", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.ClickMoreOptionsAsync();

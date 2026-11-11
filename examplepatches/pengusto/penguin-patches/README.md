@@ -23,13 +23,13 @@ Penguin Patches is an independent collection of fixes for selected Android apps.
 In Morphe Manager, copy a source URL and add it as a **remote JSON source**:
 
 - **Standard:** Infinity+, Fossify and the other supported apps except Finamp. [Standard source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/standard/patches-bundle.json)
-- **Finamp:** One small, default-selected patch applies all seven fixes together, including the artist-order change. The [existing Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp/patches-bundle.json) switches to the compact bundle with the release containing this change.
-- **Finamp individual:** Choose any subset of the seven patches; this optional source downloads the large native selection matrix. The [individual Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp-individual/patches-bundle.json) becomes available with that release.
+- **Finamp:** One small, default-selected patch applies all available fixes together, including the artist-order change. The [existing Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp/patches-bundle.json) switches to the compact bundle with the release containing this change.
+- **Finamp individual:** Choose any subset of the individual patches; this optional source downloads the large native selection matrix. The [individual Finamp source URL](https://raw.githubusercontent.com/pengusto/penguin-patches/main/bundles/finamp-individual/patches-bundle.json) becomes available with that release.
 
-The [original combined source](https://morphe.software/add-source?github=pengusto/penguin-patches) also switches to the compact Finamp patch. Existing installations and signing keys are unaffected. After the source update, Morphe can immediately start patching Finamp with all seven fixes selected; enable Expert mode to review the selection first. Choose either Finamp Complete or individual patches for a patching run, not both. [Setup and migration details →](docs/SETUP.md#add-the-source-and-patch)
+The [original combined source](https://morphe.software/add-source?github=pengusto/penguin-patches) also switches to the compact Finamp patch. Existing installations and signing keys are unaffected. After the source update, Morphe can immediately start patching Finamp with all available fixes selected; enable Expert mode to review the selection first. Choose either Finamp Complete or individual patches for a patching run, not both. [Setup and migration details →](docs/SETUP.md#add-the-source-and-patch)
 
 <!-- PATCHES_SUMMARY_START -->
-**17 patches · 14 apps · [v1.9.2](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.2)**
+**17 patches · 14 apps · [v1.9.3](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.3)**
 <!-- PATCHES_SUMMARY_END -->
 
 [Before & after](#patch-previews) · [Supported apps](#generated-patch-catalogue) · [Setup & signing](#patch-an-app) · [Latest release](https://github.com/pengusto/penguin-patches/releases/latest)
@@ -137,7 +137,7 @@ Use your own authorized Reddit OAuth client and reach the existing login flow wi
 <summary><strong>Readable Calendar descriptions</strong> · Before / after</summary>
 <br>
 
-**Fossify Calendar 1.12.0 and 1.12.1** · [Setup & patch details](docs/CALENDAR.md)
+**Fossify Calendar 1.12.0, 1.12.1 and 1.12.2** · [Setup & patch details](docs/CALENDAR.md)
 
 Read HTML event descriptions in the editor, event lists, widget and reminders.
 The editor also offers an explicit Edit HTML source action and preserves the
@@ -542,19 +542,19 @@ Open the immediate parent task from the child editor using an explicit up-arrow.
 
 ### <img src="https://raw.githubusercontent.com/finamp-app/finamp/f001dcd396ab2c65d466ad60e4380c53c45d34d9/fastlane/metadata/android/en-US/images/icon.png" alt="Finamp app icon" width="24" height="24"> Finamp · 1 patch
 
-Finamp Complete combines the seven fixes shown below; individual selection is available separately.
+Finamp Complete combines the fixes shown below; individual selection is available separately.
 
-<a id="preview-finamp-complete-all-seven-fixes"></a>
+<a id="preview-finamp-complete"></a>
 
 <details>
-<summary><strong>Finamp complete: all seven fixes</strong> · Before / after</summary>
+<summary><strong>Finamp Complete</strong> · Before / after</summary>
 <br>
 
 **Finamp 1.0.1** · [Setup & patch details](docs/FINAMP_NATIVE.md)
 
-The compact patch applies the seven individual fixes together. This pair
-illustrates one included change: the track-information action. See the seven
-individual comparisons for the other changes.
+The compact patch applies the individual fixes together. This pair
+illustrates one included change: the track-information action. See the individual
+comparisons for the other changes.
 
 **Installed Android APK captures.** The before image is the original APK and
 the after image is the separately selected track-information patch, using the
@@ -740,7 +740,7 @@ full locally built bundle. See the evidence for the scope of that test.
 <details>
 <summary><strong>All 14 apps and supported versions</strong></summary>
 
-> **[v1.9.2](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
+> **[v1.9.3](https://github.com/pengusto/penguin-patches/releases/tag/v1.9.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details>
 <summary><img src="https://raw.githubusercontent.com/Docile-Alligator/Infinity-For-Reddit/cc2845af8c4bb9375ee56b93944c5a0fa3ad70e0/fastlane/metadata/android/en-US/images/icon.png" alt="Infinity+ app icon" width="24" height="24"> Infinity+&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
@@ -762,8 +762,8 @@ full locally built bundle. See the evidence for the scope of that test.
 
 **🎯 Supported versions:**
 
-| 1.12.0 | 1.12.1 |
-| :---: | :---: |
+| 1.12.0 | 1.12.1 | 1.12.2 |
+| :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -950,7 +950,7 @@ full locally built bundle. See the evidence for the scope of that test.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| <a id="finamp-complete-all-seven-fixes"></a>[Finamp complete: all seven fixes](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-finamp-complete-all-seven-fixes) | Apply all seven Penguin Finamp fixes together, including song artist order and album/track information. Requires the original official Finamp 1.0.1 APK; produces ARM64-only output. |  |
+| <a id="finamp-complete"></a>[Finamp Complete](docs/FINAMP_NATIVE.md)<br>[Before / after](#preview-finamp-complete) | Apply all available Penguin Finamp fixes together. Requires the original official Finamp 1.0.1 APK; produces ARM64-only output. |  |
 
 </details>
 

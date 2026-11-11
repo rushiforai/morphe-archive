@@ -40,6 +40,10 @@ command takes milliseconds: the "E2E on the phone" workflow, which plays and rec
 It connects with the same script over the phone stack's network (`E2E_PHONE_LAN`), and shares the phone's lease with
 the cloud sessions.
 
+**Chrome** shows the fake's setup page in recordings ("Run and record"). A new or reset phone needs Chrome's first run
+done once, by hand: open Chrome, tap "Stay signed out", then "No thanks" when it asks about notifications. Until then,
+Chrome opens on its first-run screen instead of the page.
+
 Appium's helper apps (`io.appium.uiautomator2.server`, `.server.test`, `io.appium.settings`) stay installed on the
 phone, so a session starts without reinstalling them; a reset phone needs one run with
 `E2E_APPIUM_INSTALL_HELPERS=1` (the connection script sets it when they're missing).
@@ -188,6 +192,26 @@ runs only the shape and naming tests, and the fake Reddit's own tests (the "E2E 
 
 By hand: `dotnet test tests/BaconReader.E2E` (add `E2E_VIDEO_DIR=<dir>` to keep the raw videos and their records).
 
+**The setup page.** A recording shows what the fake Reddit does, not only the app: the fake serves a page of it,
+`/_fake/setup` (`BaconReader.FakeReddit/Setup/setup.html`), with what the scenario made (its accounts, which are logged
+in, its posts and comments) and, under "Now", what a step changed in it and what a check read from it (each snapshot a
+`Reddit.Read…` returns that a Then line checks). It reads the fake 4 times a second and says which version it shows, so
+the test waits until it shows what a line did (`Device/SetupPage`, `Steps/GherkinMarking`):
+
+- the recording starts on the page, in Chrome: each Given line that sets up the fake holds once the page shows it,
+  then the app opens over it;
+- once the app is open, a When line that changes the fake, and each Then line that checks what it saw
+  (`Steps/FakeChecks`: its assertion is one of `Infrastructure/Reddit`'s), bring the page in front for the line, and
+  the app comes back, as it was, for the next line on it.
+
+Each hold on the page lasts as long as reading what it shows as new takes (`GherkinMarking.ReadingTime`): the page
+counts the words of what it adds (a post, a check's card), and the recording holds 1 s and 0.2 s a word, from 1.5 s to
+6 s; the run's log says each hold's words and seconds. A check's card leaves out a field that only repeats its title.
+When the scenario ends, Back on the page closes its tab. Only a recording opens Chrome; a run that doesn't record never
+does, and plays as fast. If the page doesn't show a
+line's result within 5 s, the run says so in its log and goes on. Chrome needs its first run done once on the phone
+("The phone").
+
 ## Exploring the app before writing a Gherkin
 
 A Gherkin quotes the screen, never the patch's code ([given-when-then-test-rules.md](../../docs/given-when-then-test-rules.md),
@@ -315,8 +339,8 @@ with the VS Code extension's scenarios ([tests/BaconReader.VsCodeExtension.E2E](
   "Disable final release announcement", "Prompt to open Reddit links" and "Disable feedback popup". Each scenario is
   patched with only the patches its Given names, since it tests exactly those dialogs and steps.
 - **`Scenarios/LoggedIn/`: everything else.** Every scenario is patched with every patch, one APK for all of them, and
-  its Given opens the app and logs in: `And BaconReader is patched with every patch`, `And BaconReader is open`,
-  `And the test account is logged in`.
+  its Given logs in and opens the app: `And BaconReader is patched with every patch`, `And the test account is logged
+  in`, `And BaconReader is open`.
 
 Inside a group, folders follow the patches' areas (`account`, `comments`, `editor`, `inbox`, `links`, `media`, `misc`,
 `posts`, and `e2e` for the test-only patches): folder = area, class = one patch (`<Patch>Tests.cs`) in a folder of its
@@ -345,8 +369,9 @@ A scenario logs in as BaconReader does, through the fake Reddit's login, made li
 ids and buttons): "Add account" in the left menu, "Log In" with the test account, then "Accept" on the page asking to
 connect the app ("Spoof client" logs in as RedReader). Every scenario that loads posts or comments does it: logged out,
 Reddit refuses BaconReader ([SpoofClientTests.cs](Scenarios/Startup/Account/SpoofClient/SpoofClientTests.cs)). A
-LoggedIn scenario's Given says `And the test account is logged in` (`Phone.BaconReader.LogInWithTheTestAccountAsync()`);
-a Startup one that logs in names "Spoof client".
+LoggedIn scenario's Given says `And the test account is logged in` before `And BaconReader is open`
+(`Reddit.TheTestAccountIsLoggedIn()`): the fake hands the app the test account's login at its start, so it opens logged
+in, as it is after logging in through those screens. A Startup one that logs in names "Spoof client".
 
 ## Isolation
 

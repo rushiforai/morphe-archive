@@ -1,0 +1,198 @@
+name: 🔢 App version or build not accepted
+description: Morphe Manager says your app version or build is not supported. Please read the explanation at the top of the form first.
+title: "version: "
+labels: ["app version"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please read this before you report. Most version problems come from the APK file, not from the patches.
+
+        **The version and the version code are different.** The version is a name, such as `26.20.0+rc3-2026.11.02`. The version code, which Morphe Manager shows as the build, is a number, such as `179366219`. Some apps publish several builds of one version, for phones, Android TV, Fire TV, and Fire tablets, and each build has its own version code. The patches accept only the versions and builds listed in [Supported apps](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/apps.md).
+
+        - **The version is not listed.** The patches do not support that version yet. Patch a listed version, or ask for the new one with the [New app or patch request](https://github.com/semicoloncolonel/mobile-morphe-patches/issues/new?template=3-new-app-or-patch.yml) form.
+        - **The version is listed, but the version code is different.** The file is a build for another device. Install the app from Google Play or [Aurora Store](https://auroraoss.com/), then patch it in Morphe Manager with "Use installed app".
+
+        The newest file on APKMirror is not always the right one, and download tools that pick the newest file can choose a build for another device. The [FAQ](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md#morphe-manager-says-my-version-or-build-is-not-supported) explains this in more detail.
+
+        If you checked both and Morphe Manager still does not accept a listed version and version code, please report it here. Before you submit, remove or cover any private information, such as your email address, account name, phone number, or location, in text and screenshots.
+  - type: checkboxes
+    id: before
+    attributes:
+      label: Before you submit
+      options:
+        - label: "I compared the version and the version code with [Supported apps](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/apps.md), and both are listed."
+          required: true
+        - label: "I installed the app from Google Play or Aurora Store and tried to patch it with \"Use installed app\", or I explain below why I could not."
+          required: true
+        - label: "I searched the [open and closed issues](https://github.com/semicoloncolonel/mobile-morphe-patches/issues?q=is%3Aissue) and did not find this problem."
+          required: true
+  - type: dropdown
+    id: app
+    attributes:
+      label: App
+      description: The app you patched.
+      options:
+        - "ABC News"
+        - "Amazon Shopping"
+        - "AMC+"
+        - "AP News"
+        - "Apple TV"
+        - "Apple TV (Android TV)"
+        - "Best Buy"
+        - "C-SPAN Now"
+        - "CBS News"
+        - "CNBC"
+        - "CNN"
+        - "Costco"
+        - "CVS"
+        - "DealSeek"
+        - "Disney+"
+        - "ESPN"
+        - "Fandango at Home"
+        - "FEMA"
+        - "Fox Local"
+        - "Fox News"
+        - "Fox One"
+        - "HBO Max"
+        - "Hulu"
+        - "JustWatch"
+        - "Kanopy"
+        - "MGM+"
+        - "Mint Mobile"
+        - "MLB"
+        - "Moviebase"
+        - "MS NOW"
+        - "My Verizon"
+        - "myAT&T"
+        - "MyTSA"
+        - "National Forests & Grasslands"
+        - "NBA"
+        - "NBC News"
+        - "NewsBreak"
+        - "NewsNation"
+        - "NewsNation (Android TV)"
+        - "NFL"
+        - "NPR"
+        - "NPS"
+        - "Paramount+"
+        - "PBS"
+        - "Peacock"
+        - "Plex"
+        - "Pluto TV"
+        - "Prime Video"
+        - "Recreation.gov"
+        - "Shudder"
+        - "SiriusXM"
+        - "Starz"
+        - "Substack"
+        - "Sundance Now"
+        - "T-Life"
+        - "T-Mobile Play"
+        - "Target"
+        - "The Daily Wire"
+        - "The Home Depot"
+        - "The New York Times"
+        - "The Wall Street Journal"
+        - "The Washington Post"
+        - "theScore"
+        - "Truth Social"
+        - "Tubi"
+        - "USA TODAY"
+        - "Visible"
+        - "Walgreens"
+        - "Walmart"
+        - "White House"
+        - "Xfinity"
+        - "Xumo Play"
+        - "YouTube TV"
+        - "Other (name it in the description)"
+    validations:
+      required: true
+  - type: input
+    id: app-version
+    attributes:
+      label: App version
+      description: The version you patched. In Morphe Manager it is shown when you select the APK.
+      placeholder: "17.3.0"
+    validations:
+      required: true
+  - type: input
+    id: version-code
+    attributes:
+      label: App version code
+      description: Some apps have phone and Android TV builds with the same version, and only the version code tells them apart. Morphe Manager shows it when you select the APK, and APKMirror shows it on the download page.
+      placeholder: "520000991"
+    validations:
+      required: true
+  - type: dropdown
+    id: build
+    attributes:
+      label: Phone or Android TV build
+      description: Which build of the app you patched.
+      options:
+        - Phone or tablet
+        - Android TV or Google TV
+        - Not sure
+    validations:
+      required: true
+  - type: dropdown
+    id: apk-source
+    attributes:
+      label: Where the APK came from
+      description: Most version and build problems come from the file. The [FAQ](https://github.com/semicoloncolonel/mobile-morphe-patches/blob/main/docs/faq.md) explains how to get the right one.
+      options:
+        - APKMirror
+        - APKPure
+        - Aurora Store
+        - Installed copy from the Play Store
+        - Morphe Manager's download link
+        - Other (name it in the description)
+    validations:
+      required: true
+  - type: input
+    id: patches-version
+    attributes:
+      label: Patches version
+      description: The version of these patches, shown under Sources in Morphe Manager.
+      placeholder: "1.0.19"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: The maker and model of the phone, tablet, or TV device.
+      placeholder: "Samsung Galaxy S25 Ultra, NVIDIA Shield TV Pro, Google TV Streamer"
+    validations:
+      required: true
+  - type: dropdown
+    id: android-version
+    attributes:
+      label: Android version
+      description: On a phone, see Settings > About phone. On a TV, see Settings > System > About.
+      options:
+        - "Android 17"
+        - "Android 16"
+        - "Android 15"
+        - "Android 14"
+        - "Android 13"
+        - "Android 12 or 12L"
+        - "Android 11"
+        - "Android 10"
+        - "Android 9 or older"
+        - "Not sure"
+    validations:
+      required: true
+  - type: textarea
+    id: manager-message
+    attributes:
+      label: Morphe Manager's message
+      description: Drag a screenshot of what Morphe Manager shows when you select the file here to attach it.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Anything else
+      description: For example, why you could not use the copy from Google Play or Aurora Store.

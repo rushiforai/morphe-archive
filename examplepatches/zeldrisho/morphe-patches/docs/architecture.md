@@ -4,8 +4,8 @@ Gradle builds a patch bundle (`.mpp`) that Morphe Desktop or Manager applies to 
 
 | Path | Purpose |
 | --- | --- |
-| `patches/src/main/kotlin/app/template/patches/` | Patch definitions, fingerprints and shared helpers, grouped by target app and concern. |
-| `patches/src/main/kotlin/app/template/patches/shared/Constants.kt` | Compatibility declarations and target versions. |
+| `patches/src/main/kotlin/app/zeldrisho/patches/` | Patch definitions, fingerprints and shared helpers, grouped by target app and concern. |
+| `patches/src/main/kotlin/app/zeldrisho/patches/shared/Constants.kt` | Compatibility declarations and target versions. |
 | `extensions/extension/src/main/java/` | Runtime code injected into patched apps. Keep app-specific classes separate. |
 | `extensions/extension/build.gradle.kts` | Extension artifact name; it must match patch `extendWith(...)` paths. |
 | `patches/src/main/kotlin/util/PatchListGenerator.kt` | Release patch-list generator. |

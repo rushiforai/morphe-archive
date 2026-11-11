@@ -120,7 +120,7 @@ class HomeTrendingPatchTest {
 
         val otherRegister = moduleBody(shouldExecuteRegister = 5).toMutableList()
         // 分岐が判定結果ではない register を見ている実装も対象外です。
-        otherRegister[2] = ImmutableInstruction21t(Opcode.IF_EQZ, 6, 4)
+        otherRegister[2] = ImmutableInstruction21t(Opcode.IF_EQZ, 6, 3)
         assertNull(homeTrendingModuleGateShape(otherRegister, hasTryBlocks = false))
     }
 
@@ -152,7 +152,7 @@ class HomeTrendingPatchTest {
     ): List<Instruction> = buildList {
         add(composerCall("A", listOf("I", "Z"), "Z"))
         add(ImmutableInstruction11x(Opcode.MOVE_RESULT, shouldExecuteRegister))
-        add(ImmutableInstruction21t(Opcode.IF_EQZ, shouldExecuteRegister, 4))
+        add(ImmutableInstruction21t(Opcode.IF_EQZ, shouldExecuteRegister, 3))
         add(ImmutableInstruction10x(Opcode.NOP))
         repeat(shouldExecuteCount - 1) { add(composerCall("A", listOf("I", "Z"), "Z")) }
         repeat(skipToGroupEndCount) { add(composerCall("l", emptyList(), "V")) }

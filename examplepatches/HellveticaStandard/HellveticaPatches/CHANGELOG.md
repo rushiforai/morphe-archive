@@ -1,3 +1,15 @@
+## [1.3.0](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.2.0...v1.3.0) (2026-11-10)
+
+### ✨ New Features
+
+* **sankaku:** add support for 4.29-rc103 ([96be701](https://github.com/HellveticaStandard/HellveticaPatches/commit/96be7011968c9a905210a0c59520eedca2bde163))
+
+## [1.3.0-dev.1](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.2.0...v1.3.0-dev.1) (2026-11-10)
+
+### ✨ New Features
+
+* **sankaku:** add support for 4.29-rc103 ([96be701](https://github.com/HellveticaStandard/HellveticaPatches/commit/96be7011968c9a905210a0c59520eedca2bde163))
+
 ## [1.2.0](https://github.com/HellveticaStandard/HellveticaPatches/compare/v1.1.4...v1.2.0) (2026-10-31)
 
 ### 🐛 Bug Fixes

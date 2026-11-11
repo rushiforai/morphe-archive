@@ -11,6 +11,11 @@
                            the sources means the APK was built from different sources -- the incident
                            this exists for: the `check-cast` fix was in the source while the .mpp had
                            been built with those files moved aside, so a green run shipped the crash.
+      1b. role match       With `-Roles <json>` (tools/dexaudit/roles/<version>.json): the injected-site
+                           set must equal the verified build's exactly -- same sites, same extension call
+                           at each. This is the version-bump check: a re-anchor whose fingerprint matched
+                           the wrong-shaped-but-wrong method keeps every other check green, and only this
+                           one notices the hook moved house. scripts/check-apk.ps1 supplies the file.
       2. reachability      For every app method we injected into: how many app methods call it, and
                            does its name appear in a native library? A hook nothing calls may control
                            nothing -- "Disable DRC audio" installed perfectly and nothing ever read its
@@ -41,6 +46,11 @@ param(
     [string] $Work = '',
     [switch] $SkipReach,
     [switch] $SkipXml,
+    # A tools/dexaudit/roles/<version>.json file: the injected-site set of the verified build
+    # for this app version. When given, the inventory above must match it exactly (same sites,
+    # same extension call at each site) -- the check that catches a re-anchor whose fingerprint
+    # matched the wrong-shaped-but-wrong method while every other check stayed green.
+    [string] $Roles = '',
     # Check that the cast lint itself still fires (on a fixture). Cheap, needs no APK, so CI runs it.
     [switch] $SelfTest
 )
@@ -385,6 +395,55 @@ if ($extMembers.Count -eq 0) {
 Info "injected into $($sites.Count) app method(s):"
 foreach ($site in @($sites.Keys)) {
     Write-Host ("        {0}  <-  {1}" -f $site, $sites[$site])
+}
+
+# 1b. Role expectations (see the -Roles param doc). Deliberately not gated by -SkipReach: it is
+#     the version-bump check, and the pipeline's fast half is exactly where it must run. The
+#     ad-slot accessors cannot appear here (their early return is an app-owned sget-object, no
+#     extension reference) -- they are pinned by exact-name fingerprint branches that fail
+#     loudly on a rename. The diagnostics build adds the innertube route-log site this
+#     default-options file does not carry; run without -Roles for those builds.
+if ($Roles) {
+    if (-not (Test-Path $Roles)) {
+        Fail "roles file not found: $Roles"
+    } else {
+        $expectedSites = @((Get-Content $Roles -Raw | ConvertFrom-Json).sites)
+        if ($expectedSites.Count -eq 0) {
+            Fail "roles file declares no sites: $Roles"
+        }
+        $expectedNames = @($expectedSites | ForEach-Object { $_.site })
+        $missingSites = @($expectedNames | Where-Object { -not $sites.Contains($_) })
+        $unexpectedSites = @($sites.Keys | Where-Object { $expectedNames -notcontains $_ })
+        $wrongCalls = @($expectedSites |
+            Where-Object { $sites.Contains($_.site) -and $sites[$_.site] -ne $_.call })
+        if ($missingSites.Count -gt 0) {
+            foreach ($site in $missingSites) {
+                $role = ($expectedSites | Where-Object { $_.site -eq $site }).role
+                Write-Line 'FAIL' "  role check: expected site absent -- $site ($role)"
+            }
+        }
+        if ($unexpectedSites.Count -gt 0) {
+            foreach ($site in $unexpectedSites) {
+                Write-Line 'FAIL' "  role check: unexpected injected site -- $site <- $($sites[$site])"
+            }
+        }
+        if ($wrongCalls.Count -gt 0) {
+            foreach ($entry in $wrongCalls) {
+                Write-Line 'FAIL' ("  role check: {0} now calls {1}; expected {2} ({3})" -f `
+                    $entry.site, $sites[$entry.site], $entry.call, $entry.role)
+            }
+        }
+        if ($missingSites.Count -gt 0 -or $unexpectedSites.Count -gt 0 -or $wrongCalls.Count -gt 0) {
+            # Parenthesise the whole string BEFORE -f: `-f` binds to the last string of a `+`
+            # chain only, which left this summary printing literal `{0} ({1} absent, ...)` while
+            # the per-site lines above carried the real information.
+            Fail (("role expectations mismatch against {0} ({1} absent, {2} unexpected, {3} changed) -- " +
+                "a hook landed somewhere the verified build did not; see docs/FINGERPRINTS.md") -f `
+                $Roles, $missingSites.Count, $unexpectedSites.Count, $wrongCalls.Count)
+        } else {
+            Pass "all $($expectedSites.Count) injection site(s) and calls match the role expectations ($Roles)"
+        }
+    }
 }
 
 # 2. Reachability of every hooked method: a hook whose target nothing calls may control nothing (the DRC

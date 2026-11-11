@@ -7,6 +7,7 @@ import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -145,6 +146,7 @@ val chatListHeaderButtonsPatch = bytecodePatch(
                 instructions = it.instructions.toList(),
                 buttonEnumType = buttonEnumType,
                 handlerAddresses = exceptionHandlerAddresses(it),
+                isListType = { type -> isListType(type) { name -> classDefByOrNull(name) } },
             )
         }
         if (injection == null) {
@@ -161,7 +163,7 @@ val chatListHeaderButtonsPatch = bytecodePatch(
         match.method.addInstructions(
             injection.index,
             """
-                invoke-static { v${injection.register} }, $CHAT_LIST_HEADER_HOOK
+                invoke-static/range { v${injection.register} .. v${injection.register} }, $CHAT_LIST_HEADER_HOOK
                 move-result-object v${injection.register}
             """.trimIndent(),
         )
@@ -213,6 +215,7 @@ internal fun chatListHeaderButtonsInjection(
     instructions: List<Instruction>,
     buttonEnumType: String,
     handlerAddresses: Set<Int>,
+    isListType: (String) -> Boolean,
 ): ChatListHeaderButtonsInjection? {
     val lastButtonIndex = instructions.indices.lastOrNull { index ->
         chatListHeaderButtonName(instructions[index], buttonEnumType) != null
@@ -223,6 +226,13 @@ internal fun chatListHeaderButtonsInjection(
         isChatListBuildCall(instructions[index]) &&
             instructions[index + 1].opcode == Opcode.MOVE_RESULT_OBJECT
     } ?: return null
+
+    // hook は確定後の一覧を List として受け取るため、確定処理の戻り型が List でなければ verifier に拒否されます。
+    val buildReturnType = ((instructions[buildIndex] as? ReferenceInstruction)?.reference as? MethodReference)
+        ?.returnType ?: return null
+    if (!isListType(buildReturnType)) {
+        return null
+    }
 
     val resultMove = instructions[buildIndex + 1] as? OneRegisterInstruction ?: return null
     if (resultMove.registerA !in 0..15) {
@@ -249,7 +259,31 @@ private fun chatListHeaderButtonName(instruction: Instruction, buttonEnumType: S
     }
 }
 
-/** 組み立て済みの一覧を確定させる `invoke-static`。引数は List 1 つで、返り値の型は問いません。 */
+/**
+ * [type] が `java.util.List` そのものか、その実装型かどうか。アプリ内の型は [classDefOf] で親と interface を
+ * たどり、アプリ外（JDK）の型は既知の List 実装だけを認めます。たどれない型は List と見なしません。
+ */
+internal fun isListType(type: String, classDefOf: (String) -> ClassDef?): Boolean {
+    val visited = mutableSetOf<String>()
+    fun walk(current: String): Boolean {
+        if (current == LIST || current in JDK_LIST_TYPES) return true
+        if (!visited.add(current)) return false
+        val classDef = classDefOf(current) ?: return false
+        return classDef.interfaces.any(::walk) || classDef.superclass?.let(::walk) == true
+    }
+    return walk(type)
+}
+
+private val JDK_LIST_TYPES = setOf(
+    "Ljava/util/AbstractList;",
+    "Ljava/util/AbstractSequentialList;",
+    "Ljava/util/ArrayList;",
+    "Ljava/util/LinkedList;",
+    "Ljava/util/Vector;",
+    "Ljava/util/concurrent/CopyOnWriteArrayList;",
+)
+
+/** 組み立て済みの一覧を確定させる `invoke-static`。引数は List 1 つ。戻り型は [isListType] で別に確かめます。 */
 private fun isChatListBuildCall(instruction: Instruction): Boolean {
     if (instruction.opcode != Opcode.INVOKE_STATIC) {
         return false

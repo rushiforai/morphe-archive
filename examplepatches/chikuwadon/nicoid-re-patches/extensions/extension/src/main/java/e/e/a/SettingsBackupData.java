@@ -2,6 +2,19 @@ package e.e.a;
 import java.io.*;import java.util.*;import org.json.*;
 final class SettingsBackupData {
  static final Map<String,String> TYPES=new HashMap<>();static final Map<String,Set<String>> VALUES=new HashMap<>();
+ // Register direct-SharedPreferences custom dialog settings in the portable
+ // typed format even when the corresponding preference is not in the screen.
+ // The shipped SettingsBackupData.smali receives the same keys via overlay.
+ static {
+  TYPES.put("nicoid_single_tap_control_region","string");
+  TYPES.put("nicoid_single_tap_region_open_only","boolean");
+  TYPES.put("nicoid_ambient_enabled","boolean");
+  for(int mode=0;mode<3;mode++)TYPES.put("nicoid_ambient_mode_"+mode,"boolean");
+  TYPES.put("nicoid_ambient_sides","int");
+  for(String name:new String[]{"intensity","spread","softness","brightness","contrast",
+                                "saturation","vibrance","response","rate","resolution"})
+   TYPES.put("nicoid_ambient_"+name,"int");
+ }
  static boolean portable(String k){return k!=null&&!k.matches("(?i).*(cookie|session|password|token|auth).*|cache_tree.*|cache_dir|nologin|user_id|login_.*|save_.*|labs_.*|nicoid_patch_version|nicoid_share_debug");}
  static JSONObject encode(Map<String,?> all)throws Exception{JSONObject entries=new JSONObject();for(String k:new TreeSet<>(all.keySet())){if(!portable(k)||!TYPES.containsKey(k))continue;Object v=all.get(k);String type=v instanceof Boolean?"boolean":v instanceof Integer?"int":v instanceof Long?"long":v instanceof Float?"float":v instanceof Set?"set":"string";Object value=v instanceof Set?new JSONArray(new TreeSet<>((Set<String>)v)):v;entries.put(k,new JSONObject().put("type",type).put("value",value));}return new JSONObject().put("format","nicoid-re-settings").put("version",1).put("settings",entries);}
  static long integer(Object value)throws IOException{if(!(value instanceof Number))throw new IOException("Invalid numeric setting");try{return new java.math.BigDecimal(value.toString()).longValueExact();}catch(ArithmeticException|NumberFormatException e){throw new IOException("Invalid integral setting",e);}}

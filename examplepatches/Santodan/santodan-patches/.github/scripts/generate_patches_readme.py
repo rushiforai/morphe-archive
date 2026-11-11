@@ -81,6 +81,8 @@ def patches_table(patches):
     for p in sorted(patches, key=lambda x: x["name"]):
         a = anchor(p["name"])
         documentation = {
+            "Fylo - Enable Pro": "docs/Fylo26.md",
+            "Fylo - Enable Pro (Experimental, any version)": "docs/Fylo26.md",
             "Pillo - Hybrid Lock-Screen Notifications": "docs/Pillo627.md",
             "Pillo - Import weight history from JSON": "docs/PilloWeightImport.md",
             "Pillo - Local backup and restore": "docs/PilloLocalBackup.md",

@@ -49,6 +49,7 @@ public sealed class ScenarioListingTests
                 "mp4": "Account/opens-the-front-page-phone.mp4",
                 "startupSeconds": 2.3,
                 "passed": true,
+                "marks": [],
                 "selected": "fixtures",
                 "fixtures": [
                   "Fixtures/front.json"
@@ -66,6 +67,7 @@ public sealed class ScenarioListingTests
                 "mp4": "Comments/ShowTables/shows-phone.mp4",
                 "startupSeconds": null,
                 "passed": false,
+                "marks": [],
                 "selected": "changed"
               }
             ]

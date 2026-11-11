@@ -4,7 +4,7 @@ The reviewed app contract lives in
 [`contracts/nuvio/native.properties`](../contracts/nuvio/native.properties).
 It supplies the package/version, original APK/hash, native class names, shared
 field/method names, composed DEX references and exact body fingerprints.
-There is one active contract, currently beta.13. This does not add historical
+There is one active contract, currently official 1.1.0. This does not add historical
 version adapters or automatically enable unverified app versions.
 
 ## What is generated
@@ -84,7 +84,7 @@ After confirming the new manifest/package/version and reviewing candidate DEX:
 5. Test native playback, remote focus, settings/profile persistence and launcher
    publication on the device. Host and DEX verification cannot establish device UI behavior.
 
-`verifyNuvioLatest` currently selects the dedicated beta.13 fixtures. When replacing the
+`verifyNuvioLatest` currently selects the dedicated 1.1.0 fixtures. When replacing the
 reviewed target, point it to that target's fixtures; preserve historical fixtures
 without extending them. Run Gradle invocations sequentially to avoid competing
 resource builds on Windows. Do not manually bump the patch-bundle release version.

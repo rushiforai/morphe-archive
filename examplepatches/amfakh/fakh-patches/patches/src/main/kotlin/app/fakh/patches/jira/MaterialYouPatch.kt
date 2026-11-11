@@ -175,6 +175,14 @@ val materialYouPatch = bytecodePatch(
     extendWith("extensions/extension.mpe")
 
     execute {
+        // The extension's accent follows the wallpaper only where this patch is in.
+        mutableClassDefBy(EXTENSION).methods.first { it.name == "isMaterialYouIncluded" }.addInstructions(
+            0,
+            """
+                const/4 v0, 0x1
+                return v0
+            """,
+        )
         // Compose palettes: their blues become the accent and their neutral backgrounds surface roles, before the
         // tokens and components copy them.
         PALETTES.forEach { type ->

@@ -68,6 +68,25 @@ object Constants {
         targets = listOf(AppTarget(version = ZABKA_4_50_0, versionCode = 60310)),
     )
 
+    const val LIDL_PLUS_17_13_6 = "17.13.6"
+
+    /**
+     * Lidl Plus is a single APK from APKMirror (arm64-v8a, nodpi). The patches pin obfuscated names
+     * of the coupon list screen, so only this exact build is listed.
+     */
+    val COMPATIBILITY_LIDL_PLUS = Compatibility(
+        name = "Lidl Plus",
+        packageName = "com.lidl.eci.lidlplus",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x0050AA,
+        targets = listOf(
+            AppTarget(
+                version = LIDL_PLUS_17_13_6,
+                versionCodes = mapOf(SupportedAbi.ARM64_V8A to 1470410212),
+            ),
+        ),
+    )
+
     const val VULCAN_26_08_00 = "26.08.00 (G)"
 
     val COMPATIBILITY_VULCAN = Compatibility(

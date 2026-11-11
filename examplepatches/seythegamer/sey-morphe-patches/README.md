@@ -24,8 +24,10 @@ for the feature patches of both apps.
 | **SEYTTINGS** | base | Turns the licensing row in the KICK settings screen into a red **SEYTTINGS** row that opens a native patched-tweaks dialog. Required by every KICK feature. |
 | **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the KICK chat. One shared toggle in SEYTTINGS enables all providers. |
 | **CHAT SIZE** | feature | Resizes the chat in the VIDEO/CHAT view: default (100%), 125%, 90%, 85% and 80%. The video and chat panel always meet at the same edge. |
-| **CHAT TEXT SIZE** | feature | Renders chat text larger, Twitch-style: 16 sp (default), 15 sp, 13 sp or stock 11 sp. Choose the size in SEYTTINGS. |
+| **CHAT TEXT SIZE** | feature | Renders chat text larger, Twitch-style: 16 sp (default), 15 sp, 13 sp or stock 11 sp, and widens the gap between messages (10 dp) whenever the tweak is active. Choose the size in SEYTTINGS. |
 | **EXPAND CHAT** | feature | Hides the **Join the Chat** footer in the VIDEO/CHAT view and lets the chat fill the freed space. Toggle in SEYTTINGS. |
+| **HIDE PINNED** | feature | Removes the pinned message card (and the ad banner attached to it) from the top of the chat. Toggle in SEYTTINGS. |
+| **SKIP 18+ WARNING** | feature | Auto-accepts the 18+ mature content warning, so a mature stream starts without the extra click. Toggle in SEYTTINGS. |
 
 ### Twitch (Android TV)
 
@@ -39,6 +41,8 @@ instead of replacing native Compose screens.
 | **AD BLOCK** | feature | Skips Twitch ads on live streams. During a break it switches to the same broadcast from an ad-free player type, so the stream keeps playing. One toggle in SEYTTINGS. |
 | **EMOTES** | feature | Shows 7TV, BTTV and FFZ emotes in the Twitch TV chat. One shared toggle in SEYTTINGS enables all providers. |
 | **EXPAND CHAT** | feature | Hides the **Join the conversation** footer button and lets the chat fill the full panel height. One toggle in SEYTTINGS. |
+| **HIDE PINNED** | feature | Hides the pinned message card above the chat, its **Pinned by** label, the pin badge and any pinned highlight in the message list. One toggle in SEYTTINGS, off by default. |
+| **SKIP 18+ WARNING** | feature | Auto-accepts the 18+ mature content warning, so a mature stream starts without the extra click. One toggle in SEYTTINGS, on by default. |
 
 ### AMOLED theme on Twitch TV
 
@@ -95,7 +99,7 @@ A Morphe bundle can carry patches for several packages. This repository keeps:
 - one `patches-list.json` with a `compatiblePackages` entry per app.
 
 Morphe Manager groups the entries by package, so after selecting a KICK APK you
-see the five KICK patches, and after selecting a Twitch APK you see the five
+see the seven KICK patches, and after selecting a Twitch APK you see the seven
 Twitch patches. Dependency resolution keeps **SEYTTINGS** selected whenever a
 feature patch needs it.
 
@@ -136,7 +140,7 @@ fetches `CHANGELOG.md` from the repository root. The raw
 `patches-bundle.json` URL works for patching and updates, but it does not carry
 release notes.
 
-You can also import `SeyMorphe-1.2.2.mpp` manually as a local source.
+You can also import `SeyMorphe-1.2.4.mpp` manually as a local source.
 
 ## How to use
 
@@ -160,7 +164,7 @@ newest version in the file and shows every entry in between.
 
 Morphe parses the file with these rules, so keep the format:
 
-- one version heading per release, newest first: `## 1.2.2 (2026-11-09)` (the
+- one version heading per release, newest first: `## 1.2.4 (2026-11-11)` (the
   date is required),
 - section headings such as `### ✨ New Features`, `### 🐛 Bug Fixes`,
   `### ⚡ Performance` or `### 📝 Other`,
@@ -176,7 +180,7 @@ the feature, as in the examples.
 Add a new section at the top before publishing a version:
 
 ```markdown
-## 1.2.3 (2026-11-20)
+## 1.2.5 (2026-11-20)
 
 ### ✨ New Features
 
@@ -203,7 +207,7 @@ Build the extension DEX files and the combined bundle:
 powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1
 ```
 
-Output: `dist\SeyMorphe-1.2.2.mpp`.
+Output: `dist\SeyMorphe-1.2.4.mpp`.
 
 Optional APK builders use the same bundle and apply the patches to an original
 APKM:
@@ -230,9 +234,9 @@ token is read from `git credential fill` and is never printed.
 2. Build the bundle and pass the same version everywhere:
 
    ```powershell
-   powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.3
+   powershell -ExecutionPolicy Bypass -File scripts\build-patch.ps1 -Version 1.2.4
    powershell -ExecutionPolicy Bypass -File scripts\prepare-remote.ps1 `
-       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.3
+       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.4
    ```
 
 3. Commit and push `CHANGELOG.md` together with `patches-bundle.json`,
@@ -242,7 +246,7 @@ token is read from `git credential fill` and is never printed.
 
    ```powershell
    powershell -ExecutionPolicy Bypass -File scripts\publish-release.ps1 `
-       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.3
+       -Owner seythegamer -Repo sey-morphe-patches -Version 1.2.4
    ```
 
    The script reads the `## <version> (YYYY-MM-DD)` section from `CHANGELOG.md`
@@ -274,32 +278,42 @@ patches/src/main/kotlin/app/morphe/patches/
   kicktv/chatsize/                  KICK CHAT SIZE patch
   kicktv/chattext/                  KICK CHAT TEXT SIZE patch
   kicktv/chatexpand/                KICK EXPAND CHAT patch
+  kicktv/hidepinned/                KICK HIDE PINNED patch
+  kicktv/maturewarning/             KICK SKIP 18+ WARNING patch
   twitch/Target.kt                  Twitch compatibility (package, version, purple tile)
   twitch/settings/                  Twitch SEYTTINGS base patch
   twitch/amoled/                    Twitch AMOLED patch
   twitch/adblock/                   Twitch AD BLOCK patch
   twitch/emotes/                    Twitch EMOTES patch
   twitch/expandchat/                Twitch EXPAND CHAT patch
+  twitch/maturewarning/             Twitch SKIP 18+ WARNING patch
+  twitch/hidepinned/                Twitch HIDE PINNED patch
 extension/js/
   twitch-adblock.js                 readable source of the injected HLS ad filter
   twitch-amoled.js                  readable source of the injected black theme
+  twitch-maturewarning.js           readable source of the mature warning auto-accept
+  twitch-hidepinned.js              readable source of the pinned message hider
 extension/src/app/morphe/extension/
   kicktv/base/                      KICK red themed dialog, bridge and injector
   kicktv/emotes/                    KICK emote renderer and provider store
   kicktv/chat/                      KICK chat size helpers
   kicktv/chattext/                  KICK chat text size helpers
   kicktv/chatexpand/                KICK footer helper
+  kicktv/hidepinned/                KICK pinned card helper
+  kicktv/maturewarning/             KICK mature warning helper
   twitch/base/                      Twitch red themed dialog, bridge and injector
   twitch/amoled/                    Twitch AMOLED injector, preference and section
   twitch/adblock/                   Twitch AD BLOCK injector, preference and section
   twitch/emotes/                    Twitch emote renderer and provider store
   twitch/expandchat/                Twitch footer helper
+  twitch/maturewarning/             Twitch mature warning injector, preference and section
+  twitch/hidepinned/                Twitch pinned message hider, preference and section
 scripts/                            build and release scripts
 patches-list.json                   remote patch metadata (repository root)
 patches-bundle.json                 remote bundle manifest (repository root)
 patches-bundle.png                  source icon shown by Morphe Manager
 CHANGELOG.md                        release notes read by Morphe Manager
-SeyMorphe-1.2.2.mpp                 published bundle (repository root)
+SeyMorphe-1.2.4.mpp                 published bundle (repository root)
 assets/                             README illustrations
 LICENSE                            GNU General Public License v3.0
 README.md                          this documentation

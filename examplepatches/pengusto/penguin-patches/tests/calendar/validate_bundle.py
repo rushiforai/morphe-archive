@@ -2,7 +2,7 @@
 """Validate Calendar patch application in the actual release bundle.
 
 This is a release gate, not a replacement for installed-APK/Manager tests.
-It requires the two exact official APKs and Morphe Desktop 1.19.1.
+It requires the three exact official APKs and Morphe Desktop 1.19.1.
 """
 import argparse
 import hashlib
@@ -15,6 +15,7 @@ import tempfile
 ORIGINALS = {
     '1.12.0': 'd43b2df05d5702bea760a7ab03402977ba72e446e5932038efbdab248a5de987',
     '1.12.1': 'dae815ce83285facf9fd8648b8c4f039700d95126325db124521eba479b270ba',
+    '1.12.2': '2825816d0a972bd85eb289e556221293fadecfd3179a4a2531bde6f89c6f0238',
 }
 DESKTOP_SHA = 'a51472252cd63b2eac635dbb5a154ff918bfc15268da89679feb3d760230c573'
 HTML = 'Readable Calendar descriptions'
@@ -31,11 +32,12 @@ def sha(path):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ('bundle', 'original-120', 'original-121', 'desktop', 'report'):
+    for name in ('bundle', 'original-120', 'original-121', 'original-122', 'desktop', 'report'):
         parser.add_argument('--' + name, type=Path, required=True)
     a = parser.parse_args()
     assert sha(a.original_120) == ORIGINALS['1.12.0'], 'Unexpected 1.12.0 input'
     assert sha(a.original_121) == ORIGINALS['1.12.1'], 'Unexpected 1.12.1 input'
+    assert sha(a.original_122) == ORIGINALS['1.12.2'], 'Unexpected 1.12.2 input'
     assert sha(a.desktop) == DESKTOP_SHA, 'Unexpected Morphe Desktop input'
     java = Path(os.environ.get('JAVA_HOME', '')) / 'bin' / 'java' if os.environ.get('JAVA_HOME') else 'java'
     with tempfile.TemporaryDirectory(prefix='penguin-calendar-release-') as temporary:
@@ -44,6 +46,7 @@ def main():
         for version, original, selected in [
             ('1.12.0', a.original_120, [HTML, REMINDERS]),
             ('1.12.1', a.original_121, [HTML]),
+            ('1.12.2', a.original_122, [HTML]),
         ]:
             apk, report, scratch = root / (version + '.apk'), root / (version + '.json'), root / (version + '-work')
             command = [str(java), '-jar', str(a.desktop), 'patch', str(original), '-p', str(a.bundle), '--exclusive']

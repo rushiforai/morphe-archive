@@ -30,14 +30,14 @@ public sealed class FixImgurApiTests : BaseE2E
           And Reddit has a post "Imgur thread" in r/e2e
           And the post "Imgur thread" has a comment "Reply here"
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I tap the post "Trip album"
           And I tap "imgur.com" in the post's header
           Then the album shows its image 1 of 3
           # Imgur sends a still image with an empty "mp4", which BaconReader alone takes for a video it can't play.
           And no thumbnail of the album is marked as a video
-          # Not on the screen: the fake Imgur records what BaconReader asked for.
+          # On the setup page: the fake Imgur records what BaconReader asked for.
           And Imgur served the images of the album "Trip"
           When I tap the album's next arrow
           Then the album shows its image 2 of 3
@@ -46,7 +46,7 @@ public sealed class FixImgurApiTests : BaseE2E
           And I tap the post "Cats gallery"
           And I tap "imgur.com" in the post's header
           Then the album shows its image 1 of 2
-          # Not on the screen: Imgur answers a gallery post at another address than an album.
+          # On the setup page: Imgur answers a gallery post at another address than an album.
           And Imgur served the gallery post "Cats"
           When I go back
           And I go back to the posts
@@ -70,7 +70,7 @@ public sealed class FixImgurApiTests : BaseE2E
           When I tap the send button
           # "Embed comment images" shows the uploaded image in place of Imgur's link.
           Then the comment "My drawing" shows 1 image
-          # Not on the screen: the fake Imgur records what BaconReader sent. Imgur refuses an upload without a content type.
+          # On the setup page: the fake Imgur records what BaconReader sent. Imgur refuses an upload without a content type.
           And Imgur got the upload with the content type "application/octet-stream"
         """)]
     public async Task FixImgurApiOpensImgurAlbumsGalleriesAndVideosAndUploadsAnImageImgurTakes(Screen screen)
@@ -84,8 +84,8 @@ public sealed class FixImgurApiTests : BaseE2E
         Reddit.HasALinkPostLinkingToTheImgurAlbum("Clips album", "e2e", "Clips");
         Reddit.HasAPost("Imgur thread", "e2e");
         Reddit.ThePost("Imgur thread").HasAComment("Reply here");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Posts.ClickPostAsync("Trip album");
@@ -95,7 +95,7 @@ public sealed class FixImgurApiTests : BaseE2E
 
         // Then
         var trip = await Phone.BaconReader.ImgurGalleryViewer.ReadAsync();
-        // Not on the screen: the fake Imgur records what BaconReader asked for.
+        // On the setup page: the fake Imgur records what BaconReader asked for.
         var tripRequests = Reddit.ReadRequestsForTheImgurAlbum("Trip");
         Asserting.That(trip).ShowsItsImage(1, 3)
             // Imgur sends a still image with an empty "mp4", which BaconReader alone takes for a video it can't play.
@@ -121,7 +121,7 @@ public sealed class FixImgurApiTests : BaseE2E
 
         // Then
         var cats = await Phone.BaconReader.ImgurGalleryViewer.ReadAsync();
-        // Not on the screen: Imgur answers a gallery post at another address than an album.
+        // On the setup page: Imgur answers a gallery post at another address than an album.
         var catsRequests = Reddit.ReadRequestsForTheImgurGalleryPost("Cats");
         Asserting.That(cats).ShowsItsImage(1, 2);
         Asserting.That(catsRequests).Served();
@@ -137,7 +137,9 @@ public sealed class FixImgurApiTests : BaseE2E
 
         // Then
         var clips = await Phone.BaconReader.ImgurGalleryViewer.ReadAsync();
-        Asserting.That(clips).PlaysItsVideo().MarksItsThumbnailAsAVideo();
+        Asserting.That(clips)
+            .PlaysItsVideo()
+            .MarksItsThumbnailAsAVideo();
 
         // When
         await Phone.BaconReader.ImgurGalleryViewer.ClickBackAsync();
@@ -173,7 +175,7 @@ public sealed class FixImgurApiTests : BaseE2E
         // Then
         // "Embed comment images" shows the uploaded image in place of Imgur's link.
         var drawing = await Phone.BaconReader.Detail.Comments.ReadAsync("My drawing");
-        // Not on the screen: the fake Imgur records what BaconReader sent. Imgur refuses an upload without a content type.
+        // On the setup page: the fake Imgur records what BaconReader sent. Imgur refuses an upload without a content type.
         var uploads = Reddit.ReadImgurUploads();
         Asserting.That(drawing).ShowsImages(1);
         Asserting.That(uploads).GotTheUploadWithTheContentType("application/octet-stream");

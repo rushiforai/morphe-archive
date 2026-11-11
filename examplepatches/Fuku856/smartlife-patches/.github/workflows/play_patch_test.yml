@@ -1,0 +1,243 @@
+name: Play patch test
+
+# Google Play に新しいバージョンが公開されたら、最新のパッチが当たるかを自動でテストする。
+# パッチ済み APK は作るだけで公開しない (Release / artifact にも APK は載せない)。
+#
+# 流れ (アプリごとに matrix で並列実行):
+#   1. apkeep で base APK だけを取得し、versionName / versionCode を aapt2 で読む (軽い版チェック)
+#   2. 「パッケージ + versionCode + パッチのリリースタグ」が未テストなら次へ。テスト済みならスキップ
+#      (テスト済みの印は Actions のキャッシュに置く。パッチの新リリースが出たときも再テストされる)
+#   3. 全スプリットを locale=ja_JP で取得して .apks にまとめ、Morphe CLI でパッチを当てる
+#   4. 失敗したパッチがあればジョブを失敗させ、パッチ名とエラーをジョブサマリーに出す
+#
+# 必要な GitHub Secrets (Fuku856/domico-patch と同じ名前):
+#   GOOGLE_EMAIL     : Google アカウントのメール (Play 取得用)
+#   GOOGLE_AAS_TOKEN : 上記アカウントの AAS トークン
+#     作り方: https://accounts.google.com/EmbeddedSetup でログインし、Cookie の oauth_token を取り出して
+#       apkeep --accept-tos -e <メール> --oauth-token <oauth_token> -d google-play
+#     を実行すると AAS トークンが表示される。
+#   ※ Play の非公式プロトコル利用はアカウント凍結リスクがあるため、
+#     メインではなく専用/サブの Google アカウント使用を推奨。
+#   Secrets が未設定のときは何もせず終了する。
+# 任意の Variables:
+#   APKEEP_LOCALE : 取得時のロケール (既定 ja_JP)
+#   APKEEP_DEVICE : apkeep のデバイスプロファイル (省略時は apkeep の既定)
+#
+# スケジュール実行はデフォルトブランチ (main) にあるこのファイルで動く。
+
+on:
+  schedule:
+    - cron: "30 */6 * * *" # 6 時間ごと
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: "テストするパッケージ (カンマ区切り。空なら patches-list.json の全アプリ)"
+        type: string
+        default: ""
+      patches_tag:
+        description: "パッチのリリースタグ (空ならプレリリースを含む最新リリース)"
+        type: string
+        default: ""
+      force:
+        description: "テスト済みのバージョンでも再テストする"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: play-patch-test
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+      packages: ${{ steps.resolve.outputs.packages }}
+      patches_tag: ${{ steps.resolve.outputs.patches_tag }}
+      desktop_tag: ${{ steps.resolve.outputs.desktop_tag }}
+    steps:
+      - name: Check secrets
+        id: check
+        env:
+          GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
+          GOOGLE_AAS_TOKEN: ${{ secrets.GOOGLE_AAS_TOKEN }}
+        run: |
+          if [ -z "$GOOGLE_EMAIL" ] || [ -z "$GOOGLE_AAS_TOKEN" ]; then
+            echo "::warning::GOOGLE_EMAIL / GOOGLE_AAS_TOKEN が未設定のためスキップします"
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve patches and packages
+        id: resolve
+        if: steps.check.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_PACKAGES: ${{ inputs.packages }}
+          INPUT_PATCHES_TAG: ${{ inputs.patches_tag }}
+        run: |
+          set -euo pipefail
+
+          # 作成日時が最新のリリース (dev のプレリリースを含む)
+          tag="$INPUT_PATCHES_TAG"
+          if [ -z "$tag" ]; then
+            tag=$(gh api "repos/$GITHUB_REPOSITORY/releases?per_page=1" --jq '.[0].tag_name')
+          fi
+          desktop=$(gh api repos/MorpheApp/morphe-desktop/releases/latest --jq '.tag_name')
+
+          if [ -n "$INPUT_PACKAGES" ]; then
+            packages=$(jq -cn --arg s "$INPUT_PACKAGES" '$s | split(",") | map(gsub("^\\s+|\\s+$"; "")) | map(select(length > 0))')
+          else
+            # テスト対象のリリース時点の patches-list.json から、対応アプリの一覧を作る
+            gh api "repos/$GITHUB_REPOSITORY/contents/patches-list.json?ref=$tag" \
+              -H 'Accept: application/vnd.github.raw' > patches-list.json
+            packages=$(jq -c '[.patches[].compatiblePackages // [] | .[].packageName] | unique' patches-list.json)
+          fi
+
+          echo "patches: $tag / morphe-desktop: $desktop / packages: $packages"
+          {
+            echo "patches_tag=$tag"
+            echo "desktop_tag=$desktop"
+            echo "packages=$packages"
+          } >> "$GITHUB_OUTPUT"
+
+  test:
+    name: Test ${{ matrix.package }}
+    needs: prepare
+    if: needs.prepare.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.prepare.outputs.packages) }}
+    env:
+      PACKAGE: ${{ matrix.package }}
+      PATCHES_TAG: ${{ needs.prepare.outputs.patches_tag }}
+      DESKTOP_TAG: ${{ needs.prepare.outputs.desktop_tag }}
+      APKEEP_LOCALE: ${{ vars.APKEEP_LOCALE }}
+      APKEEP_DEVICE: ${{ vars.APKEEP_DEVICE }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/scripts
+
+      - name: Install apkeep (APK downloader)
+        run: |
+          set -euo pipefail
+          WORKDIR="$RUNNER_TEMP/play-test"
+          echo "WORKDIR=$WORKDIR" >> "$GITHUB_ENV"
+          mkdir -p "$WORKDIR/bin"
+          # -f が無いと GitHub の 504 等のエラーページ (HTML) を apkeep として保存してしまうので、
+          # 失敗は検出して再試行し、取得物が実行ファイル (ELF) かも確かめる。
+          curl -fsSL --retry 5 --retry-delay 5 --retry-all-errors -o "$WORKDIR/bin/apkeep" \
+            "https://github.com/EFForg/apkeep/releases/latest/download/apkeep-x86_64-unknown-linux-gnu"
+          if ! file "$WORKDIR/bin/apkeep" | grep -q ELF; then
+            echo "::error::apkeep のダウンロード結果が実行ファイルではありません: $(file -b "$WORKDIR/bin/apkeep")"
+            head -c 300 "$WORKDIR/bin/apkeep"; exit 1
+          fi
+          chmod +x "$WORKDIR/bin/apkeep"
+          echo "APKEEP=$WORKDIR/bin/apkeep" >> "$GITHUB_ENV"
+
+      - name: Probe latest version (Play, base APK のみ取得)
+        id: probe
+        env:
+          GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
+          GOOGLE_AAS_TOKEN: ${{ secrets.GOOGLE_AAS_TOKEN }}
+        run: bash .github/scripts/play_patch_test.sh probe "$PACKAGE" "$WORKDIR"
+
+      # キャッシュはテスト済みの印としてだけ使う (中身は空ファイル)
+      - name: Check if already tested
+        id: tested
+        uses: actions/cache/restore@v6
+        with:
+          path: ${{ env.WORKDIR }}/tested
+          key: play-patch-test-v1-${{ matrix.package }}-${{ steps.probe.outputs.version_code }}-${{ env.PATCHES_TAG }}
+          lookup-only: true
+
+      - name: Decide
+        id: decide
+        env:
+          CACHE_HIT: ${{ steps.tested.outputs.cache-hit }}
+          FORCE: ${{ inputs.force }}
+          VN: ${{ steps.probe.outputs.version_name }}
+        run: |
+          if [ "$CACHE_HIT" = "true" ] && [ "$FORCE" != "true" ]; then
+            echo "$PACKAGE $VN は $PATCHES_TAG でテスト済み → スキップ"
+            echo "\`$PACKAGE\` \`$VN\` は \`$PATCHES_TAG\` でテスト済み (スキップ)" >> "$GITHUB_STEP_SUMMARY"
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$PACKAGE $VN × $PATCHES_TAG は未テスト → パッチテストへ"
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download splits (Google Play, 日本語含む)
+        id: download
+        if: steps.decide.outputs.run == 'true'
+        env:
+          GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
+          GOOGLE_AAS_TOKEN: ${{ secrets.GOOGLE_AAS_TOKEN }}
+          VERSION_NAME: ${{ steps.probe.outputs.version_name }}
+        run: bash .github/scripts/play_patch_test.sh download "$PACKAGE" "$WORKDIR" "$VERSION_NAME"
+
+      - name: Set up JDK 21
+        if: steps.decide.outputs.run == 'true'
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Download patches and Morphe Desktop
+        if: steps.decide.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$WORKDIR/patches" "$WORKDIR/desktop"
+          gh release download "$PATCHES_TAG" -R "$GITHUB_REPOSITORY" -p 'patches-*.mpp' -D "$WORKDIR/patches"
+          gh api "repos/$GITHUB_REPOSITORY/contents/patches-list.json?ref=$PATCHES_TAG" \
+            -H 'Accept: application/vnd.github.raw' > "$WORKDIR/patches-list.json"
+          gh release download "$DESKTOP_TAG" -R MorpheApp/morphe-desktop -p 'morphe-desktop-*-all.jar' -D "$WORKDIR/desktop"
+          mpp=("$WORKDIR"/patches/patches-*.mpp)
+          jar=("$WORKDIR"/desktop/morphe-desktop-*-all.jar)
+          echo "MPP=${mpp[0]}" >> "$GITHUB_ENV"
+          echo "JAR=${jar[0]}" >> "$GITHUB_ENV"
+
+      - name: Patch (Morphe CLI)
+        id: patch
+        if: steps.decide.outputs.run == 'true'
+        env:
+          INPUT_APK: ${{ steps.download.outputs.input }}
+          VERSION_NAME: ${{ steps.probe.outputs.version_name }}
+          VERSION_CODE: ${{ steps.probe.outputs.version_code }}
+        run: bash .github/scripts/play_patch_test.sh patch "$PACKAGE" "$WORKDIR" "$MPP" "$JAR" "$WORKDIR/patches-list.json"
+
+      # 成功・失敗どちらでも、パッチ処理が最後まで動いたら記録する (同じ失敗を繰り返し通知しない)。
+      # apkeep の取得失敗など途中で落ちた場合は記録しないので、次回のスケジュールで再試行される。
+      - name: Mark as tested
+        if: always() && steps.patch.outputs.completed == 'true' && steps.tested.outputs.cache-hit != 'true'
+        run: mkdir -p "$WORKDIR/tested" && touch "$WORKDIR/tested/marker"
+
+      - name: Save tested marker
+        if: always() && steps.patch.outputs.completed == 'true' && steps.tested.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ${{ env.WORKDIR }}/tested
+          key: play-patch-test-v1-${{ matrix.package }}-${{ steps.probe.outputs.version_code }}-${{ env.PATCHES_TAG }}
+
+      # APK 本体はアップロードしない (ログと結果 JSON のみ)
+      - name: Upload log
+        if: always() && (steps.patch.outcome == 'success' || steps.patch.outcome == 'failure')
+        uses: actions/upload-artifact@v7
+        with:
+          name: play-patch-test-${{ matrix.package }}-${{ steps.probe.outputs.version_code }}
+          path: |
+            ${{ env.WORKDIR }}/patch.log
+            ${{ env.WORKDIR }}/result.json
+          if-no-files-found: ignore
+          retention-days: 30

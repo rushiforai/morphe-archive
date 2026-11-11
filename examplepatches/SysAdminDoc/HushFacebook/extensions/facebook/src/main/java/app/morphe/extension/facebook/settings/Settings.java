@@ -90,8 +90,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_people_you_may_know", TRUE);
 
     /**
-     * The row of groups to join that Facebook puts between posts, found by its GraphQL type name.
-     * Posts from groups you're in are stories of their own and stay.
+     * The row of groups to join that Facebook puts between posts, found by its GraphQL type name,
+     * and, when Clean up Reels or Hide reel interest prompts is in too, the "Suggested for you"
+     * groups card between reels, found by its mid-card type (GYSJ_MIDCARD, #441). Posts from groups
+     * you're in are stories of their own and stay.
      */
     public static final BooleanSetting HIDE_SUGGESTED_GROUPS =
             new BooleanSetting("hushfacebook_hide_suggested_groups", TRUE);
@@ -506,6 +508,15 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_STORY_SUBSCRIBE =
             new BooleanSetting("hushfacebook_hide_story_subscribe", FALSE);
+
+    /**
+     * The "Add to story" card Facebook puts between other people's stories, the plain one and the
+     * ones built from photos in the phone's gallery, stays out of the viewer ({@link
+     * app.morphe.extension.facebook.stories.StoryViewerCleanup}, #439). Starts off. Read as the
+     * viewer lays out its stories.
+     */
+    public static final BooleanSetting HIDE_STORY_CREATE_CARDS =
+            new BooleanSetting("hushfacebook_hide_story_create_cards", FALSE);
 
     /**
      * A thin bar along the bottom of a story fills as it plays ({@link
@@ -1169,6 +1180,28 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_turn_off_double_tap_like", FALSE);
 
     /**
+     * A tap on Like under a post on Home asks "Like or unlike this post?" first, and only Continue
+     * likes or unlikes it ({@link app.morphe.extension.facebook.feed.AskBeforeLike}, #437). Starts
+     * off. Read on each tap.
+     */
+    public static final BooleanSetting ASK_BEFORE_LIKING_POSTS =
+            new BooleanSetting("hushfacebook_ask_before_liking_posts", FALSE);
+
+    /**
+     * The same question before the Like beside a reel ({@link
+     * app.morphe.extension.facebook.feed.AskBeforeLike}, #437). Starts off. Read on each tap.
+     */
+    public static final BooleanSetting ASK_BEFORE_LIKING_REELS =
+            new BooleanSetting("hushfacebook_ask_before_liking_reels", FALSE);
+
+    /**
+     * The same question before the Like under a comment ({@link
+     * app.morphe.extension.facebook.feed.AskBeforeLike}, #443). Starts off. Read on each tap.
+     */
+    public static final BooleanSetting ASK_BEFORE_LIKING_COMMENTS =
+            new BooleanSetting("hushfacebook_ask_before_liking_comments", FALSE);
+
+    /**
      * Facebook's own double-tap skip on reels and videos, which a server test keeps off for most
      * accounts: a double tap on the left or right edge skips back or forward 10 seconds, or 5 on a
      * video under 30 seconds ({@link app.morphe.extension.facebook.reels.DoubleTapSkip}, #225).
@@ -1238,6 +1271,23 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SLOWER_REEL_SPEEDS =
             new BooleanSetting("hushfacebook_slower_reel_speeds", FALSE);
+
+    /**
+     * The Reels menu's two speed pickers and the gear menu's speed sheet also offer 2.5x and 3x,
+     * faster than the 2x Facebook stops at (#430). It rides on Keep the reel speed's patch like
+     * {@link #SLOWER_REEL_SPEEDS}. Starts off. Off or paused, the pickers offer Facebook's speeds.
+     */
+    public static final BooleanSetting FASTER_REEL_SPEEDS =
+            new BooleanSetting("hushfacebook_faster_reel_speeds", FALSE);
+
+    /**
+     * A feed or Watch video's 3-dot menu gets Playback speed, which offers 0.5x to 3x for that
+     * video, a live one too (#429). It rides on Keep the reel speed's patch for the player and on
+     * Download any video's for the menu ({@link app.morphe.extension.facebook.media.ReelSpeed}).
+     * Starts off. Off or paused, the menu is Facebook's.
+     */
+    public static final BooleanSetting POST_MENU_SPEED =
+            new BooleanSetting("hushfacebook_post_menu_speed", FALSE);
 
     /**
      * The gear menu offers Playback speed on a full-screen video that isn't live, a finished live
@@ -1620,6 +1670,19 @@ public class Settings extends BaseSettings {
             };
 
     /**
+     * With {@link #FEED_VIDEO_SEEK_BAR} on, the bar runs along the video's bottom edge, and Facebook's
+     * buttons in the video's bottom corners move up to sit above it. Wins over
+     * {@link #FEED_VIDEO_SEEK_BAR_LOWER} (#431). Starts off.
+     */
+    public static final BooleanSetting FEED_VIDEO_SEEK_BAR_EDGE =
+            new BooleanSetting("hushfacebook_feed_video_seek_bar_edge", FALSE) {
+                @Override
+                protected void onValueChanged() {
+                    FeedVideoControls.settingsChanged();
+                }
+            };
+
+    /**
      * A seek bar along the bottom of a video story, where {@link #STORY_PROGRESS_BAR} draws, which
      * makes way for it. A drag holds the story and the let go moves it there (#386). Starts off.
      */
@@ -1667,6 +1730,14 @@ public class Settings extends BaseSettings {
                     FeedVideoControls.settingsChanged();
                 }
             };
+
+    /**
+     * A double tap on the right or left side of a started feed video jumps it 10 seconds ahead or
+     * back, a live one too while it can be rewound, and a lone tap on a side opens it a moment later
+     * (#432). Asked at each press. Starts off.
+     */
+    public static final BooleanSetting FEED_VIDEO_DOUBLE_TAP_SKIP =
+            new BooleanSetting("hushfacebook_feed_video_double_tap_skip", FALSE);
 
     /**
      * A button on a feed video that shows its speed and steps it on a tap: 1x, 1.25x, 1.5x, 2x,
@@ -2202,6 +2273,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_search_posts_tab", TRUE);
 
     /**
+     * A Saved button at the end of the search bar opens Facebook's Saved screen
+     * ({@link app.morphe.extension.facebook.search.SearchSavedButton}, #433). Off by default. The
+     * button goes in as Facebook builds the bar, so turning it on takes a restart.
+     */
+    public static final BooleanSetting SEARCH_SAVED_BUTTON =
+            new BooleanSetting("hushfacebook_search_saved_button", FALSE, true);
+
+    /**
      * The For you section of searches Facebook suggests, on the search screen before anything is
      * typed (#80), found by the module name Facebook gives its entry. Recent searches, the search box
      * and the suggestions while typing stay. Part of Hide suggested and promoted posts, off until picked.
@@ -2703,6 +2782,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting PHONE_LAYOUT_ON_BIG_SCREENS =
             new BooleanSetting("hushfacebook_phone_layout_big_screens", FALSE, true);
+
+    /**
+     * The tab bar goes away while the Reels tab is open, and the reel runs down to the bottom of the
+     * screen ({@link app.morphe.extension.facebook.navigation.ReelsTabBarHidden}). Facebook pads the
+     * Reels page for the bar as the page is set up, so a change waits for a restart.
+     */
+    public static final BooleanSetting HIDE_REELS_TAB_BAR =
+            new BooleanSetting("hushfacebook_hide_reels_tab_bar", FALSE, true);
 
     /**
      * The top bar and the tab bar let the feed show through, with a blur of it behind them on

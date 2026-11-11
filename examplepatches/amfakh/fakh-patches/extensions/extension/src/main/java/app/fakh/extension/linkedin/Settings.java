@@ -41,6 +41,8 @@ public final class Settings {
     static final String SWIPE_TABS = "swipe_tabs";
     static final String COPY_TEXT = "copy_text";
     static final String GLASS_NAVIGATION_BAR = "glass_navigation_bar";
+    static final String LIQUID_GLASS = "liquid_glass";
+    static final String ALWAYS_SHOW_NAVIGATION_BAR = "always_show_navigation_bar";
     static final String HIDE_TAB_LABELS = "hide_tab_labels";
     static final String HIDE_TAB_BADGES = "hide_tab_badges";
     static final String SHOW_TAB_JOBS = "show_tab_jobs";
@@ -148,6 +150,19 @@ public final class Settings {
 
     static boolean glassNavigationBar() {
         return isGlassNavigationBarIncluded() && get(GLASS_NAVIGATION_BAR, true);
+    }
+
+    static boolean liquidGlass() {
+        return glassNavigationBar() && get(LIQUID_GLASS, true);
+    }
+
+    public static boolean isAlwaysShowNavigationBarIncluded() {
+        return false;
+    }
+
+    /** Whether the navigation bar stays put while a screen scrolls, instead of sliding away. Called from the app. */
+    public static boolean alwaysShowNavigationBar() {
+        return isAlwaysShowNavigationBarIncluded() && get(ALWAYS_SHOW_NAVIGATION_BAR, false);
     }
 
     public static boolean isNavigationBarIncluded() {

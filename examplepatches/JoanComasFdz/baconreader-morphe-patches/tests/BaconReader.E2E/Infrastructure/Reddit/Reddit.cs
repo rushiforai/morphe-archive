@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using BaconReader.FakeReddit.World;
 
@@ -14,6 +16,55 @@ namespace BaconReader.E2E.Infrastructure.Reddit;
 /// </summary>
 public sealed partial class Reddit(RedditWorld world)
 {
+    /// <summary>
+    /// Shows <paramref name="snapshot"/>, what the scenario read of what the fake saw, on the setup page, titled by the
+    /// read (<paramref name="read"/>: "ReadRequestsForTheCommentsOf" is "Requests for the comments of") and what it's
+    /// about (<paramref name="about"/>: a post's title, quoted): a recording shows the page for its Then line.
+    /// </summary>
+    private T Checked<T>(T snapshot, string? about = null, [CallerMemberName] string read = "")
+        where T : notnull
+    {
+        // A read for a check of the screen (the link the comment shows) isn't what the fake saw.
+        if (!Steps.FakeChecks.IsChecked(typeof(T)))
+        {
+            return snapshot;
+        }
+
+        var name = read.StartsWith("Read", StringComparison.Ordinal) ? read["Read".Length..] : read;
+        var title = name.Length == 0 ? read : char.ToUpperInvariant(name[0]) + SplitWords().Replace(name[1..], " $1").ToLowerInvariant();
+        foreach (var (words, brand) in Brands)
+        {
+            title = title.Replace(words, brand, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // A field that only repeats what the title names (the post's title) is left out.
+        var json = JsonSerializer.SerializeToNode(snapshot, snapshot.GetType(), SetupJson)!.AsObject();
+        foreach (var repeated in json.Where(field => about is not null && field.Value?.GetValueKind() == JsonValueKind.String && field.Value.GetValue<string>() == about).Select(field => field.Key).ToList())
+        {
+            json.Remove(repeated);
+        }
+
+        world.NoteOnSetupPage(about is null ? title : $"{title} \"{about}\"", json.ToJsonString());
+        return snapshot;
+    }
+
+    // The sites' names, as the title's words split them: "RedGifs" is "red gifs".
+    private static readonly (string Words, string Brand)[] Brands =
+        [("red gifs", "RedGIFs"), ("you tube", "YouTube"), ("imgur", "Imgur"), ("imgflip", "Imgflip"), ("snoomoji", "Snoomoji"), ("bluesky", "Bluesky")];
+
+    private static readonly JsonSerializerOptions SetupJson = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
+    [GeneratedRegex("([A-Z])")]
+    private static partial Regex SplitWords();
+
+    /// <summary>
+    /// "the test account is logged in", before "BaconReader is open": the fake hands BaconReader the test account's login
+    /// at its start ("E2E fake Reddit"), what logging in through "Add account" and Reddit's "Log In" leaves, so the app
+    /// opens logged in (<see cref="Phone.BaconReader.BaconReaderApp.OpenAsync"/> waits for its feed). Logging in through
+    /// the screens took ~11 s of each scenario (2026-11-07); Spoof client's Startup scenario still does.
+    /// </summary>
+    public void TheTestAccountIsLoggedIn() => world.LogInAtStart(TestAccount.UserName);
+
     /// <summary>"Reddit has a post "&lt;title&gt;" in r/&lt;subreddit&gt;": a text post, made now.</summary>
     public void HasAPost(string title, string subreddit) => world.AddPost(subreddit, title);
 
@@ -44,21 +95,21 @@ public sealed partial class Reddit(RedditWorld world)
     /// the post it leads to (null when it leads to none).
     /// </summary>
     public RedditShareLinkRequestsSnapshot ReadRequestsForShareLinks() =>
-        new([.. world.Requests
+        Checked<RedditShareLinkRequestsSnapshot>(new([.. world.Requests
             .Where(request => request.Method == "GET" && ShareLinkPath().IsMatch(request.Path))
             .Select(request => new RedditShareLinkRequest(request.Path, request.Status, world.ShareLinkTarget(request.Path) is { } target
                 ? world.Posts.FirstOrDefault(post => target == post.Permalink || target == RedditPost.ProfilePermalink(post))?.Title
-                : null))]);
+                : null))]));
 
     /// <summary>
     /// The requests Reddit got for the post of a video, <c>www.reddit.com/video/&lt;id&gt;</c>, where v.redd.it redirects a
     /// video's address, oldest first: each one's status and the title of the video's post (null when no post has it).
     /// </summary>
     public RedditVideoRedirectsSnapshot ReadRequestsForVideoRedirects() =>
-        new([.. world.Requests
+        Checked<RedditVideoRedirectsSnapshot>(new([.. world.Requests
             .Where(request => request.Method == "GET" && request.Path.StartsWith("/video/", StringComparison.Ordinal))
             .Select(request => new RedditVideoRedirect(request.Status, world.Posts
-                .FirstOrDefault(post => post.CrosspostOf is null && post.VideoId == request.Path["/video/".Length..].TrimEnd('/'))?.Title))]);
+                .FirstOrDefault(post => post.CrosspostOf is null && post.VideoId == request.Path["/video/".Length..].TrimEnd('/'))?.Title))]));
 
     /// <summary>
     /// "Reddit has a link post "&lt;title&gt;" in r/&lt;subreddit&gt; linking to the gallery of "&lt;target&gt;"": a link post
@@ -133,15 +184,15 @@ public sealed partial class Reddit(RedditWorld world)
     public RedditCommentsRequestsSnapshot ReadRequestsForTheCommentsOf(string title)
     {
         var asked = RedditWorld.CommentsOf(PostTitled(title));
-        return new([.. world.Requests
+        return Checked<RedditCommentsRequestsSnapshot>(new([.. world.Requests
             .Where(request => asked(request.Method, request.Path))
             .Select(request => Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(request.Query).TryGetValue("limit", out var limit)
-                && int.TryParse(limit, out var number) ? number : (int?)null)]);
+                && int.TryParse(limit, out var number) ? number : (int?)null)]), title);
     }
 
     /// <summary>The media files Reddit served, oldest first: the paths asked for under <c>/_media/</c> and answered.</summary>
     public RedditMediaRequestsSnapshot ReadMediaServed() =>
-        new([.. world.Requests.Where(request => request is { Method: "GET", Status: 200 } && request.Path.StartsWith("/_media/", StringComparison.Ordinal)).Select(request => request.Path)]);
+        Checked<RedditMediaRequestsSnapshot>(new([.. world.Requests.Where(request => request is { Method: "GET", Status: 200 } && request.Path.StartsWith("/_media/", StringComparison.Ordinal)).Select(request => request.Path)]));
 
     /// <summary>"the post "&lt;title&gt;" …": a post this scenario's Given made.</summary>
     public RedditPost ThePost(string title) => new(world, PostTitled(title));
@@ -193,13 +244,13 @@ public sealed partial class Reddit(RedditWorld world)
 
     /// <summary>The requests Reddit got for "load more comments" (<c>api/morechildren</c>), oldest first: the status each got.</summary>
     public RedditLoadMoreCommentsRequestsSnapshot ReadRequestsForLoadMoreComments() =>
-        new([.. world.Requests.Where(request => request is { Method: "POST", Path: "/api/morechildren" }).Select(request => request.Status)]);
+        Checked<RedditLoadMoreCommentsRequestsSnapshot>(new([.. world.Requests.Where(request => request is { Method: "POST", Path: "/api/morechildren" }).Select(request => request.Status)]));
 
     /// <summary>The votes Reddit got, oldest first: on which post, by its title, and which way.</summary>
     public RedditVotesSnapshot ReadVotes() =>
-        new([.. world.Actions.Where(action => action.Name == "vote").Select(action => new RedditVote(
+        Checked<RedditVotesSnapshot>(new([.. world.Actions.Where(action => action.Name == "vote").Select(action => new RedditVote(
             world.Posts.FirstOrDefault(post => post.FullName == action.Form.GetValueOrDefault("id"))?.Title ?? action.Form.GetValueOrDefault("id") ?? "",
-            int.TryParse(action.Form.GetValueOrDefault("dir"), out var direction) ? direction : 0))]);
+            int.TryParse(action.Form.GetValueOrDefault("dir"), out var direction) ? direction : 0))]));
 
     /// <summary>Waits until Reddit got <paramref name="count"/> messages marked as read: the app marks them in the background.</summary>
     public Task WaitUntilMessagesMarkedAsReadAsync(int count) =>
@@ -212,10 +263,10 @@ public sealed partial class Reddit(RedditWorld world)
     public RedditReadMessagesSnapshot ReadMessagesMarkedAsRead()
     {
         var messages = TestAccountOf(world).Inbox;
-        return new([.. world.Actions
+        return Checked<RedditReadMessagesSnapshot>(new([.. world.Actions
             .Where(action => action.Name == "read_message")
             .SelectMany(action => (action.Form.GetValueOrDefault("id") ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries))
-            .Select(id => messages.FirstOrDefault(message => message.FullName == id)?.Subject ?? id)]);
+            .Select(id => messages.FirstOrDefault(message => message.FullName == id)?.Subject ?? id)]));
     }
 
     /// <summary>
@@ -240,18 +291,18 @@ public sealed partial class Reddit(RedditWorld world)
             : throw new InvalidOperationException($"The scenario's Reddit has {comments.Count} comments \"{text}\", but one was expected.");
         var image = comment.Media.Values.Single(media => !media.IsVideo);
         var file = world.Media(image.Path) ?? throw new InvalidOperationException($"The fake doesn't serve the image of the comment \"{text}\".");
-        return new RedditImageSnapshot(image.Path[(image.Path.LastIndexOf('/') + 1)..], file.Bytes.Length);
+        return Checked<RedditImageSnapshot>(new RedditImageSnapshot(image.Path[(image.Path.LastIndexOf('/') + 1)..], file.Bytes.Length), text);
     }
 
     /// <summary>What Reddit's login saw of the app: each step's client ID, redirect URI and User-Agent.</summary>
-    public RedditLoginSnapshot ReadLogin() => new([.. world.Logins]);
+    public RedditLoginSnapshot ReadLogin() => Checked<RedditLoginSnapshot>(new([.. world.Logins]));
 
     /// <summary>
     /// The requests Reddit got for posts while logged in, oldest first: every feed's (the Front Page, r/&lt;subreddit&gt;,
     /// in any sort), with the User-Agent each carried.
     /// </summary>
     public RedditPostsRequestsSnapshot ReadRequestsForPosts() =>
-        new([.. world.Requests.Where(request => request is { Method: "GET", Account: not null } && IsFeed(request.Path))]);
+        Checked<RedditPostsRequestsSnapshot>(new([.. world.Requests.Where(request => request is { Method: "GET", Account: not null } && IsFeed(request.Path))]));
 
     private static bool IsFeed(string path) => FeedPath().IsMatch(path);
 

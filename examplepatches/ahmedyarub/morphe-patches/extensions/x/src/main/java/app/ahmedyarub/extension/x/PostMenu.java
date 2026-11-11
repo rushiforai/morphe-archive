@@ -122,10 +122,18 @@ public final class PostMenu {
     /** The menu's labels, with the added actions'. */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Map<?, ?> labels(boolean shown, Map<?, ?> labels) {
-        if (!shown || Setup.ACTIONS.isEmpty()) return labels;
+        if (!shown || Setup.ACTIONS.isEmpty() || labels == null) return labels;
 
         try {
-            Map result = labels == null ? new LinkedHashMap() : new LinkedHashMap(labels);
+            // The state field that holds this map is strongly typed to the map's own concrete class
+            // (a kotlin MapBuilder from 12.42, a LinkedHashMap before), and the constructor stores it
+            // with iput-object, so the replacement must be an instance of that same class. Rebuild it
+            // from the input's own class rather than assuming LinkedHashMap; on any failure return the
+            // input untouched so the patched cast back to the field type can never fail.
+            Constructor<?> ctor = labels.getClass().getDeclaredConstructor();
+            ctor.setAccessible(true);
+            Map result = (Map) ctor.newInstance();
+            result.putAll(labels);
             for (Action action : Setup.ACTIONS) result.put(actionType(action), action.label);
             return result;
         } catch (Exception ex) {

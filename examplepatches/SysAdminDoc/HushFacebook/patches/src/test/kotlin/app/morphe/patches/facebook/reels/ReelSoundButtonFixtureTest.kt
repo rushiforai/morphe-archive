@@ -125,7 +125,7 @@ class ReelSoundButtonFixtureTest {
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
-        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), abis)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), Fixtures.abisOf(abis))
     }
 
     /** The ABI a fixture named [name] is built for, the Android 9 build counting as its ABI's. */
@@ -302,7 +302,7 @@ class ReelSoundButtonFixtureTest {
         }
         assertEquals("a declared build has no fixture", versions, checked)
         // Redex names the viewer's class separately per ABI, so every declared build has to resolve.
-        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), abis)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), Fixtures.abisOf(abis))
     }
 
     private fun Instruction.called() = (this as? ReferenceInstruction)?.reference as? MethodReference
@@ -408,10 +408,10 @@ class ReelSoundButtonFixtureTest {
         val builderParameters = builder.parameterTypes.map(CharSequence::toString)
         val leaves = sideColumnExitAsk(originalRender, layoutRender, sidebarAssemblyIndex(originalRender.code()), builderParameters)
         assertTrue("$name: 585's side column has an early way out", leaves != null)
-        // On the Android 9 build it's the render that leaves, before it calls the builder.
+        // On the Android 9 build it's the render that leaves, before it calls the builder (585's BV1, 586's BWe).
         if (!rendersItself) {
             assertEquals("$name: the builder leaves early itself", null, earlyExitAsk(originalRender, sidebarAssemblyIndex(originalRender.code()), builderParameters))
-            assertEquals("$name: the render's way out", "BV1", leaves!!.name)
+            assertEquals("$name: the render's way out", "BWe", leaves!!.name)
         }
         val offer = corner.methods.single { it.name == OFFER_SPEAKER }.code().mapNotNull { it.called()?.toString() }
         assertEquals("$name: what the offer calls", listOf(leaves.toString(), REEL_REMEMBER_CORNER), offer)
@@ -473,7 +473,7 @@ class ReelSoundButtonFixtureTest {
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
-        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), abis)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), Fixtures.abisOf(abis))
     }
 
     @Test

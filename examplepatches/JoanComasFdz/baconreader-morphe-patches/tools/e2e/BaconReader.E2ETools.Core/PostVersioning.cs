@@ -15,8 +15,11 @@ public sealed record CommentEdit(PrComment Comment, string Body);
 /// <summary>
 /// The workflow's posts on a PR, one per version (<c>## ✅ Scenarios (V&lt;N&gt;)</c>), and what becomes of the earlier ones:
 /// once a new post is up, each earlier post still open is collapsed into a closed <c>&lt;details&gt;</c> ("Scenarios (V1) ·
-/// 12 scenarios · replaced by V2") and hidden as Outdated; when the PR closes, every post but the newest shrinks to that
-/// line plus "· recordings deleted when the PR closed" (docs/hosting.md, "E2E videos on pull requests").
+/// 12 scenarios · replaced by V2") and hidden as Outdated. "replaced by" when later posts recorded all its runs again,
+/// "partly replaced by" when some, "followed by" when none (a run of other scenarios: a batch). When the PR closes, each
+/// post whose runs were all recorded again later shrinks to that line plus "· recordings deleted when the PR closed",
+/// since prs-resources keeps only each run's newest recording (ReleaseCleaning); the others keep theirs, and stay
+/// (docs/hosting.md, "E2E videos on pull requests").
 /// </summary>
 public static partial class PostVersioning
 {
@@ -38,6 +41,10 @@ public static partial class PostVersioning
     /// </summary>
     [GeneratedRegex(@"^<details><summary><b>(?!Scenarios \(V[0-9]+\)</b>)", RegexOptions.Multiline)]
     private static partial Regex CreateScenarioPattern();
+
+    /// <summary>A run's GIF in a post: …/releases/download/&lt;release&gt;/pr-&lt;n&gt;-v&lt;k&gt;-&lt;run&gt;.gif).</summary>
+    [GeneratedRegex(@"/releases/download/[^/\s)]+/pr-[0-9]+-v[0-9]+-([^/\s)]+)\.gif\)")]
+    private static partial Regex CreateRecordingPattern();
 
     /// <summary>The workflow's own comments: written by its bot and ending with its footer.</summary>
     public static ImmutableArray<PrComment> PickWorkflowComments(ImmutableArray<PrComment> comments) =>
@@ -63,17 +70,36 @@ public static partial class PostVersioning
 
     public static int CountScenarios(string body) => CreateScenarioPattern().Count(body);
 
-    public static string DescribeVersion(int version, int count, int replacedBy) =>
-        $"Scenarios (V{version}) · {DescribeCount(count)} · replaced by V{replacedBy}";
+    public static string DescribeVersion(int version, int count, int next, Replacement replacement) =>
+        $"Scenarios (V{version}) · {DescribeCount(count)} · " + replacement switch
+        {
+            Replacement.All => $"replaced by V{next}",
+            Replacement.Some => $"partly replaced by V{next}",
+            _ => $"followed by V{next}",
+        };
 
-    /// <summary>(comment, new body) for each earlier post still open: a closed &lt;details&gt; holding it as it was.</summary>
-    public static ImmutableArray<CommentEdit> PlanCollapses(ImmutableArray<PrComment> comments, int newest)
+    /// <summary>
+    /// The runs a post shows recordings of: each GIF's name without its PR and version (<c>pr-&lt;n&gt;-v&lt;k&gt;-&lt;run&gt;.gif</c>),
+    /// the same in every version.
+    /// </summary>
+    public static ImmutableHashSet<string> ReadRuns(string body) =>
+        [.. CreateRecordingPattern().Matches(body).Select(found => found.Groups[1].Value)];
+
+    /// <summary>
+    /// (comment, new body) for each earlier post still open: a closed &lt;details&gt; holding it as it was. The newest post
+    /// isn't among <paramref name="comments"/> yet: <paramref name="newestRuns"/> are the runs it records.
+    /// </summary>
+    public static ImmutableArray<CommentEdit> PlanCollapses(ImmutableArray<PrComment> comments, int newest, ImmutableHashSet<string> newestRuns)
     {
         var versions = ReadVersions(comments).Append(newest).ToImmutableArray();
         return [.. comments
             .Select(comment => (Comment: comment, Version: ReadVersion(comment)))
             .Where(post => post.Version is Optional<int>.Some some && some.Value < newest && !IsCollapsed(post.Comment) && !IsShrunk(post.Comment))
-            .Select(post => CollapsePost(post.Comment, ((Optional<int>.Some)post.Version).Value, versions))];
+            .Select(post =>
+            {
+                var version = ((Optional<int>.Some)post.Version).Value;
+                return CollapsePost(post.Comment, version, versions, FindReplacement(post.Comment.Body, ReadLaterRuns(comments, version).Union(newestRuns)));
+            })];
     }
 
     /// <summary>Each earlier post, open or collapsed, not hidden yet (its node id not in <paramref name="hidden"/>) and not shrunk: to hide as Outdated.</summary>
@@ -82,29 +108,42 @@ public static partial class PostVersioning
             ReadVersion(comment) is Optional<int>.Some version && version.Value < newest && !IsShrunk(comment) && !hidden.Contains(comment.NodeId))];
 
     /// <summary>
-    /// (comment, new body) for each post but the newest not shrunk yet, open or collapsed: its one line, with the footer
-    /// kept out of sight so the post still reads as the workflow's (PickWorkflowComments). The newest keeps its recordings.
+    /// (comment, new body) for each post not shrunk yet, open or collapsed, whose runs later posts all recorded again: its
+    /// one line, with the footer kept out of sight so the post still reads as the workflow's (PickWorkflowComments). The
+    /// others keep their recordings (ReleaseCleaning), and so their posts.
     /// </summary>
     public static ImmutableArray<CommentEdit> PlanShrinks(ImmutableArray<PrComment> comments)
     {
         var versions = ReadVersions(comments).ToImmutableArray();
-        var newest = versions.DefaultIfEmpty(0).Max();
         return [.. comments
             .Select(comment => (Comment: comment, Version: ReadVersion(comment)))
-            .Where(post => post.Version is Optional<int>.Some some && some.Value < newest && !IsShrunk(post.Comment))
+            .Where(post => post.Version is Optional<int>.Some some && !IsShrunk(post.Comment)
+                && versions.Any(later => later > some.Value)
+                && FindReplacement(post.Comment.Body, ReadLaterRuns(comments, some.Value)) == Replacement.All)
             .Select(post => ShrinkPost(post.Comment, ((Optional<int>.Some)post.Version).Value, versions))];
     }
 
-    private static CommentEdit CollapsePost(PrComment comment, int version, ImmutableArray<int> versions)
+    // How much of a post's runs the later posts recorded again: all (none to record is all), some or none.
+    private static Replacement FindReplacement(string body, ImmutableHashSet<string> later)
     {
-        var summary = DescribeVersion(version, CountScenarios(comment.Body), FindNextVersion(version, versions));
+        var own = ReadRuns(body);
+        var again = own.Count(later.Contains);
+        return again == own.Count ? Replacement.All : again == 0 ? Replacement.None : Replacement.Some;
+    }
+
+    private static ImmutableHashSet<string> ReadLaterRuns(ImmutableArray<PrComment> comments, int version) =>
+        [.. comments.Where(comment => ReadVersion(comment) is Optional<int>.Some later && later.Value > version).SelectMany(comment => ReadRuns(comment.Body))];
+
+    private static CommentEdit CollapsePost(PrComment comment, int version, ImmutableArray<int> versions, Replacement replacement)
+    {
+        var summary = DescribeVersion(version, CountScenarios(comment.Body), FindNextVersion(version, versions), replacement);
         var bold = ReplaceFirst(summary, $"Scenarios (V{version})", $"<b>Scenarios (V{version})</b>");
         return new CommentEdit(comment, $"{Collapsed}<summary>{bold}</summary>\n\n{comment.Body.TrimEnd()}\n\n</details>\n");
     }
 
     private static CommentEdit ShrinkPost(PrComment comment, int version, ImmutableArray<int> versions)
     {
-        var line = ReplaceFirst(DescribeVersion(version, CountScenarios(comment.Body), FindNextVersion(version, versions)), $"Scenarios (V{version})", $"**Scenarios (V{version})**")
+        var line = ReplaceFirst(DescribeVersion(version, CountScenarios(comment.Body), FindNextVersion(version, versions), Replacement.All), $"Scenarios (V{version})", $"**Scenarios (V{version})**")
             + " · recordings deleted when the PR closed";
         return new CommentEdit(comment, $"{line}\n\n<!-- {Footer} -->\n");
     }
@@ -130,4 +169,12 @@ public static partial class PostVersioning
         var at = text.IndexOf(old, StringComparison.Ordinal);
         return at < 0 ? text : string.Concat(text.AsSpan(0, at), replacement, text.AsSpan(at + old.Length));
     }
+}
+
+/// <summary>How much of an earlier post's runs later posts recorded again.</summary>
+public enum Replacement
+{
+    All,
+    Some,
+    None,
 }

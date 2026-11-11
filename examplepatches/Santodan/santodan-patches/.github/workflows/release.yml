@@ -7,6 +7,10 @@ on:
         description: Release pending features as a patch version
         type: boolean
         default: false
+      refresh_existing_release:
+        description: Rebuild and replace the current version's existing release assets without a new version
+        type: boolean
+        default: false
   push:
 
 jobs:
@@ -40,7 +44,7 @@ jobs:
         run: npm install
 
       - name: Use patch version for this release
-        if: github.event_name == 'workflow_dispatch' && inputs.patch_release
+        if: github.event_name == 'workflow_dispatch' && inputs.patch_release && !inputs.refresh_existing_release
         run: |
           node <<'NODE'
           const fs = require('fs');
@@ -52,20 +56,57 @@ jobs:
           NODE
 
       - name: Release
+        if: ${{ !inputs.refresh_existing_release }}
         uses: cycjimmy/semantic-release-action@v6
         id: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Rebuild existing release
+        if: github.event_name == 'workflow_dispatch' && inputs.refresh_existing_release
+        id: refresh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          VERSION=$(sed -n 's/^version *= *//p' gradle.properties | tr -d '\r')
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          TAG="v$VERSION"
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "$TAG^{commit}")"
+          gh release view "$TAG" --json tagName --jq .tagName
+          python3 - "$VERSION" <<'PY'
+          import json, sys
+          from pathlib import Path
+          bundle = json.loads(Path('patches-bundle.json').read_text())
+          assert bundle['version'] == sys.argv[1]
+          Path('existing-release-notes.md').write_text(bundle['description'])
+          PY
+          ./gradlew clean :patches:verifyAndroidBundle --no-daemon
+          test -f "patches/build/libs/patches-$VERSION.mpp"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Attest
-        if: steps.release.outputs.new_release_published == 'true'
+        if: steps.release.outputs.new_release_published == 'true' || steps.refresh.outcome == 'success'
         uses: actions/attest-build-provenance@v4
         with:
-          subject-name: 'Santodan Patches ${{ steps.release.outputs.new_release_git_tag }}'
+          subject-name: 'Santodan Patches ${{ steps.release.outputs.new_release_git_tag || steps.refresh.outputs.tag }}'
           subject-path: patches/build/libs/patches-*.mpp
 
+      - name: Replace existing release assets
+        if: steps.refresh.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.refresh.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.refresh.outputs.version }}
+        run: |
+          set -euo pipefail
+          gh release upload "$RELEASE_TAG" "patches/build/libs/patches-$RELEASE_VERSION.mpp" patches-bundle.json patches-list.json --clobber
+          gh release edit "$RELEASE_TAG" --notes-file existing-release-notes.md
+
       - name: Verify project compiles
-        if: steps.release.outputs.new_release_published != 'true'
+        if: steps.release.outputs.new_release_published != 'true' && steps.refresh.outcome != 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: ./gradlew clean :patches:verifyAndroidBundle --no-daemon

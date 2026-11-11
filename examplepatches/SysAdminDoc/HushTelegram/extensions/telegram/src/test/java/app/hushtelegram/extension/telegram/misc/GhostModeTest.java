@@ -44,6 +44,7 @@ public class GhostModeTest {
 
     @After public void tearDown() {
         PauseForTests.resume();
+        GhostMode.chats = CHATS;
         SettingReadsForTests.mend(Settings.GHOST_MODE);
         reset();
         HookStatus.clear();
@@ -55,6 +56,54 @@ public class GhostModeTest {
         Settings.GHOST_STORIES.resetToDefault();
         Settings.GHOST_TYPING.resetToDefault();
         Settings.GHOST_ONLINE.resetToDefault();
+    }
+
+    private static final GhostMode.Chats CHATS = GhostMode.chats;
+
+    private static TLRPC.TL_channels_readHistory channelRead(long id) {
+        TLRPC.TL_channels_readHistory request = new TLRPC.TL_channels_readHistory();
+        request.channel = new TLRPC.TL_inputChannel();
+        request.channel.channel_id = id;
+        return request;
+    }
+
+    private static TLRPC.Chat channel(boolean broadcast, boolean megagroup) {
+        TLRPC.Chat chat = new TLRPC.TL_channel();
+        chat.broadcast = broadcast;
+        chat.megagroup = megagroup;
+        return chat;
+    }
+
+    @Test public void aBroadcastChannelsReadGoesOutSoItsBadgeClearsOnOtherDevices() {
+        Settings.GHOST_MODE.save(true);
+        GhostMode.chats = id -> id == 7 ? channel(true, false) : id == 8 ? channel(false, true) : null;
+        assertFalse(GhostMode.drop(channelRead(7), null));
+        // A supergroup's members can see who read, and a channel this phone can't place stays back too.
+        assertTrue(GhostMode.drop(channelRead(8), null));
+        assertTrue(GhostMode.drop(channelRead(9), null));
+        assertTrue(GhostMode.drop(new TLRPC.TL_channels_readHistory(), null));
+        assertEquals(Arrays.asList("Disable analytics: invoked 4, 0 found, 0 missing. "
+                        + "Counted: channel reads sent 1, read receipts kept back 3"),
+                HookStatus.report());
+        // With Ghost mode off the channel isn't looked up at all.
+        Settings.GHOST_MODE.save(false);
+        GhostMode.chats = id -> {
+            throw new AssertionError("looked up " + id);
+        };
+        assertFalse(GhostMode.drop(channelRead(7), null));
+    }
+
+    @Test public void aChannelThatCantBeLookedUpStaysKeptBackAndSaysSo() {
+        Settings.GHOST_MODE.save(true);
+        GhostMode.chats = id -> {
+            throw new ClassNotFoundException("no controller");
+        };
+        assertTrue(GhostMode.drop(channelRead(7), null));
+        assertEquals(Arrays.asList("a working 'ghost mode channel read' hook (it threw java.lang.ClassNotFoundException)"),
+                HookStatus.missing(FamilyNames.DISABLE_ANALYTICS));
+        // Without Telegram's tables there's nothing to place it in either.
+        GhostMode.chats = CHATS;
+        assertTrue(GhostMode.drop(channelRead(7), null));
     }
 
     @Test public void offByDefaultWithBothPartsReadyForWhenItIsTurnedOn() {

@@ -5,7 +5,7 @@
 # requests"). Two projects hold scenarios, each under its Scenarios/: tests/BaconReader.E2E (the app, on the phone)
 # and tests/BaconReader.VsCodeExtension.E2E (the VS Code extension, tools/vscode-extension, in VS Code for the web).
 #   tools/e2e/record.sh [all | <domain folder> | <TestClass> ...] [--changed-since <git ref>] [--action-gap <seconds>]
-#                       [--out <dir>] [--no-bundle] [--no-video | --raw-only]
+#                       [--out <dir>] [--no-bundle] [--no-video | --raw-only] [--phone-only]
 #   tools/e2e/record.sh --gifs-only [--out <dir>]
 # A domain folder is a folder under a project's Scenarios/ (Startup, LoggedIn/Comments); a class is a scenario class
 # (SpoofClientTests). Nothing named, and no --changed-since: all of them.
@@ -32,6 +32,8 @@
 # <out>/.selection.tsv) and prints each run's result, as --no-video does. --gifs-only then turns <out>/.raw into the
 # GIFs, the MP4s and scenarios.json, without playing anything: the NAS's runner plays, and a GitHub-hosted job, with
 # more CPU and memory to spare, makes the GIFs (tools/e2e/nas/README.md).
+# --phone-only: only the app's scenarios (tests/BaconReader.E2E), whatever else the arguments pick: the NAS runs them so,
+# since it is there for the phone. The VS Code extension's play in a session (tools/e2e/record.sh Recordings).
 # Right before a push that adds or changes scenarios (never between pushes): tools/e2e/record.sh --changed-since
 # origin/dev, then tools/e2e/push-gifs.sh right after the push.
 set -euo pipefail
@@ -43,6 +45,7 @@ action_gap=0.4
 bundle=1
 video=1
 raw_only=0
+phone_only=0
 gifs_only=0
 chosen=()
 
@@ -54,8 +57,9 @@ while [ $# -gt 0 ]; do
     --no-bundle) bundle=0; shift ;;
     --no-video) video=0; shift ;;
     --raw-only) raw_only=1; shift ;;
+    --phone-only) phone_only=1; shift ;;
     --gifs-only) gifs_only=1; shift ;;
-    -h|--help) sed -n '4,36p' "$0"; exit 0 ;;
+    -h|--help) sed -n '4,38p' "$0"; exit 0 ;;
     *) chosen+=("$1"); shift ;;
   esac
 done
@@ -125,6 +129,7 @@ fi
 
 mapfile -t projects < <(find tests -mindepth 2 -maxdepth 2 -name '*.E2E.csproj' | sort)
 app_project=tests/BaconReader.E2E/BaconReader.E2E.csproj
+if [ $phone_only -eq 1 ]; then projects=("$app_project"); fi
 vscode_project=tests/BaconReader.VsCodeExtension.E2E/BaconReader.VsCodeExtension.E2E.csproj
 # The project file whose Scenarios/ holds a scenario class, or nothing.
 find_class_project() {

@@ -24,7 +24,7 @@ public sealed class RecordingPanelTests : BaseE2E
           And it reads "SpoofClientTests · Startup/Account · PR #41 · V1"
           And its tabs are "Phone", "Phone" selected
           And it plays "pr-41-v1-bacon-reader-patched-with-spoof-client-logs-in-to-reddit-as-red-reader-phone.mp4", with its controls
-          And "Open in e2e player ↗" goes to "https://joancomasfdz.github.io/baconreader-morphe-patches/e2e-player.html?v=pr-41-v1-bacon-reader-patched-with-spoof-client-logs-in-to-reddit-as-red-reader-phone.mp4"
+          And "Open in e2e player ↗" goes to "https://joancomasfdz.github.io/baconreader-morphe-patches/e2e-player.html?v=pr-41-v1-bacon-reader-patched-with-spoof-client-logs-in-to-reddit-as-red-reader-phone.mp4", with the Gherkin of "BaconReader patched with Spoof client logs in to Reddit as RedReader"
         """)]
     public async Task PlayPhoneRecordingOpensThePhoneVideoBesideTheCode(Screen screen)
     {
@@ -48,7 +48,7 @@ public sealed class RecordingPanelTests : BaseE2E
             .HasTabSelected("Phone", "Phone")
             .Plays("pr-41-v1-bacon-reader-patched-with-spoof-client-logs-in-to-reddit-as-red-reader-phone.mp4")
             .HasVideoControls()
-            .LinksToThePlayer("https://joancomasfdz.github.io/baconreader-morphe-patches/e2e-player.html?v=pr-41-v1-bacon-reader-patched-with-spoof-client-logs-in-to-reddit-as-red-reader-phone.mp4");
+            .LinksToThePlayerWithTheGherkinOf("https://joancomasfdz.github.io/baconreader-morphe-patches/e2e-player.html?v=pr-41-v1-bacon-reader-patched-with-spoof-client-logs-in-to-reddit-as-red-reader-phone.mp4", "BaconReader patched with Spoof client logs in to Reddit as RedReader");
     }
 
     [Theory, PlayOnDesktop]

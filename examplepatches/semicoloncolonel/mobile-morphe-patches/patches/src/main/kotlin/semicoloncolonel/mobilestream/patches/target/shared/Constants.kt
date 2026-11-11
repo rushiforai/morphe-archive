@@ -1,7 +1,7 @@
 package semicoloncolonel.mobilestream.patches.target.shared
 
-import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
+import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.Compatibility
 
 object Constants {
@@ -11,6 +11,6 @@ object Constants {
         description = "The Target shopping app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xCC0000,
-        targets = listOf(AppTarget("2026.43.0"))
+        targets = listOf(AppTarget("2026.44.0", versionCode = 1906002918))
     )
 }

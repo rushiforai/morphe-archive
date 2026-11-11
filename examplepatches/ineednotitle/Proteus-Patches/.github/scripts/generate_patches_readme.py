@@ -10,6 +10,7 @@ Spoilers are expanded (open by default) if:
 python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
 """
 
+import html
 import json
 import re
 import sys
@@ -77,8 +78,8 @@ def anchor(name):
 def patches_table(patches):
     """Render a sorted markdown table of patches with name, description, and options."""
     rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
-        "|----------|----------------|-----------|",
+        "| Patch | Description | Options |",
+        "| :--- | :--- | :--- |",
     ]
     for p in sorted(patches, key=lambda x: x["name"]):
         a = anchor(p["name"])
@@ -96,7 +97,7 @@ def patches_table(patches):
 
 def versions_table(targets):
     """Render a markdown table of supported versions.
-    Experimental versions get a 🧪 prefix.
+    Experimental versions get an Experimental label.
     Versions with a description get it shown in a second row below.
     """
     if not targets:
@@ -107,7 +108,7 @@ def versions_table(targets):
         ver   = t["version"]
         if ver is None:
             continue
-        label = f"🧪&nbsp;{ver}" if t.get("isExperimental") else ver
+        label = f"{ver} (experimental)" if t.get("isExperimental") else ver
         cells.append(label)
 
     if not cells:
@@ -131,15 +132,48 @@ def spoiler(label, count, targets, tbl, expanded=False):
     """
     noun = "patch" if count == 1 else "patches"
     vtbl = versions_table(targets)
-    versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
+    versions_section = f"**Compatible versions**\n\n{vtbl}\n\n" if vtbl else ""
     tag = "<details open>" if expanded else "<details>"
     return f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
+<summary>{label} · {count} {noun}</summary>
 <br>
 
 {versions_section}{tbl}
 
 </details>"""
+
+
+def app_anchor(package_name):
+    """Return a stable GitHub anchor for one supported app."""
+    return "app-" + re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", package_name.lower())).strip("-")
+
+
+def version_summary(targets, limit=3):
+    """Render a compact list of compatible versions for the app index."""
+    versions = [str(t["version"]) for t in targets if t.get("version") is not None]
+    if not versions:
+        return "—"
+    visible = versions[:limit]
+    suffix = f" · +{len(versions) - limit} more" if len(versions) > limit else ""
+    return " · ".join(visible) + suffix
+
+
+def app_index():
+    """Render a compact, scannable index of every supported app."""
+    rows = [
+        "| App | Compatible versions | Patches |",
+        "| :--- | :--- | ---: |",
+    ]
+    for pkg, entry in sorted(by_pkg.items(), key=lambda item: item[1]["name"].lower()):
+        rows.append(
+            f"| [{entry['name']}](#{app_anchor(pkg)}) | "
+            f"{version_summary(entry['targets'])} | {len(entry['patches'])} |"
+        )
+    if universal:
+        rows.append(
+            f"| [Universal patches](#universal-patches) | Any app | {len(universal)} |"
+        )
+    return "\n".join(rows)
 
 
 def build_content(expanded=False):
@@ -149,11 +183,18 @@ def build_content(expanded=False):
         f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
         f"{total} patches total"
     ]
+    lines.append("")
 
-    # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
+    lines.append("### Supported apps")
+    lines.append("")
+    lines.append(app_index())
+    lines.append("")
+
+    # One collapsed spoiler per app, sorted by display name.
+    for pkg, entry in sorted(by_pkg.items(), key=lambda item: item[1]["name"].lower()):
         patches = list(entry["patches"].values())
-        label   = f"{entry['emoji']} {entry['name']}"
+        label   = f"<strong>{html.escape(entry['name'])}</strong>"
+        lines.append(f'<a id="{app_anchor(pkg)}"></a>')
         lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
         lines.append("")
 
@@ -162,8 +203,9 @@ def build_content(expanded=False):
         uni_patches = list(universal.values())
         noun = "patch" if len(uni_patches) == 1 else "patches"
         tag  = "<details open>" if expanded else "<details>"
+        lines.append('<a id="universal-patches"></a>')
         lines.append(f"""{tag}
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
+<summary><strong>Universal patches</strong> · {len(uni_patches)} {noun}</summary>
 <br>
 
 {patches_table(uni_patches)}

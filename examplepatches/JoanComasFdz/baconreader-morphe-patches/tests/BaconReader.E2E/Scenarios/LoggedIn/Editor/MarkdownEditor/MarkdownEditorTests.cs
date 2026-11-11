@@ -28,8 +28,8 @@ public sealed class MarkdownEditorTests : BaseE2E
           And r/strict asks text posts for 10 to 100 characters
           And r/linksonly takes no text in posts
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           And I tap the post "Introductions"
           And I swipe the comment "Hello there" to its action bar
@@ -59,8 +59,8 @@ public sealed class MarkdownEditorTests : BaseE2E
         Reddit.ThePost("Introductions").HasACommentBy("Hello there", "other_user");
         Reddit.TheSubredditAsksTextPostsFor("strict", 10, 100);
         Reddit.TheSubredditTakesNoTextInPosts("linksonly");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));

@@ -9,15 +9,15 @@ Patches for apps maintained by HellveticaStandard.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.2.0](https://github.com/HellveticaStandard/HellveticaPatches/releases/tag/v1.2.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.3.0](https://github.com/HellveticaStandard/HellveticaPatches/releases/tag/v1.3.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Sankaku App&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 4.23 | 4.24 | 4.25 | 4.26 | 4.28 |
-| :---: | :---: | :---: | :---: | :---: |
+| 4.23 | 4.24 | 4.25 | 4.26 | 4.28 | 4.29 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|

@@ -11,6 +11,6 @@ object Constants {
         description = "The Substack reader app.",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFF6719,
-        targets = listOf(AppTarget("3.12.0")),
+        targets = listOf(AppTarget("3.13.1"), AppTarget("3.12.0")),
     )
 }

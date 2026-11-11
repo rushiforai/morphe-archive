@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/RikoDEV/morphed-pl/compare/v1.6.1...v1.7.0) (2026-11-10)
+
+### ✨ New Features
+
+* add Lidl Plus patches ([44bf376](https://github.com/RikoDEV/morphed-pl/commit/44bf376e14bf62d7f3a295ab63a6b11fe3dd9f67))
+
 ## [1.6.1](https://github.com/RikoDEV/morphed-pl/compare/v1.6.0...v1.6.1) (2026-11-08)
 
 ### 🐛 Bug Fixes

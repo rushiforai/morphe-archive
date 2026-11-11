@@ -31,7 +31,7 @@ public final class NuvioPlaybackButtonsPatch {
             builder.execute(context -> {
                 if (!NuvioNative.PACKAGE_NAME.equals(context.getPackageMetadata().getPackageName()) ||
                     !NuvioNative.VERSION.equals(context.getPackageMetadata().getVersionName()))
-                    throw new IllegalStateException("Playback buttons require NuvioTV 1.1.0-beta.13");
+                    throw new IllegalStateException("Playback buttons require NuvioTV 1.1.0");
                 MutableClass main = context.mutableClassDefBy(NuvioNative.PLAYER_MAIN_ROW_TYPE), more = context.mutableClassDefBy(NuvioNative.PLAYER_MORE_ROW_TYPE);
                 validateRuntime(new MutableClass(context.classDefBy(NuvioNative.PLAYER_CONTROLS_TYPE)),
                     new MutableClass(context.classDefBy(NuvioNative.ANIMATED_VISIBILITY_TYPE)), new MutableClass(context.classDefBy(NuvioNative.ANIMATED_SCOPE_TYPE)));

@@ -35,6 +35,8 @@ public final class Seyttings {
             "app.morphe.extension.twitch.adblock.AdBlockSection",
             "app.morphe.extension.twitch.emotes.EmoteSection",
             "app.morphe.extension.twitch.expandchat.ExpandChatSection",
+            "app.morphe.extension.twitch.maturewarning.MatureWarningSection",
+            "app.morphe.extension.twitch.hidepinned.PinnedChatSection",
     };
 
     private Seyttings() {

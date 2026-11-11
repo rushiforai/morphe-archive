@@ -140,12 +140,7 @@ public sealed class PostList(AndroidDriver driver)
         for (var scrolls = 0; scrolls < 5 && await Task.Run(() => FindPost(Screen(), title)?.WithAppId(CardImage).Any(image => image.Displayed) != true); scrolls++)
         {
             object? canScrollMore = null;
-            await OnScreen.DoAsync(driver, () => canScrollMore = driver.ExecuteScript("mobile: scrollGesture", new Dictionary<string, object>
-            {
-                ["elementId"] = ((OpenQA.Selenium.Appium.AppiumElement)driver.FindElement(List)).Id,
-                ["direction"] = "down",
-                ["percent"] = 0.3,
-            }));
+            await OnScreen.DoAsync(driver, () => canScrollMore = OnScreen.ScrollGesture(driver, driver.FindElement(List), "down", 0.3));
             if (canScrollMore is false)
             {
                 break;
@@ -233,7 +228,7 @@ public sealed class PostList(AndroidDriver driver)
                 swipe.AddAction(finger.CreatePointerDown(MouseButton.Touch));
                 swipe.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, bounds.Left + (bounds.Width / 8), from.Y, TimeSpan.FromMilliseconds(300)));
                 swipe.AddAction(finger.CreatePointerUp(MouseButton.Touch));
-                driver.PerformActions([swipe]);
+                OnScreen.PerformSwipe(driver, swipe, from, new Point(bounds.Left + (bounds.Width / 8), from.Y));
             });
     }
 

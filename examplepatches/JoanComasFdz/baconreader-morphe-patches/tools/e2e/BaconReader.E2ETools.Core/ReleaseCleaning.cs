@@ -12,8 +12,9 @@ public sealed record Release(long Id, string Tag);
 public sealed record ReleaseAsset(long Id, string Name);
 
 /// <summary>
-/// What <c>prs-resources</c> keeps when a PR closes: the PR's newest version, so its last post keeps showing and playing
-/// it. Only names <c>pr-&lt;n&gt;-v&lt;version&gt;-…</c> of that PR are ever deleted.
+/// What <c>prs-resources</c> keeps when a PR closes: each run's newest recording, so the newest post that shows a scenario
+/// keeps showing and playing it, and a run that recorded only some scenarios (a batch) loses nothing of the others'.
+/// Only names <c>pr-&lt;n&gt;-v&lt;version&gt;-…</c> of that PR are ever deleted.
 /// </summary>
 public static class ReleaseCleaning
 {
@@ -23,12 +24,12 @@ public static class ReleaseCleaning
     public static Optional<Release> FindPrsRelease(ImmutableArray<Release> releases) =>
         releases.Where(release => release.Tag == ReleaseNaming.PrsRelease).Select(Optional.Some).DefaultIfEmpty(Optional.None<Release>()).First();
 
-    /// <summary>The PR's assets to delete when it closes: every version older than its newest.</summary>
+    /// <summary>The PR's assets to delete when it closes: each one a later version of the PR recorded again.</summary>
     public static ImmutableArray<ReleaseAsset> PlanPrDeletions(ImmutableArray<ReleaseAsset> assets, int pr)
     {
         var own = ReadOwn(assets).Where(asset => asset.Name.Pr == pr).ToImmutableArray();
-        var newest = own.Select(asset => asset.Name.Version).DefaultIfEmpty(0).Max();
-        return [.. own.Where(asset => asset.Name.Version < newest).Select(asset => asset.Asset)];
+        var newest = own.GroupBy(asset => asset.Name.Run).ToImmutableDictionary(run => run.Key, run => run.Max(asset => asset.Name.Version));
+        return [.. own.Where(asset => asset.Name.Version < newest[asset.Name.Run]).Select(asset => asset.Asset)];
     }
 
     /// <summary>The release's lines once cleaned: how many of the PR's assets it kept, how many it holds, and a warning near its limit.</summary>

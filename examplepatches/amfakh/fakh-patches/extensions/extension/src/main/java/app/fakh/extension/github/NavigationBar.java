@@ -1,11 +1,13 @@
 package app.fakh.extension.github;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.RectF;
+import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -17,6 +19,7 @@ import java.util.List;
 import app.fakh.extension.shared.GlassCapsule;
 import app.fakh.extension.shared.GlassTabs;
 import app.fakh.extension.shared.SlidingPill;
+import app.fakh.extension.shared.TabSlide;
 import app.fakh.extension.shared.AppRuntime;
 
 /**
@@ -28,6 +31,8 @@ import app.fakh.extension.shared.AppRuntime;
 public final class NavigationBar {
     public static final String GLASS = "fakh_glass_navbar";
     public static final String HIDE_LABELS = "fakh_hide_nav_labels";
+    /** The Liquid Glass switch, on until turned off: the settings row shows it on before it is ever saved. */
+    public static final String LIQUID = "fakh_liquid_glass";
     private static final float LANDSCAPE_HEIGHT_DP = 272f;
     public static final String NAV_RIGHT = "fakh_nav_right";
     /** Prefix of the switch that hides each tab, which {@link ChoiceSheets} sets from the tab sheet. */
@@ -38,26 +43,28 @@ public final class NavigationBar {
     static List<Object> allTabs = new ArrayList<>();
 
     private static final int SIDE_MARGIN_DP = 12;
-    private static final int INNER_PADDING_DP = 14;
+    private static final int INNER_PADDING_DP = 8;
     private static final int VERTICAL_MARGIN_DP = 6;
     /** Opaque enough to hide the text behind the bar, as on LinkedIn. */
     private static final float FILL_ALPHA = 0.85f;
-    /** Height of the tabs when they have no label; with a label the bar keeps the height the app gives it. */
+    /** Height of the tabs without and with a label, lower than Material 3's 80dp so the pill isn't a tall block. */
     private static final int ICON_ONLY_HEIGHT_DP = 56;
+    private static final int LABELED_HEIGHT_DP = 56;
     /** Space the bar keeps between its tabs. */
     private static final int TAB_GAP_DP = 8;
     /** How many tabs the bar shows, from the tab list; 0 until the app lists them. */
     private static int tabCount;
-    private static final int PILL_WIDTH_DP = 64;
-    private static final int PILL_HEIGHT_DP = 32;
-    /** Where the pill starts below the top of a tab that has a label. */
-    private static final int LABEL_PILL_TOP_DP = 12;
-    /** The rail's tabs are 56dp squares, 4dp apart, centered in the rail; its pill is 56dp by 32dp. */
+    /** How far the pill stays in from the capsule's edges, and how far past its tab it reaches on either side. */
+    private static final int PILL_INSET_DP = 4;
+    private static final int PILL_GROW_DP = 4;
+    /** The rail's tabs are 56dp squares, 4dp apart, centered in the rail. */
     private static final int RAIL_TAB_DP = 56;
     private static final int RAIL_GAP_DP = 4;
 
     /** The icon composable of each tab of the portrait bar, in the order the tabs first appeared: it stays the same for a tab. */
     private static final java.util.List<Object> tabIcons = new java.util.ArrayList<>();
+    /** The click lambda of each tab, at the index of its icon in {@link #tabIcons}. */
+    private static final java.util.List<Object> tabClicks = new java.util.ArrayList<>();
     /** Whether a tab was drawn since the last time the pill was placed. */
     private static boolean drawn;
     /** Which of the tabs of the portrait bar is selected. */
@@ -67,8 +74,6 @@ public final class NavigationBar {
     private static View pillBar;
     /** Whether the bar is the landscape rail, whose pill slides from top to bottom. */
     private static boolean vertical;
-    /** The color of the app's own indicator, which the pill takes; 0 until the portrait bar is drawn. */
-    private static int indicator;
 
     /** The color of the page behind the bar, which the capsule takes so it blends in; 0 until it is read. */
     private static int pageColor;
@@ -109,10 +114,15 @@ public final class NavigationBar {
         if (slider == null || pillBar == null || icon == null || !glass()) return;
         int index = tabIcons.indexOf(icon);
         if (index < 0) {
-            if (tabIcons.size() >= 8) tabIcons.clear();
+            if (tabIcons.size() >= 8) {
+                tabIcons.clear();
+                tabClicks.clear();
+            }
             tabIcons.add(icon);
+            tabClicks.add(onClick);
             index = tabIcons.indexOf(icon);
         }
+        tabClicks.set(index, onClick);
         if (!drawn) pillBar.post(NavigationBar::finishDraw);
         drawn = true;
         if (selected) selectedIndex = index;
@@ -129,14 +139,34 @@ public final class NavigationBar {
         syncPill();
     }
 
+    /**
+     * Injected before GitHub copies a tab label's text style, whose color would win over the label's content color.
+     * On the glass bar the copy takes an unspecified color instead, so the label shows its content color: the accent
+     * on the selected tab and gray on the others, like the icons.
+     *
+     * @param mask which of the copy's arguments keep the style's own value; bit 0 is the color
+     * @return the mask, with the color taken from the arguments while the bar is glass
+     */
+    public static int labelStyleMask(int mask) {
+        return glass() ? mask & ~1 : mask;
+    }
+
     /** The indicator the app draws behind the selected tab: none where the capsule draws its own pill. */
     public static long indicatorColor(long color) {
-        if (slider == null || !glass()) return color;
-        if (color != 0L && (int) (color >>> 32) != indicator) {
-            indicator = (int) (color >>> 32);
-            if (capsule != null) capsule.setPillColor(indicator);
-        }
-        return 0L;
+        return slider == null || !glass() ? color : 0L;
+    }
+
+    /**
+     * The space Material 3 puts between a tab's icon indicator and its label, in dp: none on the glass bar, whose pill
+     * holds both and is too low for Material's 4dp on top of the indicator's own.
+     */
+    public static float labelGap(float gap) {
+        return slider == null || !glass() ? gap : 0f;
+    }
+
+    /** The ripple a pressed tab shows behind its icon, or none on the glass bar, where the pill marks the tab. */
+    public static Object tabIndication(Object indication) {
+        return slider == null || !glass() ? indication : null;
     }
 
     /**
@@ -144,28 +174,120 @@ public final class NavigationBar {
      * rail they are stacked in its middle.
      */
     private static void syncPill() {
+        if (slider == null || selectedIndex < 0) return;
+        float[] span = span(selectedIndex);
+        if (span != null) slider.select(span[0], span[1]);
+    }
+
+    /** Where tab {@code index} spans along the bar, or down the rail; null before the bar is laid out. */
+    private static float[] span(int index) {
         View bar = pillBar;
         int count = tabIcons.size();
-        int index = selectedIndex;
-        if (slider == null || bar == null || count == 0 || index < 0) return;
+        if (bar == null || count == 0 || index < 0) return null;
         float density = bar.getResources().getDisplayMetrics().density;
         if (vertical) {
             float step = (RAIL_TAB_DP + RAIL_GAP_DP) * density;
             float top = (bar.getHeight() - count * step + RAIL_GAP_DP * density) / 2 + index * step;
-            slider.select(top, top + RAIL_TAB_DP * density);
-            return;
+            return new float[] {top, top + RAIL_TAB_DP * density};
         }
         float gap = 8 * density;
         float region = bar.getWidth() - bar.getPaddingLeft() - bar.getPaddingRight();
-        if (region <= 0) return;
+        if (region <= 0) return null;
         float width = (region - gap * (count - 1)) / count;
         float left = bar.getPaddingLeft() + index * (width + gap);
-        slider.select(left, left + width);
+        return new float[] {left, left + width};
     }
+
+    /** The tabs for {@link TabSlide}: spans from {@link #span}, opened through their own click lambda. */
+    private static final TabSlide.Tabs SLIDE_TABS = new TabSlide.Tabs() {
+        @Override
+        public int count() {
+            return tabIcons.size();
+        }
+
+        @Override
+        public float start(int index) {
+            float[] span = span(index);
+            return span == null ? 0 : span[0];
+        }
+
+        @Override
+        public float end(int index) {
+            float[] span = span(index);
+            return span == null ? 0 : span[1];
+        }
+
+        @Override
+        public int selected() {
+            return selectedIndex;
+        }
+
+        @Override
+        public void open(int index) {
+            Object click = index < tabClicks.size() ? tabClicks.get(index) : null;
+            if (click == null) return;
+            // A Kotlin () -> Unit, called as a tap on the tab would. R8 renames invoke() along with Kotlin's
+            // Function0, so it is the lambda's one method that takes nothing and returns an Object.
+            for (java.lang.reflect.Method invoke : click.getClass().getDeclaredMethods()) {
+                if (invoke.getParameterTypes().length != 0 || invoke.getReturnType() != Object.class
+                        || Modifier.isStatic(invoke.getModifiers())) continue;
+                try {
+                    invoke.setAccessible(true);
+                    invoke.invoke(click);
+                } catch (ReflectiveOperationException ignored) {
+                }
+                return;
+            }
+        }
+    };
 
     /** The color of the background the landscape rail draws behind itself: none while the bar is glass. */
     public static long railBackground(long color) {
         return glass() ? 0L : color;
+    }
+
+    /** Whether the activities are watched for their bottom bar. */
+    private static boolean watching;
+
+    /**
+     * Injected at the start of every activity's attachBaseContext by the glass and landscape position patches: from
+     * then on each activity that comes to the front has its bottom bar shaped by {@link #install}.
+     *
+     * @param base the activity's base context, which reaches the application
+     */
+    public static void watch(Context base) {
+        if (watching || !(base.getApplicationContext() instanceof Application)) return;
+        watching = true;
+        ((Application) base.getApplicationContext()).registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override
+            public void onActivityResumed(Activity activity) {
+                install(activity);
+            }
+
+            @Override
+            public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+            }
+
+            @Override
+            public void onActivityStarted(Activity activity) {
+            }
+
+            @Override
+            public void onActivityPaused(Activity activity) {
+            }
+
+            @Override
+            public void onActivityStopped(Activity activity) {
+            }
+
+            @Override
+            public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+            }
+
+            @Override
+            public void onActivityDestroyed(Activity activity) {
+            }
+        });
     }
 
     /** Called when an activity comes to the front: gives its bottom bar the capsule. */
@@ -190,14 +312,15 @@ public final class NavigationBar {
         int side = Math.round((SIDE_MARGIN_DP + INNER_PADDING_DP) * density);
         int vertical = Math.round(VERTICAL_MARGIN_DP * density);
         bar.setPadding(side, vertical, side, vertical);
-        if (MaterialYou.flag(HIDE_LABELS)) {
-            // The tabs are at least 80dp tall; a bar that is shorter clamps them.
-            ViewGroup.LayoutParams params = bar.getLayoutParams();
-            params.height = Math.round(ICON_ONLY_HEIGHT_DP * density) + 2 * vertical;
-            bar.setLayoutParams(params);
-        }
+        // The tabs are at least 80dp tall; a bar that is shorter clamps them and centers the icon and label.
+        ViewGroup.LayoutParams size = bar.getLayoutParams();
+        size.height = Math.round((MaterialYou.flag(HIDE_LABELS) ? ICON_ONLY_HEIGHT_DP : LABELED_HEIGHT_DP) * density)
+                + 2 * vertical;
+        bar.setLayoutParams(size);
         GlassCapsule.clearSystemBar(activity);
         capsule = new GlassCapsule(barColor, density, new GlassCapsule.Layout() {
+            private final RectF shape = new RectF();
+
             @Override
             public boolean capsule(RectF out) {
                 // The padding of the bar is the margin around the tabs, so the capsule hugs them.
@@ -209,19 +332,17 @@ public final class NavigationBar {
 
             @Override
             public boolean pill(RectF out) {
-                if (slider == null || !slider.has()) return false;
-                // As the app's own indicator: 64dp by 32dp around the icon, which sits at the top of a tab with a
-                // label and in the middle of one without.
-                float center = (slider.start() + slider.end()) / 2;
-                float half = Math.min(PILL_WIDTH_DP * density, slider.end() - slider.start()) / 2;
-                float top = MaterialYou.flag(HIDE_LABELS)
-                        ? (bar.getPaddingTop() + bar.getHeight() - bar.getPaddingBottom() - PILL_HEIGHT_DP * density) / 2
-                        : bar.getPaddingTop() + LABEL_PILL_TOP_DP * density;
-                out.set(center - half, top, center + half, top + PILL_HEIGHT_DP * density);
+                if (slider == null || !slider.has() || !capsule(shape)) return false;
+                // The whole tab, icon and label, a little wider than the tab, with a thin rim of the capsule all around.
+                float inset = PILL_INSET_DP * density;
+                float grow = PILL_GROW_DP * density;
+                out.set(Math.max(shape.left + inset, slider.start() - grow), shape.top + inset,
+                        Math.min(shape.right - inset, slider.end() + grow), shape.bottom - inset);
                 return true;
             }
         }, FILL_ALPHA);
         bar.setBackground(capsule);
+        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(LIQUID, true));
         startPill(bar, false);
         matchPage(activity);
         // The bar floats over the screen like a glass bar should: the screen above it reaches down behind it.
@@ -343,6 +464,8 @@ public final class NavigationBar {
         bar.setPadding(0, 0, 0, 0);
         GlassCapsule.clearSystemBar(activity);
         capsule = new GlassCapsule(barColor, density, new GlassCapsule.Layout() {
+            private final RectF shape = new RectF();
+
             @Override
             public boolean capsule(RectF out) {
                 float height = Math.min(bar.getHeight() - 2 * VERTICAL_MARGIN_DP * density, LANDSCAPE_HEIGHT_DP * density);
@@ -353,30 +476,39 @@ public final class NavigationBar {
 
             @Override
             public boolean pill(RectF out) {
-                if (slider == null || !slider.has()) return false;
-                float center = (slider.start() + slider.end()) / 2;
-                float half = RAIL_TAB_DP * density / 2;
-                float x = bar.getWidth() / 2f;
-                out.set(x - half, center - PILL_HEIGHT_DP * density / 2, x + half, center + PILL_HEIGHT_DP * density / 2);
+                if (slider == null || !slider.has() || !capsule(shape)) return false;
+                // The whole tab, a little taller than it, with a thin rim of the capsule all around.
+                float inset = PILL_INSET_DP * density;
+                float grow = PILL_GROW_DP * density;
+                out.set(shape.left + inset, Math.max(shape.top + inset, slider.start() - grow),
+                        shape.right - inset, Math.min(shape.bottom - inset, slider.end() + grow));
                 return true;
             }
         }, FILL_ALPHA);
         bar.setBackground(capsule);
+        capsule.setLiquid(MaterialYou.prefs(activity).getBoolean(LIQUID, true));
         startPill(bar, true);
         bar.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> syncPill());
         matchPage(activity);
     }
 
-    /** Gives a new bar its pill, which takes the color of the app's own indicator once it is known. */
+    /**
+     * Gives a new bar its pill, as on the other glass bars: a wash of the wallpaper's accent with Material You, and
+     * neutral gray without it. The app's own indicator is a pale container color that vanishes on the light capsule.
+     */
     private static void startPill(View bar, boolean rail) {
-        if (indicator != 0) capsule.setPillColor(indicator);
+        if (app.fakh.extension.shared.MaterialYou.wallpaper(MaterialYou.isMaterialYou(bar.getContext()))) {
+            capsule.setAccent(app.fakh.extension.shared.MaterialYou.accent(bar.getContext(), true, 0, 0));
+        }
         tabIcons.clear();
+        tabClicks.clear();
         drawn = false;
         selectedIndex = -1;
         vertical = rail;
         slider = capsule.slider();
         pillBar = bar;
         syncPill();
+        TabSlide.install(bar, capsule, rail, SLIDE_TABS);
     }
 
     /**
@@ -394,14 +526,21 @@ public final class NavigationBar {
                 if (host.getWidth() == 0 || host.getHeight() == 0) return;
                 host.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 host.postDelayed(() -> {
-                    android.graphics.Bitmap bitmap = android.graphics.Bitmap.createBitmap(
-                            host.getWidth(), host.getHeight(), android.graphics.Bitmap.Config.ARGB_8888);
-                    host.draw(new android.graphics.Canvas(bitmap));
-                    int color = bitmap.getPixel(2, bitmap.getHeight() / 2);
-                    if (Color.alpha(color) == 255 && capsule != null) {
-                        pageColor = color;
-                        capsule.setColor(color);
-                    }
+                    if (!host.isAttachedToWindow()) return;
+                    // One pixel copied from what the window shows: drawing the page into a software canvas throws
+                    // on the hardware bitmaps some pages hold, such as avatars on Explore.
+                    int[] place = new int[2];
+                    host.getLocationInWindow(place);
+                    int x = place[0] + 2;
+                    int y = place[1] + host.getHeight() / 2;
+                    android.graphics.Bitmap pixel = android.graphics.Bitmap.createBitmap(1, 1, android.graphics.Bitmap.Config.ARGB_8888);
+                    android.view.PixelCopy.request(activity.getWindow(), new android.graphics.Rect(x, y, x + 1, y + 1), pixel, result -> {
+                        int color = pixel.getPixel(0, 0);
+                        if (result == android.view.PixelCopy.SUCCESS && Color.alpha(color) == 255 && capsule != null) {
+                            pageColor = color;
+                            capsule.setColor(color);
+                        }
+                    }, host.getHandler());
                 }, 600);
             }
         });

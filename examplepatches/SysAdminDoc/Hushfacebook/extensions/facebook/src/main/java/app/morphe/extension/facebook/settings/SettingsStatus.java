@@ -142,6 +142,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean askBeforeLike() {
+        return false;
+    }
+
     public static boolean doubleTapSkip() {
         return false;
     }
@@ -479,6 +483,10 @@ public final class SettingsStatus {
     }
 
     public static boolean searchPostsTab() {
+        return false;
+    }
+
+    public static boolean searchSavedButton() {
         return false;
     }
 

@@ -63,7 +63,9 @@ internal const val PATCH = "Keep the reel speed"
  * toast and setter, so Keep the reel speed keeps it like any other. The gear menu's speed sheet
  * gets them too ([addSlowerGearSpeeds]), and its pick goes through the setter the gear hook follows.
  * Facebook's player keeps every speed at 0.25x or faster, so the patch lowers that floor to 0.1x
- * ([lowerSpeedFloor]). Facebook itself never asks for less than 0.5x.
+ * ([lowerSpeedFloor]). Facebook itself never asks for less than 0.5x. Faster speeds, the fifth
+ * switch, adds 2.5x and 3x through the same hooks and needs nothing more, since HeroManager plays up
+ * to 4x (#430).
  *
  * The gear menu's speed sheet checks Normal when it can't find its player, and its checked row
  * can't be picked, so the sheet asks the extension which speed to check there ([checkGearSheetSpeed]),
@@ -80,7 +82,8 @@ val keepReelSpeedPatch = bytecodePatch(
     name = "Keep the reel speed",
     description = "A speed you pick in a reel's menu stays for the next reels, even after Facebook restarts, " +
         "so you don't set it every time. Pick normal speed to go back. On by default. A second switch for feed and Watch videos starts off. " +
-        "Live videos that have ended get Playback speed in their gear menu too, also on by default. All of it is " +
+        "Live videos that have ended get Playback speed in their gear menu too, also on by default. Another switch, " +
+        "off to start, puts Playback speed from 0.5x to 3x in a feed or Watch video's three-dot menu. All of it is " +
         "in Hushfacebook settings > Reels and Watch.",
     default = true,
 ) {
@@ -137,6 +140,8 @@ internal class ReelSpeedAnchors(
     val gearPick: Method,
     val params: Method,
     val flags: Map<String, FieldReference>,
+    /** The params' public String videoId, or null when the dump doesn't report one, which leaves the post menu's speed row on the video playing. */
+    val videoId: FieldReference?,
 )
 
 /**
@@ -189,6 +194,16 @@ internal fun BytecodePatchContext.findReelSpeedAnchors(): ReelSpeedAnchors {
         if (!AccessFlags.PUBLIC.isSet(declared.accessFlags)) refuse("$name, ${field.name}, isn't public, so the extension can't read it")
         stub to field
     }
+    val videoId = reported[VIDEO_ID_REPORTED]?.takeIf { field ->
+        paramsClass.fields.any {
+            it.name == field.name && it.type == "Ljava/lang/String;" && AccessFlags.PUBLIC.isSet(it.accessFlags) &&
+                !AccessFlags.STATIC.isSet(it.accessFlags)
+        }
+    }
+    if (videoId == null) {
+        patchLog.warning("$PATCH: $VIDEO_ID_REPORTED isn't a public String field of $VIDEO_PLAYER_PARAMS. " +
+            "The patch goes on, and the post menu's Playback speed sets the video playing.")
+    }
 
     // The extension's stubs call these from outside Facebook's package.
     listOf(owner, paramsClass).forEach { reachable ->
@@ -199,7 +214,7 @@ internal fun BytecodePatchContext.findReelSpeedAnchors(): ReelSpeedAnchors {
             refuse("${owner.type}->${method.name} isn't public, so the extension can't call it")
         }
     }
-    return ReelSpeedAnchors(owner, setter, origin, start, toast, toastSpeed, gearPick, params, flags)
+    return ReelSpeedAnchors(owner, setter, origin, start, toast, toastSpeed, gearPick, params, flags, videoId)
 }
 
 /**
@@ -444,6 +459,16 @@ private fun BytecodePatchContext.fillStubs(anchors: ReelSpeedAnchors) {
                 check-cast p0, $VIDEO_PLAYER_PARAMS
                 iget-boolean p0, p0, $VIDEO_PLAYER_PARAMS->${field.name}:Z
                 return p0
+            """,
+        )
+    }
+    anchors.videoId?.let { field ->
+        stub(VIDEO_ID_STUB, listOf(objectType), "Ljava/lang/String;").addInstructions(
+            0,
+            """
+                check-cast p0, $VIDEO_PLAYER_PARAMS
+                iget-object p0, p0, $VIDEO_PLAYER_PARAMS->${field.name}:Ljava/lang/String;
+                return-object p0
             """,
         )
     }

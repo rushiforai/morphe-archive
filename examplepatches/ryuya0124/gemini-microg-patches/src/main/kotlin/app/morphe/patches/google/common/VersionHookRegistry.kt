@@ -2,6 +2,7 @@ package app.morphe.patches.google.common
 
 import app.morphe.patches.google.common.versions.google177011
 import app.morphe.patches.google.common.versions.gemini10995038376
+import app.morphe.patches.google.common.versions.google177217
 import app.morphe.patcher.PackageMetadata
 import app.morphe.patches.google.common.versions.google175418
 import app.morphe.patches.google.common.versions.gemini10958859967
@@ -62,7 +63,7 @@ data class AppVersionProfile(
 
 object VersionHookRegistry {
     // Add a new version file and register it here. Never widen a verified version to .*.
-    val profiles: List<AppVersionProfile> = listOf(google175418, google177011, gemini10958859967, gemini10995038376)
+    val profiles: List<AppVersionProfile> = listOf(google175418, google177011, google177217, gemini10958859967, gemini10995038376)
 
     init {
         check(profiles.map { it.packageName to it.versionName }.distinct().size == profiles.size)

@@ -182,7 +182,7 @@ try {
     $desktop = Resolve-DesktopCli -Root $Root -Required
     $fixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR
     if (-not $fixtureDir) { $fixtureDir = Join-Path $Root 'fixtures' }
-    $fixtures = @('telegram-web-13.2.0-72809.apk', 'telegram-play-13.2.1-72911.apk') |
+    $fixtures = @('telegram-web-13.2.1-72919.apk', 'telegram-play-13.2.1-72911.apk') |
         ForEach-Object { Join-Path $fixtureDir $_ }
     foreach ($fixture in $fixtures) {
         Assert-Selection (Test-Path -LiteralPath $fixture -PathType Leaf) 'A native-version control fixture is missing.'

@@ -20,4 +20,4 @@ semantic-release (`.releaserc`) releases from the commit types:
 
 - A release on `dev` is a pre-release, shown in Morphe Manager when pre-releases are on for this source. A release on `main` is stable.
 - Only `release.yml` creates releases. Never create one by hand, edit `CHANGELOG.md`, `patches-list.json` or `patches-bundle.json`, or force-push release commits.
-- The README is written by hand: update its tables and the patch count badge when a patch is added or changed.
+- The README is written by hand. It links to the user guide for the patches: a new or changed patch updates its page and its row in `docs/patches.md` (AGENTS.md, "Patch pages"), not the README.

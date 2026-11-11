@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="darkreader-lock" />
+    <title>BaconReader patches for Morphe · User guide</title>
+    <meta name="description" content="What each BaconReader patch does, with a video of it on a real phone and the test's steps beside it." />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="apple-touch-icon" href="favicon.png" />
+    <!-- The preview a link to the guide gets when it's shared (WhatsApp, Telegram, X, …): Open Graph's tags, its image
+         an absolute URL. preview.jpg is 1200 × 630, BaconReader's icon (from its APK) and the guide's title. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="BaconReader patches" />
+    <meta property="og:title" content="BaconReader patches for Morphe · User guide" />
+    <meta property="og:description" content="What each BaconReader patch does, with a video of it on a real phone and the test's steps beside it." />
+    <meta property="og:url" content="https://joancomasfdz.github.io/baconreader-morphe-patches/" />
+    <meta property="og:image" content="https://joancomasfdz.github.io/baconreader-morphe-patches/preview.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="BaconReader's icon, and &quot;BaconReader patches for Morphe · User guide&quot;" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- The user guide: a sidebar of the patches, grouped as docs/patches.md groups them, and what each patch does, from its
+         page (docs/patches/<patch>.md), with the newest e2e recording of each scenario that shows it, its Gherkin and its
+         marks. tools/guide/build.js puts the sidebar's links where the "guide-nav" comment is, the patches where the
+         "guide" comment is, and inlines the player (e2e-player.css, e2e-player.js) where the include comments are; the
+         Pages workflow (.github/workflows/pages.yml) builds and publishes it. -->
+    <style>
+        :root { --bg: #0a0d13; --panel: #111620; --line: #263046; --text: #e7eaf0; --muted: #8a94a8; --arc: #6fe3ff; --fail: #ff6b6b;
+            --now: #1b3346; --video-height: 70vh; --gherkin-height: 70vh; --sidebar: 280px; }
+        *, *::before, *::after { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+        a { color: var(--arc); }
+        code { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; font-size: 0.9em; }
+        .layout { display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); max-width: 1480px; margin: 0 auto; }
+        .sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 20px 12px 24px 20px; border-right: 1px solid var(--line);
+            background: var(--panel); }
+        .brand { display: block; color: var(--text); text-decoration: none; font-size: 18px; font-weight: 700; line-height: 1.3; margin: 0 0 4px; }
+        .brand small { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+        .toc > summary { list-style: none; cursor: pointer; font-weight: 600; padding: 8px 0; }
+        .toc > summary::-webkit-details-marker { display: none; }
+        .toc > summary::after { content: " ▾"; color: var(--muted); }
+        .toc h2 { margin: 18px 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+        .toc ul { list-style: none; margin: 0; padding: 0; }
+        .toc a { display: block; padding: 4px 10px; margin: 1px 0; border-left: 3px solid transparent; border-radius: 0 6px 6px 0; color: var(--text);
+            text-decoration: none; font-size: 14px; line-height: 1.35; }
+        .toc a:hover { background: #18202e; }
+        .toc a.active { background: var(--now); border-left-color: var(--arc); color: #fff; }
+        .content { min-width: 0; padding: 24px 32px 64px; }
+        .content > header { max-width: 820px; padding-bottom: 8px; }
+        h1 { margin: 0 0 8px; font-size: 30px; line-height: 1.2; }
+        .lead { color: var(--muted); margin: 0 0 8px; }
+        section { padding: 28px 0; border-top: 1px solid var(--line); scroll-margin-top: 12px; }
+        section > h2 { margin: 0 0 6px; font-size: 24px; }
+        section > p, section > ul { max-width: 820px; }
+        h3 { margin: 0; font-size: 15px; font-weight: 600; }
+        .summary { font-size: 18px; margin: 0 0 8px; }
+        .meta { color: var(--muted); font-size: 13px; margin: 2px 0 8px; }
+        .scenario { margin: 20px 0 0; }
+        .patcher-note { max-width: 820px; margin: 16px 0 0; padding: 12px 16px; background: var(--panel); border: 1px solid var(--line);
+            border-left: 3px solid var(--arc); border-radius: 0 8px 8px 0; }
+        .patcher-note h3 { color: var(--arc); }
+        .patcher-note ul { margin: 6px 0 0; padding-left: 20px; }
+        .no-recording .player { display: none; }
+        /* The phone's recordings are 576 × 1248: the space is kept before a video loads, so the page doesn't jump. */
+        .recording video { height: var(--video-height); width: auto; aspect-ratio: 576 / 1248; }
+        [hidden] { display: none !important; }
+        @media (min-width: 900px) {
+            .toc > summary { display: none; }
+        }
+        @media (max-width: 899px) {
+            .layout { display: block; }
+            .sidebar { position: sticky; z-index: 2; height: auto; max-height: 100vh; padding: 10px 16px; border-right: 0; border-bottom: 1px solid var(--line); }
+            .brand { display: inline-block; margin-right: 12px; }
+            .brand small { display: none; }
+            .toc { display: inline-block; }
+            .toc[open] { display: block; }
+            .content { padding: 16px; }
+            section { scroll-margin-top: 64px; }
+            :root { --video-height: 60vh; }
+        }
+        /* include: e2e-player.css */
+    </style>
+</head>
+
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <a class="brand" href="#top">BaconReader patches<small>for Morphe · User guide</small></a>
+            <details class="toc" open>
+                <summary>Patches</summary>
+                <nav aria-label="Patches">
+                    <!-- guide-nav -->
+                </nav>
+            </details>
+        </aside>
+        <main class="content" id="top">
+            <header>
+                <h1>BaconReader patches for Morphe</h1>
+                <p class="lead">This guide shows every patch, what it does, and a video of it working on a real phone. To install or
+                    update them, see <a href="https://github.com/JoanComasFdz/baconreader-morphe-patches#-install">the README</a>.</p>
+            </header>
+            <!-- guide -->
+        </main>
+    </div>
+    <script>
+        /* include: e2e-player.js */
+    </script>
+    <script>
+        (function () {
+            document.querySelectorAll(".recording").forEach(function (element) {
+                var data = JSON.parse(element.querySelector("script").textContent);
+                var src = element.getAttribute("data-src");
+                E2EPlayer.mount(element, { src: src, steps: E2EPlayer.toSteps(data), lazy: true });
+                if (!src) {
+                    element.classList.add("no-recording");
+                }
+            });
+
+            // The sidebar: open on a wide screen, a menu that closes once a patch is picked on a narrow one; the patch
+            // being read is highlighted.
+            var toc = document.querySelector(".toc");
+            var wide = window.matchMedia("(min-width: 900px)");
+            function fit() {
+                toc.open = wide.matches;
+            }
+            fit();
+            wide.addEventListener("change", fit);
+            var links = {};
+            toc.querySelectorAll("a").forEach(function (link) {
+                links[link.getAttribute("href").slice(1)] = link;
+                link.addEventListener("click", function (event) {
+                    var target = document.getElementById(link.getAttribute("href").slice(1));
+                    if (!target) {
+                        return;
+                    }
+
+                    event.preventDefault();
+                    if (!wide.matches) {
+                        toc.open = false;
+                    }
+
+                    history.replaceState(null, "", link.getAttribute("href"));
+                    target.scrollIntoView();
+                    highlight(target.id);
+                });
+            });
+            var current = null;
+            function highlight(id) {
+                if (id === current || !links[id]) {
+                    return;
+                }
+
+                if (current) {
+                    links[current].classList.remove("active");
+                }
+
+                current = id;
+                links[id].classList.add("active");
+                if (wide.matches) {
+                    links[id].scrollIntoView({ block: "nearest" });
+                }
+            }
+            var sections = Array.prototype.slice.call(document.querySelectorAll("main section"));
+            // The section being read: the last one whose top is above a line near the top of the window; at the page's
+            // end, the last one, which may be too short to reach that line.
+            function follow() {
+                var reading = sections[0];
+                sections.forEach(function (section) {
+                    if (section.getBoundingClientRect().top <= 120) {
+                        reading = section;
+                    }
+                });
+                if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) {
+                    reading = sections[sections.length - 1];
+                }
+                if (reading) {
+                    highlight(reading.id);
+                }
+            }
+            document.addEventListener("scroll", follow, { passive: true });
+            follow();
+        })();
+    </script>
+</body>
+
+</html>

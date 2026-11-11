@@ -239,7 +239,7 @@ public sealed class LeftMenu(AndroidDriver driver)
     }
 
     /// <summary>Closes the menu, as Android's Back does.</summary>
-    public Task CloseAsync() => OnScreen.DoAsync(driver, () => driver.PressKeyCode(AndroidKeyCode.Back));
+    public Task CloseAsync() => OnScreen.PressBackAsync(driver);
 
     /// <summary>
     /// What the button that opens the menu shows: the orange envelope while there are unread messages, otherwise the menu

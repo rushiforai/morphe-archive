@@ -47,12 +47,12 @@ public sealed class SpoofClientTests : BaseE2E
           When I tap "Accept"
           # BaconReader comes back from the login with the left menu open.
           Then the left menu shows the test account's user name
-          # Not on the screen: the fake Reddit records what BaconReader sent.
+          # On the setup page: the fake Reddit records what BaconReader sent.
           And Reddit saw RedReader's client ID, redirect URI and User-Agent
           When I close the left menu
           Then the toolbar shows the "Front Page" feed
           And the feed shows the post "Hello from r/e2e"
-          # Not on the screen: the fake Reddit records what BaconReader sent.
+          # On the setup page: the fake Reddit records what BaconReader sent.
           And Reddit got the request for the posts with RedReader's User-Agent
         """)]
     public async Task BaconReaderPatchedWithSpoofClientLogsInToRedditAsRedReader(Screen screen)
@@ -105,7 +105,7 @@ public sealed class SpoofClientTests : BaseE2E
         // Then
         var toolbar = await Phone.BaconReader.Main.Toolbar.ReadAsync();
         var posts = await Phone.BaconReader.Main.Posts.ReadAsync();
-        // Not on the screen: the fake Reddit records what BaconReader sent.
+        // On the setup page: the fake Reddit records what BaconReader sent.
         var requestsForPosts = Reddit.ReadRequestsForPosts();
         Asserting.That(toolbar).ShowsFeed(new Feed.FrontPage());
         Asserting.That(posts).ShowsThePosts("Hello from r/e2e");
@@ -166,17 +166,27 @@ public sealed class SpoofClientTests : BaseE2E
   isn't the one installed (sending one takes 1–3 minutes over the slow link): the LoggedIn scenarios share one;
 - **a fresh app per scenario:** stopped and its data cleared (no login, no setting, no cache from the scenario before),
   as just installed, but with its notifications denied (`Device/PatchedApps`): Android doesn't ask, on any device. A
-  LoggedIn scenario's app starts logged in with the test account: the fake Reddit hands it the login at its start
-  (`LogInAtStart`, "E2E fake Reddit"), so `LogInWithTheTestAccountAsync` waits for the posts instead of going through
-  the login screens (~11 s a scenario); Spoof client's Startup scenario still logs in through them;
+  LoggedIn scenario's app starts logged in with the test account: its Given's `Reddit.TheTestAccountIsLoggedIn()` has
+  the fake Reddit hand it the login at its start (`LogInAtStart`, "E2E fake Reddit"), so `OpenAsync` waits for the
+  posts instead of going through the login screens (~11 s a scenario); Spoof client's Startup scenario still logs in
+  through them;
 - **the screen:** one Appium session on the phone, its UiAutomator2 helpers already installed
   (`skipServerInstallation`, `skipDeviceInitialization`; `E2E_APPIUM_INSTALL_HELPERS=1` installs them after the
-  phone was reset), that never launches or resets the app itself: the scenario opens it;
+  phone was reset), that never launches or resets the app itself: the scenario opens it, from Android's home screen,
+  where each scenario starts (`Device/HomeScreen`), so its video starts there too;
 - **the recording:** when the run records (`E2E_VIDEO_DIR`), Android's `screenrecord` records the screen from before
   the app opens to the end, 576 px wide in the screen's shape at 1 Mbit/s, in parts of 3 minutes joined at the end,
-  with a ring drawn onto the video where each tap lands, before it (`Device/ScreenRecording`); it saves the video
+  with a ring drawn onto the video where each tap lands, before it, and an arrow pointing left, at the screen's right
+  side, at each Back (`Device/ScreenRecording`); it saves the video
   (record.sh holds its last frame 3 s), also when the scenario fails, with its record next to it (title, Gherkin,
-  screen, patches, GIF name, domain folder, when the main screen first showed, whether it passed);
+  screen, patches, GIF name, domain folder, when the main screen first showed, whether it passed, and when each Gherkin
+  line played in the video);
+- **the Gherkin marks** (`Steps/GherkinMarking`): while the run records, each statement of the scenario starts when it
+  asks for `Phone` or `Reddit`, and the recording marks the Gherkin line it plays (rule h, read from the scenario's own
+  source, embedded in the assembly: `Steps/ScenarioSteps`). An assertion asks for neither: its Then line is marked once
+  the scenario has gone past it, and the scenario stands still 0.8 s on each Then line, so the site's player
+  highlights one line at a time. When the scenario fails, the assertion its stack trace names, or else the line its
+  last statement played, is marked as failed;
 - the `Phone` property.
 
 A scenario never repeats any of that.
@@ -200,12 +210,15 @@ A scenario never repeats any of that.
   - **Read**: `ReadAsync()` returns an immutable record snapshot of what that part shows, never the raw UI tree:
     vocabulary values (rule e) where it shows one kind of thing, the shown text where it composes a line;
     `ReadLayoutAsync()` returns where its views are on the screen (their bounds, in pixels) for layout checks (rule d).
-- **Pace the steps.** Every Act and Read goes through `OnScreen` (`PressAsync`, `TouchAsync`, `ActAsync`, `DoAsync`,
-  `ReadAsync`), never straight to Appium: while recording, a step starts no sooner than `--action-gap` seconds after the
+- **Pace the steps.** Every Act and Read goes through `OnScreen` (`PressAsync`, `TouchAsync`, `PressBackAsync`, `ActAsync`,
+  `DoAsync`, `ReadAsync`), never straight to Appium: while recording, a step starts no sooner than `--action-gap` seconds after the
   previous one ended, so the GIF doesn't tap faster than the eye follows. A view that is off screen is scrolled to first
   (through `OnScreen`, when a scenario first needs it). `PressAsync` shows where it taps before it taps: the recording
   draws a ring there from 0.4 s before the tap until just after it (Android draws no touch for Appium's taps);
-  `TouchAsync` does the same for any other touch (a double tap, a long press). Waits don't go through it (`Waiting`).
+  `TouchAsync` does the same for any other touch (a double tap, a long press), and `PressBackAsync` for Android's Back,
+  with an arrow at the screen's right side. A swipe goes through `OnScreen.PerformSwipe`, and a scroll through
+  `OnScreen.ScrollGesture`, never straight to `PerformActions` or `mobile: scrollGesture`: the ring then follows the
+  finger, from where it lands to where it lifts. Waits don't go through it (`Waiting`).
 - Snapshots don't retry: a scenario waits for what it expects before it reads.
 - Locators are private to their class and use only `Locate`: a resource id (`Locate.AppId("toolbarTitle")`, Android's
   own `Locate.AndroidId("button1")`), a content description, or the exact text. Never XPath or a position. A view a patch
@@ -292,8 +305,8 @@ Line for line, in the Gherkin's order:
 | `And BaconReader is patched with "Spoof client"`, one line a patch (Startup) | `[PatchedWith(Patch.SpoofClient, …)]`, every patch the Given names |
 | `And BaconReader is patched with every patch` (LoggedIn) | `[PatchedWithEveryPatch]` |
 | `And BaconReader is installed` | nothing: BaseE2E installed it |
-| `And BaconReader is open` | `// Given`: `Phone.BaconReader.OpenAsync()`, after the Reddit data |
-| `And the test account is logged in` | `// Given`: `Phone.BaconReader.LogInWithTheTestAccountAsync()`, after it opens |
+| `And the test account is logged in` (LoggedIn) | `// Given`: `Reddit.TheTestAccountIsLoggedIn()`, with the Reddit data, before it opens |
+| `And BaconReader is open` | `// Given`: `Phone.BaconReader.OpenAsync()`, after the Reddit data; in a LoggedIn scenario it waits for the feed's posts |
 | A `When`, and the `And` lines after it | One `// When` block: one Act call per line, in order, ending with the `WaitUntil…` for what the Then reads |
 | `I open BaconReader` | `Phone.Launcher.OpenBaconReaderAsync()` |
 | `I tap "GOT IT :(" on "FINAL RELEASE ANNOUNCEMENT!"` | `Phone.BaconReader.FinalReleaseAnnouncement.WaitUntilShownAsync()`, `ClickGotItAsync()` |
@@ -303,3 +316,14 @@ Line for line, in the Gherkin's order:
 | A `#` line (why it surprises) | Stays in the Gherkin; a `//` line above the read it explains, when it explains a check |
 
 A Gherkin line with no page-object member or assertion yet gets one (rule g, step 5), named in the same words.
+
+`ScenarioStepsTests` checks every scenario against this table, without the phone, since the recording marks each
+Gherkin line by it (rule b, "the Gherkin marks"):
+- A `// When` (and the `// Given`) plays a line a statement, but for the statements that only get the next one ready:
+  in the first of these that matches the lines, a wait (`WaitUntil…`), a read or a scroll (`ScrollTo…`, bringing a
+  setting into view) plays none; then a wait or a read ("And I wait until the comment shows" is a `WaitUntil…`); then
+  every statement plays one. `BaconReader is patched with …` and `BaconReader is installed` are BaseE2E's.
+- A `// Then` plays a line a source line of its `Asserting.That(…)` chains: each line that starts with a call, and the
+  first line when calls follow `That(…)` on it. `.AsksToConnect(…).WithTheTestAccount()` on one line checks one
+  Then line; two Then lines are two source lines, in the Gherkin's order. A check that only repeats the wait before it
+  (Reddit served what the wait waited for) is left out.

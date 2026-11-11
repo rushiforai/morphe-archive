@@ -45,6 +45,7 @@ class ReleaseOrderTest(unittest.TestCase):
         calendar = next(part for part in steps if 'tests/calendar/validate_bundle.py' in part)
         self.assertIn('$CALENDAR_ORIGINAL_120', calendar)
         self.assertIn('$CALENDAR_ORIGINAL_121', calendar)
+        self.assertIn('$CALENDAR_ORIGINAL_122', calendar)
         self.assertIn('$MORPHE_DESKTOP_JAR', calendar)
         self.assertIn('tests/calendar/validate_bundle.py', plugins[gate][1]['prepareCmd'])
 

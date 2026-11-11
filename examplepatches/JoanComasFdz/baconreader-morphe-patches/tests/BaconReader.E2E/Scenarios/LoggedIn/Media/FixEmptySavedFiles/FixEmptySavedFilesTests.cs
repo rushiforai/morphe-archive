@@ -23,8 +23,8 @@ public sealed class FixEmptySavedFilesTests : BaseE2E
           Given Reddit has a GIF post "Dancing" in r/e2e
           And Reddit has an image post "Picture" in r/e2e
           And BaconReader is patched with every patch
-          And BaconReader is open
           And the test account is logged in
+          And BaconReader is open
           When I select the "e2e" feed
           And I tap "More options" in the toolbar
           And I tap "List View"
@@ -49,8 +49,8 @@ public sealed class FixEmptySavedFilesTests : BaseE2E
         // Given
         Reddit.HasAGifPost("Dancing", "e2e");
         Reddit.HasAnImagePost("Picture", "e2e");
+        Reddit.TheTestAccountIsLoggedIn();
         await Phone.BaconReader.OpenAsync();
-        await Phone.BaconReader.LogInWithTheTestAccountAsync();
 
         // When
         await Phone.BaconReader.Main.Toolbar.SelectFeedAsync(new Feed.Subreddit("e2e"));

@@ -154,8 +154,8 @@ class KeepAliveServiceFixtureTest {
         ApkModule().use { module ->
             module.setManifest(AndroidManifestBlock.empty().apply {
                 setPackageName("org.telegram.messenger.web")
-                setVersionName("13.2.0")
-                setVersionCode(72809)
+                setVersionName("13.2.1")
+                setVersionCode(72919)
             })
             module.writeApk(apk)
         }

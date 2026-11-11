@@ -111,7 +111,7 @@ class OutsideTranslateFixtureTest {
             val site = context.resolveOutsideTranslate()
             // 13.1's R8 gave both builds the same wrapper and menu names (v0, x0 and u); 13.2's builds differ.
             val (itemType, menuType, adder) = when {
-                name.contains("-72809") -> Triple("Lorg/telegram/ui/ActionBar/p0;", "Lorg/telegram/ui/ActionBar/r0;", "z")
+                name.contains("-72919") -> Triple("Lorg/telegram/ui/ActionBar/q0;", "Lorg/telegram/ui/ActionBar/s0;", "z")
                 name.contains("-72911") -> Triple("Lorg/telegram/ui/ActionBar/r0;", "Lorg/telegram/ui/ActionBar/t0;", "z")
                 else -> Triple("Lorg/telegram/ui/ActionBar/v0;", "Lorg/telegram/ui/ActionBar/x0;", "u")
             }

@@ -15,7 +15,8 @@ public sealed class ScriptFilesTests
     /// <summary>A ScenarioRecording as BaseE2E serializes it, camelCase.</summary>
     private const string Recording = """
         {"domain": "Account", "class": "SpoofClientTests", "method": "Opens", "title": "Opens", "gherkin": "Scenario: x",
-         "screen": "phone", "gif": "opens-phone", "patches": ["Spoof client", "Hide ads"], "homeShownSeconds": 3.25, "passed": true}
+         "screen": "phone", "gif": "opens-phone", "patches": ["Spoof client", "Hide ads"], "homeShownSeconds": 3.25, "passed": true,
+         "marks": [{"line": 2, "seconds": 0, "failed": false}, {"line": 4, "seconds": 6.5, "failed": true}, {"line": 5}]}
         """;
 
     [Fact]
@@ -28,6 +29,19 @@ public sealed class ScriptFilesTests
         Assert.Equal(["Spoof client", "Hide ads"], record.Patches);
         Assert.Equal(Optional.Some(3.25), record.HomeShownSeconds);
     }
+
+    [Fact]
+    public void A_runs_record_keeps_its_Gherkin_marks_and_leaves_out_one_without_its_seconds()
+    {
+        var record = Assert.IsType<Result<RunRecord, string>.Ok>(JsonReading.ReadRunRecord(Recording)).Value;
+
+        Assert.Equal([new LineMark(2, 0, false), new LineMark(4, 6.5, true)], record.Marks);
+    }
+
+    [Fact]
+    public void A_record_without_marks_has_none() =>
+        Assert.Empty(Assert.IsType<Result<RunRecord, string>.Ok>(JsonReading.ReadRunRecord(
+            """{"domain": "A", "class": "C", "method": "M", "title": "T", "screen": "desktop", "gif": "m-desktop", "passed": true}""")).Value.Marks);
 
     [Fact]
     public void A_record_without_home_time_or_patches_has_none()

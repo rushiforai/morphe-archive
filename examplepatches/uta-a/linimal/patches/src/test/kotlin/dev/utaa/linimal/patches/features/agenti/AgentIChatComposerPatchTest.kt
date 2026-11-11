@@ -73,6 +73,18 @@ class AgentIChatComposerPatchTest {
     }
 
     @Test
+    fun `gate is rejected when the null branch does not reach the null supply`() {
+        // 分岐先が holder の生成（addr 0006）だと、null の view で holder を作る経路になります。
+        assertNull(gateShape(supplyInstructions(nullBranchOffset = 2)))
+    }
+
+    @Test
+    fun `gate is rejected when the holder constructor receives another object`() {
+        // constructor の receiver（v8）が、生成した holder（v9）の写しではありません。
+        assertNull(gateShape(supplyInstructions(holderCopySource = 7)))
+    }
+
+    @Test
     fun `gate is rejected when the result register cannot be used by the non range hook`() {
         val instructions = supplyInstructions().toMutableList()
         instructions[1] = ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 16)
@@ -88,6 +100,8 @@ class AgentIChatComposerPatchTest {
     private fun supplyInstructions(
         holderViewRegister: Int = 6,
         supplyRegister: Int = 15,
+        nullBranchOffset: Int = 9,
+        holderCopySource: Int = 9,
     ): List<Instruction> = listOf(
         ImmutableInstruction35c(
             Opcode.INVOKE_INTERFACE,
@@ -100,9 +114,10 @@ class AgentIChatComposerPatchTest {
             ImmutableMethodReference(ACCESSOR_OWNER, "E", emptyList(), COMPOSE_VIEW),
         ),
         ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 6),
-        ImmutableInstruction21t(Opcode.IF_EQZ, 6, 8),
+        // null 側は `const/4 v15, 0`（addr 000d）へ分岐します。
+        ImmutableInstruction21t(Opcode.IF_EQZ, 6, nullBranchOffset),
         ImmutableInstruction21c(Opcode.NEW_INSTANCE, 9, ImmutableTypeReference(CHIP_BAR_HOLDER)),
-        ImmutableInstruction12x(Opcode.MOVE_OBJECT, 8, 9),
+        ImmutableInstruction12x(Opcode.MOVE_OBJECT, 8, holderCopySource),
         ImmutableInstruction35c(
             Opcode.INVOKE_DIRECT,
             4,

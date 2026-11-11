@@ -287,7 +287,7 @@ Use your own authorized Reddit OAuth client and reach the existing login flow wi
 
 ## Readable Calendar descriptions
 
-**Fossify Calendar 1.12.0 and 1.12.1** · [Setup & patch details](CALENDAR.md)
+**Fossify Calendar 1.12.0, 1.12.1 and 1.12.2** · [Setup & patch details](CALENDAR.md)
 
 Read HTML event descriptions in the editor, event lists, widget and reminders.
 The editor also offers an explicit Edit HTML source action and preserves the

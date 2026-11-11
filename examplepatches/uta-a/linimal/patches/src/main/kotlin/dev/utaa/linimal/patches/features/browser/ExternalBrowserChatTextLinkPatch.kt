@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.ApkArchitecture
 import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -19,6 +20,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import dev.utaa.linimal.patches.features.ads.smartChannelAdsPatch
 import dev.utaa.linimal.patches.shared.Constants
 import dev.utaa.linimal.patches.status.PatchId
@@ -28,6 +30,7 @@ import dev.utaa.linimal.patches.util.BOOLEAN
 import dev.utaa.linimal.patches.util.OBJECT
 import dev.utaa.linimal.patches.util.STRING
 import dev.utaa.linimal.patches.util.VOID
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val CONTEXT = "Landroid/content/Context;"
 private const val URI = "Landroid/net/Uri;"
@@ -45,7 +48,14 @@ private const val CHAT_REFERRER_VALUE = "Lci1/r\$a;"
 private const val NORMALIZED_LINK = "Lci1/p;"
 private const val EXTERNAL_BROWSER_HOOK =
     "Ldev/utaa/linimal/extension/features/browser/ExternalBrowserHooks;" +
-        "->tryOpenNormalLinkExternally(Landroid/content/Context;Landroid/net/Uri;)Z"
+        "->tryOpenChatLinkExternally(Landroid/content/Context;Landroid/net/Uri;Ljava/lang/Object;)Z"
+
+/**
+ * トーク内のリンクを押した操作を表す referrer action。本文リンク（CLICK）、リッチメッセージ（RICH_MSG）、
+ * リッチメニュー（RICH_MENU）、テンプレート・Flex のカード（TEMPLATE_MSG）がすべて同じ routing へ届きます。
+ * どの action を外部へ渡すかは runtime 側が enum 名で判定し、ここでは enum に揃っていることだけを確かめます。
+ */
+private val chatLinkActions = setOf("CLICK", "RICH_MSG", "RICH_MENU", "TEMPLATE_MSG")
 
 private val linkRouterParameters = listOf(
     CONTEXT,
@@ -188,18 +198,53 @@ private fun textLinkViewClickFingerprint(callback: Match) = Fingerprint(
 private data class TargetInjectionShape(
     val insertionIndex: Int,
     val uriRegister: Int,
-    val presetScratchRegister: Int,
+    val actionScratchRegister: Int,
     val contextScratchRegister: Int,
     val contextField: FieldReference,
 )
 
+/** referrer の location / action を持つ instance field。難読化名ではなく型で一意に決めます。 */
+private data class ReferrerFields(
+    val location: FieldReference,
+    val action: FieldReference,
+)
+
 /**
- * 外部ブラウザ routing は通常チャット本文だけに限定します。OAuth、Channel permission、Pay、LIFF、
- * Settings WebView、Timeline、rich message は、検証済みの h preset 経路へ入りません。
+ * referrer が location と action の instance field を 1 つずつ持ち、location の enum に CHAT、action の
+ * enum に [chatLinkActions] がそろっている場合だけ field を返します。
+ */
+private fun referrerFields(
+    referrer: ClassDef?,
+    location: ClassDef?,
+    action: ClassDef?,
+): ReferrerFields? {
+    if (referrer == null || location == null || action == null) {
+        return null
+    }
+    fun enumConstants(classDef: ClassDef) = classDef.staticFields
+        .filter { it.type == classDef.type }
+        .map { it.name }
+        .toSet()
+    if ("CHAT" !in enumConstants(location) || !enumConstants(action).containsAll(chatLinkActions)) {
+        return null
+    }
+    val locationField = referrer.instanceFields.singleOrNull { it.type == REFERRER_LOCATION } ?: return null
+    val actionField = referrer.instanceFields.singleOrNull { it.type == REFERRER_ACTION } ?: return null
+    return ReferrerFields(
+        location = ImmutableFieldReference(REFERRER_PARAM, locationField.name, REFERRER_LOCATION),
+        action = ImmutableFieldReference(REFERRER_PARAM, actionField.name, REFERRER_ACTION),
+    )
+}
+
+/**
+ * 外部ブラウザ routing は、トーク（location CHAT）でリンクを押した操作に限ります。本文リンク、
+ * リッチメッセージ、リッチメニュー、テンプレート・Flex のカードが対象です（Issue #18）。
+ * OAuth、Channel permission、Pay、LIFF、Settings WebView、Timeline は CHAT の referrer を持たず、
+ * LINE の web host は runtime 側で元の処理へ残します。
  */
 val externalBrowserChatTextLinkPatch = bytecodePatch(
     name = "リンクを外部ブラウザで開く",
-    description = "トーク本文の通常の http/https リンクを、実行時設定で外部ブラウザへ渡せるようにします。",
+    description = "トークの本文、リッチメッセージ、リッチメニュー、カードの http/https リンクを、実行時設定で外部ブラウザへ渡せるようにします。",
 ) {
     compatibleWith(Constants.LINE_COMPATIBILITY)
     availability { _, architecture ->
@@ -225,7 +270,7 @@ val externalBrowserChatTextLinkPatch = bytecodePatch(
 
         val target = targetMatches.single()
         val targetShape = targetInjectionShape(target)
-        if (targetShape == null) {
+        if (targetShape == null || !isSafeInjectionIndex(target.method.implementation, targetShape.insertionIndex)) {
             recordUnsafeFeatureStatus(
                 listOf(PatchId.EXTERNAL_BROWSER_CHAT_TEXT_LINK),
                 expectedTargetCount = 1,
@@ -241,6 +286,21 @@ val externalBrowserChatTextLinkPatch = bytecodePatch(
                 expectedTargetCount = 1,
                 actualTargetCount = 1,
                 reason = "ExternalBrowserChatPresetNotUnique",
+            )
+            return@execute
+        }
+
+        val fields = referrerFields(
+            classDefByOrNull(REFERRER_PARAM),
+            classDefByOrNull(REFERRER_LOCATION),
+            classDefByOrNull(REFERRER_ACTION),
+        )
+        if (fields == null) {
+            recordUnsafeFeatureStatus(
+                listOf(PatchId.EXTERNAL_BROWSER_CHAT_TEXT_LINK),
+                expectedTargetCount = 1,
+                actualTargetCount = 1,
+                reason = "ExternalBrowserReferrerShapeMismatch",
             )
             return@execute
         }
@@ -278,16 +338,21 @@ val externalBrowserChatTextLinkPatch = bytecodePatch(
             return@execute
         }
 
-        val contextFieldSmali = "${targetShape.contextField.definingClass}->" +
-            "${targetShape.contextField.name}:${targetShape.contextField.type}"
+        val contextFieldSmali = fieldSmali(targetShape.contextField)
+        val actionScratch = targetShape.actionScratchRegister
+        val contextScratch = targetShape.contextScratchRegister
+        // CHAT の referrer だけを hook へ渡し、action の判定は runtime 側に任せます。
         target.method.addInstructionsWithLabels(
             targetShape.insertionIndex,
             """
-                sget-object v${targetShape.presetScratchRegister}, $REFERRER_PARAM->h:$REFERRER_PARAM
-                if-ne p2, v${targetShape.presetScratchRegister}, :original
-                iget-object v${targetShape.contextScratchRegister}, p0, $contextFieldSmali
-                invoke-static { v${targetShape.contextScratchRegister}, v${targetShape.uriRegister} }, $EXTERNAL_BROWSER_HOOK
-                move-result v${targetShape.contextScratchRegister}
+                if-eqz p2, :original
+                iget-object v$actionScratch, p2, ${fieldSmali(fields.location)}
+                sget-object v$contextScratch, $REFERRER_LOCATION->CHAT:$REFERRER_LOCATION
+                if-ne v$actionScratch, v$contextScratch, :original
+                iget-object v$actionScratch, p2, ${fieldSmali(fields.action)}
+                iget-object v$contextScratch, p0, $contextFieldSmali
+                invoke-static { v$contextScratch, v${targetShape.uriRegister}, v$actionScratch }, $EXTERNAL_BROWSER_HOOK
+                move-result v$contextScratch
                 if-eqz v${targetShape.contextScratchRegister}, :original
                 return-void
                 :original
@@ -298,10 +363,12 @@ val externalBrowserChatTextLinkPatch = bytecodePatch(
             listOf(PatchId.EXTERNAL_BROWSER_CHAT_TEXT_LINK),
             expectedTargetCount = 1,
             actualTargetCount = 1,
-            reason = "ExternalBrowserChatTextLinkGuarded",
+            reason = "ExternalBrowserChatLinkGuarded",
         )
     }
 }
+
+private fun fieldSmali(field: FieldReference): String = "${field.definingClass}->${field.name}:${field.type}"
 
 /**
  * URI parse 境界の local register を再利用する前に、reference target の data flow を厳密に検証します。
@@ -376,7 +443,7 @@ private fun targetInjectionShape(match: Match): TargetInjectionShape? {
     return TargetInjectionShape(
         insertionIndex = parseIndex + 2,
         uriRegister = uriResult.registerA,
-        presetScratchRegister = 0,
+        actionScratchRegister = 0,
         contextScratchRegister = 1,
         contextField = contextField,
     )

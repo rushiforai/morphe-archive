@@ -6,6 +6,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.patch.patch
 import app.morphe.patches.kicktv.KICK_TV
@@ -13,6 +14,7 @@ import app.morphe.patches.kicktv.settings.settingsPatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
@@ -52,6 +54,29 @@ private object ChatTextStyleFingerprint : Fingerprint(
 )
 
 /**
+ * `a79.b(...)` builds the chat message `LazyColumn`. Its vertical arrangement
+ * is `Arrangement.spacedBy(2.dp)`; the only `2.0f` literal in the method is
+ * that spacing. Replacing it with the preference helper lets CHAT TEXT SIZE
+ * widen the gap between messages to the Twitch-like value.
+ */
+private object ChatMessageListFingerprint : Fingerprint(
+    definingClass = "La79;",
+    name = "b",
+    parameters = listOf(
+        "Lss4;",
+        "Lrr0;",
+        "Ljava/util/List;",
+        "Z",
+        "Lp73;",
+        "I",
+    ),
+    returnType = "V",
+    filters = listOf(
+        literal(2.0f),
+    ),
+)
+
+/**
  * `KickApplication.onCreate()` runs before Compose builds any TextStyle, so
  * the extension can capture the context and read the saved preference in time.
  */
@@ -71,9 +96,9 @@ private object KickApplicationOnCreateFingerprint : Fingerprint(
 @Suppress("unused")
 val chatTextPatch = patch(
     name = "CHAT TEXT SIZE",
-    description = "Render chat messages with a larger, Twitch-like TV text size. " +
-        "Pick 16 sp (default), 15 sp, 13 sp or the stock 11 sp in SEYTTINGS. " +
-        "Requires the SEYTTINGS patch.",
+    description = "Render chat messages with a larger, Twitch-like TV text size " +
+        "and a wider gap between messages. Pick 16 sp (default), 15 sp, 13 sp " +
+        "or the stock 11 sp in SEYTTINGS. Requires the SEYTTINGS patch.",
     default = true,
 ) {
     compatibleWith(KICK_TV)
@@ -109,6 +134,17 @@ val chatTextPatch = patch(
 
             method.replaceSpCall(fontSizeIndex, "fontSizeSp")
             method.replaceSpCall(lineHeightIndex, "lineHeightSp")
+        }
+
+        // Widen the gap between chat messages when the tweak is active.
+        ChatMessageListFingerprint.apply {
+            val index = instructionMatches[0].index
+            val register = method.getInstruction<OneRegisterInstruction>(index).registerA
+            method.replaceInstruction(
+                index,
+                "invoke-static {}, ${EXTENSION_CLASS}ChatTextPrefs;->messageSpacingDp()F",
+            )
+            method.addInstruction(index + 1, "move-result v$register")
         }
     }
 }

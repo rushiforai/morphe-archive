@@ -22,6 +22,7 @@ import dev.utaa.linimal.patches.status.PatchStatus
 import dev.utaa.linimal.patches.status.PatchStatusRecord
 import dev.utaa.linimal.patches.status.patchStatusCollector
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
 
 private const val WALLET_HEADER_OWNER =
     "Lcom/linecorp/line/wallet/impl/v3/view/WalletV3GrandDesignHeaderView;"
@@ -84,7 +85,7 @@ val agentIWalletHeaderPatch = bytecodePatch(
 
         val supplier = supplierMatches.single()
         val stateSupply = walletAgentStateSupply(supplier.method)
-        if (stateSupply == null) {
+        if (stateSupply == null || !isSafeInjectionIndex(supplier.method.implementation, stateSupply.setterIndex)) {
             recordUnsafeFeatureStatus(
                 listOf(PatchId.AGENT_I_WALLET_HEADER),
                 expectedTargetCount = 1,
@@ -97,7 +98,7 @@ val agentIWalletHeaderPatch = bytecodePatch(
         supplier.method.addInstructions(
             stateSupply.setterIndex,
             """
-                invoke-static { v${stateSupply.stateRegister} }, $WALLET_HEADER_HOOK
+                invoke-static/range { v${stateSupply.stateRegister} .. v${stateSupply.stateRegister} }, $WALLET_HEADER_HOOK
                 move-result-object v${stateSupply.stateRegister}
                 check-cast v${stateSupply.stateRegister}, $WALLET_AGENT_STATE
             """.trimIndent(),

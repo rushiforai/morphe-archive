@@ -31,6 +31,9 @@ import app.hushtelegram.extension.telegram.settings.Settings;
  * off). Going offline still goes out, so the account shows as offline.
  *
  * <p>Sending a message into a chat tells the server it was read anyway, which this can't change.
+ *
+ * <p>A broadcast channel's read still goes out. Nobody in a channel sees who read what, so holding
+ * it back hid nothing and only left the channel unread on the account's other devices (#65).
  */
 public final class GhostMode {
     private GhostMode() {}
@@ -55,6 +58,9 @@ public final class GhostMode {
             "org.telegram.tgnet.TLRPC$TL_messages_setTyping",
             "org.telegram.tgnet.TLRPC$TL_messages_setEncryptedTyping")));
 
+    /** The read request of a channel or supergroup, which has an input channel field named channel. */
+    private static final String CHANNEL_READ = "org.telegram.tgnet.TLRPC$TL_channels_readHistory";
+
     /** The request that sets the account online or offline, which has a boolean field named offline. */
     private static final String STATUS = "org.telegram.tgnet.tl.TL_account$updateStatus";
 
@@ -74,7 +80,7 @@ public final class GhostMode {
         if (request == null) return false;
         Kind kind = kind(request.getClass().getName());
         if (kind == Kind.ONLINE && !goingOnline(request)) return false;
-        if (!keepBack(kind)) return false;
+        if (!keepBack(kind, request)) return false;
         if (kind == Kind.TYPING && callback != null) answer(callback);
         return true;
     }
@@ -106,8 +112,20 @@ public final class GhostMode {
         }
     }
 
+    /** Finds a chat in Telegram's tables; a test swaps it. */
+    interface Chats {
+        /** The chat the selected account knows by this ID, or null when it knows none. */
+        Object chat(long id) throws ReflectiveOperationException;
+    }
+
+    static volatile Chats chats = GhostMode::telegramChat;
+
     /** Whether a request of this kind stays on the phone, counted when it does. */
     static boolean keepBack(Kind kind) {
+        return keepBack(kind, null);
+    }
+
+    private static boolean keepBack(Kind kind, Object request) {
         if (kind == Kind.OTHER) return false;
         HookStatus.invoked(FamilyNames.DISABLE_ANALYTICS);
         BooleanSetting part = part(kind);
@@ -117,8 +135,37 @@ public final class GhostMode {
             HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "ghost mode switch read", t);
             return false;
         }
+        if (request != null && broadcastRead(request)) {
+            HookStatus.counted(FamilyNames.DISABLE_ANALYTICS, "channel reads sent");
+            return false;
+        }
         HookStatus.counted(FamilyNames.DISABLE_ANALYTICS, label(kind));
         return true;
+    }
+
+    /**
+     * Whether a read is a broadcast channel's. A supergroup's read, or one for a channel this phone
+     * can't place, stays kept back.
+     */
+    private static boolean broadcastRead(Object request) {
+        if (!CHANNEL_READ.equals(request.getClass().getName())) return false;
+        try {
+            Object channel = HostNames.field(request.getClass(), "channel").get(request);
+            if (channel == null) return false;
+            Object chat = chats.chat(HostNames.field(channel.getClass(), "channel_id").getLong(channel));
+            return chat != null && HostNames.field(chat.getClass(), "broadcast").getBoolean(chat)
+                    && !HostNames.field(chat.getClass(), "megagroup").getBoolean(chat);
+        } catch (ReflectiveOperationException | RuntimeException unreadable) {
+            HookStatus.threw(FamilyNames.DISABLE_ANALYTICS, "ghost mode channel read", unreadable);
+            return false;
+        }
+    }
+
+    private static Object telegramChat(long id) throws ReflectiveOperationException {
+        int account = HostNames.field(Class.forName("org.telegram.messenger.UserConfig"), "selectedAccount").getInt(null);
+        Class<?> controller = Class.forName("org.telegram.messenger.MessagesController");
+        Object instance = HostNames.method(controller, "getInstance", int.class).invoke(null, account);
+        return instance == null ? null : HostNames.method(controller, "getChat", Long.class).invoke(instance, id);
     }
 
     private static BooleanSetting part(Kind kind) {

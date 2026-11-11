@@ -1,3 +1,15 @@
+## [1.24.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.23.0...v1.24.0) (2026-11-10)
+
+### ✨ New Features
+
+* **X:** Add compatibility with 12.42.0 ([cc41840](https://github.com/ahmedyarub/morphe-patches/commit/cc4184011e938d1aa96871930dc5a1db064f6930))
+
+## [1.24.0-dev.1](https://github.com/ahmedyarub/morphe-patches/compare/v1.23.0...v1.24.0-dev.1) (2026-11-10)
+
+### ✨ New Features
+
+* **X:** Add compatibility with 12.42.0 ([cc41840](https://github.com/ahmedyarub/morphe-patches/commit/cc4184011e938d1aa96871930dc5a1db064f6930))
+
 ## [1.23.0](https://github.com/ahmedyarub/morphe-patches/compare/v1.22.2...v1.23.0) (2026-11-07)
 
 ### ✨ New Features

@@ -12,8 +12,9 @@ namespace BaconReader.E2E.Infrastructure;
 /// <see cref="TestDescriptionAttribute"/>, its name the Gherkin's title, its screen tags its attributes, in the Startup or
 /// the LoggedIn group (<see cref="ScenarioGroup"/>), and patched as its Given says: a Startup scenario with exactly the
 /// patches its Given names, one a line (<see cref="Vocabulary.PatchedWithAttribute"/>; never one BaseE2E adds to every
-/// scenario), a LoggedIn one with every patch (<see cref="Vocabulary.PatchedWithEveryPatchAttribute"/>). A screen
-/// attribute twice doesn't compile.
+/// scenario), a LoggedIn one with every patch (<see cref="Vocabulary.PatchedWithEveryPatchAttribute"/>), and its Given
+/// sets up the fake Reddit before the app opens, its last line "BaconReader is open" (a LoggedIn one's after "the test
+/// account is logged in"). A screen attribute twice doesn't compile.
 /// </summary>
 public sealed partial class ScenarioShapeTests
 {
@@ -106,6 +107,32 @@ public sealed partial class ScenarioShapeTests
         }
     }
 
+    [Theory]
+    [MemberData(nameof(Scenarios))]
+    public void Scenario_SetsUpTheFakeBeforeTheAppOpens(string scenario)
+    {
+        var method = Find(scenario);
+        var given = ReadGiven(ReadGherkin(method, scenario));
+        var open = Array.FindIndex(given, line => OpenLine().IsMatch(line));
+        if (open >= 0)
+        {
+            Assert.True(
+                open == given.Length - 1,
+                $"{scenario}'s Given goes on after \"BaconReader is open\": it sets up the fake Reddit (and logs in) before the app opens, "
+                + "so a recording shows it on the setup page, and ends with \"And BaconReader is open\" (docs/given-when-then-test-rules.md).");
+        }
+
+        if (ScenarioGroups.Of(method.DeclaringType!) == ScenarioGroup.LoggedIn)
+        {
+            Assert.True(
+                open > 0 && given[open - 1] == "And the test account is logged in",
+                $"{scenario} is a LoggedIn scenario: its Given ends with \"And the test account is logged in\" and \"And BaconReader is open\".");
+        }
+    }
+
+    [GeneratedRegex("^(?:Given|And) BaconReader is open$")]
+    private static partial Regex OpenLine();
+
     // The Given block: its Given line and the And lines after it, up to the first When, each trimmed.
     private static string[] ReadGiven(Gherkin gherkin) =>
         [.. gherkin.Text.Split('\n')
@@ -128,7 +155,7 @@ public sealed partial class ScenarioShapeTests
     private static MethodInfo Find(string scenario) =>
         FindScenarios().Single(method => $"{method.DeclaringType!.Name}.{method.Name}" == scenario);
 
-    private static IEnumerable<MethodInfo> FindScenarios() =>
+    internal static IEnumerable<MethodInfo> FindScenarios() =>
         typeof(BaseE2E).Assembly.GetTypes()
             // The explorer sets the app up as a scenario does, but is a tool (README, "Exploring the app before writing a Gherkin").
             .Where(type => type.IsSubclassOf(typeof(BaseE2E)) && !type.IsAbstract && type != typeof(Exploring.Explorer))

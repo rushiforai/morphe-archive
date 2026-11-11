@@ -24,8 +24,8 @@
  * mode, not Thumb). The rest of GetIsBought's body is left unused; Hide empty
  * custom decks puts its routine there.
  *
- * Verified on com.wb.headsup 4.15.11 (versionCode 4151100) and 4.15.13
- * (versionCode 4151300), arm64-v8a and armeabi-v7a, against Il2CppDumper.
+ * Verified on com.wb.headsup 4.15.11 (versionCode 4151100), 4.15.13 (versionCode 4151300)
+ * and 4.15.14 (versionCode 4151400), arm64-v8a and armeabi-v7a, against Il2CppDumper.
  */
 package app.lockhart.patches.headsup.misc.premium
 

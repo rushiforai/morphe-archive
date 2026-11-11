@@ -1,3 +1,11 @@
+## [1.9.0-dev.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.9.0-dev.1...v1.9.0-dev.2) (2026-11-10)
+
+## [1.9.0-dev.1](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.2...v1.9.0-dev.1) (2026-11-09)
+
+### ✨ New Features
+
+* **site:** playback speeds from 0.25× to 2× in the e2e recordings' player ([77ff68e](https://github.com/JoanComasFdz/baconreader-morphe-patches/commit/77ff68e49f8ca8a0d6b818bd6a8f7852734d4e74))
+
 ## [1.8.2](https://github.com/JoanComasFdz/baconreader-morphe-patches/compare/v1.8.1...v1.8.2) (2026-11-09)
 
 ### 🐛 Bug Fixes

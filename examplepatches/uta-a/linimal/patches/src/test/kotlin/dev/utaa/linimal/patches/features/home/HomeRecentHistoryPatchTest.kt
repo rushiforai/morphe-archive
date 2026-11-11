@@ -164,7 +164,7 @@ class HomeRecentHistoryPatchTest {
     ): List<Instruction> = buildList {
         add(composerCall("A", listOf("I", "Z"), "Z"))
         add(ImmutableInstruction11x(Opcode.MOVE_RESULT, shouldExecuteRegister))
-        add(ImmutableInstruction21t(Opcode.IF_EQZ, shouldExecuteRegister, 4))
+        add(ImmutableInstruction21t(Opcode.IF_EQZ, shouldExecuteRegister, 3))
         add(ImmutableInstruction10x(Opcode.NOP))
         repeat(skipToGroupEndCount) { add(composerCall("l", emptyList(), "V")) }
         add(composerCall("Z", emptyList(), "Lj3/p3;"))

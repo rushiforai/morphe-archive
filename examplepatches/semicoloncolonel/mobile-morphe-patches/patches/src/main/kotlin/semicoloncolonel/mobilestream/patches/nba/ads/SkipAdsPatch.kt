@@ -3,6 +3,7 @@ package semicoloncolonel.mobilestream.patches.nba.ads
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.string
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -68,7 +69,7 @@ private fun Method.isMediaSourceFactory() = implementation?.instructions?.any {
 
 // Live games and NBA TV also carry ads stitched in on the server (FreeWheel
 // through MediaKind). The app asks for them with a CDN token map built by
-// GetMediaKindAdMapUseCase (com.nba.video.ads.e in 1.2.0). The map already has
+// GetMediaKindAdMapUseCase (com.nba.video.ads.e in 1.2.0 and 1.3.0). The map already has
 // an ad-free branch, taken when the account or the video is ad-free: it
 // returns mapOf("ads" to "no"), and the server then sends the stream without
 // ads. That branch is chosen right after the "ads" key is loaded:
@@ -77,8 +78,12 @@ private fun Method.isMediaSourceFactory() = implementation?.instructions?.any {
 //     if-nez vX, :adFree
 //
 // Setting vX to true before that check always takes the ad-free branch.
+// 1.3.0 added the ad matrix to the log, so the log is matched by its start.
 internal object AdMapFingerprint : Fingerprint(
-    strings = listOf(NO_AD_TOKENS_LOG, "ads"),
+    filters = listOf(
+        string("ads"),
+        string(NO_AD_TOKENS_LOG, StringComparisonType.STARTS_WITH),
+    ),
 )
 
 @Suppress("unused")

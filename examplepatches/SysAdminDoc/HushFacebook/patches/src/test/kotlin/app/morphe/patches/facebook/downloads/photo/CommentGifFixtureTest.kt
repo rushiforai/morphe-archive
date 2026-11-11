@@ -24,6 +24,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -66,15 +67,24 @@ class CommentGifFixtureTest {
      */
     private fun assertRow(what: String, code: List<Instruction>, at: Int, point: CommentGifPoint, click: String, title: String) {
         assertEquals("$what: hands over the comment", point.comment, (code[at] as TwoRegisterInstruction).registerB)
-        assertEquals("$what: asks for the row's tap", click, code[at + 1].called())
-        assertEquals("$what: news up Facebook's row-click", point.wrapperInit, code[at + 6].called())
-        assertEquals("$what: asks for the title", title, code[at + 7].called())
-        assertEquals("$what: with Save photo's icon", point.icon, (code[at + 9] as NarrowLiteralInstruction).narrowLiteral)
-        assertEquals("$what: builds it with Save photo's builder", point.builder, code[at + 10].called())
-        assertEquals("$what: in the component context", point.context, (code[at + 10] as FiveRegisterInstruction).registerD)
-        assertEquals("$what: adds it to the rows", point.add, code[at + 13].called())
-        assertEquals("$what: to the list", point.list, (code[at + 13] as FiveRegisterInstruction).registerC)
-        for (index in at until at + ROW) {
+        val action = (code[at] as TwoRegisterInstruction).registerA
+        point.commentFields.forEachIndexed { index, field ->
+            val read = code[at + 1 + index]
+            assertEquals("$what: reads the comment again through render's fields", Opcode.IGET_OBJECT, read.opcode)
+            assertEquals("$what: field ${index + 1} of the comment's path", field, (read as ReferenceInstruction).reference.toString())
+            val registers = read as TwoRegisterInstruction
+            assertEquals("$what: the path stays in one register", listOf(action, action), listOf(registers.registerA, registers.registerB))
+        }
+        val shift = point.commentFields.size
+        assertEquals("$what: asks for the row's tap", click, code[at + shift + 1].called())
+        assertEquals("$what: news up Facebook's row-click", point.wrapperInit, code[at + shift + 6].called())
+        assertEquals("$what: asks for the title", title, code[at + shift + 7].called())
+        assertEquals("$what: with Save photo's icon", point.icon, (code[at + shift + 9] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals("$what: builds it with Save photo's builder", point.builder, code[at + shift + 10].called())
+        assertEquals("$what: in the component context", point.context, (code[at + shift + 10] as FiveRegisterInstruction).registerD)
+        assertEquals("$what: adds it to the rows", point.add, code[at + shift + 13].called())
+        assertEquals("$what: to the list", point.list, (code[at + shift + 13] as FiveRegisterInstruction).registerC)
+        for (index in at until at + ROW + shift) {
             val registers = when (val instruction = code[index]) {
                 is FiveRegisterInstruction -> listOf(instruction.registerC, instruction.registerD, instruction.registerE,
                     instruction.registerF, instruction.registerG).take(instruction.registerCount)
@@ -89,17 +99,34 @@ class CommentGifFixtureTest {
         }
     }
 
-    /** GraphQLComment and every class with a method holding the sheet's name, in [bundle]. */
-    private fun classes(bundle: java.io.File): Pair<ClassDef?, List<ClassDef>> {
+    /**
+     * GraphQLComment, every class with a method holding the sheet's name, and every class with a
+     * method setting a Dialog's content, in [bundle].
+     */
+    private fun classes(bundle: java.io.File): Triple<ClassDef?, List<ClassDef>, List<ClassDef>> {
         var comment: ClassDef? = null
         val sheets = mutableListOf<ClassDef>()
+        val dialogs = mutableListOf<ClassDef>()
         FixtureDex.forEach(bundle) { dex ->
             for (classDef in dex.classes) {
                 if (classDef.type == GRAPHQL_COMMENT) comment = ImmutableClassDef.of(classDef)
                 if (classDef.methods.any { holdsString(it, COMMENT_SHEET_SOCKET) }) sheets += ImmutableClassDef.of(classDef)
+                if (classDef.methods.any { method -> method.body().any { it.called() == SET_CONTENT_VIEW } }) {
+                    dialogs += ImmutableClassDef.of(classDef)
+                }
             }
         }
-        return comment to sheets
+        return Triple(comment, sheets, dialogs)
+    }
+
+    /** GraphQLComment's one attachments getter in [comment]. */
+    private fun attachmentsGetter(name: String, comment: ClassDef): String {
+        val getters = comment.methods.filter { method ->
+            method.parameterTypes.isEmpty() && method.returnType == IMMUTABLE_LIST &&
+                method.body().any { (it as? NarrowLiteralInstruction)?.narrowLiteral == ATTACHMENTS_FIELD }
+        }
+        assertEquals("$name: GraphQLComment's attachments getters", 1, getters.size)
+        return getters.single().name
     }
 
     @Test
@@ -113,12 +140,7 @@ class CommentGifFixtureTest {
                 val name = bundle.name
                 val (comment, sheets) = classes(bundle)
                 assertNotNull("$name: no GraphQLComment", comment)
-                val getters = comment!!.methods.filter { method ->
-                    method.parameterTypes.isEmpty() && method.returnType == IMMUTABLE_LIST &&
-                        method.body().any { (it as? NarrowLiteralInstruction)?.narrowLiteral == ATTACHMENTS_FIELD }
-                }
-                assertEquals("$name: GraphQLComment's attachments getters", 1, getters.size)
-                val getter = getters.single().name
+                val getter = attachmentsGetter(name, comment!!)
 
                 val taken = sheets.flatMap { owner -> owner.methods.filter { commentGifPoint(it, getter) != null }.map { owner to it } }
                 assertEquals("$name: methods the patch takes", 1, taken.size)
@@ -129,6 +151,14 @@ class CommentGifFixtureTest {
                 val original = render.body()
                 assertEquals("$name: the hook follows the empty test", Opcode.IF_NEZ, original[point.insert - 1].opcode)
                 assertTrue("$name: the short call forms take the context and list", point.context <= 15 && point.list <= 15)
+                // The phone builds keep the comment in its register up to the hook point. The
+                // Android 9 build reuses it, so the hook reads it again through render's own field.
+                val abi = name.substringAfter("-$version-").substringBefore(".apkm")
+                assertEquals("$name: the comment's register is reused", abi.contains("-minapi"), point.commentFields.isNotEmpty())
+                point.commentFields.firstOrNull()?.let {
+                    assertEquals("$name: the comment's path starts at render's own field", owner.type, it.substringBefore("->"))
+                }
+                val row = ROW + point.commentFields.size
 
                 fun hooked(vararg steps: BytecodePatchContext.() -> () -> Unit): List<Instruction> {
                     val context = PatchContexts.of(listOf(owner, comment))
@@ -140,36 +170,41 @@ class CommentGifFixtureTest {
                 }
                 val at = point.insert
 
-                // Save GIF alone, then Save video alone (#318), each one row at the hook point.
+                // Save GIF alone, Save video alone (#318) and Save photo alone (#440), each one row
+                // at the hook point.
                 for ((label, step, click, title) in listOf(
                     Row("Save GIF", { commentSheetGifRow() }, GIF_ROW_CLICK, GIF_ROW_TITLE),
                     Row("Save video", { commentSheetVideoRow() }, VIDEO_ROW_CLICK, VIDEO_ROW_TITLE),
+                    Row("Save photo", { commentSheetPhotoRow() }, PHOTO_ROW_CLICK, PHOTO_ROW_TITLE),
                 )) {
                     val code = hooked(step)
-                    assertEquals("$name: $label's code and nothing else", original.size + ROW, code.size)
+                    assertEquals("$name: $label's code and nothing else", original.size + row, code.size)
                     assertRow("$name: $label", code, at, point, click, title)
-                    assertTrue("$name: $label jumps to Facebook's next instruction", (at + ROW) in branchTargets(code))
-                    assertEquals("$name: Facebook's code goes on after $label", original[at].opcode, code[at + ROW].opcode)
-                    val rest = code.filterIndexed { index, _ -> index !in at until at + ROW }
+                    assertTrue("$name: $label jumps to Facebook's next instruction", (at + row) in branchTargets(code))
+                    assertEquals("$name: Facebook's code goes on after $label", original[at].opcode, code[at + row].opcode)
+                    val rest = code.filterIndexed { index, _ -> index !in at until at + row }
                     assertEquals("$name: the rest is Facebook's with $label", original.map { it.opcode }, rest.map { it.opcode })
                 }
 
                 // Both patches in, either order: the second finds the same point and goes in front.
+                // Download any photo adds Save GIF, then Save photo the same way.
                 for ((first, second) in listOf(
                     Row("Save GIF", { commentSheetGifRow() }, GIF_ROW_CLICK, GIF_ROW_TITLE) to
                         Row("Save video", { commentSheetVideoRow() }, VIDEO_ROW_CLICK, VIDEO_ROW_TITLE),
                     Row("Save video", { commentSheetVideoRow() }, VIDEO_ROW_CLICK, VIDEO_ROW_TITLE) to
                         Row("Save GIF", { commentSheetGifRow() }, GIF_ROW_CLICK, GIF_ROW_TITLE),
+                    Row("Save GIF", { commentSheetGifRow() }, GIF_ROW_CLICK, GIF_ROW_TITLE) to
+                        Row("Save photo", { commentSheetPhotoRow() }, PHOTO_ROW_CLICK, PHOTO_ROW_TITLE),
                 )) {
                     val code = hooked(first.step, second.step)
                     val both = "$name: ${first.label} then ${second.label}"
-                    assertEquals("$both: two rows' code and nothing else", original.size + 2 * ROW, code.size)
+                    assertEquals("$both: two rows' code and nothing else", original.size + 2 * row, code.size)
                     assertRow("$both, the second", code, at, point, second.click, second.title)
-                    assertRow("$both, the first", code, at + ROW, point, first.click, first.title)
+                    assertRow("$both, the first", code, at + row, point, first.click, first.title)
                     val targets = branchTargets(code)
-                    assertTrue("$both: no second row jumps to the first", (at + ROW) in targets)
-                    assertTrue("$both: no first row jumps to Facebook's next instruction", (at + 2 * ROW) in targets)
-                    val rest = code.filterIndexed { index, _ -> index !in at until at + 2 * ROW }
+                    assertTrue("$both: no second row jumps to the first", (at + row) in targets)
+                    assertTrue("$both: no first row jumps to Facebook's next instruction", (at + 2 * row) in targets)
+                    val rest = code.filterIndexed { index, _ -> index !in at until at + 2 * row }
                     assertEquals("$both: the rest is Facebook's", original.map { it.opcode }, rest.map { it.opcode })
                 }
                 checked += version
@@ -177,12 +212,62 @@ class CommentGifFixtureTest {
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
-        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), abis)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), Fixtures.abisOf(abis))
+    }
+
+    @Test
+    fun `each declared build's comment sheet hands its dialog to the extension once the sheet is its content`() {
+        val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
+        assertTrue("the bundle declares no Facebook build", versions.isNotEmpty())
+        val checked = mutableSetOf<String>()
+        val abis = mutableSetOf<String>()
+        for (version in versions) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                val name = bundle.name
+                val (comment, sheets, dialogs) = classes(bundle)
+                assertNotNull("$name: no GraphQLComment", comment)
+                val getter = attachmentsGetter(name, comment!!)
+                val owner = sheets.single { sheet -> sheet.methods.any { commentGifPoint(it, getter) != null } }
+
+                val taken = dialogs.flatMap { maker ->
+                    maker.methods.filter { commentSheetDialogPoint(it, owner.type) != null }.map { maker to it }
+                }
+                assertEquals("$name: methods that set the sheet's dialog", 1, taken.size)
+                val (fragment, method) = taken.single()
+                assertEquals("$name: the fragment's onCreateView", "onCreateView", method.name)
+                // Negative control: the same method read for another render isn't taken.
+                assertNull("$name: another render still matched", commentSheetDialogPoint(method, owner.type.dropLast(1) + "x;"))
+                val (insert, dialog) = commentSheetDialogPoint(method, owner.type)!!
+                val original = method.body()
+                assertEquals("$name: right after the sheet goes in", SET_CONTENT_VIEW, original[insert - 1].called())
+                val made = original.subList(0, insert - 1).last {
+                    it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == dialog
+                }
+                assertEquals("$name: the dialog is the one newed up for the sheet", Opcode.NEW_INSTANCE, made.opcode)
+
+                val context = PatchContexts.of(listOf(owner, comment, fragment))
+                context.commentSheetDialog("test")()
+                val code = context.mutableClassDefBy(fragment.type).methods.single {
+                    it.name == method.name && it.parameterTypes.map(CharSequence::toString) == method.parameterTypes.map(CharSequence::toString)
+                }.body()
+                assertEquals("$name: one call and nothing else", original.size + 1, code.size)
+                assertEquals("$name: hands the dialog over", SHEET_OPENED, code[insert].called())
+                assertEquals("$name: the dialog's register", dialog, code[insert].let {
+                    (it as? FiveRegisterInstruction)?.registerC ?: (it as RegisterRangeInstruction).startRegister
+                })
+                val rest = code.filterIndexed { index, _ -> index != insert }
+                assertEquals("$name: the rest is Facebook's", original.map { it.opcode }, rest.map { it.opcode })
+                checked += version
+                abis += name.substringAfter("-$version-").substringBefore(".apkm")
+            }
+        }
+        assertEquals("a declared build has no fixture", versions, checked)
+        assertEquals("an ABI went unchecked", Fixtures.declaredAbis(), Fixtures.abisOf(abis))
     }
 
     @Test
     fun `the extension has the hooks`() {
-        for (hook in listOf(GIF_ROW_CLICK, GIF_ROW_TITLE, VIDEO_ROW_CLICK, VIDEO_ROW_TITLE)) {
+        for (hook in listOf(GIF_ROW_CLICK, GIF_ROW_TITLE, VIDEO_ROW_CLICK, VIDEO_ROW_TITLE, PHOTO_ROW_CLICK, PHOTO_ROW_TITLE, SHEET_OPENED)) {
             val type = hook.substringBefore("->")
             val name = hook.substringAfter("->").substringBefore("(")
             val method = ExtensionDex.classDef(type).methods.singleOrNull { it.name == name }

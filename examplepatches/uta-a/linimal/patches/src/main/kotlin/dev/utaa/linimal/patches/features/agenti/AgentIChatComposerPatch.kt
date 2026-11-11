@@ -31,6 +31,10 @@ import dev.utaa.linimal.patches.status.patchStatusCollector
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
 import dev.utaa.linimal.patches.util.OBJECT
 import dev.utaa.linimal.patches.util.VOID
+import dev.utaa.linimal.patches.util.isSafeInjectionIndex
+import dev.utaa.linimal.patches.util.unconditionalPathAliases
+import dev.utaa.linimal.patches.util.branchTargetAddress
+import dev.utaa.linimal.patches.util.instructionAddress
 
 private const val VIEW = "Landroid/view/View;"
 private const val VIEW_STUB = "Landroid/view/ViewStub;"
@@ -242,7 +246,11 @@ val agentIChatComposerPatch = bytecodePatch(
                 accessor.originalClassDef.interfaces.toSet(),
             )
         }
-        if (!aiTalkInflationShape(inflationMatches.single().method) || chipBarGateShape == null) {
+        if (
+            !aiTalkInflationShape(inflationMatches.single().method) ||
+            chipBarGateShape == null ||
+            !isSafeInjectionIndex(wiring.method.implementation, chipBarGateShape.insertionIndex)
+        ) {
             recordUnsafeFeatureStatus(
                 listOf(PatchId.AGENT_I_CHAT_COMPOSER),
                 expectedTargetCount = EXPECTED_TARGET_COUNT,
@@ -255,7 +263,7 @@ val agentIChatComposerPatch = bytecodePatch(
         wiring.method.addInstructions(
             chipBarGateShape.insertionIndex,
             """
-                invoke-static { v${chipBarGateShape.chipBarRegister} }, $AGENT_I_CHAT_COMPOSER_CHIP_BAR_HOOK
+                invoke-static/range { v${chipBarGateShape.chipBarRegister} .. v${chipBarGateShape.chipBarRegister} }, $AGENT_I_CHAT_COMPOSER_CHIP_BAR_HOOK
                 move-result-object v${chipBarGateShape.chipBarRegister}
                 check-cast v${chipBarGateShape.chipBarRegister}, $COMPOSE_VIEW
             """.trimIndent(),
@@ -512,6 +520,7 @@ private fun isChipBarSupply(
 
     val holderType = (instructions.getOrNull(index + 3) as? ReferenceInstruction)?.reference as? TypeReference
     if (instructions[index + 3].opcode != Opcode.NEW_INSTANCE || holderType?.type != chipBarHolderType) return false
+    val holderRegister = (instructions[index + 3] as? OneRegisterInstruction)?.registerA ?: return false
 
     // holder constructor の第 1 引数が、null 判定した chip bar view そのものであることを確認します。
     val holderInitIndex = (index + 4 until controllerCallIndex).singleOrNull { candidate ->
@@ -532,6 +541,15 @@ private fun isChipBarSupply(
     ) {
         return false
     }
+    // constructor の receiver が、ここで生成した holder そのもの（move-object の写しを含む）であることを確認します。
+    val holderAliases = unconditionalPathAliases(
+        instructions,
+        index + 4,
+        holderInitIndex,
+        setOf(holderRegister),
+        allowInvokes = true,
+    ) ?: return false
+    if (holderInit.registerC !in holderAliases) return false
 
     // non-null 側は holder を、null 側は 0 を、それぞれ controller の chip bar argument へ入れます。
     val supply = instructions.getOrNull(holderInitIndex + 1) as? TwoRegisterInstruction ?: return false
@@ -543,11 +561,17 @@ private fun isChipBarSupply(
     ) {
         return false
     }
+    // null 側は if-eqz の分岐先から一本道で `const/4 argument, 0` に着く必要があります。hook が null を返した
+    // ときに、LINE 自身の「chip bar なし」の引数供給へ確実に合流させるためです。
+    val nullTargetAddress = branchTargetAddress(instructions, index + 2) ?: return false
+    val nullTarget = instructions.indices.firstOrNull { instructionAddress(instructions, it) == nullTargetAddress }
+        ?: return false
     return (holderInitIndex + 2 until controllerCallIndex).any { candidate ->
         val instruction = instructions[candidate]
         instruction.opcode == Opcode.CONST_4 &&
             (instruction as? OneRegisterInstruction)?.registerA == chipBarArgumentRegister &&
-            (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 0
+            (instruction as? NarrowLiteralInstruction)?.narrowLiteral == 0 &&
+            unconditionalPathAliases(instructions, nullTarget, candidate, emptySet()) != null
     }
 }
 

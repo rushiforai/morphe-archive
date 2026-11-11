@@ -193,15 +193,18 @@ function Get-RedirectTarget {
 
 function Invoke-SourceRequest {
     <#
-        One GET, answering Status and Content. A 4xx or 5xx answer comes back as its status with no
-        content, since a repository that's gone is a finding and not a crash; only a request that
-        never got an answer throws. A rate limit is waited out, three times at most.
+        One GET, or with -Body one JSON POST, answering Status and Content. A 4xx or 5xx answer comes
+        back as its status with no content, since a repository that's gone is a finding and not a
+        crash; only a request that never got an answer throws. A rate limit is waited out, three
+        times at most.
     #>
-    param([Parameter(Mandatory = $true)][string]$Uri, [string]$Auth = 'plain')
+    param([Parameter(Mandatory = $true)][string]$Uri, [string]$Auth = 'plain', [string]$Body)
 
     $headers = @{}
     if ($Auth -eq 'github') { $headers['Authorization'] = "Bearer $GitHubToken" }
     if ($Auth -eq 'gitlab' -and $GitLabToken) { $headers['PRIVATE-TOKEN'] = $GitLabToken }
+    $post = @{}
+    if ($Body) { $post = @{ Method = 'Post'; Body = $Body; ContentType = 'application/json; charset=utf-8' } }
     # A request that carries a token never lets the client follow a redirect: a hop to another host
     # would hand the token over. A redirect is followed here instead, to the same host over https
     # and no further than five times, which is all a renamed repository needs.
@@ -213,10 +216,10 @@ function Invoke-SourceRequest {
         try {
             if ($redirectsAt -eq 0) {
                 $response = Invoke-WebRequest -Uri $Uri -Headers $headers -UserAgent 'HushTelegram-source-audit' `
-                    -UseBasicParsing -TimeoutSec 120 -MaximumRedirection 0
+                    -UseBasicParsing -TimeoutSec 120 -MaximumRedirection 0 @post
             } else {
                 $response = Invoke-WebRequest -Uri $Uri -Headers $headers -UserAgent 'HushTelegram-source-audit' `
-                    -UseBasicParsing -TimeoutSec 120
+                    -UseBasicParsing -TimeoutSec 120 @post
             }
             $content = $null
             $raw = $response.PSObject.Properties['RawContentStream']
@@ -858,29 +861,66 @@ function Get-GitHubWatchedHead {
     return $newest.Sha
 }
 
-function Get-GitLabWatchedHead {
-    param([string]$Project, [string]$Branch, [string[]]$WatchPaths, [string]$Head)
-    if (@($WatchPaths).Count -eq 0) { return $Head }
-    $newest = $null
-    foreach ($watch in $WatchPaths) {
-        $answer = Invoke-SourceRequest -Uri ("https://gitlab.com/api/v4/projects/$Project/repository/commits?ref_name=" +
-            [Uri]::EscapeDataString($Branch) + '&path=' + [Uri]::EscapeDataString($watch) + '&per_page=1') -Auth gitlab
-        if ($answer.Status -ne 200) { throw "the commits of $Branch under $watch answered HTTP $($answer.Status)" }
-        foreach ($commit in (Get-JsonItems (ConvertFrom-SourceJson -Text $answer.Content -What "$Project commits"))) {
-            $date = [datetime]::Parse("$($commit.committed_date)", [Globalization.CultureInfo]::InvariantCulture,
-                [Globalization.DateTimeStyles]::AdjustToUniversal)
-            if ($null -eq $newest -or $date -gt $newest.Date) { $newest = [pscustomobject]@{ Sha = [string]$commit.id; Date = $date } }
+function Get-GitLabWatchedHeads {
+    <#
+        Each branch's newest commit under the watched paths, or null where none has any, by branch
+        name. REST takes a request per branch and path, and GitLab allows an address with no token
+        about 60 an hour, so a mirror with dozens of branches could never be read (HushGram's census,
+        2026-10-31). GraphQL takes them together and has a count of its own. One question holds 30
+        paths, which GitLab scores at 125 of the 200 it allows. An error or a missing project throws,
+        so the source goes unread instead of reading as branches with no watched code.
+    #>
+    param([string]$Project, [string[]]$Branches, [string[]]$WatchPaths)
+    $heads = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+    $dates = New-Object 'System.Collections.Generic.Dictionary[string,object]'
+    foreach ($branch in $Branches) { $heads[$branch] = $null }
+    $wanted = @(foreach ($branch in $Branches) { foreach ($watch in $WatchPaths) { [pscustomobject]@{ Branch = $branch; Watch = $watch } } })
+    for ($skip = 0; $skip -lt $wanted.Count; $skip += 30) {
+        $question = @($wanted | Select-Object -Skip $skip -First 30)
+        $aliases = for ($index = 0; $index -lt $question.Count; $index++) {
+            "q${index}: lastCommit(ref: $(ConvertTo-Json -Compress -InputObject $question[$index].Branch), " +
+                "path: $(ConvertTo-Json -Compress -InputObject $question[$index].Watch), refType: HEADS) { sha committedDate }"
+        }
+        $query = "query { project(fullPath: $(ConvertTo-Json -Compress -InputObject $Project)) { repository { $($aliases -join ' ') } } }"
+        $answer = Invoke-SourceRequest -Uri 'https://gitlab.com/api/graphql' -Auth gitlab -Body (ConvertTo-Json -Compress -InputObject @{ query = $query })
+        if ($answer.Status -ne 200) { throw "the commits under the watched paths of $Project answered HTTP $($answer.Status)" }
+        $document = ConvertFrom-SourceJson -Text $answer.Content -What "$Project commits"
+        $refused = @(Get-SourceProperty $document 'errors' | Where-Object { $_ } | ForEach-Object { [string]$_.message })
+        if ($refused.Count -gt 0) { throw "GitLab refused the question about the watched paths of ${Project}: $($refused -join '; ')" }
+        $commits = Get-SourceProperty (Get-SourceProperty (Get-SourceProperty $document 'data') 'project') 'repository'
+        if ($null -eq $commits) { throw "GitLab answered the question about the watched paths of $Project with no repository" }
+        for ($index = 0; $index -lt $question.Count; $index++) {
+            $commit = Get-SourceProperty $commits "q$index"
+            if ($null -eq $commit) { continue }
+            # ConvertFrom-Json makes a DateTime of this in PowerShell 7 and leaves a string in 5.1.
+            $date = if ($commit.committedDate -is [DateTime]) { [DateTimeOffset]$commit.committedDate } else {
+                [DateTimeOffset]::Parse([string]$commit.committedDate, [Globalization.CultureInfo]::InvariantCulture) }
+            $branch = $question[$index].Branch
+            if (-not $dates.ContainsKey($branch) -or $date -gt $dates[$branch]) {
+                $dates[$branch] = $date
+                $heads[$branch] = [string]$commit.sha
+            }
         }
     }
-    if ($null -eq $newest) { return $null }
-    return $newest.Sha
+    return $heads
 }
 
+$containedAnswers = @{}
+
 function Test-CommitContained {
-    # Whether $Commit is $Within or one of its ancestors. A commit either forge can't compare (a
-    # pin rewritten away by a force push, say) counts as not contained, so it gets looked at.
+    # Whether $Commit is $Within or one of its ancestors, asked once a run: a busy repository's
+    # branches share heads, and on GitLab each question counts against the hourly limit. A commit
+    # either forge can't compare (a pin rewritten away by a force push, say) counts as not
+    # contained, so it gets looked at.
     param($Where, [string]$Commit, [string]$Within)
     if ($Commit -notmatch '^[0-9a-f]{40}$' -or $Within -notmatch '^[0-9a-f]{40}$') { return $false }
+    $asked = "$($Where.Host)/$($Where.Path) $Within $Commit"
+    if (-not $containedAnswers.ContainsKey($asked)) { $containedAnswers[$asked] = Read-CommitContained -Where $Where -Commit $Commit -Within $Within }
+    return $containedAnswers[$asked]
+}
+
+function Read-CommitContained {
+    param($Where, [string]$Commit, [string]$Within)
     if ($Where.Host -eq 'github.com') {
         $answer = Invoke-SourceRequest -Uri "https://api.github.com/repos/$(Get-EncodedPath $Where.Path)/compare/$Within...$Commit" -Auth github
         if ($answer.Status -ne 200) { return $false }
@@ -943,13 +983,21 @@ function Read-GitLabSource {
     $forkList = Get-PagedItems -Uri "https://gitlab.com/api/v4/projects/$project/forks" -Auth gitlab
     if ($forkList.Status -ne 200) { throw "the forks of $Path answered HTTP $($forkList.Status)" }
     $watch = @(Get-SourceProperty $Entry 'watchPaths' | Where-Object { $_ })
+    $watched = $null
+    if ($watch.Count -gt 0) {
+        $watched = Get-GitLabWatchedHeads -Project ([string]$repo.path_with_namespace) -WatchPaths $watch `
+            -Branches @($branchList.Items | ForEach-Object { [string]$_.name })
+    }
     $branches = [ordered]@{}
     foreach ($branch in $branchList.Items) {
         $branches[[string]$branch.name] = [pscustomobject]@{ Head = [string]$branch.commit.id
-            Watched = (Get-GitLabWatchedHead -Project $project -Branch ([string]$branch.name) -WatchPaths $watch -Head ([string]$branch.commit.id)) }
+            Watched = $(if ($watch.Count -eq 0) { [string]$branch.commit.id } else { $watched[[string]$branch.name] }) }
     }
+    # GitLab renames a project waiting to be deleted after its own id. A scanner forks ReVanced's
+    # mirror and deletes the fork again every six hours, faster than any census could record them.
+    $keptForks = @($forkList.Items | Where-Object { [string]$_.path_with_namespace -cnotlike "*-deletion_scheduled-$($_.id)" })
     return [pscustomobject]@{ Status = 200; FullName = "gitlab.com/$($repo.path_with_namespace)".ToLowerInvariant(); Archived = [bool]$repo.archived
-        License = $license; Branches = $branches; Forks = @($forkList.Items | ForEach-Object { [string]$_.path_with_namespace }) }
+        License = $license; Branches = $branches; Forks = @($keptForks | ForEach-Object { [string]$_.path_with_namespace }) }
 }
 
 $forkCount = 0

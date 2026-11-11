@@ -100,7 +100,8 @@ public sealed class BaconReaderApp(
     /// Opens BaconReader on its main screen, as a scenario's "Given BaconReader … is open" says: opens it from the
     /// launcher, taps "GOT IT :(" on the final release announcement
     /// and "Not now" on the prompt to open Reddit links when its patches show them, and waits until the main screen is
-    /// shown.
+    /// shown; in a LoggedIn scenario, whose app starts logged in ("the test account is logged in", before it), until its
+    /// feed shows its posts (<see cref="WaitUntilLoggedInFeedShownAsync"/>).
     /// </summary>
     public async Task OpenAsync()
     {
@@ -118,14 +119,14 @@ public sealed class BaconReaderApp(
         }
 
         await Main.WaitUntilShownAsync();
+        if (patches is PatchSet.Every)
+        {
+            await WaitUntilLoggedInFeedShownAsync();
+        }
     }
 
     /// <summary>
-    /// Waits until the test account is logged in, as a scenario's "Given the test account is logged in" says: a LoggedIn
-    /// scenario's app starts logged in, as the fake Reddit hands it the login at its start (BaseE2E, "E2E fake Reddit"),
-    /// what logging in through "Add account" and Reddit's "Log In" leaves: the session and the user name. Logging in
-    /// through those screens took ~11 s of each scenario (2026-11-07); Spoof client's Startup scenario still does.
-    /// It waits until the feed shows its posts.
+    /// Waits until the feed of the app that started logged in shows its posts.
     /// <para>
     /// Logged in at its start, BaconReader loads the Front Page and, as the test account has no subscriptions, subscribes
     /// it to every default subreddit, both at once. A Front Page loaded after the first subscription and before the one of
@@ -134,7 +135,7 @@ public sealed class BaconReaderApp(
     /// it taps "Refresh", as the user would, and the Front Page loads with every subscription.
     /// </para>
     /// </summary>
-    public async Task LogInWithTheTestAccountAsync()
+    private async Task WaitUntilLoggedInFeedShownAsync()
     {
         if (!await Main.Posts.WaitUntilPostsOrNoDataShownAsync())
         {
@@ -158,7 +159,7 @@ public sealed class BaconReaderApp(
                 throw new InvalidOperationException($"The chat didn't show \"{text}\" after going back 8 times.");
             }
 
-            await OnScreen.DoAsync(driver, () => driver.PressKeyCode(AndroidKeyCode.Back));
+            await OnScreen.PressBackAsync(driver);
             await Task.Delay(TimeSpan.FromSeconds(1));
         }
     }
@@ -182,7 +183,7 @@ public sealed class BaconReaderApp(
                 throw new InvalidOperationException($"The main screen's posts didn't show after going back {MostBacks} times.");
             }
 
-            await OnScreen.DoAsync(driver, () => driver.PressKeyCode(AndroidKeyCode.Back));
+            await OnScreen.PressBackAsync(driver);
         }
 
         await Main.Posts.WaitUntilPostsShownAsync();

@@ -7,9 +7,9 @@ using BaconReader.E2ETools.Core;
 namespace BaconReader.E2ETools.Hosting;
 
 /// <summary>
-/// The PR closed: prs-resources keeps the PR's newest version and loses its older ones (ReleaseCleaning), logging each name
-/// deleted and the release's count, then every post but the newest shrinks to its one line. Merged or not, the same
-/// happens: the newest post stays as the PR's record either way.
+/// The PR closed: prs-resources keeps each run's newest recording and loses the older ones (ReleaseCleaning), logging each
+/// name deleted and the release's count, then each older post whose scenarios were all recorded again shrinks to its one
+/// line. Merged or not, the same happens: the posts that still hold recordings stay as the PR's record either way.
 /// </summary>
 public static class PrClosing
 {

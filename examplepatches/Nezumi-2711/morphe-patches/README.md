@@ -24,9 +24,9 @@ still require device validation; local APK checks alone do not verify them.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.5.0](https://github.com/Nezumi-2711/morphe-patches/releases/tag/v1.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v1.6.0-dev.2](https://github.com/Nezumi-2711/morphe-patches/releases/tag/v1.6.0-dev.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`dev`&nbsp;&nbsp;•&nbsp;&nbsp;17 patches total
 <details open>
-<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
+<summary>📦 Zalo&nbsp;&nbsp;•&nbsp;&nbsp;17 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -45,7 +45,9 @@ still require device validation; local APK checks alone do not verify them.
 | [Hide Business Box in Messages](#hide-business-box-in-messages) | Hide the Business Box row in Messages when enabled in Nezumi Settings. |  |
 | [Hide Discovery tab](#hide-discovery-tab) | Remove the Discovery tab from Zalo's main navigation. |  |
 | [Hide Media Box in Messages](#hide-media-box-in-messages) | Hide the Media Box row in Messages when enabled in Nezumi Settings. |  |
+| [Hide OA accounts in Messages](#hide-oa-accounts-in-messages) | Hide OA accounts in Messages and mute them permanently by default. |  |
 | [Hide delivery receipts](#hide-delivery-receipts) | Suppress outgoing message delivery ACKs when enabled in Nezumi Settings. |  |
+| [Hide feed ads](#hide-feed-ads) | Remove sponsored and advertising items from Zalo's user feed when enabled in Nezumi Settings. |  |
 | [Hide read receipts](#hide-read-receipts) | Keep outgoing read receipts private while retaining delivery ACKs when enabled in Nezumi Settings. |  |
 | [Hide text typing](#hide-text-typing) | Hide outgoing text typing in direct and group chats when enabled in Nezumi Settings. |  |
 | [Keep recalled messages](#keep-recalled-messages) | Keep received messages and locally available photos after another user recalls them, when enabled in Nezumi Settings. |  |

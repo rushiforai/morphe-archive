@@ -37,7 +37,11 @@ public sealed class DrawChat(AndroidDriver driver)
             line.AddAction(finger.CreatePointerDown(MouseButton.Touch));
             line.AddAction(finger.CreatePointerMove(CoordinateOrigin.Viewport, canvas.Left + (canvas.Width * 3 / 4), canvas.Top + (canvas.Height * 3 / 4), TimeSpan.FromMilliseconds(400)));
             line.AddAction(finger.CreatePointerUp(MouseButton.Touch));
-            driver.PerformActions([line]);
+            OnScreen.PerformSwipe(
+                driver,
+                line,
+                new Point(canvas.Left + (canvas.Width / 4), canvas.Top + (canvas.Height / 4)),
+                new Point(canvas.Left + (canvas.Width * 3 / 4), canvas.Top + (canvas.Height * 3 / 4)));
         });
 
     /// <summary>Taps "Accept", which closes the screen and puts the drawing in the reply.</summary>

@@ -183,16 +183,16 @@ public class KayoPatchTest {
         DummyLoadControl lc = new DummyLoadControl();
         KayoPatch.configureDefaultLoadControl(lc);
 
-        assertEquals("Fast startup buffer should be 1.5s (1_500_000 us) for sub-2s time-to-first-frame",
-                1_500_000L, lc.bufferForPlaybackUs);
-        assertEquals("Rebuffer recovery buffer should be 3.0s (3_000_000 us)",
-                3_000_000L, lc.bufferForPlaybackAfterRebufferUs);
-        assertEquals("Min buffer should be 50s (50_000_000 us)",
-                50_000_000L, lc.minBufferUs);
-        assertEquals("Max buffer should be 120s (120_000_000 us)",
-                120_000_000L, lc.maxBufferUs);
-        assertEquals("Back buffer should be 30s (30_000_000 us) for instant keyframe rewind",
-                30_000_000L, lc.backBufferDurationUs);
+        assertEquals("Fast startup buffer should be 3.0s (3_000_000 us) for rock-solid time-to-first-frame",
+                3_000_000L, lc.bufferForPlaybackUs);
+        assertEquals("Rebuffer recovery buffer should be 6.0s (6_000_000 us)",
+                6_000_000L, lc.bufferForPlaybackAfterRebufferUs);
+        assertEquals("Min buffer should be 20s (20_000_000 us)",
+                20_000_000L, lc.minBufferUs);
+        assertEquals("Max buffer should be 40s (40_000_000 us)",
+                40_000_000L, lc.maxBufferUs);
+        assertEquals("Back buffer should be 10s (10_000_000 us) for keyframe rewind",
+                10_000_000L, lc.backBufferDurationUs);
         assertTrue("retainBackBufferFromKeyframe must be enabled", lc.retainBackBufferFromKeyframe);
         assertTrue("prioritizeTimeOverSizeThresholds must be enabled", lc.prioritizeTimeOverSizeThresholds);
     }
@@ -241,7 +241,161 @@ public class KayoPatchTest {
                 2, countingSelector.setParametersCount);
     }
 
+    @Test
+    public void testKayoTvPatchHasZeroExoPlayer2DependenciesAndSupportsTvQoE() throws Exception {
+        Class<?> tvClass = Class.forName("app.template.extension.kayo.KayoTvPatch");
+        for (Field f : tvClass.getDeclaredFields()) {
+            assertFalse("KayoTvPatch field " + f.getName() + " must not reference com.google.android.exoplayer2",
+                    f.getType().getName().startsWith("com.google.android.exoplayer2."));
+        }
+        for (Method m : tvClass.getDeclaredMethods()) {
+            assertFalse("KayoTvPatch method " + m.getName() + " return type must not reference com.google.android.exoplayer2",
+                    m.getReturnType().getName().startsWith("com.google.android.exoplayer2."));
+            for (Class<?> paramType : m.getParameterTypes()) {
+                assertFalse("KayoTvPatch method " + m.getName() + " parameter must not reference com.google.android.exoplayer2",
+                        paramType.getName().startsWith("com.google.android.exoplayer2."));
+            }
+        }
+
+        Method getInitialBitrate = tvClass.getDeclaredMethod("getInitialBitrateEstimate");
+        assertEquals("KayoTvPatch.getInitialBitrateEstimate() must return 80 Mbps",
+                80_000_000L, ((Long) getInitialBitrate.invoke(null)).longValue());
+
+        DummyLoadControl lc = new DummyLoadControl();
+        Method cfgLoadControl = tvClass.getDeclaredMethod("configureDefaultLoadControl", Object.class);
+        cfgLoadControl.invoke(null, lc);
+        assertEquals(4_000_000L, lc.bufferForPlaybackUs);
+        assertEquals(40_000_000L, lc.maxBufferUs);
+
+        Method bypassPairip = tvClass.getDeclaredMethod("bypassPairipLicenseCheck");
+        bypassPairip.invoke(null); // Must safely execute without throwing even when com.pairip is absent
+    }
+
+    @Test
+    public void testKayoMobilePatchDedicatedClassSupportsMobileQoEAndTrackSelection() throws Exception {
+        Class<?> mobileClass = Class.forName("app.template.extension.kayo.KayoMobilePatch");
+        Method getInitialBitrate = mobileClass.getDeclaredMethod("getInitialBitrateEstimate");
+        assertEquals("KayoMobilePatch.getInitialBitrateEstimate() must return 80 Mbps",
+                80_000_000L, ((Long) getInitialBitrate.invoke(null)).longValue());
+
+        DummyRenderersFactory rf = new DummyRenderersFactory();
+        Method cfgRf = mobileClass.getDeclaredMethod("configureRenderersFactory", Object.class);
+        cfgRf.invoke(null, rf);
+        assertTrue(rf.enableDecoderFallback);
+    }
+
+    @Test
+    public void testKayoTvPatchSupportsV461AndV481HdmiStatusPluginAndStandbySanitization() throws Exception {
+        Class<?> tvClass = Class.forName("app.template.extension.kayo.KayoTvPatch");
+        Method onHdmiTryNotify = tvClass.getDeclaredMethod("onHdmiTryNotify", Object.class);
+
+        // 1. Test v4.6.1 HdmiStatusPlugin (primitive boolean isConnected)
+        DummyHdmiPluginV461 plugin461 = new DummyHdmiPluginV461();
+        assertFalse(plugin461.isConnected);
+        onHdmiTryNotify.invoke(null, plugin461);
+        assertTrue("v4.6.1 HdmiStatusPlugin boolean isConnected must be forced to true", plugin461.isConnected);
+
+        // 2. Test v4.8.1 HdmiStatusPlugin (AtomicBoolean isConnected)
+        DummyHdmiPluginV481 plugin481 = new DummyHdmiPluginV481();
+        assertFalse(plugin481.isConnected.get());
+        onHdmiTryNotify.invoke(null, plugin481);
+        assertTrue("v4.8.1 HdmiStatusPlugin AtomicBoolean isConnected must be forced to true", plugin481.isConnected.get());
+
+        // 3. Test v4.8.1 LoadArguments standbyDetectionEnabled & standbyResponseEnabled sanitization
+        DummyLoadArgumentsV481 loadArgs = new DummyLoadArgumentsV481();
+        Method sanitizeLoadArgs = tvClass.getDeclaredMethod("sanitizeLoadArguments", Object.class);
+        sanitizeLoadArgs.invoke(null, loadArgs);
+        assertFalse(loadArgs.useWidevineL3);
+        assertFalse(loadArgs.isTunnellingEnabled);
+        assertFalse(loadArgs.applyTunnelingTransitionFix);
+        assertFalse("v4.8.1 standbyDetectionEnabled must be disabled", loadArgs.standbyDetectionEnabled);
+        assertFalse("v4.8.1 standbyResponseEnabled must be disabled", loadArgs.standbyResponseEnabled);
+        assertEquals(Integer.MAX_VALUE, loadArgs.maxVideoBitrate);
+    }
+
+    @Test
+    public void testKayoTvBandwidthClampingAndAntiBufferingConfiguration() throws Exception {
+        Class<?> tvClass = Class.forName("app.template.extension.kayo.KayoTvPatch");
+
+        // 1. Test DefaultLoadControl configuration on TV (4.0s startup, 8.0s rebuffer, 20s min, 40s max)
+        DummyLoadControl tvLc = new DummyLoadControl();
+        Method configLc = tvClass.getDeclaredMethod("configureDefaultLoadControl", Object.class);
+        configLc.invoke(null, tvLc);
+        assertEquals("TV bufferForPlaybackUs must be 4.0s (4_000_000 us) to prevent instant buffer exhaustion",
+                4_000_000L, tvLc.bufferForPlaybackUs);
+        assertEquals("TV bufferForPlaybackAfterRebufferUs must be 8.0s (8_000_000 us) to prevent repeated rebuffer cycles",
+                8_000_000L, tvLc.bufferForPlaybackAfterRebufferUs);
+        assertEquals("TV minBufferUs must be 20.0s (20_000_000 us)",
+                20_000_000L, tvLc.minBufferUs);
+        assertEquals("TV maxBufferUs must be 40.0s (40_000_000 us)",
+                40_000_000L, tvLc.maxBufferUs);
+        assertEquals("TV backBufferDurationUs must be 10.0s (10_000_000 us)",
+                10_000_000L, tvLc.backBufferDurationUs);
+
+        // 2. Test DefaultLivePlaybackSpeedControl configuration on TV (maxPlaybackSpeed=1.02f enables catchup)
+        DummyLivePlaybackSpeedControl sc = new DummyLivePlaybackSpeedControl();
+        Method configSpeed = tvClass.getDeclaredMethod("configureLivePlaybackSpeedControl", Object.class);
+        configSpeed.invoke(null, sc);
+        assertEquals("maxPlaybackSpeed must be 1.02f so ExoPlayer can catch up without starving buffer",
+                1.02f, sc.maxPlaybackSpeed, 0.001f);
+        assertTrue("minTargetLiveOffsetUs must be at least 6s", sc.minTargetLiveOffsetUs >= 6_000_000L);
+        assertTrue("currentTargetLiveOffsetUs must be at least 7s", sc.currentTargetLiveOffsetUs >= 7_000_000L);
+
+        // 3. Test onBandwidthSample clamps 1-5 Mbps audio-skewed estimate to at least high speed floor (>=80 Mbps)
+        DummyDefaultBandwidthMeter dbm = new DummyDefaultBandwidthMeter();
+        dbm.bitrateEstimate = 1_250_000L; // 1.25 Mbps drop
+        Method onBwSample = tvClass.getDeclaredMethod("onBandwidthSample", Object.class, long.class);
+        long clamped = (Long) onBwSample.invoke(null, dbm, 1_250_000L);
+        assertTrue("Bandwidth estimate must be clamped to at least 80 Mbps (was " + clamped + ")",
+                clamped >= 80_000_000L);
+        assertEquals("DefaultBandwidthMeter.bitrateEstimate must be updated to clamped bitrate",
+                clamped, dbm.bitrateEstimate);
+        assertEquals("DefaultBandwidthMeter.lastReportedBitrateEstimate must be updated to clamped bitrate",
+                clamped, dbm.lastReportedBitrateEstimate);
+
+        // 4. Test overrideReportedBandwidth protects JS Notificator
+        Method overrideReported = tvClass.getDeclaredMethod("overrideReportedBandwidth", long.class);
+        long reportedClamped = (Long) overrideReported.invoke(null, 2_000_000L);
+        assertTrue("overrideReportedBandwidth must clamp to at least 80 Mbps",
+                reportedClamped >= 80_000_000L);
+    }
+
     // --- Dummy Helper Classes for Reflection & QoE Tests ---
+
+    public static class DummyHdmiPluginV461 {
+        public boolean isConnected = false;
+    }
+
+    public static class DummyHdmiPluginV481 {
+        public final java.util.concurrent.atomic.AtomicBoolean isConnected =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
+    }
+
+    public static class DummyLoadArgumentsV481 {
+        public boolean useWidevineL3 = true;
+        public int maxVideoBitrate = 2000000;
+        public boolean isTunnellingEnabled = true;
+        public boolean applyTunnelingTransitionFix = true;
+        public boolean standbyDetectionEnabled = true;
+        public boolean standbyResponseEnabled = true;
+    }
+
+    public static class DummyDefaultBandwidthMeter {
+        public long bitrateEstimate = 1_500_000L;
+        public long lastReportedBitrateEstimate = 1_500_000L;
+        public long totalBytesTransferred = 5_000_000L;
+        public long totalElapsedTimeMs = 200L;
+        public Object context = null;
+    }
+
+    public static class DummyLivePlaybackSpeedControl {
+        public float maxPlaybackSpeed = 1.0f;
+        public float fallbackMaxPlaybackSpeed = 1.0f;
+        public float minPlaybackSpeed = 1.0f;
+        public float fallbackMinPlaybackSpeed = 1.0f;
+        public long minTargetLiveOffsetUs = 2_000_000L;
+        public long currentTargetLiveOffsetUs = 2_000_000L;
+    }
 
     public static class DummyLoadControl {
         private long minBufferUs = 15_000_000L;

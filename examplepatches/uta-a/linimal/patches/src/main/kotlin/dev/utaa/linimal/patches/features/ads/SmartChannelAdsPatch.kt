@@ -26,6 +26,8 @@ import dev.utaa.linimal.patches.status.PatchStatusCollector
 import dev.utaa.linimal.patches.status.PatchStatusRecord
 import dev.utaa.linimal.patches.status.patchStatusCollector
 import dev.utaa.linimal.patches.status.recordUnsafeFeatureStatus
+import dev.utaa.linimal.patches.util.exceptionHandlerAddresses
+import dev.utaa.linimal.patches.util.isDivertedInjectionIndex
 
 private const val SMART_CHANNEL_LAYOUT =
     "Lcom/linecorp/line/admolin/smartch/v2/view/SmartChannelViewLayout;"
@@ -191,18 +193,13 @@ val smartChannelAdsPatch = bytecodePatch(
             return@execute
         }
 
-        var unsafe = false
-        if (uiStateMatches.size == 1) {
-            unsafe = !guardPlacementUiState(uiStateMatches.single()) || unsafe
-        }
-        if (initialMatches.size == 1) {
-            unsafe = !guardInitialBind(initialMatches.single()) || unsafe
-        }
-        if (rebindMatches.size == 1) {
-            unsafe = !guardRebind(rebindMatches.single()) || unsafe
-        }
+        // 見つかった対象をすべて検証してから注入します。1 件でも形が違えば、先に検証できた対象にも
+        // 注入せず LINE を元のまま残します。
+        val plans = uiStateMatches.map(::planPlacementUiStateGuard) +
+            initialMatches.map(::planInitialBindGuard) +
+            rebindMatches.map(::planRebindGuard)
 
-        if (unsafe) {
+        if (!applyAllOrNone(plans)) {
             recordUnsafeFeatureStatus(
                 listOf(PatchId.SMART_CHANNEL_ADS),
                 expectedTargetCount = SMART_CHANNEL_TARGET_COUNT,
@@ -216,6 +213,21 @@ val smartChannelAdsPatch = bytecodePatch(
             smartChannelSuppressionRecord(actualTargetCount, uiStateMatches.size == 1),
         )
     }
+}
+
+/** 対象ごとの注入。検証済みで、呼ぶとその method を書き換えます。 */
+internal typealias SmartChannelInjection = () -> Unit
+
+/**
+ * [plans] がすべて検証済み（非 null）のときだけ全件を注入し true を返します。
+ * 1 件でも null なら何も書き換えずに false を返します。3 対象は別 method なので、注入順は互いの index に影響しません。
+ */
+internal fun applyAllOrNone(plans: List<SmartChannelInjection?>): Boolean {
+    if (plans.any { it == null }) {
+        return false
+    }
+    plans.forEach { plan -> plan!!() }
+    return true
 }
 
 /**
@@ -242,9 +254,9 @@ internal fun smartChannelSuppressionRecord(
  * OFF は hook が false を返して LINE の元の UI state 処理へそのまま進み、ON は枠を GONE にしてから
  * この method 唯一の `Unit.INSTANCE` return へ合流します。ad request / response には到達しません。
  */
-private fun guardPlacementUiState(match: Match): Boolean {
+private fun planPlacementUiStateGuard(match: Match): SmartChannelInjection? {
     val method = match.method
-    val implementation = method.implementation ?: return false
+    val implementation = method.implementation ?: return null
     val instructions = implementation.instructions.toList()
     val frameIndex = match.instructionMatches[0].index
 
@@ -270,20 +282,21 @@ private fun guardPlacementUiState(match: Match): Boolean {
         instructions.getOrNull(frameIndex + 2)?.opcode != Opcode.IGET_OBJECT ||
         scratchWrite == null ||
         scratchWrite.registerA !in 0..15 ||
-        scratchWrite.registerA == frameRead.registerA
+        scratchWrite.registerA == frameRead.registerA ||
+        isDivertedInjectionIndex(instructions, frameIndex + 2, exceptionHandlerAddresses(implementation))
     ) {
-        return false
+        return null
     }
 
-    val unitReturnIndex = unitReturnIndexOrNull(instructions) ?: return false
+    val unitReturnIndex = unitReturnIndexOrNull(instructions) ?: return null
     if (unitReturnIndex <= frameIndex + 2) {
-        return false
+        return null
     }
 
-    method.addInstructionsWithLabels(
+    return { method.addInstructionsWithLabels(
         frameIndex + 2,
         """
-            invoke-static { v${frameRead.registerA} }, $SMART_CHANNEL_PLACEMENT_HOOK
+            invoke-static/range { v${frameRead.registerA} .. v${frameRead.registerA} }, $SMART_CHANNEL_PLACEMENT_HOOK
             move-result v${scratchWrite.registerA}
             if-eqz v${scratchWrite.registerA}, :original
             goto :suppressed
@@ -291,8 +304,7 @@ private fun guardPlacementUiState(match: Match): Boolean {
             nop
         """.trimIndent(),
         ExternalLabel("suppressed", instructions[unitReturnIndex]),
-    )
-    return true
+    ) }
 }
 
 /**
@@ -320,11 +332,12 @@ private fun unitReturnIndexOrNull(
     return candidates.singleOrNull()
 }
 
-private fun guardInitialBind(match: Match): Boolean {
+private fun planInitialBindGuard(match: Match): SmartChannelInjection? {
     val method = match.method
+    val implementation = method.implementation ?: return null
     val findViewIndex = match.instructionMatches[1].index
     val finishIndex = match.instructionMatches[6].index
-    val instructions = method.implementation?.instructions?.toList().orEmpty()
+    val instructions = implementation.instructions.toList()
     val findView = instructions.getOrNull(findViewIndex) as? ReferenceInstruction
     val findViewReference = findView?.reference as? MethodReference
     val viewResult = instructions.getOrNull(findViewIndex + 1) as? OneRegisterInstruction
@@ -343,15 +356,15 @@ private fun guardInitialBind(match: Match): Boolean {
         scratchLiteral?.narrowLiteral != 0 ||
         scratch.registerA !in 0..15 ||
         finishIndex <= findViewIndex + 2 ||
-        method.implementation == null
+        isDivertedInjectionIndex(instructions, findViewIndex + 2, exceptionHandlerAddresses(implementation))
     ) {
-        return false
+        return null
     }
 
-    method.addInstructionsWithLabels(
+    return { method.addInstructionsWithLabels(
         findViewIndex + 2,
         """
-            invoke-static { v${viewResult.registerA} }, $SMART_CHANNEL_HOOK
+            invoke-static/range { v${viewResult.registerA} .. v${viewResult.registerA} }, $SMART_CHANNEL_HOOK
             move-result v${scratch.registerA}
             if-eqz v${scratch.registerA}, :original
             goto :finish
@@ -359,14 +372,14 @@ private fun guardInitialBind(match: Match): Boolean {
             nop
         """.trimIndent(),
         ExternalLabel("finish", instructions[finishIndex]),
-    )
-    return true
+    ) }
 }
 
-private fun guardRebind(match: Match): Boolean {
+private fun planRebindGuard(match: Match): SmartChannelInjection? {
     val method = match.method
+    val implementation = method.implementation ?: return null
     val bindIndex = match.instructionMatches[2].index
-    val instructions = method.implementation?.instructions?.toList().orEmpty()
+    val instructions = implementation.instructions.toList()
     val bind = instructions.getOrNull(bindIndex) as? FiveRegisterInstruction
     val bindReference = (instructions.getOrNull(bindIndex) as? ReferenceInstruction)
         ?.reference as? MethodReference
@@ -388,12 +401,12 @@ private fun guardRebind(match: Match): Boolean {
         modelRegister !in 0..15 ||
         rendererRegister == modelRegister ||
         next?.opcode != Opcode.NEW_INSTANCE ||
-        method.implementation == null
+        isDivertedInjectionIndex(instructions, bindIndex, exceptionHandlerAddresses(implementation))
     ) {
-        return false
+        return null
     }
 
-    method.addInstructionsWithLabels(
+    return { method.addInstructionsWithLabels(
         bindIndex,
         """
             invoke-static { v$rendererRegister }, $SMART_CHANNEL_REBIND_HOOK
@@ -401,6 +414,5 @@ private fun guardRebind(match: Match): Boolean {
             if-eqz v$rendererRegister, :afterBind
         """.trimIndent(),
         ExternalLabel("afterBind", next),
-    )
-    return true
+    ) }
 }
