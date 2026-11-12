@@ -4427,14 +4427,6 @@
                 "updatedAt": 1793943546331
             },
             {
-                "name": "gracie-patches",
-                "source": "https://raw.githubusercontent.com/Sabrina-Moonlight/gracie-patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 622,
-                "createdAt": 1793943546791,
-                "updatedAt": 1793943546791
-            },
-            {
                 "name": "books-piko",
                 "source": "https://raw.githubusercontent.com/sevenzip2/books-piko/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4923,14 +4915,6 @@
                 "updatedAt": 1794464956192
             },
             {
-                "name": "MightyMichs-Patches",
-                "source": "https://raw.githubusercontent.com/mich111discord/MightyMichs-Patches/main/patches-bundle.json",
-                "autoUpdate": true,
-                "sortOrder": 688,
-                "createdAt": 1794464956731,
-                "updatedAt": 1794464956731
-            },
-            {
                 "name": "sby-patches",
                 "source": "https://raw.githubusercontent.com/saadbinyousaf1/sby-patches/main/patches-bundle.json",
                 "autoUpdate": true,
@@ -4961,6 +4945,46 @@
                 "sortOrder": 692,
                 "createdAt": 1794464966675,
                 "updatedAt": 1794464966675
+            },
+            {
+                "name": "Pixel-Camera",
+                "source": "https://raw.githubusercontent.com/Akshayykadam/Pixel-Camera/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 693,
+                "createdAt": 1794516546053,
+                "updatedAt": 1794516546053
+            },
+            {
+                "name": "morphe-bilibili-danmaku",
+                "source": "https://raw.githubusercontent.com/RizkLee/morphe-bilibili-danmaku/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 694,
+                "createdAt": 1794516549775,
+                "updatedAt": 1794516549775
+            },
+            {
+                "name": "gracie-patches",
+                "source": "https://raw.githubusercontent.com/Sabrina-Moonlight/gracie-patches/master/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 695,
+                "createdAt": 1794516550200,
+                "updatedAt": 1794516550200
+            },
+            {
+                "name": "nai64extrapatches",
+                "source": "https://gitlab.com/kmru/nai64extrapatches/-/raw/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 696,
+                "createdAt": 1794516554418,
+                "updatedAt": 1794516554418
+            },
+            {
+                "name": "nai64patches",
+                "source": "https://gitlab.com/kmru/nai64patches/-/raw/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 697,
+                "createdAt": 1794516554709,
+                "updatedAt": 1794516554709
             }
         ]
     }
